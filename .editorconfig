@@ -1,0 +1,12 @@
+[*.{cs,vb}]
+
+# IDE0044: Add readonly modifier
+dotnet_diagnostic.IDE0044.severity = none
+# IDE0051: Remove unused private members
+dotnet_diagnostic.IDE0051.severity = none
+# IDE0060: Remove unused parameters
+dotnet_diagnostic.IDE0060.severity = silent
+# IDE0017: Use object initializers
+dotnet_diagnostic.IDE0017.severity = none
+# IDE0001: Name can be simplified
+dotnet_diagnostic.IDE0001.severity = suggestion

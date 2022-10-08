@@ -198,6 +198,7 @@ GameObject:
   - component: {fileID: 330585545}
   - component: {fileID: 330585544}
   - component: {fileID: 330585547}
+  - component: {fileID: 330585548}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -238,7 +239,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 50
+  field of view: 60
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -264,7 +265,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.4, z: -4}
+  m_LocalPosition: {x: 0, y: 0.5, z: -3.8}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -304,6 +305,19 @@ MonoBehaviour:
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
+--- !u!114 &330585548
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a58d9a874276a5b4fbf16453413dbafb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  songSpeed: 4
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -571,4 +585,11 @@ MonoBehaviour:
   - {r: 0.8566861, g: 0.8679245, b: 0.1514774, a: 1}
   - {r: 0.13510147, g: 0.34488997, b: 0.8679245, a: 1}
   - {r: 0.8490566, g: 0.4801112, b: 0.17221431, a: 1}
+  fretPositions:
+  - -0.8
+  - -0.4
+  - 0
+  - 0.4
+  - 0.8
   fret: {fileID: 3269232338164336537, guid: 397b1ea7bf093d24ab47c16be25edc6d, type: 3}
+  note: {fileID: 861361446070616044, guid: 07d1fe4b062d8dd46a5e9ab12d8e7f35, type: 3}

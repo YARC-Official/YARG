@@ -1,0 +1,211 @@
+{
+    "name": "YargInput",
+    "maps": [
+        {
+            "name": "5Fret",
+            "id": "2a30253e-0d4e-47e1-bccb-37dc81437965",
+            "actions": [
+                {
+                    "name": "Green",
+                    "type": "Button",
+                    "id": "3c5f3c94-0a26-4923-86a1-dac973d57c59",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Red",
+                    "type": "Button",
+                    "id": "0bbad460-1765-4b00-95b4-534e3ae7d093",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Yellow",
+                    "type": "Button",
+                    "id": "cf4d6e07-3842-4e95-8608-93fb7bef8b03",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Blue",
+                    "type": "Button",
+                    "id": "e2e38e04-31dd-4138-922f-8ae7584f9a3b",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Orange",
+                    "type": "Button",
+                    "id": "394ac85d-9d94-40f2-90ba-ee64b8cab7ca",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Strum",
+                    "type": "Button",
+                    "id": "b6d22dfd-1585-4d89-9776-ab9b9b6955a6",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "7fa14adf-70cb-46b7-8f4c-e6b3a9d96e23",
+                    "path": "<Keyboard>/q",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Green",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "9c7591d7-0b18-431e-8809-b91ff7244d39",
+                    "path": "<HID::Licensed by Sony Computer Entertainment Guitar Hero3 for PlayStation (R) 3>/button2",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Green",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5f377753-3968-44ab-b4e9-531deb842e90",
+                    "path": "<Keyboard>/w",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Red",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5a79ad7d-5c4f-4a26-9113-d403f9102e0b",
+                    "path": "<HID::Licensed by Sony Computer Entertainment Guitar Hero3 for PlayStation (R) 3>/button3",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Red",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "eab1d521-bcbf-4255-a7f2-241c5ce2bf26",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Yellow",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0aeb54ac-f82c-4524-961c-a6077b83d1d1",
+                    "path": "<HID::Licensed by Sony Computer Entertainment Guitar Hero3 for PlayStation (R) 3>/trigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Yellow",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "deff946c-d032-4e62-bff9-e5a0eae89a6d",
+                    "path": "<Keyboard>/r",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Blue",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "fbbd348f-8ba5-4793-83ec-4ef87fb7a65b",
+                    "path": "<HID::Licensed by Sony Computer Entertainment Guitar Hero3 for PlayStation (R) 3>/button4",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Blue",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f3d8fd2a-af90-4f2e-b913-bc9c515335a4",
+                    "path": "<Keyboard>/t",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Orange",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "2e6497d8-2a24-4716-bf0e-d886d72d8182",
+                    "path": "<HID::Licensed by Sony Computer Entertainment Guitar Hero3 for PlayStation (R) 3>/button5",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Orange",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5ef1a5f6-4189-426a-8ecb-2b77af52a7a3",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Strum",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ce11a284-eb6d-467d-b0dd-899532072ffd",
+                    "path": "<HID::Licensed by Sony Computer Entertainment Guitar Hero3 for PlayStation (R) 3>/hat/down",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Strum",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b98c132e-21fc-4b48-a35f-e53785dc7b71",
+                    "path": "<HID::Licensed by Sony Computer Entertainment Guitar Hero3 for PlayStation (R) 3>/hat/up",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Strum",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}

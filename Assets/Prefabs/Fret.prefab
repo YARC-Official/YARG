@@ -97,6 +97,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fee51eb6a2b11f344970e4b41eeb48e5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  pressedMaterial: {fileID: 2100000, guid: 31f67319a84badf429109375ab37ab99, type: 2}
+  releasedMaterial: {fileID: 2100000, guid: 3ce74c3ff88f35149bda14f6ad7347ef, type: 2}
   meshRenderer: {fileID: 764582784610884818}
 --- !u!1 &6905472980025070569
 GameObject:
