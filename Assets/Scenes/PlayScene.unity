@@ -317,6 +317,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a58d9a874276a5b4fbf16453413dbafb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  songTime: -1
   songSpeed: 4
 --- !u!1 &410087039
 GameObject:
@@ -593,3 +594,5 @@ MonoBehaviour:
   - 0.8
   fret: {fileID: 3269232338164336537, guid: 397b1ea7bf093d24ab47c16be25edc6d, type: 3}
   note: {fileID: 861361446070616044, guid: 07d1fe4b062d8dd46a5e9ab12d8e7f35, type: 3}
+  hitParticles: {fileID: 3294177006411540974, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
+    type: 3}

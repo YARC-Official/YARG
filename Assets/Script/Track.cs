@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Track : MonoBehaviour {
@@ -14,13 +15,15 @@ public class Track : MonoBehaviour {
 	private GameObject fret;
 	[SerializeField]
 	private GameObject note;
+	[SerializeField]
+	private GameObject hitParticles;
 
 	private Fret[] frets = null;
 	private int visualChartIndex = 0;
 	private int realChartIndex = 0;
 
 	private Dictionary<NoteInfo, Note> spawnedNotes = new();
-	private List<NoteInfo> expectedHits = new();
+	private Dictionary<float, List<NoteInfo>> expectedHits = new();
 
 	private void Start() {
 		// Spawn in frets
@@ -70,30 +73,73 @@ public class Track : MonoBehaviour {
 		while (chart.Count > realChartIndex && chart[realChartIndex].time <= Game.Instance.songTime + Game.HIT_MARGIN) {
 			var noteInfo = chart[realChartIndex];
 
-			expectedHits.Add(noteInfo);
+			// Add notes at chords
+			if (expectedHits.TryGetValue(noteInfo.time, out var list)) {
+				list.Add(noteInfo);
+			} else {
+				var l = new List<NoteInfo>() { noteInfo };
+				expectedHits.Add(noteInfo.time, l);
+			}
 			realChartIndex++;
 		}
 
 		// Update real input
-		for (int i = expectedHits.Count - 1; i >= 0; i--) {
-			var hit = expectedHits[i];
+		foreach (var kv in expectedHits.ToArray()) {
+			var chord = kv.Value;
 
 			// Handle misses
-			if (Game.Instance.songTime - hit.time > Game.HIT_MARGIN) {
-				expectedHits.RemoveAt(i);
-				Debug.Log("missed: " + hit.fret);
+			if (Game.Instance.songTime - chord[0].time > Game.HIT_MARGIN) {
+				expectedHits.Remove(chord[0].time);
 			}
 
 			// Handle hits
-			if (frets[hit.fret].IsPressed && Game.Instance.StrumThisFrame) {
-				expectedHits.RemoveAt(i);
+			if (Game.Instance.StrumThisFrame) {
+				// Convert NoteInfo list to chord fret array
+				int[] chordInts = new int[chord.Count];
+				for (int i = 0; i < chordInts.Length; i++) {
+					chordInts[i] = chord[i].fret;
+				}
 
-				if (spawnedNotes.TryGetValue(hit, out Note note)) {
-					Destroy(note.gameObject);
-					spawnedNotes.Remove(hit);
+				// Check if correct chord is pressed
+				if (ChordPressed(chordInts)) {
+					// If so, hit!
+					expectedHits.Remove(chord[0].time);
+
+					foreach (var hit in chord) {
+						// Destroy notes
+						if (spawnedNotes.TryGetValue(hit, out Note note)) {
+							Destroy(note.gameObject);
+							spawnedNotes.Remove(hit);
+						}
+
+						// Spawn particles
+						var p = Instantiate(hitParticles, frets[hit.fret].transform);
+						p.transform.localPosition = Vector3.zero;
+						p.transform.localRotation = Quaternion.identity;
+						p.GetComponent<Colorizer>().color = fretColors[hit.fret];
+					}
+				} else {
+					// Else we missed...
+					expectedHits.Remove(chord[0].time);
 				}
 			}
 		}
+	}
+
+	private bool ChordPressed(int[] chord) {
+		for (int i = 0; i < frets.Length; i++) {
+			if (chord.Contains(i)) {
+				if (!frets[i].IsPressed) {
+					return false;
+				}
+			} else {
+				if (frets[i].IsPressed) {
+					return false;
+				}
+			}
+		}
+
+		return true;
 	}
 
 	private void FretPressAction(bool on, int fret) {

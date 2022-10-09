@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Game : MonoBehaviour {
-	public const float HIT_MARGIN = 0.04f;
+	public const float HIT_MARGIN = 0.075f;
 
 	public delegate void FretPressAction(bool on, int fret);
 	public event FretPressAction FretPressEvent;
@@ -18,14 +18,31 @@ public class Game : MonoBehaviour {
 	public float songSpeed = 8f;
 	public List<NoteInfo> chart = new() {
 		new(0.0f, 0),
-		new(0.4f, 1),
+		new(0.0f, 2),
+		new(0.4f, 0),
+		new(0.4f, 2),
+		new(0.8f, 0),
 		new(0.8f, 2),
-		new(1.2f, 3),
-		new(1.6f, 4),
-		new(2.0f, 3),
-		new(2.4f, 2),
+		new(1.2f, 0),
+		new(1.2f, 2),
+		new(1.6f, 0),
+		new(1.6f, 2),
+		new(2.0f, 0),
+		new(2.0f, 2),
+		new(2.4f, 0),
+		new(2.4f, 3),
 		new(2.8f, 1),
-		new(3.2f, 0),
+		new(2.8f, 3),
+		new(3.2f, 1),
+		new(3.2f, 3),
+		new(3.6f, 1),
+		new(3.6f, 3),
+		new(4.0f, 1),
+		new(4.0f, 3),
+		new(4.4f, 1),
+		new(4.4f, 3),
+		new(4.8f, 1),
+		new(4.8f, 3),
 	};
 
 	public bool StrumThisFrame {
