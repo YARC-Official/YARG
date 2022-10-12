@@ -1,8 +1,17 @@
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.Networking;
 
 public class Game : MonoBehaviour {
 	public const float HIT_MARGIN = 0.075f;
+
+	[SerializeField]
+	private GameObject soundAudioPrefab;
+	[SerializeField]
+	private GameObject trackPrefab;
 
 	public delegate void FretPressAction(bool on, int fret);
 	public event FretPressAction FretPressEvent;
@@ -13,37 +22,22 @@ public class Game : MonoBehaviour {
 	} = null;
 
 	private YargInput input;
+	private bool songStarted = false;
 
-	public float songTime = -1f;
-	public float songSpeed = 8f;
-	public List<NoteInfo> chart = new() {
-		new(0.0f, 0),
-		new(0.0f, 2),
-		new(0.4f, 0),
-		new(0.4f, 2),
-		new(0.8f, 0),
-		new(0.8f, 2),
-		new(1.2f, 0),
-		new(1.2f, 2),
-		new(1.6f, 0),
-		new(1.6f, 2),
-		new(2.0f, 0),
-		new(2.0f, 2),
-		new(2.4f, 0),
-		new(2.4f, 3),
-		new(2.8f, 1),
-		new(2.8f, 3),
-		new(3.2f, 1),
-		new(3.2f, 3),
-		new(3.6f, 1),
-		new(3.6f, 3),
-		new(4.0f, 1),
-		new(4.0f, 3),
-		new(4.4f, 1),
-		new(4.4f, 3),
-		new(4.8f, 1),
-		new(4.8f, 3),
-	};
+	private float realSongTime = 0f;
+	private float calibration = 0f;
+	public float SongTime {
+		get => realSongTime + calibration;
+	}
+
+	public float SongSpeed {
+		get;
+		private set;
+	}
+	public List<NoteInfo> Chart {
+		get;
+		private set;
+	}
 
 	public bool StrumThisFrame {
 		get;
@@ -52,6 +46,13 @@ public class Game : MonoBehaviour {
 
 	private void Awake() {
 		Instance = this;
+
+		Chart = new();
+		realSongTime = -0.5f;
+		calibration = -0.11f;
+		SongSpeed = 5f;
+
+		// Input
 
 		input = new YargInput();
 		input.Enable();
@@ -69,10 +70,57 @@ public class Game : MonoBehaviour {
 		input._5Fret.Blue.canceled += _ => FretRelease(3);
 		input._5Fret.Orange.canceled += _ => FretRelease(4);
 		input._5Fret.Strum.canceled += _ => Strum(false);
+
+		// Song
+
+		var songFolder = new DirectoryInfo("B:\\Clone Hero Alpha\\Songs\\The B-52's - Rock Lobster");
+		StartCoroutine(StartSong(songFolder));
+	}
+
+	private IEnumerator StartSong(DirectoryInfo songFolder) {
+		// Load audio
+		List<AudioSource> audioSources = new();
+		foreach (var file in songFolder.GetFiles("*.ogg")) {
+			// Load file
+			using UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(file.FullName, AudioType.OGGVORBIS);
+			yield return uwr.SendWebRequest();
+			var clip = DownloadHandlerAudioClip.GetContent(uwr);
+
+			// Create audio source
+			var songAudio = Instantiate(soundAudioPrefab, transform);
+			var audioSource = songAudio.GetComponent<AudioSource>();
+			audioSource.clip = clip;
+			audioSources.Add(audioSource);
+		}
+
+		// Load midi
+		Parser.Parse(Path.Combine(songFolder.FullName, "notes.mid"), Chart);
+
+		// Spawn track
+		Instantiate(trackPrefab);
+
+		songStarted = true;
+
+		// Start all audio at the same time
+		foreach (var audioSource in audioSources) {
+			audioSource.Play();
+		}
 	}
 
 	private void Update() {
-		songTime += Time.deltaTime;
+		if (songStarted) {
+			realSongTime += Time.deltaTime;
+
+			if (Keyboard.current.upArrowKey.wasPressedThisFrame) {
+				calibration += 0.01f;
+				Debug.Log(calibration);
+			}
+
+			if (Keyboard.current.downArrowKey.wasPressedThisFrame) {
+				calibration -= 0.01f;
+				Debug.Log(calibration);
+			}
+		}
 	}
 
 	private void LateUpdate() {

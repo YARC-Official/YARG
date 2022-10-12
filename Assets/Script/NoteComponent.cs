@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Note : MonoBehaviour {
+public class NoteComponent : MonoBehaviour {
 	[SerializeField]
 	private MeshRenderer meshRenderer;
 
@@ -9,7 +9,7 @@ public class Note : MonoBehaviour {
 	}
 
 	private void Update() {
-		transform.localPosition -= new Vector3(0f, 0f, Time.deltaTime * Game.Instance.songSpeed);
+		transform.localPosition -= new Vector3(0f, 0f, Time.deltaTime * Game.Instance.SongSpeed);
 
 		if (transform.localPosition.z < -3f) {
 			Destroy(gameObject);
