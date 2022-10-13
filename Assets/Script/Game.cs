@@ -44,6 +44,12 @@ public class Game : MonoBehaviour {
 		private set;
 	} = false;
 
+	private int botChartIndex = 0;
+	public bool BotMode {
+		get;
+		private set;
+	} = false;
+
 	private void Awake() {
 		Instance = this;
 
@@ -73,7 +79,7 @@ public class Game : MonoBehaviour {
 
 		// Song
 
-		var songFolder = new DirectoryInfo("B:\\Clone Hero Alpha\\Songs\\The B-52's - Rock Lobster");
+		var songFolder = new DirectoryInfo("B:\\Clone Hero Alpha\\Songs\\Phish - Llama");
 		StartCoroutine(StartSong(songFolder));
 	}
 
@@ -120,11 +126,40 @@ public class Game : MonoBehaviour {
 				calibration -= 0.01f;
 				Debug.Log(calibration);
 			}
+
+			if (Keyboard.current.lKey.wasPressedThisFrame) {
+				long i;
+				for (i = 0; i < 2_000_000_000; i++) { }
+				Debug.Log(i);
+			}
+		} else {
+			if (Keyboard.current.bKey.wasPressedThisFrame) {
+				BotMode = !BotMode;
+				Debug.Log(BotMode);
+			}
+		}
+
+		// Update bot mode
+		if (BotMode) {
+			while (Chart.Count > botChartIndex && Chart[botChartIndex].time <= Instance.SongTime) {
+				var noteInfo = Chart[botChartIndex];
+
+				FretPress(noteInfo.fret);
+				StrumThisFrame = true;
+				botChartIndex++;
+			}
 		}
 	}
 
 	private void LateUpdate() {
 		StrumThisFrame = false;
+
+		// Update bot mode
+		if (BotMode) {
+			for (int i = 0; i < 5; i++) {
+				FretRelease(i);
+			}
+		}
 	}
 
 	private void FretPress(int fret) {

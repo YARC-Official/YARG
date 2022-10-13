@@ -62,7 +62,7 @@ public class Track : MonoBehaviour {
 		while (chart.Count > visualChartIndex && chart[visualChartIndex].time <= relativeTime) {
 			var noteInfo = chart[visualChartIndex];
 
-			SpawnNote(noteInfo);
+			SpawnNote(noteInfo, relativeTime);
 			visualChartIndex++;
 		}
 
@@ -142,9 +142,11 @@ public class Track : MonoBehaviour {
 		frets[fret].SetPressed(on);
 	}
 
-	private void SpawnNote(NoteInfo noteInfo) {
+	private void SpawnNote(NoteInfo noteInfo, float time) {
+		float lagCompensation = (time - noteInfo.time) * Game.Instance.SongSpeed;
+
 		var noteObj = Instantiate(note, transform);
-		noteObj.transform.localPosition = new Vector3(fretPositions[noteInfo.fret], 0f, 2f);
+		noteObj.transform.localPosition = new Vector3(fretPositions[noteInfo.fret], 0f, 2f - lagCompensation);
 
 		var noteComp = noteObj.GetComponent<NoteComponent>();
 		noteComp.SetColor(fretColors[noteInfo.fret]);
