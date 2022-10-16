@@ -79,7 +79,7 @@ public class Game : MonoBehaviour {
 
 		// Song
 
-		var songFolder = new DirectoryInfo("B:\\Clone Hero Alpha\\Songs\\Phish - Llama");
+		var songFolder = new DirectoryInfo("B:\\Clone Hero Alpha\\Songs\\Slayer - Black Magic");
 		StartCoroutine(StartSong(songFolder));
 	}
 

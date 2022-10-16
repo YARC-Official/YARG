@@ -14,15 +14,12 @@ public class Track : MonoBehaviour {
 	[SerializeField]
 	private GameObject fret;
 	[SerializeField]
-	private GameObject note;
-	[SerializeField]
-	private GameObject hitParticles;
+	private NotePool notePool;
 
 	private Fret[] frets = null;
 	private int visualChartIndex = 0;
 	private int realChartIndex = 0;
 
-	private Dictionary<NoteInfo, NoteComponent> spawnedNotes = new();
 	private Dictionary<float, List<NoteInfo>> expectedHits = new();
 
 	private void Start() {
@@ -107,16 +104,10 @@ public class Track : MonoBehaviour {
 
 				foreach (var hit in chord) {
 					// Destroy notes
-					if (spawnedNotes.TryGetValue(hit, out NoteComponent note)) {
-						Destroy(note.gameObject);
-						spawnedNotes.Remove(hit);
-					}
+					notePool.RemoveNote(hit);
 
-					// Spawn particles
-					var p = Instantiate(hitParticles, frets[hit.fret].transform);
-					p.transform.localPosition = Vector3.zero;
-					p.transform.localRotation = Quaternion.identity;
-					p.GetComponent<Colorizer>().color = fretColors[hit.fret];
+					// Play particles
+					frets[hit.fret].PlayParticles();
 				}
 			}
 		}
@@ -144,13 +135,9 @@ public class Track : MonoBehaviour {
 
 	private void SpawnNote(NoteInfo noteInfo, float time) {
 		float lagCompensation = (time - noteInfo.time) * Game.Instance.SongSpeed;
+		var pos = new Vector3(fretPositions[noteInfo.fret], 0f, 2f - lagCompensation);
 
-		var noteObj = Instantiate(note, transform);
-		noteObj.transform.localPosition = new Vector3(fretPositions[noteInfo.fret], 0f, 2f - lagCompensation);
-
-		var noteComp = noteObj.GetComponent<NoteComponent>();
+		var noteComp = notePool.CreateNote(noteInfo, pos);
 		noteComp.SetColor(fretColors[noteInfo.fret]);
-
-		spawnedNotes.Add(noteInfo, noteComp);
 	}
 }

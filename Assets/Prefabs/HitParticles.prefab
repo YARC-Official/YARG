@@ -602,7 +602,7 @@ ParticleSystem:
         m_RotationOrder: 4
     randomizeRotationDirection: 0
     gravitySource: 0
-    maxNumParticles: 10
+    maxNumParticles: 1000
     customEmitterVelocity: {x: 0, y: 0, z: 0}
     size3D: 0
     rotation3D: 0
@@ -4890,7 +4890,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3294177006411540973}
-  - component: {fileID: 2080019635}
   - component: {fileID: 98263463026218619}
   m_Layer: 0
   m_Name: HitParticles
@@ -4919,19 +4918,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2080019635
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3294177006411540974}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ff338209cb0a0e84aaef8d1fc4bad525, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  deleteAfter: 1
 --- !u!114 &98263463026218619
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4944,12 +4930,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 21bd74957baf64d4b87f15cef3f11817, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  color: {r: 1, g: 1, b: 1, a: 1}
   keepAlpha: 1
-  particles:
+  colorParticles:
   - {fileID: 3294177006858759508}
   - {fileID: 3454856269738406014}
-  lights:
+  colorLights:
   - {fileID: 7052233033112949576}
 --- !u!1 &3294177006766791692
 GameObject:
@@ -5553,7 +5538,7 @@ ParticleSystem:
         m_RotationOrder: 4
     randomizeRotationDirection: 0
     gravitySource: 0
-    maxNumParticles: 1000
+    maxNumParticles: 5000
     customEmitterVelocity: {x: 0, y: 0, z: 0}
     size3D: 0
     rotation3D: 0
@@ -10425,7 +10410,7 @@ ParticleSystem:
         m_RotationOrder: 4
     randomizeRotationDirection: 0
     gravitySource: 0
-    maxNumParticles: 10
+    maxNumParticles: 1000
     customEmitterVelocity: {x: 0, y: 0, z: 0}
     size3D: 0
     rotation3D: 0
@@ -15426,7 +15411,7 @@ ParticleSystem:
         m_RotationOrder: 4
     randomizeRotationDirection: 0
     gravitySource: 0
-    maxNumParticles: 10
+    maxNumParticles: 1000
     customEmitterVelocity: {x: 0, y: 0, z: 0}
     size3D: 0
     rotation3D: 0

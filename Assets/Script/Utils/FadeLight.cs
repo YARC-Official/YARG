@@ -6,12 +6,21 @@ public class FadeLight : MonoBehaviour {
 	private float fadeOutRate = 2f;
 
 	private new Light light;
+	private float startIntensity = 0f;
 
 	private void Awake() {
 		light = GetComponent<Light>();
+		startIntensity = light.intensity;
+		light.intensity = 0f;
 	}
 
 	private void Update() {
-		light.intensity -= Time.deltaTime * fadeOutRate;
+		if (light.intensity > 0f) {
+			light.intensity -= Time.deltaTime * fadeOutRate;
+		}
+	}
+
+	public void Play() {
+		light.intensity = startIntensity;
 	}
 }

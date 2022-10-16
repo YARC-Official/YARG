@@ -5,6 +5,8 @@ public class Fret : MonoBehaviour {
 	private Material pressedMaterial;
 	[SerializeField]
 	private Material releasedMaterial;
+	[SerializeField]
+	private ParticleGroup particles;
 
 	[SerializeField]
 	private MeshRenderer meshRenderer;
@@ -19,6 +21,7 @@ public class Fret : MonoBehaviour {
 	public void SetColor(Color c) {
 		color = c;
 		meshRenderer.material.color = c;
+		particles.Colorize(c);
 	}
 
 	public void SetPressed(bool pressed) {
@@ -26,5 +29,9 @@ public class Fret : MonoBehaviour {
 		meshRenderer.material.color = color;
 
 		IsPressed = pressed;
+	}
+
+	public void PlayParticles() {
+		particles.Play();
 	}
 }
