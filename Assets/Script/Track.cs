@@ -71,7 +71,7 @@ public class Track : MonoBehaviour {
 			if (expectedHits.TryGetValue(noteInfo.time, out var list)) {
 				list.Add(noteInfo);
 			} else {
-				var l = new List<NoteInfo>() { noteInfo };
+				var l = new List<NoteInfo>(5) { noteInfo };
 				expectedHits.Add(noteInfo.time, l);
 			}
 			realChartIndex++;

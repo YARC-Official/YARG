@@ -5,9 +5,10 @@ using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
 
 public static class Parser {
-	public static void Parse(string midiFile, List<NoteInfo> outputTrack) {
+	public static List<NoteInfo> Parse(string midiFile) {
 		var midi = MidiFile.Read(midiFile);
 
+		List<NoteInfo> output = null;
 		foreach (var trackChunk in midi.GetTrackChunks()) {
 			foreach (var trackEvent in trackChunk.Events) {
 				if (trackEvent is not SequenceTrackNameEvent trackName) {
@@ -18,16 +19,20 @@ public static class Parser {
 					break;
 				}
 
-				ParseGuitar(trackChunk.Events, midi.GetTempoMap(), outputTrack);
+				output = ParseGuitar(trackChunk.Events, midi.GetTempoMap());
 				break;
 			}
 		}
 
 		// Sort by time
-		Game.Instance.Chart.Sort(new Comparison<NoteInfo>((a, b) => a.time.CompareTo(b.time)));
+		output.Sort(new Comparison<NoteInfo>((a, b) => a.time.CompareTo(b.time)));
+
+		return output;
 	}
 
-	private static void ParseGuitar(EventsCollection trackEvents, TempoMap tempo, List<NoteInfo> outputTrack) {
+	private static List<NoteInfo> ParseGuitar(EventsCollection trackEvents, TempoMap tempo) {
+		List<NoteInfo> output = new(trackEvents.Count);
+
 		long totalDelta = 0;
 		foreach (var trackEvent in trackEvents) {
 			totalDelta += trackEvent.DeltaTime;
@@ -58,8 +63,10 @@ public static class Parser {
 				float time = (float) metricTime.TotalSeconds;
 
 				// Add to track
-				outputTrack.Add(new NoteInfo(time, fretNum));
+				output.Add(new NoteInfo(time, fretNum));
 			}
 		}
+
+		return output;
 	}
 }

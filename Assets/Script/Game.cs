@@ -53,9 +53,9 @@ public class Game : MonoBehaviour {
 	private void Awake() {
 		Instance = this;
 
-		Chart = new();
+		Chart = null;
 		realSongTime = -0.5f;
-		calibration = -0.11f;
+		calibration = -0.44f;
 		SongSpeed = 5f;
 
 		// Input
@@ -79,7 +79,7 @@ public class Game : MonoBehaviour {
 
 		// Song
 
-		var songFolder = new DirectoryInfo("B:\\Clone Hero Alpha\\Songs\\Slayer - Black Magic");
+		var songFolder = new DirectoryInfo("B:\\Clone Hero Alpha\\Songs\\The Cure - Just Like Heaven");
 		StartCoroutine(StartSong(songFolder));
 	}
 
@@ -100,7 +100,7 @@ public class Game : MonoBehaviour {
 		}
 
 		// Load midi
-		Parser.Parse(Path.Combine(songFolder.FullName, "notes.mid"), Chart);
+		Chart = Parser.Parse(Path.Combine(songFolder.FullName, "notes.mid"));
 
 		// Spawn track
 		Instantiate(trackPrefab);
@@ -127,26 +127,20 @@ public class Game : MonoBehaviour {
 				Debug.Log(calibration);
 			}
 
-			if (Keyboard.current.lKey.wasPressedThisFrame) {
-				long i;
-				for (i = 0; i < 2_000_000_000; i++) { }
-				Debug.Log(i);
+			// Update bot mode
+			if (BotMode) {
+				while (Chart.Count > botChartIndex && Chart[botChartIndex].time <= Instance.SongTime) {
+					var noteInfo = Chart[botChartIndex];
+
+					FretPress(noteInfo.fret);
+					StrumThisFrame = true;
+					botChartIndex++;
+				}
 			}
 		} else {
-			if (Keyboard.current.bKey.wasPressedThisFrame) {
-				BotMode = !BotMode;
+			if (Keyboard.current.bKey.isPressed && !BotMode) {
+				BotMode = true;
 				Debug.Log(BotMode);
-			}
-		}
-
-		// Update bot mode
-		if (BotMode) {
-			while (Chart.Count > botChartIndex && Chart[botChartIndex].time <= Instance.SongTime) {
-				var noteInfo = Chart[botChartIndex];
-
-				FretPress(noteInfo.fret);
-				StrumThisFrame = true;
-				botChartIndex++;
 			}
 		}
 	}
