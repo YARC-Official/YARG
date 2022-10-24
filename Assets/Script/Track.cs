@@ -20,7 +20,7 @@ public class Track : MonoBehaviour {
 	private int visualChartIndex = 0;
 	private int realChartIndex = 0;
 
-	private Dictionary<float, List<NoteInfo>> expectedHits = new();
+	private SortedDictionary<float, List<NoteInfo>> expectedHits = new();
 
 	private void Start() {
 		// Spawn in frets
@@ -109,6 +109,9 @@ public class Track : MonoBehaviour {
 					// Play particles
 					frets[hit.fret].PlayParticles();
 				}
+
+				// Only hit one note per frame
+				break;
 			}
 		}
 	}

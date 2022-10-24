@@ -48,14 +48,14 @@ public class Game : MonoBehaviour {
 	public bool BotMode {
 		get;
 		private set;
-	} = false;
+	} = true;
 
 	private void Awake() {
 		Instance = this;
 
 		Chart = null;
 		realSongTime = -0.5f;
-		calibration = -0.44f;
+		calibration = -0.24f;
 		SongSpeed = 5f;
 
 		// Input
@@ -79,7 +79,7 @@ public class Game : MonoBehaviour {
 
 		// Song
 
-		var songFolder = new DirectoryInfo("B:\\Clone Hero Alpha\\Songs\\The Cure - Just Like Heaven");
+		var songFolder = new DirectoryInfo(@"B:\Clone Hero Alpha\Songs\Dragonforce - Through The Fire & Flames");
 		StartCoroutine(StartSong(songFolder));
 	}
 
@@ -87,6 +87,10 @@ public class Game : MonoBehaviour {
 		// Load audio
 		List<AudioSource> audioSources = new();
 		foreach (var file in songFolder.GetFiles("*.ogg")) {
+			if (file.Name == "preview.ogg") {
+				continue;
+			}
+
 			// Load file
 			using UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(file.FullName, AudioType.OGGVORBIS);
 			yield return uwr.SendWebRequest();
