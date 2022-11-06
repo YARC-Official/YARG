@@ -3,6 +3,8 @@ using System.IO;
 namespace YARG.UI {
 	public class SongInfo {
 		public DirectoryInfo folder;
+		public bool fetched;
+		public bool errored;
 
 		public string songName;
 		public string artistName;

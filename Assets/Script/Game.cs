@@ -7,6 +7,8 @@ using UnityEngine.Networking;
 
 namespace YARG {
 	public class Game : MonoBehaviour {
+		public static DirectoryInfo song = null;
+
 		public const float HIT_MARGIN = 0.075f;
 
 		[SerializeField]
@@ -80,8 +82,7 @@ namespace YARG {
 
 			// Song
 
-			var songFolder = new DirectoryInfo(@"B:\Clone Hero Alpha\Songs\Dragonforce - Through The Fire & Flames");
-			StartCoroutine(StartSong(songFolder));
+			StartCoroutine(StartSong(song));
 		}
 
 		private IEnumerator StartSong(DirectoryInfo songFolder) {

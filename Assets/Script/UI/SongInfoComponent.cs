@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace YARG.UI {
 	public class SongInfoComponent : MonoBehaviour {
@@ -16,8 +17,17 @@ namespace YARG.UI {
 			if (songInfo.songLength == null) {
 				rightText.text = "N/A";
 			} else {
-				rightText.text = $"{songInfo.songLength:N0}s";
+				int time = (int) songInfo.songLength.Value;
+				int minutes = time / 60;
+				int seconds = time % 60;
+
+				rightText.text = $"{minutes}:{seconds:00}";
 			}
+		}
+
+		public void PlaySong() {
+			Game.song = songInfo.folder;
+			SceneManager.LoadScene(1);
 		}
 	}
 }
