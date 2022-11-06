@@ -76,3 +76,4 @@ crashlytics-build.properties
 
 # Auto-gen
 Assets/YargInput.cs
+/[Aa]ssets/[Pp]ackages/

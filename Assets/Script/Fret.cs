@@ -1,37 +1,39 @@
 using UnityEngine;
 
-public class Fret : MonoBehaviour {
-	[SerializeField]
-	private Material pressedMaterial;
-	[SerializeField]
-	private Material releasedMaterial;
-	[SerializeField]
-	private ParticleGroup particles;
+namespace YARG {
+	public class Fret : MonoBehaviour {
+		[SerializeField]
+		private Material pressedMaterial;
+		[SerializeField]
+		private Material releasedMaterial;
+		[SerializeField]
+		private ParticleGroup particles;
 
-	[SerializeField]
-	private MeshRenderer meshRenderer;
+		[SerializeField]
+		private MeshRenderer meshRenderer;
 
-	private Color color;
+		private Color color;
 
-	public bool IsPressed {
-		get;
-		private set;
-	} = false;
+		public bool IsPressed {
+			get;
+			private set;
+		} = false;
 
-	public void SetColor(Color c) {
-		color = c;
-		meshRenderer.material.color = c;
-		particles.Colorize(c);
-	}
+		public void SetColor(Color c) {
+			color = c;
+			meshRenderer.material.color = c;
+			particles.Colorize(c);
+		}
 
-	public void SetPressed(bool pressed) {
-		meshRenderer.material = pressed ? pressedMaterial : releasedMaterial;
-		meshRenderer.material.color = color;
+		public void SetPressed(bool pressed) {
+			meshRenderer.material = pressed ? pressedMaterial : releasedMaterial;
+			meshRenderer.material.color = color;
 
-		IsPressed = pressed;
-	}
+			IsPressed = pressed;
+		}
 
-	public void PlayParticles() {
-		particles.Play();
+		public void PlayParticles() {
+			particles.Play();
+		}
 	}
 }
