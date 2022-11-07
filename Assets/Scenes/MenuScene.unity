@@ -730,6 +730,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   songViewPrefab: {fileID: 6846856529861592903, guid: 2ac99c03b5c92274d8dc4785c6cbf879,
     type: 3}
+  sectionHeaderPrefab: {fileID: 3422525377971747509, guid: df108608f10c6e04b90e3f5816194d1d,
+    type: 3}
   songListContent: {fileID: 1134924696}
 --- !u!1 &1490728139
 GameObject:
@@ -804,8 +806,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -50, y: -50}
+  m_AnchoredPosition: {x: -125, y: 0}
+  m_SizeDelta: {x: -300, y: -50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1762495158
 MonoBehaviour:

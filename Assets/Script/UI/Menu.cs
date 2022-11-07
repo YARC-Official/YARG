@@ -1,17 +1,21 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using IniParser;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace YARG.UI {
 	public class Menu : MonoBehaviour {
-		private static Dictionary<string, SongInfo> songs;
+		private static List<SongInfo> songs;
 
 		[SerializeField]
 		private GameObject songViewPrefab;
+		[SerializeField]
+		private GameObject sectionHeaderPrefab;
 
 		[SerializeField]
 		private Transform songListContent;
@@ -23,12 +27,24 @@ namespace YARG.UI {
 				FetchSongs();
 			}
 
+			await Task.Run(() => FetchSongInfo());
+			songs = songs.OrderBy(song => song.SongNameNoParen).ToList();
+
 			songInfoComponents = new();
+			char currentSection = ' ';
 			foreach (var song in songs) {
+				char section = SongNameToLetterSection(song.SongNameNoParen);
+				if (section != currentSection) {
+					currentSection = section;
+
+					var sectionHeader = Instantiate(sectionHeaderPrefab, songListContent);
+					sectionHeader.GetComponentInChildren<TextMeshProUGUI>().text = section.ToString();
+				}
+
 				var songView = Instantiate(songViewPrefab, songListContent);
 
 				var songComp = songView.GetComponentInChildren<SongInfoComponent>();
-				songComp.songInfo = song.Value;
+				songComp.songInfo = song;
 				songComp.UpdateText();
 
 				songInfoComponents.Add(songComp);
@@ -36,9 +52,6 @@ namespace YARG.UI {
 
 			// Select the first song by default
 			songInfoComponents[0].GetComponent<Button>().Select();
-
-			await Task.Run(() => FetchSongInfo());
-			UpdateAll();
 		}
 
 		private void UpdateAll() {
@@ -59,38 +72,47 @@ namespace YARG.UI {
 
 			songs = new(directories.Length);
 			foreach (var folder in directories) {
-				songs.Add(folder.Name, new SongInfo(folder));
+				songs.Add(new SongInfo(folder));
 			}
 		}
 
 		private static void FetchSongInfo() {
 			var parser = new FileIniDataParser();
 
-			foreach (var kv in songs) {
-				if (kv.Value.fetched) {
+			foreach (var song in songs) {
+				if (song.fetched) {
 					return;
 				}
 
-				var file = new FileInfo(Path.Combine(kv.Value.folder.ToString(), "song.ini"));
+				var file = new FileInfo(Path.Combine(song.folder.ToString(), "song.ini"));
 				if (!file.Exists) {
 					return;
 				}
 
-				kv.Value.fetched = true;
+				song.fetched = true;
 				try {
 					var data = parser.ReadFile(file.FullName);
 
 					// Set basic info
-					kv.Value.songName ??= data["song"]["name"];
-					kv.Value.artistName ??= data["song"]["artist"];
+					song.SongName ??= data["song"]["name"];
+					song.artistName ??= data["song"]["artist"];
 
 					// Get song length
 					int rawLength = int.Parse(data["song"]["song_length"]);
-					kv.Value.songLength = rawLength / 1000f;
+					song.songLength = rawLength / 1000f;
 				} catch {
-					kv.Value.errored = true;
+					song.errored = true;
 				}
 			}
+		}
+
+		private static char SongNameToLetterSection(string nameNoParen) {
+			char o = nameNoParen.ToUpper()[0];
+			if (char.IsNumber(o)) {
+				o = '#';
+			}
+
+			return o;
 		}
 	}
 }
