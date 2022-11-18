@@ -7,7 +7,7 @@ using UnityEngine.Networking;
 
 namespace YARG {
 	public class Game : MonoBehaviour {
-		public static DirectoryInfo song = null;
+		public static DirectoryInfo song = new(@"B:\Clone Hero Alpha\Songs\Jane's Addiction - Been Caught Stealing");
 
 		public const float HIT_MARGIN = 0.075f;
 
@@ -57,9 +57,9 @@ namespace YARG {
 			Instance = this;
 
 			Chart = null;
-			realSongTime = -0.5f;
-			calibration = -0.24f;
-			SongSpeed = 5f;
+			SongSpeed = 7f;
+			calibration = 0f;
+			realSongTime = 0f;
 
 			// Input
 
@@ -95,6 +95,7 @@ namespace YARG {
 
 				// Load file
 				using UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(file.FullName, AudioType.OGGVORBIS);
+				((DownloadHandlerAudioClip) uwr.downloadHandler).streamAudio = true;
 				yield return uwr.SendWebRequest();
 				var clip = DownloadHandlerAudioClip.GetContent(uwr);
 

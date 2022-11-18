@@ -103,6 +103,8 @@ namespace YARG.UI {
 				} catch {
 					song.errored = true;
 				}
+
+				break;
 			}
 		}
 

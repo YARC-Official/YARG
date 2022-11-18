@@ -10,3 +10,16 @@ dotnet_diagnostic.IDE0060.severity = silent
 dotnet_diagnostic.IDE0017.severity = none
 # IDE0001: Name can be simplified
 dotnet_diagnostic.IDE0001.severity = suggestion
+# IDE0031: Null check can be simplified (Unity is stupid)
+dotnet_diagnostic.IDE0031.severity = silent
+
+# Formatting
+indent_style = tab
+csharp_new_line_before_open_brace = none
+csharp_new_line_before_else = false
+csharp_new_line_before_catch = false
+csharp_new_line_before_finally = false
+csharp_new_line_before_members_in_object_initializers = false
+csharp_new_line_before_members_in_anonymous_types = false
+csharp_new_line_between_query_expression_clauses = false
+csharp_space_after_cast = true
