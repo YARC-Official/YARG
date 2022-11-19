@@ -19,6 +19,8 @@ namespace YARG.UI {
 
 		[SerializeField]
 		private Transform songListContent;
+		[SerializeField]
+		private Toggle botModeToggle;
 
 		private List<SongInfoComponent> songInfoComponents;
 
@@ -64,6 +66,10 @@ namespace YARG.UI {
 			if (Keyboard.current.rKey.wasPressedThisFrame) {
 				UpdateAll();
 			}
+		}
+
+		public void UpdateBotMode() {
+			Game.botMode = botModeToggle.isOn;
 		}
 
 		private static void FetchSongs() {

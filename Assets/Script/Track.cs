@@ -1,7 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using YARG.Pools;
 
 namespace YARG {
 	public class Track : MonoBehaviour {
@@ -16,10 +16,13 @@ namespace YARG {
 		private GameObject fret;
 		[SerializeField]
 		private NotePool notePool;
+		[SerializeField]
+		private Pool genericPool;
 
 		private Fret[] frets = null;
 		private int visualChartIndex = 0;
 		private int realChartIndex = 0;
+		private int eventChartIndex = 0;
 
 		private SortedDictionary<float, List<NoteInfo>> expectedHits = new();
 
@@ -52,9 +55,10 @@ namespace YARG {
 			}
 			meshFilter.mesh.uv = uvs;
 
-			// Update visuals
+			// Update visuals and events
 			float relativeTime = Game.Instance.SongTime + (3.75f / Game.Instance.SongSpeed);
-			var chart = Game.Instance.Chart;
+			var chart = Game.Instance.chart;
+			var events = Game.Instance.chartEvents;
 
 			// Since chart is sorted, this is guaranteed to work
 			while (chart.Count > visualChartIndex && chart[visualChartIndex].time <= relativeTime) {
@@ -62,6 +66,17 @@ namespace YARG {
 
 				SpawnNote(noteInfo, relativeTime);
 				visualChartIndex++;
+			}
+
+			// Update events
+			while (events.Count > eventChartIndex && chart[eventChartIndex].time <= relativeTime) {
+				var eventInfo = events[eventChartIndex];
+
+				if (eventInfo.name == "beatLine") {
+					genericPool.Add("beatLine", new(0f, 0.01f, 2f));
+				}
+
+				eventChartIndex++;
 			}
 
 			// Update expected input

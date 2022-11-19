@@ -8,6 +8,7 @@ using UnityEngine.Networking;
 namespace YARG {
 	public class Game : MonoBehaviour {
 		public static DirectoryInfo song = new(@"B:\Clone Hero Alpha\Songs\Jane's Addiction - Been Caught Stealing");
+		public static bool botMode = false;
 
 		public const float HIT_MARGIN = 0.075f;
 
@@ -37,10 +38,8 @@ namespace YARG {
 			get;
 			private set;
 		}
-		public List<NoteInfo> Chart {
-			get;
-			private set;
-		}
+		public List<NoteInfo> chart;
+		public List<EventInfo> chartEvents;
 
 		public bool StrumThisFrame {
 			get;
@@ -48,17 +47,14 @@ namespace YARG {
 		} = false;
 
 		private int botChartIndex = 0;
-		public bool BotMode {
-			get;
-			private set;
-		} = true;
 
 		private void Awake() {
 			Instance = this;
 
-			Chart = null;
+			chart = null;
+			chartEvents = null;
 			SongSpeed = 7f;
-			calibration = 0f;
+			calibration = -0.23f;
 			realSongTime = 0f;
 
 			// Input
@@ -107,7 +103,7 @@ namespace YARG {
 			}
 
 			// Load midi
-			Chart = Parser.Parse(Path.Combine(songFolder.FullName, "notes.mid"));
+			Parser.Parse(Path.Combine(songFolder.FullName, "notes.mid"), out chart, out chartEvents);
 
 			// Spawn track
 			Instantiate(trackPrefab);
@@ -135,32 +131,30 @@ namespace YARG {
 				}
 
 				// Update bot mode
-				if (BotMode) {
-					while (Chart.Count > botChartIndex && Chart[botChartIndex].time <= Instance.SongTime) {
-						var noteInfo = Chart[botChartIndex];
+				if (botMode) {
+					bool resetForChord = false;
+					while (chart.Count > botChartIndex && chart[botChartIndex].time <= Instance.SongTime) {
+						// Release old frets
+						if (!resetForChord) {
+							for (int i = 0; i < 5; i++) {
+								FretRelease(i);
+							}
+							resetForChord = true;
+						}
 
+						var noteInfo = chart[botChartIndex];
+
+						// Press new fret
 						FretPress(noteInfo.fret);
 						StrumThisFrame = true;
 						botChartIndex++;
 					}
-				}
-			} else {
-				if (Keyboard.current.bKey.isPressed && !BotMode) {
-					BotMode = true;
-					Debug.Log(BotMode);
 				}
 			}
 		}
 
 		private void LateUpdate() {
 			StrumThisFrame = false;
-
-			// Update bot mode
-			if (BotMode) {
-				for (int i = 0; i < 5; i++) {
-					FretRelease(i);
-				}
-			}
 		}
 
 		private void FretPress(int fret) {
