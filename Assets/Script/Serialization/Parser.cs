@@ -80,11 +80,6 @@ namespace YARG.Serialization {
 				totalDelta += trackEvent.DeltaTime;
 
 				if (trackEvent is NoteOnEvent noteOnEvent) {
-					// Beat octave
-					if (noteOnEvent.GetNoteOctave() != 0) {
-						continue;
-					}
-
 					// Convert note to beat line type
 					int majorOrMinor = noteOnEvent.GetNoteName() switch {
 						NoteName.C => 0,
@@ -102,7 +97,11 @@ namespace YARG.Serialization {
 					float time = (float) metricTime.TotalSeconds;
 
 					// Add to track
-					output.Add(new EventInfo(time, "beatLine"));
+					if (majorOrMinor == 1) {
+						output.Add(new EventInfo(time, "beatLine_minor"));
+					} else {
+						output.Add(new EventInfo(time, "beatLine_major"));
+					}
 				}
 			}
 

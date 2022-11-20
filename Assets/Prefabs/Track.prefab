@@ -205,6 +205,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   poolablePrefabsInspector:
-  - id: beatLine
+  - id: beatLine_minor
     prefab: {fileID: 2407992086261055499, guid: c1eead8ba9adb1c4da3fae25d2510658,
+      type: 3}
+  - id: beatLine_major
+    prefab: {fileID: 4396458198821752367, guid: 7afe8d2e4a2e7b747a7c43f7d260b4d1,
       type: 3}

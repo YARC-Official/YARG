@@ -69,11 +69,13 @@ namespace YARG {
 			}
 
 			// Update events
-			while (events.Count > eventChartIndex && chart[eventChartIndex].time <= relativeTime) {
+			while (events.Count > eventChartIndex && events[eventChartIndex].time <= relativeTime) {
 				var eventInfo = events[eventChartIndex];
 
-				if (eventInfo.name == "beatLine") {
-					genericPool.Add("beatLine", new(0f, 0.01f, 2f));
+				if (eventInfo.name == "beatLine_minor") {
+					genericPool.Add("beatLine_minor", new(0f, 0.01f, 2f));
+				} else if (eventInfo.name == "beatLine_major") {
+					genericPool.Add("beatLine_major", new(0f, 0.01f, 2f));
 				}
 
 				eventChartIndex++;
