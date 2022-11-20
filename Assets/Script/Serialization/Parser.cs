@@ -4,7 +4,7 @@ using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
 
-namespace YARG {
+namespace YARG.Serialization {
 	public static class Parser {
 		public static void Parse(string midiFile, out List<NoteInfo> chart, out List<EventInfo> chartEvents) {
 			var midi = MidiFile.Read(midiFile);

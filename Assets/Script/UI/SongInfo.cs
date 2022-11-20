@@ -1,20 +1,29 @@
 using System.IO;
+using Newtonsoft.Json;
+using YARG.Serialization;
 
 namespace YARG.UI {
+	[JsonObject(MemberSerialization.Fields)]
 	public class SongInfo {
+		[JsonConverter(typeof(DirectoryInfoConverter))]
 		public DirectoryInfo folder;
+		[JsonIgnore]
 		public bool fetched;
+		[JsonIgnore]
 		public bool errored;
 
+		[field: JsonProperty("bassPedal2xExpertPlus")]
 		public bool BassPedal2xExpertPlus {
 			private set;
 			get;
 		}
+		[field: JsonProperty("live")]
 		public bool Live {
 			private set;
 			get;
 		}
 
+		[JsonProperty("songName")]
 		private string _songName;
 		public string SongName {
 			set {

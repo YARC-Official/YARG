@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using IniParser;
+using Newtonsoft.Json;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -26,15 +27,25 @@ namespace YARG.UI {
 
 		private async void Start() {
 			if (songs == null) {
-				FetchSongs();
+				if (Game.CACHE_FILE.Exists) {
+					await Task.Run(() => FetchSongsFromCache());
+				} else {
+					FetchSongs();
+					await Task.Run(() => FetchSongInfo());
+				}
 			}
 
-			await Task.Run(() => FetchSongInfo());
 			songs = songs.OrderBy(song => song.SongNameNoParen).ToList();
 
+			// Spawn song infos
 			songInfoComponents = new();
 			char currentSection = ' ';
 			foreach (var song in songs) {
+				// Skip errored songs
+				if (song.errored) {
+					continue;
+				}
+
 				char section = SongNameToLetterSection(song.SongNameNoParen);
 				if (section != currentSection) {
 					currentSection = section;
@@ -73,7 +84,7 @@ namespace YARG.UI {
 		}
 
 		private static void FetchSongs() {
-			var songFolder = new DirectoryInfo(@"B:\Clone Hero Alpha\Songs");
+			var songFolder = Game.SONG_FOLDER;
 			var directories = songFolder.GetDirectories();
 
 			songs = new(directories.Length);
@@ -83,8 +94,8 @@ namespace YARG.UI {
 		}
 
 		private static void FetchSongInfo() {
+			// Fetch song info manually
 			var parser = new FileIniDataParser();
-
 			foreach (var song in songs) {
 				if (song.fetched) {
 					return;
@@ -109,9 +120,16 @@ namespace YARG.UI {
 				} catch {
 					song.errored = true;
 				}
-
-				break;
 			}
+
+			// Create cache
+			var json = JsonConvert.SerializeObject(songs, Formatting.Indented);
+			File.WriteAllText(Game.CACHE_FILE.ToString(), json.ToString());
+		}
+
+		private static void FetchSongsFromCache() {
+			string json = File.ReadAllText(Game.CACHE_FILE.ToString());
+			songs = JsonConvert.DeserializeObject<List<SongInfo>>(json);
 		}
 
 		private static char SongNameToLetterSection(string nameNoParen) {
