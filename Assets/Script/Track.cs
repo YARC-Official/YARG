@@ -5,8 +5,10 @@ using YARG.Pools;
 
 namespace YARG {
 	public class Track : MonoBehaviour {
+		public const float TRACK_SPAWN_OFFSET = 3f;
+
 		[SerializeField]
-		private MeshFilter meshFilter;
+		private MeshRenderer trackRenderer;
 
 		[SerializeField]
 		private Color[] fretColors;
@@ -49,14 +51,13 @@ namespace YARG {
 
 		private void Update() {
 			// Update track UV
-			var uvs = meshFilter.mesh.uv;
-			for (int i = 0; i < uvs.Length; i++) {
-				uvs[i] += new Vector2(0f, Time.deltaTime * Game.Instance.SongSpeed);
-			}
-			meshFilter.mesh.uv = uvs;
+			var trackMaterial = trackRenderer.material;
+			var oldOffset = trackMaterial.GetTextureOffset("_BaseMap");
+			float movement = Time.deltaTime * Game.Instance.SongSpeed / 4f;
+			trackMaterial.SetTextureOffset("_BaseMap", new(oldOffset.x, oldOffset.y - movement));
 
 			// Update visuals and events
-			float relativeTime = Game.Instance.SongTime + (3.75f / Game.Instance.SongSpeed);
+			float relativeTime = Game.Instance.SongTime + ((TRACK_SPAWN_OFFSET + 1.75f) / Game.Instance.SongSpeed);
 			var chart = Game.Instance.chart;
 			var events = Game.Instance.chartEvents;
 
@@ -73,9 +74,9 @@ namespace YARG {
 				var eventInfo = events[eventChartIndex];
 
 				if (eventInfo.name == "beatLine_minor") {
-					genericPool.Add("beatLine_minor", new(0f, 0.01f, 2f));
+					genericPool.Add("beatLine_minor", new(0f, 0.01f, TRACK_SPAWN_OFFSET));
 				} else if (eventInfo.name == "beatLine_major") {
-					genericPool.Add("beatLine_major", new(0f, 0.01f, 2f));
+					genericPool.Add("beatLine_major", new(0f, 0.01f, TRACK_SPAWN_OFFSET));
 				}
 
 				eventChartIndex++;
@@ -156,7 +157,7 @@ namespace YARG {
 
 		private void SpawnNote(NoteInfo noteInfo, float time) {
 			float lagCompensation = (time - noteInfo.time) * Game.Instance.SongSpeed;
-			var pos = new Vector3(fretPositions[noteInfo.fret], 0f, 2f - lagCompensation);
+			var pos = new Vector3(fretPositions[noteInfo.fret], 0f, TRACK_SPAWN_OFFSET - lagCompensation);
 
 			var noteComp = notePool.CreateNote(noteInfo, pos);
 			noteComp.SetColor(fretColors[noteInfo.fret]);
