@@ -161,6 +161,7 @@ namespace YARG {
 
 			var noteComp = notePool.CreateNote(noteInfo, pos);
 			noteComp.SetColor(fretColors[noteInfo.fret]);
+			noteComp.SetLength(noteInfo.length);
 		}
 	}
 }

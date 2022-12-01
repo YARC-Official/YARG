@@ -117,8 +117,9 @@ namespace YARG.UI {
 					// Get song length
 					int rawLength = int.Parse(data["song"]["song_length"]);
 					song.songLength = rawLength / 1000f;
-				} catch {
+				} catch (System.Exception e) {
 					song.errored = true;
+					Debug.LogException(e);
 				}
 			}
 

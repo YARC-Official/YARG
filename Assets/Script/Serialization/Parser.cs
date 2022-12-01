@@ -18,11 +18,11 @@ namespace YARG.Serialization {
 					}
 
 					if (trackName.Text == "PART GUITAR") {
-						chart = ParseGuitar(trackChunk.Events, midi.GetTempoMap());
+						chart = ParseGuitar(trackChunk, midi.GetTempoMap());
 					}
 
 					if (trackName.Text == "BEAT") {
-						chartEvents = ParseBeats(trackChunk.Events, midi.GetTempoMap());
+						chartEvents = ParseBeats(trackChunk, midi.GetTempoMap());
 					}
 				}
 			}
@@ -32,80 +32,73 @@ namespace YARG.Serialization {
 			chartEvents?.Sort(new Comparison<EventInfo>((a, b) => a.time.CompareTo(b.time)));
 		}
 
-		private static List<NoteInfo> ParseGuitar(EventsCollection trackEvents, TempoMap tempo) {
-			List<NoteInfo> output = new(trackEvents.Count);
+		private static List<NoteInfo> ParseGuitar(TrackChunk trackChunk, TempoMap tempo) {
+			var enumerable = new List<TrackChunk>(1) { trackChunk };
+			var rawNotes = enumerable.GetNotes();
 
-			long totalDelta = 0;
-			foreach (var trackEvent in trackEvents) {
-				totalDelta += trackEvent.DeltaTime;
-
-				if (trackEvent is NoteOnEvent noteOnEvent) {
-					// Expert octave
-					if (noteOnEvent.GetNoteOctave() != 7) {
-						continue;
-					}
-
-					// Convert note to fret number
-					int fretNum = noteOnEvent.GetNoteName() switch {
-						NoteName.C => 0,
-						NoteName.CSharp => 1,
-						NoteName.D => 2,
-						NoteName.DSharp => 3,
-						NoteName.E => 4,
-						_ => -1
-					};
-
-					// Skip if not an actual note
-					if (fretNum == -1) {
-						continue;
-					}
-
-					// Convert delta to real time
-					var metricTime = TimeConverter.ConvertTo<MetricTimeSpan>(totalDelta, tempo);
-					float time = (float) metricTime.TotalSeconds;
-
-					// Add to track
-					output.Add(new NoteInfo(time, fretNum));
+			var notes = new List<NoteInfo>(rawNotes.Count);
+			foreach (var rawNote in rawNotes) {
+				// Expert octave
+				if (rawNote.Octave != 7) {
+					continue;
 				}
+
+				// Convert note to fret number
+				int fretNum = rawNote.NoteName switch {
+					NoteName.C => 0,
+					NoteName.CSharp => 1,
+					NoteName.D => 2,
+					NoteName.DSharp => 3,
+					NoteName.E => 4,
+					_ => -1
+				};
+
+				// Skip if not an actual note
+				if (fretNum == -1) {
+					continue;
+				}
+
+				// Get timing info
+				float time = (float) TimeConverter.ConvertTo<MetricTimeSpan>(rawNote.Time, tempo).TotalSeconds;
+				float length = (float) TimeConverter.ConvertTo<MetricTimeSpan>(rawNote.Length, tempo).TotalSeconds;
+
+				// Add the note
+				notes.Add(new NoteInfo(time, fretNum, length));
 			}
 
-			return output;
+			return notes;
 		}
 
-		private static List<EventInfo> ParseBeats(EventsCollection trackEvents, TempoMap tempo) {
-			List<EventInfo> output = new(trackEvents.Count);
+		private static List<EventInfo> ParseBeats(TrackChunk trackChunk, TempoMap tempo) {
+			var enumerable = new List<TrackChunk>(1) { trackChunk };
+			var rawNotes = enumerable.GetNotes();
 
-			long totalDelta = 0;
-			foreach (var trackEvent in trackEvents) {
-				totalDelta += trackEvent.DeltaTime;
+			var events = new List<EventInfo>(rawNotes.Count);
+			foreach (var rawNote in rawNotes) {
+				// Convert note to beat line type
+				int majorOrMinor = rawNote.NoteName switch {
+					NoteName.C => 0,
+					NoteName.CSharp => 1,
+					_ => -1
+				};
 
-				if (trackEvent is NoteOnEvent noteOnEvent) {
-					// Convert note to beat line type
-					int majorOrMinor = noteOnEvent.GetNoteName() switch {
-						NoteName.C => 0,
-						NoteName.CSharp => 1,
-						_ => -1
-					};
+				// Skip if not a beat line
+				if (majorOrMinor == -1) {
+					continue;
+				}
 
-					// Skip if not a beat line
-					if (majorOrMinor == -1) {
-						continue;
-					}
+				// Get timing info
+				float time = (float) TimeConverter.ConvertTo<MetricTimeSpan>(rawNote.Time, tempo).TotalSeconds;
 
-					// Convert delta to real time
-					var metricTime = TimeConverter.ConvertTo<MetricTimeSpan>(totalDelta, tempo);
-					float time = (float) metricTime.TotalSeconds;
-
-					// Add to track
-					if (majorOrMinor == 1) {
-						output.Add(new EventInfo(time, "beatLine_minor"));
-					} else {
-						output.Add(new EventInfo(time, "beatLine_major"));
-					}
+				// Add to track
+				if (majorOrMinor == 1) {
+					events.Add(new EventInfo(time, "beatLine_minor"));
+				} else {
+					events.Add(new EventInfo(time, "beatLine_major"));
 				}
 			}
 
-			return output;
+			return events;
 		}
 	}
 }
