@@ -25,6 +25,12 @@ namespace YARG {
 			}
 		}
 
+		public void HitNote(NoteInfo info) {
+			if (activeNotes.TryGetValue(info, out NoteComponent note)) {
+				note.HitNote();
+			}
+		}
+
 		public void RemoveNote(NoteComponent note) {
 			note.gameObject.SetActive(false);
 

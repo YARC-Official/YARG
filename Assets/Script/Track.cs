@@ -122,8 +122,8 @@ namespace YARG {
 					expectedHits.Remove(chord[0].time);
 
 					foreach (var hit in chord) {
-						// Destroy notes
-						notePool.RemoveNote(hit);
+						// Hit notes
+						notePool.HitNote(hit);
 
 						// Play particles
 						frets[hit.fret].PlayParticles();
@@ -160,8 +160,7 @@ namespace YARG {
 			var pos = new Vector3(fretPositions[noteInfo.fret], 0f, TRACK_SPAWN_OFFSET - lagCompensation);
 
 			var noteComp = notePool.CreateNote(noteInfo, pos);
-			noteComp.SetColor(fretColors[noteInfo.fret]);
-			noteComp.SetLength(noteInfo.length);
+			noteComp.SetInfo(fretColors[noteInfo.fret], noteInfo.length);
 		}
 	}
 }
