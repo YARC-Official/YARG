@@ -12,7 +12,9 @@ namespace YARG {
 		[SerializeField]
 		private LineRenderer lineRenderer;
 
+		private Color colorCache = Color.white;
 		private float lengthCache = 0f;
+
 		private bool isHitting = false;
 
 		public void SetInfo(Color c, float length) {
@@ -24,6 +26,8 @@ namespace YARG {
 		}
 
 		private void SetColor(Color c) {
+			colorCache = c;
+
 			meshRenderer.materials[0].color = c;
 
 			lineRenderer.materials[0].color = c;
@@ -41,13 +45,28 @@ namespace YARG {
 			lengthCache = length;
 
 			lineRenderer.enabled = true;
-			lineRenderer.SetPosition(0, Vector3.zero);
-			lineRenderer.SetPosition(1, new(0f, 0.01f, length));
+			lineRenderer.SetPosition(0, new(0f, 0.01f, length));
+			lineRenderer.SetPosition(1, Vector3.zero);
 		}
 
 		public void HitNote() {
 			noteGroup.SetActive(false);
 			isHitting = true;
+
+			// Update line color
+			if (lengthCache != 0f) {
+				lineRenderer.materials[0].SetColor("_EmissionColor", colorCache * 8f);
+			}
+		}
+
+		public void MissNote() {
+			isHitting = false;
+
+			// Update line color
+			if (lengthCache != 0f) {
+				lineRenderer.materials[0].color = new(0.9f, 0.9f, 0.9f, 0.5f);
+				lineRenderer.materials[0].SetColor("_EmissionColor", Color.black);
+			}
 		}
 
 		private void Update() {
@@ -59,7 +78,7 @@ namespace YARG {
 				float newStart = -transform.localPosition.z - 1.75f;
 
 				// Apply to line renderer
-				lineRenderer.SetPosition(0, new(0f, 0f, newStart));
+				lineRenderer.SetPosition(1, new(0f, 0f, newStart));
 			}
 
 			if (transform.localPosition.z < -3f - lengthCache) {

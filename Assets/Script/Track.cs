@@ -27,6 +27,7 @@ namespace YARG {
 		private int eventChartIndex = 0;
 
 		private SortedDictionary<float, List<NoteInfo>> expectedHits = new();
+		private List<NoteInfo> heldNotes = new();
 
 		private void Start() {
 			// Spawn in frets
@@ -103,6 +104,11 @@ namespace YARG {
 				// Handle misses
 				if (Game.Instance.SongTime - chord[0].time > Game.HIT_MARGIN) {
 					expectedHits.Remove(chord[0].time);
+
+					// Call miss for each component
+					foreach (var hit in chord) {
+						notePool.MissNote(hit);
+					}
 				}
 
 				// Handle hits
@@ -127,10 +133,23 @@ namespace YARG {
 
 						// Play particles
 						frets[hit.fret].PlayParticles();
+
+						// If sustained, add to held
+						if (hit.length > 0.2f) {
+							heldNotes.Add(hit);
+						}
 					}
 
 					// Only hit one note per frame
 					break;
+				}
+			}
+
+			// Update held notes
+			for (int i = heldNotes.Count - 1; i >= 0; i--) {
+				var heldNote = heldNotes[i];
+				if (heldNote.time + heldNote.length <= Game.Instance.SongTime) {
+					heldNotes.RemoveAt(i);
 				}
 			}
 		}
@@ -153,6 +172,18 @@ namespace YARG {
 
 		private void FretPressAction(bool on, int fret) {
 			frets[fret].SetPressed(on);
+
+			if (!on) {
+				for (int i = heldNotes.Count - 1; i >= 0; i--) {
+					var heldNote = heldNotes[i];
+					if (heldNote.fret != fret) {
+						continue;
+					}
+
+					notePool.MissNote(heldNote);
+					heldNotes.RemoveAt(i);
+				}
+			}
 		}
 
 		private void SpawnNote(NoteInfo noteInfo, float time) {

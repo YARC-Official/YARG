@@ -60,10 +60,10 @@ namespace YARG.Serialization {
 
 				// Get timing info
 				float time = (float) TimeConverter.ConvertTo<MetricTimeSpan>(rawNote.Time, tempo).TotalSeconds;
-				float length = (float) TimeConverter.ConvertTo<MetricTimeSpan>(rawNote.Length, tempo).TotalSeconds;
+				float endTime = (float) TimeConverter.ConvertTo<MetricTimeSpan>(rawNote.EndTime, tempo).TotalSeconds;
 
 				// Add the note
-				notes.Add(new NoteInfo(time, fretNum, length));
+				notes.Add(new NoteInfo(time, fretNum, endTime - time));
 			}
 
 			return notes;

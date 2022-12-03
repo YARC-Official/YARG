@@ -31,6 +31,12 @@ namespace YARG {
 			}
 		}
 
+		public void MissNote(NoteInfo info) {
+			if (activeNotes.TryGetValue(info, out NoteComponent note)) {
+				note.MissNote();
+			}
+		}
+
 		public void RemoveNote(NoteComponent note) {
 			note.gameObject.SetActive(false);
 
