@@ -1,4 +1,5 @@
 using UnityEngine;
+using YARG.Utils;
 
 namespace YARG {
 	public class Fret : MonoBehaviour {
@@ -7,7 +8,9 @@ namespace YARG {
 		[SerializeField]
 		private Material releasedMaterial;
 		[SerializeField]
-		private ParticleGroup particles;
+		private ParticleGroup hitParticles;
+		[SerializeField]
+		private ParticleGroup sustainParticles;
 
 		[SerializeField]
 		private MeshRenderer meshRenderer;
@@ -22,7 +25,8 @@ namespace YARG {
 		public void SetColor(Color c) {
 			color = c;
 			meshRenderer.material.color = c;
-			particles.Colorize(c);
+			hitParticles.Colorize(c);
+			sustainParticles.Colorize(c);
 		}
 
 		public void SetPressed(bool pressed) {
@@ -33,7 +37,15 @@ namespace YARG {
 		}
 
 		public void PlayParticles() {
-			particles.Play();
+			hitParticles.Play();
+		}
+
+		public void PlaySustainParticles() {
+			sustainParticles.Play();
+		}
+
+		public void StopSustainParticles() {
+			sustainParticles.Stop();
 		}
 	}
 }

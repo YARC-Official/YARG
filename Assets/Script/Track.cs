@@ -137,6 +137,7 @@ namespace YARG {
 						// If sustained, add to held
 						if (hit.length > 0.2f) {
 							heldNotes.Add(hit);
+							frets[hit.fret].PlaySustainParticles();
 						}
 					}
 
@@ -150,6 +151,7 @@ namespace YARG {
 				var heldNote = heldNotes[i];
 				if (heldNote.time + heldNote.length <= Game.Instance.SongTime) {
 					heldNotes.RemoveAt(i);
+					frets[heldNote.fret].StopSustainParticles();
 				}
 			}
 		}
@@ -182,6 +184,7 @@ namespace YARG {
 
 					notePool.MissNote(heldNote);
 					heldNotes.RemoveAt(i);
+					frets[heldNote.fret].StopSustainParticles();
 				}
 			}
 		}

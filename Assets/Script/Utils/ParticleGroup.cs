@@ -1,47 +1,79 @@
+using System.Collections.Generic;
 using UnityEngine;
 
-public class ParticleGroup : MonoBehaviour {
-	public bool keepAlpha = true;
+namespace YARG.Utils {
+	public class ParticleGroup : MonoBehaviour {
+		public bool keepAlpha = true;
 
-	[SerializeField]
-	private ParticleSystem[] colorParticles;
-	[SerializeField]
-	private Light[] colorLights;
+		[SerializeField]
+		private ParticleSystem[] colorParticles;
+		[SerializeField]
+		private Light[] colorLights;
 
-	private ParticleSystem[] particles;
-	private FadeLight[] fadeLights;
+		private ParticleSystem[] particles;
+		private FadeLight[] fadeLights;
+		private Light[] normalLights;
 
-	private void Start() {
-		particles = GetComponentsInChildren<ParticleSystem>();
-		fadeLights = GetComponentsInChildren<FadeLight>();
-	}
+		private void Start() {
+			particles = GetComponentsInChildren<ParticleSystem>();
 
-	public void Colorize(Color color) {
-		// Set colors of particles
-		foreach (var ps in colorParticles) {
-			var m = ps.main;
-
-			var c = color;
-			if (keepAlpha) {
-				c.a = m.startColor.color.a;
+			List<FadeLight> fadeLightsList = new();
+			List<Light> normalLightsList = new();
+			foreach (var light in GetComponentsInChildren<Light>()) {
+				var fadeLight = light.GetComponent<FadeLight>();
+				if (fadeLight != null) {
+					fadeLightsList.Add(fadeLight);
+				} else {
+					normalLightsList.Add(light);
+					light.enabled = false;
+				}
 			}
 
-			m.startColor = c;
+			fadeLights = fadeLightsList.ToArray();
+			normalLights = normalLightsList.ToArray();
 		}
 
-		// Set colors of lights
-		foreach (var light in colorLights) {
-			light.color = color;
-		}
-	}
+		public void Colorize(Color color) {
+			// Set colors of particles
+			foreach (var ps in colorParticles) {
+				var m = ps.main;
 
-	public void Play() {
-		foreach (var particle in particles) {
-			particle.Play();
+				var c = color;
+				if (keepAlpha) {
+					c.a = m.startColor.color.a;
+				}
+
+				m.startColor = c;
+			}
+
+			// Set colors of lights
+			foreach (var light in colorLights) {
+				light.color = color;
+			}
 		}
 
-		foreach (var fadeLight in fadeLights) {
-			fadeLight.Play();
+		public void Play() {
+			foreach (var particle in particles) {
+				particle.Play();
+			}
+
+			foreach (var fadeLight in fadeLights) {
+				fadeLight.Play();
+			}
+
+			foreach (var light in normalLights) {
+				light.enabled = true;
+			}
+		}
+
+		public void Stop() {
+			foreach (var particle in particles) {
+				particle.Stop();
+			}
+
+			foreach (var light in normalLights) {
+				light.enabled = false;
+			}
 		}
 	}
 }
