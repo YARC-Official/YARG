@@ -194,7 +194,7 @@ namespace YARG {
 			var pos = new Vector3(fretPositions[noteInfo.fret], 0f, TRACK_SPAWN_OFFSET - lagCompensation);
 
 			var noteComp = notePool.CreateNote(noteInfo, pos);
-			noteComp.SetInfo(fretColors[noteInfo.fret], noteInfo.length);
+			noteComp.SetInfo(fretColors[noteInfo.fret], noteInfo.length, noteInfo.hopo);
 		}
 	}
 }

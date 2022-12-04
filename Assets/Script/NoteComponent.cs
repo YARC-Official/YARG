@@ -8,7 +8,9 @@ namespace YARG {
 		[SerializeField]
 		private GameObject noteGroup;
 		[SerializeField]
-		private MeshRenderer meshRenderer;
+		private GameObject hopoGroup;
+		[SerializeField]
+		private MeshRenderer[] meshRenderers;
 		[SerializeField]
 		private LineRenderer lineRenderer;
 
@@ -17,8 +19,9 @@ namespace YARG {
 
 		private bool isHitting = false;
 
-		public void SetInfo(Color c, float length) {
-			noteGroup.SetActive(true);
+		public void SetInfo(Color c, float length, bool hopo) {
+			noteGroup.SetActive(!hopo);
+			hopoGroup.SetActive(hopo);
 			isHitting = false;
 
 			SetColor(c);
@@ -28,7 +31,9 @@ namespace YARG {
 		private void SetColor(Color c) {
 			colorCache = c;
 
-			meshRenderer.materials[0].color = c;
+			foreach (var meshRenderer in meshRenderers) {
+				meshRenderer.materials[0].color = c;
+			}
 
 			lineRenderer.materials[0].color = c;
 			lineRenderer.materials[0].SetColor("_EmissionColor", c);
@@ -51,6 +56,7 @@ namespace YARG {
 
 		public void HitNote() {
 			noteGroup.SetActive(false);
+			hopoGroup.SetActive(false);
 			isHitting = true;
 
 			// Update line color

@@ -8,9 +8,9 @@ using YARG.Serialization;
 
 namespace YARG {
 	public class Game : MonoBehaviour {
-		public static readonly DirectoryInfo SONG_FOLDER = new(@"B:\Clone Hero Alpha\Songs");
+		public static readonly DirectoryInfo SONG_FOLDER = new(@"B:\YARG_Songs");
 		public static readonly FileInfo CACHE_FILE = new(Path.Combine(SONG_FOLDER.ToString(), "yarg_cache.json"));
-		public const float HIT_MARGIN = 0.085f;
+		public const float HIT_MARGIN = 0.1f;
 
 		public static DirectoryInfo song = new(@"B:\Clone Hero Alpha\Songs\Jane's Addiction - Been Caught Stealing");
 		public static bool botMode = false;
@@ -58,7 +58,7 @@ namespace YARG {
 			chartEvents = null;
 			SongSpeed = 7f;
 			calibration = -0.23f;
-			realSongTime = 0f;
+			realSongTime = float.NegativeInfinity;
 
 			// Input
 
@@ -106,7 +106,8 @@ namespace YARG {
 			}
 
 			// Load midi
-			Parser.Parse(Path.Combine(songFolder.FullName, "notes.mid"), out chart, out chartEvents);
+			var parser = new MidiParser(Path.Combine(songFolder.FullName, "notes.mid"));
+			parser.Parse(out chart, out chartEvents);
 
 			// Spawn track
 			Instantiate(trackPrefab);
@@ -114,6 +115,8 @@ namespace YARG {
 			songStarted = true;
 
 			// Start all audio at the same time
+			realSongTime = -1f;
+			yield return new WaitForSeconds(1f);
 			foreach (var audioSource in audioSources) {
 				audioSource.Play();
 			}
