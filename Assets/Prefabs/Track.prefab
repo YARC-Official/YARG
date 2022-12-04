@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 4633060814853208934}
   - component: {fileID: 8955966359033347726}
   - component: {fileID: 8489780581181573090}
+  - component: {fileID: 1159223871914907873}
   m_Layer: 0
   m_Name: TrackModel
   m_TagString: Untagged
@@ -83,6 +84,27 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &1159223871914907873
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1801186651306291766}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.02, y: 0.060000014, z: 0.0000000017881393}
+  m_Center: {x: 0, y: -2.3283064e-10, z: 1.4006218e-10}
 --- !u!1 &2999289846860309454
 GameObject:
   m_ObjectHideFlags: 0
@@ -326,7 +348,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 043eb3e77aa6c7d42a828ea431d06a13,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 286130061919949099}
   m_SourcePrefab: {fileID: 100100000, guid: 043eb3e77aa6c7d42a828ea431d06a13, type: 3}
 --- !u!4 &462097096536729407 stripped
 Transform:
@@ -334,6 +360,33 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 135965200211951828}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &946427108912004485 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 043eb3e77aa6c7d42a828ea431d06a13,
+    type: 3}
+  m_PrefabInstance: {fileID: 135965200211951828}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &286130061919949099
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 946427108912004485}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.021936733, y: 0.030280313, z: 0.83132637}
+  m_Center: {x: -0.00096839573, y: 0.014996298, z: 0.00005260121}
 --- !u!1001 &3563368861719748514
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -415,7 +468,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 043eb3e77aa6c7d42a828ea431d06a13,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6636017855203988815}
   m_SourcePrefab: {fileID: 100100000, guid: 043eb3e77aa6c7d42a828ea431d06a13, type: 3}
 --- !u!4 &3961224168661530697 stripped
 Transform:
@@ -423,3 +480,30 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 3563368861719748514}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &4445836544601973491 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 043eb3e77aa6c7d42a828ea431d06a13,
+    type: 3}
+  m_PrefabInstance: {fileID: 3563368861719748514}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &6636017855203988815
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4445836544601973491}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.021936733, y: 0.030280216, z: 0.8313265}
+  m_Center: {x: -0.00096836593, y: 0.014996303, z: 0.000052601106}
