@@ -58,7 +58,7 @@ namespace YARG {
 			chartEvents = null;
 			SongSpeed = 7f;
 			calibration = -0.23f;
-			realSongTime = float.NegativeInfinity;
+			realSongTime = 0f;
 
 			// Input
 
@@ -115,8 +115,6 @@ namespace YARG {
 			songStarted = true;
 
 			// Start all audio at the same time
-			realSongTime = -1f;
-			yield return new WaitForSeconds(1f);
 			foreach (var audioSource in audioSources) {
 				audioSource.Play();
 			}

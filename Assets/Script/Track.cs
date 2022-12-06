@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using YARG.Pools;
+using YARGS.Util;
 
 namespace YARG {
 	public class Track : MonoBehaviour {
@@ -26,8 +27,14 @@ namespace YARG {
 		private int realChartIndex = 0;
 		private int eventChartIndex = 0;
 
-		private SortedDictionary<float, List<NoteInfo>> expectedHits = new();
+		private Queue<List<NoteInfo>> expectedHits = new();
 		private List<NoteInfo> heldNotes = new();
+
+		private int _combo = 0;
+		private int Combo {
+			get => _combo;
+			set => _combo = value;
+		}
 
 		private void Start() {
 			// Spawn in frets
@@ -74,10 +81,11 @@ namespace YARG {
 			while (events.Count > eventChartIndex && events[eventChartIndex].time <= relativeTime) {
 				var eventInfo = events[eventChartIndex];
 
+				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(relativeTime, eventInfo.time);
 				if (eventInfo.name == "beatLine_minor") {
-					genericPool.Add("beatLine_minor", new(0f, 0.01f, TRACK_SPAWN_OFFSET));
+					genericPool.Add("beatLine_minor", new(0f, 0.01f, compensation));
 				} else if (eventInfo.name == "beatLine_major") {
-					genericPool.Add("beatLine_major", new(0f, 0.01f, TRACK_SPAWN_OFFSET));
+					genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
 				}
 
 				eventChartIndex++;
@@ -87,64 +95,21 @@ namespace YARG {
 			while (chart.Count > realChartIndex && chart[realChartIndex].time <= Game.Instance.SongTime + Game.HIT_MARGIN) {
 				var noteInfo = chart[realChartIndex];
 
-				// Add notes at chords
-				if (expectedHits.TryGetValue(noteInfo.time, out var list)) {
-					list.Add(noteInfo);
+				var peeked = expectedHits.ReversePeekOrNull();
+				if (peeked?[0].time == noteInfo.time) {
+					// Add notes as chords
+					peeked.Add(noteInfo);
 				} else {
+					// Or add notes as singular
 					var l = new List<NoteInfo>(5) { noteInfo };
-					expectedHits.Add(noteInfo.time, l);
+					expectedHits.Enqueue(l);
 				}
+
 				realChartIndex++;
 			}
 
 			// Update real input
-			foreach (var kv in expectedHits.ToArray()) {
-				var chord = kv.Value;
-
-				// Handle misses
-				if (Game.Instance.SongTime - chord[0].time > Game.HIT_MARGIN) {
-					expectedHits.Remove(chord[0].time);
-
-					// Call miss for each component
-					foreach (var hit in chord) {
-						notePool.MissNote(hit);
-					}
-				}
-
-				// Handle hits
-				if (Game.Instance.StrumThisFrame) {
-					// Convert NoteInfo list to chord fret array
-					int[] chordInts = new int[chord.Count];
-					for (int i = 0; i < chordInts.Length; i++) {
-						chordInts[i] = chord[i].fret;
-					}
-
-					// Check if correct chord is pressed
-					if (!ChordPressed(chordInts)) {
-						continue;
-					}
-
-					// If so, hit!
-					expectedHits.Remove(chord[0].time);
-
-					foreach (var hit in chord) {
-						// Hit notes
-						notePool.HitNote(hit);
-
-						// Play particles
-						frets[hit.fret].PlayParticles();
-
-						// If sustained, add to held
-						if (hit.length > 0.2f) {
-							heldNotes.Add(hit);
-							frets[hit.fret].PlaySustainParticles();
-						}
-					}
-
-					// Only hit one note per frame
-					break;
-				}
-			}
+			UpdateInput();
 
 			// Update held notes
 			for (int i = heldNotes.Count - 1; i >= 0; i--) {
@@ -152,6 +117,59 @@ namespace YARG {
 				if (heldNote.time + heldNote.length <= Game.Instance.SongTime) {
 					heldNotes.RemoveAt(i);
 					frets[heldNote.fret].StopSustainParticles();
+				}
+			}
+		}
+
+		private void UpdateInput() {
+			// Handle misses (multiple a frame in case of lag)
+			while (Game.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Game.HIT_MARGIN) {
+				var missedChord = expectedHits.Dequeue();
+
+				// Call miss for each component
+				Combo = 0;
+				foreach (var hit in missedChord) {
+					notePool.MissNote(hit);
+				}
+			}
+
+			if (expectedHits.Count <= 0) {
+				return;
+			}
+
+			// Handle hits (one per frame so no double hits)
+			var chord = expectedHits.Peek();
+			if (!Game.Instance.StrumThisFrame) {
+				return;
+			}
+
+			// Convert NoteInfo list to chord fret array
+			int[] chordInts = new int[chord.Count];
+			for (int i = 0; i < chordInts.Length; i++) {
+				chordInts[i] = chord[i].fret;
+			}
+
+			// Check if correct chord is pressed
+			if (!ChordPressed(chordInts)) {
+				Combo = 0;
+				return;
+			}
+
+			// If so, hit!
+			expectedHits.Dequeue();
+
+			Combo++;
+			foreach (var hit in chord) {
+				// Hit notes
+				notePool.HitNote(hit);
+
+				// Play particles
+				frets[hit.fret].PlayParticles();
+
+				// If sustained, add to held
+				if (hit.length > 0.2f) {
+					heldNotes.Add(hit);
+					frets[hit.fret].PlaySustainParticles();
 				}
 			}
 		}
@@ -190,11 +208,15 @@ namespace YARG {
 		}
 
 		private void SpawnNote(NoteInfo noteInfo, float time) {
-			float lagCompensation = (time - noteInfo.time) * Game.Instance.SongSpeed;
+			float lagCompensation = CalcLagCompensation(time, noteInfo.time);
 			var pos = new Vector3(fretPositions[noteInfo.fret], 0f, TRACK_SPAWN_OFFSET - lagCompensation);
 
 			var noteComp = notePool.CreateNote(noteInfo, pos);
 			noteComp.SetInfo(fretColors[noteInfo.fret], noteInfo.length, noteInfo.hopo);
+		}
+
+		private float CalcLagCompensation(float currentTime, float noteTime) {
+			return (currentTime - noteTime) * Game.Instance.SongSpeed;
 		}
 	}
 }
