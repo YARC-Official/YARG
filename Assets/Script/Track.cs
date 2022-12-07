@@ -139,7 +139,9 @@ namespace YARG {
 
 			// Handle hits (one per frame so no double hits)
 			var chord = expectedHits.Peek();
-			if (!Game.Instance.StrumThisFrame) {
+			if (!chord[0].hopo && !Game.Instance.StrumThisFrame) {
+				return;
+			} else if (chord[0].hopo && Combo <= 0 && !Game.Instance.StrumThisFrame) {
 				return;
 			}
 
@@ -151,7 +153,10 @@ namespace YARG {
 
 			// Check if correct chord is pressed
 			if (!ChordPressed(chordInts)) {
-				Combo = 0;
+				if (!chord[0].hopo) {
+					Combo = 0;
+				}
+
 				return;
 			}
 
@@ -175,13 +180,25 @@ namespace YARG {
 		}
 
 		private bool ChordPressed(int[] chord) {
-			for (int i = 0; i < frets.Length; i++) {
-				if (chord.Contains(i)) {
-					if (!frets[i].IsPressed) {
+			if (chord.Length == 1) {
+				// Deal with single notes
+				int fret = chord[0];
+				for (int i = 0; i < frets.Length; i++) {
+					if (frets[i].IsPressed && i > fret) {
+						return false;
+					} else if (!frets[i].IsPressed && i == fret) {
+						return false;
+					} else if (frets[i].IsPressed && i != fret && !Game.ANCHORING) {
 						return false;
 					}
-				} else {
-					if (frets[i].IsPressed) {
+				}
+			} else {
+				// Deal with multi-key chords
+				for (int i = 0; i < frets.Length; i++) {
+					bool contains = chord.Contains(i);
+					if (contains && !frets[i].IsPressed) {
+						return false;
+					} else if (!contains && frets[i].IsPressed) {
 						return false;
 					}
 				}

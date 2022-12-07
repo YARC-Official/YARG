@@ -8,9 +8,11 @@ using YARG.Serialization;
 
 namespace YARG {
 	public class Game : MonoBehaviour {
+		public const float HIT_MARGIN = 0.1f;
+		public const bool ANCHORING = true;
+
 		public static readonly DirectoryInfo SONG_FOLDER = new(@"B:\YARG_Songs");
 		public static readonly FileInfo CACHE_FILE = new(Path.Combine(SONG_FOLDER.ToString(), "yarg_cache.json"));
-		public const float HIT_MARGIN = 0.1f;
 
 		public static DirectoryInfo song = new(@"B:\Clone Hero Alpha\Songs\Jane's Addiction - Been Caught Stealing");
 		public static bool botMode = false;
