@@ -10,6 +10,8 @@ namespace YARG {
 
 		[SerializeField]
 		private MeshRenderer trackRenderer;
+		[SerializeField]
+		private Transform hitWindow;
 
 		[SerializeField]
 		private Color[] fretColors;
@@ -47,6 +49,10 @@ namespace YARG {
 				fretComp.SetColor(fretColors[i]);
 				frets[i] = fretComp;
 			}
+
+			// Adjust hit window
+			var scale = hitWindow.localScale;
+			hitWindow.localScale = new(scale.x, Game.HIT_MARGIN * Game.Instance.SongSpeed * 2f, scale.z);
 		}
 
 		private void OnEnable() {
