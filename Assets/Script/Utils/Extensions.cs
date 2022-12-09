@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace YARGS.Util {
+namespace YARG.Util {
 	public static class Extensions {
 		public static T PeekOrNull<T>(this Queue<T> queue) where T : class {
 			if (queue.TryPeek(out var o)) {

@@ -2,11 +2,15 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using YARG.Pools;
-using YARGS.Util;
+using YARG.UI;
+using YARG.Util;
 
 namespace YARG {
 	public class Track : MonoBehaviour {
 		public const float TRACK_SPAWN_OFFSET = 3f;
+
+		[SerializeField]
+		private Camera trackCamera;
 
 		[SerializeField]
 		private MeshRenderer trackRenderer;
@@ -38,7 +42,25 @@ namespace YARG {
 			set => _combo = value;
 		}
 
+		private void Awake() {
+			// Set up render texture
+			var descriptor = new RenderTextureDescriptor(
+				Screen.width, Screen.height,
+				RenderTextureFormat.DefaultHDR
+			);
+			var renderTexture = new RenderTexture(descriptor);
+			trackCamera.targetTexture = renderTexture;
+		}
+
+		private void OnDestroy() {
+			// Release render texture
+			trackCamera.targetTexture.Release();
+		}
+
 		private void Start() {
+			// Set render texture
+			GameUI.Instance.AddTrackImage(trackCamera.targetTexture);
+
 			// Spawn in frets
 			frets = new Fret[5];
 			for (int i = 0; i < 5; i++) {

@@ -135,7 +135,12 @@ namespace YARG.Serialization {
 							var noteBeat = TimeConverter.ConvertTo<MusicalTimeSpan>(fretState[fretNum].Value, tempo);
 							var distance = noteBeat - lastNoteBeat;
 
-							if (distance <= MusicalTimeSpan.Sixteenth) {
+							// Thanks?? https://tcrf.net/Proto:Guitar_Hero
+							// According to this, auto-HOPO threshold is 170 ticks.
+							// "But a tick is different in every midi file!"
+							// It also mentions that 160 is a twelth note.
+							// 160 * 12 = 1920
+							if (distance <= new MusicalTimeSpan(170, 1920)) {
 								noteForceState = ForceState.AUTO_HOPO;
 							}
 						}
