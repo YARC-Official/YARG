@@ -30,7 +30,6 @@ namespace YARG {
 			private set;
 		} = null;
 
-		private YargInput input;
 		private bool songStarted = false;
 
 		private float realSongTime = 0f;
@@ -64,22 +63,22 @@ namespace YARG {
 
 			// Input
 
-			input = new YargInput();
-			input.Enable();
+			// input = new YargInput();
+			// input.Enable();
 
-			input._5Fret.Green.started += _ => FretPress(0);
-			input._5Fret.Red.started += _ => FretPress(1);
-			input._5Fret.Yellow.started += _ => FretPress(2);
-			input._5Fret.Blue.started += _ => FretPress(3);
-			input._5Fret.Orange.started += _ => FretPress(4);
-			input._5Fret.Strum.started += _ => Strum(true);
+			// input._5Fret.Green.started += _ => FretPress(0);
+			// input._5Fret.Red.started += _ => FretPress(1);
+			// input._5Fret.Yellow.started += _ => FretPress(2);
+			// input._5Fret.Blue.started += _ => FretPress(3);
+			// input._5Fret.Orange.started += _ => FretPress(4);
+			// input._5Fret.Strum.started += _ => Strum(true);
 
-			input._5Fret.Green.canceled += _ => FretRelease(0);
-			input._5Fret.Red.canceled += _ => FretRelease(1);
-			input._5Fret.Yellow.canceled += _ => FretRelease(2);
-			input._5Fret.Blue.canceled += _ => FretRelease(3);
-			input._5Fret.Orange.canceled += _ => FretRelease(4);
-			input._5Fret.Strum.canceled += _ => Strum(false);
+			// input._5Fret.Green.canceled += _ => FretRelease(0);
+			// input._5Fret.Red.canceled += _ => FretRelease(1);
+			// input._5Fret.Yellow.canceled += _ => FretRelease(2);
+			// input._5Fret.Blue.canceled += _ => FretRelease(3);
+			// input._5Fret.Orange.canceled += _ => FretRelease(4);
+			// input._5Fret.Strum.canceled += _ => Strum(false);
 
 			// Song
 
