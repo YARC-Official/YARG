@@ -1,0 +1,20 @@
+Button {
+	-unity-font-style: normal;
+	background-color: rgb(255, 255, 255);
+	border-radius: 5px;
+	border-width: 0;
+	transition-property: all, background-color;
+	transition-duration: 0s, 0.25s;
+	transition-timing-function: ease, ease;
+	transition-delay: 0s, 0s;
+	color: rgb(0, 0, 0);
+}
+
+Button:focus,
+Button:hover {
+	background-color: rgb(175, 175, 175);
+}
+
+Button:active {
+	background-color: rgb(128, 128, 128);
+}

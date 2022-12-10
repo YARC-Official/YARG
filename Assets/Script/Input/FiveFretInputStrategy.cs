@@ -1,0 +1,69 @@
+using System.Collections.Generic;
+using UnityEngine.InputSystem;
+
+namespace YARG.Input {
+	public class FiveFretInputStrategy : InputStrategy {
+		public static readonly string[] MAPPING_NAMES = new string[] {
+			"green",
+			"red",
+			"yellow",
+			"blue",
+			"orange",
+			"strumUp",
+			"strumDown"
+		};
+
+		public delegate void FretChangeAction(bool pressed, int fret);
+		public delegate void StrumAction();
+
+		public event FretChangeAction FretChangeEvent;
+		public event StrumAction StrumEvent;
+
+		public FiveFretInputStrategy(InputDevice inputDevice, bool botMode) : base(inputDevice, botMode) {
+
+		}
+
+		public override string[] GetMappingNames() {
+			return MAPPING_NAMES;
+		}
+
+		public override void UpdatePlayerMode() {
+			// Deal with fret inputs
+			for (int i = 0; i < 5; i++) {
+				var key = MappingAsButton(MAPPING_NAMES[i]);
+				if (key.wasPressedThisFrame) {
+					FretChangeEvent?.Invoke(true, i);
+				} else if (key.wasReleasedThisFrame) {
+					FretChangeEvent?.Invoke(false, i);
+				}
+			}
+
+			// Deal with strumming
+			if (MappingAsButton("strumUp").wasPressedThisFrame ||
+				MappingAsButton("strumDown").wasPressedThisFrame) {
+
+				StrumEvent?.Invoke();
+			}
+		}
+
+		public override void UpdateBotMode(List<NoteInfo> chart, float songTime) {
+			bool resetForChord = false;
+			while (chart.Count > botChartIndex && chart[botChartIndex].time <= songTime) {
+				// Release old frets
+				if (!resetForChord) {
+					for (int i = 0; i < 5; i++) {
+						FretChangeEvent?.Invoke(false, i);
+					}
+					resetForChord = true;
+				}
+
+				var noteInfo = chart[botChartIndex];
+
+				// Press new fret
+				FretChangeEvent?.Invoke(true, noteInfo.fret);
+				StrumEvent?.Invoke();
+				botChartIndex++;
+			}
+		}
+	}
+}

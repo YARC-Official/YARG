@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine;
 using YARG.Pools;
 using YARG.UI;
-using YARG.Util;
+using YARG.Utils;
 
 namespace YARG {
 	public class Track : MonoBehaviour {
