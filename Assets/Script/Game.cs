@@ -8,22 +8,18 @@ using YARG.Serialization;
 
 namespace YARG {
 	public class Game : MonoBehaviour {
-		public const float HIT_MARGIN = 0.1f;
+		public const float HIT_MARGIN = 0.075f;
 		public const bool ANCHORING = true;
 
 		public static readonly DirectoryInfo SONG_FOLDER = new(@"B:\YARG_Songs");
 		public static readonly FileInfo CACHE_FILE = new(Path.Combine(SONG_FOLDER.ToString(), "yarg_cache.json"));
 
 		public static DirectoryInfo song = new(@"B:\Clone Hero Alpha\Songs\Jane's Addiction - Been Caught Stealing");
-		public static bool botMode = false;
 
 		[SerializeField]
 		private GameObject soundAudioPrefab;
 		[SerializeField]
 		private GameObject trackPrefab;
-
-		public delegate void FretPressAction(bool on, int fret);
-		public event FretPressAction FretPressEvent;
 
 		public static Game Instance {
 			get;
@@ -45,13 +41,6 @@ namespace YARG {
 		public List<NoteInfo> chart;
 		public List<EventInfo> chartEvents;
 
-		public bool StrumThisFrame {
-			get;
-			private set;
-		} = false;
-
-		private int botChartIndex = 0;
-
 		private void Awake() {
 			Instance = this;
 
@@ -60,25 +49,6 @@ namespace YARG {
 			SongSpeed = 7f;
 			calibration = -0.23f;
 			realSongTime = 0f;
-
-			// Input
-
-			// input = new YargInput();
-			// input.Enable();
-
-			// input._5Fret.Green.started += _ => FretPress(0);
-			// input._5Fret.Red.started += _ => FretPress(1);
-			// input._5Fret.Yellow.started += _ => FretPress(2);
-			// input._5Fret.Blue.started += _ => FretPress(3);
-			// input._5Fret.Orange.started += _ => FretPress(4);
-			// input._5Fret.Strum.started += _ => Strum(true);
-
-			// input._5Fret.Green.canceled += _ => FretRelease(0);
-			// input._5Fret.Red.canceled += _ => FretRelease(1);
-			// input._5Fret.Yellow.canceled += _ => FretRelease(2);
-			// input._5Fret.Blue.canceled += _ => FretRelease(3);
-			// input._5Fret.Orange.canceled += _ => FretRelease(4);
-			// input._5Fret.Strum.canceled += _ => Strum(false);
 
 			// Song
 
@@ -110,8 +80,12 @@ namespace YARG {
 			var parser = new MidiParser(Path.Combine(songFolder.FullName, "notes.mid"));
 			parser.Parse(out chart, out chartEvents);
 
-			// Spawn track
-			Instantiate(trackPrefab);
+			// Spawn tracks
+			for (int i = 0; i < PlayerManager.players.Count; i++) {
+				var track = Instantiate(trackPrefab,
+					new Vector3(i * 25f, 0f, 0f), trackPrefab.transform.rotation);
+				track.GetComponent<Track>().player = PlayerManager.players[i];
+			}
 
 			songStarted = true;
 
@@ -134,44 +108,7 @@ namespace YARG {
 					calibration -= 0.01f;
 					Debug.Log(calibration);
 				}
-
-				// Update bot mode
-				if (botMode) {
-					bool resetForChord = false;
-					while (chart.Count > botChartIndex && chart[botChartIndex].time <= Instance.SongTime) {
-						// Release old frets
-						if (!resetForChord) {
-							for (int i = 0; i < 5; i++) {
-								FretRelease(i);
-							}
-							resetForChord = true;
-						}
-
-						var noteInfo = chart[botChartIndex];
-
-						// Press new fret
-						FretPress(noteInfo.fret);
-						StrumThisFrame = true;
-						botChartIndex++;
-					}
-				}
 			}
-		}
-
-		private void LateUpdate() {
-			StrumThisFrame = false;
-		}
-
-		private void FretPress(int fret) {
-			FretPressEvent?.Invoke(true, fret);
-		}
-
-		private void FretRelease(int fret) {
-			FretPressEvent?.Invoke(false, fret);
-		}
-
-		private void Strum(bool on) {
-			StrumThisFrame = on;
 		}
 	}
 }

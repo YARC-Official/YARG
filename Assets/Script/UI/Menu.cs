@@ -79,10 +79,6 @@ namespace YARG.UI {
 			}
 		}
 
-		public void UpdateBotMode() {
-			Game.botMode = botModeToggle.isOn;
-		}
-
 		private static void FetchSongs() {
 			var songFolder = Game.SONG_FOLDER;
 			var directories = songFolder.GetDirectories();

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using YARG.Input;
 using YARG.Pools;
 using YARG.UI;
 using YARG.Utils;
@@ -8,6 +9,11 @@ using YARG.Utils;
 namespace YARG {
 	public class Track : MonoBehaviour {
 		public const float TRACK_SPAWN_OFFSET = 3f;
+
+		public PlayerManager.Player player = null;
+
+		private bool strummed = false;
+		private FiveFretInputStrategy input = null;
 
 		[SerializeField]
 		private Camera trackCamera;
@@ -52,12 +58,14 @@ namespace YARG {
 			trackCamera.targetTexture = renderTexture;
 		}
 
-		private void OnDestroy() {
-			// Release render texture
-			trackCamera.targetTexture.Release();
-		}
-
 		private void Start() {
+			// Inputs
+
+			input = (FiveFretInputStrategy) player.inputStrategy;
+
+			input.FretChangeEvent += FretChangedAction;
+			input.StrumEvent += StrumAction;
+
 			// Set render texture
 			GameUI.Instance.AddTrackImage(trackCamera.targetTexture);
 
@@ -77,15 +85,23 @@ namespace YARG {
 			hitWindow.localScale = new(scale.x, Game.HIT_MARGIN * Game.Instance.SongSpeed * 2f, scale.z);
 		}
 
-		private void OnEnable() {
-			Game.Instance.FretPressEvent += FretPressAction;
-		}
+		private void OnDestroy() {
+			// Release render texture
+			trackCamera.targetTexture.Release();
 
-		private void OnDisable() {
-			Game.Instance.FretPressEvent -= FretPressAction;
+			// Unbind input
+			input.FretChangeEvent -= FretChangedAction;
+			input.StrumEvent -= StrumAction;
 		}
 
 		private void Update() {
+			// Update input strategy
+			if (input.botMode) {
+				input.UpdateBotMode(Game.Instance.chart, Game.Instance.SongTime);
+			} else {
+				input.UpdatePlayerMode();
+			}
+
 			// Update track UV
 			var trackMaterial = trackRenderer.material;
 			var oldOffset = trackMaterial.GetTextureOffset("_BaseMap");
@@ -147,6 +163,9 @@ namespace YARG {
 					frets[heldNote.fret].StopSustainParticles();
 				}
 			}
+
+			// Un-strum
+			strummed = false;
 		}
 
 		private void UpdateInput() {
@@ -167,9 +186,9 @@ namespace YARG {
 
 			// Handle hits (one per frame so no double hits)
 			var chord = expectedHits.Peek();
-			if (!chord[0].hopo && !Game.Instance.StrumThisFrame) {
+			if (!chord[0].hopo && !strummed) {
 				return;
-			} else if (chord[0].hopo && Combo <= 0 && !Game.Instance.StrumThisFrame) {
+			} else if (chord[0].hopo && Combo <= 0 && !strummed) {
 				return;
 			}
 
@@ -235,10 +254,10 @@ namespace YARG {
 			return true;
 		}
 
-		private void FretPressAction(bool on, int fret) {
-			frets[fret].SetPressed(on);
+		private void FretChangedAction(bool pressed, int fret) {
+			frets[fret].SetPressed(pressed);
 
-			if (!on) {
+			if (!pressed) {
 				for (int i = heldNotes.Count - 1; i >= 0; i--) {
 					var heldNote = heldNotes[i];
 					if (heldNote.fret != fret) {
@@ -250,6 +269,10 @@ namespace YARG {
 					frets[heldNote.fret].StopSustainParticles();
 				}
 			}
+		}
+
+		private void StrumAction() {
+			strummed = true;
 		}
 
 		private void SpawnNote(NoteInfo noteInfo, float time) {

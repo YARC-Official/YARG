@@ -4,17 +4,14 @@ using UnityEngine.InputSystem.Controls;
 
 namespace YARG.Input {
 	public abstract class InputStrategy {
-		public bool BotMode {
-			get;
-			protected set;
-		}
+		public bool botMode;
 		protected int botChartIndex;
 
-		protected InputDevice inputDevice;
+		public InputDevice inputDevice;
 		protected Dictionary<string, InputControl> inputMappings;
 
 		public InputStrategy(InputDevice inputDevice, bool botMode) {
-			BotMode = botMode;
+			this.botMode = botMode;
 			this.inputDevice = inputDevice;
 
 			// Add keys for each input mapping
@@ -50,6 +47,14 @@ namespace YARG.Input {
 
 		protected ButtonControl MappingAsButton(string key) {
 			return inputMappings[key] as ButtonControl;
+		}
+
+		public InputControl GetMappingInputControl(string name) {
+			return inputMappings[name];
+		}
+
+		public void SetMappingInputControl(string name, InputControl control) {
+			inputMappings[name] = control;
 		}
 	}
 }

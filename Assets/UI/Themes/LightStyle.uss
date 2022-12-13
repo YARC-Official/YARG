@@ -1,5 +1,9 @@
+* {
+	color: rgb(0, 0, 0);
+}
+
 Button {
-	-unity-font-style: normal;
+	-unity-font-style: bold;
 	background-color: rgb(255, 255, 255);
 	border-radius: 5px;
 	border-width: 0;
@@ -10,7 +14,10 @@ Button {
 	color: rgb(0, 0, 0);
 }
 
-Button:focus,
+Button:focus {
+	background-color: rgb(175, 175, 175);
+}
+
 Button:hover {
 	background-color: rgb(175, 175, 175);
 }
