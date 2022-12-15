@@ -27,10 +27,7 @@ namespace YARG.UI {
 
 		public void PlaySong() {
 			Game.song = songInfo.folder;
-			var operation = SceneManager.LoadSceneAsync(1);
-			operation.completed += _ => {
-				SceneManager.SetActiveScene(SceneManager.GetSceneByBuildIndex(1));
-			};
+			SceneManager.LoadScene(1);
 		}
 	}
 }

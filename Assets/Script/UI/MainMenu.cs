@@ -1,5 +1,7 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
+using YARG.Server;
 using YARG.Utils;
 
 namespace YARG.UI {
@@ -14,6 +16,9 @@ namespace YARG.UI {
 		private Canvas songSelect;
 
 		private void Start() {
+			// Stop client on quit
+			Application.quitting += Client.Stop;
+
 			SetupMainMenu();
 			SetupEditPlayers();
 
@@ -29,6 +34,17 @@ namespace YARG.UI {
 
 			root.Q<Button>("PlayButton").clicked += ShowSongSelect;
 			root.Q<Button>("EditPlayersButton").clicked += ShowEditPlayers;
+			root.Q<Button>("HostServer").clicked += () => {
+				SceneManager.LoadScene(2);
+			};
+
+			root.Q<Button>("JoinServer").clicked += () => {
+				var ip = root.Q<TextField>("ServerIP").value;
+				Client.Start(ip);
+
+				// Hide button
+				root.Q<Button>("JoinServer").SetOpacity(0f);
+			};
 		}
 
 		public void ShowMainMenu() {

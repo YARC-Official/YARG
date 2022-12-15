@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 using YARG.Input;
 using YARG.Pools;
@@ -10,10 +11,10 @@ namespace YARG {
 	public class Track : MonoBehaviour {
 		public const float TRACK_SPAWN_OFFSET = 3f;
 
-		public PlayerManager.Player player = null;
+		public PlayerManager.Player player;
 
 		private bool strummed = false;
-		private FiveFretInputStrategy input = null;
+		private FiveFretInputStrategy input;
 
 		[SerializeField]
 		private Camera trackCamera;
@@ -23,18 +24,20 @@ namespace YARG {
 		[SerializeField]
 		private Transform hitWindow;
 
+		[Space]
+		[SerializeField]
+		private Fret[] frets;
 		[SerializeField]
 		private Color[] fretColors;
-		[SerializeField]
-		private float[] fretPositions;
-		[SerializeField]
-		private GameObject fret;
 		[SerializeField]
 		private NotePool notePool;
 		[SerializeField]
 		private Pool genericPool;
 
-		private Fret[] frets = null;
+		[Space]
+		[SerializeField]
+		private TextMeshPro comboText;
+
 		private int visualChartIndex = 0;
 		private int realChartIndex = 0;
 		private int eventChartIndex = 0;
@@ -70,14 +73,10 @@ namespace YARG {
 			GameUI.Instance.AddTrackImage(trackCamera.targetTexture);
 
 			// Spawn in frets
-			frets = new Fret[5];
 			for (int i = 0; i < 5; i++) {
-				var fretObj = Instantiate(fret, transform);
-				fretObj.transform.localPosition = new Vector3(fretPositions[i], 0.01f, -1.75f);
-
-				var fretComp = fretObj.GetComponent<Fret>();
-				fretComp.SetColor(fretColors[i]);
-				frets[i] = fretComp;
+				var fret = frets[i].GetComponent<Fret>();
+				fret.SetColor(fretColors[i]);
+				frets[i] = fret;
 			}
 
 			// Adjust hit window
@@ -164,8 +163,15 @@ namespace YARG {
 				}
 			}
 
+			// Update info (combo, multiplier, etc.)
+			UpdateInfo();
+
 			// Un-strum
 			strummed = false;
+		}
+
+		private void UpdateInfo() {
+			comboText.text = Combo.ToString();
 		}
 
 		private void UpdateInput() {
@@ -276,9 +282,12 @@ namespace YARG {
 		}
 
 		private void SpawnNote(NoteInfo noteInfo, float time) {
+			// Set correct position
 			float lagCompensation = CalcLagCompensation(time, noteInfo.time);
-			var pos = new Vector3(fretPositions[noteInfo.fret], 0f, TRACK_SPAWN_OFFSET - lagCompensation);
+			float x = frets[noteInfo.fret].transform.localPosition.x;
+			var pos = new Vector3(x, 0f, TRACK_SPAWN_OFFSET - lagCompensation);
 
+			// Set note info
 			var noteComp = notePool.CreateNote(noteInfo, pos);
 			noteComp.SetInfo(fretColors[noteInfo.fret], noteInfo.length, noteInfo.hopo);
 		}

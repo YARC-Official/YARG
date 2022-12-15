@@ -1,7 +1,12 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/UI/Themes/LightStyle.uss?fileID=7433441132597879392&amp;guid=771e541b8d5ad5f438b103acf38ae301&amp;type=3#LightStyle" />
-    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0.5); width: 300px; align-items: stretch; justify-content: center; align-self: center; padding-left: 25px; padding-right: 25px; padding-top: 25px; padding-bottom: 25px;">
+    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0.5); width: 300px; align-items: stretch; justify-content: center; align-self: center; padding-left: 25px; padding-right: 25px; padding-top: 25px; padding-bottom: 25px; position: absolute; top: 0; bottom: 0;">
         <ui:Button tabindex="0" text="Play" display-tooltip-when-elided="true" name="PlayButton" />
         <ui:Button tabindex="1" text="Add/Edit Players" display-tooltip-when-elided="true" name="EditPlayersButton" />
+    </ui:VisualElement>
+    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 219px;">
+        <ui:Button tabindex="1" text="Host LAN File Server" display-tooltip-when-elided="true" name="HostServer" style="width: 196px;" />
+        <ui:TextField picking-mode="Ignore" name="ServerIP" value="localhost" style="width: 199px;" />
+        <ui:Button tabindex="-1" text="Join LAN File Server" display-tooltip-when-elided="true" name="JoinServer" style="width: 191px;" />
     </ui:VisualElement>
 </ui:UXML>

@@ -8,9 +8,11 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using YARG.Server;
 
 namespace YARG.UI {
 	public class Menu : MonoBehaviour {
+		public static bool remoteMode;
 		private static List<SongInfo> songs;
 
 		[SerializeField]
@@ -27,7 +29,7 @@ namespace YARG.UI {
 
 		private async void Start() {
 			if (songs == null) {
-				if (Game.CACHE_FILE.Exists) {
+				if (Game.CACHE_FILE.Exists || remoteMode) {
 					await Task.Run(() => FetchSongsFromCache());
 				} else {
 					FetchSongs();
@@ -125,7 +127,12 @@ namespace YARG.UI {
 		}
 
 		private static void FetchSongsFromCache() {
-			string json = File.ReadAllText(Game.CACHE_FILE.ToString());
+			var cacheFile = Game.CACHE_FILE;
+			if (remoteMode) {
+				cacheFile = Client.remoteCache;
+			}
+
+			string json = File.ReadAllText(cacheFile.ToString());
 			songs = JsonConvert.DeserializeObject<List<SongInfo>>(json);
 		}
 
