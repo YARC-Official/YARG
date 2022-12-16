@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,12 +7,17 @@ using IniParser;
 using Newtonsoft.Json;
 using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using YARG.Server;
 
 namespace YARG.UI {
 	public class Menu : MonoBehaviour {
+		public static Menu Instance {
+			get;
+			private set;
+		}
+
 		public static bool remoteMode;
 		private static List<SongInfo> songs;
 
@@ -28,6 +34,8 @@ namespace YARG.UI {
 		private List<SongInfoComponent> songInfoComponents;
 
 		private async void Start() {
+			Instance = this;
+
 			if (songs == null) {
 				if (Game.CACHE_FILE.Exists || remoteMode) {
 					await Task.Run(() => FetchSongsFromCache());
@@ -67,6 +75,14 @@ namespace YARG.UI {
 
 			// Select the first song by default
 			songInfoComponents[0].GetComponent<Button>().Select();
+
+			// Bind events
+			Client.SignalEvent += SignalRecieved;
+		}
+
+		private void OnDisable() {
+			// Unbind events
+			Client.SignalEvent -= SignalRecieved;
 		}
 
 		private void UpdateAll() {
@@ -76,8 +92,13 @@ namespace YARG.UI {
 		}
 
 		private void Update() {
-			if (Keyboard.current.rKey.wasPressedThisFrame) {
-				UpdateAll();
+			Client.CheckForSignals();
+		}
+
+		private void SignalRecieved(string signal) {
+			if (signal.StartsWith("DownloadDone,")) {
+				Game.song = new(Path.Combine(Client.remotePath, signal[13..^0]));
+				SceneManager.LoadScene(1);
 			}
 		}
 
@@ -115,7 +136,7 @@ namespace YARG.UI {
 					// Get song length
 					int rawLength = int.Parse(data["song"]["song_length"]);
 					song.songLength = rawLength / 1000f;
-				} catch (System.Exception e) {
+				} catch (Exception e) {
 					song.errored = true;
 					Debug.LogException(e);
 				}
@@ -143,6 +164,10 @@ namespace YARG.UI {
 			}
 
 			return o;
+		}
+
+		public static void DownloadSong(SongInfo songInfo) {
+			Client.RequestDownload(songInfo.folder.FullName);
 		}
 	}
 }

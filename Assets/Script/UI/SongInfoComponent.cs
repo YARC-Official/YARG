@@ -26,8 +26,12 @@ namespace YARG.UI {
 		}
 
 		public void PlaySong() {
-			Game.song = songInfo.folder;
-			SceneManager.LoadScene(1);
+			if (Menu.remoteMode) {
+				Menu.DownloadSong(songInfo);
+			} else {
+				Game.song = songInfo.folder;
+				SceneManager.LoadScene(1);
+			}
 		}
 	}
 }

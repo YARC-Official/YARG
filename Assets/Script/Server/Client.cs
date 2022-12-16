@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Concurrent;
 using System.IO;
+using System.IO.Compression;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -8,11 +10,17 @@ using YARG.UI;
 
 namespace YARG.Server {
 	public static class Client {
+		public delegate void SignalAction(string signal);
+		public static event SignalAction SignalEvent;
+
 		public static FileInfo remoteCache;
-		private static string remotePath;
+		public static string remotePath;
 
 		private static Thread thread;
 		private static TcpClient client;
+
+		private static ConcurrentQueue<string> requests = new();
+		private static ConcurrentQueue<string> signals = new();
 
 		public static void Start(string ip) {
 			Menu.remoteMode = true;
@@ -33,14 +41,44 @@ namespace YARG.Server {
 		private static void ClientThread() {
 			var stream = client.GetStream();
 
-			// Get cache
-			var send = Encoding.ASCII.GetBytes("ReqCache");
-			stream.Write(send, 0, send.Length);
-			stream.Flush();
+			// Request cache
+			Send(stream, "ReqCache");
 
 			// Read cache from server
 			remoteCache = new(Path.Combine(remotePath, "yarg_cache.json"));
 			ReadFile(stream, remoteCache);
+
+			// Wait until request
+			while (true) {
+				if (requests.TryDequeue(out var request)) {
+					Send(stream, request);
+
+					if (request.StartsWith("ReqSong,")) {
+						// Read zipped song from server
+						string zipPath = Path.Combine(remotePath, "download.zip");
+						ReadFile(stream, new(zipPath));
+
+						// When done, unzip file
+						string uuid = Guid.NewGuid().ToString();
+						ZipFile.ExtractToDirectory(zipPath, Path.Combine(remotePath, uuid));
+
+						// Delete zip
+						new FileInfo(zipPath).Delete();
+
+						// Send signal
+						signals.Enqueue("DownloadDone," + uuid);
+					}
+				}
+
+				// Prevent CPU burn
+				Thread.Sleep(10);
+			}
+		}
+
+		private static void Send(NetworkStream stream, string str) {
+			var send = Encoding.ASCII.GetBytes(str);
+			stream.Write(send, 0, send.Length);
+			stream.Flush();
 		}
 
 		private static void ReadFile(NetworkStream stream, FileInfo output) {
@@ -48,7 +86,7 @@ namespace YARG.Server {
 
 			// Wait until data is available
 			while (!stream.DataAvailable) {
-				Thread.Sleep(10);
+				Thread.Sleep(100);
 			}
 
 			// Get file size
@@ -81,6 +119,18 @@ namespace YARG.Server {
 			stream.Write(send, 0, send.Length);
 			stream.Flush();
 			client.Close();
+		}
+
+		public static void CheckForSignals() {
+			while (signals.Count > 0) {
+				if (signals.TryDequeue(out var signal)) {
+					SignalEvent?.Invoke(signal);
+				}
+			}
+		}
+
+		public static void RequestDownload(string path) {
+			requests.Enqueue($"ReqSong,{path}");
 		}
 	}
 }

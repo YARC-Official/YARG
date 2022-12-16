@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -45,24 +46,50 @@ namespace YARG.Server {
 
 			var stream = client.GetStream();
 			while (true) {
-				if (stream.DataAvailable) {
-					// Get data from client
-					byte[] bytes = new byte[1024];
-					int size = stream.Read(bytes, 0, bytes.Length);
+				try {
+					if (stream.DataAvailable) {
+						// Get data from client
+						byte[] bytes = new byte[1024];
+						int size = stream.Read(bytes, 0, bytes.Length);
 
-					// Get request
-					var str = System.Text.Encoding.ASCII.GetString(bytes, 0, size);
-					Log($"Received: `{str}`.");
+						// Get request
+						var str = System.Text.Encoding.ASCII.GetString(bytes, 0, size);
+						Log($"Received: `{str}`.");
 
-					// Do something
-					if (str == "End") {
-						break;
-					} else if (str == "ReqCache") {
-						SendFile(stream, Game.CACHE_FILE);
+						// Do something
+						if (str == "End") {
+							break;
+						} else if (str == "ReqCache") {
+							SendFile(stream, Game.CACHE_FILE);
+						} else if (str.StartsWith("ReqSong,")) {
+							// Get the folder
+							string path = str[8..^0];
+
+							// See if valid
+							if (!path.StartsWith(Game.SONG_FOLDER.FullName)) {
+								return;
+							}
+
+							// Create unique temp file name
+							string name = $"temp_{Thread.CurrentThread.ManagedThreadId}.zip";
+							name = Path.Combine(Game.SONG_FOLDER.FullName, name);
+
+							// Zip up folder
+							ZipFile.CreateFromDirectory(path, name);
+
+							// Send it over
+							var info = new FileInfo(name);
+							SendFile(stream, info);
+
+							// Delete temp
+							info.Delete();
+						}
+					} else {
+						// Prevent CPU burn
+						Thread.Sleep(100);
 					}
-				} else {
-					// Prevent CPU burn
-					Thread.Sleep(100);
+				} catch (Exception e) {
+					Log($"<color=red>Error: {e.Message}</color>");
 				}
 			}
 
