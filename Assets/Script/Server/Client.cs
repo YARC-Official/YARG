@@ -107,6 +107,7 @@ namespace YARG.Server {
 		}
 
 		public static void Stop() {
+			// Close client (if connected to server)
 			if (client == null) {
 				return;
 			}
@@ -119,6 +120,9 @@ namespace YARG.Server {
 			stream.Write(send, 0, send.Length);
 			stream.Flush();
 			client.Close();
+
+			// Delete remote folder
+			Directory.Delete(remotePath, true);
 		}
 
 		public static void CheckForSignals() {

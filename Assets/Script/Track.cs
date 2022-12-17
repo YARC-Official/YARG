@@ -94,9 +94,14 @@ namespace YARG {
 		}
 
 		private void Update() {
+			// Get chart stuff
+			var chart = Game.Instance.chart
+				.GetChartByName(player.chosenInstrument)[player.chosenDifficulty];
+			var events = Game.Instance.chart.events;
+
 			// Update input strategy
 			if (input.botMode) {
-				input.UpdateBotMode(Game.Instance.chart, Game.Instance.SongTime);
+				input.UpdateBotMode(chart, Game.Instance.SongTime);
 			} else {
 				input.UpdatePlayerMode();
 			}
@@ -107,10 +112,7 @@ namespace YARG {
 			float movement = Time.deltaTime * Game.Instance.SongSpeed / 4f;
 			trackMaterial.SetTextureOffset("_BaseMap", new(oldOffset.x, oldOffset.y - movement));
 
-			// Update visuals and events
 			float relativeTime = Game.Instance.SongTime + ((TRACK_SPAWN_OFFSET + 1.75f) / Game.Instance.SongSpeed);
-			var chart = Game.Instance.chart;
-			var events = Game.Instance.chartEvents;
 
 			// Since chart is sorted, this is guaranteed to work
 			while (chart.Count > visualChartIndex && chart[visualChartIndex].time <= relativeTime) {

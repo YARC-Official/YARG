@@ -1,0 +1,9 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/Themes/LightStyle.uss?fileID=7433441132597879392&amp;guid=771e541b8d5ad5f438b103acf38ae301&amp;type=3#LightStyle" />
+    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); margin-left: 25px; margin-right: 25px; margin-top: 25px; margin-bottom: 25px;">
+        <ui:Label tabindex="-1" text="Player Name" display-tooltip-when-elided="true" name="PlayerNameLabel" style="-unity-font-style: bold;" />
+        <ui:RadioButtonGroup value="-1" choices="Guitar,Bass,Keys" name="InstrumentChoice" />
+        <ui:RadioButtonGroup value="-1" choices="Easy,Medium,Hard,Expert" name="DifficultyChoice" style="margin-top: 32px;" />
+        <ui:Button tabindex="-1" text="Go" display-tooltip-when-elided="true" name="Go" />
+    </ui:VisualElement>
+</ui:UXML>

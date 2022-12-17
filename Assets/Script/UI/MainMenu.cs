@@ -6,16 +6,28 @@ using YARG.Utils;
 
 namespace YARG.UI {
 	public partial class MainMenu : MonoBehaviour {
+		public static MainMenu Instance {
+			get;
+			private set;
+		}
+
+		public SongInfo chosenSong = null;
+		private int playerIndex = 0;
+
 		[SerializeField]
 		private UIDocument mainMenuDocument;
 		[SerializeField]
 		private UIDocument editPlayersDocument;
+		[SerializeField]
+		private UIDocument preSongDocument;
 
 		// Temp
 		[SerializeField]
 		private Canvas songSelect;
 
 		private void Start() {
+			Instance = this;
+
 			// Stop client on quit
 			Application.quitting += Client.Stop;
 
@@ -47,22 +59,77 @@ namespace YARG.UI {
 			};
 		}
 
-		public void ShowMainMenu() {
-			mainMenuDocument.SetVisible(true);
+		private void SetupPreSong() {
+			// Start the song if all the players chose their instruments
+			if (playerIndex >= PlayerManager.players.Count) {
+				if (Menu.remoteMode) {
+					Menu.DownloadSong(chosenSong);
+				} else {
+					Game.song = chosenSong.folder;
+					SceneManager.LoadScene(1);
+				}
+				return;
+			}
+
+			var root = preSongDocument.rootVisualElement;
+
+			// Set name label (with bot tag if required)
+			var player = PlayerManager.players[playerIndex];
+			root.Q<Label>("PlayerNameLabel").text = player.name + (player.inputStrategy.botMode ? " (BOT)" : "");
+
+			// Get option groups
+			var instrumentChoice = root.Q<RadioButtonGroup>("InstrumentChoice");
+			instrumentChoice.value = -1;
+			var difficultyChoice = root.Q<RadioButtonGroup>("DifficultyChoice");
+			difficultyChoice.value = -1;
+
+			// Setup button
+			var button = root.Q<Button>("Go");
+			button.clickable = null; // Remove old events
+			button.clicked += () => {
+				// Set player stuff
+				player.chosenInstrument = instrumentChoice.value switch {
+					1 => "bass",
+					2 => "keys",
+					0 or _ => "guitar"
+				};
+				player.chosenDifficulty = difficultyChoice.value;
+
+				// Refresh for next player
+				playerIndex++;
+				SetupPreSong();
+			};
+		}
+
+		private void HideAll() {
+			mainMenuDocument.SetVisible(false);
 			editPlayersDocument.SetVisible(false);
+			preSongDocument.SetVisible(false);
 			songSelect.gameObject.SetActive(false);
+		}
+
+		public void ShowMainMenu() {
+			HideAll();
+			mainMenuDocument.SetVisible(true);
 		}
 
 		public void ShowEditPlayers() {
-			mainMenuDocument.SetVisible(false);
+			HideAll();
 			editPlayersDocument.SetVisible(true);
-			songSelect.gameObject.SetActive(false);
 		}
 
 		public void ShowSongSelect() {
-			mainMenuDocument.SetVisible(false);
-			editPlayersDocument.SetVisible(false);
+			HideAll();
 			songSelect.gameObject.SetActive(true);
+		}
+
+		public void ShowPreSong() {
+			HideAll();
+
+			playerIndex = 0;
+			SetupPreSong();
+
+			preSongDocument.SetVisible(true);
 		}
 	}
 }

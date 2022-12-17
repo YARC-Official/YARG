@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
+using UnityEngine;
 
 namespace YARG.Serialization {
 	public class MidiParser : AbstractParser {
@@ -33,28 +34,43 @@ namespace YARG.Serialization {
 			midi = MidiFile.Read(file);
 		}
 
-		public override void Parse(out List<NoteInfo> chartNotes, out List<EventInfo> chartEvents) {
-			chartNotes = null;
-			chartEvents = null;
+		public override void Parse(Chart chart) {
 			foreach (var trackChunk in midi.GetTrackChunks()) {
 				foreach (var trackEvent in trackChunk.Events) {
 					if (trackEvent is not SequenceTrackNameEvent trackName) {
 						continue;
 					}
 
-					if (trackName.Text == "PART GUITAR") {
-						chartNotes = ParseGuitar(trackChunk);
-					}
-
-					if (trackName.Text == "BEAT") {
-						chartEvents = ParseBeats(trackChunk);
+					// Parse each chunk
+					try {
+						switch (trackName.Text) {
+							case "PART GUITAR":
+								chart.guitar[3] = ParseGuitar(trackChunk);
+								break;
+							case "PART BASS":
+								chart.bass[3] = ParseGuitar(trackChunk);
+								break;
+							case "PART KEYS":
+								chart.keys[3] = ParseGuitar(trackChunk);
+								break;
+							case "BEAT":
+								chart.events = ParseBeats(trackChunk);
+								break;
+						}
+					} catch (Exception e) {
+						Debug.LogError($"Error while parsing track chunk named `{trackName.Text}`. Skipped.");
+						Debug.LogException(e);
 					}
 				}
 			}
 
 			// Sort by time (just in case)
-			chartNotes?.Sort(new Comparison<NoteInfo>((a, b) => a.time.CompareTo(b.time)));
-			chartEvents?.Sort(new Comparison<EventInfo>((a, b) => a.time.CompareTo(b.time)));
+			foreach (var part in chart.allParts) {
+				foreach (var difficulty in part) {
+					difficulty?.Sort(new Comparison<NoteInfo>((a, b) => a.time.CompareTo(b.time)));
+				}
+			}
+			chart.events.Sort(new Comparison<EventInfo>((a, b) => a.time.CompareTo(b.time)));
 		}
 
 		private List<NoteInfo> ParseGuitar(TrackChunk trackChunk) {
@@ -107,6 +123,8 @@ namespace YARG.Serialization {
 
 				// Deal with note ons or note offs
 
+				// TODO: Fix invalid HOPOs after chord. See "In the Meantime"
+
 				if (fretState[fretNum] != null) {
 					var noteForceState = forceState;
 					bool isChord = false;
@@ -131,18 +149,21 @@ namespace YARG.Serialization {
 
 						// Check for auto HOPO and chord
 						if (lastNote.fret != fretNum && !isChord) {
-							var lastNoteBeat = TimeConverter.ConvertTo<MusicalTimeSpan>(lastNote.startTick, tempo);
-							var noteBeat = TimeConverter.ConvertTo<MusicalTimeSpan>(fretState[fretNum].Value, tempo);
-							var distance = noteBeat - lastNoteBeat;
+							// Wrap in a try just in case noteBeat < lastNoteBeat
+							try {
+								var lastNoteBeat = TimeConverter.ConvertTo<MusicalTimeSpan>(lastNote.startTick, tempo);
+								var noteBeat = TimeConverter.ConvertTo<MusicalTimeSpan>(fretState[fretNum].Value, tempo);
+								var distance = noteBeat - lastNoteBeat;
 
-							// Thanks?? https://tcrf.net/Proto:Guitar_Hero
-							// According to this, auto-HOPO threshold is 170 ticks.
-							// "But a tick is different in every midi file!"
-							// It also mentions that 160 is a twelth note.
-							// 160 * 12 = 1920
-							if (distance <= new MusicalTimeSpan(170, 1920)) {
-								noteForceState = ForceState.AUTO_HOPO;
-							}
+								// Thanks?? https://tcrf.net/Proto:Guitar_Hero
+								// According to this, auto-HOPO threshold is 170 ticks.
+								// "But a tick is different in every midi file!"
+								// It also mentions that 160 is a twelth note.
+								// 160 * 12 = 1920
+								if (distance <= new MusicalTimeSpan(170, 1920)) {
+									noteForceState = ForceState.AUTO_HOPO;
+								}
+							} catch { }
 						}
 					}
 

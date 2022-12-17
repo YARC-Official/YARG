@@ -4,6 +4,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
 using YARG.Serialization;
 
 namespace YARG {
@@ -11,7 +12,7 @@ namespace YARG {
 		public const float HIT_MARGIN = 0.075f;
 		public const bool ANCHORING = true;
 
-		public static readonly DirectoryInfo SONG_FOLDER = new(@"B:\YARG_Songs");
+		public static readonly DirectoryInfo SONG_FOLDER = new(@"B:\Clone Hero Alpha\Songs");
 		public static readonly FileInfo CACHE_FILE = new(Path.Combine(SONG_FOLDER.ToString(), "yarg_cache.json"));
 
 		public static DirectoryInfo song = new(@"B:\Clone Hero Alpha\Songs\Jane's Addiction - Been Caught Stealing");
@@ -38,14 +39,12 @@ namespace YARG {
 			get;
 			private set;
 		}
-		public List<NoteInfo> chart;
-		public List<EventInfo> chartEvents;
+		public Chart chart;
 
 		private void Awake() {
 			Instance = this;
 
 			chart = null;
-			chartEvents = null;
 			SongSpeed = 7f;
 			calibration = -0.23f;
 			realSongTime = 0f;
@@ -78,7 +77,8 @@ namespace YARG {
 
 			// Load midi
 			var parser = new MidiParser(Path.Combine(songFolder.FullName, "notes.mid"));
-			parser.Parse(out chart, out chartEvents);
+			chart = new Chart();
+			parser.Parse(chart);
 
 			// Spawn tracks
 			for (int i = 0; i < PlayerManager.players.Count; i++) {
@@ -109,6 +109,10 @@ namespace YARG {
 					Debug.Log(calibration);
 				}
 			}
+		}
+
+		public void Exit() {
+			SceneManager.LoadScene(0);
 		}
 	}
 }
