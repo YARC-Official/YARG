@@ -35,17 +35,12 @@ namespace YARG {
 			get => realSongTime + calibration;
 		}
 
-		public float SongSpeed {
-			get;
-			private set;
-		}
 		public Chart chart;
 
 		private void Awake() {
 			Instance = this;
 
 			chart = null;
-			SongSpeed = 7f;
 			calibration = -0.23f;
 			realSongTime = 0f;
 

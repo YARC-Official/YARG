@@ -7,10 +7,12 @@ Button {
 	background-color: rgb(255, 255, 255);
 	border-radius: 5px;
 	border-width: 0;
+	/*
 	transition-property: all, background-color;
 	transition-duration: 0s, 0.25s;
 	transition-timing-function: ease, ease;
 	transition-delay: 0s, 0s;
+	*/
 	color: rgb(0, 0, 0);
 }
 

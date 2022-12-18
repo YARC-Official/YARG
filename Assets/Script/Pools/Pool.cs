@@ -5,6 +5,11 @@ using UnityEngine;
 
 namespace YARG.Pools {
 	public class Pool : MonoBehaviour {
+		public PlayerManager.Player player;
+
+		/// <summary>
+		/// Unity inspector class ('cause we can't use dictionaries for some reason).
+		/// </summary>
 		[Serializable]
 		public class KVP {
 			public string id;

@@ -19,6 +19,7 @@ namespace YARG.UI {
 
 			var radioGroup = root.Q<RadioButtonGroup>("InputStrategyRadio");
 			var botMode = root.Q<Toggle>("BotMode");
+			var trackSpeed = root.Q<FloatField>("TrackSpeed");
 			var inputDeviceDropdown = root.Q<DropdownField>("InputDevice");
 			var inputStrategyPanel = root.Q<VisualElement>("InputStrategy");
 			var settingsList = root.Q<ListView>("SettingsList");
@@ -83,6 +84,8 @@ namespace YARG.UI {
 
 					UpdateSettingsList(settingsList, playerList.selectedIndex);
 				}
+
+				trackSpeed.value = player.trackSpeed;
 			};
 
 			// Initialize player list buttons
@@ -147,6 +150,19 @@ namespace YARG.UI {
 
 				player.inputStrategy.botMode = e.newValue;
 				playerList.RefreshItem(playerList.selectedIndex);
+			});
+
+			trackSpeed.RegisterValueChangedCallback(e => {
+				if (trackSpeed != e.target) {
+					return;
+				}
+
+				if (playerList.selectedIndex == -1) {
+					return;
+				}
+
+				var player = PlayerManager.players[playerList.selectedIndex];
+				player.trackSpeed = trackSpeed.value;
 			});
 
 			radioGroup.RegisterValueChangedCallback(e => {

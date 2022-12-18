@@ -46,7 +46,7 @@ namespace YARG {
 				return;
 			}
 
-			length *= Game.Instance.SongSpeed;
+			length *= notePool.player.trackSpeed;
 			lengthCache = length;
 
 			lineRenderer.enabled = true;
@@ -76,7 +76,7 @@ namespace YARG {
 		}
 
 		private void Update() {
-			transform.localPosition -= new Vector3(0f, 0f, Time.deltaTime * Game.Instance.SongSpeed);
+			transform.localPosition -= new Vector3(0f, 0f, Time.deltaTime * notePool.player.trackSpeed);
 
 			if (isHitting) {
 				// Get the new line start position. Said position should be at

@@ -4,6 +4,8 @@ using UnityEngine;
 
 namespace YARG {
 	public class NotePool : MonoBehaviour {
+		public PlayerManager.Player player;
+
 		[SerializeField]
 		private GameObject notePrefab;
 

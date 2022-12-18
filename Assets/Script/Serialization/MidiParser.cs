@@ -45,13 +45,19 @@ namespace YARG.Serialization {
 					try {
 						switch (trackName.Text) {
 							case "PART GUITAR":
-								chart.guitar[3] = ParseGuitar(trackChunk);
+								for (int i = 0; i < 4; i++) {
+									chart.guitar[i] = ParseGuitar(trackChunk, i);
+								}
 								break;
 							case "PART BASS":
-								chart.bass[3] = ParseGuitar(trackChunk);
+								for (int i = 0; i < 4; i++) {
+									chart.bass[i] = ParseGuitar(trackChunk, i);
+								}
 								break;
 							case "PART KEYS":
-								chart.keys[3] = ParseGuitar(trackChunk);
+								for (int i = 0; i < 4; i++) {
+									chart.keys[i] = ParseGuitar(trackChunk, i);
+								}
 								break;
 							case "BEAT":
 								chart.events = ParseBeats(trackChunk);
@@ -70,10 +76,10 @@ namespace YARG.Serialization {
 					difficulty?.Sort(new Comparison<NoteInfo>((a, b) => a.time.CompareTo(b.time)));
 				}
 			}
-			chart.events.Sort(new Comparison<EventInfo>((a, b) => a.time.CompareTo(b.time)));
+			chart.events?.Sort(new Comparison<EventInfo>((a, b) => a.time.CompareTo(b.time)));
 		}
 
-		private List<NoteInfo> ParseGuitar(TrackChunk trackChunk) {
+		private List<NoteInfo> ParseGuitar(TrackChunk trackChunk, int difficulty) {
 			var tempo = midi.GetTempoMap();
 
 			long totalDelta = 0;
@@ -91,7 +97,7 @@ namespace YARG.Serialization {
 				}
 
 				// Expert octave
-				if (noteEvent.GetNoteOctave() != 7) {
+				if (noteEvent.GetNoteOctave() != 4 + difficulty) {
 					continue;
 				}
 

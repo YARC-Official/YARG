@@ -62,6 +62,9 @@ namespace YARG {
 		}
 
 		private void Start() {
+			notePool.player = player;
+			genericPool.player = player;
+
 			// Inputs
 
 			input = (FiveFretInputStrategy) player.inputStrategy;
@@ -81,7 +84,7 @@ namespace YARG {
 
 			// Adjust hit window
 			var scale = hitWindow.localScale;
-			hitWindow.localScale = new(scale.x, Game.HIT_MARGIN * Game.Instance.SongSpeed * 2f, scale.z);
+			hitWindow.localScale = new(scale.x, Game.HIT_MARGIN * player.trackSpeed * 2f, scale.z);
 		}
 
 		private void OnDestroy() {
@@ -109,10 +112,10 @@ namespace YARG {
 			// Update track UV
 			var trackMaterial = trackRenderer.material;
 			var oldOffset = trackMaterial.GetTextureOffset("_BaseMap");
-			float movement = Time.deltaTime * Game.Instance.SongSpeed / 4f;
+			float movement = Time.deltaTime * player.trackSpeed / 4f;
 			trackMaterial.SetTextureOffset("_BaseMap", new(oldOffset.x, oldOffset.y - movement));
 
-			float relativeTime = Game.Instance.SongTime + ((TRACK_SPAWN_OFFSET + 1.75f) / Game.Instance.SongSpeed);
+			float relativeTime = Game.Instance.SongTime + ((TRACK_SPAWN_OFFSET + 1.75f) / player.trackSpeed);
 
 			// Since chart is sorted, this is guaranteed to work
 			while (chart.Count > visualChartIndex && chart[visualChartIndex].time <= relativeTime) {
@@ -295,7 +298,7 @@ namespace YARG {
 		}
 
 		private float CalcLagCompensation(float currentTime, float noteTime) {
-			return (currentTime - noteTime) * Game.Instance.SongSpeed;
+			return (currentTime - noteTime) * player.trackSpeed;
 		}
 	}
 }
