@@ -57,6 +57,17 @@ namespace YARG.UI {
 				// Hide button
 				root.Q<Button>("JoinServer").SetOpacity(0f);
 			};
+
+			// Low quality toggle
+			var lowQuality = root.Q<Toggle>("LowQuality");
+			lowQuality.value = PlayerManager.LowQualityMode;
+			lowQuality.RegisterValueChangedCallback(e => {
+				if (lowQuality != e.target) {
+					return;
+				}
+
+				PlayerManager.LowQualityMode = lowQuality.value;
+			});
 		}
 
 		private void SetupPreSong() {

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 using YARG.Input;
 
 namespace YARG {
@@ -15,5 +16,15 @@ namespace YARG {
 
 		public static int nextPlayerIndex = 1;
 		public static List<Player> players = new();
+
+		private static bool _lowQualityMode = false;
+		public static bool LowQualityMode {
+			get => _lowQualityMode;
+			set {
+				_lowQualityMode = value;
+
+				QualitySettings.SetQualityLevel(_lowQualityMode ? 0 : 1, true);
+			}
+		}
 	}
 }

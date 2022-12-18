@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using YARG.Input;
 using YARG.Pools;
 using YARG.UI;
@@ -59,6 +60,14 @@ namespace YARG {
 			);
 			var renderTexture = new RenderTexture(descriptor);
 			trackCamera.targetTexture = renderTexture;
+
+			// Set up camera
+			var info = trackCamera.GetComponent<UniversalAdditionalCameraData>();
+			if (PlayerManager.LowQualityMode) {
+				info.antialiasing = AntialiasingMode.None;
+			} else {
+				info.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
+			}
 		}
 
 		private void Start() {
