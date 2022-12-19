@@ -68,6 +68,17 @@ namespace YARG.UI {
 
 				PlayerManager.LowQualityMode = lowQuality.value;
 			});
+
+			// Calibration
+			var calibrationField = root.Q<FloatField>("Calibration");
+			calibrationField.value = PlayerManager.globalCalibration;
+			calibrationField.RegisterValueChangedCallback(e => {
+				if (calibrationField != e.target) {
+					return;
+				}
+
+				PlayerManager.globalCalibration = calibrationField.value;
+			});
 		}
 
 		private void SetupPreSong() {

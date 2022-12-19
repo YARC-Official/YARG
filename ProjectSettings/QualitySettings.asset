@@ -4,7 +4,7 @@
 QualitySettings:
   m_ObjectHideFlags: 0
   serializedVersion: 5
-  m_CurrentQuality: 0
+  m_CurrentQuality: 1
   m_QualitySettings:
   - serializedVersion: 3
     name: Low
@@ -114,7 +114,7 @@ QualitySettings:
     Nintendo Switch: 1
     PS4: 1
     PS5: 1
-    Server: 0
+    Server: 1
     Stadia: 1
     Standalone: 1
     WebGL: 0

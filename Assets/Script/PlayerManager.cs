@@ -26,5 +26,7 @@ namespace YARG {
 				QualitySettings.SetQualityLevel(_lowQualityMode ? 0 : 1, true);
 			}
 		}
+
+		public static float globalCalibration = -0.4f;
 	}
 }

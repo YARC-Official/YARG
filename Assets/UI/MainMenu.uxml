@@ -4,10 +4,11 @@
         <ui:Button tabindex="0" text="Play" display-tooltip-when-elided="true" name="PlayButton" />
         <ui:Button tabindex="1" text="Add/Edit Players" display-tooltip-when-elided="true" name="EditPlayersButton" />
     </ui:VisualElement>
-    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 219px;">
+    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 250px; align-self: flex-end;">
         <ui:Button tabindex="1" text="Host LAN File Server" display-tooltip-when-elided="true" name="HostServer" style="width: 196px;" />
         <ui:TextField picking-mode="Ignore" name="ServerIP" value="localhost" style="width: 199px;" />
         <ui:Button tabindex="-1" text="Join LAN File Server" display-tooltip-when-elided="true" name="JoinServer" style="width: 191px;" />
-        <ui:Toggle label="Low Quality" name="LowQuality" style="position: absolute; bottom: 0;" />
+        <ui:Toggle label="Low Quality" name="LowQuality" />
+        <ui:FloatField label="Calibration" value="0" name="Calibration" />
     </ui:VisualElement>
 </ui:UXML>

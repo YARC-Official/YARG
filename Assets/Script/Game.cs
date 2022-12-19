@@ -30,9 +30,8 @@ namespace YARG {
 		private bool songStarted = false;
 
 		private float realSongTime = 0f;
-		private float calibration = 0f;
 		public float SongTime {
-			get => realSongTime + calibration;
+			get => realSongTime + PlayerManager.globalCalibration;
 		}
 
 		public Chart chart;
@@ -41,7 +40,6 @@ namespace YARG {
 			Instance = this;
 
 			chart = null;
-			calibration = -0.23f;
 			realSongTime = 0f;
 
 			// Song
@@ -95,13 +93,11 @@ namespace YARG {
 				realSongTime += Time.deltaTime;
 
 				if (Keyboard.current.upArrowKey.wasPressedThisFrame) {
-					calibration += 0.01f;
-					Debug.Log(calibration);
+					PlayerManager.globalCalibration += 0.01f;
 				}
 
 				if (Keyboard.current.downArrowKey.wasPressedThisFrame) {
-					calibration -= 0.01f;
-					Debug.Log(calibration);
+					PlayerManager.globalCalibration -= 0.01f;
 				}
 			}
 		}
