@@ -7,12 +7,6 @@ Button {
 	background-color: rgb(255, 255, 255);
 	border-radius: 5px;
 	border-width: 0;
-	/*
-	transition-property: all, background-color;
-	transition-duration: 0s, 0.25s;
-	transition-timing-function: ease, ease;
-	transition-delay: 0s, 0s;
-	*/
 	color: rgb(0, 0, 0);
 }
 
@@ -26,4 +20,9 @@ Button:hover {
 
 Button:active {
 	background-color: rgb(128, 128, 128);
+}
+
+.font-header {
+	-unity-font-definition: url('project://database/Assets/Art/Fonts/Righteous.asset?fileID=11400000&guid=0c93090de106b9c49bd9fbc653f1753c&type=2#Righteous');
+	-unity-font-style: bold;
 }
