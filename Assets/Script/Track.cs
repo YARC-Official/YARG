@@ -38,6 +38,8 @@ namespace YARG {
 		[Space]
 		[SerializeField]
 		private TextMeshPro comboText;
+		[SerializeField]
+		private MeshRenderer comboMeterRenderer;
 
 		private int visualChartIndex = 0;
 		private int realChartIndex = 0;
@@ -51,6 +53,7 @@ namespace YARG {
 			get => _combo;
 			set => _combo = value;
 		}
+		private int Multiplier => Mathf.Min(Combo / 10 + 1, 4);
 
 		private void Awake() {
 			// Set up render texture
@@ -186,7 +189,23 @@ namespace YARG {
 		}
 
 		private void UpdateInfo() {
-			comboText.text = Combo.ToString();
+			// Update text
+			if (Multiplier == 1) {
+				comboText.text = null;
+			} else {
+				comboText.text = $"{Multiplier}<sub>x</sub>";
+			}
+
+			// Update status
+
+			int index = Combo % 10;
+			if (Multiplier != 1 && index == 0) {
+				index = 10;
+			} else if (Multiplier == 4) {
+				index = 10;
+			}
+
+			comboMeterRenderer.material.SetFloat("SpriteNum", index);
 		}
 
 		private void UpdateInput() {

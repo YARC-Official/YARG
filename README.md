@@ -7,4 +7,5 @@ Yet Another Rhythm Game based off of Rockband, Guitar Hero, Clone Hero, or simil
 | Link | Type | Use |
 | --- | --- | --- |
 | [Righteous](https://fonts.google.com/specimen/Righteous) | Font | Headers, Logo
+| [Unbounded](https://fonts.google.com/specimen/Unbounded) | Font | Combo
 | [Blue and Brown Guitar](https://www.pexels.com/photo/blue-and-brown-guitar-1539789) | Image | Main Menu
