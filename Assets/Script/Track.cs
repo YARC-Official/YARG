@@ -124,9 +124,17 @@ namespace YARG {
 
 			// Update track UV
 			var trackMaterial = trackRenderer.material;
-			var oldOffset = trackMaterial.GetTextureOffset("_BaseMap");
+			var oldOffset = trackMaterial.GetVector("TexOffset");
 			float movement = Time.deltaTime * player.trackSpeed / 4f;
-			trackMaterial.SetTextureOffset("_BaseMap", new(oldOffset.x, oldOffset.y - movement));
+			trackMaterial.SetVector("TexOffset", new(oldOffset.x, oldOffset.y - movement));
+
+			// Update groove mode
+			float currentGroove = trackMaterial.GetFloat("GrooveState");
+			if (Multiplier == 4) {
+				trackMaterial.SetFloat("GrooveState", Mathf.Lerp(currentGroove, 1f, Time.deltaTime * 5f));
+			} else {
+				trackMaterial.SetFloat("GrooveState", Mathf.Lerp(currentGroove, 0f, Time.deltaTime * 3f));
+			}
 
 			float relativeTime = Game.Instance.SongTime + ((TRACK_SPAWN_OFFSET + 1.75f) / player.trackSpeed);
 
