@@ -30,7 +30,7 @@ namespace YARG.Serialization {
 
 		public MidiFile midi;
 
-		public MidiParser(string file) : base(file) {
+		public MidiParser(string file, float delay) : base(file, delay) {
 			midi = MidiFile.Read(file);
 		}
 
@@ -70,13 +70,33 @@ namespace YARG.Serialization {
 				}
 			}
 
-			// Sort by time (just in case)
+			// Sort by time (just in case) and add delay
+
 			foreach (var part in chart.allParts) {
 				foreach (var difficulty in part) {
+					if (difficulty == null) {
+						continue;
+					}
+
+					// Sort
 					difficulty?.Sort(new Comparison<NoteInfo>((a, b) => a.time.CompareTo(b.time)));
+
+					// Add delay
+					foreach (var note in difficulty) {
+						note.time -= delay;
+					}
 				}
 			}
-			chart.events?.Sort(new Comparison<EventInfo>((a, b) => a.time.CompareTo(b.time)));
+
+			if (chart.events != null) {
+				// Sort
+				chart.events.Sort(new Comparison<EventInfo>((a, b) => a.time.CompareTo(b.time)));
+
+				// Add delay
+				foreach (var ev in chart.events) {
+					ev.time -= delay;
+				}
+			}
 		}
 
 		private List<NoteInfo> ParseGuitar(TrackChunk trackChunk, int difficulty) {

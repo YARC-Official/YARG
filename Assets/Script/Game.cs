@@ -6,6 +6,8 @@ using UnityEngine.InputSystem;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 using YARG.Serialization;
+using YARG.UI;
+using YARG.Utils;
 
 namespace YARG {
 	public class Game : MonoBehaviour {
@@ -15,7 +17,7 @@ namespace YARG {
 		public static readonly DirectoryInfo SONG_FOLDER = new(@"B:\Clone Hero Alpha\Songs");
 		public static readonly FileInfo CACHE_FILE = new(Path.Combine(SONG_FOLDER.ToString(), "yarg_cache.json"));
 
-		public static DirectoryInfo song = new(@"B:\Clone Hero Alpha\Songs\Jane's Addiction - Been Caught Stealing");
+		public static SongInfo song = null;
 
 		[SerializeField]
 		private GameObject soundAudioPrefab;
@@ -44,13 +46,13 @@ namespace YARG {
 
 			// Song
 
-			StartCoroutine(StartSong(song));
+			StartCoroutine(StartSong());
 		}
 
-		private IEnumerator StartSong(DirectoryInfo songFolder) {
+		private IEnumerator StartSong() {
 			// Load audio
 			List<AudioSource> audioSources = new();
-			foreach (var file in songFolder.GetFiles("*.ogg")) {
+			foreach (var file in song.folder.GetFiles("*.ogg")) {
 				if (file.Name == "preview.ogg") {
 					continue;
 				}
@@ -69,7 +71,8 @@ namespace YARG {
 			}
 
 			// Load midi
-			var parser = new MidiParser(Path.Combine(songFolder.FullName, "notes.mid"));
+			var parser = new MidiParser(Path.Combine(song.folder.FullName, "notes.mid"),
+				song.delay + SourceDelays.GetSourceDelay(song.source));
 			chart = new Chart();
 			parser.Parse(chart);
 

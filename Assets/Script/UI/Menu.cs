@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Serialization;
 
 namespace YARG.UI {
 	public class Menu : MonoBehaviour {
@@ -94,30 +95,7 @@ namespace YARG.UI {
 			// Fetch song info manually
 			var parser = new FileIniDataParser();
 			foreach (var song in songs) {
-				if (song.fetched) {
-					return;
-				}
-
-				var file = new FileInfo(Path.Combine(song.folder.ToString(), "song.ini"));
-				if (!file.Exists) {
-					return;
-				}
-
-				song.fetched = true;
-				try {
-					var data = parser.ReadFile(file.FullName);
-
-					// Set basic info
-					song.SongName ??= data["song"]["name"];
-					song.artistName ??= data["song"]["artist"];
-
-					// Get song length
-					int rawLength = int.Parse(data["song"]["song_length"]);
-					song.songLength = rawLength / 1000f;
-				} catch (Exception e) {
-					song.errored = true;
-					Debug.LogException(e);
-				}
+				SongIni.CompleteSongInfo(song, parser);
 			}
 
 			// Create cache

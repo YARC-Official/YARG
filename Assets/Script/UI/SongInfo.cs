@@ -5,12 +5,13 @@ using YARG.Serialization;
 namespace YARG.UI {
 	[JsonObject(MemberSerialization.Fields)]
 	public class SongInfo {
-		[JsonConverter(typeof(DirectoryInfoConverter))]
-		public DirectoryInfo folder;
 		[JsonIgnore]
 		public bool fetched;
 		[JsonIgnore]
 		public bool errored;
+
+		[JsonConverter(typeof(DirectoryInfoConverter))]
+		public DirectoryInfo folder;
 
 		[field: JsonProperty("bassPedal2xExpertPlus")]
 		public bool BassPedal2xExpertPlus {
@@ -46,8 +47,10 @@ namespace YARG.UI {
 		public string SongNameNoParen => SongName.Replace("(", "").Replace(")", "");
 
 		public string artistName;
+		public string source;
 
 		public float? songLength;
+		public float delay;
 
 		public SongInfo(DirectoryInfo folder) {
 			this.folder = folder;
