@@ -1,7 +1,7 @@
+using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
-using YARG.Server;
 using YARG.Utils;
 
 namespace YARG.UI {
@@ -29,16 +29,36 @@ namespace YARG.UI {
 			Instance = this;
 
 			// Stop client on quit
-			Application.quitting += Client.Stop;
+			Application.quitting += () => PlayerManager.client?.Stop();
 
 			SetupMainMenu();
 			SetupEditPlayers();
 
 			ShowMainMenu();
+
+			// Bind events
+			if (PlayerManager.client != null) {
+				PlayerManager.client.SignalEvent += SignalRecieved;
+			}
+		}
+
+		private void OnDisable() {
+			// Unbind events
+			if (PlayerManager.client != null) {
+				PlayerManager.client.SignalEvent -= SignalRecieved;
+			}
+		}
+
+		private void SignalRecieved(string signal) {
+			if (signal.StartsWith("DownloadDone,")) {
+				Game.song = new(Path.Combine(PlayerManager.client.remotePath, signal[13..^0]));
+				SceneManager.LoadScene(1);
+			}
 		}
 
 		private void Update() {
 			UpdateInputWaiting();
+			PlayerManager.client?.CheckForSignals();
 		}
 
 		private void SetupMainMenu() {
@@ -52,7 +72,11 @@ namespace YARG.UI {
 
 			root.Q<Button>("JoinServer").clicked += () => {
 				var ip = root.Q<TextField>("ServerIP").value;
-				Client.Start(ip);
+
+				// Start + bind
+				PlayerManager.client = new();
+				PlayerManager.client.Start(ip);
+				PlayerManager.client.SignalEvent += SignalRecieved;
 
 				// Hide button
 				root.Q<Button>("JoinServer").SetOpacity(0f);
@@ -84,7 +108,7 @@ namespace YARG.UI {
 		private void SetupPreSong() {
 			// Start the song if all the players chose their instruments
 			if (playerIndex >= PlayerManager.players.Count) {
-				if (Menu.remoteMode) {
+				if (PlayerManager.client != null) {
 					Menu.DownloadSong(chosenSong);
 				} else {
 					Game.song = chosenSong.folder;
@@ -101,9 +125,9 @@ namespace YARG.UI {
 
 			// Get option groups
 			var instrumentChoice = root.Q<RadioButtonGroup>("InstrumentChoice");
-			instrumentChoice.value = -1;
+			instrumentChoice.value = 0;
 			var difficultyChoice = root.Q<RadioButtonGroup>("DifficultyChoice");
-			difficultyChoice.value = -1;
+			difficultyChoice.value = 3;
 
 			// Setup button
 			var button = root.Q<Button>("Go");

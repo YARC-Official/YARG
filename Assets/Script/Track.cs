@@ -77,6 +77,7 @@ namespace YARG {
 			// Inputs
 
 			input = (FiveFretInputStrategy) player.inputStrategy;
+			input.ResetForSong();
 
 			input.FretChangeEvent += FretChangedAction;
 			input.StrumEvent += StrumAction;

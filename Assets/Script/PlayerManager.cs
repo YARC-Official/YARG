@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Input;
+using YARG.Server;
 
 namespace YARG {
 	public static class PlayerManager {
@@ -8,7 +9,7 @@ namespace YARG {
 			public string name;
 
 			public InputStrategy inputStrategy;
-			public float trackSpeed = 7f;
+			public float trackSpeed = 4f;
 
 			public string chosenInstrument = "guitar";
 			public int chosenDifficulty = 4;
@@ -16,6 +17,7 @@ namespace YARG {
 
 		public static int nextPlayerIndex = 1;
 		public static List<Player> players = new();
+		public static Client client;
 
 		private static bool _lowQualityMode = false;
 		public static bool LowQualityMode {

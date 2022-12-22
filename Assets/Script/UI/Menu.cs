@@ -7,9 +7,7 @@ using IniParser;
 using Newtonsoft.Json;
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using YARG.Server;
 
 namespace YARG.UI {
 	public class Menu : MonoBehaviour {
@@ -18,7 +16,6 @@ namespace YARG.UI {
 			private set;
 		}
 
-		public static bool remoteMode;
 		private static List<SongInfo> songs;
 
 		[SerializeField]
@@ -37,7 +34,7 @@ namespace YARG.UI {
 			Instance = this;
 
 			if (songs == null) {
-				if (Game.CACHE_FILE.Exists || remoteMode) {
+				if (Game.CACHE_FILE.Exists || PlayerManager.client != null) {
 					await Task.Run(() => FetchSongsFromCache());
 				} else {
 					FetchSongs();
@@ -75,30 +72,11 @@ namespace YARG.UI {
 
 			// Select the first song by default
 			songInfoComponents[0].GetComponent<Button>().Select();
-
-			// Bind events
-			Client.SignalEvent += SignalRecieved;
-		}
-
-		private void OnDisable() {
-			// Unbind events
-			Client.SignalEvent -= SignalRecieved;
 		}
 
 		private void UpdateAll() {
 			foreach (var songComp in songInfoComponents) {
 				songComp.UpdateText();
-			}
-		}
-
-		private void Update() {
-			Client.CheckForSignals();
-		}
-
-		private void SignalRecieved(string signal) {
-			if (signal.StartsWith("DownloadDone,")) {
-				Game.song = new(Path.Combine(Client.remotePath, signal[13..^0]));
-				SceneManager.LoadScene(1);
 			}
 		}
 
@@ -149,8 +127,8 @@ namespace YARG.UI {
 
 		private static void FetchSongsFromCache() {
 			var cacheFile = Game.CACHE_FILE;
-			if (remoteMode) {
-				cacheFile = Client.remoteCache;
+			if (PlayerManager.client != null) {
+				cacheFile = PlayerManager.client.remoteCache;
 			}
 
 			string json = File.ReadAllText(cacheFile.ToString());
@@ -167,7 +145,7 @@ namespace YARG.UI {
 		}
 
 		public static void DownloadSong(SongInfo songInfo) {
-			Client.RequestDownload(songInfo.folder.FullName);
+			PlayerManager.client.RequestDownload(songInfo.folder.FullName);
 		}
 	}
 }

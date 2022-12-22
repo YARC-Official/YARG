@@ -9,21 +9,20 @@ using UnityEngine;
 using YARG.UI;
 
 namespace YARG.Server {
-	public static class Client {
+	public class Client {
 		public delegate void SignalAction(string signal);
-		public static event SignalAction SignalEvent;
+		public event SignalAction SignalEvent;
 
-		public static FileInfo remoteCache;
-		public static string remotePath;
+		public FileInfo remoteCache;
+		public string remotePath;
 
-		private static Thread thread;
-		private static TcpClient client;
+		private Thread thread;
+		private TcpClient client;
 
-		private static ConcurrentQueue<string> requests = new();
-		private static ConcurrentQueue<string> signals = new();
+		private ConcurrentQueue<string> requests = new();
+		private ConcurrentQueue<string> signals = new();
 
-		public static void Start(string ip) {
-			Menu.remoteMode = true;
+		public void Start(string ip) {
 			remotePath = Path.Combine(Application.persistentDataPath, "remote");
 
 			// Make sure remote path exists
@@ -38,7 +37,7 @@ namespace YARG.Server {
 			thread.Start();
 		}
 
-		private static void ClientThread() {
+		private void ClientThread() {
 			var stream = client.GetStream();
 
 			// Request cache
@@ -75,13 +74,13 @@ namespace YARG.Server {
 			}
 		}
 
-		private static void Send(NetworkStream stream, string str) {
+		private void Send(NetworkStream stream, string str) {
 			var send = Encoding.ASCII.GetBytes(str);
 			stream.Write(send, 0, send.Length);
 			stream.Flush();
 		}
 
-		private static void ReadFile(NetworkStream stream, FileInfo output) {
+		private void ReadFile(NetworkStream stream, FileInfo output) {
 			const int BUF_SIZE = 81920;
 
 			// Wait until data is available
@@ -106,7 +105,7 @@ namespace YARG.Server {
 			}
 		}
 
-		public static void Stop() {
+		public void Stop() {
 			// Close client (if connected to server)
 			if (client == null) {
 				return;
@@ -125,7 +124,7 @@ namespace YARG.Server {
 			Directory.Delete(remotePath, true);
 		}
 
-		public static void CheckForSignals() {
+		public void CheckForSignals() {
 			while (signals.Count > 0) {
 				if (signals.TryDequeue(out var signal)) {
 					SignalEvent?.Invoke(signal);
@@ -133,7 +132,7 @@ namespace YARG.Server {
 			}
 		}
 
-		public static void RequestDownload(string path) {
+		public void RequestDownload(string path) {
 			requests.Enqueue($"ReqSong,{path}");
 		}
 	}

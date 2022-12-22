@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace YARG.Input {
@@ -29,8 +30,13 @@ namespace YARG.Input {
 
 		public override void UpdatePlayerMode() {
 			// Deal with fret inputs
+
 			for (int i = 0; i < 5; i++) {
 				var key = MappingAsButton(MAPPING_NAMES[i]);
+				if (key == null) {
+					continue;
+				}
+
 				if (key.wasPressedThisFrame) {
 					FretChangeEvent?.Invoke(true, i);
 				} else if (key.wasReleasedThisFrame) {
@@ -39,9 +45,12 @@ namespace YARG.Input {
 			}
 
 			// Deal with strumming
-			if (MappingAsButton("strumUp").wasPressedThisFrame ||
-				MappingAsButton("strumDown").wasPressedThisFrame) {
 
+			if (MappingAsButton("strumUp")?.wasPressedThisFrame ?? false) {
+				StrumEvent?.Invoke();
+			}
+
+			if (MappingAsButton("strumDown")?.wasPressedThisFrame ?? false) {
 				StrumEvent?.Invoke();
 			}
 		}
