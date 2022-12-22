@@ -96,6 +96,8 @@ namespace YARG.Serialization {
 				foreach (var ev in chart.events) {
 					ev.time -= delay;
 				}
+			} else {
+				chart.events = new();
 			}
 		}
 

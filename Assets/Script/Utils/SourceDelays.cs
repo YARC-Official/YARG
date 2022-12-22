@@ -1,13 +1,13 @@
 namespace YARG.Utils {
 	public static class SourceDelays {
-		public static float GetSourceDelay(string source) {
+		public static float GetSourceDelay(string source, float listedDelay) {
 			// Hardcode a delay for certain games (such as RB1).
 			// There may be a chance that I am reading the MIDI or something
 			// incorrectly. This is the fix for now, and it seems to work for 
-			// the most part.			
+			// the most part.
 			return source switch {
-				"rb1" or "rb1dlc" => 0.15f,
-				_ => 0f
+				"rb3" or "rb3dlc" => 0f,
+				_ => listedDelay == 0f ? 0.15f : 0f
 			};
 		}
 	}

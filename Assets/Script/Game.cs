@@ -72,7 +72,7 @@ namespace YARG {
 
 			// Load midi
 			var parser = new MidiParser(Path.Combine(song.folder.FullName, "notes.mid"),
-				song.delay + SourceDelays.GetSourceDelay(song.source));
+				song.delay + SourceDelays.GetSourceDelay(song.source, song.delay));
 			chart = new Chart();
 			parser.Parse(chart);
 
