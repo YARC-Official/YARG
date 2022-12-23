@@ -61,6 +61,7 @@ namespace YARG {
 				Screen.width, Screen.height,
 				RenderTextureFormat.DefaultHDR
 			);
+			descriptor.mipCount = 0;
 			var renderTexture = new RenderTexture(descriptor);
 			trackCamera.targetTexture = renderTexture;
 
@@ -70,6 +71,7 @@ namespace YARG {
 				info.antialiasing = AntialiasingMode.None;
 			} else {
 				info.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
+				info.antialiasingQuality = AntialiasingQuality.Low;
 			}
 		}
 
@@ -234,6 +236,19 @@ namespace YARG {
 			}
 
 			if (expectedHits.Count <= 0) {
+				// Handle ghost inputs
+				if (strummed) {
+					Combo = 0;
+
+					// Let go of held notes
+					for (int i = heldNotes.Count - 1; i >= 0; i--) {
+						var heldNote = heldNotes[i];
+						notePool.MissNote(heldNote);
+						heldNotes.RemoveAt(i);
+						frets[heldNote.fret].StopSustainParticles();
+					}
+				}
+
 				return;
 			}
 

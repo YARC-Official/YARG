@@ -25,6 +25,10 @@ namespace YARG.UI {
 		}
 
 		public void PlaySong() {
+			if (songInfo.songLength == null) {
+				return;
+			}
+
 			MainMenu.Instance.chosenSong = songInfo;
 			MainMenu.Instance.ShowPreSong();
 		}

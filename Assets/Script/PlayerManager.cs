@@ -29,6 +29,6 @@ namespace YARG {
 			}
 		}
 
-		public static float globalCalibration = -0.4f;
+		public static float globalCalibration = -0.15f;
 	}
 }

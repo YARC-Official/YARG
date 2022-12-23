@@ -90,6 +90,7 @@ namespace YARG {
 			foreach (var audioSource in audioSources) {
 				audioSource.Play();
 			}
+			realSongTime = audioSources[0].time;
 			SongStarted = true;
 		}
 
@@ -98,11 +99,7 @@ namespace YARG {
 				return;
 			}
 
-			// Less accurate but allows stepping in the unity editor
-			// realSongTime += Time.deltaTime;
-
-			// More accurate but stepping in the unity editor does not work
-			realSongTime = audioSources[0].time;
+			realSongTime += Time.deltaTime;
 
 			if (Keyboard.current.upArrowKey.wasPressedThisFrame) {
 				PlayerManager.globalCalibration += 0.01f;
@@ -110,6 +107,11 @@ namespace YARG {
 
 			if (Keyboard.current.downArrowKey.wasPressedThisFrame) {
 				PlayerManager.globalCalibration -= 0.01f;
+			}
+
+			// End song
+			if (realSongTime > song.songLength.Value + 0.5f) {
+				Exit();
 			}
 		}
 

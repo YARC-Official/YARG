@@ -4,7 +4,9 @@ using UnityEngine.UI;
 namespace YARG.UI {
 	public class GameUI : MonoBehaviour {
 		[SerializeField]
-		private Transform trackContainer = null;
+		private Transform trackContainer;
+		[SerializeField]
+		private Image songProgress;
 
 		public static GameUI Instance {
 			get;
@@ -13,6 +15,10 @@ namespace YARG.UI {
 
 		private void Awake() {
 			Instance = this;
+		}
+
+		private void Update() {
+			songProgress.fillAmount = Game.Instance.SongTime / Game.song.songLength.Value;
 		}
 
 		public void AddTrackImage(RenderTexture rt) {
