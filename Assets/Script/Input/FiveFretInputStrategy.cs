@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace YARG.Input {
@@ -48,10 +47,12 @@ namespace YARG.Input {
 
 			if (MappingAsButton("strumUp")?.wasPressedThisFrame ?? false) {
 				StrumEvent?.Invoke();
+				CallGenericCalbirationEvent();
 			}
 
 			if (MappingAsButton("strumDown")?.wasPressedThisFrame ?? false) {
 				StrumEvent?.Invoke();
+				CallGenericCalbirationEvent();
 			}
 		}
 

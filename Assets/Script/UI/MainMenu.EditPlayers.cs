@@ -54,6 +54,7 @@ namespace YARG.UI {
 				inputWaitingPlayerIndex = -1;
 				inputWaitingMapping = null;
 
+				// Show/hide settings and input strat panel
 				if (playerList.selectedIndex == -1) {
 					inputStrategyPanel.SetOpacity(0f);
 					settingsPanel.SetOpacity(0f);
@@ -65,27 +66,27 @@ namespace YARG.UI {
 
 				var player = PlayerManager.players[playerList.selectedIndex];
 
+				// Update input device dropdown
+				var device = player.inputStrategy.inputDevice;
+				if (!inputDevices.Contains(device)) {
+					player.inputStrategy.inputDevice = null;
+					inputDeviceDropdown.index = -1;
+				} else {
+					inputDeviceDropdown.index = inputDevices.IndexOf(device) + 1;
+				}
+
+				// Update radio group
 				if (player.inputStrategy is FiveFretInputStrategy) {
 					radioGroup.value = 0;
 				} else {
 					radioGroup.value = -1;
 				}
 
-				if (player.inputStrategy != null) {
-					botMode.value = player.inputStrategy.botMode;
-
-					var device = player.inputStrategy.inputDevice;
-					if (!inputDevices.Contains(device)) {
-						player.inputStrategy.inputDevice = null;
-						inputDeviceDropdown.index = -1;
-					} else {
-						inputDeviceDropdown.index = inputDevices.IndexOf(device) + 1;
-					}
-
-					UpdateSettingsList(settingsList, playerList.selectedIndex);
-				}
-
+				// Update other input settings
+				botMode.value = player.inputStrategy.botMode;
 				trackSpeed.value = player.trackSpeed;
+
+				UpdateSettingsList(settingsList, playerList.selectedIndex);
 			};
 
 			// Initialize player list buttons
@@ -143,10 +144,6 @@ namespace YARG.UI {
 				}
 
 				var player = PlayerManager.players[playerList.selectedIndex];
-
-				if (player.inputStrategy == null) {
-					return;
-				}
 
 				player.inputStrategy.botMode = e.newValue;
 				playerList.RefreshItem(playerList.selectedIndex);

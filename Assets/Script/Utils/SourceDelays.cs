@@ -5,10 +5,11 @@ namespace YARG.Utils {
 			// There may be a chance that I am reading the MIDI or something
 			// incorrectly. This is the fix for now, and it seems to work for 
 			// the most part.
-			return source switch {
-				"rb3" or "rb3dlc" => 0f,
-				_ => listedDelay == 0f ? 0.15f : 0f
-			};
+			// return source switch {
+			// 	"rb3" or "rb3dlc" => 0f,
+			// 	_ => listedDelay == 0f ? 0.15f : 0f
+			// } - 0.2f;
+			return listedDelay;
 		}
 	}
 }

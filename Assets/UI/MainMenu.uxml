@@ -19,5 +19,6 @@
         <ui:Toggle label="Low Quality" name="LowQuality" />
         <ui:FloatField label="Calibration" value="0" name="Calibration" />
         <ui:Button text="Edit/Add Players" display-tooltip-when-elided="true" name="EditPlayersButton" />
+        <ui:Button text="Calibrate" display-tooltip-when-elided="true" name="CalibrationButton" />
     </ui:VisualElement>
 </ui:UXML>

@@ -69,8 +69,11 @@ namespace YARG.UI {
 
 			root.Q<Button>("PlayButton").clicked += ShowSongSelect;
 			root.Q<Button>("EditPlayersButton").clicked += ShowEditPlayers;
-			root.Q<Button>("HostServer").clicked += () => {
-				SceneManager.LoadScene(2);
+			root.Q<Button>("HostServer").clicked += () => SceneManager.LoadScene(2);
+			root.Q<Button>("CalibrationButton").clicked += () => {
+				if (PlayerManager.players.Count > 0) {
+					SceneManager.LoadScene(3);
+				}
 			};
 
 			root.Q<Button>("JoinServer").clicked += () => {

@@ -128,6 +128,11 @@ namespace YARG {
 			float movement = Time.deltaTime * player.trackSpeed / 4f;
 			trackMaterial.SetVector("TexOffset", new(oldOffset.x, oldOffset.y - movement));
 
+			// Ignore everything else until the song starts
+			if (!Game.Instance.SongStarted) {
+				return;
+			}
+
 			// Update groove mode
 			float currentGroove = trackMaterial.GetFloat("GrooveState");
 			if (Multiplier == 4) {
