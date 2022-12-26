@@ -107,8 +107,20 @@ namespace YARG.Serialization {
 			long totalDelta = 0;
 
 			var noteIR = new List<NoteIR>();
-			long?[] fretState = new long?[5];
 			var forceState = ForceState.NONE;
+
+			// Since each note has an ON and OFF event,
+			// we must store the ON events and wait until the
+			// OFF event to actually add the note. This stores
+			// the ON event timings.
+			long?[] fretState = new long?[5];
+
+			// The last note that occured on each fret.
+			// This is useful for HOPOs and such.
+			long?[] lastNoteOnFret = new long?[5];
+
+			// Ripple-down for last notes
+			long?[] lastNoteOnFretRipple = new long?[5];
 
 			// Convert track events into intermediate representation
 			foreach (var trackEvent in trackChunk.Events) {
@@ -118,19 +130,26 @@ namespace YARG.Serialization {
 					continue;
 				}
 
-				// Expert octave
+				// Look for correct octave
 				if (noteEvent.GetNoteOctave() != 4 + difficulty) {
 					continue;
 				}
 
 				// Convert note to fret number (or special)
 				int fretNum = noteEvent.GetNoteName() switch {
+					// Green
 					NoteName.C => 0,
+					// Red
 					NoteName.CSharp => 1,
+					// Yellow
 					NoteName.D => 2,
+					// Blue
 					NoteName.DSharp => 3,
+					// Orange
 					NoteName.E => 4,
+					// Force HOPO
 					NoteName.F => 5,
+					// Force strum
 					NoteName.FSharp => 6,
 					_ => -1
 				};
@@ -140,7 +159,7 @@ namespace YARG.Serialization {
 					continue;
 				}
 
-				// Handle special
+				// Handle forces (on and off)
 				if (fretNum == 5) {
 					forceState = noteEvent is NoteOnEvent ? ForceState.HOPO : ForceState.NONE;
 					continue;
@@ -149,69 +168,101 @@ namespace YARG.Serialization {
 					continue;
 				}
 
-				// Deal with note ons or note offs
+				// Deal with notes
+				if (noteEvent is NoteOnEvent) {
+					// If it is a note on, wait until we get the note
+					// off so we can get the length of the note.
+					fretState[fretNum] = totalDelta;
 
-				// TODO: Fix invalid HOPOs after chord. See "In the Meantime"
+					// Ripple-down last notes
+					for (int i = 0; i < 5; i++) {
+						lastNoteOnFret[i] = lastNoteOnFretRipple[i];
+					}
+					lastNoteOnFretRipple[fretNum] = totalDelta;
+				} else if (noteEvent is NoteOffEvent) {
+					// Here is were the notes are actually stored.
+					// We now know the starting point and ending point.
+					if (fretState[fretNum] != null) {
+						var noteForceState = forceState;
+						bool isChord = false;
 
-				if (fretState[fretNum] != null) {
-					var noteForceState = forceState;
-					bool isChord = false;
+						if (noteForceState == ForceState.NONE && noteIR.Count > 0) {
+							var lastNote = noteIR[^1];
 
-					if (noteForceState == ForceState.NONE && noteIR.Count > 0) {
-						var lastNote = noteIR[^1];
+							// Check for chord
+							if (lastNote.startTick == fretState[fretNum].Value) {
+								isChord = true;
 
-						// Check for chord
-						if (lastNote.startTick == fretState[fretNum].Value) {
-							isChord = true;
+								// The first note of the chord doesn't know that it
+								// is in a chord. Fix that, and chance HOPO status.
+								if (!lastNote.isChord) {
+									lastNote.isChord = true;
+									lastNote.forceState = lastNote.forceState == ForceState.AUTO_HOPO ?
+										ForceState.NONE :
+										lastNote.forceState;
 
-							// Check for missing first note of chord
-							if (!lastNote.isChord) {
-								lastNote.isChord = true;
-								lastNote.forceState = lastNote.forceState == ForceState.AUTO_HOPO ?
-									ForceState.NONE :
-									lastNote.forceState;
+									noteIR[^1] = lastNote;
+								}
+							}
 
-								noteIR[^1] = lastNote;
+							// Check for auto HOPO
+							if (!isChord) {
+								// Get the MuscicalTimeSpan for the current note
+								var noteBeat = TimeConverter.ConvertTo<MusicalTimeSpan>(fretState[fretNum].Value, tempo);
+
+								for (int i = 0; i < 5; i++) {
+									if (lastNoteOnFret[i] == null) {
+										continue;
+									}
+
+									// Skip if there is a note in front of the last note on fret
+									if (lastNoteOnFret[i] < lastNote.startTick) {
+										continue;
+									}
+
+									// Wrap in a try just in case noteBeat < lastNoteBeat
+									try {
+										var lastNoteBeat = TimeConverter.ConvertTo<MusicalTimeSpan>(lastNoteOnFret[i].Value, tempo);
+										var distance = noteBeat - lastNoteBeat;
+
+										// Thanks?? https://tcrf.net/Proto:Guitar_Hero
+										// According to this, auto-HOPO threshold is 170 ticks.
+										// "But a tick is different in every midi file!"
+										// It also mentions that 160 is a twelth note.
+										// 160 * 12 = 1920
+										if (distance <= new MusicalTimeSpan(170, 1920)) {
+											if (i == fretNum) {
+												noteForceState = ForceState.NONE;
+												break;
+											}
+											noteForceState = ForceState.AUTO_HOPO;
+										}
+									} catch { }
+								}
 							}
 						}
 
-						// Check for auto HOPO and chord
-						if (lastNote.fret != fretNum && !isChord) {
-							// Wrap in a try just in case noteBeat < lastNoteBeat
-							try {
-								var lastNoteBeat = TimeConverter.ConvertTo<MusicalTimeSpan>(lastNote.startTick, tempo);
-								var noteBeat = TimeConverter.ConvertTo<MusicalTimeSpan>(fretState[fretNum].Value, tempo);
-								var distance = noteBeat - lastNoteBeat;
-
-								// Thanks?? https://tcrf.net/Proto:Guitar_Hero
-								// According to this, auto-HOPO threshold is 170 ticks.
-								// "But a tick is different in every midi file!"
-								// It also mentions that 160 is a twelth note.
-								// 160 * 12 = 1920
-								if (distance <= new MusicalTimeSpan(170, 1920)) {
-									noteForceState = ForceState.AUTO_HOPO;
-								}
-							} catch { }
-						}
+						// Add the note!
+						noteIR.Add(new NoteIR {
+							startTick = fretState[fretNum].Value,
+							endTick = totalDelta,
+							fret = fretNum,
+							forceState = noteForceState,
+							isChord = isChord
+						});
 					}
 
-					noteIR.Add(new NoteIR {
-						startTick = fretState[fretNum].Value,
-						endTick = totalDelta,
-						fret = fretNum,
-						forceState = noteForceState,
-						isChord = isChord
-					});
-				}
-
-				if (noteEvent is NoteOnEvent) {
-					fretState[fretNum] = totalDelta;
-				} else {
+					// Reset fret state and wait until next ON event
 					fretState[fretNum] = null;
 				}
 			}
 
 			var noteOutput = new List<NoteInfo>(noteIR.Count);
+
+			// Return empty list if no notes are available in this difficulty
+			if (noteIR.Count <= 0) {
+				return noteOutput;
+			}
 
 			// IR into real
 			foreach (var noteInfo in noteIR) {
@@ -220,7 +271,7 @@ namespace YARG.Serialization {
 
 				bool hopo = noteInfo.forceState == ForceState.HOPO
 					|| noteInfo.forceState == ForceState.AUTO_HOPO;
-				noteOutput.Add(new NoteInfo(startTime, noteInfo.fret, endTime - startTime, hopo));
+				noteOutput.Add(new NoteInfo(startTime, endTime - startTime, noteInfo.fret, hopo));
 			}
 
 			return noteOutput;

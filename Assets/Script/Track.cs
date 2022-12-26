@@ -236,7 +236,7 @@ namespace YARG {
 			}
 
 			if (expectedHits.Count <= 0) {
-				// Handle ghost inputs
+				// Handle overstrums
 				if (strummed) {
 					Combo = 0;
 

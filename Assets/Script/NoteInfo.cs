@@ -3,13 +3,13 @@ namespace YARG {
 		public float time;
 		public float length;
 
-		public bool hopo;
 		public int fret;
+		public bool hopo;
 
-		public NoteInfo(float time, int fret, float length, bool hopo) {
+		public NoteInfo(float time, float length, int fret, bool hopo) {
 			this.time = time;
-			this.fret = fret;
 			this.length = length;
+			this.fret = fret;
 			this.hopo = hopo;
 		}
 	}

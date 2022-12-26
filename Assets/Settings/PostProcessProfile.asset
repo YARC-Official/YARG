@@ -89,14 +89,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   type:
-    m_OverrideState: 0
-    m_Value: 0
+    m_OverrideState: 1
+    m_Value: 2
   intensity:
-    m_OverrideState: 0
-    m_Value: 0
+    m_OverrideState: 1
+    m_Value: 0.25
   response:
     m_OverrideState: 0
-    m_Value: 0.8
+    m_Value: 0.792
   texture:
     m_OverrideState: 0
     m_Value: {fileID: 0}
