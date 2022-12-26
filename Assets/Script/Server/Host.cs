@@ -53,7 +53,7 @@ namespace YARG.Server {
 						int size = stream.Read(bytes, 0, bytes.Length);
 
 						// Get request
-						var str = System.Text.Encoding.ASCII.GetString(bytes, 0, size);
+						var str = System.Text.Encoding.UTF8.GetString(bytes, 0, size);
 						Log($"Received: `{str}`.");
 
 						// Do something

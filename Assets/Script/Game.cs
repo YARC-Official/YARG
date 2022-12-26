@@ -11,7 +11,7 @@ using YARG.UI;
 namespace YARG {
 	public class Game : MonoBehaviour {
 		public const float SONG_START_OFFSET = 1f;
-		public const float HIT_MARGIN = 0.075f;
+		public const float HIT_MARGIN = 0.1f;
 		public const bool ANCHORING = true;
 
 		public static readonly DirectoryInfo SONG_FOLDER = new(@"B:\Clone Hero Alpha\Songs");

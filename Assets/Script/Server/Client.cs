@@ -75,7 +75,7 @@ namespace YARG.Server {
 		}
 
 		private void Send(NetworkStream stream, string str) {
-			var send = Encoding.ASCII.GetBytes(str);
+			var send = Encoding.UTF8.GetBytes(str);
 			stream.Write(send, 0, send.Length);
 			stream.Flush();
 		}
@@ -115,7 +115,7 @@ namespace YARG.Server {
 
 			// Send "End" packet
 			var stream = client.GetStream();
-			var send = Encoding.ASCII.GetBytes("End");
+			var send = Encoding.UTF8.GetBytes("End");
 			stream.Write(send, 0, send.Length);
 			stream.Flush();
 			client.Close();

@@ -83,7 +83,7 @@ namespace YARG.Serialization {
 
 					// Add delay
 					foreach (var note in difficulty) {
-						note.time -= delay;
+						note.time += delay;
 					}
 				}
 			}
@@ -94,7 +94,7 @@ namespace YARG.Serialization {
 
 				// Add delay
 				foreach (var ev in chart.events) {
-					ev.time -= delay;
+					ev.time += delay;
 				}
 			} else {
 				chart.events = new();
