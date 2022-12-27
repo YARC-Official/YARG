@@ -39,11 +39,7 @@ namespace YARG.UI {
 				var player = PlayerManager.players[i];
 
 				Label item = (Label) elem;
-				item.text = player.name;
-
-				if (player.inputStrategy.botMode) {
-					item.text += " (BOT)";
-				}
+				item.text = player.DisplayName;
 			};
 
 			playerList.itemsSource = PlayerManager.players;

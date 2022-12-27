@@ -1,0 +1,5 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/Themes/LightStyle.uss?fileID=7433441132597879392&amp;guid=771e541b8d5ad5f438b103acf38ae301&amp;type=3#LightStyle" />
+    <ui:Label tabindex="-1" text="Player 1: 16%, 30 hit, 3 missed" display-tooltip-when-elided="true" enable-rich-text="true" name="Score" style="color: rgb(255, 255, 255); font-size: 32px; position: absolute; left: 0; top: 0; right: 0; bottom: 0; -unity-text-align: middle-center; -unity-font-style: bold;" />
+    <ui:Button text="Next" display-tooltip-when-elided="true" name="NextButton" style="bottom: 0; position: absolute; left: 0; right: 0;" />
+</ui:UXML>

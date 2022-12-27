@@ -55,6 +55,11 @@ namespace YARG {
 		}
 		private int Multiplier => Mathf.Min(Combo / 10 + 1, 4);
 
+		private List<NoteInfo> Chart => Game.Instance.chart
+			.GetChartByName(player.chosenInstrument)[player.chosenDifficulty];
+
+		private int notesHit = 0;
+
 		private void Awake() {
 			// Set up render texture
 			var descriptor = new RenderTextureDescriptor(
@@ -109,17 +114,22 @@ namespace YARG {
 			// Unbind input
 			input.FretChangeEvent -= FretChangedAction;
 			input.StrumEvent -= StrumAction;
+
+			// Set score
+			player.lastScore = new PlayerManager.Score {
+				percentage = (float) notesHit / Chart.Count,
+				notesHit = notesHit,
+				notesMissed = Chart.Count - notesHit
+			};
 		}
 
 		private void Update() {
 			// Get chart stuff
-			var chart = Game.Instance.chart
-				.GetChartByName(player.chosenInstrument)[player.chosenDifficulty];
 			var events = Game.Instance.chart.events;
 
 			// Update input strategy
 			if (input.botMode) {
-				input.UpdateBotMode(chart, Game.Instance.SongTime);
+				input.UpdateBotMode(Chart, Game.Instance.SongTime);
 			} else {
 				input.UpdatePlayerMode();
 			}
@@ -146,8 +156,8 @@ namespace YARG {
 			float relativeTime = Game.Instance.SongTime + ((TRACK_SPAWN_OFFSET + 1.75f) / player.trackSpeed);
 
 			// Since chart is sorted, this is guaranteed to work
-			while (chart.Count > visualChartIndex && chart[visualChartIndex].time <= relativeTime) {
-				var noteInfo = chart[visualChartIndex];
+			while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= relativeTime) {
+				var noteInfo = Chart[visualChartIndex];
 
 				SpawnNote(noteInfo, relativeTime);
 				visualChartIndex++;
@@ -168,8 +178,8 @@ namespace YARG {
 			}
 
 			// Update expected input
-			while (chart.Count > realChartIndex && chart[realChartIndex].time <= Game.Instance.SongTime + Game.HIT_MARGIN) {
-				var noteInfo = chart[realChartIndex];
+			while (Chart.Count > realChartIndex && Chart[realChartIndex].time <= Game.Instance.SongTime + Game.HIT_MARGIN) {
+				var noteInfo = Chart[realChartIndex];
 
 				var peeked = expectedHits.ReversePeekOrNull();
 				if (peeked?[0].time == noteInfo.time) {
@@ -291,6 +301,9 @@ namespace YARG {
 					heldNotes.Add(hit);
 					frets[hit.fret].PlaySustainParticles();
 				}
+
+				// Add stats
+				notesHit++;
 			}
 		}
 

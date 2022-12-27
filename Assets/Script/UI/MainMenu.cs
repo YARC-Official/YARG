@@ -7,6 +7,8 @@ using YARG.Utils;
 
 namespace YARG.UI {
 	public partial class MainMenu : MonoBehaviour {
+		public static bool postSong = false;
+
 		public static MainMenu Instance {
 			get;
 			private set;
@@ -21,6 +23,8 @@ namespace YARG.UI {
 		private UIDocument editPlayersDocument;
 		[SerializeField]
 		private UIDocument preSongDocument;
+		[SerializeField]
+		private UIDocument postSongDocument;
 
 		// Temp
 		[SerializeField]
@@ -29,13 +33,14 @@ namespace YARG.UI {
 		private void Start() {
 			Instance = this;
 
-			// Stop client on quit
-			Application.quitting += () => PlayerManager.client?.Stop();
-
 			SetupMainMenu();
 			SetupEditPlayers();
 
-			ShowMainMenu();
+			if (!postSong) {
+				ShowMainMenu();
+			} else {
+				ShowPostSong();
+			}
 
 			// Bind events
 			if (PlayerManager.client != null) {
@@ -127,7 +132,7 @@ namespace YARG.UI {
 
 			// Set name label (with bot tag if required)
 			var player = PlayerManager.players[playerIndex];
-			root.Q<Label>("PlayerNameLabel").text = player.name + (player.inputStrategy.botMode ? " (BOT)" : "");
+			root.Q<Label>("PlayerNameLabel").text = player.DisplayName;
 
 			// Get option groups
 			var instrumentChoice = root.Q<RadioButtonGroup>("InstrumentChoice");
@@ -153,10 +158,36 @@ namespace YARG.UI {
 			};
 		}
 
+		private void SetupPostSong() {
+			var root = postSongDocument.rootVisualElement;
+
+			// Setup score label
+
+			var label = root.Q<Label>("Score");
+			label.text = "";
+
+			foreach (var player in PlayerManager.players) {
+				if (!player.lastScore.HasValue) {
+					continue;
+				}
+
+				var score = player.lastScore.Value;
+				label.text += $"{player.DisplayName}: {score.percentage * 100f:N1}%, {score.notesHit} hit, {score.notesMissed} missed\n\n";
+			}
+
+			// Next button
+
+			var nextButton = root.Q<Button>("NextButton");
+			nextButton.clicked += () => {
+				ShowMainMenu();
+			};
+		}
+
 		private void HideAll() {
 			mainMenuDocument.SetVisible(false);
 			editPlayersDocument.SetVisible(false);
 			preSongDocument.SetVisible(false);
+			postSongDocument.SetVisible(false);
 			songSelect.gameObject.SetActive(false);
 		}
 
@@ -179,9 +210,18 @@ namespace YARG.UI {
 			HideAll();
 
 			playerIndex = 0;
-			SetupPreSong();
 
+			SetupPreSong();
 			preSongDocument.SetVisible(true);
+		}
+
+		public void ShowPostSong() {
+			HideAll();
+
+			SetupPostSong();
+			postSongDocument.SetVisible(true);
+
+			postSong = false;
 		}
 	}
 }

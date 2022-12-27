@@ -5,14 +5,23 @@ using YARG.Server;
 
 namespace YARG {
 	public static class PlayerManager {
+		public struct Score {
+			public float percentage;
+			public int notesHit;
+			public int notesMissed;
+		}
+
 		public class Player {
 			public string name;
+			public string DisplayName => name + (inputStrategy.botMode ? " (BOT)" : "");
 
 			public InputStrategy inputStrategy;
 			public float trackSpeed = 4f;
 
 			public string chosenInstrument = "guitar";
 			public int chosenDifficulty = 4;
+
+			public Score? lastScore = null;
 		}
 
 		public static int nextPlayerIndex = 1;

@@ -35,6 +35,9 @@ namespace YARG.Server {
 
 			thread = new Thread(ClientThread);
 			thread.Start();
+
+			// Bind events for application close
+			Application.quitting += () => Stop();
 		}
 
 		private void ClientThread() {
