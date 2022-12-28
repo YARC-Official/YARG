@@ -90,7 +90,7 @@ namespace YARG.Play {
 
 			// Set up camera
 			var info = trackCamera.GetComponent<UniversalAdditionalCameraData>();
-			if (PlayerManager.LowQualityMode) {
+			if (GameManager.Instance.LowQualityMode) {
 				info.antialiasing = AntialiasingMode.None;
 			} else {
 				info.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;

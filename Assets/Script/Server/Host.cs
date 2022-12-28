@@ -61,19 +61,19 @@ namespace YARG.Server {
 						if (str == "End") {
 							break;
 						} else if (str == "ReqCache") {
-							SendFile(stream, PlayManager.CACHE_FILE);
+							SendFile(stream, SongLibrary.CacheFile);
 						} else if (str.StartsWith("ReqSong,")) {
 							// Get the folder
 							string path = str[8..^0];
 
 							// See if valid
-							if (!path.StartsWith(PlayManager.SONG_FOLDER.FullName)) {
+							if (!path.StartsWith(SongLibrary.SONG_FOLDER.FullName)) {
 								return;
 							}
 
 							// Create unique temp file name
 							string name = $"temp_{Thread.CurrentThread.ManagedThreadId}.zip";
-							name = Path.Combine(PlayManager.SONG_FOLDER.FullName, name);
+							name = Path.Combine(SongLibrary.SONG_FOLDER.FullName, name);
 
 							// Zip up folder
 							ZipFile.CreateFromDirectory(path, name);

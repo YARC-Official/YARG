@@ -45,30 +45,30 @@ namespace YARG.UI {
 			}
 
 			// Bind events
-			if (PlayerManager.client != null) {
-				PlayerManager.client.SignalEvent += SignalRecieved;
+			if (GameManager.client != null) {
+				GameManager.client.SignalEvent += SignalRecieved;
 			}
 		}
 
 		private void OnDisable() {
 			// Unbind events
-			if (PlayerManager.client != null) {
-				PlayerManager.client.SignalEvent -= SignalRecieved;
+			if (GameManager.client != null) {
+				GameManager.client.SignalEvent -= SignalRecieved;
 			}
 		}
 
 		private void SignalRecieved(string signal) {
 			if (signal.StartsWith("DownloadDone,")) {
 				PlayManager.song = SongIni.CompleteSongInfo(new SongInfo(
-					new(Path.Combine(PlayerManager.client.remotePath, signal[13..^0]))
+					new(Path.Combine(GameManager.client.remotePath, signal[13..^0]))
 				));
-				SceneManager.LoadScene(1);
+				GameManager.Instance.LoadScene(SceneIndex.PLAY);
 			}
 		}
 
 		private void Update() {
 			UpdateInputWaiting();
-			PlayerManager.client?.CheckForSignals();
+			GameManager.client?.CheckForSignals();
 		}
 
 		private void SetupMainMenu() {
@@ -76,10 +76,10 @@ namespace YARG.UI {
 
 			root.Q<Button>("PlayButton").clicked += ShowSongSelect;
 			root.Q<Button>("EditPlayersButton").clicked += ShowEditPlayers;
-			root.Q<Button>("HostServer").clicked += () => SceneManager.LoadScene(2);
+			root.Q<Button>("HostServer").clicked += () => GameManager.Instance.LoadScene(SceneIndex.SERVER_HOST);
 			root.Q<Button>("CalibrationButton").clicked += () => {
 				if (PlayerManager.players.Count > 0) {
-					SceneManager.LoadScene(3);
+					GameManager.Instance.LoadScene(SceneIndex.CALIBRATION);
 				}
 			};
 
@@ -87,9 +87,9 @@ namespace YARG.UI {
 				var ip = root.Q<TextField>("ServerIP").value;
 
 				// Start + bind
-				PlayerManager.client = new();
-				PlayerManager.client.Start(ip);
-				PlayerManager.client.SignalEvent += SignalRecieved;
+				GameManager.client = new();
+				GameManager.client.Start(ip);
+				GameManager.client.SignalEvent += SignalRecieved;
 
 				// Hide button
 				root.Q<Button>("JoinServer").SetOpacity(0f);
@@ -97,13 +97,13 @@ namespace YARG.UI {
 
 			// Low quality toggle
 			var lowQuality = root.Q<Toggle>("LowQuality");
-			lowQuality.value = PlayerManager.LowQualityMode;
+			lowQuality.value = GameManager.Instance.LowQualityMode;
 			lowQuality.RegisterValueChangedCallback(e => {
 				if (lowQuality != e.target) {
 					return;
 				}
 
-				PlayerManager.LowQualityMode = lowQuality.value;
+				GameManager.Instance.LowQualityMode = lowQuality.value;
 			});
 
 			// Calibration
@@ -121,11 +121,11 @@ namespace YARG.UI {
 		private void SetupPreSong() {
 			// Start the song if all the players chose their instruments
 			if (playerIndex >= PlayerManager.players.Count) {
-				if (PlayerManager.client != null) {
+				if (GameManager.client != null) {
 					Menu.DownloadSong(chosenSong);
 				} else {
 					PlayManager.song = chosenSong;
-					SceneManager.LoadScene(1);
+					GameManager.Instance.LoadScene(SceneIndex.PLAY);
 				}
 				return;
 			}

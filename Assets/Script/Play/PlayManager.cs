@@ -20,9 +20,6 @@ namespace YARG.Play {
 		public const float HIT_MARGIN = 0.1f;
 		public const bool ANCHORING = true;
 
-		public static readonly DirectoryInfo SONG_FOLDER = new(@"B:\Clone Hero Alpha\Songs");
-		public static readonly FileInfo CACHE_FILE = new(Path.Combine(SONG_FOLDER.ToString(), "yarg_cache.json"));
-
 		public static SongInfo song = null;
 
 		[SerializeField]
@@ -134,7 +131,7 @@ namespace YARG.Play {
 		}
 
 		public void Exit() {
-			SceneManager.LoadScene(0);
+			GameManager.Instance.LoadScene(SceneIndex.MENU);
 		}
 
 		public void LowerAudio(string name) {

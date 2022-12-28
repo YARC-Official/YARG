@@ -87,7 +87,7 @@ namespace YARG {
 					player.inputStrategy.GenericCalibrationEvent -= OnGenericCalibration;
 				}
 
-				SceneManager.LoadScene(0);
+				GameManager.Instance.LoadScene(SceneIndex.MENU);
 			}
 		}
 	}

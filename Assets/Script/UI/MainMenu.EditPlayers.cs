@@ -88,8 +88,7 @@ namespace YARG.UI {
 			// Initialize player list buttons
 
 			root.Q<Button>("AddPlayerButton").clicked += () => {
-				PlayerManager.players.Add(new PlayerManager.Player {
-					name = $"New Player {PlayerManager.nextPlayerIndex++}",
+				PlayerManager.players.Add(new PlayerManager.Player() {
 					inputStrategy = new FiveFretInputStrategy(null, false)
 				});
 				playerList.RefreshItems();

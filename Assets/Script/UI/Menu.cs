@@ -36,7 +36,7 @@ namespace YARG.UI {
 			Instance = this;
 
 			if (songs == null) {
-				if (PlayManager.CACHE_FILE.Exists || PlayerManager.client != null) {
+				if (SongLibrary.CacheFile.Exists || GameManager.client != null) {
 					await Task.Run(() => FetchSongsFromCache());
 				} else {
 					FetchSongs();
@@ -83,7 +83,7 @@ namespace YARG.UI {
 		}
 
 		private static void FetchSongs() {
-			var songFolder = PlayManager.SONG_FOLDER;
+			var songFolder = SongLibrary.SONG_FOLDER;
 			var directories = songFolder.GetDirectories();
 
 			songs = new(directories.Length);
@@ -101,13 +101,13 @@ namespace YARG.UI {
 
 			// Create cache
 			var json = JsonConvert.SerializeObject(songs, Formatting.Indented);
-			File.WriteAllText(PlayManager.CACHE_FILE.ToString(), json.ToString());
+			File.WriteAllText(SongLibrary.CacheFile.ToString(), json.ToString());
 		}
 
 		private static void FetchSongsFromCache() {
-			var cacheFile = PlayManager.CACHE_FILE;
-			if (PlayerManager.client != null) {
-				cacheFile = PlayerManager.client.remoteCache;
+			var cacheFile = SongLibrary.CacheFile;
+			if (GameManager.client != null) {
+				cacheFile = GameManager.client.remoteCache;
 			}
 
 			string json = File.ReadAllText(cacheFile.ToString());
@@ -124,7 +124,7 @@ namespace YARG.UI {
 		}
 
 		public static void DownloadSong(SongInfo songInfo) {
-			PlayerManager.client.RequestDownload(songInfo.folder.FullName);
+			GameManager.client.RequestDownload(songInfo.folder.FullName);
 		}
 	}
 }
