@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using UnityEngine;
+using YARG.Play;
 
 namespace YARG.Server {
 	public partial class Host : MonoBehaviour {
@@ -60,19 +61,19 @@ namespace YARG.Server {
 						if (str == "End") {
 							break;
 						} else if (str == "ReqCache") {
-							SendFile(stream, Game.CACHE_FILE);
+							SendFile(stream, PlayManager.CACHE_FILE);
 						} else if (str.StartsWith("ReqSong,")) {
 							// Get the folder
 							string path = str[8..^0];
 
 							// See if valid
-							if (!path.StartsWith(Game.SONG_FOLDER.FullName)) {
+							if (!path.StartsWith(PlayManager.SONG_FOLDER.FullName)) {
 								return;
 							}
 
 							// Create unique temp file name
 							string name = $"temp_{Thread.CurrentThread.ManagedThreadId}.zip";
-							name = Path.Combine(Game.SONG_FOLDER.FullName, name);
+							name = Path.Combine(PlayManager.SONG_FOLDER.FullName, name);
 
 							// Zip up folder
 							ZipFile.CreateFromDirectory(path, name);

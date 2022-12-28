@@ -1,4 +1,4 @@
-namespace YARG {
+namespace YARG.Data {
 	public class NoteInfo {
 		public float time;
 		public float length;

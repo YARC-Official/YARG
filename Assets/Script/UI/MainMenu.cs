@@ -2,6 +2,8 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
+using YARG.Data;
+using YARG.Play;
 using YARG.Serialization;
 using YARG.Utils;
 
@@ -57,7 +59,7 @@ namespace YARG.UI {
 
 		private void SignalRecieved(string signal) {
 			if (signal.StartsWith("DownloadDone,")) {
-				Game.song = SongIni.CompleteSongInfo(new SongInfo(
+				PlayManager.song = SongIni.CompleteSongInfo(new SongInfo(
 					new(Path.Combine(PlayerManager.client.remotePath, signal[13..^0]))
 				));
 				SceneManager.LoadScene(1);
@@ -122,7 +124,7 @@ namespace YARG.UI {
 				if (PlayerManager.client != null) {
 					Menu.DownloadSong(chosenSong);
 				} else {
-					Game.song = chosenSong;
+					PlayManager.song = chosenSong;
 					SceneManager.LoadScene(1);
 				}
 				return;

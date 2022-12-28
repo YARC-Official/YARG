@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using IniParser;
 using UnityEngine;
-using YARG.UI;
+using YARG.Data;
 
 namespace YARG.Serialization {
 	public static class SongIni {

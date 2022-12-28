@@ -7,6 +7,8 @@ using Newtonsoft.Json;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Data;
+using YARG.Play;
 using YARG.Serialization;
 
 namespace YARG.UI {
@@ -34,7 +36,7 @@ namespace YARG.UI {
 			Instance = this;
 
 			if (songs == null) {
-				if (Game.CACHE_FILE.Exists || PlayerManager.client != null) {
+				if (PlayManager.CACHE_FILE.Exists || PlayerManager.client != null) {
 					await Task.Run(() => FetchSongsFromCache());
 				} else {
 					FetchSongs();
@@ -81,7 +83,7 @@ namespace YARG.UI {
 		}
 
 		private static void FetchSongs() {
-			var songFolder = Game.SONG_FOLDER;
+			var songFolder = PlayManager.SONG_FOLDER;
 			var directories = songFolder.GetDirectories();
 
 			songs = new(directories.Length);
@@ -99,11 +101,11 @@ namespace YARG.UI {
 
 			// Create cache
 			var json = JsonConvert.SerializeObject(songs, Formatting.Indented);
-			File.WriteAllText(Game.CACHE_FILE.ToString(), json.ToString());
+			File.WriteAllText(PlayManager.CACHE_FILE.ToString(), json.ToString());
 		}
 
 		private static void FetchSongsFromCache() {
-			var cacheFile = Game.CACHE_FILE;
+			var cacheFile = PlayManager.CACHE_FILE;
 			if (PlayerManager.client != null) {
 				cacheFile = PlayerManager.client.remoteCache;
 			}

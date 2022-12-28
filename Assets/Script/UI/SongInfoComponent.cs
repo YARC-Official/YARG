@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using YARG.Data;
 
 namespace YARG.UI {
 	public class SongInfoComponent : MonoBehaviour {

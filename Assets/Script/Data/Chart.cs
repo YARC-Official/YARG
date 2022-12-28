@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace YARG {
+namespace YARG.Data {
 	public class Chart {
 		public List<List<NoteInfo>[]> allParts = null;
 		public List<NoteInfo>[] guitar = new List<NoteInfo>[4];

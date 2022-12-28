@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
+using YARG.Data;
 
 namespace YARG.Input {
 	public class FiveFretInputStrategy : InputStrategy {

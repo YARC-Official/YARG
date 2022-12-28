@@ -3,12 +3,13 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using YARG.Data;
 using YARG.Input;
 using YARG.Pools;
 using YARG.UI;
 using YARG.Utils;
 
-namespace YARG {
+namespace YARG.Play {
 	public class Track : MonoBehaviour {
 		public const float TRACK_SPAWN_OFFSET = 3f;
 
@@ -55,8 +56,25 @@ namespace YARG {
 		}
 		private int Multiplier => Mathf.Min(Combo / 10 + 1, 4);
 
-		private List<NoteInfo> Chart => Game.Instance.chart
+		private List<NoteInfo> Chart => PlayManager.Instance.chart
 			.GetChartByName(player.chosenInstrument)[player.chosenDifficulty];
+
+		private bool _stopAudio = false;
+		private bool StopAudio {
+			set {
+				if (value == _stopAudio) {
+					return;
+				}
+
+				_stopAudio = value;
+
+				if (!value) {
+					PlayManager.Instance.RaiseAudio(player.chosenInstrument);
+				} else {
+					PlayManager.Instance.LowerAudio(player.chosenInstrument);
+				}
+			}
+		}
 
 		private int notesHit = 0;
 
@@ -104,7 +122,7 @@ namespace YARG {
 
 			// Adjust hit window
 			var scale = hitWindow.localScale;
-			hitWindow.localScale = new(scale.x, Game.HIT_MARGIN * player.trackSpeed * 2f, scale.z);
+			hitWindow.localScale = new(scale.x, PlayManager.HIT_MARGIN * player.trackSpeed * 2f, scale.z);
 		}
 
 		private void OnDestroy() {
@@ -125,11 +143,11 @@ namespace YARG {
 
 		private void Update() {
 			// Get chart stuff
-			var events = Game.Instance.chart.events;
+			var events = PlayManager.Instance.chart.events;
 
 			// Update input strategy
 			if (input.botMode) {
-				input.UpdateBotMode(Chart, Game.Instance.SongTime);
+				input.UpdateBotMode(Chart, PlayManager.Instance.SongTime);
 			} else {
 				input.UpdatePlayerMode();
 			}
@@ -141,7 +159,7 @@ namespace YARG {
 			trackMaterial.SetVector("TexOffset", new(oldOffset.x, oldOffset.y - movement));
 
 			// Ignore everything else until the song starts
-			if (!Game.Instance.SongStarted) {
+			if (!PlayManager.Instance.SongStarted) {
 				return;
 			}
 
@@ -153,7 +171,7 @@ namespace YARG {
 				trackMaterial.SetFloat("GrooveState", Mathf.Lerp(currentGroove, 0f, Time.deltaTime * 3f));
 			}
 
-			float relativeTime = Game.Instance.SongTime + ((TRACK_SPAWN_OFFSET + 1.75f) / player.trackSpeed);
+			float relativeTime = PlayManager.Instance.SongTime + ((TRACK_SPAWN_OFFSET + 1.75f) / player.trackSpeed);
 
 			// Since chart is sorted, this is guaranteed to work
 			while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= relativeTime) {
@@ -178,7 +196,7 @@ namespace YARG {
 			}
 
 			// Update expected input
-			while (Chart.Count > realChartIndex && Chart[realChartIndex].time <= Game.Instance.SongTime + Game.HIT_MARGIN) {
+			while (Chart.Count > realChartIndex && Chart[realChartIndex].time <= PlayManager.Instance.SongTime + PlayManager.HIT_MARGIN) {
 				var noteInfo = Chart[realChartIndex];
 
 				var peeked = expectedHits.ReversePeekOrNull();
@@ -200,7 +218,7 @@ namespace YARG {
 			// Update held notes
 			for (int i = heldNotes.Count - 1; i >= 0; i--) {
 				var heldNote = heldNotes[i];
-				if (heldNote.time + heldNote.length <= Game.Instance.SongTime) {
+				if (heldNote.time + heldNote.length <= PlayManager.Instance.SongTime) {
 					heldNotes.RemoveAt(i);
 					frets[heldNote.fret].StopSustainParticles();
 				}
@@ -235,13 +253,14 @@ namespace YARG {
 
 		private void UpdateInput() {
 			// Handle misses (multiple a frame in case of lag)
-			while (Game.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Game.HIT_MARGIN) {
+			while (PlayManager.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > PlayManager.HIT_MARGIN) {
 				var missedChord = expectedHits.Dequeue();
 
 				// Call miss for each component
 				Combo = 0;
 				foreach (var hit in missedChord) {
 					notePool.MissNote(hit);
+					StopAudio = true;
 				}
 			}
 
@@ -253,7 +272,10 @@ namespace YARG {
 					// Let go of held notes
 					for (int i = heldNotes.Count - 1; i >= 0; i--) {
 						var heldNote = heldNotes[i];
+
 						notePool.MissNote(heldNote);
+						StopAudio = true;
+
 						heldNotes.RemoveAt(i);
 						frets[heldNote.fret].StopSustainParticles();
 					}
@@ -292,6 +314,7 @@ namespace YARG {
 			foreach (var hit in chord) {
 				// Hit notes
 				notePool.HitNote(hit);
+				StopAudio = false;
 
 				// Play particles
 				frets[hit.fret].PlayParticles();
@@ -316,7 +339,7 @@ namespace YARG {
 						return false;
 					} else if (!frets[i].IsPressed && i == fret) {
 						return false;
-					} else if (frets[i].IsPressed && i != fret && !Game.ANCHORING) {
+					} else if (frets[i].IsPressed && i != fret && !PlayManager.ANCHORING) {
 						return false;
 					}
 				}
@@ -339,6 +362,8 @@ namespace YARG {
 			frets[fret].SetPressed(pressed);
 
 			if (!pressed) {
+				// Let go of held notes
+				bool letGo = false;
 				for (int i = heldNotes.Count - 1; i >= 0; i--) {
 					var heldNote = heldNotes[i];
 					if (heldNote.fret != fret) {
@@ -348,6 +373,13 @@ namespace YARG {
 					notePool.MissNote(heldNote);
 					heldNotes.RemoveAt(i);
 					frets[heldNote.fret].StopSustainParticles();
+
+					letGo = true;
+				}
+
+				// Only stop audio if all notes were let go
+				if (letGo && heldNotes.Count <= 0) {
+					StopAudio = true;
 				}
 			}
 		}

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace YARG {
+namespace YARG.Play {
 	public class NoteComponent : MonoBehaviour {
 		[HideInInspector]
 		public NotePool notePool;

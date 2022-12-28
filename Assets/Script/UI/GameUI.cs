@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Play;
 
 namespace YARG.UI {
 	public class GameUI : MonoBehaviour {
@@ -18,7 +19,7 @@ namespace YARG.UI {
 		}
 
 		private void Update() {
-			songProgress.fillAmount = Game.Instance.SongTime / Game.song.songLength.Value;
+			songProgress.fillAmount = PlayManager.Instance.SongTime / PlayManager.song.songLength.Value;
 		}
 
 		public void AddTrackImage(RenderTexture rt) {

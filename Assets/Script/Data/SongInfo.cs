@@ -2,7 +2,7 @@ using System.IO;
 using Newtonsoft.Json;
 using YARG.Serialization;
 
-namespace YARG.UI {
+namespace YARG.Data {
 	[JsonObject(MemberSerialization.Fields)]
 	public class SongInfo {
 		[JsonIgnore]

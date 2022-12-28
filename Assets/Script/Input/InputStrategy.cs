@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
+using YARG.Data;
 
 namespace YARG.Input {
 	public abstract class InputStrategy {

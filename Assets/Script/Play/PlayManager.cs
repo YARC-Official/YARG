@@ -1,15 +1,21 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
+using YARG.Data;
 using YARG.Serialization;
 using YARG.UI;
 
-namespace YARG {
-	public class Game : MonoBehaviour {
+namespace YARG.Play {
+	public class PlayManager : MonoBehaviour {
+		public static PlayManager Instance {
+			get;
+			private set;
+		}
+
 		public const float SONG_START_OFFSET = 1f;
 		public const float HIT_MARGIN = 0.1f;
 		public const bool ANCHORING = true;
@@ -24,17 +30,13 @@ namespace YARG {
 		[SerializeField]
 		private GameObject trackPrefab;
 
-		public static Game Instance {
-			get;
-			private set;
-		} = null;
-
 		public bool SongStarted {
 			get;
 			private set;
 		} = false;
 
-		private List<AudioSource> audioSources;
+		private Dictionary<string, AudioSource> audioSources = new();
+		private OccurrenceList<string> audioLowering = new();
 
 		private float realSongTime = 0f;
 		public float SongTime {
@@ -53,7 +55,6 @@ namespace YARG {
 
 		private IEnumerator StartSong() {
 			// Load audio
-			audioSources = new();
 			foreach (var file in song.folder.GetFiles("*.ogg")) {
 				if (file.Name == "preview.ogg") {
 					continue;
@@ -69,7 +70,7 @@ namespace YARG {
 				var songAudio = Instantiate(soundAudioPrefab, transform);
 				var audioSource = songAudio.GetComponent<AudioSource>();
 				audioSource.clip = clip;
-				audioSources.Add(audioSource);
+				audioSources.Add(Path.GetFileNameWithoutExtension(file.Name), audioSource);
 			}
 
 			// Load midi
@@ -87,10 +88,10 @@ namespace YARG {
 			yield return new WaitForSeconds(SONG_START_OFFSET);
 
 			// Start all audio at the same time
-			foreach (var audioSource in audioSources) {
+			foreach (var (_, audioSource) in audioSources) {
 				audioSource.Play();
 			}
-			realSongTime = audioSources[0].time;
+			realSongTime = audioSources.First().Value.time;
 			SongStarted = true;
 		}
 
@@ -101,13 +102,10 @@ namespace YARG {
 
 			realSongTime += Time.deltaTime;
 
-			if (Keyboard.current.upArrowKey.wasPressedThisFrame) {
-				PlayerManager.globalCalibration += 0.01f;
-			}
-
-			if (Keyboard.current.downArrowKey.wasPressedThisFrame) {
-				PlayerManager.globalCalibration -= 0.01f;
-			}
+			// Audio raising and lowering based on player preformance
+			UpdateAudio("guitar", "guitar");
+			UpdateAudio("bass", "rhythm");
+			UpdateAudio("keys", "keys");
 
 			// End song
 			if (realSongTime > song.songLength.Value + 0.5f) {
@@ -116,8 +114,35 @@ namespace YARG {
 			}
 		}
 
+		private void UpdateAudio(string name, string audioName) {
+			// Skip if that audio track doesn't exist
+			if (!audioSources.TryGetValue(audioName, out var audioSource)) {
+				return;
+			}
+
+			int total = PlayerManager.PlayersWithInstrument(name);
+
+			// Skip if no one is playing the instrument
+			if (total <= 0) {
+				return;
+			}
+
+			float percent = 1f - (float) audioLowering.GetCount(name) / total;
+
+			// Lower volume to a minimum of 5%
+			audioSource.volume = percent * 0.95f + 0.05f;
+		}
+
 		public void Exit() {
 			SceneManager.LoadScene(0);
+		}
+
+		public void LowerAudio(string name) {
+			audioLowering.Add(name);
+		}
+
+		public void RaiseAudio(string name) {
+			audioLowering.Remove(name);
 		}
 	}
 }

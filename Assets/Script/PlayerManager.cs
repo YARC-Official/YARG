@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using YARG.Input;
 using YARG.Server;
@@ -39,5 +40,9 @@ namespace YARG {
 		}
 
 		public static float globalCalibration = -0.15f;
+
+		public static int PlayersWithInstrument(string instrument) {
+			return players.Count(i => i.chosenInstrument == instrument);
+		}
 	}
 }

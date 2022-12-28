@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using YARG.Data;
 
-namespace YARG {
+namespace YARG.Play {
 	public class NotePool : MonoBehaviour {
 		public PlayerManager.Player player;
 

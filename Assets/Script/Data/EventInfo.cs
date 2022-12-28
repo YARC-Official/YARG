@@ -1,4 +1,4 @@
-namespace YARG {
+namespace YARG.Data {
 	public class EventInfo {
 		public string name;
 		public float time;

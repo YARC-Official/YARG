@@ -1,3 +1,5 @@
+using YARG.Data;
+
 namespace YARG.Serialization {
 	public abstract class AbstractParser {
 		protected string file;
