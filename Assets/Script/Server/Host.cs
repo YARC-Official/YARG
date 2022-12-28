@@ -6,7 +6,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using UnityEngine;
-using YARG.Play;
 
 namespace YARG.Server {
 	public partial class Host : MonoBehaviour {
@@ -15,13 +14,21 @@ namespace YARG.Server {
 		private TcpListener server;
 
 		private void Start() {
+			// Lower graphics to save power or something
+			GameManager.Instance.LowQualityMode = true;
+			QualitySettings.vSyncCount = 0;
+			Application.targetFrameRate = 5;
+
+			// Fetch songs first so we have a cache file to send
+			SongLibrary.FetchSongs();
+
+			// Create the TcpListener
 			server = new TcpListener(IPAddress.Any, 6145);
 			server.Start();
-
 			Log("Opened server on localhost:6145.");
 
+			// Accept TcpClient(s)
 			server.BeginAcceptTcpClient(AcceptTcpClient, server);
-
 			Log("Waiting for clients...");
 		}
 
@@ -87,7 +94,7 @@ namespace YARG.Server {
 						}
 					} else {
 						// Prevent CPU burn
-						Thread.Sleep(100);
+						Thread.Sleep(250);
 					}
 				} catch (Exception e) {
 					Log($"<color=red>Error: {e.Message}</color>");

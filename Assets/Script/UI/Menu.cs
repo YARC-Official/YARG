@@ -1,15 +1,9 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-using IniParser;
-using Newtonsoft.Json;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Data;
-using YARG.Play;
-using YARG.Serialization;
 
 namespace YARG.UI {
 	public class Menu : MonoBehaviour {
@@ -17,8 +11,6 @@ namespace YARG.UI {
 			get;
 			private set;
 		}
-
-		private static List<SongInfo> songs;
 
 		[SerializeField]
 		private GameObject songViewPrefab;
@@ -32,19 +24,14 @@ namespace YARG.UI {
 
 		private List<SongInfoComponent> songInfoComponents;
 
-		private async void Start() {
+		private void Start() {
 			Instance = this;
 
-			if (songs == null) {
-				if (SongLibrary.CacheFile.Exists || GameManager.client != null) {
-					await Task.Run(() => FetchSongsFromCache());
-				} else {
-					FetchSongs();
-					await Task.Run(() => FetchSongInfo());
-				}
-			}
+			SongLibrary.FetchSongs();
 
-			songs = songs.OrderBy(song => song.SongNameNoParen).ToList();
+			var songs = SongLibrary.Songs
+				.OrderBy(song => song.SongNameNoParen)
+				.ToList();
 
 			// Spawn song infos
 			songInfoComponents = new();
@@ -80,38 +67,6 @@ namespace YARG.UI {
 			foreach (var songComp in songInfoComponents) {
 				songComp.UpdateText();
 			}
-		}
-
-		private static void FetchSongs() {
-			var songFolder = SongLibrary.SONG_FOLDER;
-			var directories = songFolder.GetDirectories();
-
-			songs = new(directories.Length);
-			foreach (var folder in directories) {
-				songs.Add(new SongInfo(folder));
-			}
-		}
-
-		private static void FetchSongInfo() {
-			// Fetch song info manually
-			var parser = new FileIniDataParser();
-			foreach (var song in songs) {
-				SongIni.CompleteSongInfo(song, parser);
-			}
-
-			// Create cache
-			var json = JsonConvert.SerializeObject(songs, Formatting.Indented);
-			File.WriteAllText(SongLibrary.CacheFile.ToString(), json.ToString());
-		}
-
-		private static void FetchSongsFromCache() {
-			var cacheFile = SongLibrary.CacheFile;
-			if (GameManager.client != null) {
-				cacheFile = GameManager.client.remoteCache;
-			}
-
-			string json = File.ReadAllText(cacheFile.ToString());
-			songs = JsonConvert.DeserializeObject<List<SongInfo>>(json);
 		}
 
 		private static char SongNameToLetterSection(string nameNoParen) {

@@ -5,23 +5,26 @@ using YARG.Data;
 namespace YARG.UI {
 	public class SongInfoComponent : MonoBehaviour {
 		[SerializeField]
-		private TextMeshProUGUI text;
+		private TextMeshProUGUI songName;
 		[SerializeField]
-		private TextMeshProUGUI rightText;
+		private TextMeshProUGUI artist;
+		[SerializeField]
+		private TextMeshProUGUI lengthText;
 
 		public SongInfo songInfo;
 
 		public void UpdateText() {
-			text.text = $"<b>{songInfo.SongName}</b>";
+			songName.text = $"<b>{songInfo.SongName}</b>";
+			artist.text = songInfo.artistName;
 
 			if (songInfo.songLength == null) {
-				rightText.text = "N/A";
+				lengthText.text = "N/A";
 			} else {
 				int time = (int) songInfo.songLength.Value;
 				int minutes = time / 60;
 				int seconds = time % 60;
 
-				rightText.text = $"{minutes}:{seconds:00}";
+				lengthText.text = $"{minutes}:{seconds:00}";
 			}
 		}
 
