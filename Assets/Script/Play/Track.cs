@@ -363,7 +363,7 @@ namespace YARG.Play {
 
 			if (!pressed) {
 				// Let go of held notes
-				bool letGo = false;
+				NoteInfo letGo = null;
 				for (int i = heldNotes.Count - 1; i >= 0; i--) {
 					var heldNote = heldNotes[i];
 					if (heldNote.fret != fret) {
@@ -374,12 +374,19 @@ namespace YARG.Play {
 					heldNotes.RemoveAt(i);
 					frets[heldNote.fret].StopSustainParticles();
 
-					letGo = true;
+					letGo = heldNote;
 				}
 
-				// Only stop audio if all notes were let go
-				if (letGo && heldNotes.Count <= 0) {
-					StopAudio = true;
+				// Only stop audio if all notes were let go and...
+				if (letGo != null && heldNotes.Count <= 0) {
+					// ...if the player let go of the note more than 0.15s
+					// before the end of the note. This prevents the game
+					// from stopping the audio if the player let go a handful
+					// of milliseconds too early (which is okay).
+					float endTime = letGo.time + letGo.length;
+					if (endTime - PlayManager.Instance.SongTime > 0.15f) {
+						StopAudio = true;
+					}
 				}
 			}
 		}
