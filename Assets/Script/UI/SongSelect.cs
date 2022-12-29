@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Data;
 
 namespace YARG.UI {
-	public class SpngSelect : MonoBehaviour {
+	public class SongSelect : MonoBehaviour {
 		private const int SONG_VIEW_EXTRA = 6;
 		private const float INPUT_REPEAT_TIME = 0.05f;
 		private const float INPUT_REPEAT_COOLDOWN = 0.5f;
@@ -15,10 +16,13 @@ namespace YARG.UI {
 		[SerializeField]
 		private GameObject sectionHeaderPrefab;
 
+		[Space]
 		[SerializeField]
 		private Transform songListContent;
 		[SerializeField]
 		private SelectedSongView selectedSongView;
+		[SerializeField]
+		private TMP_InputField searchField;
 
 		private List<SongInfo> songs;
 
@@ -30,10 +34,6 @@ namespace YARG.UI {
 
 		private void Start() {
 			SongLibrary.FetchSongs();
-
-			songs = SongLibrary.Songs
-				.OrderBy(song => song.SongNameNoParen)
-				.ToList();
 
 			// Create before (insert backwards)
 			for (int i = 0; i < SONG_VIEW_EXTRA; i++) {
@@ -51,7 +51,8 @@ namespace YARG.UI {
 				songViewsAfter.Add(gameObject.GetComponent<SongView>());
 			}
 
-			UpdateSongViews();
+			// Automatically loads songs and updates song views
+			UpdateSearch();
 		}
 
 		private void UpdateSongViews() {
@@ -69,7 +70,12 @@ namespace YARG.UI {
 			}
 
 			// Update selected
-			selectedSongView.UpdateSongView(songs[selectedSongIndex]);
+			if (songs.Count > 0) {
+				selectedSongView.gameObject.SetActive(true);
+				selectedSongView.UpdateSongView(songs[selectedSongIndex]);
+			} else {
+				selectedSongView.gameObject.SetActive(false);
+			}
 
 			// Update after
 			for (int i = 0; i < SONG_VIEW_EXTRA; i++) {
@@ -131,6 +137,26 @@ namespace YARG.UI {
 				selectedSongIndex = songs.Count - 1;
 			}
 
+			UpdateSongViews();
+		}
+
+		public void UpdateSearch() {
+			IEnumerable<SongInfo> songInfos;
+			if (string.IsNullOrEmpty(searchField.text)) {
+				songInfos = SongLibrary.Songs
+					.Where(song => true);
+			} else {
+				// TODO: fuzzy search
+				var text = searchField.text.ToLower();
+				songInfos = SongLibrary.Songs
+					.Where(song => song.SongName.ToLower().StartsWith(text) || song.artistName.ToLower().StartsWith(text));
+			}
+
+			songs = songInfos
+				.OrderBy(song => song.SongNameNoParen)
+				.ToList();
+
+			selectedSongIndex = 0;
 			UpdateSongViews();
 		}
 	}
