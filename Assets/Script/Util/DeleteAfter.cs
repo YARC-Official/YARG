@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace YARG.Utils {
+namespace YARG.Util {
 	public class DeleteAfter : MonoBehaviour {
 		[SerializeField]
 		private float deleteAfter = 1f;

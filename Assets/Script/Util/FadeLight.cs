@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace YARG.Utils {
+namespace YARG.Util {
 	[RequireComponent(typeof(Light))]
 	public class FadeLight : MonoBehaviour {
 		[SerializeField]

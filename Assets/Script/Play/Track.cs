@@ -7,7 +7,7 @@ using YARG.Data;
 using YARG.Input;
 using YARG.Pools;
 using YARG.UI;
-using YARG.Utils;
+using YARG.Util;
 
 namespace YARG.Play {
 	public class Track : MonoBehaviour {

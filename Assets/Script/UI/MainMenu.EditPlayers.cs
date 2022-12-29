@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.UIElements;
 using YARG.Input;
-using YARG.Utils;
+using YARG.Util;
 
 namespace YARG.UI {
 	public partial class MainMenu : MonoBehaviour {

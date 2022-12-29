@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace YARG.Utils {
+namespace YARG.Util {
 	public class ParticleGroup : MonoBehaviour {
 		public bool keepAlpha = true;
 

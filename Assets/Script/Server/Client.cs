@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using UnityEngine;
-using YARG.UI;
+using YARG.Util;
 
 namespace YARG.Server {
 	public class Client {
@@ -15,6 +15,8 @@ namespace YARG.Server {
 
 		public FileInfo remoteCache;
 		public string remotePath;
+
+		public string AlbumCoversPath => Path.Combine(remotePath, "_album_covers");
 
 		private Thread thread;
 		private TcpClient client;
@@ -27,6 +29,12 @@ namespace YARG.Server {
 
 			// Make sure remote path exists
 			var dirInfo = new DirectoryInfo(remotePath);
+			if (!dirInfo.Exists) {
+				dirInfo.Create();
+			}
+
+			// Make sure `album_covers` folder exists
+			dirInfo = new DirectoryInfo(AlbumCoversPath);
 			if (!dirInfo.Exists) {
 				dirInfo.Create();
 			}
@@ -61,19 +69,27 @@ namespace YARG.Server {
 						ReadFile(stream, new(zipPath));
 
 						// When done, unzip file
-						string uuid = Guid.NewGuid().ToString();
-						ZipFile.ExtractToDirectory(zipPath, Path.Combine(remotePath, uuid));
+						string folderName = Utils.Hash(request[8..]);
+						ZipFile.ExtractToDirectory(zipPath, Path.Combine(remotePath, folderName));
 
 						// Delete zip
 						new FileInfo(zipPath).Delete();
 
 						// Send signal
-						signals.Enqueue("DownloadDone," + uuid);
+						signals.Enqueue($"DownloadDone,{folderName}");
+					} else if (request.StartsWith("ReqAlbumCover,")) {
+						// Read album.png from server
+						string hash = Utils.Hash(request[14..]);
+						string pngPath = Path.Combine(AlbumCoversPath, $"{hash}.png");
+						ReadFile(stream, new(pngPath));
+
+						// Send signal
+						signals.Enqueue($"AlbumCoverDone,{hash}");
 					}
 				}
 
 				// Prevent CPU burn
-				Thread.Sleep(10);
+				Thread.Sleep(25);
 			}
 		}
 
@@ -95,6 +111,11 @@ namespace YARG.Server {
 			var buffer = new byte[sizeof(long)];
 			stream.Read(buffer, 0, sizeof(long));
 			long size = BitConverter.ToInt64(buffer);
+
+			// If the size is zero, the file did not exist on server
+			if (size <= 0) {
+				return;
+			}
 
 			// Copy data to disk
 			// We can't use CopyTo on a infinite stream (like NetworkStream)
@@ -136,7 +157,31 @@ namespace YARG.Server {
 		}
 
 		public void RequestDownload(string path) {
+			// See first if the song is already downloaded
+			var folderName = Utils.Hash(path);
+			var dir = new DirectoryInfo(Path.Combine(remotePath, folderName));
+			if (dir.Exists) {
+				// If so, send the signal that it has finished downloading
+				signals.Enqueue($"DownloadDone,{folderName}");
+				return;
+			}
+
+			// Otherwise, we have to request it
 			requests.Enqueue($"ReqSong,{path}");
+		}
+
+		public void RequestAlbumCover(string path) {
+			// See first if the album cover is already downloaded
+			var folderName = Utils.Hash(path);
+			var coverFile = new FileInfo(Path.Combine(AlbumCoversPath, $"{folderName}.png"));
+			if (coverFile.Exists) {
+				// If so, send the signal that it has finished downloading
+				signals.Enqueue($"AlbumCoverDone,{folderName}");
+				return;
+			}
+
+			// Otherwise, we have to request it
+			requests.Enqueue($"ReqAlbumCover,{path}");
 		}
 	}
 }

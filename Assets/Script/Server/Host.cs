@@ -71,7 +71,7 @@ namespace YARG.Server {
 							SendFile(stream, SongLibrary.CacheFile);
 						} else if (str.StartsWith("ReqSong,")) {
 							// Get the folder
-							string path = str[8..^0];
+							string path = str[8..];
 
 							// See if valid
 							if (!path.StartsWith(SongLibrary.SONG_FOLDER.FullName)) {
@@ -91,10 +91,26 @@ namespace YARG.Server {
 
 							// Delete temp
 							info.Delete();
+						} else if (str.StartsWith("ReqAlbumCover,")) {
+							// Get the folder
+							string path = str[14..];
+
+							// See if valid
+							if (!path.StartsWith(SongLibrary.SONG_FOLDER.FullName)) {
+								return;
+							}
+
+							// Send album cover over
+							var info = new FileInfo(Path.Combine(path, "album.png"));
+							if (info.Exists) {
+								SendFile(stream, info);
+							} else {
+								SendNoFile(stream);
+							}
 						}
 					} else {
 						// Prevent CPU burn
-						Thread.Sleep(250);
+						Thread.Sleep(100);
 					}
 				} catch (Exception e) {
 					Log($"<color=red>Error: {e.Message}</color>");
@@ -114,6 +130,11 @@ namespace YARG.Server {
 
 			// Send file itself
 			fs.CopyTo(stream);
+		}
+
+		private void SendNoFile(NetworkStream stream) {
+			// Send over a size of zero
+			stream.Write(BitConverter.GetBytes(0));
 		}
 
 		private void OnDestroy() {

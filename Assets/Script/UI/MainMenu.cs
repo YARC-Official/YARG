@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 using YARG.Data;
 using YARG.Play;
 using YARG.Serialization;
-using YARG.Utils;
+using YARG.Util;
 
 namespace YARG.UI {
 	public partial class MainMenu : MonoBehaviour {
@@ -60,7 +60,7 @@ namespace YARG.UI {
 		private void SignalRecieved(string signal) {
 			if (signal.StartsWith("DownloadDone,")) {
 				PlayManager.song = SongIni.CompleteSongInfo(new SongInfo(
-					new(Path.Combine(GameManager.client.remotePath, signal[13..^0]))
+					new(Path.Combine(GameManager.client.remotePath, signal[13..]))
 				));
 				GameManager.Instance.LoadScene(SceneIndex.PLAY);
 			}
