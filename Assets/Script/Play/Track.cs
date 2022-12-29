@@ -265,6 +265,8 @@ namespace YARG.Play {
 			}
 
 			if (expectedHits.Count <= 0) {
+				// TODO: Allow overstums on taps so strummed taps don't miss
+
 				// Handle overstrums
 				if (strummed) {
 					Combo = 0;

@@ -122,7 +122,7 @@ namespace YARG.UI {
 			// Start the song if all the players chose their instruments
 			if (playerIndex >= PlayerManager.players.Count) {
 				if (GameManager.client != null) {
-					Menu.DownloadSong(chosenSong);
+					GameManager.client.RequestDownload(chosenSong.folder.FullName);
 				} else {
 					PlayManager.song = chosenSong;
 					GameManager.Instance.LoadScene(SceneIndex.PLAY);

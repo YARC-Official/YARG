@@ -3,7 +3,7 @@ using UnityEngine;
 using YARG.Data;
 
 namespace YARG.UI {
-	public class SongInfoComponent : MonoBehaviour {
+	public class SongView : MonoBehaviour {
 		[SerializeField]
 		private TextMeshProUGUI songName;
 		[SerializeField]
@@ -11,11 +11,9 @@ namespace YARG.UI {
 		[SerializeField]
 		private TextMeshProUGUI lengthText;
 
-		public SongInfo songInfo;
-
-		public void UpdateText() {
+		public void UpdateSongView(SongInfo songInfo) {
 			songName.text = $"<b>{songInfo.SongName}</b>";
-			artist.text = songInfo.artistName;
+			artist.text = $"<i>{songInfo.artistName}</i>";
 
 			if (songInfo.songLength == null) {
 				lengthText.text = "N/A";
@@ -26,15 +24,6 @@ namespace YARG.UI {
 
 				lengthText.text = $"{minutes}:{seconds:00}";
 			}
-		}
-
-		public void PlaySong() {
-			if (songInfo.songLength == null) {
-				return;
-			}
-
-			MainMenu.Instance.chosenSong = songInfo;
-			MainMenu.Instance.ShowPreSong();
 		}
 	}
 }
