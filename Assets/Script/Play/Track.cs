@@ -42,19 +42,14 @@ namespace YARG.Play {
 		[SerializeField]
 		private MeshRenderer comboMeterRenderer;
 
-		private int visualChartIndex = 0;
-		private int realChartIndex = 0;
-		private int eventChartIndex = 0;
-
-		private Queue<List<NoteInfo>> expectedHits = new();
-		private List<NoteInfo> heldNotes = new();
-
 		private int _combo = 0;
 		private int Combo {
 			get => _combo;
 			set => _combo = value;
 		}
-		private int Multiplier => Mathf.Min(Combo / 10 + 1, 4);
+
+		private int MaxMultiplier => player.chosenInstrument == "bass" ? 6 : 4;
+		private int Multiplier => Mathf.Min(Combo / 10 + 1, MaxMultiplier);
 
 		private List<NoteInfo> Chart => PlayManager.Instance.chart
 			.GetChartByName(player.chosenInstrument)[player.chosenDifficulty];
@@ -75,6 +70,14 @@ namespace YARG.Play {
 				}
 			}
 		}
+
+		private int visualChartIndex = 0;
+		private int realChartIndex = 0;
+		private int eventChartIndex = 0;
+
+		private Queue<List<NoteInfo>> expectedHits = new();
+		private List<List<NoteInfo>> allowedOverstrums = new();
+		private List<NoteInfo> heldNotes = new();
 
 		private int notesHit = 0;
 
@@ -165,7 +168,7 @@ namespace YARG.Play {
 
 			// Update groove mode
 			float currentGroove = trackMaterial.GetFloat("GrooveState");
-			if (Multiplier == 4) {
+			if (Multiplier >= MaxMultiplier) {
 				trackMaterial.SetFloat("GrooveState", Mathf.Lerp(currentGroove, 1f, Time.deltaTime * 5f));
 			} else {
 				trackMaterial.SetFloat("GrooveState", Mathf.Lerp(currentGroove, 0f, Time.deltaTime * 3f));
@@ -244,7 +247,7 @@ namespace YARG.Play {
 			int index = Combo % 10;
 			if (Multiplier != 1 && index == 0) {
 				index = 10;
-			} else if (Multiplier == 4) {
+			} else if (Multiplier == MaxMultiplier) {
 				index = 10;
 			}
 
@@ -265,24 +268,7 @@ namespace YARG.Play {
 			}
 
 			if (expectedHits.Count <= 0) {
-				// TODO: Allow overstums on taps so strummed taps don't miss
-
-				// Handle overstrums
-				if (strummed) {
-					Combo = 0;
-
-					// Let go of held notes
-					for (int i = heldNotes.Count - 1; i >= 0; i--) {
-						var heldNote = heldNotes[i];
-
-						notePool.MissNote(heldNote);
-						StopAudio = true;
-
-						heldNotes.RemoveAt(i);
-						frets[heldNote.fret].StopSustainParticles();
-					}
-				}
-
+				UpdateOverstrums();
 				return;
 			}
 
@@ -294,14 +280,8 @@ namespace YARG.Play {
 				return;
 			}
 
-			// Convert NoteInfo list to chord fret array
-			int[] chordInts = new int[chord.Count];
-			for (int i = 0; i < chordInts.Length; i++) {
-				chordInts[i] = chord[i].fret;
-			}
-
 			// Check if correct chord is pressed
-			if (!ChordPressed(chordInts)) {
+			if (!ChordPressed(chord)) {
 				if (!chord[0].hopo) {
 					Combo = 0;
 				}
@@ -330,9 +310,66 @@ namespace YARG.Play {
 				// Add stats
 				notesHit++;
 			}
+
+			// If this is a tap note, and it was hit without strumming,
+			// add it to the allowed overstrums. This is so the player
+			// doesn't lose their combo when they strum AFTER they hit
+			// the tap note.
+			if (chord[0].hopo && !strummed) {
+				allowedOverstrums.Add(chord);
+			}
 		}
 
-		private bool ChordPressed(int[] chord) {
+		private void UpdateOverstrums() {
+			// Remove all old allowed overstrums
+			while (allowedOverstrums.Count > 0
+				&& PlayManager.Instance.SongTime - allowedOverstrums[0][0].time > PlayManager.HIT_MARGIN) {
+
+				allowedOverstrums.RemoveAt(0);
+			}
+
+			// Don't do anything else if we didn't strum
+			if (!strummed) {
+				return;
+			}
+
+			// Look in the allowed overstrums first
+			for (int i = 0; i < allowedOverstrums.Count; i++) {
+				if (ChordPressed(allowedOverstrums[i])) {
+					// If we found a chord that was pressed, remove 
+					// all of the allowed overstrums before it.
+					// This prevents over-forgiving overstrums.
+
+					for (int j = i; j >= 0; j--) {
+						allowedOverstrums.RemoveAt(j);
+					}
+
+					// Overstrum forgiven!
+					return;
+				}
+			}
+
+			Combo = 0;
+
+			// Let go of held notes
+			for (int i = heldNotes.Count - 1; i >= 0; i--) {
+				var heldNote = heldNotes[i];
+
+				notePool.MissNote(heldNote);
+				StopAudio = true;
+
+				heldNotes.RemoveAt(i);
+				frets[heldNote.fret].StopSustainParticles();
+			}
+		}
+
+		private bool ChordPressed(List<NoteInfo> chordList) {
+			// Convert NoteInfo list to chord fret array
+			int[] chord = new int[chordList.Count];
+			for (int i = 0; i < chord.Length; i++) {
+				chord[i] = chordList[i].fret;
+			}
+
 			if (chord.Length == 1) {
 				// Deal with single notes
 				int fret = chord[0];
