@@ -11,14 +11,17 @@ namespace YARG.Input {
 			"blue",
 			"orange",
 			"strumUp",
-			"strumDown"
+			"strumDown",
+			"starpower"
 		};
 
 		public delegate void FretChangeAction(bool pressed, int fret);
 		public delegate void StrumAction();
+		public delegate void StarpowerAction();
 
 		public event FretChangeAction FretChangeEvent;
 		public event StrumAction StrumEvent;
+		public event StarpowerAction StarpowerEvent;
 
 		public FiveFretInputStrategy(InputDevice inputDevice, bool botMode) : base(inputDevice, botMode) {
 
@@ -55,6 +58,12 @@ namespace YARG.Input {
 				StrumEvent?.Invoke();
 				CallGenericCalbirationEvent();
 			}
+
+			// Starpower
+
+			if (MappingAsButton("starpower")?.wasPressedThisFrame ?? false) {
+				StarpowerEvent?.Invoke();
+			}
 		}
 
 		public override void UpdateBotMode(List<NoteInfo> chart, float songTime) {
@@ -75,6 +84,9 @@ namespace YARG.Input {
 				StrumEvent?.Invoke();
 				botChartIndex++;
 			}
+
+			// Constantly activate starpower
+			StarpowerEvent?.Invoke();
 		}
 	}
 }

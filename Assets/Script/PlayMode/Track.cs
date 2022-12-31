@@ -44,6 +44,8 @@ namespace YARG.PlayMode {
 		private TextMeshPro comboText;
 		[SerializeField]
 		private MeshRenderer comboMeterRenderer;
+		[SerializeField]
+		private MeshRenderer starpowerBarTop;
 
 		public float RelativeTime => Play.Instance.SongTime + ((TRACK_SPAWN_OFFSET + 1.75f) / player.trackSpeed);
 
@@ -100,6 +102,8 @@ namespace YARG.PlayMode {
 		private List<List<NoteInfo>> allowedOverstrums = new();
 		private List<NoteInfo> heldNotes = new();
 
+		private bool beat;
+
 		private int notesHit = 0;
 
 		private void Awake() {
@@ -134,6 +138,10 @@ namespace YARG.PlayMode {
 
 			input.FretChangeEvent += FretChangedAction;
 			input.StrumEvent += StrumAction;
+			input.StarpowerEvent += StarpowerAction;
+
+			// Bind other events
+			Play.Instance.BeatEvent += BeatAction;
 
 			// Set render texture
 			GameUI.Instance.AddTrackImage(trackCamera.targetTexture);
@@ -157,6 +165,10 @@ namespace YARG.PlayMode {
 			// Unbind input
 			input.FretChangeEvent -= FretChangedAction;
 			input.StrumEvent -= StrumAction;
+			input.StarpowerEvent -= StarpowerAction;
+
+			// Unbind other events
+			Play.Instance.BeatEvent -= BeatAction;
 
 			// Set score
 			player.lastScore = new PlayerManager.Score {
@@ -241,8 +253,6 @@ namespace YARG.PlayMode {
 			if (StarpowerSection?.EndTime + Play.HIT_MARGIN < Play.Instance.SongTime) {
 				StarpowerSection = null;
 				starpowerCharge += 0.25f;
-
-				starpowerActive = true;
 			}
 
 			// Update starpower active
@@ -251,7 +261,7 @@ namespace YARG.PlayMode {
 					starpowerActive = false;
 					starpowerCharge = 0f;
 				} else {
-					starpowerCharge -= Time.deltaTime / 30f;
+					starpowerCharge -= Time.deltaTime / 25f;
 				}
 			}
 
@@ -269,7 +279,7 @@ namespace YARG.PlayMode {
 			float movement = Time.deltaTime * player.trackSpeed / 4f;
 			trackMaterial.SetVector("TexOffset", new(oldOffset.x, oldOffset.y - movement));
 
-			// Update groove
+			// Update track groove
 			float currentGroove = trackMaterial.GetFloat("GrooveState");
 			if (Multiplier >= MaxMultiplier) {
 				trackMaterial.SetFloat("GrooveState", Mathf.Lerp(currentGroove, 1f, Time.deltaTime * 5f));
@@ -277,12 +287,30 @@ namespace YARG.PlayMode {
 				trackMaterial.SetFloat("GrooveState", Mathf.Lerp(currentGroove, 0f, Time.deltaTime * 3f));
 			}
 
-			// Update starpower
+			// Update track starpower
 			float currentStarpower = trackMaterial.GetFloat("StarpowerState");
 			if (starpowerActive) {
 				trackMaterial.SetFloat("StarpowerState", Mathf.Lerp(currentStarpower, 1f, Time.deltaTime * 2f));
 			} else {
 				trackMaterial.SetFloat("StarpowerState", Mathf.Lerp(currentStarpower, 0f, Time.deltaTime * 4f));
+			}
+
+			// Update starpower bar
+			var starpowerMat = starpowerBarTop.material;
+			starpowerMat.SetFloat("Fill", starpowerCharge);
+			if (beat) {
+				float pulseAmount = 0f;
+				if (starpowerActive) {
+					pulseAmount = 0.25f;
+				} else if (!starpowerActive && starpowerCharge >= 0.5f) {
+					pulseAmount = 1f;
+				}
+
+				starpowerMat.SetFloat("Pulse", pulseAmount);
+				beat = false;
+			} else {
+				float currentPulse = starpowerMat.GetFloat("Pulse");
+				starpowerMat.SetFloat("Pulse", Mathf.Lerp(currentPulse, 0f, Time.deltaTime * 16f));
 			}
 		}
 
@@ -369,6 +397,8 @@ namespace YARG.PlayMode {
 			// the tap note.
 			if (chord[0].hopo && !strummed) {
 				allowedOverstrums.Add(chord);
+			} else if (!chord[0].hopo) {
+				allowedOverstrums.Clear();
 			}
 		}
 
@@ -484,6 +514,16 @@ namespace YARG.PlayMode {
 
 		private void StrumAction() {
 			strummed = true;
+		}
+
+		private void StarpowerAction() {
+			if (!starpowerActive && starpowerCharge >= 0.5f) {
+				starpowerActive = true;
+			}
+		}
+
+		private void BeatAction() {
+			beat = true;
 		}
 
 		private void SpawnNote(NoteInfo noteInfo, float time) {

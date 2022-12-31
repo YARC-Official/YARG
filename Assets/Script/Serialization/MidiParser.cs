@@ -101,6 +101,15 @@ namespace YARG.Serialization {
 				ev.time += delay;
 			}
 
+			// Add beats to chart
+
+			chart.beats = new();
+			foreach (var ev in chart.events) {
+				if (ev.name == "beatLine_minor" || ev.name == "beatLine_major") {
+					chart.beats.Add(ev.time);
+				}
+			}
+
 			// Look for bonus star power
 
 			// TODO

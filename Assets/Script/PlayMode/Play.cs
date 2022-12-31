@@ -21,6 +21,9 @@ namespace YARG.PlayMode {
 
 		public static SongInfo song = null;
 
+		public delegate void BeatAction();
+		public event BeatAction BeatEvent;
+
 		[SerializeField]
 		private GameObject soundAudioPrefab;
 		[SerializeField]
@@ -40,6 +43,8 @@ namespace YARG.PlayMode {
 		}
 
 		public Chart chart;
+
+		private int beatIndex = 0;
 
 		private void Awake() {
 			Instance = this;
@@ -102,6 +107,12 @@ namespace YARG.PlayMode {
 			UpdateAudio("guitar", "guitar");
 			UpdateAudio("bass", "rhythm");
 			UpdateAudio("keys", "keys");
+
+			// Update beats
+			while (chart.beats.Count > beatIndex && chart.beats[beatIndex] <= SongTime) {
+				BeatEvent?.Invoke();
+				beatIndex++;
+			}
 
 			// End song
 			if (realSongTime > song.songLength.Value + 0.5f) {

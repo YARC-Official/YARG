@@ -9,6 +9,7 @@ namespace YARG.Data {
 		public List<NoteInfo>[] keys = new List<NoteInfo>[4];
 
 		public List<EventInfo> events = null;
+		public List<float> beats = null;
 
 		public Chart() {
 			allParts = new() {
