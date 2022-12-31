@@ -237,9 +237,6 @@ namespace YARG.PlayMode {
 				realChartIndex++;
 			}
 
-			// Update real input
-			UpdateInput();
-
 			// Update held notes
 			for (int i = heldNotes.Count - 1; i >= 0; i--) {
 				var heldNote = heldNotes[i];
@@ -248,6 +245,9 @@ namespace YARG.PlayMode {
 					frets[heldNote.fret].StopSustainParticles();
 				}
 			}
+
+			// Update real input
+			UpdateInput();
 
 			// Update starpower region
 			if (StarpowerSection?.EndTime + Play.HIT_MARGIN < Play.Instance.SongTime) {
@@ -456,6 +456,12 @@ namespace YARG.PlayMode {
 				// Deal with single notes
 				int fret = chord[0];
 				for (int i = 0; i < frets.Length; i++) {
+					// Skip any notes that are currently held down.
+					// Extended sustains.
+					if (heldNotes.Any(j => j.fret == i)) {
+						continue;
+					}
+
 					if (frets[i].IsPressed && i > fret) {
 						return false;
 					} else if (!frets[i].IsPressed && i == fret) {
@@ -467,6 +473,12 @@ namespace YARG.PlayMode {
 			} else {
 				// Deal with multi-key chords
 				for (int i = 0; i < frets.Length; i++) {
+					// Skip any notes that are currently held down.
+					// Extended sustains.
+					if (heldNotes.Any(j => j.fret == i)) {
+						continue;
+					}
+
 					bool contains = chord.Contains(i);
 					if (contains && !frets[i].IsPressed) {
 						return false;
