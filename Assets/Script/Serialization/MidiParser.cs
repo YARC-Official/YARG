@@ -17,6 +17,7 @@ namespace YARG.Serialization {
 
 		private struct EventIR {
 			public long startTick;
+			public long? endTick;
 			public string name;
 		}
 
@@ -36,6 +37,8 @@ namespace YARG.Serialization {
 		}
 
 		public override void Parse(Chart chart) {
+			var eventIR = new List<EventIR>();
+
 			foreach (var trackChunk in midi.GetTrackChunks()) {
 				foreach (var trackEvent in trackChunk.Events) {
 					if (trackEvent is not SequenceTrackNameEvent trackName) {
@@ -49,19 +52,22 @@ namespace YARG.Serialization {
 								for (int i = 0; i < 4; i++) {
 									chart.guitar[i] = ParseGuitar(trackChunk, i);
 								}
+								ParseStarpower(eventIR, trackChunk, "guitar");
 								break;
 							case "PART BASS":
 								for (int i = 0; i < 4; i++) {
 									chart.bass[i] = ParseGuitar(trackChunk, i);
 								}
+								ParseStarpower(eventIR, trackChunk, "bass");
 								break;
 							case "PART KEYS":
 								for (int i = 0; i < 4; i++) {
 									chart.keys[i] = ParseGuitar(trackChunk, i);
 								}
+								ParseStarpower(eventIR, trackChunk, "keys");
 								break;
 							case "BEAT":
-								chart.events = ParseBeats(trackChunk);
+								ParseBeats(eventIR, trackChunk);
 								break;
 						}
 					} catch (Exception e) {
@@ -71,7 +77,35 @@ namespace YARG.Serialization {
 				}
 			}
 
-			// Sort by time (just in case) and add delay
+			// Convert event IR into real
+
+			chart.events = new();
+			var tempo = midi.GetTempoMap();
+
+			foreach (var eventInfo in eventIR) {
+				float startTime = (float) TimeConverter.ConvertTo<MetricTimeSpan>(eventInfo.startTick, tempo).TotalSeconds;
+
+				// If the event has length, do that too
+				if (eventInfo.endTick.HasValue) {
+					float endTime = (float) TimeConverter.ConvertTo<MetricTimeSpan>(eventInfo.endTick.Value, tempo).TotalSeconds;
+					chart.events.Add(new EventInfo(eventInfo.name, startTime, endTime - startTime));
+				} else {
+					chart.events.Add(new EventInfo(eventInfo.name, startTime));
+				}
+			}
+
+			// Sort events by time (required) and add delay
+
+			chart.events.Sort(new Comparison<EventInfo>((a, b) => a.time.CompareTo(b.time)));
+			foreach (var ev in chart.events) {
+				ev.time += delay;
+			}
+
+			// Look for bonus star power
+
+			// TODO
+
+			// Sort notes by time (just in case) and add delay
 
 			foreach (var part in chart.allParts) {
 				foreach (var difficulty in part) {
@@ -87,18 +121,6 @@ namespace YARG.Serialization {
 						note.time += delay;
 					}
 				}
-			}
-
-			if (chart.events != null) {
-				// Sort
-				chart.events.Sort(new Comparison<EventInfo>((a, b) => a.time.CompareTo(b.time)));
-
-				// Add delay
-				foreach (var ev in chart.events) {
-					ev.time += delay;
-				}
-			} else {
-				chart.events = new();
 			}
 		}
 
@@ -278,8 +300,49 @@ namespace YARG.Serialization {
 			return noteOutput;
 		}
 
-		private List<EventInfo> ParseBeats(TrackChunk trackChunk) {
-			var eventIR = new List<EventIR>();
+		private void ParseStarpower(List<EventIR> eventIR, TrackChunk trackChunk, string instrument) {
+			long totalDelta = 0;
+
+			long? starPowerStart = null;
+
+			// Convert track events into intermediate representation
+			foreach (var trackEvent in trackChunk.Events) {
+				totalDelta += trackEvent.DeltaTime;
+
+				if (trackEvent is not NoteEvent noteEvent) {
+					continue;
+				}
+
+				// Look for correct octave
+				if (noteEvent.GetNoteOctave() != 8) {
+					continue;
+				}
+
+				// Skip if not a star power event
+				if (noteEvent.GetNoteName() != NoteName.GSharp) {
+					continue;
+				}
+
+				if (trackEvent is NoteOnEvent) {
+					// We need to know when it ends before adding it
+					starPowerStart = totalDelta;
+				} else if (trackEvent is NoteOffEvent) {
+					if (starPowerStart == null) {
+						continue;
+					}
+
+					// Now that we know the start and end, add it to the list of events.
+					eventIR.Add(new EventIR {
+						startTick = starPowerStart.Value,
+						endTick = totalDelta,
+						name = $"starpower_{instrument}"
+					});
+					starPowerStart = null;
+				}
+			}
+		}
+
+		private void ParseBeats(List<EventIR> eventIR, TrackChunk trackChunk) {
 			long totalDelta = 0;
 
 			// Convert track events into intermediate representation
@@ -314,17 +377,6 @@ namespace YARG.Serialization {
 					});
 				}
 			}
-
-			var eventOutput = new List<EventInfo>(eventIR.Count);
-			var tempo = midi.GetTempoMap();
-
-			// IR into real
-			foreach (var eventInfo in eventIR) {
-				float time = (float) TimeConverter.ConvertTo<MetricTimeSpan>(eventInfo.startTick, tempo).TotalSeconds;
-				eventOutput.Add(new EventInfo(time, eventInfo.name));
-			}
-
-			return eventOutput;
 		}
 	}
 }

@@ -9,9 +9,12 @@ using YARG.Pools;
 using YARG.UI;
 using YARG.Util;
 
-namespace YARG.Play {
+namespace YARG.PlayMode {
 	public class Track : MonoBehaviour {
 		public const float TRACK_SPAWN_OFFSET = 3f;
+
+		public delegate void StarpowerMissAction();
+		public event StarpowerMissAction StarpowerMissEvent;
 
 		public PlayerManager.Player player;
 
@@ -42,16 +45,34 @@ namespace YARG.Play {
 		[SerializeField]
 		private MeshRenderer comboMeterRenderer;
 
+		public float RelativeTime => Play.Instance.SongTime + ((TRACK_SPAWN_OFFSET + 1.75f) / player.trackSpeed);
+
+		public EventInfo StarpowerSection {
+			get;
+			private set;
+		} = null;
+
+		private float starpowerCharge;
+		private bool starpowerActive;
+
 		private int _combo = 0;
 		private int Combo {
 			get => _combo;
-			set => _combo = value;
+			set {
+				_combo = value;
+
+				// End starpower if combo ends
+				if (StarpowerSection?.time <= Play.Instance.SongTime && value == 0) {
+					StarpowerSection = null;
+					StarpowerMissEvent?.Invoke();
+				}
+			}
 		}
 
-		private int MaxMultiplier => player.chosenInstrument == "bass" ? 6 : 4;
-		private int Multiplier => Mathf.Min(Combo / 10 + 1, MaxMultiplier);
+		private int MaxMultiplier => (player.chosenInstrument == "bass" ? 6 : 4) * (starpowerActive ? 2 : 1);
+		private int Multiplier => Mathf.Min((Combo / 10 + 1) * (starpowerActive ? 2 : 1), MaxMultiplier);
 
-		private List<NoteInfo> Chart => PlayManager.Instance.chart
+		private List<NoteInfo> Chart => Play.Instance.chart
 			.GetChartByName(player.chosenInstrument)[player.chosenDifficulty];
 
 		private bool _stopAudio = false;
@@ -64,9 +85,9 @@ namespace YARG.Play {
 				_stopAudio = value;
 
 				if (!value) {
-					PlayManager.Instance.RaiseAudio(player.chosenInstrument);
+					Play.Instance.RaiseAudio(player.chosenInstrument);
 				} else {
-					PlayManager.Instance.LowerAudio(player.chosenInstrument);
+					Play.Instance.LowerAudio(player.chosenInstrument);
 				}
 			}
 		}
@@ -102,6 +123,7 @@ namespace YARG.Play {
 		}
 
 		private void Start() {
+			player.track = this;
 			notePool.player = player;
 			genericPool.player = player;
 
@@ -125,7 +147,7 @@ namespace YARG.Play {
 
 			// Adjust hit window
 			var scale = hitWindow.localScale;
-			hitWindow.localScale = new(scale.x, PlayManager.HIT_MARGIN * player.trackSpeed * 2f, scale.z);
+			hitWindow.localScale = new(scale.x, Play.HIT_MARGIN * player.trackSpeed * 2f, scale.z);
 		}
 
 		private void OnDestroy() {
@@ -146,60 +168,48 @@ namespace YARG.Play {
 
 		private void Update() {
 			// Get chart stuff
-			var events = PlayManager.Instance.chart.events;
+			var events = Play.Instance.chart.events;
 
 			// Update input strategy
 			if (input.botMode) {
-				input.UpdateBotMode(Chart, PlayManager.Instance.SongTime);
+				input.UpdateBotMode(Chart, Play.Instance.SongTime);
 			} else {
 				input.UpdatePlayerMode();
 			}
 
-			// Update track UV
-			var trackMaterial = trackRenderer.material;
-			var oldOffset = trackMaterial.GetVector("TexOffset");
-			float movement = Time.deltaTime * player.trackSpeed / 4f;
-			trackMaterial.SetVector("TexOffset", new(oldOffset.x, oldOffset.y - movement));
+			UpdateMaterial();
 
 			// Ignore everything else until the song starts
-			if (!PlayManager.Instance.SongStarted) {
+			if (!Play.Instance.SongStarted) {
 				return;
 			}
 
-			// Update groove mode
-			float currentGroove = trackMaterial.GetFloat("GrooveState");
-			if (Multiplier >= MaxMultiplier) {
-				trackMaterial.SetFloat("GrooveState", Mathf.Lerp(currentGroove, 1f, Time.deltaTime * 5f));
-			} else {
-				trackMaterial.SetFloat("GrooveState", Mathf.Lerp(currentGroove, 0f, Time.deltaTime * 3f));
-			}
-
-			float relativeTime = PlayManager.Instance.SongTime + ((TRACK_SPAWN_OFFSET + 1.75f) / player.trackSpeed);
-
-			// Since chart is sorted, this is guaranteed to work
-			while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= relativeTime) {
-				var noteInfo = Chart[visualChartIndex];
-
-				SpawnNote(noteInfo, relativeTime);
-				visualChartIndex++;
-			}
-
-			// Update events
-			while (events.Count > eventChartIndex && events[eventChartIndex].time <= relativeTime) {
+			// Update events (beat lines, starpower, etc.)
+			while (events.Count > eventChartIndex && events[eventChartIndex].time <= RelativeTime) {
 				var eventInfo = events[eventChartIndex];
 
-				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(relativeTime, eventInfo.time);
+				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(RelativeTime, eventInfo.time);
 				if (eventInfo.name == "beatLine_minor") {
 					genericPool.Add("beatLine_minor", new(0f, 0.01f, compensation));
 				} else if (eventInfo.name == "beatLine_major") {
 					genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
+				} else if (eventInfo.name == $"starpower_{player.chosenInstrument}") {
+					StarpowerSection = eventInfo;
 				}
 
 				eventChartIndex++;
 			}
 
+			// Since chart is sorted, this is guaranteed to work
+			while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= RelativeTime) {
+				var noteInfo = Chart[visualChartIndex];
+
+				SpawnNote(noteInfo, RelativeTime);
+				visualChartIndex++;
+			}
+
 			// Update expected input
-			while (Chart.Count > realChartIndex && Chart[realChartIndex].time <= PlayManager.Instance.SongTime + PlayManager.HIT_MARGIN) {
+			while (Chart.Count > realChartIndex && Chart[realChartIndex].time <= Play.Instance.SongTime + Play.HIT_MARGIN) {
 				var noteInfo = Chart[realChartIndex];
 
 				var peeked = expectedHits.ReversePeekOrNull();
@@ -221,9 +231,27 @@ namespace YARG.Play {
 			// Update held notes
 			for (int i = heldNotes.Count - 1; i >= 0; i--) {
 				var heldNote = heldNotes[i];
-				if (heldNote.time + heldNote.length <= PlayManager.Instance.SongTime) {
+				if (heldNote.time + heldNote.length <= Play.Instance.SongTime) {
 					heldNotes.RemoveAt(i);
 					frets[heldNote.fret].StopSustainParticles();
+				}
+			}
+
+			// Update starpower region
+			if (StarpowerSection?.EndTime + Play.HIT_MARGIN < Play.Instance.SongTime) {
+				StarpowerSection = null;
+				starpowerCharge += 0.25f;
+
+				starpowerActive = true;
+			}
+
+			// Update starpower active
+			if (starpowerActive) {
+				if (starpowerCharge <= 0f) {
+					starpowerActive = false;
+					starpowerCharge = 0f;
+				} else {
+					starpowerCharge -= Time.deltaTime / 30f;
 				}
 			}
 
@@ -232,6 +260,30 @@ namespace YARG.Play {
 
 			// Un-strum
 			strummed = false;
+		}
+
+		private void UpdateMaterial() {
+			// Update track UV
+			var trackMaterial = trackRenderer.material;
+			var oldOffset = trackMaterial.GetVector("TexOffset");
+			float movement = Time.deltaTime * player.trackSpeed / 4f;
+			trackMaterial.SetVector("TexOffset", new(oldOffset.x, oldOffset.y - movement));
+
+			// Update groove
+			float currentGroove = trackMaterial.GetFloat("GrooveState");
+			if (Multiplier >= MaxMultiplier) {
+				trackMaterial.SetFloat("GrooveState", Mathf.Lerp(currentGroove, 1f, Time.deltaTime * 5f));
+			} else {
+				trackMaterial.SetFloat("GrooveState", Mathf.Lerp(currentGroove, 0f, Time.deltaTime * 3f));
+			}
+
+			// Update starpower
+			float currentStarpower = trackMaterial.GetFloat("StarpowerState");
+			if (starpowerActive) {
+				trackMaterial.SetFloat("StarpowerState", Mathf.Lerp(currentStarpower, 1f, Time.deltaTime * 2f));
+			} else {
+				trackMaterial.SetFloat("StarpowerState", Mathf.Lerp(currentStarpower, 0f, Time.deltaTime * 4f));
+			}
 		}
 
 		private void UpdateInfo() {
@@ -256,7 +308,7 @@ namespace YARG.Play {
 
 		private void UpdateInput() {
 			// Handle misses (multiple a frame in case of lag)
-			while (PlayManager.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > PlayManager.HIT_MARGIN) {
+			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Play.HIT_MARGIN) {
 				var missedChord = expectedHits.Dequeue();
 
 				// Call miss for each component
@@ -323,7 +375,7 @@ namespace YARG.Play {
 		private void UpdateOverstrums() {
 			// Remove all old allowed overstrums
 			while (allowedOverstrums.Count > 0
-				&& PlayManager.Instance.SongTime - allowedOverstrums[0][0].time > PlayManager.HIT_MARGIN) {
+				&& Play.Instance.SongTime - allowedOverstrums[0][0].time > Play.HIT_MARGIN) {
 
 				allowedOverstrums.RemoveAt(0);
 			}
@@ -378,7 +430,7 @@ namespace YARG.Play {
 						return false;
 					} else if (!frets[i].IsPressed && i == fret) {
 						return false;
-					} else if (frets[i].IsPressed && i != fret && !PlayManager.ANCHORING) {
+					} else if (frets[i].IsPressed && i != fret && !Play.ANCHORING) {
 						return false;
 					}
 				}
@@ -423,7 +475,7 @@ namespace YARG.Play {
 					// from stopping the audio if the player let go a handful
 					// of milliseconds too early (which is okay).
 					float endTime = letGo.time + letGo.length;
-					if (endTime - PlayManager.Instance.SongTime > 0.15f) {
+					if (endTime - Play.Instance.SongTime > 0.15f) {
 						StopAudio = true;
 					}
 				}
@@ -439,6 +491,8 @@ namespace YARG.Play {
 			float lagCompensation = CalcLagCompensation(time, noteInfo.time);
 			float x = frets[noteInfo.fret].transform.localPosition.x;
 			var pos = new Vector3(x, 0f, TRACK_SPAWN_OFFSET - lagCompensation);
+
+			// Get color
 
 			// Set note info
 			var noteComp = notePool.CreateNote(noteInfo, pos);

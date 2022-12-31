@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using YARG.Input;
+using YARG.PlayMode;
 
 namespace YARG {
 	public static class PlayerManager {
@@ -21,8 +22,8 @@ namespace YARG {
 
 			public string chosenInstrument = "guitar";
 			public int chosenDifficulty = 4;
-
 			public Score? lastScore = null;
+			public Track track = null;
 
 			public Player() {
 				name = $"New Player {nextPlayerName++}";

@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine;
 using YARG.Data;
 
-namespace YARG.Play {
+namespace YARG.PlayMode {
 	public class NotePool : MonoBehaviour {
 		public PlayerManager.Player player;
 

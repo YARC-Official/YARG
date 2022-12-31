@@ -1,7 +1,7 @@
 using UnityEngine;
 using YARG.Util;
 
-namespace YARG.Play {
+namespace YARG.PlayMode {
 	public class Fret : MonoBehaviour {
 		[SerializeField]
 		private Material pressedMaterial;

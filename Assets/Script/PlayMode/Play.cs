@@ -8,9 +8,9 @@ using YARG.Data;
 using YARG.Serialization;
 using YARG.UI;
 
-namespace YARG.Play {
-	public class PlayManager : MonoBehaviour {
-		public static PlayManager Instance {
+namespace YARG.PlayMode {
+	public class Play : MonoBehaviour {
+		public static Play Instance {
 			get;
 			private set;
 		}
