@@ -6,6 +6,8 @@ namespace YARG.Data {
 		public int fret;
 		public bool hopo;
 
+		public float EndTime => time + length;
+
 		public NoteInfo(float time, float length, int fret, bool hopo) {
 			this.time = time;
 			this.length = length;

@@ -16,7 +16,6 @@ namespace YARG.Server {
 		private void Start() {
 			// Lower graphics to save power or something
 			GameManager.Instance.LowQualityMode = true;
-			QualitySettings.vSyncCount = 0;
 			Application.targetFrameRate = 5;
 
 			// Fetch songs first so we have a cache file to send

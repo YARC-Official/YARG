@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using YARG.Server;
 
@@ -39,6 +40,13 @@ namespace YARG {
 
 		private void Start() {
 			Instance = this;
+
+			// Unlimited FPS
+			QualitySettings.vSyncCount = 0;
+			Application.targetFrameRate = 0;
+
+			// High polling rate
+			InputSystem.pollingFrequency = 500f;
 
 			LoadScene(SceneIndex.MENU);
 		}

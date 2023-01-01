@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
@@ -8,6 +9,7 @@ using YARG.Data;
 
 namespace YARG.Serialization {
 	public class MidiParser : AbstractParser {
+		// TODO: Maybe this is "FORCE" not strum??
 		private enum ForceState {
 			NONE,
 			HOPO,
@@ -77,10 +79,40 @@ namespace YARG.Serialization {
 				}
 			}
 
+			// Sort notes by time (just in case) and add delay
+
+			float lastNoteTime = 0f;
+			foreach (var part in chart.allParts) {
+				foreach (var difficulty in part) {
+					if (difficulty == null || difficulty.Count <= 0) {
+						continue;
+					}
+
+					// Sort
+					difficulty.Sort(new Comparison<NoteInfo>((a, b) => a.time.CompareTo(b.time)));
+
+					// Add delay
+					foreach (var note in difficulty) {
+						note.time += delay;
+					}
+
+					// Last note time
+					if (difficulty[^1].EndTime > lastNoteTime) {
+						lastNoteTime = difficulty[^1].EndTime;
+					}
+				}
+			}
+
+			// Generate beat line events if there aren't any
+
+			var tempo = midi.GetTempoMap();
+			if (!eventIR.Any(i => i.name == "beatLine_minor" || i.name == "beatLine_major")) {
+				GenerateBeats(eventIR, tempo, lastNoteTime);
+			}
+
 			// Convert event IR into real
 
 			chart.events = new();
-			var tempo = midi.GetTempoMap();
 
 			foreach (var eventInfo in eventIR) {
 				float startTime = (float) TimeConverter.ConvertTo<MetricTimeSpan>(eventInfo.startTick, tempo).TotalSeconds;
@@ -113,24 +145,6 @@ namespace YARG.Serialization {
 			// Look for bonus star power
 
 			// TODO
-
-			// Sort notes by time (just in case) and add delay
-
-			foreach (var part in chart.allParts) {
-				foreach (var difficulty in part) {
-					if (difficulty == null) {
-						continue;
-					}
-
-					// Sort
-					difficulty?.Sort(new Comparison<NoteInfo>((a, b) => a.time.CompareTo(b.time)));
-
-					// Add delay
-					foreach (var note in difficulty) {
-						note.time += delay;
-					}
-				}
-			}
 		}
 
 		private List<NoteInfo> ParseGuitar(TrackChunk trackChunk, int difficulty) {
@@ -386,6 +400,33 @@ namespace YARG.Serialization {
 					});
 				}
 			}
+		}
+
+		private void GenerateBeats(List<EventIR> eventIR, TempoMap tempo, float lastNoteTime) {
+			int quatersIn = 0;
+			float currentTime;
+			do {
+				// Get the time of the next beat line
+				var musicalTime = MusicalTimeSpan.Quarter * quatersIn;
+				var time = TimeConverter.ConvertFrom(musicalTime, tempo);
+
+				// Check time signature to see if it is a major or minor beatline
+				if (quatersIn % tempo.GetTimeSignatureAtTime(musicalTime).Numerator == 0) {
+					eventIR.Add(new EventIR {
+						startTick = time,
+						name = "beatLine_major"
+					});
+				} else {
+					eventIR.Add(new EventIR {
+						startTick = time,
+						name = "beatLine_minor"
+					});
+				}
+
+				// Update info
+				currentTime = (float) TimeConverter.ConvertTo<MetricTimeSpan>(time, tempo).TotalSeconds;
+				quatersIn++;
+			} while (currentTime < lastNoteTime);
 		}
 	}
 }

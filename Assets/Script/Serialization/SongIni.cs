@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using IniParser;
+using IniParser.Model;
 using UnityEngine;
 using YARG.Data;
 
@@ -20,28 +21,49 @@ namespace YARG.Serialization {
 			try {
 				var data = parser.ReadFile(file.FullName);
 
+				// Get song section name
+				KeyDataCollection section;
+				if (data.Sections.ContainsSection("song")) {
+					section = data["song"];
+				} else if (data.Sections.ContainsSection("Song")) {
+					section = data["Song"];
+				} else {
+					song.errored = true;
+					Debug.LogError($"No `song` section found in `{song.folder}`.");
+					return song;
+				}
+
 				// Set basic info
-				song.SongName ??= data["song"]["name"];
-				song.artistName ??= data["song"]["artist"];
-				song.source ??= data["song"]["icon"];
+				song.SongName ??= section["name"];
+				song.artistName ??= section["artist"];
+
+				// Get song source
+				if (section.ContainsKey("icon") && section["icon"] != "0") {
+					song.source ??= section["icon"];
+				} else {
+					song.source = "custom";
+				}
 
 				// Get song length
-				if (data["song"].ContainsKey("song_length")) {
-					int rawLength = int.Parse(data["song"]["song_length"]);
+				if (section.ContainsKey("song_length")) {
+					int rawLength = int.Parse(section["song_length"]);
 					song.songLength = rawLength / 1000f;
 				} else {
-					Debug.LogWarning($"No song length found for: {song.folder}");
+					song.errored = true;
+					Debug.LogError($"No song length found for `{song.folder}`.");
+					return song;
 				}
 
 				// Get song delay (0 if none)
-				if (data["song"].ContainsKey("delay")) {
-					int rawDelay = int.Parse(data["song"]["delay"]);
+				if (section.ContainsKey("delay")) {
+					int rawDelay = int.Parse(section["delay"]);
 					song.delay = rawDelay / 1000f;
 				} else {
 					song.delay = 0f;
 				}
 			} catch (Exception e) {
 				song.errored = true;
+				Debug.LogError($"Failed to parse song.ini for `{song.folder}`.");
 				Debug.LogException(e);
 			}
 
