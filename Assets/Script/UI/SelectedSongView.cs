@@ -15,6 +15,8 @@ namespace YARG.UI {
 		private TextMeshProUGUI artist;
 		[SerializeField]
 		private TextMeshProUGUI lengthText;
+		[SerializeField]
+		private TextMeshProUGUI supportText;
 
 		[Space]
 		[SerializeField]
@@ -51,7 +53,7 @@ namespace YARG.UI {
 
 			// Basic info
 			songName.text = $"<b>{songInfo.SongName}</b>";
-			artist.text = $"<i>{songInfo.artistName}</i>";
+			artist.text = $"<i>{songInfo.ArtistName}</i>";
 
 			// Song length
 			if (songInfo.songLength == null) {
@@ -63,6 +65,19 @@ namespace YARG.UI {
 
 				lengthText.text = $"{minutes}:{seconds:00}";
 			}
+
+			// Source
+			supportText.text = songInfo.source switch {
+				"gh1" or "gh1dlc" => "<color=red>Little Support</color>",
+				"gh2" or "gh2dlc" => "<color=yellow>Some Support</color>",
+				"ghm" => "<color=yellow>Some Support</color>",
+				"rb1" or "rb1dlc" => "<color=green>Full Support</color>",
+				"rb2" or "rb2dlc" => "<color=green>Full Support</color>",
+				"tbrb" or "tbrbdlc" => "<color=green>Full Support</color>",
+				"rbacdc" => "<color=green>Full Support</color>",
+				"rb3" or "rb3dlc" => "<color=green>Full Pro Support</color>",
+				_ => "<color=purple>Unknown Support</color>"
+			};
 
 			// Album cover
 			albumCover.texture = null;

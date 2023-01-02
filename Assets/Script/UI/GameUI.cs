@@ -24,7 +24,7 @@ namespace YARG.UI {
 		}
 
 		private void Start() {
-			songTitle.text = $"{Play.song.SongName} - {Play.song.artistName}";
+			songTitle.text = $"{Play.song.SongName} - {Play.song.ArtistName}";
 		}
 
 		private void Update() {

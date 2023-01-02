@@ -35,7 +35,7 @@ namespace YARG.Serialization {
 
 				// Set basic info
 				song.SongName ??= section["name"];
-				song.artistName ??= section["artist"];
+				song.ArtistName ??= section["artist"];
 
 				// Get song source
 				if (section.ContainsKey("icon") && section["icon"] != "0") {

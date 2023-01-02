@@ -173,7 +173,7 @@ namespace YARG.UI {
 				// TODO: fuzzy search
 				var text = searchField.text.ToLower();
 				songInfos = SongLibrary.Songs
-					.Where(song => song.SongName.ToLower().StartsWith(text) || song.artistName.ToLower().StartsWith(text));
+					.Where(song => song.SongName.ToLower().StartsWith(text) || song.ArtistName.ToLower().StartsWith(text));
 			}
 
 			songs = songInfos

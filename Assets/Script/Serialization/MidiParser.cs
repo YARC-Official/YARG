@@ -443,7 +443,12 @@ namespace YARG.Serialization {
 			foreach (var trackEvent in trackChunk.Events) {
 				totalDelta += trackEvent.DeltaTime;
 
-				if (trackEvent is not LyricEvent lyricEvent) {
+				if (trackEvent is not BaseTextEvent lyricEvent) {
+					continue;
+				}
+
+				// Skip if track name
+				if (lyricEvent.Text == "PART VOCALS") {
 					continue;
 				}
 
@@ -452,13 +457,19 @@ namespace YARG.Serialization {
 				var time = (float) TimeConverter.ConvertTo<MetricTimeSpan>(totalDelta, tempo).TotalSeconds;
 				string text = lyricEvent.Text;
 
+				// Skip if state stats
+				if (text.StartsWith('[') && text.EndsWith(']')) {
+					continue;
+				}
+
 				// Remove all metadata
 				for (int i = text.Length - 1; i >= 0; i--) {
-					if (!char.IsWhiteSpace(text[i]) &&
+					if (text[i] == '#' || (
+						!char.IsWhiteSpace(text[i]) &&
 						!char.IsLetter(text[i]) &&
 						!char.IsNumber(text[i]) &&
 						text[i] != '\'' &&
-						text[i] != '-') {
+						text[i] != '-')) {
 
 						text = text.Remove(i, 1);
 					}

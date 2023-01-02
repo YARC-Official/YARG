@@ -13,7 +13,7 @@ namespace YARG.UI {
 
 		public void UpdateSongView(SongInfo songInfo) {
 			songName.text = $"<b>{songInfo.SongName}</b>";
-			artist.text = $"<i>{songInfo.artistName}</i>";
+			artist.text = $"<i>{songInfo.ArtistName}</i>";
 
 			if (songInfo.songLength == null) {
 				lengthText.text = "N/A";

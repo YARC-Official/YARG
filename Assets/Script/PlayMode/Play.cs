@@ -106,7 +106,7 @@ namespace YARG.PlayMode {
 
 			// Audio raising and lowering based on player preformance
 			UpdateAudio("guitar", "guitar");
-			UpdateAudio("bass", "rhythm");
+			UpdateAudio("bass", "bass", "rhythm");
 			UpdateAudio("keys", "keys");
 
 			// Update beats
@@ -128,10 +128,12 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		private void UpdateAudio(string name, string audioName) {
-			// Skip if that audio track doesn't exist
-			if (!audioSources.TryGetValue(audioName, out var audioSource)) {
-				return;
+		private void UpdateAudio(string name, string audioName, string altAudioName = null) {
+			// Skip if that audio track doesn't exist and alt track doesn't exist
+			if (!audioSources.TryGetValue(audioName, out AudioSource audioSource)) {
+				if (altAudioName == null || !audioSources.TryGetValue(altAudioName, out audioSource)) {
+					return;
+				}
 			}
 
 			int total = PlayerManager.PlayersWithInstrument(name);
