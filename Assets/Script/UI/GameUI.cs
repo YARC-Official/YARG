@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.PlayMode;
@@ -8,6 +9,10 @@ namespace YARG.UI {
 		private Transform trackContainer;
 		[SerializeField]
 		private Image songProgress;
+		[SerializeField]
+		private TextMeshProUGUI songTitle;
+		[SerializeField]
+		private TextMeshProUGUI lyric;
 
 		public static GameUI Instance {
 			get;
@@ -16,6 +21,10 @@ namespace YARG.UI {
 
 		private void Awake() {
 			Instance = this;
+		}
+
+		private void Start() {
+			songTitle.text = $"{Play.song.SongName} - {Play.song.artistName}";
 		}
 
 		private void Update() {
@@ -31,6 +40,10 @@ namespace YARG.UI {
 			rawImage.texture = rt;
 
 			UpdateRawImageSizing();
+		}
+
+		public void SetGenericLyric(string str) {
+			lyric.text = str;
 		}
 
 		private void UpdateRawImageSizing() {

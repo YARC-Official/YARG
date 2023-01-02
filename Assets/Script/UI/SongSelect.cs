@@ -3,6 +3,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using YARG.Data;
 
 namespace YARG.UI {
@@ -24,6 +25,12 @@ namespace YARG.UI {
 		[SerializeField]
 		private TMP_InputField searchField;
 
+		[Space]
+		[SerializeField]
+		private GameObject loadingScreen;
+		[SerializeField]
+		private Image progressBar;
+
 		private List<SongInfo> songs;
 
 		private List<SongView> songViewsBefore = new();
@@ -33,7 +40,8 @@ namespace YARG.UI {
 		private int selectedSongIndex = 0;
 
 		private void Start() {
-			SongLibrary.FetchSongs();
+			bool loading = !SongLibrary.FetchSongs();
+			loadingScreen.SetActive(loading);
 
 			// Create before (insert backwards)
 			for (int i = 0; i < SONG_VIEW_EXTRA; i++) {
@@ -51,8 +59,10 @@ namespace YARG.UI {
 				songViewsAfter.Add(gameObject.GetComponent<SongView>());
 			}
 
-			// Automatically loads songs and updates song views
-			UpdateSearch();
+			if (!loading) {
+				// Automatically loads songs and updates song views
+				UpdateSearch();
+			}
 		}
 
 		private void UpdateSongViews() {
@@ -91,6 +101,20 @@ namespace YARG.UI {
 		}
 
 		private void Update() {
+			// Update progress if loading
+
+			if (loadingScreen.activeSelf) {
+				progressBar.fillAmount = SongLibrary.loadPercent;
+
+				// Finish loading
+				if (SongLibrary.loadPercent >= 1f) {
+					loadingScreen.SetActive(false);
+					UpdateSearch();
+				}
+
+				return;
+			}
+
 			// Update input timer
 
 			inputTimer -= Time.deltaTime;

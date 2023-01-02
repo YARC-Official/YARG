@@ -40,6 +40,7 @@ namespace YARG.Serialization {
 
 		public override void Parse(Chart chart) {
 			var eventIR = new List<EventIR>();
+			var tempo = midi.GetTempoMap();
 
 			foreach (var trackChunk in midi.GetTrackChunks()) {
 				foreach (var trackEvent in trackChunk.Events) {
@@ -67,6 +68,9 @@ namespace YARG.Serialization {
 									chart.keys[i] = ParseGuitar(trackChunk, i);
 								}
 								ParseStarpower(eventIR, trackChunk, "keys");
+								break;
+							case "PART VOCALS":
+								chart.genericLyrics = ParseGenericLyrics(trackChunk, tempo);
 								break;
 							case "BEAT":
 								ParseBeats(eventIR, trackChunk);
@@ -105,7 +109,6 @@ namespace YARG.Serialization {
 
 			// Generate beat line events if there aren't any
 
-			var tempo = midi.GetTempoMap();
 			if (!eventIR.Any(i => i.name == "beatLine_minor" || i.name == "beatLine_major")) {
 				GenerateBeats(eventIR, tempo, lastNoteTime);
 			}
@@ -427,6 +430,76 @@ namespace YARG.Serialization {
 				currentTime = (float) TimeConverter.ConvertTo<MetricTimeSpan>(time, tempo).TotalSeconds;
 				quatersIn++;
 			} while (currentTime < lastNoteTime);
+		}
+
+		private List<GenericLyricInfo> ParseGenericLyrics(TrackChunk trackChunk, TempoMap tempo) {
+			var lyrics = new List<GenericLyricInfo>();
+
+			long totalDelta = 0;
+
+			// Convert track events into intermediate representation
+			GenericLyricInfo currentGroup = null;
+			bool connected = false;
+			foreach (var trackEvent in trackChunk.Events) {
+				totalDelta += trackEvent.DeltaTime;
+
+				if (trackEvent is not LyricEvent lyricEvent) {
+					continue;
+				}
+
+				// Combine lyric events together into phrases
+
+				var time = (float) TimeConverter.ConvertTo<MetricTimeSpan>(totalDelta, tempo).TotalSeconds;
+				string text = lyricEvent.Text;
+
+				// Remove all metadata
+				for (int i = text.Length - 1; i >= 0; i--) {
+					if (!char.IsWhiteSpace(text[i]) &&
+						!char.IsLetter(text[i]) &&
+						!char.IsNumber(text[i]) &&
+						text[i] != '\'' &&
+						text[i] != '-') {
+
+						text = text.Remove(i, 1);
+					}
+				}
+				text = text.Trim();
+
+				// Skip blanks
+				if (string.IsNullOrEmpty(text)) {
+					continue;
+				}
+
+				// Uppercase is a new phrase
+				if (currentGroup != null && char.IsUpper(text[0])) {
+					lyrics.Add(currentGroup);
+					connected = false;
+					currentGroup = null;
+				}
+
+				if (currentGroup == null) {
+					currentGroup = new GenericLyricInfo(time, lyricEvent.Text);
+				} else {
+					if (!connected) {
+						currentGroup.lyric += " ";
+					}
+
+					if (text.EndsWith("-")) {
+						connected = true;
+						currentGroup.lyric += text[..^1];
+					} else {
+						connected = false;
+						currentGroup.lyric += text;
+					}
+				}
+			}
+
+			// Deal with last lyric group
+			if (currentGroup != null) {
+				lyrics.Add(currentGroup);
+			}
+
+			return lyrics;
 		}
 	}
 }

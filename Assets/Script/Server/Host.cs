@@ -73,13 +73,13 @@ namespace YARG.Server {
 							string path = str[8..];
 
 							// See if valid
-							if (!path.StartsWith(SongLibrary.SONG_FOLDER.FullName)) {
+							if (!path.StartsWith(SongLibrary.songFolder.FullName)) {
 								return;
 							}
 
 							// Create unique temp file name
 							string name = $"temp_{Thread.CurrentThread.ManagedThreadId}.zip";
-							name = Path.Combine(SongLibrary.SONG_FOLDER.FullName, name);
+							name = Path.Combine(SongLibrary.songFolder.FullName, name);
 
 							// Zip up folder
 							ZipFile.CreateFromDirectory(path, name);
@@ -95,7 +95,7 @@ namespace YARG.Server {
 							string path = str[14..];
 
 							// See if valid
-							if (!path.StartsWith(SongLibrary.SONG_FOLDER.FullName)) {
+							if (!path.StartsWith(SongLibrary.songFolder.FullName)) {
 								return;
 							}
 

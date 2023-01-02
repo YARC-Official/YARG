@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
-using System.Threading.Tasks;
+using System.Threading;
 using IniParser;
 using Newtonsoft.Json;
 using YARG.Data;
@@ -8,7 +8,9 @@ using YARG.Serialization;
 
 namespace YARG {
 	public static class SongLibrary {
-		public static readonly DirectoryInfo SONG_FOLDER = new(@"B:\Clone Hero Alpha\Songs");
+		public static DirectoryInfo songFolder = new(@"B:\YARG_Songs");
+
+		public static float loadPercent = 0f;
 
 		/// <value>
 		/// The location of the local or remote cache (depending on whether we are connected to a server).
@@ -19,7 +21,7 @@ namespace YARG {
 					return GameManager.client.remoteCache;
 				}
 
-				return new(Path.Combine(SONG_FOLDER.ToString(), "yarg_cache.json"));
+				return new(Path.Combine(songFolder.ToString(), "yarg_cache.json"));
 			}
 		}
 
@@ -35,31 +37,46 @@ namespace YARG {
 		/// <summary>
 		/// Should be called before you access <see cref="Songs"/>.
 		/// </summary>
-		public static void FetchSongs() {
+		public static bool FetchSongs() {
 			if (Songs != null) {
-				return;
+				return true;
 			}
 
 			if (CacheFile.Exists || GameManager.client != null) {
 				ReadCache();
+				return true;
 			} else {
-				CreateSongInfoFromFiles();
-				ReadSongIni();
-				CreateCache();
+				ThreadPool.QueueUserWorkItem(_ => {
+					Songs = new();
+
+					loadPercent = 0f;
+					CreateSongInfoFromFiles(songFolder);
+					loadPercent = 0.1f;
+					ReadSongIni();
+					loadPercent = 0.9f;
+					CreateCache();
+					loadPercent = 1f;
+				});
+				return false;
 			}
 		}
 
 		/// <summary>
-		/// Populate <see cref="Songs"/> with <see cref="SONG_FOLDER"/> contents.<br/>
+		/// Populate <see cref="Songs"/> with <see cref="songFolder"/> contents.<br/>
 		/// This is create a basic <see cref="SongInfo"/> object for each song.<br/>
 		/// We need to look at the <c>song.ini</c> files for more details.
 		/// </summary>
-		private static void CreateSongInfoFromFiles() {
-			var directories = SONG_FOLDER.GetDirectories();
+		private static void CreateSongInfoFromFiles(DirectoryInfo songDir) {
+			var directories = songDir.GetDirectories();
 
-			Songs = new(directories.Length);
 			foreach (var folder in directories) {
-				Songs.Add(new SongInfo(folder));
+				if (new FileInfo(Path.Combine(folder.FullName, "song.ini")).Exists) {
+					// If the folder has a song.ini, it is a song folder
+					Songs.Add(new SongInfo(folder));
+				} else {
+					// Otherwise, treat it as a sub-folder
+					CreateSongInfoFromFiles(folder);
+				}
 			}
 		}
 
@@ -71,6 +88,9 @@ namespace YARG {
 			var parser = new FileIniDataParser();
 			foreach (var song in Songs) {
 				SongIni.CompleteSongInfo(song, parser);
+
+				// song.ini loading accounts for 80% of loading
+				loadPercent += 1f / Songs.Count * 0.8f;
 			}
 		}
 

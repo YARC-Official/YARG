@@ -45,6 +45,7 @@ namespace YARG.PlayMode {
 		public Chart chart;
 
 		private int beatIndex = 0;
+		private int lyricIndex = 0;
 
 		private void Awake() {
 			Instance = this;
@@ -112,6 +113,12 @@ namespace YARG.PlayMode {
 			while (chart.beats.Count > beatIndex && chart.beats[beatIndex] <= SongTime) {
 				BeatEvent?.Invoke();
 				beatIndex++;
+			}
+
+			// Update lyrics
+			while (chart.genericLyrics.Count > lyricIndex && chart.genericLyrics[lyricIndex].time <= SongTime) {
+				GameUI.Instance.SetGenericLyric(chart.genericLyrics[lyricIndex].lyric);
+				lyricIndex++;
 			}
 
 			// End song

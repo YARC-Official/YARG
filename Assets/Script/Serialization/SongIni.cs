@@ -49,9 +49,8 @@ namespace YARG.Serialization {
 					int rawLength = int.Parse(section["song_length"]);
 					song.songLength = rawLength / 1000f;
 				} else {
-					song.errored = true;
-					Debug.LogError($"No song length found for `{song.folder}`.");
-					return song;
+					Debug.LogWarning($"No song length found for `{song.folder}`. Loading audio file. This might take longer.");
+					LoadSongLengthFromAudio(song);
 				}
 
 				// Get song delay (0 if none)
@@ -72,6 +71,15 @@ namespace YARG.Serialization {
 
 		public static SongInfo CompleteSongInfo(SongInfo song) {
 			return CompleteSongInfo(song, new FileIniDataParser());
+		}
+
+		private static void LoadSongLengthFromAudio(SongInfo song) {
+			// Load file
+			var songOggPath = Path.Combine(song.folder.FullName, "song.ogg");
+			var file = TagLib.File.Create(songOggPath);
+
+			// Save 
+			song.songLength = (float) file.Properties.Duration.TotalSeconds;
 		}
 	}
 }
