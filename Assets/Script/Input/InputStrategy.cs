@@ -14,6 +14,9 @@ namespace YARG.Input {
 		public delegate void GenericCalibrationAction(InputStrategy inputStrategy);
 		public event GenericCalibrationAction GenericCalibrationEvent;
 
+		public delegate void StarpowerAction();
+		public event StarpowerAction StarpowerEvent;
+
 		public InputStrategy(InputDevice inputDevice, bool botMode) {
 			this.botMode = botMode;
 			this.inputDevice = inputDevice;
@@ -48,6 +51,10 @@ namespace YARG.Input {
 		/// <param name="chart">A reference to the current chart.</param>
 		/// <param name="songTime">The song time in seconds.</param>
 		public abstract void UpdateBotMode(List<NoteInfo> chart, float songTime);
+
+		protected void CallStarpowerEvent() {
+			StarpowerEvent?.Invoke();
+		}
 
 		protected void CallGenericCalbirationEvent() {
 			GenericCalibrationEvent?.Invoke(this);

@@ -17,11 +17,9 @@ namespace YARG.Input {
 
 		public delegate void FretChangeAction(bool pressed, int fret);
 		public delegate void StrumAction();
-		public delegate void StarpowerAction();
 
 		public event FretChangeAction FretChangeEvent;
 		public event StrumAction StrumEvent;
-		public event StarpowerAction StarpowerEvent;
 
 		public FiveFretInputStrategy(InputDevice inputDevice, bool botMode) : base(inputDevice, botMode) {
 
@@ -62,7 +60,7 @@ namespace YARG.Input {
 			// Starpower
 
 			if (MappingAsButton("starpower")?.wasPressedThisFrame ?? false) {
-				StarpowerEvent?.Invoke();
+				CallStarpowerEvent();
 			}
 		}
 
@@ -86,7 +84,7 @@ namespace YARG.Input {
 			}
 
 			// Constantly activate starpower
-			StarpowerEvent?.Invoke();
+			CallStarpowerEvent();
 		}
 	}
 }

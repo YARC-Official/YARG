@@ -1,33 +1,15 @@
 using System.Collections.Generic;
 using System.Linq;
-using TMPro;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
 using YARG.Data;
 using YARG.Input;
 using YARG.Pools;
-using YARG.UI;
 using YARG.Util;
 
 namespace YARG.PlayMode {
 	public class FiveFretTrack : AbstractTrack {
-		public const float TRACK_SPAWN_OFFSET = 3f;
-
-		public delegate void StarpowerMissAction();
-		public event StarpowerMissAction StarpowerMissEvent;
-
-		public PlayerManager.Player player;
-
 		private bool strummed = false;
 		private FiveFretInputStrategy input;
-
-		[SerializeField]
-		private Camera trackCamera;
-
-		[SerializeField]
-		private MeshRenderer trackRenderer;
-		[SerializeField]
-		private Transform hitWindow;
 
 		[Space]
 		[SerializeField]
@@ -39,60 +21,8 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private Pool genericPool;
 
-		[Space]
-		[SerializeField]
-		private TextMeshPro comboText;
-		[SerializeField]
-		private MeshRenderer comboMeterRenderer;
-		[SerializeField]
-		private MeshRenderer starpowerBarTop;
-
-		public float RelativeTime => Play.Instance.SongTime + ((TRACK_SPAWN_OFFSET + 1.75f) / player.trackSpeed);
-
-		public EventInfo StarpowerSection {
-			get;
-			private set;
-		} = null;
-
-		private float starpowerCharge;
-		private bool starpowerActive;
-
-		private int _combo = 0;
-		private int Combo {
-			get => _combo;
-			set {
-				_combo = value;
-
-				// End starpower if combo ends
-				if (StarpowerSection?.time <= Play.Instance.SongTime && value == 0) {
-					StarpowerSection = null;
-					StarpowerMissEvent?.Invoke();
-				}
-			}
-		}
-
-		private int MaxMultiplier => (player.chosenInstrument == "bass" ? 6 : 4) * (starpowerActive ? 2 : 1);
-		private int Multiplier => Mathf.Min((Combo / 10 + 1) * (starpowerActive ? 2 : 1), MaxMultiplier);
-
 		private List<NoteInfo> Chart => Play.Instance.chart
 			.GetChartByName(player.chosenInstrument)[player.chosenDifficulty];
-
-		private bool _stopAudio = false;
-		private bool StopAudio {
-			set {
-				if (value == _stopAudio) {
-					return;
-				}
-
-				_stopAudio = value;
-
-				if (!value) {
-					Play.Instance.RaiseAudio(player.chosenInstrument);
-				} else {
-					Play.Instance.LowerAudio(player.chosenInstrument);
-				}
-			}
-		}
 
 		private int visualChartIndex = 0;
 		private int realChartIndex = 0;
@@ -102,32 +32,9 @@ namespace YARG.PlayMode {
 		private List<List<NoteInfo>> allowedOverstrums = new();
 		private List<NoteInfo> heldNotes = new();
 
-		private bool beat;
-
 		private int notesHit = 0;
 
-		private void Awake() {
-			// Set up render texture
-			var descriptor = new RenderTextureDescriptor(
-				Screen.width, Screen.height,
-				RenderTextureFormat.DefaultHDR
-			);
-			descriptor.mipCount = 0;
-			var renderTexture = new RenderTexture(descriptor);
-			trackCamera.targetTexture = renderTexture;
-
-			// Set up camera
-			var info = trackCamera.GetComponent<UniversalAdditionalCameraData>();
-			if (GameManager.Instance.LowQualityMode) {
-				info.antialiasing = AntialiasingMode.None;
-			} else {
-				info.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
-				info.antialiasingQuality = AntialiasingQuality.Low;
-			}
-		}
-
-		private void Start() {
-			player.track = this;
+		protected override void StartTrack() {
 			notePool.player = player;
 			genericPool.player = player;
 
@@ -138,13 +45,6 @@ namespace YARG.PlayMode {
 
 			input.FretChangeEvent += FretChangedAction;
 			input.StrumEvent += StrumAction;
-			input.StarpowerEvent += StarpowerAction;
-
-			// Bind other events
-			Play.Instance.BeatEvent += BeatAction;
-
-			// Set render texture
-			GameUI.Instance.AddTrackImage(trackCamera.targetTexture);
 
 			// Spawn in frets
 			for (int i = 0; i < 5; i++) {
@@ -152,23 +52,14 @@ namespace YARG.PlayMode {
 				fret.SetColor(fretColors[i]);
 				frets[i] = fret;
 			}
-
-			// Adjust hit window
-			var scale = hitWindow.localScale;
-			hitWindow.localScale = new(scale.x, Play.HIT_MARGIN * player.trackSpeed * 2f, scale.z);
 		}
 
-		private void OnDestroy() {
-			// Release render texture
-			trackCamera.targetTexture.Release();
+		protected override void OnDestroy() {
+			base.OnDestroy();
 
 			// Unbind input
 			input.FretChangeEvent -= FretChangedAction;
 			input.StrumEvent -= StrumAction;
-			input.StarpowerEvent -= StarpowerAction;
-
-			// Unbind other events
-			Play.Instance.BeatEvent -= BeatAction;
 
 			// Set score
 			player.lastScore = new PlayerManager.Score {
@@ -178,7 +69,7 @@ namespace YARG.PlayMode {
 			};
 		}
 
-		private void Update() {
+		protected override void UpdateTrack() {
 			// Get chart stuff
 			var events = Play.Instance.chart.events;
 
@@ -188,8 +79,6 @@ namespace YARG.PlayMode {
 			} else {
 				input.UpdatePlayerMode();
 			}
-
-			UpdateMaterial();
 
 			// Ignore everything else until the song starts
 			if (!Play.Instance.SongStarted) {
@@ -270,68 +159,6 @@ namespace YARG.PlayMode {
 
 			// Un-strum
 			strummed = false;
-		}
-
-		private void UpdateMaterial() {
-			// Update track UV
-			var trackMaterial = trackRenderer.material;
-			var oldOffset = trackMaterial.GetVector("TexOffset");
-			float movement = Time.deltaTime * player.trackSpeed / 4f;
-			trackMaterial.SetVector("TexOffset", new(oldOffset.x, oldOffset.y - movement));
-
-			// Update track groove
-			float currentGroove = trackMaterial.GetFloat("GrooveState");
-			if (Multiplier >= MaxMultiplier) {
-				trackMaterial.SetFloat("GrooveState", Mathf.Lerp(currentGroove, 1f, Time.deltaTime * 5f));
-			} else {
-				trackMaterial.SetFloat("GrooveState", Mathf.Lerp(currentGroove, 0f, Time.deltaTime * 3f));
-			}
-
-			// Update track starpower
-			float currentStarpower = trackMaterial.GetFloat("StarpowerState");
-			if (starpowerActive) {
-				trackMaterial.SetFloat("StarpowerState", Mathf.Lerp(currentStarpower, 1f, Time.deltaTime * 2f));
-			} else {
-				trackMaterial.SetFloat("StarpowerState", Mathf.Lerp(currentStarpower, 0f, Time.deltaTime * 4f));
-			}
-
-			// Update starpower bar
-			var starpowerMat = starpowerBarTop.material;
-			starpowerMat.SetFloat("Fill", starpowerCharge);
-			if (beat) {
-				float pulseAmount = 0f;
-				if (starpowerActive) {
-					pulseAmount = 0.25f;
-				} else if (!starpowerActive && starpowerCharge >= 0.5f) {
-					pulseAmount = 1f;
-				}
-
-				starpowerMat.SetFloat("Pulse", pulseAmount);
-				beat = false;
-			} else {
-				float currentPulse = starpowerMat.GetFloat("Pulse");
-				starpowerMat.SetFloat("Pulse", Mathf.Lerp(currentPulse, 0f, Time.deltaTime * 16f));
-			}
-		}
-
-		private void UpdateInfo() {
-			// Update text
-			if (Multiplier == 1) {
-				comboText.text = null;
-			} else {
-				comboText.text = $"{Multiplier}<sub>x</sub>";
-			}
-
-			// Update status
-
-			int index = Combo % 10;
-			if (Multiplier != 1 && index == 0) {
-				index = 10;
-			} else if (Multiplier == MaxMultiplier) {
-				index = 10;
-			}
-
-			comboMeterRenderer.material.SetFloat("SpriteNum", index);
 		}
 
 		private void UpdateInput() {
@@ -445,6 +272,26 @@ namespace YARG.PlayMode {
 			}
 		}
 
+		private void UpdateInfo() {
+			// Update text
+			if (Multiplier == 1) {
+				comboText.text = null;
+			} else {
+				comboText.text = $"{Multiplier}<sub>x</sub>";
+			}
+
+			// Update status
+
+			int index = Combo % 10;
+			if (Multiplier != 1 && index == 0) {
+				index = 10;
+			} else if (Multiplier == MaxMultiplier) {
+				index = 10;
+			}
+
+			comboMeterRenderer.material.SetFloat("SpriteNum", index);
+		}
+
 		private bool ChordPressed(List<NoteInfo> chordList) {
 			// Convert NoteInfo list to chord fret array
 			int[] chord = new int[chordList.Count];
@@ -528,16 +375,6 @@ namespace YARG.PlayMode {
 			strummed = true;
 		}
 
-		private void StarpowerAction() {
-			if (!starpowerActive && starpowerCharge >= 0.5f) {
-				starpowerActive = true;
-			}
-		}
-
-		private void BeatAction() {
-			beat = true;
-		}
-
 		private void SpawnNote(NoteInfo noteInfo, float time) {
 			// Set correct position
 			float lagCompensation = CalcLagCompensation(time, noteInfo.time);
@@ -549,10 +386,6 @@ namespace YARG.PlayMode {
 			// Set note info
 			var noteComp = notePool.CreateNote(noteInfo, pos);
 			noteComp.SetInfo(fretColors[noteInfo.fret], noteInfo.length, noteInfo.hopo);
-		}
-
-		private float CalcLagCompensation(float currentTime, float noteTime) {
-			return (currentTime - noteTime) * player.trackSpeed;
 		}
 	}
 }
