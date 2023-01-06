@@ -84,7 +84,7 @@ namespace YARG.PlayMode {
 			for (int i = 0; i < PlayerManager.players.Count; i++) {
 				var track = Instantiate(trackPrefab,
 					new Vector3(i * 25f, 0f, 0f), trackPrefab.transform.rotation);
-				track.GetComponent<Track>().player = PlayerManager.players[i];
+				track.GetComponent<FiveFretTrack>().player = PlayerManager.players[i];
 			}
 
 			yield return new WaitForSeconds(SONG_START_OFFSET);

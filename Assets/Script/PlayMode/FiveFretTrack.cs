@@ -10,7 +10,7 @@ using YARG.UI;
 using YARG.Util;
 
 namespace YARG.PlayMode {
-	public class Track : MonoBehaviour {
+	public class FiveFretTrack : AbstractTrack {
 		public const float TRACK_SPAWN_OFFSET = 3f;
 
 		public delegate void StarpowerMissAction();

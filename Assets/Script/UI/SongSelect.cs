@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using FuzzySharp;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -24,6 +25,8 @@ namespace YARG.UI {
 		private SelectedSongView selectedSongView;
 		[SerializeField]
 		private TMP_InputField searchField;
+		[SerializeField]
+		private TMP_Dropdown dropdown;
 
 		[Space]
 		[SerializeField]
@@ -164,21 +167,30 @@ namespace YARG.UI {
 			UpdateSongViews();
 		}
 
-		public void UpdateSearch() {
-			IEnumerable<SongInfo> songInfos;
-			if (string.IsNullOrEmpty(searchField.text)) {
-				songInfos = SongLibrary.Songs
-					.Where(song => true);
+		private int FuzzySearch(SongInfo song) {
+			if (dropdown.value == 0) {
+				return Fuzz.PartialRatio(song.SongName, searchField.text);
 			} else {
-				// TODO: fuzzy search
-				var text = searchField.text.ToLower();
-				songInfos = SongLibrary.Songs
-					.Where(song => song.SongName.ToLower().StartsWith(text) || song.ArtistName.ToLower().StartsWith(text));
+				return Fuzz.PartialRatio(song.ArtistName, searchField.text);
 			}
+		}
 
-			songs = songInfos
-				.OrderBy(song => song.SongNameNoParen)
-				.ToList();
+		public void UpdateSearch() {
+			if (string.IsNullOrEmpty(searchField.text)) {
+				songs = SongLibrary.Songs
+					.Where(song => true)
+					.OrderBy(song => song.SongNameNoParen)
+					.ToList();
+			} else {
+				// Fuzzy search!
+				var text = searchField.text.ToLower();
+				songs = SongLibrary.Songs
+					.Select(i => new { score = FuzzySearch(i), songInfo = i })
+					.Where(i => i.score > 55)
+					.OrderByDescending(i => i.score)
+					.Select(i => i.songInfo)
+					.ToList();
+			}
 
 			selectedSongIndex = 0;
 			UpdateSongViews();

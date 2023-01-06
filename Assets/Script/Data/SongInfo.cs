@@ -25,14 +25,14 @@ namespace YARG.Data {
 		private string _songName;
 		public string SongName {
 			set {
-				const string BASS_PEDAL_SUFFIX = " (2x Bass Pedal Expert+)";
-				BassPedal2xExpertPlus = value.EndsWith(BASS_PEDAL_SUFFIX);
+				const string BASS_PEDAL_SUFFIX = " (2x bass pedal expert+)";
+				BassPedal2xExpertPlus = value.ToLower().EndsWith(BASS_PEDAL_SUFFIX);
 				if (BassPedal2xExpertPlus) {
 					value = value[..^BASS_PEDAL_SUFFIX.Length];
 				}
 
-				const string LIVE_SUFFIX = " (Live)";
-				Live = value.EndsWith(LIVE_SUFFIX);
+				const string LIVE_SUFFIX = " (live)";
+				Live = value.ToLower().EndsWith(LIVE_SUFFIX);
 				if (Live) {
 					value = value[..^LIVE_SUFFIX.Length];
 				}

@@ -148,6 +148,10 @@ namespace YARG.Serialization {
 			// Look for bonus star power
 
 			// TODO
+
+			// Remove nulls
+
+			chart.genericLyrics ??= new();
 		}
 
 		private List<NoteInfo> ParseGuitar(TrackChunk trackChunk, int difficulty) {

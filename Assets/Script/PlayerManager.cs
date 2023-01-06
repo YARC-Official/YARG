@@ -23,7 +23,7 @@ namespace YARG {
 			public string chosenInstrument = "guitar";
 			public int chosenDifficulty = 4;
 			public Score? lastScore = null;
-			public Track track = null;
+			public FiveFretTrack track = null;
 
 			public Player() {
 				name = $"New Player {nextPlayerName++}";
