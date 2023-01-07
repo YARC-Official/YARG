@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using IniParser;
 using IniParser.Model;
 using UnityEngine;
@@ -7,7 +9,13 @@ using YARG.Data;
 
 namespace YARG.Serialization {
 	public static class SongIni {
-		public static SongInfo CompleteSongInfo(SongInfo song, FileIniDataParser parser) {
+		private static readonly FileIniDataParser PARSER = new();
+
+		static SongIni() {
+			PARSER.Parser.Configuration.AllowDuplicateKeys = true;
+		}
+
+		public static SongInfo CompleteSongInfo(SongInfo song) {
 			if (song.fetched) {
 				return song;
 			}
@@ -19,7 +27,7 @@ namespace YARG.Serialization {
 
 			song.fetched = true;
 			try {
-				var data = parser.ReadFile(file.FullName);
+				var data = PARSER.ReadFile(file.FullName, Encoding.UTF8);
 
 				// Get song section name
 				KeyDataCollection section;
@@ -34,8 +42,8 @@ namespace YARG.Serialization {
 				}
 
 				// Set basic info
-				song.SongName ??= section["name"];
-				song.ArtistName ??= section["artist"];
+				song.SongName = section["name"];
+				song.ArtistName = section["artist"];
 
 				// Get song source
 				if (section.ContainsKey("icon") && section["icon"] != "0") {
@@ -60,6 +68,14 @@ namespace YARG.Serialization {
 				} else {
 					song.delay = 0f;
 				}
+
+				// Get difficulties
+				foreach (var kvp in new Dictionary<string, int>(song.partDifficulties)) {
+					var key = "diff_" + kvp.Key;
+					if (section.ContainsKey(key)) {
+						song.partDifficulties[kvp.Key] = int.Parse(section[key]);
+					}
+				}
 			} catch (Exception e) {
 				song.errored = true;
 				Debug.LogError($"Failed to parse song.ini for `{song.folder}`.");
@@ -67,10 +83,6 @@ namespace YARG.Serialization {
 			}
 
 			return song;
-		}
-
-		public static SongInfo CompleteSongInfo(SongInfo song) {
-			return CompleteSongInfo(song, new FileIniDataParser());
 		}
 
 		private static void LoadSongLengthFromAudio(SongInfo song) {

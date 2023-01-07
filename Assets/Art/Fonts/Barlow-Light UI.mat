@@ -7,9 +7,10 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: UIText
-  m_Shader: {fileID: 4800000, guid: fe393ace9b354375a9cb14cdbbc28be4, type: 3}
-  m_Parent: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_Name: Barlow-Light UI
+  m_Shader: {fileID: 4800000, guid: 68e6db2ebdc24f95958faec2be5558d6, type: 3}
+  m_Parent: {fileID: -5480317595949376055, guid: ae170e91fd29a90479e906ddffb1d8ee,
+    type: 2}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - UNDERLAY_ON
@@ -27,9 +28,13 @@ Material:
     m_Ints: []
     m_Floats:
     - _OutlineWidth: 0
-    - _UnderlayOffsetX: 0.75
-    - _UnderlayOffsetY: 0
-    - _UnderlaySoftness: 0.15
+    - _ScaleRatioA: 0.9
+    - _ScaleRatioB: 0.73125
+    - _ScaleRatioC: 0.73125
+    - _UnderlayDilate: 0
+    - _UnderlayOffsetX: 0
+    - _UnderlayOffsetY: -0.5
+    - _UnderlaySoftness: 0.134
     m_Colors:
-    - _UnderlayColor: {r: 0, g: 0, b: 0, a: 0.6862745}
+    - _UnderlayColor: {r: 0, g: 0, b: 0, a: 0.47058824}
   m_BuildTextureStacks: []

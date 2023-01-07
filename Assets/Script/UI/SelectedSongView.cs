@@ -24,6 +24,12 @@ namespace YARG.UI {
 		[SerializeField]
 		private GameObject albumCoverAlt;
 
+		[Space]
+		[SerializeField]
+		private Transform difficultyContainer;
+		[SerializeField]
+		private GameObject difficultyView;
+
 		private float timeSinceUpdate;
 		private bool albumCoverLoaded;
 
@@ -52,7 +58,7 @@ namespace YARG.UI {
 			this.songInfo = songInfo;
 
 			// Basic info
-			songName.text = $"<b>{songInfo.SongName}</b>";
+			songName.text = songInfo.SongName;
 			artist.text = $"<i>{songInfo.ArtistName}</i>";
 
 			// Song length
@@ -83,6 +89,36 @@ namespace YARG.UI {
 			albumCover.texture = null;
 			albumCover.color = new Color(0f, 0f, 0f, 0.4f);
 			albumCoverAlt.SetActive(true);
+
+			// Difficulties
+
+			foreach (Transform t in difficultyContainer) {
+				Destroy(t.gameObject);
+			}
+
+			foreach (var diff in songInfo.partDifficulties) {
+				if (diff.Value == -1) {
+					continue;
+				}
+
+				var diffView = Instantiate(difficultyView, difficultyContainer);
+
+				string shortName = diff.Key switch {
+					"guitar" => "G",
+					"bass" => "B",
+					"keys" => "K",
+					"drums" => "D",
+					"vocals" => "V",
+					"guitar_real" => "PG",
+					"bass_real" => "PB",
+					"keys_real" => "PK",
+					"drums_real" => "PD",
+					"vocals_harm" => "VH",
+					_ => diff.Key
+				};
+
+				diffView.GetComponentInChildren<TextMeshProUGUI>().text = $"{shortName}: {diff.Value}";
+			}
 		}
 
 		private void Update() {
@@ -146,6 +182,10 @@ namespace YARG.UI {
 
 			MainMenu.Instance.chosenSong = songInfo;
 			MainMenu.Instance.ShowPreSong();
+		}
+
+		public void SearchArtist() {
+			SongSelect.Instance.searchField.text = $"artist:{songInfo.ArtistName}";
 		}
 	}
 }

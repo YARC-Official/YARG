@@ -12,7 +12,7 @@ namespace YARG.UI {
 		private TextMeshProUGUI lengthText;
 
 		public void UpdateSongView(SongInfo songInfo) {
-			songName.text = $"<b>{songInfo.SongName}</b>";
+			songName.text = songInfo.SongName;
 			artist.text = $"<i>{songInfo.ArtistName}</i>";
 
 			if (songInfo.songLength == null) {

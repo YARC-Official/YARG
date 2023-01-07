@@ -9,6 +9,11 @@ using YARG.Data;
 
 namespace YARG.UI {
 	public class SongSelect : MonoBehaviour {
+		public static SongSelect Instance {
+			get;
+			private set;
+		} = null;
+
 		private const int SONG_VIEW_EXTRA = 6;
 		private const float INPUT_REPEAT_TIME = 0.05f;
 		private const float INPUT_REPEAT_COOLDOWN = 0.5f;
@@ -19,12 +24,11 @@ namespace YARG.UI {
 		private GameObject sectionHeaderPrefab;
 
 		[Space]
+		public TMP_InputField searchField;
 		[SerializeField]
 		private Transform songListContent;
 		[SerializeField]
 		private SelectedSongView selectedSongView;
-		[SerializeField]
-		private TMP_InputField searchField;
 		[SerializeField]
 		private TMP_Dropdown dropdown;
 
@@ -43,6 +47,8 @@ namespace YARG.UI {
 		private int selectedSongIndex = 0;
 
 		private void Start() {
+			Instance = this;
+
 			bool loading = !SongLibrary.FetchSongs();
 			loadingScreen.SetActive(loading);
 
@@ -178,7 +184,13 @@ namespace YARG.UI {
 		public void UpdateSearch() {
 			if (string.IsNullOrEmpty(searchField.text)) {
 				songs = SongLibrary.Songs
-					.Where(song => true)
+					.OrderBy(song => song.SongNameNoParen)
+					.ToList();
+			} else if (searchField.text.StartsWith("artist:")) {
+				// Search by artist
+				var artist = searchField.text[7..].ToLower();
+				songs = SongLibrary.Songs
+					.Where(i => i.ArtistName.ToLower() == artist)
 					.OrderBy(song => song.SongNameNoParen)
 					.ToList();
 			} else {

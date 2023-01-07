@@ -85,9 +85,8 @@ namespace YARG {
 		/// <see cref="Songs"/> is expected to be populated.
 		/// </summary>
 		private static void ReadSongIni() {
-			var parser = new FileIniDataParser();
 			foreach (var song in Songs) {
-				SongIni.CompleteSongInfo(song, parser);
+				SongIni.CompleteSongInfo(song);
 
 				// song.ini loading accounts for 80% of loading
 				loadPercent += 1f / Songs.Count * 0.8f;
