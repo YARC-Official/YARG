@@ -1,6 +1,6 @@
 using YARG.Data;
 
-namespace YARG.Serialization {
+namespace YARG.Serialization.Parser {
 	public abstract class AbstractParser {
 		protected string file;
 		protected float delay;

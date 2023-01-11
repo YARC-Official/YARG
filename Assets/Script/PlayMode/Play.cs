@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 using YARG.Data;
-using YARG.Serialization;
+using YARG.Serialization.Parser;
 using YARG.UI;
 
 namespace YARG.PlayMode {
