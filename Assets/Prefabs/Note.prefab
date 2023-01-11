@@ -128,10 +128,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 861361446070616044}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 19e122c6dd605084ebbd552f5c79e8f1, type: 3}
+  m_Script: {fileID: 11500000, guid: 3210f2a2f88059a4b960565aa9675371, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  notePool: {fileID: 0}
+  poolId: note
+  pool: {fileID: 0}
   noteGroup: {fileID: 1397812567785855241}
   hopoGroup: {fileID: 1294466957868725440}
   meshRenderers:

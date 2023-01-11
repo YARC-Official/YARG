@@ -17,44 +17,59 @@ namespace YARG.Pools {
 		}
 
 		[SerializeField]
-		private List<KVP> poolablePrefabsInspector = new();
+		protected List<KVP> poolablePrefabsInspector = new();
 
-		private Dictionary<string, GameObject> poolablePrefabs = new();
-		private Dictionary<string, List<Poolable>> pooled = new();
+		protected Dictionary<string, GameObject> poolablePrefabs = new();
+
+		protected Dictionary<string, List<Poolable>> pooled = new();
+		protected Dictionary<string, List<Poolable>> active = new();
 
 		private void Awake() {
+			// Convert inspector dictionary to real dictionary
 			foreach (var kvp in poolablePrefabsInspector) {
 				poolablePrefabs[kvp.id] = kvp.prefab;
+			}
+
+			// Create pools for each object
+			foreach (var kvp in poolablePrefabs) {
+				pooled.Add(kvp.Key, new List<Poolable>());
+				active.Add(kvp.Key, new List<Poolable>());
 			}
 		}
 
 		public void Remove(Poolable obj) {
-			// Remove from world and add to list
-			if (pooled.TryGetValue(obj.poolId, out var poolList)) {
-				poolList.Add(obj);
-			} else {
-				pooled.Add(obj.poolId, new List<Poolable> {
-					obj
-				});
-			}
+			// Remove from "active" list (guarenteed to exist)
+			active[obj.poolId].Remove(obj);
 
+			// Add to pooled list (guarenteed to exist)
+			pooled[obj.poolId].Add(obj);
+			OnPooled(obj);
+
+			// Disable
 			obj.gameObject.SetActive(false);
 		}
 
 		public Poolable Add(string id, Vector3 position) {
+			if (!poolablePrefabs.TryGetValue(id, out var prefab)) {
+				throw new InvalidOperationException($"Poolable prefab with ID `{id}` doesn't exist.");
+			}
+
+			var poolList = pooled[id];
+			var activeList = active[id];
+
 			// Get a disabled poolable
-			if (pooled.TryGetValue(id, out var pool) && pool.Count >= 1) {
-				var obj = pool.First();
-				pool.Remove(obj);
+			if (poolList.Count >= 1) {
+				var obj = poolList.First();
+
+				// Remove from pool and add to active
+				poolList.Remove(obj);
+				activeList.Add(obj);
+				OnActive(obj);
 
 				obj.transform.localPosition = position;
 				obj.gameObject.SetActive(true);
 
 				return obj;
-			}
-
-			if (!poolablePrefabs.TryGetValue(id, out var prefab)) {
-				throw new InvalidOperationException($"Poolable prefab with ID `{id}` doesn't exist.");
 			}
 
 			// Create new poolable if not in pool
@@ -63,7 +78,19 @@ namespace YARG.Pools {
 			newObj.transform.localRotation = prefab.transform.rotation;
 			newObj.pool = this;
 
+			// Add to active
+			activeList.Add(newObj);
+			OnActive(newObj);
+
 			return newObj;
+		}
+
+		protected virtual void OnPooled(Poolable poolable) {
+
+		}
+
+		protected virtual void OnActive(Poolable poolable) {
+
 		}
 	}
 }

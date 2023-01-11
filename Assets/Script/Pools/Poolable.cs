@@ -2,7 +2,6 @@ using UnityEngine;
 
 namespace YARG.Pools {
 	public abstract class Poolable : MonoBehaviour {
-		[SerializeField]
 		public string poolId;
 
 		[HideInInspector]

@@ -1,15 +1,15 @@
 using UnityEngine;
+using YARG.Data;
 
-namespace YARG.PlayMode {
-	public class NoteComponent : MonoBehaviour {
+namespace YARG.Pools {
+	public class NoteComponent : Poolable {
 		private enum State {
 			WAITING,
 			HITTING,
 			MISSED
 		}
 
-		[HideInInspector]
-		public NotePool notePool;
+		public NoteInfo noteInfo;
 
 		[SerializeField]
 		private GameObject noteGroup;
@@ -24,7 +24,7 @@ namespace YARG.PlayMode {
 		private Color ColorCache {
 			get {
 				// If within starpower section
-				if (notePool.player.track.StarpowerSection?.EndTime > notePool.player.track.RelativeTime) {
+				if (pool.player.track.StarpowerSection?.EndTime > pool.player.track.RelativeTime) {
 					return Color.white;
 				}
 
@@ -38,14 +38,14 @@ namespace YARG.PlayMode {
 		private State state = State.WAITING;
 
 		private void OnEnable() {
-			if (notePool != null) {
-				notePool.player.track.StarpowerMissEvent += UpdateColor;
+			if (pool != null) {
+				pool.player.track.StarpowerMissEvent += UpdateColor;
 			}
 		}
 
 		private void OnDisable() {
-			if (notePool != null) {
-				notePool.player.track.StarpowerMissEvent -= UpdateColor;
+			if (pool != null) {
+				pool.player.track.StarpowerMissEvent -= UpdateColor;
 			}
 		}
 
@@ -92,7 +92,7 @@ namespace YARG.PlayMode {
 				return;
 			}
 
-			length *= notePool.player.trackSpeed;
+			length *= pool.player.trackSpeed;
 			lengthCache = length;
 
 			lineRenderer.enabled = true;
@@ -114,7 +114,7 @@ namespace YARG.PlayMode {
 		}
 
 		private void Update() {
-			transform.localPosition -= new Vector3(0f, 0f, Time.deltaTime * notePool.player.trackSpeed);
+			transform.localPosition -= new Vector3(0f, 0f, Time.deltaTime * pool.player.trackSpeed);
 
 			if (state == State.HITTING) {
 				// Get the new line start position. Said position should be at
@@ -126,7 +126,7 @@ namespace YARG.PlayMode {
 			}
 
 			if (transform.localPosition.z < -3f - lengthCache) {
-				notePool.RemoveNote(this);
+				MoveToPool();
 			}
 		}
 	}

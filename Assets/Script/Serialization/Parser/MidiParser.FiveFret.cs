@@ -42,7 +42,7 @@ namespace YARG.Serialization.Parser {
 		private List<NoteInfo> ParseFiveFret(TrackChunk trackChunk, int difficulty) {
 			var tempoMap = midi.GetTempoMap();
 
-			var forceStateIR = FiveFretGetForceState(trackChunk);
+			var forceStateIR = FiveFretGetForceState(trackChunk, difficulty);
 
 			var noteIR = FiveFretNotePass(trackChunk, difficulty);
 			FiveFretNoteStatePass(noteIR, forceStateIR, tempoMap);
@@ -51,7 +51,7 @@ namespace YARG.Serialization.Parser {
 			return noteOutput;
 		}
 
-		private List<ForceStateIR> FiveFretGetForceState(TrackChunk trackChunk) {
+		private List<ForceStateIR> FiveFretGetForceState(TrackChunk trackChunk, int difficulty) {
 			long totalDelta = 0;
 
 			var forceIR = new List<ForceStateIR>();
@@ -71,7 +71,7 @@ namespace YARG.Serialization.Parser {
 				}
 
 				// Look for correct octave
-				if (noteEvent.GetNoteOctave() != 7) {
+				if (noteEvent.GetNoteOctave() != 4 + difficulty) {
 					continue;
 				}
 

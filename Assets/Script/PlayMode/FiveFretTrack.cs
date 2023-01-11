@@ -381,10 +381,8 @@ namespace YARG.PlayMode {
 			float x = frets[noteInfo.fret].transform.localPosition.x;
 			var pos = new Vector3(x, 0f, TRACK_SPAWN_OFFSET - lagCompensation);
 
-			// Get color
-
 			// Set note info
-			var noteComp = notePool.CreateNote(noteInfo, pos);
+			var noteComp = notePool.AddNote(noteInfo, pos);
 			noteComp.SetInfo(fretColors[noteInfo.fret], noteInfo.length, noteInfo.hopo);
 		}
 	}
