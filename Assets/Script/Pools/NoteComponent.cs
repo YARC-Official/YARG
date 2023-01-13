@@ -1,5 +1,4 @@
 using UnityEngine;
-using YARG.Data;
 
 namespace YARG.Pools {
 	public class NoteComponent : Poolable {
@@ -8,8 +7,6 @@ namespace YARG.Pools {
 			HITTING,
 			MISSED
 		}
-
-		public NoteInfo noteInfo;
 
 		[SerializeField]
 		private GameObject noteGroup;

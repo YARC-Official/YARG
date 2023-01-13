@@ -1,42 +1,41 @@
 using System.Collections.Generic;
 using UnityEngine;
-using YARG.Data;
 
 namespace YARG.Pools {
 	public class NotePool : Pool {
-		protected Dictionary<NoteInfo, NoteComponent> activeNotes = new();
+		protected Dictionary<object, NoteComponent> activeNotes = new();
 
 		protected override void OnPooled(Poolable poolable) {
 			if (poolable is NoteComponent noteComponent &&
-				activeNotes.ContainsKey(noteComponent.noteInfo)) {
-				activeNotes.Remove(noteComponent.noteInfo);
+				activeNotes.ContainsKey(noteComponent.data)) {
+				activeNotes.Remove(noteComponent.data);
 			}
 		}
 
-		public void RemoveNote(NoteInfo info) {
-			if (activeNotes.TryGetValue(info, out NoteComponent note)) {
+		public void RemoveNote(object key) {
+			if (activeNotes.TryGetValue(key, out NoteComponent note)) {
 				Remove(note);
 			}
 		}
 
-		public void HitNote(NoteInfo info) {
-			if (activeNotes.TryGetValue(info, out NoteComponent note)) {
+		public void HitNote(object key) {
+			if (activeNotes.TryGetValue(key, out NoteComponent note)) {
 				note.HitNote();
 			}
 		}
 
-		public void MissNote(NoteInfo info) {
-			if (activeNotes.TryGetValue(info, out NoteComponent note)) {
+		public void MissNote(object key) {
+			if (activeNotes.TryGetValue(key, out NoteComponent note)) {
 				note.MissNote();
 			}
 		}
 
-		public NoteComponent AddNote(NoteInfo info, Vector3 position) {
+		public NoteComponent AddNote(object key, Vector3 position) {
 			var poolable = Add("note", position);
-			var noteComp = (NoteComponent) poolable;
-			noteComp.noteInfo = info;
+			poolable.data = key;
 
-			activeNotes.Add(info, noteComp);
+			var noteComp = (NoteComponent) poolable;
+			activeNotes.Add(key, noteComp);
 
 			return noteComp;
 		}

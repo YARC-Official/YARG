@@ -6,6 +6,8 @@ namespace YARG.Pools {
 
 		[HideInInspector]
 		public Pool pool;
+		[HideInInspector]
+		public object data;
 
 		public void MoveToPool() {
 			pool.Remove(this);
