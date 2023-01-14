@@ -279,7 +279,12 @@ namespace YARG.Serialization.Parser {
 					float endTime = (float) TimeConverter.ConvertTo<MetricTimeSpan>(noteInfo.endTick[fret], tempoMap).TotalSeconds;
 
 					// Add note
-					noteOutput.Add(new NoteInfo(startTime, endTime - startTime, fret, noteInfo.hopo));
+					noteOutput.Add(new NoteInfo {
+						time = startTime,
+						length = endTime - startTime,
+						fret = fret,
+						hopo = noteInfo.hopo
+					});
 				}
 			}
 

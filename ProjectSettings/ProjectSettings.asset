@@ -872,7 +872,7 @@ PlayerSettings:
   hmiForceSRGBBlit: 1
   embeddedLinuxEnableGamepadInput: 1
   hmiCpuConfiguration: 
-  apiCompatibilityLevel: 6
+  apiCompatibilityLevel: 3
   activeInputHandler: 1
   windowsGamepadBackendHint: 0
   cloudProjectId: 

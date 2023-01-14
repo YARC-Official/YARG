@@ -1,18 +1,17 @@
 namespace YARG.Data {
-	public class NoteInfo {
-		public float time;
-		public float length;
-
+	public class NoteInfo : AbstractInfo {
+		/// <value>
+		/// Acts as the button for five fret and the string for pro-guitar.
+		/// </value>
 		public int fret;
+		/// <summary>
+		/// Hammer-on/pull-off.
+		/// </summary>
 		public bool hopo;
 
-		public float EndTime => time + length;
-
-		public NoteInfo(float time, float length, int fret, bool hopo) {
-			this.time = time;
-			this.length = length;
-			this.fret = fret;
-			this.hopo = hopo;
-		}
+		/// <value>
+		/// The fret numbers for a pro-guitar.
+		/// </value>
+		public int[] stringFrets;
 	}
 }
