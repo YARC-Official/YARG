@@ -74,6 +74,8 @@ namespace YARG.UI {
 				// Update radio group
 				if (player.inputStrategy is FiveFretInputStrategy) {
 					radioGroup.value = 0;
+				} else if (player.inputStrategy is RealGuitarInputStrategy) {
+					radioGroup.value = 1;
 				} else {
 					radioGroup.value = -1;
 				}
@@ -169,9 +171,14 @@ namespace YARG.UI {
 				var player = PlayerManager.players[playerList.selectedIndex];
 				switch (e.newValue) {
 					case 0:
-						player.inputStrategy = new FiveFretInputStrategy(null, false);
+						player.inputStrategy = new FiveFretInputStrategy(null, botMode.value);
+						break;
+					case 1:
+						player.inputStrategy = new RealGuitarInputStrategy(null, botMode.value);
 						break;
 				}
+
+				UpdateSettingsList(settingsList, playerList.selectedIndex);
 			});
 		}
 
@@ -191,6 +198,8 @@ namespace YARG.UI {
 
 		private void UpdateSettingsList(ListView settingsList, int playerId) {
 			var player = PlayerManager.players[playerId];
+
+			settingsList.itemsSource = player.inputStrategy.GetMappingNames();
 
 			settingsList.makeItem = () => new Button();
 			settingsList.bindItem = (elem, i) => {
@@ -217,8 +226,7 @@ namespace YARG.UI {
 				};
 			};
 
-			settingsList.itemsSource = player.inputStrategy.GetMappingNames();
-			settingsList.RefreshItems();
+			settingsList.Rebuild();
 		}
 
 		private void UpdateInputWaiting() {

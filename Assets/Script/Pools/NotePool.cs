@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace YARG.Pools {
 	public class NotePool : Pool {
-		protected Dictionary<object, NoteComponent> activeNotes = new();
+		protected Dictionary<object, List<NoteComponent>> activeNotes = new();
 
 		protected override void OnPooled(Poolable poolable) {
 			if (poolable is NoteComponent noteComponent &&
@@ -13,20 +13,26 @@ namespace YARG.Pools {
 		}
 
 		public void RemoveNote(object key) {
-			if (activeNotes.TryGetValue(key, out NoteComponent note)) {
-				Remove(note);
+			if (activeNotes.TryGetValue(key, out List<NoteComponent> list)) {
+				foreach (var note in list) {
+					Remove(note);
+				}
 			}
 		}
 
 		public void HitNote(object key) {
-			if (activeNotes.TryGetValue(key, out NoteComponent note)) {
-				note.HitNote();
+			if (activeNotes.TryGetValue(key, out List<NoteComponent> list)) {
+				foreach (var note in list) {
+					note.HitNote();
+				}
 			}
 		}
 
 		public void MissNote(object key) {
-			if (activeNotes.TryGetValue(key, out NoteComponent note)) {
-				note.MissNote();
+			if (activeNotes.TryGetValue(key, out List<NoteComponent> list)) {
+				foreach (var note in list) {
+					note.MissNote();
+				}
 			}
 		}
 
@@ -35,7 +41,11 @@ namespace YARG.Pools {
 			poolable.data = key;
 
 			var noteComp = (NoteComponent) poolable;
-			activeNotes.Add(key, noteComp);
+			if (activeNotes.TryGetValue(key, out List<NoteComponent> list)) {
+				list.Add(noteComp);
+			} else {
+				activeNotes.Add(key, new List<NoteComponent> { noteComp });
+			}
 
 			return noteComp;
 		}

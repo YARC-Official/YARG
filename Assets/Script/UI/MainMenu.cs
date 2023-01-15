@@ -147,9 +147,12 @@ namespace YARG.UI {
 			button.clicked += () => {
 				// Set player stuff
 				player.chosenInstrument = instrumentChoice.value switch {
+					0 => "guitar",
 					1 => "bass",
 					2 => "keys",
-					0 or _ => "guitar"
+					3 => "realGuitar",
+					4 => "realBass",
+					_ => throw new System.Exception("Unreachable.")
 				};
 				player.chosenDifficulty = difficultyChoice.value;
 

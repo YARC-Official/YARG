@@ -1,7 +1,7 @@
 namespace YARG.Data {
 	public class NoteInfo : AbstractInfo {
 		/// <value>
-		/// Acts as the button for five fret and the string for pro-guitar.
+		/// Acts as the button for a five fret.
 		/// </value>
 		public int fret;
 		/// <summary>

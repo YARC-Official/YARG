@@ -193,6 +193,12 @@ namespace YARG.UI {
 					.Where(i => i.ArtistName.ToLower() == artist)
 					.OrderBy(song => song.SongNameNoParen)
 					.ToList();
+			} else if (searchField.text == "has:PG") {
+				// Filter pro guitar (temp)
+				songs = SongLibrary.Songs
+					.Where(i => i.partDifficulties["guitar_real"] != -1)
+					.OrderBy(song => song.SongNameNoParen)
+					.ToList();
 			} else {
 				// Fuzzy search!
 				var text = searchField.text.ToLower();

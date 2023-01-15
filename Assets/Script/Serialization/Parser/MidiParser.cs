@@ -57,13 +57,13 @@ namespace YARG.Serialization.Parser {
 								break;
 							case "PART REAL_GUITAR":
 								for (int i = 0; i < 4; i++) {
-									chart.realGuitar[i] = ParseFiveFret(trackChunk, i);
+									chart.realGuitar[i] = ParseRealGuitar(trackChunk, i);
 								}
 								ParseStarpower(eventIR, trackChunk, "realGuitar");
 								break;
 							case "PART REAL_BASS":
 								for (int i = 0; i < 4; i++) {
-									chart.realBass[i] = ParseFiveFret(trackChunk, i);
+									chart.realBass[i] = ParseRealGuitar(trackChunk, i);
 								}
 								ParseStarpower(eventIR, trackChunk, "realBass");
 								break;
@@ -143,10 +143,6 @@ namespace YARG.Serialization.Parser {
 			// Look for bonus star power
 
 			// TODO
-
-			// Remove nulls
-
-			chart.genericLyrics ??= new();
 		}
 
 		private void ParseStarpower(List<EventIR> eventIR, TrackChunk trackChunk, string instrument) {

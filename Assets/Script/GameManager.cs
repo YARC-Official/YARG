@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using YARG.Input;
 using YARG.Server;
 
 namespace YARG {

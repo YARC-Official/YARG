@@ -28,6 +28,8 @@ namespace YARG.PlayMode {
 		private GameObject soundAudioPrefab;
 		[SerializeField]
 		private GameObject trackPrefab;
+		[SerializeField]
+		private GameObject realGuitarTrackPrefab;
 
 		public bool SongStarted {
 			get;
@@ -82,9 +84,18 @@ namespace YARG.PlayMode {
 
 			// Spawn tracks
 			for (int i = 0; i < PlayerManager.players.Count; i++) {
-				var track = Instantiate(trackPrefab,
-					new Vector3(i * 25f, 0f, 0f), trackPrefab.transform.rotation);
-				track.GetComponent<FiveFretTrack>().player = PlayerManager.players[i];
+				string instrument = PlayerManager.players[i].chosenInstrument;
+
+				GameObject track;
+				if (instrument == "realGuitar" || instrument == "realBass") {
+					track = Instantiate(realGuitarTrackPrefab, new Vector3(i * 25f, 0f, 0f),
+						realGuitarTrackPrefab.transform.rotation);
+				} else {
+					track = Instantiate(trackPrefab, new Vector3(i * 25f, 0f, 0f),
+						trackPrefab.transform.rotation);
+				}
+
+				track.GetComponent<AbstractTrack>().player = PlayerManager.players[i];
 			}
 
 			yield return new WaitForSeconds(SONG_START_OFFSET);
@@ -105,9 +116,9 @@ namespace YARG.PlayMode {
 			realSongTime += Time.deltaTime;
 
 			// Audio raising and lowering based on player preformance
-			UpdateAudio("guitar", "guitar");
-			UpdateAudio("bass", "bass", "rhythm");
-			UpdateAudio("keys", "keys");
+			UpdateAudio("guitar", "realGuitar", "guitar", null);
+			UpdateAudio("bass", "realBass", "bass", "rhythm");
+			UpdateAudio("keys", "realKeys", "keys", null);
 
 			// Update beats
 			while (chart.beats.Count > beatIndex && chart.beats[beatIndex] <= SongTime) {
@@ -128,7 +139,7 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		private void UpdateAudio(string name, string audioName, string altAudioName = null) {
+		private void UpdateAudio(string name, string altName, string audioName, string altAudioName = null) {
 			// Skip if that audio track doesn't exist and alt track doesn't exist
 			if (!audioSources.TryGetValue(audioName, out AudioSource audioSource)) {
 				if (altAudioName == null || !audioSources.TryGetValue(altAudioName, out audioSource)) {
@@ -136,14 +147,16 @@ namespace YARG.PlayMode {
 				}
 			}
 
-			int total = PlayerManager.PlayersWithInstrument(name);
+			int total = PlayerManager.PlayersWithInstrument(name) +
+				PlayerManager.PlayersWithInstrument(altName);
 
 			// Skip if no one is playing the instrument
 			if (total <= 0) {
 				return;
 			}
 
-			float percent = 1f - (float) audioLowering.GetCount(name) / total;
+			float percent = 1f - (float) (audioLowering.GetCount(name) +
+				audioLowering.GetCount(altName)) / total;
 
 			// Lower volume to a minimum of 5%
 			audioSource.volume = percent * 0.95f + 0.05f;

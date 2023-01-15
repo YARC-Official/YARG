@@ -384,6 +384,8 @@ MonoBehaviour:
     type: 3}
   trackPrefab: {fileID: 2999289846860309454, guid: 2a3c8615b3f54e64db089dedc04d5445,
     type: 3}
+  realGuitarTrackPrefab: {fileID: 8431480376043174353, guid: 3994a880487709b47a6e0ebef8611ab9,
+    type: 3}
 --- !u!1 &468187698
 GameObject:
   m_ObjectHideFlags: 0

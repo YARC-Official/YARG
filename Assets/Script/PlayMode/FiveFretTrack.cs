@@ -46,7 +46,7 @@ namespace YARG.PlayMode {
 			input.FretChangeEvent += FretChangedAction;
 			input.StrumEvent += StrumAction;
 
-			// Spawn in frets
+			// Color frets
 			for (int i = 0; i < 5; i++) {
 				var fret = frets[i].GetComponent<Fret>();
 				fret.SetColor(fretColors[i]);
@@ -70,9 +70,6 @@ namespace YARG.PlayMode {
 		}
 
 		protected override void UpdateTrack() {
-			// Get chart stuff
-			var events = Play.Instance.chart.events;
-
 			// Update input strategy
 			if (input.botMode) {
 				input.UpdateBotMode(Chart, Play.Instance.SongTime);
@@ -84,6 +81,8 @@ namespace YARG.PlayMode {
 			if (!Play.Instance.SongStarted) {
 				return;
 			}
+
+			var events = Play.Instance.chart.events;
 
 			// Update events (beat lines, starpower, etc.)
 			while (events.Count > eventChartIndex && events[eventChartIndex].time <= RelativeTime) {
@@ -135,27 +134,7 @@ namespace YARG.PlayMode {
 				}
 			}
 
-			// Update real input
 			UpdateInput();
-
-			// Update starpower region
-			if (StarpowerSection?.EndTime + Play.HIT_MARGIN < Play.Instance.SongTime) {
-				StarpowerSection = null;
-				starpowerCharge += 0.25f;
-			}
-
-			// Update starpower active
-			if (starpowerActive) {
-				if (starpowerCharge <= 0f) {
-					starpowerActive = false;
-					starpowerCharge = 0f;
-				} else {
-					starpowerCharge -= Time.deltaTime / 25f;
-				}
-			}
-
-			// Update info (combo, multiplier, etc.)
-			UpdateInfo();
 
 			// Un-strum
 			strummed = false;
@@ -270,26 +249,6 @@ namespace YARG.PlayMode {
 				heldNotes.RemoveAt(i);
 				frets[heldNote.fret].StopSustainParticles();
 			}
-		}
-
-		private void UpdateInfo() {
-			// Update text
-			if (Multiplier == 1) {
-				comboText.text = null;
-			} else {
-				comboText.text = $"{Multiplier}<sub>x</sub>";
-			}
-
-			// Update status
-
-			int index = Combo % 10;
-			if (Multiplier != 1 && index == 0) {
-				index = 10;
-			} else if (Multiplier == MaxMultiplier) {
-				index = 10;
-			}
-
-			comboMeterRenderer.material.SetFloat("SpriteNum", index);
 		}
 
 		private bool ChordPressed(List<NoteInfo> chordList) {

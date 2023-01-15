@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 
 namespace YARG.Pools {
@@ -14,6 +15,8 @@ namespace YARG.Pools {
 		private GameObject hopoGroup;
 		[SerializeField]
 		private MeshRenderer[] meshRenderers;
+		[SerializeField]
+		private TextMeshPro fretNumber;
 		[SerializeField]
 		private LineRenderer lineRenderer;
 
@@ -55,6 +58,11 @@ namespace YARG.Pools {
 
 			ColorCache = c;
 			UpdateColor();
+		}
+
+		public void SetFretNumber(int i) {
+			fretNumber.gameObject.SetActive(true);
+			fretNumber.text = i.ToString();
 		}
 
 		private void UpdateColor() {
@@ -101,11 +109,19 @@ namespace YARG.Pools {
 			noteGroup.SetActive(false);
 			hopoGroup.SetActive(false);
 
+			if (fretNumber != null) {
+				fretNumber.gameObject.SetActive(false);
+			}
+
 			state = State.HITTING;
 			UpdateLineColor();
 		}
 
 		public void MissNote() {
+			if (fretNumber != null) {
+				fretNumber.gameObject.SetActive(false);
+			}
+
 			state = State.MISSED;
 			UpdateLineColor();
 		}

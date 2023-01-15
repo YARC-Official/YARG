@@ -125,7 +125,11 @@ namespace YARG.PlayMode {
 
 		private void Update() {
 			UpdateMaterial();
+
 			UpdateTrack();
+
+			UpdateInfo();
+			UpdateStarpower();
 
 			Beat = false;
 		}
@@ -171,6 +175,44 @@ namespace YARG.PlayMode {
 				float currentPulse = starpowerMat.GetFloat("Pulse");
 				starpowerMat.SetFloat("Pulse", Mathf.Lerp(currentPulse, 0f, Time.deltaTime * 16f));
 			}
+		}
+
+		private void UpdateStarpower() {
+			// Update starpower region
+			if (StarpowerSection?.EndTime + Play.HIT_MARGIN < Play.Instance.SongTime) {
+				StarpowerSection = null;
+				starpowerCharge += 0.25f;
+			}
+
+			// Update starpower active
+			if (starpowerActive) {
+				if (starpowerCharge <= 0f) {
+					starpowerActive = false;
+					starpowerCharge = 0f;
+				} else {
+					starpowerCharge -= Time.deltaTime / 25f;
+				}
+			}
+		}
+
+		private void UpdateInfo() {
+			// Update text
+			if (Multiplier == 1) {
+				comboText.text = null;
+			} else {
+				comboText.text = $"{Multiplier}<sub>x</sub>";
+			}
+
+			// Update status
+
+			int index = Combo % 10;
+			if (Multiplier != 1 && index == 0) {
+				index = 10;
+			} else if (Multiplier == MaxMultiplier) {
+				index = 10;
+			}
+
+			comboMeterRenderer.material.SetFloat("SpriteNum", index);
 		}
 
 		private void BeatAction() {

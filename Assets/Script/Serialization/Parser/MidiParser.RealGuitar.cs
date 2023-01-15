@@ -6,18 +6,18 @@ using YARG.Data;
 
 namespace YARG.Serialization.Parser {
 	public partial class MidiParser : AbstractParser {
-		private List<NoteInfo> ParseProGuitar(TrackChunk trackChunk, int difficulty) {
+		private List<NoteInfo> ParseRealGuitar(TrackChunk trackChunk, int difficulty) {
 			var tempoMap = midi.GetTempoMap();
 
-			var noteOutput = ProGuitarNotePass(trackChunk, difficulty, tempoMap);
+			var noteOutput = RealGuitarNotePass(trackChunk, difficulty, tempoMap);
 
 			return noteOutput;
 		}
 
-		private List<NoteInfo> ProGuitarNotePass(TrackChunk trackChunk, int difficulty, TempoMap tempoMap) {
+		private List<NoteInfo> RealGuitarNotePass(TrackChunk trackChunk, int difficulty, TempoMap tempoMap) {
 			long totalDelta = 0;
 
-			var noteIR = new List<NoteInfo>();
+			var notes = new List<NoteInfo>();
 			var currentChord = new NoteInfo();
 
 			// Since each note has an ON and OFF event,
@@ -25,6 +25,9 @@ namespace YARG.Serialization.Parser {
 			// OFF event to actually add the note. This stores
 			// the ON event timings.
 			float?[] strState = new float?[6];
+
+			// Do the same with velocity
+			int[] velocity = new int[6];
 
 			// Convert track events into intermediate representation
 			foreach (var trackEvent in trackChunk.Events) {
@@ -61,6 +64,7 @@ namespace YARG.Serialization.Parser {
 					// off so we can get the length of the note.
 					var time = (float) TimeConverter.ConvertTo<MetricTimeSpan>(totalDelta, tempoMap).TotalSeconds;
 					strState[str] = time;
+					velocity[str] = noteEvent.Velocity;
 				} else if (noteEvent is NoteOffEvent) {
 					// Here is were the notes are actually stored.
 					// We now know the starting point and ending point.
@@ -69,17 +73,20 @@ namespace YARG.Serialization.Parser {
 						continue;
 					}
 
-					int fret = noteEvent.Velocity - 100;
+					int fret = velocity[str] - 100;
 
 					// Collect the notes in chords.
 					// If the chord is complete, add it.
 					if (currentChord.time != strState[str]) {
-						noteIR.Add(currentChord);
+						notes.Add(currentChord);
+
+						float t = strState[str].Value;
 						currentChord = new NoteInfo {
-							time = strState[str].Value,
-							length = (float) TimeConverter.ConvertTo<MetricTimeSpan>(totalDelta, tempoMap).TotalSeconds,
-							stringFrets = new int[] { -1, -1, -1, -1, -1 }
+							time = t,
+							length = (float) TimeConverter.ConvertTo<MetricTimeSpan>(totalDelta, tempoMap).TotalSeconds - t,
+							stringFrets = new int[] { -1, -1, -1, -1, -1, -1 }
 						};
+
 						currentChord.stringFrets[str] = fret;
 					} else {
 						currentChord.stringFrets[str] = fret;
@@ -91,10 +98,10 @@ namespace YARG.Serialization.Parser {
 			}
 
 			// Remove the first note IR as it is empty
-			noteIR.Add(currentChord);
-			noteIR.RemoveAt(0);
+			notes.Add(currentChord);
+			notes.RemoveAt(0);
 
-			return noteIR;
+			return notes;
 		}
 	}
 }
