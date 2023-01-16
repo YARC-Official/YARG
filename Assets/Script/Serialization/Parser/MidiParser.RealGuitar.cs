@@ -38,7 +38,7 @@ namespace YARG.Serialization.Parser {
 				}
 
 				// Look for correct octave
-				if (noteEvent.GetNoteOctave() != 4 + difficulty) {
+				if (noteEvent.GetNoteOctave() != 1 + difficulty * 2) {
 					continue;
 				}
 
