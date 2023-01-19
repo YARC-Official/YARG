@@ -84,7 +84,8 @@ namespace YARG.Serialization.Parser {
 						currentChord = new NoteInfo {
 							time = t,
 							length = (float) TimeConverter.ConvertTo<MetricTimeSpan>(totalDelta, tempoMap).TotalSeconds - t,
-							stringFrets = new int[] { -1, -1, -1, -1, -1, -1 }
+							stringFrets = new int[] { -1, -1, -1, -1, -1, -1 },
+							muted = noteEvent.Channel == 3
 						};
 
 						currentChord.stringFrets[str] = fret;

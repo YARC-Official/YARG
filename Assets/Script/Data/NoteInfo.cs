@@ -13,5 +13,9 @@ namespace YARG.Data {
 		/// The fret numbers for a pro-guitar.
 		/// </value>
 		public int[] stringFrets;
+		/// <summary>
+		/// Pro-guitar mute note.
+		/// </summary>
+		public bool muted;
 	}
 }

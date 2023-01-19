@@ -60,9 +60,9 @@ namespace YARG.Pools {
 			UpdateColor();
 		}
 
-		public void SetFretNumber(int i) {
+		public void SetFretNumber(string str) {
 			fretNumber.gameObject.SetActive(true);
-			fretNumber.text = i.ToString();
+			fretNumber.text = str;
 		}
 
 		private void UpdateColor() {

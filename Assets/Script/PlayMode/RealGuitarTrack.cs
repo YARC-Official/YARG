@@ -174,6 +174,10 @@ namespace YARG.PlayMode {
 		}
 
 		private bool NotePressed(NoteInfo note) {
+			if (note.muted) {
+				return true;
+			}
+
 			for (int str = 0; str < note.stringFrets.Length; str++) {
 				if (note.stringFrets[str] == -1) {
 					continue;
@@ -215,7 +219,7 @@ namespace YARG.PlayMode {
 				// Set note info
 				var noteComp = notePool.AddNote(noteInfo, pos);
 				noteComp.SetInfo(stringColors[i], noteInfo.length, noteInfo.hopo);
-				noteComp.SetFretNumber(noteInfo.stringFrets[i]);
+				noteComp.SetFretNumber(noteInfo.muted ? "X" : noteInfo.stringFrets[i].ToString());
 			}
 		}
 	}
