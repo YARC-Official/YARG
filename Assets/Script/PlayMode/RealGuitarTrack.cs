@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -17,6 +18,10 @@ namespace YARG.PlayMode {
 		[Space]
 		[SerializeField]
 		private TextMeshPro[] fretNumbers;
+		[SerializeField]
+		private ParticleGroup[] hitParticles;
+		[SerializeField]
+		private ParticleGroup[] sustainParticles;
 		[SerializeField]
 		private Color[] stringColors;
 		[SerializeField]
@@ -47,6 +52,16 @@ namespace YARG.PlayMode {
 
 			input.FretChangeEvent += FretChangedAction;
 			input.StrumEvent += StrumAction;
+
+			// Color particles
+
+			for (int i = 0; i < 6; i++) {
+				hitParticles[i].Colorize(stringColors[i]);
+			}
+
+			for (int i = 0; i < 6; i++) {
+				sustainParticles[i].Colorize(stringColors[i]);
+			}
 		}
 
 		protected override void OnDestroy() {
@@ -115,6 +130,7 @@ namespace YARG.PlayMode {
 				var heldNote = heldNotes[i];
 				if (heldNote.time + heldNote.length <= Play.Instance.SongTime) {
 					heldNotes.RemoveAt(i);
+					EndSustainParticles(heldNote);
 				}
 			}
 
@@ -149,7 +165,9 @@ namespace YARG.PlayMode {
 			}
 
 			// Check if correct chord is pressed
-			if (!NotePressed(note)) {
+			if (!NotePressed(note) || !NoteStrummed(note)) {
+				// UpdateOverstrums();
+
 				if (!note.hopo) {
 					Combo = 0;
 				}
@@ -167,14 +185,44 @@ namespace YARG.PlayMode {
 			StopAudio = false;
 			notesHit++;
 
+			// Play particles
+			for (int i = 0; i < 6; i++) {
+				if (note.stringFrets[i] == -1) {
+					continue;
+				}
+
+				hitParticles[i].Play();
+			}
+
 			// If sustained, add to held
 			if (note.length > 0.2f) {
 				heldNotes.Add(note);
+				StartSustainParticles(note);
 			}
+		}
+
+		private bool NoteStrummed(NoteInfo note) {
+			int extras = 0;
+			for (int str = 0; str < note.stringFrets.Length; str++) {
+				if (note.stringFrets[str] == -1) {
+					if (strumFlag.HasFlag(StrumFlagFromInt(str))) {
+						extras++;
+					}
+
+					continue;
+				}
+
+				if (!strumFlag.HasFlag(StrumFlagFromInt(str))) {
+					return false;
+				}
+			}
+
+			return extras <= 2;
 		}
 
 		private bool NotePressed(NoteInfo note) {
 			if (note.muted) {
+				// It seems like this is just how they work...
 				return true;
 			}
 
@@ -220,6 +268,26 @@ namespace YARG.PlayMode {
 				var noteComp = notePool.AddNote(noteInfo, pos);
 				noteComp.SetInfo(stringColors[i], noteInfo.length, noteInfo.hopo);
 				noteComp.SetFretNumber(noteInfo.muted ? "X" : noteInfo.stringFrets[i].ToString());
+			}
+		}
+
+		private void StartSustainParticles(NoteInfo note) {
+			for (int i = 0; i < 6; i++) {
+				if (note.stringFrets[i] == -1) {
+					continue;
+				}
+
+				sustainParticles[i].Play();
+			}
+		}
+
+		private void EndSustainParticles(NoteInfo note) {
+			for (int i = 0; i < 6; i++) {
+				if (note.stringFrets[i] == -1) {
+					continue;
+				}
+
+				sustainParticles[i].Stop();
 			}
 		}
 	}

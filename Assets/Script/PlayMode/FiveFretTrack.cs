@@ -169,7 +169,7 @@ namespace YARG.PlayMode {
 			// Check if correct chord is pressed
 			if (!ChordPressed(chord)) {
 				if (!chord[0].hopo) {
-					Combo = 0;
+					UpdateOverstrums();
 				}
 
 				return;

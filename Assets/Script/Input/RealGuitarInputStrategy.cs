@@ -17,6 +17,10 @@ namespace YARG.Input {
 			STR_5 = 32
 		}
 
+		public static StrumFlag StrumFlagFromInt(int str) {
+			return (StrumFlag) (1 << str);
+		}
+
 		public delegate void FretChangeAction(int str, int fret);
 		public delegate void StrumAction(StrumFlag strFlag);
 
@@ -57,7 +61,7 @@ namespace YARG.Input {
 			for (int i = 0; i < 6; i++) {
 				int vel = input.GetStringControl(i).ReadValue();
 				if (vel != stringCache[i]) {
-					stringGroupingFlag |= (StrumFlag) (1 << i);
+					stringGroupingFlag |= StrumFlagFromInt(i);
 					stringCache[i] = vel;
 
 					// Start grouping if not already
@@ -100,7 +104,7 @@ namespace YARG.Input {
 				StrumFlag flag = StrumFlag.NONE;
 				for (int i = 0; i < 6; i++) {
 					if (note.stringFrets[i] != -1) {
-						flag |= (StrumFlag) (1 << i);
+						flag |= StrumFlagFromInt(i);
 					}
 				}
 				StrumEvent?.Invoke(flag);
