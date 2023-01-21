@@ -204,20 +204,22 @@ namespace YARG.PlayMode {
 		private bool NoteStrummed(NoteInfo note) {
 			int extras = 0;
 			for (int str = 0; str < note.stringFrets.Length; str++) {
+				bool has = strumFlag.HasFlag(StrumFlagFromInt(str));
+
 				if (note.stringFrets[str] == -1) {
-					if (strumFlag.HasFlag(StrumFlagFromInt(str))) {
+					if (has) {
 						extras++;
 					}
 
 					continue;
 				}
 
-				if (!strumFlag.HasFlag(StrumFlagFromInt(str))) {
+				if (!has) {
 					return false;
 				}
 			}
 
-			return extras <= 2;
+			return extras <= 3;
 		}
 
 		private bool NotePressed(NoteInfo note) {
