@@ -12,7 +12,8 @@ namespace YARG.PlayMode {
 		public event StarpowerMissAction StarpowerMissEvent;
 
 		public PlayerManager.Player player;
-		public float RelativeTime => Play.Instance.SongTime + ((TRACK_SPAWN_OFFSET + 1.75f) / player.trackSpeed);
+		public float RelativeTime => Play.Instance.SongTime +
+			((TRACK_SPAWN_OFFSET + 1.75f) / (player.trackSpeed / Play.speed));
 
 		[SerializeField]
 		protected Camera trackCamera;
@@ -226,7 +227,7 @@ namespace YARG.PlayMode {
 		}
 
 		protected float CalcLagCompensation(float currentTime, float noteTime) {
-			return (currentTime - noteTime) * player.trackSpeed;
+			return (currentTime - noteTime) * (player.trackSpeed / Play.speed);
 		}
 	}
 }

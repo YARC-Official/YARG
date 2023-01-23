@@ -18,6 +18,7 @@ namespace YARG {
 			public string DisplayName => name + (inputStrategy.botMode ? " (BOT)" : "");
 
 			public InputStrategy inputStrategy;
+
 			public float trackSpeed = 5f;
 
 			public string chosenInstrument = "guitar";

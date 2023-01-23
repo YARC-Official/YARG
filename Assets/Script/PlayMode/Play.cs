@@ -15,6 +15,8 @@ namespace YARG.PlayMode {
 			private set;
 		}
 
+		public static float speed = 1.0f;
+
 		public const float SONG_START_OFFSET = 1f;
 		public const float HIT_MARGIN = 0.095f;
 		public const bool ANCHORING = true;
@@ -41,7 +43,7 @@ namespace YARG.PlayMode {
 
 		private float realSongTime = 0f;
 		public float SongTime {
-			get => realSongTime + PlayerManager.globalCalibration;
+			get => realSongTime + PlayerManager.globalCalibration * speed;
 		}
 
 		public Chart chart;
@@ -102,6 +104,7 @@ namespace YARG.PlayMode {
 
 			// Start all audio at the same time
 			foreach (var (_, audioSource) in audioSources) {
+				audioSource.pitch = speed;
 				audioSource.Play();
 			}
 			realSongTime = audioSources.First().Value.time;
@@ -113,7 +116,7 @@ namespace YARG.PlayMode {
 				return;
 			}
 
-			realSongTime += Time.deltaTime;
+			realSongTime += Time.deltaTime * speed;
 
 			// Audio raising and lowering based on player preformance
 			UpdateAudio("guitar", "realGuitar", "guitar", null);
