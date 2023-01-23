@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
@@ -7,6 +8,14 @@ using YARG.Data;
 
 namespace YARG.Serialization.Parser {
 	public partial class MidiParser : AbstractParser {
+		private static readonly byte[] SYSEX_OPEN_NOTE = {
+			0x08, 0x50, 0x53, 0x00, 0x00, 0x03, 0x01
+		};
+
+		private static readonly byte[] SYSEX_TAP_NOTE = {
+			0x08, 0x50, 0x53, 0x00, 0x00, 0xFF, 0x04
+		};
+
 		[Flags]
 		private enum FretFlag {
 			NONE = 0,
@@ -20,7 +29,8 @@ namespace YARG.Serialization.Parser {
 		private enum ForceState {
 			NONE,
 			HOPO,
-			STRUM
+			STRUM,
+			OPEN
 		}
 
 		private class FiveFretIR {
@@ -60,54 +70,94 @@ namespace YARG.Serialization.Parser {
 			// we must store the ON events and wait until the
 			// OFF event to actually add the state. This stores
 			// the ON event timings.
-			long?[] forceStateArray = new long?[2];
+			long?[] forceStateArray = new long?[4];
 
 			// Convert track events into intermediate representation
 			foreach (var trackEvent in trackChunk.Events) {
 				totalDelta += trackEvent.DeltaTime;
 
-				if (trackEvent is not NoteEvent noteEvent) {
-					continue;
-				}
+				if (trackEvent is SysExEvent sysExEvent) {
+					// SysEx based flags (WHY????)
 
-				// Look for correct octave
-				if (noteEvent.GetNoteOctave() != 4 + difficulty) {
-					continue;
-				}
-
-				// Convert note to fret number (or special)
-				ForceState forceState = noteEvent.GetNoteName() switch {
-					// Force HOPO
-					NoteName.F => ForceState.HOPO,
-					// Force strum
-					NoteName.FSharp => ForceState.STRUM,
-					// Default
-					_ => ForceState.NONE
-				};
-
-				// Skip if not an actual state
-				if (forceState == ForceState.NONE) {
-					continue;
-				}
-
-				// Deal with notes
-				int i = (int) forceState - 1;
-				if (noteEvent is NoteOnEvent) {
-					// If it is a note on, wait until we get the note
-					// off so we can get the length of the note.
-					forceStateArray[i] = totalDelta;
-				} else if (noteEvent is NoteOffEvent) {
-					if (forceStateArray[i] == null) {
+					// Skip if not right data length
+					if (sysExEvent.Data.Length != 8) {
 						continue;
 					}
 
-					forceIR.Add(new ForceStateIR {
-						startTick = forceStateArray[i].Value,
-						endTick = totalDelta,
-						forceState = forceState
-					});
+					byte[] header = sysExEvent.Data.SkipLast(1).ToArray();
 
-					forceStateArray[i] = null;
+					// Look for open note OR tap note header
+					int i;
+					ForceState forceState;
+					if (header.SequenceEqual(SYSEX_OPEN_NOTE)) {
+						i = 3;
+						forceState = ForceState.OPEN;
+					} else if (header.SequenceEqual(SYSEX_TAP_NOTE)) {
+						i = 4;
+						forceState = ForceState.HOPO;
+					} else {
+						continue;
+					}
+
+					if (sysExEvent.Data[7] == 0x01) {
+						// If it is a flag on, wait until we get the flag
+						// off so we can get the length of the flag period.
+						forceStateArray[i] = totalDelta;
+					} else {
+						if (forceStateArray[i] == null) {
+							continue;
+						}
+
+						forceIR.Add(new ForceStateIR {
+							startTick = forceStateArray[i].Value,
+							endTick = totalDelta,
+							forceState = forceState
+						});
+
+						forceStateArray[i] = null;
+					}
+				} else if (trackEvent is NoteEvent noteEvent) {
+					// Note based flags
+
+					// Look for correct octave
+					if (noteEvent.GetNoteOctave() != 4 + difficulty) {
+						continue;
+					}
+
+					// Convert note to fret number (or special)
+					ForceState forceState = noteEvent.GetNoteName() switch {
+						// Force HOPO
+						NoteName.F => ForceState.HOPO,
+						// Force strum
+						NoteName.FSharp => ForceState.STRUM,
+						// Default
+						_ => ForceState.NONE
+					};
+
+					// Skip if not an actual state
+					if (forceState == ForceState.NONE) {
+						continue;
+					}
+
+					// Deal with notes
+					int i = (int) forceState - 1;
+					if (noteEvent is NoteOnEvent) {
+						// If it is a note on, wait until we get the note
+						// off so we can get the length of the note.
+						forceStateArray[i] = totalDelta;
+					} else if (noteEvent is NoteOffEvent) {
+						if (forceStateArray[i] == null) {
+							continue;
+						}
+
+						forceIR.Add(new ForceStateIR {
+							startTick = forceStateArray[i].Value,
+							endTick = totalDelta,
+							forceState = forceState
+						});
+
+						forceStateArray[i] = null;
+					}
 				}
 			}
 

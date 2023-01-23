@@ -73,17 +73,7 @@ namespace YARG.UI {
 			}
 
 			// Source
-			supportText.text = songInfo.source switch {
-				"gh1" or "gh1dlc" => "<color=red>Little Support</color>",
-				"gh2" or "gh2dlc" => "<color=yellow>Some Support</color>",
-				"ghm" => "<color=yellow>Some Support</color>",
-				"rb1" or "rb1dlc" => "<color=green>Full Support</color>",
-				"rb2" or "rb2dlc" => "<color=green>Full Support</color>",
-				"tbrb" or "tbrbdlc" => "<color=green>Full Support</color>",
-				"rbacdc" => "<color=green>Full Support</color>",
-				"rb3" or "rb3dlc" => "<color=green>Full Pro Support</color>",
-				_ => "<color=purple>Unknown Support</color>"
-			};
+			supportText.text = Utils.SourceToGameName(songInfo.source);
 
 			// Album cover
 			albumCover.texture = null;
