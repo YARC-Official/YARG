@@ -76,11 +76,15 @@ namespace YARG.Input {
 				}
 
 				var noteInfo = chart[botChartIndex];
-
-				// Press new fret
-				FretChangeEvent?.Invoke(true, noteInfo.fret);
-				StrumEvent?.Invoke();
 				botChartIndex++;
+
+				// Skip fret press if open note
+				if (noteInfo.fret != 5) {
+					FretChangeEvent?.Invoke(true, noteInfo.fret);
+				}
+
+				// Strum
+				StrumEvent?.Invoke();
 			}
 
 			// Constantly activate starpower

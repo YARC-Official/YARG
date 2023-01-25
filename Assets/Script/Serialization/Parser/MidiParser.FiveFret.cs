@@ -4,16 +4,17 @@ using System.Linq;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
+using UnityEngine;
 using YARG.Data;
 
 namespace YARG.Serialization.Parser {
 	public partial class MidiParser : AbstractParser {
 		private static readonly byte[] SYSEX_OPEN_NOTE = {
-			0x08, 0x50, 0x53, 0x00, 0x00, 0x03, 0x01
+			0x50, 0x53, 0x00, 0x00, 0x03, 0x01
 		};
 
 		private static readonly byte[] SYSEX_TAP_NOTE = {
-			0x08, 0x50, 0x53, 0x00, 0x00, 0xFF, 0x04
+			0x50, 0x53, 0x00, 0x00, 0xFF, 0x04
 		};
 
 		[Flags]
@@ -23,7 +24,8 @@ namespace YARG.Serialization.Parser {
 			RED = 2,
 			YELLOW = 4,
 			BLUE = 8,
-			ORANGE = 16
+			ORANGE = 16,
+			OPEN = 32
 		}
 
 		private enum ForceState {
@@ -84,22 +86,22 @@ namespace YARG.Serialization.Parser {
 						continue;
 					}
 
-					byte[] header = sysExEvent.Data.SkipLast(1).ToArray();
+					var header = sysExEvent.Data.SkipLast(2);
 
 					// Look for open note OR tap note header
 					int i;
 					ForceState forceState;
 					if (header.SequenceEqual(SYSEX_OPEN_NOTE)) {
-						i = 3;
+						i = 2;
 						forceState = ForceState.OPEN;
 					} else if (header.SequenceEqual(SYSEX_TAP_NOTE)) {
-						i = 4;
+						i = 3;
 						forceState = ForceState.HOPO;
 					} else {
 						continue;
 					}
 
-					if (sysExEvent.Data[7] == 0x01) {
+					if (sysExEvent.Data[6] == 0x01) {
 						// If it is a flag on, wait until we get the flag
 						// off so we can get the length of the flag period.
 						forceStateArray[i] = totalDelta;
@@ -293,6 +295,10 @@ namespace YARG.Serialization.Parser {
 							}
 						} catch { }
 					}
+				} else if (force == ForceState.OPEN) {
+					// Set as open if requested
+					note.fretFlag = FretFlag.OPEN;
+					note.hopo = false;
 				} else {
 					// Otherwise, just set as a HOPO if requested
 					note.hopo = force == ForceState.HOPO;
@@ -324,9 +330,17 @@ namespace YARG.Serialization.Parser {
 
 					int fret = i - 1;
 
+					// Get the end tick (different for open notes)
+					long endTick;
+					if (fret == 5) {
+						endTick = noteInfo.startTick + 1;
+					} else {
+						endTick = noteInfo.endTick[fret];
+					}
+
 					// Get start time and end time (in seconds)
 					float startTime = (float) TimeConverter.ConvertTo<MetricTimeSpan>(noteInfo.startTick, tempoMap).TotalSeconds;
-					float endTime = (float) TimeConverter.ConvertTo<MetricTimeSpan>(noteInfo.endTick[fret], tempoMap).TotalSeconds;
+					float endTime = (float) TimeConverter.ConvertTo<MetricTimeSpan>(endTick, tempoMap).TotalSeconds;
 
 					// Add note
 					noteOutput.Add(new NoteInfo {

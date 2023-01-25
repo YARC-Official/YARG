@@ -3,6 +3,12 @@ using UnityEngine;
 
 namespace YARG.Pools {
 	public class NoteComponent : Poolable {
+		public enum ModelType {
+			NOTE,
+			HOPO,
+			FULL
+		}
+
 		private enum State {
 			WAITING,
 			HITTING,
@@ -13,6 +19,8 @@ namespace YARG.Pools {
 		private GameObject noteGroup;
 		[SerializeField]
 		private GameObject hopoGroup;
+		[SerializeField]
+		private GameObject fullGroup;
 		[SerializeField]
 		private MeshRenderer[] meshRenderers;
 		[SerializeField]
@@ -49,9 +57,11 @@ namespace YARG.Pools {
 			}
 		}
 
-		public void SetInfo(Color c, float length, bool hopo) {
-			noteGroup.SetActive(!hopo);
-			hopoGroup.SetActive(hopo);
+		public void SetInfo(Color c, float length, ModelType hopo) {
+			noteGroup.SetActive(hopo == ModelType.NOTE);
+			hopoGroup.SetActive(hopo == ModelType.HOPO);
+			fullGroup.SetActive(hopo == ModelType.FULL);
+
 			state = State.WAITING;
 
 			SetLength(length);
@@ -108,6 +118,7 @@ namespace YARG.Pools {
 		public void HitNote() {
 			noteGroup.SetActive(false);
 			hopoGroup.SetActive(false);
+			fullGroup.SetActive(false);
 
 			if (fretNumber != null) {
 				fretNumber.gameObject.SetActive(false);

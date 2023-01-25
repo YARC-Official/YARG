@@ -268,7 +268,8 @@ namespace YARG.PlayMode {
 
 				// Set note info
 				var noteComp = notePool.AddNote(noteInfo, pos);
-				noteComp.SetInfo(stringColors[i], noteInfo.length, noteInfo.hopo);
+				var model = noteInfo.hopo ? NoteComponent.ModelType.HOPO : NoteComponent.ModelType.NOTE;
+				noteComp.SetInfo(stringColors[i], noteInfo.length, model);
 				noteComp.SetFretNumber(noteInfo.muted ? "X" : noteInfo.stringFrets[i].ToString());
 			}
 		}

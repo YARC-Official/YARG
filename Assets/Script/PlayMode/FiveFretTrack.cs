@@ -185,7 +185,9 @@ namespace YARG.PlayMode {
 				StopAudio = false;
 
 				// Play particles
-				frets[hit.fret].PlayParticles();
+				if (hit.fret != 5) {
+					frets[hit.fret].PlayParticles();
+				}
 
 				// If sustained, add to held
 				if (hit.length > 0.2f) {
@@ -259,21 +261,31 @@ namespace YARG.PlayMode {
 			}
 
 			if (chord.Length == 1) {
-				// Deal with single notes
 				int fret = chord[0];
-				for (int i = 0; i < frets.Length; i++) {
-					// Skip any notes that are currently held down.
-					// Extended sustains.
-					if (heldNotes.Any(j => j.fret == i)) {
-						continue;
-					}
 
-					if (frets[i].IsPressed && i > fret) {
-						return false;
-					} else if (!frets[i].IsPressed && i == fret) {
-						return false;
-					} else if (frets[i].IsPressed && i != fret && !Play.ANCHORING) {
-						return false;
+				if (fret == 5) {
+					// Deal with open notes
+					for (int i = 0; i < frets.Length; i++) {
+						if (frets[i].IsPressed) {
+							return false;
+						}
+					}
+				} else {
+					// Deal with single notes
+					for (int i = 0; i < frets.Length; i++) {
+						// Skip any notes that are currently held down.
+						// Extended sustains.
+						if (heldNotes.Any(j => j.fret == i)) {
+							continue;
+						}
+
+						if (frets[i].IsPressed && i > fret) {
+							return false;
+						} else if (!frets[i].IsPressed && i == fret) {
+							return false;
+						} else if (frets[i].IsPressed && i != fret && !Play.ANCHORING) {
+							return false;
+						}
 					}
 				}
 			} else {
@@ -337,12 +349,20 @@ namespace YARG.PlayMode {
 		private void SpawnNote(NoteInfo noteInfo, float time) {
 			// Set correct position
 			float lagCompensation = CalcLagCompensation(time, noteInfo.time);
-			float x = frets[noteInfo.fret].transform.localPosition.x;
+			float x = noteInfo.fret == 5 ? 0f : frets[noteInfo.fret].transform.localPosition.x;
 			var pos = new Vector3(x, 0f, TRACK_SPAWN_OFFSET - lagCompensation);
+
+			// Get model type
+			var model = NoteComponent.ModelType.NOTE;
+			if (noteInfo.fret == 5) {
+				model = NoteComponent.ModelType.FULL;
+			} else if (noteInfo.hopo) {
+				model = NoteComponent.ModelType.HOPO;
+			}
 
 			// Set note info
 			var noteComp = notePool.AddNote(noteInfo, pos);
-			noteComp.SetInfo(fretColors[noteInfo.fret], noteInfo.length, noteInfo.hopo);
+			noteComp.SetInfo(fretColors[noteInfo.fret], noteInfo.length, model);
 		}
 	}
 }
