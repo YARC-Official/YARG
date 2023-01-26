@@ -20,6 +20,8 @@ namespace YARG.PlayMode {
 		private NotePool notePool;
 		[SerializeField]
 		private Pool genericPool;
+		[SerializeField]
+		private ParticleGroup openNoteParticles;
 
 		private List<NoteInfo> Chart => Play.Instance.chart
 			.GetChartByName(player.chosenInstrument)[player.chosenDifficulty];
@@ -52,6 +54,7 @@ namespace YARG.PlayMode {
 				fret.SetColor(fretColors[i]);
 				frets[i] = fret;
 			}
+			openNoteParticles.Colorize(fretColors[5]);
 		}
 
 		protected override void OnDestroy() {
@@ -187,6 +190,8 @@ namespace YARG.PlayMode {
 				// Play particles
 				if (hit.fret != 5) {
 					frets[hit.fret].PlayParticles();
+				} else {
+					openNoteParticles.Play();
 				}
 
 				// If sustained, add to held
