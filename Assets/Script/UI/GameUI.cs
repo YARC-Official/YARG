@@ -47,9 +47,17 @@ namespace YARG.UI {
 		}
 
 		private void UpdateRawImageSizing() {
+			// Calculate the percent
+			float percent = 1f / trackContainer.childCount;
+			float heightAdd = 0f;
+			for (int i = 2; i < trackContainer.childCount; i++) {
+				percent += 0.075f;
+				heightAdd += 0.075f * 2f;
+			}
+
+			// Apply UVs
 			foreach (var rawImage in trackContainer.GetComponentsInChildren<RawImage>()) {
-				float percent = 1f / trackContainer.childCount;
-				rawImage.uvRect = new Rect((1f - percent) / 2f, 0f, percent, 1f);
+				rawImage.uvRect = new Rect((1f - percent) / 2f, 0f, percent, 1f + heightAdd);
 			}
 		}
 	}
