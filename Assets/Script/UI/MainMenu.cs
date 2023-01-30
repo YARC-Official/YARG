@@ -34,6 +34,11 @@ namespace YARG.UI {
 		private void Start() {
 			Instance = this;
 
+			// Load song folder from player prefs
+			if (PlayerPrefs.GetString("songFolder") != null) {
+				SongLibrary.songFolder = new(PlayerPrefs.GetString("songFolder"));
+			}
+
 			SetupMainMenu();
 			SetupEditPlayers();
 
@@ -54,6 +59,9 @@ namespace YARG.UI {
 			if (GameManager.client != null) {
 				GameManager.client.SignalEvent -= SignalRecieved;
 			}
+
+			// Save player prefs
+			PlayerPrefs.Save();
 		}
 
 		private void SignalRecieved(string signal) {
@@ -82,6 +90,19 @@ namespace YARG.UI {
 				}
 			};
 
+			// Folder
+			var folder = root.Q<TextField>("Folder");
+			folder.value = SongLibrary.songFolder.FullName;
+			folder.RegisterValueChangedCallback(e => {
+				if (folder != e.target) {
+					return;
+				}
+
+				SongLibrary.songFolder = new(folder.value);
+				PlayerPrefs.SetString("songFolder", folder.value);
+			});
+
+			// Join server
 			root.Q<Button>("JoinServer").clicked += () => {
 				var ip = root.Q<TextField>("ServerIP").value;
 

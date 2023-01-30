@@ -13,6 +13,7 @@
         <ui:Label tabindex="-1" text="YARG" display-tooltip-when-elided="true" class="font-header" style="justify-content: flex-start; height: auto; margin-top: 3px; margin-left: 8px; color: rgb(255, 255, 255); font-size: 16px;" />
     </ui:VisualElement>
     <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 250px; align-self: flex-end;">
+        <ui:TextField picking-mode="Ignore" value="B:\YARG_Songs" name="Folder" />
         <ui:Button tabindex="1" text="Host LAN File Server" display-tooltip-when-elided="true" name="HostServer" style="width: 196px;" />
         <ui:TextField picking-mode="Ignore" name="ServerIP" value="localhost" style="width: 199px;" />
         <ui:Button tabindex="-1" text="Join LAN File Server" display-tooltip-when-elided="true" name="JoinServer" style="width: 191px;" />

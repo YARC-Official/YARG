@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-using IniParser;
 using Newtonsoft.Json;
 using YARG.Data;
 using YARG.Serialization;
