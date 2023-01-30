@@ -35,7 +35,7 @@ namespace YARG.UI {
 			Instance = this;
 
 			// Load song folder from player prefs
-			if (PlayerPrefs.GetString("songFolder") != null) {
+			if (!string.IsNullOrEmpty(PlayerPrefs.GetString("songFolder"))) {
 				SongLibrary.songFolder = new(PlayerPrefs.GetString("songFolder"));
 			}
 
