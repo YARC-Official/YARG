@@ -50,6 +50,7 @@ namespace YARG.PlayMode {
 
 		private int beatIndex = 0;
 		private int lyricIndex = 0;
+		private int lyricPhraseIndex = 0;
 
 		private void Awake() {
 			Instance = this;
@@ -130,9 +131,31 @@ namespace YARG.PlayMode {
 			}
 
 			// Update lyrics
-			while (chart.genericLyrics.Count > lyricIndex && chart.genericLyrics[lyricIndex].time <= SongTime) {
-				GameUI.Instance.SetGenericLyric(chart.genericLyrics[lyricIndex].lyric);
-				lyricIndex++;
+			if (lyricIndex < chart.genericLyrics.Count) {
+				var lyric = chart.genericLyrics[lyricIndex];
+				if (lyricPhraseIndex >= lyric.lyric.Count) {
+					lyricPhraseIndex = 0;
+					lyricIndex++;
+				} else if (lyric.lyric[lyricPhraseIndex].time < SongTime) {
+					// Consolidate lyrics
+					string o = "<color=#ffb700>";
+					for (int i = 0; i < lyric.lyric.Count; i++) {
+						var (_, str) = lyric.lyric[i];
+
+						if (str.EndsWith("-")) {
+							o += str[0..^1].Replace("=", "-");
+						} else {
+							o += str.Replace("=", "-") + " ";
+						}
+
+						if (i + 1 > lyricPhraseIndex) {
+							o += "</color>";
+						}
+					}
+
+					GameUI.Instance.SetGenericLyric(o);
+					lyricPhraseIndex++;
+				}
 			}
 
 			// End song
