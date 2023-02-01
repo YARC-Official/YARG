@@ -6,6 +6,7 @@ using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
 using UnityEngine;
 using YARG.Data;
+using YARG.DiffDownsample;
 
 namespace YARG.Serialization.Parser {
 	public partial class MidiParser : AbstractParser {
@@ -76,6 +77,12 @@ namespace YARG.Serialization.Parser {
 						Debug.LogException(e);
 					}
 				}
+			}
+
+			// Downsample guitar
+
+			if (chart.guitar[3].Count >= 1 && chart.guitar[2].Count <= 0) {
+				chart.guitar[2] = FiveFretDownsample.DownsampleExpertToHard(chart.guitar[3]);
 			}
 
 			// Sort notes by time (just in case) and add delay

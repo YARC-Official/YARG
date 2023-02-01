@@ -14,6 +14,7 @@ namespace YARG.Serialization.Parser {
 			// # is inharmonic
 			// / is split phrase?
 			// + is unknown
+			// ^ is unknown
 
 			// Get lyric phrase timings
 			HashSet<long> startTimings = new();
@@ -56,7 +57,7 @@ namespace YARG.Serialization.Parser {
 						break;
 					}
 
-					string l = lyricEvent.Text;
+					string l = lyricEvent.Text.Trim();
 
 					// Remove state changes
 					if (l.StartsWith("[") && l.EndsWith("]")) {
@@ -69,7 +70,7 @@ namespace YARG.Serialization.Parser {
 					}
 
 					// Remove inharmonic tag and slash
-					if (l.EndsWith("#") || l.EndsWith("/")) {
+					if (l.EndsWith("#") || l.EndsWith("/") || l.EndsWith("^")) {
 						l = l[0..^1];
 					}
 

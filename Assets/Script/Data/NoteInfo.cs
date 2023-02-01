@@ -9,6 +9,12 @@ namespace YARG.Data {
 		/// </summary>
 		public bool hopo;
 
+		/// <summary>
+		/// Whether or not this HOPO is automatic.<br/>
+		/// Used for difficulty downsampling.
+		/// </summary>
+		public bool autoHopo;
+
 		/// <value>
 		/// The fret numbers for a pro-guitar.
 		/// </value>
@@ -17,5 +23,9 @@ namespace YARG.Data {
 		/// Pro-guitar mute note.
 		/// </summary>
 		public bool muted;
+
+		public NoteInfo Duplicate() {
+			return (NoteInfo) MemberwiseClone();
+		}
 	}
 }

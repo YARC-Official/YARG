@@ -4,7 +4,6 @@ using System.Linq;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
-using UnityEngine;
 using YARG.Data;
 
 namespace YARG.Serialization.Parser {
@@ -16,17 +15,6 @@ namespace YARG.Serialization.Parser {
 		private static readonly byte[] SYSEX_TAP_NOTE = {
 			0x50, 0x53, 0x00, 0x00, 0xFF, 0x04
 		};
-
-		[Flags]
-		private enum FretFlag {
-			NONE = 0,
-			GREEN = 1,
-			RED = 2,
-			YELLOW = 4,
-			BLUE = 8,
-			ORANGE = 16,
-			OPEN = 32
-		}
 
 		private enum ForceState {
 			NONE,
@@ -42,6 +30,9 @@ namespace YARG.Serialization.Parser {
 
 			public FretFlag fretFlag;
 			public bool hopo;
+
+			// Used for difficulty downsampling
+			public bool autoHopo;
 		}
 
 		private struct ForceStateIR {
@@ -292,6 +283,7 @@ namespace YARG.Serialization.Parser {
 							// 160 * 12 = 1920
 							if (distance <= new MusicalTimeSpan(170, 1920)) {
 								note.hopo = true;
+								note.autoHopo = true;
 							}
 						} catch { }
 					}
@@ -347,7 +339,8 @@ namespace YARG.Serialization.Parser {
 						time = startTime,
 						length = endTime - startTime,
 						fret = fret,
-						hopo = noteInfo.hopo
+						hopo = noteInfo.hopo,
+						autoHopo = noteInfo.autoHopo
 					});
 				}
 			}
@@ -360,16 +353,11 @@ namespace YARG.Serialization.Parser {
 				return false;
 			}
 
-			if (!IsFlagSingleNote(flag)) {
+			if (!flag.IsFlagSingleNote()) {
 				return false;
 			}
 
 			return true;
-		}
-
-		private static bool IsFlagSingleNote(FretFlag flag) {
-			// Check for only 1 bit enabled
-			return flag != 0 && (flag & (flag - 1)) == 0;
 		}
 	}
 }
