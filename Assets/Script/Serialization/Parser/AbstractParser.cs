@@ -2,11 +2,11 @@ using YARG.Data;
 
 namespace YARG.Serialization.Parser {
 	public abstract class AbstractParser {
-		protected string file;
+		protected string[] files;
 		protected float delay;
 
-		public AbstractParser(string file, float delay) {
-			this.file = file;
+		public AbstractParser(string[] files, float delay) {
+			this.files = files;
 			this.delay = delay;
 		}
 

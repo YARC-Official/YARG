@@ -80,10 +80,8 @@ namespace YARG.PlayMode {
 				audioSources.Add(Path.GetFileNameWithoutExtension(file.Name), audioSource);
 			}
 
-			// Load midi
-			var parser = new MidiParser(Path.Combine(song.folder.FullName, "notes.mid"), song.delay);
-			chart = new Chart();
-			parser.Parse(chart);
+			// Load chart (from midi, upgrades, etc.)
+			LoadChart();
 
 			// Spawn tracks
 			for (int i = 0; i < PlayerManager.players.Count; i++) {
@@ -110,6 +108,26 @@ namespace YARG.PlayMode {
 			}
 			realSongTime = audioSources.First().Value.time;
 			SongStarted = true;
+		}
+
+		private void LoadChart() {
+			// Add main file
+			var files = new List<string> {
+				Path.Combine(song.folder.FullName, "notes.mid")
+			};
+
+			// Look for upgrades and add
+			var upgradeFolder = new DirectoryInfo(Path.Combine(song.folder.FullName, "yarg_upgrade"));
+			if (upgradeFolder.Exists) {
+				foreach (var midi in upgradeFolder.GetFiles("*.mid")) {
+					files.Add(midi.FullName);
+				}
+			}
+
+			// Parse
+			var parser = new MidiParser(files.ToArray(), song.delay);
+			chart = new Chart();
+			parser.Parse(chart);
 		}
 
 		private void Update() {

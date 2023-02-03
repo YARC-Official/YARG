@@ -18,8 +18,29 @@ namespace YARG.Serialization.Parser {
 
 		public MidiFile midi;
 
-		public MidiParser(string file, float delay) : base(file, delay) {
-			midi = MidiFile.Read(file);
+		public MidiParser(string[] files, float delay) : base(files, delay) {
+			midi = MidiFile.Read(files[0]);
+
+			// Merge midi files
+			for (int i = 1; i < files.Length; i++) {
+				var upgrade = MidiFile.Read(files[i]);
+
+				foreach (var trackChunk in upgrade.GetTrackChunks()) {
+					foreach (var trackEvent in trackChunk.Events) {
+						if (trackEvent is not SequenceTrackNameEvent trackName) {
+							continue;
+						}
+
+						// Only merge specific tracks
+						switch (trackName.Text) {
+							case "PART REAL_GUITAR":
+							case "PART REAL_BASS":
+								midi.Chunks.Add(trackChunk);
+								break;
+						}
+					}
+				}
+			}
 		}
 
 		public override void Parse(Chart chart) {
