@@ -15,7 +15,7 @@ namespace YARG.PlayMode {
 			private set;
 		}
 
-		public static float speed = 1.0f;
+		public static float speed = 1f;
 
 		public const float SONG_START_OFFSET = 1f;
 		public const float HIT_MARGIN = 0.095f;
@@ -32,6 +32,8 @@ namespace YARG.PlayMode {
 		private GameObject trackPrefab;
 		[SerializeField]
 		private GameObject realGuitarTrackPrefab;
+		[SerializeField]
+		private GameObject drumsTrackPrefab;
 
 		public bool SongStarted {
 			get;
@@ -91,6 +93,9 @@ namespace YARG.PlayMode {
 				if (instrument == "realGuitar" || instrument == "realBass") {
 					track = Instantiate(realGuitarTrackPrefab, new Vector3(i * 25f, 0f, 0f),
 						realGuitarTrackPrefab.transform.rotation);
+				} else if (instrument == "drums") {
+					track = Instantiate(drumsTrackPrefab, new Vector3(i * 25f, 0f, 0f),
+						drumsTrackPrefab.transform.rotation);
 				} else {
 					track = Instantiate(trackPrefab, new Vector3(i * 25f, 0f, 0f),
 						trackPrefab.transform.rotation);

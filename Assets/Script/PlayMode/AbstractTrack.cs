@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
@@ -14,6 +15,9 @@ namespace YARG.PlayMode {
 		public PlayerManager.Player player;
 		public float RelativeTime => Play.Instance.SongTime +
 			((TRACK_SPAWN_OFFSET + 1.75f) / (player.trackSpeed / Play.speed));
+
+		protected List<NoteInfo> Chart => Play.Instance.chart
+			.GetChartByName(player.chosenInstrument)[player.chosenDifficulty];
 
 		[SerializeField]
 		protected Camera trackCamera;

@@ -1,7 +1,7 @@
 namespace YARG.Data {
 	public class NoteInfo : AbstractInfo {
 		/// <value>
-		/// Acts as the button for a five fret.
+		/// Acts as the button for a five fret, or drum pad for drums.
 		/// </value>
 		public int fret;
 		/// <summary>

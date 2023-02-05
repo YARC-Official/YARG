@@ -29,9 +29,6 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private Pool genericPool;
 
-		private List<NoteInfo> Chart => Play.Instance.chart
-			.GetChartByName(player.chosenInstrument)[player.chosenDifficulty];
-
 		private int visualChartIndex = 0;
 		private int realChartIndex = 0;
 		private int eventChartIndex = 0;

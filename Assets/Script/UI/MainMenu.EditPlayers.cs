@@ -76,6 +76,8 @@ namespace YARG.UI {
 					radioGroup.value = 0;
 				} else if (player.inputStrategy is RealGuitarInputStrategy) {
 					radioGroup.value = 1;
+				} else if (player.inputStrategy is DrumsInputStrategy) {
+					radioGroup.value = 2;
 				} else {
 					radioGroup.value = -1;
 				}
@@ -169,12 +171,16 @@ namespace YARG.UI {
 				}
 
 				var player = PlayerManager.players[playerList.selectedIndex];
+				var oldInput = player.inputStrategy?.inputDevice;
 				switch (e.newValue) {
 					case 0:
-						player.inputStrategy = new FiveFretInputStrategy(null, botMode.value);
+						player.inputStrategy = new FiveFretInputStrategy(oldInput, botMode.value);
 						break;
 					case 1:
-						player.inputStrategy = new RealGuitarInputStrategy(null, botMode.value);
+						player.inputStrategy = new RealGuitarInputStrategy(oldInput, botMode.value);
+						break;
+					case 2:
+						player.inputStrategy = new DrumsInputStrategy(oldInput, botMode.value);
 						break;
 				}
 

@@ -171,8 +171,9 @@ namespace YARG.UI {
 					0 => "guitar",
 					1 => "bass",
 					2 => "keys",
-					3 => "realGuitar",
-					4 => "realBass",
+					3 => "drums",
+					4 => "realGuitar",
+					5 => "realBass",
 					_ => throw new System.Exception("Unreachable.")
 				};
 				player.chosenDifficulty = difficultyChoice.value;
