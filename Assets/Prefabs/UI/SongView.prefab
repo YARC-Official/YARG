@@ -88,7 +88,7 @@ GameObject:
   - component: {fileID: 7898971487434874996}
   - component: {fileID: 1200385484507932754}
   m_Layer: 5
-  m_Name: Length Text
+  m_Name: Score Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -760,7 +760,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   songName: {fileID: 6846856528720448031}
   artist: {fileID: 7006697502306556741}
-  lengthText: {fileID: 1200385484507932754}
+  scoreText: {fileID: 1200385484507932754}
 --- !u!225 &215129106566158253
 CanvasGroup:
   m_ObjectHideFlags: 0

@@ -27,6 +27,11 @@ namespace YARG.Data {
 		[JsonConverter(typeof(DirectoryInfoConverter))]
 		public DirectoryInfo folder;
 
+		/// <summary>
+		/// For remote mode only.
+		/// </summary>
+		public DirectoryInfo realFolderRemote;
+
 		public bool BassPedal2xExpertPlus {
 			private set;
 			get;
@@ -162,6 +167,10 @@ namespace YARG.Data {
 			}
 
 			partDifficulties = new(DEFAULT_DIFFS);
+		}
+
+		public SongInfo Duplicate() {
+			return (SongInfo) MemberwiseClone();
 		}
 	}
 }

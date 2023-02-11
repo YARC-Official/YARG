@@ -9,20 +9,17 @@ namespace YARG.UI {
 		[SerializeField]
 		private TextMeshProUGUI artist;
 		[SerializeField]
-		private TextMeshProUGUI lengthText;
+		private TextMeshProUGUI scoreText;
 
 		public void UpdateSongView(SongInfo songInfo) {
 			songName.text = songInfo.SongName;
 			artist.text = $"<i>{songInfo.ArtistName}</i>";
 
-			if (songInfo.songLength == null) {
-				lengthText.text = "N/A";
+			var score = ScoreManager.GetScore(songInfo);
+			if (score == null) {
+				scoreText.text = "<alpha=#44>No Score";
 			} else {
-				int time = (int) songInfo.songLength.Value;
-				int minutes = time / 60;
-				int seconds = time % 60;
-
-				lengthText.text = $"{minutes}:{seconds:00}";
+				scoreText.text = $"{score.TotalHighestPercent * 100f:N0}%";
 			}
 		}
 	}

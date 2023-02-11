@@ -1,3 +1,7 @@
+using System;
+using System.IO;
+using System.Net.Sockets;
+using System.Threading;
 using UnityEngine;
 
 namespace YARG.Util {
@@ -31,6 +35,40 @@ namespace YARG.Util {
 				_                   => "Unknown/Custom"
 			};
 #pragma warning restore format
+		}
+
+		/// <summary>
+		/// Read a file from a <see cref="NetworkStream"/>.
+		/// </summary>
+		public static void ReadFile(NetworkStream stream, FileInfo output) {
+			const int BUF_SIZE = 81920;
+
+			// Wait until data is available
+			while (!stream.DataAvailable) {
+				Thread.Sleep(100);
+			}
+
+			// Get file size
+			var buffer = new byte[sizeof(long)];
+			stream.Read(buffer, 0, sizeof(long));
+			long size = BitConverter.ToInt64(buffer);
+
+			// If the size is zero, the file did not exist on server
+			if (size <= 0) {
+				return;
+			}
+
+			// Copy data to disk
+			// We can't use CopyTo on a infinite stream (like NetworkStream)
+			long totalRead = 0;
+			var fileBuf = new byte[BUF_SIZE];
+			output.Delete();
+			using var fs = output.OpenWrite();
+			while (totalRead < size) {
+				int bytesRead = stream.Read(fileBuf, 0, BUF_SIZE);
+				fs.Write(fileBuf, 0, bytesRead);
+				totalRead += bytesRead;
+			}
 		}
 	}
 }

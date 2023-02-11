@@ -49,8 +49,10 @@ namespace YARG.UI {
 		private void Start() {
 			Instance = this;
 
+			// Fetch info
 			bool loading = !SongLibrary.FetchSongs();
 			loadingScreen.SetActive(loading);
+			ScoreManager.FetchScores();
 
 			// Create before (insert backwards)
 			for (int i = 0; i < SONG_VIEW_EXTRA; i++) {

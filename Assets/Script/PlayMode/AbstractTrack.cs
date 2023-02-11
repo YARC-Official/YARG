@@ -109,6 +109,8 @@ namespace YARG.PlayMode {
 			player.inputStrategy.StarpowerEvent += StarpowerAction;
 			Play.Instance.BeatEvent += BeatAction;
 
+			player.lastScore = null;
+
 			GameUI.Instance.AddTrackImage(trackCamera.targetTexture);
 
 			// Adjust hit window

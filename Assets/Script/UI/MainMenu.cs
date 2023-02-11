@@ -1,9 +1,10 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.UIElements;
 using YARG.Data;
 using YARG.PlayMode;
-using YARG.Serialization;
 using YARG.Util;
 
 namespace YARG.UI {
@@ -66,9 +67,12 @@ namespace YARG.UI {
 
 		private void SignalRecieved(string signal) {
 			if (signal.StartsWith("DownloadDone,")) {
-				Play.song = SongIni.CompleteSongInfo(new SongInfo(
-					new(Path.Combine(GameManager.client.remotePath, signal[13..]))
-				));
+				Play.song = chosenSong.Duplicate();
+
+				// Replace song folder
+				Play.song.realFolderRemote = Play.song.folder;
+				Play.song.folder = new(Path.Combine(GameManager.client.remotePath, signal[13..]));
+
 				GameManager.Instance.LoadScene(SceneIndex.PLAY);
 			}
 		}
@@ -174,7 +178,7 @@ namespace YARG.UI {
 					3 => "drums",
 					4 => "realGuitar",
 					5 => "realBass",
-					_ => throw new System.Exception("Unreachable.")
+					_ => throw new Exception("Unreachable.")
 				};
 				player.chosenDifficulty = difficultyChoice.value;
 
@@ -187,6 +191,45 @@ namespace YARG.UI {
 		private void SetupPostSong() {
 			var root = postSongDocument.rootVisualElement;
 
+			// Create a score to push
+
+			var songScore = new SongScore {
+				lastPlayed = DateTime.Now,
+				timesPlayed = 1,
+				highestPercent = new()
+			};
+			var oldScore = ScoreManager.GetScore(Play.song);
+
+			HashSet<PlayerManager.Player> highScores = new();
+			foreach (var player in PlayerManager.players) {
+				if (player.inputStrategy.botMode) {
+					continue;
+				}
+
+				if (!player.lastScore.HasValue) {
+					continue;
+				}
+
+				var lastScore = player.lastScore.GetValueOrDefault();
+
+				// Skip if the chart has no notes (will be viewed as 100%)
+				if (lastScore.notesHit == 0) {
+					continue;
+				}
+
+				// Override or add percentage
+				if (oldScore == null ||
+					!oldScore.highestPercent.TryGetValue(player.chosenInstrument, out var oldHighest) ||
+					lastScore.percentage > oldHighest) {
+
+					songScore.highestPercent[player.chosenInstrument] = lastScore.percentage;
+					highScores.Add(player);
+				}
+			}
+
+			// Push!
+			ScoreManager.PushScore(Play.song, songScore);
+
 			// Setup score label
 
 			var label = root.Q<Label>("Score");
@@ -198,7 +241,13 @@ namespace YARG.UI {
 				}
 
 				var score = player.lastScore.Value;
-				label.text += $"{player.DisplayName}: {score.percentage * 100f:N1}%, {score.notesHit} hit, {score.notesMissed} missed\n\n";
+				label.text += $"{player.DisplayName}: {score.percentage * 100f:N1}%, {score.notesHit} hit, {score.notesMissed} missed";
+
+				if (highScores.Contains(player)) {
+					label.text += " <color=green>HIGH SCORE!</color>";
+				}
+
+				label.text += "\n\n";
 			}
 
 			// Next button

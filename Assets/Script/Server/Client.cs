@@ -14,6 +14,7 @@ namespace YARG.Server {
 		public event SignalAction SignalEvent;
 
 		public FileInfo remoteCache;
+		public FileInfo remoteScore;
 		public string remotePath;
 
 		public string AlbumCoversPath => Path.Combine(remotePath, "_album_covers");
@@ -51,12 +52,15 @@ namespace YARG.Server {
 		private void ClientThread() {
 			var stream = client.GetStream();
 
-			// Request cache
-			Send(stream, "ReqCache");
-
 			// Read cache from server
+			Send(stream, "ReqCache");
 			remoteCache = new(Path.Combine(remotePath, "yarg_cache.json"));
-			ReadFile(stream, remoteCache);
+			Utils.ReadFile(stream, remoteCache);
+
+			// Read score from server
+			Send(stream, "ReqScore");
+			remoteScore = new(Path.Combine(remotePath, "yarg_score.json"));
+			Utils.ReadFile(stream, remoteScore);
 
 			// Wait until request
 			while (true) {
@@ -66,7 +70,7 @@ namespace YARG.Server {
 					if (request.StartsWith("ReqSong,")) {
 						// Read zipped song from server
 						string zipPath = Path.Combine(remotePath, "download.zip");
-						ReadFile(stream, new(zipPath));
+						Utils.ReadFile(stream, new(zipPath));
 
 						// When done, unzip file
 						string folderName = Utils.Hash(request[8..]);
@@ -81,10 +85,32 @@ namespace YARG.Server {
 						// Read album.png from server
 						string hash = Utils.Hash(request[14..]);
 						string pngPath = Path.Combine(AlbumCoversPath, $"{hash}.png");
-						ReadFile(stream, new(pngPath));
+						Utils.ReadFile(stream, new(pngPath));
 
 						// Send signal
 						signals.Enqueue($"AlbumCoverDone,{hash}");
+					} else if (request == "WriteScores") {
+						// TODO: This sucks, but I'm too lazy
+						// Wait for proceed on the stream
+						while (true) {
+							if (stream.DataAvailable) {
+								// Get data from client
+								byte[] bytes = new byte[1024];
+								int size = stream.Read(bytes, 0, bytes.Length);
+
+								// Get request
+								var str = Encoding.UTF8.GetString(bytes, 0, size);
+
+								if (str == "ProceedWriteScores") {
+									SendFile(stream, ScoreManager.ScoreFile);
+								}
+
+								break;
+							}
+
+							// Prevent CPU burn
+							Thread.Sleep(10);
+						}
 					}
 				}
 
@@ -99,34 +125,14 @@ namespace YARG.Server {
 			stream.Flush();
 		}
 
-		private void ReadFile(NetworkStream stream, FileInfo output) {
-			const int BUF_SIZE = 81920;
+		private void SendFile(NetworkStream stream, FileInfo file) {
+			using var fs = file.OpenRead();
 
-			// Wait until data is available
-			while (!stream.DataAvailable) {
-				Thread.Sleep(100);
-			}
+			// Send file size
+			stream.Write(BitConverter.GetBytes(fs.Length));
 
-			// Get file size
-			var buffer = new byte[sizeof(long)];
-			stream.Read(buffer, 0, sizeof(long));
-			long size = BitConverter.ToInt64(buffer);
-
-			// If the size is zero, the file did not exist on server
-			if (size <= 0) {
-				return;
-			}
-
-			// Copy data to disk
-			// We can't use CopyTo on a infinite stream (like NetworkStream)
-			long totalRead = 0;
-			var fileBuf = new byte[BUF_SIZE];
-			using var fs = output.OpenWrite();
-			while (totalRead < size) {
-				int bytesRead = stream.Read(fileBuf, 0, BUF_SIZE);
-				fs.Write(fileBuf, 0, bytesRead);
-				totalRead += bytesRead;
-			}
+			// Send file itself
+			fs.CopyTo(stream);
 		}
 
 		public void Stop() {
@@ -182,6 +188,10 @@ namespace YARG.Server {
 
 			// Otherwise, we have to request it
 			requests.Enqueue($"ReqAlbumCover,{path}");
+		}
+
+		public void WriteScores() {
+			requests.Enqueue("WriteScores");
 		}
 	}
 }

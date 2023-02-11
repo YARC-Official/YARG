@@ -14,6 +14,8 @@ namespace YARG.UI {
 		[SerializeField]
 		private TextMeshProUGUI artist;
 		[SerializeField]
+		private TextMeshProUGUI scoreText;
+		[SerializeField]
 		private TextMeshProUGUI lengthText;
 		[SerializeField]
 		private TextMeshProUGUI supportText;
@@ -60,6 +62,14 @@ namespace YARG.UI {
 			// Basic info
 			songName.text = songInfo.SongName;
 			artist.text = $"<i>{songInfo.ArtistName}</i>";
+
+			// Song score
+			var score = ScoreManager.GetScore(songInfo);
+			if (score == null) {
+				scoreText.text = "<alpha=#BB>No Score";
+			} else {
+				scoreText.text = $"{score.TotalHighestPercent * 100f:N0}%";
+			}
 
 			// Song length
 			if (songInfo.songLength == null) {

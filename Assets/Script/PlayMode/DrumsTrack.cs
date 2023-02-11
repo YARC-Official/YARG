@@ -57,7 +57,7 @@ namespace YARG.PlayMode {
 
 			// Set score
 			player.lastScore = new PlayerManager.Score {
-				percentage = (float) notesHit / Chart.Count,
+				percentage = notesHit == 0 ? 1f : (float) notesHit / Chart.Count,
 				notesHit = notesHit,
 				notesMissed = Chart.Count - notesHit
 			};

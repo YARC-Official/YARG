@@ -4,8 +4,10 @@ using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using UnityEngine;
+using YARG.Util;
 
 namespace YARG.Server {
 	public partial class Host : MonoBehaviour {
@@ -18,8 +20,9 @@ namespace YARG.Server {
 			GameManager.Instance.LowQualityMode = true;
 			Application.targetFrameRate = 5;
 
-			// Fetch songs first so we have a cache file to send
+			// Fetch songs and scores first so we have a cache file to send
 			SongLibrary.FetchSongs();
+			ScoreManager.FetchScores();
 
 			// Create the TcpListener
 			server = new TcpListener(IPAddress.Any, 6145);
@@ -60,7 +63,7 @@ namespace YARG.Server {
 						int size = stream.Read(bytes, 0, bytes.Length);
 
 						// Get request
-						var str = System.Text.Encoding.UTF8.GetString(bytes, 0, size);
+						var str = Encoding.UTF8.GetString(bytes, 0, size);
 						Log($"Received: `{str}`.");
 
 						// Do something
@@ -68,6 +71,8 @@ namespace YARG.Server {
 							break;
 						} else if (str == "ReqCache") {
 							SendFile(stream, SongLibrary.CacheFile);
+						} else if (str == "ReqScore") {
+							SendFile(stream, ScoreManager.ScoreFile);
 						} else if (str.StartsWith("ReqSong,")) {
 							// Get the folder
 							string path = str[8..];
@@ -106,6 +111,20 @@ namespace YARG.Server {
 							} else {
 								SendNoFile(stream);
 							}
+						} else if (str == "WriteScores") {
+							Send(stream, "ProceedWriteScores");
+
+							// TODO: This sucks, but I'm too lazy
+							// Wait for file on the stream
+							while (true) {
+								if (stream.DataAvailable) {
+									Utils.ReadFile(stream, ScoreManager.ScoreFile);
+									break;
+								}
+
+								// Prevent CPU burn
+								Thread.Sleep(10);
+							}
 						}
 					} else {
 						// Prevent CPU burn
@@ -134,6 +153,12 @@ namespace YARG.Server {
 		private void SendNoFile(NetworkStream stream) {
 			// Send over a size of zero
 			stream.Write(BitConverter.GetBytes(0));
+		}
+
+		private void Send(NetworkStream stream, string str) {
+			var send = Encoding.UTF8.GetBytes(str);
+			stream.Write(send, 0, send.Length);
+			stream.Flush();
 		}
 
 		private void OnDestroy() {
