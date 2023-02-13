@@ -9,15 +9,7 @@ namespace YARG {
 		/// <value>
 		/// The location of the local or remote score file (depending on whether we are connected to a server).
 		/// </value>
-		public static FileInfo ScoreFile {
-			get {
-				if (GameManager.client != null) {
-					return GameManager.client.remoteScore;
-				}
-
-				return new(Path.Combine(SongLibrary.songFolder.ToString(), "yarg_score.json"));
-			}
-		}
+		public static FileInfo ScoreFile => new(Path.Combine(SongLibrary.songFolder.ToString(), "yarg_score.json"));
 
 		private static Dictionary<string, SongScore> scores = null;
 

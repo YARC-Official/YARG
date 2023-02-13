@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Net.Sockets;
 using System.Threading;
 using UnityEngine;
@@ -68,6 +69,17 @@ namespace YARG.Util {
 				int bytesRead = stream.Read(fileBuf, 0, BUF_SIZE);
 				fs.Write(fileBuf, 0, bytesRead);
 				totalRead += bytesRead;
+			}
+		}
+
+		/// <summary>
+		/// Create a zip file from the specified <paramref name="files"/>.
+		/// </summary>
+		public static void CreateZipFromFiles(string outputZip, params FileInfo[] files) {
+			using ZipArchive archive = ZipFile.Open(outputZip, ZipArchiveMode.Create);
+
+			foreach (var file in files) {
+				archive.CreateEntryFromFile(file.FullName, file.Name);
 			}
 		}
 	}

@@ -13,8 +13,6 @@ namespace YARG.Server {
 		public delegate void SignalAction(string signal);
 		public event SignalAction SignalEvent;
 
-		public FileInfo remoteCache;
-		public FileInfo remoteScore;
 		public string remotePath;
 
 		public string AlbumCoversPath => Path.Combine(remotePath, "_album_covers");
@@ -40,8 +38,11 @@ namespace YARG.Server {
 				dirInfo.Create();
 			}
 
-			client = new TcpClient(ip, 6145);
+			// Set `songFolder` to the remote path
+			SongLibrary.songFolder = new(remotePath);
 
+			// Create TCP client
+			client = new TcpClient(ip, 6145);
 			thread = new Thread(ClientThread);
 			thread.Start();
 
@@ -52,15 +53,18 @@ namespace YARG.Server {
 		private void ClientThread() {
 			var stream = client.GetStream();
 
-			// Read cache from server
-			Send(stream, "ReqCache");
-			remoteCache = new(Path.Combine(remotePath, "yarg_cache.json"));
-			Utils.ReadFile(stream, remoteCache);
+			// Request cache, scores, etc. from server
+			Send(stream, "ReqInfoPkg");
 
-			// Read score from server
-			Send(stream, "ReqScore");
-			remoteScore = new(Path.Combine(remotePath, "yarg_score.json"));
-			Utils.ReadFile(stream, remoteScore);
+			// Read zipped info package from server
+			string pkgZipPath = Path.Combine(remotePath, "download.zip");
+			Utils.ReadFile(stream, new(pkgZipPath));
+
+			// When done, dump all files into remote path
+			ZipFile.ExtractToDirectory(pkgZipPath, remotePath);
+
+			// Delete zip
+			File.Delete(pkgZipPath);
 
 			// Wait until request
 			while (true) {
@@ -77,7 +81,7 @@ namespace YARG.Server {
 						ZipFile.ExtractToDirectory(zipPath, Path.Combine(remotePath, folderName));
 
 						// Delete zip
-						new FileInfo(zipPath).Delete();
+						File.Delete(zipPath);
 
 						// Send signal
 						signals.Enqueue($"DownloadDone,{folderName}");
@@ -89,28 +93,6 @@ namespace YARG.Server {
 
 						// Send signal
 						signals.Enqueue($"AlbumCoverDone,{hash}");
-					} else if (request == "WriteScores") {
-						// TODO: This sucks, but I'm too lazy
-						// Wait for proceed on the stream
-						while (true) {
-							if (stream.DataAvailable) {
-								// Get data from client
-								byte[] bytes = new byte[1024];
-								int size = stream.Read(bytes, 0, bytes.Length);
-
-								// Get request
-								var str = Encoding.UTF8.GetString(bytes, 0, size);
-
-								if (str == "ProceedWriteScores") {
-									SendFile(stream, ScoreManager.ScoreFile);
-								}
-
-								break;
-							}
-
-							// Prevent CPU burn
-							Thread.Sleep(10);
-						}
 					}
 				}
 
@@ -143,11 +125,43 @@ namespace YARG.Server {
 
 			thread.Abort();
 
-			// Send "End" packet
+			// Send "ReqEnd" packet
 			var stream = client.GetStream();
-			var send = Encoding.UTF8.GetBytes("End");
-			stream.Write(send, 0, send.Length);
-			stream.Flush();
+			Send(stream, "ReqEnd");
+
+			// Wait for proceed and send new info
+			while (true) {
+				if (stream.DataAvailable) {
+					// Get data from client
+					byte[] bytes = new byte[1024];
+					int size = stream.Read(bytes, 0, bytes.Length);
+
+					// Get request
+					var str = Encoding.UTF8.GetString(bytes, 0, size);
+
+					if (str != "ReqInfoPkgThenEnd") {
+						continue;
+					}
+
+					// Zip up yarg_score, etc.
+					string zipPath = Path.Combine(remotePath, "download.zip");
+					Utils.CreateZipFromFiles(zipPath, ScoreManager.ScoreFile);
+
+					// Send it over
+					var info = new FileInfo(zipPath);
+					SendFile(stream, info);
+
+					// Delete temp
+					info.Delete();
+
+					break;
+				}
+
+				// Prevent CPU burn
+				Thread.Sleep(10);
+			}
+
+			// Then close
 			client.Close();
 
 			// Delete remote folder

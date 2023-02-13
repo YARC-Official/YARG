@@ -14,15 +14,7 @@ namespace YARG {
 		/// <value>
 		/// The location of the local or remote cache (depending on whether we are connected to a server).
 		/// </value>
-		public static FileInfo CacheFile {
-			get {
-				if (GameManager.client != null) {
-					return GameManager.client.remoteCache;
-				}
-
-				return new(Path.Combine(songFolder.ToString(), "yarg_cache.json"));
-			}
-		}
+		public static FileInfo CacheFile => new(Path.Combine(songFolder.ToString(), "yarg_cache.json"));
 
 		/// <value>
 		/// A list of all of the playable songs.<br/>

@@ -67,12 +67,47 @@ namespace YARG.Server {
 						Log($"Received: `{str}`.");
 
 						// Do something
-						if (str == "End") {
+						if (str == "ReqEnd") {
+							Log("Requesting client data...");
+							Send(stream, "ReqInfoPkgThenEnd");
+
+							// Wait for file on the stream
+							while (true) {
+								if (stream.DataAvailable) {
+									string name = GetUniqueZipName();
+
+									// Read zipped info package from server
+									Utils.ReadFile(stream, new(name));
+
+									// When done, dump all files into local path
+									ZipFile.ExtractToDirectory(name, SongLibrary.songFolder.ToString(), true);
+
+									// Delete zip
+									File.Delete(name);
+
+									break;
+								}
+
+								// Prevent CPU burn
+								Thread.Sleep(10);
+							}
+
+							Log("Synced client data.");
+
+							// All done!
 							break;
-						} else if (str == "ReqCache") {
-							SendFile(stream, SongLibrary.CacheFile);
-						} else if (str == "ReqScore") {
-							SendFile(stream, ScoreManager.ScoreFile);
+						} else if (str == "ReqInfoPkg") {
+							string name = GetUniqueZipName();
+
+							// Zip up yarg_cache, yarg_score, etc.
+							Utils.CreateZipFromFiles(name, SongLibrary.CacheFile, ScoreManager.ScoreFile);
+
+							// Send it over
+							var info = new FileInfo(name);
+							SendFile(stream, info);
+
+							// Delete temp
+							info.Delete();
 						} else if (str.StartsWith("ReqSong,")) {
 							// Get the folder
 							string path = str[8..];
@@ -82,9 +117,7 @@ namespace YARG.Server {
 								return;
 							}
 
-							// Create unique temp file name
-							string name = $"temp_{Thread.CurrentThread.ManagedThreadId}.zip";
-							name = Path.Combine(SongLibrary.songFolder.FullName, name);
+							string name = GetUniqueZipName();
 
 							// Zip up folder
 							ZipFile.CreateFromDirectory(path, name);
@@ -111,20 +144,6 @@ namespace YARG.Server {
 							} else {
 								SendNoFile(stream);
 							}
-						} else if (str == "WriteScores") {
-							Send(stream, "ProceedWriteScores");
-
-							// TODO: This sucks, but I'm too lazy
-							// Wait for file on the stream
-							while (true) {
-								if (stream.DataAvailable) {
-									Utils.ReadFile(stream, ScoreManager.ScoreFile);
-									break;
-								}
-
-								// Prevent CPU burn
-								Thread.Sleep(10);
-							}
 						}
 					} else {
 						// Prevent CPU burn
@@ -137,6 +156,14 @@ namespace YARG.Server {
 
 			Log("<color=yellow>Client disconnected.</color>");
 			connectionCount--;
+		}
+
+		private static string GetUniqueZipName() {
+			string name = $"temp_{Thread.CurrentThread.ManagedThreadId}.zip";
+			name = Path.Combine(SongLibrary.songFolder.FullName, name);
+			File.Delete(name);
+
+			return name;
 		}
 
 		private void SendFile(NetworkStream stream, FileInfo file) {
