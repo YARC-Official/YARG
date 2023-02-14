@@ -296,23 +296,15 @@ namespace YARG.UI {
 				songs.Insert(0, new SongOrHeader {
 					header = ("Recommended Songs", $"{recommendedSongs.Count} random songs")
 				});
-
-				selectedSongIndex = 1;
-			}
-
-			/*else if (searchField.text.StartsWith("artist:")) {
+			} else if (searchField.text.StartsWith("artist:")) {
 				// Search by artist
-				var artist = searchField.text[7..].ToLower();
+				var artist = searchField.text[7..];
 				songs = SongLibrary.Songs
-					.Where(i => i.ArtistName.ToLower() == artist)
+					.Where(i => i.ArtistName.ToLower() == artist.ToLower())
 					.OrderBy(song => song.SongNameNoParen)
+					.Select(i => new SongOrHeader { song = i })
 					.ToList();
-			} else if (searchField.text == "has:PG") {
-				// Filter pro guitar (temp)
-				songs = SongLibrary.Songs
-					.Where(i => i.partDifficulties["guitar_real"] != -1)
-					.OrderBy(song => song.SongNameNoParen)
-					.ToList();
+				songs.Insert(0, new SongOrHeader { header = ($"{artist}'s Songs", $"{songs.Count} songs") });
 			} else {
 				// Fuzzy search!
 				var text = searchField.text.ToLower();
@@ -321,9 +313,12 @@ namespace YARG.UI {
 					.Where(i => i.score > 55)
 					.OrderByDescending(i => i.score)
 					.Select(i => i.songInfo)
+					.Select(i => new SongOrHeader { song = i })
 					.ToList();
-			}*/
+				songs.Insert(0, new SongOrHeader { header = ("Searched Songs", $"{songs.Count} songs") });
+			}
 
+			selectedSongIndex = 1;
 			UpdateSongViews();
 		}
 	}
