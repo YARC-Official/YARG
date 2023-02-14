@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using Newtonsoft.Json;
 using YARG.Data;
@@ -89,6 +90,13 @@ namespace YARG {
 					GameManager.client.WriteScores();
 				}
 			});
+		}
+
+		public static List<SongInfo> SongsByPlayCount() {
+			return scores
+				.OrderByDescending(i => i.Value.lastPlayed)
+				.Select(i => SongLibrary.Songs.Find(j => j.folder.FullName == i.Key))
+				.ToList();
 		}
 	}
 }

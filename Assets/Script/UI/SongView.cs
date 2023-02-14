@@ -10,8 +10,12 @@ namespace YARG.UI {
 		private TextMeshProUGUI artist;
 		[SerializeField]
 		private TextMeshProUGUI scoreText;
+		[SerializeField]
+		private GameObject background;
 
 		public void UpdateSongView(SongInfo songInfo) {
+			background.SetActive(false);
+
 			songName.text = songInfo.SongName;
 			artist.text = $"<i>{songInfo.ArtistName}</i>";
 
@@ -21,6 +25,14 @@ namespace YARG.UI {
 			} else {
 				scoreText.text = $"{score.TotalHighestPercent * 100f:N0}%";
 			}
+		}
+
+		public void UpdateSongViewAsHeader(string header, string subheader) {
+			background.SetActive(true);
+
+			songName.text = $"<b>{header}</b>";
+			artist.text = subheader;
+			scoreText.text = "";
 		}
 	}
 }

@@ -6,6 +6,14 @@
 
 **Y**et **A**nother **R**hythm **G**ame inspired off of Rockband, Guitar Hero, Clone Hero, or similar.
 
+# Building
+
+1. Clone repository.
+2. Open it in Unity version `2022.2.0b16` (or newer)
+3. Load in **without** entering safe mode.
+4. Click on `NuGet` on the menu bar.
+5. Click on `Restore Packages`.
+
 # External Assets
 
 | Link | Type | Use |

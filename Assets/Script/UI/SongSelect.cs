@@ -18,6 +18,11 @@ namespace YARG.UI {
 		private const float INPUT_REPEAT_TIME = 0.05f;
 		private const float INPUT_REPEAT_COOLDOWN = 0.5f;
 
+		private class SongOrHeader {
+			public SongInfo song;
+			public (string, string) header;
+		}
+
 		[SerializeField]
 		private GameObject songViewPrefab;
 		[SerializeField]
@@ -38,13 +43,16 @@ namespace YARG.UI {
 		[SerializeField]
 		private Image progressBar;
 
-		private List<SongInfo> songs;
+		private List<SongOrHeader> songs;
+		private List<SongInfo> recommendedSongs;
 
 		private List<SongView> songViewsBefore = new();
 		private List<SongView> songViewsAfter = new();
 
 		private float inputTimer = 0f;
-		private int selectedSongIndex = 0;
+
+		// Will be set in UpdateSearch
+		private int selectedSongIndex;
 
 		private void Start() {
 			Instance = this;
@@ -86,14 +94,21 @@ namespace YARG.UI {
 					songViewsBefore[i].GetComponent<CanvasGroup>().alpha = 0f;
 				} else {
 					songViewsBefore[i].GetComponent<CanvasGroup>().alpha = 1f;
-					songViewsBefore[i].GetComponent<SongView>().UpdateSongView(songs[realIndex]);
+
+					var songOrHeader = songs[realIndex];
+					if (songOrHeader.song != null) {
+						songViewsBefore[i].GetComponent<SongView>().UpdateSongView(songOrHeader.song);
+					} else {
+						songViewsBefore[i].GetComponent<SongView>().UpdateSongViewAsHeader(
+							songOrHeader.header.Item1, songOrHeader.header.Item2);
+					}
 				}
 			}
 
 			// Update selected
 			if (songs.Count > 0) {
 				selectedSongView.gameObject.SetActive(true);
-				selectedSongView.UpdateSongView(songs[selectedSongIndex]);
+				selectedSongView.UpdateSongView(songs[selectedSongIndex].song);
 			} else {
 				selectedSongView.gameObject.SetActive(false);
 			}
@@ -106,7 +121,14 @@ namespace YARG.UI {
 					songViewsAfter[i].GetComponent<CanvasGroup>().alpha = 0f;
 				} else {
 					songViewsAfter[i].GetComponent<CanvasGroup>().alpha = 1f;
-					songViewsAfter[i].GetComponent<SongView>().UpdateSongView(songs[realIndex]);
+
+					var songOrHeader = songs[realIndex];
+					if (songOrHeader.song != null) {
+						songViewsAfter[i].GetComponent<SongView>().UpdateSongView(songOrHeader.song);
+					} else {
+						songViewsAfter[i].GetComponent<SongView>().UpdateSongViewAsHeader(
+							songOrHeader.header.Item1, songOrHeader.header.Item2);
+					}
 				}
 			}
 		}
@@ -166,10 +188,24 @@ namespace YARG.UI {
 
 		private void MoveView(int amount) {
 			selectedSongIndex += amount;
-			if (selectedSongIndex >= songs.Count) {
-				selectedSongIndex = 0;
-			} else if (selectedSongIndex < 0) {
+
+			// Wrap
+			if (selectedSongIndex < 0) {
 				selectedSongIndex = songs.Count - 1;
+			} else if (selectedSongIndex >= songs.Count) {
+				selectedSongIndex = 0;
+			}
+
+			// Skip over headers
+			if (songs[selectedSongIndex].song == null) {
+				selectedSongIndex += amount;
+
+				// Wrap again (just in case after skipping)
+				if (selectedSongIndex < 0) {
+					selectedSongIndex = songs.Count - 1;
+				} else if (selectedSongIndex >= songs.Count) {
+					selectedSongIndex = 0;
+				}
 			}
 
 			UpdateSongViews();
@@ -184,11 +220,87 @@ namespace YARG.UI {
 		}
 
 		public void UpdateSearch() {
+			// Get recommended songs
+			if (recommendedSongs == null) {
+				recommendedSongs = new();
+
+				// Add two random top ten most played songs (ten tries each)
+				var mostPlayed = ScoreManager.SongsByPlayCount().Take(10).ToList();
+				for (int i = 0; i < 2; i++) {
+					for (int t = 0; t < 10; t++) {
+						int n = Random.Range(0, mostPlayed.Count);
+						if (recommendedSongs.Contains(mostPlayed[n])) {
+							continue;
+						}
+
+						recommendedSongs.Add(mostPlayed[n]);
+						break;
+					}
+				}
+
+				// Add two random songs from artists that are in the most played (ten tries each)
+				for (int i = 0; i < 2; i++) {
+					for (int t = 0; t < 10; t++) {
+						int n = Random.Range(0, mostPlayed.Count);
+						var baseSong = mostPlayed[n];
+
+						// Look all songs by artist
+						var sameArtistSongs = SongLibrary.Songs
+							.Where(i => i.ArtistName.ToLower() == baseSong.ArtistName.ToLower())
+							.ToList();
+
+						// Pick
+						n = Random.Range(0, sameArtistSongs.Count);
+
+						// Skip if included
+						if (mostPlayed.Contains(sameArtistSongs[n])) {
+							continue;
+						}
+						if (recommendedSongs.Contains(sameArtistSongs[n])) {
+							continue;
+						}
+
+						// Add
+						recommendedSongs.Add(sameArtistSongs[n]);
+						break;
+					}
+				}
+
+				// Add a completely random song (ten tries)
+				for (int t = 0; t < 10; t++) {
+					int n = Random.Range(0, SongLibrary.Songs.Count);
+					if (recommendedSongs.Contains(SongLibrary.Songs[n])) {
+						continue;
+					}
+
+					recommendedSongs.Add(SongLibrary.Songs[n]);
+					break;
+				}
+
+				// Reverse list because we add it backwards
+				recommendedSongs.Reverse();
+			}
+
 			if (string.IsNullOrEmpty(searchField.text)) {
+				// Add all songs
 				songs = SongLibrary.Songs
 					.OrderBy(song => song.SongNameNoParen)
+					.Select(i => new SongOrHeader { song = i })
 					.ToList();
-			} else if (searchField.text.StartsWith("artist:")) {
+				songs.Insert(0, new SongOrHeader { header = ("All Songs", $"{songs.Count} songs") });
+
+				// Add recommended songs
+				foreach (var song in recommendedSongs) {
+					songs.Insert(0, new SongOrHeader { song = song });
+				}
+				songs.Insert(0, new SongOrHeader {
+					header = ("Recommended Songs", $"{recommendedSongs.Count} random songs")
+				});
+
+				selectedSongIndex = 1;
+			}
+
+			/*else if (searchField.text.StartsWith("artist:")) {
 				// Search by artist
 				var artist = searchField.text[7..].ToLower();
 				songs = SongLibrary.Songs
@@ -210,9 +322,8 @@ namespace YARG.UI {
 					.OrderByDescending(i => i.score)
 					.Select(i => i.songInfo)
 					.ToList();
-			}
+			}*/
 
-			selectedSongIndex = 0;
 			UpdateSongViews();
 		}
 	}
