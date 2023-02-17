@@ -12,10 +12,24 @@ namespace YARG.Input {
 		protected Dictionary<string, InputControl> inputMappings;
 
 		public delegate void GenericCalibrationAction(InputStrategy inputStrategy);
+		/// <summary>
+		/// Gets invoked when the button for generic calibration is pressed.<br/>
+		/// Make sure <see cref="UpdatePlayerMode"/> is being called.
+		/// </summary>
 		public event GenericCalibrationAction GenericCalibrationEvent;
 
 		public delegate void StarpowerAction();
+		/// <summary>
+		/// Gets invoked when the button for generic starpower is pressed.
+		/// </summary>
 		public event StarpowerAction StarpowerEvent;
+
+		public delegate void GenericNavigationAction(NavigationType navigationType, bool firstPressed);
+		/// <summary>
+		/// Gets invoked when any generic navigation button is pressed.<br/>
+		/// Make sure <see cref="UpdateNavigationMode"/> is being called.
+		/// </summary>
+		public event GenericNavigationAction GenericNavigationEvent;
 
 		public InputStrategy(InputDevice inputDevice, bool botMode) {
 			this.botMode = botMode;
@@ -45,6 +59,7 @@ namespace YARG.Input {
 		/// </summary>
 		public abstract void UpdatePlayerMode();
 
+
 		/// <summary>
 		/// Updates the bot mode for this particular InputStrategy.
 		/// </summary>
@@ -52,12 +67,29 @@ namespace YARG.Input {
 		/// <param name="songTime">The song time in seconds.</param>
 		public abstract void UpdateBotMode(List<NoteInfo> chart, float songTime);
 
+		/// <summary>
+		/// Updates the navigation mode (menu mode) for this particular InputStrategy.
+		/// </summary>
+		public abstract void UpdateNavigationMode();
+
 		protected void CallStarpowerEvent() {
 			StarpowerEvent?.Invoke();
 		}
 
 		protected void CallGenericCalbirationEvent() {
 			GenericCalibrationEvent?.Invoke(this);
+		}
+
+		protected void CallGenericNavigationEvent(NavigationType type, bool firstPressed) {
+			GenericNavigationEvent?.Invoke(type, firstPressed);
+		}
+
+		public void CallGenericNavigationEventForButton(ButtonControl button, NavigationType type) {
+			if (button?.wasPressedThisFrame ?? false) {
+				CallGenericNavigationEvent(type, true);
+			} else if (button?.isPressed ?? false) {
+				CallGenericNavigationEvent(type, false);
+			}
 		}
 
 		protected ButtonControl MappingAsButton(string key) {

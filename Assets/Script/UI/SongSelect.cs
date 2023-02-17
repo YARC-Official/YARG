@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using YARG.Data;
+using YARG.Input;
 
 namespace YARG.UI {
 	public class SongSelect : MonoBehaviour {
@@ -15,7 +16,7 @@ namespace YARG.UI {
 		} = null;
 
 		private const int SONG_VIEW_EXTRA = 6;
-		private const float INPUT_REPEAT_TIME = 0.05f;
+		private const float INPUT_REPEAT_TIME = 0.035f;
 		private const float INPUT_REPEAT_COOLDOWN = 0.5f;
 
 		private class SongOrHeader {
@@ -81,6 +82,20 @@ namespace YARG.UI {
 			if (!loading) {
 				// Automatically loads songs and updates song views
 				UpdateSearch();
+			}
+		}
+
+		private void OnEnable() {
+			// Bind input events
+			foreach (var player in PlayerManager.players) {
+				player.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
+			}
+		}
+
+		private void OnDisable() {
+			// Unbind input events
+			foreach (var player in PlayerManager.players) {
+				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
 			}
 		}
 
@@ -183,6 +198,27 @@ namespace YARG.UI {
 				MoveView(-1);
 			} else if (scroll < 0f) {
 				MoveView(1);
+			}
+
+			// Update play navigation
+			foreach (var player in PlayerManager.players) {
+				player.inputStrategy.UpdateNavigationMode();
+			}
+		}
+
+		private void OnGenericNavigation(NavigationType navigationType, bool firstPressed) {
+			if (inputTimer <= 0f || firstPressed) {
+				if (navigationType == NavigationType.UP) {
+					inputTimer = firstPressed ? INPUT_REPEAT_COOLDOWN : INPUT_REPEAT_TIME;
+					MoveView(-1);
+				} else if (navigationType == NavigationType.DOWN) {
+					inputTimer = firstPressed ? INPUT_REPEAT_COOLDOWN : INPUT_REPEAT_TIME;
+					MoveView(1);
+				}
+			}
+
+			if (navigationType == NavigationType.PRIMARY) {
+				selectedSongView.PlaySong();
 			}
 		}
 

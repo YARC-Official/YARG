@@ -90,5 +90,18 @@ namespace YARG.Input {
 			// Constantly activate starpower
 			CallStarpowerEvent();
 		}
+
+		public override void UpdateNavigationMode() {
+			CallGenericNavigationEventForButton(MappingAsButton("strumUp"), NavigationType.UP);
+			CallGenericNavigationEventForButton(MappingAsButton("strumDown"), NavigationType.DOWN);
+
+			if (MappingAsButton("green")?.wasPressedThisFrame ?? false) {
+				CallGenericNavigationEvent(NavigationType.PRIMARY, true);
+			}
+
+			if (MappingAsButton("red")?.wasPressedThisFrame ?? false) {
+				CallGenericNavigationEvent(NavigationType.SECONDARY, true);
+			}
+		}
 	}
 }

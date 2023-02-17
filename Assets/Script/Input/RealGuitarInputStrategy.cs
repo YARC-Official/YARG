@@ -115,5 +115,9 @@ namespace YARG.Input {
 			// Constantly activate starpower
 			CallStarpowerEvent();
 		}
+
+		public override void UpdateNavigationMode() {
+			// TODO
+		}
 	}
 }
