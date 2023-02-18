@@ -3,6 +3,77 @@ using YARG.Data;
 
 namespace YARG.DiffDownsample {
 	public static class FiveFretDownsample {
+		private static readonly Dictionary<FretFlag, FretFlag> CHORD_EXPERT_TO_HARD_MAPPING = new() {
+			// Three Wide
+			{
+				FretFlag.GREEN | FretFlag.RED | FretFlag.YELLOW,
+				FretFlag.GREEN | FretFlag.YELLOW
+			},
+			{
+				FretFlag.RED | FretFlag.YELLOW | FretFlag.BLUE,
+				FretFlag.RED | FretFlag.BLUE
+			},
+			{
+				FretFlag.YELLOW | FretFlag.BLUE | FretFlag.ORANGE,
+				FretFlag.YELLOW | FretFlag.ORANGE
+			},
+			// Four Wide (Left)
+			{
+				FretFlag.GREEN | FretFlag.RED | FretFlag.YELLOW | FretFlag.BLUE,
+				FretFlag.GREEN | FretFlag.BLUE
+			},
+			{
+				FretFlag.GREEN | FretFlag.RED | FretFlag.BLUE,
+				FretFlag.GREEN | FretFlag.BLUE
+			},
+			{
+				FretFlag.GREEN | FretFlag.YELLOW | FretFlag.BLUE,
+				FretFlag.GREEN | FretFlag.BLUE
+			},
+			// Four Wide (Right)
+			{
+				FretFlag.RED | FretFlag.YELLOW | FretFlag.BLUE | FretFlag.ORANGE,
+				FretFlag.RED | FretFlag.ORANGE
+			},
+			{
+				FretFlag.RED | FretFlag.YELLOW | FretFlag.ORANGE,
+				FretFlag.RED | FretFlag.ORANGE
+			},
+			{
+				FretFlag.RED | FretFlag.BLUE | FretFlag.ORANGE,
+				FretFlag.RED | FretFlag.ORANGE
+			},
+			// Five Wide
+			{
+				FretFlag.GREEN | FretFlag.RED | FretFlag.YELLOW | FretFlag.BLUE | FretFlag.ORANGE,
+				FretFlag.GREEN | FretFlag.ORANGE // Only time when GREEN-ORANGE is permitted in hard
+			},
+			{
+				FretFlag.GREEN | FretFlag.YELLOW | FretFlag.ORANGE,
+				FretFlag.RED | FretFlag.BLUE
+			},
+			{
+				FretFlag.GREEN | FretFlag.BLUE | FretFlag.ORANGE,
+				FretFlag.BLUE | FretFlag.ORANGE
+			},
+			{
+				FretFlag.GREEN | FretFlag.RED | FretFlag.ORANGE,
+				FretFlag.GREEN | FretFlag.RED
+			},
+			{
+				FretFlag.GREEN | FretFlag.RED | FretFlag.BLUE | FretFlag.ORANGE,
+				FretFlag.RED | FretFlag.BLUE
+			},
+			{
+				FretFlag.GREEN | FretFlag.RED | FretFlag.YELLOW | FretFlag.ORANGE,
+				FretFlag.GREEN | FretFlag.YELLOW
+			},
+			{
+				FretFlag.GREEN | FretFlag.YELLOW | FretFlag.BLUE | FretFlag.ORANGE,
+				FretFlag.YELLOW | FretFlag.ORANGE
+			}
+		};
+
 		private class ChordedNoteInfo {
 			public float time;
 			public float[] length;
@@ -84,6 +155,20 @@ namespace YARG.DiffDownsample {
 			return input;
 		}
 
+		private static List<ChordedNoteInfo> ApplyChordMapping(List<ChordedNoteInfo> input,
+			Dictionary<FretFlag, FretFlag> mapping) {
+
+			foreach (var chord in input) {
+				if (!mapping.TryGetValue(chord.frets, out var newChord)) {
+					continue;
+				}
+
+				chord.frets = newChord;
+			}
+
+			return input;
+		}
+
 		public static List<NoteInfo> DownsampleExpertToHard(List<NoteInfo> input) {
 			var output = new List<NoteInfo>();
 
@@ -129,6 +214,7 @@ namespace YARG.DiffDownsample {
 					lastTime = chords[i].time;
 				}
 			}
+			ApplyChordMapping(chords, CHORD_EXPERT_TO_HARD_MAPPING);
 
 			return SplitToNotes(CleanChords(chords));
 		}

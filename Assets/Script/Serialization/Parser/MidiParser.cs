@@ -105,10 +105,14 @@ namespace YARG.Serialization.Parser {
 				}
 			}
 
-			// Downsample guitar
+			// Downsample instruments
 
-			if (chart.guitar[3].Count >= 1 && chart.guitar[2].Count <= 0) {
-				chart.guitar[2] = FiveFretDownsample.DownsampleExpertToHard(chart.guitar[3]);
+			foreach (var subChart in chart.allParts) {
+				if (subChart == chart.guitar || subChart == chart.bass || subChart == chart.keys) {
+					if (chart.guitar[3].Count >= 1 && chart.guitar[2].Count <= 0) {
+						chart.guitar[2] = FiveFretDownsample.DownsampleExpertToHard(chart.guitar[3]);
+					}
+				}
 			}
 
 			// Sort notes by time (just in case) and add delay
