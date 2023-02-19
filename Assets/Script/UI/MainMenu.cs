@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 using UnityEngine.UIElements;
 using YARG.Data;
@@ -17,20 +16,18 @@ namespace YARG.UI {
 		}
 
 		public SongInfo chosenSong = null;
-		private int playerIndex = 0;
 
 		[SerializeField]
 		private UIDocument mainMenuDocument;
 		[SerializeField]
 		private UIDocument editPlayersDocument;
 		[SerializeField]
-		private UIDocument preSongDocument;
-		[SerializeField]
 		private UIDocument postSongDocument;
 
-		// Temp
 		[SerializeField]
 		private Canvas songSelect;
+		[SerializeField]
+		private Canvas difficultySelect;
 
 		private void Start() {
 			Instance = this;
@@ -48,33 +45,11 @@ namespace YARG.UI {
 			} else {
 				ShowPostSong();
 			}
-
-			// Bind events
-			if (GameManager.client != null) {
-				GameManager.client.SignalEvent += SignalRecieved;
-			}
 		}
 
 		private void OnDisable() {
-			// Unbind events
-			if (GameManager.client != null) {
-				GameManager.client.SignalEvent -= SignalRecieved;
-			}
-
 			// Save player prefs
 			PlayerPrefs.Save();
-		}
-
-		private void SignalRecieved(string signal) {
-			if (signal.StartsWith("DownloadDone,")) {
-				Play.song = chosenSong.Duplicate();
-
-				// Replace song folder
-				Play.song.realFolderRemote = Play.song.folder;
-				Play.song.folder = new(Path.Combine(GameManager.client.remotePath, signal[13..]));
-
-				GameManager.Instance.LoadScene(SceneIndex.PLAY);
-			}
 		}
 
 		private void Update() {
@@ -113,7 +88,6 @@ namespace YARG.UI {
 				// Start + bind
 				GameManager.client = new();
 				GameManager.client.Start(ip);
-				GameManager.client.SignalEvent += SignalRecieved;
 
 				// Hide button
 				root.Q<Button>("JoinServer").SetOpacity(0f);
@@ -140,52 +114,6 @@ namespace YARG.UI {
 
 				PlayerManager.globalCalibration = calibrationField.value;
 			});
-		}
-
-		private void SetupPreSong() {
-			// Start the song if all the players chose their instruments
-			if (playerIndex >= PlayerManager.players.Count) {
-				if (GameManager.client != null) {
-					GameManager.client.RequestDownload(chosenSong.folder.FullName);
-				} else {
-					Play.song = chosenSong;
-					GameManager.Instance.LoadScene(SceneIndex.PLAY);
-				}
-				return;
-			}
-
-			var root = preSongDocument.rootVisualElement;
-
-			// Set name label (with bot tag if required)
-			var player = PlayerManager.players[playerIndex];
-			root.Q<Label>("PlayerNameLabel").text = player.DisplayName;
-
-			// Get option groups
-			var instrumentChoice = root.Q<RadioButtonGroup>("InstrumentChoice");
-			instrumentChoice.value = 0;
-			var difficultyChoice = root.Q<RadioButtonGroup>("DifficultyChoice");
-			difficultyChoice.value = 3;
-
-			// Setup button
-			var button = root.Q<Button>("Go");
-			button.clickable = null; // Remove old events
-			button.clicked += () => {
-				// Set player stuff
-				player.chosenInstrument = instrumentChoice.value switch {
-					0 => "guitar",
-					1 => "bass",
-					2 => "keys",
-					3 => "drums",
-					4 => "realGuitar",
-					5 => "realBass",
-					_ => throw new Exception("Unreachable.")
-				};
-				player.chosenDifficulty = difficultyChoice.value;
-
-				// Refresh for next player
-				playerIndex++;
-				SetupPreSong();
-			};
 		}
 
 		private void SetupPostSong() {
@@ -261,9 +189,10 @@ namespace YARG.UI {
 		private void HideAll() {
 			mainMenuDocument.SetVisible(false);
 			editPlayersDocument.SetVisible(false);
-			preSongDocument.SetVisible(false);
 			postSongDocument.SetVisible(false);
+
 			songSelect.gameObject.SetActive(false);
+			difficultySelect.gameObject.SetActive(false);
 		}
 
 		public void ShowMainMenu() {
@@ -283,11 +212,7 @@ namespace YARG.UI {
 
 		public void ShowPreSong() {
 			HideAll();
-
-			playerIndex = 0;
-
-			SetupPreSong();
-			preSongDocument.SetVisible(true);
+			difficultySelect.gameObject.SetActive(true);
 		}
 
 		public void ShowPostSong() {

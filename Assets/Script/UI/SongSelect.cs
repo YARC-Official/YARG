@@ -200,7 +200,7 @@ namespace YARG.UI {
 				MoveView(1);
 			}
 
-			// Update play navigation
+			// Update player navigation
 			foreach (var player in PlayerManager.players) {
 				player.inputStrategy.UpdateNavigationMode();
 			}
@@ -284,6 +284,9 @@ namespace YARG.UI {
 						var sameArtistSongs = SongLibrary.Songs
 							.Where(i => i.ArtistName.ToLower() == baseSong.ArtistName.ToLower())
 							.ToList();
+						if (sameArtistSongs.Count <= 1) {
+							continue;
+						}
 
 						// Pick
 						n = Random.Range(0, sameArtistSongs.Count);
