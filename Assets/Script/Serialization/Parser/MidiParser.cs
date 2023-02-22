@@ -10,6 +10,8 @@ using YARG.DiffDownsample;
 
 namespace YARG.Serialization.Parser {
 	public partial class MidiParser : AbstractParser {
+		private const bool FORCE_DOWNSAMPLE = true;
+
 		private struct EventIR {
 			public long startTick;
 			public long? endTick;
@@ -109,8 +111,19 @@ namespace YARG.Serialization.Parser {
 
 			foreach (var subChart in chart.allParts) {
 				if (subChart == chart.guitar || subChart == chart.bass || subChart == chart.keys) {
-					if (chart.guitar[3].Count >= 1 && chart.guitar[2].Count <= 0) {
-						chart.guitar[2] = FiveFretDownsample.DownsampleExpertToHard(chart.guitar[3]);
+					if (subChart[3].Count >= 1 && (subChart[2].Count <= 0 || FORCE_DOWNSAMPLE)) {
+						subChart[2] = FiveFretDownsample.DownsampleExpertToHard(subChart[3]);
+						Debug.Log("Downsampled expert to hard.");
+					}
+
+					if (subChart[2].Count >= 1 && (subChart[1].Count <= 0 || FORCE_DOWNSAMPLE)) {
+						subChart[1] = FiveFretDownsample.DownsampleHardToNormal(subChart[2]);
+						Debug.Log("Downsampled hard to normal.");
+					}
+
+					if (subChart[1].Count >= 1 && (subChart[0].Count <= 0 || FORCE_DOWNSAMPLE)) {
+						subChart[0] = FiveFretDownsample.DownsampleNormalToEasy(subChart[1]);
+						Debug.Log("Downsampled normal to easy.");
 					}
 				}
 			}

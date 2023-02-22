@@ -74,6 +74,55 @@ namespace YARG.DiffDownsample {
 			}
 		};
 
+		private static readonly Dictionary<FretFlag, FretFlag> CHORD_HARD_TO_NORMAL_MAPPING = new() {
+			// No orange chords
+			{
+				FretFlag.GREEN | FretFlag.ORANGE,
+				FretFlag.RED | FretFlag.BLUE
+			},
+			{
+				FretFlag.RED | FretFlag.ORANGE,
+				FretFlag.RED | FretFlag.BLUE
+			},
+			{
+				FretFlag.YELLOW | FretFlag.ORANGE,
+				FretFlag.YELLOW | FretFlag.BLUE
+			},
+			{
+				FretFlag.BLUE | FretFlag.ORANGE,
+				FretFlag.YELLOW | FretFlag.BLUE
+			},
+			// No green and blue
+			{
+				FretFlag.GREEN | FretFlag.BLUE,
+				FretFlag.GREEN | FretFlag.YELLOW
+			},
+		};
+
+		private static readonly Dictionary<FretFlag, FretFlag> CHORD_NORMAL_TO_EASY_MAPPING = new() {
+			// No chords
+			{
+				FretFlag.GREEN | FretFlag.RED,
+				FretFlag.GREEN
+			},
+			{
+				FretFlag.GREEN | FretFlag.YELLOW,
+				FretFlag.RED
+			},
+			{
+				FretFlag.RED | FretFlag.YELLOW,
+				FretFlag.RED
+			},
+			{
+				FretFlag.RED | FretFlag.BLUE,
+				FretFlag.YELLOW
+			},
+			{
+				FretFlag.YELLOW | FretFlag.BLUE,
+				FretFlag.YELLOW
+			},
+		};
+
 		private class ChordedNoteInfo {
 			public float time;
 			public float[] length;
@@ -163,7 +212,26 @@ namespace YARG.DiffDownsample {
 					continue;
 				}
 
+				// Get the min length
+				float length = float.PositiveInfinity;
+				for (int i = 0; i < 5; i++) {
+					if (!chord.frets.HasFlag((FretFlag) (1 << i))) {
+						continue;
+					}
+
+					if (chord.length[i] < length) {
+						length = chord.length[i];
+					}
+				}
+
 				chord.frets = newChord;
+
+				// Force set lengths to the smallest in the chord
+				for (int i = 0; i < 5; i++) {
+					if (chord.frets.HasFlag((FretFlag) (1 << i))) {
+						chord.length[i] = length;
+					}
+				}
 			}
 
 			return input;
@@ -173,7 +241,6 @@ namespace YARG.DiffDownsample {
 			var output = new List<NoteInfo>();
 
 			// Remove some auto HOPOs
-
 			int consecutiveRemovals = 0;
 			foreach (var note in input) {
 				bool maxConsecutiveReached = false;
@@ -202,19 +269,98 @@ namespace YARG.DiffDownsample {
 				output.Add(newNote);
 			}
 
-			// Remove 16th notes
-
+			// Remove notes that are less than 0.2 seconds apart
 			var chords = ConsolidateToChords(output);
 			float lastTime = -1f;
 			for (int i = 0; i < chords.Count; i++) {
-				if (chords[i].time - lastTime <= 1f / 5f) {
+				if (chords[i].time - lastTime <= 0.2f) {
 					chords.RemoveAt(i);
 					i--;
 				} else {
 					lastTime = chords[i].time;
 				}
 			}
+
+			// Apply chord mapping
 			ApplyChordMapping(chords, CHORD_EXPERT_TO_HARD_MAPPING);
+
+			return SplitToNotes(CleanChords(chords));
+		}
+
+		public static List<NoteInfo> DownsampleHardToNormal(List<NoteInfo> input) {
+			var output = new List<NoteInfo>(input);
+
+			// No HOPOs!
+			foreach (var note in output) {
+				note.autoHopo = false;
+				note.hopo = false;
+			}
+
+			// Apply chord mapping
+			var chords = ConsolidateToChords(output);
+			ApplyChordMapping(chords, CHORD_HARD_TO_NORMAL_MAPPING);
+
+			// Remove single orange notes
+			FretFlag lastChord = FretFlag.NONE;
+			foreach (var chord in chords) {
+				if (chord.frets == FretFlag.ORANGE) {
+					if (lastChord == FretFlag.BLUE) {
+						chord.length[1] = chord.length[4];
+						chord.frets = FretFlag.RED;
+					} else {
+						chord.length[3] = chord.length[4];
+						chord.frets = FretFlag.BLUE;
+					}
+				}
+
+				lastChord = chord.frets;
+			}
+
+			// Remove notes that are less than 0.35 seconds apart
+			float lastTime = -1f;
+			for (int i = 0; i < chords.Count; i++) {
+				if (chords[i].time - lastTime <= 0.35f) {
+					chords.RemoveAt(i);
+					i--;
+				} else {
+					lastTime = chords[i].time;
+				}
+			}
+
+			return SplitToNotes(CleanChords(chords));
+		}
+
+		public static List<NoteInfo> DownsampleNormalToEasy(List<NoteInfo> input) {
+			// Apply chord mapping
+			var chords = ConsolidateToChords(input);
+			ApplyChordMapping(chords, CHORD_NORMAL_TO_EASY_MAPPING);
+
+			// Remove single blue notes
+			FretFlag lastChord = FretFlag.NONE;
+			foreach (var chord in chords) {
+				if (chord.frets == FretFlag.BLUE) {
+					if (lastChord == FretFlag.RED) {
+						chord.length[0] = chord.length[3];
+						chord.frets = FretFlag.GREEN;
+					} else {
+						chord.length[1] = chord.length[3];
+						chord.frets = FretFlag.RED;
+					}
+				}
+
+				lastChord = chord.frets;
+			}
+
+			// Remove notes that are less than 0.45 seconds apart
+			float lastTime = -1f;
+			for (int i = 0; i < chords.Count; i++) {
+				if (chords[i].time - lastTime <= 0.45f) {
+					chords.RemoveAt(i);
+					i--;
+				} else {
+					lastTime = chords[i].time;
+				}
+			}
 
 			return SplitToNotes(CleanChords(chords));
 		}
