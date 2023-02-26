@@ -13,11 +13,11 @@ namespace YARG.Data {
 			{"keys", -1},
 			{"drums", -1},
 			{"vocals", -1},
-			{"guitar_real", -1},
-			{"bass_real", -1},
-			{"keys_real", -1},
-			{"drums_real", -1},
-			{"vocals_harm", -1},
+			{"realGuitar", -1},
+			{"realBass", -1},
+			{"realKeys", -1},
+			{"realDrums", -1},
+			{"harmVocals", -1},
 		};
 
 		public bool fetched;

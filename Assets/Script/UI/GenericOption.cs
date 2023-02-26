@@ -12,6 +12,8 @@ namespace YARG.UI {
 		private GameObject selectedBackground;
 		[SerializeField]
 		private TextMeshProUGUI text;
+		[SerializeField]
+		private Image image;
 
 		public void SetSelected(bool selected) {
 			selectedBackground.SetActive(selected);
@@ -26,7 +28,17 @@ namespace YARG.UI {
 		}
 
 		public void SetText(string t) {
+			image.gameObject.SetActive(false);
 			text.text = t;
+		}
+
+		public void SetImage(Sprite img) {
+			if (img == null) {
+				image.gameObject.SetActive(false);
+			} else {
+				image.gameObject.SetActive(true);
+				image.sprite = img;
+			}
 		}
 	}
 }

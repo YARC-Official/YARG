@@ -18,6 +18,8 @@ namespace YARG.UI {
 		private GenericOption[] options;
 		[SerializeField]
 		private TextMeshProUGUI header;
+		[SerializeField]
+		private Sprite[] instrumentSprites;
 
 		private int playerIndex;
 		private State state;
@@ -184,6 +186,7 @@ namespace YARG.UI {
 
 			for (int i = 0; i < 6; i++) {
 				options[i].SetText(ops[i]);
+				options[i].SetImage(instrumentSprites[i]);
 				options[i].SetSelected(false);
 			}
 

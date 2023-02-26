@@ -65,11 +65,11 @@ namespace YARG.UI {
 
 			// Song score
 			var score = ScoreManager.GetScore(songInfo);
-			if (score == null) {
+			if (score == null || score.highestPercent.Count <= 0) {
 				scoreText.text = "<alpha=#BB>No Score";
 			} else {
-				var highest = score.TotalHighestPercent;
-				scoreText.text = $"<b>{highest.difficulty.ToChar()}</b> {highest.percent * 100f:N0}%";
+				var (instrument, highest) = score.GetHighestPercent();
+				scoreText.text = $"<sprite name=\"{instrument}\"> <b>{highest.difficulty.ToChar()}</b> {highest.percent * 100f:N0}%";
 			}
 
 			// Song length
@@ -102,23 +102,22 @@ namespace YARG.UI {
 					continue;
 				}
 
+				// Skip these for now
+				if (diff.Key == "vocals" || diff.Key == "harmVocals") {
+					continue;
+				}
+
 				var diffView = Instantiate(difficultyView, difficultyContainer);
 
-				string shortName = diff.Key switch {
-					"guitar" => "G",
-					"bass" => "B",
-					"keys" => "K",
-					"drums" => "D",
-					"vocals" => "V",
-					"guitar_real" => "PG",
-					"bass_real" => "PB",
-					"keys_real" => "PK",
-					"drums_real" => "PD",
-					"vocals_harm" => "VH",
-					_ => diff.Key
-				};
+				// Get color
+				string color = "white";
+				if (diff.Value >= 6) {
+					color = "#fc605d";
+				}
 
-				diffView.GetComponentInChildren<TextMeshProUGUI>().text = $"{shortName}: {diff.Value}";
+				// Set text
+				diffView.GetComponentInChildren<TextMeshProUGUI>().text =
+					$"<sprite name=\"{diff.Key}\" color={color}> <color={color}>{(diff.Value == -2 ? "?" : diff.Value)}</color>";
 			}
 		}
 

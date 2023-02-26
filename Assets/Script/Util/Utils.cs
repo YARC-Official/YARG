@@ -20,10 +20,14 @@ namespace YARG.Util {
 		public static string SourceToGameName(string source) {
 #pragma warning disable format
 			return source switch {
-				"gh1" or "gh1dlc"   => "Guitar Hero 1",
-				"gh2" or "gh2dlc"   => "Guitar Hero 2",
+				"gh1" or "gh1dlc"   => "Guitar Hero I",
+				"gh2" or "gh2dlc"   => "Guitar Hero II",
+				"gh80s"             => "Guitar Hero Encore: Rocks the 80's",
+				"gh3" or "gh3dlc"   => "Guitar Hero III: Legends of Rock",
+				"ghot"              => "Guitar Hero On Tour",
+				"gha"               => "Guitar Hero: Aerosmith",
+				"ghwt" or "ghwtdlc" => "Guitar Hero World Tour",
 				"ghm"               => "Guitar Hero Metallica",
-				"ghwt"              => "Guitar Hero World Tour",
 				
 				"rb1" or "rb1dlc"   => "Rock Band 1",
 				"rb2" or "rb2dlc"   => "Rock Band 2",

@@ -20,11 +20,11 @@ namespace YARG.UI {
 			artist.text = $"<i>{songInfo.ArtistName}</i>";
 
 			var score = ScoreManager.GetScore(songInfo);
-			if (score == null) {
+			if (score == null || score.highestPercent.Count <= 0) {
 				scoreText.text = "<alpha=#44>No Score";
 			} else {
-				var highest = score.TotalHighestPercent;
-				scoreText.text = $"<b>{highest.difficulty.ToChar()}</b> {highest.percent * 100f:N0}%";
+				var (instrument, highest) = score.GetHighestPercent();
+				scoreText.text = $"<sprite name=\"{instrument}\"> <b>{highest.difficulty.ToChar()}</b> {highest.percent * 100f:N0}%";
 			}
 		}
 

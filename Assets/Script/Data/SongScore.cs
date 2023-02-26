@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Newtonsoft.Json;
 
 namespace YARG.Data {
@@ -9,7 +8,18 @@ namespace YARG.Data {
 		public DateTime lastPlayed;
 		public int timesPlayed;
 
-		public DiffPercent TotalHighestPercent => highestPercent.Count <= 0 ? default : highestPercent.Max(i => i.Value);
 		public Dictionary<string, DiffPercent> highestPercent;
+
+		public KeyValuePair<string, DiffPercent> GetHighestPercent() {
+			KeyValuePair<string, DiffPercent> highest = default;
+
+			foreach (var kvp in highestPercent) {
+				if (kvp.Value > highest.Value) {
+					highest = kvp;
+				}
+			}
+
+			return highest;
+		}
 	}
 }

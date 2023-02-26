@@ -70,10 +70,35 @@ namespace YARG.Serialization {
 				}
 
 				// Get difficulties
+				bool noneFound = true;
 				foreach (var kvp in new Dictionary<string, int>(song.partDifficulties)) {
-					var key = "diff_" + kvp.Key;
+					var key = "diff_" + (kvp.Key switch {
+						"realGuitar" => "guitar_real",
+						"realBass" => "bass_real",
+						"realDrums" => "drums_real",
+						"realKeys" => "keys_real",
+						"harmVocals" => "vocals_harm",
+						_ => kvp.Key
+					});
+
 					if (section.ContainsKey(key)) {
 						song.partDifficulties[kvp.Key] = int.Parse(section[key]);
+						noneFound = true;
+					}
+				}
+
+				// If no difficulties found, check the source
+				if (noneFound) {
+					if (song.source == "gh1") {
+						song.partDifficulties["guitar"] = -2;
+					} else if (song.source == "gh2"
+						|| song.source == "gh80s"
+						|| song.source == "gh3"
+						|| song.source == "ghot"
+						|| song.source == "gha") {
+
+						song.partDifficulties["guitar"] = -2;
+						song.partDifficulties["bass"] = -2;
 					}
 				}
 			} catch (Exception e) {
