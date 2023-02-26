@@ -260,48 +260,50 @@ namespace YARG.UI {
 			if (recommendedSongs == null) {
 				recommendedSongs = new();
 
-				// Add two random top ten most played songs (ten tries each)
 				var mostPlayed = ScoreManager.SongsByPlayCount().Take(10).ToList();
-				for (int i = 0; i < 2; i++) {
-					for (int t = 0; t < 10; t++) {
-						int n = Random.Range(0, mostPlayed.Count);
-						if (recommendedSongs.Contains(mostPlayed[n])) {
-							continue;
-						}
+				if (mostPlayed.Count > 0) {
+					// Add two random top ten most played songs (ten tries each)
+					for (int i = 0; i < 2; i++) {
+						for (int t = 0; t < 10; t++) {
+							int n = Random.Range(0, mostPlayed.Count);
+							if (recommendedSongs.Contains(mostPlayed[n])) {
+								continue;
+							}
 
-						recommendedSongs.Add(mostPlayed[n]);
-						break;
+							recommendedSongs.Add(mostPlayed[n]);
+							break;
+						}
 					}
-				}
 
-				// Add two random songs from artists that are in the most played (ten tries each)
-				for (int i = 0; i < 2; i++) {
-					for (int t = 0; t < 10; t++) {
-						int n = Random.Range(0, mostPlayed.Count);
-						var baseSong = mostPlayed[n];
+					// Add two random songs from artists that are in the most played (ten tries each)
+					for (int i = 0; i < 2; i++) {
+						for (int t = 0; t < 10; t++) {
+							int n = Random.Range(0, mostPlayed.Count);
+							var baseSong = mostPlayed[n];
 
-						// Look all songs by artist
-						var sameArtistSongs = SongLibrary.Songs
-							.Where(i => i.ArtistName.ToLower() == baseSong.ArtistName.ToLower())
-							.ToList();
-						if (sameArtistSongs.Count <= 1) {
-							continue;
+							// Look all songs by artist
+							var sameArtistSongs = SongLibrary.Songs
+								.Where(i => i.ArtistName?.ToLower() == baseSong.ArtistName?.ToLower())
+								.ToList();
+							if (sameArtistSongs.Count <= 1) {
+								continue;
+							}
+
+							// Pick
+							n = Random.Range(0, sameArtistSongs.Count);
+
+							// Skip if included
+							if (mostPlayed.Contains(sameArtistSongs[n])) {
+								continue;
+							}
+							if (recommendedSongs.Contains(sameArtistSongs[n])) {
+								continue;
+							}
+
+							// Add
+							recommendedSongs.Add(sameArtistSongs[n]);
+							break;
 						}
-
-						// Pick
-						n = Random.Range(0, sameArtistSongs.Count);
-
-						// Skip if included
-						if (mostPlayed.Contains(sameArtistSongs[n])) {
-							continue;
-						}
-						if (recommendedSongs.Contains(sameArtistSongs[n])) {
-							continue;
-						}
-
-						// Add
-						recommendedSongs.Add(sameArtistSongs[n]);
-						break;
 					}
 				}
 

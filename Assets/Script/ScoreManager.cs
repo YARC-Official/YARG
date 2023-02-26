@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using Newtonsoft.Json;
 using YARG.Data;
+using YARG.Util;
 
 namespace YARG {
 	public static class ScoreManager {
@@ -95,7 +96,8 @@ namespace YARG {
 		public static List<SongInfo> SongsByPlayCount() {
 			return scores
 				.OrderByDescending(i => i.Value.lastPlayed)
-				.Select(i => SongLibrary.Songs.Find(j => j.folder.FullName == i.Key))
+				.Select(i => SongLibrary.Songs.Find(j => Utils.ArePathsEqual(j.folder.FullName, i.Key)))
+				.Where(i => i != null)
 				.ToList();
 		}
 	}

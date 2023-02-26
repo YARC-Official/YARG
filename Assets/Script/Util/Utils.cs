@@ -82,5 +82,13 @@ namespace YARG.Util {
 				archive.CreateEntryFromFile(file.FullName, file.Name);
 			}
 		}
+
+		/// <summary>
+		/// Checks if the path <paramref name="a"/> is equal to the path <paramref name="b"/>.<br/>
+		/// Paths are NOT case sensitive.
+		/// </summary>
+		public static bool ArePathsEqual(string a, string b) {
+			return a.ToUpperInvariant() == b.ToUpperInvariant();
+		}
 	}
 }
