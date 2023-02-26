@@ -10,7 +10,7 @@ namespace YARG.Serialization {
 		}
 
 		public override void WriteJson(JsonWriter writer, DirectoryInfo value, JsonSerializer serializer) {
-			serializer.Serialize(writer, value.FullName);
+			serializer.Serialize(writer, value.FullName.ToUpperInvariant());
 		}
 	}
 }

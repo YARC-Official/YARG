@@ -40,6 +40,7 @@ namespace YARG {
 			if (GameManager.client != null) {
 				path = song.realFolderRemote.ToString();
 			}
+			path = path.ToUpperInvariant();
 
 			if (!scores.TryGetValue(path, out var oldScore)) {
 				// If the score info doesn't exist, just add the new one.
@@ -70,6 +71,7 @@ namespace YARG {
 			if (song.realFolderRemote != null && GameManager.client != null) {
 				path = song.realFolderRemote.ToString();
 			}
+			path = path.ToUpperInvariant();
 
 			if (scores.TryGetValue(path, out var o)) {
 				return o;
