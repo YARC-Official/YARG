@@ -74,7 +74,7 @@ namespace YARG.DiffDownsample {
 			}
 		};
 
-		private static readonly Dictionary<FretFlag, FretFlag> CHORD_HARD_TO_NORMAL_MAPPING = new() {
+		private static readonly Dictionary<FretFlag, FretFlag> CHORD_HARD_TO_MEDIUM_MAPPING = new() {
 			// No orange chords
 			{
 				FretFlag.GREEN | FretFlag.ORANGE,
@@ -99,7 +99,7 @@ namespace YARG.DiffDownsample {
 			},
 		};
 
-		private static readonly Dictionary<FretFlag, FretFlag> CHORD_NORMAL_TO_EASY_MAPPING = new() {
+		private static readonly Dictionary<FretFlag, FretFlag> CHORD_MEDIUM_TO_EASY_MAPPING = new() {
 			// No chords
 			{
 				FretFlag.GREEN | FretFlag.RED,
@@ -287,7 +287,7 @@ namespace YARG.DiffDownsample {
 			return SplitToNotes(CleanChords(chords));
 		}
 
-		public static List<NoteInfo> DownsampleHardToNormal(List<NoteInfo> input) {
+		public static List<NoteInfo> DownsampleHardToMedium(List<NoteInfo> input) {
 			var output = new List<NoteInfo>(input);
 
 			// No HOPOs!
@@ -298,7 +298,7 @@ namespace YARG.DiffDownsample {
 
 			// Apply chord mapping
 			var chords = ConsolidateToChords(output);
-			ApplyChordMapping(chords, CHORD_HARD_TO_NORMAL_MAPPING);
+			ApplyChordMapping(chords, CHORD_HARD_TO_MEDIUM_MAPPING);
 
 			// Remove single orange notes
 			FretFlag lastChord = FretFlag.NONE;
@@ -330,10 +330,10 @@ namespace YARG.DiffDownsample {
 			return SplitToNotes(CleanChords(chords));
 		}
 
-		public static List<NoteInfo> DownsampleNormalToEasy(List<NoteInfo> input) {
+		public static List<NoteInfo> DownsampleMediumToEasy(List<NoteInfo> input) {
 			// Apply chord mapping
 			var chords = ConsolidateToChords(input);
-			ApplyChordMapping(chords, CHORD_NORMAL_TO_EASY_MAPPING);
+			ApplyChordMapping(chords, CHORD_MEDIUM_TO_EASY_MAPPING);
 
 			// Remove single blue notes
 			FretFlag lastChord = FretFlag.NONE;

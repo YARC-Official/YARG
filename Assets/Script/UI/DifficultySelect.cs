@@ -2,6 +2,7 @@ using System.IO;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using YARG.Data;
 using YARG.Input;
 using YARG.PlayMode;
 
@@ -138,7 +139,7 @@ namespace YARG.UI {
 				}
 				UpdateDifficulty();
 			} else if (state == State.DIFFICULTY) {
-				player.chosenDifficulty = selected;
+				player.chosenDifficulty = (Difficulty) selected;
 				playerIndex++;
 
 				if (playerIndex >= PlayerManager.players.Count) {
@@ -218,7 +219,7 @@ namespace YARG.UI {
 			optionCount = 4;
 			string[] ops = {
 				"Easy",
-				"Normal",
+				"Medium",
 				"Hard",
 				"Expert",
 				null,

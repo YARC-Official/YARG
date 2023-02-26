@@ -169,7 +169,7 @@ namespace YARG.UI {
 				}
 
 				var score = player.lastScore.Value;
-				label.text += $"{player.DisplayName}: {score.percentage * 100f:N1}%, {score.notesHit} hit, {score.notesMissed} missed";
+				label.text += $"{player.DisplayName}: {score.percentage.percent * 100f:N1}%, {score.notesHit} hit, {score.notesMissed} missed";
 
 				if (highScores.Contains(player)) {
 					label.text += " <color=green>HIGH SCORE!</color>";

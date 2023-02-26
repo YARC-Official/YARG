@@ -62,8 +62,11 @@ namespace YARG.PlayMode {
 			input.StrumEvent -= StrumAction;
 
 			// Set score
-			player.lastScore = new PlayerManager.Score {
-				percentage = notesHit == 0 ? 1f : (float) notesHit / Chart.Count,
+			player.lastScore = new PlayerManager.LastScore {
+				percentage = new DiffPercent {
+					difficulty = player.chosenDifficulty,
+					percent = notesHit == 0 ? 1f : (float) notesHit / Chart.Count
+				},
 				notesHit = notesHit,
 				notesMissed = Chart.Count - notesHit
 			};

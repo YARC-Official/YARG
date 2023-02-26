@@ -17,7 +17,7 @@ namespace YARG.PlayMode {
 			((TRACK_SPAWN_OFFSET + 1.75f) / (player.trackSpeed / Play.speed));
 
 		protected List<NoteInfo> Chart => Play.Instance.chart
-			.GetChartByName(player.chosenInstrument)[player.chosenDifficulty];
+			.GetChartByName(player.chosenInstrument)[(int) player.chosenDifficulty];
 
 		[SerializeField]
 		protected Camera trackCamera;

@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
+using YARG.Data;
 using YARG.Input;
 using YARG.PlayMode;
 
 namespace YARG {
 	public static class PlayerManager {
-		public struct Score {
-			public float percentage;
+		public struct LastScore {
+			public DiffPercent percentage;
 			public int notesHit;
 			public int notesMissed;
 		}
@@ -22,8 +23,8 @@ namespace YARG {
 			public float trackSpeed = 5f;
 
 			public string chosenInstrument = "guitar";
-			public int chosenDifficulty = 4;
-			public Score? lastScore = null;
+			public Difficulty chosenDifficulty = Difficulty.EXPERT;
+			public LastScore? lastScore = null;
 			public AbstractTrack track = null;
 
 			public Player() {

@@ -68,7 +68,8 @@ namespace YARG.UI {
 			if (score == null) {
 				scoreText.text = "<alpha=#BB>No Score";
 			} else {
-				scoreText.text = $"{score.TotalHighestPercent * 100f:N0}%";
+				var highest = score.TotalHighestPercent;
+				scoreText.text = $"<b>{highest.difficulty.ToChar()}</b> {highest.percent * 100f:N0}%";
 			}
 
 			// Song length

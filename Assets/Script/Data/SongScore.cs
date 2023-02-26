@@ -9,7 +9,7 @@ namespace YARG.Data {
 		public DateTime lastPlayed;
 		public int timesPlayed;
 
-		public float TotalHighestPercent => highestPercent.Max(i => i.Value);
-		public Dictionary<string, float> highestPercent;
+		public DiffPercent TotalHighestPercent => highestPercent.Count <= 0 ? default : highestPercent.Max(i => i.Value);
+		public Dictionary<string, DiffPercent> highestPercent;
 	}
 }
