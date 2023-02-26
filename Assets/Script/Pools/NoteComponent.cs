@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using YARG.PlayMode;
 
 namespace YARG.Pools {
 	public class NoteComponent : Poolable {
@@ -107,7 +108,7 @@ namespace YARG.Pools {
 				return;
 			}
 
-			length *= pool.player.trackSpeed;
+			length *= pool.player.trackSpeed / Play.speed;
 			lengthCache = length;
 
 			lineRenderer.enabled = true;

@@ -130,6 +130,10 @@ namespace YARG.UI {
 
 			HashSet<PlayerManager.Player> highScores = new();
 			foreach (var player in PlayerManager.players) {
+				if (Play.speed != 1f) {
+					continue;
+				}
+
 				if (player.inputStrategy.botMode) {
 					continue;
 				}

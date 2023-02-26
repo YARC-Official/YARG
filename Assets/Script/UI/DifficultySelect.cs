@@ -20,6 +20,8 @@ namespace YARG.UI {
 		private TextMeshProUGUI header;
 		[SerializeField]
 		private Sprite[] instrumentSprites;
+		[SerializeField]
+		private TMP_InputField speedInput;
 
 		private int playerIndex;
 		private State state;
@@ -145,6 +147,13 @@ namespace YARG.UI {
 				playerIndex++;
 
 				if (playerIndex >= PlayerManager.players.Count) {
+					// Set speed
+					Play.speed = float.Parse(speedInput.text);
+					if (Play.speed <= 0f) {
+						Play.speed = 1f;
+					}
+
+					// Play song (or download then play)
 					if (GameManager.client != null) {
 						GameManager.client.RequestDownload(MainMenu.Instance.chosenSong.folder.FullName);
 					} else {
