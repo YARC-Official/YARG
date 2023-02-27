@@ -108,12 +108,16 @@ namespace YARG.Server {
 
 							// Delete temp
 							info.Delete();
+
+							Log("Sent info package to client.");
 						} else if (str.StartsWith("ReqSong,")) {
 							// Get the folder
 							string path = str[8..];
 
 							// See if valid
-							if (!path.StartsWith(SongLibrary.songFolder.FullName)) {
+							if (!path.StartsWith(SongLibrary.songFolder.FullName.ToUpperInvariant())) {
+								Log($"<color=yellow>Kicking client for foreign path `{path}`.</color>");
+								connectionCount--;
 								return;
 							}
 
@@ -133,7 +137,9 @@ namespace YARG.Server {
 							string path = str[14..];
 
 							// See if valid
-							if (!path.StartsWith(SongLibrary.songFolder.FullName)) {
+							if (!path.StartsWith(SongLibrary.songFolder.FullName.ToUpperInvariant())) {
+								Log($"<color=yellow>Kicking client for foreign path `{path}`.</color>");
+								connectionCount--;
 								return;
 							}
 

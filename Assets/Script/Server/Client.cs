@@ -26,11 +26,12 @@ namespace YARG.Server {
 		public void Start(string ip) {
 			remotePath = Path.Combine(Application.persistentDataPath, "remote");
 
-			// Make sure remote path exists
+			// Make sure remote path exists (and also remove old files if they exist)
 			var dirInfo = new DirectoryInfo(remotePath);
-			if (!dirInfo.Exists) {
-				dirInfo.Create();
+			if (dirInfo.Exists) {
+				Directory.Delete(remotePath, true);
 			}
+			dirInfo.Create();
 
 			// Make sure `album_covers` folder exists
 			dirInfo = new DirectoryInfo(AlbumCoversPath);
