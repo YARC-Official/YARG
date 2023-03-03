@@ -16,10 +16,6 @@ namespace YARG.Input {
 
 		public event DrumHitAction DrumHitEvent;
 
-		public DrumsInputStrategy(InputDevice inputDevice, bool botMode) : base(inputDevice, botMode) {
-
-		}
-
 		public override string[] GetMappingNames() {
 			return MAPPING_NAMES;
 		}

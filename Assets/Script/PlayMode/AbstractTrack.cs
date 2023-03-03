@@ -87,7 +87,7 @@ namespace YARG.PlayMode {
 			// Set up render texture
 			var descriptor = new RenderTextureDescriptor(
 				Screen.width, Screen.height,
-				RenderTextureFormat.DefaultHDR
+				RenderTextureFormat.ARGBHalf
 			);
 			descriptor.mipCount = 0;
 			var renderTexture = new RenderTexture(descriptor);

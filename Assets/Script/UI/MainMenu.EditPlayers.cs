@@ -8,7 +8,7 @@ using YARG.Util;
 
 namespace YARG.UI {
 	public partial class MainMenu : MonoBehaviour {
-		private List<InputDevice> inputDevices;
+		private List<object> inputDevices;
 
 		private int inputWaitingIndex = -1;
 		private int inputWaitingPlayerIndex = -1;
@@ -64,11 +64,15 @@ namespace YARG.UI {
 
 				// Update input device dropdown
 				var device = player.inputStrategy.inputDevice;
-				if (!inputDevices.Contains(device)) {
-					player.inputStrategy.inputDevice = null;
-					inputDeviceDropdown.index = -1;
-				} else {
+				var mic = player.inputStrategy.microphoneIndex;
+				if (inputDevices.Contains(device)) {
 					inputDeviceDropdown.index = inputDevices.IndexOf(device) + 1;
+				} else if (inputDevices.Contains(mic)) {
+					inputDeviceDropdown.index = inputDevices.IndexOf(mic) + 1;
+				} else {
+					player.inputStrategy.inputDevice = null;
+					player.inputStrategy.microphoneIndex = -1;
+					inputDeviceDropdown.index = -1;
 				}
 
 				// Update radio group
@@ -78,6 +82,8 @@ namespace YARG.UI {
 					radioGroup.value = 1;
 				} else if (player.inputStrategy is DrumsInputStrategy) {
 					radioGroup.value = 2;
+				} else if (player.inputStrategy is MicInputStrategy) {
+					radioGroup.value = 3;
 				} else {
 					radioGroup.value = -1;
 				}
@@ -93,7 +99,7 @@ namespace YARG.UI {
 
 			root.Q<Button>("AddPlayerButton").clicked += () => {
 				PlayerManager.players.Add(new PlayerManager.Player() {
-					inputStrategy = new FiveFretInputStrategy(null, false)
+					inputStrategy = new FiveFretInputStrategy()
 				});
 				playerList.RefreshItems();
 
@@ -129,8 +135,16 @@ namespace YARG.UI {
 					return;
 				}
 
-				PlayerManager.players[playerList.selectedIndex].inputStrategy.inputDevice =
-					inputDevices[inputDeviceDropdown.index - 1];
+				var selected = inputDevices[inputDeviceDropdown.index - 1];
+
+				var inputStrat = PlayerManager.players[playerList.selectedIndex].inputStrategy;
+				if (selected is InputDevice inputDevice) {
+					inputStrat.inputDevice = inputDevice;
+					inputStrat.microphoneIndex = -1;
+				} else if (selected is int mic) {
+					inputStrat.inputDevice = null;
+					inputStrat.microphoneIndex = mic;
+				}
 			});
 
 			botMode.RegisterValueChangedCallback(e => {
@@ -172,15 +186,35 @@ namespace YARG.UI {
 
 				var player = PlayerManager.players[playerList.selectedIndex];
 				var oldInput = player.inputStrategy?.inputDevice;
+				var oldMic = player.inputStrategy?.microphoneIndex ?? -1;
 				switch (e.newValue) {
 					case 0:
-						player.inputStrategy = new FiveFretInputStrategy(oldInput, botMode.value);
+						player.inputStrategy = new FiveFretInputStrategy {
+							inputDevice = oldInput,
+							microphoneIndex = oldMic,
+							botMode = botMode.value
+						};
 						break;
 					case 1:
-						player.inputStrategy = new RealGuitarInputStrategy(oldInput, botMode.value);
+						player.inputStrategy = new RealGuitarInputStrategy {
+							inputDevice = oldInput,
+							microphoneIndex = oldMic,
+							botMode = botMode.value
+						};
 						break;
 					case 2:
-						player.inputStrategy = new DrumsInputStrategy(oldInput, botMode.value);
+						player.inputStrategy = new DrumsInputStrategy {
+							inputDevice = oldInput,
+							microphoneIndex = oldMic,
+							botMode = botMode.value
+						};
+						break;
+					case 3:
+						player.inputStrategy = new MicInputStrategy {
+							inputDevice = oldInput,
+							microphoneIndex = oldMic,
+							botMode = botMode.value
+						};
 						break;
 				}
 
@@ -194,9 +228,17 @@ namespace YARG.UI {
 			};
 
 			inputDevices = new();
+
+			// Add controllers
 			foreach (var device in InputSystem.devices) {
 				inputDevices.Add(device);
 				choices.Add(device.name);
+			}
+
+			// Add microphones
+			for (int i = 0; i < Microphone.devices.Length; i++) {
+				inputDevices.Add(i);
+				choices.Add(Microphone.devices[i]);
 			}
 
 			dropdownField.choices = choices;

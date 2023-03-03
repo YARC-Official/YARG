@@ -128,9 +128,15 @@ namespace YARG.UI {
 					1 => "bass",
 					2 => "keys",
 					3 => "drums",
+					4 => "vocals",
 					_ => throw new System.Exception("Unreachable.")
 				};
-				UpdateNormalOrPro();
+
+				if (player.chosenInstrument != "keys" && player.chosenInstrument != "vocals") {
+					UpdateNormalOrPro();
+				} else {
+					UpdateDifficulty();
+				}
 			} else if (state == State.NORMAL_OR_PRO) {
 				if (selected == 1) {
 					player.chosenInstrument = player.chosenInstrument switch {
@@ -183,13 +189,13 @@ namespace YARG.UI {
 
 			state = State.INSTRUMENT;
 
-			optionCount = 4;
+			optionCount = 5;
 			string[] ops = {
 				"Guitar",
 				"Bass",
 				"Keys",
 				"Drums",
-				null,
+				"Vocals",
 				null
 			};
 

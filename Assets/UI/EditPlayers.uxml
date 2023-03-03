@@ -15,7 +15,7 @@
             <ui:DropdownField index="-1" choices="System.Collections.Generic.List`1[System.String]" name="InputDevice" />
             <ui:Toggle label="Bot Mode" name="BotMode" style="flex-wrap: nowrap; flex-direction: row;" />
             <ui:FloatField label="Track Speed" value="7" name="TrackSpeed" />
-            <ui:RadioButtonGroup value="-1" choices="Five Fret,Real Guitar,Drums" name="InputStrategyRadio" />
+            <ui:RadioButtonGroup value="-1" choices="Five Fret,Real Guitar,Drums,Microphone" name="InputStrategyRadio" />
         </ui:VisualElement>
         <ui:VisualElement name="Settings" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); min-width: auto; min-height: auto; width: 40%;">
             <ui:Label tabindex="-1" text="Input Strategy" display-tooltip-when-elided="true" style="-unity-font-style: bold; -unity-text-align: upper-center;" />

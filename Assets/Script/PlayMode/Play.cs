@@ -89,6 +89,10 @@ namespace YARG.PlayMode {
 			for (int i = 0; i < PlayerManager.players.Count; i++) {
 				string instrument = PlayerManager.players[i].chosenInstrument;
 
+				if (instrument == "vocals") {
+					continue;
+				}
+
 				GameObject track;
 				if (instrument == "realGuitar" || instrument == "realBass") {
 					track = Instantiate(realGuitarTrackPrefab, new Vector3(i * 25f, 0f, 0f),

@@ -11,6 +11,8 @@ namespace YARG.Input {
 		public InputDevice inputDevice;
 		protected Dictionary<string, InputControl> inputMappings;
 
+		public int microphoneIndex = -1;
+
 		public delegate void GenericCalibrationAction(InputStrategy inputStrategy);
 		/// <summary>
 		/// Gets invoked when the button for generic calibration is pressed.<br/>
@@ -31,10 +33,7 @@ namespace YARG.Input {
 		/// </summary>
 		public event GenericNavigationAction GenericNavigationEvent;
 
-		public InputStrategy(InputDevice inputDevice, bool botMode) {
-			this.botMode = botMode;
-			this.inputDevice = inputDevice;
-
+		public InputStrategy() {
 			// Add keys for each input mapping
 			inputMappings = new();
 			foreach (var key in GetMappingNames()) {

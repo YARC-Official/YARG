@@ -33,12 +33,6 @@ namespace YARG.Input {
 		private float? stringGroupingTimer = null;
 		private StrumFlag stringGroupingFlag = StrumFlag.NONE;
 
-		public RealGuitarInputStrategy(InputDevice inputDevice, bool botMode) : base(inputDevice, botMode) {
-			if (inputDevice is not ProGuitarMadCatzGampad) {
-				Debug.LogWarning("Input device is not compatible with this input strategy.");
-			}
-		}
-
 		public override string[] GetMappingNames() {
 			return new string[0];
 		}

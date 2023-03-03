@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.PlayMode;
+using YARG.Util;
 
 namespace YARG.UI {
 	public class GameUI : MonoBehaviour {
@@ -13,6 +14,8 @@ namespace YARG.UI {
 		private TextMeshProUGUI songTitle;
 		[SerializeField]
 		private TextMeshProUGUI lyric;
+		[SerializeField]
+		private RawImage vocalTrack;
 
 		public static GameUI Instance {
 			get;
@@ -40,6 +43,14 @@ namespace YARG.UI {
 			rawImage.texture = rt;
 
 			UpdateRawImageSizing();
+		}
+
+		public void SetVocalTrackImage(RenderTexture rt) {
+			vocalTrack.texture = rt;
+
+			// TODO: Whyyy. figure out a better way to scale.
+			var rect = Utils.RectTransformToViewportSpace(vocalTrack.rectTransform);
+			vocalTrack.uvRect = new(0f, rect.y / 1.9f, rect.width, rect.height);
 		}
 
 		public void SetGenericLyric(string str) {
