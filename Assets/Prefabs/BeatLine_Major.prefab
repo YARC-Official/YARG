@@ -16,7 +16,7 @@ PrefabInstance:
     - target: {fileID: 3557919860777482623, guid: c1eead8ba9adb1c4da3fae25d2510658,
         type: 3}
       propertyPath: m_RootOrder
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3557919860777482623, guid: c1eead8ba9adb1c4da3fae25d2510658,
         type: 3}
@@ -78,12 +78,19 @@ PrefabInstance:
       propertyPath: poolId
       value: beatLine_major
       objectReference: {fileID: 0}
+    - target: {fileID: 5818509754309577681, guid: c1eead8ba9adb1c4da3fae25d2510658,
+        type: 3}
+      propertyPath: poolId
+      value: beatLine_major
+      objectReference: {fileID: 0}
     - target: {fileID: 7571642345733379731, guid: c1eead8ba9adb1c4da3fae25d2510658,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: c49eb792d7ed7d74280574e78ea6df49, type: 2}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 726176036692823074, guid: c1eead8ba9adb1c4da3fae25d2510658, type: 3}
+    - {fileID: 4870174150156781192, guid: c1eead8ba9adb1c4da3fae25d2510658, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []

@@ -2,14 +2,26 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.Rendering.Universal;
+using YARG.Data;
 using YARG.Input;
+using YARG.Pools;
 using YARG.UI;
 
 namespace YARG.PlayMode {
 	public class MicPlayer : MonoBehaviour {
+		public const float TRACK_SPEED = 7f;
+
+		private const float TRACK_SPAWN_OFFSET = 12f;
+		private const float TRACK_END_OFFSET = 5f;
+
 		public static MicPlayer Instance {
 			get; private set;
 		}
+
+		[SerializeField]
+		private LyricPool lyricPool;
+		[SerializeField]
+		private VocalNotePool notePool;
 
 		[SerializeField]
 		private Transform needle;
@@ -21,6 +33,13 @@ namespace YARG.PlayMode {
 
 		private List<MicInputStrategy> micInputs = new();
 		public Dictionary<MicInputStrategy, AudioSource> dummyAudioSources = new();
+
+		public List<LyricInfo> Chart => Play.Instance.chart.realLyrics;
+
+		public float RelativeTime => Play.Instance.SongTime +
+			((TRACK_SPAWN_OFFSET + TRACK_END_OFFSET) / (TRACK_SPEED / Play.speed));
+
+		private int visualChartIndex = 0;
 
 		private void Start() {
 			Instance = this;
@@ -92,9 +111,27 @@ namespace YARG.PlayMode {
 		}
 
 		private void Update() {
+			// Ignore everything else until the song starts
+			if (!Play.Instance.SongStarted) {
+				return;
+			}
+
+			// Update inputs
+
 			foreach (var inputStrategy in micInputs) {
 				inputStrategy.UpdatePlayerMode();
 			}
+
+			// Spawn lyrics
+
+			while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= RelativeTime) {
+				var lyricInfo = Chart[visualChartIndex];
+
+				SpawnLyric(lyricInfo, RelativeTime);
+				visualChartIndex++;
+			}
+
+			// Update needle
 
 			needle.gameObject.SetActive(micInputs[0].VoiceDetected);
 
@@ -104,6 +141,26 @@ namespace YARG.PlayMode {
 			z = Mathf.Clamp(z, -0.45f, 0.93f);
 
 			needle.transform.localPosition = needle.transform.localPosition.WithZ(z);
+		}
+
+		private void SpawnLyric(LyricInfo lyricInfo, float time) {
+			// Set correct position
+			float lagCompensation = CalcLagCompensation(time, lyricInfo.time);
+			var pos = TRACK_SPAWN_OFFSET - lagCompensation;
+
+			// Spawn text
+			lyricPool.AddLyric(lyricInfo.lyric, pos);
+
+			// Spawn note
+			if (lyricInfo.inharmonic) {
+				notePool.AddNoteInharmonic(lyricInfo.length, pos);
+			} else {
+				// TODO
+			}
+		}
+
+		protected float CalcLagCompensation(float currentTime, float noteTime) {
+			return (currentTime - noteTime) * (TRACK_SPEED / Play.speed);
 		}
 	}
 }

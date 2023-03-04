@@ -4,6 +4,7 @@ using System.Collections.Generic;
 namespace YARG.Data {
 	public class Chart {
 		public List<List<NoteInfo>[]> allParts;
+
 		public List<NoteInfo>[] guitar = new List<NoteInfo>[] { new(), new(), new(), new() };
 		public List<NoteInfo>[] bass = new List<NoteInfo>[] { new(), new(), new(), new() };
 		public List<NoteInfo>[] keys = new List<NoteInfo>[] { new(), new(), new(), new() };
@@ -15,6 +16,7 @@ namespace YARG.Data {
 		public List<float> beats = new();
 
 		public List<GenericLyricInfo> genericLyrics = new();
+		public List<LyricInfo> realLyrics = new();
 
 		public Chart() {
 			allParts = new() {

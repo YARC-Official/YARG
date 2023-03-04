@@ -8,13 +8,14 @@ using YARG.UI;
 namespace YARG.PlayMode {
 	public abstract class AbstractTrack : MonoBehaviour {
 		protected const float TRACK_SPAWN_OFFSET = 3f;
+		protected const float TRACK_END_OFFSET = 1.75f;
 
 		public delegate void StarpowerMissAction();
 		public event StarpowerMissAction StarpowerMissEvent;
 
 		public PlayerManager.Player player;
 		public float RelativeTime => Play.Instance.SongTime +
-			((TRACK_SPAWN_OFFSET + 1.75f) / (player.trackSpeed / Play.speed));
+			((TRACK_SPAWN_OFFSET + TRACK_END_OFFSET) / (player.trackSpeed / Play.speed));
 
 		protected List<NoteInfo> Chart => Play.Instance.chart
 			.GetChartByName(player.chosenInstrument)[(int) player.chosenDifficulty];

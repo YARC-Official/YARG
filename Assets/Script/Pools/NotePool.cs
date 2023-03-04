@@ -1,18 +1,19 @@
 using System.Collections.Generic;
 using UnityEngine;
+using YARG.Data;
 
 namespace YARG.Pools {
 	public class NotePool : Pool {
-		protected Dictionary<object, List<NoteComponent>> activeNotes = new();
+		protected Dictionary<NoteInfo, List<NoteComponent>> activeNotes = new();
 
 		protected override void OnPooled(Poolable poolable) {
 			if (poolable is NoteComponent noteComponent &&
-				activeNotes.ContainsKey(noteComponent.data)) {
-				activeNotes.Remove(noteComponent.data);
+				activeNotes.ContainsKey((NoteInfo) noteComponent.data)) {
+				activeNotes.Remove((NoteInfo) noteComponent.data);
 			}
 		}
 
-		public void RemoveNote(object key) {
+		public void RemoveNote(NoteInfo key) {
 			if (activeNotes.TryGetValue(key, out List<NoteComponent> list)) {
 				foreach (var note in list) {
 					Remove(note);
@@ -20,7 +21,7 @@ namespace YARG.Pools {
 			}
 		}
 
-		public void HitNote(object key) {
+		public void HitNote(NoteInfo key) {
 			if (activeNotes.TryGetValue(key, out List<NoteComponent> list)) {
 				foreach (var note in list) {
 					note.HitNote();
@@ -28,7 +29,7 @@ namespace YARG.Pools {
 			}
 		}
 
-		public void MissNote(object key) {
+		public void MissNote(NoteInfo key) {
 			if (activeNotes.TryGetValue(key, out List<NoteComponent> list)) {
 				foreach (var note in list) {
 					note.MissNote();
@@ -36,7 +37,7 @@ namespace YARG.Pools {
 			}
 		}
 
-		public NoteComponent AddNote(object key, Vector3 position) {
+		public NoteComponent AddNote(NoteInfo key, Vector3 position) {
 			var poolable = Add("note", position);
 			poolable.data = key;
 

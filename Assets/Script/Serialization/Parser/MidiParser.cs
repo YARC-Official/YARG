@@ -78,6 +78,7 @@ namespace YARG.Serialization.Parser {
 								break;
 							case "PART VOCALS":
 								chart.genericLyrics = ParseGenericLyrics(trackChunk, tempo);
+								chart.realLyrics = ParseRealLyrics(trackChunk, tempo);
 								break;
 							case "PART REAL_GUITAR":
 								for (int i = 0; i < 4; i++) {
@@ -150,6 +151,16 @@ namespace YARG.Serialization.Parser {
 						lastNoteTime = difficulty[^1].EndTime;
 					}
 				}
+			}
+
+			// Add delay to vocals
+
+			foreach (var lyric in chart.genericLyrics) {
+				lyric.time += delay;
+			}
+
+			foreach (var lyric in chart.realLyrics) {
+				lyric.time += delay;
 			}
 
 			// Generate beat line events if there aren't any
