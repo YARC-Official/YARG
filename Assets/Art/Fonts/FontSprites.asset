@@ -129,6 +129,12 @@ MonoBehaviour:
     m_Scale: 1.3
     m_Name: realKeys
     m_HashCode: -1526934818
+  - m_ElementType: 2
+    m_Unicode: 65534
+    m_GlyphIndex: 12
+    m_Scale: 1.3
+    m_Name: vocals
+    m_HashCode: 361071524
   m_SpriteGlyphTable:
   - m_Index: 0
     m_Metrics:
@@ -322,5 +328,21 @@ MonoBehaviour:
     m_AtlasIndex: 0
     m_ClassDefinitionType: 0
     sprite: {fileID: -1173955509, guid: 66fae0a679753ea4a9110a183b8d2af9, type: 3}
+  - m_Index: 12
+    m_Metrics:
+      m_Width: 256
+      m_Height: 256
+      m_HorizontalBearingX: 0
+      m_HorizontalBearingY: 198
+      m_HorizontalAdvance: 256
+    m_GlyphRect:
+      m_X: 0
+      m_Y: 256
+      m_Width: 256
+      m_Height: 256
+    m_Scale: 1
+    m_AtlasIndex: 0
+    m_ClassDefinitionType: 0
+    sprite: {fileID: -212029294, guid: 66fae0a679753ea4a9110a183b8d2af9, type: 3}
   spriteInfoList: []
   fallbackSpriteAssets: []

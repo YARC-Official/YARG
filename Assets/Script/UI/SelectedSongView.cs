@@ -103,7 +103,7 @@ namespace YARG.UI {
 				}
 
 				// Skip these for now
-				if (diff.Key == "vocals" || diff.Key == "harmVocals") {
+				if (diff.Key == "harmVocals") {
 					continue;
 				}
 

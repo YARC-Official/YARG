@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
-using UnityEngine;
 using YARG.Data;
 
 namespace YARG.Serialization.Parser {
@@ -80,7 +79,7 @@ namespace YARG.Serialization.Parser {
 			return lyrics;
 		}
 
-		private List<LyricInfo> ParseRealLyrics(TrackChunk trackChunk, TempoMap tempo) {
+		private List<LyricInfo> ParseRealLyrics(List<EventIR> eventIR, TrackChunk trackChunk, TempoMap tempo) {
 			var lyrics = new List<LyricInfo>();
 
 			// For later:
@@ -136,8 +135,18 @@ namespace YARG.Serialization.Parser {
 						continue;
 					}
 
-					// Remove special case
+					// Get end time
+					long endTime = GetLyricEndTime(trackChunk, totalDelta);
+
+					// Convert to seconds
+					var lyricTime = (float) TimeConverter.ConvertTo<MetricTimeSpan>(totalDelta, tempo).TotalSeconds;
+					var lyricEnd = (float) TimeConverter.ConvertTo<MetricTimeSpan>(endTime, tempo).TotalSeconds;
+
+					// Extend last lyric if +
 					if (l == "+") {
+						var lyric = lyrics[^1];
+						lyric.length = lyricEnd - lyric.time;
+
 						continue;
 					}
 
@@ -154,14 +163,18 @@ namespace YARG.Serialization.Parser {
 						l = l[0..^1];
 					}
 
-					// Get end time
-					long endTime = GetLyricEndTime(trackChunk, totalDelta);
+					// Replace = with -
+					l = l.Replace('=', '-');
 
-					// Add to phrase
-					var lyricTime = (float) TimeConverter.ConvertTo<MetricTimeSpan>(totalDelta, tempo).TotalSeconds;
-					var lyricEnd = (float) TimeConverter.ConvertTo<MetricTimeSpan>(endTime, tempo).TotalSeconds;
+					// Add to lyrics
 					lyrics.Add(new LyricInfo(lyricTime, lyricEnd - lyricTime, l, inharmonic));
 				}
+
+				// Add end phrase event
+				eventIR.Add(new EventIR {
+					startTick = note.EndTime,
+					name = "vocal_endPhrase"
+				});
 			}
 
 			return lyrics;

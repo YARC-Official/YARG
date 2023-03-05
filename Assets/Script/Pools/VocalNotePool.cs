@@ -8,5 +8,10 @@ namespace YARG.Pools {
 
 			return poolable.transform;
 		}
+
+		public Transform AddEndPhraseLine(float x) {
+			var poolable = Add("endPhraseLine", new Vector3(x, 0.1f, 0f));
+			return poolable.transform;
+		}
 	}
 }

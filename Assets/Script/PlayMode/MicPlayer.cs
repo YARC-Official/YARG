@@ -26,6 +26,11 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private Transform needle;
 		[SerializeField]
+		private GameObject needleModel;
+		[SerializeField]
+		private ParticleSystem needleParticles;
+
+		[SerializeField]
 		private Camera trackCamera;
 
 		[SerializeField]
@@ -40,6 +45,10 @@ namespace YARG.PlayMode {
 			((TRACK_SPAWN_OFFSET + TRACK_END_OFFSET) / (TRACK_SPEED / Play.speed));
 
 		private int visualChartIndex = 0;
+		private int chartIndex = 0;
+		private int eventChartIndex = 0;
+
+		private LyricInfo currentLyric = null;
 
 		private void Start() {
 			Instance = this;
@@ -117,13 +126,24 @@ namespace YARG.PlayMode {
 			}
 
 			// Update inputs
-
 			foreach (var inputStrategy in micInputs) {
 				inputStrategy.UpdatePlayerMode();
 			}
 
-			// Spawn lyrics
+			// Update events
+			var events = Play.Instance.chart.events;
+			while (events.Count > eventChartIndex && events[eventChartIndex].time <= RelativeTime) {
+				var eventInfo = events[eventChartIndex];
 
+				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(RelativeTime, eventInfo.time);
+				if (eventInfo.name == "vocal_endPhrase") {
+					notePool.AddEndPhraseLine(compensation);
+				}
+
+				eventChartIndex++;
+			}
+
+			// Spawn lyrics
 			while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= RelativeTime) {
 				var lyricInfo = Chart[visualChartIndex];
 
@@ -131,9 +151,29 @@ namespace YARG.PlayMode {
 				visualChartIndex++;
 			}
 
+			// Set current lyric
+			if (currentLyric == null) {
+				while (Chart.Count > chartIndex && Chart[chartIndex].time <= Play.Instance.SongTime) {
+					currentLyric = Chart[chartIndex];
+					chartIndex++;
+				}
+			} else if (currentLyric.EndTime < Play.Instance.SongTime) {
+				currentLyric = null;
+			}
+
 			// Update needle
 
-			needle.gameObject.SetActive(micInputs[0].VoiceDetected);
+			needleModel.gameObject.SetActive(micInputs[0].VoiceDetected);
+
+			if (micInputs[0].VoiceDetected && currentLyric != null) {
+				if (!needleParticles.isEmitting) {
+					needleParticles.Play();
+				}
+			} else {
+				if (needleParticles.isEmitting) {
+					needleParticles.Stop();
+				}
+			}
 
 			float z = -0.353f +
 				(micInputs[0].VoiceNote / 12f * 0.42f) +

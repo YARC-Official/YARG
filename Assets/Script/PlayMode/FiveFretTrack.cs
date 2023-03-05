@@ -85,9 +85,8 @@ namespace YARG.PlayMode {
 				return;
 			}
 
-			var events = Play.Instance.chart.events;
-
 			// Update events (beat lines, starpower, etc.)
+			var events = Play.Instance.chart.events;
 			while (events.Count > eventChartIndex && events[eventChartIndex].time <= RelativeTime) {
 				var eventInfo = events[eventChartIndex];
 
