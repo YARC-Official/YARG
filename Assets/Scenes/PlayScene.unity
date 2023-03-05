@@ -557,6 +557,9 @@ MonoBehaviour:
   - id: note_inharmonic
     prefab: {fileID: 8889699353020473416, guid: 09ca07132dc3291419e88060d02ded2d,
       type: 3}
+  - id: note_harmonic
+    prefab: {fileID: 4892621521145526465, guid: cadf4c6c56ea2934f9b6b4b40000186a,
+      type: 3}
   - id: endPhraseLine
     prefab: {fileID: 6881370188666117159, guid: a9c1cfdca10258b408dd0912482ffc7d,
       type: 3}

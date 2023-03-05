@@ -79,7 +79,7 @@ namespace YARG.Serialization.Parser {
 			return lyrics;
 		}
 
-		private List<LyricInfo> ParseRealLyrics(List<EventIR> eventIR, TrackChunk trackChunk, TempoMap tempo) {
+		private List<LyricInfo> ParseRealLyrics(List<EventIR> eventIR, TrackChunk trackChunk, TempoMap tempo, bool onlyInharmoic) {
 			var lyrics = new List<LyricInfo>();
 
 			// For later:
@@ -136,7 +136,7 @@ namespace YARG.Serialization.Parser {
 					}
 
 					// Get end time
-					long endTime = GetLyricEndTime(trackChunk, totalDelta);
+					var (endTime, noteName, octave) = GetLyricInfo(trackChunk, totalDelta);
 
 					// Convert to seconds
 					var lyricTime = (float) TimeConverter.ConvertTo<MetricTimeSpan>(totalDelta, tempo).TotalSeconds;
@@ -150,7 +150,7 @@ namespace YARG.Serialization.Parser {
 						continue;
 					}
 
-					bool inharmonic = true;
+					bool inharmonic = onlyInharmoic;
 
 					// Set inharmonic
 					if (l.EndsWith("#")) {
@@ -167,7 +167,14 @@ namespace YARG.Serialization.Parser {
 					l = l.Replace('=', '-');
 
 					// Add to lyrics
-					lyrics.Add(new LyricInfo(lyricTime, lyricEnd - lyricTime, l, inharmonic));
+					lyrics.Add(new LyricInfo {
+						time = lyricTime,
+						length = lyricEnd - lyricTime,
+						lyric = l,
+						inharmonic = inharmonic,
+						note = (float) noteName,
+						octave = octave
+					});
 				}
 
 				// Add end phrase event
@@ -180,7 +187,7 @@ namespace YARG.Serialization.Parser {
 			return lyrics;
 		}
 
-		private long GetLyricEndTime(TrackChunk trackChunk, long tick) {
+		private (long EndTime, NoteName Note, int Octave) GetLyricInfo(TrackChunk trackChunk, long tick) {
 			foreach (var note in trackChunk.GetNotes()) {
 				// Skip meta-data notes
 				if (note.Octave >= 7) {
@@ -192,10 +199,10 @@ namespace YARG.Serialization.Parser {
 					continue;
 				}
 
-				return note.EndTime;
+				return (note.EndTime, note.NoteName, note.Octave);
 			}
 
-			return tick;
+			return (tick, NoteName.C, 3);
 		}
 	}
 }

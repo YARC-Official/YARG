@@ -36,10 +36,8 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private AudioMixerGroup silentMixerGroup;
 
-		private List<MicInputStrategy> micInputs = new();
+		private List<PlayerManager.Player> micInputs = new();
 		public Dictionary<MicInputStrategy, AudioSource> dummyAudioSources = new();
-
-		public List<LyricInfo> Chart => Play.Instance.chart.realLyrics;
 
 		public float RelativeTime => Play.Instance.SongTime +
 			((TRACK_SPAWN_OFFSET + TRACK_END_OFFSET) / (TRACK_SPEED / Play.speed));
@@ -64,7 +62,7 @@ namespace YARG.PlayMode {
 					hasMic = true;
 
 					// Add to inputs
-					micInputs.Add(micStrategy);
+					micInputs.Add(player);
 
 					// Add child dummy audio source (for mic input reading)
 					var go = new GameObject();
@@ -125,10 +123,15 @@ namespace YARG.PlayMode {
 				return;
 			}
 
+			// (ONLY ONE FOR NOW)
+			var player = micInputs[0];
+			var micInput = (MicInputStrategy) player.inputStrategy;
+
 			// Update inputs
-			foreach (var inputStrategy in micInputs) {
-				inputStrategy.UpdatePlayerMode();
-			}
+			micInput.UpdatePlayerMode();
+
+			// Get chart
+			var chart = Play.Instance.chart.realLyrics[player.chosenDifficulty == Difficulty.EASY ? 0 : 1];
 
 			// Update events
 			var events = Play.Instance.chart.events;
@@ -144,8 +147,8 @@ namespace YARG.PlayMode {
 			}
 
 			// Spawn lyrics
-			while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= RelativeTime) {
-				var lyricInfo = Chart[visualChartIndex];
+			while (chart.Count > visualChartIndex && chart[visualChartIndex].time <= RelativeTime) {
+				var lyricInfo = chart[visualChartIndex];
 
 				SpawnLyric(lyricInfo, RelativeTime);
 				visualChartIndex++;
@@ -153,19 +156,40 @@ namespace YARG.PlayMode {
 
 			// Set current lyric
 			if (currentLyric == null) {
-				while (Chart.Count > chartIndex && Chart[chartIndex].time <= Play.Instance.SongTime) {
-					currentLyric = Chart[chartIndex];
+				while (chart.Count > chartIndex && chart[chartIndex].time <= Play.Instance.SongTime) {
+					currentLyric = chart[chartIndex];
 					chartIndex++;
 				}
 			} else if (currentLyric.EndTime < Play.Instance.SongTime) {
 				currentLyric = null;
 			}
 
+			// See if the pitch is correct 
+
+			bool pitchCorrect = true;
+
+			if (currentLyric != null && !currentLyric.inharmonic && micInput.VoiceDetected) {
+				float correctRange = player.chosenDifficulty switch {
+					Difficulty.MEDIUM => 4f,
+					Difficulty.HARD => 3f,
+					Difficulty.EXPERT => 2f,
+					Difficulty.EXPERT_PLUS => 0.5f,
+					_ => throw new System.Exception("Unreachable.")
+				};
+
+				float neededNote = currentLyric.note + currentLyric.octave * 12f;
+				float currentNote = micInput.VoiceNote + micInput.VoiceOctave * 12f;
+
+				float dist = Mathf.Abs(neededNote - currentNote);
+
+				pitchCorrect = dist <= correctRange;
+			}
+
 			// Update needle
 
-			needleModel.gameObject.SetActive(micInputs[0].VoiceDetected);
+			needleModel.gameObject.SetActive(micInput.VoiceDetected);
 
-			if (micInputs[0].VoiceDetected && currentLyric != null) {
+			if (pitchCorrect && currentLyric != null) {
 				if (!needleParticles.isEmitting) {
 					needleParticles.Play();
 				}
@@ -175,11 +199,7 @@ namespace YARG.PlayMode {
 				}
 			}
 
-			float z = -0.353f +
-				(micInputs[0].VoiceNote / 12f * 0.42f) +
-				(micInputs[0].VoiceOctave - 3) * 0.42f;
-			z = Mathf.Clamp(z, -0.45f, 0.93f);
-
+			float z = NoteAndOctaveToZ(micInput.VoiceNote, micInput.VoiceOctave);
 			needle.transform.localPosition = needle.transform.localPosition.WithZ(z);
 		}
 
@@ -195,12 +215,21 @@ namespace YARG.PlayMode {
 			if (lyricInfo.inharmonic) {
 				notePool.AddNoteInharmonic(lyricInfo.length, pos);
 			} else {
-				// TODO
+				notePool.AddNoteHarmonic(lyricInfo.note, lyricInfo.octave, lyricInfo.length, pos);
 			}
 		}
 
 		protected float CalcLagCompensation(float currentTime, float noteTime) {
 			return (currentTime - noteTime) * (TRACK_SPEED / Play.speed);
+		}
+
+		public static float NoteAndOctaveToZ(float note, int octave) {
+			float z = -0.353f +
+				(note / 12f * 0.42f) +
+				(octave - 3) * 0.42f;
+			z = Mathf.Clamp(z, -0.45f, 0.93f);
+
+			return z;
 		}
 	}
 }
