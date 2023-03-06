@@ -79,8 +79,9 @@ namespace YARG.Serialization.Parser {
 							case "PART VOCALS":
 								chart.genericLyrics = ParseGenericLyrics(trackChunk, tempo);
 
-								chart.realLyrics[0] = ParseRealLyrics(eventIR, trackChunk, tempo, true);
-								chart.realLyrics[1] = ParseRealLyrics(eventIR, trackChunk, tempo, false);
+								for (int i = 0; i < 4; i++) {
+									chart.realLyrics[i] = ParseRealLyrics(eventIR, trackChunk, tempo, (Difficulty) i);
+								}
 								break;
 							case "PART REAL_GUITAR":
 								for (int i = 0; i < 4; i++) {
@@ -161,9 +162,9 @@ namespace YARG.Serialization.Parser {
 				lyric.time += delay;
 			}
 
-			foreach (var lyric in chart.realLyrics) {
-				for (int i = 0; i < 2; i++) {
-					lyric[i].time += delay;
+			for (int i = 0; i < 4; i++) {
+				foreach (var lyric in chart.realLyrics[i]) {
+					lyric.time += delay;
 				}
 			}
 

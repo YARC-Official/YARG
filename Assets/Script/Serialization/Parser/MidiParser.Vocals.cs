@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
+using UnityEngine;
 using YARG.Data;
 
 namespace YARG.Serialization.Parser {
@@ -79,7 +80,7 @@ namespace YARG.Serialization.Parser {
 			return lyrics;
 		}
 
-		private List<LyricInfo> ParseRealLyrics(List<EventIR> eventIR, TrackChunk trackChunk, TempoMap tempo, bool onlyInharmoic) {
+		private List<LyricInfo> ParseRealLyrics(List<EventIR> eventIR, TrackChunk trackChunk, TempoMap tempo, Difficulty difficulty) {
 			var lyrics = new List<LyricInfo>();
 
 			// For later:
@@ -145,12 +146,21 @@ namespace YARG.Serialization.Parser {
 					// Extend last lyric if +
 					if (l == "+") {
 						var lyric = lyrics[^1];
+
+						// Add end pointer for first note
+						var (_, (firstNote, firstOctave)) = lyric.pitchOverTime[0];
+						lyric.pitchOverTime.Add((lyric.length, (firstNote, firstOctave)));
+
+						// Update length
 						lyric.length = lyricEnd - lyric.time;
+
+						// Add start pointer for next note
+						lyric.pitchOverTime.Add((lyricTime - lyric.time, ((float) noteName, octave)));
 
 						continue;
 					}
 
-					bool inharmonic = onlyInharmoic;
+					bool inharmonic = difficulty == Difficulty.EASY;
 
 					// Set inharmonic
 					if (l.EndsWith("#")) {
@@ -172,8 +182,9 @@ namespace YARG.Serialization.Parser {
 						length = lyricEnd - lyricTime,
 						lyric = l,
 						inharmonic = inharmonic,
-						note = (float) noteName,
-						octave = octave
+						pitchOverTime = new() {
+							(0f, ((float) noteName, octave))
+						}
 					});
 				}
 
@@ -187,7 +198,7 @@ namespace YARG.Serialization.Parser {
 			return lyrics;
 		}
 
-		private (long EndTime, NoteName Note, int Octave) GetLyricInfo(TrackChunk trackChunk, long tick) {
+		private (long endTime, NoteName note, int octave) GetLyricInfo(TrackChunk trackChunk, long tick) {
 			foreach (var note in trackChunk.GetNotes()) {
 				// Skip meta-data notes
 				if (note.Octave >= 7) {

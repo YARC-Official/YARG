@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace YARG.Pools {
@@ -9,9 +10,9 @@ namespace YARG.Pools {
 			return poolable.transform;
 		}
 
-		public Transform AddNoteHarmonic(float note, int octave, float length, float x) {
+		public Transform AddNoteHarmonic(List<(float, (float, int))> pitchOverTime, float length, float x) {
 			var poolable = (VocalNoteHarmonic) Add("note_harmonic", new Vector3(x, 0.065f, 0f));
-			poolable.SetInfo(note, octave, length);
+			poolable.SetInfo(pitchOverTime, length);
 
 			return poolable.transform;
 		}

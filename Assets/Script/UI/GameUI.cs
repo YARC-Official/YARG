@@ -53,6 +53,10 @@ namespace YARG.UI {
 			vocalTrack.uvRect = new(0f, rect.y / 1.9f, rect.width, rect.height);
 		}
 
+		public void RemoveVocalTrackImage() {
+			Destroy(vocalTrack.gameObject);
+		}
+
 		public void SetGenericLyric(string str) {
 			lyric.text = str;
 		}

@@ -87,6 +87,7 @@ namespace YARG.PlayMode {
 			// Destroy if no mic is connected
 			if (!hasMic) {
 				Destroy(gameObject);
+				GameUI.Instance.RemoveVocalTrackImage();
 				return;
 			}
 
@@ -131,7 +132,7 @@ namespace YARG.PlayMode {
 			micInput.UpdatePlayerMode();
 
 			// Get chart
-			var chart = Play.Instance.chart.realLyrics[player.chosenDifficulty == Difficulty.EASY ? 0 : 1];
+			var chart = Play.Instance.chart.realLyrics[(int) player.chosenDifficulty];
 
 			// Update events
 			var events = Play.Instance.chart.events;
@@ -168,22 +169,22 @@ namespace YARG.PlayMode {
 
 			bool pitchCorrect = true;
 
-			if (currentLyric != null && !currentLyric.inharmonic && micInput.VoiceDetected) {
-				float correctRange = player.chosenDifficulty switch {
-					Difficulty.MEDIUM => 4f,
-					Difficulty.HARD => 3f,
-					Difficulty.EXPERT => 2f,
-					Difficulty.EXPERT_PLUS => 0.5f,
-					_ => throw new System.Exception("Unreachable.")
-				};
+			// if (currentLyric != null && !currentLyric.inharmonic && micInput.VoiceDetected) {
+			// 	float correctRange = player.chosenDifficulty switch {
+			// 		Difficulty.MEDIUM => 4f,
+			// 		Difficulty.HARD => 3f,
+			// 		Difficulty.EXPERT => 2f,
+			// 		Difficulty.EXPERT_PLUS => 0.5f,
+			// 		_ => throw new System.Exception("Unreachable.")
+			// 	};
 
-				float neededNote = currentLyric.note + currentLyric.octave * 12f;
-				float currentNote = micInput.VoiceNote + micInput.VoiceOctave * 12f;
+			// 	float neededNote = currentLyric.note + currentLyric.octave * 12f;
+			// 	float currentNote = micInput.VoiceNote + micInput.VoiceOctave * 12f;
 
-				float dist = Mathf.Abs(neededNote - currentNote);
+			// 	float dist = Mathf.Abs(neededNote - currentNote);
 
-				pitchCorrect = dist <= correctRange;
-			}
+			// 	pitchCorrect = dist <= correctRange;
+			// }
 
 			// Update needle
 
@@ -215,7 +216,7 @@ namespace YARG.PlayMode {
 			if (lyricInfo.inharmonic) {
 				notePool.AddNoteInharmonic(lyricInfo.length, pos);
 			} else {
-				notePool.AddNoteHarmonic(lyricInfo.note, lyricInfo.octave, lyricInfo.length, pos);
+				notePool.AddNoteHarmonic(lyricInfo.pitchOverTime, lyricInfo.length, pos);
 			}
 		}
 
