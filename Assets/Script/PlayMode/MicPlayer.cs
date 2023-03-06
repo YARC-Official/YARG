@@ -9,7 +9,7 @@ using YARG.UI;
 
 namespace YARG.PlayMode {
 	public class MicPlayer : MonoBehaviour {
-		public const float TRACK_SPEED = 7f;
+		public const float TRACK_SPEED = 4f;
 
 		private const float TRACK_SPAWN_OFFSET = 12f;
 		private const float TRACK_END_OFFSET = 5f;
@@ -167,24 +167,27 @@ namespace YARG.PlayMode {
 
 			// See if the pitch is correct 
 
-			bool pitchCorrect = true;
+			bool pitchCorrect = micInput.VoiceDetected;
+			if (currentLyric != null && !currentLyric.inharmonic && micInput.VoiceDetected) {
+				float correctRange = player.chosenDifficulty switch {
+					Difficulty.MEDIUM => 4f,
+					Difficulty.HARD => 3f,
+					Difficulty.EXPERT => 2f,
+					Difficulty.EXPERT_PLUS => 0.5f,
+					_ => throw new System.Exception("Unreachable.")
+				};
 
-			// if (currentLyric != null && !currentLyric.inharmonic && micInput.VoiceDetected) {
-			// 	float correctRange = player.chosenDifficulty switch {
-			// 		Difficulty.MEDIUM => 4f,
-			// 		Difficulty.HARD => 3f,
-			// 		Difficulty.EXPERT => 2f,
-			// 		Difficulty.EXPERT_PLUS => 0.5f,
-			// 		_ => throw new System.Exception("Unreachable.")
-			// 	};
+				// Get the needed pitch
+				float timeIntoNote = Play.Instance.SongTime - currentLyric.time;
+				float neededNote = currentLyric.GetLerpedNoteAtTime(timeIntoNote);
 
-			// 	float neededNote = currentLyric.note + currentLyric.octave * 12f;
-			// 	float currentNote = micInput.VoiceNote + micInput.VoiceOctave * 12f;
+				// Get the note the player is singing
+				float currentNote = micInput.VoiceNote + micInput.VoiceOctave * 12f;
 
-			// 	float dist = Mathf.Abs(neededNote - currentNote);
-
-			// 	pitchCorrect = dist <= correctRange;
-			// }
+				// Check if it is in the right threshold
+				float dist = Mathf.Abs(neededNote - currentNote);
+				pitchCorrect = dist <= correctRange;
+			}
 
 			// Update needle
 
