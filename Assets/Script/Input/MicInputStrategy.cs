@@ -12,7 +12,7 @@ namespace YARG.Input {
 		private const int DOWNSCALED_SIZE = 196;
 
 		private const int START_BOUND = 20;
-		private const int WINDOW_SIZE = 32;
+		private const int WINDOW_SIZE = 48;
 		private const float THRESHOLD = 0.1f;
 
 		private float[] samples = new float[SAMPLE_SCAN_SIZE];
@@ -84,7 +84,7 @@ namespace YARG.Input {
 			// Pitch //
 
 			for (int i = START_BOUND; i < DOWNSCALED_SIZE - WINDOW_SIZE; i++) {
-				CMNDFvalues[i - START_BOUND] = CMNDF(WINDOW_SIZE, 0, i);
+				CMNDFvalues[i - START_BOUND] = CMNDF(0, i);
 			}
 
 			float? lowestCMNDF = null;
@@ -102,15 +102,10 @@ namespace YARG.Input {
 				/ lowestCMNDF.Value;
 
 			// Lerp
-			if (pitchCache == null) {
+			if (pitchCache == null || timeSinceVoiceDetected < 0.05f) {
 				pitchCache = hertz;
 			} else {
-				// Slowly ramp down the lerp-ness.
-				// This prevents words that start with SH and similar
-				// from getting detected as a really high note.
-				float mul = Mathf.Max(10f, -300 * timeSinceVoiceDetected + 100);
-
-				pitchCache = Mathf.Lerp(pitchCache ?? 0f, hertz, Time.deltaTime * mul);
+				pitchCache = Mathf.Lerp(pitchCache ?? 0f, hertz, Time.deltaTime * 10f);
 			}
 
 			// Get the note number from the hertz value
@@ -127,39 +122,50 @@ namespace YARG.Input {
 		}
 
 		/// <summary>
-		/// Auto-correlation function.
+		/// Difference function.
 		/// </summary>
-		private float ACF(int windowSize, int time, int lag) {
+		private float DF(int time, int lag) {
+			// The following is an optimized version of these two methods.
+			// These are here for clarity.
+
+			// private float ACF(int time, int lag) {
+			// 	float result = 0f;
+			// 	for (int i = 0; i < WINDOW_SIZE; i++) {
+			// 		result += optimizedSamples[time + i] * optimizedSamples[time + i + lag];
+			// 	}
+			// 	return result;
+			// }
+
+			// private float DF(int time, int lag) {
+			// 	return ACF(WINDOW_SIZE, time, 0)
+			// 		+ ACF(WINDOW_SIZE, time + lag, 0)
+			// 		- (2f * ACF(WINDOW_SIZE, time, lag));
+			// }
+
 			float result = 0f;
-			for (int i = 0; i < windowSize; i++) {
-				result += optimizedSamples[time + i] * optimizedSamples[time + i + lag];
+			int index = time + lag;
+			for (int i = 0; i < WINDOW_SIZE; i++) {
+				float sample1 = optimizedSamples[time + i];
+				float sample2 = optimizedSamples[index + i];
+				result += (sample1 * sample1) + (sample2 * sample2) - (2f * sample1 * sample2);
 			}
 			return result;
 		}
 
 		/// <summary>
-		/// Difference function.
+		/// Cumulative mean normalized difference function.
 		/// </summary>
-		private float DF(int windowSize, int time, int lag) {
-			return ACF(windowSize, time, 0)
-				+ ACF(windowSize, time + lag, 0)
-				- (2f * ACF(windowSize, time, lag));
-		}
-
-		/// <summary>
-		/// Culmalitive mean normalized difference function.
-		/// </summary>
-		private float CMNDF(int windowSize, int time, int lag) {
+		private float CMNDF(int time, int lag) {
 			if (lag == 0) {
 				return 1;
 			}
 
 			float sum = 0f;
 			for (int i = 1; i < lag; i++) {
-				sum += DF(windowSize, time, i + 1);
+				sum += DF(time, i + 1);
 			}
 
-			return DF(windowSize, time, lag) / sum * lag;
+			return DF(time, lag) / sum * lag;
 		}
 
 		public override void UpdateBotMode(List<NoteInfo> chart, float songTime) {

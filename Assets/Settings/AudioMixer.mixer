@@ -39,7 +39,7 @@ AudioMixerGroupController:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Silent
+  m_Name: Vocals
   m_AudioMixer: {fileID: 24100000}
   m_GroupID: 0da9e7d08b405934aa8fe78c378a4a38
   m_Children: []
@@ -121,7 +121,8 @@ AudioMixerSnapshotController:
   m_AudioMixer: {fileID: 24100000}
   m_SnapshotID: 26d2212e05491a146baac9515821f57d
   m_FloatValues:
-    8359e34ef32f4e44194fb41415e1c7d4: -80
+    b467df71595802447ac3785fb1d06daf: 10
+    8359e34ef32f4e44194fb41415e1c7d4: -20
   m_TransitionOverrides: {}
 --- !u!244 &1049282059411974768
 AudioMixerEffectController:
