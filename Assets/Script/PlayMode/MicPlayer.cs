@@ -191,7 +191,11 @@ namespace YARG.PlayMode {
 
 			// Update needle
 
-			needleModel.gameObject.SetActive(micInput.VoiceDetected);
+			if (micInput.VoiceDetected) {
+				needleModel.gameObject.SetActive(true);
+			} else {
+				needleModel.gameObject.SetActive(micInput.TimeSinceNoVoice < 0.25f);
+			}
 
 			if (pitchCorrect && currentLyric != null) {
 				if (!needleParticles.isEmitting) {
@@ -231,7 +235,7 @@ namespace YARG.PlayMode {
 			float z = -0.353f +
 				(note / 12f * 0.42f) +
 				(octave - 3) * 0.42f;
-			//z = Mathf.Clamp(z, -0.45f, 0.93f);
+			z = Mathf.Clamp(z, -0.45f, 0.93f);
 
 			return z;
 		}

@@ -24,7 +24,9 @@ namespace YARG.Input {
 		private (int, float) noteCache;
 
 		public float timeSinceVoiceDetected = 0f;
-		public bool VoiceDetected => dbCache >= 0f && timeSinceVoiceDetected >= 0.05f;
+		public bool VoiceDetected => dbCache >= 0f && timeSinceVoiceDetected >= 0.07f;
+
+		public float TimeSinceNoVoice { get; private set; } = 0f;
 
 		public float VoiceFrequency => pitchCache ?? 0f;
 		public int VoiceOctave => noteCache.Item1;
@@ -43,8 +45,6 @@ namespace YARG.Input {
 			if (microphoneIndex == -1) {
 				return;
 			}
-
-			var watch = System.Diagnostics.Stopwatch.StartNew();
 
 			var audioSource = MicPlayer.Instance.dummyAudioSources[this];
 
@@ -76,8 +76,11 @@ namespace YARG.Input {
 			if (dbCache < 0f) {
 				pitchCache = null;
 				timeSinceVoiceDetected = 0f;
+
+				TimeSinceNoVoice += Time.deltaTime;
 				return;
 			} else {
+				TimeSinceNoVoice = 0f;
 				timeSinceVoiceDetected += Time.deltaTime;
 			}
 
@@ -101,8 +104,14 @@ namespace YARG.Input {
 			float hertz = (float) DOWNSCALED_SIZE / SAMPLE_SCAN_SIZE * AudioSettings.outputSampleRate
 				/ lowestCMNDF.Value;
 
+
+			// If the hertz is over 440, it is probably just a fricitive
+			if (hertz > 440f) {
+				return;
+			}
+
 			// Lerp
-			if (pitchCache == null || timeSinceVoiceDetected < 0.05f) {
+			if (pitchCache == null || timeSinceVoiceDetected < 0.07f) {
 				pitchCache = hertz;
 			} else {
 				pitchCache = Mathf.Lerp(pitchCache ?? 0f, hertz, Time.deltaTime * 10f);
@@ -116,9 +125,6 @@ namespace YARG.Input {
 
 			// Save to note cache
 			noteCache = (octave, midiNote % 12f);
-
-			watch.Stop();
-			Debug.Log(watch.ElapsedMilliseconds + "ms");
 		}
 
 		/// <summary>

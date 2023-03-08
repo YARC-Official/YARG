@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.Networking;
 using YARG.Data;
 using YARG.Serialization.Parser;
@@ -53,6 +54,8 @@ namespace YARG.PlayMode {
 		private int beatIndex = 0;
 		private int lyricIndex = 0;
 		private int lyricPhraseIndex = 0;
+
+		private bool paused = false;
 
 		private void Awake() {
 			Instance = this;
@@ -144,6 +147,28 @@ namespace YARG.PlayMode {
 				return;
 			}
 
+			// Pausing
+			if (Keyboard.current.spaceKey.wasPressedThisFrame) {
+				paused = !paused;
+				GameUI.Instance.pauseMenu.SetActive(paused);
+
+				if (paused) {
+					Time.timeScale = 0f;
+					foreach (var (_, source) in audioSources) {
+						source.Pause();
+					}
+				} else {
+					Time.timeScale = 1f;
+					foreach (var (_, source) in audioSources) {
+						source.UnPause();
+					}
+				}
+			}
+
+			if (paused) {
+				return;
+			}
+
 			realSongTime += Time.deltaTime * speed;
 
 			// Audio raising and lowering based on player preformance
@@ -216,6 +241,9 @@ namespace YARG.PlayMode {
 		}
 
 		public void Exit() {
+			// Unpause just in case
+			Time.timeScale = 1f;
+
 			GameManager.Instance.LoadScene(SceneIndex.MENU);
 		}
 

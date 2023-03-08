@@ -69,7 +69,7 @@ namespace YARG.UI {
 				scoreText.text = "<alpha=#BB>No Score";
 			} else {
 				var (instrument, highest) = score.GetHighestPercent();
-				scoreText.text = $"<sprite name=\"{instrument}\"> <b>{highest.difficulty.ToChar()}</b> {highest.percent * 100f:N0}%";
+				scoreText.text = $"<sprite name=\"{instrument}\"> <b>{highest.difficulty.ToChar()}</b> {Mathf.Floor(highest.percent * 100f):N0}%";
 			}
 
 			// Song length
