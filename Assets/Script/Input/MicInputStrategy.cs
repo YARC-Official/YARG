@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using UnityEngine;
 using YARG.Data;
 using YARG.PlayMode;
@@ -8,19 +9,23 @@ namespace YARG.Input {
 	public sealed class MicInputStrategy : InputStrategy {
 		private static readonly int SAMPLE_SCAN_SIZE;
 
-		// Make this high enough to get the high notes
-		private const int DOWNSCALED_SIZE = 196;
+		private const float UPDATE_TIME = 1f / 20f;
+
+		private const int TARGET_SIZE = 1024;
+		private const int TARGET_SIZE_REF = 44800;
+
+		private const int DOWNSCALED_SIZE = 512;
 
 		private const int START_BOUND = 20;
-		private const int WINDOW_SIZE = 48;
+		private const int WINDOW_SIZE = 64;
 		private const float THRESHOLD = 0.1f;
 
 		private float[] samples = new float[SAMPLE_SCAN_SIZE];
-		private float[] optimizedSamples = new float[DOWNSCALED_SIZE];
-		private float[] CMNDFvalues = new float[DOWNSCALED_SIZE - WINDOW_SIZE - START_BOUND];
+
+		private float updateTimer = 0f;
 
 		private float dbCache;
-		private float? pitchCache;
+		private float pitchCache;
 		private (int, float) noteCache;
 
 		public float timeSinceVoiceDetected = 0f;
@@ -28,13 +33,15 @@ namespace YARG.Input {
 
 		public float TimeSinceNoVoice { get; private set; } = 0f;
 
-		public float VoiceFrequency => pitchCache ?? 0f;
+		public float VoiceFrequency { get; private set; } = 0f;
 		public int VoiceOctave => noteCache.Item1;
 		public float VoiceNote => noteCache.Item2;
 
+		public bool octaveDown = false;
+
 		static MicInputStrategy() {
 			// Set the scan size relative to the sample rate
-			SAMPLE_SCAN_SIZE = (int) (1024 * (float) AudioSettings.outputSampleRate / 48000);
+			SAMPLE_SCAN_SIZE = (int) (TARGET_SIZE * (float) AudioSettings.outputSampleRate / TARGET_SIZE_REF);
 		}
 
 		public override string[] GetMappingNames() {
@@ -49,9 +56,8 @@ namespace YARG.Input {
 			var audioSource = MicPlayer.Instance.dummyAudioSources[this];
 
 			// Get and optimize samples
-
 			audioSource.GetOutputData(samples, 0);
-
+			float[] optimizedSamples = new float[DOWNSCALED_SIZE];
 			int skip = SAMPLE_SCAN_SIZE / DOWNSCALED_SIZE;
 			for (int i = 0; i < DOWNSCALED_SIZE; i++) {
 				optimizedSamples[i] = samples[i * skip];
@@ -72,9 +78,11 @@ namespace YARG.Input {
 				dbCache = -160f;
 			}
 
+			// Count down the update timer (for below)
+			updateTimer -= Time.deltaTime;
+
 			// Only update pitch if a voice is detected
 			if (dbCache < 0f) {
-				pitchCache = null;
 				timeSinceVoiceDetected = 0f;
 
 				TimeSinceNoVoice += Time.deltaTime;
@@ -84,53 +92,72 @@ namespace YARG.Input {
 				timeSinceVoiceDetected += Time.deltaTime;
 			}
 
-			// Pitch //
-
-			for (int i = START_BOUND; i < DOWNSCALED_SIZE - WINDOW_SIZE; i++) {
-				CMNDFvalues[i - START_BOUND] = CMNDF(0, i);
-			}
-
-			float? lowestCMNDF = null;
-			for (int i = 0; i < CMNDFvalues.Length; i++) {
-				float val = CMNDFvalues[i];
-				if (val < THRESHOLD) {
-					lowestCMNDF = i + START_BOUND;
-					break;
-				}
-			}
-			lowestCMNDF ??= CMNDFvalues.Min() + START_BOUND;
-
-			// Convert to hertz (and calculate the sample rate)
-			float hertz = (float) DOWNSCALED_SIZE / SAMPLE_SCAN_SIZE * AudioSettings.outputSampleRate
-				/ lowestCMNDF.Value;
-
-
-			// If the hertz is over 440, it is probably just a fricitive
-			if (hertz > 440f) {
-				return;
-			}
+			// Note //
+			// Update LAST update's pitch.
 
 			// Lerp
-			if (pitchCache == null || timeSinceVoiceDetected < 0.07f) {
-				pitchCache = hertz;
+			if (timeSinceVoiceDetected < 0.07f) {
+				VoiceFrequency = pitchCache;
 			} else {
-				pitchCache = Mathf.Lerp(pitchCache ?? 0f, hertz, Time.deltaTime * 10f);
+				VoiceFrequency = Mathf.Lerp(VoiceFrequency, pitchCache, Time.deltaTime * 10f);
 			}
 
 			// Get the note number from the hertz value
-			float midiNote = 12f * Mathf.Log((pitchCache ?? 0f) / 440f, 2f) + 69f;
+			float midiNote = 0f;
+			if (VoiceFrequency != 0f) {
+				midiNote = 12f * Mathf.Log(VoiceFrequency / 440f, 2f) + 69f;
+			}
 
 			// Calculate the octave of the note
-			int octave = (int) Mathf.Floor(midiNote / 12f);
+			int octave = (int) Mathf.Floor(midiNote / 12f) - (octaveDown ? 1 : 0);
 
 			// Save to note cache
 			noteCache = (octave, midiNote % 12f);
+
+			// Pitch //
+
+			// Buffer pitch detection a bit to prevent lag
+			if (updateTimer > 0f) {
+				return;
+			}
+			updateTimer = UPDATE_TIME;
+
+			// Do this on a different thread to prevent blocking
+			int sampleRate = AudioSettings.outputSampleRate;
+			new Thread(_ => {
+				float[] CMNDFvalues = new float[DOWNSCALED_SIZE - WINDOW_SIZE - START_BOUND];
+				for (int i = START_BOUND; i < DOWNSCALED_SIZE - WINDOW_SIZE; i++) {
+					CMNDFvalues[i - START_BOUND] = CMNDF(optimizedSamples, 0, i);
+				}
+
+				float? lowestCMNDF = null;
+				for (int i = 0; i < CMNDFvalues.Length; i++) {
+					float val = CMNDFvalues[i];
+					if (val < THRESHOLD) {
+						lowestCMNDF = i + START_BOUND;
+						break;
+					}
+				}
+				lowestCMNDF ??= CMNDFvalues.Min() + START_BOUND;
+
+				// Convert to hertz (and calculate the sample rate)
+				// TODO: Something is not 100% right here. As long as you don't change the constants, it is fine.
+				float hertz = (float) DOWNSCALED_SIZE / SAMPLE_SCAN_SIZE * sampleRate / lowestCMNDF.Value;
+
+				// If the hertz is over 800, it is probably just a fricative (th, f, s, etc.)
+				if (hertz > 800f) {
+					return;
+				}
+
+				// Save. VoiceFrequency will be updated in the "Note" section.
+				pitchCache = hertz;
+			}).Start();
 		}
 
 		/// <summary>
 		/// Difference function.
 		/// </summary>
-		private float DF(int time, int lag) {
+		private float DF(float[] optimizedSamples, int time, int lag) {
 			// The following is an optimized version of these two methods.
 			// These are here for clarity.
 
@@ -161,17 +188,17 @@ namespace YARG.Input {
 		/// <summary>
 		/// Cumulative mean normalized difference function.
 		/// </summary>
-		private float CMNDF(int time, int lag) {
+		private float CMNDF(float[] optimizedSamples, int time, int lag) {
 			if (lag == 0) {
 				return 1;
 			}
 
 			float sum = 0f;
 			for (int i = 1; i < lag; i++) {
-				sum += DF(time, i + 1);
+				sum += DF(optimizedSamples, time, i + 1);
 			}
 
-			return DF(time, lag) / sum * lag;
+			return DF(optimizedSamples, time, lag) / sum * lag;
 		}
 
 		public override void UpdateBotMode(List<NoteInfo> chart, float songTime) {

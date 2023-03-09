@@ -6,6 +6,7 @@ using YARG.Data;
 using YARG.Input;
 using YARG.Pools;
 using YARG.UI;
+using YARG.Util;
 
 namespace YARG.PlayMode {
 	public class MicPlayer : MonoBehaviour {
@@ -207,8 +208,10 @@ namespace YARG.PlayMode {
 				}
 			}
 
-			float z = NoteAndOctaveToZ(micInput.VoiceNote, micInput.VoiceOctave);
-			needle.transform.localPosition = needle.transform.localPosition.WithZ(z);
+			if (micInput.VoiceDetected) {
+				float z = NoteAndOctaveToZ(micInput.VoiceNote, micInput.VoiceOctave);
+				needle.transform.localPosition = needle.transform.localPosition.WithZ(z);
+			}
 		}
 
 		private void SpawnLyric(LyricInfo lyricInfo, float time) {
