@@ -3,8 +3,16 @@
 > **Warning**
 >
 > YARG is **not done yet**! Expect incomplete features and bugs!
+>
+> ...And terrible menus!
 
 **Y**et **A**nother **R**hythm **G**ame inspired off of Rockband, Guitar Hero, Clone Hero, or similar.
+
+![Gif of YARG](gif.gif)
+
+# Download 
+
+[Click here](https://github.com/EliteAsian123/YARG/releases) to view all releases.
 
 # Building
 

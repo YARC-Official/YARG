@@ -68,8 +68,8 @@ namespace YARG.UI {
 			float percent = 1f / trackContainer.childCount;
 			float heightAdd = 0f;
 			for (int i = 2; i < trackContainer.childCount; i++) {
-				percent += 0.075f;
-				heightAdd += 0.075f * 2f;
+				percent += 0.12f;
+				heightAdd += 0.12f * (16f / 9f);
 			}
 
 			// Apply UVs

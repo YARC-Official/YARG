@@ -18,7 +18,7 @@ namespace YARG.Input {
 
 		private const int START_BOUND = 20;
 		private const int WINDOW_SIZE = 64;
-		private const float THRESHOLD = 0.1f;
+		private const float THRESHOLD = 0.05f;
 
 		private float[] samples = new float[SAMPLE_SCAN_SIZE];
 
