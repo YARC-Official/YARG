@@ -19,16 +19,19 @@ namespace YARG.UI {
 		public SongInfo chosenSong = null;
 
 		[SerializeField]
-		private UIDocument mainMenuDocument;
-		[SerializeField]
 		private UIDocument editPlayersDocument;
 		[SerializeField]
 		private UIDocument postSongDocument;
 
 		[SerializeField]
+		private Canvas mainMenu;
+		[SerializeField]
 		private Canvas songSelect;
 		[SerializeField]
 		private Canvas difficultySelect;
+
+		[SerializeField]
+		private GameObject settingsMenu;
 
 		private void Start() {
 			Instance = this;
@@ -38,7 +41,6 @@ namespace YARG.UI {
 				SongLibrary.songFolder = new(PlayerPrefs.GetString("songFolder"));
 			}
 
-			SetupMainMenu();
 			SetupEditPlayers();
 
 			if (!postSong) {
@@ -56,66 +58,6 @@ namespace YARG.UI {
 		private void Update() {
 			UpdateInputWaiting();
 			GameManager.client?.CheckForSignals();
-		}
-
-		private void SetupMainMenu() {
-			var root = mainMenuDocument.rootVisualElement;
-
-			root.Q<Button>("Browse").clicked += ShowSongFolderSelect;
-			root.Q<Button>("PlayButton").clicked += ShowSongSelect;
-			root.Q<Button>("EditPlayersButton").clicked += ShowEditPlayers;
-			root.Q<Button>("HostServer").clicked += () => GameManager.Instance.LoadScene(SceneIndex.SERVER_HOST);
-			root.Q<Button>("CalibrationButton").clicked += () => {
-				if (PlayerManager.players.Count > 0) {
-					GameManager.Instance.LoadScene(SceneIndex.CALIBRATION);
-				}
-			};
-
-			// Folder
-			var folder = root.Q<TextField>("Folder");
-			folder.value = SongLibrary.songFolder.FullName;
-			folder.RegisterValueChangedCallback(e => {
-				if (folder != e.target) {
-					return;
-				}
-
-				SongLibrary.songFolder = new(folder.value);
-				PlayerPrefs.SetString("songFolder", folder.value);
-			});
-
-			// Join server
-			root.Q<Button>("JoinServer").clicked += () => {
-				var ip = root.Q<TextField>("ServerIP").value;
-
-				// Start + bind
-				GameManager.client = new();
-				GameManager.client.Start(ip);
-
-				// Hide button
-				root.Q<Button>("JoinServer").SetOpacity(0f);
-			};
-
-			// Low quality toggle
-			var lowQuality = root.Q<Toggle>("LowQuality");
-			lowQuality.value = GameManager.Instance.LowQualityMode;
-			lowQuality.RegisterValueChangedCallback(e => {
-				if (lowQuality != e.target) {
-					return;
-				}
-
-				GameManager.Instance.LowQualityMode = lowQuality.value;
-			});
-
-			// Calibration
-			var calibrationField = root.Q<FloatField>("Calibration");
-			calibrationField.value = PlayerManager.globalCalibration;
-			calibrationField.RegisterValueChangedCallback(e => {
-				if (calibrationField != e.target) {
-					return;
-				}
-
-				PlayerManager.globalCalibration = calibrationField.value;
-			});
 		}
 
 		private void SetupPostSong() {
@@ -193,17 +135,19 @@ namespace YARG.UI {
 		}
 
 		private void HideAll() {
-			mainMenuDocument.SetVisible(false);
 			editPlayersDocument.SetVisible(false);
 			postSongDocument.SetVisible(false);
 
+			mainMenu.gameObject.SetActive(false);
 			songSelect.gameObject.SetActive(false);
 			difficultySelect.gameObject.SetActive(false);
 		}
 
 		public void ShowMainMenu() {
 			HideAll();
-			mainMenuDocument.SetVisible(true);
+
+			settingsMenu.SetActive(false);
+			mainMenu.gameObject.SetActive(true);
 		}
 
 		public void ShowEditPlayers() {
@@ -230,9 +174,19 @@ namespace YARG.UI {
 			postSong = false;
 		}
 
+		public void ToggleSettingsMenu() {
+			settingsMenu.SetActive(!settingsMenu.activeSelf);
+		}
+
+		public void ShowCalibrationScene() {
+			if (PlayerManager.players.Count > 0) {
+				GameManager.Instance.LoadScene(SceneIndex.CALIBRATION);
+			}
+		}
+
 		public void ShowSongFolderSelect() {
 			StandaloneFileBrowser.OpenFolderPanelAsync("Choose Folder", null, false, folder => {
-				mainMenuDocument.rootVisualElement.Q<TextField>("Folder").value = folder[0];
+				//mainMenuDocument.rootVisualElement.Q<TextField>("Folder").value = folder[0];
 			});
 		}
 	}
