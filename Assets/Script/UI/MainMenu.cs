@@ -5,6 +5,8 @@ using UnityEngine.UIElements;
 using YARG.Data;
 using YARG.PlayMode;
 using YARG.Util;
+using UnityEditor;
+using System.IO;
 
 namespace YARG.UI {
 	public partial class MainMenu : MonoBehaviour {
@@ -56,10 +58,11 @@ namespace YARG.UI {
 			UpdateInputWaiting();
 			GameManager.client?.CheckForSignals();
 		}
-
+		
 		private void SetupMainMenu() {
 			var root = mainMenuDocument.rootVisualElement;
 
+			root.Q<Button>("Browse").clicked += ShowSongFolderSelect;
 			root.Q<Button>("PlayButton").clicked += ShowSongSelect;
 			root.Q<Button>("EditPlayersButton").clicked += ShowEditPlayers;
 			root.Q<Button>("HostServer").clicked += () => GameManager.Instance.LoadScene(SceneIndex.SERVER_HOST);
@@ -226,6 +229,11 @@ namespace YARG.UI {
 			postSongDocument.SetVisible(true);
 
 			postSong = false;
+		}
+
+		public void ShowSongFolderSelect() {
+			string path = EditorUtility.OpenFolderPanel("Select songs folder", "songs", "");
+			mainMenuDocument.rootVisualElement.Q<TextField>("Folder").value = path; //this is hacky
 		}
 	}
 }
