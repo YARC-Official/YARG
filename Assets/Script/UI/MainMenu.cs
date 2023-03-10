@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using SFB;
 using UnityEngine;
 using UnityEngine.UIElements;
 using YARG.Data;
@@ -60,6 +61,7 @@ namespace YARG.UI {
 		private void SetupMainMenu() {
 			var root = mainMenuDocument.rootVisualElement;
 
+			root.Q<Button>("Browse").clicked += ShowSongFolderSelect;
 			root.Q<Button>("PlayButton").clicked += ShowSongSelect;
 			root.Q<Button>("EditPlayersButton").clicked += ShowEditPlayers;
 			root.Q<Button>("HostServer").clicked += () => GameManager.Instance.LoadScene(SceneIndex.SERVER_HOST);
@@ -226,6 +228,12 @@ namespace YARG.UI {
 			postSongDocument.SetVisible(true);
 
 			postSong = false;
+		}
+
+		public void ShowSongFolderSelect() {
+			StandaloneFileBrowser.OpenFolderPanelAsync("Choose Folder", null, false, folder => {
+				mainMenuDocument.rootVisualElement.Q<TextField>("Folder").value = folder[0];
+			});
 		}
 	}
 }
