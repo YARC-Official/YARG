@@ -46,7 +46,7 @@ namespace YARG {
 			set {
 				_karaokeMode = value;
 
-				vocalGroup.audioMixer.SetFloat("vocalVolume", _karaokeMode ? 5f : 0f);
+				vocalGroup.audioMixer.SetFloat("vocalVolume", _karaokeMode ? 5f : -5f);
 			}
 		}
 
