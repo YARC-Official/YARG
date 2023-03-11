@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using SFB;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -179,6 +180,14 @@ namespace YARG.UI {
 
 		public void ShowHostServerScene() {
 			GameManager.Instance.LoadScene(SceneIndex.SERVER_HOST);
+		}
+
+		public void RefreshCache() {
+			if (SongLibrary.CacheFile.Exists) {
+				File.Delete(SongLibrary.CacheFile.FullName);
+				SongLibrary.Reset();
+				ShowSongSelect();
+			}
 		}
 
 		public void Quit() {
