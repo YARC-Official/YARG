@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO;
 using TMPro;
 using UnityEngine;
@@ -156,7 +157,7 @@ namespace YARG.UI {
 
 				if (playerIndex >= PlayerManager.players.Count) {
 					// Set speed
-					Play.speed = float.Parse(speedInput.text);
+					Play.speed = float.Parse(speedInput.text, CultureInfo.InvariantCulture);
 					if (Play.speed <= 0f) {
 						Play.speed = 1f;
 					}

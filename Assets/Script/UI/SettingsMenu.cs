@@ -1,3 +1,4 @@
+using System.Globalization;
 using SFB;
 using TMPro;
 using UnityEngine;
@@ -43,7 +44,7 @@ namespace YARG.UI {
 
 		public void CalibrationUpdate() {
 			// Guaranteed to as the input field is decimal
-			PlayerManager.globalCalibration = float.Parse(calibrationInput.text);
+			PlayerManager.globalCalibration = float.Parse(calibrationInput.text, CultureInfo.InvariantCulture);
 		}
 
 		public void LowQualityUpdate() {
