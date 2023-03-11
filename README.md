@@ -42,7 +42,7 @@ YARG is licensed under the MIT License - see the [`LICENSE`](../master/LICENSE) 
 4. Click on `NuGet` on the menu bar.
 5. Click on `Restore Packages`.
 
-# 📦 External Assets
+# 📦 External Assets and Libraries
 
 | Link | Type | Use |
 | --- | --- | --- |
@@ -50,7 +50,13 @@ YARG is licensed under the MIT License - see the [`LICENSE`](../master/LICENSE) 
 | [Unbounded](https://fonts.google.com/specimen/Unbounded) | Font | Combo/Multipier Meter
 | [Barlow](https://fonts.google.com/specimen/Barlow) | Font | UI Font
 | [Material Symbols](https://fonts.google.com/icons) | Icons | UI Icons
-| [Blue and Brown Guitar](https://www.pexels.com/photo/blue-and-brown-guitar-1539789) | Image | Main Menu
+| [PlasticBand](https://github.com/TheNathannator/PlasticBand) | Reference | Controller Support Info
+| [EliteAsian's Unity Extensions](https://github.com/EliteAsian123/EliteAsians-Unity-Extensions) | Library | Utility
+| [Unity Standalone File Browser](https://github.com/gkngkc/UnityStandaloneFileBrowser) | Library | "Browse" Button
+| [FuzzySharp](https://www.nuget.org/packages/FuzzySharp) | Library | Search Function
+| [ini-parser](https://www.nuget.org/packages/ini-parser-netstandard) | Library | Parsing `song.ini` Files
+| [DryWetMidi](https://www.nuget.org/packages/Melanchall.DryWetMidi) | Library | Parsing `.mid` Files
+| [TagLibSharp](https://www.nuget.org/packages/TagLibSharp) | Library | Finding Audio Metadata
 
 
 # 💸 Donate
