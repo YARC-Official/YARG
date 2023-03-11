@@ -1,18 +1,8 @@
-using UnityEditor;
-using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
-using UnityEngine.InputSystem.Layouts;
 
 namespace YARG.Input {
-
-#if UNITY_EDITOR
-	// Make sure static constructor is called during startup.
-	[InitializeOnLoad]
-#endif
-
-	[InputControlLayout(stateType = typeof(ProGuitarMadCatzInputReport))]
-	public class ProGuitarMadCatzGampad : InputDevice {
+	public abstract class AbstractProGuitarGampad : InputDevice {
 		public IntegerControl Fret0 {
 			get;
 			private set;
@@ -103,20 +93,6 @@ namespace YARG.Input {
 				5 => String5,
 				_ => null
 			};
-		}
-
-		static ProGuitarMadCatzGampad() {
-			// Wii Fender Mustang
-			InputSystem.RegisterLayout<ProGuitarMadCatzGampad>(matches: new InputDeviceMatcher()
-				.WithInterface("HID")
-				.WithCapability("vendorId", 0x1BAD)
-				.WithCapability("productId", 0x3430));
-		}
-
-		// Make sure the static constructor above is called during startup (runtime).
-		[RuntimeInitializeOnLoadMethod]
-		private static void Init() {
-
 		}
 	}
 }

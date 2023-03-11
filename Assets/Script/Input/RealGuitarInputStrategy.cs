@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using YARG.Data;
 
 namespace YARG.Input {
@@ -38,7 +37,7 @@ namespace YARG.Input {
 		}
 
 		public override void UpdatePlayerMode() {
-			if (inputDevice is not ProGuitarMadCatzGampad input) {
+			if (inputDevice is not AbstractProGuitarGampad input) {
 				return;
 			}
 

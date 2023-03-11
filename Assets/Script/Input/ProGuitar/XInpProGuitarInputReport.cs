@@ -5,8 +5,8 @@ using UnityEngine.InputSystem.Utilities;
 
 namespace YARG.Input {
 	[StructLayout(LayoutKind.Explicit, Size = 27)]
-	public struct ProGuitarMadCatzInputReport : IInputStateTypeInfo {
-		public FourCC format => new('H', 'I', 'D');
+	public struct XInpProGuitarInputReport : IInputStateTypeInfo {
+		public FourCC format => new('X', 'I', 'N', 'P');
 
 		[InputControl(name = "fret0", format = "BIT", layout = "Integer", bit = 0, sizeInBits = 5)]
 		[InputControl(name = "fret1", format = "BIT", layout = "Integer", bit = 5, sizeInBits = 5)]
