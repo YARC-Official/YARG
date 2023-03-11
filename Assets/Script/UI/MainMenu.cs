@@ -41,8 +41,6 @@ namespace YARG.UI {
 				SongLibrary.songFolder = new(PlayerPrefs.GetString("songFolder"));
 			}
 
-			SetupEditPlayers();
-
 			if (!postSong) {
 				ShowMainMenu();
 			} else {
@@ -53,11 +51,6 @@ namespace YARG.UI {
 		private void OnDisable() {
 			// Save player prefs
 			PlayerPrefs.Save();
-		}
-
-		private void Update() {
-			UpdateInputWaiting();
-			GameManager.client?.CheckForSignals();
 		}
 
 		private void SetupPostSong() {
@@ -184,10 +177,12 @@ namespace YARG.UI {
 			}
 		}
 
-		public void ShowSongFolderSelect() {
-			StandaloneFileBrowser.OpenFolderPanelAsync("Choose Folder", null, false, folder => {
-				//mainMenuDocument.rootVisualElement.Q<TextField>("Folder").value = folder[0];
-			});
+		public void ShowHostServerScene() {
+			GameManager.Instance.LoadScene(SceneIndex.SERVER_HOST);
+		}
+
+		public void Quit() {
+			Application.Quit();
 		}
 	}
 }

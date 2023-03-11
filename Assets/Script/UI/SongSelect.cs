@@ -26,8 +26,6 @@ namespace YARG.UI {
 
 		[SerializeField]
 		private GameObject songViewPrefab;
-		[SerializeField]
-		private GameObject sectionHeaderPrefab;
 
 		[Space]
 		public TMP_InputField searchField;
