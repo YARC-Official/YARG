@@ -22,7 +22,6 @@ namespace YARG.UI {
 
 			var radioGroup = root.Q<RadioButtonGroup>("InputStrategyRadio");
 			var botMode = root.Q<Toggle>("BotMode");
-			var octaveDown = root.Q<Toggle>("OctaveDown");
 			var trackSpeed = root.Q<FloatField>("TrackSpeed");
 			var inputDeviceDropdown = root.Q<DropdownField>("InputDevice");
 			var inputStrategyPanel = root.Q<VisualElement>("InputStrategy");
@@ -82,7 +81,6 @@ namespace YARG.UI {
 				// Update values
 				botMode.value = player.inputStrategy.botMode;
 				trackSpeed.value = player.trackSpeed;
-				octaveDown.value = false;
 
 				// Update radio group
 				if (player.inputStrategy is FiveFretInputStrategy) {
@@ -93,7 +91,6 @@ namespace YARG.UI {
 					radioGroup.value = 2;
 				} else if (player.inputStrategy is MicInputStrategy micInput) {
 					radioGroup.value = 3;
-					octaveDown.value = micInput.octaveDown;
 				} else {
 					radioGroup.value = -1;
 				}
@@ -168,22 +165,6 @@ namespace YARG.UI {
 				playerList.RefreshItem(playerList.selectedIndex);
 			});
 
-			octaveDown.RegisterValueChangedCallback(e => {
-				if (octaveDown != e.target) {
-					return;
-				}
-
-				if (playerList.selectedIndex == -1) {
-					return;
-				}
-
-				var player = PlayerManager.players[playerList.selectedIndex];
-
-				if (player.inputStrategy is MicInputStrategy mic) {
-					mic.octaveDown = e.newValue;
-				}
-			});
-
 			trackSpeed.RegisterValueChangedCallback(e => {
 				if (trackSpeed != e.target) {
 					return;
@@ -235,8 +216,7 @@ namespace YARG.UI {
 						player.inputStrategy = new MicInputStrategy {
 							inputDevice = oldInput,
 							microphoneIndex = oldMic,
-							botMode = botMode.value,
-							octaveDown = octaveDown.value
+							botMode = botMode.value
 						};
 						break;
 				}

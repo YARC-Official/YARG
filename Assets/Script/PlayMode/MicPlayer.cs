@@ -39,6 +39,7 @@ namespace YARG.PlayMode {
 
 		private List<PlayerManager.Player> micInputs = new();
 		public Dictionary<MicInputStrategy, AudioSource> dummyAudioSources = new();
+		private int octaveOffset = 0;
 
 		public float RelativeTime => Play.Instance.SongTime +
 			((TRACK_SPAWN_OFFSET + TRACK_END_OFFSET) / (TRACK_SPEED / Play.speed));
@@ -180,14 +181,20 @@ namespace YARG.PlayMode {
 
 				// Get the needed pitch
 				float timeIntoNote = Play.Instance.SongTime - currentLyric.time;
-				float neededNote = currentLyric.GetLerpedNoteAtTime(timeIntoNote);
+				float rawNote = currentLyric.GetLerpedNoteAtTime(timeIntoNote);
+				var (neededNote, neededOctave) = Utils.SplitNoteToOctaveAndNote(rawNote);
 
 				// Get the note the player is singing
-				float currentNote = micInput.VoiceNote + micInput.VoiceOctave * 12f;
+				float currentNote = micInput.VoiceNote;
 
 				// Check if it is in the right threshold
 				float dist = Mathf.Abs(neededNote - currentNote);
 				pitchCorrect = dist <= correctRange;
+
+				// Get the octave offset
+				if (pitchCorrect) {
+					octaveOffset = neededOctave - micInput.VoiceOctave;
+				}
 			}
 
 			// Update needle
@@ -209,8 +216,11 @@ namespace YARG.PlayMode {
 			}
 
 			if (micInput.VoiceDetected) {
-				float z = NoteAndOctaveToZ(micInput.VoiceNote, micInput.VoiceOctave);
-				needle.transform.localPosition = needle.transform.localPosition.WithZ(z);
+				float z = NoteAndOctaveToZ(micInput.VoiceNote, micInput.VoiceOctave + octaveOffset);
+				needle.transform.localPosition = Vector3.Lerp(
+					needle.transform.localPosition,
+					needle.transform.localPosition.WithZ(z),
+					Time.deltaTime * 10f);
 			}
 		}
 

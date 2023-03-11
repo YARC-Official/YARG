@@ -72,6 +72,10 @@ namespace YARG.PlayMode {
 					continue;
 				}
 
+				if (GameManager.Instance.KaraokeMode && file.Name == "vocals.ogg") {
+					continue;
+				}
+
 				// Load file
 				using UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(file.FullName, AudioType.OGGVORBIS);
 				((DownloadHandlerAudioClip) uwr.downloadHandler).streamAudio = true;

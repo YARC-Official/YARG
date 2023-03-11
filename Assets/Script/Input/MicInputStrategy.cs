@@ -37,8 +37,6 @@ namespace YARG.Input {
 		public int VoiceOctave => noteCache.Item1;
 		public float VoiceNote => noteCache.Item2;
 
-		public bool octaveDown = false;
-
 		static MicInputStrategy() {
 			// Set the scan size relative to the sample rate
 			SAMPLE_SCAN_SIZE = (int) (TARGET_SIZE * (float) AudioSettings.outputSampleRate / TARGET_SIZE_REF);
@@ -109,7 +107,7 @@ namespace YARG.Input {
 			}
 
 			// Calculate the octave of the note
-			int octave = (int) Mathf.Floor(midiNote / 12f) - (octaveDown ? 1 : 0);
+			int octave = (int) Mathf.Floor(midiNote / 12f);
 
 			// Save to note cache
 			noteCache = (octave, midiNote % 12f);

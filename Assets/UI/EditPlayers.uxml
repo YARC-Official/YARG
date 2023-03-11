@@ -14,7 +14,6 @@
             <ui:Label tabindex="-1" text="Settings" display-tooltip-when-elided="true" name="Label" style="-unity-font-style: bold; -unity-text-align: upper-center;" />
             <ui:DropdownField index="-1" choices="System.Collections.Generic.List`1[System.String]" name="InputDevice" />
             <ui:Toggle label="Bot Mode" name="BotMode" style="flex-wrap: nowrap; flex-direction: row;" />
-            <ui:Toggle label="Octave Down (Mic)" name="OctaveDown" />
             <ui:FloatField label="Track Speed" value="7" name="TrackSpeed" />
             <ui:RadioButtonGroup value="-1" choices="Five Fret,Real Guitar,Drums,Microphone" name="InputStrategyRadio" />
         </ui:VisualElement>

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using YARG.Server;
@@ -26,6 +27,9 @@ namespace YARG {
 			private set;
 		}
 
+		[SerializeField]
+		private AudioMixerGroup vocalGroup;
+
 		private bool _lowQualityMode = false;
 		public bool LowQualityMode {
 			get => _lowQualityMode;
@@ -36,6 +40,16 @@ namespace YARG {
 			}
 		}
 
+		private bool _karaokeMode = false;
+		public bool KaraokeMode {
+			get => _karaokeMode;
+			set {
+				_karaokeMode = value;
+
+				vocalGroup.audioMixer.SetFloat("vocalVolume", _karaokeMode ? 5f : 0f);
+			}
+		}
+
 		private SceneIndex currentScene = SceneIndex.PERSISTANT;
 
 		private void Start() {
@@ -43,7 +57,7 @@ namespace YARG {
 
 			// Unlimited FPS
 			QualitySettings.vSyncCount = 0;
-			Application.targetFrameRate = 0;
+			Application.targetFrameRate = 400;
 
 			// High polling rate
 			InputSystem.pollingFrequency = 500f;
