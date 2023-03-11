@@ -26,8 +26,6 @@ namespace YARG.UI {
 
 		[SerializeField]
 		private GameObject songViewPrefab;
-		[SerializeField]
-		private GameObject sectionHeaderPrefab;
 
 		[Space]
 		public TMP_InputField searchField;
@@ -89,6 +87,19 @@ namespace YARG.UI {
 			// Bind input events
 			foreach (var player in PlayerManager.players) {
 				player.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
+			}
+
+			// Refetch if null (i.e. if a setting changed)
+			if (SongLibrary.Songs == null) {
+				bool loading = !SongLibrary.FetchSongs();
+				loadingScreen.SetActive(loading);
+				ScoreManager.FetchScores();
+
+				if (!loading) {
+					// Automatically loads songs and updates song views
+					recommendedSongs = null;
+					UpdateSearch();
+				}
 			}
 		}
 
@@ -157,6 +168,8 @@ namespace YARG.UI {
 				// Finish loading
 				if (SongLibrary.loadPercent >= 1f) {
 					loadingScreen.SetActive(false);
+
+					recommendedSongs = null;
 					UpdateSearch();
 				}
 

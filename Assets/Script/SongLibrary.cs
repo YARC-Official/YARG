@@ -101,5 +101,12 @@ namespace YARG {
 			string json = File.ReadAllText(CacheFile.ToString());
 			Songs = JsonConvert.DeserializeObject<List<SongInfo>>(json);
 		}
+
+		/// <summary>
+		/// Force reset songs. This makes the game re-scan if needed.
+		/// </summary>
+		public static void Reset() {
+			Songs = null;
+		}
 	}
 }

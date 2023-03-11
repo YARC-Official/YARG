@@ -58,6 +58,8 @@ namespace YARG.UI {
 		}
 
 		private void Update() {
+			GameManager.client?.CheckForSignals();
+
 			// Enter
 
 			if (Keyboard.current.enterKey.wasPressedThisFrame) {

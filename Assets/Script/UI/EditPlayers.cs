@@ -7,14 +7,17 @@ using YARG.Input;
 using YARG.Util;
 
 namespace YARG.UI {
-	public partial class MainMenu : MonoBehaviour {
+	public partial class EditPlayers : MonoBehaviour {
+		[SerializeField]
+		private UIDocument editPlayersDocument;
+
 		private List<object> inputDevices;
 
 		private int inputWaitingIndex = -1;
 		private int inputWaitingPlayerIndex = -1;
 		private string inputWaitingMapping = null;
 
-		private void SetupEditPlayers() {
+		private void Start() {
 			var root = editPlayersDocument.rootVisualElement;
 
 			var radioGroup = root.Q<RadioButtonGroup>("InputStrategyRadio");
@@ -29,7 +32,7 @@ namespace YARG.UI {
 			inputStrategyPanel.SetOpacity(0f);
 			settingsPanel.SetOpacity(0f);
 
-			root.Q<Button>("BackButton").clicked += ShowMainMenu;
+			root.Q<Button>("BackButton").clicked += () => MainMenu.Instance.ShowMainMenu();
 
 			// Initialize player list
 
@@ -297,7 +300,7 @@ namespace YARG.UI {
 			settingsList.Rebuild();
 		}
 
-		private void UpdateInputWaiting() {
+		private void Update() {
 			if (inputWaitingIndex == -1) {
 				return;
 			}
