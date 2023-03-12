@@ -50,6 +50,8 @@ namespace YARG {
 			}
 		}
 
+		public bool showHitWindow = false;
+
 		private SceneIndex currentScene = SceneIndex.PERSISTANT;
 
 		private void Start() {

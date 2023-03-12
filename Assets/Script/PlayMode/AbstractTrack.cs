@@ -117,6 +117,7 @@ namespace YARG.PlayMode {
 			// Adjust hit window
 			var scale = hitWindow.localScale;
 			hitWindow.localScale = new(scale.x, Play.HIT_MARGIN * player.trackSpeed * 2f, scale.z);
+			hitWindow.gameObject.SetActive(GameManager.Instance.showHitWindow);
 
 			StartTrack();
 		}

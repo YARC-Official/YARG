@@ -15,6 +15,8 @@ namespace YARG.UI {
 		[SerializeField]
 		private Toggle karaokeToggle;
 		[SerializeField]
+		private Toggle showHitWindowToggle;
+		[SerializeField]
 		private TMP_InputField ipInput;
 
 		[SerializeField]
@@ -25,6 +27,7 @@ namespace YARG.UI {
 			calibrationInput.text = PlayerManager.globalCalibration.ToString();
 			lowQualityToggle.isOn = GameManager.Instance.LowQualityMode;
 			karaokeToggle.isOn = GameManager.Instance.KaraokeMode;
+			showHitWindowToggle.isOn = GameManager.Instance.showHitWindow;
 
 			if (GameManager.client != null) {
 				joinServerButton.SetActive(false);
@@ -56,6 +59,10 @@ namespace YARG.UI {
 
 		public void KaraokeModeUpdate() {
 			GameManager.Instance.KaraokeMode = karaokeToggle.isOn;
+		}
+
+		public void ShowHitWindowUpdate() {
+			GameManager.Instance.showHitWindow = showHitWindowToggle.isOn;
 		}
 
 		public void JoinServer() {
