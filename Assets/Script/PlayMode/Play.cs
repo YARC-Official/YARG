@@ -173,10 +173,11 @@ namespace YARG.PlayMode {
 				return;
 			}
 
-			if (!GameManager.Instance.useAudioTime) {
+			var leaderAudioSource = audioSources.First().Value;
+			if (!GameManager.Instance.useAudioTime || !leaderAudioSource.isPlaying) {
 				realSongTime += Time.deltaTime * speed;
 			} else {
-				realSongTime = audioSources.First().Value.time;
+				realSongTime = leaderAudioSource.time;
 			}
 
 			// Audio raising and lowering based on player preformance
