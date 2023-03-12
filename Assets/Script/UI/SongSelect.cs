@@ -90,7 +90,8 @@ namespace YARG.UI {
 			}
 
 			// Refetch if null (i.e. if a setting changed)
-			if (SongLibrary.Songs == null) {
+			// Make sure that we have already initialized (hence "songViewsBefore")
+			if (SongLibrary.Songs == null && songViewsBefore.Count > 0) {
 				bool loading = !SongLibrary.FetchSongs();
 				loadingScreen.SetActive(loading);
 				ScoreManager.FetchScores();
@@ -160,6 +161,8 @@ namespace YARG.UI {
 		}
 
 		private void Update() {
+			GameManager.client?.CheckForSignals();
+
 			// Update progress if loading
 
 			if (loadingScreen.activeSelf) {
