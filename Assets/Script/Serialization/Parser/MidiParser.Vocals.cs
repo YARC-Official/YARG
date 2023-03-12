@@ -86,7 +86,7 @@ namespace YARG.Serialization.Parser {
 			// = is real dash
 			// # is inharmonic
 			// / is split phrase?
-			// + is connect two notes
+			// + is connect two (or more) notes
 			// ^ is unknown
 			// % is unknown
 
@@ -148,7 +148,7 @@ namespace YARG.Serialization.Parser {
 						var lyric = lyrics[^1];
 
 						// Add end pointer for first note
-						var (_, (firstNote, firstOctave)) = lyric.pitchOverTime[0];
+						var (_, (firstNote, firstOctave)) = lyric.pitchOverTime[^1];
 						lyric.pitchOverTime.Add((lyric.length, (firstNote, firstOctave)));
 
 						// Update length
