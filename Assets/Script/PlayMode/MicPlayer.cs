@@ -160,11 +160,11 @@ namespace YARG.PlayMode {
 
 			// Set scores
 			foreach (var playerInfo in micInputs) {
+				int total = playerInfo.sectionsHit + playerInfo.secitonsFailed;
 				playerInfo.player.lastScore = new PlayerManager.LastScore {
 					percentage = new DiffPercent {
 						difficulty = playerInfo.player.chosenDifficulty,
-						percent = playerInfo.sectionsHit == 0 ? 1f :
-							(float) playerInfo.sectionsHit / (playerInfo.sectionsHit + playerInfo.secitonsFailed)
+						percent = total == 0 ? 1f : (float) playerInfo.sectionsHit / total
 					},
 					notesHit = playerInfo.sectionsHit,
 					notesMissed = playerInfo.secitonsFailed

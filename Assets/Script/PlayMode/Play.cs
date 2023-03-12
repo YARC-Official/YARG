@@ -173,7 +173,11 @@ namespace YARG.PlayMode {
 				return;
 			}
 
-			realSongTime += Time.deltaTime * speed;
+			if (!GameManager.Instance.useAudioTime) {
+				realSongTime += Time.deltaTime * speed;
+			} else {
+				realSongTime = audioSources.First().Value.time;
+			}
 
 			// Audio raising and lowering based on player preformance
 			UpdateAudio("guitar", "realGuitar", "guitar", null);

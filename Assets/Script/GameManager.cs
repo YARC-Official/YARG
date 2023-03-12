@@ -51,6 +51,7 @@ namespace YARG {
 		}
 
 		public bool showHitWindow = false;
+		public bool useAudioTime = false;
 
 		private SceneIndex currentScene = SceneIndex.PERSISTANT;
 
