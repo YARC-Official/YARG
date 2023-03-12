@@ -33,7 +33,7 @@ namespace YARG.Input {
 
 		private (float, int) noteCache;
 
-		public bool VoiceDetected => dbCache >= 0f && timeSinceVoiceDetected >= 0.07f;
+		public bool VoiceDetected => dbCache >= 0f;
 
 		public float TimeSinceNoVoice { get; private set; }
 
