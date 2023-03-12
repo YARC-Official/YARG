@@ -4,6 +4,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.UIElements;
 using YARG.Data;
+using YARG.Input;
 using YARG.PlayMode;
 using YARG.Util;
 

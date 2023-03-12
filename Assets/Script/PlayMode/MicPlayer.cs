@@ -21,6 +21,9 @@ namespace YARG.PlayMode {
 
 			public int octaveOffset;
 			public float singProgress;
+
+			public int sectionsHit;
+			public int secitonsFailed;
 		}
 
 		public const float TRACK_SPEED = 4f;
@@ -154,6 +157,19 @@ namespace YARG.PlayMode {
 		private void OnDestroy() {
 			// Release render texture
 			trackCamera.targetTexture.Release();
+
+			// Set scores
+			foreach (var playerInfo in micInputs) {
+				playerInfo.player.lastScore = new PlayerManager.LastScore {
+					percentage = new DiffPercent {
+						difficulty = playerInfo.player.chosenDifficulty,
+						percent = playerInfo.sectionsHit == 0 ? 1f :
+							(float) playerInfo.sectionsHit / (playerInfo.sectionsHit + playerInfo.secitonsFailed)
+					},
+					notesHit = playerInfo.sectionsHit,
+					notesMissed = playerInfo.secitonsFailed
+				};
+			}
 		}
 
 		private void Update() {
@@ -189,8 +205,15 @@ namespace YARG.PlayMode {
 				var eventInfo = events[eventChartIndex];
 
 				if (eventInfo.name == "vocal_endPhrase") {
-					// Reset
+					// Reset and see if we failed or not
 					foreach (var playerInfo in micInputs) {
+						float mul = GetSingTimeMultiplier(playerInfo.player.chosenDifficulty);
+						if (playerInfo.singProgress / (sectionSingTime * mul) >= 1f) {
+							playerInfo.sectionsHit++;
+						} else {
+							playerInfo.secitonsFailed++;
+						}
+
 						playerInfo.singProgress = 0f;
 					}
 
@@ -237,6 +260,7 @@ namespace YARG.PlayMode {
 				bool pitchCorrect = micInput.VoiceDetected;
 				if (currentLyric != null && !currentLyric.inharmonic && micInput.VoiceDetected) {
 					float correctRange = player.chosenDifficulty switch {
+						Difficulty.EASY => 4f,
 						Difficulty.MEDIUM => 4f,
 						Difficulty.HARD => 3f,
 						Difficulty.EXPERT => 2f,
@@ -290,7 +314,8 @@ namespace YARG.PlayMode {
 					Time.deltaTime * 15f);
 
 				// Update bar
-				playerInfo.barMesh.material.SetFloat("Fill", playerInfo.singProgress / sectionSingTime);
+				float singTimeModifier = GetSingTimeMultiplier(player.chosenDifficulty);
+				playerInfo.barMesh.material.SetFloat("Fill", playerInfo.singProgress / (sectionSingTime * singTimeModifier));
 			}
 		}
 
@@ -339,6 +364,17 @@ namespace YARG.PlayMode {
 
 				sectionSingTime += lyric.length;
 			}
+		}
+
+		private float GetSingTimeMultiplier(Difficulty diff) {
+			return diff switch {
+				Difficulty.EASY => 0.45f,
+				Difficulty.MEDIUM => 0.55f,
+				Difficulty.HARD => 0.6f,
+				Difficulty.EXPERT => 0.65f,
+				Difficulty.EXPERT_PLUS => 0.85f,
+				_ => throw new System.Exception("Unreachable.")
+			};
 		}
 
 		private float CalcLagCompensation(float currentTime, float noteTime) {
