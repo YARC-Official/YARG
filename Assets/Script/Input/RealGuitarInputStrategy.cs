@@ -79,7 +79,9 @@ namespace YARG.Input {
 			CallStarpowerEvent();
 		}
 
-		public override void UpdateBotMode(List<NoteInfo> chart, float songTime) {
+		public override void UpdateBotMode(object rawChart, float songTime) {
+			var chart = (List<NoteInfo>) rawChart;
+
 			while (chart.Count > botChartIndex && chart[botChartIndex].time <= songTime) {
 				var note = chart[botChartIndex];
 

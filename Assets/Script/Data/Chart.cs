@@ -16,7 +16,7 @@ namespace YARG.Data {
 		public List<float> beats = new();
 
 		public List<GenericLyricInfo> genericLyrics = new();
-		public List<LyricInfo>[] realLyrics = new List<LyricInfo>[] { new(), new(), new(), new() };
+		public List<LyricInfo> realLyrics = new();
 
 		public Chart() {
 			allParts = new() {

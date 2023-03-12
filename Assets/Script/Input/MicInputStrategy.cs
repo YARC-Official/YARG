@@ -4,6 +4,7 @@ using System.Threading;
 using UnityEngine;
 using YARG.Data;
 using YARG.PlayMode;
+using YARG.Util;
 
 namespace YARG.Input {
 	public sealed class MicInputStrategy : InputStrategy {
@@ -22,20 +23,24 @@ namespace YARG.Input {
 
 		private float[] samples = new float[SAMPLE_SCAN_SIZE];
 
-		private float updateTimer = 0f;
+		private float updateTimer;
 
 		private float dbCache;
-		private float pitchCache;
-		private (int, float) noteCache;
+		private float timeSinceVoiceDetected;
 
-		public float timeSinceVoiceDetected = 0f;
+		private float pitchCache;
+		private float lerpedPitch;
+
+		private (float, int) noteCache;
+
 		public bool VoiceDetected => dbCache >= 0f && timeSinceVoiceDetected >= 0.07f;
 
-		public float TimeSinceNoVoice { get; private set; } = 0f;
+		public float TimeSinceNoVoice { get; private set; }
 
-		public float VoiceFrequency { get; private set; } = 0f;
-		public int VoiceOctave => noteCache.Item1;
-		public float VoiceNote => noteCache.Item2;
+		public float VoiceNote => noteCache.Item1;
+		public int VoiceOctave => noteCache.Item2;
+
+		private LyricInfo botLyricInfo = null;
 
 		static MicInputStrategy() {
 			// Set the scan size relative to the sample rate
@@ -95,22 +100,22 @@ namespace YARG.Input {
 
 			// Lerp
 			if (timeSinceVoiceDetected < 0.07f) {
-				VoiceFrequency = pitchCache;
+				lerpedPitch = pitchCache;
 			} else {
-				VoiceFrequency = Mathf.Lerp(VoiceFrequency, pitchCache, Time.deltaTime * 10f);
+				lerpedPitch = Mathf.Lerp(lerpedPitch, pitchCache, Time.deltaTime * 10f);
 			}
 
 			// Get the note number from the hertz value
 			float midiNote = 0f;
-			if (VoiceFrequency != 0f) {
-				midiNote = 12f * Mathf.Log(VoiceFrequency / 440f, 2f) + 69f;
+			if (lerpedPitch != 0f) {
+				midiNote = 12f * Mathf.Log(lerpedPitch / 440f, 2f) + 69f;
 			}
 
 			// Calculate the octave of the note
 			int octave = (int) Mathf.Floor(midiNote / 12f);
 
 			// Save to note cache
-			noteCache = (octave, midiNote % 12f);
+			noteCache = (midiNote % 12f, octave);
 
 			// Pitch //
 
@@ -199,8 +204,37 @@ namespace YARG.Input {
 			return DF(optimizedSamples, time, lag) / sum * lag;
 		}
 
-		public override void UpdateBotMode(List<NoteInfo> chart, float songTime) {
-			// TODO
+		public override void UpdateBotMode(object rawChart, float songTime) {
+			var chart = (List<LyricInfo>) rawChart;
+
+			// Get the next lyric
+			while (chart.Count > botChartIndex && chart[botChartIndex].time <= songTime) {
+				botLyricInfo = chart[botChartIndex];
+				botChartIndex++;
+			}
+
+			// If we are past the lyric, null
+			if (botLyricInfo?.EndTime < songTime) {
+				botLyricInfo = null;
+			}
+
+			// Set info based on lyric
+			if (botLyricInfo == null) {
+				dbCache = -1f;
+				TimeSinceNoVoice += Time.deltaTime;
+				timeSinceVoiceDetected = 0f;
+			} else {
+				dbCache = 1f;
+				timeSinceVoiceDetected += Time.deltaTime;
+				TimeSinceNoVoice = 0f;
+
+				float timeIntoNote = Play.Instance.SongTime - botLyricInfo.time;
+				float rawNote = botLyricInfo.GetLerpedNoteAtTime(timeIntoNote);
+				noteCache = Utils.SplitNoteToOctaveAndNote(rawNote);
+			}
+
+			// Constantly activate starpower
+			CallStarpowerEvent();
 		}
 
 		public override void UpdateNavigationMode() {

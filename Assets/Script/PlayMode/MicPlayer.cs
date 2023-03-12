@@ -57,7 +57,14 @@ namespace YARG.PlayMode {
 			bool hasMic = false;
 			foreach (var player in PlayerManager.players) {
 				if (player.inputStrategy is MicInputStrategy micStrategy) {
+					// Skip if the player hasn't assigned a mic
 					if (micStrategy.microphoneIndex == -1) {
+						// ...unless it is a bot
+						if (micStrategy.botMode) {
+							micInputs.Add(player);
+							hasMic = true;
+						}
+
 						continue;
 					}
 
@@ -130,11 +137,15 @@ namespace YARG.PlayMode {
 			var player = micInputs[0];
 			var micInput = (MicInputStrategy) player.inputStrategy;
 
-			// Update inputs
-			micInput.UpdatePlayerMode();
-
 			// Get chart
-			var chart = Play.Instance.chart.realLyrics[(int) player.chosenDifficulty];
+			var chart = Play.Instance.chart.realLyrics;
+
+			// Update inputs
+			if (micInput.botMode) {
+				micInput.UpdateBotMode(chart, Play.Instance.SongTime);
+			} else {
+				micInput.UpdatePlayerMode();
+			}
 
 			// Update events
 			var events = Play.Instance.chart.events;
@@ -215,13 +226,11 @@ namespace YARG.PlayMode {
 				}
 			}
 
-			if (micInput.VoiceDetected) {
-				float z = NoteAndOctaveToZ(micInput.VoiceNote, micInput.VoiceOctave + octaveOffset);
-				needle.transform.localPosition = Vector3.Lerp(
-					needle.transform.localPosition,
-					needle.transform.localPosition.WithZ(z),
-					Time.deltaTime * 10f);
-			}
+			float z = NoteAndOctaveToZ(micInput.VoiceNote, micInput.VoiceOctave + octaveOffset);
+			needle.transform.localPosition = Vector3.Lerp(
+				needle.transform.localPosition,
+				needle.transform.localPosition.WithZ(z),
+				Time.deltaTime * 15f);
 		}
 
 		private void SpawnLyric(LyricInfo lyricInfo, float time) {

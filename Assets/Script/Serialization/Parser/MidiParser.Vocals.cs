@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
-using UnityEngine;
 using YARG.Data;
 
 namespace YARG.Serialization.Parser {
@@ -80,7 +79,7 @@ namespace YARG.Serialization.Parser {
 			return lyrics;
 		}
 
-		private List<LyricInfo> ParseRealLyrics(List<EventIR> eventIR, TrackChunk trackChunk, TempoMap tempo, Difficulty difficulty) {
+		private List<LyricInfo> ParseRealLyrics(List<EventIR> eventIR, TrackChunk trackChunk, TempoMap tempo) {
 			var lyrics = new List<LyricInfo>();
 
 			// For later:
@@ -89,6 +88,7 @@ namespace YARG.Serialization.Parser {
 			// / is split phrase?
 			// + is connect two notes
 			// ^ is unknown
+			// % is unknown
 
 			// Get lyric phrase timings
 			HashSet<long> startTimings = new();
@@ -160,7 +160,7 @@ namespace YARG.Serialization.Parser {
 						continue;
 					}
 
-					bool inharmonic = difficulty == Difficulty.EASY;
+					bool inharmonic = false;
 
 					// Set inharmonic
 					if (l.EndsWith("#")) {
@@ -169,7 +169,7 @@ namespace YARG.Serialization.Parser {
 					}
 
 					// Remove other tags
-					if (l.EndsWith("/") || l.EndsWith("^")) {
+					if (l.EndsWith("/") || l.EndsWith("^") || l.EndsWith("%")) {
 						l = l[0..^1];
 					}
 

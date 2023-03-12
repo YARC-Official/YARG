@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
-using YARG.Data;
 
 namespace YARG.Input {
 	public abstract class InputStrategy {
@@ -64,7 +63,7 @@ namespace YARG.Input {
 		/// </summary>
 		/// <param name="chart">A reference to the current chart.</param>
 		/// <param name="songTime">The song time in seconds.</param>
-		public abstract void UpdateBotMode(List<NoteInfo> chart, float songTime);
+		public abstract void UpdateBotMode(object chart, float songTime);
 
 		/// <summary>
 		/// Updates the navigation mode (menu mode) for this particular InputStrategy.
