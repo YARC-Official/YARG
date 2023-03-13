@@ -205,17 +205,39 @@ namespace YARG.PlayMode {
 				var eventInfo = events[eventChartIndex];
 
 				if (eventInfo.name == "vocal_endPhrase") {
+					float bestPercent = 0f;
+
 					// Reset and see if we failed or not
 					foreach (var playerInfo in micInputs) {
 						float mul = GetSingTimeMultiplier(playerInfo.player.chosenDifficulty);
-						if (playerInfo.singProgress / (sectionSingTime * mul) >= 1f) {
+						float percent = playerInfo.singProgress / (sectionSingTime * mul);
+
+						if (percent >= 1f) {
 							playerInfo.sectionsHit++;
 						} else {
 							playerInfo.secitonsFailed++;
 						}
 
+						if (playerInfo.singProgress / sectionSingTime >= 1f) {
+							bestPercent = float.PositiveInfinity;
+						} else if (percent > bestPercent) {
+							bestPercent = percent;
+						}
+
 						playerInfo.singProgress = 0f;
 					}
+
+					// Set preformance text
+					GameUI.Instance.vocalPreformanceText.text = bestPercent switch {
+						float.PositiveInfinity => "PERFECT!",
+						>= 1f => "AWESOME!",
+						>= 0.8f => "STRONG",
+						>= 0.7f => "GOOD",
+						>= 0.6f => "OKAY",
+						>= 0.1f => "MESSY",
+						_ => "AWFUL"
+					};
+					GameUI.Instance.vocalPreformanceText.color = Color.white;
 
 					// Calculate the new sing time
 					CalculateSectionSingTime(Play.Instance.SongTime);
@@ -317,6 +339,11 @@ namespace YARG.PlayMode {
 				float singTimeModifier = GetSingTimeMultiplier(player.chosenDifficulty);
 				playerInfo.barMesh.material.SetFloat("Fill", playerInfo.singProgress / (sectionSingTime * singTimeModifier));
 			}
+
+			// Update preformance text fading
+			var c = GameUI.Instance.vocalPreformanceText.color;
+			c.a -= Time.deltaTime * 2f;
+			GameUI.Instance.vocalPreformanceText.color = c;
 		}
 
 		private void SpawnLyric(LyricInfo lyricInfo, float time) {

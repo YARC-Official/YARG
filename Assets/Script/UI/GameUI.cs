@@ -17,6 +17,8 @@ namespace YARG.UI {
 		[SerializeField]
 		private RawImage vocalTrack;
 
+		public TextMeshProUGUI vocalPreformanceText;
+
 		public GameObject pauseMenu;
 
 		public static GameUI Instance {
