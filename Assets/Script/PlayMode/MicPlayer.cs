@@ -207,37 +207,39 @@ namespace YARG.PlayMode {
 				if (eventInfo.name == "vocal_endPhrase") {
 					float bestPercent = 0f;
 
-					// Reset and see if we failed or not
-					foreach (var playerInfo in micInputs) {
-						float mul = GetSingTimeMultiplier(playerInfo.player.chosenDifficulty);
-						float percent = playerInfo.singProgress / (sectionSingTime * mul);
+					if (sectionSingTime != 0f) {
+						// Reset and see if we failed or not
+						foreach (var playerInfo in micInputs) {
+							float mul = GetSingTimeMultiplier(playerInfo.player.chosenDifficulty);
+							float percent = playerInfo.singProgress / (sectionSingTime * mul);
 
-						if (percent >= 1f) {
-							playerInfo.sectionsHit++;
-						} else {
-							playerInfo.secitonsFailed++;
+							if (percent >= 1f) {
+								playerInfo.sectionsHit++;
+							} else {
+								playerInfo.secitonsFailed++;
+							}
+
+							if (playerInfo.singProgress / sectionSingTime >= 1f) {
+								bestPercent = float.PositiveInfinity;
+							} else if (percent > bestPercent) {
+								bestPercent = percent;
+							}
+
+							playerInfo.singProgress = 0f;
 						}
 
-						if (playerInfo.singProgress / sectionSingTime >= 1f) {
-							bestPercent = float.PositiveInfinity;
-						} else if (percent > bestPercent) {
-							bestPercent = percent;
-						}
-
-						playerInfo.singProgress = 0f;
+						// Set preformance text
+						GameUI.Instance.vocalPreformanceText.text = bestPercent switch {
+							float.PositiveInfinity => "PERFECT!",
+							>= 1f => "AWESOME!",
+							>= 0.8f => "STRONG",
+							>= 0.7f => "GOOD",
+							>= 0.6f => "OKAY",
+							>= 0.1f => "MESSY",
+							_ => "AWFUL"
+						};
+						GameUI.Instance.vocalPreformanceText.color = Color.white;
 					}
-
-					// Set preformance text
-					GameUI.Instance.vocalPreformanceText.text = bestPercent switch {
-						float.PositiveInfinity => "PERFECT!",
-						>= 1f => "AWESOME!",
-						>= 0.8f => "STRONG",
-						>= 0.7f => "GOOD",
-						>= 0.6f => "OKAY",
-						>= 0.1f => "MESSY",
-						_ => "AWFUL"
-					};
-					GameUI.Instance.vocalPreformanceText.color = Color.white;
 
 					// Calculate the new sing time
 					CalculateSectionSingTime(Play.Instance.SongTime);
@@ -285,8 +287,8 @@ namespace YARG.PlayMode {
 						Difficulty.EASY => 4f,
 						Difficulty.MEDIUM => 4f,
 						Difficulty.HARD => 3f,
-						Difficulty.EXPERT => 2f,
-						Difficulty.EXPERT_PLUS => 0.5f,
+						Difficulty.EXPERT => 2.5f,
+						Difficulty.EXPERT_PLUS => 1f,
 						_ => throw new System.Exception("Unreachable.")
 					};
 
@@ -337,7 +339,11 @@ namespace YARG.PlayMode {
 
 				// Update bar
 				float singTimeModifier = GetSingTimeMultiplier(player.chosenDifficulty);
-				playerInfo.barMesh.material.SetFloat("Fill", playerInfo.singProgress / (sectionSingTime * singTimeModifier));
+				if (sectionSingTime != 0f) {
+					playerInfo.barMesh.material.SetFloat("Fill", playerInfo.singProgress / (sectionSingTime * singTimeModifier));
+				} else {
+					playerInfo.barMesh.material.SetFloat("Fill", 0f);
+				}
 			}
 
 			// Update preformance text fading
@@ -396,10 +402,10 @@ namespace YARG.PlayMode {
 		private float GetSingTimeMultiplier(Difficulty diff) {
 			return diff switch {
 				Difficulty.EASY => 0.45f,
-				Difficulty.MEDIUM => 0.55f,
-				Difficulty.HARD => 0.6f,
-				Difficulty.EXPERT => 0.65f,
-				Difficulty.EXPERT_PLUS => 0.85f,
+				Difficulty.MEDIUM => 0.5f,
+				Difficulty.HARD => 0.55f,
+				Difficulty.EXPERT => 0.6f,
+				Difficulty.EXPERT_PLUS => 0.65f,
 				_ => throw new System.Exception("Unreachable.")
 			};
 		}
