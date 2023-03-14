@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.UI;
 using YARG.Data;
 using YARG.Input;
 using YARG.Pools;
@@ -45,6 +47,13 @@ namespace YARG.PlayMode {
 		private Transform barContainer;
 
 		[SerializeField]
+		private TextMeshProUGUI preformaceText;
+		[SerializeField]
+		private TextMeshProUGUI comboText;
+		[SerializeField]
+		private Image comboFill;
+
+		[SerializeField]
 		private GameObject needlePrefab;
 		[SerializeField]
 		private GameObject barPrefab;
@@ -61,14 +70,16 @@ namespace YARG.PlayMode {
 		public float RelativeTime => Play.Instance.SongTime +
 			((TRACK_SPAWN_OFFSET + TRACK_END_OFFSET) / (TRACK_SPEED / Play.speed));
 
-		private int visualChartIndex = 0;
-		private int chartIndex = 0;
-		private int visualEventChartIndex = 0;
-		private int eventChartIndex = 0;
+		private int visualChartIndex;
+		private int chartIndex;
+		private int visualEventChartIndex;
+		private int eventChartIndex;
 
 		private float sectionSingTime = -1f;
-		private float totalSingTime = 0f;
+		private float totalSingTime;
 		private LyricInfo currentLyric = null;
+
+		private int rawMultiplier = 1;
 
 		private void Start() {
 			Instance = this;
@@ -221,9 +232,7 @@ namespace YARG.PlayMode {
 								playerInfo.secitonsFailed++;
 							}
 
-							if (playerInfo.singProgress / sectionSingTime >= 1f) {
-								bestPercent = float.PositiveInfinity;
-							} else if (percent > bestPercent) {
+							if (percent > bestPercent) {
 								bestPercent = percent;
 							}
 
@@ -232,8 +241,7 @@ namespace YARG.PlayMode {
 						}
 
 						// Set preformance text
-						GameUI.Instance.vocalPreformanceText.text = bestPercent switch {
-							float.PositiveInfinity => "PERFECT!",
+						preformaceText.text = bestPercent switch {
 							>= 1f => "AWESOME!",
 							>= 0.8f => "STRONG",
 							>= 0.7f => "GOOD",
@@ -241,7 +249,16 @@ namespace YARG.PlayMode {
 							>= 0.1f => "MESSY",
 							_ => "AWFUL"
 						};
-						GameUI.Instance.vocalPreformanceText.color = Color.white;
+						preformaceText.color = Color.white;
+
+						// Add to multiplier
+						if (bestPercent >= 1f) {
+							if (rawMultiplier < 4) {
+								rawMultiplier++;
+							}
+						} else {
+							rawMultiplier = 1;
+						}
 					}
 
 					// Calculate the new sing time
@@ -271,6 +288,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Update player specific stuff
+			float highestSingProgress = 0f;
 			foreach (var playerInfo in micInputs) {
 				// (ONLY ONE FOR NOW)
 				var player = playerInfo.player;
@@ -348,12 +366,33 @@ namespace YARG.PlayMode {
 				} else {
 					playerInfo.barMesh.material.SetFloat("Fill", 0f);
 				}
+
+				// Update highest
+				if (playerInfo.singProgress > highestSingProgress) {
+					highestSingProgress = playerInfo.singProgress;
+				}
 			}
 
 			// Update preformance text fading
-			var c = GameUI.Instance.vocalPreformanceText.color;
+			var c = preformaceText.color;
 			c.a -= Time.deltaTime * 2f;
-			GameUI.Instance.vocalPreformanceText.color = c;
+			preformaceText.color = c;
+
+			// Update combo text
+			if (rawMultiplier == 1) {
+				comboText.text = null;
+			} else {
+				comboText.text = $"{rawMultiplier}<sub>x</sub>";
+			}
+
+			// Update combo fill
+			// TODO: Make only one difficulty option
+			float fillMul = GetSingTimeMultiplier(micInputs[0].player.chosenDifficulty);
+			if (sectionSingTime != 0f) {
+				comboFill.fillAmount = highestSingProgress / (sectionSingTime * fillMul);
+			} else {
+				comboFill.fillAmount = 0f;
+			}
 		}
 
 		private void SpawnLyric(LyricInfo lyricInfo, float time) {
