@@ -24,6 +24,8 @@ namespace YARG.PlayMode {
 
 			public int sectionsHit;
 			public int secitonsFailed;
+
+			public float totalSingTime;
 		}
 
 		public const float TRACK_SPEED = 4f;
@@ -65,6 +67,7 @@ namespace YARG.PlayMode {
 		private int eventChartIndex = 0;
 
 		private float sectionSingTime = -1f;
+		private float totalSingTime = 0f;
 		private LyricInfo currentLyric = null;
 
 		private void Start() {
@@ -160,11 +163,10 @@ namespace YARG.PlayMode {
 
 			// Set scores
 			foreach (var playerInfo in micInputs) {
-				int total = playerInfo.sectionsHit + playerInfo.secitonsFailed;
 				playerInfo.player.lastScore = new PlayerManager.LastScore {
 					percentage = new DiffPercent {
 						difficulty = playerInfo.player.chosenDifficulty,
-						percent = total == 0 ? 1f : (float) playerInfo.sectionsHit / total
+						percent = playerInfo.totalSingTime / totalSingTime
 					},
 					notesHit = playerInfo.sectionsHit,
 					notesMissed = playerInfo.secitonsFailed
@@ -225,6 +227,7 @@ namespace YARG.PlayMode {
 								bestPercent = percent;
 							}
 
+							playerInfo.totalSingTime += playerInfo.singProgress;
 							playerInfo.singProgress = 0f;
 						}
 
@@ -242,6 +245,7 @@ namespace YARG.PlayMode {
 					}
 
 					// Calculate the new sing time
+					totalSingTime += sectionSingTime;
 					CalculateSectionSingTime(Play.Instance.SongTime);
 				}
 

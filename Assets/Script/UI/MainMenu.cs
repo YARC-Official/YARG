@@ -1,16 +1,13 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.UIElements;
 using YARG.Data;
 using YARG.Input;
-using YARG.PlayMode;
 using YARG.Util;
 
 namespace YARG.UI {
 	public partial class MainMenu : MonoBehaviour {
-		public static bool postSong = false;
+		public static bool isPostSong = false;
 
 		public static MainMenu Instance {
 			get;
@@ -21,8 +18,6 @@ namespace YARG.UI {
 
 		[SerializeField]
 		private UIDocument editPlayersDocument;
-		[SerializeField]
-		private UIDocument postSongDocument;
 
 		[SerializeField]
 		private Canvas mainMenu;
@@ -30,6 +25,8 @@ namespace YARG.UI {
 		private Canvas songSelect;
 		[SerializeField]
 		private Canvas difficultySelect;
+		[SerializeField]
+		private Canvas postSong;
 
 		[SerializeField]
 		private GameObject settingsMenu;
@@ -42,99 +39,54 @@ namespace YARG.UI {
 				SongLibrary.songFolder = new(PlayerPrefs.GetString("songFolder"));
 			}
 
-			if (!postSong) {
+			if (!isPostSong) {
 				ShowMainMenu();
 			} else {
 				ShowPostSong();
 			}
 		}
 
+		private void OnEnable() {
+			// Bind input events
+			foreach (var player in PlayerManager.players) {
+				player.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
+			}
+		}
+
 		private void OnDisable() {
 			// Save player prefs
 			PlayerPrefs.Save();
+
+			// Unbind input events
+			foreach (var player in PlayerManager.players) {
+				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
+			}
 		}
 
-		private void SetupPostSong() {
-			var root = postSongDocument.rootVisualElement;
-
-			// Create a score to push
-
-			var songScore = new SongScore {
-				lastPlayed = DateTime.Now,
-				timesPlayed = 1,
-				highestPercent = new()
-			};
-			var oldScore = ScoreManager.GetScore(Play.song);
-
-			HashSet<PlayerManager.Player> highScores = new();
+		private void Update() {
+			// Update player navigation
 			foreach (var player in PlayerManager.players) {
-				if (Play.speed != 1f) {
-					continue;
-				}
+				player.inputStrategy.UpdateNavigationMode();
+			}
+		}
 
-				if (player.inputStrategy.botMode) {
-					continue;
-				}
-
-				if (!player.lastScore.HasValue) {
-					continue;
-				}
-
-				var lastScore = player.lastScore.GetValueOrDefault();
-
-				// Skip if the chart has no notes (will be viewed as 100%)
-				if (lastScore.notesHit == 0) {
-					continue;
-				}
-
-				// Override or add percentage
-				if (oldScore == null ||
-					!oldScore.highestPercent.TryGetValue(player.chosenInstrument, out var oldHighest) ||
-					lastScore.percentage > oldHighest) {
-
-					songScore.highestPercent[player.chosenInstrument] = lastScore.percentage;
-					highScores.Add(player);
-				}
+		private void OnGenericNavigation(NavigationType navigationType, bool firstPressed) {
+			if (!firstPressed) {
+				return;
 			}
 
-			// Push!
-			ScoreManager.PushScore(Play.song, songScore);
-
-			// Setup score label
-
-			var label = root.Q<Label>("Score");
-			label.text = "";
-
-			foreach (var player in PlayerManager.players) {
-				if (!player.lastScore.HasValue) {
-					continue;
-				}
-
-				var score = player.lastScore.Value;
-				label.text += $"{player.DisplayName}: {score.percentage.percent * 100f:N1}%, {score.notesHit} hit, {score.notesMissed} missed";
-
-				if (highScores.Contains(player)) {
-					label.text += " <color=green>HIGH SCORE!</color>";
-				}
-
-				label.text += "\n\n";
+			if (navigationType == NavigationType.PRIMARY) {
+				ShowSongSelect();
 			}
-
-			// Next button
-
-			var nextButton = root.Q<Button>("NextButton");
-			nextButton.clicked += () => {
-				ShowMainMenu();
-			};
 		}
 
 		private void HideAll() {
 			editPlayersDocument.SetVisible(false);
-			postSongDocument.SetVisible(false);
 
 			mainMenu.gameObject.SetActive(false);
 			songSelect.gameObject.SetActive(false);
 			difficultySelect.gameObject.SetActive(false);
+			postSong.gameObject.SetActive(false);
 		}
 
 		public void ShowMainMenu() {
@@ -161,11 +113,8 @@ namespace YARG.UI {
 
 		public void ShowPostSong() {
 			HideAll();
-
-			SetupPostSong();
-			postSongDocument.SetVisible(true);
-
-			postSong = false;
+			postSong.gameObject.SetActive(true);
+			isPostSong = false;
 		}
 
 		public void ToggleSettingsMenu() {

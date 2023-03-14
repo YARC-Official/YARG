@@ -221,7 +221,7 @@ namespace YARG.PlayMode {
 
 			// End song
 			if (realSongTime > song.songLength.Value + 0.5f) {
-				MainMenu.postSong = true;
+				MainMenu.isPostSong = true;
 				Exit();
 			}
 		}

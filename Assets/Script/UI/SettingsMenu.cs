@@ -45,10 +45,12 @@ namespace YARG.UI {
 		}
 
 		public void SongFolderUpdate() {
-			SongLibrary.songFolder = new(songFolderInput.text);
-			PlayerPrefs.SetString("songFolder", songFolderInput.text);
+			if (GameManager.client != null) {
+				SongLibrary.songFolder = new(songFolderInput.text);
+				PlayerPrefs.SetString("songFolder", songFolderInput.text);
 
-			SongLibrary.Reset();
+				SongLibrary.Reset();
+			}
 		}
 
 		public void CalibrationUpdate() {
