@@ -100,5 +100,13 @@ namespace YARG.Input {
 				CallGenericNavigationEvent(NavigationType.SECONDARY, true);
 			}
 		}
+
+		public override string[] GetAllowedInstruments() {
+			return new string[] {
+				"guitar",
+				"bass",
+				"keys"
+			};
+		}
 	}
 }

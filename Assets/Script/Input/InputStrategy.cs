@@ -45,6 +45,11 @@ namespace YARG.Input {
 		/// </returns>
 		public abstract string[] GetMappingNames();
 
+		/// <returns>
+		/// An array of the allow instruments for the input strategy.
+		/// </returns>
+		public abstract string[] GetAllowedInstruments();
+
 		/// <summary>
 		/// Resets the InputStrategy for a new song.
 		/// </summary>

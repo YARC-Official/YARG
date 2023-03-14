@@ -240,5 +240,12 @@ namespace YARG.Input {
 		public override void UpdateNavigationMode() {
 			// TODO
 		}
+
+		public override string[] GetAllowedInstruments() {
+			return new string[] {
+				"vocals",
+				//"harmVocals"
+			};
+		}
 	}
 }

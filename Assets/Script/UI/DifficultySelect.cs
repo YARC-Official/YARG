@@ -11,8 +11,10 @@ namespace YARG.UI {
 	public class DifficultySelect : MonoBehaviour {
 		private enum State {
 			INSTRUMENT,
-			NORMAL_OR_PRO,
-			DIFFICULTY
+			DIFFICULTY,
+
+			VOCALS,
+			VOCALS_DIFFICULTY
 		}
 
 		[SerializeField]
@@ -20,29 +22,38 @@ namespace YARG.UI {
 		[SerializeField]
 		private TextMeshProUGUI header;
 		[SerializeField]
-		private Sprite[] instrumentSprites;
-		[SerializeField]
 		private TMP_InputField speedInput;
 
 		private int playerIndex;
+		private string[] instruments;
 		private State state;
 
 		private int optionCount;
 		private int selected;
 
 		private void OnEnable() {
-			playerIndex = 0;
-
-			UpdateInstrument();
-
-			// Bind events
-			if (GameManager.client != null) {
-				GameManager.client.SignalEvent += SignalRecieved;
-			}
+			bool anyMics = false;
 
 			// Bind input events
 			foreach (var player in PlayerManager.players) {
 				player.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
+
+				if (player.inputStrategy is MicInputStrategy) {
+					anyMics = true;
+				}
+			}
+
+			// Update options
+			playerIndex = 0;
+			if (anyMics) {
+				UpdateVocalOptions();
+			} else {
+				UpdateInstrument();
+			}
+
+			// Bind singal event
+			if (GameManager.client != null) {
+				GameManager.client.SignalEvent += SignalRecieved;
 			}
 		}
 
@@ -126,52 +137,49 @@ namespace YARG.UI {
 			var player = PlayerManager.players[playerIndex];
 
 			if (state == State.INSTRUMENT) {
-				player.chosenInstrument = selected switch {
-					0 => "guitar",
-					1 => "bass",
-					2 => "keys",
-					3 => "drums",
-					4 => "vocals",
-					_ => throw new System.Exception("Unreachable.")
-				};
-
-				if (player.chosenInstrument != "keys" && player.chosenInstrument != "vocals") {
-					UpdateNormalOrPro();
-				} else {
-					UpdateDifficulty();
-				}
-			} else if (state == State.NORMAL_OR_PRO) {
-				if (selected == 1) {
-					player.chosenInstrument = player.chosenInstrument switch {
-						"guitar" => "realGuitar",
-						"bass" => "realBass",
-						"keys" => "realKeys",
-						"drums" => "realDrums",
-						_ => throw new System.Exception("Unreachable.")
-					};
-				}
+				player.chosenInstrument = instruments[selected];
 				UpdateDifficulty();
 			} else if (state == State.DIFFICULTY) {
 				player.chosenDifficulty = (Difficulty) selected;
-				playerIndex++;
-
-				if (playerIndex >= PlayerManager.players.Count) {
-					// Set speed
-					Play.speed = float.Parse(speedInput.text, CultureInfo.InvariantCulture);
-					if (Play.speed <= 0f) {
-						Play.speed = 1f;
-					}
-
-					// Play song (or download then play)
-					if (GameManager.client != null) {
-						GameManager.client.RequestDownload(MainMenu.Instance.chosenSong.folder.FullName);
-					} else {
-						Play.song = MainMenu.Instance.chosenSong;
-						GameManager.Instance.LoadScene(SceneIndex.PLAY);
-					}
-				} else {
-					UpdateInstrument();
+				IncreasePlayerIndex();
+			} else if (state == State.VOCALS) {
+				foreach (var p in PlayerManager.players) {
+					p.chosenInstrument = selected == 0 ? "vocals" : "harmVocals";
 				}
+				UpdateVocalDifficulties();
+			} else if (state == State.VOCALS_DIFFICULTY) {
+				foreach (var p in PlayerManager.players) {
+					p.chosenDifficulty = (Difficulty) selected;
+				}
+				UpdateInstrument();
+			}
+		}
+
+		private void IncreasePlayerIndex() {
+			// Next non-mic player
+			playerIndex++;
+			while (playerIndex < PlayerManager.players.Count
+				&& PlayerManager.players[playerIndex].inputStrategy is MicInputStrategy) {
+
+				playerIndex++;
+			}
+
+			if (playerIndex >= PlayerManager.players.Count) {
+				// Set speed
+				Play.speed = float.Parse(speedInput.text, CultureInfo.InvariantCulture);
+				if (Play.speed <= 0f) {
+					Play.speed = 1f;
+				}
+
+				// Play song (or download then play)
+				if (GameManager.client != null) {
+					GameManager.client.RequestDownload(MainMenu.Instance.chosenSong.folder.FullName);
+				} else {
+					Play.song = MainMenu.Instance.chosenSong;
+					GameManager.Instance.LoadScene(SceneIndex.PLAY);
+				}
+			} else {
+				UpdateInstrument();
 			}
 		}
 
@@ -188,48 +196,43 @@ namespace YARG.UI {
 		}
 
 		private void UpdateInstrument() {
-			header.text = PlayerManager.players[playerIndex].name;
+			// Header
+			var player = PlayerManager.players[playerIndex];
+			header.text = player.DisplayName;
 
 			state = State.INSTRUMENT;
 
-			optionCount = 5;
-			string[] ops = {
-				"Guitar",
-				"Bass",
-				"Keys",
-				"Drums",
-				"Vocals",
-				null
-			};
+			// Get allowed instruments
+			var allowedInstruments = player.inputStrategy.GetAllowedInstruments();
+			optionCount = allowedInstruments.Length;
 
-			for (int i = 0; i < 6; i++) {
-				options[i].SetText(ops[i]);
-				options[i].SetImage(instrumentSprites[i]);
-				options[i].SetSelected(false);
+			// Add to options
+			string[] ops = new string[6];
+			instruments = new string[allowedInstruments.Length];
+			for (int i = 0; i < allowedInstruments.Length; i++) {
+				instruments[i] = allowedInstruments[i];
+				ops[i] = allowedInstruments[i] switch {
+					"drums" => "Drums",
+					"realDrums" => "Pro Drums",
+					"guitar" => "Guitar",
+					"realGuitar" => "Pro Guitar",
+					"bass" => "Bass",
+					"realBass" => "Pro Bass",
+					"keys" => "Keys",
+					"realKeys" => "Pro Keys",
+					"vocals" => "Vocals",
+					"harmVocals" => "Vocals (Harmony)",
+					_ => "Unknown"
+				};
 			}
 
-			selected = 0;
-			options[0].SetSelected(true);
-		}
-
-		private void UpdateNormalOrPro() {
-			state = State.NORMAL_OR_PRO;
-
-			optionCount = 2;
-			string[] ops = {
-				"Normal",
-				"Pro",
-				null,
-				null,
-				null,
-				null
-			};
-
+			// Set text
 			for (int i = 0; i < 6; i++) {
 				options[i].SetText(ops[i]);
 				options[i].SetSelected(false);
 			}
 
+			// Select
 			selected = 0;
 			options[0].SetSelected(true);
 		}
@@ -244,6 +247,54 @@ namespace YARG.UI {
 				"Hard",
 				"Expert",
 				null,
+				null
+			};
+
+			for (int i = 0; i < 6; i++) {
+				options[i].SetText(ops[i]);
+				options[i].SetSelected(false);
+			}
+
+			selected = 3;
+			options[3].SetSelected(true);
+		}
+
+		private void UpdateVocalOptions() {
+			header.text = "Options for All Vocals";
+
+			state = State.VOCALS;
+
+			optionCount = 1;
+			string[] ops = {
+				"Solo",
+				null,
+				null,
+				null,
+				null,
+				null
+			};
+
+			for (int i = 0; i < 6; i++) {
+				options[i].SetText(ops[i]);
+				options[i].SetSelected(false);
+			}
+
+			selected = 0;
+			options[0].SetSelected(true);
+		}
+
+		private void UpdateVocalDifficulties() {
+			header.text = "Options for All Vocals";
+
+			state = State.VOCALS_DIFFICULTY;
+
+			optionCount = 5;
+			string[] ops = {
+				"Easy",
+				"Medium",
+				"Hard",
+				"Expert",
+				"Expert+",
 				null
 			};
 
