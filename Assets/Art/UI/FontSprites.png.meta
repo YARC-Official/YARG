@@ -107,7 +107,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: FontSprites_0
+      name: bass
       rect:
         serializedVersion: 2
         x: 0
@@ -128,7 +128,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: FontSprites_1
+      name: guitar
       rect:
         serializedVersion: 2
         x: 256
@@ -149,7 +149,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: FontSprites_2
+      name: drums
       rect:
         serializedVersion: 2
         x: 512
@@ -170,7 +170,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: FontSprites_3
+      name: keys
       rect:
         serializedVersion: 2
         x: 768
@@ -191,7 +191,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: FontSprites_4
+      name: realBass
       rect:
         serializedVersion: 2
         x: 0
@@ -212,10 +212,10 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: FontSprites_5
+      name: realGuitar
       rect:
         serializedVersion: 2
-        x: 256
+        x: 255
         y: 512
         width: 256
         height: 256
@@ -233,11 +233,11 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: FontSprites_6
+      name: realDrums
       rect:
         serializedVersion: 2
         x: 512
-        y: 512
+        y: 511
         width: 256
         height: 256
       alignment: 0
@@ -254,7 +254,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: FontSprites_7
+      name: realKeys
       rect:
         serializedVersion: 2
         x: 768
@@ -275,7 +275,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: FontSprites_8
+      name: vocals
       rect:
         serializedVersion: 2
         x: 0
@@ -283,7 +283,7 @@ TextureImporter:
         width: 256
         height: 256
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -306,15 +306,15 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      FontSprites_1: 1445730593
-      FontSprites_8: -212029294
-      FontSprites_0: -1834431651
-      FontSprites_2: -1591131112
-      FontSprites_5: 1760769726
-      FontSprites_6: -844217933
-      FontSprites_4: 894865564
-      FontSprites_7: -1173955509
-      FontSprites_3: -1340302279
+      vocals: -212029294
+      bass: -1834431651
+      realKeys: -1173955509
+      realBass: 894865564
+      realDrums: -844217933
+      drums: -1591131112
+      realGuitar: 1760769726
+      keys: -1340302279
+      guitar: 1445730593
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

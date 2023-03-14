@@ -50,6 +50,11 @@ namespace YARG.Input {
 		/// </returns>
 		public abstract string[] GetAllowedInstruments();
 
+		/// <returns>
+		/// The path of the track addressable.
+		/// </returns>
+		public abstract string GetTrackPath();
+
 		/// <summary>
 		/// Resets the InputStrategy for a new song.
 		/// </summary>

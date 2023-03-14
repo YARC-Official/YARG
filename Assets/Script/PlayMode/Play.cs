@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
 using UnityEngine.Networking;
 using YARG.Data;
@@ -29,12 +30,6 @@ namespace YARG.PlayMode {
 
 		[SerializeField]
 		private GameObject soundAudioPrefab;
-		[SerializeField]
-		private GameObject trackPrefab;
-		[SerializeField]
-		private GameObject realGuitarTrackPrefab;
-		[SerializeField]
-		private GameObject drumsTrackPrefab;
 
 		public bool SongStarted {
 			get;
@@ -93,26 +88,19 @@ namespace YARG.PlayMode {
 			LoadChart();
 
 			// Spawn tracks
-			for (int i = 0; i < PlayerManager.players.Count; i++) {
-				string instrument = PlayerManager.players[i].chosenInstrument;
+			int i = 0;
+			foreach (var player in PlayerManager.players) {
+				string trackPath = player.inputStrategy.GetTrackPath();
 
-				if (instrument == "vocals") {
+				if (trackPath == null) {
 					continue;
 				}
 
-				GameObject track;
-				if (instrument == "realGuitar" || instrument == "realBass") {
-					track = Instantiate(realGuitarTrackPrefab, new Vector3(i * 25f, 0f, 0f),
-						realGuitarTrackPrefab.transform.rotation);
-				} else if (instrument == "drums") {
-					track = Instantiate(drumsTrackPrefab, new Vector3(i * 25f, 0f, 0f),
-						drumsTrackPrefab.transform.rotation);
-				} else {
-					track = Instantiate(trackPrefab, new Vector3(i * 25f, 0f, 0f),
-						trackPrefab.transform.rotation);
-				}
+				var prefab = Addressables.LoadAssetAsync<GameObject>(trackPath).WaitForCompletion();
+				var track = Instantiate(prefab, new Vector3(i * 25f, 0f, 0f), prefab.transform.rotation);
+				track.GetComponent<AbstractTrack>().player = player;
 
-				track.GetComponent<AbstractTrack>().player = PlayerManager.players[i];
+				i++;
 			}
 
 			yield return new WaitForSeconds(SONG_START_OFFSET);

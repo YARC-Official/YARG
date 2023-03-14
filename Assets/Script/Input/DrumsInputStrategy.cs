@@ -62,5 +62,9 @@ namespace YARG.Input {
 				//"realDrums"
 			};
 		}
+
+		public override string GetTrackPath() {
+			return "Tracks/Drums";
+		}
 	}
 }

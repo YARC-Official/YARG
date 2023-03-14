@@ -21,5 +21,7 @@ EditorBuildSettings:
     path: Assets/Scenes/CalibrationScene.unity
     guid: 40fdd5787dc39f540b9024e7dfa32f0f
   m_configObjects:
+    com.unity.addressableassets: {fileID: 11400000, guid: 1d91d74c53e2e92468f3b6d5fcfa8bdf,
+      type: 2}
     com.unity.input.settings: {fileID: 11400000, guid: 8efbce013f4e1c34895851b7038c76e9,
       type: 2}

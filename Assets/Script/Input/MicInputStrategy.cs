@@ -247,5 +247,9 @@ namespace YARG.Input {
 				//"harmVocals"
 			};
 		}
+
+		public override string GetTrackPath() {
+			return null;
+		}
 	}
 }

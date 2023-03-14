@@ -108,5 +108,9 @@ namespace YARG.Input {
 				"keys"
 			};
 		}
+
+		public override string GetTrackPath() {
+			return "Tracks/FiveFret";
+		}
 	}
 }

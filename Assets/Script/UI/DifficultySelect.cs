@@ -2,6 +2,7 @@ using System.Globalization;
 using System.IO;
 using TMPro;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
 using YARG.Data;
 using YARG.Input;
@@ -226,10 +227,15 @@ namespace YARG.UI {
 				};
 			}
 
-			// Set text
+			// Set text and sprites
 			for (int i = 0; i < 6; i++) {
 				options[i].SetText(ops[i]);
 				options[i].SetSelected(false);
+
+				if (ops[i] != null) {
+					var sprite = Addressables.LoadAssetAsync<Sprite>($"FontSprites[{instruments[i]}]").WaitForCompletion();
+					options[i].SetImage(sprite);
+				}
 			}
 
 			// Select

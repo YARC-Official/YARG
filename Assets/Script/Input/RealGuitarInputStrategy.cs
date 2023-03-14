@@ -121,5 +121,9 @@ namespace YARG.Input {
 				"realBass"
 			};
 		}
+
+		public override string GetTrackPath() {
+			return "Tracks/RealGuitar";
+		}
 	}
 }
