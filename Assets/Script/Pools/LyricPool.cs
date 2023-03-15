@@ -1,5 +1,5 @@
-using TMPro;
 using UnityEngine;
+using YARG.Data;
 using YARG.PlayMode;
 
 namespace YARG.Pools {
@@ -11,19 +11,17 @@ namespace YARG.Pools {
 			lastLyricLocation -= Time.deltaTime * MicPlayer.TRACK_SPEED;
 		}
 
-		public Transform AddLyric(string text, float x) {
+		public Transform AddLyric(LyricInfo lyric, float x) {
 			// Don't let lyrics collide
 			if (x < lastLyricLocation) {
 				x = lastLyricLocation + 0.125f;
 			}
 
-			var poolable = Add("lyric", new Vector3(x, 0f, -0.68f));
-
-			var tmp = poolable.GetComponent<TextMeshPro>();
-			tmp.text = text;
+			var poolable = (VocalLyric) Add("lyric", new Vector3(x, 0f, -0.68f));
+			poolable.SetLyric(lyric);
 
 			// Calculate the location of the end of the lyric
-			lastLyricLocation = x + tmp.preferredWidth;
+			lastLyricLocation = x + poolable.text.preferredWidth;
 
 			return poolable.transform;
 		}

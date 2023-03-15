@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3570020253263911674}
   - component: {fileID: 3570020253263911672}
   - component: {fileID: 3570020253263911675}
-  - component: {fileID: 5669969753578144736}
+  - component: {fileID: 3456921545974928242}
   m_Layer: 0
   m_Name: VocalTrackLyric
   m_TagString: Untagged
@@ -135,7 +135,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -174,7 +174,7 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_renderer: {fileID: 3570020253263911672}
   m_maskType: 0
---- !u!114 &5669969753578144736
+--- !u!114 &3456921545974928242
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -183,8 +183,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 3570020253263911677}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6ed92116300873e4c95ed217513e0c9b, type: 3}
+  m_Script: {fileID: 11500000, guid: 9f16f705d46a6dc43b9ba928d0affb78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   poolId: lyric
   pool: {fileID: 0}
+  text: {fileID: 3570020253263911675}

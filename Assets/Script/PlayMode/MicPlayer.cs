@@ -408,7 +408,7 @@ namespace YARG.PlayMode {
 			var pos = TRACK_SPAWN_OFFSET - lagCompensation;
 
 			// Spawn text
-			lyricPool.AddLyric(lyricInfo.lyric, pos);
+			lyricPool.AddLyric(lyricInfo, pos);
 
 			// Spawn note
 			if (lyricInfo.inharmonic) {
