@@ -17,7 +17,9 @@ namespace YARG.PlayMode {
 
 			public Transform needle;
 			public GameObject needleModel;
-			public ParticleSystem needleParticles;
+
+			public ParticleGroup nonActiveParticles;
+			public ParticleGroup activeParticles;
 
 			public MeshRenderer barMesh;
 
@@ -104,12 +106,14 @@ namespace YARG.PlayMode {
 					bar.transform.localPosition = new(0f, 0f, 0.8f - (barContainer.childCount - 1) * 0.225f);
 
 					// Create player info
+					var groups = needle.GetComponentsInChildren<ParticleGroup>();
 					var playerInfo = new PlayerInfo {
 						player = player,
 
 						needle = needle.transform,
 						needleModel = needle.GetComponentInChildren<MeshRenderer>().gameObject,
-						needleParticles = needle.GetComponentInChildren<ParticleSystem>(),
+						nonActiveParticles = groups[0],
+						activeParticles = groups[1],
 
 						barMesh = bar.GetComponent<MeshRenderer>()
 					};
@@ -310,7 +314,7 @@ namespace YARG.PlayMode {
 						Difficulty.MEDIUM => 4f,
 						Difficulty.HARD => 3f,
 						Difficulty.EXPERT => 2.5f,
-						Difficulty.EXPERT_PLUS => 1f,
+						Difficulty.EXPERT_PLUS => 2.5f,
 						_ => throw new System.Exception("Unreachable.")
 					};
 
@@ -343,12 +347,15 @@ namespace YARG.PlayMode {
 				if (pitchCorrect && currentLyric != null) {
 					playerInfo.singProgress += Time.deltaTime;
 
-					if (!playerInfo.needleParticles.isEmitting) {
-						playerInfo.needleParticles.Play();
-					}
+					playerInfo.activeParticles.Play();
+					playerInfo.nonActiveParticles.Stop();
 				} else {
-					if (playerInfo.needleParticles.isEmitting) {
-						playerInfo.needleParticles.Stop();
+					playerInfo.activeParticles.Stop();
+
+					if (micInput.VoiceDetected) {
+						playerInfo.nonActiveParticles.Play();
+					} else {
+						playerInfo.nonActiveParticles.Stop();
 					}
 				}
 
@@ -448,7 +455,7 @@ namespace YARG.PlayMode {
 				Difficulty.MEDIUM => 0.5f,
 				Difficulty.HARD => 0.55f,
 				Difficulty.EXPERT => 0.6f,
-				Difficulty.EXPERT_PLUS => 0.65f,
+				Difficulty.EXPERT_PLUS => 0.7f,
 				_ => throw new System.Exception("Unreachable.")
 			};
 		}

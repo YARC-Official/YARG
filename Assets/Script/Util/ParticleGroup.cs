@@ -54,6 +54,10 @@ namespace YARG.Util {
 
 		public void Play() {
 			foreach (var particle in particles) {
+				if (particle.main.loop && particle.isEmitting) {
+					continue;
+				}
+
 				particle.Play();
 			}
 
@@ -68,6 +72,10 @@ namespace YARG.Util {
 
 		public void Stop() {
 			foreach (var particle in particles) {
+				if (particle.main.loop && !particle.isEmitting) {
+					continue;
+				}
+
 				particle.Stop();
 			}
 

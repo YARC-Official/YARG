@@ -505,12 +505,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   soundAudioPrefab: {fileID: 4688628650010230174, guid: 9cbc2c803d689cc49b1e6850c871bde5,
     type: 3}
-  trackPrefab: {fileID: 2999289846860309454, guid: 2a3c8615b3f54e64db089dedc04d5445,
-    type: 3}
-  realGuitarTrackPrefab: {fileID: 8431480376043174353, guid: 3994a880487709b47a6e0ebef8611ab9,
-    type: 3}
-  drumsTrackPrefab: {fileID: 2999289846860309454, guid: 5b03c2f1f2df12f4f9b6cdfb655a3f3b,
-    type: 3}
 --- !u!1 &395624266
 GameObject:
   m_ObjectHideFlags: 0
@@ -1102,7 +1096,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1250570284}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -6.5, y: 0.15, z: 0}
+  m_LocalPosition: {x: -6.5, y: 0.3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
