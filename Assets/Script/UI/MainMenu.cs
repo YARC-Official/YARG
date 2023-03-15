@@ -1,9 +1,7 @@
 using System.IO;
 using UnityEngine;
-using UnityEngine.UIElements;
 using YARG.Data;
 using YARG.Input;
-using YARG.Util;
 
 namespace YARG.UI {
 	public partial class MainMenu : MonoBehaviour {
@@ -17,9 +15,6 @@ namespace YARG.UI {
 		public SongInfo chosenSong = null;
 
 		[SerializeField]
-		private UIDocument editPlayersDocument;
-
-		[SerializeField]
 		private Canvas mainMenu;
 		[SerializeField]
 		private Canvas songSelect;
@@ -27,6 +22,10 @@ namespace YARG.UI {
 		private Canvas difficultySelect;
 		[SerializeField]
 		private Canvas postSong;
+		[SerializeField]
+		private Canvas editPlayers;
+		[SerializeField]
+		private Canvas addPlayer;
 
 		[SerializeField]
 		private GameObject settingsMenu;
@@ -81,8 +80,8 @@ namespace YARG.UI {
 		}
 
 		private void HideAll() {
-			editPlayersDocument.SetVisible(false);
-
+			editPlayers.gameObject.SetActive(false);
+			addPlayer.gameObject.SetActive(false);
 			mainMenu.gameObject.SetActive(false);
 			songSelect.gameObject.SetActive(false);
 			difficultySelect.gameObject.SetActive(false);
@@ -98,7 +97,12 @@ namespace YARG.UI {
 
 		public void ShowEditPlayers() {
 			HideAll();
-			editPlayersDocument.SetVisible(true);
+			editPlayers.gameObject.SetActive(true);
+		}
+
+		public void ShowAddPlayer() {
+			HideAll();
+			addPlayer.gameObject.SetActive(true);
 		}
 
 		public void ShowSongSelect() {

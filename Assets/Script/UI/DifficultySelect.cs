@@ -152,6 +152,11 @@ namespace YARG.UI {
 				foreach (var p in PlayerManager.players) {
 					p.chosenDifficulty = (Difficulty) selected;
 				}
+
+				// Skip over any MicInputStrategy's
+				playerIndex = -1;
+				IncreasePlayerIndex();
+
 				UpdateInstrument();
 			}
 		}
