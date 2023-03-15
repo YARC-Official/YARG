@@ -26,7 +26,7 @@ namespace YARG.UI {
 
 		private void Start() {
 			songFolderInput.text = SongLibrary.songFolder.FullName;
-			calibrationInput.text = PlayerManager.globalCalibration.ToString();
+			calibrationInput.text = PlayerManager.globalCalibration.ToString(CultureInfo.InvariantCulture);
 			lowQualityToggle.isOn = GameManager.Instance.LowQualityMode;
 			karaokeToggle.isOn = GameManager.Instance.KaraokeMode;
 			showHitWindowToggle.isOn = GameManager.Instance.showHitWindow;

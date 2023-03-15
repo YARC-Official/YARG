@@ -26,6 +26,8 @@ namespace YARG.UI {
 		private TMP_Dropdown inputStrategyDropdown;
 		[SerializeField]
 		private Transform bindingsContainer;
+		[SerializeField]
+		private TMP_InputField playerNameField;
 
 		[Space]
 		[SerializeField]
@@ -39,14 +41,20 @@ namespace YARG.UI {
 
 		private (InputDevice, int)? selectedDevice;
 		private bool botMode;
+		private string playerName;
 		private InputStrategy inputStrategy;
+
 		private string currentBindUpdate;
 
 		private void OnEnable() {
 			selectedDevice = null;
 			botMode = false;
 			inputStrategy = null;
+			playerName = null;
+
 			currentBindUpdate = null;
+
+			playerNameField.text = null;
 
 			UpdateSelectDevice();
 		}
@@ -197,6 +205,8 @@ namespace YARG.UI {
 
 			inputStrategy.botMode = botMode;
 
+			playerName = playerNameField.text;
+
 			UpdateBind();
 		}
 
@@ -234,9 +244,15 @@ namespace YARG.UI {
 		}
 
 		public void DoneBind() {
-			PlayerManager.players.Add(new PlayerManager.Player() {
+			var player = new PlayerManager.Player() {
 				inputStrategy = inputStrategy
-			});
+			};
+			PlayerManager.players.Add(player);
+
+			if (!string.IsNullOrEmpty(playerName)) {
+				player.name = playerName;
+			}
+
 			MainMenu.Instance.ShowEditPlayers();
 		}
 	}
