@@ -54,6 +54,8 @@ namespace YARG.PlayMode {
 		private TextMeshProUGUI comboText;
 		[SerializeField]
 		private Image comboFill;
+		// [SerializeField]
+		// private Image starpowerFill;
 
 		[SerializeField]
 		private GameObject needlePrefab;
@@ -79,12 +81,13 @@ namespace YARG.PlayMode {
 
 		private float sectionSingTime = -1f;
 		private float totalSingTime;
-		private LyricInfo currentLyric = null;
+		private LyricInfo currentLyric;
 
-		private EventInfo visualStarpowerSection = null;
-		private EventInfo starpowerSection = null;
+		private EventInfo visualStarpowerSection;
+		private EventInfo starpowerSection;
 
 		private int rawMultiplier = 1;
+		private float starpowerCharge;
 
 		private void Start() {
 			Instance = this;
@@ -278,9 +281,16 @@ namespace YARG.PlayMode {
 					// Calculate the new sing time
 					totalSingTime += sectionSingTime;
 					CalculateSectionSingTime(Play.Instance.SongTime);
+				} else if (eventInfo.name == "starpower_vocals") {
+					starpowerSection = eventInfo;
 				}
 
 				eventChartIndex++;
+			}
+
+			// Update visual starpower
+			if (starpowerSection?.EndTime < RelativeTime) {
+				starpowerSection = null;
 			}
 
 			// Spawn lyrics
@@ -410,6 +420,9 @@ namespace YARG.PlayMode {
 			} else {
 				comboFill.fillAmount = 0f;
 			}
+
+			// Update starpower fill
+			// starpowerFill.fillAmount = starpowerCharge;
 		}
 
 		private void SpawnLyric(LyricInfo lyricInfo, float time) {

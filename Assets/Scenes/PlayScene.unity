@@ -1702,7 +1702,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1609887835}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -20}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1734,6 +1734,7 @@ MonoBehaviour:
   preformaceText: {fileID: 1164410253}
   comboText: {fileID: 1400927845}
   comboFill: {fileID: 1261892303}
+  starpowerFill: {fileID: 0}
   needlePrefab: {fileID: 9222097515094736838, guid: 5a7016f19e8745444809c16b7ca55fe6,
     type: 3}
   barPrefab: {fileID: 3995368451999040447, guid: d9a7866f48409e24a97503fbc1504355,
