@@ -10,6 +10,12 @@
 
 ![Gif of YARG](gif.gif)
 
+# 👉 Disclaimer
+
+We **DO NOT** encourage, advocate, or promote **PIRATING** of songs, or of anything else. This game's intended use is for you, the player, to play songs that you already own. This means, ripping songs of a game **YOU OWN** for **YOURSELF** for **PERSONAL USE**, or downloading creative commons/public domain songs off of the internet.
+
+**YARG** has nothing to do with pirates. It stands for "Yet Another Rhythm Game."
+
 # 📥 Downloading and Playing
 
 Windows:
