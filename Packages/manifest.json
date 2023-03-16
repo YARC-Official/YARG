@@ -9,7 +9,7 @@
     "com.unity.inputsystem": "1.5.0",
     "com.unity.nuget.newtonsoft-json": "3.0.2",
     "com.unity.probuilder": "5.0.6",
-    "com.unity.render-pipelines.universal": "14.0.6",
+    "com.unity.render-pipelines.universal": "12.1.10",
     "com.unity.textmeshpro": "3.0.6",
     "com.unity.timeline": "1.7.3",
     "com.unity.toolchain.win-x86_64-linux-x86_64": "2.0.4",

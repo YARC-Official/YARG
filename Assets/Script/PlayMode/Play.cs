@@ -97,7 +97,7 @@ namespace YARG.PlayMode {
 				}
 
 				var prefab = Addressables.LoadAssetAsync<GameObject>(trackPath).WaitForCompletion();
-				var track = Instantiate(prefab, new Vector3(i * 25f, 0f, 0f), prefab.transform.rotation);
+				var track = Instantiate(prefab, new Vector3(i * 25f, 100f, 0f), prefab.transform.rotation);
 				track.GetComponent<AbstractTrack>().player = player;
 
 				i++;
