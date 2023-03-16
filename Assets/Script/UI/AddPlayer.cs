@@ -126,7 +126,7 @@ namespace YARG.UI {
 
 			// Add bot button
 			var botGo = Instantiate(deviceButtonPrefab, devicesContainer);
-			botGo.GetComponentInChildren<TextMeshProUGUI>().text = "<color=#0c7027><b>BOT</b></color>";
+			botGo.GetComponentInChildren<TextMeshProUGUI>().text = "Create a <color=#0c7027><b>BOT</b></color>";
 			botGo.GetComponentInChildren<Button>().onClick.AddListener(() => {
 				selectedDevice = (null, -1);
 				botMode = true;
