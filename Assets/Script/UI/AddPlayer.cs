@@ -154,21 +154,6 @@ namespace YARG.UI {
 					UpdateConfigure();
 				});
 			}
-
-			// Add unsupported devices
-			foreach (var device in InputSystem.GetUnsupportedDevices()) {
-				var go = Instantiate(deviceButtonPrefab, devicesContainer);
-				go.GetComponentInChildren<TextMeshProUGUI>().text = $"<color=red>(NOT RECOGNIZED)</color> <b>{device.product}</b> ({device.interfaceName})";
-				go.GetComponentInChildren<Button>().onClick.AddListener(() => {
-					// Force register device as joystick
-					InputSystem.RegisterLayout<Joystick>(matches: new InputDeviceMatcher()
-						.WithInterface(device.interfaceName)
-						.WithProduct(device.product));
-
-					// Refresh
-					UpdateSelectDevice();
-				});
-			}
 		}
 
 		private void UpdateConfigure() {

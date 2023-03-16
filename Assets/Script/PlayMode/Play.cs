@@ -165,6 +165,7 @@ namespace YARG.PlayMode {
 			if (!GameManager.Instance.useAudioTime || !leaderAudioSource.isPlaying) {
 				realSongTime += Time.deltaTime * speed;
 			} else {
+				// TODO: Use "timeSamples" for better accuracy
 				realSongTime = leaderAudioSource.time;
 			}
 
