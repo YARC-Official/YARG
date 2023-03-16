@@ -81,6 +81,9 @@ namespace YARG.PlayMode {
 		private float totalSingTime;
 		private LyricInfo currentLyric = null;
 
+		private EventInfo visualStarpowerSection = null;
+		private EventInfo starpowerSection = null;
+
 		private int rawMultiplier = 1;
 
 		private void Start() {
@@ -212,9 +215,16 @@ namespace YARG.PlayMode {
 				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(RelativeTime, eventInfo.time);
 				if (eventInfo.name == "vocal_endPhrase") {
 					notePool.AddEndPhraseLine(compensation);
+				} else if (eventInfo.name == "starpower_vocals") {
+					visualStarpowerSection = eventInfo;
 				}
 
 				visualEventChartIndex++;
+			}
+
+			// Update visual starpower
+			if (visualStarpowerSection?.EndTime < RelativeTime) {
+				visualStarpowerSection = null;
 			}
 
 			// Update event logic
@@ -408,7 +418,7 @@ namespace YARG.PlayMode {
 			var pos = TRACK_SPAWN_OFFSET - lagCompensation;
 
 			// Spawn text
-			lyricPool.AddLyric(lyricInfo, pos);
+			lyricPool.AddLyric(lyricInfo, visualStarpowerSection != null, pos);
 
 			// Spawn note
 			if (lyricInfo.inharmonic) {

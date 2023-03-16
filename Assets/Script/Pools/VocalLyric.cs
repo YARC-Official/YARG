@@ -8,9 +8,11 @@ namespace YARG.Pools {
 		public TextMeshPro text;
 
 		private LyricInfo lyric;
+		private bool starpower;
 
-		public void SetLyric(LyricInfo lyricInfo) {
+		public void SetLyric(LyricInfo lyricInfo, bool starpower) {
 			lyric = lyricInfo;
+			this.starpower = starpower;
 
 			// I like this line of code
 			text.text = lyric.lyric;
@@ -25,7 +27,11 @@ namespace YARG.Pools {
 
 			// Set color
 			if (Play.Instance.SongTime < lyric.time) {
-				text.color = Color.white;
+				if (starpower) {
+					text.color = Color.yellow;
+				} else {
+					text.color = Color.white;
+				}
 			} else if (Play.Instance.SongTime > lyric.time && Play.Instance.SongTime < lyric.EndTime) {
 				text.color = new Color(0.000f, 1.000f, 0.349f);
 			} else {

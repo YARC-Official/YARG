@@ -79,6 +79,7 @@ namespace YARG.Serialization.Parser {
 							case "PART VOCALS":
 								chart.genericLyrics = ParseGenericLyrics(trackChunk, tempo);
 								chart.realLyrics = ParseRealLyrics(eventIR, trackChunk, tempo);
+								ParseStarpower(eventIR, trackChunk, "vocals");
 								break;
 							case "PART REAL_GUITAR":
 								for (int i = 0; i < 4; i++) {
