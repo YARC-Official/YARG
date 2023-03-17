@@ -31,10 +31,10 @@ namespace YARG.Serialization {
 				songs.Add(new SongData {
 					songName = song.SongName,
 					artistName = song.ArtistName,
-					album = null,
-					genre = null,
-					charter = null,
-					year = null,
+					album = song.album,
+					genre = song.genre,
+					charter = song.charter,
+					year = song.year,
 					songLength = (int) (song.songLength * 1000f)
 				});
 			}

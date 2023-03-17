@@ -1,13 +1,15 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using Newtonsoft.Json;
+using UnityEngine;
 using YARG.Data;
 using YARG.Serialization;
 
 namespace YARG {
 	public static class SongLibrary {
-		public static DirectoryInfo songFolder = new(@"B:\YARG_Songs");
+		public static DirectoryInfo songFolder = new(GetSongFolder());
 
 		public static float loadPercent = 0f;
 
@@ -24,6 +26,27 @@ namespace YARG {
 			get;
 			private set;
 		} = null;
+
+		private static string GetSongFolder() {
+			if (!string.IsNullOrEmpty(PlayerPrefs.GetString("songFolder"))) {
+				// Load song folder from player prefs (if available)
+				return PlayerPrefs.GetString("songFolder");
+			} else {
+				// Otherwise look for Clone Hero...
+				var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+				var cloneHeroPath = Path.Combine(documentsPath, $"Clone Hero{Path.DirectorySeparatorChar}Songs");
+				var yargPath = Path.Combine(documentsPath, $"YARG{Path.DirectorySeparatorChar}Songs");
+
+				if (Directory.Exists(cloneHeroPath)) {
+					return cloneHeroPath;
+				} else if (!Directory.Exists(yargPath)) {
+					Directory.CreateDirectory(yargPath);
+				}
+
+				// And if not, create our own
+				return yargPath;
+			}
+		}
 
 		/// <summary>
 		/// Should be called before you access <see cref="Songs"/>.

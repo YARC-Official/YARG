@@ -33,11 +33,6 @@ namespace YARG.UI {
 		private void Start() {
 			Instance = this;
 
-			// Load song folder from player prefs
-			if (!string.IsNullOrEmpty(PlayerPrefs.GetString("songFolder"))) {
-				SongLibrary.songFolder = new(PlayerPrefs.GetString("songFolder"));
-			}
-
 			if (!isPostSong) {
 				ShowMainMenu();
 			} else {

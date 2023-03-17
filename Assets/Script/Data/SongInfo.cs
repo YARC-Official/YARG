@@ -21,7 +21,6 @@ namespace YARG.Data {
 		};
 
 		public bool fetched;
-		public bool errored;
 
 		[JsonProperty]
 		[JsonConverter(typeof(DirectoryInfoConverter))]
@@ -150,6 +149,18 @@ namespace YARG.Data {
 		public float songLength;
 		[JsonProperty]
 		public float delay;
+
+		[JsonProperty]
+		public string album;
+		[JsonProperty]
+		public string genre;
+		[JsonProperty]
+		public string charter;
+		[JsonProperty]
+		public string year;
+
+		[JsonProperty]
+		public string loadingPhrase;
 
 		public Dictionary<string, int> partDifficulties;
 

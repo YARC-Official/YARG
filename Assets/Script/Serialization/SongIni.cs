@@ -36,7 +36,6 @@ namespace YARG.Serialization {
 				} else if (data.Sections.ContainsSection("Song")) {
 					section = data["Song"];
 				} else {
-					song.errored = true;
 					Debug.LogError($"No `song` section found in `{song.folder}`.");
 					return song;
 				}
@@ -44,6 +43,19 @@ namespace YARG.Serialization {
 				// Set basic info
 				song.SongName = section["name"];
 				song.ArtistName = section["artist"];
+
+				// Get other metadata
+				song.album = section.GetKeyData("album")?.Value;
+				song.genre = section.GetKeyData("genre")?.Value;
+				song.year = section.GetKeyData("year")?.Value;
+				song.loadingPhrase = section.GetKeyData("loading_phrase")?.Value;
+
+				// Get charter
+				if (section.ContainsKey("charter")) {
+					song.charter = section["charter"];
+				} else if (section.ContainsKey("frets")) {
+					song.charter = section["frets"];
+				}
 
 				// Get song source
 				if (section.ContainsKey("icon") && section["icon"] != "0") {
@@ -102,7 +114,6 @@ namespace YARG.Serialization {
 					}
 				}
 			} catch (Exception e) {
-				song.errored = true;
 				Debug.LogError($"Failed to parse song.ini for `{song.folder}`.");
 				Debug.LogException(e);
 			}
