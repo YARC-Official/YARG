@@ -90,6 +90,11 @@ namespace YARG.PlayMode {
 			// Spawn tracks
 			int i = 0;
 			foreach (var player in PlayerManager.players) {
+				if (player.chosenInstrument == null) {
+					// Skip players that are sitting out
+					continue;
+				}
+
 				string trackPath = player.inputStrategy.GetTrackPath();
 
 				if (trackPath == null) {

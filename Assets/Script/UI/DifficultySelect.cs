@@ -138,16 +138,28 @@ namespace YARG.UI {
 			var player = PlayerManager.players[playerIndex];
 
 			if (state == State.INSTRUMENT) {
-				player.chosenInstrument = instruments[selected];
-				UpdateDifficulty();
+				if (selected >= instruments.Length) {
+					player.chosenInstrument = null;
+					IncreasePlayerIndex();
+				} else {
+					player.chosenInstrument = instruments[selected];
+					UpdateDifficulty();
+				}
 			} else if (state == State.DIFFICULTY) {
 				player.chosenDifficulty = (Difficulty) selected;
 				IncreasePlayerIndex();
 			} else if (state == State.VOCALS) {
-				foreach (var p in PlayerManager.players) {
-					p.chosenInstrument = selected == 0 ? "vocals" : "harmVocals";
+				if (selected == 1) {
+					foreach (var p in PlayerManager.players) {
+						p.chosenInstrument = null;
+					}
+					IncreasePlayerIndex();
+				} else {
+					foreach (var p in PlayerManager.players) {
+						p.chosenInstrument = selected == 0 ? "vocals" : "harmVocals";
+					}
+					UpdateVocalDifficulties();
 				}
-				UpdateVocalDifficulties();
 			} else if (state == State.VOCALS_DIFFICULTY) {
 				foreach (var p in PlayerManager.players) {
 					p.chosenDifficulty = (Difficulty) selected;
@@ -156,8 +168,6 @@ namespace YARG.UI {
 				// Skip over any MicInputStrategy's
 				playerIndex = -1;
 				IncreasePlayerIndex();
-
-				UpdateInstrument();
 			}
 		}
 
@@ -210,7 +220,7 @@ namespace YARG.UI {
 
 			// Get allowed instruments
 			var allowedInstruments = player.inputStrategy.GetAllowedInstruments();
-			optionCount = allowedInstruments.Length;
+			optionCount = allowedInstruments.Length + 1;
 
 			// Add to options
 			string[] ops = new string[6];
@@ -231,13 +241,14 @@ namespace YARG.UI {
 					_ => "Unknown"
 				};
 			}
+			ops[allowedInstruments.Length] = "Sit Out";
 
 			// Set text and sprites
 			for (int i = 0; i < 6; i++) {
 				options[i].SetText(ops[i]);
 				options[i].SetSelected(false);
 
-				if (ops[i] != null) {
+				if (i < instruments.Length) {
 					var sprite = Addressables.LoadAssetAsync<Sprite>($"FontSprites[{instruments[i]}]").WaitForCompletion();
 					options[i].SetImage(sprite);
 				}
@@ -275,10 +286,10 @@ namespace YARG.UI {
 
 			state = State.VOCALS;
 
-			optionCount = 1;
+			optionCount = 2;
 			string[] ops = {
 				"Solo",
-				null,
+				"Sit Out (All Vocals)",
 				null,
 				null,
 				null,
@@ -288,6 +299,11 @@ namespace YARG.UI {
 			for (int i = 0; i < 6; i++) {
 				options[i].SetText(ops[i]);
 				options[i].SetSelected(false);
+
+				if (i == 0) {
+					var sprite = Addressables.LoadAssetAsync<Sprite>("FontSprites[vocals]").WaitForCompletion();
+					options[i].SetImage(sprite);
+				}
 			}
 
 			selected = 0;

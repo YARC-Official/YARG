@@ -95,57 +95,65 @@ namespace YARG.PlayMode {
 			// Start mics
 			bool hasMic = false;
 			foreach (var player in PlayerManager.players) {
-				if (player.inputStrategy is MicInputStrategy micStrategy) {
-					// Skip if the player hasn't assigned a mic
-					if (micStrategy.microphoneIndex == -1 && !micStrategy.botMode) {
-						continue;
+				// Skip people who are sitting out
+				if (player.chosenInstrument != "vocals" && player.chosenInstrument != "harmVocals") {
+					continue;
+				}
+
+				// Skip over non-mic strategy players
+				if (player.inputStrategy is not MicInputStrategy micStrategy) {
+					continue;
+				}
+
+				// Skip if the player hasn't assigned a mic
+				if (micStrategy.microphoneIndex == -1 && !micStrategy.botMode) {
+					continue;
+				}
+
+				hasMic = true;
+
+				// Spawn needle
+				var needle = Instantiate(needlePrefab, transform);
+				needle.transform.localPosition = needlePrefab.transform.position;
+
+				// Spawn var
+				var bar = Instantiate(barPrefab, barContainer);
+				bar.transform.localPosition = new(0f, 0f, 0.8f - (barContainer.childCount - 1) * 0.225f);
+
+				// Create player info
+				var groups = needle.GetComponentsInChildren<ParticleGroup>();
+				var playerInfo = new PlayerInfo {
+					player = player,
+
+					needle = needle.transform,
+					needleModel = needle.GetComponentInChildren<MeshRenderer>().gameObject,
+					nonActiveParticles = groups[0],
+					activeParticles = groups[1],
+
+					barMesh = bar.GetComponent<MeshRenderer>()
+				};
+
+				// Add to players
+				micInputs.Add(playerInfo);
+
+				if (!micStrategy.botMode) {
+					// Add child dummy audio source (for mic input reading)
+					var go = new GameObject();
+					go.transform.parent = transform;
+					var audio = go.AddComponent<AudioSource>();
+					dummyAudioSources.Add(micStrategy, audio);
+					audio.outputAudioMixerGroup = silentMixerGroup;
+					audio.loop = true;
+
+					// Start the mic!
+					var micName = Microphone.devices[micStrategy.microphoneIndex];
+					audio.clip = Microphone.Start(micName, true, 1, AudioSettings.outputSampleRate);
+
+					// Wait for the mic to start, then start the audio
+					while (Microphone.GetPosition(micName) <= 0) {
+						// This loop is weird, but it works.
 					}
-
-					hasMic = true;
-
-					// Spawn needle
-					var needle = Instantiate(needlePrefab, transform);
-					needle.transform.localPosition = needlePrefab.transform.position;
-
-					// Spawn var
-					var bar = Instantiate(barPrefab, barContainer);
-					bar.transform.localPosition = new(0f, 0f, 0.8f - (barContainer.childCount - 1) * 0.225f);
-
-					// Create player info
-					var groups = needle.GetComponentsInChildren<ParticleGroup>();
-					var playerInfo = new PlayerInfo {
-						player = player,
-
-						needle = needle.transform,
-						needleModel = needle.GetComponentInChildren<MeshRenderer>().gameObject,
-						nonActiveParticles = groups[0],
-						activeParticles = groups[1],
-
-						barMesh = bar.GetComponent<MeshRenderer>()
-					};
-
-					// Add to players
-					micInputs.Add(playerInfo);
-
-					if (!micStrategy.botMode) {
-						// Add child dummy audio source (for mic input reading)
-						var go = new GameObject();
-						go.transform.parent = transform;
-						var audio = go.AddComponent<AudioSource>();
-						dummyAudioSources.Add(micStrategy, audio);
-						audio.outputAudioMixerGroup = silentMixerGroup;
-						audio.loop = true;
-
-						// Start the mic!
-						var micName = Microphone.devices[micStrategy.microphoneIndex];
-						audio.clip = Microphone.Start(micName, true, 1, AudioSettings.outputSampleRate);
-
-						// Wait for the mic to start, then start the audio
-						while (Microphone.GetPosition(micName) <= 0) {
-							// This loop is weird, but it works.
-						}
-						audio.Play();
-					}
+					audio.Play();
 				}
 			}
 

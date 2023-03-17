@@ -19,6 +19,12 @@ namespace YARG.UI {
 		private List<TextMeshProUGUI> text;
 
 		public void SetScore(PlayerManager.Player player, ScoreType type) {
+			if (player.chosenInstrument == null) {
+				playerName.text = player.DisplayName;
+				text[0].text = "<color=red>Sat Out</color>";
+				return;
+			}
+
 			playerName.text = $"<sprite name=\"{player.chosenInstrument}\"> {player.DisplayName}";
 
 			if (!player.lastScore.HasValue) {
