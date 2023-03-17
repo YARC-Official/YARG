@@ -3,6 +3,7 @@ using SFB;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Serialization;
 
 namespace YARG.UI {
 	public class SettingsMenu : MonoBehaviour {
@@ -51,6 +52,12 @@ namespace YARG.UI {
 
 				SongLibrary.Reset();
 			}
+		}
+
+		public void OuvertExportButton() {
+			StandaloneFileBrowser.SaveFilePanelAsync("Save Song List", null, "songs", "json", path => {
+				OuvertExport.ExportOuvertSongsTo(path);
+			});
 		}
 
 		public void CalibrationUpdate() {

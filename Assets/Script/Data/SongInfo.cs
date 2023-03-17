@@ -147,7 +147,7 @@ namespace YARG.Data {
 		[JsonProperty]
 		public string source;
 		[JsonProperty]
-		public float? songLength;
+		public float songLength;
 		[JsonProperty]
 		public float delay;
 

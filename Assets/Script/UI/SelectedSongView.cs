@@ -73,15 +73,10 @@ namespace YARG.UI {
 			}
 
 			// Song length
-			if (songInfo.songLength == null) {
-				lengthText.text = "N/A";
-			} else {
-				int time = (int) songInfo.songLength.Value;
-				int minutes = time / 60;
-				int seconds = time % 60;
-
-				lengthText.text = $"{minutes}:{seconds:00}";
-			}
+			int time = (int) songInfo.songLength;
+			int minutes = time / 60;
+			int seconds = time % 60;
+			lengthText.text = $"{minutes}:{seconds:00}";
 
 			// Source
 			supportText.text = Utils.SourceToGameName(songInfo.source);
@@ -176,10 +171,6 @@ namespace YARG.UI {
 		}
 
 		public void PlaySong() {
-			if (songInfo.songLength == null) {
-				return;
-			}
-
 			MainMenu.Instance.chosenSong = songInfo;
 			MainMenu.Instance.ShowPreSong();
 		}

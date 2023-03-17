@@ -36,6 +36,7 @@ namespace YARG.Util {
 				"rbacdc"            => "Rock Band AC/DC",
 				"gdrb"              => "Green Day Rock Band",
 				"lrb"               => "Lego Rock Band",
+				"rbn"               => "Rock Band Network",
 				
 				_                   => "Unknown/Custom"
 			};
