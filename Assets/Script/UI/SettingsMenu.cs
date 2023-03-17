@@ -49,8 +49,7 @@ namespace YARG.UI {
 			if (GameManager.client == null) {
 				SongLibrary.songFolder = new(songFolderInput.text);
 				PlayerPrefs.SetString("songFolder", songFolderInput.text);
-
-				SongLibrary.Reset();
+				MainMenu.Instance.RefreshSongLibrary();
 			}
 		}
 

@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using UnityEngine;
+using YARG.UI;
 using YARG.Util;
 
 namespace YARG.Server {
@@ -63,6 +64,15 @@ namespace YARG.Server {
 
 			// When done, dump all files into remote path
 			ZipFile.ExtractToDirectory(pkgZipPath, remotePath);
+
+			// Refresh library
+			SongLibrary.Reset();
+			SongLibrary.FetchSongs();
+			SongSelect.refreshFlag = true;
+
+			// Refresh scores
+			ScoreManager.Reset();
+			ScoreManager.FetchScores();
 
 			// Delete zip
 			File.Delete(pkgZipPath);

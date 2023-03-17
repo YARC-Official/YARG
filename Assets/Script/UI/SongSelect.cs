@@ -4,7 +4,6 @@ using FuzzySharp;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 using YARG.Data;
 using YARG.Input;
 
@@ -14,6 +13,8 @@ namespace YARG.UI {
 			get;
 			private set;
 		} = null;
+
+		public static bool refreshFlag = true;
 
 		private const int SONG_VIEW_EXTRA = 6;
 		private const float INPUT_REPEAT_TIME = 0.035f;
@@ -36,12 +37,6 @@ namespace YARG.UI {
 		[SerializeField]
 		private TMP_Dropdown dropdown;
 
-		[Space]
-		[SerializeField]
-		private GameObject loadingScreen;
-		[SerializeField]
-		private Image progressBar;
-
 		private List<SongOrHeader> songs;
 		private List<SongInfo> recommendedSongs;
 
@@ -53,13 +48,8 @@ namespace YARG.UI {
 		// Will be set in UpdateSearch
 		private int selectedSongIndex;
 
-		private void Start() {
+		private void Awake() {
 			Instance = this;
-
-			// Fetch info
-			bool loading = !SongLibrary.FetchSongs();
-			loadingScreen.SetActive(loading);
-			ScoreManager.FetchScores();
 
 			// Create before (insert backwards)
 			for (int i = 0; i < SONG_VIEW_EXTRA; i++) {
@@ -76,11 +66,6 @@ namespace YARG.UI {
 
 				songViewsAfter.Add(gameObject.GetComponent<SongView>());
 			}
-
-			if (!loading) {
-				// Automatically loads songs and updates song views
-				UpdateSearch();
-			}
 		}
 
 		private void OnEnable() {
@@ -89,18 +74,13 @@ namespace YARG.UI {
 				player.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
 			}
 
-			// Refetch if null (i.e. if a setting changed)
-			// Make sure that we have already initialized (hence "songViewsBefore")
-			if (SongLibrary.Songs == null && songViewsBefore.Count > 0) {
-				bool loading = !SongLibrary.FetchSongs();
-				loadingScreen.SetActive(loading);
-				ScoreManager.FetchScores();
+			if (refreshFlag) {
+				songs = null;
+				recommendedSongs = null;
 
-				if (!loading) {
-					// Automatically loads songs and updates song views
-					recommendedSongs = null;
-					UpdateSearch();
-				}
+				// Get songs
+				UpdateSearch();
+				refreshFlag = false;
 			}
 		}
 
@@ -162,22 +142,6 @@ namespace YARG.UI {
 
 		private void Update() {
 			GameManager.client?.CheckForSignals();
-
-			// Update progress if loading
-
-			if (loadingScreen.activeSelf) {
-				progressBar.fillAmount = SongLibrary.loadPercent;
-
-				// Finish loading
-				if (SongLibrary.loadPercent >= 1f) {
-					loadingScreen.SetActive(false);
-
-					recommendedSongs = null;
-					UpdateSearch();
-				}
-
-				return;
-			}
 
 			// Update input timer
 

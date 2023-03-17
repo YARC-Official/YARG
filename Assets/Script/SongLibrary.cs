@@ -113,6 +113,7 @@ namespace YARG {
 		/// </summary>
 		private static void CreateCache() {
 			var json = JsonConvert.SerializeObject(Songs, Formatting.Indented);
+			Directory.CreateDirectory(CacheFile.DirectoryName);
 			File.WriteAllText(CacheFile.ToString(), json.ToString());
 		}
 

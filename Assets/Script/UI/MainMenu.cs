@@ -1,5 +1,6 @@
 using System.IO;
 using UnityEngine;
+using UnityEngine.UI;
 using YARG.Data;
 using YARG.Input;
 
@@ -27,11 +28,18 @@ namespace YARG.UI {
 		[SerializeField]
 		private Canvas addPlayer;
 
+		[Space]
 		[SerializeField]
 		private GameObject settingsMenu;
+		[SerializeField]
+		private GameObject loadingScreen;
+		[SerializeField]
+		private Image progressBar;
 
 		private void Start() {
 			Instance = this;
+
+			RefreshSongLibrary();
 
 			if (!isPostSong) {
 				ShowMainMenu();
@@ -58,6 +66,18 @@ namespace YARG.UI {
 		}
 
 		private void Update() {
+			// Update progress if loading
+			if (loadingScreen.activeSelf) {
+				progressBar.fillAmount = SongLibrary.loadPercent;
+
+				// Finish loading
+				if (SongLibrary.loadPercent >= 1f) {
+					loadingScreen.SetActive(false);
+				}
+
+				return;
+			}
+
 			// Update player navigation
 			foreach (var player in PlayerManager.players) {
 				player.inputStrategy.UpdateNavigationMode();
@@ -133,9 +153,19 @@ namespace YARG.UI {
 		public void RefreshCache() {
 			if (SongLibrary.CacheFile.Exists) {
 				File.Delete(SongLibrary.CacheFile.FullName);
-				SongLibrary.Reset();
-				ShowSongSelect();
+				RefreshSongLibrary();
 			}
+		}
+
+		public void RefreshSongLibrary() {
+			SongLibrary.Reset();
+			ScoreManager.Reset();
+
+			bool loading = !SongLibrary.FetchSongs();
+			loadingScreen.SetActive(loading);
+			ScoreManager.FetchScores();
+
+			SongSelect.refreshFlag = true;
 		}
 
 		public void Quit() {

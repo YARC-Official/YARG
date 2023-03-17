@@ -31,6 +31,7 @@ namespace YARG {
 				scores = new();
 
 				// Create a dummy score file if one doesn't exist.
+				Directory.CreateDirectory(ScoreFile.DirectoryName);
 				File.WriteAllText(ScoreFile.ToString(), "{}");
 			}
 		}
@@ -101,6 +102,13 @@ namespace YARG {
 				.Select(i => SongLibrary.Songs.Find(j => Utils.ArePathsEqual(j.folder.FullName, i.Key)))
 				.Where(i => i != null)
 				.ToList();
+		}
+
+		/// <summary>
+		/// Force reset scores. This makes the game re-scan if needed.
+		/// </summary>
+		public static void Reset() {
+			scores = null;
 		}
 	}
 }
