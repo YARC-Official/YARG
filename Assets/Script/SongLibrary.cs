@@ -81,9 +81,11 @@ namespace YARG {
 		/// We need to look at the <c>song.ini</c> files for more details.
 		/// </summary>
 		private static void CreateSongInfoFromFiles(DirectoryInfo songDir) {
-			var directories = songDir.GetDirectories();
+			if (!songDir.Exists) {
+				Directory.CreateDirectory(songDir.FullName);
+			}
 
-			foreach (var folder in directories) {
+			foreach (var folder in songDir.EnumerateDirectories()) {
 				if (new FileInfo(Path.Combine(folder.FullName, "song.ini")).Exists) {
 					// If the folder has a song.ini, it is a song folder
 					Songs.Add(new SongInfo(folder));
