@@ -3,6 +3,7 @@ namespace YARG.Input {
 		UP,
 		DOWN,
 		PRIMARY,
-		SECONDARY
+		SECONDARY,
+		TERTIARY
 	}
 }

@@ -115,6 +115,8 @@ namespace YARG.UI {
 				MoveOption(1);
 			} else if (navigationType == NavigationType.PRIMARY) {
 				Next();
+			} else if (navigationType == NavigationType.SECONDARY) {
+				MainMenu.Instance.ShowSongSelect();
 			}
 		}
 

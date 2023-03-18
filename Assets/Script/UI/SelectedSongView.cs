@@ -178,5 +178,9 @@ namespace YARG.UI {
 		public void SearchArtist() {
 			SongSelect.Instance.searchField.text = $"artist:{songInfo.ArtistName}";
 		}
+
+		public void SearchSource() {
+			SongSelect.Instance.searchField.text = $"source:{songInfo.source}";
+		}
 	}
 }

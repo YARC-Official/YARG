@@ -213,8 +213,18 @@ namespace YARG.UI {
 				}
 			}
 
+			if (!firstPressed) {
+				return;
+			}
+
 			if (navigationType == NavigationType.PRIMARY) {
 				selectedSongView.PlaySong();
+			} else if (navigationType == NavigationType.SECONDARY) {
+				Back();
+			} else if (navigationType == NavigationType.TERTIARY) {
+				if (songs.Count > 0) {
+					searchField.text = $"artist:{songs[selectedSongIndex].song.ArtistName}";
+				}
 			}
 		}
 
@@ -247,11 +257,11 @@ namespace YARG.UI {
 			UpdateSongViews();
 		}
 
-		private int FuzzySearch(SongInfo song) {
+		private int FuzzySearch(string text, SongInfo song) {
 			if (dropdown.value == 0) {
-				return Fuzz.Ratio(song.SongName, searchField.text);
+				return Fuzz.PartialRatio(song.SongName, text);
 			} else {
-				return Fuzz.Ratio(song.ArtistName, searchField.text);
+				return Fuzz.PartialRatio(song.ArtistName, text);
 			}
 		}
 
@@ -339,26 +349,43 @@ namespace YARG.UI {
 				songs.Insert(0, new SongOrHeader {
 					header = ("Recommended Songs", $"{recommendedSongs.Count} random songs")
 				});
-			} else if (searchField.text.StartsWith("artist:")) {
-				// Search by artist
-				var artist = searchField.text[7..];
-				songs = SongLibrary.Songs
-					.Where(i => i.ArtistName.ToLower() == artist.ToLower())
-					.OrderBy(song => song.SongNameNoParen)
-					.Select(i => new SongOrHeader { song = i })
-					.ToList();
-				songs.Insert(0, new SongOrHeader { header = ($"{artist}'s Songs", $"{songs.Count} songs") });
 			} else {
-				// Fuzzy search!
-				var text = searchField.text.ToLower();
-				songs = SongLibrary.Songs
-					.Select(i => new { score = FuzzySearch(i), songInfo = i })
-					.Where(i => i.score > 55)
-					.OrderByDescending(i => i.score)
-					.Select(i => i.songInfo)
-					.Select(i => new SongOrHeader { song = i })
-					.ToList();
-				songs.Insert(0, new SongOrHeader { header = ("Searched Songs", $"{songs.Count} songs") });
+				// Split up args
+				var split = searchField.text.Split(';');
+				IEnumerable<SongInfo> songsOut = SongLibrary.Songs;
+
+				// Go through them all
+				bool fuzzySearched = false;
+				foreach (var arg in split) {
+					if (arg.StartsWith("artist:")) {
+						// Artist filter
+						var artist = arg[7..];
+						songsOut = SongLibrary.Songs
+							.Where(i => i.ArtistName.ToLower() == artist.ToLower());
+					} else if (arg.StartsWith("source:")) {
+						// Source filter
+						var source = arg[7..];
+						songsOut = SongLibrary.Songs
+							.Where(i => i.source.ToLower() == source.ToLower());
+					} else if (!fuzzySearched) {
+						// Fuzzy search
+						fuzzySearched = true;
+						songsOut = songsOut
+							.Select(i => new { score = FuzzySearch(arg, i), songInfo = i })
+							.Where(i => i.score > 55)
+							.OrderByDescending(i => i.score)
+							.Select(i => i.songInfo);
+					}
+				}
+
+				// Sort
+				if (!fuzzySearched) {
+					songsOut = songsOut.OrderBy(song => song.SongNameNoParen);
+				}
+
+				// Add header
+				songs = songsOut.Select(i => new SongOrHeader { song = i }).ToList();
+				songs.Insert(0, new SongOrHeader { header = ($"Filtered Songs", $"{songs.Count} songs") });
 			}
 
 			// Count songs
@@ -376,6 +403,15 @@ namespace YARG.UI {
 
 			selectedSongIndex = 1;
 			UpdateSongViews();
+		}
+
+		public void Back() {
+			if (string.IsNullOrEmpty(searchField.text)) {
+				MainMenu.Instance.ShowMainMenu();
+			} else {
+				searchField.text = "";
+				UpdateSearch();
+			}
 		}
 	}
 }

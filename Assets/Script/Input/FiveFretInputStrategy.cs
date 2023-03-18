@@ -99,6 +99,10 @@ namespace YARG.Input {
 			if (MappingAsButton("red")?.wasPressedThisFrame ?? false) {
 				CallGenericNavigationEvent(NavigationType.SECONDARY, true);
 			}
+
+			if (MappingAsButton("yellow")?.wasPressedThisFrame ?? false) {
+				CallGenericNavigationEvent(NavigationType.TERTIARY, true);
+			}
 		}
 
 		public override string[] GetAllowedInstruments() {
