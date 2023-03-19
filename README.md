@@ -43,7 +43,7 @@ YARG is licensed under the MIT License - see the [`LICENSE`](../master/LICENSE) 
 # 🔨 Building
 
 1. Clone repository.
-2. Open it in Unity version `2022.2.0b16` (or newer)
+2. Open it in Unity version `2021.3.21f1` (LTS)
 3. Load in **without** entering safe mode.
 4. Click on `NuGet` on the menu bar.
 5. Click on `Restore Packages`.
