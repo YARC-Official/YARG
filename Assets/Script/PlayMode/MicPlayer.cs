@@ -495,7 +495,7 @@ namespace YARG.PlayMode {
 			float currentStarpower = starpowerOverlay.material.GetFloat("AlphaMultiplier");
 			if (starpowerActive) {
 				starpowerOverlay.material.SetFloat("AlphaMultiplier",
-					Mathf.Lerp(currentStarpower, 0.25f, Time.deltaTime * 2f));
+					Mathf.Lerp(currentStarpower, 1f, Time.deltaTime * 2f));
 			} else {
 				starpowerOverlay.material.SetFloat("AlphaMultiplier",
 					Mathf.Lerp(currentStarpower, 0f, Time.deltaTime * 4f));
