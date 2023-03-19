@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -54,8 +55,12 @@ namespace YARG.PlayMode {
 		private TextMeshProUGUI comboText;
 		[SerializeField]
 		private Image comboFill;
-		// [SerializeField]
-		// private Image starpowerFill;
+		[SerializeField]
+		private Image starpowerFill;
+		[SerializeField]
+		private Image starpowerBarOverlay;
+		[SerializeField]
+		private MeshRenderer starpowerOverlay;
 
 		[SerializeField]
 		private GameObject needlePrefab;
@@ -74,6 +79,8 @@ namespace YARG.PlayMode {
 		public float RelativeTime => Play.Instance.SongTime +
 			((TRACK_SPAWN_OFFSET + TRACK_END_OFFSET) / (TRACK_SPEED / Play.speed));
 
+		private bool beat = false;
+
 		private int visualChartIndex;
 		private int chartIndex;
 		private int visualEventChartIndex;
@@ -87,7 +94,10 @@ namespace YARG.PlayMode {
 		private EventInfo starpowerSection;
 
 		private int rawMultiplier = 1;
+		private int Multiplier => rawMultiplier * (starpowerActive ? 2 : 1);
+
 		private float starpowerCharge;
+		private bool starpowerActive;
 
 		private void Start() {
 			Instance = this;
@@ -132,6 +142,9 @@ namespace YARG.PlayMode {
 
 					barMesh = bar.GetComponent<MeshRenderer>()
 				};
+
+				// Bind events
+				player.inputStrategy.StarpowerEvent += StarpowerAction;
 
 				// Add to players
 				micInputs.Add(playerInfo);
@@ -184,6 +197,12 @@ namespace YARG.PlayMode {
 
 			// Set render texture on UI
 			GameUI.Instance.SetVocalTrackImage(renderTexture);
+
+			// Bind events
+			Play.Instance.BeatEvent += BeatAction;
+
+			// Hide starpower
+			starpowerOverlay.material.SetFloat("AlphaMultiplier", 0f);
 		}
 
 		private void OnDestroy() {
@@ -200,7 +219,12 @@ namespace YARG.PlayMode {
 					notesHit = playerInfo.sectionsHit,
 					notesMissed = playerInfo.secitonsFailed
 				};
+
+				playerInfo.player.inputStrategy.StarpowerEvent -= StarpowerAction;
 			}
+
+			// Unbind events
+			Play.Instance.BeatEvent -= BeatAction;
 		}
 
 		private void Update() {
@@ -281,6 +305,11 @@ namespace YARG.PlayMode {
 							if (rawMultiplier < 4) {
 								rawMultiplier++;
 							}
+
+							if (starpowerSection != null) {
+								starpowerCharge += 0.25f;
+								starpowerSection = null;
+							}
 						} else {
 							rawMultiplier = 1;
 						}
@@ -294,11 +323,6 @@ namespace YARG.PlayMode {
 				}
 
 				eventChartIndex++;
-			}
-
-			// Update visual starpower
-			if (starpowerSection?.EndTime < RelativeTime) {
-				starpowerSection = null;
 			}
 
 			// Spawn lyrics
@@ -343,7 +367,7 @@ namespace YARG.PlayMode {
 						Difficulty.HARD => 3f,
 						Difficulty.EXPERT => 2.5f,
 						Difficulty.EXPERT_PLUS => 2.5f,
-						_ => throw new System.Exception("Unreachable.")
+						_ => throw new Exception("Unreachable.")
 					};
 
 					// Get the needed pitch
@@ -414,14 +438,13 @@ namespace YARG.PlayMode {
 			preformaceText.color = c;
 
 			// Update combo text
-			if (rawMultiplier == 1) {
+			if (Multiplier == 1) {
 				comboText.text = null;
 			} else {
-				comboText.text = $"{rawMultiplier}<sub>x</sub>";
+				comboText.text = $"{Multiplier}<sub>x</sub>";
 			}
 
 			// Update combo fill
-			// TODO: Make only one difficulty option
 			float fillMul = GetSingTimeMultiplier(micInputs[0].player.chosenDifficulty);
 			if (sectionSingTime != 0f) {
 				comboFill.fillAmount = highestSingProgress / (sectionSingTime * fillMul);
@@ -429,8 +452,48 @@ namespace YARG.PlayMode {
 				comboFill.fillAmount = 0f;
 			}
 
+			// Update starpower active
+			if (starpowerActive) {
+				if (starpowerCharge <= 0f) {
+					starpowerActive = false;
+					starpowerCharge = 0f;
+				} else {
+					starpowerCharge -= Time.deltaTime / 25f;
+				}
+			}
+
 			// Update starpower fill
-			// starpowerFill.fillAmount = starpowerCharge;
+			starpowerFill.fillAmount = starpowerCharge;
+			starpowerBarOverlay.fillAmount = starpowerCharge;
+
+			// Update starpower bar overlay
+			if (beat) {
+				float pulseAmount = 0f;
+				if (starpowerActive) {
+					pulseAmount = 0.25f;
+				} else if (!starpowerActive && starpowerCharge >= 0.5f) {
+					pulseAmount = 1f;
+				}
+
+				starpowerBarOverlay.color = new Color(1f, 1f, 1f, pulseAmount);
+			} else {
+				var col = starpowerBarOverlay.color;
+				col.a = Mathf.Lerp(col.a, 0f, Time.deltaTime * 16f);
+				starpowerBarOverlay.color = col;
+			}
+
+			// Show/hide starpower overlay
+			float currentStarpower = starpowerOverlay.material.GetFloat("AlphaMultiplier");
+			if (starpowerActive) {
+				starpowerOverlay.material.SetFloat("AlphaMultiplier",
+					Mathf.Lerp(currentStarpower, 0.25f, Time.deltaTime * 2f));
+			} else {
+				starpowerOverlay.material.SetFloat("AlphaMultiplier",
+					Mathf.Lerp(currentStarpower, 0f, Time.deltaTime * 4f));
+			}
+
+			// Unset
+			beat = false;
 		}
 
 		private void SpawnLyric(LyricInfo lyricInfo, float time) {
@@ -487,7 +550,7 @@ namespace YARG.PlayMode {
 				Difficulty.HARD => 0.55f,
 				Difficulty.EXPERT => 0.6f,
 				Difficulty.EXPERT_PLUS => 0.7f,
-				_ => throw new System.Exception("Unreachable.")
+				_ => throw new Exception("Unreachable.")
 			};
 		}
 
@@ -502,6 +565,16 @@ namespace YARG.PlayMode {
 			z = Mathf.Clamp(z, -0.45f, 0.93f);
 
 			return z;
+		}
+
+		private void BeatAction() {
+			beat = true;
+		}
+
+		private void StarpowerAction() {
+			if (starpowerCharge >= 0.5f) {
+				starpowerActive = true;
+			}
 		}
 	}
 }

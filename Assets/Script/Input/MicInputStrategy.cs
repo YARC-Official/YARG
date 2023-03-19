@@ -155,6 +155,9 @@ namespace YARG.Input {
 				// Save. VoiceFrequency will be updated in the "Note" section.
 				pitchCache = hertz;
 			}).Start();
+
+			// Constantly activate starpower (for now)
+			CallStarpowerEvent();
 		}
 
 		/// <summary>
