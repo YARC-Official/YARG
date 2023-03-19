@@ -156,8 +156,10 @@ namespace YARG.Input {
 				pitchCache = hertz;
 			}).Start();
 
-			// Constantly activate starpower (for now)
-			CallStarpowerEvent();
+			// Activate starpower if loud!
+			if (dbCache > 5f) {
+				CallStarpowerEvent();
+			}
 		}
 
 		/// <summary>

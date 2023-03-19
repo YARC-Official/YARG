@@ -400,6 +400,9 @@ MonoBehaviour:
   - id: lyric
     prefab: {fileID: 3570020253263911677, guid: d58dac2de85ac814189db82862477e6e,
       type: 3}
+  - id: starpowerActivate
+    prefab: {fileID: 8584428637815826274, guid: ca0b08f44827fe34b993383d82d7676d,
+      type: 3}
 --- !u!1 &296535526
 GameObject:
   m_ObjectHideFlags: 0
