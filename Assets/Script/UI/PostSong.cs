@@ -32,16 +32,24 @@ namespace YARG.UI {
 			HashSet<PlayerManager.Player> highScores = new();
 			HashSet<PlayerManager.Player> disqualified = new();
 			foreach (var player in PlayerManager.players) {
+				// Skip "Sit Out"s
+				if (player.chosenInstrument == null) {
+					continue;
+				}
+
+				// DQ non-100% speeds
 				if (Play.speed != 1f) {
 					disqualified.Add(player);
 					continue;
 				}
 
+				// DQ bots
 				if (player.inputStrategy.botMode) {
 					disqualified.Add(player);
 					continue;
 				}
 
+				// DQ no scores
 				if (!player.lastScore.HasValue) {
 					disqualified.Add(player);
 					continue;
@@ -50,7 +58,7 @@ namespace YARG.UI {
 				var lastScore = player.lastScore.GetValueOrDefault();
 
 				// Skip if the chart has no notes
-				if (lastScore.notesHit == 0) {
+				if (lastScore.notesHit + lastScore.notesMissed == 0) {
 					disqualified.Add(player);
 					continue;
 				}
