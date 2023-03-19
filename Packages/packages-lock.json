@@ -209,6 +209,23 @@
         "com.unity.modules.imgui": "1.0.0"
       }
     },
+    "jp.keijiro.minis": {
+      "version": "1.0.10",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "jp.keijiro.rtmidi": "1.0.4",
+        "com.unity.inputsystem": "1.0.1"
+      },
+      "url": "https://registry.npmjs.com"
+    },
+    "jp.keijiro.rtmidi": {
+      "version": "1.0.4",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://registry.npmjs.com"
+    },
     "com.unity.modules.ai": {
       "version": "1.0.0",
       "depth": 0,

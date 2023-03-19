@@ -63,7 +63,7 @@ YARG is licensed under the MIT License - see the [`LICENSE`](../master/LICENSE) 
 | [ini-parser](https://www.nuget.org/packages/ini-parser-netstandard) | Library | Parsing `song.ini` Files
 | [DryWetMidi](https://www.nuget.org/packages/Melanchall.DryWetMidi) | Library | Parsing `.mid` Files
 | [TagLibSharp](https://www.nuget.org/packages/TagLibSharp) | Library | Finding Audio Metadata
-
+| [Minis](https://github.com/keijiro/Minis/tree/master) | Library | MIDI Input for Unity
 
 # 💸 Donate
 
