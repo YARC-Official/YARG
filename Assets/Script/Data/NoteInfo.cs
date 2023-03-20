@@ -5,7 +5,7 @@ namespace YARG.Data {
 		/// </value>
 		public int fret;
 		/// <summary>
-		/// Hammer-on/pull-off.
+		/// Hammer-on/pull-off, or Cymbal for drums.
 		/// </summary>
 		public bool hopo;
 

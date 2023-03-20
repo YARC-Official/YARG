@@ -117,7 +117,7 @@ namespace YARG.Serialization.Parser {
 						continue;
 					}
 
-					// Convert note to fret number (or special)
+					// Convert note to force state
 					ForceState forceState = noteEvent.GetNoteName() switch {
 						// Force HOPO
 						NoteName.F => ForceState.HOPO,

@@ -59,7 +59,7 @@ namespace YARG.Input {
 		public override string[] GetAllowedInstruments() {
 			return new string[] {
 				"drums",
-				//"realDrums"
+				"realDrums"
 			};
 		}
 

@@ -145,7 +145,9 @@ namespace YARG.UI {
 					IncreasePlayerIndex();
 				} else {
 					player.chosenInstrument = instruments[selected];
-					UpdateDifficulty();
+
+					bool showExpertPlus = player.chosenInstrument == "drums" || player.chosenInstrument == "realDrums";
+					UpdateDifficulty(showExpertPlus);
 				}
 			} else if (state == State.DIFFICULTY) {
 				player.chosenDifficulty = (Difficulty) selected;
@@ -262,7 +264,7 @@ namespace YARG.UI {
 			options[0].SetSelected(true);
 		}
 
-		private void UpdateDifficulty() {
+		private void UpdateDifficulty(bool showExpertPlus) {
 			state = State.DIFFICULTY;
 
 			optionCount = 4;
@@ -274,6 +276,11 @@ namespace YARG.UI {
 				null,
 				null
 			};
+
+			if (showExpertPlus) {
+				optionCount++;
+				ops[4] = "Expert+";
+			}
 
 			for (int i = 0; i < 6; i++) {
 				options[i].SetText(ops[i]);

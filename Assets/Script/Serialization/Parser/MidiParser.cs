@@ -94,7 +94,7 @@ namespace YARG.Serialization.Parser {
 								ParseStarpower(eventIR, trackChunk, "realBass");
 								break;
 							case "PART DRUMS":
-								for (int i = 0; i < 4; i++) {
+								for (int i = 0; i < 5; i++) {
 									chart.drums[i] = ParseDrums(trackChunk, i);
 								}
 								break;

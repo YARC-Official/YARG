@@ -202,8 +202,10 @@ namespace YARG.PlayMode {
 			// Get model type
 			var model = NoteComponent.ModelType.NOTE;
 			if (noteInfo.fret == 4) {
+				// Kick
 				model = NoteComponent.ModelType.FULL;
-			} else if (noteInfo.hopo) {
+			} else if (noteInfo.hopo && player.chosenInstrument == "realDrums") {
+				// Cymbal (only for pro-drums)
 				model = NoteComponent.ModelType.HOPO;
 			}
 

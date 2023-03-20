@@ -10,7 +10,8 @@ namespace YARG.Data {
 		public List<NoteInfo>[] keys = new List<NoteInfo>[] { new(), new(), new(), new() };
 		public List<NoteInfo>[] realGuitar = new List<NoteInfo>[] { new(), new(), new(), new() };
 		public List<NoteInfo>[] realBass = new List<NoteInfo>[] { new(), new(), new(), new() };
-		public List<NoteInfo>[] drums = new List<NoteInfo>[] { new(), new(), new(), new() };
+
+		public List<NoteInfo>[] drums = new List<NoteInfo>[] { new(), new(), new(), new(), new() };
 
 		public List<EventInfo> events = new();
 		public List<float> beats = new();
@@ -31,7 +32,7 @@ namespace YARG.Data {
 				"keys" => keys,
 				"realGuitar" => realGuitar,
 				"realBass" => realBass,
-				"drums" => drums,
+				"drums" or "realDrums" => drums,
 				_ => throw new InvalidOperationException($"Unsupported chart type `{name}`.")
 			};
 		}
