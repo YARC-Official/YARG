@@ -4,14 +4,19 @@ using YARG.Data;
 namespace YARG.Input {
 	public class DrumsInputStrategy : InputStrategy {
 		public static readonly string[] MAPPING_NAMES = new string[] {
-			"green",
-			"red",
-			"yellow",
-			"blue",
-			"kick"
+			"red_pad",
+			"yellow_pad",
+			"blue_pad",
+			"green_pad",
+			"yellow_cymbal",
+			"yellow_cymbal_alt",
+			"blue_cymbal",
+			"green_cymbal",
+			"kick",
+			"kick_alt"
 		};
 
-		public delegate void DrumHitAction(int drum);
+		public delegate void DrumHitAction(int drum, bool cymbal);
 
 		public event DrumHitAction DrumHitEvent;
 
@@ -22,15 +27,44 @@ namespace YARG.Input {
 		public override void UpdatePlayerMode() {
 			// Deal with drum inputs
 
-			for (int i = 0; i < 5; i++) {
-				var key = MappingAsButton(MAPPING_NAMES[i]);
-				if (key == null) {
-					continue;
-				}
+			if (MappingAsButton("red_pad")?.wasPressedThisFrame ?? false) {
+				DrumHitEvent?.Invoke(0, false);
+			}
 
-				if (key.wasPressedThisFrame) {
-					DrumHitEvent?.Invoke(i);
-				}
+			if (MappingAsButton("yellow_pad")?.wasPressedThisFrame ?? false) {
+				DrumHitEvent?.Invoke(1, false);
+			}
+
+			if (MappingAsButton("blue_pad")?.wasPressedThisFrame ?? false) {
+				DrumHitEvent?.Invoke(2, false);
+			}
+
+			if (MappingAsButton("green_pad")?.wasPressedThisFrame ?? false) {
+				DrumHitEvent?.Invoke(3, false);
+			}
+
+			if (MappingAsButton("yellow_cymbal")?.wasPressedThisFrame ?? false) {
+				DrumHitEvent?.Invoke(1, true);
+			}
+
+			if (MappingAsButton("yellow_cymbal_alt")?.wasPressedThisFrame ?? false) {
+				DrumHitEvent?.Invoke(1, true);
+			}
+
+			if (MappingAsButton("blue_cymbal")?.wasPressedThisFrame ?? false) {
+				DrumHitEvent?.Invoke(2, true);
+			}
+
+			if (MappingAsButton("green_cymbal")?.wasPressedThisFrame ?? false) {
+				DrumHitEvent?.Invoke(3, true);
+			}
+
+			if (MappingAsButton("kick")?.wasPressedThisFrame ?? false) {
+				DrumHitEvent?.Invoke(4, false);
+			}
+
+			if (MappingAsButton("kick_alt")?.wasPressedThisFrame ?? false) {
+				DrumHitEvent?.Invoke(4, false);
 			}
 
 			// Constantly activate starpower
@@ -45,7 +79,7 @@ namespace YARG.Input {
 				botChartIndex++;
 
 				// Hit
-				DrumHitEvent?.Invoke(noteInfo.fret);
+				DrumHitEvent?.Invoke(noteInfo.fret, noteInfo.hopo);
 			}
 
 			// Constantly activate starpower

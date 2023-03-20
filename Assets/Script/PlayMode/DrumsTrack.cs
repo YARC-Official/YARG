@@ -139,7 +139,7 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		private void DrumHitAction(int drum) {
+		private void DrumHitAction(int drum, bool cymbal) {
 			// Overstrum if no expected
 			if (expectedHits.Count <= 0) {
 				Combo = 0;
@@ -153,20 +153,27 @@ namespace YARG.PlayMode {
 			// Check if a drum was hit
 			NoteInfo hit = null;
 			foreach (var note in chord) {
-				if (note.fret == drum) {
+				// Check if correct cymbal was hit
+				bool cymbalHit = note.hopo == cymbal;
+				if (player.chosenInstrument == "drums") {
+					cymbalHit = true;
+				}
+
+				// Check if correct drum was hit
+				if (note.fret == drum && cymbalHit) {
 					hit = note;
 					break;
 				}
 			}
 
-			// Overstrum (or overhit in this case)
+			// "Overstrum" (or overhit in this case)
 			if (hit == null) {
 				Combo = 0;
 
 				return;
 			}
 
-			// If so, hit! (Remove from "chord")'
+			// If so, hit! (Remove from "chord")
 			bool lastNote = false;
 			chord.RemoveAll(i => i.fret == drum);
 			if (chord.Count <= 0) {
