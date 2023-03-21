@@ -26,7 +26,6 @@ namespace YARG.Input {
 		private float updateTimer;
 
 		private float dbCache;
-		private float timeSinceVoiceDetected;
 
 		private float pitchCache;
 		private float lerpedPitch;
@@ -36,6 +35,7 @@ namespace YARG.Input {
 		public bool VoiceDetected => dbCache >= 0f;
 
 		public float TimeSinceNoVoice { get; private set; }
+		public float TimeSinceVoiceDetected { get; private set; }
 
 		public float VoiceNote => noteCache.Item1;
 		public int VoiceOctave => noteCache.Item2;
@@ -86,20 +86,20 @@ namespace YARG.Input {
 
 			// Only update pitch if a voice is detected
 			if (dbCache < 0f) {
-				timeSinceVoiceDetected = 0f;
+				TimeSinceVoiceDetected = 0f;
 
 				TimeSinceNoVoice += Time.deltaTime;
 				return;
 			} else {
 				TimeSinceNoVoice = 0f;
-				timeSinceVoiceDetected += Time.deltaTime;
+				TimeSinceVoiceDetected += Time.deltaTime;
 			}
 
 			// Note //
 			// Update LAST update's pitch.
 
 			// Lerp
-			if (timeSinceVoiceDetected < 0.07f) {
+			if (TimeSinceVoiceDetected < 0.07f) {
 				lerpedPitch = pitchCache;
 			} else {
 				lerpedPitch = Mathf.Lerp(lerpedPitch, pitchCache, Time.deltaTime * 10f);
@@ -157,7 +157,7 @@ namespace YARG.Input {
 			}).Start();
 
 			// Activate starpower if loud!
-			if (dbCache > 5f) {
+			if (dbCache > 5f && TimeSinceVoiceDetected < 0.5f) {
 				CallStarpowerEvent();
 			}
 		}
@@ -227,10 +227,10 @@ namespace YARG.Input {
 			if (botLyricInfo == null) {
 				dbCache = -1f;
 				TimeSinceNoVoice += Time.deltaTime;
-				timeSinceVoiceDetected = 0f;
+				TimeSinceVoiceDetected = 0f;
 			} else {
 				dbCache = 1f;
-				timeSinceVoiceDetected += Time.deltaTime;
+				TimeSinceVoiceDetected += Time.deltaTime;
 				TimeSinceNoVoice = 0f;
 
 				float timeIntoNote = Play.Instance.SongTime - botLyricInfo.time;

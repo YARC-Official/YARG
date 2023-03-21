@@ -136,7 +136,7 @@ namespace YARG.UI {
 			// Add devices
 			foreach (var device in InputSystem.devices) {
 				var go = Instantiate(deviceButtonPrefab, devicesContainer);
-				go.GetComponentInChildren<TextMeshProUGUI>().text = $"<b>{device.displayName}</b>";
+				go.GetComponentInChildren<TextMeshProUGUI>().text = $"<b>{device.displayName}</b> ({device.deviceId})";
 				go.GetComponentInChildren<Button>().onClick.AddListener(() => {
 					selectedDevice = (device, -1);
 					UpdateConfigure();
