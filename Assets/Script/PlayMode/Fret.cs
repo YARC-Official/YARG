@@ -4,9 +4,8 @@ using YARG.Util;
 namespace YARG.PlayMode {
 	public class Fret : MonoBehaviour {
 		[SerializeField]
-		private Material pressedMaterial;
-		[SerializeField]
-		private Material releasedMaterial;
+		private bool fadeOut;
+
 		[SerializeField]
 		private ParticleGroup hitParticles;
 		[SerializeField]
@@ -15,25 +14,37 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private MeshRenderer meshRenderer;
 
-		private Color color;
-
+		/// <value>
+		/// Whether or not the fret is pressed. Used for data purposes.
+		/// </value>
 		public bool IsPressed {
 			get;
 			private set;
 		} = false;
 
 		public void SetColor(Color c) {
-			color = c;
 			meshRenderer.material.color = c;
 			hitParticles.Colorize(c);
 			sustainParticles.Colorize(c);
 		}
 
 		public void SetPressed(bool pressed) {
-			meshRenderer.material = pressed ? pressedMaterial : releasedMaterial;
-			meshRenderer.material.color = color;
+			meshRenderer.material.SetFloat("Fade", pressed ? 1f : 0f);
 
 			IsPressed = pressed;
+		}
+
+		public void Pulse() {
+			meshRenderer.material.SetFloat("Fade", 1f);
+		}
+
+		private void Update() {
+			if (!fadeOut) {
+				return;
+			}
+
+			float fade = meshRenderer.material.GetFloat("Fade") - Time.deltaTime * 4f;
+			meshRenderer.material.SetFloat("Fade", Mathf.Max(fade, 0f));
 		}
 
 		public void PlayParticles() {
