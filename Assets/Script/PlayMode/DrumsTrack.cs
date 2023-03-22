@@ -140,8 +140,10 @@ namespace YARG.PlayMode {
 		}
 
 		private void DrumHitAction(int drum, bool cymbal) {
-			// Hit effect
-			drums[drum].Pulse();
+			if (drum != 4) {
+				// Hit effect
+				drums[drum].Pulse();
+			}
 
 			// Overstrum if no expected
 			if (expectedHits.Count <= 0) {
