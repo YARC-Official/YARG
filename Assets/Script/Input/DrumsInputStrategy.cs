@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Minis;
 using YARG.Data;
 
 namespace YARG.Input {
@@ -10,7 +9,6 @@ namespace YARG.Input {
 			"blue_pad",
 			"green_pad",
 			"yellow_cymbal",
-			"yellow_cymbal_alt",
 			"blue_cymbal",
 			"green_cymbal",
 			"kick",
@@ -25,100 +23,47 @@ namespace YARG.Input {
 			return MAPPING_NAMES;
 		}
 
-		private bool registered = false;
-
 		public override void UpdatePlayerMode() {
-			if (!registered) {
-				((MidiDevice) inputDevice).onWillNoteOn += Test;
-				registered = true;
-			}
-
 			// Deal with drum inputs
 
-			// if (MappingAsButton("red_pad")?.wasPressedThisFrame ?? false) {
-			// 	DrumHitEvent?.Invoke(0, false);
-			// }
-
-			// if (MappingAsButton("yellow_pad")?.wasPressedThisFrame ?? false) {
-			// 	DrumHitEvent?.Invoke(1, false);
-			// }
-
-			// if (MappingAsButton("blue_pad")?.wasPressedThisFrame ?? false) {
-			// 	DrumHitEvent?.Invoke(2, false);
-			// }
-
-			// if (MappingAsButton("green_pad")?.wasPressedThisFrame ?? false) {
-			// 	DrumHitEvent?.Invoke(3, false);
-			// }
-
-			// if (MappingAsButton("yellow_cymbal")?.wasPressedThisFrame ?? false) {
-			// 	DrumHitEvent?.Invoke(1, true);
-			// }
-
-			// if (MappingAsButton("yellow_cymbal_alt")?.wasPressedThisFrame ?? false) {
-			// 	DrumHitEvent?.Invoke(1, true);
-			// }
-
-			// if (MappingAsButton("blue_cymbal")?.wasPressedThisFrame ?? false) {
-			// 	DrumHitEvent?.Invoke(2, true);
-			// }
-
-			// if (MappingAsButton("green_cymbal")?.wasPressedThisFrame ?? false) {
-			// 	DrumHitEvent?.Invoke(3, true);
-			// }
-
-			// if (MappingAsButton("kick")?.wasPressedThisFrame ?? false) {
-			// 	DrumHitEvent?.Invoke(4, false);
-			// }
-
-			// if (MappingAsButton("kick_alt")?.wasPressedThisFrame ?? false) {
-			// 	DrumHitEvent?.Invoke(4, false);
-			// }
-
-			// Constantly activate starpower
-			CallStarpowerEvent();
-		}
-
-		private void Test(MidiNoteControl note, float _) {
-			if (MappingAsButton("red_pad") == note) {
+			if (WasMappingPressed("red_pad")) {
 				DrumHitEvent?.Invoke(0, false);
 			}
 
-			if (MappingAsButton("yellow_pad") == note) {
+			if (WasMappingPressed("yellow_pad")) {
 				DrumHitEvent?.Invoke(1, false);
 			}
 
-			if (MappingAsButton("blue_pad") == note) {
+			if (WasMappingPressed("blue_pad")) {
 				DrumHitEvent?.Invoke(2, false);
 			}
 
-			if (MappingAsButton("green_pad") == note) {
+			if (WasMappingPressed("green_pad")) {
 				DrumHitEvent?.Invoke(3, false);
 			}
 
-			if (MappingAsButton("yellow_cymbal") == note) {
+			if (WasMappingPressed("yellow_cymbal")) {
 				DrumHitEvent?.Invoke(1, true);
 			}
 
-			if (MappingAsButton("yellow_cymbal_alt") == note) {
-				DrumHitEvent?.Invoke(1, true);
-			}
-
-			if (MappingAsButton("blue_cymbal") == note) {
+			if (WasMappingPressed("blue_cymbal")) {
 				DrumHitEvent?.Invoke(2, true);
 			}
 
-			if (MappingAsButton("green_cymbal") == note) {
+			if (WasMappingPressed("green_cymbal")) {
 				DrumHitEvent?.Invoke(3, true);
 			}
 
-			if (MappingAsButton("kick") == note) {
+			if (WasMappingPressed("kick")) {
 				DrumHitEvent?.Invoke(4, false);
 			}
 
-			if (MappingAsButton("kick_alt") == note) {
+			if (WasMappingPressed("kick_alt")) {
 				DrumHitEvent?.Invoke(4, false);
 			}
+
+			// Constantly activate starpower
+			CallStarpowerEvent();
 		}
 
 		public override void UpdateBotMode(object rawChart, float songTime) {

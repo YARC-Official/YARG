@@ -65,6 +65,7 @@ namespace YARG.UI {
 
 		private void Update() {
 			if (state == State.BIND && currentBindUpdate != null) {
+
 				// Cancel
 				if (Keyboard.current.escapeKey.wasPressedThisFrame) {
 					currentBindUpdate = null;
@@ -72,27 +73,29 @@ namespace YARG.UI {
 					return;
 				}
 
-				foreach (var control in selectedDevice?.Item1.allControls) {
-					// Skip "any key" (as that would always be detected)
-					if (control is AnyKeyControl) {
-						continue;
+				if (inputStrategy.InputDevice is not MidiDevice) {
+					foreach (var control in selectedDevice?.Item1.allControls) {
+						// Skip "any key" (as that would always be detected)
+						if (control is AnyKeyControl) {
+							continue;
+						}
+
+						if (control is not ButtonControl buttonControl) {
+							continue;
+						}
+
+						if (!buttonControl.wasPressedThisFrame) {
+							continue;
+						}
+
+						// Set mapping and stop waiting
+						inputStrategy.SetMappingInputControl(currentBindUpdate, control);
+						currentBindUpdate = null;
+
+						// Refresh
+						UpdateBind();
+						break;
 					}
-
-					if (control is not ButtonControl buttonControl) {
-						continue;
-					}
-
-					if (!buttonControl.wasPressedThisFrame) {
-						continue;
-					}
-
-					// Set mapping and stop waiting
-					inputStrategy.SetMappingInputControl(currentBindUpdate, control);
-					currentBindUpdate = null;
-
-					// Refresh
-					UpdateBind();
-					break;
 				}
 			}
 		}
@@ -181,10 +184,10 @@ namespace YARG.UI {
 			};
 
 			if (selectedDevice?.Item1 == null) {
-				inputStrategy.inputDevice = null;
+				inputStrategy.InputDevice = null;
 				inputStrategy.microphoneIndex = selectedDevice?.Item2 ?? -1;
 			} else {
-				inputStrategy.inputDevice = selectedDevice?.Item1;
+				inputStrategy.InputDevice = selectedDevice?.Item1;
 				inputStrategy.microphoneIndex = -1;
 			}
 
@@ -193,7 +196,7 @@ namespace YARG.UI {
 			playerName = playerNameField.text;
 
 			// TEMP
-			if (inputStrategy.inputDevice is MidiDevice midiDevice) {
+			if (inputStrategy.InputDevice is MidiDevice midiDevice) {
 				midiDevice.onWillNoteOn += OnNote;
 			}
 
@@ -248,7 +251,7 @@ namespace YARG.UI {
 
 		public void DoneBind() {
 			// TEMP
-			if (inputStrategy.inputDevice is MidiDevice midiDevice) {
+			if (inputStrategy.InputDevice is MidiDevice midiDevice) {
 				midiDevice.onWillNoteOn -= OnNote;
 			}
 

@@ -28,33 +28,28 @@ namespace YARG.Input {
 			// Deal with fret inputs
 
 			for (int i = 0; i < 5; i++) {
-				var key = MappingAsButton(MAPPING_NAMES[i]);
-				if (key == null) {
-					continue;
-				}
-
-				if (key.wasPressedThisFrame) {
+				if (WasMappingPressed(MAPPING_NAMES[i])) {
 					FretChangeEvent?.Invoke(true, i);
-				} else if (key.wasReleasedThisFrame) {
+				} else if (WasMappingReleased(MAPPING_NAMES[i])) {
 					FretChangeEvent?.Invoke(false, i);
 				}
 			}
 
 			// Deal with strumming
 
-			if (MappingAsButton("strumUp")?.wasPressedThisFrame ?? false) {
+			if (WasMappingPressed("strumUp")) {
 				StrumEvent?.Invoke();
 				CallGenericCalbirationEvent();
 			}
 
-			if (MappingAsButton("strumDown")?.wasPressedThisFrame ?? false) {
+			if (WasMappingPressed("strumDown")) {
 				StrumEvent?.Invoke();
 				CallGenericCalbirationEvent();
 			}
 
 			// Starpower
 
-			if (MappingAsButton("starpower")?.wasPressedThisFrame ?? false) {
+			if (WasMappingPressed("starpower")) {
 				CallStarpowerEvent();
 			}
 		}
@@ -89,18 +84,18 @@ namespace YARG.Input {
 		}
 
 		public override void UpdateNavigationMode() {
-			CallGenericNavigationEventForButton(MappingAsButton("strumUp"), NavigationType.UP);
-			CallGenericNavigationEventForButton(MappingAsButton("strumDown"), NavigationType.DOWN);
+			CallGenericNavigationEventForButton("strumUp", NavigationType.UP);
+			CallGenericNavigationEventForButton("strumDown", NavigationType.DOWN);
 
-			if (MappingAsButton("green")?.wasPressedThisFrame ?? false) {
+			if (WasMappingPressed("green")) {
 				CallGenericNavigationEvent(NavigationType.PRIMARY, true);
 			}
 
-			if (MappingAsButton("red")?.wasPressedThisFrame ?? false) {
+			if (WasMappingPressed("red")) {
 				CallGenericNavigationEvent(NavigationType.SECONDARY, true);
 			}
 
-			if (MappingAsButton("yellow")?.wasPressedThisFrame ?? false) {
+			if (WasMappingPressed("yellow")) {
 				CallGenericNavigationEvent(NavigationType.TERTIARY, true);
 			}
 		}

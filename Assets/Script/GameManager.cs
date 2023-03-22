@@ -21,6 +21,9 @@ namespace YARG {
 
 		public static Client client;
 
+		public delegate void UpdateAction();
+		public static event UpdateAction OnUpdate;
+
 		[field: SerializeField]
 		public Camera MainCamera {
 			get;
@@ -66,6 +69,10 @@ namespace YARG {
 			InputSystem.pollingFrequency = 500f;
 
 			LoadScene(SceneIndex.MENU);
+		}
+
+		private void Update() {
+			OnUpdate?.Invoke();
 		}
 
 		private void LoadSceneAdditive(SceneIndex scene) {
