@@ -8,9 +8,9 @@ namespace YARG.Input {
 		protected int botChartIndex;
 
 		public InputDevice inputDevice;
-		protected Dictionary<string, InputControl> inputMappings;
-
 		public int microphoneIndex = -1;
+
+		protected Dictionary<string, InputControl> inputMappings;
 
 		public delegate void GenericCalibrationAction(InputStrategy inputStrategy);
 		/// <summary>
@@ -66,7 +66,6 @@ namespace YARG.Input {
 		/// Updates the player mode (normal mode) for this particular InputStrategy.
 		/// </summary>
 		public abstract void UpdatePlayerMode();
-
 
 		/// <summary>
 		/// Updates the bot mode for this particular InputStrategy.

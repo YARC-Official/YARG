@@ -1,8 +1,8 @@
+using Minis;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
-using UnityEngine.InputSystem.Layouts;
 using UnityEngine.UI;
 using YARG.Input;
 
@@ -192,6 +192,11 @@ namespace YARG.UI {
 
 			playerName = playerNameField.text;
 
+			// TEMP
+			if (inputStrategy.inputDevice is MidiDevice midiDevice) {
+				midiDevice.onWillNoteOn += OnNote;
+			}
+
 			UpdateBind();
 		}
 
@@ -228,7 +233,25 @@ namespace YARG.UI {
 			}
 		}
 
+		private void OnNote(MidiNoteControl control, float v) {
+			if (currentBindUpdate == null) {
+				return;
+			}
+
+			// Set mapping and stop waiting
+			inputStrategy.SetMappingInputControl(currentBindUpdate, control);
+			currentBindUpdate = null;
+
+			// Refresh
+			UpdateBind();
+		}
+
 		public void DoneBind() {
+			// TEMP
+			if (inputStrategy.inputDevice is MidiDevice midiDevice) {
+				midiDevice.onWillNoteOn -= OnNote;
+			}
+
 			var player = new PlayerManager.Player() {
 				inputStrategy = inputStrategy
 			};
