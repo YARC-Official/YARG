@@ -13,6 +13,7 @@ namespace YARG.Serialization {
 
 		static SongIni() {
 			PARSER.Parser.Configuration.AllowDuplicateKeys = true;
+			PARSER.Parser.Configuration.CommentString = "//";
 		}
 
 		public static SongInfo CompleteSongInfo(SongInfo song) {
