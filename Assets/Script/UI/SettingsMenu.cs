@@ -7,6 +7,11 @@ using YARG.Serialization;
 
 namespace YARG.UI {
 	public class SettingsMenu : MonoBehaviour {
+		public static SettingsMenu Instance {
+			get;
+			private set;
+		}
+
 		[SerializeField]
 		private TMP_InputField songFolderInput;
 		[SerializeField]
@@ -26,6 +31,8 @@ namespace YARG.UI {
 		private GameObject joinServerButton;
 
 		private void Start() {
+			Instance = this;
+
 			songFolderInput.text = SongLibrary.songFolder.FullName;
 			calibrationInput.text = PlayerManager.globalCalibration.ToString(CultureInfo.InvariantCulture);
 			lowQualityToggle.isOn = GameManager.Instance.LowQualityMode;
@@ -51,6 +58,10 @@ namespace YARG.UI {
 				PlayerPrefs.SetString("songFolder", songFolderInput.text);
 				MainMenu.Instance.RefreshSongLibrary();
 			}
+		}
+
+		public void SongFolderForceUpdate() {
+			songFolderInput.text = SongLibrary.songFolder?.FullName;
 		}
 
 		public void OuvertExportButton() {
