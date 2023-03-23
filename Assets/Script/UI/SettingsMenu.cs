@@ -25,6 +25,8 @@ namespace YARG.UI {
 		[SerializeField]
 		private Toggle useAudioTimeToggle;
 		[SerializeField]
+		private Toggle vsyncToggle;
+		[SerializeField]
 		private TMP_InputField ipInput;
 
 		[SerializeField]
@@ -39,6 +41,7 @@ namespace YARG.UI {
 			karaokeToggle.isOn = GameManager.Instance.KaraokeMode;
 			showHitWindowToggle.isOn = GameManager.Instance.showHitWindow;
 			useAudioTimeToggle.isOn = GameManager.Instance.useAudioTime;
+			vsyncToggle.isOn = GameManager.Instance.VSync;
 
 			if (GameManager.client != null) {
 				joinServerButton.SetActive(false);
@@ -89,6 +92,10 @@ namespace YARG.UI {
 
 		public void AudioTimeUpdate() {
 			GameManager.Instance.useAudioTime = useAudioTimeToggle.isOn;
+		}
+
+		public void VSyncUpdate() {
+			GameManager.Instance.VSync = useAudioTimeToggle.isOn;
 		}
 
 		public void JoinServer() {

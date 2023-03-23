@@ -53,6 +53,16 @@ namespace YARG {
 			}
 		}
 
+		private bool _vsync = false;
+		public bool VSync {
+			get => _vsync;
+			set {
+				_vsync = value;
+
+				QualitySettings.vSyncCount = _vsync ? 1 : 0;
+			}
+		}
+
 		public bool showHitWindow = false;
 		public bool useAudioTime = false;
 
@@ -61,8 +71,9 @@ namespace YARG {
 		private void Start() {
 			Instance = this;
 
-			// Unlimited FPS
-			QualitySettings.vSyncCount = 0;
+			VSync = true;
+
+			// Unlimited FPS (if vsync is off)
 			Application.targetFrameRate = 400;
 
 			// High polling rate
