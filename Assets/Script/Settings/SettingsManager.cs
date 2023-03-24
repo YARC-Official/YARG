@@ -4,14 +4,26 @@ using UnityEngine;
 
 namespace YARG.Settings {
 	public static class SettingsManager {
+		private static Dictionary<string, string> settingsType = new();
 		public static Dictionary<string, object> settings = new();
+
+		public static IReadOnlyDictionary<string, string> AllSettings => settingsType;
 
 		static SettingsManager() {
 			// Default setting values
-			SetSettingValue("songFolder", SongLibrary.songFolder);
+			RegisterSetting("songFolder", SongLibrary.songFolder, "Folder");
+		}
+
+		private static void RegisterSetting(string name, object def, string type) {
+			settings[name] = def;
+			settingsType[name] = type;
 		}
 
 		public static object GetSettingValue(string name) {
+			if (name == null || !settingsType.ContainsKey(name)) {
+				Debug.LogWarning($"{name} does not exist in the registered settings!");
+			}
+
 			if (settings.TryGetValue(name, out var s)) {
 				return s;
 			}
@@ -30,7 +42,13 @@ namespace YARG.Settings {
 		}
 
 		public static void SetSettingValue(string name, object value) {
+			if (name == null || !settingsType.ContainsKey(name)) {
+				Debug.LogWarning($"{name} does not exist in the registered settings!");
+			}
+
 			settings[name] = value;
+
+			Debug.Log($"Setting {name} to {value}.");
 		}
 	}
 }
