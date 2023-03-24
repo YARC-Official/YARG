@@ -1,5 +1,14 @@
 # 🎸 YARG
 
+<a href="https://twitter.com/EliteAsian123">
+	<img src="https://abs.twimg.com/favicons/twitter.ico" width="32px" height="32px" alt="Twitter">
+</a>
+<a href="https://discord.gg/sqpu4R552r">
+	<img src="https://discord.com/assets/847541504914fd33810e70a0ea73177e.ico" height="32px" width="32px" alt="Github">
+</a>
+<br/>
+<br/>
+
 > **Warning**
 >
 > YARG is **not done yet**! Expect incomplete features and bugs!
@@ -17,6 +26,8 @@ We **DO NOT** encourage, advocate, or promote **PIRATING** of songs, or of anyth
 **YARG** has nothing to do with pirates. It stands for "Yet Another Rhythm Game."
 
 # 📥 Downloading and Playing
+
+**An installation video is [available here](https://www.youtube.com/watch?v=bSPSttKNnKc).**
 
 Windows:
 1. [Click here](https://github.com/EliteAsian123/YARG/releases) to view all releases.

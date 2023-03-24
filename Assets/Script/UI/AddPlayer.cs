@@ -1,8 +1,8 @@
+using Minis;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
-using UnityEngine.InputSystem.Layouts;
 using UnityEngine.UI;
 using YARG.Input;
 
@@ -65,6 +65,7 @@ namespace YARG.UI {
 
 		private void Update() {
 			if (state == State.BIND && currentBindUpdate != null) {
+
 				// Cancel
 				if (Keyboard.current.escapeKey.wasPressedThisFrame) {
 					currentBindUpdate = null;
@@ -72,27 +73,29 @@ namespace YARG.UI {
 					return;
 				}
 
-				foreach (var control in selectedDevice?.Item1.allControls) {
-					// Skip "any key" (as that would always be detected)
-					if (control is AnyKeyControl) {
-						continue;
+				if (inputStrategy.InputDevice is not MidiDevice) {
+					foreach (var control in selectedDevice?.Item1.allControls) {
+						// Skip "any key" (as that would always be detected)
+						if (control is AnyKeyControl) {
+							continue;
+						}
+
+						if (control is not ButtonControl buttonControl) {
+							continue;
+						}
+
+						if (!buttonControl.wasPressedThisFrame) {
+							continue;
+						}
+
+						// Set mapping and stop waiting
+						inputStrategy.SetMappingInputControl(currentBindUpdate, control);
+						currentBindUpdate = null;
+
+						// Refresh
+						UpdateBind();
+						break;
 					}
-
-					if (control is not ButtonControl buttonControl) {
-						continue;
-					}
-
-					if (!buttonControl.wasPressedThisFrame) {
-						continue;
-					}
-
-					// Set mapping and stop waiting
-					inputStrategy.SetMappingInputControl(currentBindUpdate, control);
-					currentBindUpdate = null;
-
-					// Refresh
-					UpdateBind();
-					break;
 				}
 			}
 		}
@@ -181,16 +184,21 @@ namespace YARG.UI {
 			};
 
 			if (selectedDevice?.Item1 == null) {
-				inputStrategy.inputDevice = null;
+				inputStrategy.InputDevice = null;
 				inputStrategy.microphoneIndex = selectedDevice?.Item2 ?? -1;
 			} else {
-				inputStrategy.inputDevice = selectedDevice?.Item1;
+				inputStrategy.InputDevice = selectedDevice?.Item1;
 				inputStrategy.microphoneIndex = -1;
 			}
 
 			inputStrategy.botMode = botMode;
 
 			playerName = playerNameField.text;
+
+			// TEMP
+			if (inputStrategy.InputDevice is MidiDevice midiDevice) {
+				midiDevice.onWillNoteOn += OnNote;
+			}
 
 			UpdateBind();
 		}
@@ -228,7 +236,25 @@ namespace YARG.UI {
 			}
 		}
 
+		private void OnNote(MidiNoteControl control, float v) {
+			if (currentBindUpdate == null) {
+				return;
+			}
+
+			// Set mapping and stop waiting
+			inputStrategy.SetMappingInputControl(currentBindUpdate, control);
+			currentBindUpdate = null;
+
+			// Refresh
+			UpdateBind();
+		}
+
 		public void DoneBind() {
+			// TEMP
+			if (inputStrategy.InputDevice is MidiDevice midiDevice) {
+				midiDevice.onWillNoteOn -= OnNote;
+			}
+
 			var player = new PlayerManager.Player() {
 				inputStrategy = inputStrategy
 			};

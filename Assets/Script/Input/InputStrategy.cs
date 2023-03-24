@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Minis;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 
@@ -7,10 +8,35 @@ namespace YARG.Input {
 		public bool botMode;
 		protected int botChartIndex;
 
-		public InputDevice inputDevice;
-		protected Dictionary<string, InputControl> inputMappings;
+		private InputDevice _inputDevice;
+		public InputDevice InputDevice {
+			get => _inputDevice;
+			set {
+				// Temporary for MIDI
+
+				// Unbind previous
+				if (_inputDevice is MidiDevice oldMidi) {
+					oldMidi.onWillNoteOn -= OnWillNoteOn;
+					oldMidi.onWillNoteOff -= OnWillNoteOff;
+				}
+
+				_inputDevice = value;
+
+				// Bind new
+				if (_inputDevice is MidiDevice newMidi) {
+					newMidi.onWillNoteOn += OnWillNoteOn;
+					newMidi.onWillNoteOff += OnWillNoteOff;
+				}
+			}
+		}
 
 		public int microphoneIndex = -1;
+
+		// Temporary for MIDI
+		private OccurrenceList<string> midiPressed = new();
+		private OccurrenceList<string> midiReleased = new();
+
+		protected Dictionary<string, InputControl> inputMappings;
 
 		public delegate void GenericCalibrationAction(InputStrategy inputStrategy);
 		/// <summary>
@@ -38,6 +64,17 @@ namespace YARG.Input {
 			foreach (var key in GetMappingNames()) {
 				inputMappings.Add(key, null);
 			}
+
+			// Bind events
+			GameManager.OnUpdate += EventUpdateLoop;
+		}
+
+		~InputStrategy() {
+			// Force unbind
+			InputDevice = null;
+
+			// Unbind events
+			GameManager.OnUpdate -= EventUpdateLoop;
 		}
 
 		/// <returns>
@@ -67,7 +104,6 @@ namespace YARG.Input {
 		/// </summary>
 		public abstract void UpdatePlayerMode();
 
-
 		/// <summary>
 		/// Updates the bot mode for this particular InputStrategy.
 		/// </summary>
@@ -92,16 +128,83 @@ namespace YARG.Input {
 			GenericNavigationEvent?.Invoke(type, firstPressed);
 		}
 
-		public void CallGenericNavigationEventForButton(ButtonControl button, NavigationType type) {
-			if (button?.wasPressedThisFrame ?? false) {
+		public void CallGenericNavigationEventForButton(string key, NavigationType type) {
+			if (WasMappingPressed(key)) {
 				CallGenericNavigationEvent(type, true);
-			} else if (button?.isPressed ?? false) {
-				CallGenericNavigationEvent(type, false);
+			} else {
+				var input = GetMappingInputControl(key);
+
+				if (input is MidiNoteControl) {
+					return;
+				}
+
+				if (input is ButtonControl button && button.isPressed) {
+					CallGenericNavigationEvent(type, false);
+				}
 			}
 		}
 
-		protected ButtonControl MappingAsButton(string key) {
-			return inputMappings[key] as ButtonControl;
+		private void EventUpdateLoop() {
+			// THIS IS TEMPORARY
+			// as Minis has an issue
+
+			foreach (var pressed in midiPressed.ToDictionary()) {
+				if (pressed.Value >= 2) {
+					midiPressed.RemoveAll(pressed.Key, true);
+				} else {
+					midiPressed.Add(pressed.Key);
+				}
+			}
+
+			foreach (var released in midiReleased.ToDictionary()) {
+				if (released.Value >= 2) {
+					midiReleased.RemoveAll(released.Key, true);
+				} else {
+					midiReleased.Add(released.Key);
+				}
+			}
+		}
+
+		private void OnWillNoteOn(MidiNoteControl midi, float velocity) {
+			foreach (var input in inputMappings) {
+				if (input.Value == midi) {
+					midiPressed.Add(input.Key);
+					return;
+				}
+			}
+		}
+
+		private void OnWillNoteOff(MidiNoteControl midi) {
+			foreach (var input in inputMappings) {
+				if (input.Value == midi) {
+					midiReleased.Add(input.Key);
+					return;
+				}
+			}
+		}
+
+		protected bool WasMappingPressed(string key) {
+			var mapping = inputMappings[key];
+
+			if (mapping is MidiNoteControl) {
+				return midiPressed.GetCount(key) >= 1;
+			} else if (mapping is ButtonControl button) {
+				return button.wasPressedThisFrame;
+			}
+
+			return false;
+		}
+
+		protected bool WasMappingReleased(string key) {
+			var mapping = inputMappings[key];
+
+			if (mapping is MidiNoteControl) {
+				return midiReleased.GetCount(key) >= 1;
+			} else if (mapping is ButtonControl button) {
+				return button.wasReleasedThisFrame;
+			}
+
+			return false;
 		}
 
 		public InputControl GetMappingInputControl(string name) {

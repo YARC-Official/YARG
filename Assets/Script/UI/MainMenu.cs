@@ -157,6 +157,18 @@ namespace YARG.UI {
 			}
 		}
 
+		public void AbortSongLoad() {
+			SongLibrary.Reset();
+			ScoreManager.Reset();
+
+			loadingScreen.SetActive(false);
+
+			SongLibrary.songFolder = null;
+			PlayerPrefs.DeleteKey("songFolder");
+
+			SettingsMenu.Instance.SongFolderForceUpdate();
+		}
+
 		public void RefreshSongLibrary() {
 			SongLibrary.Reset();
 			ScoreManager.Reset();

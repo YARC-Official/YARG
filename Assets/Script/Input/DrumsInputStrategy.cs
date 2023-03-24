@@ -9,7 +9,6 @@ namespace YARG.Input {
 			"blue_pad",
 			"green_pad",
 			"yellow_cymbal",
-			"yellow_cymbal_alt",
 			"blue_cymbal",
 			"green_cymbal",
 			"kick",
@@ -27,43 +26,39 @@ namespace YARG.Input {
 		public override void UpdatePlayerMode() {
 			// Deal with drum inputs
 
-			if (MappingAsButton("red_pad")?.wasPressedThisFrame ?? false) {
+			if (WasMappingPressed("red_pad")) {
 				DrumHitEvent?.Invoke(0, false);
 			}
 
-			if (MappingAsButton("yellow_pad")?.wasPressedThisFrame ?? false) {
+			if (WasMappingPressed("yellow_pad")) {
 				DrumHitEvent?.Invoke(1, false);
 			}
 
-			if (MappingAsButton("blue_pad")?.wasPressedThisFrame ?? false) {
+			if (WasMappingPressed("blue_pad")) {
 				DrumHitEvent?.Invoke(2, false);
 			}
 
-			if (MappingAsButton("green_pad")?.wasPressedThisFrame ?? false) {
+			if (WasMappingPressed("green_pad")) {
 				DrumHitEvent?.Invoke(3, false);
 			}
 
-			if (MappingAsButton("yellow_cymbal")?.wasPressedThisFrame ?? false) {
+			if (WasMappingPressed("yellow_cymbal")) {
 				DrumHitEvent?.Invoke(1, true);
 			}
 
-			if (MappingAsButton("yellow_cymbal_alt")?.wasPressedThisFrame ?? false) {
-				DrumHitEvent?.Invoke(1, true);
-			}
-
-			if (MappingAsButton("blue_cymbal")?.wasPressedThisFrame ?? false) {
+			if (WasMappingPressed("blue_cymbal")) {
 				DrumHitEvent?.Invoke(2, true);
 			}
 
-			if (MappingAsButton("green_cymbal")?.wasPressedThisFrame ?? false) {
+			if (WasMappingPressed("green_cymbal")) {
 				DrumHitEvent?.Invoke(3, true);
 			}
 
-			if (MappingAsButton("kick")?.wasPressedThisFrame ?? false) {
+			if (WasMappingPressed("kick")) {
 				DrumHitEvent?.Invoke(4, false);
 			}
 
-			if (MappingAsButton("kick_alt")?.wasPressedThisFrame ?? false) {
+			if (WasMappingPressed("kick_alt")) {
 				DrumHitEvent?.Invoke(4, false);
 			}
 

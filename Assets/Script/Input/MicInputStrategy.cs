@@ -157,7 +157,7 @@ namespace YARG.Input {
 			}).Start();
 
 			// Activate starpower if loud!
-			if (dbCache > 5f && TimeSinceVoiceDetected < 0.5f) {
+			if (dbCache > 8f && TimeSinceVoiceDetected < 0.5f) {
 				CallStarpowerEvent();
 			}
 		}

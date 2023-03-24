@@ -37,7 +37,7 @@ namespace YARG.Input {
 		}
 
 		public override void UpdatePlayerMode() {
-			if (inputDevice is not AbstractProGuitarGampad input) {
+			if (InputDevice is not AbstractProGuitarGampad input) {
 				return;
 			}
 

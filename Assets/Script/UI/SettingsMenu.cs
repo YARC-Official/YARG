@@ -7,6 +7,11 @@ using YARG.Serialization;
 
 namespace YARG.UI {
 	public class SettingsMenu : MonoBehaviour {
+		public static SettingsMenu Instance {
+			get;
+			private set;
+		}
+
 		[SerializeField]
 		private TMP_InputField songFolderInput;
 		[SerializeField]
@@ -20,18 +25,23 @@ namespace YARG.UI {
 		[SerializeField]
 		private Toggle useAudioTimeToggle;
 		[SerializeField]
+		private Toggle vsyncToggle;
+		[SerializeField]
 		private TMP_InputField ipInput;
 
 		[SerializeField]
 		private GameObject joinServerButton;
 
 		private void Start() {
+			Instance = this;
+
 			songFolderInput.text = SongLibrary.songFolder.FullName;
 			calibrationInput.text = PlayerManager.globalCalibration.ToString(CultureInfo.InvariantCulture);
 			lowQualityToggle.isOn = GameManager.Instance.LowQualityMode;
 			karaokeToggle.isOn = GameManager.Instance.KaraokeMode;
 			showHitWindowToggle.isOn = GameManager.Instance.showHitWindow;
 			useAudioTimeToggle.isOn = GameManager.Instance.useAudioTime;
+			vsyncToggle.isOn = GameManager.Instance.VSync;
 
 			if (GameManager.client != null) {
 				joinServerButton.SetActive(false);
@@ -51,6 +61,10 @@ namespace YARG.UI {
 				PlayerPrefs.SetString("songFolder", songFolderInput.text);
 				MainMenu.Instance.RefreshSongLibrary();
 			}
+		}
+
+		public void SongFolderForceUpdate() {
+			songFolderInput.text = SongLibrary.songFolder?.FullName;
 		}
 
 		public void OuvertExportButton() {
@@ -78,6 +92,10 @@ namespace YARG.UI {
 
 		public void AudioTimeUpdate() {
 			GameManager.Instance.useAudioTime = useAudioTimeToggle.isOn;
+		}
+
+		public void VSyncUpdate() {
+			GameManager.Instance.VSync = useAudioTimeToggle.isOn;
 		}
 
 		public void JoinServer() {

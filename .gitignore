@@ -67,6 +67,8 @@ crashlytics-build.properties
 
 # Packed Addressables
 /[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bin*
+/[Aa]ssets/[Ss]ettings/[Aa]ddressable[Aa]ssets[Dd]ata/link.xml
+/[Aa]ssets/[Ss]ettings/[Aa]ddressable[Aa]ssets[Dd]ata/link.xml.meta
 
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
