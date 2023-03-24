@@ -13,7 +13,9 @@ namespace YARG.Serialization {
 
 		static SongIni() {
 			PARSER.Parser.Configuration.AllowDuplicateKeys = true;
-			PARSER.Parser.Configuration.CommentString = "//";
+
+			// Only match "//" and ";" as comments
+			PARSER.Parser.Configuration.CommentRegex = new(@"^//(.*)|^;(.*)");
 		}
 
 		public static SongInfo CompleteSongInfo(SongInfo song) {
