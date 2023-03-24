@@ -4,10 +4,14 @@ using UnityEngine;
 
 namespace YARG.Settings {
 	public static class SettingsManager {
-		private static Dictionary<string, string> settingsType = new();
-		public static Dictionary<string, object> settings = new();
+		public class SettingInfo {
+			public object value;
+			public string type;
+		}
 
-		public static IReadOnlyDictionary<string, string> AllSettings => settingsType;
+		private static Dictionary<string, SettingInfo> settings = new();
+
+		public static IReadOnlyDictionary<string, SettingInfo> AllSettings => settings;
 
 		static SettingsManager() {
 			// Default setting values
@@ -15,17 +19,20 @@ namespace YARG.Settings {
 		}
 
 		private static void RegisterSetting(string name, object def, string type) {
-			settings[name] = def;
-			settingsType[name] = type;
+			settings[name] = new SettingInfo {
+				value = def,
+				type = type
+			};
 		}
 
 		public static object GetSettingValue(string name) {
-			if (name == null || !settingsType.ContainsKey(name)) {
+			if (name == null || !settings.ContainsKey(name)) {
 				Debug.LogWarning($"{name} does not exist in the registered settings!");
+				return null;
 			}
 
 			if (settings.TryGetValue(name, out var s)) {
-				return s;
+				return s.value;
 			}
 
 			return null;
@@ -42,11 +49,12 @@ namespace YARG.Settings {
 		}
 
 		public static void SetSettingValue(string name, object value) {
-			if (name == null || !settingsType.ContainsKey(name)) {
+			if (name == null || !settings.ContainsKey(name)) {
 				Debug.LogWarning($"{name} does not exist in the registered settings!");
+				return;
 			}
 
-			settings[name] = value;
+			settings[name].value = value;
 
 			Debug.Log($"Setting {name} to {value}.");
 		}

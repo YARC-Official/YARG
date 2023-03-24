@@ -15,8 +15,8 @@ namespace YARG.Settings {
 				Destroy(t.gameObject);
 			}
 
-			foreach (var (name, type) in SettingsManager.AllSettings) {
-				var settingPrefab = Addressables.LoadAssetAsync<GameObject>($"Setting/{type}").WaitForCompletion();
+			foreach (var (name, info) in SettingsManager.AllSettings) {
+				var settingPrefab = Addressables.LoadAssetAsync<GameObject>($"Setting/{info.type}").WaitForCompletion();
 				var go = Instantiate(settingPrefab, settingsContainer);
 				go.GetComponent<AbstractSetting>().Setup(name, name);
 			}
