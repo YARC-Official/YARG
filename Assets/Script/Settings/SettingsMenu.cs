@@ -25,7 +25,7 @@ namespace YARG.Settings {
 				// Spawn the setting
 				var settingPrefab = Addressables.LoadAssetAsync<GameObject>($"Setting/{info.type}").WaitForCompletion();
 				var go = Instantiate(settingPrefab, settingsContainer);
-				go.GetComponent<AbstractSetting>().Setup(name, name);
+				go.GetComponent<AbstractSetting>().Setup(name);
 			}
 		}
 	}
