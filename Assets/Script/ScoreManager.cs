@@ -11,7 +11,7 @@ namespace YARG {
 		/// <value>
 		/// The location of the local or remote score file (depending on whether we are connected to a server).
 		/// </value>
-		public static FileInfo ScoreFile => new(Path.Combine(SongLibrary.songFolder.ToString(), "yarg_score.json"));
+		public static string ScoreFile => Path.Combine(SongLibrary.SongFolder, "yarg_score.json");
 
 		private static Dictionary<string, SongScore> scores = null;
 
@@ -24,14 +24,14 @@ namespace YARG {
 			}
 
 			// Read from score file OR create new
-			if (ScoreFile.Exists) {
+			if (File.Exists(ScoreFile)) {
 				string json = File.ReadAllText(ScoreFile.ToString());
 				scores = JsonConvert.DeserializeObject<Dictionary<string, SongScore>>(json);
 			} else {
 				scores = new();
 
 				// Create a dummy score file if one doesn't exist.
-				Directory.CreateDirectory(ScoreFile.DirectoryName);
+				Directory.CreateDirectory(new FileInfo(ScoreFile).DirectoryName);
 				File.WriteAllText(ScoreFile.ToString(), "{}");
 			}
 		}

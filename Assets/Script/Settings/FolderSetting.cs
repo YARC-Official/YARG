@@ -25,30 +25,27 @@ namespace YARG.Settings {
 		}
 
 		private void UpdateText() {
-			var dirInfo = SettingsManager.GetSettingValue<DirectoryInfo>(settingName);
-			textField.text = dirInfo.FullName;
+			textField.text = SettingsManager.GetSettingValue<string>(settingName);
 		}
 
 		public void OnTextUpdate() {
-			var newDir = new DirectoryInfo(textField.text);
-
-			if (!newDir.Exists) {
+			if (!Directory.Exists(textField.text)) {
 				UpdateText();
 				return;
 			}
 
-			SettingsManager.SetSettingValue(settingName, newDir);
+			SettingsManager.SetSettingValue(settingName, textField.text);
 			UpdateText();
 		}
 
 		public void BrowseSongFolder() {
-			var startingDir = SettingsManager.GetSettingValue<DirectoryInfo>(settingName).FullName;
+			var startingDir = SettingsManager.GetSettingValue<string>(settingName);
 			StandaloneFileBrowser.OpenFolderPanelAsync("Choose Folder", startingDir, false, folder => {
 				if (folder.Length == 0) {
 					return;
 				}
 
-				SettingsManager.SetSettingValue(settingName, new DirectoryInfo(folder[0]));
+				SettingsManager.SetSettingValue(settingName, folder[0]);
 				UpdateText();
 			});
 		}

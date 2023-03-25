@@ -81,10 +81,11 @@ namespace YARG.Util {
 		/// <summary>
 		/// Create a zip file from the specified <paramref name="files"/>.
 		/// </summary>
-		public static void CreateZipFromFiles(string outputZip, params FileInfo[] files) {
+		public static void CreateZipFromFiles(string outputZip, params string[] files) {
 			using ZipArchive archive = ZipFile.Open(outputZip, ZipArchiveMode.Create);
 
-			foreach (var file in files) {
+			foreach (var path in files) {
+				var file = new FileInfo(path);
 				archive.CreateEntryFromFile(file.FullName, file.Name);
 			}
 		}

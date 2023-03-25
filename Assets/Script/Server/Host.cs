@@ -81,7 +81,7 @@ namespace YARG.Server {
 									Utils.ReadFile(stream, new(name));
 
 									// When done, dump all files into local path
-									ZipFile.ExtractToDirectory(name, SongLibrary.songFolder.ToString(), true);
+									ZipFile.ExtractToDirectory(name, SongLibrary.SongFolder, true);
 
 									// Delete zip
 									File.Delete(name);
@@ -116,7 +116,7 @@ namespace YARG.Server {
 							string path = str[8..];
 
 							// See if valid
-							if (!path.StartsWith(SongLibrary.songFolder.FullName.ToUpperInvariant())) {
+							if (!path.StartsWith(SongLibrary.SongFolder.ToUpperInvariant())) {
 								Log($"<color=yellow>Kicking client for foreign path `{path}`.</color>");
 								connectionCount--;
 								return;
@@ -138,7 +138,7 @@ namespace YARG.Server {
 							string path = str[14..];
 
 							// See if valid
-							if (!path.StartsWith(SongLibrary.songFolder.FullName.ToUpperInvariant())) {
+							if (!path.StartsWith(SongLibrary.SongFolder.ToUpperInvariant())) {
 								Log($"<color=yellow>Kicking client for foreign path `{path}`.</color>");
 								connectionCount--;
 								return;
@@ -167,7 +167,7 @@ namespace YARG.Server {
 
 		private static string GetUniqueZipName() {
 			string name = $"temp_{Thread.CurrentThread.ManagedThreadId}.zip";
-			name = Path.Combine(SongLibrary.songFolder.FullName, name);
+			name = Path.Combine(SongLibrary.SongFolder, name);
 			File.Delete(name);
 
 			return name;

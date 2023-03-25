@@ -152,8 +152,8 @@ namespace YARG.UI {
 		}
 
 		public void RefreshCache() {
-			if (SongLibrary.CacheFile.Exists) {
-				File.Delete(SongLibrary.CacheFile.FullName);
+			if (File.Exists(SongLibrary.CacheFile)) {
+				File.Delete(SongLibrary.CacheFile);
 				RefreshSongLibrary();
 			}
 		}
@@ -164,7 +164,6 @@ namespace YARG.UI {
 
 			loadingScreen.SetActive(false);
 
-			SongLibrary.songFolder = null;
 			SettingsManager.SetSettingValue("songFolder", null);
 		}
 
