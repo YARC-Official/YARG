@@ -12,6 +12,10 @@ namespace YARG.Settings {
 			textField.text = SettingsManager.GetSettingValue<string>(settingName);
 		}
 
+		private void Update() {
+			textField.interactable = IsInteractable;
+		}
+
 		public void OnTextUpdate() {
 			SettingsManager.SetSettingValue(settingName, textField.text);
 		}

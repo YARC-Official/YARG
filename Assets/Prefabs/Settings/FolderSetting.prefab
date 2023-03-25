@@ -941,6 +941,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   settingText: {fileID: 3244921632070293914}
   textField: {fileID: 2350941472985546935}
+  browseButton: {fileID: 7267767746302668744}
 --- !u!224 &2638108823798306802 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 2473122855856495702, guid: 79900b4def469a544b112b70cf888024,
