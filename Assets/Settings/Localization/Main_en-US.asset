@@ -26,6 +26,10 @@ MonoBehaviour:
     m_Localized: Enter text...
     m_Metadata:
       m_Items: []
+  - m_Id: 12501665570816
+    m_Localized: Enter number...
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -27,6 +27,30 @@ MonoBehaviour:
     m_Key: exportOuvertSongs
     m_Metadata:
       m_Items: []
+  - m_Id: 11210629439488
+    m_Key: calibrationNumber
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19564043034624
+    m_Key: calibrate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22166302482432
+    m_Key: lowQuality
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22198703480832
+    m_Key: showHitWindow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22232891252736
+    m_Key: useAudioTime
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22256769425408
+    m_Key: vsync
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

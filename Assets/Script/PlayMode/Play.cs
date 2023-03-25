@@ -8,6 +8,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.Networking;
 using YARG.Data;
 using YARG.Serialization.Parser;
+using YARG.Settings;
 using YARG.UI;
 
 namespace YARG.PlayMode {
@@ -64,10 +65,6 @@ namespace YARG.PlayMode {
 			// Load audio
 			foreach (var file in song.folder.GetFiles("*.ogg")) {
 				if (file.Name == "preview.ogg") {
-					continue;
-				}
-
-				if (GameManager.Instance.KaraokeMode && file.Name == "vocals.ogg") {
 					continue;
 				}
 
@@ -167,7 +164,7 @@ namespace YARG.PlayMode {
 			}
 
 			var leaderAudioSource = audioSources.First().Value;
-			if (!GameManager.Instance.useAudioTime || !leaderAudioSource.isPlaying) {
+			if (!SettingsManager.GetSettingValue<bool>("useAudioTime") || !leaderAudioSource.isPlaying) {
 				realSongTime += Time.deltaTime * speed;
 			} else {
 				// TODO: Use "timeSamples" for better accuracy

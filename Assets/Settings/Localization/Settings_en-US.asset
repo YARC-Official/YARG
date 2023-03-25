@@ -27,7 +27,31 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 943136825344
-    m_Localized: Export Ouvert Songs
+    m_Localized: Create OuvertBot Song Export
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11210629439488
+    m_Localized: Calibration (ms)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19564043034624
+    m_Localized: Open Calibrator
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22166302482432
+    m_Localized: Low Quality Mode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22198703480832
+    m_Localized: Show Hit Window
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22232891252736
+    m_Localized: Use Audio Time
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22256769425408
+    m_Localized: VSync
     m_Metadata:
       m_Items: []
   references:

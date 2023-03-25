@@ -7,8 +7,8 @@ using YARG.UI;
 namespace YARG.Settings {
 	public static class SettingsManager {
 		public class SettingInfo {
-			public object value;
 			public string type;
+			public object value;
 
 			/// <summary>
 			/// Used to set a variable to the value of this setting. Is called when the setting is changed.
@@ -24,6 +24,11 @@ namespace YARG.Settings {
 			/// Called when the button is pressed (button setting type only).
 			/// </summary>
 			public System.Action buttonAction;
+
+			/// <summary>
+			/// If true, a space will be added above this setting in the setting menu.
+			/// </summary>
+			public bool spaceAbove;
 		}
 
 		private static OrderedDictionary settings = new();
@@ -31,17 +36,18 @@ namespace YARG.Settings {
 
 		static SettingsManager() {
 			// Song library settings
-
 			Register("songFolder", new SettingInfo {
-				value = SongLibrary.songFolder,
 				type = "Folder",
+				value = SongLibrary.songFolder,
 				isInteractable = () => GameManager.client == null,
 				variableSetter = (obj) => {
 					SongLibrary.songFolder = (System.IO.DirectoryInfo) obj;
-					MainMenu.Instance.RefreshSongLibrary();
+
+					if (MainMenu.Instance != null) {
+						MainMenu.Instance.RefreshSongLibrary();
+					}
 				}
 			});
-
 			Register("refreshCache", new SettingInfo {
 				type = "Button",
 				isInteractable = () => GameManager.client == null,
@@ -49,7 +55,6 @@ namespace YARG.Settings {
 					MainMenu.Instance.RefreshCache();
 				}
 			});
-
 			Register("exportOuvertSongs", new SettingInfo {
 				type = "Button",
 				buttonAction = () => {
@@ -59,6 +64,50 @@ namespace YARG.Settings {
 				}
 			});
 
+			// Calibration settings
+			Register("calibrationNumber", new SettingInfo {
+				spaceAbove = true,
+
+				type = "Number",
+				value = (int) (PlayerManager.globalCalibration * 1000f),
+				variableSetter = (obj) => {
+					PlayerManager.globalCalibration = (int) obj / 1000f;
+				}
+			});
+			Register("calibrate", new SettingInfo {
+				type = "Button",
+				buttonAction = () => {
+					if (PlayerManager.players.Count > 0) {
+						GameManager.Instance.LoadScene(SceneIndex.CALIBRATION);
+					}
+				}
+			});
+
+			// Toggle settings
+			Register("lowQuality", new SettingInfo {
+				spaceAbove = true,
+
+				type = "Toggle",
+				value = false,
+				variableSetter = obj => {
+					QualitySettings.SetQualityLevel((bool) obj ? 0 : 1, true);
+				}
+			});
+			Register("showHitWindow", new SettingInfo {
+				type = "Toggle",
+				value = false
+			});
+			Register("useAudioTime", new SettingInfo {
+				type = "Toggle",
+				value = false
+			});
+			Register("vsync", new SettingInfo {
+				type = "Toggle",
+				value = true,
+				variableSetter = obj => {
+					QualitySettings.vSyncCount = (bool) obj ? 1 : 0;
+				}
+			});
 		}
 
 		private static void Register(string name, SettingInfo info) {
@@ -68,6 +117,9 @@ namespace YARG.Settings {
 			}
 
 			settings[name] = info;
+
+			// Call setter when registered
+			info.variableSetter?.Invoke(info.value);
 		}
 
 		public static object GetSettingValue(string name) {

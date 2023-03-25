@@ -23,6 +23,10 @@ MonoBehaviour:
     m_Key: enterText
     m_Metadata:
       m_Items: []
+  - m_Id: 12501665570816
+    m_Key: enterNumber
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

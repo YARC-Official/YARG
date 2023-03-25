@@ -33,45 +33,10 @@ namespace YARG {
 		[SerializeField]
 		private AudioMixerGroup vocalGroup;
 
-		private bool _lowQualityMode = false;
-		public bool LowQualityMode {
-			get => _lowQualityMode;
-			set {
-				_lowQualityMode = value;
-
-				QualitySettings.SetQualityLevel(_lowQualityMode ? 0 : 1, true);
-			}
-		}
-
-		private bool _karaokeMode = false;
-		public bool KaraokeMode {
-			get => _karaokeMode;
-			set {
-				_karaokeMode = value;
-
-				vocalGroup.audioMixer.SetFloat("vocalVolume", _karaokeMode ? 5f : -10f);
-			}
-		}
-
-		private bool _vsync = false;
-		public bool VSync {
-			get => _vsync;
-			set {
-				_vsync = value;
-
-				QualitySettings.vSyncCount = _vsync ? 1 : 0;
-			}
-		}
-
-		public bool showHitWindow = false;
-		public bool useAudioTime = false;
-
 		private SceneIndex currentScene = SceneIndex.PERSISTANT;
 
 		private void Start() {
 			Instance = this;
-
-			VSync = true;
 
 			// Unlimited FPS (if vsync is off)
 			Application.targetFrameRate = 400;

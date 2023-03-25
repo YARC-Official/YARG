@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Data;
 using YARG.Input;
+using YARG.Settings;
 
 namespace YARG.UI {
 	public partial class MainMenu : MonoBehaviour {
@@ -164,9 +165,7 @@ namespace YARG.UI {
 			loadingScreen.SetActive(false);
 
 			SongLibrary.songFolder = null;
-			PlayerPrefs.DeleteKey("songFolder");
-
-			SettingsMenu.Instance.SongFolderForceUpdate();
+			SettingsManager.SetSettingValue("songFolder", null);
 		}
 
 		public void RefreshSongLibrary() {

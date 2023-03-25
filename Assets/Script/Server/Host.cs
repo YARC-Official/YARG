@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using UnityEngine;
+using YARG.Settings;
 using YARG.Util;
 
 namespace YARG.Server {
@@ -17,7 +18,7 @@ namespace YARG.Server {
 
 		private void Start() {
 			// Lower graphics to save power or something
-			GameManager.Instance.LowQualityMode = true;
+			SettingsManager.SetSettingValue("lowQuality", true);
 			Application.targetFrameRate = 5;
 
 			// Fetch songs and scores first so we have a cache file to send
