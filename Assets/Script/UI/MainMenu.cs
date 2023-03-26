@@ -31,7 +31,9 @@ namespace YARG.UI {
 
 		[Space]
 		[SerializeField]
-		private GameObject settingsMenu;
+		private GameObject menuContainer;
+		[SerializeField]
+		private GameObject settingsContainer;
 		[SerializeField]
 		private GameObject loadingScreen;
 		[SerializeField]
@@ -107,7 +109,8 @@ namespace YARG.UI {
 		public void ShowMainMenu() {
 			HideAll();
 
-			settingsMenu.SetActive(false);
+			menuContainer.SetActive(true);
+			settingsContainer.SetActive(false);
 			mainMenu.gameObject.SetActive(true);
 		}
 
@@ -138,7 +141,8 @@ namespace YARG.UI {
 		}
 
 		public void ToggleSettingsMenu() {
-			settingsMenu.SetActive(!settingsMenu.activeSelf);
+			menuContainer.SetActive(!menuContainer.activeSelf);
+			settingsContainer.SetActive(!settingsContainer.activeSelf);
 		}
 
 		public void ShowCalibrationScene() {
