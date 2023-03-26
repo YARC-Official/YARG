@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="252mm"
+   height="37mm"
+   viewBox="0 0 252 37"
+   version="1.1"
+   id="svg8"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
+   sodipodi:docname="Readme.svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.98994949"
+     inkscape:cx="500.78849"
+     inkscape:cy="140.94259"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     inkscape:document-rotation="0"
+     showgrid="false"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1912"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="124.7191"
+       y="15.234363"
+       id="text835"><tspan
+         sodipodi:role="line"
+         x="124.7191"
+         y="15.234363"
+         style="font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;font-family:Barlow;-inkscape-font-specification:'Barlow Light';text-align:center;text-anchor:middle;stroke-width:0.264583"
+         id="tspan837"><tspan
+   id="tspan842"
+   style="font-style:normal;font-variant:normal;font-weight:500;font-stretch:normal;font-family:Barlow;-inkscape-font-specification:'Barlow Medium'">Y</tspan>et <tspan
+   id="tspan844"
+   style="font-style:normal;font-variant:normal;font-weight:500;font-stretch:normal;font-family:Barlow;-inkscape-font-specification:'Barlow Medium'">A</tspan>nother <tspan
+   id="tspan846"
+   style="font-style:normal;font-variant:normal;font-weight:500;font-stretch:normal;font-family:Barlow;-inkscape-font-specification:'Barlow Medium'">R</tspan>hythm <tspan
+   id="tspan848"
+   style="font-style:normal;font-variant:normal;font-weight:500;font-stretch:normal;font-family:Barlow;-inkscape-font-specification:'Barlow Medium'">G</tspan>ame inspired off of Rockband,</tspan><tspan
+         sodipodi:role="line"
+         x="124.7191"
+         y="28.950352"
+         style="font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;font-family:Barlow;-inkscape-font-specification:'Barlow Light';text-align:center;text-anchor:middle;stroke-width:0.264583"
+         id="tspan841">Guitar Hero, Clone Hero, or similar.</tspan></text>
+  </g>
+</svg>
