@@ -18,7 +18,7 @@
 <br/>
 
 <img src="Images/README_Top.png" width="80%" alt="README top">
-<img src="gif.gif" width="80%" alt="README top">
+<img src="Images/README_Gif.gif" width="80%" alt="README gif">
 </div>
 
 # 👉 Disclaimer

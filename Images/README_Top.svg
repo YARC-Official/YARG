@@ -7,34 +7,34 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="252mm"
-   height="37mm"
-   viewBox="0 0 252 37"
-   version="1.1"
-   id="svg8"
+   sodipodi:docname="README_Top.svg"
    inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
-   sodipodi:docname="Readme.svg">
+   id="svg8"
+   version="1.1"
+   viewBox="0 0 252 37"
+   height="37mm"
+   width="252mm">
   <defs
      id="defs2" />
   <sodipodi:namedview
-     id="base"
-     pagecolor="#ffffff"
-     bordercolor="#666666"
-     borderopacity="1.0"
-     inkscape:pageopacity="0.0"
-     inkscape:pageshadow="2"
-     inkscape:zoom="0.98994949"
-     inkscape:cx="500.78849"
-     inkscape:cy="140.94259"
-     inkscape:document-units="mm"
-     inkscape:current-layer="layer1"
-     inkscape:document-rotation="0"
-     showgrid="false"
-     inkscape:window-width="1920"
-     inkscape:window-height="1017"
-     inkscape:window-x="1912"
+     inkscape:window-maximized="1"
      inkscape:window-y="-8"
-     inkscape:window-maximized="1" />
+     inkscape:window-x="1912"
+     inkscape:window-height="1017"
+     inkscape:window-width="1920"
+     showgrid="false"
+     inkscape:document-rotation="0"
+     inkscape:current-layer="layer1"
+     inkscape:document-units="mm"
+     inkscape:cy="137.08674"
+     inkscape:cx="353.05488"
+     inkscape:zoom="0.98994949"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0"
+     borderopacity="1.0"
+     bordercolor="#666666"
+     pagecolor="#000000"
+     id="base" />
   <metadata
      id="metadata5">
     <rdf:RDF>
@@ -48,32 +48,40 @@
     </rdf:RDF>
   </metadata>
   <g
-     inkscape:label="Layer 1"
+     id="layer1"
      inkscape:groupmode="layer"
-     id="layer1">
+     inkscape:label="Layer 1">
+    <rect
+       ry="5.8799319"
+       y="2.6726952"
+       x="2.1381559"
+       height="32.072342"
+       width="247.49158"
+       id="rect2041"
+       style="fill:#ffffff;fill-opacity:1;stroke-width:4.23299;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;paint-order:stroke fill markers" />
     <text
-       xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
-       x="124.7191"
+       id="text835"
        y="15.234363"
-       id="text835"><tspan
-         sodipodi:role="line"
-         x="124.7191"
+       x="124.7191"
+       style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       xml:space="preserve"><tspan
+         id="tspan837"
+         style="font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;font-family:Barlow;-inkscape-font-specification:'Barlow Light';text-align:center;text-anchor:middle;stroke-width:0.264583"
          y="15.234363"
-         style="font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;font-family:Barlow;-inkscape-font-specification:'Barlow Light';text-align:center;text-anchor:middle;stroke-width:0.264583"
-         id="tspan837"><tspan
-   id="tspan842"
-   style="font-style:normal;font-variant:normal;font-weight:500;font-stretch:normal;font-family:Barlow;-inkscape-font-specification:'Barlow Medium'">Y</tspan>et <tspan
-   id="tspan844"
-   style="font-style:normal;font-variant:normal;font-weight:500;font-stretch:normal;font-family:Barlow;-inkscape-font-specification:'Barlow Medium'">A</tspan>nother <tspan
-   id="tspan846"
-   style="font-style:normal;font-variant:normal;font-weight:500;font-stretch:normal;font-family:Barlow;-inkscape-font-specification:'Barlow Medium'">R</tspan>hythm <tspan
-   id="tspan848"
-   style="font-style:normal;font-variant:normal;font-weight:500;font-stretch:normal;font-family:Barlow;-inkscape-font-specification:'Barlow Medium'">G</tspan>ame inspired off of Rockband,</tspan><tspan
-         sodipodi:role="line"
          x="124.7191"
-         y="28.950352"
+         sodipodi:role="line"><tspan
+   style="font-style:normal;font-variant:normal;font-weight:500;font-stretch:normal;font-family:Barlow;-inkscape-font-specification:'Barlow Medium'"
+   id="tspan842">Y</tspan>et <tspan
+   style="font-style:normal;font-variant:normal;font-weight:500;font-stretch:normal;font-family:Barlow;-inkscape-font-specification:'Barlow Medium'"
+   id="tspan844">A</tspan>nother <tspan
+   style="font-style:normal;font-variant:normal;font-weight:500;font-stretch:normal;font-family:Barlow;-inkscape-font-specification:'Barlow Medium'"
+   id="tspan846">R</tspan>hythm <tspan
+   style="font-style:normal;font-variant:normal;font-weight:500;font-stretch:normal;font-family:Barlow;-inkscape-font-specification:'Barlow Medium'"
+   id="tspan848">G</tspan>ame inspired off of Rockband,</tspan><tspan
+         id="tspan841"
          style="font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;font-family:Barlow;-inkscape-font-specification:'Barlow Light';text-align:center;text-anchor:middle;stroke-width:0.264583"
-         id="tspan841">Guitar Hero, Clone Hero, or similar.</tspan></text>
+         y="28.950352"
+         x="124.7191"
+         sodipodi:role="line">Guitar Hero, Clone Hero, or similar.</tspan></text>
   </g>
 </svg>
