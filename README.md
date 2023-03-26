@@ -4,7 +4,8 @@
 
 <br/>
 <div align="center">
-<img src="Images/YARG_Glowy.png" width="25%" alt="YARG">
+<img src="Images/YARG_Glowy.png" width="30%" alt="YARG">
+
 <br/>
 <br/>
 <a href="https://twitter.com/EliteAsian123">
@@ -13,15 +14,12 @@
 <a href="https://discord.gg/sqpu4R552r">
 <img src="https://discord.com/assets/847541504914fd33810e70a0ea73177e.ico" height="48px" width="48px" alt="Github">
 </a>
+<br/>
+<br/>
+
+<img src="Images/README_Top.png" width="80%" alt="README top">
+<img src="gif.gif" width="80%" alt="README top">
 </div>
-
-
-<br/>
-<br/>
-
-<b>Y</b>et <b>A</b>nother <b>R</b>hythm <b>G</b>ame inspired off of Rockband, Guitar Hero, Clone Hero, or similar.
-
-![Gif of YARG](gif.gif)
 
 # 👉 Disclaimer
 
