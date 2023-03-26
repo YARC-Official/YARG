@@ -98,6 +98,8 @@ namespace YARG.UI {
 		}
 
 		private void HideAll() {
+			MainMenuBackground.Instance.cursorMoves = false;
+
 			editPlayers.gameObject.SetActive(false);
 			addPlayer.gameObject.SetActive(false);
 			mainMenu.gameObject.SetActive(false);
@@ -108,6 +110,8 @@ namespace YARG.UI {
 
 		public void ShowMainMenu() {
 			HideAll();
+
+			MainMenuBackground.Instance.cursorMoves = true;
 
 			menuContainer.SetActive(true);
 			settingsContainer.SetActive(false);

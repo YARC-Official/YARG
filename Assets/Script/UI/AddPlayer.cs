@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.UI;
 using YARG.Input;
+using YARG.Serialization;
 
 namespace YARG.UI {
 	public class AddPlayer : MonoBehaviour {
@@ -195,9 +196,13 @@ namespace YARG.UI {
 
 			playerName = playerNameField.text;
 
-			// TEMP
 			if (inputStrategy.InputDevice is MidiDevice midiDevice) {
 				midiDevice.onWillNoteOn += OnNote;
+			}
+
+			// Try to load bindings
+			if (inputStrategy.InputDevice != null) {
+				InputBindSerializer.LoadBindsFromSave(inputStrategy);
 			}
 
 			UpdateBind();
@@ -250,16 +255,22 @@ namespace YARG.UI {
 		}
 
 		public void DoneBind() {
-			// TEMP
 			if (inputStrategy.InputDevice is MidiDevice midiDevice) {
 				midiDevice.onWillNoteOn -= OnNote;
 			}
 
+			// Save bindings
+			if (inputStrategy.InputDevice != null) {
+				InputBindSerializer.SaveBindsFromInputStrategy(inputStrategy);
+			}
+
+			// Create and add player
 			var player = new PlayerManager.Player() {
 				inputStrategy = inputStrategy
 			};
 			PlayerManager.players.Add(player);
 
+			// Set name
 			if (!string.IsNullOrEmpty(playerName)) {
 				player.name = playerName;
 			}
