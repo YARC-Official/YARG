@@ -14,8 +14,6 @@ namespace YARG {
 			public List<SongInfo> songs;
 		}
 
-		public static DirectoryInfo songFolder = new(GetSongFolder());
-
 		public static float loadPercent = 0f;
 
 		private static string songFolderOverride = null;
@@ -49,7 +47,7 @@ namespace YARG {
 				return true;
 			}
 
-			if (CacheFile.Exists || GameManager.client != null) {
+			if (File.Exists(CacheFile) || GameManager.client != null) {
 				var success = ReadCache();
 				if (success) {
 					return true;
@@ -60,7 +58,7 @@ namespace YARG {
 				Songs = new();
 
 				loadPercent = 0f;
-				CreateSongInfoFromFiles(songFolder);
+				CreateSongInfoFromFiles(new(SongFolder));
 				loadPercent = 0.1f;
 				ReadSongIni();
 				loadPercent = 0.9f;
@@ -114,8 +112,8 @@ namespace YARG {
 			};
 
 			var json = JsonConvert.SerializeObject(jsonObj);
-			Directory.CreateDirectory(CacheFile.DirectoryName);
-			File.WriteAllText(CacheFile.ToString(), json.ToString());
+			Directory.CreateDirectory(new FileInfo(CacheFile).DirectoryName);
+			File.WriteAllText(CacheFile, json);
 		}
 
 		/// <summary>
@@ -123,7 +121,7 @@ namespace YARG {
 		/// <see cref="CacheFile"/> should exist. If not, call <see cref="CreateCache"/>.
 		/// </summary>
 		private static bool ReadCache() {
-			string json = File.ReadAllText(CacheFile.ToString());
+			string json = File.ReadAllText(CacheFile);
 
 			try {
 				var jsonObj = JsonConvert.DeserializeObject<SongCacheJson>(json);
