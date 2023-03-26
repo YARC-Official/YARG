@@ -54,6 +54,18 @@ MonoBehaviour:
     m_Localized: VSync
     m_Metadata:
       m_Items: []
+  - m_Id: 338993234698240
+    m_Localized: File Server IP
+    m_Metadata:
+      m_Items: []
+  - m_Id: 339052483436544
+    m_Localized: Connect To File Server
+    m_Metadata:
+      m_Items: []
+  - m_Id: 339100092981248
+    m_Localized: Host File Server
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

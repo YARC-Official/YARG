@@ -85,6 +85,34 @@ namespace YARG.Settings {
 			public void VsyncChange() {
 				QualitySettings.vSyncCount = vsync ? 1 : 0;
 			}
+
+			[SettingSpace]
+			[SettingLocation("general", 100)]
+			[SettingType("Text")]
+			public string fileServerIp = "localhost";
+
+			[SettingInteractableFunc("fileServerIp")]
+			public bool FileServerIpInteractable() {
+				return GameManager.client == null;
+			}
+
+			[SettingLocation("general", 110)]
+			[SettingButton("connectToFileServer")]
+			public void ConnectToFileServer() {
+				GameManager.client = new();
+				GameManager.client.Start(fileServerIp);
+			}
+
+			[SettingInteractableFunc("connectToFileServer")]
+			public bool ConnectToFileServerInteractable() {
+				return GameManager.client == null;
+			}
+
+			[SettingLocation("general", 120)]
+			[SettingButton("hostFileServer")]
+			public void HostFileServer() {
+				GameManager.Instance.LoadScene(SceneIndex.SERVER_HOST);
+			}
 		}
 	}
 }
