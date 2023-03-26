@@ -18,7 +18,7 @@ namespace YARG.UI {
 		private Transform scoreContainer;
 
 		private void OnEnable() {
-			header.text = $"{Play.song.SongName} - {Play.song.ArtistName}";
+			header.text = $"{Play.song.SongName} - {Play.song.artistName}";
 
 			// Create a score to push
 

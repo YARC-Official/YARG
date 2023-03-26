@@ -64,7 +64,7 @@ namespace YARG.PlayMode {
 		private IEnumerator StartSong() {
 			// Load audio
 			foreach (var file in song.folder.GetFiles("*.ogg")) {
-				if (file.Name == "preview.ogg") {
+				if (file.Name == "preview.ogg" || file.Name == "crowd.ogg") {
 					continue;
 				}
 
@@ -131,7 +131,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Parse
-			var parser = new MidiParser(files.ToArray(), song.delay);
+			var parser = new MidiParser(song, files.ToArray());
 			chart = new Chart();
 			parser.Parse(chart);
 		}

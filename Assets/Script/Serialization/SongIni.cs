@@ -45,7 +45,7 @@ namespace YARG.Serialization {
 
 				// Set basic info
 				song.SongName = section["name"];
-				song.ArtistName = section["artist"];
+				song.artistName = section["artist"];
 
 				// Get other metadata
 				song.album = section.GetKeyData("album")?.Value;
@@ -74,6 +74,19 @@ namespace YARG.Serialization {
 				} else {
 					Debug.LogWarning($"No song length found for `{song.folder}`. Loading audio file. This might take longer.");
 					LoadSongLengthFromAudio(song);
+				}
+
+				// Get drum type
+				if (section.ContainsKey("pro_drums") &&
+					section["pro_drums"].ToLowerInvariant() == "true") {
+
+					song.drumType = SongInfo.DrumType.FOUR_LANE;
+				} else if (section.ContainsKey("five_lane_drums") &&
+					section["five_lane_drums"].ToLowerInvariant() == "true") {
+
+					song.drumType = SongInfo.DrumType.FIVE_LANE;
+				} else {
+					song.drumType = SongInfo.DrumType.UNKNOWN;
 				}
 
 				// Get song delay (0 if none)

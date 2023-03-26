@@ -20,7 +20,7 @@ namespace YARG.Serialization.Parser {
 
 		public MidiFile midi;
 
-		public MidiParser(string[] files, float delay) : base(files, delay) {
+		public MidiParser(SongInfo songInfo, string[] files) : base(songInfo, files) {
 			midi = MidiFile.Read(files[0]);
 
 			// Merge midi files
@@ -144,7 +144,7 @@ namespace YARG.Serialization.Parser {
 
 					// Add delay
 					foreach (var note in difficulty) {
-						note.time += delay;
+						note.time += songInfo.delay;
 					}
 
 					// Last note time
@@ -157,11 +157,11 @@ namespace YARG.Serialization.Parser {
 			// Add delay to vocals
 
 			foreach (var lyric in chart.genericLyrics) {
-				lyric.time += delay;
+				lyric.time += songInfo.delay;
 			}
 
 			foreach (var lyric in chart.realLyrics) {
-				lyric.time += delay;
+				lyric.time += songInfo.delay;
 			}
 
 			// Generate beat line events if there aren't any
@@ -190,7 +190,7 @@ namespace YARG.Serialization.Parser {
 
 			chart.events.Sort(new Comparison<EventInfo>((a, b) => a.time.CompareTo(b.time)));
 			foreach (var ev in chart.events) {
-				ev.time += delay;
+				ev.time += songInfo.delay;
 			}
 
 			// Add beats to chart
