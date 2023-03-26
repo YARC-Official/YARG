@@ -143,6 +143,8 @@ namespace YARG {
 				if (jsonObj.version != CACHE_VERSION) {
 					return false;
 				}
+
+				Songs = jsonObj.songs;
 			} catch (JsonException) {
 				return false;
 			}

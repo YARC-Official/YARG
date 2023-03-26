@@ -2,12 +2,12 @@ using YARG.Data;
 
 namespace YARG.Serialization.Parser {
 	public abstract class AbstractParser {
+		protected SongInfo songInfo;
 		protected string[] files;
-		protected float delay;
 
-		public AbstractParser(string[] files, float delay) {
+		public AbstractParser(SongInfo songInfo, string[] files) {
+			this.songInfo = songInfo;
 			this.files = files;
-			this.delay = delay;
 		}
 
 		public abstract void Parse(Chart chart);
