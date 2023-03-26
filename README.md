@@ -1,21 +1,25 @@
-# 🎸 YARG
-
-<a href="https://twitter.com/EliteAsian123">
-	<img src="https://abs.twimg.com/favicons/twitter.ico" width="32px" height="32px" alt="Twitter">
-</a>
-<a href="https://discord.gg/sqpu4R552r">
-	<img src="https://discord.com/assets/847541504914fd33810e70a0ea73177e.ico" height="32px" width="32px" alt="Github">
-</a>
-<br/>
-<br/>
-
 > **Warning**
 >
 > YARG is **not done yet**! Expect incomplete features and bugs!
->
-> ...And terrible menus!
 
-**Y**et **A**nother **R**hythm **G**ame inspired off of Rockband, Guitar Hero, Clone Hero, or similar.
+<br/>
+<div align="center">
+<img src="Images/YARG_Glowy.png" width="25%" alt="YARG">
+<br/>
+<br/>
+<a href="https://twitter.com/EliteAsian123">
+<img src="https://raw.githubusercontent.com/gauravghongde/social-icons/master/PNG/Color/Twitter.png" width="48px" height="48px" alt="Twitter">
+</a>
+<a href="https://discord.gg/sqpu4R552r">
+<img src="https://discord.com/assets/847541504914fd33810e70a0ea73177e.ico" height="48px" width="48px" alt="Github">
+</a>
+</div>
+
+
+<br/>
+<br/>
+
+<b>Y</b>et <b>A</b>nother <b>R</b>hythm <b>G</b>ame inspired off of Rockband, Guitar Hero, Clone Hero, or similar.
 
 ![Gif of YARG](gif.gif)
 
