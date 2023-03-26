@@ -7,7 +7,7 @@ namespace YARG.Settings {
 		private Button button;
 
 		public void OnButtonPress() {
-			SettingsManager.GetSettingInfo(settingName).buttonAction?.Invoke();
+			SettingsManager.InvokeButtonAction(settingName);
 		}
 
 		private void Update() {

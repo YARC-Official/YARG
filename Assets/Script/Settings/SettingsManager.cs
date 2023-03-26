@@ -1,243 +1,321 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
+using System.Reflection;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using SFB;
 using UnityEngine;
-using YARG.Serialization;
-using YARG.UI;
 
 namespace YARG.Settings {
-	public static class SettingsManager {
-		// TODO: Use class with attributes instead of this mess
+	public static partial class SettingsManager {
+		private class SettingLocation : Attribute {
+			public string location;
+			public int order;
 
-		public class SettingInfo {
+			public SettingLocation(string location, int order) {
+				this.location = location;
+				this.order = order;
+			}
+		}
+
+		private class SettingType : Attribute {
 			public string type;
-			public object value;
 
-			/// <summary>
-			/// Used to set a variable to the value of this setting. Is called when the setting is changed.
-			/// </summary>
-			public Action<object> variableSetter;
+			public SettingType(string type) {
+				this.type = type;
+			}
+		}
 
-			/// <summary>
-			/// Returns whether the setting is interactable or not.
-			/// </summary>
-			public Func<bool> isInteractable;
+		private class SettingInteractableFunc : Attribute {
+			public string settingName;
 
-			/// <summary>
-			/// Called when the button is pressed (button setting type only).
-			/// </summary>
-			public Action buttonAction;
+			public SettingInteractableFunc(string settingName) {
+				this.settingName = settingName;
+			}
+		}
 
-			/// <summary>
-			/// If true, a space will be added above this setting in the setting menu.
-			/// </summary>
+		private class SettingChangeFunc : Attribute {
+			public string settingName;
+
+			public SettingChangeFunc(string settingName) {
+				this.settingName = settingName;
+			}
+		}
+
+		private class SettingButton : Attribute {
+			public string settingName;
+
+			public SettingButton(string settingName) {
+				this.settingName = settingName;
+			}
+		}
+
+		private class SettingSpace : Attribute {
+
+		}
+
+		public struct SettingInfo {
+			public string name;
+			public string location;
+			public string type;
 			public bool spaceAbove;
 		}
 
-		private static OrderedDictionary settings = new();
-		public static OrderedDictionary AllSettings => settings.AsReadOnly();
+		private static SettingContainer settingsContainer;
 
-		private static Dictionary<string, JValue> savedValues = new();
+		private static OrderedDictionary settings = new();
+		private static Dictionary<string, MethodInfo> interactableFuncs = new();
+		private static Dictionary<string, MethodInfo> changeFuncs = new();
 
 		static SettingsManager() {
-			ParseSettingsFile();
+			SortedDictionary<int, object> settingsWithLocation = new();
 
-			// Get song folder location
-			string songFolder = "";
-			if (!savedValues.ContainsKey("songFolder")) {
-				// Look for Clone Hero...
+			// Get all setting fields ordered by SettingLocation
+			var type = typeof(SettingContainer);
+			var fields = type.GetFields();
+			foreach (var field in fields) {
+				var attributes = field.GetCustomAttributes(false);
+				foreach (var attribute in attributes) {
+					if (attribute is SettingLocation location) {
+						settingsWithLocation.Add(location.order, field);
+					}
+				}
+			}
+
+			// Do the same with methods with the SettingButton attribute
+			var methods = type.GetMethods();
+			foreach (var method in methods) {
+				var attributes = method.GetCustomAttributes(false);
+
+				SettingButton button = null;
+				SettingLocation location = null;
+
+				foreach (var attribute in attributes) {
+					if (attribute is SettingButton buttonAttrib) {
+						button = buttonAttrib;
+					}
+
+					if (attribute is SettingLocation locationAttrib) {
+						location = locationAttrib;
+					}
+				}
+
+				if (button == null || location == null) {
+					continue;
+				}
+
+				settingsWithLocation.Add(location.order, method);
+			}
+
+			// Convert the dictionary to a list
+			foreach (var (_, obj) in settingsWithLocation) {
+				if (obj is FieldInfo field) {
+					settings.Add(field.Name, obj);
+				} else if (obj is MethodInfo method) {
+					// Get name from SettingButton attribute
+					var attributes = method.GetCustomAttributes(false);
+					foreach (var attribute in attributes) {
+						if (attribute is SettingButton button) {
+							settings.Add(button.settingName, obj);
+							break;
+						}
+					}
+				}
+			}
+
+			// Get all interactable functions
+			foreach (var method in methods) {
+				var attributes = method.GetCustomAttributes(false);
+				foreach (var attribute in attributes) {
+					if (attribute is SettingInteractableFunc interactableFunc) {
+						interactableFuncs.Add(interactableFunc.settingName, method);
+					}
+				}
+			}
+
+			// Get all change functions
+			foreach (var method in methods) {
+				var attributes = method.GetCustomAttributes(false);
+				foreach (var attribute in attributes) {
+					if (attribute is SettingChangeFunc changeFunc) {
+						changeFuncs.Add(changeFunc.settingName, method);
+					}
+				}
+			}
+
+			// Create settings container
+			try {
+				var path = Path.Combine(Application.persistentDataPath, "settings.json");
+				settingsContainer = JsonConvert.DeserializeObject<SettingContainer>(File.ReadAllText(path));
+			} catch (Exception) { }
+
+			// If failed or the settings don't exist, just create new settings
+			if (settingsContainer == null) {
+				settingsContainer = new SettingContainer();
+
+				// Get song folder location
 				var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 				var cloneHeroPath = Path.Combine(documentsPath, $"Clone Hero{Path.DirectorySeparatorChar}Songs");
 				var yargPath = Path.Combine(documentsPath, $"YARG{Path.DirectorySeparatorChar}Songs");
 
+				string songFolder = yargPath;
 				if (Directory.Exists(cloneHeroPath)) {
 					songFolder = cloneHeroPath;
 				} else if (!Directory.Exists(yargPath)) {
 					Directory.CreateDirectory(yargPath);
 				}
 
-				// And if not, create our own
-				songFolder = yargPath;
+				// Set the song folder location
+				settingsContainer.songFolder = songFolder;
 			}
+		}
 
-			// Song library settings
-			Register("songFolder", new SettingInfo {
-				type = "Folder",
-				value = songFolder,
-				isInteractable = () => GameManager.client == null,
-				variableSetter = (obj) => {
-					if (MainMenu.Instance != null) {
-						MainMenu.Instance.RefreshSongLibrary();
+		private static void SaveSettings() {
+			var path = Path.Combine(Application.persistentDataPath, "settings.json");
+			File.WriteAllText(path, JsonConvert.SerializeObject(settingsContainer));
+		}
+
+		public static SettingInfo[] GetAllSettings() {
+			var settingInfos = new SettingInfo[settings.Count];
+
+			int i = 0;
+			foreach (var key in settings.Keys) {
+				var name = (string) key;
+
+				if (settings[name] is FieldInfo field) {
+					// If this is a field setting...
+
+					var attributes = field.GetCustomAttributes(false);
+
+					SettingLocation location = null;
+					SettingType type = null;
+					SettingSpace space = null;
+
+					// Get location and type
+					foreach (var attribute in attributes) {
+						if (attribute is SettingLocation locationAttrib) {
+							location = locationAttrib;
+						}
+
+						if (attribute is SettingType typeAttrib) {
+							type = typeAttrib;
+						}
+
+						if (attribute is SettingSpace spaceAttrib) {
+							space = spaceAttrib;
+						}
 					}
-				}
-			});
-			Register("refreshCache", new SettingInfo {
-				type = "Button",
-				isInteractable = () => GameManager.client == null,
-				buttonAction = () => {
-					MainMenu.Instance.RefreshCache();
-				}
-			});
-			Register("exportOuvertSongs", new SettingInfo {
-				type = "Button",
-				buttonAction = () => {
-					StandaloneFileBrowser.SaveFilePanelAsync("Save Song List", null, "songs", "json", path => {
-						OuvertExport.ExportOuvertSongsTo(path);
-					});
-				}
-			});
 
-			// Calibration settings
-			Register("calibrationNumber", new SettingInfo {
-				spaceAbove = true,
+					settingInfos[i] = new SettingInfo {
+						name = name,
+						location = location.location,
+						type = type.type,
+						spaceAbove = space != null
+					};
+				} else if (settings[name] is MethodInfo method) {
+					// If this is a button...
 
-				type = "Number",
-				value = (int) (PlayerManager.globalCalibration * 1000f),
-				variableSetter = (obj) => {
-					PlayerManager.globalCalibration = ((int) obj) / 1000f;
-				}
-			});
-			Register("calibrate", new SettingInfo {
-				type = "Button",
-				buttonAction = () => {
-					if (PlayerManager.players.Count > 0) {
-						GameManager.Instance.LoadScene(SceneIndex.CALIBRATION);
+					var attributes = method.GetCustomAttributes(false);
+
+					SettingLocation location = null;
+					SettingSpace space = null;
+
+					// Get location and type
+					foreach (var attribute in attributes) {
+						if (attribute is SettingLocation locationAttrib) {
+							location = locationAttrib;
+						}
+
+						if (attribute is SettingSpace spaceAttrib) {
+							space = spaceAttrib;
+						}
 					}
-				}
-			});
 
-			// Toggle settings
-			Register("lowQuality", new SettingInfo {
-				spaceAbove = true,
-
-				type = "Toggle",
-				value = false,
-				variableSetter = obj => {
-					QualitySettings.SetQualityLevel((bool) obj ? 0 : 1, true);
-				}
-			});
-			Register("showHitWindow", new SettingInfo {
-				type = "Toggle",
-				value = false
-			});
-			Register("useAudioTime", new SettingInfo {
-				type = "Toggle",
-				value = false
-			});
-			Register("vsync", new SettingInfo {
-				type = "Toggle",
-				value = true,
-				variableSetter = obj => {
-					QualitySettings.vSyncCount = (bool) obj ? 1 : 0;
-				}
-			});
-
-			// Save all setting default values to file
-			foreach (DictionaryEntry entry in settings) {
-				var name = (string) entry.Key;
-				var info = (SettingInfo) entry.Value;
-
-				// Skip buttons (they don't have values)
-				if (info.type == "Button") {
-					continue;
+					settingInfos[i] = new SettingInfo {
+						name = name,
+						location = location.location,
+						type = "Button",
+						spaceAbove = space != null
+					};
 				}
 
-				if (!savedValues.ContainsKey(name)) {
-					savedValues.Add(name, new(info.value));
-				}
-			}
-			SaveSettingsToFile();
-		}
-
-		private static void ParseSettingsFile() {
-			try {
-				var path = Path.Combine(Application.persistentDataPath, "settings.json");
-
-				var file = File.ReadAllText(path);
-				savedValues = JsonConvert.DeserializeObject<Dictionary<string, JValue>>(file);
-			} catch (Exception e) {
-				Debug.LogWarning($"Could not parse settings file: {e.Message}");
-			}
-		}
-
-		private static void SaveSettingsToFile() {
-			try {
-				var path = Path.Combine(Application.persistentDataPath, "settings.json");
-
-				var file = JsonConvert.SerializeObject(savedValues, Formatting.Indented);
-				File.WriteAllText(path, file);
-			} catch (Exception e) {
-				Debug.LogWarning($"Could not save settings file: {e.Message}");
-			}
-		}
-
-		private static void Register(string name, SettingInfo info) {
-			if (settings.Contains(name)) {
-				Debug.LogWarning($"Setting {name} already exists!");
-				return;
+				i++;
 			}
 
-			settings[name] = info;
-
-			// Set value from saved values
-			if (info.value != null && savedValues.ContainsKey(name)) {
-				info.value = savedValues[name].ToObject(info.value.GetType());
-			}
-
-			// Call setter when registered
-			info.variableSetter?.Invoke(info.value);
+			return settingInfos;
 		}
 
 		public static object GetSettingValue(string name) {
-			if (name == null || !settings.Contains(name)) {
-				Debug.LogWarning($"{name} does not exist in the registered settings!");
+			if (!settings.Contains(name)) {
+				Debug.LogWarning($"Setting {name} does not exist!");
 				return null;
 			}
 
-			return ((SettingInfo) settings[name]).value;
+			if (settings[name] is FieldInfo field) {
+				return field.GetValue(settingsContainer);
+			}
+
+			Debug.LogWarning($"Setting {name} is not a field!");
+			return null;
 		}
 
 		public static T GetSettingValue<T>(string name) {
-			var obj = GetSettingValue(name);
-
-			if (obj == null) {
+			var value = GetSettingValue(name);
+			if (value is T t) {
+				return t;
+			} else if (value == null) {
 				return default;
 			}
 
-			return (T) obj;
-		}
-
-		public static SettingInfo GetSettingInfo(string name) {
-			if (name == null || !settings.Contains(name)) {
-				Debug.LogWarning($"{name} does not exist in the registered settings!");
-				return null;
-			}
-
-			return (SettingInfo) settings[name];
+			Debug.LogWarning($"Setting {name} is not of type {typeof(T)}!");
+			return default;
 		}
 
 		public static void SetSettingValue(string name, object value) {
-			if (name == null || !settings.Contains(name)) {
-				Debug.LogWarning($"{name} does not exist in the registered settings!");
+			if (!settings.Contains(name)) {
+				Debug.LogWarning($"Setting {name} does not exist!");
 				return;
 			}
 
-			var setting = (SettingInfo) settings[name];
-			setting.value = value;
+			if (settings[name] is FieldInfo field) {
+				field.SetValue(settingsContainer, value);
 
-			// Set bound variable
-			setting.variableSetter?.Invoke(value);
+				if (changeFuncs.ContainsKey(name)) {
+					changeFuncs[name].Invoke(settingsContainer, null);
+				}
 
-			// Save to file
-			savedValues[name] = new(value);
-			SaveSettingsToFile();
+				SaveSettings();
+				return;
+			}
 
-			Debug.Log($"Setting {name} to {value}.");
+			Debug.LogWarning($"Setting {name} is not a field!");
+		}
+
+		public static void InvokeButtonAction(string name) {
+			if (!settings.Contains(name)) {
+				Debug.LogWarning($"Setting {name} does not exist!");
+				return;
+			}
+
+			if (settings[name] is MethodInfo method) {
+				method.Invoke(settingsContainer, null);
+				return;
+			}
+
+			Debug.LogWarning($"Setting {name} is not a method!");
+		}
+
+		public static bool IsSettingInteractable(string name) {
+			if (!settings.Contains(name)) {
+				Debug.LogWarning($"Setting {name} does not exist!");
+				return false;
+			}
+
+			if (interactableFuncs.ContainsKey(name)) {
+				return (bool) interactableFuncs[name].Invoke(settingsContainer, null);
+			}
+
+			return true;
 		}
 	}
 }

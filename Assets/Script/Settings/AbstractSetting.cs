@@ -9,12 +9,10 @@ namespace YARG.Settings {
 
 		protected string settingName;
 
-		private System.Func<bool> interactableFunc;
-
 		/// <returns>
 		/// Whether the setting is able to be modified.
 		/// </returns>
-		public bool IsInteractable => interactableFunc == null || interactableFunc();
+		public bool IsInteractable => SettingsManager.IsSettingInteractable(settingName);
 
 		public void Setup(string settingName) {
 			settingText.StringReference = new LocalizedString {
@@ -22,8 +20,6 @@ namespace YARG.Settings {
 				TableEntryReference = settingName
 			};
 			this.settingName = settingName;
-
-			interactableFunc = SettingsManager.GetSettingInfo(settingName).isInteractable;
 
 			OnSetup();
 		}

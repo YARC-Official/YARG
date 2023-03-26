@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -20,11 +19,7 @@ namespace YARG.Settings {
 				Destroy(t.gameObject);
 			}
 
-			foreach (DictionaryEntry kvp in SettingsManager.AllSettings) {
-				// Get the name and info of the setting
-				var name = (string) kvp.Key;
-				var info = (SettingsManager.SettingInfo) kvp.Value;
-
+			foreach (var info in SettingsManager.GetAllSettings()) {
 				// Spawn a space if needed
 				if (info.spaceAbove) {
 					Instantiate(settingSpacePrefab, settingsContainer);
@@ -33,7 +28,7 @@ namespace YARG.Settings {
 				// Spawn the setting
 				var settingPrefab = Addressables.LoadAssetAsync<GameObject>($"Setting/{info.type}").WaitForCompletion();
 				var go = Instantiate(settingPrefab, settingsContainer);
-				go.GetComponent<AbstractSetting>().Setup(name);
+				go.GetComponent<AbstractSetting>().Setup(info.name);
 			}
 		}
 	}
