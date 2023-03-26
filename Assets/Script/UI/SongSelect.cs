@@ -223,7 +223,7 @@ namespace YARG.UI {
 				Back();
 			} else if (navigationType == NavigationType.TERTIARY) {
 				if (songs.Count > 0) {
-					searchField.text = $"artist:{songs[selectedSongIndex].song.ArtistName}";
+					searchField.text = $"artist:{songs[selectedSongIndex].song.artistName}";
 				}
 			}
 		}
@@ -261,7 +261,7 @@ namespace YARG.UI {
 			if (dropdown.value == 0) {
 				return Fuzz.PartialRatio(song.SongName, text);
 			} else {
-				return Fuzz.PartialRatio(song.ArtistName, text);
+				return Fuzz.PartialRatio(song.artistName, text);
 			}
 		}
 
@@ -294,7 +294,7 @@ namespace YARG.UI {
 
 								// Look all songs by artist
 								var sameArtistSongs = SongLibrary.Songs
-									.Where(i => i.ArtistName?.ToLower() == baseSong.ArtistName?.ToLower())
+									.Where(i => i.artistName?.ToLower() == baseSong.artistName?.ToLower())
 									.ToList();
 								if (sameArtistSongs.Count <= 1) {
 									continue;
@@ -361,7 +361,7 @@ namespace YARG.UI {
 						// Artist filter
 						var artist = arg[7..];
 						songsOut = SongLibrary.Songs
-							.Where(i => i.ArtistName.ToLower() == artist.ToLower());
+							.Where(i => i.artistName.ToLower() == artist.ToLower());
 					} else if (arg.StartsWith("source:")) {
 						// Source filter
 						var source = arg[7..];

@@ -30,7 +30,7 @@ namespace YARG.Serialization {
 			foreach (var song in SongLibrary.Songs) {
 				songs.Add(new SongData {
 					songName = song.SongName,
-					artistName = song.ArtistName,
+					artistName = song.artistName,
 					album = song.album,
 					genre = song.genre,
 					charter = song.charter,

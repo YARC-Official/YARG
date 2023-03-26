@@ -9,6 +9,12 @@ using YARG.Serialization;
 
 namespace YARG {
 	public static class SongLibrary {
+		private const int CACHE_VERSION = 1;
+		private class SongCacheJson {
+			public int version = CACHE_VERSION;
+			public List<SongInfo> songs;
+		}
+
 		public static DirectoryInfo songFolder = new(GetSongFolder());
 
 		public static float loadPercent = 0f;
@@ -57,22 +63,24 @@ namespace YARG {
 			}
 
 			if (CacheFile.Exists || GameManager.client != null) {
-				ReadCache();
-				return true;
-			} else {
-				ThreadPool.QueueUserWorkItem(_ => {
-					Songs = new();
-
-					loadPercent = 0f;
-					CreateSongInfoFromFiles(songFolder);
-					loadPercent = 0.1f;
-					ReadSongIni();
-					loadPercent = 0.9f;
-					CreateCache();
-					loadPercent = 1f;
-				});
-				return false;
+				var success = ReadCache();
+				if (success) {
+					return true;
+				}
 			}
+
+			ThreadPool.QueueUserWorkItem(_ => {
+				Songs = new();
+
+				loadPercent = 0f;
+				CreateSongInfoFromFiles(songFolder);
+				loadPercent = 0.1f;
+				ReadSongIni();
+				loadPercent = 0.9f;
+				CreateCache();
+				loadPercent = 1f;
+			});
+			return false;
 		}
 
 		/// <summary>
@@ -114,7 +122,11 @@ namespace YARG {
 		/// <see cref="Songs"/> is expected to be populated and filled with <see cref="ReadSongIni"/>.
 		/// </summary>
 		private static void CreateCache() {
-			var json = JsonConvert.SerializeObject(Songs, Formatting.Indented);
+			var jsonObj = new SongCacheJson {
+				songs = Songs
+			};
+
+			var json = JsonConvert.SerializeObject(jsonObj);
 			Directory.CreateDirectory(CacheFile.DirectoryName);
 			File.WriteAllText(CacheFile.ToString(), json.ToString());
 		}
@@ -123,9 +135,19 @@ namespace YARG {
 		/// Reads the song cache so we don't need to read of a the <c>song.ini</c> files.<br/>
 		/// <see cref="CacheFile"/> should exist. If not, call <see cref="CreateCache"/>.
 		/// </summary>
-		private static void ReadCache() {
+		private static bool ReadCache() {
 			string json = File.ReadAllText(CacheFile.ToString());
-			Songs = JsonConvert.DeserializeObject<List<SongInfo>>(json);
+
+			try {
+				var jsonObj = JsonConvert.DeserializeObject<SongCacheJson>(json);
+				if (jsonObj.version != CACHE_VERSION) {
+					return false;
+				}
+			} catch (JsonException) {
+				return false;
+			}
+
+			return true;
 		}
 
 		/// <summary>

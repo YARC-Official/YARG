@@ -17,7 +17,7 @@ namespace YARG.UI {
 			background.SetActive(false);
 
 			songName.text = songInfo.SongName;
-			artist.text = $"<i>{songInfo.ArtistName}</i>";
+			artist.text = $"<i>{songInfo.artistName}</i>";
 
 			var score = ScoreManager.GetScore(songInfo);
 			if (score == null || score.highestPercent.Count <= 0) {

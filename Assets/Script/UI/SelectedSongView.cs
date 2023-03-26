@@ -61,7 +61,7 @@ namespace YARG.UI {
 
 			// Basic info
 			songName.text = songInfo.SongName;
-			artist.text = $"<i>{songInfo.ArtistName}</i>";
+			artist.text = $"<i>{songInfo.artistName}</i>";
 
 			// Song score
 			var score = ScoreManager.GetScore(songInfo);
@@ -176,7 +176,7 @@ namespace YARG.UI {
 		}
 
 		public void SearchArtist() {
-			SongSelect.Instance.searchField.text = $"artist:{songInfo.ArtistName}";
+			SongSelect.Instance.searchField.text = $"artist:{songInfo.artistName}";
 		}
 
 		public void SearchSource() {
