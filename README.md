@@ -65,10 +65,10 @@ YARG is licensed under the MIT License - see the [`LICENSE`](../master/LICENSE) 
 
 | Link | Type | Use |
 | --- | --- | --- |
-| [Righteous](https://fonts.google.com/specimen/Righteous) | Font | Headers, Logo
 | [Unbounded](https://fonts.google.com/specimen/Unbounded) | Font | Combo/Multipier Meter
 | [Barlow](https://fonts.google.com/specimen/Barlow) | Font | UI Font
 | [Material Symbols](https://fonts.google.com/icons) | Icons | UI Icons
+| [PolyHaven](https://polyhaven.com/) | Assets | Textures and Models
 | [PlasticBand](https://github.com/TheNathannator/PlasticBand) | Reference | Controller Support Info
 | [EliteAsian's Unity Extensions](https://github.com/EliteAsian123/EliteAsians-Unity-Extensions) | Library | Utility
 | [Unity Standalone File Browser](https://github.com/gkngkc/UnityStandaloneFileBrowser) | Library | "Browse" Button

@@ -24,12 +24,6 @@ namespace YARG {
 		public delegate void UpdateAction();
 		public static event UpdateAction OnUpdate;
 
-		[field: SerializeField]
-		public Camera MainCamera {
-			get;
-			private set;
-		}
-
 		[SerializeField]
 		private AudioMixerGroup vocalGroup;
 
@@ -63,7 +57,10 @@ namespace YARG {
 		public void LoadScene(SceneIndex scene) {
 			// Unload the current scene and load in the new one, or just load in the new one
 			if (currentScene != SceneIndex.PERSISTANT) {
+				// Unload the current scene
 				var asyncOp = SceneManager.UnloadSceneAsync((int) currentScene);
+
+				// The load the new scene
 				asyncOp.completed += _ => LoadSceneAdditive(scene);
 			} else {
 				LoadSceneAdditive(scene);
