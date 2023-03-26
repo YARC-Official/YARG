@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using YARG.Data;
 using YARG.Input;
 using YARG.Pools;
+using YARG.Settings;
 using YARG.UI;
 using YARG.Util;
 
@@ -192,7 +193,7 @@ namespace YARG.PlayMode {
 
 			// Set up camera
 			var info = trackCamera.GetComponent<UniversalAdditionalCameraData>();
-			if (GameManager.Instance.LowQualityMode) {
+			if (SettingsManager.GetSettingValue<bool>("lowQuality")) {
 				info.antialiasing = AntialiasingMode.None;
 			} else {
 				info.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;

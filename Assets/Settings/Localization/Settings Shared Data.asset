@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
+  m_Name: Settings Shared Data
+  m_EditorClassIdentifier: 
+  m_TableCollectionName: Settings
+  m_TableCollectionNameGuidString: 0c40e690d26fdff4a92f0b3813ac68a4
+  m_Entries:
+  - m_Id: 27465736192
+    m_Key: songFolder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 904117215232
+    m_Key: refreshCache
+    m_Metadata:
+      m_Items: []
+  - m_Id: 943136825344
+    m_Key: exportOuvertSongs
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11210629439488
+    m_Key: calibrationNumber
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19564043034624
+    m_Key: calibrate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22166302482432
+    m_Key: lowQuality
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22198703480832
+    m_Key: showHitWindow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22232891252736
+    m_Key: useAudioTime
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22256769425408
+    m_Key: vsync
+    m_Metadata:
+      m_Items: []
+  - m_Id: 338993234698240
+    m_Key: fileServerIp
+    m_Metadata:
+      m_Items: []
+  - m_Id: 339052483436544
+    m_Key: connectToFileServer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 339100092981248
+    m_Key: hostFileServer
+    m_Metadata:
+      m_Items: []
+  m_Metadata:
+    m_Items: []
+  m_KeyGenerator:
+    rid: 1224712499296993313
+  references:
+    version: 2
+    RefIds:
+    - rid: 1224712499296993313
+      type: {class: DistributedUIDGenerator, ns: UnityEngine.Localization.Tables,
+        asm: Unity.Localization}
+      data:
+        m_CustomEpoch: 1679763921504

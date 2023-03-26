@@ -20,25 +20,26 @@ namespace YARG.Util {
 		public static string SourceToGameName(string source) {
 #pragma warning disable format
 			return source switch {
-				"gh1" or "gh1dlc"   => "Guitar Hero I",
-				"gh2" or "gh2dlc"   => "Guitar Hero II",
-				"gh80s"             => "Guitar Hero Encore: Rocks the 80's",
-				"gh3" or "gh3dlc"   => "Guitar Hero III: Legends of Rock",
-				"ghot"              => "Guitar Hero On Tour",
-				"gha"               => "Guitar Hero: Aerosmith",
-				"ghwt" or "ghwtdlc" => "Guitar Hero World Tour",
-				"ghm"               => "Guitar Hero Metallica",
+				"gh1" or "gh1dlc"     => "Guitar Hero I",
+				"gh2" or "gh2dlc"     => "Guitar Hero II",
+				"gh80s"               => "Guitar Hero Encore: Rocks the 80's",
+				"gh3" or "gh3dlc"     => "Guitar Hero III: Legends of Rock",
+				"ghot"                => "Guitar Hero On Tour",
+				"gha"                 => "Guitar Hero: Aerosmith",
+				"ghwt" or "ghwtdlc"   => "Guitar Hero World Tour",
+				"ghm"                 => "Guitar Hero Metallica",
+				"ghwor" or "ghwordlc" => "Guitar Hero: Warriors of Rock",
 				
-				"rb1" or "rb1dlc"   => "Rock Band 1",
-				"rb2" or "rb2dlc"   => "Rock Band 2",
-				"rb3" or "rb3dlc"   => "Rock Band 3",
-				"tbrb" or "tbrbdlc" => "The Beatles Rock Band",
-				"rbacdc"            => "Rock Band AC/DC",
-				"gdrb"              => "Green Day Rock Band",
-				"lrb"               => "Lego Rock Band",
-				"rbn"               => "Rock Band Network",
+				"rb1" or "rb1dlc"     => "Rock Band 1",
+				"rb2" or "rb2dlc"     => "Rock Band 2",
+				"rb3" or "rb3dlc"     => "Rock Band 3",
+				"tbrb" or "tbrbdlc"   => "The Beatles Rock Band",
+				"rbacdc"              => "Rock Band AC/DC",
+				"gdrb"                => "Green Day Rock Band",
+				"lrb"                 => "Lego Rock Band",
+				"rbn"                 => "Rock Band Network",
 				
-				_                   => "Unknown/Custom"
+				_                     => "Unknown/Custom"
 			};
 #pragma warning restore format
 		}
@@ -80,10 +81,11 @@ namespace YARG.Util {
 		/// <summary>
 		/// Create a zip file from the specified <paramref name="files"/>.
 		/// </summary>
-		public static void CreateZipFromFiles(string outputZip, params FileInfo[] files) {
+		public static void CreateZipFromFiles(string outputZip, params string[] files) {
 			using ZipArchive archive = ZipFile.Open(outputZip, ZipArchiveMode.Create);
 
-			foreach (var file in files) {
+			foreach (var path in files) {
+				var file = new FileInfo(path);
 				archive.CreateEntryFromFile(file.FullName, file.Name);
 			}
 		}

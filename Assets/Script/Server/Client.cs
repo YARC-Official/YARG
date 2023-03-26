@@ -41,7 +41,7 @@ namespace YARG.Server {
 			}
 
 			// Set `songFolder` to the remote path
-			SongLibrary.songFolder = new(remotePath);
+			SongLibrary.SongFolder = remotePath;
 
 			// Create TCP client
 			client = new TcpClient(ip, 6145);

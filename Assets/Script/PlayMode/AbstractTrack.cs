@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using YARG.Data;
+using YARG.Settings;
 using YARG.UI;
 
 namespace YARG.PlayMode {
@@ -96,7 +97,7 @@ namespace YARG.PlayMode {
 
 			// Set up camera
 			var info = trackCamera.GetComponent<UniversalAdditionalCameraData>();
-			if (GameManager.Instance.LowQualityMode) {
+			if (SettingsManager.GetSettingValue<bool>("lowQuality")) {
 				info.antialiasing = AntialiasingMode.None;
 			} else {
 				info.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
@@ -117,7 +118,7 @@ namespace YARG.PlayMode {
 			// Adjust hit window
 			var scale = hitWindow.localScale;
 			hitWindow.localScale = new(scale.x, Play.HIT_MARGIN * player.trackSpeed * 2f, scale.z);
-			hitWindow.gameObject.SetActive(GameManager.Instance.showHitWindow);
+			hitWindow.gameObject.SetActive(SettingsManager.GetSettingValue<bool>("showHitWindow"));
 
 			StartTrack();
 		}
