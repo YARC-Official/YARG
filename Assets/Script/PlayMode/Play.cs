@@ -81,6 +81,16 @@ namespace YARG.PlayMode {
 				audioSources.Add(Path.GetFileNameWithoutExtension(file.Name), audioSource);
 			}
 
+			// Check for single guitar audio
+			if (audioSources.Count == 1 && audioSources.ContainsKey("guitar")) {
+				// If so, replace it as the song audio
+				// Standardized in [Audio Files / File Names]
+				audioSources.Add("song", audioSources["guitar"]);
+
+				// Remove old audio
+				audioSources.Remove("guitar");
+			}
+
 			// Load chart (from midi, upgrades, etc.)
 			LoadChart();
 
@@ -172,9 +182,44 @@ namespace YARG.PlayMode {
 			}
 
 			// Audio raising and lowering based on player preformance
-			UpdateAudio("guitar", "realGuitar", "guitar", null);
-			UpdateAudio("bass", "realBass", "bass", "rhythm");
-			UpdateAudio("keys", "realKeys", "keys", null);
+			if (SettingsManager.GetSettingValue<bool>("muteOnMiss")) {
+				// Mute guitars
+				UpdateAudio(new string[] {
+					"guitar",
+					"realGuitar"
+				}, new string[] {
+					"guitar"
+				});
+
+				// Mute bass
+				UpdateAudio(new string[] {
+					"bass",
+					"realBass"
+				}, new string[] {
+					"bass",
+					"rhythm"
+				});
+
+				// Mute keys
+				UpdateAudio(new string[] {
+					"keys",
+					"realKeys"
+				}, new string[] {
+					"keys"
+				});
+
+				// Mute drums
+				UpdateAudio(new string[] {
+					"drums",
+					"realDrums"
+				}, new string[] {
+					"drums",
+					"drums_1",
+					"drums_2",
+					"drums_3",
+					"drums_4"
+				});
+			}
 
 			// Update beats
 			while (chart.beats.Count > beatIndex && chart.beats[beatIndex] <= SongTime) {
@@ -217,27 +262,29 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		private void UpdateAudio(string name, string altName, string audioName, string altAudioName = null) {
-			// Skip if that audio track doesn't exist and alt track doesn't exist
-			if (!audioSources.TryGetValue(audioName, out AudioSource audioSource)) {
-				if (altAudioName == null || !audioSources.TryGetValue(altAudioName, out audioSource)) {
-					return;
-				}
+		private void UpdateAudio(string[] names, string[] audio) {
+			// Get total amount of players with the instrument (and the amount lowered)
+			int amountWithInstrument = 0;
+			int amountLowered = 0;
+			for (int i = 0; i < names.Length; i++) {
+				amountWithInstrument += PlayerManager.PlayersWithInstrument(names[i]);
+				amountLowered += audioLowering.GetCount(names[i]);
 			}
 
-			int total = PlayerManager.PlayersWithInstrument(name) +
-				PlayerManager.PlayersWithInstrument(altName);
-
 			// Skip if no one is playing the instrument
-			if (total <= 0) {
+			if (amountWithInstrument <= 0) {
 				return;
 			}
 
-			float percent = 1f - (float) (audioLowering.GetCount(name) +
-				audioLowering.GetCount(altName)) / total;
+			// Lower all volumes to a minimum of 5%
+			float percent = 1f - (float) amountLowered / amountWithInstrument;
+			foreach (var name in audio) {
+				if (!audioSources.TryGetValue(name, out var audioSource)) {
+					continue;
+				}
 
-			// Lower volume to a minimum of 5%
-			audioSource.volume = percent * 0.95f + 0.05f;
+				audioSource.volume = percent * 0.95f + 0.05f;
+			}
 		}
 
 		public void Exit() {

@@ -63,6 +63,10 @@ MonoBehaviour:
     m_Key: hostFileServer
     m_Metadata:
       m_Items: []
+  - m_Id: 764342384844800
+    m_Key: muteOnMiss
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

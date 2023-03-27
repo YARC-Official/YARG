@@ -86,8 +86,12 @@ namespace YARG.Settings {
 				QualitySettings.vSyncCount = vsync ? 1 : 0;
 			}
 
-			[SettingSpace]
 			[SettingLocation("general", 100)]
+			[SettingType("Toggle")]
+			public bool muteOnMiss = true;
+
+			[SettingSpace]
+			[SettingLocation("general", 110)]
 			[SettingType("Text")]
 			public string fileServerIp = "localhost";
 
@@ -96,7 +100,7 @@ namespace YARG.Settings {
 				return GameManager.client == null;
 			}
 
-			[SettingLocation("general", 110)]
+			[SettingLocation("general", 120)]
 			[SettingButton("connectToFileServer")]
 			public void ConnectToFileServer() {
 				GameManager.client = new();
@@ -108,7 +112,7 @@ namespace YARG.Settings {
 				return GameManager.client == null;
 			}
 
-			[SettingLocation("general", 120)]
+			[SettingLocation("general", 130)]
 			[SettingButton("hostFileServer")]
 			public void HostFileServer() {
 				GameManager.Instance.LoadScene(SceneIndex.SERVER_HOST);
