@@ -77,12 +77,14 @@ namespace YARG.Serialization {
 				}
 
 				// Get drum type
-				if (section.ContainsKey("pro_drums") &&
-					section["pro_drums"].ToLowerInvariant() == "true") {
+				if (section.ContainsKey("pro_drums") && (
+					section["pro_drums"].ToLowerInvariant() == "true" ||
+					section["pro_drums"] == "1")) {
 
 					song.drumType = SongInfo.DrumType.FOUR_LANE;
-				} else if (section.ContainsKey("five_lane_drums") &&
-					section["five_lane_drums"].ToLowerInvariant() == "true") {
+				} else if (section.ContainsKey("five_lane_drums") && (
+					section["five_lane_drums"].ToLowerInvariant() == "true" ||
+					section["five_lane_drums"] == "1")) {
 
 					song.drumType = SongInfo.DrumType.FIVE_LANE;
 				} else {

@@ -33,6 +33,7 @@ namespace YARG.Serialization.Parser {
 
 				return notes;
 			} else {
+				Debug.Log("Parsing as 5-lane drums...");
 				return DrumFromFiveLane(trackChunk, difficulty, tempoMap);
 			}
 		}

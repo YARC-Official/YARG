@@ -8,7 +8,7 @@ using YARG.Settings;
 
 namespace YARG {
 	public static class SongLibrary {
-		private const int CACHE_VERSION = 1;
+		private const int CACHE_VERSION = 2;
 		private class SongCacheJson {
 			public int version = CACHE_VERSION;
 			public List<SongInfo> songs;
