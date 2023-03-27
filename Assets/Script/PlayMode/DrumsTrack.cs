@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using YARG.Data;
 using YARG.Input;
@@ -32,6 +33,12 @@ namespace YARG.PlayMode {
 		protected override void StartTrack() {
 			notePool.player = player;
 			genericPool.player = player;
+
+			// Lefty flip
+
+			if (player.leftyFlip) {
+				drums = drums.Reverse().ToArray();
+			}
 
 			// Inputs
 

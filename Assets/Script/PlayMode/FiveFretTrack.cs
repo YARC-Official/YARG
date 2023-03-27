@@ -37,6 +37,12 @@ namespace YARG.PlayMode {
 			notePool.player = player;
 			genericPool.player = player;
 
+			// Lefty flip
+
+			if (player.leftyFlip) {
+				frets = frets.Reverse().ToArray();
+			}
+
 			// Inputs
 
 			input = (FiveFretInputStrategy) player.inputStrategy;

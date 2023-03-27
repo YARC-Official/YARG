@@ -41,6 +41,15 @@ namespace YARG.PlayMode {
 			notePool.player = player;
 			genericPool.player = player;
 
+			// Lefty flip (TODO)
+
+			// if (player.leftyFlip) {
+			// 	fretNumbers = fretNumbers.Reverse().ToArray();
+			// 	hitParticles = hitParticles.Reverse().ToArray();
+			// 	sustainParticles = sustainParticles.Reverse().ToArray();
+			// 	stringColors = stringColors.Reverse().ToArray();
+			// }
+
 			// Inputs
 
 			input = (RealGuitarInputStrategy) player.inputStrategy;

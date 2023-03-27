@@ -21,6 +21,7 @@ namespace YARG {
 			public InputStrategy inputStrategy;
 
 			public float trackSpeed = 5f;
+			public bool leftyFlip = false;
 
 			public string chosenInstrument = "guitar";
 			public Difficulty chosenDifficulty = Difficulty.EXPERT;
