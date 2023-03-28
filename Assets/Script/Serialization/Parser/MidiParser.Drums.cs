@@ -56,7 +56,7 @@ namespace YARG.Serialization.Parser {
 			}
 
 			// If we didn't find the note, assume 4-lane
-			return SongInfo.DrumType.FIVE_LANE;
+			return SongInfo.DrumType.FOUR_LANE;
 		}
 
 		private List<CymbalStateIR> DrumCymbalStatePass(TrackChunk trackChunk, TempoMap tempoMap) {
