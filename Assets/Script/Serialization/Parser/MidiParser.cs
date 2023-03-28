@@ -112,21 +112,27 @@ namespace YARG.Serialization.Parser {
 			// Downsample instruments
 
 			foreach (var subChart in chart.allParts) {
-				if (subChart == chart.guitar || subChart == chart.bass || subChart == chart.keys) {
-					if (subChart[3].Count >= 1 && (subChart[2].Count <= 0 || FORCE_DOWNSAMPLE)) {
-						subChart[2] = FiveFretDownsample.DownsampleExpertToHard(subChart[3]);
-						Debug.Log("Downsampled expert to hard.");
-					}
+				try {
+					// Downsample Five Fret instruments
+					if (subChart == chart.guitar || subChart == chart.bass || subChart == chart.keys) {
+						if (subChart[3].Count >= 1 && (subChart[2].Count <= 0 || FORCE_DOWNSAMPLE)) {
+							subChart[2] = FiveFretDownsample.DownsampleExpertToHard(subChart[3]);
+							Debug.Log("Downsampled expert to hard.");
+						}
 
-					if (subChart[2].Count >= 1 && (subChart[1].Count <= 0 || FORCE_DOWNSAMPLE)) {
-						subChart[1] = FiveFretDownsample.DownsampleHardToMedium(subChart[2]);
-						Debug.Log("Downsampled hard to normal.");
-					}
+						if (subChart[2].Count >= 1 && (subChart[1].Count <= 0 || FORCE_DOWNSAMPLE)) {
+							subChart[1] = FiveFretDownsample.DownsampleHardToMedium(subChart[2]);
+							Debug.Log("Downsampled hard to normal.");
+						}
 
-					if (subChart[1].Count >= 1 && (subChart[0].Count <= 0 || FORCE_DOWNSAMPLE)) {
-						subChart[0] = FiveFretDownsample.DownsampleMediumToEasy(subChart[1]);
-						Debug.Log("Downsampled normal to easy.");
+						if (subChart[1].Count >= 1 && (subChart[0].Count <= 0 || FORCE_DOWNSAMPLE)) {
+							subChart[0] = FiveFretDownsample.DownsampleMediumToEasy(subChart[1]);
+							Debug.Log("Downsampled normal to easy.");
+						}
 					}
+				} catch (Exception e) {
+					Debug.LogError("Error while downsampling. Skipped.");
+					Debug.LogException(e);
 				}
 			}
 

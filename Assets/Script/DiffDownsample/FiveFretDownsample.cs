@@ -140,6 +140,11 @@ namespace YARG.DiffDownsample {
 			float currentChordTime = -1f;
 			ChordedNoteInfo currentChord = null;
 			foreach (var note in input) {
+				// Skip open notes and such (expert only)
+				if (note.fret > 4) {
+					continue;
+				}
+
 				if (currentChordTime != note.time) {
 					output.Add(currentChord);
 					currentChordTime = note.time;
