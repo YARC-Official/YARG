@@ -168,6 +168,19 @@ namespace YARG.Settings {
 				// Set the song folder location
 				settingsContainer.songFolder = songFolder;
 			}
+
+			// Call change functions
+			foreach (var (key, func) in changeFuncs) {
+				var name = (string) key;
+				var method = (MethodInfo) func;
+
+				// This happens elsewhere
+				if (name == "songFolder") {
+					continue;
+				}
+
+				method.Invoke(settingsContainer, null);
+			}
 		}
 
 		private static void SaveSettings() {

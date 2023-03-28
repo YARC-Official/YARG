@@ -8,7 +8,13 @@ using YARG.Util;
 
 namespace YARG.PlayMode {
 	public class DrumsTrack : AbstractTrack {
-		private DrumsInputStrategy input;
+		private InputStrategy input;
+
+		[Space]
+		[SerializeField]
+		private bool fiveLaneMode = false;
+
+		private int kickIndex = 4;
 
 		[Space]
 		[SerializeField]
@@ -42,25 +48,37 @@ namespace YARG.PlayMode {
 
 			// Inputs
 
-			input = (DrumsInputStrategy) player.inputStrategy;
+			input = player.inputStrategy;
 			input.ResetForSong();
 
-			input.DrumHitEvent += DrumHitAction;
+			if (input is DrumsInputStrategy drumStrat) {
+				drumStrat.DrumHitEvent += DrumHitAction;
+			} else if (input is GHDrumsInputStrategy ghStrat) {
+				ghStrat.DrumHitEvent += GHDrumHitAction;
+			}
+
+			// GH vs RB
+
+			kickIndex = fiveLaneMode ? 5 : 4;
 
 			// Color drums
-			for (int i = 0; i < 4; i++) {
+			for (int i = 0; i < drums.Length; i++) {
 				var fret = drums[i].GetComponent<Fret>();
 				fret.SetColor(drumColors[i]);
 				drums[i] = fret;
 			}
-			kickNoteParticles.Colorize(drumColors[4]);
+			kickNoteParticles.Colorize(drumColors[kickIndex]);
 		}
 
 		protected override void OnDestroy() {
 			base.OnDestroy();
 
 			// Unbind input
-			input.DrumHitEvent -= DrumHitAction;
+			if (input is DrumsInputStrategy drumStrat) {
+				drumStrat.DrumHitEvent -= DrumHitAction;
+			} else if (input is GHDrumsInputStrategy ghStrat) {
+				ghStrat.DrumHitEvent -= GHDrumHitAction;
+			}
 
 			// Set score
 			player.lastScore = new PlayerManager.LastScore {
@@ -122,7 +140,7 @@ namespace YARG.PlayMode {
 					peeked.Add(noteInfo);
 				} else {
 					// Or add notes as singular
-					var l = new List<NoteInfo>(5) { noteInfo };
+					var l = new List<NoteInfo>(6) { noteInfo };
 					expectedHits.Enqueue(l);
 				}
 
@@ -146,8 +164,12 @@ namespace YARG.PlayMode {
 			}
 		}
 
+		private void GHDrumHitAction(int drum) {
+			DrumHitAction(drum, false);
+		}
+
 		private void DrumHitAction(int drum, bool cymbal) {
-			if (drum != 4) {
+			if (drum != kickIndex) {
 				// Hit effect
 				drums[drum].Pulse();
 			}
@@ -202,7 +224,7 @@ namespace YARG.PlayMode {
 			StopAudio = false;
 
 			// Play particles
-			if (hit.fret != 4) {
+			if (hit.fret != kickIndex) {
 				drums[hit.fret].PlayParticles();
 			} else {
 				kickNoteParticles.Play();
@@ -215,12 +237,12 @@ namespace YARG.PlayMode {
 		private void SpawnNote(NoteInfo noteInfo, float time) {
 			// Set correct position
 			float lagCompensation = CalcLagCompensation(time, noteInfo.time);
-			float x = noteInfo.fret == 4 ? 0f : drums[noteInfo.fret].transform.localPosition.x;
+			float x = noteInfo.fret == kickIndex ? 0f : drums[noteInfo.fret].transform.localPosition.x;
 			var pos = new Vector3(x, 0f, TRACK_SPAWN_OFFSET - lagCompensation);
 
 			// Get model type
 			var model = NoteComponent.ModelType.NOTE;
-			if (noteInfo.fret == 4) {
+			if (noteInfo.fret == kickIndex) {
 				// Kick
 				model = NoteComponent.ModelType.FULL;
 			} else if (noteInfo.hopo && player.chosenInstrument == "realDrums") {

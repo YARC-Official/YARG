@@ -169,7 +169,7 @@ namespace YARG.UI {
 
 			if (selectedDevice?.Item2 != -1) {
 				// Set to MIC if the selected device is a MIC
-				inputStrategyDropdown.value = 3;
+				inputStrategyDropdown.value = 1;
 			} else {
 				inputStrategyDropdown.value = 0;
 			}
@@ -178,9 +178,10 @@ namespace YARG.UI {
 		public void DoneConfigure() {
 			inputStrategy = inputStrategyDropdown.value switch {
 				0 => new FiveFretInputStrategy(),
-				1 => new RealGuitarInputStrategy(),
-				2 => new DrumsInputStrategy(),
-				3 => new MicInputStrategy(),
+				1 => new MicInputStrategy(),
+				2 => new RealGuitarInputStrategy(),
+				3 => new DrumsInputStrategy(),
+				4 => new GHDrumsInputStrategy(),
 				_ => throw new System.Exception("Unreachable.")
 			};
 
