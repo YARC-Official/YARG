@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
-using UnityEngine;
 using YARG.Data;
 
 namespace YARG.Serialization.Parser {
@@ -33,8 +32,7 @@ namespace YARG.Serialization.Parser {
 
 				return notes;
 			} else {
-				Debug.Log("Parsing as 5-lane drums...");
-				return DrumFromFiveLane(trackChunk, difficulty, tempoMap);
+				return DrumFromGH(trackChunk, difficulty, tempoMap);
 			}
 		}
 
@@ -222,7 +220,7 @@ namespace YARG.Serialization.Parser {
 			}
 		}
 
-		private List<NoteInfo> DrumFromFiveLane(TrackChunk trackChunk, int difficulty, TempoMap tempoMap) {
+		private List<NoteInfo> DrumFromGH(TrackChunk trackChunk, int difficulty, TempoMap tempoMap) {
 			long totalDelta = 0;
 
 			var noteOutput = new List<NoteInfo>();

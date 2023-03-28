@@ -146,7 +146,9 @@ namespace YARG.UI {
 				} else {
 					player.chosenInstrument = instruments[selected];
 
-					bool showExpertPlus = player.chosenInstrument == "drums" || player.chosenInstrument == "realDrums";
+					bool showExpertPlus = player.chosenInstrument == "drums"
+						|| player.chosenInstrument == "realDrums"
+						|| player.chosenInstrument == "ghDrums";
 					UpdateDifficulty(showExpertPlus);
 				}
 			} else if (state == State.DIFFICULTY) {
@@ -243,6 +245,7 @@ namespace YARG.UI {
 					"realKeys" => "Pro Keys",
 					"vocals" => "Vocals",
 					"harmVocals" => "Vocals (Harmony)",
+					"ghDrums" => "Drums (5-lane)",
 					_ => "Unknown"
 				};
 			}

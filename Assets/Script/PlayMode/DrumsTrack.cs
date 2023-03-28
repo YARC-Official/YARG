@@ -245,9 +245,16 @@ namespace YARG.PlayMode {
 			if (noteInfo.fret == kickIndex) {
 				// Kick
 				model = NoteComponent.ModelType.FULL;
-			} else if (noteInfo.hopo && player.chosenInstrument == "realDrums") {
-				// Cymbal (only for pro-drums)
-				model = NoteComponent.ModelType.HOPO;
+			} else if (player.chosenInstrument == "ghDrums") {
+				if (noteInfo.fret == 1 || noteInfo.fret == 3) {
+					// Cymbal (only for gh-drums if enabled)
+					model = NoteComponent.ModelType.HOPO;
+				}
+			} else {
+				if (noteInfo.hopo && player.chosenInstrument == "realDrums") {
+					// Cymbal (only for pro-drums)
+					model = NoteComponent.ModelType.HOPO;
+				}
 			}
 
 			// Set note info

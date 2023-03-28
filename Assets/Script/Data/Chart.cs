@@ -2,16 +2,21 @@ using System;
 using System.Collections.Generic;
 
 namespace YARG.Data {
-	public class Chart {
+	public sealed class Chart {
 		public List<List<NoteInfo>[]> allParts;
+		
+#pragma warning disable format
+		
+		public List<NoteInfo>[] guitar     = CreateArray();
+		public List<NoteInfo>[] bass       = CreateArray();
+		public List<NoteInfo>[] keys       = CreateArray();
+		public List<NoteInfo>[] realGuitar = CreateArray();
+		public List<NoteInfo>[] realBass   = CreateArray();
+		
+		public List<NoteInfo>[] drums      = CreateArray(5);
+		public List<NoteInfo>[] ghDrums    = CreateArray(5);
 
-		public List<NoteInfo>[] guitar = new List<NoteInfo>[] { new(), new(), new(), new() };
-		public List<NoteInfo>[] bass = new List<NoteInfo>[] { new(), new(), new(), new() };
-		public List<NoteInfo>[] keys = new List<NoteInfo>[] { new(), new(), new(), new() };
-		public List<NoteInfo>[] realGuitar = new List<NoteInfo>[] { new(), new(), new(), new() };
-		public List<NoteInfo>[] realBass = new List<NoteInfo>[] { new(), new(), new(), new() };
-
-		public List<NoteInfo>[] drums = new List<NoteInfo>[] { new(), new(), new(), new(), new() };
+#pragma warning restore format
 
 		public List<EventInfo> events = new();
 		public List<float> beats = new();
@@ -21,7 +26,7 @@ namespace YARG.Data {
 
 		public Chart() {
 			allParts = new() {
-				guitar, bass, keys, realGuitar, realBass, drums
+				guitar, bass, keys, realGuitar, realBass, drums, ghDrums
 			};
 		}
 
@@ -33,8 +38,18 @@ namespace YARG.Data {
 				"realGuitar" => realGuitar,
 				"realBass" => realBass,
 				"drums" or "realDrums" => drums,
+				"ghDrums" => ghDrums,
 				_ => throw new InvalidOperationException($"Unsupported chart type `{name}`.")
 			};
+		}
+
+		private static List<NoteInfo>[] CreateArray(int length = 4) {
+			var list = new List<NoteInfo>[length];
+			for (int i = 0; i < length; i++) {
+				list[i] = new();
+			}
+
+			return list;
 		}
 	}
 }

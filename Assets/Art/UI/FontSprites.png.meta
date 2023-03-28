@@ -20,12 +20,11 @@ TextureImporter:
     externalNormalMap: 0
     heightScale: 0.25
     normalMapFilter: 0
-    flipGreenChannel: 0
   isReadable: 0
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
   vTOnly: 0
-  ignoreMipmapLimit: 0
+  ignoreMasterTextureLimit: 0
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -64,7 +63,6 @@ TextureImporter:
   textureFormatSet: 0
   ignorePngGamma: 0
   applyGammaDecoding: 0
-  swizzle: 50462976
   cookieLightType: 0
   platformSettings:
   - serializedVersion: 3
@@ -215,7 +213,7 @@ TextureImporter:
       name: realGuitar
       rect:
         serializedVersion: 2
-        x: 255
+        x: 256
         y: 512
         width: 256
         height: 256
@@ -237,7 +235,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 512
-        y: 511
+        y: 512
         width: 256
         height: 256
       alignment: 0
@@ -295,6 +293,48 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: harmVocals
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 256
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f23525d65f8b3544588bf4356e3590d9
+      internalID: 1676829369
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ghDrums
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 256
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 85f9fc03fdc316648bb31f73fe7f684c
+      internalID: -1041038840
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -306,17 +346,20 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      vocals: -212029294
       bass: -1834431651
-      realKeys: -1173955509
+      drums: -1591131112
+      ghDrums: -1041038840
+      guitar: 1445730593
+      harmVocals: 1676829369
+      keys: -1340302279
       realBass: 894865564
       realDrums: -844217933
-      drums: -1591131112
       realGuitar: 1760769726
-      keys: -1340302279
-      guitar: 1445730593
-  mipmapLimitGroupName: 
+      realKeys: -1173955509
+      vocals: -212029294
+  spritePackingTag: 
   pSDRemoveMatte: 0
+  pSDShowRemoveMatteOption: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 

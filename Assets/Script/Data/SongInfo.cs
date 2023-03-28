@@ -9,7 +9,7 @@ namespace YARG.Data {
 	public class SongInfo {
 		public enum DrumType {
 			FOUR_LANE,
-			FIVE_LANE,
+			FIVE_LANE, // AKA GH
 			UNKNOWN
 		}
 
