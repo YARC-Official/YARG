@@ -145,9 +145,12 @@ namespace YARG.Server {
 							}
 
 							// Send album cover over
-							var info = new FileInfo(Path.Combine(path, "album.png"));
-							if (info.Exists) {
-								SendFile(stream, info);
+							string pngPath = Path.Combine(path, "album.png");
+							string jpgPath = Path.Combine(path, "album.jpg");
+							if (File.Exists(pngPath)) {
+								SendFile(stream, new FileInfo(pngPath));
+							} else if (File.Exists(jpgPath)) {
+								SendFile(stream, new FileInfo(jpgPath));
 							} else {
 								SendNoFile(stream);
 							}

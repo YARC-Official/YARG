@@ -135,7 +135,15 @@ namespace YARG.UI {
 			if (GameManager.client != null) {
 				GameManager.client.RequestAlbumCover(songInfo.folder.FullName);
 			} else {
-				StartCoroutine(LoadAlbumCoverCoroutine(Path.Combine(songInfo.folder.FullName, "album.png")));
+				string pngPath = Path.Combine(songInfo.folder.FullName, "album.png");
+				string jpgPath = Path.Combine(songInfo.folder.FullName, "album.jpg");
+
+				// Load PNG or JPG
+				if (File.Exists(pngPath)) {
+					StartCoroutine(LoadAlbumCoverCoroutine(pngPath));
+				} else if (File.Exists(jpgPath)) {
+					StartCoroutine(LoadAlbumCoverCoroutine(jpgPath));
+				}
 			}
 		}
 
@@ -149,13 +157,13 @@ namespace YARG.UI {
 					return;
 				}
 
-				string path = Path.Combine(GameManager.client.AlbumCoversPath, $"{hash}.png");
+				string path = Path.Combine(GameManager.client.AlbumCoversPath, hash);
 				StartCoroutine(LoadAlbumCoverCoroutine(path));
 			}
 		}
 
 		private IEnumerator LoadAlbumCoverCoroutine(string filePath) {
-			if (!new FileInfo(filePath).Exists) {
+			if (!File.Exists(filePath)) {
 				yield break;
 			}
 

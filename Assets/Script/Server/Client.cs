@@ -99,8 +99,8 @@ namespace YARG.Server {
 					} else if (request.StartsWith("ReqAlbumCover,")) {
 						// Read album.png from server
 						string hash = Utils.Hash(request[14..]);
-						string pngPath = Path.Combine(AlbumCoversPath, $"{hash}.png");
-						Utils.ReadFile(stream, new(pngPath));
+						string path = Path.Combine(AlbumCoversPath, hash);
+						Utils.ReadFile(stream, new(path));
 
 						// Send signal
 						signals.Enqueue($"AlbumCoverDone,{hash}");
@@ -204,7 +204,7 @@ namespace YARG.Server {
 		public void RequestAlbumCover(string path) {
 			// See first if the album cover is already downloaded
 			var folderName = Utils.Hash(path);
-			var coverFile = new FileInfo(Path.Combine(AlbumCoversPath, $"{folderName}.png"));
+			var coverFile = new FileInfo(Path.Combine(AlbumCoversPath, folderName));
 			if (coverFile.Exists) {
 				// If so, send the signal that it has finished downloading
 				signals.Enqueue($"AlbumCoverDone,{folderName}");
