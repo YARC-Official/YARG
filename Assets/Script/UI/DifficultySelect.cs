@@ -7,6 +7,7 @@ using UnityEngine.InputSystem;
 using YARG.Data;
 using YARG.Input;
 using YARG.PlayMode;
+using System;
 
 namespace YARG.UI {
 	public class DifficultySelect : MonoBehaviour {
@@ -135,8 +136,25 @@ namespace YARG.UI {
 			// Select new one
 			options[selected].SetSelected(true);
 		}
+		
+		//a MoveOption variant for the mouse
+		public void HoverOption(GenericOption i) {
+			// Deselect old one
+			options[selected].SetSelected(false);
 
-		private void Next() {
+			selected = Array.IndexOf(options, i);
+			
+			//slighty different than with the keyboard.
+			//don't need to bound the top. The bottom should stop and not roll over.
+			if (selected >= optionCount) {
+				selected =  optionCount - 1;
+			}
+
+			// Select new one
+			options[selected].SetSelected(true);
+		}
+
+		public void Next() {
 			var player = PlayerManager.players[playerIndex];
 
 			if (state == State.INSTRUMENT) {
