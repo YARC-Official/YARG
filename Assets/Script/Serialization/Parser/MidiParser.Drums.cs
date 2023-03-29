@@ -20,10 +20,9 @@ namespace YARG.Serialization.Parser {
 			public CymbalState cymbalState;
 		}
 
-		private List<NoteInfo> ParseDrums(TrackChunk trackChunk, int difficulty) {
+		private List<NoteInfo> ParseDrums(TrackChunk trackChunk, int difficulty, SongInfo.DrumType drumType, List<NoteInfo> ghEquivalent) {
 			var tempoMap = midi.GetTempoMap();
 
-			var drumType = GetDrumType(trackChunk);
 			if (drumType == SongInfo.DrumType.FOUR_LANE) {
 				var cymbalStateIR = DrumCymbalStatePass(trackChunk, tempoMap);
 
@@ -32,29 +31,8 @@ namespace YARG.Serialization.Parser {
 
 				return notes;
 			} else {
-				return DrumFromGH(trackChunk, difficulty, tempoMap);
+				return DrumFromGH(ghEquivalent);
 			}
-		}
-
-		private SongInfo.DrumType GetDrumType(TrackChunk trackChunk) {
-			if (songInfo.drumType != SongInfo.DrumType.UNKNOWN) {
-				return songInfo.drumType;
-			}
-
-			// If we don't know the drum type...
-			foreach (var midiEvent in trackChunk.Events) {
-				if (midiEvent is not NoteEvent note) {
-					continue;
-				}
-
-				// Look for the expert 5th-lane note
-				if (note.NoteNumber == 101) {
-					return SongInfo.DrumType.FIVE_LANE;
-				}
-			}
-
-			// If we didn't find the note, assume 4-lane
-			return SongInfo.DrumType.FOUR_LANE;
 		}
 
 		private List<CymbalStateIR> DrumCymbalStatePass(TrackChunk trackChunk, TempoMap tempoMap) {
@@ -220,94 +198,44 @@ namespace YARG.Serialization.Parser {
 			}
 		}
 
-		private List<NoteInfo> DrumFromGH(TrackChunk trackChunk, int difficulty, TempoMap tempoMap) {
-			long totalDelta = 0;
+		private List<NoteInfo> DrumFromGH(List<NoteInfo> ghNotes) {
+			// Standardized in [.mid / Standard / Drums / Track Type Conversions]
 
 			var noteOutput = new List<NoteInfo>();
 
-			// Expert+ is just Expert with double-kick
-			bool doubleKick = false;
-			if (difficulty == (int) Difficulty.EXPERT_PLUS) {
-				doubleKick = true;
-				difficulty--;
-			}
-
+			// Convert from GH to Standard
 			NoteInfo lastNote = null;
-
-			// Convert track events into note info
-			foreach (var trackEvent in trackChunk.Events) {
-				totalDelta += trackEvent.DeltaTime;
-
-				if (trackEvent is not NoteOnEvent noteEvent) {
-					continue;
-				}
-
-				// Look for correct octave
-				var noteName = noteEvent.GetNoteName();
-				if (noteEvent.GetNoteOctave() != 4 + difficulty) {
-					if (doubleKick && noteEvent.GetNoteOctave() == 6 && noteName == NoteName.B) {
-						// Set as kick if double-kick
-						noteName = NoteName.C;
-					} else {
-						continue;
-					}
-				}
-
-				// Convert note to drum number
-				int drum = noteName switch {
-					// Kick
-					NoteName.C => 5,
-					// Red
-					NoteName.CSharp => 0,
-					// Yellow
-					NoteName.D => 1,
-					// Blue
-					NoteName.DSharp => 2,
-					// Orange
-					NoteName.E => 3,
-					// Green
-					NoteName.F => 4,
-					// Default
-					_ => -1
-				};
-
-				// Skip if not an actual note
-				if (drum == -1) {
-					continue;
-				}
+			foreach (var note in ghNotes) {
+				var newNote = note.Duplicate();
 
 				// Convert to 4-lane
-				bool isCymbal = false;
-				switch (drum) {
+				switch (newNote.fret) {
 					case 1: // Red -> Red Cymbal
-						drum = 1;
-						isCymbal = true;
+						newNote.fret = 1;
+						newNote.hopo = true;
 						break;
 					case 3: // Orange -> Green Cymbal
-						drum = 3;
-						isCymbal = true;
+						newNote.fret = 3;
+						newNote.hopo = true;
 						break;
 					case 4: // Green -> Green Tom
-						drum = 3;
-						isCymbal = false;
+						newNote.fret = 3;
+						newNote.hopo = false;
 						break;
 					case 5: // Kick
-						drum = 4;
+						newNote.fret = 4;
 						break;
 				}
 
-				// Get start time (in seconds)
-				float startTime = (float) TimeConverter.ConvertTo<MetricTimeSpan>(totalDelta, tempoMap).TotalSeconds;
-
 				// Check for Green Cymbal + Green Tom collision
-				if (lastNote != null && lastNote.time == startTime) {
+				if (lastNote != null && lastNote.time == newNote.time) {
 					if (lastNote.fret == 3 && lastNote.hopo &&
-						drum == 3 && !isCymbal) {
+						newNote.fret == 3 && !newNote.hopo) {
 
-						drum = 2;
-						isCymbal = false;
+						newNote.fret = 2;
+						newNote.hopo = false;
 					} else if (lastNote.fret == 3 && !lastNote.hopo &&
-						drum == 3 && isCymbal) {
+						newNote.fret == 3 && newNote.hopo) {
 
 						lastNote.fret = 2;
 						lastNote.hopo = false;
@@ -315,13 +243,8 @@ namespace YARG.Serialization.Parser {
 				}
 
 				// Add note
-				lastNote = new NoteInfo {
-					time = startTime,
-					length = 0f,
-					fret = drum,
-					hopo = isCymbal
-				};
-				noteOutput.Add(lastNote);
+				noteOutput.Add(newNote);
+				lastNote = newNote;
 			}
 
 			return noteOutput;

@@ -95,10 +95,20 @@ namespace YARG.Serialization.Parser {
 								break;
 							case "PART DRUM":
 							case "PART DRUMS":
-								for (int i = 0; i < 5; i++) {
-									chart.drums[i] = ParseDrums(trackChunk, i);
-									chart.ghDrums[i] = ParseGHDrums(trackChunk, i);
+								var drumType = GetDrumType(trackChunk);
+
+								if (drumType == SongInfo.DrumType.FOUR_LANE) {
+									for (int i = 0; i < 5; i++) {
+										chart.drums[i] = ParseDrums(trackChunk, i, drumType, null);
+										chart.ghDrums[i] = ParseGHDrums(trackChunk, i, drumType, chart.drums[i]);
+									}
+								} else {
+									for (int i = 0; i < 5; i++) {
+										chart.ghDrums[i] = ParseGHDrums(trackChunk, i, drumType, null);
+										chart.drums[i] = ParseDrums(trackChunk, i, drumType, chart.ghDrums[i]);
+									}
 								}
+
 								break;
 							case "BEAT":
 								ParseBeats(eventIR, trackChunk);
@@ -255,6 +265,27 @@ namespace YARG.Serialization.Parser {
 					starPowerStart = null;
 				}
 			}
+		}
+
+		private SongInfo.DrumType GetDrumType(TrackChunk trackChunk) {
+			if (songInfo.drumType != SongInfo.DrumType.UNKNOWN) {
+				return songInfo.drumType;
+			}
+
+			// If we don't know the drum type...
+			foreach (var midiEvent in trackChunk.Events) {
+				if (midiEvent is not NoteEvent note) {
+					continue;
+				}
+
+				// Look for the expert 5th-lane note
+				if (note.NoteNumber == 101) {
+					return SongInfo.DrumType.FIVE_LANE;
+				}
+			}
+
+			// If we didn't find the note, assume 4-lane
+			return SongInfo.DrumType.FOUR_LANE;
 		}
 	}
 }

@@ -2,19 +2,18 @@ using System.Collections.Generic;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
+using UnityEngine;
 using YARG.Data;
 
 namespace YARG.Serialization.Parser {
 	public partial class MidiParser : AbstractParser {
-		private List<NoteInfo> ParseGHDrums(TrackChunk trackChunk, int difficulty) {
+		private List<NoteInfo> ParseGHDrums(TrackChunk trackChunk, int difficulty, SongInfo.DrumType drumType, List<NoteInfo> stdEquivalent) {
 			var tempoMap = midi.GetTempoMap();
 
-			var drumType = GetDrumType(trackChunk);
-			if (drumType == SongInfo.DrumType.FOUR_LANE) {
-				// TODO
-				return null;
-			} else {
+			if (drumType == SongInfo.DrumType.FIVE_LANE) {
 				return GHDrumNotePass(trackChunk, difficulty, tempoMap);
+			} else {
+				return DrumFromStandard(stdEquivalent);
 			}
 		}
 
@@ -81,6 +80,95 @@ namespace YARG.Serialization.Parser {
 					length = 0f,
 					fret = drum
 				});
+			}
+
+			return noteOutput;
+		}
+
+		private List<NoteInfo> DrumFromStandard(List<NoteInfo> stdNotes) {
+			// Standardized in [.mid / Standard / Drums / Track Type Conversions]
+
+			var noteOutput = new List<NoteInfo>();
+
+			// Convert from GH to Standard
+			NoteInfo lastNote = null;
+			foreach (var note in stdNotes) {
+				var newNote = note.Duplicate();
+
+				// Convert to 5-lane
+				switch (newNote.fret) {
+					case 1:
+						if (newNote.hopo) { // Yellow cymbal -> Yellow
+							newNote.fret = 1;
+							newNote.hopo = false;
+						} else { // Yellow tom -> Blue
+
+							// Unless Yellow tom + Blue tom -> Red + Blue
+							if (lastNote != null && lastNote.time == newNote.time) {
+								if (lastNote.fret == 2) {
+									newNote.fret = 0;
+								} else {
+									newNote.fret = 2;
+								}
+							} else {
+								newNote.fret = 2;
+							}
+						}
+						break;
+					case 2:
+						if (newNote.hopo) { // Blue cymbal -> Orange
+							newNote.hopo = false;
+
+							// Unless Blue cymbal + Green cymbal -> Yellow + Orange
+							if (lastNote != null && lastNote.time == newNote.time) {
+								if (lastNote.fret == 1) {
+									newNote.fret = 3;
+								} else {
+									newNote.fret = 1;
+								}
+							} else {
+								newNote.fret = 1;
+							}
+						} else { // Blue tom -> Blue
+
+							// Unless Yellow tom + Blue tom -> Red + Blue
+							if (lastNote != null && lastNote.time == newNote.time) {
+								if (lastNote.fret == 2) {
+									newNote.fret = 0;
+								} else {
+									newNote.fret = 2;
+								}
+							} else {
+								newNote.fret = 2;
+							}
+						}
+						break;
+					case 3:
+						if (newNote.hopo) { // Green cymbal -> Orange
+							newNote.hopo = false;
+
+							// Unless Blue cymbal + Green cymbal -> Yellow + Orange
+							if (lastNote != null && lastNote.time == newNote.time) {
+								if (lastNote.fret == 3) {
+									newNote.fret = 1;
+								} else {
+									newNote.fret = 3;
+								}
+							} else {
+								newNote.fret = 3;
+							}
+						} else { // Green tom -> Green
+							newNote.fret = 4;
+						}
+						break;
+					case 4: // Kick
+						newNote.fret = 5;
+						break;
+				}
+
+				// Add note
+				noteOutput.Add(newNote);
+				lastNote = newNote;
 			}
 
 			return noteOutput;

@@ -53,15 +53,11 @@ Windows:
 
 YARG is licensed under the MIT License - see the [`LICENSE`](../master/LICENSE) file for details.
 
-# 🔨 Building
-
-1. Clone repository.
-2. Open it in Unity version `2021.3.21f1` (LTS)
-3. Load in **without** entering safe mode.
-4. Click on `NuGet` on the menu bar.
-5. Click on `Restore Packages`.
-
 # 📦 External Assets and Libraries
+
+> **Info**
+>
+> YARG uses [GuitarGame_ChartFormats](https://github.com/TheNathannator/GuitarGame_ChartFormats) as a "standard." The end goal is to get everything listed in that documentation to work without issue. This is currently not the case, but we are getting closer to that goal everyday!
 
 | Link | Type | Use |
 | --- | --- | --- |
@@ -70,6 +66,7 @@ YARG is licensed under the MIT License - see the [`LICENSE`](../master/LICENSE) 
 | [Material Symbols](https://fonts.google.com/icons) | Icons | UI Icons
 | [PolyHaven](https://polyhaven.com/) | Assets | Textures and Models
 | [PlasticBand](https://github.com/TheNathannator/PlasticBand) | Reference | Controller Support Info
+| [GuitarGame_ChartFormats](https://github.com/TheNathannator/GuitarGame_ChartFormats) | Reference | File Format Documentation
 | [EliteAsian's Unity Extensions](https://github.com/EliteAsian123/EliteAsians-Unity-Extensions) | Library | Utility
 | [Unity Standalone File Browser](https://github.com/gkngkc/UnityStandaloneFileBrowser) | Library | "Browse" Button
 | [FuzzySharp](https://www.nuget.org/packages/FuzzySharp) | Library | Search Function
@@ -77,6 +74,14 @@ YARG is licensed under the MIT License - see the [`LICENSE`](../master/LICENSE) 
 | [DryWetMidi](https://www.nuget.org/packages/Melanchall.DryWetMidi) | Library | Parsing `.mid` Files
 | [TagLibSharp](https://www.nuget.org/packages/TagLibSharp) | Library | Finding Audio Metadata
 | [Minis](https://github.com/keijiro/Minis/tree/master) | Library | MIDI Input for Unity
+
+# 🔨 Building
+
+1. Clone repository.
+2. Open it in Unity version `2021.3.21f1` (LTS)
+3. Load in **without** entering safe mode.
+4. Click on `NuGet` on the menu bar.
+5. Click on `Restore Packages`.
 
 # 💸 Donate
 
