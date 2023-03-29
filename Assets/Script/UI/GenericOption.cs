@@ -15,6 +15,17 @@ namespace YARG.UI {
 		[SerializeField]
 		private Image image;
 
+		private DifficultySelect difficultySelect;
+
+		public void MouseEnter(){
+			//Did this becuase cannot add non-prefab to a prefab's serilized field. Using a string isn't great.
+			 GameObject.Find("Difficulty Select").GetComponent<DifficultySelect>().HoverOption(this);
+		}
+
+		public void MouseClick(){
+			GameObject.Find("Difficulty Select").GetComponent<DifficultySelect>().Next();
+		}
+
 		public void SetSelected(bool selected) {
 			selectedBackground.SetActive(selected);
 
