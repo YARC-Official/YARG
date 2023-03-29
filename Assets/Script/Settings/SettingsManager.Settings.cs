@@ -6,7 +6,7 @@ using YARG.UI;
 namespace YARG.Settings {
 	public static partial class SettingsManager {
 		private class SettingContainer {
-			[SettingLocation("general", 10)]
+			[SettingLocation("general", 1)]
 			[SettingType("Folder")]
 			public string songFolder = null;
 
@@ -22,7 +22,7 @@ namespace YARG.Settings {
 				}
 			}
 
-			[SettingLocation("general", 20)]
+			[SettingLocation("general", 2)]
 			[SettingButton("refreshCache")]
 			public void RefreshCache() {
 				MainMenu.Instance.RefreshCache();
@@ -33,7 +33,7 @@ namespace YARG.Settings {
 				return GameManager.client == null;
 			}
 
-			[SettingLocation("general", 30)]
+			[SettingLocation("general", 3)]
 			[SettingButton("exportOuvertSongs")]
 			public void ExportOuvertSongs() {
 				StandaloneFileBrowser.SaveFilePanelAsync("Save Song List", null, "songs", "json", path => {
@@ -42,7 +42,7 @@ namespace YARG.Settings {
 			}
 
 			[SettingSpace]
-			[SettingLocation("general", 40)]
+			[SettingLocation("general", 4)]
 			[SettingType("Number")]
 			public int calibrationNumber = (int) (PlayerManager.globalCalibration * 1000f);
 
@@ -51,7 +51,7 @@ namespace YARG.Settings {
 				PlayerManager.globalCalibration = calibrationNumber / 1000f;
 			}
 
-			[SettingLocation("general", 50)]
+			[SettingLocation("general", 5)]
 			[SettingButton("calibrate")]
 			public void Calibrate() {
 				if (PlayerManager.players.Count > 0) {
@@ -60,7 +60,7 @@ namespace YARG.Settings {
 			}
 
 			[SettingSpace]
-			[SettingLocation("general", 60)]
+			[SettingLocation("general", 6)]
 			[SettingType("Toggle")]
 			public bool lowQuality = false;
 
@@ -69,15 +69,24 @@ namespace YARG.Settings {
 				QualitySettings.SetQualityLevel(lowQuality ? 0 : 1, true);
 			}
 
-			[SettingLocation("general", 70)]
+			[SettingLocation("general", 7)]
 			[SettingType("Toggle")]
 			public bool showHitWindow = false;
 
-			[SettingLocation("general", 80)]
+			[SettingLocation("general", 8)]
 			[SettingType("Toggle")]
 			public bool useAudioTime = false;
 
-			[SettingLocation("general", 90)]
+			[SettingLocation("general", 9)]
+			[SettingType("Toggle")]
+			public bool muteOnMiss = true;
+
+			[SettingLocation("general", 10)]
+			[SettingType("Toggle")]
+			public bool useCymbalModelsInFiveLane = true;
+
+			[SettingSpace]
+			[SettingLocation("general", 11)]
 			[SettingType("Toggle")]
 			public bool vsync = true;
 
@@ -86,16 +95,22 @@ namespace YARG.Settings {
 				QualitySettings.vSyncCount = vsync ? 1 : 0;
 			}
 
-			[SettingLocation("general", 100)]
-			[SettingType("Toggle")]
-			public bool muteOnMiss = true;
+			[SettingLocation("general", 12)]
+			[SettingType("Number")]
+			public int fpsCap = 60;
 
-			[SettingLocation("general", 110)]
-			[SettingType("Toggle")]
-			public bool useCymbalModelsInFiveLane = true;
+			[SettingChangeFunc("fpsCap")]
+			public void FpsCapChange() {
+				Application.targetFrameRate = fpsCap;
+			}
+
+			[SettingInteractableFunc("fpsCap")]
+			public bool FpsCapInteractable() {
+				return QualitySettings.vSyncCount == 0;
+			}
 
 			[SettingSpace]
-			[SettingLocation("general", 120)]
+			[SettingLocation("general", 13)]
 			[SettingType("Text")]
 			public string fileServerIp = "localhost";
 
@@ -104,7 +119,7 @@ namespace YARG.Settings {
 				return GameManager.client == null;
 			}
 
-			[SettingLocation("general", 130)]
+			[SettingLocation("general", 14)]
 			[SettingButton("connectToFileServer")]
 			public void ConnectToFileServer() {
 				GameManager.client = new();
@@ -116,7 +131,7 @@ namespace YARG.Settings {
 				return GameManager.client == null;
 			}
 
-			[SettingLocation("general", 140)]
+			[SettingLocation("general", 15)]
 			[SettingButton("hostFileServer")]
 			public void HostFileServer() {
 				GameManager.Instance.LoadScene(SceneIndex.SERVER_HOST);

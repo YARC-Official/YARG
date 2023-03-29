@@ -74,6 +74,10 @@ MonoBehaviour:
     m_Localized: Use Cymbal Models In 5-Lane
     m_Metadata:
       m_Items: []
+  - m_Id: 1508968616026112
+    m_Localized: FPS Limit
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

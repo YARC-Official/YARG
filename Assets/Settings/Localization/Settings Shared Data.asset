@@ -71,6 +71,10 @@ MonoBehaviour:
     m_Key: useCymbalModelsInFiveLane
     m_Metadata:
       m_Items: []
+  - m_Id: 1508968616026112
+    m_Key: fpsCap
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
