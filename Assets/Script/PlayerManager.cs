@@ -3,6 +3,7 @@ using System.Linq;
 using YARG.Data;
 using YARG.Input;
 using YARG.PlayMode;
+using YARG.Settings;
 
 namespace YARG {
 	public static class PlayerManager {
@@ -35,7 +36,7 @@ namespace YARG {
 
 		public static List<Player> players = new();
 
-		public static float globalCalibration = -0.15f;
+		public static float GlobalCalibration => SettingsManager.GetSettingValue<int>("calibrationNumber") / 1000f;
 
 		public static int PlayersWithInstrument(string instrument) {
 			return players.Count(i => i.chosenInstrument == instrument);

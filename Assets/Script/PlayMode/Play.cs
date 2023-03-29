@@ -42,7 +42,7 @@ namespace YARG.PlayMode {
 
 		private float realSongTime = 0f;
 		public float SongTime {
-			get => realSongTime + PlayerManager.globalCalibration * speed;
+			get => realSongTime + PlayerManager.GlobalCalibration * speed;
 		}
 
 		public Chart chart;

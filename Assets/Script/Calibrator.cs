@@ -3,6 +3,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using YARG.Input;
+using YARG.Settings;
 
 namespace YARG {
 	public class Calibrator : MonoBehaviour {
@@ -50,7 +51,7 @@ namespace YARG {
 
 		private void SetCalibration() {
 			float average = -hitTimes.Average() + ERROR;
-			PlayerManager.globalCalibration = average;
+			SettingsManager.SetSettingValue("calibrationNumber", (int) (average * 1000f));
 
 			text.text = $"Calibration set to: {average}.";
 			subtext.text = "Strum to continue...";

@@ -44,12 +44,7 @@ namespace YARG.Settings {
 			[SettingSpace]
 			[SettingLocation("general", 4)]
 			[SettingType("Number")]
-			public int calibrationNumber = (int) (PlayerManager.globalCalibration * 1000f);
-
-			[SettingChangeFunc("calibrationNumber")]
-			public void CalibrationNumberChange() {
-				PlayerManager.globalCalibration = calibrationNumber / 1000f;
-			}
+			public int calibrationNumber = -150;
 
 			[SettingLocation("general", 5)]
 			[SettingButton("calibrate")]

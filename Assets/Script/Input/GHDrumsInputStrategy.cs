@@ -26,30 +26,37 @@ namespace YARG.Input {
 
 			if (WasMappingPressed("red_pad")) {
 				DrumHitEvent?.Invoke(0);
+				CallGenericCalbirationEvent();
 			}
 
 			if (WasMappingPressed("yellow_cymbal")) {
 				DrumHitEvent?.Invoke(1);
+				CallGenericCalbirationEvent();
 			}
 
 			if (WasMappingPressed("blue_pad")) {
 				DrumHitEvent?.Invoke(2);
+				CallGenericCalbirationEvent();
 			}
 
 			if (WasMappingPressed("orange_cymbal")) {
 				DrumHitEvent?.Invoke(3);
+				CallGenericCalbirationEvent();
 			}
 
 			if (WasMappingPressed("green_pad")) {
 				DrumHitEvent?.Invoke(4);
+				CallGenericCalbirationEvent();
 			}
 
 			if (WasMappingPressed("kick")) {
 				DrumHitEvent?.Invoke(5);
+				CallGenericCalbirationEvent();
 			}
 
 			if (WasMappingPressed("kick_alt")) {
 				DrumHitEvent?.Invoke(5);
+				CallGenericCalbirationEvent();
 			}
 
 			// Constantly activate starpower
