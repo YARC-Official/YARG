@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,15 +16,15 @@ namespace YARG.UI {
 		[SerializeField]
 		private Image image;
 
-		private DifficultySelect difficultySelect;
+		public event Action<GenericOption> MouseHoverEvent;
+		public event Action<GenericOption> MouseClickEvent;
 
-		public void MouseEnter(){
-			//Did this becuase cannot add non-prefab to a prefab's serilized field. Using a string isn't great.
-			 GameObject.Find("Difficulty Select").GetComponent<DifficultySelect>().HoverOption(this);
+		private void MouseEnter() {
+			MouseHoverEvent?.Invoke(this);
 		}
 
-		public void MouseClick(){
-			GameObject.Find("Difficulty Select").GetComponent<DifficultySelect>().Next();
+		private void MouseClick() {
+			MouseClickEvent?.Invoke(this);
 		}
 
 		public void SetSelected(bool selected) {
