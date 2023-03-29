@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 using System.IO;
 using TMPro;
@@ -31,6 +32,13 @@ namespace YARG.UI {
 
 		private int optionCount;
 		private int selected;
+
+		private void Start() {
+			foreach (var option in options) {
+				option.MouseHoverEvent += HoverOption;
+				option.MouseClickEvent += ClickOption;
+			}
+		}
 
 		private void OnEnable() {
 			bool anyMics = false;
@@ -67,6 +75,13 @@ namespace YARG.UI {
 			// Unbind input events
 			foreach (var player in PlayerManager.players) {
 				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
+			}
+		}
+
+		private void OnDestroy() {
+			foreach (var option in options) {
+				option.MouseHoverEvent -= HoverOption;
+				option.MouseClickEvent -= ClickOption;
 			}
 		}
 
@@ -136,7 +151,27 @@ namespace YARG.UI {
 			options[selected].SetSelected(true);
 		}
 
-		private void Next() {
+		private void HoverOption(GenericOption option) {
+			// Deselect old one
+			options[selected].SetSelected(false);
+
+			selected = Array.IndexOf(options, option);
+
+			// Slighty different than with the keyboard.
+			// Don't need to bound the top. The bottom should stop and not roll over.
+			if (selected >= optionCount) {
+				selected = optionCount - 1;
+			}
+
+			// Select new one
+			options[selected].SetSelected(true);
+		}
+
+		private void ClickOption(GenericOption option) {
+			Next();
+		}
+
+		public void Next() {
 			var player = PlayerManager.players[playerIndex];
 
 			if (state == State.INSTRUMENT) {

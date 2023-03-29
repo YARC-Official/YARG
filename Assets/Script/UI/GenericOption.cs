@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,6 +15,17 @@ namespace YARG.UI {
 		private TextMeshProUGUI text;
 		[SerializeField]
 		private Image image;
+
+		public event Action<GenericOption> MouseHoverEvent;
+		public event Action<GenericOption> MouseClickEvent;
+
+		private void MouseEnter() {
+			MouseHoverEvent?.Invoke(this);
+		}
+
+		private void MouseClick() {
+			MouseClickEvent?.Invoke(this);
+		}
 
 		public void SetSelected(bool selected) {
 			selectedBackground.SetActive(selected);
