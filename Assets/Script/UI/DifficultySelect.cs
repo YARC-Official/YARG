@@ -88,22 +88,6 @@ namespace YARG.UI {
 		private void Update() {
 			GameManager.client?.CheckForSignals();
 
-			// Enter
-
-			if (Keyboard.current.enterKey.wasPressedThisFrame) {
-				Next();
-			}
-
-			// Arrows
-
-			if (Keyboard.current.upArrowKey.wasPressedThisFrame) {
-				MoveOption(-1);
-			}
-
-			if (Keyboard.current.downArrowKey.wasPressedThisFrame) {
-				MoveOption(1);
-			}
-
 			// Scroll wheel
 
 			var scroll = Mouse.current.scroll.ReadValue().y;

@@ -51,7 +51,31 @@ namespace YARG.PlayMode {
 		private int lyricIndex = 0;
 		private int lyricPhraseIndex = 0;
 
-		private bool paused = false;
+		private bool _paused = false;
+		public bool Paused {
+			get => _paused;
+			set {
+				_paused = value;
+
+				GameUI.Instance.pauseMenu.SetActive(value);
+
+				if (value) {
+					Time.timeScale = 0f;
+
+					// Pause audio
+					foreach (var (_, source) in audioSources) {
+						source.Pause();
+					}
+				} else {
+					Time.timeScale = 1f;
+
+					// Unpause audio
+					foreach (var (_, source) in audioSources) {
+						source.UnPause();
+					}
+				}
+			}
+		}
 
 		private void Awake() {
 			Instance = this;
@@ -152,24 +176,11 @@ namespace YARG.PlayMode {
 			}
 
 			// Pausing
-			if (Keyboard.current.spaceKey.wasPressedThisFrame) {
-				paused = !paused;
-				GameUI.Instance.pauseMenu.SetActive(paused);
-
-				if (paused) {
-					Time.timeScale = 0f;
-					foreach (var (_, source) in audioSources) {
-						source.Pause();
-					}
-				} else {
-					Time.timeScale = 1f;
-					foreach (var (_, source) in audioSources) {
-						source.UnPause();
-					}
-				}
+			if (Keyboard.current.escapeKey.wasPressedThisFrame) {
+				Paused = !Paused;
 			}
 
-			if (paused) {
+			if (Paused) {
 				return;
 			}
 

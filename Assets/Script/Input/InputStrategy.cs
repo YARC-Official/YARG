@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Minis;
 using UnityEngine.InputSystem;
@@ -45,11 +46,15 @@ namespace YARG.Input {
 		/// </summary>
 		public event GenericCalibrationAction GenericCalibrationEvent;
 
-		public delegate void StarpowerAction();
 		/// <summary>
 		/// Gets invoked when the button for generic starpower is pressed.
 		/// </summary>
-		public event StarpowerAction StarpowerEvent;
+		public event Action StarpowerEvent;
+
+		/// <summary>
+		/// Gets invoked when the button for generic pause is pressed.
+		/// </summary>
+		public event Action PauseEvent;
 
 		public delegate void GenericNavigationAction(NavigationType navigationType, bool firstPressed);
 		/// <summary>
@@ -118,6 +123,10 @@ namespace YARG.Input {
 
 		protected void CallStarpowerEvent() {
 			StarpowerEvent?.Invoke();
+		}
+
+		protected void CallPauseEvent() {
+			PauseEvent?.Invoke();
 		}
 
 		protected void CallGenericCalbirationEvent() {

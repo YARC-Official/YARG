@@ -11,7 +11,8 @@ namespace YARG.Input {
 			"orange",
 			"strumUp",
 			"strumDown",
-			"starpower"
+			"starpower",
+			"pause"
 		};
 
 		public delegate void FretChangeAction(bool pressed, int fret);
@@ -47,10 +48,14 @@ namespace YARG.Input {
 				CallGenericCalbirationEvent();
 			}
 
-			// Starpower
+			// Starpower & Pause
 
 			if (WasMappingPressed("starpower")) {
 				CallStarpowerEvent();
+			}
+
+			if (WasMappingPressed("pause")) {
+				CallPauseEvent();
 			}
 		}
 
@@ -97,6 +102,10 @@ namespace YARG.Input {
 
 			if (WasMappingPressed("yellow")) {
 				CallGenericNavigationEvent(NavigationType.TERTIARY, true);
+			}
+
+			if (WasMappingPressed("pause")) {
+				CallPauseEvent();
 			}
 		}
 

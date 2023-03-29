@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -109,6 +110,7 @@ namespace YARG.PlayMode {
 			player.track = this;
 
 			player.inputStrategy.StarpowerEvent += StarpowerAction;
+			player.inputStrategy.PauseEvent += PauseAction;
 			Play.Instance.BeatEvent += BeatAction;
 
 			player.lastScore = null;
@@ -130,10 +132,19 @@ namespace YARG.PlayMode {
 			trackCamera.targetTexture.Release();
 
 			player.inputStrategy.StarpowerEvent -= StarpowerAction;
+			player.inputStrategy.PauseEvent -= PauseAction;
 			Play.Instance.BeatEvent -= BeatAction;
 		}
 
 		private void Update() {
+			// Don't update if paused
+			if (Play.Instance.Paused) {
+				// Update navigation for pause menu
+				player.inputStrategy.UpdateNavigationMode();
+
+				return;
+			}
+
 			UpdateMaterial();
 
 			UpdateTrack();
@@ -203,6 +214,10 @@ namespace YARG.PlayMode {
 					starpowerCharge -= Time.deltaTime / 25f;
 				}
 			}
+		}
+
+		private void PauseAction() {
+			Play.Instance.Paused = !Play.Instance.Paused;
 		}
 
 		private void UpdateInfo() {

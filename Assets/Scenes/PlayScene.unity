@@ -2138,7 +2138,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "<b>PAUSED</b>\n\nI'm too lazy to make a proper pause menu \nso this is
-    good enough for now.\n\nTo exist the song, press on the X in the top left."
+    good enough for now.\n\nTo exit the song, press on the X in the top left."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
