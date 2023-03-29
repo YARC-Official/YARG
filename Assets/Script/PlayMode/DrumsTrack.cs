@@ -4,6 +4,7 @@ using UnityEngine;
 using YARG.Data;
 using YARG.Input;
 using YARG.Pools;
+using YARG.Settings;
 using YARG.Util;
 
 namespace YARG.PlayMode {
@@ -245,7 +246,9 @@ namespace YARG.PlayMode {
 			if (noteInfo.fret == kickIndex) {
 				// Kick
 				model = NoteComponent.ModelType.FULL;
-			} else if (player.chosenInstrument == "ghDrums") {
+			} else if (player.chosenInstrument == "ghDrums" &&
+				SettingsManager.GetSettingValue<bool>("useCymbalModelsInFiveLane")) {
+
 				if (noteInfo.fret == 1 || noteInfo.fret == 3) {
 					// Cymbal (only for gh-drums if enabled)
 					model = NoteComponent.ModelType.HOPO;

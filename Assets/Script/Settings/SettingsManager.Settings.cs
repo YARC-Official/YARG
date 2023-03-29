@@ -90,8 +90,12 @@ namespace YARG.Settings {
 			[SettingType("Toggle")]
 			public bool muteOnMiss = true;
 
-			[SettingSpace]
 			[SettingLocation("general", 110)]
+			[SettingType("Toggle")]
+			public bool useCymbalModelsInFiveLane = true;
+
+			[SettingSpace]
+			[SettingLocation("general", 120)]
 			[SettingType("Text")]
 			public string fileServerIp = "localhost";
 
@@ -100,7 +104,7 @@ namespace YARG.Settings {
 				return GameManager.client == null;
 			}
 
-			[SettingLocation("general", 120)]
+			[SettingLocation("general", 130)]
 			[SettingButton("connectToFileServer")]
 			public void ConnectToFileServer() {
 				GameManager.client = new();
@@ -112,7 +116,7 @@ namespace YARG.Settings {
 				return GameManager.client == null;
 			}
 
-			[SettingLocation("general", 130)]
+			[SettingLocation("general", 140)]
 			[SettingButton("hostFileServer")]
 			public void HostFileServer() {
 				GameManager.Instance.LoadScene(SceneIndex.SERVER_HOST);

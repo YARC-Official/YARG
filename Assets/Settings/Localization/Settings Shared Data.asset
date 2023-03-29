@@ -67,6 +67,10 @@ MonoBehaviour:
     m_Key: muteOnMiss
     m_Metadata:
       m_Items: []
+  - m_Id: 1500282040475648
+    m_Key: useCymbalModelsInFiveLane
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

@@ -70,6 +70,10 @@ MonoBehaviour:
     m_Localized: Mute On Miss
     m_Metadata:
       m_Items: []
+  - m_Id: 1500282040475648
+    m_Localized: Use Cymbal Models In 5-Lane
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
