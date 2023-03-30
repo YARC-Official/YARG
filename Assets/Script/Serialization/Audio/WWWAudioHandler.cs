@@ -1,23 +1,38 @@
-using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace YARG.Serialization.Audio {
+	/// <summary>
+	/// Built-in Unity support for OGG, WAV, MP3, and AIFF.
+	/// </summary>
 	public class WWWAudioHandler : AudioHandler {
-		UnityWebRequest uwr;
+		private UnityWebRequest uwr;
 
-		public WWWAudioHandler() {
+		public WWWAudioHandler(string path) : base(path) {
 
-			yield return uwr.SendWebRequest();
-			var clip = DownloadHandlerAudioClip.GetContent(uwr);
 		}
 
-		public IEnumerator LoadAudioClip(string path) {
-			uwr = UnityWebRequestMultimedia.GetAudioClip(path, AudioType.OGGVORBIS);
+		public override AsyncOperation LoadAudioClip() {
+			AudioType type = AudioType.UNKNOWN;
+			string extension = Path.GetExtension(path).ToLowerInvariant();
+			if (extension == ".ogg") {
+				type = AudioType.OGGVORBIS;
+			} else if (extension == ".wav") {
+				type = AudioType.WAV;
+			} else if (extension == ".mp3") {
+				type = AudioType.MPEG;
+			} else if (extension == ".aiff") {
+				type = AudioType.AIFF;
+			}
+
+			uwr = UnityWebRequestMultimedia.GetAudioClip(path, type);
 			((DownloadHandlerAudioClip) uwr.downloadHandler).streamAudio = true;
+			return uwr.SendWebRequest();
 		}
 
-		public AudioClip GetAudioClipResult() {
-
+		public override AudioClip GetAudioClipResult() {
+			return DownloadHandlerAudioClip.GetContent(uwr);
 		}
 	}
 }

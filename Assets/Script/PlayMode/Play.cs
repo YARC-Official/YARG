@@ -5,8 +5,8 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
-using UnityEngine.Networking;
 using YARG.Data;
+using YARG.Serialization.Audio;
 using YARG.Serialization.Parser;
 using YARG.Settings;
 using YARG.UI;
@@ -87,18 +87,17 @@ namespace YARG.PlayMode {
 
 		private IEnumerator StartSong() {
 			// Load audio
-			foreach (var file in song.folder.GetFiles("*.ogg")) {
-				var name = Path.GetFileNameWithoutExtension(file.Name);
+			foreach (var file in AudioHandler.GetAllSupportedAudioFiles(song.folder.FullName)) {
+				var name = Path.GetFileNameWithoutExtension(file);
 
-				if (name == "preview.ogg" || name == "crowd.ogg") {
+				if (name == "preview" || name == "crowd") {
 					continue;
 				}
 
 				// Load file
-				using UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(file.FullName, AudioType.OGGVORBIS);
-				((DownloadHandlerAudioClip) uwr.downloadHandler).streamAudio = true;
-				yield return uwr.SendWebRequest();
-				var clip = DownloadHandlerAudioClip.GetContent(uwr);
+				var audioHandler = AudioHandler.CreateAudioHandler(file);
+				yield return audioHandler.LoadAudioClip();
+				var clip = audioHandler.GetAudioClipResult();
 
 				// Create audio source
 				var songAudio = Instantiate(soundAudioPrefab, transform);
