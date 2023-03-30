@@ -88,7 +88,9 @@ namespace YARG.PlayMode {
 		private IEnumerator StartSong() {
 			// Load audio
 			foreach (var file in song.folder.GetFiles("*.ogg")) {
-				if (file.Name == "preview.ogg" || file.Name == "crowd.ogg") {
+				var name = Path.GetFileNameWithoutExtension(file.Name);
+
+				if (name == "preview.ogg" || name == "crowd.ogg") {
 					continue;
 				}
 
@@ -102,7 +104,7 @@ namespace YARG.PlayMode {
 				var songAudio = Instantiate(soundAudioPrefab, transform);
 				var audioSource = songAudio.GetComponent<AudioSource>();
 				audioSource.clip = clip;
-				audioSources.Add(Path.GetFileNameWithoutExtension(file.Name), audioSource);
+				audioSources.Add(name, audioSource);
 			}
 
 			// Check for single guitar audio
