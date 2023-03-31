@@ -15,6 +15,8 @@ namespace YARG.Serialization.Audio {
 			audioHandlers.Add(".wav", typeof(WWWAudioHandler));
 			audioHandlers.Add(".mp3", typeof(WWWAudioHandler));
 			audioHandlers.Add(".aiff", typeof(WWWAudioHandler));
+
+			audioHandlers.Add(".opus", typeof(OpusAudioHandler));
 		}
 
 		protected string path;
@@ -31,6 +33,11 @@ namespace YARG.Serialization.Audio {
 		/// Returns the resulting audio clip. No file loading should be done here.
 		/// </summary>
 		public abstract AudioClip GetAudioClipResult();
+		/// <summary>
+		/// Called when the audio clip is no longer needed. 
+		/// Things should be disposed of here.
+		/// </summary>
+		public abstract void Finish();
 
 		public static AudioHandler CreateAudioHandler(string path) {
 			string extension = Path.GetExtension(path).ToLowerInvariant();

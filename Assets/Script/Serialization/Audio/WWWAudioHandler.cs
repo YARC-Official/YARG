@@ -6,7 +6,7 @@ namespace YARG.Serialization.Audio {
 	/// <summary>
 	/// Built-in Unity support for OGG, WAV, MP3, and AIFF.
 	/// </summary>
-	public class WWWAudioHandler : AudioHandler {
+	public sealed class WWWAudioHandler : AudioHandler {
 		private UnityWebRequest uwr;
 
 		public WWWAudioHandler(string path) : base(path) {
@@ -33,6 +33,10 @@ namespace YARG.Serialization.Audio {
 
 		public override AudioClip GetAudioClipResult() {
 			return DownloadHandlerAudioClip.GetContent(uwr);
+		}
+
+		public override void Finish() {
+			uwr.Dispose();
 		}
 	}
 }

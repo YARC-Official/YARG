@@ -40,6 +40,8 @@ namespace YARG.PlayMode {
 		private Dictionary<string, AudioSource> audioSources = new();
 		private OccurrenceList<string> audioLowering = new();
 
+		private List<AudioHandler> audioHandlers = new();
+
 		private float realSongTime = 0f;
 		public float SongTime {
 			get => realSongTime + PlayerManager.GlobalCalibration * speed;
@@ -98,6 +100,7 @@ namespace YARG.PlayMode {
 				var audioHandler = AudioHandler.CreateAudioHandler(file);
 				yield return audioHandler.LoadAudioClip();
 				var clip = audioHandler.GetAudioClipResult();
+				audioHandlers.Add(audioHandler);
 
 				// Create audio source
 				var songAudio = Instantiate(soundAudioPrefab, transform);
@@ -300,6 +303,11 @@ namespace YARG.PlayMode {
 		}
 
 		public void Exit() {
+			// Dispose of all audio
+			foreach (var audioHandler in audioHandlers) {
+				audioHandler.Finish();
+			}
+
 			// Unpause just in case
 			Time.timeScale = 1f;
 
