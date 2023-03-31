@@ -305,7 +305,11 @@ namespace YARG.PlayMode {
 		public void Exit() {
 			// Dispose of all audio
 			foreach (var audioHandler in audioHandlers) {
-				audioHandler.Finish();
+				try {
+					audioHandler.Finish();
+				} catch (System.Exception e) {
+					Debug.LogError(e);
+				}
 			}
 
 			// Unpause just in case

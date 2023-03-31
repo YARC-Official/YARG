@@ -8,42 +8,50 @@ namespace YARG.Serialization.Audio {
 	/// Support for OPUS via Concentus.
 	/// </summary>
 	public sealed class OpusAudioHandler : AudioHandler {
-		private FileStream fileStream;
-		private OpusOggReadStream readStream;
+		private AudioClip clip;
 
 		public OpusAudioHandler(string path) : base(path) {
 
 		}
 
 		public override AsyncOperation LoadAudioClip() {
-			var fileStream = new FileStream(path, FileMode.Open);
+			using var fileStream = new FileStream(path, FileMode.Open);
 
 			var decoder = new OpusDecoder(48000, 2);
-			readStream = new OpusOggReadStream(decoder, fileStream);
+			var readStream = new OpusOggReadStream(decoder, fileStream);
 
-			// while (readStream.HasNextPacket) {
-			// 	short[] packet = readStream.DecodeNextPacket();
-			// 	if (packet == null) {
-			// 		continue;
-			// 	}
+			int packetPos = 0;
+			float[] data = new float[2 * readStream.GranuleCount];
 
-			// 	for (int i = 0; i < packet.Length; i++) {
-			// 		var bytes = BitConverter.GetBytes(packet[i]);
-			// 	}
-			// }
+			// Decode the .opus file
+			while (readStream.HasNextPacket) {
+				short[] packet = readStream.DecodeNextPacket();
+				if (packet == null) {
+					continue;
+				}
+
+				for (int i = 0; i < packet.Length; i++) {
+					// Convert the short to a float
+					const float SCALE = 1f / short.MaxValue;
+					data[packetPos] = packet[i] * SCALE;
+
+					packetPos++;
+				}
+			}
+
+			// Create audio clip and set the data
+			clip = AudioClip.Create("Opus Clip", data.Length, 2, 48000, false);
+			clip.SetData(data, 0);
 
 			return null;
 		}
 
 		public override AudioClip GetAudioClipResult() {
-			var audio = AudioClip.Create("Opus Stream", (int) readStream.GranuleCount,
-				2, 48000, false);
-
-			return null;
+			return clip;
 		}
 
 		public override void Finish() {
-			fileStream.Dispose();
+			clip.UnloadAudioData();
 		}
 	}
 }

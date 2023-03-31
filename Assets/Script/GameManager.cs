@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.InputSystem;
+using UnityEngine.Profiling;
 using UnityEngine.SceneManagement;
 using YARG.Server;
 
@@ -44,6 +45,16 @@ namespace YARG {
 		private void Update() {
 			OnUpdate?.Invoke();
 		}
+
+#if UNITY_EDITOR
+		private void OnGUI() {
+			// FPS and Memory
+			GUI.skin.label.fontSize = 20;
+			GUI.color = Color.green;
+			GUI.Label(new Rect(10, 20, 500, 40), $"FPS: {1f / Time.unscaledDeltaTime:0.0}");
+			GUI.Label(new Rect(10, 40, 500, 40), $"Memory: {Profiler.GetTotalAllocatedMemoryLong() / 1024 / 1024} MB");
+		}
+#endif
 
 		private void LoadSceneAdditive(SceneIndex scene) {
 			var asyncOp = SceneManager.LoadSceneAsync((int) scene, LoadSceneMode.Additive);
