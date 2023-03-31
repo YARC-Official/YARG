@@ -67,6 +67,7 @@ YARG is licensed under the MIT License - see the [`LICENSE`](../master/LICENSE) 
 | [PolyHaven](https://polyhaven.com/) | Assets | Textures and Models
 | [PlasticBand](https://github.com/TheNathannator/PlasticBand) | Reference | Controller Support Info
 | [GuitarGame_ChartFormats](https://github.com/TheNathannator/GuitarGame_ChartFormats) | Reference | File Format Documentation
+| [NuGet for Unity](https://github.com/GlitchEnzo/NuGetForUnity) | Library | NuGet Packages in Unity
 | [EliteAsian's Unity Extensions](https://github.com/EliteAsian123/EliteAsians-Unity-Extensions) | Library | Utility
 | [Unity Standalone File Browser](https://github.com/gkngkc/UnityStandaloneFileBrowser) | Library | "Browse" Button
 | [FuzzySharp](https://www.nuget.org/packages/FuzzySharp) | Library | Search Function
@@ -74,6 +75,9 @@ YARG is licensed under the MIT License - see the [`LICENSE`](../master/LICENSE) 
 | [DryWetMidi](https://www.nuget.org/packages/Melanchall.DryWetMidi) | Library | Parsing `.mid` Files
 | [TagLibSharp](https://www.nuget.org/packages/TagLibSharp) | Library | Finding Audio Metadata
 | [Minis](https://github.com/keijiro/Minis/tree/master) | Library | MIDI Input for Unity
+| [FuzzySharp](https://www.nuget.org/packages/FuzzySharp) | Library | Search Function
+| [Concentus](https://www.nuget.org/packages/Concentus) | Library | `.opus` Library
+| [Concentus.OggFile](https://www.nuget.org/packages/Concentus.OggFile) | Library | `.opus` File Reading 
 
 # 🔨 Building
 
@@ -82,6 +86,11 @@ YARG is licensed under the MIT License - see the [`LICENSE`](../master/LICENSE) 
 3. Load in **without** entering safe mode.
 4. Click on `NuGet` on the menu bar.
 5. Click on `Restore Packages`.
+6. **There seems to be a bug with `Concentus.OggFile`.** You may need to manually install `Concentus.OggFile` in the NuGet Packages.
+    1. Click on `NuGet` on the menu bar, then click on `Manage NuGet Packages`. 
+    2. Then search for `Concentus.OggFile`.
+    3. Click on `Install`. You may need to repeat this multiple times. This will be fixed in the near future.
+    
 
 # 💸 Donate
 
