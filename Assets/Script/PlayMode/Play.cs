@@ -88,6 +88,8 @@ namespace YARG.PlayMode {
 		}
 
 		private IEnumerator StartSong() {
+			GameUI.Instance.SetLoadingText("Loading audio...");
+
 			// Load audio
 			foreach (var file in AudioHandler.GetAllSupportedAudioFiles(song.folder.FullName)) {
 				var name = Path.GetFileNameWithoutExtension(file);
@@ -119,8 +121,12 @@ namespace YARG.PlayMode {
 				audioSources.Remove("guitar");
 			}
 
+			GameUI.Instance.SetLoadingText("Loading chart...");
+
 			// Load chart (from midi, upgrades, etc.)
 			LoadChart();
+
+			GameUI.Instance.SetLoadingText("Spawning tracks...");
 
 			// Spawn tracks
 			int i = 0;
@@ -152,6 +158,9 @@ namespace YARG.PlayMode {
 			}
 			realSongTime = audioSources.First().Value.time;
 			SongStarted = true;
+
+			// Hide loading screen
+			GameUI.Instance.loadingContainer.SetActive(false);
 		}
 
 		private void LoadChart() {
