@@ -16,7 +16,10 @@ namespace YARG.UI {
 		private TextMeshProUGUI lyric;
 		[SerializeField]
 		private RawImage vocalTrack;
+		[SerializeField]
+		private TextMeshProUGUI loadingText;
 
+		public GameObject loadingContainer;
 		public GameObject pauseMenu;
 
 		public static GameUI Instance {
@@ -76,6 +79,10 @@ namespace YARG.UI {
 			foreach (var rawImage in trackContainer.GetComponentsInChildren<RawImage>()) {
 				rawImage.uvRect = new Rect((1f - percent) / 2f, 0f, percent, 1f + heightAdd);
 			}
+		}
+
+		public void SetLoadingText(string str) {
+			loadingText.text = str;
 		}
 	}
 }

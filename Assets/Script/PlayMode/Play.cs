@@ -5,8 +5,8 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
-using UnityEngine.Networking;
 using YARG.Data;
+using YARG.Serialization.Audio;
 using YARG.Serialization.Parser;
 using YARG.Settings;
 using YARG.UI;
@@ -39,6 +39,8 @@ namespace YARG.PlayMode {
 
 		private Dictionary<string, AudioSource> audioSources = new();
 		private OccurrenceList<string> audioLowering = new();
+
+		private List<AudioHandler> audioHandlers = new();
 
 		private float realSongTime = 0f;
 		public float SongTime {
@@ -86,23 +88,27 @@ namespace YARG.PlayMode {
 		}
 
 		private IEnumerator StartSong() {
+			GameUI.Instance.SetLoadingText("Loading audio...");
+
 			// Load audio
-			foreach (var file in song.folder.GetFiles("*.ogg")) {
-				if (file.Name == "preview.ogg" || file.Name == "crowd.ogg") {
+			foreach (var file in AudioHandler.GetAllSupportedAudioFiles(song.folder.FullName)) {
+				var name = Path.GetFileNameWithoutExtension(file);
+
+				if (name == "preview" || name == "crowd") {
 					continue;
 				}
 
 				// Load file
-				using UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(file.FullName, AudioType.OGGVORBIS);
-				((DownloadHandlerAudioClip) uwr.downloadHandler).streamAudio = true;
-				yield return uwr.SendWebRequest();
-				var clip = DownloadHandlerAudioClip.GetContent(uwr);
+				var audioHandler = AudioHandler.CreateAudioHandler(file);
+				yield return audioHandler.LoadAudioClip();
+				var clip = audioHandler.GetAudioClipResult();
+				audioHandlers.Add(audioHandler);
 
 				// Create audio source
 				var songAudio = Instantiate(soundAudioPrefab, transform);
 				var audioSource = songAudio.GetComponent<AudioSource>();
 				audioSource.clip = clip;
-				audioSources.Add(Path.GetFileNameWithoutExtension(file.Name), audioSource);
+				audioSources.Add(name, audioSource);
 			}
 
 			// Check for single guitar audio
@@ -115,8 +121,12 @@ namespace YARG.PlayMode {
 				audioSources.Remove("guitar");
 			}
 
+			GameUI.Instance.SetLoadingText("Loading chart...");
+
 			// Load chart (from midi, upgrades, etc.)
 			LoadChart();
+
+			GameUI.Instance.SetLoadingText("Spawning tracks...");
 
 			// Spawn tracks
 			int i = 0;
@@ -148,6 +158,9 @@ namespace YARG.PlayMode {
 			}
 			realSongTime = audioSources.First().Value.time;
 			SongStarted = true;
+
+			// Hide loading screen
+			GameUI.Instance.loadingContainer.SetActive(false);
 		}
 
 		private void LoadChart() {
@@ -299,6 +312,15 @@ namespace YARG.PlayMode {
 		}
 
 		public void Exit() {
+			// Dispose of all audio
+			foreach (var audioHandler in audioHandlers) {
+				try {
+					audioHandler.Finish();
+				} catch (System.Exception e) {
+					Debug.LogError(e);
+				}
+			}
+
 			// Unpause just in case
 			Time.timeScale = 1f;
 
