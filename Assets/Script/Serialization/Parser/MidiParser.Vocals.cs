@@ -79,7 +79,11 @@ namespace YARG.Serialization.Parser {
 			return lyrics;
 		}
 
-		private List<LyricInfo> ParseRealLyrics(List<EventIR> eventIR, TrackChunk trackChunk, TempoMap tempo) {
+		private List<LyricInfo> ParseRealLyrics(List<EventIR> eventIR, TrackChunk trackChunk, TempoMap tempo, int harmonyIndex) {
+			return ParseRealLyrics(eventIR, trackChunk, trackChunk, tempo, harmonyIndex);
+		}
+
+		private List<LyricInfo> ParseRealLyrics(List<EventIR> eventIR, TrackChunk trackChunk, TrackChunk phraseTimingTrack, TempoMap tempo, int harmonyIndex) {
 			var lyrics = new List<LyricInfo>();
 
 			// For later:
@@ -92,7 +96,7 @@ namespace YARG.Serialization.Parser {
 
 			// Get lyric phrase timings
 			HashSet<long> startTimings = new();
-			foreach (var note in trackChunk.GetNotes()) {
+			foreach (var note in phraseTimingTrack.GetNotes()) {
 				// B7 note indicates phrases
 				if (note.Octave != 7) {
 					continue;
@@ -189,10 +193,17 @@ namespace YARG.Serialization.Parser {
 				}
 
 				// Add end phrase event
-				eventIR.Add(new EventIR {
-					startTick = note.EndTime,
-					name = "vocal_endPhrase"
-				});
+				if (harmonyIndex == 0) {
+					eventIR.Add(new EventIR {
+						startTick = note.EndTime,
+						name = "harmVocal_endPhrase"
+					});
+				} else if (harmonyIndex == -1) {
+					eventIR.Add(new EventIR {
+						startTick = note.EndTime,
+						name = "vocal_endPhrase"
+					});
+				}
 			}
 
 			return lyrics;

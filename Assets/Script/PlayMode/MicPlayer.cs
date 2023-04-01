@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Audio;
@@ -34,13 +35,19 @@ namespace YARG.PlayMode {
 			public float totalSingPercent;
 		}
 
+		public static readonly Color[] HARMONIC_COLORS = new Color[] {
+			new Color32(33, 114, 171, 255),
+			new Color32(214, 141, 30, 255),
+			new Color32(173, 108, 43, 255),
+		};
+
 		public const float TRACK_SPEED = 4f;
 
 		public const float TRACK_SPAWN_OFFSET = 12f;
 		public const float TRACK_END_OFFSET = 5f;
 
 		public const float STARPOWER_ACTIVATE_MARGIN = 0.1f;
-		public const float STARPOWER_ACTIVATE_MIN = 0.5f;
+		public const float STARPOWER_ACTIVATE_MIN = 0.3f;
 
 		public static MicPlayer Instance {
 			get; private set;
@@ -53,6 +60,13 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private Transform barContainer;
 
+		[Space]
+		[SerializeField]
+		private MeshRenderer trackRenderer;
+		[SerializeField]
+		private Texture2D harmonyTexture;
+
+		[Space]
 		[SerializeField]
 		private TextMeshProUGUI preformaceText;
 		[SerializeField]
@@ -66,6 +80,7 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private MeshRenderer starpowerOverlay;
 
+		[Space]
 		[SerializeField]
 		private GameObject needlePrefab;
 		[SerializeField]
@@ -80,15 +95,28 @@ namespace YARG.PlayMode {
 		private List<PlayerInfo> micInputs = new();
 		public Dictionary<MicInputStrategy, AudioSource> dummyAudioSources = new();
 
+		private bool onSongStartCalled = false;
+
 		public float RelativeTime => Play.Instance.SongTime +
 			((TRACK_SPAWN_OFFSET + TRACK_END_OFFSET) / (TRACK_SPEED / Play.speed));
 
 		private bool beat = false;
 
-		private int visualChartIndex;
-		private int chartIndex;
+		private int[] visualChartIndex;
+		private int[] chartIndex;
 		private int visualEventChartIndex;
 		private int eventChartIndex;
+
+		private string EndPhraseName {
+			get {
+				string endPhraseName = "vocal_endPhrase";
+				if (micInputs[0].player.chosenInstrument == "harmVocals") {
+					endPhraseName = "harm_endPhrase";
+				}
+
+				return endPhraseName;
+			}
+		}
 
 		private float sectionSingTime = -1f;
 		private LyricInfo currentLyric;
@@ -234,10 +262,33 @@ namespace YARG.PlayMode {
 			Play.Instance.BeatEvent -= BeatAction;
 		}
 
+		private void OnSongStart() {
+			// Set up harmony vocal track
+			if (micInputs[0].player.chosenInstrument == "harmVocals") {
+				trackRenderer.material.SetTexture("_BaseMap", harmonyTexture);
+			}
+
+			// Set up chart indices
+			if (micInputs[0].player.chosenInstrument == "harmVocals") {
+				int count = Play.Instance.chart.harmLyrics.Length;
+				visualChartIndex = new int[count];
+				chartIndex = new int[count];
+			} else {
+				visualChartIndex = new int[1];
+				chartIndex = new int[1];
+			}
+		}
+
 		private void Update() {
 			// Ignore everything else until the song starts
 			if (!Play.Instance.SongStarted) {
 				return;
+			}
+
+			// Call "OnSongStart"
+			if (!onSongStartCalled) {
+				onSongStartCalled = true;
+				OnSongStart();
 			}
 
 			// Get the first lyric time
@@ -246,7 +297,13 @@ namespace YARG.PlayMode {
 			}
 
 			// Get chart
-			var chart = Play.Instance.chart.realLyrics;
+			List<List<LyricInfo>> charts;
+			if (micInputs[0].player.chosenInstrument == "harmVocals") {
+				charts = Play.Instance.chart.harmLyrics.ToList();
+			} else {
+				charts = new List<List<LyricInfo>> { Play.Instance.chart.realLyrics };
+			}
+
 			var events = Play.Instance.chart.events;
 
 			// Update event visuals
@@ -254,7 +311,7 @@ namespace YARG.PlayMode {
 				var eventInfo = events[visualEventChartIndex];
 
 				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(RelativeTime, eventInfo.time);
-				if (eventInfo.name == "vocal_endPhrase") {
+				if (eventInfo.name == EndPhraseName) {
 					notePool.AddEndPhraseLine(compensation);
 				} else if (eventInfo.name == "starpower_vocals") {
 					visualStarpowerSection = eventInfo;
@@ -272,7 +329,7 @@ namespace YARG.PlayMode {
 			while (events.Count > eventChartIndex && events[eventChartIndex].time <= Play.Instance.SongTime) {
 				var eventInfo = events[eventChartIndex];
 
-				if (eventInfo.name == "vocal_endPhrase") {
+				if (eventInfo.name == EndPhraseName) {
 					float bestPercent = 0f;
 
 					if (sectionSingTime != 0f) {
@@ -331,27 +388,31 @@ namespace YARG.PlayMode {
 				eventChartIndex++;
 			}
 
-			// Spawn lyrics and starpower activate sections
-			while (chart.Count > visualChartIndex && chart[visualChartIndex].time <= RelativeTime) {
-				var lyricInfo = chart[visualChartIndex];
+			for (int i = 0; i < charts.Count; i++) {
+				var chart = charts[i];
 
-				SpawnLyric(lyricInfo, RelativeTime);
+				// Spawn lyrics and starpower activate sections
+				while (chart.Count > visualChartIndex[i] && chart[visualChartIndex[i]].time <= RelativeTime) {
+					var lyricInfo = chart[visualChartIndex[i]];
 
-				if (visualChartIndex + 1 < chart.Count) {
-					SpawnStarpowerActivate(lyricInfo, chart[visualChartIndex + 1], RelativeTime);
+					SpawnLyric(lyricInfo, RelativeTime, i);
+
+					if (visualChartIndex[i] + 1 < chart.Count) {
+						SpawnStarpowerActivate(lyricInfo, chart[visualChartIndex[i] + 1], RelativeTime);
+					}
+
+					visualChartIndex[i]++;
 				}
 
-				visualChartIndex++;
-			}
-
-			// Set current lyric
-			if (currentLyric == null) {
-				while (chart.Count > chartIndex && chart[chartIndex].time <= Play.Instance.SongTime) {
-					currentLyric = chart[chartIndex];
-					chartIndex++;
+				// Set current lyric
+				if (currentLyric == null) {
+					while (chart.Count > chartIndex[i] && chart[chartIndex[i]].time <= Play.Instance.SongTime) {
+						currentLyric = chart[chartIndex[i]];
+						chartIndex[i]++;
+					}
+				} else if (currentLyric.EndTime < Play.Instance.SongTime) {
+					currentLyric = null;
 				}
-			} else if (currentLyric.EndTime < Play.Instance.SongTime) {
-				currentLyric = null;
 			}
 
 			// Update player specific stuff
@@ -362,7 +423,7 @@ namespace YARG.PlayMode {
 
 				// Update inputs
 				if (micInput.botMode) {
-					micInput.UpdateBotMode(chart, Play.Instance.SongTime);
+					micInput.UpdateBotMode(charts[0], Play.Instance.SongTime);
 				} else {
 					micInput.UpdatePlayerMode();
 				}
@@ -506,19 +567,23 @@ namespace YARG.PlayMode {
 			beat = false;
 		}
 
-		private void SpawnLyric(LyricInfo lyricInfo, float time) {
+		private void SpawnLyric(LyricInfo lyricInfo, float time, int harmIndex) {
 			// Get correct position
 			float lagCompensation = CalcLagCompensation(time, lyricInfo.time);
 			var pos = TRACK_SPAWN_OFFSET - lagCompensation;
 
 			// Spawn text
-			lyricPool.AddLyric(lyricInfo, visualStarpowerSection != null, pos);
+			if (harmIndex == 0) {
+				lyricPool.AddLyric(lyricInfo, visualStarpowerSection != null, pos, false);
+			} else if (harmIndex == 1) {
+				lyricPool.AddLyric(lyricInfo, visualStarpowerSection != null, pos, true);
+			}
 
 			// Spawn note
 			if (lyricInfo.inharmonic) {
 				notePool.AddNoteInharmonic(lyricInfo.length, pos);
 			} else {
-				notePool.AddNoteHarmonic(lyricInfo.pitchOverTime, lyricInfo.length, pos);
+				notePool.AddNoteHarmonic(lyricInfo.pitchOverTime, lyricInfo.length, pos, harmIndex);
 			}
 		}
 
@@ -536,7 +601,7 @@ namespace YARG.PlayMode {
 			var pos = TRACK_SPAWN_OFFSET - lagCompensation;
 
 			// Spawn section
-			lyricPool.AddStarpowerActivate(pos, length);
+			// lyricPool.AddStarpowerActivate(pos, length);
 		}
 
 		private void CalculateSectionSingTime(float start) {
@@ -547,7 +612,7 @@ namespace YARG.PlayMode {
 					continue;
 				}
 
-				if (e.name != "vocal_endPhrase") {
+				if (e.name != EndPhraseName) {
 					continue;
 				}
 
@@ -589,7 +654,7 @@ namespace YARG.PlayMode {
 			float z = -0.353f +
 				(note / 12f * 0.42f) +
 				(octave - 3) * 0.42f;
-			z = Mathf.Clamp(z, -0.45f, 0.93f);
+			z = Mathf.Clamp(z, -0.61f, 0.93f);
 
 			return z;
 		}
@@ -606,22 +671,22 @@ namespace YARG.PlayMode {
 			var chart = Play.Instance.chart.realLyrics;
 
 			// See if we are in a starpower activate section
-			if (chartIndex - 1 > 0 && chartIndex < chart.Count) {
-				var firstLyric = chart[chartIndex - 1];
-				var nextLyric = chart[chartIndex];
+			// if (chartIndex - 1 > 0 && chartIndex < chart.Count) {
+			// 	var firstLyric = chart[chartIndex - 1];
+			// 	var nextLyric = chart[chartIndex];
 
-				float start = firstLyric.EndTime + STARPOWER_ACTIVATE_MARGIN;
-				float end = nextLyric.time - STARPOWER_ACTIVATE_MARGIN;
-				float length = end - start;
+			// 	float start = firstLyric.EndTime + STARPOWER_ACTIVATE_MARGIN;
+			// 	float end = nextLyric.time - STARPOWER_ACTIVATE_MARGIN;
+			// 	float length = end - start;
 
-				if (length < STARPOWER_ACTIVATE_MIN) {
-					return;
-				}
+			// 	if (length < STARPOWER_ACTIVATE_MIN) {
+			// 		return;
+			// 	}
 
-				if (Play.Instance.SongTime < start || Play.Instance.SongTime > end) {
-					return;
-				}
-			}
+			// 	if (Play.Instance.SongTime < start || Play.Instance.SongTime > end) {
+			// 		return;
+			// 	}
+			// }
 
 			// If so, activate!
 			starpowerActive = true;

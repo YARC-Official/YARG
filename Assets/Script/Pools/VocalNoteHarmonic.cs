@@ -38,6 +38,14 @@ namespace YARG.Pools {
 			lineRenderer.SetPositions(points.ToArray());
 		}
 
+		public void SetColor(int harmIndex) {
+			var lineColor = lineRenderer.material.color;
+			var harmColor = MicPlayer.HARMONIC_COLORS[harmIndex];
+			harmColor.a = lineColor.a;
+
+			lineRenderer.material.color = harmColor;
+		}
+
 		private void Update() {
 			transform.localPosition -= new Vector3(Time.deltaTime * MicPlayer.TRACK_SPEED, 0f, 0f);
 

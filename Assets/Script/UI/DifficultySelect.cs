@@ -174,7 +174,7 @@ namespace YARG.UI {
 				player.chosenDifficulty = (Difficulty) selected;
 				IncreasePlayerIndex();
 			} else if (state == State.VOCALS) {
-				if (selected == 1) {
+				if (selected == 2) {
 					foreach (var p in PlayerManager.players) {
 						p.chosenInstrument = null;
 					}
@@ -318,11 +318,11 @@ namespace YARG.UI {
 
 			state = State.VOCALS;
 
-			optionCount = 2;
+			optionCount = 3;
 			string[] ops = {
 				"Solo",
+				"Harmony",
 				"Sit Out (All Vocals)",
-				null,
 				null,
 				null,
 				null
@@ -334,6 +334,9 @@ namespace YARG.UI {
 
 				if (i == 0) {
 					var sprite = Addressables.LoadAssetAsync<Sprite>("FontSprites[vocals]").WaitForCompletion();
+					options[i].SetImage(sprite);
+				} else if (i == 1) {
+					var sprite = Addressables.LoadAssetAsync<Sprite>("FontSprites[harmVocals]").WaitForCompletion();
 					options[i].SetImage(sprite);
 				}
 			}

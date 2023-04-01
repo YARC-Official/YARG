@@ -2485,6 +2485,8 @@ MonoBehaviour:
   lyricPool: {fileID: 277253731}
   notePool: {fileID: 395624268}
   barContainer: {fileID: 1250570285}
+  trackRenderer: {fileID: 1219849448}
+  harmonyTexture: {fileID: 2800000, guid: 1b999c6dc715bf24db8a448568447550, type: 3}
   preformaceText: {fileID: 1164410253}
   comboText: {fileID: 1400927845}
   comboFill: {fileID: 1261892303}

@@ -10,9 +10,10 @@ namespace YARG.Pools {
 			return poolable.transform;
 		}
 
-		public Transform AddNoteHarmonic(List<(float, (float, int))> pitchOverTime, float length, float x) {
+		public Transform AddNoteHarmonic(List<(float, (float, int))> pitchOverTime, float length, float x, int harmIndex) {
 			var poolable = (VocalNoteHarmonic) Add("note_harmonic", new Vector3(x, 0.065f, 0f));
 			poolable.SetInfo(pitchOverTime, length);
+			poolable.SetColor(harmIndex);
 
 			return poolable.transform;
 		}

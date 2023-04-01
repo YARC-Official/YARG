@@ -21,8 +21,20 @@ namespace YARG.Data {
 		public List<EventInfo> events = new();
 		public List<float> beats = new();
 
+		/// <summary>
+		/// Lyrics to be displayed in the lyric view when no one is singing.
+		/// </summary>
 		public List<GenericLyricInfo> genericLyrics = new();
+
+		/// <summary>
+		/// Solo vocal lyrics.
+		/// </summary>
 		public List<LyricInfo> realLyrics = new();
+
+		/// <summary>
+		/// Harmony lyrics. Size 0 by default, should be set by the harmony lyric parser.
+		/// </summary>
+		public List<LyricInfo>[] harmLyrics = new List<LyricInfo>[0];
 
 		public Chart() {
 			allParts = new() {

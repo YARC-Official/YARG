@@ -97,11 +97,6 @@ namespace YARG.UI {
 					continue;
 				}
 
-				// Skip these for now
-				if (diff.Key == "harmVocals") {
-					continue;
-				}
-
 				var diffView = Instantiate(difficultyView, difficultyContainer);
 
 				// Get color
