@@ -31,7 +31,8 @@ public class DiscordController : MonoBehaviour
     void Start(){
        InitDiscord();
     }
-    void InitDiscord()
+	
+    void InitDiscord() //When the game is started while discord is already running the status update happens nearly instantly. However if discord is opened or re-opened after game start, it can take up to 35 seconds for the status to display.
     {
         discord?.Dispose();
         try{ //if discord isn't open at run start this will throw 'InternalError' instead of 'NotRunning' (don't know why)
