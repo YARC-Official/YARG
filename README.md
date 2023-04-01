@@ -53,9 +53,21 @@ Windows:
 
 YARG is licensed under the MIT License - see the [`LICENSE`](../master/LICENSE) file for details.
 
+# 🧰 External Licenses
+
+Some libraries **packaged** with the source code have licenses that must be included.
+
+| Library | License |
+| --- | --- |
+| [NuGet for Unity](https://github.com/GlitchEnzo/NuGetForUnity) | [MIT](https://github.com/GlitchEnzo/NuGetForUnity/blob/master/LICENSE)
+| [Unity Standalone File Browser](https://github.com/gkngkc/UnityStandaloneFileBrowser) | [MIT](https://github.com/gkngkc/UnityStandaloneFileBrowser/blob/master/LICENSE.txt)
+| [Concentus.OggFile](https://github.com/lostromb/concentus.oggfile/tree/master) | [Ms-PL](https://github.com/lostromb/concentus.oggfile/blob/master/LICENSE)
+
+Please note that other libraries are **not** packaged within the source code, and are to be install by NuGet.
+
 # 📦 External Assets and Libraries
 
-> **Info**
+> **Note**
 >
 > YARG uses [GuitarGame_ChartFormats](https://github.com/TheNathannator/GuitarGame_ChartFormats) as a "standard." The end goal is to get everything listed in that documentation to work without issue. This is currently not the case, but we are getting closer to that goal everyday!
 
@@ -75,9 +87,8 @@ YARG is licensed under the MIT License - see the [`LICENSE`](../master/LICENSE) 
 | [DryWetMidi](https://www.nuget.org/packages/Melanchall.DryWetMidi) | Library | Parsing `.mid` Files
 | [TagLibSharp](https://www.nuget.org/packages/TagLibSharp) | Library | Finding Audio Metadata
 | [Minis](https://github.com/keijiro/Minis/tree/master) | Library | MIDI Input for Unity
-| [FuzzySharp](https://www.nuget.org/packages/FuzzySharp) | Library | Search Function
-| [Concentus](https://www.nuget.org/packages/Concentus) | Library | `.opus` Library
-| [Concentus.OggFile](https://www.nuget.org/packages/Concentus.OggFile) | Library | `.opus` File Reading 
+| [Concentus](https://www.nuget.org/packages/Concentus) | Library | Using `.opus` files
+| [Concentus.OggFile](https://github.com/lostromb/concentus.oggfile/tree/master) | Library | Reading `.opus` Files
 
 # 🔨 Building
 
@@ -86,11 +97,6 @@ YARG is licensed under the MIT License - see the [`LICENSE`](../master/LICENSE) 
 3. Load in **without** entering safe mode.
 4. Click on `NuGet` on the menu bar.
 5. Click on `Restore Packages`.
-6. **There seems to be a bug with `Concentus.OggFile`.** You may need to manually install `Concentus.OggFile` in the NuGet Packages.
-    1. Click on `NuGet` on the menu bar, then click on `Manage NuGet Packages`. 
-    2. Then search for `Concentus.OggFile`.
-    3. Click on `Install`. You may need to repeat this multiple times. This will be fixed in the near future.
-    
 
 # 💸 Donate
 
