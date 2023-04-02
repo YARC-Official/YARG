@@ -24,10 +24,8 @@ namespace YARG.PlayMode {
 			public ParticleGroup nonActiveParticles;
 			public ParticleGroup activeParticles;
 
-			public MeshRenderer barMesh;
-
 			public int octaveOffset;
-			public float singProgress;
+			public float[] singProgresses;
 
 			public int sectionsHit;
 			public int secitonsFailed;
@@ -94,8 +92,11 @@ namespace YARG.PlayMode {
 
 		private List<PlayerInfo> micInputs = new();
 		public Dictionary<MicInputStrategy, AudioSource> dummyAudioSources = new();
+		private List<MeshRenderer> barRenderers = new();
 
 		private bool onSongStartCalled = false;
+
+		private List<List<LyricInfo>> charts;
 
 		public float RelativeTime => Play.Instance.SongTime +
 			((TRACK_SPAWN_OFFSET + TRACK_END_OFFSET) / (TRACK_SPEED / Play.speed));
@@ -111,15 +112,15 @@ namespace YARG.PlayMode {
 			get {
 				string endPhraseName = "vocal_endPhrase";
 				if (micInputs[0].player.chosenInstrument == "harmVocals") {
-					endPhraseName = "harm_endPhrase";
+					endPhraseName = "harmVocal_endPhrase";
 				}
 
 				return endPhraseName;
 			}
 		}
 
-		private float sectionSingTime = -1f;
-		private LyricInfo currentLyric;
+		private float[] sectionSingTime;
+		private LyricInfo[] currentLyrics;
 
 		private EventInfo visualStarpowerSection;
 		private EventInfo starpowerSection;
@@ -159,10 +160,6 @@ namespace YARG.PlayMode {
 				var needle = Instantiate(needlePrefab, transform);
 				needle.transform.localPosition = needlePrefab.transform.position;
 
-				// Spawn var
-				var bar = Instantiate(barPrefab, barContainer);
-				bar.transform.localPosition = new(0f, 0f, 0.8f - (barContainer.childCount - 1) * 0.225f);
-
 				// Create player info
 				var groups = needle.GetComponentsInChildren<ParticleGroup>();
 				var playerInfo = new PlayerInfo {
@@ -171,9 +168,7 @@ namespace YARG.PlayMode {
 					needle = needle.transform,
 					needleModel = needle.GetComponentInChildren<MeshRenderer>().gameObject,
 					nonActiveParticles = groups[0],
-					activeParticles = groups[1],
-
-					barMesh = bar.GetComponent<MeshRenderer>()
+					activeParticles = groups[1]
 				};
 
 				// Bind events
@@ -263,20 +258,54 @@ namespace YARG.PlayMode {
 		}
 
 		private void OnSongStart() {
+			// Get chart(s)
+			if (micInputs[0].player.chosenInstrument == "harmVocals") {
+				charts = Play.Instance.chart.harmLyrics.ToList();
+			} else {
+				charts = new List<List<LyricInfo>> { Play.Instance.chart.realLyrics };
+			}
+
 			// Set up harmony vocal track
 			if (micInputs[0].player.chosenInstrument == "harmVocals") {
 				trackRenderer.material.SetTexture("_BaseMap", harmonyTexture);
 			}
 
-			// Set up chart indices
+			// Get count of harmony parts
+			int harmonyCount = 1;
 			if (micInputs[0].player.chosenInstrument == "harmVocals") {
-				int count = Play.Instance.chart.harmLyrics.Length;
-				visualChartIndex = new int[count];
-				chartIndex = new int[count];
-			} else {
-				visualChartIndex = new int[1];
-				chartIndex = new int[1];
+				harmonyCount = Play.Instance.chart.harmLyrics.Length;
 			}
+
+			// Set up chart indices
+			visualChartIndex = new int[harmonyCount];
+			chartIndex = new int[harmonyCount];
+
+			// Set up bars
+			for (int i = 0; i < harmonyCount; i++) {
+				var bar = Instantiate(barPrefab, barContainer);
+
+				if (harmonyCount == 1) {
+					bar.transform.localPosition = new(0f, 0f, 0.8f - (barContainer.childCount - 1) * 0.225f);
+				} else {
+					bar.transform.localPosition = new(0f, 0f, 0.45f - (barContainer.childCount - 1) * 0.225f);
+				}
+
+				var barRenderer = bar.GetComponent<MeshRenderer>();
+				barRenderers.Add(barRenderer);
+
+				// Set color
+				barRenderer.material.SetColor("_Color", HARMONIC_COLORS[i]);
+			}
+
+			// Set up sing progresses
+			foreach (var playerInfo in micInputs) {
+				playerInfo.singProgresses = new float[harmonyCount];
+			}
+
+			// Set up current lyrics
+			currentLyrics = new LyricInfo[harmonyCount];
+			sectionSingTime = new float[harmonyCount];
+			CalculateSectionSingTime(0f);
 		}
 
 		private void Update() {
@@ -289,19 +318,6 @@ namespace YARG.PlayMode {
 			if (!onSongStartCalled) {
 				onSongStartCalled = true;
 				OnSongStart();
-			}
-
-			// Get the first lyric time
-			if (sectionSingTime == -1f) {
-				CalculateSectionSingTime(0f);
-			}
-
-			// Get chart
-			List<List<LyricInfo>> charts;
-			if (micInputs[0].player.chosenInstrument == "harmVocals") {
-				charts = Play.Instance.chart.harmLyrics.ToList();
-			} else {
-				charts = new List<List<LyricInfo>> { Play.Instance.chart.realLyrics };
 			}
 
 			var events = Play.Instance.chart.events;
@@ -332,51 +348,67 @@ namespace YARG.PlayMode {
 				if (eventInfo.name == EndPhraseName) {
 					float bestPercent = 0f;
 
-					if (sectionSingTime != 0f) {
-						// Reset and see if we failed or not
-						foreach (var playerInfo in micInputs) {
-							float mul = GetSingTimeMultiplier(playerInfo.player.chosenDifficulty);
-							float percent = playerInfo.singProgress / (sectionSingTime * mul);
+					// Reset and see if we failed or not
+					foreach (var playerInfo in micInputs) {
+						float mul = GetSingTimeMultiplier(playerInfo.player.chosenDifficulty);
+						float bestPlayerPercent = 0f;
+						for (int i = 0; i < playerInfo.singProgresses.Length; i++) {
+							if (sectionSingTime[i] == 0f) {
+								continue;
+							}
 
+							// Get percent (0-1)
+							float percent = playerInfo.singProgresses[i] / (sectionSingTime[i] * mul);
+
+							// Add to total sections
 							if (percent >= 1f) {
 								playerInfo.sectionsHit++;
 							} else {
 								playerInfo.secitonsFailed++;
 							}
 
+							// Set best (player) percent
+							if (percent > bestPlayerPercent) {
+								bestPlayerPercent = percent;
+							} else {
+								continue;
+							}
+
+							// Set best percent
 							if (percent > bestPercent) {
 								bestPercent = percent;
 							}
 
+							// Add to total sing percent
 							playerInfo.totalSingPercent += Mathf.Min(percent, 1f);
-							playerInfo.singProgress = 0f;
+							playerInfo.singProgresses[i] = 0f;
+						}
+					}
+
+					// Set preformance text
+					preformaceText.text = bestPercent switch {
+						>= 1f => "AWESOME!",
+						>= 0.8f => "STRONG",
+						>= 0.7f => "GOOD",
+						>= 0.6f => "OKAY",
+						>= 0.1f => "MESSY",
+						_ => "AWFUL"
+					};
+					preformaceText.color = Color.white;
+
+					// Add to multiplier
+					if (bestPercent >= 1f) {
+						if (rawMultiplier < 4) {
+							rawMultiplier++;
 						}
 
-						// Set preformance text
-						preformaceText.text = bestPercent switch {
-							>= 1f => "AWESOME!",
-							>= 0.8f => "STRONG",
-							>= 0.7f => "GOOD",
-							>= 0.6f => "OKAY",
-							>= 0.1f => "MESSY",
-							_ => "AWFUL"
-						};
-						preformaceText.color = Color.white;
-
-						// Add to multiplier
-						if (bestPercent >= 1f) {
-							if (rawMultiplier < 4) {
-								rawMultiplier++;
-							}
-
-							// Starpower
-							if (starpowerSection != null && starpowerSection.EndTime <= Play.Instance.SongTime) {
-								starpowerCharge += 0.25f;
-								starpowerSection = null;
-							}
-						} else {
-							rawMultiplier = 1;
+						// Starpower
+						if (starpowerSection != null && starpowerSection.EndTime <= Play.Instance.SongTime) {
+							starpowerCharge += 0.25f;
+							starpowerSection = null;
 						}
+					} else {
+						rawMultiplier = 1;
 					}
 
 					// Calculate the new sing time
@@ -405,70 +437,106 @@ namespace YARG.PlayMode {
 				}
 
 				// Set current lyric
-				if (currentLyric == null) {
+				if (currentLyrics[i] == null) {
 					while (chart.Count > chartIndex[i] && chart[chartIndex[i]].time <= Play.Instance.SongTime) {
-						currentLyric = chart[chartIndex[i]];
+						currentLyrics[i] = chart[chartIndex[i]];
 						chartIndex[i]++;
 					}
-				} else if (currentLyric.EndTime < Play.Instance.SongTime) {
-					currentLyric = null;
+				} else if (currentLyrics[i].EndTime < Play.Instance.SongTime) {
+					currentLyrics[i] = null;
 				}
 			}
 
 			// Update player specific stuff
-			float highestSingProgress = 0f;
+			int botChartIndices = 0;
 			foreach (var playerInfo in micInputs) {
 				var player = playerInfo.player;
 				var micInput = (MicInputStrategy) player.inputStrategy;
 
 				// Update inputs
 				if (micInput.botMode) {
-					micInput.UpdateBotMode(charts[0], Play.Instance.SongTime);
+					micInput.UpdateBotMode(charts[botChartIndices], Play.Instance.SongTime);
+
+					botChartIndices++;
+					botChartIndices %= charts.Count;
 				} else {
 					micInput.UpdatePlayerMode();
 				}
 
-				// See if the pitch is correct 
-
+				// See if the (any) pitch is correct
 				bool pitchCorrect = micInput.VoiceDetected;
-				if (currentLyric != null && !currentLyric.inharmonic && micInput.VoiceDetected) {
-					float correctRange = player.chosenDifficulty switch {
-						Difficulty.EASY => 4f,
-						Difficulty.MEDIUM => 4f,
-						Difficulty.HARD => 3f,
-						Difficulty.EXPERT => 2.5f,
-						Difficulty.EXPERT_PLUS => 2.5f,
-						_ => throw new Exception("Unreachable.")
-					};
+				int targetLyricIndex = -1;
+				if (micInput.VoiceDetected) {
+					// Get the best matching pitch
+					float bestDistance = float.MaxValue;
+					int bestDistanceIndex = -1;
+					int bestDistanceOctave = -1;
+					for (int i = 0; i < currentLyrics.Length; i++) {
+						var currentLyric = currentLyrics[i];
 
-					// Get the needed pitch
-					float timeIntoNote = Play.Instance.SongTime - currentLyric.time;
-					float rawNote = currentLyric.GetLerpedNoteAtTime(timeIntoNote);
-					var (neededNote, neededOctave) = Utils.SplitNoteToOctaveAndNote(rawNote);
+						if (currentLyric != null && !currentLyric.inharmonic) {
+							// Get the needed pitch
+							float timeIntoNote = Play.Instance.SongTime - currentLyric.time;
+							float rawNote = currentLyric.GetLerpedNoteAtTime(timeIntoNote);
+							var (neededNote, neededOctave) = Utils.SplitNoteToOctaveAndNote(rawNote);
 
-					// Get the note the player is singing
-					float currentNote = micInput.VoiceNote;
+							// Get the note the player is singing
+							float currentNote = micInput.VoiceNote;
 
-					// Check if it is in the right threshold
-					float dist = Mathf.Abs(neededNote - currentNote);
-					pitchCorrect = dist <= correctRange;
+							// Check if it is in the right threshold
+							float dist = Mathf.Abs(neededNote - currentNote);
 
-					// Get the octave offset
-					if (pitchCorrect) {
-						playerInfo.octaveOffset = neededOctave - micInput.VoiceOctave;
+							// Check to see if it is the best
+							if (dist < bestDistance) {
+								bestDistance = dist;
+								bestDistanceIndex = i;
+								bestDistanceOctave = neededOctave;
+							} else if (Mathf.Approximately(dist, bestDistance)) {
+								// If it is the same distance, check the octave distance
+								int bestOctaveDistance = Mathf.Abs(bestDistanceOctave - micInput.VoiceOctave);
+								int neededOctaveDistance = Mathf.Abs(neededOctave - micInput.VoiceOctave);
+
+								// Close one wins!
+								if (neededOctaveDistance < bestOctaveDistance) {
+									bestDistance = dist;
+									bestDistanceIndex = i;
+									bestDistanceOctave = neededOctave;
+								}
+							}
+						}
+					}
+
+					// Check if the best pitch is in the threshold
+					if (bestDistanceIndex != -1) {
+						float correctRange = player.chosenDifficulty switch {
+							Difficulty.EASY => 4f,
+							Difficulty.MEDIUM => 4f,
+							Difficulty.HARD => 3f,
+							Difficulty.EXPERT => 2.5f,
+							Difficulty.EXPERT_PLUS => 2.5f,
+							_ => throw new Exception("Unreachable.")
+						};
+
+						pitchCorrect = bestDistance <= correctRange;
+
+						// Get the octave offset
+						if (pitchCorrect) {
+							playerInfo.octaveOffset = bestDistanceOctave - micInput.VoiceOctave;
+						}
+
+						targetLyricIndex = bestDistanceIndex;
 					}
 				}
 
 				// Update needle
-
 				if (micInput.VoiceDetected) {
 					playerInfo.needleModel.SetActive(true);
 				} else {
 					playerInfo.needleModel.SetActive(micInput.TimeSinceNoVoice < 0.25f);
 				}
 
-				if (pitchCorrect && currentLyric != null) {
-					playerInfo.singProgress += Time.deltaTime;
+				if (pitchCorrect && targetLyricIndex != -1) {
+					playerInfo.singProgresses[targetLyricIndex] += Time.deltaTime;
 
 					playerInfo.activeParticles.Play();
 					playerInfo.nonActiveParticles.Stop();
@@ -488,18 +556,27 @@ namespace YARG.PlayMode {
 					playerInfo.needle.localPosition,
 					playerInfo.needle.localPosition.WithZ(z),
 					Time.deltaTime * 15f);
+			}
 
-				// Update bar
-				float singTimeModifier = GetSingTimeMultiplier(player.chosenDifficulty);
-				if (sectionSingTime != 0f) {
-					playerInfo.barMesh.material.SetFloat("Fill", playerInfo.singProgress / (sectionSingTime * singTimeModifier));
-				} else {
-					playerInfo.barMesh.material.SetFloat("Fill", 0f);
+			// Get the highest sing progresses
+			float[] highestSingProgresses = new float[currentLyrics.Length];
+			foreach (var playerInfo in micInputs) {
+				float singTimeMultiplier = GetSingTimeMultiplier(playerInfo.player.chosenDifficulty);
+				for (int i = 0; i < playerInfo.singProgresses.Length; i++) {
+					float realProgress = playerInfo.singProgresses[i] / (sectionSingTime[i] * singTimeMultiplier);
+
+					if (highestSingProgresses[i] < realProgress) {
+						highestSingProgresses[i] = realProgress;
+					}
 				}
+			}
 
-				// Update highest
-				if (playerInfo.singProgress > highestSingProgress) {
-					highestSingProgress = playerInfo.singProgress;
+			// Update bars
+			for (int i = 0; i < highestSingProgresses.Length; i++) {
+				if (sectionSingTime[i] != 0f) {
+					barRenderers[i].material.SetFloat("Fill", highestSingProgresses[i]);
+				} else {
+					barRenderers[i].material.SetFloat("Fill", 0f);
 				}
 			}
 
@@ -516,11 +593,12 @@ namespace YARG.PlayMode {
 			}
 
 			// Update combo fill
-			float fillMul = GetSingTimeMultiplier(micInputs[0].player.chosenDifficulty);
-			if (sectionSingTime != 0f) {
-				comboFill.fillAmount = highestSingProgress / (sectionSingTime * fillMul);
-			} else {
-				comboFill.fillAmount = 0f;
+			comboFill.fillAmount = 0f;
+			for (int i = 0; i < highestSingProgresses.Length; i++) {
+				if (sectionSingTime[i] != 0f) {
+					comboFill.fillAmount = highestSingProgresses.Max();
+					break;
+				}
 			}
 
 			// Update starpower active
@@ -621,17 +699,19 @@ namespace YARG.PlayMode {
 			}
 
 			// Get all of the lyric times combined
-			sectionSingTime = 0f;
-			foreach (var lyric in Play.Instance.chart.realLyrics) {
-				if (lyric.time < start) {
-					continue;
-				}
+			for (int i = 0; i < charts.Count; i++) {
+				sectionSingTime[i] = 0f;
+				foreach (var lyric in Play.Instance.chart.realLyrics) {
+					if (lyric.time < start) {
+						continue;
+					}
 
-				if (lyric.time > end) {
-					break;
-				}
+					if (lyric.time > end) {
+						break;
+					}
 
-				sectionSingTime += lyric.length;
+					sectionSingTime[i] += lyric.length;
+				}
 			}
 		}
 
@@ -654,7 +734,12 @@ namespace YARG.PlayMode {
 			float z = -0.353f +
 				(note / 12f * 0.42f) +
 				(octave - 3) * 0.42f;
-			z = Mathf.Clamp(z, -0.61f, 0.93f);
+
+			if (Instance.micInputs[0].player.chosenInstrument == "harmVocals") {
+				z = Mathf.Clamp(z, -0.61f, 0.61f);
+			} else {
+				z = Mathf.Clamp(z, -0.61f, 0.93f);
+			}
 
 			return z;
 		}
