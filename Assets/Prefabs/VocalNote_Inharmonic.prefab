@@ -113,3 +113,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   poolId: note_inharmonic
   pool: {fileID: 0}
+  meshRenderer: {fileID: 8889699353020473419}

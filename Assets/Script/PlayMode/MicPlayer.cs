@@ -26,11 +26,6 @@ namespace YARG.PlayMode {
 
 			public int octaveOffset;
 			public float[] singProgresses;
-
-			public int sectionsHit;
-			public int secitonsFailed;
-
-			public float totalSingPercent;
 		}
 
 		public static readonly Color[] HARMONIC_COLORS = new Color[] {
@@ -132,6 +127,10 @@ namespace YARG.PlayMode {
 		private bool starpowerActive;
 
 		public bool StarpowerReady => !starpowerActive && starpowerCharge >= 0.5f;
+
+		private int sectionsHit;
+		private int sectionsFailed;
+		private float totalSingPercent;
 
 		private void Start() {
 			Instance = this;
@@ -237,19 +236,22 @@ namespace YARG.PlayMode {
 			// Release render texture
 			trackCamera.targetTexture.Release();
 
-			// Set scores
+			// Create score
+			int totalSections = sectionsFailed + sectionsHit;
+			var score = new PlayerManager.LastScore {
+				percentage = new DiffPercent {
+					difficulty = micInputs[0].player.chosenDifficulty,
+					percent = totalSingPercent / totalSections
+				},
+				notesHit = sectionsHit,
+				notesMissed = sectionsFailed
+			};
+
 			foreach (var playerInfo in micInputs) {
-				int totalSections = playerInfo.secitonsFailed + playerInfo.sectionsHit;
+				// Set scores
+				playerInfo.player.lastScore = score;
 
-				playerInfo.player.lastScore = new PlayerManager.LastScore {
-					percentage = new DiffPercent {
-						difficulty = playerInfo.player.chosenDifficulty,
-						percent = playerInfo.totalSingPercent / totalSections
-					},
-					notesHit = playerInfo.sectionsHit,
-					notesMissed = playerInfo.secitonsFailed
-				};
-
+				// Unbind events
 				playerInfo.player.inputStrategy.StarpowerEvent -= StarpowerAction;
 			}
 
@@ -294,7 +296,7 @@ namespace YARG.PlayMode {
 				barRenderers.Add(barRenderer);
 
 				// Set color
-				barRenderer.material.SetColor("_Color", HARMONIC_COLORS[i]);
+				barRenderer.material.color = HARMONIC_COLORS[i];
 			}
 
 			// Set up sing progresses
@@ -360,14 +362,8 @@ namespace YARG.PlayMode {
 							// Get percent (0-1)
 							float percent = playerInfo.singProgresses[i] / (sectionSingTime[i] * mul);
 
-							// Add to total sections
-							if (percent >= 1f) {
-								playerInfo.sectionsHit++;
-							} else {
-								playerInfo.secitonsFailed++;
-							}
-
 							// Set best (player) percent
+							playerInfo.singProgresses[i] = 0f;
 							if (percent > bestPlayerPercent) {
 								bestPlayerPercent = percent;
 							} else {
@@ -378,10 +374,6 @@ namespace YARG.PlayMode {
 							if (percent > bestPercent) {
 								bestPercent = percent;
 							}
-
-							// Add to total sing percent
-							playerInfo.totalSingPercent += Mathf.Min(percent, 1f);
-							playerInfo.singProgresses[i] = 0f;
 						}
 					}
 
@@ -396,6 +388,9 @@ namespace YARG.PlayMode {
 					};
 					preformaceText.color = Color.white;
 
+					// Add to sing percent
+					totalSingPercent += Mathf.Min(bestPercent, 1f);
+
 					// Add to multiplier
 					if (bestPercent >= 1f) {
 						if (rawMultiplier < 4) {
@@ -407,8 +402,12 @@ namespace YARG.PlayMode {
 							starpowerCharge += 0.25f;
 							starpowerSection = null;
 						}
+
+						sectionsHit++;
 					} else {
 						rawMultiplier = 1;
+
+						sectionsFailed++;
 					}
 
 					// Calculate the new sing time
@@ -463,6 +462,16 @@ namespace YARG.PlayMode {
 					micInput.UpdatePlayerMode();
 				}
 
+				// Get the correct range
+				float correctRange = player.chosenDifficulty switch {
+					Difficulty.EASY => 4f,
+					Difficulty.MEDIUM => 4f,
+					Difficulty.HARD => 3f,
+					Difficulty.EXPERT => 2.5f,
+					Difficulty.EXPERT_PLUS => 2.5f,
+					_ => throw new Exception("Unreachable.")
+				};
+
 				// See if the (any) pitch is correct
 				bool pitchCorrect = micInput.VoiceDetected;
 				int targetLyricIndex = -1;
@@ -474,49 +483,50 @@ namespace YARG.PlayMode {
 					for (int i = 0; i < currentLyrics.Length; i++) {
 						var currentLyric = currentLyrics[i];
 
-						if (currentLyric != null && !currentLyric.inharmonic) {
-							// Get the needed pitch
-							float timeIntoNote = Play.Instance.SongTime - currentLyric.time;
-							float rawNote = currentLyric.GetLerpedNoteAtTime(timeIntoNote);
-							var (neededNote, neededOctave) = Utils.SplitNoteToOctaveAndNote(rawNote);
+						if (currentLyric == null) {
+							continue;
+						}
 
-							// Get the note the player is singing
-							float currentNote = micInput.VoiceNote;
+						if (currentLyric.inharmonic) {
+							bestDistance = correctRange;
+							bestDistanceIndex = i;
+							bestDistanceOctave = micInput.VoiceOctave;
 
-							// Check if it is in the right threshold
-							float dist = Mathf.Abs(neededNote - currentNote);
+							continue;
+						}
 
-							// Check to see if it is the best
-							if (dist < bestDistance) {
+						// Get the needed pitch
+						float timeIntoNote = Play.Instance.SongTime - currentLyric.time;
+						float rawNote = currentLyric.GetLerpedNoteAtTime(timeIntoNote);
+						var (neededNote, neededOctave) = Utils.SplitNoteToOctaveAndNote(rawNote);
+
+						// Get the note the player is singing
+						float currentNote = micInput.VoiceNote;
+
+						// Check if it is in the right threshold
+						float dist = Mathf.Abs(neededNote - currentNote);
+
+						// Check to see if it is the best
+						if (dist < bestDistance) {
+							bestDistance = dist;
+							bestDistanceIndex = i;
+							bestDistanceOctave = neededOctave;
+						} else if (Mathf.Approximately(dist, bestDistance)) {
+							// If it is the same distance, check the octave distance
+							int bestOctaveDistance = Mathf.Abs(bestDistanceOctave - micInput.VoiceOctave);
+							int neededOctaveDistance = Mathf.Abs(neededOctave - micInput.VoiceOctave);
+
+							// Close one wins!
+							if (neededOctaveDistance < bestOctaveDistance) {
 								bestDistance = dist;
 								bestDistanceIndex = i;
 								bestDistanceOctave = neededOctave;
-							} else if (Mathf.Approximately(dist, bestDistance)) {
-								// If it is the same distance, check the octave distance
-								int bestOctaveDistance = Mathf.Abs(bestDistanceOctave - micInput.VoiceOctave);
-								int neededOctaveDistance = Mathf.Abs(neededOctave - micInput.VoiceOctave);
-
-								// Close one wins!
-								if (neededOctaveDistance < bestOctaveDistance) {
-									bestDistance = dist;
-									bestDistanceIndex = i;
-									bestDistanceOctave = neededOctave;
-								}
 							}
 						}
 					}
 
 					// Check if the best pitch is in the threshold
 					if (bestDistanceIndex != -1) {
-						float correctRange = player.chosenDifficulty switch {
-							Difficulty.EASY => 4f,
-							Difficulty.MEDIUM => 4f,
-							Difficulty.HARD => 3f,
-							Difficulty.EXPERT => 2.5f,
-							Difficulty.EXPERT_PLUS => 2.5f,
-							_ => throw new Exception("Unreachable.")
-						};
-
 						pitchCorrect = bestDistance <= correctRange;
 
 						// Get the octave offset
@@ -659,7 +669,7 @@ namespace YARG.PlayMode {
 
 			// Spawn note
 			if (lyricInfo.inharmonic) {
-				notePool.AddNoteInharmonic(lyricInfo.length, pos);
+				notePool.AddNoteInharmonic(lyricInfo.length, pos, charts.Count != 1, harmIndex);
 			} else {
 				notePool.AddNoteHarmonic(lyricInfo.pitchOverTime, lyricInfo.length, pos, harmIndex);
 			}
@@ -701,7 +711,7 @@ namespace YARG.PlayMode {
 			// Get all of the lyric times combined
 			for (int i = 0; i < charts.Count; i++) {
 				sectionSingTime[i] = 0f;
-				foreach (var lyric in Play.Instance.chart.realLyrics) {
+				foreach (var lyric in charts[i]) {
 					if (lyric.time < start) {
 						continue;
 					}

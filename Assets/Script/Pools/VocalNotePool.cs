@@ -3,9 +3,11 @@ using UnityEngine;
 
 namespace YARG.Pools {
 	public class VocalNotePool : Pool {
-		public Transform AddNoteInharmonic(float length, float x) {
-			var poolable = (VocalNoteInharmonic) Add("note_inharmonic", new Vector3(x, 0.065f, 0.22f));
+		public Transform AddNoteInharmonic(float length, float x, bool isHarmony, int harmIndex) {
+			var poolable = (VocalNoteInharmonic) Add("note_inharmonic", new Vector3(x, 0.065f, 0.1825f));
 			poolable.SetLength(length);
+			poolable.SetHarmony(isHarmony);
+			poolable.SetColor(harmIndex);
 
 			return poolable.transform;
 		}
