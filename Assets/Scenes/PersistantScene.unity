@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.12731713, g: 0.13414738, b: 0.121078536, a: 1}
+  m_IndirectSpecularColor: {r: 0.12731749, g: 0.13414757, b: 0.1210787, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -195,9 +195,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 874125449}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 523c0f56c7bfffa45adfc8894b578416, type: 3}
+  m_Script: {fileID: 11500000, guid: cb438f304d0d4064fb1de229c53becde, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  applicationID: 1091177744416637028
+  details: Hello there ladies and gentlemen!
+  state: Are you ready to rock?
+  largeImage: logo
+  largeText: Yet Another Rhythm Game
+  smallImage: 
+  smallText: 
 --- !u!4 &874125451
 Transform:
   m_ObjectHideFlags: 0
