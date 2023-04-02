@@ -87,7 +87,7 @@ namespace YARG.Serialization.Parser {
 			// # is inharmonic
 			// / is split phrase?
 			// + is connect two (or more) notes
-			// ^ is unknown
+			// ^ is (also) inharmonic
 			// % is unknown
 
 			// Get lyric phrase timings
@@ -163,13 +163,13 @@ namespace YARG.Serialization.Parser {
 					bool inharmonic = false;
 
 					// Set inharmonic
-					if (l.EndsWith("#")) {
+					if (l.EndsWith("#") || l.EndsWith("^")) {
 						inharmonic = true;
 						l = l[0..^1];
 					}
 
 					// Remove other tags
-					if (l.EndsWith("/") || l.EndsWith("^") || l.EndsWith("%")) {
+					if (l.EndsWith("/") || l.EndsWith("%")) {
 						l = l[0..^1];
 					}
 
