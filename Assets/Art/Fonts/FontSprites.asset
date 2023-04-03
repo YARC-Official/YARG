@@ -141,7 +141,7 @@ MonoBehaviour:
   - m_ElementType: 2
     m_Unicode: 65534
     m_GlyphIndex: 14
-    m_Scale: 1
+    m_Scale: 1.3
     m_Name: harmVocals
     m_HashCode: 240351634
   m_SpriteGlyphTable:
@@ -373,8 +373,8 @@ MonoBehaviour:
     m_Metrics:
       m_Width: 256
       m_Height: 256
-      m_HorizontalBearingX: -128
-      m_HorizontalBearingY: 128
+      m_HorizontalBearingX: 0
+      m_HorizontalBearingY: 198
       m_HorizontalAdvance: 256
     m_GlyphRect:
       m_X: 256

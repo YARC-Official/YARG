@@ -7,41 +7,60 @@ namespace YARG.Pools {
 	public sealed class LyricPool : Pool {
 		private List<GameObject> starpowerActivates = new();
 
-		private float lastLyricLocation = float.NegativeInfinity;
+		private float lastLyricLocationBottom = float.NegativeInfinity;
+		private float lastLyricLocationTop = float.NegativeInfinity;
 
 		private void Update() {
 			// Update lyric location
-			lastLyricLocation -= Time.deltaTime * MicPlayer.TRACK_SPEED;
+			lastLyricLocationBottom -= Time.deltaTime * MicPlayer.TRACK_SPEED;
+			lastLyricLocationTop -= Time.deltaTime * MicPlayer.TRACK_SPEED;
 		}
 
-		public Transform AddLyric(LyricInfo lyric, bool starpower, float x) {
+		public Transform AddLyric(LyricInfo lyric, bool starpower, float x, bool onTop) {
 			// Don't let lyrics collide
-			if (x < lastLyricLocation) {
-				x = lastLyricLocation + 0.125f;
+			if (onTop) {
+				if (x < lastLyricLocationTop) {
+					x = lastLyricLocationTop + 0.125f;
+				}
+			} else {
+				if (x < lastLyricLocationBottom) {
+					x = lastLyricLocationBottom + 0.125f;
+				}
 			}
 
-			var poolable = (VocalLyric) Add("lyric", new Vector3(x, 0f, -0.68f));
+			var poolable = (VocalLyric) Add("lyric", new Vector3(x, 0f, onTop ? 0.81f : -0.74f));
 			poolable.SetLyric(lyric, starpower);
 
 			// Calculate the location of the end of the lyric
-			lastLyricLocation = x + poolable.text.preferredWidth;
+			if (onTop) {
+				lastLyricLocationTop = x + poolable.text.preferredWidth;
+			} else {
+				lastLyricLocationBottom = x + poolable.text.preferredWidth;
+			}
 
 			return poolable.transform;
 		}
 
-		public Transform AddStarpowerActivate(float x, float length) {
+		public Transform AddStarpowerActivate(float x, float length, bool onTop) {
 			// Don't let lyrics collide with this
 			float newX = x;
-			if (newX < lastLyricLocation) {
-				newX = lastLyricLocation + 0.125f;
-				length -= newX - x;
+			if (onTop) {
+				if (newX < lastLyricLocationTop) {
+					newX = lastLyricLocationTop + 0.125f;
+					length -= newX - x;
+				}
+			} else {
+				if (newX < lastLyricLocationBottom) {
+					newX = lastLyricLocationBottom + 0.125f;
+					length -= newX - x;
+				}
 			}
 
 			if (length < MicPlayer.STARPOWER_ACTIVATE_MIN) {
 				return null;
 			}
 
-			var poolable = (VocalStarpowerActivate) Add("starpowerActivate", new Vector3(newX, -0.04f, -0.737f));
+			var poolable = (VocalStarpowerActivate) Add("starpowerActivate", new Vector3(newX, -0.04f, onTop ? 0.77f : -0.77f));
 			poolable.SetLength(length);
 
 			starpowerActivates.Add(poolable.gameObject);

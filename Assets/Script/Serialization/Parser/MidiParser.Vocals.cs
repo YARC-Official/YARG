@@ -79,20 +79,18 @@ namespace YARG.Serialization.Parser {
 			return lyrics;
 		}
 
-		private List<LyricInfo> ParseRealLyrics(List<EventIR> eventIR, TrackChunk trackChunk, TempoMap tempo) {
-			var lyrics = new List<LyricInfo>();
+		private List<LyricInfo> ParseRealLyrics(List<EventIR> eventIR, TrackChunk trackChunk, TempoMap tempo, int harmonyIndex) {
+			return ParseRealLyrics(eventIR, trackChunk, trackChunk, tempo, harmonyIndex);
+		}
 
-			// For later:
-			// = is real dash
-			// # is inharmonic
-			// / is split phrase?
-			// + is connect two (or more) notes
-			// ^ is (also) inharmonic
-			// % is unknown
+		private List<LyricInfo> ParseRealLyrics(List<EventIR> eventIR, TrackChunk trackChunk, TrackChunk phraseTimingTrack, TempoMap tempo, int harmonyIndex) {
+			// Standardized in [.mid / Standard / Vocals]
+
+			var lyrics = new List<LyricInfo>();
 
 			// Get lyric phrase timings
 			HashSet<long> startTimings = new();
-			foreach (var note in trackChunk.GetNotes()) {
+			foreach (var note in phraseTimingTrack.GetNotes()) {
 				// B7 note indicates phrases
 				if (note.Octave != 7) {
 					continue;
@@ -143,6 +141,13 @@ namespace YARG.Serialization.Parser {
 					var lyricTime = (float) TimeConverter.ConvertTo<MetricTimeSpan>(totalDelta, tempo).TotalSeconds;
 					var lyricEnd = (float) TimeConverter.ConvertTo<MetricTimeSpan>(endTime, tempo).TotalSeconds;
 
+					// Check for hidden marker
+					bool hidden = false;
+					if (l.EndsWith("$")) {
+						hidden = true;
+						l = l[..^1];
+					}
+
 					// Extend last lyric if +
 					if (l == "+") {
 						var lyric = lyrics[^1];
@@ -163,18 +168,24 @@ namespace YARG.Serialization.Parser {
 					bool inharmonic = false;
 
 					// Set inharmonic
-					if (l.EndsWith("#") || l.EndsWith("^")) {
+					if (l.EndsWith("#") || l.EndsWith("^") || l.EndsWith("*")) {
 						inharmonic = true;
-						l = l[0..^1];
+						l = l[..^1];
 					}
 
-					// Remove other tags
-					if (l.EndsWith("/") || l.EndsWith("%")) {
-						l = l[0..^1];
+					// Remove ignored tags (for now)
+					if (l.EndsWith("/") || l.EndsWith("%") || l.EndsWith("§")) {
+						l = l[..^1];
 					}
 
-					// Replace = with -
+					// Replace
 					l = l.Replace('=', '-');
+					l = l.Replace('_', ' ');
+
+					// Replace lyric with nothing if hidden
+					if (harmonyIndex != 0 && hidden) {
+						l = "";
+					}
 
 					// Add to lyrics
 					lyrics.Add(new LyricInfo {
@@ -189,10 +200,17 @@ namespace YARG.Serialization.Parser {
 				}
 
 				// Add end phrase event
-				eventIR.Add(new EventIR {
-					startTick = note.EndTime,
-					name = "vocal_endPhrase"
-				});
+				if (harmonyIndex == 0) {
+					eventIR.Add(new EventIR {
+						startTick = note.EndTime,
+						name = "harmVocal_endPhrase"
+					});
+				} else if (harmonyIndex == -1) {
+					eventIR.Add(new EventIR {
+						startTick = note.EndTime,
+						name = "vocal_endPhrase"
+					});
+				}
 			}
 
 			return lyrics;

@@ -249,12 +249,30 @@ namespace YARG.Input {
 		public override string[] GetAllowedInstruments() {
 			return new string[] {
 				"vocals",
-				//"harmVocals"
+				"harmVocals"
 			};
 		}
 
 		public override string GetTrackPath() {
 			return null;
+		}
+
+		public override void ResetForSong() {
+			base.ResetForSong();
+
+			updateTimer = default;
+
+			dbCache = default;
+
+			pitchCache = default;
+			lerpedPitch = default;
+
+			noteCache = default;
+
+			TimeSinceNoVoice = 0f;
+			TimeSinceVoiceDetected = 0f;
+
+			botLyricInfo = null;
 		}
 	}
 }

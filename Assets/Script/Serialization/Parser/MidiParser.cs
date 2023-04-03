@@ -49,6 +49,7 @@ namespace YARG.Serialization.Parser {
 			var eventIR = new List<EventIR>();
 			var tempo = midi.GetTempoMap();
 
+			TrackChunk harm1Chunk = null;
 			foreach (var trackChunk in midi.GetTrackChunks()) {
 				foreach (var trackEvent in trackChunk.Events) {
 					if (trackEvent is not SequenceTrackNameEvent trackName) {
@@ -57,6 +58,31 @@ namespace YARG.Serialization.Parser {
 
 					// Parse each chunk
 					try {
+						// Parse harmony parts
+						if (trackName.Text.StartsWith("HARM")) {
+							int harmIndex = int.Parse(trackName.Text[4..^0]) - 1;
+							if (harmIndex > 2) {
+								continue;
+							}
+
+							// Expand/create the array if necessary
+							if (chart.harmLyrics.Length <= harmIndex) {
+								Array.Resize(ref chart.harmLyrics, harmIndex + 1);
+							}
+
+							// Parse the harmony part
+							if (harmIndex == 0) {
+								chart.harmLyrics[harmIndex] = ParseRealLyrics(eventIR, trackChunk, tempo, harmIndex);
+							} else if (harmIndex == 1) {
+								chart.harmLyrics[harmIndex] = ParseRealLyrics(eventIR, trackChunk, tempo, harmIndex);
+								harm1Chunk = trackChunk;
+							} else if (harmIndex == 2) {
+								chart.harmLyrics[harmIndex] = ParseRealLyrics(eventIR, trackChunk, harm1Chunk, tempo, harmIndex);
+							}
+							continue;
+						}
+
+						// Parse everything else
 						switch (trackName.Text) {
 							case "PART GUITAR":
 								for (int i = 0; i < 4; i++) {
@@ -78,9 +104,11 @@ namespace YARG.Serialization.Parser {
 								break;
 							case "PART VOCALS":
 								chart.genericLyrics = ParseGenericLyrics(trackChunk, tempo);
-								chart.realLyrics = ParseRealLyrics(eventIR, trackChunk, tempo);
+								chart.realLyrics = ParseRealLyrics(eventIR, trackChunk, tempo, -1);
 								ParseStarpower(eventIR, trackChunk, "vocals");
 								break;
+							case "HARM1":
+
 							case "PART REAL_GUITAR":
 								for (int i = 0; i < 4; i++) {
 									chart.realGuitar[i] = ParseRealGuitar(trackChunk, i);
@@ -180,6 +208,12 @@ namespace YARG.Serialization.Parser {
 
 			foreach (var lyric in chart.realLyrics) {
 				lyric.time += songInfo.delay;
+			}
+
+			foreach (var lyricList in chart.harmLyrics) {
+				foreach (var lyric in lyricList) {
+					lyric.time += songInfo.delay;
+				}
 			}
 
 			// Generate beat line events if there aren't any
