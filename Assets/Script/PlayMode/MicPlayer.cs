@@ -134,6 +134,8 @@ namespace YARG.PlayMode {
 		private int sectionsFailed;
 		private float totalSingPercent;
 
+		private string lastSecondHarmonyLyric = "";
+
 		private void Start() {
 			Instance = this;
 
@@ -687,6 +689,10 @@ namespace YARG.PlayMode {
 			if (harmIndex == 0) {
 				lyricPool.AddLyric(lyricInfo, visualStarpowerSection != null, pos, false);
 			} else if (harmIndex == 1) {
+				lyricPool.AddLyric(lyricInfo, visualStarpowerSection != null, pos, true);
+				lastSecondHarmonyLyric = lyricInfo.lyric;
+			} else if (harmIndex == 2 && lastSecondHarmonyLyric != lyricInfo.lyric) {
+				// Only add if it's not the same as the last second harmony
 				lyricPool.AddLyric(lyricInfo, visualStarpowerSection != null, pos, true);
 			}
 
