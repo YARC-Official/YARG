@@ -26,6 +26,8 @@ namespace YARG.PlayMode {
 
 			public int octaveOffset;
 			public float[] singProgresses;
+
+			public bool hittingNote;
 		}
 
 		public static readonly Color[] HARMONIC_COLORS = new Color[] {
@@ -40,7 +42,7 @@ namespace YARG.PlayMode {
 		public const float TRACK_END_OFFSET = 5f;
 
 		public const float STARPOWER_ACTIVATE_MARGIN = 0.1f;
-		public const float STARPOWER_ACTIVATE_MIN = 0.3f;
+		public const float STARPOWER_ACTIVATE_MIN = 0.2f;
 
 		public static MicPlayer Instance {
 			get; private set;
@@ -308,6 +310,12 @@ namespace YARG.PlayMode {
 			currentLyrics = new LyricInfo[harmonyCount];
 			sectionSingTime = new float[harmonyCount];
 			CalculateSectionSingTime(0f);
+
+			// Size starpower overlay
+			if (charts.Count > 1) {
+				starpowerOverlay.transform.localPosition = starpowerOverlay.transform.localPosition.WithZ(0f);
+				starpowerOverlay.transform.localScale = starpowerOverlay.transform.localScale.WithY(1.18f);
+			}
 		}
 
 		private void Update() {
@@ -348,70 +356,7 @@ namespace YARG.PlayMode {
 				var eventInfo = events[eventChartIndex];
 
 				if (eventInfo.name == EndPhraseName) {
-					float bestPercent = 0f;
-
-					// Reset and see if we failed or not
-					foreach (var playerInfo in micInputs) {
-						float mul = GetSingTimeMultiplier(playerInfo.player.chosenDifficulty);
-						float bestPlayerPercent = 0f;
-						for (int i = 0; i < playerInfo.singProgresses.Length; i++) {
-							if (sectionSingTime[i] == 0f) {
-								continue;
-							}
-
-							// Get percent (0-1)
-							float percent = playerInfo.singProgresses[i] / (sectionSingTime[i] * mul);
-
-							// Set best (player) percent
-							playerInfo.singProgresses[i] = 0f;
-							if (percent > bestPlayerPercent) {
-								bestPlayerPercent = percent;
-							} else {
-								continue;
-							}
-
-							// Set best percent
-							if (percent > bestPercent) {
-								bestPercent = percent;
-							}
-						}
-					}
-
-					// Set preformance text
-					preformaceText.text = bestPercent switch {
-						>= 1f => "AWESOME!",
-						>= 0.8f => "STRONG",
-						>= 0.7f => "GOOD",
-						>= 0.6f => "OKAY",
-						>= 0.1f => "MESSY",
-						_ => "AWFUL"
-					};
-					preformaceText.color = Color.white;
-
-					// Add to sing percent
-					totalSingPercent += Mathf.Min(bestPercent, 1f);
-
-					// Add to multiplier
-					if (bestPercent >= 1f) {
-						if (rawMultiplier < 4) {
-							rawMultiplier++;
-						}
-
-						// Starpower
-						if (starpowerSection != null && starpowerSection.EndTime <= Play.Instance.SongTime) {
-							starpowerCharge += 0.25f;
-							starpowerSection = null;
-						}
-
-						sectionsHit++;
-					} else {
-						rawMultiplier = 1;
-
-						sectionsFailed++;
-					}
-
-					// Calculate the new sing time
-					CalculateSectionSingTime(Play.Instance.SongTime);
+					UpdateEndPhrase();
 				} else if (eventInfo.name == "starpower_vocals") {
 					starpowerSection = eventInfo;
 				}
@@ -546,11 +491,14 @@ namespace YARG.PlayMode {
 				}
 
 				if (pitchCorrect && targetLyricIndex != -1) {
+					playerInfo.hittingNote = true;
 					playerInfo.singProgresses[targetLyricIndex] += Time.deltaTime;
 
 					playerInfo.activeParticles.Play();
 					playerInfo.nonActiveParticles.Stop();
 				} else {
+					playerInfo.hittingNote = false;
+
 					playerInfo.activeParticles.Stop();
 
 					if (micInput.VoiceDetected) {
@@ -653,6 +601,81 @@ namespace YARG.PlayMode {
 
 			// Unset
 			beat = false;
+		}
+
+		private void UpdateEndPhrase() {
+			// Skip if there is no singing
+			if (sectionSingTime.Max() <= 0f) {
+				// Calculate the new sing time
+				CalculateSectionSingTime(Play.Instance.SongTime);
+
+				return;
+			}
+
+			float bestPercent = 0f;
+
+			// Reset and see if we failed or not
+			foreach (var playerInfo in micInputs) {
+				float mul = GetSingTimeMultiplier(playerInfo.player.chosenDifficulty);
+				float bestPlayerPercent = 0f;
+				for (int i = 0; i < playerInfo.singProgresses.Length; i++) {
+					if (sectionSingTime[i] == 0f) {
+						continue;
+					}
+
+					// Get percent (0-1)
+					float percent = playerInfo.singProgresses[i] / (sectionSingTime[i] * mul);
+
+					// Set best (player) percent
+					playerInfo.singProgresses[i] = 0f;
+					if (percent > bestPlayerPercent) {
+						bestPlayerPercent = percent;
+					} else {
+						continue;
+					}
+
+					// Set best percent
+					if (percent > bestPercent) {
+						bestPercent = percent;
+					}
+				}
+			}
+
+			// Set preformance text
+			preformaceText.text = bestPercent switch {
+				>= 1f => "AWESOME!",
+				>= 0.8f => "STRONG",
+				>= 0.7f => "GOOD",
+				>= 0.6f => "OKAY",
+				>= 0.1f => "MESSY",
+				_ => "AWFUL"
+			};
+			preformaceText.color = Color.white;
+
+			// Add to sing percent
+			totalSingPercent += Mathf.Min(bestPercent, 1f);
+
+			// Add to multiplier
+			if (bestPercent >= 1f) {
+				if (rawMultiplier < 4) {
+					rawMultiplier++;
+				}
+
+				// Starpower
+				if (starpowerSection != null && starpowerSection.EndTime <= Play.Instance.SongTime) {
+					starpowerCharge += 0.25f;
+					starpowerSection = null;
+				}
+
+				sectionsHit++;
+			} else {
+				rawMultiplier = 1;
+
+				sectionsFailed++;
+			}
+
+			// Calculate the new sing time
+			CalculateSectionSingTime(Play.Instance.SongTime);
 		}
 
 		private void SpawnLyric(LyricInfo lyricInfo, float time, int harmIndex) {
@@ -758,33 +781,52 @@ namespace YARG.PlayMode {
 			beat = true;
 		}
 
-		private void StarpowerAction() {
+		private void StarpowerAction(InputStrategy inputStrategy) {
 			if (starpowerCharge < 0.5f) {
 				return;
 			}
 
-			var chart = Play.Instance.chart.realLyrics;
+			// Get playerInfo
+			var playerInfo = micInputs.Find(x => x.player.inputStrategy == inputStrategy);
+			if (playerInfo == null) {
+				return;
+			}
 
 			// See if we are in a starpower activate section
-			// if (chartIndex - 1 > 0 && chartIndex < chart.Count) {
-			// 	var firstLyric = chart[chartIndex - 1];
-			// 	var nextLyric = chart[chartIndex];
+			bool inStarpowerSection = false;
+			for (int i = 0; i < charts.Count; i++) {
+				var chart = charts[i];
 
-			// 	float start = firstLyric.EndTime + STARPOWER_ACTIVATE_MARGIN;
-			// 	float end = nextLyric.time - STARPOWER_ACTIVATE_MARGIN;
-			// 	float length = end - start;
+				// Only top and bottom
+				if (i >= 2) {
+					break;
+				}
 
-			// 	if (length < STARPOWER_ACTIVATE_MIN) {
-			// 		return;
-			// 	}
+				if (chartIndex[i] - 1 > 0 && chartIndex[i] < chart.Count) {
+					var firstLyric = chart[chartIndex[i] - 1];
+					var nextLyric = chart[chartIndex[i]];
 
-			// 	if (Play.Instance.SongTime < start || Play.Instance.SongTime > end) {
-			// 		return;
-			// 	}
-			// }
+					float start = firstLyric.EndTime + STARPOWER_ACTIVATE_MARGIN;
+					float end = nextLyric.time - STARPOWER_ACTIVATE_MARGIN;
+					float length = end - start;
+
+					if (length < STARPOWER_ACTIVATE_MIN) {
+						continue;
+					}
+
+					if (Play.Instance.SongTime < start || Play.Instance.SongTime > end) {
+						continue;
+					}
+
+					inStarpowerSection = true;
+					break;
+				}
+			}
 
 			// If so, activate!
-			//starpowerActive = true;
+			if (inStarpowerSection && !playerInfo.hittingNote) {
+				starpowerActive = true;
+			}
 		}
 	}
 }

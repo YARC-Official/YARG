@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using YARG.Data;
+using YARG.Input;
 using YARG.Settings;
 using YARG.UI;
 
@@ -244,7 +245,7 @@ namespace YARG.PlayMode {
 			Beat = true;
 		}
 
-		private void StarpowerAction() {
+		private void StarpowerAction(InputStrategy inputStrategy) {
 			if (!starpowerActive && starpowerCharge >= 0.5f) {
 				starpowerActive = true;
 			}

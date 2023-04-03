@@ -60,7 +60,7 @@ namespace YARG.Pools {
 				return null;
 			}
 
-			var poolable = (VocalStarpowerActivate) Add("starpowerActivate", new Vector3(newX, -0.04f, -0.737f));
+			var poolable = (VocalStarpowerActivate) Add("starpowerActivate", new Vector3(newX, -0.04f, onTop ? 0.77f : -0.77f));
 			poolable.SetLength(length);
 
 			starpowerActivates.Add(poolable.gameObject);
