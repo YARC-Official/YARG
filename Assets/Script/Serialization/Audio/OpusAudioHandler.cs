@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using Concentus.Oggfile;
 using Concentus.Structs;
@@ -20,8 +21,7 @@ namespace YARG.Serialization.Audio {
 			var decoder = new OpusDecoder(48000, 2);
 			var readStream = new OpusOggReadStream(decoder, fileStream);
 
-			int packetPos = 0;
-			float[] data = new float[2 * readStream.GranuleCount];
+			var data = new List<float>();
 
 			// Decode the .opus file
 			while (readStream.HasNextPacket) {
@@ -33,15 +33,13 @@ namespace YARG.Serialization.Audio {
 				for (int i = 0; i < packet.Length; i++) {
 					// Convert the short to a float
 					const float SCALE = 1f / short.MaxValue;
-					data[packetPos] = packet[i] * SCALE;
-
-					packetPos++;
+					data.Add(packet[i] * SCALE);
 				}
 			}
 
 			// Create audio clip and set the data
-			clip = AudioClip.Create("Opus Clip", data.Length, 2, 48000, false);
-			clip.SetData(data, 0);
+			clip = AudioClip.Create("Opus Clip", data.Count, 2, 48000, false);
+			clip.SetData(data.ToArray(), 0);
 
 			return null;
 		}

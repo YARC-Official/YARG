@@ -62,6 +62,7 @@ Some libraries **packaged** with the source code have licenses that must be incl
 | [NuGet for Unity](https://github.com/GlitchEnzo/NuGetForUnity) | [MIT](https://github.com/GlitchEnzo/NuGetForUnity/blob/master/LICENSE)
 | [Unity Standalone File Browser](https://github.com/gkngkc/UnityStandaloneFileBrowser) | [MIT](https://github.com/gkngkc/UnityStandaloneFileBrowser/blob/master/LICENSE.txt)
 | [Concentus.OggFile](https://github.com/lostromb/concentus.oggfile/tree/master) | [Ms-PL](https://github.com/lostromb/concentus.oggfile/blob/master/LICENSE)
+| [Discord GameSDK](https://discord.com/developers/docs/game-sdk/sdk-starter-guide) | Licenseless
 
 Please note that other libraries are **not** packaged within the source code, and are to be install by NuGet.
 
@@ -89,6 +90,7 @@ Please note that other libraries are **not** packaged within the source code, an
 | [Minis](https://github.com/keijiro/Minis/tree/master) | Library | MIDI Input for Unity
 | [Concentus](https://www.nuget.org/packages/Concentus) | Library | Using `.opus` files
 | [Concentus.OggFile](https://github.com/lostromb/concentus.oggfile/tree/master) | Library | Reading `.opus` Files
+| [Discord GameSDK](https://discord.com/developers/docs/game-sdk/sdk-starter-guide) | Library | Discord Rich Presence
 
 # 🔨 Building
 
