@@ -37,13 +37,12 @@ public class DiscordController : MonoBehaviour {
 	}
 
 	private void InitDiscord() {
-		// When the game is started while discord is already running the status update happens nearly instantly.
-		// However if discord is opened or re-opened after game start, it can take up to 35 seconds for the status to display.
-
-		discord?.Dispose();
-
-		// If discord isn't open at run start this will throw 'InternalError' instead of 'NotRunning' (don't know why)
 		try {
+			// When the game is started while discord is already running the status update happens nearly instantly.
+			// However if discord is opened or re-opened after game start, it can take up to 35 seconds for the status to display.
+			discord?.Dispose();
+
+			// If discord isn't open at run start this will throw 'InternalError' instead of 'NotRunning' (don't know why)
 			discord = new Discord.Discord(applicationID, (ulong) CreateFlags.NoRequireDiscord);
 		} catch {
 			discord = null;
@@ -94,6 +93,16 @@ public class DiscordController : MonoBehaviour {
 
 			activityManager?.UpdateActivity(activity, (result) => { });
 			updateTime = 4.5f;
+		}
+	}
+
+	private void OnApplicationQuit() {
+		try {
+			activityManager?.ClearActivity((result) => { });
+			discord?.Dispose();
+		} catch (Exception e) {
+			Debug.Log("Failed to clear activity or dispose of Discord.");
+			Debug.LogException(e);
 		}
 	}
 }
