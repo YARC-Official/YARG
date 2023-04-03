@@ -227,7 +227,9 @@ namespace YARG.PlayMode {
 				}
 			}
 
-			return extras <= 3;
+			// Ignore extras for now
+			// return extras <= 3;
+			return true;
 		}
 
 		private bool NotePressed(NoteInfo note) {
