@@ -30,8 +30,8 @@ namespace YARG.PlayMode {
 
 		public static readonly Color[] HARMONIC_COLORS = new Color[] {
 			new Color32(33, 114, 171, 255),
-			new Color32(214, 141, 30, 255),
 			new Color32(173, 108, 43, 255),
+			new Color32(214, 141, 30, 255),
 		};
 
 		public const float TRACK_SPEED = 4f;
@@ -428,8 +428,8 @@ namespace YARG.PlayMode {
 
 					SpawnLyric(lyricInfo, RelativeTime, i);
 
-					if (visualChartIndex[i] + 1 < chart.Count) {
-						SpawnStarpowerActivate(lyricInfo, chart[visualChartIndex[i] + 1], RelativeTime);
+					if (i <= 1 && visualChartIndex[i] + 1 < chart.Count) {
+						SpawnStarpowerActivate(lyricInfo, chart[visualChartIndex[i] + 1], RelativeTime, i == 1);
 					}
 
 					visualChartIndex[i]++;
@@ -675,7 +675,7 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		private void SpawnStarpowerActivate(LyricInfo firstLyric, LyricInfo nextLyric, float time) {
+		private void SpawnStarpowerActivate(LyricInfo firstLyric, LyricInfo nextLyric, float time, bool onTop) {
 			float start = firstLyric.EndTime + STARPOWER_ACTIVATE_MARGIN;
 			float end = nextLyric.time - STARPOWER_ACTIVATE_MARGIN;
 			float length = end - start;
@@ -689,7 +689,7 @@ namespace YARG.PlayMode {
 			var pos = TRACK_SPAWN_OFFSET - lagCompensation;
 
 			// Spawn section
-			// lyricPool.AddStarpowerActivate(pos, length);
+			lyricPool.AddStarpowerActivate(pos, length, onTop);
 		}
 
 		private void CalculateSectionSingTime(float start) {
@@ -784,7 +784,7 @@ namespace YARG.PlayMode {
 			// }
 
 			// If so, activate!
-			starpowerActive = true;
+			//starpowerActive = true;
 		}
 	}
 }
