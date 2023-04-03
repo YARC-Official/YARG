@@ -59,8 +59,15 @@ namespace YARG.Serialization.Parser {
 					// Parse each chunk
 					try {
 						// Parse harmony parts
-						if (trackName.Text.StartsWith("HARM")) {
-							int harmIndex = int.Parse(trackName.Text[4..^0]) - 1;
+						if (trackName.Text.StartsWith("HARM") || trackName.Text.StartsWith("PART HARM")) {
+							// Get the harmony index from name
+							int harmIndex;
+							if (trackName.Text.StartsWith("HARM")) {
+								harmIndex = int.Parse(trackName.Text[4..^0]) - 1;
+							} else {
+								harmIndex = int.Parse(trackName.Text[9..^0]) - 1;
+							}
+
 							if (harmIndex > 2) {
 								continue;
 							}
