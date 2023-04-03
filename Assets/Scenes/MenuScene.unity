@@ -3812,7 +3812,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: -245}
+  m_SizeDelta: {x: 0, y: -243.47864}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &396272155
 MonoBehaviour:
@@ -6405,6 +6405,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: GenericOption 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8484722096048183870, guid: 321aae529db1a664fb59e32edec3accb,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 321aae529db1a664fb59e32edec3accb, type: 3}
@@ -13706,7 +13711,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1753278441}
   m_HandleRect: {fileID: 1753278440}
   m_Direction: 2
-  m_Value: 1
+  m_Value: 0
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -20928,7 +20933,8 @@ MonoBehaviour:
   m_text: Song - Artist
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ae170e91fd29a90479e906ddffb1d8ee, type: 2}
-  m_sharedMaterial: {fileID: 2100000, guid: 97a4ac31562f98641a2b7822989f607a, type: 2}
+  m_sharedMaterial: {fileID: -5480317595949376055, guid: ae170e91fd29a90479e906ddffb1d8ee,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
