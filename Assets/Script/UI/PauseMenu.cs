@@ -1,11 +1,5 @@
 using System;
-using System.Globalization;
-using System.IO;
-using TMPro;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
-using UnityEngine.InputSystem;
-using YARG.Data;
 using YARG.Input;
 using YARG.PlayMode;
 
@@ -13,8 +7,6 @@ namespace YARG.UI {
 	public class PauseMenu : MonoBehaviour {
 		[SerializeField]
 		private GenericOption[] options;
-		[SerializeField]
-		private TextMeshProUGUI header;
 
 		private int playerIndex;
 
@@ -27,22 +19,19 @@ namespace YARG.UI {
 				option.MouseClickEvent += ClickOption;
 			}
 
-            UpdateText();
+			UpdateText();
 		}
 
 		private void OnEnable() {
-			// Bind singal event
-			if (GameManager.client != null) {
-                return;
+			// Note that player navigation is updated in AbstractTrack
+
+			// Bind input events
+			foreach (var player in PlayerManager.players) {
+				player.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
 			}
 		}
 
 		private void OnDisable() {
-			// Unbind events
-			if (GameManager.client != null) {
-                return;
-			}
-
 			// Unbind input events
 			foreach (var player in PlayerManager.players) {
 				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
@@ -53,24 +42,6 @@ namespace YARG.UI {
 			foreach (var option in options) {
 				option.MouseHoverEvent -= HoverOption;
 				option.MouseClickEvent -= ClickOption;
-			}
-		}
-
-		private void Update() {
-			GameManager.client?.CheckForSignals();
-
-			// Scroll wheel
-
-			var scroll = Mouse.current.scroll.ReadValue().y;
-			if (scroll > 0f) {
-				MoveOption(-1);
-			} else if (scroll < 0f) {
-				MoveOption(1);
-			}
-
-			// Update player navigation
-			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.UpdateNavigationMode();
 			}
 		}
 
@@ -108,7 +79,7 @@ namespace YARG.UI {
 
 		private void HoverOption(GenericOption option) {
 			// Deselect old one
-			// options[selected].SetSelected(false);
+			options[selected].SetSelected(false);
 
 			selected = Array.IndexOf(options, option);
 
@@ -119,7 +90,7 @@ namespace YARG.UI {
 			}
 
 			// Select new one
-			// options[selected].SetSelected(true);
+			options[selected].SetSelected(true);
 		}
 
 		private void ClickOption(GenericOption option) {
@@ -127,32 +98,34 @@ namespace YARG.UI {
 		}
 
 		public void Next() {
-			var player = PlayerManager.players[playerIndex];
+			if (selected == 0) {
+				// Resume
+				Play.Instance.Paused = false;
+			} else if (selected == 1) {
+				// Quit
+				Play.Instance.Exit();
+			}
 		}
 
-        private void UpdateText() {
-            // Header
-            var player = PlayerManager.players[playerIndex];
-            header.text = player.DisplayName;
-
-            // Add to options
-            optionCount = 3;
-            string[] ops = { 
-                "Resume",
+		private void UpdateText() {
+			// Add to options
+			optionCount = 2;
+			string[] ops = {
+				"Resume",
 				"Quit",
-                null 
-                };
-            optionCount = ops.Length;
+				null,
+				null
+			};
 
-            // Set text and sprites
-            for (int i = 0; i < 3; i++) {
-                options[i].SetText(ops[i]);
-                options[i].SetSelected(false);
-            }
+			// Set text and sprites
+			for (int i = 0; i < 4; i++) {
+				options[i].SetText(ops[i]);
+				options[i].SetSelected(false);
+			}
 
-            // Select
-            selected = 1;
-            options[1].SetSelected(true);
-        }
+			// Select
+			selected = 0;
+			options[0].SetSelected(true);
+		}
 	}
 }
