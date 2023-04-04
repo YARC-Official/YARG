@@ -29,10 +29,12 @@ namespace YARG.Util {
 				"ghwt" or "ghwtdlc"   => "Guitar Hero World Tour",
 				"ghm"                 => "Guitar Hero Metallica",
 				"ghwor" or "ghwordlc" => "Guitar Hero: Warriors of Rock",
+				"ghvh"                => "Guitar Hero: Van Halen",
 				
 				"rb1" or "rb1dlc"     => "Rock Band 1",
 				"rb2" or "rb2dlc"     => "Rock Band 2",
 				"rb3" or "rb3dlc"     => "Rock Band 3",
+				"rb4" or "rb4dlc"     => "Rock Band 4",
 				"tbrb" or "tbrbdlc"   => "The Beatles Rock Band",
 				"rbacdc"              => "Rock Band AC/DC",
 				"gdrb"                => "Green Day Rock Band",

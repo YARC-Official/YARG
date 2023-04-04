@@ -134,8 +134,18 @@ namespace YARG.Serialization.Parser {
 						continue;
 					}
 
-					// Get end time
-					var (endTime, noteName, octave) = GetLyricInfo(trackChunk, totalDelta);
+					bool inharmonic = false;
+
+					// Get lyric information
+					var lyricInfo = GetLyricInfo(trackChunk, totalDelta);
+					long endTime = totalDelta + 80;
+					NoteName noteName = NoteName.C;
+					int octave = 3;
+					if (!lyricInfo.HasValue) {
+						inharmonic = true;
+					} else {
+						(endTime, noteName, octave) = lyricInfo.Value;
+					}
 
 					// Convert to seconds
 					var lyricTime = (float) TimeConverter.ConvertTo<MetricTimeSpan>(totalDelta, tempo).TotalSeconds;
@@ -164,8 +174,6 @@ namespace YARG.Serialization.Parser {
 
 						continue;
 					}
-
-					bool inharmonic = false;
 
 					// Set inharmonic
 					if (l.EndsWith("#") || l.EndsWith("^") || l.EndsWith("*")) {
@@ -216,7 +224,7 @@ namespace YARG.Serialization.Parser {
 			return lyrics;
 		}
 
-		private (long endTime, NoteName note, int octave) GetLyricInfo(TrackChunk trackChunk, long tick) {
+		private (long endTime, NoteName note, int octave)? GetLyricInfo(TrackChunk trackChunk, long tick) {
 			foreach (var note in trackChunk.GetNotes()) {
 				// Skip meta-data notes
 				if (note.Octave >= 7) {
@@ -231,7 +239,7 @@ namespace YARG.Serialization.Parser {
 				return (note.EndTime, note.NoteName, note.Octave);
 			}
 
-			return (tick, NoteName.C, 3);
+			return null;
 		}
 	}
 }
