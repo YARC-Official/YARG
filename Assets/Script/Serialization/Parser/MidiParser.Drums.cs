@@ -199,7 +199,7 @@ namespace YARG.Serialization.Parser {
 		}
 
 		private List<NoteInfo> DrumFromGH(List<NoteInfo> ghNotes) {
-			// Standardized in [.mid / Standard / Drums / Track Type Conversions]
+			// Standardized here: https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/.mid/Standard/Drums.md#track-type-conversions
 
 			var noteOutput = new List<NoteInfo>();
 

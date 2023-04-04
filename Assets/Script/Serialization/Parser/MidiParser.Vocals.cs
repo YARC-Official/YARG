@@ -84,7 +84,7 @@ namespace YARG.Serialization.Parser {
 		}
 
 		private List<LyricInfo> ParseRealLyrics(List<EventIR> eventIR, TrackChunk trackChunk, TrackChunk phraseTimingTrack, TempoMap tempo, int harmonyIndex) {
-			// Standardized in [.mid / Standard / Vocals]
+			// Standardized here: https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/.mid/Standard/Vocals.md
 
 			var lyrics = new List<LyricInfo>();
 

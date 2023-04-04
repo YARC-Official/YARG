@@ -126,7 +126,7 @@ namespace YARG.PlayMode {
 			// Check for single guitar audio
 			if (audioSources.Count == 1 && audioSources.ContainsKey("guitar")) {
 				// If so, replace it as the song audio
-				// Standardized in [Audio Files / File Names]
+				// Standardized here: https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/Audio%20Files.md#file-names
 				audioSources.Add("song", audioSources["guitar"]);
 
 				// Remove old audio
