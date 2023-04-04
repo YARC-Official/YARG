@@ -47,7 +47,7 @@ namespace YARG {
 				return true;
 			}
 
-			if (File.Exists(CacheFile) || GameManager.client != null) {
+			if (File.Exists(CacheFile)) {
 				var success = ReadCache();
 				if (success) {
 					return true;

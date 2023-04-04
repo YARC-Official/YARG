@@ -157,8 +157,6 @@ namespace YARG.UI {
 		}
 
 		private void Update() {
-			GameManager.client?.CheckForSignals();
-
 			// Update input timer
 
 			inputTimer -= Time.deltaTime;

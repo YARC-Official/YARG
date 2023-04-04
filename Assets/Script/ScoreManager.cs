@@ -38,9 +38,6 @@ namespace YARG {
 
 		public static void PushScore(SongInfo song, SongScore score) {
 			string path = song.folder.ToString();
-			if (GameManager.client != null) {
-				path = song.realFolderRemote.ToString();
-			}
 			path = path.ToUpperInvariant();
 
 			if (!scores.TryGetValue(path, out var oldScore)) {
@@ -69,9 +66,6 @@ namespace YARG {
 
 		public static SongScore GetScore(SongInfo song) {
 			string path = song.folder.ToString();
-			if (song.realFolderRemote != null && GameManager.client != null) {
-				path = song.realFolderRemote.ToString();
-			}
 			path = path.ToUpperInvariant();
 
 			if (scores.TryGetValue(path, out var o)) {
@@ -88,11 +82,6 @@ namespace YARG {
 			ThreadPool.QueueUserWorkItem(_ => {
 				string json = JsonConvert.SerializeObject(scores, Formatting.Indented);
 				File.WriteAllText(ScoreFile.ToString(), json);
-
-				// If remote, write scores on server
-				if (GameManager.client != null) {
-					GameManager.client.WriteScores();
-				}
 			});
 		}
 

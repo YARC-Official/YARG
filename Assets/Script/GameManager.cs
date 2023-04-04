@@ -3,7 +3,6 @@ using UnityEngine.Audio;
 using UnityEngine.InputSystem;
 using UnityEngine.Profiling;
 using UnityEngine.SceneManagement;
-using YARG.Server;
 
 namespace YARG {
 	public enum SceneIndex {
@@ -19,8 +18,6 @@ namespace YARG {
 			get;
 			private set;
 		}
-
-		public static Client client;
 
 		public delegate void UpdateAction();
 		public static event UpdateAction OnUpdate;
