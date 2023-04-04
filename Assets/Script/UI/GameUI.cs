@@ -32,7 +32,7 @@ namespace YARG.UI {
 		}
 
 		private void Start() {
-			songTitle.text = $"{Play.song.SongName} - {Play.song.artistName}";
+			songTitle.text = $"{Play.song.SongName}  ({Play.speed * 100}%) - {Play.song.artistName}";
 		}
 
 		private void Update() {
