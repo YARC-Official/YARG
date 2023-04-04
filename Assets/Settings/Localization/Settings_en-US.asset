@@ -78,6 +78,42 @@ MonoBehaviour:
     m_Localized: FPS Limit
     m_Metadata:
       m_Items: []
+  - m_Id: 3645699926646784
+    m_Localized: Master Music Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3645822882668544
+    m_Localized: Guitar Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3645859280838656
+    m_Localized: Bass Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3646094551932928
+    m_Localized: Keys Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3646131549888512
+    m_Localized: Drums Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3646165817352192
+    m_Localized: Vocals Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3646318347411456
+    m_Localized: Other Instruments Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3646366187642880
+    m_Localized: Vocal Monitoring Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3646559456976896
+    m_Localized: Crowd Volume
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

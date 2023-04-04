@@ -87,6 +87,7 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private AudioMixerGroup silentMixerGroup;
 
+		private bool hasMic = false;
 		private List<PlayerInfo> micInputs = new();
 		public Dictionary<MicInputStrategy, AudioSource> dummyAudioSources = new();
 		private List<MeshRenderer> barRenderers = new();
@@ -140,7 +141,6 @@ namespace YARG.PlayMode {
 			Instance = this;
 
 			// Start mics
-			bool hasMic = false;
 			foreach (var player in PlayerManager.players) {
 				// Skip people who are sitting out
 				if (player.chosenInstrument != "vocals" && player.chosenInstrument != "harmVocals") {
@@ -157,6 +157,7 @@ namespace YARG.PlayMode {
 					continue;
 				}
 
+				micStrategy.ResetForSong();
 				hasMic = true;
 
 				// Spawn needle
@@ -237,6 +238,10 @@ namespace YARG.PlayMode {
 		}
 
 		private void OnDestroy() {
+			if (!hasMic) {
+				return;
+			}
+
 			// Release render texture
 			trackCamera.targetTexture.Release();
 

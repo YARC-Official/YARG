@@ -99,6 +99,12 @@ namespace YARG.Data {
 		public float delay;
 		[JsonProperty]
 		public DrumType drumType;
+		/// <value>
+		/// The hopo frequency in ticks.<br/>
+		/// Standardized here: https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/.mid/Standard/5-Fret%20Guitar.md#note-mechanics
+		/// </value>
+		[JsonProperty]
+		public int hopoFreq = 170;
 
 		[JsonProperty]
 		public string artistName;

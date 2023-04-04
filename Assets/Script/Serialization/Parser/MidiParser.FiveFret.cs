@@ -276,12 +276,9 @@ namespace YARG.Serialization.Parser {
 							var lastNoteBeat = TimeConverter.ConvertTo<MusicalTimeSpan>(lastTime, tempo);
 							var distance = noteBeat - lastNoteBeat;
 
-							// Thanks?? https://tcrf.net/Proto:Guitar_Hero
-							// According to this, auto-HOPO threshold is 170 ticks.
-							// "But a tick is different in every midi file!"
-							// It also mentions that 160 is a twelth note.
-							// 160 * 12 = 1920
-							if (distance <= new MusicalTimeSpan(170, 1920)) {
+							// Use HOPO frequency value from song info.
+							// Convert the ticks to a musical time span.
+							if (distance <= new MusicalTimeSpan(songInfo.hopoFreq, 480 * 4)) {
 								note.hopo = true;
 								note.autoHopo = true;
 							}

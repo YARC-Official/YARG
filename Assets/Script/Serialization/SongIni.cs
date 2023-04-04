@@ -99,6 +99,20 @@ namespace YARG.Serialization {
 					song.delay = 0f;
 				}
 
+				// Get hopo frequency
+				// Standardized here: https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/.mid/Standard/5-Fret%20Guitar.md#note-mechanics
+				if (section.ContainsKey("hopo_frequency")) {
+					song.hopoFreq = int.Parse(section["hopo_frequency"]);
+				} else if (section.ContainsKey("hopofreq")) {
+					song.hopoFreq = int.Parse(section["hopofreq"]);
+				} else if (section.ContainsKey("eighthnote_hopo")) {
+					if (section["eighthnote_hopo"].ToLowerInvariant() == "true" ||
+						section["eighthnote_hopo"] == "1") {
+
+						song.hopoFreq = 240;
+					}
+				}
+
 				// Get difficulties
 				bool noneFound = true;
 				foreach (var kvp in new Dictionary<string, int>(song.partDifficulties)) {

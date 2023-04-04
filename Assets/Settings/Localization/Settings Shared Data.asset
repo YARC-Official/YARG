@@ -75,6 +75,42 @@ MonoBehaviour:
     m_Key: fpsCap
     m_Metadata:
       m_Items: []
+  - m_Id: 3645699926646784
+    m_Key: musicVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3645822882668544
+    m_Key: guitarVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3645859280838656
+    m_Key: bassVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3646094551932928
+    m_Key: keysVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3646131549888512
+    m_Key: drumsVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3646165817352192
+    m_Key: vocalsVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3646318347411456
+    m_Key: songVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3646366187642880
+    m_Key: vocalMonitoring
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3646559456976896
+    m_Key: crowdVolume
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

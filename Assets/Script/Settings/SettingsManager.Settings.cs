@@ -106,6 +106,88 @@ namespace YARG.Settings {
 
 			[SettingSpace]
 			[SettingLocation("general", 13)]
+			[SettingType("Volume")]
+			public float musicVolume = 0.9f;
+
+			[SettingChangeFunc("musicVolume")]
+			public void SongVolumeChange() {
+				AudioManager.Instance.SetVolume("music", musicVolume);
+			}
+
+			[SettingLocation("general", 14)]
+			[SettingType("Volume")]
+			public float guitarVolume = 1f;
+
+			[SettingChangeFunc("guitarVolume")]
+			public void GuitarVolumeChange() {
+				AudioManager.Instance.SetVolume("guitar", guitarVolume);
+			}
+
+			[SettingLocation("general", 15)]
+			[SettingType("Volume")]
+			public float bassVolume = 1f;
+
+			[SettingChangeFunc("bassVolume")]
+			public void BassVolumeChange() {
+				AudioManager.Instance.SetVolume("bass", bassVolume);
+			}
+
+			[SettingLocation("general", 16)]
+			[SettingType("Volume")]
+			public float keysVolume = 1f;
+
+			[SettingChangeFunc("keysVolume")]
+			public void KeysVolumeChange() {
+				AudioManager.Instance.SetVolume("keys", keysVolume);
+			}
+
+			[SettingLocation("general", 17)]
+			[SettingType("Volume")]
+			public float drumsVolume = 1f;
+
+			[SettingChangeFunc("drumsVolume")]
+			public void DrumsVolumeChange() {
+				AudioManager.Instance.SetVolume("drums", drumsVolume);
+			}
+
+			[SettingLocation("general", 18)]
+			[SettingType("Volume")]
+			public float vocalsVolume = 1f;
+
+			[SettingChangeFunc("vocalsVolume")]
+			public void VocalsVolumeChange() {
+				AudioManager.Instance.SetVolume("vocals", vocalsVolume);
+			}
+
+			[SettingLocation("general", 19)]
+			[SettingType("Volume")]
+			public float songVolume = 1f;
+
+			[SettingChangeFunc("songVolume")]
+			public void MusicVolumeChange() {
+				AudioManager.Instance.SetVolume("song", songVolume);
+			}
+
+			[SettingLocation("general", 20)]
+			[SettingType("Volume")]
+			public float crowdVolume = 0f;
+
+			[SettingChangeFunc("crowdVolume")]
+			public void CrowdVolumeChange() {
+				AudioManager.Instance.SetVolume("crowd", crowdVolume);
+			}
+
+			[SettingLocation("general", 21)]
+			[SettingType("Volume")]
+			public float vocalMonitoring = 0.75f;
+
+			[SettingChangeFunc("vocalMonitoring")]
+			public void VocalMonitoringChange() {
+				AudioManager.Instance.SetVolume("vocalMonitoring", vocalMonitoring);
+			}
+
+			[SettingSpace]
+			[SettingLocation("general", 22)]
 			[SettingType("Text")]
 			public string fileServerIp = "localhost";
 
@@ -114,7 +196,7 @@ namespace YARG.Settings {
 				return GameManager.client == null;
 			}
 
-			[SettingLocation("general", 14)]
+			[SettingLocation("general", 23)]
 			[SettingButton("connectToFileServer")]
 			public void ConnectToFileServer() {
 				GameManager.client = new();
@@ -126,7 +208,7 @@ namespace YARG.Settings {
 				return GameManager.client == null;
 			}
 
-			[SettingLocation("general", 15)]
+			[SettingLocation("general", 24)]
 			[SettingButton("hostFileServer")]
 			public void HostFileServer() {
 				GameManager.Instance.LoadScene(SceneIndex.SERVER_HOST);
