@@ -136,5 +136,13 @@ namespace YARG.Util {
 
 			return (outNote, octave);
 		}
+
+		/// <param name="v">The linear volume between 0 and 1.</param>
+		/// <returns>
+		/// The linear volume converted to decibels.
+		/// </returns>
+		public static float VolumeFromLinear(float v) {
+			return Mathf.Log10(Mathf.Min(v + float.Epsilon, 1f)) * 20f;
+		}
 	}
 }

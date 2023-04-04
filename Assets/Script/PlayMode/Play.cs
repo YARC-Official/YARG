@@ -109,6 +109,18 @@ namespace YARG.PlayMode {
 				var audioSource = songAudio.GetComponent<AudioSource>();
 				audioSource.clip = clip;
 				audioSources.Add(name, audioSource);
+
+				// Set audio source mixer
+				string mixerName = name;
+				if (mixerName == "drums_1" || mixerName == "drums_2" || mixerName == "drums_3" || mixerName == "drums_4") {
+					mixerName = "drums";
+				} else if (mixerName == "vocals_1" || mixerName == "vocals_2") {
+					mixerName = "vocals";
+				} else if (mixerName == "rhythm") {
+					// For now
+					mixerName = "bass";
+				}
+				audioSource.outputAudioMixerGroup = AudioManager.Instance.GetAudioMixerGroup(mixerName);
 			}
 
 			// Check for single guitar audio
