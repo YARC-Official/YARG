@@ -18,7 +18,11 @@ namespace YARG.UI {
 		private Transform scoreContainer;
 
 		private void OnEnable() {
-			header.text = $"{Play.song.SongName}  ({Play.speed * 100}%) - {Play.song.artistName}";
+			if (Play.speed == 1f) {
+				header.text = $"{Play.song.SongName} - {Play.song.artistName}";
+			} else {
+				header.text = $"{Play.song.SongName} ({Play.speed * 100}% speed) - {Play.song.artistName}";
+			}
 
 			// Create a score to push
 
