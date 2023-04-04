@@ -76,7 +76,6 @@ namespace YARG {
 		private static void CreateSongInfoFromFiles(DirectoryInfo songDir) {
 			if (!songDir.Exists) {
 				Directory.CreateDirectory(songDir.FullName);
-				Debug.LogWarning($"song directory `{songDir.FullName}` doesn't exist! attempting to create directory...");
 			}
 
 			foreach (var folder in songDir.EnumerateDirectories()) {
@@ -85,9 +84,9 @@ namespace YARG {
 					Songs.Add(new SongInfo(folder));
 				} else if (new FileInfo(Path.Combine(folder.FullName, "songs.dta")).Exists) {
 					// Read this dir's songs.dta and add its contents to the song list
-					List<SongInfo> dtaSongs = ParseSongsDta(folder);
+					List<SongInfo> dtaSongs = SongsDta.ParseSongsDta(folder);
 					foreach (SongInfo localSongInfo in dtaSongs) {
-						Songs.Add(new SongInfo(localSongInfo));
+						Songs.Add(localSongInfo);
 					}
 				} else {
 					// Otherwise, treat it as a sub-folder
