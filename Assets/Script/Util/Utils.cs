@@ -22,7 +22,7 @@ namespace YARG.Util {
 			return source switch {
 				"gh1"                 => "Guitar Hero I",
 				"gh2"                 => "Guitar Hero II",
-				"gh2dlc"              => "Guitar Hero II DLC"
+				"gh2dlc"              => "Guitar Hero II DLC",
 				"gh80s"               => "Guitar Hero Encore: Rocks the 80's",
 				"gh3"                 => "Guitar Hero III: Legends of Rock",
 				"ghot"                => "Guitar Hero On Tour",
@@ -66,7 +66,7 @@ namespace YARG.Util {
 				"ugc2"                => "Rock Band Network 2.0",
 				"ugc_lost"            => "Lost Rock Band Network",
 				"rb1dlc"              => "Rock Band 1 DLC",
-				"rb2dlc"              => "Rock Band 2 DLC"
+				"rb2dlc"              => "Rock Band 2 DLC",
 				"rb3dlc"              => "Rock Band 3 DLC",
 				"rb4dlc"              => "Rock Band 4 DLC",
 				"rb4_dlc"             => "Rock Band 4 DLC",
