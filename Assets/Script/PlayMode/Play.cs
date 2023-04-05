@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -28,6 +29,16 @@ namespace YARG.PlayMode {
 
 		public delegate void BeatAction();
 		public event BeatAction BeatEvent;
+		
+		//currently used for discord rich presence but has future possibilities
+		public event EventHandler<OnSongStartEndEventArgs> OnSongStart;
+		public event EventHandler<OnSongStartEndEventArgs> OnSongEnd;
+
+		public class OnSongStartEndEventArgs: EventArgs{
+			public string artistName;
+			public string songName;
+			public float songLength;
+		}
 
 		[SerializeField]
 		private GameObject soundAudioPrefab;
@@ -88,12 +99,10 @@ namespace YARG.PlayMode {
 		}
 
 		private IEnumerator StartSong() {
-			GameUI.Instance.SetLoadingText("Loading audio...");
-
+			GameUI.Instance.SetLoadingText("Loading audio...");			
 			// Load audio
 			foreach (var file in AudioHandler.GetAllSupportedAudioFiles(song.folder.FullName)) {
 				var name = Path.GetFileNameWithoutExtension(file);
-
 				if (name == "preview" || name == "crowd") {
 					continue;
 				}
@@ -173,6 +182,14 @@ namespace YARG.PlayMode {
 
 			// Hide loading screen
 			GameUI.Instance.loadingContainer.SetActive(false);
+
+			OnSongStart?.Invoke(this, new OnSongStartEndEventArgs
+				{
+					artistName = song.artistName,
+					songName = song.SongName,
+					songLength = song.songLength,
+				}
+			);
 		}
 
 		private void LoadChart() {
@@ -337,6 +354,9 @@ namespace YARG.PlayMode {
 			Time.timeScale = 1f;
 
 			GameManager.Instance.LoadScene(SceneIndex.MENU);
+
+			OnSongEnd?.Invoke(this, new OnSongStartEndEventArgs {}); //While something can be passed, I don't think anything is useful at the moment.
+				
 		}
 
 		public void LowerAudio(string name) {
