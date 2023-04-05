@@ -28,17 +28,11 @@ namespace YARG.PlayMode {
 		public static SongInfo song = null;
 
 		public delegate void BeatAction();
-		public event BeatAction BeatEvent;
-		
-		//currently used for discord rich presence but has future possibilities
-		public event EventHandler<OnSongStartEndEventArgs> OnSongStart;
-		public event EventHandler<OnSongStartEndEventArgs> OnSongEnd;
+		public static event BeatAction BeatEvent;
 
-		public class OnSongStartEndEventArgs: EventArgs{
-			public string artistName;
-			public string songName;
-			public float songLength;
-		}
+		public delegate void SongStateChangeAction(SongInfo songInfo);
+		public static event SongStateChangeAction OnSongStart;
+		public static event SongStateChangeAction OnSongEnd;
 
 		[SerializeField]
 		private GameObject soundAudioPrefab;
@@ -99,7 +93,7 @@ namespace YARG.PlayMode {
 		}
 
 		private IEnumerator StartSong() {
-			GameUI.Instance.SetLoadingText("Loading audio...");			
+			GameUI.Instance.SetLoadingText("Loading audio...");
 			// Load audio
 			foreach (var file in AudioHandler.GetAllSupportedAudioFiles(song.folder.FullName)) {
 				var name = Path.GetFileNameWithoutExtension(file);
@@ -183,13 +177,8 @@ namespace YARG.PlayMode {
 			// Hide loading screen
 			GameUI.Instance.loadingContainer.SetActive(false);
 
-			OnSongStart?.Invoke(this, new OnSongStartEndEventArgs
-				{
-					artistName = song.artistName,
-					songName = song.SongName,
-					songLength = song.songLength,
-				}
-			);
+			// Call events
+			OnSongStart?.Invoke(song);
 		}
 
 		private void LoadChart() {
@@ -345,18 +334,18 @@ namespace YARG.PlayMode {
 			foreach (var audioHandler in audioHandlers) {
 				try {
 					audioHandler.Finish();
-				} catch (System.Exception e) {
+				} catch (Exception e) {
 					Debug.LogError(e);
 				}
 			}
+
+			// Call events
+			OnSongEnd?.Invoke(song);
 
 			// Unpause just in case
 			Time.timeScale = 1f;
 
 			GameManager.Instance.LoadScene(SceneIndex.MENU);
-
-			OnSongEnd?.Invoke(this, new OnSongStartEndEventArgs {}); //While something can be passed, I don't think anything is useful at the moment.
-				
 		}
 
 		public void LowerAudio(string name) {
