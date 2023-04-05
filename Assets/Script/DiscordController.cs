@@ -1,8 +1,45 @@
+/*
+TO DO:
+Reconnect if discord is closed and reopened/opened during game (and not memory the game into a crash)
+Display Album art with little icon overlay
+*/
+
 using System;
 using Discord;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using System.Linq;
 
 public class DiscordController : MonoBehaviour {
+	
+    private void OnEnable() //listen to the loading of scenes
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable() //not sure why the discord controller would ever be disabled but, eh you never know, right?
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode) //when the play scene loads, find the play manager object and it's Play script
+    {
+		
+		if (scene.name == "PlayScene"){
+			 YARG.PlayMode.Play  test = scene.GetRootGameObjects().FirstOrDefault(g => g.name == "Play Manager").GetComponent<YARG.PlayMode.Play>();
+			 test.OnSongStart += OnSongStart;
+			 test.OnSongEnd += OnSongEnd;
+		}
+    }
+	private void OnSceneUnloaded(Scene scene) // Disconnect listeners on play scene unload
+    {
+		if (scene.name == "PlayScene"){
+			 YARG.PlayMode.Play  test = scene.GetRootGameObjects().FirstOrDefault(g => g.name == "Play Manager").GetComponent<YARG.PlayMode.Play>();
+			 test.OnSongStart -= OnSongStart;
+			 test.OnSongEnd -= OnSongEnd;
+		}
+    }
+	
 	public static DiscordController Instance {
 		get;
 		private set;
@@ -25,32 +62,40 @@ public class DiscordController : MonoBehaviour {
 	}
 
 	[SerializeField]
+	private GameObject songStartObject;
+
+	[SerializeField]
 	private long applicationID = 1091177744416637028;
 
-	// At the moment there is no changing of menus, what song is playing, etc. Basic for now.
 	[Space]
+	[Header("Default Values")]
 	[SerializeField]
-	private string details = "Hello there ladies and gentlemen!";
-
+	private string defaultDetails = "Hello there ladies and gentlemen!"; //Line of text just below the game name
 	[SerializeField]
-	private string state = "Are you ready to rock?";
-
-	// only shown in 'view profile' -> 'activity'
+	private string defaultState = "Are you ready to rock?"; //smaller 2nd line of text
+	private string defaultLargeImage = "logo"; // only shown in 'view profile' -> 'activity'
+	[SerializeField]
+	private string defaultLargeText = "Yet Another Rhythm Game"; //Top large line of text
+	[SerializeField]
+	private string defaultSmallImage = ""; // only shown in 'view profile' -> 'activity' as a little overlay on the bottom right of the Large image - currently unused.
+	[SerializeField]
+	private string defaultSmallText = ""; // Tooltip for smallImage - currently unused.
+/* Not used for anything at the moment. Remind me to remove this later :)
 	[Space]
+	[Header("Current Values")]
 	[SerializeField]
-	private string largeImage = "logo";
-
-	// tooltip for largeimage
+	private string currentDetails; //Line of text just below the game name
 	[SerializeField]
-	private string largeText = "Yet Another Rhythm Game";
-
-	// Current instrument icon? only shown in 'view profile' -> 'activity' as a little overlay on the bottom right of the Large image - currently unused.
+	private string currenttState; //smaller 2nd line of text
+	private string currentLargeImage; // only shown in 'view profile' -> 'activity'
 	[SerializeField]
-	private string smallImage = "";
-
-	// Tooltip for smallImage - currently unused.
+	private string currentLargeText; //Top large line of text
 	[SerializeField]
-	private string smallText = "";
+	private string currentSmallImage; // only shown in 'view profile' -> 'activity' as a little overlay on the bottom right of the Large image - currently unused.
+	[SerializeField]
+	private string currentSmallText; // Tooltip for smallImage - currently unused.
+*/
+	private long elaspedPlayTime;
 
 	private void Start() {
 		Instance = this;
@@ -67,18 +112,8 @@ public class DiscordController : MonoBehaviour {
 		}
 
 		// Start the activity
-		long elaspedPlayTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-		CurrentActivity = new Activity {
-			Details = details,
-			State = state,
-			Assets = {
-				LargeImage = largeImage,
-				LargeText = largeText
-			},
-			Timestamps = {
-				Start = elaspedPlayTime,
-			}
-		};
+		elaspedPlayTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+		SetActivity(defaultLargeImage, defaultLargeText, defaultDetails, defaultState, elaspedPlayTime);
 	}
 
 	private void Update() {
@@ -93,6 +128,14 @@ public class DiscordController : MonoBehaviour {
 
 			TryDispose();
 		}
+	}
+
+	private void OnSongStart(object sender, YARG.PlayMode.Play.OnSongStartEndEventArgs e){
+		SetActivity(defaultLargeImage, defaultLargeText, "\""+e.songName+"\"", "by "+e.artistName, DateTimeOffset.Now.ToUnixTimeMilliseconds(), DateTimeOffset.Now.AddSeconds(e.songLength).ToUnixTimeMilliseconds() ); //Now Harbrace compliant!
+	}
+
+	private void OnSongEnd(object sender, YARG.PlayMode.Play.OnSongStartEndEventArgs e){
+		SetActivity(defaultLargeImage, defaultLargeText, defaultDetails, defaultState, elaspedPlayTime); //flip back to time in game
 	}
 
 	private void TryDispose() {
@@ -113,4 +156,20 @@ public class DiscordController : MonoBehaviour {
 	private void OnApplicationQuit() {
 		TryDispose();
 	}
+
+	private void SetActivity(string largeImage, string largeText, string details, string state, long startTime, long? endTime = null){ //discord want time in unix epoch milliseconds (aka long)
+		CurrentActivity = new Activity {
+			Assets = {
+				LargeImage = largeImage,
+				LargeText = largeText
+			},
+			Details = details,
+			State = state,
+			Timestamps = {
+				Start = startTime,
+				End = endTime ?? 0,
+			}
+		};
+	}
+
 }
