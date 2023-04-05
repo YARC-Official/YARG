@@ -1,8 +1,16 @@
 using System;
 using Discord;
 using UnityEngine;
+using YARG.Data;
+using YARG.PlayMode;
 
 public class DiscordController : MonoBehaviour {
+	/*
+	TODO:
+	Reconnect if discord is closed and reopened/opened during game (and not memory the game into a crash)
+	Display Album art with little icon overlay
+	*/
+
 	public static DiscordController Instance {
 		get;
 		private set;
@@ -25,35 +33,47 @@ public class DiscordController : MonoBehaviour {
 	}
 
 	[SerializeField]
+	private GameObject songStartObject;
+
+	[SerializeField]
 	private long applicationID = 1091177744416637028;
 
-	// At the moment there is no changing of menus, what song is playing, etc. Basic for now.
 	[Space]
+	[Header("Default Values")]
 	[SerializeField]
-	private string details = "Hello there ladies and gentlemen!";
-
+	private string defaultDetails = "Hello there ladies and gentlemen!"; //Line of text just below the game name
 	[SerializeField]
-	private string state = "Are you ready to rock?";
-
-	// only shown in 'view profile' -> 'activity'
-	[Space]
+	private string defaultState = "Are you ready to rock?"; //smaller 2nd line of text
+	private string defaultLargeImage = "logo"; // only shown in 'view profile' -> 'activity'
 	[SerializeField]
-	private string largeImage = "logo";
-
-	// tooltip for largeimage
+	private string defaultLargeText = "Yet Another Rhythm Game"; //Top large line of text
 	[SerializeField]
-	private string largeText = "Yet Another Rhythm Game";
-
-	// Current instrument icon? only shown in 'view profile' -> 'activity' as a little overlay on the bottom right of the Large image - currently unused.
+	private string defaultSmallImage = ""; // only shown in 'view profile' -> 'activity' as a little overlay on the bottom right of the Large image - currently unused.
 	[SerializeField]
-	private string smallImage = "";
-
-	// Tooltip for smallImage - currently unused.
-	[SerializeField]
-	private string smallText = "";
+	private string defaultSmallText = ""; // Tooltip for smallImage - currently unused.
+	/* Not used for anything at the moment. Remind me to remove this later :)
+		[Space]
+		[Header("Current Values")]
+		[SerializeField]
+		private string currentDetails; //Line of text just below the game name
+		[SerializeField]
+		private string currenttState; //smaller 2nd line of text
+		private string currentLargeImage; // only shown in 'view profile' -> 'activity'
+		[SerializeField]
+		private string currentLargeText; //Top large line of text
+		[SerializeField]
+		private string currentSmallImage; // only shown in 'view profile' -> 'activity' as a little overlay on the bottom right of the Large image - currently unused.
+		[SerializeField]
+		private string currentSmallText; // Tooltip for smallImage - currently unused.
+	*/
+	private long gameStartTime;
 
 	private void Start() {
 		Instance = this;
+
+		// Listen to the changing of songs
+		Play.OnSongStart += OnSongStart;
+		Play.OnSongEnd += OnSongEnd;
 
 		// Create the Discord instance
 		try {
@@ -67,18 +87,35 @@ public class DiscordController : MonoBehaviour {
 		}
 
 		// Start the activity
-		long elaspedPlayTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+		gameStartTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+
+		// Set default activity
+		SetDefaultActivity();
+	}
+
+	private void OnDestroy() {
+		// Not sure why the discord controller would ever be disabled but, eh you never know, right?
+		Play.OnSongStart -= OnSongStart;
+		Play.OnSongEnd -= OnSongEnd;
+	}
+
+	private void OnSongStart(SongInfo song) {
 		CurrentActivity = new Activity {
-			Details = details,
-			State = state,
 			Assets = {
-				LargeImage = largeImage,
-				LargeText = largeText
+				LargeImage = defaultLargeImage,
+				LargeText = defaultLargeText
 			},
+			Details = song.SongName,
+			State = "by " + song.artistName,
 			Timestamps = {
-				Start = elaspedPlayTime,
+				Start = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
+				End = DateTimeOffset.Now.AddSeconds(song.songLength).ToUnixTimeMilliseconds(),
 			}
 		};
+	}
+
+	private void OnSongEnd(SongInfo song) {
+		SetDefaultActivity();
 	}
 
 	private void Update() {
@@ -112,5 +149,19 @@ public class DiscordController : MonoBehaviour {
 
 	private void OnApplicationQuit() {
 		TryDispose();
+	}
+
+	private void SetDefaultActivity() {
+		CurrentActivity = new Activity {
+			Assets = {
+				LargeImage = defaultLargeImage,
+				LargeText = defaultLargeText
+			},
+			Details = defaultDetails,
+			State = defaultState,
+			Timestamps = {
+				Start = gameStartTime
+			}
+		};
 	}
 }
