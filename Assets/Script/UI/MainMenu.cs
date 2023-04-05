@@ -28,6 +28,8 @@ namespace YARG.UI {
 		private Canvas editPlayers;
 		[SerializeField]
 		private Canvas addPlayer;
+		[SerializeField]
+		private Canvas credits;
 
 		[Space]
 		[SerializeField]
@@ -106,6 +108,7 @@ namespace YARG.UI {
 			songSelect.gameObject.SetActive(false);
 			difficultySelect.gameObject.SetActive(false);
 			postSong.gameObject.SetActive(false);
+			credits.gameObject.SetActive(false);
 		}
 
 		public void ShowMainMenu() {
@@ -142,6 +145,11 @@ namespace YARG.UI {
 			HideAll();
 			postSong.gameObject.SetActive(true);
 			isPostSong = false;
+		}
+
+		public void ShowCredits() {
+			HideAll();
+			credits.gameObject.SetActive(true);
 		}
 
 		public void ToggleSettingsMenu() {

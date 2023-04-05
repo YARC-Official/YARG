@@ -13,5 +13,9 @@ namespace YARG.UI {
 		public void OpenGithub() {
 			Application.OpenURL("https://github.com/EliteAsian123/YARG");
 		}
+
+		public void OpenPatreon() {
+			Application.OpenURL("https://www.patreon.com/YARG_Official");
+		}
 	}
 }
