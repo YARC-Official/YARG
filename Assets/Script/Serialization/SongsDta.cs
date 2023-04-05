@@ -20,28 +20,35 @@ namespace YARG.Serialization {
                 }
                 string[] tokens = dtaFile.Split('\n', StringSplitOptions.RemoveEmptyEntries);
                 SongInfo newSong = new SongInfo(srcfolder);
-                string songPath = "";
-                int nestDepth = 0;
-                int localSongId = 0;
+                string songPath = ""; // songPath is temporary until the cache gets updated to add a separate song data dir string
                 bool inSongSubdef = false;
                 for (int i = 0; i < tokens.Length; i++) {
                     Debug.Log("token index " + i + " , token " + tokens[i]);
                     string token = tokens[i];
-                    if (token.Contains("(song")) {
+                    if (token.TrimStart().StartsWith("(song")) {
                         inSongSubdef = true;
                     }
-                    if (token.Contains("(name") && inSongSubdef == false) {
+                    if (token.TrimStart().StartsWith("(name") && inSongSubdef == false) {
                         newSong.SongName = token.Split('"')[1];
                         Debug.Log("song name: " + newSong.SongName);
                     }
-                    if (token.Contains("(name") && inSongSubdef == true) {
+                    if (token.TrimStart().StartsWith("(name") && inSongSubdef == true) {
                         songPath = token.Split("(name")[1].TrimStart().Replace(")","");
                         Debug.Log("song data location, ignoring extensions: " + songPath);
                     }
-                    if (token.Contains("(artist")) {
+                    if (token.TrimStart().StartsWith("(artist")) {
                         newSong.artistName = token.Split('"')[1];
                         Debug.Log("song artist: " + newSong.artistName);
                     }
+                    if (token.TrimStart().StartsWith("(year_released")) {
+                        newSong.year = token.Split("(year_released")[1].TrimStart().Replace(")","");
+                        Debug.Log("song year: " + newSong.year);
+                    }
+                    if (token.TrimStart().StartsWith("(album_name")) {
+                        newSong.album = token.Split('"')[1];
+                        Debug.Log("song album: " + newSong.album);
+                    }
+                    
                 }
                 songList.Add(newSong);
                 return songList;
