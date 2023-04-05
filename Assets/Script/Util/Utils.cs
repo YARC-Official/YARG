@@ -46,7 +46,7 @@ namespace YARG.Util {
 				"ghotmh"              => "Guitar Hero On Tour: Modern Hits",
 				"bandhero" or "bh"    => "Band Hero",
 				"gh"                  => "Guitar Hero",
-				"ghdlc"               => "Guitar Hero Series DLC",
+				"ghdlc"               => "Guitar Hero DLC",
 				"ghl"                 => "Guitar Hero Live",
 
 				"rb1"                 => "Rock Band 1",
