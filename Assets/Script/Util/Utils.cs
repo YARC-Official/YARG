@@ -48,6 +48,7 @@ namespace YARG.Util {
 				"gh"                  => "Guitar Hero",
 				"ghdlc"               => "Guitar Hero DLC",
 				"ghl"                 => "Guitar Hero Live",
+				"ghtv"                => "Guitar Hero TV",
 
 				"rb1"                 => "Rock Band 1",
 				"rb2"                 => "Rock Band 2",
