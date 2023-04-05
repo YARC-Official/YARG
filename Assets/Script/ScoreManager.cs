@@ -3,15 +3,15 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Newtonsoft.Json;
+using UnityEngine;
 using YARG.Data;
-using YARG.Util;
 
 namespace YARG {
 	public static class ScoreManager {
 		/// <value>
-		/// The location of the local or remote score file (depending on whether we are connected to a server).
+		/// The location of the score file.
 		/// </value>
-		public static string ScoreFile => Path.Combine(SongLibrary.SongFolder, "yarg_score.json");
+		public static string ScoreFile => Path.Combine(GameManager.PersistentDataPath, "scores.json");
 
 		private static Dictionary<string, SongScore> scores = null;
 
@@ -24,25 +24,28 @@ namespace YARG {
 			}
 
 			// Read from score file OR create new
-			if (File.Exists(ScoreFile)) {
-				string json = File.ReadAllText(ScoreFile.ToString());
-				scores = JsonConvert.DeserializeObject<Dictionary<string, SongScore>>(json);
-			} else {
-				scores = new();
+			try {
+				if (File.Exists(ScoreFile)) {
+					string json = File.ReadAllText(ScoreFile.ToString());
+					scores = JsonConvert.DeserializeObject<Dictionary<string, SongScore>>(json);
+				} else {
+					scores = new();
 
-				// Create a dummy score file if one doesn't exist.
-				Directory.CreateDirectory(new FileInfo(ScoreFile).DirectoryName);
-				File.WriteAllText(ScoreFile.ToString(), "{}");
+					// Create a dummy score file if one doesn't exist.
+					Directory.CreateDirectory(new FileInfo(ScoreFile).DirectoryName);
+					File.WriteAllText(ScoreFile.ToString(), "{}");
+				}
+			} catch (System.Exception e) {
+				// If we fail to read the score file, so just create empty scores.
+				scores = new();
+				Debug.LogException(e);
 			}
 		}
 
 		public static void PushScore(SongInfo song, SongScore score) {
-			string path = song.folder.ToString();
-			path = path.ToUpperInvariant();
-
-			if (!scores.TryGetValue(path, out var oldScore)) {
+			if (!scores.TryGetValue(song.hash, out var oldScore)) {
 				// If the score info doesn't exist, just add the new one.
-				scores.Add(path, score);
+				scores.Add(song.hash, score);
 			} else {
 				// Otherwise, MERGE!
 				oldScore.lastPlayed = score.lastPlayed;
@@ -65,10 +68,7 @@ namespace YARG {
 		}
 
 		public static SongScore GetScore(SongInfo song) {
-			string path = song.folder.ToString();
-			path = path.ToUpperInvariant();
-
-			if (scores.TryGetValue(path, out var o)) {
+			if (scores.TryGetValue(song.hash, out var o)) {
 				return o;
 			}
 
@@ -80,7 +80,7 @@ namespace YARG {
 
 			// Prevent game lag by saving on another thread
 			ThreadPool.QueueUserWorkItem(_ => {
-				string json = JsonConvert.SerializeObject(scores, Formatting.Indented);
+				string json = JsonConvert.SerializeObject(scores);
 				File.WriteAllText(ScoreFile.ToString(), json);
 			});
 		}
@@ -88,7 +88,13 @@ namespace YARG {
 		public static List<SongInfo> SongsByPlayCount() {
 			return scores
 				.OrderByDescending(i => i.Value.lastPlayed)
-				.Select(i => SongLibrary.Songs.Find(j => Utils.ArePathsEqual(j.folder.FullName, i.Key)))
+				.Select(i => {
+					if (SongLibrary.SongsByHash.TryGetValue(i.Key, out var song)) {
+						return song;
+					}
+
+					return null;
+				})
 				.Where(i => i != null)
 				.ToList();
 		}

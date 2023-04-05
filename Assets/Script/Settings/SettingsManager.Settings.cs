@@ -1,3 +1,4 @@
+using System.IO;
 using SFB;
 using UnityEngine;
 using YARG.Serialization;
@@ -13,6 +14,8 @@ namespace YARG.Settings {
 			[SettingChangeFunc("songFolder")]
 			public void SongFolderChange() {
 				if (MainMenu.Instance != null) {
+					File.Delete(SongLibrary.CacheFile);
+
 					MainMenu.Instance.RefreshSongLibrary();
 				}
 			}

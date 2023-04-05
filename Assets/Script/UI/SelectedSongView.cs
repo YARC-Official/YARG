@@ -110,15 +110,18 @@ namespace YARG.UI {
 		}
 
 		private void LoadAlbumCover() {
-			// If remote, request album cover
-			string pngPath = Path.Combine(songInfo.folder.FullName, "album.png");
-			string jpgPath = Path.Combine(songInfo.folder.FullName, "album.jpg");
+			string[] albumPaths = {
+				"album.png",
+				"album.jpg",
+				"album.jpeg",
+			};
 
-			// Load PNG or JPG
-			if (File.Exists(pngPath)) {
-				StartCoroutine(LoadAlbumCoverCoroutine(pngPath));
-			} else if (File.Exists(jpgPath)) {
-				StartCoroutine(LoadAlbumCoverCoroutine(jpgPath));
+			foreach (string path in albumPaths) {
+				string fullPath = Path.Combine(songInfo.folder.FullName, path);
+				if (File.Exists(fullPath)) {
+					StartCoroutine(LoadAlbumCoverCoroutine(fullPath));
+					break;
+				}
 			}
 		}
 

@@ -78,6 +78,7 @@ namespace YARG.UI {
 				// Finish loading
 				if (SongLibrary.loadPercent >= 1f) {
 					loadingScreen.SetActive(false);
+					SongLibrary.loadPercent = 0f;
 				}
 
 				return;
@@ -175,12 +176,9 @@ namespace YARG.UI {
 		}
 
 		public void AbortSongLoad() {
-			SongLibrary.Reset();
-			ScoreManager.Reset();
+			SettingsManager.DeleteSettingsFile();
 
-			loadingScreen.SetActive(false);
-
-			SettingsManager.SetSettingValue("songFolder", null);
+			Quit();
 		}
 
 		public void RefreshSongLibrary() {
@@ -195,7 +193,15 @@ namespace YARG.UI {
 		}
 
 		public void Quit() {
+#if UNITY_EDITOR
+
+			UnityEditor.EditorApplication.isPlaying = false;
+
+#else
+
 			Application.Quit();
+
+#endif
 		}
 	}
 }

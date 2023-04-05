@@ -67,7 +67,9 @@ namespace YARG.Settings {
 		private static Dictionary<string, MethodInfo> interactableFuncs = new();
 		private static Dictionary<string, MethodInfo> changeFuncs = new();
 
-		static SettingsManager() {
+		private static string SettingsFile => Path.Combine(GameManager.PersistentDataPath, "settings.json");
+
+		public static void Init() {
 			SortedDictionary<int, object> settingsWithLocation = new();
 
 			// Get all setting fields ordered by SettingLocation
@@ -145,8 +147,7 @@ namespace YARG.Settings {
 
 			// Create settings container
 			try {
-				var path = Path.Combine(Application.persistentDataPath, "settings.json");
-				settingsContainer = JsonConvert.DeserializeObject<SettingContainer>(File.ReadAllText(path));
+				settingsContainer = JsonConvert.DeserializeObject<SettingContainer>(File.ReadAllText(SettingsFile));
 			} catch (Exception) { }
 
 			// If failed or the settings don't exist, just create new settings
@@ -171,8 +172,8 @@ namespace YARG.Settings {
 
 			// Call change functions
 			foreach (var (key, func) in changeFuncs) {
-				var name = (string) key;
-				var method = (MethodInfo) func;
+				var name = key;
+				var method = func;
 
 				// This happens elsewhere
 				if (name == "songFolder") {
@@ -184,8 +185,11 @@ namespace YARG.Settings {
 		}
 
 		private static void SaveSettings() {
-			var path = Path.Combine(Application.persistentDataPath, "settings.json");
-			File.WriteAllText(path, JsonConvert.SerializeObject(settingsContainer));
+			File.WriteAllText(SettingsFile, JsonConvert.SerializeObject(settingsContainer));
+		}
+
+		public static void DeleteSettingsFile() {
+			File.Delete(SettingsFile);
 		}
 
 		public static SettingInfo[] GetAllSettings() {

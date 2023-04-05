@@ -22,6 +22,14 @@ namespace YARG {
 		public delegate void UpdateAction();
 		public static event UpdateAction OnUpdate;
 
+		/// <summary>
+		/// "Application.persistentDataPath" is main thread only. Why? I don't know.
+		/// </summary>
+		public static string PersistentDataPath {
+			get;
+			private set;
+		}
+
 		[SerializeField]
 		private AudioMixerGroup vocalGroup;
 
@@ -29,9 +37,8 @@ namespace YARG {
 
 		private void Start() {
 			Instance = this;
-
-			// Unlimited FPS (if vsync is off)
-			Application.targetFrameRate = 400;
+			PersistentDataPath = Application.persistentDataPath;
+			Settings.SettingsManager.Init();
 
 			// High polling rate
 			InputSystem.pollingFrequency = 500f;

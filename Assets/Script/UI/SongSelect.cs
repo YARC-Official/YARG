@@ -317,13 +317,14 @@ namespace YARG.UI {
 					}
 
 					// Add a completely random song (ten tries)
+					var songsAsArray = SongLibrary.Songs.ToArray();
 					for (int t = 0; t < 10; t++) {
-						int n = Random.Range(0, SongLibrary.Songs.Count);
-						if (recommendedSongs.Contains(SongLibrary.Songs[n])) {
+						int n = Random.Range(0, songsAsArray.Length);
+						if (recommendedSongs.Contains(songsAsArray[n])) {
 							continue;
 						}
 
-						recommendedSongs.Add(SongLibrary.Songs[n]);
+						recommendedSongs.Add(songsAsArray[n]);
 						break;
 					}
 
