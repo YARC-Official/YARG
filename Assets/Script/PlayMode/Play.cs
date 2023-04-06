@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -27,7 +28,11 @@ namespace YARG.PlayMode {
 		public static SongInfo song = null;
 
 		public delegate void BeatAction();
-		public event BeatAction BeatEvent;
+		public static event BeatAction BeatEvent;
+
+		public delegate void SongStateChangeAction(SongInfo songInfo);
+		public static event SongStateChangeAction OnSongStart;
+		public static event SongStateChangeAction OnSongEnd;
 
 		[SerializeField]
 		private GameObject soundAudioPrefab;
@@ -89,11 +94,9 @@ namespace YARG.PlayMode {
 
 		private IEnumerator StartSong() {
 			GameUI.Instance.SetLoadingText("Loading audio...");
-
 			// Load audio
 			foreach (var file in AudioHandler.GetAllSupportedAudioFiles(song.folder.FullName)) {
 				var name = Path.GetFileNameWithoutExtension(file);
-
 				if (name == "preview" || name == "crowd") {
 					continue;
 				}
@@ -173,6 +176,9 @@ namespace YARG.PlayMode {
 
 			// Hide loading screen
 			GameUI.Instance.loadingContainer.SetActive(false);
+
+			// Call events
+			OnSongStart?.Invoke(song);
 		}
 
 		private void LoadChart() {
@@ -328,10 +334,13 @@ namespace YARG.PlayMode {
 			foreach (var audioHandler in audioHandlers) {
 				try {
 					audioHandler.Finish();
-				} catch (System.Exception e) {
+				} catch (Exception e) {
 					Debug.LogError(e);
 				}
 			}
+
+			// Call events
+			OnSongEnd?.Invoke(song);
 
 			// Unpause just in case
 			Time.timeScale = 1f;
