@@ -111,6 +111,10 @@ MonoBehaviour:
     m_Key: crowdVolume
     m_Metadata:
       m_Items: []
+  - m_Id: 4106530829230080
+    m_Key: noKicks
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

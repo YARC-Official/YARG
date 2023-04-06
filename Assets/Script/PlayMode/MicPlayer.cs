@@ -231,7 +231,7 @@ namespace YARG.PlayMode {
 			GameUI.Instance.SetVocalTrackImage(renderTexture);
 
 			// Bind events
-			Play.Instance.BeatEvent += BeatAction;
+			Play.BeatEvent += BeatAction;
 
 			// Hide starpower
 			starpowerOverlay.material.SetFloat("AlphaMultiplier", 0f);
@@ -265,7 +265,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Unbind events
-			Play.Instance.BeatEvent -= BeatAction;
+			Play.BeatEvent -= BeatAction;
 		}
 
 		private void OnSongStart() {

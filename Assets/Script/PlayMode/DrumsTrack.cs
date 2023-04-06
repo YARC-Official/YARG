@@ -8,7 +8,7 @@ using YARG.Settings;
 using YARG.Util;
 
 namespace YARG.PlayMode {
-	public class DrumsTrack : AbstractTrack {
+	public sealed class DrumsTrack : AbstractTrack {
 		private InputStrategy input;
 
 		[Space]
@@ -37,9 +37,13 @@ namespace YARG.PlayMode {
 
 		private int notesHit = 0;
 
+		private bool noKickMode = false;
+
 		protected override void StartTrack() {
 			notePool.player = player;
 			genericPool.player = player;
+
+			noKickMode = SettingsManager.GetSettingValue<bool>("noKicks");
 
 			// Lefty flip
 
@@ -127,6 +131,12 @@ namespace YARG.PlayMode {
 			while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= RelativeTime) {
 				var noteInfo = Chart[visualChartIndex];
 
+				// Skip kick notes if noKickMode is enabled
+				if (noteInfo.fret == kickIndex && noKickMode) {
+					visualChartIndex++;
+					continue;
+				}
+
 				SpawnNote(noteInfo, RelativeTime);
 				visualChartIndex++;
 			}
@@ -134,6 +144,12 @@ namespace YARG.PlayMode {
 			// Update expected input
 			while (Chart.Count > realChartIndex && Chart[realChartIndex].time <= Play.Instance.SongTime + Play.HIT_MARGIN) {
 				var noteInfo = Chart[realChartIndex];
+
+				// Skip kick notes if noKickMode is enabled
+				if (noteInfo.fret == kickIndex && noKickMode) {
+					realChartIndex++;
+					continue;
+				}
 
 				var peeked = expectedHits.ReversePeekOrNull();
 				if (peeked?[0].time == noteInfo.time) {

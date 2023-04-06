@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using YARG.Data;
+using YARG.Settings;
 
 namespace YARG.Input {
 	public class DrumsInputStrategy : InputStrategy {
@@ -81,6 +82,10 @@ namespace YARG.Input {
 			while (chart.Count > botChartIndex && chart[botChartIndex].time <= songTime) {
 				var noteInfo = chart[botChartIndex];
 				botChartIndex++;
+
+				if (noteInfo.fret == 4 && SettingsManager.GetSettingValue<bool>("noKicks")) {
+					continue;
+				}
 
 				// Hit
 				DrumHitEvent?.Invoke(noteInfo.fret, noteInfo.hopo);
