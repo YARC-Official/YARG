@@ -27,20 +27,20 @@ namespace YARG.Input {
 		[InputControl(name = "buttonNorth", layout = "Button", bit = 15, displayName = "Y")]
 		public ushort buttons;
 
-		[InputControl(name = "fret0", layout = "Integer", format = "BIT", offset = 2, bit = 0, sizeInBits = 5)]
-		[InputControl(name = "fret1", layout = "Integer", format = "BIT", offset = 2, bit = 5, sizeInBits = 5)]
-		[InputControl(name = "fret2", layout = "Integer", format = "BIT", offset = 2, bit = 10, sizeInBits = 5)]
-		[InputControl(name = "fret3", layout = "Integer", format = "BIT", offset = 3, bit = 0, sizeInBits = 5)]
-		[InputControl(name = "fret4", layout = "Integer", format = "BIT", offset = 3, bit = 5, sizeInBits = 5)]
-		[InputControl(name = "fret5", layout = "Integer", format = "BIT", offset = 3, bit = 10, sizeInBits = 5)]
-		public fixed ushort frets[2];
+		[InputControl(name = "fret0", format = "BIT", layout = "Integer", bit = 0, sizeInBits = 5)]
+		[InputControl(name = "fret1", format = "BIT", layout = "Integer", bit = 5, sizeInBits = 5)]
+		[InputControl(name = "fret2", format = "BIT", layout = "Integer", bit = 10, sizeInBits = 5)]
+		[InputControl(name = "fret3", format = "BIT", layout = "Integer", bit = 16, sizeInBits = 5)]
+		[InputControl(name = "fret4", format = "BIT", layout = "Integer", bit = 21, sizeInBits = 5)]
+		[InputControl(name = "fret5", format = "BIT", layout = "Integer", bit = 26, sizeInBits = 5)]
+		public int fretStates;
 
-		[InputControl(name = "velocity0", layout = "Integer", format = "BIT", offset = 6, bit = 0, sizeInBits = 7)]
-		[InputControl(name = "velocity1", layout = "Integer", format = "BIT", offset = 7, bit = 0, sizeInBits = 7)]
-		[InputControl(name = "velocity2", layout = "Integer", format = "BIT", offset = 8, bit = 0, sizeInBits = 7)]
-		[InputControl(name = "velocity3", layout = "Integer", format = "BIT", offset = 9, bit = 0, sizeInBits = 7)]
-		[InputControl(name = "velocity4", layout = "Integer", format = "BIT", offset = 10, bit = 0, sizeInBits = 7)]
-		[InputControl(name = "velocity5", layout = "Integer", format = "BIT", offset = 11, bit = 0, sizeInBits = 7)]
+		[InputControl(name = "string0", layout = "Integer", format = "BIT", offset = 6, bit = 0, sizeInBits = 7)]
+		[InputControl(name = "string1", layout = "Integer", format = "BIT", offset = 7, bit = 0, sizeInBits = 7)]
+		[InputControl(name = "string2", layout = "Integer", format = "BIT", offset = 8, bit = 0, sizeInBits = 7)]
+		[InputControl(name = "string3", layout = "Integer", format = "BIT", offset = 9, bit = 0, sizeInBits = 7)]
+		[InputControl(name = "string4", layout = "Integer", format = "BIT", offset = 10, bit = 0, sizeInBits = 7)]
+		[InputControl(name = "string5", layout = "Integer", format = "BIT", offset = 11, bit = 0, sizeInBits = 7)]
 
 		[InputControl(name = "greenFret", layout = "Button", offset = 6, bit = 7)]
 		[InputControl(name = "redFret", layout = "Button", offset = 7, bit = 7)]
