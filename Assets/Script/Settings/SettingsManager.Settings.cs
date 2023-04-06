@@ -80,8 +80,12 @@ namespace YARG.Settings {
 			[SettingType("Toggle")]
 			public bool useCymbalModelsInFiveLane = true;
 
-			[SettingSpace]
 			[SettingLocation("general", 11)]
+			[SettingType("Toggle")]
+			public bool noKicks = false;
+
+			[SettingSpace]
+			[SettingLocation("general", 12)]
 			[SettingType("Toggle")]
 			public bool vsync = true;
 
@@ -90,7 +94,7 @@ namespace YARG.Settings {
 				QualitySettings.vSyncCount = vsync ? 1 : 0;
 			}
 
-			[SettingLocation("general", 12)]
+			[SettingLocation("general", 13)]
 			[SettingType("Number")]
 			public int fpsCap = 60;
 
@@ -105,7 +109,7 @@ namespace YARG.Settings {
 			}
 
 			[SettingSpace]
-			[SettingLocation("general", 13)]
+			[SettingLocation("general", 14)]
 			[SettingType("Volume")]
 			public float musicVolume = 0.9f;
 
@@ -114,7 +118,7 @@ namespace YARG.Settings {
 				AudioManager.Instance.SetVolume("music", musicVolume);
 			}
 
-			[SettingLocation("general", 14)]
+			[SettingLocation("general", 15)]
 			[SettingType("Volume")]
 			public float guitarVolume = 1f;
 
@@ -123,7 +127,7 @@ namespace YARG.Settings {
 				AudioManager.Instance.SetVolume("guitar", guitarVolume);
 			}
 
-			[SettingLocation("general", 15)]
+			[SettingLocation("general", 16)]
 			[SettingType("Volume")]
 			public float bassVolume = 1f;
 
@@ -132,7 +136,7 @@ namespace YARG.Settings {
 				AudioManager.Instance.SetVolume("bass", bassVolume);
 			}
 
-			[SettingLocation("general", 16)]
+			[SettingLocation("general", 17)]
 			[SettingType("Volume")]
 			public float keysVolume = 1f;
 
@@ -141,7 +145,7 @@ namespace YARG.Settings {
 				AudioManager.Instance.SetVolume("keys", keysVolume);
 			}
 
-			[SettingLocation("general", 17)]
+			[SettingLocation("general", 18)]
 			[SettingType("Volume")]
 			public float drumsVolume = 1f;
 
@@ -150,7 +154,7 @@ namespace YARG.Settings {
 				AudioManager.Instance.SetVolume("drums", drumsVolume);
 			}
 
-			[SettingLocation("general", 18)]
+			[SettingLocation("general", 19)]
 			[SettingType("Volume")]
 			public float vocalsVolume = 1f;
 
@@ -159,7 +163,7 @@ namespace YARG.Settings {
 				AudioManager.Instance.SetVolume("vocals", vocalsVolume);
 			}
 
-			[SettingLocation("general", 19)]
+			[SettingLocation("general", 20)]
 			[SettingType("Volume")]
 			public float songVolume = 1f;
 
@@ -168,7 +172,7 @@ namespace YARG.Settings {
 				AudioManager.Instance.SetVolume("song", songVolume);
 			}
 
-			[SettingLocation("general", 20)]
+			[SettingLocation("general", 21)]
 			[SettingType("Volume")]
 			public float crowdVolume = 0f;
 
@@ -177,7 +181,7 @@ namespace YARG.Settings {
 				AudioManager.Instance.SetVolume("crowd", crowdVolume);
 			}
 
-			[SettingLocation("general", 21)]
+			[SettingLocation("general", 22)]
 			[SettingType("Volume")]
 			public float vocalMonitoring = 0.75f;
 
@@ -187,7 +191,7 @@ namespace YARG.Settings {
 			}
 
 			[SettingSpace]
-			[SettingLocation("general", 22)]
+			[SettingLocation("general", 23)]
 			[SettingType("Text")]
 			public string fileServerIp = "localhost";
 
@@ -196,7 +200,7 @@ namespace YARG.Settings {
 				return GameManager.client == null;
 			}
 
-			[SettingLocation("general", 23)]
+			[SettingLocation("general", 24)]
 			[SettingButton("connectToFileServer")]
 			public void ConnectToFileServer() {
 				GameManager.client = new();
@@ -208,7 +212,7 @@ namespace YARG.Settings {
 				return GameManager.client == null;
 			}
 
-			[SettingLocation("general", 24)]
+			[SettingLocation("general", 25)]
 			[SettingButton("hostFileServer")]
 			public void HostFileServer() {
 				GameManager.Instance.LoadScene(SceneIndex.SERVER_HOST);

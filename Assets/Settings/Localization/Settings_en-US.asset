@@ -114,6 +114,10 @@ MonoBehaviour:
     m_Localized: Crowd Volume
     m_Metadata:
       m_Items: []
+  - m_Id: 4106530829230080
+    m_Localized: No Kicks (Drums)
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
