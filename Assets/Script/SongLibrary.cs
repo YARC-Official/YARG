@@ -84,7 +84,7 @@ namespace YARG {
 					Songs.Add(new SongInfo(folder));
 				} else if (new FileInfo(Path.Combine(folder.FullName, "songs.dta")).Exists) {
 					// Read this dir's songs.dta and add its contents to the song list
-					List<SongInfo> dtaSongs = SongsDta.ParseSongsDta(folder);
+					List<SongInfo> dtaSongs = RockBandSTFS.ParseSongsDta(folder);
 					foreach (SongInfo localSongInfo in dtaSongs) {
 						Songs.Add(localSongInfo);
 					}
