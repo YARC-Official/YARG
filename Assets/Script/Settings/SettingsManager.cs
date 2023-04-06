@@ -153,21 +153,12 @@ namespace YARG.Settings {
 			// If failed or the settings don't exist, just create new settings
 			if (settingsContainer == null) {
 				settingsContainer = new SettingContainer();
+				ResetSongFolder();
+			}
 
-				// Get song folder location
-				var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-				var cloneHeroPath = Path.Combine(documentsPath, $"Clone Hero{Path.DirectorySeparatorChar}Songs");
-				var yargPath = Path.Combine(documentsPath, $"YARG{Path.DirectorySeparatorChar}Songs");
-
-				string songFolder = yargPath;
-				if (Directory.Exists(cloneHeroPath)) {
-					songFolder = cloneHeroPath;
-				} else if (!Directory.Exists(yargPath)) {
-					Directory.CreateDirectory(yargPath);
-				}
-
-				// Set the song folder location
-				settingsContainer.songFolder = songFolder;
+			// If the song folders is null, reset it
+			if (settingsContainer.songFolders == null) {
+				ResetSongFolder();
 			}
 
 			// Call change functions
@@ -182,6 +173,23 @@ namespace YARG.Settings {
 
 				method.Invoke(settingsContainer, null);
 			}
+		}
+
+		private static void ResetSongFolder() {
+			// Get song folder location
+			var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+			var cloneHeroPath = Path.Combine(documentsPath, $"Clone Hero{Path.DirectorySeparatorChar}Songs");
+			var yargPath = Path.Combine(documentsPath, $"YARG{Path.DirectorySeparatorChar}Songs");
+
+			string songFolder = yargPath;
+			if (Directory.Exists(cloneHeroPath)) {
+				songFolder = cloneHeroPath;
+			} else if (!Directory.Exists(yargPath)) {
+				Directory.CreateDirectory(yargPath);
+			}
+
+			// Set the song folder location
+			settingsContainer.songFolders = new string[] { songFolder };
 		}
 
 		private static void SaveSettings() {
@@ -288,7 +296,7 @@ namespace YARG.Settings {
 			return default;
 		}
 
-		public static void SetSettingValue(string name, object value) {
+		public static void SetSettingValue(string name, object value, bool dontCallChangeFunc = false) {
 			if (!settings.Contains(name)) {
 				Debug.LogWarning($"Setting {name} does not exist!");
 				return;
@@ -297,7 +305,7 @@ namespace YARG.Settings {
 			if (settings[name] is FieldInfo field) {
 				field.SetValue(settingsContainer, value);
 
-				if (changeFuncs.ContainsKey(name)) {
+				if (!dontCallChangeFunc && changeFuncs.ContainsKey(name)) {
 					changeFuncs[name].Invoke(settingsContainer, null);
 				}
 
@@ -306,6 +314,15 @@ namespace YARG.Settings {
 			}
 
 			Debug.LogWarning($"Setting {name} is not a field!");
+		}
+
+		public static void InvokeSettingChangeAction(string name) {
+			if (!changeFuncs.ContainsKey(name)) {
+				Debug.LogWarning($"Setting {name} does not exist or is not a field!");
+				return;
+			}
+
+			changeFuncs[name].Invoke(settingsContainer, null);
 		}
 
 		public static void InvokeButtonAction(string name) {

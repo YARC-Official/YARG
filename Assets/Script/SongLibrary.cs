@@ -22,7 +22,7 @@ namespace YARG {
 		/// <value>
 		/// The location of the song folder.
 		/// </value>
-		public static string SongFolder => SettingsManager.GetSettingValue<string>("songFolder");
+		public static string[] SongFolders => SettingsManager.GetSettingValue<string[]>("songFolders");
 
 		/// <value>
 		/// The location of the local song cache.
@@ -65,14 +65,27 @@ namespace YARG {
 				songsTemp = new();
 				SongsByHash = new();
 
+				// Find songs
 				loadPercent = 0f;
-				CreateSongInfoFromFiles(SongFolder, new(SongFolder));
+				foreach (var songFolder in SongFolders) {
+					if (songFolder == null) {
+						continue;
+					}
+
+					CreateSongInfoFromFiles(songFolder, new(songFolder));
+				}
+
+				// Read song.ini and hashes
 				loadPercent = 0.1f;
 				ReadSongIni();
 				GetSongHashes();
+
+				// Populate SongsByHash, and create cache
 				loadPercent = 0.9f;
 				PopulateSongByHashes();
 				CreateCache();
+
+				// Done!
 				loadPercent = 1f;
 			});
 			return false;

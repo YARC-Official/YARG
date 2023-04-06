@@ -8,10 +8,10 @@ namespace YARG.Settings {
 	public static partial class SettingsManager {
 		private class SettingContainer {
 			[SettingLocation("general", 1)]
-			[SettingType("Folder")]
-			public string songFolder = null;
+			[SettingType("MultiFolder")]
+			public string[] songFolders = null;
 
-			[SettingChangeFunc("songFolder")]
+			[SettingChangeFunc("songFolders")]
 			public void SongFolderChange() {
 				if (MainMenu.Instance != null) {
 					File.Delete(SongLibrary.CacheFile);
