@@ -6,6 +6,8 @@ using UnityEngine.InputSystem.Utilities;
 namespace YARG.Input {
 	[StructLayout(LayoutKind.Explicit, Size = 27)]
 	public struct HIDProGuitarInputReport : IInputStateTypeInfo {
+		// TODO: Make this match up more with the XInput report.
+
 		public FourCC format => new('H', 'I', 'D');
 
 		[InputControl(name = "fret0", format = "BIT", layout = "Integer", bit = 0, sizeInBits = 5)]
