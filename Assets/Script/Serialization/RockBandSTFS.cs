@@ -25,7 +25,7 @@ namespace YARG.Serialization {
 				string songPathGen = "songs/" + songPath.Split("/")[1] + "/gen/" + songPath.Split("/")[2];
 				var bitmap = serializer.ReadFromFile<HMXBitmap>(Path.Combine(Path.Combine(srcfolder.FullName, songPathGen), "_keep.png_xbox"));
 				string tmpFilePath = GetTempFileName() + ".png";
-           		bitmap.SaveAs(new SystemInfo(){25, Platform.X360, }, tmpFilePath);
+           		bitmap.SaveAs(new SystemInfo(){25, Platform.X360, true}, tmpFilePath);
 				return songList;
 			} catch (Exception e) {
 				Debug.LogError($"Failed to parse songs.dta for `{srcfolder.FullName}`.");
