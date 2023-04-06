@@ -66,7 +66,7 @@ namespace YARG {
 				SongsByHash = new();
 
 				loadPercent = 0f;
-				CreateSongInfoFromFiles(new(SongFolder));
+				CreateSongInfoFromFiles(SongFolder, new(SongFolder));
 				loadPercent = 0.1f;
 				ReadSongIni();
 				GetSongHashes();
@@ -83,7 +83,7 @@ namespace YARG {
 		/// This is create a basic <see cref="SongInfo"/> object for each song.<br/>
 		/// We need to look at the <c>song.ini</c> files for more details.
 		/// </summary>
-		private static void CreateSongInfoFromFiles(DirectoryInfo songDir) {
+		private static void CreateSongInfoFromFiles(string rootFolder, DirectoryInfo songDir) {
 			if (!songDir.Exists) {
 				Directory.CreateDirectory(songDir.FullName);
 			}
@@ -91,10 +91,10 @@ namespace YARG {
 			foreach (var folder in songDir.EnumerateDirectories()) {
 				if (new FileInfo(Path.Combine(folder.FullName, "song.ini")).Exists) {
 					// If the folder has a song.ini, it is a song folder
-					songsTemp.Add(new SongInfo(folder, songDir.FullName));
+					songsTemp.Add(new SongInfo(folder, rootFolder));
 				} else {
 					// Otherwise, treat it as a sub-folder
-					CreateSongInfoFromFiles(folder);
+					CreateSongInfoFromFiles(rootFolder, folder);
 				}
 			}
 		}
