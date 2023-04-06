@@ -49,6 +49,7 @@ namespace YARG.Settings {
 				folderEntries.Add(folderEntry);
 			}
 
+			infoText.text = $"{folders.Length} folder(s) loaded.";
 			settingsMenu.ForceUpdateLayout();
 		}
 
