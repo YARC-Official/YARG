@@ -78,7 +78,6 @@ public class DiscordController : MonoBehaviour {
 
 	// A bunch of time handling stuff
 	private long gameStartTime; //start of YARG, doesn't stop
-	private long songStartTime; //time at song start
 	private float songLengthSeconds; //Length of song in seconds (not milliseconds)
 	private long pauseTime = 0; //when the song was last pasused
 	private long pauseAmount = 0; //the total amount of paused time
@@ -140,13 +139,12 @@ public class DiscordController : MonoBehaviour {
 				songName,
 				"by " + artistName,
 				DateTimeOffset.Now.ToUnixTimeMilliseconds(),
-				DateTimeOffset.Now.AddSeconds(songLengthSeconds).ToUnixTimeMilliseconds() - pauseAmount 
+				DateTimeOffset.Now.AddSeconds(songLengthSeconds).ToUnixTimeMilliseconds() - pauseAmount
 			);
 		}
 	}
 
 	private void OnSongStart(SongInfo song) {
-		songStartTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 		songLengthSeconds = song.songLength;
 		songName = song.SongName;
 		artistName = song.artistName;
@@ -166,7 +164,8 @@ public class DiscordController : MonoBehaviour {
 	}
 
 	private void OnInstrumentSelection(YARG.PlayerManager.Player playerInfo) {
-		currentSmallImage = playerInfo.chosenInstrument;
+		// ToLowerInvariant() because the DISCORD API DOESN'T HAVE UPPERCASE ARTWORK NAMES (WHY)
+		currentSmallImage = playerInfo.chosenInstrument.ToLowerInvariant();
 		
 #pragma warning disable format
 		
