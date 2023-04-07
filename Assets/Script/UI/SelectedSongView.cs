@@ -93,21 +93,8 @@ namespace YARG.UI {
 			}
 
 			foreach (var diff in songInfo.partDifficulties) {
-				if (diff.Value == -1) {
-					continue;
-				}
-
 				var diffView = Instantiate(difficultyView, difficultyContainer);
-
-				// Get color
-				string color = "white";
-				if (diff.Value >= 6) {
-					color = "#fc605d";
-				}
-
-				// Set text
-				diffView.GetComponentInChildren<TextMeshProUGUI>().text =
-					$"<sprite name=\"{diff.Key}\" color={color}> <color={color}>{(diff.Value == -2 ? "?" : diff.Value)}</color>";
+				diffView.GetComponent<DifficultyView>().SetInfo(diff.Key, diff.Value);
 			}
 		}
 
