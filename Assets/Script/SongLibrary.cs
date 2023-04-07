@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 using Newtonsoft.Json;
@@ -24,7 +25,10 @@ namespace YARG {
 		/// <value>
 		/// The location of the song folder.
 		/// </value>
-		public static string[] SongFolders => SettingsManager.GetSettingValue<string[]>("songFolders");
+		public static string[] SongFolders {
+			get => SettingsManager.GetSettingValue<string[]>("songFolders");
+			set => SettingsManager.SetSettingValue("songFolders", value);
+		}
 
 		/// <value>
 		/// The location of the local song cache folder.
@@ -52,24 +56,22 @@ namespace YARG {
 		/// <summary>
 		/// Should be called before you access <see cref="SongsByHash"/>.
 		/// </summary>
-		public static bool FetchAllSongs() {
+		public static void FetchAllSongs() {
 			if (!Directory.Exists(CacheFolder)) {
 				Directory.CreateDirectory(CacheFolder);
 			}
 
 			SongsByHash = new();
-			songFoldersToLoad = new(SongFolders);
+			songFoldersToLoad = new(SongFolders.Where(i => !string.IsNullOrEmpty(i)));
 
-			while (songFoldersToLoad.Count > 0) {
-				if (!FetchSongs(songFoldersToLoad.Dequeue())) {
-					return false;
-				}
+			if (songFoldersToLoad.Count > 0) {
+				FetchSongs(songFoldersToLoad.Dequeue());
 			}
-
-			return true;
 		}
 
 		private static bool FetchSongs(string folderPath) {
+			Debug.Log($"Fetching songs from: `{folderPath}`.");
+
 			string folderHash = Utils.Hash(folderPath);
 			string cachePath = Path.Combine(CacheFolder, folderHash + ".json");
 

@@ -37,6 +37,8 @@ namespace YARG.UI {
 		[SerializeField]
 		private GameObject settingsContainer;
 		[SerializeField]
+		private GameObject songFolderManager;
+		[SerializeField]
 		private GameObject loadingScreen;
 		[SerializeField]
 		private Image progressBar;
@@ -117,9 +119,8 @@ namespace YARG.UI {
 
 			MainMenuBackground.Instance.cursorMoves = true;
 
-			menuContainer.SetActive(true);
-			settingsContainer.SetActive(false);
 			mainMenu.gameObject.SetActive(true);
+			ShowMenuContainer();
 		}
 
 		public void ShowEditPlayers() {
@@ -153,9 +154,28 @@ namespace YARG.UI {
 			credits.gameObject.SetActive(true);
 		}
 
-		public void ToggleSettingsMenu() {
-			menuContainer.SetActive(!menuContainer.activeSelf);
-			settingsContainer.SetActive(!settingsContainer.activeSelf);
+		public void HideAllMainMenu() {
+			menuContainer.SetActive(false);
+			settingsContainer.SetActive(false);
+			songFolderManager.SetActive(false);
+		}
+
+		public void ShowSettingsMenu() {
+			HideAllMainMenu();
+
+			settingsContainer.SetActive(true);
+		}
+
+		public void ShowMenuContainer() {
+			HideAllMainMenu();
+
+			menuContainer.SetActive(true);
+		}
+
+		public void ShowSongFolderManager() {
+			HideAllMainMenu();
+
+			songFolderManager.SetActive(true);
 		}
 
 		public void ShowCalibrationScene() {
@@ -166,13 +186,6 @@ namespace YARG.UI {
 
 		public void ShowHostServerScene() {
 			GameManager.Instance.LoadScene(SceneIndex.SERVER_HOST);
-		}
-
-		public void RefreshCache() {
-			if (Directory.Exists(SongLibrary.CacheFolder)) {
-				Directory.Delete(SongLibrary.CacheFolder, true);
-				RefreshSongLibrary();
-			}
 		}
 
 		public void AbortSongLoad() {

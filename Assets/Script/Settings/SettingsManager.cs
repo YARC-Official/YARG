@@ -77,10 +77,18 @@ namespace YARG.Settings {
 			var fields = type.GetFields();
 			foreach (var field in fields) {
 				var attributes = field.GetCustomAttributes(false);
+
+				bool hasLocation = false;
 				foreach (var attribute in attributes) {
 					if (attribute is SettingLocation location) {
 						settingsWithLocation.Add(location.order, field);
+						hasLocation = true;
+						break;
 					}
+				}
+
+				if (!hasLocation) {
+					settingsWithLocation.Add(-1, field);
 				}
 			}
 
@@ -150,17 +158,6 @@ namespace YARG.Settings {
 				settingsContainer = JsonConvert.DeserializeObject<SettingContainer>(File.ReadAllText(SettingsFile));
 			} catch (Exception) { }
 
-			// If failed or the settings don't exist, just create new settings
-			if (settingsContainer == null) {
-				settingsContainer = new SettingContainer();
-				ResetSongFolder();
-			}
-
-			// If the song folders is null, reset it
-			if (settingsContainer.songFolders == null) {
-				ResetSongFolder();
-			}
-
 			// Call change functions
 			foreach (var (key, func) in changeFuncs) {
 				var name = key;
@@ -175,24 +172,7 @@ namespace YARG.Settings {
 			}
 		}
 
-		private static void ResetSongFolder() {
-			// Get song folder location
-			var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-			var cloneHeroPath = Path.Combine(documentsPath, $"Clone Hero{Path.DirectorySeparatorChar}Songs");
-			var yargPath = Path.Combine(documentsPath, $"YARG{Path.DirectorySeparatorChar}Songs");
-
-			string songFolder = yargPath;
-			if (Directory.Exists(cloneHeroPath)) {
-				songFolder = cloneHeroPath;
-			} else if (!Directory.Exists(yargPath)) {
-				Directory.CreateDirectory(yargPath);
-			}
-
-			// Set the song folder location
-			settingsContainer.songFolders = new string[] { songFolder };
-		}
-
-		private static void SaveSettings() {
+		public static void SaveSettings() {
 			File.WriteAllText(SettingsFile, JsonConvert.SerializeObject(settingsContainer));
 		}
 
@@ -201,9 +181,8 @@ namespace YARG.Settings {
 		}
 
 		public static SettingInfo[] GetAllSettings() {
-			var settingInfos = new SettingInfo[settings.Count];
+			var settingInfos = new List<SettingInfo>();
 
-			int i = 0;
 			foreach (var key in settings.Keys) {
 				var name = (string) key;
 
@@ -231,12 +210,17 @@ namespace YARG.Settings {
 						}
 					}
 
-					settingInfos[i] = new SettingInfo {
+					// If the location is null, skip this setting
+					if (location == null) {
+						continue;
+					}
+
+					settingInfos.Add(new SettingInfo {
 						name = name,
 						location = location.location,
 						type = type.type,
 						spaceAbove = space != null
-					};
+					});
 				} else if (settings[name] is MethodInfo method) {
 					// If this is a button...
 
@@ -256,18 +240,16 @@ namespace YARG.Settings {
 						}
 					}
 
-					settingInfos[i] = new SettingInfo {
+					settingInfos.Add(new SettingInfo {
 						name = name,
 						location = location.location,
 						type = "Button",
 						spaceAbove = space != null
-					};
+					});
 				}
-
-				i++;
 			}
 
-			return settingInfos;
+			return settingInfos.ToArray();
 		}
 
 		public static object GetSettingValue(string name) {

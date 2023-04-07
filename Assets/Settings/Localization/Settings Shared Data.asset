@@ -16,7 +16,7 @@ MonoBehaviour:
   m_TableCollectionNameGuidString: 0c40e690d26fdff4a92f0b3813ac68a4
   m_Entries:
   - m_Id: 27465736192
-    m_Key: songFolders
+    m_Key: openSongFolderManager
     m_Metadata:
       m_Items: []
   - m_Id: 904117215232
