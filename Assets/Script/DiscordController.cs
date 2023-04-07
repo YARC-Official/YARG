@@ -58,6 +58,7 @@ public class DiscordController : MonoBehaviour {
 	private string defaultSmallImage = ""; // little overlay image on the bottom right of the Large image
 	[SerializeField]
 	private string defaultSmallText = ""; // Tooltip for smallImage
+
 	[Space]
 	[Header("Current Values")]
 	[SerializeField]
@@ -71,27 +72,27 @@ public class DiscordController : MonoBehaviour {
 	private string currentSmallImage; // little overlay on the bottom right of the small image
 	[SerializeField]
 	private string currentSmallText; // Tooltip for smallImage
-	
+
 	private string songName;
 	private string artistName;
-	//A bunch of time handling stuff
+
+	// A bunch of time handling stuff
 	private long gameStartTime; //start of YARG, doesn't stop
 	private long songStartTime; //time at song start
-	private long songEndTime; //time when the song should end (start+ length)
 	private float songLengthSeconds; //Length of song in seconds (not milliseconds)
 	private long songTimePlayed; //the amount of song played
 
-
 	private void Start() {
-
 		Instance = this;
 
 		// Listen to the changing of songs
 		Play.OnSongStart += OnSongStart;
 		Play.OnSongEnd += OnSongEnd;
+
 		// Listen to instrument selection
 		DifficultySelect.OnInstrumentSelection += OnInstrumentSelection;
-		//listen to pausing
+
+		// Listen to pausing
 		Play.OnPauseToggle += OnPauseToggle;
 
 		// Create the Discord instance
@@ -120,95 +121,72 @@ public class DiscordController : MonoBehaviour {
 		Play.OnPauseToggle -= OnPauseToggle;
 	}
 
-	private void OnPauseToggle(bool pause){
-		if (pause){
+	private void OnPauseToggle(bool pause) {
+		if (pause) {
 			songTimePlayed = DateTimeOffset.Now.ToUnixTimeMilliseconds() - songStartTime; //get duration of song played
-			SetActivity(currentSmallImage,currentSmallText, songName, "by " + artistName, 0,0);
-		}else{
-			SetActivity(currentSmallImage,currentSmallText, songName, "by " + artistName, DateTimeOffset.Now.ToUnixTimeMilliseconds(), DateTimeOffset.Now.AddSeconds(songLengthSeconds).ToUnixTimeMilliseconds() - songTimePlayed);
+			SetActivity(
+				currentSmallImage,
+				currentSmallText,
+				songName,
+				"by " + artistName,
+				0, 0
+			);
+		} else {
+			SetActivity(
+				currentSmallImage,
+				currentSmallText,
+				songName,
+				"by " + artistName,
+				DateTimeOffset.Now.ToUnixTimeMilliseconds(),
+				DateTimeOffset.Now.AddSeconds(songLengthSeconds).ToUnixTimeMilliseconds() - songTimePlayed
+			);
 		}
 	}
 
 	private void OnSongStart(SongInfo song) {
 		songStartTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 		songLengthSeconds = song.songLength;
-		songEndTime = DateTimeOffset.Now.AddSeconds(songLengthSeconds).ToUnixTimeMilliseconds();
 		songName = song.SongName;
 		artistName = song.artistName;
-		SetActivity(currentSmallImage,currentSmallText, songName, "by " + artistName, DateTimeOffset.Now.ToUnixTimeMilliseconds(), DateTimeOffset.Now.AddSeconds(songLengthSeconds).ToUnixTimeMilliseconds());
+		SetActivity(
+			currentSmallImage,
+			currentSmallText,
+			songName,
+			"by " + artistName,
+			DateTimeOffset.Now.ToUnixTimeMilliseconds(),
+			DateTimeOffset.Now.AddSeconds(songLengthSeconds).ToUnixTimeMilliseconds()
+		);
 	}
 
 	private void OnSongEnd(SongInfo song) {
 		SetDefaultActivity();
 	}
 
-	private void OnInstrumentSelection(YARG.PlayerManager.Player playerInfo){
-		switch (playerInfo.chosenInstrument)
-		{
-			case "vocals": //microphone, vocals
-				currentSmallImage = "mic";
-				currentSmallText = "belting one out";
-			break;
+	private void OnInstrumentSelection(YARG.PlayerManager.Player playerInfo) {
+		currentSmallImage = playerInfo.chosenInstrument;
+		
+#pragma warning disable format
+		
+		currentSmallText = playerInfo.chosenInstrument switch {
+			"vocals"     => "Belting one out",
+			"harmVocals" => "Belting one out, with friends!",
+			"drums"      => "Working the skins",
+			"realDrums"  => "Really working the skins",
+			"ghDrums"    => "Working the skins +1",
+			"guitar"     => "Making it talk",
+			"realGuitar" => "Really making it talk",
+			"bass"       => "In the groove",
+			"realBass"   => "Really in the groove",
+			"keys"       => "Tickling the ivory",
+			"realKeys"   => "Really tickling the ivory",
+			_            => ""
+		};
 
-			case "harmVocals": //Multiple microphones, Harmony
-				currentSmallImage = "harmony";
-				currentSmallText = "belting one out, with friends!";
-			break;         
-			
-			case "drums": //drums
-				currentSmallImage = "drums";
-				currentSmallText = "Working the skins";
-			break;
-
-			case "realDrums": // pro drums
-				currentSmallImage = "drums";
-				currentSmallText = "Really working the skins";
-			break;
-
-			case "ghDrums": // 5 lane drums
-				currentSmallImage = "drums";
-				currentSmallText = "Working the skins +1";
-			break;
-
-			case "guitar": //guitar
-				currentSmallImage = "guitar";
-				currentSmallText = "Making it talk";
-			break;
-
-			case "realGuitar": //pro guitar
-				currentSmallImage = "guitar";
-				currentSmallText = "Really making it talk";
-			break;
-
-			case "bass": //bass
-				currentSmallImage = "bass";
-				currentSmallText = "In the groove";
-			break;
-
-			case "realBass": //pro bass
-				currentSmallImage = "bass";
-				currentSmallText = "Really in the groove";
-			break;
-
-			case "keys": //Keyboard, piano
-				currentSmallImage = "keys";
-				currentSmallText = "tickling the ivory";
-			break;
-
-			case "realKeys": //pro keys
-				currentSmallImage = "keys";
-				currentSmallText = "Really tickling the ivory";
-			break;
-
-			default:
-				currentSmallImage = "";
-				currentSmallText = "";
-			break;
-		}
-	}			
+#pragma warning restore format
+	}
 
 	private void Update() {
-		if (discord == null ) {
+		if (discord == null) {
 			return;
 		}
 
@@ -254,21 +232,20 @@ public class DiscordController : MonoBehaviour {
 		};
 	}
 
-
-private void SetActivity(string _smallImage, string _smallText, string _details, string _state, long _startTimeStamp, long _endTimeStamp){
-	CurrentActivity = new Activity {
+	private void SetActivity(string smallImage, string smallText, string details, string state, long startTimeStamp, long endTimeStamp) {
+		CurrentActivity = new Activity {
 			Assets = {
 				LargeImage = defaultLargeImage, //the YARG logo and tooltip does not change, at this point in time.
 				LargeText = defaultLargeText,
-				SmallImage = _smallImage,
-				SmallText = _smallText,
+				SmallImage = smallImage,
+				SmallText = smallText,
 			},
-			Details = _details,
-			State = _state,
+			Details = details,
+			State = state,
 			Timestamps = {
-				Start = _startTimeStamp,
-				End = _endTimeStamp,
+				Start = startTimeStamp,
+				End = endTimeStamp,
 			}
 		};
-}
+	}
 }

@@ -33,7 +33,6 @@ namespace YARG.UI {
 		private int optionCount;
 		private int selected;
 
-		
 		public delegate void InstrumentSelectionAction(PlayerManager.Player playerInfo);
 		public static event InstrumentSelectionAction OnInstrumentSelection;
 
@@ -175,6 +174,7 @@ namespace YARG.UI {
 			} else if (state == State.DIFFICULTY) {
 				player.chosenDifficulty = (Difficulty) selected;
 				OnInstrumentSelection?.Invoke(player);
+
 				IncreasePlayerIndex();
 			} else if (state == State.VOCALS) {
 				if (selected == 2) {
