@@ -169,8 +169,8 @@ namespace YARG.UI {
 		}
 
 		public void RefreshCache() {
-			if (File.Exists(SongLibrary.CacheFile)) {
-				File.Delete(SongLibrary.CacheFile);
+			if (Directory.Exists(SongLibrary.CacheFolder)) {
+				Directory.Delete(SongLibrary.CacheFolder, true);
 				RefreshSongLibrary();
 			}
 		}
@@ -185,7 +185,7 @@ namespace YARG.UI {
 			SongLibrary.Reset();
 			ScoreManager.Reset();
 
-			bool loading = !SongLibrary.FetchSongs();
+			bool loading = !SongLibrary.FetchAllSongs();
 			loadingScreen.SetActive(loading);
 			ScoreManager.FetchScores();
 

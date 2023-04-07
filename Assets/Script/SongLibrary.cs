@@ -8,13 +8,15 @@ using UnityEngine;
 using YARG.Data;
 using YARG.Serialization;
 using YARG.Settings;
+using YARG.Util;
 
 namespace YARG {
 	public static class SongLibrary {
 		private const int CACHE_VERSION = 4;
 		private class SongCacheJson {
 			public int version = CACHE_VERSION;
-			public Dictionary<string, List<SongInfo>> songDirs;
+			public string folder = "";
+			public List<SongInfo> songs;
 		}
 
 		public static float loadPercent = 0f;
@@ -25,9 +27,9 @@ namespace YARG {
 		public static string[] SongFolders => SettingsManager.GetSettingValue<string[]>("songFolders");
 
 		/// <value>
-		/// The location of the local song cache.
+		/// The location of the local song cache folder.
 		/// </value>
-		public static string CacheFile => Path.Combine(GameManager.PersistentDataPath, "cache.json");
+		public static string CacheFolder => Path.Combine(GameManager.PersistentDataPath, "caches");
 
 		/// <value>
 		/// A list of all of the playable songs.<br/>
@@ -35,6 +37,7 @@ namespace YARG {
 		/// </value>
 		public static Dictionary<string, SongInfo>.ValueCollection Songs => SongsByHash.Values;
 
+		private static Queue<string> songFoldersToLoad = null;
 		private static List<SongInfo> songsTemp = null;
 
 		/// <value>
@@ -49,44 +52,62 @@ namespace YARG {
 		/// <summary>
 		/// Should be called before you access <see cref="SongsByHash"/>.
 		/// </summary>
-		public static bool FetchSongs() {
-			if (SongsByHash != null) {
-				return true;
+		public static bool FetchAllSongs() {
+			if (!Directory.Exists(CacheFolder)) {
+				Directory.CreateDirectory(CacheFolder);
 			}
 
-			if (File.Exists(CacheFile)) {
-				var success = ReadCache();
+			SongsByHash = new();
+			songFoldersToLoad = new(SongFolders);
+
+			while (songFoldersToLoad.Count > 0) {
+				if (!FetchSongs(songFoldersToLoad.Dequeue())) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		private static bool FetchSongs(string folderPath) {
+			string folderHash = Utils.Hash(folderPath);
+			string cachePath = Path.Combine(CacheFolder, folderHash + ".json");
+
+			if (File.Exists(cachePath)) {
+				var success = ReadCache(cachePath);
 				if (success) {
 					return true;
 				}
 			}
 
 			ThreadPool.QueueUserWorkItem(_ => {
-				songsTemp = new();
-				SongsByHash = new();
+				try {
+					songsTemp = new();
 
-				// Find songs
-				loadPercent = 0f;
-				foreach (var songFolder in SongFolders) {
-					if (songFolder == null) {
-						continue;
+					// Find songs
+					loadPercent = 0f;
+					CreateSongInfoFromFiles(folderPath, new(folderPath));
+
+					// Read song.ini and hashes
+					loadPercent = 0.1f;
+					ReadSongIni();
+					GetSongHashes();
+
+					// Populate SongsByHash, and create cache
+					loadPercent = 0.9f;
+					PopulateSongByHashes();
+					CreateCache(folderPath, cachePath);
+
+					// Load the next folder if there is one
+					if (songFoldersToLoad.Count > 0) {
+						FetchSongs(songFoldersToLoad.Dequeue());
+					} else {
+						// Done!
+						loadPercent = 1f;
 					}
-
-					CreateSongInfoFromFiles(songFolder, new(songFolder));
+				} catch (Exception e) {
+					Debug.LogException(e);
 				}
-
-				// Read song.ini and hashes
-				loadPercent = 0.1f;
-				ReadSongIni();
-				GetSongHashes();
-
-				// Populate SongsByHash, and create cache
-				loadPercent = 0.9f;
-				PopulateSongByHashes();
-				CreateCache();
-
-				// Done!
-				loadPercent = 1f;
 			});
 			return false;
 		}
@@ -189,31 +210,32 @@ namespace YARG {
 		/// Creates a cache from <see cref="Songs"/> so we don't have to read all of the <c>song.ini</c> again.<br/>
 		/// <see cref="Songs"/> is expected to be populated and filled with <see cref="ReadSongIni"/>.
 		/// </summary>
-		private static void CreateCache() {
+		private static void CreateCache(string root, string cachePath) {
 			// Conglomerate songs by root folder
-			var songCache = new Dictionary<string, List<SongInfo>>();
+			var songCache = new List<SongInfo>();
 			foreach (var song in Songs) {
-				if (!songCache.ContainsKey(song.rootFolder)) {
-					songCache[song.rootFolder] = new();
+				if (song.rootFolder != root) {
+					continue;
 				}
 
-				songCache[song.rootFolder].Add(song);
+				songCache.Add(song);
 			}
 
 			var jsonObj = new SongCacheJson {
-				songDirs = songCache
+				folder = root,
+				songs = songCache
 			};
 
 			var json = JsonConvert.SerializeObject(jsonObj);
-			File.WriteAllText(CacheFile, json);
+			File.WriteAllText(cachePath, json);
 		}
 
 		/// <summary>
 		/// Reads the song cache so we don't need to read of a the <c>song.ini</c> files.<br/>
 		/// <see cref="CacheFile"/> should exist. If not, call <see cref="CreateCache"/>.
 		/// </summary>
-		private static bool ReadCache() {
-			string json = File.ReadAllText(CacheFile);
+		private static bool ReadCache(string cacheFile) {
+			string json = File.ReadAllText(cacheFile);
 
 			try {
 				var jsonObj = JsonConvert.DeserializeObject<SongCacheJson>(json);
@@ -222,18 +244,15 @@ namespace YARG {
 				}
 
 				// Combine all of the songs into one list
-				SongsByHash = new();
-				foreach (var (root, songList) in jsonObj.songDirs) {
-					foreach (var song in songList) {
-						song.rootFolder = root;
+				foreach (var song in jsonObj.songs) {
+					song.rootFolder = jsonObj.folder;
 
-						if (SongsByHash.ContainsKey(song.hash)) {
-							Debug.LogError($"Duplicate hash `{song.hash}` for songs `{SongsByHash[song.hash].folder.Name}` and `{song.folder.Name}`!");
-							continue;
-						}
-
-						SongsByHash.Add(song.hash, song);
+					if (SongsByHash.ContainsKey(song.hash)) {
+						Debug.LogWarning($"Duplicate hash `{song.hash}` for songs `{SongsByHash[song.hash].folder.Name}` and `{song.folder.Name}`!");
+						continue;
 					}
+
+					SongsByHash.Add(song.hash, song);
 				}
 			} catch (JsonException) {
 				return false;
