@@ -34,6 +34,9 @@ namespace YARG.PlayMode {
 		public static event SongStateChangeAction OnSongStart;
 		public static event SongStateChangeAction OnSongEnd;
 
+		public delegate void PauseStateChangeAction(bool pause);
+		public static event PauseStateChangeAction OnPauseToggle;
+
 		[SerializeField]
 		private GameObject soundAudioPrefab;
 
@@ -73,6 +76,7 @@ namespace YARG.PlayMode {
 					foreach (var (_, source) in audioSources) {
 						source.Pause();
 					}
+
 				} else {
 					Time.timeScale = 1f;
 
@@ -81,6 +85,7 @@ namespace YARG.PlayMode {
 						source.UnPause();
 					}
 				}
+				OnPauseToggle(_paused);
 			}
 		}
 
