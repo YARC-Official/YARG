@@ -1,14 +1,32 @@
 using SFB;
 using UnityEngine;
+using UnityEditor;
+using UnityEngine.SceneManagement;
 using YARG.Serialization;
 using YARG.UI;
 
 namespace YARG.Settings {
 	public static partial class SettingsManager {
 		private class SettingContainer {
+			[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+			static void OnBeforeSceneLoad() {
+        		SceneManager.sceneLoaded += OnSceneLoaded;
+    		}
+
+			static void OnSceneLoaded(Scene scene, LoadSceneMode mode) {
+        		if (scene.name == "MenuScene") {
+            		refreshCacheEnabled = true;
+        		} else {
+            		refreshCacheEnabled = false;
+        		}
+    		}
+
+			private static bool refreshCacheEnabled = true;
+			private static bool _aUseAudioTime;
+
 			[SettingLocation("general", 1)]
 			[SettingType("Folder")]
-			public string songFolder = null;
+			public string songFolder = null; 
 
 			[SettingInteractableFunc("songFolder")]
 			public bool SongFolderInteractable() {
@@ -30,15 +48,17 @@ namespace YARG.Settings {
 
 			[SettingInteractableFunc("refreshCache")]
 			public bool RefreshCacheInteractable() {
-				return GameManager.client == null;
+				return GameManager.client == null && refreshCacheEnabled;
 			}
 
 			[SettingLocation("general", 3)]
 			[SettingButton("exportOuvertSongs")]
 			public void ExportOuvertSongs() {
-				StandaloneFileBrowser.SaveFilePanelAsync("Save Song List", null, "songs", "json", path => {
-					OuvertExport.ExportOuvertSongsTo(path);
-				});
+				if (SceneManager.GetActiveScene().name == "MenuScene") {
+					StandaloneFileBrowser.SaveFilePanelAsync("Save Song List", null, "songs", "json", path => {
+						OuvertExport.ExportOuvertSongsTo(path);
+					});
+				}
 			}
 
 			[SettingSpace]
@@ -197,7 +217,7 @@ namespace YARG.Settings {
 
 			[SettingInteractableFunc("fileServerIp")]
 			public bool FileServerIpInteractable() {
-				return GameManager.client == null;
+				return GameManager.client == null && SceneManager.GetActiveScene().name == "MenuScene";
 			}
 
 			[SettingLocation("general", 24)]
@@ -209,13 +229,16 @@ namespace YARG.Settings {
 
 			[SettingInteractableFunc("connectToFileServer")]
 			public bool ConnectToFileServerInteractable() {
-				return GameManager.client == null;
+				return GameManager.client == null && SceneManager.GetActiveScene().name == "MenuScene";
 			}
 
 			[SettingLocation("general", 25)]
 			[SettingButton("hostFileServer")]
 			public void HostFileServer() {
-				GameManager.Instance.LoadScene(SceneIndex.SERVER_HOST);
+				if (SceneManager.GetActiveScene().name == "MenuScene")
+				{
+					GameManager.Instance.LoadScene(SceneIndex.SERVER_HOST);
+				}
 			}
 		}
 	}
