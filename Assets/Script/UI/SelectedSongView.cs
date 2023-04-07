@@ -31,6 +31,8 @@ namespace YARG.UI {
 		private Transform difficultyContainer;
 		[SerializeField]
 		private GameObject difficultyView;
+		[SerializeField]
+		private GameObject difficultyDivider;
 
 		private float timeSinceUpdate;
 		private bool albumCoverLoaded;
@@ -92,9 +94,55 @@ namespace YARG.UI {
 				Destroy(t.gameObject);
 			}
 
-			foreach (var diff in songInfo.partDifficulties) {
+			string[] difficultyOrder = {
+				"guitar",
+				"bass",
+				"drums",
+				"keys",
+				"vocals",
+				null,
+				"realGuitar",
+				"realBass",
+				"realDrums",
+				"realKeys",
+				"harmVocals",
+				null,
+				"ghDrums"
+			};
+
+			foreach (var instrument in difficultyOrder) {
+				if (instrument == null) {
+					// Divider
+					Instantiate(difficultyDivider, difficultyContainer);
+
+					continue;
+				}
+
+				// GH Drums == Drums difficulty
+				var searchInstrument = instrument;
+				if (instrument == "ghDrums") {
+					searchInstrument = "drums";
+				}
+
+				if (!songInfo.partDifficulties.ContainsKey(searchInstrument)) {
+					continue;
+				}
+
+				int difficulty = songInfo.partDifficulties[searchInstrument];
+
+				// If not five-lane mode, hide GH Drums difficulty 
+				if (instrument == "ghDrums" && songInfo.drumType != SongInfo.DrumType.FIVE_LANE) {
+					difficulty = -1;
+				}
+
+				// If not four-lane mode, hide drums difficulty
+				if (instrument == "drums" && songInfo.drumType == SongInfo.DrumType.FIVE_LANE) {
+					difficulty = -1;
+				}
+
+				// Difficulty
 				var diffView = Instantiate(difficultyView, difficultyContainer);
-				diffView.GetComponent<DifficultyView>().SetInfo(diff.Key, diff.Value);
+				diffView.GetComponent<DifficultyView>().SetInfo(instrument, difficulty);
 			}
 		}
 

@@ -3720,7 +3720,7 @@ MonoBehaviour:
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 3
-  m_Spacing: 4
+  m_Spacing: 6
   m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 1
   m_ChildControlWidth: 0
@@ -4064,7 +4064,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: -243.47864}
+  m_SizeDelta: {x: 0, y: -319.99997}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &396272155
 MonoBehaviour:
@@ -22145,6 +22145,8 @@ MonoBehaviour:
   albumCoverAlt: {fileID: 1876917083}
   difficultyContainer: {fileID: 332568989}
   difficultyView: {fileID: 397774209812536635, guid: 53438a07c6e5ec5409d5bde8514761ca,
+    type: 3}
+  difficultyDivider: {fileID: 7614877938062913413, guid: f253ee9cf1cec7e42b1f6943bed98d27,
     type: 3}
 --- !u!1 &2051694766
 GameObject:
