@@ -163,7 +163,7 @@ public class DiscordController : MonoBehaviour {
 	}
 
 	private void OnInstrumentSelection(YARG.PlayerManager.Player playerInfo) {
-		currentSmallImage = playerInfo.chosenInstrument;
+		currentSmallImage = playerInfo.chosenInstrument.ToLowerInvariant();
 		
 #pragma warning disable format
 		
