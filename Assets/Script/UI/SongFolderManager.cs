@@ -34,7 +34,7 @@ namespace YARG.UI {
 		}
 
 		private void UpdateInfo() {
-			infoText.text = $"{SongLibrary.Songs.Count} song(s) loaded, {SongLibrary.SongFolders.Length} folder(s).";
+			infoText.text = $"{SongLibrary.Songs.Count:N0} song(s) loaded, {SongLibrary.SongFolders.Length:N0} folder(s).";
 
 			// Clear folder list
 			foreach (Transform child in folderList) {

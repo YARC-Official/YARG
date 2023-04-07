@@ -198,8 +198,8 @@ namespace YARG.UI {
 			SongLibrary.Reset();
 			ScoreManager.Reset();
 
-			bool loading = !SongLibrary.FetchAllSongs();
-			loadingScreen.SetActive(loading);
+			SongLibrary.FetchAllSongs();
+			loadingScreen.SetActive(true);
 			ScoreManager.FetchScores();
 
 			SongSelect.refreshFlag = true;

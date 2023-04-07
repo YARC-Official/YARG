@@ -64,54 +64,50 @@ namespace YARG {
 			SongsByHash = new();
 			songFoldersToLoad = new(SongFolders.Where(i => !string.IsNullOrEmpty(i)));
 
-			if (songFoldersToLoad.Count > 0) {
-				FetchSongs(songFoldersToLoad.Dequeue());
-			}
-		}
-
-		private static bool FetchSongs(string folderPath) {
-			Debug.Log($"Fetching songs from: `{folderPath}`.");
-
-			string folderHash = Utils.Hash(folderPath);
-			string cachePath = Path.Combine(CacheFolder, folderHash + ".json");
-
-			if (File.Exists(cachePath)) {
-				var success = ReadCache(cachePath);
-				if (success) {
-					return true;
-				}
+			if (songFoldersToLoad.Count <= 0) {
+				loadPercent = 1f;
+				return;
 			}
 
 			ThreadPool.QueueUserWorkItem(_ => {
-				try {
-					songsTemp = new();
+				while (songFoldersToLoad.Count > 0) {
+					string folderPath = songFoldersToLoad.Dequeue();
 
-					// Find songs
-					loadPercent = 0f;
-					CreateSongInfoFromFiles(folderPath, new(folderPath));
+					Debug.Log($"Fetching songs from: `{folderPath}`.");
 
-					// Read song.ini and hashes
-					loadPercent = 0.1f;
-					ReadSongIni();
-					GetSongHashes();
+					string folderHash = Utils.Hash(folderPath);
+					string cachePath = Path.Combine(CacheFolder, folderHash + ".json");
 
-					// Populate SongsByHash, and create cache
-					loadPercent = 0.9f;
-					PopulateSongByHashes();
-					CreateCache(folderPath, cachePath);
-
-					// Load the next folder if there is one
-					if (songFoldersToLoad.Count > 0) {
-						FetchSongs(songFoldersToLoad.Dequeue());
-					} else {
-						// Done!
-						loadPercent = 1f;
+					if (File.Exists(cachePath)) {
+						var success = ReadCache(cachePath);
+						if (success) {
+							continue;
+						}
 					}
-				} catch (Exception e) {
-					Debug.LogException(e);
+
+					try {
+						songsTemp = new();
+
+						// Find songs
+						loadPercent = 0f;
+						CreateSongInfoFromFiles(folderPath, new(folderPath));
+
+						// Read song.ini and hashes
+						loadPercent = 0.1f;
+						ReadSongIni();
+						GetSongHashes();
+
+						// Populate SongsByHash, and create cache
+						loadPercent = 0.9f;
+						PopulateSongByHashes();
+						CreateCache(folderPath, cachePath);
+					} catch (Exception e) {
+						Debug.LogException(e);
+					}
 				}
+
+				loadPercent = 1f;
 			});
-			return false;
 		}
 
 		/// <summary>
