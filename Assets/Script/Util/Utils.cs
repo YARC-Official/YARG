@@ -1,8 +1,5 @@
 using System;
 using System.IO;
-using System.IO.Compression;
-using System.Net.Sockets;
-using System.Threading;
 using UnityEngine;
 
 namespace YARG.Util {
@@ -172,57 +169,21 @@ namespace YARG.Util {
 		}
 
 		/// <summary>
-		/// Read a file from a <see cref="NetworkStream"/>.
-		/// </summary>
-		public static void ReadFile(NetworkStream stream, FileInfo output) {
-			const int BUF_SIZE = 81920;
-
-			// Wait until data is available
-			while (!stream.DataAvailable) {
-				Thread.Sleep(100);
-			}
-
-			// Get file size
-			var buffer = new byte[sizeof(long)];
-			stream.Read(buffer, 0, sizeof(long));
-			long size = BitConverter.ToInt64(buffer);
-
-			// If the size is zero, the file did not exist on server
-			if (size <= 0) {
-				return;
-			}
-
-			// Copy data to disk
-			// We can't use CopyTo on a infinite stream (like NetworkStream)
-			long totalRead = 0;
-			var fileBuf = new byte[BUF_SIZE];
-			output.Delete();
-			using var fs = output.OpenWrite();
-			while (totalRead < size) {
-				int bytesRead = stream.Read(fileBuf, 0, BUF_SIZE);
-				fs.Write(fileBuf, 0, bytesRead);
-				totalRead += bytesRead;
-			}
-		}
-
-		/// <summary>
-		/// Create a zip file from the specified <paramref name="files"/>.
-		/// </summary>
-		public static void CreateZipFromFiles(string outputZip, params string[] files) {
-			using ZipArchive archive = ZipFile.Open(outputZip, ZipArchiveMode.Create);
-
-			foreach (var path in files) {
-				var file = new FileInfo(path);
-				archive.CreateEntryFromFile(file.FullName, file.Name);
-			}
-		}
-
-		/// <summary>
 		/// Checks if the path <paramref name="a"/> is equal to the path <paramref name="b"/>.<br/>
-		/// Paths are NOT case sensitive.
+		/// Platform specific case sensitivity is taken into account.
 		/// </summary>
-		public static bool ArePathsEqual(string a, string b) {
-			return a.ToUpperInvariant() == b.ToUpperInvariant();
+		public static bool PathsEqual(string a, string b) {
+#if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX
+			
+			// Linux is case sensitive
+			return Path.GetFullPath(a).Equals(Path.GetFullPath(b), StringComparison.CurrentCulture);
+			
+#else
+
+			// Windows and OSX are not case sensitive
+			return Path.GetFullPath(a).Equals(Path.GetFullPath(b), StringComparison.CurrentCultureIgnoreCase);
+
+#endif
 		}
 
 		/// <param name="transform">The <see cref="RectTransform"/> to convert to screen space.</param>

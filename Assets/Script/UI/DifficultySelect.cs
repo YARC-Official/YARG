@@ -62,19 +62,9 @@ namespace YARG.UI {
 			} else {
 				UpdateInstrument();
 			}
-
-			// Bind singal event
-			if (GameManager.client != null) {
-				GameManager.client.SignalEvent += SignalRecieved;
-			}
 		}
 
 		private void OnDisable() {
-			// Unbind events
-			if (GameManager.client != null) {
-				GameManager.client.SignalEvent -= SignalRecieved;
-			}
-
 			// Unbind input events
 			foreach (var player in PlayerManager.players) {
 				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
@@ -89,17 +79,6 @@ namespace YARG.UI {
 		}
 
 		private void Update() {
-			GameManager.client?.CheckForSignals();
-
-			// Scroll wheel
-
-			var scroll = Mouse.current.scroll.ReadValue().y;
-			if (scroll > 0f) {
-				MoveOption(-1);
-			} else if (scroll < 0f) {
-				MoveOption(1);
-			}
-
 			// Update player navigation
 			foreach (var player in PlayerManager.players) {
 				player.inputStrategy.UpdateNavigationMode();
@@ -218,26 +197,10 @@ namespace YARG.UI {
 				}
 
 				// Play song (or download then play)
-				if (GameManager.client != null) {
-					GameManager.client.RequestDownload(MainMenu.Instance.chosenSong.folder.FullName);
-				} else {
-					Play.song = MainMenu.Instance.chosenSong;
-					GameManager.Instance.LoadScene(SceneIndex.PLAY);
-				}
+				Play.song = MainMenu.Instance.chosenSong;
+				GameManager.Instance.LoadScene(SceneIndex.PLAY);
 			} else {
 				UpdateInstrument();
-			}
-		}
-
-		private void SignalRecieved(string signal) {
-			if (signal.StartsWith("DownloadDone,")) {
-				Play.song = MainMenu.Instance.chosenSong.Duplicate();
-
-				// Replace song folder
-				Play.song.realFolderRemote = Play.song.folder;
-				Play.song.folder = new(Path.Combine(GameManager.client.remotePath, signal[13..]));
-
-				GameManager.Instance.LoadScene(SceneIndex.PLAY);
 			}
 		}
 

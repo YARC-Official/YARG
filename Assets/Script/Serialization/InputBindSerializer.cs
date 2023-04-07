@@ -19,7 +19,7 @@ namespace YARG.Serialization {
 		static InputBindSerializer() {
 			// Load from JSON
 			try {
-				var json = File.ReadAllText(Path.Combine(Application.persistentDataPath, "inputBinds.json"));
+				var json = File.ReadAllText(Path.Combine(GameManager.PersistentDataPath, "inputBinds.json"));
 				inputBindSaves = JsonConvert.DeserializeObject<List<InputBindSave>>(json);
 			} catch (Exception) {
 				Debug.LogWarning("Failed to load input binds from JSON. Ignoring.");
@@ -101,7 +101,7 @@ namespace YARG.Serialization {
 
 		private static void SaveToJsonFile() {
 			var json = JsonConvert.SerializeObject(inputBindSaves);
-			File.WriteAllText(Path.Combine(Application.persistentDataPath, "inputBinds.json"), json);
+			File.WriteAllText(Path.Combine(GameManager.PersistentDataPath, "inputBinds.json"), json);
 		}
 	}
 }

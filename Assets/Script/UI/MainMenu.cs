@@ -37,6 +37,8 @@ namespace YARG.UI {
 		[SerializeField]
 		private GameObject settingsContainer;
 		[SerializeField]
+		private GameObject songFolderManager;
+		[SerializeField]
 		private GameObject loadingScreen;
 		[SerializeField]
 		private Image progressBar;
@@ -78,6 +80,7 @@ namespace YARG.UI {
 				// Finish loading
 				if (SongLibrary.loadPercent >= 1f) {
 					loadingScreen.SetActive(false);
+					SongLibrary.loadPercent = 0f;
 				}
 
 				return;
@@ -116,9 +119,8 @@ namespace YARG.UI {
 
 			MainMenuBackground.Instance.cursorMoves = true;
 
-			menuContainer.SetActive(true);
-			settingsContainer.SetActive(false);
 			mainMenu.gameObject.SetActive(true);
+			ShowMenuContainer();
 		}
 
 		public void ShowEditPlayers() {
@@ -152,9 +154,28 @@ namespace YARG.UI {
 			credits.gameObject.SetActive(true);
 		}
 
-		public void ToggleSettingsMenu() {
-			menuContainer.SetActive(!menuContainer.activeSelf);
-			settingsContainer.SetActive(!settingsContainer.activeSelf);
+		public void HideAllMainMenu() {
+			menuContainer.SetActive(false);
+			settingsContainer.SetActive(false);
+			songFolderManager.SetActive(false);
+		}
+
+		public void ShowSettingsMenu() {
+			HideAllMainMenu();
+
+			settingsContainer.SetActive(true);
+		}
+
+		public void ShowMenuContainer() {
+			HideAllMainMenu();
+
+			menuContainer.SetActive(true);
+		}
+
+		public void ShowSongFolderManager() {
+			HideAllMainMenu();
+
+			songFolderManager.SetActive(true);
 		}
 
 		public void ShowCalibrationScene() {
@@ -167,35 +188,33 @@ namespace YARG.UI {
 			GameManager.Instance.LoadScene(SceneIndex.SERVER_HOST);
 		}
 
-		public void RefreshCache() {
-			if (File.Exists(SongLibrary.CacheFile)) {
-				File.Delete(SongLibrary.CacheFile);
-				RefreshSongLibrary();
-			}
-		}
-
 		public void AbortSongLoad() {
-			SongLibrary.Reset();
-			ScoreManager.Reset();
+			SettingsManager.DeleteSettingsFile();
 
-			loadingScreen.SetActive(false);
-
-			SettingsManager.SetSettingValue("songFolder", null);
+			Quit();
 		}
 
 		public void RefreshSongLibrary() {
 			SongLibrary.Reset();
 			ScoreManager.Reset();
 
-			bool loading = !SongLibrary.FetchSongs();
-			loadingScreen.SetActive(loading);
+			SongLibrary.FetchAllSongs();
+			loadingScreen.SetActive(true);
 			ScoreManager.FetchScores();
 
 			SongSelect.refreshFlag = true;
 		}
 
 		public void Quit() {
+#if UNITY_EDITOR
+
+			UnityEditor.EditorApplication.isPlaying = false;
+
+#else
+
 			Application.Quit();
+
+#endif
 		}
 	}
 }

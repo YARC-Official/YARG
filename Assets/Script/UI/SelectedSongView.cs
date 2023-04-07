@@ -39,20 +39,6 @@ namespace YARG.UI {
 
 		private SongInfo songInfo;
 
-		private void OnEnable() {
-			// Bind events
-			if (GameManager.client != null) {
-				GameManager.client.SignalEvent += SignalRecieved;
-			}
-		}
-
-		private void OnDisable() {
-			// Unbind events
-			if (GameManager.client != null) {
-				GameManager.client.SignalEvent -= SignalRecieved;
-			}
-		}
-
 		public void UpdateSongView(SongInfo songInfo) {
 			// Force stop album cover loading if new song
 			StopAllCoroutines();
@@ -147,11 +133,9 @@ namespace YARG.UI {
 		}
 
 		private void Update() {
-			// Wait a little bit to load the album cover 
-			// to prevent lag when scrolling through.
+			// Wait a little bit to load the album cover to prevent lag when scrolling through.
 			if (songInfo != null && !albumCoverLoaded) {
-				float waitTime = GameManager.client != null ? 0.5f : 0.06f;
-				if (timeSinceUpdate >= waitTime) {
+				if (timeSinceUpdate >= 0.06f) {
 					albumCoverLoaded = true;
 					LoadAlbumCover();
 				} else {
@@ -161,34 +145,18 @@ namespace YARG.UI {
 		}
 
 		private void LoadAlbumCover() {
-			// If remote, request album cover
-			if (GameManager.client != null) {
-				GameManager.client.RequestAlbumCover(songInfo.folder.FullName);
-			} else {
-				string pngPath = Path.Combine(songInfo.folder.FullName, "album.png");
-				string jpgPath = Path.Combine(songInfo.folder.FullName, "album.jpg");
+			string[] albumPaths = {
+				"album.png",
+				"album.jpg",
+				"album.jpeg",
+			};
 
-				// Load PNG or JPG
-				if (File.Exists(pngPath)) {
-					StartCoroutine(LoadAlbumCoverCoroutine(pngPath));
-				} else if (File.Exists(jpgPath)) {
-					StartCoroutine(LoadAlbumCoverCoroutine(jpgPath));
+			foreach (string path in albumPaths) {
+				string fullPath = Path.Combine(songInfo.folder.FullName, path);
+				if (File.Exists(fullPath)) {
+					StartCoroutine(LoadAlbumCoverCoroutine(fullPath));
+					break;
 				}
-			}
-		}
-
-		private void SignalRecieved(string signal) {
-			if (signal.StartsWith("AlbumCoverDone,")) {
-				string hash = signal[15..];
-
-				// Skip if the hashes are not equal.
-				// That means that this request was for a different song.
-				if (hash != Utils.Hash(songInfo.folder.FullName)) {
-					return;
-				}
-
-				string path = Path.Combine(GameManager.client.AlbumCoversPath, hash);
-				StartCoroutine(LoadAlbumCoverCoroutine(path));
 			}
 		}
 
