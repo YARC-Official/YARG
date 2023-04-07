@@ -6,6 +6,7 @@ using UnityEngine;
 using YARG.Data;
 using Mackiloha;
 using Mackiloha.IO;
+using Mackiloha.App;
 using DtxCS;
 using DtxCS.DataTypes;
 
@@ -23,9 +24,14 @@ namespace YARG.Serialization {
 				string dtaFile = asdf.ToString();
 				string songPath = "songs/test/test";
 				string songPathGen = "songs/" + songPath.Split("/")[1] + "/gen/" + songPath.Split("/")[2];
-				var bitmap = serializer.ReadFromFile<HMXBitmap>(Path.Combine(Path.Combine(srcfolder.FullName, songPathGen), "_keep.png_xbox"));
-				string tmpFilePath = GetTempFileName() + ".png";
-           		bitmap.SaveAs(new SystemInfo(){25, Platform.X360, true}, tmpFilePath);
+				Mackiloha.IO.SystemInfo sysInfo = new Mackiloha.IO.SystemInfo {
+					Version = 25, 
+					Platform = Platform.X360, 
+					BigEndian = true
+				};
+				var bitmap = new MiloSerializer(sysInfo).ReadFromFile<HMXBitmap>(Path.Combine(Path.Combine(srcfolder.FullName, songPathGen), "_keep.png_xbox"));
+				string tmpFilePath = Path.GetTempFileName() + ".png";
+           		bitmap.SaveAs(sysInfo, tmpFilePath);
 				return songList;
 			} catch (Exception e) {
 				Debug.LogError($"Failed to parse songs.dta for `{srcfolder.FullName}`.");
