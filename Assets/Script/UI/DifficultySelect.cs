@@ -33,6 +33,9 @@ namespace YARG.UI {
 		private int optionCount;
 		private int selected;
 
+		public delegate void InstrumentSelectionAction(PlayerManager.Player playerInfo);
+		public static event InstrumentSelectionAction OnInstrumentSelection;
+
 		private void Start() {
 			foreach (var option in options) {
 				option.MouseHoverEvent += HoverOption;
@@ -121,7 +124,7 @@ namespace YARG.UI {
 			selected = Array.IndexOf(options, option);
 
 			// Slighty different than with the keyboard.
-			// Don't need to bound the top. The bottom should stop and not roll over.
+			// Don't need to bound the top. The bottom should stop and not roll over or go to an empty option.
 			if (selected >= optionCount) {
 				selected = optionCount - 1;
 			}
@@ -136,14 +139,12 @@ namespace YARG.UI {
 
 		public void Next() {
 			var player = PlayerManager.players[playerIndex];
-
 			if (state == State.INSTRUMENT) {
 				if (selected >= instruments.Length) {
 					player.chosenInstrument = null;
 					IncreasePlayerIndex();
 				} else {
 					player.chosenInstrument = instruments[selected];
-
 					bool showExpertPlus = player.chosenInstrument == "drums"
 						|| player.chosenInstrument == "realDrums"
 						|| player.chosenInstrument == "ghDrums";
@@ -151,6 +152,8 @@ namespace YARG.UI {
 				}
 			} else if (state == State.DIFFICULTY) {
 				player.chosenDifficulty = (Difficulty) selected;
+				OnInstrumentSelection?.Invoke(player);
+
 				IncreasePlayerIndex();
 			} else if (state == State.VOCALS) {
 				if (selected == 2) {
@@ -172,6 +175,7 @@ namespace YARG.UI {
 				}
 
 				playerIndex = -1;
+				OnInstrumentSelection?.Invoke(player);
 				IncreasePlayerIndex();
 			}
 		}

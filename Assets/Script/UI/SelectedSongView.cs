@@ -31,6 +31,8 @@ namespace YARG.UI {
 		private Transform difficultyContainer;
 		[SerializeField]
 		private GameObject difficultyView;
+		[SerializeField]
+		private GameObject difficultyDivider;
 
 		private float timeSinceUpdate;
 		private bool albumCoverLoaded;
@@ -78,22 +80,55 @@ namespace YARG.UI {
 				Destroy(t.gameObject);
 			}
 
-			foreach (var diff in songInfo.partDifficulties) {
-				if (diff.Value == -1) {
+			string[] difficultyOrder = {
+				"guitar",
+				"bass",
+				"drums",
+				"keys",
+				"vocals",
+				null,
+				"realGuitar",
+				"realBass",
+				"realDrums",
+				"realKeys",
+				"harmVocals",
+				null,
+				"ghDrums"
+			};
+
+			foreach (var instrument in difficultyOrder) {
+				if (instrument == null) {
+					// Divider
+					Instantiate(difficultyDivider, difficultyContainer);
+
 					continue;
 				}
 
-				var diffView = Instantiate(difficultyView, difficultyContainer);
-
-				// Get color
-				string color = "white";
-				if (diff.Value >= 6) {
-					color = "#fc605d";
+				// GH Drums == Drums difficulty
+				var searchInstrument = instrument;
+				if (instrument == "ghDrums") {
+					searchInstrument = "drums";
 				}
 
-				// Set text
-				diffView.GetComponentInChildren<TextMeshProUGUI>().text =
-					$"<sprite name=\"{diff.Key}\" color={color}> <color={color}>{(diff.Value == -2 ? "?" : diff.Value)}</color>";
+				if (!songInfo.partDifficulties.ContainsKey(searchInstrument)) {
+					continue;
+				}
+
+				int difficulty = songInfo.partDifficulties[searchInstrument];
+
+				// If not five-lane mode, hide GH Drums difficulty 
+				if (instrument == "ghDrums" && songInfo.drumType != SongInfo.DrumType.FIVE_LANE) {
+					difficulty = -1;
+				}
+
+				// If not four-lane mode, hide drums difficulty
+				if (instrument == "drums" && songInfo.drumType == SongInfo.DrumType.FIVE_LANE) {
+					difficulty = -1;
+				}
+
+				// Difficulty
+				var diffView = Instantiate(difficultyView, difficultyContainer);
+				diffView.GetComponent<DifficultyView>().SetInfo(instrument, difficulty);
 			}
 		}
 

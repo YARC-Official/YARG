@@ -161,18 +161,17 @@ namespace YARG.PlayMode {
 				hasMic = true;
 
 				// Spawn needle
-				var needle = Instantiate(needlePrefab, transform);
+				var needle = Instantiate(needlePrefab, transform).GetComponent<VocalNeedle>();
 				needle.transform.localPosition = needlePrefab.transform.position;
 
 				// Create player info
-				var groups = needle.GetComponentsInChildren<ParticleGroup>();
 				var playerInfo = new PlayerInfo {
 					player = player,
 
 					needle = needle.transform,
-					needleModel = needle.GetComponentInChildren<MeshRenderer>().gameObject,
-					nonActiveParticles = groups[0],
-					activeParticles = groups[1]
+					needleModel = needle.meshRenderer.gameObject,
+					nonActiveParticles = needle.nonActiveParticles,
+					activeParticles = needle.activeParticles
 				};
 
 				// Bind events
@@ -231,7 +230,7 @@ namespace YARG.PlayMode {
 			GameUI.Instance.SetVocalTrackImage(renderTexture);
 
 			// Bind events
-			Play.Instance.BeatEvent += BeatAction;
+			Play.BeatEvent += BeatAction;
 
 			// Hide starpower
 			starpowerOverlay.material.SetFloat("AlphaMultiplier", 0f);
@@ -265,7 +264,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Unbind events
-			Play.Instance.BeatEvent -= BeatAction;
+			Play.BeatEvent -= BeatAction;
 		}
 
 		private void OnSongStart() {
