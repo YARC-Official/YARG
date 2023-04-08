@@ -8,6 +8,9 @@ namespace YARG.UI {
 		[SerializeField]
 		private GenericOption[] options;
 
+		[SerializeField]
+		private GameObject settingsContainer;
+
 		private int playerIndex;
 
 		private int optionCount;
@@ -102,6 +105,9 @@ namespace YARG.UI {
 				// Resume
 				Play.Instance.Paused = false;
 			} else if (selected == 1) {
+				// Settings
+				settingsContainer.SetActive(!settingsContainer.activeSelf);
+			} else if (selected == 2) {
 				// Quit
 				Play.Instance.Exit();
 			}
@@ -109,11 +115,11 @@ namespace YARG.UI {
 
 		private void UpdateText() {
 			// Add to options
-			optionCount = 2;
+			optionCount = 3;
 			string[] ops = {
 				"Resume",
+				"Settings",
 				"Quit",
-				null,
 				null
 			};
 
