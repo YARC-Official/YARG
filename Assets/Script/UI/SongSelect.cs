@@ -51,6 +51,7 @@ namespace YARG.UI {
 		private int selectedSongIndex;
 
 		private void Awake() {
+			refreshFlag = true;
 			Instance = this;
 
 			// Create before (insert backwards)

@@ -46,7 +46,9 @@ namespace YARG.UI {
 		private void Start() {
 			Instance = this;
 
-			RefreshSongLibrary();
+			if (SongLibrary.SongsByHash == null) {
+				RefreshSongLibrary();
+			}
 
 			if (!isPostSong) {
 				ShowMainMenu();
