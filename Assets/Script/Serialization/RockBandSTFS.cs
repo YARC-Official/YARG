@@ -4,9 +4,6 @@ using System.IO;
 using System.Text;
 using UnityEngine;
 using YARG.Data;
-// using Mackiloha;
-// using Mackiloha.IO;
-// using Mackiloha.App;
 using DtxCS;
 using DtxCS.DataTypes;
 
@@ -22,14 +19,20 @@ namespace YARG.Serialization {
 					dtaTree = DTX.FromDtaStream(str);
 				}		
 				int rootNodeCount = dtaTree.Count;
-				List<DataNode> dtaChildren = new List<DataNode>();
+				List<DataNode> dtaSongs = new List<DataNode>();
+				List<DataArray> dtaSongArrays = new List<DataArray>();
 				string[] shortnames = new string[256];
 				for (int i = 0; i < rootNodeCount; i++) {
-					dtaChildren.Add(dtaTree[i]);
-					shortnames[i] = dtaChildren[i].Name;
-					Debug.Log($"dtaChildren = {dtaChildren[i].Name}");
+					dtaSongs.Add(dtaTree[i]);
+					shortnames[i] = dtaSongs[i].Name;
+					Debug.Log($"dtaSongs = {dtaSongs[i].Name}");
+					if (dtaSongs[i].Type == DataType.ARRAY) {
+						Debug.Log(dtaSongs[i].ToString());
+						dtaSongArrays.Add((DataArray)dtaSongs[i]);
+					} else Debug.Log("so sad");
 				};
-
+				
+				
 				string songPath = "songs/test/test";
 				string songPathGen = "songs/" + songPath.Split("/")[1] + "/gen/" + songPath.Split("/")[2];
 				// Mackiloha.IO.SystemInfo sysInfo = new Mackiloha.IO.SystemInfo {
