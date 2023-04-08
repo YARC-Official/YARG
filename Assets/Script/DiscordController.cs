@@ -10,12 +10,12 @@ public class DiscordController : MonoBehaviour {
 	TODO:
 	Determine if discord is installed at all on windows, linux and mac. Don't bother running otherwise (doubt anyone would install it DURING gameplay lol)
 	Reconnect if discord is closed and reopened/opened during game (and not memory leak the game into a crash)
-	Need icons for pro drums, 5 lane drums, pro bass, pro guitars, pro keys
 
 	Impossible at the moment:
 	Display Album art with little icon overlay - Currently only possible with the api's art assets or a url, NOT with a local image file
 	Progress bar
-	Pausing the timer (instead othe blanking it)
+	Pausing the timer (instead of blanking it)
+	Other specalized things that only very popular apps can do (like spotify and fortnite)
 	*/
 
 	public static DiscordController Instance {
@@ -78,9 +78,9 @@ public class DiscordController : MonoBehaviour {
 
 	// A bunch of time handling stuff
 	private long gameStartTime; //start of YARG, doesn't stop
-	private long songStartTime; //time at song start
 	private float songLengthSeconds; //Length of song in seconds (not milliseconds)
-	private long songTimePlayed; //the amount of song played
+	private long pauseTime = 0; //when the song was last pasused
+	private long pauseAmount = 0; //the total amount of paused time
 
 	private void Start() {
 		Instance = this;
@@ -123,7 +123,7 @@ public class DiscordController : MonoBehaviour {
 
 	private void OnPauseToggle(bool pause) {
 		if (pause) {
-			songTimePlayed = DateTimeOffset.Now.ToUnixTimeMilliseconds() - songStartTime; //get duration of song played
+			pauseTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 			SetActivity(
 				currentSmallImage,
 				currentSmallText,
@@ -131,23 +131,24 @@ public class DiscordController : MonoBehaviour {
 				"by " + artistName,
 				0, 0
 			);
-		} else {
+		} else { //unpause
+			pauseAmount += DateTimeOffset.Now.ToUnixTimeMilliseconds() - pauseTime; //adding up all the pause time
 			SetActivity(
 				currentSmallImage,
 				currentSmallText,
 				songName,
 				"by " + artistName,
 				DateTimeOffset.Now.ToUnixTimeMilliseconds(),
-				DateTimeOffset.Now.AddSeconds(songLengthSeconds).ToUnixTimeMilliseconds() - songTimePlayed
+				DateTimeOffset.Now.AddSeconds(songLengthSeconds).ToUnixTimeMilliseconds() - pauseAmount
 			);
 		}
 	}
 
 	private void OnSongStart(SongInfo song) {
-		songStartTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 		songLengthSeconds = song.songLength;
 		songName = song.SongName;
 		artistName = song.artistName;
+		pauseAmount = 0;
 		SetActivity(
 			currentSmallImage,
 			currentSmallText,
@@ -163,6 +164,7 @@ public class DiscordController : MonoBehaviour {
 	}
 
 	private void OnInstrumentSelection(YARG.PlayerManager.Player playerInfo) {
+		// ToLowerInvariant() because the DISCORD API DOESN'T HAVE UPPERCASE ARTWORK NAMES (WHY)
 		currentSmallImage = playerInfo.chosenInstrument.ToLowerInvariant();
 		
 #pragma warning disable format

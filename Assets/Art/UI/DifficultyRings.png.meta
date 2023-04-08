@@ -1,11 +1,11 @@
 fileFormatVersion: 2
-guid: 66fae0a679753ea4a9110a183b8d2af9
+guid: 3b63aeee98f00194d897a42695807211
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
   serializedVersion: 12
   mipmaps:
-    mipMapMode: 1
+    mipMapMode: 0
     enableMipMap: 0
     sRGBTexture: 1
     linearTexture: 0
@@ -36,8 +36,8 @@ TextureImporter:
     filterMode: 1
     aniso: 1
     mipBias: 0
-    wrapU: 0
-    wrapV: 0
+    wrapU: 1
+    wrapV: 1
     wrapW: 0
   nPOTScale: 0
   lightmap: 0
@@ -67,10 +67,10 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 1024
+    maxTextureSize: 512
     resizeAlgorithm: 1
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -105,13 +105,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: bass
+      name: DifficultyRings_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 1536
-        width: 512
-        height: 512
+        y: 256
+        width: 128
+        height: 128
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -119,20 +119,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 14db709a9ff5b674fbc46a1956df831f
-      internalID: -1834431651
+      spriteID: aa4a89bf989953e419482e73aa857a28
+      internalID: 1693073548
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: guitar
+      name: DifficultyRings_1
       rect:
         serializedVersion: 2
-        x: 512
-        y: 1536
-        width: 512
-        height: 512
+        x: 128
+        y: 256
+        width: 128
+        height: 128
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -140,20 +140,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 118f6afd8caa99a48bab74f699c0b2af
-      internalID: 1445730593
+      spriteID: a1a99c2314d12754cb732aa83189242f
+      internalID: -1483160100
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: drums
+      name: DifficultyRings_2
       rect:
         serializedVersion: 2
-        x: 1024
-        y: 1536
-        width: 512
-        height: 512
+        x: 256
+        y: 256
+        width: 128
+        height: 128
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -161,41 +161,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 38e66e661aa866a4f93a63f42a5f402f
-      internalID: -1591131112
+      spriteID: fcabb55b13014404485a966035d88ed4
+      internalID: 409083877
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: keys
-      rect:
-        serializedVersion: 2
-        x: 1536
-        y: 1536
-        width: 512
-        height: 512
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: c3d209dd9be6a4743b9648b9ca5fa474
-      internalID: -1340302279
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: realBass
+      name: DifficultyRings_3
       rect:
         serializedVersion: 2
         x: 0
-        y: 1024
-        width: 512
-        height: 512
+        y: 128
+        width: 128
+        height: 128
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -203,20 +182,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: dea5e48b0f535e44b87146e20500ae11
-      internalID: 894865564
+      spriteID: e9ac6f7b02b549e4db96333842924688
+      internalID: -1483834733
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: realGuitar
+      name: DifficultyRings_4
       rect:
         serializedVersion: 2
-        x: 512
-        y: 1024
-        width: 512
-        height: 512
+        x: 128
+        y: 128
+        width: 128
+        height: 128
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -224,20 +203,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: b62229da7e171a34096d18de4b3eb849
-      internalID: 1760769726
+      spriteID: c3df3862e789fda44981a332ed48ecd0
+      internalID: 516395800
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: realDrums
+      name: DifficultyRings_5
       rect:
         serializedVersion: 2
-        x: 1024
-        y: 1024
-        width: 512
-        height: 512
+        x: 256
+        y: 128
+        width: 128
+        height: 128
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -245,41 +224,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: d643cfb7eb5b2fa4ab2507d96cea2d4e
-      internalID: -844217933
+      spriteID: c4fba45e1f50f664ab577031a11a41d9
+      internalID: 1263751245
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: realKeys
-      rect:
-        serializedVersion: 2
-        x: 1536
-        y: 1024
-        width: 512
-        height: 512
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 552f07c4536e610418927c928abb7b83
-      internalID: -1173955509
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: vocals
+      name: DifficultyRings_6
       rect:
         serializedVersion: 2
         x: 0
-        y: 512
-        width: 512
-        height: 512
+        y: 0
+        width: 128
+        height: 128
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -287,20 +245,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 0c507ffbf00fbb64a8f844b40cba1c88
-      internalID: -212029294
+      spriteID: 69f6fca8b9c463841a742b146cacdf0b
+      internalID: 1378811686
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: harmVocals
+      name: DifficultyRings_7
       rect:
         serializedVersion: 2
-        x: 512
-        y: 512
-        width: 512
-        height: 512
+        x: 128
+        y: 0
+        width: 128
+        height: 128
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -308,29 +266,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 4f5ea8e4ab7d53740aabb67164c53498
-      internalID: 1676829369
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: ghDrums
-      rect:
-        serializedVersion: 2
-        x: 1024
-        y: 512
-        width: 512
-        height: 512
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 6ef920672700d9a418f900c9b900c235
-      internalID: -1041038840
+      spriteID: 9b8da637b02b9444296db69eced349c0
+      internalID: -1032094120
       vertices: []
       indices: 
       edges: []
@@ -338,7 +275,7 @@ TextureImporter:
     outline: []
     physicsShape: []
     bones: []
-    spriteID: 6a6fe6d95646e3c4d87a4e4a278bddb5
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -346,22 +283,14 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      FontSprites_11: -1127886605
-      FontSprites_12: -1401939955
-      FontSprites_13: 172975347
-      FontSprites_14: 1031066330
-      FontSprites_15: -2019408172
-      bass: -1834431651
-      drums: -1591131112
-      ghDrums: -1041038840
-      guitar: 1445730593
-      harmVocals: 1676829369
-      keys: -1340302279
-      realBass: 894865564
-      realDrums: -844217933
-      realGuitar: 1760769726
-      realKeys: -1173955509
-      vocals: -212029294
+      DifficultyRings_0: 1693073548
+      DifficultyRings_1: -1483160100
+      DifficultyRings_2: 409083877
+      DifficultyRings_3: -1483834733
+      DifficultyRings_4: 516395800
+      DifficultyRings_5: 1263751245
+      DifficultyRings_6: 1378811686
+      DifficultyRings_7: -1032094120
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0

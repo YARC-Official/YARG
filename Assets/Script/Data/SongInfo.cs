@@ -33,9 +33,9 @@ namespace YARG.Data {
 		public DirectoryInfo folder;
 
 		/// <summary>
-		/// For remote mode only.
+		/// Used for cache.
 		/// </summary>
-		public DirectoryInfo realFolderRemote;
+		public string rootFolder;
 
 		[JsonProperty("live")]
 		public bool Live {
@@ -119,11 +119,15 @@ namespace YARG.Data {
 
 		[JsonProperty]
 		public string loadingPhrase;
+		[JsonProperty]
+		public string hash;
 
 		public Dictionary<string, int> partDifficulties;
 
-		public SongInfo(DirectoryInfo folder) {
+		public SongInfo(DirectoryInfo folder, string rootFolder) {
 			this.folder = folder;
+			this.rootFolder = rootFolder;
+
 			string dirName = folder.Name;
 
 			var split = dirName.Split(" - ");
