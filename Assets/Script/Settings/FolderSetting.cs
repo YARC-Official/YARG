@@ -3,7 +3,6 @@ using SFB;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 
 namespace YARG.Settings {
 	public sealed class FolderSetting : AbstractSetting {
@@ -19,7 +18,7 @@ namespace YARG.Settings {
 		}
 
 		private void Update() {
-			bool isInteractable = IsInteractable && SceneManager.GetActiveScene().name == "MenuScene";
+			bool isInteractable = IsInteractable;
 
 			textField.interactable = isInteractable;
 			browseButton.interactable = isInteractable;

@@ -8,6 +8,12 @@ using UnityEngine;
 
 namespace YARG.Settings {
 	public static partial class SettingsManager {
+		/*
+		
+		TODO: THIS IS TERRIBLE. REDO!
+		
+		*/
+
 		private class SettingLocation : Attribute {
 			public string location;
 			public int order;
@@ -51,6 +57,10 @@ namespace YARG.Settings {
 		}
 
 		private class SettingSpace : Attribute {
+
+		}
+
+		private class SettingShowInGame : Attribute {
 
 		}
 
@@ -174,7 +184,7 @@ namespace YARG.Settings {
 			File.Delete(SettingsFile);
 		}
 
-		public static SettingInfo[] GetAllSettings() {
+		public static SettingInfo[] GetAllSettings(bool inGame) {
 			var settingInfos = new List<SettingInfo>();
 
 			foreach (var key in settings.Keys) {
@@ -188,6 +198,7 @@ namespace YARG.Settings {
 					SettingLocation location = null;
 					SettingType type = null;
 					SettingSpace space = null;
+					SettingShowInGame showInGame = null;
 
 					// Get location and type
 					foreach (var attribute in attributes) {
@@ -202,10 +213,19 @@ namespace YARG.Settings {
 						if (attribute is SettingSpace spaceAttrib) {
 							space = spaceAttrib;
 						}
+
+						if (attribute is SettingShowInGame showInGameAttrib) {
+							showInGame = showInGameAttrib;
+						}
 					}
 
 					// If the location is null, skip this setting
 					if (location == null) {
+						continue;
+					}
+
+					// If the setting is only for the main menu, skip it if we're in game
+					if (inGame && showInGame == null) {
 						continue;
 					}
 
@@ -222,6 +242,7 @@ namespace YARG.Settings {
 
 					SettingLocation location = null;
 					SettingSpace space = null;
+					SettingShowInGame showInGame = null;
 
 					// Get location and type
 					foreach (var attribute in attributes) {
@@ -232,6 +253,15 @@ namespace YARG.Settings {
 						if (attribute is SettingSpace spaceAttrib) {
 							space = spaceAttrib;
 						}
+
+						if (attribute is SettingShowInGame showInGameAttrib) {
+							showInGame = showInGameAttrib;
+						}
+					}
+
+					// If the setting is only for the main menu, skip it if we're in game
+					if (inGame && showInGame == null) {
+						continue;
 					}
 
 					settingInfos.Add(new SettingInfo {

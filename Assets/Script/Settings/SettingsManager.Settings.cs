@@ -1,12 +1,17 @@
 using SFB;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using YARG.Serialization;
 using YARG.UI;
 
 namespace YARG.Settings {
 	public static partial class SettingsManager {
 		private class SettingContainer {
+			/*
+			
+			TODO: THIS IS TERRIBLE. REDO!
+			
+			*/
+
 			public string[] songFolders = new string[] { };
 
 			[SettingLocation("general", 1)]
@@ -18,11 +23,9 @@ namespace YARG.Settings {
 			[SettingLocation("general", 2)]
 			[SettingButton("exportOuvertSongs")]
 			public void ExportOuvertSongs() {
-				if (SceneManager.GetActiveScene().name == "MenuScene") {
-					StandaloneFileBrowser.SaveFilePanelAsync("Save Song List", null, "songs", "json", path => {
-						OuvertExport.ExportOuvertSongsTo(path);
-					});
-				}
+				StandaloneFileBrowser.SaveFilePanelAsync("Save Song List", null, "songs", "json", path => {
+					OuvertExport.ExportOuvertSongsTo(path);
+				});
 			}
 
 			[SettingSpace]
@@ -60,6 +63,7 @@ namespace YARG.Settings {
 			[SettingType("Toggle")]
 			public bool muteOnMiss = true;
 
+			[SettingShowInGame]
 			[SettingLocation("general", 9)]
 			[SettingType("Toggle")]
 			public bool useCymbalModelsInFiveLane = true;
@@ -70,6 +74,7 @@ namespace YARG.Settings {
 			public bool noKicks = false;
 
 			[SettingSpace]
+			[SettingShowInGame]
 			[SettingLocation("general", 11)]
 			[SettingType("Toggle")]
 			public bool vsync = true;
@@ -79,6 +84,7 @@ namespace YARG.Settings {
 				QualitySettings.vSyncCount = vsync ? 1 : 0;
 			}
 
+			[SettingShowInGame]
 			[SettingLocation("general", 12)]
 			[SettingType("Number")]
 			public int fpsCap = 60;
@@ -94,6 +100,7 @@ namespace YARG.Settings {
 			}
 
 			[SettingSpace]
+			[SettingShowInGame]
 			[SettingLocation("general", 13)]
 			[SettingType("Volume")]
 			public float musicVolume = 0.9f;
@@ -103,6 +110,7 @@ namespace YARG.Settings {
 				AudioManager.Instance.SetVolume("music", musicVolume);
 			}
 
+			[SettingShowInGame]
 			[SettingLocation("general", 14)]
 			[SettingType("Volume")]
 			public float guitarVolume = 1f;
@@ -112,6 +120,7 @@ namespace YARG.Settings {
 				AudioManager.Instance.SetVolume("guitar", guitarVolume);
 			}
 
+			[SettingShowInGame]
 			[SettingLocation("general", 15)]
 			[SettingType("Volume")]
 			public float bassVolume = 1f;
@@ -121,6 +130,7 @@ namespace YARG.Settings {
 				AudioManager.Instance.SetVolume("bass", bassVolume);
 			}
 
+			[SettingShowInGame]
 			[SettingLocation("general", 16)]
 			[SettingType("Volume")]
 			public float keysVolume = 1f;
@@ -130,6 +140,7 @@ namespace YARG.Settings {
 				AudioManager.Instance.SetVolume("keys", keysVolume);
 			}
 
+			[SettingShowInGame]
 			[SettingLocation("general", 17)]
 			[SettingType("Volume")]
 			public float drumsVolume = 1f;
@@ -139,6 +150,7 @@ namespace YARG.Settings {
 				AudioManager.Instance.SetVolume("drums", drumsVolume);
 			}
 
+			[SettingShowInGame]
 			[SettingLocation("general", 18)]
 			[SettingType("Volume")]
 			public float vocalsVolume = 1f;
@@ -148,6 +160,7 @@ namespace YARG.Settings {
 				AudioManager.Instance.SetVolume("vocals", vocalsVolume);
 			}
 
+			[SettingShowInGame]
 			[SettingLocation("general", 19)]
 			[SettingType("Volume")]
 			public float songVolume = 1f;
@@ -157,6 +170,7 @@ namespace YARG.Settings {
 				AudioManager.Instance.SetVolume("song", songVolume);
 			}
 
+			[SettingShowInGame]
 			[SettingLocation("general", 20)]
 			[SettingType("Volume")]
 			public float crowdVolume = 0f;
@@ -166,6 +180,7 @@ namespace YARG.Settings {
 				AudioManager.Instance.SetVolume("crowd", crowdVolume);
 			}
 
+			[SettingShowInGame]
 			[SettingLocation("general", 21)]
 			[SettingType("Volume")]
 			public float vocalMonitoring = 0.75f;

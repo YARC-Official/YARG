@@ -2407,6 +2407,7 @@ MonoBehaviour:
   settingSpacePrefab: {fileID: 495506203781168666, guid: 94f7a64a42ac51e4eb6af891f99dc193,
     type: 3}
   settingsContainer: {fileID: 1530865042}
+  inGame: 1
 --- !u!114 &1177861245
 MonoBehaviour:
   m_ObjectHideFlags: 0

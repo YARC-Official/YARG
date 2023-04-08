@@ -10,6 +10,9 @@ namespace YARG.Settings {
 		[SerializeField]
 		private Transform settingsContainer;
 
+		[SerializeField]
+		private bool inGame;
+
 		private void OnEnable() {
 			UpdateSettings();
 		}
@@ -20,7 +23,7 @@ namespace YARG.Settings {
 				Destroy(t.gameObject);
 			}
 
-			foreach (var info in SettingsManager.GetAllSettings()) {
+			foreach (var info in SettingsManager.GetAllSettings(inGame)) {
 				// Spawn a space if needed
 				if (info.spaceAbove) {
 					Instantiate(settingSpacePrefab, settingsContainer);

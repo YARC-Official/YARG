@@ -107,8 +107,7 @@ namespace YARG.UI {
 			} else if (selected == 1) {
 				// Settings
 				settingsContainer.SetActive(!settingsContainer.activeSelf);
-			}
-			else if (selected == 2) {
+			} else if (selected == 2) {
 				// Quit
 				Play.Instance.Exit();
 			}
