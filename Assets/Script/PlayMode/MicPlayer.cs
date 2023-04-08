@@ -69,11 +69,24 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private Image comboFill;
 		[SerializeField]
+		private Image comboRim;
+		[SerializeField]
+		private RectTransform comboSunburst;
+		[SerializeField]
 		private Image starpowerFill;
 		[SerializeField]
 		private Image starpowerBarOverlay;
 		[SerializeField]
 		private MeshRenderer starpowerOverlay;
+
+		[Space]
+		[SerializeField]
+		private Sprite maxedComboFill;
+		[SerializeField]
+		private Sprite maxedComboRim;
+
+		private Sprite normalComboFill;
+		private Sprite normalComboRim;
 
 		[Space]
 		[SerializeField]
@@ -139,6 +152,9 @@ namespace YARG.PlayMode {
 
 		private void Start() {
 			Instance = this;
+
+			normalComboFill = comboFill.sprite;
+			normalComboRim = comboRim.sprite;
 
 			// Start mics
 			foreach (var player in PlayerManager.players) {
@@ -563,6 +579,20 @@ namespace YARG.PlayMode {
 					comboFill.fillAmount = highestSingProgresses.Max();
 					break;
 				}
+			}
+
+			// Show/hide maxed out combo stuff
+			if (rawMultiplier >= 4) {
+				comboSunburst.gameObject.SetActive(true);
+				comboSunburst.transform.Rotate(0f, 0f, Time.deltaTime * -25f);
+
+				comboFill.sprite = maxedComboFill;
+				comboRim.sprite = maxedComboRim;
+			} else {
+				comboSunburst.gameObject.SetActive(false);
+
+				comboFill.sprite = normalComboFill;
+				comboRim.sprite = normalComboRim;
 			}
 
 			// Update starpower active
