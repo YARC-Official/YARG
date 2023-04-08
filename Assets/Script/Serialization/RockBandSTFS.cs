@@ -16,15 +16,20 @@ namespace YARG.Serialization {
 		public static List<SongInfo> ParseSongsDta(DirectoryInfo srcfolder) {
 			try {
 				List<SongInfo> songList = new List<SongInfo>();
-				// Encoding dtaEnc = Encoding.GetEncoding("iso-8859-1");
+				// Encoding dtaEnc = Encoding.GetEncoding("iso-8859-1"); // dtxcs reads things properly so it's prob fine but just in case we need the old opening method
 				DataArray dtaTree = new DataArray();
 				using (FileStream str = new FileStream(Path.Combine(srcfolder.FullName, "songs.dta"), FileMode.Open)) {
 					dtaTree = DTX.FromDtaStream(str);
-				}					
-				for (int i = 0; i < dtaTree.Count; i++) {
-					DataNode dtaChildren = dtaTree[i];
-					Debug.Log($"dtaChildren = {dtaChildren.Name}");
+				}		
+				int rootNodeCount = dtaTree.Count;
+				List<DataNode> dtaChildren = new List<DataNode>();
+				string[] shortnames = new string[256];
+				for (int i = 0; i < rootNodeCount; i++) {
+					dtaChildren.Add(dtaTree[i]);
+					shortnames[i] = dtaChildren[i].Name;
+					Debug.Log($"dtaChildren = {dtaChildren[i].Name}");
 				};
+
 				string songPath = "songs/test/test";
 				string songPathGen = "songs/" + songPath.Split("/")[1] + "/gen/" + songPath.Split("/")[2];
 				// Mackiloha.IO.SystemInfo sysInfo = new Mackiloha.IO.SystemInfo {
