@@ -13,10 +13,10 @@ namespace YARG.Serialization {
 		public static List<SongInfo> ParseSongsDta(DirectoryInfo srcfolder) {
 			try {
 				List<SongInfo> songList = new List<SongInfo>();
-				// Encoding dtaEnc = Encoding.GetEncoding("iso-8859-1"); // dtxcs reads things properly so it's prob fine but just in case we need the old opening method
+				Encoding dtaEnc = Encoding.GetEncoding("iso-8859-1"); // "dtxcs reads things properly" so turns out that's a lie perpetuated by big c#
 				DataArray dtaTree = new DataArray();
-				using (FileStream str = new FileStream(Path.Combine(srcfolder.FullName, "songs.dta"), FileMode.Open)) {
-					dtaTree = DTX.FromDtaStream(str);
+				using (StreamReader temp = new StreamReader(Path.Combine(srcfolder.FullName, "songs.dta"), dtaEnc)) {
+					dtaTree = DTX.FromDtaString(temp.ReadToEnd());
 				}		
 				int rootNodeCount = dtaTree.Count;
 				List<DataNode> dtaSongs = new List<DataNode>();
@@ -31,7 +31,11 @@ namespace YARG.Serialization {
 						dtaSongArrays.Add((DataArray)dtaSongs[i]);
 					} else Debug.Log("so sad");
 				};
-				
+
+				foreach (var songArray in dtaSongArrays) {
+					DataArray artistSnippet = songArray.Array("artist");
+					Debug.Log($"owo {artistSnippet[0]} {artistSnippet[1]}");
+				}
 				
 				string songPath = "songs/test/test";
 				string songPathGen = "songs/" + songPath.Split("/")[1] + "/gen/" + songPath.Split("/")[2];
