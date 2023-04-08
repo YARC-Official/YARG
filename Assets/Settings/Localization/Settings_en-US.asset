@@ -118,6 +118,10 @@ MonoBehaviour:
     m_Localized: No Kicks (Drums)
     m_Metadata:
       m_Items: []
+  - m_Id: 5156852523720704
+    m_Localized: Disable Bloom
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
