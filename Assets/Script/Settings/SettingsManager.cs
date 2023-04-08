@@ -156,18 +156,12 @@ namespace YARG.Settings {
 			// Create settings container
 			try {
 				settingsContainer = JsonConvert.DeserializeObject<SettingContainer>(File.ReadAllText(SettingsFile));
-			} catch (Exception) { }
+			} catch (Exception) {
+				settingsContainer = new SettingContainer();
+			}
 
 			// Call change functions
-			foreach (var (key, func) in changeFuncs) {
-				var name = key;
-				var method = func;
-
-				// This happens elsewhere
-				if (name == "songFolder") {
-					continue;
-				}
-
+			foreach (var (_, method) in changeFuncs) {
 				method.Invoke(settingsContainer, null);
 			}
 		}
