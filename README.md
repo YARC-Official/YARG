@@ -55,7 +55,7 @@ YARG is licensed under the MIT License - see the [`LICENSE`](../master/LICENSE) 
 
 # 🧰 External Licenses
 
-Some libraries **packaged** with the source code have licenses that must be included.
+Some libraries/assets are **packaged** with the source code have licenses that must be included.
 
 | Library | License |
 | --- | --- |
@@ -63,6 +63,7 @@ Some libraries **packaged** with the source code have licenses that must be incl
 | [Unity Standalone File Browser](https://github.com/gkngkc/UnityStandaloneFileBrowser) | [MIT](https://github.com/gkngkc/UnityStandaloneFileBrowser/blob/master/LICENSE.txt)
 | [Concentus.OggFile](https://github.com/lostromb/concentus.oggfile/tree/master) | [Ms-PL](https://github.com/lostromb/concentus.oggfile/blob/master/LICENSE)
 | [Discord GameSDK](https://discord.com/developers/docs/game-sdk/sdk-starter-guide) | Licenseless
+| [Lucide](https://lucide.dev/) | [ISC](https://lucide.dev/license)
 
 Please note that other libraries are **not** packaged within the source code, and are to be install by NuGet.
 
@@ -77,6 +78,7 @@ Please note that other libraries are **not** packaged within the source code, an
 | [Unbounded](https://fonts.google.com/specimen/Unbounded) | Font | Combo/Multipier Meter
 | [Barlow](https://fonts.google.com/specimen/Barlow) | Font | UI Font
 | [Material Symbols](https://fonts.google.com/icons) | Icons | UI Icons
+| [Lucide](https://lucide.dev/) | Icons | UI Icons
 | [PolyHaven](https://polyhaven.com/) | Assets | Textures and Models
 | [PlasticBand](https://github.com/TheNathannator/PlasticBand) | Reference | Controller Support Info
 | [GuitarGame_ChartFormats](https://github.com/TheNathannator/GuitarGame_ChartFormats) | Reference | File Format Documentation
