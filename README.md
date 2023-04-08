@@ -29,7 +29,8 @@ We **DO NOT** encourage, advocate, or promote **PIRATING** of songs, or of anyth
 
 # 📥 Downloading and Playing
 
-**An installation video is [available here](https://www.youtube.com/watch?v=bSPSttKNnKc).**
+**An official installation video is [available here](https://www.youtube.com/watch?v=bSPSttKNnKc).**<br/> 
+A community made one is available as well, [here](https://youtu.be/hEJHuAGGlD8).
 
 Windows:
 1. [Click here](https://github.com/EliteAsian123/YARG/releases) to view all releases.
