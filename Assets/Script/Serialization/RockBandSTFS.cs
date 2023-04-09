@@ -116,22 +116,22 @@ public class SongData
 	}
 
 	public override string ToString(){
-		List<string> debugTrackArray = new List<string>();
+		string debugTrackStr = "";
 		foreach(var kvp in tracks){
-			debugTrackArray.Add($"{kvp.Key}, {string.Join(", ", kvp.Value)}");
+			debugTrackStr += $"{kvp.Key}, ({string.Join(", ", kvp.Value)}) ";
 		}
 
 		return string.Join(Environment.NewLine,
-			$"song id={songId}; shortname={shortname}: name={name}; artist={((!master) ? "as made famous by " : "")}{artist};",
-			$"song path={songPath}; vocal parts={vocalParts}; vocal gender={((vocalGender) ? "male" : "female")};",
-			$"pans=({string.Join(", ", pans)});",
-			$"vols=({string.Join(", ", vols)});",
-			$"cores=({string.Join(", ", cores)});",
-			$"tracks={string.Join(", ", tracks)}",
+			$"song id={songId}; shortname={shortname}: name={name}; artist={((!master) ? "as made famous by " : "")}{artist}",
+			$"song path={songPath}; vocal parts={vocalParts}; vocal gender={((vocalGender) ? "male" : "female")}",
+			$"pans=({string.Join(", ", pans)})",
+			$"vols=({string.Join(", ", vols)})",
+			$"cores=({string.Join(", ", cores)})",
+			$"tracks={string.Join(", ", debugTrackStr)}",
 			$"ranks={string.Join(", ", ranks)}",
-			$"album art={albumArt}; album name={albumName}; album track number={albumTrackNumber};",
+			$"album art={albumArt}; album name={albumName}; album track number={albumTrackNumber}",
 			$"year released={yearReleased}; year recorded={yearRecorded}",
-			$"song length={songLength}; preview=({preview[0]}, {preview[1]}); game origin={gameOrigin}; genre={genre}; rating={rating};",
+			$"song length={songLength}; preview=({preview[0]}, {preview[1]}); game origin={gameOrigin}; genre={genre}; rating={rating}",
 			$"real guitar tuning=({((realGuitarTuning != null) ? string.Join(", ", realGuitarTuning) : "")})",
 			$"real bass tuning=({((realBassTuning != null) ? string.Join(", ", realBassTuning) : "")})"
 		);
