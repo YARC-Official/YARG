@@ -42,7 +42,7 @@ namespace YARG.Util {
 				"ghotd"               => "Guitar Hero On Tour: Decades",
 				"ghotmh"              => "Guitar Hero On Tour: Modern Hits",
 				"bandhero" or "bh"    => "Band Hero",
-				"bhds"                => "Band Hero DS,
+				"bhds"                => "Band Hero DS",
 				"ghl"                 => "Guitar Hero Live",
 				"ghtv"                => "Guitar Hero TV",
 
