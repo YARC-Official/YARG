@@ -64,8 +64,7 @@ namespace YARG.Util {
 				"rb1dlc"              => "Rock Band 1 DLC",
 				"rb2dlc"              => "Rock Band 2 DLC",
 				"rb3dlc"              => "Rock Band 3 DLC",
-				"rb4dlc"              => "Rock Band 4 DLC",
-				"rb4_dlc"             => "Rock Band 4 DLC",
+				"rb4dlc" or "rb4_dlc" => "Rock Band 4 DLC",
 				"rb4_rivals"          => "Rock Band Rivals",
 				"rbtp_acdc"           => "Rock Band Track Pack: AC/DC Live",
 				"rbtp_classic_rock"   => "Rock Band Track Pack: Classic Rock",
@@ -76,10 +75,10 @@ namespace YARG.Util {
 				"rbtp_vol_2"          => "Rock Band Track Pack: Volume 2",
 				"rb_blitz"            => "Rock Band Blitz",
 				"pearljam"            => "Pearl Jam: Rock Band",
-				"greenday"            => "Green Day: Rock Band",
+				"greenday" or "gdrb"  => "Green Day: Rock Band",
 				"rbvr"                => "Rock Band VR",
 		
-		        "311hero"             => "311 Hero",
+		                "311hero"             => "311 Hero",
 				"a2z"                 => "A-Z Pack",
 				"ah1"                 => "Angevil Hero",
 				"ah2"                 => "Angevil Hero 2",
@@ -142,6 +141,8 @@ namespace YARG.Util {
 				"ghxsetlist"          => "Guitar Hero X",
 				"ghx2setlist"         => "Guitar Hero X-II",
 				"praise"              => "Guitar Praise",
+				"praisedlc"	      => "Guitar Praise: Expansion Pack 1"
+				"stryper"	      => "Guitar Praise: Stryper"
 				"guitarzero2"         => "Guitar Zero 2",
 				"guitarherodlc"       => "Guitar Zero 2 DLC",
 				"harmonyhero"         => "Harmony Hero",
