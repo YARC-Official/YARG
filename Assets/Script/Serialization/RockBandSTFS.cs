@@ -1,11 +1,44 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Text;
 using UnityEngine;
 using YARG.Data;
 using DtxCS;
 using DtxCS.DataTypes;
+
+public class SongData
+{
+	private string shortname;
+    private string name;
+    private string artist;
+	private bool master;
+    // public string songPath;
+    // public int songLength;
+    // public int[] preview;
+    // public Dictionary<string, int> rank;
+    private string genre;
+    private string albumName;
+	private int albumTrackNumber;
+    private int yearReleased;
+
+	public SongData ParseFromDataArray(DataArray dta){
+		shortname = dta.Name;
+		name = dta.Array("name")[1].ToString();
+		artist = dta.Array("artist")[1].ToString();
+		genre = dta.Array("genre")[1].ToString();
+		albumName = dta.Array("album_name")[1].ToString();
+		albumTrackNumber = Int16.Parse(dta.Array("album_track_number")[1].ToString());
+		yearReleased = Int16.Parse(dta.Array("year_released")[1].ToString());
+		return this;
+	}
+
+	public override string ToString(){
+		return $"{shortname}: name={name}; artist={artist}; genre={genre}; album name={albumName}; album track number={albumTrackNumber}; year released={yearReleased}";
+	}
+
+}
 
 namespace YARG.Serialization {
 	public static class RockBandSTFS {
@@ -18,25 +51,18 @@ namespace YARG.Serialization {
 				using (StreamReader temp = new StreamReader(Path.Combine(srcfolder.FullName, "songs.dta"), dtaEnc)) {
 					dtaTree = DTX.FromDtaString(temp.ReadToEnd());
 				}		
-				int rootNodeCount = dtaTree.Count;
-				List<DataNode> dtaSongs = new List<DataNode>();
-				List<DataArray> dtaSongArrays = new List<DataArray>();
-				string[] shortnames = new string[256];
-				for (int i = 0; i < rootNodeCount; i++) {
-					dtaSongs.Add(dtaTree[i]);
-					shortnames[i] = dtaSongs[i].Name;
-					Debug.Log($"dtaSongs = {dtaSongs[i].Name}");
-					if (dtaSongs[i].Type == DataType.ARRAY) {
-						Debug.Log(dtaSongs[i].ToString());
-						dtaSongArrays.Add((DataArray)dtaSongs[i]);
-					} else Debug.Log("so sad");
-				};
 
-				foreach (var songArray in dtaSongArrays) {
-					DataArray artistSnippet = songArray.Array("artist");
-					Debug.Log($"owo {artistSnippet[0]} {artistSnippet[1]}");
+				// parse songs.dta for all the songs and their info
+				List<SongData> parsedSongs = new List<SongData>();
+				for(int i = 0; i < dtaTree.Count; i++){
+					SongData currentSong = new SongData();
+					parsedSongs.Add(currentSong.ParseFromDataArray((DataArray)dtaTree[i]));
 				}
 				
+				// print out each SongData's, well, song data - useful for debugging
+				for(int j = 0; j < parsedSongs.Count; j++)
+					Debug.Log(parsedSongs[j].ToString());
+
 				string songPath = "songs/test/test";
 				string songPathGen = "songs/" + songPath.Split("/")[1] + "/gen/" + songPath.Split("/")[2];
 				// Mackiloha.IO.SystemInfo sysInfo = new Mackiloha.IO.SystemInfo {
