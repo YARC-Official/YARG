@@ -14,28 +14,48 @@ public class SongData
     private string name;
     private string artist;
 	private bool master;
+	// mogg channel tracks
+	// vocal parts per song
     // public string songPath;
-    // public int songLength;
-    // public int[] preview;
+	private int songId;
+    private int songLength;
+    private int[] preview;
     // public Dictionary<string, int> rank;
+	// pans/vols/cores
+	// vocal gender: male, female or other(?)
+	private string gameOrigin;
     private string genre;
     private string albumName;
+	private bool albumArt;
+	private int rating;
 	private int albumTrackNumber;
     private int yearReleased;
+	//real guitar tuning - won't always be there, should account for if it isn't
+	//real bass tuning - ditto
 
 	public SongData ParseFromDataArray(DataArray dta){
 		shortname = dta.Name;
 		name = dta.Array("name")[1].ToString();
 		artist = dta.Array("artist")[1].ToString();
+		string master_str = dta.Array("master")[1].ToString();
+		master = (master_str.ToUpper() == "TRUE" || master_str == "1");
+		songId = Int32.Parse(dta.Array("song_id")[1].ToString());
+		songLength = Int32.Parse(dta.Array("song_length")[1].ToString());
+		preview = new int[2] {Int32.Parse(dta.Array("preview")[1].ToString()), Int32.Parse(dta.Array("preview")[2].ToString())};
+		gameOrigin = dta.Array("game_origin")[1].ToString();
 		genre = dta.Array("genre")[1].ToString();
+		rating = Int16.Parse(dta.Array("rating")[1].ToString());
+		string album_art_str = dta.Array("album_art")[1].ToString();
+		albumArt = (album_art_str.ToUpper() == "TRUE" || album_art_str == "1");
 		albumName = dta.Array("album_name")[1].ToString();
 		albumTrackNumber = Int16.Parse(dta.Array("album_track_number")[1].ToString());
 		yearReleased = Int16.Parse(dta.Array("year_released")[1].ToString());
+
 		return this;
 	}
 
 	public override string ToString(){
-		return $"{shortname}: name={name}; artist={artist}; genre={genre}; album name={albumName}; album track number={albumTrackNumber}; year released={yearReleased}";
+		return $"{shortname}: name={name}; artist={artist}; master={master}; song id={songId}; preview=({preview[0]}, {preview[1]}); song length={songLength}; game origin={gameOrigin}; genre={genre}; rating={rating}; album art={albumArt}; album name={albumName}; album track number={albumTrackNumber}; year released={yearReleased}";
 	}
 
 }
