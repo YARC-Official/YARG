@@ -21,11 +21,12 @@ public class SongData
 	private float[] vols;
 	private short[] cores;
 	// mogg channel tracks
+	private Dictionary<string, byte[]> tracks;
 	private byte vocalParts;
 	private uint songId;
     private uint songLength;
     private uint[] preview;
-    // public Dictionary<string, int> rank;
+	private Dictionary<string, ushort> ranks;
 	private bool vocalGender; //true if male, false if female
 	private string gameOrigin;
     private string genre;
@@ -37,8 +38,6 @@ public class SongData
 	private ushort yearRecorded;
 	private short[] realGuitarTuning;
 	private short[] realBassTuning;
-	//real guitar tuning - won't always be there, should account for if it isn't
-	//real bass tuning - ditto
 
 	public SongData ParseFromDataArray(DataArray dta){
 		shortname = dta.Name;
@@ -68,6 +67,36 @@ public class SongData
 
 		vocalGender = (dta.Array("vocal_gender")[1].ToString() == "male");
 
+		//mogg tracks
+		DataArray trackArray = dta.Array("song").Array("tracks").Array("");
+		tracks = new Dictionary<string, byte[]>();
+		for(int a = 0; a < trackArray.Count; a++){
+			Debug.Log(trackArray[a].ToString());
+			string instr_key = trackArray[a].ToString().Split(' ')[0].Substring(1);
+			Debug.Log($"w instr_key: {trackArray.Array(instr_key)[1].ToString()}");
+			tracks.Add(instr_key, Array.ConvertAll(trackArray.Array(instr_key)[1].ToString().Replace("(","").Replace(")","").Split(' '), byte.Parse));
+		}
+
+		//instrument ranks
+		DataArray rankArray = dta.Array("rank");
+		ranks = new Dictionary<string, ushort>();
+		for(int i = 1; i < rankArray.Count; i++){
+			string instr_key = rankArray[i].ToString().Split(' ')[0].Substring(1);
+			ranks.Add(instr_key, UInt16.Parse(rankArray.Array(instr_key)[1].ToString()));
+		}
+
+		if(!ranks.ContainsKey("vocals") || ranks["vocals"] == 0) vocalParts = 0;
+
+		//real guitar and bass tunings
+		if(dta.Array("real_guitar_tuning") != null){
+			Debug.Log(dta.Array("real_guitar_tuning")[1].ToString());
+			realGuitarTuning = Array.ConvertAll(dta.Array("real_guitar_tuning")[1].ToString()[1..^1].Split(' '), short.Parse);
+		}
+		if(dta.Array("real_bass_tuning") != null){
+			Debug.Log(dta.Array("real_bass_tuning")[1].ToString());
+			realBassTuning = Array.ConvertAll(dta.Array("real_bass_tuning")[1].ToString()[1..^1].Split(' '), short.Parse);
+		}
+
 		// DataArray songArray = new DataArray();
 		// songArray = dta.Array("song");
 		// for(int i = 0; i < songArray.Count; i++){
@@ -87,15 +116,24 @@ public class SongData
 	}
 
 	public override string ToString(){
+		List<string> debugTrackArray = new List<string>();
+		foreach(var kvp in tracks){
+			debugTrackArray.Add($"{kvp.Key}, {string.Join(", ", kvp.Value)}");
+		}
+
 		return string.Join(Environment.NewLine,
 			$"song id={songId}; shortname={shortname}: name={name}; artist={((!master) ? "as made famous by " : "")}{artist};",
 			$"song path={songPath}; vocal parts={vocalParts}; vocal gender={((vocalGender) ? "male" : "female")};",
 			$"pans=({string.Join(", ", pans)});",
 			$"vols=({string.Join(", ", vols)});",
 			$"cores=({string.Join(", ", cores)});",
+			$"tracks={string.Join(", ", tracks)}",
+			$"ranks={string.Join(", ", ranks)}",
 			$"album art={albumArt}; album name={albumName}; album track number={albumTrackNumber};",
 			$"year released={yearReleased}; year recorded={yearRecorded}",
-			$"song length={songLength}; preview=({preview[0]}, {preview[1]}); game origin={gameOrigin}; genre={genre}; rating={rating};"
+			$"song length={songLength}; preview=({preview[0]}, {preview[1]}); game origin={gameOrigin}; genre={genre}; rating={rating};",
+			$"real guitar tuning=({((realGuitarTuning != null) ? string.Join(", ", realGuitarTuning) : "")})",
+			$"real bass tuning=({((realBassTuning != null) ? string.Join(", ", realBassTuning) : "")})"
 		);
 	}
 
