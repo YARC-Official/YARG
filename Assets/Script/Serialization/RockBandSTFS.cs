@@ -10,34 +10,17 @@ using DtxCS.DataTypes;
 
 public class SongData
 {
-	// songid, shortname, game origin, name, artist, album, year, origyear, track, genre, song length, preview, rank, album art, master, vocal parts, gender
-	private string shortname;
-    private string name;
-    private string artist;
-	private bool master;
-	// song info
-	private string songPath;
-	private float[] pans;
-	private float[] vols;
-	private short[] cores;
-	// mogg channel tracks
+	// all the possible metadata you could possibly want from a particular songs.dta
+	private string shortname, name, artist, songPath, gameOrigin, genre, albumName;
+	private uint songId, songLength;
+	private ushort yearReleased, yearRecorded;
+	private bool master, albumArt, vocalGender; //vocalGender is true if male, false if female
+	private byte vocalParts, rating, albumTrackNumber;
+	private uint[] preview;
+	private float[] pans, vols;
+	private short[] cores, realGuitarTuning, realBassTuning;
 	private Dictionary<string, byte[]> tracks;
-	private byte vocalParts;
-	private uint songId;
-    private uint songLength;
-    private uint[] preview;
 	private Dictionary<string, ushort> ranks;
-	private bool vocalGender; //true if male, false if female
-	private string gameOrigin;
-    private string genre;
-    private string albumName;
-	private bool albumArt;
-	private byte rating;
-	private byte albumTrackNumber;
-    private ushort yearReleased;
-	private ushort yearRecorded;
-	private short[] realGuitarTuning;
-	private short[] realBassTuning;
 
 	public SongData ParseFromDataArray(DataArray dta){
 		shortname = dta.Name;
@@ -59,7 +42,6 @@ public class SongData
 		yearRecorded = (dta.Array("year_recorded") != null) ? UInt16.Parse(dta.Array("year_recorded")[1].ToString()) : yearReleased;
 
 		songPath = dta.Array("song").Array("name")[1].ToString();
-		vocalParts = (dta.Array("song").Array("vocal_parts") != null) ? Byte.Parse(dta.Array("song").Array("vocal_parts")[1].ToString()) : (byte)1;
 		
 		pans = Array.ConvertAll(dta.Array("song").Array("pans")[1].ToString()[1..^1].Split(' '), float.Parse);
 		vols = Array.ConvertAll(dta.Array("song").Array("vols")[1].ToString()[1..^1].Split(' '), float.Parse);
@@ -71,9 +53,7 @@ public class SongData
 		DataArray trackArray = dta.Array("song").Array("tracks").Array("");
 		tracks = new Dictionary<string, byte[]>();
 		for(int a = 0; a < trackArray.Count; a++){
-			Debug.Log(trackArray[a].ToString());
 			string instr_key = trackArray[a].ToString().Split(' ')[0].Substring(1);
-			Debug.Log($"w instr_key: {trackArray.Array(instr_key)[1].ToString()}");
 			tracks.Add(instr_key, Array.ConvertAll(trackArray.Array(instr_key)[1].ToString().Replace("(","").Replace(")","").Split(' '), byte.Parse));
 		}
 
@@ -86,40 +66,18 @@ public class SongData
 		}
 
 		if(!ranks.ContainsKey("vocals") || ranks["vocals"] == 0) vocalParts = 0;
+		else vocalParts = (dta.Array("song").Array("vocal_parts") != null) ? Byte.Parse(dta.Array("song").Array("vocal_parts")[1].ToString()) : (byte)1;
 
 		//real guitar and bass tunings
-		if(dta.Array("real_guitar_tuning") != null){
-			Debug.Log(dta.Array("real_guitar_tuning")[1].ToString());
-			realGuitarTuning = Array.ConvertAll(dta.Array("real_guitar_tuning")[1].ToString()[1..^1].Split(' '), short.Parse);
-		}
-		if(dta.Array("real_bass_tuning") != null){
-			Debug.Log(dta.Array("real_bass_tuning")[1].ToString());
-			realBassTuning = Array.ConvertAll(dta.Array("real_bass_tuning")[1].ToString()[1..^1].Split(' '), short.Parse);
-		}
-
-		// DataArray songArray = new DataArray();
-		// songArray = dta.Array("song");
-		// for(int i = 0; i < songArray.Count; i++){
-		// 	Debug.Log($"idx {i} type {songArray[i].GetType()} = {songArray[i].ToString()}");
-		// 	if(songArray[i].GetType() == typeof(DataArray)){
-		// 		DataArray innerArray = new DataArray();
-		// 		string arrayName = songArray[i].ToString().Split(' ')[0].Substring(1);
-		// 		innerArray = songArray.Array(arrayName);
-		// 		for(int j = 0; j < innerArray.Count; j++){
-		// 			Debug.Log($"jdx {j} type {innerArray[j].GetType()} = {innerArray[j].ToString()}");
-		// 		}
-		// 		// Debug.Log($"the array name: {songArray[i].ToString().Split(' ')[0].Substring(1)}");
-		// 	}
-		// }
+		if(dta.Array("real_guitar_tuning") != null) realGuitarTuning = Array.ConvertAll(dta.Array("real_guitar_tuning")[1].ToString()[1..^1].Split(' '), short.Parse);
+		if(dta.Array("real_bass_tuning") != null) realBassTuning = Array.ConvertAll(dta.Array("real_bass_tuning")[1].ToString()[1..^1].Split(' '), short.Parse);
 
 		return this;
 	}
 
 	public override string ToString(){
 		string debugTrackStr = "";
-		foreach(var kvp in tracks){
-			debugTrackStr += $"{kvp.Key}, ({string.Join(", ", kvp.Value)}) ";
-		}
+		foreach(var kvp in tracks) debugTrackStr += $"{kvp.Key}, ({string.Join(", ", kvp.Value)}) ";
 
 		return string.Join(Environment.NewLine,
 			$"song id={songId}; shortname={shortname}: name={name}; artist={((!master) ? "as made famous by " : "")}{artist}",
