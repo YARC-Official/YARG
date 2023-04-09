@@ -42,6 +42,7 @@ namespace YARG.Util {
 				"ghotd"               => "Guitar Hero On Tour: Decades",
 				"ghotmh"              => "Guitar Hero On Tour: Modern Hits",
 				"bandhero" or "bh"    => "Band Hero",
+				"bhds"                => "Band Hero DS,
 				"ghl"                 => "Guitar Hero Live",
 				"ghtv"                => "Guitar Hero TV",
 
@@ -141,8 +142,8 @@ namespace YARG.Util {
 				"ghxsetlist"          => "Guitar Hero X",
 				"ghx2setlist"         => "Guitar Hero X-II",
 				"praise"              => "Guitar Praise",
-				"praisedlc"	      => "Guitar Praise: Expansion Pack 1"
-				"stryper"	      => "Guitar Praise: Stryper"
+				"praisedlc"	      => "Guitar Praise: Expansion Pack 1",
+				"stryper"	      => "Guitar Praise: Stryper",
 				"guitarzero2"         => "Guitar Zero 2",
 				"guitarherodlc"       => "Guitar Zero 2 DLC",
 				"harmonyhero"         => "Harmony Hero",
