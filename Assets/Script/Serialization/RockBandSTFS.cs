@@ -10,26 +10,33 @@ using DtxCS.DataTypes;
 
 public class SongData
 {
+	// songid, shortname, game origin, name, artist, album, year, origyear, track, genre, song length, preview, rank, album art, master, vocal parts, gender
 	private string shortname;
     private string name;
     private string artist;
 	private bool master;
+	// song info
+	private string songPath;
+	private float[] pans;
+	private float[] vols;
+	private short[] cores;
 	// mogg channel tracks
-	// vocal parts per song
-    // public string songPath;
-	private int songId;
-    private int songLength;
-    private int[] preview;
+	private byte vocalParts;
+	private uint songId;
+    private uint songLength;
+    private uint[] preview;
     // public Dictionary<string, int> rank;
-	// pans/vols/cores
-	// vocal gender: male, female or other(?)
+	private bool vocalGender; //true if male, false if female
 	private string gameOrigin;
     private string genre;
     private string albumName;
 	private bool albumArt;
-	private int rating;
-	private int albumTrackNumber;
-    private int yearReleased;
+	private byte rating;
+	private byte albumTrackNumber;
+    private ushort yearReleased;
+	private ushort yearRecorded;
+	private short[] realGuitarTuning;
+	private short[] realBassTuning;
 	//real guitar tuning - won't always be there, should account for if it isn't
 	//real bass tuning - ditto
 
@@ -39,23 +46,57 @@ public class SongData
 		artist = dta.Array("artist")[1].ToString();
 		string master_str = dta.Array("master")[1].ToString();
 		master = (master_str.ToUpper() == "TRUE" || master_str == "1");
-		songId = Int32.Parse(dta.Array("song_id")[1].ToString());
-		songLength = Int32.Parse(dta.Array("song_length")[1].ToString());
-		preview = new int[2] {Int32.Parse(dta.Array("preview")[1].ToString()), Int32.Parse(dta.Array("preview")[2].ToString())};
+		songId = UInt32.Parse(dta.Array("song_id")[1].ToString());
+		songLength = UInt32.Parse(dta.Array("song_length")[1].ToString());
+		preview = new uint[2] {UInt32.Parse(dta.Array("preview")[1].ToString()), UInt32.Parse(dta.Array("preview")[2].ToString())};
 		gameOrigin = dta.Array("game_origin")[1].ToString();
 		genre = dta.Array("genre")[1].ToString();
-		rating = Int16.Parse(dta.Array("rating")[1].ToString());
+		rating = Byte.Parse(dta.Array("rating")[1].ToString()); 
 		string album_art_str = dta.Array("album_art")[1].ToString();
 		albumArt = (album_art_str.ToUpper() == "TRUE" || album_art_str == "1");
 		albumName = dta.Array("album_name")[1].ToString();
-		albumTrackNumber = Int16.Parse(dta.Array("album_track_number")[1].ToString());
-		yearReleased = Int16.Parse(dta.Array("year_released")[1].ToString());
+		albumTrackNumber = Byte.Parse(dta.Array("album_track_number")[1].ToString());
+		yearReleased = UInt16.Parse(dta.Array("year_released")[1].ToString());
+		yearRecorded = (dta.Array("year_recorded") != null) ? UInt16.Parse(dta.Array("year_recorded")[1].ToString()) : yearReleased;
+
+		songPath = dta.Array("song").Array("name")[1].ToString();
+		vocalParts = (dta.Array("song").Array("vocal_parts") != null) ? Byte.Parse(dta.Array("song").Array("vocal_parts")[1].ToString()) : (byte)1;
+		
+		pans = Array.ConvertAll(dta.Array("song").Array("pans")[1].ToString()[1..^1].Split(' '), float.Parse);
+		vols = Array.ConvertAll(dta.Array("song").Array("vols")[1].ToString()[1..^1].Split(' '), float.Parse);
+		cores = Array.ConvertAll(dta.Array("song").Array("cores")[1].ToString()[1..^1].Split(' '), short.Parse);
+
+		vocalGender = (dta.Array("vocal_gender")[1].ToString() == "male");
+
+		// DataArray songArray = new DataArray();
+		// songArray = dta.Array("song");
+		// for(int i = 0; i < songArray.Count; i++){
+		// 	Debug.Log($"idx {i} type {songArray[i].GetType()} = {songArray[i].ToString()}");
+		// 	if(songArray[i].GetType() == typeof(DataArray)){
+		// 		DataArray innerArray = new DataArray();
+		// 		string arrayName = songArray[i].ToString().Split(' ')[0].Substring(1);
+		// 		innerArray = songArray.Array(arrayName);
+		// 		for(int j = 0; j < innerArray.Count; j++){
+		// 			Debug.Log($"jdx {j} type {innerArray[j].GetType()} = {innerArray[j].ToString()}");
+		// 		}
+		// 		// Debug.Log($"the array name: {songArray[i].ToString().Split(' ')[0].Substring(1)}");
+		// 	}
+		// }
 
 		return this;
 	}
 
 	public override string ToString(){
-		return $"{shortname}: name={name}; artist={artist}; master={master}; song id={songId}; preview=({preview[0]}, {preview[1]}); song length={songLength}; game origin={gameOrigin}; genre={genre}; rating={rating}; album art={albumArt}; album name={albumName}; album track number={albumTrackNumber}; year released={yearReleased}";
+		return string.Join(Environment.NewLine,
+			$"song id={songId}; shortname={shortname}: name={name}; artist={((!master) ? "as made famous by " : "")}{artist};",
+			$"song path={songPath}; vocal parts={vocalParts}; vocal gender={((vocalGender) ? "male" : "female")};",
+			$"pans=({string.Join(", ", pans)});",
+			$"vols=({string.Join(", ", vols)});",
+			$"cores=({string.Join(", ", cores)});",
+			$"album art={albumArt}; album name={albumName}; album track number={albumTrackNumber};",
+			$"year released={yearReleased}; year recorded={yearRecorded}",
+			$"song length={songLength}; preview=({preview[0]}, {preview[1]}); game origin={gameOrigin}; genre={genre}; rating={rating};"
+		);
 	}
 
 }
