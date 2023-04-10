@@ -13,64 +13,119 @@ public class SongData
 	// all the possible metadata you could possibly want from a particular songs.dta
 	private string shortname, name, artist, songPath, gameOrigin, genre, albumName;
 	private uint songId, songLength;
-	private ushort yearReleased, yearRecorded;
-	private bool master, albumArt, vocalGender; //vocalGender is true if male, false if female
+	private short tuningOffsetCents;
+	private ushort yearReleased, yearRecorded, vocalTonicNote;
+	// since shorts and bools aren't nullable, use hasWhatever to determine whether or not to include them in-game
+	private bool master, albumArt, hasVocalTonicNote, hasSongTonality, songTonality, vocalGender; //vocalGender is true if male, false if female
 	private byte vocalParts, rating, albumTrackNumber;
-	private uint[] preview;
+	private (uint start, uint end) preview;
 	private float[] pans, vols;
 	private short[] cores, realGuitarTuning, realBassTuning;
 	private Dictionary<string, byte[]> tracks;
 	private Dictionary<string, ushort> ranks;
 
+	private static DataAtom GetDataAtom(DataArray dta, string key){ return (dta.Array(key) == null) ? null : (DataAtom)dta.Array(key)[1]; }
+	private static DataArray GetNestedDataArray(DataArray dta, string key){ return (dta.Array(key) == null) ? null : (DataArray)dta.Array(key)[1]; }
+	private static DataSymbol GetDataSymbol(DataArray dta, string key){ return (DataSymbol)dta.Array(key)[1]; }
+	private static DataArray GetDataDict(DataArray dta, string key){ return dta.Array(key); }
+
+	private static float[] CreateFloatArray(DataArray dta){
+		if(dta == null) return null;
+		float[] res = new float[dta.Count];
+		for(int i = 0; i < dta.Count; i++) res[i] = ((DataAtom)dta[i]).Float;
+		return res;
+	}
+
+	private static short[] CreateShortArray(DataArray dta){
+		if(dta == null) return null;
+		short[] res = new short[dta.Count];
+		for(int i = 0; i < dta.Count; i++) res[i] = (short)((DataAtom)dta[i]).Int;
+		return res;
+	}
+
 	public SongData ParseFromDataArray(DataArray dta){
+		// parse outermost dta non-array values first
+		// TODO: account for when the following dta attributes could be missing:
+		// song_id, song_length, game_origin, rating, album_art, album_name, album_track_number, year_released
 		shortname = dta.Name;
-		name = dta.Array("name")[1].ToString();
-		artist = dta.Array("artist")[1].ToString();
+		name = GetDataAtom(dta, "name").String;
+		artist = GetDataAtom(dta, "artist").String;
 		string master_str = dta.Array("master")[1].ToString();
 		master = (master_str.ToUpper() == "TRUE" || master_str == "1");
-		songId = UInt32.Parse(dta.Array("song_id")[1].ToString());
-		songLength = UInt32.Parse(dta.Array("song_length")[1].ToString());
-		preview = new uint[2] {UInt32.Parse(dta.Array("preview")[1].ToString()), UInt32.Parse(dta.Array("preview")[2].ToString())};
-		gameOrigin = dta.Array("game_origin")[1].ToString();
-		genre = dta.Array("genre")[1].ToString();
-		rating = Byte.Parse(dta.Array("rating")[1].ToString()); 
+		songId = (uint)GetDataAtom(dta, "song_id").Int;
+		songLength = (uint)GetDataAtom(dta, "song_length").Int;
+		preview = ((uint)((DataAtom)dta.Array("preview")[1]).Int, (uint)((DataAtom)dta.Array("preview")[2]).Int);
+		gameOrigin = GetDataSymbol(dta, "game_origin").Name;
+		genre = GetDataSymbol(dta, "genre").Name;
+		rating = (byte)GetDataAtom(dta, "rating").Int;
+		vocalGender = (GetDataSymbol(dta, "vocal_gender").Name == "male");
 		string album_art_str = dta.Array("album_art")[1].ToString();
 		albumArt = (album_art_str.ToUpper() == "TRUE" || album_art_str == "1");
-		albumName = dta.Array("album_name")[1].ToString();
-		albumTrackNumber = Byte.Parse(dta.Array("album_track_number")[1].ToString());
-		yearReleased = UInt16.Parse(dta.Array("year_released")[1].ToString());
-		yearRecorded = (dta.Array("year_recorded") != null) ? UInt16.Parse(dta.Array("year_recorded")[1].ToString()) : yearReleased;
+		albumName = GetDataAtom(dta, "album_name").String;
+		albumTrackNumber = (byte)GetDataAtom(dta, "album_track_number").Int;
+		yearReleased = (ushort)GetDataAtom(dta, "year_released").Int;
 
-		songPath = dta.Array("song").Array("name")[1].ToString();
-		
-		pans = Array.ConvertAll(dta.Array("song").Array("pans")[1].ToString()[1..^1].Split(' '), float.Parse);
-		vols = Array.ConvertAll(dta.Array("song").Array("vols")[1].ToString()[1..^1].Split(' '), float.Parse);
-		cores = Array.ConvertAll(dta.Array("song").Array("cores")[1].ToString()[1..^1].Split(' '), short.Parse);
-
-		vocalGender = (dta.Array("vocal_gender")[1].ToString() == "male");
-
-		//mogg tracks
-		DataArray trackArray = dta.Array("song").Array("tracks").Array("");
-		tracks = new Dictionary<string, byte[]>();
-		for(int a = 0; a < trackArray.Count; a++){
-			string instr_key = trackArray[a].ToString().Split(' ')[0].Substring(1);
-			tracks.Add(instr_key, Array.ConvertAll(trackArray.Array(instr_key)[1].ToString().Replace("(","").Replace(")","").Split(' '), byte.Parse));
-		}
-
-		//instrument ranks
-		DataArray rankArray = dta.Array("rank");
+		//get instrument ranks
+		DataArray rankArray = GetDataDict(dta, "rank");
 		ranks = new Dictionary<string, ushort>();
-		for(int i = 1; i < rankArray.Count; i++){
-			string instr_key = rankArray[i].ToString().Split(' ')[0].Substring(1);
-			ranks.Add(instr_key, UInt16.Parse(rankArray.Array(instr_key)[1].ToString()));
+		for(int j = 0; j < rankArray.Count; j++)
+			if(rankArray[j] is DataArray inner)
+				ranks.Add(((DataSymbol)inner[0]).Name, (ushort)((DataAtom)inner[1]).Int);
+
+		// get (song ) attributes (name, tracks, pans/vols/cores, etc)
+		DataArray songArray = GetDataDict(dta, "song");
+		songPath = GetDataSymbol(songArray, "name").Name;
+		pans = CreateFloatArray(GetNestedDataArray(songArray, "pans"));
+		vols = CreateFloatArray(GetNestedDataArray(songArray, "vols"));
+		cores = CreateShortArray(GetNestedDataArray(songArray, "cores"));
+
+		DataArray trackArray = GetDataDict(GetDataDict(songArray, "tracks"), ""); 
+		tracks = new Dictionary<string, byte[]>();
+		for(int b = 0; b < trackArray.Count; b++){
+			if(trackArray[b] is DataArray inner){
+				string key = "";
+				byte[] val = null;
+				for(int c = 0; c < inner.Count; c++){
+					if(inner[c] is DataSymbol innerSymbol)
+						key = innerSymbol.Name;
+					else if(inner[c] is DataArray innerInner){
+						val = new byte[innerInner.Count];
+						for(int d = 0; d < innerInner.Count; d++)
+							if(innerInner[d] is DataAtom innerInnerAtom)
+								val[d] = (byte)innerInnerAtom.Int;
+					}
+					else if(inner[c] is DataAtom innerAtom)
+						val = new byte[] { (byte)innerAtom.Int };
+				}
+				if(val.Length > 0) tracks.Add(key, val);
+			}
 		}
 
+		// vocal parts
 		if(!ranks.ContainsKey("vocals") || ranks["vocals"] == 0) vocalParts = 0;
-		else vocalParts = (dta.Array("song").Array("vocal_parts") != null) ? Byte.Parse(dta.Array("song").Array("vocal_parts")[1].ToString()) : (byte)1;
+		else{
+			DataAtom vocPartsAtom = GetDataAtom(songArray, "vocal_parts");
+			vocalParts = (vocPartsAtom != null) ? (byte)vocPartsAtom.Int : (byte)1;
+		}
 
-		//real guitar and bass tunings
-		if(dta.Array("real_guitar_tuning") != null) realGuitarTuning = Array.ConvertAll(dta.Array("real_guitar_tuning")[1].ToString()[1..^1].Split(' '), short.Parse);
-		if(dta.Array("real_bass_tuning") != null) realBassTuning = Array.ConvertAll(dta.Array("real_bass_tuning")[1].ToString()[1..^1].Split(' '), short.Parse);
+		// year_recorded, real_guitar_tuning, real_bass_tuning, vocal_tonic_note, song_tonality, and tuning_offset_cents
+		// ARE currently accounted for regarding possibly being missing
+		DataAtom yearRecordedAtom = GetDataAtom(dta, "year_recorded");
+		yearRecorded = (yearRecordedAtom != null) ? (ushort)yearRecordedAtom.Int : yearReleased;
+
+		DataAtom vocalTonicNoteAtom = GetDataAtom(dta, "vocal_tonic_note");
+		hasVocalTonicNote = (vocalTonicNoteAtom != null);
+		if(hasVocalTonicNote) vocalTonicNote = (ushort)vocalTonicNoteAtom.Int;
+
+		DataAtom songTonalityAtom = GetDataAtom(dta, "song_tonality");
+		hasSongTonality = (songTonalityAtom != null);
+		if(hasSongTonality) songTonality = (songTonalityAtom.Int == 1);
+
+		DataAtom tuningOffsetAtom = GetDataAtom(dta, "tuning_offset_cents");
+		tuningOffsetCents = (tuningOffsetAtom != null) ? (short)tuningOffsetAtom.Int : (short)0;
+		
+		realGuitarTuning = CreateShortArray(GetNestedDataArray(dta, "real_guitar_tuning"));
+		realBassTuning = CreateShortArray(GetNestedDataArray(dta, "real_bass_tuning"));
 
 		return this;
 	}
@@ -89,7 +144,10 @@ public class SongData
 			$"ranks={string.Join(", ", ranks)}",
 			$"album art={albumArt}; album name={albumName}; album track number={albumTrackNumber}",
 			$"year released={yearReleased}; year recorded={yearRecorded}",
-			$"song length={songLength}; preview=({preview[0]}, {preview[1]}); game origin={gameOrigin}; genre={genre}; rating={rating}",
+			$"song length={songLength}; preview={preview}; game origin={gameOrigin}; genre={genre}; rating={rating}",
+			$"vocal tonic note={hasVocalTonicNote} {((hasVocalTonicNote) ? (vocalTonicNote) : "")}",
+			$"song tonality={hasSongTonality} {((hasSongTonality) ? (songTonality) : "")}",
+			$"tuning offset cents={tuningOffsetCents}",
 			$"real guitar tuning=({((realGuitarTuning != null) ? string.Join(", ", realGuitarTuning) : "")})",
 			$"real bass tuning=({((realBassTuning != null) ? string.Join(", ", realBassTuning) : "")})"
 		);
