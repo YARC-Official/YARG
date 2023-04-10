@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace YARG.Data {
 	public class NoteInfo : AbstractInfo {
@@ -35,11 +36,8 @@ namespace YARG.Data {
 		public double MaxSustainPoints(List<float> beats) {
 			int beatIndex = 1;
 			// set beatIndex to first relevant beat
-			for (int i = beatIndex; i < beats.Count; ++i) {
-				if (beats[i] > time) {
-					beatIndex = i;
-					break;
-				}
+			while (beatIndex < beats.Count && beats[beatIndex] <= time) {
+				++beatIndex;
 			}
 
 			double points = 0;
@@ -47,11 +45,11 @@ namespace YARG.Data {
 			for (; beatIndex < beats.Count && beats[beatIndex] <= EndTime; ++beatIndex) {
 				var curBPS = 1/(beats[beatIndex] - beats[beatIndex - 1]);
 				// Unit math: pt/b * s * b/s = pt
-				points += 12.0 * (beats[beatIndex] - time) * curBPS;
+				points += 12.0 * (beats[beatIndex] - Mathf.Max(beats[beatIndex - 1], time)) * curBPS;
 			}
 
 			// calculate final segment where EndTime is between two beats (beatIndex-1 and beatIndex)
-			if (beatIndex > EndTime) {
+			if (beats[beatIndex-1] < EndTime && EndTime < beats[beatIndex]) {
 				var curBPS = 1/(beats[beatIndex] - beats[beatIndex - 1]);
 				points += 12.0 * (EndTime - beats[beatIndex - 1]) * curBPS;
 			}
