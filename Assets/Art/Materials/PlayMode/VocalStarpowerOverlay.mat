@@ -46,7 +46,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: d461cc368b0418746b2e20617f5d0924, type: 3}
+        m_Texture: {fileID: 2800000, guid: a08fbba5f4727a14296b10e7406c5f6a, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Mask:
@@ -83,6 +83,9 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - AlphaMultiplier: 0.45
+    - Scale: 3
+    - ScrollSpeed: 1
     - _AlphaClip: 0
     - _AlphaMultiplier: 0.25
     - _Blend: 0
