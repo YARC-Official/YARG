@@ -20,7 +20,7 @@ namespace YARG.Pools {
 		}
 
 		private void Update() {
-			//meshRenderer.enabled = MicPlayer.Instance.StarpowerReady;
+			meshRenderer.enabled = MicPlayer.Instance.StarpowerReady;
 
 			transform.localPosition -= new Vector3(Time.deltaTime * MicPlayer.TRACK_SPEED, 0f, 0f);
 
