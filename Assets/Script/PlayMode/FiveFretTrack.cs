@@ -140,6 +140,11 @@ namespace YARG.PlayMode {
 					heldNotes.RemoveAt(i);
 					frets[heldNote.fret].StopSustainParticles();
 				}
+				else {
+					// TODO: consider tempo (12 points per [beat])
+					// TODO: compensate for when player began strumming (earlier start should NOT be rewarded)
+					scoreKeeper.AddScore(12 * Multiplier * Time.deltaTime);
+				}
 			}
 
 			UpdateInput();
@@ -207,6 +212,8 @@ namespace YARG.PlayMode {
 
 				// Add stats
 				notesHit++;
+
+				this.scoreKeeper.AddScore(25 * Multiplier);
 			}
 
 			// If this is a tap note, and it was hit without strumming,
