@@ -30,6 +30,7 @@ namespace YARG.PlayMode {
 		private Queue<List<NoteInfo>> expectedHits = new();
 		private List<List<NoteInfo>> allowedOverstrums = new();
 		private List<NoteInfo> heldNotes = new();
+		private Dictionary<NoteInfo, float> sustainMaxPts = new();
 
 		private int notesHit = 0;
 
@@ -58,6 +59,13 @@ namespace YARG.PlayMode {
 				frets[i] = fret;
 			}
 			openNoteParticles.Colorize(fretColors[5]);
+
+			string result = "List contents: ";
+			foreach (var item in Play.Instance.chart.beats)
+			{
+				result += item.ToString() + ", ";
+			}
+			Debug.Log(result);
 		}
 
 		protected override void OnDestroy() {
@@ -248,6 +256,7 @@ namespace YARG.PlayMode {
 				if (hit.length > 0.2f) {
 					heldNotes.Add(hit);
 					frets[hit.fret].PlaySustainParticles();
+					Debug.Log(hit.MaxSustainPoints(Play.Instance.chart.beats));
 				}
 
 				// Add stats
