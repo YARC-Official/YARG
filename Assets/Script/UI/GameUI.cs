@@ -19,7 +19,7 @@ namespace YARG.UI {
 		[SerializeField]
 		private TextMeshProUGUI loadingText;
 		[SerializeField]
-		private TextMeshProUGUI scoreText; // TODO: adopt with new ScoreBox texture
+		private TextMeshProUGUI scoreText; // TODO: adapt with new ScoreBox texture
 
 		public GameObject loadingContainer;
 		public GameObject pauseMenu;
