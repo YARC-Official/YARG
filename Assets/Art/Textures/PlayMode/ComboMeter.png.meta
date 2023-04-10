@@ -20,12 +20,11 @@ TextureImporter:
     externalNormalMap: 0
     heightScale: 0.25
     normalMapFilter: 0
-    flipGreenChannel: 0
   isReadable: 0
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
   vTOnly: 0
-  ignoreMipmapLimit: 0
+  ignoreMasterTextureLimit: 0
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -64,7 +63,6 @@ TextureImporter:
   textureFormatSet: 0
   ignorePngGamma: 0
   applyGammaDecoding: 0
-  swizzle: 50462976
   cookieLightType: 0
   platformSettings:
   - serializedVersion: 3
@@ -72,7 +70,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 2
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -348,19 +346,20 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      ComboMeter_1: 98689357
-      ComboMeter_2: -452602709
-      ComboMeter_7: -2131981441
-      ComboMeter_6: -1954014486
-      ComboMeter_9: 1108834166
-      ComboMeter_5: -1074423188
       ComboMeter_0: 199982365
-      ComboMeter_8: 1989258155
+      ComboMeter_1: 98689357
       ComboMeter_10: 21466756
+      ComboMeter_2: -452602709
       ComboMeter_3: -664058448
       ComboMeter_4: 1444893875
-  mipmapLimitGroupName: 
+      ComboMeter_5: -1074423188
+      ComboMeter_6: -1954014486
+      ComboMeter_7: -2131981441
+      ComboMeter_8: 1989258155
+      ComboMeter_9: 1108834166
+  spritePackingTag: 
   pSDRemoveMatte: 0
+  pSDShowRemoveMatteOption: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 
