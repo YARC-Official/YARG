@@ -32,6 +32,9 @@ namespace YARG.PlayMode {
 		private List<NoteInfo> heldNotes = new();
 
 		private int notesHit = 0;
+		private float latestInput = -1;
+		private bool latestInputIsStrum = false;
+		private const bool INFINITE_FRONTEND = false;
 
 		protected override void StartTrack() {
 			notePool.player = player;
@@ -175,8 +178,10 @@ namespace YARG.PlayMode {
 			}
 
 			// If the note is a HOPOm the player did not strum, and the HOPO can't be hit, nothing happened. 
-			if (chord[0].hopo && !strummed && Combo <= 0) {
-				return;
+			if (chord[0].hopo && !strummed) {
+				if (Combo <= 0) return;
+				// If infinite front-end window is disabled and the latest input is outside of the timing window, nothing happened.
+				if (!INFINITE_FRONTEND && Play.Instance.SongTime - latestInput > Play.HIT_MARGIN) return;
 			}
 
 			// If strumming to recover combo, skip to first valid note within the timing window.
@@ -222,8 +227,15 @@ namespace YARG.PlayMode {
 
 				return;
 			}
-
-			// If so, hit!
+			
+			// Avoid multi-hits
+			if (chord[0].hopo) {
+				if (latestInput == -1) return; // If latest input is cleared, it was already used
+				if (latestInputIsStrum) latestInputIsStrum = false; // Allow 1 multi-hit if latest note was strummed (for charts like Zoidberg the Cowboy by schmutz06)
+				else latestInput = -1; // Input is valid; clear it to avoid multi-hit later
+			}
+			
+			// If correct chord is pressed, and is not a multi-hit, hit it!
 			expectedHits.Dequeue();
 
 			Combo++;
@@ -372,6 +384,8 @@ namespace YARG.PlayMode {
 		}
 
 		private void FretChangedAction(bool pressed, int fret) {
+			latestInput = Play.Instance.SongTime;
+			latestInputIsStrum = false;
 			frets[fret].SetPressed(pressed);
 
 			if (!pressed) {
@@ -405,6 +419,8 @@ namespace YARG.PlayMode {
 		}
 
 		private void StrumAction() {
+			latestInput = Play.Instance.SongTime;
+			latestInputIsStrum = true;
 			strummed = true;
 		}
 
