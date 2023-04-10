@@ -52,6 +52,18 @@ Windows:
 13. Finally, click on "QUICK PLAY". YARG will cache all of the files into a `yarg_cache.json` file in the folder you chose. Doing this may take a while depending on the amount of songs you have. If you ever add more songs, **be sure** to go to "SETTINGS" and then click on "Refresh Cache". This will add the new songs into "QUICK PLAY".
 14. Have fun!
 
+# 🔨 Building
+
+1. Clone repository.
+2. Open it in Unity version `2021.3.21f1` (LTS)
+3. Load in **without** entering safe mode.
+4. Click on `NuGet` on the menu bar.
+5. Click on `Restore Packages`.
+
+# ✍️ Contributing
+
+If you want to contribute, please feel free! Please read [this](../master/CONTRIBUTING.md) first.
+
 # 🛡️ License
 
 YARG is licensed under the MIT License - see the [`LICENSE`](../master/LICENSE) file for details.
@@ -96,14 +108,6 @@ Please note that other libraries are **not** packaged within the source code, an
 | [Concentus](https://www.nuget.org/packages/Concentus) | Library | Using `.opus` files
 | [Concentus.OggFile](https://github.com/lostromb/concentus.oggfile/tree/master) | Library | Reading `.opus` Files
 | [Discord GameSDK](https://discord.com/developers/docs/game-sdk/sdk-starter-guide) | Library | Discord Rich Presence
-
-# 🔨 Building
-
-1. Clone repository.
-2. Open it in Unity version `2021.3.21f1` (LTS)
-3. Load in **without** entering safe mode.
-4. Click on `NuGet` on the menu bar.
-5. Click on `Restore Packages`.
 
 # 💸 Donate
 
