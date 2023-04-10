@@ -141,9 +141,9 @@ namespace YARG.PlayMode {
 					frets[heldNote.fret].StopSustainParticles();
 				}
 				else {
-					// TODO: consider tempo (12 points per [beat])
-					// TODO: compensate for when player began strumming (earlier start should NOT be rewarded)
-					scoreKeeper.AddScore(12 * Multiplier * Time.deltaTime);
+					// TODO: compensate for when player began strumming (don't reward early strum, don't punish late strum)
+					// TODO: calculate max sustain score, cap achievable score to that (addresses early strum)
+					scoreKeeper.AddScore(Time.deltaTime * Play.Instance.curSecondsPerBeat * 12 * Multiplier);
 				}
 			}
 
