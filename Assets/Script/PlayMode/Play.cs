@@ -61,6 +61,8 @@ namespace YARG.PlayMode {
 		private int lyricIndex = 0;
 		private int lyricPhraseIndex = 0;
 
+		public ScoreKeeper scoreKeeper;
+
 		private bool _paused = false;
 		public bool Paused {
 			get => _paused;
@@ -95,6 +97,7 @@ namespace YARG.PlayMode {
 			// Song
 
 			StartCoroutine(StartSong());
+			scoreKeeper = new();
 		}
 
 		private IEnumerator StartSong() {
