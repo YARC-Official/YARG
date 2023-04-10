@@ -4,17 +4,13 @@ using System.Linq;
 using UnityEngine;
 
 // Score keeping for each track
-public class ScoreKeeper
-{
+public class ScoreKeeper {
     // keep track of all instances to calculate the band total
 	public static HashSet<ScoreKeeper> instances = new();
-    public static double ScoreFromAll
-    {
-        get
-        {
+    public static double ScoreFromAll {
+        get {
 			double sum = 0;
-            foreach (var ins in instances)
-            {
+            foreach (var ins in instances) {
 				sum += ins.Score;
 			}
 			return sum;
@@ -23,18 +19,15 @@ public class ScoreKeeper
 
 	public double Score { get; private set; } = 0;
 
-	public void AddScore(double points)
-    {
+	public void Add(double points) {
         Score += points;
 	}
 
-    public ScoreKeeper()
-    {
+    public ScoreKeeper() {
 		instances.Add(this);
 	}
 
-    public void Destroy()
-    {
+    public void Destroy() {
         instances.Remove(this);
     }
 }

@@ -143,7 +143,8 @@ namespace YARG.PlayMode {
 				else {
 					// TODO: compensate for when player began strumming (don't reward early strum, don't punish late strum)
 					// TODO: calculate max sustain score, cap achievable score to that (addresses early strum)
-					scoreKeeper.AddScore(Time.deltaTime * Play.Instance.curSecondsPerBeat * 12 * Multiplier);
+					double toAdd = Time.deltaTime * Play.Instance.beatPerSecond * 12 * Multiplier;
+					scoreKeeper.Add(toAdd);
 				}
 			}
 
@@ -213,7 +214,7 @@ namespace YARG.PlayMode {
 				// Add stats
 				notesHit++;
 
-				this.scoreKeeper.AddScore(25 * Multiplier);
+				this.scoreKeeper.Add(25 * Multiplier);
 			}
 
 			// If this is a tap note, and it was hit without strumming,
