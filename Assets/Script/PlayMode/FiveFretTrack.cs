@@ -172,6 +172,38 @@ namespace YARG.PlayMode {
 				return;
 			} else if (chord[0].hopo && Combo <= 0 && !strummed) {
 				return;
+			} else if (/*Combo <= 0 && */strummed && !ChordPressed(chord)) { // If strumming to recover combo, skip to first valid note within the timing window
+				UpdateOverstrums(true);
+				var ignore_overstrum = false;
+				for (int i = 0; i < allowedOverstrums.Count; i++) { // Ensure allowed overstrums won't break combos
+					if (ChordPressed(allowedOverstrums[i])) {
+						ignore_overstrum = true;
+						break;
+					}
+				}
+				if (!ignore_overstrum) {
+					var found = false;
+					foreach (List<NoteInfo> new_chord in expectedHits) {
+						if (Play.Instance.SongTime - new_chord[0].time > Play.HIT_MARGIN) { // Stop looking if note's not within the timing window
+							break;
+						}
+						if (ChordPressed(new_chord)) { // Stop looking if a valid note to strum was found
+							found = true;
+							chord = new_chord;
+							break;
+						}
+					}
+					if (found) {
+						// Miss all notes previous to the strummed note
+						while (expectedHits.Peek() != chord) {
+							var missedChord = expectedHits.Dequeue();
+							foreach (var hit in missedChord) {
+								notePool.MissNote(hit);
+							}
+						}
+						Combo = 0; // Reset the combo (it will be added to later on)
+					}
+				}
 			}
 
 			// Check if correct chord is pressed
@@ -220,7 +252,7 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		private void UpdateOverstrums() {
+		private void UpdateOverstrums(bool remove_outdated_only = false) {
 			// Remove all old allowed overstrums
 			while (allowedOverstrums.Count > 0
 				&& Play.Instance.SongTime - allowedOverstrums[0][0].time > Play.HIT_MARGIN) {
@@ -229,7 +261,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Don't do anything else if we didn't strum
-			if (!strummed) {
+			if (!strummed || remove_outdated_only) {
 				return;
 			}
 
