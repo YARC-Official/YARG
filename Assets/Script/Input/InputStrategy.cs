@@ -114,6 +114,7 @@ namespace YARG.Input {
 		/// </summary>
 		/// <param name="chart">A reference to the current chart.</param>
 		/// <param name="songTime">The song time in seconds.</param>
+		/// <param name="chosenInstrument">The instrument that the bot is playing.</param>
 		public abstract void UpdateBotMode(object chart, float songTime);
 
 		/// <summary>

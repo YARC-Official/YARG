@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
+using UnityEngine;
 using YARG.Data;
 
 namespace YARG.Serialization.Parser {
@@ -13,6 +14,11 @@ namespace YARG.Serialization.Parser {
 			NO_GREEN
 		}
 
+		private enum DrumFlags {
+			NONE,
+			DISCO_FLIP
+		}
+
 		private struct CymbalStateIR {
 			public float start;
 			public float end;
@@ -20,14 +26,23 @@ namespace YARG.Serialization.Parser {
 			public CymbalState cymbalState;
 		}
 
-		private List<NoteInfo> ParseDrums(TrackChunk trackChunk, int difficulty, SongInfo.DrumType drumType, List<NoteInfo> ghEquivalent) {
+		private struct DrumFlagIR {
+			public float start;
+
+			public DrumFlags drumFlags;
+		}
+
+		private List<NoteInfo> ParseDrums(TrackChunk trackChunk, bool pro, int difficulty, SongInfo.DrumType drumType, List<NoteInfo> ghEquivalent) {
 			var tempoMap = midi.GetTempoMap();
 
 			if (drumType == SongInfo.DrumType.FOUR_LANE) {
-				var cymbalStateIR = DrumCymbalStatePass(trackChunk, tempoMap);
-
 				var notes = DrumNotePass(trackChunk, difficulty, tempoMap);
-				DrumNoteStatePass(notes, cymbalStateIR);
+
+				if (pro) {
+					var cymbalStateIR = DrumCymbalStatePass(trackChunk, tempoMap);
+					var flagIR = DrumFlagPass(trackChunk, difficulty, tempoMap);
+					DrumNoteStatePass(notes, cymbalStateIR, flagIR);
+				}
 
 				return notes;
 			} else {
@@ -44,7 +59,7 @@ namespace YARG.Serialization.Parser {
 			// we must store the ON events and wait until the
 			// OFF event to actually add the state. This stores
 			// the ON event timings.
-			long?[] forceStateArray = new long?[3];
+			long?[] cymbalStateArray = new long?[3];
 
 			// Convert track events into intermediate representation
 			foreach (var trackEvent in trackChunk.Events) {
@@ -80,24 +95,102 @@ namespace YARG.Serialization.Parser {
 					if (noteEvent is NoteOnEvent) {
 						// If it is a note on, wait until we get the note
 						// off so we can get the length of the note.
-						forceStateArray[i] = totalDelta;
+						cymbalStateArray[i] = totalDelta;
 					} else if (noteEvent is NoteOffEvent) {
-						if (forceStateArray[i] == null) {
+						if (cymbalStateArray[i] == null) {
 							continue;
 						}
 
 						cymbalIR.Add(new CymbalStateIR {
-							start = (float) TimeConverter.ConvertTo<MetricTimeSpan>(forceStateArray[i].Value, tempoMap).TotalSeconds,
+							start = (float) TimeConverter.ConvertTo<MetricTimeSpan>(cymbalStateArray[i].Value, tempoMap).TotalSeconds,
 							end = (float) TimeConverter.ConvertTo<MetricTimeSpan>(totalDelta, tempoMap).TotalSeconds,
 							cymbalState = cymbalState
 						});
 
-						forceStateArray[i] = null;
+						cymbalStateArray[i] = null;
 					}
 				}
 			}
 
 			return cymbalIR;
+		}
+
+		private List<DrumFlagIR> DrumFlagPass(TrackChunk trackChunk, int difficulty, TempoMap tempoMap) {
+			// Standardized here: https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/.mid/Standard/Drums.md#important-text-events
+
+			long totalDelta = 0;
+
+			var flagIR = new List<DrumFlagIR>();
+
+			// Expert+ is just Expert with double-kick (we don't really care about that here)
+			if (difficulty == (int) Difficulty.EXPERT_PLUS) {
+				difficulty = (int) Difficulty.EXPERT;
+			}
+
+			// Convert track events into intermediate representation
+			foreach (var trackEvent in trackChunk.Events) {
+				totalDelta += trackEvent.DeltaTime;
+
+				// Drum state changes are stored in text events
+				if (trackEvent is BaseTextEvent textEvent) {
+
+					// Split the text into sections
+					string[] split = textEvent.Text.Split(' ');
+
+					// Check if it is a mix flag
+					if (split[0] != "[mix") {
+						continue;
+					}
+
+					// Next split should be an integer indicating difficulty
+					int readDifficulty;
+					try {
+						readDifficulty = int.Parse(split[1]);
+					} catch {
+						continue;
+					}
+
+					// Check difficulty
+					if (readDifficulty != difficulty) {
+						continue;
+					}
+
+					// Next split is the config + ]
+					string config = split[2][..^1];
+
+					// First five letters should be "drums"
+					if (!config.StartsWith("drums")) {
+						continue;
+					}
+					config = config[5..];
+
+					// Next letter should be the mix flag (we don't care about this right now)
+					// int mix = 0;
+					try {
+						/*mix = */
+						int.Parse(config[0].ToString());
+					} catch {
+						continue;
+					}
+					config = config[1..];
+
+					// Last part should be the flag
+					float startTime = (float) TimeConverter.ConvertTo<MetricTimeSpan>(totalDelta, tempoMap).TotalSeconds;
+					if (config == "") {
+						flagIR.Add(new DrumFlagIR {
+							start = startTime,
+							drumFlags = DrumFlags.NONE
+						});
+					} else if (config == "d") {
+						flagIR.Add(new DrumFlagIR {
+							start = startTime,
+							drumFlags = DrumFlags.DISCO_FLIP
+						});
+					}
+				}
+			}
+
+			return flagIR;
 		}
 
 		private List<NoteInfo> DrumNotePass(TrackChunk trackChunk, int difficulty, TempoMap tempoMap) {
@@ -109,7 +202,7 @@ namespace YARG.Serialization.Parser {
 			bool doubleKick = false;
 			if (difficulty == (int) Difficulty.EXPERT_PLUS) {
 				doubleKick = true;
-				difficulty--;
+				difficulty = (int) Difficulty.EXPERT;
 			}
 
 			// Convert track events into note info
@@ -173,28 +266,56 @@ namespace YARG.Serialization.Parser {
 			return noteOutput;
 		}
 
-		private void DrumNoteStatePass(List<NoteInfo> noteIR, List<CymbalStateIR> cymbalStateIR) {
+		private void DrumNoteStatePass(List<NoteInfo> noteIR, List<CymbalStateIR> cymbalStateIR, List<DrumFlagIR> drumFlagIR) {
 			foreach (var note in noteIR) {
-				// Only the toms
-				if (note.fret != 1 && note.fret != 2 && note.fret != 3) {
-					continue;
-				}
+				// Disco flip
+				if (note.fret == 0 || note.fret == 1) {
+					// See if we are in any disco flip ranges
+					bool isDisco = false;
+					foreach (var flagIR in drumFlagIR) {
+						// If the flag is after the note, we are done
+						if (flagIR.start > note.time) {
+							break;
+						}
 
-				// See if we are in any tom force ranges
-				bool isTom = false;
-				foreach (var cymbalIR in cymbalStateIR) {
-					if (cymbalIR.cymbalState != (CymbalState) note.fret) {
-						continue;
+						// Go through everything and keep track of the state
+						if (flagIR.drumFlags == DrumFlags.DISCO_FLIP) {
+							isDisco = true;
+						} else if (flagIR.drumFlags == DrumFlags.NONE) {
+							isDisco = false;
+						}
 					}
 
-					if (note.time >= cymbalIR.start && note.time < cymbalIR.end) {
-						isTom = true;
-						break;
+					// Flip! (remeber that this only gets called in pro mode)
+					if (isDisco) {
+						if (note.fret == 1) {
+							// Red drum can't be a cymbal!
+							note.fret = 0;
+							note.hopo = false;
+						} else {
+							note.fret = 1;
+						}
 					}
 				}
 
-				// Set as tom
-				note.hopo = !isTom;
+				// Cymbal state (only the toms)
+				if (note.fret == 1 || note.fret == 2 || note.fret == 3) {
+					// See if we are in any tom force ranges
+					bool isTom = false;
+					foreach (var cymbalIR in cymbalStateIR) {
+						if (cymbalIR.cymbalState != (CymbalState) note.fret) {
+							continue;
+						}
+
+						if (note.time >= cymbalIR.start && note.time < cymbalIR.end) {
+							isTom = true;
+							break;
+						}
+					}
+
+					// Set as tom
+					note.hopo = !isTom;
+				}
 			}
 		}
 

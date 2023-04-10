@@ -134,13 +134,17 @@ namespace YARG.Serialization.Parser {
 
 								if (drumType == SongInfo.DrumType.FOUR_LANE) {
 									for (int i = 0; i < 5; i++) {
-										chart.drums[i] = ParseDrums(trackChunk, i, drumType, null);
-										chart.ghDrums[i] = ParseGHDrums(trackChunk, i, drumType, chart.drums[i]);
+										chart.drums[i] = ParseDrums(trackChunk, false, i, drumType, null);
+										chart.realDrums[i] = ParseDrums(trackChunk, true, i, drumType, null);
+
+										chart.ghDrums[i] = ParseGHDrums(trackChunk, i, drumType, chart.realDrums[i]);
 									}
 								} else {
 									for (int i = 0; i < 5; i++) {
 										chart.ghDrums[i] = ParseGHDrums(trackChunk, i, drumType, null);
-										chart.drums[i] = ParseDrums(trackChunk, i, drumType, chart.ghDrums[i]);
+
+										chart.drums[i] = ParseDrums(trackChunk, false, i, drumType, chart.ghDrums[i]);
+										chart.realDrums[i] = ParseDrums(trackChunk, true, i, drumType, chart.ghDrums[i]);
 									}
 								}
 
