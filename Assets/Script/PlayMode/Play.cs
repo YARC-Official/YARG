@@ -61,6 +61,11 @@ namespace YARG.PlayMode {
 		private int lyricIndex = 0;
 		private int lyricPhraseIndex = 0;
 
+		// for sustain score calculation
+		public float beatPerSecond { get; private set; } = 0f;
+
+		public ScoreKeeper scoreKeeper;
+
 		private bool _paused = false;
 		public bool Paused {
 			get => _paused;
@@ -95,6 +100,7 @@ namespace YARG.PlayMode {
 			// Song
 
 			StartCoroutine(StartSong());
+			scoreKeeper = new();
 		}
 
 		private IEnumerator StartSong() {
@@ -272,6 +278,7 @@ namespace YARG.PlayMode {
 			while (chart.beats.Count > beatIndex && chart.beats[beatIndex] <= SongTime) {
 				BeatEvent?.Invoke();
 				beatIndex++;
+				beatPerSecond = 1/(chart.beats[beatIndex] - chart.beats[beatIndex - 1]);
 			}
 
 			// Update lyrics

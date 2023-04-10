@@ -139,6 +139,11 @@ namespace YARG.PlayMode {
 				if (heldNote.time + heldNote.length <= Play.Instance.SongTime) {
 					heldNotes.RemoveAt(i);
 					frets[heldNote.fret].StopSustainParticles();
+				} else {
+					// TODO: compensate for when player began strumming (don't reward early strum, don't punish late strum)
+					// TODO: calculate max sustain score, cap achievable score to that (addresses early strum)
+					double toAdd = Time.deltaTime * Play.Instance.beatPerSecond * 12 * Multiplier;
+					scoreKeeper.Add(toAdd);
 				}
 			}
 
@@ -247,6 +252,7 @@ namespace YARG.PlayMode {
 
 				// Add stats
 				notesHit++;
+				this.scoreKeeper.Add(25 * Multiplier);
 			}
 
 			// If this is a tap note, and it was hit without strumming,

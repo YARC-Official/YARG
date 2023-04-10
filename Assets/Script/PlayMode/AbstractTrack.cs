@@ -65,6 +65,8 @@ namespace YARG.PlayMode {
 		protected int MaxMultiplier => (player.chosenInstrument == "bass" ? 6 : 4) * (starpowerActive ? 2 : 1);
 		protected int Multiplier => Mathf.Min((Combo / 10 + 1) * (starpowerActive ? 2 : 1), MaxMultiplier);
 
+		protected ScoreKeeper scoreKeeper;
+
 		private bool _stopAudio = false;
 		protected bool StopAudio {
 			set {
@@ -123,6 +125,8 @@ namespace YARG.PlayMode {
 			hitWindow.localScale = new(scale.x, Play.HIT_MARGIN * player.trackSpeed * 2f, scale.z);
 			hitWindow.gameObject.SetActive(SettingsManager.GetSettingValue<bool>("showHitWindow"));
 
+			scoreKeeper = new();
+
 			StartTrack();
 		}
 
@@ -135,6 +139,9 @@ namespace YARG.PlayMode {
 			player.inputStrategy.StarpowerEvent -= StarpowerAction;
 			player.inputStrategy.PauseEvent -= PauseAction;
 			Play.BeatEvent -= BeatAction;
+
+			scoreKeeper.Destroy();
+			scoreKeeper = null;
 		}
 
 		private void Update() {
