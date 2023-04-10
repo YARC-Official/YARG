@@ -142,7 +142,7 @@ namespace YARG.PlayMode {
 				} else {
 					// TODO: compensate for when player began strumming (don't reward early strum, don't punish late strum)
 					// TODO: calculate max sustain score, cap achievable score to that (addresses early strum)
-					double toAdd = Time.deltaTime * Play.Instance.beatPerSecond * 12 * Multiplier;
+					double toAdd = Time.deltaTime * Play.Instance.curBeatPerSecond * 12 * Multiplier;
 					scoreKeeper.Add(toAdd);
 				}
 			}
