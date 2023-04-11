@@ -54,9 +54,9 @@ MonoBehaviour:
   hopoGroup: {fileID: 5887489561296935717}
   fullGroup: {fileID: 4634473573192609450}
   meshRenderers:
-  - {fileID: 8825389068789430399}
+  - {fileID: 5178476710881967622}
   - {fileID: 8159549753465907547}
-  - {fileID: 7595538323194125592}
+  - {fileID: 6111231194153982817}
   fretNumber: {fileID: 0}
   lineRenderer: {fileID: 5864461325193466425}
 --- !u!1 &1397812567785855241
@@ -392,15 +392,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 58b061f4b5d24754d8d19581afb9944d, type: 3}
---- !u!4 &7497807602972849874 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 7137662299531785058, guid: 58b061f4b5d24754d8d19581afb9944d,
+--- !u!23 &5178476710881967622 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 5538907888990419894, guid: 58b061f4b5d24754d8d19581afb9944d,
     type: 3}
   m_PrefabInstance: {fileID: 793621176426513840}
   m_PrefabAsset: {fileID: 0}
---- !u!23 &8825389068789430399 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 8176732453779439055, guid: 58b061f4b5d24754d8d19581afb9944d,
+--- !u!4 &7497807602972849874 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7137662299531785058, guid: 58b061f4b5d24754d8d19581afb9944d,
     type: 3}
   m_PrefabInstance: {fileID: 793621176426513840}
   m_PrefabAsset: {fileID: 0}
@@ -473,9 +473,9 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 58b061f4b5d24754d8d19581afb9944d, type: 3}
---- !u!23 &7595538323194125592 stripped
+--- !u!23 &6111231194153982817 stripped
 MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 8176732453779439055, guid: 58b061f4b5d24754d8d19581afb9944d,
+  m_CorrespondingSourceObject: {fileID: 5538907888990419894, guid: 58b061f4b5d24754d8d19581afb9944d,
     type: 3}
   m_PrefabInstance: {fileID: 1734258610796781783}
   m_PrefabAsset: {fileID: 0}
