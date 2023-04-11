@@ -29,10 +29,6 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private ParticleGroup kickNoteParticles;
 
-		private int visualChartIndex = 0;
-		private int realChartIndex = 0;
-		private int eventChartIndex = 0;
-
 		private Queue<List<NoteInfo>> expectedHits = new();
 
 		private int notesHit = 0;
@@ -175,6 +171,7 @@ namespace YARG.PlayMode {
 				// Call miss for each component
 				Combo = 0;
 				foreach (var hit in missedChord) {
+					currentChartIndex++;
 					notePool.MissNote(hit);
 					StopAudio = true;
 				}
@@ -237,6 +234,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Hit note
+			currentChartIndex++;
 			notePool.HitNote(hit);
 			StopAudio = false;
 
