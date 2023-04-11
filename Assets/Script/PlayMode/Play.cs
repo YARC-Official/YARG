@@ -24,6 +24,7 @@ namespace YARG.PlayMode {
 		public const float SONG_START_OFFSET = 1f;
 		public const float HIT_MARGIN = 0.095f;
 		public const bool ANCHORING = true;
+		public const bool INFINITE_FRONTEND = false;
 
 		public static SongInfo song = null;
 

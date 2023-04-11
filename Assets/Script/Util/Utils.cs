@@ -169,7 +169,7 @@ namespace YARG.Util {
 				"ph4"                 => "Puppetz Hero IV",
 				"ragequit"            => "Rage Quit",
 				"ra"                  => "Redemption Arc",
-				"revolved"	      => "REVOLVED",
+				"revolved"            => "REVOLVED",
 				"rr"                  => "Rock Revolution",
 				"rrdlc"               => "Rock Revolution DLC",
 				"scorespy"            => "ScoreSpy",
