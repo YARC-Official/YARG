@@ -23,6 +23,11 @@ namespace YARG.PlayMode {
 		protected List<NoteInfo> Chart => Play.Instance.chart
 			.GetChartByName(player.chosenInstrument)[(int) player.chosenDifficulty];
 
+		protected int visualChartIndex = 0;
+		protected int realChartIndex = 0;
+		protected int eventChartIndex = 0;
+		protected int currentChartIndex = 0;
+
 		[SerializeField]
 		protected Camera trackCamera;
 
@@ -201,7 +206,7 @@ namespace YARG.PlayMode {
 
 		private void UpdateStarpower() {
 			// Update starpower region
-			if (StarpowerSection?.EndTime + Play.HIT_MARGIN < Play.Instance.SongTime) {
+			if (IsStarpowerHit()) {
 				StarpowerSection = null;
 				starpowerCharge += 0.25f;
 			}
@@ -253,6 +258,11 @@ namespace YARG.PlayMode {
 
 		protected float CalcLagCompensation(float currentTime, float noteTime) {
 			return (currentTime - noteTime) * (player.trackSpeed / Play.speed);
+		}
+
+		private bool IsStarpowerHit() {
+			if (Chart.Count > currentChartIndex) return Chart[currentChartIndex].time >= StarpowerSection?.EndTime;
+			else return false;
 		}
 	}
 }

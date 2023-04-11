@@ -23,10 +23,6 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private ParticleGroup openNoteParticles;
 
-		private int visualChartIndex = 0;
-		private int realChartIndex = 0;
-		private int eventChartIndex = 0;
-
 		private Queue<List<NoteInfo>> expectedHits = new();
 		private List<List<NoteInfo>> allowedOverstrums = new();
 		private List<NoteInfo> heldNotes = new();
@@ -158,6 +154,7 @@ namespace YARG.PlayMode {
 				// Call miss for each component
 				Combo = 0;
 				foreach (var hit in missedChord) {
+					currentChartIndex++;
 					notePool.MissNote(hit);
 					StopAudio = true;
 				}
@@ -213,6 +210,7 @@ namespace YARG.PlayMode {
 						while (expectedHits.Peek() != chord) {
 							var missedChord = expectedHits.Dequeue();
 							foreach (var hit in missedChord) {
+								currentChartIndex++;
 								notePool.MissNote(hit);
 							}
 						}
@@ -253,6 +251,7 @@ namespace YARG.PlayMode {
 
 			Combo++;
 			foreach (var hit in chord) {
+				currentChartIndex++;
 				// Hit notes
 				notePool.HitNote(hit);
 				StopAudio = false;
