@@ -17,6 +17,9 @@ public class ScoreKeeper {
 		}
     }
 
+	public static void Reset() {
+		instances.Clear();
+	}
 	public double Score { get; private set; } = 0;
 
 	public void Add(double points) {
@@ -27,7 +30,7 @@ public class ScoreKeeper {
 		instances.Add(this);
 	}
 
-    public void Destroy() {
-        instances.Remove(this);
+    ~ScoreKeeper() {
+		Debug.Log("destroyed a ScoreKeeper");
     }
 }

@@ -139,9 +139,6 @@ namespace YARG.PlayMode {
 			player.inputStrategy.StarpowerEvent -= StarpowerAction;
 			player.inputStrategy.PauseEvent -= PauseAction;
 			Play.BeatEvent -= BeatAction;
-
-			scoreKeeper.Destroy();
-			scoreKeeper = null;
 		}
 
 		private void Update() {

@@ -101,7 +101,7 @@ namespace YARG.PlayMode {
 			// Song
 
 			StartCoroutine(StartSong());
-			scoreKeeper = new();
+			ScoreKeeper.Reset();
 		}
 
 		private IEnumerator StartSong() {
