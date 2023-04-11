@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -24,9 +23,9 @@ namespace YARG.PlayMode {
 			.GetChartByName(player.chosenInstrument)[(int) player.chosenDifficulty];
 
 		protected int visualChartIndex = 0;
-		protected int realChartIndex = 0;
+		protected int inputChartIndex = 0;
+		protected int hitChartIndex = 0;
 		protected int eventChartIndex = 0;
-		protected int currentChartIndex = 0;
 
 		[SerializeField]
 		protected Camera trackCamera;
@@ -261,8 +260,11 @@ namespace YARG.PlayMode {
 		}
 
 		private bool IsStarpowerHit() {
-			if (Chart.Count > currentChartIndex) return Chart[currentChartIndex].time >= StarpowerSection?.EndTime;
-			else return false;
+			if (Chart.Count > hitChartIndex) {
+				return Chart[hitChartIndex].time >= StarpowerSection?.EndTime;
+			}
+
+			return false;
 		}
 	}
 }

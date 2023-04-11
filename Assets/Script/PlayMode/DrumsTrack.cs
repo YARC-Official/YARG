@@ -138,12 +138,12 @@ namespace YARG.PlayMode {
 			}
 
 			// Update expected input
-			while (Chart.Count > realChartIndex && Chart[realChartIndex].time <= Play.Instance.SongTime + Play.HIT_MARGIN) {
-				var noteInfo = Chart[realChartIndex];
+			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= Play.Instance.SongTime + Play.HIT_MARGIN) {
+				var noteInfo = Chart[inputChartIndex];
 
 				// Skip kick notes if noKickMode is enabled
 				if (noteInfo.fret == kickIndex && noKickMode) {
-					realChartIndex++;
+					inputChartIndex++;
 					continue;
 				}
 
@@ -157,7 +157,7 @@ namespace YARG.PlayMode {
 					expectedHits.Enqueue(l);
 				}
 
-				realChartIndex++;
+				inputChartIndex++;
 			}
 
 			UpdateInput();
@@ -171,7 +171,7 @@ namespace YARG.PlayMode {
 				// Call miss for each component
 				Combo = 0;
 				foreach (var hit in missedChord) {
-					currentChartIndex++;
+					hitChartIndex++;
 					notePool.MissNote(hit);
 					StopAudio = true;
 				}
@@ -234,7 +234,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Hit note
-			currentChartIndex++;
+			hitChartIndex++;
 			notePool.HitNote(hit);
 			StopAudio = false;
 
