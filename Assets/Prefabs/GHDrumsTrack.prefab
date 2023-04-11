@@ -127,15 +127,9 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 2944943788190444424}
   m_PrefabAsset: {fileID: 0}
---- !u!23 &2434544907065728219 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 655193979884025683, guid: ba68df35237e09f4abcf788160c15375,
-    type: 3}
-  m_PrefabInstance: {fileID: 2944943788190444424}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &2575026621483438593 stripped
+--- !u!114 &2920970725337563288 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 820464183998183817, guid: ba68df35237e09f4abcf788160c15375,
+  m_CorrespondingSourceObject: {fileID: 24723221875665680, guid: ba68df35237e09f4abcf788160c15375,
     type: 3}
   m_PrefabInstance: {fileID: 2944943788190444424}
   m_PrefabAsset: {fileID: 0}
@@ -172,9 +166,9 @@ MonoBehaviour:
   trackCamera: {fileID: 5663382124883147172}
   trackRenderer: {fileID: 8489780581181573090}
   hitWindow: {fileID: 1584337011342833613}
-  comboText: {fileID: 2575026621483438593}
-  comboMeterRenderer: {fileID: 8355903818136801231}
-  starpowerBarTop: {fileID: 2434544907065728219}
+  comboText: {fileID: 2920970725337563288}
+  comboMeterRenderer: {fileID: 8019508939677143693}
+  starpowerBarTop: {fileID: 4495594969935969962}
   fiveLaneMode: 1
   drums:
   - {fileID: 5070400065011352142}
@@ -192,6 +186,12 @@ MonoBehaviour:
   notePool: {fileID: 9121291244003754727}
   genericPool: {fileID: 6222960093224628221}
   kickNoteParticles: {fileID: 8279289512315810390}
+--- !u!23 &4495594969935969962 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 1638471387717129506, guid: ba68df35237e09f4abcf788160c15375,
+    type: 3}
+  m_PrefabInstance: {fileID: 2944943788190444424}
+  m_PrefabAsset: {fileID: 0}
 --- !u!20 &5663382124883147172 stripped
 Camera:
   m_CorrespondingSourceObject: {fileID: 7369836005863543340, guid: ba68df35237e09f4abcf788160c15375,
@@ -210,9 +210,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 54cd993f01bed2042a4b54b6aaf92946, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!23 &8355903818136801231 stripped
+--- !u!23 &8019508939677143693 stripped
 MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 6568685349794112583, guid: ba68df35237e09f4abcf788160c15375,
+  m_CorrespondingSourceObject: {fileID: 5158185222957906181, guid: ba68df35237e09f4abcf788160c15375,
     type: 3}
   m_PrefabInstance: {fileID: 2944943788190444424}
   m_PrefabAsset: {fileID: 0}
