@@ -37,7 +37,7 @@ namespace YARG {
 
 		/// <value>
 		/// A list of all of the playable songs.<br/>
-		/// You must call <see cref="CreateSongInfoFromFiles"/> first.
+		/// You must call <see cref="FetchAllSongs"/> first.
 		/// </value>
 		public static Dictionary<string, SongInfo>.ValueCollection Songs => SongsByHash.Values;
 
@@ -46,7 +46,7 @@ namespace YARG {
 
 		/// <value>
 		/// A list of all of the playable songs, where keys are hashes.<br/>
-		/// You must call <see cref="CreateSongInfoFromFiles"/> first.
+		/// You must call <see cref="FetchAllSongs"/> first.
 		/// </value>
 		public static Dictionary<string, SongInfo> SongsByHash {
 			get;
