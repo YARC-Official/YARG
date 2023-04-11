@@ -78,7 +78,12 @@ namespace YARG.Pools {
 
 		private void UpdateColor() {
 			foreach (var meshRenderer in meshRenderers) {
-				meshRenderer.materials[1].color = ColorCache;
+				if (meshRenderer.name == "Model") {
+					// Apply the different value for the specific MeshRenderer
+					meshRenderer.materials[0].color = ColorCache;
+				} else {
+					meshRenderer.materials[1].color = ColorCache;
+				}
 			}
 
 			UpdateLineColor();
