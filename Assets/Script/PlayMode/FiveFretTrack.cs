@@ -31,6 +31,8 @@ namespace YARG.PlayMode {
 		private List<List<NoteInfo>> allowedOverstrums = new();
 		private List<NoteInfo> heldNotes = new();
 		private Dictionary<NoteInfo, float> sustainMaxPts = new();
+		private float? latestInput = null;
+		private bool latestInputIsStrum = false;
 
 		private int notesHit = 0;
 
@@ -188,8 +190,15 @@ namespace YARG.PlayMode {
 			}
 
 			// If the note is a HOPOm the player did not strum, and the HOPO can't be hit, nothing happened. 
-			if (chord[0].hopo && !strummed && Combo <= 0) {
-				return;
+			if (chord[0].hopo && !strummed) {
+				if (Combo <= 0) {
+					return;
+				}
+
+				// If infinite front-end window is disabled and the latest input is outside of the timing window, nothing happened.
+				if (!Play.INFINITE_FRONTEND && latestInput.HasValue && Play.Instance.SongTime - latestInput.Value > Play.HIT_MARGIN) {
+					return;
+				}
 			}
 
 			// If strumming to recover combo, skip to first valid note within the timing window.
@@ -236,7 +245,23 @@ namespace YARG.PlayMode {
 				return;
 			}
 
-			// If so, hit!
+			// Avoid multi-hits
+			if (chord[0].hopo) {
+				// If latest input is cleared, it was already used
+				if (latestInput == null) {
+					return;
+				}
+
+				// Allow 1 multi-hit if latest note was strummed (for charts like Zoidberg the Cowboy by schmutz06)
+				if (latestInputIsStrum) {
+					latestInputIsStrum = false;
+				} else {
+					// Input is valid; clear it to avoid multi-hit later
+					latestInput = null;
+				}
+			}
+
+			// If correct chord is pressed, and is not a multi-hit, hit it!
 			expectedHits.Dequeue();
 
 			Combo++;
@@ -387,6 +412,9 @@ namespace YARG.PlayMode {
 		}
 
 		private void FretChangedAction(bool pressed, int fret) {
+			latestInput = Play.Instance.SongTime;
+			latestInputIsStrum = false;
+
 			frets[fret].SetPressed(pressed);
 
 			if (!pressed) {
@@ -420,6 +448,9 @@ namespace YARG.PlayMode {
 		}
 
 		private void StrumAction() {
+			latestInput = Play.Instance.SongTime;
+			latestInputIsStrum = true;
+
 			strummed = true;
 		}
 
