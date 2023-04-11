@@ -178,6 +178,22 @@ namespace YARG.Serialization {
 				for(int j = 0; j < parsedSongs.Count; j++)
 					Debug.Log(parsedSongs[j].ToString());
 
+				// testing mogg parsing
+				string testMogg = srcfolder.ToString() + "/underthebridge/underthebridge.mogg";
+
+				if(File.Exists(Path.Combine(srcfolder.FullName, testMogg))){
+					Debug.Log("neato, mogg exists");
+					byte[] bytes = new byte[4];
+					int oggBegin = 0;
+					using(FileStream fileStream = new FileStream(testMogg, FileMode.Open)){
+						int n = fileStream.Read(bytes, 0, 4); // skip over bytes 0, 1, 2, 3
+						n = fileStream.Read(bytes, 0, 4); // because the info we care about is in bytes 4, 5, 6, 7
+						oggBegin = bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24); // byte array --> int - bytes are in little endian
+					}
+					Debug.Log($"ogg audio begins at memory address {oggBegin:X8}");
+				}
+				else Debug.Log("kowabummer");
+
 				string songPath = "songs/test/test";
 				string songPathGen = "songs/" + songPath.Split("/")[1] + "/gen/" + songPath.Split("/")[2];
 				// Mackiloha.IO.SystemInfo sysInfo = new Mackiloha.IO.SystemInfo {
