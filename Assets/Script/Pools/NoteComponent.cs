@@ -17,13 +17,17 @@ namespace YARG.Pools {
 		}
 
 		[SerializeField]
+		private MeshRenderer[] meshRenderers;
+		[SerializeField]
+		private int[] meshRendererMiddleIndices;
+
+		[Space]
+		[SerializeField]
 		private GameObject noteGroup;
 		[SerializeField]
 		private GameObject hopoGroup;
 		[SerializeField]
 		private GameObject fullGroup;
-		[SerializeField]
-		private MeshRenderer[] meshRenderers;
 		[SerializeField]
 		private TextMeshPro fretNumber;
 		[SerializeField]
@@ -69,6 +73,8 @@ namespace YARG.Pools {
 
 			ColorCache = c;
 			UpdateColor();
+
+			UpdateRandomness();
 		}
 
 		public void SetFretNumber(string str) {
@@ -77,16 +83,27 @@ namespace YARG.Pools {
 		}
 
 		private void UpdateColor() {
-			foreach (var meshRenderer in meshRenderers) {
-				if (meshRenderer.name == "Model") {
-					// Apply the different value for the specific MeshRenderer
-					meshRenderer.materials[0].color = ColorCache;
-				} else {
-					meshRenderer.materials[1].color = ColorCache;
-				}
+			for (int i = 0; i < meshRenderers.Length; i++) {
+				int index = meshRendererMiddleIndices[i];
+				meshRenderers[i].materials[index].color = ColorCache;
 			}
 
 			UpdateLineColor();
+		}
+
+		private void UpdateRandomness() {
+			for (int i = 0; i < meshRenderers.Length; i++) {
+				int index = meshRendererMiddleIndices[i];
+				var material = meshRenderers[i].materials[index];
+
+				if (material.HasFloat("_RandomFloat")) {
+					material.SetFloat("_RandomFloat", Random.Range(-1f, 1f));
+				}
+
+				if (material.HasVector("_RandomVector")) {
+					material.SetVector("_RandomVector", new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f)));
+				}
+			}
 		}
 
 		private void UpdateLineColor() {
