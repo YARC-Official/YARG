@@ -1,3 +1,7 @@
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+
 namespace YARG.Data {
 	public class NoteInfo : AbstractInfo {
 		/// <value>

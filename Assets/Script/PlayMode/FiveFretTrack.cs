@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Unity.Mathematics;
 using YARG.Data;
 using YARG.Input;
 using YARG.Pools;
@@ -26,10 +27,16 @@ namespace YARG.PlayMode {
 		private Queue<List<NoteInfo>> expectedHits = new();
 		private List<List<NoteInfo>> allowedOverstrums = new();
 		private List<NoteInfo> heldNotes = new();
+		private Dictionary<NoteInfo, float> sustainMaxPts = new();
 		private float? latestInput = null;
 		private bool latestInputIsStrum = false;
 
+		/// Sustain scoring handler
+		/// POSSIBLE CLEAN UP: Move related code to separate class, which can be used by other track types.
+		// https://www.reddit.com/r/Rockband/comments/51t3c0/exactly_how_many_points_are_sustains_worth/
+		private const double SUSTAIN_PTS_PER_BEAT = 12.0;
 		private int notesHit = 0;
+		public Dictionary<NoteInfo, double> sustainScoreProgress = new();
 
 		protected override void StartTrack() {
 			notePool.player = player;
@@ -134,8 +141,18 @@ namespace YARG.PlayMode {
 			// Update held notes
 			for (int i = heldNotes.Count - 1; i >= 0; i--) {
 				var heldNote = heldNotes[i];
-				if (heldNote.time + heldNote.length <= Play.Instance.SongTime) {
+
+				/// Sustain scoring
+				double remainingPts = SUSTAIN_PTS_PER_BEAT * heldNote.LengthInBeats - sustainScoreProgress[heldNote];
+				// pt/b * s * b/s = pt
+				double ptsThisFrame = math.min(SUSTAIN_PTS_PER_BEAT * Time.deltaTime * Play.Instance.curBeatPerSecond, remainingPts);
+				sustainScoreProgress[heldNote] = sustainScoreProgress[heldNote] + ptsThisFrame;
+				scoreKeeper.Add(ptsThisFrame * Multiplier);
+				// Debug.Log($"{sustainScoreProgress[heldNote]} / {SUSTAIN_PTS_PER_BEAT*heldNote.LengthInBeats}");
+
+				if (heldNote.EndTime <= Play.Instance.SongTime) {
 					heldNotes.RemoveAt(i);
+					sustainScoreProgress.Remove(heldNote);
 					frets[heldNote.fret].StopSustainParticles();
 				}
 			}
@@ -267,10 +284,16 @@ namespace YARG.PlayMode {
 				if (hit.length > 0.2f) {
 					heldNotes.Add(hit);
 					frets[hit.fret].PlaySustainParticles();
+					
+					/// Begin sustain scoring w/ compensation for earlier/later hit
+					sustainScoreProgress[hit] =
+						math.clamp(SUSTAIN_PTS_PER_BEAT * Mathf.Min((Play.Instance.SongTime - hit.time), hit.length) * Play.Instance.curBeatPerSecond, 0.0, double.MaxValue);
+					scoreKeeper.Add(sustainScoreProgress[hit] * Multiplier);
 				}
 
 				// Add stats
 				notesHit++;
+				this.scoreKeeper.Add(25 * Multiplier);
 			}
 
 			// If this is a tap note, and it was hit without strumming,
