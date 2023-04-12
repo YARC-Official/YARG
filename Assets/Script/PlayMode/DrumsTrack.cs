@@ -29,10 +29,6 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private ParticleGroup kickNoteParticles;
 
-		private int visualChartIndex = 0;
-		private int realChartIndex = 0;
-		private int eventChartIndex = 0;
-
 		private Queue<List<NoteInfo>> expectedHits = new();
 
 		private int notesHit = 0;
@@ -142,12 +138,12 @@ namespace YARG.PlayMode {
 			}
 
 			// Update expected input
-			while (Chart.Count > realChartIndex && Chart[realChartIndex].time <= Play.Instance.SongTime + Play.HIT_MARGIN) {
-				var noteInfo = Chart[realChartIndex];
+			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= Play.Instance.SongTime + Play.HIT_MARGIN) {
+				var noteInfo = Chart[inputChartIndex];
 
 				// Skip kick notes if noKickMode is enabled
 				if (noteInfo.fret == kickIndex && noKickMode) {
-					realChartIndex++;
+					inputChartIndex++;
 					continue;
 				}
 
@@ -161,7 +157,7 @@ namespace YARG.PlayMode {
 					expectedHits.Enqueue(l);
 				}
 
-				realChartIndex++;
+				inputChartIndex++;
 			}
 
 			UpdateInput();
@@ -175,6 +171,7 @@ namespace YARG.PlayMode {
 				// Call miss for each component
 				Combo = 0;
 				foreach (var hit in missedChord) {
+					hitChartIndex++;
 					notePool.MissNote(hit);
 					StopAudio = true;
 				}
@@ -237,6 +234,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Hit note
+			hitChartIndex++;
 			notePool.HitNote(hit);
 			StopAudio = false;
 
