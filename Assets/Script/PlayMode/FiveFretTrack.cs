@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Unity.Mathematics;
 using YARG.Data;
 using YARG.Input;
 using YARG.Pools;
@@ -35,6 +36,7 @@ namespace YARG.PlayMode {
 		private bool latestInputIsStrum = false;
 
 		private int notesHit = 0;
+		public Dictionary<NoteInfo, double> sustainScoreProgress = new();
 
 		protected override void StartTrack() {
 			notePool.player = player;
@@ -146,14 +148,18 @@ namespace YARG.PlayMode {
 			// Update held notes
 			for (int i = heldNotes.Count - 1; i >= 0; i--) {
 				var heldNote = heldNotes[i];
-				if (heldNote.time + heldNote.length <= Play.Instance.SongTime) {
+
+				// Sustain scoring
+				double remainingPts = heldNote.MaxSustainPoints(Play.Instance.chart.beats) - sustainScoreProgress[heldNote];
+				// pt/b * s * b/s = pt
+				double ptsThisFrame = math.min(12.0 * Time.deltaTime * Play.Instance.curBeatPerSecond, remainingPts);
+				sustainScoreProgress[heldNote] = sustainScoreProgress[heldNote] + ptsThisFrame;
+				scoreKeeper.Add(ptsThisFrame * Multiplier);
+
+				if (heldNote.EndTime <= Play.Instance.SongTime) {
 					heldNotes.RemoveAt(i);
+					sustainScoreProgress.Remove(heldNote);
 					frets[heldNote.fret].StopSustainParticles();
-				} else {
-					// TODO: compensate for when player began strumming (don't reward early strum, don't punish late strum)
-					// TODO: calculate max sustain score, cap achievable score to that (addresses early strum)
-					double toAdd = Time.deltaTime * Play.Instance.curBeatPerSecond * 12 * Multiplier;
-					scoreKeeper.Add(toAdd);
 				}
 			}
 
@@ -281,7 +287,9 @@ namespace YARG.PlayMode {
 				if (hit.length > 0.2f) {
 					heldNotes.Add(hit);
 					frets[hit.fret].PlaySustainParticles();
-					Debug.Log(hit.MaxSustainPoints(Play.Instance.chart.beats));
+					// compensate sustain score for earlier/later strum
+					sustainScoreProgress[hit] = math.clamp(12.0 * Mathf.Min((Play.Instance.SongTime - hit.time), hit.length) * Play.Instance.curBeatPerSecond, 0.0, double.MaxValue);
+					scoreKeeper.Add(sustainScoreProgress[hit] * Multiplier);
 				}
 
 				// Add stats

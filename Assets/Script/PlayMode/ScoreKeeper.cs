@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+using YARG.Data;
+
 // Score keeping for each track
 public class ScoreKeeper {
     // keep track of all instances to calculate the band total
@@ -20,6 +22,7 @@ public class ScoreKeeper {
 	public static void Reset() {
 		instances.Clear();
 	}
+
 	public double Score { get; private set; } = 0;
 
 	public void Add(double points) {
@@ -32,5 +35,5 @@ public class ScoreKeeper {
 
     ~ScoreKeeper() {
 		Debug.Log("destroyed a ScoreKeeper");
-    }
+	}
 }
