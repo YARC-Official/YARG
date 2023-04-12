@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Security.Cryptography;
 using System.Threading;
 using Newtonsoft.Json;
@@ -20,6 +21,8 @@ namespace YARG {
 			public List<SongInfo> songs;
 		}
 
+		public static string currentTaskDescription = "";
+		public static bool currentlyLoading = false;
 		public static float loadPercent = 0f;
 
 		/// <value>
@@ -36,8 +39,18 @@ namespace YARG {
 		public static string CacheFolder => Path.Combine(GameManager.PersistentDataPath, "caches");
 
 		/// <value>
+		/// The location of the local sources file.
+		/// </value>
+		public static string SourcesFile => Path.Combine(GameManager.PersistentDataPath, "sources.txt");
+
+		/// <value>
+		/// The URL of the Clone Hero sources list.
+		/// </value>
+		public const string SourcesUrl = "https://sources.clonehero.net/sources.txt";
+
+		/// <value>
 		/// A list of all of the playable songs.<br/>
-		/// You must call <see cref="CreateSongInfoFromFiles"/> first.
+		/// You must call <see cref="FetchAllSongs"/> first.
 		/// </value>
 		public static Dictionary<string, SongInfo>.ValueCollection Songs => SongsByHash.Values;
 
@@ -46,17 +59,87 @@ namespace YARG {
 
 		/// <value>
 		/// A list of all of the playable songs, where keys are hashes.<br/>
-		/// You must call <see cref="CreateSongInfoFromFiles"/> first.
+		/// You must call <see cref="FetchAllSongs"/> first.
 		/// </value>
 		public static Dictionary<string, SongInfo> SongsByHash {
 			get;
 			private set;
 		} = null;
 
+		/// <value>
+		/// A list of all of the playable songs, where keys are hashes.<br/>
+		/// You must call <see cref="FetchSongSources"/> first.
+		/// </value>
+		public static Dictionary<string, string> SourceNames {
+			get;
+			private set;
+		} = null;
+
+		public static void FetchEverything() {
+			ThreadPool.QueueUserWorkItem(_ => {
+				currentlyLoading = true;
+				loadPercent = 0f;
+				try {
+					LoadSongs();
+				} catch (Exception e) {
+					Debug.LogError($"Error while loading songs: {e}");
+				}
+
+				loadPercent = 0f;
+				try {
+					FetchSources();
+					loadPercent = 0.9f;
+					ReadSources();
+				} catch (Exception e) {
+					Debug.LogError($"Error while fetching sources: {e}");
+				}
+
+				loadPercent = 1f;
+				currentlyLoading = false;
+			});
+		}
+
 		/// <summary>
 		/// Should be called before you access <see cref="SongsByHash"/>.
 		/// </summary>
 		public static void FetchAllSongs() {
+			ThreadPool.QueueUserWorkItem(_ => {
+				currentlyLoading = true;
+				loadPercent = 0f;
+
+				try {
+					LoadSongs();
+				} catch (Exception e) {
+					Debug.LogError($"Error while loading songs: {e}");
+				}
+
+				loadPercent = 1f;
+				currentlyLoading = false;
+			});
+		}
+
+		/// <summary>
+		/// Should be called before you access <see cref="SourceNames"/>.
+		/// </summary>
+		public static void FetchSongSources() {
+			ThreadPool.QueueUserWorkItem(_ => {
+				currentlyLoading = true;
+				loadPercent = 0f;
+
+				try {
+					FetchSources();
+					loadPercent = 0.9f;
+					ReadSources();
+				} catch (Exception e) {
+					Debug.LogError($"Error while fetching sources: {e}");
+				}
+
+				loadPercent = 1f;
+				currentlyLoading = false;
+			});
+		}
+
+		private static void LoadSongs() {
 			if (!Directory.Exists(CacheFolder)) {
 				Directory.CreateDirectory(CacheFolder);
 			}
@@ -69,45 +152,42 @@ namespace YARG {
 				return;
 			}
 
-			ThreadPool.QueueUserWorkItem(_ => {
-				while (songFoldersToLoad.Count > 0) {
-					string folderPath = songFoldersToLoad.Dequeue();
+			while (songFoldersToLoad.Count > 0) {
+				string folderPath = songFoldersToLoad.Dequeue();
 
-					Debug.Log($"Fetching songs from: `{folderPath}`.");
+				currentTaskDescription = $"Fetching songs from: `{folderPath}`.";
+				Debug.Log(currentTaskDescription);
 
-					string folderHash = Utils.Hash(folderPath);
-					string cachePath = Path.Combine(CacheFolder, folderHash + ".json");
+				string folderHash = Utils.Hash(folderPath);
+				string cachePath = Path.Combine(CacheFolder, folderHash + ".json");
 
-					if (File.Exists(cachePath)) {
-						var success = ReadCache(cachePath);
-						if (success) {
-							continue;
-						}
-					}
-
-					try {
-						songsTemp = new();
-
-						// Find songs
-						loadPercent = 0f;
-						CreateSongInfoFromFiles(folderPath, new(folderPath));
-
-						// Read song.ini and hashes
-						loadPercent = 0.1f;
-						ReadSongIni();
-						GetSongHashes();
-
-						// Populate SongsByHash, and create cache
-						loadPercent = 0.9f;
-						PopulateSongByHashes();
-						CreateCache(folderPath, cachePath);
-					} catch (Exception e) {
-						Debug.LogException(e);
+				if (File.Exists(cachePath)) {
+					var success = ReadCache(cachePath);
+					if (success) {
+						continue;
 					}
 				}
 
-				loadPercent = 1f;
-			});
+				try {
+					songsTemp = new();
+
+					// Find songs
+					loadPercent = 0f;
+					CreateSongInfoFromFiles(folderPath, new(folderPath));
+
+					// Read song.ini and hashes
+					loadPercent = 0.1f;
+					ReadSongIni();
+					GetSongHashes();
+
+					// Populate SongsByHash, and create cache
+					loadPercent = 0.9f;
+					PopulateSongByHashes();
+					CreateCache(folderPath, cachePath);
+				} catch (Exception e) {
+					Debug.LogException(e);
+				}
+			}
 		}
 
 		/// <summary>
@@ -254,6 +334,59 @@ namespace YARG {
 				}
 			} catch (JsonException) {
 				return false;
+			}
+
+			return true;
+		}
+
+		private static bool FetchSources() {
+			currentTaskDescription = "Fetching list of sources.";
+			Debug.Log(currentTaskDescription);
+
+			try {
+				// Retrieve sources file
+				var request = WebRequest.Create(SourcesUrl);
+				request.UseDefaultCredentials = true;
+				request.Timeout = 10000;
+				using var response = request.GetResponse();
+				using var responseReader = new StreamReader(response.GetResponseStream());
+
+				// Store sources locally and load them
+				string text = responseReader.ReadToEnd();
+				File.WriteAllText(SourcesFile, text);
+			} catch (Exception e) {
+				Debug.LogException(e);
+				return false;
+			}
+
+			return true;
+		}
+
+		/// <summary>
+		/// Reads the locally-cached sources file.<br/>
+		/// Populates <see cref="SourceNames"/>
+		/// </summary>
+		private static bool ReadSources() {
+			if (!File.Exists(SourcesFile)) {
+				return false;
+			}
+
+			SourceNames ??= new();
+			SourceNames.Clear();
+			var sources = File.ReadAllText(SourcesFile).Split("\n");
+			foreach (string source in sources) {
+				if (string.IsNullOrWhiteSpace(source)) {
+					continue;
+				}
+
+				// The sources are formatted as follows:
+				// iconName '=' Display Name
+				var pair = source.Split("'='", 2);
+				if (pair.Length < 2) {
+					Debug.LogWarning($"Invalid source entry when reading sources: {source}");
+					continue;
+				}
+				SourceNames.Add(pair[0].Trim(), pair[1].Trim());
 			}
 
 			return true;
