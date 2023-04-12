@@ -4,13 +4,6 @@ using UnityEngine;
 
 namespace YARG.Util {
 	public static class Utils {
-		/// <returns>
-		/// A unique hash for <paramref name="a"/>.
-		/// </returns>
-		public static string Hash(string a) {
-			return Hash128.Compute(a).ToString();
-		}
-
 		/// <summary>
 		/// Checks if the path <paramref name="a"/> is equal to the path <paramref name="b"/>.<br/>
 		/// Platform specific case sensitivity is taken into account.

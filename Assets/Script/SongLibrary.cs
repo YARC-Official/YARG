@@ -158,7 +158,7 @@ namespace YARG {
 				currentTaskDescription = $"Fetching songs from: `{folderPath}`.";
 				Debug.Log(currentTaskDescription);
 
-				string folderHash = Utils.Hash(folderPath);
+				string folderHash = HashFilePath(folderPath);
 				string cachePath = Path.Combine(CacheFolder, folderHash + ".json");
 
 				if (File.Exists(cachePath)) {
@@ -282,6 +282,13 @@ namespace YARG {
 			}
 
 			songsTemp = null;
+		}
+
+		/// <returns>
+		/// A unique hash for <paramref name="path"/>.
+		/// </returns>
+		public static string HashFilePath(string path) {
+			return Hash128.Compute(path).ToString();
 		}
 
 		/// <summary>
