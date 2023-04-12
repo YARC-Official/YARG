@@ -28,10 +28,6 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private Pool genericPool;
 
-		private int visualChartIndex = 0;
-		private int realChartIndex = 0;
-		private int eventChartIndex = 0;
-
 		private Queue<NoteInfo> expectedHits = new();
 		private List<NoteInfo> heldNotes = new();
 
@@ -127,10 +123,10 @@ namespace YARG.PlayMode {
 			}
 
 			// Update expected input
-			while (Chart.Count > realChartIndex && Chart[realChartIndex].time <= Play.Instance.SongTime + Play.HIT_MARGIN) {
-				expectedHits.Enqueue(Chart[realChartIndex]);
+			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= Play.Instance.SongTime + Play.HIT_MARGIN) {
+				expectedHits.Enqueue(Chart[inputChartIndex]);
 
-				realChartIndex++;
+				inputChartIndex++;
 			}
 
 			// Update held notes
@@ -153,6 +149,7 @@ namespace YARG.PlayMode {
 				var missedNote = expectedHits.Dequeue();
 
 				// Call miss for each component
+				hitChartIndex++;
 				Combo = 0;
 				notePool.MissNote(missedNote);
 				StopAudio = true;
@@ -184,6 +181,7 @@ namespace YARG.PlayMode {
 			}
 
 			// If so, hit!
+			hitChartIndex++;
 			expectedHits.Dequeue();
 
 			Combo++;

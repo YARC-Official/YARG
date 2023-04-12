@@ -6,7 +6,7 @@ using YARG.Serialization;
 
 namespace YARG.Data {
 	[JsonObject(MemberSerialization.OptIn)]
-	public class SongInfo {
+	public partial class SongInfo {
 		public enum DrumType {
 			FOUR_LANE,
 			FIVE_LANE, // AKA GH
@@ -93,6 +93,7 @@ namespace YARG.Data {
 
 		[JsonProperty]
 		public string source;
+		public string SourceFriendlyName => SourceToGameName(source);
 		[JsonProperty]
 		public float songLength;
 		[JsonProperty]
