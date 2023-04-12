@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Security.Cryptography;
 using System.Threading;
 using Newtonsoft.Json;
@@ -36,6 +37,16 @@ namespace YARG {
 		public static string CacheFolder => Path.Combine(GameManager.PersistentDataPath, "caches");
 
 		/// <value>
+		/// The location of the local sources file.
+		/// </value>
+		public static string SourcesFile => Path.Combine(GameManager.PersistentDataPath, "sources.txt");
+
+		/// <value>
+		/// The URL of the Clone Hero sources list.
+		/// </value>
+		public const string SourcesUrl = "https://sources.clonehero.net/sources.txt";
+
+		/// <value>
 		/// A list of all of the playable songs.<br/>
 		/// You must call <see cref="FetchAllSongs"/> first.
 		/// </value>
@@ -49,6 +60,15 @@ namespace YARG {
 		/// You must call <see cref="FetchAllSongs"/> first.
 		/// </value>
 		public static Dictionary<string, SongInfo> SongsByHash {
+			get;
+			private set;
+		} = null;
+
+		/// <value>
+		/// A list of all of the playable songs, where keys are hashes.<br/>
+		/// You must call <see cref="FetchSongSources"/> first.
+		/// </value>
+		public static Dictionary<string, string> SourceNames {
 			get;
 			private set;
 		} = null;
@@ -104,6 +124,27 @@ namespace YARG {
 					} catch (Exception e) {
 						Debug.LogException(e);
 					}
+				}
+
+				loadPercent = 1f;
+			});
+		}
+
+		/// <summary>
+		/// Should be called before you access <see cref="SourceNames"/>.
+		/// </summary>
+		public static void FetchSongSources() {
+			SourceNames = new();
+
+			ThreadPool.QueueUserWorkItem(_ => {
+				loadPercent = 0f;
+
+				try {
+					FetchSources();
+					loadPercent = 0.9f;
+					ReadSources();
+				} catch (Exception e) {
+					Debug.LogError($"Error while fetching sources: {e}");
 				}
 
 				loadPercent = 1f;
@@ -254,6 +295,55 @@ namespace YARG {
 				}
 			} catch (JsonException) {
 				return false;
+			}
+
+			return true;
+		}
+
+		private static bool FetchSources() {
+			try {
+				// Retrieve sources file
+				var request = WebRequest.Create(SourcesUrl);
+				request.UseDefaultCredentials = true;
+				using var response = request.GetResponse();
+				using var responseReader = new StreamReader(response.GetResponseStream());
+
+				// Store sources locally and load them
+				string text = responseReader.ReadToEnd();
+				File.WriteAllText(SourcesFile, text);
+			} catch (Exception e) {
+				Debug.LogError($"Error while fetching sources: {e}");
+				return false;
+			}
+
+			return true;
+		}
+
+		/// <summary>
+		/// Reads the locally-cached sources file.<br/>
+		/// Populates <see cref="SourceNames"/>
+		/// </summary>
+		private static bool ReadSources() {
+			if (!File.Exists(SourcesFile)) {
+				return false;
+			}
+
+			SourceNames ??= new();
+			SourceNames.Clear();
+			var sources = File.ReadAllText(SourcesFile).Split("\n");
+			foreach (string source in sources) {
+				if (string.IsNullOrWhiteSpace(source)) {
+					continue;
+				}
+
+				// The sources are formatted as follows:
+				// iconName '=' Display Name
+				var pair = source.Split("'='", 2);
+				if (pair.Length < 2) {
+					Debug.LogWarning($"Invalid source entry when reading sources: {source}");
+					continue;
+				}
+				SourceNames.Add(pair[0].Trim(), pair[1].Trim());
 			}
 
 			return true;

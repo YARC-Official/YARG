@@ -151,6 +151,10 @@ namespace YARG.Data {
 		/// The converted short name (gh1) into the game name (Guitar Hero 1).
 		/// </returns>
 		private static string SourceToGameName(string source) {
+			if (SongLibrary.SourceNames != null && SongLibrary.SourceNames.TryGetValue(source, out string name)) {
+				return name;
+			}
+
 #pragma warning disable format
 			return source switch {
 				"gh1" or "gh"         => "Guitar Hero",
