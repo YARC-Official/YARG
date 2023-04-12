@@ -58,7 +58,7 @@ namespace YARG.UI {
 			vocalTrack.texture = rt;
 
 			// TODO: Whyyy. figure out a better way to scale.
-			var rect = Utils.RectTransformToViewportSpace(vocalTrack.rectTransform);
+			var rect = vocalTrack.rectTransform.ToViewportSpace();
 			vocalTrack.uvRect = new(0f, rect.y / 1.9f, rect.width, rect.height);
 		}
 
