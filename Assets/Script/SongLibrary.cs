@@ -347,7 +347,7 @@ namespace YARG {
 				// Retrieve sources file
 				var request = WebRequest.Create(SourcesUrl);
 				request.UseDefaultCredentials = true;
-				request.Timeout = 10000;
+				request.Timeout = 5000;
 				using var response = request.GetResponse();
 				using var responseReader = new StreamReader(response.GetResponseStream());
 
