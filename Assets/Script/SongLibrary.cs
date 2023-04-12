@@ -21,6 +21,7 @@ namespace YARG {
 			public List<SongInfo> songs;
 		}
 
+		public static string currentTaskDescription = "";
 		public static bool currentlyLoading = false;
 		public static float loadPercent = 0f;
 
@@ -154,7 +155,8 @@ namespace YARG {
 			while (songFoldersToLoad.Count > 0) {
 				string folderPath = songFoldersToLoad.Dequeue();
 
-				Debug.Log($"Fetching songs from: `{folderPath}`.");
+				currentTaskDescription = $"Fetching songs from: `{folderPath}`.";
+				Debug.Log(currentTaskDescription);
 
 				string folderHash = Utils.Hash(folderPath);
 				string cachePath = Path.Combine(CacheFolder, folderHash + ".json");
@@ -338,7 +340,8 @@ namespace YARG {
 		}
 
 		private static bool FetchSources() {
-			Debug.Log("Fetching list of sources.");
+			currentTaskDescription = "Fetching list of sources.";
+			Debug.Log(currentTaskDescription);
 
 			try {
 				// Retrieve sources file

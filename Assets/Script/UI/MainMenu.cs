@@ -1,4 +1,5 @@
 using System.IO;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Data;
@@ -41,6 +42,8 @@ namespace YARG.UI {
 		[SerializeField]
 		private GameObject loadingScreen;
 		[SerializeField]
+		private TextMeshProUGUI loadingStatus;
+		[SerializeField]
 		private Image progressBar;
 
 		private void Start() {
@@ -78,6 +81,7 @@ namespace YARG.UI {
 			// Update progress if loading
 			if (loadingScreen.activeSelf) {
 				progressBar.fillAmount = SongLibrary.loadPercent;
+				loadingStatus.text = SongLibrary.currentTaskDescription;
 
 				// Finish loading
 				if (!SongLibrary.currentlyLoading) {
