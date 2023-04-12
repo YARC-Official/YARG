@@ -52,20 +52,5 @@ namespace YARG.Util {
 
 			return rect;
 		}
-
-		/// <returns>
-		/// The inputed note split into a note + octave.
-		/// </returns>
-		public static (float note, int octave) SplitNoteToOctaveAndNote(float note) {
-			float outNote = note;
-			int octave = 0;
-
-			while (outNote > 12f) {
-				octave++;
-				outNote -= 12f;
-			}
-
-			return (outNote, octave);
-		}
 	}
 }

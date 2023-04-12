@@ -464,8 +464,7 @@ namespace YARG.PlayMode {
 
 						// Get the needed pitch
 						float timeIntoNote = Play.Instance.SongTime - currentLyric.time;
-						float rawNote = currentLyric.GetLerpedNoteAtTime(timeIntoNote);
-						var (neededNote, neededOctave) = Utils.SplitNoteToOctaveAndNote(rawNote);
+						var (neededNote, neededOctave) = currentLyric.GetLerpedAndSplitNoteAtTime(timeIntoNote);
 
 						// Get the note the player is singing
 						float currentNote = micInput.VoiceNote;
