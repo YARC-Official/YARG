@@ -111,4 +111,4 @@ Please note that other libraries are **not** packaged within the source code, an
 
 # 💸 Donate
 
-Some people have expressed interest in donating. I just do this for fun and as a hobby, and as such, money is *not* something that you need to give me by any means. However, if you really want to, scroll up and under the "Sponsor this project" heading there is a link so you can donate. If you do such, I'd really appreciate, but again, it is not required.
+Some people have expressed interest in donating. This is an open-source project and therefore donating is not required. If you do want to still help out, spread the word or contribute!
