@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace YARG.Data {
@@ -48,11 +49,18 @@ namespace YARG.Data {
 				points += 12.0 * (beats[beatIndex] - Mathf.Max(beats[beatIndex - 1], time)) * curBPS;
 			}
 
-			// calculate final segment where EndTime is between two beats (beatIndex-1 and beatIndex)
-			if (beats[beatIndex-1] < EndTime && EndTime < beats[beatIndex]) {
-				var curBPS = 1/(beats[beatIndex] - beats[beatIndex - 1]);
-				points += 12.0 * (EndTime - beats[beatIndex - 1]) * curBPS;
+			// segment where EndTime is between two beats (beatIndex-1 and beatIndex)
+			if (beatIndex < beats.Count && beats[beatIndex-1] < EndTime && EndTime < beats[beatIndex]) {
+				var bps = 1/(beats[beatIndex] - beats[beatIndex - 1]);
+				points += 12.0 * (EndTime - beats[beatIndex - 1]) * bps;
 			}
+			// segment where EndTime is BEYOND the song's final beat
+			else if (EndTime > beats[^1]) {
+				var bps = 1/(beats[^1] - beats[^2]);
+				var toAdd = 12.0 * (EndTime - beats[^1]) * bps;
+				points += toAdd;
+			}
+
 			return points;
 		}
 

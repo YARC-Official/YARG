@@ -97,11 +97,11 @@ namespace YARG.PlayMode {
 
 		private void Awake() {
 			Instance = this;
+			ScoreKeeper.Reset();
 
 			// Song
 
 			StartCoroutine(StartSong());
-			ScoreKeeper.Reset();
 		}
 
 		private IEnumerator StartSong() {
@@ -211,6 +211,10 @@ namespace YARG.PlayMode {
 			var parser = new MidiParser(song, files.ToArray());
 			chart = new Chart();
 			parser.Parse(chart);
+
+			// initialize current tempo
+			if (chart.beats.Count > 2)
+				curBeatPerSecond = chart.beats[1] - chart.beats[0];
 		}
 
 		private void Update() {

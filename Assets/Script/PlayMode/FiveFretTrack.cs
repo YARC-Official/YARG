@@ -151,6 +151,7 @@ namespace YARG.PlayMode {
 				double ptsThisFrame = math.min(12.0 * Time.deltaTime * Play.Instance.curBeatPerSecond, remainingPts);
 				sustainScoreProgress[heldNote] = sustainScoreProgress[heldNote] + ptsThisFrame;
 				scoreKeeper.Add(ptsThisFrame * Multiplier);
+				Debug.Log($"{sustainScoreProgress[heldNote]} / {heldNote.MaxSustainPoints(Play.Instance.chart.beats)}");
 
 				if (heldNote.EndTime <= Play.Instance.SongTime) {
 					heldNotes.RemoveAt(i);
