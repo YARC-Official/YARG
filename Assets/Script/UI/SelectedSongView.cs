@@ -67,7 +67,7 @@ namespace YARG.UI {
 			lengthText.text = $"{minutes}:{seconds:00}";
 
 			// Source
-			supportText.text = Utils.SourceToGameName(songInfo.source);
+			supportText.text = songInfo.SourceFriendlyName;
 
 			// Album cover
 			albumCover.texture = null;

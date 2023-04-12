@@ -23,10 +23,6 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private ParticleGroup openNoteParticles;
 
-		private int visualChartIndex = 0;
-		private int realChartIndex = 0;
-		private int eventChartIndex = 0;
-
 		private Queue<List<NoteInfo>> expectedHits = new();
 		private List<List<NoteInfo>> allowedOverstrums = new();
 		private List<NoteInfo> heldNotes = new();
@@ -119,8 +115,8 @@ namespace YARG.PlayMode {
 			}
 
 			// Update expected input
-			while (Chart.Count > realChartIndex && Chart[realChartIndex].time <= Play.Instance.SongTime + Play.HIT_MARGIN) {
-				var noteInfo = Chart[realChartIndex];
+			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= Play.Instance.SongTime + Play.HIT_MARGIN) {
+				var noteInfo = Chart[inputChartIndex];
 
 				var peeked = expectedHits.ReversePeekOrNull();
 				if (peeked?[0].time == noteInfo.time) {
@@ -132,7 +128,7 @@ namespace YARG.PlayMode {
 					expectedHits.Enqueue(l);
 				}
 
-				realChartIndex++;
+				inputChartIndex++;
 			}
 
 			// Update held notes
@@ -158,6 +154,7 @@ namespace YARG.PlayMode {
 				// Call miss for each component
 				Combo = 0;
 				foreach (var hit in missedChord) {
+					hitChartIndex++;
 					notePool.MissNote(hit);
 					StopAudio = true;
 				}
@@ -213,6 +210,7 @@ namespace YARG.PlayMode {
 						while (expectedHits.Peek() != chord) {
 							var missedChord = expectedHits.Dequeue();
 							foreach (var hit in missedChord) {
+								hitChartIndex++;
 								notePool.MissNote(hit);
 							}
 						}
@@ -253,6 +251,7 @@ namespace YARG.PlayMode {
 
 			Combo++;
 			foreach (var hit in chord) {
+				hitChartIndex++;
 				// Hit notes
 				notePool.HitNote(hit);
 				StopAudio = false;
