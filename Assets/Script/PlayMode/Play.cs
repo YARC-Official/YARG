@@ -64,6 +64,7 @@ namespace YARG.PlayMode {
 
 		// for sustain score calculation
 		public float curBeatPerSecond { get; private set; } = 0f;
+		public float curTempo => curBeatPerSecond * 60; // BPM
 
 		public ScoreKeeper scoreKeeper;
 
