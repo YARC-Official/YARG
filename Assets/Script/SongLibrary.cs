@@ -46,7 +46,7 @@ namespace YARG {
 		/// <value>
 		/// The URL of the Clone Hero sources list.
 		/// </value>
-		public const string SourcesUrl = "https://sources.clonehero.net/sources.txt";
+		public const string SOURCES_URL = "https://sources.clonehero.net/sources.txt";
 
 		/// <value>
 		/// A list of all of the playable songs.<br/>
@@ -158,7 +158,7 @@ namespace YARG {
 				currentTaskDescription = $"Fetching songs from: `{folderPath}`.";
 				Debug.Log(currentTaskDescription);
 
-				string folderHash = Utils.Hash(folderPath);
+				string folderHash = HashFilePath(folderPath);
 				string cachePath = Path.Combine(CacheFolder, folderHash + ".json");
 
 				if (File.Exists(cachePath)) {
@@ -284,6 +284,13 @@ namespace YARG {
 			songsTemp = null;
 		}
 
+		/// <returns>
+		/// A unique hash for <paramref name="path"/>.
+		/// </returns>
+		public static string HashFilePath(string path) {
+			return Hash128.Compute(path).ToString();
+		}
+
 		/// <summary>
 		/// Creates a cache from <see cref="Songs"/> so we don't have to read all of the <c>song.ini</c> again.<br/>
 		/// <see cref="Songs"/> is expected to be populated and filled with <see cref="ReadSongIni"/>.
@@ -345,7 +352,7 @@ namespace YARG {
 
 			try {
 				// Retrieve sources file
-				var request = WebRequest.Create(SourcesUrl);
+				var request = WebRequest.Create(SOURCES_URL);
 				request.UseDefaultCredentials = true;
 				request.Timeout = 5000;
 				using var response = request.GetResponse();
