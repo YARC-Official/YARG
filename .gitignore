@@ -27,6 +27,10 @@
 # Visual Studio cache directory
 .vs/
 
+# VS Code configuration directory
+.vscode/*
+!.vscode/settings.json # Has useful file exclusion preferences
+
 # Gradle cache directory
 .gradle/
 
@@ -80,3 +84,6 @@ crashlytics-build.properties
 # Auto-gen
 Assets/YargInput.cs
 /[Aa]ssets/[Pp]ackages/
+
+### Rider ###
+.idea/
