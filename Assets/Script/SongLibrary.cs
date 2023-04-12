@@ -73,57 +73,39 @@ namespace YARG {
 			private set;
 		} = null;
 
+		public static void FetchEverything() {
+			ThreadPool.QueueUserWorkItem(_ => {
+				loadPercent = 0f;
+				try {
+					LoadSongs();
+				} catch (Exception e) {
+					Debug.LogError($"Error while loading songs: {e}");
+				}
+
+				loadPercent = 0f;
+				try {
+					FetchSources();
+					loadPercent = 0.9f;
+					ReadSources();
+				} catch (Exception e) {
+					Debug.LogError($"Error while fetching sources: {e}");
+				}
+
+				loadPercent = 1f;
+			});
+		}
+
 		/// <summary>
 		/// Should be called before you access <see cref="SongsByHash"/>.
 		/// </summary>
 		public static void FetchAllSongs() {
-			if (!Directory.Exists(CacheFolder)) {
-				Directory.CreateDirectory(CacheFolder);
-			}
-
-			SongsByHash = new();
-			songFoldersToLoad = new(SongFolders.Where(i => !string.IsNullOrEmpty(i)));
-
-			if (songFoldersToLoad.Count <= 0) {
-				loadPercent = 1f;
-				return;
-			}
-
 			ThreadPool.QueueUserWorkItem(_ => {
-				while (songFoldersToLoad.Count > 0) {
-					string folderPath = songFoldersToLoad.Dequeue();
+				loadPercent = 0f;
 
-					Debug.Log($"Fetching songs from: `{folderPath}`.");
-
-					string folderHash = Utils.Hash(folderPath);
-					string cachePath = Path.Combine(CacheFolder, folderHash + ".json");
-
-					if (File.Exists(cachePath)) {
-						var success = ReadCache(cachePath);
-						if (success) {
-							continue;
-						}
-					}
-
-					try {
-						songsTemp = new();
-
-						// Find songs
-						loadPercent = 0f;
-						CreateSongInfoFromFiles(folderPath, new(folderPath));
-
-						// Read song.ini and hashes
-						loadPercent = 0.1f;
-						ReadSongIni();
-						GetSongHashes();
-
-						// Populate SongsByHash, and create cache
-						loadPercent = 0.9f;
-						PopulateSongByHashes();
-						CreateCache(folderPath, cachePath);
-					} catch (Exception e) {
-						Debug.LogException(e);
-					}
+				try {
+					LoadSongs();
+				} catch (Exception e) {
+					Debug.LogError($"Error while loading songs: {e}");
 				}
 
 				loadPercent = 1f;
@@ -134,8 +116,6 @@ namespace YARG {
 		/// Should be called before you access <see cref="SourceNames"/>.
 		/// </summary>
 		public static void FetchSongSources() {
-			SourceNames = new();
-
 			ThreadPool.QueueUserWorkItem(_ => {
 				loadPercent = 0f;
 
@@ -149,6 +129,56 @@ namespace YARG {
 
 				loadPercent = 1f;
 			});
+		}
+
+		private static void LoadSongs() {
+			if (!Directory.Exists(CacheFolder)) {
+				Directory.CreateDirectory(CacheFolder);
+			}
+
+			SongsByHash = new();
+			songFoldersToLoad = new(SongFolders.Where(i => !string.IsNullOrEmpty(i)));
+
+			if (songFoldersToLoad.Count <= 0) {
+				loadPercent = 1f;
+				return;
+			}
+
+			while (songFoldersToLoad.Count > 0) {
+				string folderPath = songFoldersToLoad.Dequeue();
+
+				Debug.Log($"Fetching songs from: `{folderPath}`.");
+
+				string folderHash = Utils.Hash(folderPath);
+				string cachePath = Path.Combine(CacheFolder, folderHash + ".json");
+
+				if (File.Exists(cachePath)) {
+					var success = ReadCache(cachePath);
+					if (success) {
+						continue;
+					}
+				}
+
+				try {
+					songsTemp = new();
+
+					// Find songs
+					loadPercent = 0f;
+					CreateSongInfoFromFiles(folderPath, new(folderPath));
+
+					// Read song.ini and hashes
+					loadPercent = 0.1f;
+					ReadSongIni();
+					GetSongHashes();
+
+					// Populate SongsByHash, and create cache
+					loadPercent = 0.9f;
+					PopulateSongByHashes();
+					CreateCache(folderPath, cachePath);
+				} catch (Exception e) {
+					Debug.LogException(e);
+				}
+			}
 		}
 
 		/// <summary>
@@ -301,10 +331,13 @@ namespace YARG {
 		}
 
 		private static bool FetchSources() {
+			Debug.Log("Fetching list of sources.");
+
 			try {
 				// Retrieve sources file
 				var request = WebRequest.Create(SourcesUrl);
 				request.UseDefaultCredentials = true;
+				request.Timeout = 10000;
 				using var response = request.GetResponse();
 				using var responseReader = new StreamReader(response.GetResponseStream());
 
@@ -312,7 +345,7 @@ namespace YARG {
 				string text = responseReader.ReadToEnd();
 				File.WriteAllText(SourcesFile, text);
 			} catch (Exception e) {
-				Debug.LogError($"Error while fetching sources: {e}");
+				Debug.LogException(e);
 				return false;
 			}
 

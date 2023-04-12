@@ -200,7 +200,7 @@ namespace YARG.UI {
 			SongLibrary.Reset();
 			ScoreManager.Reset();
 
-			SongLibrary.FetchAllSongs();
+			SongLibrary.FetchEverything();
 			loadingScreen.SetActive(true);
 			ScoreManager.FetchScores();
 
