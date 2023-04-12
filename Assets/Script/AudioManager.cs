@@ -37,7 +37,7 @@ namespace YARG {
 		}
 
 		public void SetVolume(string name, float volume) {
-			audioMixer.SetFloat($"{name}_volume", Utils.VolumeFromLinear(volume));
+			audioMixer.SetFloat($"{name}_volume", VolumeFromLinear(volume));
 		}
 
 		public AudioMixerGroup GetAudioMixerGroup(string name) {
@@ -46,6 +46,14 @@ namespace YARG {
 			}
 
 			return null;
+		}
+
+		/// <param name="v">A linear volume between 0 and 1.</param>
+		/// <returns>
+		/// The linear volume converted to decibels.
+		/// </returns>
+		private static float VolumeFromLinear(float v) {
+			return Mathf.Log10(Mathf.Min(v + float.Epsilon, 1f)) * 20f;
 		}
 	}
 }
