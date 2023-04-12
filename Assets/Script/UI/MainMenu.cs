@@ -80,7 +80,7 @@ namespace YARG.UI {
 				progressBar.fillAmount = SongLibrary.loadPercent;
 
 				// Finish loading
-				if (SongLibrary.loadPercent >= 1f) {
+				if (!SongLibrary.currentlyLoading) {
 					loadingScreen.SetActive(false);
 					SongLibrary.loadPercent = 0f;
 				}

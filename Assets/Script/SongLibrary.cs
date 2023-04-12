@@ -21,6 +21,7 @@ namespace YARG {
 			public List<SongInfo> songs;
 		}
 
+		public static bool currentlyLoading = false;
 		public static float loadPercent = 0f;
 
 		/// <value>
@@ -75,6 +76,7 @@ namespace YARG {
 
 		public static void FetchEverything() {
 			ThreadPool.QueueUserWorkItem(_ => {
+				currentlyLoading = true;
 				loadPercent = 0f;
 				try {
 					LoadSongs();
@@ -92,6 +94,7 @@ namespace YARG {
 				}
 
 				loadPercent = 1f;
+				currentlyLoading = false;
 			});
 		}
 
@@ -100,6 +103,7 @@ namespace YARG {
 		/// </summary>
 		public static void FetchAllSongs() {
 			ThreadPool.QueueUserWorkItem(_ => {
+				currentlyLoading = true;
 				loadPercent = 0f;
 
 				try {
@@ -109,6 +113,7 @@ namespace YARG {
 				}
 
 				loadPercent = 1f;
+				currentlyLoading = false;
 			});
 		}
 
@@ -117,6 +122,7 @@ namespace YARG {
 		/// </summary>
 		public static void FetchSongSources() {
 			ThreadPool.QueueUserWorkItem(_ => {
+				currentlyLoading = true;
 				loadPercent = 0f;
 
 				try {
@@ -128,6 +134,7 @@ namespace YARG {
 				}
 
 				loadPercent = 1f;
+				currentlyLoading = false;
 			});
 		}
 
