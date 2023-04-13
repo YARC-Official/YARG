@@ -26,6 +26,7 @@ namespace YARG.PlayMode {
 		public const float STRUM_LENIENCY = 0.065f;
 		public const bool ANCHORING = true;
 		public const bool INFINITE_FRONTEND = false;
+		public const bool ANCHOR_CHORD_HOPO = true;
 
 		public static SongInfo song = null;
 

@@ -55,10 +55,11 @@ Windows:
 # 🔨 Building
 
 1. Clone repository.
-2. Open it in Unity version `2021.3.21f1` (LTS)
-3. Load in **without** entering safe mode.
-4. Click on `NuGet` on the menu bar.
-5. Click on `Restore Packages`.
+2. Make sure you have [Blender](https://www.blender.org/) installed (it's free). This is for loading models.
+3. Open it in Unity version `2021.3.21f1` (LTS)
+4. Load in **without** entering safe mode.
+5. Click on `NuGet` on the menu bar.
+6. Click on `Restore Packages`.
 
 # ✍️ Contributing
 
