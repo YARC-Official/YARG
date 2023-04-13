@@ -304,7 +304,7 @@ namespace YARG.PlayMode {
 
 		private bool IsOverstrumForgiven() {
 			for (int i = 0; i < allowedOverstrums.Count; i++) {
-				if (ChordPressed(allowedOverstrums[i],true)) {
+				if (ChordPressed(allowedOverstrums[i], true)) {
 					// If we found a chord that was pressed, remove 
 					// all of the allowed overstrums before it.
 					// This prevents over-forgiving overstrums.
@@ -392,7 +392,11 @@ namespace YARG.PlayMode {
 					if (contains && !frets[i].IsPressed) {
 						return false;
 					} else if (!contains && frets[i].IsPressed) {
-						if (Play.ANCHORING && Play.ANCHOR_CHORD_HOPO && chordList[0].hopo && !(strummed || strumLeniency > 0f || overstrumCheck) && i < chordList[0].fret) { // Allow anchoring chord HO/POs
+						if (Play.ANCHORING && Play.ANCHOR_CHORD_HOPO &&
+							chordList[0].hopo && !(strummed || strumLeniency > 0f || overstrumCheck) &&
+							i < chordList[0].fret) {
+
+							// Allow anchoring chord HO/POs
 							continue;
 						} else {
 							return false;
