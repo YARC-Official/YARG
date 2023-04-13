@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Text;
 using UnityEngine;
 using YARG.Data;
 using DtxCS;
 using DtxCS.DataTypes;
+using YARG.Serialization.Audio;
 
 public class SongData
 {
@@ -155,6 +158,58 @@ public class SongData
 
 }
 
+public class RBImage {
+	private byte game, bitsPerPixel, mipmaps;
+	private int format;
+	private short width, height, bytesPerLine;
+	private string imagePath;
+
+	public RBImage(string str){ imagePath = str; }
+
+	public void ParseHeader(){
+		using(FileStream fs = new FileStream(imagePath, FileMode.Open, FileAccess.Read)){
+			using(BinaryReader br = new BinaryReader(fs, new ASCIIEncoding())){
+				byte[] header = br.ReadBytes(13);
+				game = header[0];
+				bitsPerPixel = header[1];
+				format = BitConverter.ToInt32(header, 2);
+				mipmaps = header[6];
+				width = BitConverter.ToInt16(header, 7);
+				height = BitConverter.ToInt16(header, 9);
+				bytesPerLine = BitConverter.ToInt16(header, 11);
+			}
+		}
+	}
+
+	//TODO: rearrange the bits such that the final image doesn't turn out all terrible
+	//also put the image in memory instead of saving it to the disk
+	public Image ParseImage(){
+		// Create a new bitmap object with the specified dimensions
+		Bitmap bmp = new Bitmap(width, height);
+		// Lock the bitmap's bits
+		Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
+		BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.WriteOnly, bmp.PixelFormat);
+		
+		using(FileStream fs = new FileStream(imagePath, FileMode.Open, FileAccess.Read)){
+			using(BinaryReader br = new BinaryReader(fs, new ASCIIEncoding())){
+				byte[] header = br.ReadBytes(32);
+				byte[] theRest = br.ReadBytes((int)(fs.Length - 32));
+
+				// Copy the byte array into the bitmap's bits
+				System.Runtime.InteropServices.Marshal.Copy(theRest, 0, bmpData.Scan0, theRest.Length);
+
+				// Unlock the bitmap's bits
+				bmp.UnlockBits(bmpData);
+
+				// Save the bitmap to disk as a PNG file
+				bmp.Save("image.png", ImageFormat.Png);
+				
+			}
+		}
+		return null;
+	}
+}
+
 namespace YARG.Serialization {
 	public static class RockBandSTFS {
 		static RockBandSTFS() {}
@@ -179,31 +234,32 @@ namespace YARG.Serialization {
 					Debug.Log(parsedSongs[j].ToString());
 
 				// testing mogg parsing
-				string testMogg = srcfolder.ToString() + "/underthebridge/underthebridge.mogg";
+				// string testMogg = srcfolder.ToString() + "/underthebridge/underthebridge.mogg";
 
-				if(File.Exists(Path.Combine(srcfolder.FullName, testMogg))){
-					Debug.Log("neato, mogg exists");
-					byte[] bytes = new byte[4];
-					int oggBegin = 0;
-					using(FileStream fileStream = new FileStream(testMogg, FileMode.Open)){
-						int n = fileStream.Read(bytes, 0, 4); // skip over bytes 0, 1, 2, 3
-						n = fileStream.Read(bytes, 0, 4); // because the info we care about is in bytes 4, 5, 6, 7
-						oggBegin = bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24); // byte array --> int - bytes are in little endian
-					}
-					Debug.Log($"ogg audio begins at memory address {oggBegin:X8}");
+				// if(File.Exists(Path.Combine(srcfolder.FullName, testMogg))){
+				// 	Debug.Log("neato, mogg exists");
+				// 	LEConverter le = new LEConverter();
+				// 	byte[] bytes = new byte[4];
+				// 	int oggBegin = 0;
+				// 	using(FileStream fileStream = new FileStream(testMogg, FileMode.Open)){
+				// 		int n = fileStream.Read(bytes, 0, 4); // skip over bytes 0, 1, 2, 3
+				// 		n = fileStream.Read(bytes, 0, 4); // because the info we care about is in bytes 4, 5, 6, 7
+				// 		oggBegin = le.LEToInt(bytes); // byte array --> int - bytes are in little endian
+				// 	}
+				// 	Debug.Log($"ogg audio begins at memory address {oggBegin:X8}, or {oggBegin}");
+				// }
+				// else Debug.Log("kowabummer");
+
+				// testing png_xbox parsing
+				string testPng = srcfolder.ToString() + "/underthebridge/gen/underthebridge_keep.png_xbox";
+				if(File.Exists(Path.Combine(srcfolder.FullName, testPng))){
+					Debug.Log("png exists");
+					RBImage underBridgeArt = new RBImage(testPng);
+					underBridgeArt.ParseHeader();
+					Image lmao = underBridgeArt.ParseImage();
 				}
-				else Debug.Log("kowabummer");
+				else Debug.Log("nah dawg");
 
-				string songPath = "songs/test/test";
-				string songPathGen = "songs/" + songPath.Split("/")[1] + "/gen/" + songPath.Split("/")[2];
-				// Mackiloha.IO.SystemInfo sysInfo = new Mackiloha.IO.SystemInfo {
-				// 	Version = 25, 
-				// 	Platform = Platform.X360, 
-				// 	BigEndian = true
-				// };
-				// var bitmap = new MiloSerializer(sysInfo).ReadFromFile<HMXBitmap>(Path.Combine(Path.Combine(srcfolder.FullName, songPathGen), "_keep.png_xbox"));
-				// string tmpFilePath = Path.GetTempFileName() + ".png";
-           		// bitmap.SaveAs(sysInfo, tmpFilePath);
 				return songList;
 			} catch (Exception e) {
 				Debug.LogError($"Failed to parse songs.dta for `{srcfolder.FullName}`.");
