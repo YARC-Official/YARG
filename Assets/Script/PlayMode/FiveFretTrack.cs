@@ -9,6 +9,8 @@ using YARG.Util;
 namespace YARG.PlayMode {
 	public class FiveFretTrack : AbstractTrack {
 		private bool strummed = false;
+		private float strumLeniency;
+		
 		private FiveFretInputStrategy input;
 
 		[Space]
@@ -147,6 +149,15 @@ namespace YARG.PlayMode {
 		}
 
 		private void UpdateInput() {
+			// Only want to decrease strum leniency on frames where we didn't strum
+			if (strumLeniency > 0f && !strummed) {
+				strumLeniency -= Time.deltaTime;
+				
+				if (strumLeniency <= 0f) {
+					UpdateOverstrums();
+				}
+			}
+			
 			// Handle misses (multiple a frame in case of lag)
 			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Play.HIT_MARGIN) {
 				var missedChord = expectedHits.Dequeue();
@@ -161,20 +172,19 @@ namespace YARG.PlayMode {
 			}
 
 			if (expectedHits.Count <= 0) {
-				UpdateOverstrums();
 				return;
 			}
 
 			// Handle hits (one per frame so no double hits)
 			var chord = expectedHits.Peek();
 
-			// If the note is not a HOPO and the player did not strum, nothing happened.
-			if (!chord[0].hopo && !strummed) {
+			// If the note is not a HOPO and the player has not strummed, nothing happens.
+			if (!chord[0].hopo && !strummed && strumLeniency == 0f) {
 				return;
 			}
 
-			// If the note is a HOPOm the player did not strum, and the HOPO can't be hit, nothing happened. 
-			if (chord[0].hopo && !strummed) {
+			// If the note is a HOPOm the player has not strummed, and the HOPO can't be hit, nothing happens.
+			if (chord[0].hopo && !strummed && strumLeniency == 0f) {
 				if (Combo <= 0) {
 					return;
 				}
@@ -187,7 +197,7 @@ namespace YARG.PlayMode {
 
 			// If strumming to recover combo, skip to first valid note within the timing window.
 			// This will make it easier to recover.
-			if (strummed && !ChordPressed(chord)) {
+			if ((strummed || strumLeniency > 0f) && !ChordPressed(chord)) {
 				RemoveOldAllowedOverstrums();
 				var overstrumForgiven = IsOverstrumForgiven();
 
@@ -223,9 +233,9 @@ namespace YARG.PlayMode {
 
 			// Check if correct chord is pressed
 			if (!ChordPressed(chord)) {
-				if (!chord[0].hopo) {
-					UpdateOverstrums();
-				}
+				// if (!chord[0].hopo && strumLeniency == 0f) {
+				// 	UpdateOverstrums();
+				// }
 
 				return;
 			}
@@ -250,6 +260,7 @@ namespace YARG.PlayMode {
 			expectedHits.Dequeue();
 
 			Combo++;
+			strumLeniency = 0f;
 			foreach (var hit in chord) {
 				hitChartIndex++;
 				// Hit notes
@@ -315,17 +326,13 @@ namespace YARG.PlayMode {
 		private void UpdateOverstrums() {
 			RemoveOldAllowedOverstrums();
 
-			// Don't do anything else if we didn't strum
-			if (!strummed) {
-				return;
-			}
-
 			// Look in the allowed overstrums first
 			if (IsOverstrumForgiven()) {
 				return;
 			}
-
+			
 			Combo = 0;
+			strumLeniency = 0f;
 
 			// Let go of held notes
 			for (int i = heldNotes.Count - 1; i >= 0; i--) {
@@ -436,6 +443,13 @@ namespace YARG.PlayMode {
 			latestInputIsStrum = true;
 
 			strummed = true;
+
+			// Strum leniency already active and another strum inputted, a double strum occurred (must overstrum)
+			if (strumLeniency > 0f) {
+				UpdateOverstrums();
+			}
+			
+			strumLeniency = Play.STRUM_LENIENCY;
 		}
 
 		private void SpawnNote(NoteInfo noteInfo, float time) {
