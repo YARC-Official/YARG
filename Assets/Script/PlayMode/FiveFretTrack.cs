@@ -454,7 +454,9 @@ namespace YARG.PlayMode {
 			}
 
 			strummed = true;
-			strumLeniency = Play.STRUM_LENIENCY;
+			if (!input.botMode) {
+				strumLeniency = Play.STRUM_LENIENCY;
+			}
 		}
 
 		private void SpawnNote(NoteInfo noteInfo, float time) {
