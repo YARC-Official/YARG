@@ -117,7 +117,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Update expected input
-			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= Play.Instance.SongTime + Play.HIT_MARGIN) {
+			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= Play.Instance.SongTime + Constants.HIT_MARGIN) {
 				var noteInfo = Chart[inputChartIndex];
 
 				var peeked = expectedHits.ReversePeekOrNull();
@@ -159,7 +159,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Handle misses (multiple a frame in case of lag)
-			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Play.HIT_MARGIN) {
+			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Constants.HIT_MARGIN) {
 				var missedChord = expectedHits.Dequeue();
 
 				// Call miss for each component
@@ -190,7 +190,9 @@ namespace YARG.PlayMode {
 				}
 
 				// If infinite front-end window is disabled and the latest input is outside of the timing window, nothing happened.
-				if (!Play.INFINITE_FRONTEND && latestInput.HasValue && Play.Instance.SongTime - latestInput.Value > Play.HIT_MARGIN) {
+				if (!Constants.INFINITE_FRONTEND && latestInput.HasValue &&
+					Play.Instance.SongTime - latestInput.Value > Constants.HIT_MARGIN) {
+
 					return;
 				}
 			}
@@ -296,7 +298,7 @@ namespace YARG.PlayMode {
 		private void RemoveOldAllowedOverstrums() {
 			// Remove all old allowed overstrums
 			while (allowedOverstrums.Count > 0
-				&& Play.Instance.SongTime - allowedOverstrums[0][0].time > Play.HIT_MARGIN) {
+				&& Play.Instance.SongTime - allowedOverstrums[0][0].time > Constants.HIT_MARGIN) {
 
 				allowedOverstrums.RemoveAt(0);
 			}
@@ -374,7 +376,7 @@ namespace YARG.PlayMode {
 							return false;
 						} else if (!frets[i].IsPressed && i == fret) {
 							return false;
-						} else if (frets[i].IsPressed && i != fret && !Play.ANCHORING) {
+						} else if (frets[i].IsPressed && i != fret && !Constants.ANCHORING) {
 							return false;
 						}
 					}
@@ -392,7 +394,7 @@ namespace YARG.PlayMode {
 					if (contains && !frets[i].IsPressed) {
 						return false;
 					} else if (!contains && frets[i].IsPressed) {
-						if (Play.ANCHORING && Play.ANCHOR_CHORD_HOPO &&
+						if (Constants.ANCHORING && Constants.ANCHOR_CHORD_HOPO &&
 							chordList[0].hopo && !(strummed || strumLeniency > 0f || overstrumCheck) &&
 							i < chordList[0].fret) {
 
@@ -455,7 +457,7 @@ namespace YARG.PlayMode {
 
 			strummed = true;
 			if (!input.botMode) {
-				strumLeniency = Play.STRUM_LENIENCY;
+				strumLeniency = Constants.STRUM_LENIENCY;
 			}
 		}
 
