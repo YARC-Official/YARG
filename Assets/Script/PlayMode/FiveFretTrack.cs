@@ -10,7 +10,11 @@ namespace YARG.PlayMode {
 	public class FiveFretTrack : AbstractTrack {
 		private bool strummed = false;
 		private float strumLeniency;
+<<<<<<< HEAD
 		
+=======
+
+>>>>>>> 38e8565f23092f84eafa19debdb4a25f05582dec
 		private FiveFretInputStrategy input;
 
 		[Space]
@@ -152,12 +156,20 @@ namespace YARG.PlayMode {
 			// Only want to decrease strum leniency on frames where we didn't strum
 			if (strumLeniency > 0f && !strummed) {
 				strumLeniency -= Time.deltaTime;
+<<<<<<< HEAD
 				
+=======
+
+>>>>>>> 38e8565f23092f84eafa19debdb4a25f05582dec
 				if (strumLeniency <= 0f) {
 					UpdateOverstrums();
 				}
 			}
+<<<<<<< HEAD
 			
+=======
+
+>>>>>>> 38e8565f23092f84eafa19debdb4a25f05582dec
 			// Handle misses (multiple a frame in case of lag)
 			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Play.HIT_MARGIN) {
 				var missedChord = expectedHits.Dequeue();
@@ -183,7 +195,11 @@ namespace YARG.PlayMode {
 				return;
 			}
 
+<<<<<<< HEAD
 			// If the note is a HOPOm the player has not strummed, and the HOPO can't be hit, nothing happens.
+=======
+			// If the note is a HOPO, the player has not strummed, and the HOPO can't be hit, nothing happens.
+>>>>>>> 38e8565f23092f84eafa19debdb4a25f05582dec
 			if (chord[0].hopo && !strummed && strumLeniency == 0f) {
 				if (Combo <= 0) {
 					return;
@@ -233,9 +249,13 @@ namespace YARG.PlayMode {
 
 			// Check if correct chord is pressed
 			if (!ChordPressed(chord)) {
+<<<<<<< HEAD
 				// if (!chord[0].hopo && strumLeniency == 0f) {
 				// 	UpdateOverstrums();
 				// }
+=======
+				// Overstrums are dealt with at the top of the method
+>>>>>>> 38e8565f23092f84eafa19debdb4a25f05582dec
 
 				return;
 			}
@@ -306,7 +326,7 @@ namespace YARG.PlayMode {
 
 		private bool IsOverstrumForgiven() {
 			for (int i = 0; i < allowedOverstrums.Count; i++) {
-				if (ChordPressed(allowedOverstrums[i])) {
+				if (ChordPressed(allowedOverstrums[i], true)) {
 					// If we found a chord that was pressed, remove 
 					// all of the allowed overstrums before it.
 					// This prevents over-forgiving overstrums.
@@ -346,7 +366,7 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		private bool ChordPressed(List<NoteInfo> chordList) {
+		private bool ChordPressed(List<NoteInfo> chordList, bool overstrumCheck = false) {
 			// Convert NoteInfo list to chord fret array
 			int[] chord = new int[chordList.Count];
 			for (int i = 0; i < chord.Length; i++) {
@@ -394,7 +414,15 @@ namespace YARG.PlayMode {
 					if (contains && !frets[i].IsPressed) {
 						return false;
 					} else if (!contains && frets[i].IsPressed) {
-						return false;
+						if (Play.ANCHORING && Play.ANCHOR_CHORD_HOPO &&
+							chordList[0].hopo && !(strummed || strumLeniency > 0f || overstrumCheck) &&
+							i < chordList[0].fret) {
+
+							// Allow anchoring chord HO/POs
+							continue;
+						} else {
+							return false;
+						}
 					}
 				}
 			}
@@ -442,13 +470,21 @@ namespace YARG.PlayMode {
 			latestInput = Play.Instance.SongTime;
 			latestInputIsStrum = true;
 
+			// Strum leniency already active and another strum inputted, a double strum occurred (must overstrum)
+			if (strumLeniency > 0f) {
+				UpdateOverstrums();
+			}
+
 			strummed = true;
+<<<<<<< HEAD
 
 			// Strum leniency already active and another strum inputted, a double strum occurred (must overstrum)
 			if (strumLeniency > 0f) {
 				UpdateOverstrums();
 			}
 			
+=======
+>>>>>>> 38e8565f23092f84eafa19debdb4a25f05582dec
 			strumLeniency = Play.STRUM_LENIENCY;
 		}
 
