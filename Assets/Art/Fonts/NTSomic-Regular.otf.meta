@@ -1,0 +1,23 @@
+fileFormatVersion: 2
+guid: 090ddc3f521bf13468458f861ba64821
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontNames:
+  - NT Somic
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: 2adc6c00525d02b4dbf7b707d25d4a85, type: 3}
+  - {fileID: 12800000, guid: eabdbe4db45302b4abfd3339b15ef33f, type: 3}
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
