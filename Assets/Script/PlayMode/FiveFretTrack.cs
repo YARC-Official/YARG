@@ -6,11 +6,13 @@ using YARG.Input;
 using YARG.Pools;
 using YARG.Util;
 
-namespace YARG.PlayMode {
-	public class FiveFretTrack : AbstractTrack {
+namespace YARG.PlayMode
+{
+	public class FiveFretTrack : AbstractTrack
+	{
 		private bool strummed = false;
 		private float strumLeniency;
-		
+
 		private FiveFretInputStrategy input;
 
 		[Space]
@@ -33,26 +35,29 @@ namespace YARG.PlayMode {
 
 		private int notesHit = 0;
 
-		protected override void StartTrack() {
+		protected override void StartTrack()
+		{
 			notePool.player = player;
 			genericPool.player = player;
 
 			// Lefty flip
 
-			if (player.leftyFlip) {
+			if (player.leftyFlip)
+			{
 				frets = frets.Reverse().ToArray();
 			}
 
 			// Inputs
 
-			input = (FiveFretInputStrategy) player.inputStrategy;
+			input = (FiveFretInputStrategy)player.inputStrategy;
 			input.ResetForSong();
 
 			input.FretChangeEvent += FretChangedAction;
 			input.StrumEvent += StrumAction;
 
 			// Color frets
-			for (int i = 0; i < 5; i++) {
+			for (int i = 0; i < 5; i++)
+			{
 				var fret = frets[i].GetComponent<Fret>();
 				fret.SetColor(fretColors[i]);
 				frets[i] = fret;
@@ -60,7 +65,8 @@ namespace YARG.PlayMode {
 			openNoteParticles.Colorize(fretColors[5]);
 		}
 
-		protected override void OnDestroy() {
+		protected override void OnDestroy()
+		{
 			base.OnDestroy();
 
 			// Unbind input
@@ -68,40 +74,53 @@ namespace YARG.PlayMode {
 			input.StrumEvent -= StrumAction;
 
 			// Set score
-			player.lastScore = new PlayerManager.LastScore {
-				percentage = new DiffPercent {
+			player.lastScore = new PlayerManager.LastScore
+			{
+				percentage = new DiffPercent
+				{
 					difficulty = player.chosenDifficulty,
-					percent = Chart.Count == 0 ? 1f : (float) notesHit / Chart.Count
+					percent = Chart.Count == 0 ? 1f : (float)notesHit / Chart.Count
 				},
 				notesHit = notesHit,
 				notesMissed = Chart.Count - notesHit
 			};
 		}
 
-		protected override void UpdateTrack() {
+		protected override void UpdateTrack()
+		{
 			// Update input strategy
-			if (input.botMode) {
+			if (input.botMode)
+			{
 				input.UpdateBotMode(Chart, Play.Instance.SongTime);
-			} else {
+			}
+			else
+			{
 				input.UpdatePlayerMode();
 			}
 
 			// Ignore everything else until the song starts
-			if (!Play.Instance.SongStarted) {
+			if (!Play.Instance.SongStarted)
+			{
 				return;
 			}
 
 			// Update events (beat lines, starpower, etc.)
 			var events = Play.Instance.chart.events;
-			while (events.Count > eventChartIndex && events[eventChartIndex].time <= RelativeTime) {
+			while (events.Count > eventChartIndex && events[eventChartIndex].time <= RelativeTime)
+			{
 				var eventInfo = events[eventChartIndex];
 
 				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(RelativeTime, eventInfo.time);
-				if (eventInfo.name == "beatLine_minor") {
+				if (eventInfo.name == "beatLine_minor")
+				{
 					genericPool.Add("beatLine_minor", new(0f, 0.01f, compensation));
-				} else if (eventInfo.name == "beatLine_major") {
+				}
+				else if (eventInfo.name == "beatLine_major")
+				{
 					genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
-				} else if (eventInfo.name == $"starpower_{player.chosenInstrument}") {
+				}
+				else if (eventInfo.name == $"starpower_{player.chosenInstrument}")
+				{
 					StarpowerSection = eventInfo;
 				}
 
@@ -109,7 +128,8 @@ namespace YARG.PlayMode {
 			}
 
 			// Since chart is sorted, this is guaranteed to work
-			while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= RelativeTime) {
+			while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= RelativeTime)
+			{
 				var noteInfo = Chart[visualChartIndex];
 
 				SpawnNote(noteInfo, RelativeTime);
@@ -117,14 +137,18 @@ namespace YARG.PlayMode {
 			}
 
 			// Update expected input
-			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= Play.Instance.SongTime + Play.HIT_MARGIN) {
+			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= Play.Instance.SongTime + Play.HIT_MARGIN)
+			{
 				var noteInfo = Chart[inputChartIndex];
 
 				var peeked = expectedHits.ReversePeekOrNull();
-				if (peeked?[0].time == noteInfo.time) {
+				if (peeked?[0].time == noteInfo.time)
+				{
 					// Add notes as chords
 					peeked.Add(noteInfo);
-				} else {
+				}
+				else
+				{
 					// Or add notes as singular
 					var l = new List<NoteInfo>(5) { noteInfo };
 					expectedHits.Enqueue(l);
@@ -134,9 +158,11 @@ namespace YARG.PlayMode {
 			}
 
 			// Update held notes
-			for (int i = heldNotes.Count - 1; i >= 0; i--) {
+			for (int i = heldNotes.Count - 1; i >= 0; i--)
+			{
 				var heldNote = heldNotes[i];
-				if (heldNote.time + heldNote.length <= Play.Instance.SongTime) {
+				if (heldNote.time + heldNote.length <= Play.Instance.SongTime)
+				{
 					heldNotes.RemoveAt(i);
 					frets[heldNote.fret].StopSustainParticles();
 				}
@@ -148,30 +174,36 @@ namespace YARG.PlayMode {
 			strummed = false;
 		}
 
-		private void UpdateInput() {
+		private void UpdateInput()
+		{
 			// Only want to decrease strum leniency on frames where we didn't strum
-			if (strumLeniency > 0f && !strummed) {
+			if (strumLeniency > 0f && !strummed)
+			{
 				strumLeniency -= Time.deltaTime;
-				
-				if (strumLeniency <= 0f) {
+
+				if (strumLeniency <= 0f)
+				{
 					UpdateOverstrums();
 				}
 			}
-			
+
 			// Handle misses (multiple a frame in case of lag)
-			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Play.HIT_MARGIN) {
+			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Play.HIT_MARGIN)
+			{
 				var missedChord = expectedHits.Dequeue();
 
 				// Call miss for each component
 				Combo = 0;
-				foreach (var hit in missedChord) {
+				foreach (var hit in missedChord)
+				{
 					hitChartIndex++;
 					notePool.MissNote(hit);
 					StopAudio = true;
 				}
 			}
 
-			if (expectedHits.Count <= 0) {
+			if (expectedHits.Count <= 0)
+			{
 				return;
 			}
 
@@ -179,35 +211,43 @@ namespace YARG.PlayMode {
 			var chord = expectedHits.Peek();
 
 			// If the note is not a HOPO and the player has not strummed, nothing happens.
-			if (!chord[0].hopo && !strummed && strumLeniency == 0f) {
+			if (!chord[0].hopo && !strummed && strumLeniency == 0f)
+			{
 				return;
 			}
 
-			// If the note is a HOPOm the player has not strummed, and the HOPO can't be hit, nothing happens.
-			if (chord[0].hopo && !strummed && strumLeniency == 0f) {
-				if (Combo <= 0) {
+			// If the note is a HOPO, the player has not strummed, and the HOPO can't be hit, nothing happens.
+			if (chord[0].hopo && !strummed && strumLeniency == 0f)
+			{
+				if (Combo <= 0)
+				{
 					return;
 				}
 
 				// If infinite front-end window is disabled and the latest input is outside of the timing window, nothing happened.
-				if (!Play.INFINITE_FRONTEND && latestInput.HasValue && Play.Instance.SongTime - latestInput.Value > Play.HIT_MARGIN) {
+				if (!Play.INFINITE_FRONTEND && latestInput.HasValue && Play.Instance.SongTime - latestInput.Value > Play.HIT_MARGIN)
+				{
 					return;
 				}
 			}
 
 			// If strumming to recover combo, skip to first valid note within the timing window.
 			// This will make it easier to recover.
-			if ((strummed || strumLeniency > 0f) && !ChordPressed(chord)) {
+			if ((strummed || strumLeniency > 0f) && !ChordPressed(chord))
+			{
 				RemoveOldAllowedOverstrums();
 				var overstrumForgiven = IsOverstrumForgiven();
 
 				// Ensure allowed overstrums won't break combos
-				if (!overstrumForgiven) {
+				if (!overstrumForgiven)
+				{
 					// Look for the chord that is trying to be hit
 					var found = false;
-					foreach (var newChord in expectedHits) {
+					foreach (var newChord in expectedHits)
+					{
 						// Stop looking if a valid note to strum was found
-						if (ChordPressed(newChord)) {
+						if (ChordPressed(newChord))
+						{
 							found = true;
 							chord = newChord;
 							break;
@@ -215,11 +255,14 @@ namespace YARG.PlayMode {
 					}
 
 					// If found...
-					if (found) {
+					if (found)
+					{
 						// Miss all notes previous to the strummed note
-						while (expectedHits.Peek() != chord) {
+						while (expectedHits.Peek() != chord)
+						{
 							var missedChord = expectedHits.Dequeue();
-							foreach (var hit in missedChord) {
+							foreach (var hit in missedChord)
+							{
 								hitChartIndex++;
 								notePool.MissNote(hit);
 							}
@@ -232,25 +275,29 @@ namespace YARG.PlayMode {
 			}
 
 			// Check if correct chord is pressed
-			if (!ChordPressed(chord)) {
-				// if (!chord[0].hopo && strumLeniency == 0f) {
-				// 	UpdateOverstrums();
-				// }
+			if (!ChordPressed(chord))
+			{
+				// Overstrums are dealt with at the top of the method
 
 				return;
 			}
 
 			// Avoid multi-hits
-			if (chord[0].hopo) {
+			if (chord[0].hopo)
+			{
 				// If latest input is cleared, it was already used
-				if (latestInput == null) {
+				if (latestInput == null)
+				{
 					return;
 				}
 
 				// Allow 1 multi-hit if latest note was strummed (for charts like Zoidberg the Cowboy by schmutz06)
-				if (latestInputIsStrum) {
+				if (latestInputIsStrum)
+				{
 					latestInputIsStrum = false;
-				} else {
+				}
+				else
+				{
 					// Input is valid; clear it to avoid multi-hit later
 					latestInput = null;
 				}
@@ -261,21 +308,26 @@ namespace YARG.PlayMode {
 
 			Combo++;
 			strumLeniency = 0f;
-			foreach (var hit in chord) {
+			foreach (var hit in chord)
+			{
 				hitChartIndex++;
 				// Hit notes
 				notePool.HitNote(hit);
 				StopAudio = false;
 
 				// Play particles
-				if (hit.fret != 5) {
+				if (hit.fret != 5)
+				{
 					frets[hit.fret].PlayParticles();
-				} else {
+				}
+				else
+				{
 					openNoteParticles.Play();
 				}
 
 				// If sustained, add to held
-				if (hit.length > 0.2f) {
+				if (hit.length > 0.2f)
+				{
 					heldNotes.Add(hit);
 					frets[hit.fret].PlaySustainParticles();
 				}
@@ -288,30 +340,39 @@ namespace YARG.PlayMode {
 			// add it to the allowed overstrums. This is so the player
 			// doesn't lose their combo when they strum AFTER they hit
 			// the tap note.
-			if (chord[0].hopo && !strummed) {
+			if (chord[0].hopo && !strummed)
+			{
 				allowedOverstrums.Add(chord);
-			} else if (!chord[0].hopo) {
+			}
+			else if (!chord[0].hopo)
+			{
 				allowedOverstrums.Clear();
 			}
 		}
 
-		private void RemoveOldAllowedOverstrums() {
+		private void RemoveOldAllowedOverstrums()
+		{
 			// Remove all old allowed overstrums
 			while (allowedOverstrums.Count > 0
-				&& Play.Instance.SongTime - allowedOverstrums[0][0].time > Play.HIT_MARGIN) {
+				&& Play.Instance.SongTime - allowedOverstrums[0][0].time > Play.HIT_MARGIN)
+			{
 
 				allowedOverstrums.RemoveAt(0);
 			}
 		}
 
-		private bool IsOverstrumForgiven() {
-			for (int i = 0; i < allowedOverstrums.Count; i++) {
-				if (ChordPressed(allowedOverstrums[i])) {
+		private bool IsOverstrumForgiven()
+		{
+			for (int i = 0; i < allowedOverstrums.Count; i++)
+			{
+				if (ChordPressed(allowedOverstrums[i], true))
+				{
 					// If we found a chord that was pressed, remove 
 					// all of the allowed overstrums before it.
 					// This prevents over-forgiving overstrums.
 
-					for (int j = i; j >= 0; j--) {
+					for (int j = i; j >= 0; j--)
+					{
 						allowedOverstrums.RemoveAt(j);
 					}
 
@@ -323,19 +384,22 @@ namespace YARG.PlayMode {
 			return false;
 		}
 
-		private void UpdateOverstrums() {
+		private void UpdateOverstrums()
+		{
 			RemoveOldAllowedOverstrums();
 
 			// Look in the allowed overstrums first
-			if (IsOverstrumForgiven()) {
+			if (IsOverstrumForgiven())
+			{
 				return;
 			}
-			
+
 			Combo = 0;
 			strumLeniency = 0f;
 
 			// Let go of held notes
-			for (int i = heldNotes.Count - 1; i >= 0; i--) {
+			for (int i = heldNotes.Count - 1; i >= 0; i--)
+			{
 				var heldNote = heldNotes[i];
 
 				notePool.MissNote(heldNote);
@@ -346,55 +410,88 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		private bool ChordPressed(List<NoteInfo> chordList) {
+		private bool ChordPressed(List<NoteInfo> chordList, bool overstrumCheck = false)
+		{
 			// Convert NoteInfo list to chord fret array
 			int[] chord = new int[chordList.Count];
-			for (int i = 0; i < chord.Length; i++) {
+			for (int i = 0; i < chord.Length; i++)
+			{
 				chord[i] = chordList[i].fret;
 			}
 
-			if (chord.Length == 1) {
+			if (chord.Length == 1)
+			{
 				int fret = chord[0];
 
-				if (fret == 5) {
+				if (fret == 5)
+				{
 					// Deal with open notes
-					for (int i = 0; i < frets.Length; i++) {
-						if (frets[i].IsPressed) {
-							return false;
-						}
-					}
-				} else {
-					// Deal with single notes
-					for (int i = 0; i < frets.Length; i++) {
-						// Skip any notes that are currently held down.
-						// Extended sustains.
-						if (heldNotes.Any(j => j.fret == i)) {
-							continue;
-						}
-
-						if (frets[i].IsPressed && i > fret) {
-							return false;
-						} else if (!frets[i].IsPressed && i == fret) {
-							return false;
-						} else if (frets[i].IsPressed && i != fret && !Play.ANCHORING) {
+					for (int i = 0; i < frets.Length; i++)
+					{
+						if (frets[i].IsPressed)
+						{
 							return false;
 						}
 					}
 				}
-			} else {
+				else
+				{
+					// Deal with single notes
+					for (int i = 0; i < frets.Length; i++)
+					{
+						// Skip any notes that are currently held down.
+						// Extended sustains.
+						if (heldNotes.Any(j => j.fret == i))
+						{
+							continue;
+						}
+
+						if (frets[i].IsPressed && i > fret)
+						{
+							return false;
+						}
+						else if (!frets[i].IsPressed && i == fret)
+						{
+							return false;
+						}
+						else if (frets[i].IsPressed && i != fret && !Play.ANCHORING)
+						{
+							return false;
+						}
+					}
+				}
+			}
+			else
+			{
 				// Deal with multi-key chords
-				for (int i = 0; i < frets.Length; i++) {
+				for (int i = 0; i < frets.Length; i++)
+				{
 					// Skip any notes that are currently held down.
 					// Extended sustains.
-					if (heldNotes.Any(j => j.fret == i)) {
+					if (heldNotes.Any(j => j.fret == i))
+					{
 						continue;
 					}
 
 					bool contains = chord.Contains(i);
-					if (contains && !frets[i].IsPressed) {
+					if (contains && !frets[i].IsPressed)
+					{
 						return false;
-					} else if (!contains && frets[i].IsPressed) {
-						return false;
+					}
+					else if (!contains && frets[i].IsPressed)
+					{
+						if (Play.ANCHORING && Play.ANCHOR_CHORD_HOPO &&
+							chordList[0].hopo && !(strummed || strumLeniency > 0f || overstrumCheck) &&
+							i < chordList[0].fret)
+						{
+
+							// Allow anchoring chord HO/POs
+							continue;
+						}
+						else
+						{
+							return false;
+						}
 					}
 				}
 			}
@@ -402,18 +499,22 @@ namespace YARG.PlayMode {
 			return true;
 		}
 
-		private void FretChangedAction(bool pressed, int fret) {
+		private void FretChangedAction(bool pressed, int fret)
+		{
 			latestInput = Play.Instance.SongTime;
 			latestInputIsStrum = false;
 
 			frets[fret].SetPressed(pressed);
 
-			if (!pressed) {
+			if (!pressed)
+			{
 				// Let go of held notes
 				NoteInfo letGo = null;
-				for (int i = heldNotes.Count - 1; i >= 0; i--) {
+				for (int i = heldNotes.Count - 1; i >= 0; i--)
+				{
 					var heldNote = heldNotes[i];
-					if (heldNote.fret != fret) {
+					if (heldNote.fret != fret)
+					{
 						continue;
 					}
 
@@ -425,34 +526,41 @@ namespace YARG.PlayMode {
 				}
 
 				// Only stop audio if all notes were let go and...
-				if (letGo != null && heldNotes.Count <= 0) {
+				if (letGo != null && heldNotes.Count <= 0)
+				{
 					// ...if the player let go of the note more than 0.15s
 					// before the end of the note. This prevents the game
 					// from stopping the audio if the player let go a handful
 					// of milliseconds too early (which is okay).
 					float endTime = letGo.time + letGo.length;
-					if (endTime - Play.Instance.SongTime > 0.15f) {
+					if (endTime - Play.Instance.SongTime > 0.15f)
+					{
 						StopAudio = true;
 					}
 				}
 			}
 		}
 
-		private void StrumAction() {
+		private void StrumAction()
+		{
 			latestInput = Play.Instance.SongTime;
 			latestInputIsStrum = true;
 
-			strummed = true;
-
 			// Strum leniency already active and another strum inputted, a double strum occurred (must overstrum)
-			if (strumLeniency > 0f) {
+			if (strumLeniency > 0f)
+			{
 				UpdateOverstrums();
 			}
-			
-			strumLeniency = Play.STRUM_LENIENCY;
+
+			strummed = true;
+			if (!input.botMode)
+			{
+				strumLeniency = Play.STRUM_LENIENCY;
+			}
 		}
 
-		private void SpawnNote(NoteInfo noteInfo, float time) {
+		private void SpawnNote(NoteInfo noteInfo, float time)
+		{
 			// Set correct position
 			float lagCompensation = CalcLagCompensation(time, noteInfo.time);
 			float x = noteInfo.fret == 5 ? 0f : frets[noteInfo.fret].transform.localPosition.x;
@@ -460,9 +568,12 @@ namespace YARG.PlayMode {
 
 			// Get model type
 			var model = NoteComponent.ModelType.NOTE;
-			if (noteInfo.fret == 5) {
+			if (noteInfo.fret == 5)
+			{
 				model = NoteComponent.ModelType.FULL;
-			} else if (noteInfo.hopo) {
+			}
+			else if (noteInfo.hopo)
+			{
 				model = NoteComponent.ModelType.HOPO;
 			}
 
