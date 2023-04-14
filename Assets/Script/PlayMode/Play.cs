@@ -58,6 +58,11 @@ namespace YARG.PlayMode {
 			get => realSongTime + PlayerManager.GlobalCalibration * speed;
 		}
 
+		public float SongLength {
+			get;
+			private set;
+		}
+
 		public Chart chart;
 
 		private int beatIndex = 0;
@@ -177,6 +182,12 @@ namespace YARG.PlayMode {
 			// Start all audio at the same time
 			foreach (var (_, audioSource) in audioSources) {
 				audioSource.pitch = speed;
+
+				// Gets the longest audio file and sets the song length to that length
+				if (audioSource.clip.length > SongLength) {
+					SongLength = audioSource.clip.length;
+				}
+				
 				audioSource.Play();
 			}
 			realSongTime = audioSources.First().Value.time;
@@ -185,6 +196,14 @@ namespace YARG.PlayMode {
 			// Hide loading screen
 			GameUI.Instance.loadingContainer.SetActive(false);
 
+			// End events override the audio length
+			foreach (var chartEvent in chart.events) {
+				if (chartEvent.name is "end" or "[end]") {
+					SongLength = chartEvent.time;
+					break;
+				}
+			}
+			
 			// Call events
 			OnSongStart?.Invoke(song);
 		}
@@ -306,7 +325,7 @@ namespace YARG.PlayMode {
 			}
 
 			// End song
-			if (realSongTime > song.songLength + 0.5f) {
+			if (realSongTime > SongLength + 0.5f) {
 				MainMenu.isPostSong = true;
 				Exit();
 			}
