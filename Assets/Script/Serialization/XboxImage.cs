@@ -38,20 +38,14 @@ namespace YARG.Serialization {
                         DXTBlocks[i] = DXTBlocks[i+1];
                         DXTBlocks[i+1] = temp;
                     }
-                    uint[] imagePixels = new uint[width * height];
-                    XboxImageParser.BlockDecompressXboxImage((uint)width, (uint)height, ((bitsPerPixel == 0x04) && (format == 0x08)), DXTBlocks, imagePixels);
 
-                    // parse each int (which is in RGBA format) into 4 bytes at a time for a byte array
                     imageBytes = new byte[width*height*4];
-                    for(int i = 0; i < imagePixels.Length; i++){
-                        imageBytes[4*i + 3] = (byte)(imagePixels[i] & 0x000000FF); // A
-                        imageBytes[4*i + 2] = (byte)((imagePixels[i] & 0xFF000000) >> 24); // R
-                        imageBytes[4*i + 1] = (byte)((imagePixels[i] & 0x00FF0000) >> 16); // G
-                        imageBytes[4*i] = (byte)((imagePixels[i] & 0x0000FF00) >> 8); // B
-                    }
+                    XboxImageParser.BlockDecompressXboxImage((uint)width, (uint)height, ((bitsPerPixel == 0x04) && (format == 0x08)), DXTBlocks, imageBytes);
                 }
             }
         }
+
+        public byte[] getImage() { return imageBytes; }
 
         public bool SaveImageToDisk(string fname){
             if(imageBytes == null) return false;
