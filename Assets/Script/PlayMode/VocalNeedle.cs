@@ -6,6 +6,9 @@ namespace YARG.PlayMode {
 		public MeshRenderer meshRenderer;
 		public ParticleGroup nonActiveParticles;
 		public ParticleGroup activeParticles;
+		public Light needleLight;
+		public ParticleSystem vocalLine;
+		public ParticleSystem vocalSparkles;
 
 		[SerializeField]
 		private Texture2D[] needleTextures;

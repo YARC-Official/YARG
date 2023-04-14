@@ -304,6 +304,21 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 2838311192682027393, guid: 58b061f4b5d24754d8d19581afb9944d,
+        type: 3}
+      propertyPath: m_Materials.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2838311192682027393, guid: 58b061f4b5d24754d8d19581afb9944d,
+        type: 3}
+      propertyPath: m_Materials.Array.data[1]
+      value: 
+      objectReference: {fileID: 2100000, guid: 0e410b84cdc264544a6ba5b805c80fb3, type: 2}
+    - target: {fileID: 2838311192682027393, guid: 58b061f4b5d24754d8d19581afb9944d,
+        type: 3}
+      propertyPath: m_Materials.Array.data[3]
+      value: 
+      objectReference: {fileID: 2100000, guid: 0e410b84cdc264544a6ba5b805c80fb3, type: 2}
     - target: {fileID: 7137662299531785058, guid: 58b061f4b5d24754d8d19581afb9944d,
         type: 3}
       propertyPath: m_RootOrder
@@ -466,6 +481,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Notes_HOPO
       objectReference: {fileID: 0}
+    - target: {fileID: 3616049578611005239, guid: 0c2fd03ae285b47489346459edf2ab34,
+        type: 3}
+      propertyPath: m_Materials.Array.data[3]
+      value: 
+      objectReference: {fileID: 2100000, guid: 0e410b84cdc264544a6ba5b805c80fb3, type: 2}
     - target: {fileID: 7137662299531785058, guid: 0c2fd03ae285b47489346459edf2ab34,
         type: 3}
       propertyPath: m_RootOrder

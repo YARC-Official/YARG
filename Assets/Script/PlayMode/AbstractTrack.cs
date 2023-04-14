@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.UI;
 using YARG.Data;
 using YARG.Input;
 using YARG.Settings;
@@ -43,6 +44,19 @@ namespace YARG.PlayMode {
 		protected MeshRenderer comboMeterRenderer;
 		[SerializeField]
 		protected MeshRenderer starpowerBarTop;
+		[SerializeField]
+		protected GameObject comboSunburst;
+		[SerializeField]
+		protected Light comboSunburstLight;
+		[SerializeField]
+		protected Color sunBurstColor;
+		[SerializeField]
+		protected Color sunBurstStarPowerColor;
+		[SerializeField]
+		protected Sprite sunBurstSprite;
+		[SerializeField]
+		protected Sprite sunBurstSPSprite;
+
 
 		public EventInfo StarpowerSection {
 			get;
@@ -51,6 +65,9 @@ namespace YARG.PlayMode {
 
 		protected float starpowerCharge;
 		protected bool starpowerActive;
+		protected SpriteRenderer comboSunburstSpriteRenderer;
+		protected Light comboSunburstEmbeddedLight;
+		protected Color comboSunburstSpriteColor;
 
 		private int _combo = 0;
 		protected int Combo {
@@ -127,6 +144,10 @@ namespace YARG.PlayMode {
 			hitWindow.localScale = new(scale.x, Play.HIT_MARGIN * player.trackSpeed * 2f, scale.z);
 			hitWindow.gameObject.SetActive(SettingsManager.GetSettingValue<bool>("showHitWindow"));
 
+			comboSunburstSpriteRenderer = comboSunburst.GetComponent<SpriteRenderer>();
+			comboSunburstEmbeddedLight = comboSunburst.GetComponent<Light>();
+			comboSunburstSpriteColor = comboSunburstSpriteRenderer.color;
+
 			StartTrack();
 		}
 
@@ -156,6 +177,16 @@ namespace YARG.PlayMode {
 
 			UpdateInfo();
 			UpdateStarpower();
+
+			if (Multiplier >= MaxMultiplier) {
+				comboSunburst.SetActive(true);
+				comboSunburst.transform.Rotate(0f, 0f, Time.deltaTime * -15f);
+				comboSunburstLight.gameObject.SetActive(true);
+			}
+			else {
+				comboSunburst.SetActive(false);
+				comboSunburstLight.gameObject.SetActive(false);
+			}
 
 			Beat = false;
 		}
@@ -218,6 +249,15 @@ namespace YARG.PlayMode {
 				} else {
 					starpowerCharge -= Time.deltaTime / 25f;
 				}
+
+				comboSunburstLight.color = sunBurstStarPowerColor;
+				comboSunburstSpriteRenderer.sprite = sunBurstSPSprite;
+				comboSunburstSpriteRenderer.color = new Color(255, 255, 255, 141);
+			} 
+			else {
+				comboSunburstLight.color = sunBurstColor;
+				comboSunburstSpriteRenderer.sprite = sunBurstSprite;
+				comboSunburstSpriteRenderer.color = comboSunburstSpriteColor;
 			}
 		}
 
