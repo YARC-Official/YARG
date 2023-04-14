@@ -68,7 +68,6 @@ namespace YARG.Data {
 			{"greenday", "Green Day: Rock Band"},
 			{"gdrb", "Green Day: Rock Band"},
 			{"rbvr", "Rock Band VR"},
-			{"rbr", "Rock Band Rivals"},
 
 			{"311hero", "311 Hero"},
 			{"a2z", "A-Z Pack"},
@@ -175,7 +174,6 @@ namespace YARG.Data {
 			{"zancharted", "Zancharted"},
 			{"zerogravity", "Zero Gravity"},
 			{"zgsb", "Zero Gravity - Space Battle"},
-			{"yarg", "YARG"},
 		};
 
 		/// <returns>
