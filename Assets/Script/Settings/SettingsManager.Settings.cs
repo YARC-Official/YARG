@@ -199,6 +199,10 @@ namespace YARG.Settings {
 			public void VocalMonitoringChange() {
 				AudioManager.Instance.SetVolume("vocalMonitoring", vocalMonitoring);
 			}
+			[SettingShowInGame]
+			[SettingLocation("general", 23)]
+			[SettingType("Toggle")]
+			public bool amIAwesome = false;
 		}
 	}
 }
