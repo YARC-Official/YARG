@@ -208,6 +208,16 @@ namespace YARG.Serialization {
 				}
 				else Debug.Log("nah dawg");
 
+				string testPng3 = srcfolder.ToString() + "/underthebridge/gen/soybomb.bmp_xbox";
+				XboxImage art3 = new XboxImage(testPng3);
+				art3.ParseImage();
+				art3.SaveImageToDisk("lmao");
+
+				string othertest = srcfolder.ToString() + "/underthebridge/gen/hotforteacher_keep.png_xbox";
+				XboxImage otherart = new XboxImage(othertest);
+				otherart.ParseImage();
+				otherart.SaveImageToDisk("asdf");
+
 				return songList;
 			} catch (Exception e) {
 				Debug.LogError($"Failed to parse songs.dta for `{srcfolder.FullName}`.");
