@@ -14,6 +14,9 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private MeshRenderer meshRenderer;
 
+		public Material[] guitarMaterials;
+		public Material[] drumMaterials;
+		
 		/// <value>
 		/// Whether or not the fret is pressed. Used for data purposes.
 		/// </value>
@@ -22,14 +25,14 @@ namespace YARG.PlayMode {
 			private set;
 		} = false;
 
-		public void SetColor(Color c) {
-			meshRenderer.material.color = c;
-			hitParticles.Colorize(c);
-			sustainParticles.Colorize(c);
+		public void SetColor(bool isGuitar, int c) {
+			if (isGuitar) {
+				meshRenderer.materials[1] = guitarMaterials[c];
+			}
 		}
 
 		public void SetPressed(bool pressed) {
-			meshRenderer.material.SetFloat("Fade", pressed ? 1f : 0f);
+			//meshRenderer.material.;
 
 			IsPressed = pressed;
 		}
@@ -43,8 +46,8 @@ namespace YARG.PlayMode {
 				return;
 			}
 
-			float fade = meshRenderer.material.GetFloat("Fade") - Time.deltaTime * 4f;
-			meshRenderer.material.SetFloat("Fade", Mathf.Max(fade, 0f));
+			float fade = meshRenderer.materials[1].GetFloat("Fade") - Time.deltaTime * 4f;
+			meshRenderer.materials[1].SetFloat("Fade", Mathf.Max(fade, 0f));
 		}
 
 		public void PlayParticles() {

@@ -9669,6 +9669,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 9009791116786606237}
     m_Modifications:
+    - target: {fileID: 229151077694486635, guid: 397b1ea7bf093d24ab47c16be25edc6d,
+        type: 3}
+      propertyPath: fadeOut
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3269232338164336536, guid: 397b1ea7bf093d24ab47c16be25edc6d,
         type: 3}
       propertyPath: m_RootOrder

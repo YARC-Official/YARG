@@ -119,6 +119,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2201002725912347998, guid: a1032d297fb337240b928ba7b8891d97,
         type: 3}
+    - target: {fileID: 8587717768821614897, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 9
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ba68df35237e09f4abcf788160c15375, type: 3}
 --- !u!4 &1584337011342833613 stripped
@@ -169,6 +174,12 @@ MonoBehaviour:
   comboText: {fileID: 2920970725337563288}
   comboMeterRenderer: {fileID: 8019508939677143693}
   starpowerBarTop: {fileID: 4495594969935969962}
+  comboSunburst: {fileID: 0}
+  comboSunburstLight: {fileID: 0}
+  sunBurstColor: {r: 0, g: 0, b: 0, a: 0}
+  sunBurstStarPowerColor: {r: 0, g: 0, b: 0, a: 0}
+  sunBurstSprite: {fileID: 0}
+  sunBurstSPSprite: {fileID: 0}
   fiveLaneMode: 1
   drums:
   - {fileID: 5070400065011352142}
