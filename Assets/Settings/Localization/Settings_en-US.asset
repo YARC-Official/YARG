@@ -122,6 +122,10 @@ MonoBehaviour:
     m_Localized: Disable Bloom
     m_Metadata:
       m_Items: []
+  - m_Id: 7065473438081024
+    m_Localized: Awesomeness Detection
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
