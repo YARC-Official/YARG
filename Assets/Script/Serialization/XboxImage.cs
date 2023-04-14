@@ -39,10 +39,7 @@ namespace YARG.Serialization {
                         DXTBlocks[i+1] = temp;
                     }
                     uint[] imagePixels = new uint[width * height];
-                    if((bitsPerPixel == 0x04) && (format == 0x08))
-                        XboxPNGParser.BlockDecompressImageDXT1((uint)width, (uint)height, DXTBlocks, imagePixels);
-                    else if((bitsPerPixel == 0x08) && (format == 0x18))
-                        XboxPNGParser.BlockDecompressImageDXT3((uint)width, (uint)height, DXTBlocks, imagePixels);
+                    XboxImageParser.BlockDecompressXboxImage((uint)width, (uint)height, ((bitsPerPixel == 0x04) && (format == 0x08)), DXTBlocks, imagePixels);
 
                     // parse each int (which is in RGBA format) into 4 bytes at a time for a byte array
                     imageBytes = new byte[width*height*4];
