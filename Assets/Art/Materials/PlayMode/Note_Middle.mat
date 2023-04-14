@@ -83,7 +83,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - Vector1_ea440a03db96485e85275973f7eb77f2: -1.47
+    - Vector1_ea440a03db96485e85275973f7eb77f2: -0.3
     - _AlphaClip: 0
     - _AlphaToMask: 0
     - _Blend: 0
@@ -91,7 +91,7 @@ Material:
     - _BumpScale: 1
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
-    - _Coat_Mask: 0.26
+    - _Coat_Mask: -0.56
     - _Coat_Smoothness: 0.33
     - _Cull: 2
     - _Cutoff: 0.5
@@ -99,26 +99,26 @@ Material:
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _DstBlendAlpha: 0
-    - _Emission: 3
+    - _Emission: 1.5
     - _EnvironmentReflections: 1
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _Metallic: 1.5
-    - _NoiseScale: -0.07
-    - _NoiseStrength: -1.11
+    - _NoiseScale: 4
+    - _NoiseStrength: 0.12
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _RandomFloat: 0
+    - _RandomFloat: 2
     - _ReceiveShadows: 1
-    - _Smoothness: 0.36
+    - _Smoothness: -1.27
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
-    - _Strength: 2.24
+    - _Strength: 0.47
     - _Surface: 0
     - _WorkflowMode: 1
     - _ZWrite: 1
@@ -126,7 +126,7 @@ Material:
     - _smoothness: 0
     m_Colors:
     - _BaseColor: {r: 0.13192892, g: 1, b: 0, a: 1}
-    - _Color: {r: 0.31961632, g: 0, b: 1, a: 1}
+    - _Color: {r: 0, g: 0.17400122, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _RandomVector: {r: 0, g: 0, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
