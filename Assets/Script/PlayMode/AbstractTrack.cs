@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.UI;
 using YARG.Data;
 using YARG.Input;
 using YARG.Settings;
@@ -44,19 +43,18 @@ namespace YARG.PlayMode {
 		protected MeshRenderer comboMeterRenderer;
 		[SerializeField]
 		protected MeshRenderer starpowerBarTop;
+
+		[Space]
 		[SerializeField]
-		protected GameObject comboSunburst;
+		protected SpriteRenderer comboSunburst;
 		[SerializeField]
-		protected Light comboSunburstLight;
+		protected GameObject maxComboLight;
 		[SerializeField]
-		protected Color sunBurstColor;
-		[SerializeField]
-		protected Color sunBurstStarPowerColor;
+		protected GameObject stawpowerLight;
 		[SerializeField]
 		protected Sprite sunBurstSprite;
 		[SerializeField]
-		protected Sprite sunBurstSPSprite;
-
+		protected Sprite sunBurstSpriteStarpower;
 
 		public EventInfo StarpowerSection {
 			get;
@@ -65,9 +63,7 @@ namespace YARG.PlayMode {
 
 		protected float starpowerCharge;
 		protected bool starpowerActive;
-		protected SpriteRenderer comboSunburstSpriteRenderer;
 		protected Light comboSunburstEmbeddedLight;
-		protected Color comboSunburstSpriteColor;
 
 		private int _combo = 0;
 		protected int Combo {
@@ -144,9 +140,7 @@ namespace YARG.PlayMode {
 			hitWindow.localScale = new(scale.x, Play.HIT_MARGIN * player.trackSpeed * 2f, scale.z);
 			hitWindow.gameObject.SetActive(SettingsManager.GetSettingValue<bool>("showHitWindow"));
 
-			comboSunburstSpriteRenderer = comboSunburst.GetComponent<SpriteRenderer>();
 			comboSunburstEmbeddedLight = comboSunburst.GetComponent<Light>();
-			comboSunburstSpriteColor = comboSunburstSpriteRenderer.color;
 
 			StartTrack();
 		}
@@ -179,13 +173,14 @@ namespace YARG.PlayMode {
 			UpdateStarpower();
 
 			if (Multiplier >= MaxMultiplier) {
-				comboSunburst.SetActive(true);
+				comboSunburst.gameObject.SetActive(true);
 				comboSunburst.transform.Rotate(0f, 0f, Time.deltaTime * -15f);
-				comboSunburstLight.gameObject.SetActive(true);
-			}
-			else {
-				comboSunburst.SetActive(false);
-				comboSunburstLight.gameObject.SetActive(false);
+
+				maxComboLight.gameObject.SetActive(!starpowerActive);
+			} else {
+				comboSunburst.gameObject.SetActive(false);
+
+				maxComboLight.gameObject.SetActive(false);
 			}
 
 			Beat = false;
@@ -250,14 +245,15 @@ namespace YARG.PlayMode {
 					starpowerCharge -= Time.deltaTime / 25f;
 				}
 
-				comboSunburstLight.color = sunBurstStarPowerColor;
-				comboSunburstSpriteRenderer.sprite = sunBurstSPSprite;
-				comboSunburstSpriteRenderer.color = new Color(255, 255, 255, 141);
-			} 
-			else {
-				comboSunburstLight.color = sunBurstColor;
-				comboSunburstSpriteRenderer.sprite = sunBurstSprite;
-				comboSunburstSpriteRenderer.color = comboSunburstSpriteColor;
+				comboSunburst.sprite = sunBurstSpriteStarpower;
+				comboSunburst.color = new Color(255, 255, 255, 141);
+
+				stawpowerLight.SetActive(true);
+			} else {
+				comboSunburst.sprite = sunBurstSprite;
+				comboSunburst.color = Color.white;
+
+				stawpowerLight.SetActive(false);
 			}
 		}
 
