@@ -9,7 +9,7 @@ using UnityEngine;
 using YARG.Data;
 using DtxCS;
 using DtxCS.DataTypes;
-using YARG.Serialization.Audio;
+using YARG.Serialization;
 
 public class SongData
 {
@@ -158,58 +158,6 @@ public class SongData
 
 }
 
-public class RBImage {
-	private byte game, bitsPerPixel, mipmaps;
-	private int format;
-	private short width, height, bytesPerLine;
-	private string imagePath;
-
-	public RBImage(string str){ imagePath = str; }
-
-	public void ParseHeader(){
-		using(FileStream fs = new FileStream(imagePath, FileMode.Open, FileAccess.Read)){
-			using(BinaryReader br = new BinaryReader(fs, new ASCIIEncoding())){
-				byte[] header = br.ReadBytes(13);
-				game = header[0];
-				bitsPerPixel = header[1];
-				format = BitConverter.ToInt32(header, 2);
-				mipmaps = header[6];
-				width = BitConverter.ToInt16(header, 7);
-				height = BitConverter.ToInt16(header, 9);
-				bytesPerLine = BitConverter.ToInt16(header, 11);
-			}
-		}
-	}
-
-	//TODO: rearrange the bits such that the final image doesn't turn out all terrible
-	//also put the image in memory instead of saving it to the disk
-	public Image ParseImage(){
-		// Create a new bitmap object with the specified dimensions
-		Bitmap bmp = new Bitmap(width, height);
-		// Lock the bitmap's bits
-		Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
-		BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.WriteOnly, bmp.PixelFormat);
-		
-		using(FileStream fs = new FileStream(imagePath, FileMode.Open, FileAccess.Read)){
-			using(BinaryReader br = new BinaryReader(fs, new ASCIIEncoding())){
-				byte[] header = br.ReadBytes(32);
-				byte[] theRest = br.ReadBytes((int)(fs.Length - 32));
-
-				// Copy the byte array into the bitmap's bits
-				System.Runtime.InteropServices.Marshal.Copy(theRest, 0, bmpData.Scan0, theRest.Length);
-
-				// Unlock the bitmap's bits
-				bmp.UnlockBits(bmpData);
-
-				// Save the bitmap to disk as a PNG file
-				bmp.Save("image.png", ImageFormat.Png);
-				
-			}
-		}
-		return null;
-	}
-}
-
 namespace YARG.Serialization {
 	public static class RockBandSTFS {
 		static RockBandSTFS() {}
@@ -254,9 +202,9 @@ namespace YARG.Serialization {
 				string testPng = srcfolder.ToString() + "/underthebridge/gen/underthebridge_keep.png_xbox";
 				if(File.Exists(Path.Combine(srcfolder.FullName, testPng))){
 					Debug.Log("png exists");
-					RBImage underBridgeArt = new RBImage(testPng);
-					underBridgeArt.ParseHeader();
-					Image lmao = underBridgeArt.ParseImage();
+					XboxImage art = new XboxImage(testPng);
+					art.ParseImage();
+					art.SaveImageToDisk("lol");
 				}
 				else Debug.Log("nah dawg");
 
