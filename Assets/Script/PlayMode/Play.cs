@@ -128,9 +128,9 @@ namespace YARG.PlayMode {
 
 				// Set audio source mixer
 				string mixerName = name;
-				if (mixerName == "drums_1" || mixerName == "drums_2" || mixerName == "drums_3" || mixerName == "drums_4") {
+				if (mixerName is "drums_1" or "drums_2" or "drums_3" or "drums_4") {
 					mixerName = "drums";
-				} else if (mixerName == "vocals_1" || mixerName == "vocals_2") {
+				} else if (mixerName is "vocals_1" or "vocals_2") {
 					mixerName = "vocals";
 				} else if (mixerName == "rhythm") {
 					// For now
@@ -187,7 +187,7 @@ namespace YARG.PlayMode {
 				if (audioSource.clip.length > SongLength) {
 					SongLength = audioSource.clip.length;
 				}
-				
+
 				audioSource.Play();
 			}
 			realSongTime = audioSources.First().Value.time;
@@ -198,12 +198,14 @@ namespace YARG.PlayMode {
 
 			// End events override the audio length
 			foreach (var chartEvent in chart.events) {
-				if (chartEvent.name is "end" or "[end]") {
+				// TODO: "chart.events" does not include the "end" event, as it is
+				// intermdiate representation of the midi file. The "end" event must be parsed.
+				if (chartEvent.name == "end") {
 					SongLength = chartEvent.time;
 					break;
 				}
 			}
-			
+
 			// Call events
 			OnSongStart?.Invoke(song);
 		}
