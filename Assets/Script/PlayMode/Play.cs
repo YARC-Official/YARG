@@ -22,10 +22,7 @@ namespace YARG.PlayMode {
 		public static float speed = 1f;
 
 		public const float SONG_START_OFFSET = 1f;
-		public const float HIT_MARGIN = 0.095f;
-		public const bool ANCHORING = true;
-		public const bool INFINITE_FRONTEND = false;
-
+		
 		public static SongInfo song = null;
 
 		public delegate void BeatAction();
@@ -54,6 +51,11 @@ namespace YARG.PlayMode {
 		private float realSongTime = 0f;
 		public float SongTime {
 			get => realSongTime + PlayerManager.GlobalCalibration * speed;
+		}
+
+		public float SongLength {
+			get;
+			private set;
 		}
 
 		public Chart chart;
@@ -128,9 +130,9 @@ namespace YARG.PlayMode {
 
 				// Set audio source mixer
 				string mixerName = name;
-				if (mixerName == "drums_1" || mixerName == "drums_2" || mixerName == "drums_3" || mixerName == "drums_4") {
+				if (mixerName is "drums_1" or "drums_2" or "drums_3" or "drums_4") {
 					mixerName = "drums";
-				} else if (mixerName == "vocals_1" || mixerName == "vocals_2") {
+				} else if (mixerName is "vocals_1" or "vocals_2") {
 					mixerName = "vocals";
 				} else if (mixerName == "rhythm") {
 					// For now
@@ -182,6 +184,12 @@ namespace YARG.PlayMode {
 			// Start all audio at the same time
 			foreach (var (_, audioSource) in audioSources) {
 				audioSource.pitch = speed;
+
+				// Gets the longest audio file and sets the song length to that length
+				if (audioSource.clip.length > SongLength) {
+					SongLength = audioSource.clip.length;
+				}
+
 				audioSource.Play();
 			}
 			realSongTime = audioSources.First().Value.time;
@@ -189,6 +197,16 @@ namespace YARG.PlayMode {
 
 			// Hide loading screen
 			GameUI.Instance.loadingContainer.SetActive(false);
+
+			// End events override the audio length
+			foreach (var chartEvent in chart.events) {
+				// TODO: "chart.events" does not include the "end" event, as it is
+				// intermdiate representation of the midi file. The "end" event must be parsed.
+				if (chartEvent.name == "end") {
+					SongLength = chartEvent.time;
+					break;
+				}
+			}
 
 			// Call events
 			OnSongStart?.Invoke(song);
@@ -318,7 +336,7 @@ namespace YARG.PlayMode {
 			}
 
 			// End song
-			if (realSongTime > song.songLength + 0.5f) {
+			if (realSongTime > SongLength + 0.5f) {
 				MainMenu.isPostSong = true;
 				Exit();
 			}

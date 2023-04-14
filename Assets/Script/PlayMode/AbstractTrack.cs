@@ -126,7 +126,7 @@ namespace YARG.PlayMode {
 
 			// Adjust hit window
 			var scale = hitWindow.localScale;
-			hitWindow.localScale = new(scale.x, Play.HIT_MARGIN * player.trackSpeed * 2f, scale.z);
+			hitWindow.localScale = new(scale.x, Constants.HIT_MARGIN * player.trackSpeed * 2f, scale.z);
 			hitWindow.gameObject.SetActive(SettingsManager.GetSettingValue<bool>("showHitWindow"));
 
 			scoreKeeper = new();
