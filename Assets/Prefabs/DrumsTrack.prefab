@@ -220,6 +220,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 861361446070616044, guid: db78dd29efd83c7479ab64f090489636,
         type: 3}
+    - target: {fileID: 8587717768821614897, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 9
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ba68df35237e09f4abcf788160c15375, type: 3}
 --- !u!4 &1584337011342833613 stripped
@@ -240,6 +245,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9541d86e2fd84c1d9990edf0852d74ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!212 &2953747792794423766 stripped
+SpriteRenderer:
+  m_CorrespondingSourceObject: {fileID: 9951896421710430, guid: ba68df35237e09f4abcf788160c15375,
+    type: 3}
+  m_PrefabInstance: {fileID: 2944943788190444424}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &2999289846860309450 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 90376540996421698, guid: ba68df35237e09f4abcf788160c15375,
@@ -270,8 +281,12 @@ MonoBehaviour:
   comboText: {fileID: 2920970725337563288}
   comboMeterRenderer: {fileID: 8019508939677143693}
   starpowerBarTop: {fileID: 4495594969935969962}
-  comboSunburst: {fileID: 6690777330537839823}
-  comboSunburstLight: {fileID: 7092631242988072662}
+  comboSunburst: {fileID: 2953747792794423766}
+  maxComboLight: {fileID: 3601869664132852652}
+  stawpowerLight: {fileID: 7378084863571732586}
+  sunBurstSprite: {fileID: 21300000, guid: 73b7a32a8c5582041b6dde96fe2b0fb3, type: 3}
+  sunBurstSpriteStarpower: {fileID: 21300000, guid: 7c09fe17e8bb0a64286deba571f9ce5f,
+    type: 3}
   fiveLaneMode: 0
   drums:
   - {fileID: 1796160843375670296}
@@ -281,12 +296,18 @@ MonoBehaviour:
   drumColors:
   - {r: 1, g: 0.011764706, b: 0, a: 1}
   - {r: 1, g: 0.8784314, b: 0, a: 1}
-  - {r: 0, g: 0.5803922, b: 1, a: 1}
+  - {r: 0, g: 0.2901961, b: 1, a: 1}
   - {r: 0.4392157, g: 1, b: 0, a: 1}
   - {r: 1, g: 0.42745098, b: 0, a: 1}
   notePool: {fileID: 9121291244003754727}
   genericPool: {fileID: 6222960093224628221}
   kickNoteParticles: {fileID: 8279289512315810390}
+--- !u!1 &3601869664132852652 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1811260302183972900, guid: ba68df35237e09f4abcf788160c15375,
+    type: 3}
+  m_PrefabInstance: {fileID: 2944943788190444424}
+  m_PrefabAsset: {fileID: 0}
 --- !u!23 &4495594969935969962 stripped
 MeshRenderer:
   m_CorrespondingSourceObject: {fileID: 1638471387717129506, guid: ba68df35237e09f4abcf788160c15375,
@@ -311,15 +332,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 54cd993f01bed2042a4b54b6aaf92946, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!1 &6690777330537839823 stripped
+--- !u!1 &7378084863571732586 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 8360053433170138951, guid: ba68df35237e09f4abcf788160c15375,
-    type: 3}
-  m_PrefabInstance: {fileID: 2944943788190444424}
-  m_PrefabAsset: {fileID: 0}
---- !u!108 &7092631242988072662 stripped
-Light:
-  m_CorrespondingSourceObject: {fileID: 5381973405940680030, guid: ba68df35237e09f4abcf788160c15375,
+  m_CorrespondingSourceObject: {fileID: 5673044395376804834, guid: ba68df35237e09f4abcf788160c15375,
     type: 3}
   m_PrefabInstance: {fileID: 2944943788190444424}
   m_PrefabAsset: {fileID: 0}

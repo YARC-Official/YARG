@@ -54,7 +54,7 @@ MonoBehaviour:
   - {fileID: 4571971630462908758}
   - {fileID: 6846950644507852135}
   - {fileID: 7738971020111113721}
-  meshRendererMiddleIndices: 020000000200000000000000
+  meshRendererMiddleIndices: 020000000200000001000000
   noteGroup: {fileID: 1397812567785855241}
   hopoGroup: {fileID: 1294466957868725440}
   fullGroup: {fileID: 4634473573192609450}
@@ -413,7 +413,7 @@ PrefabInstance:
     - target: {fileID: 5809473155861083179, guid: 7f5a7c9c386834145943559b2a0048a6,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: -0.106
       objectReference: {fileID: 0}
     - target: {fileID: 5809473155861083179, guid: 7f5a7c9c386834145943559b2a0048a6,
         type: 3}
