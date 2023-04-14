@@ -126,6 +126,10 @@ MonoBehaviour:
     m_Localized: Awesomeness Detection
     m_Metadata:
       m_Items: []
+  - m_Id: 7304579734953984
+    m_Localized: Awesomeness Detection
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

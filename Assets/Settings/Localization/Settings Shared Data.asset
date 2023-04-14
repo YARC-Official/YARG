@@ -119,6 +119,10 @@ MonoBehaviour:
     m_Key: disableBloom
     m_Metadata:
       m_Items: []
+  - m_Id: 7304579734953984
+    m_Key: amIAwesome
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
