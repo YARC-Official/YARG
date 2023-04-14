@@ -527,7 +527,8 @@ namespace YARG.PlayMode {
 					playerInfo.needleModel.SetActive(micInput.TimeSinceNoVoice < 0.25f);
 				}
 
-				
+				var mainLine = playerInfo.vocalLine.main;
+				var mainSparkles = playerInfo.vocalSparkles.main;
 
 				if (pitchCorrect && targetLyricIndex != -1) {
 					playerInfo.hittingNote = true;
@@ -538,15 +539,15 @@ namespace YARG.PlayMode {
 
 					//Changes colors of particles according to the note hit.
 					playerInfo.needleLight.color = HARMONIC_COLORS[targetLyricIndex];
-					playerInfo.vocalLine.startColor = HARMONIC_COLORS[targetLyricIndex];
-					playerInfo.vocalSparkles.startColor = HARMONIC_COLORS[targetLyricIndex];
+					mainLine.startColor = HARMONIC_COLORS[targetLyricIndex];
+					mainSparkles.startColor = HARMONIC_COLORS[targetLyricIndex];
 				} else {
 					playerInfo.hittingNote = false;
 
 
 					//playerInfo.needleLight.color = HARMONIC_COLORS[3]; //This makes the light blink at the end of every word.
-					playerInfo.vocalLine.startColor = HARMONIC_COLORS[3];
-					playerInfo.vocalSparkles.startColor = HARMONIC_COLORS[3];
+					mainLine.startColor = HARMONIC_COLORS[3];
+					mainSparkles.startColor = HARMONIC_COLORS[3];
 
 					playerInfo.activeParticles.Stop();
 
