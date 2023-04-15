@@ -1,5 +1,14 @@
 {
   "dependencies": {
+    "com.thenathannator.plasticband": {
+      "version": "https://github.com/TheNathannator/PlasticBand-Unity.git?path=/Packages/com.thenathannator.plasticband",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.inputsystem": "1.4.4"
+      },
+      "hash": "4ad9e3ff464239a13f22500b9188ce72e8577a6e"
+    },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
       "depth": 0,
