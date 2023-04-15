@@ -186,8 +186,8 @@ namespace YARG.PlayMode {
 		}
 
 		private void DrumHitAction(int drum, bool cymbal) {
-			// invert input in case lefty flip is on
-			if (player.leftyFlip){
+			// invert input in case lefty flip is on, bots don't need it
+			if (player.leftyFlip && !input.botMode){
 				switch (drum){
 					case 0:
 						drum = kickIndex == 4 ? 3 : 4;
