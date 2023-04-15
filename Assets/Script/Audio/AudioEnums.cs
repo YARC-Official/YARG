@@ -21,6 +21,7 @@ namespace YARG {
 	public enum SfxSample {
 		NoteMiss,
 		StarPowerAward,
+		StarPowerGain,
 		StarPowerDeploy,
 		StarPowerRelease,
 		Clap,

@@ -311,9 +311,6 @@ namespace YARG {
 					fHighFreqRTRatio = 0.001f
 				};
 				
-				// I don't think the volume works??? Might need a gain DSP function instead
-				Bass.ChannelSetAttribute(stemHandle, ChannelAttribute.Volume, 1.5f);
-				
 				Bass.FXSetParameters(reverbHandle, reverbParams);
 				
 				stemEffects[stemHandle].Add(EffectType.DXReverb, reverbHandle);
@@ -325,9 +322,6 @@ namespace YARG {
 				
 				Bass.ChannelRemoveFX(stemHandle, stemEffects[stemHandle][EffectType.DXReverb]);
 				Bass.ChannelRemoveDSP(stemHandle, stemGainDsps[stemHandle]);
-				
-				// Should set volume back to stem volume in settings when that is added
-				Bass.ChannelSetAttribute(stemHandle, ChannelAttribute.Volume, stemVolumes[(int)stem]);
 				
 				stemEffects[stemHandle].Remove(EffectType.DXReverb);
 				stemGainDsps.Remove(stemHandle);
@@ -342,12 +336,6 @@ namespace YARG {
 			throw new System.NotImplementedException();
 		}
 
-		private double GetAudioLengthInSeconds(int channel) {
-			long length = Bass.ChannelGetLength(channel);
-			double seconds = Bass.ChannelBytes2Seconds(channel, length);
-			return seconds;
-		}
-
 		private void OnApplicationQuit() {
 			Unload();
 		}
@@ -359,6 +347,12 @@ namespace YARG {
 			for (int i = 0; i < samples; i++) {
 				bufferPtr![i] *= 1.3f;
 			}
+		}
+		
+		private static double GetAudioLengthInSeconds(int channel) {
+			long length = Bass.ChannelGetLength(channel);
+			double seconds = Bass.ChannelBytes2Seconds(channel, length);
+			return seconds;
 		}
 
 		private static string GetBassDirectory() {
