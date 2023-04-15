@@ -355,6 +355,7 @@ namespace YARG {
 			return seconds;
 		}
 
+    
 		private static string GetBassDirectory() {
 			string pluginDirectory = Path.Combine(Application.dataPath, "Plugins");
 
