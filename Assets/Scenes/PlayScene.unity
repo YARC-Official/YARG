@@ -437,7 +437,7 @@ RectTransform:
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: -31.599976, y: -227.5}
-  m_SizeDelta: {x: 295.40002, y: 50.700012}
+  m_SizeDelta: {x: 219.2, y: 50.700012}
   m_Pivot: {x: 1, y: 1}
 --- !u!1 &130048040
 GameObject:
@@ -666,7 +666,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -25.599976}
+  m_AnchoredPosition: {x: 0, y: -113.099976}
   m_SizeDelta: {x: 0, y: 175}
   m_Pivot: {x: 0.5, y: 0.9999998}
 --- !u!114 &173411523
@@ -1245,7 +1245,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 259.07, y: 36.5}
+  m_SizeDelta: {x: 189.9, y: 36.5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &331865772
 MonoBehaviour:
@@ -1267,7 +1267,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 174,234,567
+  m_text: 999,999,999
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ae170e91fd29a90479e906ddffb1d8ee, type: 2}
   m_sharedMaterial: {fileID: -5480317595949376055, guid: ae170e91fd29a90479e906ddffb1d8ee,
@@ -1295,7 +1295,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 30.4
+  m_fontSize: 28.75
   m_fontSizeBase: 32.3
   m_fontWeight: 400
   m_enableAutoSizing: 1
