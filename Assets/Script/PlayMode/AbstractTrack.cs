@@ -208,6 +208,7 @@ namespace YARG.PlayMode {
 			if (IsStarpowerHit()) {
 				StarpowerSection = null;
 				starpowerCharge += 0.25f;
+				GameManager.AudioManager.PlaySoundEffect(SfxSample.StarPowerAward);
 			}
 
 			// Update starpower active
@@ -215,6 +216,8 @@ namespace YARG.PlayMode {
 				if (starpowerCharge <= 0f) {
 					starpowerActive = false;
 					starpowerCharge = 0f;
+					GameManager.AudioManager.PlaySoundEffect(SfxSample.StarPowerRelease);
+					SetReverb(false);
 				} else {
 					starpowerCharge -= Time.deltaTime / 25f;
 				}
@@ -251,6 +254,8 @@ namespace YARG.PlayMode {
 
 		private void StarpowerAction(InputStrategy inputStrategy) {
 			if (!starpowerActive && starpowerCharge >= 0.5f) {
+				GameManager.AudioManager.PlaySoundEffect(SfxSample.StarPowerDeploy);
+				SetReverb(true);
 				starpowerActive = true;
 			}
 		}
@@ -266,5 +271,7 @@ namespace YARG.PlayMode {
 
 			return false;
 		}
+
+		public abstract void SetReverb(bool on);
 	}
 }

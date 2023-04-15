@@ -2,12 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
 using YARG.Data;
-using YARG.Serialization.Audio;
 using YARG.Serialization.Parser;
 using YARG.Settings;
 using YARG.UI;
@@ -43,12 +41,10 @@ namespace YARG.PlayMode {
 			private set;
 		} = false;
 
-		private Dictionary<string, AudioSource> audioSources = new();
 		private OccurrenceList<string> audioLowering = new();
+		private OccurrenceList<string> audioReverb   = new();
 
-		private List<AudioHandler> audioHandlers = new();
-
-		private float realSongTime = 0f;
+		private float realSongTime => GameManager.AudioManager.CurrentPositionF;
 		public float SongTime {
 			get => realSongTime + PlayerManager.GlobalCalibration * speed;
 		}
@@ -75,18 +71,12 @@ namespace YARG.PlayMode {
 				if (value) {
 					Time.timeScale = 0f;
 
-					// Pause audio
-					foreach (var (_, source) in audioSources) {
-						source.Pause();
-					}
+					GameManager.AudioManager.Pause();
 
 				} else {
 					Time.timeScale = 1f;
 
-					// Unpause audio
-					foreach (var (_, source) in audioSources) {
-						source.UnPause();
-					}
+					GameManager.AudioManager.Play();
 				}
 				OnPauseToggle(_paused);
 			}
@@ -102,47 +92,12 @@ namespace YARG.PlayMode {
 
 		private IEnumerator StartSong() {
 			GameUI.Instance.SetLoadingText("Loading audio...");
+
 			// Load audio
-			foreach (var file in AudioHandler.GetAllSupportedAudioFiles(song.folder.FullName)) {
-				var name = Path.GetFileNameWithoutExtension(file);
-				if (name == "preview" || name == "crowd") {
-					continue;
-				}
-
-				// Load file
-				var audioHandler = AudioHandler.CreateAudioHandler(file);
-				yield return audioHandler.LoadAudioClip();
-				var clip = audioHandler.GetAudioClipResult();
-				audioHandlers.Add(audioHandler);
-
-				// Create audio source
-				var songAudio = Instantiate(soundAudioPrefab, transform);
-				var audioSource = songAudio.GetComponent<AudioSource>();
-				audioSource.clip = clip;
-				audioSources.Add(name, audioSource);
-
-				// Set audio source mixer
-				string mixerName = name;
-				if (mixerName is "drums_1" or "drums_2" or "drums_3" or "drums_4") {
-					mixerName = "drums";
-				} else if (mixerName is "vocals_1" or "vocals_2") {
-					mixerName = "vocals";
-				} else if (mixerName == "rhythm") {
-					// For now
-					mixerName = "bass";
-				}
-				audioSource.outputAudioMixerGroup = AudioManager.Instance.GetAudioMixerGroup(mixerName);
-			}
-
-			// Check for single guitar audio
-			if (audioSources.Count == 1 && audioSources.ContainsKey("guitar")) {
-				// If so, replace it as the song audio
-				// Standardized here: https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/Audio%20Files.md#file-names
-				audioSources.Add("song", audioSources["guitar"]);
-
-				// Remove old audio
-				audioSources.Remove("guitar");
-			}
+			var stems = AudioHelpers.GetSupportedStems(song.folder.FullName);
+			
+			GameManager.AudioManager.LoadSong(stems);
+			SongLength = GameManager.AudioManager.AudioLengthF;
 
 			GameUI.Instance.SetLoadingText("Loading chart...");
 
@@ -174,18 +129,8 @@ namespace YARG.PlayMode {
 
 			yield return new WaitForSeconds(SONG_START_OFFSET);
 
-			// Start all audio at the same time
-			foreach (var (_, audioSource) in audioSources) {
-				audioSource.pitch = speed;
-
-				// Gets the longest audio file and sets the song length to that length
-				if (audioSource.clip.length > SongLength) {
-					SongLength = audioSource.clip.length;
-				}
-
-				audioSource.Play();
-			}
-			realSongTime = audioSources.First().Value.time;
+			GameManager.AudioManager.Play();
+			
 			SongStarted = true;
 
 			// Hide loading screen
@@ -239,14 +184,6 @@ namespace YARG.PlayMode {
 				return;
 			}
 
-			var leaderAudioSource = audioSources.First().Value;
-			if (!SettingsManager.GetSettingValue<bool>("useAudioTime") || !leaderAudioSource.isPlaying) {
-				realSongTime += Time.deltaTime * speed;
-			} else {
-				// TODO: Use "timeSamples" for better accuracy
-				realSongTime = leaderAudioSource.time;
-			}
-
 			// Audio raising and lowering based on player preformance
 			if (SettingsManager.GetSettingValue<bool>("muteOnMiss")) {
 				// Mute guitars
@@ -286,6 +223,42 @@ namespace YARG.PlayMode {
 					"drums_4"
 				});
 			}
+			
+			UpdateAudio(new string[] {
+				"guitar",
+				"realGuitar"
+			}, new string[] {
+				"guitar"
+			});
+
+			// Mute bass
+			UpdateAudio(new string[] {
+				"bass",
+				"realBass"
+			}, new string[] {
+				"bass",
+				"rhythm"
+			});
+
+			// Mute keys
+			UpdateAudio(new string[] {
+				"keys",
+				"realKeys"
+			}, new string[] {
+				"keys"
+			});
+
+			// Mute drums
+			UpdateAudio(new string[] {
+				"drums",
+				"realDrums"
+			}, new string[] {
+				"drums",
+				"drums_1",
+				"drums_2",
+				"drums_3",
+				"drums_4"
+			});
 
 			// Update beats
 			while (chart.beats.Count > beatIndex && chart.beats[beatIndex] <= SongTime) {
@@ -328,40 +301,45 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		private void UpdateAudio(string[] names, string[] audio) {
-			// Get total amount of players with the instrument (and the amount lowered)
-			int amountWithInstrument = 0;
-			int amountLowered = 0;
-			for (int i = 0; i < names.Length; i++) {
-				amountWithInstrument += PlayerManager.PlayersWithInstrument(names[i]);
-				amountLowered += audioLowering.GetCount(names[i]);
-			}
-
-			// Skip if no one is playing the instrument
-			if (amountWithInstrument <= 0) {
-				return;
-			}
-
-			// Lower all volumes to a minimum of 5%
-			float percent = 1f - (float) amountLowered / amountWithInstrument;
-			foreach (var name in audio) {
-				if (!audioSources.TryGetValue(name, out var audioSource)) {
-					continue;
+		private void UpdateAudio(string[] trackNames, string[] stemNames) {
+			if (SettingsManager.GetSettingValue<bool>("muteOnMiss")) {
+				// Get total amount of players with the instrument (and the amount lowered)
+				int amountWithInstrument = 0;
+				int amountLowered = 0;
+			
+				for (int i = 0; i < trackNames.Length; i++) {
+					amountWithInstrument += PlayerManager.PlayersWithInstrument(trackNames[i]);
+					amountLowered += audioLowering.GetCount(trackNames[i]);
 				}
+			
+				// Skip if no one is playing the instrument
+				if (amountWithInstrument <= 0) {
+					return;
+				}
+			
+				// Lower all volumes to a minimum of 5%
+				float percent = 1f - (float) amountLowered / amountWithInstrument;
+				foreach (var name in stemNames) {
+					var stem = AudioHelpers.GetStemFromName(name);
 
-				audioSource.volume = percent * 0.95f + 0.05f;
+					GameManager.AudioManager.SetStemVolume(stem, percent * 0.95f + 0.05f);
+				}
+			}
+			
+			// Reverb audio with starpower
+			
+			foreach (var name in stemNames) {
+				var stem = AudioHelpers.GetStemFromName(name);
+				
+				bool applyReverb = audioReverb.GetCount(name) > 0;
+				
+				GameManager.AudioManager.ApplyReverb(stem, applyReverb);
 			}
 		}
 
 		public void Exit() {
 			// Dispose of all audio
-			foreach (var audioHandler in audioHandlers) {
-				try {
-					audioHandler.Finish();
-				} catch (Exception e) {
-					Debug.LogError(e);
-				}
-			}
+			GameManager.AudioManager.UnloadSong();
 
 			// Call events
 			OnSongEnd?.Invoke(song);
@@ -378,6 +356,14 @@ namespace YARG.PlayMode {
 
 		public void RaiseAudio(string name) {
 			audioLowering.Remove(name);
+		}
+		
+		public void ReverbAudio(string name, bool apply) {
+			if (apply) {
+				audioReverb.Add(name);
+			} else {
+				audioReverb.Remove(name);
+			}
 		}
 	}
 }

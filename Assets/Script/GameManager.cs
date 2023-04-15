@@ -29,6 +29,11 @@ namespace YARG {
 			get;
 			private set;
 		}
+		
+		public static IAudioManager AudioManager {
+			get;
+			private set;
+		}
 
 		public UpdateChecker updateChecker;
 		
@@ -37,8 +42,14 @@ namespace YARG {
 
 		private SceneIndex currentScene = SceneIndex.PERSISTANT;
 
-		private void Start() {
+		private void Awake() {
 			Instance = this;
+			
+			AudioManager = gameObject.AddComponent<BassAudioManager>();
+			AudioManager.Initialize();
+		}
+
+		private void Start() {
 			updateChecker = GetComponent<UpdateChecker>();
 			PersistentDataPath = Application.persistentDataPath;
 			Settings.SettingsManager.Init();
