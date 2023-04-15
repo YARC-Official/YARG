@@ -33,6 +33,8 @@ namespace YARG.PlayMode {
 
 		private int notesHit = 0;
 
+		private const int SUSTAIN_PTS_PER_BEAT = 30;
+
 		protected override void StartTrack() {
 			notePool.player = player;
 			genericPool.player = player;
@@ -132,9 +134,11 @@ namespace YARG.PlayMode {
 			// Update held notes
 			for (int i = heldNotes.Count - 1; i >= 0; i--) {
 				var heldNote = heldNotes[i];
+				scoreKeeper.Add(susTracker.Update(heldNote) * Multiplier * SUSTAIN_PTS_PER_BEAT);
 				if (heldNote.time + heldNote.length <= Play.Instance.SongTime) {
 					heldNotes.RemoveAt(i);
 					EndSustainParticles(heldNote);
+					susTracker.Drop(heldNote);
 				}
 			}
 
@@ -190,6 +194,7 @@ namespace YARG.PlayMode {
 			notePool.HitNote(note);
 			StopAudio = false;
 			notesHit++;
+			scoreKeeper.Add(60.0 * Multiplier);
 
 			// Play particles
 			for (int i = 0; i < 6; i++) {
@@ -203,6 +208,7 @@ namespace YARG.PlayMode {
 			// If sustained, add to held
 			if (note.length > 0.2f) {
 				heldNotes.Add(note);
+				scoreKeeper.Add(susTracker.Strum(note) * Multiplier * SUSTAIN_PTS_PER_BEAT);
 				StartSustainParticles(note);
 			}
 		}

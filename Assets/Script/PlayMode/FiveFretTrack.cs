@@ -37,7 +37,6 @@ namespace YARG.PlayMode {
 		// https://www.reddit.com/r/Rockband/comments/51t3c0/exactly_how_many_points_are_sustains_worth/
 		private const double SUSTAIN_PTS_PER_BEAT = 12.0;
 		private int notesHit = 0;
-		private SustainTracker susTracker = new(Play.Instance.chart.beats);
 
 		protected override void StartTrack() {
 			notePool.player = player;
@@ -144,7 +143,7 @@ namespace YARG.PlayMode {
 				var heldNote = heldNotes[i];
 
 				/// Sustain scoring
-				scoreKeeper.Add(susTracker.Update(heldNote) * SUSTAIN_PTS_PER_BEAT * Multiplier);
+				scoreKeeper.Add(susTracker.Update(heldNote) * Multiplier * SUSTAIN_PTS_PER_BEAT);
 
 				if (heldNote.EndTime <= Play.Instance.SongTime) {
 					heldNotes.RemoveAt(i);
@@ -290,8 +289,7 @@ namespace YARG.PlayMode {
 					heldNotes.Add(hit);
 					frets[hit.fret].PlaySustainParticles();
 					
-					var initialSus = susTracker.Strum(hit);
-					scoreKeeper.Add(initialSus * SUSTAIN_PTS_PER_BEAT * Multiplier);
+					scoreKeeper.Add(susTracker.Strum(hit) * Multiplier * SUSTAIN_PTS_PER_BEAT);
 				}
 
 				// Add stats

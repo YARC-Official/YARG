@@ -68,8 +68,6 @@ namespace YARG.PlayMode {
 		public float curBeatPerSecond { get; private set; } = 0f;
 		public float curTempo => curBeatPerSecond * 60; // BPM
 
-		public ScoreKeeper scoreKeeper;
-
 		private bool _paused = false;
 		public bool Paused {
 			get => _paused;

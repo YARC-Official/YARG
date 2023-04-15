@@ -70,6 +70,7 @@ namespace YARG.PlayMode {
 		protected int Multiplier => Mathf.Min((Combo / 10 + 1) * (starpowerActive ? 2 : 1), MaxMultiplier);
 
 		protected ScoreKeeper scoreKeeper;
+		protected SustainTracker susTracker;
 
 		private bool _stopAudio = false;
 		protected bool StopAudio {
@@ -111,6 +112,8 @@ namespace YARG.PlayMode {
 				info.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
 				info.antialiasingQuality = AntialiasingQuality.Low;
 			}
+
+			susTracker = new(Play.Instance.chart.beats);
 		}
 
 		private void Start() {

@@ -249,6 +249,8 @@ namespace YARG.PlayMode {
 
 			// Add stats
 			notesHit++;
+
+			// TODO: accomodate for disabled cymbal lanes; rework 5-lane scoring depending on re-charting
 			scoreKeeper.Add(Multiplier * (proScoreInst.Contains(player.chosenInstrument) ? 30 : 25));
 		}
 
