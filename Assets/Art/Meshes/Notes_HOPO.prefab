@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7137662299531785058}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Notes_HOPO
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -43,7 +43,7 @@ GameObject:
   - component: {fileID: 1261718154660037656}
   - component: {fileID: 6457278879286831025}
   - component: {fileID: 3616049578611005239}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: HOPO
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -96,7 +96,7 @@ MeshRenderer:
   - {fileID: 2100000, guid: e5f1d6b381e448e44b28a4a2825c0343, type: 2}
   - {fileID: 2100000, guid: 0e410b84cdc264544a6ba5b805c80fb3, type: 2}
   - {fileID: 2100000, guid: 8427df3402388ca4e80f4411ae8ee82e, type: 2}
-  - {fileID: 2100000, guid: 0e410b84cdc264544a6ba5b805c80fb3, type: 2}
+  - {fileID: 2100000, guid: 8427df3402388ca4e80f4411ae8ee82e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

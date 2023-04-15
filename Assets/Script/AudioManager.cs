@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
-using YARG.Util;
 
 namespace YARG {
 	public class AudioManager : MonoBehaviour {
