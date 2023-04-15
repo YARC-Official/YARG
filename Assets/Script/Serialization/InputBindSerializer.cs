@@ -62,7 +62,9 @@ namespace YARG.Serialization {
 				Debug.LogWarning("Failed to load input binds from JSON. Ignoring.");
 				Debug.LogException(e);
 
-				File.Delete(InputBindFile);
+				if (File.Exists(InputBindFile)) {
+					File.Delete(InputBindFile);
+				}
 			}
 		}
 

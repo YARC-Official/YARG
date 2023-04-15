@@ -181,7 +181,9 @@ namespace YARG.Settings {
 		}
 
 		public static void DeleteSettingsFile() {
-			File.Delete(SettingsFile);
+			if (File.Exists(SettingsFile)) {
+				File.Delete(SettingsFile);
+			}
 		}
 
 		public static SettingInfo[] GetAllSettings(bool inGame) {
