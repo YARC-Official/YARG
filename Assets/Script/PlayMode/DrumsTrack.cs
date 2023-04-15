@@ -35,6 +35,8 @@ namespace YARG.PlayMode {
 
 		private bool noKickMode = false;
 
+		private string[] proScoreInst = {"realDrums", "ghDrums"};
+
 		protected override void StartTrack() {
 			notePool.player = player;
 			genericPool.player = player;
@@ -247,6 +249,7 @@ namespace YARG.PlayMode {
 
 			// Add stats
 			notesHit++;
+			scoreKeeper.Add(Multiplier * (proScoreInst.Contains(player.chosenInstrument) ? 30 : 25));
 		}
 
 		private void SpawnNote(NoteInfo noteInfo, float time) {
