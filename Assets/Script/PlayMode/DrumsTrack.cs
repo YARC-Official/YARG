@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System;
 using UnityEngine;
 using YARG.Data;
 using YARG.Input;
@@ -45,6 +46,8 @@ namespace YARG.PlayMode {
 
 			if (player.leftyFlip) {
 				drums = drums.Reverse().ToArray();
+				// Make the drum colors follow RYBG even though the chart is flipped
+				Array.Reverse(drumColors, 0, 4);
 			}
 
 			// Inputs
