@@ -30,6 +30,8 @@ namespace YARG {
 		public void PlaySoundEffect(SfxSample sample);
 
 		public void SetStemVolume(SongStem stem, double volume);
+
+		public void ApplyReverb(SongStem stem, bool reverb);
 		
 		public double GetPosition();
 		public void SetPosition(double position);

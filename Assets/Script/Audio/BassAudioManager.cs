@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using ManagedBass;
+using ManagedBass.DirectX8;
 using ManagedBass.Mix;
 using UnityEngine;
 
@@ -29,6 +30,8 @@ namespace YARG {
 		private int[] stemChannels;
 		private int[] sfxSamples;
 
+		private Dictionary<int, Dictionary<EffectType, int>> stemEffects;
+
 		private void Awake() {
 			SupportedFormats = new[] {
 				".ogg",
@@ -41,6 +44,7 @@ namespace YARG {
 
 			stemChannels = new int[AudioHelpers.SupportedStems.Count];
 			sfxSamples = new int[AudioHelpers.SfxPaths.Count];
+			stemEffects = new Dictionary<int, Dictionary<EffectType, int>>();
 
 			opusHandle = 0;
 			mixerHandle = 0;
@@ -178,6 +182,8 @@ namespace YARG {
 
 				stemChannels[stemIndex] = streamHandle;
 				StemsLoaded++;
+				
+				stemEffects.Add(streamHandle, new Dictionary<EffectType, int>());
 
 				//Debug.Log($"Loaded stem {stemPath}");
 
@@ -251,6 +257,50 @@ namespace YARG {
 			}
 
 			Bass.ChannelSetAttribute(stemHandle, ChannelAttribute.Volume, volume);
+		}
+
+		public void ApplyReverb(SongStem stem, bool reverb) {
+			int stemIndex = (int) stem;
+			int stemHandle = stemChannels[stemIndex];
+
+			// If handle is 0 then it's not loaded
+			if (stemHandle == 0) {
+				return;
+			}
+
+			if (reverb) {
+				// Reverb already applied
+				if(stemEffects[stemHandle].ContainsKey(EffectType.DXReverb))
+					return;
+				
+				// Set reverb FX
+				int reverbHandle = Bass.ChannelSetFX(stemHandle, EffectType.DXReverb, 0);
+				
+				var reverbParams = new DXReverbParameters {
+					fInGain = 0.0f,
+					fReverbMix = -4f,
+					fReverbTime = 1000.0f,
+					fHighFreqRTRatio = 0.001f
+				};
+				
+				// I don't think the volume works??? Might need a gain DSP function instead
+				Bass.ChannelSetAttribute(stemHandle, ChannelAttribute.Volume, 1.5f);
+				
+				Bass.FXSetParameters(reverbHandle, reverbParams);
+				
+				stemEffects[stemHandle].Add(EffectType.DXReverb, reverbHandle);
+			} else {
+				// No reverb is applied
+				if (!stemEffects[stemHandle].ContainsKey(EffectType.DXReverb))
+					return;
+				
+				Bass.ChannelRemoveFX(stemHandle, stemEffects[stemHandle][EffectType.DXReverb]);
+				
+				// Should set volume back to stem volume in settings when that is added
+				Bass.ChannelSetAttribute(stemHandle, ChannelAttribute.Volume, 1f);
+				
+				stemEffects[stemHandle].Remove(EffectType.DXReverb);
+			}
 		}
 
 		public double GetPosition() {

@@ -42,6 +42,7 @@ namespace YARG.PlayMode {
 		} = false;
 
 		private OccurrenceList<string> audioLowering = new();
+		private OccurrenceList<string> audioReverb   = new();
 
 		private float realSongTime => GameManager.AudioManager.CurrentPositionF;
 		public float SongTime {
@@ -222,6 +223,42 @@ namespace YARG.PlayMode {
 					"drums_4"
 				});
 			}
+			
+			UpdateAudio(new string[] {
+				"guitar",
+				"realGuitar"
+			}, new string[] {
+				"guitar"
+			});
+
+			// Mute bass
+			UpdateAudio(new string[] {
+				"bass",
+				"realBass"
+			}, new string[] {
+				"bass",
+				"rhythm"
+			});
+
+			// Mute keys
+			UpdateAudio(new string[] {
+				"keys",
+				"realKeys"
+			}, new string[] {
+				"keys"
+			});
+
+			// Mute drums
+			UpdateAudio(new string[] {
+				"drums",
+				"realDrums"
+			}, new string[] {
+				"drums",
+				"drums_1",
+				"drums_2",
+				"drums_3",
+				"drums_4"
+			});
 
 			// Update beats
 			while (chart.beats.Count > beatIndex && chart.beats[beatIndex] <= SongTime) {
@@ -265,26 +302,38 @@ namespace YARG.PlayMode {
 		}
 
 		private void UpdateAudio(string[] trackNames, string[] stemNames) {
-			// Get total amount of players with the instrument (and the amount lowered)
-			int amountWithInstrument = 0;
-			int amountLowered = 0;
+			if (SettingsManager.GetSettingValue<bool>("muteOnMiss")) {
+				// Get total amount of players with the instrument (and the amount lowered)
+				int amountWithInstrument = 0;
+				int amountLowered = 0;
 			
-			for (int i = 0; i < trackNames.Length; i++) {
-				amountWithInstrument += PlayerManager.PlayersWithInstrument(trackNames[i]);
-				amountLowered += audioLowering.GetCount(trackNames[i]);
+				for (int i = 0; i < trackNames.Length; i++) {
+					amountWithInstrument += PlayerManager.PlayersWithInstrument(trackNames[i]);
+					amountLowered += audioLowering.GetCount(trackNames[i]);
+				}
+			
+				// Skip if no one is playing the instrument
+				if (amountWithInstrument <= 0) {
+					return;
+				}
+			
+				// Lower all volumes to a minimum of 5%
+				float percent = 1f - (float) amountLowered / amountWithInstrument;
+				foreach (var name in stemNames) {
+					var stem = AudioHelpers.GetStemFromName(name);
+
+					GameManager.AudioManager.SetStemVolume(stem, percent * 0.95f + 0.05f);
+				}
 			}
 			
-			// Skip if no one is playing the instrument
-			if (amountWithInstrument <= 0) {
-				return;
-			}
+			// Reverb audio with starpower
 			
-			// Lower all volumes to a minimum of 5%
-			float percent = 1f - (float) amountLowered / amountWithInstrument;
 			foreach (var name in stemNames) {
 				var stem = AudioHelpers.GetStemFromName(name);
-
-				GameManager.AudioManager.SetStemVolume(stem, percent * 0.95f + 0.05f);
+				
+				bool applyReverb = audioReverb.GetCount(name) > 0;
+				
+				GameManager.AudioManager.ApplyReverb(stem, applyReverb);
 			}
 		}
 
@@ -307,6 +356,14 @@ namespace YARG.PlayMode {
 
 		public void RaiseAudio(string name) {
 			audioLowering.Remove(name);
+		}
+		
+		public void ReverbAudio(string name, bool apply) {
+			if (apply) {
+				audioReverb.Add(name);
+			} else {
+				audioReverb.Remove(name);
+			}
 		}
 	}
 }

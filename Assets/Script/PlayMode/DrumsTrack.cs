@@ -163,6 +163,14 @@ namespace YARG.PlayMode {
 			UpdateInput();
 		}
 
+		public override void SetReverb(bool on) {
+			Play.Instance.ReverbAudio("drums", on);
+			Play.Instance.ReverbAudio("drums_1", on);
+			Play.Instance.ReverbAudio("drums_2", on);
+			Play.Instance.ReverbAudio("drums_3", on);
+			Play.Instance.ReverbAudio("drums_4", on);
+		}
+
 		private void UpdateInput() {
 			// Handle misses (multiple a frame in case of lag)
 			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Constants.HIT_MARGIN) {
