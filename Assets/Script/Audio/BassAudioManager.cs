@@ -86,7 +86,7 @@ namespace YARG {
 				Debug.LogError($"Bass Error: {Bass.LastError}");
 				return;
 			}
-
+      
 			LoadSfx();
 			dspGain += GainDSP;
 
@@ -152,7 +152,7 @@ namespace YARG {
 				}
 
 				int sampleIndex = (int) AudioHelpers.GetSfxFromName(sfx);
-
+        
 				sfxSamples[sampleIndex] = sfxHandle;
 				Debug.Log($"Loaded {sfx}");
 			}
@@ -260,7 +260,7 @@ namespace YARG {
 			
 			int channel = Bass.SampleGetChannel(sfxSamples[(int) sample]);
 			Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, AudioHelpers.SfxVolume[(int) sample]);
-
+      
 			Bass.ChannelPlay(channel);
 		}
 
@@ -360,7 +360,7 @@ namespace YARG {
 				bufferPtr![i] *= 1.3f;
 			}
 		}
-
+    
 		private static string GetBassDirectory() {
 			string pluginDirectory = Path.Combine(Application.dataPath, "Plugins");
 

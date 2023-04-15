@@ -164,6 +164,7 @@ namespace YARG.PlayMode {
 			}
 			
 			Play.Instance.ReverbAudio("song", on);
+			}
 		}
 
 		private void UpdateInput() {
