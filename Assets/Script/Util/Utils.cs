@@ -24,7 +24,7 @@ namespace YARG.Util {
 		}
 
 		/// <summary>
-		/// Calculates the length of an Info object in beats.
+		/// Calculates the length of an Info(Note) object in beats.
 		/// </summary>
 		/// <param name="beatTimes">List of beat times associated with the Info object.</param>
 		/// <returns>Length of the Info object in beats.</returns>

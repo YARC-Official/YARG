@@ -32,8 +32,4 @@ public class ScoreKeeper {
     public ScoreKeeper() {
 		instances.Add(this);
 	}
-
-    ~ScoreKeeper() {
-		Debug.Log("destroyed a ScoreKeeper");
-	}
 }

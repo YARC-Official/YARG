@@ -34,11 +34,10 @@ namespace YARG.PlayMode {
 		private bool latestInputIsStrum = false;
 
 		/// Sustain scoring handler
-		/// POSSIBLE CLEAN UP: Move related code to separate class, which can be used by other track types.
 		// https://www.reddit.com/r/Rockband/comments/51t3c0/exactly_how_many_points_are_sustains_worth/
 		private const double SUSTAIN_PTS_PER_BEAT = 12.0;
 		private int notesHit = 0;
-		public Dictionary<NoteInfo, double> sustainScoreProgress = new();
+		private SustainTracker susTracker = new(Play.Instance.chart.beats);
 
 		protected override void StartTrack() {
 			notePool.player = player;
@@ -145,16 +144,11 @@ namespace YARG.PlayMode {
 				var heldNote = heldNotes[i];
 
 				/// Sustain scoring
-				double remainingPts = SUSTAIN_PTS_PER_BEAT * heldNote.LengthInBeats - sustainScoreProgress[heldNote];
-				// pt/b * s * b/s = pt
-				double ptsThisFrame = math.min(SUSTAIN_PTS_PER_BEAT * Time.deltaTime * Play.Instance.curBeatPerSecond, remainingPts);
-				sustainScoreProgress[heldNote] = sustainScoreProgress[heldNote] + ptsThisFrame;
-				scoreKeeper.Add(ptsThisFrame * Multiplier);
-				// Debug.Log($"{sustainScoreProgress[heldNote]} / {SUSTAIN_PTS_PER_BEAT*heldNote.LengthInBeats}");
+				scoreKeeper.Add(susTracker.Update(heldNote) * SUSTAIN_PTS_PER_BEAT * Multiplier);
 
 				if (heldNote.EndTime <= Play.Instance.SongTime) {
 					heldNotes.RemoveAt(i);
-					sustainScoreProgress.Remove(heldNote);
+					susTracker.Drop(heldNote);
 					frets[heldNote.fret].StopSustainParticles();
 				}
 			}
@@ -296,10 +290,8 @@ namespace YARG.PlayMode {
 					heldNotes.Add(hit);
 					frets[hit.fret].PlaySustainParticles();
 					
-					/// Begin sustain scoring w/ compensation for earlier/later hit
-					sustainScoreProgress[hit] =
-						math.clamp(SUSTAIN_PTS_PER_BEAT * Mathf.Min((Play.Instance.SongTime - hit.time), hit.length) * Play.Instance.curBeatPerSecond, 0.0, double.MaxValue);
-					scoreKeeper.Add(sustainScoreProgress[hit] * Multiplier);
+					var initialSus = susTracker.Strum(hit);
+					scoreKeeper.Add(initialSus * SUSTAIN_PTS_PER_BEAT * Multiplier);
 				}
 
 				// Add stats
@@ -365,6 +357,7 @@ namespace YARG.PlayMode {
 				StopAudio = true;
 
 				heldNotes.RemoveAt(i);
+				susTracker.Drop(heldNote);
 				frets[heldNote.fret].StopSustainParticles();
 			}
 		}
@@ -450,6 +443,7 @@ namespace YARG.PlayMode {
 
 					notePool.MissNote(heldNote);
 					heldNotes.RemoveAt(i);
+					susTracker.Drop(heldNote);
 					frets[heldNote.fret].StopSustainParticles();
 
 					letGo = heldNote;

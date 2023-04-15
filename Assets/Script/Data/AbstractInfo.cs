@@ -6,6 +6,7 @@ namespace YARG.Data {
 		public float time;
 		public float length;
 
+		// TODO: set lengthInBeats at construction time
 		private float? _lengthInBeats = null;
 		public float LengthInBeats {
 			get {
