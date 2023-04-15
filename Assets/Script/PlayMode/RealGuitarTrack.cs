@@ -123,7 +123,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Update expected input
-			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= Play.Instance.SongTime + Play.HIT_MARGIN) {
+			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= Play.Instance.SongTime + Constants.HIT_MARGIN) {
 				expectedHits.Enqueue(Chart[inputChartIndex]);
 
 				inputChartIndex++;
@@ -143,9 +143,13 @@ namespace YARG.PlayMode {
 			strumFlag = StrumFlag.NONE;
 		}
 
+		public override void SetReverb(bool on) {
+			Play.Instance.ReverbAudio("guitar", on);
+		}
+
 		private void UpdateInput() {
 			// Handle misses (multiple a frame in case of lag)
-			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?.time > Play.HIT_MARGIN) {
+			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?.time > Constants.HIT_MARGIN) {
 				var missedNote = expectedHits.Dequeue();
 
 				// Call miss for each component
