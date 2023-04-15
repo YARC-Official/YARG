@@ -63,7 +63,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 432879558838847411}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0, z: 0.013}
+  m_LocalPosition: {x: 0, y: -0, z: 0.067}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -82,7 +82,7 @@ GameObject:
   - component: {fileID: 7850139081084600867}
   - component: {fileID: 8973305543521141988}
   - component: {fileID: 24723221875665680}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -255,7 +255,7 @@ GameObject:
   - component: {fileID: 6549946900601204898}
   - component: {fileID: 5381973405940680030}
   - component: {fileID: 8814123302546644716}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Max Combo Point Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -270,7 +270,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1811260302183972900}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.245}
+  m_LocalPosition: {x: -0.014, y: 0.339, z: 0.274}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -288,14 +288,14 @@ Light:
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
-  m_Color: {r: 0.015686274, g: 0.65973, b: 1, a: 1}
-  m_Intensity: 1.3
+  m_Color: {r: 0.1490196, g: 0.94509804, b: 0.90996873, a: 1}
+  m_Intensity: 3.04
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 1
+    m_Type: 0
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -326,7 +326,7 @@ Light:
   m_RenderMode: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 23
   m_RenderingLayerMask: 1
   m_Lightmapping: 4
   m_LightShadowCasterMode: 0
@@ -370,7 +370,7 @@ GameObject:
   - component: {fileID: 5106948320861866973}
   - component: {fileID: 8028188776363453152}
   - component: {fileID: 1638471387717129506}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: StarpowerBarTop
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5462,7 +5462,7 @@ GameObject:
   - component: {fileID: 3890277251608660038}
   - component: {fileID: 5158185222957906181}
   - component: {fileID: 5901944642771001827}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: ComboMeterNew
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5477,7 +5477,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5646067488009670008}
   m_LocalRotation: {x: 0.5670642, y: -0, z: -0, w: 0.82367367}
-  m_LocalPosition: {x: 0, y: 0.1297, z: -2.1431}
+  m_LocalPosition: {x: 0, y: 0.12970005, z: -2.1731}
   m_LocalScale: {x: 0.23604, y: 0.22696999, z: 0.21788998}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -5565,13 +5565,13 @@ GameObject:
   - component: {fileID: 4297844078412823544}
   - component: {fileID: 4078007576537711257}
   - component: {fileID: 6587973551534133511}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Starpower Point Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &4297844078412823544
 Transform:
   m_ObjectHideFlags: 0
@@ -5580,7 +5580,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5673044395376804834}
   m_LocalRotation: {x: -0.00089450896, y: -0.040409103, z: 0.9989381, w: -0.022112902}
-  m_LocalPosition: {x: 0.01000048, y: -0.041999027, z: 0.25099796}
+  m_LocalPosition: {x: -0.004, y: 0.297, z: 0.28}
   m_LocalScale: {x: 0.21491072, y: 0.22619626, z: 0.22995597}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5598,14 +5598,14 @@ Light:
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
-  m_Color: {r: 1, g: 0.85882354, b: 0.015686275, a: 1}
-  m_Intensity: 1
+  m_Color: {r: 1, g: 0.7937004, b: 0.015686274, a: 1}
+  m_Intensity: 2.96
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 1
+    m_Type: 0
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -5636,7 +5636,7 @@ Light:
   m_RenderMode: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 23
   m_RenderingLayerMask: 1
   m_Lightmapping: 4
   m_LightShadowCasterMode: 0
@@ -5694,14 +5694,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7963833488365731104}
-  m_LocalRotation: {x: 0.24192187, y: 0, z: 0, w: 0.9702957}
-  m_LocalPosition: {x: 0, y: 2.54, z: -4.04}
+  m_LocalRotation: {x: 0.30185664, y: -0, z: -0, w: 0.9533534}
+  m_LocalPosition: {x: 0, y: 2.413, z: -3.621}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 90376540996421698}
   m_RootOrder: 5
-  m_LocalEulerAnglesHint: {x: 28, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 35.138, y: 0, z: 0}
 --- !u!20 &7369836005863543340
 Camera:
   m_ObjectHideFlags: 0
@@ -5725,7 +5725,7 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
+  near clip plane: 0.01
   far clip plane: 7.4
   field of view: 60
   orthographic: 0
@@ -5802,7 +5802,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8178578477088225647}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.004, y: -0.002, z: -2.02}
+  m_LocalPosition: {x: -0.004, y: -0.002, z: -1.996}
   m_LocalScale: {x: 1.0251, y: 0.8381, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -5822,7 +5822,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6069039167914299289}
   - component: {fileID: 9951896421710430}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: 'Combo Sunburst '
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5836,14 +5836,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8360053433170138951}
-  m_LocalRotation: {x: -0.00089450896, y: -0.040409103, z: 0.9989381, w: -0.022112902}
-  m_LocalPosition: {x: 0.01000048, y: -0.041999027, z: 0.25099796}
+  m_LocalRotation: {x: 0.0025690699, y: -0.1958832, z: 0.98037755, w: -0.02198137}
+  m_LocalPosition: {x: 0.013, y: -0.15, z: 0.566}
   m_LocalScale: {x: 0.21491072, y: 0.22619626, z: 0.22995597}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2311342835864752676}
   m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 4.633, y: 0, z: 182.536}
+  m_LocalEulerAnglesHint: {x: 22.58, y: 0.847, z: 182.738}
 --- !u!212 &9951896421710430
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -5886,7 +5886,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 3235c7c6359bba84a99591649a51b5cd, type: 3}
-  m_Color: {r: 0, g: 1, b: 0.8770242, a: 0.77254903}
+  m_Color: {r: 0, g: 1, b: 0.8, a: 0.77254903}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -6009,12 +6009,12 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: fd6a801b1717cd448926ca45151441c3,
         type: 3}
       propertyPath: m_LocalScale.x
-      value: -22.23627
+      value: -23.836826
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: fd6a801b1717cd448926ca45151441c3,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: -23.80561
+      value: -17.353601
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: fd6a801b1717cd448926ca45151441c3,
         type: 3}
@@ -6024,17 +6024,17 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: fd6a801b1717cd448926ca45151441c3,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.018534776
+      value: 0.018535
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: fd6a801b1717cd448926ca45151441c3,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.053287286
+      value: 0.051
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: fd6a801b1717cd448926ca45151441c3,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.15049952
+      value: 0.116
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: fd6a801b1717cd448926ca45151441c3,
         type: 3}
@@ -6080,6 +6080,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Track_Overdrive_Wing
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: fd6a801b1717cd448926ca45151441c3,
+        type: 3}
+      propertyPath: m_Layer
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fd6a801b1717cd448926ca45151441c3, type: 3}
@@ -6367,17 +6372,17 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 820ff00dcbaacab45a4e96e619ecf8a7,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.00423657
+      value: -0.003
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 820ff00dcbaacab45a4e96e619ecf8a7,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.04634152
+      value: -0.147
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 820ff00dcbaacab45a4e96e619ecf8a7,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.5121608
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 820ff00dcbaacab45a4e96e619ecf8a7,
         type: 3}
@@ -6428,6 +6433,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Track_Combo_Base
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 820ff00dcbaacab45a4e96e619ecf8a7,
+        type: 3}
+      propertyPath: m_Layer
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 820ff00dcbaacab45a4e96e619ecf8a7, type: 3}
@@ -6521,6 +6531,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: 498e164902c46ac40b4e15ac17c758ab,
         type: 3}
+      propertyPath: m_DynamicOccludee
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 498e164902c46ac40b4e15ac17c758ab,
+        type: 3}
       propertyPath: m_StaticShadowCaster
       value: 0
       objectReference: {fileID: 0}
@@ -6543,6 +6558,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Track_Overdrive 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 498e164902c46ac40b4e15ac17c758ab,
+        type: 3}
+      propertyPath: m_Layer
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 498e164902c46ac40b4e15ac17c758ab, type: 3}
@@ -6638,6 +6658,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Track_Combo_Top
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 90275b7365b52c7438710aaa48fd4951,
+        type: 3}
+      propertyPath: m_Layer
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 90275b7365b52c7438710aaa48fd4951, type: 3}

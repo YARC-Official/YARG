@@ -86,6 +86,7 @@ namespace YARG.Pools {
 			for (int i = 0; i < meshRenderers.Length; i++) {
 				int index = meshRendererMiddleIndices[i];
 				meshRenderers[i].materials[index].color = ColorCache;
+				meshRenderers[i].materials[index].SetColor("_EmissionColor", ColorCache * 7);
 			}
 
 			UpdateLineColor();
