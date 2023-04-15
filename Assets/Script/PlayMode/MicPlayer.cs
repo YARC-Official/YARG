@@ -24,8 +24,6 @@ namespace YARG.PlayMode {
 			public ParticleGroup nonActiveParticles;
 			public ParticleGroup activeParticles;
 			public Light needleLight;
-			public ParticleSystem vocalLine;
-			public ParticleSystem vocalSparkles;
 
 			public int octaveOffset;
 			public float[] singProgresses;
@@ -36,8 +34,7 @@ namespace YARG.PlayMode {
 		public static readonly Color[] HARMONIC_COLORS = new Color[] {
 			new Color32(0, 204, 255, 255),
 			new Color32(255, 133, 0, 255),
-			new Color32(255, 219, 0, 255),
-			new Color32(255, 255, 255, 255)
+			new Color32(255, 219, 0, 255)
 		};
 
 		public const float TRACK_SPEED = 4f;
@@ -199,11 +196,7 @@ namespace YARG.PlayMode {
 					nonActiveParticles = needle.nonActiveParticles,
 					activeParticles = needle.activeParticles,
 					needleLight = needle.needleLight,
-					vocalLine = needle.vocalLine,
-					vocalSparkles = needle.vocalSparkles
-					
 				};
-
 
 				// Bind events
 				player.inputStrategy.StarpowerEvent += StarpowerAction;
@@ -527,8 +520,6 @@ namespace YARG.PlayMode {
 					playerInfo.needleModel.SetActive(micInput.TimeSinceNoVoice < 0.25f);
 				}
 
-				var mainLine = playerInfo.vocalLine.main;
-				var mainSparkles = playerInfo.vocalSparkles.main;
 
 				if (pitchCorrect && targetLyricIndex != -1) {
 					playerInfo.hittingNote = true;
@@ -537,17 +528,21 @@ namespace YARG.PlayMode {
 					playerInfo.activeParticles.Play();
 					playerInfo.nonActiveParticles.Stop();
 
-					//Changes colors of particles according to the note hit.
+					// Fade in the needle light
+					playerInfo.needleLight.intensity =
+						Mathf.Lerp(playerInfo.needleLight.intensity, 0.35f,
+						Time.deltaTime * 8f);
+
+					// Changes colors of particles according to the note hit.
 					playerInfo.needleLight.color = HARMONIC_COLORS[targetLyricIndex];
-					mainLine.startColor = HARMONIC_COLORS[targetLyricIndex];
-					mainSparkles.startColor = HARMONIC_COLORS[targetLyricIndex];
+					playerInfo.activeParticles.Colorize(HARMONIC_COLORS[targetLyricIndex]);
 				} else {
 					playerInfo.hittingNote = false;
 
-
-					//playerInfo.needleLight.color = HARMONIC_COLORS[3]; //This makes the light blink at the end of every word.
-					mainLine.startColor = HARMONIC_COLORS[3];
-					mainSparkles.startColor = HARMONIC_COLORS[3];
+					// Fade out the needle light
+					playerInfo.needleLight.intensity =
+						Mathf.Lerp(playerInfo.needleLight.intensity, 0f,
+						Time.deltaTime * 8f);
 
 					playerInfo.activeParticles.Stop();
 
@@ -615,11 +610,10 @@ namespace YARG.PlayMode {
 				comboSunburst.transform.Rotate(0f, 0f, Time.deltaTime * -25f);
 
 				comboFill.sprite = maxedComboFill;
-				if (starpowerActive) { 
+				if (starpowerActive) {
 					comboRim.sprite = starpoweredComboRim;
 					comboSunburst.sprite = comboSunburstStarpower;
-				} 
-				else {
+				} else {
 					comboRim.sprite = maxedComboRim;
 					comboSunburst.sprite = comboSunburstNormal;
 				}
@@ -635,7 +629,7 @@ namespace YARG.PlayMode {
 				if (starpowerCharge <= 0f) {
 					starpowerActive = false;
 					starpowerCharge = 0f;
-					
+
 				} else {
 					starpowerCharge -= Time.deltaTime / 25f;
 				}

@@ -47,7 +47,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   keepAlpha: 1
-  colorParticles: []
+  colorParticles:
+  - {fileID: 9222097515348364671}
+  - {fileID: 1803918062574965098}
   colorLights: []
 --- !u!1 &2185522320261643361
 GameObject:
@@ -123,7 +125,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4808058869439382596}
   m_LocalRotation: {x: 0.5, y: -0.5, z: -0.5, w: 0.5}
-  m_LocalPosition: {x: 0.45, y: -0.019999996, z: 0}
+  m_LocalPosition: {x: 0, y: -0.019999996, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9746,13 +9748,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6672518207258958960}
-  m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0.5, y: 0, z: 0}
-  m_LocalScale: {x: 0.9153667, y: 0.5492199, z: 1.8307328}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.6, y: 1, z: 0.30000007}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 9222097514682650236}
-  m_RootOrder: 0
+  m_Father: {fileID: 9222097515094736833}
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!108 &1193120453222617670
 Light:
@@ -9766,8 +9768,8 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.6921057, g: 0.9716981, b: 0.96566516, a: 1}
-  m_Intensity: 0.82
-  m_Range: 10
+  m_Intensity: 0.25
+  m_Range: 1
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
@@ -9866,8 +9868,7 @@ Transform:
   m_LocalPosition: {x: -0.3, y: 0, z: 0}
   m_LocalScale: {x: 0.6, y: 0.3, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 4873164499292011887}
+  m_Children: []
   m_Father: {fileID: 9222097515094736833}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
@@ -9967,6 +9968,7 @@ Transform:
   - {fileID: 9222097514682650236}
   - {fileID: 3997349570968793677}
   - {fileID: 3533575575906237867}
+  - {fileID: 4873164499292011887}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -9986,8 +9988,6 @@ MonoBehaviour:
   nonActiveParticles: {fileID: 4507814507384936493}
   activeParticles: {fileID: 7086846618021614551}
   needleLight: {fileID: 1193120453222617670}
-  vocalLine: {fileID: 1803918062574965098}
-  vocalSparkles: {fileID: 9222097515348364671}
   needleTextures:
   - {fileID: 2800000, guid: 8b68a573841c0df43b615b07a9fa8a80, type: 3}
   - {fileID: 2800000, guid: 6c4556492c4d6da49ac6ae4204f6d10a, type: 3}
