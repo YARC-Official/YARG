@@ -1,5 +1,14 @@
 {
   "dependencies": {
+    "com.thenathannator.hidrogen": {
+      "version": "https://github.com/TheNathannator/HIDrogen.git?path=/Packages/com.thenathannator.hidrogen",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.inputsystem": "1.4.4"
+      },
+      "hash": "83ea8dcc9c1280fb34ed93932c7a52525d1e567b"
+    },
     "com.thenathannator.plasticband": {
       "version": "https://github.com/TheNathannator/PlasticBand-Unity.git?path=/Packages/com.thenathannator.plasticband",
       "depth": 0,
