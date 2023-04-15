@@ -42,8 +42,8 @@ namespace YARG.UI {
 		}
 
 		private void Update() {
-			songProgress.fillAmount = Play.Instance.SongTime / Play.song.songLength;
-			scoreText.text = $"{ScoreKeeper.ScoreFromAll:n0}";
+			songProgress.fillAmount = Play.Instance.SongTime / Play.Instance.SongLength;
+			scoreText.text = $"{ScoreKeeper.TotalScore:n0}";
 		}
 
 		public void AddTrackImage(RenderTexture rt) {
@@ -61,7 +61,7 @@ namespace YARG.UI {
 			vocalTrack.texture = rt;
 
 			// TODO: Whyyy. figure out a better way to scale.
-			var rect = Utils.RectTransformToViewportSpace(vocalTrack.rectTransform);
+			var rect = vocalTrack.rectTransform.ToViewportSpace();
 			vocalTrack.uvRect = new(0f, rect.y / 1.9f, rect.width, rect.height);
 		}
 

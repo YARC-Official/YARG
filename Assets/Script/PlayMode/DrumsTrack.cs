@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System;
 using UnityEngine;
 using YARG.Data;
 using YARG.Input;
@@ -35,17 +36,13 @@ namespace YARG.PlayMode {
 
 		private bool noKickMode = false;
 
+		private string[] proScoreInst = {"realDrums", "ghDrums"};
+
 		protected override void StartTrack() {
 			notePool.player = player;
 			genericPool.player = player;
 
 			noKickMode = SettingsManager.GetSettingValue<bool>("noKicks");
-
-			// Lefty flip
-
-			if (player.leftyFlip) {
-				drums = drums.Reverse().ToArray();
-			}
 
 			// Inputs
 
@@ -61,6 +58,14 @@ namespace YARG.PlayMode {
 			// GH vs RB
 
 			kickIndex = fiveLaneMode ? 5 : 4;
+			
+			// Lefty flip
+
+			if (player.leftyFlip) {
+				drums = drums.Reverse().ToArray();
+				// Make the drum colors follow the original order even though the chart is flipped
+				Array.Reverse(drumColors, 0, kickIndex);
+			}
 
 			// Color drums
 			for (int i = 0; i < drums.Length; i++) {
@@ -138,7 +143,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Update expected input
-			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= Play.Instance.SongTime + Play.HIT_MARGIN) {
+			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= Play.Instance.SongTime + Constants.HIT_MARGIN) {
 				var noteInfo = Chart[inputChartIndex];
 
 				// Skip kick notes if noKickMode is enabled
@@ -165,7 +170,7 @@ namespace YARG.PlayMode {
 
 		private void UpdateInput() {
 			// Handle misses (multiple a frame in case of lag)
-			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Play.HIT_MARGIN) {
+			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Constants.HIT_MARGIN) {
 				var missedChord = expectedHits.Dequeue();
 
 				// Call miss for each component
@@ -247,6 +252,9 @@ namespace YARG.PlayMode {
 
 			// Add stats
 			notesHit++;
+
+			// TODO: accomodate for disabled cymbal lanes; rework 5-lane scoring depending on re-charting
+			scoreKeeper.Add(Multiplier * (proScoreInst.Contains(player.chosenInstrument) ? 30 : 25));
 		}
 
 		private void SpawnNote(NoteInfo noteInfo, float time) {

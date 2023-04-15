@@ -234,8 +234,7 @@ namespace YARG.Input {
 				TimeSinceNoVoice = 0f;
 
 				float timeIntoNote = Play.Instance.SongTime - botLyricInfo.time;
-				float rawNote = botLyricInfo.GetLerpedNoteAtTime(timeIntoNote);
-				noteCache = Utils.SplitNoteToOctaveAndNote(rawNote);
+				noteCache = botLyricInfo.GetLerpedAndSplitNoteAtTime(timeIntoNote);
 			}
 
 			// Constantly activate starpower

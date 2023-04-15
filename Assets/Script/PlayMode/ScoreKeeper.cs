@@ -6,34 +6,33 @@ using UnityEngine;
 using YARG.Data;
 
 // Score keeping for each track
-public class ScoreKeeper {
+public class ScoreKeeper: MonoBehaviour {
     // keep track of all instances to calculate the band total
-	public static HashSet<ScoreKeeper> instances = new();
-    public static double ScoreFromAll {
+	public static List<ScoreKeeper> instances = new();
+    public static double TotalScore {
         get {
 			double sum = 0;
             foreach (var ins in instances) {
-				sum += ins.Score;
+				sum += ins.score;
 			}
 			return sum;
 		}
     }
 
 	public static void Reset() {
+		Debug.Log("Clearing ScoreKeeper instances!");
 		instances.Clear();
 	}
 
-	public double Score { get; private set; } = 0;
+	public double score { get; private set; } = 0;
 
 	public void Add(double points) {
-        Score += points;
+        score += points;
+		Debug.Log($"+{points} for {score} (-->{TotalScore})");
 	}
 
     public ScoreKeeper() {
+		Debug.Log("Creating a ScoreKeeper instance!");
 		instances.Add(this);
-	}
-
-    ~ScoreKeeper() {
-		Debug.Log("destroyed a ScoreKeeper");
 	}
 }

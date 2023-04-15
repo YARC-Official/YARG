@@ -10,6 +10,8 @@ using YARG.Util;
 namespace YARG.PlayMode {
 	public class FiveFretTrack : AbstractTrack {
 		private bool strummed = false;
+		private float strumLeniency;
+
 		private FiveFretInputStrategy input;
 
 		[Space]
@@ -32,11 +34,9 @@ namespace YARG.PlayMode {
 		private bool latestInputIsStrum = false;
 
 		/// Sustain scoring handler
-		/// POSSIBLE CLEAN UP: Move related code to separate class, which can be used by other track types.
 		// https://www.reddit.com/r/Rockband/comments/51t3c0/exactly_how_many_points_are_sustains_worth/
 		private const double SUSTAIN_PTS_PER_BEAT = 12.0;
 		private int notesHit = 0;
-		public Dictionary<NoteInfo, double> sustainScoreProgress = new();
 
 		protected override void StartTrack() {
 			notePool.player = player;
@@ -122,7 +122,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Update expected input
-			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= Play.Instance.SongTime + Play.HIT_MARGIN) {
+			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= Play.Instance.SongTime + Constants.HIT_MARGIN) {
 				var noteInfo = Chart[inputChartIndex];
 
 				var peeked = expectedHits.ReversePeekOrNull();
@@ -143,16 +143,11 @@ namespace YARG.PlayMode {
 				var heldNote = heldNotes[i];
 
 				/// Sustain scoring
-				double remainingPts = SUSTAIN_PTS_PER_BEAT * heldNote.LengthInBeats - sustainScoreProgress[heldNote];
-				// pt/b * s * b/s = pt
-				double ptsThisFrame = math.min(SUSTAIN_PTS_PER_BEAT * Time.deltaTime * Play.Instance.curBeatPerSecond, remainingPts);
-				sustainScoreProgress[heldNote] = sustainScoreProgress[heldNote] + ptsThisFrame;
-				scoreKeeper.Add(ptsThisFrame * Multiplier);
-				// Debug.Log($"{sustainScoreProgress[heldNote]} / {SUSTAIN_PTS_PER_BEAT*heldNote.LengthInBeats}");
+				scoreKeeper.Add(susTracker.Update(heldNote) * Multiplier * SUSTAIN_PTS_PER_BEAT);
 
 				if (heldNote.EndTime <= Play.Instance.SongTime) {
 					heldNotes.RemoveAt(i);
-					sustainScoreProgress.Remove(heldNote);
+					susTracker.Drop(heldNote);
 					frets[heldNote.fret].StopSustainParticles();
 				}
 			}
@@ -164,8 +159,17 @@ namespace YARG.PlayMode {
 		}
 
 		private void UpdateInput() {
+			// Only want to decrease strum leniency on frames where we didn't strum
+			if (strumLeniency > 0f && !strummed) {
+				strumLeniency -= Time.deltaTime;
+
+				if (strumLeniency <= 0f) {
+					UpdateOverstrums();
+				}
+			}
+
 			// Handle misses (multiple a frame in case of lag)
-			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Play.HIT_MARGIN) {
+			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Constants.HIT_MARGIN) {
 				var missedChord = expectedHits.Dequeue();
 
 				// Call miss for each component
@@ -178,33 +182,34 @@ namespace YARG.PlayMode {
 			}
 
 			if (expectedHits.Count <= 0) {
-				UpdateOverstrums();
 				return;
 			}
 
 			// Handle hits (one per frame so no double hits)
 			var chord = expectedHits.Peek();
 
-			// If the note is not a HOPO and the player did not strum, nothing happened.
-			if (!chord[0].hopo && !strummed) {
+			// If the note is not a HOPO and the player has not strummed, nothing happens.
+			if (!chord[0].hopo && !strummed && strumLeniency == 0f) {
 				return;
 			}
 
-			// If the note is a HOPOm the player did not strum, and the HOPO can't be hit, nothing happened. 
-			if (chord[0].hopo && !strummed) {
+			// If the note is a HOPO, the player has not strummed, and the HOPO can't be hit, nothing happens.
+			if (chord[0].hopo && !strummed && strumLeniency == 0f) {
 				if (Combo <= 0) {
 					return;
 				}
 
 				// If infinite front-end window is disabled and the latest input is outside of the timing window, nothing happened.
-				if (!Play.INFINITE_FRONTEND && latestInput.HasValue && Play.Instance.SongTime - latestInput.Value > Play.HIT_MARGIN) {
+				if (!Constants.INFINITE_FRONTEND && latestInput.HasValue &&
+					Play.Instance.SongTime - latestInput.Value > Constants.HIT_MARGIN) {
+
 					return;
 				}
 			}
 
 			// If strumming to recover combo, skip to first valid note within the timing window.
 			// This will make it easier to recover.
-			if (strummed && !ChordPressed(chord)) {
+			if ((strummed || strumLeniency > 0f) && !ChordPressed(chord)) {
 				RemoveOldAllowedOverstrums();
 				var overstrumForgiven = IsOverstrumForgiven();
 
@@ -240,9 +245,7 @@ namespace YARG.PlayMode {
 
 			// Check if correct chord is pressed
 			if (!ChordPressed(chord)) {
-				if (!chord[0].hopo) {
-					UpdateOverstrums();
-				}
+				// Overstrums are dealt with at the top of the method
 
 				return;
 			}
@@ -267,6 +270,7 @@ namespace YARG.PlayMode {
 			expectedHits.Dequeue();
 
 			Combo++;
+			strumLeniency = 0f;
 			foreach (var hit in chord) {
 				hitChartIndex++;
 				// Hit notes
@@ -285,10 +289,7 @@ namespace YARG.PlayMode {
 					heldNotes.Add(hit);
 					frets[hit.fret].PlaySustainParticles();
 					
-					/// Begin sustain scoring w/ compensation for earlier/later hit
-					sustainScoreProgress[hit] =
-						math.clamp(SUSTAIN_PTS_PER_BEAT * Mathf.Min((Play.Instance.SongTime - hit.time), hit.length) * Play.Instance.curBeatPerSecond, 0.0, double.MaxValue);
-					scoreKeeper.Add(sustainScoreProgress[hit] * Multiplier);
+					scoreKeeper.Add(susTracker.Strum(hit) * Multiplier * SUSTAIN_PTS_PER_BEAT);
 				}
 
 				// Add stats
@@ -310,7 +311,7 @@ namespace YARG.PlayMode {
 		private void RemoveOldAllowedOverstrums() {
 			// Remove all old allowed overstrums
 			while (allowedOverstrums.Count > 0
-				&& Play.Instance.SongTime - allowedOverstrums[0][0].time > Play.HIT_MARGIN) {
+				&& Play.Instance.SongTime - allowedOverstrums[0][0].time > Constants.HIT_MARGIN) {
 
 				allowedOverstrums.RemoveAt(0);
 			}
@@ -318,7 +319,7 @@ namespace YARG.PlayMode {
 
 		private bool IsOverstrumForgiven() {
 			for (int i = 0; i < allowedOverstrums.Count; i++) {
-				if (ChordPressed(allowedOverstrums[i])) {
+				if (ChordPressed(allowedOverstrums[i], true)) {
 					// If we found a chord that was pressed, remove 
 					// all of the allowed overstrums before it.
 					// This prevents over-forgiving overstrums.
@@ -338,17 +339,13 @@ namespace YARG.PlayMode {
 		private void UpdateOverstrums() {
 			RemoveOldAllowedOverstrums();
 
-			// Don't do anything else if we didn't strum
-			if (!strummed) {
-				return;
-			}
-
 			// Look in the allowed overstrums first
 			if (IsOverstrumForgiven()) {
 				return;
 			}
 
 			Combo = 0;
+			strumLeniency = 0f;
 
 			// Let go of held notes
 			for (int i = heldNotes.Count - 1; i >= 0; i--) {
@@ -358,11 +355,12 @@ namespace YARG.PlayMode {
 				StopAudio = true;
 
 				heldNotes.RemoveAt(i);
+				susTracker.Drop(heldNote);
 				frets[heldNote.fret].StopSustainParticles();
 			}
 		}
 
-		private bool ChordPressed(List<NoteInfo> chordList) {
+		private bool ChordPressed(List<NoteInfo> chordList, bool overstrumCheck = false) {
 			// Convert NoteInfo list to chord fret array
 			int[] chord = new int[chordList.Count];
 			for (int i = 0; i < chord.Length; i++) {
@@ -392,7 +390,7 @@ namespace YARG.PlayMode {
 							return false;
 						} else if (!frets[i].IsPressed && i == fret) {
 							return false;
-						} else if (frets[i].IsPressed && i != fret && !Play.ANCHORING) {
+						} else if (frets[i].IsPressed && i != fret && !Constants.ANCHORING) {
 							return false;
 						}
 					}
@@ -410,7 +408,15 @@ namespace YARG.PlayMode {
 					if (contains && !frets[i].IsPressed) {
 						return false;
 					} else if (!contains && frets[i].IsPressed) {
-						return false;
+						if (Constants.ANCHORING && Constants.ANCHOR_CHORD_HOPO &&
+							chordList[0].hopo && !(strummed || strumLeniency > 0f || overstrumCheck) &&
+							i < chordList[0].fret) {
+
+							// Allow anchoring chord HO/POs
+							continue;
+						} else {
+							return false;
+						}
 					}
 				}
 			}
@@ -435,6 +441,7 @@ namespace YARG.PlayMode {
 
 					notePool.MissNote(heldNote);
 					heldNotes.RemoveAt(i);
+					susTracker.Drop(heldNote);
 					frets[heldNote.fret].StopSustainParticles();
 
 					letGo = heldNote;
@@ -458,7 +465,15 @@ namespace YARG.PlayMode {
 			latestInput = Play.Instance.SongTime;
 			latestInputIsStrum = true;
 
+			// Strum leniency already active and another strum inputted, a double strum occurred (must overstrum)
+			if (strumLeniency > 0f) {
+				UpdateOverstrums();
+			}
+
 			strummed = true;
+			if (!input.botMode) {
+				strumLeniency = Constants.STRUM_LENIENCY;
+			}
 		}
 
 		private void SpawnNote(NoteInfo noteInfo, float time) {

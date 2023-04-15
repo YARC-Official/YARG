@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using PlasticBand.Devices;
 using UnityEngine;
+using UnityEngine.InputSystem.Controls;
 using YARG.Data;
 
 namespace YARG.Input {
@@ -27,7 +29,7 @@ namespace YARG.Input {
 		public event StrumAction StrumEvent;
 
 		private int[] fretCache = new int[6];
-		private int[] stringCache = new int[6];
+		private float[] velocityCache = new float[6];
 
 		private float? stringGroupingTimer = null;
 		private StrumFlag stringGroupingFlag = StrumFlag.NONE;
@@ -37,13 +39,13 @@ namespace YARG.Input {
 		}
 
 		public override void UpdatePlayerMode() {
-			if (InputDevice is not AbstractProGuitarGampad input) {
+			if (InputDevice is not ProGuitar input) {
 				return;
 			}
 
 			// Update frets
 			for (int i = 0; i < 6; i++) {
-				int fret = input.GetFretControl(i).ReadValue();
+				int fret = GetFret(input, i).ReadValue();
 				if (fret != fretCache[i]) {
 					FretChangeEvent?.Invoke(i, fret);
 					fretCache[i] = fret;
@@ -52,10 +54,10 @@ namespace YARG.Input {
 
 			// Update strums
 			for (int i = 0; i < 6; i++) {
-				int vel = input.GetStringControl(i).ReadValue();
-				if (vel != stringCache[i]) {
+				float vel = GetVelocity(input, i).ReadValue();
+				if (vel != velocityCache[i]) {
 					stringGroupingFlag |= StrumFlagFromInt(i);
-					stringCache[i] = vel;
+					velocityCache[i] = vel;
 
 					// Start grouping if not already
 					stringGroupingTimer ??= 0.05f;
@@ -77,6 +79,31 @@ namespace YARG.Input {
 
 			// Constantly activate starpower (for now)
 			CallStarpowerEvent();
+		}
+
+		// TODO: Ideally these should be directly implemented in PlasticBand
+		private IntegerControl GetFret(ProGuitar input, int i) {
+			return i switch {
+				0 => input.fret1,
+				1 => input.fret2,
+				2 => input.fret3,
+				3 => input.fret4,
+				4 => input.fret5,
+				5 => input.fret6,
+				_ => null
+			};
+		}
+
+		private AxisControl GetVelocity(ProGuitar input, int i) {
+			return i switch {
+				0 => input.velocity1,
+				1 => input.velocity2,
+				2 => input.velocity3,
+				3 => input.velocity4,
+				4 => input.velocity5,
+				5 => input.velocity6,
+				_ => null
+			};
 		}
 
 		public override void UpdateBotMode(object rawChart, float songTime) {

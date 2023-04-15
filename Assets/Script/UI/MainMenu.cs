@@ -1,6 +1,6 @@
-using System.IO;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Data;
 using YARG.Input;
@@ -46,9 +46,23 @@ namespace YARG.UI {
 		[SerializeField]
 		private Image progressBar;
 
+		[SerializeField]
+		private TextMeshProUGUI versionText;
+
+		[SerializeField]
+		private GameObject updateObject;
+		
+		private TextMeshProUGUI updateText;
+
+		private bool isUpdateShown;
+		
 		private void Start() {
 			Instance = this;
 
+			versionText.text = Constants.VERSION_TAG;
+
+			updateText = updateObject.GetComponentInChildren<TextMeshProUGUI>();
+			
 			if (SongLibrary.SongsByHash == null) {
 				RefreshSongLibrary();
 			}
@@ -95,6 +109,14 @@ namespace YARG.UI {
 			// Update player navigation
 			foreach (var player in PlayerManager.players) {
 				player.inputStrategy.UpdateNavigationMode();
+			}
+
+			if (!isUpdateShown && GameManager.Instance.updateChecker.IsOutOfDate) {
+				isUpdateShown = true;
+				
+				string newVersion = GameManager.Instance.updateChecker.LatestVersion;
+				updateText.text = $"New version available: {newVersion}";
+				updateObject.gameObject.gameObject.SetActive(true);
 			}
 		}
 
@@ -209,6 +231,10 @@ namespace YARG.UI {
 			ScoreManager.FetchScores();
 
 			SongSelect.refreshFlag = true;
+		}
+
+		public void OpenLatestRelease() {
+			Application.OpenURL("https://github.com/EliteAsian123/YARG/releases/latest");
 		}
 
 		public void Quit() {

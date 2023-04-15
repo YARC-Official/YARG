@@ -42,7 +42,7 @@ namespace YARG.UI {
 
 		public void RefreshThisFolder() {
 			// Delete it
-			var file = Utils.Hash(SongLibrary.SongFolders[index]);
+			var file = SongLibrary.HashFilePath(SongLibrary.SongFolders[index]);
 			var path = Path.Combine(SongLibrary.CacheFolder, file + ".json");
 			if (File.Exists(path)) {
 				File.Delete(path);

@@ -42,5 +42,21 @@ namespace YARG.Data {
 				timeIntoSection / sectionLength
 			);
 		}
+
+		/// <returns>
+		/// Returns the relative note and its octave at the specified <paramref name="relativeTime"/> within the note.
+		/// </returns>
+		public (float note, int octave) GetLerpedAndSplitNoteAtTime(float relativeTime)
+		{
+			float outNote = GetLerpedNoteAtTime(relativeTime);
+			int octave = 0;
+
+			while (outNote > 12f) {
+				octave++;
+				outNote -= 12f;
+			}
+
+			return (outNote, octave);
+		}
 	}
 }
