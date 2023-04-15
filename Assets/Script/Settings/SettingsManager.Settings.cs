@@ -123,7 +123,7 @@ namespace YARG.Settings {
 
 			[SettingChangeFunc("musicVolume")]
 			public void SongVolumeChange() {
-				AudioManager.Instance.SetVolume("music", musicVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Master, musicVolume);
 			}
 
 			[SettingShowInGame]
@@ -133,7 +133,7 @@ namespace YARG.Settings {
 
 			[SettingChangeFunc("guitarVolume")]
 			public void GuitarVolumeChange() {
-				AudioManager.Instance.SetVolume("guitar", guitarVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Guitar, guitarVolume);
 			}
 
 			[SettingShowInGame]
@@ -143,7 +143,8 @@ namespace YARG.Settings {
 
 			[SettingChangeFunc("bassVolume")]
 			public void BassVolumeChange() {
-				AudioManager.Instance.SetVolume("bass", bassVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Bass, bassVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Rhythm, bassVolume);
 			}
 
 			[SettingShowInGame]
@@ -153,7 +154,7 @@ namespace YARG.Settings {
 
 			[SettingChangeFunc("keysVolume")]
 			public void KeysVolumeChange() {
-				AudioManager.Instance.SetVolume("keys", keysVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Keys, keysVolume);
 			}
 
 			[SettingShowInGame]
@@ -163,7 +164,11 @@ namespace YARG.Settings {
 
 			[SettingChangeFunc("drumsVolume")]
 			public void DrumsVolumeChange() {
-				AudioManager.Instance.SetVolume("drums", drumsVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums, drumsVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums1, drumsVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums2, drumsVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums3, drumsVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums4, drumsVolume);
 			}
 
 			[SettingShowInGame]
@@ -173,7 +178,9 @@ namespace YARG.Settings {
 
 			[SettingChangeFunc("vocalsVolume")]
 			public void VocalsVolumeChange() {
-				AudioManager.Instance.SetVolume("vocals", vocalsVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Vocals, vocalsVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Vocals1, vocalsVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Vocals2, vocalsVolume);
 			}
 
 			[SettingShowInGame]
@@ -183,7 +190,7 @@ namespace YARG.Settings {
 
 			[SettingChangeFunc("songVolume")]
 			public void MusicVolumeChange() {
-				AudioManager.Instance.SetVolume("song", songVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Song, songVolume);
 			}
 
 			[SettingShowInGame]
@@ -193,7 +200,7 @@ namespace YARG.Settings {
 
 			[SettingChangeFunc("crowdVolume")]
 			public void CrowdVolumeChange() {
-				AudioManager.Instance.SetVolume("crowd", crowdVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Crowd, crowdVolume);
 			}
 
 			[SettingShowInGame]
