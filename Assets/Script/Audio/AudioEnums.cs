@@ -1,5 +1,6 @@
 namespace YARG {
 	public enum SongStem {
+		Master = -1,
 		Song,
 		Guitar,
 		Bass,
@@ -22,5 +23,6 @@ namespace YARG {
 		StarPowerAward,
 		StarPowerDeploy,
 		StarPowerRelease,
+		Clap,
 	}
 }

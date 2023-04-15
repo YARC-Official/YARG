@@ -249,6 +249,9 @@ namespace YARG.PlayMode {
 		}
 
 		private void BeatAction() {
+			if (starpowerActive) {
+				GameManager.AudioManager.PlaySoundEffect(SfxSample.Clap);
+			}
 			Beat = true;
 		}
 
