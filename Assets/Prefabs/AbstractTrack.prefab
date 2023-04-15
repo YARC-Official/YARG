@@ -265,7 +265,7 @@ GameObject:
   - component: {fileID: 7850139081084600867}
   - component: {fileID: 8973305543521141988}
   - component: {fileID: 24723221875665680}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -438,7 +438,7 @@ GameObject:
   - component: {fileID: 6549946900601204898}
   - component: {fileID: 5381973405940680030}
   - component: {fileID: 8814123302546644716}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Max Combo Point Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -509,7 +509,7 @@ Light:
   m_RenderMode: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 23
+    m_Bits: 55
   m_RenderingLayerMask: 1
   m_Lightmapping: 4
   m_LightShadowCasterMode: 0
@@ -553,7 +553,7 @@ GameObject:
   - component: {fileID: 5106948320861866973}
   - component: {fileID: 8028188776363453152}
   - component: {fileID: 1638471387717129506}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: StarpowerBarTop
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5761,7 +5761,7 @@ GameObject:
   - component: {fileID: 3890277251608660038}
   - component: {fileID: 5158185222957906181}
   - component: {fileID: 5901944642771001827}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: ComboMeterNew
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5864,7 +5864,7 @@ GameObject:
   - component: {fileID: 4297844078412823544}
   - component: {fileID: 4078007576537711257}
   - component: {fileID: 6587973551534133511}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Starpower Point Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5935,7 +5935,7 @@ Light:
   m_RenderMode: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 23
+    m_Bits: 55
   m_RenderingLayerMask: 1
   m_Lightmapping: 4
   m_LightShadowCasterMode: 0
@@ -6121,7 +6121,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6069039167914299289}
   - component: {fileID: 9951896421710430}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: 'Combo Sunburst '
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6383,7 +6383,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: fd6a801b1717cd448926ca45151441c3,
         type: 3}
       propertyPath: m_Layer
-      value: 5
+      value: 6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fd6a801b1717cd448926ca45151441c3, type: 3}
@@ -6736,7 +6736,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 820ff00dcbaacab45a4e96e619ecf8a7,
         type: 3}
       propertyPath: m_Layer
-      value: 5
+      value: 6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 820ff00dcbaacab45a4e96e619ecf8a7, type: 3}
@@ -6861,7 +6861,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 498e164902c46ac40b4e15ac17c758ab,
         type: 3}
       propertyPath: m_Layer
-      value: 5
+      value: 6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 498e164902c46ac40b4e15ac17c758ab, type: 3}
@@ -6961,7 +6961,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 90275b7365b52c7438710aaa48fd4951,
         type: 3}
       propertyPath: m_Layer
-      value: 5
+      value: 6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 90275b7365b52c7438710aaa48fd4951, type: 3}

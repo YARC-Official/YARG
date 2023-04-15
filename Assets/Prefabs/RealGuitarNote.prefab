@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 6247713159172371674}
   - component: {fileID: 3746261134333683177}
   - component: {fileID: 5134052872940096443}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: FretNumber
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -182,7 +182,7 @@ GameObject:
   m_Component:
   - component: {fileID: 861361446070616035}
   - component: {fileID: -4528930169118974297}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: RealGuitarNote
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -223,12 +223,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   poolId: note
   pool: {fileID: 0}
+  meshRenderers:
+  - {fileID: 0}
+  - {fileID: 0}
+  meshRendererMiddleIndices: 
   noteGroup: {fileID: 1397812567785855241}
   hopoGroup: {fileID: 1294466957868725440}
   fullGroup: {fileID: 5879953073027725293}
-  meshRenderers:
-  - {fileID: 3721823794111606619}
-  - {fileID: 6724248498456108968}
   fretNumber: {fileID: 5134052872940096443}
   lineRenderer: {fileID: 5864461325193466425}
 --- !u!1 &1294466957868725440
@@ -240,7 +241,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2485029377005370073}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: HOPOGroup
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -273,7 +274,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3676109393068581280}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: NoteGroup
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -306,7 +307,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 969241233629970397}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: FullGroupDummy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -338,7 +339,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3083436502393406622}
   - component: {fileID: 5864461325193466425}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Line
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -476,10 +477,20 @@ PrefabInstance:
       propertyPath: m_Materials.Array.data[1]
       value: 
       objectReference: {fileID: 2100000, guid: 0e410b84cdc264544a6ba5b805c80fb3, type: 2}
+    - target: {fileID: 325527451437308551, guid: 58b061f4b5d24754d8d19581afb9944d,
+        type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
     - target: {fileID: 813959795042240314, guid: 58b061f4b5d24754d8d19581afb9944d,
         type: 3}
       propertyPath: m_Name
       value: NoteGlow
+      objectReference: {fileID: 0}
+    - target: {fileID: 813959795042240314, guid: 58b061f4b5d24754d8d19581afb9944d,
+        type: 3}
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 1472608712983929132, guid: 58b061f4b5d24754d8d19581afb9944d,
         type: 3}
@@ -586,10 +597,20 @@ PrefabInstance:
       propertyPath: m_Materials.Array.data[1]
       value: 
       objectReference: {fileID: 2100000, guid: 0e410b84cdc264544a6ba5b805c80fb3, type: 2}
+    - target: {fileID: 325527451437308551, guid: 58b061f4b5d24754d8d19581afb9944d,
+        type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
     - target: {fileID: 813959795042240314, guid: 58b061f4b5d24754d8d19581afb9944d,
         type: 3}
       propertyPath: m_Name
       value: NoteGlow
+      objectReference: {fileID: 0}
+    - target: {fileID: 813959795042240314, guid: 58b061f4b5d24754d8d19581afb9944d,
+        type: 3}
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 1472608712983929132, guid: 58b061f4b5d24754d8d19581afb9944d,
         type: 3}
@@ -686,10 +707,20 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 3676109393068581280}
     m_Modifications:
+    - target: {fileID: 325527451437308551, guid: 58b061f4b5d24754d8d19581afb9944d,
+        type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
     - target: {fileID: 813959795042240314, guid: 58b061f4b5d24754d8d19581afb9944d,
         type: 3}
       propertyPath: m_Name
       value: NoteModel
+      objectReference: {fileID: 0}
+    - target: {fileID: 813959795042240314, guid: 58b061f4b5d24754d8d19581afb9944d,
+        type: 3}
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7137662299531785058, guid: 58b061f4b5d24754d8d19581afb9944d,
         type: 3}
@@ -753,12 +784,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 58b061f4b5d24754d8d19581afb9944d, type: 3}
---- !u!23 &3721823794111606619 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 298624123231443523, guid: 58b061f4b5d24754d8d19581afb9944d,
-    type: 3}
-  m_PrefabInstance: {fileID: 3999898006346069272}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &6092363144192509562 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7137662299531785058, guid: 58b061f4b5d24754d8d19581afb9944d,
@@ -772,10 +797,20 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 2485029377005370073}
     m_Modifications:
+    - target: {fileID: 325527451437308551, guid: 58b061f4b5d24754d8d19581afb9944d,
+        type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
     - target: {fileID: 813959795042240314, guid: 58b061f4b5d24754d8d19581afb9944d,
         type: 3}
       propertyPath: m_Name
       value: NoteModel
+      objectReference: {fileID: 0}
+    - target: {fileID: 813959795042240314, guid: 58b061f4b5d24754d8d19581afb9944d,
+        type: 3}
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7137662299531785058, guid: 58b061f4b5d24754d8d19581afb9944d,
         type: 3}
@@ -847,12 +882,6 @@ PrefabInstance:
 --- !u!4 &4214150323582187145 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7137662299531785058, guid: 58b061f4b5d24754d8d19581afb9944d,
-    type: 3}
-  m_PrefabInstance: {fileID: 6446262328739268075}
-  m_PrefabAsset: {fileID: 0}
---- !u!23 &6724248498456108968 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 298624123231443523, guid: 58b061f4b5d24754d8d19581afb9944d,
     type: 3}
   m_PrefabInstance: {fileID: 6446262328739268075}
   m_PrefabAsset: {fileID: 0}
