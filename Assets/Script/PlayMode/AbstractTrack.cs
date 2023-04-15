@@ -50,7 +50,7 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		protected GameObject maxComboLight;
 		[SerializeField]
-		protected GameObject stawpowerLight;
+		protected GameObject starpowerLight;
 		[SerializeField]
 		protected Sprite sunBurstSprite;
 		[SerializeField]
@@ -248,12 +248,14 @@ namespace YARG.PlayMode {
 				comboSunburst.sprite = sunBurstSpriteStarpower;
 				comboSunburst.color = new Color(255, 255, 255, 141);
 
-				stawpowerLight.SetActive(true);
+				if (Multiplier >= MaxMultiplier) { 
+					starpowerLight.SetActive(true);
+				}
 			} else {
 				comboSunburst.sprite = sunBurstSprite;
 				comboSunburst.color = Color.white;
 
-				stawpowerLight.SetActive(false);
+				starpowerLight.SetActive(false);
 			}
 		}
 

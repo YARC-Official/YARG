@@ -103,6 +103,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: GHDrumsTrack
       objectReference: {fileID: 0}
+    - target: {fileID: 5381973405940680030, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: m_Intensity
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 6218306474702809455, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: poolablePrefabsInspector.Array.size
@@ -182,7 +187,7 @@ MonoBehaviour:
   starpowerBarTop: {fileID: 4495594969935969962}
   comboSunburst: {fileID: 2953747792794423766}
   maxComboLight: {fileID: 3601869664132852652}
-  stawpowerLight: {fileID: 7378084863571732586}
+  starpowerLight: {fileID: 7378084863571732586}
   sunBurstSprite: {fileID: 21300000, guid: 3235c7c6359bba84a99591649a51b5cd, type: 3}
   sunBurstSpriteStarpower: {fileID: 21300000, guid: e1d36b6ae21bc594881648de5d531555,
     type: 3}
