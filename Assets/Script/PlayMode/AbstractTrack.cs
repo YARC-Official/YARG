@@ -251,6 +251,9 @@ namespace YARG.PlayMode {
 				if (Multiplier >= MaxMultiplier) { 
 					starpowerLight.SetActive(true);
 				}
+				else {
+					starpowerLight.SetActive(false);
+				}
 			} else {
 				comboSunburst.sprite = sunBurstSprite;
 				comboSunburst.color = Color.white;
