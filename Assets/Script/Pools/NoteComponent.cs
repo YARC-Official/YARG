@@ -166,8 +166,8 @@ namespace YARG.Pools {
 
 			if (state == State.HITTING) {
 				// Get the new line start position. Said position should be at
-				// the fret board (-1.75f) and relative to the note itelf.
-				float newStart = -transform.localPosition.z - 1.75f;
+				// the fret board and relative to the note itelf.
+				float newStart = -transform.localPosition.z - AbstractTrack.TRACK_END_OFFSET;
 
 				// Apply to line renderer
 				lineRenderer.SetPosition(1, new(0f, 0f, newStart));

@@ -9,8 +9,8 @@ using YARG.UI;
 
 namespace YARG.PlayMode {
 	public abstract class AbstractTrack : MonoBehaviour {
-		protected const float TRACK_SPAWN_OFFSET = 3f;
-		protected const float TRACK_END_OFFSET = 1.75f;
+		public const float TRACK_SPAWN_OFFSET = 3f;
+		public const float TRACK_END_OFFSET = 1.55f;
 
 		public delegate void StarpowerMissAction();
 		public event StarpowerMissAction StarpowerMissEvent;
@@ -248,10 +248,9 @@ namespace YARG.PlayMode {
 				comboSunburst.sprite = sunBurstSpriteStarpower;
 				comboSunburst.color = new Color(255, 255, 255, 141);
 
-				if (Multiplier >= MaxMultiplier) { 
+				if (Multiplier >= MaxMultiplier) {
 					starpowerLight.SetActive(true);
-				}
-				else {
+				} else {
 					starpowerLight.SetActive(false);
 				}
 			} else {
