@@ -24,6 +24,7 @@ namespace YARG.PlayMode {
 
 		public void SetColor(Color c) {
 			meshRenderer.material.color = c;
+			meshRenderer.material.SetColor("_EmissionColor", c * Mathf.LinearToGammaSpace(2f));
 			hitParticles.Colorize(c);
 			sustainParticles.Colorize(c);
 		}
