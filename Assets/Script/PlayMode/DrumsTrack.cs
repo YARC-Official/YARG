@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System;
 using UnityEngine;
 using YARG.Data;
 using YARG.Input;
@@ -41,12 +42,6 @@ namespace YARG.PlayMode {
 
 			noKickMode = SettingsManager.GetSettingValue<bool>("noKicks");
 
-			// Lefty flip
-
-			if (player.leftyFlip) {
-				drums = drums.Reverse().ToArray();
-			}
-
 			// Inputs
 
 			input = player.inputStrategy;
@@ -61,6 +56,14 @@ namespace YARG.PlayMode {
 			// GH vs RB
 
 			kickIndex = fiveLaneMode ? 5 : 4;
+			
+			// Lefty flip
+
+			if (player.leftyFlip) {
+				drums = drums.Reverse().ToArray();
+				// Make the drum colors follow the original order even though the chart is flipped
+				Array.Reverse(drumColors, 0, kickIndex);
+			}
 
 			// Color drums
 			for (int i = 0; i < drums.Length; i++) {
