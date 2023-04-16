@@ -197,8 +197,18 @@ namespace YARG.UI {
 				}
 
 				// Play song (or download then play)
-				Play.song = MainMenu.Instance.chosenSong;
-				GameManager.Instance.LoadScene(SceneIndex.PLAY);
+
+				// DEBUG: Remove this `if` statement when finished!!
+				if (Play.setlist.Count >= 5)
+                {
+					Play.song = MainMenu.Instance.chosenSong;
+					GameManager.Instance.LoadScene(SceneIndex.PLAY);
+                }
+                else
+                {
+					Play.setlist.Add(MainMenu.Instance.chosenSong);
+                }
+				
 			} else {
 				UpdateInstrument();
 			}
