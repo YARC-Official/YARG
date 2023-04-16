@@ -143,7 +143,7 @@ namespace YARG.Settings {
 			}
 
 			[SettingShowInGame]
-			[SettingLocation("general", 17)]
+			[SettingLocation("general", 18)]
 			[SettingType("Volume")]
 			public float bassVolume = 1f;
 
@@ -153,7 +153,7 @@ namespace YARG.Settings {
 			}
 
 			[SettingShowInGame]
-			[SettingLocation("general", 18)]
+			[SettingLocation("general", 19)]
 			[SettingType("Volume")]
 			public float keysVolume = 1f;
 
@@ -163,7 +163,7 @@ namespace YARG.Settings {
 			}
 
 			[SettingShowInGame]
-			[SettingLocation("general", 19)]
+			[SettingLocation("general", 20)]
 			[SettingType("Volume")]
 			public float drumsVolume = 1f;
 
@@ -177,7 +177,7 @@ namespace YARG.Settings {
 			}
 
 			[SettingShowInGame]
-			[SettingLocation("general", 20)]
+			[SettingLocation("general", 21)]
 			[SettingType("Volume")]
 			public float vocalsVolume = 1f;
 
@@ -189,7 +189,7 @@ namespace YARG.Settings {
 			}
 
 			[SettingShowInGame]
-			[SettingLocation("general", 21)]
+			[SettingLocation("general", 22)]
 			[SettingType("Volume")]
 			public float songVolume = 1f;
 
@@ -199,7 +199,7 @@ namespace YARG.Settings {
 			}
 
 			[SettingShowInGame]
-			[SettingLocation("general", 22)]
+			[SettingLocation("general", 23)]
 			[SettingType("Volume")]
 			public float crowdVolume = 0f;
 
@@ -209,7 +209,7 @@ namespace YARG.Settings {
 			}
 			
 			[SettingShowInGame]
-			[SettingLocation("general", 23)]
+			[SettingLocation("general", 24)]
 			[SettingType("Volume")]
 			public float sfxVolume = 0f;
 
@@ -219,7 +219,7 @@ namespace YARG.Settings {
 			}
 			
 			[SettingShowInGame]
-			[SettingLocation("general", 24)]
+			[SettingLocation("general", 25)]
 			[SettingType("Toggle")]
 			public bool useStarpowerFx = true;
 
@@ -229,7 +229,7 @@ namespace YARG.Settings {
 			}
 
 			[SettingShowInGame]
-			[SettingLocation("general", 25)]
+			[SettingLocation("general", 26)]
 			[SettingType("Volume")]
 			public float vocalMonitoring = 0.75f;
 
@@ -240,7 +240,7 @@ namespace YARG.Settings {
 
 			[SettingSpace]
 			[SettingShowInGame]
-			[SettingLocation("general", 26)]
+			[SettingLocation("general", 27)]
 			[SettingType("Toggle")]
 			public bool amIAwesome = false;
 		}
