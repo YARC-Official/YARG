@@ -29,14 +29,14 @@ namespace YARG {
 			get;
 			private set;
 		}
-		
+
 		public static IAudioManager AudioManager {
 			get;
 			private set;
 		}
 
 		public UpdateChecker updateChecker;
-		
+
 		[SerializeField]
 		private AudioMixerGroup vocalGroup;
 
@@ -44,7 +44,7 @@ namespace YARG {
 
 		private void Awake() {
 			Instance = this;
-			
+
 			AudioManager = gameObject.AddComponent<BassAudioManager>();
 			AudioManager.Initialize();
 		}
