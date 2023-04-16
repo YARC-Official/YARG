@@ -33,6 +33,10 @@ namespace YARG.PlayMode {
 
 		private int notesHit = 0;
 
+		// This is set to true when the "BASS GROOVE" text is displayed.
+		// It is reset to false when the player misses.
+		private bool hasBassGrooveTextAlreadyDisplayed = false;
+
 		protected override void StartTrack() {
 			notePool.player = player;
 			genericPool.player = player;
@@ -108,6 +112,14 @@ namespace YARG.PlayMode {
 				eventChartIndex++;
 			}
 
+			// TODO: Running this in the update method seems a bit unnecessary. Is there a way this could be better optimized?
+			// Display bass groove text upon reaching 6x (or 12x) multiplier
+			if ((player.chosenInstrument == "bass" && Multiplier == MaxMultiplier) && !hasBassGrooveTextAlreadyDisplayed) {
+				var text = GameObject.Find("BassGrooveText");
+				text.GetComponent<Animator>().Play("Base Layer.BassGrooveAnim", 0, 0);
+				hasBassGrooveTextAlreadyDisplayed = true;
+			}
+
 			// Since chart is sorted, this is guaranteed to work
 			while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= RelativeTime) {
 				var noteInfo = Chart[visualChartIndex];
@@ -174,6 +186,7 @@ namespace YARG.PlayMode {
 					hitChartIndex++;
 					notePool.MissNote(hit);
 					StopAudio = true;
+					hasBassGrooveTextAlreadyDisplayed = false;
 				}
 				allowedOverstrums.Clear(); // Disallow all overstrums upon missing
 			}
