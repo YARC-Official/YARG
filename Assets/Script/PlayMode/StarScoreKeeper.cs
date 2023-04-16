@@ -10,7 +10,7 @@ namespace YARG.PlayMode {
 	/// <summary>
 	/// Star-score tracking.
 	/// </summary>
-	public class StarKeeper {
+	public class StarScoreKeeper {
 		/// <summary>
 		/// Minimum avg. multipliers to get 1, 2, 3, 4, 5, and gold stars respectively.
 		/// </summary>
@@ -28,7 +28,7 @@ namespace YARG.PlayMode {
 		};
 
 		// keep track of all instances to calculate the band total
-		public static List<StarKeeper> instances = new();
+		public static List<StarScoreKeeper> instances = new();
 		public static double TotalMax {
 			get {
 				double sum = 0;
@@ -80,12 +80,12 @@ namespace YARG.PlayMode {
 					case int s when s <= 5:
 						return (double) s + (scoreKeeper.score - scoreThreshold[s - 1]) / (scoreThreshold[s] - scoreThreshold[s - 1]);
 					default: // 6+ stars
-						return 6;
+						return (double) 5 + (scoreKeeper.score - scoreThreshold[4]) / (scoreThreshold[5] - scoreThreshold[4]);
 				}
 			}
 		}
 
-	public StarKeeper(List<NoteInfo> chart, ScoreKeeper scoreKeeper, string instrument, int ptPerNote, double ptSusPerBeat = 0) {
+	public StarScoreKeeper(List<NoteInfo> chart, ScoreKeeper scoreKeeper, string instrument, int ptPerNote, double ptSusPerBeat = 0) {
 			instances.Add(this);
 			this.scoreKeeper = scoreKeeper;
 

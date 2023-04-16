@@ -139,7 +139,7 @@ namespace YARG.PlayMode {
 		private ScoreKeeper scoreKeeper;
 		// easy, medium, hard, expert
 		private readonly int[] MAX_POINTS = { 200, 400, 800, 1000 };
-		private StarKeeper starKeeper;
+		private StarScoreKeeper starKeeper;
 
 		private int rawMultiplier = 1;
 		private int Multiplier => rawMultiplier * (starpowerActive ? 2 : 1);

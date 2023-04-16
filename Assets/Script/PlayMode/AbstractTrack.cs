@@ -71,7 +71,7 @@ namespace YARG.PlayMode {
 
 		// score tracking objects
 		protected ScoreKeeper scoreKeeper;
-		protected StarKeeper starKeeper; // construct in sub classes due to scoring differences!
+		protected StarScoreKeeper starKeeper; // construct in sub classes due to scoring differences!
 		protected SustainTracker susTracker;
 
 		private bool _stopAudio = false;

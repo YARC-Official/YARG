@@ -265,7 +265,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &14183871
 RectTransform:
   m_ObjectHideFlags: 0
@@ -341,7 +341,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &14429883
 RectTransform:
   m_ObjectHideFlags: 0
@@ -562,8 +562,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 124212230}
+  - component: {fileID: 124212231}
   m_Layer: 5
-  m_Name: ScoreBox
+  m_Name: ScoreDisplay
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -592,6 +593,19 @@ RectTransform:
   m_AnchoredPosition: {x: -34, y: -227.5}
   m_SizeDelta: {x: 224, y: 50.700012}
   m_Pivot: {x: 1, y: 1}
+--- !u!114 &124212231
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 124212229}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a2d63fff01e1954f85b7722d4b1e2da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  scoreText: {fileID: 331865772}
 --- !u!1 &130048040
 GameObject:
   m_ObjectHideFlags: 0
@@ -1323,7 +1337,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &305033963
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1659,7 +1673,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &347054927
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1735,7 +1749,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &353932216
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2140,7 +2154,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &452158294
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2761,7 +2775,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &534172082
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3127,7 +3141,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &868386669
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3241,7 +3255,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1004759517
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3396,7 +3410,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1040875815
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4431,7 +4445,6 @@ MonoBehaviour:
   lyric: {fileID: 484464891}
   vocalTrack: {fileID: 173411523}
   loadingText: {fileID: 1146384956}
-  scoreText: {fileID: 331865772}
   loadingContainer: {fileID: 469667487}
   pauseMenu: {fileID: 8545365}
 --- !u!1 &1489966284
@@ -4560,7 +4573,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1504477591
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5125,7 +5138,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1567978148
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5382,7 +5395,7 @@ GameObject:
   - component: {fileID: 1730487980}
   - component: {fileID: 1730487979}
   m_Layer: 5
-  m_Name: Image
+  m_Name: BGBox
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5463,7 +5476,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1772067302
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6008,7 +6021,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2017972086
 RectTransform:
   m_ObjectHideFlags: 0

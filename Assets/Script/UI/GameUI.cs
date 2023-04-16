@@ -18,8 +18,6 @@ namespace YARG.UI {
 		private RawImage vocalTrack;
 		[SerializeField]
 		private TextMeshProUGUI loadingText;
-		[SerializeField]
-		private TextMeshProUGUI scoreText; // TODO: adapt with new ScoreBox texture
 
 		public GameObject loadingContainer;
 		public GameObject pauseMenu;
@@ -43,7 +41,6 @@ namespace YARG.UI {
 
 		private void Update() {
 			songProgress.fillAmount = Play.Instance.SongTime / Play.Instance.SongLength;
-			scoreText.text = $"<mspace=0.59em>{ScoreKeeper.TotalScore:n0}";
 		}
 
 		public void AddTrackImage(RenderTexture rt) {
