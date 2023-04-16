@@ -87,3 +87,8 @@ Assets/YargInput.cs
 
 ### Rider ###
 .idea/
+/ProjectSettings/ProjectSettings.asset
+/.vsconfig
+/Packages/manifest.json
+/Packages/packages-lock.json
+/Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF - Fallback.asset
