@@ -105,7 +105,6 @@ namespace YARG.PlayMode {
 				instrumentThreshold[instrument][4] * baseScore,
 				instrumentThreshold[instrument][5] * baseScore
 			};
-			Debug.Log($"{ string.Join(", ", scoreThreshold) }");
 		}
 	}
 }

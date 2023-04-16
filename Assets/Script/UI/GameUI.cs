@@ -43,7 +43,7 @@ namespace YARG.UI {
 
 		private void Update() {
 			songProgress.fillAmount = Play.Instance.SongTime / Play.Instance.SongLength;
-			scoreText.text = $"{ScoreKeeper.TotalScore:n0}";
+			scoreText.text = $"<mspace=0.59em>{ScoreKeeper.TotalScore:n0}";
 		}
 
 		public void AddTrackImage(RenderTexture rt) {
