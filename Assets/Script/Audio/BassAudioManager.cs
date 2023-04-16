@@ -8,6 +8,8 @@ using UnityEngine;
 
 namespace YARG {
 	public class BassAudioManager : MonoBehaviour, IAudioManager {
+		public bool UseStarpowerFx { get; set; }
+		
 		public IList<string> SupportedFormats { get; private set; }
 
 		public int StemsLoaded { get; private set; }
@@ -31,6 +33,8 @@ namespace YARG {
 		private int[] sfxSamples;
 		
 		private double[] stemVolumes;
+		
+		private double sfxVolume;
 
 		private DSPProcedure dspGain;
 
@@ -259,7 +263,7 @@ namespace YARG {
 			}
 			
 			int channel = Bass.SampleGetChannel(sfxSamples[(int) sample]);
-			Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, AudioHelpers.SfxVolume[(int) sample]);
+			Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, sfxVolume * AudioHelpers.SfxVolume[(int) sample]);
 
 			Bass.ChannelPlay(channel);
 		}
@@ -280,6 +284,11 @@ namespace YARG {
 		public void UpdateVolumeSetting(SongStem stem, double volume) {
 			if (stem == SongStem.Master) {
 				Bass.GlobalStreamVolume = (int)(10_000 * volume);
+				return;
+			}
+
+			if (stem == SongStem.Sfx) {
+				sfxVolume = volume;
 				return;
 			}
 			

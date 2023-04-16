@@ -184,46 +184,6 @@ namespace YARG.PlayMode {
 				return;
 			}
 
-			// Audio raising and lowering based on player preformance
-			if (SettingsManager.GetSettingValue<bool>("muteOnMiss")) {
-				// Mute guitars
-				UpdateAudio(new string[] {
-					"guitar",
-					"realGuitar"
-				}, new string[] {
-					"guitar"
-				});
-
-				// Mute bass
-				UpdateAudio(new string[] {
-					"bass",
-					"realBass"
-				}, new string[] {
-					"bass",
-					"rhythm"
-				});
-
-				// Mute keys
-				UpdateAudio(new string[] {
-					"keys",
-					"realKeys"
-				}, new string[] {
-					"keys"
-				});
-
-				// Mute drums
-				UpdateAudio(new string[] {
-					"drums",
-					"realDrums"
-				}, new string[] {
-					"drums",
-					"drums_1",
-					"drums_2",
-					"drums_3",
-					"drums_4"
-				});
-			}
-			
 			UpdateAudio(new string[] {
 				"guitar",
 				"realGuitar"
@@ -328,23 +288,26 @@ namespace YARG.PlayMode {
 			
 			// Reverb audio with starpower
 			
-			foreach (var name in stemNames) {
-				var stem = AudioHelpers.GetStemFromName(name);
+			if(GameManager.AudioManager.UseStarpowerFx)
+			{
+				foreach (var name in stemNames) {
+					var stem = AudioHelpers.GetStemFromName(name);
 				
-				bool applyReverb = audioReverb.GetCount(name) > 0;
+					bool applyReverb = audioReverb.GetCount(name) > 0;
 
-				// Drums have multiple stems so need to reverb them all if it is drums
-				switch (stem) {
-					case SongStem.Drums:
-						GameManager.AudioManager.ApplyReverb(SongStem.Drums, applyReverb);
-						GameManager.AudioManager.ApplyReverb(SongStem.Drums1, applyReverb);
-						GameManager.AudioManager.ApplyReverb(SongStem.Drums2, applyReverb);
-						GameManager.AudioManager.ApplyReverb(SongStem.Drums3, applyReverb);
-						GameManager.AudioManager.ApplyReverb(SongStem.Drums4, applyReverb);
-						break;
-					default:
-						GameManager.AudioManager.ApplyReverb(stem, applyReverb);
-						break;
+					// Drums have multiple stems so need to reverb them all if it is drums
+					switch (stem) {
+						case SongStem.Drums:
+							GameManager.AudioManager.ApplyReverb(SongStem.Drums, applyReverb);
+							GameManager.AudioManager.ApplyReverb(SongStem.Drums1, applyReverb);
+							GameManager.AudioManager.ApplyReverb(SongStem.Drums2, applyReverb);
+							GameManager.AudioManager.ApplyReverb(SongStem.Drums3, applyReverb);
+							GameManager.AudioManager.ApplyReverb(SongStem.Drums4, applyReverb);
+							break;
+						default:
+							GameManager.AudioManager.ApplyReverb(stem, applyReverb);
+							break;
+					}
 				}
 			}
 		}
