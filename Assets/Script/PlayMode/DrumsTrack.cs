@@ -74,6 +74,10 @@ namespace YARG.PlayMode {
 				drums[i] = fret;
 			}
 			kickNoteParticles.Colorize(drumColors[kickIndex]);
+
+			starKeeper = new(Chart, scoreKeeper,
+				player.chosenInstrument,
+				proScoreInst.Contains(player.chosenInstrument) ? 30 : 25);
 		}
 
 		protected override void OnDestroy() {

@@ -28,7 +28,6 @@ public class ScoreKeeper: MonoBehaviour {
 
 	public void Add(double points) {
         score += points;
-		Debug.Log($"+{points} for {score} (-->{TotalScore})");
 	}
 
     public ScoreKeeper() {

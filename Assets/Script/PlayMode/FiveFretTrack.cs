@@ -63,6 +63,8 @@ namespace YARG.PlayMode {
 				frets[i] = fret;
 			}
 			openNoteParticles.Colorize(fretColors[5]);
+
+			starKeeper = new(Chart, scoreKeeper, player.chosenInstrument, 25, SUSTAIN_PTS_PER_BEAT);
 		}
 
 		protected override void OnDestroy() {

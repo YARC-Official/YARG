@@ -69,7 +69,9 @@ namespace YARG.PlayMode {
 		protected int MaxMultiplier => (player.chosenInstrument == "bass" ? 6 : 4) * (starpowerActive ? 2 : 1);
 		protected int Multiplier => Mathf.Min((Combo / 10 + 1) * (starpowerActive ? 2 : 1), MaxMultiplier);
 
+		// score tracking objects
 		protected ScoreKeeper scoreKeeper;
+		protected StarKeeper starKeeper; // construct in sub classes due to scoring differences!
 		protected SustainTracker susTracker;
 
 		private bool _stopAudio = false;
