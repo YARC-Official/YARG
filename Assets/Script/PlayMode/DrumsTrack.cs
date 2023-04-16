@@ -120,6 +120,7 @@ namespace YARG.PlayMode {
 				} else if (eventInfo.name == "beatLine_major") {
 					genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
 				} else if (eventInfo.name == $"starpower_{player.chosenInstrument}") {
+					Debug.Log("Star Power Segment");
 					StarpowerSection = eventInfo;
 				}
 

@@ -160,10 +160,8 @@ namespace YARG.PlayMode {
 			// Spawn tracks
 			int i = 0;
 			foreach (var player in PlayerManager.players) {
-				player.chosenDifficulty = player.setlistDifficulties[0];
-				player.chosenInstrument = player.setlistInstruments[0];
-				player.setlistDifficulties.RemoveAt(0);
-				player.setlistInstruments.RemoveAt(0);
+				player.chosenDifficulty = player.setlistDifficulties[setlistCurrentSongIndex];
+				player.chosenInstrument = player.setlistInstruments[setlistCurrentSongIndex];
 
 				if (player.chosenInstrument == null) {
 					// Skip players that are sitting out
