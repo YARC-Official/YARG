@@ -127,6 +127,18 @@ MonoBehaviour:
     m_Key: copyCurrentSongTextFilePath
     m_Metadata:
       m_Items: []
+  - m_Id: 7748727102816256
+    m_Key: sfxVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7748836536401920
+    m_Key: useStarpowerFx
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7760843058757632
+    m_Key: rhythmVolume
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

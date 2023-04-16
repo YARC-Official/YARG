@@ -3,6 +3,8 @@ using System.Collections.Generic;
 namespace YARG {
 	public interface IAudioManager {
 		
+		public bool UseStarpowerFx { get; set; }
+		
 		public IList<string> SupportedFormats { get; }
 		
 		public int StemsLoaded { get; }

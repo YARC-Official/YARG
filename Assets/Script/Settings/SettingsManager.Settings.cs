@@ -61,10 +61,6 @@ namespace YARG.Settings {
 			[SettingType("Toggle")]
 			public bool showHitWindow = false;
 
-			[SettingLocation("general", 8)]
-			[SettingType("Toggle")]
-			public bool useAudioTime = false;
-
 			[SettingLocation("general", 9)]
 			[SettingType("Toggle")]
 			public bool muteOnMiss = true;
@@ -135,6 +131,16 @@ namespace YARG.Settings {
 			public void GuitarVolumeChange() {
 				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Guitar, guitarVolume);
 			}
+			
+			[SettingShowInGame]
+			[SettingLocation("general", 17)]
+			[SettingType("Volume")]
+			public float rhythmVolume = 1f;
+
+			[SettingChangeFunc("rhythmVolume")]
+			public void RhythmVolumeChange() {
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Rhythm, rhythmVolume);
+			}
 
 			[SettingShowInGame]
 			[SettingLocation("general", 17)]
@@ -144,7 +150,6 @@ namespace YARG.Settings {
 			[SettingChangeFunc("bassVolume")]
 			public void BassVolumeChange() {
 				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Bass, bassVolume);
-				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Rhythm, bassVolume);
 			}
 
 			[SettingShowInGame]
@@ -202,9 +207,29 @@ namespace YARG.Settings {
 			public void CrowdVolumeChange() {
 				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Crowd, crowdVolume);
 			}
-
+			
 			[SettingShowInGame]
 			[SettingLocation("general", 23)]
+			[SettingType("Volume")]
+			public float sfxVolume = 0f;
+
+			[SettingChangeFunc("sfxVolume")]
+			public void SfxVolumeChange() {
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Sfx, sfxVolume);
+			}
+			
+			[SettingShowInGame]
+			[SettingLocation("general", 24)]
+			[SettingType("Toggle")]
+			public bool useStarpowerFx = true;
+
+			[SettingChangeFunc("useStarpowerFx")]
+			public void UseStarpowerFxChange() {
+				GameManager.AudioManager.UseStarpowerFx = useStarpowerFx;
+			}
+
+			[SettingShowInGame]
+			[SettingLocation("general", 25)]
 			[SettingType("Volume")]
 			public float vocalMonitoring = 0.75f;
 
@@ -215,7 +240,7 @@ namespace YARG.Settings {
 
 			[SettingSpace]
 			[SettingShowInGame]
-			[SettingLocation("general", 24)]
+			[SettingLocation("general", 26)]
 			[SettingType("Toggle")]
 			public bool amIAwesome = false;
 		}

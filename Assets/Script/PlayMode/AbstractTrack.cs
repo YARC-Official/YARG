@@ -56,6 +56,10 @@ namespace YARG.PlayMode {
 		protected int Combo {
 			get => _combo;
 			set {
+				if (_combo >= 10 && value == 0) {
+					GameManager.AudioManager.PlaySoundEffect(SfxSample.NoteMiss);
+				}
+				
 				_combo = value;
 
 				// End starpower if combo ends
@@ -249,7 +253,7 @@ namespace YARG.PlayMode {
 		}
 
 		private void BeatAction() {
-			if (starpowerActive) {
+			if (starpowerActive && GameManager.AudioManager.UseStarpowerFx) {
 				GameManager.AudioManager.PlaySoundEffect(SfxSample.Clap);
 			}
 			Beat = true;
