@@ -239,7 +239,7 @@ MonoBehaviour:
   - {r: 0, g: 0.2901961, b: 1, a: 1}
   - {r: 1, g: 0.42745098, b: 0, a: 1}
   - {r: 0.4392157, g: 1, b: 0, a: 1}
-  - {r: 1, g: 0.42745098, b: 0, a: 1}
+  - {r: 0.78431374, g: 0, b: 1, a: 1}
   notePool: {fileID: 9121291244003754727}
   genericPool: {fileID: 6222960093224628221}
   kickNoteParticles: {fileID: 8279289512315810390}
