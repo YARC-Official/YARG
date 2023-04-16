@@ -27,6 +27,7 @@ namespace YARG.PlayMode {
 
 		// TODO: Store song speeds in setlist
 		public static List<SongInfo> setlist = new();
+		public static List<float> setlistSongSpeeds = new();
 		public static int setlistCurrentSongIndex = 0;
 		public static int setlistSize = 0;
 
@@ -363,9 +364,10 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		public static void AddSongToSetlist(SongInfo song)
+		public static void AddSongToSetlist(SongInfo song, float speed)
         {
 			setlist.Add(song);
+			setlistSongSpeeds.Add(speed);
         }
 
 		public static void StartSetlist()
@@ -379,15 +381,18 @@ namespace YARG.PlayMode {
 		public static void ContinueSetlist()
         {
 			setlistCurrentSongIndex++;
-			song = setlist[Play.setlistCurrentSongIndex];
+			song = setlist[setlistCurrentSongIndex];
+			speed = setlistSongSpeeds[setlistCurrentSongIndex];
 			GameManager.Instance.LoadScene(SceneIndex.PLAY);
 		}
 
 		public static void EndSetlist()
         {
+			Debug.Log("Setlist finished");
 			setlistSize = 0;
 			setlistCurrentSongIndex = 0;
 			setlist.Clear();
+			setlistSongSpeeds.Clear();
         }
 
 		public void Exit() {

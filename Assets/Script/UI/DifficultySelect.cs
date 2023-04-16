@@ -194,18 +194,19 @@ namespace YARG.UI {
 
 			if (playerIndex >= PlayerManager.players.Count) {
 				// Set speed
-				Play.speed = float.Parse(speedInput.text, CultureInfo.InvariantCulture);
-				if (Play.speed <= 0f) {
-					Play.speed = 1f;
+				var speed = float.Parse(speedInput.text, CultureInfo.InvariantCulture);
+				if (speed <= 0f) {
+					speed = 1f;
 				}
 
 				// Play song (or download then play)
 
 				if (!isSetlistMode) {
+					Play.speed = speed;
 					StartSong();
                 } else
                 {
-					Play.AddSongToSetlist(MainMenu.Instance.chosenSong);
+					Play.AddSongToSetlist(MainMenu.Instance.chosenSong, speed);
 					MainMenu.Instance.ShowSongSelect();
                 }
 				
