@@ -63,6 +63,8 @@ namespace YARG.PlayMode {
 				frets[i] = fret;
 			}
 			openNoteParticles.Colorize(fretColors[5]);
+
+			starKeeper = new(Chart, scoreKeeper, player.chosenInstrument, 25, SUSTAIN_PTS_PER_BEAT);
 		}
 
 		protected override void OnDestroy() {
@@ -165,6 +167,12 @@ namespace YARG.PlayMode {
 
 				if (strumLeniency <= 0f) {
 					UpdateOverstrums();
+					strumLeniency = 0f;
+				} else {
+					RemoveOldAllowedOverstrums();
+					if (IsOverstrumForgiven()) { // Consume allowed overstrum as soon as it's "hit"
+						strumLeniency = 0f;
+					}
 				}
 			}
 
@@ -179,6 +187,7 @@ namespace YARG.PlayMode {
 					notePool.MissNote(hit);
 					StopAudio = true;
 				}
+				allowedOverstrums.Clear(); // Disallow all overstrums upon missing
 			}
 
 			if (expectedHits.Count <= 0) {
@@ -211,7 +220,7 @@ namespace YARG.PlayMode {
 			// This will make it easier to recover.
 			if ((strummed || strumLeniency > 0f) && !ChordPressed(chord)) {
 				RemoveOldAllowedOverstrums();
-				var overstrumForgiven = IsOverstrumForgiven();
+				var overstrumForgiven = IsOverstrumForgiven(false); // Do NOT consume allowed overstrums; this is done in other parts of the code
 
 				// Ensure allowed overstrums won't break combos
 				if (!overstrumForgiven) {
@@ -302,9 +311,21 @@ namespace YARG.PlayMode {
 			// doesn't lose their combo when they strum AFTER they hit
 			// the tap note.
 			if (chord[0].hopo && !strummed) {
+				allowedOverstrums.Clear(); // Only allow overstrumming latest HO/PO
 				allowedOverstrums.Add(chord);
-			} else if (!chord[0].hopo) {
-				allowedOverstrums.Clear();
+			} else if (allowedOverstrums.Count > 0 && !chord[0].hopo) {
+				for (int i = 0; i < allowedOverstrums.Count; i++) {
+					if (!ChordEquals(chord,allowedOverstrums[i])) {
+						allowedOverstrums.Clear(); // If latest strum is different from latest HO/PO, disallow overstrumming
+						break;
+					} else {
+						// Refresh time (for long same-fret strum sequences)
+						foreach (var hit in allowedOverstrums[i]) {
+							hit.time = chord[0].time;
+						}
+					}
+				}
+				
 			}
 		}
 
@@ -317,15 +338,17 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		private bool IsOverstrumForgiven() {
+		private bool IsOverstrumForgiven(bool remove = true) {
 			for (int i = 0; i < allowedOverstrums.Count; i++) {
 				if (ChordPressed(allowedOverstrums[i], true)) {
 					// If we found a chord that was pressed, remove 
 					// all of the allowed overstrums before it.
 					// This prevents over-forgiving overstrums.
 
-					for (int j = i; j >= 0; j--) {
-						allowedOverstrums.RemoveAt(j);
+					if (remove) {
+						for (int j = i; j >= 0; j--) {
+							allowedOverstrums.RemoveAt(j);
+						}
 					}
 
 					// Overstrum forgiven!
@@ -493,6 +516,27 @@ namespace YARG.PlayMode {
 			// Set note info
 			var noteComp = notePool.AddNote(noteInfo, pos);
 			noteComp.SetInfo(fretColors[noteInfo.fret], noteInfo.length, model);
+		}
+		
+		private string PrintFrets() { // Debug function; remove later?
+			return "[" + (frets[0].IsPressed? "G" : "") + (frets[1].IsPressed? "R" : "") + (frets[2].IsPressed? "Y" : "") + (frets[3].IsPressed? "B" : "") + (frets[4].IsPressed? "O" : "") + "]";
+		}
+
+		private bool ChordEquals(List<NoteInfo> chordList1, List<NoteInfo> chordList2) {
+			int[] chord1 = new int[chordList1.Count];
+			for (int i = 0; i < chord1.Length; i++) {
+				chord1[i] = chordList1[i].fret;
+			}
+			int[] chord2 = new int[chordList2.Count];
+			for (int i = 0; i < chord2.Length; i++) {
+				chord2[i] = chordList2[i].fret;
+			}
+			for (int i = 0; i < 5; i++) {
+				if ((chord1.Contains(i) && !chord2.Contains(i)) || (!chord1.Contains(i) && chord2.Contains(i))) {
+					return false;
+				}
+			}
+			return true;
 		}
 	}
 }

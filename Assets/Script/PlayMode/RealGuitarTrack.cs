@@ -33,6 +33,7 @@ namespace YARG.PlayMode {
 
 		private int notesHit = 0;
 
+		private const int PTS_PER_NOTE = 60;
 		private const int SUSTAIN_PTS_PER_BEAT = 30;
 
 		protected override void StartTrack() {
@@ -65,6 +66,10 @@ namespace YARG.PlayMode {
 			for (int i = 0; i < 6; i++) {
 				sustainParticles[i].Colorize(stringColors[i]);
 			}
+
+			starKeeper = new(Chart, scoreKeeper,
+				player.chosenInstrument,
+				PTS_PER_NOTE, SUSTAIN_PTS_PER_BEAT);
 		}
 
 		protected override void OnDestroy() {
@@ -194,7 +199,7 @@ namespace YARG.PlayMode {
 			notePool.HitNote(note);
 			StopAudio = false;
 			notesHit++;
-			scoreKeeper.Add(60.0 * Multiplier);
+			scoreKeeper.Add(PTS_PER_NOTE * Multiplier);
 
 			// Play particles
 			for (int i = 0; i < 6; i++) {

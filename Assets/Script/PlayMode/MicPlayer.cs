@@ -139,6 +139,7 @@ namespace YARG.PlayMode {
 		private ScoreKeeper scoreKeeper;
 		// easy, medium, hard, expert
 		private readonly int[] MAX_POINTS = { 200, 400, 800, 1000 };
+		private StarScoreKeeper starKeeper;
 
 		private int rawMultiplier = 1;
 		private int Multiplier => rawMultiplier * (starpowerActive ? 2 : 1);
@@ -256,6 +257,9 @@ namespace YARG.PlayMode {
 			starpowerOverlay.material.SetFloat("AlphaMultiplier", 0f);
 
 			scoreKeeper = new();
+			// TODO: implement
+			// starKeeper = new(Chart, scoreKeeper,
+			// 	"chosenInstrument", 25);
 		}
 
 		private void OnDestroy() {

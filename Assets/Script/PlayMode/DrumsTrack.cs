@@ -74,6 +74,10 @@ namespace YARG.PlayMode {
 				drums[i] = fret;
 			}
 			kickNoteParticles.Colorize(drumColors[kickIndex]);
+
+			starKeeper = new(Chart, scoreKeeper,
+				player.chosenInstrument,
+				proScoreInst.Contains(player.chosenInstrument) ? 30 : 25);
 		}
 
 		protected override void OnDestroy() {
@@ -188,6 +192,28 @@ namespace YARG.PlayMode {
 		}
 
 		private void DrumHitAction(int drum, bool cymbal) {
+			// invert input in case lefty flip is on, bots don't need it
+			if (player.leftyFlip && !input.botMode){
+				switch (drum){
+					case 0:
+						drum = kickIndex == 4 ? 3 : 4;
+						break;
+					case 1:
+						drum = kickIndex == 4 ? 2 : 3;
+						break;
+					case 2:
+						drum = kickIndex == 4 ? 1 : 2;
+						break;
+					case 3:
+						drum = kickIndex == 4 ? 0 : 1;
+						break;
+					case 4:
+						if (kickIndex == 5){
+							drum = 0;
+						}
+						break;
+				}
+			}
 			if (drum != kickIndex) {
 				// Hit effect
 				drums[drum].Pulse();

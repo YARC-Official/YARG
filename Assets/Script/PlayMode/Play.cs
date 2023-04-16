@@ -99,6 +99,7 @@ namespace YARG.PlayMode {
 		private void Awake() {
 			Instance = this;
 			ScoreKeeper.Reset();
+			StarScoreKeeper.Reset();
 
 			// Song
 

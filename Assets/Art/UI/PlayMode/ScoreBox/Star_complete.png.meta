@@ -1,9 +1,5 @@
 fileFormatVersion: 2
-<<<<<<<< HEAD:Assets/Art/UI/PlayMode/ScoreBox/Box.png.meta
-guid: 9f11405cd863baa488a441656b8306c0
-========
-guid: 663576ea6ed7e7448be467d50eb3d311
->>>>>>>> new-score-screen:Assets/Art/UI/ScoreScreen/Box_Default.png.meta
+guid: 96bc245f161ec1642b7168cd0794499e
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
