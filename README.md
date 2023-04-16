@@ -93,6 +93,8 @@ Some libraries/assets are **packaged** with the source code have licenses that m
 
 Please note that other libraries are **not** packaged within the source code, and are to be install by NuGet.
 
+BASS is the audio library for YARG. [It has it's own license for release](https://www.un4seen.com/).
+
 # 📦 External Assets and Libraries
 
 > **Note**
