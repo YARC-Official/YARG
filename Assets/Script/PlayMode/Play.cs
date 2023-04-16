@@ -24,7 +24,6 @@ namespace YARG.PlayMode {
 		public const float SONG_START_OFFSET = 1f;
 		
 		public static SongInfo song = null;
-		public static List<SongInfo> setlist = new();
 
 		public delegate void BeatAction();
 		public static event BeatAction BeatEvent;

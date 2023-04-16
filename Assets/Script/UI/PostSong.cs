@@ -104,13 +104,6 @@ namespace YARG.UI {
 			foreach (var player in PlayerManager.players) {
 				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
 			}
-
-			if (Play.setlist.Count > 0)
-			{
-				Play.song = Play.setlist[0];
-				Play.setlist.RemoveAt(0);
-				GameManager.Instance.LoadScene(SceneIndex.PLAY);
-			}
 		}
 
 		private void Update() {
