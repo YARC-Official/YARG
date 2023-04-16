@@ -22,7 +22,9 @@ namespace YARG.PlayMode {
 			{ "realBass", new float[] { .21f, .46f, .77f, 1.85f, 3.08f, 4.52f } },
 			{ "drums", new float[] { .21f, .46f, .77f, 1.85f, 3.08f, 4.52f } },
 			{ "realDrums", new float[] { .21f, .46f, .77f, 1.85f, 3.08f, 4.52f } },
-			{ "ghDrums", new float[] { .21f, .46f, .77f, 1.85f, 3.08f, 4.52f } }
+			{ "ghDrums", new float[] { .21f, .46f, .77f, 1.85f, 3.08f, 4.52f } },
+			{ "vocals", new float[] { 4f*0.05f, 4f*0.11f, 4f*0.19f, 4f*0.46f, 4f*0.77f, 4f*1.06f } },
+			{ "harmVocals", new float[] { 4f*0.05f, 4f*0.11f, 4f*0.19f, 4f*0.46f, 4f*0.77f, 4f*1.06f } }
 		};
 
 		// keep track of all instances to calculate the band total
