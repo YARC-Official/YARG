@@ -65,6 +65,21 @@ namespace YARG.PlayMode {
 		protected bool starpowerActive;
 		protected Light comboSunburstEmbeddedLight;
 
+		// Overdrive animation parameters
+		protected Vector3 trackStartPos;
+		protected Vector3 trackEndPos = new(0, 0.13f, 0.2f);
+		protected float spAnimationDuration = 0.2f;
+		protected float elapsedTimeAnim = 0;
+		protected bool gotStartPos = false;
+		protected bool depressed = false;
+		protected bool ascended = false;
+		protected bool resetTime = false;
+
+		[SerializeField]
+		protected AnimationCurve spStartAnimCurve;
+		[SerializeField]
+		protected AnimationCurve spEndAnimCurve;
+
 		private int _combo = 0;
 		protected int Combo {
 			get => _combo;
@@ -245,6 +260,38 @@ namespace YARG.PlayMode {
 					starpowerCharge -= Time.deltaTime / 25f;
 				}
 
+				// Start track animation
+				elapsedTimeAnim += Time.deltaTime;
+				float percentageComplete = elapsedTimeAnim / spAnimationDuration;
+				if (!depressed && !ascended) {
+					spAnimationDuration = 0.065f;
+					trackCamera.transform.position = Vector3.Lerp(trackStartPos, trackStartPos + trackEndPos,
+						spStartAnimCurve.Evaluate(percentageComplete));
+
+					if (trackCamera.transform.position == trackStartPos + trackEndPos) {
+						resetTime = true;
+						depressed = true;
+					}
+				}
+
+				if (resetTime) {
+					elapsedTimeAnim = 0f;
+					resetTime = false;
+				}
+
+				// End track animation
+				if (depressed && !ascended) {
+					spAnimationDuration = 0.2f;
+					trackCamera.transform.position = Vector3.Lerp(trackStartPos + trackEndPos, trackStartPos,
+						spEndAnimCurve.Evaluate(percentageComplete));
+
+					if (trackCamera.transform.position == trackStartPos + trackEndPos) {
+						resetTime = true;
+						ascended = true;
+					}
+				}
+
+				// Update Sunburst color and light
 				comboSunburst.sprite = sunBurstSpriteStarpower;
 				comboSunburst.color = new Color(255, 255, 255, 141);
 
@@ -254,6 +301,18 @@ namespace YARG.PlayMode {
 					starpowerLight.SetActive(false);
 				}
 			} else {
+				if (!gotStartPos) {
+					trackStartPos = trackCamera.transform.position;
+					gotStartPos = true;
+				}
+
+
+				depressed = false;
+				ascended = false;
+				elapsedTimeAnim = 0f;
+
+
+				//Reset Sunburst color and light to original
 				comboSunburst.sprite = sunBurstSprite;
 				comboSunburst.color = Color.white;
 
