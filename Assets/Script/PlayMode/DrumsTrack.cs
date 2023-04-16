@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System;
 using UnityEngine;
 using YARG.Data;
 using YARG.Input;
@@ -41,12 +42,6 @@ namespace YARG.PlayMode {
 
 			noKickMode = SettingsManager.GetSettingValue<bool>("noKicks");
 
-			// Lefty flip
-
-			if (player.leftyFlip) {
-				drums = drums.Reverse().ToArray();
-			}
-
 			// Inputs
 
 			input = player.inputStrategy;
@@ -61,6 +56,14 @@ namespace YARG.PlayMode {
 			// GH vs RB
 
 			kickIndex = fiveLaneMode ? 5 : 4;
+			
+			// Lefty flip
+
+			if (player.leftyFlip) {
+				drums = drums.Reverse().ToArray();
+				// Make the drum colors follow the original order even though the chart is flipped
+				Array.Reverse(drumColors, 0, kickIndex);
+			}
 
 			// Color drums
 			for (int i = 0; i < drums.Length; i++) {
@@ -191,6 +194,28 @@ namespace YARG.PlayMode {
 		}
 
 		private void DrumHitAction(int drum, bool cymbal) {
+			// invert input in case lefty flip is on, bots don't need it
+			if (player.leftyFlip && !input.botMode){
+				switch (drum){
+					case 0:
+						drum = kickIndex == 4 ? 3 : 4;
+						break;
+					case 1:
+						drum = kickIndex == 4 ? 2 : 3;
+						break;
+					case 2:
+						drum = kickIndex == 4 ? 1 : 2;
+						break;
+					case 3:
+						drum = kickIndex == 4 ? 0 : 1;
+						break;
+					case 4:
+						if (kickIndex == 5){
+							drum = 0;
+						}
+						break;
+				}
+			}
 			if (drum != kickIndex) {
 				// Hit effect
 				drums[drum].Pulse();

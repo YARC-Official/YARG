@@ -28,12 +28,18 @@ namespace YARG.Settings {
 				});
 			}
 
-			[SettingSpace]
 			[SettingLocation("general", 3)]
+			[SettingButton("copyCurrentSongTextFilePath")]
+			public void CopyCurrentSongTextFilePath() {
+				GUIUtility.systemCopyBuffer = TwitchController.Instance.TextFilePath;
+			}
+
+			[SettingSpace]
+			[SettingLocation("general", 4)]
 			[SettingType("Number")]
 			public int calibrationNumber = -150;
 
-			[SettingLocation("general", 4)]
+			[SettingLocation("general", 5)]
 			[SettingButton("calibrate")]
 			public void Calibrate() {
 				if (PlayerManager.players.Count > 0) {
@@ -42,7 +48,7 @@ namespace YARG.Settings {
 			}
 
 			[SettingSpace]
-			[SettingLocation("general", 5)]
+			[SettingLocation("general", 6)]
 			[SettingType("Toggle")]
 			public bool lowQuality = false;
 
@@ -51,25 +57,25 @@ namespace YARG.Settings {
 				GraphicsManager.Instance.LowQuality = lowQuality;
 			}
 
-			[SettingLocation("general", 6)]
+			[SettingLocation("general", 7)]
 			[SettingType("Toggle")]
 			public bool showHitWindow = false;
 
-			[SettingLocation("general", 7)]
+			[SettingLocation("general", 8)]
 			[SettingType("Toggle")]
 			public bool useAudioTime = false;
 
-			[SettingLocation("general", 8)]
+			[SettingLocation("general", 9)]
 			[SettingType("Toggle")]
 			public bool muteOnMiss = true;
 
 			[SettingShowInGame]
-			[SettingLocation("general", 9)]
+			[SettingLocation("general", 10)]
 			[SettingType("Toggle")]
 			public bool useCymbalModelsInFiveLane = true;
 
 			[SettingShowInGame]
-			[SettingLocation("general", 10)]
+			[SettingLocation("general", 11)]
 			[SettingType("Toggle")]
 			public bool disableBloom = false;
 
@@ -79,13 +85,13 @@ namespace YARG.Settings {
 			}
 
 			[SettingSpace]
-			[SettingLocation("general", 11)]
+			[SettingLocation("general", 12)]
 			[SettingType("Toggle")]
 			public bool noKicks = false;
 
 			[SettingSpace]
 			[SettingShowInGame]
-			[SettingLocation("general", 12)]
+			[SettingLocation("general", 13)]
 			[SettingType("Toggle")]
 			public bool vsync = true;
 
@@ -95,7 +101,7 @@ namespace YARG.Settings {
 			}
 
 			[SettingShowInGame]
-			[SettingLocation("general", 13)]
+			[SettingLocation("general", 14)]
 			[SettingType("Number")]
 			public int fpsCap = 60;
 
@@ -111,87 +117,94 @@ namespace YARG.Settings {
 
 			[SettingSpace]
 			[SettingShowInGame]
-			[SettingLocation("general", 14)]
+			[SettingLocation("general", 15)]
 			[SettingType("Volume")]
 			public float musicVolume = 0.9f;
 
 			[SettingChangeFunc("musicVolume")]
 			public void SongVolumeChange() {
-				AudioManager.Instance.SetVolume("music", musicVolume);
-			}
-
-			[SettingShowInGame]
-			[SettingLocation("general", 15)]
-			[SettingType("Volume")]
-			public float guitarVolume = 1f;
-
-			[SettingChangeFunc("guitarVolume")]
-			public void GuitarVolumeChange() {
-				AudioManager.Instance.SetVolume("guitar", guitarVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Master, musicVolume);
 			}
 
 			[SettingShowInGame]
 			[SettingLocation("general", 16)]
 			[SettingType("Volume")]
-			public float bassVolume = 1f;
+			public float guitarVolume = 1f;
 
-			[SettingChangeFunc("bassVolume")]
-			public void BassVolumeChange() {
-				AudioManager.Instance.SetVolume("bass", bassVolume);
+			[SettingChangeFunc("guitarVolume")]
+			public void GuitarVolumeChange() {
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Guitar, guitarVolume);
 			}
 
 			[SettingShowInGame]
 			[SettingLocation("general", 17)]
 			[SettingType("Volume")]
-			public float keysVolume = 1f;
+			public float bassVolume = 1f;
 
-			[SettingChangeFunc("keysVolume")]
-			public void KeysVolumeChange() {
-				AudioManager.Instance.SetVolume("keys", keysVolume);
+			[SettingChangeFunc("bassVolume")]
+			public void BassVolumeChange() {
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Bass, bassVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Rhythm, bassVolume);
 			}
 
 			[SettingShowInGame]
 			[SettingLocation("general", 18)]
 			[SettingType("Volume")]
-			public float drumsVolume = 1f;
+			public float keysVolume = 1f;
 
-			[SettingChangeFunc("drumsVolume")]
-			public void DrumsVolumeChange() {
-				AudioManager.Instance.SetVolume("drums", drumsVolume);
+			[SettingChangeFunc("keysVolume")]
+			public void KeysVolumeChange() {
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Keys, keysVolume);
 			}
 
 			[SettingShowInGame]
 			[SettingLocation("general", 19)]
 			[SettingType("Volume")]
-			public float vocalsVolume = 1f;
+			public float drumsVolume = 1f;
 
-			[SettingChangeFunc("vocalsVolume")]
-			public void VocalsVolumeChange() {
-				AudioManager.Instance.SetVolume("vocals", vocalsVolume);
+			[SettingChangeFunc("drumsVolume")]
+			public void DrumsVolumeChange() {
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums, drumsVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums1, drumsVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums2, drumsVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums3, drumsVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums4, drumsVolume);
 			}
 
 			[SettingShowInGame]
 			[SettingLocation("general", 20)]
 			[SettingType("Volume")]
-			public float songVolume = 1f;
+			public float vocalsVolume = 1f;
 
-			[SettingChangeFunc("songVolume")]
-			public void MusicVolumeChange() {
-				AudioManager.Instance.SetVolume("song", songVolume);
+			[SettingChangeFunc("vocalsVolume")]
+			public void VocalsVolumeChange() {
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Vocals, vocalsVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Vocals1, vocalsVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Vocals2, vocalsVolume);
 			}
 
 			[SettingShowInGame]
 			[SettingLocation("general", 21)]
 			[SettingType("Volume")]
-			public float crowdVolume = 0f;
+			public float songVolume = 1f;
 
-			[SettingChangeFunc("crowdVolume")]
-			public void CrowdVolumeChange() {
-				AudioManager.Instance.SetVolume("crowd", crowdVolume);
+			[SettingChangeFunc("songVolume")]
+			public void MusicVolumeChange() {
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Song, songVolume);
 			}
 
 			[SettingShowInGame]
 			[SettingLocation("general", 22)]
+			[SettingType("Volume")]
+			public float crowdVolume = 0f;
+
+			[SettingChangeFunc("crowdVolume")]
+			public void CrowdVolumeChange() {
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Crowd, crowdVolume);
+			}
+
+			[SettingShowInGame]
+			[SettingLocation("general", 23)]
 			[SettingType("Volume")]
 			public float vocalMonitoring = 0.75f;
 
@@ -202,7 +215,7 @@ namespace YARG.Settings {
 
 			[SettingSpace]
 			[SettingShowInGame]
-			[SettingLocation("general", 23)]
+			[SettingLocation("general", 24)]
 			[SettingType("Toggle")]
 			public bool amIAwesome = false;
 		}

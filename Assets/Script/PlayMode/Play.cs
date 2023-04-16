@@ -295,7 +295,7 @@ namespace YARG.PlayMode {
 			}
 
 			// End song
-			if (realSongTime > SongLength + 0.5f) {
+			if (realSongTime >= SongLength) {
 				MainMenu.isPostSong = true;
 				Exit();
 			}
@@ -332,8 +332,20 @@ namespace YARG.PlayMode {
 				var stem = AudioHelpers.GetStemFromName(name);
 				
 				bool applyReverb = audioReverb.GetCount(name) > 0;
-				
-				GameManager.AudioManager.ApplyReverb(stem, applyReverb);
+
+				// Drums have multiple stems so need to reverb them all if it is drums
+				switch (stem) {
+					case SongStem.Drums:
+						GameManager.AudioManager.ApplyReverb(SongStem.Drums, applyReverb);
+						GameManager.AudioManager.ApplyReverb(SongStem.Drums1, applyReverb);
+						GameManager.AudioManager.ApplyReverb(SongStem.Drums2, applyReverb);
+						GameManager.AudioManager.ApplyReverb(SongStem.Drums3, applyReverb);
+						GameManager.AudioManager.ApplyReverb(SongStem.Drums4, applyReverb);
+						break;
+					default:
+						GameManager.AudioManager.ApplyReverb(stem, applyReverb);
+						break;
+				}
 			}
 		}
 

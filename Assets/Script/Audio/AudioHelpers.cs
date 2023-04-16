@@ -26,8 +26,19 @@ namespace YARG {
 		public static readonly IList<string> SfxPaths = new[] {
 			"note_miss",
 			"starpower_award",
+			"starpower_gain",
 			"starpower_deploy",
 			"starpower_release",
+			"clap"
+		};
+
+		public static readonly IList<double> SfxVolume = new[] {
+			0.5,
+			0.3,
+			0.5,
+			0.3,
+			0.4,
+			0.1,
 		};
 
 		public static IEnumerable<string> GetSupportedStems(string folder) {
@@ -91,10 +102,14 @@ namespace YARG {
 					return SfxSample.NoteMiss;
 				case "starpower_award":
 					return SfxSample.StarPowerAward;
+				case "starpower_gain":
+					return SfxSample.StarPowerGain;
 				case "starpower_deploy":
 					return SfxSample.StarPowerDeploy;
 				case "starpower_release":
 					return SfxSample.StarPowerRelease;
+				case "clap":
+					return SfxSample.Clap;
 				default:
 					return SfxSample.NoteMiss;
 			}
