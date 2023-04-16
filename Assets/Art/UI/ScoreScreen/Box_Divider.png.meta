@@ -1,9 +1,5 @@
 fileFormatVersion: 2
-<<<<<<<< HEAD:Assets/Art/UI/PlayMode/ScoreBox/Box.png.meta
-guid: 9a19cea8578114f42bec348c310a8891
-========
-guid: 663576ea6ed7e7448be467d50eb3d311
->>>>>>>> new-score-screen:Assets/Art/UI/ScoreScreen/Box_Default.png.meta
+guid: df06f28740b099a4ba5da1d1ee2ad4bf
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -37,12 +33,12 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
     wrapV: 1
-    wrapW: 0
+    wrapW: 1
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50

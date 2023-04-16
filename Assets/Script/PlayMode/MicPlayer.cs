@@ -257,7 +257,7 @@ namespace YARG.PlayMode {
 			starpowerOverlay.material.SetFloat("AlphaMultiplier", 0f);
 
 			scoreKeeper = new();
-			// TODO
+			// TODO: implement
 			// starKeeper = new(Chart, scoreKeeper,
 			// 	"chosenInstrument", 25);
 		}

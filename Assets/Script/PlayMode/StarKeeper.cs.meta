@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Script/PlayMode/StarKeeper.cs.meta
 guid: fc61a1a8cb877ee4e9f335fd0a02671e
+========
+guid: 43233795acd9ae84690111f3010c5413
+>>>>>>>> new-score-screen:Assets/Script/ThirdParty/TwitchController.cs.meta
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2

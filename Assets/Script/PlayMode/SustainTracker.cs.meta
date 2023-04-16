@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Script/PlayMode/SustainTracker.cs.meta
 guid: 9a72291581ac99a4388f8eb2cf92611b
+========
+guid: f5937911890937c4e97d340c6d6b2831
+>>>>>>>> new-score-screen:Assets/Script/ThirdParty/UpdateChecker.cs.meta
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
