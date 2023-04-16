@@ -95,34 +95,34 @@ Material:
     - _BumpScale: 1
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
-    - _Coat_Mask: -0.56
-    - _Coat_Smoothness: 0.33
+    - _Coat_Mask: -249.06
+    - _Coat_Smoothness: -1532.7
     - _Cull: 2
     - _Cutoff: 0.5
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _DstBlendAlpha: 0
-    - _Emission: 3
+    - _Emission: 2.25
     - _EnvironmentReflections: 1
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _Metallic: 1.5
-    - _NoiseScale: 4
-    - _NoiseStrength: 0.12
+    - _NoiseScale: 1.5
+    - _NoiseStrength: 0.5
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _RandomFloat: 2
+    - _RandomFloat: 0
     - _ReceiveShadows: 1
-    - _Smoothness: -1.27
+    - _Smoothness: 0.58
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
-    - _Strength: 0.47
+    - _Strength: 0
     - _Surface: 0
     - _WorkflowMode: 1
     - _ZWrite: 1
@@ -134,7 +134,7 @@ Material:
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _RandomVector: {r: 0, g: 0, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
-    - _Tiling: {r: 2, g: 1, b: 0, a: 0}
+    - _Tiling: {r: 3, g: 1, b: 0, a: 0}
   m_BuildTextureStacks: []
 --- !u!114 &3119264520950100143
 MonoBehaviour:
