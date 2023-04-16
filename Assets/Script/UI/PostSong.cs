@@ -14,6 +14,10 @@ namespace YARG.UI {
 
 		[SerializeField]
 		private TextMeshProUGUI header;
+
+		[SerializeField]
+		private TextMeshProUGUI nextUp;
+
 		[SerializeField]
 		private Transform scoreContainer;
 
@@ -22,7 +26,14 @@ namespace YARG.UI {
 				header.text = $"{Play.song.SongName} - {Play.song.artistName}";
 			} else {
 				header.text = $"{Play.song.SongName} ({Play.speed * 100}% speed) - {Play.song.artistName}";
-			}
+			} 
+			
+			if (Play.setlistCurrentSongIndex < Play.setlistSize - 1) {
+				var nextSong = Play.setlist[Play.setlistCurrentSongIndex + 1];
+				nextUp.text = $"Next up: {nextSong.SongName} - {nextSong.artistName}";
+            } else {
+				nextUp.text = "";
+            }
 
 			// Create a score to push
 
@@ -104,6 +115,14 @@ namespace YARG.UI {
 			foreach (var player in PlayerManager.players) {
 				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
 			}
+
+			if (Play.setlistCurrentSongIndex < Play.setlistSize)
+			{
+				Play.ContinueSetlist();
+			} else
+            {
+				Play.EndSetlist();
+            }
 		}
 
 		private void Update() {

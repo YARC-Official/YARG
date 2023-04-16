@@ -205,7 +205,7 @@ namespace YARG.UI {
 					StartSong();
                 } else
                 {
-					AddSongToSetlist();
+					Play.AddSongToSetlist(MainMenu.Instance.chosenSong);
 					MainMenu.Instance.ShowSongSelect();
                 }
 				
@@ -214,23 +214,20 @@ namespace YARG.UI {
 			}
 		}
 
-		public void UpdateSetlistMode() {
-			isSetlistMode = GameObject.Find("Setlist Enabled Checkbox").GetComponent<Toggle>().isOn;
-        }
-
-		private void AddSongToSetlist() {
-			Play.setlist.Add(MainMenu.Instance.chosenSong);
-		}
-
-		private void StartSong() {
+		private void StartSong()
+		{
 			Play.song = MainMenu.Instance.chosenSong;
 			GameManager.Instance.LoadScene(SceneIndex.PLAY);
 		}
 
-		public void StartSetlist() {
-			Play.song = Play.setlist[0];
-			GameManager.Instance.LoadScene(SceneIndex.PLAY);
-		}
+		public static void StartSetlist()
+        {
+			Play.StartSetlist();
+        }
+
+		public void UpdateSetlistMode() {
+			isSetlistMode = GameObject.Find("Setlist Enabled Checkbox").GetComponent<Toggle>().isOn;
+        }
 
 		private void UpdateInstrument() {
 			// Header

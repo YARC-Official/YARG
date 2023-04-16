@@ -24,7 +24,11 @@ namespace YARG.PlayMode {
 		public const float SONG_START_OFFSET = 1f;
 		
 		public static SongInfo song = null;
+
+		// TODO: Store song speeds in setlist
 		public static List<SongInfo> setlist = new();
+		public static int setlistCurrentSongIndex = 0;
+		public static int setlistSize = 0;
 
 		public delegate void BeatAction();
 		public static event BeatAction BeatEvent;
@@ -358,6 +362,33 @@ namespace YARG.PlayMode {
 				audioSource.volume = percent * 0.95f + 0.05f;
 			}
 		}
+
+		public static void AddSongToSetlist(SongInfo song)
+        {
+			setlist.Add(song);
+        }
+
+		public static void StartSetlist()
+        {
+			song = setlist[0];
+			setlistSize = setlist.Count;
+			setlistCurrentSongIndex = 0;
+			GameManager.Instance.LoadScene(SceneIndex.PLAY);
+		}
+
+		public static void ContinueSetlist()
+        {
+			setlistCurrentSongIndex++;
+			song = setlist[Play.setlistCurrentSongIndex];
+			GameManager.Instance.LoadScene(SceneIndex.PLAY);
+		}
+
+		public static void EndSetlist()
+        {
+			setlistSize = 0;
+			setlistCurrentSongIndex = 0;
+			setlist.Clear();
+        }
 
 		public void Exit() {
 			// Dispose of all audio
