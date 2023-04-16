@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -20,7 +19,7 @@ namespace YARG.PlayMode {
 		public static float speed = 1f;
 
 		public const float SONG_START_OFFSET = 1f;
-		
+
 		public static SongInfo song = null;
 
 		public delegate void BeatAction();
@@ -42,9 +41,9 @@ namespace YARG.PlayMode {
 		} = false;
 
 		private OccurrenceList<string> audioLowering = new();
-		private OccurrenceList<string> audioReverb   = new();
+		private OccurrenceList<string> audioReverb = new();
 
-		private float realSongTime => GameManager.AudioManager.CurrentPositionF;
+		private float realSongTime;
 		public float SongTime {
 			get => realSongTime + PlayerManager.GlobalCalibration * speed;
 		}
@@ -95,7 +94,7 @@ namespace YARG.PlayMode {
 
 			// Load audio
 			var stems = AudioHelpers.GetSupportedStems(song.folder.FullName);
-			
+
 			GameManager.AudioManager.LoadSong(stems);
 			SongLength = GameManager.AudioManager.AudioLengthF;
 
@@ -130,7 +129,7 @@ namespace YARG.PlayMode {
 			yield return new WaitForSeconds(SONG_START_OFFSET);
 
 			GameManager.AudioManager.Play();
-			
+
 			SongStarted = true;
 
 			// Hide loading screen
@@ -183,6 +182,10 @@ namespace YARG.PlayMode {
 			if (Paused) {
 				return;
 			}
+
+			// Update this every frame to make sure all notes are spawned at the same time.
+			realSongTime = GameManager.AudioManager.CurrentPositionF;
+			Debug.Log(realSongTime);
 
 			UpdateAudio(new string[] {
 				"guitar",
@@ -266,17 +269,17 @@ namespace YARG.PlayMode {
 				// Get total amount of players with the instrument (and the amount lowered)
 				int amountWithInstrument = 0;
 				int amountLowered = 0;
-			
+
 				for (int i = 0; i < trackNames.Length; i++) {
 					amountWithInstrument += PlayerManager.PlayersWithInstrument(trackNames[i]);
 					amountLowered += audioLowering.GetCount(trackNames[i]);
 				}
-			
+
 				// Skip if no one is playing the instrument
 				if (amountWithInstrument <= 0) {
 					return;
 				}
-			
+
 				// Lower all volumes to a minimum of 5%
 				float percent = 1f - (float) amountLowered / amountWithInstrument;
 				foreach (var name in stemNames) {
@@ -285,14 +288,13 @@ namespace YARG.PlayMode {
 					GameManager.AudioManager.SetStemVolume(stem, percent * 0.95f + 0.05f);
 				}
 			}
-			
+
 			// Reverb audio with starpower
 
-			if(GameManager.AudioManager.UseStarpowerFx)
-			{
+			if (GameManager.AudioManager.UseStarpowerFx) {
 				foreach (var name in stemNames) {
 					var stem = AudioHelpers.GetStemFromName(name);
-				
+
 					bool applyReverb = audioReverb.GetCount(name) > 0;
 
 					// Drums have multiple stems so need to reverb them all if it is drums
@@ -332,7 +334,7 @@ namespace YARG.PlayMode {
 		public void RaiseAudio(string name) {
 			audioLowering.Remove(name);
 		}
-		
+
 		public void ReverbAudio(string name, bool apply) {
 			if (apply) {
 				audioReverb.Add(name);

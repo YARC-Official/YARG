@@ -45,6 +45,8 @@ namespace YARG {
 		private void Awake() {
 			Instance = this;
 
+			Debug.Log($"YARG {Constants.VERSION_TAG}");
+
 			AudioManager = gameObject.AddComponent<BassAudioManager>();
 			AudioManager.Initialize();
 		}

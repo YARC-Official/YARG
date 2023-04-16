@@ -115,11 +115,11 @@ namespace YARG.Settings {
 			[SettingShowInGame]
 			[SettingLocation("general", 15)]
 			[SettingType("Volume")]
-			public float masterVolume = 0.9f;
+			public float masterMusicVolume = 0.9f;
 
-			[SettingChangeFunc("masterVolume")]
+			[SettingChangeFunc("masterMusicVolume")]
 			public void SongVolumeChange() {
-				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Master, masterVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Master, masterMusicVolume);
 			}
 
 			[SettingShowInGame]

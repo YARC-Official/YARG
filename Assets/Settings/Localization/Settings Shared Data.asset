@@ -76,7 +76,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 3645699926646784
-    m_Key: masterVolume
+    m_Key: masterMusicVolume
     m_Metadata:
       m_Items: []
   - m_Id: 3645822882668544
