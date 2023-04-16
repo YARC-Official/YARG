@@ -212,6 +212,10 @@ namespace YARG.PlayMode {
 			if (IsStarpowerHit()) {
 				StarpowerSection = null;
 				starpowerCharge += 0.25f;
+				if (starpowerCharge > 1f) {
+					starpowerCharge = 1f;
+				}
+				
 				GameManager.AudioManager.PlaySoundEffect(SfxSample.StarPowerAward);
 			}
 

@@ -60,7 +60,7 @@ namespace YARG.Settings {
 			[SettingLocation("general", 7)]
 			[SettingType("Toggle")]
 			public bool showHitWindow = false;
-
+			
 			[SettingLocation("general", 9)]
 			[SettingType("Toggle")]
 			public bool muteOnMiss = true;
@@ -116,14 +116,14 @@ namespace YARG.Settings {
 			[SettingLocation("general", 15)]
 			[SettingType("Volume")]
 			public float musicVolume = 0.9f;
-
+			
 			[SettingChangeFunc("musicVolume")]
 			public void SongVolumeChange() {
 				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Master, musicVolume);
 			}
 
 			[SettingShowInGame]
-			[SettingLocation("general", 16)]
+			[SettingLocation("general", 17)]
 			[SettingType("Volume")]
 			public float guitarVolume = 1f;
 
@@ -133,7 +133,7 @@ namespace YARG.Settings {
 			}
 			
 			[SettingShowInGame]
-			[SettingLocation("general", 17)]
+			[SettingLocation("general", 18)]
 			[SettingType("Volume")]
 			public float rhythmVolume = 1f;
 
@@ -143,7 +143,7 @@ namespace YARG.Settings {
 			}
 
 			[SettingShowInGame]
-			[SettingLocation("general", 18)]
+			[SettingLocation("general", 19)]
 			[SettingType("Volume")]
 			public float bassVolume = 1f;
 
@@ -153,7 +153,7 @@ namespace YARG.Settings {
 			}
 
 			[SettingShowInGame]
-			[SettingLocation("general", 19)]
+			[SettingLocation("general", 20)]
 			[SettingType("Volume")]
 			public float keysVolume = 1f;
 
@@ -163,7 +163,7 @@ namespace YARG.Settings {
 			}
 
 			[SettingShowInGame]
-			[SettingLocation("general", 20)]
+			[SettingLocation("general", 21)]
 			[SettingType("Volume")]
 			public float drumsVolume = 1f;
 
@@ -177,7 +177,7 @@ namespace YARG.Settings {
 			}
 
 			[SettingShowInGame]
-			[SettingLocation("general", 21)]
+			[SettingLocation("general", 22)]
 			[SettingType("Volume")]
 			public float vocalsVolume = 1f;
 
@@ -189,7 +189,7 @@ namespace YARG.Settings {
 			}
 
 			[SettingShowInGame]
-			[SettingLocation("general", 22)]
+			[SettingLocation("general", 23)]
 			[SettingType("Volume")]
 			public float songVolume = 1f;
 
@@ -237,7 +237,7 @@ namespace YARG.Settings {
 			public void VocalMonitoringChange() {
 				AudioManager.Instance.SetVolume("vocalMonitoring", vocalMonitoring);
 			}
-
+			
 			[SettingSpace]
 			[SettingShowInGame]
 			[SettingLocation("general", 27)]
