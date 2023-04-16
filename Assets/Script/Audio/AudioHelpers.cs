@@ -33,12 +33,12 @@ namespace YARG {
 		};
 
 		public static readonly IList<double> SfxVolume = new[] {
-			0.7,
-			0.3,
 			0.5,
-			0.3,
 			0.4,
-			0.1,
+			0.5,
+			0.4,
+			0.5,
+			0.12,
 		};
 
 		public static IEnumerable<string> GetSupportedStems(string folder) {

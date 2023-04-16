@@ -33,7 +33,7 @@ namespace YARG {
 		private int[] sfxSamples;
 		
 		private double[] stemVolumes;
-		
+
 		private double sfxVolume;
 
 		private DSPProcedure dspGain;
@@ -291,7 +291,7 @@ namespace YARG {
 				sfxVolume = volume;
 				return;
 			}
-			
+      
 			stemVolumes[(int)stem] = volume;
 		}
 
@@ -372,9 +372,9 @@ namespace YARG {
 			// Checks if running on 64 bit and sets the path accordingly
 #if !UNITY_EDITOR && UNITY_STANDALONE_WIN
 #if UNITY_64
-			pluginDirectory = Path.Combine(pluginPath, "x86_64");
+			pluginDirectory = Path.Combine(pluginDirectory, "x86_64");
 #else
-			pluginDirectory = Path.Combine(pluginPath, "x86");
+			pluginDirectory = Path.Combine(pluginDirectory, "x86");
 #endif
 #endif
 
@@ -387,9 +387,9 @@ namespace YARG {
 #if UNITY_EDITOR_WIN
 			pluginDirectory = Path.Combine(pluginDirectory, "Windows/x86_64");
 #elif UNITY_EDITOR_OSX
-			pluginDirectory = Path.Combine(path, "Mac");
+			pluginDirectory = Path.Combine(pluginDirectory, "Mac");
 #elif UNITY_EDITOR_LINUX
-			pluginDirectory = Path.Combine(path, "Linux/x86_64");
+			pluginDirectory = Path.Combine(pluginDirectory, "Linux/x86_64");
 #endif
 
 			return pluginDirectory;
