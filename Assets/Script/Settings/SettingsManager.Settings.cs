@@ -115,11 +115,11 @@ namespace YARG.Settings {
 			[SettingShowInGame]
 			[SettingLocation("general", 15)]
 			[SettingType("Volume")]
-			public float musicVolume = 0.9f;
+			public float masterVolume = 0.9f;
 
-			[SettingChangeFunc("musicVolume")]
+			[SettingChangeFunc("masterVolume")]
 			public void SongVolumeChange() {
-				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Master, musicVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Master, masterVolume);
 			}
 
 			[SettingShowInGame]
@@ -211,7 +211,7 @@ namespace YARG.Settings {
 			[SettingShowInGame]
 			[SettingLocation("general", 24)]
 			[SettingType("Volume")]
-			public float sfxVolume = 0f;
+			public float sfxVolume = 0.5f;
 
 			[SettingChangeFunc("sfxVolume")]
 			public void SfxVolumeChange() {
@@ -220,22 +220,22 @@ namespace YARG.Settings {
 
 			[SettingShowInGame]
 			[SettingLocation("general", 25)]
-			[SettingType("Toggle")]
-			public bool useStarpowerFx = true;
-
-			[SettingChangeFunc("useStarpowerFx")]
-			public void UseStarpowerFxChange() {
-				GameManager.AudioManager.UseStarpowerFx = useStarpowerFx;
-			}
-
-			[SettingShowInGame]
-			[SettingLocation("general", 26)]
 			[SettingType("Volume")]
 			public float vocalMonitoring = 0.75f;
 
 			[SettingChangeFunc("vocalMonitoring")]
 			public void VocalMonitoringChange() {
 				AudioManager.Instance.SetVolume("vocalMonitoring", vocalMonitoring);
+			}
+
+			[SettingShowInGame]
+			[SettingLocation("general", 26)]
+			[SettingType("Toggle")]
+			public bool useStarpowerFx = true;
+
+			[SettingChangeFunc("useStarpowerFx")]
+			public void UseStarpowerFxChange() {
+				GameManager.AudioManager.UseStarpowerFx = useStarpowerFx;
 			}
 
 			[SettingSpace]

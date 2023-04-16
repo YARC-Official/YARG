@@ -1,10 +1,8 @@
 using System.Collections.Generic;
 using System.IO;
-using UnityEngine;
 
 namespace YARG {
 	public static class AudioHelpers {
-   
 		public static readonly IList<string> SupportedStems = new[] {
 			"song",
 			"guitar",
@@ -43,77 +41,59 @@ namespace YARG {
 
 		public static IEnumerable<string> GetSupportedStems(string folder) {
 			var stems = new List<string>();
-			
+
 			foreach (string filePath in Directory.GetFiles(folder)) {
 				// Check if file format is supported
-				if (!GameManager.AudioManager.SupportedFormats.Contains(Path.GetExtension(filePath).ToLower()))
+				if (!GameManager.AudioManager.SupportedFormats.Contains(Path.GetExtension(filePath).ToLowerInvariant())) {
 					continue;
+				}
 
 				// Check if file is a valid stem
-				if (!SupportedStems.Contains(Path.GetFileNameWithoutExtension(filePath).ToLower()))
+				if (!SupportedStems.Contains(Path.GetFileNameWithoutExtension(filePath).ToLowerInvariant())) {
 					continue;
-				
+				}
+
 				stems.Add(filePath);
 			}
 
 			return stems;
 		}
 		
+#pragma warning disable format
+
 		public static SongStem GetStemFromName(string stem) {
-			switch (stem.ToLower()) {
-				case "song":
-					return SongStem.Song;
-				case "guitar":
-					return SongStem.Guitar;
-				case "bass":
-					return SongStem.Bass;
-				case "rhythm":
-					return SongStem.Rhythm;
-				case "keys":
-					return SongStem.Keys;
-				case "vocals":
-					return SongStem.Vocals;
-				case "vocals_1":
-					return SongStem.Vocals1;
-				case "vocals_2":
-					return SongStem.Vocals2;
-				case "drums":
-					return SongStem.Drums;
-				case "drums_1":
-					return SongStem.Drums1;
-				case "drums_2":
-					return SongStem.Drums2;
-				case "drums_3":
-					return SongStem.Drums3;
-				case "drums_4":
-					return SongStem.Drums4;
-				case "crowd":
-					return SongStem.Crowd;
-				// case "preview":
-				// 	return SongStems.Preview;
-				default:
-					return SongStem.Song;
-			}
+			return stem.ToLowerInvariant() switch {
+				"song"       => SongStem.Song,
+				"guitar"     => SongStem.Guitar,
+				"bass"       => SongStem.Bass,
+				"rhythm"     => SongStem.Rhythm,
+				"keys"       => SongStem.Keys,
+				"vocals"     => SongStem.Vocals,
+				"vocals_1"   => SongStem.Vocals1,
+				"vocals_2"   => SongStem.Vocals2,
+				"drums"      => SongStem.Drums,
+				"drums_1"    => SongStem.Drums1,
+				"drums_2"    => SongStem.Drums2,
+				"drums_3"    => SongStem.Drums3,
+				"drums_4"    => SongStem.Drums4,
+				"crowd"      => SongStem.Crowd,
+				// "preview" => SongStem.Preview,
+				_            => SongStem.Song,
+			};
 		}
-	
+
 		public static SfxSample GetSfxFromName(string sfx) {
-			switch (sfx.ToLower()) {
-				case "note_miss":
-					return SfxSample.NoteMiss;
-				case "starpower_award":
-					return SfxSample.StarPowerAward;
-				case "starpower_gain":
-					return SfxSample.StarPowerGain;
-				case "starpower_deploy":
-					return SfxSample.StarPowerDeploy;
-				case "starpower_release":
-					return SfxSample.StarPowerRelease;
-				case "clap":
-					return SfxSample.Clap;
-				default:
-					return SfxSample.NoteMiss;
-			}
+			return sfx.ToLowerInvariant() switch {
+				"note_miss"         => SfxSample.NoteMiss,
+				"starpower_award"   => SfxSample.StarPowerAward,
+				"starpower_gain"    => SfxSample.StarPowerGain,
+				"starpower_deploy"  => SfxSample.StarPowerDeploy,
+				"starpower_release" => SfxSample.StarPowerRelease,
+				"clap"              => SfxSample.Clap,
+				_                   => SfxSample.NoteMiss,
+			};
 		}
 		
+#pragma warning restore format
 	}
 }

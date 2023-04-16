@@ -9,29 +9,29 @@ using UnityEngine;
 namespace YARG {
 	public class BassAudioManager : MonoBehaviour, IAudioManager {
 		public bool UseStarpowerFx { get; set; }
-		
+
 		public IList<string> SupportedFormats { get; private set; }
 
 		public int StemsLoaded { get; private set; }
 
 		public bool IsAudioLoaded { get; private set; }
-		public bool IsPlaying     { get; private set; }
+		public bool IsPlaying { get; private set; }
 
 		public double CurrentPositionD => GetPosition();
-		public double AudioLengthD     { get; private set; }
+		public double AudioLengthD { get; private set; }
 
 		public float CurrentPositionF => (float) GetPosition();
-		public float AudioLengthF     { get; private set; }
+		public float AudioLengthF { get; private set; }
 
 		private int opusHandle;
 		private int mixerHandle;
 
-		private int    leadChannelHandle;
+		private int leadChannelHandle;
 		private double leadChannelLength;
 
 		private int[] stemChannels;
 		private int[] sfxSamples;
-		
+
 		private double[] stemVolumes;
 
 		private double sfxVolume;
@@ -39,7 +39,7 @@ namespace YARG {
 		private DSPProcedure dspGain;
 
 		private Dictionary<int, Dictionary<EffectType, int>> stemEffects;
-		private Dictionary<int, int>                         stemGainDsps;
+		private Dictionary<int, int> stemGainDsps;
 
 		private void Awake() {
 			SupportedFormats = new[] {
@@ -53,7 +53,7 @@ namespace YARG {
 
 			stemChannels = new int[AudioHelpers.SupportedStems.Count];
 			stemVolumes = new double[stemChannels.Length];
-			
+
 			sfxSamples = new int[AudioHelpers.SfxPaths.Count];
 			stemEffects = new Dictionary<int, Dictionary<EffectType, int>>();
 			stemGainDsps = new Dictionary<int, int>();
@@ -78,7 +78,7 @@ namespace YARG {
 			Bass.Configure(Configuration.TruePlayPosition, 0);
 			Bass.Configure(Configuration.UpdateThreads, 2);
 			Bass.Configure(Configuration.FloatDSP, true);
-			
+
 			Bass.Configure((Configuration) 68, 1);
 			Bass.Configure((Configuration) 70, false);
 
@@ -113,10 +113,10 @@ namespace YARG {
 
 			Bass.PluginFree(opusHandle);
 			opusHandle = 0;
-			
+
 			// Free SFX samples
-			foreach(int sample in sfxSamples) {
-				if(sample != 0)
+			foreach (int sample in sfxSamples) {
+				if (sample != 0)
 					Bass.SampleFree(sample);
 			}
 
@@ -129,14 +129,14 @@ namespace YARG {
 			sfxSamples = new int[AudioHelpers.SfxPaths.Count];
 
 			string sfxFolder = Path.Combine(Application.streamingAssetsPath, "sfx");
-			
+
 			foreach (string sfx in AudioHelpers.SfxPaths) {
 				string sfxPath = Path.Combine(sfxFolder, sfx);
-				
-				foreach(string format in SupportedFormats) {
-					if (!File.Exists($"{sfxPath}{format}")) 
+
+				foreach (string format in SupportedFormats) {
+					if (!File.Exists($"{sfxPath}{format}"))
 						continue;
-					
+
 					// Append extension to path (e.g sfx/boop becomes sfx/boop.ogg)
 					sfxPath += format;
 					break;
@@ -146,7 +146,7 @@ namespace YARG {
 					Debug.LogError($"SFX path does not exist! {sfxPath}");
 					continue;
 				}
-				
+
 				int sfxHandle = Bass.SampleLoad(sfxPath, 0, 0, 8, BassFlags.Decode);
 
 				if (sfxHandle == 0) {
@@ -160,7 +160,7 @@ namespace YARG {
 				sfxSamples[sampleIndex] = sfxHandle;
 				Debug.Log($"Loaded {sfx}");
 			}
-			
+
 			Debug.Log("Finished loading SFX");
 		}
 
@@ -173,8 +173,7 @@ namespace YARG {
 
 			foreach (string stemPath in stems) {
 				string stemName = Path.GetFileNameWithoutExtension(stemPath);
-				
-				var stem = AudioHelpers.GetStemFromName(stemName);
+
 				int stemIndex = (int) AudioHelpers.GetStemFromName(stemName);
 
 				if (stemChannels[stemIndex] != 0) {
@@ -202,7 +201,7 @@ namespace YARG {
 
 				stemChannels[stemIndex] = streamHandle;
 				StemsLoaded++;
-				
+
 				stemEffects.Add(streamHandle, new Dictionary<EffectType, int>());
 
 				BassMix.MixerAddChannel(mixerHandle, streamHandle, BassFlags.Default);
@@ -261,7 +260,7 @@ namespace YARG {
 			if (sfxSamples[(int) sample] == 0) {
 				return;
 			}
-			
+
 			int channel = Bass.SampleGetChannel(sfxSamples[(int) sample]);
 			Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, sfxVolume * AudioHelpers.SfxVolume[(int) sample]);
 
@@ -278,12 +277,12 @@ namespace YARG {
 			}
 
 			// Multiply volume inputted by the stem's volume setting (e.g. 0.5 * 0.5 = 0.25)
-			Bass.ChannelSetAttribute(stemHandle, ChannelAttribute.Volume, volume * stemVolumes[(int)stem]);
+			Bass.ChannelSetAttribute(stemHandle, ChannelAttribute.Volume, volume * stemVolumes[(int) stem]);
 		}
 
 		public void UpdateVolumeSetting(SongStem stem, double volume) {
 			if (stem == SongStem.Master) {
-				Bass.GlobalStreamVolume = (int)(10_000 * volume);
+				Bass.GlobalStreamVolume = (int) (10_000 * volume);
 				return;
 			}
 
@@ -291,8 +290,8 @@ namespace YARG {
 				sfxVolume = volume;
 				return;
 			}
-      
-			stemVolumes[(int)stem] = volume;
+
+			stemVolumes[(int) stem] = volume;
 		}
 
 		public void ApplyReverb(SongStem stem, bool reverb) {
@@ -306,32 +305,33 @@ namespace YARG {
 
 			if (reverb) {
 				// Reverb already applied
-				if(stemEffects[stemHandle].ContainsKey(EffectType.DXReverb))
+				if (stemEffects[stemHandle].ContainsKey(EffectType.DXReverb))
 					return;
-				
+
 				// Set reverb FX
 				int reverbHandle = Bass.ChannelSetFX(stemHandle, EffectType.DXReverb, 0);
 				int gainDspHandle = Bass.ChannelSetDSP(stemHandle, dspGain);
-				
+
 				var reverbParams = new DXReverbParameters {
 					fInGain = 0.0f,
 					fReverbMix = -5f,
 					fReverbTime = 1000.0f,
 					fHighFreqRTRatio = 0.001f
 				};
-				
+
 				Bass.FXSetParameters(reverbHandle, reverbParams);
-				
+
 				stemEffects[stemHandle].Add(EffectType.DXReverb, reverbHandle);
 				stemGainDsps.Add(stemHandle, gainDspHandle);
 			} else {
 				// No reverb is applied
-				if (!stemEffects[stemHandle].ContainsKey(EffectType.DXReverb))
+				if (!stemEffects[stemHandle].ContainsKey(EffectType.DXReverb)) {
 					return;
-				
+				}
+
 				Bass.ChannelRemoveFX(stemHandle, stemEffects[stemHandle][EffectType.DXReverb]);
 				Bass.ChannelRemoveDSP(stemHandle, stemGainDsps[stemHandle]);
-				
+
 				stemEffects[stemHandle].Remove(EffectType.DXReverb);
 				stemGainDsps.Remove(stemHandle);
 			}
@@ -342,7 +342,7 @@ namespace YARG {
 		}
 
 		public void SetPosition(double position) {
-			throw new System.NotImplementedException();
+			throw new NotImplementedException();
 		}
 
 		private void OnApplicationQuit() {
@@ -352,19 +352,19 @@ namespace YARG {
 		private static unsafe void GainDSP(int handle, int channel, IntPtr buffer, int length, IntPtr user) {
 			var bufferPtr = (float*) buffer;
 			int samples = length / 4;
-			
+
 			for (int i = 0; i < samples; i++) {
 				bufferPtr![i] *= 1.3f;
 			}
 		}
-		
+
 		private static double GetAudioLengthInSeconds(int channel) {
 			long length = Bass.ChannelGetLength(channel);
 			double seconds = Bass.ChannelBytes2Seconds(channel, length);
 			return seconds;
 		}
 
-    
+
 		private static string GetBassDirectory() {
 			string pluginDirectory = Path.Combine(Application.dataPath, "Plugins");
 
