@@ -4,8 +4,10 @@ using FuzzySharp;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using YARG.Data;
 using YARG.Input;
+using YARG.PlayMode;
 
 namespace YARG.UI {
 	public class SongSelect : MonoBehaviour {
@@ -85,6 +87,7 @@ namespace YARG.UI {
 				UpdateSearch();
 				refreshFlag = false;
 			}
+			UpdateSetlistButtonVisibility();
 		}
 
 		private void OnDisable() {
@@ -263,6 +266,23 @@ namespace YARG.UI {
 				return Fuzz.PartialRatio(song.artistName, text);
 			}
 		}
+
+		public void UpdateSetlistButtonVisibility() {
+			var isSetlistMode = GameObject.Find("Setlist Enabled Checkbox").GetComponent<Toggle>().isOn;
+			if (isSetlistMode && Play.setlist.Count > 0)
+            {
+				GameObject.Find("Play Setlist Button").GetComponent<Button>().interactable = true;
+				GameObject.Find("Clear Setlist Button").GetComponent<Button>().interactable = true;
+			} else {
+				GameObject.Find("Play Setlist Button").GetComponent<Button>().interactable = false;
+				GameObject.Find("Clear Setlist Button").GetComponent<Button>().interactable = false;
+			}
+		}
+
+		public void ClearSetlist() {
+			Play.setlist.Clear();
+			UpdateSetlistButtonVisibility();
+        }
 
 		public void UpdateSearch() {
 			// Get recommended songs
