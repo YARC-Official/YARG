@@ -5,7 +5,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 using YARG.Data;
 using YARG.Input;
 using YARG.PlayMode;
@@ -33,8 +32,6 @@ namespace YARG.UI {
 
 		private int optionCount;
 		private int selected;
-
-		private bool isSetlistMode = false;
 
 		public delegate void InstrumentSelectionAction(PlayerManager.Player playerInfo);
 		public static event InstrumentSelectionAction OnInstrumentSelection;
@@ -142,21 +139,21 @@ namespace YARG.UI {
 
 		public void Next() {
 			var player = PlayerManager.players[playerIndex];
-			string instrument = "";
 			if (state == State.INSTRUMENT) {
 				if (selected >= instruments.Length) {
+					player.chosenInstrument = null;
 					IncreasePlayerIndex();
 				} else {
-					instrument = instruments[selected];
-					bool showExpertPlus = instrument == "drums"
-						|| instrument == "realDrums"
-						|| instrument == "ghDrums";
+					player.chosenInstrument = instruments[selected];
+					bool showExpertPlus = player.chosenInstrument == "drums"
+						|| player.chosenInstrument == "realDrums"
+						|| player.chosenInstrument == "ghDrums";
 					UpdateDifficulty(showExpertPlus);
 				}
-				player.setlistInstruments.Add(instrument);
 			} else if (state == State.DIFFICULTY) {
-				player.setlistDifficulties.Add((Difficulty) selected);
+				player.chosenDifficulty = (Difficulty) selected;
 				OnInstrumentSelection?.Invoke(player);
+
 				IncreasePlayerIndex();
 			} else if (state == State.VOCALS) {
 				if (selected == 2) {
@@ -201,35 +198,20 @@ namespace YARG.UI {
 
 				// Play song (or download then play)
 
-				if (!isSetlistMode) {
-					StartSong();
-                } else
+				// DEBUG: Remove this `if` statement when finished!!
+				if (Play.setlist.Count >= 5)
                 {
-					AddSongToSetlist();
-					MainMenu.Instance.ShowSongSelect();
+					Play.song = MainMenu.Instance.chosenSong;
+					GameManager.Instance.LoadScene(SceneIndex.PLAY);
+                }
+                else
+                {
+					Play.setlist.Add(MainMenu.Instance.chosenSong);
                 }
 				
 			} else {
 				UpdateInstrument();
 			}
-		}
-
-		public void UpdateSetlistMode() {
-			isSetlistMode = GameObject.Find("Setlist Enabled Checkbox").GetComponent<Toggle>().isOn;
-        }
-
-		private void AddSongToSetlist() {
-			Play.setlist.Add(MainMenu.Instance.chosenSong);
-		}
-
-		private void StartSong() {
-			Play.song = MainMenu.Instance.chosenSong;
-			GameManager.Instance.LoadScene(SceneIndex.PLAY);
-		}
-
-		public void StartSetlist() {
-			Play.song = Play.setlist[0];
-			GameManager.Instance.LoadScene(SceneIndex.PLAY);
 		}
 
 		private void UpdateInstrument() {
