@@ -233,6 +233,9 @@ namespace YARG {
 
 				Bass.StreamFree(stemHandle);
 			}
+
+			leadChannelHandle = 0;
+			leadChannelLength = 0;
 		}
 
 		public void Play() {
