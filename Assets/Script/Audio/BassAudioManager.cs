@@ -33,7 +33,7 @@ namespace YARG {
 		private int[] sfxSamples;
 		
 		private double[] stemVolumes;
-		
+
 		private double sfxVolume;
 
 		private DSPProcedure dspGain;
@@ -291,7 +291,7 @@ namespace YARG {
 				sfxVolume = volume;
 				return;
 			}
-			
+      
 			stemVolumes[(int)stem] = volume;
 		}
 

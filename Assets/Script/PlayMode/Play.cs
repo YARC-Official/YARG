@@ -287,7 +287,7 @@ namespace YARG.PlayMode {
 			}
 			
 			// Reverb audio with starpower
-			
+
 			if(GameManager.AudioManager.UseStarpowerFx)
 			{
 				foreach (var name in stemNames) {

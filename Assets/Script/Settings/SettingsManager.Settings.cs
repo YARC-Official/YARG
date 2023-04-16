@@ -61,17 +61,17 @@ namespace YARG.Settings {
 			[SettingType("Toggle")]
 			public bool showHitWindow = false;
 
-			[SettingLocation("general", 8)]
+			[SettingLocation("general", 9)]
 			[SettingType("Toggle")]
 			public bool muteOnMiss = true;
 
 			[SettingShowInGame]
-			[SettingLocation("general", 9)]
+			[SettingLocation("general", 10)]
 			[SettingType("Toggle")]
 			public bool useCymbalModelsInFiveLane = true;
 
 			[SettingShowInGame]
-			[SettingLocation("general", 10)]
+			[SettingLocation("general", 11)]
 			[SettingType("Toggle")]
 			public bool disableBloom = false;
 
@@ -81,13 +81,13 @@ namespace YARG.Settings {
 			}
 
 			[SettingSpace]
-			[SettingLocation("general", 11)]
+			[SettingLocation("general", 12)]
 			[SettingType("Toggle")]
 			public bool noKicks = false;
 
 			[SettingSpace]
 			[SettingShowInGame]
-			[SettingLocation("general", 12)]
+			[SettingLocation("general", 13)]
 			[SettingType("Toggle")]
 			public bool vsync = true;
 
@@ -97,7 +97,7 @@ namespace YARG.Settings {
 			}
 
 			[SettingShowInGame]
-			[SettingLocation("general", 13)]
+			[SettingLocation("general", 14)]
 			[SettingType("Number")]
 			public int fpsCap = 60;
 
@@ -113,7 +113,7 @@ namespace YARG.Settings {
 
 			[SettingSpace]
 			[SettingShowInGame]
-			[SettingLocation("general", 14)]
+			[SettingLocation("general", 15)]
 			[SettingType("Volume")]
 			public float musicVolume = 0.9f;
 
@@ -123,7 +123,7 @@ namespace YARG.Settings {
 			}
 
 			[SettingShowInGame]
-			[SettingLocation("general", 15)]
+			[SettingLocation("general", 16)]
 			[SettingType("Volume")]
 			public float guitarVolume = 1f;
 
@@ -133,7 +133,7 @@ namespace YARG.Settings {
 			}
 			
 			[SettingShowInGame]
-			[SettingLocation("general", 16)]
+			[SettingLocation("general", 17)]
 			[SettingType("Volume")]
 			public float rhythmVolume = 1f;
 
