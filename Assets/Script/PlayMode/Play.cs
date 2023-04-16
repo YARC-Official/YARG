@@ -24,6 +24,7 @@ namespace YARG.PlayMode {
 		public const float SONG_START_OFFSET = 1f;
 		
 		public static SongInfo song = null;
+		public static List<SongInfo> setlist = new();
 
 		public delegate void BeatAction();
 		public static event BeatAction BeatEvent;
@@ -154,6 +155,11 @@ namespace YARG.PlayMode {
 			// Spawn tracks
 			int i = 0;
 			foreach (var player in PlayerManager.players) {
+				player.chosenDifficulty = player.setlistDifficulties[0];
+				player.chosenInstrument = player.setlistInstruments[0];
+				player.setlistDifficulties.RemoveAt(0);
+				player.setlistInstruments.RemoveAt(0);
+
 				if (player.chosenInstrument == null) {
 					// Skip players that are sitting out
 					continue;
