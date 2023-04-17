@@ -398,6 +398,7 @@ namespace YARG.PlayMode {
 
 		private bool ChordPressed(List<NoteInfo> chordList, bool overstrumCheck = false) {
 			// Convert NoteInfo list to chord fret array
+			bool overlap = ChordsOverlap(heldNotes, chordList);
 			int[] chord = new int[chordList.Count];
 			for (int i = 0; i < chord.Length; i++) {
 				chord[i] = chordList[i].fret;
@@ -418,7 +419,7 @@ namespace YARG.PlayMode {
 					for (int i = 0; i < frets.Length; i++) {
 						// Skip any notes that are currently held down.
 						// Extended sustains.
-						if (heldNotes.Any(j => j.fret == i)) {
+						if (overlap && heldNotes.Any(j => j.fret == i)) {
 							continue;
 						}
 
@@ -436,7 +437,7 @@ namespace YARG.PlayMode {
 				for (int i = 0; i < frets.Length; i++) {
 					// Skip any notes that are currently held down.
 					// Extended sustains.
-					if (heldNotes.Any(j => j.fret == i)) {
+					if (overlap && heldNotes.Any(j => j.fret == i)) {
 						continue;
 					}
 
@@ -549,6 +550,15 @@ namespace YARG.PlayMode {
 				}
 			}
 			return true;
+		}
+
+		private bool ChordsOverlap(List<NoteInfo> chordList1, List<NoteInfo> chordList2) {
+			foreach (NoteInfo chord in chordList1) {
+				if (chord.length > 0.2f && chord.EndTime > chordList2[0].time) { // If it's a sustain and overlaps with next note...
+					return true;
+				}
+			}
+			return false;
 		}
 	}
 }
