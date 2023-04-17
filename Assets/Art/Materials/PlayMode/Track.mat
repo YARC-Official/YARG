@@ -96,6 +96,7 @@ Material:
     m_Ints: []
     m_Floats:
     - GrooveState: 0
+    - SoloState: 0
     - StarpowerState: 0
     - _AlphaClip: 0
     - _AlphaToMask: 0

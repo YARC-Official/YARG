@@ -24,6 +24,10 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private Color[] stringColors;
 		[SerializeField]
+		private Color[] noteColors;
+		[SerializeField]
+		private Color[] sustainColors;
+		[SerializeField]
 		private NotePool notePool;
 		[SerializeField]
 		private Pool genericPool;
@@ -290,7 +294,7 @@ namespace YARG.PlayMode {
 				// Set note info
 				var noteComp = notePool.AddNote(noteInfo, pos);
 				var model = noteInfo.hopo ? NoteComponent.ModelType.HOPO : NoteComponent.ModelType.NOTE;
-				noteComp.SetInfo(stringColors[i], noteInfo.length, model);
+				noteComp.SetInfo(noteColors[i], sustainColors[i], noteInfo.length, model);
 				noteComp.SetFretNumber(noteInfo.muted ? "X" : noteInfo.stringFrets[i].ToString());
 			}
 		}
