@@ -201,18 +201,6 @@ MonoBehaviour:
   sunBurstSprite: {fileID: 21300000, guid: 3235c7c6359bba84a99591649a51b5cd, type: 3}
   sunBurstSpriteStarpower: {fileID: 21300000, guid: e1d36b6ae21bc594881648de5d531555,
     type: 3}
-  spStartAnimCurve:
-    serializedVersion: 2
-    m_Curve: []
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  spEndAnimCurve:
-    serializedVersion: 2
-    m_Curve: []
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
   fiveLaneMode: 1
   drums:
   - {fileID: 5070400065011352142}
@@ -221,11 +209,18 @@ MonoBehaviour:
   - {fileID: 7954541789488614679}
   - {fileID: 9144106139211302000}
   drumColors:
-  - {r: 1, g: 0.011764706, b: 0, a: 1}
-  - {r: 1, g: 0.8784314, b: 0, a: 1}
-  - {r: 0, g: 0.2901961, b: 1, a: 1}
-  - {r: 1, g: 0.42745098, b: 0, a: 1}
+  - {r: 1, g: 0, b: 0.14901961, a: 1}
+  - {r: 1, g: 0.9411765, b: 0, a: 1}
+  - {r: 0, g: 0.67058825, b: 1, a: 1}
+  - {r: 1, g: 0.5921569, b: 0, a: 1}
   - {r: 0.4392157, g: 1, b: 0, a: 1}
+  - {r: 0.78431374, g: 0, b: 1, a: 1}
+  noteColors:
+  - {r: 1, g: 0.011764706, b: 0, a: 1}
+  - {r: 1, g: 0.9411765, b: 0, a: 1}
+  - {r: 0, g: 0.36078432, b: 1, a: 1}
+  - {r: 1, g: 0.42745098, b: 0, a: 1}
+  - {r: 0.52156866, g: 0.8980392, b: 0, a: 1}
   - {r: 0.78431374, g: 0, b: 1, a: 1}
   notePool: {fileID: 9121291244003754727}
   genericPool: {fileID: 6222960093224628221}

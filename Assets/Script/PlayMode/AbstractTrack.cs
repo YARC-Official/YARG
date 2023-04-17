@@ -75,10 +75,6 @@ namespace YARG.PlayMode {
 		protected bool ascended = false;
 		protected bool resetTime = false;
 
-		[SerializeField]
-		protected AnimationCurve spStartAnimCurve;
-		[SerializeField]
-		protected AnimationCurve spEndAnimCurve;
 
 		private int _combo = 0;
 		protected int Combo {
@@ -268,8 +264,7 @@ namespace YARG.PlayMode {
 				float percentageComplete = elapsedTimeAnim / spAnimationDuration;
 				if (!depressed && !ascended) {
 					spAnimationDuration = 0.065f;
-					trackCamera.transform.position = Vector3.Lerp(trackStartPos, trackStartPos + trackEndPos,
-						spStartAnimCurve.Evaluate(percentageComplete));
+					trackCamera.transform.position = Vector3.Lerp(trackStartPos, trackStartPos + trackEndPos, percentageComplete);
 
 					if (trackCamera.transform.position == trackStartPos + trackEndPos) {
 						resetTime = true;
@@ -285,8 +280,7 @@ namespace YARG.PlayMode {
 				// End track animation
 				if (depressed && !ascended) {
 					spAnimationDuration = 0.2f;
-					trackCamera.transform.position = Vector3.Lerp(trackStartPos + trackEndPos, trackStartPos,
-						spEndAnimCurve.Evaluate(percentageComplete));
+					trackCamera.transform.position = Vector3.Lerp(trackStartPos + trackEndPos, trackStartPos, percentageComplete);
 
 					if (trackCamera.transform.position == trackStartPos + trackEndPos) {
 						resetTime = true;

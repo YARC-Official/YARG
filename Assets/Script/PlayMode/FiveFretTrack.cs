@@ -21,6 +21,8 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private Color[] noteColors;
 		[SerializeField]
+		private Color[] sustainColors;
+		[SerializeField]
 		private NotePool notePool;
 		[SerializeField]
 		private Pool genericPool;
@@ -59,7 +61,7 @@ namespace YARG.PlayMode {
 				fret.SetColor(fretColors[i]);
 				frets[i] = fret;
 			}
-			openNoteParticles.Colorize(fretColors[5]);
+			openNoteParticles.Colorize(noteColors[5]);
 		}
 
 		protected override void OnDestroy() {
@@ -500,7 +502,7 @@ namespace YARG.PlayMode {
 
 			// Set note info
 			var noteComp = notePool.AddNote(noteInfo, pos);
-			noteComp.SetInfo(noteColors[noteInfo.fret], noteInfo.length, model);
+			noteComp.SetInfo(noteColors[noteInfo.fret], sustainColors[noteInfo.fret], noteInfo.length, model);
 		}
 		
 		private string PrintFrets() { // Debug function; remove later?

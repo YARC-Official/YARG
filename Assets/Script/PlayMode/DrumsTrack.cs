@@ -24,6 +24,8 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private Color[] drumColors;
 		[SerializeField]
+		private Color[] noteColors;
+		[SerializeField]
 		private NotePool notePool;
 		[SerializeField]
 		private Pool genericPool;
@@ -301,7 +303,7 @@ namespace YARG.PlayMode {
 
 			// Set note info
 			var noteComp = notePool.AddNote(noteInfo, pos);
-			noteComp.SetInfo(drumColors[noteInfo.fret], noteInfo.length, model);
+			noteComp.SetInfo(noteColors[noteInfo.fret], noteColors[noteInfo.fret], noteInfo.length, model);
 		}
 	}
 }
