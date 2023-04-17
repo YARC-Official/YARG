@@ -268,7 +268,7 @@ namespace YARG.PlayMode {
 					GameManager.AudioManager.PlaySoundEffect(SfxSample.StarPowerRelease);
 					SetReverb(false);
 				} else {
-					starpowerCharge -= Time.deltaTime / 25f;
+					starpowerCharge -= Time.deltaTime / 25f * Play.speed;
 				}
 
 				// Start track animation
