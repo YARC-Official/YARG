@@ -2397,6 +2397,12 @@ MeshRenderer:
     type: 3}
   m_PrefabInstance: {fileID: 8377740147338523031}
   m_PrefabAsset: {fileID: 0}
+--- !u!212 &3769968407551721728 stripped
+SpriteRenderer:
+  m_CorrespondingSourceObject: {fileID: 4616796601023000727, guid: ba68df35237e09f4abcf788160c15375,
+    type: 3}
+  m_PrefabInstance: {fileID: 8377740147338523031}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &4249433860167742069 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5673044395376804834, guid: ba68df35237e09f4abcf788160c15375,
@@ -2482,6 +2488,10 @@ MonoBehaviour:
   sunBurstSprite: {fileID: 21300000, guid: 3235c7c6359bba84a99591649a51b5cd, type: 3}
   sunBurstSpriteStarpower: {fileID: 21300000, guid: e1d36b6ae21bc594881648de5d531555,
     type: 3}
+  soloBox: {fileID: 3769968407551721728}
+  soloMessySprite: {fileID: 21300000, guid: 229a7b90eb98f3845ac0c87daa9fe207, type: 3}
+  soloPerfectSprite: {fileID: 21300000, guid: d366b747c8f99cb458e8ff931d4f2003, type: 3}
+  soloDefaultSprite: {fileID: 21300000, guid: cecf11e1b10fd7d4aba2b460a1ed8c1a, type: 3}
   spStartAnimCurve:
     serializedVersion: 2
     m_Curve: []

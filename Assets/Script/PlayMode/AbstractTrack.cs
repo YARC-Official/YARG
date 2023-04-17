@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -72,9 +73,17 @@ namespace YARG.PlayMode {
 			protected set;
 			
 		} = null;
-
-		
+		[Space]
+		[SerializeField]
+		protected SpriteRenderer soloBox;
+		[SerializeField]
+		protected Sprite soloMessySprite;
+		[SerializeField]
+		protected Sprite soloPerfectSprite;
+		[SerializeField]
+		protected Sprite soloDefaultSprite;
 		// Overdrive animation parameters
+		
 		protected Vector3 trackStartPos;
 		protected Vector3 trackEndPos = new(0, 0.13f, 0.2f);
 		protected float spAnimationDuration = 0.2f;
@@ -365,26 +374,37 @@ namespace YARG.PlayMode {
 			}
 
 			if (Play.Instance.SongTime>=SoloSection?.time && Play.Instance.SongTime<=SoloSection?.EndTime) {
+				soloBox.sprite=soloDefaultSprite;
+				soloBox.gameObject.SetActive(true);
+				soloText.colorGradient=new VertexGradient(new Color(1f,1f,1f), new Color(1f,1f,1f), new Color(0.1320755f,0.1320755f,0.1320755f), new Color(0.1320755f,0.1320755f,0.1320755f));
+				soloText.gameObject.SetActive(true);
 				soloHitPercent=Mathf.RoundToInt((soloNotesHit/(float)soloNoteCount)*100f);
-				soloText.text = $"{soloHitPercent}%\n<sub>{soloNotesHit}/{soloNoteCount}</sub>";
-			} else if (Play.Instance.SongTime>=SoloSection?.EndTime && Play.Instance.SongTime<=SoloSection?.EndTime+10) {
+				soloText.text = $"{soloHitPercent}%\n<size=10><alpha=#66>{soloNotesHit}/{soloNoteCount}</size>";
+			} else if (Play.Instance.SongTime>=SoloSection?.EndTime && Play.Instance.SongTime<=SoloSection?.EndTime+4) {
+				
 				if(soloHitPercent==100){
-					soloText.text=$"Perfect Solo!\n<sub>{soloNotesHit}/{soloNoteCount}</sub>";
+					soloText.colorGradient=new VertexGradient(new Color(1f,0.619472F,0f), new Color(1f,0.619472F,0f), new Color(0.5377358f,0.2550798f,0f), new Color(0.5377358f,0.2550798f,0f));
+					soloBox.sprite=soloPerfectSprite;
+					soloText.text="PERFECT\nSOLO!";
 				}else if(soloHitPercent>=95){
-					soloText.text=$"Awesome Solo!\n<sub>{soloNotesHit}/{soloNoteCount}</sub>";
+					soloText.text="AWESOME\nSOLO!";
 				}else if(soloHitPercent>=90){
-					soloText.text=$"Great Solo!\n<sub>{soloNotesHit}/{soloNoteCount}</sub>";
+					soloText.text="GREAT\nSOLO!";
 				}else if(soloHitPercent>=80){
-					soloText.text=$"Good Solo!\n<sub>{soloNotesHit}/{soloNoteCount}</sub>";
+					soloText.text="GOOD\nSOLO!";
 				}else if(soloHitPercent>=70){
-					soloText.text=$"Solid Solo!\n<sub>{soloNotesHit}/{soloNoteCount}</sub>";
+					soloText.text="SOLID\nSOLO!";
 				}else if(soloHitPercent>=60){
-					soloText.text=$"Okay Solo!\n<sub>{soloNotesHit}/{soloNoteCount}</sub>";
+					soloText.text="OKAY\nSOLO!";
 				}else{
-					soloText.text=$"Messy Solo!\n<sub>{soloNotesHit}/{soloNoteCount}</sub>";
+					soloBox.sprite=soloMessySprite;
+					soloText.colorGradient=new VertexGradient(new Color(1f,0.1933962f,0.1933962f), new Color(1f,0.1933962f,0.1933962f), new Color(1f,0.1332366f,0.06132078f), new Color(1f,0.1332366f,0.06132078f));
+					soloText.text="MESSY\nSOLO!";
 				}
 			}else{
 				soloText.text = null;
+				soloText.gameObject.SetActive(false);
+				soloBox.gameObject.SetActive(false);
 			}
 			// Update status
 
