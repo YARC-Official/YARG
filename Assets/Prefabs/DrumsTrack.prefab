@@ -24,8 +24,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2552400928704172061}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0.80871}
+  m_LocalScale: {x: 1, y: 1, z: 1.4493}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3935442421805911019}
@@ -382,10 +382,16 @@ MonoBehaviour:
   - {fileID: 8672493750730203813}
   drumColors:
   - {r: 1, g: 0.011764706, b: 0, a: 1}
-  - {r: 1, g: 0.8784314, b: 0, a: 1}
-  - {r: 0, g: 0.2901961, b: 1, a: 1}
+  - {r: 1, g: 0.9411765, b: 0, a: 1}
+  - {r: 0, g: 0.67058825, b: 1, a: 1}
   - {r: 0.4392157, g: 1, b: 0, a: 1}
-  - {r: 1, g: 0.37660566, b: 0, a: 1}
+  - {r: 1, g: 0.5921569, b: 0, a: 1}
+  noteColors:
+  - {r: 1, g: 0.011764706, b: 0, a: 1}
+  - {r: 1, g: 0.9411765, b: 0, a: 1}
+  - {r: 0, g: 0.36078432, b: 1, a: 1}
+  - {r: 0.52156866, g: 0.8980392, b: 0, a: 1}
+  - {r: 1, g: 0.42745098, b: 0, a: 1}
   notePool: {fileID: 9121291244003754727}
   genericPool: {fileID: 6222960093224628221}
   kickNoteParticles: {fileID: 8279289512315810390}

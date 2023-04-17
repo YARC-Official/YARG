@@ -57,6 +57,8 @@ namespace YARG.PlayMode {
 		protected Sprite sunBurstSprite;
 		[SerializeField]
 		protected Sprite sunBurstSpriteStarpower;
+		[SerializeField]
+		protected ParticleSystem starPowerParticles1;
 
 		public EventInfo StarpowerSection {
 			get;
@@ -101,7 +103,6 @@ namespace YARG.PlayMode {
 		protected AnimationCurve spStartAnimCurve;
 		[SerializeField]
 		protected AnimationCurve spEndAnimCurve;
-
 		private int _combo = 0;
 		protected int Combo {
 			get => _combo;
@@ -281,6 +282,51 @@ namespace YARG.PlayMode {
 			}
 		}
 
+
+		private void StarpowerTrackAnim() {
+			// Start track animation
+			elapsedTimeAnim += Time.deltaTime;
+			float percentageComplete = elapsedTimeAnim / spAnimationDuration;
+			if (!depressed && !ascended) {
+				spAnimationDuration = 0.065f;
+				trackCamera.transform.position = Vector3.Lerp(trackStartPos, trackStartPos + trackEndPos, percentageComplete);
+
+				if (trackCamera.transform.position == trackStartPos + trackEndPos) {
+					resetTime = true;
+					depressed = true;
+				}
+			}
+
+			if (resetTime) {
+				elapsedTimeAnim = 0f;
+				resetTime = false;
+			}
+
+			// End track animation
+			if (depressed && !ascended) {
+				spAnimationDuration = 0.2f;
+				trackCamera.transform.position = Vector3.Lerp(trackStartPos + trackEndPos, trackStartPos, percentageComplete);
+
+				if (trackCamera.transform.position == trackStartPos + trackEndPos) {
+					resetTime = true;
+					ascended = true;
+				}
+			}
+		}
+
+		private void StarpowerTrackAnimReset() {
+			if (!gotStartPos) {
+				trackStartPos = trackCamera.transform.position;
+				gotStartPos = true;
+			}
+
+			depressed = false;
+			ascended = false;
+			elapsedTimeAnim = 0f;
+		}
+
+
+
 		private void UpdateStarpower() {
 			// Update starpower region
 			if (IsStarpowerHit()) {
@@ -304,36 +350,7 @@ namespace YARG.PlayMode {
 					starpowerCharge -= Time.deltaTime / 25f;
 				}
 
-				// Start track animation
-				elapsedTimeAnim += Time.deltaTime;
-				float percentageComplete = elapsedTimeAnim / spAnimationDuration;
-				if (!depressed && !ascended) {
-					spAnimationDuration = 0.065f;
-					trackCamera.transform.position = Vector3.Lerp(trackStartPos, trackStartPos + trackEndPos,
-						spStartAnimCurve.Evaluate(percentageComplete));
-
-					if (trackCamera.transform.position == trackStartPos + trackEndPos) {
-						resetTime = true;
-						depressed = true;
-					}
-				}
-
-				if (resetTime) {
-					elapsedTimeAnim = 0f;
-					resetTime = false;
-				}
-
-				// End track animation
-				if (depressed && !ascended) {
-					spAnimationDuration = 0.2f;
-					trackCamera.transform.position = Vector3.Lerp(trackStartPos + trackEndPos, trackStartPos,
-						spEndAnimCurve.Evaluate(percentageComplete));
-
-					if (trackCamera.transform.position == trackStartPos + trackEndPos) {
-						resetTime = true;
-						ascended = true;
-					}
-				}
+				StarpowerTrackAnim();
 
 				// Update Sunburst color and light
 				comboSunburst.sprite = sunBurstSpriteStarpower;
@@ -341,14 +358,7 @@ namespace YARG.PlayMode {
 
 				starpowerLight.SetActive(true);
 			} else {
-				if (!gotStartPos) {
-					trackStartPos = trackCamera.transform.position;
-					gotStartPos = true;
-				}
-
-				depressed = false;
-				ascended = false;
-				elapsedTimeAnim = 0f;
+				StarpowerTrackAnimReset();
 
 				//Reset Sunburst color and light to original
 				comboSunburst.sprite = sunBurstSprite;
