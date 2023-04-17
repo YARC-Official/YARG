@@ -96,18 +96,21 @@ namespace YARG.Serialization.Parser {
 									chart.guitar[i] = ParseFiveFret(trackChunk, i);
 								}
 								ParseStarpower(eventIR, trackChunk, "guitar");
+								ParseSolo(eventIR, trackChunk, "guitar");
 								break;
 							case "PART BASS":
 								for (int i = 0; i < 4; i++) {
 									chart.bass[i] = ParseFiveFret(trackChunk, i);
 								}
 								ParseStarpower(eventIR, trackChunk, "bass");
+								ParseSolo(eventIR, trackChunk, "bass");
 								break;
 							case "PART KEYS":
 								for (int i = 0; i < 4; i++) {
 									chart.keys[i] = ParseFiveFret(trackChunk, i);
 								}
 								ParseStarpower(eventIR, trackChunk, "keys");
+								ParseSolo(eventIR, trackChunk, "keys");
 								break;
 							case "PART VOCALS":
 								chart.genericLyrics = ParseGenericLyrics(trackChunk, tempo);
@@ -121,12 +124,14 @@ namespace YARG.Serialization.Parser {
 									chart.realGuitar[i] = ParseRealGuitar(trackChunk, i);
 								}
 								ParseStarpower(eventIR, trackChunk, "realGuitar");
+								ParseSolo(eventIR, trackChunk, "realGuitar",8);
 								break;
 							case "PART REAL_BASS":
 								for (int i = 0; i < 4; i++) {
 									chart.realBass[i] = ParseRealGuitar(trackChunk, i);
 								}
 								ParseStarpower(eventIR, trackChunk, "realBass");
+								ParseSolo(eventIR, trackChunk, "realBass",8);
 								break;
 							case "PART DRUM":
 							case "PART DRUMS":
@@ -308,6 +313,50 @@ namespace YARG.Serialization.Parser {
 						name = $"starpower_{instrument}"
 					});
 					starPowerStart = null;
+				}
+			}
+		}
+
+		private void ParseSolo(List<EventIR> eventIR, TrackChunk trackChunk, string instrument,int soloOctave=7) {
+			long totalDelta = 0;			
+			long? soloStart = null;
+			
+			
+			// Convert track events into intermediate representation
+			foreach (var trackEvent in trackChunk.Events) {
+				totalDelta += trackEvent.DeltaTime;
+
+				if (trackEvent is not NoteEvent noteEvent) {
+					continue;
+				}
+				
+				// Look for correct octave
+				if (noteEvent.GetNoteOctave() != soloOctave) {
+					continue;
+				}
+
+				// Skip if not a star power event
+				if (noteEvent.GetNoteName() != NoteName.G) {
+					continue;
+				}
+					
+				
+
+				if (trackEvent is NoteOnEvent) {
+					// We need to know when it ends before adding it
+					soloStart = totalDelta;
+				} else if (trackEvent is NoteOffEvent) {
+					if (soloStart == null) {
+						continue;
+					}
+
+					// Now that we know the start and end, add it to the list of events.
+					eventIR.Add(new EventIR {
+						startTick = soloStart.Value,
+						endTick = totalDelta,
+						name = $"solo_{instrument}"
+					});
+					soloStart = null;
 				}
 			}
 		}
