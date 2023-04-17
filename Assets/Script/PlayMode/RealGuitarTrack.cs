@@ -143,6 +143,10 @@ namespace YARG.PlayMode {
 			strumFlag = StrumFlag.NONE;
 		}
 
+		public override void SetReverb(bool on) {
+			Play.Instance.ReverbAudio("guitar", on);
+		}
+
 		private void UpdateInput() {
 			// Handle misses (multiple a frame in case of lag)
 			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?.time > Constants.HIT_MARGIN) {

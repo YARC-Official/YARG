@@ -148,6 +148,24 @@ namespace YARG.PlayMode {
 			strummed = false;
 		}
 
+		public override void SetReverb(bool on) {
+			switch (player.chosenInstrument)
+			{
+				case "guitar":
+					Play.Instance.ReverbAudio("guitar", on);
+					break;
+				case "bass":
+					Play.Instance.ReverbAudio("bass", on);
+					Play.Instance.ReverbAudio("rhythm", on);
+					break;
+				case "keys":
+					Play.Instance.ReverbAudio("keys", on);
+					break;
+			}
+			
+			Play.Instance.ReverbAudio("song", on);
+		}
+
 		private void UpdateInput() {
 			// Only want to decrease strum leniency on frames where we didn't strum
 			if (strumLeniency > 0f && !strummed) {
