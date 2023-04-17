@@ -28,6 +28,7 @@ namespace YARG.PlayMode {
 		private Queue<List<NoteInfo>> expectedHits = new();
 		private List<List<NoteInfo>> allowedOverstrums = new();
 		private List<NoteInfo> heldNotes = new();
+		private List<NoteInfo> latestHitNote = null;
 		private float? latestInput = null;
 		private bool latestInputIsStrum = false;
 
@@ -186,6 +187,7 @@ namespace YARG.PlayMode {
 			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Constants.HIT_MARGIN) {
 				var missedChord = expectedHits.Dequeue();
 
+				latestHitNote = null;
 				// Call miss for each component
 				Combo = 0;
 				foreach (var hit in missedChord) {
@@ -282,7 +284,7 @@ namespace YARG.PlayMode {
 			}
 
 			// If correct chord is pressed, and is not a multi-hit, hit it!
-			expectedHits.Dequeue();
+			latestHitNote = expectedHits.Dequeue();
 
 			Combo++;
 			strumLeniency = 0f;
@@ -394,6 +396,7 @@ namespace YARG.PlayMode {
 
 		private bool ChordPressed(List<NoteInfo> chordList, bool overstrumCheck = false) {
 			// Convert NoteInfo list to chord fret array
+			bool overlap = latestHitNote != null && ChordsOverlap(latestHitNote,chordList);
 			int[] chord = new int[chordList.Count];
 			for (int i = 0; i < chord.Length; i++) {
 				chord[i] = chordList[i].fret;
@@ -414,7 +417,7 @@ namespace YARG.PlayMode {
 					for (int i = 0; i < frets.Length; i++) {
 						// Skip any notes that are currently held down.
 						// Extended sustains.
-						if (heldNotes.Any(j => j.fret == i)) {
+						if (overlap && heldNotes.Any(j => j.fret == i)) {
 							continue;
 						}
 
@@ -432,7 +435,7 @@ namespace YARG.PlayMode {
 				for (int i = 0; i < frets.Length; i++) {
 					// Skip any notes that are currently held down.
 					// Extended sustains.
-					if (heldNotes.Any(j => j.fret == i)) {
+					if (overlap && heldNotes.Any(j => j.fret == i)) {
 						continue;
 					}
 
@@ -545,6 +548,15 @@ namespace YARG.PlayMode {
 				}
 			}
 			return true;
+		}
+
+		private bool ChordsOverlap(List<NoteInfo> chordList1, List<NoteInfo> chordList2) {
+			foreach (NoteInfo chord in chordList1) {
+				if (chord.length > 0.2f && chord.EndTime > chordList2[0].time) { // If it's a sustain and overlaps with next note...
+					return true;
+				}
+			}
+			return false;
 		}
 	}
 }
