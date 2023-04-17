@@ -4,26 +4,30 @@ using System.Linq;
 using Newtonsoft.Json;
 using YARG.Serialization;
 
-namespace YARG.Data {
+namespace YARG.Data
+{
 	[JsonObject(MemberSerialization.OptIn)]
-	public partial class SongInfo {
-		public enum DrumType {
+	public partial class SongInfo
+	{
+		public enum DrumType
+		{
 			FOUR_LANE,
 			FIVE_LANE, // AKA GH
 			UNKNOWN
 		}
 
-		private static readonly Dictionary<string, int> DEFAULT_DIFFS = new() {
-			{"guitar", -1},
-			{"bass", -1},
-			{"keys", -1},
-			{"drums", -1},
-			{"vocals", -1},
-			{"realGuitar", -1},
-			{"realBass", -1},
-			{"realKeys", -1},
-			{"realDrums", -1},
-			{"harmVocals", -1},
+		private static readonly Dictionary<string, int> DEFAULT_DIFFS = new()
+		{
+			{ "guitar", -1 },
+			{ "bass", -1 },
+			{ "keys", -1 },
+			{ "drums", -1 },
+			{ "vocals", -1 },
+			{ "realGuitar", -1 },
+			{ "realBass", -1 },
+			{ "realKeys", -1 },
+			{ "realDrums", -1 },
+			{ "harmVocals", -1 },
 		};
 
 		public bool fetched;
@@ -38,40 +42,47 @@ namespace YARG.Data {
 		public string rootFolder;
 
 		[JsonProperty("live")]
-		public bool Live {
+		public bool Live
+		{
 			private set;
 			get;
 		}
 
 		[JsonProperty("songName")]
 		private string _songName;
-		public string SongNameWithFlags {
-			set {
+		public string SongNameWithFlags
+		{
+			set
+			{
 				// We don't care about this...
 				const string BASS_PEDAL_EXPERT_SUFFIX = " (2x bass pedal expert+)";
 				bool present = value.ToLower().EndsWith(BASS_PEDAL_EXPERT_SUFFIX);
-				if (present) {
+				if (present)
+				{
 					value = value[..^BASS_PEDAL_EXPERT_SUFFIX.Length];
 				}
 
 				// Or this...
 				const string BASS_PEDAL_SUFFIX = " (2x bass pedal)";
 				present = value.ToLower().EndsWith(BASS_PEDAL_SUFFIX);
-				if (present) {
+				if (present)
+				{
 					value = value[..^BASS_PEDAL_SUFFIX.Length];
 				}
 
 				// But we do care about this!
 				const string LIVE_SUFFIX = " (live)";
 				Live = value.ToLower().EndsWith(LIVE_SUFFIX);
-				if (Live) {
+				if (Live)
+				{
 					value = value[..^LIVE_SUFFIX.Length];
 				}
 
 				_songName = value;
 			}
 		}
-		public string SongName {
+		public string SongName
+		{
 			set => _songName = value;
 			get => _songName;
 		}
@@ -89,11 +100,14 @@ namespace YARG.Data {
 		/// Used for JSON. Compresses <see cref="partDifficulties"/> by getting rid of <c>-1</c>s.
 		/// </value>
 		[JsonProperty("diffs")]
-		public Dictionary<string, int> JsonDiffs {
+		public Dictionary<string, int> JsonDiffs
+		{
 			get => partDifficulties.Where(i => i.Value != -1).ToDictionary(i => i.Key, i => i.Value);
-			set {
+			set
+			{
 				partDifficulties = new(DEFAULT_DIFFS);
-				foreach (var kvp in value) {
+				foreach (var kvp in value)
+				{
 					partDifficulties[kvp.Key] = kvp.Value;
 				}
 			}
@@ -133,17 +147,21 @@ namespace YARG.Data {
 
 		public Dictionary<string, int> partDifficulties;
 
-		public SongInfo(DirectoryInfo folder, string rootFolder) {
+		public SongInfo(DirectoryInfo folder, string rootFolder)
+		{
 			this.folder = folder;
 			this.rootFolder = rootFolder;
 
 			string dirName = folder.Name;
 
 			var split = dirName.Split(" - ");
-			if (split.Length == 2) {
+			if (split.Length == 2)
+			{
 				SongNameWithFlags = split[1];
 				artistName = split[0];
-			} else {
+			}
+			else
+			{
 				SongNameWithFlags = dirName;
 				artistName = "Unknown";
 			}
@@ -151,8 +169,9 @@ namespace YARG.Data {
 			partDifficulties = new(DEFAULT_DIFFS);
 		}
 
-		public SongInfo Duplicate() {
-			return (SongInfo) MemberwiseClone();
+		public SongInfo Duplicate()
+		{
+			return (SongInfo)MemberwiseClone();
 		}
 	}
 }
