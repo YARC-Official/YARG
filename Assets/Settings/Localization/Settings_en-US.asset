@@ -134,6 +134,18 @@ MonoBehaviour:
     m_Localized: Copy "Current Song" Text File Path
     m_Metadata:
       m_Items: []
+  - m_Id: 7748727102816256
+    m_Localized: SFX Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7748836536401920
+    m_Localized: Use Star Power FX
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7760843058757632
+    m_Localized: Rhythm Volume
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

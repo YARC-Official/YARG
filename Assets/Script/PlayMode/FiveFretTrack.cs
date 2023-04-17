@@ -32,7 +32,6 @@ namespace YARG.PlayMode {
 		private bool latestInputIsStrum = false;
 
 		private int notesHit = 0;
-
 		protected override void StartTrack() {
 			notePool.player = player;
 			genericPool.player = player;
@@ -103,6 +102,8 @@ namespace YARG.PlayMode {
 					genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
 				} else if (eventInfo.name == $"starpower_{player.chosenInstrument}") {
 					StarpowerSection = eventInfo;
+				} else if (eventInfo.name == $"solo_{player.chosenInstrument}") {
+					SoloSection = eventInfo;
 				}
 
 				eventChartIndex++;
@@ -146,6 +147,23 @@ namespace YARG.PlayMode {
 
 			// Un-strum
 			strummed = false;
+		}
+
+		public override void SetReverb(bool on) {
+			switch (player.chosenInstrument) {
+				case "guitar":
+					Play.Instance.ReverbAudio("guitar", on);
+					break;
+				case "bass":
+					Play.Instance.ReverbAudio("bass", on);
+					Play.Instance.ReverbAudio("rhythm", on);
+					break;
+				case "keys":
+					Play.Instance.ReverbAudio("keys", on);
+					break;
+			}
+
+			Play.Instance.ReverbAudio("song", on);
 		}
 
 		private void UpdateInput() {
@@ -289,6 +307,13 @@ namespace YARG.PlayMode {
 
 				// Add stats
 				notesHit++;
+
+				// Solo stuff
+				if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime) {
+					soloNotesHit++;
+				} else if (Play.Instance.SongTime >= SoloSection?.EndTime + 10) {
+					soloNotesHit = 0;
+				}
 			}
 
 			// If this is a tap note, and it was hit without strumming,
@@ -300,7 +325,7 @@ namespace YARG.PlayMode {
 				allowedOverstrums.Add(chord);
 			} else if (allowedOverstrums.Count > 0 && !chord[0].hopo) {
 				for (int i = 0; i < allowedOverstrums.Count; i++) {
-					if (!ChordEquals(chord,allowedOverstrums[i])) {
+					if (!ChordEquals(chord, allowedOverstrums[i])) {
 						allowedOverstrums.Clear(); // If latest strum is different from latest HO/PO, disallow overstrumming
 						break;
 					} else {
@@ -310,7 +335,7 @@ namespace YARG.PlayMode {
 						}
 					}
 				}
-				
+
 			}
 		}
 
@@ -500,9 +525,9 @@ namespace YARG.PlayMode {
 			var noteComp = notePool.AddNote(noteInfo, pos);
 			noteComp.SetInfo(fretColors[noteInfo.fret], noteInfo.length, model);
 		}
-		
+
 		private string PrintFrets() { // Debug function; remove later?
-			return "[" + (frets[0].IsPressed? "G" : "") + (frets[1].IsPressed? "R" : "") + (frets[2].IsPressed? "Y" : "") + (frets[3].IsPressed? "B" : "") + (frets[4].IsPressed? "O" : "") + "]";
+			return "[" + (frets[0].IsPressed ? "G" : "") + (frets[1].IsPressed ? "R" : "") + (frets[2].IsPressed ? "Y" : "") + (frets[3].IsPressed ? "B" : "") + (frets[4].IsPressed ? "O" : "") + "]";
 		}
 
 		private bool ChordEquals(List<NoteInfo> chordList1, List<NoteInfo> chordList2) {

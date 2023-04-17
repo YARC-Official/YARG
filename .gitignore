@@ -85,5 +85,5 @@ crashlytics-build.properties
 Assets/YargInput.cs
 /[Aa]ssets/[Pp]ackages/
 
-### Rider ###
+# Rider #
 .idea/
