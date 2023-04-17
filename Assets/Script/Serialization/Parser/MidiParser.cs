@@ -141,6 +141,7 @@ namespace YARG.Serialization.Parser {
 										chart.ghDrums[i] = ParseGHDrums(trackChunk, i, drumType, chart.realDrums[i]);
 										ParseStarpower(eventIR, trackChunk, "drums");
 										ParseStarpower(eventIR, trackChunk, "realDrums");
+										ParseDrumFills(eventIR, trackChunk, "drums");
 										ParseDrumFills(eventIR, trackChunk, "realDrums");
 									}
 								} else {
@@ -149,7 +150,10 @@ namespace YARG.Serialization.Parser {
 
 										chart.drums[i] = ParseDrums(trackChunk, false, i, drumType, chart.ghDrums[i]);
 										chart.realDrums[i] = ParseDrums(trackChunk, true, i, drumType, chart.ghDrums[i]);
-										ParseStarpower(eventIR, trackChunk, "ghDrums");
+
+										// TODO: SP is still a bit broken on 5-lane and is therefore disabled for now
+										//ParseStarpower(eventIR, trackChunk, "ghDrums");
+										//ParseDrumFills(eventIR, trackChunk, "ghDrums");
 									}
 								}
 								break;
