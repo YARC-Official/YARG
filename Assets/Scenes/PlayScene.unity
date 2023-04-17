@@ -5280,7 +5280,7 @@ MonoBehaviour:
   starpowerOverlay: {fileID: 686576011}
   maxedComboFill: {fileID: 21300000, guid: 7d195c6444832d04bb74af0d3bb242db, type: 3}
   maxedComboRim: {fileID: 21300000, guid: 64bb99979e582d34bb2ef39107bcd348, type: 3}
-  starpoweredComboRim: {fileID: 21300000, guid: 12f0ba21da4e50f43a3cd49e4bf553f0,
+  starpoweredComboRim: {fileID: 21300000, guid: 04441204dc166f54f8a6c7bc415cf181,
     type: 3}
   comboSunburstNormal: {fileID: 21300000, guid: 73b7a32a8c5582041b6dde96fe2b0fb3,
     type: 3}
