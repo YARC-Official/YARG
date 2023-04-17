@@ -32,7 +32,6 @@ namespace YARG.PlayMode {
 		private bool latestInputIsStrum = false;
 
 		private int notesHit = 0;
-
 		protected override void StartTrack() {
 			notePool.player = player;
 			genericPool.player = player;
@@ -103,6 +102,8 @@ namespace YARG.PlayMode {
 					genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
 				} else if (eventInfo.name == $"starpower_{player.chosenInstrument}") {
 					StarpowerSection = eventInfo;
+				}else if (eventInfo.name == $"solo_{player.chosenInstrument}") {
+					SoloSection = eventInfo;
 				}
 
 				eventChartIndex++;
@@ -307,6 +308,11 @@ namespace YARG.PlayMode {
 
 				// Add stats
 				notesHit++;
+				if (Play.Instance.SongTime>=SoloSection?.time && Play.Instance.SongTime<=SoloSection?.EndTime) {
+					soloNotesHit++;
+				}else if (Play.Instance.SongTime>=SoloSection?.EndTime+10){
+					soloNotesHit=0;
+				}
 			}
 
 			// If this is a tap note, and it was hit without strumming,
