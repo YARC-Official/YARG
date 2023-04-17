@@ -49,6 +49,11 @@ namespace YARG.PlayMode {
 			protected set;
 		} = null;
 
+		public EventInfo FillSection {
+			get;
+			protected set;
+		} = null;
+
 		protected float starpowerCharge;
 		protected bool starpowerActive;
 

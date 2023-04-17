@@ -319,7 +319,7 @@ namespace YARG.Serialization.Parser {
 		private void ParseDrumFills(List<EventIR> eventIR, TrackChunk trackChunk, string instrument) {
 			long totalDelta = 0;
 
-			long? starPowerStart = null;
+			long? fillStart = null;
 
 			// Convert track events into intermediate representation
 			foreach (var trackEvent in trackChunk.Events) {
@@ -345,19 +345,19 @@ namespace YARG.Serialization.Parser {
 
 				if (trackEvent is NoteOnEvent) {
 					// We need to know when it ends before adding it
-					starPowerStart = totalDelta;
+					fillStart = totalDelta;
 				} else if (trackEvent is NoteOffEvent) {
-					if (starPowerStart == null) {
+					if (fillStart == null) {
 						continue;
 					}
 
 					// Now that we know the start and end, add it to the list of events.
 					eventIR.Add(new EventIR {
-						startTick = starPowerStart.Value,
+						startTick = fillStart.Value,
 						endTick = totalDelta,
-						name = $"starpower_{instrument}"
+						name = $"fill_{instrument}"
 					});
-					starPowerStart = null;
+					fillStart = null;
 				}
 			}
 		}

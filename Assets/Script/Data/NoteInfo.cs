@@ -10,11 +10,6 @@ namespace YARG.Data {
 		public bool hopo;
 
 		/// <summary>
-		/// Activates SP when hit on drums. Does not break combo if missed.
-		/// </summary>
-		public bool drumSPActivator;
-
-		/// <summary>
 		/// Whether or not this HOPO is automatic.<br/>
 		/// Used for difficulty downsampling.
 		/// </summary>
