@@ -232,6 +232,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Fret
       objectReference: {fileID: 0}
+    - target: {fileID: 1522397706675016900, guid: f57a620848afb314997dd24edc527f7d,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: f40aa7cc27f0a2144af59c84bfed5811, type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f57a620848afb314997dd24edc527f7d, type: 3}
 --- !u!4 &92557977566226713 stripped
