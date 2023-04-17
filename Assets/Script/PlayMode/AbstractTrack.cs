@@ -54,10 +54,7 @@ namespace YARG.PlayMode {
 			protected set;
 		} = null;
 
-		public float starpowerCharge {
-			get;
-			protected set;
-		}
+		protected float starpowerCharge;
 		protected bool starpowerActive;
 
 		private int _combo = 0;
