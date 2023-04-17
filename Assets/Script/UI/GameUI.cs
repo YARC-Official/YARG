@@ -40,7 +40,7 @@ namespace YARG.UI {
 		}
 
 		private void Update() {
-			songProgress.fillAmount = Play.Instance.SongTime / Play.song.songLength;
+			songProgress.fillAmount = Play.Instance.SongTime / Play.Instance.SongLength;
 		}
 
 		public void AddTrackImage(RenderTexture rt) {

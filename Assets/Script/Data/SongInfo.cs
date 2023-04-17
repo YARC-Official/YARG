@@ -86,7 +86,15 @@ namespace YARG.Data
 			set => _songName = value;
 			get => _songName;
 		}
-		public string SongNameNoParen => SongName.Replace("(", "").Replace(")", "");
+		public string SongNameNoParen {
+			get {
+				if (string.IsNullOrEmpty(SongName)) {
+					return "";
+				}
+
+				return SongName.Replace("(", "").Replace(")", "");
+			}
+		}
 
 		/// <value>
 		/// Used for JSON. Compresses <see cref="partDifficulties"/> by getting rid of <c>-1</c>s.

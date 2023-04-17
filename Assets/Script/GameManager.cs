@@ -30,6 +30,8 @@ namespace YARG {
 			private set;
 		}
 
+		public UpdateChecker updateChecker;
+		
 		[SerializeField]
 		private AudioMixerGroup vocalGroup;
 
@@ -37,6 +39,7 @@ namespace YARG {
 
 		private void Start() {
 			Instance = this;
+			updateChecker = GetComponent<UpdateChecker>();
 			PersistentDataPath = Application.persistentDataPath;
 			Settings.SettingsManager.Init();
 

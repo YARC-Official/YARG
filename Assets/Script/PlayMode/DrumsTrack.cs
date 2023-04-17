@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System;
 using UnityEngine;
 using YARG.Data;
 using YARG.Input;
@@ -41,12 +42,6 @@ namespace YARG.PlayMode {
 
 			noKickMode = SettingsManager.GetSettingValue<bool>("noKicks");
 
-			// Lefty flip
-
-			if (player.leftyFlip) {
-				drums = drums.Reverse().ToArray();
-			}
-
 			// Inputs
 
 			input = player.inputStrategy;
@@ -61,6 +56,14 @@ namespace YARG.PlayMode {
 			// GH vs RB
 
 			kickIndex = fiveLaneMode ? 5 : 4;
+			
+			// Lefty flip
+
+			if (player.leftyFlip) {
+				drums = drums.Reverse().ToArray();
+				// Make the drum colors follow the original order even though the chart is flipped
+				Array.Reverse(drumColors, 0, kickIndex);
+			}
 
 			// Color drums
 			for (int i = 0; i < drums.Length; i++) {
@@ -138,7 +141,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Update expected input
-			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= Play.Instance.SongTime + Play.HIT_MARGIN) {
+			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= Play.Instance.SongTime + Constants.HIT_MARGIN) {
 				var noteInfo = Chart[inputChartIndex];
 
 				// Skip kick notes if noKickMode is enabled
@@ -165,7 +168,7 @@ namespace YARG.PlayMode {
 
 		private void UpdateInput() {
 			// Handle misses (multiple a frame in case of lag)
-			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Play.HIT_MARGIN) {
+			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Constants.HIT_MARGIN) {
 				var missedChord = expectedHits.Dequeue();
 
 				// Call miss for each component
@@ -183,6 +186,28 @@ namespace YARG.PlayMode {
 		}
 
 		private void DrumHitAction(int drum, bool cymbal) {
+			// invert input in case lefty flip is on, bots don't need it
+			if (player.leftyFlip && !input.botMode){
+				switch (drum){
+					case 0:
+						drum = kickIndex == 4 ? 3 : 4;
+						break;
+					case 1:
+						drum = kickIndex == 4 ? 2 : 3;
+						break;
+					case 2:
+						drum = kickIndex == 4 ? 1 : 2;
+						break;
+					case 3:
+						drum = kickIndex == 4 ? 0 : 1;
+						break;
+					case 4:
+						if (kickIndex == 5){
+							drum = 0;
+						}
+						break;
+				}
+			}
 			if (drum != kickIndex) {
 				// Hit effect
 				drums[drum].Pulse();
