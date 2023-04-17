@@ -348,6 +348,7 @@ MonoBehaviour:
   trackCamera: {fileID: 5663382124883147172}
   trackRenderer: {fileID: 8489780581181573090}
   hitWindow: {fileID: 1584337011342833613}
+  soloText: {fileID: 7187315060435931065}
   comboText: {fileID: 2920970725337563288}
   comboMeterRenderer: {fileID: 8019508939677143693}
   starpowerBarTop: {fileID: 4495594969935969962}
@@ -412,6 +413,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 54cd993f01bed2042a4b54b6aaf92946, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &7187315060435931065 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5431607447448773681, guid: ba68df35237e09f4abcf788160c15375,
+    type: 3}
+  m_PrefabInstance: {fileID: 2944943788190444424}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9541d86e2fd84c1d9990edf0852d74ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &7378084863571732586 stripped

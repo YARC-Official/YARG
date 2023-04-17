@@ -192,7 +192,11 @@ namespace YARG.PlayMode {
 			notePool.HitNote(note);
 			StopAudio = false;
 			notesHit++;
-
+			if (Play.Instance.SongTime>=SoloSection?.time && Play.Instance.SongTime<=SoloSection?.EndTime) {
+				soloNotesHit++;
+			}else if (Play.Instance.SongTime>=SoloSection?.EndTime+10){
+					soloNotesHit=0;
+			}
 			// Play particles
 			for (int i = 0; i < 6; i++) {
 				if (note.stringFrets[i] == -1) {

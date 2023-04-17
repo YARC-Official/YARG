@@ -26,7 +26,7 @@ namespace YARG.PlayMode {
 		protected int inputChartIndex = 0;
 		protected int hitChartIndex = 0;
 		protected int eventChartIndex = 0;
-
+		
 		[SerializeField]
 		protected Camera trackCamera;
 
@@ -37,6 +37,8 @@ namespace YARG.PlayMode {
 		protected Transform hitWindow;
 
 		[Space]
+		[SerializeField]
+		protected TextMeshPro soloText;
 		[SerializeField]
 		protected TextMeshPro comboText;
 		[SerializeField]
@@ -68,6 +70,7 @@ namespace YARG.PlayMode {
 		public EventInfo SoloSection {
 			get;
 			protected set;
+			
 		} = null;
 
 		
@@ -125,6 +128,11 @@ namespace YARG.PlayMode {
 			private set;
 		}
 
+
+		private int soloNoteCount=-1;
+		protected int soloNotesHit=0;
+		private float soloHitPercent=0;
+		private int lastHit=-1;
 		private void Awake() {
 			// Set up render texture
 			var descriptor = new RenderTextureDescriptor(
@@ -189,7 +197,9 @@ namespace YARG.PlayMode {
 			UpdateMaterial();
 
 			UpdateTrack();
-
+			if(hitChartIndex>lastHit){
+				lastHit=hitChartIndex;
+			}
 			UpdateInfo();
 			UpdateStarpower();
 
@@ -233,7 +243,7 @@ namespace YARG.PlayMode {
 			}
 
 			float currentSolo = trackMaterial.GetFloat("SoloState");
-			if (Play.Instance.SongTime>=SoloSection?.time && Play.Instance.SongTime<=SoloSection?.EndTime) {
+			if (Play.Instance.SongTime>=SoloSection?.time-2 && Play.Instance.SongTime<=SoloSection?.EndTime-1) {
 				trackMaterial.SetFloat("SoloState", Mathf.Lerp(currentSolo, 1f, Time.deltaTime * 2f));
 			}else{
 				trackMaterial.SetFloat("SoloState", Mathf.Lerp(currentSolo, 0f, Time.deltaTime * 2f));
@@ -341,7 +351,41 @@ namespace YARG.PlayMode {
 			} else {
 				comboText.text = $"{Multiplier}<sub>x</sub>";
 			}
+			if (Play.Instance.SongTime>=SoloSection?.time-5 && Play.Instance.SongTime<=SoloSection?.time) {
+				soloNoteCount=0;
+				for(int i=hitChartIndex;i<Chart.Count;i++){
+					if(Chart[i].time>SoloSection?.EndTime){
+						break;
+					}else{
+						soloNoteCount++;
+					}
+					
+				}
+				
+			}
 
+			if (Play.Instance.SongTime>=SoloSection?.time && Play.Instance.SongTime<=SoloSection?.EndTime) {
+				soloHitPercent=Mathf.RoundToInt((soloNotesHit/(float)soloNoteCount)*100f);
+				soloText.text = $"{soloHitPercent}%\n<sub>{soloNotesHit}/{soloNoteCount}</sub>";
+			} else if (Play.Instance.SongTime>=SoloSection?.EndTime && Play.Instance.SongTime<=SoloSection?.EndTime+10) {
+				if(soloHitPercent==100){
+					soloText.text=$"Perfect Solo!\n<sub>{soloNotesHit}/{soloNoteCount}</sub>";
+				}else if(soloHitPercent>=95){
+					soloText.text=$"Awesome Solo!\n<sub>{soloNotesHit}/{soloNoteCount}</sub>";
+				}else if(soloHitPercent>=90){
+					soloText.text=$"Great Solo!\n<sub>{soloNotesHit}/{soloNoteCount}</sub>";
+				}else if(soloHitPercent>=80){
+					soloText.text=$"Good Solo!\n<sub>{soloNotesHit}/{soloNoteCount}</sub>";
+				}else if(soloHitPercent>=70){
+					soloText.text=$"Solid Solo!\n<sub>{soloNotesHit}/{soloNoteCount}</sub>";
+				}else if(soloHitPercent>=60){
+					soloText.text=$"Okay Solo!\n<sub>{soloNotesHit}/{soloNoteCount}</sub>";
+				}else{
+					soloText.text=$"Messy Solo!\n<sub>{soloNotesHit}/{soloNoteCount}</sub>";
+				}
+			}else{
+				soloText.text = null;
+			}
 			// Update status
 
 			int index = Combo % 10;
@@ -367,7 +411,7 @@ namespace YARG.PlayMode {
 		protected float CalcLagCompensation(float currentTime, float noteTime) {
 			return (currentTime - noteTime) * (player.trackSpeed / Play.speed);
 		}
-
+		
 		private bool IsStarpowerHit() {
 			if (Chart.Count > hitChartIndex) {
 				return Chart[hitChartIndex].time >= StarpowerSection?.EndTime;

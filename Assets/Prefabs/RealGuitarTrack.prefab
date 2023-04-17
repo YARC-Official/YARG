@@ -2403,6 +2403,18 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 8377740147338523031}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &4549555317040010662 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5431607447448773681, guid: ba68df35237e09f4abcf788160c15375,
+    type: 3}
+  m_PrefabInstance: {fileID: 8377740147338523031}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9541d86e2fd84c1d9990edf0852d74ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &5287664244511632850 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4405145901572709445, guid: ba68df35237e09f4abcf788160c15375,
@@ -2460,6 +2472,7 @@ MonoBehaviour:
   trackCamera: {fileID: 1298545815354434491}
   trackRenderer: {fileID: 2976033787750112765}
   hitWindow: {fileID: 5287664244511632850}
+  soloText: {fileID: 4549555317040010662}
   comboText: {fileID: 8364420245133073031}
   comboMeterRenderer: {fileID: 3735234957370919058}
   starpowerBarTop: {fileID: 7133336003382699189}

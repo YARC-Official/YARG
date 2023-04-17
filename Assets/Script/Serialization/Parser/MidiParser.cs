@@ -124,14 +124,14 @@ namespace YARG.Serialization.Parser {
 									chart.realGuitar[i] = ParseRealGuitar(trackChunk, i);
 								}
 								ParseStarpower(eventIR, trackChunk, "realGuitar");
-								ParseSolo(eventIR, trackChunk, "realGuitar");
+								ParseSolo(eventIR, trackChunk, "realGuitar",8);
 								break;
 							case "PART REAL_BASS":
 								for (int i = 0; i < 4; i++) {
 									chart.realBass[i] = ParseRealGuitar(trackChunk, i);
 								}
 								ParseStarpower(eventIR, trackChunk, "realBass");
-								ParseSolo(eventIR, trackChunk, "realBass");
+								ParseSolo(eventIR, trackChunk, "realBass",8);
 								break;
 							case "PART DRUM":
 							case "PART DRUMS":
@@ -317,15 +317,9 @@ namespace YARG.Serialization.Parser {
 			}
 		}
 
-		private void ParseSolo(List<EventIR> eventIR, TrackChunk trackChunk, string instrument,bool altMarker=false) {
+		private void ParseSolo(List<EventIR> eventIR, TrackChunk trackChunk, string instrument,int soloOctave=7) {
 			long totalDelta = 0;			
 			long? soloStart = null;
-
-			//Most tracks use G7, but Pro guitar, keys, and real keys use G8 instead.
-			int soloOctave=7;
-			if(altMarker){
-				soloOctave=8;
-			}
 			
 			
 			// Convert track events into intermediate representation
