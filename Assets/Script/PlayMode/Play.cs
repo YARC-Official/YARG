@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -95,7 +96,7 @@ namespace YARG.PlayMode {
 			// Load audio
 			var stems = AudioHelpers.GetSupportedStems(song.folder.FullName);
 
-			GameManager.AudioManager.LoadSong(stems);
+			GameManager.AudioManager.LoadSong(stems, Math.Abs(speed - 1) > float.Epsilon);
 			SongLength = GameManager.AudioManager.AudioLengthF;
 
 			GameUI.Instance.SetLoadingText("Loading chart...");
