@@ -244,11 +244,6 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: 0.14369
       objectReference: {fileID: 0}
-    - target: {fileID: 3633566236785177374, guid: ba68df35237e09f4abcf788160c15375,
-        type: 3}
-      propertyPath: m_RootOrder
-      value: 2
-      objectReference: {fileID: 0}
     - target: {fileID: 4318565460219005881, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -299,16 +294,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalPosition.z
       value: -1.684
-      objectReference: {fileID: 0}
-    - target: {fileID: 8948188342173242798, guid: ba68df35237e09f4abcf788160c15375,
-        type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0.007
-      objectReference: {fileID: 0}
-    - target: {fileID: 8948188342173242798, guid: ba68df35237e09f4abcf788160c15375,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -0.264
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ba68df35237e09f4abcf788160c15375, type: 3}
@@ -372,6 +357,18 @@ MonoBehaviour:
   sunBurstSprite: {fileID: 21300000, guid: 3235c7c6359bba84a99591649a51b5cd, type: 3}
   sunBurstSpriteStarpower: {fileID: 21300000, guid: e1d36b6ae21bc594881648de5d531555,
     type: 3}
+  spStartAnimCurve:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spEndAnimCurve:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   fiveLaneMode: 0
   drums:
   - {fileID: 1796160843375670296}

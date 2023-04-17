@@ -295,22 +295,16 @@ namespace YARG.PlayMode {
 				comboSunburst.sprite = sunBurstSpriteStarpower;
 				comboSunburst.color = new Color(255, 255, 255, 141);
 
-				if (Multiplier >= MaxMultiplier) {
-					starpowerLight.SetActive(true);
-				} else {
-					starpowerLight.SetActive(false);
-				}
+				starpowerLight.SetActive(true);
 			} else {
 				if (!gotStartPos) {
 					trackStartPos = trackCamera.transform.position;
 					gotStartPos = true;
 				}
 
-
 				depressed = false;
 				ascended = false;
 				elapsedTimeAnim = 0f;
-
 
 				//Reset Sunburst color and light to original
 				comboSunburst.sprite = sunBurstSprite;
