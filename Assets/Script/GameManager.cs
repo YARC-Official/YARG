@@ -1,3 +1,4 @@
+using System.IO;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.InputSystem;
@@ -54,8 +55,9 @@ namespace YARG {
 
 		private void Start() {
 			updateChecker = GetComponent<UpdateChecker>();
-			//this is to handle a strange edge case in path naming in windows.
-			//modern windows can handle / or \ in path names with seemingly one exception, if there is a space in the user name then try forward slash appdata, it will break at the first space so:
+
+			// this is to handle a strange edge case in path naming in windows.
+			// modern windows can handle / or \ in path names with seemingly one exception, if there is a space in the user name then try forward slash appdata, it will break at the first space so:
 			// c:\users\joe blow\appdata <- okay!
 			// c:/users/joe blow\appdata <- okay!
 			// c:/users/joe blow/appdata <- "Please choose an app to open joe"

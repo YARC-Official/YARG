@@ -282,7 +282,6 @@ namespace YARG.PlayMode {
 			}
 		}
 
-
 		private void StarpowerTrackAnim() {
 			// Start track animation
 			elapsedTimeAnim += Time.deltaTime;
@@ -324,8 +323,6 @@ namespace YARG.PlayMode {
 			ascended = false;
 			elapsedTimeAnim = 0f;
 		}
-
-
 
 		private void UpdateStarpower() {
 			// Update starpower region
