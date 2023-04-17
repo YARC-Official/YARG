@@ -192,6 +192,7 @@ MonoBehaviour:
   trackCamera: {fileID: 5663382124883147172}
   trackRenderer: {fileID: 8489780581181573090}
   hitWindow: {fileID: 1584337011342833613}
+  soloText: {fileID: 7187315060435931065}
   comboText: {fileID: 2920970725337563288}
   comboMeterRenderer: {fileID: 8019508939677143693}
   starpowerBarTop: {fileID: 4495594969935969962}
@@ -201,6 +202,22 @@ MonoBehaviour:
   sunBurstSprite: {fileID: 21300000, guid: 3235c7c6359bba84a99591649a51b5cd, type: 3}
   sunBurstSpriteStarpower: {fileID: 21300000, guid: e1d36b6ae21bc594881648de5d531555,
     type: 3}
+  soloBox: {fileID: 7551589661624326943}
+  soloMessySprite: {fileID: 21300000, guid: 229a7b90eb98f3845ac0c87daa9fe207, type: 3}
+  soloPerfectSprite: {fileID: 21300000, guid: d366b747c8f99cb458e8ff931d4f2003, type: 3}
+  soloDefaultSprite: {fileID: 21300000, guid: cecf11e1b10fd7d4aba2b460a1ed8c1a, type: 3}
+  spStartAnimCurve:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spEndAnimCurve:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   fiveLaneMode: 1
   drums:
   - {fileID: 5070400065011352142}
@@ -255,9 +272,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 54cd993f01bed2042a4b54b6aaf92946, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &7187315060435931065 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5431607447448773681, guid: ba68df35237e09f4abcf788160c15375,
+    type: 3}
+  m_PrefabInstance: {fileID: 2944943788190444424}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9541d86e2fd84c1d9990edf0852d74ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &7378084863571732586 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5673044395376804834, guid: ba68df35237e09f4abcf788160c15375,
+    type: 3}
+  m_PrefabInstance: {fileID: 2944943788190444424}
+  m_PrefabAsset: {fileID: 0}
+--- !u!212 &7551589661624326943 stripped
+SpriteRenderer:
+  m_CorrespondingSourceObject: {fileID: 4616796601023000727, guid: ba68df35237e09f4abcf788160c15375,
     type: 3}
   m_PrefabInstance: {fileID: 2944943788190444424}
   m_PrefabAsset: {fileID: 0}
