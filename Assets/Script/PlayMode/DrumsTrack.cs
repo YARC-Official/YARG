@@ -319,7 +319,7 @@ namespace YARG.PlayMode {
 
 			// Set note info
 			var noteComp = notePool.AddNote(noteInfo, pos);
-			noteComp.SetInfo(drumColors[noteInfo.fret], noteInfo.length, model);
+			noteComp.SetInfo(drumColors[noteInfo.fret], noteInfo.length, model, noteInfo.isActivator);
 		}
 	}
 }

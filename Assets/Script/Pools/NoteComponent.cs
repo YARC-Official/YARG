@@ -38,7 +38,7 @@ namespace YARG.Pools {
 				}
 
 				// DEBUG: Temporary test code
-				if (pool.player.track.FillSection?.EndTime > pool.player.track.RelativeTime && pool.player.track.starpowerCharge >= 0.5f) {
+				if (isActivatorNote) {
 					return Color.magenta;
 				}
 
@@ -50,6 +50,8 @@ namespace YARG.Pools {
 		private float lengthCache = 0f;
 
 		private State state = State.WAITING;
+
+		private bool isActivatorNote;
 
 		private void OnEnable() {
 			if (pool != null) {
@@ -63,7 +65,7 @@ namespace YARG.Pools {
 			}
 		}
 
-		public void SetInfo(Color c, float length, ModelType hopo) {
+		public void SetInfo(Color c, float length, ModelType hopo, bool isDrumActivator) {
 			noteGroup.SetActive(hopo == ModelType.NOTE);
 			hopoGroup.SetActive(hopo == ModelType.HOPO);
 			fullGroup.SetActive(hopo == ModelType.FULL);
@@ -72,8 +74,14 @@ namespace YARG.Pools {
 
 			SetLength(length);
 
+			isActivatorNote = isDrumActivator;
+
 			ColorCache = c;
 			UpdateColor();
+		}
+
+		public void SetInfo(Color c, float length, ModelType hopo) {
+			SetInfo(c, length, hopo, false);
 		}
 
 		public void SetFretNumber(string str) {
