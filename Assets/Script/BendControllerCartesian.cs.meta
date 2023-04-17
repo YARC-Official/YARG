@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Script/Constants.cs.meta
+guid: f86c8e32d122ed546aa92fc8bee9b822
+========
+guid: 8af5246fa14b3384cb757c9b3a401411
+>>>>>>>> master:Assets/Script/BendControllerCartesian.cs.meta
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Script/PlayMode/ScoreKeeper.cs.meta
 guid: 3faffd5f8e8e99a4c8aeb8e8ee607b06
+========
+guid: 6e9dec14e84c7194eb2dcef340b75766
+>>>>>>>> master:Assets/Script/SongInfo.Sources.cs.meta
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2

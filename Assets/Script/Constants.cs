@@ -1,6 +1,6 @@
 namespace YARG {
 	public static class Constants {
-		public const string VERSION_TAG = "v0.8.2";
+		public const string VERSION_TAG = "v0.9.0b";
 
 		public const float HIT_MARGIN = 0.095f;
 		public const float STRUM_LENIENCY = 0.065f;

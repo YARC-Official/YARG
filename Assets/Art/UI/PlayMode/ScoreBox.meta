@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Art/UI/PlayMode/ScoreBox.meta
 guid: ab06ddcd9553496448e6e0ba19b5a803
+========
+guid: 1345d3fda31fa7c4aae4002998b467d2
+>>>>>>>> master:Assets/Art/Fonts/RedHatDisplay.meta
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}

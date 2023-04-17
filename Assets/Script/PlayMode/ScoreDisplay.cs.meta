@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Script/PlayMode/ScoreDisplay.cs.meta
 guid: 1a2d63fff01e1954f85b7722d4b1e2da
+========
+guid: 750ebc635e47b294197bcbb468b9b9ad
+>>>>>>>> master:Assets/Script/BendControllerRadial.cs.meta
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2

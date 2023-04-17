@@ -9,8 +9,8 @@ using YARG.UI;
 
 namespace YARG.PlayMode {
 	public abstract class AbstractTrack : MonoBehaviour {
-		protected const float TRACK_SPAWN_OFFSET = 3f;
-		protected const float TRACK_END_OFFSET = 1.75f;
+		public const float TRACK_SPAWN_OFFSET = 3f;
+		public const float TRACK_END_OFFSET = 1.8f;
 
 		public delegate void StarpowerMissAction();
 		public event StarpowerMissAction StarpowerMissEvent;
@@ -44,6 +44,18 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		protected MeshRenderer starpowerBarTop;
 
+		[Space]
+		[SerializeField]
+		protected SpriteRenderer comboSunburst;
+		[SerializeField]
+		protected GameObject maxComboLight;
+		[SerializeField]
+		protected GameObject starpowerLight;
+		[SerializeField]
+		protected Sprite sunBurstSprite;
+		[SerializeField]
+		protected Sprite sunBurstSpriteStarpower;
+
 		public EventInfo StarpowerSection {
 			get;
 			protected set;
@@ -51,6 +63,22 @@ namespace YARG.PlayMode {
 
 		protected float starpowerCharge;
 		protected bool starpowerActive;
+		protected Light comboSunburstEmbeddedLight;
+
+		// Overdrive animation parameters
+		protected Vector3 trackStartPos;
+		protected Vector3 trackEndPos = new(0, 0.13f, 0.2f);
+		protected float spAnimationDuration = 0.2f;
+		protected float elapsedTimeAnim = 0;
+		protected bool gotStartPos = false;
+		protected bool depressed = false;
+		protected bool ascended = false;
+		protected bool resetTime = false;
+
+		[SerializeField]
+		protected AnimationCurve spStartAnimCurve;
+		[SerializeField]
+		protected AnimationCurve spEndAnimCurve;
 
 		private int _combo = 0;
 		protected int Combo {
@@ -166,6 +194,17 @@ namespace YARG.PlayMode {
 			UpdateInfo();
 			UpdateStarpower();
 
+			if (Multiplier >= MaxMultiplier) {
+				comboSunburst.gameObject.SetActive(true);
+				comboSunburst.transform.Rotate(0f, 0f, Time.deltaTime * -15f);
+
+				maxComboLight.gameObject.SetActive(!starpowerActive);
+			} else {
+				comboSunburst.gameObject.SetActive(false);
+
+				maxComboLight.gameObject.SetActive(false);
+			}
+
 			Beat = false;
 		}
 
@@ -217,6 +256,9 @@ namespace YARG.PlayMode {
 			if (IsStarpowerHit()) {
 				StarpowerSection = null;
 				starpowerCharge += 0.25f;
+				if (starpowerCharge > 1f) {
+					starpowerCharge = 1f;
+				}
 			}
 
 			// Update starpower active
@@ -227,6 +269,58 @@ namespace YARG.PlayMode {
 				} else {
 					starpowerCharge -= Time.deltaTime / 25f;
 				}
+
+				// Start track animation
+				elapsedTimeAnim += Time.deltaTime;
+				float percentageComplete = elapsedTimeAnim / spAnimationDuration;
+				if (!depressed && !ascended) {
+					spAnimationDuration = 0.065f;
+					trackCamera.transform.position = Vector3.Lerp(trackStartPos, trackStartPos + trackEndPos,
+						spStartAnimCurve.Evaluate(percentageComplete));
+
+					if (trackCamera.transform.position == trackStartPos + trackEndPos) {
+						resetTime = true;
+						depressed = true;
+					}
+				}
+
+				if (resetTime) {
+					elapsedTimeAnim = 0f;
+					resetTime = false;
+				}
+
+				// End track animation
+				if (depressed && !ascended) {
+					spAnimationDuration = 0.2f;
+					trackCamera.transform.position = Vector3.Lerp(trackStartPos + trackEndPos, trackStartPos,
+						spEndAnimCurve.Evaluate(percentageComplete));
+
+					if (trackCamera.transform.position == trackStartPos + trackEndPos) {
+						resetTime = true;
+						ascended = true;
+					}
+				}
+
+				// Update Sunburst color and light
+				comboSunburst.sprite = sunBurstSpriteStarpower;
+				comboSunburst.color = new Color(255, 255, 255, 141);
+
+				starpowerLight.SetActive(true);
+			} else {
+				if (!gotStartPos) {
+					trackStartPos = trackCamera.transform.position;
+					gotStartPos = true;
+				}
+
+				depressed = false;
+				ascended = false;
+				elapsedTimeAnim = 0f;
+
+				//Reset Sunburst color and light to original
+				comboSunburst.sprite = sunBurstSprite;
+				comboSunburst.color = Color.white;
+
+				starpowerLight.SetActive(false);
 			}
 		}
 

@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Script/PlayMode/StarScoreKeeper.cs.meta
 guid: 626b9573efaa88a42a23b02feafd7d71
+========
+guid: bd014b86a5f29d04dbd32055121c987c
+>>>>>>>> master:Assets/Script/Constants.cs.meta
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2

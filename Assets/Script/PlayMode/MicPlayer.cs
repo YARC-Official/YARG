@@ -23,6 +23,7 @@ namespace YARG.PlayMode {
 
 			public ParticleGroup nonActiveParticles;
 			public ParticleGroup activeParticles;
+			public Light needleLight;
 
 			public int octaveOffset;
 			public float[] singProgresses;
@@ -31,9 +32,9 @@ namespace YARG.PlayMode {
 		}
 
 		public static readonly Color[] HARMONIC_COLORS = new Color[] {
-			new Color32(33, 114, 171, 255),
-			new Color32(173, 108, 43, 255),
-			new Color32(214, 141, 30, 255),
+			new Color32(0, 204, 255, 255),
+			new Color32(255, 133, 0, 255),
+			new Color32(255, 219, 0, 255)
 		};
 
 		public const float TRACK_SPEED = 4f;
@@ -71,7 +72,7 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private Image comboRim;
 		[SerializeField]
-		private RectTransform comboSunburst;
+		private Image comboSunburst;
 		[SerializeField]
 		private Image starpowerFill;
 		[SerializeField]
@@ -84,6 +85,12 @@ namespace YARG.PlayMode {
 		private Sprite maxedComboFill;
 		[SerializeField]
 		private Sprite maxedComboRim;
+		[SerializeField]
+		private Sprite starpoweredComboRim;
+		[SerializeField]
+		private Sprite comboSunburstNormal;
+		[SerializeField]
+		private Sprite comboSunburstStarpower;
 
 		private Sprite normalComboFill;
 		private Sprite normalComboRim;
@@ -192,7 +199,8 @@ namespace YARG.PlayMode {
 					needle = needle.transform,
 					needleModel = needle.meshRenderer.gameObject,
 					nonActiveParticles = needle.nonActiveParticles,
-					activeParticles = needle.activeParticles
+					activeParticles = needle.activeParticles,
+					needleLight = needle.needleLight,
 				};
 
 				// Bind events
@@ -321,7 +329,8 @@ namespace YARG.PlayMode {
 				var bar = Instantiate(barPrefab, barContainer);
 
 				if (harmonyCount == 1) {
-					bar.transform.localPosition = new(0f, 0f, 0.8f - (barContainer.childCount - 1) * 0.225f);
+					//bar.transform.localPosition = new(0f, 0f, 0.8f - (barContainer.childCount - 1) * 0.225f); //Previously this bar would appear even when playing solo
+					bar.gameObject.SetActive(false); // Now it disables
 				} else {
 					bar.transform.localPosition = new(0f, 0f, 0.45f - (barContainer.childCount - 1) * 0.225f);
 				}
@@ -521,14 +530,29 @@ namespace YARG.PlayMode {
 					playerInfo.needleModel.SetActive(micInput.TimeSinceNoVoice < 0.25f);
 				}
 
+
 				if (pitchCorrect && targetLyricIndex != -1) {
 					playerInfo.hittingNote = true;
 					playerInfo.singProgresses[targetLyricIndex] += Time.deltaTime;
 
 					playerInfo.activeParticles.Play();
 					playerInfo.nonActiveParticles.Stop();
+
+					// Fade in the needle light
+					playerInfo.needleLight.intensity =
+						Mathf.Lerp(playerInfo.needleLight.intensity, 0.35f,
+						Time.deltaTime * 8f);
+
+					// Changes colors of particles according to the note hit.
+					playerInfo.needleLight.color = HARMONIC_COLORS[targetLyricIndex];
+					playerInfo.activeParticles.Colorize(HARMONIC_COLORS[targetLyricIndex]);
 				} else {
 					playerInfo.hittingNote = false;
+
+					// Fade out the needle light
+					playerInfo.needleLight.intensity =
+						Mathf.Lerp(playerInfo.needleLight.intensity, 0f,
+						Time.deltaTime * 8f);
 
 					playerInfo.activeParticles.Stop();
 
@@ -596,7 +620,13 @@ namespace YARG.PlayMode {
 				comboSunburst.transform.Rotate(0f, 0f, Time.deltaTime * -25f);
 
 				comboFill.sprite = maxedComboFill;
-				comboRim.sprite = maxedComboRim;
+				if (starpowerActive) {
+					comboRim.sprite = starpoweredComboRim;
+					comboSunburst.sprite = comboSunburstStarpower;
+				} else {
+					comboRim.sprite = maxedComboRim;
+					comboSunburst.sprite = comboSunburstNormal;
+				}
 			} else {
 				comboSunburst.gameObject.SetActive(false);
 
@@ -609,6 +639,7 @@ namespace YARG.PlayMode {
 				if (starpowerCharge <= 0f) {
 					starpowerActive = false;
 					starpowerCharge = 0f;
+
 				} else {
 					starpowerCharge -= Time.deltaTime / 25f;
 				}

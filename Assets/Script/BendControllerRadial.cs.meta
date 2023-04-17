@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Script/PlayMode/ScoreDisplay.cs.meta
+guid: 7dee05751cf6d984fb478a96987aac8c
+========
+guid: 750ebc635e47b294197bcbb468b9b9ad
+>>>>>>>> master:Assets/Script/BendControllerRadial.cs.meta
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

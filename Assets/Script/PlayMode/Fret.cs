@@ -14,6 +14,11 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private MeshRenderer meshRenderer;
 
+		[SerializeField]
+		private int topMaterialIndex;
+		[SerializeField]
+		private int innerMaterialIndex;
+
 		/// <value>
 		/// Whether or not the fret is pressed. Used for data purposes.
 		/// </value>
@@ -23,19 +28,21 @@ namespace YARG.PlayMode {
 		} = false;
 
 		public void SetColor(Color c) {
-			meshRenderer.material.color = c;
+			meshRenderer.materials[topMaterialIndex].color = c;
+			meshRenderer.materials[innerMaterialIndex].color = c;
+
 			hitParticles.Colorize(c);
 			sustainParticles.Colorize(c);
 		}
 
 		public void SetPressed(bool pressed) {
-			meshRenderer.material.SetFloat("Fade", pressed ? 1f : 0f);
+			meshRenderer.materials[innerMaterialIndex].SetFloat("Fade", pressed ? 1f : 0f);
 
 			IsPressed = pressed;
 		}
 
 		public void Pulse() {
-			meshRenderer.material.SetFloat("Fade", 1f);
+			meshRenderer.materials[innerMaterialIndex].SetFloat("Fade", 1f);
 		}
 
 		private void Update() {
@@ -43,8 +50,9 @@ namespace YARG.PlayMode {
 				return;
 			}
 
-			float fade = meshRenderer.material.GetFloat("Fade") - Time.deltaTime * 4f;
-			meshRenderer.material.SetFloat("Fade", Mathf.Max(fade, 0f));
+			var mat = meshRenderer.materials[innerMaterialIndex];
+			float fade = mat.GetFloat("Fade") - Time.deltaTime * 4f;
+			mat.SetFloat("Fade", Mathf.Max(fade, 0f));
 		}
 
 		public void PlayParticles() {
