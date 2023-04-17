@@ -185,8 +185,7 @@ namespace YARG.PlayMode {
 
 			// Update this every frame to make sure all notes are spawned at the same time.
 			realSongTime = GameManager.AudioManager.CurrentPositionF;
-			Debug.Log(realSongTime);
-
+			
 			UpdateAudio(new string[] {
 				"guitar",
 				"realGuitar"
