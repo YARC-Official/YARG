@@ -33,7 +33,7 @@ namespace YARG.Pools {
 					text.color = Color.white;
 				}
 			} else if (Play.Instance.SongTime > lyric.time && Play.Instance.SongTime < lyric.EndTime) {
-				text.color = new Color(0.000f, 1.000f, 0.349f);
+				text.color = new Color(0.0549f, 0.6431f, 0.9765f);
 			} else {
 				text.color = new Color(0.349f, 0.349f, 0.349f);
 			}
