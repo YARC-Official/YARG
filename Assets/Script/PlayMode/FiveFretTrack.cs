@@ -172,6 +172,7 @@ namespace YARG.PlayMode {
 
 		private void UpdateInput() {
 			// Only want to decrease strum leniency on frames where we didn't strum
+			bool strummedCurrentNote = false;
 			if (strumLeniency > 0f && !strummed) {
 				strumLeniency -= Time.deltaTime;
 
@@ -181,6 +182,7 @@ namespace YARG.PlayMode {
 				} else {
 					RemoveOldAllowedOverstrums();
 					if (IsOverstrumForgiven()) { // Consume allowed overstrum as soon as it's "hit"
+						strummedCurrentNote = true;
 						strumLeniency = 0f;
 					}
 				}
@@ -289,6 +291,7 @@ namespace YARG.PlayMode {
 			expectedHits.Dequeue();
 
 			Combo++;
+			strummedCurrentNote = strummedCurrentNote || strummed || strumLeniency > 0f;
 			strumLeniency = 0f;
 			foreach (var hit in chord) {
 				hitChartIndex++;
@@ -324,7 +327,7 @@ namespace YARG.PlayMode {
 			// add it to the allowed overstrums. This is so the player
 			// doesn't lose their combo when they strum AFTER they hit
 			// the tap note.
-			if (chord[0].hopo && !strummed) {
+			if (chord[0].hopo && !strummedCurrentNote) {
 				allowedOverstrums.Clear(); // Only allow overstrumming latest HO/PO
 				allowedOverstrums.Add(chord);
 			} else if (allowedOverstrums.Count > 0 && !chord[0].hopo) {
