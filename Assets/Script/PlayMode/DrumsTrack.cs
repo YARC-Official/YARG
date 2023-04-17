@@ -1,6 +1,6 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System;
 using UnityEngine;
 using YARG.Data;
 using YARG.Input;
@@ -56,7 +56,7 @@ namespace YARG.PlayMode {
 			// GH vs RB
 
 			kickIndex = fiveLaneMode ? 5 : 4;
-			
+
 			// Lefty flip
 
 			if (player.leftyFlip) {
@@ -121,7 +121,7 @@ namespace YARG.PlayMode {
 					genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
 				} else if (eventInfo.name == $"starpower_{player.chosenInstrument}") {
 					StarpowerSection = eventInfo;
-				}else if (eventInfo.name == $"solo_{player.chosenInstrument}") {
+				} else if (eventInfo.name == $"solo_{player.chosenInstrument}") {
 					SoloSection = eventInfo;
 				}
 
@@ -197,8 +197,8 @@ namespace YARG.PlayMode {
 
 		private void DrumHitAction(int drum, bool cymbal) {
 			// invert input in case lefty flip is on, bots don't need it
-			if (player.leftyFlip && !input.botMode){
-				switch (drum){
+			if (player.leftyFlip && !input.botMode) {
+				switch (drum) {
 					case 0:
 						drum = kickIndex == 4 ? 3 : 4;
 						break;
@@ -212,7 +212,7 @@ namespace YARG.PlayMode {
 						drum = kickIndex == 4 ? 0 : 1;
 						break;
 					case 4:
-						if (kickIndex == 5){
+						if (kickIndex == 5) {
 							drum = 0;
 						}
 						break;

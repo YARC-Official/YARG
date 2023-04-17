@@ -21,11 +21,11 @@ namespace YARG.Serialization.Parser {
 		public MidiFile midi;
 
 		public MidiParser(SongInfo songInfo, string[] files) : base(songInfo, files) {
-			midi = MidiFile.Read(files[0], new ReadingSettings() {TextEncoding = System.Text.Encoding.UTF8 });
+			midi = MidiFile.Read(files[0], new ReadingSettings() { TextEncoding = System.Text.Encoding.UTF8 });
 
 			// Merge midi files
 			for (int i = 1; i < files.Length; i++) {
-				var upgrade = MidiFile.Read(files[i], new ReadingSettings() {TextEncoding = System.Text.Encoding.UTF8 });
+				var upgrade = MidiFile.Read(files[i], new ReadingSettings() { TextEncoding = System.Text.Encoding.UTF8 });
 
 				foreach (var trackChunk in upgrade.GetTrackChunks()) {
 					foreach (var trackEvent in trackChunk.Events) {
@@ -117,21 +117,19 @@ namespace YARG.Serialization.Parser {
 								chart.realLyrics = ParseRealLyrics(eventIR, trackChunk, tempo, -1);
 								ParseStarpower(eventIR, trackChunk, "vocals");
 								break;
-							case "HARM1":
-
 							case "PART REAL_GUITAR":
 								for (int i = 0; i < 4; i++) {
 									chart.realGuitar[i] = ParseRealGuitar(trackChunk, i);
 								}
 								ParseStarpower(eventIR, trackChunk, "realGuitar");
-								ParseSolo(eventIR, trackChunk, "realGuitar",8);
+								ParseSolo(eventIR, trackChunk, "realGuitar", 8);
 								break;
 							case "PART REAL_BASS":
 								for (int i = 0; i < 4; i++) {
 									chart.realBass[i] = ParseRealGuitar(trackChunk, i);
 								}
 								ParseStarpower(eventIR, trackChunk, "realBass");
-								ParseSolo(eventIR, trackChunk, "realBass",8);
+								ParseSolo(eventIR, trackChunk, "realBass", 8);
 								break;
 							case "PART DRUM":
 							case "PART DRUMS":
@@ -317,11 +315,10 @@ namespace YARG.Serialization.Parser {
 			}
 		}
 
-		private void ParseSolo(List<EventIR> eventIR, TrackChunk trackChunk, string instrument,int soloOctave=7) {
-			long totalDelta = 0;			
+		private void ParseSolo(List<EventIR> eventIR, TrackChunk trackChunk, string instrument, int soloOctave = 7) {
+			long totalDelta = 0;
 			long? soloStart = null;
-			
-			
+
 			// Convert track events into intermediate representation
 			foreach (var trackEvent in trackChunk.Events) {
 				totalDelta += trackEvent.DeltaTime;
@@ -329,7 +326,7 @@ namespace YARG.Serialization.Parser {
 				if (trackEvent is not NoteEvent noteEvent) {
 					continue;
 				}
-				
+
 				// Look for correct octave
 				if (noteEvent.GetNoteOctave() != soloOctave) {
 					continue;
@@ -339,8 +336,6 @@ namespace YARG.Serialization.Parser {
 				if (noteEvent.GetNoteName() != NoteName.G) {
 					continue;
 				}
-					
-				
 
 				if (trackEvent is NoteOnEvent) {
 					// We need to know when it ends before adding it
