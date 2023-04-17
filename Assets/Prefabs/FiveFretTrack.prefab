@@ -4837,8 +4837,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2552400928704172061}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: -0, z: 0.79966}
+  m_LocalScale: {x: 1, y: 1, z: 1.4443}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3935442421805911019}
@@ -10151,6 +10151,54 @@ MonoBehaviour:
   sunBurstSprite: {fileID: 21300000, guid: 3235c7c6359bba84a99591649a51b5cd, type: 3}
   sunBurstSpriteStarpower: {fileID: 21300000, guid: e1d36b6ae21bc594881648de5d531555,
     type: 3}
+  spStartAnimCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 1
+      outSlope: 1
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 1
+      outSlope: 1
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spEndAnimCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 1
+      outSlope: 1
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 1
+      outSlope: 1
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   frets:
   - {fileID: 1796160843375670296}
   - {fileID: 3335837233658615702}
@@ -10158,12 +10206,19 @@ MonoBehaviour:
   - {fileID: 8672493750730203813}
   - {fileID: 8220218687000570566}
   fretColors:
-  - {r: 0.43867922, g: 1, b: 0, a: 1}
-  - {r: 1, g: 0.011764706, b: 0, a: 1}
-  - {r: 1, g: 0.87982833, b: 0, a: 1}
-  - {r: 0, g: 0.2901961, b: 1, a: 1}
-  - {r: 1, g: 0.42802835, b: 0, a: 1}
+  - {r: 0.58097434, g: 1, b: 0, a: 1}
+  - {r: 1, g: 0, b: 0.14982128, a: 1}
+  - {r: 1, g: 0.9399502, b: 0, a: 1}
+  - {r: 0, g: 0.6686821, b: 1, a: 1}
+  - {r: 1, g: 0.59284186, b: 0, a: 1}
   - {r: 0.78306866, g: 0, b: 1, a: 1}
+  noteColors:
+  - {r: 0.4392157, g: 1, b: 0, a: 0}
+  - {r: 1, g: 0.011764706, b: 0, a: 0}
+  - {r: 1, g: 0.8784314, b: 0, a: 0}
+  - {r: 0, g: 0.2901961, b: 1, a: 0}
+  - {r: 1, g: 0.42745098, b: 0, a: 0}
+  - {r: 0.78431374, g: 0, b: 1, a: 0}
   notePool: {fileID: 9121291244003754727}
   genericPool: {fileID: 6222960093224628221}
   openNoteParticles: {fileID: 8279289512315810390}
