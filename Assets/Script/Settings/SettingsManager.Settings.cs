@@ -237,10 +237,20 @@ namespace YARG.Settings {
 			public void UseStarpowerFxChange() {
 				GameManager.AudioManager.UseStarpowerFx = useStarpowerFx;
 			}
+			
+			[SettingShowInGame]
+			[SettingLocation("general", 27)]
+			[SettingType("Toggle")]
+			public bool useChipmunkSpeed = false;
+
+			[SettingChangeFunc("useChipmunkSpeed")]
+			public void UseChipmunkSpeedChange() {
+				GameManager.AudioManager.IsChipmunkSpeedup = useChipmunkSpeed;
+			}
 
 			[SettingSpace]
 			[SettingShowInGame]
-			[SettingLocation("general", 27)]
+			[SettingLocation("general", 28)]
 			[SettingType("Toggle")]
 			public bool amIAwesome = false;
 		}
