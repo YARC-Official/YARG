@@ -64,7 +64,13 @@ namespace YARG.PlayMode {
 		protected float starpowerCharge;
 		protected bool starpowerActive;
 		protected Light comboSunburstEmbeddedLight;
+		
+		public EventInfo SoloSection {
+			get;
+			protected set;
+		} = null;
 
+		
 		// Overdrive animation parameters
 		protected Vector3 trackStartPos;
 		protected Vector3 trackEndPos = new(0, 0.13f, 0.2f);
@@ -226,6 +232,13 @@ namespace YARG.PlayMode {
 				trackMaterial.SetFloat("StarpowerState", Mathf.Lerp(currentStarpower, 0f, Time.deltaTime * 4f));
 			}
 
+			float currentSolo = trackMaterial.GetFloat("SoloState");
+			if (Play.Instance.SongTime>=SoloSection?.time && Play.Instance.SongTime<=SoloSection?.EndTime) {
+				trackMaterial.SetFloat("SoloState", Mathf.Lerp(currentSolo, 1f, Time.deltaTime * 2f));
+			}else{
+				trackMaterial.SetFloat("SoloState", Mathf.Lerp(currentSolo, 0f, Time.deltaTime * 2f));
+			}
+			
 			// Update starpower bar
 			var starpowerMat = starpowerBarTop.material;
 			starpowerMat.SetFloat("Fill", starpowerCharge);
