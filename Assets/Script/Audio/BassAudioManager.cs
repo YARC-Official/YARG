@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using ManagedBass;
 using ManagedBass.DirectX8;
+using ManagedBass.Fx;
 using ManagedBass.Mix;
 using UnityEngine;
 
 namespace YARG {
 	public class BassAudioManager : MonoBehaviour, IAudioManager {
-		public bool UseStarpowerFx { get; set; }
+		public bool UseStarpowerFx    { get; set; }
+		public bool IsChipmunkSpeedup { get; set; }
 
 		public IList<string> SupportedFormats { get; private set; }
 
@@ -164,7 +166,7 @@ namespace YARG {
 			Debug.Log("Finished loading SFX");
 		}
 
-		public void LoadSong(IEnumerable<string> stems) {
+		public void LoadSong(IEnumerable<string> stems, bool isSpeedUp) {
 			Debug.Log("Loading song");
 			UnloadSong();
 
@@ -189,22 +191,42 @@ namespace YARG {
 					Debug.LogError($"Bass Error: {Bass.LastError}");
 					continue;
 				}
-
+				
+				// Create BassFX Tempo handle
+				int tempoHandle = BassFx.TempoCreate(streamHandle, BassFlags.SampleOverrideLowestVolume | BassFlags.Decode);
+				
 				// Apply volume setting to stream
-				Bass.ChannelSetAttribute(streamHandle, ChannelAttribute.Volume, stemVolumes[stemIndex]);
+				Bass.ChannelSetAttribute(tempoHandle, ChannelAttribute.Volume, stemVolumes[stemIndex]);
 
-				double stemLength = GetAudioLengthInSeconds(streamHandle);
+				// Handle speed ups
+				if (isSpeedUp) {
+					float percentageSpeed = PlayMode.Play.speed;
+					
+					// Gets relative speed from 100% (so 1.05f = 5% increase)
+					float relativeSpeed = Math.Abs(percentageSpeed) * 100;
+					relativeSpeed -= 100;
+					Bass.ChannelSetAttribute(tempoHandle, ChannelAttribute.Tempo, relativeSpeed);
+
+					// Have to handle pitch separately for some reason
+					if (IsChipmunkSpeedup) {
+						// Calculates semitone increase, can probably be improved but this will do for now
+						float semitones = relativeSpeed > 0 ? 1 * percentageSpeed : -1 * percentageSpeed;
+						Bass.ChannelSetAttribute(tempoHandle, ChannelAttribute.Pitch, semitones);
+					}
+				}
+
+				double stemLength = GetAudioLengthInSeconds(tempoHandle);
 				if (stemLength > leadChannelLength) {
-					leadChannelHandle = streamHandle;
+					leadChannelHandle = tempoHandle;
 					leadChannelLength = stemLength;
 				}
 
-				stemChannels[stemIndex] = streamHandle;
+				stemChannels[stemIndex] = tempoHandle;
 				StemsLoaded++;
 
-				stemEffects.Add(streamHandle, new Dictionary<EffectType, int>());
+				stemEffects.Add(tempoHandle, new Dictionary<EffectType, int>());
 
-				BassMix.MixerAddChannel(mixerHandle, streamHandle, BassFlags.Default);
+				BassMix.MixerAddChannel(mixerHandle, tempoHandle, BassFlags.Default);
 			}
 
 			Debug.Log($"Loaded {StemsLoaded} stems");
@@ -245,7 +267,9 @@ namespace YARG {
 			}
 
 			// Playing mixer stream plays all channels
-			Bass.ChannelPlay(mixerHandle);
+			if (!Bass.ChannelPlay(mixerHandle)) {
+				Debug.Log($"Play error: {(int)Bass.LastError}");
+			}
 			IsPlaying = true;
 		}
 
