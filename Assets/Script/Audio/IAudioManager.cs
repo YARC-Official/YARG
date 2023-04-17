@@ -2,7 +2,8 @@ using System.Collections.Generic;
 
 namespace YARG {
 	public interface IAudioManager {
-		public bool UseStarpowerFx { get; set; }
+		public bool UseStarpowerFx  { get; set; }
+		public bool IsChipmunkSpeedup { get; set; }
 
 		public IList<string> SupportedFormats { get; }
 
@@ -22,7 +23,7 @@ namespace YARG {
 
 		public void LoadSfx();
 
-		public void LoadSong(IEnumerable<string> stems);
+		public void LoadSong(IEnumerable<string> stems, bool isSpeedUp);
 		public void UnloadSong();
 
 		public void Play();
