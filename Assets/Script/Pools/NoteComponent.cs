@@ -37,6 +37,11 @@ namespace YARG.Pools {
 					return Color.white;
 				}
 
+				// DEBUG: Temporary test code
+				if (pool.player.track.FillSection?.EndTime > pool.player.track.RelativeTime) {
+					return Color.magenta;
+				}
+
 				return _colorCache;
 			}
 			set => _colorCache = value;

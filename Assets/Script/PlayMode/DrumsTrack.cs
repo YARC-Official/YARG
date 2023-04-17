@@ -137,6 +137,10 @@ namespace YARG.PlayMode {
 					continue;
 				}
 
+				if (player.track.FillSection?.EndTime > player.track.RelativeTime) {
+					noteInfo.isActivator = true;
+				}
+
 				SpawnNote(noteInfo, RelativeTime);
 				visualChartIndex++;
 			}
@@ -173,8 +177,14 @@ namespace YARG.PlayMode {
 				var missedChord = expectedHits.Dequeue();
 
 				// Call miss for each component
-				Combo = 0;
 				foreach (var hit in missedChord) {
+					// The player should not be penalized for missing activator notes
+					if (hit.isActivator) {
+						continue;
+					}
+
+					Combo = 0;
+
 					hitChartIndex++;
 					notePool.MissNote(hit);
 					StopAudio = true;
@@ -227,6 +237,13 @@ namespace YARG.PlayMode {
 			// Check if a drum was hit
 			NoteInfo hit = null;
 			foreach (var note in chord) {
+				if (note.isActivator) {
+					Debug.Log("Activator hit");
+					(input as DrumsInputStrategy).ActivateStarpower();
+					hit = note;
+					break;
+				}
+
 				// Check if correct cymbal was hit
 				bool cymbalHit = note.hopo == cymbal;
 				if (player.chosenInstrument == "drums") {
