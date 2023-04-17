@@ -51,18 +51,18 @@ namespace YARG.UI {
 
 		[SerializeField]
 		private GameObject updateObject;
-		
+
 		private TextMeshProUGUI updateText;
 
 		private bool isUpdateShown;
-		
+
 		private void Start() {
 			Instance = this;
 
-			versionText.text = Constants.VERSION_TAG;
+			versionText.text = Constants.VERSION_TAG.ToString();
 
 			updateText = updateObject.GetComponentInChildren<TextMeshProUGUI>();
-			
+
 			if (SongLibrary.SongsByHash == null) {
 				RefreshSongLibrary();
 			}
@@ -113,8 +113,8 @@ namespace YARG.UI {
 
 			if (!isUpdateShown && GameManager.Instance.updateChecker.IsOutOfDate) {
 				isUpdateShown = true;
-				
-				string newVersion = GameManager.Instance.updateChecker.LatestVersion;
+
+				string newVersion = GameManager.Instance.updateChecker.LatestVersion.ToString();
 				updateText.text = $"New version available: {newVersion}";
 				updateObject.gameObject.gameObject.SetActive(true);
 			}

@@ -3,6 +3,7 @@ using UnityEngine.Audio;
 using UnityEngine.InputSystem;
 using UnityEngine.Profiling;
 using UnityEngine.SceneManagement;
+using YARG.Data;
 
 namespace YARG {
 	public enum SceneIndex {

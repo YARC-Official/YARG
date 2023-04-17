@@ -5,6 +5,7 @@ using System.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
+using YARG.Data;
 
 namespace YARG {
 	public class UpdateChecker : MonoBehaviour {
@@ -13,7 +14,7 @@ namespace YARG {
 		public bool CheckedForUpdates { get; private set; }
 		public bool IsOutOfDate { get; private set; }
 
-		public string LatestVersion { get; private set; }
+		public YargVersion LatestVersion { get; private set; }
 
 		private void Start() {
 			CheckForUpdates();
@@ -49,15 +50,15 @@ namespace YARG {
 					var jsonObject = JsonConvert.DeserializeObject<JToken>(json);
 					var releaseTag = jsonObject["tag_name"]!.Value<string>();
 
-					LatestVersion = releaseTag;
+					LatestVersion = YargVersion.Parse(releaseTag);
 
-					if (Constants.VERSION_TAG != LatestVersion) {
+					if (Constants.VERSION_TAG < LatestVersion) {
 						IsOutOfDate = true;
-					}
 
-					Debug.Log(LatestVersion != Constants.VERSION_TAG
-						? $"Update available! New version: {releaseTag}"
-						: "Game is up to date.");
+						Debug.Log($"Update available! New version: {releaseTag}");
+					} else {
+						Debug.Log("Game is up to date.");
+					}
 				}
 			} catch (Exception e) {
 				Debug.Log("Update check cancelled");
