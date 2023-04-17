@@ -21,11 +21,11 @@ namespace YARG.Serialization.Parser {
 		public MidiFile midi;
 
 		public MidiParser(SongInfo songInfo, string[] files) : base(songInfo, files) {
-			midi = MidiFile.Read(files[0]);
+			midi = MidiFile.Read(files[0], new ReadingSettings() {TextEncoding = System.Text.Encoding.UTF8 });
 
 			// Merge midi files
 			for (int i = 1; i < files.Length; i++) {
-				var upgrade = MidiFile.Read(files[i]);
+				var upgrade = MidiFile.Read(files[i], new ReadingSettings() {TextEncoding = System.Text.Encoding.UTF8 });
 
 				foreach (var trackChunk in upgrade.GetTrackChunks()) {
 					foreach (var trackEvent in trackChunk.Events) {
