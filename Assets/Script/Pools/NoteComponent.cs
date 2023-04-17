@@ -132,7 +132,7 @@ namespace YARG.Pools {
 				lineRenderer.materials[0].SetColor("_EmissionColor", ColorCacheSustains);
 			} else if (state == State.HITTING) {
 				lineRenderer.materials[0].color = ColorCacheSustains;
-				lineRenderer.materials[0].SetColor("_EmissionColor", ColorCacheSustains * 2f);
+				lineRenderer.materials[0].SetColor("_EmissionColor", ColorCacheSustains * 3f);
 			} else if (state == State.MISSED) {
 				lineRenderer.materials[0].color = new(0.9f, 0.9f, 0.9f, 0.5f);
 				lineRenderer.materials[0].SetColor("_EmissionColor", Color.black);
