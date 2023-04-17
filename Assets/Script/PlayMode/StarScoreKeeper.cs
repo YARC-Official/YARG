@@ -44,7 +44,9 @@ namespace YARG.PlayMode {
 		/// </summary>
 		public static double BandStars {
 			get {
-				return instances.Average(ins => ins.Stars);
+				if (instances.Count > 0)
+					return instances.Average(ins => ins.Stars);
+				return 0;
 			}
 		}
 
