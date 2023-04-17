@@ -137,7 +137,7 @@ namespace YARG.PlayMode {
 					continue;
 				}
 
-				if (player.track.FillSection?.EndTime > player.track.RelativeTime) {
+				if (player.track.FillSection?.EndTime == noteInfo.time && starpowerCharge >= 0.5f) {
 					noteInfo.isActivator = true;
 				}
 
@@ -238,7 +238,6 @@ namespace YARG.PlayMode {
 			NoteInfo hit = null;
 			foreach (var note in chord) {
 				if (note.isActivator) {
-					Debug.Log("Activator hit");
 					(input as DrumsInputStrategy).ActivateStarpower();
 					hit = note;
 					break;
@@ -272,7 +271,8 @@ namespace YARG.PlayMode {
 				expectedHits.Dequeue();
 			}
 
-			if (lastNote) {
+			// Activators should not affect combo
+			if (lastNote && !hit.isActivator) {
 				Combo++;
 			}
 

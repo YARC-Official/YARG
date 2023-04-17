@@ -38,7 +38,7 @@ namespace YARG.Pools {
 				}
 
 				// DEBUG: Temporary test code
-				if (pool.player.track.FillSection?.EndTime > pool.player.track.RelativeTime) {
+				if (pool.player.track.FillSection?.EndTime > pool.player.track.RelativeTime && pool.player.track.starpowerCharge >= 0.5f) {
 					return Color.magenta;
 				}
 
