@@ -28,7 +28,6 @@ namespace YARG.PlayMode {
 		private Queue<List<NoteInfo>> expectedHits = new();
 		private List<List<NoteInfo>> allowedOverstrums = new();
 		private List<NoteInfo> heldNotes = new();
-		private List<NoteInfo> latestHitNote = null;
 		private float? latestInput = null;
 		private bool latestInputIsStrum = false;
 
@@ -187,7 +186,6 @@ namespace YARG.PlayMode {
 			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Constants.HIT_MARGIN) {
 				var missedChord = expectedHits.Dequeue();
 
-				latestHitNote = null;
 				// Call miss for each component
 				Combo = 0;
 				foreach (var hit in missedChord) {
@@ -284,7 +282,7 @@ namespace YARG.PlayMode {
 			}
 
 			// If correct chord is pressed, and is not a multi-hit, hit it!
-			latestHitNote = expectedHits.Dequeue();
+			expectedHits.Dequeue();
 
 			Combo++;
 			strumLeniency = 0f;
@@ -396,7 +394,7 @@ namespace YARG.PlayMode {
 
 		private bool ChordPressed(List<NoteInfo> chordList, bool overstrumCheck = false) {
 			// Convert NoteInfo list to chord fret array
-			bool overlap = latestHitNote != null && ChordsOverlap(latestHitNote,chordList);
+			bool overlap = ChordsOverlap(heldNotes, chordList);
 			int[] chord = new int[chordList.Count];
 			for (int i = 0; i < chord.Length; i++) {
 				chord[i] = chordList[i].fret;
