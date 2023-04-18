@@ -144,7 +144,8 @@ namespace YARG.PlayMode {
 				// TODO: Only one note should be an activator at any given timestamp
 				if (player.track.FillSection?.EndTime == noteInfo.time
 					&& starpowerCharge >= 0.5f 
-					&& !starpowerActive) {
+					&& !starpowerActive
+					) {
 					noteInfo.isActivator = true;
 				}
 
@@ -330,7 +331,7 @@ namespace YARG.PlayMode {
 
 			// Set note info
 			var noteComp = notePool.AddNote(noteInfo, pos);
-			noteComp.SetInfo(drumColors[noteInfo.fret], noteInfo.length, model, noteInfo.isActivator);
+			noteComp.SetInfo(drumColors[noteInfo.fret], drumColors[noteInfo.fret], noteInfo.length, model, noteInfo.isActivator);
 		}
 	}
 }

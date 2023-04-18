@@ -41,11 +41,6 @@ namespace YARG.Pools {
 					return Color.white;
 				}
 
-				// DEBUG: Temporary test code
-				if (isActivatorNote) {
-					return Color.magenta;
-				}
-
 				return _colorCacheSustains;
 			}
 			set => _colorCacheSustains = value;
@@ -58,6 +53,10 @@ namespace YARG.Pools {
 				// If within starpower section
 				if (pool.player.track.StarpowerSection?.EndTime > pool.player.track.RelativeTime) {
 					return Color.white;
+				}
+
+				if (isActivatorNote) {
+					return Color.magenta;
 				}
 
 				return _colorCacheNotes;
