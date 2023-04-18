@@ -83,6 +83,7 @@ namespace YARG.Input {
 				var noteInfo = chart[botChartIndex];
 				botChartIndex++;
 
+				// Deal with no kicks
 				if (noteInfo.fret == 4 && SettingsManager.GetSettingValue<bool>("noKicks")) {
 					continue;
 				}

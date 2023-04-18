@@ -33,6 +33,9 @@ namespace YARG.UI {
 		private int optionCount;
 		private int selected;
 
+		public delegate void InstrumentSelectionAction(PlayerManager.Player playerInfo);
+		public static event InstrumentSelectionAction OnInstrumentSelection;
+
 		private void Start() {
 			foreach (var option in options) {
 				option.MouseHoverEvent += HoverOption;
@@ -59,19 +62,9 @@ namespace YARG.UI {
 			} else {
 				UpdateInstrument();
 			}
-
-			// Bind singal event
-			if (GameManager.client != null) {
-				GameManager.client.SignalEvent += SignalRecieved;
-			}
 		}
 
 		private void OnDisable() {
-			// Unbind events
-			if (GameManager.client != null) {
-				GameManager.client.SignalEvent -= SignalRecieved;
-			}
-
 			// Unbind input events
 			foreach (var player in PlayerManager.players) {
 				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
@@ -86,17 +79,6 @@ namespace YARG.UI {
 		}
 
 		private void Update() {
-			GameManager.client?.CheckForSignals();
-
-			// Scroll wheel
-
-			var scroll = Mouse.current.scroll.ReadValue().y;
-			if (scroll > 0f) {
-				MoveOption(-1);
-			} else if (scroll < 0f) {
-				MoveOption(1);
-			}
-
 			// Update player navigation
 			foreach (var player in PlayerManager.players) {
 				player.inputStrategy.UpdateNavigationMode();
@@ -142,7 +124,7 @@ namespace YARG.UI {
 			selected = Array.IndexOf(options, option);
 
 			// Slighty different than with the keyboard.
-			// Don't need to bound the top. The bottom should stop and not roll over.
+			// Don't need to bound the top. The bottom should stop and not roll over or go to an empty option.
 			if (selected >= optionCount) {
 				selected = optionCount - 1;
 			}
@@ -157,14 +139,12 @@ namespace YARG.UI {
 
 		public void Next() {
 			var player = PlayerManager.players[playerIndex];
-
 			if (state == State.INSTRUMENT) {
 				if (selected >= instruments.Length) {
 					player.chosenInstrument = null;
 					IncreasePlayerIndex();
 				} else {
 					player.chosenInstrument = instruments[selected];
-
 					bool showExpertPlus = player.chosenInstrument == "drums"
 						|| player.chosenInstrument == "realDrums"
 						|| player.chosenInstrument == "ghDrums";
@@ -172,6 +152,8 @@ namespace YARG.UI {
 				}
 			} else if (state == State.DIFFICULTY) {
 				player.chosenDifficulty = (Difficulty) selected;
+				OnInstrumentSelection?.Invoke(player);
+
 				IncreasePlayerIndex();
 			} else if (state == State.VOCALS) {
 				if (selected == 2) {
@@ -193,6 +175,7 @@ namespace YARG.UI {
 				}
 
 				playerIndex = -1;
+				OnInstrumentSelection?.Invoke(player);
 				IncreasePlayerIndex();
 			}
 		}
@@ -214,26 +197,10 @@ namespace YARG.UI {
 				}
 
 				// Play song (or download then play)
-				if (GameManager.client != null) {
-					GameManager.client.RequestDownload(MainMenu.Instance.chosenSong.folder.FullName);
-				} else {
-					Play.song = MainMenu.Instance.chosenSong;
-					GameManager.Instance.LoadScene(SceneIndex.PLAY);
-				}
+				Play.song = MainMenu.Instance.chosenSong;
+				GameManager.Instance.LoadScene(SceneIndex.PLAY);
 			} else {
 				UpdateInstrument();
-			}
-		}
-
-		private void SignalRecieved(string signal) {
-			if (signal.StartsWith("DownloadDone,")) {
-				Play.song = MainMenu.Instance.chosenSong.Duplicate();
-
-				// Replace song folder
-				Play.song.realFolderRemote = Play.song.folder;
-				Play.song.folder = new(Path.Combine(GameManager.client.remotePath, signal[13..]));
-
-				GameManager.Instance.LoadScene(SceneIndex.PLAY);
 			}
 		}
 

@@ -16,7 +16,7 @@ MonoBehaviour:
   m_TableCollectionNameGuidString: 0c40e690d26fdff4a92f0b3813ac68a4
   m_Entries:
   - m_Id: 27465736192
-    m_Key: songFolder
+    m_Key: openSongFolderManager
     m_Metadata:
       m_Items: []
   - m_Id: 904117215232
@@ -76,7 +76,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 3645699926646784
-    m_Key: musicVolume
+    m_Key: masterMusicVolume
     m_Metadata:
       m_Items: []
   - m_Id: 3645822882668544
@@ -113,6 +113,30 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 4106530829230080
     m_Key: noKicks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5156852523720704
+    m_Key: disableBloom
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7304579734953984
+    m_Key: amIAwesome
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7405541279522816
+    m_Key: copyCurrentSongTextFilePath
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7748727102816256
+    m_Key: sfxVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7748836536401920
+    m_Key: useStarpowerFx
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7760843058757632
+    m_Key: rhythmVolume
     m_Metadata:
       m_Items: []
   m_Metadata:

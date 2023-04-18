@@ -5,6 +5,8 @@ using YARG.PlayMode;
 
 namespace YARG.Pools {
 	public sealed class LyricPool : Pool {
+		private const float TEXT_SPACING = 0.25f;
+
 		private List<GameObject> starpowerActivates = new();
 
 		private float lastLyricLocationBottom = float.NegativeInfinity;
@@ -20,15 +22,15 @@ namespace YARG.Pools {
 			// Don't let lyrics collide
 			if (onTop) {
 				if (x < lastLyricLocationTop) {
-					x = lastLyricLocationTop + 0.125f;
+					x = lastLyricLocationTop + TEXT_SPACING;
 				}
 			} else {
 				if (x < lastLyricLocationBottom) {
-					x = lastLyricLocationBottom + 0.125f;
+					x = lastLyricLocationBottom + TEXT_SPACING;
 				}
 			}
 
-			var poolable = (VocalLyric) Add("lyric", new Vector3(x, 0f, onTop ? 0.81f : -0.74f));
+			var poolable = (VocalLyric) Add("lyric", new Vector3(x, 0f, onTop ? 0.81f : -0.758f));
 			poolable.SetLyric(lyric, starpower);
 
 			// Calculate the location of the end of the lyric
@@ -60,7 +62,7 @@ namespace YARG.Pools {
 				return null;
 			}
 
-			var poolable = (VocalStarpowerActivate) Add("starpowerActivate", new Vector3(newX, -0.04f, onTop ? 0.77f : -0.77f));
+			var poolable = (VocalStarpowerActivate) Add("starpowerActivate", new Vector3(newX, -0.04f, onTop ? 0.775f : -0.815f));
 			poolable.SetLength(length);
 
 			starpowerActivates.Add(poolable.gameObject);

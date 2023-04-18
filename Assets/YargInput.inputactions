@@ -375,7 +375,7 @@
                 {
                     "name": "up",
                     "id": "7d18d678-4342-48a2-87df-d566a60b92fb",
-                    "path": "<HID::Licensed by Sony Computer Entertainment Guitar Hero3 for PlayStation (R) 3>/hat/up",
+                    "path": "<FiveFretGuitar>/strumUp",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -386,7 +386,7 @@
                 {
                     "name": "down",
                     "id": "936ea8d2-0d8c-4d81-9d0d-90d48091cc73",
-                    "path": "<HID::Licensed by Sony Computer Entertainment Guitar Hero3 for PlayStation (R) 3>/hat/down",
+                    "path": "<FiveFretGuitar>/strumDown",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -418,6 +418,17 @@
                 },
                 {
                     "name": "",
+                    "id": "008f27ca-ce27-4f8d-8a26-a8cf4d5100bd",
+                    "path": "*/{Hatswitch}",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Navigate",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "c035198e-be31-4579-a4c6-66f5b69342f4",
                     "path": "*/{Submit}",
                     "interactions": "",
@@ -429,30 +440,8 @@
                 },
                 {
                     "name": "",
-                    "id": "145e0298-a67d-4af9-a442-762daea828f7",
-                    "path": "<HID::Licensed by Sony Computer Entertainment Guitar Hero3 for PlayStation (R) 3>/button2",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Submit",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "390c0109-b2ca-461a-930d-835a59b771e3",
                     "path": "*/{Cancel}",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Cancel",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "a3574660-4f54-4904-9520-b1edcee27fef",
-                    "path": "<HID::Licensed by Sony Computer Entertainment Guitar Hero3 for PlayStation (R) 3>/button3",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -667,8 +656,8 @@
                 },
                 {
                     "name": "",
-                    "id": "9c7591d7-0b18-431e-8809-b91ff7244d39",
-                    "path": "<HID::Licensed by Sony Computer Entertainment Guitar Hero3 for PlayStation (R) 3>/button2",
+                    "id": "48f668c5-31bb-4060-b41f-a9d4721c066c",
+                    "path": "<FiveFretGuitar>/greenFret",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -689,8 +678,8 @@
                 },
                 {
                     "name": "",
-                    "id": "5a79ad7d-5c4f-4a26-9113-d403f9102e0b",
-                    "path": "<HID::Licensed by Sony Computer Entertainment Guitar Hero3 for PlayStation (R) 3>/button3",
+                    "id": "a4aac011-43f9-4b00-ab8b-376014c39501",
+                    "path": "<FiveFretGuitar>/redFret",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -711,8 +700,8 @@
                 },
                 {
                     "name": "",
-                    "id": "0aeb54ac-f82c-4524-961c-a6077b83d1d1",
-                    "path": "<HID::Licensed by Sony Computer Entertainment Guitar Hero3 for PlayStation (R) 3>/trigger",
+                    "id": "075cc472-8aaa-4e84-9b9a-1157baaa5553",
+                    "path": "<FiveFretGuitar>/yellowFret",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -733,8 +722,8 @@
                 },
                 {
                     "name": "",
-                    "id": "fbbd348f-8ba5-4793-83ec-4ef87fb7a65b",
-                    "path": "<HID::Licensed by Sony Computer Entertainment Guitar Hero3 for PlayStation (R) 3>/button4",
+                    "id": "dbcf7093-29f9-43ad-a5bb-244f47da4acc",
+                    "path": "<FiveFretGuitar>/blueFret",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -755,8 +744,8 @@
                 },
                 {
                     "name": "",
-                    "id": "2e6497d8-2a24-4716-bf0e-d886d72d8182",
-                    "path": "<HID::Licensed by Sony Computer Entertainment Guitar Hero3 for PlayStation (R) 3>/button5",
+                    "id": "a73b04eb-2230-41b6-b18d-73fb1c043c5b",
+                    "path": "<FiveFretGuitar>/orangeFret",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -777,8 +766,8 @@
                 },
                 {
                     "name": "",
-                    "id": "ce11a284-eb6d-467d-b0dd-899532072ffd",
-                    "path": "<HID::Licensed by Sony Computer Entertainment Guitar Hero3 for PlayStation (R) 3>/hat/down",
+                    "id": "9925af05-ac41-4d42-be63-eee389da4c28",
+                    "path": "<FiveFretGuitar>/strumUp",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -788,8 +777,8 @@
                 },
                 {
                     "name": "",
-                    "id": "b98c132e-21fc-4b48-a35f-e53785dc7b71",
-                    "path": "<HID::Licensed by Sony Computer Entertainment Guitar Hero3 for PlayStation (R) 3>/hat/up",
+                    "id": "669fbe93-597e-4261-82dc-deeedb2e3c88",
+                    "path": "<FiveFretGuitar>/strumDown",
                     "interactions": "",
                     "processors": "",
                     "groups": "",

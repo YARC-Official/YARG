@@ -182,13 +182,14 @@ namespace YARG.Serialization.Parser {
 					}
 
 					// Remove ignored tags (for now)
-					if (l.EndsWith("/") || l.EndsWith("%") || l.EndsWith("§")) {
+					if (l.EndsWith("/") || l.EndsWith("%")) {
 						l = l[..^1];
 					}
 
 					// Replace
 					l = l.Replace('=', '-');
 					l = l.Replace('_', ' ');
+					l = l.Replace('§', '‿');
 
 					// Replace lyric with nothing if hidden
 					if (harmonyIndex != 0 && hidden) {

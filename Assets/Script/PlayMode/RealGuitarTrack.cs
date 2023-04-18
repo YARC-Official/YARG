@@ -24,13 +24,13 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private Color[] stringColors;
 		[SerializeField]
+		private Color[] noteColors;
+		[SerializeField]
+		private Color[] sustainColors;
+		[SerializeField]
 		private NotePool notePool;
 		[SerializeField]
 		private Pool genericPool;
-
-		private int visualChartIndex = 0;
-		private int realChartIndex = 0;
-		private int eventChartIndex = 0;
 
 		private Queue<NoteInfo> expectedHits = new();
 		private List<NoteInfo> heldNotes = new();
@@ -113,6 +113,8 @@ namespace YARG.PlayMode {
 					genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
 				} else if (eventInfo.name == $"starpower_{player.chosenInstrument}") {
 					StarpowerSection = eventInfo;
+				} else if (eventInfo.name == $"solo_{player.chosenInstrument}") {
+					SoloSection = eventInfo;
 				}
 
 				eventChartIndex++;
@@ -127,10 +129,10 @@ namespace YARG.PlayMode {
 			}
 
 			// Update expected input
-			while (Chart.Count > realChartIndex && Chart[realChartIndex].time <= Play.Instance.SongTime + Play.HIT_MARGIN) {
-				expectedHits.Enqueue(Chart[realChartIndex]);
+			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= Play.Instance.SongTime + Constants.HIT_MARGIN) {
+				expectedHits.Enqueue(Chart[inputChartIndex]);
 
-				realChartIndex++;
+				inputChartIndex++;
 			}
 
 			// Update held notes
@@ -147,12 +149,17 @@ namespace YARG.PlayMode {
 			strumFlag = StrumFlag.NONE;
 		}
 
+		public override void SetReverb(bool on) {
+			Play.Instance.ReverbAudio("guitar", on);
+		}
+
 		private void UpdateInput() {
 			// Handle misses (multiple a frame in case of lag)
-			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?.time > Play.HIT_MARGIN) {
+			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?.time > Constants.HIT_MARGIN) {
 				var missedNote = expectedHits.Dequeue();
 
 				// Call miss for each component
+				hitChartIndex++;
 				Combo = 0;
 				notePool.MissNote(missedNote);
 				StopAudio = true;
@@ -184,6 +191,7 @@ namespace YARG.PlayMode {
 			}
 
 			// If so, hit!
+			hitChartIndex++;
 			expectedHits.Dequeue();
 
 			Combo++;
@@ -192,6 +200,13 @@ namespace YARG.PlayMode {
 			notePool.HitNote(note);
 			StopAudio = false;
 			notesHit++;
+
+			// Solo stuff
+			if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime) {
+				soloNotesHit++;
+			} else if (Play.Instance.SongTime >= SoloSection?.EndTime + 10) {
+				soloNotesHit = 0;
+			}
 
 			// Play particles
 			for (int i = 0; i < 6; i++) {
@@ -279,7 +294,7 @@ namespace YARG.PlayMode {
 				// Set note info
 				var noteComp = notePool.AddNote(noteInfo, pos);
 				var model = noteInfo.hopo ? NoteComponent.ModelType.HOPO : NoteComponent.ModelType.NOTE;
-				noteComp.SetInfo(stringColors[i], noteInfo.length, model);
+				noteComp.SetInfo(noteColors[i], sustainColors[i], noteInfo.length, model);
 				noteComp.SetFretNumber(noteInfo.muted ? "X" : noteInfo.stringFrets[i].ToString());
 			}
 		}

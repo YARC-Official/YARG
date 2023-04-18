@@ -1,5 +1,6 @@
-using System.IO;
+using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Data;
 using YARG.Input;
@@ -37,14 +38,34 @@ namespace YARG.UI {
 		[SerializeField]
 		private GameObject settingsContainer;
 		[SerializeField]
+		private GameObject songFolderManager;
+		[SerializeField]
 		private GameObject loadingScreen;
 		[SerializeField]
+		private TextMeshProUGUI loadingStatus;
+		[SerializeField]
 		private Image progressBar;
+
+		[SerializeField]
+		private TextMeshProUGUI versionText;
+
+		[SerializeField]
+		private GameObject updateObject;
+
+		private TextMeshProUGUI updateText;
+
+		private bool isUpdateShown;
 
 		private void Start() {
 			Instance = this;
 
-			RefreshSongLibrary();
+			versionText.text = Constants.VERSION_TAG.ToString();
+
+			updateText = updateObject.GetComponentInChildren<TextMeshProUGUI>();
+
+			if (SongLibrary.SongsByHash == null) {
+				RefreshSongLibrary();
+			}
 
 			if (!isPostSong) {
 				ShowMainMenu();
@@ -74,10 +95,12 @@ namespace YARG.UI {
 			// Update progress if loading
 			if (loadingScreen.activeSelf) {
 				progressBar.fillAmount = SongLibrary.loadPercent;
+				loadingStatus.text = SongLibrary.currentTaskDescription;
 
 				// Finish loading
-				if (SongLibrary.loadPercent >= 1f) {
+				if (!SongLibrary.currentlyLoading) {
 					loadingScreen.SetActive(false);
+					SongLibrary.loadPercent = 0f;
 				}
 
 				return;
@@ -86,6 +109,14 @@ namespace YARG.UI {
 			// Update player navigation
 			foreach (var player in PlayerManager.players) {
 				player.inputStrategy.UpdateNavigationMode();
+			}
+
+			if (!isUpdateShown && GameManager.Instance.updateChecker.IsOutOfDate) {
+				isUpdateShown = true;
+
+				string newVersion = GameManager.Instance.updateChecker.LatestVersion.ToString();
+				updateText.text = $"New version available: {newVersion}";
+				updateObject.gameObject.gameObject.SetActive(true);
 			}
 		}
 
@@ -116,9 +147,8 @@ namespace YARG.UI {
 
 			MainMenuBackground.Instance.cursorMoves = true;
 
-			menuContainer.SetActive(true);
-			settingsContainer.SetActive(false);
 			mainMenu.gameObject.SetActive(true);
+			ShowMenuContainer();
 		}
 
 		public void ShowEditPlayers() {
@@ -152,9 +182,28 @@ namespace YARG.UI {
 			credits.gameObject.SetActive(true);
 		}
 
-		public void ToggleSettingsMenu() {
-			menuContainer.SetActive(!menuContainer.activeSelf);
-			settingsContainer.SetActive(!settingsContainer.activeSelf);
+		public void HideAllMainMenu() {
+			menuContainer.SetActive(false);
+			settingsContainer.SetActive(false);
+			songFolderManager.SetActive(false);
+		}
+
+		public void ShowSettingsMenu() {
+			HideAllMainMenu();
+
+			settingsContainer.SetActive(true);
+		}
+
+		public void ShowMenuContainer() {
+			HideAllMainMenu();
+
+			menuContainer.SetActive(true);
+		}
+
+		public void ShowSongFolderManager() {
+			HideAllMainMenu();
+
+			songFolderManager.SetActive(true);
 		}
 
 		public void ShowCalibrationScene() {
@@ -167,35 +216,37 @@ namespace YARG.UI {
 			GameManager.Instance.LoadScene(SceneIndex.SERVER_HOST);
 		}
 
-		public void RefreshCache() {
-			if (File.Exists(SongLibrary.CacheFile)) {
-				File.Delete(SongLibrary.CacheFile);
-				RefreshSongLibrary();
-			}
-		}
-
 		public void AbortSongLoad() {
-			SongLibrary.Reset();
-			ScoreManager.Reset();
+			SettingsManager.DeleteSettingsFile();
 
-			loadingScreen.SetActive(false);
-
-			SettingsManager.SetSettingValue("songFolder", null);
+			Quit();
 		}
 
 		public void RefreshSongLibrary() {
 			SongLibrary.Reset();
 			ScoreManager.Reset();
 
-			bool loading = !SongLibrary.FetchSongs();
-			loadingScreen.SetActive(loading);
+			SongLibrary.FetchEverything();
+			loadingScreen.SetActive(true);
 			ScoreManager.FetchScores();
 
 			SongSelect.refreshFlag = true;
 		}
 
+		public void OpenLatestRelease() {
+			Application.OpenURL("https://github.com/EliteAsian123/YARG/releases/latest");
+		}
+
 		public void Quit() {
+#if UNITY_EDITOR
+
+			UnityEditor.EditorApplication.isPlaying = false;
+
+#else
+
 			Application.Quit();
+
+#endif
 		}
 	}
 }

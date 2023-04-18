@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -23,15 +24,13 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private Color[] drumColors;
 		[SerializeField]
+		private Color[] noteColors;
+		[SerializeField]
 		private NotePool notePool;
 		[SerializeField]
 		private Pool genericPool;
 		[SerializeField]
 		private ParticleGroup kickNoteParticles;
-
-		private int visualChartIndex = 0;
-		private int realChartIndex = 0;
-		private int eventChartIndex = 0;
 
 		private Queue<List<NoteInfo>> expectedHits = new();
 
@@ -44,12 +43,6 @@ namespace YARG.PlayMode {
 			genericPool.player = player;
 
 			noKickMode = SettingsManager.GetSettingValue<bool>("noKicks");
-
-			// Lefty flip
-
-			if (player.leftyFlip) {
-				drums = drums.Reverse().ToArray();
-			}
 
 			// Inputs
 
@@ -65,6 +58,14 @@ namespace YARG.PlayMode {
 			// GH vs RB
 
 			kickIndex = fiveLaneMode ? 5 : 4;
+
+			// Lefty flip
+
+			if (player.leftyFlip) {
+				drums = drums.Reverse().ToArray();
+				// Make the drum colors follow the original order even though the chart is flipped
+				Array.Reverse(drumColors, 0, kickIndex);
+			}
 
 			// Color drums
 			for (int i = 0; i < drums.Length; i++) {
@@ -122,6 +123,8 @@ namespace YARG.PlayMode {
 					genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
 				} else if (eventInfo.name == $"starpower_{player.chosenInstrument}") {
 					StarpowerSection = eventInfo;
+				} else if (eventInfo.name == $"solo_{player.chosenInstrument}") {
+					SoloSection = eventInfo;
 				}
 
 				eventChartIndex++;
@@ -142,12 +145,12 @@ namespace YARG.PlayMode {
 			}
 
 			// Update expected input
-			while (Chart.Count > realChartIndex && Chart[realChartIndex].time <= Play.Instance.SongTime + Play.HIT_MARGIN) {
-				var noteInfo = Chart[realChartIndex];
+			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= Play.Instance.SongTime + Constants.HIT_MARGIN) {
+				var noteInfo = Chart[inputChartIndex];
 
 				// Skip kick notes if noKickMode is enabled
 				if (noteInfo.fret == kickIndex && noKickMode) {
-					realChartIndex++;
+					inputChartIndex++;
 					continue;
 				}
 
@@ -161,20 +164,29 @@ namespace YARG.PlayMode {
 					expectedHits.Enqueue(l);
 				}
 
-				realChartIndex++;
+				inputChartIndex++;
 			}
 
 			UpdateInput();
 		}
 
+		public override void SetReverb(bool on) {
+			Play.Instance.ReverbAudio("drums", on);
+			Play.Instance.ReverbAudio("drums_1", on);
+			Play.Instance.ReverbAudio("drums_2", on);
+			Play.Instance.ReverbAudio("drums_3", on);
+			Play.Instance.ReverbAudio("drums_4", on);
+		}
+
 		private void UpdateInput() {
 			// Handle misses (multiple a frame in case of lag)
-			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Play.HIT_MARGIN) {
+			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Constants.HIT_MARGIN) {
 				var missedChord = expectedHits.Dequeue();
 
 				// Call miss for each component
 				Combo = 0;
 				foreach (var hit in missedChord) {
+					hitChartIndex++;
 					notePool.MissNote(hit);
 					StopAudio = true;
 				}
@@ -186,6 +198,28 @@ namespace YARG.PlayMode {
 		}
 
 		private void DrumHitAction(int drum, bool cymbal) {
+			// invert input in case lefty flip is on, bots don't need it
+			if (player.leftyFlip && !input.botMode) {
+				switch (drum) {
+					case 0:
+						drum = kickIndex == 4 ? 3 : 4;
+						break;
+					case 1:
+						drum = kickIndex == 4 ? 2 : 3;
+						break;
+					case 2:
+						drum = kickIndex == 4 ? 1 : 2;
+						break;
+					case 3:
+						drum = kickIndex == 4 ? 0 : 1;
+						break;
+					case 4:
+						if (kickIndex == 5) {
+							drum = 0;
+						}
+						break;
+				}
+			}
 			if (drum != kickIndex) {
 				// Hit effect
 				drums[drum].Pulse();
@@ -237,6 +271,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Hit note
+			hitChartIndex++;
 			notePool.HitNote(hit);
 			StopAudio = false;
 
@@ -278,7 +313,7 @@ namespace YARG.PlayMode {
 
 			// Set note info
 			var noteComp = notePool.AddNote(noteInfo, pos);
-			noteComp.SetInfo(drumColors[noteInfo.fret], noteInfo.length, model);
+			noteComp.SetInfo(noteColors[noteInfo.fret], noteColors[noteInfo.fret], noteInfo.length, model);
 		}
 	}
 }

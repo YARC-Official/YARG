@@ -14,6 +14,7 @@ namespace YARG.Data {
 		public List<NoteInfo>[] realBass   = CreateArray();
 		
 		public List<NoteInfo>[] drums      = CreateArray(5);
+		public List<NoteInfo>[] realDrums  = CreateArray(5);
 		public List<NoteInfo>[] ghDrums    = CreateArray(5);
 
 #pragma warning restore format
@@ -38,7 +39,7 @@ namespace YARG.Data {
 
 		public Chart() {
 			allParts = new() {
-				guitar, bass, keys, realGuitar, realBass, drums, ghDrums
+				guitar, bass, keys, realGuitar, realBass, drums, realDrums, ghDrums
 			};
 		}
 
@@ -49,7 +50,8 @@ namespace YARG.Data {
 				"keys" => keys,
 				"realGuitar" => realGuitar,
 				"realBass" => realBass,
-				"drums" or "realDrums" => drums,
+				"drums" => drums,
+				"realDrums" => realDrums,
 				"ghDrums" => ghDrums,
 				_ => throw new InvalidOperationException($"Unsupported chart type `{name}`.")
 			};

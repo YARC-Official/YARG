@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.12731749, g: 0.13414757, b: 0.1210787, a: 1}
+  m_IndirectSpecularColor: {r: 0.12731713, g: 0.13414738, b: 0.121078536, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -123,6 +123,52 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &160057391
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 160057392}
+  - component: {fileID: 160057393}
+  m_Layer: 0
+  m_Name: Graphics Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &160057392
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 160057391}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &160057393
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 160057391}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88942f04f766c944aa1997decfa98d32, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  postProcessingProfile: {fileID: 11400000, guid: a6560a915ef98420e9faacc1c7438823,
+    type: 2}
 --- !u!1 &532586439
 GameObject:
   m_ObjectHideFlags: 0
@@ -203,6 +249,7 @@ GameObject:
   m_Component:
   - component: {fileID: 788257160}
   - component: {fileID: 788257161}
+  - component: {fileID: 788257162}
   m_Layer: 0
   m_Name: Game Manager
   m_TagString: Untagged
@@ -237,8 +284,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8241ed3bc1487244ba78808cf37d12e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  updateChecker: {fileID: 0}
   vocalGroup: {fileID: -541741410412472071, guid: d5f8521c55f50a44eb1e292204769821,
     type: 2}
+--- !u!114 &788257162
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 788257159}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5937911890937c4e97d340c6d6b2831, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &874125449
 GameObject:
   m_ObjectHideFlags: 0
@@ -268,13 +328,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb438f304d0d4064fb1de229c53becde, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  songStartObject: {fileID: 0}
   applicationID: 1091177744416637028
-  details: Hello there ladies and gentlemen!
-  state: Are you ready to rock?
-  largeImage: logo
-  largeText: Yet Another Rhythm Game
-  smallImage: 
-  smallText: 
+  defaultDetails: Hello there ladies and gentlemen!
+  defaultState: Are you ready to rock?
+  defaultLargeText: Yet Another Rhythm Game
+  defaultSmallImage: 
+  defaultSmallText: 
+  currentDetails: 
+  currenttState: 
+  currentLargeText: 
+  currentSmallImage: 
+  currentSmallText: 
 --- !u!4 &874125451
 Transform:
   m_ObjectHideFlags: 0
@@ -289,6 +354,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1179509444
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1179509446}
+  - component: {fileID: 1179509445}
+  m_Layer: 0
+  m_Name: Twitch Controller
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1179509445
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1179509444}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43233795acd9ae84690111f3010c5413, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &1179509446
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1179509444}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &4560541903152539489
 MonoBehaviour:

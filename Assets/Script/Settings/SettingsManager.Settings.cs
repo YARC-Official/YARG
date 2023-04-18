@@ -6,39 +6,32 @@ using YARG.UI;
 namespace YARG.Settings {
 	public static partial class SettingsManager {
 		private class SettingContainer {
+			/*
+			
+			TODO: THIS IS TERRIBLE. REDO!
+			
+			*/
+
+			public string[] songFolders = new string[] { };
+
 			[SettingLocation("general", 1)]
-			[SettingType("Folder")]
-			public string songFolder = null;
-
-			[SettingInteractableFunc("songFolder")]
-			public bool SongFolderInteractable() {
-				return GameManager.client == null;
-			}
-
-			[SettingChangeFunc("songFolder")]
-			public void SongFolderChange() {
-				if (MainMenu.Instance != null) {
-					MainMenu.Instance.RefreshSongLibrary();
-				}
+			[SettingButton("openSongFolderManager")]
+			public void OpenSongFolderManager() {
+				MainMenu.Instance.ShowSongFolderManager();
 			}
 
 			[SettingLocation("general", 2)]
-			[SettingButton("refreshCache")]
-			public void RefreshCache() {
-				MainMenu.Instance.RefreshCache();
-			}
-
-			[SettingInteractableFunc("refreshCache")]
-			public bool RefreshCacheInteractable() {
-				return GameManager.client == null;
-			}
-
-			[SettingLocation("general", 3)]
 			[SettingButton("exportOuvertSongs")]
 			public void ExportOuvertSongs() {
 				StandaloneFileBrowser.SaveFilePanelAsync("Save Song List", null, "songs", "json", path => {
 					OuvertExport.ExportOuvertSongsTo(path);
 				});
+			}
+
+			[SettingLocation("general", 3)]
+			[SettingButton("copyCurrentSongTextFilePath")]
+			public void CopyCurrentSongTextFilePath() {
+				GUIUtility.systemCopyBuffer = TwitchController.Instance.TextFilePath;
 			}
 
 			[SettingSpace]
@@ -61,31 +54,40 @@ namespace YARG.Settings {
 
 			[SettingChangeFunc("lowQuality")]
 			public void LowQualityChange() {
-				QualitySettings.SetQualityLevel(lowQuality ? 0 : 1, true);
+				GraphicsManager.Instance.LowQuality = lowQuality;
 			}
 
 			[SettingLocation("general", 7)]
 			[SettingType("Toggle")]
 			public bool showHitWindow = false;
 
-			[SettingLocation("general", 8)]
-			[SettingType("Toggle")]
-			public bool useAudioTime = false;
-
 			[SettingLocation("general", 9)]
 			[SettingType("Toggle")]
 			public bool muteOnMiss = true;
 
+			[SettingShowInGame]
 			[SettingLocation("general", 10)]
 			[SettingType("Toggle")]
 			public bool useCymbalModelsInFiveLane = true;
 
+			[SettingShowInGame]
 			[SettingLocation("general", 11)]
+			[SettingType("Toggle")]
+			public bool disableBloom = false;
+
+			[SettingChangeFunc("disableBloom")]
+			public void DisableBloomChange() {
+				GraphicsManager.Instance.BloomEnabled = !disableBloom;
+			}
+
+			[SettingSpace]
+			[SettingLocation("general", 12)]
 			[SettingType("Toggle")]
 			public bool noKicks = false;
 
 			[SettingSpace]
-			[SettingLocation("general", 12)]
+			[SettingShowInGame]
+			[SettingLocation("general", 13)]
 			[SettingType("Toggle")]
 			public bool vsync = true;
 
@@ -94,7 +96,8 @@ namespace YARG.Settings {
 				QualitySettings.vSyncCount = vsync ? 1 : 0;
 			}
 
-			[SettingLocation("general", 13)]
+			[SettingShowInGame]
+			[SettingLocation("general", 14)]
 			[SettingType("Number")]
 			public int fpsCap = 60;
 
@@ -109,79 +112,114 @@ namespace YARG.Settings {
 			}
 
 			[SettingSpace]
-			[SettingLocation("general", 14)]
+			[SettingShowInGame]
+			[SettingLocation("general", 15)]
 			[SettingType("Volume")]
-			public float musicVolume = 0.9f;
+			public float masterMusicVolume = 0.9f;
 
-			[SettingChangeFunc("musicVolume")]
+			[SettingChangeFunc("masterMusicVolume")]
 			public void SongVolumeChange() {
-				AudioManager.Instance.SetVolume("music", musicVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Master, masterMusicVolume);
 			}
 
-			[SettingLocation("general", 15)]
+			[SettingShowInGame]
+			[SettingLocation("general", 16)]
 			[SettingType("Volume")]
 			public float guitarVolume = 1f;
 
 			[SettingChangeFunc("guitarVolume")]
 			public void GuitarVolumeChange() {
-				AudioManager.Instance.SetVolume("guitar", guitarVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Guitar, guitarVolume);
 			}
 
-			[SettingLocation("general", 16)]
+			[SettingShowInGame]
+			[SettingLocation("general", 17)]
+			[SettingType("Volume")]
+			public float rhythmVolume = 1f;
+
+			[SettingChangeFunc("rhythmVolume")]
+			public void RhythmVolumeChange() {
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Rhythm, rhythmVolume);
+			}
+
+			[SettingShowInGame]
+			[SettingLocation("general", 18)]
 			[SettingType("Volume")]
 			public float bassVolume = 1f;
 
 			[SettingChangeFunc("bassVolume")]
 			public void BassVolumeChange() {
-				AudioManager.Instance.SetVolume("bass", bassVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Bass, bassVolume);
 			}
 
-			[SettingLocation("general", 17)]
+			[SettingShowInGame]
+			[SettingLocation("general", 19)]
 			[SettingType("Volume")]
 			public float keysVolume = 1f;
 
 			[SettingChangeFunc("keysVolume")]
 			public void KeysVolumeChange() {
-				AudioManager.Instance.SetVolume("keys", keysVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Keys, keysVolume);
 			}
 
-			[SettingLocation("general", 18)]
+			[SettingShowInGame]
+			[SettingLocation("general", 20)]
 			[SettingType("Volume")]
 			public float drumsVolume = 1f;
 
 			[SettingChangeFunc("drumsVolume")]
 			public void DrumsVolumeChange() {
-				AudioManager.Instance.SetVolume("drums", drumsVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums, drumsVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums1, drumsVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums2, drumsVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums3, drumsVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums4, drumsVolume);
 			}
 
-			[SettingLocation("general", 19)]
+			[SettingShowInGame]
+			[SettingLocation("general", 21)]
 			[SettingType("Volume")]
 			public float vocalsVolume = 1f;
 
 			[SettingChangeFunc("vocalsVolume")]
 			public void VocalsVolumeChange() {
-				AudioManager.Instance.SetVolume("vocals", vocalsVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Vocals, vocalsVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Vocals1, vocalsVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Vocals2, vocalsVolume);
 			}
 
-			[SettingLocation("general", 20)]
+			[SettingShowInGame]
+			[SettingLocation("general", 22)]
 			[SettingType("Volume")]
 			public float songVolume = 1f;
 
 			[SettingChangeFunc("songVolume")]
 			public void MusicVolumeChange() {
-				AudioManager.Instance.SetVolume("song", songVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Song, songVolume);
 			}
 
-			[SettingLocation("general", 21)]
+			[SettingShowInGame]
+			[SettingLocation("general", 23)]
 			[SettingType("Volume")]
 			public float crowdVolume = 0f;
 
 			[SettingChangeFunc("crowdVolume")]
 			public void CrowdVolumeChange() {
-				AudioManager.Instance.SetVolume("crowd", crowdVolume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Crowd, crowdVolume);
 			}
 
-			[SettingLocation("general", 22)]
+			[SettingShowInGame]
+			[SettingLocation("general", 24)]
+			[SettingType("Volume")]
+			public float sfxVolume = 0.5f;
+
+			[SettingChangeFunc("sfxVolume")]
+			public void SfxVolumeChange() {
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Sfx, sfxVolume);
+			}
+
+			[SettingShowInGame]
+			[SettingLocation("general", 25)]
 			[SettingType("Volume")]
 			public float vocalMonitoring = 0.75f;
 
@@ -190,33 +228,31 @@ namespace YARG.Settings {
 				AudioManager.Instance.SetVolume("vocalMonitoring", vocalMonitoring);
 			}
 
+			[SettingShowInGame]
+			[SettingLocation("general", 26)]
+			[SettingType("Toggle")]
+			public bool useStarpowerFx = true;
+
+			[SettingChangeFunc("useStarpowerFx")]
+			public void UseStarpowerFxChange() {
+				GameManager.AudioManager.UseStarpowerFx = useStarpowerFx;
+			}
+			
+			[SettingShowInGame]
+			[SettingLocation("general", 27)]
+			[SettingType("Toggle")]
+			public bool useChipmunkSpeed = false;
+
+			[SettingChangeFunc("useChipmunkSpeed")]
+			public void UseChipmunkSpeedChange() {
+				GameManager.AudioManager.IsChipmunkSpeedup = useChipmunkSpeed;
+			}
+
 			[SettingSpace]
-			[SettingLocation("general", 23)]
-			[SettingType("Text")]
-			public string fileServerIp = "localhost";
-
-			[SettingInteractableFunc("fileServerIp")]
-			public bool FileServerIpInteractable() {
-				return GameManager.client == null;
-			}
-
-			[SettingLocation("general", 24)]
-			[SettingButton("connectToFileServer")]
-			public void ConnectToFileServer() {
-				GameManager.client = new();
-				GameManager.client.Start(fileServerIp);
-			}
-
-			[SettingInteractableFunc("connectToFileServer")]
-			public bool ConnectToFileServerInteractable() {
-				return GameManager.client == null;
-			}
-
-			[SettingLocation("general", 25)]
-			[SettingButton("hostFileServer")]
-			public void HostFileServer() {
-				GameManager.Instance.LoadScene(SceneIndex.SERVER_HOST);
-			}
+			[SettingShowInGame]
+			[SettingLocation("general", 28)]
+			[SettingType("Toggle")]
+			public bool amIAwesome = false;
 		}
 	}
 }

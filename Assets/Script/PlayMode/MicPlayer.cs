@@ -23,6 +23,7 @@ namespace YARG.PlayMode {
 
 			public ParticleGroup nonActiveParticles;
 			public ParticleGroup activeParticles;
+			public Light needleLight;
 
 			public int octaveOffset;
 			public float[] singProgresses;
@@ -31,9 +32,9 @@ namespace YARG.PlayMode {
 		}
 
 		public static readonly Color[] HARMONIC_COLORS = new Color[] {
-			new Color32(33, 114, 171, 255),
-			new Color32(173, 108, 43, 255),
-			new Color32(214, 141, 30, 255),
+			new Color32(0, 204, 255, 255),
+			new Color32(255, 133, 0, 255),
+			new Color32(255, 219, 0, 255)
 		};
 
 		public const float TRACK_SPEED = 4f;
@@ -52,8 +53,6 @@ namespace YARG.PlayMode {
 		private LyricPool lyricPool;
 		[SerializeField]
 		private VocalNotePool notePool;
-		[SerializeField]
-		private Transform barContainer;
 
 		[Space]
 		[SerializeField]
@@ -69,6 +68,10 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private Image comboFill;
 		[SerializeField]
+		private Image comboRim;
+		[SerializeField]
+		private Image comboSunburst;
+		[SerializeField]
 		private Image starpowerFill;
 		[SerializeField]
 		private Image starpowerBarOverlay;
@@ -77,9 +80,26 @@ namespace YARG.PlayMode {
 
 		[Space]
 		[SerializeField]
+		private Sprite maxedComboFill;
+		[SerializeField]
+		private Sprite maxedComboRim;
+		[SerializeField]
+		private Sprite starpoweredComboRim;
+		[SerializeField]
+		private Sprite comboSunburstNormal;
+		[SerializeField]
+		private Sprite comboSunburstStarpower;
+
+		private Sprite normalComboFill;
+		private Sprite normalComboRim;
+
+		[Space]
+		[SerializeField]
 		private GameObject needlePrefab;
 		[SerializeField]
-		private GameObject barPrefab;
+		private GameObject barContainer;
+		[SerializeField]
+		private Image[] barImages;
 
 		[SerializeField]
 		private Camera trackCamera;
@@ -90,7 +110,6 @@ namespace YARG.PlayMode {
 		private bool hasMic = false;
 		private List<PlayerInfo> micInputs = new();
 		public Dictionary<MicInputStrategy, AudioSource> dummyAudioSources = new();
-		private List<MeshRenderer> barRenderers = new();
 
 		private bool onSongStartCalled = false;
 
@@ -140,6 +159,9 @@ namespace YARG.PlayMode {
 		private void Start() {
 			Instance = this;
 
+			normalComboFill = comboFill.sprite;
+			normalComboRim = comboRim.sprite;
+
 			// Start mics
 			foreach (var player in PlayerManager.players) {
 				// Skip people who are sitting out
@@ -171,7 +193,8 @@ namespace YARG.PlayMode {
 					needle = needle.transform,
 					needleModel = needle.meshRenderer.gameObject,
 					nonActiveParticles = needle.nonActiveParticles,
-					activeParticles = needle.activeParticles
+					activeParticles = needle.activeParticles,
+					needleLight = needle.needleLight,
 				};
 
 				// Bind events
@@ -291,20 +314,13 @@ namespace YARG.PlayMode {
 			chartIndex = new int[harmonyCount];
 
 			// Set up bars
-			for (int i = 0; i < harmonyCount; i++) {
-				var bar = Instantiate(barPrefab, barContainer);
+			for (int i = 0; i < 3; i++) {
+				barImages[i].color = HARMONIC_COLORS[i];
+			}
 
-				if (harmonyCount == 1) {
-					bar.transform.localPosition = new(0f, 0f, 0.8f - (barContainer.childCount - 1) * 0.225f);
-				} else {
-					bar.transform.localPosition = new(0f, 0f, 0.45f - (barContainer.childCount - 1) * 0.225f);
-				}
-
-				var barRenderer = bar.GetComponent<MeshRenderer>();
-				barRenderers.Add(barRenderer);
-
-				// Set color
-				barRenderer.material.color = HARMONIC_COLORS[i];
+			// Hide bars if solo
+			if (harmonyCount == 1) {
+				barContainer.SetActive(false);
 			}
 
 			// Set up sing progresses
@@ -448,8 +464,7 @@ namespace YARG.PlayMode {
 
 						// Get the needed pitch
 						float timeIntoNote = Play.Instance.SongTime - currentLyric.time;
-						float rawNote = currentLyric.GetLerpedNoteAtTime(timeIntoNote);
-						var (neededNote, neededOctave) = Utils.SplitNoteToOctaveAndNote(rawNote);
+						var (neededNote, neededOctave) = currentLyric.GetLerpedAndSplitNoteAtTime(timeIntoNote);
 
 						// Get the note the player is singing
 						float currentNote = micInput.VoiceNote;
@@ -496,14 +511,29 @@ namespace YARG.PlayMode {
 					playerInfo.needleModel.SetActive(micInput.TimeSinceNoVoice < 0.25f);
 				}
 
+
 				if (pitchCorrect && targetLyricIndex != -1) {
 					playerInfo.hittingNote = true;
 					playerInfo.singProgresses[targetLyricIndex] += Time.deltaTime;
 
 					playerInfo.activeParticles.Play();
 					playerInfo.nonActiveParticles.Stop();
+
+					// Fade in the needle light
+					playerInfo.needleLight.intensity =
+						Mathf.Lerp(playerInfo.needleLight.intensity, 0.35f,
+						Time.deltaTime * 8f);
+
+					// Changes colors of particles according to the note hit.
+					playerInfo.needleLight.color = HARMONIC_COLORS[targetLyricIndex];
+					playerInfo.activeParticles.Colorize(HARMONIC_COLORS[targetLyricIndex]);
 				} else {
 					playerInfo.hittingNote = false;
+
+					// Fade out the needle light
+					playerInfo.needleLight.intensity =
+						Mathf.Lerp(playerInfo.needleLight.intensity, 0f,
+						Time.deltaTime * 8f);
 
 					playerInfo.activeParticles.Stop();
 
@@ -538,9 +568,9 @@ namespace YARG.PlayMode {
 			// Update bars
 			for (int i = 0; i < highestSingProgresses.Length; i++) {
 				if (sectionSingTime[i] != 0f) {
-					barRenderers[i].material.SetFloat("Fill", highestSingProgresses[i]);
+					barImages[i].fillAmount = highestSingProgresses[i];
 				} else {
-					barRenderers[i].material.SetFloat("Fill", 0f);
+					barImages[i].fillAmount = 0f;
 				}
 			}
 
@@ -565,11 +595,32 @@ namespace YARG.PlayMode {
 				}
 			}
 
+			// Show/hide maxed out combo stuff
+			if (rawMultiplier >= 4) {
+				comboSunburst.gameObject.SetActive(true);
+				comboSunburst.transform.Rotate(0f, 0f, Time.deltaTime * -25f);
+
+				comboFill.sprite = maxedComboFill;
+				if (starpowerActive) {
+					comboRim.sprite = starpoweredComboRim;
+					comboSunburst.sprite = comboSunburstStarpower;
+				} else {
+					comboRim.sprite = maxedComboRim;
+					comboSunburst.sprite = comboSunburstNormal;
+				}
+			} else {
+				comboSunburst.gameObject.SetActive(false);
+
+				comboFill.sprite = normalComboFill;
+				comboRim.sprite = normalComboRim;
+			}
+
 			// Update starpower active
 			if (starpowerActive) {
 				if (starpowerCharge <= 0f) {
 					starpowerActive = false;
 					starpowerCharge = 0f;
+
 				} else {
 					starpowerCharge -= Time.deltaTime / 25f;
 				}

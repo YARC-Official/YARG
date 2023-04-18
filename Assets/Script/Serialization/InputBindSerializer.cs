@@ -16,10 +16,12 @@ namespace YARG.Serialization {
 
 		private static List<InputBindSave> inputBindSaves = new();
 
+		private static string InputBindFile => Path.Combine(GameManager.PersistentDataPath, "inputBinds.json");
+
 		static InputBindSerializer() {
 			// Load from JSON
 			try {
-				var json = File.ReadAllText(Path.Combine(Application.persistentDataPath, "inputBinds.json"));
+				var json = File.ReadAllText(InputBindFile);
 				inputBindSaves = JsonConvert.DeserializeObject<List<InputBindSave>>(json);
 			} catch (Exception) {
 				Debug.LogWarning("Failed to load input binds from JSON. Ignoring.");
@@ -27,81 +29,95 @@ namespace YARG.Serialization {
 		}
 
 		public static void LoadBindsFromSave(InputStrategy inputStrategy) {
-			// Look from correct bind (using input strategy and device)
-			InputBindSave inputBindSave = null;
-			foreach (InputBindSave bindSave in inputBindSaves) {
-				if (bindSave.deviceName != inputStrategy.InputDevice.name) {
-					continue;
+			try {
+				// Look from correct bind (using input strategy and device)
+				InputBindSave inputBindSave = null;
+				foreach (InputBindSave bindSave in inputBindSaves) {
+					if (bindSave.deviceName != inputStrategy.InputDevice.name) {
+						continue;
+					}
+
+					if (bindSave.inputStrategy != inputStrategy.GetType().Name) {
+						continue;
+					}
+
+					inputBindSave = bindSave;
+					break;
 				}
 
-				if (bindSave.inputStrategy != inputStrategy.GetType().Name) {
-					continue;
+				if (inputBindSave == null) {
+					return;
 				}
 
-				inputBindSave = bindSave;
-				break;
-			}
+				// Set binds
+				foreach (var binding in inputStrategy.GetMappingNames()) {
+					if (!inputBindSave.binds.ContainsKey(binding)) {
+						continue;
+					}
 
-			if (inputBindSave == null) {
-				return;
-			}
-
-			// Set binds
-			foreach (var binding in inputStrategy.GetMappingNames()) {
-				if (!inputBindSave.binds.ContainsKey(binding)) {
-					continue;
+					var control = InputControlPath.TryFindControl(inputStrategy.InputDevice, inputBindSave.binds[binding]);
+					inputStrategy.SetMappingInputControl(binding, control);
 				}
+			} catch (Exception e) {
+				Debug.LogWarning("Failed to load input binds from JSON. Ignoring.");
+				Debug.LogException(e);
 
-				var control = InputControlPath.TryFindControl(inputStrategy.InputDevice, inputBindSave.binds[binding]);
-				inputStrategy.SetMappingInputControl(binding, control);
+				if (File.Exists(InputBindFile)) {
+					File.Delete(InputBindFile);
+				}
 			}
 		}
 
 		public static void SaveBindsFromInputStrategy(InputStrategy inputStrategy) {
-			// Look for existing bind save
-			InputBindSave inputBindSave = null;
-			foreach (InputBindSave bindSave in inputBindSaves) {
-				if (bindSave.deviceName != inputStrategy.InputDevice.name) {
-					continue;
+			try {
+				// Look for existing bind save
+				InputBindSave inputBindSave = null;
+				foreach (InputBindSave bindSave in inputBindSaves) {
+					if (bindSave.deviceName != inputStrategy.InputDevice.name) {
+						continue;
+					}
+
+					if (bindSave.inputStrategy != inputStrategy.GetType().Name) {
+						continue;
+					}
+
+					inputBindSave = bindSave;
+					break;
 				}
 
-				if (bindSave.inputStrategy != inputStrategy.GetType().Name) {
-					continue;
+				if (inputBindSave != null) {
+					inputBindSaves.Remove(inputBindSave);
 				}
 
-				inputBindSave = bindSave;
-				break;
-			}
+				// Create new bind save if none found
+				inputBindSave = new InputBindSave {
+					inputStrategy = inputStrategy.GetType().Name,
+					deviceName = inputStrategy.InputDevice.name
+				};
+				inputBindSaves.Add(inputBindSave);
 
-			if (inputBindSave != null) {
-				inputBindSaves.Remove(inputBindSave);
-			}
+				// Save binds
+				inputBindSave.binds.Clear();
+				foreach (var binding in inputStrategy.GetMappingNames()) {
+					var control = inputStrategy.GetMappingInputControl(binding);
+					if (control == null) {
+						continue;
+					}
 
-			// Create new bind save if none found
-			inputBindSave = new InputBindSave {
-				inputStrategy = inputStrategy.GetType().Name,
-				deviceName = inputStrategy.InputDevice.name
-			};
-			inputBindSaves.Add(inputBindSave);
-
-			// Save binds
-			inputBindSave.binds.Clear();
-			foreach (var binding in inputStrategy.GetMappingNames()) {
-				var control = inputStrategy.GetMappingInputControl(binding);
-				if (control == null) {
-					continue;
+					inputBindSave.binds.Add(binding, control.path);
 				}
 
-				inputBindSave.binds.Add(binding, control.path);
+				// Save to JSON
+				SaveToJsonFile();
+			} catch (Exception e) {
+				Debug.LogWarning("Failed to save input binds to JSON. Ignoring.");
+				Debug.LogException(e);
 			}
-
-			// Save to JSON
-			SaveToJsonFile();
 		}
 
 		private static void SaveToJsonFile() {
 			var json = JsonConvert.SerializeObject(inputBindSaves);
-			File.WriteAllText(Path.Combine(Application.persistentDataPath, "inputBinds.json"), json);
+			File.WriteAllText(Path.Combine(GameManager.PersistentDataPath, "inputBinds.json"), json);
 		}
 	}
 }
