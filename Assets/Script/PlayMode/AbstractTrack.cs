@@ -105,8 +105,9 @@ namespace YARG.PlayMode {
 
 		private bool FullCombo = true;
 		private int SavedCombo = 0;
-		public bool startFCDetection = false;
 		private bool switchedRingMaterial = false;
+		public bool startFCDetection = false;
+		protected bool missedAnyNote = false;
 
 		private int _combo = 0;
 		protected int Combo {
@@ -252,7 +253,7 @@ namespace YARG.PlayMode {
 
 			}
 
-			if(!FullCombo && !switchedRingMaterial) {
+			if((!FullCombo && !switchedRingMaterial) || missedAnyNote) {
 				ComboRing.material = nonFCRing;
 				switchedRingMaterial = true;
 
