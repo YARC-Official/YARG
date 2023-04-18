@@ -166,7 +166,15 @@ namespace YARG.UI {
 			}
 
 			// Load file
+#if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX
+			
 			using UnityWebRequest uwr = UnityWebRequestTexture.GetTexture($"file://{filePath}");
+
+#else
+
+			using UnityWebRequest uwr = UnityWebRequestTexture.GetTexture(filePath);
+
+#endif
 			yield return uwr.SendWebRequest();
 			var texture = DownloadHandlerTexture.GetContent(uwr);
 
