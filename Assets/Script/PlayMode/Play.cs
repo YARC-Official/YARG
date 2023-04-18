@@ -193,14 +193,17 @@ namespace YARG.PlayMode {
 			}, new string[] {
 				"guitar"
 			});
-
+			UpdateAudio(new string[] {
+				"rhythm",
+			}, new string[] {
+				"rhythm"
+			});
 			// Mute bass
 			UpdateAudio(new string[] {
 				"bass",
 				"realBass"
 			}, new string[] {
 				"bass",
-				"rhythm"
 			});
 
 			// Mute keys

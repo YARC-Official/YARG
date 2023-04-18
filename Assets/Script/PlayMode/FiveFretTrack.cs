@@ -158,9 +158,11 @@ namespace YARG.PlayMode {
 				case "guitar":
 					Play.Instance.ReverbAudio("guitar", on);
 					break;
+				case "rhythm":
+					Play.Instance.ReverbAudio("rhythm", on);
+					break;
 				case "bass":
 					Play.Instance.ReverbAudio("bass", on);
-					Play.Instance.ReverbAudio("rhythm", on);
 					break;
 				case "keys":
 					Play.Instance.ReverbAudio("keys", on);

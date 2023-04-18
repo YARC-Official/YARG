@@ -224,7 +224,7 @@ namespace YARG.UI {
 					"drums" => "Drums",
 					"realDrums" => "Pro Drums",
 					"guitar" => "Guitar",
-					"realGuitar" => "Pro Guitar",
+					"guitar_coop" => "Coop Guitar",
 					"bass" => "Bass",
 					"realBass" => "Pro Bass",
 					"keys" => "Keys",
@@ -232,6 +232,8 @@ namespace YARG.UI {
 					"vocals" => "Vocals",
 					"harmVocals" => "Vocals (Harmony)",
 					"ghDrums" => "Drums (5-lane)",
+					"rhythm" => "Rhythm",
+					"realGuitar" => "Pro Guitar",
 					_ => "Unknown"
 				};
 			}

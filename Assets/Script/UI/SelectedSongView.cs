@@ -93,6 +93,8 @@ namespace YARG.UI {
 				"realKeys",
 				"harmVocals",
 				null,
+				"guitar_coop",
+				"rhythm",
 				"ghDrums"
 			};
 
