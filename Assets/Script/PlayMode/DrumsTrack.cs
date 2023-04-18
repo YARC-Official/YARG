@@ -35,6 +35,7 @@ namespace YARG.PlayMode {
 		private Queue<List<NoteInfo>> expectedHits = new();
 
 		private int notesHit = 0;
+		private int notesMissed = 0;
 
 		private bool noKickMode = false;
 
@@ -70,7 +71,7 @@ namespace YARG.PlayMode {
 			// Color drums
 			for (int i = 0; i < drums.Length; i++) {
 				var fret = drums[i].GetComponent<Fret>();
-				fret.SetColor(drumColors[i]);
+				fret.SetColor(drumColors[i], drumColors[i]);
 				drums[i] = fret;
 			}
 			kickNoteParticles.Colorize(drumColors[kickIndex]);
@@ -187,6 +188,7 @@ namespace YARG.PlayMode {
 				Combo = 0;
 				foreach (var hit in missedChord) {
 					hitChartIndex++;
+					missedAnyNote = true;
 					notePool.MissNote(hit);
 					StopAudio = true;
 				}
@@ -313,6 +315,7 @@ namespace YARG.PlayMode {
 
 			// Set note info
 			var noteComp = notePool.AddNote(noteInfo, pos);
+			startFCDetection = true;
 			noteComp.SetInfo(noteColors[noteInfo.fret], noteColors[noteInfo.fret], noteInfo.length, model);
 		}
 	}
