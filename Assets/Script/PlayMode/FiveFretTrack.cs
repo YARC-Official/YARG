@@ -57,7 +57,7 @@ namespace YARG.PlayMode {
 			// Color frets
 			for (int i = 0; i < 5; i++) {
 				var fret = frets[i].GetComponent<Fret>();
-				fret.SetColor(fretColors[i]);
+				fret.SetColor(fretColors[i], sustainColors[i]);
 				frets[i] = fret;
 			}
 			openNoteParticles.Colorize(noteColors[5]);

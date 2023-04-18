@@ -27,12 +27,14 @@ namespace YARG.PlayMode {
 			private set;
 		} = false;
 
-		public void SetColor(Color c) {
-			meshRenderer.materials[topMaterialIndex].color = c;
-			meshRenderer.materials[innerMaterialIndex].color = c;
+		public void SetColor(Color top, Color inner) {
+			meshRenderer.materials[topMaterialIndex].color = top;
+			meshRenderer.materials[topMaterialIndex].SetColor("_EmissionColor", top * 11.5f);
+			meshRenderer.materials[innerMaterialIndex].color = inner;
 
-			hitParticles.Colorize(c);
-			sustainParticles.Colorize(c);
+
+			hitParticles.Colorize(inner);
+			sustainParticles.Colorize(inner);
 		}
 
 		public void SetPressed(bool pressed) {

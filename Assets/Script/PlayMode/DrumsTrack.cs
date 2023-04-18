@@ -70,7 +70,7 @@ namespace YARG.PlayMode {
 			// Color drums
 			for (int i = 0; i < drums.Length; i++) {
 				var fret = drums[i].GetComponent<Fret>();
-				fret.SetColor(drumColors[i]);
+				fret.SetColor(drumColors[i], drumColors[i]);
 				drums[i] = fret;
 			}
 			kickNoteParticles.Colorize(drumColors[kickIndex]);
