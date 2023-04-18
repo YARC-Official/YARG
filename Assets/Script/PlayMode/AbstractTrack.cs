@@ -106,7 +106,7 @@ namespace YARG.PlayMode {
 		private bool FullCombo = true;
 		private int SavedCombo = 0;
 		private bool switchedRingMaterial = false;
-		public bool startFCDetection = false;
+		protected bool startFCDetection = false;
 		protected bool missedAnyNote = false;
 
 		private int _combo = 0;

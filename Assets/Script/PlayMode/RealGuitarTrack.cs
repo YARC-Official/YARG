@@ -36,6 +36,7 @@ namespace YARG.PlayMode {
 		private List<NoteInfo> heldNotes = new();
 
 		private int notesHit = 0;
+		private int notesMissed = 0;
 
 		protected override void StartTrack() {
 			notePool.player = player;
@@ -160,6 +161,7 @@ namespace YARG.PlayMode {
 
 				// Call miss for each component
 				hitChartIndex++;
+				missedAnyNote = true;
 				Combo = 0;
 				notePool.MissNote(missedNote);
 				StopAudio = true;
@@ -293,6 +295,7 @@ namespace YARG.PlayMode {
 
 				// Set note info
 				var noteComp = notePool.AddNote(noteInfo, pos);
+				startFCDetection = true;
 				var model = noteInfo.hopo ? NoteComponent.ModelType.HOPO : NoteComponent.ModelType.NOTE;
 				noteComp.SetInfo(noteColors[i], sustainColors[i], noteInfo.length, model);
 				noteComp.SetFretNumber(noteInfo.muted ? "X" : noteInfo.stringFrets[i].ToString());
