@@ -28,6 +28,10 @@ namespace YARG.Serialization {
 				for(int i = 0; i < dtaTree.Count; i++){
 					XboxSongData currentSong = new XboxSongData();
 					parsedSongs.Add(currentSong.ParseFromDataArray((DataArray)dtaTree[i]));
+					// string testPng = srcfolder.ToString() + $"/{currentSong.GetShortName()}/gen/{currentSong.GetShortName()}_keep.png_xbox";
+					// XboxImage art = new XboxImage(testPng);
+					// art.ParseImage();
+					// art.SaveImageToDisk($"{currentSong.GetShortName()}_lol");
 				}
 				
 				// print out each XboxSongData's, well, song data - useful for debugging

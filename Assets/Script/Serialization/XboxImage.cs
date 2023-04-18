@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using UnityEngine;
 using YARG.Serialization;
 
@@ -33,11 +34,15 @@ namespace YARG.Serialization {
                     // parse DXT-compressed blocks
                     byte[] DXTBlocks = br.ReadBytes((int)(fs.Length - 32));
                     // swap bytes because xbox is weird like that
-                    for(int i = 0; i < DXTBlocks.Length; i += 2){
-                        byte temp = DXTBlocks[i];
-                        DXTBlocks[i] = DXTBlocks[i+1];
-                        DXTBlocks[i+1] = temp;
-                    }
+                    Parallel.For(0, DXTBlocks.Length/2, i => {
+                        (DXTBlocks[i*2], DXTBlocks[i*2 + 1]) = (DXTBlocks[i*2 + 1], (DXTBlocks[i*2]));
+                    });
+                    // for(int i = 0; i < DXTBlocks.Length; i += 2){
+                    //     // byte temp = DXTBlocks[i];
+                    //     // DXTBlocks[i] = DXTBlocks[i+1];
+                    //     // DXTBlocks[i+1] = temp;
+                    //     (DXTBlocks[i], DXTBlocks[i+1]) = (DXTBlocks[i+1], DXTBlocks[i]);
+                    // }
 
                     imageBytes = new byte[width*height*4];
                     XboxImageParser.BlockDecompressXboxImage((uint)width, (uint)height, ((bitsPerPixel == 0x04) && (format == 0x08)), DXTBlocks, imageBytes);
