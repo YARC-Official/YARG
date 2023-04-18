@@ -53,8 +53,6 @@ namespace YARG.PlayMode {
 		private LyricPool lyricPool;
 		[SerializeField]
 		private VocalNotePool notePool;
-		[SerializeField]
-		private Transform barContainer;
 
 		[Space]
 		[SerializeField]
@@ -99,7 +97,9 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private GameObject needlePrefab;
 		[SerializeField]
-		private GameObject barPrefab;
+		private GameObject barContainer;
+		[SerializeField]
+		private Image[] barImages;
 
 		[SerializeField]
 		private Camera trackCamera;
@@ -110,7 +110,6 @@ namespace YARG.PlayMode {
 		private bool hasMic = false;
 		private List<PlayerInfo> micInputs = new();
 		public Dictionary<MicInputStrategy, AudioSource> dummyAudioSources = new();
-		private List<MeshRenderer> barRenderers = new();
 
 		private bool onSongStartCalled = false;
 
@@ -315,21 +314,13 @@ namespace YARG.PlayMode {
 			chartIndex = new int[harmonyCount];
 
 			// Set up bars
-			for (int i = 0; i < harmonyCount; i++) {
-				var bar = Instantiate(barPrefab, barContainer);
+			for (int i = 0; i < 3; i++) {
+				barImages[i].color = HARMONIC_COLORS[i];
+			}
 
-				if (harmonyCount == 1) {
-					//bar.transform.localPosition = new(0f, 0f, 0.8f - (barContainer.childCount - 1) * 0.225f); //Previously this bar would appear even when playing solo
-					bar.gameObject.SetActive(false); // Now it disables
-				} else {
-					bar.transform.localPosition = new(0f, 0f, 0.45f - (barContainer.childCount - 1) * 0.225f);
-				}
-
-				var barRenderer = bar.GetComponent<MeshRenderer>();
-				barRenderers.Add(barRenderer);
-
-				// Set color
-				barRenderer.material.color = HARMONIC_COLORS[i];
+			// Hide bars if solo
+			if (harmonyCount == 1) {
+				barContainer.SetActive(false);
 			}
 
 			// Set up sing progresses
@@ -577,9 +568,9 @@ namespace YARG.PlayMode {
 			// Update bars
 			for (int i = 0; i < highestSingProgresses.Length; i++) {
 				if (sectionSingTime[i] != 0f) {
-					barRenderers[i].material.SetFloat("Fill", highestSingProgresses[i]);
+					barImages[i].fillAmount = highestSingProgresses[i];
 				} else {
-					barRenderers[i].material.SetFloat("Fill", 0f);
+					barImages[i].fillAmount = 0f;
 				}
 			}
 
