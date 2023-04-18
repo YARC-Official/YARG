@@ -17,12 +17,6 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private Fret[] frets;
 		[SerializeField]
-		private Color[] fretColors;
-		[SerializeField]
-		private Color[] noteColors;
-		[SerializeField]
-		private Color[] sustainColors;
-		[SerializeField]
 		private NotePool notePool;
 		[SerializeField]
 		private Pool genericPool;
@@ -36,7 +30,8 @@ namespace YARG.PlayMode {
 		private bool latestInputIsStrum = false;
 
 		private int notesHit = 0;
-		private int notesMissed = 0;
+		// private int notesMissed = 0;
+
 		protected override void StartTrack() {
 			notePool.player = player;
 			genericPool.player = player;
@@ -58,10 +53,10 @@ namespace YARG.PlayMode {
 			// Color frets
 			for (int i = 0; i < 5; i++) {
 				var fret = frets[i].GetComponent<Fret>();
-				fret.SetColor(fretColors[i], sustainColors[i]);
+				fret.SetColor(commonTrack.FretColor(i), commonTrack.SustainColor(i));
 				frets[i] = fret;
 			}
-			openNoteParticles.Colorize(noteColors[5]);
+			openNoteParticles.Colorize(commonTrack.FretColor(5));
 		}
 
 		protected override void OnDestroy() {
@@ -80,7 +75,7 @@ namespace YARG.PlayMode {
 				notesHit = notesHit,
 				notesMissed = Chart.Count - notesHit
 
-		};
+			};
 		}
 
 		protected override void UpdateTrack() {
@@ -538,7 +533,12 @@ namespace YARG.PlayMode {
 			// Set note info
 			var noteComp = notePool.AddNote(noteInfo, pos);
 			startFCDetection = true;
-			noteComp.SetInfo(noteColors[noteInfo.fret], sustainColors[noteInfo.fret], noteInfo.length, model);
+			noteComp.SetInfo(
+				commonTrack.NoteColor(noteInfo.fret),
+				commonTrack.SustainColor(noteInfo.fret),
+				noteInfo.length,
+				model
+			);
 		}
 
 		private string PrintFrets() { // Debug function; remove later?
