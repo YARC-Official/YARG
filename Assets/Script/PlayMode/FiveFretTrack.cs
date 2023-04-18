@@ -36,6 +36,7 @@ namespace YARG.PlayMode {
 		private bool latestInputIsStrum = false;
 
 		private int notesHit = 0;
+		private int notesMissed = 0;
 		protected override void StartTrack() {
 			notePool.player = player;
 			genericPool.player = player;
@@ -57,7 +58,7 @@ namespace YARG.PlayMode {
 			// Color frets
 			for (int i = 0; i < 5; i++) {
 				var fret = frets[i].GetComponent<Fret>();
-				fret.SetColor(fretColors[i]);
+				fret.SetColor(fretColors[i], sustainColors[i]);
 				frets[i] = fret;
 			}
 			openNoteParticles.Colorize(noteColors[5]);
@@ -78,7 +79,8 @@ namespace YARG.PlayMode {
 				},
 				notesHit = notesHit,
 				notesMissed = Chart.Count - notesHit
-			};
+
+		};
 		}
 
 		protected override void UpdateTrack() {
@@ -188,6 +190,7 @@ namespace YARG.PlayMode {
 				}
 			}
 
+
 			// Handle misses (multiple a frame in case of lag)
 			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Constants.HIT_MARGIN) {
 				var missedChord = expectedHits.Dequeue();
@@ -196,6 +199,7 @@ namespace YARG.PlayMode {
 				Combo = 0;
 				foreach (var hit in missedChord) {
 					hitChartIndex++;
+					missedAnyNote = true;
 					notePool.MissNote(hit);
 					StopAudio = true;
 				}
@@ -322,6 +326,7 @@ namespace YARG.PlayMode {
 					soloNotesHit = 0;
 				}
 			}
+
 
 			// If this is a tap note, and it was hit without strumming,
 			// add it to the allowed overstrums. This is so the player
@@ -529,8 +534,10 @@ namespace YARG.PlayMode {
 				model = NoteComponent.ModelType.HOPO;
 			}
 
+
 			// Set note info
 			var noteComp = notePool.AddNote(noteInfo, pos);
+			startFCDetection = true;
 			noteComp.SetInfo(noteColors[noteInfo.fret], sustainColors[noteInfo.fret], noteInfo.length, model);
 		}
 
