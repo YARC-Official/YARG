@@ -137,7 +137,10 @@ namespace YARG.PlayMode {
 					continue;
 				}
 
-				if (player.track.FillSection?.EndTime == noteInfo.time && starpowerCharge >= 0.5f) {
+				// TODO: Only one note should be an activator at any given timestamp
+				if (player.track.FillSection?.EndTime == noteInfo.time
+					&& starpowerCharge >= 0.5f 
+					&& !starpowerActive) {
 					noteInfo.isActivator = true;
 				}
 
@@ -178,14 +181,14 @@ namespace YARG.PlayMode {
 
 				// Call miss for each component
 				foreach (var hit in missedChord) {
+					hitChartIndex++;
+
 					// The player should not be penalized for missing activator notes
 					if (hit.isActivator) {
 						continue;
 					}
 
 					Combo = 0;
-
-					hitChartIndex++;
 					notePool.MissNote(hit);
 					StopAudio = true;
 				}
@@ -237,21 +240,17 @@ namespace YARG.PlayMode {
 			// Check if a drum was hit
 			NoteInfo hit = null;
 			foreach (var note in chord) {
-				if (note.isActivator) {
-					(input as DrumsInputStrategy).ActivateStarpower();
-					hit = note;
-					break;
-				}
-
 				// Check if correct cymbal was hit
 				bool cymbalHit = note.hopo == cymbal;
 				if (player.chosenInstrument == "drums") {
 					cymbalHit = true;
 				}
-
 				// Check if correct drum was hit
 				if (note.fret == drum && cymbalHit) {
 					hit = note;
+					if (note.isActivator) {
+						(input as DrumsInputStrategy).ActivateStarpower();
+					}
 					break;
 				}
 			}
