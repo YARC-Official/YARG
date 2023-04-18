@@ -60,6 +60,10 @@ namespace YARG.PlayMode {
 		private int lyricIndex = 0;
 		private int lyricPhraseIndex = 0;
 
+		// tempo (updated throughout play)
+		public float curBeatPerSecond { get; private set; } = 0f;
+		public float curTempo => curBeatPerSecond * 60; // BPM
+
 		private bool _paused = false;
 		public bool Paused {
 			get => _paused;
@@ -85,8 +89,10 @@ namespace YARG.PlayMode {
 		private void Awake() {
 			Instance = this;
 
-			// Song
+			ScoreKeeper.Reset();
+			StarScoreKeeper.Reset();
 
+			// Song
 			StartCoroutine(StartSong());
 		}
 
@@ -168,6 +174,10 @@ namespace YARG.PlayMode {
 			var parser = new MidiParser(song, files.ToArray());
 			chart = new Chart();
 			parser.Parse(chart);
+
+			// initialize current tempo
+			if (chart.beats.Count > 2)
+				curBeatPerSecond = chart.beats[1] - chart.beats[0];
 		}
 
 		private void Update() {
@@ -227,6 +237,10 @@ namespace YARG.PlayMode {
 			while (chart.beats.Count > beatIndex && chart.beats[beatIndex] <= SongTime) {
 				BeatEvent?.Invoke();
 				beatIndex++;
+
+				if (beatIndex < chart.beats.Count) {
+					curBeatPerSecond = 1 / (chart.beats[beatIndex] - chart.beats[beatIndex - 1]);
+				}
 			}
 
 			// Update lyrics

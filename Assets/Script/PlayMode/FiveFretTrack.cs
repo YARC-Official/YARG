@@ -29,6 +29,11 @@ namespace YARG.PlayMode {
 		private float? latestInput = null;
 		private bool latestInputIsStrum = false;
 
+		// https://www.reddit.com/r/Rockband/comments/51t3c0/exactly_how_many_points_are_sustains_worth/
+		private const double SUSTAIN_PTS_PER_BEAT = 12.0;
+		private const int PTS_PER_NOTE = 25;
+
+
 		private int notesHit = 0;
 		// private int notesMissed = 0;
 
@@ -57,6 +62,11 @@ namespace YARG.PlayMode {
 				frets[i] = fret;
 			}
 			openNoteParticles.Colorize(commonTrack.FretColor(5));
+
+			// initialize scoring variables
+			starsKeeper = new(Chart, scoreKeeper,
+				player.chosenInstrument,
+				PTS_PER_NOTE);
 		}
 
 		protected override void OnDestroy() {
@@ -138,8 +148,13 @@ namespace YARG.PlayMode {
 			// Update held notes
 			for (int i = heldNotes.Count - 1; i >= 0; i--) {
 				var heldNote = heldNotes[i];
+
+				// Sustain scoring
+				scoreKeeper.Add(susTracker.Update(heldNote) * Multiplier * SUSTAIN_PTS_PER_BEAT);
+
 				if (heldNote.time + heldNote.length <= Play.Instance.SongTime) {
 					heldNotes.RemoveAt(i);
+					susTracker.Drop(heldNote);
 					frets[heldNote.fret].StopSustainParticles();
 				}
 			}
@@ -309,10 +324,13 @@ namespace YARG.PlayMode {
 				if (hit.length > 0.2f) {
 					heldNotes.Add(hit);
 					frets[hit.fret].PlaySustainParticles();
+
+					scoreKeeper.Add(susTracker.Strum(hit) * Multiplier * SUSTAIN_PTS_PER_BEAT);
 				}
 
 				// Add stats
 				notesHit++;
+				scoreKeeper.Add(PTS_PER_NOTE * Multiplier);
 
 				// Solo stuff
 				if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime) {
@@ -395,6 +413,7 @@ namespace YARG.PlayMode {
 				StopAudio = true;
 
 				heldNotes.RemoveAt(i);
+				susTracker.Drop(heldNote);
 				frets[heldNote.fret].StopSustainParticles();
 			}
 		}
@@ -481,6 +500,7 @@ namespace YARG.PlayMode {
 
 					notePool.MissNote(heldNote);
 					heldNotes.RemoveAt(i);
+					susTracker.Drop(heldNote);
 					frets[heldNote.fret].StopSustainParticles();
 
 					letGo = heldNote;

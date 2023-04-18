@@ -142,6 +142,11 @@ namespace YARG.PlayMode {
 		private EventInfo visualStarpowerSection;
 		private EventInfo starpowerSection;
 
+		private ScoreKeeper scoreKeeper;
+		// easy, medium, hard, expert
+		private readonly int[] MAX_POINTS = { 200, 400, 800, 1000 };
+		private StarScoreKeeper starsKeeper;
+
 		private int rawMultiplier = 1;
 		private int Multiplier => rawMultiplier * (starpowerActive ? 2 : 1);
 
@@ -257,6 +262,11 @@ namespace YARG.PlayMode {
 
 			// Hide starpower
 			starpowerOverlay.material.SetFloat("AlphaMultiplier", 0f);
+
+			scoreKeeper = new();
+			// TODO: implement
+			// starsKeeper = new(Chart, scoreKeeper,
+			// 	"chosenInstrument", 25);
 		}
 
 		private void OnDestroy() {
@@ -708,6 +718,12 @@ namespace YARG.PlayMode {
 				_ => "AWFUL"
 			};
 			preformaceText.color = Color.white;
+
+			// Add to score
+			// TODO: harmonies
+			var max = MAX_POINTS[(uint) micInputs[0].player.chosenDifficulty];
+			var phraseScore = Multiplier * Mathf.Clamp(bestPercent * max, 0, max);
+			scoreKeeper.Add(phraseScore);
 
 			// Add to sing percent
 			totalSingPercent += Mathf.Min(bestPercent, 1f);

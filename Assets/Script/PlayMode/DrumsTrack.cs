@@ -35,6 +35,9 @@ namespace YARG.PlayMode {
 
 		private bool noKickMode = false;
 
+		private string[] proInst = {"realDrums", "ghDrums"};
+		private int ptsPerNote;
+
 		protected override void StartTrack() {
 			notePool.player = player;
 			genericPool.player = player;
@@ -71,6 +74,12 @@ namespace YARG.PlayMode {
 				drums[i] = fret;
 			}
 			kickNoteParticles.Colorize(commonTrack.FretColor(kickIndex));
+
+			// initialize scoring variables
+			ptsPerNote = proInst.Contains(player.chosenInstrument) ? 30 : 25;
+			starsKeeper = new(Chart, scoreKeeper,
+				player.chosenInstrument,
+				ptsPerNote);
 		}
 
 		protected override void OnDestroy() {
@@ -282,6 +291,8 @@ namespace YARG.PlayMode {
 
 			// Add stats
 			notesHit++;
+			// TODO: accomodate for disabled cymbal lanes, rework 5-lane scoring depending on re-charting
+			scoreKeeper.Add(Multiplier * ptsPerNote);
 		}
 
 		private void SpawnNote(NoteInfo noteInfo, float time) {

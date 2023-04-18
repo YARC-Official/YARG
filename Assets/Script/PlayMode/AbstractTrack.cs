@@ -85,6 +85,11 @@ namespace YARG.PlayMode {
 		protected int MaxMultiplier => (player.chosenInstrument == "bass" ? 6 : 4) * (starpowerActive ? 2 : 1);
 		protected int Multiplier => Mathf.Min((Combo / 10 + 1) * (starpowerActive ? 2 : 1), MaxMultiplier);
 
+		// Scoring trackers
+		protected ScoreKeeper scoreKeeper;
+		protected StarScoreKeeper starsKeeper;
+		protected SustainTracker susTracker;
+
 		private bool _stopAudio = false;
 		protected bool StopAudio {
 			set {
@@ -127,6 +132,8 @@ namespace YARG.PlayMode {
 				info.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
 				info.antialiasingQuality = AntialiasingQuality.Low;
 			}
+
+			susTracker = new(Play.Instance.chart.beats);
 		}
 
 		private void Start() {
@@ -147,6 +154,8 @@ namespace YARG.PlayMode {
 			commonTrack.hitWindow.gameObject.SetActive(SettingsManager.GetSettingValue<bool>("showHitWindow"));
 
 			comboSunburstEmbeddedLight = commonTrack.comboSunburst.GetComponent<Light>();
+
+			scoreKeeper = new();
 
 			StartTrack();
 		}

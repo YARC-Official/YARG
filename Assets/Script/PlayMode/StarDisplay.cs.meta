@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Script/PlayMode/StarDisplay.cs.meta
+guid: e59818383da487e4c83cc8aa41bdf3e9
+========
+guid: 9a72291581ac99a4388f8eb2cf92611b
+>>>>>>>> new-score-screen:Assets/Script/PlayMode/SustainTracker.cs.meta
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
