@@ -233,10 +233,12 @@ namespace YARG.PlayMode {
 				comboSunburst.transform.Rotate(0f, 0f, Time.deltaTime * -15f);
 
 				maxComboLight.gameObject.SetActive(!starpowerActive);
+				starpowerLight.gameObject.SetActive(starpowerActive);
 			} else {
 				comboSunburst.gameObject.SetActive(false);
 
 				maxComboLight.gameObject.SetActive(false);
+				starpowerLight.gameObject.SetActive(false);
 			}
 
 			Beat = false;
@@ -380,16 +382,12 @@ namespace YARG.PlayMode {
 				// Update Sunburst color and light
 				comboSunburst.sprite = sunBurstSpriteStarpower;
 				comboSunburst.color = new Color(255, 255, 255, 141);
-
-				starpowerLight.SetActive(true);
 			} else {
 				StarpowerTrackAnimReset();
 
 				//Reset Sunburst color and light to original
 				comboSunburst.sprite = sunBurstSprite;
 				comboSunburst.color = Color.white;
-
-				starpowerLight.SetActive(false);
 			}
 		}
 
