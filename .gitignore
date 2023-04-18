@@ -87,3 +87,5 @@ Assets/YargInput.cs
 
 # Rider #
 .idea/
+Packages/com.thenathannator.hidrogen/
+Packages/com.thenathannator.plasticband/

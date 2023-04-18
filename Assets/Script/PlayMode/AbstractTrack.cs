@@ -253,7 +253,7 @@ namespace YARG.PlayMode {
 
 			}
 
-			if((!FullCombo && !switchedRingMaterial) || missedAnyNote) {
+			if ((!FullCombo && !switchedRingMaterial) || missedAnyNote) {
 				ComboRing.material = nonFCRing;
 				switchedRingMaterial = true;
 
