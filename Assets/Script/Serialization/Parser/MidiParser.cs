@@ -369,46 +369,6 @@ namespace YARG.Serialization.Parser {
 				}
 			}
 		}
-		private void ParseTap(List<EventIR> eventIR, TrackChunk trackChunk, string instrument) {
-			long totalDelta = 0;
-			long? soloStart = null;
-
-			// Convert track events into intermediate representation
-			foreach (var trackEvent in trackChunk.Events) {
-				totalDelta += trackEvent.DeltaTime;
-
-				if (trackEvent is not NoteEvent noteEvent) {
-					continue;
-				}
-
-				// Look for correct octave
-				if (noteEvent.GetNoteOctave() != 7) {
-					continue;
-				}
-
-				// Skip if not a star power event
-				if (noteEvent.GetNoteName() != NoteName.GSharp) {
-					continue;
-				}
-
-				if (trackEvent is NoteOnEvent) {
-					// We need to know when it ends before adding it
-					soloStart = totalDelta;
-				} else if (trackEvent is NoteOffEvent) {
-					if (soloStart == null) {
-						continue;
-					}
-
-					// Now that we know the start and end, add it to the list of events.
-					eventIR.Add(new EventIR {
-						startTick = soloStart.Value,
-						endTick = totalDelta,
-						name = $"tap_{instrument}"
-					});
-					soloStart = null;
-				}
-			}
-		}
 		private SongInfo.DrumType GetDrumType(TrackChunk trackChunk) {
 			if (songInfo.drumType != SongInfo.DrumType.UNKNOWN) {
 				return songInfo.drumType;

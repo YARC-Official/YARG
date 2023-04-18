@@ -68,10 +68,6 @@ namespace YARG.PlayMode {
 			get;
 			protected set;
 		} = null;
-		public EventInfo TapSection {
-			get;
-			protected set;
-		} = null;
 
 		protected float starpowerCharge;
 		protected bool starpowerActive;
@@ -379,6 +375,19 @@ namespace YARG.PlayMode {
 				comboText.text = null;
 			} else {
 				comboText.text = $"{Multiplier}<sub>x</sub>";
+			}
+
+			// Update solo note count
+			if (Play.Instance.SongTime >= SoloSection?.time - 5 && Play.Instance.SongTime <= SoloSection?.time) {
+				soloNoteCount = 0;
+
+				for (int i = hitChartIndex; i < Chart.Count; i++) {
+					if (Chart[i].time > SoloSection?.EndTime) {
+						break;
+					} else {
+						soloNoteCount++;
+					}
+				}
 			}
 
 			// Set solo box and text
