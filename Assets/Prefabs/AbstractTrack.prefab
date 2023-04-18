@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 90376540996421698}
+  - component: {fileID: 5633652968136525197}
   m_Layer: 0
   m_Name: AbstractTrack
   m_TagString: Untagged
@@ -41,6 +42,60 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5633652968136525197
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 90376540996421702}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9b62acf1a8807544b8866f73e4ce7e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  trackCamera: {fileID: 7369836005863543340}
+  trackRenderer: {fileID: 6705658293223943274}
+  hitWindow: {fileID: 4405145901572709445}
+  comboText: {fileID: 24723221875665680}
+  comboMeterRenderer: {fileID: 5158185222957906181}
+  starpowerBarTop: {fileID: 1638471387717129506}
+  comboRing: {fileID: 2278174339011780275}
+  nonFCRing: {fileID: 2100000, guid: ce3039f4da289c046b33066e508567f0, type: 2}
+  comboSunburst: {fileID: 9951896421710430}
+  maxComboLight: {fileID: 1811260302183972900}
+  starpowerLight: {fileID: 2166581194060232035}
+  sunBurstSprite: {fileID: 21300000, guid: 3235c7c6359bba84a99591649a51b5cd, type: 3}
+  sunBurstSpriteStarpower: {fileID: 21300000, guid: e1d36b6ae21bc594881648de5d531555,
+    type: 3}
+  starPowerParticles: {fileID: 4538689441710943866}
+  soloText: {fileID: 5431607447448773681}
+  soloBox: {fileID: 4616796601023000727}
+  soloMessySprite: {fileID: 21300000, guid: 229a7b90eb98f3845ac0c87daa9fe207, type: 3}
+  soloPerfectSprite: {fileID: 21300000, guid: d366b747c8f99cb458e8ff931d4f2003, type: 3}
+  soloDefaultSprite: {fileID: 21300000, guid: cecf11e1b10fd7d4aba2b460a1ed8c1a, type: 3}
+  fretColors:
+  - {r: 0.32941177, g: 0.59607846, b: 0.011764707, a: 1}
+  - {r: 1, g: 0, b: 0.025974274, a: 1}
+  - {r: 1, g: 0.9136364, b: 0, a: 1}
+  - {r: 0.41960788, g: 0.6862745, b: 0.8313726, a: 1}
+  - {r: 1, g: 0.4980868, b: 0.21300006, a: 1}
+  - {r: 0.78306866, g: 0, b: 1, a: 1}
+  noteColors:
+  - {r: 0.5216133, g: 0.8962264, b: 0, a: 1}
+  - {r: 1, g: 0.011764706, b: 0, a: 1}
+  - {r: 1, g: 0.8950032, b: 0, a: 1}
+  - {r: 0, g: 0.36250877, b: 1, a: 1}
+  - {r: 1, g: 0.42745098, b: 0, a: 1}
+  - {r: 0.78431374, g: 0, b: 1, a: 1}
+  sustainColors:
+  - {r: 0.52156866, g: 0.8980392, b: 0, a: 1}
+  - {r: 1, g: 0.011764706, b: 0, a: 1}
+  - {r: 1, g: 0.8980392, b: 0, a: 1}
+  - {r: 0, g: 0.36078432, b: 1, a: 1}
+  - {r: 1, g: 0.42745098, b: 0, a: 1}
+  - {r: 0.78431374, g: 0, b: 1, a: 1}
+  colorMappings: 
 --- !u!1 &432879558838847411
 GameObject:
   m_ObjectHideFlags: 0
@@ -6022,7 +6077,7 @@ GameObject:
   - component: {fileID: 5158185222957906181}
   - component: {fileID: 5901944642771001827}
   m_Layer: 6
-  m_Name: ComboMeterNew
+  m_Name: Combo Meter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11848,6 +11903,12 @@ PrefabInstance:
 --- !u!4 &1141275069845792220 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: f95da8a9c79d3854ea44468f7f7ecc58,
+    type: 3}
+  m_PrefabInstance: {fileID: 602399178233446967}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &2278174339011780275 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -7511558181221131132, guid: f95da8a9c79d3854ea44468f7f7ecc58,
     type: 3}
   m_PrefabInstance: {fileID: 602399178233446967}
   m_PrefabAsset: {fileID: 0}

@@ -22,12 +22,6 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private ParticleGroup[] sustainParticles;
 		[SerializeField]
-		private Color[] stringColors;
-		[SerializeField]
-		private Color[] noteColors;
-		[SerializeField]
-		private Color[] sustainColors;
-		[SerializeField]
 		private NotePool notePool;
 		[SerializeField]
 		private Pool genericPool;
@@ -36,7 +30,7 @@ namespace YARG.PlayMode {
 		private List<NoteInfo> heldNotes = new();
 
 		private int notesHit = 0;
-		private int notesMissed = 0;
+		// private int notesMissed = 0;
 
 		protected override void StartTrack() {
 			notePool.player = player;
@@ -62,11 +56,11 @@ namespace YARG.PlayMode {
 			// Color particles
 
 			for (int i = 0; i < 6; i++) {
-				hitParticles[i].Colorize(stringColors[i]);
+				hitParticles[i].Colorize(commonTrack.FretColor(i));
 			}
 
 			for (int i = 0; i < 6; i++) {
-				sustainParticles[i].Colorize(stringColors[i]);
+				sustainParticles[i].Colorize(commonTrack.FretColor(i));
 			}
 		}
 
@@ -297,7 +291,12 @@ namespace YARG.PlayMode {
 				var noteComp = notePool.AddNote(noteInfo, pos);
 				startFCDetection = true;
 				var model = noteInfo.hopo ? NoteComponent.ModelType.HOPO : NoteComponent.ModelType.NOTE;
-				noteComp.SetInfo(noteColors[i], sustainColors[i], noteInfo.length, model);
+				noteComp.SetInfo(
+					commonTrack.NoteColor(i),
+					commonTrack.SustainColor(i),
+					noteInfo.length,
+					model
+				);
 				noteComp.SetFretNumber(noteInfo.muted ? "X" : noteInfo.stringFrets[i].ToString());
 			}
 		}
