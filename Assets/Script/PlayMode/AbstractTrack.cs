@@ -48,6 +48,10 @@ namespace YARG.PlayMode {
 
 		[Space]
 		[SerializeField]
+		protected MeshRenderer ComboRing;
+		[SerializeField]
+		protected Material nonFCRing;
+		[SerializeField]
 		protected SpriteRenderer comboSunburst;
 		[SerializeField]
 		protected GameObject maxComboLight;
@@ -85,7 +89,7 @@ namespace YARG.PlayMode {
 
 		// Overdrive animation parameters
 		protected Vector3 trackStartPos;
-		protected Vector3 trackEndPos = new(0, 0.13f, 0.2f);
+		protected Vector3 trackEndPos = new(0, 0.08f, 0.13f);
 		protected float spAnimationDuration = 0.2f;
 		protected float elapsedTimeAnim = 0;
 		protected bool gotStartPos = false;
@@ -99,10 +103,11 @@ namespace YARG.PlayMode {
 		private float soloHitPercent = 0;
 		private int lastHit = -1;
 
-		[SerializeField]
-		protected AnimationCurve spStartAnimCurve;
-		[SerializeField]
-		protected AnimationCurve spEndAnimCurve;
+		private bool FullCombo = true;
+		private int SavedCombo = 0;
+		public bool startFCDetection = false;
+		private bool switchedRingMaterial = false;
+
 		private int _combo = 0;
 		protected int Combo {
 			get => _combo;
@@ -168,6 +173,7 @@ namespace YARG.PlayMode {
 
 		private void Start() {
 			player.track = this;
+			FullCombo = true;
 
 			player.inputStrategy.StarpowerEvent += StarpowerAction;
 			player.inputStrategy.PauseEvent += PauseAction;
@@ -215,8 +221,11 @@ namespace YARG.PlayMode {
 				lastHit = hitChartIndex;
 			}
 
+			Debug.Log("Full combo: " + FullCombo + " startDetection: " + startFCDetection + " Combo: " + Combo);
+
 			UpdateInfo();
 			UpdateStarpower();
+			UpdateFullComboState();
 
 			if (Multiplier >= MaxMultiplier) {
 				comboSunburst.gameObject.SetActive(true);
@@ -230,6 +239,24 @@ namespace YARG.PlayMode {
 			}
 
 			Beat = false;
+		}
+
+		private void UpdateFullComboState() {
+			if (Combo > SavedCombo) {
+				SavedCombo = Combo;
+
+			}
+
+			if (Combo < SavedCombo && startFCDetection) {
+				FullCombo = false;
+
+			}
+
+			if(!FullCombo && !switchedRingMaterial) {
+				ComboRing.material = nonFCRing;
+				switchedRingMaterial = true;
+
+			}
 		}
 
 		protected abstract void UpdateTrack();

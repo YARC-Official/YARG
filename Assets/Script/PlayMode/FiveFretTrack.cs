@@ -529,8 +529,10 @@ namespace YARG.PlayMode {
 				model = NoteComponent.ModelType.HOPO;
 			}
 
+
 			// Set note info
 			var noteComp = notePool.AddNote(noteInfo, pos);
+			startFCDetection = true;
 			noteComp.SetInfo(noteColors[noteInfo.fret], sustainColors[noteInfo.fret], noteInfo.length, model);
 		}
 

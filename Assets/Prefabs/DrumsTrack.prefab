@@ -369,7 +369,7 @@ MonoBehaviour:
   starpowerBarTop: {fileID: 4495594969935969962}
   comboSunburst: {fileID: 2953747792794423766}
   maxComboLight: {fileID: 3601869664132852652}
-  starpowerLight: {fileID: 7378084863571732586}
+  starpowerLight: {fileID: 3949574239301263083}
   sunBurstSprite: {fileID: 21300000, guid: 3235c7c6359bba84a99591649a51b5cd, type: 3}
   sunBurstSpriteStarpower: {fileID: 21300000, guid: e1d36b6ae21bc594881648de5d531555,
     type: 3}
@@ -404,7 +404,7 @@ MonoBehaviour:
   - {r: 1, g: 0.5921569, b: 0, a: 1}
   noteColors:
   - {r: 1, g: 0.011764706, b: 0, a: 1}
-  - {r: 1, g: 0.9411765, b: 0, a: 1}
+  - {r: 1, g: 0.8980392, b: 0, a: 1}
   - {r: 0, g: 0.36078432, b: 1, a: 1}
   - {r: 0.52156866, g: 0.8980392, b: 0, a: 1}
   - {r: 1, g: 0.42745098, b: 0, a: 1}
@@ -414,6 +414,12 @@ MonoBehaviour:
 --- !u!1 &3601869664132852652 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1811260302183972900, guid: ba68df35237e09f4abcf788160c15375,
+    type: 3}
+  m_PrefabInstance: {fileID: 2944943788190444424}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &3949574239301263083 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2166581194060232035, guid: ba68df35237e09f4abcf788160c15375,
     type: 3}
   m_PrefabInstance: {fileID: 2944943788190444424}
   m_PrefabAsset: {fileID: 0}
@@ -453,12 +459,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9541d86e2fd84c1d9990edf0852d74ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!1 &7378084863571732586 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5673044395376804834, guid: ba68df35237e09f4abcf788160c15375,
-    type: 3}
-  m_PrefabInstance: {fileID: 2944943788190444424}
-  m_PrefabAsset: {fileID: 0}
 --- !u!212 &7551589661624326943 stripped
 SpriteRenderer:
   m_CorrespondingSourceObject: {fileID: 4616796601023000727, guid: ba68df35237e09f4abcf788160c15375,
