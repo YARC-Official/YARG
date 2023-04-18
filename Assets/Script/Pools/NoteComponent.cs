@@ -17,20 +17,24 @@ namespace YARG.Pools {
 		}
 
 		[SerializeField]
+		private MeshRenderer[] meshRenderers;
+		[SerializeField]
+		private int[] meshRendererMiddleIndices;
+
+		[Space]
+		[SerializeField]
 		private GameObject noteGroup;
 		[SerializeField]
 		private GameObject hopoGroup;
 		[SerializeField]
 		private GameObject fullGroup;
 		[SerializeField]
-		private MeshRenderer[] meshRenderers;
-		[SerializeField]
 		private TextMeshPro fretNumber;
 		[SerializeField]
 		private LineRenderer lineRenderer;
 
-		private Color _colorCache = Color.white;
-		private Color ColorCache {
+		private Color _colorCacheSustains = Color.white;
+		private Color ColorCacheSustains {
 			get {
 				// If within starpower section
 				if (pool.player.track.StarpowerSection?.EndTime > pool.player.track.RelativeTime) {
@@ -42,9 +46,23 @@ namespace YARG.Pools {
 					return Color.magenta;
 				}
 
-				return _colorCache;
+				return _colorCacheSustains;
 			}
-			set => _colorCache = value;
+			set => _colorCacheSustains = value;
+		}
+
+		//Color cache for notes and sustains are now separate to allow for more customization. -Mia
+		private Color _colorCacheNotes = Color.white;
+		private Color ColorCacheNotes {
+			get {
+				// If within starpower section
+				if (pool.player.track.StarpowerSection?.EndTime > pool.player.track.RelativeTime) {
+					return Color.white;
+				}
+
+				return _colorCacheNotes;
+			}
+			set => _colorCacheNotes = value;
 		}
 
 		private float lengthCache = 0f;
@@ -65,7 +83,7 @@ namespace YARG.Pools {
 			}
 		}
 
-		public void SetInfo(Color c, float length, ModelType hopo, bool isDrumActivator) {
+		public void SetInfo(Color notes, Color sustains, float length, ModelType hopo, bool isDrumActivator) {
 			noteGroup.SetActive(hopo == ModelType.NOTE);
 			hopoGroup.SetActive(hopo == ModelType.HOPO);
 			fullGroup.SetActive(hopo == ModelType.FULL);
@@ -74,14 +92,16 @@ namespace YARG.Pools {
 
 			SetLength(length);
 
+			ColorCacheNotes = notes;
+			ColorCacheSustains = sustains;
 			isActivatorNote = isDrumActivator;
-
-			ColorCache = c;
 			UpdateColor();
+
+			UpdateRandomness();
 		}
 
-		public void SetInfo(Color c, float length, ModelType hopo) {
-			SetInfo(c, length, hopo, false);
+		public void SetInfo(Color notes, Color sustains, float length, ModelType hopo) {
+			SetInfo(notes, sustains, length, hopo, false);
 		}
 
 		public void SetFretNumber(string str) {
@@ -90,11 +110,28 @@ namespace YARG.Pools {
 		}
 
 		private void UpdateColor() {
-			foreach (var meshRenderer in meshRenderers) {
-				meshRenderer.materials[0].color = ColorCache;
+			for (int i = 0; i < meshRenderers.Length; i++) {
+				int index = meshRendererMiddleIndices[i];
+				meshRenderers[i].materials[index].color = ColorCacheNotes;
+				meshRenderers[i].materials[index].SetColor("_EmissionColor", ColorCacheNotes * 3);
 			}
 
 			UpdateLineColor();
+		}
+
+		private void UpdateRandomness() {
+			for (int i = 0; i < meshRenderers.Length; i++) {
+				int index = meshRendererMiddleIndices[i];
+				var material = meshRenderers[i].materials[index];
+
+				if (material.HasFloat("_RandomFloat")) {
+					material.SetFloat("_RandomFloat", Random.Range(-1f, 1f));
+				}
+
+				if (material.HasVector("_RandomVector")) {
+					material.SetVector("_RandomVector", new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f)));
+				}
+			}
 		}
 
 		private void UpdateLineColor() {
@@ -103,11 +140,11 @@ namespace YARG.Pools {
 			}
 
 			if (state == State.WAITING) {
-				lineRenderer.materials[0].color = ColorCache;
-				lineRenderer.materials[0].SetColor("_EmissionColor", ColorCache);
+				lineRenderer.materials[0].color = ColorCacheSustains;
+				lineRenderer.materials[0].SetColor("_EmissionColor", ColorCacheSustains);
 			} else if (state == State.HITTING) {
-				lineRenderer.materials[0].color = ColorCache;
-				lineRenderer.materials[0].SetColor("_EmissionColor", ColorCache * 8f);
+				lineRenderer.materials[0].color = ColorCacheSustains;
+				lineRenderer.materials[0].SetColor("_EmissionColor", ColorCacheSustains * 3f);
 			} else if (state == State.MISSED) {
 				lineRenderer.materials[0].color = new(0.9f, 0.9f, 0.9f, 0.5f);
 				lineRenderer.materials[0].SetColor("_EmissionColor", Color.black);
@@ -156,8 +193,8 @@ namespace YARG.Pools {
 
 			if (state == State.HITTING) {
 				// Get the new line start position. Said position should be at
-				// the fret board (-1.75f) and relative to the note itelf.
-				float newStart = -transform.localPosition.z - 1.75f;
+				// the fret board and relative to the note itelf.
+				float newStart = -transform.localPosition.z - AbstractTrack.TRACK_END_OFFSET;
 
 				// Apply to line renderer
 				lineRenderer.SetPosition(1, new(0f, 0f, newStart));

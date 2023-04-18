@@ -24,6 +24,10 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private Color[] stringColors;
 		[SerializeField]
+		private Color[] noteColors;
+		[SerializeField]
+		private Color[] sustainColors;
+		[SerializeField]
 		private NotePool notePool;
 		[SerializeField]
 		private Pool genericPool;
@@ -109,6 +113,8 @@ namespace YARG.PlayMode {
 					genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
 				} else if (eventInfo.name == $"starpower_{player.chosenInstrument}") {
 					StarpowerSection = eventInfo;
+				} else if (eventInfo.name == $"solo_{player.chosenInstrument}") {
+					SoloSection = eventInfo;
 				}
 
 				eventChartIndex++;
@@ -141,6 +147,10 @@ namespace YARG.PlayMode {
 			UpdateInput();
 
 			strumFlag = StrumFlag.NONE;
+		}
+
+		public override void SetReverb(bool on) {
+			Play.Instance.ReverbAudio("guitar", on);
 		}
 
 		private void UpdateInput() {
@@ -190,6 +200,13 @@ namespace YARG.PlayMode {
 			notePool.HitNote(note);
 			StopAudio = false;
 			notesHit++;
+
+			// Solo stuff
+			if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime) {
+				soloNotesHit++;
+			} else if (Play.Instance.SongTime >= SoloSection?.EndTime + 10) {
+				soloNotesHit = 0;
+			}
 
 			// Play particles
 			for (int i = 0; i < 6; i++) {
@@ -277,7 +294,7 @@ namespace YARG.PlayMode {
 				// Set note info
 				var noteComp = notePool.AddNote(noteInfo, pos);
 				var model = noteInfo.hopo ? NoteComponent.ModelType.HOPO : NoteComponent.ModelType.NOTE;
-				noteComp.SetInfo(stringColors[i], noteInfo.length, model);
+				noteComp.SetInfo(noteColors[i], sustainColors[i], noteInfo.length, model);
 				noteComp.SetFretNumber(noteInfo.muted ? "X" : noteInfo.stringFrets[i].ToString());
 			}
 		}

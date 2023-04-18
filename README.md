@@ -54,12 +54,22 @@ Windows:
 
 # 🔨 Building
 
-1. Clone repository.
-2. Make sure you have [Blender](https://www.blender.org/) installed (it's free). This is for loading models.
-3. Open it in Unity version `2021.3.21f1` (LTS)
-4. Load in **without** entering safe mode.
-5. Click on `NuGet` on the menu bar.
-6. Click on `Restore Packages`.
+> **Warning**
+>
+> If you would like to build the game yourself, please follow these instructions.
+>
+> If you don't follow these instructions, **YOU WILL NOT BE ABLE TO RUN THE GAME**.
+
+1. Make sure you have [Blender](https://www.blender.org/) installed. This is for loading models, even if you don't plan on editing them.
+2. Make sure you have [Python (3.10)](https://www.python.org/downloads/) installed. This is required to downloading dependencies.
+3. Clone the repository.
+4. Open the command prompt at the root of the directory, and type in:
+	1. `pip install requests`
+	2. `python InstallLibraries/install.py`. This may take a bit. Wait for the command prompt to say "Done!" before closing. This installs all needed dependencies for you.
+5. Open it in Unity version `2021.3.21f1` (LTS)
+6. Load in **without** entering safe mode.
+7. (You may need to) click on `NuGet` on the menu bar, then click on `Restore Packages`.
+8. You're ready to go!
 
 # ✍️ Contributing
 
@@ -82,6 +92,8 @@ Some libraries/assets are **packaged** with the source code have licenses that m
 | [Lucide](https://lucide.dev/) | [ISC](https://lucide.dev/license)
 
 Please note that other libraries are **not** packaged within the source code, and are to be install by NuGet.
+
+BASS is the audio library for YARG. [It has it's own license for release](https://www.un4seen.com/).
 
 # 📦 External Assets and Libraries
 

@@ -1,8 +1,10 @@
+using System.IO;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.InputSystem;
 using UnityEngine.Profiling;
 using UnityEngine.SceneManagement;
+using YARG.Data;
 
 namespace YARG {
 	public enum SceneIndex {
@@ -30,17 +32,38 @@ namespace YARG {
 			private set;
 		}
 
+		public static IAudioManager AudioManager {
+			get;
+			private set;
+		}
+
 		public UpdateChecker updateChecker;
-		
+
 		[SerializeField]
 		private AudioMixerGroup vocalGroup;
 
 		private SceneIndex currentScene = SceneIndex.PERSISTANT;
 
-		private void Start() {
+		private void Awake() {
 			Instance = this;
+
+			Debug.Log($"YARG {Constants.VERSION_TAG}");
+
+			AudioManager = gameObject.AddComponent<BassAudioManager>();
+			AudioManager.Initialize();
+		}
+
+		private void Start() {
 			updateChecker = GetComponent<UpdateChecker>();
-			PersistentDataPath = Application.persistentDataPath;
+
+			// this is to handle a strange edge case in path naming in windows.
+			// modern windows can handle / or \ in path names with seemingly one exception, if there is a space in the user name then try forward slash appdata, it will break at the first space so:
+			// c:\users\joe blow\appdata <- okay!
+			// c:/users/joe blow\appdata <- okay!
+			// c:/users/joe blow/appdata <- "Please choose an app to open joe"
+			// so let's just set them all to \ on windows to be sure.
+			// For linux Path.DirectorySeparatorChar should return /, and this should work fine, but this should be double checked once those builds are being worked on
+			PersistentDataPath = Application.persistentDataPath.Replace("/", Path.DirectorySeparatorChar.ToString());
 			Settings.SettingsManager.Init();
 
 			// High polling rate

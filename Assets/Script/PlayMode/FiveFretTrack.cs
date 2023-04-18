@@ -19,6 +19,10 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private Color[] fretColors;
 		[SerializeField]
+		private Color[] noteColors;
+		[SerializeField]
+		private Color[] sustainColors;
+		[SerializeField]
 		private NotePool notePool;
 		[SerializeField]
 		private Pool genericPool;
@@ -32,7 +36,6 @@ namespace YARG.PlayMode {
 		private bool latestInputIsStrum = false;
 
 		private int notesHit = 0;
-
 		protected override void StartTrack() {
 			notePool.player = player;
 			genericPool.player = player;
@@ -57,7 +60,7 @@ namespace YARG.PlayMode {
 				fret.SetColor(fretColors[i]);
 				frets[i] = fret;
 			}
-			openNoteParticles.Colorize(fretColors[5]);
+			openNoteParticles.Colorize(noteColors[5]);
 		}
 
 		protected override void OnDestroy() {
@@ -103,6 +106,8 @@ namespace YARG.PlayMode {
 					genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
 				} else if (eventInfo.name == $"starpower_{player.chosenInstrument}") {
 					StarpowerSection = eventInfo;
+				} else if (eventInfo.name == $"solo_{player.chosenInstrument}") {
+					SoloSection = eventInfo;
 				}
 
 				eventChartIndex++;
@@ -148,8 +153,26 @@ namespace YARG.PlayMode {
 			strummed = false;
 		}
 
+		public override void SetReverb(bool on) {
+			switch (player.chosenInstrument) {
+				case "guitar":
+					Play.Instance.ReverbAudio("guitar", on);
+					break;
+				case "bass":
+					Play.Instance.ReverbAudio("bass", on);
+					Play.Instance.ReverbAudio("rhythm", on);
+					break;
+				case "keys":
+					Play.Instance.ReverbAudio("keys", on);
+					break;
+			}
+
+			Play.Instance.ReverbAudio("song", on);
+		}
+
 		private void UpdateInput() {
 			// Only want to decrease strum leniency on frames where we didn't strum
+			bool strummedCurrentNote = false;
 			if (strumLeniency > 0f && !strummed) {
 				strumLeniency -= Time.deltaTime;
 
@@ -159,6 +182,7 @@ namespace YARG.PlayMode {
 				} else {
 					RemoveOldAllowedOverstrums();
 					if (IsOverstrumForgiven()) { // Consume allowed overstrum as soon as it's "hit"
+						strummedCurrentNote = true;
 						strumLeniency = 0f;
 					}
 				}
@@ -267,6 +291,7 @@ namespace YARG.PlayMode {
 			expectedHits.Dequeue();
 
 			Combo++;
+			strummedCurrentNote = strummedCurrentNote || strummed || strumLeniency > 0f;
 			strumLeniency = 0f;
 			foreach (var hit in chord) {
 				hitChartIndex++;
@@ -289,18 +314,25 @@ namespace YARG.PlayMode {
 
 				// Add stats
 				notesHit++;
+
+				// Solo stuff
+				if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime) {
+					soloNotesHit++;
+				} else if (Play.Instance.SongTime >= SoloSection?.EndTime + 10) {
+					soloNotesHit = 0;
+				}
 			}
 
 			// If this is a tap note, and it was hit without strumming,
 			// add it to the allowed overstrums. This is so the player
 			// doesn't lose their combo when they strum AFTER they hit
 			// the tap note.
-			if (chord[0].hopo && !strummed) {
+			if (chord[0].hopo && !strummedCurrentNote) {
 				allowedOverstrums.Clear(); // Only allow overstrumming latest HO/PO
 				allowedOverstrums.Add(chord);
 			} else if (allowedOverstrums.Count > 0 && !chord[0].hopo) {
 				for (int i = 0; i < allowedOverstrums.Count; i++) {
-					if (!ChordEquals(chord,allowedOverstrums[i])) {
+					if (!ChordEquals(chord, allowedOverstrums[i])) {
 						allowedOverstrums.Clear(); // If latest strum is different from latest HO/PO, disallow overstrumming
 						break;
 					} else {
@@ -310,7 +342,7 @@ namespace YARG.PlayMode {
 						}
 					}
 				}
-				
+
 			}
 		}
 
@@ -369,6 +401,7 @@ namespace YARG.PlayMode {
 
 		private bool ChordPressed(List<NoteInfo> chordList, bool overstrumCheck = false) {
 			// Convert NoteInfo list to chord fret array
+			bool overlap = ChordsOverlap(heldNotes, chordList);
 			int[] chord = new int[chordList.Count];
 			for (int i = 0; i < chord.Length; i++) {
 				chord[i] = chordList[i].fret;
@@ -389,7 +422,7 @@ namespace YARG.PlayMode {
 					for (int i = 0; i < frets.Length; i++) {
 						// Skip any notes that are currently held down.
 						// Extended sustains.
-						if (heldNotes.Any(j => j.fret == i)) {
+						if (overlap && heldNotes.Any(j => j.fret == i)) {
 							continue;
 						}
 
@@ -407,7 +440,7 @@ namespace YARG.PlayMode {
 				for (int i = 0; i < frets.Length; i++) {
 					// Skip any notes that are currently held down.
 					// Extended sustains.
-					if (heldNotes.Any(j => j.fret == i)) {
+					if (overlap && heldNotes.Any(j => j.fret == i)) {
 						continue;
 					}
 
@@ -498,11 +531,11 @@ namespace YARG.PlayMode {
 
 			// Set note info
 			var noteComp = notePool.AddNote(noteInfo, pos);
-			noteComp.SetInfo(fretColors[noteInfo.fret], noteInfo.length, model);
+			noteComp.SetInfo(noteColors[noteInfo.fret], sustainColors[noteInfo.fret], noteInfo.length, model);
 		}
-		
+
 		private string PrintFrets() { // Debug function; remove later?
-			return "[" + (frets[0].IsPressed? "G" : "") + (frets[1].IsPressed? "R" : "") + (frets[2].IsPressed? "Y" : "") + (frets[3].IsPressed? "B" : "") + (frets[4].IsPressed? "O" : "") + "]";
+			return "[" + (frets[0].IsPressed ? "G" : "") + (frets[1].IsPressed ? "R" : "") + (frets[2].IsPressed ? "Y" : "") + (frets[3].IsPressed ? "B" : "") + (frets[4].IsPressed ? "O" : "") + "]";
 		}
 
 		private bool ChordEquals(List<NoteInfo> chordList1, List<NoteInfo> chordList2) {
@@ -520,6 +553,15 @@ namespace YARG.PlayMode {
 				}
 			}
 			return true;
+		}
+
+		private bool ChordsOverlap(List<NoteInfo> chordList1, List<NoteInfo> chordList2) {
+			foreach (NoteInfo chord in chordList1) {
+				if (chord.length > 0.2f && chord.EndTime > chordList2[0].time) { // If it's a sustain and overlaps with next note...
+					return true;
+				}
+			}
+			return false;
 		}
 	}
 }
