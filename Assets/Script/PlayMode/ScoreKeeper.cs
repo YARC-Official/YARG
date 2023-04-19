@@ -26,7 +26,6 @@ public class ScoreKeeper: MonoBehaviour {
     }
 
 	public static void Reset() {
-		Debug.Log("Clearing ScoreKeeper instances!");
 		instances.Clear();
 	}
 
@@ -39,7 +38,6 @@ public class ScoreKeeper: MonoBehaviour {
 	}
 
     public ScoreKeeper() {
-		Debug.Log("Creating a ScoreKeeper instance!");
 		instances.Add(this);
 	}
 }

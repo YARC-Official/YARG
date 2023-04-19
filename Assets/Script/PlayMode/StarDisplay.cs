@@ -21,20 +21,24 @@ namespace YARG.PlayMode {
 
         private void OnScoreChange() {
 			SetStars(StarScoreKeeper.BandStars);
-            // Debug.Log($"{StarScoreKeeper.BandStars}");
 		}
 
         private void SetStarProgress(GameObject star, double progress) {
-			if (!star.activeInHierarchy) star.SetActive(true);
+			if (!star.activeInHierarchy) {
+                star.SetActive(true);
+                star.GetComponent<Animator>().Play("PopNew");
+            }
 
 			if (progress < 1.0) {
 				// star is still in progress
 				star.transform.GetChild(0).GetComponent<Image>().fillAmount = (float)progress;
 			}
             else {
-                // fulfill star
-                star.transform.GetChild(1).gameObject.SetActive(true);
-            }
+				// fulfill star
+                star.transform.GetChild(0).GetComponent<Image>().fillAmount = 1f;
+				star.GetComponent<Animator>().Play("TransToComplete");
+				// star.transform.GetChild(1).gameObject.SetActive(true);
+			}
         }
 
         /// <summary>
@@ -54,6 +58,8 @@ namespace YARG.PlayMode {
                         SetStarProgress(objStars[i], 1.0);
                     }
                     curStar = topStar;
+
+                    // TODO: sound
                 }
 
                 if (curStar <= 4)
@@ -67,8 +73,9 @@ namespace YARG.PlayMode {
 			else if (stars >= 6.0) {
                 // set gold
                 foreach (var s in objStars) {
-                    s.transform.GetChild(2).gameObject.SetActive(true);
+                    s.GetComponent<Animator>().Play("TransToGold");;
                 }
+                // TODO: sound
 				goldAchieved = true; // so we stop trying to update
 			}
 		}
