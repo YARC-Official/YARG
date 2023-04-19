@@ -51,6 +51,8 @@ namespace YARG.UI {
 
 		[SerializeField]
 		private GameObject updateObject;
+		[SerializeField]
+		private GameObject musicPlayer;
 
 		private TextMeshProUGUI updateText;
 
@@ -101,6 +103,7 @@ namespace YARG.UI {
 				if (!SongLibrary.currentlyLoading) {
 					loadingScreen.SetActive(false);
 					SongLibrary.loadPercent = 0f;
+					musicPlayer.SetActive(true);
 				}
 
 				return;
