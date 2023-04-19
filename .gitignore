@@ -86,5 +86,6 @@ Assets/YargInput.cs
 /[Aa]ssets/[Pp]ackages/
 
 # Rider #
-.idea/# Rider #
-.idea//Packages/packages-lock.json
+.idea/
+Packages/com.thenathannator.hidrogen/
+Packages/com.thenathannator.plasticband/
