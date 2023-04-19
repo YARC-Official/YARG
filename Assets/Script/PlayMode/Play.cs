@@ -348,6 +348,11 @@ namespace YARG.PlayMode {
 
 		public static void EndSetlist()
         {
+			foreach (PlayerManager.Player player in PlayerManager.players) {
+				player.setlistInstruments.Clear();
+				player.setlistDifficulties.Clear();
+			}
+
 			setlistSize = 0;
 			setlistCurrentSongIndex = 0;
 			setlist.Clear();
