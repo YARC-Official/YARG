@@ -329,7 +329,14 @@ namespace YARG.PlayMode {
 
 			// Set note info
 			var noteComp = notePool.AddNote(noteInfo, pos);
-			noteComp.SetInfo(noteColors[noteInfo.fret], noteColors[noteInfo.fret], noteInfo.length, model);
+			startFCDetection = true;
+			noteComp.SetInfo(
+				commonTrack.NoteColor(noteInfo.fret),
+				commonTrack.SustainColor(noteInfo.fret),
+				noteInfo.length,
+				model,
+				noteInfo.isActivator
+			);
 		}
 	}
 }
