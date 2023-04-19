@@ -11,6 +11,40 @@ using DtxCS;
 using DtxCS.DataTypes;
 using YARG.Serialization;
 
+using YARG.PlayMode;
+using ManagedBass;
+using ManagedBass.DirectX8;
+using ManagedBass.Fx;
+using ManagedBass.Mix;
+
+public static class AudioFAFO
+{
+    public static float[,] ChannelGainRatios(float[] pan, float[] volume)
+    {
+        if (pan.Length != volume.Length)
+        {
+            throw new ArgumentException("Both input arrays must have the same length.");
+        }
+
+        float[,] gainRatios = new float[pan.Length, 2];
+
+        for (int i = 0; i < pan.Length; i++)
+        {
+            float theta = pan[i] * ((float)Math.PI / 4);
+            float ratioL = (float)(Math.Sqrt(2) / 2) * ((float)Math.Cos(theta) - (float)Math.Sin(theta));
+            float ratioR = (float)(Math.Sqrt(2) / 2) * ((float)Math.Cos(theta) + (float)Math.Sin(theta));
+
+            float volRatio = (float)Math.Pow(10, volume[i] / 20);
+
+            gainRatios[i, 0] = volRatio * ratioL;
+            gainRatios[i, 1] = volRatio * ratioR;
+        }
+
+        return gainRatios;
+    }
+}
+
+
 namespace YARG.Serialization {
 	public static class RockBandSTFS {
 		static RockBandSTFS() {}
@@ -39,21 +73,56 @@ namespace YARG.Serialization {
 					Debug.Log(parsedSongs[j].ToString());
 
 				// testing mogg parsing
-				// string testMogg = srcfolder.ToString() + "/underthebridge/underthebridge.mogg";
+				string testMogg = srcfolder.ToString() + "/giveitaway2/giveitaway2.mogg";
 
-				// if(File.Exists(Path.Combine(srcfolder.FullName, testMogg))){
-				// 	Debug.Log("neato, mogg exists");
-				// 	LEConverter le = new LEConverter();
-				// 	byte[] bytes = new byte[4];
-				// 	int oggBegin = 0;
-				// 	using(FileStream fileStream = new FileStream(testMogg, FileMode.Open)){
-				// 		int n = fileStream.Read(bytes, 0, 4); // skip over bytes 0, 1, 2, 3
-				// 		n = fileStream.Read(bytes, 0, 4); // because the info we care about is in bytes 4, 5, 6, 7
-				// 		oggBegin = le.LEToInt(bytes); // byte array --> int - bytes are in little endian
-				// 	}
-				// 	Debug.Log($"ogg audio begins at memory address {oggBegin:X8}, or {oggBegin}");
-				// }
-				// else Debug.Log("kowabummer");
+				if(File.Exists(Path.Combine(srcfolder.FullName, testMogg))){
+					Debug.Log("neato, mogg exists");
+					byte[] buffer = new byte[4];
+					int startAddress;
+					long moggLength;
+					using(FileStream fs = new FileStream(testMogg, FileMode.Open, FileAccess.Read)){
+                		using(BinaryReader br = new BinaryReader(fs, new ASCIIEncoding())){
+							buffer = br.ReadBytes(4);
+							buffer = br.ReadBytes(4);
+							startAddress = BitConverter.ToInt32(buffer,0);
+							Debug.Log($"ogg audio begins at memory address {startAddress:X}");
+							Debug.Log($"# of ogg bytes: {fs.Length}");
+							moggLength = fs.Length;
+							// byte[] audioBuffer = new byte[fs.Length - startAddress];
+						}
+						
+					}
+
+					// var moggData = File.ReadAllBytes(testMogg)[startAddress..];
+					// int streamHandle = Bass.CreateStream(moggData, 0, moggData.Length, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
+					int streamHandle = Bass.CreateStream(testMogg, startAddress, (moggLength - startAddress), BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
+					if(streamHandle == 0) Debug.Log($"failed to create stream: {Bass.LastError}");
+
+					int[] splits = new int[14];
+					for(int i = 0; i < splits.Length; i++){
+						splits[i] = BassMix.CreateSplitStream(streamHandle, BassFlags.Decode, new[] {i, -1});
+						if(splits[i] == 0) Debug.Log($"failed to create split stream: {Bass.LastError}");
+					}
+
+					int mixerHandle = BassMix.CreateMixerStream(44100, 2, BassFlags.Default);
+					if(mixerHandle == 0) Debug.Log($"failed to create mixer: {Bass.LastError}");
+
+					var channelVolumes = new[,] { {0.5f}, {0.5f} };
+
+					for(var index = 0; index < splits.Length; index++){
+						int channel = splits[index];
+						BassMix.MixerAddChannel(mixerHandle, channel, BassFlags.MixerChanMatrix);
+
+						//set matrix on individual channels
+						bool setMatrixToChannel = BassMix.ChannelSetMatrix(channel, channelVolumes);
+						if(!setMatrixToChannel) Debug.Log($"failed to set matrix to channel {index}: {Bass.LastError}");
+					}
+
+					bool playSong = Bass.ChannelPlay(mixerHandle);
+					if(!playSong) Debug.Log($"failed to play song: {Bass.LastError}");
+
+				}
+				else Debug.Log("kowabummer");
 
 				// testing png_xbox parsing
 				// string testPng = srcfolder.ToString() + "/underthebridge/gen/underthebridge_keep.png_xbox";

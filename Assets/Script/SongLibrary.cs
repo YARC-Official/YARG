@@ -204,7 +204,13 @@ namespace YARG {
 				if (new FileInfo(Path.Combine(folder.FullName, "song.ini")).Exists) {
 					// If the folder has a song.ini, it is a song folder
 					songsTemp.Add(new SongInfo(folder, rootFolder));
-				} else {
+				} 
+				else if(new FileInfo(Path.Combine(folder.FullName, "songs.dta")).Exists) {
+					// If the folder has a songs.dta, it is an Xbox song folder
+					Debug.Log($"yo im an xbox song folder");
+					RockBandSTFS.ParseSongsDta(folder);
+				}
+				else {
 					// Otherwise, treat it as a sub-folder
 					CreateSongInfoFromFiles(rootFolder, folder);
 				}

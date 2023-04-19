@@ -39,8 +39,6 @@ namespace YARG.Serialization {
         private Dictionary<string, byte[]> tracks;
         private Dictionary<string, ushort> ranks;
 
-        private static DataArray GetDataDict(DataArray dta, string key){ return dta.Array(key); }
-
         //TODO: implement macro support, such as #ifndef kControllerRealGuitar, or #ifdef YARG
         public XboxSongData ParseFromDataArray(DataArray dta){
             shortname = dta.Name;
@@ -196,6 +194,9 @@ namespace YARG.Serialization {
         }
 
         public string GetShortName(){ return shortname; }
+
+        public float[] GetPans() { return pans; }
+        public float[] GetVols() { return vols; }
 
         public override string ToString(){
             string debugTrackStr = "";
