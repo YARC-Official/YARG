@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Note_Middle
+  m_Name: MainBackground
   m_Shader: {fileID: -6465566751694194690, guid: ebeafbd44750aab41832c48d7922821a,
     type: 3}
   m_ValidKeywords: []
