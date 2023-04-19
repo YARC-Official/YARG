@@ -50,13 +50,13 @@ namespace YARG.Pools {
 		private Color _colorCacheNotes = Color.white;
 		private Color ColorCacheNotes {
 			get {
+				if (isActivatorNote) {
+					return Color.magenta;
+				}
+
 				// If within starpower section
 				if (pool.player.track.StarpowerSection?.EndTime > pool.player.track.RelativeTime) {
 					return Color.white;
-				}
-
-				if (isActivatorNote) {
-					return Color.magenta;
 				}
 
 				return _colorCacheNotes;
