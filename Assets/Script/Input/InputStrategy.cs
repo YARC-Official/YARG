@@ -6,6 +6,9 @@ using UnityEngine.InputSystem.Controls;
 
 namespace YARG.Input {
 	public abstract class InputStrategy {
+		public const float PRESS_THRESHOLD = 0.75f; // TODO: Remove once control calibration is added
+		public const int INVALID_MIC_INDEX = -1;
+
 		public bool botMode;
 		protected int botChartIndex;
 
@@ -31,7 +34,7 @@ namespace YARG.Input {
 			}
 		}
 
-		public int microphoneIndex = -1;
+		public int microphoneIndex = INVALID_MIC_INDEX;
 
 		// Temporary for MIDI
 		private OccurrenceList<string> midiPressed = new();

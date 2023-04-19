@@ -107,7 +107,7 @@ namespace YARG.UI {
 			var botButton = Instantiate(deviceButtonPrefab, devicesContainer);
 			botButton.GetComponentInChildren<TextMeshProUGUI>().text = "Create a <color=#0c7027><b>BOT</b></color>";
 			botButton.GetComponentInChildren<Button>().onClick.AddListener(() => {
-				selectedDevice = (null, -1);
+				selectedDevice = (null, InputStrategy.INVALID_MIC_INDEX);
 				botMode = true;
 				StartConfigure();
 			});
@@ -117,7 +117,7 @@ namespace YARG.UI {
 				var button = Instantiate(deviceButtonPrefab, devicesContainer);
 				button.GetComponentInChildren<TextMeshProUGUI>().text = $"<b>{device.displayName}</b> ({device.deviceId})";
 				button.GetComponentInChildren<Button>().onClick.AddListener(() => {
-					selectedDevice = (device, -1);
+					selectedDevice = (device, InputStrategy.INVALID_MIC_INDEX);
 					StartConfigure();
 				});
 			}
@@ -140,7 +140,7 @@ namespace YARG.UI {
 			configureContainer.SetActive(true);
 			UpdateState(State.CONFIGURE);
 
-			if (selectedDevice?.micIndex != -1) {
+			if (selectedDevice?.micIndex != InputStrategy.INVALID_MIC_INDEX) {
 				// Set to MIC if the selected device is a MIC
 				inputStrategyDropdown.value = 1;
 			} else {
@@ -160,10 +160,10 @@ namespace YARG.UI {
 
 			if (selectedDevice?.device == null) {
 				inputStrategy.InputDevice = null;
-				inputStrategy.microphoneIndex = selectedDevice?.micIndex ?? -1;
+				inputStrategy.microphoneIndex = selectedDevice?.micIndex ?? InputStrategy.INVALID_MIC_INDEX;
 			} else {
 				inputStrategy.InputDevice = selectedDevice?.device;
-				inputStrategy.microphoneIndex = -1;
+				inputStrategy.microphoneIndex = InputStrategy.INVALID_MIC_INDEX;
 			}
 
 			inputStrategy.botMode = botMode;

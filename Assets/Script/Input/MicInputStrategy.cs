@@ -52,7 +52,7 @@ namespace YARG.Input {
 		}
 
 		public override void UpdatePlayerMode() {
-			if (microphoneIndex == -1) {
+			if (microphoneIndex == INVALID_MIC_INDEX) {
 				return;
 			}
 

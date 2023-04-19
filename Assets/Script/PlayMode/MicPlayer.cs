@@ -175,7 +175,7 @@ namespace YARG.PlayMode {
 				}
 
 				// Skip if the player hasn't assigned a mic
-				if (micStrategy.microphoneIndex == -1 && !micStrategy.botMode) {
+				if (micStrategy.microphoneIndex == InputStrategy.INVALID_MIC_INDEX && !micStrategy.botMode) {
 					continue;
 				}
 
