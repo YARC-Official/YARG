@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using TMPro;
@@ -19,6 +20,9 @@ namespace YARG.UI {
 			VOCALS,
 			VOCALS_DIFFICULTY
 		}
+
+		Dictionary<PlayerManager.Player, string> tempInstruments = new();
+		Dictionary<PlayerManager.Player, Difficulty> tempDifficulties = new();
 
 		[SerializeField]
 		private GenericOption[] options;
@@ -72,6 +76,8 @@ namespace YARG.UI {
 			foreach (var player in PlayerManager.players) {
 				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
 			}
+			tempDifficulties.Clear();
+			tempInstruments.Clear();
 		}
 
 		private void OnDestroy() {
@@ -142,6 +148,7 @@ namespace YARG.UI {
 
 		public void Next() {
 			var player = PlayerManager.players[playerIndex];
+
 			string instrument = "";
 			if (state == State.INSTRUMENT) {
 				if (selected >= instruments.Length) {
@@ -153,9 +160,9 @@ namespace YARG.UI {
 						|| instrument == "ghDrums";
 					UpdateDifficulty(showExpertPlus);
 				}
-				player.setlistInstruments.Add(instrument);
+				tempInstruments.Add(player, instrument);
 			} else if (state == State.DIFFICULTY) {
-				player.setlistDifficulties.Add((Difficulty) selected);
+				tempDifficulties.Add(player, (Difficulty) selected);
 				OnInstrumentSelection?.Invoke(player);
 				IncreasePlayerIndex();
 			} else if (state == State.VOCALS) {
@@ -183,6 +190,22 @@ namespace YARG.UI {
 			}
 		}
 
+		private void WriteTempDiffAndInstrumentToPlayers() {
+			foreach (KeyValuePair<PlayerManager.Player, string> pair in tempInstruments) {
+				var player = pair.Key;
+				var instrument = pair.Value;
+
+				player.setlistInstruments.Add(instrument);
+			}
+
+			foreach (KeyValuePair<PlayerManager.Player, Difficulty> pair in tempDifficulties) {
+				var player = pair.Key;
+				var difficulty = pair.Value;
+
+				player.setlistDifficulties.Add(difficulty);
+			}
+		}
+
 		private void IncreasePlayerIndex() {
 			// Next non-mic player
 			playerIndex++;
@@ -198,6 +221,8 @@ namespace YARG.UI {
 				if (speed <= 0f) {
 					speed = 1f;
 				}
+
+				WriteTempDiffAndInstrumentToPlayers();
 
 				// Play song (or download then play)
 
