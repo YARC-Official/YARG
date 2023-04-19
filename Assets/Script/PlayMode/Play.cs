@@ -331,10 +331,11 @@ namespace YARG.PlayMode {
 
 		public static void StartSetlist()
         {
-			song = setlist[0];
+			// Song index gets incremented to 0 by ContinueSetlist().
+			setlistCurrentSongIndex = -1;
+			
 			setlistSize = setlist.Count;
-			setlistCurrentSongIndex = 0;
-			GameManager.Instance.LoadScene(SceneIndex.PLAY);
+			ContinueSetlist();
 		}
 
 		public static void ContinueSetlist()
@@ -347,7 +348,6 @@ namespace YARG.PlayMode {
 
 		public static void EndSetlist()
         {
-			Debug.Log("Setlist finished");
 			setlistSize = 0;
 			setlistCurrentSongIndex = 0;
 			setlist.Clear();

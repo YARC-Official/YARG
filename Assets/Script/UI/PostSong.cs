@@ -116,7 +116,7 @@ namespace YARG.UI {
 				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
 			}
 
-			if (Play.setlistCurrentSongIndex < Play.setlistSize)
+			if (Play.setlistCurrentSongIndex < Play.setlistSize - 1)
 			{
 				Play.ContinueSetlist();
 			} else
