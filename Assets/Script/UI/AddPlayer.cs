@@ -1,9 +1,10 @@
 using System;
-using Minis;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
+using UnityEngine.InputSystem.LowLevel;
+using UnityEngine.InputSystem.Utilities;
 using UnityEngine.UI;
 using YARG.Input;
 using YARG.Serialization;
@@ -48,6 +49,7 @@ namespace YARG.UI {
 
 		private string currentBindUpdate = null;
 		private TextMeshProUGUI currentBindText = null;
+		private IDisposable currentDeviceListener = null;
 
 		private void OnEnable() {
 			playerNameField.text = null;
@@ -65,16 +67,8 @@ namespace YARG.UI {
 
 			currentBindUpdate = null;
 			currentBindText = null;
-		}
-
-		private void Update() {
-			switch (state) {
-				case State.BIND:
-					UpdateBind();
-					break;
-				default:
-					break;
-			}
+			currentDeviceListener?.Dispose();
+			currentDeviceListener = null;
 		}
 
 		private void UpdateState(State newState) {
@@ -187,6 +181,12 @@ namespace YARG.UI {
 				return;
 			}
 
+			var device = selectedDevice?.device;
+			if (device == null) {
+				Debug.Assert(false, "No device selected when binding!");
+				return;
+			}
+
 			HideAll();
 			bindContainer.SetActive(true);
 			UpdateState(State.BIND);
@@ -212,47 +212,37 @@ namespace YARG.UI {
 				});
 			}
 
-			// Temp for MIDI
-			if (inputStrategy.InputDevice is MidiDevice midiDevice) {
-				midiDevice.onWillNoteOn += OnNote;
-			}
-		}
+			// Listen for device events
+			currentDeviceListener ??= InputSystem.onEvent.Call((eventPtr) => {
+				if (currentBindUpdate == null) {
+					return;
+				}
 
-		// Workaround to avoid very short note events not registering correctly
-		private void OnNote(MidiNoteControl control, float velocity) {
-			if (currentBindUpdate == null) {
-				return;
-			}
+				// Only take state events
+				if (!eventPtr.IsA<StateEvent>() && !eventPtr.IsA<DeltaStateEvent>()) {
+					return;
+				}
 
-			// Set mapping and stop waiting
-			inputStrategy.SetMappingInputControl(currentBindUpdate, control);
-			currentBindUpdate = null;
+				// Ignore if not from the selected device or from the keyboard
+				if (eventPtr.deviceId != device.deviceId && eventPtr.deviceId != Keyboard.current.deviceId) {
+					return;
+				}
 
-			// Refresh
-			DoneBind();
-		}
+				// Cancel
+				if ((device as Keyboard ?? Keyboard.current).escapeKey.isPressed) {
+					currentBindText.text = GetMappingText(currentBindUpdate);
+					currentBindText = null;
+					currentBindUpdate = null;
+					return;
+				}
 
-		private void UpdateBind() {
-			if (currentBindUpdate == null) {
-				return;
-			}
-
-			// Cancel
-			if (Keyboard.current.escapeKey.wasPressedThisFrame) {
-				currentBindText.text = GetMappingText(currentBindUpdate);
-				currentBindText = null;
-				currentBindUpdate = null;
-				return;
-			}
-
-			if (inputStrategy.InputDevice is not MidiDevice) { // Temp for MIDI
 				foreach (var control in selectedDevice?.device.allControls) {
 					// Skip "any key" (as that would always be detected)
 					if (control is AnyKeyControl) {
 						continue;
 					}
 
-					if (control is not ButtonControl buttonControl || !buttonControl.wasPressedThisFrame) {
+					if (control is not ButtonControl buttonControl || !buttonControl.isPressed) {
 						continue;
 					}
 
@@ -265,14 +255,13 @@ namespace YARG.UI {
 					currentBindText = null;
 					break;
 				}
-			}
+			});
 		}
 
 		public void DoneBind() {
-			// Temp for MIDI
-			if (inputStrategy.InputDevice is MidiDevice midiDevice) {
-				midiDevice.onWillNoteOn -= OnNote;
-			}
+			// Stop event listener
+			currentDeviceListener?.Dispose();
+			currentDeviceListener = null;
 
 			// Save bindings
 			if (inputStrategy.InputDevice != null) {
