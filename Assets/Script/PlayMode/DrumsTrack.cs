@@ -22,10 +22,6 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private Fret[] drums;
 		[SerializeField]
-		private Color[] drumColors;
-		[SerializeField]
-		private Color[] noteColors;
-		[SerializeField]
 		private NotePool notePool;
 		[SerializeField]
 		private Pool genericPool;
@@ -35,6 +31,7 @@ namespace YARG.PlayMode {
 		private Queue<List<NoteInfo>> expectedHits = new();
 
 		private int notesHit = 0;
+		// private int notesMissed = 0;
 
 		private bool noKickMode = false;
 
@@ -64,16 +61,16 @@ namespace YARG.PlayMode {
 			if (player.leftyFlip) {
 				drums = drums.Reverse().ToArray();
 				// Make the drum colors follow the original order even though the chart is flipped
-				Array.Reverse(drumColors, 0, kickIndex);
+				Array.Reverse(commonTrack.colorMappings, 0, kickIndex);
 			}
 
 			// Color drums
 			for (int i = 0; i < drums.Length; i++) {
 				var fret = drums[i].GetComponent<Fret>();
-				fret.SetColor(drumColors[i]);
+				fret.SetColor(commonTrack.FretColor(i), commonTrack.FretColor(i));
 				drums[i] = fret;
 			}
-			kickNoteParticles.Colorize(drumColors[kickIndex]);
+			kickNoteParticles.Colorize(commonTrack.FretColor(kickIndex));
 		}
 
 		protected override void OnDestroy() {
@@ -202,6 +199,7 @@ namespace YARG.PlayMode {
 					}
 
 					Combo = 0;
+					missedAnyNote = true;
 					notePool.MissNote(hit);
 					StopAudio = true;
 				}
@@ -331,7 +329,7 @@ namespace YARG.PlayMode {
 
 			// Set note info
 			var noteComp = notePool.AddNote(noteInfo, pos);
-			noteComp.SetInfo(drumColors[noteInfo.fret], drumColors[noteInfo.fret], noteInfo.length, model, noteInfo.isActivator);
+			noteComp.SetInfo(noteColors[noteInfo.fret], noteColors[noteInfo.fret], noteInfo.length, model);
 		}
 	}
 }
