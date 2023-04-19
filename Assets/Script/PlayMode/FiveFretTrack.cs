@@ -140,7 +140,9 @@ namespace YARG.PlayMode {
 				var heldNote = heldNotes[i];
 				if (heldNote.time + heldNote.length <= Play.Instance.SongTime) {
 					heldNotes.RemoveAt(i);
+					frets[heldNote.fret].StopAnimationSustains();
 					frets[heldNote.fret].StopSustainParticles();
+
 				}
 			}
 
@@ -298,9 +300,11 @@ namespace YARG.PlayMode {
 				notePool.HitNote(hit);
 				StopAudio = false;
 
-				// Play particles
+				// Play particles and animation
 				if (hit.fret != 5) {
 					frets[hit.fret].PlayParticles();
+					frets[hit.fret].StopAnimation();
+					frets[hit.fret].PlayAnimation();
 				} else {
 					openNoteParticles.Play();
 				}
@@ -309,10 +313,17 @@ namespace YARG.PlayMode {
 				if (hit.length > 0.2f) {
 					heldNotes.Add(hit);
 					frets[hit.fret].PlaySustainParticles();
+					frets[hit.fret].PlayAnimationSustainsLooped();
 				}
+				
+				//if(heldNotes < 1) 
+				
+
+				//Debug.Log("Hit length: " + hit.length);
 
 				// Add stats
 				notesHit++;
+				
 
 				// Solo stuff
 				if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime) {
@@ -395,7 +406,9 @@ namespace YARG.PlayMode {
 				StopAudio = true;
 
 				heldNotes.RemoveAt(i);
+				frets[heldNote.fret].StopAnimationSustains();
 				frets[heldNote.fret].StopSustainParticles();
+				//frets[heldNote.fret].GetComponent<Fret>().transform.localScale = frets[heldNote.fret].fretInitialScale;
 			}
 		}
 
@@ -481,6 +494,7 @@ namespace YARG.PlayMode {
 
 					notePool.MissNote(heldNote);
 					heldNotes.RemoveAt(i);
+					frets[heldNote.fret].StopAnimationSustains();
 					frets[heldNote.fret].StopSustainParticles();
 
 					letGo = heldNote;
