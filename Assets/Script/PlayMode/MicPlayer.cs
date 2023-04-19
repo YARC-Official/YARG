@@ -144,8 +144,11 @@ namespace YARG.PlayMode {
 
 		private ScoreKeeper scoreKeeper;
 		// easy, medium, hard, expert
+		// https://rockband.scorehero.com/forum/viewtopic.php?t=4545
+		// max harmony pts = 10% of main points per extra mic
 		private readonly int[] MAX_POINTS = { 200, 400, 800, 1000 };
 		private StarScoreKeeper starsKeeper;
+		private int ptsPerPhrase; // pts per phrase, set depending on difficulty
 
 		private int rawMultiplier = 1;
 		private int Multiplier => rawMultiplier * (starpowerActive ? 2 : 1);
@@ -263,10 +266,18 @@ namespace YARG.PlayMode {
 			// Hide starpower
 			starpowerOverlay.material.SetFloat("AlphaMultiplier", 0f);
 
+			// Setup scoring vars
 			scoreKeeper = new();
-			// TODO: implement
-			// starsKeeper = new(Chart, scoreKeeper,
-			// 	"chosenInstrument", 25);
+
+			int phrases = 0;
+			foreach (var ev in Play.Instance.chart.events) {
+				if (ev.name == EndPhraseName)
+					phrases++;
+			}
+			
+			// note: micInput.Count = number of players on vocals
+			ptsPerPhrase = MAX_POINTS[(int) micInputs[0].player.chosenDifficulty];
+			starsKeeper = new(scoreKeeper, micInputs[0].player.chosenInstrument, phrases, ptsPerPhrase);
 		}
 
 		private void OnDestroy() {
@@ -720,10 +731,9 @@ namespace YARG.PlayMode {
 			preformaceText.color = Color.white;
 
 			// Add to score
-			// TODO: harmonies
-			var max = MAX_POINTS[(uint) micInputs[0].player.chosenDifficulty];
-			var phraseScore = Multiplier * Mathf.Clamp(bestPercent * max, 0, max);
+			var phraseScore = Multiplier * Mathf.Clamp(bestPercent * ptsPerPhrase, 0, ptsPerPhrase);
 			scoreKeeper.Add(phraseScore);
+			// TODO: harmonies (add bonus pts per extra mic: bestPercent(of xtra) * ptsPerPhrase * mult)
 
 			// Add to sing percent
 			totalSingPercent += Mathf.Min(bestPercent, 1f);

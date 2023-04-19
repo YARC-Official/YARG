@@ -87,7 +87,7 @@ namespace YARG.PlayMode {
 			}
 		}
 
-	public StarScoreKeeper(List<NoteInfo> chart, ScoreKeeper scoreKeeper, string instrument, int ptPerNote, double ptSusPerBeat = 0) {
+		public StarScoreKeeper(List<NoteInfo> chart, ScoreKeeper scoreKeeper, string instrument, int ptPerNote = 25, double ptSusPerBeat = 0) {
 			instances.Add(this);
 			this.scoreKeeper = scoreKeeper;
 
@@ -100,7 +100,20 @@ namespace YARG.PlayMode {
 				}
 			}
 
-			// populate scoreThreshold
+			SetupScoreThreshold(instrument);
+		}
+
+		public StarScoreKeeper(ScoreKeeper scoreKeeper, string instrument, int noteCount, int ptPerNote) {
+			instances.Add(this);
+			this.scoreKeeper = scoreKeeper;
+
+			baseScore = noteCount * ptPerNote;
+			
+			SetupScoreThreshold(instrument);
+		}
+		
+		// populate scoreThreshold
+		private void SetupScoreThreshold(string instrument) {
 			scoreThreshold = new double[] {
 				instrumentThreshold[instrument][0] * baseScore,
 				instrumentThreshold[instrument][1] * baseScore,
