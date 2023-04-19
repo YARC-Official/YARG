@@ -1,0 +1,1460 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ManagedBass.Fx</name>
+    </assembly>
+    <members>
+        <member name="T:ManagedBass.Fx.BassFx">
+            <summary>
+            BassFx is a BASS addon providing several DSP functions, including tempo and pitch control.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.BassFx.Version">
+            <summary>
+            Gets the Version of BassFx that is loaded.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.BassFx.TempoCreate(System.Int32,ManagedBass.BassFlags)">
+            <summary>
+            Creates a resampling stream from a decoding channel.
+            </summary>
+            <param name="Channel">Stream/music/wma/cd/any other supported add-on format using a decoding channel (use <see cref="F:ManagedBass.BassFlags.Decode"/> when creating the channel).</param>
+            <param name="Flags">A combination of the <see cref="T:ManagedBass.BassFlags"/>.</param>
+            <returns>If successful, the tempo stream handle is returned, else 0 is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+            <remarks>
+            Multi-channels are supported.
+            </remarks>
+            <exception cref="F:ManagedBass.Errors.Handle"><paramref name="Channel" /> is not valid.</exception>
+            <exception cref="F:ManagedBass.Errors.Decode">The <paramref name="Channel" /> is not a decoding channel. Make sure the channel was created using the <see cref="F:ManagedBass.BassFlags.Decode"/> flag.</exception>
+            <exception cref="F:ManagedBass.Errors.SampleFormat">The <paramref name="Channel" />'s format is not supported. Make sure the channel is either Stereo or Mono.</exception>
+        </member>
+        <member name="M:ManagedBass.Fx.BassFx.TempoGetSource(System.Int32)">
+            <summary>
+            Get the source channel handle of the reversed stream.
+            </summary>
+            <param name="Channel">The handle of the reversed stream.</param>
+            <returns>If successful, the handle of the source of the reversed stream is returned, else 0 is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+            <exception cref="F:ManagedBass.Errors.Handle"><paramref name="Channel" /> is not valid.</exception>
+        </member>
+        <member name="M:ManagedBass.Fx.BassFx.TempoGetRateRatio(System.Int32)">
+            <summary>
+            Get the ratio of the resulting rate and source rate (the resampling ratio).
+            </summary>
+            <param name="Channel">Tempo stream (or source channel) handle.</param>
+            <returns>If successful, the resampling ratio is returned, else 0 is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+            <exception cref="F:ManagedBass.Errors.Handle"><paramref name="Channel" /> is not valid.</exception>
+        </member>
+        <member name="M:ManagedBass.Fx.BassFx.ReverseCreate(System.Int32,System.Single,ManagedBass.BassFlags)">
+            <summary>
+            Creates a reversed stream from a decoding channel.
+            </summary>
+            <param name="Channel">Stream/music/wma/cd/any other supported add-on format using a decoding channel.</param>
+            <param name="DecodingBlockLength">Length of decoding blocks in seconds. Larger blocks means less seeking overhead but larger spikes.</param>
+            <param name="Flags">A combination of <see cref="T:ManagedBass.BassFlags"/>.</param>
+            <returns>If successful, the handle of the reversed stream is returned, else 0 is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+            <remarks>
+            MODs are supported, if <see cref="F:ManagedBass.BassFlags.Prescan"/> flag was applied to a source handle.
+            <para>For better MP3/2/1 reverse playback create the source stream using the <see cref="F:ManagedBass.BassFlags.Prescan"/> flag.</para>
+            <para>
+            Thes <see cref="F:ManagedBass.ChannelAttribute.ReverseDirection"/> attribute can either be applied to the reverse channel or the underlying decoding source channel.
+            Note, that when playing the channel reverse, the end of a reverse stream is reached at the logial beginning of the stream (this also applies to <see cref="F:ManagedBass.SyncFlags.End"/>).
+            By default stream's position will start from the end.
+            </para>
+            </remarks>
+            <exception cref="F:ManagedBass.Errors.Handle"><paramref name="Channel" /> is not valid.</exception>
+            <exception cref="F:ManagedBass.Errors.Decode">The <paramref name="Channel" /> is not a decoding channel. Make sure the channel was created using the <see cref="F:ManagedBass.BassFlags.Decode"/> flag.</exception>
+            <exception cref="F:ManagedBass.Errors.SampleFormat">The <paramref name="Channel" />'s format is not supported. Make sure the channel is either Stereo or Mono.</exception>
+        </member>
+        <member name="M:ManagedBass.Fx.BassFx.ReverseGetSource(System.Int32)">
+            <summary>
+            Get the source channel handle of the reversed stream.
+            </summary>
+            <param name="Channel">The handle of the reversed stream.</param>
+            <returns>If successful, the handle of the source of the reversed stream is returned, else 0 is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+            <exception cref="F:ManagedBass.Errors.Handle"><paramref name="Channel" /> is not valid.</exception>
+        </member>
+        <member name="M:ManagedBass.Fx.BassFx.BPMDecodeGet(System.Int32,System.Double,System.Double,System.Int32,ManagedBass.BassFlags,ManagedBass.Fx.BPMProgressProcedure,System.IntPtr)">
+            <summary>
+            Get the original BPM of a decoding channel.
+            </summary>
+            <param name="Channel">Stream/music/wma/cd/any other supported add-on format using a decoding channel.</param>
+            <param name="StartSec">Start detecting position in seconds (if less than 0 it uses the current position).</param>
+            <param name="EndSec">End detecting position in seconds (greater than 0).</param>
+            <param name="MinMaxBPM">Set min and max bpm, LowWord=Min, HighWord=Max. 0 = defaults to 45/230.</param>
+            <param name="Flags">One of <see cref="F:ManagedBass.BassFlags.FxBpmBackground"/>, <see cref="F:ManagedBass.BassFlags.FXBpmMult2"/> and <see cref="F:ManagedBass.BassFlags.FxFreeSource"/>.</param>
+            <param name="Procedure">User defined function to receive the process in percents, use <see langword="null" /> if not in use.</param>
+            <param name="User">User instance data to pass to the callback function.</param>
+            <returns>If successful, the original BPM value is returned, else -1 is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+            <remarks>
+            <para>
+            The BPM detection algorithm works by detecting repeating low-frequency (less than 250Hz) sound patterns and thus works mostly with most rock/pop music with bass or drum beat. 
+            The BPM detection doesn't work on pieces such as classical music without distinct, repeating bass frequency patterns.
+            Also pieces with varying tempo, varying bass patterns or very complex bass patterns (jazz, hiphop) may produce odd BPM readings.
+            </para>
+            <para>
+            In cases when the bass pattern drifts a bit around a nominal beat rate (e.g. drummer is again drunken ;-), the BPM algorithm may report incorrect harmonic one-halft to one-thirdth of the correct BPM value.
+            In such case the system could for example report BPM value of 50 or 100 instead of correct BPM value of 150.
+            </para>
+            </remarks>
+            <exception cref="F:ManagedBass.Errors.Handle"><paramref name="Channel" /> is not valid.</exception>
+            <exception cref="F:ManagedBass.Errors.Decode">The <paramref name="Channel" /> is not a decoding channel. Make sure the channel was created using the <see cref="F:ManagedBass.BassFlags.Decode"/> flag.</exception>
+            <exception cref="F:ManagedBass.Errors.SampleFormat">The <paramref name="Channel" />'s format is not supported. Make sure the channel is either Stereo or Mono.</exception>
+            <exception cref="F:ManagedBass.Errors.Parameter">An illegal parameter was specified.</exception>
+            <exception cref="F:ManagedBass.Errors.Already">BPM detection, for this <paramref name="Channel" /> is already in use.</exception>
+        </member>
+        <member name="M:ManagedBass.Fx.BassFx.BPMCallbackSet(System.Int32,ManagedBass.Fx.BPMProcedure,System.Double,System.Int32,ManagedBass.BassFlags,System.IntPtr)">
+            <summary>
+            Enable getting BPM value by period of time in seconds.
+            </summary>
+            <param name="Handle">Stream/music/wma/cd/any other supported add-on format.</param>
+            <param name="Procedure">User defined function to receive the bpm value.</param>
+            <param name="Period">Detection period in seconds.</param>
+            <param name="MinMaxBPM">Set min and max bpm, LowWord=Min, HighWord=Max. 0 = defaults to 45/230.</param>
+            <param name="Flags">Use <see cref="F:ManagedBass.BassFlags.FXBpmMult2"/> or <see cref="F:ManagedBass.BassFlags.Default"/>.</param>
+            <param name="User">User instance data to pass to the callback function.</param>
+            <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+            <remarks>
+            <para>
+            <list type="table">
+            <listheader><term><see cref="T:Un4seen.Bass.BASSError">ERROR CODE</see></term><description>Description</description></listheader>
+            <item><term>BASS_ERROR_HANDLE</term><description></description></item>
+            <item><term>BASS_ERROR_ILLPARAM</term><description></description></item>
+            <item><term>BASS_ERROR_ALREADY</term><description></description></item>
+            </list>
+            </para>
+            </remarks>
+            <exception cref="F:ManagedBass.Errors.Handle"><paramref name="Handle" /> is not valid.</exception>
+            <exception cref="F:ManagedBass.Errors.Parameter">An illegal parameter was specified.</exception>
+            <exception cref="F:ManagedBass.Errors.Already"><see cref="F:ManagedBass.BassFlags.FXBpmMult2"/> already used on this handle.</exception>
+        </member>
+        <member name="M:ManagedBass.Fx.BassFx.BPMCallbackReset(System.Int32)">
+            <summary>
+            Reset the BPM buffers.
+            </summary>
+            <param name="Handle">Stream/music/wma/cd/any other supported add-on format.</param>
+            <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+            <remarks>
+            This function flushes the internal buffers of the BPM callback.
+            The BPM callback is automatically reset by <see cref="M:ManagedBass.Bass.ChannelSetPosition(System.Int32,System.Int64,ManagedBass.PositionFlags)" />, except when called from a <see cref="F:ManagedBass.SyncFlags.Mixtime"/> <see cref="T:ManagedBass.SyncProcedure" />.
+            </remarks>
+            <exception cref="F:ManagedBass.Errors.Handle"><paramref name="Handle" /> is not valid.</exception>
+        </member>
+        <member name="M:ManagedBass.Fx.BassFx.BPMFree(System.Int32)">
+            <summary>
+            Frees all resources used by a given handle.
+            </summary>
+            <param name="Handle">Stream/music/wma/cd/any other supported add-on format.</param>
+            <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+            <remarks>
+            Used together with <see cref="M:ManagedBass.Fx.BassFx.BPMDecodeGet(System.Int32,System.Double,System.Double,System.Int32,ManagedBass.BassFlags,ManagedBass.Fx.BPMProgressProcedure,System.IntPtr)" /> or <see cref="M:ManagedBass.Fx.BassFx.BPMCallbackSet(System.Int32,ManagedBass.Fx.BPMProcedure,System.Double,System.Int32,ManagedBass.BassFlags,System.IntPtr)" />.
+            If <see cref="F:ManagedBass.BassFlags.FxFreeSource"/> was used, this will also free the underlying decoding channel as well.
+            You can't set/get this flag with <see cref="M:ManagedBass.Bass.ChannelFlags(System.Int32,ManagedBass.BassFlags,ManagedBass.BassFlags)" />/<see cref="M:ManagedBass.Bass.ChannelGetInfo(System.Int32,ManagedBass.ChannelInfo@)" />.
+            </remarks>
+            <exception cref="F:ManagedBass.Errors.Handle"><paramref name="Handle" /> is not valid.</exception>
+        </member>
+        <member name="M:ManagedBass.Fx.BassFx.BPMBeatDecodeGet(System.Int32,System.Double,System.Double,ManagedBass.BassFlags,ManagedBass.Fx.BPMBeatProcedure,System.IntPtr)">
+            <summary>
+            Enable getting Beat position in seconds of the decoded channel using a callback function.
+            </summary>
+            <param name="Channel">Stream/music/wma/cd/any other supported add-on format using a decoding channel.</param>
+            <param name="StartSec">Start detecting position in seconds.</param>
+            <param name="EndSec">End detecting position in seconds (greater than 0).</param>
+            <param name="Flags">Use one of <see cref="F:ManagedBass.BassFlags.FxBpmBackground"/> and <see cref="F:ManagedBass.BassFlags.FxFreeSource"/>.</param>
+            <param name="Procedure">User defined function to receive the beat position values.</param>
+            <param name="User">User instance data to pass to the callback function.</param>
+            <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+            <remarks>This method works pretty much as a mix of <see cref="M:ManagedBass.Fx.BassFx.BPMBeatCallbackSet(System.Int32,ManagedBass.Fx.BPMBeatProcedure,System.IntPtr)" /> and <see cref="M:ManagedBass.Fx.BassFx.BPMDecodeGet(System.Int32,System.Double,System.Double,System.Int32,ManagedBass.BassFlags,ManagedBass.Fx.BPMProgressProcedure,System.IntPtr)" />.</remarks>
+            <exception cref="F:ManagedBass.Errors.Handle"><paramref name="Channel" /> is not valid.</exception>
+            <exception cref="F:ManagedBass.Errors.Decode">The <paramref name="Channel" /> is not a decoding channel. Make sure the channel was created using the <see cref="F:ManagedBass.BassFlags.Decode"/> flag.</exception>
+            <exception cref="F:ManagedBass.Errors.Parameter">An illegal parameter was specified.</exception>
+            <exception cref="F:ManagedBass.Errors.Already">Beat detection, for this <paramref name="Channel" /> is already in use.</exception>
+        </member>
+        <member name="M:ManagedBass.Fx.BassFx.BPMBeatCallbackSet(System.Int32,ManagedBass.Fx.BPMBeatProcedure,System.IntPtr)">
+            <summary>
+            Enable getting Beat position in seconds in real-time.
+            </summary>
+            <param name="Handle">Stream/music/wma/cd/any other supported add-on format.</param>
+            <param name="Procedure">User defined function to receive the beat position values.</param>
+            <param name="User">User instance data to pass to the callback function.</param>
+            <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+            <remarks>
+            This method works on real-time (buffered) as well as on decoding channels and might also be used together with Tempo channels.
+            <para><see cref="M:ManagedBass.Fx.BassFx.BPMBeatFree(System.Int32)" /> must be called at the end to free the real-time beat position callback and resources.</para>
+            <para>Note: You should call <see cref="M:ManagedBass.Fx.BassFx.BPMBeatCallbackReset(System.Int32)" /> after you have changed the position of the stream when called from a <see cref="F:ManagedBass.SyncFlags.Mixtime"/> <see cref="T:ManagedBass.SyncProcedure" />.</para>
+            </remarks>
+            <exception cref="F:ManagedBass.Errors.Handle"><paramref name="Handle" /> is not valid.</exception>
+        </member>
+        <member name="M:ManagedBass.Fx.BassFx.BPMBeatCallbackReset(System.Int32)">
+            <summary>
+            Reset the BPM buffers.
+            </summary>
+            <param name="Handle">Stream/music/wma/cd/any other supported add-on format.</param>
+            <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+            <remarks>
+            This function flushes the internal buffers of the BPM callback.
+            The BPM callback is automatically reset by <see cref="M:ManagedBass.Bass.ChannelSetPosition(System.Int32,System.Int64,ManagedBass.PositionFlags)" />, except when called from a <see cref="F:ManagedBass.SyncFlags.Mixtime"/> <see cref="T:ManagedBass.SyncProcedure" />.
+            </remarks>
+            <exception cref="F:ManagedBass.Errors.Handle"><paramref name="Handle" /> is not valid.</exception>
+        </member>
+        <member name="M:ManagedBass.Fx.BassFx.BPMBeatSetParameters(System.Int32,System.Single,System.Single,System.Single)">
+            <summary>
+            Set new values for beat detection parameters.
+            </summary>
+            <param name="Handle">Stream/music/wma/cd/any other supported add-on format.</param>
+            <param name="Bandwidth">Bandwidth in Hz between 0 and samplerate/2 (-1.0f = leave current, default is 10Hz).</param>
+            <param name="CenterFreq">The center-frequency in Hz of the band pass filter between 0 and samplerate/2 (-1.0f = leave current, default is 90Hz).</param>
+            <param name="Beat_rTime">Beat release time in ms. (-1.0f = leave current, default is 20ms).</param>
+            <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+            <remarks>
+            Beat detection is using a Band Pass Filter.
+            A band-pass filter is a device that passes frequencies within a certain range and rejects (attenuates) frequencies outside that range.
+            So the <paramref name="Bandwidth" /> parameter defines the range around a center-frequency to include in the beat detection algo.
+            The <paramref name="CenterFreq" /> parameter actually defines the center-frequency of the band pass filter.
+            Once a beat is detected, the <paramref name="Beat_rTime" /> parameter defines the time in ms. in which no other beat will be detected after that just detected beat. 
+            The background is, that often you have kind-of 'double beats' in a drum set.
+            So the <paramref name="Beat_rTime" /> should avoid, that a second (quickly repeated beat) beat is detected.
+            </remarks>
+            <exception cref="F:ManagedBass.Errors.Handle"><paramref name="Handle" /> is not valid.</exception>
+        </member>
+        <member name="M:ManagedBass.Fx.BassFx.BPMBeatGetParameters(System.Int32,System.Single@,System.Single@,System.Single@)">
+            <summary>
+            Gets the current beat detection parameter values.
+            </summary>
+            <param name="Handle">Stream/music/wma/cd/any other supported add-on format.</param>
+            <param name="Bandwidth">Current bandwidth in Hz.</param>
+            <param name="CenterFreq">Current center-frequency in Hz of the band pass filter.</param>
+            <param name="Beat_rTime">Current beat release time in ms.</param>
+            <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+            <remarks>
+            Beat detection is using a Band Pass Filter.
+            A band-pass filter is a device that passes frequencies within a certain range and rejects (attenuates) frequencies outside that range.
+            So the <paramref name="Bandwidth" /> parameter defines the range around a center-frequency to include in the beat detection algo.
+            The <paramref name="CenterFreq" /> parameter actually defines the center-frequency of the band pass filter.
+            Once a beat is detected, the <paramref name="Beat_rTime" /> parameter defines the time in ms. in which no other beat will be detected after that just detected beat. 
+            The background is, that often you have kind-of 'double beats' in a drum set.
+            So the <paramref name="Beat_rTime" /> should avoid, that a second (quickly repeated beat) beat is detected.
+            </remarks>
+            <exception cref="F:ManagedBass.Errors.Handle"><paramref name="Handle" /> is not valid.</exception>
+        </member>
+        <member name="M:ManagedBass.Fx.BassFx.BPMBeatFree(System.Int32)">
+            <summary>
+            Free all resources used by a given handle (decode or callback beat).
+            </summary>
+            <param name="Handle">Stream/music/wma/cd/any other supported add-on format.</param>
+            <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+            <remarks>
+            Used together with <see cref="M:ManagedBass.Fx.BassFx.BPMBeatDecodeGet(System.Int32,System.Double,System.Double,ManagedBass.BassFlags,ManagedBass.Fx.BPMBeatProcedure,System.IntPtr)" /> or <see cref="M:ManagedBass.Fx.BassFx.BPMBeatCallbackSet(System.Int32,ManagedBass.Fx.BPMBeatProcedure,System.IntPtr)" />.
+            <para>
+            Note: If the <see cref="F:ManagedBass.BassFlags.FxFreeSource"/> flag is used, this will free the source decoding channel as well.
+            You can't set/get this flag with <see cref="M:ManagedBass.Bass.ChannelFlags(System.Int32,ManagedBass.BassFlags,ManagedBass.BassFlags)" /> and <see cref="M:ManagedBass.Bass.ChannelGetInfo(System.Int32,ManagedBass.ChannelInfo@)" />.
+            </para>
+            </remarks>
+            <exception cref="F:ManagedBass.Errors.Handle"><paramref name="Handle" /> is not valid.</exception>
+        </member>
+        <member name="T:ManagedBass.Fx.BQFType">
+            <summary>
+            BassFx BiQuad filter type. Defines within the <see cref="T:ManagedBass.Fx.BQFParameters" /> structure which BiQuad filter should be used.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.BQFType.LowPass">
+            <summary>
+            BiQuad Lowpass filter.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.BQFType.HighPass">
+            <summary>
+            BiQuad Highpass filter.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.BQFType.BandPass">
+            <summary>
+            BiQuad Bandpass filter (constant 0 dB peak gain).
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.BQFType.BandPassQ">
+            <summary>
+            BiQuad Bandpass Q filter (constant skirt gain, peak gain = Q).
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.BQFType.Notch">
+            <summary>
+            BiQuad Notch filter.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.BQFType.AllPass">
+            <summary>
+            BiQuad All-Pass filter.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.BQFType.PeakingEQ">
+            <summary>
+            BiQuad Peaking EQ filter.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.BQFType.LowShelf">
+            <summary>
+            BiQuad Low-Shelf filter.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.BQFType.HighShelf">
+            <summary>
+            BiQuad High-Shelf filter.
+            </summary>
+        </member>
+        <member name="T:ManagedBass.Fx.BPMBeatProcedure">
+            <summary>
+            User defined callback function, to get the Beat position in seconds.
+            </summary>
+            <param name="Channel">Handle that the <see cref="M:ManagedBass.Fx.BassFx.BPMBeatCallbackSet(System.Int32,ManagedBass.Fx.BPMBeatProcedure,System.IntPtr)" /> or <see cref="M:ManagedBass.Fx.BassFx.BPMBeatDecodeGet(System.Int32,System.Double,System.Double,ManagedBass.BassFlags,ManagedBass.Fx.BPMBeatProcedure,System.IntPtr)" /> has applied to.</param>
+            <param name="BeatPosition">The exact beat position in seconds.</param>
+            <param name="User">The user instance data given when <see cref="M:ManagedBass.Fx.BassFx.BPMBeatCallbackSet(System.Int32,ManagedBass.Fx.BPMBeatProcedure,System.IntPtr)" /> or <see cref="M:ManagedBass.Fx.BassFx.BPMBeatDecodeGet(System.Int32,System.Double,System.Double,ManagedBass.BassFlags,ManagedBass.Fx.BPMBeatProcedure,System.IntPtr)" /> was called.</param>
+        </member>
+        <member name="T:ManagedBass.Fx.BPMProcedure">
+            <summary>
+            User defined callback function, to auto get the BPM after each period of time in seconds.
+            </summary>
+            <param name="Channel">Handle that the <see cref="M:ManagedBass.Fx.BassFx.BPMCallbackSet(System.Int32,ManagedBass.Fx.BPMProcedure,System.Double,System.Int32,ManagedBass.BassFlags,System.IntPtr)" /> applies to.</param>
+            <param name="BPM">The new original bpm value.</param>
+            <param name="User">The user instance data given when <see cref="M:ManagedBass.Fx.BassFx.BPMCallbackSet(System.Int32,ManagedBass.Fx.BPMProcedure,System.Double,System.Int32,ManagedBass.BassFlags,System.IntPtr)" /> was called.</param>
+        </member>
+        <member name="T:ManagedBass.Fx.BPMProgressProcedure">
+            <summary>
+            User defined callback function, to get the bpm detection process in percents.
+            </summary>
+            <param name="Channel">Channel that the <see cref="M:ManagedBass.Fx.BassFx.BPMDecodeGet(System.Int32,System.Double,System.Double,System.Int32,ManagedBass.BassFlags,ManagedBass.Fx.BPMProgressProcedure,System.IntPtr)" /> applies to.</param>
+            <param name="Percent">The progress of the process in percent (0%..100%).</param>
+            <param name="User">The user instance data given when <see cref="M:ManagedBass.Fx.BassFx.BPMDecodeGet(System.Int32,System.Double,System.Double,System.Int32,ManagedBass.BassFlags,ManagedBass.Fx.BPMProgressProcedure,System.IntPtr)" /> was called.</param>
+        </member>
+        <member name="T:ManagedBass.Fx.AutoWahEffect">
+            <summary>
+            BassFx AutoWah Effect.
+            </summary>
+            <remarks>
+            <para>The effect implements the auto-wah by using 4-stage phaser effect which moves a peak in the frequency response up and down the frequency spectrum by amplitude of Input signal.</para>
+            <para>
+            The <see cref="P:ManagedBass.Fx.AutoWahEffect.DryMix"/> is the volume of Input signal and the <see cref="P:ManagedBass.Fx.AutoWahEffect.WetMix"/> is the volume of delayed signal.
+            The <see cref="P:ManagedBass.Fx.AutoWahEffect.Feedback"/> sets feedback of auto wah (phaser).
+            The <see cref="P:ManagedBass.Fx.AutoWahEffect.Rate"/> and <see cref="P:ManagedBass.Fx.AutoWahEffect.Range"/> control how fast and far the frequency notches move.
+            The <see cref="P:ManagedBass.Fx.AutoWahEffect.Rate"/> is the rate of sweep in cycles per second, <see cref="P:ManagedBass.Fx.AutoWahEffect.Range"/> is the width of sweep in octaves.
+            And the the <see cref="P:ManagedBass.Fx.AutoWahEffect.Frequency"/> is the base frequency of sweep.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:ManagedBass.Fx.AutoWahEffect.Slow">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.AutoWahEffect.Fast">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.AutoWahEffect.HiFast">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.AutoWahEffect.DryMix">
+            <summary>
+            Dry (unaffected) signal mix (-2...+2). Default = 0.5.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.AutoWahEffect.Feedback">
+            <summary>
+            Feedback (-1...+1). Default = 0.5.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.AutoWahEffect.Frequency">
+            <summary>
+            Base frequency of sweep range (0&lt;...1000). Default = 50.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.AutoWahEffect.Range">
+            <summary>
+            Sweep range in octaves (0&lt;...&lt;10). Default = 4.3.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.AutoWahEffect.Rate">
+            <summary>
+            Rate of sweep in cycles per second (0&lt;...&lt;10). Default = 2.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.AutoWahEffect.WetMix">
+            <summary>
+            Wet (affected) signal mix (-2...+2). Default = 1.5.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.AutoWahEffect.Channels">
+            <summary>
+            A <see cref="T:ManagedBass.FXChannelFlags" /> flag to define on which channels to apply the effect. Default: <see cref="F:ManagedBass.FXChannelFlags.All"/>
+            </summary>
+        </member>
+        <member name="T:ManagedBass.Fx.BQFEffect">
+            <summary>
+            BassFx BiQuad Filter Effect.
+            </summary>
+            <remarks>
+            BiQuad filters are second-order recursive linear filters.
+            </remarks>
+        </member>
+        <member name="P:ManagedBass.Fx.BQFEffect.Gain">
+            <summary>
+            Gain in dB (-15...0...+15). Default 0dB (used only for PEAKINGEQ and Shelving filters).
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.BQFEffect.EffectType">
+            <summary>
+            BQF Effect Kind.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.BQFEffect.Bandwidth">
+            <summary>
+            Bandwidth in octaves (0.1...4...n), Q is not in use (<see cref="P:ManagedBass.Fx.BQFEffect.Bandwidth"/> has priority over <see cref="P:ManagedBass.Fx.BQFEffect.Q"/>). Default = 1 (0=not in use).
+            The bandwidth in octaves (between -3 dB frequencies for <see cref="F:ManagedBass.Fx.BQFType.BandPass"/> and <see cref="F:ManagedBass.Fx.BQFType.Notch"/> or between midpoint (dBgain/2) gain frequencies for PEAKINGEQ).
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.BQFEffect.Center">
+            <summary>
+            Cut-off frequency (Center in PEAKINGEQ and Shelving filters) in Hz (1...info.freq/2). Default = 200Hz.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.BQFEffect.Q">
+            <summary>
+            EE kinda definition of Q (0.1...1...n), if <see cref="P:ManagedBass.Fx.BQFEffect.Bandwidth"/> is not in use. Default = 0.0 (0=not in use).
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.BQFEffect.S">
+            <summary>
+            A shelf slope parameter (linear, used only with Shelving filters) (0...1...n). Default = 0.0.
+            When 1, the shelf slope is as steep as you can get it and remain monotonically increasing or decreasing gain with frequency.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.BQFEffect.Channels">
+            <summary>
+            A <see cref="T:ManagedBass.FXChannelFlags" /> flag to define on which channels to apply the effect. Default: <see cref="F:ManagedBass.FXChannelFlags.All"/>
+            </summary>
+        </member>
+        <member name="T:ManagedBass.Fx.ChorusEffect">
+            <summary>
+            BassFx Chorus Effect.
+            </summary>
+            <remarks>
+            <para>
+            True vintage chorus works the same way as flanging. 
+            It mixes a varying delayed signal with the original to produce a large number of harmonically related notches in the frequency response. 
+            Chorus uses a longer delay than flanging, so there is a perception of "spaciousness", although the delay is too short to hear as a distinct slap-back echo. 
+            There is also little or no feedback, so the effect is more subtle.
+            </para>
+            <para>
+            The <see cref="P:ManagedBass.Fx.ChorusEffect.DryMix"/> is the volume of Input signal and the <see cref="P:ManagedBass.Fx.ChorusEffect.WetMix"/> is the volume of delayed signal. 
+            The <see cref="P:ManagedBass.Fx.ChorusEffect.Feedback"/> sets feedback of chorus. 
+            The <see cref="P:ManagedBass.Fx.ChorusEffect.Rate"/>, <see cref="P:ManagedBass.Fx.ChorusEffect.MinSweep"/> and <see cref="P:ManagedBass.Fx.ChorusEffect.MaxSweep"/> control how fast and far the frequency notches move. 
+            The <see cref="P:ManagedBass.Fx.ChorusEffect.Rate"/> is the rate of delay change in millisecs per sec, <see cref="P:ManagedBass.Fx.ChorusEffect.MaxSweep"/>-<see cref="P:ManagedBass.Fx.ChorusEffect.MinSweep"/> is the range or width of sweep in ms.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:ManagedBass.Fx.ChorusEffect.Flanger">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.ChorusEffect.Exaggerated">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.ChorusEffect.MotorCycle">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.ChorusEffect.Devil">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.ChorusEffect.ManyVoices">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.ChorusEffect.BackChipmunk">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.ChorusEffect.Water">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.ChorusEffect.Airplane">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.ChorusEffect.DryMix">
+            <summary>
+            Dry (unaffected) signal mix (-2...+2). Default = 0.9
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.ChorusEffect.Feedback">
+            <summary>
+            Feedback (-1...+1). Default = 0.5.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.ChorusEffect.MaxSweep">
+            <summary>
+            Maximum delay in ms (0&lt;...6000). Default = 400.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.ChorusEffect.MinSweep">
+            <summary>
+            Minimum delay in ms (0&lt;...6000). Default = 1.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.ChorusEffect.Rate">
+            <summary>
+            Rate in ms/s (0&lt;...1000). Default = 200.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.ChorusEffect.WetMix">
+            <summary>
+            Wet (affected) signal mix (-2...+2). Default = 0.35.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.ChorusEffect.Channels">
+            <summary>
+            A <see cref="T:ManagedBass.FXChannelFlags" /> flag to define on which channels to apply the effect. Default: <see cref="F:ManagedBass.FXChannelFlags.All"/>
+            </summary>
+        </member>
+        <member name="T:ManagedBass.Fx.CompressorEffect">
+            <summary>
+            BassFx Compressor Effect.
+            </summary>
+            <remarks>
+            Compressors are commonly used in recording to control the level, by making loud passages quieter, and quiet passages louder.
+            This is useful in allowing a vocalist to sing quiet and loud for different emphasis, and always be heard clearly in the mix.
+            Compression is generally applied to guitar to give clean sustain, where the start of a note is "squashed" with the gain automatically increased as the not fades away.
+            Compressors take a short time to react to a picked note, and it can be difficult to find settings that react quickly enough to the volume change without killing the natural attack sound of your guitar.
+            </remarks>
+        </member>
+        <member name="P:ManagedBass.Fx.CompressorEffect.Attack">
+            <summary>
+            Time in ms before compression reaches its full value, in the range from 0.01 to 500. Default = 20.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.CompressorEffect.Release">
+            <summary>
+            Time (speed) in ms at which compression is stopped after Input drops below <see cref="P:ManagedBass.Fx.CompressorEffect.Threshold"/>, in the range from 50 to 3000. Default = 200.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.CompressorEffect.Threshold">
+            <summary>
+            Point in dB at which compression begins, in decibels, in the range from -60 to 0. Default = -15.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.CompressorEffect.Gain">
+            <summary>
+            Output gain in dB of signal after compression, in the range from -60 to 60. Default = 5.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.CompressorEffect.Ratio">
+            <summary>
+            Compression ratio, in the range from 1 to 100. Default = 3.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.CompressorEffect.Channels">
+            <summary>
+            A <see cref="T:ManagedBass.FXChannelFlags" /> flag to define on which channels to apply the effect. Default: <see cref="F:ManagedBass.FXChannelFlags.All"/>
+            </summary>
+        </member>
+        <member name="T:ManagedBass.Fx.DampEffect">
+            <summary>
+            BassFx Damp Effect.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.DampEffect.Gain">
+            <summary>
+            Amplification level (0...1...n, linear). 
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.DampEffect.Rate">
+            <summary>
+            Amplification adjustment rate (0...1, linear).
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.DampEffect.Target">
+            <summary>
+            Target volume level (0&lt;...1, linear).
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.DampEffect.Quiet">
+            <summary>
+            Quiet volume level (0...1, linear). 
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.DampEffect.Delay">
+            <summary>
+            Delay in seconds before increasing level (0...n, linear).
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.DampEffect.Channels">
+            <summary>
+            A <see cref="T:ManagedBass.FXChannelFlags" /> flag to define on which channels to apply the effect. Default: <see cref="F:ManagedBass.FXChannelFlags.All"/>
+            </summary>
+        </member>
+        <member name="T:ManagedBass.Fx.DistortionEffect">
+            <summary>
+            BassFx Distortion Effect.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.DistortionEffect.Hard">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.DistortionEffect.VeryHard">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.DistortionEffect.Medium">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.DistortionEffect.Soft">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.DistortionEffect.Drive">
+            <summary>
+            Distortion Drive (0...5).
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.DistortionEffect.DryMix">
+            <summary>
+            Dry (unaffected) signal mix (-5...+5).
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.DistortionEffect.Feedback">
+            <summary>
+            Feedback (-1...+1).
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.DistortionEffect.Volume">
+            <summary>
+            Distortion volume (0...+2).
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.DistortionEffect.WetMix">
+            <summary>
+            Wet (affected) signal mix (-5...+5).
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.DistortionEffect.Channels">
+            <summary>
+            A <see cref="T:ManagedBass.FXChannelFlags" /> flag to define on which channels to apply the effect. Default: <see cref="F:ManagedBass.FXChannelFlags.All"/>
+            </summary>
+        </member>
+        <member name="T:ManagedBass.Fx.EchoEffect">
+            <summary>
+            BassFx Echo Effect.
+            </summary>
+            <remarks>
+            <para>
+            This is an echo effect that replays what you have played one or more times after a period of time.
+            It's something like the echoes you might hear shouting against a canyon wall.
+            For reverb effect enable feedback.
+            </para>
+            <para>
+            The <see cref="P:ManagedBass.Fx.EchoEffect.DryMix"/> is the volume of input signal and the <see cref="P:ManagedBass.Fx.EchoEffect.WetMix"/> is the volume of delayed signal.
+            The <see cref="P:ManagedBass.Fx.EchoEffect.Delay"/> is the delay time in sec.
+            The <see cref="P:ManagedBass.Fx.EchoEffect.Feedback"/> sets how much delay is feed back to the input (for repeating delays).
+            If <see cref="P:ManagedBass.Fx.EchoEffect.Stereo"/> is enabled and a stream has an even number of channels then, each even channels will be echoed to each other.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:ManagedBass.Fx.EchoEffect.Small">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.EchoEffect.ManyEchoes">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.EchoEffect.ReverseEchoes">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.EchoEffect.RoboticVoice">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.EchoEffect.DryMix">
+            <summary>
+            Dry (unaffected) signal mix (-2...+2). 
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.EchoEffect.WetMix">
+            <summary>
+            Wet (affected) signal mix (-2...+2). 
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.EchoEffect.Feedback">
+            <summary>
+            Feedback (-1...+1).
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.EchoEffect.Delay">
+            <summary>
+            Delay in seconds (0+...6).
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.EchoEffect.Stereo">
+            <summary>
+            Echo adjoining channels to each other? Default is disabled.
+            </summary>
+            <remarks>Only allowed with even number of channels!
+            <para>If enabled and a stream has an even number of channels then, each even channels will be echoed to each other.</para>
+            </remarks>
+        </member>
+        <member name="P:ManagedBass.Fx.EchoEffect.Channels">
+            <summary>
+            A <see cref="T:ManagedBass.FXChannelFlags" /> flag to define on which channels to apply the effect. Default: <see cref="F:ManagedBass.FXChannelFlags.All"/>
+            </summary>
+        </member>
+        <member name="T:ManagedBass.Fx.PeakEQ">
+            <summary>
+            BassFx Peaking Equalizer Effect.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.PeakEQ.#ctor(System.Int32,System.Double,System.Double)">
+            <summary>
+            Creates a new instance of <see cref="T:ManagedBass.Fx.PeakEQ"/>.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.PeakEQ.AddBand(System.Double)">
+            <summary>
+            Adds a Band.
+            </summary>
+            <param name="CenterFrequency">The Band's center frequency in Hz. Default = 1000. Max = 1/2 of SampleRate.</param>
+            <returns>The Band Index to be used with <see cref="M:ManagedBass.Fx.PeakEQ.UpdateBand(System.Int32,System.Double)"/>.</returns>
+        </member>
+        <member name="M:ManagedBass.Fx.PeakEQ.UpdateBand(System.Int32,System.Double)">
+            <summary>
+            Updates a Band.
+            </summary>
+            <param name="Band">The Index of the Band to Update (as returned by <see cref="M:ManagedBass.Fx.PeakEQ.AddBand(System.Double)"/>).</param>
+            <param name="Gain">The new Gain value for the Band (-15 ... 0 ... 15).</param>
+        </member>
+        <member name="M:ManagedBass.Fx.PeakEQ.Dispose">
+            <summary>
+            Frees all resources used by this instance.
+            </summary>
+        </member>
+        <member name="T:ManagedBass.Fx.PhaserEffect">
+            <summary>
+            BassFx Phaser Effect.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.PhaserEffect.PhaseShift">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.PhaserEffect.SlowInvertPhaseShiftWithFeedback">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.PhaserEffect.BasicPhase">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.PhaserEffect.PhaseWithFeedback">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.PhaserEffect.Medium">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.PhaserEffect.Fast">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.PhaserEffect.InvertWithInvertFeedback">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.PhaserEffect.TremoloWah">
+            <summary>
+            Set up a Preset.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.PhaserEffect.DryMix">
+            <summary>
+            Dry (unaffected) signal mix (-2...+2). Default = 0.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.PhaserEffect.Feedback">
+            <summary>
+            Feedback (-1...+1). Default = 0.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.PhaserEffect.Frequency">
+            <summary>
+            Base frequency of sweep range (0&lt;...1000). Default = 0.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.PhaserEffect.Range">
+            <summary>
+            Sweep range inoctaves (0&lt;...&lt;10). Default = 0.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.PhaserEffect.Rate">
+            <summary>
+            Rate of sweep in cycles per second (0&lt;...&lt;10). Default = 0.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.PhaserEffect.WetMix">
+            <summary>
+            Wet (affected) signal mix (-2...+2). Default = 0.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.PhaserEffect.Channels">
+            <summary>
+            A <see cref="T:ManagedBass.FXChannelFlags" /> flag to define on which channels to apply the effect. Default: <see cref="F:ManagedBass.FXChannelFlags.All"/>
+            </summary>
+        </member>
+        <member name="T:ManagedBass.Fx.PitchShiftEffect">
+            <summary>
+            BassFx Pitch shift Effect.
+            </summary>
+            <remarks>
+            This effect uses FFT for its pitch shifting while maintaining duration.
+            </remarks>
+        </member>
+        <member name="P:ManagedBass.Fx.PitchShiftEffect.PitchShift">
+            <summary>
+            A factor value which is between 0.5 (one octave down) and 2 (one octave up) (1 won't change the pitch, default).
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.PitchShiftEffect.Semitones">
+            <summary>
+            Semitones (0 won't change the pitch). Default = 0.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.PitchShiftEffect.FFTFrameSize">
+            <summary>
+            Defines the FFT frame size used for the processing. Typical values are 1024, 2048 (default) and 4096, max is 8192.
+            </summary>
+            <remarks>It may be any value up to 8192 but it MUST be a power of 2.</remarks>
+        </member>
+        <member name="P:ManagedBass.Fx.PitchShiftEffect.OversamplingFactor">
+            <summary>
+            Is the STFT oversampling factor which also determines the overlap between adjacent STFT frames. Default = 8.
+            </summary>
+            <remarks>It should at least be 4 for moderate scaling ratios. A value of 32 is recommended for best quality (better quality = higher CPU usage).</remarks>
+        </member>
+        <member name="P:ManagedBass.Fx.PitchShiftEffect.Channels">
+            <summary>
+            A <see cref="T:ManagedBass.FXChannelFlags" /> flag to define on which channels to apply the effect. Default: <see cref="F:ManagedBass.FXChannelFlags.All"/>
+            </summary>
+        </member>
+        <member name="T:ManagedBass.Fx.ReverbEffect">
+            <summary>
+            BassFx Reverb (Freeverb) Effect.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.ReverbEffect.Damp">
+            <summary>
+            Damping factor (0.0...1.0, def. 0.5).
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.ReverbEffect.DryMix">
+            <summary>
+            Dry (unaffected) signal mix (0.0...1.0, def. 0).
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.ReverbEffect.RoomSize">
+            <summary>
+            Room size (0.0...1.0, def. 0.5).
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.ReverbEffect.WetMix">
+            <summary>
+            Wet (affected) signal mix (0.0...3.0, def. 1.0).
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.ReverbEffect.Width">
+            <summary>
+            Stereo width (0.0...1.0, def. 1.0).
+            </summary>
+            <remarks>It should at least be 4 for moderate scaling ratios. A value of 32 is recommended for best quality (better quality = higher CPU usage).</remarks>
+        </member>
+        <member name="P:ManagedBass.Fx.ReverbEffect.Mode">
+            <summary>
+            Mode: 0 = no freeze or 1 = freeze, def. 0 (no freeze).
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.ReverbEffect.Channels">
+            <summary>
+            A <see cref="T:ManagedBass.FXChannelFlags" /> flag to define on which channels to apply the effect. Default: <see cref="F:ManagedBass.FXChannelFlags.All"/>
+            </summary>
+        </member>
+        <member name="T:ManagedBass.Fx.RotateEffect">
+            <summary>
+            BassFx Rotate Effect.
+            </summary>
+            <remarks>
+            <para>This is a volume rotate effect between even channels, just like 2 channels playing ping-pong between each other.</para>
+            <para>The <see cref="P:ManagedBass.Fx.RotateEffect.Rate"/> defines the speed in Hz.</para>
+            </remarks>
+        </member>
+        <member name="P:ManagedBass.Fx.RotateEffect.Rate">
+            <summary>
+            Rotation rate/speed in Hz (A negative rate can be used for reverse direction).
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.RotateEffect.Channels">
+            <summary>
+            A <see cref="T:ManagedBass.FXChannelFlags" /> flag to define on which channels to apply the effect. Default: <see cref="F:ManagedBass.FXChannelFlags.All"/>
+            </summary>
+        </member>
+        <member name="T:ManagedBass.Fx.AutoWahParameters">
+            <summary>
+            Parameters for AutoWah Effect.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.AutoWahParameters.fDryMix">
+            <summary>
+            Dry (unaffected) signal mix (-2...+2). Default = 0.5.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.AutoWahParameters.fWetMix">
+            <summary>
+            Wet (affected) signal mix (-2...+2). Default = 1.5.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.AutoWahParameters.fFeedback">
+            <summary>
+            Feedback (-1...+1). Default = 0.5.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.AutoWahParameters.fRate">
+            <summary>
+            Rate of sweep in cycles per second (0&lt;...&lt;10). Default = 2.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.AutoWahParameters.fRange">
+            <summary>
+            Sweep range in octaves (0&lt;...&lt;10). Default = 4.3.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.AutoWahParameters.fFreq">
+            <summary>
+            Base frequency of sweep range (0&lt;...1000). Default = 50.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.AutoWahParameters.lChannel">
+            <summary>
+            A <see cref="T:ManagedBass.FXChannelFlags" /> flag to define on which channels to apply the effect. Default: <see cref="F:ManagedBass.FXChannelFlags.All"/>
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.AutoWahParameters.FXType">
+            <summary>
+            Gets the <see cref="T:ManagedBass.EffectType"/>.
+            </summary>
+        </member>
+        <member name="T:ManagedBass.Fx.BQFParameters">
+            <summary>
+            Parameters for BQF Effect.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.BQFParameters.lFilter">
+            <summary>
+            BQF Filter Type.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.BQFParameters.fCenter">
+            <summary>
+            Cut-off frequency (Center in PEAKINGEQ and Shelving filters) in Hz (1...info.freq/2). Default = 200Hz.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.BQFParameters.fGain">
+            <summary>
+            Gain in dB (-15...0...+15). Default 0dB (used only for PEAKINGEQ and Shelving filters).
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.BQFParameters.fBandwidth">
+            <summary>
+            Bandwidth in octaves (0.1...4...n), Q is not in use (<see cref="F:ManagedBass.Fx.BQFParameters.fBandwidth"/> has priority over <see cref="F:ManagedBass.Fx.BQFParameters.fQ"/>). Default = 1 (0=not in use).
+            The bandwidth in octaves (between -3 dB frequencies for <see cref="F:ManagedBass.Fx.BQFType.BandPass"/> and <see cref="F:ManagedBass.Fx.BQFType.Notch"/> or between midpoint (dBgain/2) gain frequencies for PEAKINGEQ).
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.BQFParameters.fQ">
+            <summary>
+            EE kinda definition of Q (0.1...1...n), if <see cref="F:ManagedBass.Fx.BQFParameters.fBandwidth"/> is not in use. Default = 0.0 (0=not in use).
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.BQFParameters.fS">
+            <summary>
+            A shelf slope parameter (linear, used only with Shelving filters) (0...1...n). Default = 0.0.
+            When 1, the shelf slope is as steep as you can get it and remain monotonically increasing or decreasing gain with frequency.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.BQFParameters.lChannel">
+            <summary>
+            A <see cref="T:ManagedBass.FXChannelFlags" /> flag to define on which channels to apply the effect. Default: <see cref="F:ManagedBass.FXChannelFlags.All"/>
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.BQFParameters.FXType">
+            <summary>
+            Gets the <see cref="T:ManagedBass.EffectType"/>.
+            </summary>
+        </member>
+        <member name="T:ManagedBass.Fx.ChorusParameters">
+            <summary>
+            Parameters for Chorus Effect.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.ChorusParameters.fDryMix">
+            <summary>
+            Dry (unaffected) signal mix (-2...+2). Default = 0.9
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.ChorusParameters.fWetMix">
+            <summary>
+            Wet (affected) signal mix (-2...+2). Default = 0.35.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.ChorusParameters.fFeedback">
+            <summary>
+            Feedback (-1...+1). Default = 0.5.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.ChorusParameters.fMinSweep">
+            <summary>
+            Minimum delay in ms (0&lt;...6000). Default = 1.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.ChorusParameters.fMaxSweep">
+            <summary>
+            Maximum delay in ms (0&lt;...6000). Default = 400.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.ChorusParameters.fRate">
+            <summary>
+            Rate in ms/s (0&lt;...1000). Default = 200.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.ChorusParameters.lChannel">
+            <summary>
+            A <see cref="T:ManagedBass.FXChannelFlags" /> flag to define on which channels to apply the effect. Default: <see cref="F:ManagedBass.FXChannelFlags.All"/>
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.ChorusParameters.FXType">
+            <summary>
+            Gets the <see cref="T:ManagedBass.EffectType"/>.
+            </summary>
+        </member>
+        <member name="T:ManagedBass.Fx.CompressorParameters">
+            <summary>
+            Parameters for Compressor Effect.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.CompressorParameters.fGain">
+            <summary>
+            Output gain in dB of signal after compression, in the range from -60 to 60. Default = 5.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.CompressorParameters.fThreshold">
+            <summary>
+            Point in dB at which compression begins, in decibels, in the range from -60 to 0. Default = -15.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.CompressorParameters.fRatio">
+            <summary>
+            Compression ratio, in the range from 1 to 100. Default = 3.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.CompressorParameters.fAttack">
+            <summary>
+            Time in ms before compression reaches its full value, in the range from 0.01 to 500. Default = 20.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.CompressorParameters.fRelease">
+            <summary>
+            Time (speed) in ms at which compression is stopped after Input drops below <see cref="F:ManagedBass.Fx.CompressorParameters.fThreshold"/>, in the range from 50 to 3000. Default = 200.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.CompressorParameters.lChannel">
+            <summary>
+            A <see cref="T:ManagedBass.FXChannelFlags" /> flag to define on which channels to apply the effect. Default: <see cref="F:ManagedBass.FXChannelFlags.All"/>
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.CompressorParameters.FXType">
+            <summary>
+            Gets the <see cref="T:ManagedBass.EffectType"/>.
+            </summary>
+        </member>
+        <member name="T:ManagedBass.Fx.DampParameters">
+            <summary>
+            Parameters for Damp Effect.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.DampParameters.fTarget">
+            <summary>
+            Target volume level (0&lt;...1, linear).
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.DampParameters.fQuiet">
+            <summary>
+            Quiet volume level (0...1, linear). 
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.DampParameters.fRate">
+            <summary>
+            Amplification adjustment rate (0...1, linear).
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.DampParameters.fGain">
+            <summary>
+            Amplification level (0...1...n, linear). 
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.DampParameters.fDelay">
+            <summary>
+            Delay in seconds before increasing level (0...n, linear).
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.DampParameters.lChannel">
+            <summary>
+            A <see cref="T:ManagedBass.FXChannelFlags" /> flag to define on which channels to apply the effect. Default: <see cref="F:ManagedBass.FXChannelFlags.All"/>
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.DampParameters.FXType">
+            <summary>
+            Gets the <see cref="T:ManagedBass.EffectType"/>.
+            </summary>
+        </member>
+        <member name="T:ManagedBass.Fx.DistortionParameters">
+            <summary>
+            Parameters for Distortion Effect.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.DistortionParameters.fDrive">
+            <summary>
+            Distortion Drive (0...5).
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.DistortionParameters.fDryMix">
+            <summary>
+            Dry (unaffected) signal mix (-5...+5).
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.DistortionParameters.fWetMix">
+            <summary>
+            Wet (affected) signal mix (-5...+5).
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.DistortionParameters.fFeedback">
+            <summary>
+            Feedback (-1...+1).
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.DistortionParameters.fVolume">
+            <summary>
+            Distortion volume (0...+2).
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.DistortionParameters.lChannel">
+            <summary>
+            A <see cref="T:ManagedBass.FXChannelFlags" /> flag to define on which channels to apply the effect. Default: <see cref="F:ManagedBass.FXChannelFlags.All"/>
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.DistortionParameters.FXType">
+            <summary>
+            Gets the <see cref="T:ManagedBass.EffectType"/>.
+            </summary>
+        </member>
+        <member name="T:ManagedBass.Fx.EchoParameters">
+            <summary>
+            Parameters for Echo Effect.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.EchoParameters.fDryMix">
+            <summary>
+            Dry (unaffected) signal mix (-2...+2). 
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.EchoParameters.fWetMix">
+            <summary>
+            Wet (affected) signal mix (-2...+2). 
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.EchoParameters.fFeedback">
+            <summary>
+            Feedback (-1...+1).
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.EchoParameters.fDelay">
+            <summary>
+            Delay in seconds (0+...6).
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.EchoParameters.bStereo">
+            <summary>
+            Echo adjoining channels to each other? Default is disabled.
+            </summary>
+            <remarks>Only allowed with even number of channels!
+            <para>If enabled and a stream has an even number of channels then, each even channels will be echoed to each other.</para>
+            </remarks>
+        </member>
+        <member name="F:ManagedBass.Fx.EchoParameters.lChannel">
+            <summary>
+            A <see cref="T:ManagedBass.FXChannelFlags" /> flag to define on which channels to apply the effect. Default: <see cref="F:ManagedBass.FXChannelFlags.All"/>
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.EchoParameters.FXType">
+            <summary>
+            Gets the <see cref="T:ManagedBass.EffectType"/>.
+            </summary>
+        </member>
+        <member name="T:ManagedBass.Fx.PeakEQParameters">
+            <summary>
+            Parameters for PeakEQ Effect.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.PeakEQParameters.lBand">
+            <summary>
+            Number of bands (0...n), more bands means more memory and cpu usage. Default = 0.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.PeakEQParameters.fBandwidth">
+            <summary>
+            Bandwidth in octaves (0.1...4...n), <see cref="F:ManagedBass.Fx.PeakEQParameters.fQ"/> is not in use (<see cref="F:ManagedBass.Fx.PeakEQParameters.fBandwidth"/> has priority over <see cref="F:ManagedBass.Fx.PeakEQParameters.fQ"/>). Default = 1 (0=not in use).
+            <para>In most cases users should use the minimum of 0.5 octave.</para>
+            <para>The bandwidth in octaves (between -3 dB frequencies for BPF and notch or between midpoint (dBgain/2) gain frequencies for peaking EQ).</para>
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.PeakEQParameters.fQ">
+            <summary>
+            EE kinda definition of Q (0.1...1...n), if bandwidth is not in use. Default = 0.0 (0=not in use).
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.PeakEQParameters.fCenter">
+            <summary>
+            Center frequency in Hz (1Hz...nHz). Default = 1000 (max. is 1/2 of the samplerate).
+            </summary>
+            <remarks>Use 'oldcenter * freq / oldfreq' to update the <see cref="F:ManagedBass.Fx.PeakEQParameters.fCenter"/> after changing the samplerate.</remarks>
+        </member>
+        <member name="F:ManagedBass.Fx.PeakEQParameters.fGain">
+            <summary>
+            Gain in dB (-15...0...+15). Default 0dB.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.PeakEQParameters.lChannel">
+            <summary>
+            A <see cref="T:ManagedBass.FXChannelFlags" /> flag to define on which channels to apply the effect. Default: <see cref="F:ManagedBass.FXChannelFlags.All"/>
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.PeakEQParameters.FXType">
+            <summary>
+            Gets the <see cref="T:ManagedBass.EffectType"/>.
+            </summary>
+        </member>
+        <member name="T:ManagedBass.Fx.PhaserParameters">
+            <summary>
+            Parameters for Phaser Effect.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.PhaserParameters.fDryMix">
+            <summary>
+            Dry (unaffected) signal mix (-2...+2). Default = 0.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.PhaserParameters.fWetMix">
+            <summary>
+            Wet (affected) signal mix (-2...+2). Default = 0.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.PhaserParameters.fFeedback">
+            <summary>
+            Feedback (-1...+1). Default = 0.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.PhaserParameters.fRate">
+            <summary>
+            Rate of sweep in cycles per second (0&lt;...&lt;10). Default = 0.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.PhaserParameters.fRange">
+            <summary>
+            Sweep range inoctaves (0&lt;...&lt;10). Default = 0.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.PhaserParameters.fFreq">
+            <summary>
+            Base frequency of sweep range (0&lt;...1000). Default = 0.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.PhaserParameters.lChannel">
+            <summary>
+            A <see cref="T:ManagedBass.FXChannelFlags" /> flag to define on which channels to apply the effect. Default: <see cref="F:ManagedBass.FXChannelFlags.All"/>
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.PhaserParameters.FXType">
+            <summary>
+            Gets the <see cref="T:ManagedBass.EffectType"/>.
+            </summary>
+        </member>
+        <member name="T:ManagedBass.Fx.PitchShiftParameters">
+            <summary>
+            Parameters for PitchShift Effect.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.PitchShiftParameters.fPitchShift">
+            <summary>
+            A factor value which is between 0.5 (one octave down) and 2 (one octave up) (1 won't change the pitch, default).
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.PitchShiftParameters.fSemitones">
+            <summary>
+            Semitones (0 won't change the pitch). Default = 0.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.PitchShiftParameters.lFFTsize">
+            <summary>
+            Defines the FFT frame size used for the processing. Typical values are 1024, 2048 (default) and 4096, max is 8192.
+            </summary>
+            <remarks>It may be any value up to 8192 but it MUST be a power of 2.</remarks>
+        </member>
+        <member name="F:ManagedBass.Fx.PitchShiftParameters.lOsamp">
+            <summary>
+            Is the STFT oversampling factor which also determines the overlap between adjacent STFT frames. Default = 8.
+            </summary>
+            <remarks>It should at least be 4 for moderate scaling ratios. A value of 32 is recommended for best quality (better quality = higher CPU usage).</remarks>
+        </member>
+        <member name="F:ManagedBass.Fx.PitchShiftParameters.lChannel">
+            <summary>
+            A <see cref="T:ManagedBass.FXChannelFlags" /> flag to define on which channels to apply the effect. Default: <see cref="F:ManagedBass.FXChannelFlags.All"/>
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.PitchShiftParameters.FXType">
+            <summary>
+            Gets the <see cref="T:ManagedBass.EffectType"/>.
+            </summary>
+        </member>
+        <member name="T:ManagedBass.Fx.ReverbParameters">
+            <summary>
+            Parameters for Reverb Effect.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.ReverbParameters.fDryMix">
+            <summary>
+            Dry (unaffected) signal mix (0.0...1.0, def. 0).
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.ReverbParameters.fWetMix">
+            <summary>
+            Wet (affected) signal mix (0.0...3.0, def. 1.0).
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.ReverbParameters.fRoomSize">
+            <summary>
+            Room size (0.0...1.0, def. 0.5).
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.ReverbParameters.fDamp">
+            <summary>
+            Damping factor (0.0...1.0, def. 0.5).
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.ReverbParameters.fWidth">
+            <summary>
+            Stereo width (0.0...1.0, def. 1.0).
+            </summary>
+            <remarks>It should at least be 4 for moderate scaling ratios. A value of 32 is recommended for best quality (better quality = higher CPU usage).</remarks>
+        </member>
+        <member name="F:ManagedBass.Fx.ReverbParameters.lMode">
+            <summary>
+            Mode: 0 = no freeze or 1 = freeze, def. 0 (no freeze).
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.ReverbParameters.lChannel">
+            <summary>
+            A <see cref="T:ManagedBass.FXChannelFlags" /> flag to define on which channels to apply the effect. Default: <see cref="F:ManagedBass.FXChannelFlags.All"/>
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.ReverbParameters.FXType">
+            <summary>
+            Gets the <see cref="T:ManagedBass.EffectType"/>.
+            </summary>
+        </member>
+        <member name="T:ManagedBass.Fx.RotateParameters">
+            <summary>
+            Parameters for Rotate Effect.
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.RotateParameters.fRate">
+            <summary>
+            Rotation rate/speed in Hz (A negative rate can be used for reverse direction).
+            </summary>
+        </member>
+        <member name="F:ManagedBass.Fx.RotateParameters.lChannel">
+            <summary>
+            A <see cref="T:ManagedBass.FXChannelFlags" /> flag to define on which channels to apply the effect. Default: <see cref="F:ManagedBass.FXChannelFlags.All"/>
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.RotateParameters.FXType">
+            <summary>
+            Gets the <see cref="T:ManagedBass.EffectType"/>.
+            </summary>
+        </member>
+        <member name="T:ManagedBass.Fx.MediaPlayerFX">
+            <summary>
+            A Reusable Channel which can Load files like a Player including Tempo, Pitch and Reverse options using BassFx.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.MediaPlayerFX.Reverse">
+            <summary>
+            Gets or Sets the Media playback direction.
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.MediaPlayerFX.Pitch">
+            <summary>
+            Gets or Sets the Pitch in Semitones (-60 ... 0 ... 60).
+            </summary>
+        </member>
+        <member name="P:ManagedBass.Fx.MediaPlayerFX.Tempo">
+            <summary>
+            Gets or Sets the Tempo in Percentage (-95% ... 0 ... 5000%)
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.MediaPlayerFX.OnLoad(System.String)">
+            <summary>
+            Loads the File Channel with FX.
+            </summary>
+        </member>
+        <member name="M:ManagedBass.Fx.MediaPlayerFX.InitProperties">
+            <summary>
+            Initializes Properties on every call to MediaPlayer.Load.
+            </summary>
+        </member>
+    </members>
+</doc>

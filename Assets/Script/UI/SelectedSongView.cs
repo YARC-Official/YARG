@@ -12,19 +12,39 @@ namespace YARG.UI {
 		[SerializeField]
 		private TextMeshProUGUI songName;
 		[SerializeField]
+		private TextMeshProUGUI songNameMoreInformation;
+		[SerializeField]
 		private TextMeshProUGUI artist;
+		[SerializeField]
+		private TextMeshProUGUI artistMoreInformation;
 		[SerializeField]
 		private TextMeshProUGUI scoreText;
 		[SerializeField]
 		private TextMeshProUGUI lengthText;
 		[SerializeField]
 		private TextMeshProUGUI supportText;
+		[SerializeField]
+		private TextMeshProUGUI supportTextMoreInformation;
+		[SerializeField]
+		private TextMeshProUGUI genreText;
+		[SerializeField]
+		private TextMeshProUGUI albumText;
+		[SerializeField]
+		private TextMeshProUGUI albumTextMoreInformation;
+		[SerializeField]
+		private TextMeshProUGUI yearText;
+		[SerializeField]
+		private TextMeshProUGUI charterText;
 
 		[Space]
 		[SerializeField]
 		private RawImage albumCover;
 		[SerializeField]
+		private RawImage albumCoverMoreInformation;
+		[SerializeField]
 		private GameObject albumCoverAlt;
+		[SerializeField]
+		private GameObject albumCoverAltMoreInformation;
 
 		[Space]
 		[SerializeField]
@@ -49,7 +69,9 @@ namespace YARG.UI {
 
 			// Basic info
 			songName.text = songInfo.SongName;
-			artist.text = $"<i>{songInfo.artistName}</i>";
+			songNameMoreInformation.text = songInfo.SongName;
+			artist.text = songInfo.artistName;
+			artistMoreInformation.text = songInfo.artistName;
 
 			// Song score
 			var score = ScoreManager.GetScore(songInfo);
@@ -67,7 +89,21 @@ namespace YARG.UI {
 			lengthText.text = $"{minutes}:{seconds:00}";
 
 			// Source
-			supportText.text = songInfo.SourceFriendlyName;
+			supportText.text = string.IsNullOrEmpty(songInfo.SourceFriendlyName) ? "Unknown" : songInfo.SourceFriendlyName;
+			supportTextMoreInformation.text = string.IsNullOrEmpty(songInfo.SourceFriendlyName) ? "Unknown" : songInfo.SourceFriendlyName;
+
+			// Album
+			albumText.text = string.IsNullOrEmpty(songInfo.album) ? "Unknown" : songInfo.album;
+			albumTextMoreInformation.text = string.IsNullOrEmpty(songInfo.album) ? "Unknown" : songInfo.album;
+
+			// Genre
+			genreText.text = string.IsNullOrEmpty(songInfo.genre) ? "Unknown" : songInfo.genre;
+
+			// Year
+			yearText.text = string.IsNullOrEmpty(songInfo.year) ? "Unknown" : songInfo.year;
+
+			// Charter
+			charterText.text = string.IsNullOrEmpty(songInfo.charter) ? "Unknown" : songInfo.charter;
 
 			// Album cover
 			albumCover.texture = null;
@@ -182,6 +218,11 @@ namespace YARG.UI {
 			albumCover.texture = texture;
 			albumCover.color = Color.white;
 			albumCoverAlt.SetActive(false);
+
+			// Set album cover for the More Information Box
+			albumCoverMoreInformation.texture = texture;
+			albumCoverMoreInformation.color = Color.white;
+			albumCoverAltMoreInformation.SetActive(false);
 		}
 
 		public void PlaySong() {
@@ -195,6 +236,22 @@ namespace YARG.UI {
 
 		public void SearchSource() {
 			SongSelect.Instance.searchField.text = $"source:{songInfo.source}";
+		}
+
+		public void SearchAlbum() {
+			SongSelect.Instance.searchField.text = $"album:{songInfo.album}";
+		}
+
+		public void SearchGenre() {
+			SongSelect.Instance.searchField.text = $"genre:{songInfo.genre}";
+		}
+
+		public void SearchYear() {
+			SongSelect.Instance.searchField.text = $"year:{songInfo.year}";
+		}
+
+		public void SearchCharter() {
+			SongSelect.Instance.searchField.text = $"charter:{songInfo.charter ?? "Unknown"}";
 		}
 	}
 }

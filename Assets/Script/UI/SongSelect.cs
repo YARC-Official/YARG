@@ -347,7 +347,7 @@ namespace YARG.UI {
 					songs.Insert(0, new SongOrHeader { song = song });
 				}
 				songs.Insert(0, new SongOrHeader {
-					header = ("Recommended Songs", $"{recommendedSongs.Count} random songs")
+					header = ("Recommended Songs", $"{recommendedSongs.Count} songs")
 				});
 			} else {
 				// Split up args
@@ -367,6 +367,27 @@ namespace YARG.UI {
 						var source = arg[7..];
 						songsOut = SongLibrary.Songs
 							.Where(i => i.source.ToLower() == source.ToLower());
+					} else if (arg.StartsWith("album:")) {
+						// Album filter
+						var album = arg[6..];
+						songsOut = SongLibrary.Songs
+							.Where(i => i.album.ToLower() == album.ToLower());
+					} else if (arg.StartsWith("genre:")) {
+						// Genre filter
+						var genre = arg[6..];
+						songsOut = SongLibrary.Songs
+							.Where(i => i.genre.ToLower() == genre.ToLower());
+					} else if (arg.StartsWith("year:")) {
+						// Year filter
+						var year = arg[5..];
+						songsOut = SongLibrary.Songs
+							.Where(i => i.year.ToLower() == year.ToLower());
+					} else if (arg.StartsWith("charter:")) {
+						// Charter filter
+						var charter = arg[8..];
+						songsOut = SongLibrary.Songs
+							.Where(i => (i.charter ?? "Unknown").ToLower() == charter?.ToLower())
+							.ToList();
 					} else if (!fuzzySearched) {
 						// Fuzzy search
 						fuzzySearched = true;
@@ -385,7 +406,7 @@ namespace YARG.UI {
 
 				// Add header
 				songs = songsOut.Select(i => new SongOrHeader { song = i }).ToList();
-				songs.Insert(0, new SongOrHeader { header = ($"Filtered Songs", $"{songs.Count} songs") });
+				songs.Insert(0, new SongOrHeader { header = ($"Search Results", $"{songs.Count} " + (songs.Count == 1 ? "song" : "songs") )});
 			}
 
 			// Count songs
