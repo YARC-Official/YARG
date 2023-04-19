@@ -28,6 +28,7 @@ namespace YARG.PlayMode {
 		private List<NoteInfo> heldNotes = new();
 		private float? latestInput = null;
 		private bool latestInputIsStrum = false;
+		private bool[] extendedSustain = new bool[] {false,false,false,false,false};
 
 		private int notesHit = 0;
 		// private int notesMissed = 0;
@@ -141,6 +142,7 @@ namespace YARG.PlayMode {
 				if (heldNote.time + heldNote.length <= Play.Instance.SongTime) {
 					heldNotes.RemoveAt(i);
 					frets[heldNote.fret].StopSustainParticles();
+					extendedSustain[heldNote.fret] = false;
 				}
 			}
 
@@ -197,6 +199,7 @@ namespace YARG.PlayMode {
 					missedAnyNote = true;
 					notePool.MissNote(hit);
 					StopAudio = true;
+					extendedSustain[hit.fret] = false;
 				}
 				allowedOverstrums.Clear(); // Disallow all overstrums upon missing
 			}
@@ -309,6 +312,13 @@ namespace YARG.PlayMode {
 				if (hit.length > 0.2f) {
 					heldNotes.Add(hit);
 					frets[hit.fret].PlaySustainParticles();
+					// Check if it's extended sustain;
+					var nextNote = GetNextNote(hit.time);
+					if (nextNote != null) {
+						extendedSustain[hit.fret] = hit.EndTime > nextNote.time;
+					}
+				} else if (hit.fret != 5) {
+					extendedSustain[hit.fret] = false;
 				}
 
 				// Add stats
@@ -396,6 +406,7 @@ namespace YARG.PlayMode {
 
 				heldNotes.RemoveAt(i);
 				frets[heldNote.fret].StopSustainParticles();
+				extendedSustain[heldNote.fret] = false;
 			}
 		}
 
@@ -470,18 +481,44 @@ namespace YARG.PlayMode {
 
 			frets[fret].SetPressed(pressed);
 
-			if (!pressed) {
+			if (pressed) {
+				// Let go of held notes if wrong note pressed
+				if (!IsExtendedSustain()) { // Unless it's extended sustains
+					bool release = false;
+					//
+					for (int i = heldNotes.Count - 1; i >= 0; i--) {
+						var heldNote = heldNotes[i];
+						if (heldNote.fret == fret || (heldNotes.Count == 1 && fret < heldNote.fret)) { // Button press is valid
+							continue;
+						} else { // Wrong button pressed; release all sustains
+							release = true;
+							break;
+						}
+					}
+					if (release) { // Actually release all sustains
+						for (int i = heldNotes.Count - 1; i >= 0; i--) {
+							var heldNote = heldNotes[i];
+							notePool.MissNote(heldNote);
+							heldNotes.RemoveAt(i);
+							frets[heldNote.fret].StopSustainParticles();
+							extendedSustain[heldNote.fret] = false;
+							StopAudio = true;
+						}
+					}
+				}
+			} else {
 				// Let go of held notes
 				NoteInfo letGo = null;
 				for (int i = heldNotes.Count - 1; i >= 0; i--) {
 					var heldNote = heldNotes[i];
-					if (heldNote.fret != fret) {
+					if (IsExtendedSustain() && heldNote.fret != fret || (heldNotes.Count == 1 && fret < heldNote.fret)) {
 						continue;
 					}
 
 					notePool.MissNote(heldNote);
 					heldNotes.RemoveAt(i);
 					frets[heldNote.fret].StopSustainParticles();
+					extendedSustain[heldNote.fret] = false;
 
 					letGo = heldNote;
 				}
@@ -569,6 +606,21 @@ namespace YARG.PlayMode {
 				}
 			}
 			return false;
+		}
+
+		private NoteInfo GetNextNote(float currentChordTime) {
+			var i = hitChartIndex;
+			while (Chart.Count > i) {
+				if (Chart[i].time > currentChordTime) {
+					return Chart[i];
+				}
+				i++;
+			}
+			return null;
+		}
+
+		private bool IsExtendedSustain() {
+			return extendedSustain.Any(x => x);
 		}
 	}
 }
