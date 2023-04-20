@@ -220,8 +220,8 @@ namespace YARG.PlayMode {
 
 
 			// If the note is a HOPO, the player has not strummed, and the HOPO can't be hit, nothing happens.
-			if (chord[0].hopo && !strummed && strumLeniency == 0f) {
-				if (Combo <= 0) {
+			if ((chord[0].hopo || chord[0].tap) && !strummed && strumLeniency == 0f) {
+				if (Combo <= 0 && chord[0].hopo) {
 					return;
 				}
 
@@ -341,10 +341,10 @@ namespace YARG.PlayMode {
 			// add it to the allowed overstrums. This is so the player
 			// doesn't lose their combo when they strum AFTER they hit
 			// the tap note.
-			if (chord[0].hopo && !strummedCurrentNote) {
+			if ((chord[0].hopo||chord[0].tap) && !strummedCurrentNote) {
 				allowedOverstrums.Clear(); // Only allow overstrumming latest HO/PO
 				allowedOverstrums.Add(chord);
-			} else if (allowedOverstrums.Count > 0 && !chord[0].hopo) {
+			} else if (allowedOverstrums.Count > 0 && !chord[0].hopo && !chord[0].tap) {
 				for (int i = 0; i < allowedOverstrums.Count; i++) {
 					if (!ChordEquals(chord, allowedOverstrums[i])) {
 						allowedOverstrums.Clear(); // If latest strum is different from latest HO/PO, disallow overstrumming

@@ -23,7 +23,7 @@ namespace YARG.Serialization.Parser {
 			OPEN,
 			TAP
 		}
-
+		private bool isCurrentlyTap=false;
 		private class FiveFretIR {
 			public long startTick;
 			// This is an array due to extended sustains
@@ -97,11 +97,16 @@ namespace YARG.Serialization.Parser {
 						// If it is a flag on, wait until we get the flag
 						// off so we can get the length of the flag period.
 						forceStateArray[i] = totalDelta;
+						if(forceState==ForceState.TAP){
+							isCurrentlyTap=true;
+						}
 					} else {
 						if (forceStateArray[i] == null) {
 							continue;
 						}
-
+						if(forceState==ForceState.TAP){
+							isCurrentlyTap=false;
+						}
 						forceIR.Add(new ForceStateIR {
 							startTick = forceStateArray[i].Value,
 							endTick = totalDelta,
@@ -110,7 +115,7 @@ namespace YARG.Serialization.Parser {
 
 						forceStateArray[i] = null;
 					}
-				} else if (trackEvent is NoteEvent noteEvent) {
+				} else if (trackEvent is NoteEvent noteEvent && !isCurrentlyTap) {
 					// Note based flags
 
 					// Look for correct octave
@@ -295,15 +300,15 @@ namespace YARG.Serialization.Parser {
 					// Set as open if requested
 					note.fretFlag = FretFlag.OPEN;
 					note.hopo = false;
-				} else if (force == ForceState.TAP) {
-					note.tap=true;
-					note.hopo=false;
-					note.autoHopo=false;
 				} else{
 					// Otherwise, just set as a HOPO if requested
 					note.hopo = force == ForceState.HOPO;
 				}
-
+				if (force == ForceState.TAP) {
+					note.tap=true;
+					note.hopo=false;
+					note.autoHopo=false;
+				}
 				lastTime = note.startTick;
 				lastFret = note.fretFlag;
 			}
@@ -330,6 +335,10 @@ namespace YARG.Serialization.Parser {
 
 					int fret = i - 1;
 
+					if(noteInfo.tap){
+						noteInfo.hopo=false;
+						noteInfo.autoHopo=false;
+					}
 					// Get the end tick (different for open notes)
 					long endTick;
 					if (fret == 5) {
