@@ -97,7 +97,16 @@ namespace YARG.Input {
 		}
 
 		public override void UpdateNavigationMode() {
-			// TODO
+			CallGenericNavigationEventForButton("yellow_pad", NavigationType.UP);
+			CallGenericNavigationEventForButton("blue_pad", NavigationType.DOWN);
+
+			if (WasMappingPressed("green_pad")) {
+				CallGenericNavigationEvent(NavigationType.PRIMARY, true);
+			}
+
+			if (WasMappingPressed("red_pad")) {
+				CallGenericNavigationEvent(NavigationType.SECONDARY, true);
+			}
 		}
 
 		public override string[] GetAllowedInstruments() {
