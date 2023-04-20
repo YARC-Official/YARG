@@ -110,16 +110,10 @@ namespace YARG.PlayMode {
 			);
 			descriptor.mipCount = 0;
 			var renderTexture = new RenderTexture(descriptor);
-			commonTrack.trackCamera.targetTexture = renderTexture;
 
-			// Set up camera
-			var info = commonTrack.trackCamera.GetComponent<UniversalAdditionalCameraData>();
-			if (SettingsManager.GetSettingValue<bool>("lowQuality")) {
-				info.antialiasing = AntialiasingMode.None;
-			} else {
-				info.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
-				info.antialiasingQuality = AntialiasingQuality.Low;
-			}
+			// Assign render texture to camera
+			commonTrack.SetupCameras();
+			commonTrack.TrackCamera.targetTexture = renderTexture;
 		}
 
 		private void Start() {
@@ -132,7 +126,7 @@ namespace YARG.PlayMode {
 
 			player.lastScore = null;
 
-			GameUI.Instance.AddTrackImage(commonTrack.trackCamera.targetTexture);
+			GameUI.Instance.AddTrackImage(commonTrack.TrackCamera.targetTexture);
 
 			// Adjust hit window
 			var scale = commonTrack.hitWindow.localScale;
@@ -148,7 +142,7 @@ namespace YARG.PlayMode {
 
 		protected virtual void OnDestroy() {
 			// Release render texture
-			commonTrack.trackCamera.targetTexture.Release();
+			commonTrack.TrackCamera.targetTexture.Release();
 
 			player.inputStrategy.StarpowerEvent -= StarpowerAction;
 			player.inputStrategy.PauseEvent -= PauseAction;

@@ -111,9 +111,9 @@ namespace YARG.PlayMode {
 			float percentageComplete = spShakeElapsedTime / spShakeDuration;
 			if (!spShakeDepressed && !spShakeAscended) {
 				spShakeDuration = 0.065f;
-				commonTrack.trackCamera.transform.position = Vector3.Lerp(trackStartPos, trackStartPos + trackEndPos, percentageComplete);
+				commonTrack.TrackCamera.transform.position = Vector3.Lerp(trackStartPos, trackStartPos + trackEndPos, percentageComplete);
 
-				if (commonTrack.trackCamera.transform.position == trackStartPos + trackEndPos) {
+				if (commonTrack.TrackCamera.transform.position == trackStartPos + trackEndPos) {
 					spShakeResetTime = true;
 					spShakeDepressed = true;
 				}
@@ -127,9 +127,9 @@ namespace YARG.PlayMode {
 			// End track animation
 			if (spShakeDepressed && !spShakeAscended) {
 				spShakeDuration = 0.2f;
-				commonTrack.trackCamera.transform.position = Vector3.Lerp(trackStartPos + trackEndPos, trackStartPos, percentageComplete);
+				commonTrack.TrackCamera.transform.position = Vector3.Lerp(trackStartPos + trackEndPos, trackStartPos, percentageComplete);
 
-				if (commonTrack.trackCamera.transform.position == trackStartPos + trackEndPos) {
+				if (commonTrack.TrackCamera.transform.position == trackStartPos + trackEndPos) {
 					spShakeResetTime = true;
 					spShakeAscended = true;
 				}
@@ -138,7 +138,7 @@ namespace YARG.PlayMode {
 
 		public void StarpowerTrackAnimReset() {
 			if (!spShakegotStartPos) {
-				trackStartPos = commonTrack.trackCamera.transform.position;
+				trackStartPos = commonTrack.TrackCamera.transform.position;
 				spShakegotStartPos = true;
 			}
 
