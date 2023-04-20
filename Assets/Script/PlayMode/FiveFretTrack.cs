@@ -213,10 +213,11 @@ namespace YARG.PlayMode {
 			// Handle hits (one per frame so no double hits)
 			var chord = expectedHits.Peek();
 
-			// If the note is not a HOPO and the player has not strummed, nothing happens.
-			if (!chord[0].hopo && !strummed && strumLeniency == 0f) {
+			// If the note is not a HOPO or tap and the player has not strummed, nothing happens.
+			if (!chord[0].hopo && !chord[0].tap && !strummed && strumLeniency == 0f) {
 				return;
 			}
+
 
 			// If the note is a HOPO, the player has not strummed, and the HOPO can't be hit, nothing happens.
 			if (chord[0].hopo && !strummed && strumLeniency == 0f) {
@@ -275,7 +276,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Avoid multi-hits
-			if (chord[0].hopo) {
+			if (chord[0].hopo || chord[0].tap) {
 				// If latest input is cleared, it was already used
 				if (latestInput == null) {
 					return;
@@ -562,7 +563,6 @@ namespace YARG.PlayMode {
 			float lagCompensation = CalcLagCompensation(time, noteInfo.time);
 			float x = noteInfo.fret == 5 ? 0f : frets[noteInfo.fret].transform.localPosition.x;
 			var pos = new Vector3(x, 0f, TRACK_SPAWN_OFFSET - lagCompensation);
-
 			// Get model type
 			var model = NoteComponent.ModelType.NOTE;
 			if (noteInfo.fret == 5) {
@@ -575,12 +575,22 @@ namespace YARG.PlayMode {
 			// Set note info
 			var noteComp = notePool.AddNote(noteInfo, pos);
 			startFCDetection = true;
-			noteComp.SetInfo(
+			if(noteInfo.tap){
+				noteComp.SetInfo(
+				Color.magenta,
+				Color.magenta,
+				noteInfo.length,
+				model
+			);
+			}else{
+				noteComp.SetInfo(
 				commonTrack.NoteColor(noteInfo.fret),
 				commonTrack.SustainColor(noteInfo.fret),
 				noteInfo.length,
 				model
 			);
+			}
+			
 		}
 
 		private string PrintFrets() { // Debug function; remove later?

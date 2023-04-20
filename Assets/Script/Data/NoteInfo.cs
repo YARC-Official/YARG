@@ -8,7 +8,10 @@ namespace YARG.Data {
 		/// Hammer-on/pull-off, or Cymbal for drums.
 		/// </summary>
 		public bool hopo;
-
+		/// <summary>
+		/// Tap note. Only used for guitar, coop guitar, rhythm, and bass.
+		/// </summary>
+		public bool tap;
 		/// <summary>
 		/// Whether or not this HOPO is automatic.<br/>
 		/// Used for difficulty downsampling.

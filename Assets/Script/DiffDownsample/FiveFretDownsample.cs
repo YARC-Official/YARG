@@ -129,6 +129,7 @@ namespace YARG.DiffDownsample {
 
 			public FretFlag frets;
 			public bool hopo;
+			public bool tap;
 			public bool autoHopo;
 		}
 
@@ -155,6 +156,7 @@ namespace YARG.DiffDownsample {
 						length = new float[5],
 						frets = (FretFlag) (1 << note.fret),
 						hopo = note.hopo,
+						tap = note.tap,
 						autoHopo = note.autoHopo
 					};
 
@@ -187,6 +189,7 @@ namespace YARG.DiffDownsample {
 						length = chord.length[i],
 						fret = i,
 						hopo = chord.hopo,
+						tap = chord.tap,
 						autoHopo = chord.autoHopo
 					});
 				}

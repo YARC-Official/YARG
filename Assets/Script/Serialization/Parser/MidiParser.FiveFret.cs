@@ -20,7 +20,8 @@ namespace YARG.Serialization.Parser {
 			NONE,
 			HOPO,
 			STRUM,
-			OPEN
+			OPEN,
+			TAP
 		}
 
 		private class FiveFretIR {
@@ -30,7 +31,7 @@ namespace YARG.Serialization.Parser {
 
 			public FretFlag fretFlag;
 			public bool hopo;
-
+			public bool tap;
 			// Used for difficulty downsampling
 			public bool autoHopo;
 		}
@@ -63,7 +64,7 @@ namespace YARG.Serialization.Parser {
 			// we must store the ON events and wait until the
 			// OFF event to actually add the state. This stores
 			// the ON event timings.
-			long?[] forceStateArray = new long?[4];
+			long?[] forceStateArray = new long?[5];
 
 			// Convert track events into intermediate representation
 			foreach (var trackEvent in trackChunk.Events) {
@@ -87,7 +88,7 @@ namespace YARG.Serialization.Parser {
 						forceState = ForceState.OPEN;
 					} else if (header.SequenceEqual(SYSEX_TAP_NOTE)) {
 						i = 3;
-						forceState = ForceState.HOPO;
+						forceState = ForceState.TAP;
 					} else {
 						continue;
 					}
@@ -116,9 +117,12 @@ namespace YARG.Serialization.Parser {
 					if (noteEvent.GetNoteOctave() != 4 + difficulty) {
 						continue;
 					}
-
+					ForceState forceState = ForceState.NONE;
+					if(noteEvent.GetNoteOctave() == 7 && noteEvent.GetNoteName()==NoteName.GSharp){
+						forceState = ForceState.TAP;
+					}else{
 					// Convert note to force state
-					ForceState forceState = noteEvent.GetNoteName() switch {
+						forceState = noteEvent.GetNoteName() switch {
 						// Force HOPO
 						NoteName.F => ForceState.HOPO,
 						// Force strum
@@ -126,6 +130,9 @@ namespace YARG.Serialization.Parser {
 						// Default
 						_ => ForceState.NONE
 					};
+					}
+
+					
 
 					// Skip if not an actual state
 					if (forceState == ForceState.NONE) {
@@ -197,7 +204,7 @@ namespace YARG.Serialization.Parser {
 					// Default
 					_ => -1
 				};
-
+				
 				// Skip if not an actual note
 				if (fret == -1) {
 					continue;
@@ -288,7 +295,11 @@ namespace YARG.Serialization.Parser {
 					// Set as open if requested
 					note.fretFlag = FretFlag.OPEN;
 					note.hopo = false;
-				} else {
+				} else if (force == ForceState.TAP) {
+					note.tap=true;
+					note.hopo=false;
+					note.autoHopo=false;
+				} else{
 					// Otherwise, just set as a HOPO if requested
 					note.hopo = force == ForceState.HOPO;
 				}
@@ -336,6 +347,7 @@ namespace YARG.Serialization.Parser {
 						time = startTime,
 						length = endTime - startTime,
 						fret = fret,
+						tap = noteInfo.tap,
 						hopo = noteInfo.hopo,
 						autoHopo = noteInfo.autoHopo
 					});

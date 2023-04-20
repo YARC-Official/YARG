@@ -355,7 +355,6 @@ namespace YARG.Serialization.Parser {
 				}
 			}
 		}
-
 		private SongInfo.DrumType GetDrumType(TrackChunk trackChunk) {
 			if (songInfo.drumType != SongInfo.DrumType.UNKNOWN) {
 				return songInfo.drumType;
