@@ -12,12 +12,19 @@ namespace YARG.PlayMode {
 		private ParticleGroup sustainParticles;
 
 		[SerializeField]
+		private new Animation animation;
+
+		[SerializeField]
 		private MeshRenderer meshRenderer;
 
 		[SerializeField]
 		private int topMaterialIndex;
 		[SerializeField]
 		private int innerMaterialIndex;
+
+		[SerializeField]
+		private Transform fretItself;
+		public Vector3 fretInitialScale;
 
 		/// <value>
 		/// Whether or not the fret is pressed. Used for data purposes.
@@ -26,6 +33,11 @@ namespace YARG.PlayMode {
 			get;
 			private set;
 		} = false;
+
+		void Start() {
+			//fretItself = transform.GetComponent<Fret>();
+			fretInitialScale = fretItself.transform.localScale;
+		}
 
 		public void SetColor(Color top, Color inner) {
 			meshRenderer.materials[topMaterialIndex].color = top;
@@ -63,6 +75,25 @@ namespace YARG.PlayMode {
 
 		public void PlaySustainParticles() {
 			sustainParticles.Play();
+		}
+
+		public void PlayAnimation() {
+			StopAnimation();
+
+			animation["FretsGuitar"].wrapMode = WrapMode.Once;
+			animation.Play("FretsGuitar");
+		}
+
+		public void PlayAnimationSustainsLooped() {
+			StopAnimation();
+
+			animation["FretsGuitarSustains"].wrapMode = WrapMode.Loop;
+			animation.Play("FretsGuitarSustains");
+		}
+
+		public void StopAnimation() {
+			animation.Stop();
+			animation.Rewind();
 		}
 
 		public void StopSustainParticles() {

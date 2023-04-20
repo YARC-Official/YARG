@@ -141,7 +141,9 @@ namespace YARG.PlayMode {
 				var heldNote = heldNotes[i];
 				if (heldNote.time + heldNote.length <= Play.Instance.SongTime) {
 					heldNotes.RemoveAt(i);
+					frets[heldNote.fret].StopAnimation();
 					frets[heldNote.fret].StopSustainParticles();
+
 					extendedSustain[heldNote.fret] = false;
 				}
 			}
@@ -269,7 +271,6 @@ namespace YARG.PlayMode {
 			// Check if correct chord is pressed
 			if (!ChordPressed(chord)) {
 				// Overstrums are dealt with at the top of the method
-
 				return;
 			}
 
@@ -301,9 +302,10 @@ namespace YARG.PlayMode {
 				notePool.HitNote(hit);
 				StopAudio = false;
 
-				// Play particles
+				// Play particles and animation
 				if (hit.fret != 5) {
 					frets[hit.fret].PlayParticles();
+					frets[hit.fret].PlayAnimation();
 				} else {
 					openNoteParticles.Play();
 				}
@@ -312,6 +314,8 @@ namespace YARG.PlayMode {
 				if (hit.length > 0.2f) {
 					heldNotes.Add(hit);
 					frets[hit.fret].PlaySustainParticles();
+					frets[hit.fret].PlayAnimationSustainsLooped();
+
 					// Check if it's extended sustain;
 					var nextNote = GetNextNote(hit.time);
 					if (nextNote != null) {
@@ -331,7 +335,6 @@ namespace YARG.PlayMode {
 					soloNotesHit = 0;
 				}
 			}
-
 
 			// If this is a tap note, and it was hit without strumming,
 			// add it to the allowed overstrums. This is so the player
@@ -405,6 +408,7 @@ namespace YARG.PlayMode {
 				StopAudio = true;
 
 				heldNotes.RemoveAt(i);
+				frets[heldNote.fret].StopAnimation();
 				frets[heldNote.fret].StopSustainParticles();
 				extendedSustain[heldNote.fret] = false;
 			}
@@ -517,6 +521,7 @@ namespace YARG.PlayMode {
 
 					notePool.MissNote(heldNote);
 					heldNotes.RemoveAt(i);
+					frets[heldNote.fret].StopAnimation();
 					frets[heldNote.fret].StopSustainParticles();
 					extendedSustain[heldNote.fret] = false;
 

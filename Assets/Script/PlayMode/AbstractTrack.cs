@@ -28,6 +28,7 @@ namespace YARG.PlayMode {
 		protected int eventChartIndex = 0;
 
 		protected CommonTrack commonTrack;
+		protected TrackAnimations trackAnims;
 
 		public EventInfo StarpowerSection {
 			get;
@@ -40,17 +41,8 @@ namespace YARG.PlayMode {
 
 		protected float starpowerCharge;
 		protected bool starpowerActive;
+		//protected bool starpowerHit = false;
 		protected Light comboSunburstEmbeddedLight;
-
-		// Overdrive animation parameters
-		protected Vector3 trackStartPos;
-		protected Vector3 trackEndPos = new(0, 0.08f, 0.13f);
-		protected float spAnimationDuration = 0.2f;
-		protected float elapsedTimeAnim = 0;
-		protected bool gotStartPos = false;
-		protected bool depressed = false;
-		protected bool ascended = false;
-		protected bool resetTime = false;
 
 		// Solo stuff
 		private int soloNoteCount = -1;
@@ -109,6 +101,7 @@ namespace YARG.PlayMode {
 
 		private void Awake() {
 			commonTrack = GetComponent<CommonTrack>();
+			trackAnims = GetComponent<TrackAnimations>();
 
 			// Set up render texture
 			var descriptor = new RenderTextureDescriptor(
@@ -267,48 +260,6 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		private void StarpowerTrackAnim() {
-			// Start track animation
-			elapsedTimeAnim += Time.deltaTime;
-			float percentageComplete = elapsedTimeAnim / spAnimationDuration;
-			if (!depressed && !ascended) {
-				spAnimationDuration = 0.065f;
-				commonTrack.trackCamera.transform.position = Vector3.Lerp(trackStartPos, trackStartPos + trackEndPos, percentageComplete);
-
-				if (commonTrack.trackCamera.transform.position == trackStartPos + trackEndPos) {
-					resetTime = true;
-					depressed = true;
-				}
-			}
-
-			if (resetTime) {
-				elapsedTimeAnim = 0f;
-				resetTime = false;
-			}
-
-			// End track animation
-			if (depressed && !ascended) {
-				spAnimationDuration = 0.2f;
-				commonTrack.trackCamera.transform.position = Vector3.Lerp(trackStartPos + trackEndPos, trackStartPos, percentageComplete);
-
-				if (commonTrack.trackCamera.transform.position == trackStartPos + trackEndPos) {
-					resetTime = true;
-					ascended = true;
-				}
-			}
-		}
-
-		private void StarpowerTrackAnimReset() {
-			if (!gotStartPos) {
-				trackStartPos = commonTrack.trackCamera.transform.position;
-				gotStartPos = true;
-			}
-
-			depressed = false;
-			ascended = false;
-			elapsedTimeAnim = 0f;
-		}
-
 		private void UpdateStarpower() {
 			// Update starpower region
 			if (IsStarpowerHit()) {
@@ -318,6 +269,8 @@ namespace YARG.PlayMode {
 					starpowerCharge = 1f;
 				}
 
+				trackAnims.StarpowerLightsAnimSingleFrame();
+				//starpowerHit = true;
 				GameManager.AudioManager.PlaySoundEffect(SfxSample.StarPowerAward);
 			}
 
@@ -332,13 +285,17 @@ namespace YARG.PlayMode {
 					starpowerCharge -= Time.deltaTime / 25f * Play.speed;
 				}
 
-				StarpowerTrackAnim();
+				trackAnims.StarpowerTrackAnim();
+				trackAnims.StarpowerParticleAnim();
+				trackAnims.StarpowerLightsAnim();
 
 				// Update Sunburst color and light
 				commonTrack.comboSunburst.sprite = commonTrack.sunBurstSpriteStarpower;
 				commonTrack.comboSunburst.color = new Color(255, 255, 255, 141);
 			} else {
-				StarpowerTrackAnimReset();
+				trackAnims.StarpowerTrackAnimReset();
+				trackAnims.StarpowerParticleAnimReset();
+				trackAnims.StarpowerLightsAnimReset();
 
 				//Reset Sunburst color and light to original
 				commonTrack.comboSunburst.sprite = commonTrack.sunBurstSprite;
@@ -370,6 +327,10 @@ namespace YARG.PlayMode {
 					}
 				}
 			}
+
+			/*
+			TODO: Let's organize this a bit more, yeah?
+			*/
 
 			// Set solo box and text
 			if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime) {
@@ -459,6 +420,7 @@ namespace YARG.PlayMode {
 
 		private bool IsStarpowerHit() {
 			if (Chart.Count > hitChartIndex) {
+
 				return Chart[hitChartIndex].time >= StarpowerSection?.EndTime;
 			}
 
