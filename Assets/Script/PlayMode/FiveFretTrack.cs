@@ -506,6 +506,7 @@ namespace YARG.PlayMode {
 							var heldNote = heldNotes[i];
 							notePool.MissNote(heldNote);
 							heldNotes.RemoveAt(i);
+							frets[heldNote.fret].StopAnimation();
 							frets[heldNote.fret].StopSustainParticles();
 							extendedSustain[heldNote.fret] = false;
 							StopAudio = true;
