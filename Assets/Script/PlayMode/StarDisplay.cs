@@ -30,14 +30,13 @@ namespace YARG.PlayMode {
             }
 
 			if (progress < 1.0) {
-				// star is still in progress
+				// update star progress
 				star.transform.GetChild(0).GetComponent<Image>().fillAmount = (float)progress;
 			}
             else {
 				// fulfill star
                 star.transform.GetChild(0).GetComponent<Image>().fillAmount = 1f;
 				star.GetComponent<Animator>().Play("TransToComplete");
-				// star.transform.GetChild(1).gameObject.SetActive(true);
 			}
         }
 
@@ -53,13 +52,13 @@ namespace YARG.PlayMode {
             if (curStar <= 4) {
                 // set curStar to next if applicable
                 if (topStar > curStar) {
-                    // new star
+                    // next star
                     for (int i = curStar; i < topStar; ++i) {
                         SetStarProgress(objStars[i], 1.0);
                     }
                     curStar = topStar;
 
-                    // TODO: sound
+                    GameManager.AudioManager.PlaySoundEffect(SfxSample.StarGain);
                 }
 
                 if (curStar <= 4)
@@ -71,11 +70,13 @@ namespace YARG.PlayMode {
                 // TODO: set gold star progress
             }
 			else if (stars >= 6.0) {
-                // set gold
+                // show the gold!
                 foreach (var s in objStars) {
                     s.GetComponent<Animator>().Play("TransToGold");;
                 }
-                // TODO: sound
+
+                GameManager.AudioManager.PlaySoundEffect(SfxSample.StarGold);
+
 				goldAchieved = true; // so we stop trying to update
 			}
 		}

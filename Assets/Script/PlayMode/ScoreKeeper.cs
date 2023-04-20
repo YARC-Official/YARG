@@ -6,7 +6,7 @@ using UnityEngine;
 using YARG.Data;
 
 // Score keeping for each track
-public class ScoreKeeper: MonoBehaviour {
+public class ScoreKeeper {
 	public delegate void ScoreAction();
 	/// <summary>
 	/// Fires when points have been added to an instance's score.
