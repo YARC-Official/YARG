@@ -239,11 +239,11 @@ namespace YARG.Pools {
 			// TODO: If/when health system gets added, this should use that instead. Multiplier isn't a good way to scale difficulty here.
 			if (pool.player.brutalMode) {
 				BrutalVanishDistance = System.Math.Min(
-				System.Math.Max(
-					0.25f, multiplier / maxMultiplier
-				),
-				0.80f
-			);
+					System.Math.Max(
+						0.25f, multiplier / maxMultiplier
+					),
+					0.80f
+				);
 			} else {
 				BrutalVanishDistance = 0.0f;
 			}
