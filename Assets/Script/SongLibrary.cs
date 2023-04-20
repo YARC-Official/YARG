@@ -14,7 +14,7 @@ using YARG.Util;
 
 namespace YARG {
 	public static class SongLibrary {
-		private const int CACHE_VERSION = 4;
+		private const int CACHE_VERSION = 69;
 		private class SongCacheJson {
 			public int version = CACHE_VERSION;
 			public string folder = "";
@@ -203,12 +203,14 @@ namespace YARG {
 			foreach (var folder in songDir.EnumerateDirectories()) {
 				if (new FileInfo(Path.Combine(folder.FullName, "song.ini")).Exists) {
 					// If the folder has a song.ini, it is a song folder
-					songsTemp.Add(new SongInfo(folder, rootFolder));
+					SongInfo currSong = new SongInfo(folder, rootFolder);
+					currSong.isSongIni = true;
+					songsTemp.Add(currSong);
 				} 
 				else if(new FileInfo(Path.Combine(folder.FullName, "songs.dta")).Exists) {
 					// If the folder has a songs.dta, it is an Xbox song folder
 					Debug.Log($"yo im an xbox song folder");
-					RockBandSTFS.ParseSongsDta(folder);
+					songsTemp.AddRange(RockBandSTFS.ParseSongsDta(folder));
 				}
 				else {
 					// Otherwise, treat it as a sub-folder
@@ -225,15 +227,14 @@ namespace YARG {
 			foreach (var song in songsTemp) {
 				// song.ini loading accounts for 40% of loading
 				loadPercent += 1f / songsTemp.Count * 0.4f;
-
-				SongIni.CompleteSongInfo(song);
+				if (song.isSongIni) SongIni.CompleteSongInfo(song);
 			}
 		}
 
 		/// <summary>
 		/// Gets the MD5 hash for each chart in <see cref="songsTemp"/>.<br/>
 		/// <see cref="songsTemp"/> is expected to be populated.
-		/// </summary>
+		/// </summary> 
 		private static void GetSongHashes() {
 			foreach (var song in songsTemp) {
 				// Hashing loading accounts for 40% of loading
@@ -244,6 +245,11 @@ namespace YARG {
 					string chartFile = Path.Combine(song.folder.FullName, "notes.chart");
 
 					string chosenFile = null;
+
+					if (!song.isSongIni) {
+						Debug.Log(song.rootFolder + $" and `folder` {song.folder.FullName}");
+						midFile = Path.Combine(song.folder.FullName, song.folder.FullName.Split('\\')[song.folder.FullName.Split('/').Length - 1] + ".mid");
+					}
 
 					// Get the correct file
 					if (File.Exists(midFile)) {

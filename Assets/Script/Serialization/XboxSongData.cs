@@ -194,6 +194,8 @@ namespace YARG.Serialization {
         }
 
         public string GetShortName(){ return shortname; }
+        public string GetSongName(){ return name; }
+        public string GetArtist(){ return $"{((!master) ? "as made famous by " : "")}{artist}"; }
 
         public float[] GetPans() { return pans; }
         public float[] GetVols() { return vols; }

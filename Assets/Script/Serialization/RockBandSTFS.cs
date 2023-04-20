@@ -73,7 +73,7 @@ namespace YARG.Serialization {
 					Debug.Log(parsedSongs[j].ToString());
 
 				// testing mogg parsing
-				string testMogg = srcfolder.ToString() + "/giveitaway2/giveitaway2.mogg";
+				string testMogg = srcfolder.ToString() + $"/{parsedSongs[0].GetShortName()}/{parsedSongs[0].GetShortName()}.mogg";
 
 				if(File.Exists(Path.Combine(srcfolder.FullName, testMogg))){
 					Debug.Log("neato, mogg exists");
@@ -118,8 +118,8 @@ namespace YARG.Serialization {
 						if(!setMatrixToChannel) Debug.Log($"failed to set matrix to channel {index}: {Bass.LastError}");
 					}
 
-					bool playSong = Bass.ChannelPlay(mixerHandle);
-					if(!playSong) Debug.Log($"failed to play song: {Bass.LastError}");
+					// bool playSong = Bass.ChannelPlay(mixerHandle);
+					// if(!playSong) Debug.Log($"failed to play song: {Bass.LastError}");
 
 				}
 				else Debug.Log("kowabummer");
@@ -143,7 +143,13 @@ namespace YARG.Serialization {
 				// XboxImage otherart = new XboxImage(othertest);
 				// otherart.ParseImage();
 				// otherart.SaveImageToDisk("asdf");
-
+				for (int k = 0; k < parsedSongs.Count; k++) {
+					SongInfo currSong = new SongInfo(new DirectoryInfo(Path.Combine(srcfolder.FullName, parsedSongs[k].GetShortName())), parsedSongs[k].GetShortName());
+					currSong.SongNameWithFlags = parsedSongs[k].GetSongName();
+					currSong.artistName = parsedSongs[k].GetArtist();
+					currSong.isSongIni = false;
+					songList.Add(currSong);
+				}
 				return songList;
 			} catch (Exception e) {
 				Debug.LogError($"Failed to parse songs.dta for `{srcfolder.FullName}`.");

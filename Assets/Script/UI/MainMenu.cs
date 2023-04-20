@@ -111,13 +111,13 @@ namespace YARG.UI {
 				player.inputStrategy.UpdateNavigationMode();
 			}
 
-			if (!isUpdateShown && GameManager.Instance.updateChecker.IsOutOfDate) {
-				isUpdateShown = true;
-
-				string newVersion = GameManager.Instance.updateChecker.LatestVersion.ToString();
-				updateText.text = $"New version available: {newVersion}";
-				updateObject.gameObject.gameObject.SetActive(true);
-			}
+// 			if (!isUpdateShown && GameManager.Instance.updateChecker.IsOutOfDate) {
+// 				isUpdateShown = true;
+// 
+// 				string newVersion = GameManager.Instance.updateChecker.LatestVersion.ToString();
+// 				updateText.text = $"New version available: {newVersion}";
+// 				updateObject.gameObject.gameObject.SetActive(true);
+// 			}
 		}
 
 		private void OnGenericNavigation(NavigationType navigationType, bool firstPressed) {
