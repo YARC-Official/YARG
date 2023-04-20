@@ -4,7 +4,7 @@
 
 <br/>
 <div align="center">
-<img src="Images/YARG_Glowy.png" width="30%" alt="YARG">
+<img src="Images/YARG_Full.png" width="60%" alt="YARG">
 
 <br/>
 <br/>

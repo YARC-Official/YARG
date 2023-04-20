@@ -139,6 +139,10 @@ MonoBehaviour:
     m_Key: rhythmVolume
     m_Metadata:
       m_Items: []
+  - m_Id: 8393437626548224
+    m_Key: useChipmunkSpeed
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

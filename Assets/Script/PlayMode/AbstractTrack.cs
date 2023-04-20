@@ -27,38 +27,8 @@ namespace YARG.PlayMode {
 		protected int hitChartIndex = 0;
 		protected int eventChartIndex = 0;
 
-		[SerializeField]
-		protected Camera trackCamera;
-
-		[Space]
-		[SerializeField]
-		protected MeshRenderer trackRenderer;
-		[SerializeField]
-		protected Transform hitWindow;
-
-		[Space]
-		[SerializeField]
-		protected TextMeshPro soloText;
-		[SerializeField]
-		protected TextMeshPro comboText;
-		[SerializeField]
-		protected MeshRenderer comboMeterRenderer;
-		[SerializeField]
-		protected MeshRenderer starpowerBarTop;
-
-		[Space]
-		[SerializeField]
-		protected SpriteRenderer comboSunburst;
-		[SerializeField]
-		protected GameObject maxComboLight;
-		[SerializeField]
-		protected GameObject starpowerLight;
-		[SerializeField]
-		protected Sprite sunBurstSprite;
-		[SerializeField]
-		protected Sprite sunBurstSpriteStarpower;
-		[SerializeField]
-		protected ParticleSystem starPowerParticles1;
+		protected CommonTrack commonTrack;
+		protected TrackAnimations trackAnims;
 
 		public EventInfo StarpowerSection {
 			get;
@@ -71,27 +41,8 @@ namespace YARG.PlayMode {
 
 		protected float starpowerCharge;
 		protected bool starpowerActive;
+		//protected bool starpowerHit = false;
 		protected Light comboSunburstEmbeddedLight;
-
-		[Space]
-		[SerializeField]
-		protected SpriteRenderer soloBox;
-		[SerializeField]
-		protected Sprite soloMessySprite;
-		[SerializeField]
-		protected Sprite soloPerfectSprite;
-		[SerializeField]
-		protected Sprite soloDefaultSprite;
-
-		// Overdrive animation parameters
-		protected Vector3 trackStartPos;
-		protected Vector3 trackEndPos = new(0, 0.13f, 0.2f);
-		protected float spAnimationDuration = 0.2f;
-		protected float elapsedTimeAnim = 0;
-		protected bool gotStartPos = false;
-		protected bool depressed = false;
-		protected bool ascended = false;
-		protected bool resetTime = false;
 
 		// Solo stuff
 		private int soloNoteCount = -1;
@@ -99,10 +50,12 @@ namespace YARG.PlayMode {
 		private float soloHitPercent = 0;
 		private int lastHit = -1;
 
-		[SerializeField]
-		protected AnimationCurve spStartAnimCurve;
-		[SerializeField]
-		protected AnimationCurve spEndAnimCurve;
+		private bool FullCombo = true;
+		private int SavedCombo = 0;
+		private bool switchedRingMaterial = false;
+		protected bool startFCDetection = false;
+		protected bool missedAnyNote = false;
+
 		private int _combo = 0;
 		protected int Combo {
 			get => _combo;
@@ -147,6 +100,9 @@ namespace YARG.PlayMode {
 		}
 
 		private void Awake() {
+			commonTrack = GetComponent<CommonTrack>();
+			trackAnims = GetComponent<TrackAnimations>();
+
 			// Set up render texture
 			var descriptor = new RenderTextureDescriptor(
 				Screen.width, Screen.height,
@@ -154,10 +110,10 @@ namespace YARG.PlayMode {
 			);
 			descriptor.mipCount = 0;
 			var renderTexture = new RenderTexture(descriptor);
-			trackCamera.targetTexture = renderTexture;
+			commonTrack.trackCamera.targetTexture = renderTexture;
 
 			// Set up camera
-			var info = trackCamera.GetComponent<UniversalAdditionalCameraData>();
+			var info = commonTrack.trackCamera.GetComponent<UniversalAdditionalCameraData>();
 			if (SettingsManager.GetSettingValue<bool>("lowQuality")) {
 				info.antialiasing = AntialiasingMode.None;
 			} else {
@@ -168,6 +124,7 @@ namespace YARG.PlayMode {
 
 		private void Start() {
 			player.track = this;
+			FullCombo = true;
 
 			player.inputStrategy.StarpowerEvent += StarpowerAction;
 			player.inputStrategy.PauseEvent += PauseAction;
@@ -175,14 +132,14 @@ namespace YARG.PlayMode {
 
 			player.lastScore = null;
 
-			GameUI.Instance.AddTrackImage(trackCamera.targetTexture);
+			GameUI.Instance.AddTrackImage(commonTrack.trackCamera.targetTexture);
 
 			// Adjust hit window
-			var scale = hitWindow.localScale;
-			hitWindow.localScale = new(scale.x, Constants.HIT_MARGIN * player.trackSpeed * 2f, scale.z);
-			hitWindow.gameObject.SetActive(SettingsManager.GetSettingValue<bool>("showHitWindow"));
+			var scale = commonTrack.hitWindow.localScale;
+			commonTrack.hitWindow.localScale = new(scale.x, Constants.HIT_MARGIN * player.trackSpeed * 2f, scale.z);
+			commonTrack.hitWindow.gameObject.SetActive(SettingsManager.GetSettingValue<bool>("showHitWindow"));
 
-			comboSunburstEmbeddedLight = comboSunburst.GetComponent<Light>();
+			comboSunburstEmbeddedLight = commonTrack.comboSunburst.GetComponent<Light>();
 
 			StartTrack();
 		}
@@ -191,7 +148,7 @@ namespace YARG.PlayMode {
 
 		protected virtual void OnDestroy() {
 			// Release render texture
-			trackCamera.targetTexture.Release();
+			commonTrack.trackCamera.targetTexture.Release();
 
 			player.inputStrategy.StarpowerEvent -= StarpowerAction;
 			player.inputStrategy.PauseEvent -= PauseAction;
@@ -217,26 +174,47 @@ namespace YARG.PlayMode {
 
 			UpdateInfo();
 			UpdateStarpower();
+			UpdateFullComboState();
 
 			if (Multiplier >= MaxMultiplier) {
-				comboSunburst.gameObject.SetActive(true);
-				comboSunburst.transform.Rotate(0f, 0f, Time.deltaTime * -15f);
+				commonTrack.comboSunburst.gameObject.SetActive(true);
+				commonTrack.comboSunburst.transform.Rotate(0f, 0f, Time.deltaTime * -15f);
 
-				maxComboLight.gameObject.SetActive(!starpowerActive);
+				commonTrack.maxComboLight.gameObject.SetActive(!starpowerActive);
+				commonTrack.starpowerLight.gameObject.SetActive(starpowerActive);
 			} else {
-				comboSunburst.gameObject.SetActive(false);
+				commonTrack.comboSunburst.gameObject.SetActive(false);
 
-				maxComboLight.gameObject.SetActive(false);
+				commonTrack.maxComboLight.gameObject.SetActive(false);
+				commonTrack.starpowerLight.gameObject.SetActive(false);
 			}
 
 			Beat = false;
+		}
+
+		private void UpdateFullComboState() {
+			if (Combo > SavedCombo) {
+				SavedCombo = Combo;
+
+			}
+
+			if (Combo < SavedCombo && startFCDetection) {
+				FullCombo = false;
+
+			}
+
+			if ((!FullCombo && !switchedRingMaterial) || missedAnyNote) {
+				commonTrack.comboRing.material = commonTrack.nonFCRing;
+				switchedRingMaterial = true;
+
+			}
 		}
 
 		protected abstract void UpdateTrack();
 
 		private void UpdateMaterial() {
 			// Update track UV
-			var trackMaterial = trackRenderer.material;
+			var trackMaterial = commonTrack.trackRenderer.material;
 			var oldOffset = trackMaterial.GetVector("TexOffset");
 			float movement = Time.deltaTime * player.trackSpeed / 4f;
 			trackMaterial.SetVector("TexOffset", new(oldOffset.x, oldOffset.y - movement));
@@ -265,7 +243,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Update starpower bar
-			var starpowerMat = starpowerBarTop.material;
+			var starpowerMat = commonTrack.starpowerBarTop.material;
 			starpowerMat.SetFloat("Fill", starpowerCharge);
 			if (Beat) {
 				float pulseAmount = 0f;
@@ -282,48 +260,6 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		private void StarpowerTrackAnim() {
-			// Start track animation
-			elapsedTimeAnim += Time.deltaTime;
-			float percentageComplete = elapsedTimeAnim / spAnimationDuration;
-			if (!depressed && !ascended) {
-				spAnimationDuration = 0.065f;
-				trackCamera.transform.position = Vector3.Lerp(trackStartPos, trackStartPos + trackEndPos, percentageComplete);
-
-				if (trackCamera.transform.position == trackStartPos + trackEndPos) {
-					resetTime = true;
-					depressed = true;
-				}
-			}
-
-			if (resetTime) {
-				elapsedTimeAnim = 0f;
-				resetTime = false;
-			}
-
-			// End track animation
-			if (depressed && !ascended) {
-				spAnimationDuration = 0.2f;
-				trackCamera.transform.position = Vector3.Lerp(trackStartPos + trackEndPos, trackStartPos, percentageComplete);
-
-				if (trackCamera.transform.position == trackStartPos + trackEndPos) {
-					resetTime = true;
-					ascended = true;
-				}
-			}
-		}
-
-		private void StarpowerTrackAnimReset() {
-			if (!gotStartPos) {
-				trackStartPos = trackCamera.transform.position;
-				gotStartPos = true;
-			}
-
-			depressed = false;
-			ascended = false;
-			elapsedTimeAnim = 0f;
-		}
-
 		private void UpdateStarpower() {
 			// Update starpower region
 			if (IsStarpowerHit()) {
@@ -333,6 +269,8 @@ namespace YARG.PlayMode {
 					starpowerCharge = 1f;
 				}
 
+				trackAnims.StarpowerLightsAnimSingleFrame();
+				//starpowerHit = true;
 				GameManager.AudioManager.PlaySoundEffect(SfxSample.StarPowerAward);
 			}
 
@@ -347,21 +285,21 @@ namespace YARG.PlayMode {
 					starpowerCharge -= Time.deltaTime / 25f * Play.speed;
 				}
 
-				StarpowerTrackAnim();
+				trackAnims.StarpowerTrackAnim();
+				trackAnims.StarpowerParticleAnim();
+				trackAnims.StarpowerLightsAnim();
 
 				// Update Sunburst color and light
-				comboSunburst.sprite = sunBurstSpriteStarpower;
-				comboSunburst.color = new Color(255, 255, 255, 141);
-
-				starpowerLight.SetActive(true);
+				commonTrack.comboSunburst.sprite = commonTrack.sunBurstSpriteStarpower;
+				commonTrack.comboSunburst.color = new Color(255, 255, 255, 141);
 			} else {
-				StarpowerTrackAnimReset();
+				trackAnims.StarpowerTrackAnimReset();
+				trackAnims.StarpowerParticleAnimReset();
+				trackAnims.StarpowerLightsAnimReset();
 
 				//Reset Sunburst color and light to original
-				comboSunburst.sprite = sunBurstSprite;
-				comboSunburst.color = Color.white;
-
-				starpowerLight.SetActive(false);
+				commonTrack.comboSunburst.sprite = commonTrack.sunBurstSprite;
+				commonTrack.comboSunburst.color = Color.white;
 			}
 		}
 
@@ -372,9 +310,9 @@ namespace YARG.PlayMode {
 		private void UpdateInfo() {
 			// Update text
 			if (Multiplier == 1) {
-				comboText.text = null;
+				commonTrack.comboText.text = null;
 			} else {
-				comboText.text = $"{Multiplier}<sub>x</sub>";
+				commonTrack.comboText.text = $"{Multiplier}<sub>x</sub>";
 			}
 
 			// Update solo note count
@@ -390,60 +328,64 @@ namespace YARG.PlayMode {
 				}
 			}
 
+			/*
+			TODO: Let's organize this a bit more, yeah?
+			*/
+
 			// Set solo box and text
 			if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime) {
-				soloBox.sprite = soloDefaultSprite;
-				soloBox.gameObject.SetActive(true);
+				commonTrack.soloBox.sprite = commonTrack.soloDefaultSprite;
+				commonTrack.soloBox.gameObject.SetActive(true);
 
 				// Set text color
-				soloText.colorGradient = new VertexGradient(
+				commonTrack.soloText.colorGradient = new VertexGradient(
 					new Color(1f, 1f, 1f),
 					new Color(1f, 1f, 1f),
 					new Color(0.1320755f, 0.1320755f, 0.1320755f),
 					new Color(0.1320755f, 0.1320755f, 0.1320755f)
 				);
-				soloText.gameObject.SetActive(true);
+				commonTrack.soloText.gameObject.SetActive(true);
 
 				soloHitPercent = Mathf.RoundToInt(soloNotesHit / (float) soloNoteCount * 100f);
-				soloText.text = $"{soloHitPercent}%\n<size=10><alpha=#66>{soloNotesHit}/{soloNoteCount}</size>";
+				commonTrack.soloText.text = $"{soloHitPercent}%\n<size=10><alpha=#66>{soloNotesHit}/{soloNoteCount}</size>";
 			} else if (Play.Instance.SongTime >= SoloSection?.EndTime && Play.Instance.SongTime <= SoloSection?.EndTime + 4) {
 				if (soloHitPercent >= 100f) {
 					// Set text color
-					soloText.colorGradient = new VertexGradient(
+					commonTrack.soloText.colorGradient = new VertexGradient(
 						new Color(1f, 0.619472f, 0f),
 						new Color(1f, 0.619472f, 0f),
 						new Color(0.5377358f, 0.2550798f, 0f),
 						new Color(0.5377358f, 0.2550798f, 0f)
 					);
 
-					soloBox.sprite = soloPerfectSprite;
-					soloText.text = "PERFECT\nSOLO!";
+					commonTrack.soloBox.sprite = commonTrack.soloPerfectSprite;
+					commonTrack.soloText.text = "PERFECT\nSOLO!";
 				} else if (soloHitPercent >= 95f) {
-					soloText.text = "AWESOME\nSOLO!";
+					commonTrack.soloText.text = "AWESOME\nSOLO!";
 				} else if (soloHitPercent >= 90f) {
-					soloText.text = "GREAT\nSOLO!";
+					commonTrack.soloText.text = "GREAT\nSOLO!";
 				} else if (soloHitPercent >= 80f) {
-					soloText.text = "GOOD\nSOLO!";
+					commonTrack.soloText.text = "GOOD\nSOLO!";
 				} else if (soloHitPercent >= 70f) {
-					soloText.text = "SOLID\nSOLO!";
+					commonTrack.soloText.text = "SOLID\nSOLO!";
 				} else if (soloHitPercent >= 60f) {
-					soloText.text = "OKAY\nSOLO!";
+					commonTrack.soloText.text = "OKAY\nSOLO!";
 				} else {
 					// Set text color
-					soloText.colorGradient = new VertexGradient(
+					commonTrack.soloText.colorGradient = new VertexGradient(
 						new Color(1f, 0.1933962f, 0.1933962f),
 						new Color(1f, 0.1933962f, 0.1933962f),
 						new Color(1f, 0.1332366f, 0.06132078f),
 						new Color(1f, 0.1332366f, 0.06132078f)
 					);
 
-					soloBox.sprite = soloMessySprite;
-					soloText.text = "MESSY\nSOLO!";
+					commonTrack.soloBox.sprite = commonTrack.soloMessySprite;
+					commonTrack.soloText.text = "MESSY\nSOLO!";
 				}
 			} else {
-				soloText.text = null;
-				soloText.gameObject.SetActive(false);
-				soloBox.gameObject.SetActive(false);
+				commonTrack.soloText.text = null;
+				commonTrack.soloText.gameObject.SetActive(false);
+				commonTrack.soloBox.gameObject.SetActive(false);
 			}
 
 			// Update status
@@ -454,7 +396,7 @@ namespace YARG.PlayMode {
 				index = 10;
 			}
 
-			comboMeterRenderer.material.SetFloat("SpriteNum", index);
+			commonTrack.comboMeterRenderer.material.SetFloat("SpriteNum", index);
 		}
 
 		private void BeatAction() {
@@ -478,6 +420,7 @@ namespace YARG.PlayMode {
 
 		private bool IsStarpowerHit() {
 			if (Chart.Count > hitChartIndex) {
+
 				return Chart[hitChartIndex].time >= StarpowerSection?.EndTime;
 			}
 
