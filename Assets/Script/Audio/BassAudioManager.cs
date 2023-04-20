@@ -43,6 +43,8 @@ namespace YARG {
 		private Dictionary<int, Dictionary<EffectType, int>> stemEffects;
 		private Dictionary<int, int> stemGainDsps;
 
+		private const EffectType REVERB_TYPE = EffectType.DXReverb;
+
 		private void Awake() {
 			SupportedFormats = new[] {
 				".ogg",
@@ -171,6 +173,10 @@ namespace YARG {
 			UnloadSong();
 
 			mixerHandle = BassMix.CreateMixerStream(44100, 2, BassFlags.Default);
+			
+			// Mixer threads (for some reason this attribute is undocumented in ManagedBass?)
+			Bass.ChannelSetAttribute(mixerHandle, (ChannelAttribute) 86017, 2);
+			
 			StemsLoaded = 0;
 
 			foreach (string stemPath in stems) {
@@ -193,7 +199,8 @@ namespace YARG {
 				}
 				
 				// Create BassFX Tempo handle
-				int tempoHandle = BassFx.TempoCreate(streamHandle, BassFlags.SampleOverrideLowestVolume | BassFlags.Decode);
+				const BassFlags flags = BassFlags.SampleOverrideLowestVolume | BassFlags.Decode | BassFlags.FxFreeSource;
+				int tempoHandle = BassFx.TempoCreate(streamHandle, flags);
 				
 				// Apply volume setting to stream
 				Bass.ChannelSetAttribute(tempoHandle, ChannelAttribute.Volume, stemVolumes[stemIndex]);
@@ -332,34 +339,25 @@ namespace YARG {
 
 			if (reverb) {
 				// Reverb already applied
-				if (stemEffects[stemHandle].ContainsKey(EffectType.DXReverb))
+				if (stemEffects[stemHandle].ContainsKey(REVERB_TYPE))
 					return;
 
 				// Set reverb FX
-				int reverbHandle = Bass.ChannelSetFX(stemHandle, EffectType.DXReverb, 0);
+				int reverbHandle = AddReverbToChannel(stemHandle);
 				int gainDspHandle = Bass.ChannelSetDSP(stemHandle, dspGain);
 
-				var reverbParams = new DXReverbParameters {
-					fInGain = 0.0f,
-					fReverbMix = -5f,
-					fReverbTime = 1000.0f,
-					fHighFreqRTRatio = 0.001f
-				};
-
-				Bass.FXSetParameters(reverbHandle, reverbParams);
-
-				stemEffects[stemHandle].Add(EffectType.DXReverb, reverbHandle);
+				stemEffects[stemHandle].Add(REVERB_TYPE, reverbHandle);
 				stemGainDsps.Add(stemHandle, gainDspHandle);
 			} else {
 				// No reverb is applied
-				if (!stemEffects[stemHandle].ContainsKey(EffectType.DXReverb)) {
+				if (!stemEffects[stemHandle].ContainsKey(REVERB_TYPE)) {
 					return;
 				}
 
-				Bass.ChannelRemoveFX(stemHandle, stemEffects[stemHandle][EffectType.DXReverb]);
+				Bass.ChannelRemoveFX(stemHandle, stemEffects[stemHandle][REVERB_TYPE]);
 				Bass.ChannelRemoveDSP(stemHandle, stemGainDsps[stemHandle]);
 
-				stemEffects[stemHandle].Remove(EffectType.DXReverb);
+				stemEffects[stemHandle].Remove(REVERB_TYPE);
 				stemGainDsps.Remove(stemHandle);
 			}
 		}
@@ -376,6 +374,45 @@ namespace YARG {
 			Unload();
 		}
 
+		private int AddReverbToChannel(int stemHandle) {
+			// Set reverb FX
+			int reverbHandle = Bass.ChannelSetFX(stemHandle, REVERB_TYPE, 0);
+			if (reverbHandle == 0) {
+				Debug.Log($"Reverb set fx error: {(int)Bass.LastError}");
+			}
+
+			IEffectParameter reverbParams;
+
+			switch (REVERB_TYPE) {
+				case EffectType.DXReverb:
+					reverbParams = new DXReverbParameters {
+						fInGain = 0.0f,
+						fReverbMix = -5f,
+						fReverbTime = 1000.0f,
+						fHighFreqRTRatio = 0.001f
+					};
+					break;
+				case EffectType.Freeverb:
+					reverbParams = new ReverbParameters() {
+						fDryMix = 1f,
+						fWetMix = 2f,
+						fRoomSize = 0.5f,
+						fDamp = 0.2f,
+						fWidth = 1.0f,
+						lMode = 0
+					};
+					break;
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
+
+			if (!Bass.FXSetParameters(reverbHandle, reverbParams)) {
+				Debug.Log($"Set param error: {(int)Bass.LastError}");
+			}
+
+			return reverbHandle;
+		}
+
 		private static unsafe void GainDSP(int handle, int channel, IntPtr buffer, int length, IntPtr user) {
 			var bufferPtr = (float*) buffer;
 			int samples = length / 4;
@@ -390,8 +427,7 @@ namespace YARG {
 			double seconds = Bass.ChannelBytes2Seconds(channel, length);
 			return seconds;
 		}
-
-
+		
 		private static string GetBassDirectory() {
 			string pluginDirectory = Path.Combine(Application.dataPath, "Plugins");
 
