@@ -29,7 +29,7 @@ namespace YARG {
 			"starpower_release",
 			"clap",
 			"star",
-			"gold",
+			"star_gold",
 		};
 
 		public static readonly IList<double> SfxVolume = new[] {
