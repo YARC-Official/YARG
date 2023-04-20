@@ -59,7 +59,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b9b62acf1a8807544b8866f73e4ce7e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  trackCamera: {fileID: 1960425676294898908}
+  normalCamera: {fileID: 3209698564276094243}
+  highFovCamera: {fileID: 1960425676294898908}
   trackRenderer: {fileID: 6705658293223943274}
   hitWindow: {fileID: 4405145901572709445}
   comboText: {fileID: 24723221875665680}
@@ -822,7 +823,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2182797248041008600}
   m_LocalRotation: {x: -0.47707716, y: 0.52191705, z: -0.47707716, w: 0.52191705}
-  m_LocalPosition: {x: -0.9471597, y: 0.110464334, z: -8.736184}
+  m_LocalPosition: {x: -0.9471597, y: 0.11, z: -8.711}
   m_LocalScale: {x: 26.953018, y: 25.59035, z: 698.9319}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1578,7 +1579,7 @@ ParticleSystem:
     startSize:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 1
+      scalar: 0.5
       minScalar: 1
       maxCurve:
         serializedVersion: 2
@@ -2723,8 +2724,8 @@ ParticleSystem:
         m_NumAlphaKeys: 2
   UVModule:
     serializedVersion: 2
-    enabled: 0
-    mode: 0
+    enabled: 1
+    mode: 1
     timeMode: 0
     fps: 30
     frameOverTime:
@@ -2842,7 +2843,7 @@ ParticleSystem:
     uvChannelMask: -1
     rowMode: 1
     sprites:
-    - sprite: {fileID: 0}
+    - sprite: {fileID: 21300000, guid: 4b55246b37e36c949a06344eb62890f1, type: 3}
     flipU: 0
     flipV: 0
   VelocityModule:
@@ -6240,7 +6241,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &7068629544064110471
 Transform:
   m_ObjectHideFlags: 0
@@ -7260,7 +7261,7 @@ ParticleSystem:
     startSize:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 1
+      scalar: 0.5
       minScalar: 1
       maxCurve:
         serializedVersion: 2
@@ -8405,8 +8406,8 @@ ParticleSystem:
         m_NumAlphaKeys: 2
   UVModule:
     serializedVersion: 2
-    enabled: 0
-    mode: 0
+    enabled: 1
+    mode: 1
     timeMode: 0
     fps: 30
     frameOverTime:
@@ -8524,7 +8525,7 @@ ParticleSystem:
     uvChannelMask: -1
     rowMode: 1
     sprites:
-    - sprite: {fileID: 0}
+    - sprite: {fileID: 21300000, guid: 4b55246b37e36c949a06344eb62890f1, type: 3}
     flipU: 0
     flipV: 0
   VelocityModule:

@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Barlow Fret
+  m_Name: Barlow-Black SDF Frets
   m_Shader: {fileID: 4800000, guid: 68e6db2ebdc24f95958faec2be5558d6, type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords: []
@@ -33,7 +33,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: -4906820933819895854, guid: ae170e91fd29a90479e906ddffb1d8ee,
+        m_Texture: {fileID: 1872119612206849414, guid: bd78233bc3a8ea940a15e0d7ce6a701a,
           type: 2}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -54,14 +54,14 @@ Material:
     - _ColorMask: 15
     - _CullMode: 0
     - _Diffuse: 0.5
-    - _FaceDilate: 1
+    - _FaceDilate: 0
     - _FaceUVSpeedX: 0
     - _FaceUVSpeedY: 0
-    - _GlowInner: 0.05
-    - _GlowOffset: 0
-    - _GlowOuter: 0.05
-    - _GlowPower: 0.75
-    - _GradientScale: 10.85
+    - _GlowInner: 0
+    - _GlowOffset: 0.06
+    - _GlowOuter: 0.621
+    - _GlowPower: 0
+    - _GradientScale: 2.6
     - _LightAngle: 1.13
     - _MaskSoftnessX: 0
     - _MaskSoftnessY: 0
@@ -71,9 +71,9 @@ Material:
     - _OutlineWidth: 1
     - _PerspectiveFilter: 0.12
     - _Reflectivity: 10
-    - _ScaleRatioA: 0.4150099
-    - _ScaleRatioB: 0
-    - _ScaleRatioC: 0
+    - _ScaleRatioA: 0.51821864
+    - _ScaleRatioB: 0.5
+    - _ScaleRatioC: 0.5
     - _ScaleX: 1
     - _ScaleY: 1
     - _ShaderFlags: 0
@@ -98,7 +98,7 @@ Material:
     - _ClipRect: {r: -32767, g: -32767, b: 32767, a: 32767}
     - _EnvMatrixRotation: {r: 0, g: 0, b: 0, a: 0}
     - _FaceColor: {r: 1, g: 1, b: 1, a: 1}
-    - _GlowColor: {r: 0, g: 1, b: 0, a: 0.5}
+    - _GlowColor: {r: 1, g: 0, b: 0.12919617, a: 1}
     - _MaskCoord: {r: 0, g: 0, b: 32767, a: 32767}
     - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
     - _ReflectFaceColor: {r: 0, g: 0, b: 0, a: 1}

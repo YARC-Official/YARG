@@ -7,8 +7,6 @@ namespace YARG {
 
 		public IList<string> SupportedFormats { get; }
 
-		public int StemsLoaded { get; }
-
 		public bool IsAudioLoaded { get; }
 		public bool IsPlaying { get; }
 

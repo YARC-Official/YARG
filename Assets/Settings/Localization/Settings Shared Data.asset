@@ -143,6 +143,10 @@ MonoBehaviour:
     m_Key: useChipmunkSpeed
     m_Metadata:
       m_Items: []
+  - m_Id: 9486234872569856
+    m_Key: highFovCamera
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
