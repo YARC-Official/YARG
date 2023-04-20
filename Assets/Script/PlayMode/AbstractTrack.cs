@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
 using YARG.Data;
 using YARG.Input;
 using YARG.Settings;
@@ -10,7 +9,7 @@ using YARG.UI;
 namespace YARG.PlayMode {
 	public abstract class AbstractTrack : MonoBehaviour {
 		public const float TRACK_SPAWN_OFFSET = 3f;
-		public const float TRACK_END_OFFSET = 1.8f;
+		public const float TRACK_END_OFFSET = 1.95f;
 
 		public delegate void StarpowerMissAction();
 		public event StarpowerMissAction StarpowerMissEvent;
