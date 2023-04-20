@@ -378,7 +378,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Update solo note count
-			if (Play.Instance.SongTime >= SoloSection?.time - 5 && Play.Instance.SongTime <= SoloSection?.time) {
+			if (Play.Instance.SongTime >= SoloSection?.time - 2 && Play.Instance.SongTime <= SoloSection?.time) {
 				soloNoteCount = 0;
 
 				for (int i = hitChartIndex; i < Chart.Count; i++) {
