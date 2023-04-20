@@ -112,10 +112,10 @@ namespace YARG.Input {
 		public override string[] GetAllowedInstruments() {
 			return new string[] {
 				"guitar",
+				"bass",
+				"keys",
 				"guitar_coop",
 				"rhythm",
-				"bass",
-				"keys"
 			};
 		}
 
