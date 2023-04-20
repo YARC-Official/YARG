@@ -14,11 +14,13 @@ muskit
 Riley The Fox
 Mia Berth
 santorfo
+
+<<COLUMN>>
+
 Kadu
 HughToBasic35
 Narrik Synthfox
-
-<<COLUMN>>
+ptigad
 
 <u><b>Artists</b></u>
 
@@ -30,16 +32,14 @@ marie0liie
 Mia Berth
 Pantotone
 Pixelholic
+Venerabela
 
 <<COLUMN>>
 
-<u><b>VIPs</b></u>
+<u><b>OG Supporters</b></u>
 
 mc_jojo3
 JalapenoHalo
 FruitloopMcGee
-
-<u><b>Super-Supporters</b></u>
-
 wreckem27
 Nick L.
