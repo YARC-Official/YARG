@@ -8,6 +8,9 @@ namespace YARG.PlayMode {
     public class StarDisplay : MonoBehaviour {
 		[SerializeField]
 		private List<GameObject> objStars;
+		[SerializeField]
+		private List<GameObject> objGoldMeters;
+
 		private int curStar = 0;
 		private bool goldAchieved = false;
 
@@ -49,7 +52,9 @@ namespace YARG.PlayMode {
 
 			int topStar = (int)stars;
 
-            if (curStar <= 4) {
+            double curProgress = stars - (int) stars;
+
+			if (curStar <= 4) {
                 // set curStar to next if applicable
                 if (topStar > curStar) {
                     // next star
@@ -62,18 +67,25 @@ namespace YARG.PlayMode {
                 }
 
                 if (curStar <= 4)
-				    SetStarProgress(objStars[curStar], stars - (int) stars);
+				    SetStarProgress(objStars[curStar], curProgress);
             }
 
             // gold star handling
             if (5.0 <= stars && stars < 6.0) {
-                // TODO: set gold star progress
+                // update gold star progress
+                foreach (var s in objGoldMeters) {
+					s.GetComponent<Image>().fillAmount = (float)curProgress;
+				}
             }
 			else if (stars >= 6.0) {
                 // show the gold!
                 foreach (var s in objStars) {
-                    s.GetComponent<Animator>().Play("TransToGold");;
-                }
+                    s.GetComponent<Animator>().Play("TransToGold");
+				}
+                // disable progress meters
+                foreach (var s in objGoldMeters) {
+					s.SetActive(false);
+				}
 
                 GameManager.AudioManager.PlaySoundEffect(SfxSample.StarGold);
 
