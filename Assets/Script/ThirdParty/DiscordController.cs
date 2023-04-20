@@ -179,6 +179,8 @@ public class DiscordController : MonoBehaviour {
 			"realDrums"  => "Really working the skins",
 			"ghDrums"    => "Working the skins +1",
 			"guitar"     => "Making it talk",
+			"guitar_coop"     => "GTR_COOP_PLACEHOLDER",
+			"rhythm"     => "RHYTHM_PLACEHOLDER",
 			"realGuitar" => "Really making it talk",
 			"bass"       => "In the groove",
 			"realBass"   => "Really in the groove",
