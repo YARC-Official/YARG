@@ -115,7 +115,7 @@ namespace YARG.UI {
 				isUpdateShown = true;
 
 				string newVersion = GameManager.Instance.updateChecker.LatestVersion.ToString();
-				updateText.text = $"Update available";
+				updateText.text = $"Update available!";
 				updateObject.gameObject.gameObject.SetActive(true);
 			}
 		}
