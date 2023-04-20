@@ -54,7 +54,7 @@ MonoBehaviour:
   - {fileID: 4571971630462908758}
   - {fileID: 6846950644507852135}
   - {fileID: 7147253800328892818}
-  meshRendererMiddleIndices: 020000000200000001000000
+  meshRendererMiddleIndices: 020000000100000001000000
   noteGroup: {fileID: 1397812567785855241}
   hopoGroup: {fileID: 1294466957868725440}
   fullGroup: {fileID: 4634473573192609450}
@@ -148,7 +148,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4634473573192609450}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.0279, z: 0.028}
+  m_LocalPosition: {x: 0, y: -0.0279, z: 0.037}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
