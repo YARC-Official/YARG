@@ -1219,11 +1219,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: HitParticles3
       objectReference: {fileID: 0}
-    - target: {fileID: 7052233033112949576, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
-        type: 3}
-      propertyPath: m_CullingMask.m_Bits
-      value: 55
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a, type: 3}
 --- !u!114 &1811808026442310828 stripped
@@ -1310,11 +1305,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: HitParticles2
-      objectReference: {fileID: 0}
-    - target: {fileID: 7052233033112949576, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
-        type: 3}
-      propertyPath: m_CullingMask.m_Bits
-      value: 55
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a, type: 3}
@@ -1490,11 +1480,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: HitParticles1
       objectReference: {fileID: 0}
-    - target: {fileID: 7052233033112949576, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
-        type: 3}
-      propertyPath: m_CullingMask.m_Bits
-      value: 55
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a, type: 3}
 --- !u!4 &1275094290211500276 stripped
@@ -1668,11 +1653,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: HitParticles5
-      objectReference: {fileID: 0}
-    - target: {fileID: 7052233033112949576, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
-        type: 3}
-      propertyPath: m_CullingMask.m_Bits
-      value: 55
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a, type: 3}
@@ -2101,11 +2081,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: HitParticles0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7052233033112949576, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
-        type: 3}
-      propertyPath: m_CullingMask.m_Bits
-      value: 55
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a, type: 3}
@@ -2625,7 +2600,7 @@ PrefabInstance:
     - target: {fileID: 6259667599787939869, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: m_RootOrder
-      value: 14
+      value: 13
       objectReference: {fileID: 0}
     - target: {fileID: 6916089516438199787, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
@@ -2635,7 +2610,7 @@ PrefabInstance:
     - target: {fileID: 7417495158134921613, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: m_RootOrder
-      value: 15
+      value: 14
       objectReference: {fileID: 0}
     - target: {fileID: 7809402107982387610, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
@@ -2851,11 +2826,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: HitParticles4
-      objectReference: {fileID: 0}
-    - target: {fileID: 7052233033112949576, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
-        type: 3}
-      propertyPath: m_CullingMask.m_Bits
-      value: 55
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a, type: 3}
