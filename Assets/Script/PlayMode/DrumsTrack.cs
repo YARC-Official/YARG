@@ -227,8 +227,10 @@ namespace YARG.PlayMode {
 						break;
 				}
 			}
+
 			if (drum != kickIndex) {
 				// Hit effect
+				drums[drum].PlayAnimation();
 				drums[drum].Pulse();
 			}
 

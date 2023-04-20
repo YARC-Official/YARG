@@ -23,6 +23,10 @@ namespace YARG.PlayMode {
 		public Sprite sunBurstSprite;
 		public Sprite sunBurstSpriteStarpower;
 		public ParticleSystem starPowerParticles;
+		public ParticleSystem starPowerParticles2;
+		public Light starPowerParticlesLight;
+		public Light starPowerParticles2Light;
+		public GameObject starPowerLightIndicators;
 
 		[Space]
 		public TextMeshPro soloText;
