@@ -25,7 +25,6 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private Transform fretItself;
 		public Vector3 fretInitialScale;
-		public float scaleY;
 
 		/// <value>
 		/// Whether or not the fret is pressed. Used for data purposes.
@@ -38,10 +37,6 @@ namespace YARG.PlayMode {
 		void Start() {
 			//fretItself = transform.GetComponent<Fret>();
 			fretInitialScale = fretItself.transform.localScale;
-
-			scaleY = fretInitialScale.y;
-			Debug.Log("y: " + scaleY);
-
 		}
 
 		public void SetColor(Color top, Color inner) {
@@ -83,28 +78,22 @@ namespace YARG.PlayMode {
 		}
 
 		public void PlayAnimation() {
+			StopAnimation();
+
 			animation["FretsGuitar"].wrapMode = WrapMode.Once;
 			animation.Play("FretsGuitar");
 		}
 
 		public void PlayAnimationSustainsLooped() {
+			StopAnimation();
+
 			animation["FretsGuitarSustains"].wrapMode = WrapMode.Loop;
 			animation.Play("FretsGuitarSustains");
 		}
 
 		public void StopAnimation() {
-			//animation["FretsGuitar"].wrapMode = WrapMode.Once;
-
-			animation.Stop("FretsGuitar");
-			fretItself.transform.localScale = fretInitialScale + new Vector3(0f, 0, -0.009f);
-		}
-
-		public void StopAnimationSustains() {
-			//animation["FretsGuitar"].wrapMode = WrapMode.Once;
-
-			animation.Play("FretsGuitar");
-			animation.Stop("FretsGuitar");
-			fretItself.transform.localScale = fretInitialScale + new Vector3(0f, 0, +0.005682f);
+			animation.Stop();
+			animation.Rewind();
 		}
 
 		public void StopSustainParticles() {
