@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using YARG.Data;
 using YARG.Input;
 using YARG.PlayMode;
@@ -25,6 +26,8 @@ namespace YARG.UI {
 		private TextMeshProUGUI header;
 		[SerializeField]
 		private TMP_InputField speedInput;
+		[SerializeField]
+		private Toggle brutalModeCheckbox;
 
 		private int playerIndex;
 		private string[] instruments;
@@ -181,6 +184,13 @@ namespace YARG.UI {
 		}
 
 		private void IncreasePlayerIndex() {
+			if (brutalModeCheckbox.isOn) {
+				PlayerManager.players[playerIndex].brutalMode = true;
+			} else {
+				PlayerManager.players[playerIndex].brutalMode = false;
+			}
+			brutalModeCheckbox.isOn = false;
+
 			// Next non-mic player
 			playerIndex++;
 			while (playerIndex < PlayerManager.players.Count
