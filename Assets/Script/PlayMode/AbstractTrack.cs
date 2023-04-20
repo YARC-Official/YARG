@@ -28,7 +28,7 @@ namespace YARG.PlayMode {
 		protected int eventChartIndex = 0;
 
 		protected CommonTrack commonTrack;
-		protected TrckAnimations trackAnims;
+		protected TrackAnimations trackAnims;
 
 		public EventInfo StarpowerSection {
 			get;
@@ -43,8 +43,6 @@ namespace YARG.PlayMode {
 		protected bool starpowerActive;
 		//protected bool starpowerHit = false;
 		protected Light comboSunburstEmbeddedLight;
-
-		
 
 		// Solo stuff
 		private int soloNoteCount = -1;
@@ -103,7 +101,7 @@ namespace YARG.PlayMode {
 
 		private void Awake() {
 			commonTrack = GetComponent<CommonTrack>();
-			trackAnims = GetComponent<TrckAnimations>();
+			trackAnims = GetComponent<TrackAnimations>();
 
 			// Set up render texture
 			var descriptor = new RenderTextureDescriptor(
@@ -262,8 +260,6 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		
-
 		private void UpdateStarpower() {
 			// Update starpower region
 			if (IsStarpowerHit()) {
@@ -277,8 +273,6 @@ namespace YARG.PlayMode {
 				//starpowerHit = true;
 				GameManager.AudioManager.PlaySoundEffect(SfxSample.StarPowerAward);
 			}
-			
-
 
 			// Update starpower active
 			if (starpowerActive) {
@@ -303,12 +297,10 @@ namespace YARG.PlayMode {
 				trackAnims.StarpowerParticleAnimReset();
 				trackAnims.StarpowerLightsAnimReset();
 
-
 				//Reset Sunburst color and light to original
 				commonTrack.comboSunburst.sprite = commonTrack.sunBurstSprite;
 				commonTrack.comboSunburst.color = Color.white;
 			}
-
 		}
 
 		private void PauseAction() {
@@ -335,6 +327,10 @@ namespace YARG.PlayMode {
 					}
 				}
 			}
+
+			/*
+			TODO: Let's organize this a bit more, yeah?
+			*/
 
 			// Set solo box and text
 			if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime) {
@@ -424,7 +420,7 @@ namespace YARG.PlayMode {
 
 		private bool IsStarpowerHit() {
 			if (Chart.Count > hitChartIndex) {
-				
+
 				return Chart[hitChartIndex].time >= StarpowerSection?.EndTime;
 			}
 

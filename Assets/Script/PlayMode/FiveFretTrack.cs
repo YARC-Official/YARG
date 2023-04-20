@@ -268,7 +268,6 @@ namespace YARG.PlayMode {
 			// Check if correct chord is pressed
 			if (!ChordPressed(chord)) {
 				// Overstrums are dealt with at the top of the method
-
 				return;
 			}
 
@@ -315,15 +314,9 @@ namespace YARG.PlayMode {
 					frets[hit.fret].PlaySustainParticles();
 					frets[hit.fret].PlayAnimationSustainsLooped();
 				}
-				
-				//if(heldNotes < 1) 
-				
-
-				//Debug.Log("Hit length: " + hit.length);
 
 				// Add stats
 				notesHit++;
-				
 
 				// Solo stuff
 				if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime) {
@@ -332,7 +325,6 @@ namespace YARG.PlayMode {
 					soloNotesHit = 0;
 				}
 			}
-
 
 			// If this is a tap note, and it was hit without strumming,
 			// add it to the allowed overstrums. This is so the player

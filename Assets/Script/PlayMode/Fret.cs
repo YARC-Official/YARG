@@ -12,7 +12,7 @@ namespace YARG.PlayMode {
 		private ParticleGroup sustainParticles;
 
 		[SerializeField]
-		private Animation animation;
+		private new Animation animation;
 
 		[SerializeField]
 		private MeshRenderer meshRenderer;
@@ -38,7 +38,7 @@ namespace YARG.PlayMode {
 		void Start() {
 			//fretItself = transform.GetComponent<Fret>();
 			fretInitialScale = fretItself.transform.localScale;
-			
+
 			scaleY = fretInitialScale.y;
 			Debug.Log("y: " + scaleY);
 
@@ -78,13 +78,11 @@ namespace YARG.PlayMode {
 			hitParticles.Play();
 		}
 
-
 		public void PlaySustainParticles() {
 			sustainParticles.Play();
 		}
 
 		public void PlayAnimation() {
-			
 			animation["FretsGuitar"].wrapMode = WrapMode.Once;
 			animation.Play("FretsGuitar");
 		}
@@ -96,23 +94,18 @@ namespace YARG.PlayMode {
 
 		public void StopAnimation() {
 			//animation["FretsGuitar"].wrapMode = WrapMode.Once;
-			
+
 			animation.Stop("FretsGuitar");
 			fretItself.transform.localScale = fretInitialScale + new Vector3(0f, 0, -0.009f);
-
 		}
 
 		public void StopAnimationSustains() {
 			//animation["FretsGuitar"].wrapMode = WrapMode.Once;
 
-			
 			animation.Play("FretsGuitar");
 			animation.Stop("FretsGuitar");
 			fretItself.transform.localScale = fretInitialScale + new Vector3(0f, 0, +0.005682f);
-
 		}
-
-
 
 		public void StopSustainParticles() {
 			sustainParticles.Stop();
