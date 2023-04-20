@@ -114,7 +114,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 90376540996421702}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 21698035b4764784a8a42c708d3a3482, type: 3}
+  m_Script: {fileID: 11500000, guid: 40c8f3a2b41bcf645ac8273fe40b4943, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   spLightsStartPos: {x: 0, y: 0, z: 0}
