@@ -1,5 +1,6 @@
 using System.Collections;
 using System.IO;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -93,6 +94,8 @@ namespace YARG.UI {
 				"realKeys",
 				"harmVocals",
 				null,
+				"guitar_coop",
+				"rhythm",
 				"ghDrums"
 			};
 
@@ -166,9 +169,10 @@ namespace YARG.UI {
 			}
 
 			// Load file
-#if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX
+#if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
 			
-			using UnityWebRequest uwr = UnityWebRequestTexture.GetTexture($"file://{filePath}");
+			Uri pathUri = new Uri(filePath);
+			using UnityWebRequest uwr = UnityWebRequestTexture.GetTexture(pathUri);
 
 #else
 

@@ -10,11 +10,10 @@ using UnityEngine;
 using YARG.Data;
 using YARG.Serialization;
 using YARG.Settings;
-using YARG.Util;
 
 namespace YARG {
 	public static class SongLibrary {
-		private const int CACHE_VERSION = 69;
+		private const int CACHE_VERSION = 5;
 		private class SongCacheJson {
 			public int version = CACHE_VERSION;
 			public string folder = "";
@@ -233,14 +232,15 @@ namespace YARG {
 			foreach (var song in songsTemp) {
 				// song.ini loading accounts for 40% of loading
 				loadPercent += 1f / songsTemp.Count * 0.4f;
-				if (song.isSongIni) SongIni.CompleteSongInfo(song);
+
+				SongIni.CompleteSongInfo(song);
 			}
 		}
 
 		/// <summary>
 		/// Gets the MD5 hash for each chart in <see cref="songsTemp"/>.<br/>
 		/// <see cref="songsTemp"/> is expected to be populated.
-		/// </summary> 
+		/// </summary>
 		private static void GetSongHashes() {
 			foreach (var song in songsTemp) {
 				// Hashing loading accounts for 40% of loading
@@ -251,11 +251,6 @@ namespace YARG {
 					string chartFile = Path.Combine(song.folder.FullName, "notes.chart");
 
 					string chosenFile = null;
-
-					if (!song.isSongIni) {
-						Debug.Log(song.rootFolder + $" and `folder` {song.folder.FullName}");
-						midFile = Path.Combine(song.folder.FullName, song.folder.FullName.Split('\\')[song.folder.FullName.Split('/').Length - 1] + ".mid");
-					}
 
 					// Get the correct file
 					if (File.Exists(midFile)) {

@@ -79,7 +79,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 3645699926646784
-    m_Localized: Master Music Volume
+    m_Localized: Master Volume
     m_Metadata:
       m_Items: []
   - m_Id: 3645822882668544
@@ -103,7 +103,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 3646318347411456
-    m_Localized: Other Instruments Volume
+    m_Localized: Song Volume
     m_Metadata:
       m_Items: []
   - m_Id: 3646366187642880
@@ -144,6 +144,14 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 7760843058757632
     m_Localized: Rhythm Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8393437626548224
+    m_Localized: Chipmunk Speedups
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9486234872569856
+    m_Localized: Use High FOV Camera
     m_Metadata:
       m_Items: []
   references:

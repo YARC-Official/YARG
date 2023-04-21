@@ -3,7 +3,7 @@
 import requests, zipfile, io, os, shutil
 
 PATH = os.path.dirname(os.path.realpath(__file__))
-DEST_PATH = f"{PATH}/../Assets/Libraries/BassNative"
+DEST_PATH = f"{PATH}/../Assets/Plugins/BassNative"
 URL = "https://www.un4seen.com/files/"
 
 def download(name, prefix=""):
@@ -19,6 +19,11 @@ def move(start, to):
 if not os.path.exists(DEST_PATH):
 	print("You are not in the YARG repo. Make sure you keep the script in the `InstallLibraries` folder.")
 	exit()
+
+# Delete old stuff
+
+if os.path.exists(f"{PATH}/../Assets/Libraries"):
+	shutil.rmtree(f"{PATH}/../Assets/Libraries")
 
 # Install BASS
 

@@ -19,6 +19,8 @@ namespace YARG.Data
 		private static readonly Dictionary<string, int> DEFAULT_DIFFS = new()
 		{
 			{ "guitar", -1 },
+			{ "guitar_coop", -1 },
+			{ "rhythm", -1 },
 			{ "bass", -1 },
 			{ "keys", -1 },
 			{ "drums", -1 },

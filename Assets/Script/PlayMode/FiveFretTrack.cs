@@ -17,12 +17,6 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private Fret[] frets;
 		[SerializeField]
-		private Color[] fretColors;
-		[SerializeField]
-		private Color[] noteColors;
-		[SerializeField]
-		private Color[] sustainColors;
-		[SerializeField]
 		private NotePool notePool;
 		[SerializeField]
 		private Pool genericPool;
@@ -34,8 +28,11 @@ namespace YARG.PlayMode {
 		private List<NoteInfo> heldNotes = new();
 		private float? latestInput = null;
 		private bool latestInputIsStrum = false;
+		private bool[] extendedSustain = new bool[] { false, false, false, false, false };
 
 		private int notesHit = 0;
+		// private int notesMissed = 0;
+
 		protected override void StartTrack() {
 			notePool.player = player;
 			genericPool.player = player;
@@ -57,10 +54,10 @@ namespace YARG.PlayMode {
 			// Color frets
 			for (int i = 0; i < 5; i++) {
 				var fret = frets[i].GetComponent<Fret>();
-				fret.SetColor(fretColors[i]);
+				fret.SetColor(commonTrack.FretColor(i), commonTrack.SustainColor(i));
 				frets[i] = fret;
 			}
-			openNoteParticles.Colorize(noteColors[5]);
+			openNoteParticles.Colorize(commonTrack.FretColor(5));
 		}
 
 		protected override void OnDestroy() {
@@ -78,6 +75,7 @@ namespace YARG.PlayMode {
 				},
 				notesHit = notesHit,
 				notesMissed = Chart.Count - notesHit
+
 			};
 		}
 
@@ -143,7 +141,10 @@ namespace YARG.PlayMode {
 				var heldNote = heldNotes[i];
 				if (heldNote.time + heldNote.length <= Play.Instance.SongTime) {
 					heldNotes.RemoveAt(i);
+					frets[heldNote.fret].StopAnimation();
 					frets[heldNote.fret].StopSustainParticles();
+
+					extendedSustain[heldNote.fret] = false;
 				}
 			}
 
@@ -158,9 +159,11 @@ namespace YARG.PlayMode {
 				case "guitar":
 					Play.Instance.ReverbAudio("guitar", on);
 					break;
+				case "rhythm":
+					Play.Instance.ReverbAudio("rhythm", on);
+					break;
 				case "bass":
 					Play.Instance.ReverbAudio("bass", on);
-					Play.Instance.ReverbAudio("rhythm", on);
 					break;
 				case "keys":
 					Play.Instance.ReverbAudio("keys", on);
@@ -188,6 +191,7 @@ namespace YARG.PlayMode {
 				}
 			}
 
+
 			// Handle misses (multiple a frame in case of lag)
 			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Constants.HIT_MARGIN) {
 				var missedChord = expectedHits.Dequeue();
@@ -196,8 +200,10 @@ namespace YARG.PlayMode {
 				Combo = 0;
 				foreach (var hit in missedChord) {
 					hitChartIndex++;
+					missedAnyNote = true;
 					notePool.MissNote(hit);
 					StopAudio = true;
+					extendedSustain[hit.fret] = false;
 				}
 				allowedOverstrums.Clear(); // Disallow all overstrums upon missing
 			}
@@ -209,14 +215,15 @@ namespace YARG.PlayMode {
 			// Handle hits (one per frame so no double hits)
 			var chord = expectedHits.Peek();
 
-			// If the note is not a HOPO and the player has not strummed, nothing happens.
-			if (!chord[0].hopo && !strummed && strumLeniency == 0f) {
+			// If the note is not a HOPO or tap and the player has not strummed, nothing happens.
+			if (!chord[0].hopo && !chord[0].tap && !strummed && strumLeniency == 0f) {
 				return;
 			}
 
+
 			// If the note is a HOPO, the player has not strummed, and the HOPO can't be hit, nothing happens.
-			if (chord[0].hopo && !strummed && strumLeniency == 0f) {
-				if (Combo <= 0) {
+			if ((chord[0].hopo || chord[0].tap) && !strummed && strumLeniency == 0f) {
+				if (Combo <= 0 && chord[0].hopo) {
 					return;
 				}
 
@@ -267,12 +274,11 @@ namespace YARG.PlayMode {
 			// Check if correct chord is pressed
 			if (!ChordPressed(chord)) {
 				// Overstrums are dealt with at the top of the method
-
 				return;
 			}
 
 			// Avoid multi-hits
-			if (chord[0].hopo) {
+			if (chord[0].hopo || chord[0].tap) {
 				// If latest input is cleared, it was already used
 				if (latestInput == null) {
 					return;
@@ -299,9 +305,10 @@ namespace YARG.PlayMode {
 				notePool.HitNote(hit);
 				StopAudio = false;
 
-				// Play particles
+				// Play particles and animation
 				if (hit.fret != 5) {
 					frets[hit.fret].PlayParticles();
+					frets[hit.fret].PlayAnimation();
 				} else {
 					openNoteParticles.Play();
 				}
@@ -310,6 +317,15 @@ namespace YARG.PlayMode {
 				if (hit.length > 0.2f) {
 					heldNotes.Add(hit);
 					frets[hit.fret].PlaySustainParticles();
+					frets[hit.fret].PlayAnimationSustainsLooped();
+
+					// Check if it's extended sustain;
+					var nextNote = GetNextNote(hit.time);
+					if (nextNote != null) {
+						extendedSustain[hit.fret] = hit.EndTime > nextNote.time;
+					}
+				} else if (hit.fret != 5) {
+					extendedSustain[hit.fret] = false;
 				}
 
 				// Add stats
@@ -327,10 +343,10 @@ namespace YARG.PlayMode {
 			// add it to the allowed overstrums. This is so the player
 			// doesn't lose their combo when they strum AFTER they hit
 			// the tap note.
-			if (chord[0].hopo && !strummedCurrentNote) {
+			if ((chord[0].hopo || chord[0].tap) && !strummedCurrentNote) {
 				allowedOverstrums.Clear(); // Only allow overstrumming latest HO/PO
 				allowedOverstrums.Add(chord);
-			} else if (allowedOverstrums.Count > 0 && !chord[0].hopo) {
+			} else if (allowedOverstrums.Count > 0 && !chord[0].hopo && !chord[0].tap) {
 				for (int i = 0; i < allowedOverstrums.Count; i++) {
 					if (!ChordEquals(chord, allowedOverstrums[i])) {
 						allowedOverstrums.Clear(); // If latest strum is different from latest HO/PO, disallow overstrumming
@@ -342,7 +358,6 @@ namespace YARG.PlayMode {
 						}
 					}
 				}
-
 			}
 		}
 
@@ -395,7 +410,9 @@ namespace YARG.PlayMode {
 				StopAudio = true;
 
 				heldNotes.RemoveAt(i);
+				frets[heldNote.fret].StopAnimation();
 				frets[heldNote.fret].StopSustainParticles();
+				extendedSustain[heldNote.fret] = false;
 			}
 		}
 
@@ -470,18 +487,46 @@ namespace YARG.PlayMode {
 
 			frets[fret].SetPressed(pressed);
 
-			if (!pressed) {
+			if (pressed) {
+				// Let go of held notes if wrong note pressed
+				if (!IsExtendedSustain()) { // Unless it's extended sustains
+					bool release = false;
+					//
+					for (int i = heldNotes.Count - 1; i >= 0; i--) {
+						var heldNote = heldNotes[i];
+						if (heldNote.fret == fret || (heldNotes.Count == 1 && fret < heldNote.fret)) { // Button press is valid
+							continue;
+						} else { // Wrong button pressed; release all sustains
+							release = true;
+							break;
+						}
+					}
+					if (release) { // Actually release all sustains
+						for (int i = heldNotes.Count - 1; i >= 0; i--) {
+							var heldNote = heldNotes[i];
+							notePool.MissNote(heldNote);
+							heldNotes.RemoveAt(i);
+							frets[heldNote.fret].StopAnimation();
+							frets[heldNote.fret].StopSustainParticles();
+							extendedSustain[heldNote.fret] = false;
+							StopAudio = true;
+						}
+					}
+				}
+			} else {
 				// Let go of held notes
 				NoteInfo letGo = null;
 				for (int i = heldNotes.Count - 1; i >= 0; i--) {
 					var heldNote = heldNotes[i];
-					if (heldNote.fret != fret) {
+					if (IsExtendedSustain() && heldNote.fret != fret || (heldNotes.Count == 1 && fret < heldNote.fret)) {
 						continue;
 					}
 
 					notePool.MissNote(heldNote);
 					heldNotes.RemoveAt(i);
+					frets[heldNote.fret].StopAnimation();
 					frets[heldNote.fret].StopSustainParticles();
+					extendedSustain[heldNote.fret] = false;
 
 					letGo = heldNote;
 				}
@@ -520,18 +565,25 @@ namespace YARG.PlayMode {
 			float lagCompensation = CalcLagCompensation(time, noteInfo.time);
 			float x = noteInfo.fret == 5 ? 0f : frets[noteInfo.fret].transform.localPosition.x;
 			var pos = new Vector3(x, 0f, TRACK_SPAWN_OFFSET - lagCompensation);
-
 			// Get model type
 			var model = NoteComponent.ModelType.NOTE;
 			if (noteInfo.fret == 5) {
 				model = NoteComponent.ModelType.FULL;
 			} else if (noteInfo.hopo) {
 				model = NoteComponent.ModelType.HOPO;
+			} else if (noteInfo.tap) {
+				model = NoteComponent.ModelType.TAP;
 			}
 
 			// Set note info
 			var noteComp = notePool.AddNote(noteInfo, pos);
-			noteComp.SetInfo(noteColors[noteInfo.fret], sustainColors[noteInfo.fret], noteInfo.length, model);
+			startFCDetection = true;
+			noteComp.SetInfo(
+				commonTrack.NoteColor(noteInfo.fret),
+				commonTrack.SustainColor(noteInfo.fret),
+				noteInfo.length,
+				model
+			);
 		}
 
 		private string PrintFrets() { // Debug function; remove later?
@@ -562,6 +614,21 @@ namespace YARG.PlayMode {
 				}
 			}
 			return false;
+		}
+
+		private NoteInfo GetNextNote(float currentChordTime) {
+			var i = hitChartIndex;
+			while (Chart.Count > i) {
+				if (Chart[i].time > currentChordTime) {
+					return Chart[i];
+				}
+				i++;
+			}
+			return null;
+		}
+
+		private bool IsExtendedSustain() {
+			return extendedSustain.Any(x => x);
 		}
 	}
 }
