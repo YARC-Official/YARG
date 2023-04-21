@@ -33,4 +33,8 @@ namespace YARG {
 	public enum DSPType {
 		Gain,
 	}
+
+	public enum DSPType {
+		Gain,
+	}
 }
