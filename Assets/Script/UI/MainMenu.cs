@@ -15,6 +15,14 @@ namespace YARG.UI {
 			private set;
 		}
 
+		private enum ButtonIndex {
+			QUICKPLAY,
+			ADD_EDIT_PLAYERS,
+			SETTINGS,
+			CREDITS,
+			EXIT
+		}
+
 		public SongInfo chosenSong = null;
 
 		[SerializeField]
@@ -54,6 +62,10 @@ namespace YARG.UI {
 
 		private TextMeshProUGUI updateText;
 
+		[Space]
+		[SerializeField]
+		private Button[] menuButtons;
+
 		private bool isUpdateShown;
 
 		private void Start() {
@@ -78,6 +90,13 @@ namespace YARG.UI {
 			// Bind input events
 			foreach (var player in PlayerManager.players) {
 				player.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
+			}
+
+			var quickplayText = menuButtons[(int) ButtonIndex.QUICKPLAY].GetComponentInChildren<TextMeshProUGUI>();
+			if (PlayerManager.players.Count > 0) {
+				quickplayText.text = "QUICKPLAY";
+			} else {
+				quickplayText.text = "<color=#808080>QUICKPLAY<size=50%> (Add a player!)</size></color>";
 			}
 		}
 
@@ -162,8 +181,10 @@ namespace YARG.UI {
 		}
 
 		public void ShowSongSelect() {
-			HideAll();
-			songSelect.gameObject.SetActive(true);
+			if (PlayerManager.players.Count > 0) {
+				HideAll();
+				songSelect.gameObject.SetActive(true);
+			}
 		}
 
 		public void ShowPreSong() {
