@@ -470,7 +470,7 @@ namespace YARG.PlayMode {
 						return false;
 					} else if (!contains && frets[i].IsPressed) {
 						if (Constants.ANCHORING && Constants.ANCHOR_CHORD_HOPO &&
-							chordList[0].hopo && !(strummed || strumLeniency > 0f || overstrumCheck) &&
+							(chordList[0].hopo || chordList[0].tap) && !(strummed || strumLeniency > 0f || overstrumCheck) &&
 							i < chordList[0].fret) {
 
 							// Allow anchoring chord HO/POs
@@ -505,7 +505,8 @@ namespace YARG.PlayMode {
 				}
 				if (checkGhosting) {
 					var nextNote = GetNextNote(Chart[hitChartIndex-1].time);
-					if (nextNote != null && nextNote[0].hopo && nextNote.Count == 1) { // TODO: take taps and hopo/tap chords into account
+					if (nextNote != null && (nextNote[0].hopo || nextNote[0].tap)
+					&& nextNote.Count == 1) { // TODO: take taps and hopo/tap chords into account
 						if (fret != nextNote[0].fret) { // Hitting wrong button = ghosted = bad
 							allowedGhosts--;
 						}
