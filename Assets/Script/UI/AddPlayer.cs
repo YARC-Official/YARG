@@ -1,3 +1,4 @@
+using System;
 using Minis;
 using TMPro;
 using UnityEngine;
@@ -40,69 +41,45 @@ namespace YARG.UI {
 
 		private State state = State.SELECT_DEVICE;
 
-		private (InputDevice, int)? selectedDevice;
-		private bool botMode;
-		private string playerName;
-		private InputStrategy inputStrategy;
+		private (InputDevice device, int micIndex)? selectedDevice = null;
+		private bool botMode = false;
+		private string playerName = null;
+		private InputStrategy inputStrategy = null;
 
-		private string currentBindUpdate;
+		private string currentBindUpdate = null;
+		private TextMeshProUGUI currentBindText = null;
 
 		private void OnEnable() {
+			playerNameField.text = null;
+
+			StartSelectDevice();
+		}
+
+		private void OnDisable() {
+			playerNameField.text = null;
+
 			selectedDevice = null;
 			botMode = false;
 			inputStrategy = null;
 			playerName = null;
 
 			currentBindUpdate = null;
-
-			playerNameField.text = null;
-
-			UpdateSelectDevice();
-		}
-
-		private void OnDisable() {
-			currentBindUpdate = null;
+			currentBindText = null;
 		}
 
 		private void Update() {
-			if (state == State.BIND && currentBindUpdate != null) {
-
-				// Cancel
-				if (Keyboard.current.escapeKey.wasPressedThisFrame) {
-					currentBindUpdate = null;
+			switch (state) {
+				case State.BIND:
 					UpdateBind();
-					return;
-				}
-
-				if (inputStrategy.InputDevice is not MidiDevice) {
-					foreach (var control in selectedDevice?.Item1.allControls) {
-						// Skip "any key" (as that would always be detected)
-						if (control is AnyKeyControl) {
-							continue;
-						}
-
-						if (control is not ButtonControl buttonControl) {
-							continue;
-						}
-
-						if (!buttonControl.wasPressedThisFrame) {
-							continue;
-						}
-
-						// Set mapping and stop waiting
-						inputStrategy.SetMappingInputControl(currentBindUpdate, control);
-						currentBindUpdate = null;
-
-						// Refresh
-						UpdateBind();
-						break;
-					}
-				}
+					break;
+				default:
+					break;
 			}
 		}
 
-		private void UpdateSubHeader() {
-			subHeader.text = state switch {
+		private void UpdateState(State newState) {
+			state = newState;
+			subHeader.text = newState switch {
 				State.SELECT_DEVICE => "Step 1 - Select Device",
 				State.CONFIGURE => "Step 2 - Configure",
 				State.BIND => "Step 3 - Bind",
@@ -116,12 +93,10 @@ namespace YARG.UI {
 			bindContainer.SetActive(false);
 		}
 
-		private void UpdateSelectDevice() {
+		private void StartSelectDevice() {
 			HideAll();
 			selectDeviceContainer.SetActive(true);
-
-			state = State.SELECT_DEVICE;
-			UpdateSubHeader();
+			UpdateState(State.SELECT_DEVICE);
 
 			// Destroy old devices
 			foreach (Transform t in devicesContainer) {
@@ -129,45 +104,43 @@ namespace YARG.UI {
 			}
 
 			// Add bot button
-			var botGo = Instantiate(deviceButtonPrefab, devicesContainer);
-			botGo.GetComponentInChildren<TextMeshProUGUI>().text = "Create a <color=#0c7027><b>BOT</b></color>";
-			botGo.GetComponentInChildren<Button>().onClick.AddListener(() => {
+			var botButton = Instantiate(deviceButtonPrefab, devicesContainer);
+			botButton.GetComponentInChildren<TextMeshProUGUI>().text = "Create a <color=#0c7027><b>BOT</b></color>";
+			botButton.GetComponentInChildren<Button>().onClick.AddListener(() => {
 				selectedDevice = (null, -1);
 				botMode = true;
-				UpdateConfigure();
+				StartConfigure();
 			});
 
 			// Add devices
 			foreach (var device in InputSystem.devices) {
-				var go = Instantiate(deviceButtonPrefab, devicesContainer);
-				go.GetComponentInChildren<TextMeshProUGUI>().text = $"<b>{device.displayName}</b> ({device.deviceId})";
-				go.GetComponentInChildren<Button>().onClick.AddListener(() => {
+				var button = Instantiate(deviceButtonPrefab, devicesContainer);
+				button.GetComponentInChildren<TextMeshProUGUI>().text = $"<b>{device.displayName}</b> ({device.deviceId})";
+				button.GetComponentInChildren<Button>().onClick.AddListener(() => {
 					selectedDevice = (device, -1);
-					UpdateConfigure();
+					StartConfigure();
 				});
 			}
 
 			// Add mics
 			for (int i = 0; i < Microphone.devices.Length; i++) {
-				var go = Instantiate(deviceButtonPrefab, devicesContainer);
-				go.GetComponentInChildren<TextMeshProUGUI>().text = $"(MIC) <b>{Microphone.devices[i]}</b>";
+				var button = Instantiate(deviceButtonPrefab, devicesContainer);
+				button.GetComponentInChildren<TextMeshProUGUI>().text = $"(MIC) <b>{Microphone.devices[i]}</b>";
 
 				int capture = i;
-				go.GetComponentInChildren<Button>().onClick.AddListener(() => {
+				button.GetComponentInChildren<Button>().onClick.AddListener(() => {
 					selectedDevice = (null, capture);
-					UpdateConfigure();
+					StartConfigure();
 				});
 			}
 		}
 
-		private void UpdateConfigure() {
+		private void StartConfigure() {
 			HideAll();
 			configureContainer.SetActive(true);
+			UpdateState(State.CONFIGURE);
 
-			state = State.CONFIGURE;
-			UpdateSubHeader();
-
-			if (selectedDevice?.Item2 != -1) {
+			if (selectedDevice?.micIndex != -1) {
 				// Set to MIC if the selected device is a MIC
 				inputStrategyDropdown.value = 1;
 			} else {
@@ -182,14 +155,14 @@ namespace YARG.UI {
 				2 => new RealGuitarInputStrategy(),
 				3 => new DrumsInputStrategy(),
 				4 => new GHDrumsInputStrategy(),
-				_ => throw new System.Exception("Unreachable.")
+				_ => throw new Exception("Invalid input strategy type!")
 			};
 
-			if (selectedDevice?.Item1 == null) {
+			if (selectedDevice?.device == null) {
 				inputStrategy.InputDevice = null;
-				inputStrategy.microphoneIndex = selectedDevice?.Item2 ?? -1;
+				inputStrategy.microphoneIndex = selectedDevice?.micIndex ?? -1;
 			} else {
-				inputStrategy.InputDevice = selectedDevice?.Item1;
+				inputStrategy.InputDevice = selectedDevice?.device;
 				inputStrategy.microphoneIndex = -1;
 			}
 
@@ -197,29 +170,26 @@ namespace YARG.UI {
 
 			playerName = playerNameField.text;
 
-			if (inputStrategy.InputDevice is MidiDevice midiDevice) {
-				midiDevice.onWillNoteOn += OnNote;
-			}
-
 			// Try to load bindings
 			if (inputStrategy.InputDevice != null) {
 				InputBindSerializer.LoadBindsFromSave(inputStrategy);
 			}
 
-			UpdateBind();
+			StartBind();
 		}
 
-		private void UpdateBind() {
-			if (inputStrategy.GetMappingNames().Length <= 0 || botMode) {
+		private string GetMappingText(string binding)
+			=> $"<b>{binding}:</b> {inputStrategy.GetMappingInputControl(binding)?.displayName ?? "None"}";
+
+		private void StartBind() {
+			if (inputStrategy.GetMappingNames().Length < 1 || botMode) {
 				DoneBind();
 				return;
 			}
 
 			HideAll();
 			bindContainer.SetActive(true);
-
-			state = State.BIND;
-			UpdateSubHeader();
+			UpdateState(State.BIND);
 
 			// Destroy old bindings
 			foreach (Transform t in bindingsContainer) {
@@ -228,21 +198,28 @@ namespace YARG.UI {
 
 			// Add bindings
 			foreach (var binding in inputStrategy.GetMappingNames()) {
-				var go = Instantiate(deviceButtonPrefab, bindingsContainer);
+				var button = Instantiate(deviceButtonPrefab, bindingsContainer);
 
-				var text = go.GetComponentInChildren<TextMeshProUGUI>();
-				text.text = $"<b>{binding}:</b> {inputStrategy.GetMappingInputControl(binding)?.displayName ?? "None"}";
+				var text = button.GetComponentInChildren<TextMeshProUGUI>();
+				text.text = GetMappingText(binding);
 
-				go.GetComponentInChildren<Button>().onClick.AddListener(() => {
+				button.GetComponentInChildren<Button>().onClick.AddListener(() => {
 					if (currentBindUpdate == null) {
 						currentBindUpdate = binding;
+						currentBindText = text;
 						text.text = $"<b>{binding}:</b> Waiting for input... (Escape to cancel)";
 					}
 				});
 			}
+
+			// Temp for MIDI
+			if (inputStrategy.InputDevice is MidiDevice midiDevice) {
+				midiDevice.onWillNoteOn += OnNote;
+			}
 		}
 
-		private void OnNote(MidiNoteControl control, float v) {
+		// Workaround to avoid very short note events not registering correctly
+		private void OnNote(MidiNoteControl control, float velocity) {
 			if (currentBindUpdate == null) {
 				return;
 			}
@@ -252,10 +229,47 @@ namespace YARG.UI {
 			currentBindUpdate = null;
 
 			// Refresh
-			UpdateBind();
+			DoneBind();
+		}
+
+		private void UpdateBind() {
+			if (currentBindUpdate == null) {
+				return;
+			}
+
+			// Cancel
+			if (Keyboard.current.escapeKey.wasPressedThisFrame) {
+				currentBindText.text = GetMappingText(currentBindUpdate);
+				currentBindText = null;
+				currentBindUpdate = null;
+				return;
+			}
+
+			if (inputStrategy.InputDevice is not MidiDevice) { // Temp for MIDI
+				foreach (var control in selectedDevice?.device.allControls) {
+					// Skip "any key" (as that would always be detected)
+					if (control is AnyKeyControl) {
+						continue;
+					}
+
+					if (control is not ButtonControl buttonControl || !buttonControl.wasPressedThisFrame) {
+						continue;
+					}
+
+					// Set mapping and update text
+					inputStrategy.SetMappingInputControl(currentBindUpdate, control);
+					currentBindText.text = GetMappingText(currentBindUpdate);
+
+					// Stop waiting
+					currentBindUpdate = null;
+					currentBindText = null;
+					break;
+				}
+			}
 		}
 
 		public void DoneBind() {
+			// Temp for MIDI
 			if (inputStrategy.InputDevice is MidiDevice midiDevice) {
 				midiDevice.onWillNoteOn -= OnNote;
 			}
