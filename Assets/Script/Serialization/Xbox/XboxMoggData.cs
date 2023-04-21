@@ -179,6 +179,7 @@ namespace YARG.Serialization {
                 }
             }
 
+            // every index in mapped that is still false, goes in the backing
             List<int> fakeIndices = Enumerable.Range(0, mapped.Length).Where(i => !mapped[i]).ToList();
             stemMaps[SongStem.Song] = new byte[fakeIndices.Count];
             for(int i = 0; i < fakeIndices.Count; i++){

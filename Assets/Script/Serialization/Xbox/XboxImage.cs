@@ -68,6 +68,7 @@ namespace YARG.Serialization {
             }
         }
 
+        //will most likely remove this fxn - was for FAFO-ing
         public void ParseImage(){
             using(FileStream fs = new FileStream(imagePath, FileMode.Open, FileAccess.Read)){
                 using(BinaryReader br = new BinaryReader(fs, new ASCIIEncoding())){
@@ -93,8 +94,9 @@ namespace YARG.Serialization {
             }
         }
 
+        // will remove this fxn too - not efficient to save image bytes directly to memory
         public byte[] getImage() { return imageBytes; }
-
+        // this too
         public bool SaveImageToDisk(string fname){
             if(imageBytes == null) return false;
             else{

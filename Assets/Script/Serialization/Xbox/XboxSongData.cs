@@ -18,7 +18,7 @@ using UnityEngine;
 namespace YARG.Serialization {
     public class XboxSongData {
         // all the possible metadata you could possibly want from a particular songs.dta
-        private string shortname, name, artist, songPath;
+        private string shortname, name, artist;
         private string gameOrigin, genre, albumName, bank;
         private string ghOutfit, ghGuitar, ghVenue;
         private uint songLength = 0, songScrollSpeed = 2300;
@@ -32,11 +32,8 @@ namespace YARG.Serialization {
         private byte vocalParts = 1;
         private bool fake = false;
         private (uint start, uint end) preview;
-        private byte[] crowdChannels;
-        private float[] pans, vols;
-        private short[] cores, realGuitarTuning, realBassTuning;
+        private short[] realGuitarTuning, realBassTuning;
         private string[] solos;
-        private Dictionary<string, byte[]> tracks;
         private Dictionary<string, ushort> ranks;
 
         //TODO: implement macro support, such as #ifndef kControllerRealGuitar, or #ifdef YARG
@@ -139,7 +136,6 @@ namespace YARG.Serialization {
         public bool IsFake() { return fake; }
 
         public override string ToString(){
-
             return string.Join(Environment.NewLine,
                 $"Song metadata:",
                 $"song id={songId}; shortname={shortname}: name={name}; artist={((!master) ? "as made famous by " : "")}{artist}",
