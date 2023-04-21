@@ -10,6 +10,7 @@ namespace YARG.Data {
 	public struct DiffScore : IComparable<DiffScore> {
 		public Difficulty difficulty;
 		public int score;
+		public int stars;
 
 		public int CompareTo(DiffScore other) {
 			int dc = difficulty.CompareTo(other.difficulty);

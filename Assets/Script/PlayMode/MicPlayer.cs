@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.Rendering.Universal;
@@ -294,6 +295,11 @@ namespace YARG.PlayMode {
 				percentage = new DiffPercent {
 					difficulty = micInputs[0].player.chosenDifficulty,
 					percent = totalSingPercent / totalSections
+				},
+				score = new DiffScore {
+					difficulty = micInputs[0].player.chosenDifficulty,
+					score = (int) math.round(scoreKeeper.score),
+					stars = math.clamp((int) starsKeeper.Stars, 0, 6)
 				},
 				notesHit = sectionsHit,
 				notesMissed = sectionsFailed

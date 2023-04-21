@@ -171,8 +171,9 @@ namespace YARG.PlayMode {
 				},
 				score = new DiffScore {
 					difficulty = player.chosenDifficulty,
-					score = (int)math.round(scoreKeeper.score)
-				},
+					score = (int) math.round(scoreKeeper.score),
+					stars = math.clamp((int) starsKeeper.Stars, 0, 6)
+		},
 				notesHit = notesHit,
 				notesMissed = Chart.Count - notesHit
 			};
