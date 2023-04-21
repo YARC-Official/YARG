@@ -572,27 +572,20 @@ namespace YARG.PlayMode {
 				model = NoteComponent.ModelType.FULL;
 			} else if (noteInfo.hopo) {
 				model = NoteComponent.ModelType.HOPO;
+			} else if (noteInfo.tap){
+				model = NoteComponent.ModelType.TAP;
 			}
 
 
 			// Set note info
 			var noteComp = notePool.AddNote(noteInfo, pos);
 			startFCDetection = true;
-			if(noteInfo.tap){
-				noteComp.SetInfo(
-				Color.magenta,
-				Color.magenta,
-				noteInfo.length,
-				model
-			);
-			}else{
-				noteComp.SetInfo(
+			noteComp.SetInfo(
 				commonTrack.NoteColor(noteInfo.fret),
 				commonTrack.SustainColor(noteInfo.fret),
 				noteInfo.length,
 				model
 			);
-			}
 			
 		}
 

@@ -7,6 +7,7 @@ namespace YARG.Pools {
 		public enum ModelType {
 			NOTE,
 			HOPO,
+			TAP,
 			FULL
 		}
 
@@ -82,7 +83,7 @@ namespace YARG.Pools {
 			noteGroup.SetActive(hopo == ModelType.NOTE);
 			hopoGroup.SetActive(hopo == ModelType.HOPO);
 			fullGroup.SetActive(hopo == ModelType.FULL);
-
+			tapGroup.SetActive( hopo == ModelType.TAP);
 			state = State.WAITING;
 
 			SetLength(length);
@@ -160,7 +161,8 @@ namespace YARG.Pools {
 			noteGroup.SetActive(false);
 			hopoGroup.SetActive(false);
 			fullGroup.SetActive(false);
-
+			tapGroup.SetActive(false);
+			
 			if (fretNumber != null) {
 				fretNumber.gameObject.SetActive(false);
 			}
@@ -173,7 +175,7 @@ namespace YARG.Pools {
 			if (fretNumber != null) {
 				fretNumber.gameObject.SetActive(false);
 			}
-
+			
 			state = State.MISSED;
 			UpdateLineColor();
 		}
