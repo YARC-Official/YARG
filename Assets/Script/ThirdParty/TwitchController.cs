@@ -11,6 +11,7 @@ namespace YARG {
 			private set;
 		}
 
+		// Creates .TXT file witth current song information
 		public string TextFilePath => Path.Combine(GameManager.PersistentDataPath, "currentSong.txt");
 
 		private void Start() {
@@ -32,13 +33,19 @@ namespace YARG {
 		}
 
 		private void CreateEmptySongFile() {
-			File.Create(TextFilePath).Dispose();
+			// Open the text file for appending
+			using var writer = new StreamWriter(TextFilePath, false);
+
+			// Make the file blank (Avoid errors in OBS)
+			writer.Write("");
 		}
 
 		private void DeleteCurrentSongFile() {
-			if (File.Exists(TextFilePath)) {
-				File.Delete(TextFilePath);
-			}
+			// Open the text file for appending
+			using var writer = new StreamWriter(TextFilePath, false);
+
+			// Make the file blank (Avoid errors in OBS)
+			writer.Write("");
 		}
 
 		private void OnApplicationQuit() {
@@ -50,21 +57,23 @@ namespace YARG {
 			using var writer = new StreamWriter(TextFilePath, false);
 
 			// Write two lines of text to the file
-			writer.Write($"{song.SongName}\n{song.artistName}");
+			writer.Write($"{song.SongName}\n{song.artistName}\n{song.album}\n{song.genre}\n{song.year}\n{song.SourceFriendlyName}\n{song.charter}");
 		}
 
 		void OnSongEnd(SongInfo song) {
-			// When the song ends, empty the file
-			DeleteCurrentSongFile();
-			CreateEmptySongFile();
+			// Open the text file for appending
+			using var writer = new StreamWriter(TextFilePath, false);
+
+			// Make the file blank (Avoid errors in OBS)
+			writer.Write("");
 		}
 
 		private void OnInstrumentSelection(PlayerManager.Player playerInfo) {
-			// TODO
+			// Selecting Instrument
 		}
 
 		private void OnPauseToggle(bool pause) {
-			// TODO
+			// Game Paused
 		}
 	}
 }
