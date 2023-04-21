@@ -9,6 +9,7 @@ namespace YARG {
 	public static class PlayerManager {
 		public struct LastScore {
 			public DiffPercent percentage;
+			public DiffScore score;
 			public int notesHit;
 			public int notesMissed;
 		}

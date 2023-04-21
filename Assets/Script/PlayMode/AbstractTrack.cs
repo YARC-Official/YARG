@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using Unity.Mathematics;
 using YARG.Data;
 using YARG.Input;
 using YARG.Settings;
@@ -38,6 +39,9 @@ namespace YARG.PlayMode {
 			get;
 			protected set;
 		} = null;
+
+		protected int notesHit = 0;
+		// private int notesMissed = 0;
 
 		protected float starpowerCharge;
 		protected bool starpowerActive;
@@ -158,6 +162,20 @@ namespace YARG.PlayMode {
 			player.inputStrategy.StarpowerEvent -= StarpowerAction;
 			player.inputStrategy.PauseEvent -= PauseAction;
 			Play.BeatEvent -= BeatAction;
+
+			// Set score
+			player.lastScore = new PlayerManager.LastScore {
+				percentage = new DiffPercent {
+					difficulty = player.chosenDifficulty,
+					percent = Chart.Count == 0 ? 1f : (float) notesHit / Chart.Count
+				},
+				score = new DiffScore {
+					difficulty = player.chosenDifficulty,
+					score = (int)math.round(scoreKeeper.score)
+				},
+				notesHit = notesHit,
+				notesMissed = Chart.Count - notesHit
+			};
 		}
 
 		private void Update() {

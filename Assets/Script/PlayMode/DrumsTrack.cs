@@ -30,9 +30,6 @@ namespace YARG.PlayMode {
 
 		private Queue<List<NoteInfo>> expectedHits = new();
 
-		private int notesHit = 0;
-		// private int notesMissed = 0;
-
 		private bool noKickMode = false;
 
 		private readonly string[] proInst = {"realDrums", "ghDrums"};
@@ -91,16 +88,6 @@ namespace YARG.PlayMode {
 			} else if (input is GHDrumsInputStrategy ghStrat) {
 				ghStrat.DrumHitEvent -= GHDrumHitAction;
 			}
-
-			// Set score
-			player.lastScore = new PlayerManager.LastScore {
-				percentage = new DiffPercent {
-					difficulty = player.chosenDifficulty,
-					percent = Chart.Count == 0 ? 1f : (float) notesHit / Chart.Count
-				},
-				notesHit = notesHit,
-				notesMissed = Chart.Count - notesHit
-			};
 		}
 
 		protected override void UpdateTrack() {

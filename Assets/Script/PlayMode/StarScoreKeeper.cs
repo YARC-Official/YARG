@@ -8,7 +8,7 @@ using YARG.Util;
 
 namespace YARG.PlayMode {
 	/// <summary>
-	/// Star-score tracking.
+	/// Star-score tracking. Could probably be combined with ScoreKeeper.
 	/// </summary>
 	public class StarScoreKeeper {
 		/// <summary>

@@ -9,11 +9,24 @@ namespace YARG.Data {
 		public int timesPlayed;
 
 		public Dictionary<string, DiffPercent> highestPercent;
+		
+		public Dictionary<string, DiffScore> highestScore;
 
 		public KeyValuePair<string, DiffPercent> GetHighestPercent() {
 			KeyValuePair<string, DiffPercent> highest = default;
 
 			foreach (var kvp in highestPercent) {
+				if (kvp.Value > highest.Value) {
+					highest = kvp;
+				}
+			}
+
+			return highest;
+		}
+		public KeyValuePair<string, DiffScore> GetHighestScore() {
+			KeyValuePair<string, DiffScore> highest = default;
+
+			foreach (var kvp in highestScore) {
 				if (kvp.Value > highest.Value) {
 					highest = kvp;
 				}

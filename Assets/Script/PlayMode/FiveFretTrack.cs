@@ -34,10 +34,6 @@ namespace YARG.PlayMode {
 		private const double SUSTAIN_PTS_PER_BEAT = 12.0;
 		private const int PTS_PER_NOTE = 25;
 
-
-		private int notesHit = 0;
-		// private int notesMissed = 0;
-
 		protected override void StartTrack() {
 			notePool.player = player;
 			genericPool.player = player;
@@ -76,17 +72,6 @@ namespace YARG.PlayMode {
 			// Unbind input
 			input.FretChangeEvent -= FretChangedAction;
 			input.StrumEvent -= StrumAction;
-
-			// Set score
-			player.lastScore = new PlayerManager.LastScore {
-				percentage = new DiffPercent {
-					difficulty = player.chosenDifficulty,
-					percent = Chart.Count == 0 ? 1f : (float) notesHit / Chart.Count
-				},
-				notesHit = notesHit,
-				notesMissed = Chart.Count - notesHit
-
-			};
 		}
 
 		protected override void UpdateTrack() {

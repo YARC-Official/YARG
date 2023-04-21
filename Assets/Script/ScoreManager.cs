@@ -52,13 +52,22 @@ namespace YARG {
 				oldScore.timesPlayed += score.timesPlayed;
 
 				// Merge high scores
-				foreach (var kvp in score.highestPercent) {
+				foreach (var kvp in score.highestPercent) { // percent
 					if (oldScore.highestPercent.TryGetValue(kvp.Key, out var old)) {
 						if (old < kvp.Value) {
 							oldScore.highestPercent[kvp.Key] = kvp.Value;
 						}
 					} else {
 						oldScore.highestPercent.Add(kvp.Key, kvp.Value);
+					}
+				}
+				foreach (var kvp in score.highestScore) { // score
+					if (oldScore.highestScore.TryGetValue(kvp.Key, out var old)) {
+						if (old < kvp.Value) {
+							oldScore.highestScore[kvp.Key] = kvp.Value;
+						}
+					} else {
+						oldScore.highestScore.Add(kvp.Key, kvp.Value);
 					}
 				}
 			}
