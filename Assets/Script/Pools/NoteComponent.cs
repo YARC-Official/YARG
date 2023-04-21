@@ -27,6 +27,8 @@ namespace YARG.Pools {
 		[SerializeField]
 		private GameObject hopoGroup;
 		[SerializeField]
+		private GameObject tapGroup;
+		[SerializeField]
 		private GameObject fullGroup;
 		[SerializeField]
 		private TextMeshPro fretNumber;

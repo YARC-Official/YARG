@@ -11,7 +11,6 @@ namespace YARG {
 		PERSISTANT,
 		MENU,
 		PLAY,
-		SERVER_HOST,
 		CALIBRATION
 	}
 

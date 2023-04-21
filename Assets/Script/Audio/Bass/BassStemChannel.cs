@@ -13,23 +13,30 @@ namespace YARG {
 		public SongStem Stem { get; }
 		public double LengthD { get; private set; }
 		
+		public double Volume { get; private set; }
+		
 		public int StreamHandle { get; private set; }
 
 		private readonly string _path;
-		private readonly BassAudioManager _manager;
+		private readonly IAudioManager _manager;
 
 		private readonly Dictionary<EffectType, int> _effects;
 		private readonly Dictionary<DSPType, int> _dspHandles;
 
 		private readonly DSPProcedure _dspGain;
+
+		private double _lastStemVolume;
 		
 		private bool _disposed;
 
-		public BassStemChannel(BassAudioManager manager, string path, SongStem stem) {
+		public BassStemChannel(IAudioManager manager, string path, SongStem stem) {
 			_manager = manager;
 			_path = path;
 			Stem = stem;
-			
+
+			Volume = 1;
+
+			_lastStemVolume = _manager.GetVolumeSetting(Stem);
 			_effects = new Dictionary<EffectType, int>();
 			_dspHandles = new Dictionary<DSPType, int>();
 			
@@ -39,6 +46,7 @@ namespace YARG {
 		~BassStemChannel() {
 			Dispose(false);
 		}
+
 
 		public int Load(bool isSpeedUp, float speed) {
 			if (StreamHandle != 0) {
@@ -53,7 +61,7 @@ namespace YARG {
 			const BassFlags flags = BassFlags.SampleOverrideLowestVolume | BassFlags.Decode | BassFlags.FxFreeSource;
 			StreamHandle = BassFx.TempoCreate(streamHandle, flags);
 
-			Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, _manager.stemVolumes[(int) Stem]);
+			Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, _manager.GetVolumeSetting(Stem));
 
 			if (isSpeedUp) {
 				// Gets relative speed from 100% (so 1.05f = 5% increase)
@@ -74,12 +82,28 @@ namespace YARG {
 			return 0;
 		}
 
-		public void SetVolume(double volume) {
+		public void SetVolume(double newVolume) {
 			if (StreamHandle == 0) {
 				return;
 			}
+
+			double volumeSetting = _manager.GetVolumeSetting(Stem);
 			
-			Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, volume);
+			double oldBassVol = _lastStemVolume * Volume;
+			double newBassVol = volumeSetting * newVolume;
+			
+			// Values are the same, no need to change
+			if (Math.Abs(oldBassVol - newBassVol) < double.Epsilon) {
+				Debug.Log($"{Stem} values same");
+				return;
+			}
+			
+			Debug.Log($"Updated {Stem} volume to {newVolume}");
+			
+			Volume = newVolume;
+			_lastStemVolume = volumeSetting;
+			
+			Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, newBassVol);
 		}
 		
 		public void SetReverb(bool reverb) {
