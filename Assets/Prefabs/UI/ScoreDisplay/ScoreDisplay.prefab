@@ -177,7 +177,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
   m_AnchoredPosition: {x: 0, y: -2}
-  m_SizeDelta: {x: -20, y: 51}
+  m_SizeDelta: {x: -20, y: 40.8}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &1682100932150968560
 MonoBehaviour:
@@ -197,12 +197,14 @@ MonoBehaviour:
   - {fileID: 4096561045326221240}
   - {fileID: 481869321003389834}
   - {fileID: 500244737860305069}
+  objGoldMeterMaster: {fileID: 6244827274338962148}
   objGoldMeters:
-  - {fileID: 4378126842520780952}
-  - {fileID: 8433043820256494874}
-  - {fileID: 2302898695580999361}
-  - {fileID: 5527681620171533673}
-  - {fileID: 4489824478613844875}
+  - {fileID: 940648099923840721}
+  - {fileID: 7483353381526979316}
+  - {fileID: 6456167629200309535}
+  - {fileID: 8709202184598420613}
+  - {fileID: 4701563596160720979}
+  goldMeterLine: {fileID: 525818391533477391}
 --- !u!1 &1682100932476655700
 GameObject:
   m_ObjectHideFlags: 0
@@ -343,7 +345,6 @@ GameObject:
   - component: {fileID: 2558757084041919897}
   - component: {fileID: 7476610797937736967}
   - component: {fileID: 6456167629200309535}
-  - component: {fileID: 5865064874587094979}
   m_Layer: 5
   m_Name: GoldMeter (2)
   m_TagString: Untagged
@@ -358,7 +359,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2302898695580999361}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
@@ -368,7 +369,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 101.99995, y: -20.400002}
+  m_AnchoredPosition: {x: 101.99984, y: -20.400002}
   m_SizeDelta: {x: 40.8, y: 40.8}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7476610797937736967
@@ -392,14 +393,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.5943396, g: 0.5310543, b: 0.16540584, a: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: eb542f774abd4e44fb5b03b5371d7fc4, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 1714f52fc575e1745b2615a068e166e8, type: 3}
   m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -409,27 +410,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!95 &5865064874587094979
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2302898695580999361}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 6ca8e621283fb0c42921f801c34fb73c, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &4378126842520780952
 GameObject:
   m_ObjectHideFlags: 0
@@ -441,7 +421,6 @@ GameObject:
   - component: {fileID: 5469249447035777158}
   - component: {fileID: 2533205613303749865}
   - component: {fileID: 940648099923840721}
-  - component: {fileID: 1380662792250824294}
   m_Layer: 5
   m_Name: GoldMeter
   m_TagString: Untagged
@@ -490,14 +469,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.5943396, g: 0.5310543, b: 0.16540584, a: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: eb542f774abd4e44fb5b03b5371d7fc4, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 1714f52fc575e1745b2615a068e166e8, type: 3}
   m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -507,27 +486,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!95 &1380662792250824294
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4378126842520780952}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 6ca8e621283fb0c42921f801c34fb73c, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &4489824478613844875
 GameObject:
   m_ObjectHideFlags: 0
@@ -539,7 +497,6 @@ GameObject:
   - component: {fileID: 4524472119825509972}
   - component: {fileID: 2030579292573914366}
   - component: {fileID: 4701563596160720979}
-  - component: {fileID: 3052041156993855698}
   m_Layer: 5
   m_Name: GoldMeter (4)
   m_TagString: Untagged
@@ -554,7 +511,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4489824478613844875}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
@@ -588,14 +545,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.5943396, g: 0.5310543, b: 0.16540584, a: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: eb542f774abd4e44fb5b03b5371d7fc4, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 1714f52fc575e1745b2615a068e166e8, type: 3}
   m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -605,27 +562,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!95 &3052041156993855698
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4489824478613844875}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 6ca8e621283fb0c42921f801c34fb73c, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &5527681620171533673
 GameObject:
   m_ObjectHideFlags: 0
@@ -637,7 +573,6 @@ GameObject:
   - component: {fileID: 9186919591746702074}
   - component: {fileID: 4666414718466539234}
   - component: {fileID: 8709202184598420613}
-  - component: {fileID: 675840579684860813}
   m_Layer: 5
   m_Name: GoldMeter (3)
   m_TagString: Untagged
@@ -652,7 +587,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5527681620171533673}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
@@ -662,7 +597,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 142.79996, y: -20.400002}
+  m_AnchoredPosition: {x: 142.79985, y: -20.400002}
   m_SizeDelta: {x: 40.8, y: 40.8}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4666414718466539234
@@ -686,14 +621,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.5943396, g: 0.5310543, b: 0.16540584, a: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: eb542f774abd4e44fb5b03b5371d7fc4, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 1714f52fc575e1745b2615a068e166e8, type: 3}
   m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -703,27 +638,79 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!95 &675840579684860813
-Animator:
-  serializedVersion: 5
+--- !u!1 &5829599800347131486
+GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5527681620171533673}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1738660222616390623}
+  - component: {fileID: 6743829641389236918}
+  - component: {fileID: 525818391533477391}
+  m_Layer: 5
+  m_Name: MeterLine
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1738660222616390623
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5829599800347131486}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8376446360959576967}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 218.7, y: 1.6}
+  m_Pivot: {x: 0.5, y: 1}
+--- !u!222 &6743829641389236918
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5829599800347131486}
+  m_CullTransparentMesh: 1
+--- !u!114 &525818391533477391
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5829599800347131486}
   m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 6ca8e621283fb0c42921f801c34fb73c, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 0.8235294, b: 0.039215688, a: 0.42745098}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Texture: {fileID: 0}
+  m_UVRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
 --- !u!1 &6244827274338962148
 GameObject:
   m_ObjectHideFlags: 0
@@ -733,6 +720,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8376446360959576967}
+  - component: {fileID: 1229337052924070591}
+  - component: {fileID: 2732049442297516077}
+  - component: {fileID: 7599519168469226608}
+  - component: {fileID: 6614139179719191123}
+  - component: {fileID: 412817153948829898}
   m_Layer: 5
   m_Name: GoldProgress
   m_TagString: Untagged
@@ -757,6 +749,7 @@ RectTransform:
   - {fileID: 2558757084041919897}
   - {fileID: 9186919591746702074}
   - {fileID: 4524472119825509972}
+  - {fileID: 1738660222616390623}
   m_Father: {fileID: 1682100932150968561}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -765,6 +758,90 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &1229337052924070591
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6244827274338962148}
+  m_CullTransparentMesh: 1
+--- !u!114 &2732049442297516077
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6244827274338962148}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 21300000, guid: 7efa2d6071ff97541b3561c1fd8894d5, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!114 &7599519168469226608
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6244827274338962148}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31a19414c41e5ae4aae2af33fee712f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_ShowMaskGraphic: 0
+--- !u!225 &6614139179719191123
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6244827274338962148}
+  m_Enabled: 1
+  m_Alpha: 0
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
+--- !u!95 &412817153948829898
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6244827274338962148}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 6ca8e621283fb0c42921f801c34fb73c, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &8433043820256494874
 GameObject:
   m_ObjectHideFlags: 0
@@ -776,7 +853,6 @@ GameObject:
   - component: {fileID: 8793307666126775610}
   - component: {fileID: 8362446462419542670}
   - component: {fileID: 7483353381526979316}
-  - component: {fileID: 2140961345723158890}
   m_Layer: 5
   m_Name: GoldMeter (1)
   m_TagString: Untagged
@@ -825,14 +901,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.5943396, g: 0.5310543, b: 0.16540584, a: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: eb542f774abd4e44fb5b03b5371d7fc4, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 1714f52fc575e1745b2615a068e166e8, type: 3}
   m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -842,27 +918,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!95 &2140961345723158890
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8433043820256494874}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 6ca8e621283fb0c42921f801c34fb73c, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!1001 &4606984652080043478
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -870,6 +925,16 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1682100932150968561}
     m_Modifications:
+    - target: {fileID: 6609833391728450519, guid: ce4a84a3d1b86154ca243594c1135468,
+        type: 3}
+      propertyPath: m_Color.a
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6609833392484293614, guid: ce4a84a3d1b86154ca243594c1135468,
+        type: 3}
+      propertyPath: m_FillAmount
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6609833393552099944, guid: ce4a84a3d1b86154ca243594c1135468,
         type: 3}
       propertyPath: m_Name
@@ -1006,6 +1071,21 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1682100932150968561}
     m_Modifications:
+    - target: {fileID: 6609833392484293614, guid: ce4a84a3d1b86154ca243594c1135468,
+        type: 3}
+      propertyPath: m_Color.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6609833392484293614, guid: ce4a84a3d1b86154ca243594c1135468,
+        type: 3}
+      propertyPath: m_FillAmount
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6609833393552099943, guid: ce4a84a3d1b86154ca243594c1135468,
+        type: 3}
+      propertyPath: m_CullTransparentMesh
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6609833393552099944, guid: ce4a84a3d1b86154ca243594c1135468,
         type: 3}
       propertyPath: m_Name

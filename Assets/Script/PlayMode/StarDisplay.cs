@@ -9,10 +9,21 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private List<GameObject> objStars;
 		[SerializeField]
-		private List<GameObject> objGoldMeters;
+		private GameObject objGoldMeterMaster;
+		[SerializeField]
+		private List<Image> objGoldMeters;
+		[SerializeField]
+		private RawImage goldMeterLine;
 
 		private int curStar = 0;
 		private bool goldAchieved = false;
+
+		// for gold progress meter pulsing
+		private int curBar = 0;
+		private List<float> bars = new();
+
+        // for positioning the line in gold progress meter
+		private float height;
 
 		private void OnEnable() {
 			ScoreKeeper.OnScoreChange += OnScoreChange;
@@ -20,6 +31,17 @@ namespace YARG.PlayMode {
 
         private void OnDisable() {
             ScoreKeeper.OnScoreChange -= OnScoreChange;
+        }
+
+        private void Start() {
+			var events = Play.Instance.chart.events;
+			foreach (var ev in events) {
+				if (ev.name == "beatLine_major") {
+					bars.Add(ev.time);
+				}
+			}
+
+            height = GetComponent<RectTransform>().rect.height;
         }
 
         private void OnScoreChange() {
@@ -76,20 +98,38 @@ namespace YARG.PlayMode {
                 foreach (var s in objGoldMeters) {
 					s.GetComponent<Image>().fillAmount = (float)curProgress;
 				}
-            }
+				goldMeterLine.rectTransform.anchoredPosition = new Vector2(0, (float) curProgress * height);
+			}
 			else if (stars >= 6.0) {
                 // show the gold!
                 foreach (var s in objStars) {
                     s.GetComponent<Animator>().Play("TransToGold");
 				}
                 // disable progress meters
-                foreach (var s in objGoldMeters) {
-					s.SetActive(false);
-				}
+                objGoldMeterMaster.SetActive(false);
 
                 GameManager.AudioManager.PlaySoundEffect(SfxSample.StarGold);
 
 				goldAchieved = true; // so we stop trying to update
+			}
+		}
+
+        private void Update() {
+			int nextBar = curBar;
+            while (nextBar < bars.Count-1 && bars[nextBar] <= Play.Instance.SongTime) {
+				nextBar++;
+			}
+
+            if (nextBar > curBar) {
+				// animation time
+				var time = bars[nextBar] - bars[nextBar - 1];
+
+				// pulse the meter
+                var anim = objGoldMeterMaster.GetComponent<Animator>();
+                anim.speed = 1/time;
+                anim.Play("GoldMeter");
+
+				curBar = nextBar;
 			}
 		}
     }
