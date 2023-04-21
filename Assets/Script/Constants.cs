@@ -9,5 +9,6 @@ namespace YARG {
 		public const bool ANCHORING = true;
 		public const bool INFINITE_FRONTEND = false;
 		public const bool ANCHOR_CHORD_HOPO = true;
+		public const int EXTRA_ALLOWED_GHOSTS = 0;
 	}
 }

@@ -123,6 +123,10 @@ MonoBehaviour:
     m_Key: amIAwesome
     m_Metadata:
       m_Items: []
+  - m_Id: 7304579734953985
+    m_Key: antiGhosting
+    m_Metadata:
+      m_Items: []
   - m_Id: 7405541279522816
     m_Key: copyCurrentSongTextFilePath
     m_Metadata:
