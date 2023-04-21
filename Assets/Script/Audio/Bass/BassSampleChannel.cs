@@ -6,7 +6,7 @@ namespace YARG {
 
 		public SfxSample Sample { get; }
 
-		private readonly BassAudioManager _manager;
+		private readonly IAudioManager _manager;
 		private readonly string _path;
 		private readonly int _playbackCount;
 		
@@ -14,7 +14,7 @@ namespace YARG {
 		
 		private bool _disposed;
 
-		public BassSampleChannel(BassAudioManager manager, string path, int playbackCount, SfxSample sample) {
+		public BassSampleChannel(IAudioManager manager, string path, int playbackCount, SfxSample sample) {
 			_manager = manager;
 			_path = path;
 			_playbackCount = playbackCount;
@@ -45,7 +45,9 @@ namespace YARG {
 				return;
 
 			int channel = Bass.SampleGetChannel(_sfxHandle);
-			Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, _manager.sfxVolume * AudioHelpers.SfxVolume[(int) Sample]);
+			
+			double volume = _manager.GetVolumeSetting(SongStem.Sfx) * AudioHelpers.SfxVolume[(int) Sample];
+			Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, volume);
 
 			Bass.ChannelPlay(channel);
 		}

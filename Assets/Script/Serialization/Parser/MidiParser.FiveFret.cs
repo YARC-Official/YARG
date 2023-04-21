@@ -20,8 +20,11 @@ namespace YARG.Serialization.Parser {
 			NONE,
 			HOPO,
 			STRUM,
-			OPEN
+			OPEN,
+			TAP
 		}
+
+		private bool isCurrentlyTap = false;
 
 		private class FiveFretIR {
 			public long startTick;
@@ -30,6 +33,7 @@ namespace YARG.Serialization.Parser {
 
 			public FretFlag fretFlag;
 			public bool hopo;
+			public bool tap;
 
 			// Used for difficulty downsampling
 			public bool autoHopo;
@@ -63,7 +67,7 @@ namespace YARG.Serialization.Parser {
 			// we must store the ON events and wait until the
 			// OFF event to actually add the state. This stores
 			// the ON event timings.
-			long?[] forceStateArray = new long?[4];
+			long?[] forceStateArray = new long?[5];
 
 			// Convert track events into intermediate representation
 			foreach (var trackEvent in trackChunk.Events) {
@@ -87,7 +91,7 @@ namespace YARG.Serialization.Parser {
 						forceState = ForceState.OPEN;
 					} else if (header.SequenceEqual(SYSEX_TAP_NOTE)) {
 						i = 3;
-						forceState = ForceState.HOPO;
+						forceState = ForceState.TAP;
 					} else {
 						continue;
 					}
@@ -96,11 +100,16 @@ namespace YARG.Serialization.Parser {
 						// If it is a flag on, wait until we get the flag
 						// off so we can get the length of the flag period.
 						forceStateArray[i] = totalDelta;
+						if (forceState == ForceState.TAP) {
+							isCurrentlyTap = true;
+						}
 					} else {
 						if (forceStateArray[i] == null) {
 							continue;
 						}
-
+						if (forceState == ForceState.TAP) {
+							isCurrentlyTap = false;
+						}
 						forceIR.Add(new ForceStateIR {
 							startTick = forceStateArray[i].Value,
 							endTick = totalDelta,
@@ -109,23 +118,27 @@ namespace YARG.Serialization.Parser {
 
 						forceStateArray[i] = null;
 					}
-				} else if (trackEvent is NoteEvent noteEvent) {
+				} else if (trackEvent is NoteEvent noteEvent && !isCurrentlyTap) {
 					// Note based flags
 
 					// Look for correct octave
 					if (noteEvent.GetNoteOctave() != 4 + difficulty) {
 						continue;
 					}
-
-					// Convert note to force state
-					ForceState forceState = noteEvent.GetNoteName() switch {
-						// Force HOPO
-						NoteName.F => ForceState.HOPO,
-						// Force strum
-						NoteName.FSharp => ForceState.STRUM,
-						// Default
-						_ => ForceState.NONE
-					};
+					ForceState forceState = ForceState.NONE;
+					if (noteEvent.GetNoteOctave() == 7 && noteEvent.GetNoteName() == NoteName.GSharp) {
+						forceState = ForceState.TAP;
+					} else {
+						// Convert note to force state
+						forceState = noteEvent.GetNoteName() switch {
+							// Force HOPO
+							NoteName.F => ForceState.HOPO,
+							// Force strum
+							NoteName.FSharp => ForceState.STRUM,
+							// Default
+							_ => ForceState.NONE
+						};
+					}
 
 					// Skip if not an actual state
 					if (forceState == ForceState.NONE) {
@@ -292,7 +305,11 @@ namespace YARG.Serialization.Parser {
 					// Otherwise, just set as a HOPO if requested
 					note.hopo = force == ForceState.HOPO;
 				}
-
+				if (force == ForceState.TAP) {
+					note.tap = true;
+					note.hopo = false;
+					note.autoHopo = false;
+				}
 				lastTime = note.startTick;
 				lastFret = note.fretFlag;
 			}
@@ -319,6 +336,11 @@ namespace YARG.Serialization.Parser {
 
 					int fret = i - 1;
 
+					if (noteInfo.tap) {
+						noteInfo.hopo = false;
+						noteInfo.autoHopo = false;
+					}
+
 					// Get the end tick (different for open notes)
 					long endTick;
 					if (fret == 5) {
@@ -336,6 +358,7 @@ namespace YARG.Serialization.Parser {
 						time = startTime,
 						length = endTime - startTime,
 						fret = fret,
+						tap = noteInfo.tap,
 						hopo = noteInfo.hopo,
 						autoHopo = noteInfo.autoHopo
 					});
