@@ -70,7 +70,12 @@ namespace YARG.Serialization {
                     case "preview":
                         preview = ((uint)((DataAtom)dtaArray[1]).Int, (uint)((DataAtom)dtaArray[2]).Int);
                         break;
-                    case "bank": bank = ((DataSymbol)dtaArray[1]).Name; break;
+                    case "bank": 
+                        if(dtaArray[1] is DataSymbol symBank)
+                            bank = symBank.Name;
+                        else if(dtaArray[1] is DataAtom atmBank)
+                            bank = atmBank.String;
+                        break;
                     case "song_scroll_speed": songScrollSpeed = (uint)((DataAtom)dtaArray[1]).Int; break;
                     case "solo":
                         DataArray soloInstruments = (DataArray)dtaArray[1];
@@ -102,7 +107,11 @@ namespace YARG.Serialization {
                     case "year_recorded": yearRecorded = (ushort)((DataAtom)dtaArray[1]).Int; break;
                     case "vocal_tonic_note": vocalTonicNote = (ushort)((DataAtom)dtaArray[1]).Int; break;
                     case "song_tonality": songTonality = ((((DataAtom)dtaArray[1]).Int) != 0); break; //0 = major, 1 = minor
-                    case "tuning_offset_cents": tuningOffsetCents = (short)((DataAtom)dtaArray[1]).Int; break;
+                    case "tuning_offset_cents":
+                        DataAtom tuningAtom = (DataAtom)dtaArray[1];
+                        if(tuningAtom.Type == DataType.INT) tuningOffsetCents = (short)((DataAtom)dtaArray[1]).Int; 
+                        else tuningOffsetCents = (short)((DataAtom)dtaArray[1]).Float; 
+                        break;
                     case "real_guitar_tuning":
                         DataArray guitarTunes = (DataArray)dtaArray[1];
                         realGuitarTuning = new short[6];
