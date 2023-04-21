@@ -10,11 +10,10 @@ using UnityEngine;
 using YARG.Data;
 using YARG.Serialization;
 using YARG.Settings;
-using YARG.Util;
 
 namespace YARG {
 	public static class SongLibrary {
-		private const int CACHE_VERSION = 4;
+		private const int CACHE_VERSION = 5;
 		private class SongCacheJson {
 			public int version = CACHE_VERSION;
 			public string folder = "";

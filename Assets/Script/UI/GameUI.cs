@@ -13,6 +13,8 @@ namespace YARG.UI {
 		[SerializeField]
 		private TextMeshProUGUI songTitle;
 		[SerializeField]
+		private TextMeshProUGUI bandName;
+		[SerializeField]
 		private TextMeshProUGUI lyric;
 		[SerializeField]
 		private RawImage vocalTrack;
@@ -33,9 +35,11 @@ namespace YARG.UI {
 
 		private void Start() {
 			if (Play.speed == 1f) {
-				songTitle.text = $"{Play.song.SongName} - {Play.song.artistName}";
+				songTitle.text = $"{Play.song.SongName}";
+				bandName.text = $"{Play.song.artistName}";
 			} else {
-				songTitle.text = $"{Play.song.SongName} ({Play.speed * 100}% speed) - {Play.song.artistName}";
+				songTitle.text = $"{Play.song.SongName} ({Play.speed * 100}%)";
+				bandName.text = $"{Play.song.artistName}";
 			}
 		}
 

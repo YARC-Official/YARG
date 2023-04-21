@@ -113,7 +113,9 @@ namespace YARG.Input {
 			return new string[] {
 				"guitar",
 				"bass",
-				"keys"
+				"keys",
+				"guitar_coop",
+				"rhythm",
 			};
 		}
 

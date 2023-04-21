@@ -86,6 +86,8 @@ namespace YARG.PlayMode {
 			}
 		}
 
+		private bool playingRhythm = false;
+
 		private void Awake() {
 			Instance = this;
 
@@ -118,6 +120,11 @@ namespace YARG.PlayMode {
 				if (player.chosenInstrument == null) {
 					// Skip players that are sitting out
 					continue;
+				}
+
+				// Temporary, will make a better system later
+				if (player.chosenInstrument == "rhythm") {
+					playingRhythm = true;
 				}
 
 				string trackPath = player.inputStrategy.GetTrackPath();
@@ -196,7 +203,7 @@ namespace YARG.PlayMode {
 
 			// Update this every frame to make sure all notes are spawned at the same time.
 			realSongTime = GameManager.AudioManager.CurrentPositionF;
-			
+
 			UpdateAudio(new string[] {
 				"guitar",
 				"realGuitar"
@@ -204,14 +211,32 @@ namespace YARG.PlayMode {
 				"guitar"
 			});
 
-			// Mute bass
-			UpdateAudio(new string[] {
-				"bass",
-				"realBass"
-			}, new string[] {
-				"bass",
-				"rhythm"
-			});
+			// Swap what tracks depending on what instrument is playing
+			if (playingRhythm) {
+				// Mute rhythm
+				UpdateAudio(new string[] {
+					"rhythm",
+				}, new string[] {
+					"rhythm"
+				});
+
+				// Mute bass
+				UpdateAudio(new string[] {
+					"bass",
+					"realBass"
+				}, new string[] {
+					"bass",
+				});
+			} else {
+				// Mute bass
+				UpdateAudio(new string[] {
+					"bass",
+					"realBass"
+				}, new string[] {
+					"bass",
+					"rhythm"
+				});
+			}
 
 			// Mute keys
 			UpdateAudio(new string[] {

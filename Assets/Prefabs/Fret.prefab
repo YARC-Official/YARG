@@ -63,25 +63,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 3269232338164336536}
     m_Modifications:
-    - target: {fileID: 4489133712198447424, guid: 7af6d08d3d505fd41ac6536154f22b05,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 6725635723881127238, guid: 7af6d08d3d505fd41ac6536154f22b05,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
     - target: {fileID: 6797345397265751757, guid: 7af6d08d3d505fd41ac6536154f22b05,
         type: 3}
       propertyPath: m_Name
       value: SustainParticles
-      objectReference: {fileID: 0}
-    - target: {fileID: 6797345397265751757, guid: 7af6d08d3d505fd41ac6536154f22b05,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 6797345397265751758, guid: 7af6d08d3d505fd41ac6536154f22b05,
         type: 3}
@@ -96,7 +81,7 @@ PrefabInstance:
     - target: {fileID: 6797345397265751758, guid: 7af6d08d3d505fd41ac6536154f22b05,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 0.063
       objectReference: {fileID: 0}
     - target: {fileID: 6797345397265751758, guid: 7af6d08d3d505fd41ac6536154f22b05,
         type: 3}
@@ -284,11 +269,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 3269232338164336536}
     m_Modifications:
-    - target: {fileID: 1183213317623107334, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
     - target: {fileID: 3294177006411540973, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
       propertyPath: m_RootOrder
@@ -302,12 +282,12 @@ PrefabInstance:
     - target: {fileID: 3294177006411540973, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 0.073
       objectReference: {fileID: 0}
     - target: {fileID: 3294177006411540973, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 0.011
       objectReference: {fileID: 0}
     - target: {fileID: 3294177006411540973, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
@@ -349,33 +329,7 @@ PrefabInstance:
       propertyPath: m_Name
       value: HitParticles
       objectReference: {fileID: 0}
-    - target: {fileID: 3294177006411540974, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 3294177006766791692, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 3294177006858759511, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 3365318231209192037, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 7631454421461166587, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 2080019635, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a, type: 3}
+    m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a, type: 3}
 --- !u!114 &2016666694653087196 stripped
 MonoBehaviour:

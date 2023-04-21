@@ -8,6 +8,8 @@ namespace YARG.Data {
 #pragma warning disable format
 		
 		public List<NoteInfo>[] guitar     = CreateArray();
+		public List<NoteInfo>[] guitar_coop     = CreateArray();
+		public List<NoteInfo>[] rhythm     = CreateArray();
 		public List<NoteInfo>[] bass       = CreateArray();
 		public List<NoteInfo>[] keys       = CreateArray();
 		public List<NoteInfo>[] realGuitar = CreateArray();
@@ -39,13 +41,15 @@ namespace YARG.Data {
 
 		public Chart() {
 			allParts = new() {
-				guitar, bass, keys, realGuitar, realBass, drums, realDrums, ghDrums
+				guitar, guitar_coop, rhythm,bass, keys, realGuitar, realBass, drums, realDrums, ghDrums
 			};
 		}
 
 		public List<NoteInfo>[] GetChartByName(string name) {
 			return name switch {
 				"guitar" => guitar,
+				"guitar_coop" => guitar_coop,
+				"rhythm" => rhythm,
 				"bass" => bass,
 				"keys" => keys,
 				"realGuitar" => realGuitar,

@@ -150,6 +150,10 @@ MonoBehaviour:
     m_Localized: Chipmunk Speedups
     m_Metadata:
       m_Items: []
+  - m_Id: 9486234872569856
+    m_Localized: Use High FOV Camera
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

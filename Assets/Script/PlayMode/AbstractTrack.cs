@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
 using YARG.Data;
 using YARG.Input;
 using YARG.Settings;
@@ -10,7 +9,7 @@ using YARG.UI;
 namespace YARG.PlayMode {
 	public abstract class AbstractTrack : MonoBehaviour {
 		public const float TRACK_SPAWN_OFFSET = 3f;
-		public const float TRACK_END_OFFSET = 1.8f;
+		public const float TRACK_END_OFFSET = 1.95f;
 
 		public delegate void StarpowerMissAction();
 		public event StarpowerMissAction StarpowerMissEvent;
@@ -115,16 +114,10 @@ namespace YARG.PlayMode {
 			);
 			descriptor.mipCount = 0;
 			var renderTexture = new RenderTexture(descriptor);
-			commonTrack.trackCamera.targetTexture = renderTexture;
 
-			// Set up camera
-			var info = commonTrack.trackCamera.GetComponent<UniversalAdditionalCameraData>();
-			if (SettingsManager.GetSettingValue<bool>("lowQuality")) {
-				info.antialiasing = AntialiasingMode.None;
-			} else {
-				info.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
-				info.antialiasingQuality = AntialiasingQuality.Low;
-			}
+			// Assign render texture to camera
+			commonTrack.SetupCameras();
+			commonTrack.TrackCamera.targetTexture = renderTexture;
 
 			susTracker = new(Play.Instance.chart.beats);
 		}
@@ -139,7 +132,7 @@ namespace YARG.PlayMode {
 
 			player.lastScore = null;
 
-			GameUI.Instance.AddTrackImage(commonTrack.trackCamera.targetTexture);
+			GameUI.Instance.AddTrackImage(commonTrack.TrackCamera.targetTexture);
 
 			// Adjust hit window
 			var scale = commonTrack.hitWindow.localScale;
@@ -157,7 +150,7 @@ namespace YARG.PlayMode {
 
 		protected virtual void OnDestroy() {
 			// Release render texture
-			commonTrack.trackCamera.targetTexture.Release();
+			commonTrack.TrackCamera.targetTexture.Release();
 
 			player.inputStrategy.StarpowerEvent -= StarpowerAction;
 			player.inputStrategy.PauseEvent -= PauseAction;
@@ -325,7 +318,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Update solo note count
-			if (Play.Instance.SongTime >= SoloSection?.time - 5 && Play.Instance.SongTime <= SoloSection?.time) {
+			if (Play.Instance.SongTime >= SoloSection?.time - 2 && Play.Instance.SongTime <= SoloSection?.time) {
 				soloNoteCount = 0;
 
 				for (int i = hitChartIndex; i < Chart.Count; i++) {

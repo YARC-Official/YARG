@@ -29,4 +29,8 @@ namespace YARG {
 		StarGain,
 		StarGold
 	}
+
+	public enum DSPType {
+		Gain,
+	}
 }
