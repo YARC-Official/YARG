@@ -147,6 +147,9 @@ namespace YARG.Data
 		[JsonProperty]
 		public string hash;
 
+		[JsonProperty]
+		public bool isSongIni;
+
 		public Dictionary<string, int> partDifficulties;
 
 		public SongInfo(DirectoryInfo folder, string rootFolder)

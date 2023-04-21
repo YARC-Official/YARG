@@ -202,8 +202,22 @@ namespace YARG {
 			foreach (var folder in songDir.EnumerateDirectories()) {
 				if (new FileInfo(Path.Combine(folder.FullName, "song.ini")).Exists) {
 					// If the folder has a song.ini, it is a song folder
-					songsTemp.Add(new SongInfo(folder, rootFolder));
-				} else {
+					SongInfo currSong = new SongInfo(folder, rootFolder);
+					currSong.isSongIni = true;
+					songsTemp.Add(currSong);
+				}
+				else if(new FileInfo(Path.Combine(folder.FullName, "config/songs.dta")).Exists){
+					// else, if the folder has a config/songs.dta, it is an Xbox GH song folder
+					Debug.Log($"lol, GH");
+				}
+				else if(new FileInfo(Path.Combine(folder.FullName, "songs/songs.dta")).Exists) {
+					// else, if the folder has a songs/songs.dta, it is an Xbox RB song folder
+					List<XboxSong> RBSongs = XboxRawfileBrowser.BrowseFolder(new DirectoryInfo($"{folder}/songs"));
+					// TODO: convert each XboxSong to a usable SongInfo here
+					// could also modify the SongInfo class to support an XboxSong as a member
+					// songsTemp.AddRange(RockBandSTFS.ParseSongsDta(folder));
+				}
+				else {
 					// Otherwise, treat it as a sub-folder
 					CreateSongInfoFromFiles(rootFolder, folder);
 				}
@@ -218,8 +232,7 @@ namespace YARG {
 			foreach (var song in songsTemp) {
 				// song.ini loading accounts for 40% of loading
 				loadPercent += 1f / songsTemp.Count * 0.4f;
-
-				SongIni.CompleteSongInfo(song);
+				if(song.isSongIni) SongIni.CompleteSongInfo(song);
 			}
 		}
 
@@ -238,6 +251,11 @@ namespace YARG {
 
 					string chosenFile = null;
 
+					if (!song.isSongIni) {
+						Debug.Log(song.rootFolder + $" and `folder` {song.folder.FullName}");
+						midFile = Path.Combine(song.folder.FullName, song.folder.FullName.Split('\\')[song.folder.FullName.Split('/').Length - 1] + ".mid");
+					}
+					
 					// Get the correct file
 					if (File.Exists(midFile)) {
 						chosenFile = midFile;
