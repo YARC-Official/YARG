@@ -109,6 +109,8 @@ BASS is the audio library for YARG. [It has it's own license for release](https:
 | [Lucide](https://lucide.dev/) | Icons | UI Icons
 | [PolyHaven](https://polyhaven.com/) | Assets | Textures and Models
 | [PlasticBand](https://github.com/TheNathannator/PlasticBand) | Reference | Controller Support Info
+| [PlasticBand-Unity](https://github.com/TheNathannator/PlasticBand-Unity) | Library | GH/RB Controller Support
+| [HIDrogen](https://github.com/TheNathannator/HIDrogen) | Library | Linux HID Controller Support
 | [GuitarGame_ChartFormats](https://github.com/TheNathannator/GuitarGame_ChartFormats) | Reference | File Format Documentation
 | [NuGet for Unity](https://github.com/GlitchEnzo/NuGetForUnity) | Library | NuGet Packages in Unity
 | [EliteAsian's Unity Extensions](https://github.com/EliteAsian123/EliteAsians-Unity-Extensions) | Library | Utility
