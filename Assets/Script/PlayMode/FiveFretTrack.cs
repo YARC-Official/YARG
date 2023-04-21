@@ -159,9 +159,11 @@ namespace YARG.PlayMode {
 				case "guitar":
 					Play.Instance.ReverbAudio("guitar", on);
 					break;
+				case "rhythm":
+					Play.Instance.ReverbAudio("rhythm", on);
+					break;
 				case "bass":
 					Play.Instance.ReverbAudio("bass", on);
-					Play.Instance.ReverbAudio("rhythm", on);
 					break;
 				case "keys":
 					Play.Instance.ReverbAudio("keys", on);
@@ -505,6 +507,7 @@ namespace YARG.PlayMode {
 							var heldNote = heldNotes[i];
 							notePool.MissNote(heldNote);
 							heldNotes.RemoveAt(i);
+							frets[heldNote.fret].StopAnimation();
 							frets[heldNote.fret].StopSustainParticles();
 							extendedSustain[heldNote.fret] = false;
 							StopAudio = true;
