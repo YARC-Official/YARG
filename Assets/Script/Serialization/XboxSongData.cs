@@ -40,10 +40,9 @@ namespace YARG.Serialization {
         private Dictionary<string, ushort> ranks;
 
         //TODO: implement macro support, such as #ifndef kControllerRealGuitar, or #ifdef YARG
-        public XboxSongData ParseFromDataArray(DataArray dta){
+        public XboxSongData(DataArray dta){
             shortname = dta.Name;
-
-            Parallel.For(1, dta.Count, i => {
+            for(int i = 1; i < dta.Count; i++){
                 DataArray dtaArray = (DataArray)dta[i];
                 switch(dtaArray[0].ToString()){
                     case "name": name = ((DataAtom)dtaArray[1]).Name; break;
@@ -57,63 +56,8 @@ namespace YARG.Serialization {
                     case "caption": master = true; break; //used in GH
                     case "song_id": songId = (uint)((DataAtom)dtaArray[1]).Int; break;
                     case "song_length": songLength = (uint)((DataAtom)dtaArray[1]).Int; break;
-                    case "song":
-                        Parallel.For(1, dtaArray.Count, n => {
-                            DataArray innerSongArray = (DataArray)dtaArray[n];
-                            switch(innerSongArray[0].ToString()){
-                                case "name": 
-                                    if(innerSongArray[1] is DataSymbol symPath)
-                                        songPath = symPath.Name;
-                                    else if(innerSongArray[1] is DataAtom atmPath)
-                                        songPath = atmPath.Name;
-                                    break;
-                                case "pans":
-                                    DataArray panArray = (DataArray)innerSongArray[1];
-                                    pans = new float[panArray.Count];
-                                    Parallel.For(0, panArray.Count, p => { pans[p] = ((DataAtom)panArray[p]).Float; });
-                                    break;
-                                case "vols":
-                                    DataArray volArray = (DataArray)innerSongArray[1];
-                                    vols = new float[volArray.Count];
-                                    Parallel.For(0, volArray.Count, v => { vols[v] = ((DataAtom)volArray[v]).Float; });
-                                    break;
-                                case "cores":
-                                    DataArray coreArray = (DataArray)innerSongArray[1];
-                                    cores = new short[coreArray.Count];
-                                    Parallel.For(0, coreArray.Count, c => { cores[c] = (short)((DataAtom)coreArray[c]).Int; });
-                                    break;
-                                case "vocal_parts": vocalParts = (byte)((DataAtom)innerSongArray[1]).Int; break;
-                                case "crowd_channels":
-                                    crowdChannels = new byte[innerSongArray.Count - 1];
-                                    for(int cc = 1; cc < innerSongArray.Count; cc++)
-                                        crowdChannels[cc - 1] = (byte)((DataAtom)innerSongArray[cc]).Int;
-                                    break;
-                                case "tracks":
-                                    DataArray trackArray = (DataArray)innerSongArray[1];
-                                    tracks = new Dictionary<string, byte[]>();
-                                    for(int x = 0; x < trackArray.Count; x++){
-                                        string key = "";
-                                        byte[] val = null;
-                                        if(trackArray[x] is DataArray instrArray){
-                                            key = ((DataSymbol)instrArray[0]).Name;
-                                            if(instrArray[1] is DataArray trackNums){
-                                                if(trackNums.Count > 0){
-                                                    val = new byte[trackNums.Count];
-                                                    for(int y = 0; y < trackNums.Count; y++)
-                                                        val[y] = (byte)((DataAtom)trackNums[y]).Int;
-                                                    tracks.Add(key, val);
-                                                }
-                                            }
-                                            else if(instrArray[1] is DataAtom trackNum){
-                                                val = new byte[1];
-                                                val[0] = (byte)trackNum.Int;
-                                                tracks.Add(key, val);
-                                            }
-                                        }
-                                    }
-                                    break;
-                            }
-                        });
+                    case "song": // we just want vocal parts for songDta
+                        vocalParts = (dtaArray.Array("vocal_parts") != null) ? (byte)((DataAtom)dtaArray.Array("vocal_parts")[1]).Int : (byte)1;
                         break;
                     case "anim_tempo":
                         if(dtaArray[1] is DataSymbol symTempo)
@@ -185,33 +129,21 @@ namespace YARG.Serialization {
                     default:
                         break;
                 }
-            });
-
+            }
             // must be done after the above parallel loop due to race issues with ranks and vocalParts
             if(!ranks.ContainsKey("vocals") || ranks["vocals"] == 0) vocalParts = 0;
-
-            return this;
         }
 
         public string GetShortName(){ return shortname; }
-        public string GetSongName(){ return name; }
-        public string GetArtist(){ return $"{((!master) ? "as made famous by " : "")}{artist}"; }
-
-        public float[] GetPans() { return pans; }
-        public float[] GetVols() { return vols; }
+        public bool AlbumArtRequired() { return albumArt; }
+        public bool IsFake() { return fake; }
 
         public override string ToString(){
-            string debugTrackStr = "";
-            foreach(var kvp in tracks) debugTrackStr += $"{kvp.Key}, ({string.Join(", ", kvp.Value)}) ";
 
             return string.Join(Environment.NewLine,
+                $"Song metadata:",
                 $"song id={songId}; shortname={shortname}: name={name}; artist={((!master) ? "as made famous by " : "")}{artist}",
-                $"song path={songPath}; vocal parts={vocalParts}; vocal gender={((vocalGender) ? "male" : "female")}",
-                $"pans=({string.Join(", ", pans)})",
-                $"vols=({string.Join(", ", vols)})",
-                $"cores=({string.Join(", ", cores)})",
-                // $"crowd channels=({string.Join(", ", crowdChannels)})",
-                $"tracks={string.Join(", ", debugTrackStr)}",
+                $"vocal parts={vocalParts}; vocal gender={((vocalGender) ? "male" : "female")}",
                 $"ranks={string.Join(", ", ranks)}",
                 $"album art={albumArt}; album name={albumName}; album track number={albumTrackNumber}",
                 $"year released={yearReleased}; year recorded={yearRecorded}",

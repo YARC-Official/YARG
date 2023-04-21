@@ -19,6 +19,55 @@ namespace YARG.Serialization {
 
         public XboxImage(string str){ imagePath = str; }
 
+        public void ParseImageHeader(){
+            using(FileStream fs = new FileStream(imagePath, FileMode.Open, FileAccess.Read)){
+                using(BinaryReader br = new BinaryReader(fs, new ASCIIEncoding())){
+                    // parse header
+                    byte[] header = br.ReadBytes(32);
+                    game = header[0];
+                    bitsPerPixel = header[1];
+                    format = BitConverter.ToInt32(header, 2);
+                    mipmaps = header[6];
+                    width = BitConverter.ToInt16(header, 7);
+                    height = BitConverter.ToInt16(header, 9);
+                    bytesPerLine = BitConverter.ToInt16(header, 11);
+                    // // parse DXT-compressed blocks
+                    // byte[] DXTBlocks = br.ReadBytes((int)(fs.Length - 32));
+                }
+            }
+        }
+
+        // return byte array of DXT1 formatted blocks to make into a Unity Texture
+        public byte[] GetDXTBlocksFromImage(){
+            using(FileStream fs = new FileStream(imagePath, FileMode.Open, FileAccess.Read)){
+                using(BinaryReader br = new BinaryReader(fs, new ASCIIEncoding())){
+                    // skip header
+                    byte[] header = br.ReadBytes(32);
+                    // parse DXT-compressed blocks
+                    byte[] DXTBlocks = br.ReadBytes((int)(fs.Length - 32));
+                    // swap bytes because xbox is weird like that
+                    Parallel.For(0, DXTBlocks.Length/2, i => {
+                        (DXTBlocks[i*2], DXTBlocks[i*2 + 1]) = (DXTBlocks[i*2 + 1], (DXTBlocks[i*2]));
+                    });
+                    //if DXT3 format, skip every 8 blocks
+                    if((bitsPerPixel == 0x04) && (format == 0x08)) return DXTBlocks;
+                    else{
+                        return DXTBlocks;
+                        // TODO: convert the DXT3 formatted blocks to DXT1
+                        // to do this, basically iterate every 8 bytes, skipping 8 and keeping 8
+                        // so on the first group of blocks for example,
+                        // bytes 0-7 of DXTBlocks are skipped,
+                        // bytes 8-15 of DXTBlocks are appended to DXT3Blocks, so on and so forth
+                        // byte[] DXT3Blocks = new byte[DXTBlocks.Length / 2];
+                        // for(int i = 8; i < DXTBlocks.Length; i += 8){
+                        //     DXT3Blocks[i - 8] = DXTBlocks[i];
+                        // }
+                    }
+                    
+                }
+            }
+        }
+
         public void ParseImage(){
             using(FileStream fs = new FileStream(imagePath, FileMode.Open, FileAccess.Read)){
                 using(BinaryReader br = new BinaryReader(fs, new ASCIIEncoding())){
@@ -37,12 +86,6 @@ namespace YARG.Serialization {
                     Parallel.For(0, DXTBlocks.Length/2, i => {
                         (DXTBlocks[i*2], DXTBlocks[i*2 + 1]) = (DXTBlocks[i*2 + 1], (DXTBlocks[i*2]));
                     });
-                    // for(int i = 0; i < DXTBlocks.Length; i += 2){
-                    //     // byte temp = DXTBlocks[i];
-                    //     // DXTBlocks[i] = DXTBlocks[i+1];
-                    //     // DXTBlocks[i+1] = temp;
-                    //     (DXTBlocks[i], DXTBlocks[i+1]) = (DXTBlocks[i+1], DXTBlocks[i]);
-                    // }
 
                     imageBytes = new byte[width*height*4];
                     XboxImageParser.BlockDecompressXboxImage((uint)width, (uint)height, ((bitsPerPixel == 0x04) && (format == 0x08)), DXTBlocks, imageBytes);

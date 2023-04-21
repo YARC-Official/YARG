@@ -206,11 +206,17 @@ namespace YARG {
 					SongInfo currSong = new SongInfo(folder, rootFolder);
 					currSong.isSongIni = true;
 					songsTemp.Add(currSong);
-				} 
-				else if(new FileInfo(Path.Combine(folder.FullName, "songs.dta")).Exists) {
-					// If the folder has a songs.dta, it is an Xbox song folder
-					Debug.Log($"yo im an xbox song folder");
-					songsTemp.AddRange(RockBandSTFS.ParseSongsDta(folder));
+				}
+				else if(new FileInfo(Path.Combine(folder.FullName, "config/songs.dta")).Exists){
+					// else, if the folder has a config/songs.dta, it is an Xbox GH song folder
+					Debug.Log($"lol, GH");
+				}
+				else if(new FileInfo(Path.Combine(folder.FullName, "songs/songs.dta")).Exists) {
+					// else, if the folder has a songs/songs.dta, it is an Xbox RB song folder
+					List<XboxSong> RBSongs = XboxRawfileBrowser.BrowseFolder(new DirectoryInfo($"{folder}/songs"));
+					// TODO: convert each XboxSong to a usable SongInfo here
+					// could also modify the SongInfo class to support an XboxSong as a member
+					// songsTemp.AddRange(RockBandSTFS.ParseSongsDta(folder));
 				}
 				else {
 					// Otherwise, treat it as a sub-folder
