@@ -55,7 +55,7 @@ MonoBehaviour:
   - {fileID: 4571971630462908758}
   - {fileID: 6846950644507852135}
   - {fileID: 7147253800328892818}
-  meshRendererMiddleIndices: 020000000200000001000000
+  meshRendererMiddleIndices: 020000000100000001000000
   noteGroup: {fileID: 1397812567785855241}
   hopoGroup: {fileID: 1294466957868725440}
   tapGroup: {fileID: 3624981743589644049}
@@ -141,7 +141,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2078363896503798061
 Transform:
   m_ObjectHideFlags: 0
