@@ -51,7 +51,11 @@ namespace YARG.Serialization {
                             master = (atmMaster.Int != 0);
                         break;
                     case "caption": master = true; break; //used in GH
-                    case "song_id": songId = (uint)((DataAtom)dtaArray[1]).Int; break;
+                    case "song_id": 
+                        if(dtaArray[1] is DataAtom atmSongId)
+                            if(atmSongId.Type == DataType.INT) 
+                                songId = (uint)((DataAtom)dtaArray[1]).Int; 
+                        break;
                     case "song_length": songLength = (uint)((DataAtom)dtaArray[1]).Int; break;
                     case "song": // we just want vocal parts for songDta
                         vocalParts = (dtaArray.Array("vocal_parts") != null) ? (byte)((DataAtom)dtaArray.Array("vocal_parts")[1]).Int : (byte)1;
