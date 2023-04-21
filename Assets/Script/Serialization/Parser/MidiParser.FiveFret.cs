@@ -5,6 +5,7 @@ using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
 using YARG.Data;
+using UnityEngine; // DEBUG remove later
 
 namespace YARG.Serialization.Parser {
 	public partial class MidiParser : AbstractParser {
@@ -86,7 +87,9 @@ namespace YARG.Serialization.Parser {
 					// Look for open note OR tap note header
 					int i;
 					ForceState forceState;
-					if (header.SequenceEqual(SYSEX_OPEN_NOTE)) {
+					var sysExOpen = SYSEX_OPEN_NOTE;
+					sysExOpen[4] = (byte)difficulty;
+					if (header.SequenceEqual(sysExOpen)) {
 						i = 2;
 						forceState = ForceState.OPEN;
 					} else if (header.SequenceEqual(SYSEX_TAP_NOTE)) {
@@ -272,16 +275,17 @@ namespace YARG.Serialization.Parser {
 
 			foreach (var note in noteIR) {
 				// See if we are in any force ranges
-				ForceState force = ForceState.NONE;
+				List<ForceState> force = new();
 				foreach (var forceIR in forceStateIR) {
-					if (note.startTick >= forceIR.startTick && note.startTick < forceIR.endTick) {
-						force = forceIR.forceState;
+					if (note.startTick == forceIR.startTick || (note.startTick >= forceIR.startTick && note.startTick < forceIR.endTick)) {
+						force.Add(forceIR.forceState);
+					}/* else if (forceIR.endTick >= note.startTick) {
 						break;
-					}
+					}*/
 				}
 
-				if (force == ForceState.NONE) {
-					// If there is not any force state, we know that we need to look for auto-HOPO.
+				if (force.Count == 0 || (force.Count == 1 && force.Contains(ForceState.OPEN))) {
+					// If there is not any force state, we know that we need to look for auto-HOPO. (This include open notes)
 					if (DoesQualifyForAutoHopo(note.fretFlag, lastFret)) {
 						// Wrap in a try just in case noteBeat < lastNoteBeat
 						try {
@@ -297,15 +301,14 @@ namespace YARG.Serialization.Parser {
 							}
 						} catch { }
 					}
-				} else if (force == ForceState.OPEN) {
-					// Set as open if requested
-					note.fretFlag = FretFlag.OPEN;
-					note.hopo = false;
 				} else {
 					// Otherwise, just set as a HOPO if requested
-					note.hopo = force == ForceState.HOPO;
+					note.hopo = force.Contains(ForceState.HOPO);
 				}
-				if (force == ForceState.TAP) {
+				if (force.Contains(ForceState.OPEN)) {
+					note.fretFlag = FretFlag.OPEN;
+				}
+				if (force.Contains(ForceState.TAP)) {
 					note.tap = true;
 					note.hopo = false;
 					note.autoHopo = false;
