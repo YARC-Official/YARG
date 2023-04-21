@@ -29,10 +29,10 @@ namespace YARG.PlayMode {
 		private List<NoteInfo> heldNotes = new();
 		private float? latestInput = null;
 		private bool latestInputIsStrum = false;
-		private bool[] extendedSustain = new bool[] {false,false,false,false,false};
+		private bool[] extendedSustain = new bool[] { false, false, false, false, false };
 		private int allowedGhostsDefault = Constants.EXTRA_ALLOWED_GHOSTS + 1;
 		private int allowedGhosts = Constants.EXTRA_ALLOWED_GHOSTS + 1;
-		private int[] allowedChordGhosts = new int[] {-1,-1,-1,-1,-1}; // -1 = not a chord; 0 = ghosted; 1 = ghost allowed
+		private int[] allowedChordGhosts = new int[] { -1, -1, -1, -1, -1 }; // -1 = not a chord; 0 = ghosted; 1 = ghost allowed
 		private bool antiGhosting = false;
 
 		private int notesHit = 0;
@@ -354,7 +354,7 @@ namespace YARG.PlayMode {
 			// add it to the allowed overstrums. This is so the player
 			// doesn't lose their combo when they strum AFTER they hit
 			// the tap note.
-			if ((chord[0].hopo||chord[0].tap) && !strummedCurrentNote) {
+			if ((chord[0].hopo || chord[0].tap) && !strummedCurrentNote) {
 				allowedOverstrums.Clear(); // Only allow overstrumming latest HO/PO
 				allowedOverstrums.Add(chord);
 			} else if (allowedOverstrums.Count > 0 && !chord[0].hopo && !chord[0].tap) {
@@ -369,7 +369,6 @@ namespace YARG.PlayMode {
 						}
 					}
 				}
-
 			}
 		}
 
@@ -614,10 +613,9 @@ namespace YARG.PlayMode {
 				model = NoteComponent.ModelType.FULL;
 			} else if (noteInfo.hopo) {
 				model = NoteComponent.ModelType.HOPO;
-			} else if (noteInfo.tap){
+			} else if (noteInfo.tap) {
 				model = NoteComponent.ModelType.TAP;
 			}
-
 
 			// Set note info
 			var noteComp = notePool.AddNote(noteInfo, pos);
@@ -628,7 +626,6 @@ namespace YARG.PlayMode {
 				noteInfo.length,
 				model
 			);
-			
 		}
 
 		private string PrintFrets() { // Debug function; remove later?

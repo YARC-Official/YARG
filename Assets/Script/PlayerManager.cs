@@ -24,8 +24,11 @@ namespace YARG {
 			public float trackSpeed = 5f;
 			public bool leftyFlip = false;
 
+			public bool brutalMode = false;
+
 			public string chosenInstrument = "guitar";
 			public Difficulty chosenDifficulty = Difficulty.EXPERT;
+
 			public LastScore? lastScore = null;
 			public AbstractTrack track = null;
 
