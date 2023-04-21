@@ -229,7 +229,9 @@ public class DiscordController : MonoBehaviour {
 		CurrentActivity = new Activity {
 			Assets = {
 				LargeImage = defaultLargeImage,
-				LargeText = defaultLargeText
+				LargeText = defaultLargeText,
+				SmallImage = defaultSmallImage,
+				SmallText = defaultSmallText
 			},
 			Details = defaultDetails,
 			State = defaultState,

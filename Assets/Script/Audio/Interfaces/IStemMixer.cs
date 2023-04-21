@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace YARG {
 	public interface IStemMixer : IDisposable {
@@ -7,6 +8,8 @@ namespace YARG {
 		
 		public bool IsPlaying { get; }
 		
+		public IReadOnlyDictionary<SongStem, IStemChannel> Channels { get; }
+
 		public IStemChannel LeadChannel { get; }
 		
 		public bool Create();

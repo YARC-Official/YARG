@@ -5,6 +5,12 @@ using YARG.PlayMode;
 
 namespace YARG.UI {
 	public class PauseMenu : MonoBehaviour {
+		private enum ButtonIndex {
+			RESUME = 0,
+			SETTINGS,
+			QUIT
+		}
+
 		[SerializeField]
 		private GenericOption[] options;
 
@@ -53,14 +59,11 @@ namespace YARG.UI {
 				return;
 			}
 
-			if (navigationType == NavigationType.UP) {
-				MoveOption(-1);
-			} else if (navigationType == NavigationType.DOWN) {
-				MoveOption(1);
-			} else if (navigationType == NavigationType.PRIMARY) {
-				Next();
-			} else if (navigationType == NavigationType.SECONDARY) {
-				MainMenu.Instance.ShowSongSelect();
+			switch (navigationType) {
+				case NavigationType.UP: MoveOption(-1); break;
+				case NavigationType.DOWN: MoveOption(1); break;
+				case NavigationType.PRIMARY: SelectCurrentOption(); break;
+				case NavigationType.SECONDARY: OnResumeSelected(); break;
 			}
 		}
 
@@ -97,34 +100,30 @@ namespace YARG.UI {
 		}
 
 		private void ClickOption(GenericOption option) {
-			Next();
+			SelectCurrentOption();
 		}
 
-		public void Next() {
-			if (selected == 0) {
-				// Resume
-				Play.Instance.Paused = false;
-			} else if (selected == 1) {
-				// Settings
-				settingsContainer.SetActive(!settingsContainer.activeSelf);
-			} else if (selected == 2) {
-				// Quit
-				Play.Instance.Exit();
+		public void SelectCurrentOption() {
+			switch ((ButtonIndex)selected) {
+				case ButtonIndex.RESUME: OnResumeSelected(); break;
+				case ButtonIndex.SETTINGS: OnSettingsSelected(); break;
+				case ButtonIndex.QUIT: OnQuitSelected(); break;
+				default: Debug.LogError($"Unhandled option index {selected}!"); break;
 			}
 		}
 
 		private void UpdateText() {
 			// Add to options
-			optionCount = 3;
 			string[] ops = {
 				"Resume",
 				"Settings",
 				"Quit",
 				null
 			};
+			optionCount = ops.Length - 1;
 
 			// Set text and sprites
-			for (int i = 0; i < 4; i++) {
+			for (int i = 0; i < ops.Length; i++) {
 				options[i].SetText(ops[i]);
 				options[i].SetSelected(false);
 			}
@@ -132,6 +131,18 @@ namespace YARG.UI {
 			// Select
 			selected = 0;
 			options[0].SetSelected(true);
+		}
+
+		private void OnResumeSelected() {
+			Play.Instance.Paused = false;
+		}
+
+		private void OnSettingsSelected() {
+			settingsContainer.SetActive(!settingsContainer.activeSelf);
+		}
+
+		private void OnQuitSelected() {
+			Play.Instance.Exit();
 		}
 	}
 }

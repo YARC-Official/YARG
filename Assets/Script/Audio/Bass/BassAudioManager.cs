@@ -17,6 +17,9 @@ namespace YARG {
 
 		public bool IsAudioLoaded { get; private set; }
 		public bool IsPlaying { get; private set; }
+		
+		public double MasterVolume { get; private set; }
+		public double SfxVolume { get; private set; }
 
 		public double CurrentPositionD => GetPosition();
 		public double AudioLengthD { get; private set; }
@@ -24,10 +27,9 @@ namespace YARG {
 		public float CurrentPositionF => (float) GetPosition();
 		public float AudioLengthF { get; private set; }
 
-		public double[] stemVolumes;
-		public double sfxVolume;
-		
-		private int opusHandle;
+		private double[] _stemVolumes;
+
+		private int _opusHandle;
 
 		private IStemMixer _mixer;
 
@@ -43,11 +45,11 @@ namespace YARG {
 				".opus",
 			};
 
-			stemVolumes = new double[AudioHelpers.SupportedStems.Count];
+			_stemVolumes = new double[AudioHelpers.SupportedStems.Count];
 
 			_sfxSamples = new ISampleChannel[AudioHelpers.SfxPaths.Count];
 
-			opusHandle = 0;
+			_opusHandle = 0;
 		}
 
 		public void Initialize() {
@@ -55,7 +57,7 @@ namespace YARG {
 			string bassPath = GetBassDirectory();
 			string opusLibDirectory = Path.Combine(bassPath, "bassopus");
 
-			opusHandle = Bass.PluginLoad(opusLibDirectory);
+			_opusHandle = Bass.PluginLoad(opusLibDirectory);
 			Bass.Configure(Configuration.IncludeDefaultDevice, true);
 
 			Bass.UpdatePeriod = 5;
@@ -98,8 +100,8 @@ namespace YARG {
 
 			UnloadSong();
 
-			Bass.PluginFree(opusHandle);
-			opusHandle = 0;
+			Bass.PluginFree(_opusHandle);
+			_opusHandle = 0;
 
 			// Free SFX samples
 			foreach (var sample in _sfxSamples) {
@@ -206,6 +208,9 @@ namespace YARG {
 				return;
 			}
 
+			foreach (var channel in _mixer.Channels.Values) {
+				channel.SetVolume(channel.Volume);
+			}
 			if (_mixer.Play() != 0) {
 				Debug.Log($"Play error: {Bass.LastError}");
 			}
@@ -234,23 +239,31 @@ namespace YARG {
 		public void SetStemVolume(SongStem stem, double volume) {
 			var channel = _mixer.GetChannel(stem);
 
-			// Multiply volume inputted by the stem's volume setting (e.g. 0.5 * 0.5 = 0.25)
-			channel?.SetVolume(volume * stemVolumes[(int) stem]);
+			channel?.SetVolume(volume);
 		}
 
 		public void UpdateVolumeSetting(SongStem stem, double volume) {
 			switch (stem)
 			{
 				case SongStem.Master:
-					Bass.GlobalStreamVolume = (int) (10_000 * volume);
+					MasterVolume = volume;
+					Bass.GlobalStreamVolume = (int) (10_000 * MasterVolume);
 					break;
 				case SongStem.Sfx:
-					sfxVolume = volume;
+					SfxVolume = volume;
 					break;
 				default:
-					stemVolumes[(int) stem] = volume;
+					_stemVolumes[(int) stem] = volume;
 					break;
 			}
+		}
+
+		public double GetVolumeSetting(SongStem stem) {
+			return stem switch {
+				SongStem.Master => MasterVolume,
+				SongStem.Sfx    => SfxVolume,
+				_               => _stemVolumes[(int) stem]
+			};
 		}
 
 		public void ApplyReverb(SongStem stem, bool reverb) {

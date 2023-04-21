@@ -3,57 +3,64 @@ using System.Collections.Generic;
 using ManagedBass;
 using ManagedBass.DirectX8;
 using ManagedBass.Fx;
-using UnityEngine;
 
 namespace YARG {
 	public class BassStemChannel : IStemChannel {
-		
+
 		private const EffectType REVERB_TYPE = EffectType.DXReverb;
-		
+
 		public SongStem Stem { get; }
 		public double LengthD { get; private set; }
-		
+
+		public double Volume { get; private set; }
+
 		public int StreamHandle { get; private set; }
 
 		private readonly string _path;
-		private readonly BassAudioManager _manager;
+		private readonly IAudioManager _manager;
 
 		private readonly Dictionary<EffectType, int> _effects;
 		private readonly Dictionary<DSPType, int> _dspHandles;
 
 		private readonly DSPProcedure _dspGain;
-		
+
+		private double _lastStemVolume;
+
 		private bool _disposed;
 
-		public BassStemChannel(BassAudioManager manager, string path, SongStem stem) {
+		public BassStemChannel(IAudioManager manager, string path, SongStem stem) {
 			_manager = manager;
 			_path = path;
 			Stem = stem;
-			
+
+			Volume = 1;
+
+			_lastStemVolume = _manager.GetVolumeSetting(Stem);
 			_effects = new Dictionary<EffectType, int>();
 			_dspHandles = new Dictionary<DSPType, int>();
-			
+
 			_dspGain += GainDSP;
 		}
-		
+
 		~BassStemChannel() {
 			Dispose(false);
 		}
+
 
 		public int Load(bool isSpeedUp, float speed) {
 			if (StreamHandle != 0) {
 				return 0;
 			}
-			
+
 			int streamHandle = Bass.CreateStream(_path, 0, 0, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
 			if (streamHandle == 0) {
-				return (int)Bass.LastError;
+				return (int) Bass.LastError;
 			}
 
 			const BassFlags flags = BassFlags.SampleOverrideLowestVolume | BassFlags.Decode | BassFlags.FxFreeSource;
 			StreamHandle = BassFx.TempoCreate(streamHandle, flags);
 
-			Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, _manager.stemVolumes[(int) Stem]);
+			Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, _manager.GetVolumeSetting(Stem));
 
 			if (isSpeedUp) {
 				// Gets relative speed from 100% (so 1.05f = 5% increase)
@@ -70,18 +77,31 @@ namespace YARG {
 			}
 
 			LengthD = GetLengthInSeconds();
-			
+
 			return 0;
 		}
 
-		public void SetVolume(double volume) {
+		public void SetVolume(double newVolume) {
 			if (StreamHandle == 0) {
 				return;
 			}
-			
-			Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, volume);
+
+			double volumeSetting = _manager.GetVolumeSetting(Stem);
+
+			double oldBassVol = _lastStemVolume * Volume;
+			double newBassVol = volumeSetting * newVolume;
+
+			// Values are the same, no need to change
+			if (Math.Abs(oldBassVol - newBassVol) < double.Epsilon) {
+				return;
+			}
+
+			Volume = newVolume;
+			_lastStemVolume = volumeSetting;
+
+			Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, newBassVol);
 		}
-		
+
 		public void SetReverb(bool reverb) {
 			if (reverb) {
 				// Reverb already applied
@@ -107,7 +127,7 @@ namespace YARG {
 				_dspHandles.Remove(DSPType.Gain);
 			}
 		}
-		
+
 		public double GetPosition() {
 			return Bass.ChannelBytes2Seconds(StreamHandle, Bass.ChannelGetPosition(StreamHandle));
 		}
@@ -116,44 +136,44 @@ namespace YARG {
 			if (StreamHandle == 0) {
 				return 0;
 			}
-			
+
 			long length = Bass.ChannelGetLength(StreamHandle);
-			
+
 			if (length == -1) {
 				return (double) Bass.LastError;
 			}
-			
+
 			double seconds = Bass.ChannelBytes2Seconds(StreamHandle, length);
-			
+
 			if (seconds < 0) {
 				return (double) Bass.LastError;
 			}
-			
+
 			return seconds;
 		}
-		
+
 		public void Dispose() {
 			Dispose(true);
 			GC.SuppressFinalize(this);
 		}
-		
+
 		private void Dispose(bool disposing) {
 			if (!_disposed) {
 				// Free managed resources here
 				if (disposing) {
-					
+
 				}
-				
+
 				// Free unmanaged resources here
 				if (StreamHandle != 0) {
 					Bass.StreamFree(StreamHandle);
 					StreamHandle = 0;
 				}
-				
+
 				_disposed = true;
 			}
 		}
-		
+
 		private int AddReverbToChannel() {
 			// Set reverb FX
 			int reverbHandle = Bass.ChannelSetFX(StreamHandle, REVERB_TYPE, 0);
@@ -178,7 +198,7 @@ namespace YARG {
 
 			return !Bass.FXSetParameters(reverbHandle, reverbParams) ? 0 : reverbHandle;
 		}
-		
+
 		private static unsafe void GainDSP(int handle, int channel, IntPtr buffer, int length, IntPtr user) {
 			var bufferPtr = (float*) buffer;
 			int samples = length / 4;

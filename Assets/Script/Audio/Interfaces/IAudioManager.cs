@@ -9,6 +9,9 @@ namespace YARG {
 
 		public bool IsAudioLoaded { get; }
 		public bool IsPlaying { get; }
+		
+		public double MasterVolume { get; }
+		public double SfxVolume { get; }
 
 		public double CurrentPositionD { get; }
 		public double AudioLengthD { get; }
@@ -32,6 +35,8 @@ namespace YARG {
 		public void SetStemVolume(SongStem stem, double volume);
 
 		public void UpdateVolumeSetting(SongStem stem, double volume);
+		
+		public double GetVolumeSetting(SongStem stem);
 
 		public void ApplyReverb(SongStem stem, bool reverb);
 
