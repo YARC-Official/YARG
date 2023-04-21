@@ -26,7 +26,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 396386252373935444}
   m_LocalRotation: {x: 0.56322813, y: -0, z: -0, w: 0.8263015}
-  m_LocalPosition: {x: 0, y: 0, z: 0.03}
+  m_LocalPosition: {x: 0, y: 0, z: 0.015}
   m_LocalScale: {x: 0.17877747, y: 0.19130976, z: 0.17877747}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -35,8 +35,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 68.559, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0.107}
-  m_SizeDelta: {x: 1.5, y: 1.3}
+  m_AnchoredPosition: {x: 0, y: 0.166}
+  m_SizeDelta: {x: 1.5, y: 1.5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &3746261134333683177
 MeshRenderer:
@@ -100,7 +100,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 0
+  m_text: 1
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: bd78233bc3a8ea940a15e0d7ce6a701a, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 9d454ccc7950ea045924c7d2411604a8, type: 2}
@@ -127,12 +127,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 15
-  m_fontSizeBase: 15
+  m_fontSize: 12.5
+  m_fontSizeBase: 13
   m_fontWeight: 400
-  m_enableAutoSizing: 0
-  m_fontSizeMin: 8
-  m_fontSizeMax: 10
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 12
+  m_fontSizeMax: 22
   m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 1024
@@ -229,6 +229,7 @@ MonoBehaviour:
   meshRendererMiddleIndices: 0200000002000000
   noteGroup: {fileID: 1397812567785855241}
   hopoGroup: {fileID: 1294466957868725440}
+  tapGroup: {fileID: 0}
   fullGroup: {fileID: 5879953073027725293}
   fretNumber: {fileID: 5134052872940096443}
   lineRenderer: {fileID: 5864461325193466425}

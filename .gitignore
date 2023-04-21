@@ -78,8 +78,9 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
-# Backup
+# Ignore backups
 *.blend1
+*.blend1.meta
 
 # Auto-gen
 Assets/YargInput.cs
