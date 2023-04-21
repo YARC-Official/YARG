@@ -56,7 +56,7 @@ MonoBehaviour:
   - {fileID: 6846950644507852135}
   - {fileID: 6376229487116774476}
   - {fileID: 7147253800328892818}
-  meshRendererMiddleIndices: 02000000010000000200000001000000
+  meshRendererMiddleIndices: 02000000010000000100000001000000
   noteGroup: {fileID: 1397812567785855241}
   hopoGroup: {fileID: 1294466957868725440}
   tapGroup: {fileID: 3624981743589644049}
@@ -78,7 +78,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2485029377005370073
 Transform:
   m_ObjectHideFlags: 0
@@ -142,7 +142,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2078363896503798061
 Transform:
   m_ObjectHideFlags: 0
@@ -174,7 +174,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &7437171449997926572
 Transform:
   m_ObjectHideFlags: 0

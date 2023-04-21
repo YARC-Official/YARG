@@ -9,7 +9,7 @@ namespace YARG.Data {
 		/// </summary>
 		public bool hopo;
 		/// <summary>
-		/// Tap note. Only used for guitar, coop guitar, rhythm, and bass.
+		/// Tap note. Only used for five fret.
 		/// </summary>
 		public bool tap;
 		/// <summary>
