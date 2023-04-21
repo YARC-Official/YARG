@@ -31,7 +31,7 @@ namespace YARG.UI {
 				return;
 			}
 
-			const int TEXT_COUNT = 4;
+			const int TEXT_COUNT = 6;
 
 			// Spawn additional text
 			for (int i = 0; i < TEXT_COUNT - 1; i++) {
@@ -56,6 +56,8 @@ namespace YARG.UI {
 			text[1].text = $"{score.percentage.percent * 100f:N1}%" + end;
 			text[2].text = $"{score.notesHit} hit";
 			text[3].text = $"{score.notesMissed} missed";
+			text[4].text = $"{score.score.score} pts";
+			text[5].text = $"{score.score.stars} stars";
 		}
 	}
 }
