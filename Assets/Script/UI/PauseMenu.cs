@@ -60,7 +60,7 @@ namespace YARG.UI {
 			} else if (navigationType == NavigationType.PRIMARY) {
 				Next();
 			} else if (navigationType == NavigationType.SECONDARY) {
-				MainMenu.Instance.ShowSongSelect();
+				Play.Instance.Exit();
 			}
 		}
 
