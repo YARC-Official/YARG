@@ -233,10 +233,6 @@ namespace YARG.UI {
 			}
 		}
 
-		public void ShowHostServerScene() {
-			GameManager.Instance.LoadScene(SceneIndex.SERVER_HOST);
-		}
-
 		public void AbortSongLoad() {
 			SettingsManager.DeleteSettingsFile();
 
