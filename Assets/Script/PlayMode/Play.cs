@@ -23,12 +23,6 @@ namespace YARG.PlayMode {
 
 		public static SongInfo song = null;
 
-		// TODO: Store song speeds in setlist
-		public static List<SongInfo> setlist = new();
-		public static List<float> setlistSongSpeeds = new();
-		public static int setlistCurrentSongIndex = 0;
-		public static int setlistSize = 0;
-
 		public delegate void BeatAction();
 		public static event BeatAction BeatEvent;
 
@@ -117,9 +111,6 @@ namespace YARG.PlayMode {
 			// Spawn tracks
 			int i = 0;
 			foreach (var player in PlayerManager.players) {
-				player.chosenDifficulty = player.setlistDifficulties[setlistCurrentSongIndex];
-				player.chosenInstrument = player.setlistInstruments[setlistCurrentSongIndex];
-
 				if (player.chosenInstrument == null) {
 					// Skip players that are sitting out
 					continue;
@@ -347,42 +338,6 @@ namespace YARG.PlayMode {
 				}
 			}
 		}
-
-		public static void AddSongToSetlist(SongInfo song, float speed)
-        {
-			setlist.Add(song);
-			setlistSongSpeeds.Add(speed);
-        }
-
-		public static void StartSetlist()
-        {
-			// Song index gets incremented to 0 by ContinueSetlist().
-			setlistCurrentSongIndex = -1;
-			
-			setlistSize = setlist.Count;
-			ContinueSetlist();
-		}
-
-		public static void ContinueSetlist()
-        {
-			setlistCurrentSongIndex++;
-			song = setlist[setlistCurrentSongIndex];
-			speed = setlistSongSpeeds[setlistCurrentSongIndex];
-			GameManager.Instance.LoadScene(SceneIndex.PLAY);
-		}
-
-		public static void EndSetlist()
-        {
-			foreach (PlayerManager.Player player in PlayerManager.players) {
-				player.setlistInstruments.Clear();
-				player.setlistDifficulties.Clear();
-			}
-
-			setlistSize = 0;
-			setlistCurrentSongIndex = 0;
-			setlist.Clear();
-			setlistSongSpeeds.Clear();
-        }
 
 		public void Exit() {
 			// Dispose of all audio
