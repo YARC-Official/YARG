@@ -6,8 +6,11 @@ namespace YARG {
 
 		public const float HIT_MARGIN = 0.095f;
 		public const float STRUM_LENIENCY = 0.065f;
+		public const float DEBOUNCE_LENIENCY = 0.005f;
 		public const bool ANCHORING = true;
 		public const bool INFINITE_FRONTEND = false;
 		public const bool ANCHOR_CHORD_HOPO = true;
+		public const bool ANTI_GHOSTING = true;
+		public const int EXTRA_ALLOWED_GHOSTS = 0;
 	}
 }

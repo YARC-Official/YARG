@@ -29,6 +29,8 @@ namespace YARG.PlayMode {
 		private float? latestInput = null;
 		private bool latestInputIsStrum = false;
 		private bool[] extendedSustain = new bool[] {false,false,false,false,false};
+		private int allowedGhostsDefault = Constants.EXTRA_ALLOWED_GHOSTS + 1;
+		private int allowedGhosts = Constants.EXTRA_ALLOWED_GHOSTS + 1;
 
 		private int notesHit = 0;
 		// private int notesMissed = 0;
@@ -195,7 +197,7 @@ namespace YARG.PlayMode {
 			// Handle misses (multiple a frame in case of lag)
 			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Constants.HIT_MARGIN) {
 				var missedChord = expectedHits.Dequeue();
-
+				allowedGhosts = allowedGhostsDefault;
 				// Call miss for each component
 				Combo = 0;
 				foreach (var hit in missedChord) {
@@ -222,7 +224,7 @@ namespace YARG.PlayMode {
 
 			// If the note is a HOPO, the player has not strummed, and the HOPO can't be hit, nothing happens.
 			if (chord[0].hopo && !strummed && strumLeniency == 0f) {
-				if (Combo <= 0) {
+				if (Combo <= 0 || (allowedGhosts <= 0 && chord.Count == 1)) { // TODO: remove "&& chord.Count == 1" once chord ghosting check is added
 					return;
 				}
 
@@ -295,6 +297,7 @@ namespace YARG.PlayMode {
 			// If correct chord is pressed, and is not a multi-hit, hit it!
 			expectedHits.Dequeue();
 
+			allowedGhosts = allowedGhostsDefault;
 			Combo++;
 			strummedCurrentNote = strummedCurrentNote || strummed || strumLeniency > 0f;
 			strumLeniency = 0f;
@@ -321,7 +324,7 @@ namespace YARG.PlayMode {
 					// Check if it's extended sustain;
 					var nextNote = GetNextNote(hit.time);
 					if (nextNote != null) {
-						extendedSustain[hit.fret] = hit.EndTime > nextNote.time;
+						extendedSustain[hit.fret] = hit.EndTime > nextNote[0].time;
 					}
 				} else if (hit.fret != 5) {
 					extendedSustain[hit.fret] = false;
@@ -485,6 +488,30 @@ namespace YARG.PlayMode {
 			latestInput = Play.Instance.SongTime;
 			latestInputIsStrum = false;
 
+			// Should it check ghosting?
+			if (Constants.ANTI_GHOSTING && allowedGhosts > 0 && pressed && hitChartIndex > 0) {
+				bool checkGhosting = true;
+				for (var i = 0; i < 5; i++) {
+					if (i == fret) {
+						continue;
+					}
+					if (frets[i].IsPressed) {
+						if (fret < i) { // Don't check ghosting if pressed fret is below currently held fret
+							checkGhosting = false;
+							break;
+						}
+					}
+				}
+				if (checkGhosting) {
+					var nextNote = GetNextNote(Chart[hitChartIndex-1].time);
+					if (nextNote != null && nextNote[0].hopo && nextNote.Count == 1) { // TODO: take taps and hopo/tap chords into account
+						if (fret != nextNote[0].fret) { // Hitting wrong button = ghosted = bad
+							allowedGhosts--;
+						}
+					}
+				}
+			}
+
 			frets[fret].SetPressed(pressed);
 
 			if (pressed) {
@@ -616,15 +643,31 @@ namespace YARG.PlayMode {
 			return false;
 		}
 
-		private NoteInfo GetNextNote(float currentChordTime) {
+		private List<NoteInfo> GetNextNote(float currentChordTime) {
 			var i = hitChartIndex;
+			List<NoteInfo> chord = new();
 			while (Chart.Count > i) {
 				if (Chart[i].time > currentChordTime) {
-					return Chart[i];
+					var nextChordTime = Chart[i].time;
+					chord.Add(Chart[i]);
+					i++;
+						while (Chart.Count > i)	{
+							if (Chart[i].time > nextChordTime) {
+								break;
+							} else {
+								chord.Add(Chart[i]);
+								i++;
+							}
+						}
+					break;
 				}
 				i++;
 			}
-			return null;
+			if (chord.Count == 0) {
+				return null;
+			} else {
+				return chord;
+			}
 		}
 
 		private bool IsExtendedSustain() {
