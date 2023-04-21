@@ -82,8 +82,8 @@ namespace YARG.Pools {
 		public void SetInfo(Color notes, Color sustains, float length, ModelType hopo) {
 			noteGroup.SetActive(hopo == ModelType.NOTE);
 			hopoGroup.SetActive(hopo == ModelType.HOPO);
-			fullGroup.SetActive(hopo == ModelType.FULL);
 			tapGroup.SetActive( hopo == ModelType.TAP);
+			fullGroup.SetActive(hopo == ModelType.FULL);
 			state = State.WAITING;
 
 			SetLength(length);
