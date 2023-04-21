@@ -35,16 +35,17 @@ namespace YARG.Pools {
 
 		private float _brutal_vanish_distance;
 		/// <summary>
-		/// Ranges between 0 and 1. Notes will disappear when they reach this percentage down the track.
+		/// Ranges between -1 and 1. Notes will disappear when they reach this percentage down the track.
 		/// </summary>
 		/// <remarks>
 		/// A value of 0 is the strikeline, while a value of 1 is the top of the track.<br/>
-		/// Larger numbers will cause the notes to disappear sooner.
+		/// Larger numbers will cause the notes to disappear sooner.<br/>
+		/// Notes will not disappear at all if this number is below 0.
 		/// </remarks>
 		private float BrutalVanishDistance {
 			get => _brutal_vanish_distance;
 			set {
-				_brutal_vanish_distance = System.Math.Clamp(value, 0, 1);
+				_brutal_vanish_distance = System.Math.Clamp(value, -1, 1);
 			}
 		}
 
@@ -245,7 +246,7 @@ namespace YARG.Pools {
 					0.80f
 				);
 			} else {
-				BrutalVanishDistance = 0.0f;
+				BrutalVanishDistance = -1.0f;
 			}
 			
 			BrutalUpdateNoteVanish();
