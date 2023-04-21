@@ -61,7 +61,7 @@ namespace YARG.Input {
 			}
 
 			// Constantly activate starpower
-			CallStarpowerEvent();
+			//CallStarpowerEvent();
 		}
 
 		public override void UpdateBotMode(object rawChart, float songTime) {
@@ -80,7 +80,7 @@ namespace YARG.Input {
 			}
 
 			// Constantly activate starpower
-			CallStarpowerEvent();
+			//CallStarpowerEvent();
 		}
 
 		public override void UpdateNavigationMode() {

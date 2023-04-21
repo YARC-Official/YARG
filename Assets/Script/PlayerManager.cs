@@ -29,6 +29,9 @@ namespace YARG {
 			public string chosenInstrument = "guitar";
 			public Difficulty chosenDifficulty = Difficulty.EXPERT;
 
+			public List<string> setlistInstruments = new();
+			public List<Difficulty> setlistDifficulties = new();
+
 			public LastScore? lastScore = null;
 			public AbstractTrack track = null;
 
