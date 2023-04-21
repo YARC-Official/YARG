@@ -4,6 +4,7 @@ using UnityEngine;
 using YARG.Data;
 using YARG.Input;
 using YARG.Pools;
+using YARG.Settings;
 using YARG.Util;
 
 namespace YARG.PlayMode {
@@ -32,6 +33,7 @@ namespace YARG.PlayMode {
 		private int allowedGhostsDefault = Constants.EXTRA_ALLOWED_GHOSTS + 1;
 		private int allowedGhosts = Constants.EXTRA_ALLOWED_GHOSTS + 1;
 		private int[] allowedChordGhosts = new int[] {-1,-1,-1,-1,-1}; // -1 = not a chord; 0 = ghosted; 1 = ghost allowed
+		private bool antiGhosting = false;
 
 		private int notesHit = 0;
 		// private int notesMissed = 0;
@@ -39,6 +41,9 @@ namespace YARG.PlayMode {
 		protected override void StartTrack() {
 			notePool.player = player;
 			genericPool.player = player;
+
+			// Engine tweak
+			antiGhosting = SettingsManager.GetSettingValue<bool>("antiGhosting");
 
 			// Lefty flip
 
@@ -493,7 +498,7 @@ namespace YARG.PlayMode {
 			latestInputIsStrum = false;
 
 			// Should it check ghosting?
-			if (Constants.ANTI_GHOSTING && allowedGhosts > 0 && pressed && hitChartIndex > 0) {
+			if (antiGhosting && allowedGhosts > 0 && pressed && hitChartIndex > 0) {
 				bool checkGhosting = true;
 				for (var i = 0; i < 5; i++) {
 					if (i == fret) {
