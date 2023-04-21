@@ -7,6 +7,7 @@ namespace YARG.Pools {
 		public enum ModelType {
 			NOTE,
 			HOPO,
+			TAP,
 			FULL
 		}
 
@@ -81,8 +82,8 @@ namespace YARG.Pools {
 		public void SetInfo(Color notes, Color sustains, float length, ModelType hopo) {
 			noteGroup.SetActive(hopo == ModelType.NOTE);
 			hopoGroup.SetActive(hopo == ModelType.HOPO);
+			tapGroup.SetActive( hopo == ModelType.TAP);
 			fullGroup.SetActive(hopo == ModelType.FULL);
-
 			state = State.WAITING;
 
 			SetLength(length);
@@ -160,7 +161,8 @@ namespace YARG.Pools {
 			noteGroup.SetActive(false);
 			hopoGroup.SetActive(false);
 			fullGroup.SetActive(false);
-
+			tapGroup.SetActive(false);
+			
 			if (fretNumber != null) {
 				fretNumber.gameObject.SetActive(false);
 			}
@@ -173,7 +175,7 @@ namespace YARG.Pools {
 			if (fretNumber != null) {
 				fretNumber.gameObject.SetActive(false);
 			}
-
+			
 			state = State.MISSED;
 			UpdateLineColor();
 		}

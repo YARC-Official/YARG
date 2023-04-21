@@ -215,14 +215,15 @@ namespace YARG.PlayMode {
 			// Handle hits (one per frame so no double hits)
 			var chord = expectedHits.Peek();
 
-			// If the note is not a HOPO and the player has not strummed, nothing happens.
-			if (!chord[0].hopo && !strummed && strumLeniency == 0f) {
+			// If the note is not a HOPO or tap and the player has not strummed, nothing happens.
+			if (!chord[0].hopo && !chord[0].tap && !strummed && strumLeniency == 0f) {
 				return;
 			}
 
+
 			// If the note is a HOPO, the player has not strummed, and the HOPO can't be hit, nothing happens.
-			if (chord[0].hopo && !strummed && strumLeniency == 0f) {
-				if (Combo <= 0) {
+			if ((chord[0].hopo || chord[0].tap) && !strummed && strumLeniency == 0f) {
+				if (Combo <= 0 && chord[0].hopo) {
 					return;
 				}
 
@@ -277,7 +278,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Avoid multi-hits
-			if (chord[0].hopo) {
+			if (chord[0].hopo || chord[0].tap) {
 				// If latest input is cleared, it was already used
 				if (latestInput == null) {
 					return;
@@ -342,10 +343,10 @@ namespace YARG.PlayMode {
 			// add it to the allowed overstrums. This is so the player
 			// doesn't lose their combo when they strum AFTER they hit
 			// the tap note.
-			if (chord[0].hopo && !strummedCurrentNote) {
+			if ((chord[0].hopo||chord[0].tap) && !strummedCurrentNote) {
 				allowedOverstrums.Clear(); // Only allow overstrumming latest HO/PO
 				allowedOverstrums.Add(chord);
-			} else if (allowedOverstrums.Count > 0 && !chord[0].hopo) {
+			} else if (allowedOverstrums.Count > 0 && !chord[0].hopo && !chord[0].tap) {
 				for (int i = 0; i < allowedOverstrums.Count; i++) {
 					if (!ChordEquals(chord, allowedOverstrums[i])) {
 						allowedOverstrums.Clear(); // If latest strum is different from latest HO/PO, disallow overstrumming
@@ -565,13 +566,14 @@ namespace YARG.PlayMode {
 			float lagCompensation = CalcLagCompensation(time, noteInfo.time);
 			float x = noteInfo.fret == 5 ? 0f : frets[noteInfo.fret].transform.localPosition.x;
 			var pos = new Vector3(x, 0f, TRACK_SPAWN_OFFSET - lagCompensation);
-
 			// Get model type
 			var model = NoteComponent.ModelType.NOTE;
 			if (noteInfo.fret == 5) {
 				model = NoteComponent.ModelType.FULL;
 			} else if (noteInfo.hopo) {
 				model = NoteComponent.ModelType.HOPO;
+			} else if (noteInfo.tap){
+				model = NoteComponent.ModelType.TAP;
 			}
 
 
@@ -584,6 +586,7 @@ namespace YARG.PlayMode {
 				noteInfo.length,
 				model
 			);
+			
 		}
 
 		private string PrintFrets() { // Debug function; remove later?

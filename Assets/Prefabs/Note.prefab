@@ -54,8 +54,9 @@ MonoBehaviour:
   meshRenderers:
   - {fileID: 4571971630462908758}
   - {fileID: 6846950644507852135}
+  - {fileID: 6376229487116774476}
   - {fileID: 7147253800328892818}
-  meshRendererMiddleIndices: 020000000100000001000000
+  meshRendererMiddleIndices: 02000000010000000200000001000000
   noteGroup: {fileID: 1397812567785855241}
   hopoGroup: {fileID: 1294466957868725440}
   tapGroup: {fileID: 3624981743589644049}
@@ -141,7 +142,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &2078363896503798061
 Transform:
   m_ObjectHideFlags: 0
@@ -585,6 +586,12 @@ PrefabInstance:
 --- !u!4 &4303484971125281231 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7137662299531785058, guid: 0f0950362ca41164899b1391a673053d,
+    type: 3}
+  m_PrefabInstance: {fileID: 6392612060457181869}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &6376229487116774476 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 57407852433297121, guid: 0f0950362ca41164899b1391a673053d,
     type: 3}
   m_PrefabInstance: {fileID: 6392612060457181869}
   m_PrefabAsset: {fileID: 0}
