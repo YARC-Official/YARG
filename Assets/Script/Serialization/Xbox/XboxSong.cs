@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using DtxCS;
@@ -19,15 +20,11 @@ namespace YARG.Serialization {
             shortname = songDta.GetShortName();
             songFolderPath = pathName + "/" + shortname; // get song folder path for mid, mogg, png_xbox
 
-            Debug.Log($"song folder path: {songFolderPath}");
-            Debug.Log(songDta.ToString());
-
             // parse the mogg
             moggDta = new XboxMoggData($"{songFolderPath}/{shortname}.mogg");
             moggDta.ParseMoggHeader();
             moggDta.ParseFromDta(dta.Array("song")); // get mogg metadata from songs.dta
             moggDta.CalculateMoggBASSInfo();
-            Debug.Log(moggDta.ToString());
 
             // parse the image
             if(songDta.AlbumArtRequired()){
@@ -41,6 +38,17 @@ namespace YARG.Serialization {
 
         // true if this song is good to go and can be shown in-game, false if not
         public bool ValidateSong(){ return (!songDta.IsFake() && (moggDta.GetHeaderVersion() == 0xA)); }
+
+        public override string ToString(){
+            return string.Join(Environment.NewLine,
+                $"XBOX SONG {shortname}",
+                $"song folder path: {songFolderPath}",
+                "",
+                songDta.ToString(),
+                "",
+                moggDta.ToString()
+            );
+        }
 
         // TODO: implement this fxn
         // public SongInfo ConvertToSongInfo()
