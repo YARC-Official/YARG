@@ -232,8 +232,7 @@ namespace YARG {
 			foreach (var song in songsTemp) {
 				// song.ini loading accounts for 40% of loading
 				loadPercent += 1f / songsTemp.Count * 0.4f;
-
-				SongIni.CompleteSongInfo(song);
+				if(song.isSongIni) SongIni.CompleteSongInfo(song);
 			}
 		}
 
@@ -252,6 +251,11 @@ namespace YARG {
 
 					string chosenFile = null;
 
+					if (!song.isSongIni) {
+						Debug.Log(song.rootFolder + $" and `folder` {song.folder.FullName}");
+						midFile = Path.Combine(song.folder.FullName, song.folder.FullName.Split('\\')[song.folder.FullName.Split('/').Length - 1] + ".mid");
+					}
+					
 					// Get the correct file
 					if (File.Exists(midFile)) {
 						chosenFile = midFile;
