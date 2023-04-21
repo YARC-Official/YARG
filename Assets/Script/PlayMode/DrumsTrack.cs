@@ -35,7 +35,7 @@ namespace YARG.PlayMode {
 
 		private bool noKickMode = false;
 
-		private string[] proInst = {"realDrums", "ghDrums"};
+		private readonly string[] proInst = {"realDrums", "ghDrums"};
 		private int ptsPerNote;
 
 		protected override void StartTrack() {

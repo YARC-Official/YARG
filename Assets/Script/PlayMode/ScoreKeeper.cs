@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Unity.Mathematics;
 
 using YARG.Data;
 
@@ -31,10 +32,39 @@ public class ScoreKeeper {
 
 	public double score { get; private set; } = 0;
 
+	/// <summary>
+	/// Add points for this keeper. Fires the OnScoreChange event.
+	/// </summary>
+	/// <param name="points"></param>
 	public void Add(double points) {
         score += points;
 		if (OnScoreChange != null)
 			OnScoreChange();
+	}
+
+	/// <summary>
+	/// Calculate and store bonus points earned from a solo section.
+	/// </summary>
+	/// <param name="notesHit"></param>
+	/// <param name="notesMax"></param>
+	/// <returns>The bonus points earned.</returns>
+	public double AddSolo(int notesHit, int notesMax) {
+		double ratio = (double)notesHit / notesMax;
+		
+		if (ratio <= 0.5)
+			return 0;
+
+		// linear
+		double multiplier = math.clamp((ratio - 0.5)/0.5, 0, 1);
+		double ptsEarned = 100 * notesHit * multiplier;
+
+		// +5% bonus points
+		// TODO: limit to FC? decide to keep at all?
+		if (ratio >= 1)
+			ptsEarned = 1.05*ptsEarned;
+
+		Add(ptsEarned);
+		return ptsEarned;
 	}
 
     public ScoreKeeper() {

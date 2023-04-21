@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using YARG.Data;
@@ -44,10 +45,12 @@ namespace YARG.PlayMode {
 		protected Light comboSunburstEmbeddedLight;
 
 		// Solo stuff
+		private bool soloInProgress = false;
 		private int soloNoteCount = -1;
 		protected int soloNotesHit = 0;
 		private float soloHitPercent = 0;
 		private int lastHit = -1;
+		private double soloPtsEarned;
 
 		private bool FullCombo = true;
 		private int SavedCombo = 0;
@@ -319,6 +322,11 @@ namespace YARG.PlayMode {
 
 			// Update solo note count
 			if (Play.Instance.SongTime >= SoloSection?.time - 2 && Play.Instance.SongTime <= SoloSection?.time) {
+				// run ONCE
+				if (!soloInProgress) {
+					soloInProgress = true;
+				}
+
 				soloNoteCount = 0;
 
 				for (int i = hitChartIndex; i < Chart.Count; i++) {
@@ -350,39 +358,49 @@ namespace YARG.PlayMode {
 
 				soloHitPercent = Mathf.RoundToInt(soloNotesHit / (float) soloNoteCount * 100f);
 				commonTrack.soloText.text = $"{soloHitPercent}%\n<size=10><alpha=#66>{soloNotesHit}/{soloNoteCount}</size>";
-			} else if (Play.Instance.SongTime >= SoloSection?.EndTime && Play.Instance.SongTime <= SoloSection?.EndTime + 4) {
-				if (soloHitPercent >= 100f) {
-					// Set text color
-					commonTrack.soloText.colorGradient = new VertexGradient(
-						new Color(1f, 0.619472f, 0f),
-						new Color(1f, 0.619472f, 0f),
-						new Color(0.5377358f, 0.2550798f, 0f),
-						new Color(0.5377358f, 0.2550798f, 0f)
-					);
+			} else if (Play.Instance.SongTime >= SoloSection?.EndTime && Play.Instance.SongTime <= SoloSection?.EndTime + 3) {
+				// run ONCE
+				if (soloInProgress) {
+					soloPtsEarned = scoreKeeper.AddSolo(soloNotesHit, soloNoteCount);
+					
+					// set box text
+					if (soloHitPercent >= 100f) {
+						// Set text color
+						commonTrack.soloText.colorGradient = new VertexGradient(
+							new Color(1f, 0.619472f, 0f),
+							new Color(1f, 0.619472f, 0f),
+							new Color(0.5377358f, 0.2550798f, 0f),
+							new Color(0.5377358f, 0.2550798f, 0f)
+						);
+						commonTrack.soloBox.sprite = commonTrack.soloPerfectSprite;
+						commonTrack.soloText.text = "PERFECT\nSOLO!";
+					} else if (soloHitPercent >= 95f) {
+						commonTrack.soloText.text = "AWESOME\nSOLO!";
+					} else if (soloHitPercent >= 90f) {
+						commonTrack.soloText.text = "GREAT\nSOLO!";
+					} else if (soloHitPercent >= 80f) {
+						commonTrack.soloText.text = "GOOD\nSOLO!";
+					} else if (soloHitPercent >= 70f) {
+						commonTrack.soloText.text = "SOLID\nSOLO!";
+					} else if (soloHitPercent >= 60f) {
+						commonTrack.soloText.text = "OKAY\nSOLO!";
+					} else {
+						// Set text color
+						commonTrack.soloText.colorGradient = new VertexGradient(
+							new Color(1f, 0.1933962f, 0.1933962f),
+							new Color(1f, 0.1933962f, 0.1933962f),
+							new Color(1f, 0.1332366f, 0.06132078f),
+							new Color(1f, 0.1332366f, 0.06132078f)
+						);
 
-					commonTrack.soloBox.sprite = commonTrack.soloPerfectSprite;
-					commonTrack.soloText.text = "PERFECT\nSOLO!";
-				} else if (soloHitPercent >= 95f) {
-					commonTrack.soloText.text = "AWESOME\nSOLO!";
-				} else if (soloHitPercent >= 90f) {
-					commonTrack.soloText.text = "GREAT\nSOLO!";
-				} else if (soloHitPercent >= 80f) {
-					commonTrack.soloText.text = "GOOD\nSOLO!";
-				} else if (soloHitPercent >= 70f) {
-					commonTrack.soloText.text = "SOLID\nSOLO!";
-				} else if (soloHitPercent >= 60f) {
-					commonTrack.soloText.text = "OKAY\nSOLO!";
-				} else {
-					// Set text color
-					commonTrack.soloText.colorGradient = new VertexGradient(
-						new Color(1f, 0.1933962f, 0.1933962f),
-						new Color(1f, 0.1933962f, 0.1933962f),
-						new Color(1f, 0.1332366f, 0.06132078f),
-						new Color(1f, 0.1332366f, 0.06132078f)
-					);
+						commonTrack.soloBox.sprite = commonTrack.soloMessySprite;
+						commonTrack.soloText.text = "MESSY\nSOLO!";
+					}
+					
+					// show points earned after some time
+					StartCoroutine(SoloBoxShowScore());
 
-					commonTrack.soloBox.sprite = commonTrack.soloMessySprite;
-					commonTrack.soloText.text = "MESSY\nSOLO!";
+					soloInProgress = false;
 				}
 			} else {
 				commonTrack.soloText.text = null;
@@ -399,6 +417,11 @@ namespace YARG.PlayMode {
 			}
 
 			commonTrack.comboMeterRenderer.material.SetFloat("SpriteNum", index);
+		}
+
+		IEnumerator SoloBoxShowScore() {
+			yield return new WaitForSeconds(1.5f);
+			commonTrack.soloText.text = $"{soloPtsEarned:n0}\nPOINTS";
 		}
 
 		private void BeatAction() {
