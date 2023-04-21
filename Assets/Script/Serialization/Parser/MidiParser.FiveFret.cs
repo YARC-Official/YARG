@@ -5,7 +5,6 @@ using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
 using YARG.Data;
-using UnityEngine; // DEBUG remove later
 
 namespace YARG.Serialization.Parser {
 	public partial class MidiParser : AbstractParser {
