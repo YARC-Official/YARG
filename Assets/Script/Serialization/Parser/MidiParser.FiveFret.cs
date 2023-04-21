@@ -282,7 +282,11 @@ namespace YARG.Serialization.Parser {
 						break;
 					}*/
 				}
-
+				
+				// Force open note before checking auto-hopo
+				if (force.Contains(ForceState.OPEN)) {
+					note.fretFlag = FretFlag.OPEN;
+				}
 				if (force.Count == 0 || (force.Count == 1 && force.Contains(ForceState.OPEN))) {
 					// If there is not any force state, we know that we need to look for auto-HOPO. (This include open notes)
 					if (DoesQualifyForAutoHopo(note.fretFlag, lastFret)) {
@@ -303,9 +307,6 @@ namespace YARG.Serialization.Parser {
 				} else {
 					// Otherwise, just set as a HOPO if requested
 					note.hopo = force.Contains(ForceState.HOPO);
-				}
-				if (force.Contains(ForceState.OPEN)) {
-					note.fretFlag = FretFlag.OPEN;
 				}
 				if (force.Contains(ForceState.TAP)) {
 					note.tap = true;
