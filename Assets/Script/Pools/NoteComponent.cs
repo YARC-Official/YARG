@@ -92,6 +92,10 @@ namespace YARG.Pools {
 		private Color _colorCacheNotes = Color.white;
 		private Color ColorCacheNotes {
 			get {
+				if (isActivatorNote) {
+					return Color.magenta;
+				}
+
 				// If within starpower section
 				if (pool.player.track.StarpowerSection?.EndTime > pool.player.track.RelativeTime) {
 					return Color.white;
@@ -105,6 +109,8 @@ namespace YARG.Pools {
 		private float lengthCache = 0f;
 
 		private State state = State.WAITING;
+
+		private bool isActivatorNote;
 
 		private void OnEnable() {
 			if (pool != null) {
@@ -122,7 +128,7 @@ namespace YARG.Pools {
 			}
 		}
 
-		public void SetInfo(Color notes, Color sustains, float length, ModelType hopo) {
+		public void SetInfo(Color notes, Color sustains, float length, ModelType hopo, bool isDrumActivator) {
 			noteGroup.SetActive(hopo == ModelType.NOTE);
 			hopoGroup.SetActive(hopo == ModelType.HOPO);
 			tapGroup.SetActive( hopo == ModelType.TAP);
@@ -133,9 +139,14 @@ namespace YARG.Pools {
 
 			ColorCacheNotes = notes;
 			ColorCacheSustains = sustains;
+			isActivatorNote = isDrumActivator;
 			UpdateColor();
 
 			UpdateRandomness();
+		}
+
+		public void SetInfo(Color notes, Color sustains, float length, ModelType hopo) {
+			SetInfo(notes, sustains, length, hopo, false);
 		}
 
 		public void SetFretNumber(string str) {
