@@ -87,7 +87,6 @@ Some libraries/assets are **packaged** with the source code have licenses that m
 | --- | --- |
 | [NuGet for Unity](https://github.com/GlitchEnzo/NuGetForUnity) | [MIT](https://github.com/GlitchEnzo/NuGetForUnity/blob/master/LICENSE)
 | [Unity Standalone File Browser](https://github.com/gkngkc/UnityStandaloneFileBrowser) | [MIT](https://github.com/gkngkc/UnityStandaloneFileBrowser/blob/master/LICENSE.txt)
-| [Concentus.OggFile](https://github.com/lostromb/concentus.oggfile/tree/master) | [Ms-PL](https://github.com/lostromb/concentus.oggfile/blob/master/LICENSE)
 | [Discord GameSDK](https://discord.com/developers/docs/game-sdk/sdk-starter-guide) | Licenseless
 | [Lucide](https://lucide.dev/) | [ISC](https://lucide.dev/license)
 
@@ -109,6 +108,8 @@ BASS is the audio library for YARG. [It has it's own license for release](https:
 | [Lucide](https://lucide.dev/) | Icons | UI Icons
 | [PolyHaven](https://polyhaven.com/) | Assets | Textures and Models
 | [PlasticBand](https://github.com/TheNathannator/PlasticBand) | Reference | Controller Support Info
+| [PlasticBand-Unity](https://github.com/TheNathannator/PlasticBand-Unity) | Library | GH/RB Controller Support
+| [HIDrogen](https://github.com/TheNathannator/HIDrogen) | Library | Linux HID Controller Support
 | [GuitarGame_ChartFormats](https://github.com/TheNathannator/GuitarGame_ChartFormats) | Reference | File Format Documentation
 | [NuGet for Unity](https://github.com/GlitchEnzo/NuGetForUnity) | Library | NuGet Packages in Unity
 | [EliteAsian's Unity Extensions](https://github.com/EliteAsian123/EliteAsians-Unity-Extensions) | Library | Utility
@@ -118,8 +119,6 @@ BASS is the audio library for YARG. [It has it's own license for release](https:
 | [DryWetMidi](https://www.nuget.org/packages/Melanchall.DryWetMidi) | Library | Parsing `.mid` Files
 | [TagLibSharp](https://www.nuget.org/packages/TagLibSharp) | Library | Finding Audio Metadata
 | [Minis](https://github.com/keijiro/Minis/tree/master) | Library | MIDI Input for Unity
-| [Concentus](https://www.nuget.org/packages/Concentus) | Library | Using `.opus` files
-| [Concentus.OggFile](https://github.com/lostromb/concentus.oggfile/tree/master) | Library | Reading `.opus` Files
 | [Discord GameSDK](https://discord.com/developers/docs/game-sdk/sdk-starter-guide) | Library | Discord Rich Presence
 
 # 💸 Donate

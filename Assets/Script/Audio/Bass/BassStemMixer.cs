@@ -2,14 +2,15 @@ using System;
 using System.Collections.Generic;
 using ManagedBass;
 using ManagedBass.Mix;
-using UnityEngine;
 
 namespace YARG {
 	public class BassStemMixer : IStemMixer {
 
 		public int StemsLoaded { get; private set; }
-
+		
 		public bool IsPlaying { get; private set; }
+		
+		public IReadOnlyDictionary<SongStem, IStemChannel> Channels => _channels;
 
 		public IStemChannel LeadChannel { get; private set; }
 

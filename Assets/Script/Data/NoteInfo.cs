@@ -8,6 +8,14 @@ namespace YARG.Data {
 		/// Hammer-on/pull-off, or Cymbal for drums.
 		/// </summary>
 		public bool hopo;
+		/// <summary>
+		/// Tap note. Only used for five fret.
+		/// </summary>
+		public bool tap;
+		/// <summary>
+		/// Overdrive activator note on drums.
+		/// </summary>
+		public bool isActivator;
 
 		/// <summary>
 		/// Whether or not this HOPO is automatic.<br/>

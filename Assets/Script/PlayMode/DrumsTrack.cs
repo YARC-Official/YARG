@@ -116,11 +116,12 @@ namespace YARG.PlayMode {
 					genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
 				} else if (eventInfo.name == $"starpower_{player.chosenInstrument}") {
 					StarpowerSection = eventInfo;
+				} else if (eventInfo.name == $"fill_{player.chosenInstrument}") {
+					FillSection = eventInfo;
 				} else if (eventInfo.name == $"solo_{player.chosenInstrument}") {
 					SoloSection = eventInfo;
 				}
-
-				eventChartIndex++;
+                eventChartIndex++;
 			}
 
 			// Since chart is sorted, this is guaranteed to work
@@ -131,6 +132,14 @@ namespace YARG.PlayMode {
 				if (noteInfo.fret == kickIndex && noKickMode) {
 					visualChartIndex++;
 					continue;
+				}
+
+				// TODO: Only one note should be an activator at any given timestamp
+				if (player.track.FillSection?.EndTime == noteInfo.time
+					&& starpowerCharge >= 0.5f 
+					&& !starpowerActive
+					) {
+					noteInfo.isActivator = true;
 				}
 
 				SpawnNote(noteInfo, RelativeTime);
@@ -177,9 +186,15 @@ namespace YARG.PlayMode {
 				var missedChord = expectedHits.Dequeue();
 
 				// Call miss for each component
-				Combo = 0;
 				foreach (var hit in missedChord) {
 					hitChartIndex++;
+
+					// The player should not be penalized for missing activator notes
+					if (hit.isActivator) {
+						continue;
+					}
+
+					Combo = 0;
 					missedAnyNote = true;
 					notePool.MissNote(hit);
 					StopAudio = true;
@@ -239,10 +254,12 @@ namespace YARG.PlayMode {
 				if (player.chosenInstrument == "drums") {
 					cymbalHit = true;
 				}
-
 				// Check if correct drum was hit
 				if (note.fret == drum && cymbalHit) {
 					hit = note;
+					if (note.isActivator) {
+						(input as DrumsInputStrategy).ActivateStarpower();
+					}
 					break;
 				}
 			}
@@ -262,7 +279,8 @@ namespace YARG.PlayMode {
 				expectedHits.Dequeue();
 			}
 
-			if (lastNote) {
+			// Activators should not affect combo
+			if (lastNote && !hit.isActivator) {
 				Combo++;
 			}
 
@@ -316,7 +334,8 @@ namespace YARG.PlayMode {
 				commonTrack.NoteColor(noteInfo.fret),
 				commonTrack.SustainColor(noteInfo.fret),
 				noteInfo.length,
-				model
+				model,
+				noteInfo.isActivator
 			);
 		}
 	}

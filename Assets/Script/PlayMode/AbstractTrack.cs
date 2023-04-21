@@ -39,6 +39,10 @@ namespace YARG.PlayMode {
 			get;
 			protected set;
 		} = null;
+		public EventInfo FillSection {
+			get;
+			protected set;
+		} = null;
 
 		protected int notesHit = 0;
 		// private int notesMissed = 0;
@@ -80,8 +84,8 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		protected int MaxMultiplier => (player.chosenInstrument == "bass" ? 6 : 4) * (starpowerActive ? 2 : 1);
-		protected int Multiplier => Mathf.Min((Combo / 10 + 1) * (starpowerActive ? 2 : 1), MaxMultiplier);
+		public int MaxMultiplier => (player.chosenInstrument == "bass" ? 6 : 4) * (starpowerActive ? 2 : 1);
+		public int Multiplier => Mathf.Min((Combo / 10 + 1) * (starpowerActive ? 2 : 1), MaxMultiplier);
 
 		// Scoring trackers
 		protected ScoreKeeper scoreKeeper;

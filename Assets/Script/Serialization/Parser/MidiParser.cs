@@ -155,6 +155,10 @@ namespace YARG.Serialization.Parser {
 										chart.realDrums[i] = ParseDrums(trackChunk, true, i, drumType, null);
 
 										chart.ghDrums[i] = ParseGHDrums(trackChunk, i, drumType, chart.realDrums[i]);
+										ParseStarpower(eventIR, trackChunk, "drums");
+										ParseStarpower(eventIR, trackChunk, "realDrums");
+										ParseDrumFills(eventIR, trackChunk, "drums");
+										ParseDrumFills(eventIR, trackChunk, "realDrums");
 									}
 								} else {
 									for (int i = 0; i < 5; i++) {
@@ -162,9 +166,12 @@ namespace YARG.Serialization.Parser {
 
 										chart.drums[i] = ParseDrums(trackChunk, false, i, drumType, chart.ghDrums[i]);
 										chart.realDrums[i] = ParseDrums(trackChunk, true, i, drumType, chart.ghDrums[i]);
+
+										// TODO: SP is still a bit broken on 5-lane and is therefore disabled for now
+										//ParseStarpower(eventIR, trackChunk, "ghDrums");
+										//ParseDrumFills(eventIR, trackChunk, "ghDrums");
 									}
 								}
-
 								break;
 							case "BEAT":
 								ParseBeats(eventIR, trackChunk);
@@ -369,6 +376,53 @@ namespace YARG.Serialization.Parser {
 				}
 			}
 		}
+
+		private void ParseDrumFills(List<EventIR> eventIR, TrackChunk trackChunk, string instrument) {
+			long totalDelta = 0;
+
+			long? fillStart = null;
+
+			// Convert track events into intermediate representation
+			foreach (var trackEvent in trackChunk.Events) {
+				totalDelta += trackEvent.DeltaTime;
+
+				if (trackEvent is not NoteEvent noteEvent) {
+					continue;
+				}
+
+				// Look for correct octave
+				if (noteEvent.GetNoteOctave() != 9) {
+					continue;
+				}
+
+				// Skip if not a star power event
+				if (noteEvent.GetNoteName() != NoteName.B
+					&& noteEvent.GetNoteName() != NoteName.C
+					&& noteEvent.GetNoteName() != NoteName.D
+					&& noteEvent.GetNoteName() != NoteName.E
+					) {
+					continue;
+				}
+
+				if (trackEvent is NoteOnEvent) {
+					// We need to know when it ends before adding it
+					fillStart = totalDelta;
+				} else if (trackEvent is NoteOffEvent) {
+					if (fillStart == null) {
+						continue;
+					}
+
+					// Now that we know the start and end, add it to the list of events.
+					eventIR.Add(new EventIR {
+						startTick = fillStart.Value,
+						endTick = totalDelta,
+						name = $"fill_{instrument}"
+					});
+					fillStart = null;
+				}
+			}
+		}
+
 		private SongInfo.DrumType GetDrumType(TrackChunk trackChunk) {
 			if (songInfo.drumType != SongInfo.DrumType.UNKNOWN) {
 				return songInfo.drumType;

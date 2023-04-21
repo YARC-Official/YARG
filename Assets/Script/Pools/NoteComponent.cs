@@ -7,6 +7,7 @@ namespace YARG.Pools {
 		public enum ModelType {
 			NOTE,
 			HOPO,
+			TAP,
 			FULL
 		}
 
@@ -27,15 +28,45 @@ namespace YARG.Pools {
 		[SerializeField]
 		private GameObject hopoGroup;
 		[SerializeField]
+		private GameObject tapGroup;
+		[SerializeField]
 		private GameObject fullGroup;
 		[SerializeField]
 		private TextMeshPro fretNumber;
 		[SerializeField]
 		private LineRenderer lineRenderer;
 
+		private float _brutal_vanish_distance;
+		/// <summary>
+		/// Ranges between -1 and 1. Notes will disappear when they reach this percentage down the track.
+		/// </summary>
+		/// <remarks>
+		/// A value of 0 is the strikeline, while a value of 1 is the top of the track.<br/>
+		/// Larger numbers will cause the notes to disappear sooner.<br/>
+		/// Notes will not disappear at all if this number is below 0.
+		/// </remarks>
+		private float BrutalVanishDistance {
+			get => _brutal_vanish_distance;
+			set {
+				_brutal_vanish_distance = System.Math.Clamp(value, -1, 1);
+			}
+		}
+
+		private bool BrutalIsNoteVanished {
+			get {
+				return (PercentDistanceFromStrikeline <= BrutalVanishDistance
+				&& state == State.WAITING
+				);
+			}
+		}
+
 		private Color _colorCacheSustains = Color.white;
 		private Color ColorCacheSustains {
 			get {
+				if (BrutalIsNoteVanished) {
+					return Color.clear;
+				}
+
 				// If within starpower section
 				if (pool.player.track.StarpowerSection?.EndTime > pool.player.track.RelativeTime) {
 					return Color.white;
@@ -46,10 +77,25 @@ namespace YARG.Pools {
 			set => _colorCacheSustains = value;
 		}
 
+		private float PercentDistanceFromStrikeline {
+			get {
+				const float TRACK_START = 3.00f;
+				const float TRACK_END = -1.76f;
+				const float range = TRACK_START - TRACK_END;
+
+				var result = (transform.position.z - TRACK_END) / range;
+				return result;
+			}
+		}
+
 		//Color cache for notes and sustains are now separate to allow for more customization. -Mia
 		private Color _colorCacheNotes = Color.white;
 		private Color ColorCacheNotes {
 			get {
+				if (isActivatorNote) {
+					return Color.magenta;
+				}
+
 				// If within starpower section
 				if (pool.player.track.StarpowerSection?.EndTime > pool.player.track.RelativeTime) {
 					return Color.white;
@@ -64,10 +110,16 @@ namespace YARG.Pools {
 
 		private State state = State.WAITING;
 
+		private bool isActivatorNote;
+
 		private void OnEnable() {
 			if (pool != null) {
 				pool.player.track.StarpowerMissEvent += UpdateColor;
 			}
+			foreach (MeshRenderer r in meshRenderers) {
+				r.enabled = true;
+			}
+			lineRenderer.enabled = true;
 		}
 
 		private void OnDisable() {
@@ -76,20 +128,25 @@ namespace YARG.Pools {
 			}
 		}
 
-		public void SetInfo(Color notes, Color sustains, float length, ModelType hopo) {
+		public void SetInfo(Color notes, Color sustains, float length, ModelType hopo, bool isDrumActivator) {
 			noteGroup.SetActive(hopo == ModelType.NOTE);
 			hopoGroup.SetActive(hopo == ModelType.HOPO);
+			tapGroup.SetActive( hopo == ModelType.TAP);
 			fullGroup.SetActive(hopo == ModelType.FULL);
-
 			state = State.WAITING;
 
 			SetLength(length);
 
 			ColorCacheNotes = notes;
 			ColorCacheSustains = sustains;
+			isActivatorNote = isDrumActivator;
 			UpdateColor();
 
 			UpdateRandomness();
+		}
+
+		public void SetInfo(Color notes, Color sustains, float length, ModelType hopo) {
+			SetInfo(notes, sustains, length, hopo, false);
 		}
 
 		public void SetFretNumber(string str) {
@@ -158,7 +215,8 @@ namespace YARG.Pools {
 			noteGroup.SetActive(false);
 			hopoGroup.SetActive(false);
 			fullGroup.SetActive(false);
-
+			tapGroup.SetActive(false);
+			
 			if (fretNumber != null) {
 				fretNumber.gameObject.SetActive(false);
 			}
@@ -171,14 +229,13 @@ namespace YARG.Pools {
 			if (fretNumber != null) {
 				fretNumber.gameObject.SetActive(false);
 			}
-
+			
 			state = State.MISSED;
 			UpdateLineColor();
 		}
 
 		private void Update() {
 			transform.localPosition -= new Vector3(0f, 0f, Time.deltaTime * pool.player.trackSpeed);
-
 			if (state == State.HITTING) {
 				// Get the new line start position. Said position should be at
 				// the fret board and relative to the note itelf.
@@ -190,6 +247,37 @@ namespace YARG.Pools {
 
 			if (transform.localPosition.z < -3f - lengthCache) {
 				MoveToPool();
+			}
+
+			float multiplier = pool.player.track.Multiplier;
+			float maxMultiplier = pool.player.track.MaxMultiplier;
+
+			// TODO: If/when health system gets added, this should use that instead. Multiplier isn't a good way to scale difficulty here.
+			if (pool.player.brutalMode) {
+				BrutalVanishDistance = System.Math.Min(
+					System.Math.Max(
+						0.25f, multiplier / maxMultiplier
+					),
+					0.80f
+				);
+			} else {
+				BrutalVanishDistance = -1.0f;
+			}
+			
+			BrutalUpdateNoteVanish();
+		}
+
+		private void BrutalUpdateNoteVanish() {
+			if (BrutalIsNoteVanished) {
+				foreach (MeshRenderer r in meshRenderers) {
+					r.enabled = false;
+				}
+				UpdateLineColor();
+			} else {
+				foreach (MeshRenderer r in meshRenderers) {
+					r.enabled = true;
+				}
+				UpdateLineColor();
 			}
 		}
 	}

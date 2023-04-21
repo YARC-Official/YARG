@@ -7,7 +7,7 @@
       "dependencies": {
         "com.unity.inputsystem": "1.4.4"
       },
-      "hash": "83ea8dcc9c1280fb34ed93932c7a52525d1e567b"
+      "hash": "868b857a0f560cdf1eb2c09e8f4776276aac2628"
     },
     "com.thenathannator.plasticband": {
       "version": "https://github.com/TheNathannator/PlasticBand-Unity.git?path=/Packages/com.thenathannator.plasticband",
@@ -69,6 +69,15 @@
       "source": "registry",
       "dependencies": {
         "com.unity.ext.nunit": "1.0.6"
+      },
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.ide.visualstudio": {
+      "version": "2.0.17",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.test-framework": "1.1.9"
       },
       "url": "https://packages.unity.com"
     },
@@ -187,6 +196,17 @@
       "source": "registry",
       "dependencies": {
         "com.unity.sysroot": "2.0.5"
+      },
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.test-framework": {
+      "version": "1.1.31",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.ext.nunit": "1.0.6",
+        "com.unity.modules.imgui": "1.0.0",
+        "com.unity.modules.jsonserialize": "1.0.0"
       },
       "url": "https://packages.unity.com"
     },

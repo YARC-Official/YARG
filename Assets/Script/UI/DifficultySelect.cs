@@ -1,10 +1,9 @@
 using System;
 using System.Globalization;
-using System.IO;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using YARG.Data;
 using YARG.Input;
 using YARG.PlayMode;
@@ -25,6 +24,8 @@ namespace YARG.UI {
 		private TextMeshProUGUI header;
 		[SerializeField]
 		private TMP_InputField speedInput;
+		[SerializeField]
+		private Toggle brutalModeCheckbox;
 
 		private int playerIndex;
 		private string[] instruments;
@@ -32,6 +33,8 @@ namespace YARG.UI {
 
 		private int optionCount;
 		private int selected;
+
+		private bool isSetlistMode = false;
 
 		public delegate void InstrumentSelectionAction(PlayerManager.Player playerInfo);
 		public static event InstrumentSelectionAction OnInstrumentSelection;
@@ -139,9 +142,9 @@ namespace YARG.UI {
 
 		public void Next() {
 			var player = PlayerManager.players[playerIndex];
+
 			if (state == State.INSTRUMENT) {
 				if (selected >= instruments.Length) {
-					player.chosenInstrument = null;
 					IncreasePlayerIndex();
 				} else {
 					player.chosenInstrument = instruments[selected];
@@ -153,7 +156,6 @@ namespace YARG.UI {
 			} else if (state == State.DIFFICULTY) {
 				player.chosenDifficulty = (Difficulty) selected;
 				OnInstrumentSelection?.Invoke(player);
-
 				IncreasePlayerIndex();
 			} else if (state == State.VOCALS) {
 				if (selected == 2) {
@@ -181,6 +183,13 @@ namespace YARG.UI {
 		}
 
 		private void IncreasePlayerIndex() {
+			if (brutalModeCheckbox.isOn) {
+				PlayerManager.players[playerIndex].brutalMode = true;
+			} else {
+				PlayerManager.players[playerIndex].brutalMode = false;
+			}
+			brutalModeCheckbox.isOn = false;
+
 			// Next non-mic player
 			playerIndex++;
 			while (playerIndex < PlayerManager.players.Count
@@ -190,13 +199,12 @@ namespace YARG.UI {
 			}
 
 			if (playerIndex >= PlayerManager.players.Count) {
-				// Set speed
 				Play.speed = float.Parse(speedInput.text, CultureInfo.InvariantCulture);
 				if (Play.speed <= 0f) {
 					Play.speed = 1f;
 				}
 
-				// Play song (or download then play)
+				// Play song
 				Play.song = MainMenu.Instance.chosenSong;
 				GameManager.Instance.LoadScene(SceneIndex.PLAY);
 			} else {

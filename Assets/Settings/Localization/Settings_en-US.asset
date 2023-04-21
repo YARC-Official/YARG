@@ -79,7 +79,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 3645699926646784
-    m_Localized: Master Music Volume
+    m_Localized: Master Volume
     m_Metadata:
       m_Items: []
   - m_Id: 3645822882668544
@@ -103,7 +103,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 3646318347411456
-    m_Localized: Other Instruments Volume
+    m_Localized: Song Volume
     m_Metadata:
       m_Items: []
   - m_Id: 3646366187642880
@@ -128,6 +128,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 7304579734953984
     m_Localized: Awesomeness Detection
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7304579734953985
+    m_Localized: Anti-Ghosting
     m_Metadata:
       m_Items: []
   - m_Id: 7405541279522816
