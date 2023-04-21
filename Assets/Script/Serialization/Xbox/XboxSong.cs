@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using DtxCS;
 using DtxCS.DataTypes;
 using UnityEngine;
@@ -27,8 +28,9 @@ namespace YARG.Serialization {
             moggDta.CalculateMoggBASSInfo();
 
             // parse the image
-            if(songDta.AlbumArtRequired()){
-                img = new XboxImage($"{songFolderPath}/gen/{shortname}_keep.png_xbox");
+            string imgPath = $"{songFolderPath}/gen/{shortname}_keep.png_xbox";
+            if(songDta.AlbumArtRequired() && File.Exists(imgPath)){
+                img = new XboxImage(imgPath);
                 // do some preliminary parsing here in the header to get DXT format, width and height, etc
                 img.ParseImageHeader();
             }
