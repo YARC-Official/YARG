@@ -7,7 +7,7 @@
       "dependencies": {
         "com.unity.inputsystem": "1.4.4"
       },
-      "hash": "83ea8dcc9c1280fb34ed93932c7a52525d1e567b"
+      "hash": "868b857a0f560cdf1eb2c09e8f4776276aac2628"
     },
     "com.thenathannator.plasticband": {
       "version": "https://github.com/TheNathannator/PlasticBand-Unity.git?path=/Packages/com.thenathannator.plasticband",
