@@ -56,8 +56,8 @@ namespace YARG.UI {
 			text[1].text = $"{score.percentage.percent * 100f:N1}%" + end;
 			text[2].text = $"{score.notesHit} hit";
 			text[3].text = $"{score.notesMissed} missed";
-			text[4].text = $"{score.score.score} pts";
-			text[5].text = $"{score.score.stars} stars";
+			text[4].text = $"{score.score.score:N0} pts";
+			text[5].text = $"{score.score.stars}/6 stars";
 		}
 	}
 }
