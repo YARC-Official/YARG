@@ -13,6 +13,11 @@ namespace YARG.Data {
 		/// </summary>
 		public bool tap;
 		/// <summary>
+		/// Overdrive activator note on drums.
+		/// </summary>
+		public bool isActivator;
+
+		/// <summary>
 		/// Whether or not this HOPO is automatic.<br/>
 		/// Used for difficulty downsampling.
 		/// </summary>
