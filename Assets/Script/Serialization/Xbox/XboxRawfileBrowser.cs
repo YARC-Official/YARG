@@ -44,6 +44,7 @@ namespace YARG.Serialization {
 					if(currentSong.ValidateSong()){
 						songList.Add(currentSong);
 					}
+					Debug.Log($"Successfully loaded {currentSong.GetXboxSongShortname()}.");
 				}
 				catch(Exception e){
 					Debug.Log($"Failed to load song, skipping...");

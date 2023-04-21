@@ -43,27 +43,26 @@ namespace YARG.Serialization {
                 using(BinaryReader br = new BinaryReader(fs, new ASCIIEncoding())){
                     // skip header
                     byte[] header = br.ReadBytes(32);
-                    // parse DXT-compressed blocks
-                    byte[] DXTBlocks = br.ReadBytes((int)(fs.Length - 32));
+                    // parse DXT-compressed blocks, depending on format
+                    byte[] DXTBlocks;
+                    // if DXT-1 format already, read the bytes straight up
+                    if((bitsPerPixel == 0x04) && (format == 0x08))
+                        DXTBlocks = br.ReadBytes((int)(fs.Length - 32));
+                    // if DXT-3 format, we have to omit the alpha bytes
+                    else{
+                        DXTBlocks = new byte[(fs.Length - 32) / 2];
+                        byte[] buf = new byte[8];
+                        for(int i = 0; i < DXTBlocks.Length; i += 8){
+                            buf = br.ReadBytes(8); // skip over every 8 bytes
+                            buf = br.ReadBytes(8); // we want to read these 8 bytes
+                            for(int j = 0; j < 8; j++) DXTBlocks[i + j] = buf[j];
+                        }
+                    }
                     // swap bytes because xbox is weird like that
                     Parallel.For(0, DXTBlocks.Length/2, i => {
                         (DXTBlocks[i*2], DXTBlocks[i*2 + 1]) = (DXTBlocks[i*2 + 1], (DXTBlocks[i*2]));
                     });
-                    //if DXT3 format, skip every 8 blocks
-                    if((bitsPerPixel == 0x04) && (format == 0x08)) return DXTBlocks;
-                    else{
-                        return DXTBlocks;
-                        // TODO: convert the DXT3 formatted blocks to DXT1
-                        // to do this, basically iterate every 8 bytes, skipping 8 and keeping 8
-                        // so on the first group of blocks for example,
-                        // bytes 0-7 of DXTBlocks are skipped,
-                        // bytes 8-15 of DXTBlocks are appended to DXT3Blocks, so on and so forth
-                        // byte[] DXT3Blocks = new byte[DXTBlocks.Length / 2];
-                        // for(int i = 8; i < DXTBlocks.Length; i += 8){
-                        //     DXT3Blocks[i - 8] = DXTBlocks[i];
-                        // }
-                    }
-                    
+                    return DXTBlocks;
                 }
             }
         }

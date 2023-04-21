@@ -37,7 +37,7 @@ namespace YARG.Serialization {
         private Dictionary<string, ushort> ranks;
 
         //TODO: implement macro support, such as #ifndef kControllerRealGuitar, or #ifdef YARG
-        public XboxSongData(DataArray dta){
+        public void ParseFromDta(DataArray dta){
             shortname = dta.Name;
             for(int i = 1; i < dta.Count; i++){
                 DataArray dtaArray = (DataArray)dta[i];

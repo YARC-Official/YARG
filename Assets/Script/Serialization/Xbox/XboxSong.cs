@@ -13,7 +13,9 @@ namespace YARG.Serialization {
         private XboxImage img;
 
         public XboxSong(string pathName, DataArray dta){
-            songDta = new XboxSongData(dta); // get song metadata from songs.dta
+            // parse songs.dta
+            songDta = new XboxSongData(); 
+            songDta.ParseFromDta(dta); // get song metadata from songs.dta
             shortname = songDta.GetShortName();
             songFolderPath = pathName + "/" + shortname; // get song folder path for mid, mogg, png_xbox
 
@@ -34,6 +36,8 @@ namespace YARG.Serialization {
                 img.ParseImageHeader();
             }
         }
+
+        public string GetXboxSongShortname(){ return shortname; }
 
         // true if this song is good to go and can be shown in-game, false if not
         public bool ValidateSong(){ return (!songDta.IsFake() && (moggDta.GetHeaderVersion() == 0xA)); }

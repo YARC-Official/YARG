@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using DtxCS;
 using DtxCS.DataTypes;
 using UnityEngine;
@@ -104,6 +105,8 @@ namespace YARG.Serialization {
             stemMaps = new Dictionary<SongStem, byte[]>();
             bool[] mapped = new bool[channelCount];
 
+            // BEGIN BASS Stem Mapping ----------------------------------------------------------------------
+
             if(tracks.TryGetValue("drum", out var drumArray)){
                 switch(drumArray.Length){
                     //drum (0 1): stereo kit --> (0 1)
@@ -186,9 +189,13 @@ namespace YARG.Serialization {
                 stemMaps[SongStem.Song][i] = (byte)fakeIndices[i];
             }
 
+            // END BASS Stem Mapping ------------------------------------------------------------------------
+
+            // BEGIN BASS Matrix calculation ----------------------------------------------------------------
+
             float[,] matrixRatios = new float[pans.Length, 2];
 
-            for(int i = 0; i < pans.Length; i++){
+            Parallel.For(0, pans.Length, i => {
                 float theta = pans[i] * ((float)Math.PI / 4);
                 float ratioL = (float)(Math.Sqrt(2) / 2) * ((float)Math.Cos(theta) - (float)Math.Sin(theta));
                 float ratioR = (float)(Math.Sqrt(2) / 2) * ((float)Math.Cos(theta) + (float)Math.Sin(theta));
@@ -197,7 +204,9 @@ namespace YARG.Serialization {
 
                 matrixRatios[i, 0] = volRatio * ratioL;
                 matrixRatios[i, 1] = volRatio * ratioR;
-            }
+            });
+
+            // END BASS Matrix calculation ------------------------------------------------------------------
 
         }
 
