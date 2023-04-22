@@ -197,6 +197,14 @@ namespace YARG.Input {
 			UpdatePlayerMode();
 		}
 
+		/// <summary>
+		/// Forces the input strategy to update its inputs. This is used for microphone input.
+		/// </summary>
+		public void ForceUpdateInputs() {
+			UpdateNavigationMode();
+			UpdatePlayerMode();
+		}
+
 		public static bool IsControlPressed(InputControl control) {
 			if (control is ButtonControl button) {
 				return button.isPressed;
