@@ -272,6 +272,7 @@ namespace YARG.UI {
 			var player = new PlayerManager.Player() {
 				inputStrategy = inputStrategy
 			};
+			player.inputStrategy.Enable();
 			PlayerManager.players.Add(player);
 
 			// Set name

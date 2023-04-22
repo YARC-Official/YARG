@@ -35,6 +35,8 @@ namespace YARG.UI {
 
 		public void DeletePlayer() {
 			PlayerManager.players.Remove(player);
+			player.inputStrategy.Disable();
+			player = null;
 			Destroy(gameObject);
 		}
 

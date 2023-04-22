@@ -16,20 +16,15 @@ namespace YARG.Input {
 		public InputDevice InputDevice {
 			get => _inputDevice;
 			set {
-				// Temporary for MIDI
-
-				// Unbind previous
-				if (_inputDevice is MidiDevice oldMidi) {
-					oldMidi.onWillNoteOn -= OnWillNoteOn;
-					oldMidi.onWillNoteOff -= OnWillNoteOff;
+				bool enabled = Enabled;
+				if (enabled) {
+					Disable();
 				}
 
 				_inputDevice = value;
 
-				// Bind new
-				if (_inputDevice is MidiDevice newMidi) {
-					newMidi.onWillNoteOn += OnWillNoteOn;
-					newMidi.onWillNoteOff += OnWillNoteOff;
+				if (enabled) {
+					Enable();
 				}
 			}
 		}
@@ -41,6 +36,8 @@ namespace YARG.Input {
 		private OccurrenceList<string> midiReleased = new();
 
 		protected Dictionary<string, InputControl> inputMappings;
+
+		public bool Enabled { get; private set; }
 
 		public delegate void GenericCalibrationAction(InputStrategy inputStrategy);
 		/// <summary>
@@ -72,17 +69,40 @@ namespace YARG.Input {
 			foreach (var key in GetMappingNames()) {
 				inputMappings.Add(key, null);
 			}
+		}
+
+		public void Enable() {
+			if (_inputDevice == null) {
+				return;
+			}
 
 			// Bind events
 			GameManager.OnUpdate += EventUpdateLoop;
+
+			// Temporary for MIDI
+			if (_inputDevice is MidiDevice newMidi) {
+				newMidi.onWillNoteOn += OnWillNoteOn;
+				newMidi.onWillNoteOff += OnWillNoteOff;
+			}
+
+			Enabled = true;
 		}
 
-		~InputStrategy() {
-			// Force unbind
-			InputDevice = null;
+		public void Disable() {
+			if (_inputDevice == null) {
+				return;
+			}
 
 			// Unbind events
 			GameManager.OnUpdate -= EventUpdateLoop;
+
+			// Temporary for MIDI
+			if (_inputDevice is MidiDevice oldMidi) {
+				oldMidi.onWillNoteOn -= OnWillNoteOn;
+				oldMidi.onWillNoteOff -= OnWillNoteOff;
+			}
+
+			Enabled = false;
 		}
 
 		/// <returns>
