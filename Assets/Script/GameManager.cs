@@ -63,7 +63,7 @@ namespace YARG {
 			// so let's just set them all to \ on windows to be sure.
 			// For linux Path.DirectorySeparatorChar should return /, and this should work fine, but this should be double checked once those builds are being worked on
 			PersistentDataPath = Application.persistentDataPath.Replace("/", Path.DirectorySeparatorChar.ToString());
-			Settings.SettingsManager.Init();
+			Settings.SettingsManager.LoadSettings();
 
 			// High polling rate
 			InputSystem.pollingFrequency = 500f;
