@@ -1,11 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using YARG.Data;
 using YARG.Input;
@@ -20,9 +17,6 @@ namespace YARG.UI {
 			VOCALS,
 			VOCALS_DIFFICULTY
 		}
-
-		Dictionary<PlayerManager.Player, string> tempInstruments = new();
-		Dictionary<PlayerManager.Player, Difficulty> tempDifficulties = new();
 
 		[SerializeField]
 		private GenericOption[] options;
@@ -78,8 +72,6 @@ namespace YARG.UI {
 			foreach (var player in PlayerManager.players) {
 				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
 			}
-			tempDifficulties.Clear();
-			tempInstruments.Clear();
 		}
 
 		private void OnDestroy() {
@@ -151,20 +143,18 @@ namespace YARG.UI {
 		public void Next() {
 			var player = PlayerManager.players[playerIndex];
 
-			string instrument = "";
 			if (state == State.INSTRUMENT) {
 				if (selected >= instruments.Length) {
 					IncreasePlayerIndex();
 				} else {
-					instrument = instruments[selected];
-					bool showExpertPlus = instrument == "drums"
-						|| instrument == "realDrums"
-						|| instrument == "ghDrums";
+					player.chosenInstrument = instruments[selected];
+					bool showExpertPlus = player.chosenInstrument == "drums"
+						|| player.chosenInstrument == "realDrums"
+						|| player.chosenInstrument == "ghDrums";
 					UpdateDifficulty(showExpertPlus);
 				}
-				tempInstruments.Add(player, instrument);
 			} else if (state == State.DIFFICULTY) {
-				tempDifficulties.Add(player, (Difficulty) selected);
+				player.chosenDifficulty = (Difficulty) selected;
 				OnInstrumentSelection?.Invoke(player);
 				IncreasePlayerIndex();
 			} else if (state == State.VOCALS) {
@@ -192,22 +182,6 @@ namespace YARG.UI {
 			}
 		}
 
-		private void WriteTempDiffAndInstrumentToPlayers() {
-			foreach (KeyValuePair<PlayerManager.Player, string> pair in tempInstruments) {
-				var player = pair.Key;
-				var instrument = pair.Value;
-
-				player.setlistInstruments.Add(instrument);
-			}
-
-			foreach (KeyValuePair<PlayerManager.Player, Difficulty> pair in tempDifficulties) {
-				var player = pair.Key;
-				var difficulty = pair.Value;
-
-				player.setlistDifficulties.Add(difficulty);
-			}
-		}
-
 		private void IncreasePlayerIndex() {
 			if (brutalModeCheckbox.isOn) {
 				PlayerManager.players[playerIndex].brutalMode = true;
@@ -225,44 +199,18 @@ namespace YARG.UI {
 			}
 
 			if (playerIndex >= PlayerManager.players.Count) {
-				// Set speed
-				var speed = float.Parse(speedInput.text, CultureInfo.InvariantCulture);
-				if (speed <= 0f) {
-					speed = 1f;
+				Play.speed = float.Parse(speedInput.text, CultureInfo.InvariantCulture);
+				if (Play.speed <= 0f) {
+					Play.speed = 1f;
 				}
 
-				WriteTempDiffAndInstrumentToPlayers();
-
-				// Play song (or download then play)
-
-				if (!isSetlistMode) {
-					Play.speed = speed;
-					StartSong();
-                } else
-                {
-					Play.AddSongToSetlist(MainMenu.Instance.chosenSong, speed);
-					MainMenu.Instance.ShowSongSelect();
-                }
-				
+				// Play song
+				Play.song = MainMenu.Instance.chosenSong;
+				GameManager.Instance.LoadScene(SceneIndex.PLAY);
 			} else {
 				UpdateInstrument();
 			}
 		}
-
-		private void StartSong()
-		{
-			Play.song = MainMenu.Instance.chosenSong;
-			GameManager.Instance.LoadScene(SceneIndex.PLAY);
-		}
-
-		public static void StartSetlist()
-        {
-			Play.StartSetlist();
-        }
-
-		public void UpdateSetlistMode() {
-			isSetlistMode = GameObject.Find("Setlist Enabled Checkbox").GetComponent<Toggle>().isOn;
-        }
 
 		private void UpdateInstrument() {
 			// Header

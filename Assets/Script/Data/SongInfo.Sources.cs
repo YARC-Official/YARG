@@ -2,8 +2,7 @@ using System.Collections.Generic;
 
 namespace YARG.Data {
 	public partial class SongInfo {
-		private static readonly Dictionary<string, string> DEFAULT_SOURCES = new()
-		{
+		private static readonly Dictionary<string, string> DEFAULT_SOURCES = new() {
 			{ "gh1", "Guitar Hero" },
 			{ "gh", "Guitar Hero" },
 			{ "gh2", "Guitar Hero II" },

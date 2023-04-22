@@ -130,6 +130,10 @@ MonoBehaviour:
     m_Localized: Awesomeness Detection
     m_Metadata:
       m_Items: []
+  - m_Id: 7304579734953985
+    m_Localized: Anti-Ghosting
+    m_Metadata:
+      m_Items: []
   - m_Id: 7405541279522816
     m_Localized: Copy "Current Song" Text File Path
     m_Metadata:

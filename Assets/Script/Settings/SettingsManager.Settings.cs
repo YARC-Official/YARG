@@ -253,9 +253,14 @@ namespace YARG.Settings {
 				GameManager.AudioManager.IsChipmunkSpeedup = useChipmunkSpeed;
 			}
 
-			[SettingSpace]
 			[SettingShowInGame]
 			[SettingLocation("general", 29)]
+			[SettingType("Toggle")]
+			public bool antiGhosting = true;
+
+			[SettingSpace]
+			[SettingShowInGame]
+			[SettingLocation("general", 30)]
 			[SettingType("Toggle")]
 			public bool amIAwesome = false;
 		}
