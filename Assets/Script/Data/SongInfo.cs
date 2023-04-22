@@ -2,15 +2,20 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
-using YARG.Serialization;
 
 namespace YARG.Data {
 	[JsonObject(MemberSerialization.OptIn)]
 	public partial class SongInfo {
+		// TODO: Move this
 		public enum DrumType {
 			FOUR_LANE,
 			FIVE_LANE, // AKA GH
 			UNKNOWN
+		}
+
+		public enum SongType {
+			SONG_INI,
+			RB_CON
 		}
 
 		private static readonly Dictionary<string, int> DEFAULT_DIFFS = new() {
@@ -31,13 +36,16 @@ namespace YARG.Data {
 		public bool fetched;
 
 		[JsonProperty]
-		[JsonConverter(typeof(DirectoryInfoConverter))]
-		public DirectoryInfo folder;
+		public string mainFile;
+		public string RootFolder => Path.GetDirectoryName(mainFile);
+
+		[JsonProperty]
+		public SongType songType;
 
 		/// <summary>
 		/// Used for cache.
 		/// </summary>
-		public string rootFolder;
+		public string cacheRoot;
 
 		[JsonProperty("live")]
 		public bool Live {
@@ -133,26 +141,14 @@ namespace YARG.Data {
 		[JsonProperty]
 		public string hash;
 
-		[JsonProperty]
-		public bool isSongIni;
-
 		public Dictionary<string, int> partDifficulties;
 
-		public SongInfo(DirectoryInfo folder, string rootFolder) {
-			this.folder = folder;
-			this.rootFolder = rootFolder;
+		public SongInfo(string mainFile, string cacheRoot, SongType songType) {
+			this.mainFile = mainFile;
+			this.cacheRoot = cacheRoot;
+			this.songType = songType;
 
-			string dirName = folder.Name;
-
-			var split = dirName.Split(" - ");
-			if (split.Length == 2) {
-				SongNameWithFlags = split[1];
-				artistName = split[0];
-			} else {
-				SongNameWithFlags = dirName;
-				artistName = "Unknown";
-			}
-
+			// Set difficulty defaults
 			partDifficulties = new(DEFAULT_DIFFS);
 		}
 

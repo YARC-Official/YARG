@@ -1,6 +1,6 @@
+using System;
 using System.Collections;
 using System.IO;
-using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -155,7 +155,7 @@ namespace YARG.UI {
 			};
 
 			foreach (string path in albumPaths) {
-				string fullPath = Path.Combine(songInfo.folder.FullName, path);
+				string fullPath = Path.Combine(songInfo.RootFolder, path);
 				if (File.Exists(fullPath)) {
 					StartCoroutine(LoadAlbumCoverCoroutine(fullPath));
 					break;

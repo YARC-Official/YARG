@@ -20,6 +20,12 @@ namespace YARG {
 			public List<SongInfo> songs;
 		}
 
+		private struct SongPathInfo {
+			public SongInfo.SongType type;
+			public string path;
+			public string root;
+		}
+
 		public static string currentTaskDescription = "";
 		public static bool currentlyLoading = false;
 		public static float loadPercent = 0f;
@@ -54,6 +60,7 @@ namespace YARG {
 		public static Dictionary<string, SongInfo>.ValueCollection Songs => SongsByHash.Values;
 
 		private static Queue<string> songFoldersToLoad = null;
+		private static List<SongPathInfo> songPaths = null;
 		private static List<SongInfo> songsTemp = null;
 
 		/// <value>
@@ -168,15 +175,16 @@ namespace YARG {
 				}
 
 				try {
+					songPaths = new();
 					songsTemp = new();
 
 					// Find songs
 					loadPercent = 0f;
-					CreateSongInfoFromFiles(folderPath, new(folderPath));
+					FindSongs(folderPath, new(folderPath));
 
 					// Read song.ini and hashes
 					loadPercent = 0.1f;
-					ReadSongIni();
+					ReadSongInfo();
 					GetSongHashes();
 
 					// Populate SongsByHash, and create cache
@@ -189,91 +197,95 @@ namespace YARG {
 			}
 		}
 
-		/// <summary>
-		/// Populate <see cref="SongsByHash"/> with <see cref="SongFolder"/> contents.<br/>
-		/// This is create a basic <see cref="SongInfo"/> object for each song.<br/>
-		/// We need to look at the <c>song.ini</c> files for more details.
-		/// </summary>
-		private static void CreateSongInfoFromFiles(string rootFolder, DirectoryInfo songDir) {
+		private static void FindSongs(string rootFolder, DirectoryInfo songDir) {
 			if (!songDir.Exists) {
 				Directory.CreateDirectory(songDir.FullName);
 			}
 
 			foreach (var folder in songDir.EnumerateDirectories()) {
-				if (new FileInfo(Path.Combine(folder.FullName, "song.ini")).Exists) {
+				if (File.Exists(Path.Combine(folder.FullName, "song.ini"))) {
 					// If the folder has a song.ini, it is a song folder
-					SongInfo currSong = new SongInfo(folder, rootFolder);
-					currSong.isSongIni = true;
-					songsTemp.Add(currSong);
-				}
-				else if(new FileInfo(Path.Combine(folder.FullName, "config/songs.dta")).Exists){
-					// else, if the folder has a config/songs.dta, it is an Xbox GH song folder
-					Debug.Log($"lol, GH");
-				}
-				else if(new FileInfo(Path.Combine(folder.FullName, "songs/songs.dta")).Exists) {
-					// else, if the folder has a songs/songs.dta, it is an Xbox RB song folder
-					List<XboxSong> RBSongs = XboxRawfileBrowser.BrowseFolder(new DirectoryInfo($"{folder}/songs"));
-					// TODO: convert each XboxSong to a usable SongInfo here
-					// could also modify the SongInfo class to support an XboxSong as a member
-					// songsTemp.AddRange(RockBandSTFS.ParseSongsDta(folder));
-				}
-				else {
+					songPaths.Add(new SongPathInfo {
+						type = SongInfo.SongType.SONG_INI,
+						path = folder.FullName,
+						root = rootFolder
+					});
+					Debug.Log($"Found song.ini song: {folder.FullName}");
+				} else if (File.Exists(Path.Combine(folder.FullName, "songs/songs.dta"))) {
+					// If the folder has a songs/songs.dta, it's a Rock Band con 
+					songPaths.Add(new SongPathInfo {
+						type = SongInfo.SongType.RB_CON,
+						path = Path.Combine(folder.FullName, "songs"),
+						root = rootFolder
+					});
+					Debug.Log($"Found RB con song: {folder.FullName}");
+				} else {
 					// Otherwise, treat it as a sub-folder
-					CreateSongInfoFromFiles(rootFolder, folder);
+					FindSongs(rootFolder, folder);
 				}
 			}
 		}
 
-		/// <summary>
-		/// Reads the <c>song.ini</c> for each <see cref="SongInfo"/> in <see cref="songsTemp"/>.<br/>
-		/// <see cref="songsTemp"/> is expected to be populated.
-		/// </summary>
-		private static void ReadSongIni() {
-			foreach (var song in songsTemp) {
-				// song.ini loading accounts for 40% of loading
-				loadPercent += 1f / songsTemp.Count * 0.4f;
-				if(song.isSongIni) SongIni.CompleteSongInfo(song);
+		private static void ReadSongInfo() {
+			foreach (var info in songPaths) {
+				// Song info loading accounts for 40% of loading
+				loadPercent += 1f / songPaths.Count * 0.4f;
+
+				if (info.type == SongInfo.SongType.SONG_INI) {
+					// song.ini
+
+					// See if .mid file exists
+					var midPath = Path.Combine(info.path, "notes.mid");
+					if (!File.Exists(midPath)) {
+						Debug.LogError($"`{info.path}` does not have a `notes.mid` file. Skipping.");
+						continue;
+					}
+
+					// Create a SongInfo
+					var songInfo = new SongInfo(midPath, info.root, info.type);
+					SongIni.CompleteSongInfo(songInfo);
+
+					// Add it to the list of songs
+					songsTemp.Add(songInfo);
+				} else if (info.type == SongInfo.SongType.RB_CON) {
+					// Rock Band con file
+
+					// Read all of the songs in the file
+					var files = XboxRawfileBrowser.BrowseFolder(info.path);
+
+					// Convert each to a SongInfo
+					foreach (var file in files) {
+						// Skip if the song is not valid
+						if (!file.IsValidateSong()) {
+							continue;
+						}
+
+						// Create a SongInfo
+						var songInfo = new SongInfo(file.MidiFile, info.root, info.type);
+						file.CompleteSongInfo(songInfo, true);
+
+						// Add it to the list of songs
+						songsTemp.Add(songInfo);
+					}
+				}
 			}
+
+			songPaths = null;
 		}
 
-		/// <summary>
-		/// Gets the MD5 hash for each chart in <see cref="songsTemp"/>.<br/>
-		/// <see cref="songsTemp"/> is expected to be populated.
-		/// </summary>
 		private static void GetSongHashes() {
 			foreach (var song in songsTemp) {
 				// Hashing loading accounts for 40% of loading
 				loadPercent += 1f / songsTemp.Count * 0.4f;
 
 				try {
-					string midFile = Path.Combine(song.folder.FullName, "notes.mid");
-					string chartFile = Path.Combine(song.folder.FullName, "notes.chart");
-
-					string chosenFile = null;
-
-					if (!song.isSongIni) {
-						Debug.Log(song.rootFolder + $" and `folder` {song.folder.FullName}");
-						midFile = Path.Combine(song.folder.FullName, song.folder.FullName.Split('\\')[song.folder.FullName.Split('/').Length - 1] + ".mid");
-					}
-					
-					// Get the correct file
-					if (File.Exists(midFile)) {
-						chosenFile = midFile;
-					} else if (File.Exists(chartFile)) {
-						chosenFile = chartFile;
-					} else {
-						Debug.LogError($"Song `{song.folder.Name}` has no notes.mid or notes.chart! Could not get hash.");
-						song.hash = null;
-						continue;
-					}
-
 					// MD5 checksum of the file
 					using var md5 = new MD5CryptoServiceProvider();
-					using var stream = File.OpenRead(chosenFile);
+					using var stream = File.OpenRead(song.mainFile);
 					var hash = md5.ComputeHash(stream);
 					song.hash = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
 				} catch (Exception e) {
-					Debug.LogError($"Could not get hash for song `{song.folder.Name}`.");
+					Debug.LogError($"Could not get hash for song `{song.RootFolder}`.");
 					Debug.LogException(e);
 					song.hash = null;
 				}
@@ -281,8 +293,8 @@ namespace YARG {
 		}
 
 		/// <summary>
-		/// Takes the <see cref="songsTemp"/> and populates <see cref="SongsByHash"/>.<br/>
-		/// <see cref="songsTemp"/> is expected to be populated.
+		/// Takes the <see cref="songPaths"/> and populates <see cref="SongsByHash"/>.<br/>
+		/// <see cref="songPaths"/> is expected to be populated.
 		/// </summary>
 		private static void PopulateSongByHashes() {
 			foreach (var song in songsTemp) {
@@ -291,14 +303,14 @@ namespace YARG {
 				}
 
 				if (SongsByHash.ContainsKey(song.hash)) {
-					Debug.LogError($"Duplicate hash `{song.hash}` for songs `{SongsByHash[song.hash].folder.Name}` and `{song.folder.Name}`!");
+					Debug.LogError($"Duplicate hash `{song.hash}` for songs `{SongsByHash[song.hash].RootFolder}` and `{song.RootFolder}`!");
 					continue;
 				}
 
 				SongsByHash[song.hash] = song;
 			}
 
-			songsTemp = null;
+			songPaths = null;
 		}
 
 		/// <returns>
@@ -310,13 +322,13 @@ namespace YARG {
 
 		/// <summary>
 		/// Creates a cache from <see cref="Songs"/> so we don't have to read all of the <c>song.ini</c> again.<br/>
-		/// <see cref="Songs"/> is expected to be populated and filled with <see cref="ReadSongIni"/>.
+		/// <see cref="Songs"/> is expected to be populated and filled with <see cref="ReadSongInfo"/>.
 		/// </summary>
 		private static void CreateCache(string root, string cachePath) {
 			// Conglomerate songs by root folder
 			var songCache = new List<SongInfo>();
 			foreach (var song in Songs) {
-				if (song.rootFolder != root) {
+				if (song.cacheRoot != root) {
 					continue;
 				}
 
@@ -347,10 +359,10 @@ namespace YARG {
 
 				// Combine all of the songs into one list
 				foreach (var song in jsonObj.songs) {
-					song.rootFolder = jsonObj.folder;
+					song.cacheRoot = jsonObj.folder;
 
 					if (SongsByHash.ContainsKey(song.hash)) {
-						Debug.LogWarning($"Duplicate hash `{song.hash}` for songs `{SongsByHash[song.hash].folder.Name}` and `{song.folder.Name}`!");
+						Debug.LogWarning($"Duplicate hash `{song.hash}` for songs `{SongsByHash[song.hash].RootFolder}` and `{song.RootFolder}`!");
 						continue;
 					}
 

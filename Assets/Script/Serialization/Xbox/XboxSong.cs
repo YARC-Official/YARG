@@ -1,46 +1,72 @@
 using System;
+using System.Globalization;
 using System.IO;
 using DtxCS.DataTypes;
 using YARG.Data;
 
 namespace YARG.Serialization {
 	public class XboxSong {
-		private string shortname;
+		public string ShortName { get; private set; }
+		public string MidiFile { get; private set; }
+
 		private string songFolderPath;
+
 		private XboxSongData songDta;
 		private XboxMoggData moggDta;
 		private XboxImage img;
 
 		public XboxSong(string pathName, DataArray dta) {
-			// parse songs.dta
+			// Parse songs.dta
 			songDta = new XboxSongData();
-			songDta.ParseFromDta(dta); // get song metadata from songs.dta
-			shortname = songDta.GetShortName();
-			songFolderPath = pathName + "/" + shortname; // get song folder path for mid, mogg, png_xbox
 
-			// parse the mogg
-			moggDta = new XboxMoggData($"{songFolderPath}/{shortname}.mogg");
+			// Get song metadata from songs.dta
+			songDta.ParseFromDta(dta);
+			ShortName = songDta.GetShortName();
+
+			// Get song folder path for mid, mogg, png_xbox
+			songFolderPath = Path.Combine(pathName, ShortName);
+
+			// Set midi file
+			MidiFile = Path.Combine(songFolderPath, $"{ShortName}.mid");
+
+			// Parse the mogg
+			moggDta = new XboxMoggData(Path.Combine(songFolderPath, $"{ShortName}.mogg"));
 			moggDta.ParseMoggHeader();
-			moggDta.ParseFromDta(dta.Array("song")); // get mogg metadata from songs.dta
+			moggDta.ParseFromDta(dta.Array("song"));
 			moggDta.CalculateMoggBASSInfo();
 
-			// parse the image
-			string imgPath = $"{songFolderPath}/gen/{shortname}_keep.png_xbox";
+			// Parse the image
+			string imgPath = Path.Combine("songFolderPath", "gen", $"{ShortName}_keep.png_xbox");
 			if (songDta.AlbumArtRequired() && File.Exists(imgPath)) {
 				img = new XboxImage(imgPath);
-				// do some preliminary parsing here in the header to get DXT format, width and height, etc
+
+				// Do some preliminary parsing here in the header to get DXT format, width and height, etc
 				img.ParseImageHeader();
 			}
 		}
 
-		public string GetXboxSongShortname() => shortname;
+		public bool IsValidateSong() {
+			// Skip if the song doesn't have notes
+			if (!File.Exists(MidiFile)) {
+				return false;
+			}
 
-		// true if this song is good to go and can be shown in-game, false if not
-		public bool ValidateSong() => !songDta.IsFake() && (moggDta.GetHeaderVersion() == 0xA);
+			// Skip if this is a "fake song" (tutorials, etc.)
+			if (songDta.IsFake()) {
+				return false;
+			}
+
+			// Skip if the mogg is encrypted
+			if (moggDta.GetHeaderVersion() != 0xA) {
+				return false;
+			}
+
+			return true;
+		}
 
 		public override string ToString() {
 			return string.Join(Environment.NewLine,
-				$"XBOX SONG {shortname}",
+				$"XBOX SONG {ShortName}",
 				$"song folder path: {songFolderPath}",
 				"",
 				songDta.ToString(),
@@ -49,9 +75,25 @@ namespace YARG.Serialization {
 			);
 		}
 
-		// TODO: implement this fxn
-		// public SongInfo ConvertToSongInfo() {
+		public void CompleteSongInfo(SongInfo song, bool rb) {
+			if (song.fetched) {
+				return;
+			}
+			song.fetched = true;
 
-		// }
+			// Set infos
+			song.SongName = songDta.name;
+			song.source = songDta.gameOrigin;
+			song.songLength = songDta.songLength / 1000f;
+			// song.delay
+			song.drumType = rb ? SongInfo.DrumType.FOUR_LANE : SongInfo.DrumType.FIVE_LANE;
+			// song.hopoFreq
+			song.artistName = songDta.artist;
+			song.album = songDta.albumName;
+			song.genre = songDta.genre;
+			// song.charter
+			song.year = songDta.yearReleased?.ToString();
+			// song.loadingPhrase
+		}
 	}
 }

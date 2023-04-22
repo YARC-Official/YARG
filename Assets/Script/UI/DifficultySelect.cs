@@ -34,8 +34,6 @@ namespace YARG.UI {
 		private int optionCount;
 		private int selected;
 
-		private bool isSetlistMode = false;
-
 		public delegate void InstrumentSelectionAction(PlayerManager.Player playerInfo);
 		public static event InstrumentSelectionAction OnInstrumentSelection;
 

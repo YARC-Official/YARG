@@ -18,19 +18,19 @@ namespace YARG.Serialization {
 			PARSER.Parser.Configuration.CommentRegex = new(@"^//(.*)|^;(.*)");
 		}
 
-		public static SongInfo CompleteSongInfo(SongInfo song) {
+		public static void CompleteSongInfo(SongInfo song) {
 			if (song.fetched) {
-				return song;
+				return;
 			}
 
-			var file = new FileInfo(Path.Combine(song.folder.ToString(), "song.ini"));
-			if (!file.Exists) {
-				return song;
+			var filePath = Path.Combine(song.RootFolder, "song.ini");
+			if (!File.Exists(filePath)) {
+				return;
 			}
 
 			song.fetched = true;
 			try {
-				var data = PARSER.ReadFile(file.FullName, Encoding.UTF8);
+				var data = PARSER.ReadFile(filePath, Encoding.UTF8);
 
 				// Get song section name
 				KeyDataCollection section;
@@ -39,8 +39,8 @@ namespace YARG.Serialization {
 				} else if (data.Sections.ContainsSection("Song")) {
 					section = data["Song"];
 				} else {
-					Debug.LogError($"No `song` section found in `{song.folder}`.");
-					return song;
+					Debug.LogError($"No `song` section found in `{song.RootFolder}`.");
+					return;
 				}
 
 				// Set basic info
@@ -72,8 +72,7 @@ namespace YARG.Serialization {
 					int rawLength = int.Parse(section["song_length"]);
 					song.songLength = rawLength / 1000f;
 				} else {
-					Debug.LogWarning($"No song length found for `{song.folder}`. Loading audio file. This might take longer.");
-					LoadSongLengthFromAudio(song);
+					Debug.LogWarning($"No song length found for `{song.RootFolder}`.");
 				}
 
 				// Get drum type
@@ -146,20 +145,20 @@ namespace YARG.Serialization {
 					}
 				}
 			} catch (Exception e) {
-				Debug.LogError($"Failed to parse song.ini for `{song.folder}`.");
+				Debug.LogError($"Failed to parse song.ini for `{song.RootFolder}`.");
 				Debug.LogException(e);
 			}
-
-			return song;
 		}
 
-		private static void LoadSongLengthFromAudio(SongInfo song) {
-			// Load file
-			var songOggPath = Path.Combine(song.folder.FullName, "song.ogg");
-			var file = TagLib.File.Create(songOggPath);
+		// private static void LoadSongLengthFromAudio(SongInfo song) {
+		// 	// TODO: Use BASS
 
-			// Save 
-			song.songLength = (float) file.Properties.Duration.TotalSeconds;
-		}
+		// 	// // Load file
+		// 	// var songOggPath = Path.Combine(song.mainFile.FullName, "song.ogg");
+		// 	// var file = TagLib.File.Create(songOggPath);
+
+		// 	// // Save 
+		// 	// song.songLength = (float) file.Properties.Duration.TotalSeconds;
+		// }
 	}
 }

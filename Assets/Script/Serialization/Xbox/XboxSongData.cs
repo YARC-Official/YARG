@@ -14,23 +14,23 @@ using DtxCS.DataTypes;
 namespace YARG.Serialization {
 	public class XboxSongData {
 		// all the possible metadata you could possibly want from a particular songs.dta
-		private string shortname, name, artist;
-		private string gameOrigin, genre, albumName, bank;
-		private string ghOutfit, ghGuitar, ghVenue;
-		private uint songLength = 0, songScrollSpeed = 2300;
-		private short tuningOffsetCents = 0;
-		private uint? songId;
-		private ushort? yearReleased, yearRecorded, vocalTonicNote; //TODO: implement other nullable/optional variables with default values
-		private bool? songTonality;
-		private bool master = false, albumArt = false, vocalGender; //vocalGender is true if male, false if female
-		private byte rating = 4, animTempo;
-		private byte? albumTrackNumber;
-		private byte vocalParts = 1;
-		private bool fake = false;
-		private (uint start, uint end) preview;
-		private short[] realGuitarTuning, realBassTuning;
-		private string[] solos;
-		private Dictionary<string, ushort> ranks;
+		public string shortname, name, artist;
+		public string gameOrigin, genre, albumName, bank;
+		public string ghOutfit, ghGuitar, ghVenue;
+		public uint songLength = 0, songScrollSpeed = 2300;
+		public short tuningOffsetCents = 0;
+		public uint? songId;
+		public ushort? yearReleased, yearRecorded, vocalTonicNote; //TODO: implement other nullable/optional variables with default values
+		public bool? songTonality;
+		public bool master = false, albumArt = false, vocalGender; //vocalGender is true if male, false if female
+		public byte rating = 4, animTempo;
+		public byte? albumTrackNumber;
+		public byte vocalParts = 1;
+		public bool fake = false;
+		public (uint start, uint end) preview;
+		public short[] realGuitarTuning, realBassTuning;
+		public string[] solos;
+		public Dictionary<string, ushort> ranks;
 
 		//TODO: implement macro support, such as #ifndef kControllerRealGuitar, or #ifdef YARG
 		public void ParseFromDta(DataArray dta) {

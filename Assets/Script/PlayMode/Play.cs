@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
@@ -96,7 +95,7 @@ namespace YARG.PlayMode {
 			GameUI.Instance.SetLoadingText("Loading audio...");
 
 			// Load audio
-			var stems = AudioHelpers.GetSupportedStems(song.folder.FullName);
+			var stems = AudioHelpers.GetSupportedStems(song.RootFolder);
 
 			GameManager.AudioManager.LoadSong(stems, Math.Abs(speed - 1) > float.Epsilon);
 			SongLength = GameManager.AudioManager.AudioLengthF;
@@ -160,16 +159,16 @@ namespace YARG.PlayMode {
 		private void LoadChart() {
 			// Add main file
 			var files = new List<string> {
-				Path.Combine(song.folder.FullName, "notes.mid")
+				song.mainFile
 			};
 
 			// Look for upgrades and add
-			var upgradeFolder = new DirectoryInfo(Path.Combine(song.folder.FullName, "yarg_upgrade"));
-			if (upgradeFolder.Exists) {
-				foreach (var midi in upgradeFolder.GetFiles("*.mid")) {
-					files.Add(midi.FullName);
-				}
-			}
+			// var upgradeFolder = new DirectoryInfo(Path.Combine(song.RootFolder, "yarg_upgrade"));
+			// if (upgradeFolder.Exists) {
+			// 	foreach (var midi in upgradeFolder.GetFiles("*.mid")) {
+			// 		files.Add(midi.FullName);
+			// 	}
+			// }
 
 			// Parse
 			var parser = new MidiParser(song, files.ToArray());
