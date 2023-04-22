@@ -4,7 +4,6 @@ using System.Threading;
 using UnityEngine;
 using YARG.Data;
 using YARG.PlayMode;
-using YARG.Util;
 
 namespace YARG.Input {
 	public sealed class MicInputStrategy : InputStrategy {
@@ -214,7 +213,6 @@ namespace YARG.Input {
 		public override void InitializeBotMode(object rawChart) {
 			botChart = (List<LyricInfo>) rawChart;
 		}
-
 
 		protected override void UpdateBotMode() {
 			if (botChart == null) {

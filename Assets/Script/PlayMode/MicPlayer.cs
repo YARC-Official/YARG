@@ -384,7 +384,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Ignore if paused
-			if (!Play.Instance.Paused) {
+			if (Play.Instance.Paused) {
 				return;
 			}
 
@@ -459,6 +459,9 @@ namespace YARG.PlayMode {
 			foreach (var playerInfo in micInputs) {
 				var player = playerInfo.player;
 				var micInput = (MicInputStrategy) player.inputStrategy;
+
+				// Update mic input
+				micInput.ForceUpdateInputs();
 
 				// Get the correct range
 				float correctRange = player.chosenDifficulty switch {
