@@ -25,7 +25,7 @@ namespace YARG.Input {
 			return MAPPING_NAMES;
 		}
 
-		public override void UpdatePlayerMode() {
+		protected override void UpdatePlayerMode() {
 			// Deal with fret inputs
 
 			for (int i = 0; i < 5; i++) {
@@ -88,7 +88,7 @@ namespace YARG.Input {
 			CallStarpowerEvent();
 		}
 
-		public override void UpdateNavigationMode() {
+		protected override void UpdateNavigationMode() {
 			CallGenericNavigationEventForButton("strumUp", NavigationType.UP);
 			CallGenericNavigationEventForButton("strumDown", NavigationType.DOWN);
 

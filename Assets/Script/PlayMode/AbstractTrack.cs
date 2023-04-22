@@ -151,9 +151,6 @@ namespace YARG.PlayMode {
 		private void Update() {
 			// Don't update if paused
 			if (Play.Instance.Paused) {
-				// Update navigation for pause menu
-				player.inputStrategy.UpdateNavigationMode();
-
 				return;
 			}
 

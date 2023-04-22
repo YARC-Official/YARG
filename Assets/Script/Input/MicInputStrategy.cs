@@ -51,7 +51,7 @@ namespace YARG.Input {
 			return new string[0];
 		}
 
-		public override void UpdatePlayerMode() {
+		protected override void UpdatePlayerMode() {
 			if (microphoneIndex == INVALID_MIC_INDEX) {
 				return;
 			}
@@ -241,7 +241,7 @@ namespace YARG.Input {
 			CallStarpowerEvent();
 		}
 
-		public override void UpdateNavigationMode() {
+		protected override void UpdateNavigationMode() {
 			// TODO
 		}
 

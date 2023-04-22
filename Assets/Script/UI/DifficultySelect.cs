@@ -78,13 +78,6 @@ namespace YARG.UI {
 			}
 		}
 
-		private void Update() {
-			// Update player navigation
-			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.UpdateNavigationMode();
-			}
-		}
-
 		private void OnGenericNavigation(NavigationType navigationType, bool firstPressed) {
 			if (!firstPressed) {
 				return;

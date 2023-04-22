@@ -111,11 +111,6 @@ namespace YARG.UI {
 			if (Keyboard.current.enterKey.wasPressedThisFrame) {
 				MainMenu.Instance.ShowMainMenu();
 			}
-
-			// Update player navigation
-			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.UpdateNavigationMode();
-			}
 		}
 
 		private void OnGenericNavigation(NavigationType navigationType, bool firstPressed) {

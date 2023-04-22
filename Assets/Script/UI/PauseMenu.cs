@@ -26,8 +26,6 @@ namespace YARG.UI {
 		}
 
 		private void OnEnable() {
-			// Note that player navigation is updated in AbstractTrack
-
 			// Bind input events
 			foreach (var player in PlayerManager.players) {
 				player.inputStrategy.GenericNavigationEvent += OnGenericNavigation;

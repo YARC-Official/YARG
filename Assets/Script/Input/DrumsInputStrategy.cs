@@ -24,7 +24,7 @@ namespace YARG.Input {
 			return MAPPING_NAMES;
 		}
 
-		public override void UpdatePlayerMode() {
+		protected override void UpdatePlayerMode() {
 			// Deal with drum inputs
 
 			if (WasMappingPressed("red_pad")) {
@@ -96,7 +96,7 @@ namespace YARG.Input {
 			CallStarpowerEvent();
 		}
 
-		public override void UpdateNavigationMode() {
+		protected override void UpdateNavigationMode() {
 			CallGenericNavigationEventForButton("yellow_pad", NavigationType.UP);
 			CallGenericNavigationEventForButton("blue_pad", NavigationType.DOWN);
 

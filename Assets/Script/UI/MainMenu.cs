@@ -106,11 +106,6 @@ namespace YARG.UI {
 				return;
 			}
 
-			// Update player navigation
-			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.UpdateNavigationMode();
-			}
-
 			if (!isUpdateShown && GameManager.Instance.updateChecker.IsOutOfDate) {
 				isUpdateShown = true;
 

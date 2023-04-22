@@ -194,11 +194,6 @@ namespace YARG.UI {
 			} else if (scroll < 0f) {
 				MoveView(1);
 			}
-
-			// Update player navigation
-			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.UpdateNavigationMode();
-			}
 		}
 
 		private void OnGenericNavigation(NavigationType navigationType, bool firstPressed) {

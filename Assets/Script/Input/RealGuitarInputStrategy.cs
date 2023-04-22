@@ -38,7 +38,7 @@ namespace YARG.Input {
 			return new string[0];
 		}
 
-		public override void UpdatePlayerMode() {
+		protected override void UpdatePlayerMode() {
 			if (InputDevice is not ProGuitar input) {
 				return;
 			}
@@ -138,7 +138,7 @@ namespace YARG.Input {
 			CallStarpowerEvent();
 		}
 
-		public override void UpdateNavigationMode() {
+		protected override void UpdateNavigationMode() {
 			// TODO
 		}
 

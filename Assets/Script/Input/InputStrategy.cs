@@ -133,7 +133,7 @@ namespace YARG.Input {
 		/// <summary>
 		/// Updates the player mode (normal mode) for this particular InputStrategy.
 		/// </summary>
-		public abstract void UpdatePlayerMode();
+		protected abstract void UpdatePlayerMode();
 
 		/// <summary>
 		/// Updates the bot mode for this particular InputStrategy.
@@ -146,7 +146,7 @@ namespace YARG.Input {
 		/// <summary>
 		/// Updates the navigation mode (menu mode) for this particular InputStrategy.
 		/// </summary>
-		public abstract void UpdateNavigationMode();
+		protected abstract void UpdateNavigationMode();
 
 		protected void CallStarpowerEvent() {
 			StarpowerEvent?.Invoke(this);
@@ -185,6 +185,12 @@ namespace YARG.Input {
 			foreach (var mapping in inputMappings) {
 				bool previous = inputStates[mapping.Key].current;
 				inputStates[mapping.Key] = (previous, IsControlPressed(mapping.Value));
+			}
+
+			// Update navigation and player input
+			if (!botMode) {
+				UpdateNavigationMode();
+				UpdatePlayerMode();
 			}
 		}
 

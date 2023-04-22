@@ -86,8 +86,6 @@ namespace YARG.PlayMode {
 			// Update input strategy
 			if (input.botMode) {
 				input.UpdateBotMode(Chart, Play.Instance.SongTime);
-			} else {
-				input.UpdatePlayerMode();
 			}
 
 			// Ignore everything else until the song starts

@@ -425,8 +425,6 @@ namespace YARG.PlayMode {
 
 					botChartIndices++;
 					botChartIndices %= charts.Count;
-				} else {
-					micInput.UpdatePlayerMode();
 				}
 
 				// Get the correct range
