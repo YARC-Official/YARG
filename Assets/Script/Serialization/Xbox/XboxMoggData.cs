@@ -7,20 +7,31 @@ using System.Threading.Tasks;
 using DtxCS.DataTypes;
 
 namespace YARG.Serialization {
+	/*
+	
+	TODO: Generalize for all .mogg's
+
+	*/
+
+	[Serializable]
 	public class XboxMoggData {
-		private string moggPath;
-		private byte channelCount;
-		private int header;
+		public string moggPath;
+		public byte channelCount;
+		public int header;
+
 		// private int startMoggAddress;
 		// private long usableMoggLength;
-		private float[] pans, vols;
-		private Dictionary<string, byte[]> tracks;
-		private byte[] crowdChannels;
 
-		private Dictionary<SongStem, byte[]> stemMaps;
-		private float[,] matrixRatios;
+		public float[] pans, vols;
+		public Dictionary<string, byte[]> tracks;
+		public byte[] crowdChannels;
 
-		public XboxMoggData(string str) { moggPath = str; }
+		public Dictionary<SongStem, byte[]> stemMaps;
+		public float[,] matrixRatios;
+
+		public XboxMoggData(string str) {
+			moggPath = str;
+		}
 
 		public void ParseMoggHeader() {
 			byte[] buffer;

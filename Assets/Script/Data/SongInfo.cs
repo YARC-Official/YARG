@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
+using YARG.Serialization;
 
 namespace YARG.Data {
 	[JsonObject(MemberSerialization.OptIn)]
@@ -140,6 +141,12 @@ namespace YARG.Data {
 		public string loadingPhrase;
 		[JsonProperty]
 		public string hash;
+
+		/// <summary>
+		/// .mogg data for CON files.
+		/// </summary>
+		[JsonProperty]
+		public XboxMoggData moggInfo;
 
 		public Dictionary<string, int> partDifficulties;
 

@@ -94,6 +94,10 @@ namespace YARG.PlayMode {
 		private IEnumerator StartSong() {
 			GameUI.Instance.SetLoadingText("Loading audio...");
 
+			// TO RILEY
+			Debug.Log(song.moggInfo.channelCount);
+			// etc...
+
 			// Load audio
 			var stems = AudioHelpers.GetSupportedStems(song.RootFolder);
 

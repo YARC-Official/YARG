@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using System.IO;
 using DtxCS.DataTypes;
 using YARG.Data;
@@ -94,6 +93,8 @@ namespace YARG.Serialization {
 			// song.charter
 			song.year = songDta.yearReleased?.ToString();
 			// song.loadingPhrase
+
+			song.moggInfo = moggDta;
 		}
 	}
 }
