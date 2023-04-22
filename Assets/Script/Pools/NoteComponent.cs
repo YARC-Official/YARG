@@ -130,6 +130,12 @@ namespace YARG.Pools {
 		}
 
 		public void SetInfo(Color notes, Color sustains, float length, ModelType type, bool isDrumActivator) {
+			static void SetModelActive(GameObject obj, ModelType inType, ModelType needType) {
+				if (obj != null) {
+					obj.SetActive(inType == needType);
+				}
+			}
+
 			SetModelActive(noteGroup, type, ModelType.NOTE);
 			SetModelActive(hopoGroup, type, ModelType.HOPO);
 			SetModelActive(tapGroup, type, ModelType.TAP);
@@ -146,12 +152,6 @@ namespace YARG.Pools {
 			UpdateColor();
 
 			UpdateRandomness();
-		}
-
-		private void SetModelActive(GameObject obj, ModelType inType, ModelType needType) {
-			if (obj != null) {
-				obj.SetActive(inType == needType);
-			}
 		}
 
 		public void SetInfo(Color notes, Color sustains, float length, ModelType hopo) {
@@ -221,11 +221,17 @@ namespace YARG.Pools {
 		}
 
 		public void HitNote() {
-			noteGroup.SetActive(false);
-			hopoGroup.SetActive(false);
-			tapGroup.SetActive(false);
-			fullGroup.SetActive(false);
-			fullHopoGroup.SetActive(false);
+			static void Hide(GameObject obj) {
+				if (obj != null) {
+					obj.SetActive(false);
+				}
+			}
+
+			Hide(noteGroup);
+			Hide(hopoGroup);
+			Hide(tapGroup);
+			Hide(fullGroup);
+			Hide(fullHopoGroup);
 
 			if (fretNumber != null) {
 				fretNumber.gameObject.SetActive(false);
