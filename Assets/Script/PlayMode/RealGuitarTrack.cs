@@ -54,6 +54,10 @@ namespace YARG.PlayMode {
 			input.FretChangeEvent += FretChangedAction;
 			input.StrumEvent += StrumAction;
 
+			if (input.botMode) {
+				input.InitializeBotMode(Chart);
+			}
+
 			// Color particles
 
 			for (int i = 0; i < 6; i++) {
@@ -78,13 +82,6 @@ namespace YARG.PlayMode {
 		}
 
 		protected override void UpdateTrack() {
-			// Update input strategy
-			if (input.botMode) {
-				input.UpdateBotMode(Chart, Play.Instance.SongTime);
-			} else {
-				input.UpdatePlayerMode();
-			}
-
 			// Ignore everything else until the song starts
 			if (!Play.Instance.SongStarted) {
 				return;
@@ -216,6 +213,16 @@ namespace YARG.PlayMode {
 				heldNotes.Add(note);
 				scoreKeeper.Add(susTracker.Strum(note) * Multiplier * SUSTAIN_PTS_PER_BEAT);
 				StartSustainParticles(note);
+			}
+		}
+
+		protected override void PauseToggled(bool pause) {
+			if (!pause) {
+				input.FretChangeEvent += FretChangedAction;
+				input.StrumEvent += StrumAction;
+			} else {
+				input.FretChangeEvent -= FretChangedAction;
+				input.StrumEvent -= StrumAction;
 			}
 		}
 

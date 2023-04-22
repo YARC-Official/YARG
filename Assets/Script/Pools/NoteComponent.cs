@@ -8,7 +8,8 @@ namespace YARG.Pools {
 			NOTE,
 			HOPO,
 			TAP,
-			FULL
+			FULL,
+			FULL_HOPO
 		}
 
 		private enum State {
@@ -32,11 +33,15 @@ namespace YARG.Pools {
 		[SerializeField]
 		private GameObject fullGroup;
 		[SerializeField]
+		private GameObject fullHopoGroup;
+
+		[Space]
+		[SerializeField]
 		private TextMeshPro fretNumber;
 		[SerializeField]
 		private LineRenderer lineRenderer;
 
-		private float _brutal_vanish_distance;
+		private float _brutalVanishDistance;
 		/// <summary>
 		/// Ranges between -1 and 1. Notes will disappear when they reach this percentage down the track.
 		/// </summary>
@@ -46,18 +51,14 @@ namespace YARG.Pools {
 		/// Notes will not disappear at all if this number is below 0.
 		/// </remarks>
 		private float BrutalVanishDistance {
-			get => _brutal_vanish_distance;
+			get => _brutalVanishDistance;
 			set {
-				_brutal_vanish_distance = System.Math.Clamp(value, -1, 1);
+				_brutalVanishDistance = System.Math.Clamp(value, -1, 1);
 			}
 		}
 
 		private bool BrutalIsNoteVanished {
-			get {
-				return (PercentDistanceFromStrikeline <= BrutalVanishDistance
-				&& state == State.WAITING
-				);
-			}
+			get => PercentDistanceFromStrikeline <= BrutalVanishDistance && state == State.WAITING;
 		}
 
 		private Color _colorCacheSustains = Color.white;
@@ -128,11 +129,13 @@ namespace YARG.Pools {
 			}
 		}
 
-		public void SetInfo(Color notes, Color sustains, float length, ModelType hopo, bool isDrumActivator) {
-			noteGroup.SetActive(hopo == ModelType.NOTE);
-			hopoGroup.SetActive(hopo == ModelType.HOPO);
-			tapGroup.SetActive( hopo == ModelType.TAP);
-			fullGroup.SetActive(hopo == ModelType.FULL);
+		public void SetInfo(Color notes, Color sustains, float length, ModelType type, bool isDrumActivator) {
+			SetModelActive(noteGroup, type, ModelType.NOTE);
+			SetModelActive(hopoGroup, type, ModelType.HOPO);
+			SetModelActive(tapGroup, type, ModelType.TAP);
+			SetModelActive(fullGroup, type, ModelType.FULL);
+			SetModelActive(fullHopoGroup, type, ModelType.FULL_HOPO);
+
 			state = State.WAITING;
 
 			SetLength(length);
@@ -143,6 +146,12 @@ namespace YARG.Pools {
 			UpdateColor();
 
 			UpdateRandomness();
+		}
+
+		private void SetModelActive(GameObject obj, ModelType inType, ModelType needType) {
+			if (obj != null) {
+				obj.SetActive(inType == needType);
+			}
 		}
 
 		public void SetInfo(Color notes, Color sustains, float length, ModelType hopo) {
@@ -214,9 +223,10 @@ namespace YARG.Pools {
 		public void HitNote() {
 			noteGroup.SetActive(false);
 			hopoGroup.SetActive(false);
-			fullGroup.SetActive(false);
 			tapGroup.SetActive(false);
-			
+			fullGroup.SetActive(false);
+			fullHopoGroup.SetActive(false);
+
 			if (fretNumber != null) {
 				fretNumber.gameObject.SetActive(false);
 			}
@@ -229,7 +239,7 @@ namespace YARG.Pools {
 			if (fretNumber != null) {
 				fretNumber.gameObject.SetActive(false);
 			}
-			
+
 			state = State.MISSED;
 			UpdateLineColor();
 		}
@@ -263,7 +273,7 @@ namespace YARG.Pools {
 			} else {
 				BrutalVanishDistance = -1.0f;
 			}
-			
+
 			BrutalUpdateNoteVanish();
 		}
 

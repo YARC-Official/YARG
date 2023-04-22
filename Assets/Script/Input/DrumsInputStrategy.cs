@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using YARG.Data;
+using YARG.PlayMode;
 using YARG.Settings;
 
 namespace YARG.Input {
@@ -16,6 +17,8 @@ namespace YARG.Input {
 			"kick_alt"
 		};
 
+		private List<NoteInfo> botChart;
+
 		public delegate void DrumHitAction(int drum, bool cymbal);
 
 		public event DrumHitAction DrumHitEvent;
@@ -24,7 +27,7 @@ namespace YARG.Input {
 			return MAPPING_NAMES;
 		}
 
-		public override void UpdatePlayerMode() {
+		protected override void UpdatePlayerMode() {
 			// Deal with drum inputs
 
 			if (WasMappingPressed("red_pad")) {
@@ -71,16 +74,21 @@ namespace YARG.Input {
 				DrumHitEvent?.Invoke(4, false);
 				CallGenericCalbirationEvent();
 			}
-
-			// Constantly activate starpower
-			//CallStarpowerEvent();
 		}
 
-		public override void UpdateBotMode(object rawChart, float songTime) {
-			var chart = (List<NoteInfo>) rawChart;
+		public override void InitializeBotMode(object rawChart) {
+			botChart = (List<NoteInfo>) rawChart;
+		}
 
-			while (chart.Count > botChartIndex && chart[botChartIndex].time <= songTime) {
-				var noteInfo = chart[botChartIndex];
+		protected override void UpdateBotMode() {
+			if (botChart == null) {
+				return;
+			}
+
+			float songTime = Play.Instance.SongTime;
+
+			while (botChart.Count > botChartIndex && botChart[botChartIndex].time <= songTime) {
+				var noteInfo = botChart[botChartIndex];
 				botChartIndex++;
 
 				// Deal with no kicks
@@ -91,26 +99,17 @@ namespace YARG.Input {
 				// Hit
 				DrumHitEvent?.Invoke(noteInfo.fret, noteInfo.hopo);
 			}
-
-			// Constantly activate starpower
-			//CallStarpowerEvent();
 		}
 
 		public void ActivateStarpower() {
 			CallStarpowerEvent();
 		}
 
-		public override void UpdateNavigationMode() {
+		protected override void UpdateNavigationMode() {
 			CallGenericNavigationEventForButton("yellow_pad", NavigationType.UP);
 			CallGenericNavigationEventForButton("blue_pad", NavigationType.DOWN);
-
-			if (WasMappingPressed("green_pad")) {
-				CallGenericNavigationEvent(NavigationType.PRIMARY, true);
-			}
-
-			if (WasMappingPressed("red_pad")) {
-				CallGenericNavigationEvent(NavigationType.SECONDARY, true);
-			}
+			CallGenericNavigationEventForButton("green_pad", NavigationType.PRIMARY);
+			CallGenericNavigationEventForButton("red_pad", NavigationType.SECONDARY);
 		}
 
 		public override string[] GetAllowedInstruments() {
