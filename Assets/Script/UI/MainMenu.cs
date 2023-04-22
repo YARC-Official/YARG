@@ -125,11 +125,6 @@ namespace YARG.UI {
 				return;
 			}
 
-			// Update player navigation
-			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.UpdateNavigationMode();
-			}
-
 			if (!isUpdateShown && GameManager.Instance.updateChecker.IsOutOfDate) {
 				isUpdateShown = true;
 
@@ -139,8 +134,8 @@ namespace YARG.UI {
 			}
 		}
 
-		private void OnGenericNavigation(NavigationType navigationType, bool firstPressed) {
-			if (!firstPressed) {
+		private void OnGenericNavigation(NavigationType navigationType, bool pressed) {
+			if (!pressed) {
 				return;
 			}
 

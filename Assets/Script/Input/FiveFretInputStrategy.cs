@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using YARG.Data;
+using YARG.PlayMode;
 
 namespace YARG.Input {
 	public class FiveFretInputStrategy : InputStrategy {
@@ -15,6 +16,8 @@ namespace YARG.Input {
 			"pause"
 		};
 
+		private List<NoteInfo> botChart;
+
 		public delegate void FretChangeAction(bool pressed, int fret);
 		public delegate void StrumAction();
 
@@ -25,7 +28,11 @@ namespace YARG.Input {
 			return MAPPING_NAMES;
 		}
 
-		public override void UpdatePlayerMode() {
+		public override void InitializeBotMode(object rawChart) {
+			botChart = (List<NoteInfo>) rawChart;
+		}
+
+		protected override void UpdatePlayerMode() {
 			// Deal with fret inputs
 
 			for (int i = 0; i < 5; i++) {
@@ -48,22 +55,22 @@ namespace YARG.Input {
 				CallGenericCalbirationEvent();
 			}
 
-			// Starpower & Pause
+			// Starpower
 
 			if (WasMappingPressed("starpower")) {
 				CallStarpowerEvent();
 			}
-
-			if (WasMappingPressed("pause")) {
-				CallPauseEvent();
-			}
 		}
 
-		public override void UpdateBotMode(object rawChart, float songTime) {
-			var chart = (List<NoteInfo>) rawChart;
+		protected override void UpdateBotMode() {
+			if (botChart == null) {
+				return;
+			}
+
+			float songTime = Play.Instance.SongTime;
 
 			bool resetForChord = false;
-			while (chart.Count > botChartIndex && chart[botChartIndex].time <= songTime) {
+			while (botChart.Count > botChartIndex && botChart[botChartIndex].time <= songTime) {
 				// Release old frets
 				if (!resetForChord) {
 					for (int i = 0; i < 5; i++) {
@@ -72,7 +79,7 @@ namespace YARG.Input {
 					resetForChord = true;
 				}
 
-				var noteInfo = chart[botChartIndex];
+				var noteInfo = botChart[botChartIndex];
 				botChartIndex++;
 
 				// Skip fret press if open note
@@ -88,21 +95,13 @@ namespace YARG.Input {
 			CallStarpowerEvent();
 		}
 
-		public override void UpdateNavigationMode() {
+		protected override void UpdateNavigationMode() {
 			CallGenericNavigationEventForButton("strumUp", NavigationType.UP);
 			CallGenericNavigationEventForButton("strumDown", NavigationType.DOWN);
 
-			if (WasMappingPressed("green")) {
-				CallGenericNavigationEvent(NavigationType.PRIMARY, true);
-			}
-
-			if (WasMappingPressed("red")) {
-				CallGenericNavigationEvent(NavigationType.SECONDARY, true);
-			}
-
-			if (WasMappingPressed("yellow")) {
-				CallGenericNavigationEvent(NavigationType.TERTIARY, true);
-			}
+			CallGenericNavigationEventForButton("green", NavigationType.PRIMARY);
+			CallGenericNavigationEventForButton("red", NavigationType.SECONDARY);
+			CallGenericNavigationEventForButton("yellow", NavigationType.TERTIARY);
 
 			if (WasMappingPressed("pause")) {
 				CallPauseEvent();

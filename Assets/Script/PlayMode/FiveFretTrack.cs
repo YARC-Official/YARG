@@ -59,6 +59,10 @@ namespace YARG.PlayMode {
 			input.FretChangeEvent += FretChangedAction;
 			input.StrumEvent += StrumAction;
 
+			if (input.botMode) {
+				input.InitializeBotMode(Chart);
+			}
+
 			// Color frets
 			for (int i = 0; i < 5; i++) {
 				var fret = frets[i].GetComponent<Fret>();
@@ -88,13 +92,6 @@ namespace YARG.PlayMode {
 		}
 
 		protected override void UpdateTrack() {
-			// Update input strategy
-			if (input.botMode) {
-				input.UpdateBotMode(Chart, Play.Instance.SongTime);
-			} else {
-				input.UpdatePlayerMode();
-			}
-
 			// Ignore everything else until the song starts
 			if (!Play.Instance.SongStarted) {
 				return;
@@ -490,6 +487,16 @@ namespace YARG.PlayMode {
 			}
 
 			return true;
+		}
+
+		protected override void PauseToggled(bool pause) {
+			if (!pause) {
+				input.FretChangeEvent += FretChangedAction;
+				input.StrumEvent += StrumAction;
+			} else {
+				input.FretChangeEvent -= FretChangedAction;
+				input.StrumEvent -= StrumAction;
+			}
 		}
 
 		private void FretChangedAction(bool pressed, int fret) {

@@ -52,6 +52,10 @@ namespace YARG.PlayMode {
 				ghStrat.DrumHitEvent += GHDrumHitAction;
 			}
 
+			if (input.botMode) {
+				input.InitializeBotMode(Chart);
+			}
+
 			// GH vs RB
 
 			kickIndex = fiveLaneMode ? 5 : 4;
@@ -95,13 +99,6 @@ namespace YARG.PlayMode {
 		}
 
 		protected override void UpdateTrack() {
-			// Update input strategy
-			if (input.botMode) {
-				input.UpdateBotMode(Chart, Play.Instance.SongTime);
-			} else {
-				input.UpdatePlayerMode();
-			}
-
 			// Ignore everything else until the song starts
 			if (!Play.Instance.SongStarted) {
 				return;
@@ -202,6 +199,22 @@ namespace YARG.PlayMode {
 					missedAnyNote = true;
 					notePool.MissNote(hit);
 					StopAudio = true;
+				}
+			}
+		}
+
+		protected override void PauseToggled(bool pause) {
+			if (!pause) {
+				if (input is DrumsInputStrategy drumStrat) {
+					drumStrat.DrumHitEvent += DrumHitAction;
+				} else if (input is GHDrumsInputStrategy ghStrat) {
+					ghStrat.DrumHitEvent += GHDrumHitAction;
+				}
+			} else {
+				if (input is DrumsInputStrategy drumStrat) {
+					drumStrat.DrumHitEvent -= DrumHitAction;
+				} else if (input is GHDrumsInputStrategy ghStrat) {
+					ghStrat.DrumHitEvent -= GHDrumHitAction;
 				}
 			}
 		}

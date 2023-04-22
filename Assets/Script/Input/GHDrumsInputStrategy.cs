@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using YARG.Data;
+using YARG.PlayMode;
 using YARG.Settings;
 
 namespace YARG.Input {
@@ -14,6 +15,8 @@ namespace YARG.Input {
 			"kick_alt"
 		};
 
+		private List<NoteInfo> botChart;
+
 		public delegate void DrumHitAction(int drum);
 
 		public event DrumHitAction DrumHitEvent;
@@ -22,7 +25,7 @@ namespace YARG.Input {
 			return MAPPING_NAMES;
 		}
 
-		public override void UpdatePlayerMode() {
+		protected override void UpdatePlayerMode() {
 			// Deal with drum inputs
 
 			if (WasMappingPressed("red_pad")) {
@@ -64,11 +67,19 @@ namespace YARG.Input {
 			//CallStarpowerEvent();
 		}
 
-		public override void UpdateBotMode(object rawChart, float songTime) {
-			var chart = (List<NoteInfo>) rawChart;
+		public override void InitializeBotMode(object rawChart) {
+			botChart = (List<NoteInfo>) rawChart;
+		}
 
-			while (chart.Count > botChartIndex && chart[botChartIndex].time <= songTime) {
-				var noteInfo = chart[botChartIndex];
+		protected override void UpdateBotMode() {
+			if (botChart == null) {
+				return;
+			}
+
+			float songTime = Play.Instance.SongTime;
+
+			while (botChart.Count > botChartIndex && botChart[botChartIndex].time <= songTime) {
+				var noteInfo = botChart[botChartIndex];
 				botChartIndex++;
 
 				if (noteInfo.fret == 5 && SettingsManager.GetSettingValue<bool>("noKicks")) {
@@ -83,7 +94,7 @@ namespace YARG.Input {
 			//CallStarpowerEvent();
 		}
 
-		public override void UpdateNavigationMode() {
+		protected override void UpdateNavigationMode() {
 			// TODO
 		}
 
