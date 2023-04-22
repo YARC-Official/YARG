@@ -7,6 +7,11 @@ using UnityEngine.InputSystem.Utilities;
 
 namespace YARG.Input {
 	public abstract class InputStrategy {
+		protected class StrategyControl {
+			public InputControl control;
+			public (bool previous, bool current) state;
+		}
+
 		public const float PRESS_THRESHOLD = 0.75f; // TODO: Remove once control calibration is added
 		public const int INVALID_MIC_INDEX = -1;
 
@@ -35,11 +40,7 @@ namespace YARG.Input {
 		/// <summary>
 		/// A list of the controls that correspond to each mapping.
 		/// </summary>
-		protected Dictionary<string, InputControl> inputMappings = new();
-		/// <summary>
-		/// A list of the states at the current and previous input event for each mapping.
-		/// </summary>
-		protected Dictionary<string, (bool previous, bool current)> inputStates = new();
+		protected Dictionary<string, StrategyControl> inputMappings = new();
 
 		public bool Enabled { get; private set; }
 
@@ -72,8 +73,7 @@ namespace YARG.Input {
 		public InputStrategy() {
 			// Add keys for each input mapping
 			foreach (var key in GetMappingNames()) {
-				inputMappings.Add(key, null);
-				inputStates.Add(key, (false, false));
+				inputMappings.Add(key, new());
 			}
 		}
 
@@ -176,23 +176,20 @@ namespace YARG.Input {
 			}
 
 			// Update previous and current states
-			foreach (var mapping in inputMappings) {
+			foreach (var mapping in inputMappings.Values) {
 				// Ignore unmapped controls
-				var state = inputStates[mapping.Key];
-				var control = mapping.Value;
-				if (control == null) {
+				if (mapping.control == null) {
 					continue;
 				}
 
 				// Progress state history forward
-				state.previous = state.current;
-				if (control.HasValueChangeInEvent(eventPtr)) {
+				mapping.state.previous = mapping.state.current;
+				if (mapping.control.HasValueChangeInEvent(eventPtr)) {
 					// Don't check pressed state unless there was a value change
 					// There seems to be an issue with delta state events (which MIDI devices use) where
 					// a control that wasn't changed in that event will report the wrong value
-					state.current = IsControlPressed(control, eventPtr);
+					mapping.state.current = IsControlPressed(mapping.control, eventPtr);
 				}
-				inputStates[mapping.Key] = state;
 			}
 
 			// Update inputs
@@ -217,25 +214,25 @@ namespace YARG.Input {
 		}
 
 		protected bool IsMappingPressed(string key) {
-			return inputStates[key].current;
+			return inputMappings[key].state.current;
 		}
 
 		protected bool WasMappingPressed(string key) {
-			var (previous, current) = inputStates[key];
+			var (previous, current) = inputMappings[key].state;
 			return !previous && current;
 		}
 
 		protected bool WasMappingReleased(string key) {
-			var (previous, current) = inputStates[key];
+			var (previous, current) = inputMappings[key].state;
 			return previous && !current;
 		}
 
 		public InputControl GetMappingInputControl(string name) {
-			return inputMappings[name];
+			return inputMappings[name].control;
 		}
 
 		public void SetMappingInputControl(string name, InputControl control) {
-			inputMappings[name] = control;
+			inputMappings[name].control = control;
 		}
 	}
 }
