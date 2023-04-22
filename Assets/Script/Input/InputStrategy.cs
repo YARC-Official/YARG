@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Minis;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
+using UnityEngine.InputSystem.LowLevel;
+using UnityEngine.InputSystem.Utilities;
 
 namespace YARG.Input {
 	public abstract class InputStrategy {
@@ -36,11 +37,13 @@ namespace YARG.Input {
 		/// </summary>
 		protected Dictionary<string, InputControl> inputMappings = new();
 		/// <summary>
-		/// A list of the states at the current and previous frame for each mapping.
+		/// A list of the states at the current and previous input event for each mapping.
 		/// </summary>
 		protected Dictionary<string, (bool previous, bool current)> inputStates = new();
 
 		public bool Enabled { get; private set; }
+
+		private IDisposable eventListener = null;
 
 		public delegate void GenericCalibrationAction(InputStrategy inputStrategy);
 		/// <summary>
@@ -59,7 +62,7 @@ namespace YARG.Input {
 		/// </summary>
 		public event Action PauseEvent;
 
-		public delegate void GenericNavigationAction(NavigationType navigationType, bool firstPressed);
+		public delegate void GenericNavigationAction(NavigationType navigationType, bool pressed);
 		/// <summary>
 		/// Gets invoked when any generic navigation button is pressed.<br/>
 		/// Make sure <see cref="UpdateNavigationMode"/> is being called.
@@ -76,12 +79,9 @@ namespace YARG.Input {
 
 		public void Enable() {
 			// Bind events
-			GameManager.OnUpdate += EventUpdateLoop;
-
-			// Temporary for MIDI
-			if (_inputDevice is MidiDevice newMidi) {
-				newMidi.onWillNoteOn += OnWillNoteOn;
-				newMidi.onWillNoteOff += OnWillNoteOff;
+			GameManager.OnUpdate += OnUpdate;
+			if (_inputDevice != null) {
+				eventListener = InputSystem.onEvent.ForDevice(_inputDevice).Call(OnInputEvent);
 			}
 
 			Enabled = true;
@@ -89,13 +89,9 @@ namespace YARG.Input {
 
 		public void Disable() {
 			// Unbind events
-			GameManager.OnUpdate -= EventUpdateLoop;
-
-			// Temporary for MIDI
-			if (_inputDevice is MidiDevice oldMidi) {
-				oldMidi.onWillNoteOn -= OnWillNoteOn;
-				oldMidi.onWillNoteOff -= OnWillNoteOff;
-			}
+			GameManager.OnUpdate -= OnUpdate;
+			eventListener?.Dispose();
+			eventListener = null;
 
 			Enabled = false;
 		}
@@ -155,63 +151,53 @@ namespace YARG.Input {
 			GenericCalibrationEvent?.Invoke(this);
 		}
 
-		protected void CallGenericNavigationEvent(NavigationType type, bool firstPressed) {
-			GenericNavigationEvent?.Invoke(type, firstPressed);
+		protected void CallGenericNavigationEvent(NavigationType type, bool pressed) {
+			GenericNavigationEvent?.Invoke(type, pressed);
 		}
 
 		public void CallGenericNavigationEventForButton(string key, NavigationType type) {
 			if (WasMappingPressed(key)) {
 				CallGenericNavigationEvent(type, true);
-			} else {
-				var input = GetMappingInputControl(key);
-
-				if (input is MidiNoteControl) {
-					return;
-				}
-
-				if (input is ButtonControl button && button.isPressed) {
-					CallGenericNavigationEvent(type, false);
-				}
+			} else if (WasMappingReleased(key)) {
+				CallGenericNavigationEvent(type, false);
 			}
 		}
 
-		private void EventUpdateLoop() {
+		private void OnUpdate() {
+			if (botMode) {
+				UpdateBotMode();
+			}
+		}
+
+		private void OnInputEvent(InputEventPtr eventPtr) {
+			// Only take state events
+			if (!eventPtr.IsA<StateEvent>() && !eventPtr.IsA<DeltaStateEvent>()) {
+				return;
+			}
+
 			// Update previous and current states
 			foreach (var mapping in inputMappings) {
-				bool previous = inputStates[mapping.Key].current;
-				inputStates[mapping.Key] = (previous, IsControlPressed(mapping.Value));
+				// Ignore unmapped controls
+				var state = inputStates[mapping.Key];
+				var control = mapping.Value;
+				if (control == null) {
+					continue;
+				}
+
+				// Progress state history forward
+				state.previous = state.current;
+				if (control.HasValueChangeInEvent(eventPtr)) {
+					// Don't check pressed state unless there was a value change
+					// There seems to be an issue with delta state events (which MIDI devices use) where
+					// a control that wasn't changed in that event will report the wrong value
+					state.current = IsControlPressed(control, eventPtr);
+				}
+				inputStates[mapping.Key] = state;
 			}
 
 			// Update inputs
 			UpdateNavigationMode();
-			if (botMode) {
-				UpdateBotMode();
-			} else {
-				UpdatePlayerMode();
-			}
-		}
-
-		// Temporary for MIDI, as very brief note events are likely to be missed otherwise
-		private void OnWillNoteOn(MidiNoteControl midi, float velocity) {
-			foreach (var input in inputMappings) {
-				if (input.Value == midi && !WasMappingReleased(input.Key)) {
-					// Set current state to active
-					bool previous = inputStates[input.Key].previous;
-					inputStates[input.Key] = (previous, true);
-					return;
-				}
-			}
-		}
-
-		private void OnWillNoteOff(MidiNoteControl midi) {
-			foreach (var input in inputMappings) {
-				if (input.Value == midi && !WasMappingPressed(input.Key)) {
-					// Set current state to inactive
-					bool previous = inputStates[input.Key].previous;
-					inputStates[input.Key] = (previous, false);
-					return;
-				}
-			}
+			UpdatePlayerMode();
 		}
 
 		public static bool IsControlPressed(InputControl control) {
@@ -222,9 +208,16 @@ namespace YARG.Input {
 			return false;
 		}
 
+		public static bool IsControlPressed(InputControl control, InputEventPtr eventPtr) {
+			if (control is ButtonControl button) {
+				return button.IsValueConsideredPressed(button.ReadValueFromEvent(eventPtr));
+			}
+
+			return false;
+		}
+
 		protected bool IsMappingPressed(string key) {
-			var control = inputMappings[key];
-			return IsControlPressed(control);
+			return inputStates[key].current;
 		}
 
 		protected bool WasMappingPressed(string key) {
