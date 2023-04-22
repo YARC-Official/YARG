@@ -75,10 +75,6 @@ namespace YARG.Input {
 		}
 
 		public void Enable() {
-			if (_inputDevice == null) {
-				return;
-			}
-
 			// Bind events
 			GameManager.OnUpdate += EventUpdateLoop;
 
@@ -92,10 +88,6 @@ namespace YARG.Input {
 		}
 
 		public void Disable() {
-			if (_inputDevice == null) {
-				return;
-			}
-
 			// Unbind events
 			GameManager.OnUpdate -= EventUpdateLoop;
 
@@ -131,6 +123,12 @@ namespace YARG.Input {
 		}
 
 		/// <summary>
+		/// Initializes the bot mode for this particular InputStrategy.
+		/// </summary>
+		/// <param name="chart">A reference to the current chart.</param>
+		public abstract void InitializeBotMode(object chart);
+
+		/// <summary>
 		/// Updates the player mode (normal mode) for this particular InputStrategy.
 		/// </summary>
 		protected abstract void UpdatePlayerMode();
@@ -138,10 +136,7 @@ namespace YARG.Input {
 		/// <summary>
 		/// Updates the bot mode for this particular InputStrategy.
 		/// </summary>
-		/// <param name="chart">A reference to the current chart.</param>
-		/// <param name="songTime">The song time in seconds.</param>
-		/// <param name="chosenInstrument">The instrument that the bot is playing.</param>
-		public abstract void UpdateBotMode(object chart, float songTime);
+		protected abstract void UpdateBotMode();
 
 		/// <summary>
 		/// Updates the navigation mode (menu mode) for this particular InputStrategy.
@@ -187,9 +182,11 @@ namespace YARG.Input {
 				inputStates[mapping.Key] = (previous, IsControlPressed(mapping.Value));
 			}
 
-			// Update navigation and player input
-			if (!botMode) {
-				UpdateNavigationMode();
+			// Update inputs
+			UpdateNavigationMode();
+			if (botMode) {
+				UpdateBotMode();
+			} else {
 				UpdatePlayerMode();
 			}
 		}

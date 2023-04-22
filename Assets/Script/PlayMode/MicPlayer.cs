@@ -324,8 +324,18 @@ namespace YARG.PlayMode {
 			}
 
 			// Set up sing progresses
+			int botChartIndex = 0;
 			foreach (var playerInfo in micInputs) {
 				playerInfo.singProgresses = new float[harmonyCount];
+				var player = playerInfo.player;
+				var micInput = (MicInputStrategy) player.inputStrategy;
+
+				// Update inputs
+				if (micInput.botMode) {
+					micInput.InitializeBotMode(charts[botChartIndex]);
+					botChartIndex++;
+					botChartIndex %= charts.Count;
+				}
 			}
 
 			// Set up current lyrics
@@ -419,18 +429,9 @@ namespace YARG.PlayMode {
 			}
 
 			// Update player specific stuff
-			int botChartIndices = 0;
 			foreach (var playerInfo in micInputs) {
 				var player = playerInfo.player;
 				var micInput = (MicInputStrategy) player.inputStrategy;
-
-				// Update inputs
-				if (micInput.botMode) {
-					micInput.UpdateBotMode(charts[botChartIndices], Play.Instance.SongTime);
-
-					botChartIndices++;
-					botChartIndices %= charts.Count;
-				}
 
 				// Get the correct range
 				float correctRange = player.chosenDifficulty switch {

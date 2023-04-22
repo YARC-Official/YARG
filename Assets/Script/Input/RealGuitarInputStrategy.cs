@@ -4,6 +4,7 @@ using PlasticBand.Devices;
 using UnityEngine;
 using UnityEngine.InputSystem.Controls;
 using YARG.Data;
+using YARG.PlayMode;
 
 namespace YARG.Input {
 	public class RealGuitarInputStrategy : InputStrategy {
@@ -27,6 +28,8 @@ namespace YARG.Input {
 
 		public event FretChangeAction FretChangeEvent;
 		public event StrumAction StrumEvent;
+
+		private List<NoteInfo> botChart;
 
 		private int[] fretCache = new int[6];
 		private float[] velocityCache = new float[6];
@@ -106,11 +109,20 @@ namespace YARG.Input {
 			};
 		}
 
-		public override void UpdateBotMode(object rawChart, float songTime) {
-			var chart = (List<NoteInfo>) rawChart;
+		public override void InitializeBotMode(object rawChart) {
+			botChart = (List<NoteInfo>) rawChart;
+		}
 
-			while (chart.Count > botChartIndex && chart[botChartIndex].time <= songTime) {
-				var note = chart[botChartIndex];
+
+		protected override void UpdateBotMode() {
+			if (botChart == null) {
+				return;
+			}
+
+			float songTime = Play.Instance.SongTime;
+
+			while (botChart.Count > botChartIndex && botChart[botChartIndex].time <= songTime) {
+				var note = botChart[botChartIndex];
 
 				// Press correct frets
 				for (int i = 0; i < 6; i++) {

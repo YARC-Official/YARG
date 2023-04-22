@@ -52,6 +52,10 @@ namespace YARG.PlayMode {
 				ghStrat.DrumHitEvent += GHDrumHitAction;
 			}
 
+			if (input.botMode) {
+				input.InitializeBotMode(Chart);
+			}
+
 			// GH vs RB
 
 			kickIndex = fiveLaneMode ? 5 : 4;
@@ -95,11 +99,6 @@ namespace YARG.PlayMode {
 		}
 
 		protected override void UpdateTrack() {
-			// Update input strategy
-			if (input.botMode) {
-				input.UpdateBotMode(Chart, Play.Instance.SongTime);
-			}
-
 			// Ignore everything else until the song starts
 			if (!Play.Instance.SongStarted) {
 				return;
