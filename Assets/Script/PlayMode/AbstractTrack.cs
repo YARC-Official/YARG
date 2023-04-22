@@ -344,7 +344,7 @@ namespace YARG.PlayMode {
 				);
 				commonTrack.soloText.gameObject.SetActive(true);
 
-				soloHitPercent = Mathf.RoundToInt(soloNotesHit / (float) soloNoteCount * 100f);
+				soloHitPercent = Mathf.FloorToInt(soloNotesHit / (float) soloNoteCount * 100f);
 				commonTrack.soloText.text = $"{soloHitPercent}%\n<size=10><alpha=#66>{soloNotesHit}/{soloNoteCount}</size>";
 			} else if (Play.Instance.SongTime >= SoloSection?.EndTime && Play.Instance.SongTime <= SoloSection?.EndTime + 4) {
 				if (soloHitPercent >= 100f) {
