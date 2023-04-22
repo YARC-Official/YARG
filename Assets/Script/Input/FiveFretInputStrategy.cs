@@ -48,14 +48,10 @@ namespace YARG.Input {
 				CallGenericCalbirationEvent();
 			}
 
-			// Starpower & Pause
+			// Starpower
 
 			if (WasMappingPressed("starpower")) {
 				CallStarpowerEvent();
-			}
-
-			if (WasMappingPressed("pause")) {
-				CallPauseEvent();
 			}
 		}
 
