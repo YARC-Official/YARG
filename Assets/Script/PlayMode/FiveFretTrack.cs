@@ -209,7 +209,7 @@ namespace YARG.PlayMode {
 					missedAnyNote = true;
 					notePool.MissNote(hit);
 					StopAudio = true;
-					extendedSustain[hit.fret] = false;
+					if (hit.fret < 5) extendedSustain[hit.fret] = false;
 				}
 				allowedOverstrums.Clear(); // Disallow all overstrums upon missing
 			}
