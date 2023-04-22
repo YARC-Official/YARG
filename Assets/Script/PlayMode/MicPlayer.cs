@@ -730,18 +730,21 @@ namespace YARG.PlayMode {
 						bestPercent = percent;
 					}
 				}
-				// Add to score
-				if (bestPlayerPercent > 0) {
-					var phraseScore = Multiplier * Mathf.Clamp(bestPlayerPercent * ptsPerPhrase, 0, ptsPerPhrase);
-					if (micInputs.IndexOf(playerInfo) == 0) {
-						// main singer scoring
-						scoreKeeper.Add(phraseScore);
-					}
-					else {
-						// harmony scoring
-						scoreKeeper.Add(phraseScore * 0.1);
-					}
-				}
+			}
+
+			// get portion sang from bar graphic
+			var sectionPercents = new List<float>();
+			foreach (var bar in barImages) {
+				sectionPercents.Add(bar.fillAmount);
+			}
+			sectionPercents.Sort();
+			// add to ScoreKeeper
+			for (int i = sectionPercents.Count - 1; i >= 0; --i) {
+				var phraseScore = math.clamp((double)sectionPercents[i] * ptsPerPhrase, 0, ptsPerPhrase);
+				if (i != sectionPercents.Count-1)
+					phraseScore *= 0.1;
+				Debug.Log($"player earned {phraseScore:N0}pts");
+				scoreKeeper.Add(Multiplier * phraseScore);
 			}
 
 			// Set preformance text
