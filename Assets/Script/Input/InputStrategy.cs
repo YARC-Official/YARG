@@ -31,11 +31,14 @@ namespace YARG.Input {
 
 		public int microphoneIndex = INVALID_MIC_INDEX;
 
-		// Temporary for MIDI
-		private OccurrenceList<string> midiPressed = new();
-		private OccurrenceList<string> midiReleased = new();
-
-		protected Dictionary<string, InputControl> inputMappings;
+		/// <summary>
+		/// A list of the controls that correspond to each mapping.
+		/// </summary>
+		protected Dictionary<string, InputControl> inputMappings = new();
+		/// <summary>
+		/// A list of the states at the current and previous frame for each mapping.
+		/// </summary>
+		protected Dictionary<string, (bool previous, bool current)> inputStates = new();
 
 		public bool Enabled { get; private set; }
 
@@ -65,9 +68,9 @@ namespace YARG.Input {
 
 		public InputStrategy() {
 			// Add keys for each input mapping
-			inputMappings = new();
 			foreach (var key in GetMappingNames()) {
 				inputMappings.Add(key, null);
+				inputStates.Add(key, (false, false));
 			}
 		}
 
@@ -178,30 +181,20 @@ namespace YARG.Input {
 		}
 
 		private void EventUpdateLoop() {
-			// THIS IS TEMPORARY
-			// as Minis has an issue
-
-			foreach (var pressed in midiPressed.ToDictionary()) {
-				if (pressed.Value >= 2) {
-					midiPressed.RemoveAll(pressed.Key, true);
-				} else {
-					midiPressed.Add(pressed.Key);
-				}
-			}
-
-			foreach (var released in midiReleased.ToDictionary()) {
-				if (released.Value >= 2) {
-					midiReleased.RemoveAll(released.Key, true);
-				} else {
-					midiReleased.Add(released.Key);
-				}
+			// Update previous and current states
+			foreach (var mapping in inputMappings) {
+				bool previous = inputStates[mapping.Key].current;
+				inputStates[mapping.Key] = (previous, IsControlPressed(mapping.Value));
 			}
 		}
 
+		// Temporary for MIDI, as very brief note events are likely to be missed otherwise
 		private void OnWillNoteOn(MidiNoteControl midi, float velocity) {
 			foreach (var input in inputMappings) {
-				if (input.Value == midi) {
-					midiPressed.Add(input.Key);
+				if (input.Value == midi && !WasMappingReleased(input.Key)) {
+					// Set current state to active
+					bool previous = inputStates[input.Key].previous;
+					inputStates[input.Key] = (previous, true);
 					return;
 				}
 			}
@@ -209,35 +202,36 @@ namespace YARG.Input {
 
 		private void OnWillNoteOff(MidiNoteControl midi) {
 			foreach (var input in inputMappings) {
-				if (input.Value == midi) {
-					midiReleased.Add(input.Key);
+				if (input.Value == midi && !WasMappingPressed(input.Key)) {
+					// Set current state to inactive
+					bool previous = inputStates[input.Key].previous;
+					inputStates[input.Key] = (previous, false);
 					return;
 				}
 			}
 		}
 
-		protected bool WasMappingPressed(string key) {
-			var mapping = inputMappings[key];
-
-			if (mapping is MidiNoteControl) {
-				return midiPressed.GetCount(key) >= 1;
-			} else if (mapping is ButtonControl button) {
-				return button.wasPressedThisFrame;
+		public static bool IsControlPressed(InputControl control) {
+			if (control is ButtonControl button) {
+				return button.isPressed;
 			}
 
 			return false;
 		}
 
+		protected bool IsMappingPressed(string key) {
+			var control = inputMappings[key];
+			return IsControlPressed(control);
+		}
+
+		protected bool WasMappingPressed(string key) {
+			var (previous, current) = inputStates[key];
+			return !previous && current;
+		}
+
 		protected bool WasMappingReleased(string key) {
-			var mapping = inputMappings[key];
-
-			if (mapping is MidiNoteControl) {
-				return midiReleased.GetCount(key) >= 1;
-			} else if (mapping is ButtonControl button) {
-				return button.wasReleasedThisFrame;
-			}
-
-			return false;
+			var (previous, current) = inputStates[key];
+			return previous && !current;
 		}
 
 		public InputControl GetMappingInputControl(string name) {
