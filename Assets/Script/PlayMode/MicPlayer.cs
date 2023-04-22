@@ -346,6 +346,11 @@ namespace YARG.PlayMode {
 				return;
 			}
 
+			// Ignore if paused
+			if (!Play.Instance.Paused) {
+				return;
+			}
+
 			// Call "OnSongStart"
 			if (!onSongStartCalled) {
 				onSongStartCalled = true;

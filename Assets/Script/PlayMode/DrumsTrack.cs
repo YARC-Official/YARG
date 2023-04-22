@@ -189,6 +189,22 @@ namespace YARG.PlayMode {
 			}
 		}
 
+		protected override void PauseToggled(bool pause) {
+			if (!pause) {
+				if (input is DrumsInputStrategy drumStrat) {
+					drumStrat.DrumHitEvent += DrumHitAction;
+				} else if (input is GHDrumsInputStrategy ghStrat) {
+					ghStrat.DrumHitEvent += GHDrumHitAction;
+				}
+			} else {
+				if (input is DrumsInputStrategy drumStrat) {
+					drumStrat.DrumHitEvent -= DrumHitAction;
+				} else if (input is GHDrumsInputStrategy ghStrat) {
+					ghStrat.DrumHitEvent -= GHDrumHitAction;
+				}
+			}
+		}
+
 		private void GHDrumHitAction(int drum) {
 			DrumHitAction(drum, false);
 		}

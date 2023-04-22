@@ -479,6 +479,16 @@ namespace YARG.PlayMode {
 			return true;
 		}
 
+		protected override void PauseToggled(bool pause) {
+			if (!pause) {
+				input.FretChangeEvent += FretChangedAction;
+				input.StrumEvent += StrumAction;
+			} else {
+				input.FretChangeEvent -= FretChangedAction;
+				input.StrumEvent -= StrumAction;
+			}
+		}
+
 		private void FretChangedAction(bool pressed, int fret) {
 			latestInput = Play.Instance.SongTime;
 			latestInputIsStrum = false;

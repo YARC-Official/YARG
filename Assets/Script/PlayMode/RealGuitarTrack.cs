@@ -218,6 +218,16 @@ namespace YARG.PlayMode {
 			}
 		}
 
+		protected override void PauseToggled(bool pause) {
+			if (!pause) {
+				input.FretChangeEvent += FretChangedAction;
+				input.StrumEvent += StrumAction;
+			} else {
+				input.FretChangeEvent -= FretChangedAction;
+				input.StrumEvent -= StrumAction;
+			}
+		}
+
 		private bool NoteStrummed(NoteInfo note) {
 			int extras = 0;
 			for (int str = 0; str < note.stringFrets.Length; str++) {

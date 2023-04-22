@@ -122,6 +122,7 @@ namespace YARG.PlayMode {
 			player.inputStrategy.StarpowerEvent += StarpowerAction;
 			player.inputStrategy.PauseEvent += PauseAction;
 			Play.BeatEvent += BeatAction;
+			Play.OnPauseToggle += PauseToggled;
 
 			player.lastScore = null;
 
@@ -146,6 +147,7 @@ namespace YARG.PlayMode {
 			player.inputStrategy.StarpowerEvent -= StarpowerAction;
 			player.inputStrategy.PauseEvent -= PauseAction;
 			Play.BeatEvent -= BeatAction;
+			Play.OnPauseToggle -= PauseToggled;
 		}
 
 		private void Update() {
@@ -296,6 +298,8 @@ namespace YARG.PlayMode {
 		private void PauseAction() {
 			Play.Instance.Paused = !Play.Instance.Paused;
 		}
+
+		protected abstract void PauseToggled(bool pause);
 
 		private void UpdateInfo() {
 			// Update text
