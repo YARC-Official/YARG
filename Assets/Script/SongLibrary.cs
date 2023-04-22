@@ -340,7 +340,7 @@ namespace YARG {
 				songs = songCache
 			};
 
-			var json = JsonConvert.SerializeObject(jsonObj);
+			var json = JsonConvert.SerializeObject(jsonObj, Formatting.Indented);
 			File.WriteAllText(cachePath, json);
 		}
 

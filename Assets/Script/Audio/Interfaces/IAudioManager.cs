@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using YARG.Serialization;
 
 namespace YARG {
 	public interface IAudioManager {
@@ -25,6 +26,7 @@ namespace YARG {
 		public void LoadSfx();
 
 		public void LoadSong(IEnumerable<string> stems, bool isSpeedUp);
+		public void LoadMogg(XboxMoggData moggData, bool isSpeedUp);
 		public void UnloadSong();
 
 		public void Play();

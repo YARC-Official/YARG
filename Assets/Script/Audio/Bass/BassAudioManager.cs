@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using ManagedBass;
-using ManagedBass.DirectX8;
-using ManagedBass.Fx;
 using UnityEngine;
-using UnityEngine.Serialization;
+using YARG.Serialization;
 using Debug = UnityEngine.Debug;
 
 namespace YARG {
@@ -35,6 +34,8 @@ namespace YARG {
 
 		private ISampleChannel[] _sfxSamples;
 
+		public float pos;
+
 		private void Awake() {
 			SupportedFormats = new[] {
 				".ogg",
@@ -50,6 +51,10 @@ namespace YARG {
 			_sfxSamples = new ISampleChannel[AudioHelpers.SfxPaths.Count];
 
 			_opusHandle = 0;
+		}
+
+		private void Update() {
+			pos = CurrentPositionF;
 		}
 
 		public void Initialize() {
@@ -155,9 +160,9 @@ namespace YARG {
 			Debug.Log("Loading song");
 			UnloadSong();
 
-			_mixer = new BassStemMixer();
+			_mixer = new BassStemMixer(this);
 			if (!_mixer.Create()) {
-				throw new Exception("Failed to create mixer");
+				throw new Exception($"Failed to create mixer: {Bass.LastError}");
 			}
 
 			foreach (string stemPath in stems) {
@@ -192,6 +197,41 @@ namespace YARG {
 			AudioLengthF = (float) AudioLengthD;
 
 			IsAudioLoaded = true;
+		}
+		
+		public void LoadMogg(XboxMoggData moggData, bool isSpeedUp) {
+			var sw = new Stopwatch();
+			sw.Start();
+			
+			int moggOffset = moggData.MoggAddressAudioOffset;
+			
+			byte[] moggArray = File.ReadAllBytes(moggData.MoggPath)[moggOffset..];
+			
+			int moggStreamHandle = Bass.CreateStream(moggArray, 0, moggArray.Length, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
+			if (moggStreamHandle == 0) {
+				Debug.LogError($"Failed to load mogg file or position: {Bass.LastError}");
+				return;
+			}
+
+			_mixer = new BassStemMixer(this, moggStreamHandle, moggData);
+			if (!_mixer.Create()) {
+				throw new Exception($"Failed to create mixer: {Bass.LastError}");
+			}
+
+			if (!_mixer.SetupMogg(isSpeedUp)) {
+				throw new Exception($"Failed to setup MOGG channels: {Bass.LastError}");
+			}
+			
+			Debug.Log($"Loaded {_mixer.StemsLoaded} stems");
+			
+			// Setup audio length
+			AudioLengthD = _mixer.LeadChannel.LengthD;
+			AudioLengthF = (float) AudioLengthD;
+			
+			IsAudioLoaded = true;
+			
+			sw.Stop();
+			Debug.Log("Loaded mogg file in " + sw.ElapsedMilliseconds + "ms");
 		}
 
 		public void UnloadSong() {
@@ -273,7 +313,7 @@ namespace YARG {
 		public double GetPosition() {
 			if (_mixer is null)
 				return -1;
-			
+
 			return _mixer.GetPosition();
 		}
 

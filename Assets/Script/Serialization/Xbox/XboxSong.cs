@@ -32,7 +32,7 @@ namespace YARG.Serialization {
 			moggDta = new XboxMoggData(Path.Combine(songFolderPath, $"{ShortName}.mogg"));
 			moggDta.ParseMoggHeader();
 			moggDta.ParseFromDta(dta.Array("song"));
-			moggDta.CalculateMoggBASSInfo();
+			moggDta.CalculateMoggBassInfo();
 
 			// Parse the image
 			string imgPath = Path.Combine("songFolderPath", "gen", $"{ShortName}_keep.png_xbox");
@@ -56,7 +56,7 @@ namespace YARG.Serialization {
 			}
 
 			// Skip if the mogg is encrypted
-			if (moggDta.GetHeaderVersion() != 0xA) {
+			if (moggDta.Header != 0xA) {
 				return false;
 			}
 
