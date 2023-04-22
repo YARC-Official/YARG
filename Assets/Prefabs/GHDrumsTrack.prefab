@@ -34,7 +34,7 @@ Transform:
   - {fileID: 4617468700991812324}
   - {fileID: 5807069405507058563}
   m_Father: {fileID: 2999289846860309450}
-  m_RootOrder: 8
+  m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2944943788190444424
 PrefabInstance:
@@ -121,12 +121,42 @@ PrefabInstance:
     - target: {fileID: 4431318561618230466, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: m_RootOrder
-      value: 9
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: colorMappings.Array.size
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: fretColors.Array.data[5].b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: fretColors.Array.data[5].g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: fretColors.Array.data[5].r
+      value: 0.78125
+      objectReference: {fileID: 0}
+    - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: noteColors.Array.data[5].b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: noteColors.Array.data[5].g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: noteColors.Array.data[5].r
+      value: 0.78481007
       objectReference: {fileID: 0}
     - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
@@ -152,6 +182,21 @@ PrefabInstance:
         type: 3}
       propertyPath: colorMappings.Array.data[5]
       value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: sustainColors.Array.data[5].b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: sustainColors.Array.data[5].g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: sustainColors.Array.data[5].r
+      value: 0.78666687
       objectReference: {fileID: 0}
     - target: {fileID: 6218306474702809455, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
@@ -202,7 +247,7 @@ PrefabInstance:
     - target: {fileID: 8699180879096278919, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: m_RootOrder
-      value: 10
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 8827236743751183564, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
