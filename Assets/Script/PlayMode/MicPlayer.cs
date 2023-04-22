@@ -730,6 +730,18 @@ namespace YARG.PlayMode {
 						bestPercent = percent;
 					}
 				}
+				// Add to score
+				if (bestPlayerPercent > 0) {
+					var phraseScore = Multiplier * Mathf.Clamp(bestPlayerPercent * ptsPerPhrase, 0, ptsPerPhrase);
+					if (micInputs.IndexOf(playerInfo) == 0) {
+						// main singer scoring
+						scoreKeeper.Add(phraseScore);
+					}
+					else {
+						// harmony scoring
+						scoreKeeper.Add(phraseScore * 0.1);
+					}
+				}
 			}
 
 			// Set preformance text
@@ -742,11 +754,6 @@ namespace YARG.PlayMode {
 				_ => "AWFUL"
 			};
 			preformaceText.color = Color.white;
-
-			// Add to score
-			var phraseScore = Multiplier * Mathf.Clamp(bestPercent * ptsPerPhrase, 0, ptsPerPhrase);
-			scoreKeeper.Add(phraseScore);
-			// TODO: harmonies (add bonus pts per extra mic: bestPercent(of xtra) * ptsPerPhrase * mult)
 
 			// Add to sing percent
 			totalSingPercent += Mathf.Min(bestPercent, 1f);
