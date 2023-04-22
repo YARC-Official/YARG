@@ -78,8 +78,7 @@ namespace YARG.UI {
 			// Create keyboard handler if no players are using it
 			if (!PlayerManager.players.Any((player) => player.inputStrategy.InputDevice == Keyboard.current)) {
 				var keyboard = Keyboard.current;
-				keyboardHandler = new()
-				{
+				keyboardHandler = new() {
 					InputDevice = keyboard,
 					microphoneIndex = -1,
 					botMode = false
@@ -209,11 +208,9 @@ namespace YARG.UI {
 
 		private void OnGenericNavigation(NavigationType navigationType, bool pressed) {
 			if (navigationType == NavigationType.UP || navigationType == NavigationType.DOWN) {
-				if (!directionHeld || direction != navigationType) {
-					direction = navigationType;
-					directionHeld = pressed;
-					inputTimer = INPUT_REPEAT_COOLDOWN;
-				}
+				direction = navigationType;
+				directionHeld = pressed;
+				inputTimer = INPUT_REPEAT_COOLDOWN;
 			}
 
 			if (!pressed) {
