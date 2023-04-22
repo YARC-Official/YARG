@@ -62,6 +62,7 @@ namespace YARG.UI {
 			playerIndex = 0;
 			if (anyMics) {
 				UpdateVocalOptions();
+				brutalModeCheckbox.interactable = false;
 			} else {
 				UpdateInstrument();
 			}
@@ -183,10 +184,14 @@ namespace YARG.UI {
 		}
 
 		private void IncreasePlayerIndex() {
-			if (brutalModeCheckbox.isOn) {
-				PlayerManager.players[playerIndex].brutalMode = true;
+			if (playerIndex != -1) {
+				if (brutalModeCheckbox.isOn) {
+					PlayerManager.players[playerIndex].brutalMode = true;
+				} else {
+					PlayerManager.players[playerIndex].brutalMode = false;
+				}
 			} else {
-				PlayerManager.players[playerIndex].brutalMode = false;
+				brutalModeCheckbox.interactable = true;
 			}
 			brutalModeCheckbox.isOn = false;
 
