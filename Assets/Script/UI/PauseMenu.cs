@@ -46,8 +46,8 @@ namespace YARG.UI {
 			}
 		}
 
-		private void OnGenericNavigation(NavigationType navigationType, bool firstPressed) {
-			if (!firstPressed) {
+		private void OnGenericNavigation(NavigationType navigationType, bool pressed) {
+			if (!pressed) {
 				return;
 			}
 

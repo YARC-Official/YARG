@@ -45,6 +45,8 @@ namespace YARG.UI {
 		private List<SongView> songViewsBefore = new();
 		private List<SongView> songViewsAfter = new();
 
+		private NavigationType direction;
+		private bool directionHeld = false;
 		private float inputTimer = 0f;
 
 		// Will be set in UpdateSearch
@@ -161,6 +163,14 @@ namespace YARG.UI {
 			// Update input timer
 
 			inputTimer -= Time.deltaTime;
+			if (inputTimer <= 0f && directionHeld) {
+				switch (direction) {
+					case NavigationType.UP: MoveView(-1); break;
+					case NavigationType.DOWN: MoveView(1); break;
+				}
+
+				inputTimer = INPUT_REPEAT_TIME;
+			}
 
 			// Up arrow
 
@@ -196,29 +206,29 @@ namespace YARG.UI {
 			}
 		}
 
-		private void OnGenericNavigation(NavigationType navigationType, bool firstPressed) {
-			if (inputTimer <= 0f || firstPressed) {
-				if (navigationType == NavigationType.UP) {
-					inputTimer = firstPressed ? INPUT_REPEAT_COOLDOWN : INPUT_REPEAT_TIME;
-					MoveView(-1);
-				} else if (navigationType == NavigationType.DOWN) {
-					inputTimer = firstPressed ? INPUT_REPEAT_COOLDOWN : INPUT_REPEAT_TIME;
-					MoveView(1);
+		private void OnGenericNavigation(NavigationType navigationType, bool pressed) {
+			if (navigationType == NavigationType.UP || navigationType == NavigationType.DOWN) {
+				if (!directionHeld || direction != navigationType) {
+					direction = navigationType;
+					directionHeld = pressed;
+					inputTimer = INPUT_REPEAT_COOLDOWN;
 				}
 			}
 
-			if (!firstPressed) {
+			if (!pressed) {
 				return;
 			}
 
-			if (navigationType == NavigationType.PRIMARY) {
-				selectedSongView.PlaySong();
-			} else if (navigationType == NavigationType.SECONDARY) {
-				Back();
-			} else if (navigationType == NavigationType.TERTIARY) {
-				if (songs.Count > 0) {
-					searchField.text = $"artist:{songs[selectedSongIndex].song.artistName}";
-				}
+			switch (navigationType) {
+				case NavigationType.UP: MoveView(-1); break;
+				case NavigationType.DOWN: MoveView(1); break;
+				case NavigationType.PRIMARY: selectedSongView.PlaySong(); break;
+				case NavigationType.SECONDARY: Back(); break;
+				case NavigationType.TERTIARY:
+					if (songs.Count > 0) {
+						searchField.text = $"artist:{songs[selectedSongIndex].song.artistName}";
+					}
+					break;
 			}
 		}
 

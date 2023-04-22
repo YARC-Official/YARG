@@ -110,14 +110,8 @@ namespace YARG.Input {
 		protected override void UpdateNavigationMode() {
 			CallGenericNavigationEventForButton("yellow_pad", NavigationType.UP);
 			CallGenericNavigationEventForButton("blue_pad", NavigationType.DOWN);
-
-			if (WasMappingPressed("green_pad")) {
-				CallGenericNavigationEvent(NavigationType.PRIMARY, true);
-			}
-
-			if (WasMappingPressed("red_pad")) {
-				CallGenericNavigationEvent(NavigationType.SECONDARY, true);
-			}
+			CallGenericNavigationEventForButton("green_pad", NavigationType.PRIMARY);
+			CallGenericNavigationEventForButton("red_pad", NavigationType.SECONDARY);
 		}
 
 		public override string[] GetAllowedInstruments() {

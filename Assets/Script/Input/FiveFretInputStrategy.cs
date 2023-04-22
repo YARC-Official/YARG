@@ -99,17 +99,9 @@ namespace YARG.Input {
 			CallGenericNavigationEventForButton("strumUp", NavigationType.UP);
 			CallGenericNavigationEventForButton("strumDown", NavigationType.DOWN);
 
-			if (WasMappingPressed("green")) {
-				CallGenericNavigationEvent(NavigationType.PRIMARY, true);
-			}
-
-			if (WasMappingPressed("red")) {
-				CallGenericNavigationEvent(NavigationType.SECONDARY, true);
-			}
-
-			if (WasMappingPressed("yellow")) {
-				CallGenericNavigationEvent(NavigationType.TERTIARY, true);
-			}
+			CallGenericNavigationEventForButton("green", NavigationType.PRIMARY);
+			CallGenericNavigationEventForButton("red", NavigationType.SECONDARY);
+			CallGenericNavigationEventForButton("yellow", NavigationType.TERTIARY);
 
 			if (WasMappingPressed("pause")) {
 				CallPauseEvent();
