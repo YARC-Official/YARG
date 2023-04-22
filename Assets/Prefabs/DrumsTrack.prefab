@@ -301,6 +301,36 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
+      propertyPath: fretColors.Array.data[4].b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: fretColors.Array.data[4].g
+      value: 0.518708
+      objectReference: {fileID: 0}
+    - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: fretColors.Array.data[4].r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: noteColors.Array.data[4].b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: noteColors.Array.data[4].g
+      value: 0.38102245
+      objectReference: {fileID: 0}
+    - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: noteColors.Array.data[4].r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
       propertyPath: colorMappings.Array.data[0]
       value: 1
       objectReference: {fileID: 0}
@@ -318,6 +348,21 @@ PrefabInstance:
         type: 3}
       propertyPath: colorMappings.Array.data[4]
       value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: sustainColors.Array.data[4].b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: sustainColors.Array.data[4].g
+      value: 0.38431373
+      objectReference: {fileID: 0}
+    - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: sustainColors.Array.data[4].r
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6218306474702809455, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
