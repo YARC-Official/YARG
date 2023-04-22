@@ -94,14 +94,20 @@ namespace YARG.PlayMode {
 		private IEnumerator StartSong() {
 			GameUI.Instance.SetLoadingText("Loading audio...");
 
-			// TO RILEY
-			Debug.Log(song.moggInfo.channelCount);
-			// etc...
+			// Determine if speed is not 1
+			bool isSpeedUp = Math.Abs(speed - 1) > float.Epsilon;
+			
+			// Load MOGG if RB_CON, otherwise load stems
+			if (song.songType == SongInfo.SongType.RB_CON) {
+				Debug.Log(song.moggInfo.ChannelCount);
+				
+				GameManager.AudioManager.LoadMogg(song.moggInfo, isSpeedUp);
+			} else {
+				var stems = AudioHelpers.GetSupportedStems(song.RootFolder);
 
-			// Load audio
-			var stems = AudioHelpers.GetSupportedStems(song.RootFolder);
-
-			GameManager.AudioManager.LoadSong(stems, Math.Abs(speed - 1) > float.Epsilon);
+				GameManager.AudioManager.LoadSong(stems, isSpeedUp);
+			}
+			
 			SongLength = GameManager.AudioManager.AudioLengthF;
 
 			GameUI.Instance.SetLoadingText("Loading chart...");
@@ -287,6 +293,7 @@ namespace YARG.PlayMode {
 
 			// End song
 			if (realSongTime >= SongLength) {
+				Debug.Log("Reached end of song");
 				MainMenu.isPostSong = true;
 				Exit();
 			}

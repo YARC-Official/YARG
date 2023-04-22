@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using DtxCS.DataTypes;
+using Newtonsoft.Json;
 
 namespace YARG.Serialization {
 	/*
@@ -13,84 +13,81 @@ namespace YARG.Serialization {
 
 	*/
 
-	[Serializable]
+	[JsonObject(MemberSerialization.OptOut)]
 	public class XboxMoggData {
-		public string moggPath;
-		public byte channelCount;
-		public int header;
+		public string MoggPath { get; set; }
+		public int ChannelCount { get; set; }
+		public int Header { get; set; }
 
-		// private int startMoggAddress;
-		// private long usableMoggLength;
+		public int MoggAddressAudioOffset { get; set; }
+		public long MoggAudioLength { get; set; }
 
-		public float[] pans, vols;
-		public Dictionary<string, byte[]> tracks;
-		public byte[] crowdChannels;
+		public float[] PanData { get; set; }
+		public float[] VolumeData { get; set; }
+		
+		public Dictionary<string, int[]> tracks;
+		public int[]                     crowdChannels;
 
-		public Dictionary<SongStem, byte[]> stemMaps;
+		public Dictionary<SongStem, int[]> stemMaps;
 		public float[,] matrixRatios;
 
 		public XboxMoggData(string str) {
-			moggPath = str;
+			MoggPath = str;
 		}
 
 		public void ParseMoggHeader() {
-			byte[] buffer;
+			using var fs = new FileStream(MoggPath, FileMode.Open, FileAccess.Read);
+			using var br = new BinaryReader(fs);
 
-			using var fs = new FileStream(moggPath, FileMode.Open, FileAccess.Read);
-			using var br = new BinaryReader(fs, new ASCIIEncoding());
-
-			buffer = br.ReadBytes(4);
-			header = BitConverter.ToInt32(buffer, 0);
-			buffer = br.ReadBytes(4);
-			// startMoggAddress = BitConverter.ToInt32(buffer, 0);
-			// usableMoggLength = fs.Length - startMoggAddress;
+			Header = br.ReadInt32();
+			MoggAddressAudioOffset = br.ReadInt32();
+			
+			MoggAudioLength = fs.Length - MoggAddressAudioOffset;
 		}
-
-		public int GetHeaderVersion() => header;
 
 		public void ParseFromDta(DataArray dta) {
 			for (int i = 1; i < dta.Count; i++) {
-				DataArray dtaArray = (DataArray) dta[i];
+				var dtaArray = (DataArray) dta[i];
+				
 				switch (dtaArray[0].ToString()) {
 					case "tracks":
-						DataArray trackArray = (DataArray) dtaArray[1];
-						tracks = new Dictionary<string, byte[]>();
+						var trackArray = (DataArray) dtaArray[1];
+						tracks = new Dictionary<string, int[]>();
+						
 						for (int x = 0; x < trackArray.Count; x++) {
-							string key;
-							byte[] val;
-
-							if (trackArray[x] is DataArray instrArray) {
-								key = ((DataSymbol) instrArray[0]).Name;
-								if (instrArray[1] is DataArray trackNums) {
-									if (trackNums.Count > 0) {
-										val = new byte[trackNums.Count];
-										for (int y = 0; y < trackNums.Count; y++)
-											val[y] = (byte) ((DataAtom) trackNums[y]).Int;
-										tracks.Add(key, val);
-									}
-								} else if (instrArray[1] is DataAtom trackNum) {
-									val = new byte[1];
-									val[0] = (byte) trackNum.Int;
-									tracks.Add(key, val);
-								}
+							if (trackArray[x] is not DataArray instrArray) continue;
+							
+							string key = ((DataSymbol) instrArray[0]).Name;
+							int[] val;
+							if (instrArray[1] is DataArray trackNums) {
+								if (trackNums.Count <= 0) continue;
+								
+								val = new int[trackNums.Count];
+								for (int y = 0; y < trackNums.Count; y++)
+									val[y] = ((DataAtom) trackNums[y]).Int;
+								tracks.Add(key, val);
+							} else if (instrArray[1] is DataAtom trackNum) {
+								val = new int[1];
+								val[0] = trackNum.Int;
+								tracks.Add(key, val);
 							}
 						}
 						break;
 					case "pans":
-						DataArray panArray = (DataArray) dtaArray[1];
-						pans = new float[panArray.Count];
-						for (int p = 0; p < panArray.Count; p++) pans[p] = ((DataAtom) panArray[p]).Float;
-						channelCount = (byte) panArray.Count;
+						var panArray = dtaArray[1] as DataArray;
+						PanData = new float[panArray.Count];
+						for (int p = 0; p < panArray.Count; p++) PanData[p] = ((DataAtom) panArray[p]).Float;
+						ChannelCount = panArray.Count;
 						break;
 					case "vols":
-						DataArray volArray = (DataArray) dtaArray[1];
-						vols = new float[volArray.Count];
-						for (int v = 0; v < volArray.Count; v++) vols[v] = ((DataAtom) volArray[v]).Float;
+						var volArray = dtaArray[1] as DataArray;
+						VolumeData = new float[volArray.Count];
+						for (int v = 0; v < volArray.Count; v++) VolumeData[v] = ((DataAtom) volArray[v]).Float;
 						break;
 					case "crowd_channels":
-						crowdChannels = new byte[dtaArray.Count - 1];
+						crowdChannels = new int[dtaArray.Count - 1];
 						for (int cc = 1; cc < dtaArray.Count; cc++)
-							crowdChannels[cc - 1] = (byte) ((DataAtom) dtaArray[cc]).Int;
+							crowdChannels[cc - 1] = ((DataAtom) dtaArray[cc]).Int;
 						break;
 				}
 			}
@@ -98,20 +95,22 @@ namespace YARG.Serialization {
 
 		public override string ToString() {
 			string debugTrackStr = "";
-			foreach (var kvp in tracks) debugTrackStr += $"{kvp.Key}, ({string.Join(", ", kvp.Value)}) ";
+			foreach (var kvp in tracks) {
+				debugTrackStr += $"{kvp.Key}, ({string.Join(", ", kvp.Value)}) ";
+			}
 
 			return string.Join(Environment.NewLine,
 				$"Mogg metadata:",
-				$"channel count: {channelCount}",
+				$"channel count: {ChannelCount}",
 				$"tracks={string.Join(", ", debugTrackStr)}",
-				$"pans=({string.Join(", ", pans)})",
-				$"vols=({string.Join(", ", vols)})"
+				$"pans=({string.Join(", ", PanData)})",
+				$"vols=({string.Join(", ", VolumeData)})"
 			);
 		}
 
-		public void CalculateMoggBASSInfo() {
-			stemMaps = new Dictionary<SongStem, byte[]>();
-			bool[] mapped = new bool[channelCount];
+		public void CalculateMoggBassInfo() {
+			stemMaps = new Dictionary<SongStem, int[]>();
+			var mapped = new bool[ChannelCount];
 
 			// BEGIN BASS Stem Mapping ----------------------------------------------------------------------
 
@@ -119,39 +118,41 @@ namespace YARG.Serialization {
 				switch (drumArray.Length) {
 					//drum (0 1): stereo kit --> (0 1)
 					case 2:
-						stemMaps[SongStem.Drums] = new byte[] { drumArray[0], drumArray[1] };
+						stemMaps[SongStem.Drums] = new[] { drumArray[0], drumArray[1] };
 						break;
 					//drum (0 1 2): mono kick, stereo snare/kit --> (0) (1 2)
 					case 3:
-						stemMaps[SongStem.Drums] = new byte[] { drumArray[0] };
-						stemMaps[SongStem.Drums1] = new byte[] { drumArray[1], drumArray[2] };
+						stemMaps[SongStem.Drums] = new[] { drumArray[0] };
+						stemMaps[SongStem.Drums1] = new[] { drumArray[1], drumArray[2] };
 						break;
 					//drum (0 1 2 3): mono kick, mono snare, stereo kit --> (0) (1) (2 3)
 					case 4:
-						stemMaps[SongStem.Drums] = new byte[] { drumArray[0] };
-						stemMaps[SongStem.Drums1] = new byte[] { drumArray[1] };
-						stemMaps[SongStem.Drums2] = new byte[] { drumArray[2], drumArray[3] };
+						stemMaps[SongStem.Drums] = new[] { drumArray[0] };
+						stemMaps[SongStem.Drums1] = new[] { drumArray[1] };
+						stemMaps[SongStem.Drums2] = new[] { drumArray[2], drumArray[3] };
 						break;
 					//drum (0 1 2 3 4): mono kick, stereo snare, stereo kit --> (0) (1 2) (3 4)
 					case 5:
-						stemMaps[SongStem.Drums] = new byte[] { drumArray[0] };
-						stemMaps[SongStem.Drums1] = new byte[] { drumArray[1], drumArray[2] };
-						stemMaps[SongStem.Drums2] = new byte[] { drumArray[3], drumArray[4] };
+						stemMaps[SongStem.Drums] = new[] { drumArray[0] };
+						stemMaps[SongStem.Drums1] = new[] { drumArray[1], drumArray[2] };
+						stemMaps[SongStem.Drums2] = new[] { drumArray[3], drumArray[4] };
 						break;
 					//drum (0 1 2 3 4 5): stereo kick, stereo snare, stereo kit --> (0 1) (2 3) (4 5)
 					case 6:
-						stemMaps[SongStem.Drums] = new byte[] { drumArray[0], drumArray[1] };
-						stemMaps[SongStem.Drums1] = new byte[] { drumArray[2], drumArray[3] };
-						stemMaps[SongStem.Drums2] = new byte[] { drumArray[4], drumArray[5] };
-						break;
-					default:
+						stemMaps[SongStem.Drums] = new[] { drumArray[0], drumArray[1] };
+						stemMaps[SongStem.Drums1] = new[] { drumArray[2], drumArray[3] };
+						stemMaps[SongStem.Drums2] = new[] { drumArray[4], drumArray[5] };
 						break;
 				}
-				for (int i = 0; i < drumArray.Length; i++) mapped[drumArray[i]] = true;
+
+				foreach (int arr in drumArray)
+				{
+					mapped[arr] = true;
+				}
 			}
 
 			if (tracks.TryGetValue("bass", out var bassArray)) {
-				stemMaps[SongStem.Bass] = new byte[bassArray.Length];
+				stemMaps[SongStem.Bass] = new int[bassArray.Length];
 				for (int i = 0; i < bassArray.Length; i++) {
 					stemMaps[SongStem.Bass][i] = bassArray[i];
 					mapped[bassArray[i]] = true;
@@ -159,7 +160,7 @@ namespace YARG.Serialization {
 			}
 
 			if (tracks.TryGetValue("guitar", out var gtrArray)) {
-				stemMaps[SongStem.Guitar] = new byte[gtrArray.Length];
+				stemMaps[SongStem.Guitar] = new int[gtrArray.Length];
 				for (int i = 0; i < gtrArray.Length; i++) {
 					stemMaps[SongStem.Guitar][i] = gtrArray[i];
 					mapped[gtrArray[i]] = true;
@@ -167,7 +168,7 @@ namespace YARG.Serialization {
 			}
 
 			if (tracks.TryGetValue("vocals", out var voxArray)) {
-				stemMaps[SongStem.Vocals] = new byte[voxArray.Length];
+				stemMaps[SongStem.Vocals] = new int[voxArray.Length];
 				for (int i = 0; i < voxArray.Length; i++) {
 					stemMaps[SongStem.Vocals][i] = voxArray[i];
 					mapped[voxArray[i]] = true;
@@ -175,7 +176,7 @@ namespace YARG.Serialization {
 			}
 
 			if (tracks.TryGetValue("keys", out var keysArray)) {
-				stemMaps[SongStem.Keys] = new byte[keysArray.Length];
+				stemMaps[SongStem.Keys] = new int[keysArray.Length];
 				for (int i = 0; i < keysArray.Length; i++) {
 					stemMaps[SongStem.Keys][i] = keysArray[i];
 					mapped[keysArray[i]] = true;
@@ -183,7 +184,7 @@ namespace YARG.Serialization {
 			}
 
 			if (crowdChannels != null) {
-				stemMaps[SongStem.Crowd] = new byte[crowdChannels.Length];
+				stemMaps[SongStem.Crowd] = new int[crowdChannels.Length];
 				for (int i = 0; i < crowdChannels.Length; i++) {
 					stemMaps[SongStem.Crowd][i] = crowdChannels[i];
 					mapped[crowdChannels[i]] = true;
@@ -191,24 +192,24 @@ namespace YARG.Serialization {
 			}
 
 			// every index in mapped that is still false, goes in the backing
-			List<int> fakeIndices = Enumerable.Range(0, mapped.Length).Where(i => !mapped[i]).ToList();
-			stemMaps[SongStem.Song] = new byte[fakeIndices.Count];
+			var fakeIndices = Enumerable.Range(0, mapped.Length).Where(i => !mapped[i]).ToList();
+			stemMaps[SongStem.Song] = new int[fakeIndices.Count];
 			for (int i = 0; i < fakeIndices.Count; i++) {
-				stemMaps[SongStem.Song][i] = (byte) fakeIndices[i];
+				stemMaps[SongStem.Song][i] = fakeIndices[i];
 			}
 
 			// END BASS Stem Mapping ------------------------------------------------------------------------
 
 			// BEGIN BASS Matrix calculation ----------------------------------------------------------------
 
-			float[,] matrixRatios = new float[pans.Length, 2];
+			matrixRatios = new float[PanData.Length, 2];
 
-			Parallel.For(0, pans.Length, i => {
-				float theta = pans[i] * ((float) Math.PI / 4);
+			Parallel.For(0, PanData.Length, i => {
+				float theta = PanData[i] * ((float) Math.PI / 4);
 				float ratioL = (float) (Math.Sqrt(2) / 2) * ((float) Math.Cos(theta) - (float) Math.Sin(theta));
 				float ratioR = (float) (Math.Sqrt(2) / 2) * ((float) Math.Cos(theta) + (float) Math.Sin(theta));
 
-				float volRatio = (float) Math.Pow(10, vols[i] / 20);
+				float volRatio = (float) Math.Pow(10, VolumeData[i] / 20);
 
 				matrixRatios[i, 0] = volRatio * ratioL;
 				matrixRatios[i, 1] = volRatio * ratioR;
@@ -216,8 +217,5 @@ namespace YARG.Serialization {
 
 			// END BASS Matrix calculation ------------------------------------------------------------------
 		}
-
-		public Dictionary<SongStem, byte[]> GetSongStemMapping() => stemMaps;
-		public float[,] GetMoggMatrix() => matrixRatios;
 	}
 }
