@@ -45,6 +45,9 @@ namespace YARG.UI {
 		private List<SongView> songViewsBefore = new();
 		private List<SongView> songViewsAfter = new();
 
+		// Handles keyboard navigation uniformly with everything else
+		private FiveFretInputStrategy keyboardHandler;
+
 		private NavigationType direction;
 		private bool directionHeld = false;
 		private float inputTimer = 0f;
@@ -71,12 +74,30 @@ namespace YARG.UI {
 
 				songViewsAfter.Add(gameObject.GetComponent<SongView>());
 			}
+
+			// Create keyboard handler if no players are using it
+			if (!PlayerManager.players.Any((player) => player.inputStrategy.InputDevice == Keyboard.current)) {
+				var keyboard = Keyboard.current;
+				keyboardHandler = new()
+				{
+					InputDevice = keyboard,
+					microphoneIndex = -1,
+					botMode = false
+				};
+				keyboardHandler.SetMappingInputControl("strumUp", keyboard.upArrowKey);
+				keyboardHandler.SetMappingInputControl("strumDown", keyboard.downArrowKey);
+				keyboardHandler.SetMappingInputControl("red", keyboard.escapeKey);
+			}
 		}
 
 		private void OnEnable() {
 			// Bind input events
 			foreach (var player in PlayerManager.players) {
 				player.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
+			}
+			if (keyboardHandler != null) {
+				keyboardHandler.GenericNavigationEvent += OnGenericNavigation;
+				keyboardHandler.Enable();
 			}
 
 			if (refreshFlag) {
@@ -93,6 +114,10 @@ namespace YARG.UI {
 			// Unbind input events
 			foreach (var player in PlayerManager.players) {
 				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
+			}
+			if (keyboardHandler != null) {
+				keyboardHandler.Disable();
+				keyboardHandler.GenericNavigationEvent -= OnGenericNavigation;
 			}
 		}
 
@@ -170,30 +195,6 @@ namespace YARG.UI {
 				}
 
 				inputTimer = INPUT_REPEAT_TIME;
-			}
-
-			// Up arrow
-
-			if (Keyboard.current.upArrowKey.wasPressedThisFrame) {
-				inputTimer = INPUT_REPEAT_COOLDOWN;
-				MoveView(-1);
-			}
-
-			if (Keyboard.current.upArrowKey.isPressed && inputTimer <= 0f) {
-				inputTimer = INPUT_REPEAT_TIME;
-				MoveView(-1);
-			}
-
-			// Down arrow
-
-			if (Keyboard.current.downArrowKey.wasPressedThisFrame) {
-				inputTimer = INPUT_REPEAT_COOLDOWN;
-				MoveView(1);
-			}
-
-			if (Keyboard.current.downArrowKey.isPressed && inputTimer <= 0f) {
-				inputTimer = INPUT_REPEAT_TIME;
-				MoveView(1);
 			}
 
 			// Scroll wheel
