@@ -122,7 +122,7 @@ namespace YARG.PlayMode {
 				} else if (eventInfo.name == $"solo_{player.chosenInstrument}") {
 					SoloSection = eventInfo;
 				}
-                eventChartIndex++;
+				eventChartIndex++;
 			}
 
 			// Since chart is sorted, this is guaranteed to work
@@ -137,7 +137,7 @@ namespace YARG.PlayMode {
 
 				// TODO: Only one note should be an activator at any given timestamp
 				if (player.track.FillSection?.EndTime == noteInfo.time
-					&& starpowerCharge >= 0.5f 
+					&& starpowerCharge >= 0.5f
 					&& !starpowerActive
 					) {
 					noteInfo.isActivator = true;

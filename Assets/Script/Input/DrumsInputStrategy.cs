@@ -74,9 +74,6 @@ namespace YARG.Input {
 				DrumHitEvent?.Invoke(4, false);
 				CallGenericCalbirationEvent();
 			}
-
-			// Constantly activate starpower
-			//CallStarpowerEvent();
 		}
 
 		public override void InitializeBotMode(object rawChart) {
@@ -102,9 +99,6 @@ namespace YARG.Input {
 				// Hit
 				DrumHitEvent?.Invoke(noteInfo.fret, noteInfo.hopo);
 			}
-
-			// Constantly activate starpower
-			//CallStarpowerEvent();
 		}
 
 		public void ActivateStarpower() {

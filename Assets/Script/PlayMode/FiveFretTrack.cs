@@ -518,7 +518,7 @@ namespace YARG.PlayMode {
 					}
 				}
 				if (checkGhosting) {
-					var nextNote = GetNextNote(Chart[hitChartIndex-1].time);
+					var nextNote = GetNextNote(Chart[hitChartIndex - 1].time);
 					if (nextNote != null && (nextNote[0].hopo || nextNote[0].tap)) {
 						if (nextNote.Count == 1 && fret != nextNote[0].fret) { // Hitting wrong button = ghosted = bad
 							allowedGhosts--;
@@ -614,10 +614,13 @@ namespace YARG.PlayMode {
 			float lagCompensation = CalcLagCompensation(time, noteInfo.time);
 			float x = noteInfo.fret == 5 ? 0f : frets[noteInfo.fret].transform.localPosition.x;
 			var pos = new Vector3(x, 0f, TRACK_SPAWN_OFFSET - lagCompensation);
+
 			// Get model type
 			var model = NoteComponent.ModelType.NOTE;
 			if (noteInfo.fret == 5) {
-				model = NoteComponent.ModelType.FULL;
+				model = noteInfo.hopo || noteInfo.tap
+					? NoteComponent.ModelType.FULL_HOPO
+					: NoteComponent.ModelType.FULL;
 			} else if (noteInfo.hopo) {
 				model = NoteComponent.ModelType.HOPO;
 			} else if (noteInfo.tap) {
@@ -673,14 +676,14 @@ namespace YARG.PlayMode {
 					var nextChordTime = Chart[i].time;
 					chord.Add(Chart[i]);
 					i++;
-						while (Chart.Count > i)	{
-							if (Chart[i].time > nextChordTime) {
-								break;
-							} else {
-								chord.Add(Chart[i]);
-								i++;
-							}
+					while (Chart.Count > i) {
+						if (Chart[i].time > nextChordTime) {
+							break;
+						} else {
+							chord.Add(Chart[i]);
+							i++;
 						}
+					}
 					break;
 				}
 				i++;
