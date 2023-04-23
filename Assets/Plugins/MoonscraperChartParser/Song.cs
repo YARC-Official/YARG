@@ -613,7 +613,7 @@ namespace MoonscraperChartEditor.Song
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            throw new NotImplementedException();
+	        
         }
 
         public IEnumerator<T> GetEnumerator()
@@ -694,7 +694,7 @@ namespace MoonscraperChartEditor.Song
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            throw new NotImplementedException();
+	        
         }
 
         public IEnumerator<T> GetEnumerator()
