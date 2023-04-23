@@ -48,10 +48,6 @@ namespace YARG.Input {
 			SAMPLE_SCAN_SIZE = (int) (TARGET_SIZE * (float) AudioSettings.outputSampleRate / TARGET_SIZE_REF);
 		}
 
-		public override string[] GetMappingNames() {
-			return new string[0];
-		}
-
 		protected override void UpdatePlayerMode() {
 			if (microphoneIndex == INVALID_MIC_INDEX) {
 				return;

@@ -34,7 +34,8 @@ namespace YARG.Input {
 		/// <summary>
 		/// A list of the controls that correspond to each mapping.
 		/// </summary>
-		protected Dictionary<string, ControlBinding> inputMappings = new();
+		protected Dictionary<string, ControlBinding> inputMappings;
+		public IReadOnlyDictionary<string, ControlBinding> Mappings => inputMappings;
 
 		public bool Enabled { get; private set; }
 
@@ -65,10 +66,8 @@ namespace YARG.Input {
 		public event GenericNavigationAction GenericNavigationEvent;
 
 		public InputStrategy() {
-			// Add keys for each input mapping
-			foreach (var key in GetMappingNames()) {
-				inputMappings.Add(key, new());
-			}
+			// Initialize mappings
+			inputMappings = GetMappings();
 		}
 
 		public void Enable() {
@@ -93,7 +92,7 @@ namespace YARG.Input {
 		/// <returns>
 		/// The input mapping keys that will be present in <see cref="inputMappings"/>
 		/// </returns>
-		public abstract string[] GetMappingNames();
+		protected virtual Dictionary<string, ControlBinding> GetMappings() => new();
 
 		/// <returns>
 		/// An array of the allow instruments for the input strategy.

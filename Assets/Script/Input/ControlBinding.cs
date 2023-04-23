@@ -3,8 +3,17 @@ using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
 
 namespace YARG.Input {
+    public enum BindingType {
+        BUTTON,
+        AXIS
+    }
+
     public class ControlBinding {
 		public const float DEFAULT_PRESS_THRESHOLD = 0.75f; // TODO: Remove once control calibration is added
+
+        public BindingType Type { get; }
+        public string DisplayName { get; }
+        public string BindingKey { get; }
 
         private InputControl<float> _control;
         public InputControl<float> Control {
@@ -21,6 +30,12 @@ namespace YARG.Input {
         public (float previous, float current) State => _state;
 
         private float pressPoint = DEFAULT_PRESS_THRESHOLD;
+
+        public ControlBinding(BindingType type, string displayName, string bindingKey) {
+            Type = type;
+            DisplayName = displayName;
+            BindingKey = bindingKey;
+        }
 
         public bool IsPressed() {
             // Ignore if unmapped

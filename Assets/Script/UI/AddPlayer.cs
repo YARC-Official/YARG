@@ -47,7 +47,7 @@ namespace YARG.UI {
 		private string playerName = null;
 		private InputStrategy inputStrategy = null;
 
-		private string currentBindUpdate = null;
+		private ControlBinding currentBindUpdate = null;
 		private TextMeshProUGUI currentBindText = null;
 		private IDisposable currentDeviceListener = null;
 
@@ -172,11 +172,11 @@ namespace YARG.UI {
 			StartBind();
 		}
 
-		private string GetMappingText(string binding)
-			=> $"<b>{binding}:</b> {inputStrategy.GetMappingInputControl(binding)?.displayName ?? "None"}";
+		private string GetMappingText(ControlBinding binding)
+			=> $"<b>{binding.DisplayName}:</b> {inputStrategy.GetMappingInputControl(binding.BindingKey)?.displayName ?? "None"}";
 
 		private void StartBind() {
-			if (inputStrategy.GetMappingNames().Length < 1 || botMode) {
+			if (inputStrategy.Mappings.Count < 1 || botMode) {
 				DoneBind();
 				return;
 			}
@@ -197,7 +197,7 @@ namespace YARG.UI {
 			}
 
 			// Add bindings
-			foreach (var binding in inputStrategy.GetMappingNames()) {
+			foreach (var binding in inputStrategy.Mappings.Values) {
 				var button = Instantiate(deviceButtonPrefab, bindingsContainer);
 
 				var text = button.GetComponentInChildren<TextMeshProUGUI>();
@@ -207,7 +207,7 @@ namespace YARG.UI {
 					if (currentBindUpdate == null) {
 						currentBindUpdate = binding;
 						currentBindText = text;
-						text.text = $"<b>{binding}:</b> Waiting for input... (Escape to cancel)";
+						text.text = $"<b>{binding.DisplayName}:</b> Waiting for input... (Escape to cancel)";
 					}
 				});
 			}
@@ -247,7 +247,7 @@ namespace YARG.UI {
 					}
 
 					// Set mapping and update text
-					inputStrategy.SetMappingInputControl(currentBindUpdate, floatControl);
+					inputStrategy.SetMappingInputControl(currentBindUpdate.BindingKey, floatControl);
 					currentBindText.text = GetMappingText(currentBindUpdate);
 
 					// Stop waiting

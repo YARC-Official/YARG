@@ -50,16 +50,16 @@ namespace YARG.Serialization {
 				}
 
 				// Set binds
-				foreach (var binding in inputStrategy.GetMappingNames()) {
-					if (!inputBindSave.binds.ContainsKey(binding)) {
+				foreach (var binding in inputStrategy.Mappings.Values) {
+					if (!inputBindSave.binds.ContainsKey(binding.BindingKey)) {
 						continue;
 					}
 
-					var control = InputControlPath.TryFindControl(inputStrategy.InputDevice, inputBindSave.binds[binding]);
+					var control = InputControlPath.TryFindControl(inputStrategy.InputDevice, inputBindSave.binds[binding.BindingKey]);
 					if (control is not InputControl<float> floatControl) {
 						continue;
 					}
-					inputStrategy.SetMappingInputControl(binding, floatControl);
+					inputStrategy.SetMappingInputControl(binding.BindingKey, floatControl);
 				}
 			} catch (Exception e) {
 				Debug.LogWarning("Failed to load input binds from JSON. Ignoring.");
@@ -101,13 +101,13 @@ namespace YARG.Serialization {
 
 				// Save binds
 				inputBindSave.binds.Clear();
-				foreach (var binding in inputStrategy.GetMappingNames()) {
-					var control = inputStrategy.GetMappingInputControl(binding);
+				foreach (var binding in inputStrategy.Mappings.Values) {
+					var control = binding.Control;
 					if (control == null) {
 						continue;
 					}
 
-					inputBindSave.binds.Add(binding, control.path);
+					inputBindSave.binds.Add(binding.BindingKey, control.path);
 				}
 
 				// Save to JSON
