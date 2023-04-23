@@ -138,7 +138,8 @@ namespace YARG.PlayMode {
 				// TODO: Only one note should be an activator at any given timestamp
 				if (player.track.FillSection?.EndTime == noteInfo.time
 					&& starpowerCharge >= 0.5f
-					&& !starpowerActive
+					&& !IsStarPowerActive
+
 					) {
 					noteInfo.isActivator = true;
 				}

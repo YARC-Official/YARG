@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
@@ -60,6 +59,8 @@ namespace YARG.PlayMode {
 		private int lyricIndex = 0;
 		private int lyricPhraseIndex = 0;
 
+		private List<AbstractTrack> _tracks;
+		
 		private bool _paused = false;
 		public bool Paused {
 			get => _paused;
@@ -95,10 +96,20 @@ namespace YARG.PlayMode {
 		private IEnumerator StartSong() {
 			GameUI.Instance.SetLoadingText("Loading audio...");
 
-			// Load audio
-			var stems = AudioHelpers.GetSupportedStems(song.folder.FullName);
+			// Determine if speed is not 1
+			bool isSpeedUp = Math.Abs(speed - 1) > float.Epsilon;
+			
+			// Load MOGG if RB_CON, otherwise load stems
+			if (song.songType == SongInfo.SongType.RB_CON) {
+				Debug.Log(song.moggInfo.ChannelCount);
+				
+				GameManager.AudioManager.LoadMogg(song.moggInfo, isSpeedUp);
+			} else {
+				var stems = AudioHelpers.GetSupportedStems(song.RootFolder);
 
-			GameManager.AudioManager.LoadSong(stems, Math.Abs(speed - 1) > float.Epsilon);
+				GameManager.AudioManager.LoadSong(stems, isSpeedUp);
+			}
+			
 			SongLength = GameManager.AudioManager.AudioLengthF;
 
 			GameUI.Instance.SetLoadingText("Loading chart...");
@@ -109,6 +120,7 @@ namespace YARG.PlayMode {
 			GameUI.Instance.SetLoadingText("Spawning tracks...");
 
 			// Spawn tracks
+			_tracks = new List<AbstractTrack>();
 			int i = 0;
 			foreach (var player in PlayerManager.players) {
 				if (player.chosenInstrument == null) {
@@ -129,7 +141,8 @@ namespace YARG.PlayMode {
 
 				var prefab = Addressables.LoadAssetAsync<GameObject>(trackPath).WaitForCompletion();
 				var track = Instantiate(prefab, new Vector3(i * 25f, 100f, 0f), prefab.transform.rotation);
-				track.GetComponent<AbstractTrack>().player = player;
+				_tracks.Add(track.GetComponent<AbstractTrack>());
+				_tracks[i].player = player;
 
 				i++;
 			}
@@ -160,16 +173,16 @@ namespace YARG.PlayMode {
 		private void LoadChart() {
 			// Add main file
 			var files = new List<string> {
-				Path.Combine(song.folder.FullName, "notes.mid")
+				song.mainFile
 			};
 
 			// Look for upgrades and add
-			var upgradeFolder = new DirectoryInfo(Path.Combine(song.folder.FullName, "yarg_upgrade"));
-			if (upgradeFolder.Exists) {
-				foreach (var midi in upgradeFolder.GetFiles("*.mid")) {
-					files.Add(midi.FullName);
-				}
-			}
+			// var upgradeFolder = new DirectoryInfo(Path.Combine(song.RootFolder, "yarg_upgrade"));
+			// if (upgradeFolder.Exists) {
+			// 	foreach (var midi in upgradeFolder.GetFiles("*.mid")) {
+			// 		files.Add(midi.FullName);
+			// 	}
+			// }
 
 			// Parse
 			var parser = new MidiParser(song, files.ToArray());
@@ -250,6 +263,12 @@ namespace YARG.PlayMode {
 
 			// Update beats
 			while (chart.beats.Count > beatIndex && chart.beats[beatIndex] <= SongTime) {
+				foreach (var track in _tracks) {
+					if (!track.IsStarPowerActive || !GameManager.AudioManager.UseStarpowerFx) continue;
+					
+					GameManager.AudioManager.PlaySoundEffect(SfxSample.Clap);
+					break;
+				}
 				BeatEvent?.Invoke();
 				beatIndex++;
 			}
@@ -348,6 +367,8 @@ namespace YARG.PlayMode {
 
 			// Unpause just in case
 			Time.timeScale = 1f;
+			
+			_tracks.Clear();
 
 			GameManager.Instance.LoadScene(SceneIndex.MENU);
 		}

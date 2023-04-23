@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,37 +8,31 @@ using YARG.Serialization;
 namespace YARG.Data {
 	[JsonObject(MemberSerialization.OptIn)]
 	public partial class SongInfo {
+		// TODO: Move this
 		public enum DrumType {
 			FOUR_LANE,
 			FIVE_LANE, // AKA GH
 			UNKNOWN
 		}
 
-		private static readonly Dictionary<string, int> DEFAULT_DIFFS = new() {
-			{ "guitar", -1 },
-			{ "guitar_coop", -1 },
-			{ "rhythm", -1 },
-			{ "bass", -1 },
-			{ "keys", -1 },
-			{ "drums", -1 },
-			{ "vocals", -1 },
-			{ "realGuitar", -1 },
-			{ "realBass", -1 },
-			{ "realKeys", -1 },
-			{ "realDrums", -1 },
-			{ "harmVocals", -1 },
-		};
+		public enum SongType {
+			SONG_INI,
+			RB_CON
+		}
 
 		public bool fetched;
 
 		[JsonProperty]
-		[JsonConverter(typeof(DirectoryInfoConverter))]
-		public DirectoryInfo folder;
+		public string mainFile;
+		public string RootFolder => Path.GetDirectoryName(mainFile);
+
+		[JsonProperty]
+		public SongType songType;
 
 		/// <summary>
 		/// Used for cache.
 		/// </summary>
-		public string rootFolder;
+		public string cacheRoot;
 
 		[JsonProperty("live")]
 		public bool Live {
@@ -92,11 +87,38 @@ namespace YARG.Data {
 		/// </value>
 		[JsonProperty("diffs")]
 		public Dictionary<string, int> JsonDiffs {
-			get => partDifficulties.Where(i => i.Value != -1).ToDictionary(i => i.Key, i => i.Value);
+			get {
+				// Remove all non-existent difficulties
+				var diffs = partDifficulties.Where(i => i.Value != -1);
+
+				// Convert to dictionary with strings
+				var dict = new Dictionary<string, int>();
+				foreach (var kvp in diffs) {
+					var key = kvp.Key.ToStringName();
+					if (key == null) {
+						continue;
+					}
+
+					dict.Add(key, kvp.Value);
+				}
+
+				return dict;
+			}
+
 			set {
-				partDifficulties = new(DEFAULT_DIFFS);
+				// Create empty dictionary
+				partDifficulties = new();
+				foreach (Instrument instrument in Enum.GetValues(typeof(Instrument))) {
+					if (instrument == Instrument.INVALID) {
+						continue;
+					}
+
+					partDifficulties.Add(instrument, -1);
+				}
+
+				// Fill in values
 				foreach (var kvp in value) {
-					partDifficulties[kvp.Key] = kvp.Value;
+					partDifficulties[InstrumentHelper.FromStringName(kvp.Key)] = kvp.Value;
 				}
 			}
 		}
@@ -133,24 +155,33 @@ namespace YARG.Data {
 		[JsonProperty]
 		public string hash;
 
-		public Dictionary<string, int> partDifficulties;
+		/// <summary>
+		/// .mogg data for CON files.
+		/// </summary>
+		[JsonProperty]
+		public XboxMoggData moggInfo;
+		/// <summary>
+		/// .xbox_png data for CON files.
+		/// </summary>
+		[JsonProperty]
+		public XboxImage imageInfo;
 
-		public SongInfo(DirectoryInfo folder, string rootFolder) {
-			this.folder = folder;
-			this.rootFolder = rootFolder;
+		public Dictionary<Instrument, int> partDifficulties;
 
-			string dirName = folder.Name;
+		public SongInfo(string mainFile, string cacheRoot, SongType songType) {
+			this.mainFile = mainFile;
+			this.cacheRoot = cacheRoot;
+			this.songType = songType;
 
-			var split = dirName.Split(" - ");
-			if (split.Length == 2) {
-				SongNameWithFlags = split[1];
-				artistName = split[0];
-			} else {
-				SongNameWithFlags = dirName;
-				artistName = "Unknown";
+			// Set difficulty defaults
+			partDifficulties = new();
+			foreach (Instrument instrument in Enum.GetValues(typeof(Instrument))) {
+				if (instrument == Instrument.INVALID) {
+					continue;
+				}
+
+				partDifficulties.Add(instrument, -1);
 			}
-
-			partDifficulties = new(DEFAULT_DIFFS);
 		}
 
 		public SongInfo Duplicate() {
