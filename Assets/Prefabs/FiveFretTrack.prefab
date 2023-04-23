@@ -9956,27 +9956,27 @@ PrefabInstance:
     - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: fretColors.Array.data[3].b
-      value: 0.5019608
+      value: 0.59607846
       objectReference: {fileID: 0}
     - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: fretColors.Array.data[3].g
-      value: 0.41960785
+      value: 0.44705886
       objectReference: {fileID: 0}
     - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: fretColors.Array.data[3].r
-      value: 0.19215687
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: fretColors.Array.data[4].b
-      value: 0.15566039
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: fretColors.Array.data[4].g
-      value: 0.41951653
+      value: 0.2627451
       objectReference: {fileID: 0}
     - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
