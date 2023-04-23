@@ -33,7 +33,6 @@ namespace YARG.PlayMode {
 		private int allowedGhostsDefault = Constants.EXTRA_ALLOWED_GHOSTS + 1;
 		private int allowedGhosts = Constants.EXTRA_ALLOWED_GHOSTS + 1;
 		private int[] allowedChordGhosts = new int[] { -1, -1, -1, -1, -1 }; // -1 = not a chord; 0 = ghosted; 1 = ghost allowed
-		private bool antiGhosting = false;
 
 		// https://www.reddit.com/r/Rockband/comments/51t3c0/exactly_how_many_points_are_sustains_worth/
 		private const double SUSTAIN_PTS_PER_BEAT = 12.0;
@@ -42,9 +41,6 @@ namespace YARG.PlayMode {
 		protected override void StartTrack() {
 			notePool.player = player;
 			genericPool.player = player;
-
-			// Engine tweak
-			antiGhosting = SettingsManager.GetSettingValue<bool>("antiGhosting");
 
 			// Lefty flip
 
@@ -326,7 +322,7 @@ namespace YARG.PlayMode {
 					heldNotes.Add(hit);
 					frets[hit.fret].PlaySustainParticles();
 					scoreKeeper.Add(susTracker.Strum(hit) * Multiplier * SUSTAIN_PTS_PER_BEAT);
-          
+
 					frets[hit.fret].PlayAnimationSustainsLooped();
 
 					// Check if it's extended sustain;
@@ -508,7 +504,7 @@ namespace YARG.PlayMode {
 			latestInputIsStrum = false;
 
 			// Should it check ghosting?
-			if (antiGhosting && allowedGhosts > 0 && pressed && hitChartIndex > 0) {
+			if (SettingsManager.Settings.AntiGhosting.Data && allowedGhosts > 0 && pressed && hitChartIndex > 0) {
 				bool checkGhosting = true;
 				for (var i = 0; i < 5; i++) {
 					if (i == fret) {

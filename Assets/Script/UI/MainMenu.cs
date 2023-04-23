@@ -1,6 +1,5 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Data;
 using YARG.Input;
@@ -123,6 +122,7 @@ namespace YARG.UI {
 
 			if (!isUpdateShown && GameManager.Instance.updateChecker.IsOutOfDate) {
 				isUpdateShown = true;
+
 				updateObject.gameObject.gameObject.SetActive(true);
 			}
 		}
@@ -200,7 +200,8 @@ namespace YARG.UI {
 		public void ShowSettingsMenu() {
 			HideAllMainMenu();
 
-			settingsContainer.SetActive(true);
+			// settingsContainer.SetActive(true);
+			GameManager.Instance.SettingsMenu.gameObject.SetActive(true);
 		}
 
 		public void ShowMenuContainer() {
@@ -222,7 +223,7 @@ namespace YARG.UI {
 		}
 
 		public void AbortSongLoad() {
-			SettingsManager.DeleteSettingsFile();
+			SettingsManager.DeleteSettings();
 
 			Quit();
 		}

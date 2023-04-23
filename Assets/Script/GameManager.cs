@@ -4,7 +4,7 @@ using UnityEngine.Audio;
 using UnityEngine.InputSystem;
 using UnityEngine.Profiling;
 using UnityEngine.SceneManagement;
-using YARG.Data;
+using YARG.Settings;
 
 namespace YARG {
 	public enum SceneIndex {
@@ -15,10 +15,7 @@ namespace YARG {
 	}
 
 	public class GameManager : MonoBehaviour {
-		public static GameManager Instance {
-			get;
-			private set;
-		}
+		public static GameManager Instance { get; private set; }
 
 		public delegate void UpdateAction();
 		public static event UpdateAction OnUpdate;
@@ -26,15 +23,12 @@ namespace YARG {
 		/// <summary>
 		/// "Application.persistentDataPath" is main thread only. Why? I don't know.
 		/// </summary>
-		public static string PersistentDataPath {
-			get;
-			private set;
-		}
+		public static string PersistentDataPath { get; private set; }
 
-		public static IAudioManager AudioManager {
-			get;
-			private set;
-		}
+		public static IAudioManager AudioManager { get; private set; }
+
+		[field: SerializeField]
+		public SettingsMenu SettingsMenu { get; private set; }
 
 		public UpdateChecker updateChecker;
 

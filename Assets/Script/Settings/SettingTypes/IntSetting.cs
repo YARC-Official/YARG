@@ -8,19 +8,20 @@ namespace YARG.Settings.SettingTypes {
 			get => _data;
 			set {
 				base.Data = value;
-				_data = Mathf.Clamp(value, min, max);
+				_data = Mathf.Clamp(value, Min, Max);
 			}
 		}
 
 		public override string AddressableName => "Setting/Number";
 
-		private int min;
-		private int max;
+		public int Min { get; private set; }
+		public int Max { get; private set; }
 
 		public IntSetting(int value, int min = int.MinValue, int max = int.MaxValue, Action<int> onChange = null) : base(onChange) {
+			Min = min;
+			Max = max;
+
 			Data = value;
-			this.min = min;
-			this.max = max;
 		}
 	}
 }

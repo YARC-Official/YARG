@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
+using UnityEngine;
+using YARG.Settings.SettingTypes;
 
 namespace YARG.Settings {
 	public static partial class SettingsManager {
@@ -10,7 +12,7 @@ namespace YARG.Settings {
 			public List<string> settings = new();
 		}
 
-		public static readonly List<SettingsTab> settingsTabs = new() {
+		public static readonly List<SettingsTab> SETTINGS_TABS = new() {
 			new() {
 				name = "General",
 				settings = {
@@ -52,8 +54,9 @@ namespace YARG.Settings {
 					"SfxVolume",
 					"VocalMonitoring",
 					"MuteOnMiss",
-					"ClapsInStarpower",
-					"ReverbInStarpower",
+					"UseStarpowerFx",
+					// "ClapsInStarpower",
+					// "ReverbInStarpower",
 					"UseChipmunkSpeed",
 				}
 			},
@@ -68,15 +71,45 @@ namespace YARG.Settings {
 
 		public static void LoadSettings() {
 			// Create settings container
+			// try {
+			// 	Settings = JsonConvert.DeserializeObject<SettingContainer>(File.ReadAllText(SettingsFile));
+			// } catch (Exception) {
+			Settings = new SettingContainer();
+			// }
+		}
+
+		public static void SaveSettings() {
+			File.WriteAllText(SettingsFile, JsonConvert.SerializeObject(Settings));
+		}
+
+		public static void DeleteSettings() {
 			try {
-				Settings = JsonConvert.DeserializeObject<SettingContainer>(File.ReadAllText(SettingsFile));
-			} catch (Exception) {
-				Settings = new SettingContainer();
+				File.Delete(SettingsFile);
+			} catch (Exception e) {
+				Debug.LogException(e);
 			}
 		}
 
-		public static void SaveSetting() {
-			File.WriteAllText(SettingsFile, JsonConvert.SerializeObject(Settings));
+		public static ISettingType GetSettingByName(string name) {
+			var field = typeof(SettingContainer).GetProperty(name);
+
+			if (field == null) {
+				throw new Exception($"The field `{name}` does not exist.");
+			}
+
+			var value = field.GetValue(Settings);
+			return (ISettingType) value;
+		}
+
+		public static ISettingType GetSettingTypeByName(string name) {
+			var field = typeof(SettingContainer).GetProperty(name);
+
+			if (field == null) {
+				throw new Exception($"The field `{name}` does not exist.");
+			}
+
+			var value = field.GetValue(Settings);
+			return (ISettingType) value;
 		}
 	}
 }

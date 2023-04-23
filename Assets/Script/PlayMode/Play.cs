@@ -323,7 +323,7 @@ namespace YARG.PlayMode {
 		}
 
 		private void UpdateAudio(string[] trackNames, string[] stemNames) {
-			if (SettingsManager.GetSettingValue<bool>("muteOnMiss")) {
+			if (SettingsManager.Settings.MuteOnMiss.Data) {
 				// Get total amount of players with the instrument (and the amount lowered)
 				int amountWithInstrument = 0;
 				int amountLowered = 0;

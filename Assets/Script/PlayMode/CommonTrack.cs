@@ -62,7 +62,7 @@ namespace YARG.PlayMode {
 			normalCamera.gameObject.SetActive(false);
 
 			// Enable the correct camera
-			if (SettingsManager.GetSettingValue<bool>("highFovCamera")) {
+			if (SettingsManager.Settings.HighFovCamera.Data) {
 				TrackCamera = highFovCamera;
 			} else {
 				TrackCamera = normalCamera;
@@ -74,7 +74,7 @@ namespace YARG.PlayMode {
 
 			// Set anti-aliasing
 			var info = TrackCamera.GetComponent<UniversalAdditionalCameraData>();
-			if (SettingsManager.GetSettingValue<bool>("lowQuality")) {
+			if (SettingsManager.Settings.LowQuality.Data) {
 				info.antialiasing = AntialiasingMode.None;
 			} else {
 				info.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;

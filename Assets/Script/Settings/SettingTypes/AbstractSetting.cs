@@ -1,7 +1,7 @@
 using System;
 
 namespace YARG.Settings.SettingTypes {
-	public abstract class AbstractSetting<T> {
+	public abstract class AbstractSetting<T> : ISettingType {
 		public virtual T Data {
 			get => default;
 			set {

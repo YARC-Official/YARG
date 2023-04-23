@@ -34,8 +34,8 @@ namespace YARG {
 		/// The location of the song folder.
 		/// </value>
 		public static string[] SongFolders {
-			get => SettingsManager.GetSettingValue<string[]>("songFolders");
-			set => SettingsManager.SetSettingValue("songFolders", value);
+			get => SettingsManager.Settings.SongFolders;
+			set => SettingsManager.Settings.SongFolders = value;
 		}
 
 		/// <value>

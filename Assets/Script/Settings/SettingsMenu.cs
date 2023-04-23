@@ -1,17 +1,12 @@
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
+using YARG.Settings.SettingVisuals;
 
 namespace YARG.Settings {
 	public class SettingsMenu : MonoBehaviour {
 		[SerializeField]
-		private GameObject settingSpacePrefab;
-
-		[SerializeField]
 		private Transform settingsContainer;
-
-		[SerializeField]
-		private bool inGame;
 
 		private void OnEnable() {
 			UpdateSettings();
@@ -23,16 +18,17 @@ namespace YARG.Settings {
 				Destroy(t.gameObject);
 			}
 
-			foreach (var info in SettingsManager.GetAllSettings(inGame)) {
-				// Spawn a space if needed
-				if (info.spaceAbove) {
-					Instantiate(settingSpacePrefab, settingsContainer);
-				}
+			foreach (var tab in SettingsManager.SETTINGS_TABS) {
+				foreach (var settingName in tab.settings) {
+					var setting = SettingsManager.GetSettingTypeByName(settingName);
 
-				// Spawn the setting
-				var settingPrefab = Addressables.LoadAssetAsync<GameObject>($"Setting/{info.type}").WaitForCompletion();
-				var go = Instantiate(settingPrefab, settingsContainer);
-				go.GetComponent<AbstractSetting>().Setup(info.name, this);
+					try {
+						// Spawn the setting
+						var settingPrefab = Addressables.LoadAssetAsync<GameObject>(setting.AddressableName).WaitForCompletion();
+						var go = Instantiate(settingPrefab, settingsContainer);
+						go.GetComponent<ISettingVisual>().SetSetting(settingName);
+					} catch { }
+				}
 			}
 		}
 

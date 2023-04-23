@@ -35,7 +35,7 @@ namespace YARG.Settings {
 			public VolumeSetting SfxVolume                  { get; private set; } = new(0.7f, v => VolumeCallback(SongStem.Sfx,    v));
 			public VolumeSetting VocalMonitoring            { get; private set; } = new(0.7f, VocalMonitoringCallback);
 			public ToggleSetting MuteOnMiss                 { get; private set; } = new(true);
-			public ToggleSetting UserStarpowerFx            { get; private set; } = new(true, UseStarpowerFxChange);
+			public ToggleSetting UseStarpowerFx             { get; private set; } = new(true, UseStarpowerFxChange);
 			// public ToggleSetting ClapsInStarpower        { get; private set; } = new(true);
 			// public ToggleSetting ReverbInStarpower       { get; private set; } = new(true);
 			public ToggleSetting UseChipmunkSpeed           { get; private set; } = new(false, UseChipmunkSpeedChange);
