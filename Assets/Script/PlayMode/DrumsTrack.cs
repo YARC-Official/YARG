@@ -139,6 +139,7 @@ namespace YARG.PlayMode {
 				if (player.track.FillSection?.EndTime == noteInfo.time
 					&& starpowerCharge >= 0.5f
 					&& !IsStarPowerActive
+
 					) {
 					noteInfo.isActivator = true;
 				}
