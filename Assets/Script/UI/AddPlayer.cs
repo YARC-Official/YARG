@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -14,7 +16,8 @@ namespace YARG.UI {
 		private enum State {
 			SELECT_DEVICE,
 			CONFIGURE,
-			BIND
+			BIND,
+			RESOLVE
 		}
 
 		[SerializeField]
@@ -77,6 +80,7 @@ namespace YARG.UI {
 				State.SELECT_DEVICE => "Step 1 - Select Device",
 				State.CONFIGURE => "Step 2 - Configure",
 				State.BIND => "Step 3 - Bind",
+				State.RESOLVE => "More than one control was detected, please select the correct control from the list below.",
 				_ => ""
 			};
 		}
@@ -236,26 +240,35 @@ namespace YARG.UI {
 					return;
 				}
 
-				foreach (var control in selectedDevice?.device.allControls) {
-					// Skip "any key" (as that would always be detected), along with controls that don't return floats
-					if (control is AnyKeyControl || control is not InputControl<float> floatControl) {
-						continue;
-					}
+				// Find all active float-returning controls
+				// AnyKeyControl is excluded as it would always be active
+				var activeControls = from control in eventPtr.EnumerateChangedControls(device)
+					where (control is InputControl<float> and not AnyKeyControl) && InputStrategy.IsControlPressed(control, eventPtr)
+					select control as InputControl<float>;
 
-					if (!InputStrategy.IsControlPressed(floatControl)) {
-						continue;
-					}
-
-					// Set mapping and update text
-					inputStrategy.SetMappingInputControl(currentBindUpdate.BindingKey, floatControl);
-					currentBindText.text = GetMappingText(currentBindUpdate);
-
-					// Stop waiting
-					currentBindUpdate = null;
-					currentBindText = null;
-					break;
+				int controlCount = activeControls?.Count() ?? 0;
+				if (controlCount < 1) {
+					// No controls active
+					return;
+				} else if (controlCount > 1) {
+					// More than one control active, prompt user to pick which one
+					StartResolve(activeControls);
+					return;
 				}
+
+				// Set mapping
+				SetBind(activeControls.First());
 			});
+		}
+
+		private void SetBind(InputControl<float> control) {
+			// Set mapping and update text
+			inputStrategy.SetMappingInputControl(currentBindUpdate.BindingKey, control);
+			currentBindText.text = GetMappingText(currentBindUpdate);
+
+			// Stop waiting
+			currentBindUpdate = null;
+			currentBindText = null;
 		}
 
 		public void DoneBind() {
@@ -281,6 +294,43 @@ namespace YARG.UI {
 			}
 
 			MainMenu.Instance.ShowEditPlayers();
+		}
+
+		private void StartResolve(IEnumerable<InputControl<float>> controls) {
+			if (!controls.Any() || controls.Count() < 2) {
+				Debug.LogError("No control resolution required but resolution was started!");
+				return;
+			}
+
+			// Stop event listener
+			currentDeviceListener?.Dispose();
+			currentDeviceListener = null;
+
+			HideAll();
+			bindContainer.SetActive(true);
+			UpdateState(State.RESOLVE);
+
+			// Destroy old bindings
+			foreach (Transform t in bindingsContainer) {
+				Destroy(t.gameObject);
+			}
+
+			// List controls
+			foreach (var control in controls) {
+				var button = Instantiate(deviceButtonPrefab, bindingsContainer);
+				var text = button.GetComponentInChildren<TextMeshProUGUI>();
+				text.text = control.displayName;
+
+				button.GetComponentInChildren<Button>().onClick.AddListener(() => {
+					if (currentBindUpdate == null) {
+						return;
+					}
+
+					// Set mapping
+					SetBind(control);
+					StartBind();
+				});
+			}
 		}
 	}
 }
