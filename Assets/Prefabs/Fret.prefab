@@ -269,6 +269,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 3269232338164336536}
     m_Modifications:
+    - target: {fileID: 1357132095195937606, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.8282881
+      objectReference: {fileID: 0}
     - target: {fileID: 3294177006411540973, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
       propertyPath: m_RootOrder
@@ -328,6 +333,41 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: HitParticles
+      objectReference: {fileID: 0}
+    - target: {fileID: 3294177006858759508, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
+        type: 3}
+      propertyPath: simulationSpeed
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3294177006858759510, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.8496098
+      objectReference: {fileID: 0}
+    - target: {fileID: 6694574493295802725, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
+        type: 3}
+      propertyPath: simulationSpeed
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6800171040021638553, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
+        type: 3}
+      propertyPath: fadeOutRate
+      value: 150
+      objectReference: {fileID: 0}
+    - target: {fileID: 7010966731283071322, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
+        type: 3}
+      propertyPath: simulationSpeed
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7052233033112949576, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
+        type: 3}
+      propertyPath: m_Range
+      value: 0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 7052233033112949576, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
+        type: 3}
+      propertyPath: m_Intensity
+      value: 12.5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a, type: 3}

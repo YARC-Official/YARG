@@ -37,6 +37,11 @@ namespace YARG.Pools {
 
 		[Space]
 		[SerializeField]
+		private float[] noteGroupsEmission; //needs to be to the same Indexes assined to meshRenderers. -Mia
+		
+
+		[Space]
+		[SerializeField]
 		private TextMeshPro fretNumber;
 		[SerializeField]
 		private LineRenderer lineRenderer;
@@ -165,9 +170,20 @@ namespace YARG.Pools {
 
 		private void UpdateColor() {
 			for (int i = 0; i < meshRenderers.Length; i++) {
-				int index = meshRendererMiddleIndices[i];
-				meshRenderers[i].materials[index].color = ColorCacheNotes;
-				meshRenderers[i].materials[index].SetColor("_EmissionColor", ColorCacheNotes * 3);
+
+				if (i != 4) {
+					int index = meshRendererMiddleIndices[i];
+					meshRenderers[i].materials[index].color = ColorCacheNotes;
+					meshRenderers[i].materials[index].SetColor("_EmissionColor", ColorCacheNotes * noteGroupsEmission[i]);
+				}
+				else {
+					int index = meshRendererMiddleIndices[i];
+					meshRenderers[i].materials[index].color = ColorCacheNotes + new Color (3, 3, 3, 0); // -- this is for open hopos -Mia
+					meshRenderers[i].materials[index].SetColor("_EmissionColor", ColorCacheNotes * noteGroupsEmission[i]);
+				}
+
+				
+
 			}
 
 			UpdateLineColor();

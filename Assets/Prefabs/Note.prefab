@@ -64,6 +64,12 @@ MonoBehaviour:
   tapGroup: {fileID: 3624981743589644049}
   fullGroup: {fileID: 4634473573192609450}
   fullHopoGroup: {fileID: 3205252887972104811}
+  noteGroupsEmission:
+  - 8
+  - 8
+  - 8
+  - 8
+  - 8
   fretNumber: {fileID: 0}
   lineRenderer: {fileID: 5864461325193466425}
 --- !u!1 &1294466957868725440
@@ -145,7 +151,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &757754076216578782
 Transform:
   m_ObjectHideFlags: 0
