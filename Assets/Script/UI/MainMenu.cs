@@ -125,22 +125,17 @@ namespace YARG.UI {
 				return;
 			}
 
-			// Update player navigation
-			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.UpdateNavigationMode();
-			}
-
 			if (!isUpdateShown && GameManager.Instance.updateChecker.IsOutOfDate) {
 				isUpdateShown = true;
 
 				string newVersion = GameManager.Instance.updateChecker.LatestVersion.ToString();
-				updateText.text = $"New version available: {newVersion}";
+				updateText.text = $"Update available!";
 				updateObject.gameObject.gameObject.SetActive(true);
 			}
 		}
 
-		private void OnGenericNavigation(NavigationType navigationType, bool firstPressed) {
-			if (!firstPressed) {
+		private void OnGenericNavigation(NavigationType navigationType, bool pressed) {
+			if (!pressed) {
 				return;
 			}
 

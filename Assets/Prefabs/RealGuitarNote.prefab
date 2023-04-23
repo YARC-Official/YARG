@@ -31,7 +31,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 861361446070616035}
-  m_RootOrder: 5
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 68.559, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -203,8 +203,6 @@ Transform:
   m_Children:
   - {fileID: 3676109393068581280}
   - {fileID: 2485029377005370073}
-  - {fileID: 7774362077026621734}
-  - {fileID: 969241233629970397}
   - {fileID: 3083436502393406622}
   - {fileID: 6247713159172371674}
   m_Father: {fileID: 0}
@@ -230,8 +228,9 @@ MonoBehaviour:
   meshRendererMiddleIndices: 0200000002000000
   noteGroup: {fileID: 1397812567785855241}
   hopoGroup: {fileID: 1294466957868725440}
-  tapGroup: {fileID: 8745650086612154010}
-  fullGroup: {fileID: 5879953073027725293}
+  tapGroup: {fileID: 0}
+  fullGroup: {fileID: 0}
+  fullHopoGroup: {fileID: 0}
   fretNumber: {fileID: 5134052872940096443}
   lineRenderer: {fileID: 5864461325193466425}
 --- !u!1 &1294466957868725440
@@ -298,37 +297,6 @@ Transform:
   m_Father: {fileID: 861361446070616035}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &5879953073027725293
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 969241233629970397}
-  m_Layer: 6
-  m_Name: FullGroupDummy
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!4 &969241233629970397
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5879953073027725293}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 861361446070616035}
-  m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7189655996071686276
 GameObject:
   m_ObjectHideFlags: 0
@@ -359,7 +327,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 861361446070616035}
-  m_RootOrder: 4
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!120 &5864461325193466425
 LineRenderer:
@@ -460,37 +428,6 @@ LineRenderer:
     generateLightingData: 0
   m_UseWorldSpace: 0
   m_Loop: 0
---- !u!1 &8745650086612154010
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 7774362077026621734}
-  m_Layer: 6
-  m_Name: TapGroupDummy
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!4 &7774362077026621734
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8745650086612154010}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 861361446070616035}
-  m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &3999898006346069272
 PrefabInstance:
   m_ObjectHideFlags: 0

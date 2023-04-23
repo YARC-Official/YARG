@@ -60,6 +60,7 @@ namespace YARG.UI {
 			playerIndex = 0;
 			if (anyMics) {
 				UpdateVocalOptions();
+				brutalModeCheckbox.interactable = false;
 			} else {
 				UpdateInstrument();
 			}
@@ -79,15 +80,8 @@ namespace YARG.UI {
 			}
 		}
 
-		private void Update() {
-			// Update player navigation
-			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.UpdateNavigationMode();
-			}
-		}
-
-		private void OnGenericNavigation(NavigationType navigationType, bool firstPressed) {
-			if (!firstPressed) {
+		private void OnGenericNavigation(NavigationType navigationType, bool pressed) {
+			if (!pressed) {
 				return;
 			}
 
@@ -181,10 +175,14 @@ namespace YARG.UI {
 		}
 
 		private void IncreasePlayerIndex() {
-			if (brutalModeCheckbox.isOn) {
-				PlayerManager.players[playerIndex].brutalMode = true;
+			if (playerIndex != -1) {
+				if (brutalModeCheckbox.isOn) {
+					PlayerManager.players[playerIndex].brutalMode = true;
+				} else {
+					PlayerManager.players[playerIndex].brutalMode = false;
+				}
 			} else {
-				PlayerManager.players[playerIndex].brutalMode = false;
+				brutalModeCheckbox.interactable = true;
 			}
 			brutalModeCheckbox.isOn = false;
 
