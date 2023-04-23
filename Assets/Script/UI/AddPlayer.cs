@@ -227,16 +227,24 @@ namespace YARG.UI {
 					return;
 				}
 
-				// Ignore if not from the selected device or from the keyboard
-				if (eventPtr.deviceId != device.deviceId && eventPtr.deviceId != Keyboard.current.deviceId) {
+				// Ignore if not from the selected device
+				if (eventPtr.deviceId != device.deviceId) {
+					// Check if cancelling
+					if (eventPtr.deviceId == Keyboard.current.deviceId) {
+						var esc = Keyboard.current.escapeKey;
+						if (esc.IsValueConsideredPressed(esc.ReadValueFromEvent(eventPtr))) {
+							CancelBind();
+						}
+					}
 					return;
 				}
 
-				// Cancel
-				if ((device as Keyboard ?? Keyboard.current).escapeKey.isPressed) {
-					currentBindText.text = GetMappingText(currentBindUpdate);
-					currentBindText = null;
-					currentBindUpdate = null;
+				// Handle cancelling
+				if (device is Keyboard keyboard) {
+					var esc = keyboard.escapeKey;
+					if (esc.IsValueConsideredPressed(esc.ReadValueFromEvent(eventPtr))) {
+						CancelBind();
+					}
 					return;
 				}
 
@@ -262,13 +270,14 @@ namespace YARG.UI {
 		}
 
 		private void SetBind(InputControl<float> control) {
-			// Set mapping and update text
 			inputStrategy.SetMappingInputControl(currentBindUpdate.BindingKey, control);
-			currentBindText.text = GetMappingText(currentBindUpdate);
+			CancelBind();
+		}
 
-			// Stop waiting
-			currentBindUpdate = null;
+		private void CancelBind() {
+			currentBindText.text = GetMappingText(currentBindUpdate);
 			currentBindText = null;
+			currentBindUpdate = null;
 		}
 
 		public void DoneBind() {
