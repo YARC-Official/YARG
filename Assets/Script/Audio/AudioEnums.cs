@@ -26,6 +26,8 @@ namespace YARG {
 		StarPowerDeploy,
 		StarPowerRelease,
 		Clap,
+		StarGain,
+		StarGold
 	}
 
 	public enum DSPType {

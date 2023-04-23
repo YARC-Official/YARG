@@ -30,10 +30,10 @@ namespace YARG.PlayMode {
 
 		private Queue<List<NoteInfo>> expectedHits = new();
 
-		private int notesHit = 0;
-		// private int notesMissed = 0;
-
 		private bool noKickMode = false;
+
+		private readonly string[] proInst = {"realDrums", "ghDrums"};
+		private int ptsPerNote;
 
 		protected override void StartTrack() {
 			notePool.player = player;
@@ -75,6 +75,12 @@ namespace YARG.PlayMode {
 				drums[i] = fret;
 			}
 			kickNoteParticles.Colorize(commonTrack.FretColor(kickIndex));
+
+			// initialize scoring variables
+			ptsPerNote = proInst.Contains(player.chosenInstrument) ? 30 : 25;
+			starsKeeper = new(Chart, scoreKeeper,
+				player.chosenInstrument,
+				ptsPerNote);
 		}
 
 		protected override void OnDestroy() {
@@ -86,16 +92,6 @@ namespace YARG.PlayMode {
 			} else if (input is GHDrumsInputStrategy ghStrat) {
 				ghStrat.DrumHitEvent -= GHDrumHitAction;
 			}
-
-			// Set score
-			player.lastScore = new PlayerManager.LastScore {
-				percentage = new DiffPercent {
-					difficulty = player.chosenDifficulty,
-					percent = Chart.Count == 0 ? 1f : (float) notesHit / Chart.Count
-				},
-				notesHit = notesHit,
-				notesMissed = Chart.Count - notesHit
-			};
 		}
 
 		protected override void UpdateTrack() {
@@ -316,6 +312,8 @@ namespace YARG.PlayMode {
 
 			// Add stats
 			notesHit++;
+			// TODO: accomodate for disabled cymbal lanes, rework 5-lane scoring depending on re-charting
+			scoreKeeper.Add(Multiplier * ptsPerNote);
 		}
 
 		private void SpawnNote(NoteInfo noteInfo, float time) {

@@ -27,7 +27,9 @@ namespace YARG {
 			"starpower_gain",
 			"starpower_deploy",
 			"starpower_release",
-			"clap"
+			"clap",
+			"star",
+			"star_gold",
 		};
 
 		public static readonly IList<double> SfxVolume = new[] {
@@ -37,6 +39,8 @@ namespace YARG {
 			0.4,
 			0.5,
 			0.12,
+			1.0,
+			1.0,
 		};
 
 		public static IEnumerable<string> GetSupportedStems(string folder) {
@@ -90,6 +94,8 @@ namespace YARG {
 				"starpower_deploy"  => SfxSample.StarPowerDeploy,
 				"starpower_release" => SfxSample.StarPowerRelease,
 				"clap"              => SfxSample.Clap,
+				"star"              => SfxSample.StarGain,
+				"star_gold"              => SfxSample.StarGold,
 				_                   => SfxSample.NoteMiss,
 			};
 		}
