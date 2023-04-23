@@ -1,19 +1,18 @@
 using System.Collections.Generic;
-using UnityEngine;
 using Unity.Mathematics;
+using UnityEngine;
 using YARG.Data;
 
 namespace YARG.PlayMode {
-
 	/// <summary>
 	/// Tracks sustain notes' progress, counted in beats.
 	/// </summary>
 	public class SustainTracker {
-		private List<float> beatTimes;
+		// private List<float> beatTimes;
 		private Dictionary<AbstractInfo, double> noteProgress = new();
 
-		public SustainTracker(List<float> beatTimes) {
-			this.beatTimes = beatTimes;
+		public SustainTracker() {
+			// this.beatTimes = beatTimes;
 		}
 
 		/// <summary>
@@ -22,10 +21,12 @@ namespace YARG.PlayMode {
 		/// <param name="note"></param>
 		/// <returns>Initial sustain beats for this note, compensated for strum offset above 0.</returns>
 		public double Strum(AbstractInfo note) {
-			var initialVal =
-				math.clamp(Mathf.Min((Play.Instance.SongTime - note.time), note.length) * Play.Instance.curBeatPerSecond, 0.0, double.MaxValue);
+			var initialVal = math.clamp(
+				Mathf.Min(Play.Instance.SongTime - note.time, note.length) * Play.Instance.CurrentBeatsPerSecond,
+				0.0, double.MaxValue
+			);
 			noteProgress[note] = initialVal;
-			
+
 			return initialVal;
 		}
 
@@ -38,7 +39,7 @@ namespace YARG.PlayMode {
 			// TODO: account for multiple tempo changes between this frame and last frame (for lag spikes)
 			double remainingBeats = note.LengthInBeats - noteProgress[note];
 			// pt/b * s * b/s = pt
-			double beatsThisFrame = math.min(Time.deltaTime * Play.Instance.curBeatPerSecond, remainingBeats);
+			double beatsThisFrame = math.min(Time.deltaTime * Play.Instance.CurrentBeatsPerSecond, remainingBeats);
 			noteProgress[note] += beatsThisFrame;
 			return beatsThisFrame;
 		}

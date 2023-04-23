@@ -1,10 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
 using Unity.Mathematics;
-
-using YARG.Data;
 
 // Score keeping for each track
 public class ScoreKeeper {
@@ -14,32 +9,31 @@ public class ScoreKeeper {
 	/// </summary>
 	public static event ScoreAction OnScoreChange;
 
-    // keep track of all instances to calculate the band total
+	// keep track of all instances to calculate the band total
 	public static List<ScoreKeeper> instances = new();
-    public static double TotalScore {
-        get {
+	public static double TotalScore {
+		get {
 			double sum = 0;
-            foreach (var ins in instances) {
-				sum += ins.score;
+			foreach (var ins in instances) {
+				sum += ins.Score;
 			}
 			return sum;
 		}
-    }
+	}
 
 	public static void Reset() {
 		instances.Clear();
 	}
 
-	public double score { get; private set; } = 0;
+	public double Score { get; private set; } = 0;
 
 	/// <summary>
 	/// Add points for this keeper. Fires the OnScoreChange event.
 	/// </summary>
 	/// <param name="points"></param>
 	public void Add(double points) {
-        score += points;
-		if (OnScoreChange != null)
-			OnScoreChange();
+		Score += points;
+		OnScoreChange?.Invoke();
 	}
 
 	/// <summary>
@@ -49,25 +43,25 @@ public class ScoreKeeper {
 	/// <param name="notesMax"></param>
 	/// <returns>The bonus points earned.</returns>
 	public double AddSolo(int notesHit, int notesMax) {
-		double ratio = (double)notesHit / notesMax;
-		
+		double ratio = (double) notesHit / notesMax;
+
 		if (ratio <= 0.5)
 			return 0;
 
 		// linear
-		double multiplier = math.clamp((ratio - 0.5)/0.5, 0, 1);
+		double multiplier = math.clamp((ratio - 0.5) / 0.5, 0, 1);
 		double ptsEarned = 100 * notesHit * multiplier;
 
 		// +5% bonus points
 		// TODO: limit to FC? decide to keep at all?
 		if (ratio >= 1)
-			ptsEarned = 1.05*ptsEarned;
+			ptsEarned = 1.05 * ptsEarned;
 
 		Add(ptsEarned);
 		return ptsEarned;
 	}
 
-    public ScoreKeeper() {
+	public ScoreKeeper() {
 		instances.Add(this);
 	}
 }

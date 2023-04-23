@@ -1,8 +1,8 @@
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
-using UnityEngine;
 using Unity.Mathematics;
+using UnityEngine;
 using YARG.Data;
 using YARG.Input;
 using YARG.Settings;
@@ -130,7 +130,7 @@ namespace YARG.PlayMode {
 			commonTrack.SetupCameras();
 			commonTrack.TrackCamera.targetTexture = renderTexture;
 
-			susTracker = new(Play.Instance.chart.beats);
+			susTracker = new();
 		}
 
 		private void Start() {
@@ -176,13 +176,13 @@ namespace YARG.PlayMode {
 				},
 				score = new DiffScore {
 					difficulty = player.chosenDifficulty,
-					score = (int) math.round(scoreKeeper.score),
+					score = (int) math.round(scoreKeeper.Score),
 					stars = math.clamp((int) starsKeeper.Stars, 0, 6)
-		},
+				},
 				notesHit = notesHit,
 				notesMissed = Chart.Count - notesHit
 			};
-			
+
 			Play.OnPauseToggle -= PauseToggled;
 		}
 
@@ -387,7 +387,7 @@ namespace YARG.PlayMode {
 				// run ONCE
 				if (soloInProgress) {
 					soloPtsEarned = scoreKeeper.AddSolo(soloNotesHit, soloNoteCount);
-					
+
 					// set box text
 					if (soloHitPercent >= 100f) {
 						// Set text color
@@ -421,7 +421,7 @@ namespace YARG.PlayMode {
 						commonTrack.soloBox.sprite = commonTrack.soloMessySprite;
 						commonTrack.soloText.text = "MESSY\nSOLO!";
 					}
-					
+
 					// show points earned after some time
 					StartCoroutine(SoloBoxShowScore());
 

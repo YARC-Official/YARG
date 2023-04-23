@@ -1,10 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-
 using UnityEngine;
-
 using YARG.Data;
-using YARG.Util;
 
 namespace YARG.PlayMode {
 	/// <summary>
@@ -33,7 +30,7 @@ namespace YARG.PlayMode {
 			get {
 				double sum = 0;
 				foreach (var ins in instances) {
-					sum += ins.baseScore;
+					sum += ins.BaseScore;
 				}
 				return sum;
 			}
@@ -60,7 +57,7 @@ namespace YARG.PlayMode {
 		/// <summary>
 		/// The maximum score achievable at 1x multiplier.
 		/// </summary>
-		public double baseScore { get; private set; }
+		public double BaseScore { get; private set; }
 
 		/// <summary>
 		/// Minimum points needed to get 1, 2, 3, 4, 5, and gold stars respectively.
@@ -73,16 +70,16 @@ namespace YARG.PlayMode {
 		public double Stars {
 			get {
 				int stars = 5;
-				while (stars >= 0 && scoreKeeper.score < scoreThreshold[stars]) { --stars; }
+				while (stars >= 0 && scoreKeeper.Score < scoreThreshold[stars]) { --stars; }
 				stars += 1; // stars earned, also index of threshold for next star
 
 				switch (stars) {
 					case int s when s == 0:
-						return scoreKeeper.score / scoreThreshold[s];
+						return scoreKeeper.Score / scoreThreshold[s];
 					case int s when s <= 5:
-						return (double) s + (scoreKeeper.score - scoreThreshold[s - 1]) / (scoreThreshold[s] - scoreThreshold[s - 1]);
+						return (double) s + (scoreKeeper.Score - scoreThreshold[s - 1]) / (scoreThreshold[s] - scoreThreshold[s - 1]);
 					default: // 6+ stars
-						return (double) 5 + (scoreKeeper.score - scoreThreshold[4]) / (scoreThreshold[5] - scoreThreshold[4]);
+						return (double) 5 + (scoreKeeper.Score - scoreThreshold[4]) / (scoreThreshold[5] - scoreThreshold[4]);
 				}
 			}
 		}
@@ -92,11 +89,11 @@ namespace YARG.PlayMode {
 			this.scoreKeeper = scoreKeeper;
 
 			// calculate and store base score
-			baseScore = 0;
+			BaseScore = 0;
 			foreach (var note in chart) {
-				baseScore += ptPerNote;
+				BaseScore += ptPerNote;
 				if (note.length > .2f) {
-					baseScore += ptSusPerBeat * Util.Utils.InfoLengthInBeats(note, Play.Instance.chart.beats);
+					BaseScore += ptSusPerBeat * Util.Utils.InfoLengthInBeats(note, Play.Instance.chart.beats);
 				}
 			}
 
@@ -107,20 +104,20 @@ namespace YARG.PlayMode {
 			instances.Add(this);
 			this.scoreKeeper = scoreKeeper;
 
-			baseScore = noteCount * ptPerNote;
-			
+			BaseScore = noteCount * ptPerNote;
+
 			SetupScoreThreshold(instrument);
 		}
-		
+
 		// populate scoreThreshold
 		private void SetupScoreThreshold(string instrument) {
 			scoreThreshold = new double[] {
-				instrumentThreshold[instrument][0] * baseScore,
-				instrumentThreshold[instrument][1] * baseScore,
-				instrumentThreshold[instrument][2] * baseScore,
-				instrumentThreshold[instrument][3] * baseScore,
-				instrumentThreshold[instrument][4] * baseScore,
-				instrumentThreshold[instrument][5] * baseScore
+				instrumentThreshold[instrument][0] * BaseScore,
+				instrumentThreshold[instrument][1] * BaseScore,
+				instrumentThreshold[instrument][2] * BaseScore,
+				instrumentThreshold[instrument][3] * BaseScore,
+				instrumentThreshold[instrument][4] * BaseScore,
+				instrumentThreshold[instrument][5] * BaseScore
 			};
 		}
 	}

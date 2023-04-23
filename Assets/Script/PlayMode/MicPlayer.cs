@@ -147,7 +147,7 @@ namespace YARG.PlayMode {
 		// easy, medium, hard, expert
 		// https://rockband.scorehero.com/forum/viewtopic.php?t=4545
 		// max harmony pts = 10% of main points per extra mic
-		private readonly int[] MAX_POINTS = { 200, 400, 800, 1000 };
+		private readonly int[] MAX_POINTS = { 200, 400, 800, 1000, 1000 };
 		private StarScoreKeeper starsKeeper;
 		private int ptsPerPhrase; // pts per phrase, set depending on difficulty
 
@@ -277,7 +277,7 @@ namespace YARG.PlayMode {
 				if (ev.name == EndPhraseName)
 					phrases++;
 			}
-			
+
 			// note: micInput.Count = number of players on vocals
 			ptsPerPhrase = MAX_POINTS[(int) micInputs[0].player.chosenDifficulty];
 			starsKeeper = new(scoreKeeper, micInputs[0].player.chosenInstrument, phrases, ptsPerPhrase);
@@ -300,7 +300,7 @@ namespace YARG.PlayMode {
 				},
 				score = new DiffScore {
 					difficulty = micInputs[0].player.chosenDifficulty,
-					score = (int) math.round(scoreKeeper.score),
+					score = (int) math.round(scoreKeeper.Score),
 					stars = math.clamp((int) starsKeeper.Stars, 0, 6)
 				},
 				notesHit = sectionsHit,
@@ -733,18 +733,20 @@ namespace YARG.PlayMode {
 				}
 			}
 
-			// get portion sang from bar graphic
+			// Get portion sang from bar graphic
+			// WHAT. Redo this!
 			var sectionPercents = new List<float>();
 			foreach (var bar in barImages) {
 				sectionPercents.Add(bar.fillAmount);
 			}
 			sectionPercents.Sort();
-			// add to ScoreKeeper
+
+			// Add to ScoreKeeper
 			for (int i = sectionPercents.Count - 1; i >= 0; --i) {
-				var phraseScore = math.clamp((double)sectionPercents[i] * ptsPerPhrase, 0, ptsPerPhrase);
-				if (i != sectionPercents.Count-1)
+				var phraseScore = math.clamp((double) sectionPercents[i] * ptsPerPhrase, 0, ptsPerPhrase);
+				if (i != sectionPercents.Count - 1) {
 					phraseScore *= 0.1;
-				Debug.Log($"player earned {phraseScore:N0}pts");
+				}
 				scoreKeeper.Add(Multiplier * phraseScore);
 			}
 

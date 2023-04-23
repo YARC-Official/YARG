@@ -60,8 +60,8 @@ namespace YARG.PlayMode {
 		private int lyricPhraseIndex = 0;
 
 		// tempo (updated throughout play)
-		public float curBeatPerSecond { get; private set; } = 0f;
-		public float curTempo => curBeatPerSecond * 60; // BPM
+		public float CurrentBeatsPerSecond { get; private set; } = 0f;
+		public float CurrentTempo => CurrentBeatsPerSecond * 60; // BPM
 
 		private List<AbstractTrack> _tracks;
 
@@ -104,18 +104,18 @@ namespace YARG.PlayMode {
 
 			// Determine if speed is not 1
 			bool isSpeedUp = Math.Abs(speed - 1) > float.Epsilon;
-			
+
 			// Load MOGG if RB_CON, otherwise load stems
 			if (song.songType == SongInfo.SongType.RB_CON) {
 				Debug.Log(song.moggInfo.ChannelCount);
-				
+
 				GameManager.AudioManager.LoadMogg(song.moggInfo, isSpeedUp);
 			} else {
 				var stems = AudioHelpers.GetSupportedStems(song.RootFolder);
 
 				GameManager.AudioManager.LoadSong(stems, isSpeedUp);
 			}
-			
+
 			SongLength = GameManager.AudioManager.AudioLengthF;
 
 			GameUI.Instance.SetLoadingText("Loading chart...");
@@ -197,7 +197,7 @@ namespace YARG.PlayMode {
 
 			// initialize current tempo
 			if (chart.beats.Count > 2)
-				curBeatPerSecond = chart.beats[1] - chart.beats[0];
+				CurrentBeatsPerSecond = chart.beats[1] - chart.beats[0];
 		}
 
 		private void Update() {
@@ -275,7 +275,7 @@ namespace YARG.PlayMode {
 			while (chart.beats.Count > beatIndex && chart.beats[beatIndex] <= SongTime) {
 				foreach (var track in _tracks) {
 					if (!track.IsStarPowerActive || !GameManager.AudioManager.UseStarpowerFx) continue;
-					
+
 					GameManager.AudioManager.PlaySoundEffect(SfxSample.Clap);
 					break;
 				}
@@ -283,7 +283,7 @@ namespace YARG.PlayMode {
 				beatIndex++;
 
 				if (beatIndex < chart.beats.Count) {
-					curBeatPerSecond = 1 / (chart.beats[beatIndex] - chart.beats[beatIndex - 1]);
+					CurrentBeatsPerSecond = 1 / (chart.beats[beatIndex] - chart.beats[beatIndex - 1]);
 				}
 			}
 
@@ -381,7 +381,7 @@ namespace YARG.PlayMode {
 
 			// Unpause just in case
 			Time.timeScale = 1f;
-			
+
 			_tracks.Clear();
 
 			GameManager.Instance.LoadScene(SceneIndex.MENU);

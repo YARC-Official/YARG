@@ -1,7 +1,6 @@
 using System;
 using System.Globalization;
 using Newtonsoft.Json;
-using UnityEngine;
 using YARG.Data;
 
 namespace YARG.Serialization {
@@ -12,7 +11,6 @@ namespace YARG.Serialization {
 			char diff = spl[0][0];
 			int score = int.Parse(spl[0][1..], CultureInfo.InvariantCulture);
 			int stars = int.Parse(spl[1]);
-			Debug.Log($"{score}pts {stars} stars");
 
 			return new DiffScore {
 				difficulty = DifficultyExtensions.FromChar(diff),
