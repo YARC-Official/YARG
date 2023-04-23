@@ -137,6 +137,7 @@ namespace YARG.UI {
 
 			if (state == State.INSTRUMENT) {
 				if (selected >= instruments.Length) {
+					player.chosenInstrument = null;
 					IncreasePlayerIndex();
 				} else {
 					player.chosenInstrument = instruments[selected];
@@ -237,7 +238,7 @@ namespace YARG.UI {
 					"harmVocals" => "Vocals (Harmony)",
 					"ghDrums" => "Drums (5-lane)",
 					"rhythm" => "Rhythm Guitar",
-					"guitar_coop" => "Co-op Guitar",
+					"guitarCoop" => "Co-op Guitar",
 					_ => "Unknown"
 				};
 			}

@@ -29,7 +29,8 @@ namespace YARG.UI {
 			var songScore = new SongScore {
 				lastPlayed = DateTime.Now,
 				timesPlayed = 1,
-				highestPercent = new()
+				highestPercent = new(),
+				highestScore = new()
 			};
 			var oldScore = ScoreManager.GetScore(Play.song);
 
@@ -67,12 +68,13 @@ namespace YARG.UI {
 					continue;
 				}
 
-				// Override or add percentage
-				if (oldScore == null ||
-					!oldScore.highestPercent.TryGetValue(player.chosenInstrument, out var oldHighest) ||
-					lastScore.percentage > oldHighest) {
+				// Override or add score/percentage
+				if (oldScore == null || oldScore.highestScore == null ||
+					!oldScore.highestScore.TryGetValue(player.chosenInstrument, out var oldHighestSc) ||
+					lastScore.score > oldHighestSc) {
 
 					songScore.highestPercent[player.chosenInstrument] = lastScore.percentage;
+					songScore.highestScore[player.chosenInstrument] = lastScore.score;
 					highScores.Add(player);
 				}
 			}

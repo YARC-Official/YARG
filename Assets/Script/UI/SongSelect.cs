@@ -83,9 +83,9 @@ namespace YARG.UI {
 					microphoneIndex = -1,
 					botMode = false
 				};
-				keyboardHandler.SetMappingInputControl("strumUp", keyboard.upArrowKey);
-				keyboardHandler.SetMappingInputControl("strumDown", keyboard.downArrowKey);
-				keyboardHandler.SetMappingInputControl("red", keyboard.escapeKey);
+				keyboardHandler.SetMappingInputControl(FiveFretInputStrategy.STRUM_UP, keyboard.upArrowKey);
+				keyboardHandler.SetMappingInputControl(FiveFretInputStrategy.STRUM_DOWN, keyboard.downArrowKey);
+				keyboardHandler.SetMappingInputControl(FiveFretInputStrategy.RED, keyboard.escapeKey);
 			}
 		}
 

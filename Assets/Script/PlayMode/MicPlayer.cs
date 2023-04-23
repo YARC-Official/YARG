@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.Rendering.Universal;
@@ -142,6 +143,14 @@ namespace YARG.PlayMode {
 		private EventInfo visualStarpowerSection;
 		private EventInfo starpowerSection;
 
+		private ScoreKeeper scoreKeeper;
+		// easy, medium, hard, expert
+		// https://rockband.scorehero.com/forum/viewtopic.php?t=4545
+		// max harmony pts = 10% of main points per extra mic
+		private readonly int[] MAX_POINTS = { 200, 400, 800, 1000, 1000 };
+		private StarScoreKeeper starsKeeper;
+		private int ptsPerPhrase; // pts per phrase, set depending on difficulty
+
 		private int rawMultiplier = 1;
 		private int Multiplier => rawMultiplier * (starpowerActive ? 2 : 1);
 
@@ -259,6 +268,19 @@ namespace YARG.PlayMode {
 
 			// Hide starpower
 			starpowerOverlay.material.SetFloat("AlphaMultiplier", 0f);
+
+			// Setup scoring vars
+			scoreKeeper = new();
+
+			int phrases = 0;
+			foreach (var ev in Play.Instance.chart.events) {
+				if (ev.name == EndPhraseName)
+					phrases++;
+			}
+
+			// note: micInput.Count = number of players on vocals
+			ptsPerPhrase = MAX_POINTS[(int) micInputs[0].player.chosenDifficulty];
+			starsKeeper = new(scoreKeeper, micInputs[0].player.chosenInstrument, phrases, ptsPerPhrase);
 		}
 
 		private void OnDestroy() {
@@ -275,6 +297,11 @@ namespace YARG.PlayMode {
 				percentage = new DiffPercent {
 					difficulty = micInputs[0].player.chosenDifficulty,
 					percent = totalSingPercent / totalSections
+				},
+				score = new DiffScore {
+					difficulty = micInputs[0].player.chosenDifficulty,
+					score = (int) math.round(scoreKeeper.Score),
+					stars = math.clamp((int) starsKeeper.Stars, 0, 6)
 				},
 				notesHit = sectionsHit,
 				notesMissed = sectionsFailed
@@ -706,6 +733,23 @@ namespace YARG.PlayMode {
 				}
 			}
 
+			// Get portion sang from bar graphic
+			// WHAT. Redo this!
+			var sectionPercents = new List<float>();
+			foreach (var bar in barImages) {
+				sectionPercents.Add(bar.fillAmount);
+			}
+			sectionPercents.Sort();
+
+			// Add to ScoreKeeper
+			for (int i = sectionPercents.Count - 1; i >= 0; --i) {
+				var phraseScore = math.clamp((double) sectionPercents[i] * ptsPerPhrase, 0, ptsPerPhrase);
+				if (i != sectionPercents.Count - 1) {
+					phraseScore *= 0.1;
+				}
+				scoreKeeper.Add(Multiplier * phraseScore);
+			}
+
 			// Set preformance text
 			preformaceText.text = bestPercent switch {
 				>= 1f => "AWESOME!",
@@ -717,6 +761,9 @@ namespace YARG.PlayMode {
 			};
 			preformaceText.color = Color.white;
 			
+			// Begin animation and start countdown
+			animationTimestamp = 1.0f;
+
 			// Begin animation and start countdown
 			animationTimestamp = 1.0f;
 
@@ -900,26 +947,18 @@ namespace YARG.PlayMode {
 				starpowerActive = true;
 			}
 		}
-		
-		float CalculateRelativePerformanceTextSize(float currTime)
-		{
-			if (currTime > 0.83333f)
-			{
-				return (-1290.0f * Mathf.Pow((currTime - 0.83333f), 4.0f)) + 0.9984f;
-			}
-			else if (currTime > 0.5f)
-			{
-				float denominator = 1.0f + Mathf.Pow((float) Math.E, (-50.0f * (currTime - 0.75f)));
+
+		float CalculateRelativePerformanceTextSize(float currTime) {
+			if (currTime > 0.83333f) {
+				return (-1290.0f * Mathf.Pow(currTime - 0.83333f, 4.0f)) + 0.9984f;
+			} else if (currTime > 0.5f) {
+				float denominator = 1.0f + Mathf.Pow((float) Math.E, -50.0f * (currTime - 0.75f));
 				return (0.1f / denominator) + 0.9f;
-			}
-			else if (currTime > 0.16666f)
-			{
-				float denominator = 1.0f + Mathf.Pow((float) Math.E, (-50.0f * (currTime - 0.25f)));
+			} else if (currTime > 0.16666f) {
+				float denominator = 1.0f + Mathf.Pow((float) Math.E, -50.0f * (currTime - 0.25f));
 				return (-0.1f / denominator) + 1.0f;
-			}
-			else if (currTime > 0.0f)
-			{
-				return (-1290.0f * Mathf.Pow((currTime - 0.16666f), 4.0f)) + 0.9984f;
+			} else if (currTime > 0.0f) {
+				return (-1290.0f * Mathf.Pow(currTime - 0.16666f, 4.0f)) + 0.9984f;
 			}
 
 			return 0.0f;

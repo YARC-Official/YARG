@@ -29,8 +29,9 @@ namespace YARG.PlayMode {
 		private Queue<NoteInfo> expectedHits = new();
 		private List<NoteInfo> heldNotes = new();
 
-		private int notesHit = 0;
-		// private int notesMissed = 0;
+		private const int PTS_PER_NOTE = 60;
+		private const int SUSTAIN_PTS_PER_BEAT = 30;
+
 
 		protected override void StartTrack() {
 			notePool.player = player;
@@ -66,6 +67,10 @@ namespace YARG.PlayMode {
 			for (int i = 0; i < 6; i++) {
 				sustainParticles[i].Colorize(commonTrack.FretColor(i));
 			}
+
+			starsKeeper = new(Chart, scoreKeeper,
+				player.chosenInstrument,
+				PTS_PER_NOTE, SUSTAIN_PTS_PER_BEAT);
 		}
 
 		protected override void OnDestroy() {
@@ -74,16 +79,6 @@ namespace YARG.PlayMode {
 			// Unbind input
 			input.FretChangeEvent -= FretChangedAction;
 			input.StrumEvent -= StrumAction;
-
-			// Set score
-			player.lastScore = new PlayerManager.LastScore {
-				percentage = new DiffPercent {
-					difficulty = player.chosenDifficulty,
-					percent = Chart.Count == 0 ? 1f : (float) notesHit / Chart.Count
-				},
-				notesHit = notesHit,
-				notesMissed = Chart.Count - notesHit
-			};
 		}
 
 		protected override void UpdateTrack() {
@@ -130,8 +125,10 @@ namespace YARG.PlayMode {
 			// Update held notes
 			for (int i = heldNotes.Count - 1; i >= 0; i--) {
 				var heldNote = heldNotes[i];
+				scoreKeeper.Add(susTracker.Update(heldNote) * Multiplier * SUSTAIN_PTS_PER_BEAT);
 				if (heldNote.time + heldNote.length <= Play.Instance.SongTime) {
 					heldNotes.RemoveAt(i);
+					susTracker.Drop(heldNote);
 					EndSustainParticles(heldNote);
 				}
 			}
@@ -193,6 +190,7 @@ namespace YARG.PlayMode {
 			notePool.HitNote(note);
 			StopAudio = false;
 			notesHit++;
+			scoreKeeper.Add(PTS_PER_NOTE * Multiplier);
 
 			// Solo stuff
 			if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime) {
@@ -213,6 +211,7 @@ namespace YARG.PlayMode {
 			// If sustained, add to held
 			if (note.length > 0.2f) {
 				heldNotes.Add(note);
+				scoreKeeper.Add(susTracker.Strum(note) * Multiplier * SUSTAIN_PTS_PER_BEAT);
 				StartSustainParticles(note);
 			}
 		}

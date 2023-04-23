@@ -18,19 +18,19 @@ namespace YARG.Serialization {
 			PARSER.Parser.Configuration.CommentRegex = new(@"^//(.*)|^;(.*)");
 		}
 
-		public static SongInfo CompleteSongInfo(SongInfo song) {
+		public static void CompleteSongInfo(SongInfo song) {
 			if (song.fetched) {
-				return song;
+				return;
 			}
 
-			var file = new FileInfo(Path.Combine(song.folder.ToString(), "song.ini"));
-			if (!file.Exists) {
-				return song;
+			var filePath = Path.Combine(song.RootFolder, "song.ini");
+			if (!File.Exists(filePath)) {
+				return;
 			}
 
 			song.fetched = true;
 			try {
-				var data = PARSER.ReadFile(file.FullName, Encoding.UTF8);
+				var data = PARSER.ReadFile(filePath, Encoding.UTF8);
 
 				// Get song section name
 				KeyDataCollection section;
@@ -39,8 +39,8 @@ namespace YARG.Serialization {
 				} else if (data.Sections.ContainsSection("Song")) {
 					section = data["Song"];
 				} else {
-					Debug.LogError($"No `song` section found in `{song.folder}`.");
-					return song;
+					Debug.LogError($"No `song` section found in `{song.RootFolder}`.");
+					return;
 				}
 
 				// Set basic info
@@ -72,8 +72,7 @@ namespace YARG.Serialization {
 					int rawLength = int.Parse(section["song_length"]);
 					song.songLength = rawLength / 1000f;
 				} else {
-					Debug.LogWarning($"No song length found for `{song.folder}`. Loading audio file. This might take longer.");
-					LoadSongLengthFromAudio(song);
+					Debug.LogWarning($"No song length found for `{song.RootFolder}`.");
 				}
 
 				// Get drum type
@@ -115,51 +114,48 @@ namespace YARG.Serialization {
 
 				// Get difficulties
 				bool noneFound = true;
-				foreach (var kvp in new Dictionary<string, int>(song.partDifficulties)) {
-					var key = "diff_" + (kvp.Key switch {
-						"realGuitar" => "guitar_real",
-						"realBass" => "bass_real",
-						"realDrums" => "drums_real",
-						"realKeys" => "keys_real",
-						"harmVocals" => "vocals_harm",
-						_ => kvp.Key
-					});
+				foreach (Instrument instrument in Enum.GetValues(typeof(Instrument))) {
+					var key = instrument.ToSongIniName();
+					if (key == null) {
+						continue;
+					}
 
 					if (section.ContainsKey(key)) {
-						song.partDifficulties[kvp.Key] = int.Parse(section[key]);
+						song.partDifficulties[instrument] = int.Parse(section[key]);
 						noneFound = true;
 					}
 				}
 
 				// If no difficulties found, check the source
+				// TODO: Check midi file instead
 				if (noneFound) {
 					if (song.source == "gh1") {
-						song.partDifficulties["guitar"] = -2;
+						song.partDifficulties[Instrument.GUITAR] = -2;
 					} else if (song.source == "gh2"
 						|| song.source == "gh80s"
 						|| song.source == "gh3"
 						|| song.source == "ghot"
 						|| song.source == "gha") {
 
-						song.partDifficulties["guitar"] = -2;
-						song.partDifficulties["bass"] = -2;
+						song.partDifficulties[Instrument.GUITAR] = -2;
+						song.partDifficulties[Instrument.BASS] = -2;
 					}
 				}
 			} catch (Exception e) {
-				Debug.LogError($"Failed to parse song.ini for `{song.folder}`.");
+				Debug.LogError($"Failed to parse song.ini for `{song.RootFolder}`.");
 				Debug.LogException(e);
 			}
-
-			return song;
 		}
 
-		private static void LoadSongLengthFromAudio(SongInfo song) {
-			// Load file
-			var songOggPath = Path.Combine(song.folder.FullName, "song.ogg");
-			var file = TagLib.File.Create(songOggPath);
+		// private static void LoadSongLengthFromAudio(SongInfo song) {
+		// 	// TODO: Use BASS
 
-			// Save 
-			song.songLength = (float) file.Properties.Duration.TotalSeconds;
-		}
+		// 	// // Load file
+		// 	// var songOggPath = Path.Combine(song.mainFile.FullName, "song.ogg");
+		// 	// var file = TagLib.File.Create(songOggPath);
+
+		// 	// // Save 
+		// 	// song.songLength = (float) file.Properties.Duration.TotalSeconds;
+		// }
 	}
 }

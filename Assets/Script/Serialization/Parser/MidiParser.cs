@@ -100,10 +100,10 @@ namespace YARG.Serialization.Parser {
 								break;
 							case "PART GUITAR COOP":
 								for (int i = 0; i < 4; i++) {
-									chart.guitar_coop[i] = ParseFiveFret(trackChunk, i);
+									chart.guitarCoop[i] = ParseFiveFret(trackChunk, i);
 								}
-								ParseStarpower(eventIR, trackChunk, "guitar_coop");
-								ParseSolo(eventIR, trackChunk, "guitar_coop");
+								ParseStarpower(eventIR, trackChunk, "guitarCoop");
+								ParseSolo(eventIR, trackChunk, "guitarCoop");
 								break;
 							case "PART RHYTHM":
 								for (int i = 0; i < 4; i++) {

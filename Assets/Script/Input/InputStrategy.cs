@@ -7,12 +7,6 @@ using UnityEngine.InputSystem.Utilities;
 
 namespace YARG.Input {
 	public abstract class InputStrategy {
-		protected class StrategyControl {
-			public InputControl control;
-			public (bool previous, bool current) state;
-		}
-
-		public const float PRESS_THRESHOLD = 0.75f; // TODO: Remove once control calibration is added
 		public const int INVALID_MIC_INDEX = -1;
 
 		public bool botMode;
@@ -40,7 +34,8 @@ namespace YARG.Input {
 		/// <summary>
 		/// A list of the controls that correspond to each mapping.
 		/// </summary>
-		protected Dictionary<string, StrategyControl> inputMappings = new();
+		protected Dictionary<string, ControlBinding> inputMappings;
+		public IReadOnlyDictionary<string, ControlBinding> Mappings => inputMappings;
 
 		public bool Enabled { get; private set; }
 
@@ -71,10 +66,8 @@ namespace YARG.Input {
 		public event GenericNavigationAction GenericNavigationEvent;
 
 		public InputStrategy() {
-			// Add keys for each input mapping
-			foreach (var key in GetMappingNames()) {
-				inputMappings.Add(key, new());
-			}
+			// Initialize mappings
+			inputMappings = GetMappings();
 		}
 
 		public void Enable() {
@@ -99,7 +92,7 @@ namespace YARG.Input {
 		/// <returns>
 		/// The input mapping keys that will be present in <see cref="inputMappings"/>
 		/// </returns>
-		public abstract string[] GetMappingNames();
+		protected virtual Dictionary<string, ControlBinding> GetMappings() => new();
 
 		/// <returns>
 		/// An array of the allow instruments for the input strategy.
@@ -175,21 +168,9 @@ namespace YARG.Input {
 				return;
 			}
 
-			// Update previous and current states
+			// Update mapping states
 			foreach (var mapping in inputMappings.Values) {
-				// Ignore unmapped controls
-				if (mapping.control == null) {
-					continue;
-				}
-
-				// Progress state history forward
-				mapping.state.previous = mapping.state.current;
-				if (mapping.control.HasValueChangeInEvent(eventPtr)) {
-					// Don't check pressed state unless there was a value change
-					// There seems to be an issue with delta state events (which MIDI devices use) where
-					// a control that wasn't changed in that event will report the wrong value
-					mapping.state.current = IsControlPressed(mapping.control, eventPtr);
-				}
+				mapping.UpdateState(eventPtr);
 			}
 
 			// Update inputs
@@ -208,6 +189,8 @@ namespace YARG.Input {
 		public static bool IsControlPressed(InputControl control) {
 			if (control is ButtonControl button) {
 				return button.isPressed;
+			} else if (control is AxisControl axis) {
+				return axis.IsActuated(ControlBinding.DEFAULT_PRESS_THRESHOLD);
 			}
 
 			return false;
@@ -216,31 +199,39 @@ namespace YARG.Input {
 		public static bool IsControlPressed(InputControl control, InputEventPtr eventPtr) {
 			if (control is ButtonControl button) {
 				return button.IsValueConsideredPressed(button.ReadValueFromEvent(eventPtr));
+			} else if (control is AxisControl axis) {
+				return axis.ReadValueFromEvent(eventPtr) >= ControlBinding.DEFAULT_PRESS_THRESHOLD;
 			}
 
 			return false;
 		}
 
 		protected bool IsMappingPressed(string key) {
-			return inputMappings[key].state.current;
+			return inputMappings[key].IsPressed();
 		}
 
 		protected bool WasMappingPressed(string key) {
-			var (previous, current) = inputMappings[key].state;
-			return !previous && current;
+			return inputMappings[key].WasPressed();
 		}
 
 		protected bool WasMappingReleased(string key) {
-			var (previous, current) = inputMappings[key].state;
-			return previous && !current;
+			return inputMappings[key].WasReleased();
 		}
 
-		public InputControl GetMappingInputControl(string name) {
-			return inputMappings[name].control;
+		protected float GetMappingValue(string key) {
+			return inputMappings[key].State.current;
 		}
 
-		public void SetMappingInputControl(string name, InputControl control) {
-			inputMappings[name].control = control;
+		protected float GetPreviousMappingValue(string key) {
+			return inputMappings[key].State.previous;
+		}
+
+		public InputControl<float> GetMappingInputControl(string name) {
+			return inputMappings[name].Control;
+		}
+
+		public void SetMappingInputControl(string name, InputControl<float> control) {
+			inputMappings[name].Control = control;
 		}
 	}
 }

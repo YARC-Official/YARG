@@ -30,10 +30,10 @@ namespace YARG.PlayMode {
 
 		private Queue<List<NoteInfo>> expectedHits = new();
 
-		private int notesHit = 0;
-		// private int notesMissed = 0;
-
 		private bool noKickMode = false;
+
+		private readonly string[] proInst = {"realDrums", "ghDrums"};
+		private int ptsPerNote;
 
 		protected override void StartTrack() {
 			notePool.player = player;
@@ -71,10 +71,16 @@ namespace YARG.PlayMode {
 			// Color drums
 			for (int i = 0; i < drums.Length; i++) {
 				var fret = drums[i].GetComponent<Fret>();
-				fret.SetColor(commonTrack.FretColor(i), commonTrack.FretColor(i));
+				fret.SetColor(commonTrack.FretColor(i), commonTrack.FretInnerColor(i), commonTrack.SustainColor(i));
 				drums[i] = fret;
 			}
 			kickNoteParticles.Colorize(commonTrack.FretColor(kickIndex));
+
+			// initialize scoring variables
+			ptsPerNote = proInst.Contains(player.chosenInstrument) ? 30 : 25;
+			starsKeeper = new(Chart, scoreKeeper,
+				player.chosenInstrument,
+				ptsPerNote);
 		}
 
 		protected override void OnDestroy() {
@@ -86,16 +92,6 @@ namespace YARG.PlayMode {
 			} else if (input is GHDrumsInputStrategy ghStrat) {
 				ghStrat.DrumHitEvent -= GHDrumHitAction;
 			}
-
-			// Set score
-			player.lastScore = new PlayerManager.LastScore {
-				percentage = new DiffPercent {
-					difficulty = player.chosenDifficulty,
-					percent = Chart.Count == 0 ? 1f : (float) notesHit / Chart.Count
-				},
-				notesHit = notesHit,
-				notesMissed = Chart.Count - notesHit
-			};
 		}
 
 		protected override void UpdateTrack() {
@@ -138,7 +134,8 @@ namespace YARG.PlayMode {
 				// TODO: Only one note should be an activator at any given timestamp
 				if (player.track.FillSection?.EndTime == noteInfo.time
 					&& starpowerCharge >= 0.5f
-					&& !starpowerActive
+					&& !IsStarPowerActive
+
 					) {
 					noteInfo.isActivator = true;
 				}
@@ -261,11 +258,11 @@ namespace YARG.PlayMode {
 			}
 
 			// Handle hits (one per frame so no double hits)
-			var chord = expectedHits.Peek();
+			var notes = expectedHits.Peek();
 
 			// Check if a drum was hit
 			NoteInfo hit = null;
-			foreach (var note in chord) {
+			foreach (var note in notes) {
 				// Check if correct cymbal was hit
 				bool cymbalHit = note.hopo == cymbal;
 				if (player.chosenInstrument == "drums") {
@@ -289,15 +286,15 @@ namespace YARG.PlayMode {
 			}
 
 			// If so, hit! (Remove from "chord")
-			bool lastNote = false;
-			chord.RemoveAll(i => i.fret == drum);
-			if (chord.Count <= 0) {
-				lastNote = true;
+			// bool lastNote = false;
+			notes.RemoveAll(i => i.fret == drum);
+			if (notes.Count <= 0) {
+				//lastNote = true;  //  <-- This comment (disable) on the line is a solution for drum notes stop being counted as "chords" and being clumped together, which shouldn't happen. -Mia
 				expectedHits.Dequeue();
 			}
 
 			// Activators should not affect combo
-			if (lastNote && !hit.isActivator) {
+			if (!hit.isActivator) {
 				Combo++;
 			}
 
@@ -315,6 +312,8 @@ namespace YARG.PlayMode {
 
 			// Add stats
 			notesHit++;
+			// TODO: accomodate for disabled cymbal lanes, rework 5-lane scoring depending on re-charting
+			scoreKeeper.Add(Multiplier * ptsPerNote);
 		}
 
 		private void SpawnNote(NoteInfo noteInfo, float time) {

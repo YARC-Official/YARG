@@ -22,6 +22,10 @@ namespace YARG.Pools {
 		private MeshRenderer[] meshRenderers;
 		[SerializeField]
 		private int[] meshRendererMiddleIndices;
+		[SerializeField]
+		private float[] noteGroupsEmission;
+		[SerializeField]
+		private bool[] boostColor;
 
 		[Space]
 		[SerializeField]
@@ -61,23 +65,6 @@ namespace YARG.Pools {
 			get => PercentDistanceFromStrikeline <= BrutalVanishDistance && state == State.WAITING;
 		}
 
-		private Color _colorCacheSustains = Color.white;
-		private Color ColorCacheSustains {
-			get {
-				if (BrutalIsNoteVanished) {
-					return Color.clear;
-				}
-
-				// If within starpower section
-				if (pool.player.track.StarpowerSection?.EndTime > pool.player.track.RelativeTime) {
-					return Color.white;
-				}
-
-				return _colorCacheSustains;
-			}
-			set => _colorCacheSustains = value;
-		}
-
 		private float PercentDistanceFromStrikeline {
 			get {
 				const float TRACK_START = 3.00f;
@@ -89,7 +76,6 @@ namespace YARG.Pools {
 			}
 		}
 
-		//Color cache for notes and sustains are now separate to allow for more customization. -Mia
 		private Color _colorCacheNotes = Color.white;
 		private Color ColorCacheNotes {
 			get {
@@ -105,6 +91,23 @@ namespace YARG.Pools {
 				return _colorCacheNotes;
 			}
 			set => _colorCacheNotes = value;
+		}
+
+		private Color _colorCacheSustains = Color.white;
+		private Color ColorCacheSustains {
+			get {
+				if (BrutalIsNoteVanished) {
+					return Color.clear;
+				}
+
+				// If within starpower section
+				if (pool.player.track.StarpowerSection?.EndTime > pool.player.track.RelativeTime) {
+					return Color.white;
+				}
+
+				return _colorCacheSustains;
+			}
+			set => _colorCacheSustains = value;
 		}
 
 		private float lengthCache = 0f;
@@ -129,7 +132,8 @@ namespace YARG.Pools {
 			}
 		}
 
-		public void SetInfo(Color notes, Color sustains, float length, ModelType type, bool isDrumActivator) {
+		public void SetInfo(Color notes, Color sustains, float length, ModelType type, bool isDrumActivator = false) {
+
 			static void SetModelActive(GameObject obj, ModelType inType, ModelType needType) {
 				if (obj != null) {
 					obj.SetActive(inType == needType);
@@ -148,14 +152,12 @@ namespace YARG.Pools {
 
 			ColorCacheNotes = notes;
 			ColorCacheSustains = sustains;
+
 			isActivatorNote = isDrumActivator;
+
 			UpdateColor();
 
 			UpdateRandomness();
-		}
-
-		public void SetInfo(Color notes, Color sustains, float length, ModelType hopo) {
-			SetInfo(notes, sustains, length, hopo, false);
 		}
 
 		public void SetFretNumber(string str) {
@@ -166,8 +168,14 @@ namespace YARG.Pools {
 		private void UpdateColor() {
 			for (int i = 0; i < meshRenderers.Length; i++) {
 				int index = meshRendererMiddleIndices[i];
-				meshRenderers[i].materials[index].color = ColorCacheNotes;
-				meshRenderers[i].materials[index].SetColor("_EmissionColor", ColorCacheNotes * 3);
+
+				if (boostColor[i]) {
+					meshRenderers[i].materials[index].color = ColorCacheNotes + new Color(3, 3, 3, 0);
+				} else {
+					meshRenderers[i].materials[index].color = ColorCacheNotes;
+				}
+
+				meshRenderers[i].materials[index].SetColor("_EmissionColor", ColorCacheNotes * noteGroupsEmission[i]);
 			}
 
 			UpdateLineColor();

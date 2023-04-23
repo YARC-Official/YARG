@@ -1,12 +1,16 @@
 using System.Collections;
 using System.IO;
-using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 using YARG.Data;
-using YARG.Util;
+
+#if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+
+using System;
+
+#endif
 
 namespace YARG.UI {
 	public class SelectedSongView : MonoBehaviour {
@@ -81,36 +85,38 @@ namespace YARG.UI {
 				Destroy(t.gameObject);
 			}
 
-			string[] difficultyOrder = {
-				"guitar",
-				"bass",
-				"drums",
-				"keys",
-				"vocals",
+			Instrument?[] difficultyOrder = {
+				Instrument.GUITAR,
+				Instrument.BASS,
+				Instrument.DRUMS,
+				Instrument.KEYS,
+				Instrument.VOCALS,
 				null,
-				"realGuitar",
-				"realBass",
-				"realDrums",
-				"realKeys",
-				"harmVocals",
+				Instrument.REAL_GUITAR,
+				Instrument.REAL_BASS,
+				Instrument.REAL_DRUMS,
+				Instrument.REAL_KEYS,
+				Instrument.HARMONY,
 				null,
-				"guitar_coop",
-				"rhythm",
-				"ghDrums"
+				Instrument.GUITAR_COOP,
+				Instrument.RHYTHM,
+				Instrument.GH_DRUMS
 			};
 
-			foreach (var instrument in difficultyOrder) {
-				if (instrument == null) {
+			foreach (var inst in difficultyOrder) {
+				if (inst == null) {
 					// Divider
 					Instantiate(difficultyDivider, difficultyContainer);
 
 					continue;
 				}
 
+				var instrument = inst.Value;
+
 				// GH Drums == Drums difficulty
 				var searchInstrument = instrument;
-				if (instrument == "ghDrums") {
-					searchInstrument = "drums";
+				if (instrument == Instrument.GH_DRUMS) {
+					searchInstrument = Instrument.DRUMS;
 				}
 
 				if (!songInfo.partDifficulties.ContainsKey(searchInstrument)) {
@@ -120,12 +126,12 @@ namespace YARG.UI {
 				int difficulty = songInfo.partDifficulties[searchInstrument];
 
 				// If not five-lane mode, hide GH Drums difficulty 
-				if (instrument == "ghDrums" && songInfo.drumType != SongInfo.DrumType.FIVE_LANE) {
+				if (instrument == Instrument.GH_DRUMS && songInfo.drumType != SongInfo.DrumType.FIVE_LANE) {
 					difficulty = -1;
 				}
 
 				// If not four-lane mode, hide drums difficulty
-				if (instrument == "drums" && songInfo.drumType == SongInfo.DrumType.FIVE_LANE) {
+				if (instrument == Instrument.DRUMS && songInfo.drumType == SongInfo.DrumType.FIVE_LANE) {
 					difficulty = -1;
 				}
 
@@ -148,18 +154,30 @@ namespace YARG.UI {
 		}
 
 		private void LoadAlbumCover() {
-			string[] albumPaths = {
-				"album.png",
-				"album.jpg",
-				"album.jpeg",
-			};
+			if (songInfo.songType == SongInfo.SongType.SONG_INI) {
+				string[] albumPaths = {
+					"album.png",
+					"album.jpg",
+					"album.jpeg",
+				};
 
-			foreach (string path in albumPaths) {
-				string fullPath = Path.Combine(songInfo.folder.FullName, path);
-				if (File.Exists(fullPath)) {
-					StartCoroutine(LoadAlbumCoverCoroutine(fullPath));
-					break;
+				foreach (string path in albumPaths) {
+					string fullPath = Path.Combine(songInfo.RootFolder, path);
+					if (File.Exists(fullPath)) {
+						StartCoroutine(LoadAlbumCoverCoroutine(fullPath));
+						break;
+					}
 				}
+			} else {
+				if (songInfo.imageInfo == null) {
+					return;
+				}
+
+				// Set album cover
+				albumCover.texture = songInfo.imageInfo.GetAsTexture();
+				albumCover.color = Color.white;
+				albumCover.uvRect = new Rect(0f, 0f, 1f, -1f);
+				albumCoverAlt.SetActive(false);
 			}
 		}
 
@@ -185,6 +203,7 @@ namespace YARG.UI {
 			// Set album cover
 			albumCover.texture = texture;
 			albumCover.color = Color.white;
+			albumCover.uvRect = new Rect(0f, 0f, 1f, 1f);
 			albumCoverAlt.SetActive(false);
 		}
 

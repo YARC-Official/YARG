@@ -48,6 +48,9 @@ namespace YARG {
 
 
 		public int Load(bool isSpeedUp, float speed) {
+			if (_disposed) {
+				return -1;
+			}
 			if (StreamHandle != 0) {
 				return 0;
 			}
@@ -199,7 +202,7 @@ namespace YARG {
 			return !Bass.FXSetParameters(reverbHandle, reverbParams) ? 0 : reverbHandle;
 		}
 
-		private static unsafe void GainDSP(int handle, int channel, IntPtr buffer, int length, IntPtr user) {
+		public static unsafe void GainDSP(int handle, int channel, IntPtr buffer, int length, IntPtr user) {
 			var bufferPtr = (float*) buffer;
 			int samples = length / 4;
 

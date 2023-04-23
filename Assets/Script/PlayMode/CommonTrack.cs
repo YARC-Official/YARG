@@ -46,6 +46,8 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private Color[] fretColors;
 		[SerializeField]
+		private Color[] fretInnerColors;
+		[SerializeField]
 		private Color[] noteColors;
 		[SerializeField]
 		private Color[] sustainColors;
@@ -78,6 +80,10 @@ namespace YARG.PlayMode {
 
 		public Color FretColor(int i) {
 			return fretColors[colorMappings[i]];
+		}
+
+		public Color FretInnerColor(int i) {
+			return fretInnerColors[colorMappings[i]];
 		}
 
 		public Color NoteColor(int i) {

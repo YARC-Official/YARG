@@ -4,17 +4,17 @@ using YARG.PlayMode;
 
 namespace YARG.Input {
 	public class FiveFretInputStrategy : InputStrategy {
-		public static readonly string[] MAPPING_NAMES = new string[] {
-			"green",
-			"red",
-			"yellow",
-			"blue",
-			"orange",
-			"strumUp",
-			"strumDown",
-			"starpower",
-			"pause"
-		};
+		public const string GREEN = "green";
+		public const string RED = "red";
+		public const string YELLOW = "yellow";
+		public const string BLUE = "blue";
+		public const string ORANGE = "orange";
+
+		public const string STRUM_UP = "strum_up";
+		public const string STRUM_DOWN = "strum_down";
+	
+		public const string STAR_POWER = "star_power";
+		public const string PAUSE = "pause";
 
 		private List<NoteInfo> botChart;
 
@@ -24,40 +24,56 @@ namespace YARG.Input {
 		public event FretChangeAction FretChangeEvent;
 		public event StrumAction StrumEvent;
 
-		public override string[] GetMappingNames() {
-			return MAPPING_NAMES;
-		}
+		protected override Dictionary<string, ControlBinding> GetMappings() => new() {
+			{ GREEN,      new(BindingType.BUTTON, "Green", GREEN) },
+			{ RED,        new(BindingType.BUTTON, "Red", RED) },
+			{ YELLOW,     new(BindingType.BUTTON, "Yellow", YELLOW) },
+			{ BLUE,       new(BindingType.BUTTON, "Blue", BLUE) },
+			{ ORANGE,     new(BindingType.BUTTON, "Orange", ORANGE) },
+
+			{ STRUM_UP,   new(BindingType.BUTTON, "Strum Up", STRUM_UP) },
+			{ STRUM_DOWN, new(BindingType.BUTTON, "Strum Down", STRUM_DOWN) },
+
+			{ STAR_POWER, new(BindingType.BUTTON, "Star Power", STAR_POWER) },
+			{ PAUSE,      new(BindingType.BUTTON, "Pause", PAUSE) },
+		};
 
 		public override void InitializeBotMode(object rawChart) {
 			botChart = (List<NoteInfo>) rawChart;
 		}
 
 		protected override void UpdatePlayerMode() {
-			// Deal with fret inputs
-
-			for (int i = 0; i < 5; i++) {
-				if (WasMappingPressed(MAPPING_NAMES[i])) {
-					FretChangeEvent?.Invoke(true, i);
-				} else if (WasMappingReleased(MAPPING_NAMES[i])) {
-					FretChangeEvent?.Invoke(false, i);
+			void HandleFret(string mapping, int index) {
+				if (WasMappingPressed(mapping)) {
+					FretChangeEvent?.Invoke(true, index);
+				} else if (WasMappingReleased(mapping)) {
+					FretChangeEvent?.Invoke(false, index);
 				}
 			}
 
+			// Deal with fret inputs
+
+			HandleFret(GREEN, 0);
+			HandleFret(RED, 1);
+			HandleFret(YELLOW, 2);
+			HandleFret(BLUE, 3);
+			HandleFret(ORANGE, 4);
+
 			// Deal with strumming
 
-			if (WasMappingPressed("strumUp")) {
+			if (WasMappingPressed(STRUM_UP)) {
 				StrumEvent?.Invoke();
 				CallGenericCalbirationEvent();
 			}
 
-			if (WasMappingPressed("strumDown")) {
+			if (WasMappingPressed(STRUM_DOWN)) {
 				StrumEvent?.Invoke();
 				CallGenericCalbirationEvent();
 			}
 
 			// Starpower
 
-			if (WasMappingPressed("starpower")) {
+			if (WasMappingPressed(STAR_POWER)) {
 				CallStarpowerEvent();
 			}
 		}
@@ -96,14 +112,14 @@ namespace YARG.Input {
 		}
 
 		protected override void UpdateNavigationMode() {
-			CallGenericNavigationEventForButton("strumUp", NavigationType.UP);
-			CallGenericNavigationEventForButton("strumDown", NavigationType.DOWN);
+			CallGenericNavigationEventForButton(STRUM_UP, NavigationType.UP);
+			CallGenericNavigationEventForButton(STRUM_DOWN, NavigationType.DOWN);
 
-			CallGenericNavigationEventForButton("green", NavigationType.PRIMARY);
-			CallGenericNavigationEventForButton("red", NavigationType.SECONDARY);
-			CallGenericNavigationEventForButton("yellow", NavigationType.TERTIARY);
+			CallGenericNavigationEventForButton(GREEN, NavigationType.PRIMARY);
+			CallGenericNavigationEventForButton(RED, NavigationType.SECONDARY);
+			CallGenericNavigationEventForButton(YELLOW, NavigationType.TERTIARY);
 
-			if (WasMappingPressed("pause")) {
+			if (WasMappingPressed(PAUSE)) {
 				CallPauseEvent();
 			}
 		}
@@ -113,7 +129,7 @@ namespace YARG.Input {
 				"guitar",
 				"bass",
 				"keys",
-				"guitar_coop",
+				"guitarCoop",
 				"rhythm",
 			};
 		}
