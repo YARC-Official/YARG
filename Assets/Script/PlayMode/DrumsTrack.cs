@@ -292,7 +292,7 @@ namespace YARG.PlayMode {
 			bool lastNote = false;
 			notes.RemoveAll(i => i.fret == drum); 
 			if (notes.Count <= 0) {
-				//lastNote = true;  //  <-- This comment (disable) on the line is a solution for drum notes stop being counted as "chords" and being clumped together, which shouldn't happen.
+				//lastNote = true;  //  <-- This comment (disable) on the line is a solution for drum notes stop being counted as "chords" and being clumped together, which shouldn't happen. -Mia
 				expectedHits.Dequeue();
 			}
 

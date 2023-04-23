@@ -395,8 +395,6 @@ namespace YARG.PlayMode {
 				index = 10;
 			}
 
-			Debug.Log("index: " + index);
-
 			commonTrack.comboMeterRenderer.material.SetFloat("SpriteNum", index);
 		}
 
