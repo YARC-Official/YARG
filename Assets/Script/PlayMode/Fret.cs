@@ -39,14 +39,14 @@ namespace YARG.PlayMode {
 			fretInitialScale = fretItself.transform.localScale;
 		}
 
-		public void SetColor(Color top, Color inner) {
+		public void SetColor(Color top, Color inner, Color particles) {
 			meshRenderer.materials[topMaterialIndex].color = top;
 			meshRenderer.materials[topMaterialIndex].SetColor("_EmissionColor", top * 11.5f);
 			meshRenderer.materials[innerMaterialIndex].color = inner;
 
 
-			hitParticles.Colorize(inner);
-			sustainParticles.Colorize(inner);
+			hitParticles.Colorize(particles);
+			sustainParticles.Colorize(particles);
 		}
 
 		public void SetPressed(bool pressed) {
