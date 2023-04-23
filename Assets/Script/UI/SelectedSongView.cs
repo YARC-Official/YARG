@@ -1,12 +1,11 @@
-using System;
 using System.Collections;
 using System.IO;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 using YARG.Data;
-using YARG.Util;
 
 namespace YARG.UI {
 	public class SelectedSongView : MonoBehaviour {
@@ -150,18 +149,30 @@ namespace YARG.UI {
 		}
 
 		private void LoadAlbumCover() {
-			string[] albumPaths = {
-				"album.png",
-				"album.jpg",
-				"album.jpeg",
-			};
+			if (songInfo.songType == SongInfo.SongType.SONG_INI) {
+				string[] albumPaths = {
+					"album.png",
+					"album.jpg",
+					"album.jpeg",
+				};
 
-			foreach (string path in albumPaths) {
-				string fullPath = Path.Combine(songInfo.RootFolder, path);
-				if (File.Exists(fullPath)) {
-					StartCoroutine(LoadAlbumCoverCoroutine(fullPath));
-					break;
+				foreach (string path in albumPaths) {
+					string fullPath = Path.Combine(songInfo.RootFolder, path);
+					if (File.Exists(fullPath)) {
+						StartCoroutine(LoadAlbumCoverCoroutine(fullPath));
+						break;
+					}
 				}
+			} else {
+				if (songInfo.imageInfo == null) {
+					return;
+				}
+
+				// Set album cover
+				albumCover.texture = songInfo.imageInfo.GetAsTexture();
+				albumCover.color = Color.white;
+				albumCover.uvRect = new Rect(0f, 0f, 1f, -1f);
+				albumCoverAlt.SetActive(false);
 			}
 		}
 
@@ -187,6 +198,7 @@ namespace YARG.UI {
 			// Set album cover
 			albumCover.texture = texture;
 			albumCover.color = Color.white;
+			albumCover.uvRect = new Rect(0f, 0f, 1f, 1f);
 			albumCoverAlt.SetActive(false);
 		}
 

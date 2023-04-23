@@ -1,64 +1,80 @@
 using System;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace YARG.Serialization {
+	[JsonObject(MemberSerialization.OptOut)]
 	public class XboxImage {
-		private byte game, bitsPerPixel, mipmaps;
-		private int format;
-		private short width, height, bytesPerLine;
-		private string imagePath;
-		private byte[] imageBytes;
+		public string ImagePath { get; set; }
 
-		public XboxImage(string str) { imagePath = str; }
+		public byte Game { get; set; }
+		public byte BitsPerPixel { get; set; }
+		public byte MipMaps { get; set; }
+
+		public int Format { get; set; }
+
+		public short Width { get; set; }
+		public short Height { get; set; }
+		public short BytesPerLine { get; set; }
+
+		[JsonIgnore]
+		private Texture2D _textureCache;
+
+		public XboxImage(string path) {
+			ImagePath = path;
+		}
 
 		public void ParseImageHeader() {
-			using var fs = new FileStream(imagePath, FileMode.Open, FileAccess.Read);
+			using var fs = new FileStream(ImagePath, FileMode.Open, FileAccess.Read);
 			using var br = new BinaryReader(fs, new ASCIIEncoding());
 
-			// parse header
+			// Parse header
 			byte[] header = br.ReadBytes(32);
-			game = header[0];
-			bitsPerPixel = header[1];
-			format = BitConverter.ToInt32(header, 2);
-			mipmaps = header[6];
-			width = BitConverter.ToInt16(header, 7);
-			height = BitConverter.ToInt16(header, 9);
-			bytesPerLine = BitConverter.ToInt16(header, 11);
+			Game = header[0];
+			BitsPerPixel = header[1];
+			Format = BitConverter.ToInt32(header, 2);
+			MipMaps = header[6];
+			Width = BitConverter.ToInt16(header, 7);
+			Height = BitConverter.ToInt16(header, 9);
+			BytesPerLine = BitConverter.ToInt16(header, 11);
 
 			// // parse DXT-compressed blocks
 			// byte[] DXTBlocks = br.ReadBytes((int)(fs.Length - 32));
 		}
 
-		// return byte array of DXT1 formatted blocks to make into a Unity Texture
+		/// <returns>
+		/// A byte array of DXT1 formatted blocks to make into a Unity Texture
+		/// </returns>
 		public byte[] GetDXTBlocksFromImage() {
-			using var fs = new FileStream(imagePath, FileMode.Open, FileAccess.Read);
+			using var fs = new FileStream(ImagePath, FileMode.Open, FileAccess.Read);
 			using var br = new BinaryReader(fs, new ASCIIEncoding());
 
-			// skip header
+			// Skip header
 			byte[] header = br.ReadBytes(32);
 			byte[] DXTBlocks;
 
-			// parse DXT-compressed blocks, depending on format
-			if ((bitsPerPixel == 0x04) && (format == 0x08)) {
-				// if DXT-1 format already, read the bytes straight up
+			// Parse DXT-compressed blocks, depending on format
+			if ((BitsPerPixel == 0x04) && (Format == 0x08)) {
+				// If DXT-1 format already, read the bytes straight up
 				DXTBlocks = br.ReadBytes((int) (fs.Length - 32));
 			} else {
-				// if DXT-3 format, we have to omit the alpha bytes
+				// If DXT-3 format, we have to omit the alpha bytes
 				DXTBlocks = new byte[(fs.Length - 32) / 2];
 				byte[] buf = new byte[8];
 				for (int i = 0; i < DXTBlocks.Length; i += 8) {
-					buf = br.ReadBytes(8); // skip over every 8 bytes
-					buf = br.ReadBytes(8); // we want to read these 8 bytes
-					for (int j = 0; j < 8; j++) DXTBlocks[i + j] = buf[j];
+					buf = br.ReadBytes(8); // Skip over every 8 bytes
+					buf = br.ReadBytes(8); // We want to read these 8 bytes
+					for (int j = 0; j < 8; j++) {
+						DXTBlocks[i + j] = buf[j];
+					}
 				}
 			}
 
-			// swap bytes because xbox is weird like that
+			// Swap bytes because xbox is weird like that
 			Parallel.For(0, DXTBlocks.Length / 2, i => {
 				(DXTBlocks[i * 2], DXTBlocks[i * 2 + 1]) = (DXTBlocks[i * 2 + 1], DXTBlocks[i * 2]);
 			});
@@ -66,58 +82,17 @@ namespace YARG.Serialization {
 			return DXTBlocks;
 		}
 
-		//will most likely remove this fxn - was for FAFO-ing
-		public void ParseImage() {
-			using var fs = new FileStream(imagePath, FileMode.Open, FileAccess.Read);
-			using var br = new BinaryReader(fs, new ASCIIEncoding());
-
-			// parse header
-			byte[] header = br.ReadBytes(32);
-			game = header[0];
-			bitsPerPixel = header[1];
-			format = BitConverter.ToInt32(header, 2);
-			mipmaps = header[6];
-			width = BitConverter.ToInt16(header, 7);
-			height = BitConverter.ToInt16(header, 9);
-			bytesPerLine = BitConverter.ToInt16(header, 11);
-
-			// parse DXT-compressed blocks
-			byte[] DXTBlocks = br.ReadBytes((int) (fs.Length - 32));
-
-			// swap bytes because xbox is weird like that
-			Parallel.For(0, DXTBlocks.Length / 2, i => {
-				(DXTBlocks[i * 2], DXTBlocks[i * 2 + 1]) = (DXTBlocks[i * 2 + 1], (DXTBlocks[i * 2]));
-			});
-
-			imageBytes = new byte[width * height * 4];
-			XboxImageParser.BlockDecompressXboxImage(
-				(uint) width,
-				(uint) height,
-				(bitsPerPixel == 0x04) && (format == 0x08),
-				DXTBlocks,
-				imageBytes
-			);
-		}
-
-		// will remove this fxn too - not efficient to save image bytes directly to memory
-		public byte[] GetImage() {
-			return imageBytes;
-		}
-
-		// this too
-		public bool SaveImageToDisk(string fname) {
-			if (imageBytes == null) {
-				return false;
+		public Texture2D GetAsTexture() {
+			if (_textureCache != null) {
+				return _textureCache;
 			}
 
-			var fmt = PixelFormat.Format32bppPArgb;
-			var bmp = new Bitmap(width, height, fmt);
-			BitmapData data = bmp.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.WriteOnly, fmt);
-			System.Runtime.InteropServices.Marshal.Copy(imageBytes, 0, data.Scan0, imageBytes.Length);
-			bmp.UnlockBits(data);
-			bmp.Save($"{fname}.png", ImageFormat.Png);
-			Debug.Log("image has been written");
-			return true;
+			// Load texture
+			_textureCache = new Texture2D(Width, Height, GraphicsFormat.RGBA_DXT1_SRGB, TextureCreationFlags.None);
+			_textureCache.LoadRawTextureData(GetDXTBlocksFromImage());
+			_textureCache.Apply();
+
+			return _textureCache;
 		}
 	}
 }

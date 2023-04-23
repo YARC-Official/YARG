@@ -160,6 +160,11 @@ namespace YARG.Data {
 		/// </summary>
 		[JsonProperty]
 		public XboxMoggData moggInfo;
+		/// <summary>
+		/// .xbox_png data for CON files.
+		/// </summary>
+		[JsonProperty]
+		public XboxImage imageInfo;
 
 		public Dictionary<Instrument, int> partDifficulties;
 

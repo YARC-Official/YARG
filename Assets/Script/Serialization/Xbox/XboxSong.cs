@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using DtxCS.DataTypes;
+using UnityEngine;
 using YARG.Data;
 
 namespace YARG.Serialization {
@@ -35,7 +36,7 @@ namespace YARG.Serialization {
 			moggDta.CalculateMoggBassInfo();
 
 			// Parse the image
-			string imgPath = Path.Combine("songFolderPath", "gen", $"{ShortName}_keep.png_xbox");
+			string imgPath = Path.Combine(songFolderPath, "gen", $"{ShortName}_keep.png_xbox");
 			if (songDta.AlbumArtRequired() && File.Exists(imgPath)) {
 				img = new XboxImage(imgPath);
 
@@ -94,7 +95,9 @@ namespace YARG.Serialization {
 			song.year = songDta.yearReleased?.ToString();
 			// song.loadingPhrase
 
+			// Set CON specific info
 			song.moggInfo = moggDta;
+			song.imageInfo = img;
 
 			// Set difficulties
 			foreach (var (key, value) in songDta.ranks) {
@@ -104,6 +107,14 @@ namespace YARG.Serialization {
 				}
 
 				song.partDifficulties[instrument] = DtaDifficulty.ToNumberedDiff(instrument, value);
+			}
+
+			// Set pro drums
+			song.partDifficulties[Instrument.REAL_DRUMS] = song.partDifficulties[Instrument.DRUMS];
+
+			// Set harmony difficulty (if exists)
+			if (songDta.vocalParts > 1) {
+				song.partDifficulties[Instrument.HARMONY] = song.partDifficulties[Instrument.VOCALS];
 			}
 		}
 	}

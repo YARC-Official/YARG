@@ -10,7 +10,7 @@ namespace YARG.Serialization {
 	/*
 	
 	TODO: Generalize for all .mogg's
-
+	
 	*/
 
 	[JsonObject(MemberSerialization.OptOut)]
@@ -24,9 +24,9 @@ namespace YARG.Serialization {
 
 		public float[] PanData { get; set; }
 		public float[] VolumeData { get; set; }
-		
+
 		public Dictionary<string, int[]> tracks;
-		public int[]                     crowdChannels;
+		public int[] crowdChannels;
 
 		public Dictionary<SongStem, int[]> stemMaps;
 		public float[,] matrixRatios;
@@ -41,27 +41,27 @@ namespace YARG.Serialization {
 
 			Header = br.ReadInt32();
 			MoggAddressAudioOffset = br.ReadInt32();
-			
+
 			MoggAudioLength = fs.Length - MoggAddressAudioOffset;
 		}
 
 		public void ParseFromDta(DataArray dta) {
 			for (int i = 1; i < dta.Count; i++) {
 				var dtaArray = (DataArray) dta[i];
-				
+
 				switch (dtaArray[0].ToString()) {
 					case "tracks":
 						var trackArray = (DataArray) dtaArray[1];
 						tracks = new Dictionary<string, int[]>();
-						
+
 						for (int x = 0; x < trackArray.Count; x++) {
 							if (trackArray[x] is not DataArray instrArray) continue;
-							
+
 							string key = ((DataSymbol) instrArray[0]).Name;
 							int[] val;
 							if (instrArray[1] is DataArray trackNums) {
 								if (trackNums.Count <= 0) continue;
-								
+
 								val = new int[trackNums.Count];
 								for (int y = 0; y < trackNums.Count; y++)
 									val[y] = ((DataAtom) trackNums[y]).Int;
@@ -145,8 +145,7 @@ namespace YARG.Serialization {
 						break;
 				}
 
-				foreach (int arr in drumArray)
-				{
+				foreach (int arr in drumArray) {
 					mapped[arr] = true;
 				}
 			}
