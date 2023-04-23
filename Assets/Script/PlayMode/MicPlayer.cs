@@ -716,7 +716,7 @@ namespace YARG.PlayMode {
 				_ => "AWFUL"
 			};
 			preformaceText.color = Color.white;
-			
+
 			// Begin animation and start countdown
 			animationTimestamp = 1.0f;
 
@@ -900,26 +900,18 @@ namespace YARG.PlayMode {
 				starpowerActive = true;
 			}
 		}
-		
-		float CalculateRelativePerformanceTextSize(float currTime)
-		{
-			if (currTime > 0.83333f)
-			{
-				return (-1290.0f * Mathf.Pow((currTime - 0.83333f), 4.0f)) + 0.9984f;
-			}
-			else if (currTime > 0.5f)
-			{
-				float denominator = 1.0f + Mathf.Pow((float) Math.E, (-50.0f * (currTime - 0.75f)));
+
+		float CalculateRelativePerformanceTextSize(float currTime) {
+			if (currTime > 0.83333f) {
+				return (-1290.0f * Mathf.Pow(currTime - 0.83333f, 4.0f)) + 0.9984f;
+			} else if (currTime > 0.5f) {
+				float denominator = 1.0f + Mathf.Pow((float) Math.E, -50.0f * (currTime - 0.75f));
 				return (0.1f / denominator) + 0.9f;
-			}
-			else if (currTime > 0.16666f)
-			{
-				float denominator = 1.0f + Mathf.Pow((float) Math.E, (-50.0f * (currTime - 0.25f)));
+			} else if (currTime > 0.16666f) {
+				float denominator = 1.0f + Mathf.Pow((float) Math.E, -50.0f * (currTime - 0.25f));
 				return (-0.1f / denominator) + 1.0f;
-			}
-			else if (currTime > 0.0f)
-			{
-				return (-1290.0f * Mathf.Pow((currTime - 0.16666f), 4.0f)) + 0.9984f;
+			} else if (currTime > 0.0f) {
+				return (-1290.0f * Mathf.Pow(currTime - 0.16666f, 4.0f)) + 0.9984f;
 			}
 
 			return 0.0f;
