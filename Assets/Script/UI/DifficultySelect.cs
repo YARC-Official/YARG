@@ -137,6 +137,7 @@ namespace YARG.UI {
 
 			if (state == State.INSTRUMENT) {
 				if (selected >= instruments.Length) {
+					player.chosenInstrument = null;
 					IncreasePlayerIndex();
 				} else {
 					player.chosenInstrument = instruments[selected];

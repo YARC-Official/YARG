@@ -17,11 +17,6 @@ MonoBehaviour:
     m_SerializedData: []
   m_GUID: 1fc303ae4b596034592a9c3d3864493f
   m_SerializeEntries:
-  - m_GUID: 66fae0a679753ea4a9110a183b8d2af9
-    m_Address: FontSprites
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5b03c2f1f2df12f4f9b6cdfb655a3f3b
     m_Address: Tracks/Drums
     m_ReadOnly: 0
@@ -69,6 +64,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e3b11e22a0ffd9244a4950768d456052
     m_Address: Setting/Volume
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 66fae0a679753ea4a9110a183b8d2af9
+    m_Address: FontSprites
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
