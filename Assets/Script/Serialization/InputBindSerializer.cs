@@ -56,7 +56,10 @@ namespace YARG.Serialization {
 					}
 
 					var control = InputControlPath.TryFindControl(inputStrategy.InputDevice, inputBindSave.binds[binding]);
-					inputStrategy.SetMappingInputControl(binding, control);
+					if (control is not InputControl<float> floatControl) {
+						continue;
+					}
+					inputStrategy.SetMappingInputControl(binding, floatControl);
 				}
 			} catch (Exception e) {
 				Debug.LogWarning("Failed to load input binds from JSON. Ignoring.");

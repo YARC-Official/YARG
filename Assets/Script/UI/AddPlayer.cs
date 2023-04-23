@@ -237,17 +237,17 @@ namespace YARG.UI {
 				}
 
 				foreach (var control in selectedDevice?.device.allControls) {
-					// Skip "any key" (as that would always be detected)
-					if (control is AnyKeyControl) {
+					// Skip "any key" (as that would always be detected), along with controls that don't return floats
+					if (control is AnyKeyControl || control is not InputControl<float> floatControl) {
 						continue;
 					}
 
-					if (!InputStrategy.IsControlPressed(control)) {
+					if (!InputStrategy.IsControlPressed(floatControl)) {
 						continue;
 					}
 
 					// Set mapping and update text
-					inputStrategy.SetMappingInputControl(currentBindUpdate, control);
+					inputStrategy.SetMappingInputControl(currentBindUpdate, floatControl);
 					currentBindText.text = GetMappingText(currentBindUpdate);
 
 					// Stop waiting
