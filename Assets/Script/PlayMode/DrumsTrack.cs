@@ -52,6 +52,10 @@ namespace YARG.PlayMode {
 				ghStrat.DrumHitEvent += GHDrumHitAction;
 			}
 
+			if (input.botMode) {
+				input.InitializeBotMode(Chart);
+			}
+
 			// GH vs RB
 
 			kickIndex = fiveLaneMode ? 5 : 4;
@@ -95,13 +99,6 @@ namespace YARG.PlayMode {
 		}
 
 		protected override void UpdateTrack() {
-			// Update input strategy
-			if (input.botMode) {
-				input.UpdateBotMode(Chart, Play.Instance.SongTime);
-			} else {
-				input.UpdatePlayerMode();
-			}
-
 			// Ignore everything else until the song starts
 			if (!Play.Instance.SongStarted) {
 				return;
@@ -125,7 +122,7 @@ namespace YARG.PlayMode {
 				} else if (eventInfo.name == $"solo_{player.chosenInstrument}") {
 					SoloSection = eventInfo;
 				}
-                eventChartIndex++;
+				eventChartIndex++;
 			}
 
 			// Since chart is sorted, this is guaranteed to work
@@ -140,7 +137,7 @@ namespace YARG.PlayMode {
 
 				// TODO: Only one note should be an activator at any given timestamp
 				if (player.track.FillSection?.EndTime == noteInfo.time
-					&& starpowerCharge >= 0.5f 
+					&& starpowerCharge >= 0.5f
 					&& !starpowerActive
 					) {
 					noteInfo.isActivator = true;
@@ -202,6 +199,22 @@ namespace YARG.PlayMode {
 					missedAnyNote = true;
 					notePool.MissNote(hit);
 					StopAudio = true;
+				}
+			}
+		}
+
+		protected override void PauseToggled(bool pause) {
+			if (!pause) {
+				if (input is DrumsInputStrategy drumStrat) {
+					drumStrat.DrumHitEvent += DrumHitAction;
+				} else if (input is GHDrumsInputStrategy ghStrat) {
+					ghStrat.DrumHitEvent += GHDrumHitAction;
+				}
+			} else {
+				if (input is DrumsInputStrategy drumStrat) {
+					drumStrat.DrumHitEvent -= DrumHitAction;
+				} else if (input is GHDrumsInputStrategy ghStrat) {
+					ghStrat.DrumHitEvent -= GHDrumHitAction;
 				}
 			}
 		}

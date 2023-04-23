@@ -4,7 +4,6 @@ using System.Threading;
 using UnityEngine;
 using YARG.Data;
 using YARG.PlayMode;
-using YARG.Util;
 
 namespace YARG.Input {
 	public sealed class MicInputStrategy : InputStrategy {
@@ -20,6 +19,8 @@ namespace YARG.Input {
 		private const int START_BOUND = 20;
 		private const int WINDOW_SIZE = 64;
 		private const float THRESHOLD = 0.05f;
+
+		private List<LyricInfo> botChart;
 
 		private float[] samples = new float[SAMPLE_SCAN_SIZE];
 
@@ -51,8 +52,8 @@ namespace YARG.Input {
 			return new string[0];
 		}
 
-		public override void UpdatePlayerMode() {
-			if (microphoneIndex == -1) {
+		protected override void UpdatePlayerMode() {
+			if (microphoneIndex == INVALID_MIC_INDEX) {
 				return;
 			}
 
@@ -209,12 +210,20 @@ namespace YARG.Input {
 			return DF(optimizedSamples, time, lag) / sum * lag;
 		}
 
-		public override void UpdateBotMode(object rawChart, float songTime) {
-			var chart = (List<LyricInfo>) rawChart;
+		public override void InitializeBotMode(object rawChart) {
+			botChart = (List<LyricInfo>) rawChart;
+		}
+
+		protected override void UpdateBotMode() {
+			if (botChart == null) {
+				return;
+			}
+
+			float songTime = Play.Instance.SongTime;
 
 			// Get the next lyric
-			while (chart.Count > botChartIndex && chart[botChartIndex].time <= songTime) {
-				botLyricInfo = chart[botChartIndex];
+			while (botChart.Count > botChartIndex && botChart[botChartIndex].time <= songTime) {
+				botLyricInfo = botChart[botChartIndex];
 				botChartIndex++;
 			}
 
@@ -241,7 +250,7 @@ namespace YARG.Input {
 			CallStarpowerEvent();
 		}
 
-		public override void UpdateNavigationMode() {
+		protected override void UpdateNavigationMode() {
 			// TODO
 		}
 

@@ -175,7 +175,7 @@ namespace YARG.PlayMode {
 				}
 
 				// Skip if the player hasn't assigned a mic
-				if (micStrategy.microphoneIndex == -1 && !micStrategy.botMode) {
+				if (micStrategy.microphoneIndex == InputStrategy.INVALID_MIC_INDEX && !micStrategy.botMode) {
 					continue;
 				}
 
@@ -324,8 +324,18 @@ namespace YARG.PlayMode {
 			}
 
 			// Set up sing progresses
+			int botChartIndex = 0;
 			foreach (var playerInfo in micInputs) {
 				playerInfo.singProgresses = new float[harmonyCount];
+				var player = playerInfo.player;
+				var micInput = (MicInputStrategy) player.inputStrategy;
+
+				// Update inputs
+				if (micInput.botMode) {
+					micInput.InitializeBotMode(charts[botChartIndex]);
+					botChartIndex++;
+					botChartIndex %= charts.Count;
+				}
 			}
 
 			// Set up current lyrics
@@ -343,6 +353,11 @@ namespace YARG.PlayMode {
 		private void Update() {
 			// Ignore everything else until the song starts
 			if (!Play.Instance.SongStarted) {
+				return;
+			}
+
+			// Ignore if paused
+			if (Play.Instance.Paused) {
 				return;
 			}
 
@@ -414,20 +429,12 @@ namespace YARG.PlayMode {
 			}
 
 			// Update player specific stuff
-			int botChartIndices = 0;
 			foreach (var playerInfo in micInputs) {
 				var player = playerInfo.player;
 				var micInput = (MicInputStrategy) player.inputStrategy;
 
-				// Update inputs
-				if (micInput.botMode) {
-					micInput.UpdateBotMode(charts[botChartIndices], Play.Instance.SongTime);
-
-					botChartIndices++;
-					botChartIndices %= charts.Count;
-				} else {
-					micInput.UpdatePlayerMode();
-				}
+				// Update mic input
+				micInput.ForceUpdateInputs();
 
 				// Get the correct range
 				float correctRange = player.chosenDifficulty switch {

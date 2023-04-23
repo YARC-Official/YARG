@@ -36,10 +36,6 @@ namespace YARG {
 		}
 
 		private void Update() {
-			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.UpdatePlayerMode();
-			}
-
 			// End calibration when the music is done
 			if (state == State.CALIBRATING) {
 				if (!musicPlayer.isPlaying) {

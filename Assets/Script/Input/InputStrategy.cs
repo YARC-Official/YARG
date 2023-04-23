@@ -1,11 +1,20 @@
 using System;
 using System.Collections.Generic;
-using Minis;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
+using UnityEngine.InputSystem.LowLevel;
+using UnityEngine.InputSystem.Utilities;
 
 namespace YARG.Input {
 	public abstract class InputStrategy {
+		protected class StrategyControl {
+			public InputControl control;
+			public (bool previous, bool current) state;
+		}
+
+		public const float PRESS_THRESHOLD = 0.75f; // TODO: Remove once control calibration is added
+		public const int INVALID_MIC_INDEX = -1;
+
 		public bool botMode;
 		protected int botChartIndex;
 
@@ -13,31 +22,29 @@ namespace YARG.Input {
 		public InputDevice InputDevice {
 			get => _inputDevice;
 			set {
-				// Temporary for MIDI
-
-				// Unbind previous
-				if (_inputDevice is MidiDevice oldMidi) {
-					oldMidi.onWillNoteOn -= OnWillNoteOn;
-					oldMidi.onWillNoteOff -= OnWillNoteOff;
+				bool enabled = Enabled;
+				if (enabled) {
+					Disable();
 				}
 
 				_inputDevice = value;
 
-				// Bind new
-				if (_inputDevice is MidiDevice newMidi) {
-					newMidi.onWillNoteOn += OnWillNoteOn;
-					newMidi.onWillNoteOff += OnWillNoteOff;
+				if (enabled) {
+					Enable();
 				}
 			}
 		}
 
-		public int microphoneIndex = -1;
+		public int microphoneIndex = INVALID_MIC_INDEX;
 
-		// Temporary for MIDI
-		private OccurrenceList<string> midiPressed = new();
-		private OccurrenceList<string> midiReleased = new();
+		/// <summary>
+		/// A list of the controls that correspond to each mapping.
+		/// </summary>
+		protected Dictionary<string, StrategyControl> inputMappings = new();
 
-		protected Dictionary<string, InputControl> inputMappings;
+		public bool Enabled { get; private set; }
+
+		private IDisposable eventListener = null;
 
 		public delegate void GenericCalibrationAction(InputStrategy inputStrategy);
 		/// <summary>
@@ -56,7 +63,7 @@ namespace YARG.Input {
 		/// </summary>
 		public event Action PauseEvent;
 
-		public delegate void GenericNavigationAction(NavigationType navigationType, bool firstPressed);
+		public delegate void GenericNavigationAction(NavigationType navigationType, bool pressed);
 		/// <summary>
 		/// Gets invoked when any generic navigation button is pressed.<br/>
 		/// Make sure <see cref="UpdateNavigationMode"/> is being called.
@@ -65,21 +72,28 @@ namespace YARG.Input {
 
 		public InputStrategy() {
 			// Add keys for each input mapping
-			inputMappings = new();
 			foreach (var key in GetMappingNames()) {
-				inputMappings.Add(key, null);
+				inputMappings.Add(key, new());
 			}
-
-			// Bind events
-			GameManager.OnUpdate += EventUpdateLoop;
 		}
 
-		~InputStrategy() {
-			// Force unbind
-			InputDevice = null;
+		public void Enable() {
+			// Bind events
+			GameManager.OnUpdate += OnUpdate;
+			if (_inputDevice != null) {
+				eventListener = InputSystem.onEvent.ForDevice(_inputDevice).Call(OnInputEvent);
+			}
 
+			Enabled = true;
+		}
+
+		public void Disable() {
 			// Unbind events
-			GameManager.OnUpdate -= EventUpdateLoop;
+			GameManager.OnUpdate -= OnUpdate;
+			eventListener?.Dispose();
+			eventListener = null;
+
+			Enabled = false;
 		}
 
 		/// <returns>
@@ -105,22 +119,25 @@ namespace YARG.Input {
 		}
 
 		/// <summary>
+		/// Initializes the bot mode for this particular InputStrategy.
+		/// </summary>
+		/// <param name="chart">A reference to the current chart.</param>
+		public abstract void InitializeBotMode(object chart);
+
+		/// <summary>
 		/// Updates the player mode (normal mode) for this particular InputStrategy.
 		/// </summary>
-		public abstract void UpdatePlayerMode();
+		protected abstract void UpdatePlayerMode();
 
 		/// <summary>
 		/// Updates the bot mode for this particular InputStrategy.
 		/// </summary>
-		/// <param name="chart">A reference to the current chart.</param>
-		/// <param name="songTime">The song time in seconds.</param>
-		/// <param name="chosenInstrument">The instrument that the bot is playing.</param>
-		public abstract void UpdateBotMode(object chart, float songTime);
+		protected abstract void UpdateBotMode();
 
 		/// <summary>
 		/// Updates the navigation mode (menu mode) for this particular InputStrategy.
 		/// </summary>
-		public abstract void UpdateNavigationMode();
+		protected abstract void UpdateNavigationMode();
 
 		protected void CallStarpowerEvent() {
 			StarpowerEvent?.Invoke(this);
@@ -134,95 +151,96 @@ namespace YARG.Input {
 			GenericCalibrationEvent?.Invoke(this);
 		}
 
-		protected void CallGenericNavigationEvent(NavigationType type, bool firstPressed) {
-			GenericNavigationEvent?.Invoke(type, firstPressed);
+		protected void CallGenericNavigationEvent(NavigationType type, bool pressed) {
+			GenericNavigationEvent?.Invoke(type, pressed);
 		}
 
 		public void CallGenericNavigationEventForButton(string key, NavigationType type) {
 			if (WasMappingPressed(key)) {
 				CallGenericNavigationEvent(type, true);
-			} else {
-				var input = GetMappingInputControl(key);
-
-				if (input is MidiNoteControl) {
-					return;
-				}
-
-				if (input is ButtonControl button && button.isPressed) {
-					CallGenericNavigationEvent(type, false);
-				}
+			} else if (WasMappingReleased(key)) {
+				CallGenericNavigationEvent(type, false);
 			}
 		}
 
-		private void EventUpdateLoop() {
-			// THIS IS TEMPORARY
-			// as Minis has an issue
-
-			foreach (var pressed in midiPressed.ToDictionary()) {
-				if (pressed.Value >= 2) {
-					midiPressed.RemoveAll(pressed.Key, true);
-				} else {
-					midiPressed.Add(pressed.Key);
-				}
-			}
-
-			foreach (var released in midiReleased.ToDictionary()) {
-				if (released.Value >= 2) {
-					midiReleased.RemoveAll(released.Key, true);
-				} else {
-					midiReleased.Add(released.Key);
-				}
+		private void OnUpdate() {
+			if (botMode) {
+				UpdateBotMode();
 			}
 		}
 
-		private void OnWillNoteOn(MidiNoteControl midi, float velocity) {
-			foreach (var input in inputMappings) {
-				if (input.Value == midi) {
-					midiPressed.Add(input.Key);
-					return;
+		private void OnInputEvent(InputEventPtr eventPtr) {
+			// Only take state events
+			if (!eventPtr.IsA<StateEvent>() && !eventPtr.IsA<DeltaStateEvent>()) {
+				return;
+			}
+
+			// Update previous and current states
+			foreach (var mapping in inputMappings.Values) {
+				// Ignore unmapped controls
+				if (mapping.control == null) {
+					continue;
+				}
+
+				// Progress state history forward
+				mapping.state.previous = mapping.state.current;
+				if (mapping.control.HasValueChangeInEvent(eventPtr)) {
+					// Don't check pressed state unless there was a value change
+					// There seems to be an issue with delta state events (which MIDI devices use) where
+					// a control that wasn't changed in that event will report the wrong value
+					mapping.state.current = IsControlPressed(mapping.control, eventPtr);
 				}
 			}
+
+			// Update inputs
+			UpdateNavigationMode();
+			UpdatePlayerMode();
 		}
 
-		private void OnWillNoteOff(MidiNoteControl midi) {
-			foreach (var input in inputMappings) {
-				if (input.Value == midi) {
-					midiReleased.Add(input.Key);
-					return;
-				}
+		/// <summary>
+		/// Forces the input strategy to update its inputs. This is used for microphone input.
+		/// </summary>
+		public void ForceUpdateInputs() {
+			UpdateNavigationMode();
+			UpdatePlayerMode();
+		}
+
+		public static bool IsControlPressed(InputControl control) {
+			if (control is ButtonControl button) {
+				return button.isPressed;
 			}
+
+			return false;
+		}
+
+		public static bool IsControlPressed(InputControl control, InputEventPtr eventPtr) {
+			if (control is ButtonControl button) {
+				return button.IsValueConsideredPressed(button.ReadValueFromEvent(eventPtr));
+			}
+
+			return false;
+		}
+
+		protected bool IsMappingPressed(string key) {
+			return inputMappings[key].state.current;
 		}
 
 		protected bool WasMappingPressed(string key) {
-			var mapping = inputMappings[key];
-
-			if (mapping is MidiNoteControl) {
-				return midiPressed.GetCount(key) >= 1;
-			} else if (mapping is ButtonControl button) {
-				return button.wasPressedThisFrame;
-			}
-
-			return false;
+			var (previous, current) = inputMappings[key].state;
+			return !previous && current;
 		}
 
 		protected bool WasMappingReleased(string key) {
-			var mapping = inputMappings[key];
-
-			if (mapping is MidiNoteControl) {
-				return midiReleased.GetCount(key) >= 1;
-			} else if (mapping is ButtonControl button) {
-				return button.wasReleasedThisFrame;
-			}
-
-			return false;
+			var (previous, current) = inputMappings[key].state;
+			return previous && !current;
 		}
 
 		public InputControl GetMappingInputControl(string name) {
-			return inputMappings[name];
+			return inputMappings[name].control;
 		}
 
 		public void SetMappingInputControl(string name, InputControl control) {
-			inputMappings[name] = control;
+			inputMappings[name].control = control;
 		}
 	}
 }
