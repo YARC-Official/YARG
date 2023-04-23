@@ -218,6 +218,14 @@ namespace YARG.Input {
 			return inputMappings[key].WasReleased();
 		}
 
+		protected float GetMappingValue(string key) {
+			return inputMappings[key].State.current;
+		}
+
+		protected float GetPreviousMappingValue(string key) {
+			return inputMappings[key].State.previous;
+		}
+
 		public InputControl<float> GetMappingInputControl(string name) {
 			return inputMappings[name].Control;
 		}
