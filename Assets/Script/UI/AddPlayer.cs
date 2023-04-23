@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -14,7 +16,8 @@ namespace YARG.UI {
 		private enum State {
 			SELECT_DEVICE,
 			CONFIGURE,
-			BIND
+			BIND,
+			RESOLVE
 		}
 
 		[SerializeField]
@@ -47,7 +50,7 @@ namespace YARG.UI {
 		private string playerName = null;
 		private InputStrategy inputStrategy = null;
 
-		private string currentBindUpdate = null;
+		private ControlBinding currentBindUpdate = null;
 		private TextMeshProUGUI currentBindText = null;
 		private IDisposable currentDeviceListener = null;
 
@@ -77,6 +80,7 @@ namespace YARG.UI {
 				State.SELECT_DEVICE => "Step 1 - Select Device",
 				State.CONFIGURE => "Step 2 - Configure",
 				State.BIND => "Step 3 - Bind",
+				State.RESOLVE => "More than one control was detected, please select the correct control from the list below.",
 				_ => ""
 			};
 		}
@@ -172,11 +176,11 @@ namespace YARG.UI {
 			StartBind();
 		}
 
-		private string GetMappingText(string binding)
-			=> $"<b>{binding}:</b> {inputStrategy.GetMappingInputControl(binding)?.displayName ?? "None"}";
+		private string GetMappingText(ControlBinding binding)
+			=> $"<b>{binding.DisplayName}:</b> {inputStrategy.GetMappingInputControl(binding.BindingKey)?.displayName ?? "None"}";
 
 		private void StartBind() {
-			if (inputStrategy.GetMappingNames().Length < 1 || botMode) {
+			if (inputStrategy.Mappings.Count < 1 || botMode) {
 				DoneBind();
 				return;
 			}
@@ -197,7 +201,7 @@ namespace YARG.UI {
 			}
 
 			// Add bindings
-			foreach (var binding in inputStrategy.GetMappingNames()) {
+			foreach (var binding in inputStrategy.Mappings.Values) {
 				var button = Instantiate(deviceButtonPrefab, bindingsContainer);
 
 				var text = button.GetComponentInChildren<TextMeshProUGUI>();
@@ -207,7 +211,7 @@ namespace YARG.UI {
 					if (currentBindUpdate == null) {
 						currentBindUpdate = binding;
 						currentBindText = text;
-						text.text = $"<b>{binding}:</b> Waiting for input... (Escape to cancel)";
+						text.text = $"<b>{binding.DisplayName}:</b> Waiting for input... (Escape to cancel)";
 					}
 				});
 			}
@@ -223,39 +227,57 @@ namespace YARG.UI {
 					return;
 				}
 
-				// Ignore if not from the selected device or from the keyboard
-				if (eventPtr.deviceId != device.deviceId && eventPtr.deviceId != Keyboard.current.deviceId) {
+				// Ignore if not from the selected device
+				if (eventPtr.deviceId != device.deviceId) {
+					// Check if cancelling
+					if (eventPtr.deviceId == Keyboard.current.deviceId) {
+						var esc = Keyboard.current.escapeKey;
+						if (esc.IsValueConsideredPressed(esc.ReadValueFromEvent(eventPtr))) {
+							CancelBind();
+						}
+					}
 					return;
 				}
 
-				// Cancel
-				if ((device as Keyboard ?? Keyboard.current).escapeKey.isPressed) {
-					currentBindText.text = GetMappingText(currentBindUpdate);
-					currentBindText = null;
-					currentBindUpdate = null;
+				// Handle cancelling
+				if (device is Keyboard keyboard) {
+					var esc = keyboard.escapeKey;
+					if (esc.IsValueConsideredPressed(esc.ReadValueFromEvent(eventPtr))) {
+						CancelBind();
+					}
 					return;
 				}
 
-				foreach (var control in selectedDevice?.device.allControls) {
-					// Skip "any key" (as that would always be detected)
-					if (control is AnyKeyControl) {
-						continue;
-					}
+				// Find all active float-returning controls
+				// AnyKeyControl is excluded as it would always be active
+				var activeControls = from control in eventPtr.EnumerateChangedControls(device)
+					where (control is InputControl<float> and not AnyKeyControl) && InputStrategy.IsControlPressed(control, eventPtr)
+					select control as InputControl<float>;
 
-					if (control is not ButtonControl buttonControl || !buttonControl.isPressed) {
-						continue;
-					}
-
-					// Set mapping and update text
-					inputStrategy.SetMappingInputControl(currentBindUpdate, control);
-					currentBindText.text = GetMappingText(currentBindUpdate);
-
-					// Stop waiting
-					currentBindUpdate = null;
-					currentBindText = null;
-					break;
+				int controlCount = activeControls?.Count() ?? 0;
+				if (controlCount < 1) {
+					// No controls active
+					return;
+				} else if (controlCount > 1) {
+					// More than one control active, prompt user to pick which one
+					StartResolve(activeControls);
+					return;
 				}
+
+				// Set mapping
+				SetBind(activeControls.First());
 			});
+		}
+
+		private void SetBind(InputControl<float> control) {
+			inputStrategy.SetMappingInputControl(currentBindUpdate.BindingKey, control);
+			CancelBind();
+		}
+
+		private void CancelBind() {
+			currentBindText.text = GetMappingText(currentBindUpdate);
+			currentBindText = null;
+			currentBindUpdate = null;
 		}
 
 		public void DoneBind() {
@@ -281,6 +303,43 @@ namespace YARG.UI {
 			}
 
 			MainMenu.Instance.ShowEditPlayers();
+		}
+
+		private void StartResolve(IEnumerable<InputControl<float>> controls) {
+			if (!controls.Any() || controls.Count() < 2) {
+				Debug.LogError("No control resolution required but resolution was started!");
+				return;
+			}
+
+			// Stop event listener
+			currentDeviceListener?.Dispose();
+			currentDeviceListener = null;
+
+			HideAll();
+			bindContainer.SetActive(true);
+			UpdateState(State.RESOLVE);
+
+			// Destroy old bindings
+			foreach (Transform t in bindingsContainer) {
+				Destroy(t.gameObject);
+			}
+
+			// List controls
+			foreach (var control in controls) {
+				var button = Instantiate(deviceButtonPrefab, bindingsContainer);
+				var text = button.GetComponentInChildren<TextMeshProUGUI>();
+				text.text = control.displayName;
+
+				button.GetComponentInChildren<Button>().onClick.AddListener(() => {
+					if (currentBindUpdate == null) {
+						return;
+					}
+
+					// Set mapping
+					SetBind(control);
+					StartBind();
+				});
+			}
 		}
 	}
 }

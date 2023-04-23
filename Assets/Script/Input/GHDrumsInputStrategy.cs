@@ -5,15 +5,14 @@ using YARG.Settings;
 
 namespace YARG.Input {
 	public class GHDrumsInputStrategy : InputStrategy {
-		public static readonly string[] MAPPING_NAMES = new string[] {
-			"red_pad",
-			"yellow_cymbal",
-			"blue_pad",
-			"orange_cymbal",
-			"green_pad",
-			"kick",
-			"kick_alt"
-		};
+		public const string RED_PAD = "red_pad";
+		public const string YELLOW_CYMBAL = "yellow_cymbal";
+		public const string BLUE_PAD = "blue_pad";
+		public const string ORANGE_CYMBAL = "orange_cymbal";
+		public const string GREEN_PAD = "green_pad";
+
+		public const string KICK = "kick";
+		public const string KICK_ALT = "kick_alt";
 
 		private List<NoteInfo> botChart;
 
@@ -21,44 +20,51 @@ namespace YARG.Input {
 
 		public event DrumHitAction DrumHitEvent;
 
-		public override string[] GetMappingNames() {
-			return MAPPING_NAMES;
-		}
+		protected override Dictionary<string, ControlBinding> GetMappings() => new() {
+			{ RED_PAD,       new(BindingType.BUTTON, "Red Pad", RED_PAD) },
+			{ YELLOW_CYMBAL, new(BindingType.BUTTON, "Yellow Cymbal", YELLOW_CYMBAL) },
+			{ BLUE_PAD,      new(BindingType.BUTTON, "Blue Pad", BLUE_PAD) },
+			{ ORANGE_CYMBAL, new(BindingType.BUTTON, "Orange Cymbal", ORANGE_CYMBAL) },
+			{ GREEN_PAD,     new(BindingType.BUTTON, "Green Pad", GREEN_PAD) },
+
+			{ KICK,          new(BindingType.BUTTON, "Kick", KICK) },
+			{ KICK_ALT,      new(BindingType.BUTTON, "Kick Alt", KICK_ALT) }
+		};
 
 		protected override void UpdatePlayerMode() {
 			// Deal with drum inputs
 
-			if (WasMappingPressed("red_pad")) {
+			if (WasMappingPressed(RED_PAD)) {
 				DrumHitEvent?.Invoke(0);
 				CallGenericCalbirationEvent();
 			}
 
-			if (WasMappingPressed("yellow_cymbal")) {
+			if (WasMappingPressed(YELLOW_CYMBAL)) {
 				DrumHitEvent?.Invoke(1);
 				CallGenericCalbirationEvent();
 			}
 
-			if (WasMappingPressed("blue_pad")) {
+			if (WasMappingPressed(BLUE_PAD)) {
 				DrumHitEvent?.Invoke(2);
 				CallGenericCalbirationEvent();
 			}
 
-			if (WasMappingPressed("orange_cymbal")) {
+			if (WasMappingPressed(ORANGE_CYMBAL)) {
 				DrumHitEvent?.Invoke(3);
 				CallGenericCalbirationEvent();
 			}
 
-			if (WasMappingPressed("green_pad")) {
+			if (WasMappingPressed(GREEN_PAD)) {
 				DrumHitEvent?.Invoke(4);
 				CallGenericCalbirationEvent();
 			}
 
-			if (WasMappingPressed("kick")) {
+			if (WasMappingPressed(KICK)) {
 				DrumHitEvent?.Invoke(5);
 				CallGenericCalbirationEvent();
 			}
 
-			if (WasMappingPressed("kick_alt")) {
+			if (WasMappingPressed(KICK_ALT)) {
 				DrumHitEvent?.Invoke(5);
 				CallGenericCalbirationEvent();
 			}
