@@ -237,7 +237,11 @@ namespace YARG.PlayMode {
 						drum = kickIndex == 4 ? 1 : 2;
 						break;
 					case 3:
-						drum = kickIndex == 4 ? 0 : 1;
+						// lefty flip on pro drums means physically moving the green cymbal above the red snare
+						// so while the position on the chart has changed, the input object is the same
+						if (!cymbal){
+							drum = kickIndex == 4 ? 0 : 1;
+						}
 						break;
 					case 4:
 						if (kickIndex == 5) {
