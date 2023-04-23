@@ -7,13 +7,6 @@ using UnityEngine.InputSystem.Utilities;
 
 namespace YARG.Input {
 	public abstract class InputStrategy {
-		protected class StrategyControl {
-			public InputControl<float> control;
-			public (float previous, float current) state;
-			public float pressPoint = DEFAULT_PRESS_THRESHOLD;
-		}
-
-		public const float DEFAULT_PRESS_THRESHOLD = 0.75f; // TODO: Remove once control calibration is added
 		public const int INVALID_MIC_INDEX = -1;
 
 		public bool botMode;
@@ -41,7 +34,7 @@ namespace YARG.Input {
 		/// <summary>
 		/// A list of the controls that correspond to each mapping.
 		/// </summary>
-		protected Dictionary<string, StrategyControl> inputMappings = new();
+		protected Dictionary<string, ControlBinding> inputMappings = new();
 
 		public bool Enabled { get; private set; }
 
@@ -176,21 +169,9 @@ namespace YARG.Input {
 				return;
 			}
 
-			// Update previous and current states
+			// Update mapping states
 			foreach (var mapping in inputMappings.Values) {
-				// Ignore unmapped controls
-				if (mapping.control == null) {
-					continue;
-				}
-
-				// Progress state history forward
-				mapping.state.previous = mapping.state.current;
-				if (mapping.control.HasValueChangeInEvent(eventPtr)) {
-					// Don't check pressed state unless there was a value change
-					// There seems to be an issue with delta state events (which MIDI devices use) where
-					// a control that wasn't changed in that event will report the wrong value
-					mapping.state.current = mapping.control.ReadValueFromEvent(eventPtr);
-				}
+				mapping.UpdateState(eventPtr);
 			}
 
 			// Update inputs
@@ -210,7 +191,7 @@ namespace YARG.Input {
 			if (control is ButtonControl button) {
 				return button.isPressed;
 			} else if (control is AxisControl axis) {
-				return axis.IsActuated(DEFAULT_PRESS_THRESHOLD);
+				return axis.IsActuated(ControlBinding.DEFAULT_PRESS_THRESHOLD);
 			}
 
 			return false;
@@ -220,37 +201,30 @@ namespace YARG.Input {
 			if (control is ButtonControl button) {
 				return button.IsValueConsideredPressed(button.ReadValueFromEvent(eventPtr));
 			} else if (control is AxisControl axis) {
-				return axis.ReadValueFromEvent(eventPtr) >= DEFAULT_PRESS_THRESHOLD;
+				return axis.ReadValueFromEvent(eventPtr) >= ControlBinding.DEFAULT_PRESS_THRESHOLD;
 			}
 
 			return false;
 		}
 
 		protected bool IsMappingPressed(string key) {
-			var mapping = inputMappings[key];
-			return mapping.state.current >= mapping.pressPoint;
+			return inputMappings[key].IsPressed();
 		}
 
 		protected bool WasMappingPressed(string key) {
-			var mapping = inputMappings[key];
-			return mapping.state.previous < mapping.pressPoint && mapping.state.current >= mapping.pressPoint;
+			return inputMappings[key].WasPressed();
 		}
 
 		protected bool WasMappingReleased(string key) {
-			var mapping = inputMappings[key];
-			return mapping.state.previous >= mapping.pressPoint && mapping.state.current < mapping.pressPoint;
+			return inputMappings[key].WasReleased();
 		}
 
 		public InputControl<float> GetMappingInputControl(string name) {
-			return inputMappings[name].control;
+			return inputMappings[name].Control;
 		}
 
 		public void SetMappingInputControl(string name, InputControl<float> control) {
-			var mapping = inputMappings[name];
-			mapping.control = control;
-			if (control is ButtonControl button) {
-				mapping.pressPoint = button.pressPointOrDefault;
-			}
+			inputMappings[name].Control = control;
 		}
 	}
 }
