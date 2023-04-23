@@ -51,6 +51,9 @@ namespace YARG {
 				oldScore.lastPlayed = score.lastPlayed;
 				oldScore.timesPlayed += score.timesPlayed;
 
+				// Create a highestScore dictionary for backwards compatibility (if null)
+				oldScore.highestScore ??= new();
+
 				// Merge high scores
 				foreach (var kvp in score.highestPercent) { // percent
 					if (oldScore.highestPercent.TryGetValue(kvp.Key, out var old)) {

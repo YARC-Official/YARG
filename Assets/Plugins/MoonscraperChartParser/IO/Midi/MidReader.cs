@@ -305,13 +305,13 @@ namespace MoonscraperChartEditor.Song.IO
                     processParams.processFn(processParams);
                 }
 #else
-                callBackState = CallbackState.WaitingForExternalInformation;
-                NativeMessageBox.Result result = NativeMessageBox.Show(processParams.message, processParams.title, NativeMessageBox.Type.YesNo, null);
-                callBackState = CallbackState.None;
-                if (result == NativeMessageBox.Result.Yes)
-                {
-                    processParams.processFn(processParams);
-                }
+                // callBackState = CallbackState.WaitingForExternalInformation;
+                // NativeMessageBox.Result result = NativeMessageBox.Show(processParams.message, processParams.title, NativeMessageBox.Type.YesNo, null);
+                // callBackState = CallbackState.None;
+                // if (result == NativeMessageBox.Result.Yes)
+                // {
+                //     processParams.processFn(processParams);
+                // }
 #endif
             }
         }

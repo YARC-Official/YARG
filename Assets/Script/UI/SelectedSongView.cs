@@ -1,12 +1,16 @@
 using System.Collections;
 using System.IO;
-using System;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 using YARG.Data;
+
+#if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+
+using System;
+
+#endif
 
 namespace YARG.UI {
 	public class SelectedSongView : MonoBehaviour {

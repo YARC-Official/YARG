@@ -69,7 +69,7 @@ namespace YARG.UI {
 				}
 
 				// Override or add score/percentage
-				if (oldScore == null ||
+				if (oldScore == null || oldScore.highestScore == null ||
 					!oldScore.highestScore.TryGetValue(player.chosenInstrument, out var oldHighestSc) ||
 					lastScore.score > oldHighestSc) {
 
