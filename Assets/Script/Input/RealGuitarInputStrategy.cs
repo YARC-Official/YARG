@@ -37,10 +37,6 @@ namespace YARG.Input {
 		private float? stringGroupingTimer = null;
 		private StrumFlag stringGroupingFlag = StrumFlag.NONE;
 
-		public override string[] GetMappingNames() {
-			return new string[0];
-		}
-
 		protected override void UpdatePlayerMode() {
 			if (InputDevice is not ProGuitar input) {
 				return;

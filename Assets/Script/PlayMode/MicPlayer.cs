@@ -165,6 +165,8 @@ namespace YARG.PlayMode {
 
 		private string lastSecondHarmonyLyric = "";
 
+		private float animationTimestamp = 0.0f;
+
 		private void Start() {
 			Instance = this;
 
@@ -608,10 +610,9 @@ namespace YARG.PlayMode {
 				}
 			}
 
-			// Update preformance text fading
-			var c = preformaceText.color;
-			c.a -= Time.deltaTime * 2f;
-			preformaceText.color = c;
+			// Animate performance text over one second
+			animationTimestamp -= Time.deltaTime;
+			preformaceText.fontSize = 24.0f * CalculateRelativePerformanceTextSize(animationTimestamp);
 
 			// Update combo text
 			if (Multiplier == 1) {
@@ -757,6 +758,9 @@ namespace YARG.PlayMode {
 				_ => "AWFUL"
 			};
 			preformaceText.color = Color.white;
+
+			// Begin animation and start countdown
+			animationTimestamp = 1.0f;
 
 			// Add to sing percent
 			totalSingPercent += Mathf.Min(bestPercent, 1f);
@@ -937,6 +941,22 @@ namespace YARG.PlayMode {
 			if (inStarpowerSection && !playerInfo.hittingNote) {
 				starpowerActive = true;
 			}
+		}
+
+		float CalculateRelativePerformanceTextSize(float currTime) {
+			if (currTime > 0.83333f) {
+				return (-1290.0f * Mathf.Pow(currTime - 0.83333f, 4.0f)) + 0.9984f;
+			} else if (currTime > 0.5f) {
+				float denominator = 1.0f + Mathf.Pow((float) Math.E, -50.0f * (currTime - 0.75f));
+				return (0.1f / denominator) + 0.9f;
+			} else if (currTime > 0.16666f) {
+				float denominator = 1.0f + Mathf.Pow((float) Math.E, -50.0f * (currTime - 0.25f));
+				return (-0.1f / denominator) + 1.0f;
+			} else if (currTime > 0.0f) {
+				return (-1290.0f * Mathf.Pow(currTime - 0.16666f, 4.0f)) + 0.9984f;
+			}
+
+			return 0.0f;
 		}
 	}
 }

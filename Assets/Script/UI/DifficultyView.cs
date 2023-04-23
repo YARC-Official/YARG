@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
+using YARG.Data;
 
 namespace YARG.UI {
 	public class DifficultyView : MonoBehaviour {
@@ -12,9 +13,9 @@ namespace YARG.UI {
 		[SerializeField]
 		private Sprite[] ringSprites;
 
-		public void SetInfo(string instrument, int difficulty) {
+		public void SetInfo(Instrument instrument, int difficulty) {
 			// Set instrument icon
-			var icon = Addressables.LoadAssetAsync<Sprite>($"FontSprites[{instrument}]").WaitForCompletion();
+			var icon = Addressables.LoadAssetAsync<Sprite>($"FontSprites[{instrument.ToStringName()}]").WaitForCompletion();
 			instrumentIcon.sprite = icon;
 
 			// Acceptable difficulty range is -1 to 6

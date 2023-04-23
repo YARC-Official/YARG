@@ -55,6 +55,11 @@ MonoBehaviour:
   - {fileID: 8145624193429874876}
   - {fileID: 120777902149556278}
   meshRendererMiddleIndices: 020000000000000001000000
+  noteGroupsEmission:
+  - 8
+  - 2
+  - 10
+  boostColor: 000000
   noteGroup: {fileID: 1397812567785855241}
   hopoGroup: {fileID: 5887489561296935717}
   tapGroup: {fileID: 0}
@@ -390,6 +395,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Layer
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 6512027250526107019, guid: c63965b45533b034bbced6668bd723e0,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7289053058223276050, guid: c63965b45533b034bbced6668bd723e0,
         type: 3}

@@ -59,6 +59,13 @@ MonoBehaviour:
   - {fileID: 7147253800328892818}
   - {fileID: 7402714055730539403}
   meshRendererMiddleIndices: 0200000001000000020000000100000001000000
+  noteGroupsEmission:
+  - 8
+  - 8
+  - 8
+  - 8
+  - 8
+  boostColor: 0000000001
   noteGroup: {fileID: 1397812567785855241}
   hopoGroup: {fileID: 1294466957868725440}
   tapGroup: {fileID: 3624981743589644049}

@@ -336,11 +336,11 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: guitar_coop
+      name: guitarCoop
       rect:
         serializedVersion: 2
-        x: 1536
-        y: 512
+        x: 1529
+        y: 510
         width: 512
         height: 512
       alignment: 0
@@ -397,7 +397,7 @@ TextureImporter:
       drums: 678366802
       ghDrums: -768334538
       guitar: -480311375
-      guitar_coop: 1095511443
+      guitarCoop: 1095511443
       harmVocals: -871424490
       keys: 1353769368
       realBass: -947667561
