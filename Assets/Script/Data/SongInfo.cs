@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -18,21 +19,6 @@ namespace YARG.Data {
 			SONG_INI,
 			RB_CON
 		}
-
-		private static readonly Dictionary<string, int> DEFAULT_DIFFS = new() {
-			{ "guitar", -1 },
-			{ "guitar_coop", -1 },
-			{ "rhythm", -1 },
-			{ "bass", -1 },
-			{ "keys", -1 },
-			{ "drums", -1 },
-			{ "vocals", -1 },
-			{ "realGuitar", -1 },
-			{ "realBass", -1 },
-			{ "realKeys", -1 },
-			{ "realDrums", -1 },
-			{ "harmVocals", -1 },
-		};
 
 		public bool fetched;
 
@@ -101,11 +87,38 @@ namespace YARG.Data {
 		/// </value>
 		[JsonProperty("diffs")]
 		public Dictionary<string, int> JsonDiffs {
-			get => partDifficulties.Where(i => i.Value != -1).ToDictionary(i => i.Key, i => i.Value);
+			get {
+				// Remove all non-existent difficulties
+				var diffs = partDifficulties.Where(i => i.Value != -1);
+
+				// Convert to dictionary with strings
+				var dict = new Dictionary<string, int>();
+				foreach (var kvp in diffs) {
+					var key = kvp.Key.ToStringName();
+					if (key == null) {
+						continue;
+					}
+
+					dict.Add(key, kvp.Value);
+				}
+
+				return dict;
+			}
+
 			set {
-				partDifficulties = new(DEFAULT_DIFFS);
+				// Create empty dictionary
+				partDifficulties = new();
+				foreach (Instrument instrument in Enum.GetValues(typeof(Instrument))) {
+					if (instrument == Instrument.INVALID) {
+						continue;
+					}
+
+					partDifficulties.Add(instrument, -1);
+				}
+
+				// Fill in values
 				foreach (var kvp in value) {
-					partDifficulties[kvp.Key] = kvp.Value;
+					partDifficulties[InstrumentHelper.FromStringName(kvp.Key)] = kvp.Value;
 				}
 			}
 		}
@@ -148,7 +161,7 @@ namespace YARG.Data {
 		[JsonProperty]
 		public XboxMoggData moggInfo;
 
-		public Dictionary<string, int> partDifficulties;
+		public Dictionary<Instrument, int> partDifficulties;
 
 		public SongInfo(string mainFile, string cacheRoot, SongType songType) {
 			this.mainFile = mainFile;
@@ -156,7 +169,14 @@ namespace YARG.Data {
 			this.songType = songType;
 
 			// Set difficulty defaults
-			partDifficulties = new(DEFAULT_DIFFS);
+			partDifficulties = new();
+			foreach (Instrument instrument in Enum.GetValues(typeof(Instrument))) {
+				if (instrument == Instrument.INVALID) {
+					continue;
+				}
+
+				partDifficulties.Add(instrument, -1);
+			}
 		}
 
 		public SongInfo Duplicate() {

@@ -218,7 +218,7 @@ namespace YARG {
 						path = Path.Combine(folder.FullName, "songs"),
 						root = rootFolder
 					});
-					Debug.Log($"Found RB con song: {folder.FullName}");
+					Debug.Log($"Found RB con song(s): {folder.FullName}");
 				} else {
 					// Otherwise, treat it as a sub-folder
 					FindSongs(rootFolder, folder);
@@ -255,11 +255,6 @@ namespace YARG {
 
 					// Convert each to a SongInfo
 					foreach (var file in files) {
-						// Skip if the song is not valid
-						if (!file.IsValidateSong()) {
-							continue;
-						}
-
 						// Create a SongInfo
 						var songInfo = new SongInfo(file.MidiFile, info.root, info.type);
 						file.CompleteSongInfo(songInfo, true);

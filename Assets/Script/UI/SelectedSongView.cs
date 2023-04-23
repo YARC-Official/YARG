@@ -81,36 +81,38 @@ namespace YARG.UI {
 				Destroy(t.gameObject);
 			}
 
-			string[] difficultyOrder = {
-				"guitar",
-				"bass",
-				"drums",
-				"keys",
-				"vocals",
+			Instrument?[] difficultyOrder = {
+				Instrument.GUITAR,
+				Instrument.BASS,
+				Instrument.DRUMS,
+				Instrument.KEYS,
+				Instrument.VOCALS,
 				null,
-				"realGuitar",
-				"realBass",
-				"realDrums",
-				"realKeys",
-				"harmVocals",
+				Instrument.REAL_GUITAR,
+				Instrument.REAL_BASS,
+				Instrument.REAL_DRUMS,
+				Instrument.REAL_KEYS,
+				Instrument.HARMONY,
 				null,
-				"guitar_coop",
-				"rhythm",
-				"ghDrums"
+				Instrument.GUITAR_COOP,
+				Instrument.RHYTHM,
+				Instrument.GH_DRUMS
 			};
 
-			foreach (var instrument in difficultyOrder) {
-				if (instrument == null) {
+			foreach (var inst in difficultyOrder) {
+				if (inst == null) {
 					// Divider
 					Instantiate(difficultyDivider, difficultyContainer);
 
 					continue;
 				}
 
+				var instrument = inst.Value;
+
 				// GH Drums == Drums difficulty
 				var searchInstrument = instrument;
-				if (instrument == "ghDrums") {
-					searchInstrument = "drums";
+				if (instrument == Instrument.GH_DRUMS) {
+					searchInstrument = Instrument.DRUMS;
 				}
 
 				if (!songInfo.partDifficulties.ContainsKey(searchInstrument)) {
@@ -120,12 +122,12 @@ namespace YARG.UI {
 				int difficulty = songInfo.partDifficulties[searchInstrument];
 
 				// If not five-lane mode, hide GH Drums difficulty 
-				if (instrument == "ghDrums" && songInfo.drumType != SongInfo.DrumType.FIVE_LANE) {
+				if (instrument == Instrument.GH_DRUMS && songInfo.drumType != SongInfo.DrumType.FIVE_LANE) {
 					difficulty = -1;
 				}
 
 				// If not four-lane mode, hide drums difficulty
-				if (instrument == "drums" && songInfo.drumType == SongInfo.DrumType.FIVE_LANE) {
+				if (instrument == Instrument.DRUMS && songInfo.drumType == SongInfo.DrumType.FIVE_LANE) {
 					difficulty = -1;
 				}
 

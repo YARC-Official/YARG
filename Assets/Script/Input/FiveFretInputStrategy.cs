@@ -113,7 +113,7 @@ namespace YARG.Input {
 				"guitar",
 				"bass",
 				"keys",
-				"guitar_coop",
+				"guitarCoop",
 				"rhythm",
 			};
 		}

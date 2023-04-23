@@ -154,8 +154,8 @@ MonoBehaviour:
     m_Unicode: 65534
     m_GlyphIndex: 16
     m_Scale: 1.3
-    m_Name: guitar_coop
-    m_HashCode: -1086307536
+    m_Name: guitarCoop
+    m_HashCode: 1790182095
   m_SpriteGlyphTable:
   - m_Index: 0
     m_Metrics:

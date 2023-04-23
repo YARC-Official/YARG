@@ -237,7 +237,7 @@ namespace YARG.UI {
 					"harmVocals" => "Vocals (Harmony)",
 					"ghDrums" => "Drums (5-lane)",
 					"rhythm" => "Rhythm Guitar",
-					"guitar_coop" => "Co-op Guitar",
+					"guitarCoop" => "Co-op Guitar",
 					_ => "Unknown"
 				};
 			}

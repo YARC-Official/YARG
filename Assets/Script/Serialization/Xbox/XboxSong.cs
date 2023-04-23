@@ -44,7 +44,7 @@ namespace YARG.Serialization {
 			}
 		}
 
-		public bool IsValidateSong() {
+		public bool IsValidSong() {
 			// Skip if the song doesn't have notes
 			if (!File.Exists(MidiFile)) {
 				return false;
@@ -95,6 +95,16 @@ namespace YARG.Serialization {
 			// song.loadingPhrase
 
 			song.moggInfo = moggDta;
+
+			// Set difficulties
+			foreach (var (key, value) in songDta.ranks) {
+				var instrument = InstrumentHelper.FromStringName(key);
+				if (instrument == Instrument.INVALID) {
+					continue;
+				}
+
+				song.partDifficulties[instrument] = DtaDifficulty.ToNumberedDiff(instrument, value);
+			}
 		}
 	}
 }

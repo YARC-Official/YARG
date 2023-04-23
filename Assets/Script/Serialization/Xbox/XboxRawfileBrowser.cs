@@ -30,8 +30,10 @@ namespace YARG.Serialization {
 					var currentArray = (DataArray) dtaTree[i];
 					var currentSong = new XboxSong(folder, currentArray);
 
-					if (currentSong.IsValidateSong()) {
+					if (currentSong.IsValidSong()) {
 						songList.Add(currentSong);
+					} else {
+						Debug.LogError($"Song with shortname `{currentSong.ShortName}` is invalid. Skipping.");
 					}
 				} catch (Exception e) {
 					Debug.Log($"Failed to load song, skipping...");
