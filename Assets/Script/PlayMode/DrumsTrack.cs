@@ -261,11 +261,11 @@ namespace YARG.PlayMode {
 			}
 
 			// Handle hits (one per frame so no double hits)
-			var chord = expectedHits.Peek();
+			var notes = expectedHits.Peek();
 
 			// Check if a drum was hit
 			NoteInfo hit = null;
-			foreach (var note in chord) {
+			foreach (var note in notes) {
 				// Check if correct cymbal was hit
 				bool cymbalHit = note.hopo == cymbal;
 				if (player.chosenInstrument == "drums") {
@@ -290,14 +290,14 @@ namespace YARG.PlayMode {
 
 			// If so, hit! (Remove from "chord")
 			bool lastNote = false;
-			chord.RemoveAll(i => i.fret == drum);
-			if (chord.Count <= 0) {
-				lastNote = true;
+			notes.RemoveAll(i => i.fret == drum); 
+			if (notes.Count <= 0) {
+				//lastNote = true;  //  <-- This comment (disable) on the line is a solution for drum notes stop being counted as "chords" and being clumped together, which shouldn't happen.
 				expectedHits.Dequeue();
 			}
 
 			// Activators should not affect combo
-			if (lastNote && !hit.isActivator) {
+			if (!hit.isActivator) {
 				Combo++;
 			}
 

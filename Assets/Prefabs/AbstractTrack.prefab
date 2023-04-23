@@ -60,7 +60,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   normalCamera: {fileID: 3209698564276094243}
-  highFovCamera: {fileID: 1960425676294898908}
+  highFovCamera: {fileID: 7369836005863543340}
   trackRenderer: {fileID: 6705658293223943274}
   hitWindow: {fileID: 4405145901572709445}
   comboText: {fileID: 24723221875665680}
