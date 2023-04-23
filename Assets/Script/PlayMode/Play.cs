@@ -59,6 +59,8 @@ namespace YARG.PlayMode {
 		private int lyricIndex = 0;
 		private int lyricPhraseIndex = 0;
 
+		private List<AbstractTrack> _tracks;
+		
 		private bool _paused = false;
 		public bool Paused {
 			get => _paused;
@@ -118,6 +120,7 @@ namespace YARG.PlayMode {
 			GameUI.Instance.SetLoadingText("Spawning tracks...");
 
 			// Spawn tracks
+			_tracks = new List<AbstractTrack>();
 			int i = 0;
 			foreach (var player in PlayerManager.players) {
 				if (player.chosenInstrument == null) {
@@ -138,7 +141,8 @@ namespace YARG.PlayMode {
 
 				var prefab = Addressables.LoadAssetAsync<GameObject>(trackPath).WaitForCompletion();
 				var track = Instantiate(prefab, new Vector3(i * 25f, 100f, 0f), prefab.transform.rotation);
-				track.GetComponent<AbstractTrack>().player = player;
+				_tracks.Add(track.GetComponent<AbstractTrack>());
+				_tracks[i].player = player;
 
 				i++;
 			}
@@ -259,6 +263,12 @@ namespace YARG.PlayMode {
 
 			// Update beats
 			while (chart.beats.Count > beatIndex && chart.beats[beatIndex] <= SongTime) {
+				foreach (var track in _tracks) {
+					if (!track.IsStarPowerActive || !GameManager.AudioManager.UseStarpowerFx) continue;
+					
+					GameManager.AudioManager.PlaySoundEffect(SfxSample.Clap);
+					break;
+				}
 				BeatEvent?.Invoke();
 				beatIndex++;
 			}
@@ -293,7 +303,6 @@ namespace YARG.PlayMode {
 
 			// End song
 			if (realSongTime >= SongLength) {
-				Debug.Log("Reached end of song");
 				MainMenu.isPostSong = true;
 				Exit();
 			}
@@ -358,6 +367,8 @@ namespace YARG.PlayMode {
 
 			// Unpause just in case
 			Time.timeScale = 1f;
+			
+			_tracks.Clear();
 
 			GameManager.Instance.LoadScene(SceneIndex.MENU);
 		}

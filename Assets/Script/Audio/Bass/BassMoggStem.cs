@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ManagedBass;
 using ManagedBass.DirectX8;
 using ManagedBass.Fx;
+using UnityEngine;
 
 namespace YARG {
 	public class BassMoggStem : IStemChannel {
@@ -175,7 +176,10 @@ namespace YARG {
 				// Free unmanaged resources here
 				if (_isLoaded) {
 					for (var i = 0; i < BassChannels.Length; i++) {
-						Bass.StreamFree(BassChannels[i]);
+						if (!Bass.StreamFree(BassChannels[i])) {
+							Debug.LogError($"Failed to free MoggFX channel: {i} - {Bass.LastError}. THIS WILL LEAK MEMORY!");
+						}
+						
 						BassChannels[i] = 0;
 					}
 				}

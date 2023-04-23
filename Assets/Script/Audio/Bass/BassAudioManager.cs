@@ -200,14 +200,13 @@ namespace YARG {
 		}
 		
 		public void LoadMogg(XboxMoggData moggData, bool isSpeedUp) {
-			var sw = new Stopwatch();
-			sw.Start();
-			
 			int moggOffset = moggData.MoggAddressAudioOffset;
+			long moggLength = moggData.MoggAudioLength;
 			
-			byte[] moggArray = File.ReadAllBytes(moggData.MoggPath)[moggOffset..];
+			//byte[] moggArray = File.ReadAllBytes(moggData.MoggPath)[moggOffset..];
 			
-			int moggStreamHandle = Bass.CreateStream(moggArray, 0, moggArray.Length, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
+			//int moggStreamHandle = Bass.CreateStream(moggArray, 0, moggArray.Length, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
+			int moggStreamHandle = Bass.CreateStream(moggData.MoggPath, moggOffset, moggLength, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
 			if (moggStreamHandle == 0) {
 				Debug.LogError($"Failed to load mogg file or position: {Bass.LastError}");
 				return;
@@ -229,9 +228,6 @@ namespace YARG {
 			AudioLengthF = (float) AudioLengthD;
 			
 			IsAudioLoaded = true;
-			
-			sw.Stop();
-			Debug.Log("Loaded mogg file in " + sw.ElapsedMilliseconds + "ms");
 		}
 
 		public void UnloadSong() {

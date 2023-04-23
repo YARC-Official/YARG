@@ -43,8 +43,8 @@ namespace YARG.PlayMode {
 			protected set;
 		} = null;
 
+		public bool IsStarPowerActive { get; protected set; }
 		protected float starpowerCharge;
-		protected bool starpowerActive;
 		//protected bool starpowerHit = false;
 		protected Light comboSunburstEmbeddedLight;
 
@@ -78,8 +78,8 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		public int MaxMultiplier => (player.chosenInstrument == "bass" ? 6 : 4) * (starpowerActive ? 2 : 1);
-		public int Multiplier => Mathf.Min((Combo / 10 + 1) * (starpowerActive ? 2 : 1), MaxMultiplier);
+		public int MaxMultiplier => (player.chosenInstrument == "bass" ? 6 : 4) * (IsStarPowerActive ? 2 : 1);
+		public int Multiplier => Mathf.Min((Combo / 10 + 1) * (IsStarPowerActive ? 2 : 1), MaxMultiplier);
 
 		private bool _stopAudio = false;
 		protected bool StopAudio {
@@ -177,8 +177,8 @@ namespace YARG.PlayMode {
 				commonTrack.comboSunburst.gameObject.SetActive(true);
 				commonTrack.comboSunburst.transform.Rotate(0f, 0f, Time.deltaTime * -15f);
 
-				commonTrack.maxComboLight.gameObject.SetActive(!starpowerActive);
-				commonTrack.starpowerLight.gameObject.SetActive(starpowerActive);
+				commonTrack.maxComboLight.gameObject.SetActive(!IsStarPowerActive);
+				commonTrack.starpowerLight.gameObject.SetActive(IsStarPowerActive);
 			} else {
 				commonTrack.comboSunburst.gameObject.SetActive(false);
 
@@ -226,7 +226,7 @@ namespace YARG.PlayMode {
 
 			// Update track starpower
 			float currentStarpower = trackMaterial.GetFloat("StarpowerState");
-			if (starpowerActive) {
+			if (IsStarPowerActive) {
 				trackMaterial.SetFloat("StarpowerState", Mathf.Lerp(currentStarpower, 1f, Time.deltaTime * 2f));
 			} else {
 				trackMaterial.SetFloat("StarpowerState", Mathf.Lerp(currentStarpower, 0f, Time.deltaTime * 4f));
@@ -244,9 +244,9 @@ namespace YARG.PlayMode {
 			starpowerMat.SetFloat("Fill", starpowerCharge);
 			if (Beat) {
 				float pulseAmount = 0f;
-				if (starpowerActive) {
+				if (IsStarPowerActive) {
 					pulseAmount = 0.25f;
-				} else if (!starpowerActive && starpowerCharge >= 0.5f) {
+				} else if (!IsStarPowerActive && starpowerCharge >= 0.5f) {
 					pulseAmount = 1f;
 				}
 
@@ -272,9 +272,9 @@ namespace YARG.PlayMode {
 			}
 
 			// Update starpower active
-			if (starpowerActive) {
+			if (IsStarPowerActive) {
 				if (starpowerCharge <= 0f) {
-					starpowerActive = false;
+					IsStarPowerActive = false;
 					starpowerCharge = 0f;
 					GameManager.AudioManager.PlaySoundEffect(SfxSample.StarPowerRelease);
 					SetReverb(false);
@@ -399,17 +399,14 @@ namespace YARG.PlayMode {
 		}
 
 		private void BeatAction() {
-			if (starpowerActive && GameManager.AudioManager.UseStarpowerFx) {
-				GameManager.AudioManager.PlaySoundEffect(SfxSample.Clap);
-			}
 			Beat = true;
 		}
 
 		private void StarpowerAction(InputStrategy inputStrategy) {
-			if (!starpowerActive && starpowerCharge >= 0.5f) {
+			if (!IsStarPowerActive && starpowerCharge >= 0.5f) {
 				GameManager.AudioManager.PlaySoundEffect(SfxSample.StarPowerDeploy);
 				SetReverb(true);
-				starpowerActive = true;
+				IsStarPowerActive = true;
 			}
 		}
 

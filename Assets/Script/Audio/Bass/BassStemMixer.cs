@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ManagedBass;
 using ManagedBass.Mix;
+using UnityEngine;
 using YARG.Serialization;
 
 namespace YARG {
@@ -245,12 +246,18 @@ namespace YARG {
 
 				// Free unmanaged resources here
 				if (_mixerHandle != 0) {
-					Bass.StreamFree(_mixerHandle);
+					if (!Bass.StreamFree(_mixerHandle)) {
+						Debug.LogError("Failed to free mixer stream. THIS WILL LEAK MEMORY!");
+					}
+					
 					_mixerHandle = 0;
 				}
 
 				if (_moggSourceHandle != 0) {
-					Bass.StreamFree(_moggSourceHandle);
+					if (!Bass.StreamFree(_moggSourceHandle)) {
+						Debug.LogError("Failed to free Mogg source stream. THIS WILL LEAK MEMORY!");
+					}
+
 					_moggSourceHandle = 0;
 				}
 
