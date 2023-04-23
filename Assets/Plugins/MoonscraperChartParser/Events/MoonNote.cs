@@ -8,7 +8,7 @@ using System.Collections.Generic;
 namespace MoonscraperChartEditor.Song
 {
     [System.Serializable]
-    public class Note : ChartObject
+    public class MoonNote : ChartObject
     {
         public enum GuitarFret
         {
@@ -129,11 +129,11 @@ namespace MoonscraperChartEditor.Song
         /// <summary>
         /// The previous note in the linked-list.
         /// </summary>
-        public Note previous;
+        public MoonNote previous;
         /// <summary>
         /// The next note in the linked-list.
         /// </summary>
-        public Note next;
+        public MoonNote next;
 
         public Chord chord { get { return new Chord(this); } }
 #if APPLICATION_MOONSCRAPER
@@ -143,7 +143,7 @@ namespace MoonscraperChartEditor.Song
             set { base.controller = value; }
         }
 #endif 
-        public Note(uint _position,
+        public MoonNote(uint _position,
                     int _rawNote,
                     uint _sustain = 0,
                     Flags _flags = Flags.None) : base(_position)
@@ -156,7 +156,7 @@ namespace MoonscraperChartEditor.Song
             next = null;
         }
 
-        public Note(uint _position,
+        public MoonNote(uint _position,
                     GuitarFret _fret_type,
                     uint _sustain = 0,
                     Flags _flags = Flags.None) : base(_position)
@@ -169,34 +169,34 @@ namespace MoonscraperChartEditor.Song
             next = null;
         }
 
-        public Note(Note note) : base(note.tick)
+        public MoonNote(MoonNote moonNote) : base(moonNote.tick)
         {
-            tick = note.tick;
-            length = note.length;
-            flags = note.flags;
-            rawNote = note.rawNote;
+            tick = moonNote.tick;
+            length = moonNote.length;
+            flags = moonNote.flags;
+            rawNote = moonNote.rawNote;
         }
 
-        public void CopyFrom(Note note)
+        public void CopyFrom(MoonNote moonNote)
         {
-            tick = note.tick;
-            length = note.length;
-            flags = note.flags;
-            rawNote = note.rawNote;
+            tick = moonNote.tick;
+            length = moonNote.length;
+            flags = moonNote.flags;
+            rawNote = moonNote.rawNote;
         }
 
-        public Chart.GameMode gameMode
+        public MoonChart.GameMode gameMode
         {
             get
             {
-                if (chart != null)
-                    return chart.gameMode;
+                if (moonChart != null)
+                    return moonChart.gameMode;
                 else
                 {
 #if APPLICATION_MOONSCRAPER     // Moonscraper doesn't use note.chart.gameMode directly because notes might not have charts associated with them, esp when copy-pasting and storing undo-redo
                     return ChartEditor.Instance.currentChart.gameMode;
 #else
-                return Chart.GameMode.Unrecognised;
+                return MoonChart.GameMode.Unrecognised;
 #endif
                 }
             }
@@ -220,39 +220,39 @@ namespace MoonscraperChartEditor.Song
         /// <summary>
         /// Gets the next note in the linked-list that's not part of this note's chord.
         /// </summary>
-        public Note nextSeperateNote
+        public MoonNote NextSeperateMoonNote
         {
             get
             {
-                Note nextNote = next;
-                while (nextNote != null && nextNote.tick == tick)
-                    nextNote = nextNote.next;
-                return nextNote;
+                MoonNote nextMoonNote = next;
+                while (nextMoonNote != null && nextMoonNote.tick == tick)
+                    nextMoonNote = nextMoonNote.next;
+                return nextMoonNote;
             }
         }
 
         /// <summary>
         /// Gets the previous note in the linked-list that's not part of this note's chord.
         /// </summary>
-        public Note previousSeperateNote
+        public MoonNote PreviousSeperateMoonNote
         {
             get
             {
-                Note previousNote = previous;
-                while (previousNote != null && previousNote.tick == tick)
-                    previousNote = previousNote.previous;
-                return previousNote;
+                MoonNote previousMoonNote = previous;
+                while (previousMoonNote != null && previousMoonNote.tick == tick)
+                    previousMoonNote = previousMoonNote.previous;
+                return previousMoonNote;
             }
         }
 
         public override SongObject Clone()
         {
-            return new Note(this);
+            return new MoonNote(this);
         }
 
         public override bool AllValuesCompare<T>(T songObject)
         {
-            if (this == songObject && (songObject as Note).length == length && (songObject as Note).rawNote == rawNote && (songObject as Note).flags == flags)
+            if (this == songObject && (songObject as MoonNote).length == length && (songObject as MoonNote).rawNote == rawNote && (songObject as MoonNote).flags == flags)
                 return true;
             else
                 return false;
@@ -260,9 +260,9 @@ namespace MoonscraperChartEditor.Song
 
         protected override bool Equals(SongObject b)
         {
-            if (b.GetType() == typeof(Note))
+            if (b.GetType() == typeof(MoonNote))
             {
-                Note realB = b as Note;
+                MoonNote realB = b as MoonNote;
                 if (tick == realB.tick && rawNote == realB.rawNote)
                     return true;
                 else
@@ -274,9 +274,9 @@ namespace MoonscraperChartEditor.Song
 
         protected override bool LessThan(SongObject b)
         {
-            if (b.GetType() == typeof(Note))
+            if (b.GetType() == typeof(MoonNote))
             {
-                Note realB = b as Note;
+                MoonNote realB = b as MoonNote;
                 if (tick < b.tick)
                     return true;
                 else if (tick == b.tick)
@@ -315,7 +315,7 @@ namespace MoonscraperChartEditor.Song
                     if (prevIsChord || (!prevIsChord && rawNote != previous.rawNote))
                     {
                         // Check distance from previous note 
-                        int HOPODistance = (int)(SongConfig.FORCED_NOTE_TICK_THRESHOLD * song.resolution / SongConfig.STANDARD_BEAT_RESOLUTION);
+                        int HOPODistance = (int)(SongConfig.FORCED_NOTE_TICK_THRESHOLD * moonSong.resolution / SongConfig.STANDARD_BEAT_RESOLUTION);
 
                         if (tick - previous.tick <= HOPODistance)
                             HOPO = true;
@@ -354,18 +354,18 @@ namespace MoonscraperChartEditor.Song
                 // Don't interate using chord, as chord will get messed up for the tool notes which override their linked list references. 
                 int mask = 1 << rawNote;
 
-                Note note = this;
-                while (note.previous != null && note.previous.tick == tick)
+                MoonNote moonNote = this;
+                while (moonNote.previous != null && moonNote.previous.tick == tick)
                 {
-                    note = note.previous;
-                    mask |= (1 << note.rawNote);
+                    moonNote = moonNote.previous;
+                    mask |= (1 << moonNote.rawNote);
                 }
 
-                note = this;
-                while (note.next != null && note.tick == note.next.tick)
+                moonNote = this;
+                while (moonNote.next != null && moonNote.tick == moonNote.next.tick)
                 {
-                    note = note.next;
-                    mask |= (1 << note.rawNote);
+                    moonNote = moonNote.next;
+                    mask |= (1 << moonNote.rawNote);
                 }
 
                 return mask;
@@ -376,7 +376,7 @@ namespace MoonscraperChartEditor.Song
         {
             int mask = 0;
 
-            foreach (Note note in this.chord)
+            foreach (MoonNote note in this.chord)
             {
                 if (note.flags == flags)
                     mask |= (1 << note.rawNote);
@@ -392,7 +392,7 @@ namespace MoonscraperChartEditor.Song
         {
             get
             {
-                if (this.gameMode == Chart.GameMode.Drums)
+                if (this.gameMode == MoonChart.GameMode.Drums)
                 {
                     if (!this.IsOpenNote() && (flags & Flags.ProDrums_Cymbal) == Flags.ProDrums_Cymbal)
                     {
@@ -422,7 +422,7 @@ namespace MoonscraperChartEditor.Song
         {
             get
             {
-                Note seperatePrevious = previousSeperateNote;
+                MoonNote seperatePrevious = PreviousSeperateMoonNote;
 
                 if ((seperatePrevious == null) || (seperatePrevious != null && mask == seperatePrevious.mask))
                     return true;
@@ -431,29 +431,29 @@ namespace MoonscraperChartEditor.Song
             }
         }
 
-        public class Chord : IEnumerable<Note>
+        public class Chord : IEnumerable<MoonNote>
         {
-            Note baseNote;
-            public Chord(Note note) : base()
+            MoonNote _baseMoonNote;
+            public Chord(MoonNote moonNote) : base()
             {
-                baseNote = note;
+                _baseMoonNote = moonNote;
             }
 
-            public IEnumerator<Note> GetEnumerator()
+            public IEnumerator<MoonNote> GetEnumerator()
             {
-                Note note = baseNote;
+                MoonNote moonNote = _baseMoonNote;
 
-                while (note.previous != null && note.previous.tick == note.tick)
+                while (moonNote.previous != null && moonNote.previous.tick == moonNote.tick)
                 {
-                    note = note.previous;
+                    moonNote = moonNote.previous;
                 }
 
-                yield return note;
+                yield return moonNote;
 
-                while (note.next != null && note.tick == note.next.tick)
+                while (moonNote.next != null && moonNote.tick == moonNote.next.tick)
                 {
-                    note = note.next;
-                    yield return note;
+                    moonNote = moonNote.next;
+                    yield return moonNote;
                 }
             }
 
@@ -463,45 +463,45 @@ namespace MoonscraperChartEditor.Song
             }
         }
 
-        public delegate void ChordEnumerateFn(Note note);
+        public delegate void ChordEnumerateFn(MoonNote moonNote);
         public void EnumerateChord(ChordEnumerateFn fn)
         {
-            Note note = this;
-            while (note.previous != null && note.previous.tick == note.tick)
+            MoonNote moonNote = this;
+            while (moonNote.previous != null && moonNote.previous.tick == moonNote.tick)
             {
-                note = note.previous;
+                moonNote = moonNote.previous;
             }
 
-            fn(note);
+            fn(moonNote);
 
-            while (note.next != null && note.tick == note.next.tick)
+            while (moonNote.next != null && moonNote.tick == moonNote.next.tick)
             {
-                note = note.next;
-                fn(note);
+                moonNote = moonNote.next;
+                fn(moonNote);
             }
         }
 
         public bool IsOpenNote()
         {
-            if (gameMode == Chart.GameMode.GHLGuitar)
+            if (gameMode == MoonChart.GameMode.GHLGuitar)
                 return ghliveGuitarFret == GHLiveGuitarFret.Open;
             else
                 return guitarFret == GuitarFret.Open;
         }
 
-        public static Flags GetBannedFlagsForGameMode(Chart.GameMode gameMode)
+        public static Flags GetBannedFlagsForGameMode(MoonChart.GameMode gameMode)
         {
             Flags bannedFlags = Flags.None;
 
             switch (gameMode)
             {
-                case Chart.GameMode.Guitar:
-                case Chart.GameMode.GHLGuitar:
+                case MoonChart.GameMode.Guitar:
+                case MoonChart.GameMode.GHLGuitar:
                     {
                         bannedFlags = Flags.ProDrums_Cymbal | Flags.ProDrums_Accent | Flags.ProDrums_Ghost;
                         break;
                     }
-                case Chart.GameMode.Drums:
+                case MoonChart.GameMode.Drums:
                     {
                         bannedFlags = Flags.Forced | Flags.Tap;
                         break;

@@ -71,39 +71,39 @@ namespace MoonscraperChartEditor.Song.IO
         public const byte VELOCITY_GHOST = 1;         // fof/ps
 
         // Lookup tables
-        public static readonly IReadOnlyDictionary<Song.Difficulty, int> GUITAR_DIFF_START_LOOKUP = new Dictionary<Song.Difficulty, int>()
+        public static readonly IReadOnlyDictionary<MoonSong.Difficulty, int> GUITAR_DIFF_START_LOOKUP = new Dictionary<MoonSong.Difficulty, int>()
         {
-            { Song.Difficulty.Easy, 60 },
-            { Song.Difficulty.Medium, 72 },
-            { Song.Difficulty.Hard, 84 },
-            { Song.Difficulty.Expert, 96 }
+            { MoonSong.Difficulty.Easy, 60 },
+            { MoonSong.Difficulty.Medium, 72 },
+            { MoonSong.Difficulty.Hard, 84 },
+            { MoonSong.Difficulty.Expert, 96 }
         };
 
-        public static readonly IReadOnlyDictionary<Song.Difficulty, int> GHL_GUITAR_DIFF_START_LOOKUP = new Dictionary<Song.Difficulty, int>()
+        public static readonly IReadOnlyDictionary<MoonSong.Difficulty, int> GHL_GUITAR_DIFF_START_LOOKUP = new Dictionary<MoonSong.Difficulty, int>()
         {
-            { Song.Difficulty.Easy, 58 },
-            { Song.Difficulty.Medium, 70 },
-            { Song.Difficulty.Hard, 82 },
-            { Song.Difficulty.Expert, 94 }
+            { MoonSong.Difficulty.Easy, 58 },
+            { MoonSong.Difficulty.Medium, 70 },
+            { MoonSong.Difficulty.Hard, 82 },
+            { MoonSong.Difficulty.Expert, 94 }
         };
 
-        public static readonly IReadOnlyDictionary<Song.Difficulty, int> DRUMS_DIFF_START_LOOKUP = new Dictionary<Song.Difficulty, int>()
+        public static readonly IReadOnlyDictionary<MoonSong.Difficulty, int> DRUMS_DIFF_START_LOOKUP = new Dictionary<MoonSong.Difficulty, int>()
         {
-            { Song.Difficulty.Easy, 60 },
-            { Song.Difficulty.Medium, 72 },
-            { Song.Difficulty.Hard, 84 },
-            { Song.Difficulty.Expert, 96 }
+            { MoonSong.Difficulty.Easy, 60 },
+            { MoonSong.Difficulty.Medium, 72 },
+            { MoonSong.Difficulty.Hard, 84 },
+            { MoonSong.Difficulty.Expert, 96 }
         };
 
         // http://docs.c3universe.com/rbndocs/index.php?title=Drum_Authoring
-        public static readonly IReadOnlyDictionary<Note.DrumPad, int> PAD_TO_CYMBAL_LOOKUP = new Dictionary<Note.DrumPad, int>()
+        public static readonly IReadOnlyDictionary<MoonNote.DrumPad, int> PAD_TO_CYMBAL_LOOKUP = new Dictionary<MoonNote.DrumPad, int>()
         {
-            { Note.DrumPad.Yellow, 110 },
-            { Note.DrumPad.Blue, 111 },
-            { Note.DrumPad.Orange, 112 },
+            { MoonNote.DrumPad.Yellow, 110 },
+            { MoonNote.DrumPad.Blue, 111 },
+            { MoonNote.DrumPad.Orange, 112 },
         };
 
-        public static readonly IReadOnlyDictionary<int, Note.DrumPad> CYMBAL_TO_PAD_LOOKUP = PAD_TO_CYMBAL_LOOKUP.ToDictionary((i) => i.Value, (i) => i.Key);
+        public static readonly IReadOnlyDictionary<int, MoonNote.DrumPad> CYMBAL_TO_PAD_LOOKUP = PAD_TO_CYMBAL_LOOKUP.ToDictionary((i) => i.Value, (i) => i.Key);
 
         // SysEx event format
         // https://dwsk.proboards.com/thread/404/song-standard-advancements
@@ -140,15 +140,15 @@ namespace MoonscraperChartEditor.Song.IO
         public const byte SYSEX_DIFFICULTY_EXPERT = 0x03;
         public const byte SYSEX_DIFFICULTY_ALL = 0xFF;
 
-        public static readonly Dictionary<byte, Song.Difficulty> SYSEX_TO_MS_DIFF_LOOKUP = new Dictionary<byte, Song.Difficulty>()
+        public static readonly Dictionary<byte, MoonSong.Difficulty> SYSEX_TO_MS_DIFF_LOOKUP = new Dictionary<byte, MoonSong.Difficulty>()
         {
-            { SYSEX_DIFFICULTY_EASY, Song.Difficulty.Easy },
-            { SYSEX_DIFFICULTY_MEDIUM, Song.Difficulty.Medium },
-            { SYSEX_DIFFICULTY_HARD, Song.Difficulty.Hard },
-            { SYSEX_DIFFICULTY_EXPERT, Song.Difficulty.Expert }
+            { SYSEX_DIFFICULTY_EASY, MoonSong.Difficulty.Easy },
+            { SYSEX_DIFFICULTY_MEDIUM, MoonSong.Difficulty.Medium },
+            { SYSEX_DIFFICULTY_HARD, MoonSong.Difficulty.Hard },
+            { SYSEX_DIFFICULTY_EXPERT, MoonSong.Difficulty.Expert }
         };
 
-        public static readonly Dictionary<Song.Difficulty, byte> MS_TO_SYSEX_DIFF_LOOKUP = SYSEX_TO_MS_DIFF_LOOKUP.ToDictionary((i) => i.Value, (i) => i.Key);
+        public static readonly Dictionary<MoonSong.Difficulty, byte> MS_TO_SYSEX_DIFF_LOOKUP = SYSEX_TO_MS_DIFF_LOOKUP.ToDictionary((i) => i.Value, (i) => i.Key);
 
         public const byte SYSEX_CODE_GUITAR_OPEN = 0x01;
         public const byte SYSEX_CODE_GUITAR_TAP = 0x04;

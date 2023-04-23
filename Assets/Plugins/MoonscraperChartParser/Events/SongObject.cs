@@ -12,7 +12,7 @@ namespace MoonscraperChartEditor.Song
         /// The song this object is connected to.
         /// </summary>
         [System.NonSerialized]
-        public Song song;
+        public MoonSong moonSong;
         /// <summary>
         /// The tick position of the object
         /// </summary>
@@ -40,7 +40,7 @@ namespace MoonscraperChartEditor.Song
         {
             get
             {
-                return song.TickToTime(tick, song.resolution);
+                return moonSong.TickToTime(tick, moonSong.resolution);
             }
         }
         

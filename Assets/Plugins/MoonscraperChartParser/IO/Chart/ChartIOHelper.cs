@@ -45,84 +45,84 @@ namespace MoonscraperChartEditor.Song.IO
 
         public static readonly IReadOnlyDictionary<int, int> c_guitarNoteNumLookup = new Dictionary<int, int>()
         {
-            { 0, (int)Note.GuitarFret.Green     },
-            { 1, (int)Note.GuitarFret.Red       },
-            { 2, (int)Note.GuitarFret.Yellow    },
-            { 3, (int)Note.GuitarFret.Blue      },
-            { 4, (int)Note.GuitarFret.Orange    },
-            { 7, (int)Note.GuitarFret.Open      },
+            { 0, (int)MoonNote.GuitarFret.Green     },
+            { 1, (int)MoonNote.GuitarFret.Red       },
+            { 2, (int)MoonNote.GuitarFret.Yellow    },
+            { 3, (int)MoonNote.GuitarFret.Blue      },
+            { 4, (int)MoonNote.GuitarFret.Orange    },
+            { 7, (int)MoonNote.GuitarFret.Open      },
         };
 
-        public static readonly IReadOnlyDictionary<int, Note.Flags> c_guitarFlagNumLookup = new Dictionary<int, Note.Flags>()
+        public static readonly IReadOnlyDictionary<int, MoonNote.Flags> c_guitarFlagNumLookup = new Dictionary<int, MoonNote.Flags>()
         {
-            { 5      , Note.Flags.Forced },
-            { 6      , Note.Flags.Tap },
+            { 5      , MoonNote.Flags.Forced },
+            { 6      , MoonNote.Flags.Tap },
         };
 
         public static readonly IReadOnlyDictionary<int, int> c_drumNoteNumLookup = new Dictionary<int, int>()
         {
-            { 0, (int)Note.DrumPad.Kick      },
-            { 1, (int)Note.DrumPad.Red       },
-            { 2, (int)Note.DrumPad.Yellow    },
-            { 3, (int)Note.DrumPad.Blue      },
-            { 4, (int)Note.DrumPad.Orange    },
-            { 5, (int)Note.DrumPad.Green     },
+            { 0, (int)MoonNote.DrumPad.Kick      },
+            { 1, (int)MoonNote.DrumPad.Red       },
+            { 2, (int)MoonNote.DrumPad.Yellow    },
+            { 3, (int)MoonNote.DrumPad.Blue      },
+            { 4, (int)MoonNote.DrumPad.Orange    },
+            { 5, (int)MoonNote.DrumPad.Green     },
         };
 
         // Default flags for drums notes
-        public static readonly IReadOnlyDictionary<int, Note.Flags> c_drumNoteDefaultFlagsLookup = new Dictionary<int, Note.Flags>()
+        public static readonly IReadOnlyDictionary<int, MoonNote.Flags> c_drumNoteDefaultFlagsLookup = new Dictionary<int, MoonNote.Flags>()
         {
-            { (int)Note.DrumPad.Kick      , Note.Flags.None },
-            { (int)Note.DrumPad.Red       , Note.Flags.None },
-            { (int)Note.DrumPad.Yellow    , Note.Flags.None },
-            { (int)Note.DrumPad.Blue      , Note.Flags.None },
-            { (int)Note.DrumPad.Orange    , Note.Flags.None },   // Orange becomes green during 4-lane
-            { (int)Note.DrumPad.Green     , Note.Flags.None },
+            { (int)MoonNote.DrumPad.Kick      , MoonNote.Flags.None },
+            { (int)MoonNote.DrumPad.Red       , MoonNote.Flags.None },
+            { (int)MoonNote.DrumPad.Yellow    , MoonNote.Flags.None },
+            { (int)MoonNote.DrumPad.Blue      , MoonNote.Flags.None },
+            { (int)MoonNote.DrumPad.Orange    , MoonNote.Flags.None },   // Orange becomes green during 4-lane
+            { (int)MoonNote.DrumPad.Green     , MoonNote.Flags.None },
         };
 
         public static readonly IReadOnlyDictionary<int, int> c_ghlNoteNumLookup = new Dictionary<int, int>()
         {
-            { 0, (int)Note.GHLiveGuitarFret.White1    },
-            { 1, (int)Note.GHLiveGuitarFret.White2    },
-            { 2, (int)Note.GHLiveGuitarFret.White3    },
-            { 3, (int)Note.GHLiveGuitarFret.Black1    },
-            { 4, (int)Note.GHLiveGuitarFret.Black2    },
-            { 8, (int)Note.GHLiveGuitarFret.Black3    },
-            { 7, (int)Note.GHLiveGuitarFret.Open      },
+            { 0, (int)MoonNote.GHLiveGuitarFret.White1    },
+            { 1, (int)MoonNote.GHLiveGuitarFret.White2    },
+            { 2, (int)MoonNote.GHLiveGuitarFret.White3    },
+            { 3, (int)MoonNote.GHLiveGuitarFret.Black1    },
+            { 4, (int)MoonNote.GHLiveGuitarFret.Black2    },
+            { 8, (int)MoonNote.GHLiveGuitarFret.Black3    },
+            { 7, (int)MoonNote.GHLiveGuitarFret.Open      },
         };
 
-        public static readonly IReadOnlyDictionary<int, Note.Flags> c_ghlFlagNumLookup = c_guitarFlagNumLookup;
+        public static readonly IReadOnlyDictionary<int, MoonNote.Flags> c_ghlFlagNumLookup = c_guitarFlagNumLookup;
 
-        public static readonly IReadOnlyDictionary<string, Song.Difficulty> c_trackNameToTrackDifficultyLookup = new Dictionary<string, Song.Difficulty>()
+        public static readonly IReadOnlyDictionary<string, MoonSong.Difficulty> c_trackNameToTrackDifficultyLookup = new Dictionary<string, MoonSong.Difficulty>()
         {
-            { "Easy",   Song.Difficulty.Easy    },
-            { "Medium", Song.Difficulty.Medium  },
-            { "Hard",   Song.Difficulty.Hard    },
-            { "Expert", Song.Difficulty.Expert  },
+            { "Easy",   MoonSong.Difficulty.Easy    },
+            { "Medium", MoonSong.Difficulty.Medium  },
+            { "Hard",   MoonSong.Difficulty.Hard    },
+            { "Expert", MoonSong.Difficulty.Expert  },
         };
 
-        public static readonly IReadOnlyDictionary<string, Song.Instrument> c_instrumentStrToEnumLookup = new Dictionary<string, Song.Instrument>()
+        public static readonly IReadOnlyDictionary<string, MoonSong.MoonInstrument> c_instrumentStrToEnumLookup = new Dictionary<string, MoonSong.MoonInstrument>()
         {
-            { "Single",         Song.Instrument.Guitar },
-            { "DoubleGuitar",   Song.Instrument.GuitarCoop },
-            { "DoubleBass",     Song.Instrument.Bass },
-            { "DoubleRhythm",   Song.Instrument.Rhythm },
-            { "Drums",          Song.Instrument.Drums },
-            { "Keyboard",       Song.Instrument.Keys },
-            { "GHLGuitar",      Song.Instrument.GHLiveGuitar },
-            { "GHLBass",        Song.Instrument.GHLiveBass },
-            { "GHLRhythm",      Song.Instrument.GHLiveRhythm },
-            { "GHLCoop",        Song.Instrument.GHLiveCoop },
+            { "Single",         MoonSong.MoonInstrument.Guitar },
+            { "DoubleGuitar",   MoonSong.MoonInstrument.GuitarCoop },
+            { "DoubleBass",     MoonSong.MoonInstrument.Bass },
+            { "DoubleRhythm",   MoonSong.MoonInstrument.Rhythm },
+            { "Drums",          MoonSong.MoonInstrument.Drums },
+            { "Keyboard",       MoonSong.MoonInstrument.Keys },
+            { "GHLGuitar",      MoonSong.MoonInstrument.GHLiveGuitar },
+            { "GHLBass",        MoonSong.MoonInstrument.GHLiveBass },
+            { "GHLRhythm",      MoonSong.MoonInstrument.GHLiveRhythm },
+            { "GHLCoop",        MoonSong.MoonInstrument.GHLiveCoop },
         };
 
-        public static readonly IReadOnlyDictionary<Song.Instrument, TrackLoadType> c_instrumentParsingTypeLookup = new Dictionary<Song.Instrument, TrackLoadType>()
+        public static readonly IReadOnlyDictionary<MoonSong.MoonInstrument, TrackLoadType> c_instrumentParsingTypeLookup = new Dictionary<MoonSong.MoonInstrument, TrackLoadType>()
         {
             // Other instruments default to loading as a guitar type track
-            { Song.Instrument.Drums, TrackLoadType.Drums },
-            { Song.Instrument.GHLiveGuitar, TrackLoadType.GHLiveGuitar },
-            { Song.Instrument.GHLiveBass,  TrackLoadType.GHLiveGuitar },
-            { Song.Instrument.GHLiveRhythm,  TrackLoadType.GHLiveGuitar },
-            { Song.Instrument.GHLiveCoop,  TrackLoadType.GHLiveGuitar },
+            { MoonSong.MoonInstrument.Drums, TrackLoadType.Drums },
+            { MoonSong.MoonInstrument.GHLiveGuitar, TrackLoadType.GHLiveGuitar },
+            { MoonSong.MoonInstrument.GHLiveBass,  TrackLoadType.GHLiveGuitar },
+            { MoonSong.MoonInstrument.GHLiveRhythm,  TrackLoadType.GHLiveGuitar },
+            { MoonSong.MoonInstrument.GHLiveCoop,  TrackLoadType.GHLiveGuitar },
         };
 
         public static class MetaData
@@ -249,21 +249,21 @@ namespace MoonscraperChartEditor.Song.IO
         public class NoteFlagPriority
         {
             // Flags to skip adding if the corresponding flag is already present
-            private static readonly IReadOnlyDictionary<Note.Flags, Note.Flags> c_noteBlockingFlagsLookup = new Dictionary<Note.Flags, Note.Flags>()
+            private static readonly IReadOnlyDictionary<MoonNote.Flags, MoonNote.Flags> c_noteBlockingFlagsLookup = new Dictionary<MoonNote.Flags, MoonNote.Flags>()
             {
-                { Note.Flags.Forced, Note.Flags.Tap },
-                { Note.Flags.ProDrums_Ghost, Note.Flags.ProDrums_Accent },
+                { MoonNote.Flags.Forced, MoonNote.Flags.Tap },
+                { MoonNote.Flags.ProDrums_Ghost, MoonNote.Flags.ProDrums_Accent },
             };
 
             // Flags to remove if the corresponding flag is being added
-            private static readonly IReadOnlyDictionary<Note.Flags, Note.Flags> c_noteFlagsToRemoveLookup = c_noteBlockingFlagsLookup.ToDictionary((i) => i.Value, (i) => i.Key);
+            private static readonly IReadOnlyDictionary<MoonNote.Flags, MoonNote.Flags> c_noteFlagsToRemoveLookup = c_noteBlockingFlagsLookup.ToDictionary((i) => i.Value, (i) => i.Key);
 
-            public static readonly NoteFlagPriority Forced = new NoteFlagPriority(Note.Flags.Forced);
-            public static readonly NoteFlagPriority Tap = new NoteFlagPriority(Note.Flags.Tap);
-            public static readonly NoteFlagPriority InstrumentPlus = new NoteFlagPriority(Note.Flags.InstrumentPlus);
-            public static readonly NoteFlagPriority Cymbal = new NoteFlagPriority(Note.Flags.ProDrums_Cymbal);
-            public static readonly NoteFlagPriority Accent = new NoteFlagPriority(Note.Flags.ProDrums_Accent);
-            public static readonly NoteFlagPriority Ghost = new NoteFlagPriority(Note.Flags.ProDrums_Ghost);
+            public static readonly NoteFlagPriority Forced = new NoteFlagPriority(MoonNote.Flags.Forced);
+            public static readonly NoteFlagPriority Tap = new NoteFlagPriority(MoonNote.Flags.Tap);
+            public static readonly NoteFlagPriority InstrumentPlus = new NoteFlagPriority(MoonNote.Flags.InstrumentPlus);
+            public static readonly NoteFlagPriority Cymbal = new NoteFlagPriority(MoonNote.Flags.ProDrums_Cymbal);
+            public static readonly NoteFlagPriority Accent = new NoteFlagPriority(MoonNote.Flags.ProDrums_Accent);
+            public static readonly NoteFlagPriority Ghost = new NoteFlagPriority(MoonNote.Flags.ProDrums_Ghost);
 
             private static readonly IReadOnlyList<NoteFlagPriority> priorities = new List<NoteFlagPriority>()
             {
@@ -275,56 +275,56 @@ namespace MoonscraperChartEditor.Song.IO
                 Ghost,
             };
 
-            public Note.Flags flagToAdd { get; } = Note.Flags.None;
-            public Note.Flags blockingFlag { get; } = Note.Flags.None;
-            public Note.Flags flagToRemove { get; } = Note.Flags.None;
+            public MoonNote.Flags flagToAdd { get; } = MoonNote.Flags.None;
+            public MoonNote.Flags blockingFlag { get; } = MoonNote.Flags.None;
+            public MoonNote.Flags flagToRemove { get; } = MoonNote.Flags.None;
 
-            public NoteFlagPriority(Note.Flags flag)
+            public NoteFlagPriority(MoonNote.Flags flag)
             {
                 flagToAdd = flag;
 
-                Note.Flags blockingFlag;
+                MoonNote.Flags blockingFlag;
                 if (c_noteBlockingFlagsLookup.TryGetValue(flagToAdd, out blockingFlag))
                 {
                     this.blockingFlag = blockingFlag;
                 }
 
-                Note.Flags flagToRemove;
+                MoonNote.Flags flagToRemove;
                 if (c_noteFlagsToRemoveLookup.TryGetValue(flagToAdd, out flagToRemove))
                 {
                     this.flagToRemove = flagToRemove;
                 }
             }
 
-            public bool TryApplyToNote(Note note)
+            public bool TryApplyToNote(MoonNote moonNote)
             {
                 // Don't add if the flag to be added is lower-priority than a conflicting, already-added flag
-                if (blockingFlag != Note.Flags.None && note.flags.HasFlag(blockingFlag))
+                if (blockingFlag != MoonNote.Flags.None && moonNote.flags.HasFlag(blockingFlag))
                 {
                     return false;
                 }
 
                 // Flag can be added without issue
-                note.flags |= flagToAdd;
+                moonNote.flags |= flagToAdd;
 
                 // Remove flags that are lower-priority than the added flag
-                if (flagToRemove != Note.Flags.None && note.flags.HasFlag(flagToRemove))
+                if (flagToRemove != MoonNote.Flags.None && moonNote.flags.HasFlag(flagToRemove))
                 {
-                    note.flags &= ~flagToRemove;
+                    moonNote.flags &= ~flagToRemove;
                 }
 
                 return true;
             }
 
-            public bool AreFlagsValid(Note.Flags flags)
+            public bool AreFlagsValid(MoonNote.Flags flags)
             {
-                if (flagToAdd == Note.Flags.None)
+                if (flagToAdd == MoonNote.Flags.None)
                 {
                     // No flag to validate against
                     return true;
                 }
 
-                if (blockingFlag != Note.Flags.None)
+                if (blockingFlag != MoonNote.Flags.None)
                 {
                     if (flags.HasFlag(blockingFlag) && flags.HasFlag(flagToAdd))
                     {
@@ -333,7 +333,7 @@ namespace MoonscraperChartEditor.Song.IO
                     }
                 }
 
-                if (flagToRemove != Note.Flags.None)
+                if (flagToRemove != MoonNote.Flags.None)
                 {
                     if (flags.HasFlag(flagToAdd) && flags.HasFlag(flagToRemove))
                     {
@@ -345,7 +345,7 @@ namespace MoonscraperChartEditor.Song.IO
                 return true;
             }
 
-            public static bool AreFlagsValidForAll(Note.Flags flags, out NoteFlagPriority invalidPriority)
+            public static bool AreFlagsValidForAll(MoonNote.Flags flags, out NoteFlagPriority invalidPriority)
             {
                 foreach (var priority in priorities)
                 {

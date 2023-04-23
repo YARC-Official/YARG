@@ -9,9 +9,9 @@ using System.Linq;
 
 namespace MoonscraperChartEditor.Song
 {
-    public class Chart
+    public class MoonChart
     {
-        Song _song;
+        MoonSong _moonSong;
         List<ChartObject> _chartObjects;
         int _note_count;
         GameMode _gameMode;
@@ -20,7 +20,7 @@ namespace MoonscraperChartEditor.Song
         /// <summary>
         /// Read only list of notes.
         /// </summary>
-        public SongObjectCache<Note> notes { get; private set; }
+        public SongObjectCache<MoonNote> notes { get; private set; }
         /// <summary>
         /// Read only list of starpower.
         /// </summary>
@@ -36,7 +36,7 @@ namespace MoonscraperChartEditor.Song
         /// <summary>
         /// The song this chart is connected to.
         /// </summary>
-        public Song song { get { return _song; } }
+        public MoonSong MoonSong { get { return _moonSong; } }
         /// <summary>
         /// The game mode the chart is designed for
         /// </summary>
@@ -55,16 +55,16 @@ namespace MoonscraperChartEditor.Song
         /// <summary>
         /// Creates a new chart object.
         /// </summary>
-        /// <param name="song">The song to associate this chart with.</param>
+        /// <param name="moonSong">The song to associate this chart with.</param>
         /// <param name="name">The name of the chart (easy single, expert double guitar, etc.</param>
-        public Chart(Song song, GameMode gameMode, string name = "")
+        public MoonChart(MoonSong moonSong, GameMode gameMode, string name = "")
         {
-            _song = song;
+            _moonSong = moonSong;
             _chartObjects = new List<ChartObject>();
             chartObjects = new ReadOnlyList<ChartObject>(_chartObjects);
             _gameMode = gameMode;
 
-            notes = new SongObjectCache<Note>();
+            notes = new SongObjectCache<MoonNote>();
             starPower = new SongObjectCache<Starpower>();
             drumRoll = new SongObjectCache<DrumRoll>();
             events = new SongObjectCache<ChartEvent>();
@@ -74,22 +74,22 @@ namespace MoonscraperChartEditor.Song
             this.name = name;
         }
 
-        public Chart(Song song, Song.Instrument instrument, string name = "") : this(song, Song.InstumentToChartGameMode(instrument), name)
+        public MoonChart(MoonSong moonSong, MoonSong.MoonInstrument moonInstrument, string name = "") : this(moonSong, MoonSong.InstumentToChartGameMode(moonInstrument), name)
         {
         }
 
-        public Chart(Chart chart, Song song)
+        public MoonChart(MoonChart moonChart, MoonSong moonSong)
         {
-            _song = song;
-            name = chart.name;
-            _gameMode = chart.gameMode;
+            _moonSong = moonSong;
+            name = moonChart.name;
+            _gameMode = moonChart.gameMode;
 
             _chartObjects = new List<ChartObject>();
-            _chartObjects.AddRange(chart._chartObjects);
+            _chartObjects.AddRange(moonChart._chartObjects);
 
             chartObjects = new ReadOnlyList<ChartObject>(_chartObjects);
 
-            this.name = chart.name;
+            this.name = moonChart.name;
         }
 
         /// <summary>
@@ -97,10 +97,10 @@ namespace MoonscraperChartEditor.Song
         /// </summary>
         public void UpdateCache()
         {
-            Song.UpdateCacheList(notes, _chartObjects);
-            Song.UpdateCacheList(starPower, _chartObjects);
-            Song.UpdateCacheList(drumRoll, _chartObjects);
-            Song.UpdateCacheList(events, _chartObjects);
+            MoonSong.UpdateCacheList(notes, _chartObjects);
+            MoonSong.UpdateCacheList(starPower, _chartObjects);
+            MoonSong.UpdateCacheList(drumRoll, _chartObjects);
+            MoonSong.UpdateCacheList(events, _chartObjects);
 
             _note_count = GetNoteCount();
         }
@@ -160,8 +160,8 @@ namespace MoonscraperChartEditor.Song
         /// If set to false, you must manually call the updateArrays() method, but is useful when adding multiple objects as it increases performance dramatically.</param>
         public int Add(ChartObject chartObject, bool update = true)
         {
-            chartObject.chart = this;
-            chartObject.song = this._song;
+            chartObject.moonChart = this;
+            chartObject.moonSong = this._moonSong;
 
             int pos = SongObjectHelper.Insert(chartObject, _chartObjects);
 
@@ -198,8 +198,8 @@ namespace MoonscraperChartEditor.Song
 
             if (success)
             {
-                chartObject.chart = null;
-                chartObject.song = null;
+                chartObject.moonChart = null;
+                chartObject.moonSong = null;
             }
 
             if (update)

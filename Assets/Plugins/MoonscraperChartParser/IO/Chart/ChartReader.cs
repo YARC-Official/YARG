@@ -28,10 +28,10 @@ namespace MoonscraperChartEditor.Song.IO
         struct NoteFlag
         {
             public uint tick;
-            public Note.Flags flag;
+            public MoonNote.Flags flag;
             public int noteNumber;
 
-            public NoteFlag(uint tick, Note.Flags flag, int noteNumber)
+            public NoteFlag(uint tick, MoonNote.Flags flag, int noteNumber)
             {
                 this.tick = tick;
                 this.flag = flag;
@@ -48,7 +48,7 @@ namespace MoonscraperChartEditor.Song.IO
 
         struct NoteProcessParams
         {
-            public Chart chart;
+            public MoonChart moonChart;
             public NoteEvent noteEvent;
             public List<NoteEventProcessFn> postNotesAddedProcessList;
         }
@@ -58,12 +58,12 @@ namespace MoonscraperChartEditor.Song.IO
         // These dictionaries map the number of a note event to a specific function of how to process them
         static readonly IReadOnlyDictionary<int, NoteEventProcessFn> GuitarChartNoteNumberToProcessFnMap = new Dictionary<int, NoteEventProcessFn>()
         {
-            { 0, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)Note.GuitarFret.Green); }},
-            { 1, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)Note.GuitarFret.Red); }},
-            { 2, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)Note.GuitarFret.Yellow); }},
-            { 3, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)Note.GuitarFret.Blue); }},
-            { 4, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)Note.GuitarFret.Orange); }},
-            { 7, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)Note.GuitarFret.Open); }},
+            { 0, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)MoonNote.GuitarFret.Green); }},
+            { 1, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)MoonNote.GuitarFret.Red); }},
+            { 2, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)MoonNote.GuitarFret.Yellow); }},
+            { 3, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)MoonNote.GuitarFret.Blue); }},
+            { 4, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)MoonNote.GuitarFret.Orange); }},
+            { 7, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)MoonNote.GuitarFret.Open); }},
 
             { 5, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsChordFlag(noteProcessParams, NoteFlagPriority.Forced); }},
             { 6, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsChordFlag(noteProcessParams, NoteFlagPriority.Tap); }},
@@ -71,77 +71,77 @@ namespace MoonscraperChartEditor.Song.IO
 
         static readonly IReadOnlyDictionary<int, NoteEventProcessFn> DrumsChartNoteNumberToProcessFnMap = new Dictionary<int, NoteEventProcessFn>()
         {
-            { 0, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)Note.DrumPad.Kick); }},
-            { 1, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)Note.DrumPad.Red); }},
-            { 2, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)Note.DrumPad.Yellow); }},
-            { 3, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)Note.DrumPad.Blue); }},
-            { 4, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)Note.DrumPad.Orange); }},
-            { 5, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)Note.DrumPad.Green); }},
+            { 0, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)MoonNote.DrumPad.Kick); }},
+            { 1, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)MoonNote.DrumPad.Red); }},
+            { 2, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)MoonNote.DrumPad.Yellow); }},
+            { 3, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)MoonNote.DrumPad.Blue); }},
+            { 4, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)MoonNote.DrumPad.Orange); }},
+            { 5, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)MoonNote.DrumPad.Green); }},
 
             { ChartIOHelper.c_instrumentPlusOffset, (in NoteProcessParams noteProcessParams) => {
-                ProcessNoteOnEventAsNote(noteProcessParams, (int)Note.DrumPad.Kick, Note.Flags.DoubleKick);
+                ProcessNoteOnEventAsNote(noteProcessParams, (int)MoonNote.DrumPad.Kick, MoonNote.Flags.DoubleKick);
             } },
 
             { ChartIOHelper.c_proDrumsOffset + 2, (in NoteProcessParams noteProcessParams) => {
-                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)Note.DrumPad.Yellow, NoteFlagPriority.Cymbal);
+                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)MoonNote.DrumPad.Yellow, NoteFlagPriority.Cymbal);
             } },
             { ChartIOHelper.c_proDrumsOffset + 3, (in NoteProcessParams noteProcessParams) => {
-                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)Note.DrumPad.Blue, NoteFlagPriority.Cymbal);
+                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)MoonNote.DrumPad.Blue, NoteFlagPriority.Cymbal);
             } },
             { ChartIOHelper.c_proDrumsOffset + 4, (in NoteProcessParams noteProcessParams) => {
-                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)Note.DrumPad.Orange, NoteFlagPriority.Cymbal);
+                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)MoonNote.DrumPad.Orange, NoteFlagPriority.Cymbal);
             } },
 
             // { ChartIOHelper.c_drumsAccentOffset + 0, ... }  // Reserved for kick accents, if they should ever be a thing
             { ChartIOHelper.c_drumsAccentOffset + 1, (in NoteProcessParams noteProcessParams) => {
-                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)Note.DrumPad.Red, NoteFlagPriority.Accent);
+                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)MoonNote.DrumPad.Red, NoteFlagPriority.Accent);
             } },
             { ChartIOHelper.c_drumsAccentOffset + 2, (in NoteProcessParams noteProcessParams) => {
-                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)Note.DrumPad.Yellow, NoteFlagPriority.Accent);
+                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)MoonNote.DrumPad.Yellow, NoteFlagPriority.Accent);
             } },
             { ChartIOHelper.c_drumsAccentOffset + 3, (in NoteProcessParams noteProcessParams) => {
-                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)Note.DrumPad.Blue, NoteFlagPriority.Accent);
+                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)MoonNote.DrumPad.Blue, NoteFlagPriority.Accent);
             } },
             { ChartIOHelper.c_drumsAccentOffset + 4, (in NoteProcessParams noteProcessParams) => {
-                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)Note.DrumPad.Orange, NoteFlagPriority.Accent);
+                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)MoonNote.DrumPad.Orange, NoteFlagPriority.Accent);
             } },
             { ChartIOHelper.c_drumsAccentOffset + 5, (in NoteProcessParams noteProcessParams) => {
-                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)Note.DrumPad.Green, NoteFlagPriority.Accent);
+                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)MoonNote.DrumPad.Green, NoteFlagPriority.Accent);
             } },
 
             // { ChartIOHelper.c_drumsGhostOffset + 0, ... }  // Reserved for kick ghosts, if they should ever be a thing
             { ChartIOHelper.c_drumsGhostOffset + 1, (in NoteProcessParams noteProcessParams) => {
-                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)Note.DrumPad.Red, NoteFlagPriority.Ghost);
+                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)MoonNote.DrumPad.Red, NoteFlagPriority.Ghost);
             } },
             { ChartIOHelper.c_drumsGhostOffset + 2, (in NoteProcessParams noteProcessParams) => {
-                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)Note.DrumPad.Yellow, NoteFlagPriority.Ghost);
+                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)MoonNote.DrumPad.Yellow, NoteFlagPriority.Ghost);
             } },
             { ChartIOHelper.c_drumsGhostOffset + 3, (in NoteProcessParams noteProcessParams) => {
-                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)Note.DrumPad.Blue, NoteFlagPriority.Ghost);
+                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)MoonNote.DrumPad.Blue, NoteFlagPriority.Ghost);
             } },
             { ChartIOHelper.c_drumsGhostOffset + 4, (in NoteProcessParams noteProcessParams) => {
-                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)Note.DrumPad.Orange, NoteFlagPriority.Ghost);
+                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)MoonNote.DrumPad.Orange, NoteFlagPriority.Ghost);
             } },
             { ChartIOHelper.c_drumsGhostOffset + 5, (in NoteProcessParams noteProcessParams) => {
-                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)Note.DrumPad.Green, NoteFlagPriority.Ghost);
+                ProcessNoteOnEventAsNoteFlagToggle(noteProcessParams, (int)MoonNote.DrumPad.Green, NoteFlagPriority.Ghost);
             } },
         };
 
         static readonly IReadOnlyDictionary<int, NoteEventProcessFn> GhlChartNoteNumberToProcessFnMap = new Dictionary<int, NoteEventProcessFn>()
         {
-            { 0, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)Note.GHLiveGuitarFret.White1); }},
-            { 1, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)Note.GHLiveGuitarFret.White2); }},
-            { 2, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)Note.GHLiveGuitarFret.White3); }},
-            { 3, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)Note.GHLiveGuitarFret.Black1); }},
-            { 4, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)Note.GHLiveGuitarFret.Black2); }},
-            { 8, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)Note.GHLiveGuitarFret.Black3); }},
-            { 7, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)Note.GHLiveGuitarFret.Open); }},
+            { 0, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)MoonNote.GHLiveGuitarFret.White1); }},
+            { 1, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)MoonNote.GHLiveGuitarFret.White2); }},
+            { 2, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)MoonNote.GHLiveGuitarFret.White3); }},
+            { 3, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)MoonNote.GHLiveGuitarFret.Black1); }},
+            { 4, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)MoonNote.GHLiveGuitarFret.Black2); }},
+            { 8, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)MoonNote.GHLiveGuitarFret.Black3); }},
+            { 7, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsNote(noteProcessParams, (int)MoonNote.GHLiveGuitarFret.Open); }},
 
             { 5, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsChordFlag(noteProcessParams, NoteFlagPriority.Forced); }},
             { 6, (in NoteProcessParams noteProcessParams) => { ProcessNoteOnEventAsChordFlag(noteProcessParams, NoteFlagPriority.Tap); }},
         };
 
-        public static Song ReadChart(string filepath)
+        public static MoonSong ReadChart(string filepath)
         {
             try
             {
@@ -153,13 +153,13 @@ namespace MoonscraperChartEditor.Song.IO
 
                 if (standardChartFormat || extension == MsceIOHelper.FileExtention)
                 {
-                    Song song = new Song();
+                    MoonSong moonSong = new MoonSong();
 
                     ChartIOHelper.FileSubType fileLoadType = standardChartFormat ? ChartIOHelper.FileSubType.Default : ChartIOHelper.FileSubType.MoonscraperPropriety;
 
-                    LoadChart(song, filepath, fileLoadType);
+                    LoadChart(moonSong, filepath, fileLoadType);
 
-                    return song;
+                    return moonSong;
                 }
                 else
                 {
@@ -173,7 +173,7 @@ namespace MoonscraperChartEditor.Song.IO
             }
         }
 
-        static void LoadChart(Song song, string filepath, ChartIOHelper.FileSubType fileLoadType)
+        static void LoadChart(MoonSong moonSong, string filepath, ChartIOHelper.FileSubType fileLoadType)
         {
             bool open = false;
             string dataName = string.Empty;
@@ -204,7 +204,7 @@ namespace MoonscraperChartEditor.Song.IO
                     open = false;
 
                     // Submit data
-                    SubmitChartData(song, dataName, dataStrings, fileLoadType, filepath);
+                    SubmitChartData(moonSong, dataName, dataStrings, fileLoadType, filepath);
 
                     dataName = string.Empty;
                     dataStrings.Clear();
@@ -219,7 +219,7 @@ namespace MoonscraperChartEditor.Song.IO
                     else if (dataStrings.Count > 0 && dataName != string.Empty)
                     {
                         // Submit data
-                        SubmitChartData(song, dataName, dataStrings, fileLoadType, filepath);
+                        SubmitChartData(moonSong, dataName, dataStrings, fileLoadType, filepath);
 
                         dataName = string.Empty;
                         dataStrings.Clear();
@@ -234,10 +234,10 @@ namespace MoonscraperChartEditor.Song.IO
         time = Time.realtimeSinceStartup;
 #endif
 
-            song.UpdateCache();
+            moonSong.UpdateCache();
         }
 
-        static void SubmitChartData(Song song, string dataName, List<string> stringData, ChartIOHelper.FileSubType fileLoadType, string filePath = "")
+        static void SubmitChartData(MoonSong moonSong, string dataName, List<string> stringData, ChartIOHelper.FileSubType fileLoadType, string filePath = "")
         {
             switch (dataName)
             {
@@ -245,7 +245,7 @@ namespace MoonscraperChartEditor.Song.IO
 #if SONG_DEBUG
                 Debug.Log("Loading chart properties");
 #endif
-                    SubmitDataSong(song, stringData, new FileInfo(filePath).Directory.FullName);
+                    SubmitDataSong(moonSong, stringData, new FileInfo(filePath).Directory.FullName);
                     break;
                 case ChartIOHelper.c_dataBlockSyncTrack:
 #if SONG_DEBUG
@@ -255,7 +255,7 @@ namespace MoonscraperChartEditor.Song.IO
 #if SONG_DEBUG
                 Debug.Log("Loading events data");
 #endif
-                    SubmitDataGlobals(song, stringData, fileLoadType);
+                    SubmitDataGlobals(moonSong, stringData, fileLoadType);
                     break;
                 default:
                     // Determine what difficulty
@@ -263,24 +263,24 @@ namespace MoonscraperChartEditor.Song.IO
                     {
                         if (Regex.IsMatch(dataName, string.Format(@"\[{0}.", kvPair.Key)))
                         {
-                            Song.Difficulty chartDiff = kvPair.Value;
+                            MoonSong.Difficulty chartDiff = kvPair.Value;
                             int instumentStringOffset = 1 + kvPair.Key.Length;
 
                             string instrumentKey = dataName.Substring(instumentStringOffset, dataName.Length - instumentStringOffset - 1);
-                            Song.Instrument instrument;
-                            if (ChartIOHelper.c_instrumentStrToEnumLookup.TryGetValue(instrumentKey, out instrument))
+                            MoonSong.MoonInstrument moonInstrument;
+                            if (ChartIOHelper.c_instrumentStrToEnumLookup.TryGetValue(instrumentKey, out moonInstrument))
                             {
                                 ChartIOHelper.TrackLoadType instrumentParsingType;
-                                if (!ChartIOHelper.c_instrumentParsingTypeLookup.TryGetValue(instrument, out instrumentParsingType))
+                                if (!ChartIOHelper.c_instrumentParsingTypeLookup.TryGetValue(moonInstrument, out instrumentParsingType))
                                 {
                                     instrumentParsingType = ChartIOHelper.TrackLoadType.Guitar;
                                 }
 
-                                LoadChart(song.GetChart(instrument, chartDiff), stringData, instrumentParsingType, fileLoadType);
+                                LoadChart(moonSong.GetChart(moonInstrument, chartDiff), stringData, instrumentParsingType, fileLoadType);
                             }
                             else
                             {
-                                LoadUnrecognisedChart(song, dataName, stringData, fileLoadType);
+                                LoadUnrecognisedChart(moonSong, dataName, stringData, fileLoadType);
                             }
 
                             goto OnChartLoaded;
@@ -289,7 +289,7 @@ namespace MoonscraperChartEditor.Song.IO
 
                     {
                         // Add to the unused chart list
-                        LoadUnrecognisedChart(song, dataName, stringData, fileLoadType);
+                        LoadUnrecognisedChart(moonSong, dataName, stringData, fileLoadType);
                         goto OnChartLoaded;
                     }
 
@@ -299,16 +299,16 @@ namespace MoonscraperChartEditor.Song.IO
             }
         }
 
-        static void LoadUnrecognisedChart(Song song, string dataName, List<string> stringData, ChartIOHelper.FileSubType fileLoadType)
+        static void LoadUnrecognisedChart(MoonSong moonSong, string dataName, List<string> stringData, ChartIOHelper.FileSubType fileLoadType)
         {
             dataName = dataName.TrimStart('[');
             dataName = dataName.TrimEnd(']');
-            Chart unrecognisedChart = new Chart(song, Song.Instrument.Unrecognised, dataName);
-            LoadChart(unrecognisedChart, stringData, ChartIOHelper.TrackLoadType.Unrecognised, fileLoadType);
-            song.unrecognisedCharts.Add(unrecognisedChart);
+            MoonChart unrecognisedMoonChart = new MoonChart(moonSong, MoonSong.MoonInstrument.Unrecognised, dataName);
+            LoadChart(unrecognisedMoonChart, stringData, ChartIOHelper.TrackLoadType.Unrecognised, fileLoadType);
+            moonSong.unrecognisedCharts.Add(unrecognisedMoonChart);
         }
 
-        static void SubmitDataSong(Song song, List<string> stringData, string audioDirectory = "")
+        static void SubmitDataSong(MoonSong moonSong, List<string> stringData, string audioDirectory = "")
         {
 #if SONG_DEBUG
         Debug.Log("Loading song properties");
@@ -317,7 +317,7 @@ namespace MoonscraperChartEditor.Song.IO
         float time = Time.realtimeSinceStartup;
 #endif
 
-            Metadata metaData = song.metaData;
+            Metadata metaData = moonSong.metaData;
 
             try
             {
@@ -350,13 +350,13 @@ namespace MoonscraperChartEditor.Song.IO
                     // Offset = 0
                     else if (ChartIOHelper.MetaData.offset.regex.IsMatch(line))
                     {
-                        song.offset = ChartIOHelper.MetaData.ParseAsFloat(line);
+                        moonSong.offset = ChartIOHelper.MetaData.ParseAsFloat(line);
                     }
 
                     // Resolution = 192
                     else if (ChartIOHelper.MetaData.resolution.regex.IsMatch(line))
                     {
-                        song.resolution = ChartIOHelper.MetaData.ParseAsShort(line);
+                        moonSong.resolution = ChartIOHelper.MetaData.ParseAsShort(line);
                     }
 
                     // Player2 = bass
@@ -384,7 +384,7 @@ namespace MoonscraperChartEditor.Song.IO
                     // Length = 300
                     else if (ChartIOHelper.MetaData.length.regex.IsMatch(line))
                     {
-                        song.manualLength = ChartIOHelper.MetaData.ParseAsFloat(line);
+                        moonSong.manualLength = ChartIOHelper.MetaData.ParseAsFloat(line);
                     }
 
                     // PreviewStart = 0.00
@@ -417,47 +417,47 @@ namespace MoonscraperChartEditor.Song.IO
                     // MusicStream = "ENDLESS REBIRTH.ogg"
                     else if (ChartIOHelper.MetaData.musicStream.regex.IsMatch(line))
                     {
-                        AudioLoadFromChart(song, Song.AudioInstrument.Song, line, audioDirectory);
+                        AudioLoadFromChart(moonSong, MoonSong.AudioInstrument.Song, line, audioDirectory);
                     }
                     else if (ChartIOHelper.MetaData.guitarStream.regex.IsMatch(line))
                     {
-                        AudioLoadFromChart(song, Song.AudioInstrument.Guitar, line, audioDirectory);
+                        AudioLoadFromChart(moonSong, MoonSong.AudioInstrument.Guitar, line, audioDirectory);
                     }
                     else if (ChartIOHelper.MetaData.bassStream.regex.IsMatch(line))
                     {
-                        AudioLoadFromChart(song, Song.AudioInstrument.Bass, line, audioDirectory);
+                        AudioLoadFromChart(moonSong, MoonSong.AudioInstrument.Bass, line, audioDirectory);
                     }
                     else if (ChartIOHelper.MetaData.rhythmStream.regex.IsMatch(line))
                     {
-                        AudioLoadFromChart(song, Song.AudioInstrument.Rhythm, line, audioDirectory);
+                        AudioLoadFromChart(moonSong, MoonSong.AudioInstrument.Rhythm, line, audioDirectory);
                     }
                     else if (ChartIOHelper.MetaData.drumStream.regex.IsMatch(line))
                     {
-                        AudioLoadFromChart(song, Song.AudioInstrument.Drum, line, audioDirectory);
+                        AudioLoadFromChart(moonSong, MoonSong.AudioInstrument.Drum, line, audioDirectory);
                     }
                     else if (ChartIOHelper.MetaData.drum2Stream.regex.IsMatch(line))
                     {
-                        AudioLoadFromChart(song, Song.AudioInstrument.Drums_2, line, audioDirectory);
+                        AudioLoadFromChart(moonSong, MoonSong.AudioInstrument.Drums_2, line, audioDirectory);
                     }
                     else if (ChartIOHelper.MetaData.drum3Stream.regex.IsMatch(line))
                     {
-                        AudioLoadFromChart(song, Song.AudioInstrument.Drums_3, line, audioDirectory);
+                        AudioLoadFromChart(moonSong, MoonSong.AudioInstrument.Drums_3, line, audioDirectory);
                     }
                     else if (ChartIOHelper.MetaData.drum4Stream.regex.IsMatch(line))
                     {
-                        AudioLoadFromChart(song, Song.AudioInstrument.Drums_4, line, audioDirectory);
+                        AudioLoadFromChart(moonSong, MoonSong.AudioInstrument.Drums_4, line, audioDirectory);
                     }
                     else if (ChartIOHelper.MetaData.vocalStream.regex.IsMatch(line))
                     {
-                        AudioLoadFromChart(song, Song.AudioInstrument.Vocals, line, audioDirectory);
+                        AudioLoadFromChart(moonSong, MoonSong.AudioInstrument.Vocals, line, audioDirectory);
                     }
                     else if (ChartIOHelper.MetaData.keysStream.regex.IsMatch(line))
                     {
-                        AudioLoadFromChart(song, Song.AudioInstrument.Keys, line, audioDirectory);
+                        AudioLoadFromChart(moonSong, MoonSong.AudioInstrument.Keys, line, audioDirectory);
                     }
                     else if (ChartIOHelper.MetaData.crowdStream.regex.IsMatch(line))
                     {
-                        AudioLoadFromChart(song, Song.AudioInstrument.Crowd, line, audioDirectory);
+                        AudioLoadFromChart(moonSong, MoonSong.AudioInstrument.Crowd, line, audioDirectory);
                     }
                 }
 
@@ -471,7 +471,7 @@ namespace MoonscraperChartEditor.Song.IO
             }
         }
 
-        static void AudioLoadFromChart(Song song, Song.AudioInstrument streamAudio, string line, string audioDirectory)
+        static void AudioLoadFromChart(MoonSong moonSong, MoonSong.AudioInstrument streamAudio, string line, string audioDirectory)
         {
             string audioFilepath = ChartIOHelper.MetaData.ParseAsString(line);
 
@@ -480,10 +480,10 @@ namespace MoonscraperChartEditor.Song.IO
                 audioFilepath = Path.Combine(audioDirectory, audioFilepath);
 
             if (File.Exists(audioFilepath) && Utility.validateExtension(audioFilepath, Globals.validAudioExtensions))
-                song.SetAudioLocation(streamAudio, Path.GetFullPath(audioFilepath));
+                moonSong.SetAudioLocation(streamAudio, Path.GetFullPath(audioFilepath));
         }
 
-        static void SubmitDataGlobals(Song song, List<string> stringData, ChartIOHelper.FileSubType fileLoadType)
+        static void SubmitDataGlobals(MoonSong moonSong, List<string> stringData, ChartIOHelper.FileSubType fileLoadType)
         {
             const int TEXT_POS_TICK = 0;
             const int TEXT_POS_EVENT_TYPE = 2;
@@ -520,14 +520,14 @@ namespace MoonscraperChartEditor.Song.IO
                         if (stringSplit.Length > TEXT_POS_DATA_1 + 1 && !uint.TryParse(stringSplit[TEXT_POS_DATA_1 + 1], out denominator))
                             continue;
 
-                        song.Add(new TimeSignature(tick, numerator, (uint)(Mathf.Pow(2, denominator))), false);
+                        moonSong.Add(new TimeSignature(tick, numerator, (uint)(Mathf.Pow(2, denominator))), false);
                         break;
                     case ("b"):
                         uint value;
                         if (!uint.TryParse(stringSplit[TEXT_POS_DATA_1], out value))
                             continue;
 
-                        song.Add(new BPM(tick, value), false);
+                        moonSong.Add(new BPM(tick, value), false);
                         break;
                     case ("e"):
                         System.Text.StringBuilder sb = new System.Text.StringBuilder();
@@ -549,7 +549,7 @@ namespace MoonscraperChartEditor.Song.IO
 
                         if (isSection)
                         {
-                            song.Add(new Section(sb.ToString(), tick), false);
+                            moonSong.Add(new Section(sb.ToString(), tick), false);
                         }
                         else
                         {
@@ -563,7 +563,7 @@ namespace MoonscraperChartEditor.Song.IO
                                 }
                             }
 
-                            song.Add(new Event(eventTitle, tick), false);
+                            moonSong.Add(new Event(eventTitle, tick), false);
                         }
 
                         break;
@@ -582,7 +582,7 @@ namespace MoonscraperChartEditor.Song.IO
                 }
             }
 
-            BPM[] bpms = song.syncTrack.OfType<BPM>().ToArray();        // BPMs are currently uncached
+            BPM[] bpms = moonSong.syncTrack.OfType<BPM>().ToArray();        // BPMs are currently uncached
             foreach (Anchor anchor in anchorData)
             {
                 int arrayPos = SongObjectHelper.FindClosestPosition(anchor.tick, bpms);
@@ -630,7 +630,7 @@ namespace MoonscraperChartEditor.Song.IO
             while ((startIndex + ++length) < line.Length && line[startIndex + length] != ' ') ;
         }
 
-        static void LoadChart(Chart chart, IList<string> data, ChartIOHelper.TrackLoadType instrument, ChartIOHelper.FileSubType fileLoadType)
+        static void LoadChart(MoonChart moonChart, IList<string> data, ChartIOHelper.TrackLoadType instrument, ChartIOHelper.FileSubType fileLoadType)
         {
 #if TIMING_DEBUG
         float time = Time.realtimeSinceStartup;
@@ -640,13 +640,13 @@ namespace MoonscraperChartEditor.Song.IO
 
             NoteProcessParams processParams = new NoteProcessParams()
             {
-                chart = chart,
+                moonChart = moonChart,
                 postNotesAddedProcessList = postNotesAddedProcessList
             };
 
-            chart.SetCapacity(data.Count);
+            moonChart.SetCapacity(data.Count);
 
-            var noteProcessDict = GetNoteProcessDict(chart.gameMode);
+            var noteProcessDict = GetNoteProcessDict(moonChart.gameMode);
 
             try
             {
@@ -695,8 +695,8 @@ namespace MoonscraperChartEditor.Song.IO
 
                                     if (instrument == ChartIOHelper.TrackLoadType.Unrecognised)
                                     {
-                                        Note newNote = new Note(tick, fret_type, length);
-                                        chart.Add(newNote, false);
+                                        MoonNote newMoonNote = new MoonNote(tick, fret_type, length);
+                                        moonChart.Add(newMoonNote, false);
                                     }
                                     else
                                     {
@@ -735,7 +735,7 @@ namespace MoonscraperChartEditor.Song.IO
                                     {
                                         case ChartIOHelper.c_starpowerId:
                                             {
-                                                chart.Add(new Starpower(tick, length), false);
+                                                moonChart.Add(new Starpower(tick, length), false);
                                                 break;
                                             }
 
@@ -743,7 +743,7 @@ namespace MoonscraperChartEditor.Song.IO
                                             {
                                                 if (instrument == ChartIOHelper.TrackLoadType.Drums)
                                                 {
-                                                    chart.Add(new Starpower(tick, length, Starpower.Flags.ProDrums_Activation), false);
+                                                    moonChart.Add(new Starpower(tick, length, Starpower.Flags.ProDrums_Activation), false);
                                                 }
                                                 else
                                                 {
@@ -756,7 +756,7 @@ namespace MoonscraperChartEditor.Song.IO
                                             {
                                                 if (instrument == ChartIOHelper.TrackLoadType.Drums)
                                                 {
-                                                    chart.Add(new DrumRoll(tick, length, DrumRoll.Type.Standard), false);
+                                                    moonChart.Add(new DrumRoll(tick, length, DrumRoll.Type.Standard), false);
                                                 }
                                                 else
                                                 {
@@ -768,7 +768,7 @@ namespace MoonscraperChartEditor.Song.IO
                                             {
                                                 if (instrument == ChartIOHelper.TrackLoadType.Drums)
                                                 {
-                                                    chart.Add(new DrumRoll(tick, length, DrumRoll.Type.Special), false);
+                                                    moonChart.Add(new DrumRoll(tick, length, DrumRoll.Type.Special), false);
                                                 }
                                                 else
                                                 {
@@ -801,7 +801,7 @@ namespace MoonscraperChartEditor.Song.IO
                                         }
                                     }
 
-                                    chart.Add(new ChartEvent(tick, eventName), false);
+                                    moonChart.Add(new ChartEvent(tick, eventName), false);
                                     break;
                                 }
                             default:
@@ -814,7 +814,7 @@ namespace MoonscraperChartEditor.Song.IO
                         Debug.LogError("Error parsing chart reader line \"" + line);
                     }
                 }
-                chart.UpdateCache();
+                moonChart.UpdateCache();
 
                 foreach (var fn in postNotesAddedProcessList)
                 {
@@ -829,19 +829,19 @@ namespace MoonscraperChartEditor.Song.IO
             {
                 // Bad load, most likely a parsing error
                 Debug.LogError("Error parsing chart reader chart data");
-                chart.Clear();
+                moonChart.Clear();
             }
         }
 
-        static IReadOnlyDictionary<int, NoteEventProcessFn> GetNoteProcessDict(Chart.GameMode gameMode)
+        static IReadOnlyDictionary<int, NoteEventProcessFn> GetNoteProcessDict(MoonChart.GameMode gameMode)
         {
             switch (gameMode)
             {
-                case Chart.GameMode.GHLGuitar:
+                case MoonChart.GameMode.GHLGuitar:
                     {
                         return GhlChartNoteNumberToProcessFnMap;
                     }
-                case Chart.GameMode.Drums:
+                case MoonChart.GameMode.Drums:
                     {
                         return DrumsChartNoteNumberToProcessFnMap;
                     }
@@ -852,16 +852,16 @@ namespace MoonscraperChartEditor.Song.IO
             return GuitarChartNoteNumberToProcessFnMap;
         }
 
-        static void ProcessNoteOnEventAsNote(in NoteProcessParams noteProcessParams, int ingameFret, Note.Flags defaultFlags = Note.Flags.None)
+        static void ProcessNoteOnEventAsNote(in NoteProcessParams noteProcessParams, int ingameFret, MoonNote.Flags defaultFlags = MoonNote.Flags.None)
         {
-            Chart chart = noteProcessParams.chart;
+            MoonChart moonChart = noteProcessParams.moonChart;
 
             NoteEvent noteEvent = noteProcessParams.noteEvent;
             var tick = noteEvent.tick;
             var sus = noteEvent.length;
 
-            Note newNote = new Note(tick, ingameFret, sus, defaultFlags);
-            chart.Add(newNote, false);
+            MoonNote newMoonNote = new MoonNote(tick, ingameFret, sus, defaultFlags);
+            moonChart.Add(newMoonNote, false);
         }
 
         static void ProcessNoteOnEventAsChordFlag(in NoteProcessParams noteProcessParams, NoteFlagPriority flagData)
@@ -877,13 +877,13 @@ namespace MoonscraperChartEditor.Song.IO
 
         static void ProcessNoteOnEventAsChordFlagPostDelay(in NoteProcessParams noteProcessParams, NoteEvent noteEvent, NoteFlagPriority flagData)
         {
-            Chart chart = noteProcessParams.chart;
+            MoonChart moonChart = noteProcessParams.moonChart;
 
             int index, length;
-            SongObjectHelper.FindObjectsAtPosition(noteEvent.tick, chart.notes, out index, out length);
+            SongObjectHelper.FindObjectsAtPosition(noteEvent.tick, moonChart.notes, out index, out length);
             if (length > 0)
             {
-                GroupAddFlags(chart.notes, flagData, index, length);
+                GroupAddFlags(moonChart.notes, flagData, index, length);
             }
         }
 
@@ -900,24 +900,24 @@ namespace MoonscraperChartEditor.Song.IO
 
         static void ProcessNoteOnEventAsNoteFlagTogglePostDelay(in NoteProcessParams noteProcessParams, int rawNote, NoteEvent noteEvent, NoteFlagPriority flagData)
         {
-            Chart chart = noteProcessParams.chart;
+            MoonChart moonChart = noteProcessParams.moonChart;
 
             int index, length;
-            SongObjectHelper.FindObjectsAtPosition(noteEvent.tick, chart.notes, out index, out length);
+            SongObjectHelper.FindObjectsAtPosition(noteEvent.tick, moonChart.notes, out index, out length);
             if (length > 0)
             {
                 for (int i = index; i < index + length; ++i)
                 {
-                    Note note = chart.notes[i];
-                    if (note.rawNote == rawNote)
+                    MoonNote moonNote = moonChart.notes[i];
+                    if (moonNote.rawNote == rawNote)
                     {
-                        TryAddNoteFlags(note, flagData);
+                        TryAddNoteFlags(moonNote, flagData);
                     }
                 }
             }
         }
 
-        static void GroupAddFlags(IList<Note> notes, NoteFlagPriority flagData, int index, int length)
+        static void GroupAddFlags(IList<MoonNote> notes, NoteFlagPriority flagData, int index, int length)
         {
             for (int i = index; i < index + length; ++i)
             {
@@ -925,9 +925,9 @@ namespace MoonscraperChartEditor.Song.IO
             }
         }
 
-        static void TryAddNoteFlags(Note note, NoteFlagPriority flagData)
+        static void TryAddNoteFlags(MoonNote moonNote, NoteFlagPriority flagData)
         {
-            if (!flagData.TryApplyToNote(note))
+            if (!flagData.TryApplyToNote(moonNote))
             {
                 Debug.LogWarning($"Could not apply flag {flagData.flagToAdd} to a note. It was blocked by existing flag {flagData.blockingFlag}.");
             }

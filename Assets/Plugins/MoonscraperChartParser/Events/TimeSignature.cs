@@ -66,7 +66,7 @@ namespace MoonscraperChartEditor.Song
         public MeasureInfo GetMeasureInfo()
         {
             MeasureInfo measureInfo = new MeasureInfo();
-            float resolution = song.resolution;
+            float resolution = moonSong.resolution;
 
             {
                 measureInfo.measureLine.tickOffset = 0;

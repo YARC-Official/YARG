@@ -52,19 +52,19 @@ namespace MoonscraperChartEditor.Song
                 newLength = 0;
 
             DrumRoll nextRoll = null;
-            if (song != null && chart != null)
+            if (moonSong != null && moonChart != null)
             {
-                int arrayPos = SongObjectHelper.FindClosestPosition(this, chart.drumRoll);
+                int arrayPos = SongObjectHelper.FindClosestPosition(this, moonChart.drumRoll);
                 if (arrayPos == SongObjectHelper.NOTFOUND)
                     return newLength;
 
-                while (arrayPos < chart.drumRoll.Count - 1 && chart.drumRoll[arrayPos].tick <= tick)
+                while (arrayPos < moonChart.drumRoll.Count - 1 && moonChart.drumRoll[arrayPos].tick <= tick)
                 {
                     ++arrayPos;
                 }
 
-                if (chart.drumRoll[arrayPos].tick > tick)
-                    nextRoll = chart.drumRoll[arrayPos];
+                if (moonChart.drumRoll[arrayPos].tick > tick)
+                    nextRoll = moonChart.drumRoll[arrayPos];
 
                 if (nextRoll != null)
                 {

@@ -13,7 +13,7 @@ namespace MoonscraperChartEditor.Song.IO
                 RB3,
             }
 
-            public Song.Difficulty difficultyToUseGlobalTrackEvents;   // Which difficulty to take things like starpower, tap, solo and tom toggle events from
+            public MoonSong.Difficulty difficultyToUseGlobalTrackEvents;   // Which difficulty to take things like starpower, tap, solo and tom toggle events from
             public RBFormat rbFormat;      // Changes section name prefix
         }
 

@@ -3,32 +3,32 @@
 public static class SongIniFunctions
 {
 
-    static string GetCHDifficultyTagForInstrument(Song.Instrument instrument)
+    static string GetCHDifficultyTagForInstrument(MoonSong.MoonInstrument moonInstrument)
     {
-        switch (instrument)
+        switch (moonInstrument)
         {
-            case Song.Instrument.Guitar:
+            case MoonSong.MoonInstrument.Guitar:
                 return "diff_guitar";
 
-            case Song.Instrument.Rhythm:
+            case MoonSong.MoonInstrument.Rhythm:
                 return "diff_rhythm";
 
-            case Song.Instrument.Bass:
+            case MoonSong.MoonInstrument.Bass:
                 return "diff_bass";
 
-            case Song.Instrument.Drums:
+            case MoonSong.MoonInstrument.Drums:
                 return "diff_drums";
 
-            case Song.Instrument.Keys:
+            case MoonSong.MoonInstrument.Keys:
                 return "diff_keys";
 
-            case Song.Instrument.GHLiveGuitar:
+            case MoonSong.MoonInstrument.GHLiveGuitar:
                 return "diff_guitarghl";
 
-            case Song.Instrument.GHLiveBass:
+            case MoonSong.MoonInstrument.GHLiveBass:
                 return "diff_bassghl";
 
-            case Song.Instrument.GHLiveRhythm:
+            case MoonSong.MoonInstrument.GHLiveRhythm:
                 return "diff_rhythmghl";
         }
 

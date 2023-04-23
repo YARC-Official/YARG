@@ -10,20 +10,20 @@ public static class NoteFunctions {
     /// Gets all the notes (including this one) that share the same tick position as this one.
     /// </summary>
     /// <returns>Returns an array of all the notes currently sharing the same tick position as this note.</returns>
-    public static Note[] GetChord(this Note note)
+    public static MoonNote[] GetChord(this MoonNote moonNote)
     {
-        List<Note> chord = new List<Note>();
-        chord.Add(note);
+        List<MoonNote> chord = new List<MoonNote>();
+        chord.Add(moonNote);
     
-        Note previous = note.previous;
-        while (previous != null && previous.tick == note.tick)
+        MoonNote previous = moonNote.previous;
+        while (previous != null && previous.tick == moonNote.tick)
         {
             chord.Add(previous);
             previous = previous.previous;
         }
     
-        Note next = note.next;
-        while (next != null && next.tick == note.tick)
+        MoonNote next = moonNote.next;
+        while (next != null && next.tick == moonNote.tick)
         {
             chord.Add(next);
             next = next.next;
@@ -32,18 +32,18 @@ public static class NoteFunctions {
         return chord.ToArray();
     }
 
-    public static void ApplyFlagsToChord(this Note note)
+    public static void ApplyFlagsToChord(this MoonNote moonNote)
     {
-        foreach (Note chordNote in note.chord)
+        foreach (MoonNote chordNote in moonNote.chord)
         {
-            chordNote.flags = CopyChordFlags(chordNote.flags, note.flags);
+            chordNote.flags = CopyChordFlags(chordNote.flags, moonNote.flags);
         }
     }
     
-    static Note.Flags CopyChordFlags(Note.Flags original, Note.Flags noteToCopyFrom)
+    static MoonNote.Flags CopyChordFlags(MoonNote.Flags original, MoonNote.Flags noteToCopyFrom)
     {
-        Note.Flags flagsToPreserve = original & Note.PER_NOTE_FLAGS;
-        Note.Flags newFlags = noteToCopyFrom & ~Note.PER_NOTE_FLAGS;
+        MoonNote.Flags flagsToPreserve = original & MoonNote.PER_NOTE_FLAGS;
+        MoonNote.Flags newFlags = noteToCopyFrom & ~MoonNote.PER_NOTE_FLAGS;
         newFlags |= flagsToPreserve;
 
         return newFlags;

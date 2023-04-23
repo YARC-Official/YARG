@@ -316,10 +316,10 @@ namespace MoonscraperChartEditor.Song
             if ((SongObject.ID)item.classID == SongObject.ID.Note)
             {
                 // Update linked list
-                Note current = list[insertionPos] as Note;
+                MoonNote current = list[insertionPos] as MoonNote;
 
-                Note previous = FindPreviousOfType(typeof(Note), insertionPos, list) as Note;
-                Note next = FindNextOfType(typeof(Note), insertionPos, list) as Note;
+                MoonNote previous = FindPreviousOfType(typeof(MoonNote), insertionPos, list) as MoonNote;
+                MoonNote next = FindNextOfType(typeof(MoonNote), insertionPos, list) as MoonNote;
 
                 current.previous = previous;
                 if (previous != null)
@@ -404,11 +404,11 @@ namespace MoonscraperChartEditor.Song
 
             if (pos != NOTFOUND)
             {
-                if (uniqueData && item.GetType() == typeof(Note))
+                if (uniqueData && item.GetType() == typeof(MoonNote))
                 {
                     // Update linked list
-                    Note previous = FindPreviousOfType(item.GetType(), pos, list) as Note;
-                    Note next = FindNextOfType(item.GetType(), pos, list) as Note;
+                    MoonNote previous = FindPreviousOfType(item.GetType(), pos, list) as MoonNote;
+                    MoonNote next = FindNextOfType(item.GetType(), pos, list) as MoonNote;
 
                     if (previous != null)
                         previous.next = next;

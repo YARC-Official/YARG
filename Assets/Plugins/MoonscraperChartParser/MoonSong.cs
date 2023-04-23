@@ -12,7 +12,7 @@ using MoonscraperEngine;
 
 namespace MoonscraperChartEditor.Song
 {
-    public class Song
+    public class MoonSong
     {
         // Song properties
         public Metadata metaData = new Metadata();
@@ -60,8 +60,8 @@ namespace MoonscraperChartEditor.Song
         public float? manualLength = null;
 
         // Charts
-        Chart[] charts;
-        public List<Chart> unrecognisedCharts = new List<Chart>();
+        MoonChart[] charts;
+        public List<MoonChart> unrecognisedCharts = new List<MoonChart>();
 
         public List<Event> _events;
         List<SyncTrack> _syncTrack;
@@ -90,7 +90,7 @@ namespace MoonscraperChartEditor.Song
         /// <summary>
         /// Default constructor for a new chart. Initialises all lists and adds locked bpm and timesignature objects.
         /// </summary>
-        public Song()
+        public MoonSong()
         {
             _events = new List<Event>();
             _syncTrack = new List<SyncTrack>();
@@ -107,52 +107,52 @@ namespace MoonscraperChartEditor.Song
             Add(new TimeSignature());
 
             // Chart initialisation
-            int numberOfInstruments = EnumX<Instrument>.Count - 1;     // Don't count the "Unused" instrument
-            charts = new Chart[numberOfInstruments * EnumX<Difficulty>.Count];
+            int numberOfInstruments = EnumX<MoonInstrument>.Count - 1;     // Don't count the "Unused" instrument
+            charts = new MoonChart[numberOfInstruments * EnumX<Difficulty>.Count];
 
             for (int i = 0; i < charts.Length; ++i)
             {
-                Instrument instrument = (Instrument)(i / EnumX<Difficulty>.Count);
-                charts[i] = new Chart(this, instrument);
+                MoonInstrument moonInstrument = (MoonInstrument)(i / EnumX<Difficulty>.Count);
+                charts[i] = new MoonChart(this, moonInstrument);
             }
 
             // Set the name of the chart
-            foreach (Instrument instrument in EnumX<Instrument>.Values)
+            foreach (MoonInstrument instrument in EnumX<MoonInstrument>.Values)
             {
-                if (instrument == Instrument.Unrecognised)
+                if (instrument == MoonInstrument.Unrecognised)
                     continue;
 
                 string instrumentName = string.Empty;
                 switch (instrument)
                 {
-                    case (Instrument.Guitar):
+                    case (MoonInstrument.Guitar):
                         instrumentName += "Guitar - ";
                         break;
-                    case (Instrument.GuitarCoop):
+                    case (MoonInstrument.GuitarCoop):
                         instrumentName += "Guitar - Co-op - ";
                         break;
-                    case (Instrument.Bass):
+                    case (MoonInstrument.Bass):
                         instrumentName += "Bass - ";
                         break;
-                    case (Instrument.Rhythm):
+                    case (MoonInstrument.Rhythm):
                         instrumentName += "Rhythm - ";
                         break;
-                    case (Instrument.Keys):
+                    case (MoonInstrument.Keys):
                         instrumentName += "Keys - ";
                         break;
-                    case (Instrument.Drums):
+                    case (MoonInstrument.Drums):
                         instrumentName += "Drums - ";
                         break;
-                    case (Instrument.GHLiveGuitar):
+                    case (MoonInstrument.GHLiveGuitar):
                         instrumentName += "GHLive Guitar - ";
                         break;
-                    case (Instrument.GHLiveBass):
+                    case (MoonInstrument.GHLiveBass):
                         instrumentName += "GHLive Bass - ";
                         break;
-                    case (Instrument.GHLiveRhythm):
+                    case (MoonInstrument.GHLiveRhythm):
                         instrumentName += "GHLive Rhythm - ";
                         break;
-                    case (Instrument.GHLiveCoop):
+                    case (MoonInstrument.GHLiveCoop):
                         instrumentName += "GHLive Co-op - ";
                         break;
                     default:
@@ -171,29 +171,29 @@ namespace MoonscraperChartEditor.Song
             UpdateCache();
         }
 
-        public Song(Song song) : this()
+        public MoonSong(MoonSong moonSong) : this()
         {
-            metaData = new Metadata(song.metaData);
-            offset = song.offset;
-            resolution = song.resolution;
+            metaData = new Metadata(moonSong.metaData);
+            offset = moonSong.offset;
+            resolution = moonSong.resolution;
 
             _events.Clear();
             _syncTrack.Clear();
 
-            _events.AddRange(song._events);
-            _syncTrack.AddRange(song._syncTrack);
+            _events.AddRange(moonSong._events);
+            _syncTrack.AddRange(moonSong._syncTrack);
 
-            manualLength = song.manualLength;
+            manualLength = moonSong.manualLength;
 
-            charts = new Chart[song.charts.Length];
+            charts = new MoonChart[moonSong.charts.Length];
             for (int i = 0; i < charts.Length; ++i)
             {
-                charts[i] = new Chart(song.charts[i], this);
+                charts[i] = new MoonChart(moonSong.charts[i], this);
             }
 
             for (int i = 0; i < audioLocations.Length; ++i)
             {
-                audioLocations[i] = song.audioLocations[i];
+                audioLocations[i] = moonSong.audioLocations[i];
             }
 
             // iniProperties = new INIParser();
@@ -201,15 +201,15 @@ namespace MoonscraperChartEditor.Song
             // iniProperties.WriteValue(song.iniProperties);
         }
 
-        ~Song()
+        ~MoonSong()
         {
         }
 
-        public Chart GetChart(Instrument instrument, Difficulty difficulty)
+        public MoonChart GetChart(MoonInstrument moonInstrument, Difficulty difficulty)
         {
             try
             {
-                return charts[(int)instrument * EnumX<Difficulty>.Count + (int)difficulty];
+                return charts[(int)moonInstrument * EnumX<Difficulty>.Count + (int)difficulty];
             }
             catch (Exception e)
             {
@@ -218,11 +218,11 @@ namespace MoonscraperChartEditor.Song
             }
         }
 
-        public bool ChartExistsForInstrument(Instrument instrument)
+        public bool ChartExistsForInstrument(MoonInstrument moonInstrument)
         {
             foreach (Difficulty difficulty in EnumX<Difficulty>.Values)
             {
-                var chart = GetChart(instrument, difficulty);
+                var chart = GetChart(moonInstrument, difficulty);
                 if (chart.chartObjects.Count > 0)
                 {
                     return true;
@@ -327,7 +327,7 @@ namespace MoonscraperChartEditor.Song
         /// If set to false, you must manually call the updateArrays() method, but is useful when adding multiple objects as it increases performance dramatically.</param>
         public void Add(SyncTrack syncTrackObject, bool autoUpdate = true)
         {
-            syncTrackObject.song = this;
+            syncTrackObject.moonSong = this;
             SongObjectHelper.Insert(syncTrackObject, _syncTrack);
 
             if (autoUpdate)
@@ -351,7 +351,7 @@ namespace MoonscraperChartEditor.Song
 
             if (success)
             {
-                syncTrackObject.song = null;
+                syncTrackObject.moonSong = null;
             }
 
             if (autoUpdate)
@@ -368,7 +368,7 @@ namespace MoonscraperChartEditor.Song
         /// If set to false, you must manually call the updateArrays() method, but is useful when adding multiple objects as it increases performance dramatically.</param>
         public void Add(Event eventObject, bool autoUpdate = true)
         {
-            eventObject.song = this;
+            eventObject.moonSong = this;
             SongObjectHelper.Insert(eventObject, _events);
 
             if (autoUpdate)
@@ -388,7 +388,7 @@ namespace MoonscraperChartEditor.Song
 
             if (success)
             {
-                eventObject.song = null;
+                eventObject.moonSong = null;
             }
 
             if (autoUpdate)
@@ -428,7 +428,7 @@ namespace MoonscraperChartEditor.Song
 
         public void UpdateAllChartCaches()
         {
-            foreach (Chart chart in charts)
+            foreach (MoonChart chart in charts)
                 chart.UpdateCache();
         }
 
@@ -513,31 +513,31 @@ namespace MoonscraperChartEditor.Song
                 audioLocations[(int)audio] = string.Empty;
         }
 
-        public static Chart.GameMode InstumentToChartGameMode(Instrument instrument)
+        public static MoonChart.GameMode InstumentToChartGameMode(MoonInstrument moonInstrument)
         {
-            switch (instrument)
+            switch (moonInstrument)
             {
-                case (Instrument.Guitar):
-                case (Instrument.GuitarCoop):
-                case (Instrument.Bass):
-                case (Instrument.Rhythm):
-                case (Instrument.Keys):
-                    return Chart.GameMode.Guitar;
+                case (MoonInstrument.Guitar):
+                case (MoonInstrument.GuitarCoop):
+                case (MoonInstrument.Bass):
+                case (MoonInstrument.Rhythm):
+                case (MoonInstrument.Keys):
+                    return MoonChart.GameMode.Guitar;
 
-                case (Instrument.Drums):
-                    return Chart.GameMode.Drums;
+                case (MoonInstrument.Drums):
+                    return MoonChart.GameMode.Drums;
 
-                case (Instrument.GHLiveGuitar):
-                case (Instrument.GHLiveBass):
-                case (Instrument.GHLiveRhythm):
-                case (Instrument.GHLiveCoop):
-                    return Chart.GameMode.GHLGuitar;
+                case (MoonInstrument.GHLiveGuitar):
+                case (MoonInstrument.GHLiveBass):
+                case (MoonInstrument.GHLiveRhythm):
+                case (MoonInstrument.GHLiveCoop):
+                    return MoonChart.GameMode.GHLGuitar;
 
                 default:
                     break;
             }
 
-            return Chart.GameMode.Unrecognised;
+            return MoonChart.GameMode.Unrecognised;
         }
 
         public enum Difficulty
@@ -548,7 +548,7 @@ namespace MoonscraperChartEditor.Song
             Easy = 3
         }
 
-        public enum Instrument
+        public enum MoonInstrument
         {
             Guitar,
             GuitarCoop,
