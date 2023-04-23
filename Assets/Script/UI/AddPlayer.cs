@@ -242,7 +242,7 @@ namespace YARG.UI {
 						continue;
 					}
 
-					if (control is not ButtonControl buttonControl || !buttonControl.isPressed) {
+					if (!InputStrategy.IsControlPressed(control)) {
 						continue;
 					}
 

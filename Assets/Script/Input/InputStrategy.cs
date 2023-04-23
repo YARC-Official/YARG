@@ -208,6 +208,8 @@ namespace YARG.Input {
 		public static bool IsControlPressed(InputControl control) {
 			if (control is ButtonControl button) {
 				return button.isPressed;
+			} else if (control is AxisControl axis) {
+				return axis.IsActuated(PRESS_THRESHOLD);
 			}
 
 			return false;
@@ -216,6 +218,8 @@ namespace YARG.Input {
 		public static bool IsControlPressed(InputControl control, InputEventPtr eventPtr) {
 			if (control is ButtonControl button) {
 				return button.IsValueConsideredPressed(button.ReadValueFromEvent(eventPtr));
+			} else if (control is AxisControl axis) {
+				return axis.ReadValueFromEvent(eventPtr) >= PRESS_THRESHOLD;
 			}
 
 			return false;
