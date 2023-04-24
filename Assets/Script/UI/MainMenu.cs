@@ -120,7 +120,7 @@ namespace YARG.UI {
 				return;
 			}
 
-			if (!isUpdateShown && GameManager.Instance.updateChecker.IsOutOfDate) {
+			if (!isUpdateShown && UpdateChecker.Instance.IsOutOfDate) {
 				isUpdateShown = true;
 
 				updateObject.gameObject.gameObject.SetActive(true);

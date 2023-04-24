@@ -29,9 +29,7 @@ namespace YARG {
 
 		[field: SerializeField]
 		public SettingsMenu SettingsMenu { get; private set; }
-
-		public UpdateChecker updateChecker;
-
+		
 		[SerializeField]
 		private AudioMixerGroup vocalGroup;
 
@@ -47,8 +45,6 @@ namespace YARG {
 		}
 
 		private void Start() {
-			updateChecker = GetComponent<UpdateChecker>();
-
 			// this is to handle a strange edge case in path naming in windows.
 			// modern windows can handle / or \ in path names with seemingly one exception, if there is a space in the user name then try forward slash appdata, it will break at the first space so:
 			// c:\users\joe blow\appdata <- okay!
@@ -57,7 +53,7 @@ namespace YARG {
 			// so let's just set them all to \ on windows to be sure.
 			// For linux Path.DirectorySeparatorChar should return /, and this should work fine, but this should be double checked once those builds are being worked on
 			PersistentDataPath = Application.persistentDataPath.Replace("/", Path.DirectorySeparatorChar.ToString());
-			Settings.SettingsManager.LoadSettings();
+			SettingsManager.LoadSettings();
 
 			// High polling rate
 			InputSystem.pollingFrequency = 500f;

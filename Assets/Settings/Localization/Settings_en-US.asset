@@ -22,6 +22,106 @@ MonoBehaviour:
     m_Localized: Awesomeness Detection
     m_Metadata:
       m_Items: []
+  - m_Id: 10570792762204160
+    m_Localized: Calibration Number
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10637195569651712
+    m_Localized: Enable VSync
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10637227156955136
+    m_Localized: FPS Cap
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10637270228262912
+    m_Localized: Low Quality Mode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10637304978071552
+    m_Localized: Disable Bloom
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10637330240364544
+    m_Localized: High FOV Camera
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10637368563720192
+    m_Localized: Show Hit Window
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10637402030071808
+    m_Localized: Use Cymbal Models In Five Lane
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638637965631488
+    m_Localized: No Kicks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638647188905984
+    m_Localized: Anti-Ghosting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638707146481664
+    m_Localized: Master Music Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638756366639104
+    m_Localized: Guitar Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638786381078528
+    m_Localized: Rhythm Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638787589038080
+    m_Localized: Bass Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638788159463424
+    m_Localized: Keys Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638788599865344
+    m_Localized: Drums Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638841787834368
+    m_Localized: Vocals Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638858523107328
+    m_Localized: Backing Track Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638899434348544
+    m_Localized: Crowd Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638910104657920
+    m_Localized: SFX Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638924633726976
+    m_Localized: Vocal Monitoring Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638943449374720
+    m_Localized: Mute On Miss
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638955231174656
+    m_Localized: Use Starpower SFX
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638965775654912
+    m_Localized: Chipmunk Speed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10639285771689984
+    m_Localized: Awesomeness Detection
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
