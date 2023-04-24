@@ -251,7 +251,9 @@ namespace YARG {
 					// Rock Band con file
 
 					// Read all of the songs in the file
-					var files = XboxRawfileBrowser.BrowseFolder(info.path);
+					// Apply any song updates, if they exist
+					// Debug.Log($"song path root: {info.root}");
+					var files = XboxRawfileBrowser.BrowseFolder(info.path, Path.Combine(info.root, "songs_updates"));
 
 					// Convert each to a SongInfo
 					foreach (var file in files) {
