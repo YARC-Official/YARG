@@ -10,6 +10,6 @@ namespace YARG.Serialization.Parser {
 			this.files = files;
 		}
 
-		public abstract void Parse(Chart chart);
+		public abstract void Parse(YargChart yargChart);
 	}
 }

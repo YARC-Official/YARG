@@ -45,7 +45,7 @@ namespace YARG.Serialization.Parser {
 			}
 		}
 
-		public override void Parse(Chart chart) {
+		public override void Parse(YargChart chart) {
 			var eventIR = new List<EventIR>();
 			var tempo = midi.GetTempoMap();
 

@@ -53,7 +53,7 @@ namespace YARG.PlayMode {
 			private set;
 		}
 
-		public Chart chart;
+		public YargChart chart;
 
 		private int beatIndex = 0;
 		private int lyricIndex = 0;
@@ -192,7 +192,7 @@ namespace YARG.PlayMode {
 
 			// Parse
 			var parser = new MidiParser(song, files.ToArray());
-			chart = new Chart();
+			chart = new YargChart();
 			parser.Parse(chart);
 
 			// initialize current tempo

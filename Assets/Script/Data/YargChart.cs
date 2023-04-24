@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 
 namespace YARG.Data {
-	public sealed class Chart {
+	public sealed class YargChart {
 		public List<List<NoteInfo>[]> allParts;
 		
 #pragma warning disable format
@@ -39,7 +39,7 @@ namespace YARG.Data {
 		/// </summary>
 		public List<LyricInfo>[] harmLyrics = new List<LyricInfo>[0];
 
-		public Chart() {
+		public YargChart() {
 			allParts = new() {
 				guitar, guitarCoop, rhythm,bass, keys, realGuitar, realBass, drums, realDrums, ghDrums
 			};
