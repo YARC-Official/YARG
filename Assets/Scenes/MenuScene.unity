@@ -5264,14 +5264,12 @@ PrefabInstance:
     - target: {fileID: 5027620928743999543, guid: 3fc0ccbfee2d4c34e91b324e319e71de,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5027620929039089074, guid: 3fc0ccbfee2d4c34e91b324e319e71de,
         type: 3}
       propertyPath: m_text
-      value: 'DONE
-
-'
+      value: BACK
       objectReference: {fileID: 0}
     - target: {fileID: 7958013128914822418, guid: 3fc0ccbfee2d4c34e91b324e319e71de,
         type: 3}
@@ -5356,27 +5354,27 @@ PrefabInstance:
     - target: {fileID: 7958013130721114475, guid: 3fc0ccbfee2d4c34e91b324e319e71de,
         type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0.5
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7958013130721114475, guid: 3fc0ccbfee2d4c34e91b324e319e71de,
         type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0.5
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7958013130721114475, guid: 3fc0ccbfee2d4c34e91b324e319e71de,
         type: 3}
       propertyPath: m_AnchorMin.x
-      value: 0.5
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7958013130721114475, guid: 3fc0ccbfee2d4c34e91b324e319e71de,
         type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0.5
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7958013130721114475, guid: 3fc0ccbfee2d4c34e91b324e319e71de,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 800
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7958013130721114475, guid: 3fc0ccbfee2d4c34e91b324e319e71de,
         type: 3}
@@ -5426,7 +5424,7 @@ PrefabInstance:
     - target: {fileID: 7958013130721114475, guid: 3fc0ccbfee2d4c34e91b324e319e71de,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -200
+      value: 25
       objectReference: {fileID: 0}
     - target: {fileID: 7958013130721114475, guid: 3fc0ccbfee2d4c34e91b324e319e71de,
         type: 3}
@@ -10181,9 +10179,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 410452338}
-        m_TargetAssemblyTypeName: YARG.UI.AddPlayer, Assembly-CSharp
-        m_MethodName: DoneBind
+      - m_Target: {fileID: 874813134}
+        m_TargetAssemblyTypeName: YARG.UI.MainMenu, Assembly-CSharp
+        m_MethodName: ShowEditPlayers
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -14450,9 +14448,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 410452338}
-        m_TargetAssemblyTypeName: YARG.UI.AddPlayer, Assembly-CSharp
-        m_MethodName: DoneBind
+      - m_Target: {fileID: 874813134}
+        m_TargetAssemblyTypeName: YARG.UI.MainMenu, Assembly-CSharp
+        m_MethodName: ShowEditPlayers
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
