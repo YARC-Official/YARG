@@ -53,6 +53,10 @@ namespace YARG.UI {
 		private ControlBinding currentBindUpdate = null;
 		private TextMeshProUGUI currentBindText = null;
 		private IDisposable currentDeviceListener = null;
+		private List<InputControl<float>> bindGroupingList = new();
+		private float bindGroupingTimer = 0f;
+
+		private const float GROUP_TIME_THRESHOLD = 0.1f;
 
 		private void OnEnable() {
 			playerNameField.text = null;
@@ -89,6 +93,12 @@ namespace YARG.UI {
 			selectDeviceContainer.SetActive(false);
 			configureContainer.SetActive(false);
 			bindContainer.SetActive(false);
+		}
+
+		private void Update() {
+			switch (state) {
+				case State.BIND: UpdateBind(); break;
+			}
 		}
 
 		private void StartSelectDevice() {
@@ -254,19 +264,46 @@ namespace YARG.UI {
 					where (control is InputControl<float> and not AnyKeyControl) && InputStrategy.IsControlPressed(control, eventPtr)
 					select control as InputControl<float>;
 
-				int controlCount = activeControls?.Count() ?? 0;
-				if (controlCount < 1) {
-					// No controls active
-					return;
-				} else if (controlCount > 1) {
-					// More than one control active, prompt user to pick which one
-					StartResolve(activeControls);
-					return;
-				}
+				if (activeControls != null) {
+					foreach (var ctrl in activeControls) {
+						if (!bindGroupingList.Contains(ctrl)) {
+							bindGroupingList.Add(ctrl);
+						}
+					}
 
-				// Set mapping
-				SetBind(activeControls.First());
+					if (bindGroupingTimer <= 0f) {
+						bindGroupingTimer = GROUP_TIME_THRESHOLD;
+					}
+				}
 			});
+		}
+
+		private void UpdateBind() {
+			if (bindGroupingTimer <= 0f) {
+				// Timer is inactive
+				return;
+			}
+
+			// Decrement timer
+			bindGroupingTimer -= Time.deltaTime;
+			if (bindGroupingTimer > 0f) {
+				// Timer is still active
+				return;
+			}
+
+			// Check number of controls
+			int controlCount = bindGroupingList.Count;
+			if (controlCount < 1) {
+				// No controls active
+				return;
+			} else if (controlCount > 1) {
+				// More than one control active, prompt user to pick which one
+				StartResolve(bindGroupingList);
+				return;
+			}
+
+			// Set mapping
+			SetBind(bindGroupingList[0]);
 		}
 
 		private void SetBind(InputControl<float> control) {
@@ -278,6 +315,9 @@ namespace YARG.UI {
 			currentBindText.text = GetMappingText(currentBindUpdate);
 			currentBindText = null;
 			currentBindUpdate = null;
+
+			bindGroupingList.Clear();
+			bindGroupingTimer = 0f;
 		}
 
 		public void DoneBind() {
@@ -305,8 +345,8 @@ namespace YARG.UI {
 			MainMenu.Instance.ShowEditPlayers();
 		}
 
-		private void StartResolve(IEnumerable<InputControl<float>> controls) {
-			if (!controls.Any() || controls.Count() < 2) {
+		private void StartResolve(List<InputControl<float>> controls) {
+			if (controls.Count < 2) {
 				Debug.LogError("No control resolution required but resolution was started!");
 				return;
 			}
