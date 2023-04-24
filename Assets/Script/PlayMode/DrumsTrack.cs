@@ -27,10 +27,20 @@ namespace YARG.PlayMode {
 		private Pool genericPool;
 		[SerializeField]
 		private ParticleGroup kickNoteParticles;
+		[SerializeField]
+		private MeshRenderer kickFretInside;
+		[SerializeField]
+		private Animation kickFretAnimation;
+		[SerializeField]
+		public bool shakeOnKick = true;
+
+
 
 		private Queue<List<NoteInfo>> expectedHits = new();
 
 		private bool noKickMode = false;
+		
+		
 
 		private readonly string[] proInst = {"realDrums", "ghDrums"};
 		private int ptsPerNote;
@@ -40,6 +50,7 @@ namespace YARG.PlayMode {
 			genericPool.player = player;
 
 			noKickMode = SettingsManager.GetSettingValue<bool>("noKicks");
+			
 
 			// Inputs
 
@@ -75,6 +86,10 @@ namespace YARG.PlayMode {
 				drums[i] = fret;
 			}
 			kickNoteParticles.Colorize(commonTrack.FretColor(kickIndex));
+
+			// Color Kick Frets
+			kickFretInside.material.color = (commonTrack.FretColor(kickIndex));
+			kickFretInside.material.SetColor("_EmissionColor", commonTrack.FretColor(kickIndex) * 2);
 
 			// initialize scoring variables
 			ptsPerNote = proInst.Contains(player.chosenInstrument) ? 30 : 25;
@@ -234,7 +249,11 @@ namespace YARG.PlayMode {
 						drum = kickIndex == 4 ? 1 : 2;
 						break;
 					case 3:
-						drum = kickIndex == 4 ? 0 : 1;
+						// lefty flip on pro drums means physically moving the green cymbal above the red snare
+						// so while the position on the chart has changed, the input object is the same
+						if (!cymbal){
+							drum = kickIndex == 4 ? 0 : 1;
+						}
 						break;
 					case 4:
 						if (kickIndex == 5) {
@@ -246,8 +265,15 @@ namespace YARG.PlayMode {
 
 			if (drum != kickIndex) {
 				// Hit effect
-				drums[drum].PlayAnimation();
+				drums[drum].PlayAnimationDrums();
 				drums[drum].Pulse();
+			} else {
+				PlayKickFretAnimation();
+
+				if(shakeOnKick) {
+					commonTrack.PlayKickCameraAnimation();
+
+				}
 			}
 
 			// Overstrum if no expected
@@ -351,6 +377,18 @@ namespace YARG.PlayMode {
 				model,
 				noteInfo.isActivator
 			);
+		}
+
+		protected void PlayKickFretAnimation() {
+			StopKickFretAnimation();
+
+			kickFretAnimation["KickFrets"].wrapMode = WrapMode.Once;
+			kickFretAnimation.Play("KickFrets");
+		}
+
+		protected void StopKickFretAnimation() {
+			kickFretAnimation.Stop();
+			kickFretAnimation.Rewind();
 		}
 	}
 }

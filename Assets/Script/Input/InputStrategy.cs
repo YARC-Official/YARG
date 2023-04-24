@@ -186,24 +186,20 @@ namespace YARG.Input {
 			UpdatePlayerMode();
 		}
 
-		public static bool IsControlPressed(InputControl control) {
+		public static bool IsControlPressed(InputControl<float> control) {
 			if (control is ButtonControl button) {
 				return button.isPressed;
-			} else if (control is AxisControl axis) {
-				return axis.IsActuated(ControlBinding.DEFAULT_PRESS_THRESHOLD);
 			}
 
-			return false;
+			return control.IsActuated(ControlBinding.DEFAULT_PRESS_THRESHOLD);
 		}
 
-		public static bool IsControlPressed(InputControl control, InputEventPtr eventPtr) {
+		public static bool IsControlPressed(InputControl<float> control, InputEventPtr eventPtr) {
 			if (control is ButtonControl button) {
 				return button.IsValueConsideredPressed(button.ReadValueFromEvent(eventPtr));
-			} else if (control is AxisControl axis) {
-				return axis.ReadValueFromEvent(eventPtr) >= ControlBinding.DEFAULT_PRESS_THRESHOLD;
 			}
-
-			return false;
+	
+			return control.ReadValueFromEvent(eventPtr) >= ControlBinding.DEFAULT_PRESS_THRESHOLD;
 		}
 
 		protected bool IsMappingPressed(string key) {

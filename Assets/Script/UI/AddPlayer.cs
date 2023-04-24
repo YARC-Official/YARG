@@ -12,12 +12,29 @@ using YARG.Input;
 using YARG.Serialization;
 
 namespace YARG.UI {
+	using Enumerate = InputControlExtensions.Enumerate;
+
 	public class AddPlayer : MonoBehaviour {
 		private enum State {
 			SELECT_DEVICE,
 			CONFIGURE,
 			BIND,
 			RESOLVE
+		}
+
+		[Flags]
+		private enum AllowedControl {
+			NONE = 0x00,
+
+			// Control types
+			AXIS = 0x01,
+			BUTTON = 0x02,
+
+			// Control attributes
+			NOISY = 0x0100,
+			SYNTHETIC = 0x0200,
+
+			ALL = AXIS | BUTTON | NOISY | SYNTHETIC
 		}
 
 		[SerializeField]
@@ -42,6 +59,8 @@ namespace YARG.UI {
 		private GameObject configureContainer;
 		[SerializeField]
 		private GameObject bindContainer;
+		[SerializeField]
+		private GameObject allowedControlsContainer;
 
 		private State state = State.SELECT_DEVICE;
 
@@ -53,6 +72,11 @@ namespace YARG.UI {
 		private ControlBinding currentBindUpdate = null;
 		private TextMeshProUGUI currentBindText = null;
 		private IDisposable currentDeviceListener = null;
+		private List<InputControl<float>> bindGroupingList = new();
+		private float bindGroupingTimer = 0f;
+		private AllowedControl allowedControls = AllowedControl.ALL;
+
+		private const float GROUP_TIME_THRESHOLD = 0.1f;
 
 		private void OnEnable() {
 			playerNameField.text = null;
@@ -89,6 +113,13 @@ namespace YARG.UI {
 			selectDeviceContainer.SetActive(false);
 			configureContainer.SetActive(false);
 			bindContainer.SetActive(false);
+			allowedControlsContainer.SetActive(false);
+		}
+
+		private void Update() {
+			switch (state) {
+				case State.BIND: UpdateBind(); break;
+			}
 		}
 
 		private void StartSelectDevice() {
@@ -193,6 +224,7 @@ namespace YARG.UI {
 
 			HideAll();
 			bindContainer.SetActive(true);
+			allowedControlsContainer.SetActive(true);
 			UpdateState(State.BIND);
 
 			// Destroy old bindings
@@ -244,29 +276,102 @@ namespace YARG.UI {
 					var esc = keyboard.escapeKey;
 					if (esc.IsValueConsideredPressed(esc.ReadValueFromEvent(eventPtr))) {
 						CancelBind();
+						return;
 					}
-					return;
 				}
 
 				// Find all active float-returning controls
-				// AnyKeyControl is excluded as it would always be active
-				var activeControls = from control in eventPtr.EnumerateChangedControls(device)
-					where (control is InputControl<float> and not AnyKeyControl) && InputStrategy.IsControlPressed(control, eventPtr)
+				//       Only controls that have changed | Constantly-changing controls like accelerometers | Non-physical controls like stick up/down/left/right
+				var flags = Enumerate.IgnoreControlsInCurrentState | Enumerate.IncludeNoisyControls | Enumerate.IncludeSyntheticControls;
+				var activeControls = from control in eventPtr.EnumerateControls(flags, device)
+					where ControlAllowedAndActive(control, eventPtr)
 					select control as InputControl<float>;
 
-				int controlCount = activeControls?.Count() ?? 0;
-				if (controlCount < 1) {
-					// No controls active
-					return;
-				} else if (controlCount > 1) {
-					// More than one control active, prompt user to pick which one
-					StartResolve(activeControls);
-					return;
-				}
+				if (activeControls != null) {
+					foreach (var ctrl in activeControls) {
+						if (!bindGroupingList.Contains(ctrl)) {
+							bindGroupingList.Add(ctrl);
+						}
+					}
 
-				// Set mapping
-				SetBind(activeControls.First());
+					if (bindGroupingTimer <= 0f) {
+						bindGroupingTimer = GROUP_TIME_THRESHOLD;
+					}
+				}
 			});
+		}
+
+		private void UpdateBind() {
+			if (bindGroupingTimer <= 0f) {
+				// Timer is inactive
+				return;
+			}
+
+			// Decrement timer
+			bindGroupingTimer -= Time.deltaTime;
+			if (bindGroupingTimer > 0f) {
+				// Timer is still active
+				return;
+			}
+
+			// Check number of controls
+			int controlCount = bindGroupingList.Count;
+			if (controlCount < 1) {
+				// No controls active
+				return;
+			} else if (controlCount > 1) {
+				// More than one control active, prompt user to pick which one
+				StartResolve(bindGroupingList);
+				return;
+			}
+
+			// Set mapping
+			SetBind(bindGroupingList[0]);
+		}
+
+		private bool IsControlAllowed(AllowedControl flag)
+			=> (allowedControls & flag) != 0;
+
+		private void AllowedControlChanged(bool enabled, AllowedControl flag) {
+			if (enabled) {
+				allowedControls |= flag;
+			} else {
+				allowedControls &= ~flag;
+			}
+		}
+
+		public void ButtonAllowedChanged(bool enabled)
+			=> AllowedControlChanged(enabled, AllowedControl.BUTTON);
+
+		public void AxisAllowedChanged(bool enabled)
+			=> AllowedControlChanged(enabled, AllowedControl.AXIS);
+
+		public void NoisyAllowedChanged(bool enabled)
+			=> AllowedControlChanged(enabled, AllowedControl.NOISY);
+
+		public void SyntheticAllowedChanged(bool enabled)
+			=> AllowedControlChanged(enabled, AllowedControl.SYNTHETIC);
+
+		private bool ControlAllowedAndActive(InputControl control, InputEventPtr eventPtr) {
+			// AnyKeyControl is excluded as it would always be active
+			if (control is not InputControl<float> floatControl || floatControl is AnyKeyControl) {
+				return false;
+			}
+
+			// Ensure control is pressed
+			if (!InputStrategy.IsControlPressed(floatControl, eventPtr)) {
+				return false;
+			}
+
+			// Check that the control is allowed
+			if ((control.noisy && !IsControlAllowed(AllowedControl.NOISY)) ||
+				(control.synthetic && !IsControlAllowed(AllowedControl.SYNTHETIC)) ||
+				(control is ButtonControl && !IsControlAllowed(AllowedControl.BUTTON)) ||
+				(control is AxisControl && !IsControlAllowed(AllowedControl.AXIS))) {
+				return false;
+			}
+
+			return true;
 		}
 
 		private void SetBind(InputControl<float> control) {
@@ -278,6 +383,9 @@ namespace YARG.UI {
 			currentBindText.text = GetMappingText(currentBindUpdate);
 			currentBindText = null;
 			currentBindUpdate = null;
+
+			bindGroupingList.Clear();
+			bindGroupingTimer = 0f;
 		}
 
 		public void DoneBind() {
@@ -305,8 +413,8 @@ namespace YARG.UI {
 			MainMenu.Instance.ShowEditPlayers();
 		}
 
-		private void StartResolve(IEnumerable<InputControl<float>> controls) {
-			if (!controls.Any() || controls.Count() < 2) {
+		private void StartResolve(List<InputControl<float>> controls) {
+			if (controls.Count < 2) {
 				Debug.LogError("No control resolution required but resolution was started!");
 				return;
 			}
