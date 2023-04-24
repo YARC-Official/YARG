@@ -22,6 +22,21 @@ namespace YARG.UI {
 			RESOLVE
 		}
 
+		[Flags]
+		private enum AllowedControl {
+			NONE = 0x00,
+
+			// Control types
+			AXIS = 0x01,
+			BUTTON = 0x02,
+
+			// Control attributes
+			NOISY = 0x0100,
+			SYNTHETIC = 0x0200,
+
+			ALL = AXIS | BUTTON | NOISY | SYNTHETIC
+		}
+
 		[SerializeField]
 		private GameObject deviceButtonPrefab;
 
@@ -44,6 +59,8 @@ namespace YARG.UI {
 		private GameObject configureContainer;
 		[SerializeField]
 		private GameObject bindContainer;
+		[SerializeField]
+		private GameObject allowedControlsContainer;
 
 		private State state = State.SELECT_DEVICE;
 
@@ -57,6 +74,7 @@ namespace YARG.UI {
 		private IDisposable currentDeviceListener = null;
 		private List<InputControl<float>> bindGroupingList = new();
 		private float bindGroupingTimer = 0f;
+		private AllowedControl allowedControls = AllowedControl.ALL;
 
 		private const float GROUP_TIME_THRESHOLD = 0.1f;
 
@@ -95,6 +113,7 @@ namespace YARG.UI {
 			selectDeviceContainer.SetActive(false);
 			configureContainer.SetActive(false);
 			bindContainer.SetActive(false);
+			allowedControlsContainer.SetActive(false);
 		}
 
 		private void Update() {
@@ -205,6 +224,7 @@ namespace YARG.UI {
 
 			HideAll();
 			bindContainer.SetActive(true);
+			allowedControlsContainer.SetActive(true);
 			UpdateState(State.BIND);
 
 			// Destroy old bindings
@@ -261,11 +281,10 @@ namespace YARG.UI {
 				}
 
 				// Find all active float-returning controls
-				// AnyKeyControl is excluded as it would always be active
 				//       Only controls that have changed | Constantly-changing controls like accelerometers | Non-physical controls like stick up/down/left/right
 				var flags = Enumerate.IgnoreControlsInCurrentState | Enumerate.IncludeNoisyControls | Enumerate.IncludeSyntheticControls;
 				var activeControls = from control in eventPtr.EnumerateControls(flags, device)
-					where (control is InputControl<float> floatControl and not AnyKeyControl) && InputStrategy.IsControlPressed(floatControl, eventPtr)
+					where ControlAllowedAndActive(control, eventPtr)
 					select control as InputControl<float>;
 
 				if (activeControls != null) {
@@ -308,6 +327,51 @@ namespace YARG.UI {
 
 			// Set mapping
 			SetBind(bindGroupingList[0]);
+		}
+
+		private bool IsControlAllowed(AllowedControl flag)
+			=> (allowedControls & flag) != 0;
+
+		private void AllowedControlChanged(bool enabled, AllowedControl flag) {
+			if (enabled) {
+				allowedControls |= flag;
+			} else {
+				allowedControls &= ~flag;
+			}
+		}
+
+		public void ButtonAllowedChanged(bool enabled)
+			=> AllowedControlChanged(enabled, AllowedControl.BUTTON);
+
+		public void AxisAllowedChanged(bool enabled)
+			=> AllowedControlChanged(enabled, AllowedControl.AXIS);
+
+		public void NoisyAllowedChanged(bool enabled)
+			=> AllowedControlChanged(enabled, AllowedControl.NOISY);
+
+		public void SyntheticAllowedChanged(bool enabled)
+			=> AllowedControlChanged(enabled, AllowedControl.SYNTHETIC);
+
+		private bool ControlAllowedAndActive(InputControl control, InputEventPtr eventPtr) {
+			// AnyKeyControl is excluded as it would always be active
+			if (control is not InputControl<float> floatControl || floatControl is AnyKeyControl) {
+				return false;
+			}
+
+			// Ensure control is pressed
+			if (!InputStrategy.IsControlPressed(floatControl, eventPtr)) {
+				return false;
+			}
+
+			// Check that the control is allowed
+			if ((control.noisy && !IsControlAllowed(AllowedControl.NOISY)) ||
+				(control.synthetic && !IsControlAllowed(AllowedControl.SYNTHETIC)) ||
+				(control is ButtonControl && !IsControlAllowed(AllowedControl.BUTTON)) ||
+				(control is AxisControl && !IsControlAllowed(AllowedControl.AXIS))) {
+				return false;
+			}
+
+			return true;
 		}
 
 		private void SetBind(InputControl<float> control) {
