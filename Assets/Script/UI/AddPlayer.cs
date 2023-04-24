@@ -261,7 +261,7 @@ namespace YARG.UI {
 				// Find all active float-returning controls
 				// AnyKeyControl is excluded as it would always be active
 				var activeControls = from control in eventPtr.EnumerateChangedControls(device)
-					where (control is InputControl<float> and not AnyKeyControl) && InputStrategy.IsControlPressed(control, eventPtr)
+					where (control is InputControl<float> floatControl and not AnyKeyControl) && InputStrategy.IsControlPressed(floatControl, eventPtr)
 					select control as InputControl<float>;
 
 				if (activeControls != null) {
