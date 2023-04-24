@@ -12,6 +12,8 @@ using YARG.Input;
 using YARG.Serialization;
 
 namespace YARG.UI {
+	using Enumerate = InputControlExtensions.Enumerate;
+
 	public class AddPlayer : MonoBehaviour {
 		private enum State {
 			SELECT_DEVICE,
@@ -260,7 +262,9 @@ namespace YARG.UI {
 
 				// Find all active float-returning controls
 				// AnyKeyControl is excluded as it would always be active
-				var activeControls = from control in eventPtr.EnumerateChangedControls(device)
+				//       Only controls that have changed | Constantly-changing controls like accelerometers | Non-physical controls like stick up/down/left/right
+				var flags = Enumerate.IgnoreControlsInCurrentState | Enumerate.IncludeNoisyControls | Enumerate.IncludeSyntheticControls;
+				var activeControls = from control in eventPtr.EnumerateControls(flags, device)
 					where (control is InputControl<float> floatControl and not AnyKeyControl) && InputStrategy.IsControlPressed(floatControl, eventPtr)
 					select control as InputControl<float>;
 
