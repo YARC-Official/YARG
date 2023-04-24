@@ -244,8 +244,8 @@ namespace YARG.UI {
 					var esc = keyboard.escapeKey;
 					if (esc.IsValueConsideredPressed(esc.ReadValueFromEvent(eventPtr))) {
 						CancelBind();
+						return;
 					}
-					return;
 				}
 
 				// Find all active float-returning controls
