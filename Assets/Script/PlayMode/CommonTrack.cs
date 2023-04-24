@@ -55,6 +55,8 @@ namespace YARG.PlayMode {
 		[Space]
 		public int[] colorMappings;
 
+		private Animation cameraAnimation;
+
 		public void SetupCameras() {
 			highFovCamera.gameObject.SetActive(false);
 			normalCamera.gameObject.SetActive(false);
@@ -67,6 +69,8 @@ namespace YARG.PlayMode {
 			}
 
 			TrackCamera.gameObject.SetActive(true);
+
+			cameraAnimation = TrackCamera.GetComponent<Animation>();
 
 			// Set anti-aliasing
 			var info = TrackCamera.GetComponent<UniversalAdditionalCameraData>();
@@ -92,6 +96,18 @@ namespace YARG.PlayMode {
 
 		public Color SustainColor(int i) {
 			return sustainColors[colorMappings[i]];
+		}
+
+		public void PlayKickCameraAnimation() {
+			StopCameraAnimation();
+
+			cameraAnimation["CameraShakeKickDrums"].wrapMode = WrapMode.Once;
+			cameraAnimation.Play("CameraShakeKickDrums");
+		}
+
+		public void StopCameraAnimation() {
+			cameraAnimation.Stop();
+			cameraAnimation.Rewind();
 		}
 	}
 }

@@ -16,7 +16,7 @@ namespace YARG.PlayMode {
 		protected float spShakeElapsedTime = 0;
 		protected bool spShakegotStartPos = false;
 		protected bool spShakeDepressed = false;
-		protected bool spShakeAscended = false;
+		public bool spShakeAscended = false;
 		protected bool spShakeResetTime = false;
 
 		// Overdrive particles animation parameters
@@ -129,7 +129,7 @@ namespace YARG.PlayMode {
 				spShakeDuration = 0.2f;
 				commonTrack.TrackCamera.transform.position = Vector3.Lerp(trackStartPos + trackEndPos, trackStartPos, percentageComplete);
 
-				if (commonTrack.TrackCamera.transform.position == trackStartPos + trackEndPos) {
+				if (commonTrack.TrackCamera.transform.position == trackStartPos) {
 					spShakeResetTime = true;
 					spShakeAscended = true;
 				}
