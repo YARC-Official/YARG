@@ -144,6 +144,7 @@ namespace YARG.Serialization {
 			} catch (Exception e) {
 				Debug.LogError($"Failed to parse song.ini for `{song.RootFolder}`.");
 				Debug.LogException(e);
+				throw e;
 			}
 		}
 
