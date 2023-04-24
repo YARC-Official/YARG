@@ -115,6 +115,22 @@ MonoBehaviour:
     m_Key: AmIAwesome
     m_Metadata:
       m_Items: []
+  - m_Id: 10936636654608384
+    m_Key: Tab.General
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10936704807854080
+    m_Key: Tab.Graphics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10936750303469568
+    m_Key: Tab.Engine
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10936772512309248
+    m_Key: Tab.Sound
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

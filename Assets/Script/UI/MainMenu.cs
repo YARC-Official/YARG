@@ -43,8 +43,6 @@ namespace YARG.UI {
 		[SerializeField]
 		private GameObject menuContainer;
 		[SerializeField]
-		private GameObject settingsContainer;
-		[SerializeField]
 		private GameObject songFolderManager;
 		[SerializeField]
 		private GameObject loadingScreen;
@@ -193,14 +191,10 @@ namespace YARG.UI {
 
 		public void HideAllMainMenu() {
 			menuContainer.SetActive(false);
-			settingsContainer.SetActive(false);
 			songFolderManager.SetActive(false);
 		}
 
 		public void ShowSettingsMenu() {
-			HideAllMainMenu();
-
-			// settingsContainer.SetActive(true);
 			GameManager.Instance.SettingsMenu.gameObject.SetActive(true);
 		}
 

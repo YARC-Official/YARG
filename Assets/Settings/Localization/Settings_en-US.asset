@@ -23,7 +23,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 10570792762204160
-    m_Localized: Calibration Number
+    m_Localized: Audio Calibration (ms)
     m_Metadata:
       m_Items: []
   - m_Id: 10637195569651712
@@ -120,6 +120,22 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 10639285771689984
     m_Localized: Awesomeness Detection
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10936636654608384
+    m_Localized: General
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10936704807854080
+    m_Localized: Graphics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10936750303469568
+    m_Localized: Engine
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10936772512309248
+    m_Localized: Sound
     m_Metadata:
       m_Items: []
   references:

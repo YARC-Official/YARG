@@ -71,11 +71,11 @@ namespace YARG.Settings {
 
 		public static void LoadSettings() {
 			// Create settings container
-			// try {
-			// 	Settings = JsonConvert.DeserializeObject<SettingContainer>(File.ReadAllText(SettingsFile));
-			// } catch (Exception) {
-			Settings = new SettingContainer();
-			// }
+			try {
+				Settings = JsonConvert.DeserializeObject<SettingContainer>(File.ReadAllText(SettingsFile));
+			} catch (Exception) {
+				Settings = new SettingContainer();
+			}
 		}
 
 		public static void SaveSettings() {
@@ -98,17 +98,11 @@ namespace YARG.Settings {
 			}
 
 			var value = field.GetValue(Settings);
-			return (ISettingType) value;
-		}
 
-		public static ISettingType GetSettingTypeByName(string name) {
-			var field = typeof(SettingContainer).GetProperty(name);
-
-			if (field == null) {
-				throw new Exception($"The field `{name}` does not exist.");
+			if (value == null) {
+				Debug.LogWarning($"`{name}` has a value of null. This might create errors.");
 			}
 
-			var value = field.GetValue(Settings);
 			return (ISettingType) value;
 		}
 	}
