@@ -102,7 +102,7 @@ namespace MoonscraperChartEditor.Song.IO
         {
             { MidIOHelper.SYSEX_CODE_GUITAR_OPEN, ProcessSysExEventPairAsOpenNoteModifier },
             { MidIOHelper.SYSEX_CODE_GUITAR_TAP, (in EventProcessParams eventProcessParams) => {
-                ProcessSysExEventPairAsForcedType(eventProcessParams, MoonNote.NoteType.Tap);
+                ProcessSysExEventPairAsForcedType(eventProcessParams, MoonNote.MoonNoteType.Tap);
             }},
         };
 
@@ -110,7 +110,7 @@ namespace MoonscraperChartEditor.Song.IO
         {
             { MidIOHelper.SYSEX_CODE_GUITAR_OPEN, ProcessSysExEventPairAsOpenNoteModifier },
             { MidIOHelper.SYSEX_CODE_GUITAR_TAP, (in EventProcessParams eventProcessParams) => {
-                ProcessSysExEventPairAsForcedType(eventProcessParams, MoonNote.NoteType.Tap);
+                ProcessSysExEventPairAsForcedType(eventProcessParams, MoonNote.MoonNoteType.Tap);
             }},
         };
 
@@ -700,7 +700,7 @@ namespace MoonscraperChartEditor.Song.IO
             {
                 { MidIOHelper.STARPOWER_NOTE, ProcessNoteOnEventAsStarpower },
                 { MidIOHelper.TAP_NOTE_CH, (in EventProcessParams eventProcessParams) => {
-                    ProcessNoteOnEventAsForcedType(eventProcessParams, MoonNote.NoteType.Tap);
+                    ProcessNoteOnEventAsForcedType(eventProcessParams, MoonNote.MoonNoteType.Tap);
                 }},
                 { MidIOHelper.SOLO_NOTE, (in EventProcessParams eventProcessParams) => {
                     ProcessNoteOnEventAsEvent(eventProcessParams, MidIOHelper.SOLO_EVENT_TEXT, 0, MidIOHelper.SOLO_END_EVENT_TEXT, SOLO_END_CORRECTION_OFFSET);
@@ -742,14 +742,14 @@ namespace MoonscraperChartEditor.Song.IO
                     int flagKey = difficultyStartRange + 5;
                     processFnDict.Add(flagKey, (in EventProcessParams eventProcessParams) =>
                     {
-                        ProcessNoteOnEventAsForcedType(eventProcessParams, difficulty, MoonNote.NoteType.Hopo);
+                        ProcessNoteOnEventAsForcedType(eventProcessParams, difficulty, MoonNote.MoonNoteType.Hopo);
                     });
                 }
                 {
                     int flagKey = difficultyStartRange + 6;
                     processFnDict.Add(flagKey, (in EventProcessParams eventProcessParams) =>
                     {
-                        ProcessNoteOnEventAsForcedType(eventProcessParams, difficulty, MoonNote.NoteType.Strum);
+                        ProcessNoteOnEventAsForcedType(eventProcessParams, difficulty, MoonNote.MoonNoteType.Strum);
                     });
                 }
             };
@@ -763,7 +763,7 @@ namespace MoonscraperChartEditor.Song.IO
             {
                 { MidIOHelper.STARPOWER_NOTE, ProcessNoteOnEventAsStarpower },
                 { MidIOHelper.TAP_NOTE_CH, (in EventProcessParams eventProcessParams) => {
-                    ProcessNoteOnEventAsForcedType(eventProcessParams, MoonNote.NoteType.Tap);
+                    ProcessNoteOnEventAsForcedType(eventProcessParams, MoonNote.MoonNoteType.Tap);
                 }},
                 { MidIOHelper.SOLO_NOTE, (in EventProcessParams eventProcessParams) => {
                     ProcessNoteOnEventAsEvent(eventProcessParams, MidIOHelper.SOLO_EVENT_TEXT, 0, MidIOHelper.SOLO_END_EVENT_TEXT, SOLO_END_CORRECTION_OFFSET);
@@ -804,14 +804,14 @@ namespace MoonscraperChartEditor.Song.IO
                     int flagKey = difficultyStartRange + 7;
                     processFnDict.Add(flagKey, (in EventProcessParams eventProcessParams) =>
                     {
-                        ProcessNoteOnEventAsForcedType(eventProcessParams, difficulty, MoonNote.NoteType.Hopo);
+                        ProcessNoteOnEventAsForcedType(eventProcessParams, difficulty, MoonNote.MoonNoteType.Hopo);
                     });
                 }
                 {
                     int flagKey = difficultyStartRange + 8;
                     processFnDict.Add(flagKey, (in EventProcessParams eventProcessParams) =>
                     {
-                        ProcessNoteOnEventAsForcedType(eventProcessParams, difficulty, MoonNote.NoteType.Strum);
+                        ProcessNoteOnEventAsForcedType(eventProcessParams, difficulty, MoonNote.MoonNoteType.Strum);
                     });
                 }
             };
@@ -997,7 +997,7 @@ namespace MoonscraperChartEditor.Song.IO
             }
         }
 
-        static void ProcessNoteOnEventAsForcedType(in EventProcessParams eventProcessParams, MoonNote.NoteType noteType)
+        static void ProcessNoteOnEventAsForcedType(in EventProcessParams eventProcessParams, MoonNote.MoonNoteType moonNoteType)
         {
             var flagEvent = eventProcessParams.midiEvent as NoteOnEvent;
             Debug.Assert(flagEvent != null, $"Wrong note event type passed to {nameof(ProcessNoteOnEventAsForcedType)}. Expected: {typeof(NoteOnEvent)}, Actual: {eventProcessParams.midiEvent.GetType()}");
@@ -1010,12 +1010,12 @@ namespace MoonscraperChartEditor.Song.IO
                 // Delay the actual processing once all the notes are actually in
                 eventProcessParams.delayedProcessesList.Add((in EventProcessParams processParams) =>
                 {
-                    ProcessEventAsForcedTypePostDelay(processParams, startTick, endTick, diff, noteType);
+                    ProcessEventAsForcedTypePostDelay(processParams, startTick, endTick, diff, moonNoteType);
                 });
             }
         }
 
-        static void ProcessNoteOnEventAsForcedType(in EventProcessParams eventProcessParams, MoonSong.Difficulty difficulty, MoonNote.NoteType noteType)
+        static void ProcessNoteOnEventAsForcedType(in EventProcessParams eventProcessParams, MoonSong.Difficulty difficulty, MoonNote.MoonNoteType moonNoteType)
         {
             var flagEvent = eventProcessParams.midiEvent as NoteOnEvent;
             Debug.Assert(flagEvent != null, $"Wrong note event type passed to {nameof(ProcessNoteOnEventAsForcedType)}. Expected: {typeof(NoteOnEvent)}, Actual: {eventProcessParams.midiEvent.GetType()}");
@@ -1026,11 +1026,11 @@ namespace MoonscraperChartEditor.Song.IO
             // Delay the actual processing once all the notes are actually in
             eventProcessParams.delayedProcessesList.Add((in EventProcessParams processParams) =>
             {
-                ProcessEventAsForcedTypePostDelay(processParams, startTick, endTick, difficulty, noteType);
+                ProcessEventAsForcedTypePostDelay(processParams, startTick, endTick, difficulty, moonNoteType);
             });
         }
 
-        static void ProcessEventAsForcedTypePostDelay(in EventProcessParams eventProcessParams, uint startTick, uint endTick, MoonSong.Difficulty difficulty, MoonNote.NoteType noteType)
+        static void ProcessEventAsForcedTypePostDelay(in EventProcessParams eventProcessParams, uint startTick, uint endTick, MoonSong.Difficulty difficulty, MoonNote.MoonNoteType moonNoteType)
         {
             var song = eventProcessParams.moonSong;
             var instrument = eventProcessParams.moonInstrument;
@@ -1062,9 +1062,9 @@ namespace MoonscraperChartEditor.Song.IO
                     expectedForceFailure = false;
                     shouldBeForced = false;
 
-                    switch (noteType)
+                    switch (moonNoteType)
                     {
-                        case (MoonNote.NoteType.Strum):
+                        case (MoonNote.MoonNoteType.Strum):
                         {
                             if (!moonNote.isChord && moonNote.isNaturalHopo)
                             {
@@ -1073,7 +1073,7 @@ namespace MoonscraperChartEditor.Song.IO
                             break;
                         }
 
-                        case (MoonNote.NoteType.Hopo):
+                        case (MoonNote.MoonNoteType.Hopo):
                         {
                             // Forcing consecutive same-fret HOPOs is possible in charts, but we do not allow it
                             // (see RB2's chart of Steely Dan - Bodhisattva)
@@ -1089,7 +1089,7 @@ namespace MoonscraperChartEditor.Song.IO
                             break;
                         }
 
-                        case (MoonNote.NoteType.Tap):
+                        case (MoonNote.MoonNoteType.Tap):
                         {
                             if (!moonNote.IsOpenNote())
                             {
@@ -1111,7 +1111,7 @@ namespace MoonscraperChartEditor.Song.IO
                         }
 
                         default:
-                            Debug.Assert(false, $"Unhandled note type {noteType} in .mid forced type processing");
+                            Debug.Assert(false, $"Unhandled note type {moonNoteType} in .mid forced type processing");
                             continue; // Unhandled
                     }
 
@@ -1129,7 +1129,7 @@ namespace MoonscraperChartEditor.Song.IO
 
                 lastChordTick = moonNote.tick;
 
-                Debug.Assert(moonNote.type == noteType || expectedForceFailure, $"Failed to set forced type! Expected: {noteType}  Actual: {moonNote.type}  Natural HOPO: {moonNote.isNaturalHopo}  Chord: {moonNote.isChord}  Forceable: {!moonNote.cannotBeForced}\non {difficulty} {instrument} at tick {moonNote.tick} ({TimeSpan.FromSeconds(moonNote.time):mm':'ss'.'ff})");
+                Debug.Assert(moonNote.type == moonNoteType || expectedForceFailure, $"Failed to set forced type! Expected: {moonNoteType}  Actual: {moonNote.type}  Natural HOPO: {moonNote.isNaturalHopo}  Chord: {moonNote.isChord}  Forceable: {!moonNote.cannotBeForced}\non {difficulty} {instrument} at tick {moonNote.tick} ({TimeSpan.FromSeconds(moonNote.time):mm':'ss'.'ff})");
             }
         }
 
@@ -1263,7 +1263,7 @@ namespace MoonscraperChartEditor.Song.IO
             }
         }
 
-        static void ProcessSysExEventPairAsForcedType(in EventProcessParams eventProcessParams, MoonNote.NoteType noteType)
+        static void ProcessSysExEventPairAsForcedType(in EventProcessParams eventProcessParams, MoonNote.MoonNoteType moonNoteType)
         {
             var startEvent = eventProcessParams.midiEvent as PhaseShiftSysExStart;
             Debug.Assert(startEvent != null, $"Wrong note event type passed to {nameof(ProcessSysExEventPairAsForcedType)}. Expected: {typeof(PhaseShiftSysExStart)}, Actual: {eventProcessParams.midiEvent.GetType()}");
@@ -1279,7 +1279,7 @@ namespace MoonscraperChartEditor.Song.IO
                 {
                     eventProcessParams.delayedProcessesList.Add((in EventProcessParams processParams) =>
                     {
-                        ProcessEventAsForcedTypePostDelay(processParams, startTick, endTick, diff, noteType);
+                        ProcessEventAsForcedTypePostDelay(processParams, startTick, endTick, diff, moonNoteType);
                     });
                 }
             }
@@ -1288,7 +1288,7 @@ namespace MoonscraperChartEditor.Song.IO
                 var diff = MidIOHelper.SYSEX_TO_MS_DIFF_LOOKUP[startEvent.difficulty];
                 eventProcessParams.delayedProcessesList.Add((in EventProcessParams processParams) =>
                 {
-                    ProcessEventAsForcedTypePostDelay(processParams, startTick, endTick, diff, noteType);
+                    ProcessEventAsForcedTypePostDelay(processParams, startTick, endTick, diff, moonNoteType);
                 });
             }
         }
