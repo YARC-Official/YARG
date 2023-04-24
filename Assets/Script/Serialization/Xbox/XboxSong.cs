@@ -8,6 +8,7 @@ namespace YARG.Serialization {
 	public class XboxSong {
 		public string ShortName { get; private set; }
 		public string MidiFile { get; private set; }
+		public string MidiUpdateFile { get; private set; }
 
 		private string songFolderPath;
 
@@ -39,6 +40,37 @@ namespace YARG.Serialization {
 			string imgPath = Path.Combine(songFolderPath, "gen", $"{ShortName}_keep.png_xbox");
 			if (songDta.AlbumArtRequired() && File.Exists(imgPath)) {
 				img = new XboxImage(imgPath);
+
+				// Do some preliminary parsing here in the header to get DXT format, width and height, etc
+				img.ParseImageHeader();
+			}
+		}
+
+		public void UpdateSong(string pathUpdateName, DataArray dta_update){
+			songDta.ParseFromDta(dta_update);
+			// if dta_update.Array("song") is not null, parse for any MoggDta as well
+			if(dta_update.Array("song") is DataArray moggUpdateDta)
+				moggDta.ParseFromDta(moggUpdateDta);
+
+			// if extra_authoring has disc_update, grab update midi
+			if(songDta.discUpdate){
+				MidiUpdateFile = Path.Combine(pathUpdateName, ShortName, $"{ShortName}_update.mid");
+			}
+
+			// if update mogg exists, grab it and parse it
+			string moggUpdatePath = Path.Combine(pathUpdateName, ShortName, $"{ShortName}_update.mogg");
+			if(File.Exists(moggUpdatePath)){
+				moggDta.UpdateMoggPath(moggUpdatePath);
+				moggDta.ParseMoggHeader();
+				// moggDta.ParseFromDta(dta_update.Array("song"));
+				moggDta.CalculateMoggBassInfo();
+			}
+
+			// if album_art == TRUE AND alternate_path == TRUE, grab update png
+			if(songDta.albumArt && songDta.alternatePath){
+				Debug.Log($"new album art, grabbing it now");
+				// make a new image here, cuz what if an old one exists?
+				img = new XboxImage(Path.Combine(pathUpdateName, ShortName, "gen", $"{ShortName}_keep.png_xbox"));
 
 				// Do some preliminary parsing here in the header to get DXT format, width and height, etc
 				img.ParseImageHeader();

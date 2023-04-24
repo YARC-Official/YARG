@@ -35,6 +35,10 @@ namespace YARG.Serialization {
 			MoggPath = str;
 		}
 
+		public void UpdateMoggPath(string str){
+			MoggPath = str;
+		}
+
 		public void ParseMoggHeader() {
 			using var fs = new FileStream(MoggPath, FileMode.Open, FileAccess.Read);
 			using var br = new BinaryReader(fs);
