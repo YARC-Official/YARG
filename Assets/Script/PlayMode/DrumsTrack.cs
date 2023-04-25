@@ -271,8 +271,8 @@ namespace YARG.PlayMode {
 				PlayKickFretAnimation();
 
 				if(shakeOnKick) {
-					commonTrack.PlayKickCameraAnimation();
-
+					//commonTrack.PlayKickCameraAnimation();
+					trackAnims.PlayKickShakeCameraAnim();
 				}
 			}
 
