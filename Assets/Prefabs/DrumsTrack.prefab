@@ -433,12 +433,12 @@ PrefabInstance:
     - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: noteColors.Array.data[4].g
-      value: 0.14109339
+      value: 0.078012004
       objectReference: {fileID: 0}
     - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: noteColors.Array.data[4].r
-      value: 1
+      value: 0.764151
       objectReference: {fileID: 0}
     - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
@@ -505,6 +505,31 @@ PrefabInstance:
         type: 3}
       propertyPath: m_RootOrder
       value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 6920380339366119820, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: spShakeAscended
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6920380339366119820, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: trackEndPosKick.y
+      value: -0.04
+      objectReference: {fileID: 0}
+    - target: {fileID: 6920380339366119820, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: trackEndPosKick.z
+      value: 0.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 6920380339366119820, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: kickShakeTotalDuration
+      value: 0.125
+      objectReference: {fileID: 0}
+    - target: {fileID: 6920380339366119820, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: kickShakeMiddleDuration
+      value: 0.005
       objectReference: {fileID: 0}
     - target: {fileID: 7068629544064110471, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}

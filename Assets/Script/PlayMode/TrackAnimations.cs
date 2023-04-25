@@ -38,19 +38,25 @@ namespace YARG.PlayMode {
 		protected bool spLightsReset = false;
 
 		// Kick Camera shake animation parameters
-		protected Vector3 trackEndPosKick = new(0, +0.03f, 0f);
-		protected float kickShakeMiddleDuration = 0.09f;
-		protected float kickShakeTotalDuration = 0.20f;
+		[Space]
+		[SerializeField]
+		protected Vector3 trackEndPosKick = new Vector3(0, -0.04f, 0.01f);
+		[SerializeField]
+		protected float kickShakeMiddleDuration = 0.005f; 
+		[SerializeField]
+		protected float kickShakeTotalDuration = 0.125f;
+
 		protected float kickShakeDuration;
 		protected float kickShakeElapsedTime = 0;
 		protected bool kickShakeGone = false;
-		public bool kickShakeReturned = false;
+		protected bool kickShakeReturned = false;
 		protected bool kickShakeResetTime = false;
 		protected bool executeKickShake = false;
 
 		[Space]
 		[SerializeField]
 		protected AnimationCurve spParticleAnimCurve;
+
 
 		private void Awake() {
 			commonTrack = GetComponent<CommonTrack>();
@@ -62,8 +68,9 @@ namespace YARG.PlayMode {
 			abstractTrack = transform.GetComponent<AbstractTrack>();
 			spParticleStartPos = commonTrack.starPowerParticles.transform.position;
 			spParticle2StartPos = commonTrack.starPowerParticles2.transform.position;
-
+			trackStartPos = commonTrack.TrackCamera.transform.position;
 			spLightsStartPos = commonTrack.starPowerLightIndicators.transform.position;
+			executeKickShake = false;
 		}
 
 		void Update() {
@@ -139,6 +146,7 @@ namespace YARG.PlayMode {
 			if (spShakeResetTime) {
 				spShakeElapsedTime = 0f;
 				spShakeResetTime = false;
+				percentageComplete = 0;
 			}
 
 			// End track animation
@@ -165,13 +173,15 @@ namespace YARG.PlayMode {
 		}
 
 		public void KickShakeCameraAnim() {
+			
 
 			float percentageComplete = kickShakeElapsedTime / kickShakeDuration;
 
 			if (executeKickShake) {
-				kickShakeElapsedTime += Time.deltaTime;
+				
 				
 				if (!kickShakeGone && !kickShakeReturned) {
+					kickShakeElapsedTime += Time.deltaTime;
 					kickShakeDuration = kickShakeMiddleDuration;
 					commonTrack.TrackCamera.transform.position = Vector3.Lerp(trackStartPos, trackStartPos + trackEndPosKick, percentageComplete);
 
@@ -184,11 +194,14 @@ namespace YARG.PlayMode {
 				if (kickShakeResetTime) {
 					kickShakeElapsedTime = 0f;
 					kickShakeResetTime = false;
+					percentageComplete = 0;
 				}
-
+				
 
 				if (kickShakeGone && !kickShakeReturned) {
-					kickShakeDuration = kickShakeTotalDuration - kickShakeMiddleDuration;
+					kickShakeElapsedTime += Time.deltaTime;
+					
+					kickShakeDuration = kickShakeTotalDuration;
 					commonTrack.TrackCamera.transform.position = Vector3.Lerp(trackStartPos + trackEndPosKick, trackStartPos, percentageComplete);
 
 					if (commonTrack.TrackCamera.transform.position == trackStartPos) {
@@ -202,7 +215,7 @@ namespace YARG.PlayMode {
 		}
 
 		public void PlayKickShakeCameraAnim() {
-			
+			kickShakeResetTime = true;
 			executeKickShake = true;
 		}
 	}
