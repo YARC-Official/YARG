@@ -95,8 +95,15 @@ namespace YARG.PlayMode {
 		public void PlayAnimationDrums() {
 			StopAnimation();
 
-			animation["FretsDrums2"].wrapMode = WrapMode.Once;
-			animation.Play("FretsDrums2");
+			animation["FretsDrums"].wrapMode = WrapMode.Once;
+			animation.Play("FretsDrums");
+		}
+
+		public void PlayAnimationDrumsHighBounce() {
+			StopAnimation();
+
+			animation["FretsDrumsHighBounce"].wrapMode = WrapMode.Once;
+			animation.Play("FretsDrumsHighBounce");
 		}
 
 		public void PlayAnimationSustainsLooped() {

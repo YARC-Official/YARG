@@ -71,7 +71,7 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Animations.Array.data[2]
       value: 
-      objectReference: {fileID: 7400000, guid: c92ccc3463ab508449e0f73ebe29e610, type: 2}
+      objectReference: {fileID: 7400000, guid: 695ad0fddcbe91845b304d578dd3e771, type: 2}
     - target: {fileID: 2171860084974843366, guid: 397b1ea7bf093d24ab47c16be25edc6d,
         type: 3}
       propertyPath: m_Animations.Array.data[3]
@@ -433,12 +433,12 @@ PrefabInstance:
     - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: noteColors.Array.data[4].g
-      value: 0.14109339
+      value: 0.078012004
       objectReference: {fileID: 0}
     - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: noteColors.Array.data[4].r
-      value: 1
+      value: 0.764151
       objectReference: {fileID: 0}
     - target: {fileID: 5633652968136525197, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
@@ -505,6 +505,31 @@ PrefabInstance:
         type: 3}
       propertyPath: m_RootOrder
       value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 6920380339366119820, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: spShakeAscended
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6920380339366119820, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: trackEndPosKick.y
+      value: -0.04
+      objectReference: {fileID: 0}
+    - target: {fileID: 6920380339366119820, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: trackEndPosKick.z
+      value: 0.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 6920380339366119820, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: kickShakeTotalDuration
+      value: 0.125
+      objectReference: {fileID: 0}
+    - target: {fileID: 6920380339366119820, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: kickShakeMiddleDuration
+      value: 0.005
       objectReference: {fileID: 0}
     - target: {fileID: 7068629544064110471, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
@@ -608,7 +633,7 @@ MonoBehaviour:
   kickNoteParticles: {fileID: 8279289512315810390}
   kickFretInside: {fileID: 7646940955347713414}
   kickFretAnimation: {fileID: 7820602527186232055}
-  shakeOnKick: 0
+  shakeOnKick: 1
 --- !u!114 &6222960093224628221 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 9116112471201956981, guid: ba68df35237e09f4abcf788160c15375,
@@ -654,7 +679,7 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Animations.Array.data[2]
       value: 
-      objectReference: {fileID: 7400000, guid: c92ccc3463ab508449e0f73ebe29e610, type: 2}
+      objectReference: {fileID: 7400000, guid: 695ad0fddcbe91845b304d578dd3e771, type: 2}
     - target: {fileID: 2171860084974843366, guid: 397b1ea7bf093d24ab47c16be25edc6d,
         type: 3}
       propertyPath: m_Animations.Array.data[3]
