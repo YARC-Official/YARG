@@ -98,6 +98,7 @@ namespace YARG.PlayMode {
 			return sustainColors[colorMappings[i]];
 		}
 
+		//UNUSED THIS IS NOW PROCEDURAL, under TrackAnimations.cs - Mia
 		public void PlayKickCameraAnimation() {
 			StopCameraAnimation();
 

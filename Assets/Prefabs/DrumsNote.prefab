@@ -25,7 +25,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 861361446070616044}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -0.005, z: 0.001}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -57,8 +57,8 @@ MonoBehaviour:
   meshRendererMiddleIndices: 020000000000000001000000
   noteGroupsEmission:
   - 8
-  - 2
-  - 10
+  - 2.5
+  - 15
   boostColor: 000000
   noteGroup: {fileID: 1397812567785855241}
   hopoGroup: {fileID: 5887489561296935717}

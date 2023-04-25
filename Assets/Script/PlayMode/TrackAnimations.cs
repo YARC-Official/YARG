@@ -37,9 +37,26 @@ namespace YARG.PlayMode {
 		public bool spLightsPlayed = false;
 		protected bool spLightsReset = false;
 
+		// Kick Camera shake animation parameters
+		[Space]
+		[SerializeField]
+		protected Vector3 trackEndPosKick = new Vector3(0, -0.04f, 0.01f);
+		[SerializeField]
+		protected float kickShakeMiddleDuration = 0.005f; 
+		[SerializeField]
+		protected float kickShakeTotalDuration = 0.125f;
+
+		protected float kickShakeDuration;
+		protected float kickShakeElapsedTime = 0;
+		protected bool kickShakeGone = false;
+		protected bool kickShakeReturned = false;
+		protected bool kickShakeResetTime = false;
+		protected bool executeKickShake = false;
+
 		[Space]
 		[SerializeField]
 		protected AnimationCurve spParticleAnimCurve;
+
 
 		private void Awake() {
 			commonTrack = GetComponent<CommonTrack>();
@@ -51,8 +68,15 @@ namespace YARG.PlayMode {
 			abstractTrack = transform.GetComponent<AbstractTrack>();
 			spParticleStartPos = commonTrack.starPowerParticles.transform.position;
 			spParticle2StartPos = commonTrack.starPowerParticles2.transform.position;
-
+			trackStartPos = commonTrack.TrackCamera.transform.position;
 			spLightsStartPos = commonTrack.starPowerLightIndicators.transform.position;
+			executeKickShake = false;
+		}
+
+		void Update() {
+
+			KickShakeCameraAnim();
+
 		}
 
 		public void StarpowerLightsAnimSingleFrame() {
@@ -122,6 +146,7 @@ namespace YARG.PlayMode {
 			if (spShakeResetTime) {
 				spShakeElapsedTime = 0f;
 				spShakeResetTime = false;
+				percentageComplete = 0;
 			}
 
 			// End track animation
@@ -138,13 +163,60 @@ namespace YARG.PlayMode {
 
 		public void StarpowerTrackAnimReset() {
 			if (!spShakegotStartPos) {
-				trackStartPos = commonTrack.TrackCamera.transform.position;
+				trackStartPos = commonTrack.TrackCamera.transform.position; // This gets the initial track camera position, Kick shake animation also uses this.
 				spShakegotStartPos = true;
 			}
 
 			spShakeDepressed = false;
 			spShakeAscended = false;
 			spShakeElapsedTime = 0f;
+		}
+
+		public void KickShakeCameraAnim() {
+			
+
+			float percentageComplete = kickShakeElapsedTime / kickShakeDuration;
+
+			if (executeKickShake) {
+				
+				
+				if (!kickShakeGone && !kickShakeReturned) {
+					kickShakeElapsedTime += Time.deltaTime;
+					kickShakeDuration = kickShakeMiddleDuration;
+					commonTrack.TrackCamera.transform.position = Vector3.Lerp(trackStartPos, trackStartPos + trackEndPosKick, percentageComplete);
+
+					if (commonTrack.TrackCamera.transform.position == trackStartPos + trackEndPosKick) {
+						kickShakeResetTime = true;
+						kickShakeGone = true;
+					}
+				}
+
+				if (kickShakeResetTime) {
+					kickShakeElapsedTime = 0f;
+					kickShakeResetTime = false;
+					percentageComplete = 0;
+				}
+				
+
+				if (kickShakeGone && !kickShakeReturned) {
+					kickShakeElapsedTime += Time.deltaTime;
+					
+					kickShakeDuration = kickShakeTotalDuration;
+					commonTrack.TrackCamera.transform.position = Vector3.Lerp(trackStartPos + trackEndPosKick, trackStartPos, percentageComplete);
+
+					if (commonTrack.TrackCamera.transform.position == trackStartPos) {
+						executeKickShake = false;
+						kickShakeResetTime = true;
+						kickShakeReturned = false;
+						kickShakeGone = false;
+					}
+				}
+			}
+		}
+
+		public void PlayKickShakeCameraAnim() {
+			kickShakeResetTime = true;
+			executeKickShake = true;
 		}
 	}
 }
