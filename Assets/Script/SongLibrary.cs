@@ -250,6 +250,8 @@ namespace YARG {
 					catch (Exception e)
 					{
 						// Something went wrong with the parsing, skip this song
+						Debug.LogError($"Failed to parse song.ini for `{info.path}`.");
+						Debug.LogException(e);
 						continue;
 					}		
 
