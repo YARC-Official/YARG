@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Unity.Mathematics;
+using YARG.Chart;
 
 namespace YARG.PlayMode {
     public class StarDisplay : MonoBehaviour {
@@ -34,10 +35,10 @@ namespace YARG.PlayMode {
         }
 
         private void Start() {
-			var events = Play.Instance.chart.events;
-			foreach (var ev in events) {
-				if (ev.name == "beatLine_major") {
-					bars.Add(ev.time);
+			var beats = Play.Instance.chart.beats;
+			foreach (var ev in beats) {
+				if (ev.Style == BeatStyle.MEASURE) {
+					bars.Add(ev.Time);
 				}
 			}
 

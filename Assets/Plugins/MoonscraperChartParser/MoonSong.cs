@@ -63,6 +63,8 @@ namespace MoonscraperChartEditor.Song
         MoonChart[] charts;
         public List<MoonChart> unrecognisedCharts = new List<MoonChart>();
 
+        public IReadOnlyList<MoonChart> Charts => charts.ToList();
+        
         public List<Event> _events;
         List<SyncTrack> _syncTrack;
 

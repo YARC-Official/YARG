@@ -2,12 +2,12 @@
 using MoonscraperChartEditor.Song;
 
 namespace YARG.Chart {
-	public class DrumChartLoader : IChartLoader<DrumNote> {
+	public class NewDrumChartLoader : IChartLoader<DrumNote> {
 
 		private readonly bool _isPro;
 		private readonly bool _isDoubleBass;
 
-		public DrumChartLoader(bool isPro, bool doubleBass) {
+		public NewDrumChartLoader(bool isPro, bool doubleBass) {
 			_isPro = isPro;
 			_isDoubleBass = doubleBass;
 		}

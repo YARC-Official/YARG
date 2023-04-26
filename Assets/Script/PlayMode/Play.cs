@@ -1,9 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using MoonscraperChartEditor.Song;
+using MoonscraperChartEditor.Song.IO;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
+using YARG.Chart;
 using YARG.Data;
 using YARG.Serialization.Parser;
 using YARG.Settings;
@@ -191,13 +194,30 @@ namespace YARG.PlayMode {
 			// }
 
 			// Parse
-			var parser = new MidiParser(song, files.ToArray());
-			chart = new YargChart();
-			parser.Parse(chart);
+			//var parser = new MidiParser(song, files.ToArray());
+
+			MoonSong moonSong;
+			var state = MidReader.CallbackState.None;
+			if (song.mainFile.EndsWith(".mid")) {
+				Debug.Log("Reading .mid file");
+				moonSong = MidReader.ReadMidi(song.mainFile, ref state);
+			} else if (song.mainFile.EndsWith(".chart")) {
+				Debug.Log("Reading .chart file");
+				moonSong = ChartReader.ReadChart(song.mainFile);
+			} else {
+				throw new Exception("Unknown file type");
+			}
+
+			chart = new YargChart(moonSong);
+
+			var handler = new BeatHandler(moonSong);
+			handler.GenerateBeats();
+			chart.beats = handler.Beats;
+			//parser.Parse(chart);
 
 			// initialize current tempo
 			if (chart.beats.Count > 2)
-				curBeatPerSecond = chart.beats[1] - chart.beats[0];
+				curBeatPerSecond = chart.beats[1].Time - chart.beats[0].Time;
 		}
 
 		private void Update() {
@@ -272,7 +292,7 @@ namespace YARG.PlayMode {
 			});
 
 			// Update beats
-			while (chart.beats.Count > beatIndex && chart.beats[beatIndex] <= SongTime) {
+			while (chart.beats.Count > beatIndex && chart.beats[beatIndex].Time <= SongTime) {
 				foreach (var track in _tracks) {
 					if (!track.IsStarPowerActive || !GameManager.AudioManager.UseStarpowerFx) continue;
 					
@@ -283,7 +303,7 @@ namespace YARG.PlayMode {
 				beatIndex++;
 
 				if (beatIndex < chart.beats.Count) {
-					curBeatPerSecond = 1 / (chart.beats[beatIndex] - chart.beats[beatIndex - 1]);
+					curBeatPerSecond = 1 / (chart.beats[beatIndex].Time - chart.beats[beatIndex - 1].Time);
 				}
 			}
 
