@@ -76,6 +76,7 @@ namespace YARG.Util {
 					continue;
 				}
 
+				particle.Clear();
 				particle.Stop();
 			}
 

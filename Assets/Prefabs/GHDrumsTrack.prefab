@@ -34,7 +34,7 @@ Transform:
   - {fileID: 4617468700991812324}
   - {fileID: 5807069405507058563}
   m_Father: {fileID: 2999289846860309450}
-  m_RootOrder: 15
+  m_RootOrder: 17
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2944943788190444424
 PrefabInstance:
@@ -227,7 +227,7 @@ PrefabInstance:
     - target: {fileID: 6920380339366119820, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: trackEndPosKick.y
-      value: -0.04
+      value: 0.04
       objectReference: {fileID: 0}
     - target: {fileID: 6920380339366119820, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
@@ -247,7 +247,7 @@ PrefabInstance:
     - target: {fileID: 7417495158134921613, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: m_RootOrder
-      value: 14
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 7809402107982387610, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}

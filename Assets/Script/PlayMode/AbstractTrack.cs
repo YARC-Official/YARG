@@ -153,6 +153,8 @@ namespace YARG.PlayMode {
 
 			comboSunburstEmbeddedLight = commonTrack.comboSunburst.GetComponent<Light>();
 
+			commonTrack.kickFlash.SetActive(false);
+
 			scoreKeeper = new();
 
 			StartTrack();
@@ -321,7 +323,7 @@ namespace YARG.PlayMode {
 
 				// Update Sunburst color and light
 				commonTrack.comboSunburst.sprite = commonTrack.sunBurstSpriteStarpower;
-				commonTrack.comboSunburst.color = new Color(255, 255, 255, 141);
+				commonTrack.comboSunburst.color = commonTrack.comboSunburstSPColor;
 			} else {
 
 				trackAnims.StarpowerTrackAnimReset();

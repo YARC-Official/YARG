@@ -417,6 +417,27 @@ PrefabInstance:
       propertyPath: m_LocalScale.x
       value: 0.8496098
       objectReference: {fileID: 0}
+    - target: {fileID: 3848898571785701241, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
+        type: 3}
+      propertyPath: moveWithTransform
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3848898571785701241, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
+        type: 3}
+      propertyPath: ColorModule.enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3848898571785701241, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
+        type: 3}
+      propertyPath: CollisionModule.enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3848898571785701241, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
+        type: 3}
+      propertyPath: UVModule.sprites.Array.data[0].sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: b1a4d9fdfabb3d443979912903383204,
+        type: 3}
     - target: {fileID: 4424721611905889629, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
       propertyPath: m_RootOrder
@@ -435,7 +456,7 @@ PrefabInstance:
     - target: {fileID: 6854690162256282006, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
       propertyPath: m_RootOrder
-      value: 7
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 6854690162256282006, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
@@ -486,6 +507,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_BoundingSphereOverride.z
       value: 6.0603e-41
+      objectReference: {fileID: 0}
+    - target: {fileID: 8606392047678779400, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 8778045872397036239, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
