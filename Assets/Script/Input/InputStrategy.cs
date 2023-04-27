@@ -71,6 +71,10 @@ namespace YARG.Input {
 		}
 
 		public void Enable() {
+			if (Enabled) {
+				return;
+			}
+
 			// Bind events
 			InputSystem.onAfterUpdate += OnUpdate;
 			if (_inputDevice != null) {
@@ -81,6 +85,10 @@ namespace YARG.Input {
 		}
 
 		public void Disable() {
+			if (!Enabled) {
+				return;
+			}
+
 			// Unbind events
 			InputSystem.onAfterUpdate -= OnUpdate;
 			eventListener?.Dispose();
