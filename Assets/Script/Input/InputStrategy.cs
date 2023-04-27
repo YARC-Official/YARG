@@ -179,11 +179,12 @@ namespace YARG.Input {
 		}
 
 		/// <summary>
-		/// Forces the input strategy to update its inputs.
+		/// Forces the input strategy to update.
 		/// </summary>
-		public void ForceUpdateInputs() {
+		public void ForceUpdate() {
 			UpdateNavigationMode();
 			UpdatePlayerMode();
+			OnUpdate();
 		}
 
 		public static bool IsControlPressed(InputControl<float> control) {
