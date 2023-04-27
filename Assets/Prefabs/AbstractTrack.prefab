@@ -68,6 +68,7 @@ MonoBehaviour:
   comboMeterRenderer: {fileID: 5158185222957906181}
   starpowerBarTop: {fileID: 1638471387717129506}
   comboRing: {fileID: 2278174339011780275}
+  comboBase: {fileID: 7025622290705645970}
   nonFCRing: {fileID: 2100000, guid: ce3039f4da289c046b33066e508567f0, type: 2}
   comboSunburst: {fileID: 9951896421710430}
   maxComboLight: {fileID: 1811260302183972900}
@@ -75,12 +76,16 @@ MonoBehaviour:
   sunBurstSprite: {fileID: 21300000, guid: 3235c7c6359bba84a99591649a51b5cd, type: 3}
   sunBurstSpriteStarpower: {fileID: 21300000, guid: e1d36b6ae21bc594881648de5d531555,
     type: 3}
+  baseNormal: {fileID: 2100000, guid: 6fd12f3b09544ed4b8be1c7ec925d0f4, type: 2}
+  baseGroove: {fileID: 2100000, guid: b0ed5f1195856d64b9015ecba4aad35c, type: 2}
+  baseSP: {fileID: 2100000, guid: a37e1382e22fde149860dda6b486ef82, type: 2}
   starPowerParticles: {fileID: 8135287428867006208}
   starPowerParticles2: {fileID: 4295893725868603198}
   starPowerParticlesLight: {fileID: 3426477418365882665}
   starPowerParticles2Light: {fileID: 9055042233567814858}
   starPowerLightIndicators: {fileID: 1145611341549646492}
   kickFlash: {fileID: 6628762377328734862}
+  comboSunburstColor: {r: 1, g: 1, b: 1, a: 1}
   comboSunburstSPColor: {r: 1, g: 0.8039216, b: 0, a: 1}
   soloText: {fileID: 5431607447448773681}
   soloBox: {fileID: 4616796601023000727}
@@ -626,7 +631,7 @@ Light:
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
-  m_Color: {r: 0, g: 0.5756109, b: 1, a: 1}
+  m_Color: {r: 0, g: 0.53847456, b: 1, a: 1}
   m_Intensity: 7
   m_Range: 1
   m_SpotAngle: 30
@@ -741,7 +746,7 @@ Light:
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
-  m_Color: {r: 0, g: 0.5764706, b: 1, a: 1}
+  m_Color: {r: 0, g: 0.5411765, b: 1, a: 1}
   m_Intensity: 7
   m_Range: 1
   m_SpotAngle: 30
@@ -12555,7 +12560,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 3235c7c6359bba84a99591649a51b5cd, type: 3}
-  m_Color: {r: 0, g: 0.9355135, b: 1, a: 1}
+  m_Color: {r: 0, g: 0.9999995, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -13282,6 +13287,11 @@ PrefabInstance:
       propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: d6eb3df7084ac13428efa008cc5613a9,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 6fd12f3b09544ed4b8be1c7ec925d0f4, type: 2}
     - target: {fileID: 919132149155446097, guid: d6eb3df7084ac13428efa008cc5613a9,
         type: 3}
       propertyPath: m_Name
@@ -13289,6 +13299,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d6eb3df7084ac13428efa008cc5613a9, type: 3}
+--- !u!23 &7025622290705645970 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -7511558181221131132, guid: d6eb3df7084ac13428efa008cc5613a9,
+    type: 3}
+  m_PrefabInstance: {fileID: 8521254568048270614}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &8199694399006604029 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: d6eb3df7084ac13428efa008cc5613a9,

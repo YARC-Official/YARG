@@ -64,10 +64,35 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 3269232338164336536}
     m_Modifications:
+    - target: {fileID: 586970368200072602, guid: 7af6d08d3d505fd41ac6536154f22b05,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.138
+      objectReference: {fileID: 0}
+    - target: {fileID: 1314155551960802411, guid: 7af6d08d3d505fd41ac6536154f22b05,
+        type: 3}
+      propertyPath: m_Range
+      value: 0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 1314155551960802411, guid: 7af6d08d3d505fd41ac6536154f22b05,
+        type: 3}
+      propertyPath: m_Intensity
+      value: 1.89
+      objectReference: {fileID: 0}
+    - target: {fileID: 1314155551960802411, guid: 7af6d08d3d505fd41ac6536154f22b05,
+        type: 3}
+      propertyPath: m_BounceIntensity
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 6797345397265751757, guid: 7af6d08d3d505fd41ac6536154f22b05,
         type: 3}
       propertyPath: m_Name
       value: SustainParticles
+      objectReference: {fileID: 0}
+    - target: {fileID: 6797345397265751757, guid: 7af6d08d3d505fd41ac6536154f22b05,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6797345397265751758, guid: 7af6d08d3d505fd41ac6536154f22b05,
         type: 3}
@@ -342,6 +367,11 @@ PrefabInstance:
       propertyPath: ColorModule.gradient.maxGradient.atime0
       value: 53199
       objectReference: {fileID: 0}
+    - target: {fileID: 3055619196453441660, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 9
+      objectReference: {fileID: 0}
     - target: {fileID: 3294177006411540973, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
       propertyPath: m_RootOrder
@@ -402,6 +432,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: HitParticles
       objectReference: {fileID: 0}
+    - target: {fileID: 3294177006411540974, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3294177006766791691, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
       propertyPath: m_RootOrder
@@ -411,6 +446,11 @@ PrefabInstance:
         type: 3}
       propertyPath: simulationSpeed
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3294177006858759508, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
+        type: 3}
+      propertyPath: SizeModule.curve.maxCurve.m_Curve.Array.data[0].value
+      value: 0.67567444
       objectReference: {fileID: 0}
     - target: {fileID: 3294177006858759510, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
@@ -447,6 +487,11 @@ PrefabInstance:
         type: 3}
       propertyPath: simulationSpeed
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6707551802329558430, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 6800171040021638553, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
@@ -491,22 +536,27 @@ PrefabInstance:
     - target: {fileID: 7052233033112949576, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 1e-45
+      value: 1.57e-43
       objectReference: {fileID: 0}
     - target: {fileID: 7052233033112949576, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: 1.2338184e-33
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7052233033112949576, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: NaN
+      value: 1.57e-43
       objectReference: {fileID: 0}
     - target: {fileID: 7052233033112949576, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
       propertyPath: m_BoundingSphereOverride.z
-      value: 6.0603e-41
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7342552683698570945, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8606392047678779400, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
