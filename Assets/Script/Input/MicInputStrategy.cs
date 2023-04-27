@@ -58,6 +58,11 @@ namespace YARG.Input {
 				return;
 			}
 
+			// Not in a song yet
+			if (MicPlayer.Instance == null) {
+				return;
+			}
+
 			var audioSource = MicPlayer.Instance.dummyAudioSources[this];
 
 			// Get and optimize samples

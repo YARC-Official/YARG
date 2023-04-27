@@ -284,6 +284,10 @@ namespace YARG.PlayMode {
 		}
 
 		private void OnDestroy() {
+			if (Instance == this) {
+				Instance = null;
+			}
+
 			if (!hasMic) {
 				return;
 			}
