@@ -9887,6 +9887,11 @@ PrefabInstance:
       propertyPath: m_RootOrder
       value: 5
       objectReference: {fileID: 0}
+    - target: {fileID: 2550125197447345204, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 15
+      objectReference: {fileID: 0}
     - target: {fileID: 2819897718710481315, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: m_DynamicOccludee
@@ -10157,7 +10162,7 @@ PrefabInstance:
     - target: {fileID: 7417495158134921613, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: m_RootOrder
-      value: 15
+      value: 16
       objectReference: {fileID: 0}
     - target: {fileID: 7566790813960029081, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}

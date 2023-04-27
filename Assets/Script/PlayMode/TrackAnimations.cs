@@ -46,12 +46,19 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		protected float kickShakeTotalDuration = 0.125f;
 
+		protected Vector3 initialCameraPos;
+		protected bool initialCameraPosGot;
 		protected float kickShakeDuration;
 		protected float kickShakeElapsedTime = 0;
 		protected bool kickShakeGone = false;
 		protected bool kickShakeReturned = false;
 		protected bool kickShakeResetTime = false;
 		protected bool executeKickShake = false;
+
+		// Kick Flash animation
+		protected Sprite kickFlashSprite;
+		protected Animation kickFlashAnimation;
+		protected Animator kickFlashAnimator;
 
 		[Space]
 		[SerializeField]
@@ -70,13 +77,17 @@ namespace YARG.PlayMode {
 			spParticle2StartPos = commonTrack.starPowerParticles2.transform.position;
 			trackStartPos = commonTrack.TrackCamera.transform.position;
 			spLightsStartPos = commonTrack.starPowerLightIndicators.transform.position;
+
+			kickFlashSprite = commonTrack.kickFlash.GetComponent<Sprite>();
+			kickFlashAnimation = commonTrack.kickFlash.GetComponent<Animation>();
+			kickFlashAnimator = commonTrack.kickFlash.GetComponent<Animator>();
 			executeKickShake = false;
 		}
 
 		void Update() {
 
 			KickShakeCameraAnim();
-
+			
 		}
 
 		public void StarpowerLightsAnimSingleFrame() {
@@ -176,6 +187,12 @@ namespace YARG.PlayMode {
 			
 
 			float percentageComplete = kickShakeElapsedTime / kickShakeDuration;
+			
+			if(!initialCameraPosGot) {
+
+				initialCameraPos = commonTrack.TrackCamera.transform.position;
+				initialCameraPosGot = true;
+			}
 
 			if (executeKickShake) {
 				
@@ -183,9 +200,12 @@ namespace YARG.PlayMode {
 				if (!kickShakeGone && !kickShakeReturned) {
 					kickShakeElapsedTime += Time.deltaTime;
 					kickShakeDuration = kickShakeMiddleDuration;
-					commonTrack.TrackCamera.transform.position = Vector3.Lerp(trackStartPos, trackStartPos + trackEndPosKick, percentageComplete);
 
-					if (commonTrack.TrackCamera.transform.position == trackStartPos + trackEndPosKick) {
+					//commonTrack.TrackCamera.transform.position = Vector3.Lerp(initialCameraPos, initialCameraPos + trackEndPosKick, percentageComplete); <-- This lerp was
+					commonTrack.TrackCamera.transform.position = initialCameraPos + trackEndPosKick;                                                                                                                                  // a Nan issue so I changed to lerp to instant position assign. Should present no issues since "MiddleDuration" lasted less than a frame. - Mia
+
+
+					if (commonTrack.TrackCamera.transform.position == initialCameraPos + trackEndPosKick) {
 						kickShakeResetTime = true;
 						kickShakeGone = true;
 					}
@@ -202,9 +222,9 @@ namespace YARG.PlayMode {
 					kickShakeElapsedTime += Time.deltaTime;
 					
 					kickShakeDuration = kickShakeTotalDuration;
-					commonTrack.TrackCamera.transform.position = Vector3.Lerp(trackStartPos + trackEndPosKick, trackStartPos, percentageComplete);
+					commonTrack.TrackCamera.transform.position = Vector3.Lerp(initialCameraPos + trackEndPosKick, initialCameraPos, percentageComplete);
 
-					if (commonTrack.TrackCamera.transform.position == trackStartPos) {
+					if (commonTrack.TrackCamera.transform.position == initialCameraPos) {
 						executeKickShake = false;
 						kickShakeResetTime = true;
 						kickShakeReturned = false;
@@ -217,6 +237,26 @@ namespace YARG.PlayMode {
 		public void PlayKickShakeCameraAnim() {
 			kickShakeResetTime = true;
 			executeKickShake = true;
+		}
+
+		public void PlayKickFlashAnim() {
+			StopKickFlashAnim();
+
+			commonTrack.kickFlash.SetActive(true);
+			kickFlashAnimator.Play(0, 0, 0f);
+			/*if (kickFlashAnimator.GetCurrentAnimatorStateInfo(0).length > kickFlashAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime) {
+				commonTrack.kickFlash.SetActive(true);
+			} else {
+				commonTrack.kickFlash.SetActive(false);
+			}*/
+			
+		}
+
+		public void StopKickFlashAnim() {
+
+			//kickFlashAnimator.Stop();
+			//kickFlashAnimator.Rewind();
+
 		}
 	}
 }

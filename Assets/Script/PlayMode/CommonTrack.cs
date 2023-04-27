@@ -34,6 +34,11 @@ namespace YARG.PlayMode {
 		public Light starPowerParticlesLight;
 		public Light starPowerParticles2Light;
 		public GameObject starPowerLightIndicators;
+		public GameObject kickFlash;
+
+		[Space]
+		[SerializeField]
+		public Color comboSunburstSPColor;
 
 		[Space]
 		public TextMeshPro soloText;
@@ -41,6 +46,7 @@ namespace YARG.PlayMode {
 		public Sprite soloMessySprite;
 		public Sprite soloPerfectSprite;
 		public Sprite soloDefaultSprite;
+
 
 		[Space]
 		[SerializeField]
