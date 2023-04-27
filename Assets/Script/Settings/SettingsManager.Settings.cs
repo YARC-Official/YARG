@@ -1,5 +1,8 @@
+using SFB;
 using UnityEngine;
+using YARG.Serialization;
 using YARG.Settings.SettingTypes;
+using YARG.UI;
 
 namespace YARG.Settings {
 	public static partial class SettingsManager {
@@ -41,7 +44,24 @@ namespace YARG.Settings {
 			public ToggleSetting AmIAwesome                 { get; private set; } = new(false);
 
 #pragma warning restore format
-		
+			
+			public void OpenSongFolderManager() {
+				if (MainMenu.Instance != null) {
+					MainMenu.Instance.ShowSongFolderManager();
+					GameManager.Instance.SettingsMenu.gameObject.SetActive(false);
+				}
+			}
+
+			public void ExportOuvertSongs() {
+				StandaloneFileBrowser.SaveFilePanelAsync("Save Song List", null, "songs", "json", path => {
+					OuvertExport.ExportOuvertSongsTo(path);
+				});
+			}
+
+			public void CopyCurrentSongTextFilePath() {
+				GUIUtility.systemCopyBuffer = TwitchController.Instance.TextFilePath;
+			}
+
 			private static void VSyncCallback(bool value) {
 				QualitySettings.vSyncCount = value ? 1 : 0;
 			}

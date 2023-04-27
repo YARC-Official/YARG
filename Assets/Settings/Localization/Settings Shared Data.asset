@@ -131,6 +131,18 @@ MonoBehaviour:
     m_Key: Tab.Sound
     m_Metadata:
       m_Items: []
+  - m_Id: 12039401434898432
+    m_Key: OpenSongFolderManager
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12041203517612032
+    m_Key: ExportOuvertSongs
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12041263110283264
+    m_Key: CopyCurrentSongTextFilePath
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

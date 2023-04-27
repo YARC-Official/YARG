@@ -138,6 +138,18 @@ MonoBehaviour:
     m_Localized: Sound
     m_Metadata:
       m_Items: []
+  - m_Id: 12039401434898432
+    m_Localized: Open Song Folder Manager
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12041203517612032
+    m_Localized: Export Songs List (For Ouvert Bot)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12041263110283264
+    m_Localized: Copy Current Song Text File Path
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

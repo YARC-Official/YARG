@@ -16,6 +16,9 @@ namespace YARG.Settings {
 			new() {
 				name = "General",
 				settings = {
+					"$OpenSongFolderManager",
+					"$ExportOuvertSongs",
+					"$CopyCurrentSongTextFilePath",
 					"CalibrationNumber",
 					"ShowHitWindow",
 					"UseCymbalModelsInFiveLane",
@@ -104,6 +107,17 @@ namespace YARG.Settings {
 			}
 
 			return (ISettingType) value;
+		}
+
+		public static void InvokeButton(string name) {
+			name = name[1..];
+			var method = typeof(SettingContainer).GetMethod(name);
+
+			if (method == null) {
+				throw new Exception($"The method `{name}` does not exist.");
+			}
+
+			method.Invoke(Settings, null);
 		}
 	}
 }

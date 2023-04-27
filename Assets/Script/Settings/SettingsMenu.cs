@@ -12,6 +12,8 @@ namespace YARG.Settings {
 		[Space]
 		[SerializeField]
 		private GameObject tabPrefab;
+		[SerializeField]
+		private GameObject buttonPrefab;
 
 		private string _currentTab;
 		public string CurrentTab {
@@ -57,12 +59,18 @@ namespace YARG.Settings {
 
 				// Once we've found the tab, add the settings
 				foreach (var settingName in tab.settings) {
-					var setting = SettingsManager.GetSettingByName(settingName);
+					if (settingName.StartsWith("$")) {
+						// Spawn the button
+						var go = Instantiate(buttonPrefab, settingsContainer);
+						go.GetComponent<SettingsButton>().SetInfo(settingName);
+					} else {
+						var setting = SettingsManager.GetSettingByName(settingName);
 
-					// Spawn the setting
-					var settingPrefab = Addressables.LoadAssetAsync<GameObject>(setting.AddressableName).WaitForCompletion();
-					var go = Instantiate(settingPrefab, settingsContainer);
-					go.GetComponent<ISettingVisual>().SetSetting(settingName);
+						// Spawn the setting
+						var settingPrefab = Addressables.LoadAssetAsync<GameObject>(setting.AddressableName).WaitForCompletion();
+						var go = Instantiate(settingPrefab, settingsContainer);
+						go.GetComponent<ISettingVisual>().SetSetting(settingName);
+					}
 				}
 
 				// Then we're good!

@@ -10637,7 +10637,6 @@ MonoBehaviour:
   addPlayer: {fileID: 410452336}
   credits: {fileID: 365708825}
   menuContainer: {fileID: 1126244163}
-  settingsContainer: {fileID: 1006802517}
   songFolderManager: {fileID: 1458216463}
   loadingScreen: {fileID: 784751310}
   loadingStatus: {fileID: 1090956613}
@@ -21206,10 +21205,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7890279004fddee469d8c1b873e4680e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settingSpacePrefab: {fileID: 495506203781168666, guid: 94f7a64a42ac51e4eb6af891f99dc193,
-    type: 3}
+  tabsContainer: {fileID: 0}
   settingsContainer: {fileID: 4596674}
-  inGame: 0
+  tabPrefab: {fileID: 0}
+  buttonPrefab: {fileID: 0}
 --- !u!1 &1696839234
 GameObject:
   m_ObjectHideFlags: 0
@@ -25274,7 +25273,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 874813134}
         m_TargetAssemblyTypeName: YARG.UI.MainMenu, Assembly-CSharp
-        m_MethodName: ShowSettingsMenu
+        m_MethodName: ShowMainMenu
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
