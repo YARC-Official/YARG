@@ -40,7 +40,7 @@ namespace YARG.Serialization {
 					section = data["Song"];
 				} else {
 					Debug.LogError($"No `song` section found in `{song.RootFolder}`.");
-					return;
+					throw new ArgumentException($"No `song` section found in `{song.RootFolder}`.");
 				}
 
 				// Set basic info
@@ -142,8 +142,7 @@ namespace YARG.Serialization {
 					}
 				}
 			} catch (Exception e) {
-				Debug.LogError($"Failed to parse song.ini for `{song.RootFolder}`.");
-				Debug.LogException(e);
+				throw e;
 			}
 		}
 
