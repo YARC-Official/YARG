@@ -84,10 +84,6 @@ namespace YARG.Data {
 
 		public YargChart(MoonSong song) {
 			_song = song;
-			
-			allParts = new() {
-				guitar, guitarCoop, rhythm,bass, keys, RealGuitar, RealBass, drums, realDrums, ghDrums
-			};
 		}
 
 		public List<NoteInfo>[] GetChartByName(string name) {
@@ -105,6 +101,23 @@ namespace YARG.Data {
 				_ => throw new InvalidOperationException($"Unsupported chart type `{name}`.")
 			};
 		}
+
+		public void InitializeArrays() {
+			Guitar = CreateArray();
+			GuitarCoop = CreateArray();
+			Rhythm = CreateArray();
+			Bass = CreateArray();
+			Keys = CreateArray();
+			RealGuitar = CreateArray();
+			RealBass = CreateArray();
+			Drums = CreateArray(5);
+			RealDrums = CreateArray(5);
+			GhDrums = CreateArray(5);
+			
+			allParts = new() {
+				guitar, guitarCoop, rhythm, bass, keys, RealGuitar, RealBass, drums, realDrums, ghDrums
+			};
+		} 
 
 		private List<NoteInfo>[] LoadArray(ref List<NoteInfo>[] notes, IChartLoader<NoteInfo> loader, MoonSong.MoonInstrument instrument, int length = 4) {
 			notes = new List<NoteInfo>[length];

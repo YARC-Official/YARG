@@ -194,26 +194,24 @@ namespace YARG.PlayMode {
 			// }
 
 			// Parse
-			//var parser = new MidiParser(song, files.ToArray());
 
-			MoonSong moonSong;
-			var state = MidReader.CallbackState.None;
-			if (song.mainFile.EndsWith(".mid")) {
-				Debug.Log("Reading .mid file");
-				moonSong = MidReader.ReadMidi(song.mainFile, ref state);
-			} else if (song.mainFile.EndsWith(".chart")) {
+			MoonSong moonSong = null;
+			if (song.mainFile.EndsWith(".chart")) {
 				Debug.Log("Reading .chart file");
 				moonSong = ChartReader.ReadChart(song.mainFile);
-			} else {
-				throw new Exception("Unknown file type");
 			}
 
 			chart = new YargChart(moonSong);
-
-			var handler = new BeatHandler(moonSong);
-			handler.GenerateBeats();
-			chart.beats = handler.Beats;
-			//parser.Parse(chart);
+			if (song.mainFile.EndsWith(".mid")) {
+				// Parse
+				var parser = new MidiParser(song, files.ToArray());
+				chart.InitializeArrays();
+				parser.Parse(chart);
+			} else if(song.mainFile.EndsWith(".chart")) {
+				var handler = new BeatHandler(moonSong);
+				handler.GenerateBeats();
+				chart.beats = handler.Beats;
+			}
 
 			// initialize current tempo
 			if (chart.beats.Count > 2)
