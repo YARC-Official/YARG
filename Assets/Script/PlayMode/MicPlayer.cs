@@ -462,9 +462,6 @@ namespace YARG.PlayMode {
 				var player = playerInfo.player;
 				var micInput = (MicInputStrategy) player.inputStrategy;
 
-				// Update mic input
-				micInput.ForceUpdateInputs();
-
 				// Get the correct range
 				float correctRange = player.chosenDifficulty switch {
 					Difficulty.EASY => 4f,

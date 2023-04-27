@@ -156,7 +156,7 @@ namespace YARG.Input {
 			}
 		}
 
-		private void OnUpdate() {
+		protected virtual void OnUpdate() {
 			if (botMode) {
 				UpdateBotMode();
 			}
@@ -179,7 +179,7 @@ namespace YARG.Input {
 		}
 
 		/// <summary>
-		/// Forces the input strategy to update its inputs. This is used for microphone input.
+		/// Forces the input strategy to update its inputs.
 		/// </summary>
 		public void ForceUpdateInputs() {
 			UpdateNavigationMode();
