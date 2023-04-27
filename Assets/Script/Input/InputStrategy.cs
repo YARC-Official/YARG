@@ -72,7 +72,7 @@ namespace YARG.Input {
 
 		public void Enable() {
 			// Bind events
-			GameManager.OnUpdate += OnUpdate;
+			InputSystem.onAfterUpdate += OnUpdate;
 			if (_inputDevice != null) {
 				eventListener = InputSystem.onEvent.ForDevice(_inputDevice).Call(OnInputEvent);
 			}
@@ -82,7 +82,7 @@ namespace YARG.Input {
 
 		public void Disable() {
 			// Unbind events
-			GameManager.OnUpdate -= OnUpdate;
+			InputSystem.onAfterUpdate -= OnUpdate;
 			eventListener?.Dispose();
 			eventListener = null;
 
