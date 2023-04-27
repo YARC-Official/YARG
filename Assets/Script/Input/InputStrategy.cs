@@ -71,8 +71,12 @@ namespace YARG.Input {
 		}
 
 		public void Enable() {
+			if (Enabled) {
+				return;
+			}
+
 			// Bind events
-			GameManager.OnUpdate += OnUpdate;
+			InputSystem.onAfterUpdate += OnUpdate;
 			if (_inputDevice != null) {
 				eventListener = InputSystem.onEvent.ForDevice(_inputDevice).Call(OnInputEvent);
 			}
@@ -81,8 +85,12 @@ namespace YARG.Input {
 		}
 
 		public void Disable() {
+			if (!Enabled) {
+				return;
+			}
+
 			// Unbind events
-			GameManager.OnUpdate -= OnUpdate;
+			InputSystem.onAfterUpdate -= OnUpdate;
 			eventListener?.Dispose();
 			eventListener = null;
 
@@ -156,7 +164,7 @@ namespace YARG.Input {
 			}
 		}
 
-		private void OnUpdate() {
+		protected virtual void OnUpdate() {
 			if (botMode) {
 				UpdateBotMode();
 			}
@@ -179,11 +187,12 @@ namespace YARG.Input {
 		}
 
 		/// <summary>
-		/// Forces the input strategy to update its inputs. This is used for microphone input.
+		/// Forces the input strategy to update.
 		/// </summary>
-		public void ForceUpdateInputs() {
+		public void ForceUpdate() {
 			UpdateNavigationMode();
 			UpdatePlayerMode();
+			OnUpdate();
 		}
 
 		public static bool IsControlPressed(InputControl<float> control) {
