@@ -284,6 +284,10 @@ namespace YARG.PlayMode {
 		}
 
 		private void OnDestroy() {
+			if (Instance == this) {
+				Instance = null;
+			}
+
 			if (!hasMic) {
 				return;
 			}
@@ -461,9 +465,6 @@ namespace YARG.PlayMode {
 			foreach (var playerInfo in micInputs) {
 				var player = playerInfo.player;
 				var micInput = (MicInputStrategy) player.inputStrategy;
-
-				// Update mic input
-				micInput.ForceUpdateInputs();
 
 				// Get the correct range
 				float correctRange = player.chosenDifficulty switch {

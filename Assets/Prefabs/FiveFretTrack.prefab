@@ -10109,6 +10109,21 @@ PrefabInstance:
       propertyPath: m_LightProbeUsage
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6920380339366119820, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: trackEndPosKick.y
+      value: -0.04
+      objectReference: {fileID: 0}
+    - target: {fileID: 6920380339366119820, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: kickShakeTotalDuration
+      value: 0.125
+      objectReference: {fileID: 0}
+    - target: {fileID: 6920380339366119820, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: kickShakeMiddleDuration
+      value: 0.005
+      objectReference: {fileID: 0}
     - target: {fileID: 7015606883826781840, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: m_RootOrder

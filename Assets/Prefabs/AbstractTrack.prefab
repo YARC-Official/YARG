@@ -125,9 +125,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 40c8f3a2b41bcf645ac8273fe40b4943, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  spShakeAscended: 0
   spLightsStartPos: {x: 0, y: 0, z: 0}
   spLightsEndPos: {x: 0, y: 0, z: 20}
   spLightsPlayed: 0
+  trackEndPosKick: {x: 0, y: 0, z: 0}
+  kickShakeMiddleDuration: 0
+  kickShakeTotalDuration: 0
   spParticleAnimCurve:
     serializedVersion: 2
     m_Curve:
@@ -6358,6 +6362,7 @@ GameObject:
   - component: {fileID: 7068629544064110471}
   - component: {fileID: 1960425676294898908}
   - component: {fileID: 2929719515287731973}
+  - component: {fileID: 4238446917800952776}
   m_Layer: 0
   m_Name: Camera-RB4HighFOV
   m_TagString: Untagged
@@ -6372,14 +6377,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5139829951932775506}
-  m_LocalRotation: {x: 0.20893492, y: 0.0029356948, z: -0.00062721496, w: 0.977925}
-  m_LocalPosition: {x: -0.03, y: 2.597, z: -4.718}
+  m_LocalRotation: {x: 0.20893589, y: 0, z: 0, w: 0.97792935}
+  m_LocalPosition: {x: 0, y: 2.66, z: -4.86}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 90376540996421698}
   m_RootOrder: 9
-  m_LocalEulerAnglesHint: {x: 24.12, y: 0.344, z: 0}
+  m_LocalEulerAnglesHint: {x: 24.12, y: 0, z: 0}
 --- !u!20 &1960425676294898908
 Camera:
   m_ObjectHideFlags: 0
@@ -6456,6 +6461,22 @@ MonoBehaviour:
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
+--- !u!111 &4238446917800952776
+Animation:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5139829951932775506}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Animation: {fileID: 7400000, guid: 5c7592cdb5c17d1408845b7a94dff734, type: 2}
+  m_Animations:
+  - {fileID: 7400000, guid: 5c7592cdb5c17d1408845b7a94dff734, type: 2}
+  m_WrapMode: 0
+  m_PlayAutomatically: 0
+  m_AnimatePhysics: 0
+  m_CullingType: 0
 --- !u!1 &5392332563899905484
 GameObject:
   m_ObjectHideFlags: 0
@@ -12010,6 +12031,7 @@ GameObject:
   - component: {fileID: 7809402107982387610}
   - component: {fileID: 3209698564276094243}
   - component: {fileID: 5711925682980303006}
+  - component: {fileID: 1552777706109494942}
   m_Layer: 0
   m_Name: Camera-RB4
   m_TagString: Untagged
@@ -12024,14 +12046,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7381996506205571461}
-  m_LocalRotation: {x: 0.20893492, y: 0.0029356948, z: -0.00062721496, w: 0.977925}
-  m_LocalPosition: {x: -0.03, y: 2.66, z: -4.86}
+  m_LocalRotation: {x: 0.20893589, y: 0, z: 0, w: 0.97792935}
+  m_LocalPosition: {x: 0, y: 2.66, z: -4.86}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 90376540996421698}
   m_RootOrder: 8
-  m_LocalEulerAnglesHint: {x: 24.12, y: 0.344, z: 0}
+  m_LocalEulerAnglesHint: {x: 24.12, y: 0, z: 0}
 --- !u!20 &3209698564276094243
 Camera:
   m_ObjectHideFlags: 0
@@ -12108,6 +12130,22 @@ MonoBehaviour:
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
+--- !u!111 &1552777706109494942
+Animation:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7381996506205571461}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Animation: {fileID: 0}
+  m_Animations:
+  - {fileID: 7400000, guid: 5c7592cdb5c17d1408845b7a94dff734, type: 2}
+  m_WrapMode: 0
+  m_PlayAutomatically: 0
+  m_AnimatePhysics: 0
+  m_CullingType: 0
 --- !u!1 &7963833488365731104
 GameObject:
   m_ObjectHideFlags: 0
@@ -12119,6 +12157,7 @@ GameObject:
   - component: {fileID: 4431318561618230466}
   - component: {fileID: 7369836005863543340}
   - component: {fileID: 3109453309227933505}
+  - component: {fileID: 508100088074321894}
   m_Layer: 0
   m_Name: Camera-RB2
   m_TagString: Untagged
@@ -12133,14 +12172,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7963833488365731104}
-  m_LocalRotation: {x: 0.20893492, y: 0.0029356948, z: -0.00062721496, w: 0.977925}
-  m_LocalPosition: {x: -0.031, y: 2.776, z: -5.116}
+  m_LocalRotation: {x: 0.20893589, y: 0, z: 0, w: 0.97792935}
+  m_LocalPosition: {x: 0, y: 2.66, z: -5.116}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 90376540996421698}
   m_RootOrder: 7
-  m_LocalEulerAnglesHint: {x: 24.12, y: 0.344, z: 0}
+  m_LocalEulerAnglesHint: {x: 24.12, y: 0, z: 0}
 --- !u!20 &7369836005863543340
 Camera:
   m_ObjectHideFlags: 0
@@ -12217,6 +12256,22 @@ MonoBehaviour:
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
+--- !u!111 &508100088074321894
+Animation:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7963833488365731104}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Animation: {fileID: 7400000, guid: 5c7592cdb5c17d1408845b7a94dff734, type: 2}
+  m_Animations:
+  - {fileID: 7400000, guid: 5c7592cdb5c17d1408845b7a94dff734, type: 2}
+  m_WrapMode: 0
+  m_PlayAutomatically: 0
+  m_AnimatePhysics: 0
+  m_CullingType: 0
 --- !u!1 &8138879633420355844
 GameObject:
   m_ObjectHideFlags: 0

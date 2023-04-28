@@ -43,7 +43,9 @@ namespace YARG.PlayMode {
 		}
 
 		private void OnScoreChange() {
-			SetStars(StarScoreKeeper.BandStars);
+			// don't do anything if gold stars have been achieved
+			if (!goldAchieved)
+				SetStars(StarScoreKeeper.BandStars);
 		}
 
 		private void SetStarProgress(GameObject star, double progress) {
@@ -67,8 +69,6 @@ namespace YARG.PlayMode {
 		/// </summary>
 		/// <param name="stars"></param>
 		public void SetStars(double stars) {
-			if (goldAchieved) { return; }
-
 			int topStar = (int) stars;
 
 			double curProgress = stars - (int) stars;
@@ -105,12 +105,13 @@ namespace YARG.PlayMode {
 				objGoldMeterMaster.SetActive(false);
 
 				GameManager.AudioManager.PlaySoundEffect(SfxSample.StarGold);
-
 				goldAchieved = true; // so we stop trying to update
 			}
 		}
 
 		private void Update() {
+			if (goldAchieved) { return; }
+			
 			int nextBar = curBar;
 			while (nextBar < bars.Count - 1 && bars[nextBar] <= Play.Instance.SongTime) {
 				nextBar++;
