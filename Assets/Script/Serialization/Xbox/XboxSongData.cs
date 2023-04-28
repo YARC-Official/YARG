@@ -55,7 +55,7 @@ namespace YARG.Serialization {
 						break;
 					case "song_length": songLength = (uint) ((DataAtom) dtaArray[1]).Int; break;
 					case "song": // we just want vocal parts and hopo threshold for songDta
-						hopoThreshold = (dtaArray.Array("hopo_threshold") != null) ? ((DataAtom) dtaArray[1]).Int : 0;
+						hopoThreshold = (dtaArray.Array("hopo_threshold") != null) ? ((DataAtom) dtaArray.Array("hopo_threshold")[1]).Int : 0;
 						vocalParts = (dtaArray.Array("vocal_parts") != null) ? (byte) ((DataAtom) dtaArray.Array("vocal_parts")[1]).Int : (byte) 1;
 						break;
 					case "anim_tempo":
