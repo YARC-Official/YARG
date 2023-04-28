@@ -64,17 +64,13 @@ namespace YARG.Serialization {
 				DXTBlocks = br.ReadBytes((int) (fs.Length - 32));
 			} else {
 				// If DXT-3 format, we have to omit the alpha bytes
-				byte[] buf = new byte[8];
-				List<byte> yuh = new List<byte>();
-				buf = br.ReadBytes(8); //skip the first 8 alpha bytes
+				List<byte> extractedDXT3 = new List<byte>();
+				br.ReadBytes(8); //skip the first 8 alpha bytes
 				for (int i = 8; i < (fs.Length - 32) / 2; i += 8) {
-					buf = br.ReadBytes(8); // We want to read these 8 bytes
-					Debug.Log($"reading {BitConverter.ToString(buf)}");
-					yuh.AddRange(buf);
-					buf = br.ReadBytes(8); // and skip these 8 bytes
-					Debug.Log($"skipping {BitConverter.ToString(buf)}");
+					extractedDXT3.AddRange(br.ReadBytes(8)); // We want to read these 8 bytes
+					br.ReadBytes(8); // and skip these 8 bytes
 				}
-				DXTBlocks = yuh.ToArray();
+				DXTBlocks = extractedDXT3.ToArray();
 			}
 
 			// Swap bytes because xbox is weird like that
