@@ -79,9 +79,10 @@ namespace YARG.Settings {
 			// Create settings container
 			try {
 				Settings = JsonConvert.DeserializeObject<SettingContainer>(File.ReadAllText(SettingsFile));
-			} catch (Exception) {
-				Settings = new SettingContainer();
-			}
+			} catch { }
+
+			// If null, recreate
+			Settings ??= new SettingContainer();
 		}
 
 		public static void SaveSettings() {
