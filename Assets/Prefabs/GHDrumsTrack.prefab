@@ -227,12 +227,12 @@ PrefabInstance:
     - target: {fileID: 6920380339366119820, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: trackEndPosKick.y
-      value: 0.04
+      value: -0.04
       objectReference: {fileID: 0}
     - target: {fileID: 6920380339366119820, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: kickShakeTotalDuration
-      value: 0.125
+      value: 0.3
       objectReference: {fileID: 0}
     - target: {fileID: 6920380339366119820, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
@@ -609,15 +609,65 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 2999289846860309450}
     m_Modifications:
+    - target: {fileID: 471200788198306199, guid: 9530eb0116b4d1b46ad1fed1e6dc6fff,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.179
+      objectReference: {fileID: 0}
+    - target: {fileID: 1346850619280860802, guid: 9530eb0116b4d1b46ad1fed1e6dc6fff,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 1834420036132441153, guid: 9530eb0116b4d1b46ad1fed1e6dc6fff,
         type: 3}
       propertyPath: m_Intensity
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 2960665333297917296, guid: 9530eb0116b4d1b46ad1fed1e6dc6fff,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3123759850992972181, guid: 9530eb0116b4d1b46ad1fed1e6dc6fff,
+        type: 3}
+      propertyPath: InitialModule.startColor.maxColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3123759850992972181, guid: 9530eb0116b4d1b46ad1fed1e6dc6fff,
+        type: 3}
+      propertyPath: InitialModule.startColor.maxColor.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3123759850992972181, guid: 9530eb0116b4d1b46ad1fed1e6dc6fff,
+        type: 3}
+      propertyPath: InitialModule.startColor.maxColor.r
+      value: 0.78431374
+      objectReference: {fileID: 0}
     - target: {fileID: 3527058060784309867, guid: 9530eb0116b4d1b46ad1fed1e6dc6fff,
         type: 3}
       propertyPath: m_Intensity
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4792482855308435247, guid: 9530eb0116b4d1b46ad1fed1e6dc6fff,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5200824196763215415, guid: 9530eb0116b4d1b46ad1fed1e6dc6fff,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5774773811761060158, guid: 9530eb0116b4d1b46ad1fed1e6dc6fff,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107675310781536378, guid: 9530eb0116b4d1b46ad1fed1e6dc6fff,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6217758259741149327, guid: 9530eb0116b4d1b46ad1fed1e6dc6fff,
         type: 3}

@@ -549,7 +549,7 @@ PrefabInstance:
     - target: {fileID: 6920380339366119820, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: trackEndPosKick.y
-      value: 0.04
+      value: -0.04
       objectReference: {fileID: 0}
     - target: {fileID: 6920380339366119820, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
@@ -559,7 +559,7 @@ PrefabInstance:
     - target: {fileID: 6920380339366119820, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: kickShakeTotalDuration
-      value: 0.125
+      value: 0.3
       objectReference: {fileID: 0}
     - target: {fileID: 6920380339366119820, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
