@@ -29,11 +29,11 @@ namespace YARG {
 
 		[field: SerializeField]
 		public SettingsMenu SettingsMenu { get; private set; }
-		
+
 		[SerializeField]
 		private AudioMixerGroup vocalGroup;
 
-		private SceneIndex currentScene = SceneIndex.PERSISTANT;
+		public SceneIndex CurrentScene { get; private set; } = SceneIndex.PERSISTANT;
 
 		private void Awake() {
 			Instance = this;
@@ -85,16 +85,16 @@ namespace YARG {
 			var asyncOp = SceneManager.LoadSceneAsync((int) scene, LoadSceneMode.Additive);
 			asyncOp.completed += _ => {
 				// When complete, set the newly loaded scene to the active one
-				currentScene = scene;
+				CurrentScene = scene;
 				SceneManager.SetActiveScene(SceneManager.GetSceneByBuildIndex((int) scene));
 			};
 		}
 
 		public void LoadScene(SceneIndex scene) {
 			// Unload the current scene and load in the new one, or just load in the new one
-			if (currentScene != SceneIndex.PERSISTANT) {
+			if (CurrentScene != SceneIndex.PERSISTANT) {
 				// Unload the current scene
-				var asyncOp = SceneManager.UnloadSceneAsync((int) currentScene);
+				var asyncOp = SceneManager.UnloadSceneAsync((int) CurrentScene);
 
 				// The load the new scene
 				asyncOp.completed += _ => LoadSceneAdditive(scene);

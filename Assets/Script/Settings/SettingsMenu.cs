@@ -26,7 +26,16 @@ namespace YARG.Settings {
 		}
 
 		private void OnEnable() {
-			_currentTab = SettingsManager.SETTINGS_TABS[0].name;
+			// Select the first tab
+			foreach (var tab in SettingsManager.SETTINGS_TABS) {
+				// Skip tabs that aren't shown in game, if we are in game
+				if (!tab.showInGame && GameManager.Instance.CurrentScene == SceneIndex.PLAY) {
+					continue;
+				}
+
+				_currentTab = tab.name;
+				break;
+			}
 
 			UpdateTabs();
 			UpdateSettings();
@@ -40,6 +49,11 @@ namespace YARG.Settings {
 
 			// Then, create new tabs!
 			foreach (var tab in SettingsManager.SETTINGS_TABS) {
+				// Skip tabs that aren't shown in game, if we are in game
+				if (!tab.showInGame && GameManager.Instance.CurrentScene == SceneIndex.PLAY) {
+					continue;
+				}
+
 				var go = Instantiate(tabPrefab, tabsContainer);
 				go.GetComponent<SettingsTab>().SetTab(tab.name);
 			}

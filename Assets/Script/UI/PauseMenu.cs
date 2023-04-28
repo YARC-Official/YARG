@@ -40,6 +40,8 @@ namespace YARG.UI {
 		}
 
 		private void OnDisable() {
+			GameManager.Instance.SettingsMenu.gameObject.SetActive(false);
+
 			// Unbind input events
 			foreach (var player in PlayerManager.players) {
 				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
@@ -103,7 +105,7 @@ namespace YARG.UI {
 		}
 
 		public void SelectCurrentOption() {
-			switch ((ButtonIndex)selected) {
+			switch ((ButtonIndex) selected) {
 				case ButtonIndex.RESUME: OnResumeSelected(); break;
 				case ButtonIndex.RESTART: OnRestartSelected(); break;
 				case ButtonIndex.SETTINGS: OnSettingsSelected(); break;

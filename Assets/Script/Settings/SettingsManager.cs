@@ -9,6 +9,8 @@ namespace YARG.Settings {
 	public static partial class SettingsManager {
 		public class SettingsTab {
 			public string name;
+
+			public bool showInGame = false;
 			public List<string> settings = new();
 		}
 
@@ -44,6 +46,7 @@ namespace YARG.Settings {
 			},
 			new() {
 				name = "Sound",
+				showInGame = true,
 				settings = {
 					"MasterMusicVolume",
 					"GuitarVolume",
