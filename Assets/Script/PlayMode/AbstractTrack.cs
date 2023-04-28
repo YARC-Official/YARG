@@ -149,7 +149,10 @@ namespace YARG.PlayMode {
 			// Adjust hit window
 			var scale = commonTrack.hitWindow.localScale;
 			commonTrack.hitWindow.localScale = new(scale.x, Constants.HIT_MARGIN * player.trackSpeed * 2f, scale.z);
-			commonTrack.hitWindow.gameObject.SetActive(SettingsManager.GetSettingValue<bool>("showHitWindow"));
+			commonTrack.hitWindowperf.localScale = new(scale.x, (Constants.HIT_MARGIN*Constants.HIT_MARGIN_PERFECT) * player.trackSpeed * 2f, scale.z);
+			commonTrack.hitWindowgreat.localScale = new(scale.x, (Constants.HIT_MARGIN*Constants.HIT_MARGIN_GREAT) * player.trackSpeed * 2f, scale.z);
+			commonTrack.hitWindowgood.localScale = new(scale.x, (Constants.HIT_MARGIN*Constants.HIT_MARGIN_GOOD) * player.trackSpeed * 2f, scale.z);
+			commonTrack.hitWindow.gameObject.SetActive(true);
 
 			comboSunburstEmbeddedLight = commonTrack.comboSunburst.GetComponent<Light>();
 
@@ -250,7 +253,7 @@ namespace YARG.PlayMode {
 			// Update track groove
 			float currentGroove = trackMaterial.GetFloat("GrooveState");
 			if (Multiplier >= MaxMultiplier) {
-				trackMaterial.SetFloat("GrooveState", Mathf.Lerp(currentGroove, 1f, Time.deltaTime * 5f));
+				trackMaterial.SetFloat("GrooveState", Mathf.Lerp(currentGroove, 0f, Time.deltaTime * 3f));
 			} else {
 				trackMaterial.SetFloat("GrooveState", Mathf.Lerp(currentGroove, 0f, Time.deltaTime * 3f));
 			}
@@ -258,7 +261,7 @@ namespace YARG.PlayMode {
 			// Update track starpower
 			float currentStarpower = trackMaterial.GetFloat("StarpowerState");
 			if (IsStarPowerActive) {
-				trackMaterial.SetFloat("StarpowerState", Mathf.Lerp(currentStarpower, 1f, Time.deltaTime * 2f));
+				trackMaterial.SetFloat("StarpowerState", Mathf.Lerp(currentStarpower, 0f, Time.deltaTime * 4f));
 			} else {
 				trackMaterial.SetFloat("StarpowerState", Mathf.Lerp(currentStarpower, 0f, Time.deltaTime * 4f));
 			}
@@ -312,10 +315,8 @@ namespace YARG.PlayMode {
 				} else {
 					starpowerCharge -= Time.deltaTime / 25f * Play.speed;
 				}
-				if (!trackAnims.spShakeAscended) {
-					trackAnims.StarpowerTrackAnim();
-					
-				}
+
+				trackAnims.StarpowerTrackAnim();
 				trackAnims.StarpowerParticleAnim();
 				trackAnims.StarpowerLightsAnim();
 
@@ -323,7 +324,6 @@ namespace YARG.PlayMode {
 				commonTrack.comboSunburst.sprite = commonTrack.sunBurstSpriteStarpower;
 				commonTrack.comboSunburst.color = new Color(255, 255, 255, 141);
 			} else {
-
 				trackAnims.StarpowerTrackAnimReset();
 				trackAnims.StarpowerParticleAnimReset();
 				trackAnims.StarpowerLightsAnimReset();

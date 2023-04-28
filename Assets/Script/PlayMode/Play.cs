@@ -8,6 +8,7 @@ using YARG.Data;
 using YARG.Serialization.Parser;
 using YARG.Settings;
 using YARG.UI;
+using TMPro;
 
 namespace YARG.PlayMode {
 	public class Play : MonoBehaviour {
@@ -31,6 +32,14 @@ namespace YARG.PlayMode {
 
 		public delegate void PauseStateChangeAction(bool pause);
 		public static event PauseStateChangeAction OnPauseToggle;
+
+		public TextMeshProUGUI accuracyText;
+
+		public TextMeshProUGUI comboText;
+
+		public TextMeshProUGUI accText;
+
+		public TextMeshProUGUI judgementText;
 
 		[SerializeField]
 		private GameObject soundAudioPrefab;

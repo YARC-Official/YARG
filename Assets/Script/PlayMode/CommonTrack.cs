@@ -21,6 +21,10 @@ namespace YARG.PlayMode {
 		public MeshRenderer comboMeterRenderer;
 		public MeshRenderer starpowerBarTop;
 
+		public Transform hitWindowperf;
+		public Transform hitWindowgreat;
+		public Transform hitWindowgood;
+
 		[Space]
 		public MeshRenderer comboRing;
 		public Material nonFCRing;

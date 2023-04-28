@@ -6,6 +6,7 @@ using YARG.Input;
 using YARG.Pools;
 using YARG.Settings;
 using YARG.Util;
+using System;
 
 namespace YARG.PlayMode {
 	public class FiveFretTrack : AbstractTrack {
@@ -34,6 +35,22 @@ namespace YARG.PlayMode {
 		private int allowedGhosts = Constants.EXTRA_ALLOWED_GHOSTS + 1;
 		private int[] allowedChordGhosts = new int[] { -1, -1, -1, -1, -1 }; // -1 = not a chord; 0 = ghosted; 1 = ghost allowed
 		private bool antiGhosting = false;
+		private int lastGhost = -1;
+
+		private int totalGhosts = 0;
+		private int testGhost = 0;
+		private int ghostPenalty = 0;
+		private int overtapLimit = 1;
+
+		private float accuracy = 0;
+		private float totalAccuracy = 100;
+		private float accuracyScore = 0;
+		private int hitPerfect = 0;
+		private int hitGreat = 0;
+		private int hitGood = 0;
+		private int hitOk = 0;
+		private string accuracyString = "";
+		private int totalMissedNotes = 0;
 
 		// https://www.reddit.com/r/Rockband/comments/51t3c0/exactly_how_many_points_are_sustains_worth/
 		private const double SUSTAIN_PTS_PER_BEAT = 12.0;
@@ -141,7 +158,7 @@ namespace YARG.PlayMode {
 				var heldNote = heldNotes[i];
 
 				// Sustain scoring
-				scoreKeeper.Add(susTracker.Update(heldNote) * Multiplier * SUSTAIN_PTS_PER_BEAT);
+				//scoreKeeper.Add(susTracker.Update(heldNote) * Multiplier * SUSTAIN_PTS_PER_BEAT);
 
 				if (heldNote.time + heldNote.length <= Play.Instance.SongTime) {
 					heldNotes.RemoveAt(i);
@@ -199,6 +216,18 @@ namespace YARG.PlayMode {
 
 			// Handle misses (multiple a frame in case of lag)
 			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Constants.HIT_MARGIN) {
+				//ACCURACY
+				lastGhost = -1;
+				totalMissedNotes++;
+
+				totalAccuracy = (accuracyScore/((hitPerfect+hitGreat+hitGood+hitOk+totalMissedNotes)*100)) * 100;
+				ghostPenalty = Convert.ToInt32(accuracyScore * (1 - ((testGhost) / (hitPerfect+hitGreat+hitGood+hitOk+totalMissedNotes))));
+				Play.Instance.accuracyText.text = "100s: " + hitPerfect + "   75s: " + hitGreat + "   50s: " + hitGood + "   25s: " + hitOk + "   Miss: " + totalMissedNotes;
+				Play.Instance.accText.text = totalAccuracy.ToString("#.##") + "%";
+
+				Play.Instance.judgementText.color = new Color(220,20,60);
+				Play.Instance.judgementText.text = "miss";
+
 				var missedChord = expectedHits.Dequeue();
 				allowedGhosts = allowedGhostsDefault;
 				ResetAllowedChordGhosts();
@@ -264,6 +293,7 @@ namespace YARG.PlayMode {
 					if (found) {
 						// Miss all notes previous to the strummed note
 						while (expectedHits.Peek() != chord) {
+							totalMissedNotes++;
 							var missedChord = expectedHits.Dequeue();
 							foreach (var hit in missedChord) {
 								hitChartIndex++;
@@ -289,19 +319,48 @@ namespace YARG.PlayMode {
 				if (latestInput == null) {
 					return;
 				}
-
+				/*
 				// Allow 1 multi-hit if latest note was strummed (for charts like Zoidberg the Cowboy by schmutz06)
 				if (latestInputIsStrum) {
 					latestInputIsStrum = false;
 				} else {
 					// Input is valid; clear it to avoid multi-hit later
 					latestInput = null;
-				}
+				}*/
 			}
+
+			//ACCURACY
+			float accuracy = Math.Abs((float)(Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time));
+			if (accuracy < (Constants.HIT_MARGIN*Constants.HIT_MARGIN_PERFECT)) {
+				hitPerfect++;
+				Play.Instance.judgementText.color = new Color(30,144,255);
+				Play.Instance.judgementText.text = "PERFECT!!";
+				scoreKeeper.Add(100);
+			} else if (accuracy < (Constants.HIT_MARGIN*Constants.HIT_MARGIN_GREAT)) {
+				hitGreat++;
+				Play.Instance.judgementText.color = new Color(30,144,255);
+				Play.Instance.judgementText.text = "GREAT!";
+				scoreKeeper.Add(75);
+			} else if (accuracy < (Constants.HIT_MARGIN*Constants.HIT_MARGIN_GOOD)) {
+				hitGood++;
+				Play.Instance.judgementText.color = new Color(127,255,0);
+				Play.Instance.judgementText.text = "good!";
+				scoreKeeper.Add(50);
+			} else {
+				hitOk++;
+				Play.Instance.judgementText.color = new Color(204,204,0);
+				Play.Instance.judgementText.text = "ok";
+				scoreKeeper.Add(25);
+			}
+			accuracyScore = ((hitPerfect*100) + (hitGreat*75) + (hitGood*50) + (hitOk*25));
+			totalAccuracy = (accuracyScore/((hitPerfect+hitGreat+hitGood+hitOk+totalMissedNotes)*100)) * 100;
+			//ghostPenalty = Convert.ToInt32(accuracyScore * (1 - ((testGhost) / (hitPerfect+hitGreat+hitGood+hitOk+totalMissedNotes))));
+			Play.Instance.accuracyText.text = "100s: " + hitPerfect + "   75s: " + hitGreat + "   50s: " + hitGood + "   25s: " + hitOk + "   Miss: " + totalMissedNotes;
+			Play.Instance.accText.text = totalAccuracy.ToString("#.##") + "%";
 
 			// If correct chord is pressed, and is not a multi-hit, hit it!
 			expectedHits.Dequeue();
-
+			lastGhost = -1;
 			allowedGhosts = allowedGhostsDefault;
 			ResetAllowedChordGhosts();
 			Combo++;
@@ -325,7 +384,7 @@ namespace YARG.PlayMode {
 				if (hit.length > 0.2f) {
 					heldNotes.Add(hit);
 					frets[hit.fret].PlaySustainParticles();
-					scoreKeeper.Add(susTracker.Strum(hit) * Multiplier * SUSTAIN_PTS_PER_BEAT);
+					//scoreKeeper.Add(susTracker.Strum(hit) * Multiplier * SUSTAIN_PTS_PER_BEAT);
           
 					frets[hit.fret].PlayAnimationSustainsLooped();
 
@@ -339,15 +398,15 @@ namespace YARG.PlayMode {
 				}
 
 				// Add stats
-				notesHit++;
-				scoreKeeper.Add(PTS_PER_NOTE * Multiplier);
+				//totalN++;
+				//scoreKeeper.Add(PTS_PER_NOTE * Multiplier);
 
 				// Solo stuff
-				if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime) {
-					soloNotesHit++;
+				/*if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime) {
+					solototalN++;
 				} else if (Play.Instance.SongTime >= SoloSection?.EndTime + 10) {
-					soloNotesHit = 0;
-				}
+					solototalN= 0;
+				}*/
 			}
 
 			// If this is a tap note, and it was hit without strumming,
@@ -521,6 +580,9 @@ namespace YARG.PlayMode {
 						}
 					}
 				}
+				if (fret == lastGhost) {
+					checkGhosting = false;
+				}
 				if (checkGhosting) {
 					var nextNote = GetNextNote(Chart[hitChartIndex - 1].time);
 					if (nextNote != null && (nextNote[0].hopo || nextNote[0].tap)) {
@@ -536,6 +598,7 @@ namespace YARG.PlayMode {
 						}
 					}
 				}
+				lastGhost = fret;
 			}
 
 			frets[fret].SetPressed(pressed);
