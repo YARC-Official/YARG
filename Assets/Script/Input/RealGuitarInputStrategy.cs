@@ -37,6 +37,23 @@ namespace YARG.Input {
 		private float? stringGroupingTimer = null;
 		private StrumFlag stringGroupingFlag = StrumFlag.NONE;
 
+		protected override void OnUpdate() {
+			base.OnUpdate();
+
+			// Group up strums
+			if (stringGroupingTimer != null) {
+				stringGroupingTimer -= Time.deltaTime;
+
+				if (stringGroupingTimer <= 0f) {
+					StrumEvent?.Invoke(stringGroupingFlag);
+					stringGroupingFlag = StrumFlag.NONE;
+					stringGroupingTimer = null;
+
+					CallGenericCalbirationEvent();
+				}
+			}
+		}
+
 		protected override void UpdatePlayerMode() {
 			if (InputDevice is not ProGuitar input) {
 				return;
@@ -60,19 +77,6 @@ namespace YARG.Input {
 
 					// Start grouping if not already
 					stringGroupingTimer ??= 0.05f;
-				}
-			}
-
-			// Group up strums
-			if (stringGroupingTimer != null) {
-				stringGroupingTimer -= Time.deltaTime;
-
-				if (stringGroupingTimer <= 0f) {
-					StrumEvent?.Invoke(stringGroupingFlag);
-					stringGroupingFlag = StrumFlag.NONE;
-					stringGroupingTimer = null;
-
-					CallGenericCalbirationEvent();
 				}
 			}
 

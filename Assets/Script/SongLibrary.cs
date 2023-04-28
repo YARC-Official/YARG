@@ -243,7 +243,14 @@ namespace YARG {
 
 					// Create a SongInfo
 					var songInfo = new SongInfo(midPath, info.root, info.type);
-					SongIni.CompleteSongInfo(songInfo);
+					try {
+						SongIni.CompleteSongInfo(songInfo);
+					} catch (Exception e) {
+						// Something went wrong with the parsing, skip this song
+						Debug.LogError($"Failed to parse song.ini for `{info.path}`.");
+						Debug.LogException(e);
+						continue;
+					}
 
 					// Add it to the list of songs
 					songsTemp.Add(songInfo);

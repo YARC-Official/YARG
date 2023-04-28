@@ -312,8 +312,10 @@ namespace YARG.PlayMode {
 				} else {
 					starpowerCharge -= Time.deltaTime / 25f * Play.speed;
 				}
-
-				trackAnims.StarpowerTrackAnim();
+				if (!trackAnims.spShakeAscended) {
+					trackAnims.StarpowerTrackAnim();
+					
+				}
 				trackAnims.StarpowerParticleAnim();
 				trackAnims.StarpowerLightsAnim();
 
@@ -321,6 +323,7 @@ namespace YARG.PlayMode {
 				commonTrack.comboSunburst.sprite = commonTrack.sunBurstSpriteStarpower;
 				commonTrack.comboSunburst.color = new Color(255, 255, 255, 141);
 			} else {
+
 				trackAnims.StarpowerTrackAnimReset();
 				trackAnims.StarpowerParticleAnimReset();
 				trackAnims.StarpowerLightsAnimReset();

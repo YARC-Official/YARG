@@ -48,8 +48,18 @@ namespace YARG.Input {
 			SAMPLE_SCAN_SIZE = (int) (TARGET_SIZE * (float) AudioSettings.outputSampleRate / TARGET_SIZE_REF);
 		}
 
+		protected override void OnUpdate() {
+			base.OnUpdate();
+			UpdatePlayerMode();
+		}
+
 		protected override void UpdatePlayerMode() {
 			if (microphoneIndex == INVALID_MIC_INDEX) {
+				return;
+			}
+
+			// Not in a song yet
+			if (MicPlayer.Instance == null) {
 				return;
 			}
 

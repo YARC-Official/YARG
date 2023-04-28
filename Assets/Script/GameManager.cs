@@ -71,6 +71,12 @@ namespace YARG {
 			LoadScene(SceneIndex.MENU);
 		}
 
+		private void OnDestroy() {
+			foreach (var player in PlayerManager.players) {
+				player.inputStrategy.Disable();
+			}
+		}
+
 		private void Update() {
 			OnUpdate?.Invoke();
 		}

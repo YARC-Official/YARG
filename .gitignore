@@ -66,6 +66,9 @@ sysinfo.txt
 *.unitypackage
 *.app
 
+# MacOS specific finder generated files
+*.DS_Store
+
 # Crashlytics generated file
 crashlytics-build.properties
 
