@@ -64,6 +64,8 @@ namespace YARG.Data {
 
 #pragma warning restore format
 
+		private List<MoonSong.MoonInstrument> _loadedEvents = new();
+		
 		public List<EventInfo> events = new();
 		public List<Beat> beats = new();
 
@@ -119,11 +121,41 @@ namespace YARG.Data {
 			};
 		} 
 
-		private List<NoteInfo>[] LoadArray(ref List<NoteInfo>[] notes, IChartLoader<NoteInfo> loader, MoonSong.MoonInstrument instrument, int length = 4) {
+		private List<NoteInfo>[] LoadArray(ref List<NoteInfo>[] notes, IChartLoader<NoteInfo> loader, MoonSong.MoonInstrument instrument, int length = 4, 
+			bool isPro = false, bool isGh = false) {
 			notes = new List<NoteInfo>[length];
 			for (int i = 0; i < length; i++) {
 				notes[i] = loader.GetNotesFromChart(_song, _song.GetChart(instrument, (MoonSong.Difficulty) length - 1 - i));
 			}
+
+			if (_loadedEvents.Contains(instrument)) {
+				return notes;
+			}
+			
+			var chart = _song.GetChart(instrument, MoonSong.Difficulty.Expert);
+			foreach (var sp in chart.starPower) {
+				string name = GetNameFromInstrument(instrument, isPro, isGh);
+				
+				events.Add(new EventInfo($"starpower_{name}", (float)sp.time, (float)_song.TickToTime(sp.length - 1)));
+			}
+
+			for (int i = 0; i < chart.events.Count; i++) {
+				var chartEvent = chart.events[i];
+				string name = GetNameFromInstrument(instrument, isPro, isGh);
+
+				if (chartEvent.eventName == "solo") {
+					for(int k = i; k < chart.events.Count; k++) {
+						var chartEvent2 = chart.events[k];
+						if (chartEvent2.eventName == "soloend") {
+							events.Add(new EventInfo($"solo_{name}", (float)chartEvent.time, (float)(chartEvent2.time - chartEvent.time)));
+							break;
+						}
+					}
+				}
+			}
+			
+			_loadedEvents.Add(instrument);
+			events.Sort((e1, e2) => e1.time.CompareTo(e2.time));
 
 			return notes;
 		}
@@ -135,6 +167,17 @@ namespace YARG.Data {
 			}
 
 			return list;
+		}
+
+		private static string GetNameFromInstrument(MoonSong.MoonInstrument instrument, bool isPro, bool isGh) {
+			return instrument switch {
+				MoonSong.MoonInstrument.Guitar => "guitar",
+				MoonSong.MoonInstrument.GuitarCoop => "guitarCoop",
+				MoonSong.MoonInstrument.Rhythm => "rhythm",
+				MoonSong.MoonInstrument.Bass => "bass",
+				MoonSong.MoonInstrument.Keys => "keys",
+				MoonSong.MoonInstrument.Drums => isPro ? "realDrums" : isGh ? "ghDrums" : "drums",
+			};
 		}
 	}
 }
