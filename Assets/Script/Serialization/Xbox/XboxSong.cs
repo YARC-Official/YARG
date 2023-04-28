@@ -87,8 +87,8 @@ namespace YARG.Serialization {
 			song.songLength = songDta.songLength / 1000f;
 			// song.delay
 			song.drumType = rb ? SongInfo.DrumType.FOUR_LANE : SongInfo.DrumType.FIVE_LANE;
-			// song.hopoFreq
-			song.artistName = songDta.artist;
+			if(songDta.hopoThreshold != 0) song.hopoFreq = songDta.hopoThreshold;
+			song.artistName = songDta.artist != null ? songDta.artist : "Unknown Artist";
 			song.album = songDta.albumName;
 			song.genre = songDta.genre;
 			// song.charter
