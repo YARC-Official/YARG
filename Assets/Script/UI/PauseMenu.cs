@@ -15,9 +15,6 @@ namespace YARG.UI {
 		[SerializeField]
 		private GenericOption[] options;
 
-		[SerializeField]
-		private GameObject settingsContainer;
-
 		private int playerIndex;
 
 		private int optionCount;
@@ -146,7 +143,7 @@ namespace YARG.UI {
 		}
 
 		private void OnSettingsSelected() {
-			settingsContainer.SetActive(!settingsContainer.activeSelf);
+			GameManager.Instance.SettingsMenu.gameObject.SetActive(true);
 		}
 
 		private void OnQuitSelected() {
