@@ -136,7 +136,9 @@ namespace YARG.Data {
 			foreach (var sp in chart.starPower) {
 				string name = GetNameFromInstrument(instrument, isPro, isGh);
 				
-				events.Add(new EventInfo($"starpower_{name}", (float)sp.time, (float)_song.TickToTime(sp.length - 1)));
+				float finishTime = (float)_song.TickToTime(sp.tick + sp.length - 1);
+				
+				events.Add(new EventInfo($"starpower_{name}", (float)sp.time, finishTime - (float)sp.time));
 			}
 
 			for (int i = 0; i < chart.events.Count; i++) {
