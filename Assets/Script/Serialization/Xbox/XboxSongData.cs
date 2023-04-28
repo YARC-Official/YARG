@@ -54,7 +54,8 @@ namespace YARG.Serialization {
 								songId = (uint) ((DataAtom) dtaArray[1]).Int;
 						break;
 					case "song_length": songLength = (uint) ((DataAtom) dtaArray[1]).Int; break;
-					case "song": // we just want vocal parts for songDta
+					case "song": // we just want vocal parts and hopo threshold for songDta
+						hopoThreshold = (dtaArray.Array("hopo_threshold") != null) ? ((DataAtom) dtaArray.Array("hopo_threshold")[1]).Int : 0;
 						vocalParts = (dtaArray.Array("vocal_parts") != null) ? (byte) ((DataAtom) dtaArray.Array("vocal_parts")[1]).Int : (byte) 1;
 						break;
 					case "anim_tempo":
@@ -91,7 +92,6 @@ namespace YARG.Serialization {
 							if (dtaArray[j] is DataArray inner)
 								ranks.Add(((DataSymbol) inner[0]).Name, (ushort) ((DataAtom) inner[1]).Int);
 						break;
-					case "hopo_threshold": hopoThreshold = ((DataAtom) dtaArray[1]).Int; break;
 					case "game_origin": gameOrigin = ((DataSymbol) dtaArray[1]).Name; break;
 					case "genre": genre = ((DataSymbol) dtaArray[1]).Name; break;
 					case "rating": rating = (byte) ((DataAtom) dtaArray[1]).Int; break;
