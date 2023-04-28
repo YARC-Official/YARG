@@ -7,6 +7,14 @@ using YARG.PlayMode;
 
 namespace YARG.Input {
 	public sealed class MicInputStrategy : InputStrategy {
+		public const string CONFIRM = "confirm";
+		public const string BACK = "back";
+		public const string MENU_ACTION = "menu_action";
+
+		public const string PAUSE = "pause";
+		public const string UP = "up";
+		public const string DOWN = "down";
+
 		private static readonly int SAMPLE_SCAN_SIZE;
 
 		private const float UPDATE_TIME = 1f / 20f;
@@ -48,8 +56,28 @@ namespace YARG.Input {
 			SAMPLE_SCAN_SIZE = (int) (TARGET_SIZE * (float) AudioSettings.outputSampleRate / TARGET_SIZE_REF);
 		}
 
+		protected override Dictionary<string, ControlBinding> GetMappings() => new() {
+			{ CONFIRM,       new(BindingType.BUTTON, "Confirm/Select (Green)", CONFIRM) },
+			{ BACK,          new(BindingType.BUTTON, "Back (Red)", BACK) },
+			{ MENU_ACTION,     new(BindingType.BUTTON, "Menu Action (Yellow)", MENU_ACTION) },
+
+			{ PAUSE,         new(BindingType.BUTTON, "Pause", PAUSE) },
+			{ UP,            new(BindingType.BUTTON, "Navigate Up", UP) },
+			{ DOWN,          new(BindingType.BUTTON, "Navigate Down", DOWN) },
+		};
+
+		protected override void OnUpdate() {
+			base.OnUpdate();
+			UpdatePlayerMode();
+		}
+
 		protected override void UpdatePlayerMode() {
 			if (microphoneIndex == INVALID_MIC_INDEX) {
+				return;
+			}
+
+			// Not in a song yet
+			if (MicPlayer.Instance == null) {
 				return;
 			}
 
@@ -247,7 +275,16 @@ namespace YARG.Input {
 		}
 
 		protected override void UpdateNavigationMode() {
-			// TODO
+			CallGenericNavigationEventForButton(CONFIRM, NavigationType.PRIMARY);
+			CallGenericNavigationEventForButton(BACK, NavigationType.SECONDARY);
+			CallGenericNavigationEventForButton(MENU_ACTION, NavigationType.TERTIARY);
+
+			CallGenericNavigationEventForButton(UP, NavigationType.UP);
+			CallGenericNavigationEventForButton(DOWN, NavigationType.DOWN);
+
+			if (WasMappingPressed(PAUSE)) {
+				CallPauseEvent();
+			}
 		}
 
 		public override string[] GetAllowedInstruments() {

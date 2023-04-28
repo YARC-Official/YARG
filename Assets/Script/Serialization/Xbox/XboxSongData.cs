@@ -31,6 +31,7 @@ namespace YARG.Serialization {
 		public short[] realGuitarTuning, realBassTuning;
 		public string[] solos;
 		public Dictionary<string, ushort> ranks;
+		public int hopoThreshold = 0;
 
 		//TODO: implement macro support, such as #ifndef kControllerRealGuitar, or #ifdef YARG
 		public void ParseFromDta(DataArray dta) {
@@ -53,7 +54,8 @@ namespace YARG.Serialization {
 								songId = (uint) ((DataAtom) dtaArray[1]).Int;
 						break;
 					case "song_length": songLength = (uint) ((DataAtom) dtaArray[1]).Int; break;
-					case "song": // we just want vocal parts for songDta
+					case "song": // we just want vocal parts and hopo threshold for songDta
+						hopoThreshold = (dtaArray.Array("hopo_threshold") != null) ? ((DataAtom) dtaArray.Array("hopo_threshold")[1]).Int : 0;
 						vocalParts = (dtaArray.Array("vocal_parts") != null) ? (byte) ((DataAtom) dtaArray.Array("vocal_parts")[1]).Int : (byte) 1;
 						break;
 					case "anim_tempo":
