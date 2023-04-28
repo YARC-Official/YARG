@@ -200,6 +200,9 @@ namespace YARG {
 		}
 		
 		public void LoadMogg(XboxMoggData moggData, bool isSpeedUp) {
+			Debug.Log("Loading mogg song");
+			UnloadSong();
+			
 			int moggOffset = moggData.MoggAddressAudioOffset;
 			long moggLength = moggData.MoggAudioLength;
 			
@@ -236,6 +239,7 @@ namespace YARG {
 
 			// Free mixer (and all channels in it)
 			_mixer?.Dispose();
+			_mixer = null;
 		}
 
 		public void Play() {
@@ -273,7 +277,7 @@ namespace YARG {
 		}
 
 		public void SetStemVolume(SongStem stem, double volume) {
-			var channel = _mixer.GetChannel(stem);
+			var channel = _mixer?.GetChannel(stem);
 
 			channel?.SetVolume(volume);
 		}
