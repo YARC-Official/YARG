@@ -205,11 +205,11 @@ namespace YARG.PlayMode {
 				ResetAllowedChordGhosts();
 				// Call miss for each component
 				Combo = 0;
+				missedAnyNote = true;
+				StopAudio = true;
 				foreach (var hit in missedChord) {
 					hitChartIndex++;
-					missedAnyNote = true;
 					notePool.MissNote(hit);
-					StopAudio = true;
 					if (hit.fret < 5) extendedSustain[hit.fret] = false;
 				}
 				allowedOverstrums.Clear(); // Disallow all overstrums upon missing
@@ -276,6 +276,7 @@ namespace YARG.PlayMode {
 
 						// Reset the combo (it will be added to later on)
 						Combo = 0;
+						missedAnyNote = true;
 					}
 				}
 			}
@@ -309,6 +310,7 @@ namespace YARG.PlayMode {
 
 					// Reset the combo (it will be added to later on)
 					Combo = 0;
+					missedAnyNote = true;
 				}
 			}
 
@@ -341,11 +343,11 @@ namespace YARG.PlayMode {
 			Combo++;
 			strummedCurrentNote = strummedCurrentNote || strummed || strumLeniency > 0f;
 			strumLeniency = 0f;
+			StopAudio = false;
 			foreach (var hit in chord) {
 				hitChartIndex++;
 				// Hit notes
 				notePool.HitNote(hit);
-				StopAudio = false;
 
 				// Play particles and animation
 				if (hit.fret != 5) {
@@ -448,11 +450,11 @@ namespace YARG.PlayMode {
 			strumLeniency = 0f;
 
 			// Let go of held notes
+			StopAudio = true;
 			for (int i = heldNotes.Count - 1; i >= 0; i--) {
 				var heldNote = heldNotes[i];
 
 				notePool.MissNote(heldNote);
-				StopAudio = true;
 
 				heldNotes.RemoveAt(i);
 				susTracker.Drop(heldNote);
@@ -598,6 +600,7 @@ namespace YARG.PlayMode {
 						}
 					}
 					if (release) { // Actually release all sustains
+						StopAudio = true;
 						for (int i = heldNotes.Count - 1; i >= 0; i--) {
 							var heldNote = heldNotes[i];
 							notePool.MissNote(heldNote);
@@ -605,7 +608,6 @@ namespace YARG.PlayMode {
 							frets[heldNote.fret].StopAnimation();
 							frets[heldNote.fret].StopSustainParticles();
 							extendedSustain[heldNote.fret] = false;
-							StopAudio = true;
 						}
 					}
 				}
