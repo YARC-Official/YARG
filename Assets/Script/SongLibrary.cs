@@ -292,7 +292,7 @@ namespace YARG {
 					// Rock Band unextracted CON
 
 					// Read all of the songs in the CON file
-					
+					var songInfo = XboxCONFileBrowser.BrowseCON(info.path);
 				}
 			}
 
