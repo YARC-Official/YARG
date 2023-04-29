@@ -9827,17 +9827,17 @@ PrefabInstance:
     - target: {fileID: 5008418226340485681, guid: 397b1ea7bf093d24ab47c16be25edc6d,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.022
+      value: -0.024
       objectReference: {fileID: 0}
     - target: {fileID: 5008418226340485681, guid: 397b1ea7bf093d24ab47c16be25edc6d,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.694
+      value: 0.601
       objectReference: {fileID: 0}
     - target: {fileID: 5008418226340485681, guid: 397b1ea7bf093d24ab47c16be25edc6d,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.038
+      value: 0.039
       objectReference: {fileID: 0}
     - target: {fileID: 8898876613081581807, guid: 397b1ea7bf093d24ab47c16be25edc6d,
         type: 3}

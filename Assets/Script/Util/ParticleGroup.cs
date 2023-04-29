@@ -16,9 +16,6 @@ namespace YARG.Util {
 		private FadeLight[] fadeLights;
 		private Light[] normalLights;
 
-		/*[SerializeField]
-		public Material glassMaterial;*/
-
 		private void Start() {
 			particles = GetComponentsInChildren<ParticleSystem>();
 
@@ -43,15 +40,6 @@ namespace YARG.Util {
 			foreach (var ps in colorParticles) {
 				var m = ps.main;
 
-				/*Material material = null; 
-				if (ps.gameObject.GetComponent<Material>() != null) {
-					material = ps.gameObject.GetComponent<Material>();
-				}*/
-
-				/*if (glassMaterial != null) {
-					glassMaterial.color = Color.yellow;
-					glassMaterial.SetColor("_EmissionColor", Color.yellow * 7f);
-				}*/
 
 				var c = color;
 				if (keepAlpha) {
