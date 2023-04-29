@@ -286,7 +286,7 @@ namespace YARG.Pools {
 				// Change line amplitude
 				var lineMat = lineRenderer.materials[0];
 				lineMat.SetFloat("_PrimaryAmplitude", 0.3f);
-				lineMat.SetFloat("_SecondaryAmplitude", Mathf.Sin(Time.time * 10f) * 1.15f);
+				lineMat.SetFloat("_SecondaryAmplitude", Mathf.Sin(Time.time * 7f) * 1.2f);
 
 				// Move line forward
 				float forwardSub = Time.deltaTime * pool.player.trackSpeed / 2.85f;
