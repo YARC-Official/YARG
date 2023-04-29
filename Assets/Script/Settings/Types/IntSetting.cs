@@ -7,8 +7,8 @@ namespace YARG.Settings.Types {
 		public override int Data {
 			get => _data;
 			set {
-				base.Data = value;
 				_data = Mathf.Clamp(value, Min, Max);
+				base.Data = value;
 			}
 		}
 

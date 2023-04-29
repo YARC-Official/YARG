@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   k_AssetVersion: 3
   lightLayerName0: Light Layer default
-  lightLayerName1: Light Layer 1
+  lightLayerName1: Settings Preview
   lightLayerName2: Light Layer 2
   lightLayerName3: Light Layer 3
   lightLayerName4: Light Layer 4

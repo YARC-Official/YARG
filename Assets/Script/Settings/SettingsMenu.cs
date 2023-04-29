@@ -2,15 +2,29 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
+using UnityEngine.UI;
 using YARG.Metadata;
 using YARG.Settings.Visuals;
+using YARG.Util;
 
 namespace YARG.Settings {
 	public class SettingsMenu : MonoBehaviour {
 		[SerializeField]
+		private GameObject fullContainer;
+		[SerializeField]
+		private GameObject halfContainer;
+		[SerializeField]
+		private Transform previewContainer;
+
+		[Space]
+		[SerializeField]
 		private Transform tabsContainer;
 		[SerializeField]
 		private Transform settingsContainer;
+
+		[Space]
+		[SerializeField]
+		private Transform halfSettingsContainer;
 
 		[Space]
 		[SerializeField]
@@ -20,30 +34,53 @@ namespace YARG.Settings {
 		[SerializeField]
 		private GameObject headerPrefab;
 
+		[Space]
+		[SerializeField]
+		private RenderTexture previewRenderTexture;
+		[SerializeField]
+		private RawImage previewRawImage;
+
 		private string _currentTab;
 		public string CurrentTab {
 			get => _currentTab;
 			set {
 				_currentTab = value;
 
-				UpdateSettings();
+				UpdateSettingsForTab();
 			}
 		}
 
 		private void OnEnable() {
-			// Select the first tab
-			foreach (var tab in SettingsManager.SETTINGS_TABS) {
-				// Skip tabs that aren't shown in game, if we are in game
-				if (!tab.showInGame && GameManager.Instance.CurrentScene == SceneIndex.PLAY) {
-					continue;
+			ReturnToFirstTab();
+			UpdateTabs();
+		}
+
+		private void OnDisable() {
+			DestroyPreview();
+		}
+
+		private void UpdateSettingsForTab() {
+			var tabInfo = SettingsManager.GetTabByName(CurrentTab);
+
+			if (string.IsNullOrEmpty(tabInfo.previewPath)) {
+				if (!fullContainer.activeSelf) {
+					fullContainer.gameObject.SetActive(true);
+					halfContainer.gameObject.SetActive(false);
+
+					UpdateTabs();
 				}
 
-				_currentTab = tab.name;
-				break;
+				UpdateSettings(settingsContainer);
+			} else {
+				if (!halfContainer.activeSelf) {
+					halfContainer.gameObject.SetActive(true);
+					fullContainer.gameObject.SetActive(false);
+				}
+
+				UpdateSettings(halfSettingsContainer);
 			}
 
-			UpdateTabs();
-			UpdateSettings();
+			UpdatePreview(tabInfo);
 		}
 
 		private void UpdateTabs() {
@@ -64,9 +101,9 @@ namespace YARG.Settings {
 			}
 		}
 
-		private void UpdateSettings() {
+		private void UpdateSettings(Transform container) {
 			// Destroy all previous settings
-			foreach (Transform t in settingsContainer) {
+			foreach (Transform t in container) {
 				Destroy(t.gameObject);
 			}
 
@@ -80,11 +117,11 @@ namespace YARG.Settings {
 				foreach (var settingMetadata in tab.settings) {
 					if (settingMetadata is ButtonRowMetadata buttonRow) {
 						// Spawn the button
-						var go = Instantiate(buttonPrefab, settingsContainer);
+						var go = Instantiate(buttonPrefab, container);
 						go.GetComponent<SettingsButton>().SetInfo(buttonRow.Buttons[0]);
 					} else if (settingMetadata is HeaderMetadata header) {
 						// Spawn the header
-						var go = Instantiate(headerPrefab, settingsContainer);
+						var go = Instantiate(headerPrefab, container);
 
 						// Set header text
 						go.GetComponentInChildren<LocalizeStringEvent>().StringReference = new LocalizedString {
@@ -96,7 +133,7 @@ namespace YARG.Settings {
 
 						// Spawn the setting
 						var settingPrefab = Addressables.LoadAssetAsync<GameObject>(setting.AddressableName).WaitForCompletion();
-						var go = Instantiate(settingPrefab, settingsContainer);
+						var go = Instantiate(settingPrefab, container);
 						go.GetComponent<ISettingVisual>().SetSetting(field.FieldName);
 					}
 				}
@@ -104,6 +141,59 @@ namespace YARG.Settings {
 				// Then we're good!
 				break;
 			}
+		}
+
+		private void UpdatePreview(SettingsManager.Tab tabInfo) {
+			DestroyPreview();
+
+			if (string.IsNullOrEmpty(tabInfo.previewPath)) {
+				return;
+			}
+
+			// Create render texture
+			previewRenderTexture.Release();
+			previewRenderTexture.format = RenderTextureFormat.DefaultHDR;
+			previewRenderTexture.width = Screen.width;
+			previewRenderTexture.height = Screen.height;
+			previewRenderTexture.Create();
+
+			// Size raw image
+			previewRawImage.uvRect = previewRawImage.rectTransform.ToViewportSpaceCentered(v: false);
+
+			// Spawn prefab
+			var previewPrefab = Addressables.LoadAssetAsync<GameObject>(tabInfo.previewPath).WaitForCompletion();
+			Instantiate(previewPrefab, previewContainer);
+		}
+
+		private void DestroyPreview() {
+			foreach (Transform t in previewContainer) {
+				Destroy(t.gameObject);
+			}
+		}
+
+		public void ReturnToFirstTab() {
+			// Select the first tab
+			foreach (var tab in SettingsManager.SETTINGS_TABS) {
+				// Skip tabs that aren't shown in game, if we are in game
+				if (!tab.showInGame && GameManager.Instance.CurrentScene == SceneIndex.PLAY) {
+					continue;
+				}
+
+				CurrentTab = tab.name;
+				break;
+			}
+		}
+
+		public void ForceShowCurrentTabInFull() {
+			if (fullContainer.activeSelf) {
+				return;
+			}
+
+			fullContainer.gameObject.SetActive(true);
+			halfContainer.gameObject.SetActive(false);
+
+			UpdateTabs();
+			UpdateSettings(settingsContainer);
 		}
 	}
 }

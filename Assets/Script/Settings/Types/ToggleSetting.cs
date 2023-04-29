@@ -6,8 +6,8 @@ namespace YARG.Settings.Types {
 		public override bool Data {
 			get => _data;
 			set {
-				base.Data = value;
 				_data = value;
+				base.Data = value;
 			}
 		}
 

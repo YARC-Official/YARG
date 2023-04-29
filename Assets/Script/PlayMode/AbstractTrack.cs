@@ -127,7 +127,6 @@ namespace YARG.PlayMode {
 			var renderTexture = new RenderTexture(descriptor);
 
 			// Assign render texture to camera
-			commonTrack.SetupCameras();
 			commonTrack.TrackCamera.targetTexture = renderTexture;
 
 			susTracker = new();
@@ -314,7 +313,7 @@ namespace YARG.PlayMode {
 				}
 				if (!trackAnims.spShakeAscended) {
 					trackAnims.StarpowerTrackAnim();
-					
+
 				}
 				trackAnims.StarpowerParticleAnim();
 				trackAnims.StarpowerLightsAnim();

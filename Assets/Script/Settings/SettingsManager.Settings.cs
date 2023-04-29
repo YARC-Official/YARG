@@ -1,5 +1,6 @@
 using SFB;
 using UnityEngine;
+using YARG.PlayMode;
 using YARG.Serialization;
 using YARG.Settings.Types;
 using YARG.UI;
@@ -18,7 +19,6 @@ namespace YARG.Settings {
 			
 			public ToggleSetting LowQuality                 { get; private set; } = new(false,     LowQualityCallback);
 			public ToggleSetting DisableBloom               { get; private set; } = new(false,     DisableBloomCallback);
-			public ToggleSetting HighFovCamera              { get; private set; } = new(false);
 			
 			public ToggleSetting ShowHitWindow              { get; private set; } = new(false);
 			public ToggleSetting UseCymbalModelsInFiveLane  { get; private set; } = new(true);
@@ -72,6 +72,7 @@ namespace YARG.Settings {
 
 			private static void LowQualityCallback(bool value) {
 				GraphicsManager.Instance.LowQuality = value;
+				CameraPositioner.UpdateAllAntiAliasing();
 			}
 
 			private static void DisableBloomCallback(bool value) {

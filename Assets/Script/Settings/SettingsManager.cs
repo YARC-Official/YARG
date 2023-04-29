@@ -8,15 +8,17 @@ using YARG.Settings.Types;
 
 namespace YARG.Settings {
 	public static partial class SettingsManager {
-		public class SettingsTab {
+		public class Tab {
 			public string name;
 			public string icon = "Generic";
+
+			public string previewPath;
 
 			public bool showInGame = false;
 			public List<AbstractMetadata> settings = new();
 		}
 
-		public static readonly List<SettingsTab> SETTINGS_TABS = new() {
+		public static readonly List<Tab> SETTINGS_TABS = new() {
 			new() {
 				name = "General",
 				settings = {
@@ -34,6 +36,7 @@ namespace YARG.Settings {
 			new() {
 				name = "Graphics",
 				icon = "Display",
+				previewPath = "SettingPreviews/TrackPreview",
 				settings = {
 					new HeaderMetadata("Framerate"),
 					"VSync",
@@ -41,7 +44,6 @@ namespace YARG.Settings {
 					new HeaderMetadata("Graphics"),
 					"LowQuality",
 					"DisableBloom",
-					"HighFovCamera",
 				}
 			},
 			new() {
@@ -90,7 +92,9 @@ namespace YARG.Settings {
 			// Create settings container
 			try {
 				Settings = JsonConvert.DeserializeObject<SettingContainer>(File.ReadAllText(SettingsFile));
-			} catch { }
+			} catch (Exception e) {
+				Debug.LogException(e);
+			}
 
 			// If null, recreate
 			Settings ??= new SettingContainer();
@@ -125,7 +129,6 @@ namespace YARG.Settings {
 		}
 
 		public static void InvokeButton(string name) {
-			name = name[1..];
 			var method = typeof(SettingContainer).GetMethod(name);
 
 			if (method == null) {
@@ -133,6 +136,16 @@ namespace YARG.Settings {
 			}
 
 			method.Invoke(Settings, null);
+		}
+
+		public static Tab GetTabByName(string name) {
+			foreach (var tab in SETTINGS_TABS) {
+				if (tab.name == name) {
+					return tab;
+				}
+			}
+
+			return null;
 		}
 	}
 }

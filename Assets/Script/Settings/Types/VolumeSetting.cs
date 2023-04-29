@@ -8,8 +8,8 @@ namespace YARG.Settings.Types {
 		public override float Data {
 			get => _data;
 			set {
-				base.Data = value;
 				_data = Mathf.Clamp(value, 0, 1);
+				base.Data = value;
 			}
 		}
 
