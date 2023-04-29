@@ -15,6 +15,8 @@ namespace YARG.PlayMode {
 			{ "guitar", new float[] { .21f, .46f, .77f, 1.85f, 3.08f, 4.52f } },
 			{ "bass", new float[] { .21f, .5f, .9f, 2.77f, 4.62f, 6.78f } },
 			{ "keys", new float[] { .21f, .46f, .77f, 1.85f, 3.08f, 4.52f } },
+			{ "guitarCoop", new float[] { .21f, .46f, .77f, 1.85f, 3.08f, 4.52f } },
+			{ "rhythm", new float[] { .21f, .46f, .77f, 1.85f, 3.08f, 4.52f } },
 			{ "realGuitar", new float[] { .21f, .46f, .77f, 1.85f, 3.08f, 4.52f } },
 			{ "realBass", new float[] { .21f, .46f, .77f, 1.85f, 3.08f, 4.52f } },
 			{ "drums", new float[] { .21f, .46f, .77f, 1.85f, 3.08f, 4.52f } },
