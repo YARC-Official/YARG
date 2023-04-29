@@ -299,6 +299,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 98263463026218619, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
+      propertyPath: glassMaterial
+      value: 
+      objectReference: {fileID: 2100000, guid: 7d3401a8c62a0724780b5b8ec06a2614, type: 2}
+    - target: {fileID: 98263463026218619, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
+        type: 3}
       propertyPath: colorParticles.Array.size
       value: 4
       objectReference: {fileID: 0}
@@ -307,6 +312,16 @@ PrefabInstance:
       propertyPath: colorParticles.Array.data[4]
       value: 
       objectReference: {fileID: 273451372480662536}
+    - target: {fileID: 98263463026218619, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
+        type: 3}
+      propertyPath: emissionParticles.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 98263463026218619, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
+        type: 3}
+      propertyPath: emissionParticles.Array.data[0]
+      value: 
+      objectReference: {fileID: 4047214473387151709}
     - target: {fileID: 734690796227590261, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
       propertyPath: m_AllowRoll
@@ -464,6 +479,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2489120237597018874, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
+      propertyPath: simulationSpeed
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2489120237597018874, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
+        type: 3}
       propertyPath: startDelay.scalar
       value: 0.05
       objectReference: {fileID: 0}
@@ -537,6 +557,12 @@ PrefabInstance:
       propertyPath: VelocityModule.orbitalOffsetZ.scalar
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2489120237597018874, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
+        type: 3}
+      propertyPath: UVModule.sprites.Array.data[0].sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: a815277564835f148b551a500813cd10,
+        type: 3}
     - target: {fileID: 2489120237597018874, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
       propertyPath: VelocityModule.y.maxCurve.m_Curve.Array.size
@@ -755,7 +781,7 @@ PrefabInstance:
     - target: {fileID: 3294177006858759508, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
       propertyPath: lengthInSec
-      value: 0.3
+      value: 0.15
       objectReference: {fileID: 0}
     - target: {fileID: 3294177006858759508, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
@@ -770,7 +796,7 @@ PrefabInstance:
     - target: {fileID: 3294177006858759508, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
       propertyPath: InitialModule.startLifetime.scalar
-      value: 0.2
+      value: 0.15
       objectReference: {fileID: 0}
     - target: {fileID: 3294177006858759508, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
         type: 3}
@@ -1211,6 +1237,12 @@ MonoBehaviour:
 --- !u!4 &3969638561674703434 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3294177006411540973, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
+    type: 3}
+  m_PrefabInstance: {fileID: 1919019106854198183}
+  m_PrefabAsset: {fileID: 0}
+--- !u!198 &4047214473387151709 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 2489120237597018874, guid: 302e01a0099b29c4f91dfe3f6b8fdf2a,
     type: 3}
   m_PrefabInstance: {fileID: 1919019106854198183}
   m_PrefabAsset: {fileID: 0}
