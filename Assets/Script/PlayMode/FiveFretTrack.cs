@@ -368,7 +368,7 @@ namespace YARG.PlayMode {
 					if (nextNote != null) {
 						extendedSustain[hit.fret] = hit.EndTime > nextNote[0].time;
 					}
-				} else if (hit.fret != 5) {
+				} else {
 					extendedSustain[hit.fret] = false;
 				}
 
