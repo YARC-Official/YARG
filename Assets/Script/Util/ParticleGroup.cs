@@ -56,7 +56,7 @@ namespace YARG.Util {
 			foreach (var ps in emissionParticles) {
 				var material = ps.GetComponent<ParticleSystemRenderer>().material;
 				material.color = color;
-				material.SetColor("_EmissionColor", color * 50f);
+				material.SetColor("_EmissionColor", color * 35f);
 			}
 
 			// Set colors of lights
