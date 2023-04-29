@@ -143,6 +143,26 @@ MonoBehaviour:
     m_Key: CopyCurrentSongTextFilePath
     m_Metadata:
       m_Items: []
+  - m_Id: 12472066134892544
+    m_Key: Header.SongManagement
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12472103388700672
+    m_Key: Header.Other
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12472135823253504
+    m_Key: Header.Framerate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12472159567208448
+    m_Key: Header.Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12473817265201152
+    m_Key: Header.Graphics
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

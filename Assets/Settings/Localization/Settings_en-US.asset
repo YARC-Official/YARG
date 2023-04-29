@@ -150,6 +150,26 @@ MonoBehaviour:
     m_Localized: Copy Current Song Text File Path
     m_Metadata:
       m_Items: []
+  - m_Id: 12472066134892544
+    m_Localized: Song Management
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12472103388700672
+    m_Localized: Other
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12472135823253504
+    m_Localized: Framerate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12472159567208448
+    m_Localized: Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12473817265201152
+    m_Localized: Graphics
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

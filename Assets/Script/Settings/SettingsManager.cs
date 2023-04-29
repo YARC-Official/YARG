@@ -9,6 +9,7 @@ namespace YARG.Settings {
 	public static partial class SettingsManager {
 		public class SettingsTab {
 			public string name;
+			public string icon = "Generic";
 
 			public bool showInGame = false;
 			public List<string> settings = new();
@@ -18,9 +19,11 @@ namespace YARG.Settings {
 			new() {
 				name = "General",
 				settings = {
+					"#SongManagement",
 					"$OpenSongFolderManager",
 					"$ExportOuvertSongs",
 					"$CopyCurrentSongTextFilePath",
+					"#Other",
 					"CalibrationNumber",
 					"ShowHitWindow",
 					"UseCymbalModelsInFiveLane",
@@ -29,9 +32,12 @@ namespace YARG.Settings {
 			},
 			new() {
 				name = "Graphics",
+				icon = "Display",
 				settings = {
+					"#Framerate",
 					"VSync",
 					"FpsCap",
+					"#Graphics",
 					"LowQuality",
 					"DisableBloom",
 					"HighFovCamera",
@@ -39,6 +45,7 @@ namespace YARG.Settings {
 			},
 			new() {
 				name = "Engine",
+				icon = "Gameplay",
 				settings = {
 					"NoKicks",
 					"AntiGhosting"
@@ -46,8 +53,10 @@ namespace YARG.Settings {
 			},
 			new() {
 				name = "Sound",
+				icon = "Sound",
 				showInGame = true,
 				settings = {
+					"#Volume",
 					"MasterMusicVolume",
 					"GuitarVolume",
 					"RhythmVolume",
@@ -59,6 +68,7 @@ namespace YARG.Settings {
 					"CrowdVolume",
 					"SfxVolume",
 					"VocalMonitoring",
+					"#Other",
 					"MuteOnMiss",
 					"UseStarpowerFx",
 					// "ClapsInStarpower",

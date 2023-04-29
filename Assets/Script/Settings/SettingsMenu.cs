@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.Localization;
+using UnityEngine.Localization.Components;
 using YARG.Settings.SettingVisuals;
 
 namespace YARG.Settings {
@@ -14,6 +16,8 @@ namespace YARG.Settings {
 		private GameObject tabPrefab;
 		[SerializeField]
 		private GameObject buttonPrefab;
+		[SerializeField]
+		private GameObject headerPrefab;
 
 		private string _currentTab;
 		public string CurrentTab {
@@ -55,7 +59,7 @@ namespace YARG.Settings {
 				}
 
 				var go = Instantiate(tabPrefab, tabsContainer);
-				go.GetComponent<SettingsTab>().SetTab(tab.name);
+				go.GetComponent<SettingsTab>().SetTab(tab.name, tab.icon);
 			}
 		}
 
@@ -77,6 +81,15 @@ namespace YARG.Settings {
 						// Spawn the button
 						var go = Instantiate(buttonPrefab, settingsContainer);
 						go.GetComponent<SettingsButton>().SetInfo(settingName);
+					} else if (settingName.StartsWith("#")) {
+						// Spawn the header
+						var go = Instantiate(headerPrefab, settingsContainer);
+
+						// Set header text
+						go.GetComponentInChildren<LocalizeStringEvent>().StringReference = new LocalizedString {
+							TableReference = "Settings",
+							TableEntryReference = $"Header.{settingName[1..]}"
+						};
 					} else {
 						var setting = SettingsManager.GetSettingByName(settingName);
 
