@@ -1,14 +1,13 @@
 using System;
 using System.Collections.Generic;
 using ManagedBass;
-using ManagedBass.DirectX8;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
 
 namespace YARG {
 	public class BassStemChannel : IStemChannel {
 
-		private const EffectType REVERB_TYPE = EffectType.DXReverb;
+		private const EffectType REVERB_TYPE = EffectType.Freeverb;
 
 		public SongStem Stem { get; }
 		public double LengthD { get; private set; }
@@ -22,13 +21,6 @@ namespace YARG {
 		private readonly IAudioManager _manager;
 
 		private readonly Dictionary<EffectType, int> _effects;
-		private readonly Dictionary<DSPType, int> _dspHandles;
-
-		private IEffectParameter _eqLowParams;
-		private IEffectParameter _eqMidParams;
-		private IEffectParameter _eqHighParams;
-		
-		//private readonly DSPProcedure _dspGain;
 
 		private double _lastStemVolume;
 
@@ -46,11 +38,6 @@ namespace YARG {
 
 			_lastStemVolume = _manager.GetVolumeSetting(Stem);
 			_effects = new Dictionary<EffectType, int>();
-			_dspHandles = new Dictionary<DSPType, int>();
-
-			SetupEqParams();
-			
-			//_dspGain += GainDSP;
 		}
 
 		~BassStemChannel() {
@@ -78,6 +65,21 @@ namespace YARG {
 			
 			StreamHandle = BassFx.TempoCreate(main, flags);
 			ReverbStreamHandle = BassFx.TempoCreate(reverbSplit, flags);
+
+			// Apply a compressor to balance stem volume
+			Bass.ChannelSetFX(StreamHandle, EffectType.Compressor, 1);
+			Bass.ChannelSetFX(ReverbStreamHandle, EffectType.Compressor, 1);
+
+			var compressorParams = new CompressorParameters {
+				fGain = -3,
+				fThreshold = -2,
+				fAttack = 0.01f,
+				fRelease = 0.1f,
+				fRatio = 4,
+			};
+
+			Bass.FXSetParameters(StreamHandle, compressorParams);
+			Bass.FXSetParameters(ReverbStreamHandle, compressorParams);
 
 			Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, _manager.GetVolumeSetting(Stem));
 			Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Volume, 0);
@@ -124,7 +126,7 @@ namespace YARG {
 			Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, newBassVol);
 			
 			if (_isReverbing) {
-				Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Volume, newBassVol);
+				Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Volume, newBassVol * 0.7);
 			} else {
 				Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Volume, 0);
 			}
@@ -138,14 +140,13 @@ namespace YARG {
 					return;
 
 				// Set reverb FX
-				int reverbFxHandle = AddReverbToChannel();
-				int lowEqHandle = AddEqToChannel(_eqLowParams);
-				int midEqHandle = AddEqToChannel(_eqMidParams);
-				int highEqHandle = AddEqToChannel(_eqHighParams);
-				//int gainDspHandle = Bass.ChannelSetDSP(StreamHandle, _dspGain);
+				int lowEqHandle = BassHelpers.AddEqToChannel(ReverbStreamHandle, BassHelpers.LowEqParams);
+				int midEqHandle = BassHelpers.AddEqToChannel(ReverbStreamHandle, BassHelpers.MidEqParams);
+				int highEqHandle = BassHelpers.AddEqToChannel(ReverbStreamHandle, BassHelpers.HighEqParams);
+				int reverbFxHandle = BassHelpers.AddReverbToChannel(ReverbStreamHandle);
 				
 				double volumeSetting = _manager.GetVolumeSetting(Stem);
-				Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Volume,volumeSetting * Volume);
+				Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Volume,volumeSetting * Volume * 0.7);
 
 				_effects.Add(REVERB_TYPE, reverbFxHandle);
 				
@@ -153,20 +154,18 @@ namespace YARG {
 				_effects.Add(EffectType.PeakEQ, lowEqHandle);
 				_effects.Add(EffectType.PeakEQ + 1, midEqHandle);
 				_effects.Add(EffectType.PeakEQ + 2, highEqHandle);
-				//_dspHandles.Add(DSPType.Gain, gainDspHandle);
 			} else {
 				// No reverb is applied
 				if (!_effects.ContainsKey(REVERB_TYPE)) {
 					return;
 				}
 
-				Bass.ChannelRemoveFX(ReverbStreamHandle, _effects[REVERB_TYPE]);
-				
 				// Remove low-high
 				Bass.ChannelRemoveFX(ReverbStreamHandle, _effects[EffectType.PeakEQ]);
 				Bass.ChannelRemoveFX(ReverbStreamHandle, _effects[EffectType.PeakEQ + 1]);
 				Bass.ChannelRemoveFX(ReverbStreamHandle, _effects[EffectType.PeakEQ + 2]);
-				//Bass.ChannelRemoveDSP(ReverbStreamHandle, _dspHandles[DSPType.Gain]);
+				Bass.ChannelRemoveFX(ReverbStreamHandle, _effects[REVERB_TYPE]);
+				
 				Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Volume, 0);
 
 				_effects.Remove(REVERB_TYPE);
@@ -175,7 +174,6 @@ namespace YARG {
 				_effects.Remove(EffectType.PeakEQ);
 				_effects.Remove(EffectType.PeakEQ + 1);
 				_effects.Remove(EffectType.PeakEQ + 2);
-				//_dspHandles.Remove(DSPType.Gain);
 			}
 		}
 
@@ -184,23 +182,7 @@ namespace YARG {
 		}
 
 		public double GetLengthInSeconds() {
-			if (StreamHandle == 0) {
-				return 0;
-			}
-
-			long length = Bass.ChannelGetLength(StreamHandle);
-
-			if (length == -1) {
-				return (double) Bass.LastError;
-			}
-
-			double seconds = Bass.ChannelBytes2Seconds(StreamHandle, length);
-
-			if (seconds < 0) {
-				return (double) Bass.LastError;
-			}
-
-			return seconds;
+			return BassHelpers.GetChannelLengthInSeconds(StreamHandle);
 		}
 
 		public void Dispose() {
@@ -232,69 +214,6 @@ namespace YARG {
 				}
 
 				_disposed = true;
-			}
-		}
-
-		private int AddReverbToChannel() {
-			// Set reverb FX
-			int reverbFxHandle = Bass.ChannelSetFX(ReverbStreamHandle, REVERB_TYPE, 0);
-			if (reverbFxHandle == 0) {
-				return 0;
-			}
-
-			IEffectParameter reverbParams = REVERB_TYPE switch {
-				EffectType.DXReverb => new DXReverbParameters {
-					fInGain = -2f, fReverbMix = -1f, fReverbTime = 1000.0f, fHighFreqRTRatio = 0.001f
-				},
-				EffectType.Freeverb => new ReverbParameters() {
-					fDryMix = 1f,
-					fWetMix = 2f,
-					fRoomSize = 0.5f,
-					fDamp = 0.2f,
-					fWidth = 1.0f,
-					lMode = 0
-				},
-				_ => throw new ArgumentOutOfRangeException()
-			};
-
-			return !Bass.FXSetParameters(reverbFxHandle, reverbParams) ? 0 : reverbFxHandle;
-		}
-
-		private int AddEqToChannel(IEffectParameter eqParams) {
-			int eqHandle = Bass.ChannelSetFX(ReverbStreamHandle, EffectType.PeakEQ, 1);
-			if (eqHandle == 0) {
-				return 0;
-			}
-			
-			return !Bass.FXSetParameters(eqHandle, eqParams) ? 0 : eqHandle;
-		}
-
-		private void SetupEqParams() {
-			_eqLowParams = new PeakEQParameters {
-				fBandwidth = 2.0f,
-				fCenter = 500.0f,
-				fGain = -20f
-			};
-			
-			_eqMidParams = new PeakEQParameters {
-				fBandwidth = 2.0f,
-				fCenter = 1500.0f,
-				fGain = -5f
-			};
-			
-			_eqHighParams = new PeakEQParameters {
-				fBandwidth = 3.0f,
-				fCenter = 5000.0f,
-				fGain = 4f
-			};
-		}
-		
-		public static unsafe void GainDSP(int handle, int channel, IntPtr buffer, int length, IntPtr user) {
-			var bufferPtr = (float*) buffer;
-			int samples = length / 4;
-
-			for (int i = 0; i < samples; i++) {
-				bufferPtr![i] *= 1.3f;
 			}
 		}
 	}
