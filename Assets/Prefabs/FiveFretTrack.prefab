@@ -9784,6 +9784,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: Fret0
       objectReference: {fileID: 0}
+    - target: {fileID: 3514501840144403419, guid: 397b1ea7bf093d24ab47c16be25edc6d,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.11200007
+      objectReference: {fileID: 0}
+    - target: {fileID: 3514501840144403419, guid: 397b1ea7bf093d24ab47c16be25edc6d,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.9961215
+      objectReference: {fileID: 0}
+    - target: {fileID: 3514501840144403419, guid: 397b1ea7bf093d24ab47c16be25edc6d,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.08798841
+      objectReference: {fileID: 0}
+    - target: {fileID: 3514501840144403419, guid: 397b1ea7bf093d24ab47c16be25edc6d,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -10.096
+      objectReference: {fileID: 0}
     - target: {fileID: 3969638560078247667, guid: 397b1ea7bf093d24ab47c16be25edc6d,
         type: 3}
       propertyPath: lengthInSec
@@ -9793,6 +9813,16 @@ PrefabInstance:
         type: 3}
       propertyPath: simulationSpeed
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4047214473387151709, guid: 397b1ea7bf093d24ab47c16be25edc6d,
+        type: 3}
+      propertyPath: autoRandomSeed
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4047214473387151709, guid: 397b1ea7bf093d24ab47c16be25edc6d,
+        type: 3}
+      propertyPath: VelocityModule.orbitalY.scalar
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5008418226340485681, guid: 397b1ea7bf093d24ab47c16be25edc6d,
         type: 3}
@@ -10497,6 +10527,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Fret1
       objectReference: {fileID: 0}
+    - target: {fileID: 4047214473387151709, guid: 397b1ea7bf093d24ab47c16be25edc6d,
+        type: 3}
+      propertyPath: VelocityModule.orbitalY.scalar
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8898876613081581807, guid: 397b1ea7bf093d24ab47c16be25edc6d,
         type: 3}
       propertyPath: m_CullingMask.m_Bits
@@ -10593,6 +10628,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Fret2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4047214473387151709, guid: 397b1ea7bf093d24ab47c16be25edc6d,
+        type: 3}
+      propertyPath: VelocityModule.orbitalY.scalar
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8898876613081581807, guid: 397b1ea7bf093d24ab47c16be25edc6d,
         type: 3}
@@ -10777,6 +10817,31 @@ PrefabInstance:
       propertyPath: m_Name
       value: Fret4
       objectReference: {fileID: 0}
+    - target: {fileID: 3514501840144403419, guid: 397b1ea7bf093d24ab47c16be25edc6d,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.11200007
+      objectReference: {fileID: 0}
+    - target: {fileID: 3514501840144403419, guid: 397b1ea7bf093d24ab47c16be25edc6d,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.99309343
+      objectReference: {fileID: 0}
+    - target: {fileID: 3514501840144403419, guid: 397b1ea7bf093d24ab47c16be25edc6d,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.11732621
+      objectReference: {fileID: 0}
+    - target: {fileID: 3514501840144403419, guid: 397b1ea7bf093d24ab47c16be25edc6d,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 13.476
+      objectReference: {fileID: 0}
+    - target: {fileID: 4047214473387151709, guid: 397b1ea7bf093d24ab47c16be25edc6d,
+        type: 3}
+      propertyPath: VelocityModule.orbitalY.scalar
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8898876613081581807, guid: 397b1ea7bf093d24ab47c16be25edc6d,
         type: 3}
       propertyPath: m_CullingMask.m_Bits
@@ -10873,6 +10938,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Fret3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4047214473387151709, guid: 397b1ea7bf093d24ab47c16be25edc6d,
+        type: 3}
+      propertyPath: VelocityModule.orbitalY.scalar
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8898876613081581807, guid: 397b1ea7bf093d24ab47c16be25edc6d,
         type: 3}
