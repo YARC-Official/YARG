@@ -149,6 +149,10 @@ namespace YARG {
 			if (!BassMix.MixerAddChannel(_mixerHandle, bassChannel.StreamHandle, BassFlags.Default)) {
 				return (int) Bass.LastError;
 			}
+			
+			if (!BassMix.MixerAddChannel(_mixerHandle, bassChannel.ReverbStreamHandle, BassFlags.Default)) {
+				return (int) Bass.LastError;
+			}
 
 			_channels.Add(channel.Stem, channel);
 			StemsLoaded++;
