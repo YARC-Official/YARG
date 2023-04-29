@@ -156,11 +156,8 @@ namespace YARG.Pools {
 			isActivatorNote = isDrumActivator;
 
 			UpdateColor();
-
 			UpdateRandomness();
-
-			// Reset amplitude
-			lineRenderer.materials[0].SetFloat("_Amplitude", 0f);
+			ResetLineAmplitude();
 		}
 
 		public void SetFretNumber(string str) {
@@ -217,6 +214,11 @@ namespace YARG.Pools {
 			}
 		}
 
+		private void ResetLineAmplitude() {
+			lineRenderer.materials[0].SetFloat("_PrimaryAmplitude", 0f);
+			lineRenderer.materials[0].SetFloat("_SecondaryAmplitude", 0f);
+		}
+
 		private void SetLength(float length) {
 			if (length <= 0.2f) {
 				lineRenderer.enabled = false;
@@ -260,6 +262,7 @@ namespace YARG.Pools {
 
 			state = State.MISSED;
 			UpdateLineColor();
+			ResetLineAmplitude();
 		}
 
 		private void Update() {
@@ -282,7 +285,8 @@ namespace YARG.Pools {
 			if (state == State.HITTING) {
 				// Change line amplitude
 				var lineMat = lineRenderer.materials[0];
-				lineMat.SetFloat("_Amplitude", Mathf.Sin(Time.time * 8f));
+				lineMat.SetFloat("_PrimaryAmplitude", 0.3f);
+				lineMat.SetFloat("_SecondaryAmplitude", Mathf.Sin(Time.time * 10f) * 1.15f);
 
 				// Move line forward
 				float forwardSub = Time.deltaTime * pool.player.trackSpeed / 2.85f;
