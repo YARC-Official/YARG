@@ -34,6 +34,7 @@ namespace YARG.PlayMode {
 		private int allowedGhosts = Constants.EXTRA_ALLOWED_GHOSTS + 1;
 		private int[] allowedChordGhosts = new int[] { -1, -1, -1, -1, -1 }; // -1 = not a chord; 0 = ghosted; 1 = ghost allowed
 		private bool antiGhosting = false;
+		private bool pressedThisFrame = false;
 
 		// https://www.reddit.com/r/Rockband/comments/51t3c0/exactly_how_many_points_are_sustains_worth/
 		private const double SUSTAIN_PTS_PER_BEAT = 12.0;
@@ -157,6 +158,7 @@ namespace YARG.PlayMode {
 
 			// Un-strum
 			strummed = false;
+			pressedThisFrame = false;
 		}
 
 		public override void SetReverb(bool on) {
@@ -200,7 +202,6 @@ namespace YARG.PlayMode {
 			// Handle misses (multiple a frame in case of lag)
 			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Constants.HIT_MARGIN) {
 				var missedChord = expectedHits.Dequeue();
-				allowedGhosts = allowedGhostsDefault;
 				ResetAllowedChordGhosts();
 				// Call miss for each component
 				Combo = 0;
@@ -226,11 +227,13 @@ namespace YARG.PlayMode {
 				return;
 			}
 
-
+			bool returnLater = false;
 			// If the note is a HOPO, the player has not strummed, and the HOPO can't be hit, nothing happens.
 			if ((chord[0].hopo || chord[0].tap) && !strummed && strumLeniency == 0f) {
-				if ((Combo <= 0 && chord[0].hopo) || allowedGhosts <= 0) {
+				if (Combo <= 0 && chord[0].hopo) {
 					return;
+				} else if (allowedGhosts <= 0) {
+					returnLater = true;
 				}
 
 				// If infinite front-end window is disabled and the latest input is outside of the timing window, nothing happened.
@@ -276,9 +279,41 @@ namespace YARG.PlayMode {
 					}
 				}
 			}
+			// If tapping to recover combo during tap note section, skip to first valid note within the timing window.
+			// This will make it easier to recover.
+			if (Constants.EASY_TAP_RECOVERY && Combo <= 0 && pressedThisFrame && chord[0].tap && !ChordPressed(chord)) {
+				var found = false;
+				foreach (var newChord in expectedHits) {
+					if (!newChord[0].tap) {
+						break;
+					}
+					// Stop looking if a valid note to tap was found
+					if (ChordPressed(newChord) && newChord[0].fret != 5) {
+						found = true;
+						returnLater = false;
+						chord = newChord;
+						break;
+					}
+				}
+
+				// If found...
+				if (found) {
+					// Miss all notes previous to the tapped note
+					while (expectedHits.Peek() != chord) {
+						var missedChord = expectedHits.Dequeue();
+						foreach (var hit in missedChord) {
+							hitChartIndex++;
+							notePool.MissNote(hit);
+						}
+					}
+
+					// Reset the combo (it will be added to later on)
+					Combo = 0;
+				}
+			}
 
 			// Check if correct chord is pressed
-			if (!ChordPressed(chord)) {
+			if (returnLater || !ChordPressed(chord)) {
 				// Overstrums are dealt with at the top of the method
 				return;
 			}
@@ -302,7 +337,6 @@ namespace YARG.PlayMode {
 			// If correct chord is pressed, and is not a multi-hit, hit it!
 			expectedHits.Dequeue();
 
-			allowedGhosts = allowedGhostsDefault;
 			ResetAllowedChordGhosts();
 			Combo++;
 			strummedCurrentNote = strummedCurrentNote || strummed || strumLeniency > 0f;
@@ -506,24 +540,33 @@ namespace YARG.PlayMode {
 		private void FretChangedAction(bool pressed, int fret) {
 			latestInput = Play.Instance.SongTime;
 			latestInputIsStrum = false;
+			if (pressed) {
+				pressedThisFrame = true;
+			}
 
 			// Should it check ghosting?
 			if (antiGhosting && allowedGhosts > 0 && pressed && hitChartIndex > 0) {
 				bool checkGhosting = true;
-				for (var i = 0; i < 5; i++) {
-					if (i == fret) {
-						continue;
-					}
-					if (frets[i].IsPressed) {
-						if (fret < i) { // Don't check ghosting if pressed fret is below currently held fret
-							checkGhosting = false;
-							break;
+				if (Constants.ALLOW_DESC_GHOSTS) {
+					for (var i = 0; i < 5; i++) {
+						if (i == fret) {
+							continue;
+						}
+						if (frets[i].IsPressed) {
+							if (fret < i) { // Don't check ghosting if pressed fret is below currently held fret
+								checkGhosting = false;
+								break;
+							}
 						}
 					}
 				}
 				if (checkGhosting) {
 					var nextNote = GetNextNote(Chart[hitChartIndex - 1].time);
-					if (nextNote != null && (nextNote[0].hopo || nextNote[0].tap)) {
+					if ((nextNote == null || (!nextNote[0].hopo && !nextNote[0].tap)) || 
+					(Constants.ALLOW_GHOST_IF_NO_NOTES && nextNote[0].time - Play.Instance.SongTime > Constants.HIT_MARGIN * Constants.ALLOW_GHOST_IF_NO_NOTES_THRESHOLD)) {
+						checkGhosting = false;
+					}
+					if (checkGhosting) {
 						if (nextNote.Count == 1 && fret != nextNote[0].fret) { // Hitting wrong button = ghosted = bad
 							allowedGhosts--;
 						}
@@ -704,13 +747,16 @@ namespace YARG.PlayMode {
 						}
 					}
 				} else {
-					ResetAllowedChordGhosts();
+					ResetAllowedChordGhosts(false);
 				}
 				return chord;
 			}
 		}
 
-		private void ResetAllowedChordGhosts() {
+		private void ResetAllowedChordGhosts(bool resetGhosts = true) {
+			if (resetGhosts) {
+				allowedGhosts = allowedGhostsDefault;
+			}
 			for (var i = 0; i < 5; i++) {
 				allowedChordGhosts[i] = -1;
 			}
