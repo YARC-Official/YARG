@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -215,14 +216,30 @@ namespace YARG {
 				} else if (File.Exists(Path.Combine(folder.FullName, "songs/songs.dta"))) {
 					// If the folder has a songs/songs.dta, it's a Rock Band con 
 					songPaths.Add(new SongPathInfo {
-						type = SongInfo.SongType.RB_CON,
+						type = SongInfo.SongType.RB_CON_RAW,
 						path = Path.Combine(folder.FullName, "songs"),
 						root = rootFolder
 					});
-					Debug.Log($"Found RB con song(s): {folder.FullName}");
+					Debug.Log($"Found raw RB con song(s): {folder.FullName}");
 				} else {
-					// Otherwise, treat it as a sub-folder
-					FindSongs(rootFolder, folder);
+					// Scan files in folder for potential CONs
+					bool isCONFolder = false;
+					byte[] header = new byte[4];
+					foreach(var f in folder.GetFiles()){
+						var fs = f.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+						int n = fs.Read(header, 0, 4);
+						string headerStr = Encoding.UTF8.GetString(header);
+						if(headerStr == "CON " || headerStr == "LIVE"){
+							songPaths.Add(new SongPathInfo {
+								type = SongInfo.SongType.RB_CON,
+								path = f.FullName,
+								root = rootFolder
+							});
+							isCONFolder = true;
+						}
+					}
+					// If no CONs were found, treat it as a sub-folder
+					if(!isCONFolder) FindSongs(rootFolder, folder);
 				}
 			}
 		}
@@ -264,8 +281,8 @@ namespace YARG {
 
 					// Add it to the list of songs
 					songsTemp.Add(songInfo);
-				} else if (info.type == SongInfo.SongType.RB_CON) {
-					// Rock Band con file
+				} else if (info.type == SongInfo.SongType.RB_CON_RAW) {
+					// Rock Band CON rawfiles
 
 					// Read all of the songs in the file
 					var files = XboxRawfileBrowser.BrowseFolder(info.path);
@@ -279,6 +296,13 @@ namespace YARG {
 						// Add it to the list of songs
 						songsTemp.Add(songInfo);
 					}
+				}
+				else if(info.type == SongInfo.SongType.RB_CON){
+					Debug.Log($"RB CON file: {info.path} in dir {info.root}");
+					// Rock Band unextracted CON
+
+					// Read all of the songs in the CON file
+					
 				}
 			}
 
