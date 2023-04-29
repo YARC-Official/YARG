@@ -1,6 +1,6 @@
 using System;
 
-namespace YARG.Settings.SettingTypes {
+namespace YARG.Settings.Types {
 	public class ToggleSetting : AbstractSetting<bool> {
 		private bool _data;
 		public override bool Data {

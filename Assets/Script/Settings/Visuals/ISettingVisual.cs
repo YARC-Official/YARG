@@ -1,4 +1,4 @@
-namespace YARG.Settings.SettingVisuals {
+namespace YARG.Settings.Visuals {
 	public interface ISettingVisual {
 		public void SetSetting(string name);
 	}

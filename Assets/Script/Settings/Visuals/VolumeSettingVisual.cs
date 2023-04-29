@@ -2,9 +2,9 @@ using System.Globalization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using YARG.Settings.SettingTypes;
+using YARG.Settings.Types;
 
-namespace YARG.Settings.SettingVisuals {
+namespace YARG.Settings.Visuals {
 	public class VolumeSettingVisual : AbstractSettingVisual<VolumeSetting> {
 		[SerializeField]
 		private Slider slider;

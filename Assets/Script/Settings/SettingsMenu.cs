@@ -2,7 +2,8 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
-using YARG.Settings.SettingVisuals;
+using YARG.Metadata;
+using YARG.Settings.Visuals;
 
 namespace YARG.Settings {
 	public class SettingsMenu : MonoBehaviour {
@@ -76,27 +77,27 @@ namespace YARG.Settings {
 				}
 
 				// Once we've found the tab, add the settings
-				foreach (var settingName in tab.settings) {
-					if (settingName.StartsWith("$")) {
+				foreach (var settingMetadata in tab.settings) {
+					if (settingMetadata is ButtonRowMetadata buttonRow) {
 						// Spawn the button
 						var go = Instantiate(buttonPrefab, settingsContainer);
-						go.GetComponent<SettingsButton>().SetInfo(settingName);
-					} else if (settingName.StartsWith("#")) {
+						go.GetComponent<SettingsButton>().SetInfo(buttonRow.Buttons[0]);
+					} else if (settingMetadata is HeaderMetadata header) {
 						// Spawn the header
 						var go = Instantiate(headerPrefab, settingsContainer);
 
 						// Set header text
 						go.GetComponentInChildren<LocalizeStringEvent>().StringReference = new LocalizedString {
 							TableReference = "Settings",
-							TableEntryReference = $"Header.{settingName[1..]}"
+							TableEntryReference = $"Header.{header.HeaderName}"
 						};
-					} else {
-						var setting = SettingsManager.GetSettingByName(settingName);
+					} else if (settingMetadata is FieldMetadata field) {
+						var setting = SettingsManager.GetSettingByName(field.FieldName);
 
 						// Spawn the setting
 						var settingPrefab = Addressables.LoadAssetAsync<GameObject>(setting.AddressableName).WaitForCompletion();
 						var go = Instantiate(settingPrefab, settingsContainer);
-						go.GetComponent<ISettingVisual>().SetSetting(settingName);
+						go.GetComponent<ISettingVisual>().SetSetting(field.FieldName);
 					}
 				}
 

@@ -14,7 +14,7 @@ namespace YARG.Settings {
 
 			text.StringReference = new LocalizedString {
 				TableReference = "Settings",
-				TableEntryReference = buttonName[1..]
+				TableEntryReference = buttonName
 			};
 		}
 

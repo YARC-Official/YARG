@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
-using YARG.Settings.SettingTypes;
+using YARG.Settings.Types;
 
-namespace YARG.Settings.SettingVisuals {
+namespace YARG.Settings.Visuals {
 	public class ToggleSettingVisual : AbstractSettingVisual<ToggleSetting> {
 		[SerializeField]
 		private Toggle toggle;

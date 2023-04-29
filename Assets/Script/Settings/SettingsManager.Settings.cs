@@ -1,7 +1,7 @@
 using SFB;
 using UnityEngine;
 using YARG.Serialization;
-using YARG.Settings.SettingTypes;
+using YARG.Settings.Types;
 using YARG.UI;
 
 namespace YARG.Settings {

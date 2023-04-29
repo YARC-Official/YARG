@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using UnityEngine;
-using YARG.Settings.SettingTypes;
+using YARG.Metadata;
+using YARG.Settings.Types;
 
 namespace YARG.Settings {
 	public static partial class SettingsManager {
@@ -12,18 +13,18 @@ namespace YARG.Settings {
 			public string icon = "Generic";
 
 			public bool showInGame = false;
-			public List<string> settings = new();
+			public List<AbstractMetadata> settings = new();
 		}
 
 		public static readonly List<SettingsTab> SETTINGS_TABS = new() {
 			new() {
 				name = "General",
 				settings = {
-					"#SongManagement",
-					"$OpenSongFolderManager",
-					"$ExportOuvertSongs",
-					"$CopyCurrentSongTextFilePath",
-					"#Other",
+					new HeaderMetadata("SongManagement"),
+					new ButtonRowMetadata("OpenSongFolderManager"),
+					new ButtonRowMetadata("ExportOuvertSongs"),
+					new ButtonRowMetadata("CopyCurrentSongTextFilePath"),
+					new HeaderMetadata("Other"),
 					"CalibrationNumber",
 					"ShowHitWindow",
 					"UseCymbalModelsInFiveLane",
@@ -34,10 +35,10 @@ namespace YARG.Settings {
 				name = "Graphics",
 				icon = "Display",
 				settings = {
-					"#Framerate",
+					new HeaderMetadata("Framerate"),
 					"VSync",
 					"FpsCap",
-					"#Graphics",
+					new HeaderMetadata("Graphics"),
 					"LowQuality",
 					"DisableBloom",
 					"HighFovCamera",
@@ -56,7 +57,7 @@ namespace YARG.Settings {
 				icon = "Sound",
 				showInGame = true,
 				settings = {
-					"#Volume",
+					new HeaderMetadata("Volume"),
 					"MasterMusicVolume",
 					"GuitarVolume",
 					"RhythmVolume",
@@ -68,7 +69,7 @@ namespace YARG.Settings {
 					"CrowdVolume",
 					"SfxVolume",
 					"VocalMonitoring",
-					"#Other",
+					new HeaderMetadata("Other"),
 					"MuteOnMiss",
 					"UseStarpowerFx",
 					// "ClapsInStarpower",

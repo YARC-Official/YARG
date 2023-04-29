@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace YARG.Settings.SettingTypes {
+namespace YARG.Settings.Types {
 	public class VolumeSetting : AbstractSetting<float> {
 		private float _data;
 

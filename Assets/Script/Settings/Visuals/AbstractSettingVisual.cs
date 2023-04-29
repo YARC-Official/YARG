@@ -2,9 +2,9 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
-using YARG.Settings.SettingTypes;
+using YARG.Settings.Types;
 
-namespace YARG.Settings.SettingVisuals {
+namespace YARG.Settings.Visuals {
 	public abstract class AbstractSettingVisual<T> : MonoBehaviour, ISettingVisual where T : ISettingType {
 		[SerializeField]
 		private LocalizeStringEvent settingText;

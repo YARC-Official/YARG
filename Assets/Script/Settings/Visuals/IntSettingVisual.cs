@@ -1,9 +1,9 @@
 using System.Globalization;
 using TMPro;
 using UnityEngine;
-using YARG.Settings.SettingTypes;
+using YARG.Settings.Types;
 
-namespace YARG.Settings.SettingVisuals {
+namespace YARG.Settings.Visuals {
 	public class IntSettingVisual : AbstractSettingVisual<IntSetting> {
 		[SerializeField]
 		private TMP_InputField inputField;

@@ -2,7 +2,7 @@ using System;
 using Newtonsoft.Json;
 using YARG.Serialization;
 
-namespace YARG.Settings.SettingTypes {
+namespace YARG.Settings.Types {
 	[JsonConverter(typeof(AbstractSettingConverter))]
 	public abstract class AbstractSetting<T> : ISettingType {
 		public virtual T Data {

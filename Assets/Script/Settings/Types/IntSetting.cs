@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace YARG.Settings.SettingTypes {
+namespace YARG.Settings.Types {
 	public class IntSetting : AbstractSetting<int> {
 		private int _data;
 		public override int Data {
