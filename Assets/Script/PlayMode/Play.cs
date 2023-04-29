@@ -106,7 +106,7 @@ namespace YARG.PlayMode {
 			bool isSpeedUp = Math.Abs(speed - 1) > float.Epsilon;
 
 			// Load MOGG if RB_CON, otherwise load stems
-			if (song.songType == SongInfo.SongType.RB_CON) {
+			if (song.songType == SongInfo.SongType.RB_CON_RAW) {
 				Debug.Log(song.moggInfo.ChannelCount);
 
 				GameManager.AudioManager.LoadMogg(song.moggInfo, isSpeedUp);
