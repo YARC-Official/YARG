@@ -32,10 +32,10 @@ namespace YARG.UI {
 					sourceIcon.enabled = true;
 				} else {
 					Debug.LogError($"Failed to load source icon at path: Resources/{folderPath}");
-					sourceIcon.enabled = false;
+					sourceIcon.enabled = true;
 				}
 			} else {
-				sourceIcon.enabled = false;
+				sourceIcon.enabled = true;
 			}
 
 			songName.text = songInfo.SongName + $"     <i><alpha=#50>{songInfo.artistName}</i>";
