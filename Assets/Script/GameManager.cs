@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.Profiling;
 using UnityEngine.SceneManagement;
 using YARG.Data;
+using YARG.Song;
 
 namespace YARG {
 	public enum SceneIndex {
@@ -26,15 +27,11 @@ namespace YARG {
 		/// <summary>
 		/// "Application.persistentDataPath" is main thread only. Why? I don't know.
 		/// </summary>
-		public static string PersistentDataPath {
-			get;
-			private set;
-		}
+		public static string PersistentDataPath { get; private set; }
 
-		public static IAudioManager AudioManager {
-			get;
-			private set;
-		}
+		public static IAudioManager AudioManager { get; private set; }
+		
+		public static SongScanner SongScanner { get; private set; }
 
 		public UpdateChecker updateChecker;
 
@@ -50,6 +47,8 @@ namespace YARG {
 
 			AudioManager = gameObject.AddComponent<BassAudioManager>();
 			AudioManager.Initialize();
+			
+			SongScanner = gameObject.AddComponent<SongScanner>();
 		}
 
 		private void Start() {

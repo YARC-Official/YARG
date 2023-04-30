@@ -1,4 +1,5 @@
 using System.IO;
+using Cysharp.Threading.Tasks;
 using SFB;
 using TMPro;
 using UnityEngine;
@@ -40,7 +41,7 @@ namespace YARG.UI {
 			SongFolderManager.Instance.RemoveFolder(index);
 		}
 
-		public void RefreshThisFolder() {
+		public async UniTask RefreshThisFolder() {
 			// Delete it
 			var file = SongLibrary.HashFilePath(SongLibrary.SongFolders[index]);
 			var path = Path.Combine(SongLibrary.CacheFolder, file + ".json");
@@ -49,7 +50,7 @@ namespace YARG.UI {
 			}
 
 			// Refresh it
-			MainMenu.Instance.RefreshSongLibrary();
+			await MainMenu.Instance.RefreshSongLibrary();
 		}
 	}
 }

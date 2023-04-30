@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 
@@ -25,12 +26,12 @@ namespace YARG.UI {
 			UpdateInfo();
 		}
 
-		private void OnDisable() {
+		private async UniTask OnDisable() {
 			// Save on close
 			Settings.SettingsManager.SaveSettings();
 
 			// Refresh song library
-			MainMenu.Instance.RefreshSongLibrary();
+			//await MainMenu.Instance.RefreshSongLibrary();
 		}
 
 		private void UpdateInfo() {
@@ -48,10 +49,10 @@ namespace YARG.UI {
 			}
 		}
 
-		public void RefreshAllCaches() {
+		public async UniTask RefreshAllCaches() {
 			if (Directory.Exists(SongLibrary.CacheFolder)) {
 				Directory.Delete(SongLibrary.CacheFolder, true);
-				MainMenu.Instance.RefreshSongLibrary();
+				await MainMenu.Instance.RefreshSongLibrary();
 			}
 		}
 
