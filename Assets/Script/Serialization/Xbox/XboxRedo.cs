@@ -9,12 +9,13 @@ using XboxSTFS;
 using YARG.Data;
 
 namespace YARG.Serialization {
-    abstract class XboxSongAbs {
+    public abstract class XboxSongAbs {
         public abstract byte[] GetMidiFile();
-        public abstract byte[] GetImgFile();
     }
 
-    class XboxRawSong : XboxSongAbs {
+    // TODO: fill this class out to be similar to XboxCONSong
+    // and replace the existing XboxSong class with this one
+    public class XboxRawSong : XboxSongAbs {
 
         public string shortname { get; private set; }
         public string rootPath { get; private set; }
@@ -26,12 +27,9 @@ namespace YARG.Serialization {
             return File.ReadAllBytes($"{rootPath}/{shortname}/{shortname}.mid");
         }
 
-        public override byte[] GetImgFile(){
-            return File.ReadAllBytes($"{rootPath}/{shortname}/gen/{shortname}_keep.png_xbox");
-        }
     }
 
-    class XboxCONSong : XboxSongAbs {
+    public class XboxCONSong : XboxSongAbs {
 
         public string shortname { get; private set; }
         public string CONRootPath { get; private set; }
@@ -79,7 +77,7 @@ namespace YARG.Serialization {
 
             // finally, parse the image
             if(songDta.albumArt && ImgSize > 0 && ImgOffsets != null){
-                img = new XboxImage(CONRootPath);
+                img = new XboxImage(CONRootPath, ImgSize, ImgOffsets);
             }
 
         }
@@ -115,22 +113,6 @@ namespace YARG.Serialization {
                 using var fs = new FileStream(CONRootPath, FileMode.Open, FileAccess.Read);
                 using var br = new BinaryReader(fs, new ASCIIEncoding());
                 fs.Seek(MidiOffsets[i], SeekOrigin.Begin);
-                Array.Copy(br.ReadBytes((int)readLen), 0, f, i*0x1000, (int)readLen);
-            });
-            
-            return f;
-        }
-
-        // get the img file, TODO: except only the DXT blocks
-        public override byte[] GetImgFile(){
-            byte[] f = new byte[ImgSize];
-            uint lastSize = ImgSize % 0x1000;
-
-            Parallel.For(0, ImgOffsets.Length, i => {
-                uint readLen = (i == ImgOffsets.Length - 1) ? lastSize : 0x1000;
-                using var fs = new FileStream(CONRootPath, FileMode.Open, FileAccess.Read);
-                using var br = new BinaryReader(fs, new ASCIIEncoding());
-                fs.Seek(MoggOffsets[i], SeekOrigin.Begin);
                 Array.Copy(br.ReadBytes((int)readLen), 0, f, i*0x1000, (int)readLen);
             });
             

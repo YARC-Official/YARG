@@ -9,22 +9,37 @@ using XboxSTFS;
 
 namespace YARG.Serialization {
     public static class XboxCONFileBrowser {
-		public static List<XboxSong> BrowseCON(string conName) {
-            var songList = new List<XboxSong>();
+		public static List<XboxCONSong> BrowseCON(string conName) {
+            var songList = new List<XboxCONSong>();
 			var dtaTree = new DataArray();
 
             // Attempt to read songs.dta
-			// to do this, create/construct a new XboxSTFS
-            // then extract the songs.dta and read it into dtaTree
             STFS thisCON = new STFS(conName);
-            dtaTree = DTX.FromPlainTextBytes(thisCON.GetFile("songs/songs.dta"));
-
-            Debug.Log($"this songs.dta found {dtaTree.Count} songs, listing them now...");
+            try{
+                dtaTree = DTX.FromPlainTextBytes(thisCON.GetFile("songs/songs.dta"));
+                Debug.Log("Successfully read dta");
+			} catch (Exception e) {
+				Debug.LogError($"Failed to parse songs.dta for `{conName}`.");
+				Debug.LogException(e);
+				return null;
+			}
+            
+            // Read each song the dta file lists
             for(int i = 0; i < dtaTree.Count; i++){
-                var currentArray = (DataArray) dtaTree[i];
-                XboxCONSong cur = new XboxCONSong(conName, currentArray, thisCON);
-                cur.ParseSong();
-                Debug.Log(cur.ToString());
+                try {
+					var currentArray = (DataArray) dtaTree[i];
+                    var currentSong = new XboxCONSong(conName, currentArray, thisCON);
+                    currentSong.ParseSong();
+
+					if (currentSong.IsValidSong()) {
+						songList.Add(currentSong);
+					} else {
+						Debug.LogError($"Song with shortname `{currentSong.shortname}` is invalid. Skipping.");
+					}
+				} catch (Exception e) {
+					Debug.Log($"Failed to load song, skipping...");
+					Debug.LogException(e);
+				}
             }
 
             // XboxCONSong lol = new XboxCONSong(conName, (DataArray)dtaTree[dtaTree.Count - 1], thisCON);
