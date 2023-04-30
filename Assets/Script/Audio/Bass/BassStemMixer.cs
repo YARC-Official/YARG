@@ -149,6 +149,10 @@ namespace YARG {
 			if (!BassMix.MixerAddChannel(_mixerHandle, bassChannel.StreamHandle, BassFlags.Default)) {
 				return (int) Bass.LastError;
 			}
+			
+			if (!BassMix.MixerAddChannel(_mixerHandle, bassChannel.ReverbStreamHandle, BassFlags.Default)) {
+				return (int) Bass.LastError;
+			}
 
 			_channels.Add(channel.Stem, channel);
 			StemsLoaded++;
@@ -171,8 +175,13 @@ namespace YARG {
 
 			for (var i = 0; i < moggStem.BassChannels.Length; i++) {
 				int bassChannel = moggStem.BassChannels[i];
+				int reverbChannel = moggStem.ReverbChannels[i];
 
 				if (!BassMix.MixerAddChannel(_mixerHandle, bassChannel, BassFlags.MixerChanMatrix)) {
+					return (int) Bass.LastError;
+				}
+				
+				if (!BassMix.MixerAddChannel(_mixerHandle, reverbChannel, BassFlags.MixerChanMatrix)) {
 					return (int) Bass.LastError;
 				}
 
@@ -182,6 +191,10 @@ namespace YARG {
 				};
 
 				if (!BassMix.ChannelSetMatrix(bassChannel, channelPanVol)) {
+					return (int) Bass.LastError;
+				}
+				
+				if (!BassMix.ChannelSetMatrix(reverbChannel, channelPanVol)) {
 					return (int) Bass.LastError;
 				}
 			}

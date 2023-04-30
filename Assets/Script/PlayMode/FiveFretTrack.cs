@@ -176,8 +176,6 @@ namespace YARG.PlayMode {
 					Play.Instance.ReverbAudio("keys", on);
 					break;
 			}
-
-			Play.Instance.ReverbAudio("song", on);
 		}
 
 		private void UpdateInput() {
