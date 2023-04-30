@@ -20,7 +20,6 @@ namespace YARG.PlayMode {
 			if (!MicPlayer.Instance) {
 				var rt = this.GetComponent<RectTransform>();
 				var pos = rt.anchoredPosition;
-				Debug.Log(pos);
 				pos.y = -93;
 				rt.anchoredPosition = pos;
 			}
