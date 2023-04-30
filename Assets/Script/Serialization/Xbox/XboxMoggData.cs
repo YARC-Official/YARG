@@ -21,7 +21,7 @@ namespace YARG.Serialization {
 		public int Header { get; set; }
 
 		private uint MoggSize = 0;
-        private uint[] MoggOffsets = null;
+		private uint[] MoggOffsets = null;
 		private bool isFromCON = false;
 
 		public int MoggAddressAudioOffset { get; set; }
@@ -40,7 +40,7 @@ namespace YARG.Serialization {
 			MoggPath = str;
 		}
 
-		public XboxMoggData(string str, uint size, uint[] offsets){
+		public XboxMoggData(string str, uint size, uint[] offsets) {
 			MoggPath = str;
 			MoggSize = size;
 			MoggOffsets = offsets;
@@ -50,19 +50,19 @@ namespace YARG.Serialization {
 		public void ParseMoggHeader() {
 			using var fs = new FileStream(MoggPath, FileMode.Open, FileAccess.Read);
 			using var br = new BinaryReader(fs);
-			if(isFromCON) fs.Seek(MoggOffsets[0], SeekOrigin.Begin);
-				
+			if (isFromCON) fs.Seek(MoggOffsets[0], SeekOrigin.Begin);
+
 			Header = br.ReadInt32();
 			MoggAddressAudioOffset = br.ReadInt32();
 
-			if(isFromCON) MoggAudioLength = MoggSize - MoggAddressAudioOffset;
+			if (isFromCON) MoggAudioLength = MoggSize - MoggAddressAudioOffset;
 			else MoggAudioLength = fs.Length - MoggAddressAudioOffset;
 		}
 
-		public byte[] GetOggDataFromMogg(){
-			if(!isFromCON) //Raw
+		public byte[] GetOggDataFromMogg() {
+			if (!isFromCON) //Raw
 				return File.ReadAllBytes(MoggPath)[MoggAddressAudioOffset..];
-			else{ //CON
+			else { //CON
 				byte[] f = new byte[MoggSize];
 				uint lastSize = MoggSize % 0x1000;
 
@@ -71,9 +71,9 @@ namespace YARG.Serialization {
 					using var fs = new FileStream(MoggPath, FileMode.Open, FileAccess.Read);
 					using var br = new BinaryReader(fs, new ASCIIEncoding());
 					fs.Seek(MoggOffsets[i], SeekOrigin.Begin);
-					Array.Copy(br.ReadBytes((int)readLen), 0, f, i*0x1000, (int)readLen);
+					Array.Copy(br.ReadBytes((int) readLen), 0, f, i * 0x1000, (int) readLen);
 				});
-				
+
 				return f[MoggAddressAudioOffset..];
 			}
 		}
