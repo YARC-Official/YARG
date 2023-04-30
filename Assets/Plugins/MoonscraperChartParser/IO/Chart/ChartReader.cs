@@ -22,7 +22,7 @@ namespace MoonscraperChartEditor.Song.IO
         struct Anchor
         {
             public uint tick;
-            public float anchorTime;
+            public double anchorTime;
         }
 
         struct NoteFlag

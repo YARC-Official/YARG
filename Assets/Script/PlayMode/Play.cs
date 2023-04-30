@@ -1,9 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using MoonscraperChartEditor.Song;
+using MoonscraperChartEditor.Song.IO;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
+using YARG.Chart;
 using YARG.Data;
 using YARG.Serialization.Parser;
 using YARG.Settings;
@@ -53,7 +56,7 @@ namespace YARG.PlayMode {
 			private set;
 		}
 
-		public Chart chart;
+		public YargChart chart;
 
 		private int beatIndex = 0;
 		private int lyricIndex = 0;
@@ -191,13 +194,29 @@ namespace YARG.PlayMode {
 			// }
 
 			// Parse
-			var parser = new MidiParser(song, files.ToArray());
-			chart = new Chart();
-			parser.Parse(chart);
+
+			MoonSong moonSong = null;
+			if (song.mainFile.EndsWith(".chart")) {
+				Debug.Log("Reading .chart file");
+				moonSong = ChartReader.ReadChart(song.mainFile);
+			}
+
+			chart = new YargChart(moonSong);
+			if (song.mainFile.EndsWith(".mid")) {
+				// Parse
+				var parser = new MidiParser(song, files.ToArray());
+				chart.InitializeArrays();
+				parser.Parse(chart);
+			} else if (song.mainFile.EndsWith(".chart")) {
+				var handler = new BeatHandler(moonSong);
+				handler.GenerateBeats();
+				chart.beats = handler.Beats;
+			}
 
 			// initialize current tempo
-			if (chart.beats.Count > 2)
+			if (chart.beats.Count > 2) {
 				CurrentBeatsPerSecond = chart.beats[1] - chart.beats[0];
+			}
 		}
 
 		private void Update() {
@@ -272,7 +291,7 @@ namespace YARG.PlayMode {
 			});
 
 			// Update beats
-			while (chart.beats.Count > beatIndex && chart.beats[beatIndex] <= SongTime) {
+			while (chart.beats.Count > beatIndex && chart.beats[beatIndex].Time <= SongTime) {
 				foreach (var track in _tracks) {
 					if (!track.IsStarPowerActive || !GameManager.AudioManager.UseStarpowerFx) continue;
 

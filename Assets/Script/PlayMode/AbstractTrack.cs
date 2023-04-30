@@ -27,6 +27,8 @@ namespace YARG.PlayMode {
 		protected int inputChartIndex = 0;
 		protected int hitChartIndex = 0;
 		protected int eventChartIndex = 0;
+		protected int beatChartIndex = 0;
+		
 
 		protected CommonTrack commonTrack;
 		protected TrackAnimations trackAnims;
