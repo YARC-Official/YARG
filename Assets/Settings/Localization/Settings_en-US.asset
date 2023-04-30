@@ -170,6 +170,26 @@ MonoBehaviour:
     m_Localized: Graphics
     m_Metadata:
       m_Items: []
+  - m_Id: 12836607712681984
+    m_Localized: Camera
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12836626188591104
+    m_Localized: Camera Z Position
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12836661710151680
+    m_Localized: Camera FOV
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12849290851770368
+    m_Localized: Camera Orbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12852418619760640
+    m_Localized: Camera Rotation
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

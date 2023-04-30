@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
@@ -23,6 +22,6 @@ namespace YARG.Settings.Visuals {
 		}
 
 		protected abstract void OnSettingInit();
-		protected abstract void OnSettingChange();
+		protected abstract void RefreshVisual();
 	}
 }

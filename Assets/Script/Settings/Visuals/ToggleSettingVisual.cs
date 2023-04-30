@@ -8,15 +8,16 @@ namespace YARG.Settings.Visuals {
 		private Toggle toggle;
 
 		protected override void OnSettingInit() {
+			RefreshVisual();
+		}
+
+		protected override void RefreshVisual() {
 			toggle.isOn = Setting.Data;
 		}
 
-		protected override void OnSettingChange() {
-			Setting.Data = toggle.isOn;
-		}
-
 		public void OnToggleChange() {
-			OnSettingChange();
+			Setting.Data = toggle.isOn;
+			RefreshVisual();
 		}
 	}
 }

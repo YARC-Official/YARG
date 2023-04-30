@@ -34,27 +34,6 @@ namespace YARG.Settings {
 				}
 			},
 			new() {
-				name = "Graphics",
-				icon = "Display",
-				previewPath = "SettingPreviews/TrackPreview",
-				settings = {
-					new HeaderMetadata("Framerate"),
-					"VSync",
-					"FpsCap",
-					new HeaderMetadata("Graphics"),
-					"LowQuality",
-					"DisableBloom",
-				}
-			},
-			new() {
-				name = "Engine",
-				icon = "Gameplay",
-				settings = {
-					"NoKicks",
-					"AntiGhosting"
-				}
-			},
-			new() {
 				name = "Sound",
 				icon = "Sound",
 				showInGame = true,
@@ -77,6 +56,33 @@ namespace YARG.Settings {
 					// "ClapsInStarpower",
 					// "ReverbInStarpower",
 					"UseChipmunkSpeed",
+				}
+			},
+			new() {
+				name = "Graphics",
+				icon = "Display",
+				showInGame = true,
+				previewPath = "SettingPreviews/TrackPreview",
+				settings = {
+					new HeaderMetadata("Framerate"),
+					"VSync",
+					"FpsCap",
+					new HeaderMetadata("Graphics"),
+					"LowQuality",
+					"DisableBloom",
+					new HeaderMetadata("Camera"),
+					"TrackCamZPos",
+					"TrackCamFOV",
+					"TrackCamOrbit",
+					"TrackCamRot",
+				}
+			},
+			new() {
+				name = "Engine",
+				icon = "Gameplay",
+				settings = {
+					"NoKicks",
+					"AntiGhosting"
 				}
 			},
 		};

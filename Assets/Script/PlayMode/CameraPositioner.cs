@@ -30,7 +30,26 @@ namespace YARG.PlayMode {
 		}
 
 		private void UpdatePosition() {
-			// TODO
+			// FOV
+			GetComponent<Camera>().fieldOfView = SettingsManager.Settings.TrackCamFOV.Data;
+
+			// Z Pos
+			float zOffset = SettingsManager.Settings.TrackCamZPos.Data;
+			zOffset -= 4f;
+
+			// Orbit (position)
+			var radians = SettingsManager.Settings.TrackCamOrbit.Data * Mathf.Deg2Rad;
+			var position = new Vector3(
+				0f,
+				Mathf.Sin(radians) * 4.86f,
+				Mathf.Cos(radians) * 4.86f + zOffset
+			);
+			transform.localPosition = position;
+
+			// Orbit (rotation)
+			transform.LookAt(transform.parent.position
+				.AddZ(zOffset)
+				.AddZ(SettingsManager.Settings.TrackCamRot.Data - 4f));
 		}
 
 		public static void UpdateAllAntiAliasing() {
