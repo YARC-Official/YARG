@@ -214,19 +214,16 @@ namespace YARG.Settings {
 				return;
 			}
 
-			// Create render texture
-			previewRenderTexture.Release();
-			previewRenderTexture.format = RenderTextureFormat.DefaultHDR;
-			previewRenderTexture.width = Screen.width;
-			previewRenderTexture.height = Screen.height;
-			previewRenderTexture.Create();
-
-			// Size raw image
-			previewRawImage.uvRect = previewRawImage.rectTransform.ToViewportSpaceCentered(v: false);
-
 			// Spawn prefab
 			var previewPrefab = Addressables.LoadAssetAsync<GameObject>(tabInfo.previewPath).WaitForCompletion();
 			Instantiate(previewPrefab, previewContainer);
+
+			// Set render texture
+			CameraPreviewTexture.SetAllPreviews();
+
+			// Size raw image
+			previewRawImage.texture = CameraPreviewTexture.PreviewTexture;
+			previewRawImage.uvRect = previewRawImage.rectTransform.ToViewportSpaceCentered(v: false);
 		}
 
 		private void DestroyPreview() {

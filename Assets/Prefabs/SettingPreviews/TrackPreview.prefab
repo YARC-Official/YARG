@@ -63,7 +63,7 @@ PrefabInstance:
         type: 3}
       propertyPath: m_TargetTexture
       value: 
-      objectReference: {fileID: 8400000, guid: 32b25ebb7bf8e494e834f6e13b668e21, type: 2}
+      objectReference: {fileID: 8400000, guid: 41158465706efe84fba08cd889a3d168, type: 2}
     - target: {fileID: 312341648733875883, guid: 2a3c8615b3f54e64db089dedc04d5445,
         type: 3}
       propertyPath: m_CullingMask.m_Bits
@@ -714,3 +714,22 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 321097467537573937}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &5393148524600863292 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5669069240902836749, guid: 2a3c8615b3f54e64db089dedc04d5445,
+    type: 3}
+  m_PrefabInstance: {fileID: 321097467537573937}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4426511692428706656
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5393148524600863292}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77a75800716a98b4ea7c13ace6a8681e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  previewTexture: {fileID: 8400000, guid: 32b25ebb7bf8e494e834f6e13b668e21, type: 2}

@@ -3,7 +3,6 @@ using UnityEngine;
 using YARG.PlayMode;
 using YARG.Serialization;
 using YARG.Settings.Types;
-using YARG.UI;
 
 namespace YARG.Settings {
 	public static partial class SettingsManager {
