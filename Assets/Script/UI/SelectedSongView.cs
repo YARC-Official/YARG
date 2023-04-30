@@ -21,9 +21,19 @@ namespace YARG.UI {
 		[SerializeField]
 		private TextMeshProUGUI scoreText;
 		[SerializeField]
+		private TextMeshProUGUI albumText;
+		[SerializeField]
 		private TextMeshProUGUI lengthText;
 		[SerializeField]
 		private TextMeshProUGUI supportText;
+		[SerializeField]
+		private TextMeshProUGUI genreText;
+		[SerializeField]
+		private TextMeshProUGUI yearText;
+		[SerializeField]
+		private TextMeshProUGUI charterText;
+		[SerializeField]
+		private Image sourceIcon;
 
 		[Space]
 		[SerializeField]
@@ -52,14 +62,30 @@ namespace YARG.UI {
 			albumCoverLoaded = false;
 			this.songInfo = songInfo;
 
+			// Source Icon
+			if (songInfo.source != null) {
+				string folderPath = $"Sources/{songInfo.source}";
+				Sprite loadedSprite = Resources.Load<Sprite>(folderPath);
+
+				if (loadedSprite != null) {
+					sourceIcon.sprite = loadedSprite;
+					sourceIcon.enabled = true;
+				} else {
+					Debug.LogError($"Failed to load source icon at path: Resources/{folderPath}");
+					sourceIcon.enabled = false;
+				}
+			} else {
+				sourceIcon.enabled = false;
+			}
+
 			// Basic info
-			songName.text = songInfo.SongName;
+			songName.text = $"<b>{songInfo.SongName}</b>" + $"<space=10px><#00DBFD><i>{songInfo.artistName}</i>";
 			artist.text = $"<i>{songInfo.artistName}</i>";
 
 			// Song score
 			var score = ScoreManager.GetScore(songInfo);
 			if (score == null || score.highestPercent.Count <= 0) {
-				scoreText.text = "<alpha=#BB>No Score";
+				scoreText.text = "";
 			} else {
 				var (instrument, highest) = score.GetHighestPercent();
 				scoreText.text = $"<sprite name=\"{instrument}\"> <b>{highest.difficulty.ToChar()}</b> {Mathf.Floor(highest.percent * 100f):N0}%";
@@ -73,6 +99,18 @@ namespace YARG.UI {
 
 			// Source
 			supportText.text = songInfo.SourceFriendlyName;
+
+			// Album
+			albumText.text = songInfo.album;
+
+			// Year
+			yearText.text = songInfo.year;
+
+			// Genre
+			genreText.text = songInfo.genre;
+
+			// Charter
+			charterText.text = songInfo.charter;
 
 			// Album cover
 			albumCover.texture = null;

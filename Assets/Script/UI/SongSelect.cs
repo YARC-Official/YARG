@@ -343,14 +343,14 @@ namespace YARG.UI {
 					.OrderBy(song => song.SongNameNoParen)
 					.Select(i => new SongOrHeader { song = i })
 					.ToList();
-				songs.Insert(0, new SongOrHeader { header = ("All Songs", $"{songs.Count} songs") });
+				songs.Insert(0, new SongOrHeader { header = ("ALL SONGS ", $"<#00B6F5><b>{songs.Count}</b> <#006488>SONGS") });
 
 				// Add recommended songs
 				foreach (var song in recommendedSongs) {
 					songs.Insert(0, new SongOrHeader { song = song });
 				}
 				songs.Insert(0, new SongOrHeader {
-					header = ("Recommended Songs", $"{recommendedSongs.Count} random songs")
+					header = ("RECOMMENDED SONGS", $"<#00B6F5><b>{recommendedSongs.Count}</b> <#006488>SONGS")
 				});
 			} else {
 				// Split up args
@@ -388,7 +388,7 @@ namespace YARG.UI {
 
 				// Add header
 				songs = songsOut.Select(i => new SongOrHeader { song = i }).ToList();
-				songs.Insert(0, new SongOrHeader { header = ($"Filtered Songs", $"{songs.Count} songs") });
+				songs.Insert(0, new SongOrHeader { header = ($"SEARCH RESULTS", $"<#00B6F5><b>{songs.Count}</b> <#006488>SONGS") });
 			}
 
 			// Count songs
