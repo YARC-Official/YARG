@@ -39,10 +39,25 @@ namespace YARG.Input {
 
         private Stopwatch debounceTimer = new();
 
+        private long _debounceThreshold = 0;
         /// <summary>
         /// The debounce time threshold, in milliseconds. Use 0 or less to disable debounce.
         /// </summary>
-        public long DebounceThreshold { get; set; } = 0;
+        public long DebounceThreshold {
+            get => _debounceThreshold;
+            set {
+                // Limit debounce amount to 0-100 ms
+                // 100 ms is *very* generous, any larger and input registration will be very bad
+                // If someone needs a larger amount their controller is just busted lol
+                if (value > 100) {
+                    value = 100;
+                } else if (value < 0) {
+                    value = 0;
+                }
+
+                _debounceThreshold = value;
+            }
+        }
 
         public ControlBinding(BindingType type, string displayName, string bindingKey) {
             Type = type;
