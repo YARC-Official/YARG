@@ -47,7 +47,7 @@ namespace YARG {
 
 		private void SetCalibration() {
 			float average = -hitTimes.Average() + ERROR;
-			SettingsManager.SetSettingValue("calibrationNumber", (int) (average * 1000f));
+			SettingsManager.Settings.CalibrationNumber.Data = (int) (average * 1000f);
 
 			text.text = $"Calibration set to: {average}.";
 			subtext.text = "Strum to continue...";

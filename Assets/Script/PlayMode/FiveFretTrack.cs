@@ -45,9 +45,6 @@ namespace YARG.PlayMode {
 			notePool.player = player;
 			genericPool.player = player;
 
-			// Engine tweak
-			antiGhosting = SettingsManager.GetSettingValue<bool>("antiGhosting");
-
 			// Lefty flip
 
 			if (player.leftyFlip) {
@@ -97,7 +94,7 @@ namespace YARG.PlayMode {
 			// Update events (beat lines, starpower, etc.)
 			var events = Play.Instance.chart.events;
 			var beats = Play.Instance.chart.beats;
-			
+
 			while (events.Count > eventChartIndex && events[eventChartIndex].time <= RelativeTime) {
 				var eventInfo = events[eventChartIndex];
 
@@ -114,7 +111,7 @@ namespace YARG.PlayMode {
 
 				eventChartIndex++;
 			}
-			
+
 			while (beats.Count > beatChartIndex && beats[beatChartIndex].Time <= RelativeTime) {
 				var beatInfo = beats[beatChartIndex];
 
@@ -375,7 +372,7 @@ namespace YARG.PlayMode {
 					heldNotes.Add(hit);
 					frets[hit.fret].PlaySustainParticles();
 					scoreKeeper.Add(susTracker.Strum(hit) * Multiplier * SUSTAIN_PTS_PER_BEAT);
-          
+
 					frets[hit.fret].PlayAnimationSustainsLooped();
 
 					// Check if it's extended sustain;
@@ -560,7 +557,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Should it check ghosting?
-			if (antiGhosting && allowedGhosts > 0 && pressed && hitChartIndex > 0) {
+			if (SettingsManager.Settings.AntiGhosting.Data && allowedGhosts > 0 && pressed && hitChartIndex > 0) {
 				bool checkGhosting = true;
 				if (Constants.ALLOW_DESC_GHOSTS) {
 					for (var i = 0; i < 5; i++) {
@@ -577,7 +574,7 @@ namespace YARG.PlayMode {
 				}
 				if (checkGhosting) {
 					var nextNote = GetNextNote(Chart[hitChartIndex - 1].time);
-					if ((nextNote == null || (!nextNote[0].hopo && !nextNote[0].tap)) || 
+					if ((nextNote == null || (!nextNote[0].hopo && !nextNote[0].tap)) ||
 					(Constants.ALLOW_GHOST_IF_NO_NOTES && nextNote[0].time - Play.Instance.SongTime > Constants.HIT_MARGIN * Constants.ALLOW_GHOST_IF_NO_NOTES_THRESHOLD)) {
 						checkGhosting = false;
 					}

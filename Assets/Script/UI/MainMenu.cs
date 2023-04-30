@@ -1,13 +1,9 @@
-using System.Linq;
-using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Data;
 using YARG.Input;
 using YARG.Settings;
-using YARG.Song;
 
 namespace YARG.UI {
 	public partial class MainMenu : MonoBehaviour {
@@ -45,12 +41,6 @@ namespace YARG.UI {
 
 		[Space]
 		[SerializeField]
-		private GameObject menuContainer;
-		[SerializeField]
-		private GameObject settingsContainer;
-		[SerializeField]
-		private GameObject songFolderManager;
-		[SerializeField]
 		private GameObject loadingScreen;
 		[SerializeField]
 		private TextMeshProUGUI loadingStatus;
@@ -69,13 +59,13 @@ namespace YARG.UI {
 
 		private bool isUpdateShown;
 
-		private async UniTask Start() {
+		private void Start() {
 			Instance = this;
 
 			versionText.text = Constants.VERSION_TAG.ToString();
 
 			if (SongLibrary.SongsByHash == null) {
-				await RefreshSongLibrary();
+				RefreshSongLibrary();
 			}
 
 			if (!isPostSong) {
@@ -124,8 +114,9 @@ namespace YARG.UI {
 				return;
 			}
 
-			if (!isUpdateShown && GameManager.Instance.updateChecker.IsOutOfDate) {
+			if (!isUpdateShown && UpdateChecker.Instance.IsOutOfDate) {
 				isUpdateShown = true;
+
 				updateObject.gameObject.gameObject.SetActive(true);
 			}
 		}
@@ -158,7 +149,6 @@ namespace YARG.UI {
 			MainMenuBackground.Instance.cursorMoves = true;
 
 			mainMenu.gameObject.SetActive(true);
-			ShowMenuContainer();
 		}
 
 		public void ShowEditPlayers() {
@@ -194,28 +184,8 @@ namespace YARG.UI {
 			credits.gameObject.SetActive(true);
 		}
 
-		public void HideAllMainMenu() {
-			menuContainer.SetActive(false);
-			settingsContainer.SetActive(false);
-			songFolderManager.SetActive(false);
-		}
-
 		public void ShowSettingsMenu() {
-			HideAllMainMenu();
-
-			settingsContainer.SetActive(true);
-		}
-
-		public void ShowMenuContainer() {
-			HideAllMainMenu();
-
-			menuContainer.SetActive(true);
-		}
-
-		public void ShowSongFolderManager() {
-			HideAllMainMenu();
-
-			songFolderManager.SetActive(true);
+			GameManager.Instance.SettingsMenu.gameObject.SetActive(true);
 		}
 
 		public void ShowCalibrationScene() {
@@ -225,23 +195,20 @@ namespace YARG.UI {
 		}
 
 		public void AbortSongLoad() {
-			SettingsManager.DeleteSettingsFile();
+			SettingsManager.DeleteSettings();
 
 			Quit();
 		}
 
-		public async UniTask RefreshSongLibrary() {
+		public void RefreshSongLibrary() {
+			GameManager.Instance.SettingsMenu.gameObject.SetActive(false);
+
 			SongLibrary.Reset();
 			ScoreManager.Reset();
 
+			SongLibrary.FetchEverything();
 			loadingScreen.SetActive(true);
-			// GameManager.SongScanner.AddSongFolder(@"G:\Clone Hero\Songs");
-			// Debug.Log("Calling start scan");
-			// await GameManager.SongScanner.StartScan(true);
-			// Debug.Log("Returned from start scan");
-			
-			//SongLibrary.FetchEverything();
-			//ScoreManager.FetchScores();
+			ScoreManager.FetchScores();
 
 			SongSelect.refreshFlag = true;
 		}
