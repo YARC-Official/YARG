@@ -27,6 +27,7 @@ namespace YARG.PlayMode {
 		protected int inputChartIndex = 0;
 		protected int hitChartIndex = 0;
 		protected int eventChartIndex = 0;
+		protected int beatChartIndex = 0;
 
 		protected CommonTrack commonTrack;
 		protected TrackAnimations trackAnims;
@@ -130,7 +131,8 @@ namespace YARG.PlayMode {
 			commonTrack.SetupCameras();
 			commonTrack.TrackCamera.targetTexture = renderTexture;
 
-			susTracker = new();
+			// AMONG US
+			susTracker = new(Play.Instance.chart.beats);
 		}
 
 		private void Start() {
@@ -314,7 +316,7 @@ namespace YARG.PlayMode {
 				}
 				if (!trackAnims.spShakeAscended) {
 					trackAnims.StarpowerTrackAnim();
-					
+
 				}
 				trackAnims.StarpowerParticleAnim();
 				trackAnims.StarpowerLightsAnim();
