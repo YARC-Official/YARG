@@ -198,6 +198,22 @@ MonoBehaviour:
     m_Localized: Refresh All Caches
     m_Metadata:
       m_Items: []
+  - m_Id: 13084450683740160
+    m_Localized: Song Folders
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13084481612537856
+    m_Localized: Song Upgrades
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13085251397345280
+    m_Localized: Add Upgrade Folder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13088551106633728
+    m_Localized: Cache
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

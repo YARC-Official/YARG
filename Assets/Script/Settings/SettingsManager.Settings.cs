@@ -10,6 +10,7 @@ namespace YARG.Settings {
 #pragma warning disable format
 			
 			public string[]      SongFolders                                      = { };
+			public string[]      SongUpgradeFolders                               = { };
 			
 			public IntSetting    CalibrationNumber          { get; private set; } = new(-120);
 			

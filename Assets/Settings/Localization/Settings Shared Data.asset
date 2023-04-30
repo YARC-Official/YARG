@@ -191,6 +191,22 @@ MonoBehaviour:
     m_Key: RefreshAllCaches
     m_Metadata:
       m_Items: []
+  - m_Id: 13084450683740160
+    m_Key: Header.SongFolders
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13084481612537856
+    m_Key: Header.SongUpgrades
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13085251397345280
+    m_Key: AddUpgradeFolder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13088551106633728
+    m_Key: Header.Cache
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

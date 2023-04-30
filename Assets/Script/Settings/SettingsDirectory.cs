@@ -13,52 +13,76 @@ namespace YARG.Settings {
 		[SerializeField]
 		private TextMeshProUGUI songCountText;
 
+		private bool isUpgradeFolder;
 		private int index;
 
-		public void SetIndex(int index) {
+		private string[] _pathsReference;
+		private string[] PathsReference {
+			get => _pathsReference;
+			set {
+				if (isUpgradeFolder) {
+					SongLibrary.SongUpgradeFolders = value;
+				} else {
+					SongLibrary.SongFolders = value;
+				}
+			}
+		}
+
+		public void SetIndex(int index, bool isUpgradeFolder) {
 			this.index = index;
+			this.isUpgradeFolder = isUpgradeFolder;
+
+			if (isUpgradeFolder) {
+				_pathsReference = SongLibrary.SongUpgradeFolders;
+			} else {
+				_pathsReference = SongLibrary.SongFolders;
+			}
 
 			RefreshText();
 		}
 
 		private void RefreshText() {
-			if (string.IsNullOrEmpty(SongLibrary.SongFolders[index])) {
+			if (string.IsNullOrEmpty(PathsReference[index])) {
 				pathText.text = "<i>No Folder</i>";
 				songCountText.text = "";
 			} else {
-				pathText.text = SongLibrary.SongFolders[index];
+				pathText.text = PathsReference[index];
 
-				int songCount = SongLibrary.Songs.Count(i =>
-					Utils.PathsEqual(i.cacheRoot, SongLibrary.SongFolders[index]));
-				songCountText.text = $"{songCount} <alpha=#60>SONGS";
+				if (isUpgradeFolder) {
+					songCountText.text = "";
+				} else {
+					int songCount = SongLibrary.Songs.Count(i =>
+						Utils.PathsEqual(i.cacheRoot, PathsReference[index]));
+					songCountText.text = $"{songCount} <alpha=#60>SONGS";
+				}
 			}
 		}
 
 		public void Remove() {
 			// Remove the element
-			var list = SongLibrary.SongFolders.ToList();
+			var list = PathsReference.ToList();
 			list.RemoveAt(index);
-			SongLibrary.SongFolders = list.ToArray();
+			PathsReference = list.ToArray();
 
 			// Refresh
 			GameManager.Instance.SettingsMenu.UpdateSongFolderManager();
 		}
 
 		public void Browse() {
-			var startingDir = SongLibrary.SongFolders[index];
+			var startingDir = PathsReference[index];
 			StandaloneFileBrowser.OpenFolderPanelAsync("Choose Folder", startingDir, false, folder => {
 				if (folder == null || folder.Length == 0) {
 					return;
 				}
 
-				SongLibrary.SongFolders[index] = folder[0];
+				PathsReference[index] = folder[0];
 				RefreshText();
 			});
 		}
 
 		public void Refresh() {
 			// Delete it
-			var file = SongLibrary.HashFilePath(SongLibrary.SongFolders[index]);
+			var file = SongLibrary.HashFilePath(PathsReference[index]);
 			var path = Path.Combine(SongLibrary.CacheFolder, file + ".json");
 			if (File.Exists(path)) {
 				File.Delete(path);
