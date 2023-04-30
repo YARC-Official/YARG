@@ -45,6 +45,18 @@ namespace YARG.Serialization {
 			MoggAudioLength = fs.Length - MoggAddressAudioOffset;
 		}
 
+		// for an XboxCONSong
+		public void ParseMoggHeader(uint firstBlock, uint size){
+			using var fs = new FileStream(MoggPath, FileMode.Open, FileAccess.Read);
+			using var br = new BinaryReader(fs);
+			fs.Seek(firstBlock, SeekOrigin.Begin);
+
+			Header = br.ReadInt32();
+			MoggAddressAudioOffset = br.ReadInt32();
+			
+			MoggAudioLength = size - MoggAddressAudioOffset;
+		}
+
 		public void ParseFromDta(DataArray dta) {
 			for (int i = 1; i < dta.Count; i++) {
 				var dtaArray = (DataArray) dta[i];

@@ -25,6 +25,9 @@ namespace YARG.Serialization {
                 Debug.Log($"current shortname: {currentArray[0].Name}");
             }
 
+            // XboxCONSong lol = new XboxCONSong(conName, (DataArray)dtaTree[dtaTree.Count - 1], thisCON);
+            // lol.GetMoggFile();
+
 			return songList;
         }
     }

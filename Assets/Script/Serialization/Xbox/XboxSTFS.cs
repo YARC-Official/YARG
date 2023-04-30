@@ -214,10 +214,31 @@ namespace XboxSTFS {
         }
 
         public byte[] GetFile(string fname){
-            FileListing a;
             foreach(var f in allFiles){
                 if(f.Key == fname){
                     return ReadFile(allFiles[f.Key]);
+                }
+            }
+            return null;
+        }
+
+        public uint GetFileSize(string fname){
+            foreach(var f in allFiles)
+                if(f.Key == fname)
+                    return allFiles[f.Key].size;
+            return 0;
+        }
+
+        public uint[] GetMemOffsets(string fname){
+            foreach(var f in allFiles){
+                if(f.Key == fname){
+                    FileListing fl = allFiles[f.Key];
+                    uint lastSize = fl.size % 0x1000;
+                    uint[] offsets = new uint[fl.numBlocks];
+                    Parallel.For(0, fl.numBlocks, i => {
+                        offsets[i] = 0xC000 + FixBlocknum((uint)(fl.firstBlock + i)) * 0x1000;
+                    });
+                    return offsets;
                 }
             }
             return null;
