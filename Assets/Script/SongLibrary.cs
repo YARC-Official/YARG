@@ -211,7 +211,7 @@ namespace YARG {
 						path = folder.FullName,
 						root = rootFolder
 					});
-					Debug.Log($"Found song.ini song: {folder.FullName}");
+					//Debug.Log($"Found song.ini song: {folder.FullName}");
 				} else if (File.Exists(Path.Combine(folder.FullName, "songs/songs.dta"))) {
 					// If the folder has a songs/songs.dta, it's a Rock Band con 
 					songPaths.Add(new SongPathInfo {
@@ -219,7 +219,7 @@ namespace YARG {
 						path = Path.Combine(folder.FullName, "songs"),
 						root = rootFolder
 					});
-					Debug.Log($"Found RB con song(s): {folder.FullName}");
+					//Debug.Log($"Found RB con song(s): {folder.FullName}");
 				} else {
 					// Otherwise, treat it as a sub-folder
 					FindSongs(rootFolder, folder);
@@ -235,35 +235,39 @@ namespace YARG {
 				if (info.type == SongInfo.SongType.SONG_INI) {
 					// song.ini
 
-					// See if .mid file exists
-					var midPath = Path.Combine(info.path, "notes.mid");
-					var chartPath = Path.Combine(info.path, "notes.chart");
+					try {
+						// See if .mid file exists
+						var midPath = Path.Combine(info.path, "notes.mid");
+						var chartPath = Path.Combine(info.path, "notes.chart");
 
-					// Create SongInfo
-					SongInfo songInfo;
+						// Create SongInfo
+						SongInfo songInfo;
 
-					// Load midi
-					if (File.Exists(midPath) && !File.Exists(chartPath)) {
-						songInfo = new SongInfo(midPath, info.root, info.type);
-						SongIni.CompleteSongInfo(songInfo);
-					} else if (File.Exists(chartPath) && !File.Exists(midPath)) {
-						// Load chart
+						// Load midi
+						if (File.Exists(midPath) && !File.Exists(chartPath)) {
+							songInfo = new SongInfo(midPath, info.root, info.type);
+							SongIni.CompleteSongInfo(songInfo);
+						} else if (File.Exists(chartPath) && !File.Exists(midPath)) {
+							// Load chart
 
-						songInfo = new SongInfo(chartPath, info.root, info.type);
-						SongIni.CompleteSongInfo(songInfo);
-					} else if (!File.Exists(midPath) && !File.Exists(chartPath)) {
-						Debug.LogError($"`{info.path}` does not have a `notes.mid` or `notes.chart` file. Skipping.");
-						continue;
-					} else {
-						// Both exist?
+							songInfo = new SongInfo(chartPath, info.root, info.type);
+							SongIni.CompleteSongInfo(songInfo);
+						} else if (!File.Exists(midPath) && !File.Exists(chartPath)) {
+							Debug.LogError($"`{info.path}` does not have a `notes.mid` or `notes.chart` file. Skipping.");
+							continue;
+						} else {
+							// Both exist?
 
-						// choose midi lol
-						songInfo = new SongInfo(midPath, info.root, info.type);
-						SongIni.CompleteSongInfo(songInfo);
+							// choose midi lol
+							songInfo = new SongInfo(midPath, info.root, info.type);
+							SongIni.CompleteSongInfo(songInfo);
+						}
+						
+						// Add it to the list of songs
+						songsTemp.Add(songInfo);
+					} catch (Exception e) {
+						Debug.LogError($"Error while reading song info for `{info.path}`: {e}");
 					}
-
-					// Add it to the list of songs
-					songsTemp.Add(songInfo);
 				} else if (info.type == SongInfo.SongType.RB_CON) {
 					// Rock Band con file
 
@@ -272,12 +276,16 @@ namespace YARG {
 
 					// Convert each to a SongInfo
 					foreach (var file in files) {
-						// Create a SongInfo
-						var songInfo = new SongInfo(file.MidiFile, info.root, info.type);
-						file.CompleteSongInfo(songInfo, true);
+						try {
+							// Create a SongInfo
+							var songInfo = new SongInfo(file.MidiFile, info.root, info.type);
+							file.CompleteSongInfo(songInfo, true);
 
-						// Add it to the list of songs
-						songsTemp.Add(songInfo);
+							// Add it to the list of songs
+							songsTemp.Add(songInfo);
+						} catch(Exception e) {
+							Debug.LogError($"Error reading song info for `{file.MidiFile}`: {e}");
+						}
 					}
 				}
 			}
