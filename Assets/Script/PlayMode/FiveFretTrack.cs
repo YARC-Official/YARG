@@ -292,7 +292,7 @@ namespace YARG.PlayMode {
 			}
 			// If tapping to recover combo during tap note section, skip to first valid note within the timing window.
 			// This will make it easier to recover.
-			if (Constants.EASY_TAP_RECOVERY && Combo <= 0 && pressedThisFrame && chord[0].tap && !ChordPressed(chord)) {
+			if (Constants.EASY_TAP_RECOVERY && Combo <= 0 /*&& pressedThisFrame*/ && chord[0].tap && !ChordPressed(chord)) {
 				var found = false;
 				foreach (var newChord in expectedHits) {
 					if (!newChord[0].tap) {
@@ -351,9 +351,16 @@ namespace YARG.PlayMode {
 
 			ResetAllowedChordGhosts();
 			Combo++;
+			notesHit++;
 			strummedCurrentNote = strummedCurrentNote || strummed || strumLeniency > 0f;
 			strumLeniency = 0f;
 			StopAudio = false;
+
+
+			// Solo stuff
+			if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime) {
+				soloNotesHit++;
+			}
 			foreach (var hit in chord) {
 				hitChartIndex++;
 				// Hit notes
@@ -385,15 +392,7 @@ namespace YARG.PlayMode {
 				}
 
 				// Add stats
-				notesHit++;
 				scoreKeeper.Add(PTS_PER_NOTE * Multiplier);
-
-				// Solo stuff
-				if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime) {
-					soloNotesHit++;
-				} else if (Play.Instance.SongTime >= SoloSection?.EndTime + 10) {
-					soloNotesHit = 0;
-				}
 			}
 
 			// If this is a tap note, and it was hit without strumming,
@@ -776,6 +775,21 @@ namespace YARG.PlayMode {
 
 		private bool IsExtendedSustain() {
 			return extendedSustain.Any(x => x);
+		}
+
+		public override void AddSoloNoteCount(int i) {
+			if (i == 0 || Chart[i].time > Chart[i-1].time) {
+				soloNoteCount++;
+			}
+		}
+		public override int GetChartCount() {
+			int count = 0;
+			for (int i = 0; i < Chart.Count; i++) {
+				if (i == 0 || Chart[i].time > Chart[i-1].time) {
+					count++;
+				}
+			}
+			return count;
 		}
 	}
 }
