@@ -7,7 +7,7 @@ namespace YARG.Data {
 	public sealed class YargChart {
 
 		private MoonSong _song;
-		
+
 		public List<List<NoteInfo>[]> allParts;
 		
 #pragma warning disable format
@@ -65,7 +65,7 @@ namespace YARG.Data {
 #pragma warning restore format
 
 		private List<MoonSong.MoonInstrument> _loadedEvents = new();
-		
+
 		public List<EventInfo> events = new();
 		public List<Beat> beats = new();
 
@@ -115,13 +115,13 @@ namespace YARG.Data {
 			Drums = CreateArray(5);
 			RealDrums = CreateArray(5);
 			GhDrums = CreateArray(5);
-			
+
 			allParts = new() {
 				guitar, guitarCoop, rhythm, bass, keys, RealGuitar, RealBass, drums, realDrums, ghDrums
 			};
-		} 
+		}
 
-		private List<NoteInfo>[] LoadArray(ref List<NoteInfo>[] notes, IChartLoader<NoteInfo> loader, MoonSong.MoonInstrument instrument, int length = 4, 
+		private List<NoteInfo>[] LoadArray(ref List<NoteInfo>[] notes, IChartLoader<NoteInfo> loader, MoonSong.MoonInstrument instrument, int length = 4,
 			bool isPro = false, bool isGh = false) {
 			notes = new List<NoteInfo>[length];
 			for (int i = 0; i < length; i++) {
@@ -131,14 +131,14 @@ namespace YARG.Data {
 			if (_loadedEvents.Contains(instrument)) {
 				return notes;
 			}
-			
+
 			var chart = _song.GetChart(instrument, MoonSong.Difficulty.Expert);
 			foreach (var sp in chart.starPower) {
 				string name = GetNameFromInstrument(instrument, isPro, isGh);
-				
-				float finishTime = (float)_song.TickToTime(sp.tick + sp.length - 1);
-				
-				events.Add(new EventInfo($"starpower_{name}", (float)sp.time, finishTime - (float)sp.time));
+
+				float finishTime = (float) _song.TickToTime(sp.tick + sp.length - 1);
+
+				events.Add(new EventInfo($"starpower_{name}", (float) sp.time, finishTime - (float) sp.time));
 			}
 
 			for (int i = 0; i < chart.events.Count; i++) {
@@ -146,22 +146,22 @@ namespace YARG.Data {
 				string name = GetNameFromInstrument(instrument, isPro, isGh);
 
 				if (chartEvent.eventName == "solo") {
-					for(int k = i; k < chart.events.Count; k++) {
+					for (int k = i; k < chart.events.Count; k++) {
 						var chartEvent2 = chart.events[k];
 						if (chartEvent2.eventName == "soloend") {
-							events.Add(new EventInfo($"solo_{name}", (float)chartEvent.time, (float)(chartEvent2.time - chartEvent.time)));
+							events.Add(new EventInfo($"solo_{name}", (float) chartEvent.time, (float) (chartEvent2.time - chartEvent.time)));
 							break;
 						}
 					}
 				}
 			}
-			
+
 			_loadedEvents.Add(instrument);
 			events.Sort((e1, e2) => e1.time.CompareTo(e2.time));
 
 			return notes;
 		}
-		
+
 		private static List<NoteInfo>[] CreateArray(int length = 4) {
 			var list = new List<NoteInfo>[length];
 			for (int i = 0; i < length; i++) {
@@ -179,6 +179,7 @@ namespace YARG.Data {
 				MoonSong.MoonInstrument.Bass => "bass",
 				MoonSong.MoonInstrument.Keys => "keys",
 				MoonSong.MoonInstrument.Drums => isPro ? "realDrums" : isGh ? "ghDrums" : "drums",
+				_ => throw new Exception("Instrument not supported!")
 			};
 		}
 	}

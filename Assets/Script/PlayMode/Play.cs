@@ -215,7 +215,7 @@ namespace YARG.PlayMode {
 
 			// initialize current tempo
 			if (chart.beats.Count > 2) {
-				CurrentBeatsPerSecond = chart.beats[1] - chart.beats[0];
+				CurrentBeatsPerSecond = chart.beats[1].Time - chart.beats[0].Time;
 			}
 		}
 
@@ -302,7 +302,7 @@ namespace YARG.PlayMode {
 				beatIndex++;
 
 				if (beatIndex < chart.beats.Count) {
-					CurrentBeatsPerSecond = 1 / (chart.beats[beatIndex] - chart.beats[beatIndex - 1]);
+					CurrentBeatsPerSecond = 1 / (chart.beats[beatIndex].Time - chart.beats[beatIndex - 1].Time);
 				}
 			}
 
