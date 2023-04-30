@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -59,13 +60,13 @@ namespace YARG.UI {
 
 		private bool isUpdateShown;
 
-		private void Start() {
+		private async UniTask Start() {
 			Instance = this;
 
 			versionText.text = Constants.VERSION_TAG.ToString();
 
 			if (SongLibrary.SongsByHash == null) {
-				RefreshSongLibrary();
+				await RefreshSongLibrary();
 			}
 
 			if (!isPostSong) {
@@ -200,15 +201,18 @@ namespace YARG.UI {
 			Quit();
 		}
 
-		public void RefreshSongLibrary() {
+		public async UniTask RefreshSongLibrary() {
 			GameManager.Instance.SettingsMenu.gameObject.SetActive(false);
 
 			SongLibrary.Reset();
 			ScoreManager.Reset();
 
-			SongLibrary.FetchEverything();
 			loadingScreen.SetActive(true);
-			ScoreManager.FetchScores();
+			//GameManager.SongScanner.AddSongFolder(@"G:\Clone Hero\Songs\- Official GH Games");
+			//await GameManager.SongScanner.StartScan(false);
+			
+			//SongLibrary.FetchEverything();
+			//ScoreManager.FetchScores();
 
 			SongSelect.refreshFlag = true;
 		}

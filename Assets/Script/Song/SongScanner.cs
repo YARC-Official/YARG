@@ -96,7 +96,6 @@ namespace YARG.Song {
 		}
 
 		private void FullScan() {
-			Debug.Log("Performing full scan");
 			foreach(string folder in _songsByCacheFolder.Keys) {
 				Debug.Log($"Scanning folder: {folder}");
 				ScanSubDirectory(folder, folder, _songsByCacheFolder[folder]);
@@ -109,20 +108,7 @@ namespace YARG.Song {
 		}
 
 		private void FastScan() {
-			Debug.Log("Performing fast scan");
-
-			// This is stupid
-			var caches = new Dictionary<string, List<SongEntry>>();
-			foreach (string folder in _songsByCacheFolder.Keys) {
-				Debug.Log($"Reading cache of {folder}");
-				caches.Add(folder, _songCaches[folder].ReadCache());
-				Debug.Log($"Read cache of {folder}");
-			}
-
-			foreach (var cache in caches) {
-				_songsByCacheFolder[cache.Key] = cache.Value;
-				Debug.Log($"Songs read from {cache.Key}: {cache.Value.Count}");
-			}
+			
 		}
 
 		private void ScanSubDirectory(string cache, string folder, ICollection<SongEntry> songs) {
@@ -170,12 +156,6 @@ namespace YARG.Song {
 			}
 			
 			string notesFile = File.Exists(Path.Combine(directory, "notes.chart")) ? "notes.chart" : "notes.mid";
-			
-			// Windows has a 260 character limit for file paths, so we need to check this
-			if(Path.Combine(directory, notesFile).Length >= 255) {
-				return ScanResult.NoNotesFile;
-			}
-			
 			byte[] bytes = File.ReadAllBytes(Path.Combine(directory, notesFile));
 			
 			var checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes)).Replace("-", "");
