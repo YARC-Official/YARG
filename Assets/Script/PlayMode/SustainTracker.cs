@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
+using YARG.Chart;
 using YARG.Data;
 
 namespace YARG.PlayMode {
@@ -8,11 +9,11 @@ namespace YARG.PlayMode {
 	/// Tracks sustain notes' progress, counted in beats.
 	/// </summary>
 	public class SustainTracker {
-		// private List<float> beatTimes;
+		private List<Beat> _beats;
 		private Dictionary<AbstractInfo, double> noteProgress = new();
 
-		public SustainTracker() {
-			// this.beatTimes = beatTimes;
+		public SustainTracker(List<Beat> beats) {
+			_beats = beats;
 		}
 
 		/// <summary>

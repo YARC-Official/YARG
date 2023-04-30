@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using UnityEngine;
 using YARG.Data;
 using YARG.Serialization;
+using YARG.Serialization.Parser;
 using YARG.Settings;
 
 namespace YARG {
@@ -236,20 +237,29 @@ namespace YARG {
 
 					// See if .mid file exists
 					var midPath = Path.Combine(info.path, "notes.mid");
-					if (!File.Exists(midPath)) {
-						Debug.LogError($"`{info.path}` does not have a `notes.mid` file. Skipping.");
-						continue;
-					}
+					var chartPath = Path.Combine(info.path, "notes.chart");
 
-					// Create a SongInfo
-					var songInfo = new SongInfo(midPath, info.root, info.type);
-					try {
+					// Create SongInfo
+					SongInfo songInfo;
+
+					// Load midi
+					if (File.Exists(midPath) && !File.Exists(chartPath)) {
+						songInfo = new SongInfo(midPath, info.root, info.type);
 						SongIni.CompleteSongInfo(songInfo);
-					} catch (Exception e) {
-						// Something went wrong with the parsing, skip this song
-						Debug.LogError($"Failed to parse song.ini for `{info.path}`.");
-						Debug.LogException(e);
+					} else if (File.Exists(chartPath) && !File.Exists(midPath)) {
+						// Load chart
+
+						songInfo = new SongInfo(chartPath, info.root, info.type);
+						SongIni.CompleteSongInfo(songInfo);
+					} else if (!File.Exists(midPath) && !File.Exists(chartPath)) {
+						Debug.LogError($"`{info.path}` does not have a `notes.mid` or `notes.chart` file. Skipping.");
 						continue;
+					} else {
+						// Both exist?
+
+						// choose midi lol
+						songInfo = new SongInfo(midPath, info.root, info.type);
+						SongIni.CompleteSongInfo(songInfo);
 					}
 
 					// Add it to the list of songs

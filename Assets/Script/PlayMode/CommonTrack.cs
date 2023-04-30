@@ -23,17 +23,28 @@ namespace YARG.PlayMode {
 
 		[Space]
 		public MeshRenderer comboRing;
+		public MeshRenderer comboBase;
 		public Material nonFCRing;
 		public SpriteRenderer comboSunburst;
 		public GameObject maxComboLight;
 		public GameObject starpowerLight;
 		public Sprite sunBurstSprite;
 		public Sprite sunBurstSpriteStarpower;
+		public Material baseNormal;
+		public Material baseGroove;
+		public Material baseSP;
 		public ParticleSystem starPowerParticles;
 		public ParticleSystem starPowerParticles2;
 		public Light starPowerParticlesLight;
 		public Light starPowerParticles2Light;
 		public GameObject starPowerLightIndicators;
+		public GameObject kickFlash;
+
+		[Space]
+		[SerializeField]
+		public Color comboSunburstColor;
+		[SerializeField]
+		public Color comboSunburstSPColor;
 
 		[Space]
 		public TextMeshPro soloText;
@@ -41,6 +52,7 @@ namespace YARG.PlayMode {
 		public Sprite soloMessySprite;
 		public Sprite soloPerfectSprite;
 		public Sprite soloDefaultSprite;
+
 
 		[Space]
 		[SerializeField]

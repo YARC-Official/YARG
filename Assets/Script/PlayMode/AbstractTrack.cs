@@ -27,6 +27,7 @@ namespace YARG.PlayMode {
 		protected int inputChartIndex = 0;
 		protected int hitChartIndex = 0;
 		protected int eventChartIndex = 0;
+		protected int beatChartIndex = 0;
 
 		protected CommonTrack commonTrack;
 		protected TrackAnimations trackAnims;
@@ -130,7 +131,8 @@ namespace YARG.PlayMode {
 			commonTrack.SetupCameras();
 			commonTrack.TrackCamera.targetTexture = renderTexture;
 
-			susTracker = new();
+			// AMONG US
+			susTracker = new(Play.Instance.chart.beats);
 		}
 
 		private void Start() {
@@ -152,6 +154,8 @@ namespace YARG.PlayMode {
 			commonTrack.hitWindow.gameObject.SetActive(SettingsManager.GetSettingValue<bool>("showHitWindow"));
 
 			comboSunburstEmbeddedLight = commonTrack.comboSunburst.GetComponent<Light>();
+
+			commonTrack.kickFlash.SetActive(false);
 
 			scoreKeeper = new();
 
@@ -314,14 +318,21 @@ namespace YARG.PlayMode {
 				}
 				if (!trackAnims.spShakeAscended) {
 					trackAnims.StarpowerTrackAnim();
-					
+
 				}
 				trackAnims.StarpowerParticleAnim();
 				trackAnims.StarpowerLightsAnim();
 
 				// Update Sunburst color and light
 				commonTrack.comboSunburst.sprite = commonTrack.sunBurstSpriteStarpower;
-				commonTrack.comboSunburst.color = new Color(255, 255, 255, 141);
+				commonTrack.comboSunburst.color = commonTrack.comboSunburstSPColor;
+
+				if (Multiplier >= MaxMultiplier) {
+					commonTrack.comboBase.material = commonTrack.baseSP;
+				}
+				else {
+					commonTrack.comboBase.material = commonTrack.baseNormal;
+				}
 			} else {
 
 				trackAnims.StarpowerTrackAnimReset();
@@ -330,7 +341,14 @@ namespace YARG.PlayMode {
 
 				//Reset Sunburst color and light to original
 				commonTrack.comboSunburst.sprite = commonTrack.sunBurstSprite;
-				commonTrack.comboSunburst.color = Color.white;
+				commonTrack.comboSunburst.color = commonTrack.comboSunburstColor;
+
+				if(Multiplier >= MaxMultiplier) {
+					commonTrack.comboBase.material = commonTrack.baseGroove;
+				}
+				else {
+					commonTrack.comboBase.material = commonTrack.baseNormal;
+				}
 			}
 		}
 
