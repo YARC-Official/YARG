@@ -14,6 +14,10 @@ namespace YARG.Input {
 		public const string KICK = "kick";
 		public const string KICK_ALT = "kick_alt";
 
+		public const string PAUSE = "pause";
+		public const string UP = "up";
+		public const string DOWN = "down";
+
 		private List<NoteInfo> botChart;
 
 		public delegate void DrumHitAction(int drum);
@@ -28,7 +32,11 @@ namespace YARG.Input {
 			{ GREEN_PAD,     new(BindingType.BUTTON, "Green Pad", GREEN_PAD) },
 
 			{ KICK,          new(BindingType.BUTTON, "Kick", KICK) },
-			{ KICK_ALT,      new(BindingType.BUTTON, "Kick Alt", KICK_ALT) }
+			{ KICK_ALT,      new(BindingType.BUTTON, "Kick Alt", KICK_ALT) },
+
+			{ PAUSE,         new(BindingType.BUTTON, "Pause", PAUSE) },
+			{ UP,            new(BindingType.BUTTON, "Navigate Up", UP) },
+			{ DOWN,          new(BindingType.BUTTON, "Navigate Down", DOWN) },
 		};
 
 		protected override void UpdatePlayerMode() {
@@ -88,7 +96,7 @@ namespace YARG.Input {
 				var noteInfo = botChart[botChartIndex];
 				botChartIndex++;
 
-				if (noteInfo.fret == 5 && SettingsManager.GetSettingValue<bool>("noKicks")) {
+				if (noteInfo.fret == 5 && SettingsManager.Settings.NoKicks.Data) {
 					continue;
 				}
 
@@ -101,7 +109,16 @@ namespace YARG.Input {
 		}
 
 		protected override void UpdateNavigationMode() {
-			// TODO
+			CallGenericNavigationEventForButton(GREEN_PAD, NavigationType.PRIMARY);
+			CallGenericNavigationEventForButton(RED_PAD, NavigationType.SECONDARY);
+			CallGenericNavigationEventForButton(YELLOW_CYMBAL, NavigationType.TERTIARY);
+
+			CallGenericNavigationEventForButton(UP, NavigationType.UP);
+			CallGenericNavigationEventForButton(DOWN, NavigationType.DOWN);
+
+			if (WasMappingPressed(PAUSE)) {
+				CallPauseEvent();
+			}
 		}
 
 		public override string[] GetAllowedInstruments() {

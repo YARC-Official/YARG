@@ -10,6 +10,8 @@ namespace YARG.PlayMode {
 		private ParticleGroup hitParticles;
 		[SerializeField]
 		private ParticleGroup sustainParticles;
+		[SerializeField]
+		private GameObject lightParticle;
 
 		[SerializeField]
 		private new Animation animation;
@@ -26,6 +28,7 @@ namespace YARG.PlayMode {
 		private Transform fretItself;
 		public Vector3 fretInitialScale;
 
+		private ParticleSystem lightParticleSystem;
 		/// <value>
 		/// Whether or not the fret is pressed. Used for data purposes.
 		/// </value>
@@ -37,6 +40,7 @@ namespace YARG.PlayMode {
 		void Start() {
 			//fretItself = transform.GetComponent<Fret>();
 			fretInitialScale = fretItself.transform.localScale;
+			lightParticleSystem = lightParticle.GetComponent<ParticleSystem>();
 		}
 
 		public void SetColor(Color top, Color inner, Color particles) {
@@ -70,6 +74,10 @@ namespace YARG.PlayMode {
 		}
 
 		public void PlayParticles() {
+			//Random rnd = new Random();
+			//float randomGravity = Random.Range(+1f, -1f);
+			//Debug.Log("random: " + randomGravity);  // Was testing out random gravity modifier for particle each hit, but looks good without it.
+			//lightParticleSystem.gravityModifier = randomGravity;
 			hitParticles.Play();
 		}
 
@@ -82,6 +90,20 @@ namespace YARG.PlayMode {
 
 			animation["FretsGuitar"].wrapMode = WrapMode.Once;
 			animation.Play("FretsGuitar");
+		}
+
+		public void PlayAnimationDrums() {
+			StopAnimation();
+
+			animation["FretsDrums"].wrapMode = WrapMode.Once;
+			animation.Play("FretsDrums");
+		}
+
+		public void PlayAnimationDrumsHighBounce() {
+			StopAnimation();
+
+			animation["FretsDrumsHighBounce"].wrapMode = WrapMode.Once;
+			animation.Play("FretsDrumsHighBounce");
 		}
 
 		public void PlayAnimationSustainsLooped() {

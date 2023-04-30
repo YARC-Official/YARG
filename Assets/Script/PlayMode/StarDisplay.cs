@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Chart;
 
 namespace YARG.PlayMode {
 	public class StarDisplay : MonoBehaviour {
@@ -32,10 +34,10 @@ namespace YARG.PlayMode {
 		}
 
 		private void Start() {
-			var events = Play.Instance.chart.events;
-			foreach (var ev in events) {
-				if (ev.name == "beatLine_major") {
-					bars.Add(ev.time);
+			var beats = Play.Instance.chart.beats;
+			foreach (var ev in beats) {
+				if (ev.Style == BeatStyle.MEASURE) {
+					bars.Add(ev.Time);
 				}
 			}
 
@@ -43,7 +45,9 @@ namespace YARG.PlayMode {
 		}
 
 		private void OnScoreChange() {
-			SetStars(StarScoreKeeper.BandStars);
+			// don't do anything if gold stars have been achieved
+			if (!goldAchieved)
+				SetStars(StarScoreKeeper.BandStars);
 		}
 
 		private void SetStarProgress(GameObject star, double progress) {
@@ -67,8 +71,6 @@ namespace YARG.PlayMode {
 		/// </summary>
 		/// <param name="stars"></param>
 		public void SetStars(double stars) {
-			if (goldAchieved) { return; }
-
 			int topStar = (int) stars;
 
 			double curProgress = stars - (int) stars;
@@ -105,12 +107,13 @@ namespace YARG.PlayMode {
 				objGoldMeterMaster.SetActive(false);
 
 				GameManager.AudioManager.PlaySoundEffect(SfxSample.StarGold);
-
 				goldAchieved = true; // so we stop trying to update
 			}
 		}
 
 		private void Update() {
+			if (goldAchieved) { return; }
+
 			int nextBar = curBar;
 			while (nextBar < bars.Count - 1 && bars[nextBar] <= Play.Instance.SongTime) {
 				nextBar++;

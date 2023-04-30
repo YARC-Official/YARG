@@ -68,11 +68,22 @@ namespace YARG.Input {
 		public InputStrategy() {
 			// Initialize mappings
 			inputMappings = GetMappings();
+			// Set up debounce overrides
+			foreach (var mapping in inputMappings.Values) {
+				string overrideKey = mapping.DebounceOverrideKey;
+				if (overrideKey != null && inputMappings.TryGetValue(overrideKey, out var overrideMapping)) {
+					mapping.DebounceOverrideBinding = overrideMapping;
+				}
+			}
 		}
 
 		public void Enable() {
+			if (Enabled) {
+				return;
+			}
+
 			// Bind events
-			GameManager.OnUpdate += OnUpdate;
+			InputSystem.onAfterUpdate += OnUpdate;
 			if (_inputDevice != null) {
 				eventListener = InputSystem.onEvent.ForDevice(_inputDevice).Call(OnInputEvent);
 			}
@@ -81,8 +92,12 @@ namespace YARG.Input {
 		}
 
 		public void Disable() {
+			if (!Enabled) {
+				return;
+			}
+
 			// Unbind events
-			GameManager.OnUpdate -= OnUpdate;
+			InputSystem.onAfterUpdate -= OnUpdate;
 			eventListener?.Dispose();
 			eventListener = null;
 
@@ -156,9 +171,22 @@ namespace YARG.Input {
 			}
 		}
 
-		private void OnUpdate() {
+		protected virtual void OnUpdate() {
 			if (botMode) {
 				UpdateBotMode();
+				return;
+			}
+
+			// Update mapping debouncing
+			bool stateUpdated = false;
+			foreach (var mapping in inputMappings.Values) {
+				stateUpdated |= mapping.UpdateDebounce();
+			}
+
+			// Update inputs if necessary
+			if (stateUpdated) {
+				UpdateNavigationMode();
+				UpdatePlayerMode();
 			}
 		}
 
@@ -179,31 +207,28 @@ namespace YARG.Input {
 		}
 
 		/// <summary>
-		/// Forces the input strategy to update its inputs. This is used for microphone input.
+		/// Forces the input strategy to update.
 		/// </summary>
-		public void ForceUpdateInputs() {
+		public void ForceUpdate() {
 			UpdateNavigationMode();
 			UpdatePlayerMode();
+			OnUpdate();
 		}
 
-		public static bool IsControlPressed(InputControl control) {
+		public static bool IsControlPressed(InputControl<float> control) {
 			if (control is ButtonControl button) {
 				return button.isPressed;
-			} else if (control is AxisControl axis) {
-				return axis.IsActuated(ControlBinding.DEFAULT_PRESS_THRESHOLD);
 			}
 
-			return false;
+			return control.IsActuated(ControlBinding.DEFAULT_PRESS_THRESHOLD);
 		}
 
-		public static bool IsControlPressed(InputControl control, InputEventPtr eventPtr) {
+		public static bool IsControlPressed(InputControl<float> control, InputEventPtr eventPtr) {
 			if (control is ButtonControl button) {
 				return button.IsValueConsideredPressed(button.ReadValueFromEvent(eventPtr));
-			} else if (control is AxisControl axis) {
-				return axis.ReadValueFromEvent(eventPtr) >= ControlBinding.DEFAULT_PRESS_THRESHOLD;
 			}
-
-			return false;
+	
+			return control.ReadValueFromEvent(eventPtr) >= ControlBinding.DEFAULT_PRESS_THRESHOLD;
 		}
 
 		protected bool IsMappingPressed(string key) {

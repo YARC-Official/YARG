@@ -16,7 +16,7 @@ namespace YARG.PlayMode {
 		protected float spShakeElapsedTime = 0;
 		protected bool spShakegotStartPos = false;
 		protected bool spShakeDepressed = false;
-		protected bool spShakeAscended = false;
+		public bool spShakeAscended = false;
 		protected bool spShakeResetTime = false;
 
 		// Overdrive particles animation parameters
@@ -37,9 +37,33 @@ namespace YARG.PlayMode {
 		public bool spLightsPlayed = false;
 		protected bool spLightsReset = false;
 
+		// Kick Camera shake animation parameters
+		[Space]
+		[SerializeField]
+		protected Vector3 trackEndPosKick = new Vector3(0, -0.04f, 0.01f);
+		[SerializeField]
+		protected float kickShakeMiddleDuration = 0.005f; 
+		[SerializeField]
+		protected float kickShakeTotalDuration = 0.125f;
+
+		protected Vector3 initialCameraPos;
+		protected bool initialCameraPosGot;
+		protected float kickShakeDuration;
+		protected float kickShakeElapsedTime = 0;
+		protected bool kickShakeGone = false;
+		protected bool kickShakeReturned = false;
+		protected bool kickShakeResetTime = false;
+		protected bool executeKickShake = false;
+
+		// Kick Flash animation
+		protected Sprite kickFlashSprite;
+		protected Animation kickFlashAnimation;
+		protected Animator kickFlashAnimator;
+
 		[Space]
 		[SerializeField]
 		protected AnimationCurve spParticleAnimCurve;
+
 
 		private void Awake() {
 			commonTrack = GetComponent<CommonTrack>();
@@ -51,8 +75,19 @@ namespace YARG.PlayMode {
 			abstractTrack = transform.GetComponent<AbstractTrack>();
 			spParticleStartPos = commonTrack.starPowerParticles.transform.position;
 			spParticle2StartPos = commonTrack.starPowerParticles2.transform.position;
-
+			trackStartPos = commonTrack.TrackCamera.transform.position;
 			spLightsStartPos = commonTrack.starPowerLightIndicators.transform.position;
+
+			kickFlashSprite = commonTrack.kickFlash.GetComponent<Sprite>();
+			kickFlashAnimation = commonTrack.kickFlash.GetComponent<Animation>();
+			kickFlashAnimator = commonTrack.kickFlash.GetComponent<Animator>();
+			executeKickShake = false;
+		}
+
+		void Update() {
+
+			KickShakeCameraAnim();
+			
 		}
 
 		public void StarpowerLightsAnimSingleFrame() {
@@ -122,6 +157,7 @@ namespace YARG.PlayMode {
 			if (spShakeResetTime) {
 				spShakeElapsedTime = 0f;
 				spShakeResetTime = false;
+				percentageComplete = 0;
 			}
 
 			// End track animation
@@ -129,7 +165,7 @@ namespace YARG.PlayMode {
 				spShakeDuration = 0.2f;
 				commonTrack.TrackCamera.transform.position = Vector3.Lerp(trackStartPos + trackEndPos, trackStartPos, percentageComplete);
 
-				if (commonTrack.TrackCamera.transform.position == trackStartPos + trackEndPos) {
+				if (commonTrack.TrackCamera.transform.position == trackStartPos) {
 					spShakeResetTime = true;
 					spShakeAscended = true;
 				}
@@ -138,13 +174,89 @@ namespace YARG.PlayMode {
 
 		public void StarpowerTrackAnimReset() {
 			if (!spShakegotStartPos) {
-				trackStartPos = commonTrack.TrackCamera.transform.position;
+				trackStartPos = commonTrack.TrackCamera.transform.position; // This gets the initial track camera position, Kick shake animation also uses this.
 				spShakegotStartPos = true;
 			}
 
 			spShakeDepressed = false;
 			spShakeAscended = false;
 			spShakeElapsedTime = 0f;
+		}
+
+		public void KickShakeCameraAnim() {
+			
+
+			float percentageComplete = kickShakeElapsedTime / kickShakeDuration;
+			
+			if(!initialCameraPosGot) {
+
+				initialCameraPos = commonTrack.TrackCamera.transform.position;
+				initialCameraPosGot = true;
+			}
+
+			if (executeKickShake) {
+				
+				
+				if (!kickShakeGone && !kickShakeReturned) {
+					kickShakeElapsedTime += Time.deltaTime;
+					kickShakeDuration = kickShakeMiddleDuration;
+
+					//commonTrack.TrackCamera.transform.position = Vector3.Lerp(initialCameraPos, initialCameraPos + trackEndPosKick, percentageComplete); <-- This lerp was
+					commonTrack.TrackCamera.transform.position = initialCameraPos + trackEndPosKick;                                                                                                                                  // a Nan issue so I changed to lerp to instant position assign. Should present no issues since "MiddleDuration" lasted less than a frame. - Mia
+
+
+					if (commonTrack.TrackCamera.transform.position == initialCameraPos + trackEndPosKick) {
+						kickShakeResetTime = true;
+						kickShakeGone = true;
+					}
+				}
+
+				if (kickShakeResetTime) {
+					kickShakeElapsedTime = 0f;
+					kickShakeResetTime = false;
+					percentageComplete = 0;
+				}
+				
+
+				if (kickShakeGone && !kickShakeReturned) {
+					kickShakeElapsedTime += Time.deltaTime;
+					
+					kickShakeDuration = kickShakeTotalDuration;
+					commonTrack.TrackCamera.transform.position = Vector3.Lerp(initialCameraPos + trackEndPosKick, initialCameraPos, percentageComplete);
+
+					if (commonTrack.TrackCamera.transform.position == initialCameraPos) {
+						executeKickShake = false;
+						kickShakeResetTime = true;
+						kickShakeReturned = false;
+						kickShakeGone = false;
+					}
+				}
+			}
+		}
+
+		public void PlayKickShakeCameraAnim() {
+			kickShakeResetTime = true;
+			executeKickShake = true;
+		}
+
+		public void PlayKickFlashAnim() {
+			StopKickFlashAnim();
+
+			commonTrack.kickFlash.SetActive(true);
+			kickFlashAnimator.Play(0, 0, 0f);
+			/*if (kickFlashAnimator.GetCurrentAnimatorStateInfo(0).length > kickFlashAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime) {
+				commonTrack.kickFlash.SetActive(true);
+			} else {
+				commonTrack.kickFlash.SetActive(false);
+			}*/
+			
+		}
+
+		public void StopKickFlashAnim() {
+
+			//kickFlashAnimator.Stop();
+			//kickFlashAnimator.Rewind();
+
 		}
 	}
 }

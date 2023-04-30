@@ -7,15 +7,13 @@ namespace YARG.UI {
 	public class PauseMenu : MonoBehaviour {
 		private enum ButtonIndex {
 			RESUME = 0,
+			RESTART,
 			SETTINGS,
 			QUIT
 		}
 
 		[SerializeField]
 		private GenericOption[] options;
-
-		[SerializeField]
-		private GameObject settingsContainer;
 
 		private int playerIndex;
 
@@ -39,6 +37,8 @@ namespace YARG.UI {
 		}
 
 		private void OnDisable() {
+			GameManager.Instance.SettingsMenu.gameObject.SetActive(false);
+
 			// Unbind input events
 			foreach (var player in PlayerManager.players) {
 				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
@@ -102,8 +102,9 @@ namespace YARG.UI {
 		}
 
 		public void SelectCurrentOption() {
-			switch ((ButtonIndex)selected) {
+			switch ((ButtonIndex) selected) {
 				case ButtonIndex.RESUME: OnResumeSelected(); break;
+				case ButtonIndex.RESTART: OnRestartSelected(); break;
 				case ButtonIndex.SETTINGS: OnSettingsSelected(); break;
 				case ButtonIndex.QUIT: OnQuitSelected(); break;
 				default: Debug.LogError($"Unhandled option index {selected}!"); break;
@@ -114,11 +115,12 @@ namespace YARG.UI {
 			// Add to options
 			string[] ops = {
 				"Resume",
+				"Restart",
 				"Settings",
 				"Quit",
-				null
+
 			};
-			optionCount = ops.Length - 1;
+			optionCount = ops.Length - 0;
 
 			// Set text and sprites
 			for (int i = 0; i < ops.Length; i++) {
@@ -135,8 +137,14 @@ namespace YARG.UI {
 			Play.Instance.Paused = false;
 		}
 
+		private void OnRestartSelected() {
+			GameManager.AudioManager.UnloadSong();
+			GameManager.Instance.LoadScene(SceneIndex.PLAY);
+			Play.Instance.Paused = false;
+		}
+
 		private void OnSettingsSelected() {
-			settingsContainer.SetActive(!settingsContainer.activeSelf);
+			GameManager.Instance.SettingsMenu.gameObject.SetActive(true);
 		}
 
 		private void OnQuitSelected() {
