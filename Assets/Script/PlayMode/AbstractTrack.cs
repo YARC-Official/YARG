@@ -128,7 +128,6 @@ namespace YARG.PlayMode {
 			var renderTexture = new RenderTexture(descriptor);
 
 			// Assign render texture to camera
-			commonTrack.SetupCameras();
 			commonTrack.TrackCamera.targetTexture = renderTexture;
 
 			// AMONG US
@@ -151,7 +150,7 @@ namespace YARG.PlayMode {
 			// Adjust hit window
 			var scale = commonTrack.hitWindow.localScale;
 			commonTrack.hitWindow.localScale = new(scale.x, Constants.HIT_MARGIN * player.trackSpeed * 2f, scale.z);
-			commonTrack.hitWindow.gameObject.SetActive(SettingsManager.GetSettingValue<bool>("showHitWindow"));
+			commonTrack.hitWindow.gameObject.SetActive(SettingsManager.Settings.ShowHitWindow.Data);
 
 			comboSunburstEmbeddedLight = commonTrack.comboSunburst.GetComponent<Light>();
 
