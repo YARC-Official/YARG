@@ -119,5 +119,7 @@ namespace YARG.Serialization {
             return f;
         }
 
+        //TODO: convert each XboxCONSong to its own SongInfo for YARG to use in-game
+
     }
 }
