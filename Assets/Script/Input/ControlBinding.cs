@@ -20,6 +20,7 @@ namespace YARG.Input {
         public BindingType Type { get; }
         public string DisplayName { get; }
         public string BindingKey { get; }
+        public string DebounceOverrideKey { get; }
 
         private InputControl<float> _control;
         public InputControl<float> Control {
@@ -59,10 +60,17 @@ namespace YARG.Input {
             }
         }
 
-        public ControlBinding(BindingType type, string displayName, string bindingKey) {
+        /// <summary>
+        /// A binding whose debouncing timer should be overridden by a state change on this control,
+        /// and whose state changes should also override the debouncing timer on this control.
+        /// </summary>
+        public ControlBinding DebounceOverrideBinding { get; set; } = null;
+
+        public ControlBinding(BindingType type, string displayName, string bindingKey, string debounceOverrideKey = null) {
             Type = type;
             DisplayName = displayName;
             BindingKey = bindingKey;
+            DebounceOverrideKey = debounceOverrideKey;
         }
 
         public bool IsPressed() {
@@ -99,10 +107,10 @@ namespace YARG.Input {
             }
 
             // Progress state history forward
-            float value = _state.current;
-            _state.previous = value;
+            _state.previous = _state.current;
             // Don't read new value unless there was a value change
             // Controls not changed in a delta state event (which MIDI devices use) will report the wrong value
+            float value = _state.postDebounce;
             if (_control.HasValueChangeInEvent(eventPtr)) {
                 value = _control.ReadValueFromEvent(eventPtr);
             }
@@ -112,9 +120,14 @@ namespace YARG.Input {
             if (!debounceTimer.IsRunning) {
                 _state.current = value;
 
-                // Start debounce timer if the current state has changed
-                if (DebounceThreshold >= DEBOUNCE_MINIMUM && Type == BindingType.BUTTON && (WasPressed() || WasReleased())) {
-                    debounceTimer.Start();
+                if (WasPressed() || WasReleased()) {
+                    // Start debounce timer
+                    if (DebounceThreshold >= DEBOUNCE_MINIMUM && Type == BindingType.BUTTON) {
+                        debounceTimer.Start();
+                    }
+
+                    // Override debounce for a corresponding control, if requested
+                    DebounceOverrideBinding?.OverrideDebounce();
                 }
             }
 
@@ -138,14 +151,21 @@ namespace YARG.Input {
 
             // Check time elapsed
             if (debounceTimer.ElapsedMilliseconds >= DebounceThreshold) {
-                // Stop timer and progress state history forward
-                debounceTimer.Reset();
-                _state.previous = _state.current;
-                _state.current = _state.postDebounce;
+                OverrideDebounce();
                 return true;
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Forcibly stops the debounce timer for this binding.
+        /// </summary>
+        public void OverrideDebounce() {
+            // Stop timer and progress state history forward
+            debounceTimer.Reset();
+            _state.previous = _state.current;
+            _state.current = _state.postDebounce;
         }
     }
 }

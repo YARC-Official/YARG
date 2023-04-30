@@ -68,6 +68,13 @@ namespace YARG.Input {
 		public InputStrategy() {
 			// Initialize mappings
 			inputMappings = GetMappings();
+			// Set up debounce overrides
+			foreach (var mapping in inputMappings.Values) {
+				string overrideKey = mapping.DebounceOverrideKey;
+				if (overrideKey != null && inputMappings.TryGetValue(overrideKey, out var overrideMapping)) {
+					mapping.DebounceOverrideBinding = overrideMapping;
+				}
+			}
 		}
 
 		public void Enable() {
