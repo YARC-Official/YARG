@@ -20,10 +20,6 @@ namespace YARG.Song {
 			_cacheFile = Path.Combine(GameManager.PersistentDataPath, "caches", $"{hex}.bin");
 		}
 
-		public List<SongEntry> ReadCache() {
-			throw new NotImplementedException();
-		}
-
 		public void WriteCache(List<SongEntry> songs) {
 			using var writer = new BinaryWriter(File.Open(_cacheFile, FileMode.Create, FileAccess.ReadWrite));
 			
@@ -37,9 +33,44 @@ namespace YARG.Song {
 				}
 			}
 		}
+		
+		public List<SongEntry> ReadCache() {
+			var songs = new List<SongEntry>();
+			
+			if (!File.Exists(_cacheFile)) {
+				Debug.LogError("Cache file does not exist. Skipping");
+				return songs;
+			}
+			
+			using var reader = new BinaryReader(File.Open(_cacheFile, FileMode.Open, FileAccess.Read));
+			
+			int version = reader.ReadInt32();
+			
+			if (version != CACHE_VERSION) {
+				throw new Exception("Song Cache version is invalid. Rescan required.");
+			}
 
+			while (reader.BaseStream.Position < reader.BaseStream.Length) {
+				var song = ReadSongEntry(reader);
+				if (song is not null) {
+					songs.Add(song);
+				} else {
+					throw new Exception("Song Cache is corrupted.");
+				}
+			}
+
+			return songs;
+		}
+		
 		private static void WriteSongEntry(BinaryWriter writer, SongEntry song) {
 			Debug.Log($"Writing {song.Name} to cache");
+
+			if (song is IniSongEntry) {
+				writer.Write((int)SongType.SongIni);
+			} else if (song is RawConSongEntry) {
+				writer.Write((int)SongType.RbConRaw);
+			}
+			// Unextracted con
 			
 			writer.Write(song.Name);
 			writer.Write(song.Artist);
@@ -58,17 +89,86 @@ namespace YARG.Song {
 			writer.Write(song.MultiplierNote);
 			writer.Write(song.Icon);
 
-			if (song is ConSongEntry conSong) {
-				// Write con stuff
-			} else if (song is IniSongEntry iniSong) {
-				writer.Write(iniSong.Playlist);
-				writer.Write(iniSong.SubPlaylist);
-				writer.Write(iniSong.IsModChart);
-				writer.Write(iniSong.HasLyrics);
+			switch (song)
+			{
+				case RawConSongEntry conSong:
+					// Write con stuff
+					break;
+				case IniSongEntry iniSong:
+					writer.Write(iniSong.Playlist);
+					writer.Write(iniSong.SubPlaylist);
+					writer.Write(iniSong.IsModChart);
+					writer.Write(iniSong.HasLyrics);
+					break;
 			}
 			
 			writer.Write(song.Checksum);
 			writer.Write(song.Location);
 		}
+
+		private static SongEntry ReadSongEntry(BinaryReader reader) {
+			try {
+				SongEntry result = null;
+				var type = (SongType)reader.ReadInt32();
+				
+				if (type == SongType.RbConRaw) {
+					result = new RawConSongEntry();
+				} else if (type == SongType.SongIni) {
+					result = new IniSongEntry();
+				}
+				
+				result.Name = reader.ReadString();
+				result.Artist = reader.ReadString();
+				result.Charter = reader.ReadString();
+				result.Album = reader.ReadString();
+				result.AlbumTrack = reader.ReadInt32();
+				result.PlaylistTrack = reader.ReadInt32();
+				result.Genre = reader.ReadString();
+				result.Year = reader.ReadString();
+				result.SongLength = reader.ReadInt32();
+				result.PreviewStart = reader.ReadInt32();
+				result.PreviewEnd = reader.ReadInt32();
+				result.LoadingPhrase = reader.ReadString();
+				result.HopoThreshold = reader.ReadInt32();
+				result.EighthNoteHopo = reader.ReadBoolean();
+				result.MultiplierNote = reader.ReadInt32();
+				result.Icon = reader.ReadString();
+
+				switch (type)
+				{
+					case SongType.RbConRaw:
+						// Con specific properties
+						break;
+					case SongType.SongIni:
+					{
+						// Ini specific properties
+						var iniSong = (IniSongEntry)result;
+					
+						iniSong.Playlist = reader.ReadString();
+						iniSong.SubPlaylist = reader.ReadString();
+						iniSong.IsModChart = reader.ReadBoolean();
+						iniSong.HasLyrics = reader.ReadBoolean();
+						break;
+					}
+				}
+				
+				result.Checksum = reader.ReadString();
+				result.Location = reader.ReadString();
+
+				return result;
+			} catch (Exception e) {
+				Debug.Log("Reader position: " + reader.BaseStream.Position);
+				Debug.LogError("Failed to read song from cache");
+				Debug.LogError(e.Message);
+				Debug.LogError(e.StackTrace);
+				return null;
+			}
+		}
+	}
+
+	public enum SongType {
+		SongIni,
+		RbConRaw,
+		RbCon,
 	}
 }
