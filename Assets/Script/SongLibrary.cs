@@ -10,7 +10,6 @@ using Newtonsoft.Json;
 using UnityEngine;
 using YARG.Data;
 using YARG.Serialization;
-using YARG.Serialization.Parser;
 using YARG.Settings;
 
 namespace YARG {
@@ -33,11 +32,19 @@ namespace YARG {
 		public static float loadPercent = 0f;
 
 		/// <value>
-		/// The location of the song folder.
+		/// The location(s) of the song folder(s).
 		/// </value>
 		public static string[] SongFolders {
 			get => SettingsManager.Settings.SongFolders;
 			set => SettingsManager.Settings.SongFolders = value;
+		}
+
+		/// <value>
+		/// The location(s) of the song upgrade folder(s).
+		/// </value>
+		public static string[] SongUpgradeFolders {
+			get => SettingsManager.Settings.SongUpgradeFolders;
+			set => SettingsManager.Settings.SongUpgradeFolders = value;
 		}
 
 		/// <value>
@@ -225,11 +232,11 @@ namespace YARG {
 					// Scan files in folder for potential CONs
 					bool isCONFolder = false;
 					byte[] header = new byte[4];
-					foreach(var f in folder.GetFiles()){
+					foreach (var f in folder.GetFiles()) {
 						var fs = f.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
 						int n = fs.Read(header, 0, 4);
 						string headerStr = Encoding.UTF8.GetString(header);
-						if(headerStr == "CON " || headerStr == "LIVE"){
+						if (headerStr == "CON " || headerStr == "LIVE") {
 							songPaths.Add(new SongPathInfo {
 								type = SongInfo.SongType.RB_CON,
 								path = f.FullName,
@@ -239,7 +246,7 @@ namespace YARG {
 						}
 					}
 					// If no CONs were found, treat it as a sub-folder
-					if(!isCONFolder) FindSongs(rootFolder, folder);
+					if (!isCONFolder) FindSongs(rootFolder, folder);
 				}
 			}
 		}
@@ -279,7 +286,7 @@ namespace YARG {
 							songInfo = new SongInfo(midPath, info.root, info.type);
 							SongIni.CompleteSongInfo(songInfo);
 						}
-						
+
 						// Add it to the list of songs
 						songsTemp.Add(songInfo);
 					} catch (Exception e) {
@@ -302,12 +309,11 @@ namespace YARG {
 
 							// Add it to the list of songs
 							songsTemp.Add(songInfo);
-						} catch(Exception e) {
+						} catch (Exception e) {
 							Debug.LogError($"Error reading song info for `{file.MidiFile}`: {e}");
 						}
 					}
-				}
-				else if(info.type == SongInfo.SongType.RB_CON){
+				} else if (info.type == SongInfo.SongType.RB_CON) {
 					Debug.Log($"RB CON file: {info.path} in dir {info.root}");
 					// Rock Band unextracted CON
 

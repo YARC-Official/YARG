@@ -43,34 +43,31 @@ namespace YARG.Serialization {
 			}
 		}
 
-		public void UpdateSong(string pathUpdateName, DataArray dta_update){
+		public void UpdateSong(string pathUpdateName, DataArray dta_update) {
 			songDta.ParseFromDta(dta_update);
 			// if dta_update.Array("song") is not null, parse for any MoggDta as well
-			if(dta_update.Array("song") is DataArray moggUpdateDta)
+			if (dta_update.Array("song") is DataArray moggUpdateDta)
 				moggDta.ParseFromDta(moggUpdateDta);
 
 			// if extra_authoring has disc_update, grab update midi
-			if(songDta.discUpdate){
+			if (songDta.discUpdate) {
 				MidiUpdateFile = Path.Combine(pathUpdateName, ShortName, $"{ShortName}_update.mid");
 			}
 
 			// if update mogg exists, grab it and parse it
 			string moggUpdatePath = Path.Combine(pathUpdateName, ShortName, $"{ShortName}_update.mogg");
-			if(File.Exists(moggUpdatePath)){
-				moggDta.UpdateMoggPath(moggUpdatePath);
+			if (File.Exists(moggUpdatePath)) {
+				moggDta.MoggPath = moggUpdatePath;
 				moggDta.ParseMoggHeader();
 				// moggDta.ParseFromDta(dta_update.Array("song"));
 				moggDta.CalculateMoggBassInfo();
 			}
 
 			// if album_art == TRUE AND alternate_path == TRUE, grab update png
-			if(songDta.albumArt && songDta.alternatePath){
+			if (songDta.albumArt && songDta.alternatePath) {
 				Debug.Log($"new album art, grabbing it now");
 				// make a new image here, cuz what if an old one exists?
 				img = new XboxImage(Path.Combine(pathUpdateName, ShortName, "gen", $"{ShortName}_keep.png_xbox"));
-
-				// Do some preliminary parsing here in the header to get DXT format, width and height, etc
-				img.ParseImageHeader();
 			}
 		}
 
@@ -116,8 +113,8 @@ namespace YARG.Serialization {
 			song.songLength = songDta.songLength / 1000f;
 			// song.delay
 			song.drumType = rb ? SongInfo.DrumType.FOUR_LANE : SongInfo.DrumType.FIVE_LANE;
-			if(songDta.hopoThreshold != 0) song.hopoFreq = songDta.hopoThreshold;
-			song.artistName = songDta.artist != null ? songDta.artist : "Unknown Artist";
+			if (songDta.hopoThreshold != 0) song.hopoFreq = songDta.hopoThreshold;
+			song.artistName = songDta.artist ?? "Unknown Artist";
 			song.album = songDta.albumName;
 			song.genre = songDta.genre;
 			// song.charter

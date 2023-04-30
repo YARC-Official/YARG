@@ -140,14 +140,8 @@ namespace YARG.Settings {
 						var go = Instantiate(buttonPrefab, container);
 						go.GetComponent<SettingsButton>().SetInfo(buttonRow.Buttons[0]);
 					} else if (settingMetadata is HeaderMetadata header) {
-						// Spawn the header
-						var go = Instantiate(headerPrefab, container);
-
-						// Set header text
-						go.GetComponentInChildren<LocalizeStringEvent>().StringReference = new LocalizedString {
-							TableReference = "Settings",
-							TableEntryReference = $"Header.{header.HeaderName}"
-						};
+						// Spawn in the header
+						SpawnHeader(container, $"Header.{header.HeaderName}");
 					} else if (settingMetadata is FieldMetadata field) {
 						var setting = SettingsManager.GetSettingByName(field.FieldName);
 
@@ -171,18 +165,8 @@ namespace YARG.Settings {
 				Destroy(t.gameObject);
 			}
 
-			// Spawn add folder button
-			{
-				var go = Instantiate(buttonPrefab, settingsContainer);
-				go.GetComponent<SettingsButton>().SetCustomCallback(() => {
-					// Use a list to add the new folder to the end
-					Array.Resize(ref SettingsManager.Settings.SongFolders,
-						SongLibrary.SongFolders.Length + 1);
-
-					// Refresh everything
-					UpdateSongFolderManager();
-				}, "AddFolder");
-			}
+			// Spawn header
+			SpawnHeader(settingsContainer, "Header.Cache");
 
 			// Spawn refresh all button
 			{
@@ -198,13 +182,64 @@ namespace YARG.Settings {
 				}, "RefreshAllCaches");
 			}
 
+			// Spawn header
+			SpawnHeader(settingsContainer, "Header.SongFolders");
+
+			// Spawn add folder button
+			{
+				var go = Instantiate(buttonPrefab, settingsContainer);
+				go.GetComponent<SettingsButton>().SetCustomCallback(() => {
+					// Use a list to add the new folder to the end
+					Array.Resize(ref SettingsManager.Settings.SongFolders,
+						SongLibrary.SongFolders.Length + 1);
+
+					// Refresh everything
+					UpdateSongFolderManager();
+				}, "AddFolder");
+			}
+
 			// Create all of the directories
 			for (int i = 0; i < SongLibrary.SongFolders.Length; i++) {
 				var path = SongLibrary.SongFolders[i];
 
 				var go = Instantiate(directoryPrefab, settingsContainer);
-				go.GetComponent<SettingsDirectory>().SetIndex(i);
+				go.GetComponent<SettingsDirectory>().SetIndex(i, false);
 			}
+
+			// Spawn header
+			SpawnHeader(settingsContainer, "Header.SongUpgrades");
+
+			// Spawn add upgrade folder button
+			{
+				var go = Instantiate(buttonPrefab, settingsContainer);
+				go.GetComponent<SettingsButton>().SetCustomCallback(() => {
+					// Use a list to add the new folder to the end
+					Array.Resize(ref SettingsManager.Settings.SongUpgradeFolders,
+						SongLibrary.SongUpgradeFolders.Length + 1);
+
+					// Refresh everything
+					UpdateSongFolderManager();
+				}, "AddUpgradeFolder");
+			}
+
+			// Create all of the song upgrade directories
+			for (int i = 0; i < SongLibrary.SongUpgradeFolders.Length; i++) {
+				var path = SongLibrary.SongUpgradeFolders[i];
+
+				var go = Instantiate(directoryPrefab, settingsContainer);
+				go.GetComponent<SettingsDirectory>().SetIndex(i, true);
+			}
+		}
+
+		private void SpawnHeader(Transform container, string localizationKey) {
+			// Spawn the header
+			var go = Instantiate(headerPrefab, container);
+
+			// Set header text
+			go.GetComponentInChildren<LocalizeStringEvent>().StringReference = new LocalizedString {
+				TableReference = "Settings",
+				TableEntryReference = localizationKey
+			};
 		}
 
 		private void UpdatePreview(SettingsManager.Tab tabInfo) {
