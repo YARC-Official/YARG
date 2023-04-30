@@ -22,7 +22,9 @@ namespace YARG.Serialization {
             Debug.Log($"this songs.dta found {dtaTree.Count} songs, listing them now...");
             for(int i = 0; i < dtaTree.Count; i++){
                 var currentArray = (DataArray) dtaTree[i];
-                Debug.Log($"current shortname: {currentArray[0].Name}");
+                XboxCONSong cur = new XboxCONSong(conName, currentArray, thisCON);
+                cur.ParseSong();
+                Debug.Log(cur.ToString());
             }
 
             // XboxCONSong lol = new XboxCONSong(conName, (DataArray)dtaTree[dtaTree.Count - 1], thisCON);

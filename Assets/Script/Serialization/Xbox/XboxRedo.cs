@@ -11,7 +11,6 @@ using YARG.Data;
 namespace YARG.Serialization {
     abstract class XboxSongAbs {
         public abstract byte[] GetMidiFile();
-        public abstract byte[] GetMoggFile();
         public abstract byte[] GetImgFile();
     }
 
@@ -25,10 +24,6 @@ namespace YARG.Serialization {
         }
         public override byte[] GetMidiFile(){
             return File.ReadAllBytes($"{rootPath}/{shortname}/{shortname}.mid");
-        }
-
-        public override byte[] GetMoggFile(){
-            return File.ReadAllBytes($"{rootPath}/{shortname}/{shortname}.mogg");
         }
 
         public override byte[] GetImgFile(){
@@ -77,17 +72,39 @@ namespace YARG.Serialization {
 			songDta.ParseFromDta(dta);
 
 			// now, parse the mogg
-			moggDta = new XboxMoggData(CONRootPath);
-            moggDta.ParseMoggHeader(MoggOffsets[0], MoggSize);
+			moggDta = new XboxMoggData(CONRootPath, MoggSize, MoggOffsets);
+            moggDta.ParseMoggHeader();
 			moggDta.ParseFromDta(dta.Array("song"));
 			moggDta.CalculateMoggBassInfo();
 
-            // then, parse the image
+            // finally, parse the image
             if(songDta.albumArt && ImgSize > 0 && ImgOffsets != null){
                 img = new XboxImage(CONRootPath);
             }
 
         }
+
+        public bool IsValidSong() {
+			// Skip if the song doesn't have notes
+            if(MidiSize == 0 && MidiOffsets == null) return false;
+			// Skip if this is a "fake song" (tutorials, etc.)
+			if (songDta.fake) return false;
+			// Skip if the mogg is encrypted
+			if (moggDta.Header != 0xA) return false;
+
+			return true;
+		}
+
+        public override string ToString() {
+			return string.Join(Environment.NewLine,
+				$"XBOX CON SONG {shortname}",
+				$"CON file: {CONRootPath}",
+				"",
+				songDta.ToString(),
+				"",
+				moggDta.ToString()
+			);
+		}
 
         public override byte[] GetMidiFile(){
             byte[] f = new byte[MidiSize];
@@ -104,21 +121,7 @@ namespace YARG.Serialization {
             return f;
         }
 
-        public override byte[] GetMoggFile(){
-            byte[] f = new byte[MoggSize];
-            uint lastSize = MoggSize % 0x1000;
-
-            Parallel.For(0, MoggOffsets.Length, i => {
-                uint readLen = (i == MoggOffsets.Length - 1) ? lastSize : 0x1000;
-                using var fs = new FileStream(CONRootPath, FileMode.Open, FileAccess.Read);
-                using var br = new BinaryReader(fs, new ASCIIEncoding());
-                fs.Seek(MoggOffsets[i], SeekOrigin.Begin);
-                Array.Copy(br.ReadBytes((int)readLen), 0, f, i*0x1000, (int)readLen);
-            });
-            
-            return f;
-        }
-
+        // get the img file, TODO: except only the DXT blocks
         public override byte[] GetImgFile(){
             byte[] f = new byte[ImgSize];
             uint lastSize = ImgSize % 0x1000;
