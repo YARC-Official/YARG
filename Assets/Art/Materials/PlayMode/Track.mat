@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Track
-  m_Shader: {fileID: -6465566751694194690, guid: b1c5a36f3a9d2cf4cbddda0bc0537410,
+  m_Shader: {fileID: -6465566751694194690, guid: 58be30943be769540adcb5480fbbd720,
     type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords: []

@@ -39,9 +39,6 @@ namespace YARG.Serialization {
 			string imgPath = Path.Combine(songFolderPath, "gen", $"{ShortName}_keep.png_xbox");
 			if (songDta.AlbumArtRequired() && File.Exists(imgPath)) {
 				img = new XboxImage(imgPath);
-
-				// Do some preliminary parsing here in the header to get DXT format, width and height, etc
-				img.ParseImageHeader();
 			}
 		}
 

@@ -4,11 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using Newtonsoft.Json;
 using UnityEngine;
 using YARG.Data;
 using YARG.Serialization;
+using YARG.Serialization.Parser;
 using YARG.Settings;
 
 namespace YARG {
@@ -210,18 +212,34 @@ namespace YARG {
 						path = folder.FullName,
 						root = rootFolder
 					});
-					Debug.Log($"Found song.ini song: {folder.FullName}");
+					//Debug.Log($"Found song.ini song: {folder.FullName}");
 				} else if (File.Exists(Path.Combine(folder.FullName, "songs/songs.dta"))) {
 					// If the folder has a songs/songs.dta, it's a Rock Band con 
 					songPaths.Add(new SongPathInfo {
-						type = SongInfo.SongType.RB_CON,
+						type = SongInfo.SongType.RB_CON_RAW,
 						path = Path.Combine(folder.FullName, "songs"),
 						root = rootFolder
 					});
-					Debug.Log($"Found RB con song(s): {folder.FullName}");
+					//Debug.Log($"Found RB con song(s): {folder.FullName}");
 				} else {
-					// Otherwise, treat it as a sub-folder
-					FindSongs(rootFolder, folder);
+					// Scan files in folder for potential CONs
+					bool isCONFolder = false;
+					byte[] header = new byte[4];
+					foreach(var f in folder.GetFiles()){
+						var fs = f.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+						int n = fs.Read(header, 0, 4);
+						string headerStr = Encoding.UTF8.GetString(header);
+						if(headerStr == "CON " || headerStr == "LIVE"){
+							songPaths.Add(new SongPathInfo {
+								type = SongInfo.SongType.RB_CON,
+								path = f.FullName,
+								root = rootFolder
+							});
+							isCONFolder = true;
+						}
+					}
+					// If no CONs were found, treat it as a sub-folder
+					if(!isCONFolder) FindSongs(rootFolder, folder);
 				}
 			}
 		}
@@ -234,41 +252,67 @@ namespace YARG {
 				if (info.type == SongInfo.SongType.SONG_INI) {
 					// song.ini
 
-					// See if .mid file exists
-					var midPath = Path.Combine(info.path, "notes.mid");
-					if (!File.Exists(midPath)) {
-						Debug.LogError($"`{info.path}` does not have a `notes.mid` file. Skipping.");
-						continue;
-					}
-
-					// Create a SongInfo
-					var songInfo = new SongInfo(midPath, info.root, info.type);
 					try {
-						SongIni.CompleteSongInfo(songInfo);
-					} catch (Exception e) {
-						// Something went wrong with the parsing, skip this song
-						Debug.LogError($"Failed to parse song.ini for `{info.path}`.");
-						Debug.LogException(e);
-						continue;
-					}
+						// See if .mid file exists
+						var midPath = Path.Combine(info.path, "notes.mid");
+						var chartPath = Path.Combine(info.path, "notes.chart");
 
-					// Add it to the list of songs
-					songsTemp.Add(songInfo);
-				} else if (info.type == SongInfo.SongType.RB_CON) {
-					// Rock Band con file
+						// Create SongInfo
+						SongInfo songInfo;
+
+						// Load midi
+						if (File.Exists(midPath) && !File.Exists(chartPath)) {
+							songInfo = new SongInfo(midPath, info.root, info.type);
+							SongIni.CompleteSongInfo(songInfo);
+						} else if (File.Exists(chartPath) && !File.Exists(midPath)) {
+							// Load chart
+
+							songInfo = new SongInfo(chartPath, info.root, info.type);
+							SongIni.CompleteSongInfo(songInfo);
+						} else if (!File.Exists(midPath) && !File.Exists(chartPath)) {
+							Debug.LogError($"`{info.path}` does not have a `notes.mid` or `notes.chart` file. Skipping.");
+							continue;
+						} else {
+							// Both exist?
+
+							// choose midi lol
+							songInfo = new SongInfo(midPath, info.root, info.type);
+							SongIni.CompleteSongInfo(songInfo);
+						}
+						
+						// Add it to the list of songs
+						songsTemp.Add(songInfo);
+					} catch (Exception e) {
+						Debug.LogError($"Error while reading song info for `{info.path}`: {e}");
+					}
+				} else if (info.type == SongInfo.SongType.RB_CON_RAW) {
+					// Rock Band CON rawfiles
 
 					// Read all of the songs in the file
 					var files = XboxRawfileBrowser.BrowseFolder(info.path);
 
 					// Convert each to a SongInfo
 					foreach (var file in files) {
-						// Create a SongInfo
-						var songInfo = new SongInfo(file.MidiFile, info.root, info.type);
-						file.CompleteSongInfo(songInfo, true);
+						try {
+							// Create a SongInfo
+							var songInfo = new SongInfo(file.MidiFile, info.root, info.type);
+							file.CompleteSongInfo(songInfo, true);
 
-						// Add it to the list of songs
-						songsTemp.Add(songInfo);
+							// Add it to the list of songs
+							songsTemp.Add(songInfo);
+						} catch(Exception e) {
+							Debug.LogError($"Error reading song info for `{file.MidiFile}`: {e}");
+						}
 					}
+				}
+				else if(info.type == SongInfo.SongType.RB_CON){
+					Debug.Log($"RB CON file: {info.path} in dir {info.root}");
+					// Rock Band unextracted CON
+
+					// Read all of the songs in the CON file
+					var songInfo = XboxCONFileBrowser.BrowseCON(info.path);
+					// ^this returns a List<XboxCONSong>
+					// TODO: add each XboxCONSong to the list of scanned songs
 				}
 			}
 
