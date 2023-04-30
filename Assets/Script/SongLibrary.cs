@@ -293,6 +293,8 @@ namespace YARG {
 
 					// Read all of the songs in the CON file
 					var songInfo = XboxCONFileBrowser.BrowseCON(info.path);
+					// ^this returns a List<XboxCONSong>
+					// TODO: add each XboxCONSong to the list of scanned songs
 				}
 			}
 
