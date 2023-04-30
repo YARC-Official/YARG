@@ -155,6 +155,8 @@ namespace YARG.PlayMode {
 
 			comboSunburstEmbeddedLight = commonTrack.comboSunburst.GetComponent<Light>();
 
+			commonTrack.kickFlash.SetActive(false);
+
 			scoreKeeper = new();
 
 			StartTrack();
@@ -323,7 +325,14 @@ namespace YARG.PlayMode {
 
 				// Update Sunburst color and light
 				commonTrack.comboSunburst.sprite = commonTrack.sunBurstSpriteStarpower;
-				commonTrack.comboSunburst.color = new Color(255, 255, 255, 141);
+				commonTrack.comboSunburst.color = commonTrack.comboSunburstSPColor;
+
+				if (Multiplier >= MaxMultiplier) {
+					commonTrack.comboBase.material = commonTrack.baseSP;
+				}
+				else {
+					commonTrack.comboBase.material = commonTrack.baseNormal;
+				}
 			} else {
 
 				trackAnims.StarpowerTrackAnimReset();
@@ -332,7 +341,14 @@ namespace YARG.PlayMode {
 
 				//Reset Sunburst color and light to original
 				commonTrack.comboSunburst.sprite = commonTrack.sunBurstSprite;
-				commonTrack.comboSunburst.color = Color.white;
+				commonTrack.comboSunburst.color = commonTrack.comboSunburstColor;
+
+				if(Multiplier >= MaxMultiplier) {
+					commonTrack.comboBase.material = commonTrack.baseGroove;
+				}
+				else {
+					commonTrack.comboBase.material = commonTrack.baseNormal;
+				}
 			}
 		}
 

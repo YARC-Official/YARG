@@ -9,6 +9,8 @@ namespace YARG.Util {
 		private ParticleSystem[] colorParticles;
 		[SerializeField]
 		private Light[] colorLights;
+		[SerializeField]
+		private ParticleSystem[] emissionParticles;
 
 		private ParticleSystem[] particles;
 		private FadeLight[] fadeLights;
@@ -38,12 +40,23 @@ namespace YARG.Util {
 			foreach (var ps in colorParticles) {
 				var m = ps.main;
 
+
 				var c = color;
 				if (keepAlpha) {
 					c.a = m.startColor.color.a;
 				}
 
 				m.startColor = c;
+
+				
+				
+			   
+			}
+
+			foreach (var ps in emissionParticles) {
+				var material = ps.GetComponent<ParticleSystemRenderer>().material;
+				material.color = color;
+				material.SetColor("_EmissionColor", color * 35f);
 			}
 
 			// Set colors of lights
@@ -76,6 +89,7 @@ namespace YARG.Util {
 					continue;
 				}
 
+				particle.Clear();
 				particle.Stop();
 			}
 

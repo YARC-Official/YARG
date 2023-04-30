@@ -46,6 +46,8 @@ namespace YARG.PlayMode {
 		private OccurrenceList<string> audioLowering = new();
 		private OccurrenceList<string> audioReverb = new();
 
+		private int stemsReverbed;
+		
 		private float realSongTime;
 		public float SongTime {
 			get => realSongTime + PlayerManager.GlobalCalibration * speed;
@@ -369,6 +371,8 @@ namespace YARG.PlayMode {
 			// Reverb audio with starpower
 
 			if (GameManager.AudioManager.UseStarpowerFx) {
+				GameManager.AudioManager.ApplyReverb(SongStem.Song, stemsReverbed > 0);
+				
 				foreach (var name in stemNames) {
 					var stem = AudioHelpers.GetStemFromName(name);
 
@@ -416,8 +420,10 @@ namespace YARG.PlayMode {
 
 		public void ReverbAudio(string name, bool apply) {
 			if (apply) {
+				stemsReverbed++;
 				audioReverb.Add(name);
 			} else {
+				stemsReverbed--;
 				audioReverb.Remove(name);
 			}
 		}

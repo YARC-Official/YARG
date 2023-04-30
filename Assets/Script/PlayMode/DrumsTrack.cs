@@ -111,6 +111,8 @@ namespace YARG.PlayMode {
 		}
 
 		protected override void UpdateTrack() {
+
+			
 			// Ignore everything else until the song starts
 			if (!Play.Instance.SongStarted) {
 				return;
@@ -288,6 +290,9 @@ namespace YARG.PlayMode {
 					//commonTrack.PlayKickCameraAnimation();
 					trackAnims.PlayKickShakeCameraAnim();
 				}
+
+				commonTrack.kickFlash.SetActive(true);
+				trackAnims.PlayKickFlashAnim();
 			}
 
 			// Overstrum if no expected
@@ -347,6 +352,8 @@ namespace YARG.PlayMode {
 			if (hit.fret != kickIndex) {
 				drums[hit.fret].PlayParticles();
 			} else {
+				
+				kickNoteParticles.Stop();
 				kickNoteParticles.Play();
 			}
 
@@ -393,14 +400,14 @@ namespace YARG.PlayMode {
 			);
 		}
 
-		protected void PlayKickFretAnimation() {
+		private void PlayKickFretAnimation() {
 			StopKickFretAnimation();
 
 			kickFretAnimation["KickFrets"].wrapMode = WrapMode.Once;
 			kickFretAnimation.Play("KickFrets");
 		}
 
-		protected void StopKickFretAnimation() {
+		private void StopKickFretAnimation() {
 			kickFretAnimation.Stop();
 			kickFretAnimation.Rewind();
 		}
