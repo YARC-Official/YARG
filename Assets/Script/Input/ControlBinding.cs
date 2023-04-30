@@ -113,7 +113,7 @@ namespace YARG.Input {
                 _state.current = value;
 
                 // Start debounce timer if the current state has changed
-                if (DebounceThreshold >= DEBOUNCE_MINIMUM && Type == BindingType.BUTTON && _state.current != _state.previous) {
+                if (DebounceThreshold >= DEBOUNCE_MINIMUM && Type == BindingType.BUTTON && (WasPressed() || WasReleased())) {
                     debounceTimer.Start();
                 }
             }
