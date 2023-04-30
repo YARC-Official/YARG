@@ -211,9 +211,10 @@ namespace YARG {
 			long moggLength = moggData.MoggAudioLength;
 			
 			//byte[] moggArray = File.ReadAllBytes(moggData.MoggPath)[moggOffset..];
+			byte[] moggArray = moggData.GetOggDataFromMogg();
 			
 			//int moggStreamHandle = Bass.CreateStream(moggArray, 0, moggArray.Length, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
-			int moggStreamHandle = Bass.CreateStream(moggData.MoggPath, moggOffset, moggLength, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
+			int moggStreamHandle = Bass.CreateStream(moggArray, 0, moggLength, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
 			if (moggStreamHandle == 0) {
 				Debug.LogError($"Failed to load mogg file or position: {Bass.LastError}");
 				return;
