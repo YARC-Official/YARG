@@ -174,8 +174,8 @@ MonoBehaviour:
     m_Localized: Camera
     m_Metadata:
       m_Items: []
-  - m_Id: 12836626188591104
-    m_Localized: Camera Z Position
+  - m_Id: 13037094139453440
+    m_Localized: Camera Rotation
     m_Metadata:
       m_Items: []
   - m_Id: 12836661710151680
@@ -183,11 +183,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 12849290851770368
-    m_Localized: Camera Orbit
+    m_Localized: Camera Y Position
     m_Metadata:
       m_Items: []
   - m_Id: 12852418619760640
-    m_Localized: Camera Rotation
+    m_Localized: Camera Z Position
     m_Metadata:
       m_Items: []
   references:

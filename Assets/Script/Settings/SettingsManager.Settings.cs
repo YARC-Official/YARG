@@ -41,11 +41,11 @@ namespace YARG.Settings {
 			public ToggleSetting UseStarpowerFx             { get; private set; } = new(true,      UseStarpowerFxChange);
 			public ToggleSetting UseChipmunkSpeed           { get; private set; } = new(false,     UseChipmunkSpeedChange);
 			
-			public SliderSetting TrackCamZPos               { get; private set; } = new(3.20f,   0f,  8f,   CameraPosChange);
-			public SliderSetting TrackCamFOV                { get; private set; } = new(55f,     40f, 150f, CameraPosChange);
-			public SliderSetting TrackCamOrbit              { get; private set; } = new(146.81f, 5f,  175f, CameraPosChange);
-			public SliderSetting TrackCamRot                { get; private set; } = new(5.61f,   0f,  8f,   CameraPosChange);
-
+			public SliderSetting TrackCamFOV                { get; private set; } = new(55f,    40f, 150f, CameraPosChange);
+			public SliderSetting TrackCamYPos               { get; private set; } = new(2.66f,  0f,  4f,   CameraPosChange);
+			public SliderSetting TrackCamZPos               { get; private set; } = new(1.14f,  0f,  12f,  CameraPosChange);
+			public SliderSetting TrackCamRot                { get; private set; } = new(24.12f, 0f,  180f, CameraPosChange);
+			
 			public ToggleSetting AmIAwesome                 { get; private set; } = new(false);
 
 #pragma warning restore format

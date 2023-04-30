@@ -167,19 +167,19 @@ MonoBehaviour:
     m_Key: Header.Camera
     m_Metadata:
       m_Items: []
-  - m_Id: 12836626188591104
-    m_Key: TrackCamZPos
-    m_Metadata:
-      m_Items: []
   - m_Id: 12836661710151680
     m_Key: TrackCamFOV
     m_Metadata:
       m_Items: []
   - m_Id: 12849290851770368
-    m_Key: TrackCamOrbit
+    m_Key: TrackCamYPos
     m_Metadata:
       m_Items: []
   - m_Id: 12852418619760640
+    m_Key: TrackCamZPos
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13037094139453440
     m_Key: TrackCamRot
     m_Metadata:
       m_Items: []
