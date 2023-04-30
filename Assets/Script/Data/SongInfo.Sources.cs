@@ -43,7 +43,7 @@ namespace YARG.Data {
 			{ "tbrbdlc", "The Beatles: Rock Band DLC" },
 			{ "tbrbcdlc", "The Beatles: Rock Band Custom DLC Project" },
 			{ "rbacdc", "AC/DC Live: Rock Band Track Pack" },
-			{ "lrb", "Lego Rock Band" },
+			{ "lego", "Lego Rock Band" },
 			{ "rbn", "Rock Band Network" },
 			{ "ugc", "Rock Band Network 1.0" },
 			{ "ugc_plus", "Rock Band Network 2.0" },

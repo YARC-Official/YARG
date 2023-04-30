@@ -36,7 +36,7 @@ namespace MoonscraperChartEditor.Song
         /// <summary>
         /// Automatically converts the object's tick position into the time it will appear in the song.
         /// </summary>
-        public float time
+        public double time
         {
             get
             {

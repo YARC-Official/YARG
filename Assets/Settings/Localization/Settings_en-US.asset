@@ -18,144 +18,200 @@ MonoBehaviour:
   m_Metadata:
     m_Items: []
   m_TableData:
-  - m_Id: 27465736192
-    m_Localized: Open Song Folder Manager
-    m_Metadata:
-      m_Items: []
-  - m_Id: 904117215232
-    m_Localized: Refresh Cache
-    m_Metadata:
-      m_Items: []
-  - m_Id: 943136825344
-    m_Localized: Create OuvertBot Song Export
-    m_Metadata:
-      m_Items: []
-  - m_Id: 11210629439488
-    m_Localized: Calibration (ms)
-    m_Metadata:
-      m_Items: []
-  - m_Id: 19564043034624
-    m_Localized: Open Calibrator
-    m_Metadata:
-      m_Items: []
-  - m_Id: 22166302482432
-    m_Localized: Low Quality Mode
-    m_Metadata:
-      m_Items: []
-  - m_Id: 22198703480832
-    m_Localized: Show Hit Window
-    m_Metadata:
-      m_Items: []
-  - m_Id: 22232891252736
-    m_Localized: Use Audio Time
-    m_Metadata:
-      m_Items: []
-  - m_Id: 22256769425408
-    m_Localized: VSync
-    m_Metadata:
-      m_Items: []
-  - m_Id: 338993234698240
-    m_Localized: File Server IP
-    m_Metadata:
-      m_Items: []
-  - m_Id: 339052483436544
-    m_Localized: Connect To File Server
-    m_Metadata:
-      m_Items: []
-  - m_Id: 339100092981248
-    m_Localized: Host File Server
-    m_Metadata:
-      m_Items: []
-  - m_Id: 764342384844800
-    m_Localized: Mute On Miss
-    m_Metadata:
-      m_Items: []
-  - m_Id: 1500282040475648
-    m_Localized: Use Cymbal Models In 5-Lane
-    m_Metadata:
-      m_Items: []
-  - m_Id: 1508968616026112
-    m_Localized: FPS Limit
-    m_Metadata:
-      m_Items: []
-  - m_Id: 3645699926646784
-    m_Localized: Master Volume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 3645822882668544
-    m_Localized: Guitar Volume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 3645859280838656
-    m_Localized: Bass Volume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 3646094551932928
-    m_Localized: Keys Volume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 3646131549888512
-    m_Localized: Drums Volume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 3646165817352192
-    m_Localized: Vocals Volume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 3646318347411456
-    m_Localized: Song Volume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 3646366187642880
-    m_Localized: Vocal Monitoring Volume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 3646559456976896
-    m_Localized: Crowd Volume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4106530829230080
-    m_Localized: No Kicks (Drums)
-    m_Metadata:
-      m_Items: []
-  - m_Id: 5156852523720704
-    m_Localized: Disable Bloom
-    m_Metadata:
-      m_Items: []
   - m_Id: 7065473438081024
     m_Localized: Awesomeness Detection
     m_Metadata:
       m_Items: []
-  - m_Id: 7304579734953984
-    m_Localized: Awesomeness Detection
+  - m_Id: 10570792762204160
+    m_Localized: Audio Calibration (ms)
     m_Metadata:
       m_Items: []
-  - m_Id: 7304579734953985
+  - m_Id: 10637195569651712
+    m_Localized: Enable VSync
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10637227156955136
+    m_Localized: FPS Cap
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10637270228262912
+    m_Localized: Low Quality Mode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10637304978071552
+    m_Localized: Disable Bloom
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10637330240364544
+    m_Localized: High FOV Camera
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10637368563720192
+    m_Localized: Show Hit Window
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10637402030071808
+    m_Localized: Use Cymbal Models In Five Lane
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638637965631488
+    m_Localized: No Kicks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638647188905984
     m_Localized: Anti-Ghosting
     m_Metadata:
       m_Items: []
-  - m_Id: 7405541279522816
-    m_Localized: Copy "Current Song" Text File Path
+  - m_Id: 10638707146481664
+    m_Localized: Master Music Volume
     m_Metadata:
       m_Items: []
-  - m_Id: 7748727102816256
-    m_Localized: SFX Volume
+  - m_Id: 10638756366639104
+    m_Localized: Guitar Volume
     m_Metadata:
       m_Items: []
-  - m_Id: 7748836536401920
-    m_Localized: Use Star Power FX
-    m_Metadata:
-      m_Items: []
-  - m_Id: 7760843058757632
+  - m_Id: 10638786381078528
     m_Localized: Rhythm Volume
     m_Metadata:
       m_Items: []
-  - m_Id: 8393437626548224
-    m_Localized: Chipmunk Speedups
+  - m_Id: 10638787589038080
+    m_Localized: Bass Volume
     m_Metadata:
       m_Items: []
-  - m_Id: 9486234872569856
-    m_Localized: Use High FOV Camera
+  - m_Id: 10638788159463424
+    m_Localized: Keys Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638788599865344
+    m_Localized: Drums Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638841787834368
+    m_Localized: Vocals Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638858523107328
+    m_Localized: Backing Track Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638899434348544
+    m_Localized: Crowd Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638910104657920
+    m_Localized: SFX Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638924633726976
+    m_Localized: Vocal Monitoring Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638943449374720
+    m_Localized: Mute On Miss
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638955231174656
+    m_Localized: Use Starpower SFX
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638965775654912
+    m_Localized: Chipmunk Speed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10639285771689984
+    m_Localized: Awesomeness Detection
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10936636654608384
+    m_Localized: General
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10936704807854080
+    m_Localized: Graphics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10936750303469568
+    m_Localized: Engine
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10936772512309248
+    m_Localized: Sound
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12039401434898432
+    m_Localized: Open Song Folder Manager
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12041203517612032
+    m_Localized: Export Songs List (For Ouvert Bot)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12041263110283264
+    m_Localized: Copy Current Song Text File Path
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12472066134892544
+    m_Localized: Song Management
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12472103388700672
+    m_Localized: Other
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12472135823253504
+    m_Localized: Framerate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12472159567208448
+    m_Localized: Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12473817265201152
+    m_Localized: Graphics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12836607712681984
+    m_Localized: Camera
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13037094139453440
+    m_Localized: Camera Rotation
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12836661710151680
+    m_Localized: Camera FOV
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12849290851770368
+    m_Localized: Camera Y Position
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12852418619760640
+    m_Localized: Camera Z Position
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13045026696585216
+    m_Localized: Add Folder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13051785226084352
+    m_Localized: Refresh All Caches
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13084450683740160
+    m_Localized: Song Folders
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13084481612537856
+    m_Localized: Song Upgrades
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13085251397345280
+    m_Localized: Add Upgrade Folder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13088551106633728
+    m_Localized: Cache
     m_Metadata:
       m_Items: []
   references:

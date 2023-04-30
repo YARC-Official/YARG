@@ -42,5 +42,25 @@ namespace YARG.Util {
 
 			return rect;
 		}
+
+		/// <param name="transform">The <see cref="RectTransform"/> to convert to viewport space.</param>
+		/// <param name="h">Center horizontally.</param>
+		/// <param name="v">Center vertically.</param>
+		/// <returns>
+		/// A <see cref="Rect"/> represting the viewport space of the specified <see cref="RectTransform"/>, centered on it.
+		/// </returns>
+		public static Rect ToViewportSpaceCentered(this RectTransform transform, bool h = true, bool v = true) {
+			Rect rect = transform.ToViewportSpace();
+
+			if (h) {
+				rect.x = 0.5f - rect.width / 2f;
+			}
+
+			if (v) {
+				rect.y = 0.5f - rect.height / 2f;
+			}
+
+			return rect;
+		}
 	}
 }

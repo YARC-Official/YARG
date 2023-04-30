@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using YARG.Chart;
 using YARG.Data;
 using YARG.Input;
 using YARG.Pools;
@@ -34,6 +35,7 @@ namespace YARG.PlayMode {
 		private int allowedGhosts = Constants.EXTRA_ALLOWED_GHOSTS + 1;
 		private int[] allowedChordGhosts = new int[] { -1, -1, -1, -1, -1 }; // -1 = not a chord; 0 = ghosted; 1 = ghost allowed
 		private bool antiGhosting = false;
+		private bool pressedThisFrame = false;
 
 		// https://www.reddit.com/r/Rockband/comments/51t3c0/exactly_how_many_points_are_sustains_worth/
 		private const double SUSTAIN_PTS_PER_BEAT = 12.0;
@@ -42,9 +44,6 @@ namespace YARG.PlayMode {
 		protected override void StartTrack() {
 			notePool.player = player;
 			genericPool.player = player;
-
-			// Engine tweak
-			antiGhosting = SettingsManager.GetSettingValue<bool>("antiGhosting");
 
 			// Lefty flip
 
@@ -94,21 +93,35 @@ namespace YARG.PlayMode {
 
 			// Update events (beat lines, starpower, etc.)
 			var events = Play.Instance.chart.events;
+			var beats = Play.Instance.chart.beats;
+
 			while (events.Count > eventChartIndex && events[eventChartIndex].time <= RelativeTime) {
 				var eventInfo = events[eventChartIndex];
 
 				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(RelativeTime, eventInfo.time);
-				if (eventInfo.name == "beatLine_minor") {
-					genericPool.Add("beatLine_minor", new(0f, 0.01f, compensation));
-				} else if (eventInfo.name == "beatLine_major") {
-					genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
-				} else if (eventInfo.name == $"starpower_{player.chosenInstrument}") {
+				// if (eventInfo.name == "beatLine_minor") {
+				// 	genericPool.Add("beatLine_minor", new(0f, 0.01f, compensation));
+				// } else if (eventInfo.name == "beatLine_major") {
+				// 	genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
+				if (eventInfo.name == $"starpower_{player.chosenInstrument}") {
 					StarpowerSection = eventInfo;
 				} else if (eventInfo.name == $"solo_{player.chosenInstrument}") {
 					SoloSection = eventInfo;
 				}
 
 				eventChartIndex++;
+			}
+
+			while (beats.Count > beatChartIndex && beats[beatChartIndex].Time <= RelativeTime) {
+				var beatInfo = beats[beatChartIndex];
+
+				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(RelativeTime, beatInfo.Time);
+				if (beatInfo.Style is BeatStyle.STRONG or BeatStyle.WEAK) {
+					genericPool.Add("beatLine_minor", new(0f, 0.01f, compensation));
+				} else if (beatInfo.Style == BeatStyle.MEASURE) {
+					genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
+				}
+				beatChartIndex++;
 			}
 
 			// Since chart is sorted, this is guaranteed to work
@@ -157,6 +170,7 @@ namespace YARG.PlayMode {
 
 			// Un-strum
 			strummed = false;
+			pressedThisFrame = false;
 		}
 
 		public override void SetReverb(bool on) {
@@ -174,8 +188,6 @@ namespace YARG.PlayMode {
 					Play.Instance.ReverbAudio("keys", on);
 					break;
 			}
-
-			Play.Instance.ReverbAudio("song", on);
 		}
 
 		private void UpdateInput() {
@@ -200,15 +212,14 @@ namespace YARG.PlayMode {
 			// Handle misses (multiple a frame in case of lag)
 			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Constants.HIT_MARGIN) {
 				var missedChord = expectedHits.Dequeue();
-				allowedGhosts = allowedGhostsDefault;
 				ResetAllowedChordGhosts();
 				// Call miss for each component
 				Combo = 0;
+				missedAnyNote = true;
+				StopAudio = true;
 				foreach (var hit in missedChord) {
 					hitChartIndex++;
-					missedAnyNote = true;
 					notePool.MissNote(hit);
-					StopAudio = true;
 					if (hit.fret < 5) extendedSustain[hit.fret] = false;
 				}
 				allowedOverstrums.Clear(); // Disallow all overstrums upon missing
@@ -226,11 +237,13 @@ namespace YARG.PlayMode {
 				return;
 			}
 
-
+			bool returnLater = false;
 			// If the note is a HOPO, the player has not strummed, and the HOPO can't be hit, nothing happens.
 			if ((chord[0].hopo || chord[0].tap) && !strummed && strumLeniency == 0f) {
-				if ((Combo <= 0 && chord[0].hopo) || allowedGhosts <= 0) {
+				if (Combo <= 0 && chord[0].hopo) {
 					return;
+				} else if (allowedGhosts <= 0) {
+					returnLater = true;
 				}
 
 				// If infinite front-end window is disabled and the latest input is outside of the timing window, nothing happened.
@@ -273,12 +286,46 @@ namespace YARG.PlayMode {
 
 						// Reset the combo (it will be added to later on)
 						Combo = 0;
+						missedAnyNote = true;
 					}
+				}
+			}
+			// If tapping to recover combo during tap note section, skip to first valid note within the timing window.
+			// This will make it easier to recover.
+			if (Constants.EASY_TAP_RECOVERY && Combo <= 0 /*&& pressedThisFrame*/ && chord[0].tap && !ChordPressed(chord)) {
+				var found = false;
+				foreach (var newChord in expectedHits) {
+					if (!newChord[0].tap) {
+						break;
+					}
+					// Stop looking if a valid note to tap was found
+					if (ChordPressed(newChord) && newChord[0].fret != 5) {
+						found = true;
+						returnLater = false;
+						chord = newChord;
+						break;
+					}
+				}
+
+				// If found...
+				if (found) {
+					// Miss all notes previous to the tapped note
+					while (expectedHits.Peek() != chord) {
+						var missedChord = expectedHits.Dequeue();
+						foreach (var hit in missedChord) {
+							hitChartIndex++;
+							notePool.MissNote(hit);
+						}
+					}
+
+					// Reset the combo (it will be added to later on)
+					Combo = 0;
+					missedAnyNote = true;
 				}
 			}
 
 			// Check if correct chord is pressed
-			if (!ChordPressed(chord)) {
+			if (returnLater || !ChordPressed(chord)) {
 				// Overstrums are dealt with at the top of the method
 				return;
 			}
@@ -302,16 +349,22 @@ namespace YARG.PlayMode {
 			// If correct chord is pressed, and is not a multi-hit, hit it!
 			expectedHits.Dequeue();
 
-			allowedGhosts = allowedGhostsDefault;
 			ResetAllowedChordGhosts();
 			Combo++;
+			notesHit++;
 			strummedCurrentNote = strummedCurrentNote || strummed || strumLeniency > 0f;
 			strumLeniency = 0f;
+			StopAudio = false;
+
+
+			// Solo stuff
+			if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime) {
+				soloNotesHit++;
+			}
 			foreach (var hit in chord) {
 				hitChartIndex++;
 				// Hit notes
 				notePool.HitNote(hit);
-				StopAudio = false;
 
 				// Play particles and animation
 				if (hit.fret != 5) {
@@ -326,7 +379,7 @@ namespace YARG.PlayMode {
 					heldNotes.Add(hit);
 					frets[hit.fret].PlaySustainParticles();
 					scoreKeeper.Add(susTracker.Strum(hit) * Multiplier * SUSTAIN_PTS_PER_BEAT);
-          
+
 					frets[hit.fret].PlayAnimationSustainsLooped();
 
 					// Check if it's extended sustain;
@@ -339,15 +392,7 @@ namespace YARG.PlayMode {
 				}
 
 				// Add stats
-				notesHit++;
 				scoreKeeper.Add(PTS_PER_NOTE * Multiplier);
-
-				// Solo stuff
-				if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime) {
-					soloNotesHit++;
-				} else if (Play.Instance.SongTime >= SoloSection?.EndTime + 10) {
-					soloNotesHit = 0;
-				}
 			}
 
 			// If this is a tap note, and it was hit without strumming,
@@ -414,11 +459,11 @@ namespace YARG.PlayMode {
 			strumLeniency = 0f;
 
 			// Let go of held notes
+			StopAudio = true;
 			for (int i = heldNotes.Count - 1; i >= 0; i--) {
 				var heldNote = heldNotes[i];
 
 				notePool.MissNote(heldNote);
-				StopAudio = true;
 
 				heldNotes.RemoveAt(i);
 				susTracker.Drop(heldNote);
@@ -506,24 +551,33 @@ namespace YARG.PlayMode {
 		private void FretChangedAction(bool pressed, int fret) {
 			latestInput = Play.Instance.SongTime;
 			latestInputIsStrum = false;
+			if (pressed) {
+				pressedThisFrame = true;
+			}
 
 			// Should it check ghosting?
-			if (antiGhosting && allowedGhosts > 0 && pressed && hitChartIndex > 0) {
+			if (SettingsManager.Settings.AntiGhosting.Data && allowedGhosts > 0 && pressed && hitChartIndex > 0) {
 				bool checkGhosting = true;
-				for (var i = 0; i < 5; i++) {
-					if (i == fret) {
-						continue;
-					}
-					if (frets[i].IsPressed) {
-						if (fret < i) { // Don't check ghosting if pressed fret is below currently held fret
-							checkGhosting = false;
-							break;
+				if (Constants.ALLOW_DESC_GHOSTS) {
+					for (var i = 0; i < 5; i++) {
+						if (i == fret) {
+							continue;
+						}
+						if (frets[i].IsPressed) {
+							if (fret < i) { // Don't check ghosting if pressed fret is below currently held fret
+								checkGhosting = false;
+								break;
+							}
 						}
 					}
 				}
 				if (checkGhosting) {
 					var nextNote = GetNextNote(Chart[hitChartIndex - 1].time);
-					if (nextNote != null && (nextNote[0].hopo || nextNote[0].tap)) {
+					if ((nextNote == null || (!nextNote[0].hopo && !nextNote[0].tap)) ||
+					(Constants.ALLOW_GHOST_IF_NO_NOTES && nextNote[0].time - Play.Instance.SongTime > Constants.HIT_MARGIN * Constants.ALLOW_GHOST_IF_NO_NOTES_THRESHOLD)) {
+						checkGhosting = false;
+					}
+					if (checkGhosting) {
 						if (nextNote.Count == 1 && fret != nextNote[0].fret) { // Hitting wrong button = ghosted = bad
 							allowedGhosts--;
 						}
@@ -555,6 +609,7 @@ namespace YARG.PlayMode {
 						}
 					}
 					if (release) { // Actually release all sustains
+						StopAudio = true;
 						for (int i = heldNotes.Count - 1; i >= 0; i--) {
 							var heldNote = heldNotes[i];
 							notePool.MissNote(heldNote);
@@ -562,7 +617,6 @@ namespace YARG.PlayMode {
 							frets[heldNote.fret].StopAnimation();
 							frets[heldNote.fret].StopSustainParticles();
 							extendedSustain[heldNote.fret] = false;
-							StopAudio = true;
 						}
 					}
 				}
@@ -704,13 +758,16 @@ namespace YARG.PlayMode {
 						}
 					}
 				} else {
-					ResetAllowedChordGhosts();
+					ResetAllowedChordGhosts(false);
 				}
 				return chord;
 			}
 		}
 
-		private void ResetAllowedChordGhosts() {
+		private void ResetAllowedChordGhosts(bool resetGhosts = true) {
+			if (resetGhosts) {
+				allowedGhosts = allowedGhostsDefault;
+			}
 			for (var i = 0; i < 5; i++) {
 				allowedChordGhosts[i] = -1;
 			}
@@ -718,6 +775,21 @@ namespace YARG.PlayMode {
 
 		private bool IsExtendedSustain() {
 			return extendedSustain.Any(x => x);
+		}
+
+		public override void AddSoloNoteCount(int i) {
+			if (i == 0 || Chart[i].time > Chart[i-1].time) {
+				soloNoteCount++;
+			}
+		}
+		public override int GetChartCount() {
+			int count = 0;
+			for (int i = 0; i < Chart.Count; i++) {
+				if (i == 0 || Chart[i].time > Chart[i-1].time) {
+					count++;
+				}
+			}
+			return count;
 		}
 	}
 }

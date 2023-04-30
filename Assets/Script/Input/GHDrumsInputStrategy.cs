@@ -96,7 +96,7 @@ namespace YARG.Input {
 				var noteInfo = botChart[botChartIndex];
 				botChartIndex++;
 
-				if (noteInfo.fret == 5 && SettingsManager.GetSettingValue<bool>("noKicks")) {
+				if (noteInfo.fret == 5 && SettingsManager.Settings.NoKicks.Data) {
 					continue;
 				}
 
