@@ -167,6 +167,19 @@ namespace YARG.Input {
 		protected virtual void OnUpdate() {
 			if (botMode) {
 				UpdateBotMode();
+				return;
+			}
+
+			// Update mapping debouncing
+			bool stateUpdated = false;
+			foreach (var mapping in inputMappings.Values) {
+				stateUpdated |= mapping.UpdateDebounce();
+			}
+
+			// Update inputs if necessary
+			if (stateUpdated) {
+				UpdateNavigationMode();
+				UpdatePlayerMode();
 			}
 		}
 

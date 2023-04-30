@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
@@ -10,6 +11,11 @@ namespace YARG.Input {
 
     public class ControlBinding {
 		public const float DEFAULT_PRESS_THRESHOLD = 0.75f; // TODO: Remove once control calibration is added
+
+        /// <summary>
+        /// The minimum number of milliseconds for the debounce threshold.
+        /// </summary>
+        public const long DEBOUNCE_MINIMUM = 1;
 
         public BindingType Type { get; }
         public string DisplayName { get; }
@@ -26,10 +32,17 @@ namespace YARG.Input {
             }
         }
 
-        private (float previous, float current) _state;
-        public (float previous, float current) State => _state;
+        private (float previous, float current, float postDebounce) _state;
+        public (float previous, float current) State => (_state.previous, _state.current);
 
         private float pressPoint = DEFAULT_PRESS_THRESHOLD;
+
+        private Stopwatch debounceTimer = new();
+
+        /// <summary>
+        /// The debounce time threshold, in milliseconds. Use 0 or less to disable debounce.
+        /// </summary>
+        public long DebounceThreshold { get; set; } = 0;
 
         public ControlBinding(BindingType type, string displayName, string bindingKey) {
             Type = type;
@@ -71,12 +84,54 @@ namespace YARG.Input {
             }
 
             // Progress state history forward
-            _state.previous = _state.current;
-            // Don't check pressed state unless there was a value change
+            float value = _state.current;
+            _state.previous = value;
+            // Don't read new value unless there was a value change
             // Controls not changed in a delta state event (which MIDI devices use) will report the wrong value
             if (_control.HasValueChangeInEvent(eventPtr)) {
-                _state.current = _control.ReadValueFromEvent(eventPtr);
+                value = _control.ReadValueFromEvent(eventPtr);
             }
+
+            // Store value
+            _state.postDebounce = value;
+            if (!debounceTimer.IsRunning) {
+                _state.current = value;
+
+                // Start debounce timer if the current state has changed
+                if (Type == BindingType.BUTTON && _state.current != _state.previous) {
+                    debounceTimer.Start();
+                }
+            }
+
+            // Check for debounce
+            UpdateDebounce();
+        }
+
+        /// <summary>
+        /// Updates the debounce state of this binding.
+        /// </summary>
+        /// <returns>
+        /// True if debouncing has finished and the binding state changed, false otherwise.
+        /// </returns>
+        public bool UpdateDebounce() {
+            // Ignore if not a button, or threshold is below the minimum
+            if (Type != BindingType.BUTTON || DebounceThreshold < DEBOUNCE_MINIMUM) {
+                if (debounceTimer.IsRunning) {
+                    debounceTimer.Reset();
+                }
+                return false;
+            }
+
+            // Check time elapsed
+            if (debounceTimer.ElapsedMilliseconds >= DebounceThreshold) {
+                // Stop timer and progress state history forward
+                debounceTimer.Reset();
+                _state.previous = _state.current;
+                _state.current = _state.postDebounce;
+                return true;
+            }
+
+            return false;
         }
     }
 }
