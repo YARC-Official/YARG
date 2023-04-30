@@ -41,10 +41,6 @@ namespace YARG.UI {
 
 		[Space]
 		[SerializeField]
-		private GameObject menuContainer;
-		[SerializeField]
-		private GameObject songFolderManager;
-		[SerializeField]
 		private GameObject loadingScreen;
 		[SerializeField]
 		private TextMeshProUGUI loadingStatus;
@@ -153,7 +149,6 @@ namespace YARG.UI {
 			MainMenuBackground.Instance.cursorMoves = true;
 
 			mainMenu.gameObject.SetActive(true);
-			ShowMenuContainer();
 		}
 
 		public void ShowEditPlayers() {
@@ -189,25 +184,8 @@ namespace YARG.UI {
 			credits.gameObject.SetActive(true);
 		}
 
-		public void HideAllMainMenu() {
-			menuContainer.SetActive(false);
-			songFolderManager.SetActive(false);
-		}
-
 		public void ShowSettingsMenu() {
 			GameManager.Instance.SettingsMenu.gameObject.SetActive(true);
-		}
-
-		public void ShowMenuContainer() {
-			HideAllMainMenu();
-
-			menuContainer.SetActive(true);
-		}
-
-		public void ShowSongFolderManager() {
-			HideAllMainMenu();
-
-			songFolderManager.SetActive(true);
 		}
 
 		public void ShowCalibrationScene() {
@@ -223,6 +201,8 @@ namespace YARG.UI {
 		}
 
 		public void RefreshSongLibrary() {
+			GameManager.Instance.SettingsMenu.gameObject.SetActive(false);
+
 			SongLibrary.Reset();
 			ScoreManager.Reset();
 

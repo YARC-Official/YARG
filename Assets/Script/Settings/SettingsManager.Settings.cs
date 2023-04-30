@@ -51,10 +51,12 @@ namespace YARG.Settings {
 #pragma warning restore format
 			
 			public void OpenSongFolderManager() {
-				if (MainMenu.Instance != null) {
-					MainMenu.Instance.ShowSongFolderManager();
-					GameManager.Instance.SettingsMenu.gameObject.SetActive(false);
-				}
+				// if (MainMenu.Instance != null) {
+				// 	MainMenu.Instance.ShowSongFolderManager();
+				// 	GameManager.Instance.SettingsMenu.gameObject.SetActive(false);
+				// }
+
+				GameManager.Instance.SettingsMenu.CurrentTab = "_SongFolderManager";
 			}
 
 			public void ExportOuvertSongs() {

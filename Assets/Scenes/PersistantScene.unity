@@ -442,6 +442,8 @@ MonoBehaviour:
     type: 3}
   headerPrefab: {fileID: 5753369685943773599, guid: eda8fcec479d4324eb4bd1d7624e1edc,
     type: 3}
+  directoryPrefab: {fileID: 5753369685943773599, guid: 37057a242aeaf274982e4ac288d2c898,
+    type: 3}
   previewRenderTexture: {fileID: 8400000, guid: 32b25ebb7bf8e494e834f6e13b668e21,
     type: 2}
   previewRawImage: {fileID: 436902740}

@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Localization;
@@ -5,6 +7,7 @@ using UnityEngine.Localization.Components;
 using UnityEngine.UI;
 using YARG.Metadata;
 using YARG.Settings.Visuals;
+using YARG.UI;
 using YARG.Util;
 
 namespace YARG.Settings {
@@ -33,6 +36,8 @@ namespace YARG.Settings {
 		private GameObject buttonPrefab;
 		[SerializeField]
 		private GameObject headerPrefab;
+		[SerializeField]
+		private GameObject directoryPrefab;
 
 		[Space]
 		[SerializeField]
@@ -50,6 +55,8 @@ namespace YARG.Settings {
 			}
 		}
 
+		private bool hasSongLibraryChanged = false;
+
 		private void OnEnable() {
 			ReturnToFirstTab();
 			UpdateTabs();
@@ -57,9 +64,22 @@ namespace YARG.Settings {
 
 		private void OnDisable() {
 			DestroyPreview();
+
+			if (hasSongLibraryChanged) {
+				// Refresh
+				MainMenu.Instance.RefreshSongLibrary();
+
+				hasSongLibraryChanged = false;
+			}
 		}
 
 		private void UpdateSettingsForTab() {
+			if (CurrentTab == "_SongFolderManager") {
+				UpdateSongFolderManager();
+
+				return;
+			}
+
 			var tabInfo = SettingsManager.GetTabByName(CurrentTab);
 
 			if (string.IsNullOrEmpty(tabInfo.previewPath)) {
@@ -140,6 +160,50 @@ namespace YARG.Settings {
 
 				// Then we're good!
 				break;
+			}
+		}
+
+		public void UpdateSongFolderManager() {
+			hasSongLibraryChanged = true;
+
+			// Destroy all previous settings
+			foreach (Transform t in settingsContainer) {
+				Destroy(t.gameObject);
+			}
+
+			// Spawn add folder button
+			{
+				var go = Instantiate(buttonPrefab, settingsContainer);
+				go.GetComponent<SettingsButton>().SetCustomCallback(() => {
+					// Use a list to add the new folder to the end
+					Array.Resize(ref SettingsManager.Settings.SongFolders,
+						SongLibrary.SongFolders.Length + 1);
+
+					// Refresh everything
+					UpdateSongFolderManager();
+				}, "AddFolder");
+			}
+
+			// Spawn refresh all button
+			{
+				var go = Instantiate(buttonPrefab, settingsContainer);
+				go.GetComponent<SettingsButton>().SetCustomCallback(() => {
+					if (Directory.Exists(SongLibrary.CacheFolder)) {
+						// Delete cache folder
+						Directory.Delete(SongLibrary.CacheFolder, true);
+
+						// Refresh
+						MainMenu.Instance.RefreshSongLibrary();
+					}
+				}, "RefreshAllCaches");
+			}
+
+			// Create all of the directories
+			for (int i = 0; i < SongLibrary.SongFolders.Length; i++) {
+				var path = SongLibrary.SongFolders[i];
+
+				var go = Instantiate(directoryPrefab, settingsContainer);
+				go.GetComponent<SettingsDirectory>().SetIndex(i);
 			}
 		}
 

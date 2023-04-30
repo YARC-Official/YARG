@@ -190,6 +190,14 @@ MonoBehaviour:
     m_Localized: Camera Z Position
     m_Metadata:
       m_Items: []
+  - m_Id: 13045026696585216
+    m_Localized: Add Folder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13051785226084352
+    m_Localized: Refresh All Caches
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
