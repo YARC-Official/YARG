@@ -217,6 +217,7 @@ namespace YARG.Pools {
 		private void ResetLineAmplitude() {
 			lineRenderer.materials[0].SetFloat("_PrimaryAmplitude", 0f);
 			lineRenderer.materials[0].SetFloat("_SecondaryAmplitude", 0f);
+			lineRenderer.materials[0].SetFloat("_TertiaryAmplitude", 0f);
 		}
 
 		private void SetLength(float length) {
@@ -285,12 +286,13 @@ namespace YARG.Pools {
 			if (state == State.HITTING) {
 				// Change line amplitude
 				var lineMat = lineRenderer.materials[0];
-				lineMat.SetFloat("_PrimaryAmplitude", 0.3f);
-				lineMat.SetFloat("_SecondaryAmplitude", Mathf.Sin(Time.time * 7f) * 1.2f);
+				lineMat.SetFloat("_PrimaryAmplitude", 0.38f);
+				lineMat.SetFloat("_SecondaryAmplitude", Mathf.Sin(Time.time * 4f));
+				lineMat.SetFloat("_TertiaryAmplitude", Mathf.Sin(Time.time * 1.7f)*0.222f);
 
 				// Move line forward
-				float forwardSub = Time.deltaTime * pool.player.trackSpeed / 2.85f;
-				lineMat.SetFloat("_ForwardOffset", lineMat.GetFloat("_ForwardOffset") - forwardSub);
+				float forwardSub = Time.deltaTime * pool.player.trackSpeed / 2.5f;
+				lineMat.SetFloat("_ForwardOffset", lineMat.GetFloat("_ForwardOffset") + forwardSub);
 			}
 
 			float multiplier = pool.player.track.Multiplier;
