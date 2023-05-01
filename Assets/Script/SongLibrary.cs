@@ -91,6 +91,8 @@ namespace YARG {
 		} = null;
 
 		public static void FetchEverything() {
+			Debug.Log("called once");
+
 			ThreadPool.QueueUserWorkItem(_ => {
 				currentlyLoading = true;
 				loadPercent = 0f;
@@ -179,6 +181,7 @@ namespace YARG {
 				if (File.Exists(cachePath)) {
 					var success = ReadCache(cachePath);
 					if (success) {
+						Debug.Log("read cache!");
 						continue;
 					}
 				}

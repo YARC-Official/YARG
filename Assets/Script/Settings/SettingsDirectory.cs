@@ -81,6 +81,8 @@ namespace YARG.Settings {
 		}
 
 		public void Refresh() {
+			GameManager.Instance.SettingsMenu.hasSongLibraryChanged = false;
+
 			// Delete it
 			var file = SongLibrary.HashFilePath(PathsReference[index]);
 			var path = Path.Combine(SongLibrary.CacheFolder, file + ".json");

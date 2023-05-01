@@ -55,7 +55,7 @@ namespace YARG.Settings {
 			}
 		}
 
-		private bool hasSongLibraryChanged = false;
+		public bool hasSongLibraryChanged = false;
 
 		private void OnEnable() {
 			ReturnToFirstTab();
@@ -64,6 +64,9 @@ namespace YARG.Settings {
 
 		private void OnDisable() {
 			DestroyPreview();
+
+			// Save on close
+			SettingsManager.SaveSettings();
 
 			if (hasSongLibraryChanged) {
 				// Refresh
@@ -172,6 +175,8 @@ namespace YARG.Settings {
 			{
 				var go = Instantiate(buttonPrefab, settingsContainer);
 				go.GetComponent<SettingsButton>().SetCustomCallback(() => {
+					hasSongLibraryChanged = false;
+
 					if (Directory.Exists(SongLibrary.CacheFolder)) {
 						// Delete cache folder
 						Directory.Delete(SongLibrary.CacheFolder, true);
