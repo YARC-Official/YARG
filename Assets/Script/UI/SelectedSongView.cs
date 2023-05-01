@@ -257,5 +257,22 @@ namespace YARG.UI {
 		public void SearchSource() {
 			SongSelect.Instance.searchField.text = $"source:{songInfo.source}";
 		}
+
+		public void SearchAlbum() {
+			SongSelect.Instance.searchField.text = $"album:{songInfo.album}";
+		}
+
+		public void SearchCharter() {
+			SongSelect.Instance.searchField.text = $"charter:{songInfo.charter}";
+		}
+
+		public void SearchGenre() {
+			SongSelect.Instance.searchField.text = $"genre:{songInfo.genre}";
+		}
+
+		public void SearchYear() {
+			SongSelect.Instance.searchField.text = $"year:{songInfo.year}";
+		}
+
 	}
 }

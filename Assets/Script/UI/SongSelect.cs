@@ -370,6 +370,26 @@ namespace YARG.UI {
 						var source = arg[7..];
 						songsOut = SongLibrary.Songs
 							.Where(i => i.source.ToLower() == source.ToLower());
+					} else if (arg.StartsWith("album:")) {
+						// Album filter
+						var album = arg[6..];
+						songsOut = SongLibrary.Songs
+							.Where(i => i.album.ToLower() == album.ToLower());
+					} else if (arg.StartsWith("charter:")) {
+						// Charter filter
+						var charter = arg[8..];
+						songsOut = SongLibrary.Songs
+							.Where(i => i.charter.ToLower() == charter.ToLower());
+					} else if (arg.StartsWith("year:")) {
+						// Year filter
+						var year = arg[5..];
+						songsOut = SongLibrary.Songs
+							.Where(i => i.year.ToLower() == year.ToLower());
+					} else if (arg.StartsWith("genre:")) {
+						// Genre filter
+						var genre = arg[6..];
+						songsOut = SongLibrary.Songs
+							.Where(i => i.genre.ToLower() == genre.ToLower());
 					} else if (!fuzzySearched) {
 						// Fuzzy search
 						fuzzySearched = true;
