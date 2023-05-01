@@ -38,8 +38,6 @@ namespace YARG.UI {
 		[Space]
 		[SerializeField]
 		private RawImage albumCover;
-		[SerializeField]
-		private GameObject albumCoverAlt;
 
 		[Space]
 		[SerializeField]
@@ -115,7 +113,6 @@ namespace YARG.UI {
 			// Album cover
 			albumCover.texture = null;
 			albumCover.color = new Color(0f, 0f, 0f, 0.4f);
-			albumCoverAlt.SetActive(true);
 
 			// Difficulties
 
@@ -215,7 +212,6 @@ namespace YARG.UI {
 				albumCover.texture = songInfo.imageInfo.GetAsTexture();
 				albumCover.color = Color.white;
 				albumCover.uvRect = new Rect(0f, 0f, 1f, -1f);
-				albumCoverAlt.SetActive(false);
 			}
 		}
 
@@ -242,7 +238,6 @@ namespace YARG.UI {
 			albumCover.texture = texture;
 			albumCover.color = Color.white;
 			albumCover.uvRect = new Rect(0f, 0f, 1f, 1f);
-			albumCoverAlt.SetActive(false);
 		}
 
 		public void PlaySong() {
