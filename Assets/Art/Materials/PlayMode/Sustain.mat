@@ -120,6 +120,7 @@ Material:
     - _SrcBlend: 5
     - _SrcBlendAlpha: 1
     - _Surface: 1
+    - _TertiaryAmplitude: 1
     - _WorkflowMode: 1
     - _ZWrite: 0
     m_Colors:

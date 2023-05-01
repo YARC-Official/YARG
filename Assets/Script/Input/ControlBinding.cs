@@ -162,10 +162,12 @@ namespace YARG.Input {
         /// Forcibly stops the debounce timer for this binding.
         /// </summary>
         public void OverrideDebounce() {
-            // Stop timer and progress state history forward
-            debounceTimer.Reset();
-            _state.previous = _state.current;
-            _state.current = _state.postDebounce;
+            if (DebounceThreshold >= DEBOUNCE_MINIMUM && debounceTimer.IsRunning) {
+                // Stop timer and progress state history forward
+                debounceTimer.Reset();
+                _state.previous = _state.current;
+                _state.current = _state.postDebounce;
+            }
         }
     }
 }
