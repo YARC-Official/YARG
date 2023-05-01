@@ -343,14 +343,14 @@ namespace YARG.UI {
 					.OrderBy(song => song.SongNameNoParen)
 					.Select(i => new SongOrHeader { song = i })
 					.ToList();
-				songs.Insert(0, new SongOrHeader { header = ("All Songs", $"{songs.Count} songs") });
+				songs.Insert(0, new SongOrHeader { header = ("ALL SONGS ", $"<#00B6F5><b>{songs.Count}</b> <#006488>SONGS") });
 
 				// Add recommended songs
 				foreach (var song in recommendedSongs) {
 					songs.Insert(0, new SongOrHeader { song = song });
 				}
 				songs.Insert(0, new SongOrHeader {
-					header = ("Recommended Songs", $"{recommendedSongs.Count} random songs")
+					header = ("RECOMMENDED SONGS", $"<#00B6F5><b>{recommendedSongs.Count}</b> <#006488>SONGS")
 				});
 			} else {
 				// Split up args
@@ -370,6 +370,26 @@ namespace YARG.UI {
 						var source = arg[7..];
 						songsOut = SongLibrary.Songs
 							.Where(i => i.source.ToLower() == source.ToLower());
+					} else if (arg.StartsWith("album:")) {
+						// Album filter
+						var album = arg[6..];
+						songsOut = SongLibrary.Songs
+							.Where(i => i.album.ToLower() == album.ToLower());
+					} else if (arg.StartsWith("charter:")) {
+						// Charter filter
+						var charter = arg[8..];
+						songsOut = SongLibrary.Songs
+							.Where(i => i.charter.ToLower() == charter.ToLower());
+					} else if (arg.StartsWith("year:")) {
+						// Year filter
+						var year = arg[5..];
+						songsOut = SongLibrary.Songs
+							.Where(i => i.year.ToLower() == year.ToLower());
+					} else if (arg.StartsWith("genre:")) {
+						// Genre filter
+						var genre = arg[6..];
+						songsOut = SongLibrary.Songs
+							.Where(i => i.genre.ToLower() == genre.ToLower());
 					} else if (!fuzzySearched) {
 						// Fuzzy search
 						fuzzySearched = true;
@@ -388,7 +408,7 @@ namespace YARG.UI {
 
 				// Add header
 				songs = songsOut.Select(i => new SongOrHeader { song = i }).ToList();
-				songs.Insert(0, new SongOrHeader { header = ($"Filtered Songs", $"{songs.Count} songs") });
+				songs.Insert(0, new SongOrHeader { header = ($"SEARCH RESULTS", $"<#00B6F5><b>{songs.Count}</b> <#006488>SONGS") });
 			}
 
 			// Count songs
