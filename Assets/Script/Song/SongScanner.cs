@@ -183,7 +183,8 @@ namespace YARG.Song {
 			// We have a song.ini, notes file and audio. The song is scannable.
 			song = new IniSongEntry {
 				Location = directory,
-				Checksum = checksum
+				Checksum = checksum,
+				NotesFile = notesFile,
 			};
 
 			return ScanHelpers.ParseSongIni(Path.Combine(directory, "song.ini"), (IniSongEntry)song);

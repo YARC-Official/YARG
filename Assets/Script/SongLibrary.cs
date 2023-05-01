@@ -90,122 +90,6 @@ namespace YARG {
 			private set;
 		} = null;
 
-		public static void FetchEverything() {
-			ThreadPool.QueueUserWorkItem(_ => {
-				currentlyLoading = true;
-				loadPercent = 0f;
-				try {
-					LoadSongs();
-				} catch (Exception e) {
-					Debug.LogError($"Error while loading songs: {e}");
-				}
-
-				loadPercent = 0f;
-				try {
-					FetchSources();
-					loadPercent = 0.9f;
-					ReadSources();
-				} catch (Exception e) {
-					Debug.LogError($"Error while fetching sources: {e}");
-				}
-
-				loadPercent = 1f;
-				currentlyLoading = false;
-			});
-		}
-
-		/// <summary>
-		/// Should be called before you access <see cref="SongsByHash"/>.
-		/// </summary>
-		public static void FetchAllSongs() {
-			ThreadPool.QueueUserWorkItem(_ => {
-				currentlyLoading = true;
-				loadPercent = 0f;
-
-				try {
-					LoadSongs();
-				} catch (Exception e) {
-					Debug.LogError($"Error while loading songs: {e}");
-				}
-
-				loadPercent = 1f;
-				currentlyLoading = false;
-			});
-		}
-
-		/// <summary>
-		/// Should be called before you access <see cref="SourceNames"/>.
-		/// </summary>
-		public static void FetchSongSources() {
-			ThreadPool.QueueUserWorkItem(_ => {
-				currentlyLoading = true;
-				loadPercent = 0f;
-
-				try {
-					FetchSources();
-					loadPercent = 0.9f;
-					ReadSources();
-				} catch (Exception e) {
-					Debug.LogError($"Error while fetching sources: {e}");
-				}
-
-				loadPercent = 1f;
-				currentlyLoading = false;
-			});
-		}
-
-		private static void LoadSongs() {
-			if (!Directory.Exists(CacheFolder)) {
-				Directory.CreateDirectory(CacheFolder);
-			}
-
-			SongsByHash = new();
-			songFoldersToLoad = new(SongFolders.Where(i => !string.IsNullOrEmpty(i)));
-
-			if (songFoldersToLoad.Count <= 0) {
-				loadPercent = 1f;
-				return;
-			}
-
-			while (songFoldersToLoad.Count > 0) {
-				string folderPath = songFoldersToLoad.Dequeue();
-
-				currentTaskDescription = $"Fetching songs from: `{folderPath}`.";
-				Debug.Log(currentTaskDescription);
-
-				string folderHash = HashFilePath(folderPath);
-				string cachePath = Path.Combine(CacheFolder, folderHash + ".json");
-
-				if (File.Exists(cachePath)) {
-					var success = ReadCache(cachePath);
-					if (success) {
-						continue;
-					}
-				}
-
-				try {
-					songPaths = new();
-					songsTemp = new();
-
-					// Find songs
-					loadPercent = 0f;
-					FindSongs(folderPath, new(folderPath));
-
-					// Read song.ini and hashes
-					loadPercent = 0.1f;
-					ReadSongInfo();
-					GetSongHashes();
-
-					// Populate SongsByHash, and create cache
-					loadPercent = 0.9f;
-					PopulateSongByHashes();
-					CreateCache(folderPath, cachePath);
-				} catch (Exception e) {
-					Debug.LogException(e);
-				}
-			}
-		}
-
 		private static void FindSongs(string rootFolder, DirectoryInfo songDir) {
 			if (!songDir.Exists) {
 				Directory.CreateDirectory(songDir.FullName);
@@ -327,106 +211,11 @@ namespace YARG {
 			songPaths = null;
 		}
 
-		private static void GetSongHashes() {
-			foreach (var song in songsTemp) {
-				// Hashing loading accounts for 40% of loading
-				loadPercent += 1f / songsTemp.Count * 0.4f;
-
-				try {
-					// MD5 checksum of the file
-					using var md5 = new MD5CryptoServiceProvider();
-					using var stream = File.OpenRead(song.mainFile);
-					var hash = md5.ComputeHash(stream);
-					song.hash = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
-				} catch (Exception e) {
-					Debug.LogError($"Could not get hash for song `{song.RootFolder}`.");
-					Debug.LogException(e);
-					song.hash = null;
-				}
-			}
-		}
-
-		/// <summary>
-		/// Takes the <see cref="songPaths"/> and populates <see cref="SongsByHash"/>.<br/>
-		/// <see cref="songPaths"/> is expected to be populated.
-		/// </summary>
-		private static void PopulateSongByHashes() {
-			foreach (var song in songsTemp) {
-				if (song.hash == null) {
-					continue;
-				}
-
-				if (SongsByHash.ContainsKey(song.hash)) {
-					Debug.LogError($"Duplicate hash `{song.hash}` for songs `{SongsByHash[song.hash].RootFolder}` and `{song.RootFolder}`!");
-					continue;
-				}
-
-				SongsByHash[song.hash] = song;
-			}
-
-			songPaths = null;
-		}
-
 		/// <returns>
 		/// A unique hash for <paramref name="path"/>.
 		/// </returns>
 		public static string HashFilePath(string path) {
 			return Hash128.Compute(path).ToString();
-		}
-
-		/// <summary>
-		/// Creates a cache from <see cref="Songs"/> so we don't have to read all of the <c>song.ini</c> again.<br/>
-		/// <see cref="Songs"/> is expected to be populated and filled with <see cref="ReadSongInfo"/>.
-		/// </summary>
-		private static void CreateCache(string root, string cachePath) {
-			// Conglomerate songs by root folder
-			var songCache = new List<SongInfo>();
-			foreach (var song in Songs) {
-				if (song.cacheRoot != root) {
-					continue;
-				}
-
-				songCache.Add(song);
-			}
-
-			var jsonObj = new SongCacheJson {
-				folder = root,
-				songs = songCache
-			};
-
-			var json = JsonConvert.SerializeObject(jsonObj, Formatting.Indented);
-			File.WriteAllText(cachePath, json);
-		}
-
-		/// <summary>
-		/// Reads the song cache so we don't need to read of a the <c>song.ini</c> files.<br/>
-		/// <see cref="CacheFile"/> should exist. If not, call <see cref="CreateCache"/>.
-		/// </summary>
-		private static bool ReadCache(string cacheFile) {
-			string json = File.ReadAllText(cacheFile);
-
-			try {
-				var jsonObj = JsonConvert.DeserializeObject<SongCacheJson>(json);
-				if (jsonObj.version != CACHE_VERSION) {
-					return false;
-				}
-
-				// Combine all of the songs into one list
-				foreach (var song in jsonObj.songs) {
-					song.cacheRoot = jsonObj.folder;
-
-					if (SongsByHash.ContainsKey(song.hash)) {
-						Debug.LogWarning($"Duplicate hash `{song.hash}` for songs `{SongsByHash[song.hash].RootFolder}` and `{song.RootFolder}`!");
-						continue;
-					}
-
-					SongsByHash.Add(song.hash, song);
-				}
-			} catch (JsonException) {
-				return false;
-			}
-
-			return true;
 		}
 
 		private static bool FetchSources() {
@@ -480,13 +269,6 @@ namespace YARG {
 			}
 
 			return true;
-		}
-
-		/// <summary>
-		/// Force reset songs. This makes the game re-scan if needed.
-		/// </summary>
-		public static void Reset() {
-			SongsByHash = null;
 		}
 	}
 }

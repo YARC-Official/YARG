@@ -3,6 +3,8 @@
 namespace YARG.Song {
 	public abstract class SongEntry {
 		
+		public SongType Type { get; set; }
+		
 		public string Name { get; set; } = string.Empty;
 		public string Artist { get; set; } = string.Empty;
 		public string Charter { get; set; } = string.Empty;
@@ -32,8 +34,15 @@ namespace YARG.Song {
 		
 		public string Icon { get; set; } = string.Empty;
 		
-		public string Checksum { get; set; }
-		public string Location { get; set; }
+		public string Checksum  { get; set; }
+		public string NotesFile { get; set; }
+		public string Location  { get; set; }
 		
+	}
+
+	public enum SongType {
+		SongIni,
+		RbConRaw,
+		RbCon,
 	}
 }

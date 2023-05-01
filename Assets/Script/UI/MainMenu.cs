@@ -204,7 +204,6 @@ namespace YARG.UI {
 		public async UniTask RefreshSongLibrary() {
 			GameManager.Instance.SettingsMenu.gameObject.SetActive(false);
 
-			SongLibrary.Reset();
 			ScoreManager.Reset();
 
 			loadingScreen.SetActive(true);

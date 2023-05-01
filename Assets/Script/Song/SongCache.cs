@@ -8,7 +8,7 @@ using UnityEngine;
 namespace YARG.Song {
 	public class SongCache {
 		
-		private const int CACHE_VERSION = 23_04_30;
+		private const int CACHE_VERSION = 23_05_01;
 
 		private readonly string _folder;
 		private readonly string _cacheFile;
@@ -103,6 +103,7 @@ namespace YARG.Song {
 			}
 			
 			writer.Write(song.Checksum);
+			writer.Write(song.NotesFile);
 			writer.Write(song.Location);
 		}
 
@@ -110,12 +111,14 @@ namespace YARG.Song {
 			try {
 				SongEntry result = null;
 				var type = (SongType)reader.ReadInt32();
-				
-				if (type == SongType.RbConRaw) {
-					result = new RawConSongEntry();
-				} else if (type == SongType.SongIni) {
-					result = new IniSongEntry();
-				}
+
+				result = type switch {
+					SongType.RbConRaw => new RawConSongEntry(),
+					SongType.SongIni  => new IniSongEntry(),
+					_                 => result
+				};
+
+				result.Type = type;
 				
 				result.Name = reader.ReadString();
 				result.Artist = reader.ReadString();
@@ -153,6 +156,7 @@ namespace YARG.Song {
 				}
 				
 				result.Checksum = reader.ReadString();
+				result.NotesFile = reader.ReadString();
 				result.Location = reader.ReadString();
 
 				return result;
@@ -164,11 +168,5 @@ namespace YARG.Song {
 				return null;
 			}
 		}
-	}
-
-	public enum SongType {
-		SongIni,
-		RbConRaw,
-		RbCon,
 	}
 }
