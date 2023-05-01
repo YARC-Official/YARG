@@ -2336,10 +2336,10 @@ RectTransform:
   m_Father: {fileID: 1844302445}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 424.84845, y: -27.63815}
+  m_SizeDelta: {x: 849.6969, y: 55.2763}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &149797926
 MonoBehaviour:
@@ -4706,7 +4706,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
   m_AnchoredPosition: {x: 702.5, y: 0}
-  m_SizeDelta: {x: 1405, y: 0}
+  m_SizeDelta: {x: 1405, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &396272155
 MonoBehaviour:
@@ -6435,7 +6435,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: '<size=24><b>Loading...</b></size>
 
-    This could take a while depending on hardware. Please wait patiently.'
+    This could take a while depending
+    on hardware. Please wait patiently.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ae170e91fd29a90479e906ddffb1d8ee, type: 2}
   m_sharedMaterial: {fileID: -5480317595949376055, guid: ae170e91fd29a90479e906ddffb1d8ee,
@@ -18114,7 +18115,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1458336820
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21958,7 +21959,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 39f13d7dfe9b2cc4ab6cbec104fa9a2a, type: 3}
+  m_Sprite: {fileID: 21300000, guid: d120da0938eb3ee4cb145f4560a7882d, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -22249,7 +22250,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '...'
+  m_text: ...
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -24436,10 +24437,10 @@ RectTransform:
   m_Father: {fileID: 396272154}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 60}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 702.5, y: -30}
+  m_SizeDelta: {x: 1405, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2044165074
 MonoBehaviour:
