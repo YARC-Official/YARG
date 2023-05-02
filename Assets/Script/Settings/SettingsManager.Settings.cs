@@ -1,268 +1,124 @@
 using SFB;
 using UnityEngine;
+using YARG.PlayMode;
 using YARG.Serialization;
-using YARG.UI;
+using YARG.Settings.Types;
 
 namespace YARG.Settings {
 	public static partial class SettingsManager {
-		private class SettingContainer {
-			/*
+		public class SettingContainer {
+#pragma warning disable format
 			
-			TODO: THIS IS TERRIBLE. REDO!
+			public string[]      SongFolders                                      = { };
+			public string[]      SongUpgradeFolders                               = { };
 			
-			*/
+			public IntSetting    CalibrationNumber          { get; private set; } = new(-120);
+			
+			public ToggleSetting VSync                      { get; private set; } = new(true,      VSyncCallback);
+			public IntSetting    FpsCap                     { get; private set; } = new(60, 1,     onChange: FpsCapCallback);
+			
+			public ToggleSetting LowQuality                 { get; private set; } = new(false,     LowQualityCallback);
+			public ToggleSetting DisableBloom               { get; private set; } = new(false,     DisableBloomCallback);
+			
+			public ToggleSetting ShowHitWindow              { get; private set; } = new(false);
+			public ToggleSetting UseCymbalModelsInFiveLane  { get; private set; } = new(true);
+			
+			public ToggleSetting NoKicks                    { get; private set; } = new(false);
+			public ToggleSetting AntiGhosting               { get; private set; } = new(true);
+			
+			public VolumeSetting MasterMusicVolume          { get; private set; } = new(0.9f, v => VolumeCallback(SongStem.Master, v));
+			public VolumeSetting GuitarVolume               { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Guitar, v));
+			public VolumeSetting RhythmVolume               { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Rhythm, v));
+			public VolumeSetting BassVolume                 { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Bass,   v));
+			public VolumeSetting KeysVolume                 { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Keys,   v));
+			public VolumeSetting DrumsVolume                { get; private set; } = new(1f,        DrumVolumeCallback);
+			public VolumeSetting VocalsVolume               { get; private set; } = new(1f,        VocalVolumeCallback);
+			public VolumeSetting SongVolume                 { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Song,   v));
+			public VolumeSetting CrowdVolume                { get; private set; } = new(0f,   v => VolumeCallback(SongStem.Crowd,  v));
+			public VolumeSetting SfxVolume                  { get; private set; } = new(0.7f, v => VolumeCallback(SongStem.Sfx,    v));
+			public VolumeSetting VocalMonitoring            { get; private set; } = new(0.7f,      VocalMonitoringCallback);
+			public ToggleSetting MuteOnMiss                 { get; private set; } = new(true);
+			public ToggleSetting UseStarpowerFx             { get; private set; } = new(true,      UseStarpowerFxChange);
+			public ToggleSetting UseChipmunkSpeed           { get; private set; } = new(false,     UseChipmunkSpeedChange);
+			
+			public SliderSetting TrackCamFOV                { get; private set; } = new(55f,    40f, 150f, CameraPosChange);
+			public SliderSetting TrackCamYPos               { get; private set; } = new(2.66f,  0f,  4f,   CameraPosChange);
+			public SliderSetting TrackCamZPos               { get; private set; } = new(1.14f,  0f,  12f,  CameraPosChange);
+			public SliderSetting TrackCamRot                { get; private set; } = new(24.12f, 0f,  180f, CameraPosChange);
+			
+			public ToggleSetting AmIAwesome                 { get; private set; } = new(false);
 
-			public string[] songFolders = new string[] { };
-
-			[SettingLocation("general", 1)]
-			[SettingButton("openSongFolderManager")]
+#pragma warning restore format
+			
 			public void OpenSongFolderManager() {
-				MainMenu.Instance.ShowSongFolderManager();
+				// if (MainMenu.Instance != null) {
+				// 	MainMenu.Instance.ShowSongFolderManager();
+				// 	GameManager.Instance.SettingsMenu.gameObject.SetActive(false);
+				// }
+
+				GameManager.Instance.SettingsMenu.CurrentTab = "_SongFolderManager";
 			}
 
-			[SettingLocation("general", 2)]
-			[SettingButton("exportOuvertSongs")]
 			public void ExportOuvertSongs() {
 				StandaloneFileBrowser.SaveFilePanelAsync("Save Song List", null, "songs", "json", path => {
 					OuvertExport.ExportOuvertSongsTo(path);
 				});
 			}
 
-			[SettingLocation("general", 3)]
-			[SettingButton("copyCurrentSongTextFilePath")]
 			public void CopyCurrentSongTextFilePath() {
 				GUIUtility.systemCopyBuffer = TwitchController.Instance.TextFilePath;
 			}
 
-			[SettingSpace]
-			[SettingLocation("general", 4)]
-			[SettingType("Number")]
-			public int calibrationNumber = -150;
-
-			[SettingLocation("general", 5)]
-			[SettingButton("calibrate")]
-			public void Calibrate() {
-				if (PlayerManager.players.Count > 0) {
-					GameManager.Instance.LoadScene(SceneIndex.CALIBRATION);
-				}
+			private static void VSyncCallback(bool value) {
+				QualitySettings.vSyncCount = value ? 1 : 0;
 			}
 
-			[SettingSpace]
-			[SettingLocation("general", 6)]
-			[SettingType("Toggle")]
-			public bool lowQuality = false;
-
-			[SettingChangeFunc("lowQuality")]
-			public void LowQualityChange() {
-				GraphicsManager.Instance.LowQuality = lowQuality;
+			private static void FpsCapCallback(int value) {
+				Application.targetFrameRate = value;
 			}
 
-			[SettingLocation("general", 7)]
-			[SettingType("Toggle")]
-			public bool showHitWindow = false;
-
-			[SettingLocation("general", 9)]
-			[SettingType("Toggle")]
-			public bool muteOnMiss = true;
-
-			[SettingShowInGame]
-			[SettingLocation("general", 10)]
-			[SettingType("Toggle")]
-			public bool useCymbalModelsInFiveLane = true;
-
-			[SettingShowInGame]
-			[SettingLocation("general", 11)]
-			[SettingType("Toggle")]
-			public bool disableBloom = false;
-
-			[SettingChangeFunc("disableBloom")]
-			public void DisableBloomChange() {
-				GraphicsManager.Instance.BloomEnabled = !disableBloom;
+			private static void LowQualityCallback(bool value) {
+				GraphicsManager.Instance.LowQuality = value;
+				CameraPositioner.UpdateAllAntiAliasing();
 			}
 
-			[SettingSpace]
-			[SettingLocation("general", 12)]
-			[SettingType("Toggle")]
-			public bool noKicks = false;
-
-			[SettingSpace]
-			[SettingShowInGame]
-			[SettingLocation("general", 13)]
-			[SettingType("Toggle")]
-			public bool vsync = true;
-
-			[SettingChangeFunc("vsync")]
-			public void VsyncChange() {
-				QualitySettings.vSyncCount = vsync ? 1 : 0;
+			private static void DisableBloomCallback(bool value) {
+				GraphicsManager.Instance.BloomEnabled = !value;
 			}
 
-			[SettingShowInGame]
-			[SettingLocation("general", 14)]
-			[SettingType("Number")]
-			public int fpsCap = 60;
-
-			[SettingChangeFunc("fpsCap")]
-			public void FpsCapChange() {
-				Application.targetFrameRate = fpsCap;
+			private static void VolumeCallback(SongStem stem, float volume) {
+				GameManager.AudioManager.UpdateVolumeSetting(stem, volume);
 			}
 
-			[SettingInteractableFunc("fpsCap")]
-			public bool FpsCapInteractable() {
-				return QualitySettings.vSyncCount == 0;
+			private static void DrumVolumeCallback(float volume) {
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums, volume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums1, volume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums2, volume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums3, volume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums4, volume);
 			}
 
-			[SettingSpace]
-			[SettingLocation("general", 15)]
-			[SettingType("Toggle")]
-			public bool highFovCamera = false;
-
-			[SettingSpace]
-			[SettingShowInGame]
-			[SettingLocation("general", 16)]
-			[SettingType("Volume")]
-			public float masterMusicVolume = 0.9f;
-
-			[SettingChangeFunc("masterMusicVolume")]
-			public void SongVolumeChange() {
-				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Master, masterMusicVolume);
+			private static void VocalVolumeCallback(float volume) {
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Vocals, volume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Vocals1, volume);
+				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Vocals2, volume);
 			}
 
-			[SettingShowInGame]
-			[SettingLocation("general", 17)]
-			[SettingType("Volume")]
-			public float guitarVolume = 1f;
-
-			[SettingChangeFunc("guitarVolume")]
-			public void GuitarVolumeChange() {
-				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Guitar, guitarVolume);
+			private static void VocalMonitoringCallback(float volume) {
+				AudioManager.Instance.SetVolume("vocalMonitoring", volume);
 			}
 
-			[SettingShowInGame]
-			[SettingLocation("general", 18)]
-			[SettingType("Volume")]
-			public float rhythmVolume = 1f;
-
-			[SettingChangeFunc("rhythmVolume")]
-			public void RhythmVolumeChange() {
-				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Rhythm, rhythmVolume);
+			private static void UseStarpowerFxChange(bool value) {
+				GameManager.AudioManager.UseStarpowerFx = value;
 			}
 
-			[SettingShowInGame]
-			[SettingLocation("general", 19)]
-			[SettingType("Volume")]
-			public float bassVolume = 1f;
-
-			[SettingChangeFunc("bassVolume")]
-			public void BassVolumeChange() {
-				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Bass, bassVolume);
+			private static void UseChipmunkSpeedChange(bool value) {
+				GameManager.AudioManager.IsChipmunkSpeedup = value;
 			}
 
-			[SettingShowInGame]
-			[SettingLocation("general", 20)]
-			[SettingType("Volume")]
-			public float keysVolume = 1f;
-
-			[SettingChangeFunc("keysVolume")]
-			public void KeysVolumeChange() {
-				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Keys, keysVolume);
+			private static void CameraPosChange(float value) {
+				CameraPositioner.UpdateAllPosition();
 			}
-
-			[SettingShowInGame]
-			[SettingLocation("general", 21)]
-			[SettingType("Volume")]
-			public float drumsVolume = 1f;
-
-			[SettingChangeFunc("drumsVolume")]
-			public void DrumsVolumeChange() {
-				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums, drumsVolume);
-				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums1, drumsVolume);
-				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums2, drumsVolume);
-				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums3, drumsVolume);
-				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums4, drumsVolume);
-			}
-
-			[SettingShowInGame]
-			[SettingLocation("general", 22)]
-			[SettingType("Volume")]
-			public float vocalsVolume = 1f;
-
-			[SettingChangeFunc("vocalsVolume")]
-			public void VocalsVolumeChange() {
-				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Vocals, vocalsVolume);
-				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Vocals1, vocalsVolume);
-				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Vocals2, vocalsVolume);
-			}
-
-			[SettingShowInGame]
-			[SettingLocation("general", 23)]
-			[SettingType("Volume")]
-			public float songVolume = 1f;
-
-			[SettingChangeFunc("songVolume")]
-			public void MusicVolumeChange() {
-				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Song, songVolume);
-			}
-
-			[SettingShowInGame]
-			[SettingLocation("general", 24)]
-			[SettingType("Volume")]
-			public float crowdVolume = 0f;
-
-			[SettingChangeFunc("crowdVolume")]
-			public void CrowdVolumeChange() {
-				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Crowd, crowdVolume);
-			}
-
-			[SettingShowInGame]
-			[SettingLocation("general", 25)]
-			[SettingType("Volume")]
-			public float sfxVolume = 0.5f;
-
-			[SettingChangeFunc("sfxVolume")]
-			public void SfxVolumeChange() {
-				GameManager.AudioManager.UpdateVolumeSetting(SongStem.Sfx, sfxVolume);
-			}
-
-			[SettingShowInGame]
-			[SettingLocation("general", 26)]
-			[SettingType("Volume")]
-			public float vocalMonitoring = 0.75f;
-
-			[SettingChangeFunc("vocalMonitoring")]
-			public void VocalMonitoringChange() {
-				AudioManager.Instance.SetVolume("vocalMonitoring", vocalMonitoring);
-			}
-
-			[SettingShowInGame]
-			[SettingLocation("general", 27)]
-			[SettingType("Toggle")]
-			public bool useStarpowerFx = true;
-
-			[SettingChangeFunc("useStarpowerFx")]
-			public void UseStarpowerFxChange() {
-				GameManager.AudioManager.UseStarpowerFx = useStarpowerFx;
-			}
-
-			[SettingShowInGame]
-			[SettingLocation("general", 28)]
-			[SettingType("Toggle")]
-			public bool useChipmunkSpeed = false;
-
-			[SettingChangeFunc("useChipmunkSpeed")]
-			public void UseChipmunkSpeedChange() {
-				GameManager.AudioManager.IsChipmunkSpeedup = useChipmunkSpeed;
-			}
-
-			[SettingShowInGame]
-			[SettingLocation("general", 29)]
-			[SettingType("Toggle")]
-			public bool antiGhosting = true;
-
-			[SettingSpace]
-			[SettingShowInGame]
-			[SettingLocation("general", 30)]
-			[SettingType("Toggle")]
-			public bool amIAwesome = false;
 		}
 	}
 }

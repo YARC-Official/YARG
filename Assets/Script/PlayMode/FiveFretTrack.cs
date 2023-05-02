@@ -45,9 +45,6 @@ namespace YARG.PlayMode {
 			notePool.player = player;
 			genericPool.player = player;
 
-			// Engine tweak
-			antiGhosting = SettingsManager.GetSettingValue<bool>("antiGhosting");
-
 			// Lefty flip
 
 			if (player.leftyFlip) {
@@ -97,7 +94,7 @@ namespace YARG.PlayMode {
 			// Update events (beat lines, starpower, etc.)
 			var events = Play.Instance.chart.events;
 			var beats = Play.Instance.chart.beats;
-			
+
 			while (events.Count > eventChartIndex && events[eventChartIndex].time <= RelativeTime) {
 				var eventInfo = events[eventChartIndex];
 
@@ -114,7 +111,7 @@ namespace YARG.PlayMode {
 
 				eventChartIndex++;
 			}
-			
+
 			while (beats.Count > beatChartIndex && beats[beatChartIndex].Time <= RelativeTime) {
 				var beatInfo = beats[beatChartIndex];
 
@@ -295,7 +292,7 @@ namespace YARG.PlayMode {
 			}
 			// If tapping to recover combo during tap note section, skip to first valid note within the timing window.
 			// This will make it easier to recover.
-			if (Constants.EASY_TAP_RECOVERY && Combo <= 0 && pressedThisFrame && chord[0].tap && !ChordPressed(chord)) {
+			if (Constants.EASY_TAP_RECOVERY && Combo <= 0 /*&& pressedThisFrame*/ && chord[0].tap && !ChordPressed(chord)) {
 				var found = false;
 				foreach (var newChord in expectedHits) {
 					if (!newChord[0].tap) {
@@ -354,9 +351,16 @@ namespace YARG.PlayMode {
 
 			ResetAllowedChordGhosts();
 			Combo++;
+			notesHit++;
 			strummedCurrentNote = strummedCurrentNote || strummed || strumLeniency > 0f;
 			strumLeniency = 0f;
 			StopAudio = false;
+
+
+			// Solo stuff
+			if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime) {
+				soloNotesHit++;
+			}
 			foreach (var hit in chord) {
 				hitChartIndex++;
 				// Hit notes
@@ -375,7 +379,7 @@ namespace YARG.PlayMode {
 					heldNotes.Add(hit);
 					frets[hit.fret].PlaySustainParticles();
 					scoreKeeper.Add(susTracker.Strum(hit) * Multiplier * SUSTAIN_PTS_PER_BEAT);
-          
+
 					frets[hit.fret].PlayAnimationSustainsLooped();
 
 					// Check if it's extended sustain;
@@ -388,15 +392,7 @@ namespace YARG.PlayMode {
 				}
 
 				// Add stats
-				notesHit++;
 				scoreKeeper.Add(PTS_PER_NOTE * Multiplier);
-
-				// Solo stuff
-				if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime) {
-					soloNotesHit++;
-				} else if (Play.Instance.SongTime >= SoloSection?.EndTime + 10) {
-					soloNotesHit = 0;
-				}
 			}
 
 			// If this is a tap note, and it was hit without strumming,
@@ -560,7 +556,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Should it check ghosting?
-			if (antiGhosting && allowedGhosts > 0 && pressed && hitChartIndex > 0) {
+			if (SettingsManager.Settings.AntiGhosting.Data && allowedGhosts > 0 && pressed && hitChartIndex > 0) {
 				bool checkGhosting = true;
 				if (Constants.ALLOW_DESC_GHOSTS) {
 					for (var i = 0; i < 5; i++) {
@@ -577,7 +573,7 @@ namespace YARG.PlayMode {
 				}
 				if (checkGhosting) {
 					var nextNote = GetNextNote(Chart[hitChartIndex - 1].time);
-					if ((nextNote == null || (!nextNote[0].hopo && !nextNote[0].tap)) || 
+					if ((nextNote == null || (!nextNote[0].hopo && !nextNote[0].tap)) ||
 					(Constants.ALLOW_GHOST_IF_NO_NOTES && nextNote[0].time - Play.Instance.SongTime > Constants.HIT_MARGIN * Constants.ALLOW_GHOST_IF_NO_NOTES_THRESHOLD)) {
 						checkGhosting = false;
 					}
@@ -779,6 +775,21 @@ namespace YARG.PlayMode {
 
 		private bool IsExtendedSustain() {
 			return extendedSustain.Any(x => x);
+		}
+
+		public override void AddSoloNoteCount(int i) {
+			if (i == 0 || Chart[i].time > Chart[i-1].time) {
+				soloNoteCount++;
+			}
+		}
+		public override int GetChartCount() {
+			int count = 0;
+			for (int i = 0; i < Chart.Count; i++) {
+				if (i == 0 || Chart[i].time > Chart[i-1].time) {
+					count++;
+				}
+			}
+			return count;
 		}
 	}
 }

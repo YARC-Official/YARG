@@ -1,16 +1,12 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
-using YARG.Settings;
 
 namespace YARG.PlayMode {
 	public sealed class CommonTrack : MonoBehaviour {
+		[field: SerializeField]
 		public Camera TrackCamera { get; private set; }
-
 		[SerializeField]
-		private Camera normalCamera;
-		[SerializeField]
-		private Camera highFovCamera;
+		private Animation cameraAnimation;
 
 		[Space]
 		public MeshRenderer trackRenderer;
@@ -66,33 +62,6 @@ namespace YARG.PlayMode {
 
 		[Space]
 		public int[] colorMappings;
-
-		private Animation cameraAnimation;
-
-		public void SetupCameras() {
-			highFovCamera.gameObject.SetActive(false);
-			normalCamera.gameObject.SetActive(false);
-
-			// Enable the correct camera
-			if (SettingsManager.GetSettingValue<bool>("highFovCamera")) {
-				TrackCamera = highFovCamera;
-			} else {
-				TrackCamera = normalCamera;
-			}
-
-			TrackCamera.gameObject.SetActive(true);
-
-			cameraAnimation = TrackCamera.GetComponent<Animation>();
-
-			// Set anti-aliasing
-			var info = TrackCamera.GetComponent<UniversalAdditionalCameraData>();
-			if (SettingsManager.GetSettingValue<bool>("lowQuality")) {
-				info.antialiasing = AntialiasingMode.None;
-			} else {
-				info.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
-				info.antialiasingQuality = AntialiasingQuality.Low;
-			}
-		}
 
 		public Color FretColor(int i) {
 			return fretColors[colorMappings[i]];

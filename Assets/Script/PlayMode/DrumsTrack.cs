@@ -35,23 +35,15 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		public bool shakeOnKick = true;
 
-
-
 		private Queue<List<NoteInfo>> expectedHits = new();
 
-		private bool noKickMode = false;
-		
-		
+		private readonly string[] proInst = { "realDrums", "ghDrums" };
 
-		private readonly string[] proInst = {"realDrums", "ghDrums"};
 		private int ptsPerNote;
 
 		protected override void StartTrack() {
 			notePool.player = player;
 			genericPool.player = player;
-
-			noKickMode = SettingsManager.GetSettingValue<bool>("noKicks");
-			
 
 			// Inputs
 
@@ -157,7 +149,7 @@ namespace YARG.PlayMode {
 				var noteInfo = Chart[visualChartIndex];
 
 				// Skip kick notes if noKickMode is enabled
-				if (noteInfo.fret == kickIndex && noKickMode) {
+				if (noteInfo.fret == kickIndex && SettingsManager.Settings.NoKicks.Data) {
 					visualChartIndex++;
 					continue;
 				}
@@ -180,7 +172,7 @@ namespace YARG.PlayMode {
 				var noteInfo = Chart[inputChartIndex];
 
 				// Skip kick notes if noKickMode is enabled
-				if (noteInfo.fret == kickIndex && noKickMode) {
+				if (noteInfo.fret == kickIndex && SettingsManager.Settings.NoKicks.Data) {
 					inputChartIndex++;
 					continue;
 				}
@@ -267,7 +259,7 @@ namespace YARG.PlayMode {
 					case 3:
 						// lefty flip on pro drums means physically moving the green cymbal above the red snare
 						// so while the position on the chart has changed, the input object is the same
-						if (!cymbal){
+						if (!cymbal) {
 							drum = kickIndex == 4 ? 0 : 1;
 						}
 						break;
@@ -286,7 +278,7 @@ namespace YARG.PlayMode {
 			} else {
 				PlayKickFretAnimation();
 
-				if(shakeOnKick) {
+				if (shakeOnKick) {
 					//commonTrack.PlayKickCameraAnimation();
 					trackAnims.PlayKickShakeCameraAnim();
 				}
@@ -375,7 +367,7 @@ namespace YARG.PlayMode {
 				// Kick
 				model = NoteComponent.ModelType.FULL;
 			} else if (player.chosenInstrument == "ghDrums" &&
-				SettingsManager.GetSettingValue<bool>("useCymbalModelsInFiveLane")) {
+				SettingsManager.Settings.UseCymbalModelsInFiveLane.Data) {
 
 				if (noteInfo.fret == 1 || noteInfo.fret == 3) {
 					// Cymbal (only for gh-drums if enabled)

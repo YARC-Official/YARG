@@ -55,7 +55,7 @@ namespace YARG.PlayMode {
 
 		// Solo stuff
 		private bool soloInProgress = false;
-		private int soloNoteCount = -1;
+		protected int soloNoteCount = -1;
 		protected int soloNotesHit = 0;
 		private float soloHitPercent = 0;
 		private int lastHit = -1;
@@ -128,7 +128,6 @@ namespace YARG.PlayMode {
 			var renderTexture = new RenderTexture(descriptor);
 
 			// Assign render texture to camera
-			commonTrack.SetupCameras();
 			commonTrack.TrackCamera.targetTexture = renderTexture;
 
 			// AMONG US
@@ -151,7 +150,7 @@ namespace YARG.PlayMode {
 			// Adjust hit window
 			var scale = commonTrack.hitWindow.localScale;
 			commonTrack.hitWindow.localScale = new(scale.x, Constants.HIT_MARGIN * player.trackSpeed * 2f, scale.z);
-			commonTrack.hitWindow.gameObject.SetActive(SettingsManager.GetSettingValue<bool>("showHitWindow"));
+			commonTrack.hitWindow.gameObject.SetActive(SettingsManager.Settings.ShowHitWindow.Data);
 
 			comboSunburstEmbeddedLight = commonTrack.comboSunburst.GetComponent<Light>();
 
@@ -176,7 +175,7 @@ namespace YARG.PlayMode {
 			player.lastScore = new PlayerManager.LastScore {
 				percentage = new DiffPercent {
 					difficulty = player.chosenDifficulty,
-					percent = Chart.Count == 0 ? 1f : (float) notesHit / Chart.Count
+					percent = Chart.Count == 0 ? 1f : (float) notesHit / GetChartCount()
 				},
 				score = new DiffScore {
 					difficulty = player.chosenDifficulty,
@@ -184,7 +183,7 @@ namespace YARG.PlayMode {
 					stars = math.clamp((int) starsKeeper.Stars, 0, 6)
 				},
 				notesHit = notesHit,
-				notesMissed = Chart.Count - notesHit
+				notesMissed = GetChartCount() - notesHit
 			};
 
 			Play.OnPauseToggle -= PauseToggled;
@@ -370,6 +369,7 @@ namespace YARG.PlayMode {
 			if (Play.Instance.SongTime >= SoloSection?.time - 2 && Play.Instance.SongTime <= SoloSection?.time) {
 				// run ONCE
 				if (!soloInProgress) {
+					soloNotesHit = 0; // Reset count
 					soloInProgress = true;
 				}
 
@@ -379,7 +379,7 @@ namespace YARG.PlayMode {
 					if (Chart[i].time > SoloSection?.EndTime) {
 						break;
 					} else {
-						soloNoteCount++;
+						AddSoloNoteCount(i);
 					}
 				}
 			}
@@ -408,6 +408,7 @@ namespace YARG.PlayMode {
 				// run ONCE
 				if (soloInProgress) {
 					soloPtsEarned = scoreKeeper.AddSolo(soloNotesHit, soloNoteCount);
+					soloNotesHit = 0; // Reset count
 
 					// set box text
 					if (soloHitPercent >= 100f) {
@@ -496,5 +497,12 @@ namespace YARG.PlayMode {
 		}
 
 		public abstract void SetReverb(bool on);
+
+		public virtual void AddSoloNoteCount(int i) {
+			soloNoteCount++;
+		}
+		public virtual int GetChartCount() {
+			return Chart.Count;
+		}
 	}
 }

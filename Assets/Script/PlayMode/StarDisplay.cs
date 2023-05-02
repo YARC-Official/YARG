@@ -126,7 +126,7 @@ namespace YARG.PlayMode {
 				// pulse the meter
 				var anim = objGoldMeterMaster.GetComponent<Animator>();
 				anim.speed = 1 / time;
-				anim.Play("GoldMeter");
+				anim.Play("GoldMeter", -1, 0);
 
 				curBar = nextBar;
 			}
