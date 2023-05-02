@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 397774209812536633}
   - component: {fileID: 1575055953060588012}
   m_Layer: 5
-  m_Name: DifficultyView
+  m_Name: DifficultyRing
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

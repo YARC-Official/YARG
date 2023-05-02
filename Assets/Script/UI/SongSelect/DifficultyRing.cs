@@ -1,10 +1,11 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
 using YARG.Data;
 
-namespace YARG.UI {
-	public class DifficultyView : MonoBehaviour {
+namespace YARG.UI.SongSelect {
+	public class DifficultyRing : MonoBehaviour {
 		[SerializeField]
 		private Image instrumentIcon;
 		[SerializeField]
@@ -12,6 +13,10 @@ namespace YARG.UI {
 
 		[SerializeField]
 		private Sprite[] ringSprites;
+
+		public void SetInfo(Dictionary<Instrument, int> difficulties, Instrument instrument) {
+			SetInfo(instrument, difficulties[instrument]);
+		}
 
 		public void SetInfo(Instrument instrument, int difficulty) {
 			// Set instrument icon
@@ -33,7 +38,7 @@ namespace YARG.UI {
 			Color color = instrumentIcon.color;
 			color.a = 1f;
 			if (difficulty == -1) {
-				color.a = 0.25f;
+				color.a = 0.2f;
 			}
 			instrumentIcon.color = color;
 		}

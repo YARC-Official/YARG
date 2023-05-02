@@ -4,12 +4,13 @@ using FuzzySharp;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using YARG.Data;
 using YARG.Input;
 
-namespace YARG.UI {
-	public class SongSelect : MonoBehaviour {
-		public static SongSelect Instance {
+namespace YARG.UI.SongSelect {
+	public class SongSelection : MonoBehaviour {
+		public static SongSelection Instance {
 			get;
 			private set;
 		} = null;
@@ -35,9 +36,13 @@ namespace YARG.UI {
 		[SerializeField]
 		private SelectedSongView selectedSongView;
 		[SerializeField]
+		private Sidebar sidebar;
+		[SerializeField]
 		private TMP_Dropdown dropdown;
 		[SerializeField]
 		private GameObject noSongsText;
+		[SerializeField]
+		private Scrollbar scrollbar;
 
 		private List<SongOrHeader> songs;
 		private List<SongInfo> recommendedSongs;
@@ -54,6 +59,8 @@ namespace YARG.UI {
 
 		// Will be set in UpdateSearch
 		private int selectedSongIndex;
+
+		public SongInfo SelectedSong => songs[selectedSongIndex].song;
 
 		private void Awake() {
 			refreshFlag = true;
@@ -87,6 +94,9 @@ namespace YARG.UI {
 				keyboardHandler.SetMappingInputControl(FiveFretInputStrategy.STRUM_DOWN, keyboard.downArrowKey);
 				keyboardHandler.SetMappingInputControl(FiveFretInputStrategy.RED, keyboard.escapeKey);
 			}
+
+			// Initialize sidebar
+			sidebar.Init();
 		}
 
 		private void OnEnable() {
@@ -159,6 +169,7 @@ namespace YARG.UI {
 			if (songs.Count > 0) {
 				selectedSongView.gameObject.SetActive(true);
 				selectedSongView.UpdateSongView(songs[selectedSongIndex].song);
+				sidebar.UpdateSidebar();
 			} else {
 				selectedSongView.gameObject.SetActive(false);
 			}
@@ -230,7 +241,18 @@ namespace YARG.UI {
 			}
 		}
 
-		private void MoveView(int amount) {
+		public void OnScrollBarChange() {
+			int index = Mathf.FloorToInt(scrollbar.value * (songs.Count - 1));
+			int difference = index - selectedSongIndex;
+
+			if (index == 0) {
+				return;
+			}
+
+			MoveView(difference, false);
+		}
+
+		private void MoveView(int amount, bool updateScrollbar = true) {
 			if (songs.Count <= 0) {
 				return;
 			}
@@ -246,7 +268,7 @@ namespace YARG.UI {
 
 			// Skip over headers
 			if (songs[selectedSongIndex].song == null) {
-				selectedSongIndex += amount;
+				selectedSongIndex += amount < 0 ? -1 : 1;
 
 				// Wrap again (just in case after skipping)
 				if (selectedSongIndex < 0) {
@@ -254,6 +276,11 @@ namespace YARG.UI {
 				} else if (selectedSongIndex >= songs.Count) {
 					selectedSongIndex = 0;
 				}
+			}
+
+			// Update scroll bar
+			if (updateScrollbar) {
+				scrollbar.SetValueWithoutNotify((float) selectedSongIndex / songs.Count);
 			}
 
 			UpdateSongViews();

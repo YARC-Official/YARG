@@ -12,7 +12,7 @@ using System;
 
 #endif
 
-namespace YARG.UI {
+namespace YARG.UI.SongSelect {
 	public class SelectedSongView : MonoBehaviour {
 		[SerializeField]
 		private TextMeshProUGUI songName;
@@ -38,14 +38,6 @@ namespace YARG.UI {
 		[Space]
 		[SerializeField]
 		private RawImage albumCover;
-
-		[Space]
-		[SerializeField]
-		private Transform difficultyContainer;
-		[SerializeField]
-		private GameObject difficultyView;
-		[SerializeField]
-		private GameObject difficultyDivider;
 
 		private float timeSinceUpdate;
 		private bool albumCoverLoaded;
@@ -76,7 +68,7 @@ namespace YARG.UI {
 			} else {
 				sourceIcon.enabled = true;
 			}
-			
+
 			// Basic info
 			songName.text = $"<b>{songInfo.SongName}</b>" + $"<space=10px><#00DBFD><i>{songInfo.artistName}</i>";
 			artist.text = $"<i>{songInfo.artistName}</i>";
@@ -114,67 +106,6 @@ namespace YARG.UI {
 			// Album cover
 			albumCover.texture = null;
 			albumCover.color = new Color(0f, 0f, 0f, 0.4f);
-
-			// Difficulties
-
-			foreach (Transform t in difficultyContainer) {
-				Destroy(t.gameObject);
-			}
-
-			Instrument?[] difficultyOrder = {
-				Instrument.GUITAR,
-				Instrument.BASS,
-				Instrument.DRUMS,
-				Instrument.KEYS,
-				Instrument.VOCALS,
-				null,
-				Instrument.REAL_GUITAR,
-				Instrument.REAL_BASS,
-				Instrument.REAL_DRUMS,
-				Instrument.REAL_KEYS,
-				Instrument.HARMONY,
-				null,
-				Instrument.GUITAR_COOP,
-				Instrument.RHYTHM,
-				Instrument.GH_DRUMS
-			};
-
-			foreach (var inst in difficultyOrder) {
-				if (inst == null) {
-					// Divider
-					Instantiate(difficultyDivider, difficultyContainer);
-
-					continue;
-				}
-
-				var instrument = inst.Value;
-
-				// GH Drums == Drums difficulty
-				var searchInstrument = instrument;
-				if (instrument == Instrument.GH_DRUMS) {
-					searchInstrument = Instrument.DRUMS;
-				}
-
-				if (!songInfo.partDifficulties.ContainsKey(searchInstrument)) {
-					continue;
-				}
-
-				int difficulty = songInfo.partDifficulties[searchInstrument];
-
-				// If not five-lane mode, hide GH Drums difficulty 
-				if (instrument == Instrument.GH_DRUMS && songInfo.drumType != SongInfo.DrumType.FIVE_LANE) {
-					difficulty = -1;
-				}
-
-				// If not four-lane mode, hide drums difficulty
-				if (instrument == Instrument.DRUMS && songInfo.drumType == SongInfo.DrumType.FIVE_LANE) {
-					difficulty = -1;
-				}
-
-				// Difficulty
-				var diffView = Instantiate(difficultyView, difficultyContainer);
-				diffView.GetComponent<DifficultyView>().SetInfo(instrument, difficulty);
-			}
 		}
 
 		private void Update() {
@@ -247,27 +178,27 @@ namespace YARG.UI {
 		}
 
 		public void SearchArtist() {
-			SongSelect.Instance.searchField.text = $"artist:{songInfo.artistName}";
+			SongSelection.Instance.searchField.text = $"artist:{songInfo.artistName}";
 		}
 
 		public void SearchSource() {
-			SongSelect.Instance.searchField.text = $"source:{songInfo.source}";
+			SongSelection.Instance.searchField.text = $"source:{songInfo.source}";
 		}
 
 		public void SearchAlbum() {
-			SongSelect.Instance.searchField.text = $"album:{songInfo.album}";
+			SongSelection.Instance.searchField.text = $"album:{songInfo.album}";
 		}
 
 		public void SearchCharter() {
-			SongSelect.Instance.searchField.text = $"charter:{songInfo.charter}";
+			SongSelection.Instance.searchField.text = $"charter:{songInfo.charter}";
 		}
 
 		public void SearchGenre() {
-			SongSelect.Instance.searchField.text = $"genre:{songInfo.genre}";
+			SongSelection.Instance.searchField.text = $"genre:{songInfo.genre}";
 		}
 
 		public void SearchYear() {
-			SongSelect.Instance.searchField.text = $"year:{songInfo.year}";
+			SongSelection.Instance.searchField.text = $"year:{songInfo.year}";
 		}
 
 	}
