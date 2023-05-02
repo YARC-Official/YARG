@@ -69,13 +69,14 @@ namespace YARG.UI {
 					sourceIcon.sprite = loadedSprite;
 					sourceIcon.enabled = true;
 				} else {
-					Debug.LogError($"Failed to load source icon at path: Resources/{folderPath}");
+					// icon name = "custom"
+					sourceIcon.sprite = Resources.Load<Sprite>("Sources/custom");
 					sourceIcon.enabled = true;
 				}
 			} else {
 				sourceIcon.enabled = true;
 			}
-
+			
 			// Basic info
 			songName.text = $"<b>{songInfo.SongName}</b>" + $"<space=10px><#00DBFD><i>{songInfo.artistName}</i>";
 			artist.text = $"<i>{songInfo.artistName}</i>";
