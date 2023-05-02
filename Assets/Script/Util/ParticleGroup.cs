@@ -40,17 +40,12 @@ namespace YARG.Util {
 			foreach (var ps in colorParticles) {
 				var m = ps.main;
 
-
 				var c = color;
 				if (keepAlpha) {
 					c.a = m.startColor.color.a;
 				}
 
 				m.startColor = c;
-
-				
-				
-			   
 			}
 
 			foreach (var ps in emissionParticles) {
@@ -89,7 +84,6 @@ namespace YARG.Util {
 					continue;
 				}
 
-				particle.Clear();
 				particle.Stop();
 			}
 

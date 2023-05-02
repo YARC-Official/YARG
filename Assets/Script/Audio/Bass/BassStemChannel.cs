@@ -86,17 +86,24 @@ namespace YARG {
 
 			if (isSpeedUp) {
 				// Gets relative speed from 100% (so 1.05f = 5% increase)
-				float relativeSpeed = Math.Abs(speed) * 100;
-				relativeSpeed -= 100;
+				float percentageSpeed = Math.Abs(speed) * 100;
+				float relativeSpeed = percentageSpeed - 100;
+				
 				Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Tempo, relativeSpeed);
 				Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Tempo, relativeSpeed);
 
 				// Have to handle pitch separately for some reason
 				if (_manager.IsChipmunkSpeedup) {
-					// Calculates semitone increase, can probably be improved but this will do for now
-					float semitones = relativeSpeed > 0 ? 1 * speed : -1 * speed;
-					Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Pitch, semitones);
-					Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Pitch, semitones);
+					float semitoneShift = percentageSpeed switch {
+						> 100 => percentageSpeed / 9 - 100 / 9,
+						< 100 => percentageSpeed / 3 - 100 / 3,
+						_     => 0
+					};
+
+					semitoneShift = Math.Clamp(semitoneShift, -60, 60);
+
+					Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Pitch, semitoneShift);
+					Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Pitch, semitoneShift);
 				}
 			}
 
@@ -126,9 +133,9 @@ namespace YARG {
 			Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, newBassVol);
 			
 			if (_isReverbing) {
-				Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Volume, newBassVol * 0.7);
+				Bass.ChannelSlideAttribute(ReverbStreamHandle, ChannelAttribute.Volume, (float)(newBassVol * 0.7), 1);
 			} else {
-				Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Volume, 0);
+				Bass.ChannelSlideAttribute(ReverbStreamHandle, ChannelAttribute.Volume, 0, 1);
 			}
 		}
 
@@ -146,7 +153,8 @@ namespace YARG {
 				int reverbFxHandle = BassHelpers.AddReverbToChannel(ReverbStreamHandle);
 				
 				double volumeSetting = _manager.GetVolumeSetting(Stem);
-				Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Volume,volumeSetting * Volume * 0.7);
+				//Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Volume,volumeSetting * Volume * 0.7);
+				Bass.ChannelSlideAttribute(ReverbStreamHandle, ChannelAttribute.Volume,(float)(volumeSetting * Volume * 0.7f), 200);
 
 				_effects.Add(REVERB_TYPE, reverbFxHandle);
 				
@@ -166,7 +174,8 @@ namespace YARG {
 				Bass.ChannelRemoveFX(ReverbStreamHandle, _effects[EffectType.PeakEQ + 2]);
 				Bass.ChannelRemoveFX(ReverbStreamHandle, _effects[REVERB_TYPE]);
 				
-				Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Volume, 0);
+				//Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Volume, 0);
+				Bass.ChannelSlideAttribute(ReverbStreamHandle, ChannelAttribute.Volume, 0, 250);
 
 				_effects.Remove(REVERB_TYPE);
 				

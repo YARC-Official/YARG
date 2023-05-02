@@ -21,23 +21,32 @@ Kadu
 HughToBasic35
 Narrik Synthfox
 ptigad
+EscapeNumber001
+grishhung
+jtanan44
+NevesPT
+
+<u><b>Lead-Artists</b></u>
+
+Kadu
+Mia Berth
 
 <u><b>Artists</b></u>
 
 EliteAsian (barely)
-Kadu
+
+<<COLUMN>>
+
 Blahaszi
 jnack
 marie0liie
-Mia Berth
 Pantotone
 Pixelholic
 Venerabela
 
-<<COLUMN>>
-
 <u><b>OG Supporters</b></u>
 
+unison
 mc_jojo3
 JalapenoHalo
 FruitloopMcGee
