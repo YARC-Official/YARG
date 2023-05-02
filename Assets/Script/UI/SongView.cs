@@ -31,12 +31,16 @@ namespace YARG.UI {
 					sourceIcon.sprite = loadedSprite;
 					sourceIcon.enabled = true;
 				} else {
-					Debug.LogError($"Failed to load source icon at path: Resources/{folderPath}");
+					sourceIcon.sprite = Resources.Load<Sprite>("Sources/custom");
 					sourceIcon.enabled = true;
 				}
 			} else {
 				sourceIcon.enabled = true;
 			}
+			
+			// 50% opacity
+			sourceIcon.color = new Color(0.5f, 0.5f, 0.5f, 0.5f); // grey out icon
+
 
 			songName.text = songInfo.SongName + $"     <i><alpha=#50>{songInfo.artistName}</i>";
 			artist.text = $"<i>{songInfo.artistName}</i>";

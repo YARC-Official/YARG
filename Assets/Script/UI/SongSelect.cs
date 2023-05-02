@@ -343,14 +343,16 @@ namespace YARG.UI {
 					.OrderBy(song => song.SongNameNoParen)
 					.Select(i => new SongOrHeader { song = i })
 					.ToList();
-				songs.Insert(0, new SongOrHeader { header = ("ALL SONGS ", $"<#00B6F5><b>{songs.Count}</b> <#006488>SONGS") });
+				songs.Insert(0, new SongOrHeader {
+					header = ($"ALL SONGS ", $"<#00B6F5><b>{songs.Count}</b> <#006488>{(songs.Count == 1 ? "SONG" : "SONGS")}")
+				});
 
 				// Add recommended songs
 				foreach (var song in recommendedSongs) {
 					songs.Insert(0, new SongOrHeader { song = song });
 				}
 				songs.Insert(0, new SongOrHeader {
-					header = ("RECOMMENDED SONGS", $"<#00B6F5><b>{recommendedSongs.Count}</b> <#006488>SONGS")
+					header = (recommendedSongs.Count == 1 ? "RECOMMENDED SONG" : "RECOMMENDED SONGS", $"<#00B6F5><b>{recommendedSongs.Count}</b> <#006488>{(recommendedSongs.Count == 1 ? "SONG" : "SONGS")}")
 				});
 			} else {
 				// Split up args
@@ -408,7 +410,9 @@ namespace YARG.UI {
 
 				// Add header
 				songs = songsOut.Select(i => new SongOrHeader { song = i }).ToList();
-				songs.Insert(0, new SongOrHeader { header = ($"SEARCH RESULTS", $"<#00B6F5><b>{songs.Count}</b> <#006488>SONGS") });
+				songs.Insert(0, new SongOrHeader {
+					header = (songs.Count == 1 ? "SEARCH RESULT" : "SEARCH RESULTS", $"<#00B6F5><b>{songs.Count}</b> <#006488>{(songs.Count == 1 ? "SONG" : "SONGS")}")
+				});
 			}
 
 			// Count songs

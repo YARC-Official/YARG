@@ -38,8 +38,6 @@ namespace YARG.UI {
 		[Space]
 		[SerializeField]
 		private RawImage albumCover;
-		[SerializeField]
-		private GameObject albumCoverAlt;
 
 		[Space]
 		[SerializeField]
@@ -71,13 +69,14 @@ namespace YARG.UI {
 					sourceIcon.sprite = loadedSprite;
 					sourceIcon.enabled = true;
 				} else {
-					Debug.LogError($"Failed to load source icon at path: Resources/{folderPath}");
+					// icon name = "custom"
+					sourceIcon.sprite = Resources.Load<Sprite>("Sources/custom");
 					sourceIcon.enabled = true;
 				}
 			} else {
 				sourceIcon.enabled = true;
 			}
-
+			
 			// Basic info
 			songName.text = $"<b>{songInfo.SongName}</b>" + $"<space=10px><#00DBFD><i>{songInfo.artistName}</i>";
 			artist.text = $"<i>{songInfo.artistName}</i>";
@@ -115,7 +114,6 @@ namespace YARG.UI {
 			// Album cover
 			albumCover.texture = null;
 			albumCover.color = new Color(0f, 0f, 0f, 0.4f);
-			albumCoverAlt.SetActive(true);
 
 			// Difficulties
 
@@ -215,7 +213,6 @@ namespace YARG.UI {
 				albumCover.texture = songInfo.imageInfo.GetAsTexture();
 				albumCover.color = Color.white;
 				albumCover.uvRect = new Rect(0f, 0f, 1f, -1f);
-				albumCoverAlt.SetActive(false);
 			}
 		}
 
@@ -242,7 +239,6 @@ namespace YARG.UI {
 			albumCover.texture = texture;
 			albumCover.color = Color.white;
 			albumCover.uvRect = new Rect(0f, 0f, 1f, 1f);
-			albumCoverAlt.SetActive(false);
 		}
 
 		public void PlaySong() {
