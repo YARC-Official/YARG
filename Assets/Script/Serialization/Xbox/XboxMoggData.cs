@@ -155,26 +155,26 @@ namespace YARG.Serialization {
 						break;
 					//drum (0 1 2): mono kick, stereo snare/kit --> (0) (1 2)
 					case 3:
-						stemMaps[SongStem.Drums] = new[] { drumArray[0] };
-						stemMaps[SongStem.Drums1] = new[] { drumArray[1], drumArray[2] };
+						stemMaps[SongStem.Drums1] = new[] { drumArray[0] };
+						stemMaps[SongStem.Drums2] = new[] { drumArray[1], drumArray[2] };
 						break;
 					//drum (0 1 2 3): mono kick, mono snare, stereo kit --> (0) (1) (2 3)
 					case 4:
-						stemMaps[SongStem.Drums] = new[] { drumArray[0] };
-						stemMaps[SongStem.Drums1] = new[] { drumArray[1] };
-						stemMaps[SongStem.Drums2] = new[] { drumArray[2], drumArray[3] };
+						stemMaps[SongStem.Drums1] = new[] { drumArray[0] };
+						stemMaps[SongStem.Drums2] = new[] { drumArray[1] };
+						stemMaps[SongStem.Drums3] = new[] { drumArray[2], drumArray[3] };
 						break;
 					//drum (0 1 2 3 4): mono kick, stereo snare, stereo kit --> (0) (1 2) (3 4)
 					case 5:
-						stemMaps[SongStem.Drums] = new[] { drumArray[0] };
-						stemMaps[SongStem.Drums1] = new[] { drumArray[1], drumArray[2] };
-						stemMaps[SongStem.Drums2] = new[] { drumArray[3], drumArray[4] };
+						stemMaps[SongStem.Drums1] = new[] { drumArray[0] };
+						stemMaps[SongStem.Drums2] = new[] { drumArray[1], drumArray[2] };
+						stemMaps[SongStem.Drums3] = new[] { drumArray[3], drumArray[4] };
 						break;
 					//drum (0 1 2 3 4 5): stereo kick, stereo snare, stereo kit --> (0 1) (2 3) (4 5)
 					case 6:
-						stemMaps[SongStem.Drums] = new[] { drumArray[0], drumArray[1] };
-						stemMaps[SongStem.Drums1] = new[] { drumArray[2], drumArray[3] };
-						stemMaps[SongStem.Drums2] = new[] { drumArray[4], drumArray[5] };
+						stemMaps[SongStem.Drums1] = new[] { drumArray[0], drumArray[1] };
+						stemMaps[SongStem.Drums2] = new[] { drumArray[2], drumArray[3] };
+						stemMaps[SongStem.Drums3] = new[] { drumArray[4], drumArray[5] };
 						break;
 				}
 
