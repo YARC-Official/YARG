@@ -55,6 +55,7 @@ public class DiscordController : MonoBehaviour {
 	[SerializeField]
 	private string defaultState = "Are you ready to rock?"; //smaller 2nd line of text
 	private string defaultLargeImage = "logo"; // string name comes from the assets uploaded to the app
+	//private string defaultLargeImage = "https://cld.pt/dl/download/6e981054-9955-427a-9e4a-80b92a503a01/Icon.gif"; // URL to an animated Logo
 	[SerializeField]
 	private string defaultLargeText = "Yet Another Rhythm Game"; //Tooltip text for the large icon
 	[SerializeField]
@@ -82,8 +83,7 @@ public class DiscordController : MonoBehaviour {
 	// A bunch of time handling stuff
 	private long gameStartTime; //start of YARG, doesn't stop
 	private float songLengthSeconds; //Length of song in seconds (not milliseconds)
-	private long pauseTime = 0; //when the song was last pasused
-	private long pauseAmount = 0; //the total amount of paused time
+
 
 	private void Start() {
 		Instance = this;
@@ -125,33 +125,25 @@ public class DiscordController : MonoBehaviour {
 	}
 
 	private void OnPauseToggle(bool pause) {
-		if (pause) {
-			pauseTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-			SetActivity(
-				currentSmallImage,
-				currentSmallText,
-				songName,
-				"by " + artistName,
-				0, 0
-			);
-		} else { //unpause
-			pauseAmount += DateTimeOffset.Now.ToUnixTimeMilliseconds() - pauseTime; //adding up all the pause time
-			SetActivity(
-				currentSmallImage,
-				currentSmallText,
-				songName,
-				"by " + artistName,
-				DateTimeOffset.Now.ToUnixTimeMilliseconds(),
-				DateTimeOffset.Now.AddSeconds(songLengthSeconds).ToUnixTimeMilliseconds() - pauseAmount
-			);
-		}
+		SetActivity(
+			// State data
+			pause ? "pause1" : currentSmallImage,
+			pause ? "Paused" : currentSmallText,
+			
+			// Song data
+			songName,
+			"by " + artistName,
+
+			// Time data
+			pause ? 0 : DateTimeOffset.Now.ToUnixTimeMilliseconds(),
+			pause ? 0 : DateTimeOffset.Now.AddSeconds(songLengthSeconds - Play.Instance.SongTime).ToUnixTimeMilliseconds()
+		);
 	}
 
 	private void OnSongStart(SongInfo song) {
 		songLengthSeconds = song.songLength;
 		songName = song.SongName;
 		artistName = song.artistName;
-		pauseAmount = 0;
 		SetActivity(
 			currentSmallImage,
 			currentSmallText,
@@ -179,7 +171,7 @@ public class DiscordController : MonoBehaviour {
 			"realDrums"  => "Really working the skins",
 			"ghDrums"    => "Working the skins +1",
 			"guitar"     => "Making it talk",
-			"guitarCoop"     => "GTR_COOP_PLACEHOLDER",
+			"guitarCoop" => "GTR_COOP_PLACEHOLDER",
 			"rhythm"     => "RHYTHM_PLACEHOLDER",
 			"realGuitar" => "Really making it talk",
 			"bass"       => "In the groove",
