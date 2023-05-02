@@ -12,7 +12,7 @@ using System;
 
 #endif
 
-namespace YARG.UI.SongSelect {
+namespace YARG.UI.MusicLibrary {
 	public class SelectedSongView : MonoBehaviour {
 		[SerializeField]
 		private TextMeshProUGUI songName;
@@ -70,8 +70,8 @@ namespace YARG.UI.SongSelect {
 			}
 
 			// Basic info
-			songName.text = $"<b>{songInfo.SongName}</b>" + $"<space=10px><#00DBFD><i>{songInfo.artistName}</i>";
-			artist.text = $"<i>{songInfo.artistName}</i>";
+			songName.text = songInfo.SongName;
+			artist.text = songInfo.artistName;
 
 			// Song score
 			var score = ScoreManager.GetScore(songInfo);
@@ -177,29 +177,18 @@ namespace YARG.UI.SongSelect {
 			MainMenu.Instance.ShowPreSong();
 		}
 
-		public void SearchArtist() {
-			SongSelection.Instance.searchField.text = $"artist:{songInfo.artistName}";
-		}
+		public void SearchFilter(string type) {
+			string value = type switch {
+				"artist" => songInfo.artistName,
+				"source" => songInfo.source,
+				"album" => songInfo.album,
+				"year" => songInfo.year,
+				"charter" => songInfo.charter,
+				"genre" => songInfo.genre,
+				_ => throw new System.Exception("Unreachable")
+			};
 
-		public void SearchSource() {
-			SongSelection.Instance.searchField.text = $"source:{songInfo.source}";
+			SongSelection.Instance.searchField.text = $"{type}:{value}";
 		}
-
-		public void SearchAlbum() {
-			SongSelection.Instance.searchField.text = $"album:{songInfo.album}";
-		}
-
-		public void SearchCharter() {
-			SongSelection.Instance.searchField.text = $"charter:{songInfo.charter}";
-		}
-
-		public void SearchGenre() {
-			SongSelection.Instance.searchField.text = $"genre:{songInfo.genre}";
-		}
-
-		public void SearchYear() {
-			SongSelection.Instance.searchField.text = $"year:{songInfo.year}";
-		}
-
 	}
 }

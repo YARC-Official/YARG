@@ -8,7 +8,7 @@ using UnityEngine.UI;
 using YARG.Data;
 using YARG.Input;
 
-namespace YARG.UI.SongSelect {
+namespace YARG.UI.MusicLibrary {
 	public class SongSelection : MonoBehaviour {
 		public static SongSelection Instance {
 			get;
@@ -37,8 +37,6 @@ namespace YARG.UI.SongSelect {
 		private SelectedSongView selectedSongView;
 		[SerializeField]
 		private Sidebar sidebar;
-		[SerializeField]
-		private TMP_Dropdown dropdown;
 		[SerializeField]
 		private GameObject noSongsText;
 		[SerializeField]
@@ -252,6 +250,10 @@ namespace YARG.UI.SongSelect {
 			MoveView(difference, false);
 		}
 
+		private void UpdateScrollbar() {
+			scrollbar.SetValueWithoutNotify((float) selectedSongIndex / songs.Count);
+		}
+
 		private void MoveView(int amount, bool updateScrollbar = true) {
 			if (songs.Count <= 0) {
 				return;
@@ -280,18 +282,10 @@ namespace YARG.UI.SongSelect {
 
 			// Update scroll bar
 			if (updateScrollbar) {
-				scrollbar.SetValueWithoutNotify((float) selectedSongIndex / songs.Count);
+				UpdateScrollbar();
 			}
 
 			UpdateSongViews();
-		}
-
-		private int FuzzySearch(string text, SongInfo song) {
-			if (dropdown.value == 0) {
-				return Fuzz.PartialRatio(song.SongName, text);
-			} else {
-				return Fuzz.PartialRatio(song.artistName, text);
-			}
 		}
 
 		public void UpdateSearch() {
@@ -300,67 +294,7 @@ namespace YARG.UI.SongSelect {
 				recommendedSongs = new();
 
 				if (SongLibrary.Songs.Count > 0) {
-					var mostPlayed = ScoreManager.SongsByPlayCount().Take(10).ToList();
-					if (mostPlayed.Count > 0) {
-						// Add two random top ten most played songs (ten tries each)
-						for (int i = 0; i < 2; i++) {
-							for (int t = 0; t < 10; t++) {
-								int n = Random.Range(0, mostPlayed.Count);
-								if (recommendedSongs.Contains(mostPlayed[n])) {
-									continue;
-								}
-
-								recommendedSongs.Add(mostPlayed[n]);
-								break;
-							}
-						}
-
-						// Add two random songs from artists that are in the most played (ten tries each)
-						for (int i = 0; i < 2; i++) {
-							for (int t = 0; t < 10; t++) {
-								int n = Random.Range(0, mostPlayed.Count);
-								var baseSong = mostPlayed[n];
-
-								// Look all songs by artist
-								var sameArtistSongs = SongLibrary.Songs
-									.Where(i => i.artistName?.ToLower() == baseSong.artistName?.ToLower())
-									.ToList();
-								if (sameArtistSongs.Count <= 1) {
-									continue;
-								}
-
-								// Pick
-								n = Random.Range(0, sameArtistSongs.Count);
-
-								// Skip if included
-								if (mostPlayed.Contains(sameArtistSongs[n])) {
-									continue;
-								}
-								if (recommendedSongs.Contains(sameArtistSongs[n])) {
-									continue;
-								}
-
-								// Add
-								recommendedSongs.Add(sameArtistSongs[n]);
-								break;
-							}
-						}
-					}
-
-					// Add a completely random song (ten tries)
-					var songsAsArray = SongLibrary.Songs.ToArray();
-					for (int t = 0; t < 10; t++) {
-						int n = Random.Range(0, songsAsArray.Length);
-						if (recommendedSongs.Contains(songsAsArray[n])) {
-							continue;
-						}
-
-						recommendedSongs.Add(songsAsArray[n]);
-						break;
-					}
-
-					// Reverse list because we add it backwards
-					recommendedSongs.Reverse();
+					FillRecommendedSongs();
 				}
 			}
 
@@ -387,51 +321,51 @@ namespace YARG.UI.SongSelect {
 				IEnumerable<SongInfo> songsOut = SongLibrary.Songs;
 
 				// Go through them all
-				bool fuzzySearched = false;
+				bool searched = false;
 				foreach (var arg in split) {
 					if (arg.StartsWith("artist:")) {
 						// Artist filter
 						var artist = arg[7..];
 						songsOut = SongLibrary.Songs
-							.Where(i => i.artistName.ToLower() == artist.ToLower());
+							.Where(i => i.artistName?.ToLower() == artist.ToLower());
 					} else if (arg.StartsWith("source:")) {
 						// Source filter
 						var source = arg[7..];
 						songsOut = SongLibrary.Songs
-							.Where(i => i.source.ToLower() == source.ToLower());
+							.Where(i => i.source?.ToLower() == source.ToLower());
 					} else if (arg.StartsWith("album:")) {
 						// Album filter
 						var album = arg[6..];
 						songsOut = SongLibrary.Songs
-							.Where(i => i.album.ToLower() == album.ToLower());
+							.Where(i => i.album?.ToLower() == album.ToLower());
 					} else if (arg.StartsWith("charter:")) {
 						// Charter filter
 						var charter = arg[8..];
 						songsOut = SongLibrary.Songs
-							.Where(i => i.charter.ToLower() == charter.ToLower());
+							.Where(i => i.charter?.ToLower() == charter.ToLower());
 					} else if (arg.StartsWith("year:")) {
 						// Year filter
 						var year = arg[5..];
 						songsOut = SongLibrary.Songs
-							.Where(i => i.year.ToLower() == year.ToLower());
+							.Where(i => i.year?.ToLower() == year.ToLower());
 					} else if (arg.StartsWith("genre:")) {
 						// Genre filter
 						var genre = arg[6..];
 						songsOut = SongLibrary.Songs
-							.Where(i => i.genre.ToLower() == genre.ToLower());
-					} else if (!fuzzySearched) {
-						// Fuzzy search
-						fuzzySearched = true;
+							.Where(i => i.genre?.ToLower() == genre.ToLower());
+					} else if (!searched) {
+						// Search
+						searched = true;
 						songsOut = songsOut
-							.Select(i => new { score = FuzzySearch(arg, i), songInfo = i })
-							.Where(i => i.score > 55)
-							.OrderByDescending(i => i.score)
+							.Select(i => new { score = Search(arg, i), songInfo = i })
+							.Where(i => i.score > 0)
+							.OrderBy(i => i.score)
 							.Select(i => i.songInfo);
 					}
 				}
 
 				// Sort
-				if (!fuzzySearched) {
+				if (!searched) {
 					songsOut = songsOut.OrderBy(song => song.SongNameNoParen);
 				}
 
@@ -457,6 +391,90 @@ namespace YARG.UI.SongSelect {
 
 			selectedSongIndex = 1;
 			UpdateSongViews();
+			UpdateScrollbar();
+		}
+
+		private int Search(string input, SongInfo songInfo) {
+			string i = input.ToLowerInvariant();
+
+			// Get scores
+			int nameIndex = songInfo.SongNameNoParen.ToLowerInvariant().IndexOf(i);
+			int artistIndex = songInfo.artistName.ToLowerInvariant().IndexOf(i);
+
+			// Return the best search
+			if (nameIndex == -1 && artistIndex == -1) {
+				return -1;
+			} else if (nameIndex == -1) {
+				return artistIndex;
+			} else if (artistIndex == -1) {
+				return nameIndex;
+			} else {
+				return Mathf.Min(nameIndex, artistIndex);
+			}
+		}
+
+		private void FillRecommendedSongs() {
+			var mostPlayed = ScoreManager.SongsByPlayCount().Take(10).ToList();
+			if (mostPlayed.Count > 0) {
+				// Add two random top ten most played songs (ten tries each)
+				for (int i = 0; i < 2; i++) {
+					for (int t = 0; t < 10; t++) {
+						int n = Random.Range(0, mostPlayed.Count);
+						if (recommendedSongs.Contains(mostPlayed[n])) {
+							continue;
+						}
+
+						recommendedSongs.Add(mostPlayed[n]);
+						break;
+					}
+				}
+
+				// Add two random songs from artists that are in the most played (ten tries each)
+				for (int i = 0; i < 2; i++) {
+					for (int t = 0; t < 10; t++) {
+						int n = Random.Range(0, mostPlayed.Count);
+						var baseSong = mostPlayed[n];
+
+						// Look all songs by artist
+						var sameArtistSongs = SongLibrary.Songs
+							.Where(i => i.artistName?.ToLower() == baseSong.artistName?.ToLower())
+							.ToList();
+						if (sameArtistSongs.Count <= 1) {
+							continue;
+						}
+
+						// Pick
+						n = Random.Range(0, sameArtistSongs.Count);
+
+						// Skip if included
+						if (mostPlayed.Contains(sameArtistSongs[n])) {
+							continue;
+						}
+						if (recommendedSongs.Contains(sameArtistSongs[n])) {
+							continue;
+						}
+
+						// Add
+						recommendedSongs.Add(sameArtistSongs[n]);
+						break;
+					}
+				}
+			}
+
+			// Add a completely random song (ten tries)
+			var songsAsArray = SongLibrary.Songs.ToArray();
+			for (int t = 0; t < 10; t++) {
+				int n = Random.Range(0, songsAsArray.Length);
+				if (recommendedSongs.Contains(songsAsArray[n])) {
+					continue;
+				}
+
+				recommendedSongs.Add(songsAsArray[n]);
+				break;
+			}
+
+			// Reverse list because we add it backwards
+			recommendedSongs.Reverse();
 		}
 
 		public void Back() {

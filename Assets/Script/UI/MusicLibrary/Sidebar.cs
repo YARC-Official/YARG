@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using YARG.Data;
 
-namespace YARG.UI.SongSelect {
+namespace YARG.UI.MusicLibrary {
 	public class Sidebar : MonoBehaviour {
 		[SerializeField]
 		private Transform difficultyRingsContainer;

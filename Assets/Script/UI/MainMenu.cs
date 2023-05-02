@@ -4,7 +4,7 @@ using UnityEngine.UI;
 using YARG.Data;
 using YARG.Input;
 using YARG.Settings;
-using YARG.UI.SongSelect;
+using YARG.UI.MusicLibrary;
 
 namespace YARG.UI {
 	public partial class MainMenu : MonoBehaviour {

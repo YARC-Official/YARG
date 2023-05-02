@@ -4,7 +4,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
 using YARG.Data;
 
-namespace YARG.UI.SongSelect {
+namespace YARG.UI.MusicLibrary {
 	public class DifficultyRing : MonoBehaviour {
 		[SerializeField]
 		private Image instrumentIcon;
