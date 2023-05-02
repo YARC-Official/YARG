@@ -110,6 +110,14 @@ namespace YARG.Serialization {
 			// Set infos
 			song.SongName = songDta.name;
 			song.source = songDta.gameOrigin;
+
+			// if the source is UGC/UGC_plus but no "UGC_" in shortname, assume it's a custom
+			if(songDta.gameOrigin == "ugc" || songDta.gameOrigin == "ugc_plus"){
+				if(!(songDta.shortname.Contains("UGC_"))){
+					song.source = "customs";
+				}
+			}
+
 			song.songLength = songDta.songLength / 1000f;
 			// song.delay
 			song.drumType = rb ? SongInfo.DrumType.FOUR_LANE : SongInfo.DrumType.FIVE_LANE;
