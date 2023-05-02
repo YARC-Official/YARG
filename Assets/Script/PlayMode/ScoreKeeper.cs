@@ -46,11 +46,11 @@ namespace YARG.PlayMode {
 		public double AddSolo(int notesHit, int notesMax) {
 			double ratio = (double) notesHit / notesMax;
 
-			if (ratio <= 0.5)
+			if (ratio < 0.6)
 				return 0;
 
 			// linear
-			double multiplier = math.clamp((ratio - 0.5) / 0.5, 0, 1);
+			double multiplier = math.clamp((ratio - 0.6) / 0.4, 0, 1);
 			double ptsEarned = 100 * notesHit * multiplier;
 
 			// +5% bonus points
