@@ -358,7 +358,7 @@ namespace YARG.UI.MusicLibrary {
 						searched = true;
 						songsOut = songsOut
 							.Select(i => new { score = Search(arg, i), songInfo = i })
-							.Where(i => i.score > 0)
+							.Where(i => i.score >= 0)
 							.OrderBy(i => i.score)
 							.Select(i => i.songInfo);
 					}
