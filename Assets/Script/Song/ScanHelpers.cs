@@ -1,4 +1,4 @@
-﻿using EasySharpIni;
+using EasySharpIni;
 using EasySharpIni.Converters;
 
 namespace YARG.Song {

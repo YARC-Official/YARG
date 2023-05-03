@@ -63,7 +63,7 @@ namespace YARG.UI {
 
 		private bool isUpdateShown;
 
-		private void Start() {
+		private async UniTask Start() {
 			Instance = this;
 
 			versionText.text = Constants.VERSION_TAG.ToString();
@@ -198,7 +198,7 @@ namespace YARG.UI {
 			Quit();
 		}
 
-		public void RefreshSongLibrary() {
+		public async UniTask RefreshSongLibrary() {
 			GameManager.Instance.SettingsMenu.gameObject.SetActive(false);
 
 			ScoreManager.Reset();
