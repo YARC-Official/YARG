@@ -1,10 +1,10 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Data;
 using YARG.Input;
 using YARG.Settings;
+using YARG.UI.MusicLibrary;
 
 namespace YARG.UI {
 	public partial class MainMenu : MonoBehaviour {
@@ -41,12 +41,6 @@ namespace YARG.UI {
 		private Canvas credits;
 
 		[Space]
-		[SerializeField]
-		private GameObject menuContainer;
-		[SerializeField]
-		private GameObject settingsContainer;
-		[SerializeField]
-		private GameObject songFolderManager;
 		[SerializeField]
 		private GameObject loadingScreen;
 		[SerializeField]
@@ -121,8 +115,9 @@ namespace YARG.UI {
 				return;
 			}
 
-			if (!isUpdateShown && GameManager.Instance.updateChecker.IsOutOfDate) {
+			if (!isUpdateShown && UpdateChecker.Instance.IsOutOfDate) {
 				isUpdateShown = true;
+
 				updateObject.gameObject.gameObject.SetActive(true);
 			}
 		}
@@ -155,7 +150,6 @@ namespace YARG.UI {
 			MainMenuBackground.Instance.cursorMoves = true;
 
 			mainMenu.gameObject.SetActive(true);
-			ShowMenuContainer();
 		}
 
 		public void ShowEditPlayers() {
@@ -191,28 +185,8 @@ namespace YARG.UI {
 			credits.gameObject.SetActive(true);
 		}
 
-		public void HideAllMainMenu() {
-			menuContainer.SetActive(false);
-			settingsContainer.SetActive(false);
-			songFolderManager.SetActive(false);
-		}
-
 		public void ShowSettingsMenu() {
-			HideAllMainMenu();
-
-			settingsContainer.SetActive(true);
-		}
-
-		public void ShowMenuContainer() {
-			HideAllMainMenu();
-
-			menuContainer.SetActive(true);
-		}
-
-		public void ShowSongFolderManager() {
-			HideAllMainMenu();
-
-			songFolderManager.SetActive(true);
+			GameManager.Instance.SettingsMenu.gameObject.SetActive(true);
 		}
 
 		public void ShowCalibrationScene() {
@@ -222,12 +196,14 @@ namespace YARG.UI {
 		}
 
 		public void AbortSongLoad() {
-			SettingsManager.DeleteSettingsFile();
+			SettingsManager.DeleteSettings();
 
 			Quit();
 		}
 
 		public void RefreshSongLibrary() {
+			GameManager.Instance.SettingsMenu.gameObject.SetActive(false);
+
 			SongLibrary.Reset();
 			ScoreManager.Reset();
 
@@ -235,7 +211,7 @@ namespace YARG.UI {
 			loadingScreen.SetActive(true);
 			ScoreManager.FetchScores();
 
-			SongSelect.refreshFlag = true;
+			SongSelection.refreshFlag = true;
 		}
 
 		public void OpenLatestRelease() {

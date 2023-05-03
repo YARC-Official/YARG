@@ -1,9 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using MoonscraperChartEditor.Song;
+using MoonscraperChartEditor.Song.IO;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
+using YARG.Chart;
 using YARG.Data;
 using YARG.Serialization.Parser;
 using YARG.Settings;
@@ -43,6 +46,8 @@ namespace YARG.PlayMode {
 		private OccurrenceList<string> audioLowering = new();
 		private OccurrenceList<string> audioReverb = new();
 
+		private int stemsReverbed;
+		
 		private float realSongTime;
 		public float SongTime {
 			get => realSongTime + PlayerManager.GlobalCalibration * speed;
@@ -53,7 +58,7 @@ namespace YARG.PlayMode {
 			private set;
 		}
 
-		public Chart chart;
+		public YargChart chart;
 
 		private int beatIndex = 0;
 		private int lyricIndex = 0;
@@ -106,7 +111,7 @@ namespace YARG.PlayMode {
 			bool isSpeedUp = Math.Abs(speed - 1) > float.Epsilon;
 
 			// Load MOGG if RB_CON, otherwise load stems
-			if (song.songType == SongInfo.SongType.RB_CON) {
+			if (song.songType == SongInfo.SongType.RB_CON_RAW) {
 				Debug.Log(song.moggInfo.ChannelCount);
 
 				GameManager.AudioManager.LoadMogg(song.moggInfo, isSpeedUp);
@@ -191,13 +196,29 @@ namespace YARG.PlayMode {
 			// }
 
 			// Parse
-			var parser = new MidiParser(song, files.ToArray());
-			chart = new Chart();
-			parser.Parse(chart);
+
+			MoonSong moonSong = null;
+			if (song.mainFile.EndsWith(".chart")) {
+				Debug.Log("Reading .chart file");
+				moonSong = ChartReader.ReadChart(song.mainFile);
+			}
+
+			chart = new YargChart(moonSong);
+			if (song.mainFile.EndsWith(".mid")) {
+				// Parse
+				var parser = new MidiParser(song, files.ToArray());
+				chart.InitializeArrays();
+				parser.Parse(chart);
+			} else if (song.mainFile.EndsWith(".chart")) {
+				var handler = new BeatHandler(moonSong);
+				handler.GenerateBeats();
+				chart.beats = handler.Beats;
+			}
 
 			// initialize current tempo
-			if (chart.beats.Count > 2)
-				CurrentBeatsPerSecond = chart.beats[1] - chart.beats[0];
+			if (chart.beats.Count > 2) {
+				CurrentBeatsPerSecond = chart.beats[1].Time - chart.beats[0].Time;
+			}
 		}
 
 		private void Update() {
@@ -272,7 +293,7 @@ namespace YARG.PlayMode {
 			});
 
 			// Update beats
-			while (chart.beats.Count > beatIndex && chart.beats[beatIndex] <= SongTime) {
+			while (chart.beats.Count > beatIndex && chart.beats[beatIndex].Time <= SongTime) {
 				foreach (var track in _tracks) {
 					if (!track.IsStarPowerActive || !GameManager.AudioManager.UseStarpowerFx) continue;
 
@@ -283,7 +304,7 @@ namespace YARG.PlayMode {
 				beatIndex++;
 
 				if (beatIndex < chart.beats.Count) {
-					CurrentBeatsPerSecond = 1 / (chart.beats[beatIndex] - chart.beats[beatIndex - 1]);
+					CurrentBeatsPerSecond = 1 / (chart.beats[beatIndex].Time - chart.beats[beatIndex - 1].Time);
 				}
 			}
 
@@ -323,7 +344,7 @@ namespace YARG.PlayMode {
 		}
 
 		private void UpdateAudio(string[] trackNames, string[] stemNames) {
-			if (SettingsManager.GetSettingValue<bool>("muteOnMiss")) {
+			if (SettingsManager.Settings.MuteOnMiss.Data) {
 				// Get total amount of players with the instrument (and the amount lowered)
 				int amountWithInstrument = 0;
 				int amountLowered = 0;
@@ -350,6 +371,8 @@ namespace YARG.PlayMode {
 			// Reverb audio with starpower
 
 			if (GameManager.AudioManager.UseStarpowerFx) {
+				GameManager.AudioManager.ApplyReverb(SongStem.Song, stemsReverbed > 0);
+				
 				foreach (var name in stemNames) {
 					var stem = AudioHelpers.GetStemFromName(name);
 
@@ -397,8 +420,10 @@ namespace YARG.PlayMode {
 
 		public void ReverbAudio(string name, bool apply) {
 			if (apply) {
+				stemsReverbed++;
 				audioReverb.Add(name);
 			} else {
+				stemsReverbed--;
 				audioReverb.Remove(name);
 			}
 		}

@@ -34,16 +34,16 @@ namespace YARG {
 
 		public static readonly IList<double> SfxVolume = new[] {
 			0.5,
-			0.4,
+			0.45,
 			0.5,
-			0.4,
+			0.45,
 			0.5,
-			0.12,
+			0.15,
 			1.0,
 			1.0,
 		};
 
-		public static IEnumerable<string> GetSupportedStems(string folder) {
+		public static ICollection<string> GetSupportedStems(string folder) {
 			var stems = new List<string>();
 
 			foreach (string filePath in Directory.GetFiles(folder)) {

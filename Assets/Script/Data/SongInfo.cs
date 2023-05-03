@@ -16,8 +16,9 @@ namespace YARG.Data {
 		}
 
 		public enum SongType {
-			SONG_INI,
-			RB_CON
+			SONG_INI,   // CH/PS
+			RB_CON_RAW, // CON rawfiles
+			RB_CON      // unextracted CON
 		}
 
 		public bool fetched;
