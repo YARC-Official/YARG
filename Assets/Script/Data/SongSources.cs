@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
 namespace YARG.Data {
-	public partial class SongInfo {
+	public static class SongSources {
 		private static readonly Dictionary<string, string> DEFAULT_SOURCES = new() {
 			{ "gh1", "Guitar Hero" },
 			{ "gh", "Guitar Hero" },
@@ -183,7 +183,7 @@ namespace YARG.Data {
 		/// <returns>
 		/// The converted short name (gh1) into the game name (Guitar Hero 1).
 		/// </returns>
-		private static string SourceToGameName(string source) {
+		public static string SourceToGameName(string source) {
 			if (source is null) {
 				return "Unknown Source";
 			}

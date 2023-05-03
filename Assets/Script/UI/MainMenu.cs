@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -5,6 +6,7 @@ using UnityEngine.UI;
 using YARG.Data;
 using YARG.Input;
 using YARG.Settings;
+using YARG.Song;
 using YARG.UI.MusicLibrary;
 
 namespace YARG.UI {
@@ -24,7 +26,7 @@ namespace YARG.UI {
 			EXIT
 		}
 
-		public SongInfo chosenSong = null;
+		public SongEntry chosenSong = null;
 
 		[SerializeField]
 		private Canvas mainMenu;
@@ -61,13 +63,13 @@ namespace YARG.UI {
 
 		private bool isUpdateShown;
 
-		private async UniTask Start() {
+		private void Start() {
 			Instance = this;
 
 			versionText.text = Constants.VERSION_TAG.ToString();
 
-			if (SongLibrary.SongsByHash == null) {
-				await RefreshSongLibrary();
+			if (SongContainer.SongsByHash == null) {
+				RefreshSongLibrary();
 			}
 
 			if (!isPostSong) {
@@ -104,14 +106,8 @@ namespace YARG.UI {
 		private void Update() {
 			// Update progress if loading
 			if (loadingScreen.activeSelf) {
-				progressBar.fillAmount = SongLibrary.loadPercent;
-				loadingStatus.text = SongLibrary.currentTaskDescription;
-
-				// Finish loading
-				if (!SongLibrary.currentlyLoading) {
-					loadingScreen.SetActive(false);
-					SongLibrary.loadPercent = 0f;
-				}
+				// TODO implement new loading screen
+				loadingScreen.SetActive(false);
 
 				return;
 			}
@@ -202,23 +198,16 @@ namespace YARG.UI {
 			Quit();
 		}
 
-		public async UniTask RefreshSongLibrary() {
+		public void RefreshSongLibrary() {
 			GameManager.Instance.SettingsMenu.gameObject.SetActive(false);
 
 			ScoreManager.Reset();
 
+			Task.Run(async () => await SongContainer.ScanAllFolders(false));
+			
 			loadingScreen.SetActive(true);
-			GameManager.SongScanner.AddSongFolder(@"G:\Clone Hero\Songs\- Official GH Games");
-			
-			GameManager.SongScanner.AddSongFolder(@"D:\Songs\Carpal Tunnel Hero 3");
-			GameManager.SongScanner.AddSongFolder(@"D:\Songs\Carpal Tunnel Hero 2");
-			
-			Debug.Log("Calling start scan");
-			await GameManager.SongScanner.StartScan(false);
-			Debug.Log("Returned from start scan");
-			
-			//SongLibrary.FetchEverything();
-			//ScoreManager.FetchScores();
+
+			ScoreManager.FetchScores();
 
 			SongSelection.refreshFlag = true;
 		}

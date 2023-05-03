@@ -1,11 +1,20 @@
 ﻿using System;
+using System.Collections.Generic;
+using YARG.Data;
 
 namespace YARG.Song {
 	public abstract class SongEntry {
 		
-		public SongType Type { get; set; }
+		public string CacheRoot { get; set; }
+		
+		public SongType SongType { get; set; }
+		
+		public DrumType DrumType { get; set; }
 		
 		public string Name { get; set; } = string.Empty;
+		
+		public string NameNoParenthesis => string.IsNullOrEmpty(Name) ? "" : Name.Replace("(", "").Replace(")", "");
+
 		public string Artist { get; set; } = string.Empty;
 		public string Charter { get; set; } = string.Empty;
 		
@@ -26,13 +35,17 @@ namespace YARG.Song {
 		public int PreviewEnd { get; set; }
 		public TimeSpan PreviewEndTimeSpan => TimeSpan.FromMilliseconds(PreviewEnd);
 		
+		public double Delay { get; set; }
+		
 		public string LoadingPhrase { get; set; } = string.Empty;
 		
 		public int HopoThreshold { get; set; }
 		public bool EighthNoteHopo { get; set; }
 		public int MultiplierNote { get; set; }
 		
-		public string Icon { get; set; } = string.Empty;
+		public string Source { get; set; } = string.Empty;
+
+		public Dictionary<Instrument, int> PartDifficulties { get; } = new();
 		
 		public string Checksum  { get; set; }
 		public string NotesFile { get; set; }
@@ -44,5 +57,11 @@ namespace YARG.Song {
 		SongIni,
 		RbConRaw,
 		RbCon,
+	}
+	
+	public enum DrumType {
+		FourLane,
+		FiveLane, // AKA GH
+		Unknown
 	}
 }

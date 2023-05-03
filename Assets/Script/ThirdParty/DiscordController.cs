@@ -3,6 +3,7 @@ using Discord;
 using UnityEngine;
 using YARG.Data;
 using YARG.PlayMode;
+using YARG.Song;
 using YARG.UI;
 
 public class DiscordController : MonoBehaviour {
@@ -140,10 +141,10 @@ public class DiscordController : MonoBehaviour {
 		);
 	}
 
-	private void OnSongStart(SongInfo song) {
-		songLengthSeconds = song.songLength;
-		songName = song.SongName;
-		artistName = song.artistName;
+	private void OnSongStart(SongEntry song) {
+		songLengthSeconds = song.SongLengthTimeSpan.Seconds;
+		songName = song.Name;
+		artistName = song.Artist;
 		SetActivity(
 			currentSmallImage,
 			currentSmallText,
@@ -154,7 +155,7 @@ public class DiscordController : MonoBehaviour {
 		);
 	}
 
-	private void OnSongEnd(SongInfo song) {
+	private void OnSongEnd(SongEntry song) {
 		SetDefaultActivity();
 	}
 

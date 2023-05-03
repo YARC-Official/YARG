@@ -1,8 +1,10 @@
 using System.IO;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using SFB;
 using TMPro;
 using UnityEngine;
+using YARG.Song;
 using YARG.UI;
 using YARG.Util;
 
@@ -21,9 +23,9 @@ namespace YARG.Settings {
 			get => _pathsReference;
 			set {
 				if (isUpgradeFolder) {
-					SongLibrary.SongUpgradeFolders = value;
+					SongContainer.songUpgradeFolders = value;
 				} else {
-					SongLibrary.SongFolders = value;
+					SongContainer.songFolders = value;
 				}
 			}
 		}
@@ -33,9 +35,9 @@ namespace YARG.Settings {
 			this.isUpgradeFolder = isUpgradeFolder;
 
 			if (isUpgradeFolder) {
-				_pathsReference = SongLibrary.SongUpgradeFolders;
+				_pathsReference = SongContainer.songUpgradeFolders;
 			} else {
-				_pathsReference = SongLibrary.SongFolders;
+				_pathsReference = SongContainer.songFolders;
 			}
 
 			RefreshText();
@@ -51,8 +53,8 @@ namespace YARG.Settings {
 				if (isUpgradeFolder) {
 					songCountText.text = "";
 				} else {
-					int songCount = SongLibrary.Songs.Count(i =>
-						Utils.PathsEqual(i.cacheRoot, PathsReference[index]));
+					int songCount = SongContainer.Songs.Count(i =>
+						Utils.PathsEqual(i.CacheRoot, PathsReference[index]));
 					songCountText.text = $"{songCount} <alpha=#60>SONGS";
 				}
 			}
@@ -82,13 +84,6 @@ namespace YARG.Settings {
 
 		public void Refresh() {
 			GameManager.Instance.SettingsMenu.hasSongLibraryChanged = false;
-
-			// Delete it
-			var file = SongLibrary.HashFilePath(PathsReference[index]);
-			var path = Path.Combine(SongLibrary.CacheFolder, file + ".json");
-			if (File.Exists(path)) {
-				File.Delete(path);
-			}
 
 			// Refresh
 			MainMenu.Instance.RefreshSongLibrary();

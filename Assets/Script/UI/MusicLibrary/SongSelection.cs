@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using FuzzySharp;
@@ -7,6 +8,8 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using YARG.Data;
 using YARG.Input;
+using YARG.Song;
+using Random = UnityEngine.Random;
 
 namespace YARG.UI.MusicLibrary {
 	public class SongSelection : MonoBehaviour {
@@ -22,7 +25,7 @@ namespace YARG.UI.MusicLibrary {
 		private const float INPUT_REPEAT_COOLDOWN = 0.5f;
 
 		private class SongOrHeader {
-			public SongInfo song;
+			public SongEntry song;
 			public (string, string) header;
 		}
 
@@ -43,7 +46,7 @@ namespace YARG.UI.MusicLibrary {
 		private Scrollbar scrollbar;
 
 		private List<SongOrHeader> songs;
-		private List<SongInfo> recommendedSongs;
+		private List<SongEntry> recommendedSongs;
 
 		private List<SongView> songViewsBefore = new();
 		private List<SongView> songViewsAfter = new();
@@ -58,7 +61,7 @@ namespace YARG.UI.MusicLibrary {
 		// Will be set in UpdateSearch
 		private int selectedSongIndex;
 
-		public SongInfo SelectedSong => songs[selectedSongIndex].song;
+		public SongEntry SelectedSong => songs[selectedSongIndex].song;
 
 		private void Awake() {
 			refreshFlag = true;
@@ -233,7 +236,7 @@ namespace YARG.UI.MusicLibrary {
 				case NavigationType.SECONDARY: Back(); break;
 				case NavigationType.TERTIARY:
 					if (songs.Count > 0) {
-						searchField.text = $"artist:{songs[selectedSongIndex].song.artistName}";
+						searchField.text = $"artist:{songs[selectedSongIndex].song.Artist}";
 					}
 					break;
 			}
@@ -293,15 +296,15 @@ namespace YARG.UI.MusicLibrary {
 			if (recommendedSongs == null) {
 				recommendedSongs = new();
 
-				if (SongLibrary.Songs.Count > 0) {
+				if (SongContainer.Songs.Count > 0) {
 					FillRecommendedSongs();
 				}
 			}
 
 			if (string.IsNullOrEmpty(searchField.text)) {
 				// Add all songs
-				songs = SongLibrary.Songs
-					.OrderBy(song => song.SongNameNoParen)
+				songs = SongContainer.Songs
+					.OrderBy(song => song.NameNoParenthesis)
 					.Select(i => new SongOrHeader { song = i })
 					.ToList();
 				songs.Insert(0, new SongOrHeader {
@@ -318,7 +321,7 @@ namespace YARG.UI.MusicLibrary {
 			} else {
 				// Split up args
 				var split = searchField.text.Split(';');
-				IEnumerable<SongInfo> songsOut = SongLibrary.Songs;
+				IEnumerable<SongEntry> songsOut = SongContainer.Songs;
 
 				// Go through them all
 				bool searched = false;
@@ -326,33 +329,33 @@ namespace YARG.UI.MusicLibrary {
 					if (arg.StartsWith("artist:")) {
 						// Artist filter
 						var artist = arg[7..];
-						songsOut = SongLibrary.Songs
-							.Where(i => i.artistName?.ToLower() == artist.ToLower());
+						songsOut = SongContainer.Songs
+							.Where(i => i.Artist?.ToLower() == artist.ToLower());
 					} else if (arg.StartsWith("source:")) {
 						// Source filter
 						var source = arg[7..];
-						songsOut = SongLibrary.Songs
-							.Where(i => i.source?.ToLower() == source.ToLower());
+						songsOut = SongContainer.Songs
+							.Where(i => i.Source?.ToLower() == source.ToLower());
 					} else if (arg.StartsWith("album:")) {
 						// Album filter
 						var album = arg[6..];
-						songsOut = SongLibrary.Songs
-							.Where(i => i.album?.ToLower() == album.ToLower());
+						songsOut = SongContainer.Songs
+							.Where(i => i.Album?.ToLower() == album.ToLower());
 					} else if (arg.StartsWith("charter:")) {
 						// Charter filter
 						var charter = arg[8..];
-						songsOut = SongLibrary.Songs
-							.Where(i => i.charter?.ToLower() == charter.ToLower());
+						songsOut = SongContainer.Songs
+							.Where(i => i.Charter?.ToLower() == charter.ToLower());
 					} else if (arg.StartsWith("year:")) {
 						// Year filter
 						var year = arg[5..];
-						songsOut = SongLibrary.Songs
-							.Where(i => i.year?.ToLower() == year.ToLower());
+						songsOut = SongContainer.Songs
+							.Where(i => i.Year?.ToLower() == year.ToLower());
 					} else if (arg.StartsWith("genre:")) {
 						// Genre filter
 						var genre = arg[6..];
-						songsOut = SongLibrary.Songs
-							.Where(i => i.genre?.ToLower() == genre.ToLower());
+						songsOut = SongContainer.Songs
+							.Where(i => i.Genre?.ToLower() == genre.ToLower());
 					} else if (!searched) {
 						// Search
 						searched = true;
@@ -366,7 +369,7 @@ namespace YARG.UI.MusicLibrary {
 
 				// Sort
 				if (!searched) {
-					songsOut = songsOut.OrderBy(song => song.SongNameNoParen);
+					songsOut = songsOut.OrderBy(song => song.NameNoParenthesis);
 				}
 
 				// Add header
@@ -394,12 +397,12 @@ namespace YARG.UI.MusicLibrary {
 			UpdateScrollbar();
 		}
 
-		private int Search(string input, SongInfo songInfo) {
+		private int Search(string input, SongEntry songInfo) {
 			string i = input.ToLowerInvariant();
 
 			// Get scores
-			int nameIndex = songInfo.SongNameNoParen.ToLowerInvariant().IndexOf(i);
-			int artistIndex = songInfo.artistName.ToLowerInvariant().IndexOf(i);
+			int nameIndex = songInfo.NameNoParenthesis.ToLowerInvariant().IndexOf(i);
+			int artistIndex = songInfo.Artist.ToLowerInvariant().IndexOf(i, StringComparison.Ordinal);
 
 			// Return the best search
 			if (nameIndex == -1 && artistIndex == -1) {
@@ -436,8 +439,8 @@ namespace YARG.UI.MusicLibrary {
 						var baseSong = mostPlayed[n];
 
 						// Look all songs by artist
-						var sameArtistSongs = SongLibrary.Songs
-							.Where(i => i.artistName?.ToLower() == baseSong.artistName?.ToLower())
+						var sameArtistSongs = SongContainer.Songs
+							.Where(i => i.Artist?.ToLower() == baseSong.Artist?.ToLower())
 							.ToList();
 						if (sameArtistSongs.Count <= 1) {
 							continue;
@@ -462,9 +465,9 @@ namespace YARG.UI.MusicLibrary {
 			}
 
 			// Add a completely random song (ten tries)
-			var songsAsArray = SongLibrary.Songs.ToArray();
+			var songsAsArray = SongContainer.Songs;
 			for (int t = 0; t < 10; t++) {
-				int n = Random.Range(0, songsAsArray.Length);
+				int n = Random.Range(0, songsAsArray.Count);
 				if (recommendedSongs.Contains(songsAsArray[n])) {
 					continue;
 				}

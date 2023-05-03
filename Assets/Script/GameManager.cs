@@ -27,8 +27,6 @@ namespace YARG {
 		public static string PersistentDataPath { get; private set; }
 
 		public static IAudioManager AudioManager { get; private set; }
-		
-		public static SongScanner SongScanner { get; private set; }
 
 		[field: SerializeField]
 		public SettingsMenu SettingsMenu { get; private set; }
@@ -54,8 +52,6 @@ namespace YARG {
 			
 			AudioManager = gameObject.AddComponent<BassAudioManager>();
 			AudioManager.Initialize();
-			
-			SongScanner = gameObject.AddComponent<SongScanner>();
 		}
 
 		private void Start() {

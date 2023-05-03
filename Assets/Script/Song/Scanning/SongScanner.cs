@@ -9,24 +9,25 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace YARG.Song {
-	public class SongScanner : MonoBehaviour {
+	public class SongScanner {
 		
 		private const int MAX_THREAD_COUNT = 2;
 		
-		private readonly List<string> _songFolders;
+		private readonly ICollection<string> _songFolders;
 
 		private SongScanThread[] _scanThreads;
+		
+		public int TotalFoldersScanned { get; private set; }
+		public int TotalSongsScanned { get; private set; }
+		public int TotalErrorsEncountered { get; private set; }
 
 		private bool _isScanning;
+		private bool _hasScanned;
 		
-		public SongScanner() {
-			Debug.Log("Initialized SongScanner");
-			_songFolders = new List<string>();
-			_scanThreads = new SongScanThread[MAX_THREAD_COUNT];
+		public SongScanner(ICollection<string> songFolders) {
+			_songFolders = songFolders;
 			
-			for(int i = 0; i < _scanThreads.Length; i++) {
-				_scanThreads[i] = new SongScanThread(false);
-			}
+			Debug.Log("Initialized SongScanner");
 		}
 
 		private void OnDestroy() {
@@ -44,17 +45,18 @@ namespace YARG.Song {
 			}
 		}
 
-		public void AddSongFolder(string path) {
-			_songFolders.Add(path);
-		}
-
-		public async UniTask<List<SongEntry>> StartScan(bool fast) {
+		public async UniTask<List<SongEntry>> StartScan(bool fast, Action<SongScanner> updateUi) {
+			if (_hasScanned) {
+				throw new Exception("Cannot use a SongScanner after it has already scanned");
+			}
 			var songs = new List<SongEntry>();
 
 			if (_songFolders.Count == 0) {
 				Debug.LogError("No song folders added to SongScanner");
 				return songs;
 			}
+			
+			_scanThreads = new SongScanThread[MAX_THREAD_COUNT];
 			
 			for(int i = 0; i < _scanThreads.Length; i++) {
 				_scanThreads[i] = new SongScanThread(fast);
@@ -76,6 +78,17 @@ namespace YARG.Song {
 			// Keep looping until all threads are done
 			while (GetActiveThreads() > 0) {
 				// Update UI here
+				TotalFoldersScanned = 0;
+				TotalSongsScanned = 0;
+				TotalErrorsEncountered = 0;
+				
+				foreach(var thread in _scanThreads) {
+					TotalFoldersScanned += thread.foldersScanned;
+					TotalSongsScanned += thread.songsScanned;
+					TotalErrorsEncountered += thread.errorsEncountered;
+				}
+
+				updateUi(this);
 
 				await UniTask.NextFrame();
 			}
@@ -87,16 +100,10 @@ namespace YARG.Song {
 			}
 
 			_isScanning = false;
+			_hasScanned = true;
 			Debug.Log("FINISHED SCANNING");
 			
-			// foreach (var error in _songErrors) {
-			// 	if (error.Value.Count == 0) continue;
-			//
-			// 	Debug.LogError($"Error for cache {error.Key}:");
-			// 	foreach (var song in error.Value) {
-			// 		Debug.LogError($"Song {song.Directory} had error {song.Result}");
-			// 	}
-			// }
+			// TODO output song errors at some point
 
 			_scanThreads = null;
 
