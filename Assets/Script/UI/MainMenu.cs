@@ -208,10 +208,14 @@ namespace YARG.UI {
 			ScoreManager.Reset();
 
 			loadingScreen.SetActive(true);
-			// GameManager.SongScanner.AddSongFolder(@"G:\Clone Hero\Songs");
-			// Debug.Log("Calling start scan");
-			// await GameManager.SongScanner.StartScan(true);
-			// Debug.Log("Returned from start scan");
+			GameManager.SongScanner.AddSongFolder(@"G:\Clone Hero\Songs\- Official GH Games");
+			
+			GameManager.SongScanner.AddSongFolder(@"D:\Songs\Carpal Tunnel Hero 3");
+			GameManager.SongScanner.AddSongFolder(@"D:\Songs\Carpal Tunnel Hero 2");
+			
+			Debug.Log("Calling start scan");
+			await GameManager.SongScanner.StartScan(false);
+			Debug.Log("Returned from start scan");
 			
 			//SongLibrary.FetchEverything();
 			//ScoreManager.FetchScores();

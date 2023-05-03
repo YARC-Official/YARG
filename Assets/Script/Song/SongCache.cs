@@ -10,17 +10,19 @@ namespace YARG.Song {
 		
 		private const int CACHE_VERSION = 23_05_01;
 
-		private readonly string _folder;
 		private readonly string _cacheFile;
 		
 		public SongCache(string folder) {
-			_folder = folder;
 			string hex = BitConverter.ToString(SHA1.Create().ComputeHash(Encoding.UTF8.GetBytes(folder))).Replace("-", "");
 			
 			_cacheFile = Path.Combine(GameManager.PersistentDataPath, "caches", $"{hex}.bin");
 		}
 
 		public void WriteCache(List<SongEntry> songs) {
+			if (songs.Count == 0) {
+				return;
+			}
+			
 			using var writer = new BinaryWriter(File.Open(_cacheFile, FileMode.Create, FileAccess.ReadWrite));
 			
 			writer.Write(CACHE_VERSION);

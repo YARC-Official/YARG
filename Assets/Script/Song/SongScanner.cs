@@ -1,194 +1,147 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace YARG.Song {
 	public class SongScanner : MonoBehaviour {
+		
+		private const int MAX_THREAD_COUNT = 2;
+		
+		private readonly List<string> _songFolders;
 
-		/*/
-		 
-		 TODO: Add parallel scanning across multiple drives
-		 
-		 */
+		private SongScanThread[] _scanThreads;
 
-		private readonly Dictionary<string, SongCache> _songCaches;
-		private readonly Dictionary<string, List<SongEntry>> _songsByCacheFolder;
-		private readonly Dictionary<string, List<SongError>> _songErrors;
-
-		private Thread _scanningThread;
+		private bool _isScanning;
 		
 		public SongScanner() {
 			Debug.Log("Initialized SongScanner");
-			_songCaches = new Dictionary<string, SongCache>();
-			_songsByCacheFolder = new Dictionary<string, List<SongEntry>>();
-			_songErrors = new Dictionary<string, List<SongError>>();
+			_songFolders = new List<string>();
+			_scanThreads = new SongScanThread[MAX_THREAD_COUNT];
+			
+			for(int i = 0; i < _scanThreads.Length; i++) {
+				_scanThreads[i] = new SongScanThread(false);
+			}
 		}
 
-		private void OnApplicationQuit() {
-			if (_scanningThread is null || !_scanningThread.IsAlive) return;
+		private void OnDestroy() {
+			if (_isScanning) {
+				Debug.Log("ABORTING SONG SCAN");
+				_isScanning = false;
+			}
+
+			if (_scanThreads == null) {
+				return;
+			}
 			
-			Debug.Log("ABORTING SONG SCAN");
-			_scanningThread.Abort();
+			foreach (var thread in _scanThreads) {
+				thread?.Abort();
+			}
 		}
 
 		public void AddSongFolder(string path) {
-			_songErrors.Add(path, new List<SongError>());
-				
-			if (!Directory.Exists(path)) {
-				_songErrors[path].Add(new SongError(path, ScanResult.InvalidDirectory));
-					
-				Debug.LogError($"Invalid song directory: {path}");
-				return;
-			}
-				
-			_songsByCacheFolder.Add(path, new List<SongEntry>());
-			_songCaches.Add(path, new SongCache(path));
+			_songFolders.Add(path);
 		}
 
 		public async UniTask<List<SongEntry>> StartScan(bool fast) {
 			var songs = new List<SongEntry>();
-			
-			if(_songsByCacheFolder.Keys.Count == 0) {
+
+			if (_songFolders.Count == 0) {
 				Debug.LogError("No song folders added to SongScanner");
 				return songs;
 			}
-
-			if (fast) {
-				// Only reads cache
-				_scanningThread = new Thread(FastScan) {
-					IsBackground = true
-				};
-			} else {
-				// Scans directories
-				_scanningThread = new Thread(FullScan) {
-					IsBackground = true
-				};
+			
+			for(int i = 0; i < _scanThreads.Length; i++) {
+				_scanThreads[i] = new SongScanThread(fast);
 			}
+
+			AssignFoldersToThreads();
+
+			_isScanning = true;
 			
-			_scanningThread.Start();
-			
+			foreach (var scanThread in _scanThreads) {
+				scanThread.StartScan();
+			}
+
 			// Threads can have a startup time, so we wait until it's alive
-			while (!_scanningThread.IsAlive) {
+			while (GetActiveThreads() == 0) {
 				await UniTask.NextFrame();
 			}
-			while (_scanningThread.IsAlive) {
+
+			// Keep looping until all threads are done
+			while (GetActiveThreads() > 0) {
 				// Update UI here
 
 				await UniTask.NextFrame();
 			}
-
-			_scanningThread = null;
 			
-			foreach(var error in _songErrors) {
-				if(error.Value.Count == 0) continue;
-				
-				Debug.LogError($"Error for cache {error.Key}:");
-				foreach(var song in error.Value) {
-					Debug.LogError($"Song {song.Directory} had error {song.Result}");
-				}
+			// All threads have finished here
+
+			foreach(var thread in _scanThreads) {
+				songs.AddRange(thread.Songs);
 			}
+
+			_isScanning = false;
+			Debug.Log("FINISHED SCANNING");
+			
+			// foreach (var error in _songErrors) {
+			// 	if (error.Value.Count == 0) continue;
+			//
+			// 	Debug.LogError($"Error for cache {error.Key}:");
+			// 	foreach (var song in error.Value) {
+			// 		Debug.LogError($"Song {song.Directory} had error {song.Result}");
+			// 	}
+			// }
+
+			_scanThreads = null;
 
 			return songs;
 		}
 
-		private void FullScan() {
-			Debug.Log("Performing full scan");
-			foreach(string folder in _songsByCacheFolder.Keys) {
-				Debug.Log($"Scanning folder: {folder}");
-				ScanSubDirectory(folder, folder, _songsByCacheFolder[folder]);
+		public int GetActiveThreads() {
+			return _scanThreads.Count(thread => thread.IsScanning());
+		}
 
-				Debug.Log($"Finished scanning {folder}, writing cache");
+		private void AssignFoldersToThreads() {
+			var drives = DriveInfo.GetDrives();
+			
+			var driveFolders = drives.ToDictionary(drive => drive, _ => new List<string>());
+
+			foreach (var folder in _songFolders) {
+				var drive = drives.FirstOrDefault(d => folder.StartsWith(d.RootDirectory.Name));
+				if (drive == null) {
+					Debug.LogError($"Folder {folder} is not on a drive");
+					continue;
+				}
 				
-				_songCaches[folder].WriteCache(_songsByCacheFolder[folder]);
-				Debug.Log("Wrote cache");
-			}
-		}
-
-		private void FastScan() {
-			Debug.Log("Performing fast scan");
-
-			// This is stupid
-			var caches = new Dictionary<string, List<SongEntry>>();
-			foreach (string folder in _songsByCacheFolder.Keys) {
-				Debug.Log($"Reading cache of {folder}");
-				caches.Add(folder, _songCaches[folder].ReadCache());
-				Debug.Log($"Read cache of {folder}");
+				driveFolders[drive].Add(folder);
 			}
 
-			foreach (var cache in caches) {
-				_songsByCacheFolder[cache.Key] = cache.Value;
-				Debug.Log($"Songs read from {cache.Key}: {cache.Value.Count}");
-			}
-		}
-
-		private void ScanSubDirectory(string cache, string folder, ICollection<SongEntry> songs) {
-			// Raw CON folder, so don't scan anymore subdirectories here
-			if (File.Exists(Path.Combine(folder, "songs", "songs.dta"))) {
-				// TODO Scan raw CON
+			int threadIndex = 0;
+			using var enumerator = driveFolders.GetEnumerator();
+			
+			while (enumerator.MoveNext() && enumerator.Current.Key is not null) {
+				// No folders for this drive
+				if (enumerator.Current.Value.Count == 0) {
+					continue;
+				}
 				
-				return;
-			}
-			
-			string[] subdirectories = Directory.GetDirectories(folder);
-			
-			foreach (string subdirectory in subdirectories) {
-				ScanSubDirectory(cache, subdirectory, songs);
-			}
-			
-			var result = ScanSong(folder, out var song);
-			switch (result) {
-				case ScanResult.Ok:
-					songs.Add(song);
-					Debug.Log("Added song: " + song.Name);
-					break;
-				case ScanResult.NotASong:
-					break;
-				default:
-					_songErrors[cache].Add(new SongError(folder, result));
-					break;
+				// Add every folder from this drive to the thread
+				enumerator.Current.Value.ForEach(x => _scanThreads[threadIndex].AddFolder(x));
+				
+				threadIndex++;
+				
+				if (threadIndex >= MAX_THREAD_COUNT) {
+					threadIndex = 0;
+				}
 			}
 		}
 
-		private static ScanResult ScanSong(string directory, out SongEntry song) {
-			// Usually we could infer metadata from a .chart file if no ini exists
-			// But for now we just skip this song.
-			song = null;
-			if(!File.Exists(Path.Combine(directory, "song.ini"))) {
-				return ScanResult.NotASong;
-			}
-			
-			if(!File.Exists(Path.Combine(directory, "notes.chart")) && !File.Exists(Path.Combine(directory, "notes.mid"))) {
-				return ScanResult.NoNotesFile;
-			}
-
-			if (AudioHelpers.GetSupportedStems(directory).Count == 0) {
-				return ScanResult.NoAudioFile;
-			}
-			
-			string notesFile = File.Exists(Path.Combine(directory, "notes.chart")) ? "notes.chart" : "notes.mid";
-			
-			// Windows has a 260 character limit for file paths, so we need to check this
-			if(Path.Combine(directory, notesFile).Length >= 255) {
-				return ScanResult.NoNotesFile;
-			}
-			
-			byte[] bytes = File.ReadAllBytes(Path.Combine(directory, notesFile));
-			
-			var checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes)).Replace("-", "");
-			
-			// We have a song.ini, notes file and audio. The song is scannable.
-			song = new IniSongEntry {
-				Location = directory,
-				Checksum = checksum,
-				NotesFile = notesFile,
-			};
-
-			return ScanHelpers.ParseSongIni(Path.Combine(directory, "song.ini"), (IniSongEntry)song);
-		}
 	}
 
 	public enum ScanResult {
