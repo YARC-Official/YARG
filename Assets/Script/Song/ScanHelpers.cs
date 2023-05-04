@@ -75,20 +75,21 @@ namespace YARG.Song {
 		}
 
 		private static void ReadDifficulties(IniSection section, SongEntry entry) {
+			entry.PartDifficulties.Clear();
 
-			entry.PartDifficulties[Instrument.GUITAR] = section.GetField("diff_guitar", "-1").Get(IntConverter);
-			entry.PartDifficulties[Instrument.GUITAR_COOP] = section.GetField("diff_guitar_coop", "-1").Get(IntConverter);
-			entry.PartDifficulties[Instrument.REAL_GUITAR] = section.GetField("diff_guitar_real", "-1").Get(IntConverter);
-			entry.PartDifficulties[Instrument.RHYTHM] = section.GetField("diff_rhythm", "-1").Get(IntConverter);
-			entry.PartDifficulties[Instrument.BASS] = section.GetField("diff_bass", "-1").Get(IntConverter);
-			entry.PartDifficulties[Instrument.REAL_BASS] = section.GetField("diff_bass_real", "-1").Get(IntConverter);
-			entry.PartDifficulties[Instrument.DRUMS] = section.GetField("diff_drums", "-1").Get(IntConverter);
-			entry.PartDifficulties[Instrument.GH_DRUMS] = section.GetField("diff_drums", "-1").Get(IntConverter);
-			entry.PartDifficulties[Instrument.REAL_DRUMS] = section.GetField("diff_drums_real", "-1").Get(IntConverter);
-			entry.PartDifficulties[Instrument.KEYS] = section.GetField("diff_keys", "-1").Get(IntConverter);
-			entry.PartDifficulties[Instrument.REAL_KEYS] = section.GetField("diff_keys_real", "-1").Get(IntConverter);
-			entry.PartDifficulties[Instrument.VOCALS] = section.GetField("diff_vocals", "-1").Get(IntConverter);
-			entry.PartDifficulties[Instrument.HARMONY] = section.GetField("diff_vocals_harm", "-1").Get(IntConverter);
+			entry.PartDifficulties.Add(Instrument.GUITAR, section.GetField("diff_guitar", "-1").Get(IntConverter));
+			entry.PartDifficulties.Add(Instrument.GUITAR_COOP, section.GetField("diff_guitar_coop", "-1").Get(IntConverter));
+			entry.PartDifficulties.Add(Instrument.REAL_GUITAR, section.GetField("diff_guitar_real", "-1").Get(IntConverter));
+			entry.PartDifficulties.Add(Instrument.RHYTHM, section.GetField("diff_rhythm", "-1").Get(IntConverter));
+			entry.PartDifficulties.Add(Instrument.BASS, section.GetField("diff_bass", "-1").Get(IntConverter));
+			entry.PartDifficulties.Add(Instrument.REAL_BASS, section.GetField("diff_bass_real", "-1").Get(IntConverter));
+			entry.PartDifficulties.Add(Instrument.DRUMS, section.GetField("diff_drums", "-1").Get(IntConverter));
+			entry.PartDifficulties.Add(Instrument.GH_DRUMS, section.GetField("diff_drums", "-1").Get(IntConverter));
+			entry.PartDifficulties.Add(Instrument.REAL_DRUMS, section.GetField("diff_drums_real", "-1").Get(IntConverter));
+			entry.PartDifficulties.Add(Instrument.KEYS, section.GetField("diff_keys", "-1").Get(IntConverter));
+			entry.PartDifficulties.Add(Instrument.REAL_KEYS, section.GetField("diff_keys_real", "-1").Get(IntConverter));
+			entry.PartDifficulties.Add(Instrument.VOCALS, section.GetField("diff_vocals", "-1").Get(IntConverter));
+			entry.PartDifficulties.Add(Instrument.HARMONY, section.GetField("diff_vocals_harm", "-1").Get(IntConverter));
 		}
 	}
 }
