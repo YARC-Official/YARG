@@ -1,13 +1,9 @@
-using System.Threading.Tasks;
-using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using YARG.Data;
 using YARG.Input;
 using YARG.Settings;
 using YARG.Song;
-using YARG.UI.MusicLibrary;
 
 namespace YARG.UI {
 	public partial class MainMenu : MonoBehaviour {
@@ -43,14 +39,6 @@ namespace YARG.UI {
 		[SerializeField]
 		private Canvas credits;
 
-		[Space]
-		[SerializeField]
-		private GameObject loadingScreen;
-		[SerializeField]
-		private TextMeshProUGUI loadingStatus;
-		[SerializeField]
-		private Image progressBar;
-
 		[SerializeField]
 		private TextMeshProUGUI versionText;
 
@@ -63,14 +51,10 @@ namespace YARG.UI {
 
 		private bool isUpdateShown;
 
-		private async UniTask Start() {
+		private void Start() {
 			Instance = this;
 
 			versionText.text = Constants.VERSION_TAG.ToString();
-
-			if (SongContainer.SongsByHash == null) {
-				RefreshSongLibrary();
-			}
 
 			if (!isPostSong) {
 				ShowMainMenu();
@@ -104,14 +88,6 @@ namespace YARG.UI {
 		}
 
 		private void Update() {
-			// Update progress if loading
-			if (loadingScreen.activeSelf) {
-				// TODO implement new loading screen
-				loadingScreen.SetActive(false);
-
-				return;
-			}
-
 			if (!isUpdateShown && UpdateChecker.Instance.IsOutOfDate) {
 				isUpdateShown = true;
 
@@ -196,20 +172,6 @@ namespace YARG.UI {
 			SettingsManager.DeleteSettings();
 
 			Quit();
-		}
-
-		public async UniTask RefreshSongLibrary() {
-			GameManager.Instance.SettingsMenu.gameObject.SetActive(false);
-
-			ScoreManager.Reset();
-
-			Task.Run(async () => await SongContainer.ScanAllFolders(false));
-			
-			loadingScreen.SetActive(true);
-
-			ScoreManager.FetchScores();
-
-			SongSelection.refreshFlag = true;
 		}
 
 		public void OpenLatestRelease() {

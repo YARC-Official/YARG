@@ -3,7 +3,6 @@ using SFB;
 using TMPro;
 using UnityEngine;
 using YARG.Song;
-using YARG.UI;
 using YARG.Util;
 
 namespace YARG.Settings {
@@ -21,9 +20,9 @@ namespace YARG.Settings {
 			get => _pathsReference;
 			set {
 				if (isUpgradeFolder) {
-					SongContainer.songUpgradeFolders = value;
+					SettingsManager.Settings.SongUpgradeFolders = value;
 				} else {
-					SongContainer.songFolders = value;
+					SettingsManager.Settings.SongFolders = value;
 				}
 			}
 		}
@@ -33,9 +32,9 @@ namespace YARG.Settings {
 			this.isUpgradeFolder = isUpgradeFolder;
 
 			if (isUpgradeFolder) {
-				_pathsReference = SongContainer.songUpgradeFolders;
+				_pathsReference = SettingsManager.Settings.SongUpgradeFolders;
 			} else {
-				_pathsReference = SongContainer.songFolders;
+				_pathsReference = SettingsManager.Settings.SongFolders;
 			}
 
 			RefreshText();
@@ -78,13 +77,6 @@ namespace YARG.Settings {
 				PathsReference[index] = folder[0];
 				RefreshText();
 			});
-		}
-
-		public void Refresh() {
-			GameManager.Instance.SettingsMenu.hasSongLibraryChanged = false;
-
-			// Refresh
-			MainMenu.Instance.RefreshSongLibrary();
 		}
 	}
 }

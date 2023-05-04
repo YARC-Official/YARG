@@ -1,6 +1,4 @@
 using System;
-using System.IO;
-using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Localization;
@@ -8,8 +6,6 @@ using UnityEngine.Localization.Components;
 using UnityEngine.UI;
 using YARG.Metadata;
 using YARG.Settings.Visuals;
-using YARG.Song;
-using YARG.UI;
 using YARG.Util;
 
 namespace YARG.Settings {
@@ -71,9 +67,6 @@ namespace YARG.Settings {
 			SettingsManager.SaveSettings();
 
 			if (hasSongLibraryChanged) {
-				// Refresh
-				MainMenu.Instance.RefreshSongLibrary();
-
 				hasSongLibraryChanged = false;
 			}
 		}
@@ -176,13 +169,11 @@ namespace YARG.Settings {
 			// Spawn refresh all button
 			{
 				var go = Instantiate(buttonPrefab, settingsContainer);
-				go.GetComponent<SettingsButton>().SetCustomCallback(() => {
+				go.GetComponent<SettingsButton>().SetCustomCallback(async () => {
 					hasSongLibraryChanged = false;
 
-					if (Directory.Exists(SongContainer.CacheFolder)) {
-						// Refresh
-						MainMenu.Instance.RefreshSongLibrary();
-					}
+					LoadingManager.Instance.AddSongRefreshToLoadQueue(false);
+					await LoadingManager.Instance.Load();
 				}, "RefreshAllCaches");
 			}
 
@@ -195,7 +186,7 @@ namespace YARG.Settings {
 				go.GetComponent<SettingsButton>().SetCustomCallback(() => {
 					// Use a list to add the new folder to the end
 					Array.Resize(ref SettingsManager.Settings.SongFolders,
-						SongContainer.songFolders.Length + 1);
+						SettingsManager.Settings.SongFolders.Length + 1);
 
 					// Refresh everything
 					UpdateSongFolderManager();
@@ -203,8 +194,8 @@ namespace YARG.Settings {
 			}
 
 			// Create all of the directories
-			for (int i = 0; i < SongContainer.songFolders.Length; i++) {
-				var path = SongContainer.songFolders[i];
+			for (int i = 0; i < SettingsManager.Settings.SongFolders.Length; i++) {
+				var path = SettingsManager.Settings.SongFolders[i];
 
 				var go = Instantiate(directoryPrefab, settingsContainer);
 				go.GetComponent<SettingsDirectory>().SetIndex(i, false);
@@ -219,7 +210,7 @@ namespace YARG.Settings {
 				go.GetComponent<SettingsButton>().SetCustomCallback(() => {
 					// Use a list to add the new folder to the end
 					Array.Resize(ref SettingsManager.Settings.SongUpgradeFolders,
-						SongContainer.songUpgradeFolders.Length + 1);
+						SettingsManager.Settings.SongFolders.Length + 1);
 
 					// Refresh everything
 					UpdateSongFolderManager();
@@ -227,8 +218,8 @@ namespace YARG.Settings {
 			}
 
 			// Create all of the song upgrade directories
-			for (int i = 0; i < SongContainer.songUpgradeFolders.Length; i++) {
-				var path = SongContainer.songUpgradeFolders[i];
+			for (int i = 0; i < SettingsManager.Settings.SongUpgradeFolders.Length; i++) {
+				var path = SettingsManager.Settings.SongUpgradeFolders[i];
 
 				var go = Instantiate(directoryPrefab, settingsContainer);
 				go.GetComponent<SettingsDirectory>().SetIndex(i, true);
@@ -268,7 +259,7 @@ namespace YARG.Settings {
 		private void DestroyPreview() {
 			if (previewContainer == null)
 				return;
-			
+
 			foreach (Transform t in previewContainer) {
 				Destroy(t.gameObject);
 			}

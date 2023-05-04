@@ -103,7 +103,7 @@ namespace YARG.Song {
 					TotalErrorsEncountered += thread.errorsEncountered;
 				}
 
-				updateUi(this);
+				updateUi?.Invoke(this);
 
 				await UniTask.NextFrame();
 			}

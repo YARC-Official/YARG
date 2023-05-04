@@ -58,7 +58,8 @@ namespace YARG {
 			using var writer = new StreamWriter(TextFilePath, false);
 
 			// Write two lines of text to the file
-			writer.Write($"{song.Name}\n{song.Artist}\n{song.Album}\n{song.Genre}\n{song.Year}\n{SongSources.SourceToGameName(song.Source)}\n{song.Charter}");
+			writer.Write($"{song.Name}\n{song.Artist}\n{song.Album}\n{song.Genre}\n" +
+				$"{song.Year}\n{SongSources.SourceToGameName(song.Source)}\n{song.Charter}");
 		}
 
 		void OnSongEnd(SongEntry song) {
