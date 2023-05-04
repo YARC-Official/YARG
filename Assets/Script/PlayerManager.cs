@@ -40,7 +40,7 @@ namespace YARG {
 
 		public static List<Player> players = new();
 
-		public static float GlobalCalibration => SettingsManager.GetSettingValue<int>("calibrationNumber") / 1000f;
+		public static float GlobalCalibration => SettingsManager.Settings.CalibrationNumber.Data / 1000f;
 
 		public static int PlayersWithInstrument(string instrument) {
 			return players.Count(i => i.chosenInstrument == instrument);

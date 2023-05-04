@@ -42,14 +42,15 @@ Windows:
 7. Once you load in, click on "SETTINGS"
 9. Then, click on "Open Song Folder Manager"
 9. Next, click on "Add Folder." A new text box should pop-up. This is where your songs will come from.
-10. Choose your song folder. You can browse folder by click on the `B`.
+10. Choose your song folder. You can browse folder by click on the folder icon.
 11. Once you've chosen your folder, click on "Select Folder". Please be sure that the folder has at least one song in it.
+12. YARG will cache all of the files in the folder you chose. Doing this may take a while depending on the amount of songs you have. If you ever add more songs, **be sure** to go to "SETTINGS" and then click on "Refresh All Caches".
 12. Next click on "ADD/EDIT PLAYERS".
     1. Click on "Add Player"
     2. Then click on the device you will be playing with.
     3. Click on the dropdown and select what type of instrument you will be playing (i.e. "Five Fret", "Microphone", etc.)
     4. Depending on the input type, you may have to bind keys. To do this, click on each button and press the key of choice on your controller.
-13. Finally, click on "QUICK PLAY". YARG will cache all of the files into a `yarg_cache.json` file in the folder you chose. Doing this may take a while depending on the amount of songs you have. If you ever add more songs, **be sure** to go to "SETTINGS" and then click on "Refresh Cache". This will add the new songs into "QUICK PLAY".
+13. Finally, click on "QUICKPLAY".
 14. Have fun!
 
 # 🔨 Building
@@ -60,20 +61,50 @@ Windows:
 >
 > If you don't follow these instructions, **YOU WILL NOT BE ABLE TO RUN THE GAME**.
 
-1. Make sure you have [Blender](https://www.blender.org/) installed. This is for loading models, even if you don't plan on editing them.
+1. Make sure you have the latest version of [Blender](https://www.blender.org/) installed. This is for loading models, even if you don't plan on editing them.
 2. Make sure you have [Python (3.10)](https://www.python.org/downloads/) installed. This is required to downloading dependencies.
-3. Clone the repository.
-4. Open the command prompt at the root of the directory, and type in:
+3. Clone the repository. If you don't know how to do this:
+	1. Download [Git](https://git-scm.com/downloads).
+	2. Open the command prompt in the directory you want to store the repository.
+	3. Type in `git clone https://github.com/EliteAsian123/YARG.git`.
+4. Install Unity Hub and Unity `2021.3.21f1` (LTS).
+	1. Download and install [Unity Hub](https://unity.com/download).
+	2. Sign-in/create an account with a personal license (free).
+	3. In Unity Hub, click on "Install Editor" and select `2021.3.21f1` (LTS). It may be favourable to unselect Visual Studio if you are not using it.
+	4. Click "Install"
+5. Open the command prompt at the root of the repo, and type in:
 	1. `pip install requests`
 	2. `python InstallLibraries/install.py`. This may take a bit. Wait for the command prompt to say "Done!" before closing. This installs all needed dependencies for you.
-5. Open it in Unity version `2021.3.21f1` (LTS)
-6. Load in **without** entering safe mode.
-7. (You may need to) click on `NuGet` on the menu bar, then click on `Restore Packages`.
-8. You're ready to go!
+6. Open the project in Unity (select "Open" and select YARG's repo's folder).
+7. Load in **without** entering safe mode. Click "Ignore".
+8. (You may need to) click on `NuGet` on the menu bar, then click on `Restore Packages`.
+9. You're ready to go!
+
+> **Note**
+>
+> If you plan on merging branches, I highly recommend following these instructions for easier merges.
+
+Setup:
+1. Open a command prompt to the repository (on VS Code you can do Terminal > New Terminal)
+2. Type in `git config --local --edit`
+3. In the file that gets opened, go to the bottom and paste this in: (You may need to change the file path depending on where you installed Unity to)
+```
+[merge]
+    tool = unityyamlmerge
+[mergetool "unityyamlmerge"]
+    trustExitCode = false
+    cmd = 'C:\\Program Files\\Unity\\Hub\\Editor\\2021.3.21f1\\Editor\\Data\\Tools\\UnityYAMLMerge.exe' merge -p "$BASE" "$REMOTE" "$LOCAL" "$MERGED"
+```
+4. Save and close the file.
+
+Resolving conflicts:
+1. Start the merge/cherry-pick which is causing conflicts.
+2. If the conflict doesn't resolve automatically, open the command prompt and use `git merge-tool`.
+3. Verify that the conflict was resolved correctly, then commit/continue the merge.
 
 # ✍️ Contributing
 
-If you want to contribute, please feel free! Please read [this](../master/CONTRIBUTING.md) first.
+If you want to contribute, please feel free! Please join [our Discord](https://discord.gg/sqpu4R552r) if you want your PR/Art merged.
 
 # 🛡️ License
 
@@ -89,16 +120,14 @@ Some libraries/assets are **packaged** with the source code have licenses that m
 | [Unity Standalone File Browser](https://github.com/gkngkc/UnityStandaloneFileBrowser) | [MIT](https://github.com/gkngkc/UnityStandaloneFileBrowser/blob/master/LICENSE.txt)
 | [Discord GameSDK](https://discord.com/developers/docs/game-sdk/sdk-starter-guide) | Licenseless
 | [Lucide](https://lucide.dev/) | [ISC](https://lucide.dev/license)
+| [DtxCS](https://github.com/maxton/DtxCS) | Licenseless
+| [Moonscraper](https://github.com/FireFox2000000/Moonscraper-Chart-Editor) | [BSD 3-Clause License](https://github.com/FireFox2000000/Moonscraper-Chart-Editor/blob/master/LICENSE)
 
 Please note that other libraries are **not** packaged within the source code, and are to be install by NuGet.
 
 BASS is the audio library for YARG. [It has it's own license for release](https://www.un4seen.com/).
 
 # 📦 External Assets and Libraries
-
-> **Note**
->
-> YARG uses [GuitarGame_ChartFormats](https://github.com/TheNathannator/GuitarGame_ChartFormats) as a "standard." The end goal is to get everything listed in that documentation to work without issue. This is currently not the case, but we are getting closer to that goal everyday!
 
 | Link | Type | Use |
 | --- | --- | --- |
@@ -120,6 +149,8 @@ BASS is the audio library for YARG. [It has it's own license for release](https:
 | [TagLibSharp](https://www.nuget.org/packages/TagLibSharp) | Library | Finding Audio Metadata
 | [Minis](https://github.com/keijiro/Minis/tree/master) | Library | MIDI Input for Unity
 | [Discord GameSDK](https://discord.com/developers/docs/game-sdk/sdk-starter-guide) | Library | Discord Rich Presence
+| [DtxCS](https://github.com/maxton/DtxCS) | Library | Parsing `.dta` Files
+| [Moonscraper](https://github.com/FireFox2000000/Moonscraper-Chart-Editor) | Library | Parsing `.chart` Files
 
 # 💸 Donate
 

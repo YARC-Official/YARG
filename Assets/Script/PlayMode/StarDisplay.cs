@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Chart;
 
 namespace YARG.PlayMode {
 	public class StarDisplay : MonoBehaviour {
@@ -32,10 +34,10 @@ namespace YARG.PlayMode {
 		}
 
 		private void Start() {
-			var events = Play.Instance.chart.events;
-			foreach (var ev in events) {
-				if (ev.name == "beatLine_major") {
-					bars.Add(ev.time);
+			var beats = Play.Instance.chart.beats;
+			foreach (var ev in beats) {
+				if (ev.Style == BeatStyle.MEASURE) {
+					bars.Add(ev.Time);
 				}
 			}
 
@@ -111,7 +113,7 @@ namespace YARG.PlayMode {
 
 		private void Update() {
 			if (goldAchieved) { return; }
-			
+
 			int nextBar = curBar;
 			while (nextBar < bars.Count - 1 && bars[nextBar] <= Play.Instance.SongTime) {
 				nextBar++;
@@ -124,7 +126,7 @@ namespace YARG.PlayMode {
 				// pulse the meter
 				var anim = objGoldMeterMaster.GetComponent<Animator>();
 				anim.speed = 1 / time;
-				anim.Play("GoldMeter");
+				anim.Play("GoldMeter", -1, 0);
 
 				curBar = nextBar;
 			}

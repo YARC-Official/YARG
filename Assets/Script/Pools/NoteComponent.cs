@@ -120,6 +120,7 @@ namespace YARG.Pools {
 			if (pool != null) {
 				pool.player.track.StarpowerMissEvent += UpdateColor;
 			}
+
 			foreach (MeshRenderer r in meshRenderers) {
 				r.enabled = true;
 			}
@@ -133,31 +134,30 @@ namespace YARG.Pools {
 		}
 
 		public void SetInfo(Color notes, Color sustains, float length, ModelType type, bool isDrumActivator = false) {
-
 			static void SetModelActive(GameObject obj, ModelType inType, ModelType needType) {
 				if (obj != null) {
 					obj.SetActive(inType == needType);
 				}
 			}
 
+			// Show/hide models
 			SetModelActive(noteGroup, type, ModelType.NOTE);
 			SetModelActive(hopoGroup, type, ModelType.HOPO);
 			SetModelActive(tapGroup, type, ModelType.TAP);
 			SetModelActive(fullGroup, type, ModelType.FULL);
 			SetModelActive(fullHopoGroup, type, ModelType.FULL_HOPO);
 
-			state = State.WAITING;
-
 			SetLength(length);
 
+			state = State.WAITING;
 			ColorCacheNotes = notes;
 			ColorCacheSustains = sustains;
 
 			isActivatorNote = isDrumActivator;
 
 			UpdateColor();
-
 			UpdateRandomness();
+			ResetLineAmplitude();
 		}
 
 		public void SetFretNumber(string str) {
@@ -201,16 +201,23 @@ namespace YARG.Pools {
 				return;
 			}
 
+			var mat = lineRenderer.materials[0];
 			if (state == State.WAITING) {
-				lineRenderer.materials[0].color = ColorCacheSustains;
-				lineRenderer.materials[0].SetColor("_EmissionColor", ColorCacheSustains);
+				mat.color = ColorCacheSustains;
+				mat.SetColor("_EmissionColor", ColorCacheSustains);
 			} else if (state == State.HITTING) {
-				lineRenderer.materials[0].color = ColorCacheSustains;
-				lineRenderer.materials[0].SetColor("_EmissionColor", ColorCacheSustains * 3f);
+				mat.color = ColorCacheSustains;
+				mat.SetColor("_EmissionColor", ColorCacheSustains * 3f);
 			} else if (state == State.MISSED) {
-				lineRenderer.materials[0].color = new(0.9f, 0.9f, 0.9f, 0.5f);
-				lineRenderer.materials[0].SetColor("_EmissionColor", Color.black);
+				mat.color = new(0.9f, 0.9f, 0.9f, 0.5f);
+				mat.SetColor("_EmissionColor", Color.black);
 			}
+		}
+
+		private void ResetLineAmplitude() {
+			lineRenderer.materials[0].SetFloat("_PrimaryAmplitude", 0f);
+			lineRenderer.materials[0].SetFloat("_SecondaryAmplitude", 0f);
+			lineRenderer.materials[0].SetFloat("_TertiaryAmplitude", 0f);
 		}
 
 		private void SetLength(float length) {
@@ -256,6 +263,7 @@ namespace YARG.Pools {
 
 			state = State.MISSED;
 			UpdateLineColor();
+			ResetLineAmplitude();
 		}
 
 		private void Update() {
@@ -269,8 +277,22 @@ namespace YARG.Pools {
 				lineRenderer.SetPosition(1, new(0f, 0f, newStart));
 			}
 
+			// Remove if off screen
 			if (transform.localPosition.z < -3f - lengthCache) {
 				MoveToPool();
+			}
+
+			// Line hit animation
+			if (state == State.HITTING) {
+				// Change line amplitude
+				var lineMat = lineRenderer.materials[0];
+				lineMat.SetFloat("_PrimaryAmplitude", 0.38f);
+				lineMat.SetFloat("_SecondaryAmplitude", Mathf.Sin(Time.time * 4f));
+				lineMat.SetFloat("_TertiaryAmplitude", Mathf.Sin(Time.time * 1.7f)*0.222f);
+
+				// Move line forward
+				float forwardSub = Time.deltaTime * pool.player.trackSpeed / 2.5f;
+				lineMat.SetFloat("_ForwardOffset", lineMat.GetFloat("_ForwardOffset") + forwardSub);
 			}
 
 			float multiplier = pool.player.track.Multiplier;

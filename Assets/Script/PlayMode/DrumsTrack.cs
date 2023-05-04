@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using YARG.Chart;
 using YARG.Data;
 using YARG.Input;
 using YARG.Pools;
@@ -34,23 +35,15 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		public bool shakeOnKick = true;
 
-
-
 		private Queue<List<NoteInfo>> expectedHits = new();
 
-		private bool noKickMode = false;
-		
-		
+		private readonly string[] proInst = { "realDrums", "ghDrums" };
 
-		private readonly string[] proInst = {"realDrums", "ghDrums"};
 		private int ptsPerNote;
 
 		protected override void StartTrack() {
 			notePool.player = player;
 			genericPool.player = player;
-
-			noKickMode = SettingsManager.GetSettingValue<bool>("noKicks");
-			
 
 			// Inputs
 
@@ -110,23 +103,26 @@ namespace YARG.PlayMode {
 		}
 
 		protected override void UpdateTrack() {
+
+			
 			// Ignore everything else until the song starts
 			if (!Play.Instance.SongStarted) {
 				return;
 			}
 
 			var events = Play.Instance.chart.events;
+			var beats = Play.Instance.chart.beats;
 
 			// Update events (beat lines, starpower, etc.)
 			while (events.Count > eventChartIndex && events[eventChartIndex].time <= RelativeTime) {
 				var eventInfo = events[eventChartIndex];
 
 				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(RelativeTime, eventInfo.time);
-				if (eventInfo.name == "beatLine_minor") {
-					genericPool.Add("beatLine_minor", new(0f, 0.01f, compensation));
-				} else if (eventInfo.name == "beatLine_major") {
-					genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
-				} else if (eventInfo.name == $"starpower_{player.chosenInstrument}") {
+				// if (eventInfo.name == "beatLine_minor") {
+				// 	genericPool.Add("beatLine_minor", new(0f, 0.01f, compensation));
+				// } else if (eventInfo.name == "beatLine_major") {
+				// 	genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
+				if (eventInfo.name == $"starpower_{player.chosenInstrument}") {
 					StarpowerSection = eventInfo;
 				} else if (eventInfo.name == $"fill_{player.chosenInstrument}") {
 					FillSection = eventInfo;
@@ -135,13 +131,25 @@ namespace YARG.PlayMode {
 				}
 				eventChartIndex++;
 			}
+			
+			while (beats.Count > beatChartIndex && beats[beatChartIndex].Time <= RelativeTime) {
+				var beatInfo = beats[beatChartIndex];
+
+				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(RelativeTime, beatInfo.Time);
+				if (beatInfo.Style is BeatStyle.STRONG or BeatStyle.WEAK) {
+					genericPool.Add("beatLine_minor", new(0f, 0.01f, compensation));
+				} else if (beatInfo.Style == BeatStyle.MEASURE) {
+					genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
+				}
+				beatChartIndex++;
+			}
 
 			// Since chart is sorted, this is guaranteed to work
 			while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= RelativeTime) {
 				var noteInfo = Chart[visualChartIndex];
 
 				// Skip kick notes if noKickMode is enabled
-				if (noteInfo.fret == kickIndex && noKickMode) {
+				if (noteInfo.fret == kickIndex && SettingsManager.Settings.NoKicks.Data) {
 					visualChartIndex++;
 					continue;
 				}
@@ -164,7 +172,7 @@ namespace YARG.PlayMode {
 				var noteInfo = Chart[inputChartIndex];
 
 				// Skip kick notes if noKickMode is enabled
-				if (noteInfo.fret == kickIndex && noKickMode) {
+				if (noteInfo.fret == kickIndex && SettingsManager.Settings.NoKicks.Data) {
 					inputChartIndex++;
 					continue;
 				}
@@ -251,7 +259,7 @@ namespace YARG.PlayMode {
 					case 3:
 						// lefty flip on pro drums means physically moving the green cymbal above the red snare
 						// so while the position on the chart has changed, the input object is the same
-						if (!cymbal){
+						if (!cymbal) {
 							drum = kickIndex == 4 ? 0 : 1;
 						}
 						break;
@@ -270,10 +278,13 @@ namespace YARG.PlayMode {
 			} else {
 				PlayKickFretAnimation();
 
-				if(shakeOnKick) {
+				if (shakeOnKick) {
 					//commonTrack.PlayKickCameraAnimation();
 					trackAnims.PlayKickShakeCameraAnim();
 				}
+
+				commonTrack.kickFlash.SetActive(true);
+				trackAnims.PlayKickFlashAnim();
 			}
 
 			// Overstrum if no expected
@@ -333,6 +344,8 @@ namespace YARG.PlayMode {
 			if (hit.fret != kickIndex) {
 				drums[hit.fret].PlayParticles();
 			} else {
+				
+				kickNoteParticles.Stop();
 				kickNoteParticles.Play();
 			}
 
@@ -354,7 +367,7 @@ namespace YARG.PlayMode {
 				// Kick
 				model = NoteComponent.ModelType.FULL;
 			} else if (player.chosenInstrument == "ghDrums" &&
-				SettingsManager.GetSettingValue<bool>("useCymbalModelsInFiveLane")) {
+				SettingsManager.Settings.UseCymbalModelsInFiveLane.Data) {
 
 				if (noteInfo.fret == 1 || noteInfo.fret == 3) {
 					// Cymbal (only for gh-drums if enabled)
@@ -379,14 +392,14 @@ namespace YARG.PlayMode {
 			);
 		}
 
-		protected void PlayKickFretAnimation() {
+		private void PlayKickFretAnimation() {
 			StopKickFretAnimation();
 
 			kickFretAnimation["KickFrets"].wrapMode = WrapMode.Once;
 			kickFretAnimation.Play("KickFrets");
 		}
 
-		protected void StopKickFretAnimation() {
+		private void StopKickFretAnimation() {
 			kickFretAnimation.Stop();
 			kickFretAnimation.Rewind();
 		}

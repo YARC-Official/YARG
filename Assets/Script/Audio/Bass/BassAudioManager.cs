@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using ManagedBass;
 using UnityEngine;
@@ -156,7 +155,7 @@ namespace YARG {
 			Debug.Log("Finished loading SFX");
 		}
 
-		public void LoadSong(IEnumerable<string> stems, bool isSpeedUp) {
+		public void LoadSong(ICollection<string> stems, bool isSpeedUp) {
 			Debug.Log("Loading song");
 			UnloadSong();
 
@@ -171,6 +170,11 @@ namespace YARG {
 
 				// Gets the index (SongStem to int) from the name
 				var songStem = AudioHelpers.GetStemFromName(stemName);
+				
+				// Assign 1 stem songs to the song stem
+				if (stems.Count == 1) {
+					songStem = SongStem.Song;
+				}
 
 				var stemChannel = new BassStemChannel(this, stemPath, songStem);
 				if (stemChannel.Load(isSpeedUp, PlayMode.Play.speed) != 0) {
@@ -200,13 +204,17 @@ namespace YARG {
 		}
 		
 		public void LoadMogg(XboxMoggData moggData, bool isSpeedUp) {
+			Debug.Log("Loading mogg song");
+			UnloadSong();
+			
 			int moggOffset = moggData.MoggAddressAudioOffset;
 			long moggLength = moggData.MoggAudioLength;
 			
 			//byte[] moggArray = File.ReadAllBytes(moggData.MoggPath)[moggOffset..];
+			byte[] moggArray = moggData.GetOggDataFromMogg();
 			
 			//int moggStreamHandle = Bass.CreateStream(moggArray, 0, moggArray.Length, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
-			int moggStreamHandle = Bass.CreateStream(moggData.MoggPath, moggOffset, moggLength, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
+			int moggStreamHandle = Bass.CreateStream(moggArray, 0, moggLength, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
 			if (moggStreamHandle == 0) {
 				Debug.LogError($"Failed to load mogg file or position: {Bass.LastError}");
 				return;
@@ -236,6 +244,7 @@ namespace YARG {
 
 			// Free mixer (and all channels in it)
 			_mixer?.Dispose();
+			_mixer = null;
 		}
 
 		public void Play() {
@@ -273,7 +282,7 @@ namespace YARG {
 		}
 
 		public void SetStemVolume(SongStem stem, double volume) {
-			var channel = _mixer.GetChannel(stem);
+			var channel = _mixer?.GetChannel(stem);
 
 			channel?.SetVolume(volume);
 		}

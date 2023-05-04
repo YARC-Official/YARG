@@ -22,7 +22,7 @@ namespace MoonscraperChartEditor.Song
             }
         }
 
-        public float? anchor = null;
+        public double? anchor = null;
 
         /// <summary>
         /// Basic constructor.
@@ -41,7 +41,7 @@ namespace MoonscraperChartEditor.Song
             anchor = _bpm.anchor;
         }
 
-        public float assignedTime = 0;
+        public double assignedTime = 0;
 
         public override SongObject Clone()
         {

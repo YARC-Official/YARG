@@ -8,13 +8,18 @@ using YARG.Input;
 
 namespace YARG.Serialization {
 	public static class InputBindSerializer {
-		private class InputBindSave {
+		private class InputDeviceSave {
 			public string inputStrategy;
 			public string deviceName;
-			public Dictionary<string, string> binds = new();
+			public Dictionary<string, InputBindSave> binds = new();
 		}
 
-		private static List<InputBindSave> inputBindSaves = new();
+		private class InputBindSave {
+			public string controlPath;
+			public long debounceThreshold;
+		}
+
+		private static List<InputDeviceSave> inputBindSaves = new();
 
 		private static string InputBindFile => Path.Combine(GameManager.PersistentDataPath, "inputBinds.json");
 
@@ -22,7 +27,7 @@ namespace YARG.Serialization {
 			// Load from JSON
 			try {
 				var json = File.ReadAllText(InputBindFile);
-				inputBindSaves = JsonConvert.DeserializeObject<List<InputBindSave>>(json);
+				inputBindSaves = JsonConvert.DeserializeObject<List<InputDeviceSave>>(json);
 			} catch (Exception) {
 				Debug.LogWarning("Failed to load input binds from JSON. Ignoring.");
 			}
@@ -31,8 +36,8 @@ namespace YARG.Serialization {
 		public static void LoadBindsFromSave(InputStrategy inputStrategy) {
 			try {
 				// Look from correct bind (using input strategy and device)
-				InputBindSave inputBindSave = null;
-				foreach (InputBindSave bindSave in inputBindSaves) {
+				InputDeviceSave inputBindSave = null;
+				foreach (InputDeviceSave bindSave in inputBindSaves) {
 					if (bindSave.deviceName != inputStrategy.InputDevice.name) {
 						continue;
 					}
@@ -55,11 +60,13 @@ namespace YARG.Serialization {
 						continue;
 					}
 
-					var control = InputControlPath.TryFindControl(inputStrategy.InputDevice, inputBindSave.binds[binding.BindingKey]);
+					var savedBinding = inputBindSave.binds[binding.BindingKey];
+					var control = InputControlPath.TryFindControl(inputStrategy.InputDevice, savedBinding.controlPath);
 					if (control is not InputControl<float> floatControl) {
 						continue;
 					}
-					inputStrategy.SetMappingInputControl(binding.BindingKey, floatControl);
+					binding.Control = floatControl;
+					binding.DebounceThreshold = savedBinding.debounceThreshold;
 				}
 			} catch (Exception e) {
 				Debug.LogWarning("Failed to load input binds from JSON. Ignoring.");
@@ -74,8 +81,8 @@ namespace YARG.Serialization {
 		public static void SaveBindsFromInputStrategy(InputStrategy inputStrategy) {
 			try {
 				// Look for existing bind save
-				InputBindSave inputBindSave = null;
-				foreach (InputBindSave bindSave in inputBindSaves) {
+				InputDeviceSave inputBindSave = null;
+				foreach (InputDeviceSave bindSave in inputBindSaves) {
 					if (bindSave.deviceName != inputStrategy.InputDevice.name) {
 						continue;
 					}
@@ -93,7 +100,7 @@ namespace YARG.Serialization {
 				}
 
 				// Create new bind save if none found
-				inputBindSave = new InputBindSave {
+				inputBindSave = new InputDeviceSave {
 					inputStrategy = inputStrategy.GetType().Name,
 					deviceName = inputStrategy.InputDevice.name
 				};
@@ -107,7 +114,11 @@ namespace YARG.Serialization {
 						continue;
 					}
 
-					inputBindSave.binds.Add(binding.BindingKey, control.path);
+					var bindingSave = new InputBindSave {
+						controlPath = control.path,
+						debounceThreshold = binding.DebounceThreshold
+					};
+					inputBindSave.binds.Add(binding.BindingKey, bindingSave);
 				}
 
 				// Save to JSON

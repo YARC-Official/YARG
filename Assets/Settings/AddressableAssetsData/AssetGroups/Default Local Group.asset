@@ -32,27 +32,7 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: f306189dfc683584faa0b1ce4810db7e
-    m_Address: Setting/Text
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: cb5166c7083cb444ba2ffc6783fae110
-    m_Address: Setting/Folder
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 416ec6bb466b04b42892ac289c22f461
-    m_Address: Setting/Button
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 732aff6941f17294f8a1268c78badeba
-    m_Address: Setting/Number
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 46917aadd2630224b87b4f923e13eae7
+  - m_GUID: 2a5ac1eaaf5a81a4cb7b233e3f8bc54f
     m_Address: Setting/Toggle
     m_ReadOnly: 0
     m_SerializedLabels: []
@@ -62,13 +42,38 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: e3b11e22a0ffd9244a4950768d456052
+  - m_GUID: 66fae0a679753ea4a9110a183b8d2af9
+    m_Address: FontSprites
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5317ea8d24de8cd4c86b318a12b24b34
+    m_Address: Setting/Number
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0f6ee6e5d7efa9d4db0394bf5343f057
     m_Address: Setting/Volume
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 66fae0a679753ea4a9110a183b8d2af9
-    m_Address: FontSprites
+  - m_GUID: 42c428a700c27424ba31e04d9c20432c
+    m_Address: SettingIcons
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2741494e5a3b68c43986f18396a91a9c
+    m_Address: SettingPreviews/TrackPreview
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0ddb1eeffd5bb6a4685a6f6bf989d6fe
+    m_Address: Setting/Slider
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 50266abeb1da561478acfa688b469cfa
+    m_Address: sourceIcons
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

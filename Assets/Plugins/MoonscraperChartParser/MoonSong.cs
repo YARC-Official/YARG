@@ -63,6 +63,8 @@ namespace MoonscraperChartEditor.Song
         MoonChart[] charts;
         public List<MoonChart> unrecognisedCharts = new List<MoonChart>();
 
+        public IReadOnlyList<MoonChart> Charts => charts.ToList();
+        
         public List<Event> _events;
         List<SyncTrack> _syncTrack;
 
@@ -238,7 +240,7 @@ namespace MoonscraperChartEditor.Song
         /// <param name="time">The time (in seconds) to convert.</param>
         /// <param name="resolution">Ticks per beat, usually provided from the resolution song of a Song class.</param>
         /// <returns>Returns the calculated tick position.</returns>
-        public uint TimeToTick(float time, float resolution)
+        public uint TimeToTick(double time, float resolution)
         {
             if (time < 0)
                 time = 0;
@@ -295,7 +297,7 @@ namespace MoonscraperChartEditor.Song
         /// </summary>
         /// <param name="position">Tick position.</param>
         /// <returns>Returns the time in seconds.</returns>
-        public float TickToTime(uint position)
+        public double TickToTime(uint position)
         {
             return TickToTime(position, this.resolution);
         }
@@ -306,15 +308,15 @@ namespace MoonscraperChartEditor.Song
         /// <param name="position">Tick position.</param>
         /// <param name="resolution">Ticks per beat, usually provided from the resolution song of a Song class.</param>
         /// <returns>Returns the time in seconds.</returns>
-        public float TickToTime(uint position, float resolution)
+        public double TickToTime(uint position, float resolution)
         {
             int previousBPMPos = SongObjectHelper.FindClosestPosition(position, bpms);
             if (bpms[previousBPMPos].tick > position)
                 --previousBPMPos;
 
             BPM prevBPM = bpms[previousBPMPos];
-            float time = prevBPM.assignedTime;
-            time += (float)TickFunctions.DisToTime(prevBPM.tick, position, resolution, prevBPM.value / 1000.0f);
+            double time = prevBPM.assignedTime;
+            time += TickFunctions.DisToTime(prevBPM.tick, position, resolution, prevBPM.value / 1000.0f);
 
             return time;
         }
@@ -452,17 +454,17 @@ namespace MoonscraperChartEditor.Song
             foreach (BPM bpm in bpms)
             {
                 time += TickFunctions.DisToTime(prevBPM.tick, bpm.tick, resolution, prevBPM.value / 1000.0f);
-                bpm.assignedTime = (float)time;
+                bpm.assignedTime = time;
                 prevBPM = bpm;
             }
         }
 
-        public float LiveTickToTime(uint position, float resolution)
+        public double LiveTickToTime(uint position, float resolution)
         {
             return LiveTickToTime(position, resolution, bpms[0], _syncTrack);
         }
 
-        public static float LiveTickToTime(uint position, float resolution, BPM initialBpm, IList<SyncTrack> synctrack)
+        public static double LiveTickToTime(uint position, float resolution, BPM initialBpm, IList<SyncTrack> synctrack)
         {
             double time = 0;
             BPM prevBPM = initialBpm;
@@ -487,12 +489,12 @@ namespace MoonscraperChartEditor.Song
 
             time += TickFunctions.DisToTime(prevBPM.tick, position, resolution, prevBPM.value / 1000.0f);
 
-            return (float)time;
+            return time;
         }
 
         public float ResolutionScaleRatio(float targetResoltion)
         {
-            return (targetResoltion / (float)resolution);
+            return (targetResoltion / resolution);
         }
 
         public string GetAudioName(AudioInstrument audio)

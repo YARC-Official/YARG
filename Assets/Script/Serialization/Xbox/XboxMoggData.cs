@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using DtxCS.DataTypes;
 using Newtonsoft.Json;
@@ -19,6 +20,10 @@ namespace YARG.Serialization {
 		public int ChannelCount { get; set; }
 		public int Header { get; set; }
 
+		private uint MoggSize = 0;
+		private uint[] MoggOffsets = null;
+		private bool isFromCON = false;
+
 		public int MoggAddressAudioOffset { get; set; }
 		public long MoggAudioLength { get; set; }
 
@@ -35,14 +40,42 @@ namespace YARG.Serialization {
 			MoggPath = str;
 		}
 
+		public XboxMoggData(string str, uint size, uint[] offsets) {
+			MoggPath = str;
+			MoggSize = size;
+			MoggOffsets = offsets;
+			isFromCON = true;
+		}
+
 		public void ParseMoggHeader() {
 			using var fs = new FileStream(MoggPath, FileMode.Open, FileAccess.Read);
 			using var br = new BinaryReader(fs);
+			if (isFromCON) fs.Seek(MoggOffsets[0], SeekOrigin.Begin);
 
 			Header = br.ReadInt32();
 			MoggAddressAudioOffset = br.ReadInt32();
 
-			MoggAudioLength = fs.Length - MoggAddressAudioOffset;
+			if (isFromCON) MoggAudioLength = MoggSize - MoggAddressAudioOffset;
+			else MoggAudioLength = fs.Length - MoggAddressAudioOffset;
+		}
+
+		public byte[] GetOggDataFromMogg() {
+			if (!isFromCON) //Raw
+				return File.ReadAllBytes(MoggPath)[MoggAddressAudioOffset..];
+			else { //CON
+				byte[] f = new byte[MoggSize];
+				uint lastSize = MoggSize % 0x1000;
+
+				Parallel.For(0, MoggOffsets.Length, i => {
+					uint readLen = (i == MoggOffsets.Length - 1) ? lastSize : 0x1000;
+					using var fs = new FileStream(MoggPath, FileMode.Open, FileAccess.Read);
+					using var br = new BinaryReader(fs, new ASCIIEncoding());
+					fs.Seek(MoggOffsets[i], SeekOrigin.Begin);
+					Array.Copy(br.ReadBytes((int) readLen), 0, f, i * 0x1000, (int) readLen);
+				});
+
+				return f[MoggAddressAudioOffset..];
+			}
 		}
 
 		public void ParseFromDta(DataArray dta) {
@@ -122,26 +155,26 @@ namespace YARG.Serialization {
 						break;
 					//drum (0 1 2): mono kick, stereo snare/kit --> (0) (1 2)
 					case 3:
-						stemMaps[SongStem.Drums] = new[] { drumArray[0] };
-						stemMaps[SongStem.Drums1] = new[] { drumArray[1], drumArray[2] };
+						stemMaps[SongStem.Drums1] = new[] { drumArray[0] };
+						stemMaps[SongStem.Drums2] = new[] { drumArray[1], drumArray[2] };
 						break;
 					//drum (0 1 2 3): mono kick, mono snare, stereo kit --> (0) (1) (2 3)
 					case 4:
-						stemMaps[SongStem.Drums] = new[] { drumArray[0] };
-						stemMaps[SongStem.Drums1] = new[] { drumArray[1] };
-						stemMaps[SongStem.Drums2] = new[] { drumArray[2], drumArray[3] };
+						stemMaps[SongStem.Drums1] = new[] { drumArray[0] };
+						stemMaps[SongStem.Drums2] = new[] { drumArray[1] };
+						stemMaps[SongStem.Drums3] = new[] { drumArray[2], drumArray[3] };
 						break;
 					//drum (0 1 2 3 4): mono kick, stereo snare, stereo kit --> (0) (1 2) (3 4)
 					case 5:
-						stemMaps[SongStem.Drums] = new[] { drumArray[0] };
-						stemMaps[SongStem.Drums1] = new[] { drumArray[1], drumArray[2] };
-						stemMaps[SongStem.Drums2] = new[] { drumArray[3], drumArray[4] };
+						stemMaps[SongStem.Drums1] = new[] { drumArray[0] };
+						stemMaps[SongStem.Drums2] = new[] { drumArray[1], drumArray[2] };
+						stemMaps[SongStem.Drums3] = new[] { drumArray[3], drumArray[4] };
 						break;
 					//drum (0 1 2 3 4 5): stereo kick, stereo snare, stereo kit --> (0 1) (2 3) (4 5)
 					case 6:
-						stemMaps[SongStem.Drums] = new[] { drumArray[0], drumArray[1] };
-						stemMaps[SongStem.Drums1] = new[] { drumArray[2], drumArray[3] };
-						stemMaps[SongStem.Drums2] = new[] { drumArray[4], drumArray[5] };
+						stemMaps[SongStem.Drums1] = new[] { drumArray[0], drumArray[1] };
+						stemMaps[SongStem.Drums2] = new[] { drumArray[2], drumArray[3] };
+						stemMaps[SongStem.Drums3] = new[] { drumArray[4], drumArray[5] };
 						break;
 				}
 

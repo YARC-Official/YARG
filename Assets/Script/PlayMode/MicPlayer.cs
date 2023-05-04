@@ -253,7 +253,7 @@ namespace YARG.PlayMode {
 
 			// Set up camera
 			var info = trackCamera.GetComponent<UniversalAdditionalCameraData>();
-			if (SettingsManager.GetSettingValue<bool>("lowQuality")) {
+			if (SettingsManager.Settings.LowQuality.Data) {
 				info.antialiasing = AntialiasingMode.None;
 			} else {
 				info.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;

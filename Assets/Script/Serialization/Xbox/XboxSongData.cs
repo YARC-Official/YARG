@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using DtxCS.DataTypes;
+using UnityEngine;
 
 // complete GH DX songs.dta additions:
 // artist (songalbum, author (as in chart author), songyear, songgenre, songorigin, 
@@ -27,10 +28,13 @@ namespace YARG.Serialization {
 		public byte? albumTrackNumber;
 		public byte vocalParts = 1;
 		public bool fake = false;
+		public bool alternatePath = false;
+		public bool discUpdate = false;
 		public (uint start, uint end) preview;
 		public short[] realGuitarTuning, realBassTuning;
 		public string[] solos;
 		public Dictionary<string, ushort> ranks;
+		public int hopoThreshold = 0;
 
 		//TODO: implement macro support, such as #ifndef kControllerRealGuitar, or #ifdef YARG
 		public void ParseFromDta(DataArray dta) {
@@ -53,7 +57,8 @@ namespace YARG.Serialization {
 								songId = (uint) ((DataAtom) dtaArray[1]).Int;
 						break;
 					case "song_length": songLength = (uint) ((DataAtom) dtaArray[1]).Int; break;
-					case "song": // we just want vocal parts for songDta
+					case "song": // we just want vocal parts and hopo threshold for songDta
+						hopoThreshold = (dtaArray.Array("hopo_threshold") != null) ? ((DataAtom) dtaArray.Array("hopo_threshold")[1]).Int : 0;
 						vocalParts = (dtaArray.Array("vocal_parts") != null) ? (byte) ((DataAtom) dtaArray.Array("vocal_parts")[1]).Int : (byte) 1;
 						break;
 					case "anim_tempo":
@@ -121,6 +126,28 @@ namespace YARG.Serialization {
 						DataArray bassTunes = (DataArray) dtaArray[1];
 						realBassTuning = new short[4];
 						for (int b = 0; b < 4; b++) realBassTuning[b] = (short) ((DataAtom) bassTunes[b]).Int;
+						break;
+					case "alternate_path":
+						if (dtaArray[1] is DataSymbol symAltPath)
+							alternatePath = (symAltPath.Name.ToUpper() == "TRUE");
+						else if (dtaArray[1] is DataAtom atmAltPath)
+							alternatePath = (atmAltPath.Int != 0);
+						break;
+					case "extra_authoring":
+						for(int ea = 1; ea < dtaArray.Count; ea++){
+							if(dtaArray[ea] is DataSymbol symEA){
+								if(symEA.Name == "disc_update"){
+									discUpdate = true;
+									break;
+								}
+							}
+							else if(dtaArray[ea] is DataAtom atmEA){
+								if(atmEA.String == "disc_update"){
+									discUpdate = true;
+									break;
+								}
+							}
+						}
 						break;
 					case "quickplay": //used in GH
 						for (int q = 1; q < dtaArray.Count; q++) {

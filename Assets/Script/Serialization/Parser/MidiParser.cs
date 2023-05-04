@@ -5,6 +5,7 @@ using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
 using UnityEngine;
+using YARG.Chart;
 using YARG.Data;
 using YARG.DiffDownsample;
 
@@ -45,7 +46,7 @@ namespace YARG.Serialization.Parser {
 			}
 		}
 
-		public override void Parse(Chart chart) {
+		public override void Parse(YargChart chart) {
 			var eventIR = new List<EventIR>();
 			var tempo = midi.GetTempoMap();
 
@@ -93,35 +94,35 @@ namespace YARG.Serialization.Parser {
 						switch (trackName.Text) {
 							case "PART GUITAR":
 								for (int i = 0; i < 4; i++) {
-									chart.guitar[i] = ParseFiveFret(trackChunk, i);
+									chart.Guitar[i] = ParseFiveFret(trackChunk, i);
 								}
 								ParseStarpower(eventIR, trackChunk, "guitar");
 								ParseSolo(eventIR, trackChunk, "guitar");
 								break;
 							case "PART GUITAR COOP":
 								for (int i = 0; i < 4; i++) {
-									chart.guitarCoop[i] = ParseFiveFret(trackChunk, i);
+									chart.GuitarCoop[i] = ParseFiveFret(trackChunk, i);
 								}
 								ParseStarpower(eventIR, trackChunk, "guitarCoop");
 								ParseSolo(eventIR, trackChunk, "guitarCoop");
 								break;
 							case "PART RHYTHM":
 								for (int i = 0; i < 4; i++) {
-									chart.rhythm[i] = ParseFiveFret(trackChunk, i);
+									chart.Rhythm[i] = ParseFiveFret(trackChunk, i);
 								}
 								ParseStarpower(eventIR, trackChunk, "rhythm");
 								ParseSolo(eventIR, trackChunk, "rhythm");
 								break;
 							case "PART BASS":
 								for (int i = 0; i < 4; i++) {
-									chart.bass[i] = ParseFiveFret(trackChunk, i);
+									chart.Bass[i] = ParseFiveFret(trackChunk, i);
 								}
 								ParseStarpower(eventIR, trackChunk, "bass");
 								ParseSolo(eventIR, trackChunk, "bass");
 								break;
 							case "PART KEYS":
 								for (int i = 0; i < 4; i++) {
-									chart.keys[i] = ParseFiveFret(trackChunk, i);
+									chart.Keys[i] = ParseFiveFret(trackChunk, i);
 								}
 								ParseStarpower(eventIR, trackChunk, "keys");
 								ParseSolo(eventIR, trackChunk, "keys");
@@ -133,14 +134,14 @@ namespace YARG.Serialization.Parser {
 								break;
 							case "PART REAL_GUITAR":
 								for (int i = 0; i < 4; i++) {
-									chart.realGuitar[i] = ParseRealGuitar(trackChunk, i);
+									chart.RealGuitar[i] = ParseRealGuitar(trackChunk, i);
 								}
 								ParseStarpower(eventIR, trackChunk, "realGuitar");
 								ParseSolo(eventIR, trackChunk, "realGuitar", 8);
 								break;
 							case "PART REAL_BASS":
 								for (int i = 0; i < 4; i++) {
-									chart.realBass[i] = ParseRealGuitar(trackChunk, i);
+									chart.RealBass[i] = ParseRealGuitar(trackChunk, i);
 								}
 								ParseStarpower(eventIR, trackChunk, "realBass");
 								ParseSolo(eventIR, trackChunk, "realBass", 8);
@@ -151,10 +152,10 @@ namespace YARG.Serialization.Parser {
 
 								if (drumType == SongInfo.DrumType.FOUR_LANE) {
 									for (int i = 0; i < 5; i++) {
-										chart.drums[i] = ParseDrums(trackChunk, false, i, drumType, null);
-										chart.realDrums[i] = ParseDrums(trackChunk, true, i, drumType, null);
+										chart.Drums[i] = ParseDrums(trackChunk, false, i, drumType, null);
+										chart.RealDrums[i] = ParseDrums(trackChunk, true, i, drumType, null);
 
-										chart.ghDrums[i] = ParseGHDrums(trackChunk, i, drumType, chart.realDrums[i]);
+										chart.GhDrums[i] = ParseGHDrums(trackChunk, i, drumType, chart.RealDrums[i]);
 										ParseStarpower(eventIR, trackChunk, "drums");
 										ParseStarpower(eventIR, trackChunk, "realDrums");
 										ParseDrumFills(eventIR, trackChunk, "drums");
@@ -162,10 +163,10 @@ namespace YARG.Serialization.Parser {
 									}
 								} else {
 									for (int i = 0; i < 5; i++) {
-										chart.ghDrums[i] = ParseGHDrums(trackChunk, i, drumType, null);
+										chart.GhDrums[i] = ParseGHDrums(trackChunk, i, drumType, null);
 
-										chart.drums[i] = ParseDrums(trackChunk, false, i, drumType, chart.ghDrums[i]);
-										chart.realDrums[i] = ParseDrums(trackChunk, true, i, drumType, chart.ghDrums[i]);
+										chart.Drums[i] = ParseDrums(trackChunk, false, i, drumType, chart.GhDrums[i]);
+										chart.RealDrums[i] = ParseDrums(trackChunk, true, i, drumType, chart.GhDrums[i]);
 
 										// TODO: SP is still a bit broken on 5-lane and is therefore disabled for now
 										//ParseStarpower(eventIR, trackChunk, "ghDrums");
@@ -189,7 +190,7 @@ namespace YARG.Serialization.Parser {
 			foreach (var subChart in chart.allParts) {
 				try {
 					// Downsample Five Fret instruments
-					if (subChart == chart.guitar || subChart == chart.bass || subChart == chart.keys) {
+					if (subChart == chart.Guitar || subChart == chart.Bass || subChart == chart.Keys) {
 						if (subChart[3].Count >= 1 && (subChart[2].Count <= 0 || FORCE_DOWNSAMPLE)) {
 							subChart[2] = FiveFretDownsample.DownsampleExpertToHard(subChart[3]);
 							Debug.Log("Downsampled expert to hard.");
@@ -284,8 +285,16 @@ namespace YARG.Serialization.Parser {
 
 			chart.beats = new();
 			foreach (var ev in chart.events) {
-				if (ev.name == "beatLine_minor" || ev.name == "beatLine_major") {
-					chart.beats.Add(ev.time);
+				if (ev.name is "beatLine_minor") {
+					chart.beats.Add(new Beat {
+						Time = ev.time,
+						Style = BeatStyle.STRONG,
+					});
+				} else if (ev.name is "beatLine_major") {
+					chart.beats.Add(new Beat {
+						Time = ev.time,
+						Style = BeatStyle.MEASURE,
+					});
 				}
 			}
 

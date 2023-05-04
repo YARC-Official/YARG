@@ -17,6 +17,10 @@ namespace YARG.Input {
 		public const string KICK = "kick";
 		public const string KICK_ALT = "kick_alt";
 
+		public const string PAUSE = "pause";
+		public const string UP = "up";
+		public const string DOWN = "down";
+
 		private List<NoteInfo> botChart;
 
 		public delegate void DrumHitAction(int drum, bool cymbal);
@@ -25,8 +29,8 @@ namespace YARG.Input {
 
 		protected override Dictionary<string, ControlBinding> GetMappings() => new() {
 			{ RED_PAD,       new(BindingType.BUTTON, "Red Pad", RED_PAD) },
-			{ YELLOW_PAD,    new(BindingType.BUTTON, "Yellow Pad", YELLOW_PAD) },
-			{ BLUE_PAD,      new(BindingType.BUTTON, "Blue Pad", BLUE_PAD) },
+			{ YELLOW_PAD,    new(BindingType.BUTTON, "Yellow Pad (Menu Up)", YELLOW_PAD) },
+			{ BLUE_PAD,      new(BindingType.BUTTON, "Blue Pad (Menu Down)", BLUE_PAD) },
 			{ GREEN_PAD,     new(BindingType.BUTTON, "Green Pad", GREEN_PAD) },
 
 			{ YELLOW_CYMBAL, new(BindingType.BUTTON, "Yellow Cymbal", YELLOW_CYMBAL) },
@@ -34,7 +38,11 @@ namespace YARG.Input {
 			{ GREEN_CYMBAL,  new(BindingType.BUTTON, "Green Cymbal", GREEN_CYMBAL) },
 
 			{ KICK,          new(BindingType.BUTTON, "Kick", KICK) },
-			{ KICK_ALT,      new(BindingType.BUTTON, "Kick Alt", KICK_ALT) }
+			{ KICK_ALT,      new(BindingType.BUTTON, "Kick Alt", KICK_ALT) },
+
+			{ PAUSE,         new(BindingType.BUTTON, "Pause", PAUSE) },
+			{ UP,            new(BindingType.BUTTON, "Navigate Up", UP) },
+			{ DOWN,          new(BindingType.BUTTON, "Navigate Down", DOWN) },
 		};
 
 		protected override void UpdatePlayerMode() {
@@ -102,7 +110,7 @@ namespace YARG.Input {
 				botChartIndex++;
 
 				// Deal with no kicks
-				if (noteInfo.fret == 4 && SettingsManager.GetSettingValue<bool>("noKicks")) {
+				if (noteInfo.fret == 4 && SettingsManager.Settings.NoKicks.Data) {
 					continue;
 				}
 
@@ -118,8 +126,16 @@ namespace YARG.Input {
 		protected override void UpdateNavigationMode() {
 			CallGenericNavigationEventForButton(YELLOW_PAD, NavigationType.UP);
 			CallGenericNavigationEventForButton(BLUE_PAD, NavigationType.DOWN);
+			CallGenericNavigationEventForButton(UP, NavigationType.UP);
+			CallGenericNavigationEventForButton(DOWN, NavigationType.DOWN);
+
 			CallGenericNavigationEventForButton(GREEN_PAD, NavigationType.PRIMARY);
 			CallGenericNavigationEventForButton(RED_PAD, NavigationType.SECONDARY);
+			CallGenericNavigationEventForButton(YELLOW_CYMBAL, NavigationType.TERTIARY);
+
+			if (WasMappingPressed(PAUSE)) {
+				CallPauseEvent();
+			}
 		}
 
 		public override string[] GetAllowedInstruments() {

@@ -31,8 +31,8 @@ namespace YARG.Input {
 			{ BLUE,       new(BindingType.BUTTON, "Blue", BLUE) },
 			{ ORANGE,     new(BindingType.BUTTON, "Orange", ORANGE) },
 
-			{ STRUM_UP,   new(BindingType.BUTTON, "Strum Up", STRUM_UP) },
-			{ STRUM_DOWN, new(BindingType.BUTTON, "Strum Down", STRUM_DOWN) },
+			{ STRUM_UP,   new(BindingType.BUTTON, "Strum Up", STRUM_UP, STRUM_DOWN) },
+			{ STRUM_DOWN, new(BindingType.BUTTON, "Strum Down", STRUM_DOWN, STRUM_UP) },
 
 			{ STAR_POWER, new(BindingType.BUTTON, "Star Power", STAR_POWER) },
 			{ PAUSE,      new(BindingType.BUTTON, "Pause", PAUSE) },
