@@ -9,7 +9,6 @@ namespace YARG.Settings.Types {
 			get => default;
 			set {
 				onChange?.Invoke(value);
-				SettingsManager.SaveSettings();
 			}
 		}
 

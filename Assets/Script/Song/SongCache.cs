@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
@@ -8,19 +8,25 @@ using UnityEngine;
 namespace YARG.Song {
 	public class SongCache {
 		
-		private const int CACHE_VERSION = 23_04_30;
+		private const int CACHE_VERSION = 23_05_03;
 
-		private readonly string _folder;
 		private readonly string _cacheFile;
 		
 		public SongCache(string folder) {
-			_folder = folder;
 			string hex = BitConverter.ToString(SHA1.Create().ComputeHash(Encoding.UTF8.GetBytes(folder))).Replace("-", "");
 			
 			_cacheFile = Path.Combine(GameManager.PersistentDataPath, "caches", $"{hex}.bin");
 		}
 
 		public void WriteCache(List<SongEntry> songs) {
+			if (songs.Count == 0) {
+				return;
+			}
+
+			if (!Directory.Exists(Path.Combine(GameManager.PersistentDataPath, "caches"))) {
+				Directory.CreateDirectory(Path.Combine(GameManager.PersistentDataPath, "caches"));
+			}
+			
 			using var writer = new BinaryWriter(File.Open(_cacheFile, FileMode.Create, FileAccess.ReadWrite));
 			
 			writer.Write(CACHE_VERSION);
@@ -63,7 +69,7 @@ namespace YARG.Song {
 		}
 		
 		private static void WriteSongEntry(BinaryWriter writer, SongEntry song) {
-			Debug.Log($"Writing {song.Name} to cache");
+			//Debug.Log($"Writing {song.Name} to cache");
 
 			if (song is IniSongEntry) {
 				writer.Write((int)SongType.SongIni);
@@ -71,6 +77,8 @@ namespace YARG.Song {
 				writer.Write((int)SongType.RbConRaw);
 			}
 			// Unextracted con
+			
+			writer.Write((int)song.DrumType);
 			
 			writer.Write(song.Name);
 			writer.Write(song.Artist);
@@ -83,11 +91,12 @@ namespace YARG.Song {
 			writer.Write(song.SongLength);
 			writer.Write(song.PreviewStart);
 			writer.Write(song.PreviewEnd);
+			writer.Write(song.Delay);
 			writer.Write(song.LoadingPhrase);
 			writer.Write(song.HopoThreshold);
 			writer.Write(song.EighthNoteHopo);
 			writer.Write(song.MultiplierNote);
-			writer.Write(song.Icon);
+			writer.Write(song.Source);
 
 			switch (song)
 			{
@@ -103,6 +112,7 @@ namespace YARG.Song {
 			}
 			
 			writer.Write(song.Checksum);
+			writer.Write(song.NotesFile);
 			writer.Write(song.Location);
 		}
 
@@ -110,12 +120,16 @@ namespace YARG.Song {
 			try {
 				SongEntry result = null;
 				var type = (SongType)reader.ReadInt32();
+
+				result = type switch {
+					SongType.RbConRaw => new RawConSongEntry(),
+					SongType.SongIni  => new IniSongEntry(),
+					_                 => result
+				};
+
+				result.SongType = type;
 				
-				if (type == SongType.RbConRaw) {
-					result = new RawConSongEntry();
-				} else if (type == SongType.SongIni) {
-					result = new IniSongEntry();
-				}
+				result.DrumType = (DrumType)reader.ReadInt32();
 				
 				result.Name = reader.ReadString();
 				result.Artist = reader.ReadString();
@@ -128,11 +142,12 @@ namespace YARG.Song {
 				result.SongLength = reader.ReadInt32();
 				result.PreviewStart = reader.ReadInt32();
 				result.PreviewEnd = reader.ReadInt32();
+				result.Delay = reader.ReadDouble();
 				result.LoadingPhrase = reader.ReadString();
 				result.HopoThreshold = reader.ReadInt32();
 				result.EighthNoteHopo = reader.ReadBoolean();
 				result.MultiplierNote = reader.ReadInt32();
-				result.Icon = reader.ReadString();
+				result.Source = reader.ReadString();
 
 				switch (type)
 				{
@@ -153,6 +168,7 @@ namespace YARG.Song {
 				}
 				
 				result.Checksum = reader.ReadString();
+				result.NotesFile = reader.ReadString();
 				result.Location = reader.ReadString();
 
 				return result;
@@ -164,11 +180,5 @@ namespace YARG.Song {
 				return null;
 			}
 		}
-	}
-
-	public enum SongType {
-		SongIni,
-		RbConRaw,
-		RbCon,
 	}
 }

@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -5,6 +6,8 @@ using UnityEngine.UI;
 using YARG.Data;
 using YARG.Input;
 using YARG.Settings;
+using YARG.Song;
+using YARG.UI.MusicLibrary;
 
 namespace YARG.UI {
 	public partial class MainMenu : MonoBehaviour {
@@ -23,7 +26,7 @@ namespace YARG.UI {
 			EXIT
 		}
 
-		public SongInfo chosenSong = null;
+		public SongEntry chosenSong = null;
 
 		[SerializeField]
 		private Canvas mainMenu;
@@ -65,8 +68,8 @@ namespace YARG.UI {
 
 			versionText.text = Constants.VERSION_TAG.ToString();
 
-			if (SongLibrary.SongsByHash == null) {
-				await RefreshSongLibrary();
+			if (SongContainer.SongsByHash == null) {
+				RefreshSongLibrary();
 			}
 
 			if (!isPostSong) {
@@ -103,14 +106,8 @@ namespace YARG.UI {
 		private void Update() {
 			// Update progress if loading
 			if (loadingScreen.activeSelf) {
-				progressBar.fillAmount = SongLibrary.loadPercent;
-				loadingStatus.text = SongLibrary.currentTaskDescription;
-
-				// Finish loading
-				if (!SongLibrary.currentlyLoading) {
-					loadingScreen.SetActive(false);
-					SongLibrary.loadPercent = 0f;
-				}
+				// TODO implement new loading screen
+				loadingScreen.SetActive(false);
 
 				return;
 			}
@@ -204,19 +201,15 @@ namespace YARG.UI {
 		public async UniTask RefreshSongLibrary() {
 			GameManager.Instance.SettingsMenu.gameObject.SetActive(false);
 
-			SongLibrary.Reset();
 			ScoreManager.Reset();
 
-			loadingScreen.SetActive(true);
-			// GameManager.SongScanner.AddSongFolder(@"G:\Clone Hero\Songs");
-			// Debug.Log("Calling start scan");
-			// await GameManager.SongScanner.StartScan(true);
-			// Debug.Log("Returned from start scan");
+			Task.Run(async () => await SongContainer.ScanAllFolders(false));
 			
-			//SongLibrary.FetchEverything();
-			//ScoreManager.FetchScores();
+			loadingScreen.SetActive(true);
 
-			SongSelect.refreshFlag = true;
+			ScoreManager.FetchScores();
+
+			SongSelection.refreshFlag = true;
 		}
 
 		public void OpenLatestRelease() {

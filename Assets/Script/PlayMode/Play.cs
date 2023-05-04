@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using MoonscraperChartEditor.Song;
 using MoonscraperChartEditor.Song.IO;
 using UnityEngine;
@@ -10,6 +11,7 @@ using YARG.Chart;
 using YARG.Data;
 using YARG.Serialization.Parser;
 using YARG.Settings;
+using YARG.Song;
 using YARG.UI;
 
 namespace YARG.PlayMode {
@@ -23,12 +25,12 @@ namespace YARG.PlayMode {
 
 		public const float SONG_START_OFFSET = 1f;
 
-		public static SongInfo song = null;
+		public static SongEntry song = null;
 
 		public delegate void BeatAction();
 		public static event BeatAction BeatEvent;
 
-		public delegate void SongStateChangeAction(SongInfo songInfo);
+		public delegate void SongStateChangeAction(SongEntry songInfo);
 		public static event SongStateChangeAction OnSongStart;
 		public static event SongStateChangeAction OnSongEnd;
 
@@ -111,12 +113,12 @@ namespace YARG.PlayMode {
 			bool isSpeedUp = Math.Abs(speed - 1) > float.Epsilon;
 
 			// Load MOGG if RB_CON, otherwise load stems
-			if (song.songType == SongInfo.SongType.RB_CON_RAW) {
-				Debug.Log(song.moggInfo.ChannelCount);
+			if (song is RawConSongEntry rawConSongEntry) {
+				Debug.Log(rawConSongEntry.MoggInfo.ChannelCount);
 
-				GameManager.AudioManager.LoadMogg(song.moggInfo, isSpeedUp);
+				GameManager.AudioManager.LoadMogg(rawConSongEntry.MoggInfo, isSpeedUp);
 			} else {
-				var stems = AudioHelpers.GetSupportedStems(song.RootFolder);
+				var stems = AudioHelpers.GetSupportedStems(song.Location);
 
 				GameManager.AudioManager.LoadSong(stems, isSpeedUp);
 			}
@@ -184,7 +186,7 @@ namespace YARG.PlayMode {
 		private void LoadChart() {
 			// Add main file
 			var files = new List<string> {
-				song.mainFile
+				song.NotesFile
 			};
 
 			// Look for upgrades and add
@@ -198,18 +200,18 @@ namespace YARG.PlayMode {
 			// Parse
 
 			MoonSong moonSong = null;
-			if (song.mainFile.EndsWith(".chart")) {
+			if (song.NotesFile.EndsWith(".chart")) {
 				Debug.Log("Reading .chart file");
-				moonSong = ChartReader.ReadChart(song.mainFile);
+				moonSong = ChartReader.ReadChart(Path.Combine(song.Location, song.NotesFile));
 			}
 
 			chart = new YargChart(moonSong);
-			if (song.mainFile.EndsWith(".mid")) {
+			if (song.NotesFile.EndsWith(".mid")) {
 				// Parse
 				var parser = new MidiParser(song, files.ToArray());
 				chart.InitializeArrays();
 				parser.Parse(chart);
-			} else if (song.mainFile.EndsWith(".chart")) {
+			} else if (song.NotesFile.EndsWith(".chart")) {
 				var handler = new BeatHandler(moonSong);
 				handler.GenerateBeats();
 				chart.beats = handler.Beats;

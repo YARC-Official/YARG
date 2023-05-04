@@ -233,6 +233,11 @@ namespace MoonscraperChartEditor.Song
 
             return false;
         }
+        
+        public bool DoesChartExist(MoonInstrument moonInstrument, Difficulty difficulty)
+		{
+			return GetChart(moonInstrument, difficulty).chartObjects.Count > 0;
+		}
 
         /// <summary>
         /// Converts a time value into a tick position value. May be inaccurate due to interger rounding.

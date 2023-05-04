@@ -5,6 +5,7 @@ using System.Threading;
 using Newtonsoft.Json;
 using UnityEngine;
 using YARG.Data;
+using YARG.Song;
 
 namespace YARG {
 	public static class ScoreManager {
@@ -26,7 +27,7 @@ namespace YARG {
 			// Read from score file OR create new
 			try {
 				if (File.Exists(ScoreFile)) {
-					string json = File.ReadAllText(ScoreFile.ToString());
+					string json = File.ReadAllText(ScoreFile);
 					scores = JsonConvert.DeserializeObject<Dictionary<string, SongScore>>(json);
 				} else {
 					scores = new();
@@ -42,10 +43,10 @@ namespace YARG {
 			}
 		}
 
-		public static void PushScore(SongInfo song, SongScore score) {
-			if (!scores.TryGetValue(song.hash, out var oldScore)) {
+		public static void PushScore(SongEntry song, SongScore score) {
+			if (!scores.TryGetValue(song.Checksum, out var oldScore)) {
 				// If the score info doesn't exist, just add the new one.
-				scores.Add(song.hash, score);
+				scores.Add(song.Checksum, score);
 			} else {
 				// Otherwise, MERGE!
 				oldScore.lastPlayed = score.lastPlayed;
@@ -79,8 +80,8 @@ namespace YARG {
 			SaveScore();
 		}
 
-		public static SongScore GetScore(SongInfo song) {
-			if (scores.TryGetValue(song.hash, out var o)) {
+		public static SongScore GetScore(SongEntry song) {
+			if (scores.TryGetValue(song.Checksum, out var o)) {
 				return o;
 			}
 
@@ -97,11 +98,11 @@ namespace YARG {
 			});
 		}
 
-		public static List<SongInfo> SongsByPlayCount() {
+		public static List<SongEntry> SongsByPlayCount() {
 			return scores
 				.OrderByDescending(i => i.Value.lastPlayed)
 				.Select(i => {
-					if (SongLibrary.SongsByHash.TryGetValue(i.Key, out var song)) {
+					if (SongContainer.SongsByHash.TryGetValue(i.Key, out var song)) {
 						return song;
 					}
 
