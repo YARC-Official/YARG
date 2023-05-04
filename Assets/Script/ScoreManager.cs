@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEngine;
 using YARG.Data;
@@ -19,7 +21,7 @@ namespace YARG {
 		/// <summary>
 		/// Should be called before you access any scores.
 		/// </summary>
-		public static void FetchScores() {
+		public static async UniTask FetchScores() {
 			if (scores != null) {
 				return;
 			}
@@ -27,8 +29,8 @@ namespace YARG {
 			// Read from score file OR create new
 			try {
 				if (File.Exists(ScoreFile)) {
-					string json = File.ReadAllText(ScoreFile);
-					scores = JsonConvert.DeserializeObject<Dictionary<string, SongScore>>(json);
+					string json = await File.ReadAllTextAsync(ScoreFile);
+					scores = await Task.Run(() => JsonConvert.DeserializeObject<Dictionary<string, SongScore>>(json));
 				} else {
 					scores = new();
 

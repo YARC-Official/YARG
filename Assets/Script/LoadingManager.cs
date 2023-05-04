@@ -30,6 +30,11 @@ namespace YARG {
 
 			AddSongRefreshToLoadQueue(false);
 
+			AddToLoadQueue(async () => {
+				SetLoadingText("Reading scores...");
+				await ScoreManager.FetchScores();
+			});
+
 			await Load();
 		}
 
