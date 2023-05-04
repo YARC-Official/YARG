@@ -1,5 +1,7 @@
 using EasySharpIni;
 using EasySharpIni.Converters;
+using EasySharpIni.Models;
+using YARG.Data;
 
 namespace YARG.Song {
 	public static class ScanHelpers {
@@ -44,6 +46,8 @@ namespace YARG.Song {
 			entry.EighthNoteHopo = section.GetField("eighthnote_hopo", "false").Get().ToLower() == "true";
 			entry.MultiplierNote = section.GetField("multiplier_note", "116").Get(IntConverter);
 
+			ReadDifficulties(section, entry);
+			
 			if (section.ContainsField("pro_drums")) {
 				switch (section.GetField("pro_drums")) {
 					case "true":
@@ -70,5 +74,21 @@ namespace YARG.Song {
 			return ScanResult.Ok;
 		}
 
+		private static void ReadDifficulties(IniSection section, SongEntry entry) {
+
+			entry.PartDifficulties[Instrument.GUITAR] = section.GetField("diff_guitar", "-1").Get(IntConverter);
+			entry.PartDifficulties[Instrument.GUITAR_COOP] = section.GetField("diff_guitar_coop", "-1").Get(IntConverter);
+			entry.PartDifficulties[Instrument.REAL_GUITAR] = section.GetField("diff_guitar_real", "-1").Get(IntConverter);
+			entry.PartDifficulties[Instrument.RHYTHM] = section.GetField("diff_rhythm", "-1").Get(IntConverter);
+			entry.PartDifficulties[Instrument.BASS] = section.GetField("diff_bass", "-1").Get(IntConverter);
+			entry.PartDifficulties[Instrument.REAL_BASS] = section.GetField("diff_bass_real", "-1").Get(IntConverter);
+			entry.PartDifficulties[Instrument.DRUMS] = section.GetField("diff_drums", "-1").Get(IntConverter);
+			entry.PartDifficulties[Instrument.GH_DRUMS] = section.GetField("diff_drums", "-1").Get(IntConverter);
+			entry.PartDifficulties[Instrument.REAL_DRUMS] = section.GetField("diff_drums_real", "-1").Get(IntConverter);
+			entry.PartDifficulties[Instrument.KEYS] = section.GetField("diff_keys", "-1").Get(IntConverter);
+			entry.PartDifficulties[Instrument.REAL_KEYS] = section.GetField("diff_keys_real", "-1").Get(IntConverter);
+			entry.PartDifficulties[Instrument.VOCALS] = section.GetField("diff_vocals", "-1").Get(IntConverter);
+			entry.PartDifficulties[Instrument.HARMONY] = section.GetField("diff_vocals_harm", "-1").Get(IntConverter);
+		}
 	}
 }
