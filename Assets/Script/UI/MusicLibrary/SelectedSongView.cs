@@ -135,7 +135,7 @@ namespace YARG.UI.MusicLibrary {
 				}
 			} else {
 				// CON images
-				if (_songEntry is not RawConSongEntry conEntry) {
+				if (_songEntry is not ExtractedConSongEntry conEntry) {
 					return;
 				}
 

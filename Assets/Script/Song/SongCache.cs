@@ -7,14 +7,17 @@ using UnityEngine;
 
 namespace YARG.Song {
 	public class SongCache {
-		
+
+		/// <summary>
+		/// The date in which the cache version is based on.
+		/// </summary>
 		private const int CACHE_VERSION = 23_05_03;
 
 		private readonly string _cacheFile;
-		
+
 		public SongCache(string folder) {
 			string hex = BitConverter.ToString(SHA1.Create().ComputeHash(Encoding.UTF8.GetBytes(folder))).Replace("-", "");
-			
+
 			_cacheFile = Path.Combine(GameManager.PersistentDataPath, "caches", $"{hex}.bin");
 		}
 
@@ -26,11 +29,11 @@ namespace YARG.Song {
 			if (!Directory.Exists(Path.Combine(GameManager.PersistentDataPath, "caches"))) {
 				Directory.CreateDirectory(Path.Combine(GameManager.PersistentDataPath, "caches"));
 			}
-			
+
 			using var writer = new BinaryWriter(File.Open(_cacheFile, FileMode.Create, FileAccess.ReadWrite));
-			
+
 			writer.Write(CACHE_VERSION);
-			
+
 			foreach (var song in songs) {
 				try {
 					WriteSongEntry(writer, song);
@@ -39,19 +42,19 @@ namespace YARG.Song {
 				}
 			}
 		}
-		
+
 		public List<SongEntry> ReadCache() {
 			var songs = new List<SongEntry>();
-			
+
 			if (!File.Exists(_cacheFile)) {
 				Debug.LogError("Cache file does not exist. Skipping");
 				return songs;
 			}
-			
+
 			using var reader = new BinaryReader(File.Open(_cacheFile, FileMode.Open, FileAccess.Read));
-			
+
 			int version = reader.ReadInt32();
-			
+
 			if (version != CACHE_VERSION) {
 				throw new Exception("Song Cache version is invalid. Rescan required.");
 			}
@@ -67,19 +70,20 @@ namespace YARG.Song {
 
 			return songs;
 		}
-		
+
 		private static void WriteSongEntry(BinaryWriter writer, SongEntry song) {
 			//Debug.Log($"Writing {song.Name} to cache");
 
 			if (song is IniSongEntry) {
-				writer.Write((int)SongType.SongIni);
-			} else if (song is RawConSongEntry) {
-				writer.Write((int)SongType.RbConRaw);
+				writer.Write((int) SongType.SongIni);
+			} else if (song is ExtractedConSongEntry) {
+				writer.Write((int) SongType.ExtractedRbCon);
 			}
+
 			// Unextracted con
-			
-			writer.Write((int)song.DrumType);
-			
+
+			writer.Write((int) song.DrumType);
+
 			writer.Write(song.Name);
 			writer.Write(song.Artist);
 			writer.Write(song.Charter);
@@ -98,9 +102,8 @@ namespace YARG.Song {
 			writer.Write(song.MultiplierNote);
 			writer.Write(song.Source);
 
-			switch (song)
-			{
-				case RawConSongEntry conSong:
+			switch (song) {
+				case ExtractedConSongEntry conSong:
 					// Write con stuff
 					break;
 				case IniSongEntry iniSong:
@@ -110,7 +113,7 @@ namespace YARG.Song {
 					writer.Write(iniSong.HasLyrics);
 					break;
 			}
-			
+
 			writer.Write(song.Checksum);
 			writer.Write(song.NotesFile);
 			writer.Write(song.Location);
@@ -122,15 +125,15 @@ namespace YARG.Song {
 				var type = (SongType)reader.ReadInt32();
 
 				result = type switch {
-					SongType.RbConRaw => new RawConSongEntry(),
-					SongType.SongIni  => new IniSongEntry(),
-					_                 => result
+					SongType.ExtractedRbCon => new ExtractedConSongEntry(),
+					SongType.SongIni => new IniSongEntry(),
+					_ => result
 				};
 
 				result.SongType = type;
-				
-				result.DrumType = (DrumType)reader.ReadInt32();
-				
+
+				result.DrumType = (DrumType) reader.ReadInt32();
+
 				result.Name = reader.ReadString();
 				result.Artist = reader.ReadString();
 				result.Charter = reader.ReadString();
@@ -149,24 +152,22 @@ namespace YARG.Song {
 				result.MultiplierNote = reader.ReadInt32();
 				result.Source = reader.ReadString();
 
-				switch (type)
-				{
-					case SongType.RbConRaw:
+				switch (type) {
+					case SongType.ExtractedRbCon:
 						// Con specific properties
 						break;
-					case SongType.SongIni:
-					{
-						// Ini specific properties
-						var iniSong = (IniSongEntry)result;
-					
-						iniSong.Playlist = reader.ReadString();
-						iniSong.SubPlaylist = reader.ReadString();
-						iniSong.IsModChart = reader.ReadBoolean();
-						iniSong.HasLyrics = reader.ReadBoolean();
-						break;
-					}
+					case SongType.SongIni: {
+							// Ini specific properties
+							var iniSong = (IniSongEntry)result;
+
+							iniSong.Playlist = reader.ReadString();
+							iniSong.SubPlaylist = reader.ReadString();
+							iniSong.IsModChart = reader.ReadBoolean();
+							iniSong.HasLyrics = reader.ReadBoolean();
+							break;
+						}
 				}
-				
+
 				result.Checksum = reader.ReadString();
 				result.NotesFile = reader.ReadString();
 				result.Location = reader.ReadString();

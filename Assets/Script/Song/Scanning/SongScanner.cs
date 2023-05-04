@@ -6,6 +6,24 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace YARG.Song {
+	public enum ScanResult {
+		Ok,
+		InvalidDirectory,
+		NotASong,
+		NoNotesFile,
+		NoAudioFile,
+	}
+
+	public readonly struct SongError {
+		public string Directory { get; }
+		public ScanResult Result { get; }
+
+		public SongError(string directory, ScanResult result) {
+			Directory = directory;
+			Result = result;
+		}
+	}
+
 	public class SongScanner {
 
 		private const int MAX_THREAD_COUNT = 2;
@@ -146,23 +164,5 @@ namespace YARG.Song {
 			}
 		}
 
-	}
-
-	public enum ScanResult {
-		Ok,
-		InvalidDirectory,
-		NotASong,
-		NoNotesFile,
-		NoAudioFile,
-	}
-
-	public struct SongError {
-		public string Directory { get; }
-		public ScanResult Result { get; }
-
-		public SongError(string directory, ScanResult result) {
-			Directory = directory;
-			Result = result;
-		}
 	}
 }

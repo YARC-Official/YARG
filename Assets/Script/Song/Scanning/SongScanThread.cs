@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -120,7 +120,7 @@ namespace YARG.Song {
 
 				foreach (var file in files) {
 					ScanConSong(cacheFolder, file, out var conSong);
-					
+
 					_songsScanned++;
 					songsScanned = _songsScanned;
 					songs.Add(conSong);
@@ -128,7 +128,7 @@ namespace YARG.Song {
 
 				return;
 			}
-			
+
 			string[] subdirectories = Directory.GetDirectories(subDir);
 
 			foreach (string subdirectory in subdirectories) {
@@ -163,7 +163,8 @@ namespace YARG.Song {
 			}
 
 			if (!File.Exists(Path.Combine(directory, "notes.chart")) &&
-			    !File.Exists(Path.Combine(directory, "notes.mid"))) {
+				!File.Exists(Path.Combine(directory, "notes.mid"))) {
+
 				return ScanResult.NoNotesFile;
 			}
 
@@ -193,12 +194,12 @@ namespace YARG.Song {
 			return ScanHelpers.ParseSongIni(Path.Combine(directory, "song.ini"), (IniSongEntry) song);
 		}
 
-		private static ScanResult ScanConSong(string cache, XboxSong file, out RawConSongEntry songEntry) {
+		private static ScanResult ScanConSong(string cache, XboxSong file, out ExtractedConSongEntry songEntry) {
 			byte[] bytes = File.ReadAllBytes(Path.Combine(file.SongFolderPath, "notes.mid"));
 
 			var checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes)).Replace("-", "");
 
-			songEntry = new RawConSongEntry {
+			songEntry = new ExtractedConSongEntry {
 				CacheRoot = cache,
 				Location = file.SongFolderPath,
 				NotesFile = "notes.mid",

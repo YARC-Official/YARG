@@ -49,7 +49,7 @@ namespace YARG.PlayMode {
 		private OccurrenceList<string> audioReverb = new();
 
 		private int stemsReverbed;
-		
+
 		private float realSongTime;
 		public float SongTime {
 			get => realSongTime + PlayerManager.GlobalCalibration * speed;
@@ -113,7 +113,7 @@ namespace YARG.PlayMode {
 			bool isSpeedUp = Math.Abs(speed - 1) > float.Epsilon;
 
 			// Load MOGG if RB_CON, otherwise load stems
-			if (song is RawConSongEntry rawConSongEntry) {
+			if (song is ExtractedConSongEntry rawConSongEntry) {
 				Debug.Log(rawConSongEntry.MoggInfo.ChannelCount);
 
 				GameManager.AudioManager.LoadMogg(rawConSongEntry.MoggInfo, isSpeedUp);
@@ -374,7 +374,7 @@ namespace YARG.PlayMode {
 
 			if (GameManager.AudioManager.UseStarpowerFx) {
 				GameManager.AudioManager.ApplyReverb(SongStem.Song, stemsReverbed > 0);
-				
+
 				foreach (var name in stemNames) {
 					var stem = AudioHelpers.GetStemFromName(name);
 

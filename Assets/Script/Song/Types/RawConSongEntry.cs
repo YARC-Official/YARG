@@ -1,8 +1,8 @@
 ﻿using YARG.Serialization;
 
 namespace YARG.Song {
-	public class RawConSongEntry : SongEntry {
-		
+	public class ExtractedConSongEntry : SongEntry {
+
 		/// <summary>
 		/// .mogg data for CON files.
 		/// </summary>
@@ -11,6 +11,6 @@ namespace YARG.Song {
 		/// .xbox_png data for CON files.
 		/// </summary>
 		public XboxImage ImageInfo { get; set; }
-		
+
 	}
 }

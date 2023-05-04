@@ -102,22 +102,22 @@ namespace YARG.Serialization {
 			);
 		}
 
-		public void CompleteSongInfo(RawConSongEntry song, bool rb) {
+		public void CompleteSongInfo(ExtractedConSongEntry song, bool rb) {
 			// Set infos
 			song.Name = songDta.name;
 			song.Source = songDta.gameOrigin;
 
 			// if the source is UGC/UGC_plus but no "UGC_" in shortname, assume it's a custom
-			if(songDta.gameOrigin == "ugc" || songDta.gameOrigin == "ugc_plus"){
-				if(!(songDta.shortname.Contains("UGC_"))){
+			if (songDta.gameOrigin == "ugc" || songDta.gameOrigin == "ugc_plus") {
+				if (!(songDta.shortname.Contains("UGC_"))) {
 					song.Source = "customs";
 				}
 			}
 
-			song.SongLength = (int)songDta.songLength / 1000;
+			song.SongLength = (int) songDta.songLength / 1000;
 			// song.delay
 			song.DrumType = rb ? DrumType.FourLane : DrumType.FiveLane;
-			if (songDta.hopoThreshold != 0) 
+			if (songDta.hopoThreshold != 0)
 				song.HopoThreshold = songDta.hopoThreshold;
 			song.Artist = songDta.artist ?? "Unknown Artist";
 			song.Album = songDta.albumName;
