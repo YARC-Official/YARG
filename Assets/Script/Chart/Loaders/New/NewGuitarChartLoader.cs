@@ -1,11 +1,16 @@
 using System.Collections.Generic;
 using MoonscraperChartEditor.Song;
+using YARG.Data;
 
 namespace YARG.Chart {
 	public class NewGuitarChartLoader : IChartLoader<GuitarNote> {
 
-		public List<GuitarNote> GetNotesFromChart(MoonSong song, MoonChart chart) {
+		public List<GuitarNote> GetNotesFromChart(MoonSong song, Difficulty difficulty) {
 			var notes = new List<GuitarNote>();
+			if (difficulty == Difficulty.EXPERT_PLUS) {
+				difficulty = Difficulty.EXPERT;
+			}
+			var chart = song.GetChart(MoonSong.MoonInstrument.Guitar, MoonSong.Difficulty.Easy - (int) difficulty);
 			
 			var starpowers = chart.starPower.ToArray();
 

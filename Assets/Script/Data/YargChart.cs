@@ -47,18 +47,19 @@ namespace YARG.Data {
 
 		private List<NoteInfo>[] drums;
 		public List<NoteInfo>[] Drums {
-			get => drums;// ?? LoadArray(new DrumsChartLoader(false), MoonSong.MoonInstrument.Drums, 4);
+			get => drums ?? LoadArray(ref drums, new FourLaneDrumsChartLoader(pro: false), MoonSong.MoonInstrument.Drums, Difficulty.EXPERT_PLUS);
 			set => drums = value;
 		}
+
 		private List<NoteInfo>[] realDrums;
 		public List<NoteInfo>[] RealDrums {
-			get => realDrums;// ?? LoadArray(new DrumsChartLoader(true), MoonSong.MoonInstrument.Drums, 4);
+			get => realDrums ?? LoadArray(ref realDrums, new FourLaneDrumsChartLoader(pro: true), MoonSong.MoonInstrument.Drums, Difficulty.EXPERT_PLUS, isPro: true);
 			set => realDrums = value;
 		}
-		
+
 		private List<NoteInfo>[] ghDrums;
 		public List<NoteInfo>[] GhDrums {
-			get => ghDrums;// ?? LoadArray(new DrumsChartLoader(false), MoonSong.MoonInstrument.Drums, 4);
+			get => ghDrums ?? LoadArray(ref ghDrums, new FiveLaneDrumsChartLoader(), MoonSong.MoonInstrument.Drums, Difficulty.EXPERT_PLUS, isGh: true);
 			set => ghDrums = value;
 		}
 
@@ -121,11 +122,11 @@ namespace YARG.Data {
 			};
 		}
 
-		private List<NoteInfo>[] LoadArray(ref List<NoteInfo>[] notes, IChartLoader<NoteInfo> loader, MoonSong.MoonInstrument instrument, int length = 4,
-			bool isPro = false, bool isGh = false) {
-			notes = new List<NoteInfo>[length];
-			for (int i = 0; i < length; i++) {
-				notes[i] = loader.GetNotesFromChart(_song, _song.GetChart(instrument, (MoonSong.Difficulty) length - 1 - i));
+		private List<NoteInfo>[] LoadArray(ref List<NoteInfo>[] notes, IChartLoader<NoteInfo> loader, MoonSong.MoonInstrument instrument,
+			Difficulty maxDifficulty = Difficulty.EXPERT, bool isPro = false, bool isGh = false) {
+			notes = new List<NoteInfo>[(int) (maxDifficulty + 1)];
+			for (Difficulty diff = Difficulty.EASY; diff <= maxDifficulty; diff++) {
+				notes[(int) diff] = loader.GetNotesFromChart(_song, diff);
 			}
 
 			if (_loadedEvents.Contains(instrument)) {
