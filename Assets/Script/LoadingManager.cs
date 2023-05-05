@@ -30,10 +30,15 @@ namespace YARG {
 
 			AddSongRefreshToLoadQueue(false);
 
-			await Load();
+			AddToLoadQueue(async () => {
+				SetLoadingText("Reading scores...");
+				await ScoreManager.FetchScores();
+			});
+
+			await StartLoad();
 		}
 
-		public async UniTask Load() {
+		public async UniTask StartLoad() {
 			if (loadQueue.Count <= 0) {
 				return;
 			}
@@ -58,9 +63,24 @@ namespace YARG {
 			});
 		}
 
+		public void AddSongFolderRefreshToLoadQueue(string path) {
+			AddToLoadQueue(async () => {
+				await ScanSongFolder(path);
+			});
+		}
+
 		private async UniTask ScanSongFolders(bool fast) {
 			SetLoadingText("Loading songs...");
 			await SongContainer.ScanAllFolders(fast, scanner => {
+				subPhrase.text = $"Folders Scanned: {scanner.TotalFoldersScanned}" +
+					$"\nSongs Scanned: {scanner.TotalSongsScanned}" +
+					$"\nErrors: {scanner.TotalErrorsEncountered}";
+			});
+		}
+
+		private async UniTask ScanSongFolder(string path) {
+			SetLoadingText("Loading songs from folder...");
+			await SongContainer.ScanFolder(path, scanner => {
 				subPhrase.text = $"Folders Scanned: {scanner.TotalFoldersScanned}" +
 					$"\nSongs Scanned: {scanner.TotalSongsScanned}" +
 					$"\nErrors: {scanner.TotalErrorsEncountered}";
