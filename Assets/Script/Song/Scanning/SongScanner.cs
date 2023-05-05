@@ -67,7 +67,7 @@ namespace YARG.Song {
 			var songs = new List<SongEntry>();
 
 			if (_songFolders.Count == 0) {
-				Debug.LogError("No song folders added to SongScanner");
+				Debug.LogWarning("No song folders added to SongScanner. Returning");
 				return songs;
 			}
 

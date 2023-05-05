@@ -114,9 +114,9 @@ namespace YARG.Song {
 			foldersScanned = _foldersScanned;
 
 			// Raw CON folder, so don't scan anymore subdirectories here
-			string dtaPath = Path.Combine(subDir, "songs", "songs.dta");
-			if (File.Exists(dtaPath)) {
-				var files = XboxRawfileBrowser.BrowseFolder(dtaPath, Path.Combine(dtaPath, "TODO CHANGE"));
+			string songsPath = Path.Combine(subDir, "songs");
+			if (File.Exists(Path.Combine(songsPath, "songs.dta"))) {
+				var files = XboxRawfileBrowser.BrowseFolder(songsPath, Path.Combine(songsPath, "TODO CHANGE"));
 
 				foreach (var file in files) {
 					ScanConSong(cacheFolder, file, out var conSong);
@@ -195,7 +195,7 @@ namespace YARG.Song {
 		}
 
 		private static ScanResult ScanConSong(string cache, XboxSong file, out ExtractedConSongEntry songEntry) {
-			byte[] bytes = File.ReadAllBytes(Path.Combine(file.SongFolderPath, "notes.mid"));
+			byte[] bytes = File.ReadAllBytes(Path.Combine(file.SongFolderPath, file.MidiFile));
 
 			var checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes)).Replace("-", "");
 
