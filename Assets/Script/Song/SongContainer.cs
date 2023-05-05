@@ -35,14 +35,15 @@ namespace YARG.Song {
 			}
 		}
 
-		public static async UniTask ScanAllFolders(bool fast, Action<SongScanner> updateUi = null) {
+		public static async UniTask<List<string>> ScanAllFolders(bool fast, Action<SongScanner> updateUi = null) {
 			_songs.Clear();
 			_songsByHash.Clear();
 
 			var scanner = new SongScanner(SongFolders);
-			var songs = await scanner.StartScan(fast, updateUi);
+			var output = await scanner.StartScan(fast, updateUi);
 
-			AddSongs(songs);
+			AddSongs(output.SongEntries);
+			return output.ErroredCaches;
 		}
 
 		public static async UniTask ScanFolder(string path, Action<SongScanner> updateUi = null) {
@@ -56,7 +57,7 @@ namespace YARG.Song {
 			var scanner = new SongScanner(new[] { path });
 			var songs = await scanner.StartScan(false, updateUi);
 
-			AddSongs(songs);
+			AddSongs(songs.SongEntries);
 		}
 
 	}

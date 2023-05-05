@@ -72,7 +72,7 @@ namespace YARG {
 
 		private async UniTask ScanSongFolders(bool fast) {
 			SetLoadingText("Loading songs...");
-			await SongContainer.ScanAllFolders(fast, scanner => {
+			var errors = await SongContainer.ScanAllFolders(fast, scanner => {
 				subPhrase.text = $"Folders Scanned: {scanner.TotalFoldersScanned}" +
 					$"\nSongs Scanned: {scanner.TotalSongsScanned}" +
 					$"\nErrors: {scanner.TotalErrorsEncountered}";

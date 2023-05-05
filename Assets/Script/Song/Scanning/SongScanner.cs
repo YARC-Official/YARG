@@ -24,6 +24,16 @@ namespace YARG.Song {
 		}
 	}
 
+	public readonly struct ScanOutput {
+		public List<SongEntry> SongEntries { get; }
+		public List<string> ErroredCaches { get; }
+
+		public ScanOutput(List<SongEntry> songEntries, List<string> erroredCaches) {
+			SongEntries = songEntries;
+			ErroredCaches = erroredCaches;
+		}
+	}
+
 	public class SongScanner {
 
 		private const int MAX_THREAD_COUNT = 2;
@@ -60,15 +70,17 @@ namespace YARG.Song {
 			}
 		}
 
-		public async UniTask<List<SongEntry>> StartScan(bool fast, Action<SongScanner> updateUi) {
+		public async UniTask<ScanOutput> StartScan(bool fast, Action<SongScanner> updateUi) {
 			if (_hasScanned) {
 				throw new Exception("Cannot use a SongScanner after it has already scanned");
 			}
+
 			var songs = new List<SongEntry>();
+			var cacheErrors = new List<string>();
 
 			if (_songFolders.Count == 0) {
 				Debug.LogWarning("No song folders added to SongScanner. Returning");
-				return songs;
+				return new ScanOutput(songs, cacheErrors);
 			}
 
 			_scanThreads = new SongScanThread[MAX_THREAD_COUNT];
@@ -112,6 +124,7 @@ namespace YARG.Song {
 
 			foreach (var thread in _scanThreads) {
 				songs.AddRange(thread.Songs);
+				cacheErrors.AddRange(thread.CacheErrors);
 			}
 
 			_isScanning = false;
@@ -122,7 +135,7 @@ namespace YARG.Song {
 
 			_scanThreads = null;
 
-			return songs;
+			return new ScanOutput(songs, cacheErrors);
 		}
 
 		public int GetActiveThreads() {

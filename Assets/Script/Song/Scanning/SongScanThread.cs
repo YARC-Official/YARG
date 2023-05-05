@@ -23,13 +23,16 @@ namespace YARG.Song {
 		private readonly Dictionary<string, List<SongEntry>> _songsByCacheFolder;
 		private readonly Dictionary<string, List<SongError>> _songErrors;
 		private readonly Dictionary<string, SongCache>       _songCaches;
+		private readonly List<string>                        _cacheErrors;
 
+		public IReadOnlyList<string> CacheErrors => _cacheErrors;
 		public IReadOnlyList<SongEntry> Songs => _songsByCacheFolder.Values.SelectMany(x => x).ToList();
 
 		public SongScanThread(bool fast) {
 			_songsByCacheFolder = new Dictionary<string, List<SongEntry>>();
 			_songErrors = new Dictionary<string, List<SongError>>();
 			_songCaches = new Dictionary<string, SongCache>();
+			_cacheErrors = new List<string>();
 
 			_thread = fast ? new Thread(FastScan) : new Thread(FullScan);
 		}
@@ -98,9 +101,16 @@ namespace YARG.Song {
 			// This is stupid
 			var caches = new Dictionary<string, List<SongEntry>>();
 			foreach (string folder in _songsByCacheFolder.Keys) {
-				Debug.Log($"Reading cache of {folder}");
-				caches.Add(folder, _songCaches[folder].ReadCache());
-				Debug.Log($"Read cache of {folder}");
+				try {
+					Debug.Log($"Reading cache of {folder}");
+					caches.Add(folder, _songCaches[folder].ReadCache());
+					Debug.Log($"Read cache of {folder}");
+				} catch (Exception e) {
+					_cacheErrors.Add(folder);
+
+					Debug.LogException(e);
+					Debug.LogError($"Failed to read cache of {folder}");
+				}
 			}
 
 			foreach (var cache in caches) {
