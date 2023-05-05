@@ -1,7 +1,9 @@
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using SFB;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using YARG.Song;
 using YARG.Util;
 
@@ -77,6 +79,11 @@ namespace YARG.Settings {
 				PathsReference[index] = folder[0];
 				RefreshText();
 			});
+		}
+
+		public void Refresh() {
+			LoadingManager.Instance.AddSongFolderRefreshToLoadQueue(PathsReference[index]);
+			LoadingManager.Instance.StartLoad().Forget();
 		}
 	}
 }

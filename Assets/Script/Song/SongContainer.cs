@@ -45,7 +45,7 @@ namespace YARG.Song {
 			AddSongs(songs);
 		}
 
-		public static async UniTask ScanFolder(string path) {
+		public static async UniTask ScanFolder(string path, Action<SongScanner> updateUi = null) {
 			var songsToRemove = _songs.Where(song => song.CacheRoot == path).ToList();
 
 			_songs.RemoveAll(x => x.CacheRoot == path);
@@ -54,7 +54,7 @@ namespace YARG.Song {
 			}
 
 			var scanner = new SongScanner(new[] { path });
-			var songs = await scanner.StartScan(false, null);
+			var songs = await scanner.StartScan(false, updateUi);
 
 			AddSongs(songs);
 		}

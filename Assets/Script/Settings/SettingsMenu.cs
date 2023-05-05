@@ -173,7 +173,7 @@ namespace YARG.Settings {
 					hasSongLibraryChanged = false;
 
 					LoadingManager.Instance.AddSongRefreshToLoadQueue(false);
-					await LoadingManager.Instance.Load();
+					await LoadingManager.Instance.StartLoad();
 				}, "RefreshAllCaches");
 			}
 
