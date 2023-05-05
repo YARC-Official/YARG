@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using UnityEditor.Build.Content;
 using UnityEngine;
+using YARG.Data;
 
 namespace YARG.Song {
 	public class SongCache {
@@ -80,8 +82,6 @@ namespace YARG.Song {
 				writer.Write((int) SongType.ExtractedRbCon);
 			}
 
-			// Unextracted con
-
 			writer.Write((int) song.DrumType);
 
 			writer.Write(song.Name);
@@ -102,11 +102,20 @@ namespace YARG.Song {
 			writer.Write(song.MultiplierNote);
 			writer.Write(song.Source);
 
+			// Write difficulties
+			writer.Write(song.PartDifficulties.Count);
+			foreach (var difficulty in song.PartDifficulties) {
+				writer.Write((int) difficulty.Key);
+				writer.Write(difficulty.Value);
+			}
+
 			switch (song) {
 				case ExtractedConSongEntry conSong:
 					// Write con stuff
+					CacheHelpers.WriteExtractedConData(writer, conSong);
 					break;
 				case IniSongEntry iniSong:
+					// These are CH specific ini properties
 					writer.Write(iniSong.Playlist);
 					writer.Write(iniSong.SubPlaylist);
 					writer.Write(iniSong.IsModChart);
@@ -152,9 +161,17 @@ namespace YARG.Song {
 				result.MultiplierNote = reader.ReadInt32();
 				result.Source = reader.ReadString();
 
+				// Read difficulties
+				int difficultyCount = reader.ReadInt32();
+				for (var i = 0; i < difficultyCount; i++) {
+					var part = (Instrument) reader.ReadInt32();
+					int difficulty = reader.ReadInt32();
+					result.PartDifficulties.Add(part, difficulty);
+				}
+				
 				switch (type) {
 					case SongType.ExtractedRbCon:
-						// Con specific properties
+						CacheHelpers.ReadExtractedConData(reader, (ExtractedConSongEntry)result);
 						break;
 					case SongType.SongIni: {
 							// Ini specific properties

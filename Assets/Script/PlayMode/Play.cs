@@ -186,7 +186,7 @@ namespace YARG.PlayMode {
 		private void LoadChart() {
 			// Add main file
 			var files = new List<string> {
-				song.NotesFile
+				Path.Combine(song.Location, song.NotesFile)
 			};
 
 			// Look for upgrades and add
@@ -202,7 +202,7 @@ namespace YARG.PlayMode {
 			MoonSong moonSong = null;
 			if (song.NotesFile.EndsWith(".chart")) {
 				Debug.Log("Reading .chart file");
-				moonSong = ChartReader.ReadChart(Path.Combine(song.Location, song.NotesFile));
+				moonSong = ChartReader.ReadChart(files[0]);
 			}
 
 			chart = new YargChart(moonSong);
