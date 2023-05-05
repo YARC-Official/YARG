@@ -28,7 +28,8 @@ namespace YARG {
 				await SongSources.LoadSources();
 			});
 
-			AddSongRefreshToLoadQueue(false);
+			// Fast scan (cache read) on startup
+			AddSongRefreshToLoadQueue(true);
 
 			AddToLoadQueue(async () => {
 				SetLoadingText("Reading scores...");

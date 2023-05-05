@@ -134,8 +134,8 @@ namespace YARG.UI.MusicLibrary {
 					}
 				}
 			} else {
-				// CON images
-				if (_songEntry is not ExtractedConSongEntry conEntry) {
+				// Check if an EXCon or if there is no album image for this song
+				if (_songEntry is not ExtractedConSongEntry conEntry || conEntry.ImageInfo is null) {
 					return;
 				}
 

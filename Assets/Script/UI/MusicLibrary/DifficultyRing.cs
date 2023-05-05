@@ -15,7 +15,7 @@ namespace YARG.UI.MusicLibrary {
 		private Sprite[] ringSprites;
 
 		public void SetInfo(Dictionary<Instrument, int> difficulties, Instrument instrument) {
-			SetInfo(instrument, difficulties[instrument]);
+			SetInfo(instrument, difficulties.GetValueOrDefault(instrument, -1));
 		}
 
 		public void SetInfo(Instrument instrument, int difficulty) {

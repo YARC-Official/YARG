@@ -15,14 +15,6 @@ namespace YARG.Song {
 			writer.Write(conSong.MoggInfo.MoggPath);
 			writer.Write(conSong.MoggInfo.ChannelCount);
 			writer.Write(conSong.MoggInfo.Header);
-			writer.Write(conSong.MoggInfo.MoggSize);
-					
-			// Write offsets (length + offsets)
-			writer.Write(conSong.MoggInfo.MoggOffsets.Length);
-			foreach (uint offset in conSong.MoggInfo.MoggOffsets) {
-				writer.Write(offset);
-			}
-					
 			writer.Write(conSong.MoggInfo.MoggAddressAudioOffset);
 			writer.Write(conSong.MoggInfo.MoggAudioLength);
 			
@@ -78,35 +70,22 @@ namespace YARG.Song {
 			 Image data
 			 
 			 */
-			
-			writer.Write(conSong.ImageInfo.ImagePath);
-			writer.Write(conSong.ImageInfo.BitsPerPixel);
-			writer.Write(conSong.ImageInfo.Format);
-			writer.Write(conSong.ImageInfo.ImgSize);
-			
-			// Write image offsets
-			writer.Write(conSong.ImageInfo.ImgOffsets.Length);
-			foreach (uint offset in conSong.ImageInfo.ImgOffsets) {
-				writer.Write(offset);
+
+			// ImageInfo can be null if the song has no image so need to detect this
+			writer.Write(conSong.ImageInfo is not null);
+			if (conSong.ImageInfo is not null) {
+				writer.Write(conSong.ImageInfo.ImagePath);
+				writer.Write(conSong.ImageInfo.BitsPerPixel);
+				writer.Write(conSong.ImageInfo.Format);
 			}
-			
 		}
 
 		public static void ReadExtractedConData(BinaryReader reader, ExtractedConSongEntry conSong) {
 			string path = reader.ReadString();
 			int channelCount = reader.ReadInt32();
 			int header = reader.ReadInt32();
-			uint moggSize = reader.ReadUInt32();
-			
-			// Read offsets (length + offsets)
-			int offsetCount = reader.ReadInt32();
-			var offsets = new uint[offsetCount];
-			for (int i = 0; i < offsetCount; i++) {
-				offsets[i] = reader.ReadUInt32();
-			}
-			
 			int moggAddressAudioOffset = reader.ReadInt32();
-			int moggAudioLength = reader.ReadInt32();
+			long moggAudioLength = reader.ReadInt64();
 			
 			// Read Pan Data
 			int panDataLength = reader.ReadInt32();
@@ -165,7 +144,7 @@ namespace YARG.Song {
 				}
 			}
 
-			var moggData = new XboxMoggData(path, moggSize, offsets) {
+			var moggData = new XboxMoggData(path) {
 				ChannelCount = channelCount,
 				Header = header,
 				MoggAddressAudioOffset = moggAddressAudioOffset,
@@ -183,27 +162,23 @@ namespace YARG.Song {
 			 Image data
 			 
 			 */
-			
-			string imagePath = reader.ReadString();
-			byte bitsPerPixel = reader.ReadByte();
-			int format = reader.ReadInt32();
-			uint imgSize = reader.ReadUInt32();
-			
-			// Read image offsets
-			int imgOffsetCount = reader.ReadInt32();
-			var imgOffsets = new uint[imgOffsetCount];
-			for (int i = 0; i < imgOffsetCount; i++) {
-				imgOffsets[i] = reader.ReadUInt32();
+
+			// ImageInfo can be null if the song has no image so need to detect this
+			if (reader.ReadBoolean()) {
+				string imagePath = reader.ReadString();
+				byte bitsPerPixel = reader.ReadByte();
+				int format = reader.ReadInt32();
+				
+				var imageInfo = new XboxImage(imagePath) {
+					BitsPerPixel = bitsPerPixel,
+					Format = format
+				};
+				
+				conSong.ImageInfo = imageInfo;
 			}
-			
-			var imageInfo = new XboxImage(imagePath, imgSize, offsets) {
-				BitsPerPixel = bitsPerPixel,
-				Format = format
-			};
 
 			conSong.MoggInfo = moggData;
-			conSong.ImageInfo = imageInfo;
 		}
-		
+
 	}
 }

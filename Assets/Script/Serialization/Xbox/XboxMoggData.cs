@@ -39,6 +39,8 @@ namespace YARG.Serialization {
 
 		public XboxMoggData(string str) {
 			MoggPath = str;
+			
+			CrowdChannels = Array.Empty<int>();
 		}
 
 		public XboxMoggData(string str, uint size, uint[] offsets) {
@@ -46,6 +48,8 @@ namespace YARG.Serialization {
 			MoggSize = size;
 			MoggOffsets = offsets;
 			isFromCON = true;
+
+			CrowdChannels = Array.Empty<int>();
 		}
 
 		public void ParseMoggHeader() {
@@ -216,7 +220,7 @@ namespace YARG.Serialization {
 				}
 			}
 
-			if (CrowdChannels != null) {
+			if (CrowdChannels.Length > 0) {
 				StemMaps[SongStem.Crowd] = new int[CrowdChannels.Length];
 				for (int i = 0; i < CrowdChannels.Length; i++) {
 					StemMaps[SongStem.Crowd][i] = CrowdChannels[i];
