@@ -202,7 +202,7 @@ namespace YARG.Song {
 			songEntry = new ExtractedConSongEntry {
 				CacheRoot = cache,
 				Location = file.SongFolderPath,
-				NotesFile = "notes.mid",
+				NotesFile = file.MidiFile,
 				Checksum = checksum,
 			};
 
