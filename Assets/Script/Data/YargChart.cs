@@ -121,11 +121,11 @@ namespace YARG.Data {
 			};
 		}
 
-		private List<NoteInfo>[] LoadArray(ref List<NoteInfo>[] notes, IChartLoader<NoteInfo> loader, MoonSong.MoonInstrument instrument, int length = 4,
-			bool isPro = false, bool isGh = false) {
-			notes = new List<NoteInfo>[length];
-			for (int i = 0; i < length; i++) {
-				notes[i] = loader.GetNotesFromChart(_song, _song.GetChart(instrument, (MoonSong.Difficulty) length - 1 - i));
+		private List<NoteInfo>[] LoadArray(ref List<NoteInfo>[] notes, IChartLoader<NoteInfo> loader, MoonSong.MoonInstrument instrument,
+			Difficulty maxDifficulty = Difficulty.EXPERT, bool isPro = false, bool isGh = false) {
+			notes = new List<NoteInfo>[(int) (maxDifficulty + 1)];
+			for (Difficulty diff = Difficulty.EASY; diff <= maxDifficulty; diff++) {
+				notes[(int) diff] = loader.GetNotesFromChart(_song, diff);
 			}
 
 			if (_loadedEvents.Contains(instrument)) {
