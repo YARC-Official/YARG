@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using YARG.Data;
 using YARG.Input;
 using YARG.Settings;
+using YARG.UI.MusicLibrary;
 
 namespace YARG.UI {
 	public partial class MainMenu : MonoBehaviour {
@@ -210,7 +211,7 @@ namespace YARG.UI {
 			loadingScreen.SetActive(true);
 			ScoreManager.FetchScores();
 
-			SongSelect.refreshFlag = true;
+			SongSelection.refreshFlag = true;
 		}
 
 		public void OpenLatestRelease() {

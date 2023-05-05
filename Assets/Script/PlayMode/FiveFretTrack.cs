@@ -34,13 +34,11 @@ namespace YARG.PlayMode {
 		private int allowedGhostsDefault = Constants.EXTRA_ALLOWED_GHOSTS + 1;
 		private int allowedGhosts = Constants.EXTRA_ALLOWED_GHOSTS + 1;
 		private int[] allowedChordGhosts = new int[] { -1, -1, -1, -1, -1 }; // -1 = not a chord; 0 = ghosted; 1 = ghost allowed
-		private bool antiGhosting = false;
-		private bool pressedThisFrame = false;
 
 		// https://www.reddit.com/r/Rockband/comments/51t3c0/exactly_how_many_points_are_sustains_worth/
 		private const double SUSTAIN_PTS_PER_BEAT = 12.0;
 		private const int PTS_PER_NOTE = 25;
-
+		private int noteCount = -1;
 		protected override void StartTrack() {
 			notePool.player = player;
 			genericPool.player = player;
@@ -75,6 +73,8 @@ namespace YARG.PlayMode {
 			starsKeeper = new(Chart, scoreKeeper,
 				player.chosenInstrument,
 				PTS_PER_NOTE);
+			
+			noteCount = GetChartCount();
 		}
 
 		protected override void OnDestroy() {
@@ -170,7 +170,6 @@ namespace YARG.PlayMode {
 
 			// Un-strum
 			strummed = false;
-			pressedThisFrame = false;
 		}
 
 		public override void SetReverb(bool on) {
@@ -292,7 +291,7 @@ namespace YARG.PlayMode {
 			}
 			// If tapping to recover combo during tap note section, skip to first valid note within the timing window.
 			// This will make it easier to recover.
-			if (Constants.EASY_TAP_RECOVERY && Combo <= 0 /*&& pressedThisFrame*/ && chord[0].tap && !ChordPressed(chord)) {
+			if (Constants.EASY_TAP_RECOVERY && Combo <= 0 && chord[0].tap && !ChordPressed(chord)) {
 				var found = false;
 				foreach (var newChord in expectedHits) {
 					if (!newChord[0].tap) {
@@ -400,7 +399,7 @@ namespace YARG.PlayMode {
 			// doesn't lose their combo when they strum AFTER they hit
 			// the tap note.
 			if ((chord[0].hopo || chord[0].tap) && !strummedCurrentNote) {
-				allowedOverstrums.Clear(); // Only allow overstrumming latest HO/PO
+				//allowedOverstrums.Clear();
 				allowedOverstrums.Add(chord);
 			} else if (allowedOverstrums.Count > 0 && !chord[0].hopo && !chord[0].tap) {
 				for (int i = 0; i < allowedOverstrums.Count; i++) {
@@ -551,9 +550,6 @@ namespace YARG.PlayMode {
 		private void FretChangedAction(bool pressed, int fret) {
 			latestInput = Play.Instance.SongTime;
 			latestInputIsStrum = false;
-			if (pressed) {
-				pressedThisFrame = true;
-			}
 
 			// Should it check ghosting?
 			if (SettingsManager.Settings.AntiGhosting.Data && allowedGhosts > 0 && pressed && hitChartIndex > 0) {
@@ -783,6 +779,9 @@ namespace YARG.PlayMode {
 			}
 		}
 		public override int GetChartCount() {
+			if (noteCount > -1) {
+				return noteCount;
+			}
 			int count = 0;
 			for (int i = 0; i < Chart.Count; i++) {
 				if (i == 0 || Chart[i].time > Chart[i-1].time) {
