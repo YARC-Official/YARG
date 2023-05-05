@@ -93,13 +93,21 @@ namespace YARG.Song {
 
 			_isScanning = true;
 
+			// Start all threads, count skips
+			int skips = 0;
 			foreach (var scanThread in _scanThreads) {
-				scanThread.StartScan();
+				var notSkipped = scanThread.StartScan();
+				if (!notSkipped) {
+					skips++;
+				}
 			}
 
 			// Threads can have a startup time, so we wait until it's alive
-			while (GetActiveThreads() == 0) {
-				await UniTask.NextFrame();
+			// Don't wait if all threads skipped
+			if (skips < _scanThreads.Length) {
+				while (GetActiveThreads() == 0) {
+					await UniTask.NextFrame();
+				}
 			}
 
 			// Keep looping until all threads are done
@@ -148,6 +156,11 @@ namespace YARG.Song {
 			var driveFolders = drives.ToDictionary(drive => drive, _ => new List<string>());
 
 			foreach (var folder in _songFolders) {
+				if (string.IsNullOrEmpty(folder)) {
+					Debug.LogWarning("Song folder is null/empty. This is a problem with the settings menu!");
+					continue;
+				}
+
 				var drive = drives.FirstOrDefault(d => folder.StartsWith(d.RootDirectory.Name));
 				if (drive == null) {
 					Debug.LogError($"Folder {folder} is not on a drive");

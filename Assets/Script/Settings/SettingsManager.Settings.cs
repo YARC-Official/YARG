@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using SFB;
 using UnityEngine;
 using YARG.PlayMode;
@@ -9,8 +10,8 @@ namespace YARG.Settings {
 		public class SettingContainer {
 #pragma warning disable format
 			
-			public string[]      SongFolders                                      = { };
-			public string[]      SongUpgradeFolders                               = { };
+			public List<string>  SongFolders                                      = new();
+			public List<string>  SongUpgradeFolders                               = new();
 			
 			public IntSetting    CalibrationNumber          { get; private set; } = new(-120);
 			

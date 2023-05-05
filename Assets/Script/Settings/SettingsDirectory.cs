@@ -1,9 +1,9 @@
+using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using SFB;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using YARG.Song;
 using YARG.Util;
 
@@ -17,8 +17,8 @@ namespace YARG.Settings {
 		private bool isUpgradeFolder;
 		private int index;
 
-		private string[] _pathsReference;
-		private string[] PathsReference {
+		private List<string> _pathsReference;
+		private List<string> PathsReference {
 			get => _pathsReference;
 			set {
 				if (isUpgradeFolder) {
@@ -61,9 +61,7 @@ namespace YARG.Settings {
 
 		public void Remove() {
 			// Remove the element
-			var list = PathsReference.ToList();
-			list.RemoveAt(index);
-			PathsReference = list.ToArray();
+			PathsReference.RemoveAt(index);
 
 			// Refresh
 			GameManager.Instance.SettingsMenu.UpdateSongFolderManager();

@@ -14,9 +14,12 @@ namespace YARG.Song {
 		/// </summary>
 		private const int CACHE_VERSION = 23_05_05;
 
+		private readonly string _folder;
 		private readonly string _cacheFile;
 
 		public SongCache(string folder) {
+			_folder = folder;
+
 			string hex = BitConverter.ToString(SHA1.Create().ComputeHash(Encoding.UTF8.GetBytes(folder))).Replace("-", "");
 
 			_cacheFile = Path.Combine(GameManager.PersistentDataPath, "caches", $"{hex}.bin");
@@ -63,6 +66,7 @@ namespace YARG.Song {
 			while (reader.BaseStream.Position < reader.BaseStream.Length) {
 				var song = ReadSongEntry(reader);
 				if (song is not null) {
+					song.CacheRoot = _folder;
 					songs.Add(song);
 				} else {
 					throw new Exception("Song Cache is corrupted.");
@@ -167,10 +171,10 @@ namespace YARG.Song {
 					int difficulty = reader.ReadInt32();
 					result.PartDifficulties.Add(part, difficulty);
 				}
-				
+
 				switch (type) {
 					case SongType.ExtractedRbCon:
-						CacheHelpers.ReadExtractedConData(reader, (ExtractedConSongEntry)result);
+						CacheHelpers.ReadExtractedConData(reader, (ExtractedConSongEntry) result);
 						break;
 					case SongType.SongIni: {
 							// Ini specific properties

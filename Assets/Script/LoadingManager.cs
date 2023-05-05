@@ -77,6 +77,11 @@ namespace YARG {
 					$"\nSongs Scanned: {scanner.TotalSongsScanned}" +
 					$"\nErrors: {scanner.TotalErrorsEncountered}";
 			});
+
+			// Scan errored caches
+			foreach (var error in errors) {
+				await ScanSongFolder(error);
+			}
 		}
 
 		private async UniTask ScanSongFolder(string path) {

@@ -13,8 +13,8 @@ namespace YARG.Song {
 		private static readonly List<SongEntry> _songs;
 		private static readonly Dictionary<string, SongEntry> _songsByHash;
 
-		public static string[] SongFolders => SettingsManager.Settings.SongFolders;
-		public static string[] SongUpgradeFolders => SettingsManager.Settings.SongUpgradeFolders;
+		public static List<string> SongFolders => SettingsManager.Settings.SongFolders;
+		public static List<string> SongUpgradeFolders => SettingsManager.Settings.SongUpgradeFolders;
 
 		public static IReadOnlyList<SongEntry> Songs => _songs;
 		public static IReadOnlyDictionary<string, SongEntry> SongsByHash => _songsByHash;

@@ -60,18 +60,19 @@ namespace YARG.Song {
 			_thread = null;
 		}
 
-		public void StartScan() {
+		public bool StartScan() {
 			if (_thread.IsAlive) {
 				Debug.LogError("This scan thread is already in progress!");
-				return;
+				return false;
 			}
 
 			if (_songsByCacheFolder.Keys.Count == 0) {
 				Debug.LogWarning("No song folders added to this thread");
-				return;
+				return false;
 			}
 
 			_thread.Start();
+			return true;
 		}
 
 		private void FullScan() {

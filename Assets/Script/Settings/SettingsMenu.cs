@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Localization;
@@ -184,9 +183,7 @@ namespace YARG.Settings {
 			{
 				var go = Instantiate(buttonPrefab, settingsContainer);
 				go.GetComponent<SettingsButton>().SetCustomCallback(() => {
-					// Use a list to add the new folder to the end
-					Array.Resize(ref SettingsManager.Settings.SongFolders,
-						SettingsManager.Settings.SongFolders.Length + 1);
+					SettingsManager.Settings.SongFolders.Add(string.Empty);
 
 					// Refresh everything
 					UpdateSongFolderManager();
@@ -194,12 +191,14 @@ namespace YARG.Settings {
 			}
 
 			// Create all of the directories
-			for (int i = 0; i < SettingsManager.Settings.SongFolders.Length; i++) {
+			for (int i = 0; i < SettingsManager.Settings.SongFolders.Count; i++) {
 				var path = SettingsManager.Settings.SongFolders[i];
 
 				var go = Instantiate(directoryPrefab, settingsContainer);
 				go.GetComponent<SettingsDirectory>().SetIndex(i, false);
 			}
+
+			/*
 
 			// Spawn header
 			SpawnHeader(settingsContainer, "Header.SongUpgrades");
@@ -208,9 +207,7 @@ namespace YARG.Settings {
 			{
 				var go = Instantiate(buttonPrefab, settingsContainer);
 				go.GetComponent<SettingsButton>().SetCustomCallback(() => {
-					// Use a list to add the new folder to the end
-					Array.Resize(ref SettingsManager.Settings.SongUpgradeFolders,
-						SettingsManager.Settings.SongFolders.Length + 1);
+					SettingsManager.Settings.SongUpgradeFolders.Add(string.Empty);
 
 					// Refresh everything
 					UpdateSongFolderManager();
@@ -218,12 +215,14 @@ namespace YARG.Settings {
 			}
 
 			// Create all of the song upgrade directories
-			for (int i = 0; i < SettingsManager.Settings.SongUpgradeFolders.Length; i++) {
+			for (int i = 0; i < SettingsManager.Settings.SongUpgradeFolders.Count; i++) {
 				var path = SettingsManager.Settings.SongUpgradeFolders[i];
 
 				var go = Instantiate(directoryPrefab, settingsContainer);
 				go.GetComponent<SettingsDirectory>().SetIndex(i, true);
 			}
+
+			*/
 		}
 
 		private void SpawnHeader(Transform container, string localizationKey) {
