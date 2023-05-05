@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using UnityEditor.Build.Content;
 using UnityEngine;
 using YARG.Data;
 
@@ -13,7 +12,7 @@ namespace YARG.Song {
 		/// <summary>
 		/// The date in which the cache version is based on.
 		/// </summary>
-		private const int CACHE_VERSION = 23_05_03;
+		private const int CACHE_VERSION = 23_05_05;
 
 		private readonly string _cacheFile;
 
@@ -32,7 +31,7 @@ namespace YARG.Song {
 				Directory.CreateDirectory(Path.Combine(GameManager.PersistentDataPath, "caches"));
 			}
 
-			using var writer = new BinaryWriter(File.Open(_cacheFile, FileMode.Create, FileAccess.ReadWrite));
+			using var writer = new NullStringBinaryWriter(File.Open(_cacheFile, FileMode.Create, FileAccess.ReadWrite));
 
 			writer.Write(CACHE_VERSION);
 
