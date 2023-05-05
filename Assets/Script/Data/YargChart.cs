@@ -47,18 +47,19 @@ namespace YARG.Data {
 
 		private List<NoteInfo>[] drums;
 		public List<NoteInfo>[] Drums {
-			get => drums;// ?? LoadArray(new DrumsChartLoader(false), MoonSong.MoonInstrument.Drums, 4);
+			get => drums ?? LoadArray(ref drums, new FourLaneDrumsChartLoader(pro: false), MoonSong.MoonInstrument.Drums, Difficulty.EXPERT_PLUS);
 			set => drums = value;
 		}
+
 		private List<NoteInfo>[] realDrums;
 		public List<NoteInfo>[] RealDrums {
-			get => realDrums;// ?? LoadArray(new DrumsChartLoader(true), MoonSong.MoonInstrument.Drums, 4);
+			get => realDrums ?? LoadArray(ref realDrums, new FourLaneDrumsChartLoader(pro: true), MoonSong.MoonInstrument.Drums, Difficulty.EXPERT_PLUS, isPro: true);
 			set => realDrums = value;
 		}
-		
+
 		private List<NoteInfo>[] ghDrums;
 		public List<NoteInfo>[] GhDrums {
-			get => ghDrums;// ?? LoadArray(new DrumsChartLoader(false), MoonSong.MoonInstrument.Drums, 4);
+			get => ghDrums ?? LoadArray(ref ghDrums, new FiveLaneDrumsChartLoader(), MoonSong.MoonInstrument.Drums, Difficulty.EXPERT_PLUS, isGh: true);
 			set => ghDrums = value;
 		}
 
