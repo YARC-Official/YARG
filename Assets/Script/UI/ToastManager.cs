@@ -4,20 +4,19 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
-public class ToastManager : MonoBehaviour
-{
+public class ToastManager : MonoBehaviour{
     /* Currently handles:
-       Devices at startup
-       Devices connected - not keyboard or mouse or microphone
-       Device disconnected - not keyboard or mouse or microphone
+    Devices at startup
+    Devices connected - not keyboard or mouse or microphone
+    Device disconnected - not keyboard or mouse or microphone
 
-        Colors:
-        General: #00DDFB
-        Success: #46E74F
-        Information: #00AFF7
-        Warning: #FFEE57
-        Error: #FF0031
-        Message Color: #FFFFFF    
+    Colors:
+    General: #00DDFB
+    Success: #46E74F
+    Information: #00AFF7
+    Warning: #FFEE57
+    Error: #FF0031
+    Message Color: #FFFFFF    
     */
     [Header("Colors")]
     [SerializeField]
@@ -60,7 +59,7 @@ public class ToastManager : MonoBehaviour
     [SerializeField]
     private Image messageBackground;
 
-     private static Queue<toastStruct> toastQueue = new Queue<toastStruct>();
+    private static Queue<Toast> toastQueue = new Queue<Toast>();
     private Coroutine queueChecker;
 
     public enum ToastType{
@@ -71,31 +70,31 @@ public class ToastManager : MonoBehaviour
         error,
     }
 
-    public struct toastStruct{ //this is so we can pass 2 things into the queue
+    public struct Toast{ //this is so we can pass 2 things into the queue
         public ToastType type;
         public string text;
-        public toastStruct(ToastType _type, string _text){
-            type = _type;
-            text = _text;
+        public Toast(ToastType type, string text){
+            this.type = type;
+            this.text = text;
         }
     }
     public static ToastManager Instance {
-		get;
-		private set;
-	}
+        get;
+        private set;
+    }
 
     private void Start(){
         Instance = this;
         toastFab.SetActive(false);
         ToastInformation("Devices found: " + (Microphone.devices.Length + InputSystem.devices.Count));
         InputSystem.onDeviceChange += OnDeviceChange; //listen to devices added or removed when running. Know what is awesome? This doesn't include things already connected at start up. so time for a bunch of code just to handle that:
-  }
-	/// <summary>
-	/// Adds a general message toast to the toast queue.
-	/// </summary>
+    }
+    /// <summary>
+    /// Adds a general message toast to the toast queue.
+    /// </summary>
     /// <param name="text">Text of the toast.</param>
     public static void ToastMessage(string text){ //the public facing function to use to add a toast to the queue
-        toastQueue.Enqueue(new toastStruct(ToastType.general, text));
+        toastQueue.Enqueue(new Toast(ToastType.general, text));
         if (Instance.queueChecker == null){
             Instance.queueChecker = Instance.StartCoroutine(Instance.CheckQueue());
         }
@@ -105,7 +104,7 @@ public class ToastManager : MonoBehaviour
     /// </summary>
     /// <param name="text">Text of the toast.</param>
     public static void ToastSuccess(string text){ //the public facing function to use to add a toast to the queue
-        toastQueue.Enqueue(new toastStruct(ToastType.success, text));
+        toastQueue.Enqueue(new Toast(ToastType.success, text));
         if (Instance.queueChecker == null){
             Instance.queueChecker = Instance.StartCoroutine(Instance.CheckQueue());
         }
@@ -115,7 +114,7 @@ public class ToastManager : MonoBehaviour
     /// </summary>
     /// <param name="text">Text of the toast.</param>
     public static void ToastWarning(string text){ //the public facing function to use to add a toast to the queue
-        toastQueue.Enqueue(new toastStruct(ToastType.warning, text));
+        toastQueue.Enqueue(new Toast(ToastType.warning, text));
         if (Instance.queueChecker == null){
             Instance.queueChecker = Instance.StartCoroutine(Instance.CheckQueue());
         }
@@ -125,7 +124,7 @@ public class ToastManager : MonoBehaviour
     /// </summary>
     /// <param name="text">Text of the toast.</param>
     public static void ToastInformation(string text){ //the public facing function to use to add a toast to the queue
-        toastQueue.Enqueue(new toastStruct(ToastType.information, text));
+        toastQueue.Enqueue(new Toast(ToastType.information, text));
         if (Instance.queueChecker == null){
             Instance.queueChecker = Instance.StartCoroutine(Instance.CheckQueue());
         }
@@ -135,7 +134,7 @@ public class ToastManager : MonoBehaviour
     /// </summary>
     /// <param name="text">Text of the toast.</param>
     public static void ToastError(string text){ //the public facing function to use to add a toast to the queue
-        toastQueue.Enqueue(new toastStruct(ToastType.error, text));
+        toastQueue.Enqueue(new Toast(ToastType.error, text));
         if (Instance.queueChecker == null){
             Instance.queueChecker = Instance.StartCoroutine(Instance.CheckQueue());
         }
@@ -144,41 +143,41 @@ public class ToastManager : MonoBehaviour
     private void ShowToast(ToastType type, string body){ 
         toastFab.SetActive(true);
         switch(type){
-            case ToastType.general:
-                messageTypeText.text = "General";
-                messageTypeText.color = generalColor;
-                messageTypeIcon.sprite = iconGeneral;             
-            break;
+        case ToastType.general:
+        messageTypeText.text = "General";
+        messageTypeText.color = generalColor;
+        messageTypeIcon.sprite = iconGeneral;             
+        break;
 
-            case ToastType.success:
-                messageTypeText.text = "Success";
-                messageTypeText.color = successColor;
-                messageTypeIcon.sprite = iconSuccess;             
-            break;
+        case ToastType.success:
+        messageTypeText.text = "Success";
+        messageTypeText.color = successColor;
+        messageTypeIcon.sprite = iconSuccess;             
+        break;
 
-            case ToastType.warning:
-                messageTypeText.text = "Warning";
-                messageTypeText.color = warningColor;
-                messageTypeIcon.sprite = iconWarning;             
-            break;
-            
-            case ToastType.information:
-                messageTypeText.text = "Information";
-                messageTypeText.color = informationColor;
-                messageTypeIcon.sprite = iconInformation;             
-            break;
-            
-            case ToastType.error:
-                messageTypeText.text = "Error";
-                messageTypeText.color = errorColor;
-                messageTypeIcon.sprite = iconError;             
-            break;
+        case ToastType.warning:
+        messageTypeText.text = "Warning";
+        messageTypeText.color = warningColor;
+        messageTypeIcon.sprite = iconWarning;             
+        break;
 
-            default:
-                messageTypeText.text = "Unknown";
-                messageTypeText.color = generalColor;
-                messageTypeIcon.sprite = iconGeneral;             
-            break;
+        case ToastType.information:
+        messageTypeText.text = "Information";
+        messageTypeText.color = informationColor;
+        messageTypeIcon.sprite = iconInformation;             
+        break;
+
+        case ToastType.error:
+        messageTypeText.text = "Error";
+        messageTypeText.color = errorColor;
+        messageTypeIcon.sprite = iconError;             
+        break;
+
+        default:
+        messageTypeText.text = "Unknown";
+        messageTypeText.color = generalColor;
+        messageTypeIcon.sprite = iconGeneral;             
+        break;
         }
         messageBody.color = new Color(0xFF, 0xFF, 0xFF, 0xFF); //set text color to white
         messageBody.text = body;
@@ -188,9 +187,9 @@ public class ToastManager : MonoBehaviour
 
     private IEnumerator CheckQueue(){
         do{
-            toastStruct thing = toastQueue.Dequeue();
+            Toast thing = toastQueue.Dequeue();
             ShowToast(thing.type, thing.text);
-            do {
+            do{
                 yield return null;
             } while (!toastAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Idle"));
         } while ( toastQueue.Count > 0);
