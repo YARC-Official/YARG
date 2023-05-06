@@ -72,7 +72,7 @@ namespace YARG.Song {
 		}
 
 		public bool HasPart(Instrument instrument, Difficulty difficulty) {
-			long instrumentBits = 0x1 << (int)instrument * 4 + (int)difficulty;
+			long instrumentBits = 0x1L << (int)instrument * 4 + (int)difficulty;
 			return (AvailableParts & (ulong) instrumentBits) != 0;
 		}
 	}
