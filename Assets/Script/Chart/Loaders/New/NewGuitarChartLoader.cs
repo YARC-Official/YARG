@@ -1,16 +1,26 @@
+using System;
 using System.Collections.Generic;
 using MoonscraperChartEditor.Song;
 using YARG.Data;
 
 namespace YARG.Chart {
-	public class NewGuitarChartLoader : IChartLoader<GuitarNote> {
+	public class NewGuitarChartLoader : ChartLoader<GuitarNote> {
+		public NewGuitarChartLoader(MoonSong.MoonInstrument instrument) {
+			InstrumentName = instrument switch {
+				MoonSong.MoonInstrument.Guitar => "guitar",
+				MoonSong.MoonInstrument.GuitarCoop => "guitarCoop",
+				MoonSong.MoonInstrument.Rhythm => "rhythm",
+				MoonSong.MoonInstrument.Bass => "bass",
+				MoonSong.MoonInstrument.Keys => "keys",
+				_ => throw new Exception("Instrument not supported!")
+			};
 
-		public List<GuitarNote> GetNotesFromChart(MoonSong song, Difficulty difficulty) {
+			Instrument = instrument;
+		}
+
+		public override List<GuitarNote> GetNotesFromChart(MoonSong song, Difficulty difficulty) {
 			var notes = new List<GuitarNote>();
-			if (difficulty == Difficulty.EXPERT_PLUS) {
-				difficulty = Difficulty.EXPERT;
-			}
-			var chart = song.GetChart(MoonSong.MoonInstrument.Guitar, MoonSong.Difficulty.Easy - (int) difficulty);
+			var chart = GetChart(song, difficulty);
 			
 			var starpowers = chart.starPower.ToArray();
 
@@ -58,12 +68,9 @@ namespace YARG.Chart {
 					flags |= NoteFlags.Chord;
 				}
 
-				// Length of the note in realtime
-				double timeLength = song.TickToTime(moonNote.tick + moonNote.length, song.resolution) - moonNote.time;
-
 				int fret = MoonGuitarNoteToFret(moonNote);
-				var currentNote = new GuitarNote(previousSeparateGameNote, moonNote.time, timeLength, moonNote.tick,
-					moonNote.length, fret, moonNote.type, flags);
+				var currentNote = new GuitarNote(previousSeparateGameNote, moonNote.time, GetNoteLength(song, moonNote),
+					moonNote.tick, moonNote.length, fret, moonNote.type, flags);
 				
 				// First note, must be a parent note
 				if (previousGameNote is null) {

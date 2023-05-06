@@ -3,22 +3,21 @@ using MoonscraperChartEditor.Song;
 using YARG.Data;
 
 namespace YARG.Chart {
-	public class NewDrumChartLoader : IChartLoader<DrumNote> {
-
+	public class NewDrumChartLoader : ChartLoader<DrumNote> {
 		private readonly bool _isPro;
 
 		public NewDrumChartLoader(bool isPro) {
 			_isPro = isPro;
+
+			Instrument = MoonSong.MoonInstrument.Drums;
+			InstrumentName = _isPro ? "realDrums" : "drums";
+			MaxDifficulty = Difficulty.EXPERT_PLUS;
 		}
 		
-		public List<DrumNote> GetNotesFromChart(MoonSong song, Difficulty difficulty) {
+		public override List<DrumNote> GetNotesFromChart(MoonSong song, Difficulty difficulty) {
 			var notes = new List<DrumNote>();
-			bool doubleBass = false;
-			if (difficulty == Difficulty.EXPERT_PLUS) {
-				difficulty = Difficulty.EXPERT;
-				doubleBass = true;
-			}
-			var chart = song.GetChart(MoonSong.MoonInstrument.Drums, MoonSong.Difficulty.Easy - (int) difficulty);
+			var chart = GetChart(song, difficulty);
+			bool doubleBass = difficulty == Difficulty.EXPERT_PLUS;
 
 			// do star power later lol idk how it works
 

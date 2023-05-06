@@ -14,30 +14,30 @@ namespace YARG.Data {
 
 		private List<NoteInfo>[] guitar;
 		public List<NoteInfo>[] Guitar {
-			get => guitar ?? LoadArray(ref guitar, new GuitarChartLoader(), MoonSong.MoonInstrument.Guitar);
+			get => guitar ??= LoadArray(ChartLoader.GuitarLoader);
 			set => guitar = value;
 		}
 		
 		private List<NoteInfo>[] guitarCoop;
 		public List<NoteInfo>[] GuitarCoop {
-			get => guitarCoop ?? LoadArray(ref guitarCoop, new GuitarChartLoader(), MoonSong.MoonInstrument.GuitarCoop);
+			get => guitarCoop ??= LoadArray(ChartLoader.GuitarCoopLoader);
 			set => guitarCoop = value;
 		}
 		private List<NoteInfo>[] rhythm;
 		public List<NoteInfo>[] Rhythm {
-			get => rhythm ?? LoadArray(ref rhythm, new GuitarChartLoader(), MoonSong.MoonInstrument.Rhythm);
+			get => rhythm ??= LoadArray(ChartLoader.RhythmLoader);
 			set => rhythm = value;
 		}
 		
 		private List<NoteInfo>[] bass;
 		public List<NoteInfo>[] Bass {
-			get => bass ?? LoadArray(ref bass, new GuitarChartLoader(), MoonSong.MoonInstrument.Bass);
+			get => bass ??= LoadArray(ChartLoader.BassLoader);
 			set => bass = value;
 		}
 		
 		private List<NoteInfo>[] keys;
 		public List<NoteInfo>[] Keys {
-			get => keys ?? LoadArray(ref keys, new GuitarChartLoader(), MoonSong.MoonInstrument.Keys);
+			get => keys ??= LoadArray(ChartLoader.KeysLoader);
 			set => keys = value;
 		}
 
@@ -47,19 +47,19 @@ namespace YARG.Data {
 
 		private List<NoteInfo>[] drums;
 		public List<NoteInfo>[] Drums {
-			get => drums ?? LoadArray(ref drums, new FourLaneDrumsChartLoader(pro: false), MoonSong.MoonInstrument.Drums, Difficulty.EXPERT_PLUS);
+			get => drums ??= LoadArray(ChartLoader.DrumsLoader);
 			set => drums = value;
 		}
 
 		private List<NoteInfo>[] realDrums;
 		public List<NoteInfo>[] RealDrums {
-			get => realDrums ?? LoadArray(ref realDrums, new FourLaneDrumsChartLoader(pro: true), MoonSong.MoonInstrument.Drums, Difficulty.EXPERT_PLUS, isPro: true);
+			get => realDrums ??= LoadArray(ChartLoader.ProDrumsLoader);
 			set => realDrums = value;
 		}
 
 		private List<NoteInfo>[] ghDrums;
 		public List<NoteInfo>[] GhDrums {
-			get => ghDrums ?? LoadArray(ref ghDrums, new FiveLaneDrumsChartLoader(), MoonSong.MoonInstrument.Drums, Difficulty.EXPERT_PLUS, isGh: true);
+			get => ghDrums ??= LoadArray(ChartLoader.FiveLaneDrumsLoader);
 			set => ghDrums = value;
 		}
 
@@ -122,9 +122,12 @@ namespace YARG.Data {
 			};
 		}
 
-		private List<NoteInfo>[] LoadArray(ref List<NoteInfo>[] notes, IChartLoader<NoteInfo> loader, MoonSong.MoonInstrument instrument,
-			Difficulty maxDifficulty = Difficulty.EXPERT, bool isPro = false, bool isGh = false) {
-			notes = new List<NoteInfo>[(int) (maxDifficulty + 1)];
+		private List<NoteInfo>[] LoadArray(ChartLoader<NoteInfo> loader) {
+			var maxDifficulty = loader.MaxDifficulty;
+			var instrument = loader.Instrument;
+			string instrumentName = loader.InstrumentName;
+
+			var notes = new List<NoteInfo>[(int) (maxDifficulty + 1)];
 			for (Difficulty diff = Difficulty.EASY; diff <= maxDifficulty; diff++) {
 				notes[(int) diff] = loader.GetNotesFromChart(_song, diff);
 			}
@@ -133,32 +136,9 @@ namespace YARG.Data {
 				return notes;
 			}
 
-			var chart = _song.GetChart(instrument, MoonSong.Difficulty.Expert);
-			foreach (var sp in chart.starPower) {
-				string name = GetNameFromInstrument(instrument, isPro, isGh);
-
-				float finishTime = (float) _song.TickToTime(sp.tick + sp.length - 1);
-
-				events.Add(new EventInfo($"starpower_{name}", (float) sp.time, finishTime - (float) sp.time));
-			}
-
-			for (int i = 0; i < chart.events.Count; i++) {
-				var chartEvent = chart.events[i];
-				string name = GetNameFromInstrument(instrument, isPro, isGh);
-
-				if (chartEvent.eventName == "solo") {
-					for (int k = i; k < chart.events.Count; k++) {
-						var chartEvent2 = chart.events[k];
-						if (chartEvent2.eventName == "soloend") {
-							events.Add(new EventInfo($"solo_{name}", (float) chartEvent.time, (float) (chartEvent2.time - chartEvent.time)));
-							break;
-						}
-					}
-				}
-			}
-
-			_loadedEvents.Add(instrument);
+			events.AddRange(loader.GetEventsFromChart(_song));
 			events.Sort((e1, e2) => e1.time.CompareTo(e2.time));
+			_loadedEvents.Add(instrument);
 
 			return notes;
 		}
@@ -170,18 +150,6 @@ namespace YARG.Data {
 			}
 
 			return list;
-		}
-
-		private static string GetNameFromInstrument(MoonSong.MoonInstrument instrument, bool isPro, bool isGh) {
-			return instrument switch {
-				MoonSong.MoonInstrument.Guitar => "guitar",
-				MoonSong.MoonInstrument.GuitarCoop => "guitarCoop",
-				MoonSong.MoonInstrument.Rhythm => "rhythm",
-				MoonSong.MoonInstrument.Bass => "bass",
-				MoonSong.MoonInstrument.Keys => "keys",
-				MoonSong.MoonInstrument.Drums => isPro ? "realDrums" : isGh ? "ghDrums" : "drums",
-				_ => throw new Exception("Instrument not supported!")
-			};
 		}
 	}
 }

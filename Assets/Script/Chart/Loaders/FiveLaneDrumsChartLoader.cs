@@ -1,17 +1,20 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using MoonscraperChartEditor.Song;
 using YARG.Data;
 
 namespace YARG.Chart {
-	public class FiveLaneDrumsChartLoader : IChartLoader<NoteInfo> {
-		public List<NoteInfo> GetNotesFromChart(MoonSong song, Difficulty difficulty) {
+	public class FiveLaneDrumsChartLoader : ChartLoader<NoteInfo> {
+		public FiveLaneDrumsChartLoader() {
+			Instrument = MoonSong.MoonInstrument.Drums;
+			InstrumentName = "ghDrums";
+			MaxDifficulty = Difficulty.EXPERT_PLUS;
+		}
+
+		public override List<NoteInfo> GetNotesFromChart(MoonSong song, Difficulty difficulty) {
 			var notes = new List<NoteInfo>();
-			bool doubleBass = false;
-			if (difficulty == Difficulty.EXPERT_PLUS) {
-				difficulty = Difficulty.EXPERT;
-				doubleBass = true;
-			}
-			var chart = song.GetChart(MoonSong.MoonInstrument.Drums, MoonSong.Difficulty.Easy - (int) difficulty);
+			var chart = GetChart(song, difficulty);
+			bool doubleBass = difficulty == Difficulty.EXPERT_PLUS;
 
 			foreach (var moonNote in chart.notes) {
 				// Ignore double-kicks if not Expert+
@@ -23,12 +26,9 @@ namespace YARG.Chart {
 				if (pad == -1)
 					continue;
 
-				// Length of the note in realtime
-				double timeLength = song.TickToTime(moonNote.tick + moonNote.length, song.resolution) - moonNote.time;
-
 				var note = new NoteInfo {
 					time = (float) moonNote.time,
-					length = (float) timeLength,
+					length = (float) GetNoteLength(song, moonNote),
 					fret = pad,
 					hopo = moonNote.type == MoonNote.MoonNoteType.Cymbal
 				};
@@ -38,6 +38,28 @@ namespace YARG.Chart {
 
 			// TODO: Need to handle playing 4-lane charts on 5-lane
 			return notes;
+		}
+
+		public override List<EventInfo> GetEventsFromChart(MoonSong song) {
+			var events = base.GetEventsFromChart(song);
+			var chart = GetChart(song, Difficulty.EXPERT);
+
+			// SP activations
+			// Not typically present on 5-lane, but if they're there we'll take 'em!
+			foreach (var sp in chart.starPower) {
+				if ((sp.flags & Starpower.Flags.ProDrums_Activation) == 0) {
+					continue;
+				}
+
+				events.Add(new EventInfo($"fill_{InstrumentName}", (float) sp.time, (float) GetDrumFillLength(song, sp)));
+			}
+
+			return events;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		protected double GetDrumFillLength(MoonSong song, Starpower sp) {
+			return GetLength(song, sp.time, sp.tick, sp.length);
 		}
 
 		private int MoonDrumNoteToPad(MoonNote note) {
