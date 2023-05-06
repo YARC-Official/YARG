@@ -16,12 +16,8 @@ namespace YARG.Chart {
 
 		public override List<NoteInfo> GetNotesFromChart(MoonSong song, Difficulty difficulty) {
 			var notes = new List<NoteInfo>();
-			bool doubleBass = false;
-			if (difficulty == Difficulty.EXPERT_PLUS) {
-				difficulty = Difficulty.EXPERT;
-				doubleBass = true;
-			}
-			var chart = song.GetChart(Instrument, MoonSong.Difficulty.Easy - (int) difficulty);
+			var chart = GetChart(song, difficulty);
+			bool doubleBass = difficulty == Difficulty.EXPERT_PLUS;
 
 			foreach (var moonNote in chart.notes) {
 				// Ignore double-kicks if not Expert+
@@ -33,12 +29,9 @@ namespace YARG.Chart {
 				if (pad == -1)
 					continue;
 
-				// Length of the note in realtime
-				double timeLength = song.TickToTime(moonNote.tick + moonNote.length, song.resolution) - moonNote.time;
-
 				var note = new NoteInfo {
 					time = (float) moonNote.time,
-					length = (float) timeLength,
+					length = (float) GetNoteLength(song, moonNote),
 					fret = pad,
 					hopo = _proDrums && moonNote.type == MoonNote.MoonNoteType.Cymbal
 				};

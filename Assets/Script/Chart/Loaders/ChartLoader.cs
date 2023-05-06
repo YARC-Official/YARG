@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using MoonscraperChartEditor.Song;
 using YARG.Data;
 
@@ -21,8 +22,7 @@ namespace YARG.Chart {
 					continue;
 				}
 
-				double timeLength = song.TickToTime(sp.tick + sp.length - 1) - sp.time;
-				events.Add(new EventInfo($"starpower_{InstrumentName}", (float) sp.time, (float) timeLength));
+				events.Add(new EventInfo($"starpower_{InstrumentName}", (float) sp.time, (float) GetStarpowerLength(song, sp)));
 			}
 
 			// Solos
@@ -40,6 +40,32 @@ namespace YARG.Chart {
 			}
 
 			return events;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		protected double GetLength(MoonSong song, double startTime, uint tick, uint tickLength) {
+			return song.TickToTime(tick + tickLength, song.resolution) - startTime;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		protected double GetNoteLength(MoonSong song, MoonNote note) {
+			return GetLength(song, note.time, note.tick, note.length);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		protected double GetStarpowerLength(MoonSong song, Starpower sp) {
+			return GetLength(song, sp.time, sp.tick, sp.length - 1);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		protected MoonChart GetChart(MoonSong song, Difficulty difficulty) {
+			if (difficulty > Difficulty.EXPERT) {
+				difficulty = Difficulty.EXPERT;
+			} else if (difficulty < Difficulty.EASY) {
+				difficulty = Difficulty.EASY;
+			}
+
+			return song.GetChart(Instrument, MoonSong.Difficulty.Easy - (int) difficulty);
 		}
 	}
 }

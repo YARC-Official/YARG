@@ -20,10 +20,7 @@ namespace YARG.Chart {
 
 		public override List<GuitarNote> GetNotesFromChart(MoonSong song, Difficulty difficulty) {
 			var notes = new List<GuitarNote>();
-			if (difficulty == Difficulty.EXPERT_PLUS) {
-				difficulty = Difficulty.EXPERT;
-			}
-			var chart = song.GetChart(Instrument, MoonSong.Difficulty.Easy - (int) difficulty);
+			var chart = GetChart(song, difficulty);
 			
 			var starpowers = chart.starPower.ToArray();
 
@@ -71,12 +68,9 @@ namespace YARG.Chart {
 					flags |= NoteFlags.Chord;
 				}
 
-				// Length of the note in realtime
-				double timeLength = song.TickToTime(moonNote.tick + moonNote.length, song.resolution) - moonNote.time;
-
 				int fret = MoonGuitarNoteToFret(moonNote);
-				var currentNote = new GuitarNote(previousSeparateGameNote, moonNote.time, timeLength, moonNote.tick,
-					moonNote.length, fret, moonNote.type, flags);
+				var currentNote = new GuitarNote(previousSeparateGameNote, moonNote.time, GetNoteLength(song, moonNote),
+					moonNote.tick, moonNote.length, fret, moonNote.type, flags);
 				
 				// First note, must be a parent note
 				if (previousGameNote is null) {

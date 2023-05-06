@@ -16,12 +16,8 @@ namespace YARG.Chart {
 		
 		public override List<DrumNote> GetNotesFromChart(MoonSong song, Difficulty difficulty) {
 			var notes = new List<DrumNote>();
-			bool doubleBass = false;
-			if (difficulty == Difficulty.EXPERT_PLUS) {
-				difficulty = Difficulty.EXPERT;
-				doubleBass = true;
-			}
-			var chart = song.GetChart(Instrument, MoonSong.Difficulty.Easy - (int) difficulty);
+			var chart = GetChart(song, difficulty);
+			bool doubleBass = difficulty == Difficulty.EXPERT_PLUS;
 
 			// do star power later lol idk how it works
 

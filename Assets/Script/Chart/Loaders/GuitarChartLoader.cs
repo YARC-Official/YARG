@@ -20,18 +20,12 @@ namespace YARG.Chart {
 
 		public override List<NoteInfo> GetNotesFromChart(MoonSong song, Difficulty difficulty) {
 			var notes = new List<NoteInfo>();
-			if (difficulty == Difficulty.EXPERT_PLUS) {
-				difficulty = Difficulty.EXPERT;
-			}
-			var chart = song.GetChart(Instrument, MoonSong.Difficulty.Easy - (int) difficulty);
+			var chart = GetChart(song, difficulty);
 
 			foreach (var moonNote in chart.notes) {
-				// Length of the note in realtime
-				double timeLength = song.TickToTime(moonNote.tick + moonNote.length, song.resolution) - moonNote.time;
-
 				var note = new NoteInfo {
-					time = (float)moonNote.time,
-					length = (float)timeLength,
+					time = (float) moonNote.time,
+					length = (float) GetNoteLength(song, moonNote),
 					fret = moonNote.rawNote,
 					hopo = moonNote.type == MoonNote.MoonNoteType.Hopo,
 					tap = moonNote.type == MoonNote.MoonNoteType.Tap,
