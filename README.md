@@ -62,9 +62,9 @@ Windows:
 > If you don't follow these instructions, **YOU WILL NOT BE ABLE TO RUN THE GAME**.
 
 1. Make sure you have the latest version of [Blender](https://www.blender.org/) installed. This is for loading models, even if you don't plan on editing them.
-2. Make sure you have [Python (3.10)](https://www.python.org/downloads/) installed. This is required to downloading dependencies.
+2. Make sure you have [Python (3.10)](https://www.python.org/downloads/) or greater installed. Be sure it is added to system path. This is required to downloading dependencies.
 3. Clone the repository. If you don't know how to do this:
-	1. Download [Git](https://git-scm.com/downloads).
+	1. Download [Git](https://git-scm.com/downloads). Be sure it is added to system path.
 	2. Open the command prompt in the directory you want to store the repository.
 	3. Type in `git clone https://github.com/EliteAsian123/YARG.git`.
 4. Install Unity Hub and Unity `2021.3.21f1` (LTS).
