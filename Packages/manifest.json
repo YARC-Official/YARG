@@ -9,8 +9,8 @@
     }
   ],
   "dependencies": {
-    "com.thenathannator.hidrogen": "https://github.com/TheNathannator/HIDrogen.git?path=/Packages/com.thenathannator.hidrogen",
-    "com.thenathannator.plasticband": "https://github.com/TheNathannator/PlasticBand-Unity.git?path=/Packages/com.thenathannator.plasticband",
+    "com.thenathannator.hidrogen": "https://github.com/TheNathannator/HIDrogen.git?path=/Packages/com.thenathannator.hidrogen#v0.2.0",
+    "com.thenathannator.plasticband": "https://github.com/TheNathannator/PlasticBand-Unity.git?path=/Packages/com.thenathannator.plasticband#v0.2.2",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.addressables": "1.21.9",
     "com.unity.ai.navigation": "1.1.1",
