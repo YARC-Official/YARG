@@ -151,7 +151,6 @@ namespace YARG.UI {
 				}
 			} else if (state == State.DIFFICULTY) {
 				player.chosenDifficulty = difficulties[selected];
-				Debug.Log(player.chosenDifficulty);
 				OnInstrumentSelection?.Invoke(player);
 				IncreasePlayerIndex();
 			} else if (state == State.VOCALS) {
@@ -234,10 +233,6 @@ namespace YARG.UI {
 			instruments = new string[availableInstruments.Count];
 			
 			for (int i = 0; i < instruments.Length; i++) {
-				if (!MainMenu.Instance.chosenSong.HasInstrument(
-					    InstrumentHelper.FromStringName(allowedInstruments[i]))) {
-					continue;
-				}
 				instruments[i] = availableInstruments[i];
 				ops[i] = availableInstruments[i] switch {
 					"drums" => "Drums",

@@ -1,26 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 using YARG.Data;
-using Debug = UnityEngine.Debug;
 
 namespace YARG.Song.Preparsers {
 	public static class ChartPreparser {
 
 		private static readonly Regex ChartEventRegex = new Regex(@"(\d+)\s?=\s?[NSE]\s?((\d+\s?\d+)|\w+)", RegexOptions.Compiled);
 		
-		private static readonly IReadOnlyDictionary<Difficulty, string> DifficultyLookup = new Dictionary<Difficulty, string>()
-		{
+		private static readonly IReadOnlyDictionary<Difficulty, string> DifficultyLookup = new Dictionary<Difficulty, string> {
 			{ Difficulty.EASY, "Easy" },
 			{ Difficulty.MEDIUM, "Medium" },
 			{ Difficulty.HARD, "Hard" },
 			{ Difficulty.EXPERT, "Expert" }
 		};
 
-		private static readonly IReadOnlyDictionary<Instrument, string> InstrumentLookup = new Dictionary<Instrument, string>()
-		{
+		private static readonly IReadOnlyDictionary<Instrument, string> InstrumentLookup = new Dictionary<Instrument, string> {
 			{ Instrument.GUITAR, "Single" },
 			{ Instrument.GUITAR_COOP, "DoubleGuitar" },
 			{ Instrument.BASS, "DoubleBass" },

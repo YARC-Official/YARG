@@ -193,13 +193,14 @@ namespace YARG.Song {
 
 			byte[] bytes = File.ReadAllBytes(Path.Combine(directory, notesFile));
 
-			var checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes)).Replace("-", "");
+			string checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes)).Replace("-", "");
 
-			var tracks = ulong.MaxValue;
-			if (notesFile == "notes.chart") {
-				tracks = ChartPreparser.GetAvailableTracks(bytes);
-			}
-			
+			ulong tracks = notesFile switch {
+				"notes.chart" => ChartPreparser.GetAvailableTracks(bytes),
+				"notes.mid"   => MidPreparser.GetAvailableTracks(bytes),
+				_             => ulong.MaxValue
+			};
+
 			// We have a song.ini, notes file and audio. The song is scannable.
 			song = new IniSongEntry {
 				CacheRoot = cache,

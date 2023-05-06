@@ -1,3 +1,5 @@
+using System;
+
 namespace YARG.Data {
 	public enum Difficulty {
 		EASY = 0,
@@ -37,6 +39,7 @@ namespace YARG.Data {
 				Difficulty.HARD        => "Hard",
 				Difficulty.EXPERT      => "Expert",
 				Difficulty.EXPERT_PLUS => "Expert+",
+				_                      => throw new ArgumentOutOfRangeException(nameof(difficulty), difficulty, "Invalid Difficulty")
 			};
 		}
 	}
