@@ -10,9 +10,9 @@ namespace YARG.Song {
 	public class SongCache {
 
 		/// <summary>
-		/// The date in which the cache version is based on.
+		/// The date in which the cache version is based on (and cache revision)
 		/// </summary>
-		private const int CACHE_VERSION = 23_05_06;
+		private const int CACHE_VERSION = 23_05_06_02;
 
 		private readonly string _folder;
 		private readonly string _cacheFile;

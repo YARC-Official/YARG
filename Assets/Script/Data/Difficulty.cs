@@ -1,3 +1,5 @@
+using System;
+
 namespace YARG.Data {
 	public enum Difficulty {
 		EASY = 0,

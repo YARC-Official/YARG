@@ -151,7 +151,6 @@ namespace YARG.UI {
 				}
 			} else if (state == State.DIFFICULTY) {
 				player.chosenDifficulty = difficulties[selected];
-				Debug.Log(player.chosenDifficulty);
 				OnInstrumentSelection?.Invoke(player);
 				IncreasePlayerIndex();
 			} else if (state == State.VOCALS) {
@@ -222,22 +221,18 @@ namespace YARG.UI {
 
 			// Get allowed instruments
 			string[] allowedInstruments = player.inputStrategy.GetAllowedInstruments();
-
+			
 			var availableInstruments = allowedInstruments
 				.Where(instrument => MainMenu.Instance.chosenSong
 					.HasInstrument(InstrumentHelper.FromStringName(instrument))).ToList();
-
+			
 			optionCount = availableInstruments.Count + 1;
 
 			// Add to options
 			var ops = new string[availableInstruments.Count + 1];
 			instruments = new string[availableInstruments.Count];
-
+			
 			for (int i = 0; i < instruments.Length; i++) {
-				if (!MainMenu.Instance.chosenSong.HasInstrument(
-						InstrumentHelper.FromStringName(allowedInstruments[i]))) {
-					continue;
-				}
 				instruments[i] = availableInstruments[i];
 				ops[i] = availableInstruments[i] switch {
 					"drums" => "Drums",
@@ -283,8 +278,8 @@ namespace YARG.UI {
 
 			var instrument = InstrumentHelper.FromStringName(chosenInstrument);
 			var availableDifficulties = new List<Difficulty>();
-			for (int i = 0; i < (int) Difficulty.EXPERT_PLUS; i++) {
-				if (!MainMenu.Instance.chosenSong.HasPart(instrument, (Difficulty) i)) {
+			for (int i = 0; i < (int)Difficulty.EXPERT_PLUS; i++) {
+				if (!MainMenu.Instance.chosenSong.HasPart(instrument, (Difficulty)i)) {
 					continue;
 				}
 				availableDifficulties.Add((Difficulty) i);
@@ -293,14 +288,21 @@ namespace YARG.UI {
 			if (showExpertPlus) {
 				availableDifficulties.Add(Difficulty.EXPERT_PLUS);
 			}
-
+			
 			optionCount = availableDifficulties.Count;
-
+			
 			difficulties = new Difficulty[optionCount];
 			var ops = new string[optionCount];
-
-			for (int i = 0; i < optionCount; i++) {
-				ops[i] = availableDifficulties[i].ToStringName();
+			
+			for(int i = 0; i < optionCount; i++) {
+				ops[i] = availableDifficulties[i] switch {
+					Difficulty.EASY => "Easy",
+					Difficulty.MEDIUM => "Medium",
+					Difficulty.HARD => "Hard",
+					Difficulty.EXPERT => "Expert",
+					Difficulty.EXPERT_PLUS => "Expert+",
+					_ => "Unknown"
+				};
 				difficulties[i] = availableDifficulties[i];
 			}
 

@@ -25,6 +25,8 @@ namespace YARG {
 		/// "Application.persistentDataPath" is main thread only. Why? I don't know.
 		/// </summary>
 		public static string PersistentDataPath { get; private set; }
+		public static string ApplicationDataPath { get; private set; }
+		public static string ExecutablePath { get; private set; }
 
 		public static IAudioManager AudioManager { get; private set; }
 
@@ -49,6 +51,9 @@ namespace YARG {
 			// so let's just set them all to \ on windows to be sure.
 			// For linux Path.DirectorySeparatorChar should return /, and this should work fine, but this should be double checked once those builds are being worked on
 			PersistentDataPath = Application.persistentDataPath.Replace("/", Path.DirectorySeparatorChar.ToString());
+			ApplicationDataPath = Application.dataPath.Replace("/", Path.DirectorySeparatorChar.ToString());
+			ExecutablePath = Directory.GetParent(ApplicationDataPath)?.FullName;
+			Debug.Log(ExecutablePath);
 			
 			AudioManager = gameObject.AddComponent<BassAudioManager>();
 			AudioManager.Initialize();
