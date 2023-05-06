@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using MoonscraperChartEditor.Song;
 using YARG.Data;
 
@@ -41,6 +42,27 @@ namespace YARG.Chart {
 
 			// TODO: Need to handle playing 5-lane charts on 4-lane
 			return notes;
+		}
+
+		public override List<EventInfo> GetEventsFromChart(MoonSong song) {
+			var events = base.GetEventsFromChart(song);
+			var chart = GetChart(song, Difficulty.EXPERT);
+
+			// SP activations
+			foreach (var sp in chart.starPower) {
+				if ((sp.flags & Starpower.Flags.ProDrums_Activation) == 0) {
+					continue;
+				}
+
+				events.Add(new EventInfo($"fill_{InstrumentName}", (float) sp.time, (float) GetDrumFillLength(song, sp)));
+			}
+
+			return events;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		protected double GetDrumFillLength(MoonSong song, Starpower sp) {
+			return GetLength(song, sp.time, sp.tick, sp.length);
 		}
 
 		private int MoonDrumNoteToPad(MoonNote note) {
