@@ -3,8 +3,8 @@ using MoonscraperChartEditor.Song;
 using YARG.Data;
 
 namespace YARG.Chart {
-	public class GuitarChartLoader : IChartLoader<NoteInfo> {
-		public List<NoteInfo> GetNotesFromChart(MoonSong song, Difficulty difficulty) {
+	public class GuitarChartLoader : ChartLoader<NoteInfo> {
+		public override List<NoteInfo> GetNotesFromChart(MoonSong song, Difficulty difficulty) {
 			var notes = new List<NoteInfo>();
 			if (difficulty == Difficulty.EXPERT_PLUS) {
 				difficulty = Difficulty.EXPERT;

@@ -122,7 +122,7 @@ namespace YARG.Data {
 			};
 		}
 
-		private List<NoteInfo>[] LoadArray(ref List<NoteInfo>[] notes, IChartLoader<NoteInfo> loader, MoonSong.MoonInstrument instrument,
+		private List<NoteInfo>[] LoadArray(ref List<NoteInfo>[] notes, ChartLoader<NoteInfo> loader, MoonSong.MoonInstrument instrument,
 			Difficulty maxDifficulty = Difficulty.EXPERT, bool isPro = false, bool isGh = false) {
 			notes = new List<NoteInfo>[(int) (maxDifficulty + 1)];
 			for (Difficulty diff = Difficulty.EASY; diff <= maxDifficulty; diff++) {
