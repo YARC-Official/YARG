@@ -959,7 +959,7 @@ namespace YARG.PlayMode {
 			float relativeSize = 0.0f;
 			float halfwayPoint = animTimeLength / 2.0f;
 
-			// Deteremine the tex size relative to its countdown timestamp
+			// Determine the text size relative to its countdown timestamp
 			if ((animTimeRemaining > animTimeLength) || (animTimeRemaining < 0.0f)) {
 				relativeSize = 0.0f;
 			} else if (animTimeRemaining >= halfwayPoint) {
