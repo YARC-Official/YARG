@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 using YARG.Data;
+using YARG.Song;
 
 #if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
 
@@ -42,19 +43,19 @@ namespace YARG.UI.MusicLibrary {
 		private float timeSinceUpdate;
 		private bool albumCoverLoaded;
 
-		private SongInfo songInfo;
+		private SongEntry _songEntry;
 
-		public void UpdateSongView(SongInfo songInfo) {
+		public void UpdateSongView(SongEntry songEntry) {
 			// Force stop album cover loading if new song
 			StopAllCoroutines();
 
 			timeSinceUpdate = 0f;
 			albumCoverLoaded = false;
-			this.songInfo = songInfo;
+			_songEntry = songEntry;
 
 			// Source Icon
-			if (songInfo.source != null) {
-				string folderPath = $"Sources/{songInfo.source}";
+			if (songEntry.Source != null) {
+				string folderPath = $"Sources/{songEntry.Source}";
 				Sprite loadedSprite = Resources.Load<Sprite>(folderPath);
 
 				if (loadedSprite != null) {
@@ -70,11 +71,11 @@ namespace YARG.UI.MusicLibrary {
 			}
 
 			// Basic info
-			songName.text = songInfo.SongName;
-			artist.text = songInfo.artistName;
+			songName.text = songEntry.Name;
+			artist.text = songEntry.Artist;
 
 			// Song score
-			var score = ScoreManager.GetScore(songInfo);
+			var score = ScoreManager.GetScore(songEntry);
 			if (score == null || score.highestPercent.Count <= 0) {
 				scoreText.text = "";
 			} else {
@@ -83,25 +84,22 @@ namespace YARG.UI.MusicLibrary {
 			}
 
 			// Song length
-			int time = (int) songInfo.songLength;
-			int minutes = time / 60;
-			int seconds = time % 60;
-			lengthText.text = $"{minutes}:{seconds:00}";
+			lengthText.text = songEntry.SongLengthTimeSpan.ToString(@"hh\:mm\:ss");
 
 			// Source
-			supportText.text = songInfo.SourceFriendlyName;
+			supportText.text = SongSources.SourceToGameName(songEntry.Source);
 
 			// Album
-			albumText.text = songInfo.album;
+			albumText.text = songEntry.Album;
 
 			// Year
-			yearText.text = songInfo.year;
+			yearText.text = songEntry.Year;
 
 			// Genre
-			genreText.text = songInfo.genre;
+			genreText.text = songEntry.Genre;
 
 			// Charter
-			charterText.text = songInfo.charter;
+			charterText.text = songEntry.Charter;
 
 			// Album cover
 			albumCover.texture = null;
@@ -110,7 +108,7 @@ namespace YARG.UI.MusicLibrary {
 
 		private void Update() {
 			// Wait a little bit to load the album cover to prevent lag when scrolling through.
-			if (songInfo != null && !albumCoverLoaded) {
+			if (_songEntry != null && !albumCoverLoaded) {
 				if (timeSinceUpdate >= 0.06f) {
 					albumCoverLoaded = true;
 					LoadAlbumCover();
@@ -121,7 +119,7 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		private void LoadAlbumCover() {
-			if (songInfo.songType == SongInfo.SongType.SONG_INI) {
+			if (_songEntry.SongType == SongType.SongIni) {
 				string[] albumPaths = {
 					"album.png",
 					"album.jpg",
@@ -129,19 +127,20 @@ namespace YARG.UI.MusicLibrary {
 				};
 
 				foreach (string path in albumPaths) {
-					string fullPath = Path.Combine(songInfo.RootFolder, path);
+					string fullPath = Path.Combine(_songEntry.Location, path);
 					if (File.Exists(fullPath)) {
 						StartCoroutine(LoadAlbumCoverCoroutine(fullPath));
 						break;
 					}
 				}
 			} else {
-				if (songInfo.imageInfo == null) {
+				// Check if an EXCon or if there is no album image for this song
+				if (_songEntry is not ExtractedConSongEntry conEntry || conEntry.ImageInfo is null) {
 					return;
 				}
 
 				// Set album cover
-				albumCover.texture = songInfo.imageInfo.GetAsTexture();
+				albumCover.texture = conEntry.ImageInfo.GetAsTexture();
 				albumCover.color = Color.white;
 				albumCover.uvRect = new Rect(0f, 0f, 1f, -1f);
 			}
@@ -173,18 +172,18 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		public void PlaySong() {
-			MainMenu.Instance.chosenSong = songInfo;
+			MainMenu.Instance.chosenSong = _songEntry;
 			MainMenu.Instance.ShowPreSong();
 		}
 
 		public void SearchFilter(string type) {
 			string value = type switch {
-				"artist" => songInfo.artistName,
-				"source" => songInfo.source,
-				"album" => songInfo.album,
-				"year" => songInfo.year,
-				"charter" => songInfo.charter,
-				"genre" => songInfo.genre,
+				"artist" => _songEntry.Artist,
+				"source" => _songEntry.Source,
+				"album" => _songEntry.Album,
+				"year" => _songEntry.Year,
+				"charter" => _songEntry.Charter,
+				"genre" => _songEntry.Genre,
 				_ => throw new System.Exception("Unreachable")
 			};
 

@@ -4,6 +4,7 @@ using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
 using UnityEngine;
 using YARG.Data;
+using YARG.Song;
 
 namespace YARG.Serialization.Parser {
 	public partial class MidiParser : AbstractParser {
@@ -32,10 +33,10 @@ namespace YARG.Serialization.Parser {
 			public DrumFlags drumFlags;
 		}
 
-		private List<NoteInfo> ParseDrums(TrackChunk trackChunk, bool pro, int difficulty, SongInfo.DrumType drumType, List<NoteInfo> ghEquivalent) {
+		private List<NoteInfo> ParseDrums(TrackChunk trackChunk, bool pro, int difficulty, DrumType drumType, List<NoteInfo> ghEquivalent) {
 			var tempoMap = midi.GetTempoMap();
 
-			if (drumType == SongInfo.DrumType.FOUR_LANE) {
+			if (drumType == DrumType.FourLane) {
 				var notes = DrumNotePass(trackChunk, difficulty, tempoMap);
 
 				if (pro) {

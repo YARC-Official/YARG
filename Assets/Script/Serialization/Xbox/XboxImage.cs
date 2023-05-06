@@ -15,8 +15,9 @@ namespace YARG.Serialization {
 		public int Format { get; set; }
 		public short Width { get; set; }
 		public short Height { get; set; }
-		private uint ImgSize;
-        private uint[] ImgOffsets;
+		public uint ImgSize { get; }
+        public uint[] ImgOffsets { get; }
+        
 		private bool isFromCON = false;
 
 		[JsonIgnore]

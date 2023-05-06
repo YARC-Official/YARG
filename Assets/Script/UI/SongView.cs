@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using YARG.Data;
 using UnityEngine.UI;
+using YARG.Song;
 
 namespace YARG.UI {
 	public class SongView : MonoBehaviour {
@@ -18,13 +19,13 @@ namespace YARG.UI {
 		[SerializeField]
 		private Image sourceIcon;
 
-		public void UpdateSongView(SongInfo songInfo) {
+		public void UpdateSongView(SongEntry songInfo) {
 			songBackground.SetActive(true);
 			categoryBackground.SetActive(false);
 			sourceIcon.enabled = true;
 
-			if (songInfo.source != null) {
-				string folderPath = $"Sources/{songInfo.source}";
+			if (songInfo.Source != null) {
+				string folderPath = $"Sources/{songInfo.Source}";
 				Sprite loadedSprite = Resources.Load<Sprite>(folderPath);
 
 				if (loadedSprite != null) {
@@ -42,8 +43,8 @@ namespace YARG.UI {
 			sourceIcon.color = new Color(0.5f, 0.5f, 0.5f, 0.5f); // grey out icon
 
 
-			songName.text = songInfo.SongName + $"     <i><alpha=#50>{songInfo.artistName}</i>";
-			artist.text = $"<i>{songInfo.artistName}</i>";
+			songName.text = songInfo.Name + $"     <i><alpha=#50>{songInfo.Artist}</i>";
+			artist.text = $"<i>{songInfo.Artist}</i>";
 
 			var score = ScoreManager.GetScore(songInfo);
 			if (score == null || score.highestPercent.Count <= 0) {
