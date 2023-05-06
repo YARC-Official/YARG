@@ -67,7 +67,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 1024
+    maxTextureSize: 2048
     resizeAlgorithm: 1
     textureFormat: -1
     textureCompression: 0
@@ -339,8 +339,8 @@ TextureImporter:
       name: guitarCoop
       rect:
         serializedVersion: 2
-        x: 1529
-        y: 510
+        x: 1536
+        y: 512
         width: 512
         height: 512
       alignment: 0
@@ -377,6 +377,48 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: band
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 0
+        width: 512
+        height: 512
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b5f5e4c0544e1f745a043b1a26f074c8
+      internalID: -2104244439
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: trueDrums
+      rect:
+        serializedVersion: 2
+        x: 1024
+        y: 0
+        width: 512
+        height: 512
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d8ed51d1aeca30e49ac4c69a5486c511
+      internalID: 1405555635
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -393,6 +435,7 @@ TextureImporter:
       FontSprites_13: 1438842026
       FontSprites_14: 454111736
       FontSprites_15: 224382224
+      band: -2104244439
       bass: 1530186425
       drums: 678366802
       ghDrums: -768334538
@@ -405,6 +448,7 @@ TextureImporter:
       realGuitar: 1095511443
       realKeys: 1095511443
       rhythm: -413506960
+      trueDrums: 1405555635
       vocals: 1095511443
   spritePackingTag: 
   pSDRemoveMatte: 0
