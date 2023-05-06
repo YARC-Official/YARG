@@ -51,7 +51,7 @@ namespace YARG.Song {
 
 		public string LoadingPhrase { get; set; } = string.Empty;
 
-		public int HopoThreshold { get; set; }
+		public int HopoThreshold  { get; set; } = 170;
 		public bool EighthNoteHopo { get; set; }
 		public int MultiplierNote { get; set; }
 

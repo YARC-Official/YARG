@@ -1,13 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Melanchall.DryWetMidi.Core;
 using MoonscraperChartEditor.Song.IO;
-using NAudio.Midi;
 using UnityEngine;
 using YARG.Data;
 
 namespace YARG.Song.Preparsers {
 	public static class MidPreparser {
+
+		private static readonly ReadingSettings ReadSettings = new() {
+			InvalidChunkSizePolicy = InvalidChunkSizePolicy.Ignore,
+			NotEnoughBytesPolicy = NotEnoughBytesPolicy.Ignore,
+			NoHeaderChunkPolicy = NoHeaderChunkPolicy.Ignore,
+			InvalidChannelEventParameterValuePolicy = InvalidChannelEventParameterValuePolicy.ReadValid,
+		};
 		
 		private static readonly IReadOnlyDictionary<string, Instrument> PartLookup = new Dictionary<string, Instrument> {
 			{ MidIOHelper.GUITAR_TRACK, Instrument.GUITAR },
@@ -28,7 +35,7 @@ namespace YARG.Song.Preparsers {
 		public static ulong GetAvailableTracks(byte[] chartData) {
 			using var stream = new MemoryStream(chartData);
 			try {
-				var midi = new MidiFile(stream, false);
+				var midi = MidiFile.Read(stream, ReadSettings);
 				return ReadStream(midi);
 			} catch(Exception e) {
 				Debug.LogError(e.Message);
@@ -38,32 +45,34 @@ namespace YARG.Song.Preparsers {
 		}
 		
 		public static ulong GetAvailableTracks(SongEntry song) {
-			var midi = new MidiFile(Path.Combine(song.Location, song.NotesFile));
-
-			return ReadStream(midi);
+			try {
+				var midi = MidiFile.Read(Path.Combine(song.Location, song.NotesFile), ReadSettings);
+				return ReadStream(midi);
+			} catch(Exception e) {
+				Debug.LogError(e.Message);
+				Debug.LogError(e.StackTrace);
+				return ulong.MaxValue;
+			}
 		}
 
 		private static ulong ReadStream(MidiFile midi) {
 			ulong tracks = 0;
 
-			for (int i = 1; i < midi.Tracks; ++i) {
-				var track = midi.Events[i];
-				if (track == null || track.Count < 1)
-				{
-					continue;
-				}
+			foreach(var chunk in midi.GetTrackChunks()) {
+				foreach (var trackEvent in chunk.Events) {
+					if (trackEvent is not SequenceTrackNameEvent trackName) {
+						continue;
+					}
 
-				if (track[0] is not TextEvent trackName)
-					continue;
+					string trackNameKey = trackName.Text.ToUpper();
 
-				string trackNameKey = trackName.Text.ToUpper();
-
-				if (!PartLookup.TryGetValue(trackNameKey, out var instrument)) {
-					continue;
-				}
+					if (!PartLookup.TryGetValue(trackNameKey, out var instrument)) {
+						continue;
+					}
 				
-				int shiftAmount = (int)instrument * 4;
-				tracks |= (uint)0xF << shiftAmount;
+					int shiftAmount = (int)instrument * 4;
+					tracks |= (uint)0xF << shiftAmount;
+				}
 			}
 
 			return tracks;

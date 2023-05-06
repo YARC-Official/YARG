@@ -42,7 +42,7 @@ namespace YARG.Song {
 			int rawDelay = section.GetField("delay").Get(IntConverter);
 			entry.Delay = rawDelay / 1000.0;
 
-			entry.HopoThreshold = section.GetField("hopo_frequency", "0").Get(IntConverter);
+			entry.HopoThreshold = section.GetField("hopo_frequency", "170").Get(IntConverter);
 			entry.EighthNoteHopo = section.GetField("eighthnote_hopo", "false").Get().ToLower() == "true";
 			entry.MultiplierNote = section.GetField("multiplier_note", "116").Get(IntConverter);
 

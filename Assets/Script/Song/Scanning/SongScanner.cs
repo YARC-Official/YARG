@@ -137,9 +137,13 @@ namespace YARG.Song {
 
 			_isScanning = false;
 			_hasScanned = true;
-			Debug.Log("FINISHED SCANNING");
+			Debug.Log("Finished Scanning.");
 
-			// TODO output song errors at some point
+			if (!fast) {
+				Debug.Log("Writing badsongs.txt");
+				await WriteBadSongs();
+				Debug.Log("Finished writing badsongs.txt");
+			}
 
 			_scanThreads = null;
 
@@ -186,6 +190,46 @@ namespace YARG.Song {
 
 				if (threadIndex >= MAX_THREAD_COUNT) {
 					threadIndex = 0;
+				}
+			}
+		}
+
+		private async UniTask WriteBadSongs() {
+			string badSongsPath = Path.Combine(GameManager.ApplicationDataPath, "badsongs.txt");
+			
+			await using var stream = new FileStream(badSongsPath, FileMode.Create, FileAccess.Write);
+			await using var writer = new StreamWriter(stream);
+			
+			foreach (var thread in _scanThreads) {
+				foreach(var folder in thread.SongErrors) {
+					if (folder.Value.Count == 0) {
+						continue;
+					}
+					
+					await writer.WriteLineAsync(folder.Key);
+					folder.Value.Sort((x, y) => x.Result.CompareTo(y.Result));
+
+					var lastResult = ScanResult.Ok;
+					foreach (var error in folder.Value) {
+						if(error.Result != lastResult) {
+							switch (error.Result) {
+								case ScanResult.InvalidDirectory:
+									await writer.WriteLineAsync(
+										"These songs are not in a valid directory! (Or the directory path is too long)");
+									break;
+								case ScanResult.NoAudioFile:
+									await writer.WriteLineAsync("These songs contain no valid audio files!");
+									break;
+								case ScanResult.NoNotesFile:
+									await writer.WriteLineAsync("These songs contain no valid notes file! (notes.chart/notes.mid)");
+									break;
+							}
+							lastResult = error.Result;
+						}
+						await writer.WriteLineAsync($"    {error.Directory}");
+					}
+
+					await writer.WriteLineAsync();
 				}
 			}
 		}

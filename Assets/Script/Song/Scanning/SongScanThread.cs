@@ -26,8 +26,9 @@ namespace YARG.Song {
 		private readonly Dictionary<string, SongCache>       _songCaches;
 		private readonly List<string>                        _cacheErrors;
 
-		public IReadOnlyList<string> CacheErrors => _cacheErrors;
 		public IReadOnlyList<SongEntry> Songs => _songsByCacheFolder.Values.SelectMany(x => x).ToList();
+		public IReadOnlyDictionary<string, List<SongError>> SongErrors => _songErrors;
+		public IReadOnlyList<string> CacheErrors => _cacheErrors;
 
 		public SongScanThread(bool fast) {
 			_songsByCacheFolder = new Dictionary<string, List<SongEntry>>();
@@ -195,11 +196,13 @@ namespace YARG.Song {
 
 			string checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes)).Replace("-", "");
 
-			ulong tracks = notesFile switch {
-				"notes.chart" => ChartPreparser.GetAvailableTracks(bytes),
-				"notes.mid"   => MidPreparser.GetAvailableTracks(bytes),
-				_             => ulong.MaxValue
-			};
+			var tracks = ulong.MaxValue;
+			
+			if (notesFile.EndsWith(".mid")) {
+				tracks = MidPreparser.GetAvailableTracks(bytes);
+			} else if (notesFile.EndsWith(".chart")) {
+				tracks = ChartPreparser.GetAvailableTracks(bytes);
+			}
 
 			// We have a song.ini, notes file and audio. The song is scannable.
 			song = new IniSongEntry {
@@ -216,13 +219,16 @@ namespace YARG.Song {
 		private static ScanResult ScanConSong(string cache, XboxSong file, out ExtractedConSongEntry songEntry) {
 			byte[] bytes = File.ReadAllBytes(Path.Combine(file.SongFolderPath, file.MidiFile));
 
-			var checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes)).Replace("-", "");
+			string checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes)).Replace("-", "");
+
+			ulong tracks = MidPreparser.GetAvailableTracks(bytes);
 
 			songEntry = new ExtractedConSongEntry {
 				CacheRoot = cache,
 				Location = file.SongFolderPath,
 				NotesFile = file.MidiFile,
 				Checksum = checksum,
+				AvailableParts = tracks,
 			};
 
 			file.CompleteSongInfo(songEntry, true);
