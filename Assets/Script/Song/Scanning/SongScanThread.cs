@@ -44,6 +44,11 @@ namespace YARG.Song {
 				throw new Exception("Cannot add folder while scanning");
 			}
 
+			if (_songsByCacheFolder.ContainsKey(folder)) {
+				Debug.LogWarning("Two song folders with same directory!");
+				return;
+			}
+
 			_songsByCacheFolder.Add(folder, new List<SongEntry>());
 			_songErrors.Add(folder, new List<SongError>());
 			_songCaches.Add(folder, new SongCache(folder));
@@ -201,6 +206,11 @@ namespace YARG.Song {
 			if (notesFile.EndsWith(".mid")) {
 				tracks = MidPreparser.GetAvailableTracks(bytes);
 			} else if (notesFile.EndsWith(".chart")) {
+				tracks = ChartPreparser.GetAvailableTracks(bytes);
+			}
+
+			var tracks = ulong.MaxValue;
+			if (notesFile == "notes.chart") {
 				tracks = ChartPreparser.GetAvailableTracks(bytes);
 			}
 

@@ -282,7 +282,7 @@ namespace YARG.UI {
 				if (!MainMenu.Instance.chosenSong.HasPart(instrument, (Difficulty)i)) {
 					continue;
 				}
-				availableDifficulties.Add((Difficulty)i);
+				availableDifficulties.Add((Difficulty) i);
 			}
 
 			if (showExpertPlus) {
