@@ -43,6 +43,11 @@ namespace YARG.Song {
 				throw new Exception("Cannot add folder while scanning");
 			}
 
+			if (_songsByCacheFolder.ContainsKey(folder)) {
+				Debug.LogWarning("Two song folders with same directory!");
+				return;
+			}
+
 			_songsByCacheFolder.Add(folder, new List<SongEntry>());
 			_songErrors.Add(folder, new List<SongError>());
 			_songCaches.Add(folder, new SongCache(folder));
@@ -199,7 +204,7 @@ namespace YARG.Song {
 			if (notesFile == "notes.chart") {
 				tracks = ChartPreparser.GetAvailableTracks(bytes);
 			}
-			
+
 			// We have a song.ini, notes file and audio. The song is scannable.
 			song = new IniSongEntry {
 				CacheRoot = cache,
