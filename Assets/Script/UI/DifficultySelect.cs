@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -29,6 +31,7 @@ namespace YARG.UI {
 
 		private int playerIndex;
 		private string[] instruments;
+		private Difficulty[] difficulties;
 		private State state;
 
 		private int optionCount;
@@ -144,10 +147,11 @@ namespace YARG.UI {
 					bool showExpertPlus = player.chosenInstrument == "drums"
 						|| player.chosenInstrument == "realDrums"
 						|| player.chosenInstrument == "ghDrums";
-					UpdateDifficulty(showExpertPlus);
+					UpdateDifficulty(player.chosenInstrument, showExpertPlus);
 				}
 			} else if (state == State.DIFFICULTY) {
-				player.chosenDifficulty = (Difficulty) selected;
+				player.chosenDifficulty = difficulties[selected];
+				Debug.Log(player.chosenDifficulty);
 				OnInstrumentSelection?.Invoke(player);
 				IncreasePlayerIndex();
 			} else if (state == State.VOCALS) {
@@ -217,15 +221,25 @@ namespace YARG.UI {
 			state = State.INSTRUMENT;
 
 			// Get allowed instruments
-			var allowedInstruments = player.inputStrategy.GetAllowedInstruments();
-			optionCount = allowedInstruments.Length + 1;
+			string[] allowedInstruments = player.inputStrategy.GetAllowedInstruments();
+			
+			var availableInstruments = allowedInstruments
+				.Where(instrument => MainMenu.Instance.chosenSong
+					.HasInstrument(InstrumentHelper.FromStringName(instrument))).ToList();
+			
+			optionCount = availableInstruments.Count + 1;
 
 			// Add to options
-			string[] ops = new string[6];
-			instruments = new string[allowedInstruments.Length];
-			for (int i = 0; i < allowedInstruments.Length; i++) {
-				instruments[i] = allowedInstruments[i];
-				ops[i] = allowedInstruments[i] switch {
+			var ops = new string[availableInstruments.Count + 1];
+			instruments = new string[availableInstruments.Count];
+			
+			for (int i = 0; i < instruments.Length; i++) {
+				if (!MainMenu.Instance.chosenSong.HasInstrument(
+					    InstrumentHelper.FromStringName(allowedInstruments[i]))) {
+					continue;
+				}
+				instruments[i] = availableInstruments[i];
+				ops[i] = availableInstruments[i] switch {
 					"drums" => "Drums",
 					"realDrums" => "Pro Drums",
 					"guitar" => "Guitar",
@@ -242,12 +256,16 @@ namespace YARG.UI {
 					_ => "Unknown"
 				};
 			}
-			ops[allowedInstruments.Length] = "Sit Out";
+			ops[^1] = "Sit Out";
 
 			// Set text and sprites
 			for (int i = 0; i < 6; i++) {
-				options[i].SetText(ops[i]);
+				options[i].SetText("");
 				options[i].SetSelected(false);
+
+				if (i < ops.Length) {
+					options[i].SetText(ops[i]);
+				}
 
 				if (i < instruments.Length) {
 					var sprite = Addressables.LoadAssetAsync<Sprite>($"FontSprites[{instruments[i]}]").WaitForCompletion();
@@ -260,31 +278,50 @@ namespace YARG.UI {
 			options[0].SetSelected(true);
 		}
 
-		private void UpdateDifficulty(bool showExpertPlus) {
+		private void UpdateDifficulty(string chosenInstrument, bool showExpertPlus) {
 			state = State.DIFFICULTY;
 
-			optionCount = 4;
-			string[] ops = {
-				"Easy",
-				"Medium",
-				"Hard",
-				"Expert",
-				null,
-				null
-			};
+			var instrument = InstrumentHelper.FromStringName(chosenInstrument);
+			var availableDifficulties = new List<Difficulty>();
+			for (int i = 0; i < (int)Difficulty.EXPERT_PLUS; i++) {
+				if (!MainMenu.Instance.chosenSong.HasPart(instrument, (Difficulty)i)) {
+					continue;
+				}
+				availableDifficulties.Add((Difficulty)i);
+			}
 
 			if (showExpertPlus) {
-				optionCount++;
-				ops[4] = "Expert+";
+				availableDifficulties.Add(Difficulty.EXPERT_PLUS);
+			}
+			
+			optionCount = availableDifficulties.Count;
+			
+			difficulties = new Difficulty[optionCount];
+			var ops = new string[optionCount];
+			
+			for(int i = 0; i < optionCount; i++) {
+				ops[i] = availableDifficulties[i] switch {
+					Difficulty.EASY => "Easy",
+					Difficulty.MEDIUM => "Medium",
+					Difficulty.HARD => "Hard",
+					Difficulty.EXPERT => "Expert",
+					Difficulty.EXPERT_PLUS => "Expert+",
+					_ => "Unknown"
+				};
+				difficulties[i] = availableDifficulties[i];
 			}
 
 			for (int i = 0; i < 6; i++) {
-				options[i].SetText(ops[i]);
+				options[i].SetText("");
 				options[i].SetSelected(false);
+
+				if (i < ops.Length) {
+					options[i].SetText(ops[i]);
+				}
 			}
 
-			selected = 3;
-			options[3].SetSelected(true);
+			selected = optionCount - 1;
+			options[optionCount - 1].SetSelected(true);
 		}
 
 		private void UpdateVocalOptions() {

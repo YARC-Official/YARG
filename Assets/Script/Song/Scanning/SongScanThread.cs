@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Threading;
 using UnityEngine;
 using YARG.Serialization;
+using YARG.Song.Preparsers;
 
 namespace YARG.Song {
 	public class SongScanThread {
@@ -194,12 +195,18 @@ namespace YARG.Song {
 
 			var checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes)).Replace("-", "");
 
+			var tracks = ulong.MaxValue;
+			if (notesFile == "notes.chart") {
+				tracks = ChartPreparser.GetAvailableTracks(bytes);
+			}
+			
 			// We have a song.ini, notes file and audio. The song is scannable.
 			song = new IniSongEntry {
 				CacheRoot = cache,
 				Location = directory,
 				Checksum = checksum,
 				NotesFile = notesFile,
+				AvailableParts = tracks,
 			};
 
 			return ScanHelpers.ParseSongIni(Path.Combine(directory, "song.ini"), (IniSongEntry) song);

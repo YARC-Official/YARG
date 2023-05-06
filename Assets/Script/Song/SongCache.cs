@@ -12,7 +12,7 @@ namespace YARG.Song {
 		/// <summary>
 		/// The date in which the cache version is based on.
 		/// </summary>
-		private const int CACHE_VERSION = 23_05_05;
+		private const int CACHE_VERSION = 23_05_06;
 
 		private readonly string _folder;
 		private readonly string _cacheFile;
@@ -111,6 +111,8 @@ namespace YARG.Song {
 				writer.Write((int) difficulty.Key);
 				writer.Write(difficulty.Value);
 			}
+			
+			writer.Write(song.AvailableParts);
 
 			switch (song) {
 				case ExtractedConSongEntry conSong:
@@ -171,6 +173,8 @@ namespace YARG.Song {
 					int difficulty = reader.ReadInt32();
 					result.PartDifficulties.Add(part, difficulty);
 				}
+
+				result.AvailableParts = (ulong)reader.ReadInt64();
 
 				switch (type) {
 					case SongType.ExtractedRbCon:
