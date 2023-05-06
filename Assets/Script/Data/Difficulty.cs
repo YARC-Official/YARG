@@ -29,5 +29,15 @@ namespace YARG.Data {
 				_ => throw new System.Exception("Unknown difficulty.")
 			};
 		}
+
+		public static string ToDifficultyString(Difficulty difficulty) {
+			return difficulty switch {
+				Difficulty.EASY        => "Easy",
+				Difficulty.MEDIUM      => "Medium",
+				Difficulty.HARD        => "Hard",
+				Difficulty.EXPERT      => "Expert",
+				Difficulty.EXPERT_PLUS => "Expert+",
+			};
+		}
 	}
 }

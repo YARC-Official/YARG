@@ -59,9 +59,20 @@ namespace YARG.Song {
 
 		public Dictionary<Instrument, int> PartDifficulties { get; } = new();
 
-		public string Checksum { get; set; }
-		public string NotesFile { get; set; }
-		public string Location { get; set; }
+		public ulong AvailableParts { get; set; }
 
+		public string Checksum  { get; set; }
+		public string NotesFile { get; set; }
+		public string Location  { get; set; }
+
+		public bool HasInstrument(Instrument instrument) {
+			long instrumentBits = 0xF << (int)instrument * 4;
+			return (AvailableParts & (ulong)instrumentBits) != 0;
+		}
+
+		public bool HasPart(Instrument instrument, Difficulty difficulty) {
+			long instrumentBits = 0x1 << (int)instrument * 4 + (int)difficulty;
+			return (AvailableParts & (ulong)instrumentBits) != 0;
+		}
 	}
 }
