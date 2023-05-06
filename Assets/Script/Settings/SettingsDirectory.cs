@@ -80,7 +80,7 @@ namespace YARG.Settings {
 		}
 
 		public void Refresh() {
-			LoadingManager.Instance.AddSongFolderRefreshToLoadQueue(PathsReference[index]);
+			LoadingManager.Instance.QueueSongFolderRefresh(PathsReference[index]);
 			LoadingManager.Instance.StartLoad().Forget();
 		}
 	}

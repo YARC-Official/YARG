@@ -167,7 +167,7 @@ namespace YARG.Song {
 					_errorsEncountered++;
 					errorsEncountered = _errorsEncountered;
 					_songErrors[cacheFolder].Add(new SongError(subDir, result));
-					Debug.Log($"$Error encountered with {subDir}");
+					Debug.LogWarning($"Error encountered with {subDir}");
 					break;
 			}
 		}
@@ -202,7 +202,7 @@ namespace YARG.Song {
 			string checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes)).Replace("-", "");
 
 			var tracks = ulong.MaxValue;
-			
+
 			if (notesFile.EndsWith(".mid")) {
 				tracks = MidPreparser.GetAvailableTracks(bytes);
 			} else if (notesFile.EndsWith(".chart")) {

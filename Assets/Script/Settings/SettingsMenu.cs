@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Localization;
@@ -52,21 +53,25 @@ namespace YARG.Settings {
 			}
 		}
 
-		public bool hasSongLibraryChanged = false;
+		public bool UpdateSongLibraryOnExit { get; set; } = false;
 
 		private void OnEnable() {
 			ReturnToFirstTab();
 			UpdateTabs();
 		}
 
-		private void OnDisable() {
+		private async UniTask OnDisable() {
 			DestroyPreview();
 
 			// Save on close
 			SettingsManager.SaveSettings();
 
-			if (hasSongLibraryChanged) {
-				hasSongLibraryChanged = false;
+			if (UpdateSongLibraryOnExit) {
+				UpdateSongLibraryOnExit = false;
+
+				// Do a song refresh if requested
+				LoadingManager.Instance.QueueSongRefresh(true);
+				await LoadingManager.Instance.StartLoad();
 			}
 		}
 
@@ -155,7 +160,7 @@ namespace YARG.Settings {
 		}
 
 		public void UpdateSongFolderManager() {
-			hasSongLibraryChanged = true;
+			UpdateSongLibraryOnExit = true;
 
 			// Destroy all previous settings
 			foreach (Transform t in settingsContainer) {
@@ -169,9 +174,7 @@ namespace YARG.Settings {
 			{
 				var go = Instantiate(buttonPrefab, settingsContainer);
 				go.GetComponent<SettingsButton>().SetCustomCallback(async () => {
-					hasSongLibraryChanged = false;
-
-					LoadingManager.Instance.AddSongRefreshToLoadQueue(false);
+					LoadingManager.Instance.QueueSongRefresh(false);
 					await LoadingManager.Instance.StartLoad();
 				}, "RefreshAllCaches");
 			}

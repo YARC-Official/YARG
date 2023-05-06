@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -23,15 +22,15 @@ namespace YARG {
 		}
 
 		private async UniTask Start() {
-			AddToLoadQueue(async () => {
+			Queue(async () => {
 				SetLoadingText("Fetching sources from web...");
 				await SongSources.LoadSources();
 			});
 
 			// Fast scan (cache read) on startup
-			AddSongRefreshToLoadQueue(true);
+			QueueSongRefresh(true);
 
-			AddToLoadQueue(async () => {
+			Queue(async () => {
 				SetLoadingText("Reading scores...");
 				await ScoreManager.FetchScores();
 			});
@@ -54,18 +53,18 @@ namespace YARG {
 			gameObject.SetActive(false);
 		}
 
-		public void AddToLoadQueue(Func<UniTask> func) {
+		public void Queue(Func<UniTask> func) {
 			loadQueue.Enqueue(func);
 		}
 
-		public void AddSongRefreshToLoadQueue(bool fast) {
-			AddToLoadQueue(async () => {
+		public void QueueSongRefresh(bool fast) {
+			Queue(async () => {
 				await ScanSongFolders(fast);
 			});
 		}
 
-		public void AddSongFolderRefreshToLoadQueue(string path) {
-			AddToLoadQueue(async () => {
+		public void QueueSongFolderRefresh(string path) {
+			Queue(async () => {
 				await ScanSongFolder(path);
 			});
 		}
@@ -78,9 +77,11 @@ namespace YARG {
 					$"\nErrors: {scanner.TotalErrorsEncountered}";
 			});
 
-			// Scan errored caches
-			foreach (var error in errors) {
-				await ScanSongFolder(error);
+			// Only scan folders again on fast mode, as on slow mode they were already scanned
+			if (fast) {
+				foreach (var error in errors) {
+					await ScanSongFolder(error);
+				}
 			}
 		}
 
