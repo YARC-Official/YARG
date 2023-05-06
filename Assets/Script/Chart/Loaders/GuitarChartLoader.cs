@@ -1,15 +1,29 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using MoonscraperChartEditor.Song;
 using YARG.Data;
 
 namespace YARG.Chart {
 	public class GuitarChartLoader : ChartLoader<NoteInfo> {
+		public GuitarChartLoader(MoonSong.MoonInstrument instrument) {
+			InstrumentName = instrument switch {
+				MoonSong.MoonInstrument.Guitar => "guitar",
+				MoonSong.MoonInstrument.GuitarCoop => "guitarCoop",
+				MoonSong.MoonInstrument.Rhythm => "rhythm",
+				MoonSong.MoonInstrument.Bass => "bass",
+				MoonSong.MoonInstrument.Keys => "keys",
+				_ => throw new Exception("Instrument not supported!")
+			};
+
+			Instrument = instrument;
+		}
+
 		public override List<NoteInfo> GetNotesFromChart(MoonSong song, Difficulty difficulty) {
 			var notes = new List<NoteInfo>();
 			if (difficulty == Difficulty.EXPERT_PLUS) {
 				difficulty = Difficulty.EXPERT;
 			}
-			var chart = song.GetChart(MoonSong.MoonInstrument.Guitar, MoonSong.Difficulty.Easy - (int) difficulty);
+			var chart = song.GetChart(Instrument, MoonSong.Difficulty.Easy - (int) difficulty);
 
 			foreach (var moonNote in chart.notes) {
 				// Length of the note in realtime

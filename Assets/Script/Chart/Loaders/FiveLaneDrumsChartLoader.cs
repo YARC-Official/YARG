@@ -4,6 +4,12 @@ using YARG.Data;
 
 namespace YARG.Chart {
 	public class FiveLaneDrumsChartLoader : ChartLoader<NoteInfo> {
+		public FiveLaneDrumsChartLoader() {
+			Instrument = MoonSong.MoonInstrument.Drums;
+			InstrumentName = "ghDrums";
+			MaxDifficulty = Difficulty.EXPERT_PLUS;
+		}
+
 		public override List<NoteInfo> GetNotesFromChart(MoonSong song, Difficulty difficulty) {
 			var notes = new List<NoteInfo>();
 			bool doubleBass = false;
@@ -11,7 +17,7 @@ namespace YARG.Chart {
 				difficulty = Difficulty.EXPERT;
 				doubleBass = true;
 			}
-			var chart = song.GetChart(MoonSong.MoonInstrument.Drums, MoonSong.Difficulty.Easy - (int) difficulty);
+			var chart = song.GetChart(Instrument, MoonSong.Difficulty.Easy - (int) difficulty);
 
 			foreach (var moonNote in chart.notes) {
 				// Ignore double-kicks if not Expert+

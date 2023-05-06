@@ -4,11 +4,14 @@ using YARG.Data;
 
 namespace YARG.Chart {
 	public class NewDrumChartLoader : ChartLoader<DrumNote> {
-
 		private readonly bool _isPro;
 
 		public NewDrumChartLoader(bool isPro) {
 			_isPro = isPro;
+
+			Instrument = MoonSong.MoonInstrument.Drums;
+			InstrumentName = _isPro ? "realDrums" : "drums";
+			MaxDifficulty = Difficulty.EXPERT_PLUS;
 		}
 		
 		public override List<DrumNote> GetNotesFromChart(MoonSong song, Difficulty difficulty) {
@@ -18,7 +21,7 @@ namespace YARG.Chart {
 				difficulty = Difficulty.EXPERT;
 				doubleBass = true;
 			}
-			var chart = song.GetChart(MoonSong.MoonInstrument.Drums, MoonSong.Difficulty.Easy - (int) difficulty);
+			var chart = song.GetChart(Instrument, MoonSong.Difficulty.Easy - (int) difficulty);
 
 			// do star power later lol idk how it works
 

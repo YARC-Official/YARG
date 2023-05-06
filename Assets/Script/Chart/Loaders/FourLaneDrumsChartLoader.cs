@@ -8,6 +8,10 @@ namespace YARG.Chart {
 
 		public FourLaneDrumsChartLoader(bool pro) {
 			_proDrums = pro;
+
+			Instrument = MoonSong.MoonInstrument.Drums;
+			InstrumentName = _proDrums ? "realDrums" : "drums";
+			MaxDifficulty = Difficulty.EXPERT_PLUS;
 		}
 
 		public override List<NoteInfo> GetNotesFromChart(MoonSong song, Difficulty difficulty) {
@@ -17,7 +21,7 @@ namespace YARG.Chart {
 				difficulty = Difficulty.EXPERT;
 				doubleBass = true;
 			}
-			var chart = song.GetChart(MoonSong.MoonInstrument.Drums, MoonSong.Difficulty.Easy - (int) difficulty);
+			var chart = song.GetChart(Instrument, MoonSong.Difficulty.Easy - (int) difficulty);
 
 			foreach (var moonNote in chart.notes) {
 				// Ignore double-kicks if not Expert+
