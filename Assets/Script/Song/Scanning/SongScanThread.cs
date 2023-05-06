@@ -209,11 +209,6 @@ namespace YARG.Song {
 				tracks = ChartPreparser.GetAvailableTracks(bytes);
 			}
 
-			var tracks = ulong.MaxValue;
-			if (notesFile == "notes.chart") {
-				tracks = ChartPreparser.GetAvailableTracks(bytes);
-			}
-
 			// We have a song.ini, notes file and audio. The song is scannable.
 			song = new IniSongEntry {
 				CacheRoot = cache,
