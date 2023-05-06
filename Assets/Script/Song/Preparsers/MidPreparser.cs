@@ -71,7 +71,7 @@ namespace YARG.Song.Preparsers {
 					}
 				
 					int shiftAmount = (int)instrument * 4;
-					tracks |= (uint)0xF << shiftAmount;
+					tracks |= 0xFFUL << shiftAmount;
 				}
 			}
 
