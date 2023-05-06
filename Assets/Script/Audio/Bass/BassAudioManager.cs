@@ -298,7 +298,7 @@ namespace YARG {
 					SfxVolume = volume;
 					break;
 				default:
-					_stemVolumes[(int) stem] = volume;
+					_stemVolumes[(int) stem] = volume * BassHelpers.SONG_VOLUME_MULTIPLIER;
 					break;
 			}
 		}
