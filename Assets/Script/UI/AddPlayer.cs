@@ -217,14 +217,17 @@ namespace YARG.UI {
 			=> debounce >= ControlBinding.DEBOUNCE_MINIMUM ? debounce.ToString() : null;
 
 		private void StartBind() {
-			if (inputStrategy.Mappings.Count < 1 || botMode) {
+			// Skip in certain conditions
+			if (inputStrategy.Mappings.Count < 1 || botMode ||
+				selectedDevice?.micIndex != InputStrategy.INVALID_MIC_INDEX) {
+
 				DoneBind();
 				return;
 			}
 
 			var device = selectedDevice?.device;
 			if (device == null) {
-				Debug.Assert(false, "No device selected when binding!");
+				Debug.LogError("No device selected when binding!");
 				return;
 			}
 
@@ -302,8 +305,8 @@ namespace YARG.UI {
 				//       Only controls that have changed | Constantly-changing controls like accelerometers | Non-physical controls like stick up/down/left/right
 				var flags = Enumerate.IgnoreControlsInCurrentState | Enumerate.IncludeNoisyControls | Enumerate.IncludeSyntheticControls;
 				var activeControls = from control in eventPtr.EnumerateControls(flags, device)
-					where ControlAllowedAndActive(control, eventPtr)
-					select control as InputControl<float>;
+									 where ControlAllowedAndActive(control, eventPtr)
+									 select control as InputControl<float>;
 
 				if (activeControls != null) {
 					foreach (var ctrl in activeControls) {

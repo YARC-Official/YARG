@@ -59,7 +59,6 @@ namespace YARG.Data {
 			{ "rb3dlc", "Rock Band 3 DLC" },
 			{ "rb4_dlc", "Rock Band 4 DLC" },
 			{ "rb4dlc", "Rock Band 4 DLC" },
-			{ "rb4_dlc", "Rock Band 4 DLC" },
 			{ "rb4_rivals", "Rock Band Rivals" },
 			{ "rbtp_acdc", "Rock Band Track Pack: AC/DC Live" },
 			{ "rbtp_classic_rock", "Rock Band Track Pack: Classic Rock" },
@@ -192,7 +191,7 @@ namespace YARG.Data {
 			if (source is null) {
 				return "Unknown Source";
 			}
-			
+
 			if (SongLibrary.SourceNames != null && SongLibrary.SourceNames.TryGetValue(source, out string name)) {
 				return name;
 			}
