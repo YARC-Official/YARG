@@ -136,32 +136,9 @@ namespace YARG.Data {
 				return notes;
 			}
 
-			var chart = _song.GetChart(instrument, MoonSong.Difficulty.Expert);
-			foreach (var sp in chart.starPower) {
-				string name = instrumentName;
-
-				float finishTime = (float) _song.TickToTime(sp.tick + sp.length - 1);
-
-				events.Add(new EventInfo($"starpower_{name}", (float) sp.time, finishTime - (float) sp.time));
-			}
-
-			for (int i = 0; i < chart.events.Count; i++) {
-				var chartEvent = chart.events[i];
-				string name = instrumentName;
-
-				if (chartEvent.eventName == "solo") {
-					for (int k = i; k < chart.events.Count; k++) {
-						var chartEvent2 = chart.events[k];
-						if (chartEvent2.eventName == "soloend") {
-							events.Add(new EventInfo($"solo_{name}", (float) chartEvent.time, (float) (chartEvent2.time - chartEvent.time)));
-							break;
-						}
-					}
-				}
-			}
-
-			_loadedEvents.Add(instrument);
+			events.AddRange(loader.GetEventsFromChart(_song));
 			events.Sort((e1, e2) => e1.time.CompareTo(e2.time));
+			_loadedEvents.Add(instrument);
 
 			return notes;
 		}
