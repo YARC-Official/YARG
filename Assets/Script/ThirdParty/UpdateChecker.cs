@@ -9,6 +9,8 @@ using YARG.Data;
 
 namespace YARG {
 	public class UpdateChecker : MonoBehaviour {
+		public static UpdateChecker Instance { get; private set; }
+
 		private CancellationTokenSource updateTokenSource;
 
 		public bool CheckedForUpdates { get; private set; }
@@ -16,7 +18,8 @@ namespace YARG {
 
 		public YargVersion LatestVersion { get; private set; }
 
-		private void Start() {
+		private void Awake() {
+			Instance = this;
 			CheckForUpdates();
 		}
 
@@ -58,6 +61,7 @@ namespace YARG {
 						Debug.Log($"Update available! New version: {releaseTag}");
 					} else {
 						Debug.Log("Game is up to date.");
+						ToastManager.ToastMessage("Game is up to date.");
 					}
 				}
 			} catch (Exception e) {

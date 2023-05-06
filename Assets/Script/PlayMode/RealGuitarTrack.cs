@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using YARG.Chart;
 using YARG.Data;
 using YARG.Input;
 using YARG.Pools;
@@ -88,23 +89,36 @@ namespace YARG.PlayMode {
 			}
 
 			var events = Play.Instance.chart.events;
+			var beats = Play.Instance.chart.beats;
 
 			// Update events (beat lines, starpower, etc.)
 			while (events.Count > eventChartIndex && events[eventChartIndex].time <= RelativeTime) {
 				var eventInfo = events[eventChartIndex];
 
 				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(RelativeTime, eventInfo.time);
-				if (eventInfo.name == "beatLine_minor") {
-					genericPool.Add("beatLine_minor", new(0f, 0.01f, compensation));
-				} else if (eventInfo.name == "beatLine_major") {
-					genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
-				} else if (eventInfo.name == $"starpower_{player.chosenInstrument}") {
+				// if (eventInfo.name == "beatLine_minor") {
+				// 	genericPool.Add("beatLine_minor", new(0f, 0.01f, compensation));
+				// } else if (eventInfo.name == "beatLine_major") {
+				// 	genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
+				if (eventInfo.name == $"starpower_{player.chosenInstrument}") {
 					StarpowerSection = eventInfo;
 				} else if (eventInfo.name == $"solo_{player.chosenInstrument}") {
 					SoloSection = eventInfo;
 				}
 
 				eventChartIndex++;
+			}
+			
+			while (beats.Count > beatChartIndex && beats[beatChartIndex].Time <= RelativeTime) {
+				var beatInfo = beats[beatChartIndex];
+
+				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(RelativeTime, beatInfo.Time);
+				if (beatInfo.Style is BeatStyle.STRONG or BeatStyle.WEAK) {
+					genericPool.Add("beatLine_minor", new(0f, 0.01f, compensation));
+				} else if (beatInfo.Style == BeatStyle.MEASURE) {
+					genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
+				}
+				beatChartIndex++;
 			}
 
 			// Since chart is sorted, this is guaranteed to work

@@ -1,10 +1,9 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
-using YARG.Data;
 using YARG.Input;
 using YARG.Settings;
+using YARG.Song;
 
 namespace YARG.UI {
 	public partial class MainMenu : MonoBehaviour {
@@ -23,7 +22,7 @@ namespace YARG.UI {
 			EXIT
 		}
 
-		public SongInfo chosenSong = null;
+		public SongEntry chosenSong = null;
 
 		[SerializeField]
 		private Canvas mainMenu;
@@ -39,20 +38,6 @@ namespace YARG.UI {
 		private Canvas addPlayer;
 		[SerializeField]
 		private Canvas credits;
-
-		[Space]
-		[SerializeField]
-		private GameObject menuContainer;
-		[SerializeField]
-		private GameObject settingsContainer;
-		[SerializeField]
-		private GameObject songFolderManager;
-		[SerializeField]
-		private GameObject loadingScreen;
-		[SerializeField]
-		private TextMeshProUGUI loadingStatus;
-		[SerializeField]
-		private Image progressBar;
 
 		[SerializeField]
 		private TextMeshProUGUI versionText;
@@ -70,10 +55,6 @@ namespace YARG.UI {
 			Instance = this;
 
 			versionText.text = Constants.VERSION_TAG.ToString();
-
-			if (SongLibrary.SongsByHash == null) {
-				RefreshSongLibrary();
-			}
 
 			if (!isPostSong) {
 				ShowMainMenu();
@@ -107,22 +88,9 @@ namespace YARG.UI {
 		}
 
 		private void Update() {
-			// Update progress if loading
-			if (loadingScreen.activeSelf) {
-				progressBar.fillAmount = SongLibrary.loadPercent;
-				loadingStatus.text = SongLibrary.currentTaskDescription;
-
-				// Finish loading
-				if (!SongLibrary.currentlyLoading) {
-					loadingScreen.SetActive(false);
-					SongLibrary.loadPercent = 0f;
-				}
-
-				return;
-			}
-
-			if (!isUpdateShown && GameManager.Instance.updateChecker.IsOutOfDate) {
+			if (!isUpdateShown && UpdateChecker.Instance.IsOutOfDate) {
 				isUpdateShown = true;
+
 				updateObject.gameObject.gameObject.SetActive(true);
 			}
 		}
@@ -155,7 +123,6 @@ namespace YARG.UI {
 			MainMenuBackground.Instance.cursorMoves = true;
 
 			mainMenu.gameObject.SetActive(true);
-			ShowMenuContainer();
 		}
 
 		public void ShowEditPlayers() {
@@ -191,28 +158,8 @@ namespace YARG.UI {
 			credits.gameObject.SetActive(true);
 		}
 
-		public void HideAllMainMenu() {
-			menuContainer.SetActive(false);
-			settingsContainer.SetActive(false);
-			songFolderManager.SetActive(false);
-		}
-
 		public void ShowSettingsMenu() {
-			HideAllMainMenu();
-
-			settingsContainer.SetActive(true);
-		}
-
-		public void ShowMenuContainer() {
-			HideAllMainMenu();
-
-			menuContainer.SetActive(true);
-		}
-
-		public void ShowSongFolderManager() {
-			HideAllMainMenu();
-
-			songFolderManager.SetActive(true);
+			GameManager.Instance.SettingsMenu.gameObject.SetActive(true);
 		}
 
 		public void ShowCalibrationScene() {
@@ -222,20 +169,9 @@ namespace YARG.UI {
 		}
 
 		public void AbortSongLoad() {
-			SettingsManager.DeleteSettingsFile();
+			SettingsManager.DeleteSettings();
 
 			Quit();
-		}
-
-		public void RefreshSongLibrary() {
-			SongLibrary.Reset();
-			ScoreManager.Reset();
-
-			SongLibrary.FetchEverything();
-			loadingScreen.SetActive(true);
-			ScoreManager.FetchScores();
-
-			SongSelect.refreshFlag = true;
 		}
 
 		public void OpenLatestRelease() {

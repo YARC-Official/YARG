@@ -76,7 +76,7 @@ namespace YARG {
 				return false;
 			}
 			
-			foreach((var stem, int[] channelIndexes) in _moggData.stemMaps) {
+			foreach((var stem, int[] channelIndexes) in _moggData.StemMaps) {
 				// For every channel index in this stem, add it to the list of channels
 				int[] channelStreams = channelIndexes.Select(i => splitStreams[i]).ToArray();
 				var channel = new BassMoggStem(_manager, stem, channelStreams);
@@ -87,8 +87,8 @@ namespace YARG {
 				var matrixes = new List<float[]>();
 				foreach (var channelIndex in channelIndexes) {
 					var matrix = new float[2];
-					matrix[0] = _moggData.matrixRatios[channelIndex, 0];
-					matrix[1] = _moggData.matrixRatios[channelIndex, 1];
+					matrix[0] = _moggData.MatrixRatios[channelIndex, 0];
+					matrix[1] = _moggData.MatrixRatios[channelIndex, 1];
 					matrixes.Add(matrix);
 				}
 
@@ -149,6 +149,10 @@ namespace YARG {
 			if (!BassMix.MixerAddChannel(_mixerHandle, bassChannel.StreamHandle, BassFlags.Default)) {
 				return (int) Bass.LastError;
 			}
+			
+			if (!BassMix.MixerAddChannel(_mixerHandle, bassChannel.ReverbStreamHandle, BassFlags.Default)) {
+				return (int) Bass.LastError;
+			}
 
 			_channels.Add(channel.Stem, channel);
 			StemsLoaded++;
@@ -171,8 +175,13 @@ namespace YARG {
 
 			for (var i = 0; i < moggStem.BassChannels.Length; i++) {
 				int bassChannel = moggStem.BassChannels[i];
+				int reverbChannel = moggStem.ReverbChannels[i];
 
 				if (!BassMix.MixerAddChannel(_mixerHandle, bassChannel, BassFlags.MixerChanMatrix)) {
+					return (int) Bass.LastError;
+				}
+				
+				if (!BassMix.MixerAddChannel(_mixerHandle, reverbChannel, BassFlags.MixerChanMatrix)) {
 					return (int) Bass.LastError;
 				}
 
@@ -182,6 +191,10 @@ namespace YARG {
 				};
 
 				if (!BassMix.ChannelSetMatrix(bassChannel, channelPanVol)) {
+					return (int) Bass.LastError;
+				}
+				
+				if (!BassMix.ChannelSetMatrix(reverbChannel, channelPanVol)) {
 					return (int) Bass.LastError;
 				}
 			}

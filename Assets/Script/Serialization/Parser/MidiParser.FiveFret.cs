@@ -300,7 +300,7 @@ namespace YARG.Serialization.Parser {
 
 							// Use HOPO frequency value from song info.
 							// Convert the ticks to a musical time span.
-							if (distance <= new MusicalTimeSpan(songInfo.hopoFreq, 480 * 4)) {
+							if (distance <= new MusicalTimeSpan(songEntry.HopoThreshold, 480 * 4)) {
 								note.hopo = true;
 								note.autoHopo = true;
 							}

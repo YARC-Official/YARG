@@ -44,7 +44,7 @@ namespace MoonscraperChartEditor.Song
             Open
         }
 
-        public enum NoteType
+        public enum MoonNoteType
         {
             Natural,
             Strum,
@@ -388,7 +388,7 @@ namespace MoonscraperChartEditor.Song
         /// <summary>
         /// Live calculation of what Note_Type this note would currently be. 
         /// </summary>
-        public NoteType type
+        public MoonNoteType type
         {
             get
             {
@@ -396,23 +396,23 @@ namespace MoonscraperChartEditor.Song
                 {
                     if (!this.IsOpenNote() && (flags & Flags.ProDrums_Cymbal) == Flags.ProDrums_Cymbal)
                     {
-                        return NoteType.Cymbal;
+                        return MoonNoteType.Cymbal;
                     }
 
-                    return NoteType.Strum;
+                    return MoonNoteType.Strum;
                 }
                 else
                 {
                     if (!this.IsOpenNote() && (flags & Flags.Tap) == Flags.Tap)
                     {
-                        return NoteType.Tap;
+                        return MoonNoteType.Tap;
                     }
                     else
                     {
                         if (isHopo)
-                            return NoteType.Hopo;
+                            return MoonNoteType.Hopo;
                         else
-                            return NoteType.Strum;
+                            return MoonNoteType.Strum;
                     }
                 }
             }

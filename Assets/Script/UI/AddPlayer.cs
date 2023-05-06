@@ -39,6 +39,8 @@ namespace YARG.UI {
 
 		[SerializeField]
 		private GameObject deviceButtonPrefab;
+		[SerializeField]
+		private GameObject bindingButtonPrefab;
 
 		[Space]
 		[SerializeField]
@@ -60,7 +62,7 @@ namespace YARG.UI {
 		[SerializeField]
 		private GameObject bindContainer;
 		[SerializeField]
-		private GameObject allowedControlsContainer;
+		private GameObject bindHeaderContainer;
 
 		private State state = State.SELECT_DEVICE;
 
@@ -113,7 +115,7 @@ namespace YARG.UI {
 			selectDeviceContainer.SetActive(false);
 			configureContainer.SetActive(false);
 			bindContainer.SetActive(false);
-			allowedControlsContainer.SetActive(false);
+			bindHeaderContainer.SetActive(false);
 		}
 
 		private void Update() {
@@ -210,21 +212,28 @@ namespace YARG.UI {
 		private string GetMappingText(ControlBinding binding)
 			=> $"<b>{binding.DisplayName}:</b> {inputStrategy.GetMappingInputControl(binding.BindingKey)?.displayName ?? "None"}";
 
+		private string GetDebounceText(long debounce)
+			// Clear textbox if new threshold is below the minimum debounce amount
+			=> debounce >= ControlBinding.DEBOUNCE_MINIMUM ? debounce.ToString() : null;
+
 		private void StartBind() {
-			if (inputStrategy.Mappings.Count < 1 || botMode) {
+			// Skip in certain conditions
+			if (inputStrategy.Mappings.Count < 1 || botMode ||
+				selectedDevice?.micIndex != InputStrategy.INVALID_MIC_INDEX) {
+
 				DoneBind();
 				return;
 			}
 
 			var device = selectedDevice?.device;
 			if (device == null) {
-				Debug.Assert(false, "No device selected when binding!");
+				Debug.LogError("No device selected when binding!");
 				return;
 			}
 
 			HideAll();
 			bindContainer.SetActive(true);
-			allowedControlsContainer.SetActive(true);
+			bindHeaderContainer.SetActive(true);
 			UpdateState(State.BIND);
 
 			// Destroy old bindings
@@ -234,7 +243,7 @@ namespace YARG.UI {
 
 			// Add bindings
 			foreach (var binding in inputStrategy.Mappings.Values) {
-				var button = Instantiate(deviceButtonPrefab, bindingsContainer);
+				var button = Instantiate(bindingButtonPrefab, bindingsContainer);
 
 				var text = button.GetComponentInChildren<TextMeshProUGUI>();
 				text.text = GetMappingText(binding);
@@ -245,6 +254,18 @@ namespace YARG.UI {
 						currentBindText = text;
 						text.text = $"<b>{binding.DisplayName}:</b> Waiting for input... (Escape to cancel)";
 					}
+				});
+
+				var inputField = button.GetComponentInChildren<TMP_InputField>();
+				inputField.text = GetDebounceText(binding.DebounceThreshold);
+				inputField.onEndEdit.AddListener((text) => {
+					// Default to existing threshold if none specified
+					if (!long.TryParse(text, out long debounce)) {
+						debounce = binding.DebounceThreshold;
+					}
+
+					binding.DebounceThreshold = debounce;
+					inputField.text = GetDebounceText(binding.DebounceThreshold);
 				});
 			}
 
@@ -284,8 +305,8 @@ namespace YARG.UI {
 				//       Only controls that have changed | Constantly-changing controls like accelerometers | Non-physical controls like stick up/down/left/right
 				var flags = Enumerate.IgnoreControlsInCurrentState | Enumerate.IncludeNoisyControls | Enumerate.IncludeSyntheticControls;
 				var activeControls = from control in eventPtr.EnumerateControls(flags, device)
-					where ControlAllowedAndActive(control, eventPtr)
-					select control as InputControl<float>;
+									 where ControlAllowedAndActive(control, eventPtr)
+									 select control as InputControl<float>;
 
 				if (activeControls != null) {
 					foreach (var ctrl in activeControls) {

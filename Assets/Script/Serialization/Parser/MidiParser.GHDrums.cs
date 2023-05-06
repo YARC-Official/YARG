@@ -3,13 +3,14 @@ using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
 using YARG.Data;
+using YARG.Song;
 
 namespace YARG.Serialization.Parser {
 	public partial class MidiParser : AbstractParser {
-		private List<NoteInfo> ParseGHDrums(TrackChunk trackChunk, int difficulty, SongInfo.DrumType drumType, List<NoteInfo> stdEquivalent) {
+		private List<NoteInfo> ParseGHDrums(TrackChunk trackChunk, int difficulty, DrumType drumType, List<NoteInfo> stdEquivalent) {
 			var tempoMap = midi.GetTempoMap();
 
-			if (drumType == SongInfo.DrumType.FIVE_LANE) {
+			if (drumType == DrumType.FourLane) {
 				return GHDrumNotePass(trackChunk, difficulty, tempoMap);
 			} else {
 				return DrumFromStandard(stdEquivalent);

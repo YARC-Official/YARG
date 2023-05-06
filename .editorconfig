@@ -23,3 +23,4 @@ csharp_new_line_before_members_in_object_initializers = false
 csharp_new_line_before_members_in_anonymous_types = false
 csharp_new_line_between_query_expression_clauses = false
 csharp_space_after_cast = true
+csharp_space_around_declaration_statements = ignore

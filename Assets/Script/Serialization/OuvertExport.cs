@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
+using YARG.Song;
 
 namespace YARG.Serialization {
 	public static class OuvertExport {
@@ -27,21 +28,21 @@ namespace YARG.Serialization {
 			var songs = new List<SongData>();
 
 			// Convert SongInfo to SongData
-			foreach (var song in SongLibrary.Songs) {
+			foreach (var song in SongContainer.Songs) {
 				songs.Add(new SongData {
-					songName = song.SongName,
-					artistName = song.artistName,
-					album = song.album,
-					genre = song.genre,
-					charter = song.charter,
-					year = song.year,
-					songLength = (int) (song.songLength * 1000f)
+					songName = song.Name,
+					artistName = song.Artist,
+					album = song.Album,
+					genre = song.Genre,
+					charter = song.Charter,
+					year = song.Year,
+					songLength = (int) (song.SongLength * 1000f)
 				});
 			}
 
 			// Create file
 			var json = JsonConvert.SerializeObject(songs);
-			File.WriteAllText(path, json.ToString());
+			File.WriteAllText(path, json);
 		}
 	}
 }

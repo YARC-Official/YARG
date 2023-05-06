@@ -3,13 +3,15 @@ using System.IO;
 using DtxCS.DataTypes;
 using UnityEngine;
 using YARG.Data;
+using YARG.Song;
 
 namespace YARG.Serialization {
 	public class XboxSong {
 		public string ShortName { get; private set; }
 		public string MidiFile { get; private set; }
+		public string MidiUpdateFile { get; private set; }
 
-		private string songFolderPath;
+		public string SongFolderPath { get; }
 
 		private XboxSongData songDta;
 		private XboxMoggData moggDta;
@@ -24,24 +26,49 @@ namespace YARG.Serialization {
 			ShortName = songDta.GetShortName();
 
 			// Get song folder path for mid, mogg, png_xbox
-			songFolderPath = Path.Combine(pathName, ShortName);
+			SongFolderPath = Path.Combine(pathName, ShortName);
 
 			// Set midi file
-			MidiFile = Path.Combine(songFolderPath, $"{ShortName}.mid");
+			MidiFile = Path.Combine(SongFolderPath, $"{ShortName}.mid");
 
 			// Parse the mogg
-			moggDta = new XboxMoggData(Path.Combine(songFolderPath, $"{ShortName}.mogg"));
+			moggDta = new XboxMoggData(Path.Combine(SongFolderPath, $"{ShortName}.mogg"));
 			moggDta.ParseMoggHeader();
 			moggDta.ParseFromDta(dta.Array("song"));
 			moggDta.CalculateMoggBassInfo();
 
 			// Parse the image
-			string imgPath = Path.Combine(songFolderPath, "gen", $"{ShortName}_keep.png_xbox");
+			string imgPath = Path.Combine(SongFolderPath, "gen", $"{ShortName}_keep.png_xbox");
 			if (songDta.AlbumArtRequired() && File.Exists(imgPath)) {
 				img = new XboxImage(imgPath);
+			}
+		}
 
-				// Do some preliminary parsing here in the header to get DXT format, width and height, etc
-				img.ParseImageHeader();
+		public void UpdateSong(string pathUpdateName, DataArray dta_update) {
+			songDta.ParseFromDta(dta_update);
+			// if dta_update.Array("song") is not null, parse for any MoggDta as well
+			if (dta_update.Array("song") is DataArray moggUpdateDta)
+				moggDta.ParseFromDta(moggUpdateDta);
+
+			// if extra_authoring has disc_update, grab update midi
+			if (songDta.discUpdate) {
+				MidiUpdateFile = Path.Combine(pathUpdateName, ShortName, $"{ShortName}_update.mid");
+			}
+
+			// if update mogg exists, grab it and parse it
+			string moggUpdatePath = Path.Combine(pathUpdateName, ShortName, $"{ShortName}_update.mogg");
+			if (File.Exists(moggUpdatePath)) {
+				moggDta.MoggPath = moggUpdatePath;
+				moggDta.ParseMoggHeader();
+				// moggDta.ParseFromDta(dta_update.Array("song"));
+				moggDta.CalculateMoggBassInfo();
+			}
+
+			// if album_art == TRUE AND alternate_path == TRUE, grab update png
+			if (songDta.albumArt && songDta.alternatePath) {
+				Debug.Log($"new album art, grabbing it now");
+				// make a new image here, cuz what if an old one exists?
+				img = new XboxImage(Path.Combine(pathUpdateName, ShortName, "gen", $"{ShortName}_keep.png_xbox"));
 			}
 		}
 
@@ -67,7 +94,7 @@ namespace YARG.Serialization {
 		public override string ToString() {
 			return string.Join(Environment.NewLine,
 				$"XBOX SONG {ShortName}",
-				$"song folder path: {songFolderPath}",
+				$"song folder path: {SongFolderPath}",
 				"",
 				songDta.ToString(),
 				"",
@@ -75,29 +102,33 @@ namespace YARG.Serialization {
 			);
 		}
 
-		public void CompleteSongInfo(SongInfo song, bool rb) {
-			if (song.fetched) {
-				return;
-			}
-			song.fetched = true;
-
+		public void CompleteSongInfo(ExtractedConSongEntry song, bool rb) {
 			// Set infos
-			song.SongName = songDta.name;
-			song.source = songDta.gameOrigin;
-			song.songLength = songDta.songLength / 1000f;
+			song.Name = songDta.name;
+			song.Source = songDta.gameOrigin;
+
+			// if the source is UGC/UGC_plus but no "UGC_" in shortname, assume it's a custom
+			if (songDta.gameOrigin == "ugc" || songDta.gameOrigin == "ugc_plus") {
+				if (!(songDta.shortname.Contains("UGC_"))) {
+					song.Source = "customs";
+				}
+			}
+
+			song.SongLength = (int) songDta.songLength / 1000;
 			// song.delay
-			song.drumType = rb ? SongInfo.DrumType.FOUR_LANE : SongInfo.DrumType.FIVE_LANE;
-			if(songDta.hopoThreshold != 0) song.hopoFreq = songDta.hopoThreshold;
-			song.artistName = songDta.artist != null ? songDta.artist : "Unknown Artist";
-			song.album = songDta.albumName;
-			song.genre = songDta.genre;
+			song.DrumType = rb ? DrumType.FourLane : DrumType.FiveLane;
+			if (songDta.hopoThreshold != 0)
+				song.HopoThreshold = songDta.hopoThreshold;
+			song.Artist = songDta.artist ?? "Unknown Artist";
+			song.Album = songDta.albumName;
+			song.Genre = songDta.genre;
 			// song.charter
-			song.year = songDta.yearReleased?.ToString();
+			song.Year = songDta.yearReleased?.ToString();
 			// song.loadingPhrase
 
 			// Set CON specific info
-			song.moggInfo = moggDta;
-			song.imageInfo = img;
+			song.MoggInfo = moggDta;
+			song.ImageInfo = img;
 
 			// Set difficulties
 			foreach (var (key, value) in songDta.ranks) {
@@ -106,15 +137,15 @@ namespace YARG.Serialization {
 					continue;
 				}
 
-				song.partDifficulties[instrument] = DtaDifficulty.ToNumberedDiff(instrument, value);
+				song.PartDifficulties[instrument] = DtaDifficulty.ToNumberedDiff(instrument, value);
 			}
 
 			// Set pro drums
-			song.partDifficulties[Instrument.REAL_DRUMS] = song.partDifficulties[Instrument.DRUMS];
+			song.PartDifficulties[Instrument.REAL_DRUMS] = song.PartDifficulties[Instrument.DRUMS];
 
 			// Set harmony difficulty (if exists)
 			if (songDta.vocalParts > 1) {
-				song.partDifficulties[Instrument.HARMONY] = song.partDifficulties[Instrument.VOCALS];
+				song.PartDifficulties[Instrument.HARMONY] = song.PartDifficulties[Instrument.VOCALS];
 			}
 		}
 	}
