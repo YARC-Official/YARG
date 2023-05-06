@@ -14,30 +14,30 @@ namespace YARG.Data {
 
 		private List<NoteInfo>[] guitar;
 		public List<NoteInfo>[] Guitar {
-			get => guitar ?? LoadArray(ref guitar, new GuitarChartLoader(MoonSong.MoonInstrument.Guitar));
+			get => guitar ?? LoadArray(ref guitar, ChartLoader.GuitarLoader);
 			set => guitar = value;
 		}
 		
 		private List<NoteInfo>[] guitarCoop;
 		public List<NoteInfo>[] GuitarCoop {
-			get => guitarCoop ?? LoadArray(ref guitarCoop, new GuitarChartLoader(MoonSong.MoonInstrument.GuitarCoop));
+			get => guitarCoop ?? LoadArray(ref guitarCoop, ChartLoader.GuitarCoopLoader);
 			set => guitarCoop = value;
 		}
 		private List<NoteInfo>[] rhythm;
 		public List<NoteInfo>[] Rhythm {
-			get => rhythm ?? LoadArray(ref rhythm, new GuitarChartLoader(MoonSong.MoonInstrument.Rhythm));
+			get => rhythm ?? LoadArray(ref rhythm, ChartLoader.RhythmLoader);
 			set => rhythm = value;
 		}
 		
 		private List<NoteInfo>[] bass;
 		public List<NoteInfo>[] Bass {
-			get => bass ?? LoadArray(ref bass, new GuitarChartLoader(MoonSong.MoonInstrument.Bass));
+			get => bass ?? LoadArray(ref bass, ChartLoader.BassLoader);
 			set => bass = value;
 		}
 		
 		private List<NoteInfo>[] keys;
 		public List<NoteInfo>[] Keys {
-			get => keys ?? LoadArray(ref keys, new GuitarChartLoader(MoonSong.MoonInstrument.Keys));
+			get => keys ?? LoadArray(ref keys, ChartLoader.KeysLoader);
 			set => keys = value;
 		}
 
@@ -47,19 +47,19 @@ namespace YARG.Data {
 
 		private List<NoteInfo>[] drums;
 		public List<NoteInfo>[] Drums {
-			get => drums ?? LoadArray(ref drums, new FourLaneDrumsChartLoader(pro: false));
+			get => drums ?? LoadArray(ref drums, ChartLoader.DrumsLoader);
 			set => drums = value;
 		}
 
 		private List<NoteInfo>[] realDrums;
 		public List<NoteInfo>[] RealDrums {
-			get => realDrums ?? LoadArray(ref realDrums, new FourLaneDrumsChartLoader(pro: true));
+			get => realDrums ?? LoadArray(ref realDrums, ChartLoader.ProDrumsLoader);
 			set => realDrums = value;
 		}
 
 		private List<NoteInfo>[] ghDrums;
 		public List<NoteInfo>[] GhDrums {
-			get => ghDrums ?? LoadArray(ref ghDrums, new FiveLaneDrumsChartLoader());
+			get => ghDrums ?? LoadArray(ref ghDrums, ChartLoader.FiveLaneDrumsLoader);
 			set => ghDrums = value;
 		}
 
