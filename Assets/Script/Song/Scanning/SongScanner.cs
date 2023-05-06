@@ -195,7 +195,11 @@ namespace YARG.Song {
 		}
 
 		private async UniTask WriteBadSongs() {
-			string badSongsPath = Path.Combine(GameManager.ApplicationDataPath, "badsongs.txt");
+			#if UNITY_EDITOR
+			string badSongsPath = Path.Combine(GameManager.PersistentDataPath, "badsongs.txt");
+			#else
+			string badSongsPath = Path.Combine(GameManager.ExecutablePath, "badsongs.txt");
+			#endif
 			
 			await using var stream = new FileStream(badSongsPath, FileMode.Create, FileAccess.Write);
 			await using var writer = new StreamWriter(stream);
