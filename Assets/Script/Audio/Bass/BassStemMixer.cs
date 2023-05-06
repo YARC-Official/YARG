@@ -76,7 +76,7 @@ namespace YARG {
 				return false;
 			}
 			
-			foreach((var stem, int[] channelIndexes) in _moggData.stemMaps) {
+			foreach((var stem, int[] channelIndexes) in _moggData.StemMaps) {
 				// For every channel index in this stem, add it to the list of channels
 				int[] channelStreams = channelIndexes.Select(i => splitStreams[i]).ToArray();
 				var channel = new BassMoggStem(_manager, stem, channelStreams);
@@ -87,8 +87,8 @@ namespace YARG {
 				var matrixes = new List<float[]>();
 				foreach (var channelIndex in channelIndexes) {
 					var matrix = new float[2];
-					matrix[0] = _moggData.matrixRatios[channelIndex, 0];
-					matrix[1] = _moggData.matrixRatios[channelIndex, 1];
+					matrix[0] = _moggData.MatrixRatios[channelIndex, 0];
+					matrix[1] = _moggData.MatrixRatios[channelIndex, 1];
 					matrixes.Add(matrix);
 				}
 

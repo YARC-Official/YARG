@@ -1,6 +1,6 @@
 using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using YARG.Chart;
 
@@ -29,7 +29,7 @@ namespace YARG.Util {
 		/// </summary>
 		/// <param name="beatTimes">List of beat times associated with the Info object.</param>
 		/// <returns>Length of the Info object in beats.</returns>
-		public static float InfoLengthInBeats(YARG.Data.AbstractInfo info, List<Beat> beatTimes) {
+		public static float InfoLengthInBeats(Data.AbstractInfo info, List<Beat> beatTimes) {
 			int beatIndex = 1;
 			// set beatIndex to first relevant beat
 			while (beatIndex < beatTimes.Count && beatTimes[beatIndex].Time <= info.time) {
@@ -45,7 +45,7 @@ namespace YARG.Util {
 			}
 
 			// segment where EndTime is between two beats (beatIndex-1 and beatIndex)
-			if (beatIndex < beatTimes.Count && beatTimes[beatIndex-1].Time < info.EndTime && info.EndTime < beatTimes[beatIndex].Time) {
+			if (beatIndex < beatTimes.Count && beatTimes[beatIndex - 1].Time < info.EndTime && info.EndTime < beatTimes[beatIndex].Time) {
 				var bps = 1/(beatTimes[beatIndex].Time - beatTimes[beatIndex - 1].Time);
 				beats += (info.EndTime - beatTimes[beatIndex - 1].Time) * bps;
 			}

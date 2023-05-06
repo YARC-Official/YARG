@@ -1,8 +1,15 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using Cysharp.Threading.Tasks;
+using UnityEngine;
 
 namespace YARG.Data {
-	public partial class SongInfo {
+	public static class SongSources {
 		private static readonly Dictionary<string, string> DEFAULT_SOURCES = new() {
+			{ "yarg", "YARG" },
+
 			{ "gh1", "Guitar Hero" },
 			{ "gh", "Guitar Hero" },
 			{ "gh2", "Guitar Hero II" },
@@ -43,6 +50,7 @@ namespace YARG.Data {
 			{ "tbrbdlc", "The Beatles: Rock Band DLC" },
 			{ "tbrbcdlc", "The Beatles: Rock Band Custom DLC Project" },
 			{ "rbacdc", "AC/DC Live: Rock Band Track Pack" },
+			{ "lrb", "Lego Rock Band" },
 			{ "lego", "Lego Rock Band" },
 			{ "rbn", "Rock Band Network" },
 			{ "ugc", "Rock Band Network 1.0" },
@@ -50,11 +58,14 @@ namespace YARG.Data {
 			{ "ugc1", "Rock Band Network 1.0" },
 			{ "ugc2", "Rock Band Network 2.0" },
 			{ "ugc_lost", "Lost Rock Band Network" },
+			{ "rb1_dlc", "Rock Band 1 DLC" },
 			{ "rb1dlc", "Rock Band 1 DLC" },
+			{ "rb2_dlc", "Rock Band 2 DLC" },
 			{ "rb2dlc", "Rock Band 2 DLC" },
+			{ "rb3_dlc", "Rock Band 3 DLC" },
 			{ "rb3dlc", "Rock Band 3 DLC" },
-			{ "rb4dlc", "Rock Band 4 DLC" },
 			{ "rb4_dlc", "Rock Band 4 DLC" },
+			{ "rb4dlc", "Rock Band 4 DLC" },
 			{ "rb4_rivals", "Rock Band Rivals" },
 			{ "rbtp_acdc", "Rock Band Track Pack: AC/DC Live" },
 			{ "rbtp_classic_rock", "Rock Band Track Pack: Classic Rock" },
@@ -177,21 +188,87 @@ namespace YARG.Data {
 			{ "zancharted", "Zancharted" },
 			{ "zerogravity", "Zero Gravity" },
 			{ "zgsb", "Zero Gravity - Space Battle" },
-			{ "yarg", "YARG" },
 		};
 
+		/// <value>
+		/// The URL of the Clone Hero sources list.
+		/// </value>
+		private const string SOURCES_URL = "https://sources.clonehero.net/sources.txt";
+
+		/// <value>
+		/// The location of the local sources file.
+		/// </value>
+		private static string SourcesFile => Path.Combine(GameManager.PersistentDataPath, "sources.txt");
+
+		/// <value>
+		/// A dictionary of source IDs to source names.<br/>
+		/// You must call <see cref="FetchSourcesFromWeb"/> first.
+		/// </value>
+		private static Dictionary<string, string> webSourceNames = null;
+
+		private static async UniTask FetchSourcesFromWeb() {
+			try {
+				// Retrieve sources file
+				var request = WebRequest.Create(SOURCES_URL);
+				request.UseDefaultCredentials = true;
+				request.Timeout = 5000;
+
+				// Send the request and wait for the response
+				using var response = await request.GetResponseAsync();
+
+				// Store sources locally and load them
+				using var fileWriter = File.Create(SourcesFile);
+				await response.GetResponseStream().CopyToAsync(fileWriter);
+			} catch (Exception e) {
+				Debug.LogException(e);
+			}
+		}
+
+		private static async UniTask ReadSources() {
+			// Skip if the sources file doesn't exist
+			if (!File.Exists(SourcesFile)) {
+				return;
+			}
+
+			webSourceNames ??= new();
+
+			var sources = (await File.ReadAllTextAsync(SourcesFile)).Split("\n");
+			foreach (string source in sources) {
+				if (string.IsNullOrWhiteSpace(source)) {
+					continue;
+				}
+
+				// The sources are formatted as follows:
+				// iconName '=' Display Name
+				var pair = source.Split("'='", 2);
+				if (pair.Length < 2) {
+					Debug.LogWarning($"Invalid source entry when reading sources: {source}");
+					continue;
+				}
+
+				webSourceNames.Add(pair[0].Trim(), pair[1].Trim());
+			}
+		}
+
+		public static async UniTask LoadSources() {
+			await FetchSourcesFromWeb();
+			await ReadSources();
+		}
+
 		/// <returns>
-		/// The converted short name (gh1) into the game name (Guitar Hero 1).
+		/// The converted short name (e.g. gh1) into the game name (e.g. Guitar Hero 1).
 		/// </returns>
-		private static string SourceToGameName(string source) {
-			if (source is null) {
+		public static string SourceToGameName(string source) {
+			if (string.IsNullOrEmpty(source)) {
 				return "Unknown Source";
 			}
-			
-			if (SongLibrary.SourceNames != null && SongLibrary.SourceNames.TryGetValue(source, out string name)) {
+
+			// Try get from web sources
+			if (webSourceNames != null && webSourceNames.TryGetValue(source, out string name)) {
 				return name;
 			}
 
+			// If not, get from default sources
 			if (DEFAULT_SOURCES.TryGetValue(source, out name)) {
 				return name;
 			}

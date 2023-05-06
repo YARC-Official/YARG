@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.Profiling;
 using UnityEngine.SceneManagement;
 using YARG.Settings;
+using YARG.Song;
 
 namespace YARG {
 	public enum SceneIndex {
@@ -24,6 +25,8 @@ namespace YARG {
 		/// "Application.persistentDataPath" is main thread only. Why? I don't know.
 		/// </summary>
 		public static string PersistentDataPath { get; private set; }
+		public static string ApplicationDataPath { get; private set; }
+		public static string ExecutablePath { get; private set; }
 
 		public static IAudioManager AudioManager { get; private set; }
 
@@ -40,11 +43,6 @@ namespace YARG {
 
 			Debug.Log($"YARG {Constants.VERSION_TAG}");
 
-			AudioManager = gameObject.AddComponent<BassAudioManager>();
-			AudioManager.Initialize();
-		}
-
-		private void Start() {
 			// this is to handle a strange edge case in path naming in windows.
 			// modern windows can handle / or \ in path names with seemingly one exception, if there is a space in the user name then try forward slash appdata, it will break at the first space so:
 			// c:\users\joe blow\appdata <- okay!
@@ -53,6 +51,15 @@ namespace YARG {
 			// so let's just set them all to \ on windows to be sure.
 			// For linux Path.DirectorySeparatorChar should return /, and this should work fine, but this should be double checked once those builds are being worked on
 			PersistentDataPath = Application.persistentDataPath.Replace("/", Path.DirectorySeparatorChar.ToString());
+			ApplicationDataPath = Application.dataPath.Replace("/", Path.DirectorySeparatorChar.ToString());
+			ExecutablePath = Directory.GetParent(ApplicationDataPath)?.FullName;
+			Debug.Log(ExecutablePath);
+			
+			AudioManager = gameObject.AddComponent<BassAudioManager>();
+			AudioManager.Initialize();
+		}
+
+		private void Start() {
 			SettingsManager.LoadSettings();
 
 			// High polling rate

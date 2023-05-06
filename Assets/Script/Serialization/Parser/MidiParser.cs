@@ -8,6 +8,7 @@ using UnityEngine;
 using YARG.Chart;
 using YARG.Data;
 using YARG.DiffDownsample;
+using YARG.Song;
 
 namespace YARG.Serialization.Parser {
 	public partial class MidiParser : AbstractParser {
@@ -21,7 +22,7 @@ namespace YARG.Serialization.Parser {
 
 		public MidiFile midi;
 
-		public MidiParser(SongInfo songInfo, string[] files) : base(songInfo, files) {
+		public MidiParser(SongEntry songEntry, string[] files) : base(songEntry, files) {
 			midi = MidiFile.Read(files[0], new ReadingSettings() { TextEncoding = System.Text.Encoding.UTF8 });
 
 			// Merge midi files
@@ -150,7 +151,7 @@ namespace YARG.Serialization.Parser {
 							case "PART DRUMS":
 								var drumType = GetDrumType(trackChunk);
 
-								if (drumType == SongInfo.DrumType.FOUR_LANE) {
+								if (drumType == DrumType.FourLane) {
 									for (int i = 0; i < 5; i++) {
 										chart.Drums[i] = ParseDrums(trackChunk, false, i, drumType, null);
 										chart.RealDrums[i] = ParseDrums(trackChunk, true, i, drumType, null);
@@ -226,7 +227,7 @@ namespace YARG.Serialization.Parser {
 
 					// Add delay
 					foreach (var note in difficulty) {
-						note.time += songInfo.delay;
+						note.time += (float)songEntry.Delay;
 					}
 
 					// Last note time
@@ -239,16 +240,16 @@ namespace YARG.Serialization.Parser {
 			// Add delay to vocals
 
 			foreach (var lyric in chart.genericLyrics) {
-				lyric.time += songInfo.delay;
+				lyric.time += (float)songEntry.Delay;
 			}
 
 			foreach (var lyric in chart.realLyrics) {
-				lyric.time += songInfo.delay;
+				lyric.time += (float)songEntry.Delay;
 			}
 
 			foreach (var lyricList in chart.harmLyrics) {
 				foreach (var lyric in lyricList) {
-					lyric.time += songInfo.delay;
+					lyric.time += (float)songEntry.Delay;
 				}
 			}
 
@@ -278,7 +279,7 @@ namespace YARG.Serialization.Parser {
 
 			chart.events.Sort(new Comparison<EventInfo>((a, b) => a.time.CompareTo(b.time)));
 			foreach (var ev in chart.events) {
-				ev.time += songInfo.delay;
+				ev.time += (float)songEntry.Delay;
 			}
 
 			// Add beats to chart
@@ -432,9 +433,9 @@ namespace YARG.Serialization.Parser {
 			}
 		}
 
-		private SongInfo.DrumType GetDrumType(TrackChunk trackChunk) {
-			if (songInfo.drumType != SongInfo.DrumType.UNKNOWN) {
-				return songInfo.drumType;
+		private DrumType GetDrumType(TrackChunk trackChunk) {
+			if (songEntry.DrumType != DrumType.Unknown) {
+				return songEntry.DrumType;
 			}
 
 			// If we don't know the drum type...
@@ -445,12 +446,12 @@ namespace YARG.Serialization.Parser {
 
 				// Look for the expert 5th-lane note
 				if (note.NoteNumber == 101) {
-					return SongInfo.DrumType.FIVE_LANE;
+					return DrumType.FiveLane;
 				}
 			}
 
 			// If we didn't find the note, assume 4-lane
-			return SongInfo.DrumType.FOUR_LANE;
+			return DrumType.FourLane;
 		}
 	}
 }

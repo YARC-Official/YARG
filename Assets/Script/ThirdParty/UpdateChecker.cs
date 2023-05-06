@@ -61,6 +61,7 @@ namespace YARG {
 						Debug.Log($"Update available! New version: {releaseTag}");
 					} else {
 						Debug.Log("Game is up to date.");
+						ToastManager.ToastMessage("Game is up to date.");
 					}
 				}
 			} catch (Exception e) {
