@@ -14,30 +14,30 @@ namespace YARG.Data {
 
 		private List<NoteInfo>[] guitar;
 		public List<NoteInfo>[] Guitar {
-			get => guitar ?? LoadArray(ref guitar, ChartLoader.GuitarLoader);
+			get => guitar ??= LoadArray(ChartLoader.GuitarLoader);
 			set => guitar = value;
 		}
 		
 		private List<NoteInfo>[] guitarCoop;
 		public List<NoteInfo>[] GuitarCoop {
-			get => guitarCoop ?? LoadArray(ref guitarCoop, ChartLoader.GuitarCoopLoader);
+			get => guitarCoop ??= LoadArray(ChartLoader.GuitarCoopLoader);
 			set => guitarCoop = value;
 		}
 		private List<NoteInfo>[] rhythm;
 		public List<NoteInfo>[] Rhythm {
-			get => rhythm ?? LoadArray(ref rhythm, ChartLoader.RhythmLoader);
+			get => rhythm ??= LoadArray(ChartLoader.RhythmLoader);
 			set => rhythm = value;
 		}
 		
 		private List<NoteInfo>[] bass;
 		public List<NoteInfo>[] Bass {
-			get => bass ?? LoadArray(ref bass, ChartLoader.BassLoader);
+			get => bass ??= LoadArray(ChartLoader.BassLoader);
 			set => bass = value;
 		}
 		
 		private List<NoteInfo>[] keys;
 		public List<NoteInfo>[] Keys {
-			get => keys ?? LoadArray(ref keys, ChartLoader.KeysLoader);
+			get => keys ??= LoadArray(ChartLoader.KeysLoader);
 			set => keys = value;
 		}
 
@@ -47,19 +47,19 @@ namespace YARG.Data {
 
 		private List<NoteInfo>[] drums;
 		public List<NoteInfo>[] Drums {
-			get => drums ?? LoadArray(ref drums, ChartLoader.DrumsLoader);
+			get => drums ??= LoadArray(ChartLoader.DrumsLoader);
 			set => drums = value;
 		}
 
 		private List<NoteInfo>[] realDrums;
 		public List<NoteInfo>[] RealDrums {
-			get => realDrums ?? LoadArray(ref realDrums, ChartLoader.ProDrumsLoader);
+			get => realDrums ??= LoadArray(ChartLoader.ProDrumsLoader);
 			set => realDrums = value;
 		}
 
 		private List<NoteInfo>[] ghDrums;
 		public List<NoteInfo>[] GhDrums {
-			get => ghDrums ?? LoadArray(ref ghDrums, ChartLoader.FiveLaneDrumsLoader);
+			get => ghDrums ??= LoadArray(ChartLoader.FiveLaneDrumsLoader);
 			set => ghDrums = value;
 		}
 
@@ -122,12 +122,12 @@ namespace YARG.Data {
 			};
 		}
 
-		private List<NoteInfo>[] LoadArray(ref List<NoteInfo>[] notes, ChartLoader<NoteInfo> loader) {
+		private List<NoteInfo>[] LoadArray(ChartLoader<NoteInfo> loader) {
 			var maxDifficulty = loader.MaxDifficulty;
 			var instrument = loader.Instrument;
 			string instrumentName = loader.InstrumentName;
 
-			notes = new List<NoteInfo>[(int) (maxDifficulty + 1)];
+			var notes = new List<NoteInfo>[(int) (maxDifficulty + 1)];
 			for (Difficulty diff = Difficulty.EASY; diff <= maxDifficulty; diff++) {
 				notes[(int) diff] = loader.GetNotesFromChart(_song, diff);
 			}
