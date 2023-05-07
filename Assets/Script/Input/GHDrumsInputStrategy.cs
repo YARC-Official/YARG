@@ -121,9 +121,9 @@ namespace YARG.Input {
 			}
 		}
 
-		public override string[] GetAllowedInstruments() {
-			return new string[] {
-				"ghDrums"
+		public override Instrument[] GetAllowedInstruments() {
+			return new Instrument[] {
+				Instrument.GH_DRUMS,
 			};
 		}
 
