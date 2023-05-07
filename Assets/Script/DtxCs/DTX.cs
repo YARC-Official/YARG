@@ -304,17 +304,6 @@ namespace DtxCS
               case '\n':
               case '\t':
                 throw new Exception("Whitespace encountered in symbol.");
-              case '}':
-              case ')':
-              case ']':
-                current.AddNode(DataSymbol.Symbol(tmp_literal));
-                if (data[i] != current.ClosingChar)
-                {
-                  throw new Exception("Mismatched brace types encountered.");
-                }
-                current = current.Parent;
-                state = ParseState.whitespace;
-                break;
               case '\'':
                 current.AddNode(DataSymbol.Symbol(tmp_literal));
                 state = ParseState.whitespace;
