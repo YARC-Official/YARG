@@ -6,6 +6,7 @@ using UnityEngine.Localization.Components;
 using UnityEngine.UI;
 using YARG.Metadata;
 using YARG.Settings.Visuals;
+using YARG.UI.MusicLibrary;
 using YARG.Util;
 
 namespace YARG.Settings {
@@ -72,6 +73,9 @@ namespace YARG.Settings {
 				// Do a song refresh if requested
 				LoadingManager.Instance.QueueSongRefresh(true);
 				await LoadingManager.Instance.StartLoad();
+
+				// Then refresh song select
+				SongSelection.refreshFlag = true;
 			}
 		}
 
