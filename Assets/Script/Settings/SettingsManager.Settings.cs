@@ -65,6 +65,16 @@ namespace YARG.Settings {
 				GUIUtility.systemCopyBuffer = TwitchController.Instance.TextFilePath;
 			}
 
+			public void ResetCameraSettings() {
+				TrackCamFOV.Data = 55f;
+				TrackCamYPos.Data = 2.66f;
+				TrackCamZPos.Data = 1.14f;
+				TrackCamRot.Data = 24.12f;
+
+				// Force update sliders
+				GameManager.Instance.SettingsMenu.UpdateSettingsForTab();
+			}
+
 			private static void VSyncCallback(bool value) {
 				QualitySettings.vSyncCount = value ? 1 : 0;
 			}

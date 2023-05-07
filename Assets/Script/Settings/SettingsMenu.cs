@@ -79,7 +79,7 @@ namespace YARG.Settings {
 			}
 		}
 
-		private void UpdateSettingsForTab() {
+		public void UpdateSettingsForTab() {
 			if (CurrentTab == "_SongFolderManager") {
 				UpdateSongFolderManager();
 

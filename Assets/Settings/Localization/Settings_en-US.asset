@@ -214,6 +214,10 @@ MonoBehaviour:
     m_Localized: Cache
     m_Metadata:
       m_Items: []
+  - m_Id: 15356265326043136
+    m_Localized: Reset Camera Settings
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

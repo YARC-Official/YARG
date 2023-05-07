@@ -41,7 +41,7 @@ namespace YARG.Song {
 		public float[,] MatrixRatios { get; set; }
 
 		// image info
-		public string ImagePath { get; set; }
+		public string ImagePath { get; set; } = string.Empty;
 
 	}
 }

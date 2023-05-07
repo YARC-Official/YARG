@@ -1633,6 +1633,46 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -13
       objectReference: {fileID: 0}
+    - target: {fileID: 7958013129826989183, guid: 3fc0ccbfee2d4c34e91b324e319e71de,
+        type: 3}
+      propertyPath: m_Pivot.x
+      value: 0.0000000060535967
+      objectReference: {fileID: 0}
+    - target: {fileID: 7958013129826989183, guid: 3fc0ccbfee2d4c34e91b324e319e71de,
+        type: 3}
+      propertyPath: m_Pivot.y
+      value: 0.5000001
+      objectReference: {fileID: 0}
+    - target: {fileID: 7958013129826989183, guid: 3fc0ccbfee2d4c34e91b324e319e71de,
+        type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7958013129826989183, guid: 3fc0ccbfee2d4c34e91b324e319e71de,
+        type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7958013129826989183, guid: 3fc0ccbfee2d4c34e91b324e319e71de,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7958013129826989183, guid: 3fc0ccbfee2d4c34e91b324e319e71de,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7958013129826989183, guid: 3fc0ccbfee2d4c34e91b324e319e71de,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7958013129826989183, guid: 3fc0ccbfee2d4c34e91b324e319e71de,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0.000005722046
+      objectReference: {fileID: 0}
     - target: {fileID: 7958013129959512565, guid: 3fc0ccbfee2d4c34e91b324e319e71de,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -7292,7 +7332,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: v12.34.56
+  m_text: 'v12.34.56
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ae170e91fd29a90479e906ddffb1d8ee, type: 2}
   m_sharedMaterial: {fileID: -5480317595949376055, guid: ae170e91fd29a90479e906ddffb1d8ee,
@@ -10848,9 +10890,6 @@ MonoBehaviour:
   editPlayers: {fileID: 1471919259}
   addPlayer: {fileID: 410452336}
   credits: {fileID: 365708825}
-  loadingScreen: {fileID: 784751310}
-  loadingStatus: {fileID: 1090956613}
-  progressBar: {fileID: 1649890904}
   versionText: {fileID: 528723089}
   updateObject: {fileID: 1540998545}
   menuButtons:

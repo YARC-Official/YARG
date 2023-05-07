@@ -133,6 +133,8 @@ namespace YARG.Serialization {
 					currentSong.MoggAudioLength = fs.Length - currentSong.MoggAddressAudioOffset;
 					MoggBASSInfoGenerator(currentSong, currentArray.Array("song"));
 
+					// Debug.Log($"{currentSong.ShortName}:\nMidi path: {currentSong.NotesFile}\nMogg path: {currentSong.MoggPath}\nImage path: {currentSong.ImagePath}");
+
 					// will validate the song outside of this class, in SongScanThread.cs
 					// so okay to add to song list for now
 					songList.Add(currentSong);
@@ -171,14 +173,11 @@ namespace YARG.Serialization {
 						cur.HopoThreshold = (dtaArray.Array("hopo_threshold") != null) ? ((DataAtom) dtaArray.Array("hopo_threshold")[1]).Int : 0;
 						cur.VocalParts = (dtaArray.Array("vocal_parts") != null) ? ((DataAtom) dtaArray.Array("vocal_parts")[1]).Int : 1;
 						// get the path of the song files
-						if(dtaArray.Array("midi_file") != null){
-							string loc = "";
-							if(dtaArray.Array("midi_file")[1] is DataSymbol symPath)
-								loc = symPath.Name.Split("/")[1];
-							
-							else if(dtaArray.Array("midi_file")[1] is DataAtom atmPath)
-								loc = atmPath.Name.Split("/")[1];
-							cur.Location = loc;
+						if(dtaArray.Array("name") != null){
+							if(dtaArray.Array("name")[1] is DataSymbol symPath)
+								cur.Location = symPath.Name.Split("/")[1];
+							else if(dtaArray.Array("name")[1] is DataAtom atmPath)
+								cur.Location = atmPath.Name.Split("/")[1];
 						}
 						else cur.Location = cur.ShortName;
 						break;
@@ -213,6 +212,9 @@ namespace YARG.Serialization {
 								cur.PartDifficulties[inst] = DtaDifficulty.ToNumberedDiff(inst, ((DataAtom) inner[1]).Int);
 							}
 						}
+						// Set pro drums
+						if(cur.PartDifficulties.ContainsKey(Instrument.DRUMS))
+							cur.PartDifficulties[Instrument.REAL_DRUMS] = cur.PartDifficulties[Instrument.DRUMS];
 						break;
 					case "game_origin": 
 						cur.Source = ((DataSymbol) dtaArray[1]).Name; 
@@ -266,6 +268,10 @@ namespace YARG.Serialization {
 
 			// must be done after the above parallel loop due to race issues with ranks and vocalParts
 			if(!cur.PartDifficulties.ContainsKey(Instrument.VOCALS) || cur.PartDifficulties[Instrument.VOCALS] == 0) cur.VocalParts = 0;
+			// Set harmony difficulty (if exists)
+			else if(cur.PartDifficulties.ContainsKey(Instrument.VOCALS) && cur.VocalParts > 1) {
+				cur.PartDifficulties[Instrument.HARMONY] = cur.PartDifficulties[Instrument.VOCALS];
+			}
 
 			return cur;
 		}
@@ -307,7 +313,11 @@ namespace YARG.Serialization {
 					case "vols":
 						var volArray = dtaArray[1] as DataArray;
 						VolumeData = new float[volArray.Count];
-						for (int v = 0; v < volArray.Count; v++) VolumeData[v] = ((DataAtom) volArray[v]).Float;
+						for (int v = 0; v < volArray.Count; v++){
+							var volAtom = (DataAtom) volArray[v];
+							if(volAtom.Type == DataType.FLOAT) VolumeData[v] = ((DataAtom) volArray[v]).Float;
+							else VolumeData[v] = ((DataAtom) volArray[v]).Int;
+						}
 						break;
 					case "crowd_channels":
 						CrowdChannels = new int[dtaArray.Count - 1];
