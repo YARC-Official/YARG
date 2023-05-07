@@ -16,6 +16,6 @@ namespace YARG {
 		public const int EXTRA_ALLOWED_GHOSTS = 0;
 		public const bool ALLOW_DESC_GHOSTS = true;
 		public const bool ALLOW_GHOST_IF_NO_NOTES = true; // seems to allow more ghosting than it should...
-		public const float ALLOW_GHOST_IF_NO_NOTES_THRESHOLD = 1.5f;
+		public const float ALLOW_GHOST_IF_NO_NOTES_THRESHOLD = 2f; // this should solve the above
 	}
 }
