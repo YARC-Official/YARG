@@ -233,26 +233,6 @@ namespace YARG.Song {
 			return ScanHelpers.ParseSongIni(Path.Combine(directory, "song.ini"), (IniSongEntry) song);
 		}
 
-		private static ScanResult ScanConSong(string cache, XboxSong file, out ExtractedConSongEntry songEntry) {
-			byte[] bytes = File.ReadAllBytes(Path.Combine(file.SongFolderPath, file.MidiFile));
-
-			string checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes)).Replace("-", "");
-
-			ulong tracks = MidPreparser.GetAvailableTracks(bytes);
-
-			songEntry = new ExtractedConSongEntry {
-				CacheRoot = cache,
-				Location = file.SongFolderPath,
-				NotesFile = file.MidiFile,
-				Checksum = checksum,
-				AvailableParts = tracks,
-			};
-
-			file.CompleteSongInfo(songEntry, true);
-
-			return ScanResult.Ok;
-		}
-
 		private static ScanResult ScanExConSong(string cache, ExtractedConSongEntry file){
 			// Skip if the song doesn't have notes
 			if(!File.Exists(file.NotesFile)){
