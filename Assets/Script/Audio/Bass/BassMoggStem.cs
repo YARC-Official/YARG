@@ -120,6 +120,20 @@ namespace YARG {
 			return 0;
 		}
 
+		public void FadeIn() {
+			double volumeSetting = _manager.GetVolumeSetting(Stem);
+			
+			foreach (int channel in BassChannels) {
+				Bass.ChannelSlideAttribute(channel, ChannelAttribute.Volume, (float)volumeSetting, BassHelpers.FADE_TIME_MILLISECONDS);
+			}
+		}
+
+		public void FadeOut() {
+			foreach (int channel in BassChannels) {
+				Bass.ChannelSlideAttribute(channel, ChannelAttribute.Volume, 0, BassHelpers.FADE_TIME_MILLISECONDS);
+			}
+		}
+
 		public void SetVolume(double newVolume) {
 			if (!_isLoaded) {
 				return;

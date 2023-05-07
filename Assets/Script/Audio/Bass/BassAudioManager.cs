@@ -211,10 +211,8 @@ namespace YARG {
 			int moggOffset = moggData.MoggAddressAudioOffset;
 			long moggLength = moggData.MoggAudioLength;
 			
-			//byte[] moggArray = File.ReadAllBytes(moggData.MoggPath)[moggOffset..];
 			byte[] moggArray = moggData.GetOggDataFromMogg();
 			
-			//int moggStreamHandle = Bass.CreateStream(moggArray, 0, moggArray.Length, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
 			int moggStreamHandle = Bass.CreateStream(moggArray, 0, moggLength, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
 			if (moggStreamHandle == 0) {
 				Debug.LogError($"Failed to load mogg file or position: {Bass.LastError}");
@@ -286,6 +284,19 @@ namespace YARG {
 			IsPlaying = _mixer.IsPlaying;
 		}
 
+		public void FadeIn() {
+			Play();
+			if (IsPlaying) {
+				_mixer?.FadeIn();	
+			}
+		}
+
+		public void FadeOut() {
+			if (IsPlaying) {
+				_mixer?.FadeOut();
+			}
+		}
+
 		public void PlaySoundEffect(SfxSample sample) {
 			var sfx = _sfxSamples[(int) sample];
 
@@ -322,9 +333,7 @@ namespace YARG {
 			};
 		}
 
-		public void ApplyReverb(SongStem stem, bool reverb) {
-			_mixer?.GetChannel(stem)?.SetReverb(reverb);
-		}
+		public void ApplyReverb(SongStem stem, bool reverb) => _mixer?.GetChannel(stem)?.SetReverb(reverb);
 
 		public double GetPosition() {
 			if (_mixer is null)
@@ -333,9 +342,7 @@ namespace YARG {
 			return _mixer.GetPosition();
 		}
 
-		public void SetPosition(double position) {
-			_mixer?.SetPosition(position);
-		}
+		public void SetPosition(double position) => _mixer?.SetPosition(position);
 
 		private void OnApplicationQuit() {
 			Unload();

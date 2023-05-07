@@ -112,6 +112,15 @@ namespace YARG {
 			return 0;
 		}
 
+		public void FadeIn() {
+			double volumeSetting = _manager.GetVolumeSetting(Stem);
+			Bass.ChannelSlideAttribute(StreamHandle, ChannelAttribute.Volume, (float)volumeSetting, BassHelpers.FADE_TIME_MILLISECONDS);
+		}
+
+		public void FadeOut() {
+			Bass.ChannelSlideAttribute(StreamHandle, ChannelAttribute.Volume, 0, BassHelpers.FADE_TIME_MILLISECONDS);
+		}
+
 		public void SetVolume(double newVolume) {
 			if (StreamHandle == 0) {
 				return;

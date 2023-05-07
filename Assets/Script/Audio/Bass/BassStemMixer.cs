@@ -115,6 +115,18 @@ namespace YARG {
 			return 0;
 		}
 
+		public void FadeIn() {
+			foreach (var channel in Channels.Values) {
+				channel.FadeIn();
+			}
+		}
+
+		public void FadeOut() {
+			foreach (var channel in Channels.Values) {
+				channel.FadeOut();
+			}
+		}
+
 		public int Pause() {
 			if (!IsPlaying) {
 				return 0;
