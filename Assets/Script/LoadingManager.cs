@@ -87,7 +87,7 @@ namespace YARG {
 
 		private async UniTask ScanSongFolder(string path) {
 			SetLoadingText("Loading songs from folder...");
-			await SongContainer.ScanFolder(path, scanner => {
+			await SongContainer.ScanSingleFolder(path, scanner => {
 				subPhrase.text = $"Folders Scanned: {scanner.TotalFoldersScanned}" +
 					$"\nSongs Scanned: {scanner.TotalSongsScanned}" +
 					$"\nErrors: {scanner.TotalErrorsEncountered}";

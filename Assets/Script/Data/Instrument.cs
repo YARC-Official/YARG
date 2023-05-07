@@ -28,6 +28,25 @@ namespace YARG.Data {
 	public static class InstrumentHelper {
 #pragma warning disable format
 		
+		public static string ToLocalizedName(this Instrument instrument) {
+			return instrument switch {
+				Instrument.GUITAR      => "Guitar",
+				Instrument.BASS        => "Bass",
+				Instrument.DRUMS       => "Drums",
+				Instrument.KEYS        => "Keys",
+				Instrument.VOCALS      => "Vocals",
+				Instrument.REAL_GUITAR => "Pro Guitar",
+				Instrument.REAL_BASS   => "Pro Bass",
+				Instrument.REAL_DRUMS  => "Pro Drums",
+				Instrument.REAL_KEYS   => "Pro Keys",
+				Instrument.HARMONY     => "Harmony",
+				Instrument.GH_DRUMS    => "5-lane Drums",
+				Instrument.RHYTHM      => "Rhythm Guitar",
+				Instrument.GUITAR_COOP => "Co-op Guitar",
+				_                      => null,
+			};
+		}
+
 		public static string ToStringName(this Instrument instrument) {
 			return instrument switch {
 				Instrument.GUITAR      => "guitar",

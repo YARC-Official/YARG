@@ -287,10 +287,10 @@ namespace YARG.Input {
 			}
 		}
 
-		public override string[] GetAllowedInstruments() {
-			return new string[] {
-				"vocals",
-				"harmVocals"
+		public override Instrument[] GetAllowedInstruments() {
+			return new Instrument[] {
+				Instrument.VOCALS,
+				Instrument.HARMONY,
 			};
 		}
 

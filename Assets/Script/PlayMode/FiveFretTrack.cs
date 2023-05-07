@@ -30,7 +30,7 @@ namespace YARG.PlayMode {
 		private List<NoteInfo> heldNotes = new();
 		private float? latestInput = null;
 		private bool latestInputIsStrum = false;
-		private bool[] extendedSustain = new bool[] { false, false, false, false, false };
+		private bool[] extendedSustain = new bool[] { false, false, false, false, false, false };
 		private int allowedGhostsDefault = Constants.EXTRA_ALLOWED_GHOSTS + 1;
 		private int allowedGhosts = Constants.EXTRA_ALLOWED_GHOSTS + 1;
 		private int[] allowedChordGhosts = new int[] { -1, -1, -1, -1, -1 }; // -1 = not a chord; 0 = ghosted; 1 = ghost allowed
@@ -159,8 +159,8 @@ namespace YARG.PlayMode {
 				if (heldNote.time + heldNote.length <= Play.Instance.SongTime) {
 					heldNotes.RemoveAt(i);
 					susTracker.Drop(heldNote);
-					frets[heldNote.fret].StopAnimation();
-					frets[heldNote.fret].StopSustainParticles();
+					if (heldNote.fret < 5) frets[heldNote.fret].StopAnimation(); // TEMP (remove check later)
+					if (heldNote.fret < 5) frets[heldNote.fret].StopSustainParticles(); // TEMP (remove check later)
 
 					extendedSustain[heldNote.fret] = false;
 				}
@@ -376,17 +376,16 @@ namespace YARG.PlayMode {
 				// If sustained, add to held
 				if (hit.length > 0.2f) {
 					heldNotes.Add(hit);
-					frets[hit.fret].PlaySustainParticles();
-					scoreKeeper.Add(susTracker.Strum(hit) * Multiplier * SUSTAIN_PTS_PER_BEAT);
-
-					frets[hit.fret].PlayAnimationSustainsLooped();
+					if (hit.fret < 5) frets[hit.fret].PlaySustainParticles(); // TEMP (remove check later)
+					scoreKeeper.Add(susTracker.Strum(hit) * Multiplier * SUSTAIN_PTS_PER_BEAT);    
+					if (hit.fret < 5) frets[hit.fret].PlayAnimationSustainsLooped(); // TEMP (remove check later)
 
 					// Check if it's extended sustain;
 					var nextNote = GetNextNote(hit.time);
 					if (nextNote != null) {
 						extendedSustain[hit.fret] = hit.EndTime > nextNote[0].time;
 					}
-				} else if (hit.fret != 5) {
+				} else {
 					extendedSustain[hit.fret] = false;
 				}
 
@@ -466,8 +465,8 @@ namespace YARG.PlayMode {
 
 				heldNotes.RemoveAt(i);
 				susTracker.Drop(heldNote);
-				frets[heldNote.fret].StopAnimation();
-				frets[heldNote.fret].StopSustainParticles();
+				if (heldNote.fret < 5) frets[heldNote.fret].StopAnimation(); // TEMP (remove check later)
+				if (heldNote.fret < 5) frets[heldNote.fret].StopSustainParticles(); // TEMP (remove check later)
 				extendedSustain[heldNote.fret] = false;
 			}
 		}
@@ -597,7 +596,7 @@ namespace YARG.PlayMode {
 					//
 					for (int i = heldNotes.Count - 1; i >= 0; i--) {
 						var heldNote = heldNotes[i];
-						if (heldNote.fret == fret || (heldNotes.Count == 1 && fret < heldNote.fret)) { // Button press is valid
+						if (heldNote.fret < 5 && (heldNote.fret == fret || (heldNotes.Count == 1 && fret < heldNote.fret))) { // Button press is valid
 							continue;
 						} else { // Wrong button pressed; release all sustains
 							release = true;
@@ -610,8 +609,8 @@ namespace YARG.PlayMode {
 							var heldNote = heldNotes[i];
 							notePool.MissNote(heldNote);
 							heldNotes.RemoveAt(i);
-							frets[heldNote.fret].StopAnimation();
-							frets[heldNote.fret].StopSustainParticles();
+							if (heldNote.fret < 5) frets[heldNote.fret].StopAnimation(); // TEMP (remove check later)
+							if (heldNote.fret < 5) frets[heldNote.fret].StopSustainParticles(); // TEMP (remove check later)
 							extendedSustain[heldNote.fret] = false;
 						}
 					}
@@ -628,8 +627,8 @@ namespace YARG.PlayMode {
 					notePool.MissNote(heldNote);
 					heldNotes.RemoveAt(i);
 					susTracker.Drop(heldNote);
-					frets[heldNote.fret].StopAnimation();
-					frets[heldNote.fret].StopSustainParticles();
+					if (heldNote.fret < 5) frets[heldNote.fret].StopAnimation(); // TEMP (remove check later)
+					if (heldNote.fret < 5) frets[heldNote.fret].StopSustainParticles(); // TEMP (remove check later)
 					extendedSustain[heldNote.fret] = false;
 
 					letGo = heldNote;

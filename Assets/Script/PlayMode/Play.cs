@@ -23,7 +23,7 @@ namespace YARG.PlayMode {
 
 		public static float speed = 1f;
 
-		public const float SONG_START_OFFSET = 1f;
+		public const float SONG_START_OFFSET = -2f;
 
 		public static SongEntry song = null;
 
@@ -50,6 +50,7 @@ namespace YARG.PlayMode {
 
 		private int stemsReverbed;
 
+		private bool audioStarted;
 		private float realSongTime;
 		public float SongTime {
 			get => realSongTime + PlayerManager.GlobalCalibration * speed;
@@ -103,10 +104,10 @@ namespace YARG.PlayMode {
 			StarScoreKeeper.Reset();
 
 			// Song
-			StartCoroutine(StartSong());
+			StartSong();
 		}
 
-		private IEnumerator StartSong() {
+		private void StartSong() {
 			GameUI.Instance.SetLoadingText("Loading audio...");
 
 			// Determine if speed is not 1
@@ -160,14 +161,13 @@ namespace YARG.PlayMode {
 				i++;
 			}
 
-			yield return new WaitForSeconds(SONG_START_OFFSET);
-
-			GameManager.AudioManager.Play();
-
 			SongStarted = true;
 
 			// Hide loading screen
 			GameUI.Instance.loadingContainer.SetActive(false);
+			
+			realSongTime = SONG_START_OFFSET;
+			StartCoroutine(StartAudio());
 
 			// End events override the audio length
 			foreach (var chartEvent in chart.events) {
@@ -178,9 +178,6 @@ namespace YARG.PlayMode {
 					break;
 				}
 			}
-
-			// Call events
-			OnSongStart?.Invoke(song);
 		}
 
 		private void LoadChart() {
@@ -223,6 +220,16 @@ namespace YARG.PlayMode {
 			}
 		}
 
+		private IEnumerator StartAudio() {
+			while (realSongTime < 0f) {
+				realSongTime += Time.deltaTime;
+				yield return null;
+			}
+			
+			GameManager.AudioManager.Play();
+			audioStarted = true;
+		}
+
 		private void Update() {
 			if (!SongStarted) {
 				return;
@@ -238,7 +245,9 @@ namespace YARG.PlayMode {
 			}
 
 			// Update this every frame to make sure all notes are spawned at the same time.
-			realSongTime = GameManager.AudioManager.CurrentPositionF;
+			if (audioStarted) {
+				realSongTime = GameManager.AudioManager.CurrentPositionF;
+			}
 
 			UpdateAudio(new string[] {
 				"guitar",

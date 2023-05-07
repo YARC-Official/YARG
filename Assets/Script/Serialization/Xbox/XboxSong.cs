@@ -114,7 +114,7 @@ namespace YARG.Serialization {
 				}
 			}
 
-			song.SongLength = (int) songDta.songLength / 1000;
+			song.SongLength = (int) songDta.songLength;
 			// song.delay
 			song.DrumType = rb ? DrumType.FourLane : DrumType.FiveLane;
 			if (songDta.hopoThreshold != 0)

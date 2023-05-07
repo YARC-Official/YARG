@@ -67,9 +67,9 @@ namespace YARG.UI.MusicLibrary {
 				difficultyRings[6].SetInfo(songEntry, Instrument.REAL_BASS);
 			}
 
-			difficultyRings[7].SetInfo(songEntry.HasInstrument(Instrument.REAL_DRUMS), Instrument.REAL_DRUMS, -1);
+			difficultyRings[7].SetInfo(false, "trueDrums", -1);
 			difficultyRings[8].SetInfo(songEntry, Instrument.REAL_KEYS);
-			difficultyRings[9].SetInfo(songEntry.HasInstrument(Instrument.REAL_DRUMS), Instrument.REAL_DRUMS, -1);
+			difficultyRings[9].SetInfo(false, "band", -1);
 		}
 	}
 }
