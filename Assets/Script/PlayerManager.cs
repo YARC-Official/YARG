@@ -18,12 +18,12 @@ namespace YARG {
 
 		}
 
-		public struct randomName {
+		public struct RandomName {
 			public string name;
 			public int size;
 		}
 
-		private static randomName RandomNameFromFile() {
+		private static RandomName RandomNameFromFile() {
 			// load credits.txt
 			// read each line
 			// ignore lines starting with << or <u> or empty lines
@@ -59,7 +59,7 @@ namespace YARG {
 				names.Add(line);
 			}
 
-			return new randomName() {
+			return new RandomName() {
 				name = names[Random.Range(0, names.Count)],
 				size = names.Count
 			};
@@ -88,7 +88,7 @@ namespace YARG {
 				int counter = 0;
 				// do not use the same name twice, if no available names, use "New Player"
 				do {
-					randomName randomName = RandomNameFromFile();
+					RandomName randomName = RandomNameFromFile();
 					name = randomName.name;
 					if (counter++ > randomName.size || name == null) {
 						name = $"New Player {nextPlayerName++}";
