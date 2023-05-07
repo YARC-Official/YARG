@@ -22,8 +22,12 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		public void SetInfo(bool hasInstrument, Instrument instrument, int difficulty) {
+			SetInfo(hasInstrument, instrument.ToStringName(), difficulty);
+		}
+
+		public void SetInfo(bool hasInstrument, string instrumentName, int difficulty) {
 			// Set instrument icon
-			var icon = Addressables.LoadAssetAsync<Sprite>($"FontSprites[{instrument.ToStringName()}]").WaitForCompletion();
+			var icon = Addressables.LoadAssetAsync<Sprite>($"FontSprites[{instrumentName}]").WaitForCompletion();
 			instrumentIcon.sprite = icon;
 
 			// Acceptable difficulty range is -1 to 6
