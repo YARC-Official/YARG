@@ -134,27 +134,16 @@ namespace YARG.Song {
 			// Raw CON folder, so don't scan anymore subdirectories here
 			string songsPath = Path.Combine(subDir, "songs");
 			if (File.Exists(Path.Combine(songsPath, "songs.dta"))) {
-				// var files = XboxRawfileBrowser.BrowseFolder(songsPath, Path.Combine(songsPath, "TODO CHANGE"));
-				var new_files = ExCONBrowser.BrowseFolder(songsPath);
+				var files = ExCONBrowser.BrowseFolder(songsPath);
 
-				// hopefully, this loop (and any other reference to XboxSong) is no longer needed
-				// foreach (var file in files) {
-				// 	ScanConSong(cacheFolder, file, out var conSong);
-
-				// 	_songsScanned++;
-				// 	songsScanned = _songsScanned;
-				// 	songs.Add(conSong);
-				// }
-
-				// supports the new ExtractedCONSongEntry class
-				foreach(var new_file in new_files){
+				foreach(var file in files){
 					// validate that the song is good to add in-game
-					var CONResult = NewScanConSong(cacheFolder, new_file);
+					var CONResult = ScanExConSong(cacheFolder, file);
 					switch(CONResult){
 						case ScanResult.Ok:
 							_songsScanned++;
 							songsScanned = _songsScanned;
-							songs.Add(new_file);
+							songs.Add(file);
 							break;
 						case ScanResult.NotASong:
 							break;
@@ -264,7 +253,7 @@ namespace YARG.Song {
 			return ScanResult.Ok;
 		}
 
-		private static ScanResult NewScanConSong(string cache, ExtractedConSongEntry file){
+		private static ScanResult ScanExConSong(string cache, ExtractedConSongEntry file){
 			// Skip if the song doesn't have notes
 			if(!File.Exists(file.NotesFile)){
 				return ScanResult.NoNotesFile;
@@ -280,6 +269,7 @@ namespace YARG.Song {
 				return ScanResult.EncryptedMogg;
 			}
 
+			// all good - go ahead and build the cache info
 			byte[] bytes = File.ReadAllBytes(file.NotesFile);
 
 			string checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes)).Replace("-", "");
