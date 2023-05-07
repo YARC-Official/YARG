@@ -71,6 +71,7 @@ namespace YARG.Settings {
 					"LowQuality",
 					"DisableBloom",
 					new HeaderMetadata("Camera"),
+					new ButtonRowMetadata("ResetCameraSettings"),
 					"TrackCamFOV",
 					"TrackCamYPos",
 					"TrackCamZPos",
