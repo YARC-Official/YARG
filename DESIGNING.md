@@ -40,20 +40,20 @@ Unbounded is our tertiory typography, used mainly for complementary texts (Multi
 ### Dark Palette
 |Color|Name|HEX|Description|
 | :-: | :- | :-: | :- |
-| <img src="Images/Design/color-dark-1.png" width="100%" alt="Primary Color"> | **Rich Black** | #090F1D | Primary Color |
-| <img src="Images/Design/color-dark-2.png" width="100%" alt="Secondary Color"> | **Oxford Blue** | #111A30 | Secondary Color |
-| <img src="Images/Design/color-dark-3.png" width="100%" alt="Tertiary Color"> | **Oxford Blue #2** | #1A253E | Tertiary Color |
-| <img src="Images/Design/color-dark-4.png" width="100%" alt="Tertiary Color"> | **Space Cadet** | #2C344D | Tertiary Color |
-| <img src="Images/Design/color-dark-5.png" width="100%" alt="Tertiary Color"> | **White Smoke** | #F2F2F2 | Tertiary Color |
-| <img src="Images/Design/color-dark-6.png" width="100%" alt="Tertiary Color"> | **Silver** | #B8B8B8 | Tertiary Color |
+| <img src="Images/Design/color-dark-1.png" width="100%" alt="Primary Color"> | **Rich Black** | #090F1D | Background #1 |
+| <img src="Images/Design/color-dark-2.png" width="100%" alt="Secondary Color"> | **Oxford Blue** | #111A30 | Background #2 |
+| <img src="Images/Design/color-dark-3.png" width="100%" alt="Tertiary Color"> | **Oxford Blue #2** | #1A253E | Background #3 |
+| <img src="Images/Design/color-dark-4.png" width="100%" alt="Tertiary Color"> | **Space Cadet** | #2C344D | Background #4 |
+| <img src="Images/Design/color-dark-5.png" width="100%" alt="Tertiary Color"> | **White Smoke** | #F2F2F2 | Primary Text |
+| <img src="Images/Design/color-dark-6.png" width="100%" alt="Tertiary Color"> | **Silver** | #B8B8B8 | Secondary Text |
 
 ### Light Palette
 |Color|Name|HEX|Description|
 | :-: | :- | :-: | :- |
-| <img src="Images/Design/color-light-1.png" width="100%" alt="Primary Color"> | **White Smoke #2** | #F5F5F5 | Primary Color |
-| <img src="Images/Design/color-light-2.png" width="100%" alt="Secondary Color"> | **White** | #FFFFFF | Secondary Color |
-| <img src="Images/Design/color-light-3.png" width="100%" alt="Tertiary Color"> | **Jet** | #333333 | Tertiary Color |
-| <img src="Images/Design/color-light-4.png" width="100%" alt="Tertiary Color"> | **Gray** | #7A7A7A | Tertiary Color |
+| <img src="Images/Design/color-light-1.png" width="100%" alt="Primary Color"> | **White Smoke #2** | #F5F5F5 | Background #1 |
+| <img src="Images/Design/color-light-2.png" width="100%" alt="Secondary Color"> | **White** | #FFFFFF | Background #2 |
+| <img src="Images/Design/color-light-3.png" width="100%" alt="Tertiary Color"> | **Jet** | #333333 | Primary Text |
+| <img src="Images/Design/color-light-4.png" width="100%" alt="Tertiary Color"> | **Gray** | #7A7A7A | Secondary Text |
 
 ### Extra
 |Color|Name|HEX|Description|
