@@ -214,6 +214,10 @@ MonoBehaviour:
     m_Localized: Cache
     m_Metadata:
       m_Items: []
+  - m_Id: 15357817910837248
+    m_Localized: Enable FPS Counter
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

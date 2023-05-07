@@ -207,6 +207,10 @@ MonoBehaviour:
     m_Key: Header.Cache
     m_Metadata:
       m_Items: []
+  - m_Id: 15357817910837248
+    m_Key: FpsCouter
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
