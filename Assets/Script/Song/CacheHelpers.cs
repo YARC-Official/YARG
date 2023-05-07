@@ -5,63 +5,34 @@ using YARG.Serialization;
 namespace YARG.Song {
 	public static class CacheHelpers {
 		
-		public static void WriteExtractedConData(BinaryWriter writer, ExtractedConSongEntry conSong) {
+		public static void WriteExtractedConData(BinaryWriter writer, ExtractedConSongEntry ExCONSong) {
 			/*/
 			 
 			 MOGG data
 			 
 			 */
-			
-			writer.Write(conSong.MoggInfo.MoggPath);
-			writer.Write(conSong.MoggInfo.ChannelCount);
-			writer.Write(conSong.MoggInfo.Header);
-			writer.Write(conSong.MoggInfo.MoggAddressAudioOffset);
-			writer.Write(conSong.MoggInfo.MoggAudioLength);
-			
-			// Write Pan Data
-			writer.Write(conSong.MoggInfo.PanData.Length);
-			foreach (float pan in conSong.MoggInfo.PanData) {
-				writer.Write(pan);
-			}
-			
-			// Write Volume Data
-			writer.Write(conSong.MoggInfo.VolumeData.Length);
-			foreach (float vol in conSong.MoggInfo.VolumeData) {
-				writer.Write(vol);
-			}
-			
-			// Write Track Data
-			writer.Write(conSong.MoggInfo.Tracks.Count);
-			foreach (var track in conSong.MoggInfo.Tracks) {
-				writer.Write(track.Key);
-				writer.Write(track.Value.Length);
-				foreach (int i in track.Value) {
-					writer.Write(i);
-				}
-			}
-			
-			// Write Crowd Data
-			writer.Write(conSong.MoggInfo.CrowdChannels.Length);
-			foreach (int i in conSong.MoggInfo.CrowdChannels) {
-				writer.Write(i);
-			}
-			
+
+			writer.Write(ExCONSong.MoggPath);
+			writer.Write(ExCONSong.MoggHeader);
+			writer.Write(ExCONSong.MoggAddressAudioOffset);
+			writer.Write(ExCONSong.MoggAudioLength);
+
 			// Write Stem Data
-			writer.Write(conSong.MoggInfo.StemMaps.Count);
-			foreach (var stem in conSong.MoggInfo.StemMaps) {
+			writer.Write(ExCONSong.StemMaps.Count);
+			foreach(var stem in ExCONSong.StemMaps){
 				writer.Write((int)stem.Key);
 				writer.Write(stem.Value.Length);
 				foreach (int i in stem.Value) {
 					writer.Write(i);
 				}
 			}
-			
+
 			// Write Matrix Data
-			writer.Write(conSong.MoggInfo.MatrixRatios.GetLength(0));
-			writer.Write(conSong.MoggInfo.MatrixRatios.GetLength(1));
-			for (int i = 0; i < conSong.MoggInfo.MatrixRatios.GetLength(0); i++) {
-				for (int j = 0; j < conSong.MoggInfo.MatrixRatios.GetLength(1); j++) {
-					writer.Write(conSong.MoggInfo.MatrixRatios[i, j]);
+			writer.Write(ExCONSong.MatrixRatios.GetLength(0));
+			writer.Write(ExCONSong.MatrixRatios.GetLength(1));
+			for (int i = 0; i < ExCONSong.MatrixRatios.GetLength(0); i++) {
+				for (int j = 0; j < ExCONSong.MatrixRatios.GetLength(1); j++) {
+					writer.Write(ExCONSong.MatrixRatios[i, j]);
 				}
 			}
 			
@@ -71,55 +42,15 @@ namespace YARG.Song {
 			 
 			 */
 
-			// ImageInfo can be null if the song has no image so need to detect this
-			writer.Write(conSong.ImageInfo is not null);
-			if (conSong.ImageInfo is not null) {
-				writer.Write(conSong.ImageInfo.ImagePath);
-				writer.Write(conSong.ImageInfo.BitsPerPixel);
-				writer.Write(conSong.ImageInfo.Format);
-			}
+			// Note: ImagePath can be an empty string if the song has no image
+			writer.Write(ExCONSong.ImagePath);
 		}
 
-		public static void ReadExtractedConData(BinaryReader reader, ExtractedConSongEntry conSong) {
-			string path = reader.ReadString();
-			int channelCount = reader.ReadInt32();
-			int header = reader.ReadInt32();
-			int moggAddressAudioOffset = reader.ReadInt32();
-			long moggAudioLength = reader.ReadInt64();
-			
-			// Read Pan Data
-			int panDataLength = reader.ReadInt32();
-			var panData = new float[panDataLength];
-			for (int i = 0; i < panDataLength; i++) {
-				panData[i] = reader.ReadSingle();
-			}
-			
-			// Read Volume Data
-			int volumeDataLength = reader.ReadInt32();
-			var volumeData = new float[volumeDataLength];
-			for (int i = 0; i < volumeDataLength; i++) {
-				volumeData[i] = reader.ReadSingle();
-			}
-			
-			// Read Track Data
-			int trackCount = reader.ReadInt32();
-			var tracks = new Dictionary<string, int[]>();
-			for (int i = 0; i < trackCount; i++) {
-				string trackName = reader.ReadString();
-				int trackLength = reader.ReadInt32();
-				var track = new int[trackLength];
-				for (int j = 0; j < trackLength; j++) {
-					track[j] = reader.ReadInt32();
-				}
-				tracks.Add(trackName, track);
-			}
-			
-			// Read Crowd Data
-			int crowdChannelCount = reader.ReadInt32();
-			var crowdChannels = new int[crowdChannelCount];
-			for (int i = 0; i < crowdChannelCount; i++) {
-				crowdChannels[i] = reader.ReadInt32();
-			}
+		public static void ReadExtractedConData(BinaryReader reader, ExtractedConSongEntry ExCONSong) {
+			ExCONSong.MoggPath = reader.ReadString();
+			ExCONSong.MoggHeader = reader.ReadInt32();
+			ExCONSong.MoggAddressAudioOffset = reader.ReadInt32();
+			ExCONSong.MoggAudioLength = reader.ReadInt64();
 			
 			// Read Stem Data
 			int stemCount = reader.ReadInt32();
@@ -133,6 +64,8 @@ namespace YARG.Song {
 				}
 				stemMaps.Add(stem, stemMap);
 			}
+
+			ExCONSong.StemMaps = stemMaps;
 			
 			// Read Matrix Data
 			int matrixRowCount = reader.ReadInt32();
@@ -144,18 +77,7 @@ namespace YARG.Song {
 				}
 			}
 
-			var moggData = new XboxMoggData(path) {
-				ChannelCount = channelCount,
-				Header = header,
-				MoggAddressAudioOffset = moggAddressAudioOffset,
-				MoggAudioLength = moggAudioLength,
-				PanData = panData,
-				VolumeData = volumeData,
-				Tracks = tracks,
-				CrowdChannels = crowdChannels,
-				StemMaps = stemMaps,
-				MatrixRatios = matrixRatios
-			};
+			ExCONSong.MatrixRatios = matrixRatios;
 
 			/*/
 			 
@@ -163,21 +85,8 @@ namespace YARG.Song {
 			 
 			 */
 
-			// ImageInfo can be null if the song has no image so need to detect this
-			if (reader.ReadBoolean()) {
-				string imagePath = reader.ReadString();
-				byte bitsPerPixel = reader.ReadByte();
-				int format = reader.ReadInt32();
-				
-				var imageInfo = new XboxImage(imagePath) {
-					BitsPerPixel = bitsPerPixel,
-					Format = format
-				};
-				
-				conSong.ImageInfo = imageInfo;
-			}
-
-			conSong.MoggInfo = moggData;
+			// Note: ImagePath can be an empty string if the song has no image
+			ExCONSong.ImagePath = reader.ReadString();
 		}
 
 	}

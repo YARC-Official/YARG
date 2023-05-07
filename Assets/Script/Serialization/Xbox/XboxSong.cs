@@ -127,8 +127,8 @@ namespace YARG.Serialization {
 			// song.loadingPhrase
 
 			// Set CON specific info
-			song.MoggInfo = moggDta;
-			song.ImageInfo = img;
+			// song.MoggInfo = moggDta;
+			// song.ImageInfo = img;
 
 			// Set difficulties
 			foreach (var (key, value) in songDta.ranks) {

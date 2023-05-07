@@ -12,6 +12,7 @@ namespace YARG.Song {
 		NotASong,
 		NoNotesFile,
 		NoAudioFile,
+		EncryptedMogg
 	}
 
 	public readonly struct SongError {
