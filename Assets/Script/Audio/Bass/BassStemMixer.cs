@@ -115,6 +115,18 @@ namespace YARG {
 			return 0;
 		}
 
+		public void FadeIn() {
+			foreach (var channel in Channels.Values) {
+				channel.FadeIn();
+			}
+		}
+
+		public void FadeOut() {
+			foreach (var channel in Channels.Values) {
+				channel.FadeOut();
+			}
+		}
+
 		public int Pause() {
 			if (!IsPlaying) {
 				return 0;
@@ -135,6 +147,19 @@ namespace YARG {
 				return -1;
 			}
 			return LeadChannel.GetPosition();
+		}
+
+		public void SetPosition(double position) {
+			if (LeadChannel is null) {
+				return;
+			}
+
+			foreach (var channel in Channels.Values) {
+				int handle = ((BassStemChannel)channel).StreamHandle;
+				
+				long channelPosition = Bass.ChannelSeconds2Bytes(handle, position);
+				BassMix.ChannelSetPosition(handle, channelPosition);
+			}
 		}
 
 		public int AddChannel(IStemChannel channel) {
