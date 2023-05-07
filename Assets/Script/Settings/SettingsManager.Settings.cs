@@ -72,9 +72,9 @@ namespace YARG.Settings {
 
 			private static void FpsCouterCallback(bool value) {
 				// disable script
-				StatsCounter.Instance.enabled = value;
+				FpsCounter.Instance.enabled = value;
 				// UpdateSettings()
-				StatsCounter.Instance.UpdateSettings(value);
+				FpsCounter.Instance.UpdateSettings(value);
 			}
 
 			private static void FpsCapCallback(int value) {
