@@ -124,6 +124,7 @@ namespace YARG {
 			double volumeSetting = _manager.GetVolumeSetting(Stem);
 			
 			foreach (int channel in BassChannels) {
+				Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, 0);
 				Bass.ChannelSlideAttribute(channel, ChannelAttribute.Volume, (float)volumeSetting, BassHelpers.FADE_TIME_MILLISECONDS);
 			}
 		}

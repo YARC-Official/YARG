@@ -114,6 +114,7 @@ namespace YARG {
 
 		public void FadeIn() {
 			double volumeSetting = _manager.GetVolumeSetting(Stem);
+			Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, 0);
 			Bass.ChannelSlideAttribute(StreamHandle, ChannelAttribute.Volume, (float)volumeSetting, BassHelpers.FADE_TIME_MILLISECONDS);
 		}
 
