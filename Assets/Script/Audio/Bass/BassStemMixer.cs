@@ -137,6 +137,19 @@ namespace YARG {
 			return LeadChannel.GetPosition();
 		}
 
+		public void SetPosition(double position) {
+			if (LeadChannel is null) {
+				return;
+			}
+
+			foreach (var channel in Channels.Values) {
+				int handle = ((BassStemChannel)channel).StreamHandle;
+				
+				long channelPosition = Bass.ChannelSeconds2Bytes(handle, position);
+				BassMix.ChannelSetPosition(handle, channelPosition);
+			}
+		}
+
 		public int AddChannel(IStemChannel channel) {
 			if (channel is not BassStemChannel bassChannel) {
 				throw new ArgumentException("Channel must be of type BassStemChannel");

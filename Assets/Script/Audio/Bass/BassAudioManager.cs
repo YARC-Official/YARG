@@ -4,6 +4,7 @@ using System.IO;
 using ManagedBass;
 using UnityEngine;
 using YARG.Serialization;
+using YARG.Song;
 using Debug = UnityEngine.Debug;
 
 namespace YARG {
@@ -247,6 +248,16 @@ namespace YARG {
 			_mixer = null;
 		}
 
+		public void LoadPreviewAudio(SongEntry song) {
+			if (song is ExtractedConSongEntry conSong) {
+				LoadMogg(conSong.MoggInfo, false);
+			} else {
+				LoadSong(AudioHelpers.GetSupportedStems(song.Location), false);
+			}
+			
+			SetPosition(song.PreviewStartTimeSpan.TotalSeconds);
+		}
+
 		public void Play() {
 			// Don't try to play if there's no audio loaded or if it's already playing
 			if (!IsAudioLoaded || IsPlaying) {
@@ -323,7 +334,7 @@ namespace YARG {
 		}
 
 		public void SetPosition(double position) {
-			throw new NotImplementedException();
+			_mixer?.SetPosition(position);
 		}
 
 		private void OnApplicationQuit() {

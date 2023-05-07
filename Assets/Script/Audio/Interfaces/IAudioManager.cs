@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using YARG.Serialization;
+using YARG.Song;
 
 namespace YARG {
 	public interface IAudioManager {
@@ -29,6 +30,8 @@ namespace YARG {
 		public void LoadMogg(XboxMoggData moggData, bool isSpeedUp);
 		public void UnloadSong();
 
+		public void LoadPreviewAudio(SongEntry song);
+		
 		public void Play();
 		public void Pause();
 
