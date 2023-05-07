@@ -166,7 +166,8 @@ namespace YARG {
 					int reverbHandle = BassHelpers.AddReverbToChannel(channel);
 					
 					double volumeSetting = _manager.GetVolumeSetting(Stem);
-					Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume,volumeSetting * Volume * 0.7);
+					Bass.ChannelSlideAttribute(channel, ChannelAttribute.Volume,(float)(volumeSetting * Volume * 0.7f), 
+						BassHelpers.REVERB_SLIDE_IN_MILLISECONDS);
 					
 					_effects[channel].Add(REVERB_TYPE, reverbHandle);
 					
@@ -188,7 +189,8 @@ namespace YARG {
 					Bass.ChannelRemoveFX(channel, _effects[channel][EffectType.PeakEQ + 2]);
 					Bass.ChannelRemoveFX(channel, _effects[channel][REVERB_TYPE]);
 
-					Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, 0);
+					Bass.ChannelSlideAttribute(channel, ChannelAttribute.Volume, 0, 
+						BassHelpers.REVERB_SLIDE_OUT_MILLISECONDS);
 
 					_effects[channel].Remove(REVERB_TYPE);
 					

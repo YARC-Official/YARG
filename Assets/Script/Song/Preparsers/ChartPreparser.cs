@@ -70,7 +70,7 @@ namespace YARG.Song.Preparsers {
 				}
 					
 				int shiftAmount = (int)track.instrument * 4 + (int)track.difficulty;
-				tracks |= (uint)(1 << shiftAmount);
+				tracks |= 1UL << shiftAmount;
 			}
 
 			return tracks;
