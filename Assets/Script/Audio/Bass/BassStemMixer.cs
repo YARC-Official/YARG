@@ -19,8 +19,10 @@ namespace YARG {
 
 		private readonly IAudioManager _manager;
 		private readonly Dictionary<SongStem, IStemChannel> _channels;
-		private readonly XboxMoggData _moggData;
 		private readonly bool _isMogg;
+
+		private readonly Dictionary<SongStem, int[]> _stemMaps;
+		private readonly float[,] _matrixRatios;
 
 		private int _mixerHandle;
 		
@@ -36,10 +38,11 @@ namespace YARG {
 			IsPlaying = false;
 		}
 
-		public BassStemMixer(IAudioManager manager, int moggHandle, XboxMoggData moggData) : this(manager) {
+		public BassStemMixer(IAudioManager manager, int moggHandle, Dictionary<SongStem, int[]> maps, float[,] ratios) : this(manager) {
 			_isMogg = true;
 			_moggSourceHandle = moggHandle;
-			_moggData = moggData;
+			_stemMaps = maps;
+			_matrixRatios = ratios;
 		}
 
 		~BassStemMixer() {
@@ -76,7 +79,7 @@ namespace YARG {
 				return false;
 			}
 			
-			foreach((var stem, int[] channelIndexes) in _moggData.StemMaps) {
+			foreach((var stem, int[] channelIndexes) in _stemMaps) {
 				// For every channel index in this stem, add it to the list of channels
 				int[] channelStreams = channelIndexes.Select(i => splitStreams[i]).ToArray();
 				var channel = new BassMoggStem(_manager, stem, channelStreams);
@@ -87,8 +90,8 @@ namespace YARG {
 				var matrixes = new List<float[]>();
 				foreach (var channelIndex in channelIndexes) {
 					var matrix = new float[2];
-					matrix[0] = _moggData.MatrixRatios[channelIndex, 0];
-					matrix[1] = _moggData.MatrixRatios[channelIndex, 1];
+					matrix[0] = _matrixRatios[channelIndex, 0];
+					matrix[1] = _matrixRatios[channelIndex, 1];
 					matrixes.Add(matrix);
 				}
 
@@ -279,7 +282,7 @@ namespace YARG {
 		}
 
 		private int[] SplitMoggIntoChannels() {
-			var channels = new int[_moggData.ChannelCount];
+			var channels = new int[_matrixRatios.GetLength(0)];
 
 			var channelMap = new int[2];
 			channelMap[1] = -1;

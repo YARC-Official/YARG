@@ -4,16 +4,10 @@ using YARG.Serialization;
 namespace YARG.Song {
 	public class ExtractedConSongEntry : SongEntry {
 
-		/// <summary>
-		/// .mogg data for CON files.
-		/// </summary>
-		public XboxMoggData MoggInfo { get; set; }
-		/// <summary>
-		/// .xbox_png data for CON files.
-		/// </summary>
-		public XboxImage ImageInfo { get; set; }
-
 		// songs.dta content exclusive to a RB CON
+		// NOTE: none of these are written to a cache
+		// make sure once these variables start getting used for YARG,
+		// that they get cached a la CacheHelpers.cs
 		public string ShortName { get; set; }
 		public bool IsMaster { get; set; }
 		public int SongID { get; set; }
@@ -21,12 +15,12 @@ namespace YARG.Song {
 		public int AnimTempo { get; set; }
 		public string VocalPercussionBank { get; set; }
 		public int VocalSongScrollSpeed { get; set; }
-		public int SongRating { get; set; }
+		public int SongRating { get; set; } // 1 = FF; 2 = SR; 3 = M; 4 = NR
 		public bool VocalGender { get; set; } //true for male, false for female
 		public bool HasAlbumArt { get; set; }
 		public bool IsFake { get; set; }
 		public int VocalTonicNote { get; set; }
-		public bool SongTonality { get; set; }
+		public bool SongTonality { get; set; } // 0 = major, 1 = minor
 		public int TuningOffsetCents { get; set; }
 		public int[] RealGuitarTuning { get; set; }
 		public int[] RealBassTuning { get; set; }
