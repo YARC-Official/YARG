@@ -35,11 +35,11 @@ namespace YARG.UI {
 
 		private void Start() {
 			if (Play.speed == 1f) {
-				songTitle.text = $"{Play.song.SongName}";
-				bandName.text = $"{Play.song.artistName}";
+				songTitle.text = $"{Play.song.Name}";
+				bandName.text = $"{Play.song.Artist}";
 			} else {
-				songTitle.text = $"{Play.song.SongName} ({Play.speed * 100}%)";
-				bandName.text = $"{Play.song.artistName}";
+				songTitle.text = $"{Play.song.Name} ({Play.speed * 100}%)";
+				bandName.text = $"{Play.song.Artist}";
 			}
 		}
 

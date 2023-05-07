@@ -138,10 +138,10 @@ namespace YARG.Input {
 			}
 		}
 
-		public override string[] GetAllowedInstruments() {
-			return new string[] {
-				"drums",
-				"realDrums"
+		public override Instrument[] GetAllowedInstruments() {
+			return new Instrument[] {
+				Instrument.DRUMS,
+				Instrument.REAL_DRUMS
 			};
 		}
 

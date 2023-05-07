@@ -207,6 +207,10 @@ MonoBehaviour:
     m_Key: Header.Cache
     m_Metadata:
       m_Items: []
+  - m_Id: 15356265326043136
+    m_Key: ResetCameraSettings
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

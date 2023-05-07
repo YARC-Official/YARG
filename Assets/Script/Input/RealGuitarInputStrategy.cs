@@ -154,10 +154,10 @@ namespace YARG.Input {
 			// TODO
 		}
 
-		public override string[] GetAllowedInstruments() {
-			return new string[] {
-				"realGuitar",
-				"realBass"
+		public override Instrument[] GetAllowedInstruments() {
+			return new Instrument[] {
+				Instrument.REAL_GUITAR,
+				Instrument.REAL_BASS,
 			};
 		}
 

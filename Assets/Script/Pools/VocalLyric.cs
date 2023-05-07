@@ -16,6 +16,11 @@ namespace YARG.Pools {
 
 			// I like this line of code
 			text.text = lyric.lyric;
+			
+			// Italicize pitchless lyrics
+			if (lyric.inharmonic) {
+				text.text = "<i>" + text.text + "</i>";
+			}
 		}
 
 		private void Update() {

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Data;
+using YARG.Song;
 
 namespace YARG.UI.MusicLibrary {
 	public class Sidebar : MonoBehaviour {
@@ -22,7 +23,7 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		public void UpdateSidebar() {
-			var songInfo = SongSelection.Instance.SelectedSong;
+			var songEntry = SongSelection.Instance.SelectedSong;
 
 			/*
 			
@@ -31,46 +32,44 @@ namespace YARG.UI.MusicLibrary {
 			
 			*/
 
-			difficultyRings[0].SetInfo(songInfo.partDifficulties, Instrument.GUITAR);
-			difficultyRings[1].SetInfo(songInfo.partDifficulties, Instrument.BASS);
+			difficultyRings[0].SetInfo(songEntry, Instrument.GUITAR);
+			difficultyRings[1].SetInfo(songEntry, Instrument.BASS);
 
 			// 5-lane or 4-lane
-			if (songInfo.drumType == SongInfo.DrumType.FIVE_LANE) {
-				difficultyRings[2].SetInfo(songInfo.partDifficulties, Instrument.GH_DRUMS);
+			if (songEntry.DrumType == DrumType.FiveLane) {
+				difficultyRings[2].SetInfo(songEntry, Instrument.GH_DRUMS);
 			} else {
-				difficultyRings[2].SetInfo(songInfo.partDifficulties, Instrument.DRUMS);
+				difficultyRings[2].SetInfo(songEntry, Instrument.DRUMS);
 			}
 
-			difficultyRings[3].SetInfo(songInfo.partDifficulties, Instrument.KEYS);
+			difficultyRings[3].SetInfo(songEntry, Instrument.KEYS);
 
 			// Mic (with mic count)
-			if (songInfo.partDifficulties[Instrument.HARMONY] == -1) {
-				difficultyRings[4].SetInfo(songInfo.partDifficulties, Instrument.VOCALS);
+			if (songEntry.PartDifficulties.GetValueOrDefault(Instrument.HARMONY, -1) == -1) {
+				difficultyRings[4].SetInfo(songEntry, Instrument.VOCALS);
 			} else {
-				difficultyRings[4].SetInfo(songInfo.partDifficulties, Instrument.HARMONY);
+				difficultyRings[4].SetInfo(songEntry, Instrument.HARMONY);
 			}
 
 			// Protar or Co-op
-			if (songInfo.drumType == SongInfo.DrumType.FIVE_LANE &&
-				songInfo.partDifficulties[Instrument.REAL_GUITAR] == -1) {
-
-				difficultyRings[5].SetInfo(songInfo.partDifficulties, Instrument.GUITAR_COOP);
+			int realGuitarDiff = songEntry.PartDifficulties.GetValueOrDefault(Instrument.REAL_GUITAR, -1);
+			if (songEntry.DrumType == DrumType.FourLane && realGuitarDiff == -1) {
+				difficultyRings[5].SetInfo(songEntry, Instrument.GUITAR_COOP);
 			} else {
-				difficultyRings[5].SetInfo(songInfo.partDifficulties, Instrument.REAL_GUITAR);
+				difficultyRings[5].SetInfo(songEntry, Instrument.REAL_GUITAR);
 			}
 
 			// Pro bass or Rhythm
-			if (songInfo.drumType == SongInfo.DrumType.FIVE_LANE &&
-				songInfo.partDifficulties[Instrument.REAL_BASS] == -1) {
-
-				difficultyRings[6].SetInfo(songInfo.partDifficulties, Instrument.RHYTHM);
+			int realBassDiff = songEntry.PartDifficulties.GetValueOrDefault(Instrument.REAL_BASS, -1);
+			if (songEntry.DrumType == DrumType.FiveLane && realBassDiff == -1) {
+				difficultyRings[6].SetInfo(songEntry, Instrument.RHYTHM);
 			} else {
-				difficultyRings[6].SetInfo(songInfo.partDifficulties, Instrument.REAL_BASS);
+				difficultyRings[6].SetInfo(songEntry, Instrument.REAL_BASS);
 			}
 
-			difficultyRings[7].SetInfo(Instrument.REAL_DRUMS, -1);
-			difficultyRings[8].SetInfo(songInfo.partDifficulties, Instrument.REAL_KEYS);
-			difficultyRings[9].SetInfo(Instrument.REAL_DRUMS, -1);
+			difficultyRings[7].SetInfo(false, "trueDrums", -1);
+			difficultyRings[8].SetInfo(songEntry, Instrument.REAL_KEYS);
+			difficultyRings[9].SetInfo(false, "band", -1);
 		}
 	}
 }

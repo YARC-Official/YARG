@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using SFB;
 using UnityEngine;
 using YARG.PlayMode;
@@ -9,8 +10,8 @@ namespace YARG.Settings {
 		public class SettingContainer {
 #pragma warning disable format
 			
-			public string[]      SongFolders                                      = { };
-			public string[]      SongUpgradeFolders                               = { };
+			public List<string>  SongFolders                                      = new();
+			public List<string>  SongUpgradeFolders                               = new();
 			
 			public IntSetting    CalibrationNumber          { get; private set; } = new(-120);
 			
@@ -26,16 +27,16 @@ namespace YARG.Settings {
 			public ToggleSetting NoKicks                    { get; private set; } = new(false);
 			public ToggleSetting AntiGhosting               { get; private set; } = new(true);
 			
-			public VolumeSetting MasterMusicVolume          { get; private set; } = new(0.9f, v => VolumeCallback(SongStem.Master, v));
+			public VolumeSetting MasterMusicVolume          { get; private set; } = new(0.75f, v => VolumeCallback(SongStem.Master, v));
 			public VolumeSetting GuitarVolume               { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Guitar, v));
 			public VolumeSetting RhythmVolume               { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Rhythm, v));
 			public VolumeSetting BassVolume                 { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Bass,   v));
 			public VolumeSetting KeysVolume                 { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Keys,   v));
 			public VolumeSetting DrumsVolume                { get; private set; } = new(1f,        DrumVolumeCallback);
 			public VolumeSetting VocalsVolume               { get; private set; } = new(1f,        VocalVolumeCallback);
-			public VolumeSetting SongVolume                 { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Song,   v));
-			public VolumeSetting CrowdVolume                { get; private set; } = new(0f,   v => VolumeCallback(SongStem.Crowd,  v));
-			public VolumeSetting SfxVolume                  { get; private set; } = new(0.7f, v => VolumeCallback(SongStem.Sfx,    v));
+			public VolumeSetting SongVolume                 { get; private set; } = new(1f,   v   => VolumeCallback(SongStem.Song,   v));
+			public VolumeSetting CrowdVolume                { get; private set; } = new(0.5f,   v => VolumeCallback(SongStem.Crowd,  v));
+			public VolumeSetting SfxVolume                  { get; private set; } = new(0.8f, v   => VolumeCallback(SongStem.Sfx,    v));
 			public VolumeSetting VocalMonitoring            { get; private set; } = new(0.7f,      VocalMonitoringCallback);
 			public ToggleSetting MuteOnMiss                 { get; private set; } = new(true);
 			public ToggleSetting UseStarpowerFx             { get; private set; } = new(true,      UseStarpowerFxChange);
@@ -51,11 +52,6 @@ namespace YARG.Settings {
 #pragma warning restore format
 			
 			public void OpenSongFolderManager() {
-				// if (MainMenu.Instance != null) {
-				// 	MainMenu.Instance.ShowSongFolderManager();
-				// 	GameManager.Instance.SettingsMenu.gameObject.SetActive(false);
-				// }
-
 				GameManager.Instance.SettingsMenu.CurrentTab = "_SongFolderManager";
 			}
 
@@ -67,6 +63,16 @@ namespace YARG.Settings {
 
 			public void CopyCurrentSongTextFilePath() {
 				GUIUtility.systemCopyBuffer = TwitchController.Instance.TextFilePath;
+			}
+
+			public void ResetCameraSettings() {
+				TrackCamFOV.Data = 55f;
+				TrackCamYPos.Data = 2.66f;
+				TrackCamZPos.Data = 1.14f;
+				TrackCamRot.Data = 24.12f;
+
+				// Force update sliders
+				GameManager.Instance.SettingsMenu.UpdateSettingsForTab();
 			}
 
 			private static void VSyncCallback(bool value) {

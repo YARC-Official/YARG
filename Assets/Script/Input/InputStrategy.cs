@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.Utilities;
+using YARG.Data;
 
 namespace YARG.Input {
 	public abstract class InputStrategy {
@@ -112,7 +113,7 @@ namespace YARG.Input {
 		/// <returns>
 		/// An array of the allow instruments for the input strategy.
 		/// </returns>
-		public abstract string[] GetAllowedInstruments();
+		public abstract Instrument[] GetAllowedInstruments();
 
 		/// <returns>
 		/// The path of the track addressable.
@@ -227,7 +228,7 @@ namespace YARG.Input {
 			if (control is ButtonControl button) {
 				return button.IsValueConsideredPressed(button.ReadValueFromEvent(eventPtr));
 			}
-	
+
 			return control.ReadValueFromEvent(eventPtr) >= ControlBinding.DEFAULT_PRESS_THRESHOLD;
 		}
 

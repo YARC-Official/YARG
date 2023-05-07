@@ -400,7 +400,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 1714f52fc575e1745b2615a068e166e8, type: 3}
+  m_Sprite: {fileID: 21300000, guid: b6849fbc5300ed540b3b9a875865c28b, type: 3}
   m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -476,7 +476,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 1714f52fc575e1745b2615a068e166e8, type: 3}
+  m_Sprite: {fileID: 21300000, guid: b6849fbc5300ed540b3b9a875865c28b, type: 3}
   m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -552,7 +552,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 1714f52fc575e1745b2615a068e166e8, type: 3}
+  m_Sprite: {fileID: 21300000, guid: b6849fbc5300ed540b3b9a875865c28b, type: 3}
   m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -628,7 +628,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 1714f52fc575e1745b2615a068e166e8, type: 3}
+  m_Sprite: {fileID: 21300000, guid: b6849fbc5300ed540b3b9a875865c28b, type: 3}
   m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -697,7 +697,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0.8235294, b: 0.039215688, a: 0.42745098}
+  m_Color: {r: 1, g: 0.8980392, b: 0.44705883, a: 0.7607843}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -908,7 +908,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 1714f52fc575e1745b2615a068e166e8, type: 3}
+  m_Sprite: {fileID: 21300000, guid: b6849fbc5300ed540b3b9a875865c28b, type: 3}
   m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1075,11 +1075,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Color.a
       value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6609833392484293614, guid: ce4a84a3d1b86154ca243594c1135468,
-        type: 3}
-      propertyPath: m_FillAmount
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6609833393552099943, guid: ce4a84a3d1b86154ca243594c1135468,
         type: 3}

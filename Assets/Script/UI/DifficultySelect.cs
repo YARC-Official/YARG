@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -29,6 +31,7 @@ namespace YARG.UI {
 
 		private int playerIndex;
 		private string[] instruments;
+		private Difficulty[] difficulties;
 		private State state;
 
 		private int optionCount;
@@ -144,10 +147,10 @@ namespace YARG.UI {
 					bool showExpertPlus = player.chosenInstrument == "drums"
 						|| player.chosenInstrument == "realDrums"
 						|| player.chosenInstrument == "ghDrums";
-					UpdateDifficulty(showExpertPlus);
+					UpdateDifficulty(player.chosenInstrument, showExpertPlus);
 				}
 			} else if (state == State.DIFFICULTY) {
-				player.chosenDifficulty = (Difficulty) selected;
+				player.chosenDifficulty = difficulties[selected];
 				OnInstrumentSelection?.Invoke(player);
 				IncreasePlayerIndex();
 			} else if (state == State.VOCALS) {
@@ -217,37 +220,49 @@ namespace YARG.UI {
 			state = State.INSTRUMENT;
 
 			// Get allowed instruments
-			var allowedInstruments = player.inputStrategy.GetAllowedInstruments();
-			optionCount = allowedInstruments.Length + 1;
+			var allInstruments = (Instrument[]) Enum.GetValues(typeof(Instrument));
+
+			// Get available instruments
+			var availableInstruments = allInstruments
+				.Where(instrument => MainMenu.Instance.chosenSong.HasInstrument(instrument)).ToList();
+
+			Debug.Log(MainMenu.Instance.chosenSong.AvailableParts);
+
+			// Force add pro drums and five lane
+			if (availableInstruments.Contains(Instrument.DRUMS)) {
+				availableInstruments.Add(Instrument.GH_DRUMS);
+
+				// Add real drums if not present
+				if (!availableInstruments.Contains(Instrument.REAL_DRUMS)) {
+					availableInstruments.Add(Instrument.REAL_DRUMS);
+				}
+			} else if (availableInstruments.Contains(Instrument.GH_DRUMS)) {
+				availableInstruments.Add(Instrument.DRUMS);
+				availableInstruments.Add(Instrument.REAL_DRUMS);
+			}
+
+			// Filter out to only allowed instruments
+			availableInstruments.RemoveAll(i => !player.inputStrategy.GetAllowedInstruments().Contains(i));
+
+			optionCount = availableInstruments.Count + 1;
 
 			// Add to options
-			string[] ops = new string[6];
-			instruments = new string[allowedInstruments.Length];
-			for (int i = 0; i < allowedInstruments.Length; i++) {
-				instruments[i] = allowedInstruments[i];
-				ops[i] = allowedInstruments[i] switch {
-					"drums" => "Drums",
-					"realDrums" => "Pro Drums",
-					"guitar" => "Guitar",
-					"realGuitar" => "Pro Guitar",
-					"bass" => "Bass",
-					"realBass" => "Pro Bass",
-					"keys" => "Keys",
-					"realKeys" => "Pro Keys",
-					"vocals" => "Vocals",
-					"harmVocals" => "Vocals (Harmony)",
-					"ghDrums" => "Drums (5-lane)",
-					"rhythm" => "Rhythm Guitar",
-					"guitarCoop" => "Co-op Guitar",
-					_ => "Unknown"
-				};
+			var ops = new string[availableInstruments.Count + 1];
+			instruments = new string[availableInstruments.Count];
+			for (int i = 0; i < instruments.Length; i++) {
+				instruments[i] = availableInstruments[i].ToStringName();
+				ops[i] = availableInstruments[i].ToLocalizedName();
 			}
-			ops[allowedInstruments.Length] = "Sit Out";
+			ops[^1] = "Sit Out";
 
 			// Set text and sprites
 			for (int i = 0; i < 6; i++) {
-				options[i].SetText(ops[i]);
+				options[i].SetText("");
 				options[i].SetSelected(false);
+
+				if (i < ops.Length) {
+					options[i].SetText(ops[i]);
+				}
 
 				if (i < instruments.Length) {
 					var sprite = Addressables.LoadAssetAsync<Sprite>($"FontSprites[{instruments[i]}]").WaitForCompletion();
@@ -260,31 +275,56 @@ namespace YARG.UI {
 			options[0].SetSelected(true);
 		}
 
-		private void UpdateDifficulty(bool showExpertPlus) {
+		private void UpdateDifficulty(string chosenInstrument, bool showExpertPlus) {
 			state = State.DIFFICULTY;
 
-			optionCount = 4;
-			string[] ops = {
-				"Easy",
-				"Medium",
-				"Hard",
-				"Expert",
-				null,
-				null
-			};
+			// Get the correct instrument
+			var instrument = InstrumentHelper.FromStringName(chosenInstrument);
+			if (instrument == Instrument.REAL_DRUMS || instrument == Instrument.GH_DRUMS) {
+				instrument = Instrument.DRUMS;
+			}
+
+			// Get the available difficulties
+			var availableDifficulties = new List<Difficulty>();
+			for (int i = 0; i < (int) Difficulty.EXPERT_PLUS; i++) {
+				if (!MainMenu.Instance.chosenSong.HasPart(instrument, (Difficulty) i)) {
+					continue;
+				}
+				availableDifficulties.Add((Difficulty) i);
+			}
 
 			if (showExpertPlus) {
-				optionCount++;
-				ops[4] = "Expert+";
+				availableDifficulties.Add(Difficulty.EXPERT_PLUS);
+			}
+
+			optionCount = availableDifficulties.Count;
+
+			difficulties = new Difficulty[optionCount];
+			var ops = new string[optionCount];
+
+			for (int i = 0; i < optionCount; i++) {
+				ops[i] = availableDifficulties[i] switch {
+					Difficulty.EASY => "Easy",
+					Difficulty.MEDIUM => "Medium",
+					Difficulty.HARD => "Hard",
+					Difficulty.EXPERT => "Expert",
+					Difficulty.EXPERT_PLUS => "Expert+",
+					_ => "Unknown"
+				};
+				difficulties[i] = availableDifficulties[i];
 			}
 
 			for (int i = 0; i < 6; i++) {
-				options[i].SetText(ops[i]);
+				options[i].SetText("");
 				options[i].SetSelected(false);
+
+				if (i < ops.Length) {
+					options[i].SetText(ops[i]);
+				}
 			}
 
-			selected = 3;
-			options[3].SetSelected(true);
+			selected = optionCount - 1;
+			options[optionCount - 1].SetSelected(true);
 		}
 
 		private void UpdateVocalOptions() {

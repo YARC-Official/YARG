@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
 using YARG.Data;
+using YARG.Song;
 
 namespace YARG.UI.MusicLibrary {
 	public class DifficultyRing : MonoBehaviour {
@@ -14,13 +15,19 @@ namespace YARG.UI.MusicLibrary {
 		[SerializeField]
 		private Sprite[] ringSprites;
 
-		public void SetInfo(Dictionary<Instrument, int> difficulties, Instrument instrument) {
-			SetInfo(instrument, difficulties[instrument]);
+		public void SetInfo(SongEntry songEntry, Instrument instrument) {
+			bool show = songEntry.HasInstrument(instrument);
+
+			SetInfo(show, instrument, songEntry.PartDifficulties.GetValueOrDefault(instrument, -1));
 		}
 
-		public void SetInfo(Instrument instrument, int difficulty) {
+		public void SetInfo(bool hasInstrument, Instrument instrument, int difficulty) {
+			SetInfo(hasInstrument, instrument.ToStringName(), difficulty);
+		}
+
+		public void SetInfo(bool hasInstrument, string instrumentName, int difficulty) {
 			// Set instrument icon
-			var icon = Addressables.LoadAssetAsync<Sprite>($"FontSprites[{instrument.ToStringName()}]").WaitForCompletion();
+			var icon = Addressables.LoadAssetAsync<Sprite>($"FontSprites[{instrumentName}]").WaitForCompletion();
 			instrumentIcon.sprite = icon;
 
 			// Acceptable difficulty range is -1 to 6
@@ -28,6 +35,10 @@ namespace YARG.UI.MusicLibrary {
 				difficulty = 0; // Clamp values below -1 to 0 since this is a specifically-set value
 			} else if (difficulty > 6) {
 				difficulty = 6;
+			}
+
+			if (!hasInstrument) {
+				difficulty = -1;
 			}
 
 			// Set ring sprite

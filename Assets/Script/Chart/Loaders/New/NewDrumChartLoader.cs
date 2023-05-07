@@ -1,19 +1,23 @@
 ﻿using System.Collections.Generic;
 using MoonscraperChartEditor.Song;
+using YARG.Data;
 
 namespace YARG.Chart {
-	public class NewDrumChartLoader : IChartLoader<DrumNote> {
-
+	public class NewDrumChartLoader : ChartLoader<DrumNote> {
 		private readonly bool _isPro;
-		private readonly bool _isDoubleBass;
 
-		public NewDrumChartLoader(bool isPro, bool doubleBass) {
+		public NewDrumChartLoader(bool isPro) {
 			_isPro = isPro;
-			_isDoubleBass = doubleBass;
+
+			Instrument = MoonSong.MoonInstrument.Drums;
+			InstrumentName = _isPro ? "realDrums" : "drums";
+			MaxDifficulty = Difficulty.EXPERT_PLUS;
 		}
 		
-		public List<DrumNote> GetNotesFromChart(MoonSong song, MoonChart chart) {
+		public override List<DrumNote> GetNotesFromChart(MoonSong song, Difficulty difficulty) {
 			var notes = new List<DrumNote>();
+			var chart = GetChart(song, difficulty);
+			bool doubleBass = difficulty == Difficulty.EXPERT_PLUS;
 
 			// do star power later lol idk how it works
 
@@ -34,7 +38,7 @@ namespace YARG.Chart {
 				// Is kick, is double kick note but double bass not active
 				// Skip the note
 				if (moonNote.drumPad == MoonNote.DrumPad.Kick && (moonNote.flags & MoonNote.Flags.DoubleKick) != 0 &&
-				    !_isDoubleBass) {
+				    !doubleBass) {
 					continue;
 				}
 				

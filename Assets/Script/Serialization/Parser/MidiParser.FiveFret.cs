@@ -32,6 +32,7 @@ namespace YARG.Serialization.Parser {
 			public long[] endTick;
 
 			public FretFlag fretFlag;
+			public FretFlag prevFretFlag;
 			public bool hopo;
 			public bool tap;
 
@@ -284,6 +285,7 @@ namespace YARG.Serialization.Parser {
 				}
 				
 				// Force open note before checking auto-hopo
+				note.prevFretFlag = note.fretFlag;
 				if (force.Contains(ForceState.OPEN)) {
 					note.fretFlag = FretFlag.OPEN;
 				}
@@ -298,7 +300,7 @@ namespace YARG.Serialization.Parser {
 
 							// Use HOPO frequency value from song info.
 							// Convert the ticks to a musical time span.
-							if (distance <= new MusicalTimeSpan(songInfo.hopoFreq, 480 * 4)) {
+							if (distance <= new MusicalTimeSpan(songEntry.HopoThreshold, 480 * 4)) {
 								note.hopo = true;
 								note.autoHopo = true;
 							}
@@ -345,9 +347,16 @@ namespace YARG.Serialization.Parser {
 					}
 
 					// Get the end tick (different for open notes)
-					long endTick;
+					long endTick = noteInfo.startTick + 1;
 					if (fret == 5) {
-						endTick = noteInfo.startTick + 1;
+						// If it's an open note, it has to grab it's sustain from whatever fret it was before the marker was applied
+						for (int j = 1; j < enums.Length; j++) {
+							if (!noteInfo.prevFretFlag.HasFlag(enums[j])) {
+								continue;
+							}
+							endTick = noteInfo.endTick[j - 1];
+							break;
+						}
 					} else {
 						endTick = noteInfo.endTick[fret];
 					}

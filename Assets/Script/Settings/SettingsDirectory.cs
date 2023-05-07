@@ -1,9 +1,10 @@
-using System.IO;
+using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using SFB;
 using TMPro;
 using UnityEngine;
-using YARG.UI;
+using YARG.Song;
 using YARG.Util;
 
 namespace YARG.Settings {
@@ -16,14 +17,14 @@ namespace YARG.Settings {
 		private bool isUpgradeFolder;
 		private int index;
 
-		private string[] _pathsReference;
-		private string[] PathsReference {
+		private List<string> _pathsReference;
+		private List<string> PathsReference {
 			get => _pathsReference;
 			set {
 				if (isUpgradeFolder) {
-					SongLibrary.SongUpgradeFolders = value;
+					SettingsManager.Settings.SongUpgradeFolders = value;
 				} else {
-					SongLibrary.SongFolders = value;
+					SettingsManager.Settings.SongFolders = value;
 				}
 			}
 		}
@@ -33,9 +34,9 @@ namespace YARG.Settings {
 			this.isUpgradeFolder = isUpgradeFolder;
 
 			if (isUpgradeFolder) {
-				_pathsReference = SongLibrary.SongUpgradeFolders;
+				_pathsReference = SettingsManager.Settings.SongUpgradeFolders;
 			} else {
-				_pathsReference = SongLibrary.SongFolders;
+				_pathsReference = SettingsManager.Settings.SongFolders;
 			}
 
 			RefreshText();
@@ -51,8 +52,8 @@ namespace YARG.Settings {
 				if (isUpgradeFolder) {
 					songCountText.text = "";
 				} else {
-					int songCount = SongLibrary.Songs.Count(i =>
-						Utils.PathsEqual(i.cacheRoot, PathsReference[index]));
+					int songCount = SongContainer.Songs.Count(i =>
+						Utils.PathsEqual(i.CacheRoot, PathsReference[index]));
 					songCountText.text = $"{songCount} <alpha=#60>SONGS";
 				}
 			}
@@ -60,9 +61,7 @@ namespace YARG.Settings {
 
 		public void Remove() {
 			// Remove the element
-			var list = PathsReference.ToList();
-			list.RemoveAt(index);
-			PathsReference = list.ToArray();
+			PathsReference.RemoveAt(index);
 
 			// Refresh
 			GameManager.Instance.SettingsMenu.UpdateSongFolderManager();
@@ -81,17 +80,8 @@ namespace YARG.Settings {
 		}
 
 		public void Refresh() {
-			GameManager.Instance.SettingsMenu.hasSongLibraryChanged = false;
-
-			// Delete it
-			var file = SongLibrary.HashFilePath(PathsReference[index]);
-			var path = Path.Combine(SongLibrary.CacheFolder, file + ".json");
-			if (File.Exists(path)) {
-				File.Delete(path);
-			}
-
-			// Refresh
-			MainMenu.Instance.RefreshSongLibrary();
+			LoadingManager.Instance.QueueSongFolderRefresh(PathsReference[index]);
+			LoadingManager.Instance.StartLoad().Forget();
 		}
 	}
 }
