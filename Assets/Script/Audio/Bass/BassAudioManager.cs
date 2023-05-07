@@ -256,14 +256,20 @@ namespace YARG {
 			SetPosition(song.PreviewStartTimeSpan.TotalSeconds);
 		}
 
-		public void Play() {
+		public void Play() => Play(false);
+		
+		private void Play(bool fadeIn) {
 			// Don't try to play if there's no audio loaded or if it's already playing
 			if (!IsAudioLoaded || IsPlaying) {
 				return;
 			}
 
 			foreach (var channel in _mixer.Channels.Values) {
-				channel.SetVolume(channel.Volume);
+				if (fadeIn) {
+					channel.SetVolume(0);
+				} else {
+					channel.SetVolume(channel.Volume);
+				}
 			}
 			if (_mixer.Play() != 0) {
 				Debug.Log($"Play error: {Bass.LastError}");
@@ -285,7 +291,7 @@ namespace YARG {
 		}
 
 		public void FadeIn() {
-			Play();
+			Play(true);
 			if (IsPlaying) {
 				_mixer?.FadeIn();	
 			}
