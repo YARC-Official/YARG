@@ -32,6 +32,17 @@ namespace YARG {
 			"star_gold",
 		};
 
+		public static readonly IList<string> DrumSfxPaths = new[] {
+			"Snare",
+			"Tom1",
+			"Tom2",
+			"Tom3",
+			"Kick",
+			"Hihat",
+			"Ride",
+			"Crash",
+		};
+
 		public static readonly IList<double> SfxVolume = new[] {
 			0.5,
 			0.45,
@@ -97,6 +108,20 @@ namespace YARG {
 				"star"              => SfxSample.StarGain,
 				"star_gold"              => SfxSample.StarGold,
 				_                   => SfxSample.NoteMiss,
+			};
+		}
+
+		public static DrumSfx GetDrumSfxFromName(string drumsfx) {
+			return drumsfx.ToLowerInvariant() switch {
+				"Snare"		=> DrumSfx.Snare,
+				"Tom1"		=> DrumSfx.Tom1,
+				"Tom2"		=> DrumSfx.Tom2,
+				"Tom3"		=> DrumSfx.Tom3,
+				"Kick"		=> DrumSfx.Kick,
+				"Hihat"		=> DrumSfx.Hihat,
+				"Ride"		=> DrumSfx.Ride,
+				"Crash"		=> DrumSfx.Crash,
+				_			=> DrumSfx.Snare,
 			};
 		}
 		
