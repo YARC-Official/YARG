@@ -168,28 +168,29 @@ namespace YARG.Song {
 				using var br = new BinaryReader(fs);
 				string fHeader = Encoding.UTF8.GetString(br.ReadBytes(4));
 				if(fHeader == "CON " || fHeader == "LIVE"){
-
 					List<ConSongEntry> SongsInsideCON = XboxCONFileBrowser.BrowseCON(file);
-
-					foreach(ConSongEntry SongInsideCON in SongsInsideCON){
-						// validate that the song is good to add in-game
-						var CONResult = ScanConSong(cacheFolder, SongInsideCON);
-						switch(CONResult){
-							case ScanResult.Ok:
-								_songsScanned++;
-								songsScanned = _songsScanned;
-								songs.Add((ConSongEntry)SongInsideCON);
-								break;
-							case ScanResult.NotASong:
-								break;
-							default:
-								_errorsEncountered++;
-								errorsEncountered = _errorsEncountered;
-								_songErrors[cacheFolder].Add(new SongError(subDir, CONResult));
-								Debug.LogWarning($"Error encountered with {subDir}");
-								break;
+					// for each CON song that was found (assuming some WERE found)
+					if(SongsInsideCON != null){
+						foreach(ConSongEntry SongInsideCON in SongsInsideCON){
+							// validate that the song is good to add in-game
+							var CONResult = ScanConSong(cacheFolder, SongInsideCON);
+							switch(CONResult){
+								case ScanResult.Ok:
+									_songsScanned++;
+									songsScanned = _songsScanned;
+									songs.Add((ConSongEntry)SongInsideCON);
+									break;
+								case ScanResult.NotASong:
+									break;
+								default:
+									_errorsEncountered++;
+									errorsEncountered = _errorsEncountered;
+									_songErrors[cacheFolder].Add(new SongError(subDir, CONResult));
+									Debug.LogWarning($"Error encountered with {subDir}");
+									break;
+							}
 						}
-					}
+					}					
 				}
 			}
 
