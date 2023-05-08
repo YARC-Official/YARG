@@ -204,22 +204,18 @@ namespace YARG {
 			IsAudioLoaded = true;
 		}
 		
-		public void LoadMogg(XboxMoggData moggData, bool isSpeedUp) {
+		public void LoadMogg(byte[] moggArray, 
+			Dictionary<SongStem, int[]> stemMaps, float[,] matrixRatios, bool isSpeedUp) {
 			Debug.Log("Loading mogg song");
 			UnloadSong();
 			
-			int moggOffset = moggData.MoggAddressAudioOffset;
-			long moggLength = moggData.MoggAudioLength;
-			
-			byte[] moggArray = moggData.GetOggDataFromMogg();
-			
-			int moggStreamHandle = Bass.CreateStream(moggArray, 0, moggLength, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
+			int moggStreamHandle = Bass.CreateStream(moggArray, 0, moggArray.Length, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
 			if (moggStreamHandle == 0) {
 				Debug.LogError($"Failed to load mogg file or position: {Bass.LastError}");
 				return;
 			}
 
-			_mixer = new BassStemMixer(this, moggStreamHandle, moggData);
+			_mixer = new BassStemMixer(this, moggStreamHandle, stemMaps, matrixRatios);
 			if (!_mixer.Create()) {
 				throw new Exception($"Failed to create mixer: {Bass.LastError}");
 			}

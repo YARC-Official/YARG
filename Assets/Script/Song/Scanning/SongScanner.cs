@@ -12,6 +12,7 @@ namespace YARG.Song {
 		NotASong,
 		NoNotesFile,
 		NoAudioFile,
+		EncryptedMogg
 	}
 
 	public readonly struct SongError {
@@ -226,6 +227,9 @@ namespace YARG.Song {
 									break;
 								case ScanResult.NoNotesFile:
 									await writer.WriteLineAsync("These songs contain no valid notes file! (notes.chart/notes.mid)");
+									break;
+								case ScanResult.EncryptedMogg:
+									await writer.WriteLineAsync("These songs contain encrypted moggs!");
 									break;
 							}
 							lastResult = error.Result;

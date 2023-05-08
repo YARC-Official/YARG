@@ -6,6 +6,7 @@ using UnityEngine.Networking;
 using UnityEngine.UI;
 using YARG.Data;
 using YARG.Song;
+using YARG.Serialization;
 
 #if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
 
@@ -134,13 +135,13 @@ namespace YARG.UI.MusicLibrary {
 					}
 				}
 			} else {
-				// Check if an EXCon or if there is no album image for this song
-				if (_songEntry is not ExtractedConSongEntry conEntry || conEntry.ImageInfo is null) {
+				// Check if an ExCon/Con or if there is no album image for this song
+				if (_songEntry is not ExtractedConSongEntry conEntry || conEntry.ImagePath == string.Empty) {
 					return;
 				}
 
 				// Set album cover
-				albumCover.texture = conEntry.ImageInfo.GetAsTexture();
+				albumCover.texture = XboxImageTextureGenerator.GetTexture(File.ReadAllBytes(conEntry.ImagePath));
 				albumCover.color = Color.white;
 				albumCover.uvRect = new Rect(0f, 0f, 1f, -1f);
 			}
