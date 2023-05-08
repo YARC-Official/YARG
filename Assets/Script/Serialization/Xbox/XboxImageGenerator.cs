@@ -8,12 +8,11 @@ using UnityEngine.Experimental.Rendering;
 
 namespace YARG.Serialization {
     public static class XboxImageTextureGenerator {
-        public static Texture2D GetTexture(string imgPath){            
-            using var fs = new FileStream(imgPath, FileMode.Open, FileAccess.Read);
-            using var br = new BinaryReader(fs, new ASCIIEncoding());
+        public static Texture2D GetTexture(byte[] xboxImageBytes){            
+            var ms = new MemoryStream(xboxImageBytes);
 
             // Parse header
-            byte[] header = br.ReadBytes(32);
+            byte[] header = ms.ReadBytes(32);
             byte BitsPerPixel = header[1];
             int Format = BitConverter.ToInt32(header, 2);
             short Width = BitConverter.ToInt16(header, 7);
@@ -23,15 +22,15 @@ namespace YARG.Serialization {
             // Parse DXT-compressed blocks, depending on format
             if ((BitsPerPixel == 0x04) && (Format == 0x08)) {
                 // If DXT-1 format already, read the bytes straight up
-                fs.Seek(32, SeekOrigin.Begin);
-                DXTBlocks = br.ReadBytes((int) (fs.Length - 32));
+                ms.Seek(32, SeekOrigin.Begin);
+                DXTBlocks = ms.ReadBytes((int) (ms.Length - 32));
             } else {
                 // If DXT-3 format, we have to omit the alpha bytes
                 List<byte> extractedDXT3 = new List<byte>();
-                br.ReadBytes(8); //skip the first 8 alpha bytes
-                for (int i = 8; i < (fs.Length - 32) / 2; i += 8) {
-                    extractedDXT3.AddRange(br.ReadBytes(8)); // We want to read these 8 bytes
-                    br.ReadBytes(8); // and skip these 8 bytes
+                ms.ReadBytes(8); //skip the first 8 alpha bytes
+                for (int i = 8; i < (ms.Length - 32) / 2; i += 8) {
+                    extractedDXT3.AddRange(ms.ReadBytes(8)); // We want to read these 8 bytes
+                    ms.ReadBytes(8); // and skip these 8 bytes
                 }
                 DXTBlocks = extractedDXT3.ToArray();
             }
