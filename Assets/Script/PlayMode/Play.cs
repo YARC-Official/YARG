@@ -118,15 +118,7 @@ namespace YARG.PlayMode {
 			if (song is ExtractedConSongEntry rawConSongEntry) {
 				Debug.Log(rawConSongEntry.MatrixRatios.GetLength(0));
 
-				GameManager.AudioManager.LoadMogg(File.ReadAllBytes(rawConSongEntry.MoggPath)[rawConSongEntry.MoggAddressAudioOffset..], 
-					rawConSongEntry.StemMaps, rawConSongEntry.MatrixRatios, isSpeedUp);
-			}
-			else if(song is ConSongEntry conSongEntry){
-				Debug.Log(conSongEntry.MatrixRatios.GetLength(0));
-
-				GameManager.AudioManager.LoadMogg(XboxCONInnerFileRetriever.RetrieveFile(conSongEntry.Location, conSongEntry.MoggPath, 
-					conSongEntry.MoggFileSize, conSongEntry.MoggFileMemBlockOffsets)[conSongEntry.MoggAddressAudioOffset..], 
-					conSongEntry.StemMaps, conSongEntry.MatrixRatios, isSpeedUp);
+				GameManager.AudioManager.LoadMogg(rawConSongEntry, isSpeedUp);
 			}
 			else {
 				var stems = AudioHelpers.GetSupportedStems(song.Location);
