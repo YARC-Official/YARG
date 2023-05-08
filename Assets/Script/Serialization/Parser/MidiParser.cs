@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
@@ -23,8 +24,15 @@ namespace YARG.Serialization.Parser {
 		public MidiFile midi;
 
 		public MidiParser(SongEntry songEntry, string[] files) : base(songEntry, files) {
-			midi = MidiFile.Read(files[0], new ReadingSettings() { TextEncoding = System.Text.Encoding.UTF8 });
+			if(songEntry is ConSongEntry conSong){
+				using var stream = new MemoryStream(XboxCONInnerFileRetriever.RetrieveFile(
+					conSong.Location, conSong.NotesFile, conSong.MoggFileSize, conSong.MoggFileMemBlockOffsets
+				));
+				midi = MidiFile.Read(stream, new ReadingSettings() { TextEncoding = System.Text.Encoding.UTF8 });
+			}
+			else midi = MidiFile.Read(files[0], new ReadingSettings() { TextEncoding = System.Text.Encoding.UTF8 });
 
+			// TODO: fix this to account for upgrade CONs/ExCONs
 			// Merge midi files
 			for (int i = 1; i < files.Length; i++) {
 				var upgrade = MidiFile.Read(files[i], new ReadingSettings() { TextEncoding = System.Text.Encoding.UTF8 });
