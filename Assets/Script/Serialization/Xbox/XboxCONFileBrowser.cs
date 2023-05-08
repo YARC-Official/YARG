@@ -17,7 +17,7 @@ namespace YARG.Serialization {
 			// Attempt to read songs.dta
 			STFS theCON = new STFS(conName);
 			try {
-				dtaTree = DTX.FromPlainTextBytes(theCON.GetFile("songs/songs.dta"));
+				dtaTree = DTX.FromPlainTextBytes(theCON.GetFile(Path.Combine("songs", "songs.dta")));
 			} catch (Exception e) {
 				Debug.LogError($"Failed to parse songs.dta for `{conName}`.");
 				Debug.LogException(e);
