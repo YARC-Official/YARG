@@ -33,4 +33,15 @@ namespace YARG {
 	public enum DSPType {
 		Gain,
 	}
+
+	public enum DrumSfx {
+		Snare,
+		Tom1,
+		Tom2,
+		Tom3,
+		Kick,
+		Hihat,
+		Ride,
+		Crash
+	}
 }
