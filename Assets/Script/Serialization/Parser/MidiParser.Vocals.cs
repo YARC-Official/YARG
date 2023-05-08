@@ -74,7 +74,10 @@ namespace YARG.Serialization.Parser {
 				}
 
 				// Add phrase to result
-				lyrics.Add(lyric);
+				// Ignore phrases w/o lyrics (i.e. percussion)
+				if (lyric.lyric.Count > 0) {
+					lyrics.Add(lyric);
+				}
 			}
 
 			return lyrics;
