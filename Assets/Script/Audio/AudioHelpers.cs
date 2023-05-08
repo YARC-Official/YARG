@@ -112,7 +112,7 @@ namespace YARG {
 		}
 
 		public static DrumSfx GetDrumSfxFromName(string drumsfx) {
-			return sfx.ToLowerInvariant() switch {
+			return drumsfx.ToLowerInvariant() switch {
 				"Snare"		=> DrumSfx.Snare,
 				"Tom1"		=> DrumSfx.Tom1,
 				"Tom2"		=> DrumSfx.Tom2,
