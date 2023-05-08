@@ -104,7 +104,7 @@ namespace YARG.PlayMode {
 					BaseScore += ptSusPerBeat * Util.Utils.InfoLengthInBeats(note, Play.Instance.chart.beats);
 				}
 
-				// add solo bonus
+				// add solo notes
 				foreach (var ev in soloEvents) {
 					if (ev.time <= note.time && note.time < ev.EndTime) {
 						// solo notes get double score, effectively
@@ -114,6 +114,10 @@ namespace YARG.PlayMode {
 				}
 				leaveSoloLoop:;
 			}
+
+			// if there's no solo, raise BaseScore slightly
+			if (soloEvents.Count == 0)
+				BaseScore *= 1.055;
 			SetupScoreThreshold(instrument);
 		}
 
@@ -124,6 +128,9 @@ namespace YARG.PlayMode {
 			// solo notes get double score, effectively
 			BaseScore = (noteCount + soloNotes) * ptPerNote;
 
+			// if there's no solo, raise BaseScore slightly
+			if (soloNotes == 0)
+				BaseScore *= 1.055;
 			SetupScoreThreshold(instrument);
 		}
 
