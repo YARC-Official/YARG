@@ -117,9 +117,8 @@ namespace YARG.PlayMode {
 			if (song is ExtractedConSongEntry rawConSongEntry) {
 				Debug.Log(rawConSongEntry.MatrixRatios.GetLength(0));
 
-				GameManager.AudioManager.LoadMogg(rawConSongEntry.MoggPath, rawConSongEntry.MoggAddressAudioOffset, 
-					rawConSongEntry.MoggAudioLength, rawConSongEntry.StemMaps, rawConSongEntry.MatrixRatios,
-					isSpeedUp);
+				GameManager.AudioManager.LoadMogg(File.ReadAllBytes(rawConSongEntry.MoggPath)[rawConSongEntry.MoggAddressAudioOffset..], 
+					rawConSongEntry.StemMaps, rawConSongEntry.MatrixRatios, isSpeedUp);
 			} else {
 				var stems = AudioHelpers.GetSupportedStems(song.Location);
 
