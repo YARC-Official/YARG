@@ -9,18 +9,26 @@ namespace YARG.PlayMode {
 	/// Star-score tracking. Could probably be combined with ScoreKeeper.
 	/// </summary>
 	public class StarScoreKeeper {
+		// https://github.com/hmxmilohax/Rock-Band-4-Deluxe/blob/0f1562bcf838b82bac0f9bdd8e6193152a73ae88/_rivals_ark/ps4/config/include/star_thresholds.dta
 		/// <summary>
 		/// Minimum avg. multipliers to get 1, 2, 3, 4, 5, and gold stars respectively.
 		/// </summary>
-		public static readonly float[] starThresholdsDefault = {.21f, .46f, .77f, 1.85f, 3.08f, 4.52f};
+		public static readonly float[] starThresholdsDefault = { .21f, .46f, .77f, 1.85f, 3.08f, 4.52f };
+
 		/// <summary>
 		/// Minimum avg. multipliers to get 1, 2, 3, 4, 5, and gold stars on Bass respectively.
 		/// </summary>
 		public static readonly float[] starThresholdsBass = { .21f, .5f, .9f, 2.77f, 4.62f, 6.78f };
+
+		/// <summary>
+		/// Minimum avg. multipliers to get 1, 2, 3, 4, 5, and gold stars on Drums respectively.
+		/// </summary>
+		public static readonly float[] starThresholdsDrums = { .21f, .46f, .77f, 1.85f, 3.08f, 4.29f };
+
 		/// <summary>
 		/// Minimum avg. multipliers to get 1, 2, 3, 4, 5, and gold stars on Vocals respectively.
 		/// </summary>
-		public static readonly float[] starThresholdsVocals = { 4f*0.05f, 4f*0.11f, 4f*0.19f, 4f*0.46f, 4f*0.77f, 4f*1.06f };
+		public static readonly float[] starThresholdsVocals = { .21f, .46f, .77f, 1.85f, 3.08f, 4.18f };
 
 		// keep track of all instances in Play to calculate the band total
 		public static List<StarScoreKeeper> instances = new();
@@ -108,6 +116,9 @@ namespace YARG.PlayMode {
 				case var i when i.ToLower().Contains("bass"):
 					curThresholds = starThresholdsBass;
 					break;
+				case var i when i.ToLower().Contains("drum"):
+					curThresholds = starThresholdsDrums;
+					break;
 				case var i when i.ToLower().Contains("vocal"):
 					curThresholds = starThresholdsVocals;
 					break;
@@ -116,6 +127,10 @@ namespace YARG.PlayMode {
 					break;
 			}
 			scoreThresholds = (from mul in curThresholds select mul * BaseScore).ToArray();
+
+			Debug.Log(instrument);
+			Debug.Log($"Base Score: {BaseScore}");
+			Debug.Log($"Star Reqs: {string.Join(", ", scoreThresholds)}");
 		}
 	}
 }
