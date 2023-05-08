@@ -168,7 +168,12 @@ namespace YARG.Song {
 				string fHeader = Encoding.UTF8.GetString(br.ReadBytes(4));
 				if(fHeader == "CON " || fHeader == "LIVE"){
 					Debug.Log($"found STFS file {file}");
+
 					var SongsInsideCON = XboxCONFileBrowser.BrowseCON(file);
+
+					foreach(var SongInsideCON in SongsInsideCON){
+						// validate that the song is good to add in-game
+					}
 				}
 			}
 
@@ -264,6 +269,38 @@ namespace YARG.Song {
 
 			// all good - go ahead and build the cache info
 			byte[] bytes = File.ReadAllBytes(file.NotesFile);
+
+			string checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes)).Replace("-", "");
+
+			ulong tracks = MidPreparser.GetAvailableTracks(bytes);
+
+			file.CacheRoot = cache;
+			file.Checksum = checksum;
+			file.AvailableParts = tracks;
+
+			return ScanResult.Ok;
+		}
+
+		private static ScanResult ScanConSong(string cache, ConSongEntry file){
+			// Skip if the song doesn't have notes
+			if(file.MidiFileSize == 0){
+				return ScanResult.NoNotesFile;
+			}
+
+			// Skip if this is a "fake song" (tutorials, etc.)
+			if(file.IsFake){
+				return ScanResult.NotASong;
+			}
+
+			// Skip if the mogg is encrypted
+			if(file.MoggHeader != 0xA){
+				return ScanResult.EncryptedMogg;
+			}
+
+			// all good - go ahead and build the cache info
+
+			// construct the midi file
+			byte[] bytes = XboxCONInnerFileRetriever.RetrieveFile(file.Location, file.NotesFile, file.MidiFileSize, file.MidiFileMemBlockOffsets);
 
 			string checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes)).Replace("-", "");
 
