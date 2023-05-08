@@ -88,6 +88,14 @@ namespace YARG.PlayMode {
 			instances.Add(this);
 			this.scoreKeeper = scoreKeeper;
 
+			// solo sections
+			List<EventInfo> soloEvents = new();
+			foreach (var ev in Play.Instance.chart.events) {
+				if (ev.name == $"solo_{instrument}") {
+					soloEvents.Add(ev);
+				}
+			}	
+
 			// calculate and store base score
 			BaseScore = 0;
 			foreach (var note in chart) {
@@ -95,8 +103,15 @@ namespace YARG.PlayMode {
 				if (note.length > .2f) {
 					BaseScore += ptSusPerBeat * Util.Utils.InfoLengthInBeats(note, Play.Instance.chart.beats);
 				}
+				// add solo bonus
+				foreach (var ev in soloEvents) {
+					if (ev.time <= note.time && note.time <= ev.EndTime) {
+						BaseScore += 30;
+						goto leaveSoloLoop;
+					}
+				}
+				leaveSoloLoop:;
 			}
-
 			SetupScoreThreshold(instrument);
 		}
 
