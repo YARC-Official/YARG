@@ -46,6 +46,34 @@ namespace YARG.Song {
 			writer.Write(ExCONSong.ImagePath);
 		}
 
+		public static void WriteConData(BinaryWriter writer, ConSongEntry CONSong) {
+
+			// midi file size and memory offsets
+			writer.Write(CONSong.MidiFileSize);
+			writer.Write(CONSong.MidiFileMemBlockOffsets.Length);
+			for(int i = 0; i < CONSong.MidiFileMemBlockOffsets.Length; i++){
+				writer.Write(CONSong.MidiFileMemBlockOffsets[i]);
+			}
+
+			// mogg file size and memory offsets
+			writer.Write(CONSong.MoggFileSize);
+			writer.Write(CONSong.MoggFileMemBlockOffsets.Length);
+			for(int i = 0; i < CONSong.MoggFileMemBlockOffsets.Length; i++){
+				writer.Write(CONSong.MoggFileMemBlockOffsets[i]);
+			}
+
+			// image file size and memory offsets, if they exist
+			writer.Write(CONSong.ImageFileSize);
+			if(CONSong.ImageFileMemBlockOffsets == null) writer.Write(0);
+			else{
+				writer.Write(CONSong.ImageFileMemBlockOffsets.Length);
+				for(int i = 0; i < CONSong.ImageFileMemBlockOffsets.Length; i++){
+					writer.Write(CONSong.ImageFileMemBlockOffsets[i]);
+				}
+			}
+
+		}
+
 		public static void ReadExtractedConData(BinaryReader reader, ExtractedConSongEntry ExCONSong) {
 			ExCONSong.MoggPath = reader.ReadString();
 			ExCONSong.MoggHeader = reader.ReadInt32();
@@ -87,6 +115,36 @@ namespace YARG.Song {
 
 			// Note: ImagePath can be an empty string if the song has no image
 			ExCONSong.ImagePath = reader.ReadString();
+		}
+
+		public static void ReadConData(BinaryReader reader, ConSongEntry CONSong) {
+
+			// midi file size and memory offsets
+			CONSong.MidiFileSize = reader.ReadUInt32();
+			uint midiOffsetsLength = reader.ReadUInt32();
+			CONSong.MidiFileMemBlockOffsets = new uint[midiOffsetsLength];
+			for(int i = 0; i < midiOffsetsLength; i++){
+				CONSong.MidiFileMemBlockOffsets[i] = reader.ReadUInt32();
+			}
+
+			// mogg file size and memory offsets
+			CONSong.MoggFileSize = reader.ReadUInt32();
+			uint moggOffsetsLength = reader.ReadUInt32();
+			CONSong.MoggFileMemBlockOffsets = new uint[moggOffsetsLength];
+			for(int i = 0; i < moggOffsetsLength; i++){
+				CONSong.MoggFileMemBlockOffsets[i] = reader.ReadUInt32();
+			}
+
+			// image file size and memory offsets, if they exist
+			CONSong.ImageFileSize = reader.ReadUInt32();
+			uint imgOffsetsLength = reader.ReadUInt32();
+			if(imgOffsetsLength > 0){
+				CONSong.ImageFileMemBlockOffsets = new uint[imgOffsetsLength];
+				for(int i = 0; i < imgOffsetsLength; i++){
+					CONSong.ImageFileMemBlockOffsets[i] = reader.ReadUInt32();
+				}
+			}
+
 		}
 
 	}

@@ -11,7 +11,6 @@ using YARG.Song;
 namespace YARG.Serialization {
 	public static class XboxCONFileBrowser {
 		public static List<ConSongEntry> BrowseCON(string conName){
-			Debug.Log($"con name = {conName}");
 			var songList = new List<ConSongEntry>();
 			var dtaTree = new DataArray();
 

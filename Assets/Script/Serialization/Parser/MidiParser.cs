@@ -24,9 +24,10 @@ namespace YARG.Serialization.Parser {
 		public MidiFile midi;
 
 		public MidiParser(SongEntry songEntry, string[] files) : base(songEntry, files) {
-			if(songEntry is ConSongEntry conSong){
+			if(songEntry.SongType == SongType.RbCon){
+				var conSong = (ConSongEntry)songEntry;
 				using var stream = new MemoryStream(XboxCONInnerFileRetriever.RetrieveFile(
-					conSong.Location, conSong.NotesFile, conSong.MoggFileSize, conSong.MoggFileMemBlockOffsets
+					conSong.Location, conSong.NotesFile, conSong.MidiFileSize, conSong.MidiFileMemBlockOffsets
 				));
 				midi = MidiFile.Read(stream, new ReadingSettings() { TextEncoding = System.Text.Encoding.UTF8 });
 			}
