@@ -37,8 +37,8 @@ namespace YARG.PlayMode {
 		private int[] allowedChordGhosts = new int[] { -1, -1, -1, -1, -1 }; // -1 = not a chord; 0 = ghosted; 1 = ghost allowed
 
 		// https://www.reddit.com/r/Rockband/comments/51t3c0/exactly_how_many_points_are_sustains_worth/
-		private const double SUSTAIN_PTS_PER_BEAT = 12.0;
-		private const int PTS_PER_NOTE = 25;
+		private const double SUSTAIN_PTS_PER_BEAT = 25.0;
+		private const int PTS_PER_NOTE = 50;
 		private int noteCount = -1;
 		protected override void StartTrack() {
 			notePool.player = player;
