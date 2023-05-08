@@ -332,10 +332,14 @@ namespace YARG.PlayMode {
 			// Update lyrics
 			if (lyricIndex < chart.genericLyrics.Count) {
 				var lyric = chart.genericLyrics[lyricIndex];
-				if (lyricPhraseIndex >= lyric.lyric.Count) {
+
+				if (lyricPhraseIndex >= lyric.lyric.Count && lyric.EndTime < SongTime) {
+					// Clear phrase
+					GameUI.Instance.SetGenericLyric(string.Empty);
+
 					lyricPhraseIndex = 0;
 					lyricIndex++;
-				} else if (lyric.lyric[lyricPhraseIndex].time < SongTime) {
+				} else if (lyricPhraseIndex < lyric.lyric.Count && lyric.lyric[lyricPhraseIndex].time < SongTime) {
 					// Consolidate lyrics
 					string o = "<color=#ffb700>";
 					for (int i = 0; i < lyric.lyric.Count; i++) {

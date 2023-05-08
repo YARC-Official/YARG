@@ -17,9 +17,14 @@ namespace YARG {
 
 		public int Play(bool restart = false);
 
+		public void FadeIn();
+		public void FadeOut();
+		
 		public int Pause();
 
 		public double GetPosition();
+		
+		public void SetPosition(double position);
 		
 		public int AddChannel(IStemChannel channel);
 		public int AddMoggChannel(IStemChannel channel, IList<float[]> matrixes);

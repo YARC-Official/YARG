@@ -28,6 +28,7 @@ namespace YARG.PlayMode {
 		private Queue<List<NoteInfo>> expectedHits = new();
 		private List<List<NoteInfo>> allowedOverstrums = new();
 		private List<NoteInfo> heldNotes = new();
+		private List<NoteInfo> lastHitNote = null;
 		private float? latestInput = null;
 		private bool latestInputIsStrum = false;
 		private bool[] extendedSustain = new bool[] { false, false, false, false, false, false };
@@ -216,6 +217,7 @@ namespace YARG.PlayMode {
 				Combo = 0;
 				missedAnyNote = true;
 				StopAudio = true;
+				lastHitNote = null;
 				foreach (var hit in missedChord) {
 					hitChartIndex++;
 					notePool.MissNote(hit);
@@ -336,8 +338,8 @@ namespace YARG.PlayMode {
 					return;
 				}
 
-				// Allow 1 multi-hit if latest note was strummed (for charts like Zoidberg the Cowboy by schmutz06)
-				if (latestInputIsStrum) {
+				// Allow 1 multi-hit if last hit note is a strum (for charts like Zoidberg the Cowboy by schmutz06)
+				if (latestInputIsStrum && lastHitNote is not null && !lastHitNote[0].hopo && !lastHitNote[0].tap) {
 					latestInputIsStrum = false;
 				} else {
 					// Input is valid; clear it to avoid multi-hit later
@@ -354,7 +356,7 @@ namespace YARG.PlayMode {
 			strummedCurrentNote = strummedCurrentNote || strummed || strumLeniency > 0f;
 			strumLeniency = 0f;
 			StopAudio = false;
-
+			lastHitNote = chord;
 
 			// Solo stuff
 			if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime) {

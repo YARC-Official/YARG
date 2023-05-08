@@ -447,7 +447,6 @@ MonoBehaviour:
   previewRenderTexture: {fileID: 8400000, guid: 32b25ebb7bf8e494e834f6e13b668e21,
     type: 2}
   previewRawImage: {fileID: 436902740}
-  hasSongLibraryChanged: 0
 --- !u!1 &436902738
 GameObject:
   m_ObjectHideFlags: 0
@@ -2443,7 +2442,7 @@ RectTransform:
   m_Children:
   - {fileID: 3791790936875088609}
   m_Father: {fileID: 1694016463}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}

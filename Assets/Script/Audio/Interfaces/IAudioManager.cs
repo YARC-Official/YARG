@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using YARG.Serialization;
+using YARG.Song;
 
 namespace YARG {
 	public interface IAudioManager {
@@ -30,8 +31,13 @@ namespace YARG {
 		public void LoadMogg(byte[] moggArray, Dictionary<SongStem, int[]> stemMaps, float[,] matrixRatios, bool isSpeedUp);
 		public void UnloadSong();
 
+		public void LoadPreviewAudio(SongEntry song);
+		
 		public void Play();
 		public void Pause();
+		
+		public void FadeIn();
+		public void FadeOut();
 
 		public void PlaySoundEffect(SfxSample sample);
 
