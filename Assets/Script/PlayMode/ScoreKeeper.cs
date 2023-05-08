@@ -51,12 +51,12 @@ namespace YARG.PlayMode {
 
 			// linear
 			double multiplier = math.clamp((ratio - 0.6) / 0.4, 0, 1);
-			double ptsEarned = 100 * notesHit * multiplier;
+			double ptsEarned = 200 * notesHit * multiplier;
 
 			// +5% bonus points
 			// TODO: limit to FC? decide to keep at all?
-			if (ratio >= 1)
-				ptsEarned = 1.05 * ptsEarned;
+			// if (ratio >= 1)
+			// 	ptsEarned = 1.05 * ptsEarned;
 
 			Add(ptsEarned);
 			return ptsEarned;
