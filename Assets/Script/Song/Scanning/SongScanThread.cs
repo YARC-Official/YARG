@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using UnityEngine;
 using YARG.Serialization;
@@ -157,6 +158,17 @@ namespace YARG.Song {
 				}
 
 				return;
+			}
+
+			// iterate through the files in this current directory
+			foreach(var file in Directory.EnumerateFiles(subDir)){
+				// for each file found, read first 4 bytes and check for "CON " or "LIVE"
+				using var fs = new FileStream(file, FileMode.Open, FileAccess.Read);
+				using var br = new BinaryReader(fs);
+				string fHeader = Encoding.UTF8.GetString(br.ReadBytes(4));
+				if(fHeader == "CON " || fHeader == "LIVE"){
+					Debug.Log($"found STFS file {file}");
+				}
 			}
 
 			string[] subdirectories = Directory.GetDirectories(subDir);

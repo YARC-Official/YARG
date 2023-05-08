@@ -228,6 +228,9 @@ namespace YARG.Song {
 								case ScanResult.NoNotesFile:
 									await writer.WriteLineAsync("These songs contain no valid notes file! (notes.chart/notes.mid)");
 									break;
+								case ScanResult.EncryptedMogg:
+									await writer.WriteLineAsync("These songs contain encrypted moggs!");
+									break;
 							}
 							lastResult = error.Result;
 						}
