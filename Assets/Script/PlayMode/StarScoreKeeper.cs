@@ -103,10 +103,12 @@ namespace YARG.PlayMode {
 				if (note.length > .2f) {
 					BaseScore += ptSusPerBeat * Util.Utils.InfoLengthInBeats(note, Play.Instance.chart.beats);
 				}
+
 				// add solo bonus
 				foreach (var ev in soloEvents) {
-					if (ev.time <= note.time && note.time <= ev.EndTime) {
-						BaseScore += 30;
+					if (ev.time <= note.time && note.time < ev.EndTime) {
+						// solo notes get double score, effectively
+						BaseScore += ptPerNote;
 						goto leaveSoloLoop;
 					}
 				}
@@ -115,11 +117,12 @@ namespace YARG.PlayMode {
 			SetupScoreThreshold(instrument);
 		}
 
-		public StarScoreKeeper(ScoreKeeper scoreKeeper, string instrument, int noteCount, int ptPerNote) {
+		public StarScoreKeeper(ScoreKeeper scoreKeeper, string instrument, int noteCount, int ptPerNote, int soloNotes = 0) {
 			instances.Add(this);
 			this.scoreKeeper = scoreKeeper;
 
-			BaseScore = noteCount * ptPerNote;
+			// solo notes get double score, effectively
+			BaseScore = (noteCount + soloNotes) * ptPerNote;
 
 			SetupScoreThreshold(instrument);
 		}
