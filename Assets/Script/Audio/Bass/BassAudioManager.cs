@@ -209,6 +209,7 @@ namespace YARG {
 			UnloadSong();
 			
 			int moggStreamHandle = Bass.CreateStream(moggArray, 0, moggArray.Length, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
+
 			if (moggStreamHandle == 0) {
 				Debug.LogError($"Failed to load mogg file or position: {Bass.LastError}");
 				return;
