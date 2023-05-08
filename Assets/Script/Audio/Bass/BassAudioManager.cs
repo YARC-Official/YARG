@@ -204,10 +204,18 @@ namespace YARG {
 			IsAudioLoaded = true;
 		}
 		
-		public void LoadMogg(byte[] moggArray, 
-			Dictionary<SongStem, int[]> stemMaps, float[,] matrixRatios, bool isSpeedUp) {
+		public void LoadMogg(ExtractedConSongEntry exConSong, bool isSpeedUp) {
 			Debug.Log("Loading mogg song");
 			UnloadSong();
+
+			byte[] moggArray;
+			
+			if (exConSong is ConSongEntry conSong) {
+				moggArray = XboxCONInnerFileRetriever.RetrieveFile(conSong.Location, conSong.MoggPath,
+					conSong.MoggFileSize, conSong.MoggFileMemBlockOffsets)[conSong.MoggAddressAudioOffset..];
+			} else {
+				moggArray = File.ReadAllBytes(exConSong.MoggPath)[exConSong.MoggAddressAudioOffset..];
+			}
 			
 			int moggStreamHandle = Bass.CreateStream(moggArray, 0, moggArray.Length, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
 			if (moggStreamHandle == 0) {
@@ -215,7 +223,7 @@ namespace YARG {
 				return;
 			}
 
-			_mixer = new BassStemMixer(this, moggStreamHandle, stemMaps, matrixRatios);
+			_mixer = new BassStemMixer(this, moggStreamHandle, exConSong.StemMaps, exConSong.MatrixRatios);
 			if (!_mixer.Create()) {
 				throw new Exception($"Failed to create mixer: {Bass.LastError}");
 			}
@@ -244,7 +252,7 @@ namespace YARG {
 
 		public void LoadPreviewAudio(SongEntry song) {
 			if (song is ExtractedConSongEntry conSong) {
-				LoadMogg(conSong.MoggInfo, false);
+				LoadMogg(conSong, false);
 			} else {
 				LoadSong(AudioHelpers.GetSupportedStems(song.Location), false);
 			}

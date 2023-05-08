@@ -27,8 +27,7 @@ namespace YARG {
 		public void LoadSfx();
 
 		public void LoadSong(ICollection<string> stems, bool isSpeedUp);
-		// public void LoadMogg(XboxMoggData moggData, bool isSpeedUp);
-		public void LoadMogg(byte[] moggArray, Dictionary<SongStem, int[]> stemMaps, float[,] matrixRatios, bool isSpeedUp);
+		public void LoadMogg(ExtractedConSongEntry exConSong, bool isSpeedUp);
 		public void UnloadSong();
 
 		public void LoadPreviewAudio(SongEntry song);
