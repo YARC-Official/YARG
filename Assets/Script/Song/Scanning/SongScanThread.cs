@@ -168,6 +168,7 @@ namespace YARG.Song {
 				string fHeader = Encoding.UTF8.GetString(br.ReadBytes(4));
 				if(fHeader == "CON " || fHeader == "LIVE"){
 					Debug.Log($"found STFS file {file}");
+					var SongsInsideCON = XboxCONFileBrowser.BrowseCON(file);
 				}
 			}
 
