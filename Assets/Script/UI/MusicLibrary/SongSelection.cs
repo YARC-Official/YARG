@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using FuzzySharp;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
-using YARG.Data;
 using YARG.Input;
 using YARG.Song;
+using YARG.UI.MusicLibrary.ViewTypes;
 using Random = UnityEngine.Random;
 
 namespace YARG.UI.MusicLibrary {
@@ -24,11 +24,6 @@ namespace YARG.UI.MusicLibrary {
 		private const float INPUT_REPEAT_TIME = 0.035f;
 		private const float INPUT_REPEAT_COOLDOWN = 0.5f;
 
-		private class SongOrHeader {
-			public SongEntry song;
-			public (string, string) header;
-		}
-
 		[SerializeField]
 		private GameObject songViewPrefab;
 
@@ -37,19 +32,36 @@ namespace YARG.UI.MusicLibrary {
 		[SerializeField]
 		private Transform songListContent;
 		[SerializeField]
-		private SelectedSongView selectedSongView;
-		[SerializeField]
 		private Sidebar sidebar;
 		[SerializeField]
 		private GameObject noSongsText;
 		[SerializeField]
 		private Scrollbar scrollbar;
 
-		private List<SongOrHeader> songs;
-		private List<SongEntry> recommendedSongs;
+		private List<ViewType> _songs;
+		private List<SongEntry> _recommendedSongs;
 
-		private List<SongView> songViewsBefore = new();
-		private List<SongView> songViewsAfter = new();
+		public IReadOnlyList<ViewType> Songs => _songs;
+
+		private int _selectedIndex;
+		public int SelectedIndex {
+			get => _selectedIndex;
+			private set {
+				_selectedIndex = value;
+
+				// Wrap
+				if (_selectedIndex < 0) {
+					_selectedIndex = _songs.Count - _selectedIndex - 2;
+				} else if (_selectedIndex >= _songs.Count) {
+					_selectedIndex -= _songs.Count;
+				}
+
+				UpdateScrollbar();
+				UpdateSongViews();
+			}
+		}
+
+		private List<SongView> songViews = new();
 
 		// Handles keyboard navigation uniformly with everything else
 		private FiveFretInputStrategy keyboardHandler;
@@ -58,29 +70,18 @@ namespace YARG.UI.MusicLibrary {
 		private bool directionHeld = false;
 		private float inputTimer = 0f;
 
-		// Will be set in UpdateSearch
-		private int selectedSongIndex;
-
-		public SongEntry SelectedSong => songs[selectedSongIndex].song;
-
 		private void Awake() {
 			refreshFlag = true;
 			Instance = this;
 
-			// Create before (insert backwards)
-			for (int i = 0; i < SONG_VIEW_EXTRA; i++) {
+			// Create all of the song views
+			for (int i = 0; i < SONG_VIEW_EXTRA * 2 + 1; i++) {
 				var gameObject = Instantiate(songViewPrefab, songListContent);
-				gameObject.transform.SetAsFirstSibling();
 
-				songViewsBefore.Add(gameObject.GetComponent<SongView>());
-			}
-
-			// Create after
-			for (int i = 0; i < SONG_VIEW_EXTRA; i++) {
-				var gameObject = Instantiate(songViewPrefab, songListContent);
-				gameObject.transform.SetAsLastSibling(); // Good measure
-
-				songViewsAfter.Add(gameObject.GetComponent<SongView>());
+				// Init and add
+				var songView = gameObject.GetComponent<SongView>();
+				songView.Init(i - SONG_VIEW_EXTRA);
+				songViews.Add(songView);
 			}
 
 			// Create keyboard handler if no players are using it
@@ -111,8 +112,8 @@ namespace YARG.UI.MusicLibrary {
 			}
 
 			if (refreshFlag) {
-				songs = null;
-				recommendedSongs = null;
+				_songs = null;
+				_recommendedSongs = null;
 
 				// Get songs
 				UpdateSearch();
@@ -132,67 +133,11 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		private void UpdateSongViews() {
-			noSongsText.SetActive(songs.Count <= 0);
-			selectedSongView.gameObject.SetActive(songs.Count >= 1);
-
-			// Skip rest if no songs
-			if (songs.Count <= 0) {
-				// Hide all song views
-				for (int i = 0; i < SONG_VIEW_EXTRA; i++) {
-					songViewsBefore[i].GetComponent<CanvasGroup>().alpha = 0f;
-					songViewsAfter[i].GetComponent<CanvasGroup>().alpha = 0f;
-				}
-
-				return;
+			foreach (var songView in songViews) {
+				songView.UpdateView();
 			}
 
-			// Update before
-			for (int i = 0; i < SONG_VIEW_EXTRA; i++) {
-				// Song views are inserted backwards, so this works.
-				int realIndex = selectedSongIndex - i - 1;
-
-				if (realIndex < 0) {
-					songViewsBefore[i].GetComponent<CanvasGroup>().alpha = 0f;
-				} else {
-					songViewsBefore[i].GetComponent<CanvasGroup>().alpha = 1f;
-
-					var songOrHeader = songs[realIndex];
-					if (songOrHeader.song != null) {
-						songViewsBefore[i].GetComponent<SongView>().UpdateSongView(songOrHeader.song);
-					} else {
-						songViewsBefore[i].GetComponent<SongView>().UpdateSongViewAsHeader(
-							songOrHeader.header.Item1, songOrHeader.header.Item2);
-					}
-				}
-			}
-
-			// Update selected
-			if (songs.Count > 0) {
-				selectedSongView.gameObject.SetActive(true);
-				selectedSongView.UpdateSongView(songs[selectedSongIndex].song);
-				sidebar.UpdateSidebar();
-			} else {
-				selectedSongView.gameObject.SetActive(false);
-			}
-
-			// Update after
-			for (int i = 0; i < SONG_VIEW_EXTRA; i++) {
-				int realIndex = selectedSongIndex + i + 1;
-
-				if (realIndex >= songs.Count) {
-					songViewsAfter[i].GetComponent<CanvasGroup>().alpha = 0f;
-				} else {
-					songViewsAfter[i].GetComponent<CanvasGroup>().alpha = 1f;
-
-					var songOrHeader = songs[realIndex];
-					if (songOrHeader.song != null) {
-						songViewsAfter[i].GetComponent<SongView>().UpdateSongView(songOrHeader.song);
-					} else {
-						songViewsAfter[i].GetComponent<SongView>().UpdateSongViewAsHeader(
-							songOrHeader.header.Item1, songOrHeader.header.Item2);
-					}
-				}
-			}
+			sidebar.UpdateSidebar().Forget();
 		}
 
 		private void Update() {
@@ -201,8 +146,8 @@ namespace YARG.UI.MusicLibrary {
 			inputTimer -= Time.deltaTime;
 			if (inputTimer <= 0f && directionHeld) {
 				switch (direction) {
-					case NavigationType.UP: MoveView(-1); break;
-					case NavigationType.DOWN: MoveView(1); break;
+					case NavigationType.UP: SelectedIndex--; break;
+					case NavigationType.DOWN: SelectedIndex++; break;
 				}
 
 				inputTimer = INPUT_REPEAT_TIME;
@@ -212,9 +157,9 @@ namespace YARG.UI.MusicLibrary {
 
 			var scroll = Mouse.current.scroll.ReadValue().y;
 			if (scroll > 0f) {
-				MoveView(-1);
+				SelectedIndex--;
 			} else if (scroll < 0f) {
-				MoveView(1);
+				SelectedIndex++;
 			}
 		}
 
@@ -230,71 +175,30 @@ namespace YARG.UI.MusicLibrary {
 			}
 
 			switch (navigationType) {
-				case NavigationType.UP: MoveView(-1); break;
-				case NavigationType.DOWN: MoveView(1); break;
-				case NavigationType.PRIMARY: selectedSongView.PlaySong(); break;
+				case NavigationType.UP: SelectedIndex--; break;
+				case NavigationType.DOWN: SelectedIndex++; break;
+				// case NavigationType.PRIMARY: selectedSongView.PlaySong(); break;
 				case NavigationType.SECONDARY: Back(); break;
-				case NavigationType.TERTIARY:
-					if (songs.Count > 0) {
-						searchField.text = $"artist:{songs[selectedSongIndex].song.Artist}";
-					}
-					break;
+					// case NavigationType.TERTIARY:
+					// 	if (songs.Count > 0) {
+					// 		searchField.text = $"artist:{songs[selectedSongIndex].song.Artist}";
+					// 	}
+					// 	break;
 			}
 		}
 
 		public void OnScrollBarChange() {
-			int index = Mathf.FloorToInt(scrollbar.value * (songs.Count - 1));
-			int difference = index - selectedSongIndex;
-
-			if (index == 0) {
-				return;
-			}
-
-			MoveView(difference, false);
+			SelectedIndex = Mathf.FloorToInt(scrollbar.value * (_songs.Count - 1));
 		}
 
 		private void UpdateScrollbar() {
-			scrollbar.SetValueWithoutNotify((float) selectedSongIndex / songs.Count);
-		}
-
-		private void MoveView(int amount, bool updateScrollbar = true) {
-			if (songs.Count <= 0) {
-				return;
-			}
-
-			selectedSongIndex += amount;
-
-			// Wrap
-			if (selectedSongIndex < 0) {
-				selectedSongIndex = songs.Count - 1;
-			} else if (selectedSongIndex >= songs.Count) {
-				selectedSongIndex = 0;
-			}
-
-			// Skip over headers
-			if (songs[selectedSongIndex].song == null) {
-				selectedSongIndex += amount < 0 ? -1 : 1;
-
-				// Wrap again (just in case after skipping)
-				if (selectedSongIndex < 0) {
-					selectedSongIndex = songs.Count - 1;
-				} else if (selectedSongIndex >= songs.Count) {
-					selectedSongIndex = 0;
-				}
-			}
-
-			// Update scroll bar
-			if (updateScrollbar) {
-				UpdateScrollbar();
-			}
-
-			UpdateSongViews();
+			scrollbar.SetValueWithoutNotify((float) SelectedIndex / _songs.Count);
 		}
 
 		public void UpdateSearch() {
 			// Get recommended songs
-			if (recommendedSongs == null) {
-				recommendedSongs = new();
+			if (_recommendedSongs == null) {
+				_recommendedSongs = new();
 
 				if (SongContainer.Songs.Count > 0) {
 					FillRecommendedSongs();
@@ -303,21 +207,20 @@ namespace YARG.UI.MusicLibrary {
 
 			if (string.IsNullOrEmpty(searchField.text)) {
 				// Add all songs
-				songs = SongContainer.Songs
+				_songs = SongContainer.Songs
 					.OrderBy(song => song.NameNoParenthesis)
-					.Select(i => new SongOrHeader { song = i })
+					.Select(i => new SongViewType(i))
+					.Cast<ViewType>()
 					.ToList();
-				songs.Insert(0, new SongOrHeader {
-					header = ($"ALL SONGS ", $"<#00B6F5><b>{songs.Count}</b> <#006488>{(songs.Count == 1 ? "SONG" : "SONGS")}")
-				});
+				_songs.Insert(0, new CategoryViewType());
+				//header = ($"ALL SONGS ", $"<#00B6F5><b>{songs.Count}</b> <#006488>{(songs.Count == 1 ? "SONG" : "SONGS")}")
 
 				// Add recommended songs
-				foreach (var song in recommendedSongs) {
-					songs.Insert(0, new SongOrHeader { song = song });
+				foreach (var song in _recommendedSongs) {
+					_songs.Insert(0, new SongViewType(song));
 				}
-				songs.Insert(0, new SongOrHeader {
-					header = (recommendedSongs.Count == 1 ? "RECOMMENDED SONG" : "RECOMMENDED SONGS", $"<#00B6F5><b>{recommendedSongs.Count}</b> <#006488>{(recommendedSongs.Count == 1 ? "SONG" : "SONGS")}")
-				});
+				_songs.Insert(0, new CategoryViewType());
+				//header = (recommendedSongs.Count == 1 ? "RECOMMENDED SONG" : "RECOMMENDED SONGS", $"<#00B6F5><b>{recommendedSongs.Count}</b> <#006488>{(recommendedSongs.Count == 1 ? "SONG" : "SONGS")}")
 			} else {
 				// Split up args
 				var split = searchField.text.Split(';');
@@ -373,26 +276,25 @@ namespace YARG.UI.MusicLibrary {
 				}
 
 				// Add header
-				songs = songsOut.Select(i => new SongOrHeader { song = i }).ToList();
-				songs.Insert(0, new SongOrHeader {
-					header = (songs.Count == 1 ? "SEARCH RESULT" : "SEARCH RESULTS", $"<#00B6F5><b>{songs.Count}</b> <#006488>{(songs.Count == 1 ? "SONG" : "SONGS")}")
-				});
+				_songs = songsOut.Select(i => new SongViewType(i)).Cast<ViewType>().ToList();
+				_songs.Insert(0, new CategoryViewType());
+				//header = (songs.Count == 1 ? "SEARCH RESULT" : "SEARCH RESULTS", $"<#00B6F5><b>{songs.Count}</b> <#006488>{(songs.Count == 1 ? "SONG" : "SONGS")}")
 			}
 
 			// Count songs
 			int songCount = 0;
-			foreach (var songOrHeader in songs) {
-				if (songOrHeader.song != null) {
+			foreach (var viewType in _songs) {
+				if (viewType is SongViewType) {
 					songCount++;
 				}
 			}
 
 			// If there are no songs, remove the headers
 			if (songCount <= 0) {
-				songs.Clear();
+				_songs.Clear();
 			}
 
-			selectedSongIndex = 1;
+			SelectedIndex = 1;
 			UpdateSongViews();
 			UpdateScrollbar();
 		}
@@ -423,11 +325,11 @@ namespace YARG.UI.MusicLibrary {
 				for (int i = 0; i < 2; i++) {
 					for (int t = 0; t < 10; t++) {
 						int n = Random.Range(0, mostPlayed.Count);
-						if (recommendedSongs.Contains(mostPlayed[n])) {
+						if (_recommendedSongs.Contains(mostPlayed[n])) {
 							continue;
 						}
 
-						recommendedSongs.Add(mostPlayed[n]);
+						_recommendedSongs.Add(mostPlayed[n]);
 						break;
 					}
 				}
@@ -453,12 +355,12 @@ namespace YARG.UI.MusicLibrary {
 						if (mostPlayed.Contains(sameArtistSongs[n])) {
 							continue;
 						}
-						if (recommendedSongs.Contains(sameArtistSongs[n])) {
+						if (_recommendedSongs.Contains(sameArtistSongs[n])) {
 							continue;
 						}
 
 						// Add
-						recommendedSongs.Add(sameArtistSongs[n]);
+						_recommendedSongs.Add(sameArtistSongs[n]);
 						break;
 					}
 				}
@@ -468,16 +370,16 @@ namespace YARG.UI.MusicLibrary {
 			var songsAsArray = SongContainer.Songs;
 			for (int t = 0; t < 10; t++) {
 				int n = Random.Range(0, songsAsArray.Count);
-				if (recommendedSongs.Contains(songsAsArray[n])) {
+				if (_recommendedSongs.Contains(songsAsArray[n])) {
 					continue;
 				}
 
-				recommendedSongs.Add(songsAsArray[n]);
+				_recommendedSongs.Add(songsAsArray[n]);
 				break;
 			}
 
 			// Reverse list because we add it backwards
-			recommendedSongs.Reverse();
+			_recommendedSongs.Reverse();
 		}
 
 		public void Back() {
