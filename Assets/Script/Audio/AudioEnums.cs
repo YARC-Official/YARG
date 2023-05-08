@@ -30,6 +30,17 @@ namespace YARG {
 		StarGold
 	}
 
+	public enum DrumSfx {
+		Snare,
+		Tom1,
+		Tom2,
+		Tom3,
+		Kick,
+		Hihat,
+		Ride,
+		Crash
+	}
+
 	public enum DSPType {
 		Gain,
 	}
