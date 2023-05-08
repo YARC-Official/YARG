@@ -203,15 +203,13 @@ namespace YARG {
 			IsAudioLoaded = true;
 		}
 		
-		public void LoadMogg(string moggPath, int offset, long audioLength, 
+		public void LoadMogg(byte[] moggArray, 
 			Dictionary<SongStem, int[]> stemMaps, float[,] matrixRatios, bool isSpeedUp) {
 			Debug.Log("Loading mogg song");
 			UnloadSong();
 			
-			byte[] moggArray = File.ReadAllBytes(moggPath)[offset..];
-			
-			//int moggStreamHandle = Bass.CreateStream(moggArray, 0, moggArray.Length, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
-			int moggStreamHandle = Bass.CreateStream(moggArray, 0, audioLength, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
+			int moggStreamHandle = Bass.CreateStream(moggArray, 0, moggArray.Length, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
+
 			if (moggStreamHandle == 0) {
 				Debug.LogError($"Failed to load mogg file or position: {Bass.LastError}");
 				return;

@@ -9,6 +9,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
 using YARG.Chart;
 using YARG.Data;
+using YARG.Serialization;
 using YARG.Serialization.Parser;
 using YARG.Settings;
 using YARG.Song;
@@ -113,14 +114,21 @@ namespace YARG.PlayMode {
 			// Determine if speed is not 1
 			bool isSpeedUp = Math.Abs(speed - 1) > float.Epsilon;
 
-			// Load MOGG if RB_CON, otherwise load stems
+			// Load MOGG if CON, otherwise load stems
 			if (song is ExtractedConSongEntry rawConSongEntry) {
 				Debug.Log(rawConSongEntry.MatrixRatios.GetLength(0));
 
-				GameManager.AudioManager.LoadMogg(rawConSongEntry.MoggPath, rawConSongEntry.MoggAddressAudioOffset, 
-					rawConSongEntry.MoggAudioLength, rawConSongEntry.StemMaps, rawConSongEntry.MatrixRatios,
-					isSpeedUp);
-			} else {
+				GameManager.AudioManager.LoadMogg(File.ReadAllBytes(rawConSongEntry.MoggPath)[rawConSongEntry.MoggAddressAudioOffset..], 
+					rawConSongEntry.StemMaps, rawConSongEntry.MatrixRatios, isSpeedUp);
+			}
+			else if(song is ConSongEntry conSongEntry){
+				Debug.Log(conSongEntry.MatrixRatios.GetLength(0));
+
+				GameManager.AudioManager.LoadMogg(XboxCONInnerFileRetriever.RetrieveFile(conSongEntry.Location, conSongEntry.MoggPath, 
+					conSongEntry.MoggFileSize, conSongEntry.MoggFileMemBlockOffsets)[conSongEntry.MoggAddressAudioOffset..], 
+					conSongEntry.StemMaps, conSongEntry.MatrixRatios, isSpeedUp);
+			}
+			else {
 				var stems = AudioHelpers.GetSupportedStems(song.Location);
 
 				GameManager.AudioManager.LoadSong(stems, isSpeedUp);
