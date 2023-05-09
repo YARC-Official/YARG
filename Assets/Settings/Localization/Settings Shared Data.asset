@@ -211,6 +211,10 @@ MonoBehaviour:
     m_Key: ResetCameraSettings
     m_Metadata:
       m_Items: []
+  - m_Id: 16296015277178880
+    m_Key: FpsStats
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
