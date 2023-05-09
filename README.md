@@ -66,7 +66,7 @@ Windows:
 3. Clone the repository. If you don't know how to do this:
 	1. Download [Git](https://git-scm.com/downloads). Be sure it is added to system path.
 	2. Open the command prompt in the directory you want to store the repository.
-	3. Type in `git clone https://github.com/EliteAsian123/YARG.git`.
+	3. Type in `git clone https://github.com/YARC-Official/YARG`.
 4. Install Unity Hub and Unity `2021.3.21f1` (LTS).
 	1. Download and install [Unity Hub](https://unity.com/download).
 	2. Sign-in/create an account with a personal license (free).
