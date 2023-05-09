@@ -16,6 +16,7 @@ namespace YARG.Settings {
 			public IntSetting    CalibrationNumber          { get; private set; } = new(-120);
 			
 			public ToggleSetting VSync                      { get; private set; } = new(true,      VSyncCallback);
+			public ToggleSetting FpsStats                 	{ get; private set; } = new(false,    FpsCouterCallback);
 			public IntSetting    FpsCap                     { get; private set; } = new(60, 1,     onChange: FpsCapCallback);
 			
 			public ToggleSetting LowQuality                 { get; private set; } = new(false,     LowQualityCallback);
@@ -77,6 +78,13 @@ namespace YARG.Settings {
 
 			private static void VSyncCallback(bool value) {
 				QualitySettings.vSyncCount = value ? 1 : 0;
+			}
+
+			private static void FpsCouterCallback(bool value) {
+				// disable script
+				FpsCounter.Instance.enabled = value;
+				// UpdateSettings()
+				FpsCounter.Instance.UpdateSettings(value);
 			}
 
 			private static void FpsCapCallback(int value) {

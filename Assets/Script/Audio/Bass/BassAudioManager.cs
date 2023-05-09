@@ -4,6 +4,7 @@ using System.IO;
 using ManagedBass;
 using UnityEngine;
 using YARG.Serialization;
+using YARG.Song;
 using Debug = UnityEngine.Debug;
 
 namespace YARG {
@@ -203,24 +204,25 @@ namespace YARG {
 			IsAudioLoaded = true;
 		}
 		
-		public void LoadMogg(XboxMoggData moggData, bool isSpeedUp) {
+		public void LoadMogg(ExtractedConSongEntry exConSong, bool isSpeedUp) {
 			Debug.Log("Loading mogg song");
 			UnloadSong();
+
+			byte[] moggArray;
+			if (exConSong is ConSongEntry conSong) {
+				moggArray = XboxCONInnerFileRetriever.RetrieveFile(conSong.Location, conSong.MoggPath,
+					conSong.MoggFileSize, conSong.MoggFileMemBlockOffsets)[conSong.MoggAddressAudioOffset..];
+			} else {
+				moggArray = File.ReadAllBytes(exConSong.MoggPath)[exConSong.MoggAddressAudioOffset..];
+			}
 			
-			int moggOffset = moggData.MoggAddressAudioOffset;
-			long moggLength = moggData.MoggAudioLength;
-			
-			//byte[] moggArray = File.ReadAllBytes(moggData.MoggPath)[moggOffset..];
-			byte[] moggArray = moggData.GetOggDataFromMogg();
-			
-			//int moggStreamHandle = Bass.CreateStream(moggArray, 0, moggArray.Length, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
-			int moggStreamHandle = Bass.CreateStream(moggArray, 0, moggLength, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
+			int moggStreamHandle = Bass.CreateStream(moggArray, 0, moggArray.Length, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
 			if (moggStreamHandle == 0) {
 				Debug.LogError($"Failed to load mogg file or position: {Bass.LastError}");
 				return;
 			}
 
-			_mixer = new BassStemMixer(this, moggStreamHandle, moggData);
+			_mixer = new BassStemMixer(this, moggStreamHandle, exConSong.StemMaps, exConSong.MatrixRatios);
 			if (!_mixer.Create()) {
 				throw new Exception($"Failed to create mixer: {Bass.LastError}");
 			}
@@ -247,14 +249,30 @@ namespace YARG {
 			_mixer = null;
 		}
 
-		public void Play() {
+		public void LoadPreviewAudio(SongEntry song) {
+			if (song is ExtractedConSongEntry conSong) {
+				LoadMogg(conSong, false);
+			} else {
+				LoadSong(AudioHelpers.GetSupportedStems(song.Location), false);
+			}
+			
+			SetPosition(song.PreviewStartTimeSpan.TotalSeconds);
+		}
+
+		public void Play() => Play(false);
+		
+		private void Play(bool fadeIn) {
 			// Don't try to play if there's no audio loaded or if it's already playing
 			if (!IsAudioLoaded || IsPlaying) {
 				return;
 			}
 
 			foreach (var channel in _mixer.Channels.Values) {
-				channel.SetVolume(channel.Volume);
+				if (fadeIn) {
+					channel.SetVolume(0);
+				} else {
+					channel.SetVolume(channel.Volume);
+				}
 			}
 			if (_mixer.Play() != 0) {
 				Debug.Log($"Play error: {Bass.LastError}");
@@ -273,6 +291,19 @@ namespace YARG {
 			}
 			
 			IsPlaying = _mixer.IsPlaying;
+		}
+
+		public void FadeIn() {
+			Play(true);
+			if (IsPlaying) {
+				_mixer?.FadeIn();	
+			}
+		}
+
+		public void FadeOut() {
+			if (IsPlaying) {
+				_mixer?.FadeOut();
+			}
 		}
 
 		public void PlaySoundEffect(SfxSample sample) {
@@ -311,9 +342,7 @@ namespace YARG {
 			};
 		}
 
-		public void ApplyReverb(SongStem stem, bool reverb) {
-			_mixer?.GetChannel(stem)?.SetReverb(reverb);
-		}
+		public void ApplyReverb(SongStem stem, bool reverb) => _mixer?.GetChannel(stem)?.SetReverb(reverb);
 
 		public double GetPosition() {
 			if (_mixer is null)
@@ -322,9 +351,7 @@ namespace YARG {
 			return _mixer.GetPosition();
 		}
 
-		public void SetPosition(double position) {
-			throw new NotImplementedException();
-		}
+		public void SetPosition(double position) => _mixer?.SetPosition(position);
 
 		private void OnApplicationQuit() {
 			Unload();
