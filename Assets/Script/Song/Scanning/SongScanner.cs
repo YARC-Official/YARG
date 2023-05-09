@@ -196,27 +196,27 @@ namespace YARG.Song {
 		}
 
 		private async UniTask WriteBadSongs() {
-			#if UNITY_EDITOR
+#if UNITY_EDITOR
 			string badSongsPath = Path.Combine(GameManager.PersistentDataPath, "badsongs.txt");
-			#else
+#else
 			string badSongsPath = Path.Combine(GameManager.ExecutablePath, "badsongs.txt");
-			#endif
-			
+#endif
+
 			await using var stream = new FileStream(badSongsPath, FileMode.Create, FileAccess.Write);
 			await using var writer = new StreamWriter(stream);
-			
+
 			foreach (var thread in _scanThreads) {
-				foreach(var folder in thread.SongErrors) {
+				foreach (var folder in thread.SongErrors) {
 					if (folder.Value.Count == 0) {
 						continue;
 					}
-					
+
 					await writer.WriteLineAsync(folder.Key);
 					folder.Value.Sort((x, y) => x.Result.CompareTo(y.Result));
 
 					var lastResult = ScanResult.Ok;
 					foreach (var error in folder.Value) {
-						if(error.Result != lastResult) {
+						if (error.Result != lastResult) {
 							switch (error.Result) {
 								case ScanResult.InvalidDirectory:
 									await writer.WriteLineAsync(
