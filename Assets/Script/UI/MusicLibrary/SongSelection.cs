@@ -212,15 +212,19 @@ namespace YARG.UI.MusicLibrary {
 					.Select(i => new SongViewType(i))
 					.Cast<ViewType>()
 					.ToList();
-				_songs.Insert(0, new CategoryViewType());
-				//header = ($"ALL SONGS ", $"<#00B6F5><b>{songs.Count}</b> <#006488>{(songs.Count == 1 ? "SONG" : "SONGS")}")
+				_songs.Insert(0, new CategoryViewType(
+					"ALL SONGS",
+					$"<#00B6F5><b>{_songs.Count}</b> <#006488>{(_songs.Count == 1 ? "SONG" : "SONGS")}"
+				));
 
 				// Add recommended songs
 				foreach (var song in _recommendedSongs) {
 					_songs.Insert(0, new SongViewType(song));
 				}
-				_songs.Insert(0, new CategoryViewType());
-				//header = (recommendedSongs.Count == 1 ? "RECOMMENDED SONG" : "RECOMMENDED SONGS", $"<#00B6F5><b>{recommendedSongs.Count}</b> <#006488>{(recommendedSongs.Count == 1 ? "SONG" : "SONGS")}")
+				_songs.Insert(0, new CategoryViewType(
+					_recommendedSongs.Count == 1 ? "RECOMMENDED SONG" : "RECOMMENDED SONGS",
+					$"<#00B6F5><b>{_recommendedSongs.Count}</b> <#006488>{(_recommendedSongs.Count == 1 ? "SONG" : "SONGS")}")
+				);
 			} else {
 				// Split up args
 				var split = searchField.text.Split(';');
@@ -277,8 +281,10 @@ namespace YARG.UI.MusicLibrary {
 
 				// Add header
 				_songs = songsOut.Select(i => new SongViewType(i)).Cast<ViewType>().ToList();
-				_songs.Insert(0, new CategoryViewType());
-				//header = (songs.Count == 1 ? "SEARCH RESULT" : "SEARCH RESULTS", $"<#00B6F5><b>{songs.Count}</b> <#006488>{(songs.Count == 1 ? "SONG" : "SONGS")}")
+				_songs.Insert(0, new CategoryViewType(
+					"SEARCH RESULTS",
+					$"<#00B6F5><b>{_songs.Count}</b> <#006488>{(_songs.Count == 1 ? "SONG" : "SONGS")}"
+				));
 			}
 
 			// Count songs
