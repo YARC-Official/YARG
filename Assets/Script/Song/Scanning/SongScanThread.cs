@@ -181,8 +181,6 @@ namespace YARG.Song {
 
 			// Iterate through the files in this current directory to look for CON files
 			foreach (var file in Directory.EnumerateFiles(subDir)) {
-				Debug.Log($"Scanning file {file}");
-
 				// for each file found, read first 4 bytes and check for "CON " or "LIVE"
 				using var fs = new FileStream(file, FileMode.Open, FileAccess.Read);
 				using var br = new BinaryReader(fs);

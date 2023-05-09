@@ -247,5 +247,24 @@ namespace YARG.UI.MusicLibrary {
 			MainMenu.Instance.chosenSong = songViewType.SongEntry;
 			MainMenu.Instance.ShowPreSong();
 		}
+
+		public void SearchFilter(string type) {
+			var viewType = SongSelection.Instance.Songs[SongSelection.Instance.SelectedIndex];
+			if (viewType is not SongViewType songViewType) {
+				return;
+			}
+
+			var songEntry = songViewType.SongEntry;
+
+			string value = type switch {
+				"source" => songEntry.Source,
+				"album" => songEntry.Album,
+				"year" => songEntry.Year,
+				"charter" => songEntry.Charter,
+				"genre" => songEntry.Genre,
+				_ => throw new Exception("Unreachable")
+			};
+			SongSelection.Instance.searchField.text = $"{type}:{value}";
+		}
 	}
 }
