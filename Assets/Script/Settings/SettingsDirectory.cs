@@ -79,9 +79,10 @@ namespace YARG.Settings {
 			});
 		}
 
-		public void Refresh() {
+		public async void Refresh() {
 			LoadingManager.Instance.QueueSongFolderRefresh(PathsReference[index]);
-			LoadingManager.Instance.StartLoad().Forget();
+			await LoadingManager.Instance.StartLoad();
+			RefreshText();
 		}
 	}
 }
