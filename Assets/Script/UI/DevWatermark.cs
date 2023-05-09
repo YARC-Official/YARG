@@ -14,7 +14,7 @@ public class DevWatermark : MonoBehaviour
     void Start()
     {
         // check if Constants.VERSION_TAG ends with "b"
-        if (Constants.VERSION_TAG.ToString().EndsWith("b"))
+        if (Constants.VERSION_TAG.beta)
         {
             watermarkText.text = $"<b>YARG {Constants.VERSION_TAG}</b>  Developer Build";
             watermarkText.gameObject.SetActive(true);
