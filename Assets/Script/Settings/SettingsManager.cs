@@ -66,6 +66,7 @@ namespace YARG.Settings {
 				settings = {
 					new HeaderMetadata("Framerate"),
 					"VSync",
+					"FpsStats",
 					"FpsCap",
 					new HeaderMetadata("Graphics"),
 					"LowQuality",
