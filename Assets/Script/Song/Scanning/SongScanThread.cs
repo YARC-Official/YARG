@@ -319,7 +319,7 @@ namespace YARG.Song {
 			// all good - go ahead and build the cache info
 
 			// construct the midi file
-			byte[] bytes = XboxCONInnerFileRetriever.RetrieveFile(file.Location, file.NotesFile, file.MidiFileSize, file.MidiFileMemBlockOffsets);
+			byte[] bytes = XboxCONInnerFileRetriever.RetrieveFile(file.Location, file.MidiFileSize, file.MidiFileMemBlockOffsets);
 
 			string checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes)).Replace("-", "");
 

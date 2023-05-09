@@ -9,14 +9,14 @@ using Debug = UnityEngine.Debug;
 
 namespace YARG {
 	public class BassAudioManager : MonoBehaviour, IAudioManager {
-		public bool UseStarpowerFx    { get; set; }
+		public bool UseStarpowerFx { get; set; }
 		public bool IsChipmunkSpeedup { get; set; }
 
 		public IList<string> SupportedFormats { get; private set; }
 
 		public bool IsAudioLoaded { get; private set; }
 		public bool IsPlaying { get; private set; }
-		
+
 		public double MasterVolume { get; private set; }
 		public double SfxVolume { get; private set; }
 
@@ -134,7 +134,7 @@ namespace YARG {
 					sfxPath += format;
 					break;
 				}
-				
+
 
 				if (!File.Exists(sfxPath)) {
 					Debug.LogError($"SFX path does not exist! {sfxPath}");
@@ -149,7 +149,7 @@ namespace YARG {
 					continue;
 				}
 
-				_sfxSamples[(int)sfxSample] = sfx;
+				_sfxSamples[(int) sfxSample] = sfx;
 				Debug.Log($"Loaded {sfxFile}");
 			}
 
@@ -171,7 +171,7 @@ namespace YARG {
 
 				// Gets the index (SongStem to int) from the name
 				var songStem = AudioHelpers.GetStemFromName(stemName);
-				
+
 				// Assign 1 stem songs to the song stem
 				if (stems.Count == 1) {
 					songStem = SongStem.Song;
@@ -203,19 +203,19 @@ namespace YARG {
 
 			IsAudioLoaded = true;
 		}
-		
+
 		public void LoadMogg(ExtractedConSongEntry exConSong, bool isSpeedUp) {
 			Debug.Log("Loading mogg song");
 			UnloadSong();
 
 			byte[] moggArray;
 			if (exConSong is ConSongEntry conSong) {
-				moggArray = XboxCONInnerFileRetriever.RetrieveFile(conSong.Location, conSong.MoggPath,
+				moggArray = XboxCONInnerFileRetriever.RetrieveFile(conSong.Location,
 					conSong.MoggFileSize, conSong.MoggFileMemBlockOffsets)[conSong.MoggAddressAudioOffset..];
 			} else {
 				moggArray = File.ReadAllBytes(exConSong.MoggPath)[exConSong.MoggAddressAudioOffset..];
 			}
-			
+
 			int moggStreamHandle = Bass.CreateStream(moggArray, 0, moggArray.Length, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
 			if (moggStreamHandle == 0) {
 				Debug.LogError($"Failed to load mogg file or position: {Bass.LastError}");
@@ -230,13 +230,13 @@ namespace YARG {
 			if (!_mixer.SetupMogg(isSpeedUp)) {
 				throw new Exception($"Failed to setup MOGG channels: {Bass.LastError}");
 			}
-			
+
 			Debug.Log($"Loaded {_mixer.StemsLoaded} stems");
-			
+
 			// Setup audio length
 			AudioLengthD = _mixer.LeadChannel.LengthD;
 			AudioLengthF = (float) AudioLengthD;
-			
+
 			IsAudioLoaded = true;
 		}
 
@@ -255,12 +255,12 @@ namespace YARG {
 			} else {
 				LoadSong(AudioHelpers.GetSupportedStems(song.Location), false);
 			}
-			
+
 			SetPosition(song.PreviewStartTimeSpan.TotalSeconds);
 		}
 
 		public void Play() => Play(false);
-		
+
 		private void Play(bool fadeIn) {
 			// Don't try to play if there's no audio loaded or if it's already playing
 			if (!IsAudioLoaded || IsPlaying) {
@@ -277,7 +277,7 @@ namespace YARG {
 			if (_mixer.Play() != 0) {
 				Debug.Log($"Play error: {Bass.LastError}");
 			}
-			
+
 			IsPlaying = _mixer.IsPlaying;
 		}
 
@@ -289,14 +289,14 @@ namespace YARG {
 			if (_mixer.Pause() != 0) {
 				Debug.Log($"Pause error: {Bass.LastError}");
 			}
-			
+
 			IsPlaying = _mixer.IsPlaying;
 		}
 
 		public void FadeIn() {
 			Play(true);
 			if (IsPlaying) {
-				_mixer?.FadeIn();	
+				_mixer?.FadeIn();
 			}
 		}
 
@@ -319,8 +319,7 @@ namespace YARG {
 		}
 
 		public void UpdateVolumeSetting(SongStem stem, double volume) {
-			switch (stem)
-			{
+			switch (stem) {
 				case SongStem.Master:
 					MasterVolume = volume;
 					Bass.GlobalStreamVolume = (int) (10_000 * MasterVolume);
@@ -337,8 +336,8 @@ namespace YARG {
 		public double GetVolumeSetting(SongStem stem) {
 			return stem switch {
 				SongStem.Master => MasterVolume,
-				SongStem.Sfx    => SfxVolume,
-				_               => _stemVolumes[(int) stem]
+				SongStem.Sfx => SfxVolume,
+				_ => _stemVolumes[(int) stem]
 			};
 		}
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -130,6 +131,16 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		public async UniTask LoadAlbumCover() {
+			// Dispose of the old texture (prevent memory leaks)
+			if (_albumCover.texture != null) {
+				// This might seem weird, but we are destroying the *texture*, not the UI image.
+				Destroy(_albumCover.texture);
+			}
+
+			// Hide album art until loaded
+			_albumCover.texture = null;
+			_albumCover.color = Color.clear;
+
 			_cancellationToken = new();
 
 			var viewType = SongSelection.Instance.Songs[SongSelection.Instance.SelectedIndex];
@@ -146,6 +157,7 @@ namespace YARG.UI.MusicLibrary {
 					"album.jpeg",
 				};
 
+				// Load album art from one of the paths
 				foreach (string path in possiblePaths) {
 					string fullPath = Path.Combine(songEntry.Location, path);
 					if (File.Exists(fullPath)) {
@@ -153,44 +165,14 @@ namespace YARG.UI.MusicLibrary {
 						break;
 					}
 				}
-			} 
-			else if(songEntry.SongType == SongType.RbCon){
-				var c = (ConSongEntry) songEntry;
-				if(c.ImagePath != string.Empty){
-					_albumCover.texture = XboxImageTextureGenerator.GetTexture(
-						XboxCONInnerFileRetriever.RetrieveFile(
-							c.Location, c.ImagePath, 
-							c.ImageFileSize, c.ImageFileMemBlockOffsets
-					));
-					_albumCover.color = Color.white;
-					_albumCover.uvRect = new Rect(0f, 0f, 1f, -1f);
-				}
-				else {
-					_albumCover.texture = null;
-					_albumCover.color = Color.white; // TODO: make this transparent so that you view the YARG default album art
-					_albumCover.uvRect = new Rect(0f, 0f, 1f, -1f);
-				}
-			}
-			else if(songEntry.SongType == SongType.ExtractedRbCon){
-				var x = (ExtractedConSongEntry) songEntry;
-				if(x.ImagePath != string.Empty){
-					_albumCover.texture = XboxImageTextureGenerator.GetTexture(File.ReadAllBytes(x.ImagePath));
-					_albumCover.color = Color.white;
-					_albumCover.uvRect = new Rect(0f, 0f, 1f, -1f);
-				}
-				else {
-					_albumCover.texture = null;
-					_albumCover.color = Color.white; // TODO: make this transparent so that you view the YARG default album art
-					_albumCover.uvRect = new Rect(0f, 0f, 1f, -1f);
-				}
+			} else if (songEntry.SongType == SongType.RbCon) {
+				await LoadRbConCover((ConSongEntry) songEntry);
+			} else if (songEntry.SongType == SongType.ExtractedRbCon) {
+				await LoadExtractedRbConCover((ExtractedConSongEntry) songEntry);
 			}
 		}
 
 		private async UniTask LoadSongIniCover(string filePath) {
-			if (!File.Exists(filePath)) {
-				return;
-			}
-
 			// Load file
 #if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
 			using UnityWebRequest uwr = UnityWebRequestTexture.GetTexture(new System.Uri(filePath));
@@ -207,6 +189,53 @@ namespace YARG.UI.MusicLibrary {
 				_albumCover.color = Color.white;
 				_albumCover.uvRect = new Rect(0f, 0f, 1f, 1f);
 			} catch (OperationCanceledException) { }
+		}
+
+		private async UniTask LoadRbConCover(ConSongEntry conSongEntry) {
+			if (string.IsNullOrEmpty(conSongEntry.ImagePath)) {
+				return;
+			}
+
+			Texture2D texture = null;
+
+			try {
+				var bytes = await XboxCONInnerFileRetriever.RetrieveFile(conSongEntry.Location,
+				conSongEntry.ImageFileSize, conSongEntry.ImageFileMemBlockOffsets, _cancellationToken.Token);
+				texture = await XboxImageTextureGenerator.GetTexture(bytes, _cancellationToken.Token);
+
+				_albumCover.texture = texture;
+				_albumCover.color = Color.white;
+				_albumCover.uvRect = new Rect(0f, 0f, 1f, -1f);
+			} catch (OperationCanceledException) {
+				// Dispose of the texture (prevent memory leaks)
+				if (texture != null) {
+					// This might seem weird, but we are destroying the *texture*, not the UI image.
+					Destroy(texture);
+				}
+			}
+		}
+
+		private async UniTask LoadExtractedRbConCover(ExtractedConSongEntry conSongEntry) {
+			if (string.IsNullOrEmpty(conSongEntry.ImagePath)) {
+				return;
+			}
+
+			Texture2D texture = null;
+
+			try {
+				var bytes = await File.ReadAllBytesAsync(conSongEntry.ImagePath, _cancellationToken.Token);
+				texture = await XboxImageTextureGenerator.GetTexture(bytes, _cancellationToken.Token);
+
+				_albumCover.texture = texture;
+				_albumCover.color = Color.white;
+				_albumCover.uvRect = new Rect(0f, 0f, 1f, -1f);
+			} catch (OperationCanceledException) {
+				// Dispose of the texture (prevent memory leaks)
+				if (texture != null) {
+					// This might seem weird, but we are destroying the *texture*, not the UI image.
+					Destroy(texture);
+				}
+			}
 		}
 
 		public void PlaySong() {
