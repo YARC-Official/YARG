@@ -116,8 +116,6 @@ namespace YARG.PlayMode {
 
 			// Load MOGG if CON, otherwise load stems
 			if (song is ExtractedConSongEntry rawConSongEntry) {
-				Debug.Log(rawConSongEntry.MatrixRatios.GetLength(0));
-
 				GameManager.AudioManager.LoadMogg(rawConSongEntry, isSpeedUp);
 			}
 			else {

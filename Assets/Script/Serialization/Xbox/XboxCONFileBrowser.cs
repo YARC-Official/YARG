@@ -11,14 +11,13 @@ using YARG.Song;
 namespace YARG.Serialization {
 	public static class XboxCONFileBrowser {
 		public static List<ConSongEntry> BrowseCON(string conName){
-			Debug.Log($"con name = {conName}");
 			var songList = new List<ConSongEntry>();
 			var dtaTree = new DataArray();
 
 			// Attempt to read songs.dta
 			STFS theCON = new STFS(conName);
 			try {
-				dtaTree = DTX.FromPlainTextBytes(theCON.GetFile("songs/songs.dta"));
+				dtaTree = DTX.FromPlainTextBytes(theCON.GetFile(Path.Combine("songs", "songs.dta")));
 			} catch (Exception e) {
 				Debug.LogError($"Failed to parse songs.dta for `{conName}`.");
 				Debug.LogException(e);

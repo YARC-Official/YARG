@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using UnityEngine;
 using YARG.Serialization;
+using YARG.Song;
 using YARG.Song.Preparsers;
 
 namespace YARG.Song {
@@ -135,23 +136,23 @@ namespace YARG.Song {
 			// Raw CON folder, so don't scan anymore subdirectories here
 			string songsPath = Path.Combine(subDir, "songs");
 			if (File.Exists(Path.Combine(songsPath, "songs.dta"))) {
-				var files = ExCONBrowser.BrowseFolder(songsPath);
+				List<ExtractedConSongEntry> files = ExCONBrowser.BrowseFolder(songsPath);
 
-				foreach(var file in files){
+				foreach(ExtractedConSongEntry file in files){
 					// validate that the song is good to add in-game
-					var CONResult = ScanExConSong(cacheFolder, file);
-					switch(CONResult){
+					var ExCONResult = ScanExConSong(cacheFolder, file);
+					switch(ExCONResult){
 						case ScanResult.Ok:
 							_songsScanned++;
 							songsScanned = _songsScanned;
-							songs.Add(file);
+							songs.Add((ExtractedConSongEntry)file);
 							break;
 						case ScanResult.NotASong:
 							break;
 						default:
 							_errorsEncountered++;
 							errorsEncountered = _errorsEncountered;
-							_songErrors[cacheFolder].Add(new SongError(subDir, CONResult));
+							_songErrors[cacheFolder].Add(new SongError(subDir, ExCONResult));
 							Debug.LogWarning($"Error encountered with {subDir}");
 							break;
 					}
@@ -167,13 +168,29 @@ namespace YARG.Song {
 				using var br = new BinaryReader(fs);
 				string fHeader = Encoding.UTF8.GetString(br.ReadBytes(4));
 				if(fHeader == "CON " || fHeader == "LIVE"){
-					Debug.Log($"found STFS file {file}");
-
-					var SongsInsideCON = XboxCONFileBrowser.BrowseCON(file);
-
-					foreach(var SongInsideCON in SongsInsideCON){
-						// validate that the song is good to add in-game
-					}
+					List<ConSongEntry> SongsInsideCON = XboxCONFileBrowser.BrowseCON(file);
+					// for each CON song that was found (assuming some WERE found)
+					if(SongsInsideCON != null){
+						foreach(ConSongEntry SongInsideCON in SongsInsideCON){
+							// validate that the song is good to add in-game
+							var CONResult = ScanConSong(cacheFolder, SongInsideCON);
+							switch(CONResult){
+								case ScanResult.Ok:
+									_songsScanned++;
+									songsScanned = _songsScanned;
+									songs.Add((ConSongEntry)SongInsideCON);
+									break;
+								case ScanResult.NotASong:
+									break;
+								default:
+									_errorsEncountered++;
+									errorsEncountered = _errorsEncountered;
+									_songErrors[cacheFolder].Add(new SongError(subDir, CONResult));
+									Debug.LogWarning($"Error encountered with {subDir}");
+									break;
+							}
+						}
+					}					
 				}
 			}
 
