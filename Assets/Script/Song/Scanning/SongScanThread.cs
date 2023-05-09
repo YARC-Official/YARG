@@ -164,7 +164,7 @@ namespace YARG.Song {
 							_songsScanned++;
 							songsScanned = _songsScanned;
 							songs.Add(file);
-							return;
+							break;
 						case ScanResult.NotASong:
 							break;
 						default:
@@ -172,7 +172,7 @@ namespace YARG.Song {
 							errorsEncountered = _errorsEncountered;
 							_songErrors[cacheFolder].Add(new SongError(subDir, ExCONResult));
 							Debug.LogWarning($"Error encountered with {subDir}");
-							return;
+							break;
 					}
 				}
 
@@ -199,7 +199,7 @@ namespace YARG.Song {
 									_songsScanned++;
 									songsScanned = _songsScanned;
 									songs.Add(SongInsideCON);
-									return;
+									break;
 								case ScanResult.NotASong:
 									break;
 								default:
@@ -207,7 +207,7 @@ namespace YARG.Song {
 									errorsEncountered = _errorsEncountered;
 									_songErrors[cacheFolder].Add(new SongError(subDir, CONResult));
 									Debug.LogWarning($"Error encountered with {subDir}");
-									return;
+									break;
 							}
 						}
 					}
