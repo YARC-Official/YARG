@@ -153,18 +153,36 @@ namespace YARG.UI.MusicLibrary {
 						break;
 					}
 				}
-			} else {
-				// Check if an ExCon/Con or if there is no album image for this song
-				if (songEntry is not ExtractedConSongEntry conEntry || conEntry.ImagePath == string.Empty) {
-					return;
+			} 
+			else if(songEntry.SongType == SongType.RbCon){
+				var c = (ConSongEntry) songEntry;
+				if(c.ImagePath != string.Empty){
+					_albumCover.texture = XboxImageTextureGenerator.GetTexture(
+						XboxCONInnerFileRetriever.RetrieveFile(
+							c.Location, c.ImagePath, 
+							c.ImageFileSize, c.ImageFileMemBlockOffsets
+					));
+					_albumCover.color = Color.white;
+					_albumCover.uvRect = new Rect(0f, 0f, 1f, -1f);
 				}
-
-				// TODO: Use task for below w/ cancel token
-
-				// Set album cover
-				_albumCover.texture = XboxImageTextureGenerator.GetTexture(File.ReadAllBytes(conEntry.ImagePath));
-				_albumCover.color = Color.white;
-				_albumCover.uvRect = new Rect(0f, 0f, 1f, -1f);
+				else {
+					_albumCover.texture = null;
+					_albumCover.color = Color.white; // TODO: make this transparent so that you view the YARG default album art
+					_albumCover.uvRect = new Rect(0f, 0f, 1f, -1f);
+				}
+			}
+			else if(songEntry.SongType == SongType.ExtractedRbCon){
+				var x = (ExtractedConSongEntry) songEntry;
+				if(x.ImagePath != string.Empty){
+					_albumCover.texture = XboxImageTextureGenerator.GetTexture(File.ReadAllBytes(x.ImagePath));
+					_albumCover.color = Color.white;
+					_albumCover.uvRect = new Rect(0f, 0f, 1f, -1f);
+				}
+				else {
+					_albumCover.texture = null;
+					_albumCover.color = Color.white; // TODO: make this transparent so that you view the YARG default album art
+					_albumCover.uvRect = new Rect(0f, 0f, 1f, -1f);
+				}
 			}
 		}
 
