@@ -93,6 +93,8 @@ namespace YARG.PlayMode {
 		
 		// For HOT START and BASS GROOVE
 		public int hotStartCutoff;
+		public int strongFinishCutoff;
+		public float bufferPeriod;
 
 		// Scoring trackers
 		protected ScoreKeeper scoreKeeper;
@@ -170,9 +172,10 @@ namespace YARG.PlayMode {
 				commonTrack.perfTextFontSize,
 				commonTrack.perfTextAnimLen);
 			
-			// Deteremine HOT START and STRONG FINISH thresholds per difficulty
-			// NOTE: Consider making the cutoff different for different difficulties in the future
+			// Deteremine HOT START and STRONG FINISH thresholds
 			hotStartCutoff = 25;
+			strongFinishCutoff = 25;
+			bufferPeriod = 0.05f;
 				
 			StartTrack();
 		}
@@ -505,10 +508,10 @@ namespace YARG.PlayMode {
 			
 			// Set "STRONG FINISH text
 			if (!strongFinishChecked) {
-				if (Play.Instance.SongTime > Chart[GetChartCount() - 1].time) {
+				if (Play.Instance.SongTime > (Chart[GetChartCount() - 1].time + Constants.HIT_MARGIN + bufferPeriod)) {
 					strongFinishChecked = true;
 
-					if (_combo >= hotStartCutoff) {
+					if (_combo >= strongFinishCutoff) {
 						commonTrack.performanceText.text = "STRONG FINISH";
 						commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
 					}
