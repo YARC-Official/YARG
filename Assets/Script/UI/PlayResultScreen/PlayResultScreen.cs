@@ -22,12 +22,14 @@ namespace YARG.UI.PlayResultScreen {
 		private GameObject playerCardsContainer;
 
 		[Space]
-		[SerializeField]
-		private RawImage headerBorder;
+		// [SerializeField]
+		// private RawImage headerBorder;
 		[SerializeField]
 		private Image backgroundBorderPass;
 		[SerializeField]
 		private Image backgroundBorderFail;
+		[SerializeField]
+		private RawImage headerBackgroundPassed;
 
 		[SerializeField]
 		private bool hasFailed;
@@ -39,6 +41,8 @@ namespace YARG.UI.PlayResultScreen {
 		private TextMeshProUGUI songArtist;
 		[SerializeField]
 		private TextMeshProUGUI score;
+		[SerializeField]
+		private StarDisplay starDisplay;
 
 		public HashSet<PlayerManager.Player> highScores;
 		public HashSet<PlayerManager.Player> disqualified;
@@ -53,6 +57,10 @@ namespace YARG.UI.PlayResultScreen {
 			songArtist.SetText(Play.song?.Artist);
 			score.SetText(ScoreKeeper.TotalScore.ToString("n0"));
 
+			int stars = (int)StarScoreKeeper.BandStars;
+			Debug.Log($"BandStars: {stars}");
+			starDisplay.SetStars(stars, stars <= 5 ? StarType.Standard : StarType.Gold);
+
 			SaveScores();
 			CreatePlayerCards();
 		}
@@ -60,7 +68,8 @@ namespace YARG.UI.PlayResultScreen {
 		private void CreatePlayerCards() {
 			foreach (var player in PlayerManager.players) {
 				var pc = Instantiate(playerCardPrefab, playerCardsContainer.transform);
-				pc.GetComponent<PlayerCard>().Setup(player, ClearStatus.Cleared);
+				// TODO: determine clear type
+				pc.GetComponent<PlayerCard>().Setup(player, ClearStatus.Cleared, highScores.Contains(player));
 			}
 		}
 
@@ -128,8 +137,10 @@ namespace YARG.UI.PlayResultScreen {
         void Update() {
             backgroundBorderFail.gameObject.SetActive(hasFailed);
             backgroundBorderPass.gameObject.SetActive(!hasFailed);
+			headerBackgroundPassed.gameObject.SetActive(!hasFailed);
+
 			songArtist.color = hasFailed ? FAIL : PASS;
-            headerBorder.color = hasFailed ? FAIL_TRANSLUCENT : PASS_TRANSLUCENT;
+            // headerBorder.color = hasFailed ? FAIL_TRANSLUCENT : PASS_TRANSLUCENT;
 		}
     }
 }
