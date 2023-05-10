@@ -520,8 +520,8 @@ namespace YARG.PlayMode {
 			scoreDisplay.SetActive(false);
 
 			OnSongEnd?.Invoke(song);
-
-			// show play result screen
+			
+			// show play result screen; this is our main focus now
 			playResultScreen.SetActive(true);
 		}
 
