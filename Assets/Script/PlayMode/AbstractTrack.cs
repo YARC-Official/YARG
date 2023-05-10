@@ -62,8 +62,14 @@ namespace YARG.PlayMode {
 		private double soloPtsEarned;
 
 		private bool FullCombo = true;
+		
+		// Used for performance text purposes
 		private bool hotStartChecked = false;
+		private bool fullComboChecked = false;
 		private bool strongFinishChecked = false;
+		private float endTime;
+		private float offsetEndTime;
+
 		private int SavedCombo = 0;
 		private bool switchedRingMaterial = false;
 		protected bool startFCDetection = false;
@@ -170,6 +176,10 @@ namespace YARG.PlayMode {
 			commonTrack.perfTextSizer = new PerformanceTextSizer(
 				commonTrack.perfTextFontSize,
 				commonTrack.perfTextAnimLen);
+			
+			// Set the end time for STRONG FINISH and FULL COMBO performance text checking
+			endTime = (Chart[Chart.Count - 1].time + Constants.HIT_MARGIN + commonTrack.bufferPeriod);
+			offsetEndTime = endTime + commonTrack.perfTextAnimLen;
 
 			StartTrack();
 		}
@@ -506,10 +516,24 @@ namespace YARG.PlayMode {
 				commonTrack.performanceText.text = $"{currentHundred}00-NOTE STREAK";
 				commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
 			}
+			
+			// Set "FULL COMBO" text
+			if (!fullComboChecked) {
+				if (Play.Instance.SongTime > endTime) {
+					fullComboChecked = true;
 
+					if (FullCombo) {
+						commonTrack.performanceText.text = "FULL COMBO";
+						commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+					}
+				}
+			}
+			
 			// Set "STRONG FINISH" text
 			if (!strongFinishChecked) {
-				if (Play.Instance.SongTime > (Chart[Chart.Count - 1].time + Constants.HIT_MARGIN + commonTrack.bufferPeriod)) {
+				float checkTime = FullCombo ? offsetEndTime : endTime;
+				
+				if (Play.Instance.SongTime > checkTime) {
 					strongFinishChecked = true;
 
 					if (_combo >= commonTrack.strongFinishCutoff) {
