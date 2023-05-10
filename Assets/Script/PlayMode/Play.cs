@@ -23,7 +23,7 @@ namespace YARG.PlayMode {
 
 		public static float speed = 1f;
 
-		public const float SONG_START_OFFSET = 1f;
+		public const float SONG_START_OFFSET = -2f;
 
 		public static SongEntry song = null;
 
@@ -50,6 +50,7 @@ namespace YARG.PlayMode {
 
 		private int stemsReverbed;
 
+		private bool audioStarted;
 		private float realSongTime;
 		public float SongTime {
 			get => realSongTime + PlayerManager.GlobalCalibration * speed;
@@ -103,20 +104,18 @@ namespace YARG.PlayMode {
 			StarScoreKeeper.Reset();
 
 			// Song
-			StartCoroutine(StartSong());
+			StartSong();
 		}
 
-		private IEnumerator StartSong() {
+		private void StartSong() {
 			GameUI.Instance.SetLoadingText("Loading audio...");
 
 			// Determine if speed is not 1
 			bool isSpeedUp = Math.Abs(speed - 1) > float.Epsilon;
 
-			// Load MOGG if RB_CON, otherwise load stems
+			// Load MOGG if CON, otherwise load stems
 			if (song is ExtractedConSongEntry rawConSongEntry) {
-				Debug.Log(rawConSongEntry.MoggInfo.ChannelCount);
-
-				GameManager.AudioManager.LoadMogg(rawConSongEntry.MoggInfo, isSpeedUp);
+				GameManager.AudioManager.LoadMogg(rawConSongEntry, isSpeedUp);
 			} else {
 				var stems = AudioHelpers.GetSupportedStems(song.Location);
 
@@ -160,14 +159,13 @@ namespace YARG.PlayMode {
 				i++;
 			}
 
-			yield return new WaitForSeconds(SONG_START_OFFSET);
-
-			GameManager.AudioManager.Play();
-
 			SongStarted = true;
 
 			// Hide loading screen
 			GameUI.Instance.loadingContainer.SetActive(false);
+
+			realSongTime = SONG_START_OFFSET;
+			StartCoroutine(StartAudio());
 
 			// End events override the audio length
 			foreach (var chartEvent in chart.events) {
@@ -178,9 +176,6 @@ namespace YARG.PlayMode {
 					break;
 				}
 			}
-
-			// Call events
-			OnSongStart?.Invoke(song);
 		}
 
 		private void LoadChart() {
@@ -223,6 +218,16 @@ namespace YARG.PlayMode {
 			}
 		}
 
+		private IEnumerator StartAudio() {
+			while (realSongTime < 0f) {
+				realSongTime += Time.deltaTime;
+				yield return null;
+			}
+
+			GameManager.AudioManager.Play();
+			audioStarted = true;
+		}
+
 		private void Update() {
 			if (!SongStarted) {
 				return;
@@ -238,7 +243,9 @@ namespace YARG.PlayMode {
 			}
 
 			// Update this every frame to make sure all notes are spawned at the same time.
-			realSongTime = GameManager.AudioManager.CurrentPositionF;
+			if (audioStarted) {
+				realSongTime = GameManager.AudioManager.CurrentPositionF;
+			}
 
 			UpdateAudio(new string[] {
 				"guitar",
@@ -313,10 +320,14 @@ namespace YARG.PlayMode {
 			// Update lyrics
 			if (lyricIndex < chart.genericLyrics.Count) {
 				var lyric = chart.genericLyrics[lyricIndex];
-				if (lyricPhraseIndex >= lyric.lyric.Count) {
+
+				if (lyricPhraseIndex >= lyric.lyric.Count && lyric.EndTime < SongTime) {
+					// Clear phrase
+					GameUI.Instance.SetGenericLyric(string.Empty);
+
 					lyricPhraseIndex = 0;
 					lyricIndex++;
-				} else if (lyric.lyric[lyricPhraseIndex].time < SongTime) {
+				} else if (lyricPhraseIndex < lyric.lyric.Count && lyric.lyric[lyricPhraseIndex].time < SongTime) {
 					// Consolidate lyrics
 					string o = "<color=#ffb700>";
 					for (int i = 0; i < lyric.lyric.Count; i++) {

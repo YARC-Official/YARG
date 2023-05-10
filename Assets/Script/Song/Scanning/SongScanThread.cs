@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using UnityEngine;
 using YARG.Serialization;
@@ -131,28 +132,7 @@ namespace YARG.Song {
 			_foldersScanned++;
 			foldersScanned = _foldersScanned;
 
-			// Raw CON folder, so don't scan anymore subdirectories here
-			string songsPath = Path.Combine(subDir, "songs");
-			if (File.Exists(Path.Combine(songsPath, "songs.dta"))) {
-				var files = XboxRawfileBrowser.BrowseFolder(songsPath, Path.Combine(songsPath, "TODO CHANGE"));
-
-				foreach (var file in files) {
-					ScanConSong(cacheFolder, file, out var conSong);
-
-					_songsScanned++;
-					songsScanned = _songsScanned;
-					songs.Add(conSong);
-				}
-
-				return;
-			}
-
-			string[] subdirectories = Directory.GetDirectories(subDir);
-
-			foreach (string subdirectory in subdirectories) {
-				ScanSubDirectory(cacheFolder, subdirectory, songs);
-			}
-
+			// Check if it is a song folder
 			var result = ScanIniSong(cacheFolder, subDir, out var song);
 			switch (result) {
 				case ScanResult.Ok:
@@ -160,7 +140,7 @@ namespace YARG.Song {
 					songsScanned = _songsScanned;
 
 					songs.Add(song);
-					break;
+					return;
 				case ScanResult.NotASong:
 					break;
 				default:
@@ -168,7 +148,74 @@ namespace YARG.Song {
 					errorsEncountered = _errorsEncountered;
 					_songErrors[cacheFolder].Add(new SongError(subDir, result));
 					Debug.LogWarning($"Error encountered with {subDir}");
-					break;
+					return;
+			}
+
+			// Raw CON folder, so don't scan anymore subdirectories here
+			string songsPath = Path.Combine(subDir, "songs");
+			if (File.Exists(Path.Combine(songsPath, "songs.dta"))) {
+				List<ExtractedConSongEntry> files = ExCONBrowser.BrowseFolder(songsPath);
+
+				foreach (ExtractedConSongEntry file in files) {
+					// validate that the song is good to add in-game
+					var ExCONResult = ScanExConSong(cacheFolder, file);
+					switch (ExCONResult) {
+						case ScanResult.Ok:
+							_songsScanned++;
+							songsScanned = _songsScanned;
+							songs.Add(file);
+							break;
+						case ScanResult.NotASong:
+							break;
+						default:
+							_errorsEncountered++;
+							errorsEncountered = _errorsEncountered;
+							_songErrors[cacheFolder].Add(new SongError(subDir, ExCONResult));
+							Debug.LogWarning($"Error encountered with {subDir}");
+							break;
+					}
+				}
+
+				return;
+			}
+
+			// Iterate through the files in this current directory to look for CON files
+			foreach (var file in Directory.EnumerateFiles(subDir)) {
+				// for each file found, read first 4 bytes and check for "CON " or "LIVE"
+				using var fs = new FileStream(file, FileMode.Open, FileAccess.Read);
+				using var br = new BinaryReader(fs);
+				string fHeader = Encoding.UTF8.GetString(br.ReadBytes(4));
+				if (fHeader == "CON " || fHeader == "LIVE") {
+					List<ConSongEntry> SongsInsideCON = XboxCONFileBrowser.BrowseCON(file);
+					// for each CON song that was found (assuming some WERE found)
+					if (SongsInsideCON != null) {
+						foreach (ConSongEntry SongInsideCON in SongsInsideCON) {
+							// validate that the song is good to add in-game
+							var CONResult = ScanConSong(cacheFolder, SongInsideCON);
+							switch (CONResult) {
+								case ScanResult.Ok:
+									_songsScanned++;
+									songsScanned = _songsScanned;
+									songs.Add(SongInsideCON);
+									break;
+								case ScanResult.NotASong:
+									break;
+								default:
+									_errorsEncountered++;
+									errorsEncountered = _errorsEncountered;
+									_songErrors[cacheFolder].Add(new SongError(subDir, CONResult));
+									Debug.LogWarning($"Error encountered with {subDir}");
+									break;
+							}
+						}
+					}
+				}
+			}
+
+			string[] subdirectories = Directory.GetDirectories(subDir);
+
+			foreach (string subdirectory in subdirectories) {
+				ScanSubDirectory(cacheFolder, subdirectory, songs);
 			}
 		}
 
@@ -221,22 +268,64 @@ namespace YARG.Song {
 			return ScanHelpers.ParseSongIni(Path.Combine(directory, "song.ini"), (IniSongEntry) song);
 		}
 
-		private static ScanResult ScanConSong(string cache, XboxSong file, out ExtractedConSongEntry songEntry) {
-			byte[] bytes = File.ReadAllBytes(Path.Combine(file.SongFolderPath, file.MidiFile));
+		private static ScanResult ScanExConSong(string cache, ExtractedConSongEntry file) {
+			// Skip if the song doesn't have notes
+			if (!File.Exists(file.NotesFile)) {
+				return ScanResult.NoNotesFile;
+			}
+
+			// Skip if this is a "fake song" (tutorials, etc.)
+			if (file.IsFake) {
+				return ScanResult.NotASong;
+			}
+
+			// Skip if the mogg is encrypted
+			if (file.MoggHeader != 0xA) {
+				return ScanResult.EncryptedMogg;
+			}
+
+			// all good - go ahead and build the cache info
+			byte[] bytes = File.ReadAllBytes(file.NotesFile);
 
 			string checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes)).Replace("-", "");
 
 			ulong tracks = MidPreparser.GetAvailableTracks(bytes);
 
-			songEntry = new ExtractedConSongEntry {
-				CacheRoot = cache,
-				Location = file.SongFolderPath,
-				NotesFile = file.MidiFile,
-				Checksum = checksum,
-				AvailableParts = tracks,
-			};
+			file.CacheRoot = cache;
+			file.Checksum = checksum;
+			file.AvailableParts = tracks;
 
-			file.CompleteSongInfo(songEntry, true);
+			return ScanResult.Ok;
+		}
+
+		private static ScanResult ScanConSong(string cache, ConSongEntry file) {
+			// Skip if the song doesn't have notes
+			if (file.MidiFileSize == 0) {
+				return ScanResult.NoNotesFile;
+			}
+
+			// Skip if this is a "fake song" (tutorials, etc.)
+			if (file.IsFake) {
+				return ScanResult.NotASong;
+			}
+
+			// Skip if the mogg is encrypted
+			if (file.MoggHeader != 0xA) {
+				return ScanResult.EncryptedMogg;
+			}
+
+			// all good - go ahead and build the cache info
+
+			// construct the midi file
+			byte[] bytes = XboxCONInnerFileRetriever.RetrieveFile(file.Location, file.MidiFileSize, file.MidiFileMemBlockOffsets);
+
+			string checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes)).Replace("-", "");
+
+			ulong tracks = MidPreparser.GetAvailableTracks(bytes);
+
+			file.CacheRoot = cache;
+			file.Checksum = checksum;
+			file.AvailableParts = tracks;
 
 			return ScanResult.Ok;
 		}

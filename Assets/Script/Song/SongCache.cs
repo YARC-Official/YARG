@@ -12,7 +12,7 @@ namespace YARG.Song {
 		/// <summary>
 		/// The date in which the cache version is based on (and cache revision)
 		/// </summary>
-		private const int CACHE_VERSION = 23_05_06_02;
+		private const int CACHE_VERSION = 23_05_08_01;
 
 		private readonly string _folder;
 		private readonly string _cacheFile;
@@ -77,12 +77,23 @@ namespace YARG.Song {
 		}
 
 		private static void WriteSongEntry(BinaryWriter writer, SongEntry song) {
-			//Debug.Log($"Writing {song.Name} to cache");
+			// Debug.Log($"Writing {song.Name} to cache");
+			
+			bool isCON = false;
 
 			if (song is IniSongEntry) {
 				writer.Write((int) SongType.SongIni);
-			} else if (song is ExtractedConSongEntry) {
-				writer.Write((int) SongType.ExtractedRbCon);
+			} 
+			else {
+				if (song is ConSongEntry conEntry){
+					if(conEntry.MidiFileMemBlockOffsets == null){ // use the midi file offsets array to determine if CON or ExCON
+						writer.Write((int) SongType.ExtractedRbCon);
+					}
+					else {
+						writer.Write((int) SongType.RbCon);
+						isCON = true;
+					}
+				}
 			}
 
 			writer.Write((int) song.DrumType);
@@ -111,21 +122,27 @@ namespace YARG.Song {
 				writer.Write((int) difficulty.Key);
 				writer.Write(difficulty.Value);
 			}
-			
+
 			writer.Write(song.AvailableParts);
 
-			switch (song) {
-				case ExtractedConSongEntry conSong:
+			if (song is IniSongEntry iniSong) {
+				// These are CH specific ini properties
+				writer.Write(iniSong.Playlist);
+				writer.Write(iniSong.SubPlaylist);
+				writer.Write(iniSong.IsModChart);
+				writer.Write(iniSong.HasLyrics);
+			}
+			else {
+				if(!isCON){ //ExCON
+					// Write ex-con stuff
+					CacheHelpers.WriteExtractedConData(writer, (ExtractedConSongEntry)song);
+				}
+				else{
 					// Write con stuff
-					CacheHelpers.WriteExtractedConData(writer, conSong);
-					break;
-				case IniSongEntry iniSong:
-					// These are CH specific ini properties
-					writer.Write(iniSong.Playlist);
-					writer.Write(iniSong.SubPlaylist);
-					writer.Write(iniSong.IsModChart);
-					writer.Write(iniSong.HasLyrics);
-					break;
+					CacheHelpers.WriteExtractedConData(writer, (ConSongEntry)song);
+					// Write con-exclusive stuff
+					CacheHelpers.WriteConData(writer, (ConSongEntry)song);
+				}
 			}
 
 			writer.Write(song.Checksum);
@@ -139,6 +156,7 @@ namespace YARG.Song {
 				var type = (SongType)reader.ReadInt32();
 
 				result = type switch {
+					SongType.RbCon => new ConSongEntry(),
 					SongType.ExtractedRbCon => new ExtractedConSongEntry(),
 					SongType.SongIni => new IniSongEntry(),
 					_ => result
@@ -174,11 +192,15 @@ namespace YARG.Song {
 					result.PartDifficulties.Add(part, difficulty);
 				}
 
-				result.AvailableParts = (ulong)reader.ReadInt64();
+				result.AvailableParts = (ulong) reader.ReadInt64();
 
 				switch (type) {
 					case SongType.ExtractedRbCon:
 						CacheHelpers.ReadExtractedConData(reader, (ExtractedConSongEntry) result);
+						break;
+					case SongType.RbCon:
+						CacheHelpers.ReadExtractedConData(reader, (ConSongEntry)result);
+						CacheHelpers.ReadConData(reader, (ConSongEntry)result);
 						break;
 					case SongType.SongIni: {
 							// Ini specific properties

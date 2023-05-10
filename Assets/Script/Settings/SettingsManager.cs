@@ -66,11 +66,13 @@ namespace YARG.Settings {
 				settings = {
 					new HeaderMetadata("Framerate"),
 					"VSync",
+					"FpsStats",
 					"FpsCap",
 					new HeaderMetadata("Graphics"),
 					"LowQuality",
 					"DisableBloom",
 					new HeaderMetadata("Camera"),
+					new ButtonRowMetadata("ResetCameraSettings"),
 					"TrackCamFOV",
 					"TrackCamYPos",
 					"TrackCamZPos",

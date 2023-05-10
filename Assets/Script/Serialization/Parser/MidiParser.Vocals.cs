@@ -28,7 +28,8 @@ namespace YARG.Serialization.Parser {
 				// Create lyric
 				startTimings.Add(note.Time);
 				var time = (float) TimeConverter.ConvertTo<MetricTimeSpan>(note.Time, tempo).TotalSeconds;
-				GenericLyricInfo lyric = new(time, new());
+				var length = (float) TimeConverter.ConvertTo<MetricTimeSpan>(note.EndTime, tempo).TotalSeconds - time;
+				GenericLyricInfo lyric = new(time, length, new());
 
 				// Get lyrics from this phrase
 				long totalDelta = 0;
@@ -73,7 +74,10 @@ namespace YARG.Serialization.Parser {
 				}
 
 				// Add phrase to result
-				lyrics.Add(lyric);
+				// Ignore phrases w/o lyrics (i.e. percussion)
+				if (lyric.lyric.Count > 0) {
+					lyrics.Add(lyric);
+				}
 			}
 
 			return lyrics;

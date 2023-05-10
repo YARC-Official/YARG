@@ -12,7 +12,7 @@ namespace YARG.Input {
 
 		public const string STRUM_UP = "strum_up";
 		public const string STRUM_DOWN = "strum_down";
-	
+
 		public const string STAR_POWER = "star_power";
 		public const string PAUSE = "pause";
 
@@ -124,13 +124,13 @@ namespace YARG.Input {
 			}
 		}
 
-		public override string[] GetAllowedInstruments() {
-			return new string[] {
-				"guitar",
-				"bass",
-				"keys",
-				"guitarCoop",
-				"rhythm",
+		public override Instrument[] GetAllowedInstruments() {
+			return new Instrument[] {
+				Instrument.GUITAR,
+				Instrument.BASS,
+				Instrument.KEYS,
+				Instrument.GUITAR_COOP,
+				Instrument.RHYTHM,
 			};
 		}
 

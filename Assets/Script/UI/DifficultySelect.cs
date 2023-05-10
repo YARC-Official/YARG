@@ -220,36 +220,38 @@ namespace YARG.UI {
 			state = State.INSTRUMENT;
 
 			// Get allowed instruments
-			string[] allowedInstruments = player.inputStrategy.GetAllowedInstruments();
-			
-			var availableInstruments = allowedInstruments
-				.Where(instrument => MainMenu.Instance.chosenSong
-					.HasInstrument(InstrumentHelper.FromStringName(instrument))).ToList();
-			
+			var allInstruments = (Instrument[]) Enum.GetValues(typeof(Instrument));
+
+			// Get available instruments
+			var availableInstruments = allInstruments
+				.Where(instrument => MainMenu.Instance.chosenSong.HasInstrument(instrument)).ToList();
+
+			Debug.Log(MainMenu.Instance.chosenSong.AvailableParts);
+
+			// Force add pro drums and five lane
+			if (availableInstruments.Contains(Instrument.DRUMS)) {
+				availableInstruments.Add(Instrument.GH_DRUMS);
+
+				// Add real drums if not present
+				if (!availableInstruments.Contains(Instrument.REAL_DRUMS)) {
+					availableInstruments.Add(Instrument.REAL_DRUMS);
+				}
+			} else if (availableInstruments.Contains(Instrument.GH_DRUMS)) {
+				availableInstruments.Add(Instrument.DRUMS);
+				availableInstruments.Add(Instrument.REAL_DRUMS);
+			}
+
+			// Filter out to only allowed instruments
+			availableInstruments.RemoveAll(i => !player.inputStrategy.GetAllowedInstruments().Contains(i));
+
 			optionCount = availableInstruments.Count + 1;
 
 			// Add to options
 			var ops = new string[availableInstruments.Count + 1];
 			instruments = new string[availableInstruments.Count];
-			
 			for (int i = 0; i < instruments.Length; i++) {
-				instruments[i] = availableInstruments[i];
-				ops[i] = availableInstruments[i] switch {
-					"drums" => "Drums",
-					"realDrums" => "Pro Drums",
-					"guitar" => "Guitar",
-					"realGuitar" => "Pro Guitar",
-					"bass" => "Bass",
-					"realBass" => "Pro Bass",
-					"keys" => "Keys",
-					"realKeys" => "Pro Keys",
-					"vocals" => "Vocals",
-					"harmVocals" => "Vocals (Harmony)",
-					"ghDrums" => "Drums (5-lane)",
-					"rhythm" => "Rhythm Guitar",
-					"guitarCoop" => "Co-op Guitar",
-					_ => "Unknown"
-				};
+				instruments[i] = availableInstruments[i].ToStringName();
+				ops[i] = availableInstruments[i].ToLocalizedName();
 			}
 			ops[^1] = "Sit Out";
 
@@ -276,10 +278,16 @@ namespace YARG.UI {
 		private void UpdateDifficulty(string chosenInstrument, bool showExpertPlus) {
 			state = State.DIFFICULTY;
 
+			// Get the correct instrument
 			var instrument = InstrumentHelper.FromStringName(chosenInstrument);
+			if (instrument == Instrument.REAL_DRUMS || instrument == Instrument.GH_DRUMS) {
+				instrument = Instrument.DRUMS;
+			}
+
+			// Get the available difficulties
 			var availableDifficulties = new List<Difficulty>();
-			for (int i = 0; i < (int)Difficulty.EXPERT_PLUS; i++) {
-				if (!MainMenu.Instance.chosenSong.HasPart(instrument, (Difficulty)i)) {
+			for (int i = 0; i < (int) Difficulty.EXPERT_PLUS; i++) {
+				if (!MainMenu.Instance.chosenSong.HasPart(instrument, (Difficulty) i)) {
 					continue;
 				}
 				availableDifficulties.Add((Difficulty) i);
@@ -288,13 +296,13 @@ namespace YARG.UI {
 			if (showExpertPlus) {
 				availableDifficulties.Add(Difficulty.EXPERT_PLUS);
 			}
-			
+
 			optionCount = availableDifficulties.Count;
-			
+
 			difficulties = new Difficulty[optionCount];
 			var ops = new string[optionCount];
-			
-			for(int i = 0; i < optionCount; i++) {
+
+			for (int i = 0; i < optionCount; i++) {
 				ops[i] = availableDifficulties[i] switch {
 					Difficulty.EASY => "Easy",
 					Difficulty.MEDIUM => "Medium",

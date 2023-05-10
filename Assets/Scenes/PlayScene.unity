@@ -162,7 +162,6 @@ MonoBehaviour:
   - {fileID: 1536164096}
   - {fileID: 1294580434}
   - {fileID: 2089210895}
-  settingsContainer: {fileID: 0}
 --- !u!114 &8545367
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4029,6 +4028,8 @@ MonoBehaviour:
   trackCamera: {fileID: 1489966287}
   silentMixerGroup: {fileID: -541741410412472071, guid: d5f8521c55f50a44eb1e292204769821,
     type: 2}
+  fontSize: 24
+  animTimeLength: 1
 --- !u!1 &1684901692
 GameObject:
   m_ObjectHideFlags: 0

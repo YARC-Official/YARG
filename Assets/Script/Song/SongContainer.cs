@@ -46,16 +46,30 @@ namespace YARG.Song {
 			return output.ErroredCaches;
 		}
 
-		public static async UniTask ScanFolder(string path, Action<SongScanner> updateUi = null) {
+		public static async UniTask ScanFolders(ICollection<string> folders, bool fast, Action<SongScanner> updateUi = null) {
+			var songsToRemove = _songs.Where(song => folders.Contains(song.CacheRoot)).ToList();
+			
+			_songs.RemoveAll(x => songsToRemove.Contains(x));
+			foreach (var song in songsToRemove) {
+				_songsByHash.Remove(song.Checksum);
+			}
+			
+			var scanner = new SongScanner(folders);
+			var songs = await scanner.StartScan(fast, updateUi);
+
+			AddSongs(songs.SongEntries);
+		}
+		
+		public static async UniTask ScanSingleFolder(string path, bool fast, Action<SongScanner> updateUi = null) {
 			var songsToRemove = _songs.Where(song => song.CacheRoot == path).ToList();
 
-			_songs.RemoveAll(x => x.CacheRoot == path);
+			_songs.RemoveAll(x => songsToRemove.Contains(x));
 			foreach (var song in songsToRemove) {
 				_songsByHash.Remove(song.Checksum);
 			}
 
 			var scanner = new SongScanner(new[] { path });
-			var songs = await scanner.StartScan(false, updateUi);
+			var songs = await scanner.StartScan(fast, updateUi);
 
 			AddSongs(songs.SongEntries);
 		}

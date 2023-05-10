@@ -16,6 +16,7 @@ namespace YARG.Settings {
 			public IntSetting    CalibrationNumber          { get; private set; } = new(-120);
 			
 			public ToggleSetting VSync                      { get; private set; } = new(true,      VSyncCallback);
+			public ToggleSetting FpsStats                 	{ get; private set; } = new(false,    FpsCouterCallback);
 			public IntSetting    FpsCap                     { get; private set; } = new(60, 1,     onChange: FpsCapCallback);
 			
 			public ToggleSetting LowQuality                 { get; private set; } = new(false,     LowQualityCallback);
@@ -27,16 +28,16 @@ namespace YARG.Settings {
 			public ToggleSetting NoKicks                    { get; private set; } = new(false);
 			public ToggleSetting AntiGhosting               { get; private set; } = new(true);
 			
-			public VolumeSetting MasterMusicVolume          { get; private set; } = new(0.9f, v => VolumeCallback(SongStem.Master, v));
+			public VolumeSetting MasterMusicVolume          { get; private set; } = new(0.75f, v => VolumeCallback(SongStem.Master, v));
 			public VolumeSetting GuitarVolume               { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Guitar, v));
 			public VolumeSetting RhythmVolume               { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Rhythm, v));
 			public VolumeSetting BassVolume                 { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Bass,   v));
 			public VolumeSetting KeysVolume                 { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Keys,   v));
 			public VolumeSetting DrumsVolume                { get; private set; } = new(1f,        DrumVolumeCallback);
 			public VolumeSetting VocalsVolume               { get; private set; } = new(1f,        VocalVolumeCallback);
-			public VolumeSetting SongVolume                 { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Song,   v));
-			public VolumeSetting CrowdVolume                { get; private set; } = new(0f,   v => VolumeCallback(SongStem.Crowd,  v));
-			public VolumeSetting SfxVolume                  { get; private set; } = new(0.7f, v => VolumeCallback(SongStem.Sfx,    v));
+			public VolumeSetting SongVolume                 { get; private set; } = new(1f,   v   => VolumeCallback(SongStem.Song,   v));
+			public VolumeSetting CrowdVolume                { get; private set; } = new(0.5f,   v => VolumeCallback(SongStem.Crowd,  v));
+			public VolumeSetting SfxVolume                  { get; private set; } = new(0.8f, v   => VolumeCallback(SongStem.Sfx,    v));
 			public VolumeSetting VocalMonitoring            { get; private set; } = new(0.7f,      VocalMonitoringCallback);
 			public ToggleSetting MuteOnMiss                 { get; private set; } = new(true);
 			public ToggleSetting UseStarpowerFx             { get; private set; } = new(true,      UseStarpowerFxChange);
@@ -65,8 +66,25 @@ namespace YARG.Settings {
 				GUIUtility.systemCopyBuffer = TwitchController.Instance.TextFilePath;
 			}
 
+			public void ResetCameraSettings() {
+				TrackCamFOV.Data = 55f;
+				TrackCamYPos.Data = 2.66f;
+				TrackCamZPos.Data = 1.14f;
+				TrackCamRot.Data = 24.12f;
+
+				// Force update sliders
+				GameManager.Instance.SettingsMenu.UpdateSettingsForTab();
+			}
+
 			private static void VSyncCallback(bool value) {
 				QualitySettings.vSyncCount = value ? 1 : 0;
+			}
+
+			private static void FpsCouterCallback(bool value) {
+				// disable script
+				FpsCounter.Instance.enabled = value;
+				// UpdateSettings()
+				FpsCounter.Instance.UpdateSettings(value);
 			}
 
 			private static void FpsCapCallback(int value) {

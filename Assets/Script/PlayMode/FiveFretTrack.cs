@@ -28,9 +28,10 @@ namespace YARG.PlayMode {
 		private Queue<List<NoteInfo>> expectedHits = new();
 		private List<List<NoteInfo>> allowedOverstrums = new();
 		private List<NoteInfo> heldNotes = new();
+		private List<NoteInfo> lastHitNote = null;
 		private float? latestInput = null;
 		private bool latestInputIsStrum = false;
-		private bool[] extendedSustain = new bool[] { false, false, false, false, false };
+		private bool[] extendedSustain = new bool[] { false, false, false, false, false, false };
 		private int allowedGhostsDefault = Constants.EXTRA_ALLOWED_GHOSTS + 1;
 		private int allowedGhosts = Constants.EXTRA_ALLOWED_GHOSTS + 1;
 		private int[] allowedChordGhosts = new int[] { -1, -1, -1, -1, -1 }; // -1 = not a chord; 0 = ghosted; 1 = ghost allowed
@@ -159,8 +160,8 @@ namespace YARG.PlayMode {
 				if (heldNote.time + heldNote.length <= Play.Instance.SongTime) {
 					heldNotes.RemoveAt(i);
 					susTracker.Drop(heldNote);
-					frets[heldNote.fret].StopAnimation();
-					frets[heldNote.fret].StopSustainParticles();
+					if (heldNote.fret < 5) frets[heldNote.fret].StopAnimation(); // TEMP (remove check later)
+					if (heldNote.fret < 5) frets[heldNote.fret].StopSustainParticles(); // TEMP (remove check later)
 
 					extendedSustain[heldNote.fret] = false;
 				}
@@ -216,6 +217,7 @@ namespace YARG.PlayMode {
 				Combo = 0;
 				missedAnyNote = true;
 				StopAudio = true;
+				lastHitNote = null;
 				foreach (var hit in missedChord) {
 					hitChartIndex++;
 					notePool.MissNote(hit);
@@ -336,8 +338,8 @@ namespace YARG.PlayMode {
 					return;
 				}
 
-				// Allow 1 multi-hit if latest note was strummed (for charts like Zoidberg the Cowboy by schmutz06)
-				if (latestInputIsStrum) {
+				// Allow 1 multi-hit if last hit note is a strum (for charts like Zoidberg the Cowboy by schmutz06)
+				if (latestInputIsStrum && lastHitNote is not null && !lastHitNote[0].hopo && !lastHitNote[0].tap) {
 					latestInputIsStrum = false;
 				} else {
 					// Input is valid; clear it to avoid multi-hit later
@@ -354,7 +356,7 @@ namespace YARG.PlayMode {
 			strummedCurrentNote = strummedCurrentNote || strummed || strumLeniency > 0f;
 			strumLeniency = 0f;
 			StopAudio = false;
-
+			lastHitNote = chord;
 
 			// Solo stuff
 			if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime) {
@@ -376,17 +378,16 @@ namespace YARG.PlayMode {
 				// If sustained, add to held
 				if (hit.length > 0.2f) {
 					heldNotes.Add(hit);
-					frets[hit.fret].PlaySustainParticles();
-					scoreKeeper.Add(susTracker.Strum(hit) * Multiplier * SUSTAIN_PTS_PER_BEAT);
-
-					frets[hit.fret].PlayAnimationSustainsLooped();
+					if (hit.fret < 5) frets[hit.fret].PlaySustainParticles(); // TEMP (remove check later)
+					scoreKeeper.Add(susTracker.Strum(hit) * Multiplier * SUSTAIN_PTS_PER_BEAT);    
+					if (hit.fret < 5) frets[hit.fret].PlayAnimationSustainsLooped(); // TEMP (remove check later)
 
 					// Check if it's extended sustain;
 					var nextNote = GetNextNote(hit.time);
 					if (nextNote != null) {
 						extendedSustain[hit.fret] = hit.EndTime > nextNote[0].time;
 					}
-				} else if (hit.fret != 5) {
+				} else {
 					extendedSustain[hit.fret] = false;
 				}
 
@@ -466,8 +467,8 @@ namespace YARG.PlayMode {
 
 				heldNotes.RemoveAt(i);
 				susTracker.Drop(heldNote);
-				frets[heldNote.fret].StopAnimation();
-				frets[heldNote.fret].StopSustainParticles();
+				if (heldNote.fret < 5) frets[heldNote.fret].StopAnimation(); // TEMP (remove check later)
+				if (heldNote.fret < 5) frets[heldNote.fret].StopSustainParticles(); // TEMP (remove check later)
 				extendedSustain[heldNote.fret] = false;
 			}
 		}
@@ -597,7 +598,7 @@ namespace YARG.PlayMode {
 					//
 					for (int i = heldNotes.Count - 1; i >= 0; i--) {
 						var heldNote = heldNotes[i];
-						if (heldNote.fret == fret || (heldNotes.Count == 1 && fret < heldNote.fret)) { // Button press is valid
+						if (heldNote.fret < 5 && (heldNote.fret == fret || (heldNotes.Count == 1 && fret < heldNote.fret))) { // Button press is valid
 							continue;
 						} else { // Wrong button pressed; release all sustains
 							release = true;
@@ -610,8 +611,8 @@ namespace YARG.PlayMode {
 							var heldNote = heldNotes[i];
 							notePool.MissNote(heldNote);
 							heldNotes.RemoveAt(i);
-							frets[heldNote.fret].StopAnimation();
-							frets[heldNote.fret].StopSustainParticles();
+							if (heldNote.fret < 5) frets[heldNote.fret].StopAnimation(); // TEMP (remove check later)
+							if (heldNote.fret < 5) frets[heldNote.fret].StopSustainParticles(); // TEMP (remove check later)
 							extendedSustain[heldNote.fret] = false;
 						}
 					}
@@ -628,8 +629,8 @@ namespace YARG.PlayMode {
 					notePool.MissNote(heldNote);
 					heldNotes.RemoveAt(i);
 					susTracker.Drop(heldNote);
-					frets[heldNote.fret].StopAnimation();
-					frets[heldNote.fret].StopSustainParticles();
+					if (heldNote.fret < 5) frets[heldNote.fret].StopAnimation(); // TEMP (remove check later)
+					if (heldNote.fret < 5) frets[heldNote.fret].StopSustainParticles(); // TEMP (remove check later)
 					extendedSustain[heldNote.fret] = false;
 
 					letGo = heldNote;
