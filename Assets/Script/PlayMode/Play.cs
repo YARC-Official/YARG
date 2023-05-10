@@ -113,11 +113,9 @@ namespace YARG.PlayMode {
 			// Determine if speed is not 1
 			bool isSpeedUp = Math.Abs(speed - 1) > float.Epsilon;
 
-			// Load MOGG if RB_CON, otherwise load stems
+			// Load MOGG if CON, otherwise load stems
 			if (song is ExtractedConSongEntry rawConSongEntry) {
-				Debug.Log(rawConSongEntry.MoggInfo.ChannelCount);
-
-				GameManager.AudioManager.LoadMogg(rawConSongEntry.MoggInfo, isSpeedUp);
+				GameManager.AudioManager.LoadMogg(rawConSongEntry, isSpeedUp);
 			} else {
 				var stems = AudioHelpers.GetSupportedStems(song.Location);
 
@@ -165,7 +163,7 @@ namespace YARG.PlayMode {
 
 			// Hide loading screen
 			GameUI.Instance.loadingContainer.SetActive(false);
-			
+
 			realSongTime = SONG_START_OFFSET;
 			StartCoroutine(StartAudio());
 
@@ -225,7 +223,7 @@ namespace YARG.PlayMode {
 				realSongTime += Time.deltaTime;
 				yield return null;
 			}
-			
+
 			GameManager.AudioManager.Play();
 			audioStarted = true;
 		}
@@ -322,10 +320,14 @@ namespace YARG.PlayMode {
 			// Update lyrics
 			if (lyricIndex < chart.genericLyrics.Count) {
 				var lyric = chart.genericLyrics[lyricIndex];
-				if (lyricPhraseIndex >= lyric.lyric.Count) {
+
+				if (lyricPhraseIndex >= lyric.lyric.Count && lyric.EndTime < SongTime) {
+					// Clear phrase
+					GameUI.Instance.SetGenericLyric(string.Empty);
+
 					lyricPhraseIndex = 0;
 					lyricIndex++;
-				} else if (lyric.lyric[lyricPhraseIndex].time < SongTime) {
+				} else if (lyricPhraseIndex < lyric.lyric.Count && lyric.lyric[lyricPhraseIndex].time < SongTime) {
 					// Consolidate lyrics
 					string o = "<color=#ffb700>";
 					for (int i = 0; i < lyric.lyric.Count; i++) {
