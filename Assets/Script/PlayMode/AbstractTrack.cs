@@ -516,27 +516,16 @@ namespace YARG.PlayMode {
 				commonTrack.performanceText.text = $"{currentHundred}00-NOTE STREAK";
 				commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
 			}
-			
-			// Set "FULL COMBO" text
-			if (!fullComboChecked) {
+
+			// Set "FULL COMBO" or "STRONG FINISH" text
+			if (!strongFinishChecked) {
 				if (Play.Instance.SongTime > endTime) {
-					fullComboChecked = true;
+					strongFinishChecked = true;
 
 					if (FullCombo) {
 						commonTrack.performanceText.text = "FULL COMBO";
 						commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
-					}
-				}
-			}
-			
-			// Set "STRONG FINISH" text
-			if (!strongFinishChecked) {
-				float checkTime = FullCombo ? offsetEndTime : endTime;
-				
-				if (Play.Instance.SongTime > checkTime) {
-					strongFinishChecked = true;
-
-					if (_combo >= commonTrack.strongFinishCutoff) {
+					} else if (_combo >= commonTrack.strongFinishCutoff) {
 						commonTrack.performanceText.text = "STRONG FINISH";
 						commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
 					}
