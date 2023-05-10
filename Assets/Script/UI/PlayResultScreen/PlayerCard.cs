@@ -45,6 +45,8 @@ namespace YARG.UI.PlayResultScreen {
 		private TextMeshProUGUI difficulty;
 		[SerializeField]
 		private TextMeshProUGUI score;
+		[SerializeField]
+		private StarDisplay starDisplay;
 
 		[Space]
 		[Header("Color Elements")]
@@ -53,9 +55,9 @@ namespace YARG.UI.PlayResultScreen {
         [SerializeField]
 		private RawImage separator1;
         [SerializeField]
-		private RawImage highScoreBanner;
+		private RawImage bottomBanner;
 
-		public void Setup(PlayerManager.Player player, ClearStatus cs) {
+		public void Setup(PlayerManager.Player player, ClearStatus cs, bool isHighScore) {
 			Debug.Log($"Setting up PlayerCard for {player.DisplayName}");
 
 			// set window frame
@@ -81,10 +83,14 @@ namespace YARG.UI.PlayResultScreen {
             var scr = player.lastScore.Value;
 			percentage.text = $"{Mathf.FloorToInt(scr.percentage.percent * 100f)}%";
 			score.text = $"{scr.score.score:N0}";
+			starDisplay.SetStars (
+				scr.score.stars,
+				scr.score.stars <= 5 ? StarType.Standard : StarType.Gold
+			);
 
-            /* Set colors */
-            // separator colors
-            var c = separator0.color;
+			/* Set colors */
+			// separator colors
+			var c = separator0.color;
 			c.r = statusColor[cs].r;
 			c.g = statusColor[cs].g;
 			c.b = statusColor[cs].b;
@@ -92,17 +98,17 @@ namespace YARG.UI.PlayResultScreen {
 			separator1.color = c;
 
 			difficulty.color = statusColor[cs];
-			highScoreBanner.color = statusColor[cs];
+			bottomBanner.color = statusColor[cs];
+
+			/* Bottom banner */
+			// TODO: setup for other clear types
+			bottomBanner.gameObject.GetComponent<LayoutElement>().flexibleHeight = 0f;
+			if (isHighScore) {
+				// animate banner expanding
+				var anim = bottomBanner.gameObject.GetComponent<Animator>();
+				anim.enabled = true;
+				anim.Play("ExtendBanner");
+			}
 		}
-
-        // Start is called before the first frame update
-        void Start() {
-            
-        }
-
-        // Update is called once per frame
-        void Update() {
-            
-        }
     }
 }
