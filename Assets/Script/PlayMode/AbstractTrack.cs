@@ -95,6 +95,10 @@ namespace YARG.PlayMode {
 		public int hotStartCutoff;
 		public int strongFinishCutoff;
 		public float bufferPeriod;
+		
+		// For XOO-NOTE STREAK
+		private int currentHundred = 0;
+		private int recentHundred = 0;
 
 		// Scoring trackers
 		protected ScoreKeeper scoreKeeper;
@@ -506,6 +510,13 @@ namespace YARG.PlayMode {
 				}
 			}
 			
+			// Set "X00-NOTE STREAK" text
+			currentHundred = _combo / 100;
+			if (recentHundred < currentHundred) {
+				commonTrack.performanceText.text = $"{currentHundred}00-NOTE STREAK";
+				commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+			}
+
 			// Set "STRONG FINISH text
 			if (!strongFinishChecked) {
 				if (Play.Instance.SongTime > (Chart[GetChartCount() - 1].time + Constants.HIT_MARGIN + bufferPeriod)) {
@@ -521,6 +532,7 @@ namespace YARG.PlayMode {
 			// Animate performance text
 			commonTrack.performanceText.fontSize = commonTrack.perfTextSizer.PerformanceTextFontSize();
 			commonTrack.perfTextSizer.animTimeRemaining -= Time.deltaTime;
+			recentHundred = currentHundred;
 			recentlyBelowMaxMultiplier = Multiplier < MaxMultiplier;
 		}
 
