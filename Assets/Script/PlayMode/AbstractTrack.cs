@@ -517,7 +517,7 @@ namespace YARG.PlayMode {
 				commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
 			}
 
-			// Set "STRONG FINISH text
+			// Set "STRONG FINISH" text
 			if (!strongFinishChecked) {
 				if (Play.Instance.SongTime > (Chart[GetChartCount() - 1].time + Constants.HIT_MARGIN + bufferPeriod)) {
 					strongFinishChecked = true;
@@ -527,6 +527,12 @@ namespace YARG.PlayMode {
 						commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
 					}
 				}
+			}
+			
+			// Never let performance text appear when the solo box is present
+			if (soloInProgress) {
+				commonTrack.performanceText.text = "";
+				commonTrack.perfTextSizer.animTimeRemaining = 0.0f;
 			}
 
 			// Animate performance text
