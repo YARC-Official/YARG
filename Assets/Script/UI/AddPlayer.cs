@@ -8,6 +8,7 @@ using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.Utilities;
 using UnityEngine.UI;
+using YARG.Data;
 using YARG.Input;
 using YARG.Serialization;
 
@@ -177,6 +178,8 @@ namespace YARG.UI {
 			} else {
 				inputStrategyDropdown.value = 0;
 			}
+			
+			GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.SelectSfx);
 		}
 
 		public void DoneConfigure() {
@@ -206,6 +209,7 @@ namespace YARG.UI {
 				InputBindSerializer.LoadBindsFromSave(inputStrategy);
 			}
 
+			GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.SelectSfx);
 			StartBind();
 		}
 
@@ -253,6 +257,7 @@ namespace YARG.UI {
 						currentBindUpdate = binding;
 						currentBindText = text;
 						text.text = $"<b>{binding.DisplayName}:</b> Waiting for input... (Escape to cancel)";
+						GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.SelectSfx);
 					}
 				});
 
@@ -266,6 +271,10 @@ namespace YARG.UI {
 
 					binding.DebounceThreshold = debounce;
 					inputField.text = GetDebounceText(binding.DebounceThreshold);
+					GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.SelectSfx);
+				});
+				inputField.onValueChanged.AddListener(_ => {
+					GameManager.AudioManager.PlaySoundEffect(SfxSample.MenuNavigation);
 				});
 			}
 
@@ -356,8 +365,10 @@ namespace YARG.UI {
 		private void AllowedControlChanged(bool enabled, AllowedControl flag) {
 			if (enabled) {
 				allowedControls |= flag;
+				GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.SelectSfx);
 			} else {
 				allowedControls &= ~flag;
+				GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.BackSfx);
 			}
 		}
 
@@ -395,6 +406,15 @@ namespace YARG.UI {
 			return true;
 		}
 
+		public void OnInputStrategyChanged() {
+			AudioManager.Instance.SelectedInstrument = inputStrategyDropdown.value switch {
+				3 => Instrument.DRUMS,
+				4 => Instrument.DRUMS,
+				_ => Instrument.GUITAR
+			};
+			GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.SelectSfx);
+		}
+
 		private void SetBind(InputControl<float> control) {
 			inputStrategy.SetMappingInputControl(currentBindUpdate.BindingKey, control);
 			CancelBind();
@@ -407,6 +427,8 @@ namespace YARG.UI {
 
 			bindGroupingList.Clear();
 			bindGroupingTimer = 0f;
+			
+			GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.BackSfx);
 		}
 
 		public void DoneBind() {
@@ -430,7 +452,7 @@ namespace YARG.UI {
 			if (!string.IsNullOrEmpty(playerName)) {
 				player.name = playerName;
 			}
-
+			
 			MainMenu.Instance.ShowEditPlayers();
 		}
 

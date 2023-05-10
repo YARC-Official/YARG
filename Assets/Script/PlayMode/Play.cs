@@ -84,12 +84,15 @@ namespace YARG.PlayMode {
 				if (value) {
 					Time.timeScale = 0f;
 
+					GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.SelectSfx);
 					GameManager.AudioManager.Pause();
 
 				} else {
 					Time.timeScale = 1f;
 
-					GameManager.AudioManager.Play();
+					GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.BackSfx);
+					GameManager.AudioManager.Play();						
+
 				}
 				OnPauseToggle(_paused);
 			}

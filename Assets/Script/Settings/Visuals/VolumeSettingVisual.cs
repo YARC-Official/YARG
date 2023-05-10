@@ -1,6 +1,7 @@
 using System.Globalization;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using YARG.Settings.Types;
 
@@ -39,6 +40,7 @@ namespace YARG.Settings.Visuals {
 			} catch { }
 
 			RefreshVisual();
+			PlaySelectSoundEffect();
 		}
 	}
 }

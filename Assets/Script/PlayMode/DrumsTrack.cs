@@ -224,6 +224,7 @@ namespace YARG.PlayMode {
 		}
 
 		protected override void PauseToggled(bool pause) {
+			base.PauseToggled(pause);
 			if (!pause) {
 				if (input is DrumsInputStrategy drumStrat) {
 					drumStrat.DrumHitEvent += DrumHitAction;

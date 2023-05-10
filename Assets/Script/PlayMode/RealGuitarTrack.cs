@@ -231,6 +231,7 @@ namespace YARG.PlayMode {
 		}
 
 		protected override void PauseToggled(bool pause) {
+			base.PauseToggled(pause);
 			if (!pause) {
 				input.FretChangeEvent += FretChangedAction;
 				input.StrumEvent += StrumAction;

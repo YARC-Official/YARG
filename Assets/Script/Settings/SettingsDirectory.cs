@@ -65,6 +65,8 @@ namespace YARG.Settings {
 
 			// Refresh
 			GameManager.Instance.SettingsMenu.UpdateSongFolderManager();
+			
+			GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.BackSfx);
 		}
 
 		public void Browse() {
@@ -77,12 +79,14 @@ namespace YARG.Settings {
 				PathsReference[index] = folder[0];
 				RefreshText();
 			});
+			GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.SelectSfx);
 		}
 
 		public async void Refresh() {
 			LoadingManager.Instance.QueueSongFolderRefresh(PathsReference[index]);
 			await LoadingManager.Instance.StartLoad();
 			RefreshText();
+			GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.SelectSfx);
 		}
 	}
 }

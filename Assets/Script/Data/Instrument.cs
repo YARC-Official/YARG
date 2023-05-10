@@ -113,6 +113,18 @@ namespace YARG.Data {
 			};
 		}
 
+		public static string ToSfxName(this Instrument instrument) {
+			return instrument switch {
+				Instrument.BASS        => "bass",
+				Instrument.REAL_BASS   => "bass",
+				Instrument.DRUMS       => "drums",
+				Instrument.REAL_DRUMS  => "drums",
+				Instrument.KEYS        => "keys",
+				Instrument.REAL_KEYS   => "keys",
+				_                      => "gtr",
+			};
+		}
+
 #pragma warning restore format
 	}
 }

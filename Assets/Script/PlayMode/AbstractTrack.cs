@@ -355,7 +355,9 @@ namespace YARG.PlayMode {
 			Play.Instance.Paused = !Play.Instance.Paused;
 		}
 
-		protected abstract void PauseToggled(bool pause);
+		protected virtual void PauseToggled(bool pause) {
+			AudioManager.Instance.SelectedInstrument = InstrumentHelper.FromStringName(player.chosenInstrument);
+		}
 
 		private void UpdateInfo() {
 			// Update text

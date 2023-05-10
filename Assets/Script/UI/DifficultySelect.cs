@@ -67,6 +67,17 @@ namespace YARG.UI {
 			} else {
 				UpdateInstrument();
 			}
+
+			speedInput.onSelect.AddListener(_ => PlaySelectSoundEffect());
+			speedInput.onValueChanged.AddListener(_ => PlayMenuNavigationSoundEffect());
+			brutalModeCheckbox.onValueChanged.AddListener(isOn => {
+				if (isOn) {
+					PlaySelectSoundEffect();
+				} else {
+					PlayBackSoundEffect();
+				}
+
+			});
 		}
 
 		private void OnDisable() {
@@ -74,6 +85,10 @@ namespace YARG.UI {
 			foreach (var player in PlayerManager.players) {
 				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
 			}
+			
+			speedInput.onSelect.RemoveAllListeners();
+			speedInput.onValueChanged.RemoveAllListeners();
+			brutalModeCheckbox.onValueChanged.RemoveAllListeners();
 		}
 
 		private void OnDestroy() {
@@ -100,6 +115,8 @@ namespace YARG.UI {
 		}
 
 		private void MoveOption(int i) {
+			GameManager.AudioManager.PlaySoundEffect(SfxSample.MenuNavigation);
+			
 			// Deselect old one
 			options[selected].SetSelected(false);
 
@@ -116,6 +133,7 @@ namespace YARG.UI {
 		}
 
 		private void HoverOption(GenericOption option) {
+			
 			// Deselect old one
 			options[selected].SetSelected(false);
 
@@ -125,6 +143,8 @@ namespace YARG.UI {
 			// Don't need to bound the top. The bottom should stop and not roll over or go to an empty option.
 			if (selected >= optionCount) {
 				selected = optionCount - 1;
+			} else {
+				GameManager.AudioManager.PlaySoundEffect(SfxSample.MenuNavigation);
 			}
 
 			// Select new one
@@ -176,6 +196,9 @@ namespace YARG.UI {
 				OnInstrumentSelection?.Invoke(player);
 				IncreasePlayerIndex();
 			}
+
+			AudioManager.Instance.SelectedInstrument = InstrumentHelper.FromStringName(player.chosenInstrument);
+			PlaySelectSoundEffect();
 		}
 
 		private void IncreasePlayerIndex() {
@@ -381,6 +404,18 @@ namespace YARG.UI {
 
 			selected = 3;
 			options[3].SetSelected(true);
+		}
+
+		private void PlaySelectSoundEffect() {
+			GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.SelectSfx);
+		}
+		
+		private void PlayBackSoundEffect() {
+			GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.BackSfx);
+		}
+		
+		private void PlayMenuNavigationSoundEffect() {
+			GameManager.AudioManager.PlaySoundEffect(SfxSample.MenuNavigation);
 		}
 	}
 }

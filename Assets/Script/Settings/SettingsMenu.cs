@@ -1,6 +1,7 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.InputSystem;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
 using UnityEngine.UI;
@@ -11,40 +12,25 @@ using YARG.Util;
 
 namespace YARG.Settings {
 	public class SettingsMenu : MonoBehaviour {
-		[SerializeField]
-		private GameObject fullContainer;
-		[SerializeField]
-		private GameObject halfContainer;
-		[SerializeField]
-		private Transform previewContainer;
+		[SerializeField] private GameObject fullContainer;
+		[SerializeField] private GameObject halfContainer;
+		[SerializeField] private Transform previewContainer;
 
-		[Space]
-		[SerializeField]
-		private Transform tabsContainer;
-		[SerializeField]
-		private Transform settingsContainer;
+		[Space] [SerializeField] private Transform tabsContainer;
+		[SerializeField] private Transform settingsContainer;
 
-		[Space]
-		[SerializeField]
-		private Transform halfSettingsContainer;
+		[Space] [SerializeField] private Transform halfSettingsContainer;
 
-		[Space]
-		[SerializeField]
-		private GameObject tabPrefab;
-		[SerializeField]
-		private GameObject buttonPrefab;
-		[SerializeField]
-		private GameObject headerPrefab;
-		[SerializeField]
-		private GameObject directoryPrefab;
+		[Space] [SerializeField] private GameObject tabPrefab;
+		[SerializeField] private GameObject buttonPrefab;
+		[SerializeField] private GameObject headerPrefab;
+		[SerializeField] private GameObject directoryPrefab;
 
-		[Space]
-		[SerializeField]
-		private RenderTexture previewRenderTexture;
-		[SerializeField]
-		private RawImage previewRawImage;
+		[Space] [SerializeField] private RenderTexture previewRenderTexture;
+		[SerializeField] private RawImage previewRawImage;
 
 		private string _currentTab;
+
 		public string CurrentTab {
 			get => _currentTab;
 			set {
@@ -77,6 +63,8 @@ namespace YARG.Settings {
 				// Then refresh song select
 				SongSelection.refreshFlag = true;
 			}
+
+			GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.SelectSfx);
 		}
 
 		public void UpdateSettingsForTab() {
@@ -152,7 +140,8 @@ namespace YARG.Settings {
 						var setting = SettingsManager.GetSettingByName(field.FieldName);
 
 						// Spawn the setting
-						var settingPrefab = Addressables.LoadAssetAsync<GameObject>(setting.AddressableName).WaitForCompletion();
+						var settingPrefab = Addressables.LoadAssetAsync<GameObject>(setting.AddressableName)
+							.WaitForCompletion();
 						var go = Instantiate(settingPrefab, container);
 						go.GetComponent<ISettingVisual>().SetSetting(field.FieldName);
 					}
@@ -161,6 +150,9 @@ namespace YARG.Settings {
 				// Then we're good!
 				break;
 			}
+
+			// Play select sound effect
+			GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.SelectSfx);
 		}
 
 		public void UpdateSongFolderManager() {
@@ -294,6 +286,23 @@ namespace YARG.Settings {
 
 			UpdateTabs();
 			UpdateSettings(settingsContainer);
+		}
+
+		public void PlaySelectSoundEffect() {
+			GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.SelectSfx);
+		}
+		
+		public void PlayBackSoundEffect() {
+			GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.BackSfx);
+		}
+
+		public void PlayMenuNavigationSoundEffect() {
+			var scroll = Mouse.current.scroll.ReadValue().y;
+			if (scroll.Equals(0.0f)){
+				return;
+			}
+			
+			GameManager.AudioManager.PlaySoundEffect(SfxSample.MenuNavigation);
 		}
 	}
 }

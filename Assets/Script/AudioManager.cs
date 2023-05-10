@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
+using YARG.Data;
 
 namespace YARG {
 	public class AudioManager : MonoBehaviour {
@@ -26,6 +27,10 @@ namespace YARG {
 
 		private Dictionary<string, AudioMixerGroup> audioChannels = new();
 
+		public Instrument SelectedInstrument { get; set; }
+		public SfxSample SelectSfx => AudioHelpers.GetSelectSfxFromInstrument(SelectedInstrument);
+		public SfxSample BackSfx => AudioHelpers.GetBackSfxFromInstrument(SelectedInstrument);
+
 		private void Awake() {
 			Instance = this;
 
@@ -33,6 +38,8 @@ namespace YARG {
 			foreach (var kvp in audioChannelsInspector) {
 				audioChannels.Add(kvp.id, kvp.mixer);
 			}
+
+			SelectedInstrument = Instrument.GUITAR;
 		}
 
 		public void SetVolume(string name, float volume) {

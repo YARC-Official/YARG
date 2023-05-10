@@ -18,6 +18,7 @@ namespace YARG.Settings.Visuals {
 		public void OnToggleChange() {
 			Setting.Data = toggle.isOn;
 			RefreshVisual();
+			PlaySelectSoundEffect();
 		}
 	}
 }

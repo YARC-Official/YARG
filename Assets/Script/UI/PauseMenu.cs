@@ -66,6 +66,8 @@ namespace YARG.UI {
 		}
 
 		private void MoveOption(int i) {
+			GameManager.AudioManager.PlaySoundEffect(SfxSample.MenuNavigation);
+			
 			// Deselect old one
 			options[selected].SetSelected(false);
 
@@ -82,6 +84,7 @@ namespace YARG.UI {
 		}
 
 		private void HoverOption(GenericOption option) {
+			
 			// Deselect old one
 			options[selected].SetSelected(false);
 
@@ -91,6 +94,8 @@ namespace YARG.UI {
 			// Don't need to bound the top. The bottom should stop and not roll over.
 			if (selected >= optionCount) {
 				selected = optionCount - 1;
+			} else {
+				GameManager.AudioManager.PlaySoundEffect(SfxSample.MenuNavigation);
 			}
 
 			// Select new one
@@ -145,10 +150,12 @@ namespace YARG.UI {
 
 		private void OnSettingsSelected() {
 			GameManager.Instance.SettingsMenu.gameObject.SetActive(true);
+			GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.SelectSfx);
 		}
 
 		private void OnQuitSelected() {
 			Play.Instance.Exit();
+			GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.BackSfx);
 		}
 	}
 }

@@ -146,8 +146,14 @@ namespace YARG.UI.MusicLibrary {
 			inputTimer -= Time.deltaTime;
 			if (inputTimer <= 0f && directionHeld) {
 				switch (direction) {
-					case NavigationType.UP: SelectedIndex--; break;
-					case NavigationType.DOWN: SelectedIndex++; break;
+					case NavigationType.UP: 
+						SelectedIndex--;
+						GameManager.AudioManager.PlaySoundEffect(SfxSample.MenuNavigation);
+						break;
+					case NavigationType.DOWN: 
+						SelectedIndex++;
+						GameManager.AudioManager.PlaySoundEffect(SfxSample.MenuNavigation);
+						break;
 				}
 
 				inputTimer = INPUT_REPEAT_TIME;
@@ -158,8 +164,10 @@ namespace YARG.UI.MusicLibrary {
 			var scroll = Mouse.current.scroll.ReadValue().y;
 			if (scroll > 0f) {
 				SelectedIndex--;
+				GameManager.AudioManager.PlaySoundEffect(SfxSample.MenuNavigation);
 			} else if (scroll < 0f) {
 				SelectedIndex++;
+				GameManager.AudioManager.PlaySoundEffect(SfxSample.MenuNavigation);
 			}
 		}
 
@@ -176,8 +184,14 @@ namespace YARG.UI.MusicLibrary {
 
 			SongViewType view = _songs[SelectedIndex] as SongViewType;
 			switch (navigationType) {
-				case NavigationType.UP: SelectedIndex--; break;
-				case NavigationType.DOWN: SelectedIndex++; break;
+				case NavigationType.UP: 
+					SelectedIndex--;
+					GameManager.AudioManager.PlaySoundEffect(SfxSample.MenuNavigation);
+					break;
+				case NavigationType.DOWN: 
+					SelectedIndex++; 
+					GameManager.AudioManager.PlaySoundEffect(SfxSample.MenuNavigation);
+					break;
 				case NavigationType.PRIMARY: view?.PrimaryButtonClick(); break;
 				case NavigationType.SECONDARY: Back(); break;
 				case NavigationType.TERTIARY:

@@ -32,6 +32,7 @@ namespace YARG.Settings {
 		}
 
 		public void OnClick() {
+			GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.SelectSfx);
 			if (customCallback == null) {
 				SettingsManager.InvokeButton(buttonName);
 			} else {

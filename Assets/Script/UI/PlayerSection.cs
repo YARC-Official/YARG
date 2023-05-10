@@ -38,18 +38,37 @@ namespace YARG.UI {
 			player.inputStrategy.Disable();
 			player = null;
 			Destroy(gameObject);
+			PlayBackSoundEffect();		
 		}
 
 		public void UpdateTrackSpeed() {
 			if (player != null) {
 				player.trackSpeed = float.Parse(trackSpeedField.text, CultureInfo.InvariantCulture);
+				PlayMenuNavigationSoundEffect();
 			}
 		}
 
 		public void UpdateLeftyFlip() {
 			if (player != null) {
 				player.leftyFlip = leftyFlipToggle.isOn;
+				if (player.leftyFlip) {
+					PlaySelectSoundEffect();
+				} else {
+					PlayBackSoundEffect();
+				}
 			}
+		}
+
+		public void PlaySelectSoundEffect() {
+			GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.SelectSfx);
+		}
+
+		private void PlayBackSoundEffect() {
+			GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.SelectSfx);
+		}
+		
+		private void PlayMenuNavigationSoundEffect() {
+			GameManager.AudioManager.PlaySoundEffect(SfxSample.MenuNavigation);
 		}
 	}
 }

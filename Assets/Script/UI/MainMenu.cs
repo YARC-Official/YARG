@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using YARG.Input;
 using YARG.Settings;
@@ -50,7 +51,7 @@ namespace YARG.UI {
 		private Button[] menuButtons;
 
 		private bool isUpdateShown;
-
+		
 		private void Start() {
 			Instance = this;
 
@@ -75,6 +76,17 @@ namespace YARG.UI {
 			} else {
 				quickplayText.text = "<color=#808080>QUICKPLAY<size=50%> (Add a player!)</size></color>";
 			}
+
+			foreach (var menuButton in menuButtons) {
+				var eventTrigger = menuButton.gameObject.AddComponent<EventTrigger>();
+				var entry = new EventTrigger.Entry {
+					eventID = EventTriggerType.PointerEnter,
+				};
+				entry.callback.AddListener(eventData => {
+					GameManager.AudioManager.PlaySoundEffect(SfxSample.MenuNavigation);
+				});
+				eventTrigger.triggers.Add(entry);
+			}
 		}
 
 		private void OnDisable() {
@@ -84,6 +96,11 @@ namespace YARG.UI {
 			// Unbind input events
 			foreach (var player in PlayerManager.players) {
 				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
+			}
+			
+			foreach (var menuButton in menuButtons) {
+				var eventTrigger = menuButton.gameObject.GetComponent<EventTrigger>();
+				Destroy(eventTrigger);
 			}
 		}
 
@@ -118,6 +135,13 @@ namespace YARG.UI {
 		}
 
 		public void ShowMainMenu() {
+			if (postSong.isActiveAndEnabled) {
+				GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.SelectSfx);
+			}
+			else if (songSelect.isActiveAndEnabled || editPlayers.isActiveAndEnabled) {
+				GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.BackSfx);
+			}
+
 			HideAll();
 
 			MainMenuBackground.Instance.cursorMoves = true;
@@ -126,6 +150,12 @@ namespace YARG.UI {
 		}
 
 		public void ShowEditPlayers() {
+			if (!addPlayer.isActiveAndEnabled) {
+				GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.SelectSfx);
+			} else {
+				GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.BackSfx);
+			}
+			
 			HideAll();
 			editPlayers.gameObject.SetActive(true);
 		}
@@ -133,10 +163,17 @@ namespace YARG.UI {
 		public void ShowAddPlayer() {
 			HideAll();
 			addPlayer.gameObject.SetActive(true);
+			GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.SelectSfx);
 		}
 
 		public void ShowSongSelect() {
 			if (PlayerManager.players.Count > 0) {
+				if (!difficultySelect.isActiveAndEnabled) {
+					GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.SelectSfx);
+				} else {
+					GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.BackSfx);
+				}
+				
 				HideAll();
 				songSelect.gameObject.SetActive(true);
 			}
@@ -145,6 +182,7 @@ namespace YARG.UI {
 		public void ShowPreSong() {
 			HideAll();
 			difficultySelect.gameObject.SetActive(true);
+			GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.SelectSfx);
 		}
 
 		public void ShowPostSong() {
@@ -156,6 +194,7 @@ namespace YARG.UI {
 		public void ShowCredits() {
 			HideAll();
 			credits.gameObject.SetActive(true);
+			GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.SelectSfx);
 		}
 
 		public void ShowSettingsMenu() {
@@ -165,6 +204,7 @@ namespace YARG.UI {
 		public void ShowCalibrationScene() {
 			if (PlayerManager.players.Count > 0) {
 				GameManager.Instance.LoadScene(SceneIndex.CALIBRATION);
+				GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.SelectSfx);
 			}
 		}
 
@@ -179,6 +219,7 @@ namespace YARG.UI {
 		}
 
 		public void Quit() {
+			GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.BackSfx);
 #if UNITY_EDITOR
 
 			UnityEditor.EditorApplication.isPlaying = false;

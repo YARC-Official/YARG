@@ -25,5 +25,9 @@ namespace YARG.UI {
 				column.text = split[i];
 			}
 		}
+
+		private void OnDisable() {
+			GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.BackSfx);
+		}
 	}
 }
