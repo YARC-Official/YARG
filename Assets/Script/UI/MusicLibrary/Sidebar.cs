@@ -238,14 +238,9 @@ namespace YARG.UI.MusicLibrary {
 			}
 		}
 
-		public void PlaySong() {
+		public void PrimaryButtonClick() {
 			var viewType = SongSelection.Instance.Songs[SongSelection.Instance.SelectedIndex];
-			if (viewType is not SongViewType songViewType) {
-				return;
-			}
-
-			MainMenu.Instance.chosenSong = songViewType.SongEntry;
-			MainMenu.Instance.ShowPreSong();
+			viewType.PrimaryButtonClick();
 		}
 
 		public void SearchFilter(string type) {

@@ -50,5 +50,12 @@ namespace YARG.UI.MusicLibrary.ViewTypes {
 
 			SongSelection.Instance.searchField.text = $"artist:{SongEntry.Artist}";
 		}
+
+		public override void PrimaryButtonClick() {
+			base.PrimaryButtonClick();
+
+			MainMenu.Instance.chosenSong = SongEntry;
+			MainMenu.Instance.ShowPreSong();
+		}
 	}
 }

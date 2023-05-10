@@ -18,5 +18,9 @@ namespace YARG.UI.MusicLibrary.ViewTypes {
 		public virtual void SecondaryTextClick() {
 
 		}
+
+		public virtual void PrimaryButtonClick() {
+
+		}
 	}
 }

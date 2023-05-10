@@ -174,16 +174,17 @@ namespace YARG.UI.MusicLibrary {
 				return;
 			}
 
+			SongViewType view = _songs[SelectedIndex] as SongViewType;
 			switch (navigationType) {
 				case NavigationType.UP: SelectedIndex--; break;
 				case NavigationType.DOWN: SelectedIndex++; break;
-				// case NavigationType.PRIMARY: selectedSongView.PlaySong(); break;
+				case NavigationType.PRIMARY: view?.PrimaryButtonClick(); break;
 				case NavigationType.SECONDARY: Back(); break;
-					// case NavigationType.TERTIARY:
-					// 	if (songs.Count > 0) {
-					// 		searchField.text = $"artist:{songs[selectedSongIndex].song.Artist}";
-					// 	}
-					// 	break;
+				case NavigationType.TERTIARY:
+					if (view != null) {
+						searchField.text = $"artist:{view.SongEntry.Artist}";
+					}
+					break;
 			}
 		}
 

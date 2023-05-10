@@ -4,14 +4,14 @@ using YARG.Song;
 
 namespace YARG {
 	public interface IAudioManager {
-		public bool UseStarpowerFx  { get; set; }
+		public bool UseStarpowerFx { get; set; }
 		public bool IsChipmunkSpeedup { get; set; }
 
 		public IList<string> SupportedFormats { get; }
 
 		public bool IsAudioLoaded { get; }
 		public bool IsPlaying { get; }
-		
+
 		public double MasterVolume { get; }
 		public double SfxVolume { get; }
 
@@ -31,10 +31,10 @@ namespace YARG {
 		public void UnloadSong();
 
 		public void LoadPreviewAudio(SongEntry song);
-		
+
 		public void Play();
 		public void Pause();
-		
+
 		public void FadeIn();
 		public void FadeOut();
 
@@ -43,7 +43,7 @@ namespace YARG {
 		public void SetStemVolume(SongStem stem, double volume);
 
 		public void UpdateVolumeSetting(SongStem stem, double volume);
-		
+
 		public double GetVolumeSetting(SongStem stem);
 
 		public void ApplyReverb(SongStem stem, bool reverb);
