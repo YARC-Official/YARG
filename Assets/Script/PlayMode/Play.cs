@@ -28,6 +28,8 @@ namespace YARG.PlayMode {
 
 		public const float SONG_START_OFFSET = -2f;
 
+		public static SongEntry song = null;
+
 		public delegate void BeatAction();
 		public static event BeatAction BeatEvent;
 
@@ -110,8 +112,6 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		private SongEntry Song => GameManager.Instance.SelectedSong;
-
 		private bool playingRhythm = false;
 
 		private void Awake() {
@@ -133,10 +133,10 @@ namespace YARG.PlayMode {
 			bool isSpeedUp = Math.Abs(speed - 1) > float.Epsilon;
 
 			// Load MOGG if CON, otherwise load stems
-			if (Song is ExtractedConSongEntry rawConSongEntry) {
+			if (song is ExtractedConSongEntry rawConSongEntry) {
 				GameManager.AudioManager.LoadMogg(rawConSongEntry, isSpeedUp);
 			} else {
-				var stems = AudioHelpers.GetSupportedStems(Song.Location);
+				var stems = AudioHelpers.GetSupportedStems(song.Location);
 
 				GameManager.AudioManager.LoadSong(stems, isSpeedUp);
 			}
@@ -199,13 +199,13 @@ namespace YARG.PlayMode {
 				}
 			}
 
-			OnSongStart?.Invoke(Song);
+			OnSongStart?.Invoke(song);
 		}
 
 		private void LoadBackground() {
 			// Try a yarground first
 
-			string backgroundPath = Path.Combine(Song.Location, "bg.yarground");
+			string backgroundPath = Path.Combine(song.Location, "bg.yarground");
 			if (File.Exists(backgroundPath)) {
 				var bundle = AssetBundle.LoadFromFile(backgroundPath);
 
@@ -228,7 +228,7 @@ namespace YARG.PlayMode {
 			};
 
 			foreach (var file in videoPaths) {
-				var path = Path.Combine(Song.Location, file);
+				var path = Path.Combine(song.Location, file);
 
 				if (File.Exists(path)) {
 					GameUI.Instance.videoPlayer.url = path;
@@ -247,7 +247,7 @@ namespace YARG.PlayMode {
 			};
 
 			foreach (var file in imagePaths) {
-				var path = Path.Combine(Song.Location, file);
+				var path = Path.Combine(song.Location, file);
 
 				if (File.Exists(path)) {
 					var png = ImageHelper.LoadTextureFromFile(path);
@@ -261,7 +261,7 @@ namespace YARG.PlayMode {
 		private void LoadChart() {
 			// Add main file
 			var files = new List<string> {
-				Path.Combine(Song.Location, Song.NotesFile)
+				Path.Combine(song.Location, song.NotesFile)
 			};
 
 			// Look for upgrades and add
@@ -275,18 +275,18 @@ namespace YARG.PlayMode {
 			// Parse
 
 			MoonSong moonSong = null;
-			if (Song.NotesFile.EndsWith(".chart")) {
+			if (song.NotesFile.EndsWith(".chart")) {
 				Debug.Log("Reading .chart file");
 				moonSong = ChartReader.ReadChart(files[0]);
 			}
 
 			chart = new YargChart(moonSong);
-			if (Song.NotesFile.EndsWith(".mid")) {
+			if (song.NotesFile.EndsWith(".mid")) {
 				// Parse
-				var parser = new MidiParser(Song, files.ToArray());
+				var parser = new MidiParser(song, files.ToArray());
 				chart.InitializeArrays();
 				parser.Parse(chart);
-			} else if (Song.NotesFile.EndsWith(".chart")) {
+			} else if (song.NotesFile.EndsWith(".chart")) {
 				var handler = new BeatHandler(moonSong);
 				handler.GenerateBeats();
 				chart.beats = handler.Beats;
@@ -436,7 +436,7 @@ namespace YARG.PlayMode {
 			// End song
 			if (realSongTime >= SongLength) {
 				// MainMenu.isPostSong = true;
-				EndSong();
+				Exit();
 			}
 		}
 
@@ -492,12 +492,12 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		public void EndSong() {
+		public void Exit() {
 			// Dispose of all audio
 			GameManager.AudioManager.UnloadSong();
 
 			// Call events
-			OnSongEnd?.Invoke(Song);
+			OnSongEnd?.Invoke(song);
 
 			// Unpause just in case
 			Time.timeScale = 1f;
@@ -519,9 +519,9 @@ namespace YARG.PlayMode {
 			
 			scoreDisplay.SetActive(false);
 
-			OnSongEnd?.Invoke(Song);
-			
-			// show play result screen; this is our main focus now
+			OnSongEnd?.Invoke(song);
+
+			// show play result screen
 			playResultScreen.SetActive(true);
 		}
 
@@ -541,12 +541,6 @@ namespace YARG.PlayMode {
 				stemsReverbed--;
 				audioReverb.Remove(name);
 			}
-		}
-
-		public void Exit(bool toSongSelect = true) {
-			EndSong();
-			MainMenu.showSongSelect = toSongSelect;
-			GameManager.Instance.LoadScene(SceneIndex.MENU);
 		}
 	}
 }
