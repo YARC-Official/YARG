@@ -509,7 +509,7 @@ namespace YARG.PlayMode {
 
 			// Set "STRONG FINISH" text
 			if (!strongFinishChecked) {
-				if (Play.Instance.SongTime > (Chart[GetChartCount() - 1].time + Constants.HIT_MARGIN + commonTrack.bufferPeriod)) {
+				if (Play.Instance.SongTime > (Chart[Chart.Count - 1].time + Constants.HIT_MARGIN + commonTrack.bufferPeriod)) {
 					strongFinishChecked = true;
 
 					if (_combo >= commonTrack.strongFinishCutoff) {
