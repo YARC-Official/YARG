@@ -68,7 +68,7 @@ namespace YARG.PlayMode {
 		private bool fullComboChecked = false;
 		private bool strongFinishChecked = false;
 		private float endTime;
-		private float offsetEndTime;
+		private float offsetEndTime;  // For moving STRONG FINISH back in case of an FC
 
 		private int SavedCombo = 0;
 		private bool switchedRingMaterial = false;
