@@ -64,6 +64,12 @@ namespace YARG.PlayMode {
 
 		public YargChart chart;
 
+		[Space]
+		[SerializeField]
+		private GameObject playResultScreen;
+		[SerializeField]
+		private GameObject scoreDisplay;
+
 		private int beatIndex = 0;
 		private int lyricIndex = 0;
 		private int lyricPhraseIndex = 0;
@@ -179,7 +185,7 @@ namespace YARG.PlayMode {
 
 			// Hide loading screen
 			GameUI.Instance.loadingContainer.SetActive(false);
-
+			
 			realSongTime = SONG_START_OFFSET;
 			StartCoroutine(StartAudio());
 
@@ -429,7 +435,7 @@ namespace YARG.PlayMode {
 
 			// End song
 			if (realSongTime >= SongLength) {
-				MainMenu.isPostSong = true;
+				// MainMenu.isPostSong = true;
 				Exit();
 			}
 		}
@@ -497,10 +503,26 @@ namespace YARG.PlayMode {
 			Time.timeScale = 1f;
 
 			backgroundRenderTexture.ClearTexture();
+			
+			// save scores and destroy tracks
+			foreach (var track in _tracks) {
+				track.SetPlayerScore();
+				Destroy(track.gameObject);
+			}
 			_tracks.Clear();
+			
+			// save MicPlayer score and destroy it
+			if (MicPlayer.Instance != null) {
+				MicPlayer.Instance.SetPlayerScore();
+				Destroy(MicPlayer.Instance.gameObject);
+			}
+			
+			scoreDisplay.SetActive(false);
 
-			OnSongEnd?.Invoke(Song);
-			GameManager.Instance.LoadScene(SceneIndex.MENU);
+			OnSongEnd?.Invoke(song);
+
+			// show play result screen
+			playResultScreen.SetActive(true);
 		}
 
 		public void LowerAudio(string name) {
