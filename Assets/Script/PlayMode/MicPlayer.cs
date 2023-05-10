@@ -165,6 +165,7 @@ namespace YARG.PlayMode {
 
 		private string lastSecondHarmonyLyric = "";
 		
+		[Space]
 		public PerformanceTextSizer perfTextSizer;
 		public float fontSize;
 		public float animTimeLength;

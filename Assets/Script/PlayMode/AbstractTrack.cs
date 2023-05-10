@@ -62,6 +62,8 @@ namespace YARG.PlayMode {
 		private double soloPtsEarned;
 
 		private bool FullCombo = true;
+		private bool hotStartChecked = false;
+		private bool strongFinishChecked = false;
 		private int SavedCombo = 0;
 		private bool switchedRingMaterial = false;
 		protected bool startFCDetection = false;
@@ -87,6 +89,10 @@ namespace YARG.PlayMode {
 
 		public int MaxMultiplier => (player.chosenInstrument == "bass" ? 6 : 4) * (IsStarPowerActive ? 2 : 1);
 		public int Multiplier => Mathf.Min((Combo / 10 + 1) * (IsStarPowerActive ? 2 : 1), MaxMultiplier);
+		public bool recentlyBelowMaxMultiplier = true;
+		
+		// For HOT START and BASS GROOVE
+		public int hotStartCutoff;
 
 		// Scoring trackers
 		protected ScoreKeeper scoreKeeper;
@@ -157,7 +163,17 @@ namespace YARG.PlayMode {
 			commonTrack.kickFlash.SetActive(false);
 
 			scoreKeeper = new();
-
+			
+			// Set up performance text for BASS GROOVE and other similar messages
+			commonTrack.performanceText.color = Color.white;
+			commonTrack.perfTextSizer = new PerformanceTextSizer(
+				commonTrack.perfTextFontSize,
+				commonTrack.perfTextAnimLen);
+			
+			// Deteremine HOT START and STRONG FINISH thresholds per difficulty
+			// NOTE: Consider making the cutoff different for different difficulties in the future
+			hotStartCutoff = 25;
+				
 			StartTrack();
 		}
 
@@ -342,7 +358,7 @@ namespace YARG.PlayMode {
 				commonTrack.comboSunburst.sprite = commonTrack.sunBurstSprite;
 				commonTrack.comboSunburst.color = commonTrack.comboSunburstColor;
 
-				if(Multiplier >= MaxMultiplier) {
+				if (Multiplier >= MaxMultiplier) {
 					commonTrack.comboBase.material = commonTrack.baseGroove;
 				}
 				else {
@@ -464,6 +480,45 @@ namespace YARG.PlayMode {
 			}
 
 			commonTrack.comboMeterRenderer.material.SetFloat("SpriteNum", index);
+
+			// Set "HOT START" text
+			if (!hotStartChecked) {
+				if (_combo >= hotStartCutoff) {
+					hotStartChecked = true;
+
+					if (FullCombo) {
+						commonTrack.performanceText.text = "HOT START";
+						commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+					}
+				}
+			}
+			
+			// Set "BASS GROOVE" text
+			if (player.chosenInstrument == "bass") {
+				int triggerThreshold = IsStarPowerActive ? MaxMultiplier / 2 : MaxMultiplier;
+				
+				if (recentlyBelowMaxMultiplier && Multiplier >= MaxMultiplier) {
+					commonTrack.performanceText.text = "BASS GROOVE";
+					commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+				}
+			}
+			
+			// Set "STRONG FINISH text
+			if (!strongFinishChecked) {
+				if (Play.Instance.SongTime > Chart[GetChartCount() - 1].time) {
+					strongFinishChecked = true;
+
+					if (_combo >= hotStartCutoff) {
+						commonTrack.performanceText.text = "STRONG FINISH";
+						commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+					}
+				}
+			}
+
+			// Animate performance text
+			commonTrack.performanceText.fontSize = commonTrack.perfTextSizer.PerformanceTextFontSize();
+			commonTrack.perfTextSizer.animTimeRemaining -= Time.deltaTime;
+			recentlyBelowMaxMultiplier = Multiplier < MaxMultiplier;
 		}
 
 		IEnumerator SoloBoxShowScore() {

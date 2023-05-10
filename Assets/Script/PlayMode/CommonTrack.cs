@@ -48,7 +48,13 @@ namespace YARG.PlayMode {
 		public Sprite soloMessySprite;
 		public Sprite soloPerfectSprite;
 		public Sprite soloDefaultSprite;
-
+		
+		[Space]
+		[SerializeField]
+		public TextMeshPro performanceText;
+		public PerformanceTextSizer perfTextSizer;
+		public float perfTextFontSize;
+		public float perfTextAnimLen;
 
 		[Space]
 		[SerializeField]

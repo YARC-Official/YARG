@@ -12,7 +12,7 @@ namespace YARG.PlayMode {
 
 		// Set whether fontSize represents the "peak" or the "rest" size
 		// Note that rest size == peak size * 0.9f for animation purposes
-		private bool representsPeakSize { get; set; }
+		public bool representsPeakSize { get; set; }
 
 		public PerformanceTextSizer(float fs, float atl, bool rps = false) {
 	        fontSize = fs;
