@@ -106,5 +106,12 @@ namespace YARG.UI.MusicLibrary {
 
 			viewType.SecondaryTextClick();
 		}
+
+		public void IconClick() {
+			int realIndex = SongSelection.Instance.SelectedIndex + _relativeSongIndex;
+			var viewType = SongSelection.Instance.Songs[realIndex];
+
+			viewType.IconClick();
+		}
 	}
 }

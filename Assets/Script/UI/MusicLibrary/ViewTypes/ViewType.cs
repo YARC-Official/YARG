@@ -22,5 +22,9 @@ namespace YARG.UI.MusicLibrary.ViewTypes {
 		public virtual void PrimaryButtonClick() {
 
 		}
+
+		public virtual void IconClick() {
+
+		}
 	}
 }

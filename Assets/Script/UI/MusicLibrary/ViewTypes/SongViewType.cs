@@ -57,5 +57,11 @@ namespace YARG.UI.MusicLibrary.ViewTypes {
 			MainMenu.Instance.chosenSong = SongEntry;
 			MainMenu.Instance.ShowPreSong();
 		}
+
+		public override void IconClick() {
+			base.IconClick();
+
+			SongSelection.Instance.searchField.text = $"source:{SongEntry.Source}";
+		}
 	}
 }
