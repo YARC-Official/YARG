@@ -90,12 +90,7 @@ namespace YARG.PlayMode {
 		public int MaxMultiplier => (player.chosenInstrument == "bass" ? 6 : 4) * (IsStarPowerActive ? 2 : 1);
 		public int Multiplier => Mathf.Min((Combo / 10 + 1) * (IsStarPowerActive ? 2 : 1), MaxMultiplier);
 		public bool recentlyBelowMaxMultiplier = true;
-		
-		// For HOT START and BASS GROOVE
-		public int hotStartCutoff;
-		public int strongFinishCutoff;
-		public float bufferPeriod;
-		
+
 		// For XOO-NOTE STREAK
 		private int currentHundred = 0;
 		private int recentHundred = 0;
@@ -175,12 +170,7 @@ namespace YARG.PlayMode {
 			commonTrack.perfTextSizer = new PerformanceTextSizer(
 				commonTrack.perfTextFontSize,
 				commonTrack.perfTextAnimLen);
-			
-			// Deteremine HOT START and STRONG FINISH thresholds
-			hotStartCutoff = 25;
-			strongFinishCutoff = 25;
-			bufferPeriod = 0.05f;
-				
+
 			StartTrack();
 		}
 
@@ -490,7 +480,7 @@ namespace YARG.PlayMode {
 
 			// Set "HOT START" text
 			if (!hotStartChecked) {
-				if (_combo >= hotStartCutoff) {
+				if (_combo >= commonTrack.hotStartCutoff) {
 					hotStartChecked = true;
 
 					if (FullCombo) {
@@ -519,10 +509,10 @@ namespace YARG.PlayMode {
 
 			// Set "STRONG FINISH" text
 			if (!strongFinishChecked) {
-				if (Play.Instance.SongTime > (Chart[GetChartCount() - 1].time + Constants.HIT_MARGIN + bufferPeriod)) {
+				if (Play.Instance.SongTime > (Chart[GetChartCount() - 1].time + Constants.HIT_MARGIN + commonTrack.bufferPeriod)) {
 					strongFinishChecked = true;
 
-					if (_combo >= strongFinishCutoff) {
+					if (_combo >= commonTrack.strongFinishCutoff) {
 						commonTrack.performanceText.text = "STRONG FINISH";
 						commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
 					}

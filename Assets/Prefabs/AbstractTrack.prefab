@@ -95,6 +95,9 @@ MonoBehaviour:
   performanceText: {fileID: 6350537460123684463}
   perfTextFontSize: 16
   perfTextAnimLen: 3
+  hotStartCutoff: 25
+  strongFinishCutoff: 25
+  bufferPeriod: 0.05
   fretColors:
   - {r: 0.32941177, g: 0.59607846, b: 0.011764707, a: 1}
   - {r: 1, g: 0, b: 0.025974274, a: 1}
