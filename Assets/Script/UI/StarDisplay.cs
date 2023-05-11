@@ -53,6 +53,7 @@ namespace YARG.UI {
 				for (int i = 1; i < stars.Count; ++i) {
                     stars[i].gameObject.SetActive(false);
                 }
+                aspectRatioContainer.aspectRatio = n;
 				_stars = n;
 				_type = StarType.Empty;
 				return;
