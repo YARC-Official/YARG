@@ -101,7 +101,8 @@ namespace YARG.PlayMode {
 						GameUI.Instance.videoPlayer.Play();
 					}
 				}
-				OnPauseToggle(_paused);
+
+				OnPauseToggle?.Invoke(_paused);
 			}
 		}
 
@@ -191,6 +192,8 @@ namespace YARG.PlayMode {
 					break;
 				}
 			}
+
+			OnSongStart?.Invoke(song);
 		}
 
 		private void LoadBackground() {
@@ -493,6 +496,7 @@ namespace YARG.PlayMode {
 			backgroundRenderTexture.ClearTexture();
 			_tracks.Clear();
 
+			OnSongEnd?.Invoke(song);
 			GameManager.Instance.LoadScene(SceneIndex.MENU);
 		}
 
