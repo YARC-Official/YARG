@@ -71,6 +71,15 @@ namespace YARG.Serialization {
 					if(currentSong.HasAlbumArt && currentSong.ImageFileSize > 0 && currentSong.ImageFileMemBlockOffsets != null)
 						currentSong.ImagePath = imgPath;
 
+					// if an update image was provided, use that instead
+					if(update_folder != string.Empty){
+						if(update_shortnames.Find(s => s == currentSong.ShortName) != null){
+							imgPath = Path.Combine(update_folder, currentSong.ShortName, "gen", $"{currentSong.ShortName}_keep.png_xbox");
+							if(currentSong.HasAlbumArt && currentSong.AlternatePath && File.Exists(imgPath))
+								currentSong.ImagePath = imgPath;
+						}
+					}
+
 					// Set this song's "Location" to the path of the CON file
 					currentSong.Location = conName;
 					

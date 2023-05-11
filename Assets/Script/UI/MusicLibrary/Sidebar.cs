@@ -199,8 +199,12 @@ namespace YARG.UI.MusicLibrary {
 			Texture2D texture = null;
 
 			try {
-				var bytes = await XboxCONInnerFileRetriever.RetrieveFile(conSongEntry.Location,
-				conSongEntry.ImageFileSize, conSongEntry.ImageFileMemBlockOffsets, _cancellationToken.Token);
+				byte[] bytes;
+				if(conSongEntry.AlternatePath)
+					bytes = File.ReadAllBytes(conSongEntry.ImagePath);
+				else bytes = await XboxCONInnerFileRetriever.RetrieveFile(conSongEntry.Location,
+					conSongEntry.ImageFileSize, conSongEntry.ImageFileMemBlockOffsets, _cancellationToken.Token);
+				
 				texture = await XboxImageTextureGenerator.GetTexture(bytes, _cancellationToken.Token);
 
 				_albumCover.texture = texture;

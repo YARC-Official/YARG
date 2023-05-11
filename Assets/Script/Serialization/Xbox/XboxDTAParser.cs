@@ -129,6 +129,12 @@ namespace YARG.Serialization {
 						cur.RealBassTuning = new int[4];
 						for (int b = 0; b < 4; b++) cur.RealBassTuning[b] = ((DataAtom) bassTunes[b]).Int;
 						break;
+					case "alternate_path":
+						if (dtaArray[1] is DataSymbol symAltPath)
+							cur.AlternatePath = (symAltPath.Name.ToUpper() == "TRUE");
+						else if (dtaArray[1] is DataAtom atmAltPath)
+							cur.AlternatePath = (atmAltPath.Int != 0);
+						break;
 				}
 			}
 

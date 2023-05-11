@@ -42,8 +42,11 @@ namespace YARG.Song {
 			 
 			 */
 
+			writer.Write(ExCONSong.AlternatePath);
 			// Note: ImagePath can be an empty string if the song has no image
 			writer.Write(ExCONSong.ImagePath);
+
+			// TODO: include alternate_path songs.dta variable
 		}
 
 		public static void WriteConData(BinaryWriter writer, ConSongEntry CONSong) {
@@ -113,6 +116,7 @@ namespace YARG.Song {
 			 
 			 */
 
+			ExCONSong.AlternatePath = reader.ReadBoolean();
 			// Note: ImagePath can be an empty string if the song has no image
 			ExCONSong.ImagePath = reader.ReadString();
 		}
