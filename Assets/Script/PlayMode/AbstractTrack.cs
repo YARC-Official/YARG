@@ -50,6 +50,7 @@ namespace YARG.PlayMode {
 
 		public bool IsStarPowerActive { get; protected set; }
 		protected float starpowerCharge;
+		protected float recentStarpowerCharge;  // For OVERDRIVE READY notif
 		//protected bool starpowerHit = false;
 		protected Light comboSunburstEmbeddedLight;
 
@@ -543,6 +544,15 @@ namespace YARG.PlayMode {
 					commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
 				}
 			}
+			
+			// OVERDRIVE READY notifs
+			if (commonTrack.overdriveReadyNotifsEnabled) {
+				if (recentStarpowerCharge < 0.5f && starpowerCharge >= 0.5f && !IsStarPowerActive) {
+					// Set "X-NOTE STREAK" text
+					commonTrack.performanceText.text = "OVERDRIVE READY";  // holy crap this is obnoxious
+					commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+				}
+			}
 
 			// Deteremine behavior based on whether or not FC trumps SF
 			if (commonTrack.fullComboTrumpsStrongFinish) {
@@ -600,9 +610,13 @@ namespace YARG.PlayMode {
 			// Animate performance text
 			commonTrack.performanceText.fontSize = commonTrack.perfTextSizer.PerformanceTextFontSize();
 			commonTrack.perfTextSizer.animTimeRemaining -= Time.deltaTime;
+			
+			// Update recent values
+			_recentCombo = _combo;
 			recentNoteStreakInterval = currentNoteStreakInterval;
 			recentlyBelowMaxMultiplier = Multiplier < MaxMultiplier;
-			_recentCombo = _combo;
+			recentStarpowerCharge = starpowerCharge;
+
 		}
 
 		IEnumerator SoloBoxShowScore() {
