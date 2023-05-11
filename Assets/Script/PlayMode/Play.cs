@@ -14,6 +14,7 @@ using YARG.Serialization.Parser;
 using YARG.Settings;
 using YARG.Song;
 using YARG.UI;
+using YARG.Venue;
 
 namespace YARG.PlayMode {
 	public class Play : MonoBehaviour {
@@ -160,41 +161,35 @@ namespace YARG.PlayMode {
 				i++;
 			}
 
-			//Load Background
+			// Load Background
 			string backgroundPath = Path.Combine(song.Location, "bg.yarground");
 			string mp4Path  = Path.Combine(song.Location, "bg.mp4");
 			string pngPath = Path.Combine(song.Location, "bg.png");
-			//First check heck for a yarground
+
 			if (File.Exists(backgroundPath)) {
-				
+				// First check for a yarground
 				var bundle = AssetBundle.LoadFromFile(backgroundPath);
-				var bg = bundle.LoadAsset<GameObject>("assets/_background.prefab");
+				var bg = bundle.LoadAsset<GameObject>("Assets/_Background.prefab");
 				var bgInstance = Instantiate(bg);
-				bgInstance.GetComponent<BackgroundManager>().bundle = bundle;
-				Debug.Log("Loaded Custom Background!");
-				
-			} 
-			//If not, check for a 
-			else if (File.Exists(mp4Path)) {
+
+				bgInstance.GetComponent<BundleBackgroundManager>().Bundle = bundle;
+			} else if (File.Exists(mp4Path)) {
+				// If not, check for a video
 				GameUI.Instance.videoPlayer.url = mp4Path;
 				GameUI.Instance.videoPlayer.enabled = true;
 				GameUI.Instance.videoPlayer.Play();
-			} 
-			
-			else if (File.Exists(pngPath)) {
+			} else if (File.Exists(pngPath)) {
+				// Otherwise, load an image
 				var png = ImageHelper.LoadTextureFromFile(pngPath);
 
 				GameUI.Instance.background.texture = png;
-			}
-			//No background file, we load a random video
-			else {
-				//TODO: Add custom videos folder, load here
+			} else {
+				// No background file, we load a random video
+				// TODO: Add custom videos folder, load here
 			}
 
 			SongStarted = true;
-			
-			
-			
+
 			// Hide loading screen
 			GameUI.Instance.loadingContainer.SetActive(false);
 
