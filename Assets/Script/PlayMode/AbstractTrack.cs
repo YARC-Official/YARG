@@ -514,7 +514,7 @@ namespace YARG.PlayMode {
 			
 			// BASS DROOVE NOTIFS
 			if (commonTrack.bassGrooveNotifsEnabled) {
-				if (player.chosenInstrument == "bass") {
+				if (player.chosenInstrument.ToLower().Contains("bass")) {
 					int triggerThreshold = IsStarPowerActive ? MaxMultiplier / 2 : MaxMultiplier;
 
 					if (recentlyBelowMaxMultiplier && Multiplier >= MaxMultiplier) {
@@ -528,7 +528,7 @@ namespace YARG.PlayMode {
 			// NOTE STREAK notifs
 			if (commonTrack.noteStreakNotifsEnabled) {
 				// Don't show X/2-NOTE STREAK for bass because BASS GROOVE is too close
-				if (player.chosenInstrument != "bass") {
+				if (!player.chosenInstrument.ToLower().Contains("bass")) {
 					if (_recentCombo < halfIntervalSize && _combo >= halfIntervalSize) {
 						// Set X/2-NOTE STREAK TEXT
 						commonTrack.performanceText.text = $"{halfIntervalSize}-NOTE STREAK";
