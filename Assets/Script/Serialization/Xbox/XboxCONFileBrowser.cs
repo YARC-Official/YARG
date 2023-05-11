@@ -80,6 +80,15 @@ namespace YARG.Serialization {
 						}
 					}
 
+					// if an update mid was provided, track it
+					if(update_folder != string.Empty){
+						if(update_shortnames.Find(s => s == currentSong.ShortName) != null){
+							if(currentSong.DiscUpdate == true){
+								currentSong.UpdateMidiPath = Path.Combine(update_folder, currentSong.ShortName, $"{currentSong.ShortName}_update.mid");
+							}
+						}
+					}
+
 					// Set this song's "Location" to the path of the CON file
 					currentSong.Location = conName;
 					

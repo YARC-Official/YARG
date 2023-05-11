@@ -135,6 +135,22 @@ namespace YARG.Serialization {
 						else if (dtaArray[1] is DataAtom atmAltPath)
 							cur.AlternatePath = (atmAltPath.Int != 0);
 						break;
+					case "extra_authoring":
+						for(int ea = 1; ea < dtaArray.Count; ea++){
+							if(dtaArray[ea] is DataSymbol symEA){
+								if(symEA.Name == "disc_update"){
+									cur.DiscUpdate = true;
+									break;
+								}
+							}
+							else if(dtaArray[ea] is DataAtom atmEA){
+								if(atmEA.String == "disc_update"){
+									cur.DiscUpdate = true;
+									break;
+								}
+							}
+						}
+						break;
 				}
 			}
 

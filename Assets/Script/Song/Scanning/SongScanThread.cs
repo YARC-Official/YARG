@@ -298,11 +298,20 @@ namespace YARG.Song {
 			}
 
 			// all good - go ahead and build the cache info
-			byte[] bytes = File.ReadAllBytes(file.NotesFile);
+			List<byte> bytes = new List<byte>();
+			ulong tracks;
 
-			string checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes)).Replace("-", "");
+			// add base midi
+			bytes.AddRange(File.ReadAllBytes(file.NotesFile)); 
+			tracks = MidPreparser.GetAvailableTracks(File.ReadAllBytes(file.NotesFile));
+			// add update midi, if it exists
+			if(file.DiscUpdate){
+				Debug.Log($"song {file.ShortName} has an update mid! {file.UpdateMidiPath}");
+				bytes.AddRange(File.ReadAllBytes(file.UpdateMidiPath)); 
+				tracks |= MidPreparser.GetAvailableTracks(File.ReadAllBytes(file.UpdateMidiPath));
+			}
 
-			ulong tracks = MidPreparser.GetAvailableTracks(bytes);
+			string checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes.ToArray())).Replace("-", "");
 
 			file.CacheRoot = cache;
 			file.Checksum = checksum;
@@ -327,14 +336,25 @@ namespace YARG.Song {
 				return ScanResult.EncryptedMogg;
 			}
 
+			if(file.DiscUpdate){
+				Debug.Log($"song {file.ShortName} has an update mid! {file.UpdateMidiPath}");
+			}
+
 			// all good - go ahead and build the cache info
+			List<byte> bytes = new List<byte>();
+			ulong tracks;
 
-			// construct the midi file
-			byte[] bytes = XboxCONInnerFileRetriever.RetrieveFile(file.Location, file.MidiFileSize, file.MidiFileMemBlockOffsets);
+			// add base midi
+			bytes.AddRange(XboxCONInnerFileRetriever.RetrieveFile(file.Location, file.MidiFileSize, file.MidiFileMemBlockOffsets)); 
+			tracks = MidPreparser.GetAvailableTracks(bytes.ToArray());
+			// add update midi, if it exists
+			if(file.DiscUpdate){
+				Debug.Log($"song {file.ShortName} has an update mid! {file.UpdateMidiPath}");
+				bytes.AddRange(File.ReadAllBytes(file.UpdateMidiPath)); 
+				tracks |= MidPreparser.GetAvailableTracks(File.ReadAllBytes(file.UpdateMidiPath));
+			}
 
-			string checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes)).Replace("-", "");
-
-			ulong tracks = MidPreparser.GetAvailableTracks(bytes);
+			string checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes.ToArray())).Replace("-", "");
 
 			file.CacheRoot = cache;
 			file.Checksum = checksum;

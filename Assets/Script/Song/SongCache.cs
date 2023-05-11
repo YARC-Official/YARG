@@ -12,7 +12,7 @@ namespace YARG.Song {
 		/// <summary>
 		/// The date in which the cache version is based on (and cache revision)
 		/// </summary>
-		private const int CACHE_VERSION = 23_05_11_01; //TODO: update this to reflect alternate_path being added
+		private const int CACHE_VERSION = 23_05_11_02;
 
 		private readonly string _folder;
 		private readonly string _cacheFile;
