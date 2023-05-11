@@ -201,9 +201,12 @@ namespace YARG.PlayMode {
 
 			string backgroundPath = Path.Combine(song.Location, "bg.yarground");
 			if (File.Exists(backgroundPath)) {
-				// First check for a yarground
 				var bundle = AssetBundle.LoadFromFile(backgroundPath);
-				var bg = bundle.LoadAsset<GameObject>("Assets/_Background.prefab");
+
+				// KEEP THIS PATH LOWERCASE
+				// Breaks things for other platforms, because Unity
+				var bg = bundle.LoadAsset<GameObject>("assets/_background.prefab");
+
 				var bgInstance = Instantiate(bg);
 
 				bgInstance.GetComponent<BundleBackgroundManager>().Bundle = bundle;
