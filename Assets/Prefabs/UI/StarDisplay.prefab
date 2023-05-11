@@ -18,7 +18,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &8072810130448453984
 RectTransform:
   m_ObjectHideFlags: 0
@@ -164,7 +164,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: f332d23480f003749960a0673d34c220, type: 3}
+  m_Sprite: {fileID: 21300000, guid: c7c4b9c1e6300c64ca413c56e1411609, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -212,7 +212,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4624528394333488544
 RectTransform:
   m_ObjectHideFlags: 0
@@ -309,7 +309,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2504850493020463513
 RectTransform:
   m_ObjectHideFlags: 0
@@ -444,7 +444,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_AspectMode: 3
-  m_AspectRatio: 5
+  m_AspectRatio: 1
 --- !u!114 &4283334525663373147
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -489,7 +489,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &7545120733852549862
 RectTransform:
   m_ObjectHideFlags: 0
@@ -618,7 +618,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ec41aa61ff7d474e96c1b9e5b76f2b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  starGraphicEmpty: {fileID: 21300000, guid: 1b2b1da16f21b49499118291defb94b0, type: 3}
+  starGraphicEmpty: {fileID: 21300000, guid: c7c4b9c1e6300c64ca413c56e1411609, type: 3}
   starGraphicStandard: {fileID: 21300000, guid: 96bc245f161ec1642b7168cd0794499e,
     type: 3}
   starGarphicGold: {fileID: 21300000, guid: aca38790aaa530d4badafd0b372e56f3, type: 3}
@@ -630,5 +630,5 @@ MonoBehaviour:
   - {fileID: 8860228414277515222}
   - {fileID: 5072825833334399771}
   - {fileID: 3574232515666860827}
-  _stars: 5
-  _type: 1
+  _stars: 1
+  _type: 0

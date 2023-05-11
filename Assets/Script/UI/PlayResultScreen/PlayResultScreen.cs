@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 using YARG.Data;
+using YARG.Input;
 using YARG.PlayMode;
 
 namespace YARG.UI.PlayResultScreen {
@@ -46,12 +47,14 @@ namespace YARG.UI.PlayResultScreen {
 
 		public HashSet<PlayerManager.Player> highScores;
 		public HashSet<PlayerManager.Player> disqualified;
-
-		void Awake() {
-            
-        }
+		public HashSet<PlayerManager.Player> bot;
 
 		void OnEnable() {
+			// Subscribe to player inputs
+			foreach (var p in PlayerManager.players) {
+				p.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
+			}
+
 			// Populate header information
 			songTitle.SetText(Play.song?.Name);
 			songArtist.SetText(Play.song?.Artist);
@@ -61,19 +64,20 @@ namespace YARG.UI.PlayResultScreen {
 			Debug.Log($"BandStars: {stars}");
 			starDisplay.SetStars(stars, stars <= 5 ? StarType.Standard : StarType.Gold);
 
-			SaveScores();
+			// change graphics depending on clear/fail
+			backgroundBorderFail.gameObject.SetActive(hasFailed);
+            backgroundBorderPass.gameObject.SetActive(!hasFailed);
+			headerBackgroundPassed.gameObject.SetActive(!hasFailed);
+			songArtist.color = hasFailed ? FAIL : PASS;
+
+			ProcessScores();
 			CreatePlayerCards();
 		}
 
-		private void CreatePlayerCards() {
-			foreach (var player in PlayerManager.players) {
-				var pc = Instantiate(playerCardPrefab, playerCardsContainer.transform);
-				// TODO: determine clear type
-				pc.GetComponent<PlayerCard>().Setup(player, ClearStatus.Cleared, highScores.Contains(player));
-			}
-		}
-
-		private void SaveScores() {
+		/// <summary>
+		/// Populate relevant score data; save scores.
+		/// </summary>
+		private void ProcessScores() {
 			// Create a score to push
 			var songScore = new SongScore {
 				lastPlayed = DateTime.Now,
@@ -85,20 +89,20 @@ namespace YARG.UI.PlayResultScreen {
 
 			highScores = new();
 			disqualified = new();
+			bot = new();
 			foreach (var player in PlayerManager.players) {
 				// Skip "Sit Out"s
 				if (player.chosenInstrument == null) {
 					continue;
 				}
 
-				// DQ non-100% speeds
-				if (Play.speed != 1f) {
-					disqualified.Add(player);
-					continue;
+				// Bots
+				if (player.inputStrategy.botMode) {
+					bot.Add(player);
 				}
 
-				// DQ bots
-				if (player.inputStrategy.botMode) {
+				// DQ non-100% speeds
+				if (Play.speed != 1f) {
 					disqualified.Add(player);
 					continue;
 				}
@@ -129,18 +133,59 @@ namespace YARG.UI.PlayResultScreen {
 				}
 			}
 
-			// Push!
 			ScoreManager.PushScore(Play.song, songScore);
 		}
 
-        // Update is called once per frame
-        void Update() {
-            backgroundBorderFail.gameObject.SetActive(hasFailed);
-            backgroundBorderPass.gameObject.SetActive(!hasFailed);
-			headerBackgroundPassed.gameObject.SetActive(!hasFailed);
+		/// <summary>
+		/// Instantiate player cards to display.
+		/// </summary>
+		private void CreatePlayerCards() {
+			// clear existing cards (may be left in for dev preview)
+			foreach (Transform g in playerCardsContainer.transform) {
+				Destroy(g.gameObject);
+			}
 
-			songArtist.color = hasFailed ? FAIL : PASS;
-            // headerBorder.color = hasFailed ? FAIL_TRANSLUCENT : PASS_TRANSLUCENT;
+			foreach (var player in PlayerManager.players) {
+				// skip players sitting out
+				if (player.chosenInstrument == null) continue;
+
+				var pc = Instantiate(playerCardPrefab, playerCardsContainer.transform);
+				
+				ClearStatus clr;
+				if (bot.Contains(player)) {
+					clr = ClearStatus.Bot;
+				} else if (disqualified.Contains(player)) {
+					clr = ClearStatus.Disqualified;
+				} else {
+					clr = ClearStatus.Cleared;
+				}
+
+				pc.GetComponent<PlayerCard>().Setup(player, clr, highScores.Contains(player));
+			}
+		}
+
+		private void OnGenericNavigation(NavigationType navigationType, bool pressed) {
+			if (!pressed) return;
+
+			switch (navigationType) {
+				case NavigationType.PRIMARY:
+					ExitPlay();
+					break;
+			}
+		}
+
+		/// <summary>
+		/// Go to main menu.
+		/// </summary>
+		public void ExitPlay() {
+			GameManager.Instance.LoadScene(SceneIndex.MENU);
+		}
+
+		private void OnDisable() {
+			// unsubscribe inputs
+			foreach (var p in PlayerManager.players) {
+				p.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
+			}
 		}
     }
 }

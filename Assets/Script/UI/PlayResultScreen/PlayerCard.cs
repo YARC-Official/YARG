@@ -1,12 +1,15 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Unity.Mathematics;
 
 using YARG.Data;
+using YARG.Input;
 
 namespace YARG.UI.PlayResultScreen {
+	// TODO: move into more appropriate spot?
     public enum ClearStatus {
         Disqualified, Cleared, FullCombo, Brutal, Bot
     }
@@ -14,11 +17,17 @@ namespace YARG.UI.PlayResultScreen {
     public class PlayerCard : MonoBehaviour {
 
 		public static readonly Dictionary<ClearStatus, Color> statusColor = new() {
-            {ClearStatus.Disqualified, new Color(.16f, .18f, .21f)},
+            {ClearStatus.Disqualified, new Color(.322f, .345f, .377f)},
+            {ClearStatus.Bot, new Color(.322f, .345f, .377f)},
             {ClearStatus.Cleared, new Color(.18f, .85f, 1f)},
             {ClearStatus.FullCombo, new Color(1f, .76f, .16f)},
             {ClearStatus.Brutal, new Color(.82f, 0f, .8f)},
 		};
+
+		private PlayerManager.Player player;
+
+		private int curPage = 0;
+		private int pageCount = 2;
 
 		[SerializeField]
 		private Sprite backgroundDisqualified;
@@ -26,6 +35,8 @@ namespace YARG.UI.PlayResultScreen {
 		private Sprite backgroundCleared;
 		[SerializeField]
 		private Sprite backgroundFullCombo;
+		[SerializeField]
+		private TextMeshProUGUI bottomBannerText;
 
 		[Space]
 		[SerializeField]
@@ -33,7 +44,9 @@ namespace YARG.UI.PlayResultScreen {
 		[SerializeField]
 		private Image fcSymbol;
 		[SerializeField]
-		private Image instrumentSymbol;
+		private TextMeshProUGUI instrumentSymbol;
+		[SerializeField]
+		private ScrollRect scrollContainer;
 
 		[Space]
         [Header("Main Page")]
@@ -45,6 +58,12 @@ namespace YARG.UI.PlayResultScreen {
 		private TextMeshProUGUI difficulty;
 		[SerializeField]
 		private TextMeshProUGUI score;
+		[SerializeField]
+		private TextMeshProUGUI detailNotesHit;
+		[SerializeField]
+		private TextMeshProUGUI detailMaxStreak;
+		[SerializeField]
+		private TextMeshProUGUI detailMissedNotes;
 		[SerializeField]
 		private StarDisplay starDisplay;
 
@@ -59,6 +78,10 @@ namespace YARG.UI.PlayResultScreen {
 
 		public void Setup(PlayerManager.Player player, ClearStatus cs, bool isHighScore) {
 			Debug.Log($"Setting up PlayerCard for {player.DisplayName}");
+			
+			// track player and their inputs
+			this.player = player;
+			player.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
 
 			// set window frame
 			containerImg.sprite = cs switch {
@@ -75,12 +98,13 @@ namespace YARG.UI.PlayResultScreen {
 				Difficulty.EXPERT_PLUS => "EXPERT+",
 				_ => player.chosenDifficulty.ToString()
 			};
+			instrumentSymbol.text = $"<sprite name=\"{player.chosenInstrument}\">";
 
 			// if (!player.lastScore.HasValue) {
 			// 	return;
 			// }
 
-            var scr = player.lastScore.Value;
+			var scr = player.lastScore.Value;
 			percentage.text = $"{Mathf.FloorToInt(scr.percentage.percent * 100f)}%";
 			score.text = $"{scr.score.score:N0}";
 			starDisplay.SetStars (
@@ -88,8 +112,38 @@ namespace YARG.UI.PlayResultScreen {
 				scr.score.stars <= 5 ? StarType.Standard : StarType.Gold
 			);
 
+			// detailed combo info
+			detailNotesHit.text = $"{scr.notesHit}<color=#ffffff> / {scr.notesHit + scr.notesMissed}";
+			detailMaxStreak.text = "TODO"; // TODO
+			detailMissedNotes.text = scr.notesMissed.ToString();
+
+			/* Bottom banner */
+			// Text
+			if (cs == ClearStatus.Bot) {
+				bottomBannerText.text = "<color=#848D94>BOT";
+			} else if (cs == ClearStatus.Disqualified) {
+				bottomBannerText.text = "<color=#848D94>DISQUALIFIED";
+			} else if (isHighScore) {
+				bottomBannerText.text = "HIGH SCORE";
+			} else {
+				bottomBannerText.text = String.Empty;
+			}
+			// Banner animation
+			bottomBanner.gameObject.GetComponent<LayoutElement>().flexibleHeight = 0f;
+			if (bottomBannerText.text != String.Empty) {
+				var anim = bottomBanner.gameObject.GetComponent<Animator>();
+				anim.enabled = true;
+
+				// only animate if high score
+				if (bottomBannerText.text == "HIGH SCORE") {
+					anim.Play("ExtendBanner");
+				} else {
+					anim.Play("ExtendBanner", 0, 1f);
+				}
+			}
+
 			/* Set colors */
-			// separator colors
+			// separators (preserve alpha)
 			var c = separator0.color;
 			c.r = statusColor[cs].r;
 			c.g = statusColor[cs].g;
@@ -97,17 +151,53 @@ namespace YARG.UI.PlayResultScreen {
 			separator0.color = c;
 			separator1.color = c;
 
+			// texts' color
 			difficulty.color = statusColor[cs];
+			detailNotesHit.color = statusColor[cs];
+			detailMaxStreak.color = statusColor[cs];
+			detailMissedNotes.color = statusColor[cs];
+
 			bottomBanner.color = statusColor[cs];
 
-			/* Bottom banner */
-			// TODO: setup for other clear types
-			bottomBanner.gameObject.GetComponent<LayoutElement>().flexibleHeight = 0f;
-			if (isHighScore) {
-				// animate banner expanding
-				var anim = bottomBanner.gameObject.GetComponent<Animator>();
-				anim.enabled = true;
-				anim.Play("ExtendBanner");
+			// Lower alpha if disqualified
+			if (containerImg.sprite == backgroundDisqualified) {
+				GetComponent<CanvasGroup>().alpha = 0.4f;
+			}
+		}
+
+		private void OnGenericNavigation(NavigationType navigationType, bool pressed) {
+			if (!pressed) return;
+
+			int desiredPage = curPage;
+
+			switch (navigationType) {
+				case NavigationType.UP:
+					--desiredPage;
+					break;
+				case NavigationType.DOWN:
+					++desiredPage;
+					break;
+			}
+
+			if (navigationType == NavigationType.UP)
+				--desiredPage;
+			else if (navigationType == NavigationType.DOWN)
+				++desiredPage;
+
+			desiredPage = math.clamp(desiredPage + 1, 0, pageCount - 1);
+
+			// we don't go anywhere
+			if (desiredPage == curPage) return;
+
+			// TODO: pages, secstions
+
+			curPage = desiredPage;
+		}
+
+		private void OnDisable() {
+			// unsubscribe from player inputs
+			if (player != null) {
+				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
 			}
 		}
     }

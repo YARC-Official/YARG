@@ -27,7 +27,7 @@ namespace YARG.UI {
         [SerializeField]
         private List<Image> stars;
         
-        /* for editor debugging */
+        /* for editor preview */
         [SerializeField]
 		private int _stars = 0;
 		[SerializeField]
@@ -45,7 +45,18 @@ namespace YARG.UI {
 		/// <param name="type">Type of stars to show.</param>
 		[SerializeField]
         public void SetStars(int n, StarType type = StarType.Standard) {
-			n = math.clamp(n, 0, 5);
+			n = math.clamp(n, 0, stars.Count);
+
+            if (n == 0) {
+				stars[0].gameObject.SetActive(true);
+				stars[0].sprite = starGraphicEmpty;
+				for (int i = 1; i < stars.Count; ++i) {
+                    stars[i].gameObject.SetActive(false);
+                }
+				_stars = n;
+				_type = StarType.Empty;
+				return;
+			}
 
 			var s = type switch {
                 StarType.Empty => starGraphicEmpty,
@@ -55,7 +66,7 @@ namespace YARG.UI {
                 _ => throw new ArgumentException("invalid StarType")
             };
 
-			for (int i = 0; i < 5; ++i) {
+			for (int i = 0; i < stars.Count; ++i) {
                 if (i < n) {
 					stars[i].sprite = s;
 					stars[i].gameObject.SetActive(true);
