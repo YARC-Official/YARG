@@ -27,7 +27,7 @@ namespace YARG.Serialization {
 			}
 
 			// Attempt to read songs_updates.dta, if it exists
-			if(update_folder != string.Empty){
+			if(!String.IsNullOrEmpty(update_folder)){
 				try {
 					using var sr_upd = new StreamReader(Path.Combine(update_folder, "songs_updates.dta"), Encoding.GetEncoding("iso-8859-1"));
 					dtaUpdateTree = DTX.FromDtaString(sr_upd.ReadToEnd());
@@ -42,52 +42,48 @@ namespace YARG.Serialization {
 			for (int i = 0; i < dtaTree.Count; i++) {
 				try {
 					var currentArray = (DataArray) dtaTree[i];
-					// Parse songs.dta
-					// Get song metadata from songs.dta
+					// Parse songs.dta for song metadata
 					var currentSong = XboxDTAParser.ParseFromDta(currentArray);
 
+					// check if song has applicable updates
+					bool songCanBeUpdated = (!String.IsNullOrEmpty(update_folder) && (update_shortnames.Find(s => s == currentSong.ShortName) != null));
+
 					// if shortname was found in songs_updates.dta, update the metadata
-					if(update_folder != string.Empty){
-						if(update_shortnames.Find(s => s == currentSong.ShortName) != null){
-							Debug.Log($"updating metadata for {currentSong.ShortName}");
-							currentSong = XboxDTAParser.ParseFromDta(dtaUpdateTree.Array(currentSong.ShortName), currentSong);
-							Debug.Log($"{currentSong.ShortName} updated.");
+					if(songCanBeUpdated)
+						currentSong = XboxDTAParser.ParseFromDta(dtaUpdateTree.Array(currentSong.ShortName), currentSong);
+					
+					// since Location is currently set to the name of the folder before mid/mogg/png, set those paths now:
+					
+					// capture base midi, and if an update midi was provided, capture that as well
+					currentSong.NotesFile = Path.Combine(folder, currentSong.Location, $"{currentSong.Location}.mid");
+					if(songCanBeUpdated && currentSong.DiscUpdate){
+						string updateMidiPath = Path.Combine(update_folder, currentSong.ShortName, $"{currentSong.ShortName}_update.mid");
+						if(File.Exists(updateMidiPath)) currentSong.UpdateMidiPath = updateMidiPath;
+						else {
+							Debug.LogError($"Couldn't update song {currentSong.ShortName} - update file {currentSong.UpdateMidiPath} not found!");
+							currentSong.DiscUpdate = false; // to prevent breaking in-game if the user still tries to play the song
 						}
 					}
-					
-					// since Location is currently set to the name of the folder before mid/mogg/png, set those paths now
-					currentSong.NotesFile = Path.Combine(folder, currentSong.Location, $"{currentSong.Location}.mid");
+
+					// capture base mogg path, OR, if update mogg was found, capture that instead
 					currentSong.MoggPath = Path.Combine(folder, currentSong.Location, $"{currentSong.Location}.mogg");
+					if(songCanBeUpdated){
+						string updateMoggPath = Path.Combine(update_folder, currentSong.ShortName, $"{currentSong.ShortName}_update.mogg");
+						if(File.Exists(updateMoggPath)){
+							currentSong.UsingUpdateMogg = true;
+							currentSong.MoggPath = updateMoggPath;
+						}
+					}
+
+					// capture base image (if one was provided), OR if update image was found, capture that instead
 					string imgPath = Path.Combine(folder, currentSong.Location, "gen", $"{currentSong.Location}_keep.png_xbox");
 					if(currentSong.HasAlbumArt && File.Exists(imgPath))
 						currentSong.ImagePath = imgPath;
-
-					// if an update image was provided, use that instead
-					if(update_folder != string.Empty){
-						if(update_shortnames.Find(s => s == currentSong.ShortName) != null){
-							imgPath = Path.Combine(update_folder, currentSong.ShortName, "gen", $"{currentSong.ShortName}_keep.png_xbox");
-							if(currentSong.HasAlbumArt && currentSong.AlternatePath && File.Exists(imgPath))
-								currentSong.ImagePath = imgPath;
-						}
-					}
-
-					// if an update mid was provided, track it
-					if(update_folder != string.Empty){
-						if(update_shortnames.Find(s => s == currentSong.ShortName) != null){
-							if(currentSong.DiscUpdate == true){
-								currentSong.UpdateMidiPath = Path.Combine(update_folder, currentSong.ShortName, $"{currentSong.ShortName}_update.mid");
-							}
-						}
-					}
-
-					// if an update mogg was provided, track it
-					if(update_folder != string.Empty){
-						if(update_shortnames.Find(s => s == currentSong.ShortName) != null){
-							string updateMoggPath = Path.Combine(update_folder, currentSong.ShortName, $"{currentSong.ShortName}_update.mogg");
-							if(File.Exists(updateMoggPath)){
-								currentSong.UsingUpdateMogg = true;
-								currentSong.MoggPath = updateMoggPath;
-							}							
+					if(songCanBeUpdated){
+						string imgUpdatePath = Path.Combine(update_folder, currentSong.ShortName, "gen", $"{currentSong.ShortName}_keep.png_xbox");
+						if(currentSong.HasAlbumArt && currentSong.AlternatePath){
+							if(File.Exists(imgUpdatePath)) currentSong.ImagePath = imgUpdatePath;
+							else currentSong.AlternatePath = false;
 						}
 					}
 
@@ -102,8 +98,6 @@ namespace YARG.Serialization {
 					currentSong.MoggAddressAudioOffset = br.ReadInt32();
 					currentSong.MoggAudioLength = fs.Length - currentSong.MoggAddressAudioOffset;
 					MoggBASSInfoGenerator.Generate(currentSong, currentArray.Array("song"), dtaUpdateTree.Array(currentSong.ShortName));
-
-					// Debug.Log($"{currentSong.ShortName}:\nMidi path: {currentSong.NotesFile}\nMogg path: {currentSong.MoggPath}\nImage path: {currentSong.ImagePath}");
 
 					// will validate the song outside of this class, in SongScanThread.cs
 					// so okay to add to song list for now

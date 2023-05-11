@@ -36,8 +36,6 @@ namespace YARG.Serialization.Parser {
 			// if this is a RB song, and it contains an update, merge the base and update midi
 			if(songEntry is ExtractedConSongEntry oof){
 				if(oof.DiscUpdate){
-					Debug.Log($"disc update for {oof.Name} - must update!");
-
 					List<string> BaseTracksToAdd = new List<string>();
 					List<string> UpdateTracksToAdd = new List<string>();
 					MidiFile midi_update = MidiFile.Read(oof.UpdateMidiPath, new ReadingSettings() { TextEncoding = System.Text.Encoding.UTF8 });

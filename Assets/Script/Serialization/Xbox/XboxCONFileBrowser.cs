@@ -45,59 +45,54 @@ namespace YARG.Serialization {
 					// Get song metadata from songs.dta
 					ConSongEntry currentSong = XboxDTAParser.ParseFromDta(currentArray);
 
+					// check if song has applicable updates
+					bool songCanBeUpdated = (!String.IsNullOrEmpty(update_folder) && (update_shortnames.Find(s => s == currentSong.ShortName) != null));
+
 					// if shortname was found in songs_updates.dta, update the metadata
-					if(update_folder != string.Empty){
-						if(update_shortnames.Find(s => s == currentSong.ShortName) != null){
-							Debug.Log($"updating metadata for {currentSong.ShortName}");
-							currentSong = XboxDTAParser.ParseFromDta(dtaUpdateTree.Array(currentSong.ShortName), currentSong);
-							Debug.Log($"{currentSong.ShortName} updated.");
-						}
-					}
-					
+					if(songCanBeUpdated)
+						currentSong = XboxDTAParser.ParseFromDta(dtaUpdateTree.Array(currentSong.ShortName), currentSong);
+
 					// since Location is currently set to the name of the folder before mid/mogg/png, set those paths now
 					// since we're dealing with a CON and not an ExCON, grab each relevant file's sizes and memory block offsets
+					
+					// capture base midi, and if an update midi was provided, capture that as well
 					currentSong.NotesFile = Path.Combine("songs", currentSong.Location, $"{currentSong.Location}.mid");
 					currentSong.MidiFileSize = theCON.GetFileSize(currentSong.NotesFile);
 					currentSong.MidiFileMemBlockOffsets = theCON.GetMemOffsets(currentSong.NotesFile);
+					if(songCanBeUpdated && currentSong.DiscUpdate){
+						string updateMidiPath = Path.Combine(update_folder, currentSong.ShortName, $"{currentSong.ShortName}_update.mid");
+						if(File.Exists(updateMidiPath)) currentSong.UpdateMidiPath = updateMidiPath;
+						else {
+							Debug.LogError($"Couldn't update song {currentSong.ShortName} - update file {currentSong.UpdateMidiPath} not found!");
+							currentSong.DiscUpdate = false; // to prevent breaking in-game if the user still tries to play the song
+						}
+					}
 
-					currentSong.MoggPath = Path.Combine("songs", currentSong.Location, $"{currentSong.Location}.mogg");
-					currentSong.MoggFileSize = theCON.GetFileSize(currentSong.MoggPath);
-					currentSong.MoggFileMemBlockOffsets = theCON.GetMemOffsets(currentSong.MoggPath);
-
+					// capture base mogg path, OR, if update mogg was found, capture that instead
+					if(songCanBeUpdated){
+						string updateMoggPath = Path.Combine(update_folder, currentSong.ShortName, $"{currentSong.ShortName}_update.mogg");
+						if(File.Exists(updateMoggPath)){
+							currentSong.UsingUpdateMogg = true;
+							currentSong.MoggPath = updateMoggPath;
+						}
+					}
+					if(!UsingUpdateMogg){
+						currentSong.MoggPath = Path.Combine("songs", currentSong.Location, $"{currentSong.Location}.mogg");
+						currentSong.MoggFileSize = theCON.GetFileSize(currentSong.MoggPath);
+						currentSong.MoggFileMemBlockOffsets = theCON.GetMemOffsets(currentSong.MoggPath);
+					}
+					
+					// capture base image (if one was provided), OR if update image was found, capture that instead
 					string imgPath = Path.Combine("songs", currentSong.Location, "gen", $"{currentSong.Location}_keep.png_xbox");
 					currentSong.ImageFileSize = theCON.GetFileSize(imgPath);
 					currentSong.ImageFileMemBlockOffsets = theCON.GetMemOffsets(imgPath);
-
 					if(currentSong.HasAlbumArt && currentSong.ImageFileSize > 0 && currentSong.ImageFileMemBlockOffsets != null)
 						currentSong.ImagePath = imgPath;
-
-					// if an update image was provided, use that instead
-					if(update_folder != string.Empty){
-						if(update_shortnames.Find(s => s == currentSong.ShortName) != null){
-							imgPath = Path.Combine(update_folder, currentSong.ShortName, "gen", $"{currentSong.ShortName}_keep.png_xbox");
-							if(currentSong.HasAlbumArt && currentSong.AlternatePath && File.Exists(imgPath))
-								currentSong.ImagePath = imgPath;
-						}
-					}
-
-					// if an update mid was provided, track it
-					if(update_folder != string.Empty){
-						if(update_shortnames.Find(s => s == currentSong.ShortName) != null){
-							if(currentSong.DiscUpdate == true){
-								currentSong.UpdateMidiPath = Path.Combine(update_folder, currentSong.ShortName, $"{currentSong.ShortName}_update.mid");
-							}
-						}
-					}
-
-					// if an update mogg was provided, track it
-					if(update_folder != string.Empty){
-						if(update_shortnames.Find(s => s == currentSong.ShortName) != null){
-							string updateMoggPath = Path.Combine(update_folder, currentSong.ShortName, $"{currentSong.ShortName}_update.mogg");
-							if(File.Exists(updateMoggPath)){
-								Debug.Log($"found update mogg for {currentSong.ShortName}");
-								currentSong.UsingUpdateMogg = true;
-								currentSong.MoggPath = updateMoggPath;
-							}							
+					if(songCanBeUpdated){
+						string imgUpdatePath = Path.Combine(update_folder, currentSong.ShortName, "gen", $"{currentSong.ShortName}_keep.png_xbox");
+						if(currentSong.HasAlbumArt && currentSong.AlternatePath){
+							if(File.Exists(imgUpdatePath)) currentSong.ImagePath = imgUpdatePath;
+							else currentSong.AlternatePath = false;
 						}
 					}
 

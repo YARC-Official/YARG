@@ -306,7 +306,6 @@ namespace YARG.Song {
 			tracks = MidPreparser.GetAvailableTracks(File.ReadAllBytes(file.NotesFile));
 			// add update midi, if it exists
 			if(file.DiscUpdate){
-				Debug.Log($"song {file.ShortName} has an update mid! {file.UpdateMidiPath}");
 				bytes.AddRange(File.ReadAllBytes(file.UpdateMidiPath)); 
 				tracks |= MidPreparser.GetAvailableTracks(File.ReadAllBytes(file.UpdateMidiPath));
 			}
@@ -336,10 +335,6 @@ namespace YARG.Song {
 				return ScanResult.EncryptedMogg;
 			}
 
-			if(file.DiscUpdate){
-				Debug.Log($"song {file.ShortName} has an update mid! {file.UpdateMidiPath}");
-			}
-
 			// all good - go ahead and build the cache info
 			List<byte> bytes = new List<byte>();
 			ulong tracks;
@@ -349,7 +344,6 @@ namespace YARG.Song {
 			tracks = MidPreparser.GetAvailableTracks(bytes.ToArray());
 			// add update midi, if it exists
 			if(file.DiscUpdate){
-				Debug.Log($"song {file.ShortName} has an update mid! {file.UpdateMidiPath}");
 				bytes.AddRange(File.ReadAllBytes(file.UpdateMidiPath)); 
 				tracks |= MidPreparser.GetAvailableTracks(File.ReadAllBytes(file.UpdateMidiPath));
 			}
