@@ -226,8 +226,6 @@ namespace YARG.UI {
 			var availableInstruments = allInstruments
 				.Where(instrument => MainMenu.Instance.chosenSong.HasInstrument(instrument)).ToList();
 
-			Debug.Log(MainMenu.Instance.chosenSong.AvailableParts);
-
 			// Force add pro drums and five lane
 			if (availableInstruments.Contains(Instrument.DRUMS)) {
 				availableInstruments.Add(Instrument.GH_DRUMS);
@@ -244,16 +242,25 @@ namespace YARG.UI {
 			// Filter out to only allowed instruments
 			availableInstruments.RemoveAll(i => !player.inputStrategy.GetAllowedInstruments().Contains(i));
 
-			optionCount = availableInstruments.Count + 1;
+			bool showSitOut = availableInstruments.Count <= 0 || PlayerManager.players.Count > 1;
+
+			optionCount = availableInstruments.Count + (showSitOut ? 1 : 0);
+			if (showSitOut) {
+				optionCount++;
+			}
 
 			// Add to options
-			var ops = new string[availableInstruments.Count + 1];
+			var ops = new string[optionCount];
 			instruments = new string[availableInstruments.Count];
 			for (int i = 0; i < instruments.Length; i++) {
 				instruments[i] = availableInstruments[i].ToStringName();
 				ops[i] = availableInstruments[i].ToLocalizedName();
 			}
-			ops[^1] = "Sit Out";
+
+			// Add sit out (only if there are more than 1 player)
+			if (showSitOut) {
+				ops[^1] = "Sit Out";
+			}
 
 			// Set text and sprites
 			for (int i = 0; i < 6; i++) {
