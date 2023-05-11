@@ -76,7 +76,7 @@ namespace YARG.Serialization {
 							currentSong.MoggPath = updateMoggPath;
 						}
 					}
-					if(!UsingUpdateMogg){
+					if(!currentSong.UsingUpdateMogg){
 						currentSong.MoggPath = Path.Combine("songs", currentSong.Location, $"{currentSong.Location}.mogg");
 						currentSong.MoggFileSize = theCON.GetFileSize(currentSong.MoggPath);
 						currentSong.MoggFileMemBlockOffsets = theCON.GetMemOffsets(currentSong.MoggPath);

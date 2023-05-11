@@ -29,7 +29,6 @@ namespace YARG.Serialization {
 			for (int i = 0; i < dtaTree.Count; i++) {
 				try {
 					string currentName = ((DataArray) dtaTree[i]).Name;
-                    Debug.Log($"found update for {currentName}");
 					songList.Add(currentName);
 				} catch (Exception e) {
 					Debug.Log($"Failed to get shortname, skipping...");
