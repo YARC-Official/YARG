@@ -531,7 +531,7 @@ namespace YARG.PlayMode {
 			
 			// BASS DROOVE notifs -- NOTE THAT BASS GROOVE TRUMPS NOTE STREAK
 			if (commonTrack.bassGrooveNotifsEnabled) {
-				if (player.chosenInstrument.ToLower().Contains("bass")) {  // Should affect both "bass" and "proBass"
+				if (player.chosenInstrument.Contains("ass")) {  // Should affect both "bass" and "proBass"
 					int triggerThreshold = IsStarPowerActive ? MaxMultiplier / 2 : MaxMultiplier;
 
 					if (recentlyBelowMaxMultiplier && Multiplier >= MaxMultiplier) {
