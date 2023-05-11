@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using Melanchall.DryWetMidi.Core;
 using MoonscraperChartEditor.Song.IO;
-using UnityEngine;
 using YARG.Data;
 
 namespace YARG.Song.Preparsers {
@@ -31,26 +30,28 @@ namespace YARG.Song.Preparsers {
 
 		};
 
-		public static ulong GetAvailableTracks(byte[] chartData) {
+		public static bool GetAvailableTracks(byte[] chartData, out ulong tracks) {
 			using var stream = new MemoryStream(chartData);
 			try {
 				var midi = MidiFile.Read(stream, ReadSettings);
-				return ReadStream(midi);
+				tracks = ReadStream(midi);
+				return true;
 			} catch (Exception e) {
-				Debug.LogError(e.Message);
-				Debug.LogError(e.StackTrace);
-				return ulong.MaxValue;
+				// Debug.LogError(e.Message);
+				// Debug.LogError(e.StackTrace);
+				tracks = 0;
+				return false;
 			}
 		}
 
-		public static ulong GetAvailableTracks(SongEntry song) {
+		public static bool GetAvailableTracks(SongEntry song, out ulong tracks) {
 			try {
 				var midi = MidiFile.Read(Path.Combine(song.Location, song.NotesFile), ReadSettings);
-				return ReadStream(midi);
-			} catch (Exception e) {
-				Debug.LogError(e.Message);
-				Debug.LogError(e.StackTrace);
-				return ulong.MaxValue;
+				tracks = ReadStream(midi);
+				return true;
+			} catch {
+				tracks = 0;
+				return false;
 			}
 		}
 

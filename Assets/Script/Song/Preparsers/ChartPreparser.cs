@@ -29,17 +29,29 @@ namespace YARG.Song.Preparsers {
 			// { Instrument.GHLiveCoop, "GHLCoop" }
 		};
 
-		public static ulong GetAvailableTracks(byte[] chartData) {
+		public static bool GetAvailableTracks(byte[] chartData, out ulong tracks) {
 			using var stream = new MemoryStream(chartData);
 
 			using var reader = new StreamReader(stream);
-			return ReadStream(reader);
+			try {
+				tracks = ReadStream(reader);
+				return true;
+			} catch {
+				tracks = 0;
+				return false;
+			}
 		}
 		
-		public static ulong GetAvailableTracks(SongEntry song) {
+		public static bool GetAvailableTracks(SongEntry song, out ulong tracks) {
 			using var reader = File.OpenText(Path.Combine(song.Location, song.NotesFile));
 
-			return ReadStream(reader);
+			try {
+				tracks = ReadStream(reader);
+				return true;
+			} catch {
+				tracks = 0;
+				return false;
+			}
 		}
 
 		private static ulong ReadStream(StreamReader reader) {
