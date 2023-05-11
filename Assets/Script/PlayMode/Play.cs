@@ -9,7 +9,6 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
 using YARG.Chart;
 using YARG.Data;
-using YARG.Serialization;
 using YARG.Serialization.Parser;
 using YARG.Settings;
 using YARG.Song;
@@ -117,8 +116,7 @@ namespace YARG.PlayMode {
 			// Load MOGG if CON, otherwise load stems
 			if (song is ExtractedConSongEntry rawConSongEntry) {
 				GameManager.AudioManager.LoadMogg(rawConSongEntry, isSpeedUp);
-			}
-			else {
+			} else {
 				var stems = AudioHelpers.GetSupportedStems(song.Location);
 
 				GameManager.AudioManager.LoadSong(stems, isSpeedUp);
@@ -165,7 +163,7 @@ namespace YARG.PlayMode {
 
 			// Hide loading screen
 			GameUI.Instance.loadingContainer.SetActive(false);
-			
+
 			realSongTime = SONG_START_OFFSET;
 			StartCoroutine(StartAudio());
 
@@ -225,7 +223,7 @@ namespace YARG.PlayMode {
 				realSongTime += Time.deltaTime;
 				yield return null;
 			}
-			
+
 			GameManager.AudioManager.Play();
 			audioStarted = true;
 		}

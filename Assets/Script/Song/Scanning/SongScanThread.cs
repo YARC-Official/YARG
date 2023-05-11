@@ -181,8 +181,6 @@ namespace YARG.Song {
 
 			// Iterate through the files in this current directory to look for CON files
 			foreach (var file in Directory.EnumerateFiles(subDir)) {
-				Debug.Log($"Scanning file {file}");
-
 				// for each file found, read first 4 bytes and check for "CON " or "LIVE"
 				using var fs = new FileStream(file, FileMode.Open, FileAccess.Read);
 				using var br = new BinaryReader(fs);
@@ -319,7 +317,7 @@ namespace YARG.Song {
 			// all good - go ahead and build the cache info
 
 			// construct the midi file
-			byte[] bytes = XboxCONInnerFileRetriever.RetrieveFile(file.Location, file.NotesFile, file.MidiFileSize, file.MidiFileMemBlockOffsets);
+			byte[] bytes = XboxCONInnerFileRetriever.RetrieveFile(file.Location, file.MidiFileSize, file.MidiFileMemBlockOffsets);
 
 			string checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes)).Replace("-", "");
 

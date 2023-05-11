@@ -24,14 +24,13 @@ namespace YARG.Serialization.Parser {
 		public MidiFile midi;
 
 		public MidiParser(SongEntry songEntry, string[] files) : base(songEntry, files) {
-			if(songEntry.SongType == SongType.RbCon){
-				var conSong = (ConSongEntry)songEntry;
+			if (songEntry.SongType == SongType.RbCon) {
+				var conSong = (ConSongEntry) songEntry;
 				using var stream = new MemoryStream(XboxCONInnerFileRetriever.RetrieveFile(
-					conSong.Location, conSong.NotesFile, conSong.MidiFileSize, conSong.MidiFileMemBlockOffsets
+					conSong.Location, conSong.MidiFileSize, conSong.MidiFileMemBlockOffsets
 				));
 				midi = MidiFile.Read(stream, new ReadingSettings() { TextEncoding = System.Text.Encoding.UTF8 });
-			}
-			else midi = MidiFile.Read(files[0], new ReadingSettings() { TextEncoding = System.Text.Encoding.UTF8 });
+			} else midi = MidiFile.Read(files[0], new ReadingSettings() { TextEncoding = System.Text.Encoding.UTF8 });
 
 			// TODO: fix this to account for upgrade CONs/ExCONs
 			// Merge midi files
@@ -236,7 +235,7 @@ namespace YARG.Serialization.Parser {
 
 					// Add delay
 					foreach (var note in difficulty) {
-						note.time += (float)songEntry.Delay;
+						note.time += (float) songEntry.Delay;
 					}
 
 					// Last note time
@@ -249,16 +248,16 @@ namespace YARG.Serialization.Parser {
 			// Add delay to vocals
 
 			foreach (var lyric in chart.genericLyrics) {
-				lyric.time += (float)songEntry.Delay;
+				lyric.time += (float) songEntry.Delay;
 			}
 
 			foreach (var lyric in chart.realLyrics) {
-				lyric.time += (float)songEntry.Delay;
+				lyric.time += (float) songEntry.Delay;
 			}
 
 			foreach (var lyricList in chart.harmLyrics) {
 				foreach (var lyric in lyricList) {
-					lyric.time += (float)songEntry.Delay;
+					lyric.time += (float) songEntry.Delay;
 				}
 			}
 
@@ -288,7 +287,7 @@ namespace YARG.Serialization.Parser {
 
 			chart.events.Sort(new Comparison<EventInfo>((a, b) => a.time.CompareTo(b.time)));
 			foreach (var ev in chart.events) {
-				ev.time += (float)songEntry.Delay;
+				ev.time += (float) songEntry.Delay;
 			}
 
 			// Add beats to chart

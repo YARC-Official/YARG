@@ -14,5 +14,17 @@ namespace YARG.UI.MusicLibrary.ViewTypes {
 		public virtual string SideText => string.Empty;
 
 		public virtual Sprite IconSprite => null;
+
+		public virtual void SecondaryTextClick() {
+
+		}
+
+		public virtual void PrimaryButtonClick() {
+
+		}
+
+		public virtual void IconClick() {
+
+		}
 	}
 }
