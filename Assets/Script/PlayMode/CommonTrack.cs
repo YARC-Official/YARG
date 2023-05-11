@@ -55,9 +55,10 @@ namespace YARG.PlayMode {
 		public PerformanceTextSizer perfTextSizer;
 		public float perfTextFontSize;
 		public float perfTextAnimLen;
-		
+
 		[Space]
 		// For HOT START and STRONG FINISH
+		public bool fullComboTrumpsStrongFinish;
 		public int hotStartCutoff;
 		public int strongFinishCutoff;
 		public float bufferPeriod;

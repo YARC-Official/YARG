@@ -95,6 +95,7 @@ MonoBehaviour:
   performanceText: {fileID: 6350537460123684463}
   perfTextFontSize: 16
   perfTextAnimLen: 3
+  fullComboTrumpsStrongFinish: 0
   hotStartCutoff: 25
   strongFinishCutoff: 25
   bufferPeriod: 0.05

@@ -518,20 +518,46 @@ namespace YARG.PlayMode {
 			}
 
 			// Set "FULL COMBO" or "STRONG FINISH" text
-			if (!strongFinishChecked) {
-				if (Play.Instance.SongTime > endTime) {
-					strongFinishChecked = true;
+			if (commonTrack.fullComboTrumpsStrongFinish) {
+				if (!strongFinishChecked) {
+					if (Play.Instance.SongTime > endTime) {
+						strongFinishChecked = true;
 
-					if (FullCombo) {
-						commonTrack.performanceText.text = "FULL COMBO";
-						commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
-					} else if (_combo >= commonTrack.strongFinishCutoff) {
-						commonTrack.performanceText.text = "STRONG FINISH";
-						commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+						if (FullCombo) {
+							commonTrack.performanceText.text = "FULL COMBO";
+							commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+						} else if (_combo >= commonTrack.strongFinishCutoff) {
+							commonTrack.performanceText.text = "STRONG FINISH";
+							commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+						}
+					}
+				}
+			} else {
+				if (!fullComboChecked) {
+					if (Play.Instance.SongTime > endTime) {
+						fullComboChecked = true;
+
+						if (FullCombo) {
+							commonTrack.performanceText.text = "FULL COMBO";
+							commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+						}
+					}
+				}
+
+				if (!strongFinishChecked) {
+					float checkTime = FullCombo ? offsetEndTime : endTime;
+    
+					if (Play.Instance.SongTime > checkTime) {
+						strongFinishChecked = true;
+
+						if (_combo >= commonTrack.strongFinishCutoff) {
+							commonTrack.performanceText.text = "STRONG FINISH";
+							commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+						}
 					}
 				}
 			}
-			
+
 			// Never let performance text appear when the solo box is present
 			if (soloInProgress) {
 				commonTrack.performanceText.text = "";
