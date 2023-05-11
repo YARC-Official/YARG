@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using MoonscraperChartEditor.Song;
 using MoonscraperChartEditor.Song.IO;
+using TrombLoader.Helpers;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
@@ -159,8 +160,41 @@ namespace YARG.PlayMode {
 				i++;
 			}
 
-			SongStarted = true;
+			//Load Background
+			string backgroundPath = Path.Combine(song.Location, "bg.yarground");
+			string mp4Path  = Path.Combine(song.Location, "bg.mp4");
+			string pngPath = Path.Combine(song.Location, "bg.png");
+			//First check heck for a yarground
+			if (File.Exists(backgroundPath)) {
+				
+				var bundle = AssetBundle.LoadFromFile(backgroundPath);
+				var bg = bundle.LoadAsset<GameObject>("assets/_background.prefab");
+				var bgInstance = Instantiate(bg);
+				bgInstance.GetComponent<BackgroundManager>().bundle = bundle;
+				Debug.Log("Loaded Custom Background!");
+				
+			} 
+			//If not, check for a 
+			else if (File.Exists(mp4Path)) {
+				GameUI.Instance.videoPlayer.url = mp4Path;
+				GameUI.Instance.videoPlayer.enabled = true;
+				GameUI.Instance.videoPlayer.Play();
+			} 
+			
+			else if (File.Exists(pngPath)) {
+				var png = ImageHelper.LoadTextureFromFile(pngPath);
 
+				GameUI.Instance.background.texture = png;
+			}
+			//No background file, we load a random video
+			else {
+				//TODO: Add custom videos folder, load here
+			}
+
+			SongStarted = true;
+			
+			
+			
 			// Hide loading screen
 			GameUI.Instance.loadingContainer.SetActive(false);
 
