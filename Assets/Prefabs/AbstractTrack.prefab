@@ -98,8 +98,8 @@ MonoBehaviour:
   hotStartNotifsEnabled: 1
   bassGrooveNotifsEnabled: 1
   noteStreakNotifsEnabled: 1
-  fullComboNotifsEnabled: 1
   strongFinishNotifsEnabled: 1
+  overdriveReadyNotifsEnabled: 1
   fullComboTrumpsStrongFinish: 0
   hotStartCutoff: 25
   strongFinishCutoff: 25

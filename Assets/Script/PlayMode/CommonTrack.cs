@@ -62,9 +62,10 @@ namespace YARG.PlayMode {
 		public bool hotStartNotifsEnabled;
 		public bool bassGrooveNotifsEnabled;
 		public bool noteStreakNotifsEnabled;
-		public bool fullComboNotifsEnabled;
 		public bool strongFinishNotifsEnabled;
+		public bool overdriveReadyNotifsEnabled;
 		public bool fullComboTrumpsStrongFinish;
+		
 		
 		[Space]
 		// Numeric performance text settings
