@@ -91,7 +91,7 @@ namespace YARG.Serialization {
 					currentSong.MoggHeader = br.ReadInt32();
 					currentSong.MoggAddressAudioOffset = br.ReadInt32();
 					currentSong.MoggAudioLength = currentSong.MoggFileSize - currentSong.MoggAddressAudioOffset;
-					MoggBASSInfoGenerator.Generate(currentSong, currentArray.Array("song"));
+					MoggBASSInfoGenerator.Generate(currentSong, currentArray.Array("song"), dtaUpdateTree.Array(currentSong.ShortName));
 
 					// Debug.Log($"{currentSong.ShortName}:\nMidi path: {currentSong.NotesFile}\nMogg path: {currentSong.MoggPath}\nImage path: {currentSong.ImagePath}");
 
