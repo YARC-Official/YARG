@@ -111,7 +111,7 @@ namespace YARG.UI {
 		private void Update() {
 			// Enter
 			if (Keyboard.current.enterKey.wasPressedThisFrame) {
-				MainMenu.Instance.ShowMainMenu();
+				MainMenu.Instance.ShowSongSelect();
 			}
 		}
 
@@ -121,7 +121,7 @@ namespace YARG.UI {
 			}
 
 			if (navigationType == NavigationType.PRIMARY) {
-				MainMenu.Instance.ShowMainMenu();
+				MainMenu.Instance.ShowSongSelect();
 			}
 		}
 	}
