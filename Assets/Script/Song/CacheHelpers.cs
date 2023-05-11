@@ -8,10 +8,11 @@ namespace YARG.Song {
 		public static void WriteExtractedConData(BinaryWriter writer, ExtractedConSongEntry ExCONSong) {
 
 			// update midi data
-			writer.Write(ExCONSong.UpdateMidiPath);
 			writer.Write(ExCONSong.DiscUpdate);
+			writer.Write(ExCONSong.UpdateMidiPath);
 
 			// mogg data
+			writer.Write(ExCONSong.UsingUpdateMogg);
 			writer.Write(ExCONSong.MoggPath);
 			writer.Write(ExCONSong.MoggHeader);
 			writer.Write(ExCONSong.MoggAddressAudioOffset);
@@ -72,9 +73,10 @@ namespace YARG.Song {
 
 		public static void ReadExtractedConData(BinaryReader reader, ExtractedConSongEntry ExCONSong) {
 
-			ExCONSong.UpdateMidiPath = reader.ReadString();
 			ExCONSong.DiscUpdate = reader.ReadBoolean();
+			ExCONSong.UpdateMidiPath = reader.ReadString();
 
+			ExCONSong.UsingUpdateMogg = reader.ReadBoolean();
 			ExCONSong.MoggPath = reader.ReadString();
 			ExCONSong.MoggHeader = reader.ReadInt32();
 			ExCONSong.MoggAddressAudioOffset = reader.ReadInt32();

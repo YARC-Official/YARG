@@ -89,17 +89,40 @@ namespace YARG.Serialization {
 						}
 					}
 
+					// if an update mogg was provided, track it
+					if(update_folder != string.Empty){
+						if(update_shortnames.Find(s => s == currentSong.ShortName) != null){
+							string updateMoggPath = Path.Combine(update_folder, currentSong.ShortName, $"{currentSong.ShortName}_update.mogg");
+							if(File.Exists(updateMoggPath)){
+								Debug.Log($"found update mogg for {currentSong.ShortName}");
+								currentSong.UsingUpdateMogg = true;
+								currentSong.MoggPath = updateMoggPath;
+							}							
+						}
+					}
+
 					// Set this song's "Location" to the path of the CON file
 					currentSong.Location = conName;
 					
 					// Parse the mogg
-					using var fs = new FileStream(conName, FileMode.Open, FileAccess.Read);
-					using var br = new BinaryReader(fs);
-					fs.Seek(currentSong.MoggFileMemBlockOffsets[0], SeekOrigin.Begin);
+					if(!currentSong.UsingUpdateMogg){
+						using var fs = new FileStream(conName, FileMode.Open, FileAccess.Read);
+						using var br = new BinaryReader(fs);
+						fs.Seek(currentSong.MoggFileMemBlockOffsets[0], SeekOrigin.Begin);
 
-					currentSong.MoggHeader = br.ReadInt32();
-					currentSong.MoggAddressAudioOffset = br.ReadInt32();
-					currentSong.MoggAudioLength = currentSong.MoggFileSize - currentSong.MoggAddressAudioOffset;
+						currentSong.MoggHeader = br.ReadInt32();
+						currentSong.MoggAddressAudioOffset = br.ReadInt32();
+						currentSong.MoggAudioLength = currentSong.MoggFileSize - currentSong.MoggAddressAudioOffset;
+					}
+					else{
+						using var fs = new FileStream(currentSong.MoggPath, FileMode.Open, FileAccess.Read);
+						using var br = new BinaryReader(fs);
+
+						currentSong.MoggHeader = br.ReadInt32();
+						currentSong.MoggAddressAudioOffset = br.ReadInt32();
+						currentSong.MoggAudioLength = fs.Length - currentSong.MoggAddressAudioOffset;
+					}
+					
 					MoggBASSInfoGenerator.Generate(currentSong, currentArray.Array("song"), dtaUpdateTree.Array(currentSong.ShortName));
 
 					// Debug.Log($"{currentSong.ShortName}:\nMidi path: {currentSong.NotesFile}\nMogg path: {currentSong.MoggPath}\nImage path: {currentSong.ImagePath}");

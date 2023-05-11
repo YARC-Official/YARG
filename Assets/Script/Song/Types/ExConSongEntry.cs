@@ -30,6 +30,7 @@ namespace YARG.Song {
 		public string UpdateMidiPath { get; set; } = string.Empty;
 
 		// .mogg info
+		public bool UsingUpdateMogg { get; set; } = false;
 		public string MoggPath { get; set; }
 		public int MoggHeader { get; set; }
 		public int MoggAddressAudioOffset { get; set; }

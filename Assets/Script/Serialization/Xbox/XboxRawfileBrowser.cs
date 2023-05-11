@@ -80,6 +80,17 @@ namespace YARG.Serialization {
 						}
 					}
 
+					// if an update mogg was provided, track it
+					if(update_folder != string.Empty){
+						if(update_shortnames.Find(s => s == currentSong.ShortName) != null){
+							string updateMoggPath = Path.Combine(update_folder, currentSong.ShortName, $"{currentSong.ShortName}_update.mogg");
+							if(File.Exists(updateMoggPath)){
+								currentSong.UsingUpdateMogg = true;
+								currentSong.MoggPath = updateMoggPath;
+							}							
+						}
+					}
+
 					// Get song folder path for mid, mogg, png_xbox
 					currentSong.Location = Path.Combine(folder, currentSong.Location);
 					
