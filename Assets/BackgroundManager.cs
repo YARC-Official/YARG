@@ -2,9 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using UnityEditor.UI;
 using UnityEngine;
-using UnityEngine.Video;
 using YARG.UI;
 
 #if UNITY_EDITOR
