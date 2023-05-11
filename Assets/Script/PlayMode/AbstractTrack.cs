@@ -516,10 +516,11 @@ namespace YARG.PlayMode {
 
 			// Set "X00-NOTE STREAK" text
 			if (commonTrack.noteStreakNotifsEnabled) {
-				currentNoteStreakInterval = _combo / commonTrack.noteStreakInterval;
+				int intervalSize = commonTrack.noteStreakInterval;
+				currentNoteStreakInterval = _combo / intervalSize;
 				
 				if (recentNoteStreakInterval < currentNoteStreakInterval) {
-					commonTrack.performanceText.text = $"{currentNoteStreakInterval}00-NOTE STREAK";
+					commonTrack.performanceText.text = $"{currentNoteStreakInterval * intervalSize}-NOTE STREAK";
 					commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
 				}
 			}
