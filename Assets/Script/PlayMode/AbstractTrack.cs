@@ -527,7 +527,7 @@ namespace YARG.PlayMode {
 			
 			// NOTE STREAK notifs
 			if (commonTrack.noteStreakNotifsEnabled) {
-				// Don't show X/2-NOTE STREAK if BASS DROOVE is too close (i.e., within X/5 of X/2)
+				// Don't show X/2-NOTE STREAK for bass because BASS GROOVE is too close
 				if (player.chosenInstrument != "bass") {
 					if (_recentCombo < halfIntervalSize && _combo >= halfIntervalSize) {
 						// Set X/2-NOTE STREAK TEXT
@@ -549,7 +549,7 @@ namespace YARG.PlayMode {
 			if (commonTrack.overdriveReadyNotifsEnabled) {
 				if (recentStarpowerCharge < 0.5f && starpowerCharge >= 0.5f && !IsStarPowerActive) {
 					// Set "X-NOTE STREAK" text
-					commonTrack.performanceText.text = "OVERDRIVE READY";  // holy crap this is obnoxious
+					commonTrack.performanceText.text = "OVERDRIVE READY";
 					commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
 				}
 			}
