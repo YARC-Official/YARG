@@ -26,6 +26,7 @@ namespace YARG.UI {
 		public GameObject pauseMenu;
 		public RawImage background;
 		public VideoPlayer videoPlayer;
+
 		public static GameUI Instance {
 			get;
 			private set;

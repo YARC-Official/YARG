@@ -14,6 +14,7 @@ using YARG.Serialization.Parser;
 using YARG.Settings;
 using YARG.Song;
 using YARG.UI;
+using YARG.Util;
 using YARG.Venue;
 
 namespace YARG.PlayMode {
@@ -40,7 +41,7 @@ namespace YARG.PlayMode {
 		public static event PauseStateChangeAction OnPauseToggle;
 
 		[SerializeField]
-		private GameObject soundAudioPrefab;
+		private RenderTexture backgroundRenderTexture;
 
 		public bool SongStarted {
 			get;
@@ -88,10 +89,17 @@ namespace YARG.PlayMode {
 
 					GameManager.AudioManager.Pause();
 
+					if (GameUI.Instance.videoPlayer.enabled) {
+						GameUI.Instance.videoPlayer.Pause();
+					}
 				} else {
 					Time.timeScale = 1f;
 
 					GameManager.AudioManager.Play();
+
+					if (GameUI.Instance.videoPlayer.enabled) {
+						GameUI.Instance.videoPlayer.Play();
+					}
 				}
 				OnPauseToggle(_paused);
 			}
@@ -104,6 +112,8 @@ namespace YARG.PlayMode {
 
 			ScoreKeeper.Reset();
 			StarScoreKeeper.Reset();
+
+			backgroundRenderTexture.ClearTexture();
 
 			// Song
 			StartSong();
@@ -161,32 +171,8 @@ namespace YARG.PlayMode {
 				i++;
 			}
 
-			// Load Background
-			string backgroundPath = Path.Combine(song.Location, "bg.yarground");
-			string mp4Path  = Path.Combine(song.Location, "bg.mp4");
-			string pngPath = Path.Combine(song.Location, "bg.png");
-
-			if (File.Exists(backgroundPath)) {
-				// First check for a yarground
-				var bundle = AssetBundle.LoadFromFile(backgroundPath);
-				var bg = bundle.LoadAsset<GameObject>("Assets/_Background.prefab");
-				var bgInstance = Instantiate(bg);
-
-				bgInstance.GetComponent<BundleBackgroundManager>().Bundle = bundle;
-			} else if (File.Exists(mp4Path)) {
-				// If not, check for a video
-				GameUI.Instance.videoPlayer.url = mp4Path;
-				GameUI.Instance.videoPlayer.enabled = true;
-				GameUI.Instance.videoPlayer.Play();
-			} else if (File.Exists(pngPath)) {
-				// Otherwise, load an image
-				var png = ImageHelper.LoadTextureFromFile(pngPath);
-
-				GameUI.Instance.background.texture = png;
-			} else {
-				// No background file, we load a random video
-				// TODO: Add custom videos folder, load here
-			}
+			// Load background (venue, video, image, etc.)
+			LoadBackground();
 
 			SongStarted = true;
 
@@ -203,6 +189,59 @@ namespace YARG.PlayMode {
 				if (chartEvent.name == "end") {
 					SongLength = chartEvent.time;
 					break;
+				}
+			}
+		}
+
+		private void LoadBackground() {
+			// Try a yarground first
+
+			string backgroundPath = Path.Combine(song.Location, "bg.yarground");
+			if (File.Exists(backgroundPath)) {
+				// First check for a yarground
+				var bundle = AssetBundle.LoadFromFile(backgroundPath);
+				var bg = bundle.LoadAsset<GameObject>("Assets/_Background.prefab");
+				var bgInstance = Instantiate(bg);
+
+				bgInstance.GetComponent<BundleBackgroundManager>().Bundle = bundle;
+				return;
+			}
+
+			// Next, a video
+
+			string[] videoPaths = {
+				"bg.mp4",
+				"bg.mov",
+				"bg.webm",
+			};
+
+			foreach (var file in videoPaths) {
+				var path = Path.Combine(song.Location, file);
+
+				if (File.Exists(path)) {
+					GameUI.Instance.videoPlayer.url = path;
+					GameUI.Instance.videoPlayer.enabled = true;
+
+					return;
+				}
+			}
+
+			// Finally, an image
+
+			string[] imagePaths = {
+				"bg.png",
+				"bg.jpg",
+				"bg.jpeg",
+			};
+
+			foreach (var file in imagePaths) {
+				var path = Path.Combine(song.Location, file);
+
+				if (File.Exists(path)) {
+					var png = ImageHelper.LoadTextureFromFile(path);
+
+					GameUI.Instance.background.texture = png;
+					return;
 				}
 			}
 		}
@@ -251,6 +290,10 @@ namespace YARG.PlayMode {
 			while (realSongTime < 0f) {
 				realSongTime += Time.deltaTime;
 				yield return null;
+			}
+
+			if (GameUI.Instance.videoPlayer.enabled) {
+				GameUI.Instance.videoPlayer.Play();
 			}
 
 			GameManager.AudioManager.Play();
@@ -447,6 +490,7 @@ namespace YARG.PlayMode {
 			// Unpause just in case
 			Time.timeScale = 1f;
 
+			backgroundRenderTexture.ClearTexture();
 			_tracks.Clear();
 
 			GameManager.Instance.LoadScene(SceneIndex.MENU);
