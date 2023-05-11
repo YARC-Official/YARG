@@ -159,8 +159,24 @@ namespace YARG.PlayMode {
 				i++;
 			}
 
-			SongStarted = true;
+			//Load Background
+			string backgroundPath = Path.Combine(song.Location, "bg.yarground");
+			if (File.Exists(backgroundPath)) {
+				
+				var bundle = AssetBundle.LoadFromFile(backgroundPath);
+				var bg = bundle.LoadAsset<GameObject>("assets/_background.prefab");
+				Instantiate(bg);
+				Debug.Log("Loaded Custom Background!");
+				OnSongEnd += (SongEntry song) => { bundle.Unload(true);};
+			} 
+			else {
+				Debug.LogWarning($"There is no background file in {backgroundPath}!");
+			}
 
+			SongStarted = true;
+			
+			
+			
 			// Hide loading screen
 			GameUI.Instance.loadingContainer.SetActive(false);
 
