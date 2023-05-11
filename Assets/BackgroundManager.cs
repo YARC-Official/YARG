@@ -2,9 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-
+using UnityEditor.UI;
 using UnityEngine;
 using UnityEngine.Video;
+using YARG.UI;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -13,26 +14,32 @@ public class BackgroundManager : MonoBehaviour {
 	
 	public Camera mainCamera;
 	public RenderTexture bgTexture;
-	
+
+	public AssetBundle bundle;
     // Start is called before the first frame update
     void Start() {
+	    //Move object out of the way just in case
+	    transform.position += Vector3.up * 1000;
 	    bgTexture = new RenderTexture(Screen.currentResolution.width, Screen.currentResolution.height, 16, RenderTextureFormat.ARGB32);
 	    bgTexture.Create();
 	    mainCamera.targetTexture = bgTexture;
+	    GameUI.Instance.background.texture = bgTexture;
     }
 
     private void OnDestroy() {
 	    bgTexture.Release();
-	    
+	    bundle.Unload(true);
     }
 
     GameObject tromboneBackground;
     
+    //Code to export a background from the editor
+    //This honestly should be on a different class (and ideally on a completely different project as a template) but as a quick dirty PoC it will do for now
     #if UNITY_EDITOR
 	[ContextMenu("Export Background")]
     public void ExportBackground() {
 	    tromboneBackground = gameObject;
-	    string path = EditorUtility.SaveFilePanel("Save Trombone Background", string.Empty, "bg",
+	    string path = EditorUtility.SaveFilePanel("Save Background", string.Empty, "bg",
 			    "yarground");
 
 		    BuildTargetGroup selectedBuildTargetGroup = EditorUserBuildSettings.selectedBuildTargetGroup;

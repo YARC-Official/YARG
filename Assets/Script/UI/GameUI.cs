@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Video;
 using YARG.PlayMode;
 using YARG.Util;
 
@@ -23,7 +24,8 @@ namespace YARG.UI {
 
 		public GameObject loadingContainer;
 		public GameObject pauseMenu;
-
+		public RawImage background;
+		public VideoPlayer videoPlayer;
 		public static GameUI Instance {
 			get;
 			private set;
