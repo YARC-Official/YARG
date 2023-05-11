@@ -57,11 +57,21 @@ namespace YARG.PlayMode {
 		public float perfTextAnimLen;
 
 		[Space]
-		// For HOT START and STRONG FINISH
+		// Toggle settings for performance text
+		// NOTE: THIS SHOULD REALLY BE REPLACED BY A PROPER SETTINGS CLASS
+		public bool hotStartNotifsEnabled;
+		public bool bassGrooveNotifsEnabled;
+		public bool noteStreakNotifsEnabled;
+		public bool fullComboNotifsEnabled;
+		public bool strongFinishNotifsEnabled;
 		public bool fullComboTrumpsStrongFinish;
+		
+		[Space]
+		// Numeric performance text settings
 		public int hotStartCutoff;
 		public int strongFinishCutoff;
 		public float bufferPeriod;
+		public int noteStreakInterval;
 
 		[Space]
 		[SerializeField]

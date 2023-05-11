@@ -98,8 +98,8 @@ namespace YARG.PlayMode {
 		public bool recentlyBelowMaxMultiplier = true;
 
 		// For XOO-NOTE STREAK
-		private int currentHundred = 0;
-		private int recentHundred = 0;
+		private int currentNoteStreakInterval = 0;
+		private int recentNoteStreakInterval = 0;
 
 		// Scoring trackers
 		protected ScoreKeeper scoreKeeper;
@@ -489,32 +489,39 @@ namespace YARG.PlayMode {
 			commonTrack.comboMeterRenderer.material.SetFloat("SpriteNum", index);
 
 			// Set "HOT START" text
-			if (!hotStartChecked) {
-				if (_combo >= commonTrack.hotStartCutoff) {
-					hotStartChecked = true;
+			if (commonTrack.hotStartNotifsEnabled) {
+				if (!hotStartChecked) {
+					if (_combo >= commonTrack.hotStartCutoff) {
+						hotStartChecked = true;
 
-					if (FullCombo) {
-						commonTrack.performanceText.text = "HOT START";
+						if (FullCombo) {
+							commonTrack.performanceText.text = "HOT START";
+							commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+						}
+					}
+				}
+			}
+
+			// Set "BASS GROOVE" text
+			if (commonTrack.bassGrooveNotifsEnabled) {
+				if (player.chosenInstrument == "bass") {
+					int triggerThreshold = IsStarPowerActive ? MaxMultiplier / 2 : MaxMultiplier;
+
+					if (recentlyBelowMaxMultiplier && Multiplier >= MaxMultiplier) {
+						commonTrack.performanceText.text = "BASS GROOVE";
 						commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
 					}
 				}
 			}
-			
-			// Set "BASS GROOVE" text
-			if (player.chosenInstrument == "bass") {
-				int triggerThreshold = IsStarPowerActive ? MaxMultiplier / 2 : MaxMultiplier;
+
+			// Set "X00-NOTE STREAK" text
+			if (commonTrack.noteStreakNotifsEnabled) {
+				currentNoteStreakInterval = _combo / commonTrack.noteStreakInterval;
 				
-				if (recentlyBelowMaxMultiplier && Multiplier >= MaxMultiplier) {
-					commonTrack.performanceText.text = "BASS GROOVE";
+				if (recentNoteStreakInterval < currentNoteStreakInterval) {
+					commonTrack.performanceText.text = $"{currentNoteStreakInterval}00-NOTE STREAK";
 					commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
 				}
-			}
-			
-			// Set "X00-NOTE STREAK" text
-			currentHundred = _combo / 100;
-			if (recentHundred < currentHundred) {
-				commonTrack.performanceText.text = $"{currentHundred}00-NOTE STREAK";
-				commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
 			}
 
 			// Set "FULL COMBO" or "STRONG FINISH" text
@@ -523,36 +530,40 @@ namespace YARG.PlayMode {
 					if (Play.Instance.SongTime > endTime) {
 						strongFinishChecked = true;
 
-						if (FullCombo) {
+						if (FullCombo && commonTrack.fullComboNotifsEnabled) {
 							commonTrack.performanceText.text = "FULL COMBO";
 							commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
-						} else if (_combo >= commonTrack.strongFinishCutoff) {
+						} else if (_combo >= commonTrack.strongFinishCutoff && commonTrack.strongFinishNotifsEnabled) {
 							commonTrack.performanceText.text = "STRONG FINISH";
 							commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
 						}
 					}
 				}
 			} else {
-				if (!fullComboChecked) {
-					if (Play.Instance.SongTime > endTime) {
-						fullComboChecked = true;
+				if (commonTrack.fullComboNotifsEnabled) {
+					if (!fullComboChecked) {
+						if (Play.Instance.SongTime > endTime) {
+							fullComboChecked = true;
 
-						if (FullCombo) {
-							commonTrack.performanceText.text = "FULL COMBO";
-							commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+							if (FullCombo) {
+								commonTrack.performanceText.text = "FULL COMBO";
+								commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+							}
 						}
 					}
 				}
 
-				if (!strongFinishChecked) {
-					float checkTime = FullCombo ? offsetEndTime : endTime;
-    
-					if (Play.Instance.SongTime > checkTime) {
-						strongFinishChecked = true;
+				if (commonTrack.strongFinishNotifsEnabled) {
+					if (!strongFinishChecked) {
+						float checkTime = FullCombo ? offsetEndTime : endTime;
 
-						if (_combo >= commonTrack.strongFinishCutoff) {
-							commonTrack.performanceText.text = "STRONG FINISH";
-							commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+						if (Play.Instance.SongTime > checkTime) {
+							strongFinishChecked = true;
+
+							if (_combo >= commonTrack.strongFinishCutoff) {
+								commonTrack.performanceText.text = "STRONG FINISH";
+								commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+							}
 						}
 					}
 				}
@@ -567,7 +578,7 @@ namespace YARG.PlayMode {
 			// Animate performance text
 			commonTrack.performanceText.fontSize = commonTrack.perfTextSizer.PerformanceTextFontSize();
 			commonTrack.perfTextSizer.animTimeRemaining -= Time.deltaTime;
-			recentHundred = currentHundred;
+			recentNoteStreakInterval = currentNoteStreakInterval;
 			recentlyBelowMaxMultiplier = Multiplier < MaxMultiplier;
 		}
 
