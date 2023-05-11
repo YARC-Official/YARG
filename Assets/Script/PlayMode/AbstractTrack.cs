@@ -511,10 +511,27 @@ namespace YARG.PlayMode {
 					}
 				}
 			}
+
+			// NOTE STREAK notifs
+			if (commonTrack.noteStreakNotifsEnabled) {
+				if (_recentCombo < halfIntervalSize && _combo >= halfIntervalSize) {
+					// Set "X/2-NOTE STREAK" TEXT
+					commonTrack.performanceText.text = $"{halfIntervalSize}-NOTE STREAK";
+					commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+				}
+
+				currentNoteStreakInterval = _combo / intervalSize;
+
+				if (recentNoteStreakInterval < currentNoteStreakInterval) {
+					// Set "X-NOTE STREAK" text
+					commonTrack.performanceText.text = $"{currentNoteStreakInterval * intervalSize}-NOTE STREAK";
+					commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+				}
+			}
 			
-			// BASS DROOVE NOTIFS
+			// BASS DROOVE notifs -- NOTE THAT BASS GROOVE TRUMPS NOTE STREAK
 			if (commonTrack.bassGrooveNotifsEnabled) {
-				if (player.chosenInstrument.ToLower().Contains("bass")) {
+				if (player.chosenInstrument.ToLower().Contains("bass")) {  // Should affect both "bass" and "proBass"
 					int triggerThreshold = IsStarPowerActive ? MaxMultiplier / 2 : MaxMultiplier;
 
 					if (recentlyBelowMaxMultiplier && Multiplier >= MaxMultiplier) {
@@ -522,26 +539,6 @@ namespace YARG.PlayMode {
 						commonTrack.performanceText.text = "BASS GROOVE";
 						commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
 					}
-				}
-			}
-			
-			// NOTE STREAK notifs
-			if (commonTrack.noteStreakNotifsEnabled) {
-				// Don't show X/2-NOTE STREAK for bass because BASS GROOVE is too close
-				if (!player.chosenInstrument.ToLower().Contains("bass")) {
-					if (_recentCombo < halfIntervalSize && _combo >= halfIntervalSize) {
-						// Set X/2-NOTE STREAK TEXT
-						commonTrack.performanceText.text = $"{halfIntervalSize}-NOTE STREAK";
-						commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
-					}
-				}
-				
-				currentNoteStreakInterval = _combo / intervalSize;
-
-				if (recentNoteStreakInterval < currentNoteStreakInterval) {
-					// Set "X-NOTE STREAK" text
-					commonTrack.performanceText.text = $"{currentNoteStreakInterval * intervalSize}-NOTE STREAK";
-					commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
 				}
 			}
 			
