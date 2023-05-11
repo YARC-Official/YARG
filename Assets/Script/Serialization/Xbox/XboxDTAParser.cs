@@ -10,8 +10,10 @@ using YARG.Song;
 
 namespace YARG.Serialization {
     public static class XboxDTAParser {
-        public static ConSongEntry ParseFromDta(DataArray dta){
-			var cur = new ConSongEntry();
+        public static ConSongEntry ParseFromDta(DataArray dta, ConSongEntry existing_song = null){
+			ConSongEntry cur;
+			if(existing_song != null) cur = existing_song;
+			else cur = new ConSongEntry();
 			cur.ShortName = dta.Name;
 			// Debug.Log($"this shortname: {dta.Name}");
 			for (int i = 1; i < dta.Count; i++) {

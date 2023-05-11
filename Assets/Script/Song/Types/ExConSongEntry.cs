@@ -25,6 +25,9 @@ namespace YARG.Song {
 		public int[] RealGuitarTuning { get; set; }
 		public int[] RealBassTuning { get; set; }
 
+		// _update.mid info, if it exists
+		public string UpdateMidiPath { get; set; } = string.Empty;
+
 		// .mogg info
 		public string MoggPath { get; set; }
 		public int MoggHeader { get; set; }

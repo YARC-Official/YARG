@@ -11,9 +11,10 @@ using YARG.Song;
 
 namespace YARG.Serialization {
 	public static class ExCONBrowser {
-		public static List<ExtractedConSongEntry> BrowseFolder(string folder){
+		public static List<ExtractedConSongEntry> BrowseFolder(string folder, string update_folder, List<string> update_shortnames){
 			var songList = new List<ExtractedConSongEntry>();
 			var dtaTree = new DataArray();
+			var dtaUpdateTree = new DataArray();
 
 			// Attempt to read songs.dta
 			try {
@@ -25,6 +26,18 @@ namespace YARG.Serialization {
 				return null;
 			}
 
+			// Attempt to read songs_updates.dta, if it exists
+			if(update_folder != string.Empty){
+				try {
+					using var sr_upd = new StreamReader(Path.Combine(update_folder, "songs_updates.dta"), Encoding.GetEncoding("iso-8859-1"));
+					dtaUpdateTree = DTX.FromDtaString(sr_upd.ReadToEnd());
+				} catch (Exception e_upd) {
+					Debug.LogError($"Failed to parse songs_updates.dta for `{update_folder}`.");
+					Debug.LogException(e_upd);
+					return null;
+				}
+			}
+
 			// Read each song the dta file lists
 			for (int i = 0; i < dtaTree.Count; i++) {
 				try {
@@ -32,6 +45,15 @@ namespace YARG.Serialization {
 					// Parse songs.dta
 					// Get song metadata from songs.dta
 					var currentSong = XboxDTAParser.ParseFromDta(currentArray);
+
+					// if shortname was found in songs_updates.dta, update the metadata
+					if(update_folder != string.Empty){
+						if(update_shortnames.Find(s => s == currentSong.ShortName) != null){
+							Debug.Log($"updating metadata for {currentSong.ShortName}");
+							currentSong = XboxDTAParser.ParseFromDta(dtaUpdateTree.Array(currentSong.ShortName), currentSong);
+							Debug.Log($"{currentSong.ShortName} updated.");
+						}
+					}
 					
 					// since Location is currently set to the name of the folder before mid/mogg/png, set those paths now
 					currentSong.NotesFile = Path.Combine(folder, currentSong.Location, $"{currentSong.Location}.mid");
