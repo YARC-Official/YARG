@@ -78,10 +78,7 @@ namespace YARG.UI.PlayResultScreen {
 
 		public void Setup(PlayerManager.Player player, ClearStatus cs, bool isHighScore) {
 			Debug.Log($"Setting up PlayerCard for {player.DisplayName}");
-			
-			// track player and their inputs
 			this.player = player;
-			player.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
 
 			// set window frame
 			containerImg.sprite = cs switch {
@@ -128,18 +125,13 @@ namespace YARG.UI.PlayResultScreen {
 			} else {
 				bottomBannerText.text = String.Empty;
 			}
-			// Banner animation
 			bottomBanner.gameObject.GetComponent<LayoutElement>().flexibleHeight = 0f;
-			if (bottomBannerText.text != String.Empty) {
+			
+			// DQ Banner
+			if (bottomBannerText.text != String.Empty && bottomBannerText.text != "HIGH SCORE") {
 				var anim = bottomBanner.gameObject.GetComponent<Animator>();
 				anim.enabled = true;
-
-				// only animate if high score
-				if (bottomBannerText.text == "HIGH SCORE") {
-					anim.Play("ExtendBanner");
-				} else {
-					anim.Play("ExtendBanner", 0, 1f);
-				}
+				anim.Play("ExtendBanner", 0, 1f);
 			}
 
 			/* Set colors */
@@ -162,6 +154,18 @@ namespace YARG.UI.PlayResultScreen {
 			// Lower alpha if disqualified
 			if (containerImg.sprite == backgroundDisqualified) {
 				GetComponent<CanvasGroup>().alpha = 0.4f;
+			}
+		}
+
+		public void BeginAnimation() {
+			// begin tracking player inputs
+			player.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
+
+			// only animate if high score
+			if (bottomBannerText.text == "HIGH SCORE") {
+				var anim = bottomBanner.gameObject.GetComponent<Animator>();
+				anim.enabled = true;
+				anim.Play("ExtendBanner");
 			}
 		}
 
