@@ -6,12 +6,13 @@ namespace YARG.Song {
 	public static class CacheHelpers {
 		
 		public static void WriteExtractedConData(BinaryWriter writer, ExtractedConSongEntry ExCONSong) {
-			/*/
-			 
-			 MOGG data
-			 
-			 */
 
+			// update midi data
+			writer.Write(ExCONSong.DiscUpdate);
+			writer.Write(ExCONSong.UpdateMidiPath);
+
+			// mogg data
+			writer.Write(ExCONSong.UsingUpdateMogg);
 			writer.Write(ExCONSong.MoggPath);
 			writer.Write(ExCONSong.MoggHeader);
 			writer.Write(ExCONSong.MoggAddressAudioOffset);
@@ -36,12 +37,8 @@ namespace YARG.Song {
 				}
 			}
 			
-			/*/
-			 
-			 Image data
-			 
-			 */
-
+			// image data
+			writer.Write(ExCONSong.AlternatePath);
 			// Note: ImagePath can be an empty string if the song has no image
 			writer.Write(ExCONSong.ImagePath);
 		}
@@ -75,6 +72,11 @@ namespace YARG.Song {
 		}
 
 		public static void ReadExtractedConData(BinaryReader reader, ExtractedConSongEntry ExCONSong) {
+
+			ExCONSong.DiscUpdate = reader.ReadBoolean();
+			ExCONSong.UpdateMidiPath = reader.ReadString();
+
+			ExCONSong.UsingUpdateMogg = reader.ReadBoolean();
 			ExCONSong.MoggPath = reader.ReadString();
 			ExCONSong.MoggHeader = reader.ReadInt32();
 			ExCONSong.MoggAddressAudioOffset = reader.ReadInt32();
@@ -113,6 +115,7 @@ namespace YARG.Song {
 			 
 			 */
 
+			ExCONSong.AlternatePath = reader.ReadBoolean();
 			// Note: ImagePath can be an empty string if the song has no image
 			ExCONSong.ImagePath = reader.ReadString();
 		}

@@ -210,8 +210,10 @@ namespace YARG {
 
 			byte[] moggArray;
 			if (exConSong is ConSongEntry conSong) {
-				moggArray = XboxCONInnerFileRetriever.RetrieveFile(conSong.Location,
-					conSong.MoggFileSize, conSong.MoggFileMemBlockOffsets)[conSong.MoggAddressAudioOffset..];
+				if(!conSong.UsingUpdateMogg)
+					moggArray = XboxCONInnerFileRetriever.RetrieveFile(conSong.Location,
+						conSong.MoggFileSize, conSong.MoggFileMemBlockOffsets)[conSong.MoggAddressAudioOffset..];
+				else moggArray = File.ReadAllBytes(conSong.MoggPath)[conSong.MoggAddressAudioOffset..];
 			} else {
 				moggArray = File.ReadAllBytes(exConSong.MoggPath)[exConSong.MoggAddressAudioOffset..];
 			}
