@@ -88,7 +88,7 @@ namespace YARG.Song {
 			foreach (string cache in _songsByCacheFolder.Keys) {
 				// Folder doesn't exist, so report as an error and skip
 				if (!Directory.Exists(cache)) {
-					_songErrors[cache].Add(new SongError(cache, ScanResult.InvalidDirectory));
+					_songErrors[cache].Add(new SongError(cache, ScanResult.InvalidDirectory, ""));
 
 					Debug.LogError($"Invalid song directory: {cache}");
 					continue;
@@ -146,7 +146,7 @@ namespace YARG.Song {
 				default:
 					_errorsEncountered++;
 					errorsEncountered = _errorsEncountered;
-					_songErrors[cacheFolder].Add(new SongError(subDir, result));
+					_songErrors[cacheFolder].Add(new SongError(subDir, result, ""));
 					Debug.LogWarning($"Error encountered with {subDir}: {result}");
 					return;
 			}
@@ -170,7 +170,7 @@ namespace YARG.Song {
 						default:
 							_errorsEncountered++;
 							errorsEncountered = _errorsEncountered;
-							_songErrors[cacheFolder].Add(new SongError(subDir, ExCONResult));
+							_songErrors[cacheFolder].Add(new SongError(subDir, ExCONResult, file.Name));
 							Debug.LogWarning($"Error encountered with {subDir}");
 							break;
 					}
@@ -203,7 +203,7 @@ namespace YARG.Song {
 								default:
 									_errorsEncountered++;
 									errorsEncountered = _errorsEncountered;
-									_songErrors[cacheFolder].Add(new SongError(subDir, CONResult));
+									_songErrors[cacheFolder].Add(new SongError(subDir, CONResult, SongInsideCON.Name));
 									Debug.LogWarning($"Error encountered with {subDir}");
 									break;
 							}
