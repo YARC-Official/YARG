@@ -63,5 +63,5 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: Build MacOS
-          path: build
+          path: build/StandaloneOSX
           retention-days: 14
