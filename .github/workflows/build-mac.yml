@@ -28,14 +28,16 @@ jobs:
       ###########################
       #         Checkout        #
       ###########################
-      - uses: actions/checkout@v3
+      - name: "[Pre-install] Pull project"
+        uses: actions/checkout@v3
         with:
           lfs: true
 
       ###########################
       #          Cache          #
       ###########################
-      - uses: actions/cache@v3
+      - name: "[Pre-install] Restore "Library" cache"
+        uses: actions/cache@v3
         with:
           path: Library
           key: YARG-Library-macos-${{ matrix.targetPlatform }}
@@ -46,21 +48,21 @@ jobs:
       ###########################
       #    Install Libraries    #
       ###########################
-      - name: Setup Python 3.10
+      - name: "[Install Libraries] Setup Python 3.10"
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: Install 'requests' package on Python
+      - name: "[Install Libraries] Install 'requests' package on Python"
         run: pip install requests
 
-      - name: Install libraries
+      - name: "[Install Libraries] Install libraries"
         run: python InstallLibraries/install.py
         
       ###########################
       #          Build          #
       ###########################
-      - name: Build Unity Project
+      - name: "[Build] Run Builder"
         uses: game-ci/unity-builder@main
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -75,7 +77,8 @@ jobs:
       ###########################
       #          Upload         #
       ###########################
-      - uses: actions/upload-artifact@v3
+      - name: "[Post-build] Upload build to artifacts"
+        uses: actions/upload-artifact@v3
         with:
           name: Build MacOS
           path: build/StandaloneOSX
