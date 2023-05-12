@@ -48,7 +48,6 @@ namespace YARG.UI.MusicLibrary {
 			get => _selectedIndex;
 			private set {
 				_selectedIndex = value;
-
 				// Wrap
 				if (_selectedIndex < 0) {
 					_selectedIndex = _songs.Count - _selectedIndex - 2;
@@ -56,7 +55,7 @@ namespace YARG.UI.MusicLibrary {
 					_selectedIndex -= _songs.Count;
 				}
 
-				if (_songs[value] is SongViewType song) {
+				if (_songs[_selectedIndex] is SongViewType song) {
 					GameManager.Instance.SelectedSong = song.SongEntry;
 				}
 
