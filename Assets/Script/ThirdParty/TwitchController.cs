@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using YARG.Data;
 using YARG.PlayMode;
@@ -7,6 +8,8 @@ using YARG.UI;
 
 namespace YARG {
 	public class TwitchController : MonoBehaviour {
+		private static Regex TagRegex = new(@"<[^>]*>", RegexOptions.Compiled);
+
 		public static TwitchController Instance {
 			get;
 			private set;
@@ -57,9 +60,17 @@ namespace YARG {
 			// Open the text file for appending
 			using var writer = new StreamWriter(TextFilePath, false);
 
-			// Write two lines of text to the file
-			writer.Write($"{song.Name}\n{song.Artist}\n{song.Album}\n{song.Genre}\n" +
-				$"{song.Year}\n{SongSources.SourceToGameName(song.Source)}\n{song.Charter}");
+			// Get the input
+			string str = $"{song.Name}\n{song.Artist}\n{song.Album}\n{song.Genre}\n" +
+				$"{song.Year}\n{SongSources.SourceToGameName(song.Source)}\n{song.Charter}";
+
+			// Strip tags
+			if (TagRegex.IsMatch(str)) {
+				str = TagRegex.Replace(str, string.Empty);
+			}
+
+			// Write text to the file
+			writer.Write(str);
 		}
 
 		void OnSongEnd(SongEntry song) {

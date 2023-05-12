@@ -159,7 +159,7 @@ namespace YARG.Song {
 					_errorsEncountered++;
 					errorsEncountered = _errorsEncountered;
 					_songErrors[cacheFolder].Add(new SongError(subDir, result));
-					Debug.LogWarning($"Error encountered with {subDir}");
+					Debug.LogWarning($"Error encountered with {subDir}: {result}");
 					return;
 			}
 
@@ -264,9 +264,15 @@ namespace YARG.Song {
 			var tracks = ulong.MaxValue;
 
 			if (notesFile.EndsWith(".mid")) {
-				tracks = MidPreparser.GetAvailableTracks(bytes);
+				if (!MidPreparser.GetAvailableTracks(bytes, out ulong availTracks)) {
+					return ScanResult.CorruptedNotesFile;
+				}
+				tracks = availTracks;
 			} else if (notesFile.EndsWith(".chart")) {
-				tracks = ChartPreparser.GetAvailableTracks(bytes);
+				if (!ChartPreparser.GetAvailableTracks(bytes, out ulong availTracks)) {
+					return ScanResult.CorruptedNotesFile;
+				}
+				tracks = availTracks;
 			}
 
 			// We have a song.ini, notes file and audio. The song is scannable.
@@ -300,14 +306,20 @@ namespace YARG.Song {
 			// all good - go ahead and build the cache info
 			List<byte> bytes = new List<byte>();
 			ulong tracks;
+      ulong update_tracks;
 
 			// add base midi
 			bytes.AddRange(File.ReadAllBytes(file.NotesFile)); 
-			tracks = MidPreparser.GetAvailableTracks(File.ReadAllBytes(file.NotesFile));
+      if (!MidPreparser.GetAvailableTracks(File.ReadAllBytes(file.NotesFile), out ulong tracks)) {
+				return ScanResult.CorruptedNotesFile;
+			}
 			// add update midi, if it exists
 			if(file.DiscUpdate){
 				bytes.AddRange(File.ReadAllBytes(file.UpdateMidiPath)); 
-				tracks |= MidPreparser.GetAvailableTracks(File.ReadAllBytes(file.UpdateMidiPath));
+        if (!MidPreparser.GetAvailableTracks(File.ReadAllBytes(file.UpdateMidiPath), out ulong update_tracks)) {
+          return ScanResult.CorruptedNotesFile;
+        }
+				tracks |= update_tracks;
 			}
 
 			string checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes.ToArray())).Replace("-", "");
@@ -338,14 +350,20 @@ namespace YARG.Song {
 			// all good - go ahead and build the cache info
 			List<byte> bytes = new List<byte>();
 			ulong tracks;
+      ulong update_tracks;
 
 			// add base midi
 			bytes.AddRange(XboxCONInnerFileRetriever.RetrieveFile(file.Location, file.MidiFileSize, file.MidiFileMemBlockOffsets)); 
-			tracks = MidPreparser.GetAvailableTracks(bytes.ToArray());
+      if (!MidPreparser.GetAvailableTracks(bytes.ToArray(), out ulong tracks)) {
+				return ScanResult.CorruptedNotesFile;
+			}
 			// add update midi, if it exists
 			if(file.DiscUpdate){
 				bytes.AddRange(File.ReadAllBytes(file.UpdateMidiPath)); 
-				tracks |= MidPreparser.GetAvailableTracks(File.ReadAllBytes(file.UpdateMidiPath));
+				if (!MidPreparser.GetAvailableTracks(File.ReadAllBytes(file.UpdateMidiPath), out ulong update_tracks)) {
+          return ScanResult.CorruptedNotesFile;
+        }
+				tracks |= update_tracks;
 			}
 
 			string checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes.ToArray())).Replace("-", "");

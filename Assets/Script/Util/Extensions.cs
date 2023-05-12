@@ -62,5 +62,15 @@ namespace YARG.Util {
 
 			return rect;
 		}
+
+		/// <summary>
+		/// Clears the render texture.
+		/// </summary>
+		public static void ClearTexture(this RenderTexture rt) {
+			RenderTexture old = RenderTexture.active;
+			RenderTexture.active = rt;
+			GL.Clear(true, true, Color.clear);
+			RenderTexture.active = old;
+		}
 	}
 }
