@@ -44,6 +44,20 @@ jobs:
             YARG-Library-
 
       ###########################
+      #    Install Libraries    #
+      ###########################
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install 'requests' package on Python
+        run: pip install requests
+
+      - name: Install libraries
+        run: python InstallLibraries/install.py
+        
+      ###########################
       #          Build          #
       ###########################
       - uses: game-ci/unity-builder@v2
