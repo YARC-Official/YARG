@@ -35,13 +35,13 @@ jobs:
       ###########################
       #          Cache          #
       ###########################
-      # - uses: actions/cache@v3
-      #   with:
-      #     path: ${{ matrix.projectPath }}/Library
-      #     key: Library-${{ matrix.projectPath }}-macos-${{ matrix.targetPlatform }}
-      #     restore-keys: |
-      #       Library-${{ matrix.projectPath }}-macos-
-      #       Library-
+      - uses: actions/cache@v3
+        with:
+          path: Library
+          key: YARG-Library-macos-${{ matrix.targetPlatform }}
+          restore-keys: |
+            YARG-Library-macos-
+            YARG-Library-
 
       ###########################
       #          Build          #
@@ -55,6 +55,7 @@ jobs:
           # projectPath: ${{ matrix.projectPath }}
           unityVersion: ${{ matrix.unityVersion }}
           targetPlatform: ${{ matrix.targetPlatform }}
+          cacheUnityInstallationOnMac: true
 
       ###########################
       #          Upload         #
