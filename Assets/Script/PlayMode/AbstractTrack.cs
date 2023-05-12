@@ -50,6 +50,7 @@ namespace YARG.PlayMode {
 
 		public bool IsStarPowerActive { get; protected set; }
 		protected float starpowerCharge;
+		protected float recentStarpowerCharge;  // For OVERDRIVE READY notif
 		//protected bool starpowerHit = false;
 		protected Light comboSunburstEmbeddedLight;
 
@@ -62,12 +63,22 @@ namespace YARG.PlayMode {
 		private double soloPtsEarned;
 
 		private bool FullCombo = true;
+		
+		// Used for performance text purposes
+		private bool hotStartChecked = false;
+		private bool fullComboChecked = false;
+		private bool strongFinishChecked = false;
+		private float endTime;
+		private float offsetEndTime;  // For moving STRONG FINISH back in case of an FC
+
 		private int SavedCombo = 0;
 		private bool switchedRingMaterial = false;
 		protected bool startFCDetection = false;
 		protected bool missedAnyNote = false;
 
 		private int _combo = 0;
+		private int _recentCombo = 0;  // For tracking note streak of size interval / 2
+		
 		protected int Combo {
 			get => _combo;
 			set {
@@ -87,6 +98,13 @@ namespace YARG.PlayMode {
 
 		public int MaxMultiplier => (player.chosenInstrument == "bass" ? 6 : 4) * (IsStarPowerActive ? 2 : 1);
 		public int Multiplier => Mathf.Min((Combo / 10 + 1) * (IsStarPowerActive ? 2 : 1), MaxMultiplier);
+		public bool recentlyBelowMaxMultiplier = true;
+
+		// For XOO-NOTE STREAK
+		private int intervalSize;
+		private int halfIntervalSize;
+		private int currentNoteStreakInterval = 0;
+		private int recentNoteStreakInterval = 0;
 
 		// Scoring trackers
 		protected ScoreKeeper scoreKeeper;
@@ -157,6 +175,20 @@ namespace YARG.PlayMode {
 			commonTrack.kickFlash.SetActive(false);
 
 			scoreKeeper = new();
+			
+			// Set up performance text for BASS GROOVE and other similar messages
+			commonTrack.performanceText.color = Color.white;
+			commonTrack.perfTextSizer = new PerformanceTextSizer(
+				commonTrack.perfTextFontSize,
+				commonTrack.perfTextAnimLen);
+			
+			// Set the end time for STRONG FINISH and FULL COMBO performance text checking
+			endTime = (Chart[Chart.Count - 1].time + Constants.HIT_MARGIN + commonTrack.bufferPeriod);
+			offsetEndTime = endTime + commonTrack.perfTextAnimLen;
+			
+			// Initlaize interval sizes
+			intervalSize = commonTrack.noteStreakInterval;
+			halfIntervalSize = intervalSize / 2;
 
 			StartTrack();
 		}
@@ -202,10 +234,13 @@ namespace YARG.PlayMode {
 			if (hitChartIndex > lastHit) {
 				lastHit = hitChartIndex;
 			}
-
-			UpdateInfo();
+			
+			// NOTE: UpdateInfo() originally was before UpdateStarpower().
+			// Moved it to the end to make performance text things work.
+			// I REALLY hope that doesn't break something. - grishhung
 			UpdateStarpower();
 			UpdateFullComboState();
+			UpdateInfo();  
 
 			if (Multiplier >= MaxMultiplier) {
 				commonTrack.comboSunburst.gameObject.SetActive(true);
@@ -342,7 +377,7 @@ namespace YARG.PlayMode {
 				commonTrack.comboSunburst.sprite = commonTrack.sunBurstSprite;
 				commonTrack.comboSunburst.color = commonTrack.comboSunburstColor;
 
-				if(Multiplier >= MaxMultiplier) {
+				if (Multiplier >= MaxMultiplier) {
 					commonTrack.comboBase.material = commonTrack.baseGroove;
 				}
 				else {
@@ -464,6 +499,125 @@ namespace YARG.PlayMode {
 			}
 
 			commonTrack.comboMeterRenderer.material.SetFloat("SpriteNum", index);
+			
+			// HOT START notifs
+			if (commonTrack.hotStartNotifsEnabled) {
+				if (!hotStartChecked) {
+					if (_combo >= commonTrack.hotStartCutoff) {
+						hotStartChecked = true;
+
+						if (FullCombo) {
+							// Set "HOT START" text
+							commonTrack.performanceText.text = "HOT START";
+							commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+						}
+					}
+				}
+			}
+
+			// NOTE STREAK notifs
+			if (commonTrack.noteStreakNotifsEnabled) {
+				if (_recentCombo < halfIntervalSize && _combo >= halfIntervalSize) {
+					// Set "X/2-NOTE STREAK" TEXT
+					commonTrack.performanceText.text = $"{halfIntervalSize}-NOTE STREAK";
+					commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+				}
+
+				currentNoteStreakInterval = _combo / intervalSize;
+
+				if (recentNoteStreakInterval < currentNoteStreakInterval) {
+					// Set "X-NOTE STREAK" text
+					commonTrack.performanceText.text = $"{currentNoteStreakInterval * intervalSize}-NOTE STREAK";
+					commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+				}
+			}
+			
+			// BASS GROOVE notifs
+			// NOTE: This will always trump "X-NOTE STREAK" (in particular, "50-NOTE STREAK")
+			if (commonTrack.bassGrooveNotifsEnabled) {
+				if (player.chosenInstrument.Contains("ass")) {  // Should affect both "bass" and "proBass"
+					int triggerThreshold = IsStarPowerActive ? MaxMultiplier / 2 : MaxMultiplier;
+
+					if (recentlyBelowMaxMultiplier && Multiplier >= MaxMultiplier) {
+						// Set "BASS GROOVE" text
+						commonTrack.performanceText.text = "BASS GROOVE";
+						commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+					}
+				}
+			}
+			
+			// OVERDRIVE READY notifs
+			if (commonTrack.overdriveReadyNotifsEnabled) {
+				if (recentStarpowerCharge < 0.5f && starpowerCharge >= 0.5f && !IsStarPowerActive) {
+					// Set "OVERDRIVE READY" text
+					commonTrack.performanceText.text = "OVERDRIVE READY";
+					commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+				}
+			}
+
+			// Deteremine behavior based on whether or not FC trumps SF
+			if (commonTrack.fullComboTrumpsStrongFinish) {
+				if (!strongFinishChecked) {
+					if (Play.Instance.SongTime > endTime) {
+						strongFinishChecked = true;
+
+						if (FullCombo) {
+							// Set "FULL COMBO" text
+							commonTrack.performanceText.text = "FULL COMBO";
+							commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+						} else if (_combo >= commonTrack.strongFinishCutoff && commonTrack.strongFinishNotifsEnabled) {
+							// Set "STRONG FINISH" text
+							commonTrack.performanceText.text = "STRONG FINISH";
+							commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+						}
+					}
+				}
+			} else {
+				if (!fullComboChecked) {
+					if (Play.Instance.SongTime > endTime) {
+						fullComboChecked = true;
+
+						if (FullCombo) {
+							// Set "FULL COMBO" text
+							commonTrack.performanceText.text = "FULL COMBO";
+							commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+						}
+					}
+				}
+
+				if (commonTrack.strongFinishNotifsEnabled) {
+					if (!strongFinishChecked) {
+						float checkTime = FullCombo ? offsetEndTime : endTime;
+
+						if (Play.Instance.SongTime > checkTime) {
+							strongFinishChecked = true;
+
+							if (_combo >= commonTrack.strongFinishCutoff) {
+								// Set "STRONG FINISH" text
+								commonTrack.performanceText.text = "STRONG FINISH";
+								commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+							}
+						}
+					}
+				}
+			}
+
+			// Never let performance text appear when the solo box is present
+			if (soloInProgress) {
+				commonTrack.performanceText.text = "";
+				commonTrack.perfTextSizer.animTimeRemaining = 0.0f;
+			}
+
+			// Animate performance text
+			commonTrack.performanceText.fontSize = commonTrack.perfTextSizer.PerformanceTextFontSize();
+			commonTrack.perfTextSizer.animTimeRemaining -= Time.deltaTime;
+			
+			// Update recent values
+			_recentCombo = _combo;
+			recentNoteStreakInterval = currentNoteStreakInterval;
+			recentlyBelowMaxMultiplier = Multiplier < MaxMultiplier;
+			recentStarpowerCharge = starpowerCharge;
+
 		}
 
 		IEnumerator SoloBoxShowScore() {

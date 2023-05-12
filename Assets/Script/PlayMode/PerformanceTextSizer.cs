@@ -12,7 +12,7 @@ namespace YARG.PlayMode {
 
 		// Set whether fontSize represents the "peak" or the "rest" size
 		// Note that rest size == peak size * 0.9f for animation purposes
-		private bool representsPeakSize { get; set; }
+		public bool representsPeakSize { get; set; }
 
 		public PerformanceTextSizer(float fs, float atl, bool rps = false) {
 	        fontSize = fs;
@@ -25,11 +25,16 @@ namespace YARG.PlayMode {
 		/// The font size of the text given the current animation timestamp
 		/// </returns>
 	    /// <summary>
-	    /// The first 1/6s = the rise to the peak size
-		/// The second 1/6s = the fall to the rest size
-		/// The second to last 1/6s = the rise back to peak size
-		/// The last 1/6s = the fall back to nothingness
-		/// Returned size will be 0f if animTimeRemaining <= 0
+	    /// Given an animTimeLenth "a":
+		/// - At t = 0s, start from 0% size and start the SHARP climb up to 100% size
+		/// - At t = 1/6s, be at 100% size and start the fall down to 90% size
+		/// - At t = 1/3s, rest at 90% size
+		/// - At t = (a - 1/3)s, start from 90% size and star the climb back up to 100% size
+		/// - At t = (a - 1/6)s. be 100% size and start the SHARP fall back down to 0% size
+		/// - At t = (a)s, rest at 0% size
+		/// a = 1s for vocal performance text (e.g., AWESOME, STRONG, AWFUL)
+		/// a = 3s for guitar / drums / keys performance text (e.g., BASS GROOVE, HOT START, STRONG FINISH)
+		/// Anim should be symmetrical with respect to the halfway point to prevent snapping, even if under 2/3s
 	    /// </summary>
 		public float PerformanceTextFontSize() {
 			// Define the relative size before font sizing is applied
