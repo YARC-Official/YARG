@@ -64,39 +64,36 @@ namespace YARG {
 		}
 
 		public void QueueSongFolderRefresh(string path) {
+			// Refreshes 1 folder (called when clicking "Refresh" on a folder in settings)
 			Queue(async () => {
-				await ScanSongFolder(path);
+				await ScanSongFolder(path, false);
 			});
 		}
 
 		private async UniTask ScanSongFolders(bool fast) {
 			SetLoadingText("Loading songs...");
-			var errors = await SongContainer.ScanAllFolders(fast, scanner => {
-				subPhrase.text = $"Folders Scanned: {scanner.TotalFoldersScanned}" +
-					$"\nSongs Scanned: {scanner.TotalSongsScanned}" +
-					$"\nErrors: {scanner.TotalErrorsEncountered}";
-			});
+			var errors = await SongContainer.ScanAllFolders(fast, UpdateSongUi);
 
-			// Only scan folders again on fast mode, as on slow mode they were already scanned
-			if (fast) {
-				foreach (var error in errors) {
-					await ScanSongFolder(error);
-				}
-			}
+			// Pass all errored caches in at once so it can run in parallel
+			await SongContainer.ScanFolders(errors, false, UpdateSongUi);
 		}
 
-		private async UniTask ScanSongFolder(string path) {
+		private async UniTask ScanSongFolder(string path, bool fast) {
 			SetLoadingText("Loading songs from folder...");
-			await SongContainer.ScanSingleFolder(path, scanner => {
-				subPhrase.text = $"Folders Scanned: {scanner.TotalFoldersScanned}" +
-					$"\nSongs Scanned: {scanner.TotalSongsScanned}" +
-					$"\nErrors: {scanner.TotalErrorsEncountered}";
-			});
+			await SongContainer.ScanSingleFolder(path, fast, UpdateSongUi);
 		}
 
 		private void SetLoadingText(string phrase, string sub = null) {
 			loadingPhrase.text = phrase;
 			subPhrase.text = sub;
+		}
+
+		private void UpdateSongUi(SongScanner scanner) {
+			string subText = $"Folders Scanned: {scanner.TotalFoldersScanned}" +
+			                 $"\nSongs Scanned: {scanner.TotalSongsScanned}" +
+			                 $"\nErrors: {scanner.TotalErrorsEncountered}";
+			
+			SetLoadingText("Loading songs...", subText);
 		}
 	}
 }

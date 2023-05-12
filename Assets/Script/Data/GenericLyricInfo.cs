@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 
 namespace YARG.Data {
-	public class GenericLyricInfo {
-		public float time;
+	public class GenericLyricInfo : AbstractInfo {
 		public List<(float time, string word)> lyric;
 
-		public GenericLyricInfo(float time, List<(float, string)> lyric) {
+		public GenericLyricInfo(float time, float length, List<(float, string)> lyric) {
 			this.time = time;
+			this.length = length;
 			this.lyric = lyric;
 		}
 	}

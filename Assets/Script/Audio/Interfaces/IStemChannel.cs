@@ -10,6 +10,9 @@ namespace YARG {
 		public double Volume { get; }
 
 		public int Load(bool isSpeedUp, float speed);
+
+		public void FadeIn();
+		public void FadeOut();
 		
 		public void SetVolume(double newVolume);
 		

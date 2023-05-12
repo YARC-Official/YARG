@@ -10,6 +10,9 @@ namespace YARG.Song {
 
 		public static ScanResult ParseSongIni(string iniFile, IniSongEntry entry) {
 			var file = new IniFile(iniFile);
+			
+			// Had some reports that ini parsing might throw an exception, leaving this in for now
+			// in as I don't know the cause just yet and I want to investigate it further.
 			file.Parse();
 
 			string sectionName = file.ContainsSection("song") ? "song" : "Song";

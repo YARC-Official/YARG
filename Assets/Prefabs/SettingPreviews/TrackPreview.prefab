@@ -66,6 +66,26 @@ PrefabInstance:
       objectReference: {fileID: 8400000, guid: 41158465706efe84fba08cd889a3d168, type: 2}
     - target: {fileID: 312341648733875883, guid: 2a3c8615b3f54e64db089dedc04d5445,
         type: 3}
+      propertyPath: m_BackGroundColor.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 312341648733875883, guid: 2a3c8615b3f54e64db089dedc04d5445,
+        type: 3}
+      propertyPath: m_BackGroundColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 312341648733875883, guid: 2a3c8615b3f54e64db089dedc04d5445,
+        type: 3}
+      propertyPath: m_BackGroundColor.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 312341648733875883, guid: 2a3c8615b3f54e64db089dedc04d5445,
+        type: 3}
+      propertyPath: m_BackGroundColor.r
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 312341648733875883, guid: 2a3c8615b3f54e64db089dedc04d5445,
+        type: 3}
       propertyPath: m_CullingMask.m_Bits
       value: 256
       objectReference: {fileID: 0}
@@ -529,6 +549,11 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 8
       objectReference: {fileID: 0}
+    - target: {fileID: 6237780224200235138, guid: 2a3c8615b3f54e64db089dedc04d5445,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6353894224793641612, guid: 2a3c8615b3f54e64db089dedc04d5445,
         type: 3}
       propertyPath: m_Layer
@@ -732,4 +757,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77a75800716a98b4ea7c13ace6a8681e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  previewTexture: {fileID: 8400000, guid: 32b25ebb7bf8e494e834f6e13b668e21, type: 2}
