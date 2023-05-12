@@ -6,8 +6,10 @@ using MoonscraperChartEditor.Song;
 using MoonscraperChartEditor.Song.IO;
 using TrombLoader.Helpers;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
+using DG.Tweening;
 using YARG.Chart;
 using YARG.Data;
 using YARG.Serialization.Parser;
@@ -27,8 +29,6 @@ namespace YARG.PlayMode {
 		public static float speed = 1f;
 
 		public const float SONG_START_OFFSET = -2f;
-
-		public static SongEntry song = null;
 
 		public delegate void BeatAction();
 		public static event BeatAction BeatEvent;
@@ -70,6 +70,8 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private GameObject playResultScreen;
 		[SerializeField]
+		private RawImage playCover;
+		[SerializeField]
 		private GameObject scoreDisplay;
 
 		private int beatIndex = 0;
@@ -82,10 +84,15 @@ namespace YARG.PlayMode {
 
 		private List<AbstractTrack> _tracks;
 
+		private bool endReached = false;
+
 		private bool _paused = false;
 		public bool Paused {
 			get => _paused;
 			set {
+				// disable pausing once we reach end of song
+				if (endReached) return;
+
 				_paused = value;
 
 				GameUI.Instance.pauseMenu.SetActive(value);
@@ -112,6 +119,8 @@ namespace YARG.PlayMode {
 			}
 		}
 
+		private SongEntry Song => GameManager.Instance.SelectedSong;
+
 		private bool playingRhythm = false;
 
 		private void Awake() {
@@ -133,10 +142,10 @@ namespace YARG.PlayMode {
 			bool isSpeedUp = Math.Abs(speed - 1) > float.Epsilon;
 
 			// Load MOGG if CON, otherwise load stems
-			if (song is ExtractedConSongEntry rawConSongEntry) {
+			if (Song is ExtractedConSongEntry rawConSongEntry) {
 				GameManager.AudioManager.LoadMogg(rawConSongEntry, isSpeedUp);
 			} else {
-				var stems = AudioHelpers.GetSupportedStems(song.Location);
+				var stems = AudioHelpers.GetSupportedStems(Song.Location);
 
 				GameManager.AudioManager.LoadSong(stems, isSpeedUp);
 			}
@@ -199,13 +208,13 @@ namespace YARG.PlayMode {
 				}
 			}
 
-			OnSongStart?.Invoke(song);
+			OnSongStart?.Invoke(Song);
 		}
 
 		private void LoadBackground() {
 			// Try a yarground first
 
-			string backgroundPath = Path.Combine(song.Location, "bg.yarground");
+			string backgroundPath = Path.Combine(Song.Location, "bg.yarground");
 			if (File.Exists(backgroundPath)) {
 				var bundle = AssetBundle.LoadFromFile(backgroundPath);
 
@@ -228,7 +237,7 @@ namespace YARG.PlayMode {
 			};
 
 			foreach (var file in videoPaths) {
-				var path = Path.Combine(song.Location, file);
+				var path = Path.Combine(Song.Location, file);
 
 				if (File.Exists(path)) {
 					GameUI.Instance.videoPlayer.url = path;
@@ -247,7 +256,7 @@ namespace YARG.PlayMode {
 			};
 
 			foreach (var file in imagePaths) {
-				var path = Path.Combine(song.Location, file);
+				var path = Path.Combine(Song.Location, file);
 
 				if (File.Exists(path)) {
 					var png = ImageHelper.LoadTextureFromFile(path);
@@ -261,7 +270,7 @@ namespace YARG.PlayMode {
 		private void LoadChart() {
 			// Add main file
 			var files = new List<string> {
-				Path.Combine(song.Location, song.NotesFile)
+				Path.Combine(Song.Location, Song.NotesFile)
 			};
 
 			// Look for upgrades and add
@@ -275,18 +284,18 @@ namespace YARG.PlayMode {
 			// Parse
 
 			MoonSong moonSong = null;
-			if (song.NotesFile.EndsWith(".chart")) {
+			if (Song.NotesFile.EndsWith(".chart")) {
 				Debug.Log("Reading .chart file");
 				moonSong = ChartReader.ReadChart(files[0]);
 			}
 
 			chart = new YargChart(moonSong);
-			if (song.NotesFile.EndsWith(".mid")) {
+			if (Song.NotesFile.EndsWith(".mid")) {
 				// Parse
-				var parser = new MidiParser(song, files.ToArray());
+				var parser = new MidiParser(Song, files.ToArray());
 				chart.InitializeArrays();
 				parser.Parse(chart);
-			} else if (song.NotesFile.EndsWith(".chart")) {
+			} else if (Song.NotesFile.EndsWith(".chart")) {
 				var handler = new BeatHandler(moonSong);
 				handler.GenerateBeats();
 				chart.beats = handler.Beats;
@@ -434,9 +443,9 @@ namespace YARG.PlayMode {
 			}
 
 			// End song
-			if (realSongTime >= SongLength) {
-				// MainMenu.isPostSong = true;
-				Exit();
+			if (!endReached && realSongTime >= SongLength) {
+				endReached = true;
+				StartCoroutine(EndSong(true));
 			}
 		}
 
@@ -492,37 +501,44 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		public void Exit() {
+		public IEnumerator EndSong(bool showResultScreen) {
 			// Dispose of all audio
 			GameManager.AudioManager.UnloadSong();
 
 			// Call events
-			OnSongEnd?.Invoke(song);
+			OnSongEnd?.Invoke(Song);
 
 			// Unpause just in case
 			Time.timeScale = 1f;
 
 			backgroundRenderTexture.ClearTexture();
+
+			OnSongEnd?.Invoke(Song);
 			
-			// save scores and destroy tracks
-			foreach (var track in _tracks) {
-				track.SetPlayerScore();
-				Destroy(track.gameObject);
-			}
-			_tracks.Clear();
-			
-			// save MicPlayer score and destroy it
-			if (MicPlayer.Instance != null) {
-				MicPlayer.Instance.SetPlayerScore();
-				Destroy(MicPlayer.Instance.gameObject);
+			// run animation + save if we've reached end of song
+			if (showResultScreen) {
+				yield return playCover
+					.DOFade(1f, 1f)
+					.WaitForCompletion();
+
+				// save scores and destroy tracks
+				foreach (var track in _tracks) {
+					track.SetPlayerScore();
+					Destroy(track.gameObject);
+				}
+				_tracks.Clear();
+				
+				// save MicPlayer score and destroy it
+				if (MicPlayer.Instance != null) {
+					MicPlayer.Instance.SetPlayerScore();
+					Destroy(MicPlayer.Instance.gameObject);
+				}
+
+				// show play result screen; this is our main focus now
+				playResultScreen.SetActive(true);
 			}
 			
 			scoreDisplay.SetActive(false);
-
-			OnSongEnd?.Invoke(song);
-			
-			// show play result screen; this is our main focus now
-			playResultScreen.SetActive(true);
 		}
 
 		public void LowerAudio(string name) {
@@ -541,6 +557,12 @@ namespace YARG.PlayMode {
 				stemsReverbed--;
 				audioReverb.Remove(name);
 			}
+		}
+
+		public void Exit(bool toSongSelect = true) {
+			StartCoroutine(EndSong(false));
+			MainMenu.showSongSelect = toSongSelect;
+			GameManager.Instance.LoadScene(SceneIndex.MENU);
 		}
 	}
 }

@@ -47,7 +47,7 @@ namespace YARG.UI.PlayResultScreen {
 		[SerializeField]
 		private RectTransform marginContainerRT;
 		[SerializeField]
-		private CanvasGroup helpBarCG;
+		private RectTransform helpBarRT;
 
 		[Space]
 		[SerializeField]
@@ -61,12 +61,17 @@ namespace YARG.UI.PlayResultScreen {
 
 		void OnEnable() {
 			// Populate header information
-			songTitle.SetText(Play.song?.Name);
-			songArtist.SetText(Play.song?.Artist);
+			string name;
+			if (Play.speed == 1f) {
+				name = GameManager.Instance?.SelectedSong.Name;
+			} else {
+				name = $"{GameManager.Instance.SelectedSong.Name} <size=50%>({Play.speed * 100}% speed)";
+			}
+			songTitle.SetText(name);
+			songArtist.SetText(GameManager.Instance?.SelectedSong?.Artist);
 			score.SetText(ScoreKeeper.TotalScore.ToString("n0"));
 
 			int stars = (int)StarScoreKeeper.BandStars;
-			Debug.Log($"BandStars: {stars}");
 			starDisplay.SetStars(stars, stars <= 5 ? StarType.Standard : StarType.Gold);
 
 			// change graphics depending on clear/fail
@@ -81,61 +86,6 @@ namespace YARG.UI.PlayResultScreen {
 			StartCoroutine(EnableAnimation());
 		}
 
-		IEnumerator EnableAnimation() {
-			/* Initial States */
-
-			// background border
-			songInfoCG.alpha = 0f;
-
-			// background border
-			var bgBorderTgt = backgroundBorderPass.color.a;
-			backgroundBorderPass.color = new Color(1f, 1f, 1f, 0f);
-
-			// star score
-			starScoreCG.alpha = 0f;
-
-			// margin container (player cards)
-			var ccYMinTgt = marginContainerRT.anchorMin.y;
-			var ccYMaxTgt = marginContainerRT.anchorMax.y;
-			marginContainerRT.anchorMin += new Vector2(0, 1);
-			marginContainerRT.anchorMax += new Vector2(0, 1);
-
-			// help bar
-			helpBarCG.alpha = 0;
-
-			/* Delay */
-			yield return new WaitForSeconds(1f);
-
-			/* Run Animations */
-			// fade in SongInfo
-			songInfoCG.DOFade(1, .5f);
-
-			// fade in background
-			yield return backgroundBorderPass
-				.DOFade(bgBorderTgt, 1.5f)
-				.WaitForCompletion();
-
-			// fade in score stars
-			yield return starScoreCG
-				.DOFade(1f, 0.5f)
-				.WaitForCompletion();
-
-			// slide in player cards
-			marginContainerRT
-				.DOAnchorMin(new Vector2(marginContainerRT.anchorMin.x, ccYMinTgt), .75f)
-				.SetEase(Ease.OutBack, overshoot: 1.2f);
-			yield return marginContainerRT
-				.DOAnchorMax(new Vector2(marginContainerRT.anchorMax.x, ccYMaxTgt), .75f)
-				.SetEase(Ease.OutBack, overshoot: 1.2f)
-				.WaitForCompletion();
-
-
-			OnEnableAnimationFinish();
-			
-			// fade in helpbar
-			helpBarCG.DOFade(1f, .5f);
-		}
-
 		/// <summary>
 		/// Populate relevant score data; save scores.
 		/// </summary>
@@ -147,7 +97,7 @@ namespace YARG.UI.PlayResultScreen {
 				highestPercent = new(),
 				highestScore = new()
 			};
-			var oldScore = ScoreManager.GetScore(Play.song);
+			var oldScore = ScoreManager.GetScore(GameManager.Instance?.SelectedSong);
 
 			highScores = new();
 			disqualified = new();
@@ -196,7 +146,7 @@ namespace YARG.UI.PlayResultScreen {
 				}
 			}
 
-			ScoreManager.PushScore(Play.song, songScore);
+			ScoreManager.PushScore(GameManager.Instance?.SelectedSong, songScore);
 		}
 
 		/// <summary>
@@ -227,6 +177,65 @@ namespace YARG.UI.PlayResultScreen {
 				pc.Setup(player, clr, highScores.Contains(player));
 				playerCards.Add(pc);
 			}
+		}
+
+		IEnumerator EnableAnimation() {
+			/* Initial States */
+
+			// background border
+			songInfoCG.alpha = 0f;
+
+			// background border
+			var bgBorderTgt = backgroundBorderPass.color.a;
+			backgroundBorderPass.color = new Color(1f, 1f, 1f, 0f);
+
+			// star score
+			starScoreCG.alpha = 0f;
+
+			// margin container (player cards)
+			var ccYMinTgt = marginContainerRT.anchorMin.y;
+			var ccYMaxTgt = marginContainerRT.anchorMax.y;
+			marginContainerRT.anchorMin += new Vector2(0, 1);
+			marginContainerRT.anchorMax += new Vector2(0, 1);
+
+			// help bar
+			var hbYMinTgt = helpBarRT.anchorMin.y;
+			var hbYMaxTgt = helpBarRT.anchorMax.y;
+			helpBarRT.anchorMin -= new Vector2(0, helpBarRT.anchorMax.y);
+			helpBarRT.anchorMax -= new Vector2(0, helpBarRT.anchorMax.y);
+
+			/* Run Animations */
+			// fade in SongInfo
+			songInfoCG.DOFade(1, .5f);
+
+			// fade in background
+			yield return backgroundBorderPass
+				.DOFade(bgBorderTgt, 1.5f)
+				.WaitForCompletion();
+
+			// fade in score stars
+			yield return starScoreCG
+				.DOFade(1f, 0.5f);
+
+			// slide in player cards
+			marginContainerRT
+				.DOAnchorMin(new Vector2(marginContainerRT.anchorMin.x, ccYMinTgt), .75f)
+				.SetEase(Ease.OutBack, overshoot: 1.2f);
+			yield return marginContainerRT
+				.DOAnchorMax(new Vector2(marginContainerRT.anchorMax.x, ccYMaxTgt), .75f)
+				.SetEase(Ease.OutBack, overshoot: 1.2f)
+				.WaitForCompletion();
+
+
+			OnEnableAnimationFinish();
+			
+			// slide in helpbar
+			helpBarRT
+				.DOAnchorMin(new Vector2(helpBarRT.anchorMin.x, hbYMinTgt), .75f)
+				.SetEase(Ease.OutQuad);
+			helpBarRT
+				.DOAnchorMax(new Vector2(helpBarRT.anchorMax.x, hbYMaxTgt), .75f)
+				.SetEase(Ease.OutQuad);
 		}
 
 		private void OnEnableAnimationFinish() {
@@ -260,10 +269,10 @@ namespace YARG.UI.PlayResultScreen {
 		}
 
 		/// <summary>
-		/// Go to main menu.
+		/// Go to song select.
 		/// </summary>
 		public void PlayExit() {
-			GameManager.Instance.LoadScene(SceneIndex.MENU);
+			Play.Instance.Exit();
 		}
 
 		private void OnDisable() {
