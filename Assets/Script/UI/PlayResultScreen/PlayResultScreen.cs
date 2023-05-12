@@ -45,16 +45,13 @@ namespace YARG.UI.PlayResultScreen {
 		[SerializeField]
 		private StarDisplay starDisplay;
 
+		private List<PlayerCard> playerCards = new();
+
 		public HashSet<PlayerManager.Player> highScores;
 		public HashSet<PlayerManager.Player> disqualified;
 		public HashSet<PlayerManager.Player> bot;
 
 		void OnEnable() {
-			// Subscribe to player inputs
-			foreach (var p in PlayerManager.players) {
-				p.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
-			}
-
 			// Populate header information
 			songTitle.SetText(Play.song?.Name);
 			songArtist.SetText(Play.song?.Artist);
@@ -72,6 +69,11 @@ namespace YARG.UI.PlayResultScreen {
 
 			ProcessScores();
 			CreatePlayerCards();
+
+			// Start the animator
+			var anim = GetComponent<Animator>();
+			anim.enabled = true;
+			anim.Play("OnEnable", 0, 0);
 		}
 
 		/// <summary>
@@ -99,6 +101,7 @@ namespace YARG.UI.PlayResultScreen {
 				// Bots
 				if (player.inputStrategy.botMode) {
 					bot.Add(player);
+					continue;
 				}
 
 				// DQ non-100% speeds
@@ -141,15 +144,16 @@ namespace YARG.UI.PlayResultScreen {
 		/// </summary>
 		private void CreatePlayerCards() {
 			// clear existing cards (may be left in for dev preview)
-			foreach (Transform g in playerCardsContainer.transform) {
-				Destroy(g.gameObject);
+			foreach (Transform pc in playerCardsContainer.transform) {
+				Destroy(pc.gameObject);
 			}
+			playerCards.Clear();
 
 			foreach (var player in PlayerManager.players) {
 				// skip players sitting out
 				if (player.chosenInstrument == null) continue;
 
-				var pc = Instantiate(playerCardPrefab, playerCardsContainer.transform);
+				var pc = Instantiate(playerCardPrefab, playerCardsContainer.transform).GetComponent<PlayerCard>();
 				
 				ClearStatus clr;
 				if (bot.Contains(player)) {
@@ -160,7 +164,18 @@ namespace YARG.UI.PlayResultScreen {
 					clr = ClearStatus.Cleared;
 				}
 
-				pc.GetComponent<PlayerCard>().Setup(player, clr, highScores.Contains(player));
+				pc.Setup(player, clr, highScores.Contains(player));
+				playerCards.Add(pc);
+			}
+		}
+
+		private void OnEnableAnimationFinish() {
+			// Subscribe to player inputs
+			foreach (var p in PlayerManager.players) {
+				p.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
+			}
+			foreach (var pc in playerCards) {
+				pc.BeginAnimation();
 			}
 		}
 
@@ -169,23 +184,35 @@ namespace YARG.UI.PlayResultScreen {
 
 			switch (navigationType) {
 				case NavigationType.PRIMARY:
-					ExitPlay();
+					PlayExit();
+					break;
+				case NavigationType.TERTIARY:
+					PlayRestart();
 					break;
 			}
+		}
+
+		// TODO: replace with common restart call (ie. what the pause menu calls)
+		public void PlayRestart() {
+			GameManager.AudioManager.UnloadSong();
+			GameManager.Instance.LoadScene(SceneIndex.PLAY);
+			Play.Instance.Paused = false;
 		}
 
 		/// <summary>
 		/// Go to main menu.
 		/// </summary>
-		public void ExitPlay() {
+		public void PlayExit() {
 			GameManager.Instance.LoadScene(SceneIndex.MENU);
 		}
 
 		private void OnDisable() {
-			// unsubscribe inputs
-			foreach (var p in PlayerManager.players) {
-				p.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
-			}
+			// Unsubscribe player inputs
+			try {
+				foreach (var p in PlayerManager.players) {
+					p.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
+				}
+			} catch {}
 		}
     }
 }
