@@ -33,6 +33,8 @@ namespace YARG.Song {
 
 				_songsByHash.Add(songEntry.Checksum, songEntry);
 			}
+
+			TrySelectedSongReset();
 		}
 
 		public static async UniTask<List<string>> ScanAllFolders(bool fast, Action<SongScanner> updateUi = null) {
@@ -74,5 +76,14 @@ namespace YARG.Song {
 			AddSongs(songs.SongEntries);
 		}
 
+		private static void TrySelectedSongReset() {
+			if (GameManager.Instance.SelectedSong == null) {
+				return;
+			}
+
+			if (!_songsByHash.ContainsKey(GameManager.Instance.SelectedSong.Checksum)) {
+				GameManager.Instance.SelectedSong = null;
+			}
+		}
 	}
 }

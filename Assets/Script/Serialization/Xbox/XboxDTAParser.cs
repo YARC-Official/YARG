@@ -10,8 +10,10 @@ using YARG.Song;
 
 namespace YARG.Serialization {
     public static class XboxDTAParser {
-        public static ConSongEntry ParseFromDta(DataArray dta){
-			var cur = new ConSongEntry();
+        public static ConSongEntry ParseFromDta(DataArray dta, ConSongEntry existing_song = null){
+			ConSongEntry cur;
+			if(existing_song != null) cur = existing_song;
+			else cur = new ConSongEntry();
 			cur.ShortName = dta.Name;
 			// Debug.Log($"this shortname: {dta.Name}");
 			for (int i = 1; i < dta.Count; i++) {
@@ -126,6 +128,28 @@ namespace YARG.Serialization {
 						DataArray bassTunes = (DataArray) dtaArray[1];
 						cur.RealBassTuning = new int[4];
 						for (int b = 0; b < 4; b++) cur.RealBassTuning[b] = ((DataAtom) bassTunes[b]).Int;
+						break;
+					case "alternate_path":
+						if (dtaArray[1] is DataSymbol symAltPath)
+							cur.AlternatePath = (symAltPath.Name.ToUpper() == "TRUE");
+						else if (dtaArray[1] is DataAtom atmAltPath)
+							cur.AlternatePath = (atmAltPath.Int != 0);
+						break;
+					case "extra_authoring":
+						for(int ea = 1; ea < dtaArray.Count; ea++){
+							if(dtaArray[ea] is DataSymbol symEA){
+								if(symEA.Name == "disc_update"){
+									cur.DiscUpdate = true;
+									break;
+								}
+							}
+							else if(dtaArray[ea] is DataAtom atmEA){
+								if(atmEA.String == "disc_update"){
+									cur.DiscUpdate = true;
+									break;
+								}
+							}
+						}
 						break;
 				}
 			}

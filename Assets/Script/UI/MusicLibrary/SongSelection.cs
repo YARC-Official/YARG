@@ -48,6 +48,11 @@ namespace YARG.UI.MusicLibrary {
 			get => _selectedIndex;
 			private set {
 				_selectedIndex = value;
+
+				if (_songs.Count <= 0) {
+					return;
+				}
+
 				// Wrap
 				if (_selectedIndex < 0) {
 					_selectedIndex = _songs.Count - _selectedIndex - 2;

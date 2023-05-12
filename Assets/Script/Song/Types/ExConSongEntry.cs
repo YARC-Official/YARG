@@ -25,7 +25,12 @@ namespace YARG.Song {
 		public int[] RealGuitarTuning { get; set; }
 		public int[] RealBassTuning { get; set; }
 
+		// _update.mid info, if it exists
+		public bool DiscUpdate { get; set; } = false;
+		public string UpdateMidiPath { get; set; } = string.Empty;
+
 		// .mogg info
+		public bool UsingUpdateMogg { get; set; } = false;
 		public string MoggPath { get; set; }
 		public int MoggHeader { get; set; }
 		public int MoggAddressAudioOffset { get; set; }
@@ -35,6 +40,7 @@ namespace YARG.Song {
 		public float[,] MatrixRatios { get; set; }
 
 		// image info
+		public bool AlternatePath { get; set; } = false;
 		public string ImagePath { get; set; } = string.Empty;
 
 	}

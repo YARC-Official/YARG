@@ -56,6 +56,10 @@ namespace YARG.UI.MusicLibrary {
 				_cancellationToken = null;
 			}
 
+			if (SongSelection.Instance.Songs.Count <= 0) {
+				return;
+			}
+
 			var viewType = SongSelection.Instance.Songs[SongSelection.Instance.SelectedIndex];
 			if (viewType is not SongViewType songViewType) {
 				return;
@@ -199,8 +203,12 @@ namespace YARG.UI.MusicLibrary {
 			Texture2D texture = null;
 
 			try {
-				var bytes = await XboxCONInnerFileRetriever.RetrieveFile(conSongEntry.Location,
-				conSongEntry.ImageFileSize, conSongEntry.ImageFileMemBlockOffsets, _cancellationToken.Token);
+				byte[] bytes;
+				if(conSongEntry.AlternatePath)
+					bytes = File.ReadAllBytes(conSongEntry.ImagePath);
+				else bytes = await XboxCONInnerFileRetriever.RetrieveFile(conSongEntry.Location,
+					conSongEntry.ImageFileSize, conSongEntry.ImageFileMemBlockOffsets, _cancellationToken.Token);
+				
 				texture = await XboxImageTextureGenerator.GetTexture(bytes, _cancellationToken.Token);
 
 				_albumCover.texture = texture;

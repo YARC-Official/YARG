@@ -24,6 +24,7 @@ namespace YARG.Serialization.Parser {
 		public MidiFile midi;
 
 		public MidiParser(SongEntry songEntry, string[] files) : base(songEntry, files) {
+			// get base midi
 			if (songEntry.SongType == SongType.RbCon) {
 				var conSong = (ConSongEntry) songEntry;
 				using var stream = new MemoryStream(XboxCONInnerFileRetriever.RetrieveFile(
@@ -32,27 +33,81 @@ namespace YARG.Serialization.Parser {
 				midi = MidiFile.Read(stream, new ReadingSettings() { TextEncoding = System.Text.Encoding.UTF8 });
 			} else midi = MidiFile.Read(files[0], new ReadingSettings() { TextEncoding = System.Text.Encoding.UTF8 });
 
-			// TODO: fix this to account for upgrade CONs/ExCONs
-			// Merge midi files
-			for (int i = 1; i < files.Length; i++) {
-				var upgrade = MidiFile.Read(files[i], new ReadingSettings() { TextEncoding = System.Text.Encoding.UTF8 });
+			// if this is a RB song, and it contains an update, merge the base and update midi
+			if(songEntry is ExtractedConSongEntry oof){
+				if(oof.DiscUpdate){
+					List<string> BaseTracksToAdd = new List<string>();
+					List<string> UpdateTracksToAdd = new List<string>();
+					MidiFile midi_update = MidiFile.Read(oof.UpdateMidiPath, new ReadingSettings() { TextEncoding = System.Text.Encoding.UTF8 });
 
-				foreach (var trackChunk in upgrade.GetTrackChunks()) {
-					foreach (var trackEvent in trackChunk.Events) {
-						if (trackEvent is not SequenceTrackNameEvent trackName) {
-							continue;
-						}
-
-						// Only merge specific tracks
-						switch (trackName.Text) {
-							case "PART REAL_GUITAR":
-							case "PART REAL_BASS":
-								midi.Chunks.Add(trackChunk);
-								break;
+					// get base track names
+					foreach(var trackChunk in midi.GetTrackChunks()){
+						foreach(var trackEvent in trackChunk.Events){
+							if(trackEvent is not SequenceTrackNameEvent trackName) continue;
+							BaseTracksToAdd.Add(trackName.Text);
 						}
 					}
+
+					// get update track names
+					if(oof.DiscUpdate){
+						foreach(var trackChunk in midi_update.GetTrackChunks()){
+							foreach(var trackEvent in trackChunk.Events){
+								if(trackEvent is not SequenceTrackNameEvent trackName) continue;
+								UpdateTracksToAdd.Add(trackName.Text);
+								// if a track is in both base and update, use the update track
+								if(BaseTracksToAdd.Find(s => s == trackName.Text) != null) BaseTracksToAdd.Remove(trackName.Text);
+							}
+						}
+					}
+
+					UpdateTracksToAdd.RemoveAt(0); // we want to stick with the base midi's tempomap
+
+					// create new midi to use and set the tempo map to the base midi's
+					MidiFile midi_merged = new MidiFile();
+					midi_merged.ReplaceTempoMap(midi.GetTempoMap());
+
+					// first, add approved base tracks to midi_merged
+					foreach(var trackChunk in midi.GetTrackChunks()){
+						foreach(var trackEvent in trackChunk.Events){
+							if(trackEvent is not SequenceTrackNameEvent trackName) continue;
+							if(BaseTracksToAdd.Find(s => s == trackName.Text) != null) midi_merged.Chunks.Add(trackChunk);
+						}
+					}
+					// then, the update tracks
+					foreach(var trackChunk in midi_update.GetTrackChunks()){
+						foreach(var trackEvent in trackChunk.Events){
+							if(trackEvent is not SequenceTrackNameEvent trackName) continue;
+							if(UpdateTracksToAdd.Find(s => s == trackName.Text) != null) midi_merged.Chunks.Add(trackChunk);
+						}
+					}
+
+					// finally, assign this new midi as the midi to use in-game
+					midi = midi_merged;
 				}
+
 			}
+
+			// // TODO: fix this to account for upgrade CONs/ExCONs
+			// // Merge midi files
+			// for (int i = 1; i < files.Length; i++) {
+			// 	var upgrade = MidiFile.Read(files[i], new ReadingSettings() { TextEncoding = System.Text.Encoding.UTF8 });
+
+			// 	foreach (var trackChunk in upgrade.GetTrackChunks()) {
+			// 		foreach (var trackEvent in trackChunk.Events) {
+			// 			if (trackEvent is not SequenceTrackNameEvent trackName) {
+			// 				continue;
+			// 			}
+
+			// 			// Only merge specific tracks
+			// 			switch (trackName.Text) {
+			// 				case "PART REAL_GUITAR":
+			// 				case "PART REAL_BASS":
+			// 					midi.Chunks.Add(trackChunk);
+			// 					break;
+			// 			}
+			// 		}
+			// 	}
+			// }
 		}
 
 		public override void Parse(YargChart chart) {
