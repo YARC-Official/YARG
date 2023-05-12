@@ -20,12 +20,10 @@ namespace YARG.UI.PlayResultScreen {
 
 		[SerializeField]
 		private GameObject playerCardPrefab;
-		[SerializeField]
-		private GameObject playerCardsContainer;
 
 		[Space]
-		// [SerializeField]
-		// private RawImage headerBorder;
+		[SerializeField]
+		private bool hasFailed;
 		[SerializeField]
 		private Image backgroundBorderPass;
 		[SerializeField]
@@ -33,12 +31,9 @@ namespace YARG.UI.PlayResultScreen {
 		[SerializeField]
 		private RawImage headerBackgroundPassed;
 
-		[SerializeField]
-		private bool hasFailed;
-
 		[Space]
 		[SerializeField]
-		private RectTransform marginContainerRT;
+		private CanvasGroup songInfoCG;
 		[SerializeField]
 		private TextMeshProUGUI songTitle;
         [SerializeField]
@@ -50,7 +45,13 @@ namespace YARG.UI.PlayResultScreen {
 		[SerializeField]
 		private TextMeshProUGUI score;
 		[SerializeField]
+		private RectTransform marginContainerRT;
+		[SerializeField]
 		private CanvasGroup helpBarCG;
+
+		[Space]
+		[SerializeField]
+		private GameObject playerCardsContainer;
 
 		private List<PlayerCard> playerCards = new();
 
@@ -82,6 +83,14 @@ namespace YARG.UI.PlayResultScreen {
 
 		IEnumerator EnableAnimation() {
 			/* Initial States */
+
+			// background border
+			songInfoCG.alpha = 0f;
+
+			// background border
+			var bgBorderTgt = backgroundBorderPass.color.a;
+			backgroundBorderPass.color = new Color(1f, 1f, 1f, 0f);
+
 			// star score
 			starScoreCG.alpha = 0f;
 
@@ -94,11 +103,16 @@ namespace YARG.UI.PlayResultScreen {
 			// help bar
 			helpBarCG.alpha = 0;
 
+			/* Delay */
+			yield return new WaitForSeconds(1f);
+
 			/* Run Animations */
+			// fade in SongInfo
+			songInfoCG.DOFade(1, .5f);
+
 			// fade in background
 			yield return backgroundBorderPass
-				.DOFade(0, 1.5f)
-				.From()
+				.DOFade(bgBorderTgt, 1.5f)
 				.WaitForCompletion();
 
 			// fade in score stars
