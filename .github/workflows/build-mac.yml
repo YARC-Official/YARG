@@ -13,7 +13,7 @@ concurrency:
 jobs:
   macBuilder:
     name: ${{ matrix.targetPlatform }} on ${{ matrix.unityVersion }}
-    runs-on: macos-latest-xl # fuck it we ball
+    runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
