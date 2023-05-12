@@ -3710,6 +3710,7 @@ MonoBehaviour:
   pauseMenu: {fileID: 8545365}
   background: {fileID: 240896119}
   videoPlayer: {fileID: 240896121}
+  trackMaterial: {fileID: 2100000, guid: d7a0521f96db3534baa5ef2d0a1e2277, type: 2}
 --- !u!1 &1489966284
 GameObject:
   m_ObjectHideFlags: 0

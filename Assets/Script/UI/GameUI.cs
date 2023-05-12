@@ -26,7 +26,7 @@ namespace YARG.UI {
 		public GameObject pauseMenu;
 		public RawImage background;
 		public VideoPlayer videoPlayer;
-
+		public Material trackMaterial;
 		public static GameUI Instance {
 			get;
 			private set;
@@ -57,7 +57,7 @@ namespace YARG.UI {
 
 			var rawImage = trackImage.AddComponent<RawImage>();
 			rawImage.texture = rt;
-
+			rawImage.material = trackMaterial;
 			UpdateRawImageSizing();
 		}
 
