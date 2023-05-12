@@ -60,6 +60,19 @@ jobs:
         run: python InstallLibraries/install.py
         
       ###########################
+      #    Restore  Packages    #
+      ###########################
+
+      - name: "[Restore Packages] Setup dotnet"
+        run: brew install dotnet@7
+
+      - name: "[Restore Packages] Install NuGetForUnity.Cli"
+        run: dotnet tool install --global NuGetForUnity.Cli
+
+      - name: "[Restore Packages] Restoring"
+        run: dotnet nugetforunity restore
+
+      ###########################
       #          Build          #
       ###########################
       - name: "[Build] Run Builder"
