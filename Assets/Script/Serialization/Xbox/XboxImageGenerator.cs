@@ -20,10 +20,9 @@ namespace YARG.Serialization {
 			bool isDXT1 = ((BitsPerPixel == 0x04) && (Format == 0x08));
 			ms.Seek(32, SeekOrigin.Begin);
 			byte[] DXTBlocks = ms.ReadBytes((int) (ms.Length - 32));
-			Texture2D tex;
 
 			ct.ThrowIfCancellationRequested();
-			
+
 			// Swap bytes because xbox is weird like that
 			for (int i = 0; i < DXTBlocks.Length / 2; i++) {
 				(DXTBlocks[i * 2], DXTBlocks[i * 2 + 1]) = (DXTBlocks[i * 2 + 1], DXTBlocks[i * 2]);
@@ -32,8 +31,7 @@ namespace YARG.Serialization {
 			ct.ThrowIfCancellationRequested();
 
 			// apply DXT1 OR DXT5 formatted bytes to a Texture2D
-			if(isDXT1) tex = new Texture2D(Width, Height, GraphicsFormat.RGBA_DXT1_SRGB, TextureCreationFlags.None);
-			else tex = new Texture2D(Width, Height, GraphicsFormat.RGBA_DXT5_SRGB, TextureCreationFlags.None);
+			var tex = new Texture2D(Width, Height, (isDXT1) ? GraphicsFormat.RGBA_DXT1_SRGB : GraphicsFormat.RGBA_DXT5_SRGB, TextureCreationFlags.None);
 			tex.LoadRawTextureData(DXTBlocks);
 			tex.Apply();
 
