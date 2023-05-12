@@ -26,7 +26,6 @@ namespace YARG.Serialization {
 				if(dta_update != null){
 					if(dta_update.Array("tracks") != null || dta_update.Array("pans") != null || 
 						dta_update.Array("vols") != null || dta_update.Array("crowd_channels") != null)
-						Debug.Log($"{song.ShortName} has mogg values to update!");
 						dtas_to_parse.Add(dta_update);
 				}
 			}
