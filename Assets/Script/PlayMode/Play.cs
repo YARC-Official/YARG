@@ -28,8 +28,6 @@ namespace YARG.PlayMode {
 
 		public const float SONG_START_OFFSET = -2f;
 
-		public static SongEntry song = null;
-
 		public delegate void BeatAction();
 		public static event BeatAction BeatEvent;
 
@@ -106,6 +104,8 @@ namespace YARG.PlayMode {
 			}
 		}
 
+		private SongEntry Song => GameManager.Instance.SelectedSong;
+
 		private bool playingRhythm = false;
 
 		private void Awake() {
@@ -127,10 +127,10 @@ namespace YARG.PlayMode {
 			bool isSpeedUp = Math.Abs(speed - 1) > float.Epsilon;
 
 			// Load MOGG if CON, otherwise load stems
-			if (song is ExtractedConSongEntry rawConSongEntry) {
+			if (Song is ExtractedConSongEntry rawConSongEntry) {
 				GameManager.AudioManager.LoadMogg(rawConSongEntry, isSpeedUp);
 			} else {
-				var stems = AudioHelpers.GetSupportedStems(song.Location);
+				var stems = AudioHelpers.GetSupportedStems(Song.Location);
 
 				GameManager.AudioManager.LoadSong(stems, isSpeedUp);
 			}
@@ -193,13 +193,13 @@ namespace YARG.PlayMode {
 				}
 			}
 
-			OnSongStart?.Invoke(song);
+			OnSongStart?.Invoke(Song);
 		}
 
 		private void LoadBackground() {
 			// Try a yarground first
 
-			string backgroundPath = Path.Combine(song.Location, "bg.yarground");
+			string backgroundPath = Path.Combine(Song.Location, "bg.yarground");
 			if (File.Exists(backgroundPath)) {
 				var bundle = AssetBundle.LoadFromFile(backgroundPath);
 
@@ -222,7 +222,7 @@ namespace YARG.PlayMode {
 			};
 
 			foreach (var file in videoPaths) {
-				var path = Path.Combine(song.Location, file);
+				var path = Path.Combine(Song.Location, file);
 
 				if (File.Exists(path)) {
 					GameUI.Instance.videoPlayer.url = path;
@@ -241,7 +241,7 @@ namespace YARG.PlayMode {
 			};
 
 			foreach (var file in imagePaths) {
-				var path = Path.Combine(song.Location, file);
+				var path = Path.Combine(Song.Location, file);
 
 				if (File.Exists(path)) {
 					var png = ImageHelper.LoadTextureFromFile(path);
@@ -255,7 +255,7 @@ namespace YARG.PlayMode {
 		private void LoadChart() {
 			// Add main file
 			var files = new List<string> {
-				Path.Combine(song.Location, song.NotesFile)
+				Path.Combine(Song.Location, Song.NotesFile)
 			};
 
 			// Look for upgrades and add
@@ -269,18 +269,18 @@ namespace YARG.PlayMode {
 			// Parse
 
 			MoonSong moonSong = null;
-			if (song.NotesFile.EndsWith(".chart")) {
+			if (Song.NotesFile.EndsWith(".chart")) {
 				Debug.Log("Reading .chart file");
 				moonSong = ChartReader.ReadChart(files[0]);
 			}
 
 			chart = new YargChart(moonSong);
-			if (song.NotesFile.EndsWith(".mid")) {
+			if (Song.NotesFile.EndsWith(".mid")) {
 				// Parse
-				var parser = new MidiParser(song, files.ToArray());
+				var parser = new MidiParser(Song, files.ToArray());
 				chart.InitializeArrays();
 				parser.Parse(chart);
-			} else if (song.NotesFile.EndsWith(".chart")) {
+			} else if (Song.NotesFile.EndsWith(".chart")) {
 				var handler = new BeatHandler(moonSong);
 				handler.GenerateBeats();
 				chart.beats = handler.Beats;
@@ -491,7 +491,7 @@ namespace YARG.PlayMode {
 			GameManager.AudioManager.UnloadSong();
 
 			// Call events
-			OnSongEnd?.Invoke(song);
+			OnSongEnd?.Invoke(Song);
 
 			// Unpause just in case
 			Time.timeScale = 1f;
@@ -499,7 +499,7 @@ namespace YARG.PlayMode {
 			backgroundRenderTexture.ClearTexture();
 			_tracks.Clear();
 
-			OnSongEnd?.Invoke(song);
+			OnSongEnd?.Invoke(Song);
 			GameManager.Instance.LoadScene(SceneIndex.MENU);
 		}
 

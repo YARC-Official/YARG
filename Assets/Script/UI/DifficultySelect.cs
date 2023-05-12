@@ -205,7 +205,6 @@ namespace YARG.UI {
 				}
 
 				// Play song
-				Play.song = MainMenu.Instance.chosenSong;
 				GameManager.Instance.LoadScene(SceneIndex.PLAY);
 			} else {
 				UpdateInstrument();
@@ -224,7 +223,9 @@ namespace YARG.UI {
 
 			// Get available instruments
 			var availableInstruments = allInstruments
-				.Where(instrument => MainMenu.Instance.chosenSong.HasInstrument(instrument)).ToList();
+				.Where(instrument => GameManager.Instance.SelectedSong.HasInstrument(instrument)).ToList();
+
+			Debug.Log(GameManager.Instance.SelectedSong.AvailableParts);
 
 			// Force add pro drums and five lane
 			if (availableInstruments.Contains(Instrument.DRUMS)) {
@@ -242,25 +243,16 @@ namespace YARG.UI {
 			// Filter out to only allowed instruments
 			availableInstruments.RemoveAll(i => !player.inputStrategy.GetAllowedInstruments().Contains(i));
 
-			bool showSitOut = availableInstruments.Count <= 0 || PlayerManager.players.Count > 1;
-
-			optionCount = availableInstruments.Count + (showSitOut ? 1 : 0);
-			if (showSitOut) {
-				optionCount++;
-			}
+			optionCount = availableInstruments.Count + 1;
 
 			// Add to options
-			var ops = new string[optionCount];
+			var ops = new string[availableInstruments.Count + 1];
 			instruments = new string[availableInstruments.Count];
 			for (int i = 0; i < instruments.Length; i++) {
 				instruments[i] = availableInstruments[i].ToStringName();
 				ops[i] = availableInstruments[i].ToLocalizedName();
 			}
-
-			// Add sit out (only if there are more than 1 player)
-			if (showSitOut) {
-				ops[^1] = "Sit Out";
-			}
+			ops[^1] = "Sit Out";
 
 			// Set text and sprites
 			for (int i = 0; i < 6; i++) {
@@ -294,7 +286,7 @@ namespace YARG.UI {
 			// Get the available difficulties
 			var availableDifficulties = new List<Difficulty>();
 			for (int i = 0; i < (int) Difficulty.EXPERT_PLUS; i++) {
-				if (!MainMenu.Instance.chosenSong.HasPart(instrument, (Difficulty) i)) {
+				if (!GameManager.Instance.SelectedSong.HasPart(instrument, (Difficulty) i)) {
 					continue;
 				}
 				availableDifficulties.Add((Difficulty) i);
