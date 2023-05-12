@@ -60,8 +60,8 @@ namespace YARG.UI.PlayResultScreen {
 
 		void OnEnable() {
 			// Populate header information
-			songTitle.SetText(Play.song?.Name);
-			songArtist.SetText(Play.song?.Artist);
+			songTitle.SetText(GameManager.Instance?.SelectedSong.Name);
+			songArtist.SetText(GameManager.Instance?.SelectedSong?.Artist);
 			score.SetText(ScoreKeeper.TotalScore.ToString("n0"));
 
 			int stars = (int)StarScoreKeeper.BandStars;
@@ -133,7 +133,7 @@ namespace YARG.UI.PlayResultScreen {
 				highestPercent = new(),
 				highestScore = new()
 			};
-			var oldScore = ScoreManager.GetScore(Play.song);
+			var oldScore = ScoreManager.GetScore(GameManager.Instance?.SelectedSong);
 
 			highScores = new();
 			disqualified = new();
@@ -182,7 +182,7 @@ namespace YARG.UI.PlayResultScreen {
 				}
 			}
 
-			ScoreManager.PushScore(Play.song, songScore);
+			ScoreManager.PushScore(GameManager.Instance?.SelectedSong, songScore);
 		}
 
 		/// <summary>
@@ -246,10 +246,10 @@ namespace YARG.UI.PlayResultScreen {
 		}
 
 		/// <summary>
-		/// Go to main menu.
+		/// Go to song select.
 		/// </summary>
 		public void PlayExit() {
-			GameManager.Instance.LoadScene(SceneIndex.MENU);
+			Play.Instance.Exit();
 		}
 
 		private void OnDisable() {

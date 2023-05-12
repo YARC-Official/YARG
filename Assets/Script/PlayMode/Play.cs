@@ -436,7 +436,7 @@ namespace YARG.PlayMode {
 			// End song
 			if (realSongTime >= SongLength) {
 				// MainMenu.isPostSong = true;
-				Exit();
+				EndSong();
 			}
 		}
 
@@ -492,7 +492,7 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		public void Exit() {
+		public void EndSong() {
 			// Dispose of all audio
 			GameManager.AudioManager.UnloadSong();
 
@@ -519,7 +519,7 @@ namespace YARG.PlayMode {
 			
 			scoreDisplay.SetActive(false);
 
-			OnSongEnd?.Invoke(song);
+			OnSongEnd?.Invoke(Song);
 			
 			// show play result screen; this is our main focus now
 			playResultScreen.SetActive(true);
@@ -541,6 +541,12 @@ namespace YARG.PlayMode {
 				stemsReverbed--;
 				audioReverb.Remove(name);
 			}
+		}
+
+		public void Exit(bool toSongSelect = true) {
+			EndSong();
+			MainMenu.showSongSelect = toSongSelect;
+			GameManager.Instance.LoadScene(SceneIndex.MENU);
 		}
 	}
 }
