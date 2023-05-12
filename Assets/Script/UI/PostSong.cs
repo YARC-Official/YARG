@@ -19,9 +19,9 @@ namespace YARG.UI {
 
 		private void OnEnable() {
 			if (Play.speed == 1f) {
-				header.text = $"{Play.song.Name} - {Play.song.Artist}";
+				header.text = $"{GameManager.Instance.SelectedSong.Name} - {GameManager.Instance.SelectedSong.Artist}";
 			} else {
-				header.text = $"{Play.song.Name} ({Play.speed * 100}% speed) - {Play.song.Artist}";
+				header.text = $"{GameManager.Instance.SelectedSong.Name} ({Play.speed * 100}% speed) - {GameManager.Instance.SelectedSong.Artist}";
 			}
 
 			// Create a score to push
@@ -32,7 +32,7 @@ namespace YARG.UI {
 				highestPercent = new(),
 				highestScore = new()
 			};
-			var oldScore = ScoreManager.GetScore(Play.song);
+			var oldScore = ScoreManager.GetScore(GameManager.Instance.SelectedSong);
 
 			HashSet<PlayerManager.Player> highScores = new();
 			HashSet<PlayerManager.Player> disqualified = new();
@@ -80,7 +80,7 @@ namespace YARG.UI {
 			}
 
 			// Push!
-			ScoreManager.PushScore(Play.song, songScore);
+			ScoreManager.PushScore(GameManager.Instance.SelectedSong, songScore);
 
 			// Show score sections
 			foreach (var player in PlayerManager.players) {
