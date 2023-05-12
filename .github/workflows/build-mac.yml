@@ -63,8 +63,9 @@ jobs:
       #    Restore  Packages    #
       ###########################
 
-      - name: "[Restore Packages] Setup dotnet"
-        run: brew install dotnet@7
+      # next-line is TEMPORARY
+      - name: "[Restore Packages] Check dotnet"
+        run: dotnet --info
 
       - name: "[Restore Packages] Install NuGetForUnity.Cli"
         run: dotnet tool install --global NuGetForUnity.Cli
