@@ -12,7 +12,9 @@ namespace YARG.Song {
 		NotASong,
 		NoNotesFile,
 		NoAudioFile,
-		EncryptedMogg
+		EncryptedMogg,
+		CorruptedNotesFile,
+		CorruptedMetadataFile
 	}
 
 	public readonly struct SongError {
@@ -230,6 +232,9 @@ namespace YARG.Song {
 									break;
 								case ScanResult.EncryptedMogg:
 									await writer.WriteLineAsync("These songs contain encrypted moggs!");
+									break;
+								case ScanResult.CorruptedNotesFile:
+									await writer.WriteLineAsync("These songs contain a corrupted notes.chart/notes.mid file!");
 									break;
 							}
 							lastResult = error.Result;

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using MoonscraperChartEditor.Song;
 using MoonscraperChartEditor.Song.IO;
+using TrombLoader.Helpers;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
@@ -13,6 +14,8 @@ using YARG.Serialization.Parser;
 using YARG.Settings;
 using YARG.Song;
 using YARG.UI;
+using YARG.Util;
+using YARG.Venue;
 
 namespace YARG.PlayMode {
 	public class Play : MonoBehaviour {
@@ -25,8 +28,6 @@ namespace YARG.PlayMode {
 
 		public const float SONG_START_OFFSET = -2f;
 
-		public static SongEntry song = null;
-
 		public delegate void BeatAction();
 		public static event BeatAction BeatEvent;
 
@@ -38,7 +39,7 @@ namespace YARG.PlayMode {
 		public static event PauseStateChangeAction OnPauseToggle;
 
 		[SerializeField]
-		private GameObject soundAudioPrefab;
+		private RenderTexture backgroundRenderTexture;
 
 		public bool SongStarted {
 			get;
@@ -87,16 +88,25 @@ namespace YARG.PlayMode {
 					GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.SelectSfx);
 					GameManager.AudioManager.Pause();
 
+					if (GameUI.Instance.videoPlayer.enabled) {
+						GameUI.Instance.videoPlayer.Pause();
+					}
 				} else {
 					Time.timeScale = 1f;
 
 					GameManager.AudioManager.PlaySoundEffect(AudioManager.Instance.BackSfx);
-					GameManager.AudioManager.Play();						
+					GameManager.AudioManager.Play();
 
+					if (GameUI.Instance.videoPlayer.enabled) {
+						GameUI.Instance.videoPlayer.Play();
+					}
 				}
-				OnPauseToggle(_paused);
+
+				OnPauseToggle?.Invoke(_paused);
 			}
 		}
+
+		private SongEntry Song => GameManager.Instance.SelectedSong;
 
 		private bool playingRhythm = false;
 
@@ -105,6 +115,8 @@ namespace YARG.PlayMode {
 
 			ScoreKeeper.Reset();
 			StarScoreKeeper.Reset();
+
+			backgroundRenderTexture.ClearTexture();
 
 			// Song
 			StartSong();
@@ -117,10 +129,10 @@ namespace YARG.PlayMode {
 			bool isSpeedUp = Math.Abs(speed - 1) > float.Epsilon;
 
 			// Load MOGG if CON, otherwise load stems
-			if (song is ExtractedConSongEntry rawConSongEntry) {
+			if (Song is ExtractedConSongEntry rawConSongEntry) {
 				GameManager.AudioManager.LoadMogg(rawConSongEntry, isSpeedUp);
 			} else {
-				var stems = AudioHelpers.GetSupportedStems(song.Location);
+				var stems = AudioHelpers.GetSupportedStems(Song.Location);
 
 				GameManager.AudioManager.LoadSong(stems, isSpeedUp);
 			}
@@ -162,6 +174,9 @@ namespace YARG.PlayMode {
 				i++;
 			}
 
+			// Load background (venue, video, image, etc.)
+			LoadBackground();
+
 			SongStarted = true;
 
 			// Hide loading screen
@@ -179,12 +194,70 @@ namespace YARG.PlayMode {
 					break;
 				}
 			}
+
+			OnSongStart?.Invoke(Song);
+		}
+
+		private void LoadBackground() {
+			// Try a yarground first
+
+			string backgroundPath = Path.Combine(Song.Location, "bg.yarground");
+			if (File.Exists(backgroundPath)) {
+				var bundle = AssetBundle.LoadFromFile(backgroundPath);
+
+				// KEEP THIS PATH LOWERCASE
+				// Breaks things for other platforms, because Unity
+				var bg = bundle.LoadAsset<GameObject>("assets/_background.prefab");
+
+				var bgInstance = Instantiate(bg);
+
+				bgInstance.GetComponent<BundleBackgroundManager>().Bundle = bundle;
+				return;
+			}
+
+			// Next, a video
+
+			string[] videoPaths = {
+				"bg.mp4",
+				"bg.mov",
+				"bg.webm",
+			};
+
+			foreach (var file in videoPaths) {
+				var path = Path.Combine(Song.Location, file);
+
+				if (File.Exists(path)) {
+					GameUI.Instance.videoPlayer.url = path;
+					GameUI.Instance.videoPlayer.enabled = true;
+
+					return;
+				}
+			}
+
+			// Finally, an image
+
+			string[] imagePaths = {
+				"bg.png",
+				"bg.jpg",
+				"bg.jpeg",
+			};
+
+			foreach (var file in imagePaths) {
+				var path = Path.Combine(Song.Location, file);
+
+				if (File.Exists(path)) {
+					var png = ImageHelper.LoadTextureFromFile(path);
+
+					GameUI.Instance.background.texture = png;
+					return;
+				}
+			}
 		}
 
 		private void LoadChart() {
 			// Add main file
 			var files = new List<string> {
-				Path.Combine(song.Location, song.NotesFile)
+				Path.Combine(Song.Location, Song.NotesFile)
 			};
 
 			// Look for upgrades and add
@@ -198,18 +271,18 @@ namespace YARG.PlayMode {
 			// Parse
 
 			MoonSong moonSong = null;
-			if (song.NotesFile.EndsWith(".chart")) {
+			if (Song.NotesFile.EndsWith(".chart")) {
 				Debug.Log("Reading .chart file");
 				moonSong = ChartReader.ReadChart(files[0]);
 			}
 
 			chart = new YargChart(moonSong);
-			if (song.NotesFile.EndsWith(".mid")) {
+			if (Song.NotesFile.EndsWith(".mid")) {
 				// Parse
-				var parser = new MidiParser(song, files.ToArray());
+				var parser = new MidiParser(Song, files.ToArray());
 				chart.InitializeArrays();
 				parser.Parse(chart);
-			} else if (song.NotesFile.EndsWith(".chart")) {
+			} else if (Song.NotesFile.EndsWith(".chart")) {
 				var handler = new BeatHandler(moonSong);
 				handler.GenerateBeats();
 				chart.beats = handler.Beats;
@@ -225,6 +298,10 @@ namespace YARG.PlayMode {
 			while (realSongTime < 0f) {
 				realSongTime += Time.deltaTime;
 				yield return null;
+			}
+
+			if (GameUI.Instance.videoPlayer.enabled) {
+				GameUI.Instance.videoPlayer.Play();
 			}
 
 			GameManager.AudioManager.Play();
@@ -416,13 +493,15 @@ namespace YARG.PlayMode {
 			GameManager.AudioManager.UnloadSong();
 
 			// Call events
-			OnSongEnd?.Invoke(song);
+			OnSongEnd?.Invoke(Song);
 
 			// Unpause just in case
 			Time.timeScale = 1f;
 
+			backgroundRenderTexture.ClearTexture();
 			_tracks.Clear();
 
+			OnSongEnd?.Invoke(Song);
 			GameManager.Instance.LoadScene(SceneIndex.MENU);
 		}
 

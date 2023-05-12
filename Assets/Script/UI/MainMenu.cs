@@ -23,8 +23,6 @@ namespace YARG.UI {
 			EXIT
 		}
 
-		public SongEntry chosenSong = null;
-
 		[SerializeField]
 		private Canvas mainMenu;
 		[SerializeField]

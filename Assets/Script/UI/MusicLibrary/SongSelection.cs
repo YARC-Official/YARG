@@ -56,6 +56,10 @@ namespace YARG.UI.MusicLibrary {
 					_selectedIndex -= _songs.Count;
 				}
 
+				if (_songs[value] is SongViewType song) {
+					GameManager.Instance.SelectedSong = song.SongEntry;
+				}
+
 				UpdateScrollbar();
 				UpdateSongViews();
 			}
@@ -315,7 +319,17 @@ namespace YARG.UI.MusicLibrary {
 				_songs.Clear();
 			}
 
-			SelectedIndex = 1;
+			if (GameManager.Instance.SelectedSong == null) {
+				SelectedIndex = 1;
+			} else {
+				var index = _songs.FindIndex(song => {
+					var songType = song as SongViewType;
+					return songType != null && songType.SongEntry == GameManager.Instance.SelectedSong;
+				});
+
+				SelectedIndex = Mathf.Max(1, index);
+			}
+			
 			UpdateSongViews();
 			UpdateScrollbar();
 		}
