@@ -1,0 +1,66 @@
+name: Builds - MacOS
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  macBuilder:
+    name: ${{ matrix.targetPlatform }} on ${{ matrix.unityVersion }}
+    runs-on: macos-latest-xl # fuck it we ball
+    strategy:
+      fail-fast: false
+      matrix:
+        # projectPath:
+        #   - test-project
+        unityVersion:
+          - 2021.3.21f1
+        targetPlatform:
+          - StandaloneOSX
+
+    steps:
+      ###########################
+      #         Checkout        #
+      ###########################
+      - uses: actions/checkout@v3
+        with:
+          lfs: true
+
+      ###########################
+      #          Cache          #
+      ###########################
+      # - uses: actions/cache@v3
+      #   with:
+      #     path: ${{ matrix.projectPath }}/Library
+      #     key: Library-${{ matrix.projectPath }}-macos-${{ matrix.targetPlatform }}
+      #     restore-keys: |
+      #       Library-${{ matrix.projectPath }}-macos-
+      #       Library-
+
+      ###########################
+      #          Build          #
+      ###########################
+      - uses: game-ci/unity-builder@v2
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          # projectPath: ${{ matrix.projectPath }}
+          unityVersion: ${{ matrix.unityVersion }}
+          targetPlatform: ${{ matrix.targetPlatform }}
+
+      ###########################
+      #          Upload         #
+      ###########################
+      - uses: actions/upload-artifact@v3
+        with:
+          name: Build MacOS
+          path: build
+          retention-days: 14
