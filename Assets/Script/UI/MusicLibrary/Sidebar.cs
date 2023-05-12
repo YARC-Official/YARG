@@ -56,6 +56,10 @@ namespace YARG.UI.MusicLibrary {
 				_cancellationToken = null;
 			}
 
+			if (SongSelection.Instance.Songs.Count <= 0) {
+				return;
+			}
+
 			var viewType = SongSelection.Instance.Songs[SongSelection.Instance.SelectedIndex];
 			if (viewType is not SongViewType songViewType) {
 				return;
