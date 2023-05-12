@@ -60,15 +60,11 @@ jobs:
       #    Restore  Packages    #
       ###########################
 
-      # next-line is TEMPORARY
-      - name: "[Restore Packages] Check dotnet"
-        run: dotnet --info
-
       - name: "[Restore Packages] Install NuGetForUnity.Cli"
         run: dotnet tool install --global NuGetForUnity.Cli
 
       - name: "[Restore Packages] Restoring"
-        run: dotnet nugetforunity restore
+        run: nugetforunity restore
 
       ###########################
       #          Build          #
