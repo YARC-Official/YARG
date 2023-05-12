@@ -205,7 +205,6 @@ namespace YARG.UI {
 				}
 
 				// Play song
-				Play.song = MainMenu.Instance.chosenSong;
 				GameManager.Instance.LoadScene(SceneIndex.PLAY);
 			} else {
 				UpdateInstrument();
@@ -224,9 +223,9 @@ namespace YARG.UI {
 
 			// Get available instruments
 			var availableInstruments = allInstruments
-				.Where(instrument => MainMenu.Instance.chosenSong.HasInstrument(instrument)).ToList();
+				.Where(instrument => GameManager.Instance.SelectedSong.HasInstrument(instrument)).ToList();
 
-			Debug.Log(MainMenu.Instance.chosenSong.AvailableParts);
+			Debug.Log(GameManager.Instance.SelectedSong.AvailableParts);
 
 			// Force add pro drums and five lane
 			if (availableInstruments.Contains(Instrument.DRUMS)) {
@@ -287,7 +286,7 @@ namespace YARG.UI {
 			// Get the available difficulties
 			var availableDifficulties = new List<Difficulty>();
 			for (int i = 0; i < (int) Difficulty.EXPERT_PLUS; i++) {
-				if (!MainMenu.Instance.chosenSong.HasPart(instrument, (Difficulty) i)) {
+				if (!GameManager.Instance.SelectedSong.HasPart(instrument, (Difficulty) i)) {
 					continue;
 				}
 				availableDifficulties.Add((Difficulty) i);

@@ -147,7 +147,7 @@ namespace YARG.Song {
 					_errorsEncountered++;
 					errorsEncountered = _errorsEncountered;
 					_songErrors[cacheFolder].Add(new SongError(subDir, result));
-					Debug.LogWarning($"Error encountered with {subDir}");
+					Debug.LogWarning($"Error encountered with {subDir}: {result}");
 					return;
 			}
 
@@ -251,9 +251,15 @@ namespace YARG.Song {
 			var tracks = ulong.MaxValue;
 
 			if (notesFile.EndsWith(".mid")) {
-				tracks = MidPreparser.GetAvailableTracks(bytes);
+				if (!MidPreparser.GetAvailableTracks(bytes, out ulong availTracks)) {
+					return ScanResult.CorruptedNotesFile;
+				}
+				tracks = availTracks;
 			} else if (notesFile.EndsWith(".chart")) {
-				tracks = ChartPreparser.GetAvailableTracks(bytes);
+				if (!ChartPreparser.GetAvailableTracks(bytes, out ulong availTracks)) {
+					return ScanResult.CorruptedNotesFile;
+				}
+				tracks = availTracks;
 			}
 
 			// We have a song.ini, notes file and audio. The song is scannable.
@@ -289,7 +295,9 @@ namespace YARG.Song {
 
 			string checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes)).Replace("-", "");
 
-			ulong tracks = MidPreparser.GetAvailableTracks(bytes);
+			if (!MidPreparser.GetAvailableTracks(bytes, out ulong tracks)) {
+				return ScanResult.CorruptedNotesFile;
+			}
 
 			file.CacheRoot = cache;
 			file.Checksum = checksum;
@@ -321,7 +329,9 @@ namespace YARG.Song {
 
 			string checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes)).Replace("-", "");
 
-			ulong tracks = MidPreparser.GetAvailableTracks(bytes);
+			if (!MidPreparser.GetAvailableTracks(bytes, out ulong tracks)) {
+				return ScanResult.CorruptedNotesFile;
+			}
 
 			file.CacheRoot = cache;
 			file.Checksum = checksum;
