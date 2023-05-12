@@ -1,10 +1,11 @@
-using System.Reflection;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+
+using DG.Tweening;
 
 using YARG.Data;
 using YARG.Input;
@@ -36,14 +37,20 @@ namespace YARG.UI.PlayResultScreen {
 		private bool hasFailed;
 
 		[Space]
-        [SerializeField]
+		[SerializeField]
+		private RectTransform marginContainerRT;
+		[SerializeField]
 		private TextMeshProUGUI songTitle;
         [SerializeField]
 		private TextMeshProUGUI songArtist;
 		[SerializeField]
-		private TextMeshProUGUI score;
+		private CanvasGroup starScoreCG;
 		[SerializeField]
 		private StarDisplay starDisplay;
+		[SerializeField]
+		private TextMeshProUGUI score;
+		[SerializeField]
+		private CanvasGroup helpBarCG;
 
 		private List<PlayerCard> playerCards = new();
 
@@ -70,10 +77,49 @@ namespace YARG.UI.PlayResultScreen {
 			ProcessScores();
 			CreatePlayerCards();
 
-			// Start the animator
-			var anim = GetComponent<Animator>();
-			anim.enabled = true;
-			anim.Play("OnEnable", 0, 0);
+			StartCoroutine(EnableAnimation());
+		}
+
+		IEnumerator EnableAnimation() {
+			/* Initial States */
+			// star score
+			starScoreCG.alpha = 0f;
+
+			// margin container (player cards)
+			var ccYMinTgt = marginContainerRT.anchorMin.y;
+			var ccYMaxTgt = marginContainerRT.anchorMax.y;
+			marginContainerRT.anchorMin += new Vector2(0, 1);
+			marginContainerRT.anchorMax += new Vector2(0, 1);
+
+			// help bar
+			helpBarCG.alpha = 0;
+
+			/* Run Animations */
+			// fade in background
+			yield return backgroundBorderPass
+				.DOFade(0, 1.5f)
+				.From()
+				.WaitForCompletion();
+
+			// fade in score stars
+			yield return starScoreCG
+				.DOFade(1f, 0.5f)
+				.WaitForCompletion();
+
+			// slide in player cards
+			marginContainerRT
+				.DOAnchorMin(new Vector2(marginContainerRT.anchorMin.x, ccYMinTgt), .75f)
+				.SetEase(Ease.OutBack, overshoot: 1.2f);
+			yield return marginContainerRT
+				.DOAnchorMax(new Vector2(marginContainerRT.anchorMax.x, ccYMaxTgt), .75f)
+				.SetEase(Ease.OutBack, overshoot: 1.2f)
+				.WaitForCompletion();
+
+
+			OnEnableAnimationFinish();
+			
+			// fade in helpbar
+			helpBarCG.DOFade(1f, .5f);
 		}
 
 		/// <summary>
@@ -175,7 +221,7 @@ namespace YARG.UI.PlayResultScreen {
 				p.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
 			}
 			foreach (var pc in playerCards) {
-				pc.BeginAnimation();
+				pc.Engage();
 			}
 		}
 

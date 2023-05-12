@@ -5,6 +5,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using Unity.Mathematics;
 
+using DG.Tweening;
+
 using YARG.Data;
 using YARG.Input;
 
@@ -125,13 +127,10 @@ namespace YARG.UI.PlayResultScreen {
 			} else {
 				bottomBannerText.text = String.Empty;
 			}
-			bottomBanner.gameObject.GetComponent<LayoutElement>().flexibleHeight = 0f;
 			
-			// DQ Banner
-			if (bottomBannerText.text != String.Empty && bottomBannerText.text != "HIGH SCORE") {
-				var anim = bottomBanner.gameObject.GetComponent<Animator>();
-				anim.enabled = true;
-				anim.Play("ExtendBanner", 0, 1f);
+			// only compress banner if nothing or to prep for animation (high score)
+			if (bottomBannerText.text == String.Empty || bottomBannerText.text == "HIGH SCORE") {
+				bottomBanner.gameObject.GetComponent<LayoutElement>().flexibleHeight = 0f;
 			}
 
 			/* Set colors */
@@ -157,15 +156,15 @@ namespace YARG.UI.PlayResultScreen {
 			}
 		}
 
-		public void BeginAnimation() {
+		public void Engage() {
 			// begin tracking player inputs
 			player.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
 
 			// only animate if high score
 			if (bottomBannerText.text == "HIGH SCORE") {
-				var anim = bottomBanner.gameObject.GetComponent<Animator>();
-				anim.enabled = true;
-				anim.Play("ExtendBanner");
+				bottomBanner.gameObject.GetComponent<LayoutElement>()
+					.DOFlexibleSize(new Vector2(1f, .12f), .75f)
+					.SetEase(Ease.InOutQuad);
 			}
 		}
 

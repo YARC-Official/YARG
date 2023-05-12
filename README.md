@@ -122,6 +122,7 @@ Some libraries/assets are **packaged** with the source code have licenses that m
 | [Lucide](https://lucide.dev/) | [ISC](https://lucide.dev/license)
 | [DtxCS](https://github.com/maxton/DtxCS) | Licenseless
 | [Moonscraper](https://github.com/FireFox2000000/Moonscraper-Chart-Editor) | [BSD 3-Clause License](https://github.com/FireFox2000000/Moonscraper-Chart-Editor/blob/master/LICENSE)
+| [DOTween](https://github.com/Demigiant/dotween) | [DOTween License](http://dotween.demigiant.com/license.php)
 
 Please note that other libraries are **not** packaged within the source code, and are to be install by NuGet.
 
