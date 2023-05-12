@@ -234,10 +234,13 @@ namespace YARG.PlayMode {
 			if (hitChartIndex > lastHit) {
 				lastHit = hitChartIndex;
 			}
-
-			UpdateInfo();
+			
+			// NOTE: UpdateInfo() originally was before UpdateStarpower().
+			// Moved it to the end to make performance text things work.
+			// I REALLY hope that doesn't break something. - grishhung
 			UpdateStarpower();
 			UpdateFullComboState();
+			UpdateInfo();  
 
 			if (Multiplier >= MaxMultiplier) {
 				commonTrack.comboSunburst.gameObject.SetActive(true);
@@ -529,7 +532,8 @@ namespace YARG.PlayMode {
 				}
 			}
 			
-			// BASS DROOVE notifs -- NOTE THAT BASS GROOVE TRUMPS NOTE STREAK
+			// BASS GROOVE notifs
+			// NOTE: This will always trump "X-NOTE STREAK" (in particular, "50-NOTE STREAK")
 			if (commonTrack.bassGrooveNotifsEnabled) {
 				if (player.chosenInstrument.Contains("ass")) {  // Should affect both "bass" and "proBass"
 					int triggerThreshold = IsStarPowerActive ? MaxMultiplier / 2 : MaxMultiplier;
@@ -545,7 +549,7 @@ namespace YARG.PlayMode {
 			// OVERDRIVE READY notifs
 			if (commonTrack.overdriveReadyNotifsEnabled) {
 				if (recentStarpowerCharge < 0.5f && starpowerCharge >= 0.5f && !IsStarPowerActive) {
-					// Set "X-NOTE STREAK" text
+					// Set "OVERDRIVE READY" text
 					commonTrack.performanceText.text = "OVERDRIVE READY";
 					commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
 				}
