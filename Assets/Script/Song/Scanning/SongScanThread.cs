@@ -306,19 +306,19 @@ namespace YARG.Song {
 			// all good - go ahead and build the cache info
 			List<byte> bytes = new List<byte>();
 			ulong tracks;
-      ulong update_tracks;
 
 			// add base midi
 			bytes.AddRange(File.ReadAllBytes(file.NotesFile)); 
-      if (!MidPreparser.GetAvailableTracks(File.ReadAllBytes(file.NotesFile), out ulong tracks)) {
+      		if (!MidPreparser.GetAvailableTracks(File.ReadAllBytes(file.NotesFile), out ulong base_tracks)) {
 				return ScanResult.CorruptedNotesFile;
 			}
+			tracks = base_tracks;
 			// add update midi, if it exists
 			if(file.DiscUpdate){
 				bytes.AddRange(File.ReadAllBytes(file.UpdateMidiPath)); 
-        if (!MidPreparser.GetAvailableTracks(File.ReadAllBytes(file.UpdateMidiPath), out ulong update_tracks)) {
-          return ScanResult.CorruptedNotesFile;
-        }
+				if (!MidPreparser.GetAvailableTracks(File.ReadAllBytes(file.UpdateMidiPath), out ulong update_tracks)) {
+					return ScanResult.CorruptedNotesFile;
+				}
 				tracks |= update_tracks;
 			}
 
@@ -350,19 +350,19 @@ namespace YARG.Song {
 			// all good - go ahead and build the cache info
 			List<byte> bytes = new List<byte>();
 			ulong tracks;
-      ulong update_tracks;
 
 			// add base midi
 			bytes.AddRange(XboxCONInnerFileRetriever.RetrieveFile(file.Location, file.MidiFileSize, file.MidiFileMemBlockOffsets)); 
-      if (!MidPreparser.GetAvailableTracks(bytes.ToArray(), out ulong tracks)) {
+      		if (!MidPreparser.GetAvailableTracks(bytes.ToArray(), out ulong base_tracks)) {
 				return ScanResult.CorruptedNotesFile;
 			}
+			tracks = base_tracks;
 			// add update midi, if it exists
 			if(file.DiscUpdate){
 				bytes.AddRange(File.ReadAllBytes(file.UpdateMidiPath)); 
 				if (!MidPreparser.GetAvailableTracks(File.ReadAllBytes(file.UpdateMidiPath), out ulong update_tracks)) {
-          return ScanResult.CorruptedNotesFile;
-        }
+					return ScanResult.CorruptedNotesFile;
+				}
 				tracks |= update_tracks;
 			}
 
