@@ -20,10 +20,12 @@ namespace YARG.Song {
 	public readonly struct SongError {
 		public string Directory { get; }
 		public ScanResult Result { get; }
+		public string FileName { get; }
 
-		public SongError(string directory, ScanResult result) {
+		public SongError(string directory, ScanResult result, string fileName) {
 			Directory = directory;
 			Result = result;
+			FileName = fileName;
 		}
 	}
 
@@ -239,7 +241,7 @@ namespace YARG.Song {
 							}
 							lastResult = error.Result;
 						}
-						await writer.WriteLineAsync($"    {error.Directory}");
+						await writer.WriteLineAsync($"    {error.Directory}\\{error.FileName}");
 					}
 
 					await writer.WriteLineAsync();

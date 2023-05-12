@@ -102,28 +102,6 @@ Resolving conflicts:
 2. If the conflict doesn't resolve automatically, open the command prompt and use `git merge-tool`.
 3. Verify that the conflict was resolved correctly, then commit/continue the merge.
 
-> **Note**
->
-> If you plan on merging branches, I highly recommend following these instructions for easier merges.
-
-Setup:
-1. Open a command prompt to the repository (on VS Code you can do Terminal > New Terminal)
-2. Type in `git config --local --edit`
-3. In the file that gets opened, go to the bottom and paste this in: (You may need to change the file path depending on where you installed Unity to)
-```
-[merge]
-    tool = unityyamlmerge
-[mergetool "unityyamlmerge"]
-    trustExitCode = false
-    cmd = 'C:\\Program Files\\Unity\\Hub\\Editor\\2021.3.21f1\\Editor\\Data\\Tools\\UnityYAMLMerge.exe' merge -p "$BASE" "$REMOTE" "$LOCAL" "$MERGED"
-```
-4. Save and close the file.
-
-Resolving conflicts:
-1. Start the merge/cherry-pick which is causing conflicts.
-2. If the conflict doesn't resolve automatically, open the command prompt and use `git merge-tool`.
-3. Verify that the conflict was resolved correctly, then commit/continue the merge.
-
 # ✍️ Contributing
 
 If you want to contribute, please feel free! Please join [our Discord](https://discord.gg/sqpu4R552r) if you want your PR/Art merged.
