@@ -261,7 +261,7 @@ GameObject:
   - component: {fileID: 4853660463432534368}
   - component: {fileID: 6015766815798681171}
   m_Layer: 5
-  m_Name: HelpBarButtonV2
+  m_Name: HelpBarV2_Button
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
