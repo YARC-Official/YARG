@@ -760,7 +760,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2df7b64c06ba35458eca10641fececd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rt: {fileID: 8400000, guid: 6f01deee09a9c5846a83d96667de20f1, type: 2}
 --- !u!1 &264140536
 GameObject:
   m_ObjectHideFlags: 0
@@ -1146,8 +1145,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a58d9a874276a5b4fbf16453413dbafb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  soundAudioPrefab: {fileID: 4688628650010230174, guid: 9cbc2c803d689cc49b1e6850c871bde5,
-    type: 3}
+  backgroundRenderTexture: {fileID: 8400000, guid: 6f01deee09a9c5846a83d96667de20f1,
+    type: 2}
 --- !u!1 &334520971
 GameObject:
   m_ObjectHideFlags: 0
