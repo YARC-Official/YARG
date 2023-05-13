@@ -190,45 +190,46 @@ namespace YARG.Song {
 
 				return;
 			}
-
 			// Iterate through the files in this current directory to look for CON files
-			foreach (var file in Directory.EnumerateFiles(subDir)) {
-				// for each file found, read first 4 bytes and check for "CON " or "LIVE"
-				using var fs = new FileStream(file, FileMode.Open, FileAccess.Read);
-				using var br = new BinaryReader(fs);
-				string fHeader = Encoding.UTF8.GetString(br.ReadBytes(4));
-				if (fHeader == "CON " || fHeader == "LIVE") {
-					List<ConSongEntry> SongsInsideCON = XboxCONFileBrowser.BrowseCON(file, _updateFolderPath, _updatableSongs);
-					// for each CON song that was found (assuming some WERE found)
-					if (SongsInsideCON != null) {
-						foreach (ConSongEntry SongInsideCON in SongsInsideCON) {
-							// validate that the song is good to add in-game
-							var CONResult = ScanConSong(cacheFolder, SongInsideCON);
-							switch (CONResult) {
-								case ScanResult.Ok:
-									_songsScanned++;
-									songsScanned = _songsScanned;
-									songs.Add(SongInsideCON);
-									break;
-								case ScanResult.NotASong:
-									break;
-								default:
-									_errorsEncountered++;
-									errorsEncountered = _errorsEncountered;
-									_songErrors[cacheFolder].Add(new SongError(subDir, CONResult, SongInsideCON.Name));
-									Debug.LogWarning($"Error encountered with {subDir}");
-									break;
+
+			try{ // try-catch to prevent crash if user doesn't have permission to access a folder
+				foreach (var file in Directory.EnumerateFiles(subDir)) {
+					// for each file found, read first 4 bytes and check for "CON " or "LIVE"
+					using var fs = new FileStream(file, FileMode.Open, FileAccess.Read);
+					using var br = new BinaryReader(fs);
+					string fHeader = Encoding.UTF8.GetString(br.ReadBytes(4));
+					if (fHeader == "CON " || fHeader == "LIVE") {
+						List<ConSongEntry> SongsInsideCON = XboxCONFileBrowser.BrowseCON(file);
+						// for each CON song that was found (assuming some WERE found)
+						if (SongsInsideCON != null) {
+							foreach (ConSongEntry SongInsideCON in SongsInsideCON) {
+								// validate that the song is good to add in-game
+								var CONResult = ScanConSong(cacheFolder, SongInsideCON);
+								switch (CONResult) {
+									case ScanResult.Ok:
+										_songsScanned++;
+										songsScanned = _songsScanned;
+										songs.Add(SongInsideCON);
+										break;
+									case ScanResult.NotASong:
+										break;
+									default:
+										_errorsEncountered++;
+										errorsEncountered = _errorsEncountered;
+										_songErrors[cacheFolder].Add(new SongError(subDir, CONResult, SongInsideCON.Name));
+										Debug.LogWarning($"Error encountered with {subDir}");
+										break;
+								}
 							}
 						}
 					}
 				}
-			}
-
-			string[] subdirectories = Directory.GetDirectories(subDir);
-
-			foreach (string subdirectory in subdirectories) {
-				if(subdirectory != Path.Combine(subDir, "songs_updates"))
+				string[] subdirectories = Directory.GetDirectories(subDir);
+				foreach (string subdirectory in subdirectories) {
 					ScanSubDirectory(cacheFolder, subdirectory, songs);
+				}
+			}catch(Exception e){
+				Debug.LogException(e);
 			}
 		}
 
