@@ -98,9 +98,10 @@ jobs:
           brew install graphicsmagick imagemagick &&
           npm install --global create-dmg &&
           echo "- Creating DMG" &&
-          create-dmg build/StandaloneOSX/YARG.app --dmg-title=YARG &&
-          echo "- Renaming to YARG-Release-OSX.dmg" &&
-          find . -name *.dmg -print -exec mv {} "YARG-Release-OSX.dmg" \;
+          create-dmg build/StandaloneOSX/YARG.app --dmg-title=YARG
+
+      - name: "[Post-build] Rename .dmg to YARG-Release-OSX.dmg"
+        run: find . -name *.dmg -print -exec mv {} "YARG-Release-OSX.dmg" \;
 
       ###########################
       #          Upload         #
