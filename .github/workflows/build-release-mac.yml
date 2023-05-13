@@ -70,7 +70,7 @@ jobs:
         id: blender
         uses: actions/cache@v3
         with: 
-          path: Blender
+          path: BlenderInstall
           key: blender-3.4.1
           restore-keys: blender-
 
