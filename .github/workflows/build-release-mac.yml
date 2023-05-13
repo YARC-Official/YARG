@@ -46,8 +46,6 @@ jobs:
       - name: "[Pre-install] Git LFS Pull"
         run: |
           git lfs pull
-          git add .
-          git reset --hard
 
       ###########################
       #          Cache          #
