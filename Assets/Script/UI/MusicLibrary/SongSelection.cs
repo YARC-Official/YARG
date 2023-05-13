@@ -54,13 +54,13 @@ namespace YARG.UI.MusicLibrary {
 				}
 
 				// Wrap
-				if (_selectedIndex < 0) {
-					_selectedIndex = _songs.Count - _selectedIndex - 2;
+				if (_selectedIndex <= 0) {
+					_selectedIndex = _songs.Count - 1;
 				} else if (_selectedIndex >= _songs.Count) {
-					_selectedIndex -= _songs.Count;
+					_selectedIndex = 1;
 				}
 
-				if (_songs[value] is SongViewType song) {
+				if (_songs[_selectedIndex] is SongViewType song) {
 					GameManager.Instance.SelectedSong = song.SongEntry;
 				}
 
