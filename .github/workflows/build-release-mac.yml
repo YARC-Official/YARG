@@ -133,4 +133,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: YARG-Release-OSX
-          path: YARG-Release-OSX.dmg
+          path: YARG-Release-OSX.zip
