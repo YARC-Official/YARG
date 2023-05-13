@@ -1,4 +1,4 @@
-name: Builds - MacOS
+name: Builds - MacOS (release)
 
 on:
   workflow_dispatch:
@@ -83,9 +83,19 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           # projectPath: ${{ matrix.projectPath }}
+          buildName: YARG
           unityVersion: ${{ matrix.unityVersion }}
           targetPlatform: ${{ matrix.targetPlatform }}
           cacheUnityInstallationOnMac: true
+
+      ###########################
+      #        Compress         #
+      ###########################
+      - name: "[Post-build] Compress to a .zip"
+        uses: vimtor/action-zip@v1
+        with:
+          files: build/StandaloneOSX/YARG.app
+          dest: YARG-Release-OSX.zip
 
       ###########################
       #          Upload         #
@@ -93,6 +103,5 @@ jobs:
       - name: "[Post-build] Upload build to artifacts"
         uses: actions/upload-artifact@v3
         with:
-          name: Build MacOS
-          path: build/StandaloneOSX
+          path: YARG-Release-OSX.zip
           retention-days: 14
