@@ -100,7 +100,7 @@ Material:
     - _EmissionStrength: 1
     - _EnvironmentReflections: 1
     - _ForwardOffset: 0
-    - _Frequency: 5
+    - _Frequency: 7
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
