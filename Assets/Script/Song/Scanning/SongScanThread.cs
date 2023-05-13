@@ -135,8 +135,8 @@ namespace YARG.Song {
 			foldersScanned = _foldersScanned;
 
 			string updatePath = Path.Combine(subDir, "songs_updates");
-			if(Directory.Exists(updatePath)){
-				if(_updateFolderPath == string.Empty){
+			if (Directory.Exists(updatePath)) {
+				if (_updateFolderPath == string.Empty) {
 					_updateFolderPath = updatePath;
 					Debug.Log($"Song updates found at {_updateFolderPath}");
 					_updatableSongs = XboxSongUpdateBrowser.GetUpdatableShortnames(_updateFolderPath);
@@ -192,14 +192,14 @@ namespace YARG.Song {
 			}
 			// Iterate through the files in this current directory to look for CON files
 
-			try{ // try-catch to prevent crash if user doesn't have permission to access a folder
+			try { // try-catch to prevent crash if user doesn't have permission to access a folder
 				foreach (var file in Directory.EnumerateFiles(subDir)) {
 					// for each file found, read first 4 bytes and check for "CON " or "LIVE"
 					using var fs = new FileStream(file, FileMode.Open, FileAccess.Read);
 					using var br = new BinaryReader(fs);
 					string fHeader = Encoding.UTF8.GetString(br.ReadBytes(4));
 					if (fHeader == "CON " || fHeader == "LIVE") {
-						List<ConSongEntry> SongsInsideCON = XboxCONFileBrowser.BrowseCON(file);
+						List<ConSongEntry> SongsInsideCON = XboxCONFileBrowser.BrowseCON(file, _updateFolderPath, _updatableSongs);
 						// for each CON song that was found (assuming some WERE found)
 						if (SongsInsideCON != null) {
 							foreach (ConSongEntry SongInsideCON in SongsInsideCON) {
@@ -226,9 +226,11 @@ namespace YARG.Song {
 				}
 				string[] subdirectories = Directory.GetDirectories(subDir);
 				foreach (string subdirectory in subdirectories) {
-					ScanSubDirectory(cacheFolder, subdirectory, songs);
+					if (subdirectory != Path.Combine(subDir, "songs_updates")) {
+						ScanSubDirectory(cacheFolder, subdirectory, songs);
+					}
 				}
-			}catch(Exception e){
+			} catch (Exception e) {
 				Debug.LogException(e);
 			}
 		}
@@ -309,14 +311,14 @@ namespace YARG.Song {
 			ulong tracks;
 
 			// add base midi
-			bytes.AddRange(File.ReadAllBytes(file.NotesFile)); 
-      		if (!MidPreparser.GetAvailableTracks(File.ReadAllBytes(file.NotesFile), out ulong base_tracks)) {
+			bytes.AddRange(File.ReadAllBytes(file.NotesFile));
+			if (!MidPreparser.GetAvailableTracks(File.ReadAllBytes(file.NotesFile), out ulong base_tracks)) {
 				return ScanResult.CorruptedNotesFile;
 			}
 			tracks = base_tracks;
 			// add update midi, if it exists
-			if(file.DiscUpdate){
-				bytes.AddRange(File.ReadAllBytes(file.UpdateMidiPath)); 
+			if (file.DiscUpdate) {
+				bytes.AddRange(File.ReadAllBytes(file.UpdateMidiPath));
 				if (!MidPreparser.GetAvailableTracks(File.ReadAllBytes(file.UpdateMidiPath), out ulong update_tracks)) {
 					return ScanResult.CorruptedNotesFile;
 				}
@@ -353,14 +355,14 @@ namespace YARG.Song {
 			ulong tracks;
 
 			// add base midi
-			bytes.AddRange(XboxCONInnerFileRetriever.RetrieveFile(file.Location, file.MidiFileSize, file.MidiFileMemBlockOffsets)); 
-      		if (!MidPreparser.GetAvailableTracks(bytes.ToArray(), out ulong base_tracks)) {
+			bytes.AddRange(XboxCONInnerFileRetriever.RetrieveFile(file.Location, file.MidiFileSize, file.MidiFileMemBlockOffsets));
+			if (!MidPreparser.GetAvailableTracks(bytes.ToArray(), out ulong base_tracks)) {
 				return ScanResult.CorruptedNotesFile;
 			}
 			tracks = base_tracks;
 			// add update midi, if it exists
-			if(file.DiscUpdate){
-				bytes.AddRange(File.ReadAllBytes(file.UpdateMidiPath)); 
+			if (file.DiscUpdate) {
+				bytes.AddRange(File.ReadAllBytes(file.UpdateMidiPath));
 				if (!MidPreparser.GetAvailableTracks(File.ReadAllBytes(file.UpdateMidiPath), out ulong update_tracks)) {
 					return ScanResult.CorruptedNotesFile;
 				}
