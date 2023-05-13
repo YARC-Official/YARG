@@ -48,8 +48,16 @@ jobs:
       ###########################
       #     Install Blender     #
       ###########################
-      - name: "[Pre-install] Install Blender"
-        run: brew install --cask blender
+      # - name: "[Pre-install] Install Blender"
+      #   run: brew install --cask blender
+
+      - name: "[Pre-install] Install Blender (3.4.1)"
+        run: >
+          curl -L -o "blender.dmg" https://download.blender.org/release/Blender3.4/blender-3.4.1-macos-x64.dmg && 
+          hdiutil attach ./blender.dmg && 
+          cp -R /Volumes/Blender/Blender.app /Applications && 
+          hdiutil unmount /Volumes/Blender &&
+          rm -rf ./blender.dmg
 
       ###########################
       #    Install Libraries    #
