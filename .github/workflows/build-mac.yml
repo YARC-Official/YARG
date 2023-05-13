@@ -55,7 +55,7 @@ jobs:
       #    Install Libraries    #
       ###########################
       - name: "[Pre-install] Install Libraries"
-        run: pip install requests && python InstallLibraries/install.py
+        run: pip3 install requests && python3 InstallLibraries/install.py
         
       ###########################
       #    Restore  Packages    #
