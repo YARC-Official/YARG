@@ -55,6 +55,8 @@ Windows:
 
 # 🔨 Building
 
+### If you plan on contributing, please work on the `dev` branch. PRs to `master` will not be accepted.
+
 > **Warning**
 >
 > If you would like to build the game yourself, please follow these instructions.
