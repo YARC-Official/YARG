@@ -19,7 +19,7 @@ namespace YARG.UI {
 			this.player = player;
 
 			playerName.text = player.DisplayName;
-			trackSpeedField.text = player.trackSpeed.ToString("N1", CultureInfo.InvariantCulture);
+			trackSpeedField.text = player.trackSpeed.ToString("N2", CultureInfo.InvariantCulture);
 			leftyFlipToggle.isOn = player.leftyFlip;
 
 			// Pro-guitar lefty flip is a little bit more complicated (TODO)
