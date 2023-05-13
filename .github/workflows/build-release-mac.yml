@@ -89,7 +89,7 @@ jobs:
           cacheUnityInstallationOnMac: true
 
       - name: "[Build] Fix permissions"
-        run: xattr -d com.apple.quarantine build/StandaloneOSX/YARG.app
+        run: sudo xattr -d com.apple.quarantine build/StandaloneOSX/YARG.app
 
       ###########################
       #        Compress         #
