@@ -31,7 +31,23 @@ jobs:
       - name: "[Pre-install] Pull project"
         uses: actions/checkout@v3
         with:
-          lfs: true
+          fetch-depth: 0
+
+      - name: "[Pre-install] Create LFS file list"
+        run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
+
+      - name: "[Pre-install] Restore LFS cache"
+        uses: actions/cache@v3
+        id: YARG-GitLTS
+        with:
+          path: .git/lfs
+          key: ${{ runner.os }}-lfs-${{ hashFiles('.lfs-assets-id') }}
+
+      - name: "[Pre-install] Git LFS Pull"
+        run: |
+          git lfs pull
+          git add .
+          git reset --hard
 
       ###########################
       #          Cache          #
