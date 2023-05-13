@@ -122,7 +122,6 @@ Some libraries/assets are **packaged** with the source code have licenses that m
 | [Lucide](https://lucide.dev/) | [ISC](https://lucide.dev/license)
 | [DtxCS](https://github.com/maxton/DtxCS) | Licenseless
 | [Moonscraper](https://github.com/FireFox2000000/Moonscraper-Chart-Editor) | [BSD 3-Clause License](https://github.com/FireFox2000000/Moonscraper-Chart-Editor/blob/master/LICENSE)
-| [DOTween](https://github.com/Demigiant/dotween) | [DOTween License](http://dotween.demigiant.com/license.php)
 
 Please note that other libraries are **not** packaged within the source code, and are to be install by NuGet.
 
@@ -152,6 +151,7 @@ BASS is the audio library for YARG. [It has it's own license for release](https:
 | [Discord GameSDK](https://discord.com/developers/docs/game-sdk/sdk-starter-guide) | Library | Discord Rich Presence
 | [DtxCS](https://github.com/maxton/DtxCS) | Library | Parsing `.dta` Files
 | [Moonscraper](https://github.com/FireFox2000000/Moonscraper-Chart-Editor) | Library | Parsing `.chart` Files
+| [DOTween](https://github.com/Demigiant/dotween) | Library | Easier procedural animations
 
 # 💸 Donate
 
