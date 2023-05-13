@@ -7,7 +7,7 @@ using YARG.Song;
 
 namespace YARG.UI {
 	public partial class MainMenu : MonoBehaviour {
-		public static bool isPostSong = false;
+		public static bool showSongSelect = false;
 
 		public static MainMenu Instance {
 			get;
@@ -21,8 +21,6 @@ namespace YARG.UI {
 			CREDITS,
 			EXIT
 		}
-
-		public SongEntry chosenSong = null;
 
 		[SerializeField]
 		private Canvas mainMenu;
@@ -56,10 +54,8 @@ namespace YARG.UI {
 
 			versionText.text = Constants.VERSION_TAG.ToString();
 
-			if (!isPostSong) {
-				ShowMainMenu();
-			} else {
-				ShowPostSong();
+			if (showSongSelect) {
+				ShowSongSelect();
 			}
 		}
 
@@ -150,7 +146,7 @@ namespace YARG.UI {
 		public void ShowPostSong() {
 			HideAll();
 			postSong.gameObject.SetActive(true);
-			isPostSong = false;
+			showSongSelect = false;
 		}
 
 		public void ShowCredits() {

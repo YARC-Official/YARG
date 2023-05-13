@@ -33,6 +33,8 @@ namespace YARG.Song {
 
 				_songsByHash.Add(songEntry.Checksum, songEntry);
 			}
+
+			TrySelectedSongReset();
 		}
 
 		public static async UniTask<List<string>> ScanAllFolders(bool fast, Action<SongScanner> updateUi = null) {
@@ -46,7 +48,7 @@ namespace YARG.Song {
 			return output.ErroredCaches;
 		}
 
-		public static async UniTask ScanFolders(ICollection<string> folders, Action<SongScanner> updateUi = null) {
+		public static async UniTask ScanFolders(ICollection<string> folders, bool fast, Action<SongScanner> updateUi = null) {
 			var songsToRemove = _songs.Where(song => folders.Contains(song.CacheRoot)).ToList();
 			
 			_songs.RemoveAll(x => songsToRemove.Contains(x));
@@ -55,12 +57,12 @@ namespace YARG.Song {
 			}
 			
 			var scanner = new SongScanner(folders);
-			var songs = await scanner.StartScan(false, updateUi);
+			var songs = await scanner.StartScan(fast, updateUi);
 
 			AddSongs(songs.SongEntries);
 		}
 		
-		public static async UniTask ScanSingleFolder(string path, Action<SongScanner> updateUi = null) {
+		public static async UniTask ScanSingleFolder(string path, bool fast, Action<SongScanner> updateUi = null) {
 			var songsToRemove = _songs.Where(song => song.CacheRoot == path).ToList();
 
 			_songs.RemoveAll(x => songsToRemove.Contains(x));
@@ -69,10 +71,19 @@ namespace YARG.Song {
 			}
 
 			var scanner = new SongScanner(new[] { path });
-			var songs = await scanner.StartScan(false, updateUi);
+			var songs = await scanner.StartScan(fast, updateUi);
 
 			AddSongs(songs.SongEntries);
 		}
 
+		private static void TrySelectedSongReset() {
+			if (GameManager.Instance.SelectedSong == null) {
+				return;
+			}
+
+			if (!_songsByHash.ContainsKey(GameManager.Instance.SelectedSong.Checksum)) {
+				GameManager.Instance.SelectedSong = null;
+			}
+		}
 	}
 }

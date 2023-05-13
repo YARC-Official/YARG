@@ -66,7 +66,7 @@ Windows:
 3. Clone the repository. If you don't know how to do this:
 	1. Download [Git](https://git-scm.com/downloads). Be sure it is added to system path.
 	2. Open the command prompt in the directory you want to store the repository.
-	3. Type in `git clone https://github.com/EliteAsian123/YARG.git`.
+	3. Type in `git clone https://github.com/YARC-Official/YARG.git`.
 4. Install Unity Hub and Unity `2021.3.21f1` (LTS).
 	1. Download and install [Unity Hub](https://unity.com/download).
 	2. Sign-in/create an account with a personal license (free).
@@ -79,28 +79,6 @@ Windows:
 7. Load in **without** entering safe mode. Click "Ignore".
 8. (You may need to) click on `NuGet` on the menu bar, then click on `Restore Packages`.
 9. You're ready to go!
-
-> **Note**
->
-> If you plan on merging branches, I highly recommend following these instructions for easier merges.
-
-Setup:
-1. Open a command prompt to the repository (on VS Code you can do Terminal > New Terminal)
-2. Type in `git config --local --edit`
-3. In the file that gets opened, go to the bottom and paste this in: (You may need to change the file path depending on where you installed Unity to)
-```
-[merge]
-    tool = unityyamlmerge
-[mergetool "unityyamlmerge"]
-    trustExitCode = false
-    cmd = 'C:\\Program Files\\Unity\\Hub\\Editor\\2021.3.21f1\\Editor\\Data\\Tools\\UnityYAMLMerge.exe' merge -p "$BASE" "$REMOTE" "$LOCAL" "$MERGED"
-```
-4. Save and close the file.
-
-Resolving conflicts:
-1. Start the merge/cherry-pick which is causing conflicts.
-2. If the conflict doesn't resolve automatically, open the command prompt and use `git merge-tool`.
-3. Verify that the conflict was resolved correctly, then commit/continue the merge.
 
 > **Note**
 >
@@ -173,6 +151,7 @@ BASS is the audio library for YARG. [It has it's own license for release](https:
 | [Discord GameSDK](https://discord.com/developers/docs/game-sdk/sdk-starter-guide) | Library | Discord Rich Presence
 | [DtxCS](https://github.com/maxton/DtxCS) | Library | Parsing `.dta` Files
 | [Moonscraper](https://github.com/FireFox2000000/Moonscraper-Chart-Editor) | Library | Parsing `.chart` Files
+| [DOTween](https://github.com/Demigiant/dotween) | Library | Animation utility
 
 # 💸 Donate
 

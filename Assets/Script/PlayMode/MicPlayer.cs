@@ -165,9 +165,10 @@ namespace YARG.PlayMode {
 
 		private string lastSecondHarmonyLyric = "";
 		
+		[Space]
+		public PerformanceTextSizer perfTextSizer;
 		public float fontSize;
 		public float animTimeLength;
-		private float animTimeRemaining;
 
 		private void Start() {
 			Instance = this;
@@ -285,24 +286,11 @@ namespace YARG.PlayMode {
 			starsKeeper = new(scoreKeeper, micInputs[0].player.chosenInstrument, phrases, ptsPerPhrase);
 			
 			// Prepare performance text characteristics
-			fontSize = 24.0f;
-			animTimeLength = 1.0f;
-			animTimeRemaining = 0.0f;
+			perfTextSizer = new PerformanceTextSizer(fontSize, animTimeLength);
 			preformaceText.color = Color.white;
 		}
 
-		private void OnDestroy() {
-			if (Instance == this) {
-				Instance = null;
-			}
-
-			if (!hasMic) {
-				return;
-			}
-
-			// Release render texture
-			trackCamera.targetTexture.Release();
-
+		public void SetPlayerScore() {
 			// Create score
 			int totalSections = sectionsFailed + sectionsHit;
 			var score = new PlayerManager.LastScore {
@@ -326,6 +314,21 @@ namespace YARG.PlayMode {
 				// Unbind events
 				playerInfo.player.inputStrategy.StarpowerEvent -= StarpowerAction;
 			}
+		}
+
+		private void OnDestroy() {
+			if (Instance == this) {
+				Instance = null;
+			}
+
+			if (!hasMic) {
+				return;
+			}
+
+			// Release render texture
+			trackCamera.targetTexture.Release();
+
+			SetPlayerScore();
 
 			// Unbind events
 			Play.BeatEvent -= BeatAction;
@@ -619,9 +622,9 @@ namespace YARG.PlayMode {
 				}
 			}
 
-			// Animate performance text over one second
-			animTimeRemaining -= Time.deltaTime;
-			preformaceText.fontSize = PerformanceTextFontSize(fontSize, animTimeLength, animTimeRemaining);
+			// Animate and get performance text size given the current timestamp
+			perfTextSizer.animTimeRemaining -= Time.deltaTime;
+			preformaceText.fontSize = perfTextSizer.PerformanceTextFontSize();
 
 			// Update combo text
 			if (Multiplier == 1) {
@@ -770,7 +773,7 @@ namespace YARG.PlayMode {
 			};
 
 			// Begin animation and start countdown
-			animTimeRemaining = animTimeLength;
+			perfTextSizer.animTimeRemaining = animTimeLength;
 
 			// Add to sing percent
 			totalSingPercent += Mathf.Min(bestPercent, 1f);
@@ -951,39 +954,6 @@ namespace YARG.PlayMode {
 			if (inStarpowerSection && !playerInfo.hittingNote) {
 				starpowerActive = true;
 			}
-		}
-
-		private float PerformanceTextFontSize(float fontSize, float animTimeLength,
-			float animTimeRemaining, bool representsPeakSize = false) {
-			// Define the relative size before font sizing is applied
-			float relativeSize = 0.0f;
-			float halfwayPoint = animTimeLength / 2.0f;
-
-			// Determine the text size relative to its countdown timestamp
-			if ((animTimeRemaining > animTimeLength) || (animTimeRemaining < 0.0f)) {
-				relativeSize = 0.0f;
-			} else if (animTimeRemaining >= halfwayPoint) {
-				if (animTimeRemaining > (animTimeLength - 0.16666f)) {
-					relativeSize = (-1290.0f * Mathf.Pow(
-						animTimeRemaining - animTimeLength + 0.16666f, 4.0f)) + 0.9984f;
-				} else {
-					float denominator = 1.0f + Mathf.Pow((float) Math.E,
-						-50.0f * (animTimeRemaining - animTimeLength + 0.25f));
-					relativeSize = (0.1f / denominator) + 0.9f;
-				}
-			} else if (animTimeRemaining < halfwayPoint) {
-				if (animTimeRemaining < 0.16666f) {
-					relativeSize = (-1290.0f * Mathf.Pow(
-						animTimeRemaining - 0.16666f, 4.0f)) + 0.9984f;
-				} else {
-					float denominator = 1.0f + Mathf.Pow((float) Math.E,
-						-50.0f * (animTimeRemaining - 0.25f));
-					relativeSize = (-0.1f / denominator) + 1.0f;
-				}
-			}
-
-			// Consider if fontSize represents the "peak" or the "rest" size
-			return relativeSize * fontSize * (representsPeakSize ? 1.0f : 1.11111f);
 		}
 	}
 }

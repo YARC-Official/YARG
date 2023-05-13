@@ -12,15 +12,20 @@ namespace YARG.Song {
 		NotASong,
 		NoNotesFile,
 		NoAudioFile,
+		EncryptedMogg,
+		CorruptedNotesFile,
+		CorruptedMetadataFile
 	}
 
 	public readonly struct SongError {
 		public string Directory { get; }
 		public ScanResult Result { get; }
+		public string FileName { get; }
 
-		public SongError(string directory, ScanResult result) {
+		public SongError(string directory, ScanResult result, string fileName) {
 			Directory = directory;
 			Result = result;
+			FileName = fileName;
 		}
 	}
 
@@ -195,27 +200,27 @@ namespace YARG.Song {
 		}
 
 		private async UniTask WriteBadSongs() {
-			#if UNITY_EDITOR
+#if UNITY_EDITOR
 			string badSongsPath = Path.Combine(GameManager.PersistentDataPath, "badsongs.txt");
-			#else
+#else
 			string badSongsPath = Path.Combine(GameManager.ExecutablePath, "badsongs.txt");
-			#endif
-			
+#endif
+
 			await using var stream = new FileStream(badSongsPath, FileMode.Create, FileAccess.Write);
 			await using var writer = new StreamWriter(stream);
-			
+
 			foreach (var thread in _scanThreads) {
-				foreach(var folder in thread.SongErrors) {
+				foreach (var folder in thread.SongErrors) {
 					if (folder.Value.Count == 0) {
 						continue;
 					}
-					
+
 					await writer.WriteLineAsync(folder.Key);
 					folder.Value.Sort((x, y) => x.Result.CompareTo(y.Result));
 
 					var lastResult = ScanResult.Ok;
 					foreach (var error in folder.Value) {
-						if(error.Result != lastResult) {
+						if (error.Result != lastResult) {
 							switch (error.Result) {
 								case ScanResult.InvalidDirectory:
 									await writer.WriteLineAsync(
@@ -227,10 +232,16 @@ namespace YARG.Song {
 								case ScanResult.NoNotesFile:
 									await writer.WriteLineAsync("These songs contain no valid notes file! (notes.chart/notes.mid)");
 									break;
+								case ScanResult.EncryptedMogg:
+									await writer.WriteLineAsync("These songs contain encrypted moggs!");
+									break;
+								case ScanResult.CorruptedNotesFile:
+									await writer.WriteLineAsync("These songs contain a corrupted notes.chart/notes.mid file!");
+									break;
 							}
 							lastResult = error.Result;
 						}
-						await writer.WriteLineAsync($"    {error.Directory}");
+						await writer.WriteLineAsync($"    {error.Directory}\\{error.FileName}");
 					}
 
 					await writer.WriteLineAsync();
