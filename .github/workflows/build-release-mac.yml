@@ -108,5 +108,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: YARG-Release-OSX
-          path: YARG-Release-OSX.zip
+          path: YARG-Release-OSX.dmg
           retention-days: 14
