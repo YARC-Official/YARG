@@ -290,18 +290,7 @@ namespace YARG.PlayMode {
 			preformaceText.color = Color.white;
 		}
 
-		private void OnDestroy() {
-			if (Instance == this) {
-				Instance = null;
-			}
-
-			if (!hasMic) {
-				return;
-			}
-
-			// Release render texture
-			trackCamera.targetTexture.Release();
-
+		public void SetPlayerScore() {
 			// Create score
 			int totalSections = sectionsFailed + sectionsHit;
 			var score = new PlayerManager.LastScore {
@@ -325,6 +314,21 @@ namespace YARG.PlayMode {
 				// Unbind events
 				playerInfo.player.inputStrategy.StarpowerEvent -= StarpowerAction;
 			}
+		}
+
+		private void OnDestroy() {
+			if (Instance == this) {
+				Instance = null;
+			}
+
+			if (!hasMic) {
+				return;
+			}
+
+			// Release render texture
+			trackCamera.targetTexture.Release();
+
+			SetPlayerScore();
 
 			// Unbind events
 			Play.BeatEvent -= BeatAction;

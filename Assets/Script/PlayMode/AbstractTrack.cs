@@ -195,14 +195,7 @@ namespace YARG.PlayMode {
 
 		protected abstract void StartTrack();
 
-		protected virtual void OnDestroy() {
-			// Release render texture
-			commonTrack.TrackCamera.targetTexture.Release();
-
-			player.inputStrategy.StarpowerEvent -= StarpowerAction;
-			player.inputStrategy.PauseEvent -= PauseAction;
-			Play.BeatEvent -= BeatAction;
-
+		public virtual void SetPlayerScore() {
 			// Set score
 			player.lastScore = new PlayerManager.LastScore {
 				percentage = new DiffPercent {
@@ -217,8 +210,19 @@ namespace YARG.PlayMode {
 				notesHit = notesHit,
 				notesMissed = GetChartCount() - notesHit
 			};
+		}
+
+		protected virtual void OnDestroy() {
+			// Release render texture
+			commonTrack.TrackCamera.targetTexture.Release();
+
+			player.inputStrategy.StarpowerEvent -= StarpowerAction;
+			player.inputStrategy.PauseEvent -= PauseAction;
+			Play.BeatEvent -= BeatAction;
 
 			Play.OnPauseToggle -= PauseToggled;
+
+			SetPlayerScore();
 		}
 
 		private void Update() {

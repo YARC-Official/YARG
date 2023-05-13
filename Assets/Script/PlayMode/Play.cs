@@ -6,8 +6,10 @@ using MoonscraperChartEditor.Song;
 using MoonscraperChartEditor.Song.IO;
 using TrombLoader.Helpers;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
+using DG.Tweening;
 using YARG.Chart;
 using YARG.Data;
 using YARG.Serialization.Parser;
@@ -64,6 +66,14 @@ namespace YARG.PlayMode {
 
 		public YargChart chart;
 
+		[Space]
+		[SerializeField]
+		private GameObject playResultScreen;
+		[SerializeField]
+		private RawImage playCover;
+		[SerializeField]
+		private GameObject scoreDisplay;
+
 		private int beatIndex = 0;
 		private int lyricIndex = 0;
 		private int lyricPhraseIndex = 0;
@@ -74,10 +84,15 @@ namespace YARG.PlayMode {
 
 		private List<AbstractTrack> _tracks;
 
+		private bool endReached = false;
+
 		private bool _paused = false;
 		public bool Paused {
 			get => _paused;
 			set {
+				// disable pausing once we reach end of song
+				if (endReached) return;
+
 				_paused = value;
 
 				GameUI.Instance.pauseMenu.SetActive(value);
@@ -179,7 +194,7 @@ namespace YARG.PlayMode {
 
 			// Hide loading screen
 			GameUI.Instance.loadingContainer.SetActive(false);
-
+			
 			realSongTime = SONG_START_OFFSET;
 			StartCoroutine(StartAudio());
 
@@ -428,9 +443,9 @@ namespace YARG.PlayMode {
 			}
 
 			// End song
-			if (realSongTime >= SongLength) {
-				MainMenu.isPostSong = true;
-				Exit();
+			if (!endReached && realSongTime >= SongLength) {
+				endReached = true;
+				StartCoroutine(EndSong(true));
 			}
 		}
 
@@ -486,7 +501,7 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		public void Exit() {
+		public IEnumerator EndSong(bool showResultScreen) {
 			// Dispose of all audio
 			GameManager.AudioManager.UnloadSong();
 
@@ -497,10 +512,33 @@ namespace YARG.PlayMode {
 			Time.timeScale = 1f;
 
 			backgroundRenderTexture.ClearTexture();
-			_tracks.Clear();
 
 			OnSongEnd?.Invoke(Song);
-			GameManager.Instance.LoadScene(SceneIndex.MENU);
+			
+			// run animation + save if we've reached end of song
+			if (showResultScreen) {
+				yield return playCover
+					.DOFade(1f, 1f)
+					.WaitForCompletion();
+
+				// save scores and destroy tracks
+				foreach (var track in _tracks) {
+					track.SetPlayerScore();
+					Destroy(track.gameObject);
+				}
+				_tracks.Clear();
+				
+				// save MicPlayer score and destroy it
+				if (MicPlayer.Instance != null) {
+					MicPlayer.Instance.SetPlayerScore();
+					Destroy(MicPlayer.Instance.gameObject);
+				}
+
+				// show play result screen; this is our main focus now
+				playResultScreen.SetActive(true);
+			}
+			
+			scoreDisplay.SetActive(false);
 		}
 
 		public void LowerAudio(string name) {
@@ -519,6 +557,12 @@ namespace YARG.PlayMode {
 				stemsReverbed--;
 				audioReverb.Remove(name);
 			}
+		}
+
+		public void Exit(bool toSongSelect = true) {
+			StartCoroutine(EndSong(false));
+			MainMenu.showSongSelect = toSongSelect;
+			GameManager.Instance.LoadScene(SceneIndex.MENU);
 		}
 	}
 }
