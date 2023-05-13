@@ -86,7 +86,8 @@ jobs:
         run: >
           hdiutil attach BlenderInstall/blender.dmg && 
           cp -R /Volumes/Blender/Blender.app /Applications && 
-          hdiutil unmount /Volumes/Blender
+          hdiutil unmount /Volumes/Blender &&
+          git add BlenderInstall
 
       ###########################
       #    Install Libraries    #
