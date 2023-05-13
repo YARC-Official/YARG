@@ -46,6 +46,12 @@ jobs:
             YARG-Library-
 
       ###########################
+      #     Install Blender     #
+      ###########################
+      - name: "[Pre-install] Install Blender"
+        run: brew install --cask blender
+
+      ###########################
       #    Install Libraries    #
       ###########################
       - name: "[Pre-install] Install Libraries"
