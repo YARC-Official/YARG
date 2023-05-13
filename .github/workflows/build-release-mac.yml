@@ -64,12 +64,26 @@ jobs:
       ###########################
       #     Install Blender     #
       ###########################
+
+
+      - name: "[Pre-install] Get Blender (3.4.1) from cache"
+        id: blender
+        uses: actions/cache@v3
+        with: 
+          path: ./blender.dmg
+          key: blender-3.4.1
+          restore-keys: blender-
+
+      - if: ${{ steps.blender.outputs.cache-hit != 'true' }}
+        name: "[Pre-install] Download Blender (3.4.1)"
+        continue-on-error: true
+        run: curl -L -o "blender.dmg" https://download.blender.org/release/Blender3.4/blender-3.4.1-macos-x64.dmg
+
       # - name: "[Pre-install] Install Blender"
       #   run: brew install --cask blender
 
       - name: "[Pre-install] Install Blender (3.4.1)"
         run: >
-          curl -L -o "blender.dmg" https://download.blender.org/release/Blender3.4/blender-3.4.1-macos-x64.dmg && 
           hdiutil attach ./blender.dmg && 
           cp -R /Volumes/Blender/Blender.app /Applications && 
           hdiutil unmount /Volumes/Blender &&
