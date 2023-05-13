@@ -5066,6 +5066,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 74ad7daedfff0dc4a811132d804720bc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  trackView: {fileID: 504031665406120138, guid: 06628de4f7ccad849a699ee59bdd2f37,
+    type: 3}
   trackContainer: {fileID: 2062919431}
   songProgress: {fileID: 2146974097}
   songTitle: {fileID: 296535528}
