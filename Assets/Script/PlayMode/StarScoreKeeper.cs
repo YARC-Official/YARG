@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using YARG.Data;
+using YARG.Util;
 
 namespace YARG.PlayMode {
 	/// <summary>
@@ -101,23 +102,20 @@ namespace YARG.PlayMode {
 			foreach (var note in chart) {
 				BaseScore += ptPerNote;
 				if (note.length > .2f) {
-					BaseScore += ptSusPerBeat * Util.Utils.InfoLengthInBeats(note, Play.Instance.chart.beats);
+					BaseScore += ptSusPerBeat * Utils.InfoLengthInBeats(note, Play.Instance.chart.beats);
 				}
 
-				// add solo notes
+				// check if note is in a solo section
 				foreach (var ev in soloEvents) {
 					if (ev.time <= note.time && note.time < ev.EndTime) {
 						// solo notes get double score, effectively
 						BaseScore += ptPerNote;
-						goto leaveSoloLoop;
+						goto leaveSoloCheck;
 					}
 				}
-				leaveSoloLoop:;
+				leaveSoloCheck:;
 			}
 
-			// if there's no solo, raise BaseScore slightly
-			if (soloEvents.Count == 0)
-				BaseScore *= 1.055;
 			SetupScoreThreshold(instrument);
 		}
 
@@ -128,9 +126,6 @@ namespace YARG.PlayMode {
 			// solo notes get double score, effectively
 			BaseScore = (noteCount + soloNotes) * ptPerNote;
 
-			// if there's no solo, raise BaseScore slightly
-			if (soloNotes == 0)
-				BaseScore *= 1.055;
 			SetupScoreThreshold(instrument);
 		}
 
@@ -153,9 +148,9 @@ namespace YARG.PlayMode {
 			}
 			scoreThresholds = (from mul in curThresholds select mul * BaseScore).ToArray();
 
-			Debug.Log(instrument);
-			Debug.Log($"Base Score: {BaseScore}");
-			Debug.Log($"Star Reqs: {string.Join(", ", scoreThresholds)}");
+			// Debug.Log(instrument);
+			// Debug.Log($"Base Score: {BaseScore}");
+			// Debug.Log($"Star Reqs: {string.Join(", ", scoreThresholds)}");
 		}
 	}
 }
