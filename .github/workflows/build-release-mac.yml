@@ -88,6 +88,9 @@ jobs:
           targetPlatform: ${{ matrix.targetPlatform }}
           cacheUnityInstallationOnMac: true
 
+      - name: "[Build] Fix permissions"
+        run: xattr -d com.apple.quarantine build/StandaloneOSX/YARG.app
+
       ###########################
       #        Compress         #
       ###########################
