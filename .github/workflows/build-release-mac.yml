@@ -92,10 +92,7 @@ jobs:
       #        Compress         #
       ###########################
       - name: "[Post-build] Compress to a .zip"
-        uses: vimtor/action-zip@v1
-        with:
-          files: build/StandaloneOSX/YARG.app
-          dest: YARG-Release-OSX.zip
+        run: ditto -c -k --keepParent build/StandaloneOSX/YARG.app YARG-Release-OSX.zip
 
       ###########################
       #          Upload         #
@@ -103,5 +100,6 @@ jobs:
       - name: "[Post-build] Upload build to artifacts"
         uses: actions/upload-artifact@v3
         with:
+          name: YARG-Release-OSX
           path: YARG-Release-OSX.zip
           retention-days: 14
