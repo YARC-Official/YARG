@@ -86,8 +86,7 @@ jobs:
         run: >
           hdiutil attach BlenderInstall/blender.dmg && 
           cp -R /Volumes/Blender/Blender.app /Applications && 
-          hdiutil unmount /Volumes/Blender &&
-          git add BlenderInstall
+          hdiutil unmount /Volumes/Blender
 
       ###########################
       #    Install Libraries    #
@@ -114,6 +113,7 @@ jobs:
         with:
           # projectPath: ${{ matrix.projectPath }}
           buildName: YARG
+          allowDirtyBuild: true
           unityVersion: ${{ matrix.unityVersion }}
           targetPlatform: ${{ matrix.targetPlatform }}
           cacheUnityInstallationOnMac: true
