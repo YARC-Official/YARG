@@ -225,13 +225,11 @@ namespace YARG.Song {
 					}
 				}
 				string[] subdirectories = Directory.GetDirectories(subDir);
-
-        foreach (string subdirectory in subdirectories) {
+				foreach (string subdirectory in subdirectories) {
 					ScanSubDirectory(cacheFolder, subdirectory, songs);
 				}
 			}catch(Exception e){
 				Debug.LogException(e);
-
 			}
 		}
 
