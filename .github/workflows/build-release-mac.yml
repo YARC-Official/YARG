@@ -109,4 +109,3 @@ jobs:
         with:
           name: YARG-Release-OSX
           path: YARG-Release-OSX.dmg
-          retention-days: 14
