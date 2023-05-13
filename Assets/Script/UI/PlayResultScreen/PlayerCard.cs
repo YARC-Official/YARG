@@ -1,29 +1,27 @@
 using System;
 using System.Collections.Generic;
+using DG.Tweening;
 using TMPro;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
-using Unity.Mathematics;
-
-using DG.Tweening;
-
 using YARG.Data;
 using YARG.Input;
 
 namespace YARG.UI.PlayResultScreen {
 	// TODO: move into more appropriate spot?
-    public enum ClearStatus {
-        Disqualified, Cleared, FullCombo, Brutal, Bot
-    }
+	public enum ClearStatus {
+		Disqualified, Cleared, FullCombo, Brutal, Bot
+	}
 
-    public class PlayerCard : MonoBehaviour {
+	public class PlayerCard : MonoBehaviour {
 
 		public static readonly Dictionary<ClearStatus, Color> statusColor = new() {
-            {ClearStatus.Disqualified, new Color(.322f, .345f, .377f)},
-            {ClearStatus.Bot, new Color(.322f, .345f, .377f)},
-            {ClearStatus.Cleared, new Color(.18f, .85f, 1f)},
-            {ClearStatus.FullCombo, new Color(1f, .76f, .16f)},
-            {ClearStatus.Brutal, new Color(.82f, 0f, .8f)},
+			{ClearStatus.Disqualified, new Color(.322f, .345f, .377f)},
+			{ClearStatus.Bot, new Color(.322f, .345f, .377f)},
+			{ClearStatus.Cleared, new Color(.18f, .85f, 1f)},
+			{ClearStatus.FullCombo, new Color(1f, .76f, .16f)},
+			{ClearStatus.Brutal, new Color(.82f, 0f, .8f)},
 		};
 
 		private PlayerManager.Player player;
@@ -51,12 +49,12 @@ namespace YARG.UI.PlayResultScreen {
 		private ScrollRect scrollContainer;
 
 		[Space]
-        [Header("Main Page")]
-        [SerializeField]
+		[Header("Main Page")]
+		[SerializeField]
 		private TextMeshProUGUI playerName;
-        [SerializeField]
+		[SerializeField]
 		private TextMeshProUGUI percentage;
-        [SerializeField]
+		[SerializeField]
 		private TextMeshProUGUI difficulty;
 		[SerializeField]
 		private TextMeshProUGUI score;
@@ -73,9 +71,9 @@ namespace YARG.UI.PlayResultScreen {
 		[Header("Color Elements")]
 		[SerializeField]
 		private RawImage separator0;
-        [SerializeField]
+		[SerializeField]
 		private RawImage separator1;
-        [SerializeField]
+		[SerializeField]
 		private RawImage bottomBanner;
 
 		public void Setup(PlayerManager.Player player, ClearStatus cs, bool isHighScore) {
@@ -84,16 +82,16 @@ namespace YARG.UI.PlayResultScreen {
 
 			// set window frame
 			containerImg.sprite = cs switch {
-                ClearStatus.Bot or ClearStatus.Disqualified =>
+				ClearStatus.Bot or ClearStatus.Disqualified =>
 					backgroundDisqualified,
-                ClearStatus.FullCombo => backgroundFullCombo,
-                _ => backgroundCleared
+				ClearStatus.FullCombo => backgroundFullCombo,
+				_ => backgroundCleared
 			};
 
-            /* Set Content */
+			/* Set Content */
 			fcSymbol.gameObject.SetActive(cs == ClearStatus.FullCombo);
 			playerName.text = player.DisplayName;
-            difficulty.text = player.chosenDifficulty switch {
+			difficulty.text = player.chosenDifficulty switch {
 				Difficulty.EXPERT_PLUS => "EXPERT+",
 				_ => player.chosenDifficulty.ToString()
 			};
@@ -106,7 +104,7 @@ namespace YARG.UI.PlayResultScreen {
 			var scr = player.lastScore.Value;
 			percentage.text = $"{Mathf.FloorToInt(scr.percentage.percent * 100f)}%";
 			score.text = $"{scr.score.score:N0}";
-			starDisplay.SetStars (
+			starDisplay.SetStars(
 				scr.score.stars,
 				scr.score.stars <= 5 ? StarType.Standard : StarType.Gold
 			);
@@ -125,11 +123,11 @@ namespace YARG.UI.PlayResultScreen {
 			} else if (isHighScore) {
 				bottomBannerText.text = "HIGH SCORE";
 			} else {
-				bottomBannerText.text = String.Empty;
+				bottomBannerText.text = string.Empty;
 			}
-			
+
 			// only compress banner if nothing or to prep for animation (high score)
-			if (bottomBannerText.text == String.Empty || bottomBannerText.text == "HIGH SCORE") {
+			if (bottomBannerText.text == string.Empty || bottomBannerText.text == "HIGH SCORE") {
 				bottomBanner.gameObject.GetComponent<LayoutElement>().flexibleHeight = 0f;
 			}
 
@@ -203,5 +201,5 @@ namespace YARG.UI.PlayResultScreen {
 				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
 			}
 		}
-    }
+	}
 }

@@ -1,22 +1,18 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-
-using DG.Tweening;
-
 using YARG.Data;
 using YARG.Input;
 using YARG.PlayMode;
 
 namespace YARG.UI.PlayResultScreen {
-    public class PlayResultScreen : MonoBehaviour {
+	public class PlayResultScreen : MonoBehaviour {
 		private readonly Color PASS = new(.18f, .85f, 1f);
 		private readonly Color FAIL = new(.95f, .17f, .22f);
-		private readonly Color PASS_TRANSLUCENT = new(.18f, .85f, 1f, .2f);
-		private readonly Color FAIL_TRANSLUCENT = new(.95f, .17f, .22f, .2f);
 
 		[SerializeField]
 		private GameObject playerCardPrefab;
@@ -36,7 +32,7 @@ namespace YARG.UI.PlayResultScreen {
 		private CanvasGroup songInfoCG;
 		[SerializeField]
 		private TextMeshProUGUI songTitle;
-        [SerializeField]
+		[SerializeField]
 		private TextMeshProUGUI songArtist;
 		[SerializeField]
 		private CanvasGroup starScoreCG;
@@ -76,7 +72,7 @@ namespace YARG.UI.PlayResultScreen {
 
 			// change graphics depending on clear/fail
 			backgroundBorderFail.gameObject.SetActive(hasFailed);
-            backgroundBorderPass.gameObject.SetActive(!hasFailed);
+			backgroundBorderPass.gameObject.SetActive(!hasFailed);
 			headerBackgroundPassed.gameObject.SetActive(!hasFailed);
 			songArtist.color = hasFailed ? FAIL : PASS;
 
@@ -139,7 +135,7 @@ namespace YARG.UI.PlayResultScreen {
 				if (oldScore == null || oldScore.highestScore == null ||
 					!oldScore.highestScore.TryGetValue(player.chosenInstrument, out var oldHighestSc) ||
 					lastScore.score > oldHighestSc) {
-						
+
 					songScore.highestPercent[player.chosenInstrument] = lastScore.percentage;
 					songScore.highestScore[player.chosenInstrument] = lastScore.score;
 					highScores.Add(player);
@@ -164,7 +160,7 @@ namespace YARG.UI.PlayResultScreen {
 				if (player.chosenInstrument == null) continue;
 
 				var pc = Instantiate(playerCardPrefab, playerCardsContainer.transform).GetComponent<PlayerCard>();
-				
+
 				ClearStatus clr;
 				if (bot.Contains(player)) {
 					clr = ClearStatus.Bot;
@@ -228,7 +224,7 @@ namespace YARG.UI.PlayResultScreen {
 
 
 			OnEnableAnimationFinish();
-			
+
 			// slide in helpbar
 			helpBarRT
 				.DOAnchorMin(new Vector2(helpBarRT.anchorMin.x, hbYMinTgt), .75f)
@@ -281,7 +277,7 @@ namespace YARG.UI.PlayResultScreen {
 				foreach (var p in PlayerManager.players) {
 					p.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
 				}
-			} catch {}
+			} catch { }
 		}
-    }
+	}
 }
