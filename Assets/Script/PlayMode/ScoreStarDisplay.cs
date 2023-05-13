@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using YARG.Chart;
 
 namespace YARG.PlayMode {
-	public class StarDisplay : MonoBehaviour {
+	public class ScoreStarDisplay : MonoBehaviour {
 		[SerializeField]
 		private List<GameObject> objStars;
 		[SerializeField]

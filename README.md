@@ -151,6 +151,7 @@ BASS is the audio library for YARG. [It has it's own license for release](https:
 | [Discord GameSDK](https://discord.com/developers/docs/game-sdk/sdk-starter-guide) | Library | Discord Rich Presence
 | [DtxCS](https://github.com/maxton/DtxCS) | Library | Parsing `.dta` Files
 | [Moonscraper](https://github.com/FireFox2000000/Moonscraper-Chart-Editor) | Library | Parsing `.chart` Files
+| [DOTween](https://github.com/Demigiant/dotween) | Library | Animation utility
 
 # 💸 Donate
 
