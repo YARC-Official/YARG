@@ -54,12 +54,8 @@ jobs:
       ###########################
       #    Restore  Packages    #
       ###########################
-
-      - name: "[Restore Packages] Install NuGetForUnity.Cli"
-        run: dotnet tool install --global NuGetForUnity.Cli
-
-      - name: "[Restore Packages] Restoring"
-        run: nugetforunity restore
+      - name: "[Pre-install] Restoring NuGet Packages"
+        run: dotnet tool install --global NuGetForUnity.Cli && nugetforunity restore
 
       ###########################
       #          Build          #
