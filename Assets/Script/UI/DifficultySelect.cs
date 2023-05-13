@@ -44,6 +44,7 @@ namespace YARG.UI {
 			foreach (var option in options) {
 				option.MouseHoverEvent += HoverOption;
 				option.MouseClickEvent += ClickOption;
+				speedInput.characterLimit = 4;
 			}
 		}
 
