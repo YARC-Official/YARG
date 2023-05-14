@@ -159,8 +159,7 @@ namespace YARG {
 
 			foreach (var channel in Channels.Values) {
 				long channelPosition;
-				switch (channel)
-				{
+				switch (channel) {
 					case BassStemChannel bassStemChannel:
 						int handle = bassStemChannel.StreamHandle;
 						channelPosition = Bass.ChannelSeconds2Bytes(handle, position);
