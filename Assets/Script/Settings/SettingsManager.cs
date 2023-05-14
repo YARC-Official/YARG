@@ -49,6 +49,7 @@ namespace YARG.Settings {
 					"SongVolume",
 					"CrowdVolume",
 					"SfxVolume",
+					"PreviewVolume",
 					"VocalMonitoring",
 					new HeaderMetadata("Other"),
 					"MuteOnMiss",

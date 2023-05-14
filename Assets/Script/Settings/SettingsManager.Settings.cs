@@ -38,6 +38,7 @@ namespace YARG.Settings {
 			public VolumeSetting SongVolume                 { get; private set; } = new(1f,   v   => VolumeCallback(SongStem.Song,   v));
 			public VolumeSetting CrowdVolume                { get; private set; } = new(0.5f,   v => VolumeCallback(SongStem.Crowd,  v));
 			public VolumeSetting SfxVolume                  { get; private set; } = new(0.8f, v   => VolumeCallback(SongStem.Sfx,    v));
+			public VolumeSetting PreviewVolume              { get; private set; } = new(0.25f);	
 			public VolumeSetting VocalMonitoring            { get; private set; } = new(0.7f,      VocalMonitoringCallback);
 			public ToggleSetting MuteOnMiss                 { get; private set; } = new(true);
 			public ToggleSetting UseStarpowerFx             { get; private set; } = new(true,      UseStarpowerFxChange);
