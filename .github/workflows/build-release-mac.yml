@@ -80,7 +80,8 @@ jobs:
         run: >
           hdiutil attach Temp/BlenderInstall/blender.dmg && 
           cp -R /Volumes/Blender/Blender.app /Applications && 
-          hdiutil unmount /Volumes/Blender
+          hdiutil unmount /Volumes/Blender &&
+          chmod 555 Temp/BlenderInstall/blender.dmg
 
       ###########################
       #    Install Libraries    #
