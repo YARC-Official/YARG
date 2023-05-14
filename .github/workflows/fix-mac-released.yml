@@ -28,6 +28,9 @@ jobs:
       - name: Unzip release
         run: find . -name *.zip -print -exec unzip {} \;
 
+      - name: Check contents (temporary)
+        run: ls
+
       - name: Fix file attributes
         run: |
           if ! type "xattr" > /dev/null; then
