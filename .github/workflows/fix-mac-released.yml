@@ -67,7 +67,7 @@ jobs:
 
       - if: ${{ inputs.createZip == true }}
         name: "Creating .zip"
-        run: find . -name *.app -print -exec ditto -c -k --keepParent {} Packages \; 
+        run: find . -name *.app -print -exec ditto -c -k --keepParent {} Packages/{}.zip \; 
 
 
       - name: "Creating .dmg"
