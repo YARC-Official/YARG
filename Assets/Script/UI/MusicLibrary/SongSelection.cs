@@ -62,6 +62,7 @@ namespace YARG.UI.MusicLibrary {
 
 				if (_songs[_selectedIndex] is SongViewType song) {
 					GameManager.Instance.SelectedSong = song.SongEntry;
+					GameManager.AudioManager.StartPreviewAudio();
 				}
 
 				UpdateScrollbar();
@@ -126,6 +127,8 @@ namespace YARG.UI.MusicLibrary {
 				// Get songs
 				UpdateSearch();
 				refreshFlag = false;
+			} else {
+				GameManager.AudioManager.StartPreviewAudio();
 			}
 		}
 
