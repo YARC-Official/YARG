@@ -42,6 +42,8 @@ namespace YARG {
 
 		public float pos;
 
+		private CancellationTokenSource _cancellationTokenSource;
+
 		private void Awake() {
 			SupportedFormats = new[] {
 				".ogg",
@@ -277,36 +279,44 @@ namespace YARG {
 			SetPosition(PreviewStartTime);
 		}
 		
-		public void StartPreviewAudio() {
-			StartPreviewAudioTask().Forget();
+		public async void StartPreviewAudio() {
+			_cancellationTokenSource = new CancellationTokenSource();
+			await StartPreviewAudioTask();
+			await LoopPreviewAudioTask();
 		}
 
 		private async UniTask StartPreviewAudioTask() {
 			await FadeOut();
 			LoadPreviewAudio(GameManager.Instance.SelectedSong);
 			FadeIn(SettingsManager.Settings.PreviewVolume.Data);
-			LoopPreviewAudioTask().Forget();
 		}
 
 		private async UniTask LoopPreviewAudioTask() {
-			while (IsAudioLoaded) {
-				await UniTask.WaitWhile(() => CurrentPositionF < PreviewEndTime && CurrentPositionF < AudioLengthF);
-
-				await FadeOut();
-				SetPosition(PreviewStartTime);
-				FadeIn(SettingsManager.Settings.PreviewVolume.Data);
-			}
-
-			await UniTask.Yield();
+			try {
+				while (!_cancellationTokenSource.IsCancellationRequested) {
+					await UniTask.WaitWhile(() => CurrentPositionF < PreviewEndTime && CurrentPositionF < AudioLengthF,
+						cancellationToken: _cancellationTokenSource.Token);
+					_cancellationTokenSource.Token.ThrowIfCancellationRequested();
+					
+					await FadeOut();
+					_cancellationTokenSource.Token.ThrowIfCancellationRequested();
+					
+					SetPosition(PreviewStartTime);
+					FadeIn(SettingsManager.Settings.PreviewVolume.Data);
+				}
+			} catch (OperationCanceledException) { }
 		}
 
 		public void StopPreviewAudio() {
+			_cancellationTokenSource.Cancel();
 			StopPreviewAudioTask().Forget();
 		}
 
 		private async UniTask StopPreviewAudioTask() {
 			await FadeOut();
 			UnloadSong();
+			_cancellationTokenSource.Dispose();
+			_cancellationTokenSource = null;
 		}
 
 		public void Play() => Play(false);
