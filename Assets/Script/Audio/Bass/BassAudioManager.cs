@@ -40,8 +40,6 @@ namespace YARG {
 
 		private ISampleChannel[] _sfxSamples;
 
-		private CancellationTokenSource _exitPreviewLoop;
-
 		public float pos;
 
 		private void Awake() {
@@ -280,31 +278,37 @@ namespace YARG {
 		}
 		
 		public void StartPreviewAudio() {
-			_exitPreviewLoop = new CancellationTokenSource();
-			UniTask.Void(async () => {
+			StartPreviewAudioTask().Forget();
+		}
+
+		private async UniTask StartPreviewAudioTask() {
+			await FadeOut();
+			LoadPreviewAudio(GameManager.Instance.SelectedSong);
+			FadeIn(SettingsManager.Settings.PreviewVolume.Data);
+			LoopPreviewAudioTask().Forget();
+		}
+
+		private async UniTask LoopPreviewAudioTask() {
+			while (IsAudioLoaded) {
+				await UniTask.WaitWhile(() => CurrentPositionF < PreviewEndTime && CurrentPositionF < AudioLengthF);
+
 				await FadeOut();
-				LoadPreviewAudio(GameManager.Instance.SelectedSong);
+				SetPosition(PreviewStartTime);
 				FadeIn(SettingsManager.Settings.PreviewVolume.Data);
+			}
 
-				while (true) {
-					await UniTask.WaitWhile(() => CurrentPositionF < PreviewEndTime && CurrentPositionF < AudioLengthF, 
-						cancellationToken: _exitPreviewLoop.Token);
-
-					await FadeOut();
-					SetPosition(PreviewStartTime);
-					FadeIn(SettingsManager.Settings.PreviewVolume.Data);
-				}
-			});
+			await UniTask.Yield();
 		}
 
 		public void StopPreviewAudio() {
-			_exitPreviewLoop?.Cancel();
-			UniTask.Void(async () => {
-				await FadeOut();
-				UnloadSong();
-			});
+			StopPreviewAudioTask().Forget();
 		}
-		
+
+		private async UniTask StopPreviewAudioTask() {
+			await FadeOut();
+			UnloadSong();
+		}
+
 		public void Play() => Play(false);
 
 		private void Play(bool fadeIn) {
@@ -346,12 +350,12 @@ namespace YARG {
 			}
 		}
 
-		public UniTask FadeOut() {
+		public async UniTask FadeOut() {
 			if (IsPlaying) {
-				return _mixer.FadeOut();
+				await _mixer.FadeOut();
 			}
 
-			return default;
+			await UniTask.Yield();
 		}
 
 		public void PlaySoundEffect(SfxSample sample) {

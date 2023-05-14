@@ -48,6 +48,7 @@ namespace YARG.UI.MusicLibrary {
 			get => _selectedIndex;
 			private set {
 				_selectedIndex = value;
+				isSelectingStopped = false;
 
 				if (_songs.Count <= 0) {
 					return;
@@ -60,13 +61,13 @@ namespace YARG.UI.MusicLibrary {
 					_selectedIndex = 0;
 				}
 
-				if (_songs[_selectedIndex] is SongViewType song) {
-					GameManager.Instance.SelectedSong = song.SongEntry;
-					GameManager.AudioManager.StartPreviewAudio();
-				}
-
 				UpdateScrollbar();
 				UpdateSongViews();
+				
+				if (_songs[_selectedIndex] is SongViewType song) {
+					GameManager.Instance.SelectedSong = song.SongEntry;
+					GameManager.AudioManager.FadeOut();
+				}
 			}
 		}
 
@@ -78,6 +79,8 @@ namespace YARG.UI.MusicLibrary {
 		private NavigationType direction;
 		private bool directionHeld = false;
 		private float inputTimer = 0f;
+		private float scroll;
+		private bool isSelectingStopped = true;
 
 		private void Awake() {
 			refreshFlag = true;
@@ -127,9 +130,9 @@ namespace YARG.UI.MusicLibrary {
 				// Get songs
 				UpdateSearch();
 				refreshFlag = false;
-			} else {
-				GameManager.AudioManager.StartPreviewAudio();
 			}
+			
+			GameManager.AudioManager.StartPreviewAudio();
 		}
 
 		private void OnDisable() {
@@ -172,6 +175,10 @@ namespace YARG.UI.MusicLibrary {
 			} else if (scroll < 0f) {
 				SelectedIndex++;
 			}
+			else if (Mathf.Abs(scroll) < float.Epsilon && !isSelectingStopped) {
+				GameManager.AudioManager.StartPreviewAudio();
+				isSelectingStopped = true;
+			}
 		}
 
 		private void OnGenericNavigation(NavigationType navigationType, bool pressed) {
@@ -182,6 +189,7 @@ namespace YARG.UI.MusicLibrary {
 			}
 
 			if (!pressed) {
+				GameManager.AudioManager.StartPreviewAudio();
 				return;
 			}
 
