@@ -10,10 +10,9 @@ using YARG.Song;
 
 namespace YARG.Serialization {
 	public static class XboxCONFileBrowser {
-		public static List<ConSongEntry> BrowseCON(string conName, string update_folder, List<string> update_shortnames){
+		public static List<ConSongEntry> BrowseCON(string conName, string update_folder, Dictionary<string, List<DataArray>> update_dict){
 			var songList = new List<ConSongEntry>();
 			var dtaTree = new DataArray();
-			var dtaUpdateTree = new DataArray();
 
 			// Attempt to read songs.dta
 			STFS theCON = new STFS(conName);
@@ -25,18 +24,6 @@ namespace YARG.Serialization {
 				return null;
 			}
 
-			// Attempt to read songs_updates.dta, if it exists
-			if(update_folder != string.Empty){
-				try {
-					using var sr_upd = new StreamReader(Path.Combine(update_folder, "songs_updates.dta"), Encoding.GetEncoding("iso-8859-1"));
-					dtaUpdateTree = DTX.FromDtaString(sr_upd.ReadToEnd());
-				} catch (Exception e_upd) {
-					Debug.LogError($"Failed to parse songs_updates.dta for `{update_folder}`.");
-					Debug.LogException(e_upd);
-					return null;
-				}
-			}
-
 			// Read each song the dta file lists
 			for (int i = 0; i < dtaTree.Count; i++) {
 				try {
@@ -46,11 +33,14 @@ namespace YARG.Serialization {
 					ConSongEntry currentSong = XboxDTAParser.ParseFromDta(currentArray);
 
 					// check if song has applicable updates
-					bool songCanBeUpdated = (!String.IsNullOrEmpty(update_folder) && (update_shortnames.Find(s => s == currentSong.ShortName) != null));
+					bool songCanBeUpdated = (update_dict.TryGetValue(currentSong.ShortName, out var val));
 
 					// if shortname was found in songs_updates.dta, update the metadata
-					if(songCanBeUpdated)
-						currentSong = XboxDTAParser.ParseFromDta(dtaUpdateTree.Array(currentSong.ShortName), currentSong);
+					if(songCanBeUpdated){
+						foreach(var dtaUpdate in update_dict[currentSong.ShortName]){
+							currentSong = XboxDTAParser.ParseFromDta(dtaUpdate, currentSong);
+						}
+					}
 
 					// since Location is currently set to the name of the folder before mid/mogg/png, set those paths now
 					// since we're dealing with a CON and not an ExCON, grab each relevant file's sizes and memory block offsets
@@ -117,8 +107,7 @@ namespace YARG.Serialization {
 						currentSong.MoggAddressAudioOffset = br.ReadInt32();
 						currentSong.MoggAudioLength = fs.Length - currentSong.MoggAddressAudioOffset;
 					}
-					
-					MoggBASSInfoGenerator.Generate(currentSong, currentArray.Array("song"), dtaUpdateTree.Array(currentSong.ShortName));
+					MoggBASSInfoGenerator.Generate(currentSong, currentArray.Array("song"), val);
 
 					// Debug.Log($"{currentSong.ShortName}:\nMidi path: {currentSong.NotesFile}\nMogg path: {currentSong.MoggPath}\nImage path: {currentSong.ImagePath}");
 

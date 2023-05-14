@@ -11,7 +11,7 @@ using YARG.Song;
 
 namespace YARG.Serialization {
 	public static class MoggBASSInfoGenerator {
-        public static void Generate(ConSongEntry song, DataArray dta, DataArray dta_update_root){
+        public static void Generate(ConSongEntry song, DataArray dta, List<DataArray> dta_update_roots = null){
             var Tracks = new Dictionary<string, int[]>();
 			float[] PanData = null, VolumeData = null;
 			int[] CrowdChannels = null;
@@ -21,12 +21,14 @@ namespace YARG.Serialization {
 			dtas_to_parse.Add(dta);
 
 			// determine whether or not we even NEED to parse the update dta for mogg information
-			if(dta_update_root != null){
-				dta_update = dta_update_root.Array("song");
-				if(dta_update != null){
-					if(dta_update.Array("tracks") != null || dta_update.Array("pans") != null || 
-						dta_update.Array("vols") != null || dta_update.Array("crowd_channels") != null)
-						dtas_to_parse.Add(dta_update);
+			if(dta_update_roots != null){
+				foreach(var dta_update_root in dta_update_roots){
+					dta_update = dta_update_root.Array("song");
+					if(dta_update != null){
+						if(dta_update.Array("tracks") != null || dta_update.Array("pans") != null || 
+							dta_update.Array("vols") != null || dta_update.Array("crowd_channels") != null)
+							dtas_to_parse.Add(dta_update);
+					}
 				}
 			}
 			
