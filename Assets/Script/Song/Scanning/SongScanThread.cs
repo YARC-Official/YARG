@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using UnityEngine;
+using DtxCS.DataTypes;
 using YARG.Serialization;
 using YARG.Song.Preparsers;
 
@@ -22,7 +23,7 @@ namespace YARG.Song {
 		private int _songsScanned;
 		private int _errorsEncountered;
 		private string _updateFolderPath = string.Empty;
-		private List<string> _updatableSongs = null;
+		private Dictionary<string, List<DataArray>> _songUpdateDict = new();
 
 		private readonly Dictionary<string, List<SongEntry>> _songsByCacheFolder;
 		private readonly Dictionary<string, List<SongError>> _songErrors;
@@ -139,8 +140,8 @@ namespace YARG.Song {
 				if (_updateFolderPath == string.Empty) {
 					_updateFolderPath = updatePath;
 					Debug.Log($"Song updates found at {_updateFolderPath}");
-					_updatableSongs = XboxSongUpdateBrowser.GetUpdatableShortnames(_updateFolderPath);
-					Debug.Log($"Total count of song updates found: {_updatableSongs.Count}");
+					_songUpdateDict = XboxSongUpdateBrowser.FetchSongUpdates(_updateFolderPath);
+					Debug.Log($"Total count of song updates found: {_songUpdateDict.Count}");
 				}
 			}
 
@@ -166,7 +167,7 @@ namespace YARG.Song {
 			// Raw CON folder, so don't scan anymore subdirectories here
 			string songsPath = Path.Combine(subDir, "songs");
 			if (File.Exists(Path.Combine(songsPath, "songs.dta"))) {
-				List<ExtractedConSongEntry> files = ExCONBrowser.BrowseFolder(songsPath, _updateFolderPath, _updatableSongs);
+				List<ExtractedConSongEntry> files = ExCONBrowser.BrowseFolder(songsPath, _updateFolderPath, _songUpdateDict);
 
 				foreach (ExtractedConSongEntry file in files) {
 					// validate that the song is good to add in-game
@@ -199,7 +200,7 @@ namespace YARG.Song {
 					using var br = new BinaryReader(fs);
 					string fHeader = Encoding.UTF8.GetString(br.ReadBytes(4));
 					if (fHeader == "CON " || fHeader == "LIVE") {
-						List<ConSongEntry> SongsInsideCON = XboxCONFileBrowser.BrowseCON(file, _updateFolderPath, _updatableSongs);
+						List<ConSongEntry> SongsInsideCON = XboxCONFileBrowser.BrowseCON(file, _updateFolderPath, _songUpdateDict);
 						// for each CON song that was found (assuming some WERE found)
 						if (SongsInsideCON != null) {
 							foreach (ConSongEntry SongInsideCON in SongsInsideCON) {
