@@ -256,7 +256,7 @@ namespace YARG {
 			if (song is ExtractedConSongEntry conSong) {
 				LoadMogg(conSong, false);
 			} else {
-				LoadSong(AudioHelpers.GetSupportedStems(song.Location), false);
+				LoadSong(AudioHelpers.GetSupportedStems(song.Location, SongStem.Crowd), false);
 			}
 
 			SetPosition(song.PreviewStartTimeSpan.TotalSeconds);
