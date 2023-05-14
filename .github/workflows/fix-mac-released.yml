@@ -48,9 +48,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ inputs.version }}
 
-      - name: Unzip release
-        run: find . -type f -name *.zip -print -exec unzip "{}" +
-
       - name: Check contents (temporary)
         run: ls
 
