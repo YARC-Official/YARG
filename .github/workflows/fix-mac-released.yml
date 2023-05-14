@@ -49,7 +49,7 @@ jobs:
           tag: ${{ inputs.version }}
 
       - name: Unzip release
-        run: find . -name *.zip -print -exec unzip "{}" +
+        run: find . -type f -name *.zip -print -exec unzip "{}" +
 
       - name: Check contents (temporary)
         run: ls
