@@ -7,14 +7,14 @@ on:
           description: "Version (x.xx.x)"
           required: true
           type: string
-        type:
-          description: ".zip or .dmg"
-          required: true
-          default: 'zip'
-          type: choice
-          options:
-            - zip
-            - dmg
+        createZip:
+          description: "Create .zip file"
+          default: true
+          type: boolean
+        createDmg:
+          description: "Create .dmg file"
+          default: true
+          type: boolean
 
 # concurrency:
 #   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -22,7 +22,7 @@ on:
 
 jobs:
   macBuilder:
-    name: Mac Build for v${{ inputs.version }} (.${{ inputs.type }})
+    name: Mac Build for v${{ inputs.version }}
     runs-on: macos-latest
     strategy:
       fail-fast: false
@@ -115,14 +115,21 @@ jobs:
       ###########################
       #        Compress         #
       ###########################
-      - if: ${{ inputs.type == 'zip' }}
+      - if: ${{ inputs.createZip == true }}
         name: "[Post-build] Compress to a .zip"
         run: ditto -c -k --keepParent build/StandaloneOSX/YARG.app YARG_v${{ inputs.version }}-MacOS-Universal.zip
+        
+      - if: ${{ inputs.createZip == true }}
+        name: "[Post-build] Upload .zip to artifacts"
+        uses: actions/upload-artifact@v3
+        with:
+          name: YARG_v${{ inputs.version }}-MacOS-Universal.zip
+          path: YARG_v${{ inputs.version }}-MacOS-Universal.zip
 
       ###########################
       #       Create .DMG       #
       ###########################
-      - if: ${{ inputs.type == 'dmg' }}
+      - if: ${{ inputs.createDmg == true }}
         name: "[Post-build] Create .dmg"
         continue-on-error: true
         run: >
@@ -132,16 +139,13 @@ jobs:
           echo "- Creating DMG" &&
           create-dmg build/StandaloneOSX/YARG.app --dmg-title=YARG
 
-      - if: ${{ inputs.type == 'dmg' }}
-        name: "[Post-build] Rename .dmg to YARG-Release-OSX.dmg"
+      - if: ${{ inputs.createDmg == true }}
+        name: "[Post-build] Rename .dmg"
         run: find . -name *.dmg -print -exec mv {} "YARG_v${{ inputs.version }}-MacOS-Universal.dmg" \;
 
-
-      ###########################
-      #          Upload         #
-      ###########################
-      - name: "[Post-build] Upload build to artifacts"
+      - if: ${{ inputs.createDmg == true }}
+        name: "[Post-build] Upload .dmg to artifacts"
         uses: actions/upload-artifact@v3
         with:
-          name: YARG_v${{ inputs.version }}-MacOS-Universal.${{ inputs.type }}
-          path: YARG_v${{ inputs.version }}-MacOS-Universal.${{ inputs.type }}
+          name: YARG_v${{ inputs.version }}-MacOS-Universal.dmg
+          path: YARG_v${{ inputs.version }}-MacOS-Universal.dmg
