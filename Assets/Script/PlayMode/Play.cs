@@ -2,14 +2,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using DG.Tweening;
 using MoonscraperChartEditor.Song;
 using MoonscraperChartEditor.Song.IO;
 using TrombLoader.Helpers;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
-using DG.Tweening;
+using UnityEngine.UI;
 using YARG.Chart;
 using YARG.Data;
 using YARG.Serialization.Parser;
@@ -194,7 +194,7 @@ namespace YARG.PlayMode {
 
 			// Hide loading screen
 			GameUI.Instance.loadingContainer.SetActive(false);
-			
+
 			realSongTime = SONG_START_OFFSET;
 			StartCoroutine(StartAudio());
 
@@ -514,7 +514,7 @@ namespace YARG.PlayMode {
 			backgroundRenderTexture.ClearTexture();
 
 			OnSongEnd?.Invoke(Song);
-			
+
 			// run animation + save if we've reached end of song
 			if (showResultScreen) {
 				yield return playCover
@@ -527,7 +527,7 @@ namespace YARG.PlayMode {
 					Destroy(track.gameObject);
 				}
 				_tracks.Clear();
-				
+
 				// save MicPlayer score and destroy it
 				if (MicPlayer.Instance != null) {
 					MicPlayer.Instance.SetPlayerScore();
@@ -537,7 +537,7 @@ namespace YARG.PlayMode {
 				// show play result screen; this is our main focus now
 				playResultScreen.SetActive(true);
 			}
-			
+
 			scoreDisplay.SetActive(false);
 		}
 

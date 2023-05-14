@@ -39,7 +39,7 @@ MonoBehaviour:
   storeSettingsLocation: 0
   modules:
     showPanel: 0
-    audioEnabled: 1
+    audioEnabled: 0
     physicsEnabled: 1
     physics2DEnabled: 1
     spriteEnabled: 1

@@ -54,12 +54,14 @@ namespace YARG.UI {
 			songProgress.fillAmount = Play.Instance.SongTime / Play.Instance.SongLength;
 		}
 
-		public void AddTrackImage(RenderTexture rt) {
+		public void AddTrackImage(RenderTexture rt, CommonTrack commonTrack) {
 			var trackImage = Instantiate(trackView, trackContainer);
 
 			var view = trackImage.GetComponent<TrackView>();
 			view.TrackImage.texture = rt;
 			view.TrackImage.material = trackMaterial;
+
+			commonTrack.TrackView = view;
 
 			UpdateAllSizing();
 		}

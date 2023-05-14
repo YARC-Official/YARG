@@ -1,10 +1,13 @@
 using TMPro;
 using UnityEngine;
+using YARG.UI;
 
 namespace YARG.PlayMode {
 	public sealed class CommonTrack : MonoBehaviour {
 		[field: SerializeField]
 		public Camera TrackCamera { get; private set; }
+		public TrackView TrackView { get; set; }
+
 		[SerializeField]
 		private Animation cameraAnimation;
 
@@ -37,20 +40,10 @@ namespace YARG.PlayMode {
 		public GameObject kickFlash;
 
 		[Space]
-		[SerializeField]
 		public Color comboSunburstColor;
-		[SerializeField]
 		public Color comboSunburstSPColor;
 
 		[Space]
-		public TextMeshPro soloText;
-		public SpriteRenderer soloBox;
-		public Sprite soloMessySprite;
-		public Sprite soloPerfectSprite;
-		public Sprite soloDefaultSprite;
-		
-		[Space]
-		[SerializeField]
 		public TextMeshPro performanceText;
 		public PerformanceTextSizer perfTextSizer;
 		public float perfTextFontSize;
@@ -65,8 +58,7 @@ namespace YARG.PlayMode {
 		public bool strongFinishNotifsEnabled;
 		public bool overdriveReadyNotifsEnabled;
 		public bool fullComboTrumpsStrongFinish;
-		
-		
+
 		[Space]
 		// Numeric performance text settings
 		public int hotStartCutoff;
