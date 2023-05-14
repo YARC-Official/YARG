@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Video;
 using YARG.Data;
 using YARG.Input;
 using YARG.Settings;
@@ -111,6 +112,10 @@ namespace YARG.PlayMode {
 		protected StarScoreKeeper starsKeeper;
 		protected SustainTracker susTracker;
 
+		//Video Player Object
+		public GameObject performanceVideoObject; // GameObject to activate
+		public VideoPlayer videoPlayer; // VideoPlayer component
+
 		private bool _stopAudio = false;
 		protected bool StopAudio {
 			set {
@@ -183,6 +188,9 @@ namespace YARG.PlayMode {
 			// Initlaize interval sizes
 			intervalSize = commonTrack.noteStreakInterval;
 			halfIntervalSize = intervalSize / 2;
+
+			// Video Player
+			videoPlayer = performanceVideoObject.GetComponent<VideoPlayer>();
 
 			StartTrack();
 		}
@@ -558,7 +566,13 @@ namespace YARG.PlayMode {
 						strongFinishChecked = true;
 
 						if (FullCombo) {
-							commonTrack.TrackView.ShowPerformanceText("FULL COMBO");
+							// empty the text string because we are now using the video
+							commonTrack.TrackView.ShowPerformanceText(" ");
+							// Play video when a full combo is achieved
+							VideoPlayer videoPlayer = performanceVideoObject.GetComponent<VideoPlayer>();
+							performanceVideoObject.SetActive(true); // activate the GameObject
+							videoPlayer.clip = Resources.Load<VideoClip>("Art/Videos/full_combo");
+							videoPlayer.Play();
 						} else if (_combo >= commonTrack.strongFinishCutoff && commonTrack.strongFinishNotifsEnabled) {
 							commonTrack.TrackView.ShowPerformanceText("STRONG FINISH");
 						}
@@ -570,7 +584,13 @@ namespace YARG.PlayMode {
 						fullComboChecked = true;
 
 						if (FullCombo) {
-							commonTrack.TrackView.ShowPerformanceText("FULL COMBO");
+							// empty the text string because we are now using the video
+							commonTrack.TrackView.ShowPerformanceText(" ");
+							// Play video when a full combo is achieved
+							VideoPlayer videoPlayer = performanceVideoObject.GetComponent<VideoPlayer>();
+							performanceVideoObject.SetActive(true); // activate the GameObject
+							videoPlayer.clip = Resources.Load<VideoClip>("Art/Videos/full_combo");
+							videoPlayer.Play();
 						}
 					}
 				}
@@ -588,6 +608,14 @@ namespace YARG.PlayMode {
 						}
 					}
 				}
+			}
+
+			void DeactivatePerformanceVideo(VideoPlayer vp) {
+				// Deactivate the video GameObject
+				performanceVideoObject.SetActive(false);
+
+				// Unsubscribe the event
+				videoPlayer.loopPointReached -= DeactivatePerformanceVideo;
 			}
 
 			// Update recent values
