@@ -3,11 +3,18 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.PlayMode;
 
 namespace YARG.UI {
 	public class TrackView : MonoBehaviour {
 		[field: SerializeField]
 		public RawImage TrackImage { get; private set; }
+
+		[Space]
+		[SerializeField]
+		private TextMeshProUGUI _performanceText;
+		[SerializeField]
+		private PerformanceTextSizer _performanceTextSizer;
 
 		[Space]
 		[SerializeField]
@@ -26,6 +33,10 @@ namespace YARG.UI {
 		private Sprite _normalSoloBox;
 
 		private bool _soloBoxShowing = false;
+
+		private void Start() {
+			_performanceTextSizer = new(24f, 3f);
+		}
 
 		public void UpdateSizing(int trackCount) {
 			float scale = Mathf.Max(0.7f * Mathf.Log10(trackCount - 1), 0f);
@@ -75,6 +86,26 @@ namespace YARG.UI {
 				.WaitForCompletion();
 
 			_soloBox.gameObject.SetActive(false);
+		}
+
+		public void ShowPerformanceText(string text) {
+			StopCoroutine("SizePerformanceText");
+			StartCoroutine(SizePerformanceText(text));
+		}
+
+		private IEnumerator SizePerformanceText(string text) {
+			_performanceText.text = text;
+			_performanceTextSizer.ResetAnimationTime();
+
+			while (_performanceTextSizer.AnimTimeRemaining > 0f) {
+				_performanceTextSizer.AnimTimeRemaining -= Time.deltaTime;
+				_performanceText.fontSize = _performanceTextSizer.PerformanceTextFontSize();
+
+				// Update animation every frame
+				yield return null;
+			}
+
+			_performanceText.text = string.Empty;
 		}
 	}
 }

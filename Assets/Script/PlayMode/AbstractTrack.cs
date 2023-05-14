@@ -176,15 +176,9 @@ namespace YARG.PlayMode {
 
 			scoreKeeper = new();
 
-			// Set up performance text for BASS GROOVE and other similar messages
-			commonTrack.performanceText.color = Color.white;
-			commonTrack.perfTextSizer = new PerformanceTextSizer(
-				commonTrack.perfTextFontSize,
-				commonTrack.perfTextAnimLen);
-
 			// Set the end time for STRONG FINISH and FULL COMBO performance text checking
 			endTime = Chart[^1].time + Constants.HIT_MARGIN + commonTrack.bufferPeriod;
-			offsetEndTime = endTime + commonTrack.perfTextAnimLen;
+			offsetEndTime = endTime + 3f;
 
 			// Initlaize interval sizes
 			intervalSize = commonTrack.noteStreakInterval;
@@ -517,9 +511,7 @@ namespace YARG.PlayMode {
 						hotStartChecked = true;
 
 						if (FullCombo) {
-							// Set "HOT START" text
-							commonTrack.performanceText.text = "HOT START";
-							commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+							commonTrack.TrackView.ShowPerformanceText("HOT START");
 						}
 					}
 				}
@@ -528,30 +520,26 @@ namespace YARG.PlayMode {
 			// NOTE STREAK notifs
 			if (commonTrack.noteStreakNotifsEnabled) {
 				if (_recentCombo < halfIntervalSize && _combo >= halfIntervalSize) {
-					// Set "X/2-NOTE STREAK" TEXT
-					commonTrack.performanceText.text = $"{halfIntervalSize}-NOTE STREAK";
-					commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+					commonTrack.TrackView.ShowPerformanceText($"{halfIntervalSize}-NOTE STREAK");
 				}
 
 				currentNoteStreakInterval = _combo / intervalSize;
 
 				if (recentNoteStreakInterval < currentNoteStreakInterval) {
-					// Set "X-NOTE STREAK" text
-					commonTrack.performanceText.text = $"{currentNoteStreakInterval * intervalSize}-NOTE STREAK";
-					commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+					commonTrack.TrackView.ShowPerformanceText($"{currentNoteStreakInterval * intervalSize}-NOTE STREAK");
 				}
 			}
 
 			// BASS GROOVE notifs
 			// NOTE: This will always trump "X-NOTE STREAK" (in particular, "50-NOTE STREAK")
 			if (commonTrack.bassGrooveNotifsEnabled) {
-				if (player.chosenInstrument.Contains("ass")) {  // Should affect both "bass" and "proBass"
-					int triggerThreshold = IsStarPowerActive ? MaxMultiplier / 2 : MaxMultiplier;
+				// Top 10 programming moments
+				// Should affect both "bass" and "proBass"
+				if (player.chosenInstrument.Contains("ass")) {
+					// int triggerThreshold = IsStarPowerActive ? MaxMultiplier / 2 : MaxMultiplier;
 
 					if (recentlyBelowMaxMultiplier && Multiplier >= MaxMultiplier) {
-						// Set "BASS GROOVE" text
-						commonTrack.performanceText.text = "BASS GROOVE";
-						commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+						commonTrack.TrackView.ShowPerformanceText("BASS GROOVE");
 					}
 				}
 			}
@@ -559,9 +547,7 @@ namespace YARG.PlayMode {
 			// OVERDRIVE READY notifs
 			if (commonTrack.overdriveReadyNotifsEnabled) {
 				if (recentStarpowerCharge < 0.5f && starpowerCharge >= 0.5f && !IsStarPowerActive) {
-					// Set "OVERDRIVE READY" text
-					commonTrack.performanceText.text = "OVERDRIVE READY";
-					commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+					commonTrack.TrackView.ShowPerformanceText("OVERDRIVE READY");
 				}
 			}
 
@@ -572,13 +558,9 @@ namespace YARG.PlayMode {
 						strongFinishChecked = true;
 
 						if (FullCombo) {
-							// Set "FULL COMBO" text
-							commonTrack.performanceText.text = "FULL COMBO";
-							commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+							commonTrack.TrackView.ShowPerformanceText("FULL COMBO");
 						} else if (_combo >= commonTrack.strongFinishCutoff && commonTrack.strongFinishNotifsEnabled) {
-							// Set "STRONG FINISH" text
-							commonTrack.performanceText.text = "STRONG FINISH";
-							commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+							commonTrack.TrackView.ShowPerformanceText("STRONG FINISH");
 						}
 					}
 				}
@@ -588,9 +570,7 @@ namespace YARG.PlayMode {
 						fullComboChecked = true;
 
 						if (FullCombo) {
-							// Set "FULL COMBO" text
-							commonTrack.performanceText.text = "FULL COMBO";
-							commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+							commonTrack.TrackView.ShowPerformanceText("FULL COMBO");
 						}
 					}
 				}
@@ -603,24 +583,12 @@ namespace YARG.PlayMode {
 							strongFinishChecked = true;
 
 							if (_combo >= commonTrack.strongFinishCutoff) {
-								// Set "STRONG FINISH" text
-								commonTrack.performanceText.text = "STRONG FINISH";
-								commonTrack.perfTextSizer.animTimeRemaining = commonTrack.perfTextAnimLen;
+								commonTrack.TrackView.ShowPerformanceText("STRONG FINISH");
 							}
 						}
 					}
 				}
 			}
-
-			// Never let performance text appear when the solo box is present
-			if (soloInProgress) {
-				commonTrack.performanceText.text = "";
-				commonTrack.perfTextSizer.animTimeRemaining = 0.0f;
-			}
-
-			// Animate performance text
-			commonTrack.performanceText.fontSize = commonTrack.perfTextSizer.PerformanceTextFontSize();
-			commonTrack.perfTextSizer.animTimeRemaining -= Time.deltaTime;
 
 			// Update recent values
 			_recentCombo = _combo;
