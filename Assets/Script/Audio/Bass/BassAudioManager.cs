@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using ManagedBass;
 using UnityEngine;
 using YARG.Serialization;
+using YARG.Settings;
 using YARG.Song;
 using Debug = UnityEngine.Debug;
 
@@ -21,6 +23,9 @@ namespace YARG {
 		public double MasterVolume { get; private set; }
 		public double SfxVolume { get; private set; }
 
+		public double PreviewStartTime { get; private set; }
+		public double PreviewEndTime { get; private set; }
+
 		public double CurrentPositionD => GetPosition();
 		public double AudioLengthD { get; private set; }
 
@@ -34,6 +39,8 @@ namespace YARG {
 		private IStemMixer _mixer;
 
 		private ISampleChannel[] _sfxSamples;
+
+		private CancellationTokenSource _exitPreviewLoop;
 
 		public float pos;
 
@@ -259,9 +266,45 @@ namespace YARG {
 				LoadSong(AudioHelpers.GetSupportedStems(song.Location, SongStem.Crowd), false);
 			}
 
-			SetPosition(song.PreviewStartTimeSpan.TotalSeconds);
+			PreviewStartTime = song.PreviewStartTimeSpan.TotalSeconds;
+			if (PreviewStartTime <= 0) {
+				PreviewStartTime = 10;
+			}
+
+			PreviewEndTime = song.PreviewEndTimeSpan.TotalSeconds;
+			if (PreviewEndTime <= 0) {
+				PreviewEndTime = PreviewStartTime + Constants.PREVIEW_DURATION;
+			}
+
+			SetPosition(PreviewStartTime);
+		}
+		
+		public void StartPreviewAudio() {
+			_exitPreviewLoop = new CancellationTokenSource();
+			UniTask.Void(async () => {
+				await FadeOut();
+				LoadPreviewAudio(GameManager.Instance.SelectedSong);
+				FadeIn(SettingsManager.Settings.PreviewVolume.Data);
+
+				while (true) {
+					await UniTask.WaitWhile(() => CurrentPositionF < PreviewEndTime && CurrentPositionF < AudioLengthF, 
+						cancellationToken: _exitPreviewLoop.Token);
+
+					await FadeOut();
+					SetPosition(PreviewStartTime);
+					FadeIn(SettingsManager.Settings.PreviewVolume.Data);
+				}
+			});
 		}
 
+		public void StopPreviewAudio() {
+			_exitPreviewLoop?.Cancel();
+			UniTask.Void(async () => {
+				await FadeOut();
+				UnloadSong();
+			});
+		}
+		
 		public void Play() => Play(false);
 
 		private void Play(bool fadeIn) {

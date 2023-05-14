@@ -15,7 +15,10 @@ namespace YARG {
 
 		public double MasterVolume { get; }
 		public double SfxVolume { get; }
-
+		
+		public double PreviewStartTime { get; }
+		public double PreviewEndTime { get; }
+		
 		public double CurrentPositionD { get; }
 		public double AudioLengthD { get; }
 
@@ -32,6 +35,8 @@ namespace YARG {
 		public void UnloadSong();
 
 		public void LoadPreviewAudio(SongEntry song);
+		public void StartPreviewAudio();
+		public void StopPreviewAudio();
 
 		public void Play();
 		public void Pause();
