@@ -229,6 +229,7 @@ namespace YARG.UI.PlayResultScreen {
 				.SetEase(Ease.OutBack, overshoot: 1.2f)
 				.WaitForCompletion();
 
+			// show note that scoring system is WIP
 			scoreWIPNotice.DOFade(1f, 1f);
 
 			OnEnableAnimationFinish();

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using DG.Tweening;
 using MoonscraperChartEditor.Song;
 using MoonscraperChartEditor.Song.IO;
 using TrombLoader.Helpers;
@@ -194,7 +195,7 @@ namespace YARG.PlayMode {
 
 			// Hide loading screen
 			GameUI.Instance.loadingContainer.SetActive(false);
-			
+
 			realSongTime = SONG_START_OFFSET;
 			StartCoroutine(StartAudio());
 
@@ -527,7 +528,6 @@ namespace YARG.PlayMode {
 					Destroy(track.gameObject);
 				}
 				_tracks.Clear();
-				
 				// save MicPlayer score and destroy it
 				if (MicPlayer.Instance != null) {
 					MicPlayer.Instance.SetPlayerScore();
@@ -537,7 +537,6 @@ namespace YARG.PlayMode {
 				// show play result screen; this is our main focus now
 				playResultScreen.SetActive(true);
 			}
-			
 			scoreDisplay.SetActive(false);
 		}
 

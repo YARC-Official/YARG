@@ -74,7 +74,7 @@ namespace YARG.PlayMode {
 			starsKeeper = new(Chart, scoreKeeper,
 				player.chosenInstrument,
 				PTS_PER_NOTE);
-			
+
 			noteCount = GetChartCount();
 		}
 
@@ -99,11 +99,6 @@ namespace YARG.PlayMode {
 			while (events.Count > eventChartIndex && events[eventChartIndex].time <= RelativeTime) {
 				var eventInfo = events[eventChartIndex];
 
-				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(RelativeTime, eventInfo.time);
-				// if (eventInfo.name == "beatLine_minor") {
-				// 	genericPool.Add("beatLine_minor", new(0f, 0.01f, compensation));
-				// } else if (eventInfo.name == "beatLine_major") {
-				// 	genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
 				if (eventInfo.name == $"starpower_{player.chosenInstrument}") {
 					StarpowerSection = eventInfo;
 				} else if (eventInfo.name == $"solo_{player.chosenInstrument}") {
@@ -379,7 +374,7 @@ namespace YARG.PlayMode {
 				if (hit.length > 0.2f) {
 					heldNotes.Add(hit);
 					if (hit.fret < 5) frets[hit.fret].PlaySustainParticles(); // TEMP (remove check later)
-					scoreKeeper.Add(susTracker.Strum(hit) * Multiplier * SUSTAIN_PTS_PER_BEAT);    
+					scoreKeeper.Add(susTracker.Strum(hit) * Multiplier * SUSTAIN_PTS_PER_BEAT);
 					if (hit.fret < 5) frets[hit.fret].PlayAnimationSustainsLooped(); // TEMP (remove check later)
 
 					// Check if it's extended sustain;
@@ -774,18 +769,13 @@ namespace YARG.PlayMode {
 			return extendedSustain.Any(x => x);
 		}
 
-		public override void AddSoloNoteCount(int i) {
-			if (i == 0 || Chart[i].time > Chart[i-1].time) {
-				soloNoteCount++;
-			}
-		}
 		public override int GetChartCount() {
 			if (noteCount > -1) {
 				return noteCount;
 			}
 			int count = 0;
 			for (int i = 0; i < Chart.Count; i++) {
-				if (i == 0 || Chart[i].time > Chart[i-1].time) {
+				if (i == 0 || Chart[i].time > Chart[i - 1].time) {
 					count++;
 				}
 			}
