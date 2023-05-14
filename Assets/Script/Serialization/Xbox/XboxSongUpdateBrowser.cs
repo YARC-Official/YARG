@@ -11,9 +11,9 @@ using YARG.Song;
 
 namespace YARG.Serialization {
 	public static class XboxSongUpdateBrowser {
-        public static List<string> GetUpdatableShortnames(string update_folder){
-            var songList = new List<string>();
+        public static Dictionary<string, List<DataArray>> FetchSongUpdates(string update_folder){
 			var dtaTree = new DataArray();
+			var UpdateSongDict = new Dictionary<string, List<DataArray>>();
 
             // Attempt to read songs_updates.dta
 			try {
@@ -28,14 +28,30 @@ namespace YARG.Serialization {
             // Read each shortname the dta file lists
 			for (int i = 0; i < dtaTree.Count; i++) {
 				try {
-					string currentName = ((DataArray) dtaTree[i]).Name;
-					songList.Add(currentName);
+					var currentArray = (DataArray) dtaTree[i];
+					string currentName = currentArray.Name;
+
+					if(UpdateSongDict.TryGetValue(currentName, out var value)){
+						UpdateSongDict[currentName].Add(currentArray);
+					}
+					else {
+						var dArray = new List<DataArray>();
+						dArray.Add(currentArray);
+						UpdateSongDict.Add(currentName, dArray);
+					}
+
 				} catch (Exception e) {
 					Debug.Log($"Failed to get shortname, skipping...");
 					Debug.LogException(e);
 				}
 			}
-            return songList;
+
+			// Debug.Log($"Song updates:");
+			// foreach(var item in UpdateSongDict){
+			// 	Debug.Log($"{item.Key} has update array count of {item.Value.Count}");
+			// }
+
+            return UpdateSongDict;
         }
     }
 }
