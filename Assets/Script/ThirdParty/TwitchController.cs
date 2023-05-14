@@ -5,6 +5,7 @@ using YARG.Data;
 using YARG.PlayMode;
 using YARG.Song;
 using YARG.UI;
+using Newtonsoft.Json;
 
 namespace YARG {
 	public class TwitchController : MonoBehaviour {
@@ -66,7 +67,7 @@ namespace YARG {
 			}
 			
 			// Convert to JSON
-			string json = JsonUtility.ToJson(song);
+			string json = JsonConvert.SerializeObject(song);
 
 			// Write text to the file
 			writer.Write(str);
