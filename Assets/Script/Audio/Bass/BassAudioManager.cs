@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Cysharp.Threading.Tasks;
 using ManagedBass;
 using UnityEngine;
 using YARG.Serialization;
@@ -302,10 +303,12 @@ namespace YARG {
 			}
 		}
 
-		public void FadeOut() {
+		public UniTask FadeOut() {
 			if (IsPlaying) {
-				_mixer?.FadeOut();
+				return _mixer.FadeOut();
 			}
+
+			return default;
 		}
 
 		public void PlaySoundEffect(SfxSample sample) {

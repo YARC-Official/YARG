@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 
 namespace YARG {
 	public interface IStemMixer : IDisposable {
@@ -17,8 +18,8 @@ namespace YARG {
 
 		public int Play(bool restart = false);
 
-		public void FadeOut();
 		public void FadeIn(float maxVolume);
+		public UniTask FadeOut();
 		
 		public int Pause();
 
