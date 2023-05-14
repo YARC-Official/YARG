@@ -24,15 +24,6 @@ jobs:
   macBuilder:
     name: Mac Build for v${{ inputs.version }}
     runs-on: macos-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        # projectPath:
-        #   - test-project
-        unityVersion:
-          - 2021.3.21f1
-        targetPlatform:
-          - StandaloneOSX
 
     steps:
       ###########################
@@ -50,7 +41,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: Library
-          key: YARG-Library-macos-${{ matrix.targetPlatform }}
+          key: YARG-Library-macos-StandaloneOSX
           restore-keys: |
             YARG-Library-macos-
             YARG-Library-
@@ -105,10 +96,9 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          # projectPath: ${{ matrix.projectPath }}
           buildName: YARG
-          unityVersion: ${{ matrix.unityVersion }}
-          targetPlatform: ${{ matrix.targetPlatform }}
+          unityVersion: 2021.3.21f1
+          targetPlatform: StandaloneOSX
           cacheUnityInstallationOnMac: true
 
       ###########################
