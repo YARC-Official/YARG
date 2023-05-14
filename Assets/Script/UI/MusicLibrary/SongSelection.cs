@@ -413,6 +413,7 @@ namespace YARG.UI.MusicLibrary {
 
 		public void Back() {
 			if (string.IsNullOrEmpty(searchField.text)) {
+				GameManager.AudioManager.StopPreviewAudio();
 				MainMenu.Instance.ShowMainMenu();
 			} else {
 				searchField.text = "";
