@@ -3,6 +3,11 @@ name: Fix macOS permissions on latest released build
 on:
   workflow_dispatch:
     inputs:
+      version:
+        description: "Version (\"vX.XX.X\" or \"latest\")"
+        default: "latest"
+        required: true
+        type: string
       createZip:
         description: "Create .zip file"
         default: true
@@ -12,18 +17,36 @@ on:
         default: true
         type: boolean
 
+env:
+  repository: YARC-Official/YARG
+  fileName: "*.zip"
+  extract: true
+
 jobs:
   fixMacBuild:
     name: Fixing Mac permissions for ${{ github.ref }}
     runs-on: macos-latest
 
     steps: 
-      - name: Get Latest Release
-        uses: pozetroninc/github-action-get-latest-release@master
+      - if: ${{ inputs.version == 'latest' }}
+        name: Get Latest Release
+        uses: robinraju/release-downloader@v1.8
         with:
-          owner: YARC-Official
-          repo: YARG
-          token: ${{ github.token }}
+          repository: ${{ env.repository }}
+          fileName: ${{ env.fileName }}
+          extract: ${{ env.extract }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          latest: true
+
+      - if: ${{ inputs.version != 'latest' }}
+        name: Get specific release (${{ inputs.version }})
+        uses: robinraju/release-downloader@v1.8
+        with:
+          repository: ${{ env.repository }}
+          fileName: ${{ env.fileName }}
+          extract: ${{ env.extract }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ inputs.version }}
 
       - name: Unzip release
         run: find . -name *.zip -print -exec unzip {} \;
