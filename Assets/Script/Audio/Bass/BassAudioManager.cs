@@ -295,10 +295,10 @@ namespace YARG {
 			IsPlaying = _mixer.IsPlaying;
 		}
 
-		public void FadeIn() {
+		public void FadeIn(float maxVolume) {
 			Play(true);
 			if (IsPlaying) {
-				_mixer?.FadeIn();
+				_mixer?.FadeIn(maxVolume);
 			}
 		}
 

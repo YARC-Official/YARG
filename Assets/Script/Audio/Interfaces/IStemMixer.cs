@@ -17,8 +17,8 @@ namespace YARG {
 
 		public int Play(bool restart = false);
 
-		public void FadeIn();
 		public void FadeOut();
+		public void FadeIn(float maxVolume);
 		
 		public int Pause();
 

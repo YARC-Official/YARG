@@ -35,8 +35,8 @@ namespace YARG {
 		public void Play();
 		public void Pause();
 
-		public void FadeIn();
 		public void FadeOut();
+		public void FadeIn(float maxVolume);
 
 		public void PlaySoundEffect(SfxSample sample);
 

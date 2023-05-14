@@ -120,12 +120,10 @@ namespace YARG {
 			return 0;
 		}
 
-		public void FadeIn() {
-			double volumeSetting = _manager.GetVolumeSetting(Stem);
-			
+		public void FadeIn(float maxVolume) {
 			foreach (int channel in BassChannels) {
 				Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, 0);
-				Bass.ChannelSlideAttribute(channel, ChannelAttribute.Volume, (float)volumeSetting, BassHelpers.FADE_TIME_MILLISECONDS);
+				Bass.ChannelSlideAttribute(channel, ChannelAttribute.Volume, maxVolume, BassHelpers.FADE_TIME_MILLISECONDS);
 			}
 		}
 

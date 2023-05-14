@@ -118,9 +118,9 @@ namespace YARG {
 			return 0;
 		}
 
-		public void FadeIn() {
+		public void FadeIn(float maxVolume) {
 			foreach (var channel in Channels.Values) {
-				channel.FadeIn();
+				channel.FadeIn(maxVolume);
 			}
 		}
 
