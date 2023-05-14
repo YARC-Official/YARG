@@ -64,24 +64,23 @@ jobs:
         id: blender
         uses: actions/cache@v3
         with: 
-          path: Temp/BlenderInstall
+          path: ${{ runner.temp }}/BlenderInstall
           key: blender-3.4.1
           restore-keys: blender-
 
       - if: ${{ steps.blender.outputs.cache-hit != 'true' }}
         name: "[Pre-install] Download Blender (3.4.1)"
         continue-on-error: true
-        run: mkdir -p Temp/BlenderInstall && curl -L -o "Temp/BlenderInstall/blender.dmg" https://download.blender.org/release/Blender3.4/blender-3.4.1-macos-x64.dmg
+        run: mkdir ${{ runner.temp }}/BlenderInstall && curl -L -o "${{ runner.temp }}/BlenderInstall/blender.dmg" https://download.blender.org/release/Blender3.4/blender-3.4.1-macos-x64.dmg
 
       # - name: "[Pre-install] Install Blender"
       #   run: brew install --cask blender
 
       - name: "[Pre-install] Install Blender (3.4.1)"
         run: >
-          hdiutil attach Temp/BlenderInstall/blender.dmg && 
+          hdiutil attach ${{ runner.temp }}/BlenderInstall/blender.dmg && 
           cp -R /Volumes/Blender/Blender.app /Applications && 
-          hdiutil unmount /Volumes/Blender &&
-          chmod 555 Temp/BlenderInstall/blender.dmg
+          hdiutil unmount /Volumes/Blender
 
       ###########################
       #    Install Libraries    #
