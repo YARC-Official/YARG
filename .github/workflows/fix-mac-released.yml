@@ -52,12 +52,7 @@ jobs:
         run: find . -name *.app -execdir chmod +x {}/Contents/MacOS/YARG \;
 
       - name: Fix file attributes
-        run: |
-          if ! type "xattr" > /dev/null; then
-            echo "xattr does not exist"
-          else
-            find . -name *.app -execdir xattr -cr {} \;
-          fi
+        run: find . -name *.app -execdir xattr -cr {} \;
 
       - name: Create Packages folder
         run: mkdir Packages
