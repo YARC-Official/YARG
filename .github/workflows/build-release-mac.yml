@@ -11,6 +11,10 @@ on:
           description: "Create .zip file"
           default: true
           type: boolean
+        createTar:
+          description: "Create .tar.bz2 file"
+          default: true
+          type: boolean
         createDmg:
           description: "Create .dmg file"
           default: true
@@ -114,6 +118,21 @@ jobs:
         with:
           name: YARG_v${{ inputs.version }}-MacOS-Universal.zip
           path: YARG_v${{ inputs.version }}-MacOS-Universal.zip
+
+      ###########################
+      #    Compress .tar.bz2    #
+      ###########################
+
+      - if: ${{ inputs.createTar == true }}
+        name: "[Post-build] Compress to a .tar.bz2"
+        run: tar --xattrs -c -j -f YARG_v${{ inputs.version }}-MacOS-Universal.tar.bz2 build/StandaloneOSX/YARG.app \; 
+
+      - if: ${{ inputs.createTar == true }}
+        name: "[Post-build] Upload .tar.bz2 to artifacts"
+        uses: actions/upload-artifact@v3
+        with:
+          name: YARG_v${{ inputs.version }}-MacOS-Universal.tar.bz2
+          path: YARG_v${{ inputs.version }}-MacOS-Universal.tar.bz2
 
       ###########################
       #       Create .DMG       #
