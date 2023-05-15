@@ -112,10 +112,6 @@ namespace YARG.PlayMode {
 		protected StarScoreKeeper starsKeeper;
 		protected SustainTracker susTracker;
 
-		//Video Player Object
-		public GameObject performanceVideoObject; // GameObject to activate
-		public VideoPlayer videoPlayer; // VideoPlayer component
-
 		private bool _stopAudio = false;
 		protected bool StopAudio {
 			set {
@@ -190,7 +186,9 @@ namespace YARG.PlayMode {
 			halfIntervalSize = intervalSize / 2;
 
 			// Video Player
-			videoPlayer = performanceVideoObject.GetComponent<VideoPlayer>();
+			commonTrack.TrackView.videoPlayer = commonTrack.TrackView.GetComponent<VideoPlayer>();
+			commonTrack.TrackView.videoPlayer.enabled = true;
+			commonTrack.TrackView.videoPlayer.Prepare();
 
 			StartTrack();
 		}
@@ -569,8 +567,8 @@ namespace YARG.PlayMode {
 							// empty the text string because we are now using the video
 							commonTrack.TrackView.ShowPerformanceText(" ");
 							// Play video when a full combo is achieved
-							VideoPlayer videoPlayer = performanceVideoObject.GetComponent<VideoPlayer>();
-							performanceVideoObject.SetActive(true); // activate the GameObject
+							VideoPlayer videoPlayer = commonTrack.TrackView.GetComponent<VideoPlayer>();
+							commonTrack.TrackView.performanceVideoObject.SetActive(true); // activate the GameObject
 							videoPlayer.clip = Resources.Load<VideoClip>("Art/Videos/full_combo");
 							videoPlayer.Play();
 						} else if (_combo >= commonTrack.strongFinishCutoff && commonTrack.strongFinishNotifsEnabled) {
@@ -587,8 +585,8 @@ namespace YARG.PlayMode {
 							// empty the text string because we are now using the video
 							commonTrack.TrackView.ShowPerformanceText(" ");
 							// Play video when a full combo is achieved
-							VideoPlayer videoPlayer = performanceVideoObject.GetComponent<VideoPlayer>();
-							performanceVideoObject.SetActive(true); // activate the GameObject
+							VideoPlayer videoPlayer = commonTrack.TrackView.GetComponent<VideoPlayer>();
+							commonTrack.TrackView.performanceVideoObject.SetActive(true); // activate the GameObject
 							videoPlayer.clip = Resources.Load<VideoClip>("Art/Videos/full_combo");
 							videoPlayer.Play();
 						}
@@ -612,10 +610,10 @@ namespace YARG.PlayMode {
 
 			void DeactivatePerformanceVideo(VideoPlayer vp) {
 				// Deactivate the video GameObject
-				performanceVideoObject.SetActive(false);
+				commonTrack.TrackView.performanceVideoObject.SetActive(false);
 
 				// Unsubscribe the event
-				videoPlayer.loopPointReached -= DeactivatePerformanceVideo;
+				commonTrack.TrackView.videoPlayer.loopPointReached -= DeactivatePerformanceVideo;
 			}
 
 			// Update recent values

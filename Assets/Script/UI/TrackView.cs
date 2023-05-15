@@ -3,6 +3,7 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Video;
 using YARG.PlayMode;
 
 namespace YARG.UI {
@@ -31,6 +32,8 @@ namespace YARG.UI {
 		[Space]
 		[SerializeField]
 		private Sprite _normalSoloBox;
+		public GameObject performanceVideoObject; // GameObject to activate
+		public VideoPlayer videoPlayer; // VideoPlayer component
 
 		private bool _soloBoxShowing = false;
 
