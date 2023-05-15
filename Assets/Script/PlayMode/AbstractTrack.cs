@@ -409,6 +409,7 @@ namespace YARG.PlayMode {
 				if (!soloInProgress) {
 					soloInProgress = true;
 					soloNotesHit = 0;
+					soloNoteCount = 0;
 
 					float lastNoteTime = -1f;
 					for (int i = hitChartIndex; i < Chart.Count; i++) {

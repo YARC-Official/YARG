@@ -482,6 +482,9 @@ namespace YARG.PlayMode {
 				if (fret == 5) {
 					// Deal with open notes
 					for (int i = 0; i < frets.Length; i++) {
+						if (overlap && heldNotes.Any(j => j.fret == i)) {
+							continue;
+						}
 						if (frets[i].IsPressed) {
 							return false;
 						}
