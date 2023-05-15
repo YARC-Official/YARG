@@ -49,7 +49,7 @@ jobs:
           tag: ${{ inputs.version }}
 
       - name: Fix permissions
-        run: find . -name *.app -execdir chmod +x {}/Contents/MacOS/YARG \;
+        run: find . -name *.app -execdir chmod -R +x {}/Contents/MacOS \;
 
       - name: Fix file attributes
         run: find . -name *.app -execdir xattr -cr {} \;
