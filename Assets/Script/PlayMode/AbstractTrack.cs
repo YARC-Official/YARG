@@ -551,7 +551,13 @@ namespace YARG.PlayMode {
 					// int triggerThreshold = IsStarPowerActive ? MaxMultiplier / 2 : MaxMultiplier;
 
 					if (recentlyBelowMaxMultiplier && Multiplier >= MaxMultiplier) {
-						commonTrack.TrackView.ShowPerformanceText("BASS GROOVE");
+						// empty the text string because we are now using the video
+						commonTrack.TrackView.ShowPerformanceText(" ");
+						// Play video when a full combo is achieved
+						VideoPlayer videoPlayer = commonTrack.TrackView.GetComponent<VideoPlayer>();
+						commonTrack.TrackView.performanceVideoObject.SetActive(true); // activate the GameObject
+						videoPlayer.clip = Resources.Load<VideoClip>("bass_groove");
+						videoPlayer.Play();
 					}
 				}
 			}
