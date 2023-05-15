@@ -7,10 +7,9 @@ using MoonscraperChartEditor.Song;
 using MoonscraperChartEditor.Song.IO;
 using TrombLoader.Helpers;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
-using DG.Tweening;
+using UnityEngine.UI;
 using YARG.Chart;
 using YARG.Data;
 using YARG.Serialization.Parser;
@@ -123,6 +122,7 @@ namespace YARG.PlayMode {
 		private SongEntry Song => GameManager.Instance.SelectedSong;
 
 		private bool playingRhythm = false;
+		private bool playingVocals = false;
 
 		private void Awake() {
 			Instance = this;
@@ -172,6 +172,11 @@ namespace YARG.PlayMode {
 				// Temporary, will make a better system later
 				if (player.chosenInstrument == "rhythm") {
 					playingRhythm = true;
+				}
+
+				// Temporary, same here
+				if (player.chosenInstrument == "vocals" || player.chosenInstrument == "harmVocals") {
+					playingVocals = true;
 				}
 
 				string trackPath = player.inputStrategy.GetTrackPath();
@@ -412,6 +417,18 @@ namespace YARG.PlayMode {
 			}
 
 			// Update lyrics
+			if (!playingVocals) {
+				UpdateGenericLyrics();
+			}
+
+			// End song
+			if (!endReached && realSongTime >= SongLength) {
+				endReached = true;
+				StartCoroutine(EndSong(true));
+			}
+		}
+
+		private void UpdateGenericLyrics() {
 			if (lyricIndex < chart.genericLyrics.Count) {
 				var lyric = chart.genericLyrics[lyricIndex];
 
@@ -441,12 +458,6 @@ namespace YARG.PlayMode {
 					GameUI.Instance.SetGenericLyric(o);
 					lyricPhraseIndex++;
 				}
-			}
-
-			// End song
-			if (!endReached && realSongTime >= SongLength) {
-				endReached = true;
-				StartCoroutine(EndSong(true));
 			}
 		}
 
@@ -515,7 +526,7 @@ namespace YARG.PlayMode {
 			backgroundRenderTexture.ClearTexture();
 
 			OnSongEnd?.Invoke(Song);
-			
+
 			// run animation + save if we've reached end of song
 			if (showResultScreen) {
 				yield return playCover
