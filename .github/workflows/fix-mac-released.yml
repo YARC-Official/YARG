@@ -49,14 +49,14 @@ jobs:
           tag: ${{ inputs.version }}
 
       - name: Fix permissions
-        run: find . -name *.app -print -execdir chmod +x {}/Contents/MacOS/YARG \;
+        run: find . -name *.app -execdir chmod +x {}/Contents/MacOS/YARG \;
 
       - name: Fix file attributes
         run: |
           if ! type "xattr" > /dev/null; then
             echo "xattr does not exist"
           else
-            find . -name *.app -print -execdir xattr -cr {} \;
+            find . -name *.app -execdir xattr -cr {} \;
           fi
 
       - name: Create Packages folder
@@ -64,7 +64,7 @@ jobs:
 
       - if: ${{ inputs.createZip == true }}
         name: "Creating .zip"
-        run: find . -name *.app -print -execdir ditto -c -k --keepParent {} Packages/{}.zip \; 
+        run: find . -name *.app -execdir ditto -c -k --keepParent {} Packages/{}.zip \; 
 
 
       - name: "Creating .dmg"
@@ -75,7 +75,7 @@ jobs:
           brew install graphicsmagick imagemagick &&
           npm install --global create-dmg &&
           echo "- Creating DMG" &&
-          find . -name *.app -print -execdir create-dmg --dmg-title=YARG {} Packages \; 
+          find . -name *.app -execdir create-dmg --dmg-title=YARG {} Packages \; 
 
 
       - name: "Upload pacakges to artifacts"
