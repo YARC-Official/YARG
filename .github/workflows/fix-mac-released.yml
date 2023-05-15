@@ -28,7 +28,7 @@ env:
 
 jobs:
   fixMacBuild:
-    name: Fixing Mac permissions for ${{ github.ref }}
+    name: Fixing Mac permissions for ${{ inputs.version }}
     runs-on: macos-latest
 
     steps: 
