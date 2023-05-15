@@ -12,6 +12,10 @@ on:
         description: "Create .zip file"
         default: true
         type: boolean
+      createTar:
+        description: "Create .tar.bz2 file"
+        default: true
+        type: boolean
       createDmg:
         description: "Create .dmg file"
         default: true
@@ -61,6 +65,9 @@ jobs:
         name: "Creating .zip"
         run: find . -name *.app -execdir ditto -c -k --keepParent {} Packages/{}.zip \; 
 
+      - if: ${{ inputs.createTar == true }}
+        name: "Creating .tar.bz2"
+        run: find . -name *.app -execdir tar --xattrs -c -j -f Packages/{}.tar.bz2 {} \; 
 
       - name: "Creating .dmg"
         if: ${{ inputs.createDmg == true }}
