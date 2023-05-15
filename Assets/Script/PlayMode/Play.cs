@@ -234,41 +234,50 @@ namespace YARG.PlayMode {
 				return;
 			}
 
-			// Next, a video
+			// Finally, a picture or video
 
-			string[] videoPaths = {
-				"bg.mp4",
-				"bg.mov",
-				"bg.webm",
+			string[] fileNames = {
+				"bg",
+				"background",
+				"video"
 			};
 
-			foreach (var file in videoPaths) {
-				var path = Path.Combine(Song.Location, file);
+			string[] videoExtensions = {
+				".mp4",
+				".mov",
+				".webm",
+			};
 
-				if (File.Exists(path)) {
-					GameUI.Instance.videoPlayer.url = path;
-					GameUI.Instance.videoPlayer.enabled = true;
+			foreach (var name in fileNames) {
+				foreach (var ext in videoExtensions) {
+					var path = Path.Combine(Song.Location, name + ext);
 
-					return;
+					if (File.Exists(path)) {
+						GameUI.Instance.videoPlayer.url = path;
+						GameUI.Instance.videoPlayer.enabled = true;
+						GameUI.Instance.videoPlayer.Prepare();
+
+						return;
+					}
 				}
 			}
 
-			// Finally, an image
-
-			string[] imagePaths = {
-				"bg.png",
-				"bg.jpg",
-				"bg.jpeg",
+			string[] imageExtensions = {
+				".png",
+				".jpg",
+				".jpeg",
 			};
 
-			foreach (var file in imagePaths) {
-				var path = Path.Combine(Song.Location, file);
+			foreach (var name in fileNames) {
+				foreach (var ext in imageExtensions) {
+					var path = Path.Combine(Song.Location, name + ext);
 
-				if (File.Exists(path)) {
-					var png = ImageHelper.LoadTextureFromFile(path);
+					if (File.Exists(path)) {
+						var png = ImageHelper.LoadTextureFromFile(path);
 
-					GameUI.Instance.background.texture = png;
-					return;
+						GameUI.Instance.background.texture = png;
+						return;
+					}
 				}
 			}
 		}
