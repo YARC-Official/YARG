@@ -44,20 +44,6 @@ namespace YARG.PlayMode {
 		public Color comboSunburstSPColor;
 
 		[Space]
-		public TextMeshPro soloText;
-		public SpriteRenderer soloBox;
-		public Sprite soloMessySprite;
-		public Sprite soloPerfectSprite;
-		public Sprite soloDefaultSprite;
-		
-		[Space]
-		[SerializeField]
-		public TextMeshPro performanceText;
-		public PerformanceTextSizer perfTextSizer;
-		public float perfTextFontSize;
-		public float perfTextAnimLen;
-
-		[Space]
 		// Toggle settings for performance text
 		// NOTE: THIS SHOULD REALLY BE REPLACED BY A PROPER SETTINGS CLASS
 		public bool hotStartNotifsEnabled;

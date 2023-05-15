@@ -164,7 +164,7 @@ namespace YARG.PlayMode {
 		private float totalSingPercent;
 
 		private string lastSecondHarmonyLyric = "";
-		
+
 		[Space]
 		public PerformanceTextSizer perfTextSizer;
 		public float fontSize;
@@ -284,7 +284,7 @@ namespace YARG.PlayMode {
 			// note: micInput.Count = number of players on vocals
 			ptsPerPhrase = MAX_POINTS[(int) micInputs[0].player.chosenDifficulty];
 			starsKeeper = new(scoreKeeper, micInputs[0].player.chosenInstrument, phrases, ptsPerPhrase);
-			
+
 			// Prepare performance text characteristics
 			perfTextSizer = new PerformanceTextSizer(fontSize, animTimeLength);
 			preformaceText.color = Color.white;
@@ -623,7 +623,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Animate and get performance text size given the current timestamp
-			perfTextSizer.animTimeRemaining -= Time.deltaTime;
+			perfTextSizer.AnimTimeRemaining -= Time.deltaTime;
 			preformaceText.fontSize = perfTextSizer.PerformanceTextFontSize();
 
 			// Update combo text
@@ -773,7 +773,7 @@ namespace YARG.PlayMode {
 			};
 
 			// Begin animation and start countdown
-			perfTextSizer.animTimeRemaining = animTimeLength;
+			perfTextSizer.AnimTimeRemaining = animTimeLength;
 
 			// Add to sing percent
 			totalSingPercent += Mathf.Min(bestPercent, 1f);
