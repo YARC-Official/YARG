@@ -304,7 +304,9 @@ namespace YARG {
 					SetPosition(PreviewStartTime);
 					FadeIn(SettingsManager.Settings.PreviewVolume.Data);
 				}
-			} catch (OperationCanceledException) { }
+			} catch {
+				// Exit out of loop
+			}
 		}
 
 		public void StopPreviewAudio() {
