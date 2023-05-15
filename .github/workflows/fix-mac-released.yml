@@ -56,7 +56,7 @@ jobs:
         run: find . -name *.app -execdir chmod -R +x {}/Contents/MacOS \;
 
       - name: Fix file attributes
-        run: find . -name *.app -execdir xattr -cr {} \;
+        run: find . -name *.app -execdir xattr -cr {} \; -execdir xattr -rd com.apple.quarantine {} \;
 
       - name: Create Packages folder
         run: mkdir Packages
