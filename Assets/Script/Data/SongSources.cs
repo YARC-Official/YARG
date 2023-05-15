@@ -277,7 +277,7 @@ namespace YARG.Data {
 		}
 
 		public static int GetSourceCount() {
-			return webSourceNames?.Count ?? DEFAULT_SOURCES.Count;
+			return webSourceNames.Count;
 		}
 	}
 }
