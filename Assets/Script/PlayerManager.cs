@@ -15,6 +15,7 @@ namespace YARG {
 			public DiffScore score;
 			public int notesHit;
 			public int notesMissed;
+			public int maxCombo;
 
 		}
 

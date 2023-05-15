@@ -209,7 +209,8 @@ namespace YARG.PlayMode {
 					stars = math.clamp((int) starsKeeper.Stars, 0, 6)
 				},
 				notesHit = notesHit,
-				notesMissed = GetChartCount() - notesHit
+				notesMissed = GetChartCount() - notesHit,
+				maxCombo = MaxCombo
 			};
 		}
 
