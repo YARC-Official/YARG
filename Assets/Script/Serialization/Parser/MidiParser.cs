@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
@@ -24,21 +25,25 @@ namespace YARG.Serialization.Parser {
 		public MidiFile midi;
 
 		public MidiParser(SongEntry songEntry, string[] files) : base(songEntry, files) {
-			// get base midi
-			if (songEntry.SongType == SongType.RbCon) {
+			// get base midi - read it in latin1 if RB, UTF-8 if clon
+			if(songEntry.SongType == SongType.RbCon){
 				var conSong = (ConSongEntry) songEntry;
 				using var stream = new MemoryStream(XboxCONInnerFileRetriever.RetrieveFile(
 					conSong.Location, conSong.MidiFileSize, conSong.MidiFileMemBlockOffsets
 				));
-				midi = MidiFile.Read(stream, new ReadingSettings() { TextEncoding = System.Text.Encoding.UTF8 });
-			} else midi = MidiFile.Read(files[0], new ReadingSettings() { TextEncoding = System.Text.Encoding.UTF8 });
+				midi = MidiFile.Read(stream, new ReadingSettings() { TextEncoding = Encoding.GetEncoding("iso-8859-1") });
+			}
+			else if(songEntry.SongType == SongType.ExtractedRbCon){
+				midi = MidiFile.Read(files[0], new ReadingSettings() { TextEncoding = Encoding.GetEncoding("iso-8859-1") });
+			}
+			else midi = MidiFile.Read(files[0], new ReadingSettings() { TextEncoding = Encoding.UTF8 });
 
 			// if this is a RB song, and it contains an update, merge the base and update midi
 			if(songEntry is ExtractedConSongEntry oof){
 				if(oof.DiscUpdate){
 					List<string> BaseTracksToAdd = new List<string>();
 					List<string> UpdateTracksToAdd = new List<string>();
-					MidiFile midi_update = MidiFile.Read(oof.UpdateMidiPath, new ReadingSettings() { TextEncoding = System.Text.Encoding.UTF8 });
+					MidiFile midi_update = MidiFile.Read(oof.UpdateMidiPath, new ReadingSettings() { TextEncoding = Encoding.GetEncoding("iso-8859-1") });
 
 					// get base track names
 					foreach(var trackChunk in midi.GetTrackChunks()){
