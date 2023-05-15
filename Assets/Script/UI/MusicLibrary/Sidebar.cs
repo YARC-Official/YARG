@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -63,29 +64,35 @@ namespace YARG.UI.MusicLibrary {
 			}
 
 			var viewType = SongSelection.Instance.Songs[SongSelection.Instance.SelectedIndex];
-			if (viewType is not SongViewType songViewType) {
-				// setting the sidebar info when we are on a header
-				// It would be nice to have this display more data but I didn't want to monkey around with song scanning to get get number of charters, genres, etc
+
+			if (viewType is CategoryViewType categoryViewType) {
+				// Hide album art
 				_albumCover.texture = null;
 				_albumCover.color = Color.clear;
 				_album.text = "";
-				_source.text = SongSources.GetSourceCount().ToString()+ " sources";
-				_charter.text = "";
-				_genre.text = 	"";
+
+				int sourceCount = categoryViewType.CountOf(i => i.Genre);
+				_source.text = $"{sourceCount} sources";
+
+				int charterCount = categoryViewType.CountOf(i => i.Charter);
+				_charter.text = $"{charterCount} charters";
+
+				int genreCount = categoryViewType.CountOf(i => i.Genre);
+				_genre.text = $"{genreCount} genres";
+
 				_year.text = "";
 				_length.text = "";
 				_infoText.text = "";
-				//We might want to add a dummy song so we can call UpdateDifficulties() and set all the rings to -1
-				difficultyRings[0].SetInfo(true, Instrument.GUITAR, -1);
-				difficultyRings[1].SetInfo(true, Instrument.BASS, -1);
-				difficultyRings[2].SetInfo(true, Instrument.DRUMS, -1);
-				difficultyRings[3].SetInfo(true, Instrument.KEYS, -1);
-				difficultyRings[4].SetInfo(true, Instrument.VOCALS, -1);
-				difficultyRings[5].SetInfo(true, Instrument.REAL_GUITAR, -1);
-				difficultyRings[6].SetInfo(true, Instrument.REAL_BASS, -1);
-				difficultyRings[7].SetInfo(false, "trueDrums", -1);
-				difficultyRings[8].SetInfo(true, Instrument.REAL_KEYS, -1);
-				difficultyRings[9].SetInfo(false, "band", -1);
+
+				// Hide all difficulty rings
+				foreach (var difficultyRing in difficultyRings) {
+					difficultyRing.gameObject.SetActive(false);
+				}
+
+				return;
+			}
+
+			if (viewType is not SongViewType songViewType) {
 				return;
 			}
 
@@ -97,7 +104,6 @@ namespace YARG.UI.MusicLibrary {
 			_genre.text = songEntry.Genre;
 			_year.text = songEntry.Year;
 			_infoText.text = songEntry.LoadingPhrase;
-			
 
 			// Format and show length
 			if (songEntry.SongLengthTimeSpan.Hours > 0) {
@@ -113,6 +119,11 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		private void UpdateDifficulties(SongEntry songEntry) {
+			// Show all difficulty rings
+			foreach (var difficultyRing in difficultyRings) {
+				difficultyRing.gameObject.SetActive(true);
+			}
+
 			/*
 			
 				Guitar               ; Bass               ; 4 or 5 lane ; Keys     ; Mic (dependent on mic count) 
@@ -230,11 +241,13 @@ namespace YARG.UI.MusicLibrary {
 
 			try {
 				byte[] bytes;
-				if(conSongEntry.AlternatePath)
+				if (conSongEntry.AlternatePath) {
 					bytes = File.ReadAllBytes(conSongEntry.ImagePath);
-				else bytes = await XboxCONInnerFileRetriever.RetrieveFile(conSongEntry.Location,
-					conSongEntry.ImageFileSize, conSongEntry.ImageFileMemBlockOffsets, _cancellationToken.Token);
-				
+				} else {
+					bytes = await XboxCONInnerFileRetriever.RetrieveFile(conSongEntry.Location,
+						  conSongEntry.ImageFileSize, conSongEntry.ImageFileMemBlockOffsets, _cancellationToken.Token);
+				}
+
 				texture = await XboxImageTextureGenerator.GetTexture(bytes, _cancellationToken.Token);
 
 				_albumCover.texture = texture;
