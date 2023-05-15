@@ -31,8 +31,6 @@ namespace YARG.UI.MusicLibrary {
 		private TextMeshProUGUI _length;
 		[SerializeField]
 		private RawImage _albumCover;
-		[SerializeField]
-		private TextMeshProUGUI _infoText;
 
 		[Space]
 		[SerializeField]
@@ -64,28 +62,6 @@ namespace YARG.UI.MusicLibrary {
 
 			var viewType = SongSelection.Instance.Songs[SongSelection.Instance.SelectedIndex];
 			if (viewType is not SongViewType songViewType) {
-				// setting the sidebar info when we are on a header
-				// It would be nice to have this display more data but I didn't want to monkey around with song scanning to get get number of charters, genres, etc
-				_albumCover.texture = null;
-				_albumCover.color = Color.clear;
-				_album.text = "";
-				_source.text = SongSources.GetSourceCount().ToString()+ " sources";
-				_charter.text = "";
-				_genre.text = 	"";
-				_year.text = "";
-				_length.text = "";
-				_infoText.text = "";
-				//We might want to add a dummy song so we can call UpdateDifficulties() and set all the rings to -1
-				difficultyRings[0].SetInfo(true, Instrument.GUITAR, -1);
-				difficultyRings[1].SetInfo(true, Instrument.BASS, -1);
-				difficultyRings[2].SetInfo(true, Instrument.DRUMS, -1);
-				difficultyRings[3].SetInfo(true, Instrument.KEYS, -1);
-				difficultyRings[4].SetInfo(true, Instrument.VOCALS, -1);
-				difficultyRings[5].SetInfo(true, Instrument.REAL_GUITAR, -1);
-				difficultyRings[6].SetInfo(true, Instrument.REAL_BASS, -1);
-				difficultyRings[7].SetInfo(false, "trueDrums", -1);
-				difficultyRings[8].SetInfo(true, Instrument.REAL_KEYS, -1);
-				difficultyRings[9].SetInfo(false, "band", -1);
 				return;
 			}
 
@@ -96,8 +72,6 @@ namespace YARG.UI.MusicLibrary {
 			_charter.text = songEntry.Charter;
 			_genre.text = songEntry.Genre;
 			_year.text = songEntry.Year;
-			_infoText.text = songEntry.LoadingPhrase;
-			
 
 			// Format and show length
 			if (songEntry.SongLengthTimeSpan.Hours > 0) {

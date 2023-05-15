@@ -275,9 +275,5 @@ namespace YARG.Data {
 
 			return "Unknown Source";
 		}
-
-		public static int GetSourceCount() {
-			return webSourceNames?.Count ?? DEFAULT_SOURCES.Count;
-		}
 	}
 }
