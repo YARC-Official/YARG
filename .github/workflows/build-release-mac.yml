@@ -125,7 +125,7 @@ jobs:
 
       - if: ${{ inputs.createTar == true }}
         name: "[Post-build] Compress to a .tar.bz2"
-        run: tar --xattrs -c -j -f YARG_v${{ inputs.version }}-MacOS-Universal.tar.bz2 build/StandaloneOSX/YARG.app \; 
+        run: tar --xattrs -c -j -f YARG_v${{ inputs.version }}-MacOS-Universal.tar.bz2 build/StandaloneOSX/YARG.app
 
       - if: ${{ inputs.createTar == true }}
         name: "[Post-build] Upload .tar.bz2 to artifacts"
