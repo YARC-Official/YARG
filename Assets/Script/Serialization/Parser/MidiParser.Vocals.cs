@@ -6,6 +6,7 @@ using YARG.Data;
 
 namespace YARG.Serialization.Parser {
 	public partial class MidiParser : AbstractParser {
+		//A bunch of the code is duplicated between generic and vocal lyrics. Can probably be made into functions or a base class or something.
 		private List<GenericLyricInfo> ParseGenericLyrics(TrackChunk trackChunk, TempoMap tempo) {
 			var lyrics = new List<GenericLyricInfo>();
 
@@ -67,6 +68,16 @@ namespace YARG.Serialization.Parser {
 					if (l.EndsWith("#") || l.EndsWith("/") || l.EndsWith("^")) {
 						l = l[0..^1];
 					}
+
+					// Remove ignored tags (for now)
+					if (l.EndsWith("/") || l.EndsWith("%")) {
+						l = l[..^1];
+					}
+
+					// Replace
+					l = l.Replace('=', '-');
+					l = l.Replace('_', ' ');
+					l = l.Replace('§', '‿');
 
 					// Add to phrase
 					var lyricTime = (float) TimeConverter.ConvertTo<MetricTimeSpan>(totalDelta, tempo).TotalSeconds;
