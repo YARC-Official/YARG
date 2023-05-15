@@ -517,7 +517,13 @@ namespace YARG.PlayMode {
 						hotStartChecked = true;
 
 						if (FullCombo) {
-							commonTrack.TrackView.ShowPerformanceText("HOT START");
+							// empty the text string because we are now using the video
+							commonTrack.TrackView.ShowPerformanceText(" ");
+							// Play video when a full combo is achieved
+							VideoPlayer videoPlayer = commonTrack.TrackView.GetComponent<VideoPlayer>();
+							commonTrack.TrackView.performanceVideoObject.SetActive(true); // activate the GameObject
+							videoPlayer.clip = Resources.Load<VideoClip>("hot_start");
+							videoPlayer.Play();
 						}
 					}
 				}
@@ -569,7 +575,7 @@ namespace YARG.PlayMode {
 							// Play video when a full combo is achieved
 							VideoPlayer videoPlayer = commonTrack.TrackView.GetComponent<VideoPlayer>();
 							commonTrack.TrackView.performanceVideoObject.SetActive(true); // activate the GameObject
-							videoPlayer.clip = Resources.Load<VideoClip>("Art/Videos/full_combo");
+							videoPlayer.clip = Resources.Load<VideoClip>("full_combo");
 							videoPlayer.Play();
 						} else if (_combo >= commonTrack.strongFinishCutoff && commonTrack.strongFinishNotifsEnabled) {
 							commonTrack.TrackView.ShowPerformanceText("STRONG FINISH");
@@ -587,7 +593,7 @@ namespace YARG.PlayMode {
 							// Play video when a full combo is achieved
 							VideoPlayer videoPlayer = commonTrack.TrackView.GetComponent<VideoPlayer>();
 							commonTrack.TrackView.performanceVideoObject.SetActive(true); // activate the GameObject
-							videoPlayer.clip = Resources.Load<VideoClip>("Art/Videos/full_combo");
+							videoPlayer.clip = Resources.Load<VideoClip>("full_combo");
 							videoPlayer.Play();
 						}
 					}
