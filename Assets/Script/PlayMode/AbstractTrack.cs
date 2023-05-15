@@ -78,6 +78,7 @@ namespace YARG.PlayMode {
 
 		private int _combo = 0;
 		private int _recentCombo = 0;  // For tracking note streak of size interval / 2
+		private int _maxCombo = 0;
 
 		protected int Combo {
 			get => _combo;
@@ -88,6 +89,10 @@ namespace YARG.PlayMode {
 
 				_combo = value;
 
+				if (value > _maxCombo) {
+					_maxCombo = value;
+				}
+
 				// End starpower if combo ends
 				if (StarpowerSection?.time <= Play.Instance.SongTime && value == 0) {
 					StarpowerSection = null;
@@ -95,6 +100,8 @@ namespace YARG.PlayMode {
 				}
 			}
 		}
+		
+		public int MaxCombo => _maxCombo;
 
 		public int MaxMultiplier => (player.chosenInstrument == "bass" ? 6 : 4) * (IsStarPowerActive ? 2 : 1);
 		public int Multiplier => Mathf.Min((Combo / 10 + 1) * (IsStarPowerActive ? 2 : 1), MaxMultiplier);
