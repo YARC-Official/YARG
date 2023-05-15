@@ -44,7 +44,7 @@ namespace YARG {
 			1.0,
 		};
 
-		public static ICollection<string> GetSupportedStems(string folder, params SongStem[] exceptions) {
+		public static ICollection<string> GetSupportedStems(string folder) {
 			var stems = new List<string>();
 
 			foreach (string filePath in Directory.GetFiles(folder)) {
@@ -55,11 +55,6 @@ namespace YARG {
 
 				// Check if file is a valid stem
 				if (!SupportedStems.Contains(Path.GetFileNameWithoutExtension(filePath).ToLowerInvariant())) {
-					continue;
-				}
-				
-				// Check if valid stem is in the exceptions parameter
-				if (exceptions.Contains(GetStemFromName(Path.GetFileNameWithoutExtension(filePath)))) {
 					continue;
 				}
 

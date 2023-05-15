@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using ManagedBass;
@@ -165,7 +166,7 @@ namespace YARG {
 			Debug.Log("Finished loading SFX");
 		}
 
-		public void LoadSong(ICollection<string> stems, bool isSpeedUp) {
+		public void LoadSong(ICollection<string> stems, bool isSpeedUp, params SongStem[] ignoreStems) {
 			Debug.Log("Loading song");
 			UnloadSong();
 
@@ -180,6 +181,11 @@ namespace YARG {
 
 				// Gets the index (SongStem to int) from the name
 				var songStem = AudioHelpers.GetStemFromName(stemName);
+
+				// Skip stems specified in ignore stems parameter
+				if (ignoreStems.Contains(songStem)) {
+					continue;
+				}
 
 				// Assign 1 stem songs to the song stem
 				if (stems.Count == 1) {
@@ -213,7 +219,7 @@ namespace YARG {
 			IsAudioLoaded = true;
 		}
 
-		public void LoadMogg(ExtractedConSongEntry exConSong, bool isSpeedUp) {
+		public void LoadMogg(ExtractedConSongEntry exConSong, bool isSpeedUp, params SongStem[] ignoreStems) {
 			Debug.Log("Loading mogg song");
 			UnloadSong();
 
@@ -231,6 +237,12 @@ namespace YARG {
 			if (moggStreamHandle == 0) {
 				Debug.LogError($"Failed to load mogg file or position: {Bass.LastError}");
 				return;
+			}
+
+			// Remove ignored stems from stem maps
+			var stems = exConSong.StemMaps.Keys.Where(ignoreStems.Contains).ToList();
+			foreach (var stem in stems) {
+				exConSong.StemMaps.Remove(stem);
 			}
 
 			_mixer = new BassStemMixer(this, moggStreamHandle, exConSong.StemMaps, exConSong.MatrixRatios);
@@ -266,9 +278,9 @@ namespace YARG {
 			}
 			
 			if (song is ExtractedConSongEntry conSong) {
-				LoadMogg(conSong, false);
+				LoadMogg(conSong, false, SongStem.Crowd);
 			} else {
-				LoadSong(AudioHelpers.GetSupportedStems(song.Location, SongStem.Crowd), false);
+				LoadSong(AudioHelpers.GetSupportedStems(song.Location), false, SongStem.Crowd);
 			}
 
 			PreviewStartTime = song.PreviewStartTimeSpan.TotalSeconds;

@@ -31,8 +31,8 @@ namespace YARG {
 
 		public void LoadSfx();
 
-		public void LoadSong(ICollection<string> stems, bool isSpeedUp);
-		public void LoadMogg(ExtractedConSongEntry exConSong, bool isSpeedUp);
+		public void LoadSong(ICollection<string> stems, bool isSpeedUp, params SongStem[] ignoreStems);
+		public void LoadMogg(ExtractedConSongEntry exConSong, bool isSpeedUp, params SongStem[] ignoreStems);
 		public void UnloadSong();
 
 		public void LoadPreviewAudio(SongEntry song);
