@@ -7,9 +7,10 @@ using MoonscraperChartEditor.Song;
 using MoonscraperChartEditor.Song.IO;
 using TrombLoader.Helpers;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
+using DG.Tweening;
 using YARG.Chart;
 using YARG.Data;
 using YARG.Serialization.Parser;
@@ -514,7 +515,7 @@ namespace YARG.PlayMode {
 			backgroundRenderTexture.ClearTexture();
 
 			OnSongEnd?.Invoke(Song);
-
+			
 			// run animation + save if we've reached end of song
 			if (showResultScreen) {
 				yield return playCover
@@ -527,7 +528,6 @@ namespace YARG.PlayMode {
 					Destroy(track.gameObject);
 				}
 				_tracks.Clear();
-
 				// save MicPlayer score and destroy it
 				if (MicPlayer.Instance != null) {
 					MicPlayer.Instance.SetPlayerScore();
@@ -537,7 +537,6 @@ namespace YARG.PlayMode {
 				// show play result screen; this is our main focus now
 				playResultScreen.SetActive(true);
 			}
-
 			scoreDisplay.SetActive(false);
 		}
 

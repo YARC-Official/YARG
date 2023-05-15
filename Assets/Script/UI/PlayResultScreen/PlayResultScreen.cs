@@ -48,6 +48,8 @@ namespace YARG.UI.PlayResultScreen {
 		[Space]
 		[SerializeField]
 		private GameObject playerCardsContainer;
+		[SerializeField]
+		private TextMeshProUGUI scoreWIPNotice;
 
 		private List<PlayerCard> playerCards = new();
 
@@ -194,6 +196,11 @@ namespace YARG.UI.PlayResultScreen {
 			marginContainerRT.anchorMin += new Vector2(0, 1);
 			marginContainerRT.anchorMax += new Vector2(0, 1);
 
+			// score WIP notice (attached to player cards)
+			var wipC = scoreWIPNotice.color;
+			wipC.a = 0;
+			scoreWIPNotice.color = wipC;
+
 			// help bar
 			var hbYMinTgt = helpBarRT.anchorMin.y;
 			var hbYMaxTgt = helpBarRT.anchorMax.y;
@@ -222,6 +229,8 @@ namespace YARG.UI.PlayResultScreen {
 				.SetEase(Ease.OutBack, overshoot: 1.2f)
 				.WaitForCompletion();
 
+			// show note that scoring system is WIP
+			scoreWIPNotice.DOFade(1f, 1f);
 
 			OnEnableAnimationFinish();
 

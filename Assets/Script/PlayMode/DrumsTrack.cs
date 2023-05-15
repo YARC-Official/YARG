@@ -85,7 +85,7 @@ namespace YARG.PlayMode {
 			kickFretInside.material.SetColor("_EmissionColor", commonTrack.FretColor(kickIndex) * 2);
 
 			// initialize scoring variables
-			ptsPerNote = proInst.Contains(player.chosenInstrument) ? 30 : 25;
+			ptsPerNote = proInst.Contains(player.chosenInstrument) ? 60 : 50;
 			starsKeeper = new(Chart, scoreKeeper,
 				player.chosenInstrument,
 				ptsPerNote);

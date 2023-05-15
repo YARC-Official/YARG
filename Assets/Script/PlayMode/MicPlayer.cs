@@ -147,7 +147,7 @@ namespace YARG.PlayMode {
 		// easy, medium, hard, expert
 		// https://rockband.scorehero.com/forum/viewtopic.php?t=4545
 		// max harmony pts = 10% of main points per extra mic
-		private readonly int[] MAX_POINTS = { 200, 400, 800, 1000, 1000 };
+		private readonly int[] MAX_POINTS = { 400, 800, 1600, 2000, 2000 };
 		private StarScoreKeeper starsKeeper;
 		private int ptsPerPhrase; // pts per phrase, set depending on difficulty
 

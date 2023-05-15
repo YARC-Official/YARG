@@ -52,7 +52,6 @@ namespace YARG.PlayMode {
 		public bool strongFinishNotifsEnabled;
 		public bool overdriveReadyNotifsEnabled;
 		public bool fullComboTrumpsStrongFinish;
-
 		[Space]
 		// Numeric performance text settings
 		public int hotStartCutoff;
