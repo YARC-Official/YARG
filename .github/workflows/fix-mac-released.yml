@@ -48,6 +48,9 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ inputs.version }}
 
+      - name: Fix permissions
+        run: find . -name *.app -print -exec chmod +x {}/Contents/MacOS/YARG \;
+
       - name: Fix file attributes
         run: |
           if ! type "xattr" > /dev/null; then
@@ -55,9 +58,6 @@ jobs:
           else
             find . -name *.app -print -exec xattr -cr {} \;
           fi
-
-      - name: Fix permissions
-        run: find . -name *.app -print -exec chmod +x {}/Contents/MacOS/YARG \;
 
       - name: Create Packages folder
         run: mkdir Packages
