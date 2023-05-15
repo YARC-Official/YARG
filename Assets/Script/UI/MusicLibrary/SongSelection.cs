@@ -48,7 +48,6 @@ namespace YARG.UI.MusicLibrary {
 			get => _selectedIndex;
 			private set {
 				_selectedIndex = value;
-				isSelectingStopped = false;
 
 				if (_songs.Count <= 0) {
 					return;
@@ -172,12 +171,16 @@ namespace YARG.UI.MusicLibrary {
 			var scroll = Mouse.current.scroll.ReadValue().y;
 			if (scroll > 0f) {
 				SelectedIndex--;
+				isSelectingStopped = false;
 			} else if (scroll < 0f) {
 				SelectedIndex++;
+				isSelectingStopped = false;
 			}
 			else if (Mathf.Abs(scroll) < float.Epsilon && !isSelectingStopped) {
-				GameManager.AudioManager.StartPreviewAudio();
-				isSelectingStopped = true;
+				if (_songs[SelectedIndex] is SongViewType) {
+					GameManager.AudioManager.StartPreviewAudio();
+					isSelectingStopped = true;
+				}
 			}
 		}
 
@@ -189,7 +192,10 @@ namespace YARG.UI.MusicLibrary {
 			}
 
 			if (!pressed) {
-				GameManager.AudioManager.StartPreviewAudio();
+				if (_songs[SelectedIndex] is SongViewType) {
+					GameManager.AudioManager.StartPreviewAudio();
+				}
+
 				return;
 			}
 

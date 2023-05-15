@@ -19,6 +19,7 @@ namespace YARG {
 
 		public bool IsAudioLoaded { get; private set; }
 		public bool IsPlaying { get; private set; }
+		public bool IsPreviewing { get; private set; }
 
 		public double MasterVolume { get; private set; }
 		public double SfxVolume { get; private set; }
@@ -260,6 +261,10 @@ namespace YARG {
 		}
 
 		public void LoadPreviewAudio(SongEntry song) {
+			if (IsPreviewing) {
+				return;
+			}
+			
 			if (song is ExtractedConSongEntry conSong) {
 				LoadMogg(conSong, false);
 			} else {
@@ -280,8 +285,11 @@ namespace YARG {
 		}
 		
 		public async void StartPreviewAudio() {
+			IsPreviewing = false;
 			_cancellationTokenSource = new CancellationTokenSource();
 			await StartPreviewAudioTask();
+			
+			IsPreviewing = true;
 			await LoopPreviewAudioTask();
 		}
 
@@ -319,6 +327,7 @@ namespace YARG {
 			UnloadSong();
 			_cancellationTokenSource.Dispose();
 			_cancellationTokenSource = null;
+			IsPreviewing = false;
 		}
 
 		public void Play() => Play(false);
