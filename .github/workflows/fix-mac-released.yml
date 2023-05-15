@@ -1,0 +1,87 @@
+name: Fix macOS permissions on latest released build
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version (\"vX.XX.X\" or \"latest\")"
+        default: "latest"
+        required: true
+        type: string
+      createZip:
+        description: "Create .zip file"
+        default: true
+        type: boolean
+      createTar:
+        description: "Create .tar.bz2 file"
+        default: true
+        type: boolean
+      createDmg:
+        description: "Create .dmg file"
+        default: true
+        type: boolean
+
+env:
+  repository: YARC-Official/YARG
+  fileName: "*.zip"
+  extract: true
+
+jobs:
+  fixMacBuild:
+    name: Fixing Mac permissions for ${{ inputs.version }}
+    runs-on: macos-latest
+
+    steps: 
+      - if: ${{ inputs.version == 'latest' }}
+        name: Get Latest Release
+        uses: robinraju/release-downloader@v1.8
+        with:
+          repository: ${{ env.repository }}
+          fileName: ${{ env.fileName }}
+          extract: ${{ env.extract }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          latest: true
+
+      - if: ${{ inputs.version != 'latest' }}
+        name: Get specific release (${{ inputs.version }})
+        uses: robinraju/release-downloader@v1.8
+        with:
+          repository: ${{ env.repository }}
+          fileName: ${{ env.fileName }}
+          extract: ${{ env.extract }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ inputs.version }}
+
+      - name: Fix permissions
+        run: find . -name *.app -execdir chmod -R +x {}/Contents/MacOS \;
+
+      - name: Fix file attributes
+        run: find . -name *.app -execdir xattr -cr {} \; -execdir xattr -rd com.apple.quarantine {} \;
+
+      - name: Create Packages folder
+        run: mkdir Packages
+
+      - if: ${{ inputs.createZip == true }}
+        name: "Creating .zip"
+        run: find . -name *.app -execdir ditto -c -k --keepParent {} Packages/{}.zip \; 
+
+      - if: ${{ inputs.createTar == true }}
+        name: "Creating .tar.bz2"
+        run: find . -name *.app -execdir tar --xattrs -c -j -f Packages/{}.tar.bz2 {} \; 
+
+      - name: "Creating .dmg"
+        if: ${{ inputs.createDmg == true }}
+        continue-on-error: true
+        run: >
+          echo "- Installing create-dmg" &&
+          brew install graphicsmagick imagemagick &&
+          npm install --global create-dmg &&
+          echo "- Creating DMG" &&
+          find . -name *.app -execdir create-dmg --dmg-title=YARG {} Packages \; 
+
+
+      - name: "Upload pacakges to artifacts"
+        uses: actions/upload-artifact@v3
+        with:
+          name: Packages
+          path: Packages
