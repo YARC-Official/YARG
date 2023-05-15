@@ -111,7 +111,7 @@ namespace YARG.UI.PlayResultScreen {
 
 			// detailed combo info
 			detailNotesHit.text = $"{scr.notesHit}<color=#ffffff> / {scr.notesHit + scr.notesMissed}";
-			detailMaxStreak.text = "TODO"; // TODO
+			detailMaxStreak.text = scr.maxCombo.ToString();
 			detailMissedNotes.text = scr.notesMissed.ToString();
 
 			/* Bottom banner */
