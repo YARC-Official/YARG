@@ -431,7 +431,7 @@ namespace YARG.UI {
 				player.name = playerName;
 			}
 
-			player.setNevesColors();
+			player.SetNevesColors();
 			MainMenu.Instance.ShowEditPlayers();
 		}
 

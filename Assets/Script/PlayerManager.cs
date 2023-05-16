@@ -105,96 +105,96 @@ namespace YARG {
 			}
 
 			// function to test CustomColors
-			public void setNevesColors() {
+			public void SetNevesColors() {
 				Debug.Log($"Setting colors for {name}");
 				if(name.StartsWith("<link=1>")) {
 					// fretColors
 					this.fretColors = new Color[] {
-						fromHEX("#FBFC7F"),
-						fromHEX("#FC996F"),
-						fromHEX("#FE767F"),
-						fromHEX("#D36BAA"),
-						fromHEX("#A56AB4"),
-						fromHEX("#8068B6"),
+						FromHEX("#FBFC7F"),
+						FromHEX("#FC996F"),
+						FromHEX("#FE767F"),
+						FromHEX("#D36BAA"),
+						FromHEX("#A56AB4"),
+						FromHEX("#8068B6"),
 					};
 
 					// fretInnerColors slitghly darker
 					this.fretInnerColors = new Color[] {
-						fromHEX("#E6E66A"),
-						fromHEX("#E67E5A"),
-						fromHEX("#E95A6A"),
-						fromHEX("#B84F95"),
-						fromHEX("#8A4E9F"),
-						fromHEX("#654CA1"),
+						FromHEX("#E6E66A"),
+						FromHEX("#E67E5A"),
+						FromHEX("#E95A6A"),
+						FromHEX("#B84F95"),
+						FromHEX("#8A4E9F"),
+						FromHEX("#654CA1"),
 					};
 
 					// noteColors
 					this.noteColors = new Color[] {
-						fromHEX("#E6E66A"),
-						fromHEX("#E67E5A"),
-						fromHEX("#E95A6A"),
-						fromHEX("#B84F95"),
-						fromHEX("#8A4E9F"),
-						fromHEX("#654CA1"),
-						fromHEX("#F7DAFF"),
+						FromHEX("#E6E66A"),
+						FromHEX("#E67E5A"),
+						FromHEX("#E95A6A"),
+						FromHEX("#B84F95"),
+						FromHEX("#8A4E9F"),
+						FromHEX("#654CA1"),
+						FromHEX("#F7DAFF"),
 					};
 
 					// sustainColors
 					this.sustainColors = new Color[] {
-						fromHEX("#FBFC7F"),
-						fromHEX("#FC996F"),
-						fromHEX("#FE767F"),
-						fromHEX("#D36BAA"),
-						fromHEX("#A56AB4"),
-						fromHEX("#8068B6"),
-						fromHEX("#F7DAFF"),
+						FromHEX("#FBFC7F"),
+						FromHEX("#FC996F"),
+						FromHEX("#FE767F"),
+						FromHEX("#D36BAA"),
+						FromHEX("#A56AB4"),
+						FromHEX("#8068B6"),
+						FromHEX("#F7DAFF"),
 					};
 				} else if(name.StartsWith("<link=2>")) {
 					// fretColors
 					this.fretColors = new Color[] {
-						fromHEX("#FFFFFF"),
-						fromHEX("#FFFFFF"),
-						fromHEX("#FFFFFF"),
-						fromHEX("#FFFFFF"),
-						fromHEX("#FFFFFF"),
-						fromHEX("#FFFFFF"),
+						FromHEX("#FFFFFF"),
+						FromHEX("#FFFFFF"),
+						FromHEX("#FFFFFF"),
+						FromHEX("#FFFFFF"),
+						FromHEX("#FFFFFF"),
+						FromHEX("#FFFFFF"),
 					};
 
 					// fretInnerColors slitghly darker
 					this.fretInnerColors = new Color[] {
-						fromHEX("#EECC22"),
-						fromHEX("#99DD11"),
-						fromHEX("#11DDBB"),
-						fromHEX("#8844EE"),
-						fromHEX("#CC55DD"),
-						fromHEX("#FFCE86"),
+						FromHEX("#EECC22"),
+						FromHEX("#99DD11"),
+						FromHEX("#11DDBB"),
+						FromHEX("#8844EE"),
+						FromHEX("#CC55DD"),
+						FromHEX("#FFCE86"),
 					};
 
 					// noteColors
 					this.noteColors = new Color[] {
-						fromHEX("#EECC22"),
-						fromHEX("#99DD11"),
-						fromHEX("#11DDBB"),
-						fromHEX("#8844EE"),
-						fromHEX("#CC55DD"),
-						fromHEX("#334499"),
-						fromHEX("#E95A6A"),
+						FromHEX("#EECC22"),
+						FromHEX("#99DD11"),
+						FromHEX("#11DDBB"),
+						FromHEX("#8844EE"),
+						FromHEX("#CC55DD"),
+						FromHEX("#334499"),
+						FromHEX("#E95A6A"),
 					};
 
 					// sustainColors
 					this.sustainColors = new Color[] {
-						fromHEX("#FFEE77"),
-						fromHEX("#BBFF55"),
-						fromHEX("#66EEDD"),
-						fromHEX("#AA88FF"),
-						fromHEX("#EE99EE"),
-						fromHEX("#6677BB"),
-						fromHEX("#E95A6A"),
+						FromHEX("#FFEE77"),
+						FromHEX("#BBFF55"),
+						FromHEX("#66EEDD"),
+						FromHEX("#AA88FF"),
+						FromHEX("#EE99EE"),
+						FromHEX("#6677BB"),
+						FromHEX("#E95A6A"),
 					};
 				}
 			}
 
-			private Color fromHEX(string hex) {
+			private Color FromHEX(string hex) {
 				Color color = new Color();
 				ColorUtility.TryParseHtmlString(hex, out color);
 				return color;
