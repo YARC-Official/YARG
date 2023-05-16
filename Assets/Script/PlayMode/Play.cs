@@ -185,10 +185,29 @@ namespace YARG.PlayMode {
 					continue;
 				}
 
+				
 				var prefab = Addressables.LoadAssetAsync<GameObject>(trackPath).WaitForCompletion();
 				var track = Instantiate(prefab, new Vector3(i * 25f, 100f, 0f), prefab.transform.rotation);
 				_tracks.Add(track.GetComponent<AbstractTrack>());
 				_tracks[i].player = player;
+
+				// Custom Colors
+				if (_tracks[i].player.fretColors != null) {
+					_tracks[i].SetFretColors(player.fretColors);
+				} 
+
+				if (_tracks[i].player.fretInnerColors != null) {
+					_tracks[i].SetFretInnerColors(player.fretInnerColors);
+				}
+
+				if (_tracks[i].player.noteColors != null) {
+					_tracks[i].SetNoteColors(player.noteColors);
+				}
+
+				if (_tracks[i].player.sustainColors != null) {
+					_tracks[i].SetSustainColors(player.sustainColors);
+				}
+
 
 				i++;
 			}

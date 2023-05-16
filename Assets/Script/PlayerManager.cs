@@ -85,10 +85,16 @@ namespace YARG {
 			public LastScore? lastScore = null;
 			public AbstractTrack track = null;
 
+			public Color[] fretColors;
+			public Color[] fretInnerColors;
+			public Color[] noteColors;
+			public Color[] sustainColors;
+
 			public Player() {
 				int counter = 0;
 				// do not use the same name twice, if no available names, use "New Player"
 				do {
+					
 					RandomName randomName = RandomNameFromFile();
 					name = randomName.name;
 					if (counter++ > randomName.size || name == null) {
@@ -96,6 +102,102 @@ namespace YARG {
 						break;
 					}
 				} while (players.Any(i => i.name == name));
+			}
+
+			// function to test CustomColors
+			public void setNevesColors() {
+				Debug.Log($"Setting colors for {name}");
+				if(name.StartsWith("<b=1>")) {
+					// fretColors
+					this.fretColors = new Color[] {
+						fromHEX("#FBFC7F"),
+						fromHEX("#FC996F"),
+						fromHEX("#FE767F"),
+						fromHEX("#D36BAA"),
+						fromHEX("#A56AB4"),
+						fromHEX("#8068B6"),
+					};
+
+					// fretInnerColors slitghly darker
+					this.fretInnerColors = new Color[] {
+						fromHEX("#E6E66A"),
+						fromHEX("#E67E5A"),
+						fromHEX("#E95A6A"),
+						fromHEX("#B84F95"),
+						fromHEX("#8A4E9F"),
+						fromHEX("#654CA1"),
+					};
+
+					// noteColors
+					this.noteColors = new Color[] {
+						fromHEX("#E6E66A"),
+						fromHEX("#E67E5A"),
+						fromHEX("#E95A6A"),
+						fromHEX("#B84F95"),
+						fromHEX("#8A4E9F"),
+						fromHEX("#654CA1"),
+						fromHEX("#F7DAFF"),
+					};
+
+					// sustainColors
+					this.sustainColors = new Color[] {
+						fromHEX("#FBFC7F"),
+						fromHEX("#FC996F"),
+						fromHEX("#FE767F"),
+						fromHEX("#D36BAA"),
+						fromHEX("#A56AB4"),
+						fromHEX("#8068B6"),
+						fromHEX("#F7DAFF"),
+					};
+				} else if(name.StartsWith("<b=2>")) {
+					// fretColors
+					this.fretColors = new Color[] {
+						fromHEX("#FFFFFF"),
+						fromHEX("#FFFFFF"),
+						fromHEX("#FFFFFF"),
+						fromHEX("#FFFFFF"),
+						fromHEX("#FFFFFF"),
+						fromHEX("#FFFFFF"),
+					};
+
+					// fretInnerColors slitghly darker
+					this.fretInnerColors = new Color[] {
+						fromHEX("#EECC22"),
+						fromHEX("#99DD11"),
+						fromHEX("#11DDBB"),
+						fromHEX("#8844EE"),
+						fromHEX("#CC55DD"),
+						fromHEX("#FFCE86"),
+					};
+
+					// noteColors
+					this.noteColors = new Color[] {
+						fromHEX("#EECC22"),
+						fromHEX("#99DD11"),
+						fromHEX("#11DDBB"),
+						fromHEX("#8844EE"),
+						fromHEX("#CC55DD"),
+						fromHEX("#334499"),
+						fromHEX("#E95A6A"),
+					};
+
+					// sustainColors
+					this.sustainColors = new Color[] {
+						fromHEX("#FFEE77"),
+						fromHEX("#BBFF55"),
+						fromHEX("#66EEDD"),
+						fromHEX("#AA88FF"),
+						fromHEX("#EE99EE"),
+						fromHEX("#6677BB"),
+						fromHEX("#E95A6A"),
+					};
+				}
+			}
+
+			private Color fromHEX(string hex) {
+				Color color = new Color();
+				ColorUtility.TryParseHtmlString(hex, out color);
+				return color;
 			}
 		}
 

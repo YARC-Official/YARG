@@ -88,6 +88,22 @@ namespace YARG.PlayMode {
 			return sustainColors[colorMappings[i]];
 		}
 
+		public void SetFretColors(Color[] color) {
+			fretColors = color;
+		}
+
+		public void SetFretInnerColors(Color[] color) {
+			fretInnerColors = color;
+		}
+
+		public void SetNoteColors(Color[] color) {
+			noteColors = color;
+		}
+
+		public void SetSustainColors(Color[] color) {
+			sustainColors = color;
+		}
+
 		//UNUSED THIS IS NOW PROCEDURAL, under TrackAnimations.cs - Mia
 		public void PlayKickCameraAnimation() {
 			StopCameraAnimation();

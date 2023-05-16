@@ -214,6 +214,23 @@ namespace YARG.PlayMode {
 			};
 		}
 
+		// set new colors for the track
+		public void SetFretColors(Color[] colors) {
+			commonTrack.SetFretColors(colors);
+		}
+
+		public void SetFretInnerColors(Color[] colors) {
+			commonTrack.SetFretInnerColors(colors);
+		}
+
+		public void SetNoteColors(Color[] colors) {
+			commonTrack.SetNoteColors(colors);
+		}
+
+		public void SetSustainColors(Color[] colors) {
+			commonTrack.SetSustainColors(colors);
+		}
+
 		protected virtual void OnDestroy() {
 			// Release render texture
 			commonTrack.TrackCamera.targetTexture.Release();
