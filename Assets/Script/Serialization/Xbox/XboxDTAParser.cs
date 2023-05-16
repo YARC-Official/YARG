@@ -37,7 +37,8 @@ namespace YARG.Serialization {
 					case "song": // we just want vocal parts and hopo threshold for songDta
 						if(dtaArray.Array("hopo_threshold") != null)
 							cur.HopoThreshold = ((DataAtom) dtaArray.Array("hopo_threshold")[1]).Int;
-						cur.VocalParts = (dtaArray.Array("vocal_parts") != null) ? ((DataAtom) dtaArray.Array("vocal_parts")[1]).Int : 1;
+						if(dtaArray.Array("vocal_parts") != null)
+							cur.VocalParts = ((DataAtom) dtaArray.Array("vocal_parts")[1]).Int;
 						// get the path of the song files
 						if(dtaArray.Array("name") != null){
 							if(dtaArray.Array("name")[1] is DataSymbol symPath)
@@ -155,10 +156,13 @@ namespace YARG.Serialization {
 			}
 
 			// must be done after the above parallel loop due to race issues with ranks and vocalParts
-			if(!cur.PartDifficulties.ContainsKey(Instrument.VOCALS) || cur.PartDifficulties[Instrument.VOCALS] == 0) cur.VocalParts = 0;
-			// Set harmony difficulty (if exists)
-			else if(cur.PartDifficulties.ContainsKey(Instrument.VOCALS) && cur.VocalParts > 1) {
-				cur.PartDifficulties[Instrument.HARMONY] = cur.PartDifficulties[Instrument.VOCALS];
+			if(cur.PartDifficulties.TryGetValue(Instrument.VOCALS, out var voxRank)){
+				if(voxRank != -1){ // at least one vocal part exists
+					if(cur.VocalParts == 0) // the default value of a SongEntry (i.e., no harmonies found)
+						cur.VocalParts = 1;
+					else // since vocal parts != 0, we know vocal_parts was parsed earlier - so there's harmonies - set difficulty
+						cur.PartDifficulties[Instrument.HARMONY] = cur.PartDifficulties[Instrument.VOCALS];
+				}
 			}
 
 			return cur;

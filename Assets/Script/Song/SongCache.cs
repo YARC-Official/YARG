@@ -12,7 +12,7 @@ namespace YARG.Song {
 		/// <summary>
 		/// The date in which the cache version is based on (and cache revision)
 		/// </summary>
-		private const int CACHE_VERSION = 23_05_11_03;
+		private const int CACHE_VERSION = 23_05_15_01;
 
 		private readonly string _folder;
 		private readonly string _cacheFile;
@@ -101,6 +101,7 @@ namespace YARG.Song {
 			writer.Write(song.Name);
 			writer.Write(song.Artist);
 			writer.Write(song.Charter);
+			writer.Write(song.IsMaster);
 			writer.Write(song.Album);
 			writer.Write(song.AlbumTrack);
 			writer.Write(song.PlaylistTrack);
@@ -124,6 +125,7 @@ namespace YARG.Song {
 			}
 
 			writer.Write(song.AvailableParts);
+			writer.Write(song.VocalParts);
 
 			if (song is IniSongEntry iniSong) {
 				// These are CH specific ini properties
@@ -169,6 +171,7 @@ namespace YARG.Song {
 				result.Name = reader.ReadString();
 				result.Artist = reader.ReadString();
 				result.Charter = reader.ReadString();
+				result.IsMaster = reader.ReadBoolean();
 				result.Album = reader.ReadString();
 				result.AlbumTrack = reader.ReadInt32();
 				result.PlaylistTrack = reader.ReadInt32();
@@ -193,6 +196,7 @@ namespace YARG.Song {
 				}
 
 				result.AvailableParts = (ulong) reader.ReadInt64();
+				result.VocalParts = reader.ReadInt32();
 
 				switch (type) {
 					case SongType.ExtractedRbCon:
