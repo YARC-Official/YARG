@@ -37,6 +37,8 @@ namespace YARG {
 		private AudioMixerGroup vocalGroup;
 
 		public SceneIndex CurrentScene { get; private set; } = SceneIndex.PERSISTANT;
+		
+		public SongEntry SelectedSong { get; set; }
 
 		private void Awake() {
 			Instance = this;

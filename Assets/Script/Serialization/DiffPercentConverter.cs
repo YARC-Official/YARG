@@ -17,7 +17,7 @@ namespace YARG.Serialization {
 		}
 
 		public override void WriteJson(JsonWriter writer, DiffPercent value, JsonSerializer serializer) {
-			serializer.Serialize(writer, value.difficulty.ToChar() + value.percent.ToString());
+			serializer.Serialize(writer, value.difficulty.ToChar() + value.percent.ToString(CultureInfo.InvariantCulture));
 		}
 	}
 }

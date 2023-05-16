@@ -11,47 +11,27 @@ namespace YARG.Serialization {
 		public static async UniTask<Texture2D> GetTexture(byte[] xboxImageBytes, CancellationToken ct) {
 			var ms = new MemoryStream(xboxImageBytes);
 
-			// Parse header
+			// Parse header and get DXT blocks
 			byte[] header = ms.ReadBytes(32);
 			byte BitsPerPixel = header[1];
 			int Format = BitConverter.ToInt32(header, 2);
 			short Width = BitConverter.ToInt16(header, 7);
 			short Height = BitConverter.ToInt16(header, 9);
-			byte[] DXTBlocks = null;
+			bool isDXT1 = ((BitsPerPixel == 0x04) && (Format == 0x08));
+			ms.Seek(32, SeekOrigin.Begin);
+			byte[] DXTBlocks = ms.ReadBytes((int) (ms.Length - 32));
 
 			ct.ThrowIfCancellationRequested();
 
-			await UniTask.RunOnThreadPool(() => {
-				// Parse DXT-compressed blocks, depending on format
-				if ((BitsPerPixel == 0x04) && (Format == 0x08)) {
-					// If DXT-1 format already, read the bytes straight up
-					ms.Seek(32, SeekOrigin.Begin);
-					DXTBlocks = ms.ReadBytes((int) (ms.Length - 32));
-				} else {
-					// If DXT-3 format, we have to omit the alpha bytes
-					var extractedDXT3 = new List<byte>();
-					ms.ReadBytes(8); //skip the first 8 alpha bytes
-					for (int i = 8; i < (ms.Length - 32) / 2; i += 8) {
-						ct.ThrowIfCancellationRequested();
-
-						extractedDXT3.AddRange(ms.ReadBytes(8)); // We want to read these 8 bytes
-						ms.ReadBytes(8); // and skip these 8 bytes
-					}
-					DXTBlocks = extractedDXT3.ToArray();
-				}
-
-				// Swap bytes because xbox is weird like that
-				for (int i = 0; i < DXTBlocks.Length / 2; i++) {
-					ct.ThrowIfCancellationRequested();
-
-					(DXTBlocks[i * 2], DXTBlocks[i * 2 + 1]) = (DXTBlocks[i * 2 + 1], DXTBlocks[i * 2]);
-				}
-			});
+			// Swap bytes because xbox is weird like that
+			for (int i = 0; i < DXTBlocks.Length / 2; i++) {
+				(DXTBlocks[i * 2], DXTBlocks[i * 2 + 1]) = (DXTBlocks[i * 2 + 1], DXTBlocks[i * 2]);
+			}
 
 			ct.ThrowIfCancellationRequested();
 
-			// apply DXT1 formatted bytes to a Texture2D
-			var tex = new Texture2D(Width, Height, GraphicsFormat.RGBA_DXT1_SRGB, TextureCreationFlags.None);
+			// apply DXT1 OR DXT5 formatted bytes to a Texture2D
+			var tex = new Texture2D(Width, Height, (isDXT1) ? GraphicsFormat.RGBA_DXT1_SRGB : GraphicsFormat.RGBA_DXT5_SRGB, TextureCreationFlags.None);
 			tex.LoadRawTextureData(DXTBlocks);
 			tex.Apply();
 

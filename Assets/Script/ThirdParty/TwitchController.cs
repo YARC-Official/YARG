@@ -1,12 +1,16 @@
 using System.IO;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using YARG.Data;
 using YARG.PlayMode;
 using YARG.Song;
 using YARG.UI;
+using Newtonsoft.Json;
 
 namespace YARG {
 	public class TwitchController : MonoBehaviour {
+		private static Regex TagRegex = new(@"<[^>]*>", RegexOptions.Compiled);
+
 		public static TwitchController Instance {
 			get;
 			private set;
@@ -14,13 +18,14 @@ namespace YARG {
 
 		// Creates .TXT file witth current song information
 		public string TextFilePath => Path.Combine(GameManager.PersistentDataPath, "currentSong.txt");
+		// Creates .JSON file with current song information
+		public string JsonFilePath => Path.Combine(GameManager.PersistentDataPath, "currentSong.json");
 
 		private void Start() {
 			Instance = this;
 
-			// While YARG should delete the file on exit, you never know if a crash or something prevented that.
-			DeleteCurrentSongFile();
-			CreateEmptySongFile();
+			// While YARG should blank the file on exit, you never know if a crash or something prevented that.
+			BlankSongFile();
 
 			// Listen to the changing of songs
 			Play.OnSongStart += OnSongStart;
@@ -33,41 +38,44 @@ namespace YARG {
 			Play.OnPauseToggle += OnPauseToggle;
 		}
 
-		private void CreateEmptySongFile() {
+		private void BlankSongFile() {
 			// Open the text file for appending
 			using var writer = new StreamWriter(TextFilePath, false);
+			using var jsonWriter = new StreamWriter(JsonFilePath, false);
 
 			// Make the file blank (Avoid errors in OBS)
 			writer.Write("");
-		}
-
-		private void DeleteCurrentSongFile() {
-			// Open the text file for appending
-			using var writer = new StreamWriter(TextFilePath, false);
-
-			// Make the file blank (Avoid errors in OBS)
-			writer.Write("");
+			jsonWriter.Write("");
 		}
 
 		private void OnApplicationQuit() {
-			DeleteCurrentSongFile();
+			BlankSongFile();
 		}
 
 		void OnSongStart(SongEntry song) {
 			// Open the text file for appending
 			using var writer = new StreamWriter(TextFilePath, false);
+			using var jsonWriter = new StreamWriter(JsonFilePath, false);
 
-			// Write two lines of text to the file
-			writer.Write($"{song.Name}\n{song.Artist}\n{song.Album}\n{song.Genre}\n" +
-				$"{song.Year}\n{SongSources.SourceToGameName(song.Source)}\n{song.Charter}");
+			// Get the input
+			string str = $"{song.Name}\n{song.Artist}\n{song.Album}\n{song.Genre}\n" +
+				$"{song.Year}\n{SongSources.SourceToGameName(song.Source)}\n{song.Charter}";
+
+			// Strip tags
+			if (TagRegex.IsMatch(str)) {
+				str = TagRegex.Replace(str, string.Empty);
+			}
+			
+			// Convert to JSON
+			string json = JsonConvert.SerializeObject(song);
+
+			// Write text to the file
+			writer.Write(str);
+			jsonWriter.Write(json);
 		}
 
 		void OnSongEnd(SongEntry song) {
-			// Open the text file for appending
-			using var writer = new StreamWriter(TextFilePath, false);
-
-			// Make the file blank (Avoid errors in OBS)
-			writer.Write("");
+			BlankSongFile();
 		}
 
 		private void OnInstrumentSelection(PlayerManager.Player playerInfo) {

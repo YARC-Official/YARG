@@ -30,8 +30,8 @@ namespace YARG.PlayMode {
 		private Queue<NoteInfo> expectedHits = new();
 		private List<NoteInfo> heldNotes = new();
 
-		private const int PTS_PER_NOTE = 60;
-		private const int SUSTAIN_PTS_PER_BEAT = 30;
+		private const int PTS_PER_NOTE = 120;
+		private const int SUSTAIN_PTS_PER_BEAT = 60;
 
 
 		protected override void StartTrack() {

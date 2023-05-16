@@ -147,7 +147,7 @@ namespace YARG.PlayMode {
 		// easy, medium, hard, expert
 		// https://rockband.scorehero.com/forum/viewtopic.php?t=4545
 		// max harmony pts = 10% of main points per extra mic
-		private readonly int[] MAX_POINTS = { 200, 400, 800, 1000, 1000 };
+		private readonly int[] MAX_POINTS = { 400, 800, 1600, 2000, 2000 };
 		private StarScoreKeeper starsKeeper;
 		private int ptsPerPhrase; // pts per phrase, set depending on difficulty
 
@@ -164,7 +164,8 @@ namespace YARG.PlayMode {
 		private float totalSingPercent;
 
 		private string lastSecondHarmonyLyric = "";
-		
+
+		[Space]
 		public PerformanceTextSizer perfTextSizer;
 		public float fontSize;
 		public float animTimeLength;
@@ -283,24 +284,13 @@ namespace YARG.PlayMode {
 			// note: micInput.Count = number of players on vocals
 			ptsPerPhrase = MAX_POINTS[(int) micInputs[0].player.chosenDifficulty];
 			starsKeeper = new(scoreKeeper, micInputs[0].player.chosenInstrument, phrases, ptsPerPhrase);
-			
+
 			// Prepare performance text characteristics
 			perfTextSizer = new PerformanceTextSizer(fontSize, animTimeLength);
 			preformaceText.color = Color.white;
 		}
 
-		private void OnDestroy() {
-			if (Instance == this) {
-				Instance = null;
-			}
-
-			if (!hasMic) {
-				return;
-			}
-
-			// Release render texture
-			trackCamera.targetTexture.Release();
-
+		public void SetPlayerScore() {
 			// Create score
 			int totalSections = sectionsFailed + sectionsHit;
 			var score = new PlayerManager.LastScore {
@@ -324,6 +314,21 @@ namespace YARG.PlayMode {
 				// Unbind events
 				playerInfo.player.inputStrategy.StarpowerEvent -= StarpowerAction;
 			}
+		}
+
+		private void OnDestroy() {
+			if (Instance == this) {
+				Instance = null;
+			}
+
+			if (!hasMic) {
+				return;
+			}
+
+			// Release render texture
+			trackCamera.targetTexture.Release();
+
+			SetPlayerScore();
 
 			// Unbind events
 			Play.BeatEvent -= BeatAction;
@@ -618,7 +623,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Animate and get performance text size given the current timestamp
-			perfTextSizer.animTimeRemaining -= Time.deltaTime;
+			perfTextSizer.AnimTimeRemaining -= Time.deltaTime;
 			preformaceText.fontSize = perfTextSizer.PerformanceTextFontSize();
 
 			// Update combo text
@@ -768,7 +773,7 @@ namespace YARG.PlayMode {
 			};
 
 			// Begin animation and start countdown
-			perfTextSizer.animTimeRemaining = animTimeLength;
+			perfTextSizer.AnimTimeRemaining = animTimeLength;
 
 			// Add to sing percent
 			totalSingPercent += Mathf.Min(bestPercent, 1f);

@@ -12,16 +12,20 @@ namespace YARG.Song {
 		NotASong,
 		NoNotesFile,
 		NoAudioFile,
-		EncryptedMogg
+		EncryptedMogg,
+		CorruptedNotesFile,
+		CorruptedMetadataFile
 	}
 
 	public readonly struct SongError {
 		public string Directory { get; }
 		public ScanResult Result { get; }
+		public string FileName { get; }
 
-		public SongError(string directory, ScanResult result) {
+		public SongError(string directory, ScanResult result, string fileName) {
 			Directory = directory;
 			Result = result;
+			FileName = fileName;
 		}
 	}
 
@@ -231,10 +235,13 @@ namespace YARG.Song {
 								case ScanResult.EncryptedMogg:
 									await writer.WriteLineAsync("These songs contain encrypted moggs!");
 									break;
+								case ScanResult.CorruptedNotesFile:
+									await writer.WriteLineAsync("These songs contain a corrupted notes.chart/notes.mid file!");
+									break;
 							}
 							lastResult = error.Result;
 						}
-						await writer.WriteLineAsync($"    {error.Directory}");
+						await writer.WriteLineAsync($"    {error.Directory}\\{error.FileName}");
 					}
 
 					await writer.WriteLineAsync();

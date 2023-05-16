@@ -10,8 +10,10 @@ using YARG.Song;
 
 namespace YARG.Serialization {
     public static class XboxDTAParser {
-        public static ConSongEntry ParseFromDta(DataArray dta){
-			var cur = new ConSongEntry();
+        public static ConSongEntry ParseFromDta(DataArray dta, ConSongEntry existing_song = null){
+			ConSongEntry cur;
+			if(existing_song != null) cur = existing_song;
+			else cur = new ConSongEntry();
 			cur.ShortName = dta.Name;
 			// Debug.Log($"this shortname: {dta.Name}");
 			for (int i = 1; i < dta.Count; i++) {
@@ -35,7 +37,8 @@ namespace YARG.Serialization {
 					case "song": // we just want vocal parts and hopo threshold for songDta
 						if(dtaArray.Array("hopo_threshold") != null)
 							cur.HopoThreshold = ((DataAtom) dtaArray.Array("hopo_threshold")[1]).Int;
-						cur.VocalParts = (dtaArray.Array("vocal_parts") != null) ? ((DataAtom) dtaArray.Array("vocal_parts")[1]).Int : 1;
+						if(dtaArray.Array("vocal_parts") != null)
+							cur.VocalParts = ((DataAtom) dtaArray.Array("vocal_parts")[1]).Int;
 						// get the path of the song files
 						if(dtaArray.Array("name") != null){
 							if(dtaArray.Array("name")[1] is DataSymbol symPath)
@@ -127,14 +130,39 @@ namespace YARG.Serialization {
 						cur.RealBassTuning = new int[4];
 						for (int b = 0; b < 4; b++) cur.RealBassTuning[b] = ((DataAtom) bassTunes[b]).Int;
 						break;
+					case "alternate_path":
+						if (dtaArray[1] is DataSymbol symAltPath)
+							cur.AlternatePath = (symAltPath.Name.ToUpper() == "TRUE");
+						else if (dtaArray[1] is DataAtom atmAltPath)
+							cur.AlternatePath = (atmAltPath.Int != 0);
+						break;
+					case "extra_authoring":
+						for(int ea = 1; ea < dtaArray.Count; ea++){
+							if(dtaArray[ea] is DataSymbol symEA){
+								if(symEA.Name == "disc_update"){
+									cur.DiscUpdate = true;
+									break;
+								}
+							}
+							else if(dtaArray[ea] is DataAtom atmEA){
+								if(atmEA.String == "disc_update"){
+									cur.DiscUpdate = true;
+									break;
+								}
+							}
+						}
+						break;
 				}
 			}
 
 			// must be done after the above parallel loop due to race issues with ranks and vocalParts
-			if(!cur.PartDifficulties.ContainsKey(Instrument.VOCALS) || cur.PartDifficulties[Instrument.VOCALS] == 0) cur.VocalParts = 0;
-			// Set harmony difficulty (if exists)
-			else if(cur.PartDifficulties.ContainsKey(Instrument.VOCALS) && cur.VocalParts > 1) {
-				cur.PartDifficulties[Instrument.HARMONY] = cur.PartDifficulties[Instrument.VOCALS];
+			if(cur.PartDifficulties.TryGetValue(Instrument.VOCALS, out var voxRank)){
+				if(voxRank != -1){ // at least one vocal part exists
+					if(cur.VocalParts == 0) // the default value of a SongEntry (i.e., no harmonies found)
+						cur.VocalParts = 1;
+					else // since vocal parts != 0, we know vocal_parts was parsed earlier - so there's harmonies - set difficulty
+						cur.PartDifficulties[Instrument.HARMONY] = cur.PartDifficulties[Instrument.VOCALS];
+				}
 			}
 
 			return cur;

@@ -54,7 +54,6 @@ namespace YARG.UI.MusicLibrary.ViewTypes {
 		public override void PrimaryButtonClick() {
 			base.PrimaryButtonClick();
 
-			MainMenu.Instance.chosenSong = SongEntry;
 			MainMenu.Instance.ShowPreSong();
 		}
 

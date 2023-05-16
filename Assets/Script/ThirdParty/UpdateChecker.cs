@@ -59,6 +59,7 @@ namespace YARG {
 						IsOutOfDate = true;
 
 						Debug.Log($"Update available! New version: {releaseTag}");
+						ToastManager.ToastInformation($"Update available! New version: {releaseTag}");
 					} else {
 						Debug.Log("Game is up to date.");
 						ToastManager.ToastMessage("Game is up to date.");

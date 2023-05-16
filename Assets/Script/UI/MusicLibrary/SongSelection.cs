@@ -49,11 +49,19 @@ namespace YARG.UI.MusicLibrary {
 			private set {
 				_selectedIndex = value;
 
+				if (_songs.Count <= 0) {
+					return;
+				}
+
 				// Wrap
 				if (_selectedIndex < 0) {
-					_selectedIndex = _songs.Count - _selectedIndex - 2;
+					_selectedIndex = _songs.Count - 1;
 				} else if (_selectedIndex >= _songs.Count) {
-					_selectedIndex -= _songs.Count;
+					_selectedIndex = 0;
+				}
+
+				if (_songs[_selectedIndex] is SongViewType song) {
+					GameManager.Instance.SelectedSong = song.SongEntry;
 				}
 
 				UpdateScrollbar();
@@ -215,7 +223,8 @@ namespace YARG.UI.MusicLibrary {
 					.ToList();
 				_songs.Insert(0, new CategoryViewType(
 					"ALL SONGS",
-					$"<#00B6F5><b>{_songs.Count}</b> <#006488>{(_songs.Count == 1 ? "SONG" : "SONGS")}"
+					$"<#00B6F5><b>{_songs.Count}</b> <#006488>{(_songs.Count == 1 ? "SONG" : "SONGS")}",
+					SongContainer.Songs
 				));
 
 				// Add recommended songs
@@ -224,8 +233,9 @@ namespace YARG.UI.MusicLibrary {
 				}
 				_songs.Insert(0, new CategoryViewType(
 					_recommendedSongs.Count == 1 ? "RECOMMENDED SONG" : "RECOMMENDED SONGS",
-					$"<#00B6F5><b>{_recommendedSongs.Count}</b> <#006488>{(_recommendedSongs.Count == 1 ? "SONG" : "SONGS")}")
-				);
+					$"<#00B6F5><b>{_recommendedSongs.Count}</b> <#006488>{(_recommendedSongs.Count == 1 ? "SONG" : "SONGS")}",
+					_recommendedSongs
+				));
 			} else {
 				// Split up args
 				var split = searchField.text.Split(';');
@@ -301,7 +311,16 @@ namespace YARG.UI.MusicLibrary {
 				_songs.Clear();
 			}
 
-			SelectedIndex = 1;
+			if (GameManager.Instance.SelectedSong == null) {
+				SelectedIndex = 1;
+			} else {
+				var index = _songs.FindIndex(song => {
+					return song is SongViewType songType && songType.SongEntry == GameManager.Instance.SelectedSong;
+				});
+
+				SelectedIndex = Mathf.Max(1, index);
+			}
+
 			UpdateSongViews();
 			UpdateScrollbar();
 		}

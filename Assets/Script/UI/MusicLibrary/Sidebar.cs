@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -31,6 +32,8 @@ namespace YARG.UI.MusicLibrary {
 		private TextMeshProUGUI _length;
 		[SerializeField]
 		private RawImage _albumCover;
+		[SerializeField]
+		private TextMeshProUGUI _infoText;
 
 		[Space]
 		[SerializeField]
@@ -56,7 +59,39 @@ namespace YARG.UI.MusicLibrary {
 				_cancellationToken = null;
 			}
 
+			if (SongSelection.Instance.Songs.Count <= 0) {
+				return;
+			}
+
 			var viewType = SongSelection.Instance.Songs[SongSelection.Instance.SelectedIndex];
+
+			if (viewType is CategoryViewType categoryViewType) {
+				// Hide album art
+				_albumCover.texture = null;
+				_albumCover.color = Color.clear;
+				_album.text = "";
+
+				int sourceCount = categoryViewType.CountOf(i => i.Source);
+				_source.text = $"{sourceCount} sources";
+
+				int charterCount = categoryViewType.CountOf(i => i.Charter);
+				_charter.text = $"{charterCount} charters";
+
+				int genreCount = categoryViewType.CountOf(i => i.Genre);
+				_genre.text = $"{genreCount} genres";
+
+				_year.text = "";
+				_length.text = "";
+				_infoText.text = "";
+
+				// Hide all difficulty rings
+				foreach (var difficultyRing in difficultyRings) {
+					difficultyRing.gameObject.SetActive(false);
+				}
+
+				return;
+			}
+
 			if (viewType is not SongViewType songViewType) {
 				return;
 			}
@@ -68,6 +103,7 @@ namespace YARG.UI.MusicLibrary {
 			_charter.text = songEntry.Charter;
 			_genre.text = songEntry.Genre;
 			_year.text = songEntry.Year;
+			_infoText.text = songEntry.LoadingPhrase;
 
 			// Format and show length
 			if (songEntry.SongLengthTimeSpan.Hours > 0) {
@@ -83,6 +119,11 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		private void UpdateDifficulties(SongEntry songEntry) {
+			// Show all difficulty rings
+			foreach (var difficultyRing in difficultyRings) {
+				difficultyRing.gameObject.SetActive(true);
+			}
+
 			/*
 			
 				Guitar               ; Bass               ; 4 or 5 lane ; Keys     ; Mic (dependent on mic count) 
@@ -199,8 +240,14 @@ namespace YARG.UI.MusicLibrary {
 			Texture2D texture = null;
 
 			try {
-				var bytes = await XboxCONInnerFileRetriever.RetrieveFile(conSongEntry.Location,
-				conSongEntry.ImageFileSize, conSongEntry.ImageFileMemBlockOffsets, _cancellationToken.Token);
+				byte[] bytes;
+				if (conSongEntry.AlternatePath) {
+					bytes = File.ReadAllBytes(conSongEntry.ImagePath);
+				} else {
+					bytes = await XboxCONInnerFileRetriever.RetrieveFile(conSongEntry.Location,
+						  conSongEntry.ImageFileSize, conSongEntry.ImageFileMemBlockOffsets, _cancellationToken.Token);
+				}
+
 				texture = await XboxImageTextureGenerator.GetTexture(bytes, _cancellationToken.Token);
 
 				_albumCover.texture = texture;
