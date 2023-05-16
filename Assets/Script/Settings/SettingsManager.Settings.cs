@@ -89,7 +89,7 @@ namespace YARG.Settings {
 				// enable script if in editor
 				#if UNITY_EDITOR
 					FpsCounter.Instance.enabled = true;
-					FpsCounter.Instance.setVisible(true);
+					FpsCounter.Instance.SetVisible(true);
 				#endif
 			}
 
