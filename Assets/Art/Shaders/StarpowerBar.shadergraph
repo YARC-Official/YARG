@@ -1165,7 +1165,7 @@
     "m_ShaderOutputName": "B",
     "m_StageCapability": 3,
     "m_Value": {
-        "e00": 1.1299999952316285,
+        "e00": 12.470000267028809,
         "e01": 2.0,
         "e02": 2.0,
         "e03": 2.0,
@@ -2067,9 +2067,9 @@
     "m_Hidden": false,
     "m_Value": {
         "r": 1.0,
-        "g": 0.5125349760055542,
-        "b": 0.004716992378234863,
-        "a": 0.0
+        "g": 0.8941177129745483,
+        "b": 0.33725491166114809,
+        "a": 1.0
     },
     "isMainColor": false,
     "m_ColorMode": 0
@@ -2669,7 +2669,7 @@
     "m_Hidden": false,
     "m_ShaderOutputName": "Scale",
     "m_StageCapability": 3,
-    "m_Value": -7.300000190734863,
+    "m_Value": -9.529999732971192,
     "m_DefaultValue": 10.0,
     "m_Labels": []
 }
@@ -4463,9 +4463,9 @@
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
     "m_Value": {
-        "r": 1.0,
-        "g": 0.5080645084381104,
-        "b": 0.0,
+        "r": 0.9960784912109375,
+        "g": 0.7803922295570374,
+        "b": 0.2392157018184662,
         "a": 1.0
     },
     "isMainColor": false,
@@ -4530,7 +4530,7 @@
     "m_Hidden": false,
     "m_ShaderOutputName": "Scale",
     "m_StageCapability": 3,
-    "m_Value": 18.899999618530275,
+    "m_Value": 4.599999904632568,
     "m_DefaultValue": 10.0,
     "m_Labels": []
 }
@@ -5182,7 +5182,7 @@
     "m_ShaderOutputName": "B",
     "m_StageCapability": 3,
     "m_Value": {
-        "x": 0.5,
+        "x": 2.2100000381469728,
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
@@ -5266,7 +5266,7 @@
     "m_ShaderOutputName": "B",
     "m_StageCapability": 3,
     "m_Value": {
-        "x": 0.23999999463558198,
+        "x": 0.10999999940395355,
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
