@@ -29,7 +29,7 @@ namespace YARG.Song {
 
 		public string Artist { get; set; } = string.Empty;
 		public string Charter { get; set; } = string.Empty;
-		public bool IsMaster { get; set; } = true; // true if original artist, false if "as made famous by"
+		public bool IsMaster { get; set; }
 
 		public string Album { get; set; } = string.Empty;
 		public int AlbumTrack { get; set; }

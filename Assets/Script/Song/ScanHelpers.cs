@@ -26,6 +26,7 @@ namespace YARG.Song {
 			entry.Name = section.GetField("name");
 			entry.Artist = section.GetField("artist");
 			entry.Charter = section.GetField("charter");
+			entry.IsMaster = true; // just gonna assume every ini song is the original artist
 
 			entry.Album = section.GetField("album");
 			entry.AlbumTrack = section.GetField("album_track", "0").Get(IntConverter);
