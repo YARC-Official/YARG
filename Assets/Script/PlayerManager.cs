@@ -107,7 +107,7 @@ namespace YARG {
 			// function to test CustomColors
 			public void setNevesColors() {
 				Debug.Log($"Setting colors for {name}");
-				if(name.StartsWith("<b=1>")) {
+				if(name.StartsWith("<link=1>")) {
 					// fretColors
 					this.fretColors = new Color[] {
 						fromHEX("#FBFC7F"),
@@ -149,7 +149,7 @@ namespace YARG {
 						fromHEX("#8068B6"),
 						fromHEX("#F7DAFF"),
 					};
-				} else if(name.StartsWith("<b=2>")) {
+				} else if(name.StartsWith("<link=2>")) {
 					// fretColors
 					this.fretColors = new Color[] {
 						fromHEX("#FFFFFF"),
