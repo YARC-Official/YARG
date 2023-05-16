@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using ManagedBass;
 using ManagedBass.Mix;
 using UnityEngine;
@@ -118,16 +120,15 @@ namespace YARG {
 			return 0;
 		}
 
-		public void FadeIn() {
+		public void FadeIn(float maxVolume) {
 			foreach (var channel in Channels.Values) {
-				channel.FadeIn();
+				channel.FadeIn(maxVolume);
 			}
 		}
 
-		public void FadeOut() {
-			foreach (var channel in Channels.Values) {
-				channel.FadeOut();
-			}
+		public UniTask FadeOut(CancellationToken token = default) {
+			var fadeOuts = Enumerable.Select(Channels.Values, channel => channel.FadeOut()).ToList();
+			return UniTask.WhenAll(fadeOuts).AttachExternalCancellation(token);
 		}
 
 		public int Pause() {
@@ -158,10 +159,21 @@ namespace YARG {
 			}
 
 			foreach (var channel in Channels.Values) {
-				int handle = ((BassStemChannel)channel).StreamHandle;
+				long channelPosition;
+				switch (channel) {
+					case BassStemChannel bassStemChannel:
+						int handle = bassStemChannel.StreamHandle;
+						channelPosition = Bass.ChannelSeconds2Bytes(handle, position);
+						BassMix.ChannelSetPosition(handle, channelPosition);
+						break;
+					case BassMoggStem bassMoggStem:
+						foreach (var bassHandle in bassMoggStem.BassChannels) {
+							channelPosition = Bass.ChannelSeconds2Bytes(bassHandle, position);
+							BassMix.ChannelSetPosition(bassHandle, channelPosition);
+						}
+						break;
+				}
 				
-				long channelPosition = Bass.ChannelSeconds2Bytes(handle, position);
-				BassMix.ChannelSetPosition(handle, channelPosition);
 			}
 		}
 

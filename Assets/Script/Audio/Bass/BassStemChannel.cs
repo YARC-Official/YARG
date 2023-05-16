@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
+using UnityEngine;
 
 namespace YARG {
 	public class BassStemChannel : IStemChannel {
@@ -112,14 +114,17 @@ namespace YARG {
 			return 0;
 		}
 
-		public void FadeIn() {
-			double volumeSetting = _manager.GetVolumeSetting(Stem);
+		public void FadeIn(float maxVolume) {
 			Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, 0);
-			Bass.ChannelSlideAttribute(StreamHandle, ChannelAttribute.Volume, (float)volumeSetting, BassHelpers.FADE_TIME_MILLISECONDS);
+			Bass.ChannelSlideAttribute(StreamHandle, ChannelAttribute.Volume, maxVolume, BassHelpers.FADE_TIME_MILLISECONDS);
 		}
 
-		public void FadeOut() {
+		public UniTask FadeOut() {
 			Bass.ChannelSlideAttribute(StreamHandle, ChannelAttribute.Volume, 0, BassHelpers.FADE_TIME_MILLISECONDS);
+			return UniTask.WaitUntil(() => {
+				Bass.ChannelGetAttribute(StreamHandle, ChannelAttribute.Volume, out var currentVolume);
+				return Mathf.Abs(currentVolume) <= 0.01f;
+			});
 		}
 
 		public void SetVolume(double newVolume) {

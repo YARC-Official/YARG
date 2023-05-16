@@ -1,4 +1,5 @@
 using System;
+using Cysharp.Threading.Tasks;
 
 namespace YARG {
 	public interface IStemChannel : IDisposable {
@@ -11,8 +12,8 @@ namespace YARG {
 
 		public int Load(bool isSpeedUp, float speed);
 
-		public void FadeIn();
-		public void FadeOut();
+		public void FadeIn(float maxVolume);
+		public UniTask FadeOut();
 		
 		public void SetVolume(double newVolume);
 		
