@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 
 namespace YARG {
@@ -19,7 +20,7 @@ namespace YARG {
 		public int Play(bool restart = false);
 
 		public void FadeIn(float maxVolume);
-		public UniTask FadeOut();
+		public UniTask FadeOut(CancellationToken token = default);
 		
 		public int Pause();
 

@@ -20,7 +20,6 @@ namespace YARG {
 
 		public bool IsAudioLoaded { get; private set; }
 		public bool IsPlaying { get; private set; }
-		public bool IsPreviewing { get; private set; }
 
 		public double MasterVolume { get; private set; }
 		public double SfxVolume { get; private set; }
@@ -45,6 +44,8 @@ namespace YARG {
 		public float pos;
 
 		private CancellationTokenSource _cancellationTokenSource;
+
+		private bool _isLooping = false;
 
 		private void Awake() {
 			SupportedFormats = new[] {
@@ -273,10 +274,6 @@ namespace YARG {
 		}
 
 		public void LoadPreviewAudio(SongEntry song) {
-			if (IsPreviewing) {
-				return;
-			}
-			
 			if (song is ExtractedConSongEntry conSong) {
 				LoadMogg(conSong, false, SongStem.Crowd);
 			} else {
@@ -297,35 +294,37 @@ namespace YARG {
 		}
 		
 		public async void StartPreviewAudio() {
-			IsPreviewing = false;
+			if (IsAudioLoaded) {
+				_cancellationTokenSource.Cancel();
+				_cancellationTokenSource.Dispose();
+			}
 			_cancellationTokenSource = new CancellationTokenSource();
-			await StartPreviewAudioTask();
-			
-			IsPreviewing = true;
-			await LoopPreviewAudioTask();
-		}
-
-		private async UniTask StartPreviewAudioTask() {
 			await FadeOut();
+			
 			LoadPreviewAudio(GameManager.Instance.SelectedSong);
 			FadeIn(SettingsManager.Settings.PreviewVolume.Data);
+			LoopPreviewAudioTask().Forget();
 		}
 
 		private async UniTask LoopPreviewAudioTask() {
+			if (_isLooping) {
+				return;
+			}
+			
 			try {
 				while (!_cancellationTokenSource.IsCancellationRequested) {
-					await UniTask.WaitWhile(() => CurrentPositionF < PreviewEndTime && CurrentPositionF < AudioLengthF,
-						cancellationToken: _cancellationTokenSource.Token);
-					_cancellationTokenSource.Token.ThrowIfCancellationRequested();
-					
-					await FadeOut();
-					_cancellationTokenSource.Token.ThrowIfCancellationRequested();
-					
+					_isLooping = true;
+					while (CurrentPositionF < PreviewEndTime && CurrentPositionF < AudioLengthF) {
+						await UniTask.Yield(cancellationToken: _cancellationTokenSource.Token);
+					}
+
+					await FadeOut(_cancellationTokenSource.Token);
+
 					SetPosition(PreviewStartTime);
 					FadeIn(SettingsManager.Settings.PreviewVolume.Data);
 				}
 			} catch {
-				// Exit out of loop
+				_isLooping = false;
 			}
 		}
 
@@ -339,7 +338,6 @@ namespace YARG {
 			UnloadSong();
 			_cancellationTokenSource.Dispose();
 			_cancellationTokenSource = null;
-			IsPreviewing = false;
 		}
 
 		public void Play() => Play(false);
@@ -383,9 +381,9 @@ namespace YARG {
 			}
 		}
 
-		public async UniTask FadeOut() {
+		public async UniTask FadeOut(CancellationToken token = default) {
 			if (IsPlaying) {
-				await _mixer.FadeOut();
+				await _mixer.FadeOut(token);
 			}
 
 			await UniTask.Yield();

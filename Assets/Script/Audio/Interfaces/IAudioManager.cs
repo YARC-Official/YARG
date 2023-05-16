@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using YARG.Serialization;
 using YARG.Song;
@@ -12,7 +13,6 @@ namespace YARG {
 
 		public bool IsAudioLoaded { get; }
 		public bool IsPlaying { get; }
-		public bool IsPreviewing { get; }
 
 		public double MasterVolume { get; }
 		public double SfxVolume { get; }
@@ -43,7 +43,7 @@ namespace YARG {
 		public void Pause();
 
 		public void FadeIn(float maxVolume);
-		public UniTask FadeOut();
+		public UniTask FadeOut(CancellationToken token = default);
 
 		public void PlaySoundEffect(SfxSample sample);
 

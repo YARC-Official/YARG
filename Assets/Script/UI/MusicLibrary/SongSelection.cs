@@ -71,7 +71,7 @@ namespace YARG.UI.MusicLibrary {
 					return;
 				}
 					
-				GameManager.AudioManager.FadeOut();
+				GameManager.AudioManager.FadeOut().Forget();
 				GameManager.Instance.SelectedSong = song.SongEntry;
 			}
 		}

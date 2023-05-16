@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using ManagedBass;
 using ManagedBass.Mix;
@@ -125,9 +126,9 @@ namespace YARG {
 			}
 		}
 
-		public UniTask FadeOut() {
+		public UniTask FadeOut(CancellationToken token = default) {
 			var fadeOuts = Enumerable.Select(Channels.Values, channel => channel.FadeOut()).ToList();
-			return UniTask.WhenAll(fadeOuts);
+			return UniTask.WhenAll(fadeOuts).AttachExternalCancellation(token);
 		}
 
 		public int Pause() {
