@@ -71,7 +71,7 @@ namespace YARG.UI.MusicLibrary {
 				_albumCover.color = Color.clear;
 				_album.text = "";
 
-				int sourceCount = categoryViewType.CountOf(i => i.Genre);
+				int sourceCount = categoryViewType.CountOf(i => i.Source);
 				_source.text = $"{sourceCount} sources";
 
 				int charterCount = categoryViewType.CountOf(i => i.Charter);
