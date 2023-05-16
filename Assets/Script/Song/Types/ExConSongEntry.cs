@@ -9,9 +9,7 @@ namespace YARG.Song {
 		// make sure once these variables start getting used for YARG,
 		// that they get cached a la CacheHelpers.cs
 		public string ShortName { get; set; }
-		public bool IsMaster { get; set; }
 		public int SongID { get; set; }
-		public int VocalParts { get; set; }
 		public int AnimTempo { get; set; }
 		public string VocalPercussionBank { get; set; }
 		public int VocalSongScrollSpeed { get; set; }
