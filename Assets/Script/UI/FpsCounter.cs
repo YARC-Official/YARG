@@ -4,7 +4,8 @@ using UnityEngine.UI;
 using TMPro;
 using YARG.Settings;
 using YARG.Data;
-
+using UnityEngine.Profiling;
+using Debug = UnityEngine.Debug;
 
 public class FpsCounter : MonoBehaviour {
 
@@ -23,14 +24,12 @@ public class FpsCounter : MonoBehaviour {
 
     // check if the settings have changed and update the fps counter accordingly
     public void UpdateSettings(bool value) {
-        if (!value) {
-            fpsText.gameObject.SetActive(false);
-            fpsCircle.gameObject.SetActive(false);
-        }
-        else {
-            fpsText.gameObject.SetActive(true);
-            fpsCircle.gameObject.SetActive(true);
-        }
+        setVisible(value);
+    }
+
+    public void setVisible(bool value) {
+        fpsText.gameObject.SetActive(value);
+        fpsCircle.gameObject.SetActive(value);
     }
 
     // OnDestroy - set the instance to null
@@ -51,15 +50,35 @@ public class FpsCounter : MonoBehaviour {
 
             // Color the FPS sprite based on the FPS
             if (fps < 30) {
-                fpsCircle.color = Color.red;
+                // RED
+                if ( ColorUtility.TryParseHtmlString("#FF0035", out Color color)){ 
+                    fpsCircle.color = color; 
+                } else { 
+                    fpsCircle.color = Color.red;
+                }
             } else if (fps < 60) {
-                fpsCircle.color = Color.yellow;
+                // YELLOW
+                if ( ColorUtility.TryParseHtmlString("#FFD43A", out Color color)){ 
+                    fpsCircle.color = color; 
+                } else { 
+                    fpsCircle.color = Color.yellow;
+                }
             } else {
-                fpsCircle.color = Color.green;
+                // GREEN
+                if ( ColorUtility.TryParseHtmlString("#46E74F", out Color color)){ 
+                    fpsCircle.color = color; 
+                } else { 
+                    fpsCircle.color = Color.green;
+                }
             }
 
             // Display the FPS
             fpsText.text += "FPS: " + fps.ToString();
+
+            #if UNITY_EDITOR
+                // Display the memory usage
+                fpsText.text += "\nMemory: " + (Profiler.GetTotalAllocatedMemoryLong() / 1024 / 1024).ToString() + " MB";
+            #endif
 
             // reset the update time
             updateTime = Time.unscaledTime + 1f;

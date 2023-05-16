@@ -85,6 +85,12 @@ namespace YARG.Settings {
 				FpsCounter.Instance.enabled = value;
 				// UpdateSettings()
 				FpsCounter.Instance.UpdateSettings(value);
+
+				// enable script if in editor
+				#if UNITY_EDITOR
+					FpsCounter.Instance.enabled = true;
+					FpsCounter.Instance.setVisible(true);
+				#endif
 			}
 
 			private static void FpsCapCallback(int value) {
