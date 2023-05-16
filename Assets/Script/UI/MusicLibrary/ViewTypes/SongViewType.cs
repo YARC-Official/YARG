@@ -7,7 +7,19 @@ namespace YARG.UI.MusicLibrary.ViewTypes {
 		public override BackgroundType Background => BackgroundType.Normal;
 
 		public override string PrimaryText => SongEntry.Name;
-		public override string SecondaryText => SongEntry.Artist;
+		public override string SecondaryText {
+			get
+			{
+				if (SongEntry.IsMaster)
+				{
+					return SongEntry.Artist;
+				}
+				else
+				{
+					return "<size=50%>AS MADE FAMOUS BY <size=100%>" + SongEntry.Artist;
+				}
+			}
+		}
 
 		public override string SideText {
 			get {
