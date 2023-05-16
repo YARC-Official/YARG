@@ -12,15 +12,21 @@ TrueTypeFontImporter:
   - Barlow
   fallbackFontReferences:
   - {fileID: 12800000, guid: 38ed30a195d970943802e602658892be, type: 3}
+  - {fileID: 12800000, guid: 9a96d919d885547429c5c9b823144ac8, type: 3}
+  - {fileID: 12800000, guid: 0b2cdd254fddf2544ad7265ee1a0847d, type: 3}
   - {fileID: 12800000, guid: 7069b026cf0c03841a0085664d5bfc37, type: 3}
   - {fileID: 12800000, guid: b0527ec427ac05f418064d49031c9dbe, type: 3}
-  - {fileID: 12800000, guid: 85f307d987b77aa45a397ee5a2673f87, type: 3}
+  - {fileID: 12800000, guid: c79bd76274081474a865b4b54d5cccfd, type: 3}
   - {fileID: 12800000, guid: 9309aab1f8c712e469eb5fa292766955, type: 3}
   - {fileID: 12800000, guid: 3f0b0eecdbffc064cb65ce5a0f1970d4, type: 3}
-  - {fileID: 12800000, guid: 84dfa4c723910bd439138203720e56de, type: 3}
   - {fileID: 12800000, guid: d3276a51390d44c468621e7e6b009ea5, type: 3}
+  - {fileID: 12800000, guid: 3d0925f3c5e67e34d862b909a3c01d51, type: 3}
   - {fileID: 12800000, guid: d1ce33e49515a24478919be9c3af4e4f, type: 3}
+  - {fileID: 12800000, guid: 77e6e03c94f35cf4a855326ffc46a3e8, type: 3}
   - {fileID: 12800000, guid: 17c274c2b4cea6244a1a81e7564bbc7d, type: 3}
+  - {fileID: 12800000, guid: 7f48dce7413b3f14f8c7d2e38dd51da4, type: 3}
+  - {fileID: 12800000, guid: 99be956b4447e5c4d942ab55cc87f867, type: 3}
+  - {fileID: 12800000, guid: ca3fd009ddbaaa641962842389d27277, type: 3}
   - {fileID: 12800000, guid: 5631786e632aea14e838fa95e4d34ff8, type: 3}
   customCharacters: 
   fontRenderingMode: 0
