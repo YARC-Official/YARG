@@ -37,7 +37,7 @@ namespace YARG.PlayMode {
 		public Light starPowerParticlesLight;
 		public Light starPowerParticles2Light;
 		public GameObject starPowerLightIndicators;
-		public GameObject kickFlash;
+		public KickFlashAnimation kickFlash;
 
 		[Space]
 		public Color comboSunburstColor;
@@ -68,9 +68,16 @@ namespace YARG.PlayMode {
 		private Color[] noteColors;
 		[SerializeField]
 		private Color[] sustainColors;
+		[Space]
+		[SerializeField]
+		private Color[] kickFlashColors;
 
 		[Space]
 		public int[] colorMappings;
+		[SerializeField]
+		private int kickFlashColorIndex;
+
+		public Color KickFlashColor => kickFlashColors[kickFlashColorIndex];
 
 		public Color FretColor(int i) {
 			return fretColors[colorMappings[i]];

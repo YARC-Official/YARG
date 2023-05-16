@@ -100,7 +100,7 @@ namespace YARG.PlayMode {
 				}
 			}
 		}
-		
+
 		public int MaxCombo => _maxCombo;
 
 		public int MaxMultiplier => (player.chosenInstrument == "bass" ? 6 : 4) * (IsStarPowerActive ? 2 : 1);
@@ -178,8 +178,7 @@ namespace YARG.PlayMode {
 			commonTrack.hitWindow.gameObject.SetActive(SettingsManager.Settings.ShowHitWindow.Data);
 
 			comboSunburstEmbeddedLight = commonTrack.comboSunburst.GetComponent<Light>();
-
-			commonTrack.kickFlash.SetActive(false);
+			commonTrack.kickFlash.SetColor(commonTrack.KickFlashColor);
 
 			scoreKeeper = new();
 
