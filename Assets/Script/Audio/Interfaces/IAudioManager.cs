@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using YARG.Serialization;
 using YARG.Song;
 
 namespace YARG {
@@ -16,10 +15,10 @@ namespace YARG {
 
 		public double MasterVolume { get; }
 		public double SfxVolume { get; }
-		
+
 		public double PreviewStartTime { get; }
 		public double PreviewEndTime { get; }
-		
+
 		public double CurrentPositionD { get; }
 		public double AudioLengthD { get; }
 
@@ -35,8 +34,8 @@ namespace YARG {
 		public void LoadMogg(ExtractedConSongEntry exConSong, bool isSpeedUp, params SongStem[] ignoreStems);
 		public void UnloadSong();
 
-		public void LoadPreviewAudio(SongEntry song);
-		public void StartPreviewAudio();
+		public UniTask<bool> LoadPreviewAudio(SongEntry song);
+		public UniTask StartPreviewAudio();
 		public void StopPreviewAudio();
 
 		public void Play();

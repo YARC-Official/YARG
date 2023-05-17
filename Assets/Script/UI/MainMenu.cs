@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Input;
 using YARG.Settings;
-using YARG.Song;
 
 namespace YARG.UI {
 	public partial class MainMenu : MonoBehaviour {

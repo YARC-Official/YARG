@@ -66,13 +66,16 @@ namespace YARG.UI.MusicLibrary {
 				if (_songs[_selectedIndex] is not SongViewType song) {
 					return;
 				}
-				
+
 				if (song.SongEntry == GameManager.Instance.SelectedSong) {
 					return;
 				}
-					
-				GameManager.AudioManager.FadeOut().Forget();
+
 				GameManager.Instance.SelectedSong = song.SongEntry;
+
+				if (_songs[SelectedIndex] is SongViewType) {
+					GameManager.AudioManager.StartPreviewAudio().Forget();
+				}
 			}
 		}
 
@@ -136,8 +139,6 @@ namespace YARG.UI.MusicLibrary {
 				UpdateSearch();
 				refreshFlag = false;
 			}
-			
-			GameManager.AudioManager.StartPreviewAudio();
 		}
 
 		private void OnDisable() {
@@ -181,10 +182,9 @@ namespace YARG.UI.MusicLibrary {
 			} else if (scroll < 0f) {
 				SelectedIndex++;
 				isSelectingStopped = false;
-			}
-			else if (Mathf.Abs(scroll) < float.Epsilon && !isSelectingStopped) {
+			} else if (Mathf.Abs(scroll) < float.Epsilon && !isSelectingStopped) {
 				if (_songs[SelectedIndex] is SongViewType) {
-					GameManager.AudioManager.StartPreviewAudio();
+					// GameManager.AudioManager.StartPreviewAudio();
 					isSelectingStopped = true;
 				}
 			}
@@ -198,10 +198,6 @@ namespace YARG.UI.MusicLibrary {
 			}
 
 			if (!pressed) {
-				if (_songs[SelectedIndex] is SongViewType) {
-					GameManager.AudioManager.StartPreviewAudio();
-				}
-
 				return;
 			}
 
@@ -258,6 +254,18 @@ namespace YARG.UI.MusicLibrary {
 					_recommendedSongs.Count == 1 ? "RECOMMENDED SONG" : "RECOMMENDED SONGS",
 					$"<#00B6F5><b>{_recommendedSongs.Count}</b> <#006488>{(_recommendedSongs.Count == 1 ? "SONG" : "SONGS")}",
 					_recommendedSongs
+				));
+
+				// Add buttons
+				_songs.Insert(0, new ButtonViewType(
+					"RANDOM SONG",
+					() => {
+						// Get how many non-song things there are
+						int skip = _songs.Count - SongContainer.Songs.Count;
+
+						// Select random between all of the songs
+						SelectedIndex = Random.Range(skip, SongContainer.Songs.Count);
+					}
 				));
 			} else {
 				// Split up args
@@ -335,16 +343,17 @@ namespace YARG.UI.MusicLibrary {
 			}
 
 			if (GameManager.Instance.SelectedSong == null) {
-				SelectedIndex = 1;
+				if (string.IsNullOrEmpty(searchField.text)) {
+					SelectedIndex = 2;
+				} else {
+					SelectedIndex = 1;
+				}
 			} else {
 				var index = _songs.FindIndex(song => {
 					return song is SongViewType songType && songType.SongEntry == GameManager.Instance.SelectedSong;
 				});
 
 				SelectedIndex = Mathf.Max(1, index);
-				if (SelectedIndex == 1) {
-					GameManager.AudioManager.StartPreviewAudio();
-				}
 			}
 
 			UpdateSongViews();

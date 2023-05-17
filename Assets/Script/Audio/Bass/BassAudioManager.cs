@@ -46,6 +46,7 @@ namespace YARG {
 		private CancellationTokenSource _cancellationTokenSource;
 
 		private bool _isLooping = false;
+		private bool _isLoadingLoopAudio = false;
 
 		private void Awake() {
 			SupportedFormats = new[] {
@@ -226,7 +227,7 @@ namespace YARG {
 
 			byte[] moggArray;
 			if (exConSong is ConSongEntry conSong) {
-				if(!conSong.UsingUpdateMogg)
+				if (!conSong.UsingUpdateMogg)
 					moggArray = XboxCONInnerFileRetriever.RetrieveFile(conSong.Location,
 						conSong.MoggFileSize, conSong.MoggFileMemBlockOffsets)[conSong.MoggAddressAudioOffset..];
 				else moggArray = File.ReadAllBytes(conSong.MoggPath)[conSong.MoggAddressAudioOffset..];
@@ -273,12 +274,21 @@ namespace YARG {
 			_mixer = null;
 		}
 
-		public void LoadPreviewAudio(SongEntry song) {
-			if (song is ExtractedConSongEntry conSong) {
-				LoadMogg(conSong, false, SongStem.Crowd);
-			} else {
-				LoadSong(AudioHelpers.GetSupportedStems(song.Location), false, SongStem.Crowd);
+		public async UniTask<bool> LoadPreviewAudio(SongEntry song) {
+			if (_isLoadingLoopAudio || Mathf.Approximately(SettingsManager.Settings.PreviewVolume.Data, 0f)) {
+				// Skip if preview audio is turned off or a preview is already being loaded
+				return false;
 			}
+
+			_isLoadingLoopAudio = true;
+
+			await UniTask.RunOnThreadPool(() => {
+				if (song is ExtractedConSongEntry conSong) {
+					LoadMogg(conSong, false, SongStem.Crowd);
+				} else {
+					LoadSong(AudioHelpers.GetSupportedStems(song.Location), false, SongStem.Crowd);
+				}
+			});
 
 			PreviewStartTime = song.PreviewStartTimeSpan.TotalSeconds;
 			if (PreviewStartTime <= 0) {
@@ -291,17 +301,30 @@ namespace YARG {
 			}
 
 			SetPosition(PreviewStartTime);
+
+			_isLoadingLoopAudio = false;
+
+			return true;
 		}
-		
-		public async void StartPreviewAudio() {
-			if (IsAudioLoaded) {
-				_cancellationTokenSource.Cancel();
+
+		public async UniTask StartPreviewAudio() {
+			if (_cancellationTokenSource != null) {
 				_cancellationTokenSource.Dispose();
+				_cancellationTokenSource = null;
 			}
+
 			_cancellationTokenSource = new CancellationTokenSource();
 			await FadeOut();
-			
-			LoadPreviewAudio(GameManager.Instance.SelectedSong);
+
+			// Wait until audio isn't being loaded (prevent lag)
+			await UniTask.WaitUntil(() => !_isLoadingLoopAudio,
+				cancellationToken: _cancellationTokenSource.Token);
+
+			// Skip if the preview audio can't/shouldn't be loaded
+			if (!await LoadPreviewAudio(GameManager.Instance.SelectedSong)) {
+				return;
+			}
+
 			FadeIn(SettingsManager.Settings.PreviewVolume.Data);
 			LoopPreviewAudioTask().Forget();
 		}
@@ -310,13 +333,13 @@ namespace YARG {
 			if (_isLooping) {
 				return;
 			}
-			
+
 			try {
 				while (!_cancellationTokenSource.IsCancellationRequested) {
 					_isLooping = true;
-					while (CurrentPositionF < PreviewEndTime && CurrentPositionF < AudioLengthF) {
-						await UniTask.Yield(cancellationToken: _cancellationTokenSource.Token);
-					}
+
+					await UniTask.WaitUntil(() => CurrentPositionF >= PreviewEndTime || CurrentPositionF >= AudioLengthF,
+						cancellationToken: _cancellationTokenSource.Token);
 
 					await FadeOut(_cancellationTokenSource.Token);
 
