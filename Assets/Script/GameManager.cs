@@ -2,7 +2,6 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.InputSystem;
-using UnityEngine.Profiling;
 using UnityEngine.SceneManagement;
 using YARG.Settings;
 using YARG.Song;
@@ -81,13 +80,13 @@ namespace YARG {
 		}
 
 #if UNITY_EDITOR
-		private void OnGUI() {
+		/*private void OnGUI() {
 			// FPS and Memory
 			GUI.skin.label.fontSize = 20;
 			GUI.color = Color.green;
 			GUI.Label(new Rect(10, 20, 500, 40), $"FPS: {1f / Time.unscaledDeltaTime:0.0}");
 			GUI.Label(new Rect(10, 40, 500, 40), $"Memory: {Profiler.GetTotalAllocatedMemoryLong() / 1024 / 1024} MB");
-		}
+		}*/
 #endif
 
 		private void LoadSceneAdditive(SceneIndex scene) {
