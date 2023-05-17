@@ -12,6 +12,7 @@ namespace YARG {
 
 		public bool IsAudioLoaded { get; }
 		public bool IsPlaying { get; }
+		public bool IsFadingOut { get; }
 
 		public double MasterVolume { get; }
 		public double SfxVolume { get; }
