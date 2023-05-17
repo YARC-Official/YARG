@@ -59,9 +59,10 @@ namespace YARG.Song {
 		public string Source { get; set; } = string.Empty;
 
 		public Dictionary<Instrument, int> PartDifficulties { get; } = new();
+		public int BandDifficulty { get; set; }
 
 		public ulong AvailableParts { get; set; }
-		public int VocalParts { get; set; } = 0;
+		public int VocalParts { get; set; }
 
 		public string Checksum { get; set; }
 		public string NotesFile { get; set; }
