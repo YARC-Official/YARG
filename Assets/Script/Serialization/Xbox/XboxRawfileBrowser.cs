@@ -19,6 +19,26 @@ namespace YARG.Serialization {
 			string songs_folder = Path.Combine(root_folder, "songs");
 			string songs_upgrades_folder = Path.Combine(root_folder, "songs_upgrades"); // TODO: implement this
 
+			// capture any extra upgrades local to this excon, if they exist
+			if(File.Exists(Path.Combine(songs_upgrades_folder, "upgrades.dta"))){
+				using var sr_upgr = new StreamReader(Path.Combine(songs_upgrades_folder, "upgrades.dta"), Encoding.GetEncoding("iso-8859-1"));
+				var dtaUpgradeTree = DTX.FromDtaString(sr_upgr.ReadToEnd());
+
+				// Read each shortname the dta file lists
+				for (int i = 0; i < dtaUpgradeTree.Count; i++) {
+					try {
+						var currentArray = (DataArray) dtaUpgradeTree[i];
+						var upgr = new SongProUpgrade();
+						upgr.ShortName = currentArray.Name;
+						upgr.UpgradeMidiPath = Path.Combine(songs_upgrades_folder, $"{currentArray.Name}_plus.mid");
+						upgrade_dict.Add(upgr, currentArray);
+					} catch (Exception e) {
+						Debug.Log($"Failed to get upgrade, skipping...");
+						Debug.LogException(e);
+					}
+				}
+			}
+
 			// Attempt to read songs.dta
 			try {
 				using var sr = new StreamReader(Path.Combine(songs_folder, "songs.dta"), Encoding.GetEncoding("iso-8859-1"));
