@@ -208,7 +208,7 @@ namespace YARG.Song {
 
 				return;
 			}
-			
+
 			// Iterate through the files in this current directory to look for CON files
 			try { // try-catch to prevent crash if user doesn't have permission to access a folder
 				foreach (var file in Directory.EnumerateFiles(subDir)) {
@@ -341,6 +341,14 @@ namespace YARG.Song {
 					return ScanResult.CorruptedNotesFile;
 				}
 				tracks |= update_tracks;
+			}
+			// add upgrade midi, if it exists
+			if(file.UpgradeMidiPath != string.Empty){
+				bytes.AddRange(File.ReadAllBytes(file.UpgradeMidiPath));
+				if(!MidPreparser.GetAvailableTracks(File.ReadAllBytes(file.UpgradeMidiPath), out ulong upgrade_tracks)){
+					return ScanResult.CorruptedNotesFile;
+				}
+				tracks |= upgrade_tracks;
 			}
 
 			string checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes.ToArray())).Replace("-", "");

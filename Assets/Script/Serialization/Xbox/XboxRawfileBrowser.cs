@@ -43,6 +43,13 @@ namespace YARG.Serialization {
 						foreach(var dtaUpdate in update_dict[currentSong.ShortName])
 							currentSong = XboxDTAParser.ParseFromDta(dtaUpdate, currentSong);
 
+					// if shortname was found in upgrades.dta, apply the upgrade metadata and capture the upgrade midi
+					if(songHasUpgrade){
+						currentSong = XboxDTAParser.ParseFromDta(upgrade_dict[currentSong.ShortName], currentSong);
+						currentSong.UpgradeMidiPath = Path.Combine(upgrade_folder, $"{currentSong.ShortName}_plus.mid");
+						Debug.Log($"upgrade midi found at {currentSong.UpgradeMidiPath}");
+					}
+
 					// since Location is currently set to the name of the folder before mid/mogg/png, set those paths now:
 					
 					// capture base midi, and if an update midi was provided, capture that as well
