@@ -649,7 +649,6 @@ GameObject:
   - component: {fileID: 240896118}
   - component: {fileID: 240896120}
   - component: {fileID: 240896119}
-  - component: {fileID: 240896122}
   - component: {fileID: 240896121}
   m_Layer: 5
   m_Name: Background
@@ -748,18 +747,6 @@ VideoPlayer:
   m_WaitForFirstFrame: 1
   m_FrameReadyEventEnabled: 0
   m_VideoShaders: []
---- !u!114 &240896122
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 240896117}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d2df7b64c06ba35458eca10641fececd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &264140536
 GameObject:
   m_ObjectHideFlags: 0
