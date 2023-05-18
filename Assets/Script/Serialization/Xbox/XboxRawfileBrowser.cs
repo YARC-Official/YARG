@@ -11,7 +11,9 @@ using YARG.Song;
 
 namespace YARG.Serialization {
 	public static class ExCONBrowser {
-		public static List<ExtractedConSongEntry> BrowseFolder(string folder, string update_folder, Dictionary<string, List<DataArray>> update_dict){
+		public static List<ExtractedConSongEntry> BrowseFolder(string folder, 
+				string update_folder, Dictionary<string, List<DataArray>> update_dict, 
+				string upgrade_folder, Dictionary<string, DataArray> upgrade_dict){
 			var songList = new List<ExtractedConSongEntry>();
 			var dtaTree = new DataArray();
 
@@ -32,14 +34,15 @@ namespace YARG.Serialization {
 					// Parse songs.dta for song metadata
 					var currentSong = XboxDTAParser.ParseFromDta(currentArray);
 
-					// check if song has applicable updates
+					// check if song has applicable updates and/or upgrades
 					bool songCanBeUpdated = (update_dict.TryGetValue(currentSong.ShortName, out var val));
+					bool songHasUpgrade = (upgrade_dict.TryGetValue(currentSong.ShortName, out var upgrade_dta));
 
 					// if shortname was found in songs_updates.dta, update the metadata
 					if(songCanBeUpdated)
 						foreach(var dtaUpdate in update_dict[currentSong.ShortName])
 							currentSong = XboxDTAParser.ParseFromDta(dtaUpdate, currentSong);
-					
+
 					// since Location is currently set to the name of the folder before mid/mogg/png, set those paths now:
 					
 					// capture base midi, and if an update midi was provided, capture that as well
