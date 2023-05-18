@@ -36,7 +36,7 @@ namespace YARG {
 		private AudioMixerGroup vocalGroup;
 
 		public SceneIndex CurrentScene { get; private set; } = SceneIndex.PERSISTANT;
-		
+
 		public SongEntry SelectedSong { get; set; }
 
 		private void Awake() {
@@ -55,7 +55,7 @@ namespace YARG {
 			ApplicationDataPath = Application.dataPath.Replace("/", Path.DirectorySeparatorChar.ToString());
 			ExecutablePath = Directory.GetParent(ApplicationDataPath)?.FullName;
 			Debug.Log(ExecutablePath);
-			
+
 			AudioManager = gameObject.AddComponent<BassAudioManager>();
 			AudioManager.Initialize();
 		}

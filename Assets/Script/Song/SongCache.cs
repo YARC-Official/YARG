@@ -12,7 +12,7 @@ namespace YARG.Song {
 		/// <summary>
 		/// The date in which the cache version is based on (and cache revision)
 		/// </summary>
-		private const int CACHE_VERSION = 23_05_17_02;
+		private const int CACHE_VERSION = 23_05_18_01;
 
 		private readonly string _folder;
 		private readonly string _cacheFile;
@@ -80,7 +80,6 @@ namespace YARG.Song {
 			// Debug.Log($"Writing {song.Name} to cache");
 
 			bool isCON = false;
-
 			if (song is IniSongEntry) {
 				writer.Write((int) SongType.SongIni);
 			} else {
@@ -132,9 +131,10 @@ namespace YARG.Song {
 				writer.Write(iniSong.SubPlaylist);
 				writer.Write(iniSong.IsModChart);
 				writer.Write(iniSong.HasLyrics);
+				writer.Write(iniSong.VideoStartOffset);
 			} else {
-				if (!isCON) { //ExCON
-							  // Write ex-con stuff
+				if (!isCON) {
+					// Write ex-con stuff
 					CacheHelpers.WriteExtractedConData(writer, (ExtractedConSongEntry) song);
 				} else {
 					// Write con stuff
@@ -152,13 +152,13 @@ namespace YARG.Song {
 		private static SongEntry ReadSongEntry(BinaryReader reader) {
 			try {
 				SongEntry result = null;
-				var type = (SongType)reader.ReadInt32();
+				var type = (SongType) reader.ReadInt32();
 
 				result = type switch {
 					SongType.RbCon => new ConSongEntry(),
 					SongType.ExtractedRbCon => new ExtractedConSongEntry(),
 					SongType.SongIni => new IniSongEntry(),
-					_ => result
+					_ => throw new Exception("Unknown song type!")
 				};
 
 				result.SongType = type;
