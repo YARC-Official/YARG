@@ -27,7 +27,7 @@ namespace YARG.Song {
 		private Dictionary<string, List<DataArray>> _songUpdateDict = new();
 
 		private string _upgradeFolderPath = string.Empty;
-		private Dictionary<string, DataArray> _songUpgradeDict = new();
+		private Dictionary<SongProUpgrade, DataArray> _songUpgradeDict = new();
 
 		private readonly Dictionary<string, List<SongEntry>> _songsByCacheFolder;
 		private readonly Dictionary<string, List<SongError>> _songErrors;
@@ -156,6 +156,7 @@ namespace YARG.Song {
 				if(_upgradeFolderPath == string.Empty){
 					_upgradeFolderPath = upgradePath;
 					Debug.Log($"Song upgrades found at {_upgradeFolderPath}");
+					// first, parse the raw upgrades. then, parse all the upgrades contained within CONs
 					_songUpgradeDict = XboxSongUpgradeBrowser.FetchSongUpgrades(_upgradeFolderPath);
 					Debug.Log($"Total count of song upgrades found: {_songUpgradeDict.Count}");
 				}
@@ -184,7 +185,7 @@ namespace YARG.Song {
 			string songsPath = Path.Combine(subDir, "songs");
 			if (File.Exists(Path.Combine(songsPath, "songs.dta"))) {
 				List<ExtractedConSongEntry> files = ExCONBrowser.BrowseFolder(songsPath, 
-					_updateFolderPath, _songUpdateDict, _upgradeFolderPath, _songUpgradeDict);
+					_updateFolderPath, _songUpdateDict, _songUpgradeDict);
 
 				foreach (ExtractedConSongEntry file in files) {
 					// validate that the song is good to add in-game
@@ -343,9 +344,10 @@ namespace YARG.Song {
 				tracks |= update_tracks;
 			}
 			// add upgrade midi, if it exists
-			if(file.UpgradeMidiPath != string.Empty){
-				bytes.AddRange(File.ReadAllBytes(file.UpgradeMidiPath));
-				if(!MidPreparser.GetAvailableTracks(File.ReadAllBytes(file.UpgradeMidiPath), out ulong upgrade_tracks)){
+			if(!string.IsNullOrEmpty(file.SongUpgrade.UpgradeMidiPath)){
+				var upgrade_midi = file.SongUpgrade.GetUpgradeMidi();
+				bytes.AddRange(upgrade_midi);
+				if(!MidPreparser.GetAvailableTracks(upgrade_midi, out ulong upgrade_tracks)){
 					return ScanResult.CorruptedNotesFile;
 				}
 				tracks |= upgrade_tracks;

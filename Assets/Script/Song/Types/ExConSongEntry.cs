@@ -26,9 +26,16 @@ namespace YARG.Song {
 		public string UpdateMidiPath { get; set; } = string.Empty;
 
 		// pro upgrade info, if it exists
-		public string UpgradeMidiPath { get; set; } = string.Empty;
+		public SongProUpgrade SongUpgrade { get; set; } = new();
 		public int[] RealGuitarTuning { get; set; }
 		public int[] RealBassTuning { get; set; }
+
+		// TODO: cover the following circumstances:
+		// an excon receiving an upgrade that's inside a CON
+		// a CON receiving an upgrade that's extracted
+		// a CON receiving an upgrade that's inside a CON	
+		
+		// TODO: also cover what happens when both excons AND CONs have songs_upgrades folders right beside their songs folders
 
 		// .mogg info
 		public bool UsingUpdateMogg { get; set; } = false;

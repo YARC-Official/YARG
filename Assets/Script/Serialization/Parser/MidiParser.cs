@@ -94,8 +94,9 @@ namespace YARG.Serialization.Parser {
 				}
 				
 				// also, if this RB song has a pro upgrade, merge it as well
-				if(oof.UpgradeMidiPath != string.Empty){
-					MidiFile upgrade = MidiFile.Read(oof.UpgradeMidiPath, new ReadingSettings() { TextEncoding = Encoding.GetEncoding("iso-8859-1") });
+				if(oof.SongUpgrade.UpgradeMidiPath != string.Empty){
+					using var stream = new MemoryStream(oof.SongUpgrade.GetUpgradeMidi());
+					MidiFile upgrade = MidiFile.Read(stream, new ReadingSettings() { TextEncoding = Encoding.GetEncoding("iso-8859-1") });
 
 					foreach(var trackChunk in upgrade.GetTrackChunks()){
 						foreach(var trackEvent in trackChunk.Events){
