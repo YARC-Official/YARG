@@ -20,6 +20,7 @@ namespace YARG {
 
 		public bool IsAudioLoaded { get; private set; }
 		public bool IsPlaying { get; private set; }
+		public bool IsFadingOut { get; private set; }
 
 		public double MasterVolume { get; private set; }
 		public double SfxVolume { get; private set; }
@@ -268,6 +269,12 @@ namespace YARG {
 		public void UnloadSong() {
 			IsPlaying = false;
 			IsAudioLoaded = false;
+			if (IsFadingOut) {
+				_cancellationTokenSource.Cancel();
+				_cancellationTokenSource.Dispose();
+				_cancellationTokenSource = null;
+				IsFadingOut = false;
+			}
 
 			// Free mixer (and all channels in it)
 			_mixer?.Dispose();
@@ -352,13 +359,13 @@ namespace YARG {
 		}
 
 		public void StopPreviewAudio() {
-			_cancellationTokenSource.Cancel();
 			StopPreviewAudioTask().Forget();
 		}
 
 		private async UniTask StopPreviewAudioTask() {
-			await FadeOut();
+			await FadeOut(_cancellationTokenSource.Token);
 			UnloadSong();
+			_cancellationTokenSource.Cancel();
 			_cancellationTokenSource.Dispose();
 			_cancellationTokenSource = null;
 		}
@@ -406,7 +413,9 @@ namespace YARG {
 
 		public async UniTask FadeOut(CancellationToken token = default) {
 			if (IsPlaying) {
+				IsFadingOut = true;
 				await _mixer.FadeOut(token);
+				IsFadingOut = false;
 			}
 
 			await UniTask.Yield();
