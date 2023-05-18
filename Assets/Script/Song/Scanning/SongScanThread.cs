@@ -218,7 +218,8 @@ namespace YARG.Song {
 					using var br = new BinaryReader(fs);
 					string fHeader = Encoding.UTF8.GetString(br.ReadBytes(4));
 					if (fHeader == "CON " || fHeader == "LIVE") {
-						List<ConSongEntry> SongsInsideCON = XboxCONFileBrowser.BrowseCON(file, _updateFolderPath, _songUpdateDict);
+						List<ConSongEntry> SongsInsideCON = XboxCONFileBrowser.BrowseCON(file, 
+							_updateFolderPath, _songUpdateDict, _songUpgradeDict);
 						// for each CON song that was found (assuming some WERE found)
 						if (SongsInsideCON != null) {
 							foreach (ConSongEntry SongInsideCON in SongsInsideCON) {
@@ -395,6 +396,15 @@ namespace YARG.Song {
 					return ScanResult.CorruptedNotesFile;
 				}
 				tracks |= update_tracks;
+			}
+			// add upgrade midi, if it exists
+			if(!string.IsNullOrEmpty(file.SongUpgrade.UpgradeMidiPath)){
+				var upgrade_midi = file.SongUpgrade.GetUpgradeMidi();
+				bytes.AddRange(upgrade_midi);
+				if(!MidPreparser.GetAvailableTracks(upgrade_midi, out ulong upgrade_tracks)){
+					return ScanResult.CorruptedNotesFile;
+				}
+				tracks |= upgrade_tracks;
 			}
 
 			string checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes.ToArray())).Replace("-", "");
