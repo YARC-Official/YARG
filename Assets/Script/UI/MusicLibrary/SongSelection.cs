@@ -259,6 +259,7 @@ namespace YARG.UI.MusicLibrary {
 				// Add buttons
 				_songs.Insert(0, new ButtonViewType(
 					"RANDOM SONG",
+					"Icon/Random",
 					() => {
 						// Get how many non-song things there are
 						int skip = _songs.Count - SongContainer.Songs.Count;

@@ -7,7 +7,7 @@ namespace YARG.UI.MusicLibrary.ViewTypes {
 	public class CategoryViewType : ViewType {
 		public override BackgroundType Background => BackgroundType.Category;
 
-		public override string PrimaryText => _primary;
+		public override string PrimaryText => $"<color=white>{_primary}</color>";
 		public override string SideText => _side;
 
 		private string _primary;
