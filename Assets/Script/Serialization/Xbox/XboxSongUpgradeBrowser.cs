@@ -45,7 +45,6 @@ namespace YARG.Serialization {
 					using var br = new BinaryReader(fs);
 					string fHeader = Encoding.UTF8.GetString(br.ReadBytes(4));
 					if (fHeader == "CON " || fHeader == "LIVE") {
-						Debug.Log($"can confirm, {file} is a CON");
 						STFS thisUpgradeCON = new STFS(file);
 
 						// attempt to read the CON's upgrades.dta

@@ -182,9 +182,8 @@ namespace YARG.Song {
 			}
 
 			// Raw CON folder, so don't scan anymore subdirectories here
-			string songsPath = Path.Combine(subDir, "songs");
-			if (File.Exists(Path.Combine(songsPath, "songs.dta"))) {
-				List<ExtractedConSongEntry> files = ExCONBrowser.BrowseFolder(songsPath, 
+			if (File.Exists(Path.Combine(subDir, "songs", "songs.dta"))) {
+				List<ExtractedConSongEntry> files = ExCONBrowser.BrowseFolder(subDir, 
 					_updateFolderPath, _songUpdateDict, _songUpgradeDict);
 
 				foreach (ExtractedConSongEntry file in files) {
