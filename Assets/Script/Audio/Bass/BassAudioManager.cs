@@ -282,8 +282,8 @@ namespace YARG {
 		}
 
 		public async UniTask<bool> LoadPreviewAudio(SongEntry song) {
-			if (_isLoadingLoopAudio || Mathf.Approximately(SettingsManager.Settings.PreviewVolume.Data, 0f)) {
-				// Skip if preview audio is turned off or a preview is already being loaded
+			if (song == null || _isLoadingLoopAudio || Mathf.Approximately(SettingsManager.Settings.PreviewVolume.Data, 0f)) {
+				// Skip if preview audio is turned off
 				return false;
 			}
 
@@ -315,19 +315,22 @@ namespace YARG {
 		}
 
 		public async UniTask StartPreviewAudio() {
-			if (_cancellationTokenSource != null) {
-				_cancellationTokenSource.Dispose();
-				_cancellationTokenSource = null;
+			if (_cancellationTokenSource?.IsCancellationRequested ?? false) {
+				return;
 			}
 
-			_cancellationTokenSource = new CancellationTokenSource();
+			if (_cancellationTokenSource != null) {
+				_cancellationTokenSource.Cancel();
+				_cancellationTokenSource.Dispose();
+			}
+
 			await FadeOut();
 
 			// Wait until audio isn't being loaded (prevent lag)
-			await UniTask.WaitUntil(() => !_isLoadingLoopAudio,
-				cancellationToken: _cancellationTokenSource.Token);
+			await UniTask.WaitUntil(() => !_isLoadingLoopAudio);
 
 			// Skip if the preview audio can't/shouldn't be loaded
+			_cancellationTokenSource = new CancellationTokenSource();
 			if (!await LoadPreviewAudio(GameManager.Instance.SelectedSong)) {
 				return;
 			}
