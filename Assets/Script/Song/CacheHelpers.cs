@@ -11,6 +11,31 @@ namespace YARG.Song {
 			writer.Write(ExCONSong.DiscUpdate);
 			writer.Write(ExCONSong.UpdateMidiPath);
 
+			// pro upgrade data
+			writer.Write(ExCONSong.SongUpgrade.ShortName);
+			writer.Write(ExCONSong.SongUpgrade.UpgradeMidiPath);
+			writer.Write(ExCONSong.SongUpgrade.CONFilePath);
+			writer.Write(ExCONSong.SongUpgrade.UpgradeMidiFileSize);
+			if(ExCONSong.SongUpgrade.UpgradeMidiFileMemBlockOffsets != null){
+				writer.Write(ExCONSong.SongUpgrade.UpgradeMidiFileMemBlockOffsets.Length);
+				for(int i = 0; i < ExCONSong.SongUpgrade.UpgradeMidiFileMemBlockOffsets.Length; i++)
+					writer.Write(ExCONSong.SongUpgrade.UpgradeMidiFileMemBlockOffsets[i]);
+			}
+			else writer.Write(0u);
+
+			if(ExCONSong.RealGuitarTuning != null){
+				writer.Write(ExCONSong.RealGuitarTuning.Length);
+				for(int i = 0; i < 6; i++)
+					writer.Write(ExCONSong.RealGuitarTuning[i]);
+			}
+			else writer.Write(0);
+			if(ExCONSong.RealBassTuning != null){
+				writer.Write(ExCONSong.RealBassTuning.Length);
+				for(int i = 0; i < 4; i++)
+					writer.Write(ExCONSong.RealBassTuning[i]);
+			}
+			else writer.Write(0);
+
 			// mogg data
 			writer.Write(ExCONSong.UsingUpdateMogg);
 			writer.Write(ExCONSong.MoggPath);
@@ -73,9 +98,39 @@ namespace YARG.Song {
 
 		public static void ReadExtractedConData(BinaryReader reader, ExtractedConSongEntry ExCONSong) {
 
+			// update midi data
 			ExCONSong.DiscUpdate = reader.ReadBoolean();
 			ExCONSong.UpdateMidiPath = reader.ReadString();
 
+			// pro upgrade data
+			SongProUpgrade upgr = new SongProUpgrade();
+			upgr.ShortName = reader.ReadString();
+			upgr.UpgradeMidiPath = reader.ReadString();
+			upgr.CONFilePath = reader.ReadString();
+			upgr.UpgradeMidiFileSize = reader.ReadUInt32();
+			uint upgrMidOffsetLength = reader.ReadUInt32();
+			if(upgrMidOffsetLength > 0){
+				upgr.UpgradeMidiFileMemBlockOffsets = new uint[upgrMidOffsetLength];
+				for(int i = 0; i < upgrMidOffsetLength; i++){
+					upgr.UpgradeMidiFileMemBlockOffsets[i] = reader.ReadUInt32();
+				}
+			}
+			ExCONSong.SongUpgrade = upgr;
+
+			int guitarTuneLength = reader.ReadInt32();
+			if(guitarTuneLength > 0){
+				ExCONSong.RealGuitarTuning = new int[guitarTuneLength];
+				for(int i = 0; i < guitarTuneLength; i++)
+					ExCONSong.RealGuitarTuning[i] = reader.ReadInt32();
+			}
+			int bassTuneLength = reader.ReadInt32();
+			if(bassTuneLength > 0){
+				ExCONSong.RealBassTuning = new int[bassTuneLength];
+				for(int i = 0; i < bassTuneLength; i++)
+					ExCONSong.RealBassTuning[i] = reader.ReadInt32();
+			}
+
+			// mogg data
 			ExCONSong.UsingUpdateMogg = reader.ReadBoolean();
 			ExCONSong.MoggPath = reader.ReadString();
 			ExCONSong.MoggHeader = reader.ReadInt32();

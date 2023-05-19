@@ -10,12 +10,37 @@ using YARG.Song;
 
 namespace YARG.Serialization {
 	public static class XboxCONFileBrowser {
-		public static List<ConSongEntry> BrowseCON(string conName, string update_folder, Dictionary<string, List<DataArray>> update_dict){
+		public static List<ConSongEntry> BrowseCON(string conName, 
+				string update_folder, Dictionary<string, List<DataArray>> update_dict,
+				Dictionary<SongProUpgrade, DataArray> upgrade_dict){
 			var songList = new List<ConSongEntry>();
 			var dtaTree = new DataArray();
 
-			// Attempt to read songs.dta
 			STFS theCON = new STFS(conName);
+
+			// Attempt to read upgrades.dta, if it exists
+			if(theCON.GetFileSize(Path.Combine("songs_upgrades", "upgrades.dta")) > 0){
+				var dtaUpgradeTree = DTX.FromPlainTextBytes(theCON.GetFile(Path.Combine("songs_upgrades", "upgrades.dta")));
+
+				// Read each shortname the dta file lists
+				for (int i = 0; i < dtaUpgradeTree.Count; i++) {
+					try {
+						var currentArray = (DataArray) dtaUpgradeTree[i];
+						var upgr = new SongProUpgrade();
+						upgr.ShortName = currentArray.Name;
+						upgr.UpgradeMidiPath = Path.Combine("songs_upgrades", $"{currentArray.Name}_plus.mid");
+						upgr.CONFilePath = conName;
+						upgr.UpgradeMidiFileSize = theCON.GetFileSize(upgr.UpgradeMidiPath);
+						upgr.UpgradeMidiFileMemBlockOffsets = theCON.GetMemOffsets(upgr.UpgradeMidiPath);
+						upgrade_dict.Add(upgr, currentArray);
+					} catch (Exception e) {
+						Debug.Log($"Failed to get upgrade, skipping...");
+						Debug.LogException(e);
+					}
+				}
+			}
+
+			// Attempt to read songs.dta
 			try {
 				dtaTree = DTX.FromPlainTextBytes(theCON.GetFile(Path.Combine("songs", "songs.dta")));
 			} catch (Exception e) {
@@ -32,15 +57,24 @@ namespace YARG.Serialization {
 					// Get song metadata from songs.dta
 					ConSongEntry currentSong = XboxDTAParser.ParseFromDta(currentArray);
 
-					// check if song has applicable updates
+					// check if song has applicable updates and/or upgrades
 					bool songCanBeUpdated = (update_dict.TryGetValue(currentSong.ShortName, out var val));
-
-					// if shortname was found in songs_updates.dta, update the metadata
-					if(songCanBeUpdated){
-						foreach(var dtaUpdate in update_dict[currentSong.ShortName]){
-							currentSong = XboxDTAParser.ParseFromDta(dtaUpdate, currentSong);
+					bool songHasUpgrade = false;
+					foreach(var upgr in upgrade_dict){
+						if(upgr.Key.ShortName == currentSong.ShortName){
+							songHasUpgrade = true;
+							currentSong.SongUpgrade = upgr.Key;
+							break;
 						}
 					}
+
+					// if shortname was found in songs_updates.dta, update the metadata
+					if(songCanBeUpdated)
+						foreach(var dtaUpdate in update_dict[currentSong.ShortName])
+							currentSong = XboxDTAParser.ParseFromDta(dtaUpdate, currentSong);
+
+					// if shortname was found in upgrades.dta, apply the upgrade metadata (upgrade midi has already been captured)
+					if(songHasUpgrade) currentSong = XboxDTAParser.ParseFromDta(upgrade_dict[currentSong.SongUpgrade], currentSong);
 
 					// since Location is currently set to the name of the folder before mid/mogg/png, set those paths now
 					// since we're dealing with a CON and not an ExCON, grab each relevant file's sizes and memory block offsets
