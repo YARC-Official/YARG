@@ -1,11 +1,7 @@
-using System.Diagnostics;
-using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
-using YARG.Settings;
-using YARG.Data;
+using UnityEngine;
 using UnityEngine.Profiling;
-using Debug = UnityEngine.Debug;
+using UnityEngine.UI;
 
 public class FpsCounter : MonoBehaviour {
 
@@ -51,23 +47,23 @@ public class FpsCounter : MonoBehaviour {
 			// Color the FPS sprite based on the FPS
 			if (fps < 30) {
 				// RED
-				if ( ColorUtility.TryParseHtmlString("#FF0035", out Color color)){ 
-					fpsCircle.color = color; 
-				} else { 
+				if (ColorUtility.TryParseHtmlString("#FF0035", out Color color)) {
+					fpsCircle.color = color;
+				} else {
 					fpsCircle.color = Color.red;
 				}
 			} else if (fps < 60) {
 				// YELLOW
-				if ( ColorUtility.TryParseHtmlString("#FFD43A", out Color color)){ 
-					fpsCircle.color = color; 
-				} else { 
+				if (ColorUtility.TryParseHtmlString("#FFD43A", out Color color)) {
+					fpsCircle.color = color;
+				} else {
 					fpsCircle.color = Color.yellow;
 				}
 			} else {
 				// GREEN
-				if ( ColorUtility.TryParseHtmlString("#46E74F", out Color color)){ 
-					fpsCircle.color = color; 
-				} else { 
+				if (ColorUtility.TryParseHtmlString("#46E74F", out Color color)) {
+					fpsCircle.color = color;
+				} else {
 					fpsCircle.color = Color.green;
 				}
 			}
@@ -75,10 +71,10 @@ public class FpsCounter : MonoBehaviour {
 			// Display the FPS
 			fpsText.text += "FPS: " + fps.ToString();
 
-			#if UNITY_EDITOR
-				// Display the memory usage
-				fpsText.text += "\nMemory: " + (Profiler.GetTotalAllocatedMemoryLong() / 1024 / 1024).ToString() + " MB";
-			#endif
+#if UNITY_EDITOR
+			// Display the memory usage
+			fpsText.text += "\nMemory: " + (Profiler.GetTotalAllocatedMemoryLong() / 1024 / 1024).ToString() + " MB";
+#endif
 
 			// reset the update time
 			updateTime = Time.unscaledTime + 1f;

@@ -12,6 +12,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using YARG.Chart;
 using YARG.Data;
+using YARG.Input;
 using YARG.Serialization.Parser;
 using YARG.Settings;
 using YARG.Song;
@@ -129,6 +130,7 @@ namespace YARG.PlayMode {
 
 			ScoreKeeper.Reset();
 			StarScoreKeeper.Reset();
+			Navigator.Instance.PopAllSchemes();
 
 			backgroundRenderTexture.ClearTexture();
 

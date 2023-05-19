@@ -48,7 +48,21 @@ namespace YARG.UI {
 		}
 
 		private void OnEnable() {
-			Navigator.Instance.NavigationEvent += NavigationEvent;
+			// Set navigation scheme
+			Navigator.Instance.PushScheme(new NavigationScheme(new() {
+				new NavigationScheme.Entry(MenuAction.Up, "Up", () => {
+					MoveOption(-1);
+				}),
+				new NavigationScheme.Entry(MenuAction.Down, "Down", () => {
+					MoveOption(1);
+				}),
+				new NavigationScheme.Entry(MenuAction.Confirm, "Confirm", () => {
+					Next();
+				}),
+				new NavigationScheme.Entry(MenuAction.Back, "Back", () => {
+					MainMenu.Instance.ShowSongSelect();
+				})
+			}));
 
 			// See if there are any mics
 			bool anyMics = false;
@@ -68,31 +82,12 @@ namespace YARG.UI {
 			}
 		}
 
-		private void OnDisable() {
-			Navigator.Instance.NavigationEvent -= NavigationEvent;
-		}
-
 		private void OnDestroy() {
+			Navigator.Instance.PopScheme();
+
 			foreach (var option in options) {
 				option.MouseHoverEvent -= HoverOption;
 				option.MouseClickEvent -= ClickOption;
-			}
-		}
-
-		private void NavigationEvent(NavigationContext ctx) {
-			switch (ctx.Action) {
-				case MenuAction.Up:
-					MoveOption(-1);
-					break;
-				case MenuAction.Down:
-					MoveOption(1);
-					break;
-				case MenuAction.Confirm:
-					Next();
-					break;
-				case MenuAction.Back:
-					MainMenu.Instance.ShowSongSelect();
-					break;
 			}
 		}
 

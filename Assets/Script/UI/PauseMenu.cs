@@ -30,38 +30,33 @@ namespace YARG.UI {
 		}
 
 		private void OnEnable() {
-			// Bind input events
-			Navigator.Instance.NavigationEvent += NavigationEvent;
+			// Set navigation scheme
+			Navigator.Instance.PushScheme(new NavigationScheme(new() {
+				new NavigationScheme.Entry(MenuAction.Up, "Up", () => {
+					MoveOption(-1);
+				}),
+				new NavigationScheme.Entry(MenuAction.Down, "Down", () => {
+					MoveOption(1);
+				}),
+				new NavigationScheme.Entry(MenuAction.Confirm, "Confirm", () => {
+					SelectCurrentOption();
+				}),
+				new NavigationScheme.Entry(MenuAction.Back, "Back", () => {
+					OnResumeSelected();
+				})
+			}));
 		}
 
 		private void OnDisable() {
-			GameManager.Instance.SettingsMenu.gameObject.SetActive(false);
+			Navigator.Instance.PopScheme();
 
-			// Unbind input events
-			Navigator.Instance.NavigationEvent -= NavigationEvent;
+			GameManager.Instance.SettingsMenu.gameObject.SetActive(false);
 		}
 
 		private void OnDestroy() {
 			foreach (var option in options) {
 				option.MouseHoverEvent -= HoverOption;
 				option.MouseClickEvent -= ClickOption;
-			}
-		}
-
-		private void NavigationEvent(NavigationContext ctx) {
-			switch (ctx.Action) {
-				case MenuAction.Up:
-					MoveOption(-1);
-					break;
-				case MenuAction.Down:
-					MoveOption(1);
-					break;
-				case MenuAction.Confirm:
-					SelectCurrentOption();
-					break;
-				case MenuAction.Back:
-					OnResumeSelected();
-					break;
 			}
 		}
 

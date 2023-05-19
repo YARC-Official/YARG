@@ -100,8 +100,26 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		private void OnEnable() {
-			// Bind input events
-			Navigator.Instance.NavigationEvent += NavigationEvent;
+			// Set navigation scheme
+			Navigator.Instance.PushScheme(new NavigationScheme(new() {
+				new NavigationScheme.Entry(MenuAction.Up, "Up", () => {
+					SelectedIndex--;
+				}),
+				new NavigationScheme.Entry(MenuAction.Down, "Down", () => {
+					SelectedIndex++;
+				}),
+				new NavigationScheme.Entry(MenuAction.Confirm, "Confirm", () => {
+					_songs[SelectedIndex]?.PrimaryButtonClick();
+				}),
+				new NavigationScheme.Entry(MenuAction.Back, "Back", () => {
+					Back();
+				}),
+				new NavigationScheme.Entry(MenuAction.Shortcut1, "Search Artist", () => {
+					if (_songs[SelectedIndex] is SongViewType view) {
+						searchField.text = $"artist:{view.SongEntry.Artist}";
+					}
+				})
+			}));
 
 			if (refreshFlag) {
 				_songs = null;
@@ -115,8 +133,7 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		private void OnDisable() {
-			// Unbind input events
-			Navigator.Instance.NavigationEvent -= NavigationEvent;
+			Navigator.Instance.PopScheme();
 		}
 
 		private void UpdateSongViews() {
@@ -142,28 +159,6 @@ namespace YARG.UI.MusicLibrary {
 					// GameManager.AudioManager.StartPreviewAudio();
 					isSelectingStopped = true;
 				}
-			}
-		}
-
-		private void NavigationEvent(NavigationContext ctx) {
-			switch (ctx.Action) {
-				case MenuAction.Up:
-					SelectedIndex--;
-					break;
-				case MenuAction.Down:
-					SelectedIndex++;
-					break;
-				case MenuAction.Confirm:
-					_songs[SelectedIndex]?.PrimaryButtonClick();
-					break;
-				case MenuAction.Back:
-					Back();
-					break;
-				case MenuAction.Shortcut1:
-					if (_songs[SelectedIndex] is SongViewType view) {
-						searchField.text = $"artist:{view.SongEntry.Artist}";
-					}
-					break;
 			}
 		}
 

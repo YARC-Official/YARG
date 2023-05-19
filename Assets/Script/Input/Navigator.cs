@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using YARG.UI;
 
 namespace YARG.Input {
 	public enum MenuAction {
@@ -55,10 +56,11 @@ namespace YARG.Input {
 		public event Action<NavigationContext> NavigationEvent;
 
 		private List<HoldContext> _heldInputs = new();
-		private IDisposable _keyboardListener;
+		private Stack<NavigationScheme> _schemeStack = new();
 
 		private void Awake() {
 			Instance = this;
+			UpdateHelpBar();
 		}
 
 		private void Update() {
@@ -68,7 +70,7 @@ namespace YARG.Input {
 
 				if (heldInput.timer <= 0f) {
 					heldInput.timer = InputRepeatTime;
-					NavigationEvent?.Invoke(heldInput.Ctx);
+					InvokeNavigationEvent(heldInput.Ctx);
 				}
 			}
 
@@ -77,7 +79,7 @@ namespace YARG.Input {
 		}
 
 		public void CallNavigationEvent(MenuAction action, InputStrategy strategy) {
-			NavigationEvent?.Invoke(new NavigationContext(
+			InvokeNavigationEvent(new NavigationContext(
 				action,
 				strategy
 			));
@@ -94,7 +96,7 @@ namespace YARG.Input {
 				return;
 			}
 
-			NavigationEvent?.Invoke(ctx);
+			InvokeNavigationEvent(ctx);
 			_heldInputs.Add(new HoldContext(ctx));
 		}
 
@@ -105,6 +107,38 @@ namespace YARG.Input {
 			);
 
 			_heldInputs.RemoveAll(i => i.Ctx.IsSameAs(ctx));
+		}
+
+		private void InvokeNavigationEvent(NavigationContext ctx) {
+			NavigationEvent?.Invoke(ctx);
+
+			if (_schemeStack.Count > 0) {
+				_schemeStack.Peek().InvokeFuncs(ctx.Action);
+			}
+		}
+
+		public void PushScheme(NavigationScheme scheme) {
+			_schemeStack.Push(scheme);
+			UpdateHelpBar();
+		}
+
+		public void PopScheme() {
+			_schemeStack.Pop();
+			UpdateHelpBar();
+		}
+
+		public void PopAllSchemes() {
+			_schemeStack.Clear();
+			UpdateHelpBar();
+		}
+
+		private void UpdateHelpBar() {
+			if (_schemeStack.Count <= 0) {
+				HelpBar.Instance.gameObject.SetActive(false);
+			} else {
+				HelpBar.Instance.gameObject.SetActive(true);
+				HelpBar.Instance.SetInfoFromScheme(_schemeStack.Peek());
+			}
 		}
 	}
 }
