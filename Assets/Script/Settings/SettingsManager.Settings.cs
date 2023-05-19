@@ -66,6 +66,11 @@ namespace YARG.Settings {
 				GUIUtility.systemCopyBuffer = TwitchController.Instance.TextFilePath;
 			}
 
+			
+			public void CopyCurrentSongJsonFilePath() {
+				GUIUtility.systemCopyBuffer = TwitchController.Instance.JsonFilePath;
+			}
+
 			public void ResetCameraSettings() {
 				TrackCamFOV.Data = 55f;
 				TrackCamYPos.Data = 2.66f;
