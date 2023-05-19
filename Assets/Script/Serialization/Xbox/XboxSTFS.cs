@@ -34,7 +34,7 @@ namespace XboxSTFS {
     // Data includes size, name, path and firstblock and atime and utime
     public class FileListing {
         public string filename { get; private set; }
-        public bool isDirectory { get; private set; }
+        public byte flags { get; private set; }
         public uint numBlocks { get; private set; }
         public uint firstBlock { get; private set; }
         public uint size { get; private set; }
@@ -43,7 +43,7 @@ namespace XboxSTFS {
         public FileListing(byte[] data){
             filename = System.Text.Encoding.UTF8.GetString(data, 0, 0x28).TrimEnd('\0');
             Assert.IsTrue(filename != "", "FileListing has empty filename");
-            isDirectory = (data[0x28] & 0x80) == 0x80;
+            flags = data[0x28];
             
             numBlocks = BitConverter.ToUInt32(new byte[4] { data[0x29], data[0x2A], data[0x2B], 0x00 });
             firstBlock = BitConverter.ToUInt32(new byte[4] { data[0x2F], data[0x30], data[0x31], 0x00 });
@@ -52,6 +52,8 @@ namespace XboxSTFS {
         }
 
         public override string ToString() => $"STFS File Listing: {filename}";
+        public bool isDirectory() { return (flags & 0x80) > 0; }
+        public bool isContinguous() { return (flags & 0x40) > 0; }
     }
 
     public class STFS {
@@ -66,7 +68,7 @@ namespace XboxSTFS {
         public STFS(string fname){
             filename = fname;
             using var fs = new FileStream(filename, FileMode.Open, FileAccess.Read);
-			using var br = new BinaryReader(fs, new ASCIIEncoding());
+            using var br = new BinaryReader(fs, new ASCIIEncoding());
             magic = new string(new BinaryReader(fs, new ASCIIEncoding()).ReadChars(4));
             Assert.IsTrue((magic == "CON " || magic == "PIRS" || magic == "LIVE"), "STFS Magic not found");
             fs.Seek(0, SeekOrigin.Begin);
@@ -76,11 +78,7 @@ namespace XboxSTFS {
         }
 
         private byte[] ReadFileTable(uint firstBlock, ushort numBlocks){
-            byte[] buf = new byte[0x1000*numBlocks];
-            Parallel.For(0, numBlocks, i => {
-                Array.Copy(ReadBlock(FixBlocknum((uint)(firstBlock + i)),0x1000), 0, buf, i*0x1000, 0x1000);
-            });
-            return buf;
+            return ReadBlocks_Continuguous(firstBlock, numBlocks, (uint) 0x1000 * numBlocks);
         }
 
         private void ParseFileTable(){
@@ -137,13 +135,37 @@ namespace XboxSTFS {
             return blockAdjust + blocknum;
         }
 
-        // Read a block, given its block number
-        // If reading data blocks, call FixBlocknum first
-        private byte[] ReadBlock(uint blocknum, int length=0x1000){
+        private byte[] ReadBlocks_Separate(uint blocknum, uint blockCount, uint fileSize) {
             using var fs = new FileStream(filename, FileMode.Open, FileAccess.Read);
             using var br = new BinaryReader(fs, new ASCIIEncoding());
-            fs.Seek(0xC000 + blocknum * 0x1000, SeekOrigin.Begin);
-            return br.ReadBytes(length);
+            byte[] fileBytes = new byte[fileSize];
+            for (uint i = 0; i < blockCount; ++i) {
+                fs.Seek(0xC000 + FixBlocknum(blocknum + i) * 0x1000, SeekOrigin.Begin);
+                if (i < blockCount - 1)
+                    br.Read(fileBytes, (int) i * 0x1000, 0x1000);
+                else
+                    br.Read(fileBytes, (int) i * 0x1000, (int) fileSize % 0x1000);
+            }
+            return fileBytes;
+        }
+
+        private byte[] ReadBlocks_Continuguous(uint blocknum, uint blockCount, uint fileSize) {
+            using var fs = new FileStream(filename, FileMode.Open, FileAccess.Read);
+            using var br = new BinaryReader(fs, new ASCIIEncoding());
+            byte[] fileBytes = new byte[fileSize];
+            for (uint i = 0; i < blockCount;) {
+                uint block = FixBlocknum(blocknum + i);
+                fs.Seek(0xC000 + block * 0x1000, SeekOrigin.Begin);
+                uint readCount = 170 - (block % 170);
+                uint readSize = 0x1000 * readCount;
+                uint offset = i * 0x1000;
+                if (readSize > fileSize - offset)
+                    readSize = fileSize - offset;
+
+                br.Read(fileBytes, (int) offset, (int) readSize);
+                i += readCount;
+            }
+            return fileBytes;
         }
 
         private void ParseHeader(){
@@ -163,27 +185,21 @@ namespace XboxSTFS {
         public override string ToString() => $"STFS Object {magic} ({filename})";
 
         private byte[] ReadFile(FileListing fl){
-            // Given a FileListing object, return its data
-            byte[] fileBytes = new byte[fl.size];
-            uint lastSize = fl.size % 0x1000;
-
-            Parallel.For(0, fl.numBlocks, i => {
-                uint readLen = (i == (fl.numBlocks - 1)) ? lastSize : 0x1000;
-                Array.Copy(ReadBlock(FixBlocknum((uint)(fl.firstBlock + i)), (int)readLen), 0, fileBytes, i*0x1000, readLen);
-            });
-
-            return fileBytes;
+            if (fl.isContinguous())
+                return ReadBlocks_Continuguous(fl.firstBlock, fl.numBlocks, fl.size);
+            else
+                return ReadBlocks_Separate(fl.firstBlock, fl.numBlocks, fl.size);
         }
 
         public void ExtractAllContents(){
             foreach(var f in allFiles){
-                if(allFiles[f.Key].isDirectory){
+                if(allFiles[f.Key].isDirectory()){
                     Debug.Log($"Creating directory: {f.Key}");
                     Directory.CreateDirectory(Path.Combine($"{filename}_out", f.Key));
                 }
             }
             foreach(var f in allFiles){
-                if(!(allFiles[f.Key].isDirectory)){
+                if(!allFiles[f.Key].isDirectory()){
                     Debug.Log($"Writing file: {f.Key}");
                     try{
                         File.WriteAllBytes(Path.Combine($"{filename}_out", f.Key), ReadFile(allFiles[f.Key]));
@@ -202,7 +218,7 @@ namespace XboxSTFS {
             var total = new System.Diagnostics.Stopwatch();
             total.Start();
             foreach(var f in allFiles){
-                if(!(allFiles[f.Key].isDirectory)){
+                if(!allFiles[f.Key].isDirectory()){
                     stopWatch.Restart();
                     byte[] testFile = ReadFile(allFiles[f.Key]);
                     stopWatch.Stop();
