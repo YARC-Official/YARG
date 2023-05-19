@@ -16,8 +16,31 @@ namespace YARG.Serialization {
 			var songList = new List<ConSongEntry>();
 			var dtaTree = new DataArray();
 
-			// Attempt to read songs.dta
 			STFS theCON = new STFS(conName);
+
+			// Attempt to read upgrades.dta, if it exists
+			if(theCON.GetFileSize(Path.Combine("songs_upgrades", "upgrades.dta")) > 0){
+				var dtaUpgradeTree = DTX.FromPlainTextBytes(theCON.GetFile(Path.Combine("songs_upgrades", "upgrades.dta")));
+
+				// Read each shortname the dta file lists
+				for (int i = 0; i < dtaUpgradeTree.Count; i++) {
+					try {
+						var currentArray = (DataArray) dtaUpgradeTree[i];
+						var upgr = new SongProUpgrade();
+						upgr.ShortName = currentArray.Name;
+						upgr.UpgradeMidiPath = Path.Combine("songs_upgrades", $"{currentArray.Name}_plus.mid");
+						upgr.CONFilePath = conName;
+						upgr.UpgradeMidiFileSize = theCON.GetFileSize(upgr.UpgradeMidiPath);
+						upgr.UpgradeMidiFileMemBlockOffsets = theCON.GetMemOffsets(upgr.UpgradeMidiPath);
+						upgrade_dict.Add(upgr, currentArray);
+					} catch (Exception e) {
+						Debug.Log($"Failed to get upgrade, skipping...");
+						Debug.LogException(e);
+					}
+				}
+			}
+
+			// Attempt to read songs.dta
 			try {
 				dtaTree = DTX.FromPlainTextBytes(theCON.GetFile(Path.Combine("songs", "songs.dta")));
 			} catch (Exception e) {
