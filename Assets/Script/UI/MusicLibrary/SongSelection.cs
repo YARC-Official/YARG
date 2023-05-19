@@ -72,8 +72,7 @@ namespace YARG.UI.MusicLibrary {
 				}
 
 				GameManager.Instance.SelectedSong = song.SongEntry;
-
-				if (_songs[SelectedIndex] is SongViewType) {
+				if (!refreshFlag) {
 					GameManager.AudioManager.StartPreviewAudio().Forget();
 				}
 			}
@@ -139,6 +138,7 @@ namespace YARG.UI.MusicLibrary {
 				UpdateSearch();
 				refreshFlag = false;
 			}
+			GameManager.AudioManager.StartPreviewAudio().Forget();
 		}
 
 		private void OnDisable() {
