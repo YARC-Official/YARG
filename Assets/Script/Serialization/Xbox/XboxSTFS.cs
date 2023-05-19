@@ -85,11 +85,11 @@ namespace XboxSTFS {
 
             byte[] buf = new byte[0x40];
             for (int x = 0; x < data.Length; x += 0x40) {
-				Array.Copy(data, x, buf, 0, 0x40);
-				FileListing file = new FileListing(buf);
+                Array.Copy(data, x, buf, 0, 0x40);
+                FileListing file = new FileListing(buf);
 				if (file.filename.Length == 0)
 					break;
-				fLists.Add(file);
+                fLists.Add(file);
             }
 
             List<string> pathComponents = new List<string>();
