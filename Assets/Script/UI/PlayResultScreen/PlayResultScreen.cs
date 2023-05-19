@@ -42,8 +42,6 @@ namespace YARG.UI.PlayResultScreen {
 		private TextMeshProUGUI score;
 		[SerializeField]
 		private RectTransform marginContainerRT;
-		[SerializeField]
-		private RectTransform helpBarRT;
 
 		[Space]
 		[SerializeField]
@@ -202,10 +200,10 @@ namespace YARG.UI.PlayResultScreen {
 			scoreWIPNotice.color = wipC;
 
 			// help bar
-			var hbYMinTgt = helpBarRT.anchorMin.y;
-			var hbYMaxTgt = helpBarRT.anchorMax.y;
-			helpBarRT.anchorMin -= new Vector2(0, helpBarRT.anchorMax.y);
-			helpBarRT.anchorMax -= new Vector2(0, helpBarRT.anchorMax.y);
+			// var hbYMinTgt = helpBarRT.anchorMin.y;
+			// var hbYMaxTgt = helpBarRT.anchorMax.y;
+			// helpBarRT.anchorMin -= new Vector2(0, helpBarRT.anchorMax.y);
+			// helpBarRT.anchorMax -= new Vector2(0, helpBarRT.anchorMax.y);
 
 			/* Run Animations */
 			// fade in SongInfo
@@ -235,35 +233,33 @@ namespace YARG.UI.PlayResultScreen {
 			OnEnableAnimationFinish();
 
 			// slide in helpbar
-			helpBarRT
-				.DOAnchorMin(new Vector2(helpBarRT.anchorMin.x, hbYMinTgt), .75f)
-				.SetEase(Ease.OutQuad);
-			helpBarRT
-				.DOAnchorMax(new Vector2(helpBarRT.anchorMax.x, hbYMaxTgt), .75f)
-				.SetEase(Ease.OutQuad);
+			// helpBarRT
+			// 	.DOAnchorMin(new Vector2(helpBarRT.anchorMin.x, hbYMinTgt), .75f)
+			// 	.SetEase(Ease.OutQuad);
+			// helpBarRT
+			// 	.DOAnchorMax(new Vector2(helpBarRT.anchorMax.x, hbYMaxTgt), .75f)
+			// 	.SetEase(Ease.OutQuad);
 		}
 
 		private void OnEnableAnimationFinish() {
-			// Subscribe to player inputs
-			foreach (var p in PlayerManager.players) {
-				p.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
-			}
+			// Set navigation scheme
+			Navigator.Instance.PushScheme(new NavigationScheme(new() {
+				new NavigationScheme.Entry(MenuAction.Confirm, "Exit", () => {
+					PlayExit();
+				}),
+				new NavigationScheme.Entry(MenuAction.Shortcut1, "Restart", () => {
+					PlayRestart();
+				})
+			}));
+
 			foreach (var pc in playerCards) {
 				pc.Engage();
 			}
 		}
 
-		private void OnGenericNavigation(NavigationType navigationType, bool pressed) {
-			if (!pressed) return;
-
-			switch (navigationType) {
-				case NavigationType.PRIMARY:
-					PlayExit();
-					break;
-				case NavigationType.TERTIARY:
-					PlayRestart();
-					break;
-			}
+		private void OnDisable() {
+			// Unsubscribe player inputs
+			Navigator.Instance.PopScheme();
 		}
 
 		// TODO: replace with common restart call (ie. what the pause menu calls)
@@ -278,15 +274,6 @@ namespace YARG.UI.PlayResultScreen {
 		/// </summary>
 		public void PlayExit() {
 			Play.Instance.Exit();
-		}
-
-		private void OnDisable() {
-			// Unsubscribe player inputs
-			try {
-				foreach (var p in PlayerManager.players) {
-					p.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
-				}
-			} catch { }
 		}
 	}
 }

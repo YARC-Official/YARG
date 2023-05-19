@@ -32,8 +32,6 @@ namespace YARG.UI.MusicLibrary {
 		private TextMeshProUGUI _length;
 		[SerializeField]
 		private RawImage _albumCover;
-		[SerializeField]
-		private TextMeshProUGUI _infoText;
 
 		[Space]
 		[SerializeField]
@@ -69,7 +67,7 @@ namespace YARG.UI.MusicLibrary {
 				// Hide album art
 				_albumCover.texture = null;
 				_albumCover.color = Color.clear;
-				_album.text = "";
+				_album.text = string.Empty;
 
 				int sourceCount = categoryViewType.CountOf(i => i.Source);
 				_source.text = $"{sourceCount} sources";
@@ -80,9 +78,9 @@ namespace YARG.UI.MusicLibrary {
 				int genreCount = categoryViewType.CountOf(i => i.Genre);
 				_genre.text = $"{genreCount} genres";
 
-				_year.text = "";
-				_length.text = "";
-				_infoText.text = "";
+				_year.text = string.Empty;
+				_length.text = string.Empty;
+				HelpBar.Instance.SetInfoText(string.Empty);
 
 				// Hide all difficulty rings
 				foreach (var difficultyRing in difficultyRings) {
@@ -103,7 +101,7 @@ namespace YARG.UI.MusicLibrary {
 			_charter.text = songEntry.Charter;
 			_genre.text = songEntry.Genre;
 			_year.text = songEntry.Year;
-			_infoText.text = songEntry.LoadingPhrase;
+			HelpBar.Instance.SetInfoText(songEntry.LoadingPhrase);
 
 			// Format and show length
 			if (songEntry.SongLengthTimeSpan.Hours > 0) {

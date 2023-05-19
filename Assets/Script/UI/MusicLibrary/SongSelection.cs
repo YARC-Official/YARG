@@ -21,8 +21,6 @@ namespace YARG.UI.MusicLibrary {
 		public static bool refreshFlag = true;
 
 		private const int SONG_VIEW_EXTRA = 6;
-		private const float INPUT_REPEAT_TIME = 0.035f;
-		private const float INPUT_REPEAT_COOLDOWN = 0.5f;
 
 		[SerializeField]
 		private GameObject songViewPrefab;
@@ -72,8 +70,7 @@ namespace YARG.UI.MusicLibrary {
 				}
 
 				GameManager.Instance.SelectedSong = song.SongEntry;
-
-				if (_songs[SelectedIndex] is SongViewType) {
+				if (!refreshFlag) {
 					GameManager.AudioManager.StartPreviewAudio().Forget();
 				}
 			}
@@ -81,12 +78,6 @@ namespace YARG.UI.MusicLibrary {
 
 		private List<SongView> songViews = new();
 
-		// Handles keyboard navigation uniformly with everything else
-		private FiveFretInputStrategy keyboardHandler;
-
-		private NavigationType direction;
-		private bool directionHeld = false;
-		private float inputTimer = 0f;
 		private float scroll;
 		private bool isSelectingStopped = true;
 
@@ -104,32 +95,31 @@ namespace YARG.UI.MusicLibrary {
 				songViews.Add(songView);
 			}
 
-			// Create keyboard handler if no players are using it
-			if (!PlayerManager.players.Any((player) => player.inputStrategy.InputDevice == Keyboard.current)) {
-				var keyboard = Keyboard.current;
-				keyboardHandler = new() {
-					InputDevice = keyboard,
-					microphoneIndex = -1,
-					botMode = false
-				};
-				keyboardHandler.SetMappingInputControl(FiveFretInputStrategy.STRUM_UP, keyboard.upArrowKey);
-				keyboardHandler.SetMappingInputControl(FiveFretInputStrategy.STRUM_DOWN, keyboard.downArrowKey);
-				keyboardHandler.SetMappingInputControl(FiveFretInputStrategy.RED, keyboard.escapeKey);
-			}
-
 			// Initialize sidebar
 			sidebar.Init();
 		}
 
 		private void OnEnable() {
-			// Bind input events
-			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
-			}
-			if (keyboardHandler != null) {
-				keyboardHandler.GenericNavigationEvent += OnGenericNavigation;
-				keyboardHandler.Enable();
-			}
+			// Set navigation scheme
+			Navigator.Instance.PushScheme(new NavigationScheme(new() {
+				new NavigationScheme.Entry(MenuAction.Up, "Up", () => {
+					SelectedIndex--;
+				}),
+				new NavigationScheme.Entry(MenuAction.Down, "Down", () => {
+					SelectedIndex++;
+				}),
+				new NavigationScheme.Entry(MenuAction.Confirm, "Confirm", () => {
+					_songs[SelectedIndex]?.PrimaryButtonClick();
+				}),
+				new NavigationScheme.Entry(MenuAction.Back, "Back", () => {
+					Back();
+				}),
+				new NavigationScheme.Entry(MenuAction.Shortcut1, "Search Artist", () => {
+					if (_songs[SelectedIndex] is SongViewType view) {
+						searchField.text = $"artist:{view.SongEntry.Artist}";
+					}
+				})
+			}));
 
 			if (refreshFlag) {
 				_songs = null;
@@ -139,17 +129,11 @@ namespace YARG.UI.MusicLibrary {
 				UpdateSearch();
 				refreshFlag = false;
 			}
+			GameManager.AudioManager.StartPreviewAudio().Forget();
 		}
 
 		private void OnDisable() {
-			// Unbind input events
-			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
-			}
-			if (keyboardHandler != null) {
-				keyboardHandler.Disable();
-				keyboardHandler.GenericNavigationEvent -= OnGenericNavigation;
-			}
+			Navigator.Instance.PopScheme();
 		}
 
 		private void UpdateSongViews() {
@@ -161,18 +145,6 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		private void Update() {
-			// Update input timer
-
-			inputTimer -= Time.deltaTime;
-			if (inputTimer <= 0f && directionHeld) {
-				switch (direction) {
-					case NavigationType.UP: SelectedIndex--; break;
-					case NavigationType.DOWN: SelectedIndex++; break;
-				}
-
-				inputTimer = INPUT_REPEAT_TIME;
-			}
-
 			// Scroll wheel
 
 			var scroll = Mouse.current.scroll.ReadValue().y;
@@ -187,31 +159,6 @@ namespace YARG.UI.MusicLibrary {
 					// GameManager.AudioManager.StartPreviewAudio();
 					isSelectingStopped = true;
 				}
-			}
-		}
-
-		private void OnGenericNavigation(NavigationType navigationType, bool pressed) {
-			if (navigationType == NavigationType.UP || navigationType == NavigationType.DOWN) {
-				direction = navigationType;
-				directionHeld = pressed;
-				inputTimer = INPUT_REPEAT_COOLDOWN;
-			}
-
-			if (!pressed) {
-				return;
-			}
-
-			SongViewType view = _songs[SelectedIndex] as SongViewType;
-			switch (navigationType) {
-				case NavigationType.UP: SelectedIndex--; break;
-				case NavigationType.DOWN: SelectedIndex++; break;
-				case NavigationType.PRIMARY: view?.PrimaryButtonClick(); break;
-				case NavigationType.SECONDARY: Back(); break;
-				case NavigationType.TERTIARY:
-					if (view != null) {
-						searchField.text = $"artist:{view.SongEntry.Artist}";
-					}
-					break;
 			}
 		}
 

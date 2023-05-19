@@ -362,6 +362,10 @@ namespace YARG {
 		}
 
 		public void StopPreviewAudio() {
+			if (IsFadingOut || _cancellationTokenSource == null) {
+				return;
+			}
+			
 			StopPreviewAudioTask().Forget();
 		}
 

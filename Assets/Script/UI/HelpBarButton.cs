@@ -1,52 +1,26 @@
-using System.Collections;
-using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
-
 using YARG.Input;
 
 namespace YARG.UI {
-    [ExecuteInEditMode]
-    public class HelpBarButton : MonoBehaviour {
-
-        [SerializeField]
-        private NavigationType navigationType; // YARG.Core.Input.InputActions.MenuAction
+	public class HelpBarButton : MonoBehaviour {
 		[SerializeField]
-		private string description;
-
-		[Header("GameObjects")]
+		private Image _buttonImage;
 		[SerializeField]
-		private Image icon;
-		[SerializeField]
-		private TextMeshProUGUI tmpButton;
-		[SerializeField]
-		private TextMeshProUGUI tmpDescription;
+		private TextMeshProUGUI _text;
 
-		private readonly Color GREEN = new Color(0.240566f, 1f, 0.3107658f);
-		private readonly Color RED = new Color(1f, 0.2470681f, 0.2392157f);
-		private readonly Color YELLOW = new Color(1f, 0.8784314f, .08627451f);
+		private NavigationScheme.Entry? _entry;
 
-		void OnEnable() {
-            // TODO: animate?
-        }
+		public void SetInfoFromSchemeEntry(NavigationScheme.Entry entry, Color c) {
+			_entry = entry;
 
-        void Update() {
-			tmpDescription.text = description;
-            icon.color = navigationType switch {
-                NavigationType.PRIMARY => GREEN,
-                NavigationType.SECONDARY => RED,
-                NavigationType.TERTIARY => YELLOW,
-                _ => Color.white
-			};
-
-            // TODO: controller types
-			tmpButton.text = navigationType switch {
-                NavigationType.PRIMARY => "A",
-                NavigationType.SECONDARY => "B",
-                NavigationType.TERTIARY => "Y",
-                _ => ""
-			};
+			_text.text = entry.DisplayName;
+			_buttonImage.color = c;
 		}
-    }
+
+		public void OnClick() {
+			_entry?.Func();
+		}
+	}
 }

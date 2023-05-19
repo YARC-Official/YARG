@@ -59,10 +59,12 @@ namespace YARG.UI {
 		}
 
 		private void OnEnable() {
-			// Bind input events
-			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
-			}
+			// Set navigation scheme
+			Navigator.Instance.PushScheme(new NavigationScheme(new() {
+				new NavigationScheme.Entry(MenuAction.Confirm, "Quickplay", () => {
+					ShowSongSelect();
+				})
+			}));
 
 			var quickplayText = menuButtons[(int) ButtonIndex.QUICKPLAY].GetComponentInChildren<TextMeshProUGUI>();
 			if (PlayerManager.players.Count > 0) {
@@ -73,13 +75,10 @@ namespace YARG.UI {
 		}
 
 		private void OnDisable() {
+			Navigator.Instance.PopScheme();
+
 			// Save player prefs
 			PlayerPrefs.Save();
-
-			// Unbind input events
-			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
-			}
 		}
 
 		private void Update() {
@@ -87,16 +86,6 @@ namespace YARG.UI {
 				isUpdateShown = true;
 
 				updateObject.gameObject.gameObject.SetActive(true);
-			}
-		}
-
-		private void OnGenericNavigation(NavigationType navigationType, bool pressed) {
-			if (!pressed) {
-				return;
-			}
-
-			if (navigationType == NavigationType.PRIMARY) {
-				ShowSongSelect();
 			}
 		}
 
