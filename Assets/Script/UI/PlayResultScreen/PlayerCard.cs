@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using DG.Tweening;
 using TMPro;
-using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Data;
@@ -156,7 +154,7 @@ namespace YARG.UI.PlayResultScreen {
 
 		public void Engage() {
 			// begin tracking player inputs
-			player.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
+			Navigator.Instance.NavigationEvent += NavigationEvent;
 
 			// only animate if high score
 			if (bottomBannerText.text == "HIGH SCORE") {
@@ -166,26 +164,28 @@ namespace YARG.UI.PlayResultScreen {
 			}
 		}
 
-		private void OnGenericNavigation(NavigationType navigationType, bool pressed) {
-			if (!pressed) return;
+		private void OnDisable() {
+			// unsubscribe from player inputs
+			Navigator.Instance.NavigationEvent -= NavigationEvent;
+		}
+
+		private void NavigationEvent(NavigationContext ctx) {
+			if (ctx.InputStrategy != player.inputStrategy) {
+				return;
+			}
 
 			int desiredPage = curPage;
 
-			switch (navigationType) {
-				case NavigationType.UP:
-					--desiredPage;
+			switch (ctx.Action) {
+				case MenuAction.Up:
+					desiredPage--;
 					break;
-				case NavigationType.DOWN:
-					++desiredPage;
+				case MenuAction.Down:
+					desiredPage++;
 					break;
 			}
 
-			if (navigationType == NavigationType.UP)
-				--desiredPage;
-			else if (navigationType == NavigationType.DOWN)
-				++desiredPage;
-
-			desiredPage = math.clamp(desiredPage + 1, 0, pageCount - 1);
+			desiredPage = Mathf.Clamp(desiredPage + 1, 0, pageCount - 1);
 
 			// we don't go anywhere
 			if (desiredPage == curPage) return;
@@ -193,13 +193,6 @@ namespace YARG.UI.PlayResultScreen {
 			// TODO: pages, secstions
 
 			curPage = desiredPage;
-		}
-
-		private void OnDisable() {
-			// unsubscribe from player inputs
-			if (player != null) {
-				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
-			}
 		}
 	}
 }

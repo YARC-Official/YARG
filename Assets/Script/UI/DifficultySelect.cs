@@ -48,12 +48,11 @@ namespace YARG.UI {
 		}
 
 		private void OnEnable() {
+			Navigator.Instance.NavigationEvent += NavigationEvent;
+
+			// See if there are any mics
 			bool anyMics = false;
-
-			// Bind input events
 			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
-
 				if (player.inputStrategy is MicInputStrategy) {
 					anyMics = true;
 				}
@@ -70,10 +69,7 @@ namespace YARG.UI {
 		}
 
 		private void OnDisable() {
-			// Unbind input events
-			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
-			}
+			Navigator.Instance.NavigationEvent -= NavigationEvent;
 		}
 
 		private void OnDestroy() {
@@ -83,19 +79,20 @@ namespace YARG.UI {
 			}
 		}
 
-		private void OnGenericNavigation(NavigationType navigationType, bool pressed) {
-			if (!pressed) {
-				return;
-			}
-
-			if (navigationType == NavigationType.UP) {
-				MoveOption(-1);
-			} else if (navigationType == NavigationType.DOWN) {
-				MoveOption(1);
-			} else if (navigationType == NavigationType.PRIMARY) {
-				Next();
-			} else if (navigationType == NavigationType.SECONDARY) {
-				MainMenu.Instance.ShowSongSelect();
+		private void NavigationEvent(NavigationContext ctx) {
+			switch (ctx.Action) {
+				case MenuAction.Up:
+					MoveOption(-1);
+					break;
+				case MenuAction.Down:
+					MoveOption(1);
+					break;
+				case MenuAction.Confirm:
+					Next();
+					break;
+				case MenuAction.Back:
+					MainMenu.Instance.ShowSongSelect();
+					break;
 			}
 		}
 

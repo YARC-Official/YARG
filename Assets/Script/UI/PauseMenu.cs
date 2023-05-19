@@ -31,18 +31,14 @@ namespace YARG.UI {
 
 		private void OnEnable() {
 			// Bind input events
-			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
-			}
+			Navigator.Instance.NavigationEvent += NavigationEvent;
 		}
 
 		private void OnDisable() {
 			GameManager.Instance.SettingsMenu.gameObject.SetActive(false);
 
 			// Unbind input events
-			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
-			}
+			Navigator.Instance.NavigationEvent -= NavigationEvent;
 		}
 
 		private void OnDestroy() {
@@ -52,16 +48,20 @@ namespace YARG.UI {
 			}
 		}
 
-		private void OnGenericNavigation(NavigationType navigationType, bool pressed) {
-			if (!pressed) {
-				return;
-			}
-
-			switch (navigationType) {
-				case NavigationType.UP: MoveOption(-1); break;
-				case NavigationType.DOWN: MoveOption(1); break;
-				case NavigationType.PRIMARY: SelectCurrentOption(); break;
-				case NavigationType.SECONDARY: OnResumeSelected(); break;
+		private void NavigationEvent(NavigationContext ctx) {
+			switch (ctx.Action) {
+				case MenuAction.Up:
+					MoveOption(-1);
+					break;
+				case MenuAction.Down:
+					MoveOption(1);
+					break;
+				case MenuAction.Confirm:
+					SelectCurrentOption();
+					break;
+				case MenuAction.Back:
+					OnResumeSelected();
+					break;
 			}
 		}
 

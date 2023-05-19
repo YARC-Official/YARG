@@ -1,17 +1,14 @@
-using System.Collections;
-using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
-
 using YARG.Input;
 
 namespace YARG.UI {
-    [ExecuteInEditMode]
-    public class HelpBarButton : MonoBehaviour {
+	[ExecuteInEditMode]
+	public class HelpBarButton : MonoBehaviour {
 
-        [SerializeField]
-        private NavigationType navigationType; // YARG.Core.Input.InputActions.MenuAction
+		[SerializeField]
+		private MenuAction navigationType;
 		[SerializeField]
 		private string description;
 
@@ -28,25 +25,25 @@ namespace YARG.UI {
 		private readonly Color YELLOW = new Color(1f, 0.8784314f, .08627451f);
 
 		void OnEnable() {
-            // TODO: animate?
-        }
+			// TODO: animate?
+		}
 
-        void Update() {
+		void Update() {
 			tmpDescription.text = description;
-            icon.color = navigationType switch {
-                NavigationType.PRIMARY => GREEN,
-                NavigationType.SECONDARY => RED,
-                NavigationType.TERTIARY => YELLOW,
-                _ => Color.white
+			icon.color = navigationType switch {
+				MenuAction.Confirm => GREEN,
+				MenuAction.Back => RED,
+				MenuAction.Shortcut1 => YELLOW,
+				_ => Color.white
 			};
 
-            // TODO: controller types
+			// TODO: controller types
 			tmpButton.text = navigationType switch {
-                NavigationType.PRIMARY => "A",
-                NavigationType.SECONDARY => "B",
-                NavigationType.TERTIARY => "Y",
-                _ => ""
+				MenuAction.Confirm => "A",
+				MenuAction.Back => "B",
+				MenuAction.Shortcut1 => "Y",
+				_ => ""
 			};
 		}
-    }
+	}
 }

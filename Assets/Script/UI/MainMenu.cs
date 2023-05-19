@@ -60,9 +60,7 @@ namespace YARG.UI {
 
 		private void OnEnable() {
 			// Bind input events
-			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
-			}
+			Navigator.Instance.NavigationEvent += NavigationEvent;
 
 			var quickplayText = menuButtons[(int) ButtonIndex.QUICKPLAY].GetComponentInChildren<TextMeshProUGUI>();
 			if (PlayerManager.players.Count > 0) {
@@ -77,9 +75,7 @@ namespace YARG.UI {
 			PlayerPrefs.Save();
 
 			// Unbind input events
-			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
-			}
+			Navigator.Instance.NavigationEvent -= NavigationEvent;
 		}
 
 		private void Update() {
@@ -90,12 +86,8 @@ namespace YARG.UI {
 			}
 		}
 
-		private void OnGenericNavigation(NavigationType navigationType, bool pressed) {
-			if (!pressed) {
-				return;
-			}
-
-			if (navigationType == NavigationType.PRIMARY) {
+		private void NavigationEvent(NavigationContext ctx) {
+			if (ctx.Action == MenuAction.Confirm) {
 				ShowSongSelect();
 			}
 		}

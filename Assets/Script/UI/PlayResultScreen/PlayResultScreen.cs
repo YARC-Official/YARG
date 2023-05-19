@@ -245,22 +245,24 @@ namespace YARG.UI.PlayResultScreen {
 
 		private void OnEnableAnimationFinish() {
 			// Subscribe to player inputs
-			foreach (var p in PlayerManager.players) {
-				p.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
-			}
+			Navigator.Instance.NavigationEvent += NavigationEvent;
+
 			foreach (var pc in playerCards) {
 				pc.Engage();
 			}
 		}
 
-		private void OnGenericNavigation(NavigationType navigationType, bool pressed) {
-			if (!pressed) return;
+		private void OnDisable() {
+			// Unsubscribe player inputs
+			Navigator.Instance.NavigationEvent -= NavigationEvent;
+		}
 
-			switch (navigationType) {
-				case NavigationType.PRIMARY:
+		private void NavigationEvent(NavigationContext ctx) {
+			switch (ctx.Action) {
+				case MenuAction.Confirm:
 					PlayExit();
 					break;
-				case NavigationType.TERTIARY:
+				case MenuAction.Shortcut1:
 					PlayRestart();
 					break;
 			}
@@ -278,15 +280,6 @@ namespace YARG.UI.PlayResultScreen {
 		/// </summary>
 		public void PlayExit() {
 			Play.Instance.Exit();
-		}
-
-		private void OnDisable() {
-			// Unsubscribe player inputs
-			try {
-				foreach (var p in PlayerManager.players) {
-					p.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
-				}
-			} catch { }
 		}
 	}
 }

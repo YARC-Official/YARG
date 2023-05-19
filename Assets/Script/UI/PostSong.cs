@@ -84,9 +84,6 @@ namespace YARG.UI {
 
 			// Show score sections
 			foreach (var player in PlayerManager.players) {
-				// Bind input events
-				player.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
-
 				// Get score type
 				var type = ScoreSection.ScoreType.NORMAL;
 				if (disqualified.Contains(player)) {
@@ -99,28 +96,18 @@ namespace YARG.UI {
 				var score = Instantiate(scoreSection, scoreContainer).GetComponent<ScoreSection>();
 				score.SetScore(player, type);
 			}
+
+			// Bind input events
+			Navigator.Instance.NavigationEvent += NavigationEvent;
 		}
 
 		private void OnDisable() {
 			// Unbind input events
-			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
-			}
+			Navigator.Instance.NavigationEvent -= NavigationEvent;
 		}
 
-		private void Update() {
-			// Enter
-			if (Keyboard.current.enterKey.wasPressedThisFrame) {
-				MainMenu.Instance.ShowSongSelect();
-			}
-		}
-
-		private void OnGenericNavigation(NavigationType navigationType, bool pressed) {
-			if (!pressed) {
-				return;
-			}
-
-			if (navigationType == NavigationType.PRIMARY) {
+		private void NavigationEvent(NavigationContext ctx) {
+			if (ctx.Action == MenuAction.Confirm) {
 				MainMenu.Instance.ShowSongSelect();
 			}
 		}
