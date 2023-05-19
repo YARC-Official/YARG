@@ -60,6 +60,7 @@ namespace YARG.Song {
 			int version = reader.ReadInt32();
 
 			if (version != CACHE_VERSION) {
+				ToastManager.ToastWarning("Song Cache version is invalid. Rescan required.");
 				throw new Exception("Song Cache version is invalid. Rescan required.");
 			}
 
