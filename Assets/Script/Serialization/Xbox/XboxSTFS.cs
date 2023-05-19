@@ -42,7 +42,6 @@ namespace XboxSTFS {
 
         public FileListing(byte[] data){
             filename = System.Text.Encoding.UTF8.GetString(data, 0, 0x28).TrimEnd('\0');
-            Assert.IsTrue(filename != "", "FileListing has empty filename");
             flags = data[0x28];
             
             numBlocks = BitConverter.ToUInt32(new byte[4] { data[0x29], data[0x2A], data[0x2B], 0x00 });
@@ -85,15 +84,12 @@ namespace XboxSTFS {
             var data = ReadFileTable(ref fs, ref br, fileTableBlockNumber, fileTableBlockCount);
 
             byte[] buf = new byte[0x40];
-            FileListing cur;
             for (int x = 0; x < data.Length; x += 0x40) {
-                Array.Copy(data, x, buf, 0, 0x40);
-                try {
-                    cur = new FileListing(buf);
-                    fLists.Add(cur);
-                } catch (Exception e) {
-
-                }
+				Array.Copy(data, x, buf, 0, 0x40);
+				FileListing file = new FileListing(buf);
+				if (file.filename.Length == 0)
+					break;
+				fLists.Add(file);
             }
 
             List<string> pathComponents = new List<string>();
