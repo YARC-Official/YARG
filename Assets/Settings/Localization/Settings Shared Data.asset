@@ -219,6 +219,10 @@ MonoBehaviour:
     m_Key: CopyCurrentSongJsonFilePath
     m_Metadata:
       m_Items: []
+  - m_Id: 17867012767817728
+    m_Key: PreviewVolume
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

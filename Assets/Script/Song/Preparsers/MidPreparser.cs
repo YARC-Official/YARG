@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Melanchall.DryWetMidi.Core;
 using MoonscraperChartEditor.Song.IO;
+using UnityEngine;
 using YARG.Data;
 
 namespace YARG.Song.Preparsers {
@@ -37,8 +38,7 @@ namespace YARG.Song.Preparsers {
 				tracks = ReadStream(midi);
 				return true;
 			} catch (Exception e) {
-				// Debug.LogError(e.Message);
-				// Debug.LogError(e.StackTrace);
+				Debug.LogException(e);
 				tracks = 0;
 				return false;
 			}

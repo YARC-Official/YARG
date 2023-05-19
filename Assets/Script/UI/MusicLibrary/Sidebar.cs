@@ -144,10 +144,18 @@ namespace YARG.UI.MusicLibrary {
 			difficultyRings[3].SetInfo(songEntry, Instrument.KEYS);
 
 			// Mic (with mic count)
-			if (songEntry.PartDifficulties.GetValueOrDefault(Instrument.HARMONY, -1) == -1) {
-				difficultyRings[4].SetInfo(songEntry, Instrument.VOCALS);
+			if (songEntry.VocalParts == 0) {
+				difficultyRings[4].SetInfo(false, "vocals", -1);
 			} else {
-				difficultyRings[4].SetInfo(songEntry, Instrument.HARMONY);
+				difficultyRings[4].SetInfo(
+					true,
+					songEntry.VocalParts switch {
+						2 => "twoVocals",
+						>= 3 => "harmVocals",
+						_ => "vocals"
+					},
+					songEntry.PartDifficulties.GetValueOrDefault(Instrument.VOCALS, -1)
+				);
 			}
 
 			// Protar or Co-op
@@ -168,7 +176,13 @@ namespace YARG.UI.MusicLibrary {
 
 			difficultyRings[7].SetInfo(false, "trueDrums", -1);
 			difficultyRings[8].SetInfo(songEntry, Instrument.REAL_KEYS);
-			difficultyRings[9].SetInfo(false, "band", -1);
+
+			// Band difficulty
+			if (songEntry.BandDifficulty == -1) {
+				difficultyRings[9].SetInfo(false, "band", -1);
+			} else {
+				difficultyRings[9].SetInfo(true, "band", songEntry.BandDifficulty);
+			}
 		}
 
 		public async UniTask LoadAlbumCover() {

@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Input;
 using YARG.Settings;
-using YARG.Song;
 
 namespace YARG.UI {
 	public partial class MainMenu : MonoBehaviour {
@@ -140,6 +139,7 @@ namespace YARG.UI {
 
 		public void ShowPreSong() {
 			HideAll();
+			GameManager.AudioManager.StopPreviewAudio();
 			difficultySelect.gameObject.SetActive(true);
 		}
 

@@ -7,5 +7,7 @@
 		public bool IsModChart { get; set; }
 		public bool HasLyrics { get; set; }
 
+		public int VideoStartOffset { get; set; }
+
 	}
 }

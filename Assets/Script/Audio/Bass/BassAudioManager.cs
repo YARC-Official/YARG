@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using ManagedBass;
 using UnityEngine;
 using YARG.Serialization;
+using YARG.Settings;
 using YARG.Song;
 using Debug = UnityEngine.Debug;
 
@@ -16,9 +20,13 @@ namespace YARG {
 
 		public bool IsAudioLoaded { get; private set; }
 		public bool IsPlaying { get; private set; }
+		public bool IsFadingOut { get; private set; }
 
 		public double MasterVolume { get; private set; }
 		public double SfxVolume { get; private set; }
+
+		public double PreviewStartTime { get; private set; }
+		public double PreviewEndTime { get; private set; }
 
 		public double CurrentPositionD => GetPosition();
 		public double AudioLengthD { get; private set; }
@@ -35,6 +43,11 @@ namespace YARG {
 		private ISampleChannel[] _sfxSamples;
 
 		public float pos;
+
+		private CancellationTokenSource _cancellationTokenSource;
+
+		private bool _isLooping = false;
+		private bool _isLoadingLoopAudio = false;
 
 		private void Awake() {
 			SupportedFormats = new[] {
@@ -156,7 +169,7 @@ namespace YARG {
 			Debug.Log("Finished loading SFX");
 		}
 
-		public void LoadSong(ICollection<string> stems, bool isSpeedUp) {
+		public void LoadSong(ICollection<string> stems, bool isSpeedUp, params SongStem[] ignoreStems) {
 			Debug.Log("Loading song");
 			UnloadSong();
 
@@ -171,6 +184,11 @@ namespace YARG {
 
 				// Gets the index (SongStem to int) from the name
 				var songStem = AudioHelpers.GetStemFromName(stemName);
+
+				// Skip stems specified in ignore stems parameter
+				if (ignoreStems.Contains(songStem)) {
+					continue;
+				}
 
 				// Assign 1 stem songs to the song stem
 				if (stems.Count == 1) {
@@ -204,13 +222,13 @@ namespace YARG {
 			IsAudioLoaded = true;
 		}
 
-		public void LoadMogg(ExtractedConSongEntry exConSong, bool isSpeedUp) {
+		public void LoadMogg(ExtractedConSongEntry exConSong, bool isSpeedUp, params SongStem[] ignoreStems) {
 			Debug.Log("Loading mogg song");
 			UnloadSong();
 
 			byte[] moggArray;
 			if (exConSong is ConSongEntry conSong) {
-				if(!conSong.UsingUpdateMogg)
+				if (!conSong.UsingUpdateMogg)
 					moggArray = XboxCONInnerFileRetriever.RetrieveFile(conSong.Location,
 						conSong.MoggFileSize, conSong.MoggFileMemBlockOffsets)[conSong.MoggAddressAudioOffset..];
 				else moggArray = File.ReadAllBytes(conSong.MoggPath)[conSong.MoggAddressAudioOffset..];
@@ -222,6 +240,12 @@ namespace YARG {
 			if (moggStreamHandle == 0) {
 				Debug.LogError($"Failed to load mogg file or position: {Bass.LastError}");
 				return;
+			}
+
+			// Remove ignored stems from stem maps
+			var stems = exConSong.StemMaps.Keys.Where(ignoreStems.Contains).ToList();
+			foreach (var stem in stems) {
+				exConSong.StemMaps.Remove(stem);
 			}
 
 			_mixer = new BassStemMixer(this, moggStreamHandle, exConSong.StemMaps, exConSong.MatrixRatios);
@@ -245,20 +269,108 @@ namespace YARG {
 		public void UnloadSong() {
 			IsPlaying = false;
 			IsAudioLoaded = false;
+			if (IsFadingOut) {
+				_cancellationTokenSource.Cancel();
+				_cancellationTokenSource.Dispose();
+				_cancellationTokenSource = null;
+				IsFadingOut = false;
+			}
 
 			// Free mixer (and all channels in it)
 			_mixer?.Dispose();
 			_mixer = null;
 		}
 
-		public void LoadPreviewAudio(SongEntry song) {
-			if (song is ExtractedConSongEntry conSong) {
-				LoadMogg(conSong, false);
-			} else {
-				LoadSong(AudioHelpers.GetSupportedStems(song.Location), false);
+		public async UniTask<bool> LoadPreviewAudio(SongEntry song) {
+			if (song == null || _isLoadingLoopAudio || Mathf.Approximately(SettingsManager.Settings.PreviewVolume.Data, 0f)) {
+				// Skip if preview audio is turned off
+				return false;
 			}
 
-			SetPosition(song.PreviewStartTimeSpan.TotalSeconds);
+			_isLoadingLoopAudio = true;
+
+			await UniTask.RunOnThreadPool(() => {
+				if (song is ExtractedConSongEntry conSong) {
+					LoadMogg(conSong, false, SongStem.Crowd);
+				} else {
+					LoadSong(AudioHelpers.GetSupportedStems(song.Location), false, SongStem.Crowd);
+				}
+			});
+
+			PreviewStartTime = song.PreviewStartTimeSpan.TotalSeconds;
+			if (PreviewStartTime <= 0) {
+				PreviewStartTime = 10;
+			}
+
+			PreviewEndTime = song.PreviewEndTimeSpan.TotalSeconds;
+			if (PreviewEndTime <= 0) {
+				PreviewEndTime = PreviewStartTime + Constants.PREVIEW_DURATION;
+			}
+
+			SetPosition(PreviewStartTime);
+
+			_isLoadingLoopAudio = false;
+
+			return true;
+		}
+
+		public async UniTask StartPreviewAudio() {
+			if (_cancellationTokenSource?.IsCancellationRequested ?? false) {
+				return;
+			}
+
+			if (_cancellationTokenSource != null) {
+				_cancellationTokenSource.Cancel();
+				_cancellationTokenSource.Dispose();
+			}
+
+			await FadeOut();
+
+			// Wait until audio isn't being loaded (prevent lag)
+			await UniTask.WaitUntil(() => !_isLoadingLoopAudio);
+
+			// Skip if the preview audio can't/shouldn't be loaded
+			_cancellationTokenSource = new CancellationTokenSource();
+			if (!await LoadPreviewAudio(GameManager.Instance.SelectedSong)) {
+				return;
+			}
+
+			FadeIn(SettingsManager.Settings.PreviewVolume.Data);
+			LoopPreviewAudioTask().Forget();
+		}
+
+		private async UniTask LoopPreviewAudioTask() {
+			if (_isLooping) {
+				return;
+			}
+
+			try {
+				while (!_cancellationTokenSource.IsCancellationRequested) {
+					_isLooping = true;
+
+					await UniTask.WaitUntil(() => CurrentPositionF >= PreviewEndTime || CurrentPositionF >= AudioLengthF,
+						cancellationToken: _cancellationTokenSource.Token);
+
+					await FadeOut(_cancellationTokenSource.Token);
+
+					SetPosition(PreviewStartTime);
+					FadeIn(SettingsManager.Settings.PreviewVolume.Data);
+				}
+			} catch {
+				_isLooping = false;
+			}
+		}
+
+		public void StopPreviewAudio() {
+			StopPreviewAudioTask().Forget();
+		}
+
+		private async UniTask StopPreviewAudioTask() {
+			await FadeOut(_cancellationTokenSource.Token);
+			UnloadSong();
+			_cancellationTokenSource.Cancel();
+			_cancellationTokenSource.Dispose();
+			_cancellationTokenSource = null;
 		}
 
 		public void Play() => Play(false);
@@ -295,17 +407,21 @@ namespace YARG {
 			IsPlaying = _mixer.IsPlaying;
 		}
 
-		public void FadeIn() {
+		public void FadeIn(float maxVolume) {
 			Play(true);
 			if (IsPlaying) {
-				_mixer?.FadeIn();
+				_mixer?.FadeIn(maxVolume);
 			}
 		}
 
-		public void FadeOut() {
+		public async UniTask FadeOut(CancellationToken token = default) {
 			if (IsPlaying) {
-				_mixer?.FadeOut();
+				IsFadingOut = true;
+				await _mixer.FadeOut(token);
+				IsFadingOut = false;
 			}
+
+			await UniTask.Yield();
 		}
 
 		public void PlaySoundEffect(SfxSample sample) {

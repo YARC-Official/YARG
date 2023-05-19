@@ -80,7 +80,7 @@ Material:
     m_Ints: []
     m_Floats:
     - Fill: 0.5
-    - Pulse: 0
+    - Pulse: 1
     - _AlphaClip: 0
     - _AlphaToMask: 0
     - _Blend: 0
@@ -116,6 +116,10 @@ Material:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmptyFill: {r: 0.28235298, g: 0.28235298, b: 0.28235298, a: 0.5019608}
+    - _FlowColor: {r: 1, g: 0.512535, b: 0.004716992, a: 0}
+    - _MainColor: {r: 1, g: 0.5080645, b: 0, a: 1}
+    - _PulseColor: {r: 7.3772106, g: 7.3772106, b: 7.3772106, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
 --- !u!114 &1619350794462124929

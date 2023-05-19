@@ -8,7 +8,7 @@ namespace YARG {
 
 		public const float SONG_VOLUME_MULTIPLIER = 0.7f;
 
-		public const int FADE_TIME_MILLISECONDS = 2000;
+		public const int FADE_TIME_MILLISECONDS = 1000;
 		
 		public const int REVERB_SLIDE_IN_MILLISECONDS = 300;
 		public const int REVERB_SLIDE_OUT_MILLISECONDS = 500;

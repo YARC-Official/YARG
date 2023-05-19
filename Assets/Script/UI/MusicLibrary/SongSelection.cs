@@ -60,12 +60,22 @@ namespace YARG.UI.MusicLibrary {
 					_selectedIndex = 0;
 				}
 
-				if (_songs[_selectedIndex] is SongViewType song) {
-					GameManager.Instance.SelectedSong = song.SongEntry;
-				}
-
 				UpdateScrollbar();
 				UpdateSongViews();
+
+				if (_songs[_selectedIndex] is not SongViewType song) {
+					return;
+				}
+
+				if (song.SongEntry == GameManager.Instance.SelectedSong) {
+					return;
+				}
+
+				GameManager.Instance.SelectedSong = song.SongEntry;
+
+				if (_songs[SelectedIndex] is SongViewType) {
+					GameManager.AudioManager.StartPreviewAudio().Forget();
+				}
 			}
 		}
 
@@ -77,6 +87,8 @@ namespace YARG.UI.MusicLibrary {
 		private NavigationType direction;
 		private bool directionHeld = false;
 		private float inputTimer = 0f;
+		private float scroll;
+		private bool isSelectingStopped = true;
 
 		private void Awake() {
 			refreshFlag = true;
@@ -166,8 +178,15 @@ namespace YARG.UI.MusicLibrary {
 			var scroll = Mouse.current.scroll.ReadValue().y;
 			if (scroll > 0f) {
 				SelectedIndex--;
+				isSelectingStopped = false;
 			} else if (scroll < 0f) {
 				SelectedIndex++;
+				isSelectingStopped = false;
+			} else if (Mathf.Abs(scroll) < float.Epsilon && !isSelectingStopped) {
+				if (_songs[SelectedIndex] is SongViewType) {
+					// GameManager.AudioManager.StartPreviewAudio();
+					isSelectingStopped = true;
+				}
 			}
 		}
 
@@ -235,6 +254,19 @@ namespace YARG.UI.MusicLibrary {
 					_recommendedSongs.Count == 1 ? "RECOMMENDED SONG" : "RECOMMENDED SONGS",
 					$"<#00B6F5><b>{_recommendedSongs.Count}</b> <#006488>{(_recommendedSongs.Count == 1 ? "SONG" : "SONGS")}",
 					_recommendedSongs
+				));
+
+				// Add buttons
+				_songs.Insert(0, new ButtonViewType(
+					"RANDOM SONG",
+					"Icon/Random",
+					() => {
+						// Get how many non-song things there are
+						int skip = _songs.Count - SongContainer.Songs.Count;
+
+						// Select random between all of the songs
+						SelectedIndex = Random.Range(skip, SongContainer.Songs.Count);
+					}
 				));
 			} else {
 				// Split up args
@@ -312,7 +344,11 @@ namespace YARG.UI.MusicLibrary {
 			}
 
 			if (GameManager.Instance.SelectedSong == null) {
-				SelectedIndex = 1;
+				if (string.IsNullOrEmpty(searchField.text)) {
+					SelectedIndex = 2;
+				} else {
+					SelectedIndex = 1;
+				}
 			} else {
 				var index = _songs.FindIndex(song => {
 					return song is SongViewType songType && songType.SongEntry == GameManager.Instance.SelectedSong;
@@ -410,6 +446,7 @@ namespace YARG.UI.MusicLibrary {
 
 		public void Back() {
 			if (string.IsNullOrEmpty(searchField.text)) {
+				GameManager.AudioManager.StopPreviewAudio();
 				MainMenu.Instance.ShowMainMenu();
 			} else {
 				searchField.text = "";
