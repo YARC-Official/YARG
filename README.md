@@ -30,6 +30,22 @@ We **DO NOT** encourage, advocate, or promote **PIRATING** of songs, or of anyth
 
 **YARG** has nothing to do with pirates. It stands for "Yet Another Rhythm Game."
 
+# 📃 Table of Contents
+
+- [Downloading and Playing](#-downloading-and-playing)
+  - [Windows](#windows)
+  - [Mac](#mac)
+  - [Linux](#linux)
+  - [In-Game Setup](#in-game-setup)
+- [Building](#-building)
+  - [Setup Instructions](#setup-instructions)
+  - [Unity YAML Merge Tool](#unity-yaml-merge-tool)
+- [Contributing](#️-contributing)
+- [License](#️-license)
+- [External Licenses](#-external-licenses)
+- [External Assets and Libraries](#-external-assets-and-libraries)
+- [Donate](#-donate)
+
 # 📥 Downloading and Playing
 
 **An official installation video is [available here](https://www.youtube.com/watch?v=bSPSttKNnKc).**
