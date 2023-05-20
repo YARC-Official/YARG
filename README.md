@@ -3,22 +3,25 @@
 > YARG is **not done yet**! Expect incomplete features and bugs!
 
 <br/>
+
 <div align="center">
-<img src="Images/YARG_Full.png" width="60%" alt="YARG">
+  <img src="Images/YARG_Full.png" width="60%" alt="YARG">
 
-<br/>
-<br/>
-<a href="https://twitter.com/EliteAsian123">
-<img src="https://raw.githubusercontent.com/gauravghongde/social-icons/master/PNG/Color/Twitter.png" width="48px" height="48px" alt="Twitter">
-</a>
-<a href="https://discord.gg/sqpu4R552r">
-<img src="https://discord.com/assets/847541504914fd33810e70a0ea73177e.ico" height="48px" width="48px" alt="Discord">
-</a>
-<br/>
-<br/>
+  <br/>
+  <br/>
 
-<img src="Images/README_Top.png" width="80%" alt="README top">
-<img src="Images/README_Gif.gif" width="80%" alt="README gif">
+  <a href="https://twitter.com/EliteAsian123">
+    <img src="https://raw.githubusercontent.com/gauravghongde/social-icons/master/PNG/Color/Twitter.png" width="48px" height="48px" alt="Twitter">
+  </a>
+  <a href="https://discord.gg/sqpu4R552r">
+    <img src="https://discord.com/assets/847541504914fd33810e70a0ea73177e.ico" height="48px" width="48px" alt="Discord">
+  </a>
+
+  <br/>
+  <br/>
+
+  <img src="Images/README_Top.png" width="80%" alt="README top">
+  <img src="Images/README_Gif.gif" width="80%" alt="README gif">
 </div>
 
 # 👉 Disclaimer
