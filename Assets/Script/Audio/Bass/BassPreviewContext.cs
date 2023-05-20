@@ -91,7 +91,7 @@ namespace YARG {
 			var localCanceller = _loadCanceller;
 
 			// Wait for a 100 milliseconds to prevent spam loading (no one likes Music Library lag)
-			await UniTask.Delay(TimeSpan.FromMilliseconds(100.0), ignoreTimeScale: true);
+			await UniTask.Delay(TimeSpan.FromMilliseconds(150.0), ignoreTimeScale: true);
 
 			// Check if cancelled
 			if (localCanceller.IsCancellationRequested) {

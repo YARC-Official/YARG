@@ -21,6 +21,7 @@ namespace YARG.UI.MusicLibrary {
 		public static bool refreshFlag = true;
 
 		private const int SONG_VIEW_EXTRA = 6;
+		private const float SCROLL_TIME = 1f / 60f;
 
 		[SerializeField]
 		private GameObject songViewPrefab;
@@ -75,6 +76,7 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		private List<SongView> _songViews = new();
+		private float _scrollTimer = 0f;
 
 		private void Awake() {
 			refreshFlag = true;
@@ -146,13 +148,18 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		private void Update() {
-			// Scroll wheel
+			if (_scrollTimer <= 0f) {
+				var delta = Mouse.current.scroll.ReadValue().y * Time.deltaTime;
 
-			var scroll = Mouse.current.scroll.ReadValue().y;
-			if (scroll > 0f) {
-				SelectedIndex--;
-			} else if (scroll < 0f) {
-				SelectedIndex++;
+				if (delta > 0f) {
+					SelectedIndex--;
+					_scrollTimer = SCROLL_TIME;
+				} else if (delta < 0f) {
+					SelectedIndex++;
+					_scrollTimer = SCROLL_TIME;
+				}
+			} else {
+				_scrollTimer -= Time.deltaTime;
 			}
 		}
 

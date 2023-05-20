@@ -116,7 +116,7 @@ namespace YARG {
 
 			// Free SFX samples
 			foreach (var sample in _sfxSamples) {
-				sample.Dispose();
+				sample?.Dispose();
 			}
 
 			Bass.Free();
