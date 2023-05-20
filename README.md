@@ -57,16 +57,16 @@ A community made one is [available as well](https://youtu.be/hEJHuAGGlD8).
 3. Inside the folder you extracted the game to, open a terminal and run `chmod +x ./YARG.x86_64` to give the game executable permission.
 4. You can now double-click the `YARG.x86_64` file or use `./YARG.x86_64` in a terminal to run the game, however there are some dependencies that will be needed for HID devices (such as PS3 and Wii instruments).
 5. Next, install `hidapi` and `libudev`:
-   - (Package names may differ depending on package repositories.)
-   - On apt-based distros (such as Ubuntu or Debian), use `sudo apt install libhidapi-hidraw0 libudev1`.
-   - On pacman-based distros (such as Arch Linux), use `pacman -S hidapi systemd-libs`.
-   - On Fedora, use `dnf install hidapi systemd-libs`.
+  - (Package names may differ depending on package repositories.)
+  - On apt-based distros (such as Ubuntu or Debian), use `sudo apt install libhidapi-hidraw0 libudev1`.
+  - On pacman-based distros (such as Arch Linux), use `pacman -S hidapi systemd-libs`.
+  - On Fedora, use `dnf install hidapi systemd-libs`.
 6. Finally, create a new udev rules file called `69-hid.rules` inside of `/etc/udev/rules.d/` or `/usr/lib/udev/rules.d/`, with the following contents:
-   ```
-   KERNEL=="hidraw*", TAG+="uaccess"
-   ```
-   - Without this file, YARG will not be able to access HID devices without special permissions such as being run with `sudo`, which is not recommended.
-   - The file name may differ if desired, but it must come before `73-seat-late.rules`!
+  ```
+  KERNEL=="hidraw*", TAG+="uaccess"
+  ```
+  - Without this file, YARG will not be able to access HID devices without special permissions such as being run with `sudo`, which is not recommended.
+  - The file name may differ if desired, but it must come before `73-seat-late.rules`!
 7. Reboot your system to apply the new udev rule, then you should be all good to go!
 
 ## In-Game Setup
@@ -99,17 +99,17 @@ Have fun!
 1. Make sure you have the latest version of [Blender](https://www.blender.org/) installed. This is for loading models, even if you don't plan on editing them.
 2. Make sure you have [Python (3.10)](https://www.python.org/downloads/) or greater installed. Be sure it is added to system path. This is required to downloading dependencies.
 3. Clone the repository. If you don't know how to do this:
-	1. Download [Git](https://git-scm.com/downloads). Be sure it is added to system path.
-	2. Open the command prompt in the directory you want to store the repository.
-	3. Type in `git clone https://github.com/YARC-Official/YARG.git`.
+  1. Download [Git](https://git-scm.com/downloads). Be sure it is added to system path.
+  2. Open the command prompt in the directory you want to store the repository.
+  3. Type in `git clone https://github.com/YARC-Official/YARG.git`.
 4. Install Unity Hub and Unity `2021.3.21f1` (LTS).
-	1. Download and install [Unity Hub](https://unity.com/download).
-	2. Sign-in/create an account with a personal license (free).
-	3. In Unity Hub, click on "Install Editor" and select `2021.3.21f1` (LTS). It may be favourable to unselect Visual Studio if you are not using it.
-	4. Click "Install"
+  1. Download and install [Unity Hub](https://unity.com/download).
+  2. Sign-in/create an account with a personal license (free).
+  3. In Unity Hub, click on "Install Editor" and select `2021.3.21f1` (LTS). It may be favourable to unselect Visual Studio if you are not using it.
+  4. Click "Install"
 5. Open the command prompt at the root of the repo, and type in:
-	1. `pip install requests`
-	2. `python InstallLibraries/install.py`. This may take a bit. Wait for the command prompt to say "Done!" before closing. This installs all needed dependencies for you.
+  1. `pip install requests`
+  2. `python InstallLibraries/install.py`. This may take a bit. Wait for the command prompt to say "Done!" before closing. This installs all needed dependencies for you.
 6. Open the project in Unity (select "Open" and select YARG's repo's folder).
 7. Load in **without** entering safe mode. Click "Ignore".
 8. (You may need to) click on `NuGet` on the menu bar, then click on `Restore Packages`.
@@ -123,13 +123,13 @@ Setup:
 1. Open a command prompt to the repository (on VS Code you can do Terminal > New Terminal)
 2. Type in `git config --local --edit`
 3. In the file that gets opened, go to the bottom and paste this in:
-```
-[merge]
-    tool = unityyamlmerge
-[mergetool "unityyamlmerge"]
-    trustExitCode = false
-    cmd = 'C:\\Program Files\\Unity\\Hub\\Editor\\2021.3.21f1\\Editor\\Data\\Tools\\UnityYAMLMerge.exe' merge -p "$BASE" "$REMOTE" "$LOCAL" "$MERGED"
-```
+  ```
+  [merge]
+      tool = unityyamlmerge
+  [mergetool "unityyamlmerge"]
+      trustExitCode = false
+      cmd = 'C:\\Program Files\\Unity\\Hub\\Editor\\2021.3.21f1\\Editor\\Data\\Tools\\UnityYAMLMerge.exe' merge -p "$BASE" "$REMOTE" "$LOCAL" "$MERGED"
+  ```
   - You may need to change the file path depending on where you installed Unity to.
 4. Save and close the file.
 
