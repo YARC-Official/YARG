@@ -52,6 +52,7 @@ namespace YARG.Song {
 
 			ReadDifficulties(section, entry);
 
+			entry.DrumType = DrumType.Unknown;
 			if (section.ContainsField("pro_drums")) {
 				switch (section.GetField("pro_drums")) {
 					case "true":
@@ -66,8 +67,6 @@ namespace YARG.Song {
 						entry.DrumType = DrumType.FiveLane;
 						break;
 				}
-			} else {
-				entry.DrumType = DrumType.Unknown;
 			}
 
 			entry.LoadingPhrase = section.GetField("loading_phrase");

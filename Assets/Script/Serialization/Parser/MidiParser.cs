@@ -26,42 +26,40 @@ namespace YARG.Serialization.Parser {
 
 		public MidiParser(SongEntry songEntry, string[] files) : base(songEntry, files) {
 			// get base midi - read it in latin1 if RB, UTF-8 if clon
-			if(songEntry.SongType == SongType.RbCon){
+			if (songEntry.SongType == SongType.RbCon) {
 				var conSong = (ConSongEntry) songEntry;
 				using var stream = new MemoryStream(XboxCONInnerFileRetriever.RetrieveFile(
 					conSong.Location, conSong.MidiFileSize, conSong.MidiFileMemBlockOffsets
 				));
 				midi = MidiFile.Read(stream, new ReadingSettings() { TextEncoding = Encoding.GetEncoding("iso-8859-1") });
-			}
-			else if(songEntry.SongType == SongType.ExtractedRbCon){
+			} else if (songEntry.SongType == SongType.ExtractedRbCon) {
 				midi = MidiFile.Read(files[0], new ReadingSettings() { TextEncoding = Encoding.GetEncoding("iso-8859-1") });
-			}
-			else midi = MidiFile.Read(files[0], new ReadingSettings() { TextEncoding = Encoding.UTF8 });
+			} else midi = MidiFile.Read(files[0], new ReadingSettings() { TextEncoding = Encoding.UTF8 });
 
 			// if this is a RB song...
-			if(songEntry is ExtractedConSongEntry oof){
+			if (songEntry is ExtractedConSongEntry oof) {
 				//...and it contains an update, merge the base and update midi
-				if(oof.DiscUpdate){
+				if (oof.DiscUpdate) {
 					List<string> BaseTracksToAdd = new List<string>();
 					List<string> UpdateTracksToAdd = new List<string>();
 					MidiFile midi_update = MidiFile.Read(oof.UpdateMidiPath, new ReadingSettings() { TextEncoding = Encoding.GetEncoding("iso-8859-1") });
 
 					// get base track names
-					foreach(var trackChunk in midi.GetTrackChunks()){
-						foreach(var trackEvent in trackChunk.Events){
-							if(trackEvent is not SequenceTrackNameEvent trackName) continue;
+					foreach (var trackChunk in midi.GetTrackChunks()) {
+						foreach (var trackEvent in trackChunk.Events) {
+							if (trackEvent is not SequenceTrackNameEvent trackName) continue;
 							BaseTracksToAdd.Add(trackName.Text);
 							break;
 						}
 					}
 
 					// get update track names
-					foreach(var trackChunk in midi_update.GetTrackChunks()){
-						foreach(var trackEvent in trackChunk.Events){
-							if(trackEvent is not SequenceTrackNameEvent trackName) continue;
+					foreach (var trackChunk in midi_update.GetTrackChunks()) {
+						foreach (var trackEvent in trackChunk.Events) {
+							if (trackEvent is not SequenceTrackNameEvent trackName) continue;
 							UpdateTracksToAdd.Add(trackName.Text);
 							// if a track is in both base and update, use the update track
-							if(BaseTracksToAdd.Find(s => s == trackName.Text) != null) BaseTracksToAdd.Remove(trackName.Text);
+							if (BaseTracksToAdd.Find(s => s == trackName.Text) != null) BaseTracksToAdd.Remove(trackName.Text);
 							break;
 						}
 					}
@@ -73,18 +71,18 @@ namespace YARG.Serialization.Parser {
 					midi_merged.ReplaceTempoMap(midi.GetTempoMap());
 
 					// first, add approved base tracks to midi_merged
-					foreach(var trackChunk in midi.GetTrackChunks()){
-						foreach(var trackEvent in trackChunk.Events){
-							if(trackEvent is not SequenceTrackNameEvent trackName) continue;
-							if(BaseTracksToAdd.Find(s => s == trackName.Text) != null) midi_merged.Chunks.Add(trackChunk);
+					foreach (var trackChunk in midi.GetTrackChunks()) {
+						foreach (var trackEvent in trackChunk.Events) {
+							if (trackEvent is not SequenceTrackNameEvent trackName) continue;
+							if (BaseTracksToAdd.Find(s => s == trackName.Text) != null) midi_merged.Chunks.Add(trackChunk);
 							break;
 						}
 					}
 					// then, the update tracks
-					foreach(var trackChunk in midi_update.GetTrackChunks()){
-						foreach(var trackEvent in trackChunk.Events){
-							if(trackEvent is not SequenceTrackNameEvent trackName) continue;
-							if(UpdateTracksToAdd.Find(s => s == trackName.Text) != null) midi_merged.Chunks.Add(trackChunk);
+					foreach (var trackChunk in midi_update.GetTrackChunks()) {
+						foreach (var trackEvent in trackChunk.Events) {
+							if (trackEvent is not SequenceTrackNameEvent trackName) continue;
+							if (UpdateTracksToAdd.Find(s => s == trackName.Text) != null) midi_merged.Chunks.Add(trackChunk);
 							break;
 						}
 					}
@@ -92,21 +90,21 @@ namespace YARG.Serialization.Parser {
 					// finally, assign this new midi as the midi to use in-game
 					midi = midi_merged;
 				}
-				
+
 				// also, if this RB song has a pro upgrade, merge it as well
-				if(oof.SongUpgrade.UpgradeMidiPath != string.Empty){
+				if (oof.SongUpgrade.UpgradeMidiPath != string.Empty) {
 					using var stream = new MemoryStream(oof.SongUpgrade.GetUpgradeMidi());
 					MidiFile upgrade = MidiFile.Read(stream, new ReadingSettings() { TextEncoding = Encoding.GetEncoding("iso-8859-1") });
 
-					foreach(var trackChunk in upgrade.GetTrackChunks()){
-						foreach(var trackEvent in trackChunk.Events){
-							if(trackEvent is not SequenceTrackNameEvent trackName) continue;
-							if(trackName.Text.Contains("PART REAL_GUITAR") || trackName.Text.Contains("PART REAL_BASS")){
+					foreach (var trackChunk in upgrade.GetTrackChunks()) {
+						foreach (var trackEvent in trackChunk.Events) {
+							if (trackEvent is not SequenceTrackNameEvent trackName) continue;
+							if (trackName.Text.Contains("PART REAL_GUITAR") || trackName.Text.Contains("PART REAL_BASS")) {
 								midi.Chunks.Add(trackChunk);
 							}
 						}
 					}
-					
+
 				}
 			}
 		}
