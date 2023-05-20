@@ -82,7 +82,7 @@ namespace XboxSTFS {
         }
 
         private byte[] ReadFileTable(ref FileStream fs, ref BinaryReader br, uint firstBlock, ushort numBlocks) {
-            return ReadBlocks_Continuguous(ref fs, ref br, firstBlock, numBlocks, (uint) 0x1000 * numBlocks);
+            return ReadBlocks_Contiguous(ref fs, ref br, firstBlock, numBlocks, (uint) 0x1000 * numBlocks);
         }
 
         private void ParseFileTable(ref FileStream fs, ref BinaryReader br) {
@@ -145,7 +145,7 @@ namespace XboxSTFS {
             return fileBytes;
         }
 
-        private byte[] ReadBlocks_Continuguous(ref FileStream fs, ref BinaryReader br, uint blocknum, uint blockCount, uint fileSize) {
+        private byte[] ReadBlocks_Contiguous(ref FileStream fs, ref BinaryReader br, uint blocknum, uint blockCount, uint fileSize) {
             byte[] fileBytes = new byte[fileSize];
             for (uint i = 0; i < blockCount;) {
                 uint block = blocknum + i;
@@ -181,7 +181,7 @@ namespace XboxSTFS {
 
         private byte[] ReadFile(ref FileStream fs, ref BinaryReader br, FileListing fl) {
             if (fl.isContinguous())
-                return ReadBlocks_Continuguous(ref fs, ref br, fl.firstBlock, fl.numBlocks, fl.size);
+                return ReadBlocks_Contiguous(ref fs, ref br, fl.firstBlock, fl.numBlocks, fl.size);
             else
                 return ReadBlocks_Separate(ref fs, ref br, fl.firstBlock, fl.numBlocks, fl.size);
         }
