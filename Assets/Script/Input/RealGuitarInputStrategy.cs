@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using PlasticBand.Devices;
 using UnityEngine;
-using UnityEngine.InputSystem.Controls;
 using YARG.Data;
 using YARG.PlayMode;
 
@@ -31,8 +30,8 @@ namespace YARG.Input {
 
 		private List<NoteInfo> botChart;
 
-		private int[] fretCache = new int[6];
-		private float[] velocityCache = new float[6];
+		private int[] fretCache = new int[ProGuitar.StringCount];
+		private float[] velocityCache = new float[ProGuitar.StringCount];
 
 		private float? stringGroupingTimer = null;
 		private StrumFlag stringGroupingFlag = StrumFlag.NONE;
@@ -60,8 +59,8 @@ namespace YARG.Input {
 			}
 
 			// Update frets
-			for (int i = 0; i < 6; i++) {
-				int fret = GetFret(input, i).ReadValue();
+			for (int i = 0; i < ProGuitar.StringCount; i++) {
+				int fret = input.GetFret(i).ReadValue();
 				if (fret != fretCache[i]) {
 					FretChangeEvent?.Invoke(i, fret);
 					fretCache[i] = fret;
@@ -69,8 +68,8 @@ namespace YARG.Input {
 			}
 
 			// Update strums
-			for (int i = 0; i < 6; i++) {
-				float vel = GetVelocity(input, i).ReadValue();
+			for (int i = 0; i < ProGuitar.StringCount; i++) {
+				float vel = input.GetVelocity(i).ReadValue();
 				if (vel != velocityCache[i]) {
 					stringGroupingFlag |= StrumFlagFromInt(i);
 					velocityCache[i] = vel;
@@ -82,31 +81,6 @@ namespace YARG.Input {
 
 			// Constantly activate starpower (for now)
 			CallStarpowerEvent();
-		}
-
-		// TODO: Ideally these should be directly implemented in PlasticBand
-		private IntegerControl GetFret(ProGuitar input, int i) {
-			return i switch {
-				0 => input.fret1,
-				1 => input.fret2,
-				2 => input.fret3,
-				3 => input.fret4,
-				4 => input.fret5,
-				5 => input.fret6,
-				_ => null
-			};
-		}
-
-		private AxisControl GetVelocity(ProGuitar input, int i) {
-			return i switch {
-				0 => input.velocity1,
-				1 => input.velocity2,
-				2 => input.velocity3,
-				3 => input.velocity4,
-				4 => input.velocity5,
-				5 => input.velocity6,
-				_ => null
-			};
 		}
 
 		public override void InitializeBotMode(object rawChart) {
@@ -125,7 +99,7 @@ namespace YARG.Input {
 				var note = botChart[botChartIndex];
 
 				// Press correct frets
-				for (int i = 0; i < 6; i++) {
+				for (int i = 0; i < ProGuitar.StringCount; i++) {
 					int fret = note.stringFrets[i];
 					if (fret == -1) {
 						fret = 0;
@@ -136,7 +110,7 @@ namespace YARG.Input {
 
 				// Strum correct strings
 				StrumFlag flag = StrumFlag.NONE;
-				for (int i = 0; i < 6; i++) {
+				for (int i = 0; i < ProGuitar.StringCount; i++) {
 					if (note.stringFrets[i] != -1) {
 						flag |= StrumFlagFromInt(i);
 					}

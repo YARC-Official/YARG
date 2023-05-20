@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using PlasticBand.Haptics;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
@@ -14,6 +15,7 @@ namespace YARG.Input {
 		protected int botChartIndex;
 
 		private InputDevice _inputDevice;
+		private ISantrollerHaptics _haptics;
 		public InputDevice InputDevice {
 			get => _inputDevice;
 			set {
@@ -23,6 +25,9 @@ namespace YARG.Input {
 				}
 
 				_inputDevice = value;
+				if (_inputDevice is ISantrollerHaptics haptics) {
+					_haptics = haptics;
+				}
 
 				if (enabled) {
 					Enable();
@@ -254,5 +259,20 @@ namespace YARG.Input {
 				Navigator.Instance.EndNavigationHold(action, this);
 			}
 		}
+
+		public void SendStarPowerFill(float fill)
+			=> _haptics?.SetStarPowerFill(fill);
+
+		public void SendStarPowerActive(bool enabled)
+			=> _haptics?.SetStarPowerActive(enabled);
+
+		public void SendMultiplier(uint multiplier)
+			=> _haptics?.SetMultiplier(multiplier);
+
+		public void SendSolo(bool enabled)
+			=> _haptics?.SetSolo(enabled);
+
+		public virtual void ResetHaptics()
+			=> _haptics?.ResetHaptics();
 	}
 }
