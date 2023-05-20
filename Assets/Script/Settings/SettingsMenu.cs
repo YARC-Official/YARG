@@ -63,7 +63,7 @@ namespace YARG.Settings {
 				new NavigationScheme.Entry(MenuAction.Back, "Back", () => {
 					gameObject.SetActive(false);
 				})
-			}));
+			}, true));
 
 			ReturnToFirstTab();
 			UpdateTabs();

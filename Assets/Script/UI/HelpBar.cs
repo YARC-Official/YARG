@@ -15,6 +15,8 @@ namespace YARG.UI {
 		[Space]
 		[SerializeField]
 		private GameObject _buttonPrefab;
+		[field: SerializeField]
+		public MusicPlayer MusicPlayer { get; private set; }
 
 		[Space]
 		[SerializeField]
@@ -34,6 +36,13 @@ namespace YARG.UI {
 
 		public void SetInfoFromScheme(NavigationScheme scheme) {
 			ResetHelpbar();
+
+			// Show/hide music player
+			if (GameManager.Instance.CurrentScene == SceneIndex.MENU) {
+				MusicPlayer.gameObject.SetActive(scheme.AllowsMusicPlayer);
+			} else {
+				MusicPlayer.gameObject.SetActive(false);
+			}
 
 			// Spawn all buttons
 			foreach (var entry in scheme.Entries) {

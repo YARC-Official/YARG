@@ -86,7 +86,7 @@ namespace YARG.UI {
 				new NavigationScheme.Entry(MenuAction.Back, "Back", () => {
 					MainMenu.Instance.ShowEditPlayers();
 				})
-			}));
+			}, true));
 
 			playerNameField.text = null;
 
@@ -231,7 +231,7 @@ namespace YARG.UI {
 				new NavigationScheme.Entry(MenuAction.Confirm, "Done", () => {
 					DoneBind();
 				})
-			}));
+			}, true));
 
 			// Skip in certain conditions
 			if (inputStrategy.Mappings.Count < 1 || botMode ||

@@ -334,6 +334,16 @@ namespace YARG {
 			channel?.SetVolume(volume);
 		}
 
+		public void SetAllStemsVolume(double volume) {
+			if (_mixer == null) {
+				return;
+			}
+
+			foreach (var (_, channel) in _mixer.Channels) {
+				channel.SetVolume(volume);
+			}
+		}
+
 		public void UpdateVolumeSetting(SongStem stem, double volume) {
 			switch (stem) {
 				case SongStem.Master:

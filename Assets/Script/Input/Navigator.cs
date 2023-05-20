@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.UI;
 
@@ -60,7 +61,7 @@ namespace YARG.Input {
 
 		private void Awake() {
 			Instance = this;
-			UpdateHelpBar();
+			UpdateHelpBar().Forget();
 		}
 
 		private void Update() {
@@ -119,20 +120,23 @@ namespace YARG.Input {
 
 		public void PushScheme(NavigationScheme scheme) {
 			_schemeStack.Push(scheme);
-			UpdateHelpBar();
+			UpdateHelpBar().Forget();
 		}
 
 		public void PopScheme() {
 			_schemeStack.Pop();
-			UpdateHelpBar();
+			UpdateHelpBar().Forget();
 		}
 
 		public void PopAllSchemes() {
 			_schemeStack.Clear();
-			UpdateHelpBar();
+			UpdateHelpBar().Forget();
 		}
 
-		private void UpdateHelpBar() {
+		private async UniTask UpdateHelpBar() {
+			// Wait one frame to update, in case another one gets pushed
+			await UniTask.WaitForEndOfFrame(this);
+
 			if (_schemeStack.Count <= 0) {
 				HelpBar.Instance.gameObject.SetActive(false);
 			} else {

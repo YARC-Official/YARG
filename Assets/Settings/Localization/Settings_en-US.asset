@@ -226,6 +226,10 @@ MonoBehaviour:
     m_Localized: Preview Volume
     m_Metadata:
       m_Items: []
+  - m_Id: 20387720246714368
+    m_Localized: Music Player Volume
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

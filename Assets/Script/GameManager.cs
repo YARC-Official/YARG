@@ -94,9 +94,9 @@ namespace YARG {
 
 		private void LoadSceneAdditive(SceneIndex scene) {
 			var asyncOp = SceneManager.LoadSceneAsync((int) scene, LoadSceneMode.Additive);
+			CurrentScene = scene;
 			asyncOp.completed += _ => {
 				// When complete, set the newly loaded scene to the active one
-				CurrentScene = scene;
 				SceneManager.SetActiveScene(SceneManager.GetSceneByBuildIndex((int) scene));
 			};
 		}

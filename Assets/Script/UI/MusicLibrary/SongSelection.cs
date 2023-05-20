@@ -116,7 +116,7 @@ namespace YARG.UI.MusicLibrary {
 						searchField.text = $"artist:{view.SongEntry.Artist}";
 					}
 				})
-			}));
+			}, false));
 
 			if (refreshFlag) {
 				_songs = null;

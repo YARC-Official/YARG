@@ -250,7 +250,7 @@ namespace YARG.UI.PlayResultScreen {
 				new NavigationScheme.Entry(MenuAction.Shortcut1, "Restart", () => {
 					PlayRestart();
 				})
-			}));
+			}, false));
 
 			foreach (var pc in playerCards) {
 				pc.Engage();

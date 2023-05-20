@@ -62,7 +62,7 @@ namespace YARG.UI {
 				new NavigationScheme.Entry(MenuAction.Back, "Back", () => {
 					MainMenu.Instance.ShowSongSelect();
 				})
-			}));
+			}, false));
 
 			// See if there are any mics
 			bool anyMics = false;

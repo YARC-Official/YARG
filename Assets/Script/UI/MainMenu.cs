@@ -64,7 +64,7 @@ namespace YARG.UI {
 				new NavigationScheme.Entry(MenuAction.Confirm, "Quickplay", () => {
 					ShowSongSelect();
 				})
-			}));
+			}, true));
 
 			var quickplayText = menuButtons[(int) ButtonIndex.QUICKPLAY].GetComponentInChildren<TextMeshProUGUI>();
 			if (PlayerManager.players.Count > 0) {

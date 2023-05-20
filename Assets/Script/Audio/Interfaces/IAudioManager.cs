@@ -45,6 +45,7 @@ namespace YARG {
 		public void PlaySoundEffect(SfxSample sample);
 
 		public void SetStemVolume(SongStem stem, double volume);
+		public void SetAllStemsVolume(double volume);
 
 		public void UpdateVolumeSetting(SongStem stem, double volume);
 

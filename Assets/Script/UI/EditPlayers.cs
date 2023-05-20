@@ -17,7 +17,7 @@ namespace YARG.UI {
 				new NavigationScheme.Entry(MenuAction.Back, "Back", () => {
 					MainMenu.Instance.ShowMainMenu();
 				})
-			}));
+			}, true));
 
 			UpdatePlayers();
 		}

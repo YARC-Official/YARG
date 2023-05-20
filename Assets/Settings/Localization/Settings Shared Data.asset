@@ -223,6 +223,10 @@ MonoBehaviour:
     m_Key: PreviewVolume
     m_Metadata:
       m_Items: []
+  - m_Id: 20387720246714368
+    m_Key: MusicPlayerVolume
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

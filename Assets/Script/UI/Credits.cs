@@ -15,7 +15,7 @@ namespace YARG.UI {
 				new NavigationScheme.Entry(MenuAction.Back, "Back", () => {
 					MainMenu.Instance.ShowMainMenu();
 				})
-			}));
+			}, true));
 		}
 
 		private void OnDisable() {

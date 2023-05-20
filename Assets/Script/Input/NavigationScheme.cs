@@ -19,8 +19,11 @@ namespace YARG.Input {
 		private List<Entry> _entries;
 		public IReadOnlyList<Entry> Entries => _entries;
 
-		public NavigationScheme(List<Entry> entries) {
+		public bool AllowsMusicPlayer { get; private set; }
+
+		public NavigationScheme(List<Entry> entries, bool allowsMusicPlayer) {
 			_entries = entries;
+			AllowsMusicPlayer = allowsMusicPlayer;
 		}
 
 		public void InvokeFuncs(MenuAction type) {
