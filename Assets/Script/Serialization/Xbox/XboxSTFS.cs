@@ -148,8 +148,8 @@ namespace XboxSTFS {
         private byte[] ReadBlocks_Continuguous(ref FileStream fs, ref BinaryReader br, uint blocknum, uint blockCount, uint fileSize) {
             byte[] fileBytes = new byte[fileSize];
             for (uint i = 0; i < blockCount;) {
-                uint block = FixBlocknum(blocknum + i);
-                fs.Seek(0xC000 + block * 0x1000, SeekOrigin.Begin);
+                uint block = blocknum + i;
+                fs.Seek(0xC000 + FixBlocknum(block) * 0x1000, SeekOrigin.Begin);
                 uint readCount = 170 - (block % 170);
                 uint readSize = 0x1000 * readCount;
                 uint offset = i * 0x1000;
