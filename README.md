@@ -12,7 +12,7 @@
 <img src="https://raw.githubusercontent.com/gauravghongde/social-icons/master/PNG/Color/Twitter.png" width="48px" height="48px" alt="Twitter">
 </a>
 <a href="https://discord.gg/sqpu4R552r">
-<img src="https://discord.com/assets/847541504914fd33810e70a0ea73177e.ico" height="48px" width="48px" alt="Github">
+<img src="https://discord.com/assets/847541504914fd33810e70a0ea73177e.ico" height="48px" width="48px" alt="Discord">
 </a>
 <br/>
 <br/>
