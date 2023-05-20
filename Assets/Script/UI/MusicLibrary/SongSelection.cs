@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using YARG.Data;
 using YARG.Input;
 using YARG.Song;
 using YARG.UI.MusicLibrary.ViewTypes;
@@ -254,6 +255,16 @@ namespace YARG.UI.MusicLibrary {
 						var genre = arg[6..];
 						songsOut = SongContainer.Songs
 							.Where(i => i.Genre?.ToLower() == genre.ToLower());
+					} else if (arg.StartsWith("instrument:")) {
+						// Instrument filter
+						var instrument = arg[11..];
+						if (instrument == "band") {
+							songsOut = SongContainer.Songs
+								.Where(i => i.BandDifficulty >= 0);
+						} else {
+							songsOut = SongContainer.Songs
+								.Where(i => i.HasInstrument(InstrumentHelper.FromStringName(instrument)));
+						}
 					} else if (!searched) {
 						// Search
 						searched = true;
