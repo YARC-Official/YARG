@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using YARG.Input;
 using YARG.Settings;
 using YARG.Song;
 
@@ -58,6 +59,8 @@ namespace YARG {
 
 			AudioManager = gameObject.AddComponent<BassAudioManager>();
 			AudioManager.Initialize();
+
+			StageKitHapticsManager.Initialize();
 		}
 
 		private void Start() {
