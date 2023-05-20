@@ -94,8 +94,8 @@ namespace XboxSTFS {
             for (int x = 0; x < data.Length; x += 0x40) {
                 Array.Copy(data, x, buf, 0, 0x40);
                 FileListing file = new FileListing(buf);
-				if (file.filename.Length == 0)
-					break;
+                if (file.filename.Length == 0)
+                    break;
                 fLists.Add(file);
             }
 
@@ -128,7 +128,7 @@ namespace XboxSTFS {
             // This is the part of the Free60 STFS page that needed work
             uint blockAdjust = 0;
 
-            if (blocknum >= 0xAA) blockAdjust += (blocknum / 0xAA) + 1 << tableSizeShift;
+            if (blocknum >= 0xAA) blockAdjust += ((blocknum / 0xAA) + 1) << tableSizeShift;
             if (blocknum >= 0x70E4) blockAdjust += ((blocknum / 0x70E4) + 1) << tableSizeShift;
             return blockAdjust + blocknum;
         }
