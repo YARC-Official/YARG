@@ -14,11 +14,22 @@ namespace YARG.UI.MusicLibrary {
 
 		[SerializeField]
 		private Sprite[] ringSprites;
+		
+		private Button _searchButton;
+
+		private void Awake() {
+			_searchButton = GetComponent<Button>();
+		}
 
 		public void SetInfo(SongEntry songEntry, Instrument instrument) {
 			bool show = songEntry.HasInstrument(instrument);
 
 			SetInfo(show, instrument, songEntry.PartDifficulties.GetValueOrDefault(instrument, -1));
+
+			_searchButton.onClick.RemoveAllListeners();
+			if (show) {
+				_searchButton.onClick.AddListener(() => SearchFilter(instrument.ToStringName()));
+			}
 		}
 
 		public void SetInfo(bool hasInstrument, Instrument instrument, int difficulty) {
@@ -52,6 +63,20 @@ namespace YARG.UI.MusicLibrary {
 				color.a = 0.2f;
 			}
 			instrumentIcon.color = color;
+			
+			// Set search filter by instrument
+			_searchButton.onClick.RemoveAllListeners();
+			if (hasInstrument) {
+				_searchButton.onClick.AddListener(() => SearchFilter(instrumentName));
+			}
+		}
+
+		private void SearchFilter(string instrument) {
+			SongSelection.Instance.searchField.text = $"instrument:{instrument}";
+		}
+
+		private void OnDestroy() {
+			_searchButton.onClick.RemoveAllListeners();
 		}
 	}
 }
