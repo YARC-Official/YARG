@@ -88,6 +88,8 @@ Have fun!
 
 # 🔨 Building
 
+## Setup Instructions
+
 > **Warning**
 >
 > If you would like to build the game yourself, please follow these instructions.
@@ -113,14 +115,14 @@ Have fun!
 8. (You may need to) click on `NuGet` on the menu bar, then click on `Restore Packages`.
 9. You're ready to go!
 
-> **Note**
->
-> If you plan on merging branches, I highly recommend following these instructions for easier merges.
+## Unity YAML Merge Tool
+
+Sometimes merge conflicts may happen between Unity scenes. These can be much more difficult to resolve than other merge conflicts, so we recommend using the Unity YAML merge tool to resolve these instead of attempting to do so manually.
 
 Setup:
 1. Open a command prompt to the repository (on VS Code you can do Terminal > New Terminal)
 2. Type in `git config --local --edit`
-3. In the file that gets opened, go to the bottom and paste this in: (You may need to change the file path depending on where you installed Unity to)
+3. In the file that gets opened, go to the bottom and paste this in:
 ```
 [merge]
     tool = unityyamlmerge
@@ -128,6 +130,7 @@ Setup:
     trustExitCode = false
     cmd = 'C:\\Program Files\\Unity\\Hub\\Editor\\2021.3.21f1\\Editor\\Data\\Tools\\UnityYAMLMerge.exe' merge -p "$BASE" "$REMOTE" "$LOCAL" "$MERGED"
 ```
+  - You may need to change the file path depending on where you installed Unity to.
 4. Save and close the file.
 
 Resolving conflicts:
