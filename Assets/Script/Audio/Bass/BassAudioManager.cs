@@ -7,7 +7,6 @@ using Cysharp.Threading.Tasks;
 using ManagedBass;
 using UnityEngine;
 using YARG.Serialization;
-using YARG.Settings;
 using YARG.Song;
 using Debug = UnityEngine.Debug;
 
@@ -25,14 +24,19 @@ namespace YARG {
 		public double MasterVolume { get; private set; }
 		public double SfxVolume { get; private set; }
 
-		public double PreviewStartTime { get; private set; }
-		public double PreviewEndTime { get; private set; }
-
 		public double CurrentPositionD => GetPosition();
 		public double AudioLengthD { get; private set; }
 
 		public float CurrentPositionF => (float) GetPosition();
 		public float AudioLengthF { get; private set; }
+
+		private IPreviewContext _currentPreviewContext;
+		public IPreviewContext PreviewContext {
+			get {
+				_currentPreviewContext ??= new BassPreviewContext(this);
+				return _currentPreviewContext;
+			}
+		}
 
 		private double[] _stemVolumes;
 
@@ -41,13 +45,6 @@ namespace YARG {
 		private IStemMixer _mixer;
 
 		private ISampleChannel[] _sfxSamples;
-
-		public float pos;
-
-		private CancellationTokenSource _cancellationTokenSource;
-
-		private bool _isLooping = false;
-		private bool _isLoadingLoopAudio = false;
 
 		private void Awake() {
 			SupportedFormats = new[] {
@@ -64,10 +61,6 @@ namespace YARG {
 			_sfxSamples = new ISampleChannel[AudioHelpers.SfxPaths.Count];
 
 			_opusHandle = 0;
-		}
-
-		private void Update() {
-			pos = CurrentPositionF;
 		}
 
 		public void Initialize() {
@@ -269,112 +262,10 @@ namespace YARG {
 		public void UnloadSong() {
 			IsPlaying = false;
 			IsAudioLoaded = false;
-			if (IsFadingOut) {
-				_cancellationTokenSource.Cancel();
-				_cancellationTokenSource.Dispose();
-				_cancellationTokenSource = null;
-				IsFadingOut = false;
-			}
 
 			// Free mixer (and all channels in it)
 			_mixer?.Dispose();
 			_mixer = null;
-		}
-
-		public async UniTask<bool> LoadPreviewAudio(SongEntry song) {
-			if (song == null || _isLoadingLoopAudio || Mathf.Approximately(SettingsManager.Settings.PreviewVolume.Data, 0f)) {
-				// Skip if preview audio is turned off
-				return false;
-			}
-
-			_isLoadingLoopAudio = true;
-
-			await UniTask.RunOnThreadPool(() => {
-				if (song is ExtractedConSongEntry conSong) {
-					LoadMogg(conSong, false, SongStem.Crowd);
-				} else {
-					LoadSong(AudioHelpers.GetSupportedStems(song.Location), false, SongStem.Crowd);
-				}
-			});
-
-			PreviewStartTime = song.PreviewStartTimeSpan.TotalSeconds;
-			if (PreviewStartTime <= 0) {
-				PreviewStartTime = 10;
-			}
-
-			PreviewEndTime = song.PreviewEndTimeSpan.TotalSeconds;
-			if (PreviewEndTime <= 0) {
-				PreviewEndTime = PreviewStartTime + Constants.PREVIEW_DURATION;
-			}
-
-			SetPosition(PreviewStartTime);
-
-			_isLoadingLoopAudio = false;
-
-			return true;
-		}
-
-		public async UniTask StartPreviewAudio() {
-			if (_cancellationTokenSource?.IsCancellationRequested ?? false) {
-				return;
-			}
-
-			if (_cancellationTokenSource != null) {
-				_cancellationTokenSource.Cancel();
-				_cancellationTokenSource.Dispose();
-			}
-
-			await FadeOut();
-
-			// Wait until audio isn't being loaded (prevent lag)
-			await UniTask.WaitUntil(() => !_isLoadingLoopAudio);
-
-			// Skip if the preview audio can't/shouldn't be loaded
-			_cancellationTokenSource = new CancellationTokenSource();
-			if (!await LoadPreviewAudio(GameManager.Instance.SelectedSong)) {
-				return;
-			}
-
-			FadeIn(SettingsManager.Settings.PreviewVolume.Data);
-			LoopPreviewAudioTask().Forget();
-		}
-
-		private async UniTask LoopPreviewAudioTask() {
-			if (_isLooping) {
-				return;
-			}
-
-			try {
-				while (!_cancellationTokenSource.IsCancellationRequested) {
-					_isLooping = true;
-
-					await UniTask.WaitUntil(() => CurrentPositionF >= PreviewEndTime || CurrentPositionF >= AudioLengthF,
-						cancellationToken: _cancellationTokenSource.Token);
-
-					await FadeOut(_cancellationTokenSource.Token);
-
-					SetPosition(PreviewStartTime);
-					FadeIn(SettingsManager.Settings.PreviewVolume.Data);
-				}
-			} catch {
-				_isLooping = false;
-			}
-		}
-
-		public void StopPreviewAudio() {
-			if (IsFadingOut || _cancellationTokenSource == null) {
-				return;
-			}
-			
-			StopPreviewAudioTask().Forget();
-		}
-
-		private async UniTask StopPreviewAudioTask() {
-			await FadeOut(_cancellationTokenSource.Token);
-			UnloadSong();
-			_cancellationTokenSource.Cancel();
-			_cancellationTokenSource.Dispose();
-			_cancellationTokenSource = null;
 		}
 
 		public void Play() => Play(false);
@@ -411,6 +302,11 @@ namespace YARG {
 			IsPlaying = _mixer.IsPlaying;
 		}
 
+		public void DisposePreviewContext() {
+			_currentPreviewContext?.Dispose();
+			_currentPreviewContext = null;
+		}
+
 		public void FadeIn(float maxVolume) {
 			Play(true);
 			if (IsPlaying) {
@@ -424,8 +320,6 @@ namespace YARG {
 				await _mixer.FadeOut(token);
 				IsFadingOut = false;
 			}
-
-			await UniTask.Yield();
 		}
 
 		public void PlaySoundEffect(SfxSample sample) {

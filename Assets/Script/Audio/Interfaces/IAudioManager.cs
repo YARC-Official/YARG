@@ -17,14 +17,13 @@ namespace YARG {
 		public double MasterVolume { get; }
 		public double SfxVolume { get; }
 
-		public double PreviewStartTime { get; }
-		public double PreviewEndTime { get; }
-
 		public double CurrentPositionD { get; }
 		public double AudioLengthD { get; }
 
 		public float CurrentPositionF { get; }
 		public float AudioLengthF { get; }
+
+		public IPreviewContext PreviewContext { get; }
 
 		public void Initialize();
 		public void Unload();
@@ -35,12 +34,10 @@ namespace YARG {
 		public void LoadMogg(ExtractedConSongEntry exConSong, bool isSpeedUp, params SongStem[] ignoreStems);
 		public void UnloadSong();
 
-		public UniTask<bool> LoadPreviewAudio(SongEntry song);
-		public UniTask StartPreviewAudio();
-		public void StopPreviewAudio();
-
 		public void Play();
 		public void Pause();
+
+		public void DisposePreviewContext();
 
 		public void FadeIn(float maxVolume);
 		public UniTask FadeOut(CancellationToken token = default);

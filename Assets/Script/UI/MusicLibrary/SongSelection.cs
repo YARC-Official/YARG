@@ -70,16 +70,11 @@ namespace YARG.UI.MusicLibrary {
 				}
 
 				GameManager.Instance.SelectedSong = song.SongEntry;
-				if (!refreshFlag) {
-					GameManager.AudioManager.StartPreviewAudio().Forget();
-				}
+				GameManager.AudioManager.PreviewContext.PlayPreview(song.SongEntry);
 			}
 		}
 
-		private List<SongView> songViews = new();
-
-		private float scroll;
-		private bool isSelectingStopped = true;
+		private List<SongView> _songViews = new();
 
 		private void Awake() {
 			refreshFlag = true;
@@ -92,7 +87,7 @@ namespace YARG.UI.MusicLibrary {
 				// Init and add
 				var songView = gameObject.GetComponent<SongView>();
 				songView.Init(i - SONG_VIEW_EXTRA);
-				songViews.Add(songView);
+				_songViews.Add(songView);
 			}
 
 			// Initialize sidebar
@@ -129,15 +124,21 @@ namespace YARG.UI.MusicLibrary {
 				UpdateSearch();
 				refreshFlag = false;
 			}
-			GameManager.AudioManager.StartPreviewAudio().Forget();
+
+			// Play preview on enter for selected song
+			if (_songs[SelectedIndex] is SongViewType song) {
+				GameManager.AudioManager.PreviewContext.PlayPreview(song.SongEntry);
+			}
 		}
 
 		private void OnDisable() {
 			Navigator.Instance.PopScheme();
+
+			GameManager.AudioManager.DisposePreviewContext();
 		}
 
 		private void UpdateSongViews() {
-			foreach (var songView in songViews) {
+			foreach (var songView in _songViews) {
 				songView.UpdateView();
 			}
 
@@ -150,15 +151,8 @@ namespace YARG.UI.MusicLibrary {
 			var scroll = Mouse.current.scroll.ReadValue().y;
 			if (scroll > 0f) {
 				SelectedIndex--;
-				isSelectingStopped = false;
 			} else if (scroll < 0f) {
 				SelectedIndex++;
-				isSelectingStopped = false;
-			} else if (Mathf.Abs(scroll) < float.Epsilon && !isSelectingStopped) {
-				if (_songs[SelectedIndex] is SongViewType) {
-					// GameManager.AudioManager.StartPreviewAudio();
-					isSelectingStopped = true;
-				}
 			}
 		}
 
@@ -393,7 +387,6 @@ namespace YARG.UI.MusicLibrary {
 
 		public void Back() {
 			if (string.IsNullOrEmpty(searchField.text)) {
-				GameManager.AudioManager.StopPreviewAudio();
 				MainMenu.Instance.ShowMainMenu();
 			} else {
 				searchField.text = "";

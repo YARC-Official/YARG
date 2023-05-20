@@ -128,7 +128,6 @@ namespace YARG.UI {
 
 		public void ShowPreSong() {
 			HideAll();
-			GameManager.AudioManager.StopPreviewAudio();
 			difficultySelect.gameObject.SetActive(true);
 		}
 
