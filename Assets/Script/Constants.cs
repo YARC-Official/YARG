@@ -2,7 +2,7 @@ using YARG.Data;
 
 namespace YARG {
 	public static class Constants {
-		public static readonly YargVersion VERSION_TAG = YargVersion.Parse("v0.10.2");
+		public static readonly YargVersion VERSION_TAG = YargVersion.Parse("v0.10.3");
 
 		// General
 		public const float HIT_MARGIN = 0.095f;
@@ -17,7 +17,7 @@ namespace YARG {
 		public const bool ALLOW_DESC_GHOSTS = true;
 		public const bool ALLOW_GHOST_IF_NO_NOTES = true; // seems to allow more ghosting than it should...
 		public const float ALLOW_GHOST_IF_NO_NOTES_THRESHOLD = 2f; // this should solve the above
-		
+
 		// Preview
 		public const double PREVIEW_DURATION = 30.0;
 	}
