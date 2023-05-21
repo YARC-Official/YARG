@@ -193,7 +193,7 @@ namespace YARG.PlayMode {
 				strumLeniency -= Time.deltaTime;
 
 				if (strumLeniency <= 0f) {
-					UpdateOverstrums();
+					//UpdateOverstrums();
 					strumLeniency = 0f;
 					strumLeniencyEnded = true;
 				} else {
@@ -224,6 +224,9 @@ namespace YARG.PlayMode {
 			}
 
 			if (expectedHits.Count <= 0) {
+				if (strumLeniencyEnded) {
+					UpdateOverstrums();
+				}
 				return;
 			}
 
@@ -274,6 +277,7 @@ namespace YARG.PlayMode {
 
 					// If found...
 					if (found) {
+						strumLeniencyEnded = false;
 						// Miss all notes previous to the strummed note
 						while (expectedHits.Peek() != chord) {
 							var missedChord = expectedHits.Dequeue();
@@ -288,6 +292,9 @@ namespace YARG.PlayMode {
 						missedAnyNote = true;
 					}
 				}
+			}
+			if (strumLeniencyEnded) { // Strum leniency ended, and suitable strummable note wasn't found; overstrum
+				UpdateOverstrums();
 			}
 			// If tapping to recover combo during tap note section, skip to first valid note within the timing window.
 			// This will make it easier to recover.
