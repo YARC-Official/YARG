@@ -20,6 +20,8 @@ namespace YARG {
 		/// <returns>0 if successful, otherwise an error code.</returns>
 		public int Initialize(int device);
 
+		public bool StartPlayback();
+		
 		/// <summary>
 		/// Set the monitoring level of this Microphone Device.
 		/// </summary>

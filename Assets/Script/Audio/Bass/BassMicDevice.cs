@@ -1,5 +1,6 @@
 ﻿using System;
 using ManagedBass;
+using UnityEngine;
 
 namespace YARG {
 	public class BassMicDevice : IMicDevice {
@@ -15,6 +16,7 @@ namespace YARG {
 		private int _monitorPlaybackHandle;
 		
 		private bool _initialized;
+		private bool _isPlayback;
 		private bool _disposed;
 		
 		private RecordProcedure _recordProcedure;
@@ -28,8 +30,9 @@ namespace YARG {
 			
 			// Must initialise device before recording
 			Bass.RecordInit(device);
+			Bass.RecordGetInfo(out var info);
 			
-			const BassFlags flags = BassFlags.Float | BassFlags.RecordPause;
+			const BassFlags flags = BassFlags.Float;
 			
 			// We want to start recording immediately because of device context switching and device numbers.
 			// If we initialize the device but don't record immediately, the device number might change and we'll be recording from the wrong device.
@@ -37,29 +40,50 @@ namespace YARG {
 			if(_recordHandle == 0) {
 				// If we failed to start recording, we need to return the error code.
 				_initialized = false;
+				Debug.LogError($"Failed to start recording: {Bass.LastError}");
 				return (int) Bass.LastError;;
 			}
 
-			_monitorPlaybackHandle = Bass.CreateStream(0, 0, BassFlags.Float, StreamProcedureType.Push);
+			_monitorPlaybackHandle = Bass.CreateStream(44100, info.Channels, BassFlags.Float, StreamProcedureType.Push);
 			if(_monitorPlaybackHandle == 0) {
 				_initialized = false;
+				Debug.LogError($"Failed to create monitor stream: {Bass.LastError}");
 				return (int) Bass.LastError;
 			}
+
+			StartPlayback();
+			SetMonitoringLevel(1);
 
 			_initialized = true;
 			return 0;
 		}
-		
+
+		public bool StartPlayback() {
+			// True clears buffer before playback
+			_isPlayback = Bass.ChannelPlay(_monitorPlaybackHandle, true);
+
+			if (!_isPlayback) {
+				Debug.LogError($"{Bass.LastError}");
+			}
+			
+			return _isPlayback;
+		}
+
 		public void SetMonitoringLevel(float volume) {
 			if(_monitorPlaybackHandle == 0) 
 				return;
-			
-			Bass.ChannelSetAttribute(_monitorPlaybackHandle, ChannelAttribute.Volume, volume);
+
+			if (!Bass.ChannelSetAttribute(_monitorPlaybackHandle, ChannelAttribute.Volume, volume)) {
+				Debug.LogError($"Failed to set volume attrib: {Bass.LastError}");
+			}
 		}
 
 		private bool ProcessRecordData(int handle, IntPtr buffer, int length, IntPtr user) {
 			// Copies the data from the recording buffer to the monitor playback buffer.
-			Bass.StreamPutData(_monitorPlaybackHandle, buffer, length);
+			if (_isPlayback) {
+				Bass.StreamPutData(_monitorPlaybackHandle, buffer, length);
+			}
+			
 			CalculatePitchAndAmplitude(buffer, length);
 			return true;
 		}
