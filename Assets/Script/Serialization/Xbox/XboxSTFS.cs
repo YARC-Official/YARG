@@ -7,45 +7,19 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-/*
-    Copyright 2011 Arkem. All rights reserved.
-
-    Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-    Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-    Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-
-    THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-    IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-    (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-    HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-    The below code was originally written by Arkem in Python, on this repo: https://github.com/arkem/py360
-    For the purposes of YARG, I (rjkiv on GitHub) have ported the necessary code to C#,
-    so that YARG can read the contents of a Rock Band CON file (.mid, .mogg, .dta, .png_xbox, etc)
-
-    Further parsing improvements provided by Sonicfind (also github)
-*/
+// The below code was originally written by Arkem in Python, on this repo: https://github.com/arkem/py360
+// For the purposes of YARG, the relevant code has been ported to C#,
+// so that YARG can read the contents of a Rock Band CON file (.mid, .mogg, .dta, .png_xbox, etc)
 
 namespace XboxSTFS {
-
-    public static class STFSHashInfo {
-        // Whether the block represented by the BlockHashRecord is used, free, old or current
-        public static readonly Dictionary<byte, string> Types = new Dictionary<byte, string>(){
-            { 0x00, "Unused" }, { 0x40, "Freed" }, { 0x80, "Old" }, { 0xC0, "Current" }
-        };
-        public static readonly string[] TypesList = { "Unused", "Allocated Free", "Allocated In Use Old", "Allocated In Use Current" };
-    }
-
     // Object containing the information about a file in the STFS container
-    // Data includes size, name, path and firstblock and atime and utime
     public class FileListing {
-        public string filename { get; private set; }
-        public byte flags { get; private set; }
-        public uint numBlocks { get; private set; }
-        public uint firstBlock { get; private set; }
-        public uint size { get; private set; }
-        public short pathIndex { get; private set; }
+        public string filename { get; set; }
+        public byte flags { get; set; }
+        public uint numBlocks { get; set; }
+        public uint firstBlock { get; set; }
+        public uint size { get; set; }
+        public short pathIndex { get; set; }
 
         public FileListing(byte[] data){
             filename = System.Text.Encoding.UTF8.GetString(data, 0, 0x28).TrimEnd('\0');
@@ -57,45 +31,69 @@ namespace XboxSTFS {
             size = BitConverter.ToUInt32(new byte[4] { data[0x37], data[0x36], data[0x35], data[0x34] });
         }
 
+        public FileListing(){}
+
         public override string ToString() => $"STFS File Listing: {filename}";
-        public bool isDirectory() { return (flags & 0x80) > 0; }
-        public bool isContinguous() { return (flags & 0x40) > 0; }
+        public bool IsDirectory() { return (flags & 0x80) > 0; }
+        public bool IsContiguous() { return (flags & 0x40) > 0; }
     }
 
-    public class STFS {
-        private string filename, magic;
-        private byte tableSizeShift = 0;
-        private uint entryID, titleID, fileTableBlockNumber, allocatedCount;
-        private ushort fileTableBlockCount;
-        private int[,] tableSpacing = new int[2, 3] { {0xAB, 0x718F, 0xFE7DA}, {0xAC, 0x723A, 0xFD00B} };
-        private Dictionary<string, FileListing> allFiles;
+    public static class XboxSTFSParser {
 
-        public STFS(string fname){
-            filename = fname;
-            var fs = new FileStream(filename, FileMode.Open, FileAccess.Read);
+        private static uint FixBlocknum(uint blocknum, bool shift){
+            // Given a blocknumber calculate the block on disk that has the data taking into account hash blocks.
+            // Every 0xAA blocks there is a hash table and depending on header data it
+            // is 1 or 2 blocks long [((self.entry_id+0xFFF) & 0xF000) >> 0xC 0xB == 0, 0xA == 1]
+            // After 0x70e4 blocks there is another table of the same size every 0x70e4
+            // blocks and after 0x4af768 blocks there is one last table. This skews blocknumber to offset calcs.
+            // This is the part of the Free60 STFS page that needed work
+            uint blockAdjust = 0;
+            byte tableSizeShift = Convert.ToByte(shift);
+
+            if (blocknum >= 0xAA) blockAdjust += ((blocknum / 0xAA) + 1) << tableSizeShift;
+            if (blocknum >= 0x70E4) blockAdjust += ((blocknum / 0x70E4) + 1) << tableSizeShift;
+            return blockAdjust + blocknum;
+        }
+
+        // given a CON file, retrieve the relevant FileListings for easy file extraction later
+        public static Dictionary<string, FileListing> GetCONFileListings(string CONName){
+            var fs = new FileStream(CONName, FileMode.Open, FileAccess.Read);
             var br = new BinaryReader(fs, new ASCIIEncoding());
-            magic = new string(new BinaryReader(fs, new ASCIIEncoding()).ReadChars(4));
+            string magic = new string(new BinaryReader(fs, new ASCIIEncoding()).ReadChars(4));
             Assert.IsTrue((magic == "CON " || magic == "PIRS" || magic == "LIVE"), "STFS Magic not found");
             fs.Seek(0, SeekOrigin.Begin);
-            ParseHeader(ref br);
-            ParseFileTable(ref fs, ref br);
-        }
 
-        private byte[] ReadFileTable(ref FileStream fs, ref BinaryReader br, uint firstBlock, ushort numBlocks) {
-            return ReadBlocks_Contiguous(ref fs, ref br, firstBlock, numBlocks, (uint) 0x1000 * numBlocks);
-        }
+            // parse header for relevant info
+            var header = br.ReadBytes(0x971A);
+            Assert.IsTrue(header.Length >= 0x971A, "STFS header data too short");
+            uint entryID = BitConverter.ToUInt32(new byte[4] { header[0x343], header[0x342], header[0x341], header[0x340] });
+            ushort fileTableBlockCount = BitConverter.ToUInt16(new byte[2] { header[0x37C], header[0x37D] });
+            uint fileTableBlockNumber = BitConverter.ToUInt32(new byte[4] { header[0x37E], header[0x37F], header[0x380], 0x00 });
+            bool shiftTable = (((entryID + 0xFFF) & 0xF000) >> 0xC != 0xB);
 
-        private void ParseFileTable(ref FileStream fs, ref BinaryReader br) {
-            List<FileListing> fLists = new List<FileListing>();
-            allFiles = new Dictionary<string, FileListing>();
-            var data = ReadFileTable(ref fs, ref br, fileTableBlockNumber, fileTableBlockCount);
-
+            // parse file table
+            var fLists = new List<FileListing>();
+            var allFiles = new Dictionary<string, FileListing>();
+            // retrieve file table bytes
+            uint dataSize = (uint) 0x1000*fileTableBlockCount;
+            byte[] data = new byte[dataSize];
+            uint i = 0;
+            while(i < fileTableBlockCount){
+                uint block = fileTableBlockNumber + i;
+                fs.Seek(0xC000 + FixBlocknum(block,shiftTable)*0x1000, SeekOrigin.Begin);
+                uint readCount = 170 - (block % 170);
+                uint readSize = 0x1000 * readCount;
+                uint offset = i * 0x1000;
+                if(readSize > dataSize - offset) readSize = dataSize - offset;
+                br.Read(data, (int) offset, (int) readSize);
+                i += readCount;
+            }
+            // parse and retrieve FileListing entries
             byte[] buf = new byte[0x40];
             for (int x = 0; x < data.Length; x += 0x40) {
                 Array.Copy(data, x, buf, 0, 0x40);
                 FileListing file = new FileListing(buf);
-                if (file.filename.Length == 0)
-                    break;
+                if (file.filename.Length == 0) break;
                 fLists.Add(file);
             }
 
@@ -109,157 +107,71 @@ namespace XboxSTFS {
                     try {
                         a = fLists[a.pathIndex];
                         pathComponents.Add(a.filename);
-                    } catch (Exception ee) {
-                        Debug.Log($"Indexing Error: {filename} {a.pathIndex} {fLists.Count}");
+                    } catch (Exception) {
+                        Debug.Log($"Indexing Error: {CONName} {a.pathIndex} {fLists.Count}");
                     }
                 }
                 pathComponents.Add("");
                 pathComponents.Reverse();
                 allFiles[Path.Combine(pathComponents.ToArray())] = fl;
             }
+            
+            return allFiles;
         }
 
-        private uint FixBlocknum(uint blocknum) {
-            // Given a blocknumber calculate the block on disk that has the data taking into account hash blocks.
-            // Every 0xAA blocks there is a hash table and depending on header data it
-            // is 1 or 2 blocks long [((self.entry_id+0xFFF) & 0xF000) >> 0xC 0xB == 0, 0xA == 1]
-            // After 0x70e4 blocks there is another table of the same size every 0x70e4
-            // blocks and after 0x4af768 blocks there is one last table. This skews blocknumber to offset calcs.
-            // This is the part of the Free60 STFS page that needed work
-            uint blockAdjust = 0;
-
-            if (blocknum >= 0xAA) blockAdjust += ((blocknum / 0xAA) + 1) << tableSizeShift;
-            if (blocknum >= 0x70E4) blockAdjust += ((blocknum / 0x70E4) + 1) << tableSizeShift;
-            return blockAdjust + blocknum;
-        }
-
-        private byte[] ReadBlocks_Separate(ref FileStream fs, ref BinaryReader br, uint firstBlock, uint numBlocks, uint fileSize) {
-            byte[] fileBytes = new byte[fileSize];
-            for (uint i = 0; i < numBlocks; ++i) {
-                fs.Seek(0xC000 + FixBlocknum(firstBlock + i) * 0x1000, SeekOrigin.Begin);
-                if (i < numBlocks - 1)
-                    br.Read(fileBytes, (int) i * 0x1000, 0x1000);
-                else
-                    br.Read(fileBytes, (int) i * 0x1000, (int) fileSize % 0x1000);
+        private static byte[] ReadBlocksSeparate(ref FileStream fs, ref BinaryReader br, FileListing fl, bool shift) {
+            byte[] fileBytes = new byte[fl.size];
+            for (uint i = 0; i < fl.numBlocks; ++i) {
+                fs.Seek(0xC000 + FixBlocknum(fl.firstBlock + i, shift) * 0x1000, SeekOrigin.Begin);
+                if (i < fl.numBlocks - 1) br.Read(fileBytes, (int) i * 0x1000, 0x1000);
+                else br.Read(fileBytes, (int) i * 0x1000, (int) fl.size % 0x1000);
             }
             return fileBytes;
         }
 
-        private byte[] ReadBlocks_Contiguous(ref FileStream fs, ref BinaryReader br, uint blocknum, uint blockCount, uint fileSize) {
-            byte[] fileBytes = new byte[fileSize];
-            for (uint i = 0; i < blockCount;) {
-                uint block = blocknum + i;
-                fs.Seek(0xC000 + FixBlocknum(block) * 0x1000, SeekOrigin.Begin);
+        private static byte[] ReadBlocksContiguous(ref FileStream fs, ref BinaryReader br, FileListing fl, bool shift) {
+            byte[] fileBytes = new byte[fl.size];
+            uint i = 0;
+            while(i < fl.numBlocks){
+                uint block = fl.firstBlock + i;
+                fs.Seek(0xC000 + FixBlocknum(block, shift) * 0x1000, SeekOrigin.Begin);
                 uint readCount = 170 - (block % 170);
                 uint readSize = 0x1000 * readCount;
                 uint offset = i * 0x1000;
-                if (readSize > fileSize - offset)
-                    readSize = fileSize - offset;
-
+                if (readSize > fl.size - offset) readSize = fl.size - offset;
                 br.Read(fileBytes, (int) offset, (int) readSize);
                 i += readCount;
             }
             return fileBytes;
         }
 
-        private void ParseHeader(ref BinaryReader br) {
-            var data = br.ReadBytes(0x971A);
-            // parse the huge STFS header
-            Assert.IsTrue(data.Length >= 0x971A, "STFS Data too short");
-
-            entryID = BitConverter.ToUInt32(new byte[4] { data[0x343], data[0x342], data[0x341], data[0x340] });
-            titleID = BitConverter.ToUInt32(new byte[4] { data[0x363], data[0x362], data[0x361], data[0x360] });
-            fileTableBlockCount = BitConverter.ToUInt16(new byte[2] { data[0x37C], data[0x37D] });
-            fileTableBlockNumber = BitConverter.ToUInt32(new byte[4] { data[0x37E], data[0x37F], data[0x380], 0x00 });
-            allocatedCount = BitConverter.ToUInt32(new byte[4] { data[0x398], data[0x397], data[0x396], data[0x395] });
-
-            if (((entryID + 0xFFF) & 0xF000) >> 0xC != 0xB)
-                tableSizeShift = 1;
-        }
-
-        public override string ToString() => $"STFS Object {magic} ({filename})";
-
-        private byte[] ReadFile(ref FileStream fs, ref BinaryReader br, FileListing fl) {
-            if (fl.isContinguous())
-                return ReadBlocks_Contiguous(ref fs, ref br, fl.firstBlock, fl.numBlocks, fl.size);
-            else
-                return ReadBlocks_Separate(ref fs, ref br, fl.firstBlock, fl.numBlocks, fl.size);
-        }
-
-        public void ExtractAllContents(){
-            foreach(var f in allFiles){
-                if(allFiles[f.Key].isDirectory()){
-                    Debug.Log($"Creating directory: {f.Key}");
-                    Directory.CreateDirectory(Path.Combine($"{filename}_out", f.Key));
-                }
-            }
-
-            var fs = new FileStream(filename, FileMode.Open, FileAccess.Read);
+        public static byte[] GetFile(string CONName, FileListing fl){
+            var fs = new FileStream(CONName, FileMode.Open, FileAccess.Read);
             var br = new BinaryReader(fs, new ASCIIEncoding());
-            foreach (var f in allFiles){
-                if(!allFiles[f.Key].isDirectory()){
-                    Debug.Log($"Writing file: {f.Key}");
-                    try{
-                        File.WriteAllBytes(Path.Combine($"{filename}_out", f.Key), ReadFile(ref fs, ref br, allFiles[f.Key]));
-                    }
-                    catch(Exception e){
-                        Debug.Log(e);
-                        Debug.Log($"Could not write file {Path.Combine($"{filename}_out", f.Key)}");
-                    }
-                }
-            }
+            fs.Seek(0x340, SeekOrigin.Begin);
+            var buf = br.ReadBytes(4);
+            uint entryID = BitConverter.ToUInt32(new byte[4] { buf[3], buf[2], buf[1], buf[0] });
+            bool shiftTable = (((entryID + 0xFFF) & 0xF000) >> 0xC != 0xB);
+            if(fl.IsContiguous()) return ReadBlocksContiguous(ref fs, ref br, fl, shiftTable);
+            else return ReadBlocksSeparate(ref fs, ref br, fl, shiftTable);
         }
 
-        // used for benchmarking
-        public void MockExtract(){
-            var fs = new FileStream(filename, FileMode.Open, FileAccess.Read);
+        public static byte[] GetMoggHeader(string CONName, FileListing fl){
+            var fs = new FileStream(CONName, FileMode.Open, FileAccess.Read);
             var br = new BinaryReader(fs, new ASCIIEncoding());
-            var stopWatch = new System.Diagnostics.Stopwatch();
-            var total = new System.Diagnostics.Stopwatch();
-            total.Start();
-            foreach(var f in allFiles){
-                if(!allFiles[f.Key].isDirectory()){
-                    stopWatch.Restart();
-                    byte[] testFile = ReadFile(ref fs, ref br, allFiles[f.Key]);
-                    stopWatch.Stop();
-                    Debug.Log($"read {testFile.Length} byte file {f.Key} in {stopWatch.ElapsedMilliseconds} ms.");
-                }
-            }
-            total.Stop();
-            Debug.Log($"time taken to read all files in {filename}: {total.ElapsedMilliseconds / 1000} s.");
-        }
-
-        public byte[] GetFile(string fname){
-            var fs = new FileStream(filename, FileMode.Open, FileAccess.Read);
-            var br = new BinaryReader(fs, new ASCIIEncoding());
-            foreach (var f in allFiles){
-                if(f.Key == fname){
-                    return ReadFile(ref fs, ref br, allFiles[f.Key]);
-                }
-            }
-            return null;
-        }
-
-        public uint GetFileSize(string fname){
-            foreach(var f in allFiles)
-                if(f.Key == fname)
-                    return allFiles[f.Key].size;
-            return 0;
-        }
-
-        public uint[] GetMemOffsets(string fname){
-            foreach(var f in allFiles){
-                if(f.Key == fname){
-                    FileListing fl = allFiles[f.Key];
-                    uint lastSize = fl.size % 0x1000;
-                    uint[] offsets = new uint[fl.numBlocks];
-                    Parallel.For(0, fl.numBlocks, i => {
-                        offsets[i] = 0xC000 + FixBlocknum((uint)(fl.firstBlock + i)) * 0x1000;
-                    });
-                    return offsets;
-                }
-            }
-            return null;
+            fs.Seek(0x340, SeekOrigin.Begin);
+            var buf = br.ReadBytes(4);
+            uint entryID = BitConverter.ToUInt32(new byte[4] { buf[3], buf[2], buf[1], buf[0] });
+            bool shiftTable = (((entryID + 0xFFF) & 0xF000) >> 0xC != 0xB);
+            fs.Seek(0xC000 + FixBlocknum(fl.firstBlock, shiftTable) * 0x1000, SeekOrigin.Begin);
+            return br.ReadBytes(8);
         }
     }
+
+    // static class STFS:
+    //     static Dictionary<string, FileListing> GetCONFileListings(CONname)
+    //         this fxn parses the header and file table, just as it does now
+    //     static byte[] GetFile(CONname, FileListing)
+    //         this fxn will also parse the entryID to determine the tableShiftSize
+    //         because tableShiftSize is used in FixBlocknum
 }

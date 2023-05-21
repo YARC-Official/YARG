@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading;
 using UnityEngine;
 using DtxCS.DataTypes;
+using XboxSTFS;
+using static XboxSTFS.XboxSTFSParser;
 using YARG.Serialization;
 using YARG.Song.Preparsers;
 
@@ -364,7 +366,7 @@ namespace YARG.Song {
 
 		private static ScanResult ScanConSong(string cache, ConSongEntry file) {
 			// Skip if the song doesn't have notes
-			if (file.MidiFileSize == 0) {
+			if(file.FLMidi == null) {
 				return ScanResult.NoNotesFile;
 			}
 
@@ -383,7 +385,7 @@ namespace YARG.Song {
 			ulong tracks;
 
 			// add base midi
-			bytes.AddRange(XboxCONInnerFileRetriever.RetrieveFile(file.Location, file.MidiFileSize, file.MidiFileMemBlockOffsets));
+			bytes.AddRange(XboxSTFSParser.GetFile(file.Location, file.FLMidi));
 			if (!MidPreparser.GetAvailableTracks(bytes.ToArray(), out ulong base_tracks)) {
 				return ScanResult.CorruptedNotesFile;
 			}

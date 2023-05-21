@@ -9,6 +9,8 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
+using XboxSTFS;
+using static XboxSTFS.XboxSTFSParser;
 using YARG.Data;
 using YARG.Serialization;
 using YARG.Song;
@@ -256,8 +258,7 @@ namespace YARG.UI.MusicLibrary {
 				if (conSongEntry.AlternatePath) {
 					bytes = File.ReadAllBytes(conSongEntry.ImagePath);
 				} else {
-					bytes = await XboxCONInnerFileRetriever.RetrieveFile(conSongEntry.Location,
-						  conSongEntry.ImageFileSize, conSongEntry.ImageFileMemBlockOffsets, _cancellationToken.Token);
+					bytes = XboxSTFSParser.GetFile(conSongEntry.Location, conSongEntry.FLImg);
 				}
 
 				texture = await XboxImageTextureGenerator.GetTexture(bytes, _cancellationToken.Token);
