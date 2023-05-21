@@ -269,7 +269,9 @@ namespace YARG.Settings {
 
 			// Size raw image
 			previewRawImage.texture = CameraPreviewTexture.PreviewTexture;
-			previewRawImage.uvRect = previewRawImage.rectTransform.ToViewportSpaceCentered(v: false);
+			var rect = previewRawImage.rectTransform.ToViewportSpaceCentered(v: false);
+			rect.y = 0f;
+			previewRawImage.uvRect = rect;
 		}
 
 		private void DestroyPreview() {
