@@ -9,6 +9,7 @@ using UnityEngine;
 using YARG.Serialization;
 using YARG.Song;
 using Debug = UnityEngine.Debug;
+using DeviceType = ManagedBass.DeviceType;
 
 namespace YARG {
 	public class BassAudioManager : MonoBehaviour, IAudioManager {
@@ -46,6 +47,8 @@ namespace YARG {
 
 		private ISampleChannel[] _sfxSamples;
 
+		List<IMicDevice> _micDevices;
+		
 		private void Awake() {
 			SupportedFormats = new[] {
 				".ogg",
@@ -56,6 +59,8 @@ namespace YARG {
 				".opus",
 			};
 
+			_micDevices = new List<IMicDevice>();
+			
 			_stemVolumes = new double[AudioHelpers.SupportedStems.Count];
 
 			_sfxSamples = new ISampleChannel[AudioHelpers.SfxPaths.Count];
@@ -104,6 +109,19 @@ namespace YARG {
 			Debug.Log($"Playback Buffer Length: {Bass.PlaybackBufferLength}");
 
 			Debug.Log($"Current Device: {Bass.GetDeviceInfo(Bass.CurrentDevice).Name}");
+			
+			for(int i = 0; i < Bass.RecordingDeviceCount; i++) {
+				if (!Bass.RecordGetDeviceInfo(i, out var info)) continue;
+				
+				if(info.Type != DeviceType.Microphone) continue;
+				
+				var mic = new BassMicDevice();
+				mic.Initialize(i);
+				
+				Debug.Log($"Initialised mic: {info.Name}");
+				
+				_micDevices.Add(mic);
+			}
 		}
 
 		public void Unload() {
@@ -117,6 +135,10 @@ namespace YARG {
 			// Free SFX samples
 			foreach (var sample in _sfxSamples) {
 				sample?.Dispose();
+			}
+
+			foreach (var mic in _micDevices) {
+				mic?.Dispose();
 			}
 
 			Bass.Free();
