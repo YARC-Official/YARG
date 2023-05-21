@@ -1,5 +1,6 @@
 using System.Collections.Generic;
-using YARG.Serialization;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using YARG.Song;
 
 namespace YARG {
@@ -11,6 +12,7 @@ namespace YARG {
 
 		public bool IsAudioLoaded { get; }
 		public bool IsPlaying { get; }
+		public bool IsFadingOut { get; }
 
 		public double MasterVolume { get; }
 		public double SfxVolume { get; }
@@ -21,26 +23,29 @@ namespace YARG {
 		public float CurrentPositionF { get; }
 		public float AudioLengthF { get; }
 
+		public IPreviewContext PreviewContext { get; }
+
 		public void Initialize();
 		public void Unload();
 
 		public void LoadSfx();
 
-		public void LoadSong(ICollection<string> stems, bool isSpeedUp);
-		public void LoadMogg(ExtractedConSongEntry exConSong, bool isSpeedUp);
+		public void LoadSong(ICollection<string> stems, bool isSpeedUp, params SongStem[] ignoreStems);
+		public void LoadMogg(ExtractedConSongEntry exConSong, bool isSpeedUp, params SongStem[] ignoreStems);
 		public void UnloadSong();
-
-		public void LoadPreviewAudio(SongEntry song);
 
 		public void Play();
 		public void Pause();
 
-		public void FadeIn();
-		public void FadeOut();
+		public void DisposePreviewContext();
+
+		public void FadeIn(float maxVolume);
+		public UniTask FadeOut(CancellationToken token = default);
 
 		public void PlaySoundEffect(SfxSample sample);
 
 		public void SetStemVolume(SongStem stem, double volume);
+		public void SetAllStemsVolume(double volume);
 
 		public void UpdateVolumeSetting(SongStem stem, double volume);
 

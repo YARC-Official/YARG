@@ -10,7 +10,7 @@ namespace YARG.Serialization {
 			var spl = str.Split('s');
 			char diff = spl[0][0];
 			int score = int.Parse(spl[0][1..], CultureInfo.InvariantCulture);
-			int stars = int.Parse(spl[1]);
+			int stars = int.Parse(spl[1], CultureInfo.InvariantCulture);
 
 			return new DiffScore {
 				difficulty = DifficultyExtensions.FromChar(diff),
@@ -20,7 +20,9 @@ namespace YARG.Serialization {
 		}
 
 		public override void WriteJson(JsonWriter writer, DiffScore value, JsonSerializer serializer) {
-			serializer.Serialize(writer, $"{value.difficulty.ToChar()}{value.score}s{value.stars}");
+			string score = value.score.ToString(CultureInfo.InvariantCulture);
+			string stars = value.stars.ToString(CultureInfo.InvariantCulture);
+			serializer.Serialize(writer, $"{value.difficulty.ToChar()}{score}s{stars}");
 		}
 	}
 }

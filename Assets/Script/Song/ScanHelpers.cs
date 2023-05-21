@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using EasySharpIni;
 using EasySharpIni.Converters;
 using EasySharpIni.Models;
@@ -5,12 +6,11 @@ using YARG.Data;
 
 namespace YARG.Song {
 	public static class ScanHelpers {
-
 		private static readonly IntConverter IntConverter = new();
 
 		public static ScanResult ParseSongIni(string iniFile, IniSongEntry entry) {
 			var file = new IniFile(iniFile);
-			
+
 			// Had some reports that ini parsing might throw an exception, leaving this in for now
 			// in as I don't know the cause just yet and I want to investigate it further.
 			file.Parse();
@@ -26,6 +26,7 @@ namespace YARG.Song {
 			entry.Name = section.GetField("name");
 			entry.Artist = section.GetField("artist");
 			entry.Charter = section.GetField("charter");
+			entry.IsMaster = true; // just gonna assume every ini song is the original artist
 
 			entry.Album = section.GetField("album");
 			entry.AlbumTrack = section.GetField("album_track", "0").Get(IntConverter);
@@ -50,7 +51,8 @@ namespace YARG.Song {
 			entry.MultiplierNote = section.GetField("multiplier_note", "116").Get(IntConverter);
 
 			ReadDifficulties(section, entry);
-			
+
+			entry.DrumType = DrumType.Unknown;
 			if (section.ContainsField("pro_drums")) {
 				switch (section.GetField("pro_drums")) {
 					case "true":
@@ -65,14 +67,13 @@ namespace YARG.Song {
 						entry.DrumType = DrumType.FiveLane;
 						break;
 				}
-			} else {
-				entry.DrumType = DrumType.Unknown;
 			}
 
 			entry.LoadingPhrase = section.GetField("loading_phrase");
 			entry.Source = section.GetField("icon");
 			entry.HasLyrics = section.GetField("lyrics").Get().ToLower() == "true";
 			entry.IsModChart = section.GetField("modchart").Get().ToLower() == "true";
+			entry.VideoStartOffset = section.GetField("video_start_time", "0").Get(IntConverter);
 
 			return ScanResult.Ok;
 		}
@@ -93,6 +94,18 @@ namespace YARG.Song {
 			entry.PartDifficulties.Add(Instrument.REAL_KEYS, section.GetField("diff_keys_real", "-1").Get(IntConverter));
 			entry.PartDifficulties.Add(Instrument.VOCALS, section.GetField("diff_vocals", "-1").Get(IntConverter));
 			entry.PartDifficulties.Add(Instrument.HARMONY, section.GetField("diff_vocals_harm", "-1").Get(IntConverter));
+
+			entry.BandDifficulty = section.GetField("diff_band", "-1").Get(IntConverter);
+
+			// TODO: Preparse this
+			// Get vocal count from difficulties
+			if (entry.PartDifficulties.GetValueOrDefault(Instrument.HARMONY, -1) != -1) {
+				entry.VocalParts = 3;
+			} else if (entry.PartDifficulties.GetValueOrDefault(Instrument.VOCALS, -1) != -1) {
+				entry.VocalParts = 1;
+			} else {
+				entry.VocalParts = 0;
+			}
 		}
 	}
 }

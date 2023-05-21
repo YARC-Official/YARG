@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using YARG.Input;
 
 namespace YARG.UI {
 	public class Credits : MonoBehaviour {
@@ -7,6 +8,19 @@ namespace YARG.UI {
 		private TextMeshProUGUI creditsText;
 		[SerializeField]
 		private TextAsset creditsFile;
+
+		private void OnEnable() {
+			// Set navigation scheme
+			Navigator.Instance.PushScheme(new NavigationScheme(new() {
+				new NavigationScheme.Entry(MenuAction.Back, "Back", () => {
+					MainMenu.Instance.ShowMainMenu();
+				})
+			}, true));
+		}
+
+		private void OnDisable() {
+			Navigator.Instance.PopScheme();
+		}
 
 		private void Start() {
 			var split = creditsFile.text.Split("<<COLUMN>>");

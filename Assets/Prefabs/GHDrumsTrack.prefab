@@ -300,6 +300,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5bbf1353505d7d74bb2e3b17c09a3e46, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  recentlyBelowMaxMultiplier: 1
   fiveLaneMode: 1
   drums:
   - {fileID: 5070400065011352142}
@@ -352,7 +353,7 @@ PrefabInstance:
     - target: {fileID: 444014533550710065, guid: c2d6805c230b3e24892518b26ce3bf53,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.017
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 444014533550710065, guid: c2d6805c230b3e24892518b26ce3bf53,
         type: 3}
@@ -362,7 +363,7 @@ PrefabInstance:
     - target: {fileID: 444014533550710065, guid: c2d6805c230b3e24892518b26ce3bf53,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -1.204
+      value: -1.95
       objectReference: {fileID: 0}
     - target: {fileID: 444014533550710065, guid: c2d6805c230b3e24892518b26ce3bf53,
         type: 3}

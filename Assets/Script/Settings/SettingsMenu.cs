@@ -4,6 +4,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
 using UnityEngine.UI;
+using YARG.Input;
 using YARG.Metadata;
 using YARG.Settings.Visuals;
 using YARG.UI.MusicLibrary;
@@ -57,11 +58,20 @@ namespace YARG.Settings {
 		public bool UpdateSongLibraryOnExit { get; set; } = false;
 
 		private void OnEnable() {
+			// Set navigation scheme
+			Navigator.Instance.PushScheme(new NavigationScheme(new() {
+				new NavigationScheme.Entry(MenuAction.Back, "Back", () => {
+					gameObject.SetActive(false);
+				})
+			}, true));
+
 			ReturnToFirstTab();
 			UpdateTabs();
 		}
 
 		private async UniTask OnDisable() {
+			Navigator.Instance.PopScheme();
+
 			DestroyPreview();
 
 			// Save on close
@@ -259,7 +269,9 @@ namespace YARG.Settings {
 
 			// Size raw image
 			previewRawImage.texture = CameraPreviewTexture.PreviewTexture;
-			previewRawImage.uvRect = previewRawImage.rectTransform.ToViewportSpaceCentered(v: false);
+			var rect = previewRawImage.rectTransform.ToViewportSpaceCentered(v: false);
+			rect.y = 0f;
+			previewRawImage.uvRect = rect;
 		}
 
 		private void DestroyPreview() {

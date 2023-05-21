@@ -419,6 +419,27 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: twoVocals
+      rect:
+        serializedVersion: 2
+        x: 1536
+        y: 0
+        width: 512
+        height: 512
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 30265fbc72f86554baadfd051fa0a628
+      internalID: -2070950562
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -449,6 +470,7 @@ TextureImporter:
       realKeys: 1095511443
       rhythm: -413506960
       trueDrums: 1405555635
+      twoVocals: -2070950562
       vocals: 1095511443
   spritePackingTag: 
   pSDRemoveMatte: 0

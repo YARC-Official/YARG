@@ -18,10 +18,6 @@ MonoBehaviour:
   m_Metadata:
     m_Items: []
   m_TableData:
-  - m_Id: 7065473438081024
-    m_Localized: Awesomeness Detection
-    m_Metadata:
-      m_Items: []
   - m_Id: 10570792762204160
     m_Localized: Audio Calibration (ms)
     m_Metadata:
@@ -220,6 +216,18 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 16296015277178880
     m_Localized: Enable FPS Counter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19713037425598464
+    m_Localized: Copy Current Song Json File Path
+    m_Metadata:
+      m_Items: []
+  - m_Id: 17867012767817728
+    m_Localized: Preview Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 20387720246714368
+    m_Localized: Music Player Volume
     m_Metadata:
       m_Items: []
   references:

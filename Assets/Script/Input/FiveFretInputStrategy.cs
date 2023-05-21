@@ -112,12 +112,17 @@ namespace YARG.Input {
 		}
 
 		protected override void UpdateNavigationMode() {
-			CallGenericNavigationEventForButton(STRUM_UP, NavigationType.UP);
-			CallGenericNavigationEventForButton(STRUM_DOWN, NavigationType.DOWN);
+			NavigationEventForMapping(MenuAction.Confirm, GREEN);
+			NavigationEventForMapping(MenuAction.Back, RED);
 
-			CallGenericNavigationEventForButton(GREEN, NavigationType.PRIMARY);
-			CallGenericNavigationEventForButton(RED, NavigationType.SECONDARY);
-			CallGenericNavigationEventForButton(YELLOW, NavigationType.TERTIARY);
+			NavigationEventForMapping(MenuAction.Shortcut1, YELLOW);
+			NavigationEventForMapping(MenuAction.Shortcut2, BLUE);
+			NavigationEventForMapping(MenuAction.Shortcut3, ORANGE);
+
+			NavigationHoldableForMapping(MenuAction.Up, STRUM_UP);
+			NavigationHoldableForMapping(MenuAction.Down, STRUM_DOWN);
+
+			NavigationEventForMapping(MenuAction.More, STAR_POWER);
 
 			if (WasMappingPressed(PAUSE)) {
 				CallPauseEvent();

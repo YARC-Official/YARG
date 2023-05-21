@@ -8,6 +8,7 @@ namespace YARG.UI.MusicLibrary.ViewTypes {
 
 		public override string PrimaryText => SongEntry.Name;
 		public override string SecondaryText => SongEntry.Artist;
+		public override bool UseAsMadeFamousBy => !SongEntry.IsMaster;
 
 		public override string SideText {
 			get {

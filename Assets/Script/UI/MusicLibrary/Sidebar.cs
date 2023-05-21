@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -56,7 +57,39 @@ namespace YARG.UI.MusicLibrary {
 				_cancellationToken = null;
 			}
 
+			if (SongSelection.Instance.Songs.Count <= 0) {
+				return;
+			}
+
 			var viewType = SongSelection.Instance.Songs[SongSelection.Instance.SelectedIndex];
+
+			if (viewType is CategoryViewType categoryViewType) {
+				// Hide album art
+				_albumCover.texture = null;
+				_albumCover.color = Color.clear;
+				_album.text = string.Empty;
+
+				int sourceCount = categoryViewType.CountOf(i => i.Source);
+				_source.text = $"{sourceCount} sources";
+
+				int charterCount = categoryViewType.CountOf(i => i.Charter);
+				_charter.text = $"{charterCount} charters";
+
+				int genreCount = categoryViewType.CountOf(i => i.Genre);
+				_genre.text = $"{genreCount} genres";
+
+				_year.text = string.Empty;
+				_length.text = string.Empty;
+				HelpBar.Instance.SetInfoText(string.Empty);
+
+				// Hide all difficulty rings
+				foreach (var difficultyRing in difficultyRings) {
+					difficultyRing.gameObject.SetActive(false);
+				}
+
+				return;
+			}
+
 			if (viewType is not SongViewType songViewType) {
 				return;
 			}
@@ -68,6 +101,7 @@ namespace YARG.UI.MusicLibrary {
 			_charter.text = songEntry.Charter;
 			_genre.text = songEntry.Genre;
 			_year.text = songEntry.Year;
+			HelpBar.Instance.SetInfoText(songEntry.LoadingPhrase);
 
 			// Format and show length
 			if (songEntry.SongLengthTimeSpan.Hours > 0) {
@@ -83,6 +117,11 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		private void UpdateDifficulties(SongEntry songEntry) {
+			// Show all difficulty rings
+			foreach (var difficultyRing in difficultyRings) {
+				difficultyRing.gameObject.SetActive(true);
+			}
+
 			/*
 			
 				Guitar               ; Bass               ; 4 or 5 lane ; Keys     ; Mic (dependent on mic count) 
@@ -103,10 +142,18 @@ namespace YARG.UI.MusicLibrary {
 			difficultyRings[3].SetInfo(songEntry, Instrument.KEYS);
 
 			// Mic (with mic count)
-			if (songEntry.PartDifficulties.GetValueOrDefault(Instrument.HARMONY, -1) == -1) {
-				difficultyRings[4].SetInfo(songEntry, Instrument.VOCALS);
+			if (songEntry.VocalParts == 0) {
+				difficultyRings[4].SetInfo(false, "vocals", -1);
 			} else {
-				difficultyRings[4].SetInfo(songEntry, Instrument.HARMONY);
+				difficultyRings[4].SetInfo(
+					true,
+					songEntry.VocalParts switch {
+						2 => "twoVocals",
+						>= 3 => "harmVocals",
+						_ => "vocals"
+					},
+					songEntry.PartDifficulties.GetValueOrDefault(Instrument.VOCALS, -1)
+				);
 			}
 
 			// Protar or Co-op
@@ -127,7 +174,13 @@ namespace YARG.UI.MusicLibrary {
 
 			difficultyRings[7].SetInfo(false, "trueDrums", -1);
 			difficultyRings[8].SetInfo(songEntry, Instrument.REAL_KEYS);
-			difficultyRings[9].SetInfo(false, "band", -1);
+
+			// Band difficulty
+			if (songEntry.BandDifficulty == -1) {
+				difficultyRings[9].SetInfo(false, "band", -1);
+			} else {
+				difficultyRings[9].SetInfo(true, "band", songEntry.BandDifficulty);
+			}
 		}
 
 		public async UniTask LoadAlbumCover() {
@@ -199,8 +252,14 @@ namespace YARG.UI.MusicLibrary {
 			Texture2D texture = null;
 
 			try {
-				var bytes = await XboxCONInnerFileRetriever.RetrieveFile(conSongEntry.Location,
-				conSongEntry.ImageFileSize, conSongEntry.ImageFileMemBlockOffsets, _cancellationToken.Token);
+				byte[] bytes;
+				if (conSongEntry.AlternatePath) {
+					bytes = File.ReadAllBytes(conSongEntry.ImagePath);
+				} else {
+					bytes = await XboxCONInnerFileRetriever.RetrieveFile(conSongEntry.Location,
+						  conSongEntry.ImageFileSize, conSongEntry.ImageFileMemBlockOffsets, _cancellationToken.Token);
+				}
+
 				texture = await XboxImageTextureGenerator.GetTexture(bytes, _cancellationToken.Token);
 
 				_albumCover.texture = texture;

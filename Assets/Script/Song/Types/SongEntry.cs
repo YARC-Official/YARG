@@ -29,6 +29,7 @@ namespace YARG.Song {
 
 		public string Artist { get; set; } = string.Empty;
 		public string Charter { get; set; } = string.Empty;
+		public bool IsMaster { get; set; }
 
 		public string Album { get; set; } = string.Empty;
 		public int AlbumTrack { get; set; }
@@ -58,8 +59,10 @@ namespace YARG.Song {
 		public string Source { get; set; } = string.Empty;
 
 		public Dictionary<Instrument, int> PartDifficulties { get; } = new();
+		public int BandDifficulty { get; set; }
 
 		public ulong AvailableParts { get; set; }
+		public int VocalParts { get; set; }
 
 		public string Checksum { get; set; }
 		public string NotesFile { get; set; }

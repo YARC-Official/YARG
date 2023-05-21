@@ -1,17 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using DtxCS;
 using DtxCS.DataTypes;
-using UnityEngine;
 using YARG.Data;
 using YARG.Song;
 
 namespace YARG.Serialization {
-    public static class XboxDTAParser {
-        public static ConSongEntry ParseFromDta(DataArray dta){
-			var cur = new ConSongEntry();
+	public static class XboxDTAParser {
+		public static ConSongEntry ParseFromDta(DataArray dta, ConSongEntry existingSong = null) {
+			var cur = existingSong;
+			if (existingSong == null) {
+				cur = new ConSongEntry();
+			}
+
 			cur.ShortName = dta.Name;
 			// Debug.Log($"this shortname: {dta.Name}");
 			for (int i = 1; i < dta.Count; i++) {
@@ -26,26 +24,26 @@ namespace YARG.Serialization {
 						else if (dtaArray[1] is DataAtom atmMaster)
 							cur.IsMaster = (atmMaster.Int != 0);
 						break;
-					case "song_id": 
+					case "song_id":
 						if (dtaArray[1] is DataAtom atmSongId)
 							if (atmSongId.Type == DataType.INT)
 								cur.SongID = ((DataAtom) dtaArray[1]).Int;
 						break;
 					case "song_length": cur.SongLength = ((DataAtom) dtaArray[1]).Int; break;
 					case "song": // we just want vocal parts and hopo threshold for songDta
-						if(dtaArray.Array("hopo_threshold") != null)
+						if (dtaArray.Array("hopo_threshold") != null)
 							cur.HopoThreshold = ((DataAtom) dtaArray.Array("hopo_threshold")[1]).Int;
-						cur.VocalParts = (dtaArray.Array("vocal_parts") != null) ? ((DataAtom) dtaArray.Array("vocal_parts")[1]).Int : 1;
+						if (dtaArray.Array("vocal_parts") != null)
+							cur.VocalParts = ((DataAtom) dtaArray.Array("vocal_parts")[1]).Int;
 						// get the path of the song files
-						if(dtaArray.Array("name") != null){
-							if(dtaArray.Array("name")[1] is DataSymbol symPath)
+						if (dtaArray.Array("name") != null) {
+							if (dtaArray.Array("name")[1] is DataSymbol symPath)
 								cur.Location = symPath.Name.Split("/")[1];
-							else if(dtaArray.Array("name")[1] is DataAtom atmPath)
+							else if (dtaArray.Array("name")[1] is DataAtom atmPath)
 								cur.Location = atmPath.Name.Split("/")[1];
-						}
-						else cur.Location = cur.ShortName;
+						} else cur.Location = cur.ShortName;
 						break;
-					case "anim_tempo": 
+					case "anim_tempo":
 						if (dtaArray[1] is DataSymbol symTempo)
 							cur.AnimTempo = symTempo.Name switch {
 								"kTempoSlow" => 16,
@@ -60,7 +58,7 @@ namespace YARG.Serialization {
 						cur.PreviewStart = ((DataAtom) dtaArray[1]).Int;
 						cur.PreviewEnd = ((DataAtom) dtaArray[2]).Int;
 						break;
-					case "bank": 
+					case "bank":
 						if (dtaArray[1] is DataSymbol symBank)
 							cur.VocalPercussionBank = symBank.Name;
 						else if (dtaArray[1] is DataAtom atmBank)
@@ -69,30 +67,46 @@ namespace YARG.Serialization {
 					case "song_scroll_speed": cur.VocalSongScrollSpeed = ((DataAtom) dtaArray[1]).Int; break;
 					case "solo": break; //indicates which instruments have solos: not currently used for YARG
 					case "rank":
-						for(int j = 1; j < dtaArray.Count; j++){
-							if (dtaArray[j] is DataArray inner){
-								var inst = InstrumentHelper.FromStringName(((DataSymbol) inner[0]).Name);
-								if(inst == Instrument.INVALID) continue;
-								cur.PartDifficulties[inst] = DtaDifficulty.ToNumberedDiff(inst, ((DataAtom) inner[1]).Int);
+						for (int j = 1; j < dtaArray.Count; j++) {
+							if (dtaArray[j] is not DataArray inner) {
+								continue;
 							}
+
+							string name = ((DataSymbol) inner[0]).Name;
+							int dtaDiff = ((DataAtom) inner[1]).Int;
+
+							// Band difficulty is special
+							if (name == "band") {
+								cur.BandDifficulty = DtaDifficulty.ToNumberedDiffForBand(dtaDiff);
+								continue;
+							}
+
+							var inst = InstrumentHelper.FromStringName(name);
+							if (inst == Instrument.INVALID) {
+								continue;
+							}
+
+							cur.PartDifficulties[inst] = DtaDifficulty.ToNumberedDiff(inst, dtaDiff);
 						}
+
 						// Set pro drums
-						if(cur.PartDifficulties.ContainsKey(Instrument.DRUMS))
+						if (cur.PartDifficulties.ContainsKey(Instrument.DRUMS)) {
 							cur.PartDifficulties[Instrument.REAL_DRUMS] = cur.PartDifficulties[Instrument.DRUMS];
+						}
 						break;
-					case "game_origin": 
-						cur.Source = ((DataSymbol) dtaArray[1]).Name; 
+					case "game_origin":
+						cur.Source = ((DataSymbol) dtaArray[1]).Name;
 						// if the source is UGC/UGC_plus but no "UGC_" in shortname, assume it's a custom
-						if(cur.Source == "ugc" || cur.Source == "ugc_plus"){
-							if(!(cur.ShortName.Contains("UGC_"))){
+						if (cur.Source == "ugc" || cur.Source == "ugc_plus") {
+							if (!(cur.ShortName.Contains("UGC_"))) {
 								cur.Source = "customs";
 							}
 						}
 						// if the source is any official RB game or its DLC, charter = Harmonix
-						if(cur.Source == "rb1" || cur.Source == "rb1_dlc" || cur.Source == "rb1dlc" ||
+						if (cur.Source == "rb1" || cur.Source == "rb1_dlc" || cur.Source == "rb1dlc" ||
 							cur.Source == "gdrb" || cur.Source == "greenday" || cur.Source == "beatles" ||
-							cur.Source == "tbrb" || cur.Source == "lego" || cur.Source == "lrb" || 
-							cur.Source == "rb2" || cur.Source == "rb3" || cur.Source == "rb3_dlc" || cur.Source == "rb3dlc"){
+							cur.Source == "tbrb" || cur.Source == "lego" || cur.Source == "lrb" ||
+							cur.Source == "rb2" || cur.Source == "rb3" || cur.Source == "rb3_dlc" || cur.Source == "rb3dlc") {
 							cur.Charter = "Harmonix";
 						}
 						break;
@@ -115,7 +129,7 @@ namespace YARG.Serialization {
 					case "tuning_offset_cents":
 						DataAtom tuningAtom = (DataAtom) dtaArray[1];
 						if (tuningAtom.Type == DataType.INT) cur.TuningOffsetCents = ((DataAtom) dtaArray[1]).Int;
-						else cur.TuningOffsetCents = (int)((DataAtom) dtaArray[1]).Float;
+						else cur.TuningOffsetCents = (int) ((DataAtom) dtaArray[1]).Float;
 						break;
 					case "real_guitar_tuning":
 						DataArray guitarTunes = (DataArray) dtaArray[1];
@@ -127,17 +141,45 @@ namespace YARG.Serialization {
 						cur.RealBassTuning = new int[4];
 						for (int b = 0; b < 4; b++) cur.RealBassTuning[b] = ((DataAtom) bassTunes[b]).Int;
 						break;
+					case "alternate_path":
+						if (dtaArray[1] is DataSymbol symAltPath)
+							cur.AlternatePath = (symAltPath.Name.ToUpper() == "TRUE");
+						else if (dtaArray[1] is DataAtom atmAltPath)
+							cur.AlternatePath = (atmAltPath.Int != 0);
+						break;
+					case "extra_authoring":
+						for (int ea = 1; ea < dtaArray.Count; ea++) {
+							if (dtaArray[ea] is DataSymbol symEA) {
+								if (symEA.Name == "disc_update") {
+									cur.DiscUpdate = true;
+									break;
+								}
+							} else if (dtaArray[ea] is DataAtom atmEA) {
+								if (atmEA.String == "disc_update") {
+									cur.DiscUpdate = true;
+									break;
+								}
+							}
+						}
+						break;
 				}
 			}
 
 			// must be done after the above parallel loop due to race issues with ranks and vocalParts
-			if(!cur.PartDifficulties.ContainsKey(Instrument.VOCALS) || cur.PartDifficulties[Instrument.VOCALS] == 0) cur.VocalParts = 0;
-			// Set harmony difficulty (if exists)
-			else if(cur.PartDifficulties.ContainsKey(Instrument.VOCALS) && cur.VocalParts > 1) {
-				cur.PartDifficulties[Instrument.HARMONY] = cur.PartDifficulties[Instrument.VOCALS];
+			if (cur.PartDifficulties.TryGetValue(Instrument.VOCALS, out var voxRank)) {
+				// at least one vocal part exists
+				if (voxRank != -1) {
+					if (cur.VocalParts == 0) {
+						// the default value of a SongEntry (i.e., no harmonies found)
+						cur.VocalParts = 1;
+					} else {
+						// since vocal parts != 0, we know vocal_parts was parsed earlier - so there's harmonies - set difficulty
+						cur.PartDifficulties[Instrument.HARMONY] = cur.PartDifficulties[Instrument.VOCALS];
+					}
+				}
 			}
 
 			return cur;
 		}
-    }
+	}
 }

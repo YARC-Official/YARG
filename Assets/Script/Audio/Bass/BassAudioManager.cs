@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using ManagedBass;
 using UnityEngine;
 using YARG.Serialization;
@@ -16,6 +19,7 @@ namespace YARG {
 
 		public bool IsAudioLoaded { get; private set; }
 		public bool IsPlaying { get; private set; }
+		public bool IsFadingOut { get; private set; }
 
 		public double MasterVolume { get; private set; }
 		public double SfxVolume { get; private set; }
@@ -26,6 +30,14 @@ namespace YARG {
 		public float CurrentPositionF => (float) GetPosition();
 		public float AudioLengthF { get; private set; }
 
+		private IPreviewContext _currentPreviewContext;
+		public IPreviewContext PreviewContext {
+			get {
+				_currentPreviewContext ??= new BassPreviewContext(this);
+				return _currentPreviewContext;
+			}
+		}
+
 		private double[] _stemVolumes;
 
 		private int _opusHandle;
@@ -33,8 +45,6 @@ namespace YARG {
 		private IStemMixer _mixer;
 
 		private ISampleChannel[] _sfxSamples;
-
-		public float pos;
 
 		private void Awake() {
 			SupportedFormats = new[] {
@@ -51,10 +61,6 @@ namespace YARG {
 			_sfxSamples = new ISampleChannel[AudioHelpers.SfxPaths.Count];
 
 			_opusHandle = 0;
-		}
-
-		private void Update() {
-			pos = CurrentPositionF;
 		}
 
 		public void Initialize() {
@@ -110,7 +116,7 @@ namespace YARG {
 
 			// Free SFX samples
 			foreach (var sample in _sfxSamples) {
-				sample.Dispose();
+				sample?.Dispose();
 			}
 
 			Bass.Free();
@@ -156,7 +162,7 @@ namespace YARG {
 			Debug.Log("Finished loading SFX");
 		}
 
-		public void LoadSong(ICollection<string> stems, bool isSpeedUp) {
+		public void LoadSong(ICollection<string> stems, bool isSpeedUp, params SongStem[] ignoreStems) {
 			Debug.Log("Loading song");
 			UnloadSong();
 
@@ -171,6 +177,11 @@ namespace YARG {
 
 				// Gets the index (SongStem to int) from the name
 				var songStem = AudioHelpers.GetStemFromName(stemName);
+
+				// Skip stems specified in ignore stems parameter
+				if (ignoreStems.Contains(songStem)) {
+					continue;
+				}
 
 				// Assign 1 stem songs to the song stem
 				if (stems.Count == 1) {
@@ -204,14 +215,16 @@ namespace YARG {
 			IsAudioLoaded = true;
 		}
 
-		public void LoadMogg(ExtractedConSongEntry exConSong, bool isSpeedUp) {
+		public void LoadMogg(ExtractedConSongEntry exConSong, bool isSpeedUp, params SongStem[] ignoreStems) {
 			Debug.Log("Loading mogg song");
 			UnloadSong();
 
 			byte[] moggArray;
 			if (exConSong is ConSongEntry conSong) {
-				moggArray = XboxCONInnerFileRetriever.RetrieveFile(conSong.Location,
-					conSong.MoggFileSize, conSong.MoggFileMemBlockOffsets)[conSong.MoggAddressAudioOffset..];
+				if (!conSong.UsingUpdateMogg)
+					moggArray = XboxCONInnerFileRetriever.RetrieveFile(conSong.Location,
+						conSong.MoggFileSize, conSong.MoggFileMemBlockOffsets)[conSong.MoggAddressAudioOffset..];
+				else moggArray = File.ReadAllBytes(conSong.MoggPath)[conSong.MoggAddressAudioOffset..];
 			} else {
 				moggArray = File.ReadAllBytes(exConSong.MoggPath)[exConSong.MoggAddressAudioOffset..];
 			}
@@ -220,6 +233,12 @@ namespace YARG {
 			if (moggStreamHandle == 0) {
 				Debug.LogError($"Failed to load mogg file or position: {Bass.LastError}");
 				return;
+			}
+
+			// Remove ignored stems from stem maps
+			var stems = exConSong.StemMaps.Keys.Where(ignoreStems.Contains).ToList();
+			foreach (var stem in stems) {
+				exConSong.StemMaps.Remove(stem);
 			}
 
 			_mixer = new BassStemMixer(this, moggStreamHandle, exConSong.StemMaps, exConSong.MatrixRatios);
@@ -247,16 +266,6 @@ namespace YARG {
 			// Free mixer (and all channels in it)
 			_mixer?.Dispose();
 			_mixer = null;
-		}
-
-		public void LoadPreviewAudio(SongEntry song) {
-			if (song is ExtractedConSongEntry conSong) {
-				LoadMogg(conSong, false);
-			} else {
-				LoadSong(AudioHelpers.GetSupportedStems(song.Location), false);
-			}
-
-			SetPosition(song.PreviewStartTimeSpan.TotalSeconds);
 		}
 
 		public void Play() => Play(false);
@@ -293,16 +302,23 @@ namespace YARG {
 			IsPlaying = _mixer.IsPlaying;
 		}
 
-		public void FadeIn() {
+		public void DisposePreviewContext() {
+			_currentPreviewContext?.Dispose();
+			_currentPreviewContext = null;
+		}
+
+		public void FadeIn(float maxVolume) {
 			Play(true);
 			if (IsPlaying) {
-				_mixer?.FadeIn();
+				_mixer?.FadeIn(maxVolume);
 			}
 		}
 
-		public void FadeOut() {
+		public async UniTask FadeOut(CancellationToken token = default) {
 			if (IsPlaying) {
-				_mixer?.FadeOut();
+				IsFadingOut = true;
+				await _mixer.FadeOut(token);
+				IsFadingOut = false;
 			}
 		}
 
@@ -316,6 +332,16 @@ namespace YARG {
 			var channel = _mixer?.GetChannel(stem);
 
 			channel?.SetVolume(volume);
+		}
+
+		public void SetAllStemsVolume(double volume) {
+			if (_mixer == null) {
+				return;
+			}
+
+			foreach (var (_, channel) in _mixer.Channels) {
+				channel.SetVolume(volume);
+			}
 		}
 
 		public void UpdateVolumeSetting(SongStem stem, double volume) {

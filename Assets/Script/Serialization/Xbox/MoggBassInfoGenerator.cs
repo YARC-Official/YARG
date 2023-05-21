@@ -11,54 +11,72 @@ using YARG.Song;
 
 namespace YARG.Serialization {
 	public static class MoggBASSInfoGenerator {
-        public static void Generate(ConSongEntry song, DataArray dta){
+        public static void Generate(ConSongEntry song, DataArray dta, List<DataArray> dta_update_roots = null){
             var Tracks = new Dictionary<string, int[]>();
 			float[] PanData = null, VolumeData = null;
 			int[] CrowdChannels = null;
 			int ChannelCount = 0;
+			DataArray dta_update;
+			List<DataArray> dtas_to_parse = new List<DataArray>();
+			dtas_to_parse.Add(dta);
 
-			for (int i = 1; i < dta.Count; i++) {
-				var dtaArray = (DataArray) dta[i];
-				switch (dtaArray[0].ToString()) {
-					case "tracks":
-						var trackArray = (DataArray) dtaArray[1];
-						for (int x = 0; x < trackArray.Count; x++) {
-							if (trackArray[x] is not DataArray instrArray) continue;
-							string key = ((DataSymbol) instrArray[0]).Name;
-							int[] val;
-							if (instrArray[1] is DataArray trackNums) {
-								if (trackNums.Count <= 0) continue;
-								val = new int[trackNums.Count];
-								for (int y = 0; y < trackNums.Count; y++)
-									val[y] = ((DataAtom) trackNums[y]).Int;
-								Tracks.Add(key, val);
-							} else if (instrArray[1] is DataAtom trackNum) {
-								val = new int[1];
-								val[0] = trackNum.Int;
-								Tracks.Add(key, val);
+			// determine whether or not we even NEED to parse the update dta for mogg information
+			if(dta_update_roots != null){
+				foreach(var dta_update_root in dta_update_roots){
+					dta_update = dta_update_root.Array("song");
+					if(dta_update != null){
+						if(dta_update.Array("tracks") != null || dta_update.Array("pans") != null || 
+							dta_update.Array("vols") != null || dta_update.Array("crowd_channels") != null)
+							dtas_to_parse.Add(dta_update);
+					}
+				}
+			}
+			
+			foreach(var dta_to_parse in dtas_to_parse){
+				for (int i = 1; i < dta_to_parse.Count; i++) {
+					var dtaArray = (DataArray) dta_to_parse[i];
+					switch (dtaArray[0].ToString()) {
+						case "tracks":
+							Tracks.Clear();
+							var trackArray = (DataArray) dtaArray[1];
+							for (int x = 0; x < trackArray.Count; x++) {
+								if (trackArray[x] is not DataArray instrArray) continue;
+								string key = ((DataSymbol) instrArray[0]).Name;
+								int[] val;
+								if (instrArray[1] is DataArray trackNums) {
+									if (trackNums.Count <= 0) continue;
+									val = new int[trackNums.Count];
+									for (int y = 0; y < trackNums.Count; y++)
+										val[y] = ((DataAtom) trackNums[y]).Int;
+									Tracks.Add(key, val);
+								} else if (instrArray[1] is DataAtom trackNum) {
+									val = new int[1];
+									val[0] = trackNum.Int;
+									Tracks.Add(key, val);
+								}
 							}
-						}
-						break;
-					case "pans":
-						var panArray = dtaArray[1] as DataArray;
-						PanData = new float[panArray.Count];
-						for (int p = 0; p < panArray.Count; p++) PanData[p] = ((DataAtom) panArray[p]).Float;
-						ChannelCount = panArray.Count;
-						break;
-					case "vols":
-						var volArray = dtaArray[1] as DataArray;
-						VolumeData = new float[volArray.Count];
-						for (int v = 0; v < volArray.Count; v++){
-							var volAtom = (DataAtom) volArray[v];
-							if(volAtom.Type == DataType.FLOAT) VolumeData[v] = ((DataAtom) volArray[v]).Float;
-							else VolumeData[v] = ((DataAtom) volArray[v]).Int;
-						}
-						break;
-					case "crowd_channels":
-						CrowdChannels = new int[dtaArray.Count - 1];
-						for (int cc = 1; cc < dtaArray.Count; cc++)
-							CrowdChannels[cc - 1] = ((DataAtom) dtaArray[cc]).Int;
-						break;
+							break;
+						case "pans":
+							var panArray = dtaArray[1] as DataArray;
+							PanData = new float[panArray.Count];
+							for (int p = 0; p < panArray.Count; p++) PanData[p] = ((DataAtom) panArray[p]).Float;
+							ChannelCount = panArray.Count;
+							break;
+						case "vols":
+							var volArray = dtaArray[1] as DataArray;
+							VolumeData = new float[volArray.Count];
+							for (int v = 0; v < volArray.Count; v++){
+								var volAtom = (DataAtom) volArray[v];
+								if(volAtom.Type == DataType.FLOAT) VolumeData[v] = ((DataAtom) volArray[v]).Float;
+								else VolumeData[v] = ((DataAtom) volArray[v]).Int;
+							}
+							break;
+						case "crowd_channels":
+							CrowdChannels = new int[dtaArray.Count - 1];
+							for (int cc = 1; cc < dtaArray.Count; cc++)
+								CrowdChannels[cc - 1] = ((DataAtom) dtaArray[cc]).Int;
+							break;
+					}
 				}
 			}
 

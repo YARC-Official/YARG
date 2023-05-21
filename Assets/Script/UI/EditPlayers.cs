@@ -1,4 +1,5 @@
 using UnityEngine;
+using YARG.Input;
 
 namespace YARG.UI {
 	public class EditPlayers : MonoBehaviour {
@@ -11,7 +12,18 @@ namespace YARG.UI {
 		private Transform addButton;
 
 		private void OnEnable() {
+			// Set navigation scheme
+			Navigator.Instance.PushScheme(new NavigationScheme(new() {
+				new NavigationScheme.Entry(MenuAction.Back, "Back", () => {
+					MainMenu.Instance.ShowMainMenu();
+				})
+			}, true));
+
 			UpdatePlayers();
+		}
+
+		private void OnDisable() {
+			Navigator.Instance.PopScheme();
 		}
 
 		private void UpdatePlayers() {

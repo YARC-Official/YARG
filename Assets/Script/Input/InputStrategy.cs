@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using PlasticBand.Haptics;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
@@ -14,6 +15,7 @@ namespace YARG.Input {
 		protected int botChartIndex;
 
 		private InputDevice _inputDevice;
+		private ISantrollerHaptics _haptics;
 		public InputDevice InputDevice {
 			get => _inputDevice;
 			set {
@@ -23,6 +25,9 @@ namespace YARG.Input {
 				}
 
 				_inputDevice = value;
+				if (_inputDevice is ISantrollerHaptics haptics) {
+					_haptics = haptics;
+				}
 
 				if (enabled) {
 					Enable();
@@ -58,13 +63,6 @@ namespace YARG.Input {
 		/// Gets invoked when the button for generic pause is pressed.
 		/// </summary>
 		public event Action PauseEvent;
-
-		public delegate void GenericNavigationAction(NavigationType navigationType, bool pressed);
-		/// <summary>
-		/// Gets invoked when any generic navigation button is pressed.<br/>
-		/// Make sure <see cref="UpdateNavigationMode"/> is being called.
-		/// </summary>
-		public event GenericNavigationAction GenericNavigationEvent;
 
 		public InputStrategy() {
 			// Initialize mappings
@@ -160,18 +158,6 @@ namespace YARG.Input {
 			GenericCalibrationEvent?.Invoke(this);
 		}
 
-		protected void CallGenericNavigationEvent(NavigationType type, bool pressed) {
-			GenericNavigationEvent?.Invoke(type, pressed);
-		}
-
-		public void CallGenericNavigationEventForButton(string key, NavigationType type) {
-			if (WasMappingPressed(key)) {
-				CallGenericNavigationEvent(type, true);
-			} else if (WasMappingReleased(key)) {
-				CallGenericNavigationEvent(type, false);
-			}
-		}
-
 		protected virtual void OnUpdate() {
 			if (botMode) {
 				UpdateBotMode();
@@ -259,5 +245,34 @@ namespace YARG.Input {
 		public void SetMappingInputControl(string name, InputControl<float> control) {
 			inputMappings[name].Control = control;
 		}
+
+		protected void NavigationEventForMapping(MenuAction action, string mapping) {
+			if (WasMappingPressed(mapping)) {
+				Navigator.Instance.CallNavigationEvent(action, this);
+			}
+		}
+
+		protected void NavigationHoldableForMapping(MenuAction action, string mapping) {
+			if (WasMappingPressed(mapping)) {
+				Navigator.Instance.StartNavigationHold(action, this);
+			} else if (WasMappingReleased(mapping)) {
+				Navigator.Instance.EndNavigationHold(action, this);
+			}
+		}
+
+		public void SendStarPowerFill(float fill)
+			=> _haptics?.SetStarPowerFill(fill);
+
+		public void SendStarPowerActive(bool enabled)
+			=> _haptics?.SetStarPowerActive(enabled);
+
+		public void SendMultiplier(uint multiplier)
+			=> _haptics?.SetMultiplier(multiplier);
+
+		public void SendSolo(bool enabled)
+			=> _haptics?.SetSolo(enabled);
+
+		public virtual void ResetHaptics()
+			=> _haptics?.ResetHaptics();
 	}
 }

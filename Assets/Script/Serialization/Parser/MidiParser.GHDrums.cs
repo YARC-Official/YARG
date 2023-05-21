@@ -10,7 +10,7 @@ namespace YARG.Serialization.Parser {
 		private List<NoteInfo> ParseGHDrums(TrackChunk trackChunk, int difficulty, DrumType drumType, List<NoteInfo> stdEquivalent) {
 			var tempoMap = midi.GetTempoMap();
 
-			if (drumType == DrumType.FourLane) {
+			if (drumType == DrumType.FiveLane) {
 				return GHDrumNotePass(trackChunk, difficulty, tempoMap);
 			} else {
 				return DrumFromStandard(stdEquivalent);

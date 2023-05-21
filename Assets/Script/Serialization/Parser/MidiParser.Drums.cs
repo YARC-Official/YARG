@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
-using UnityEngine;
 using YARG.Data;
 using YARG.Song;
 

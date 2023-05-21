@@ -85,7 +85,7 @@ namespace YARG.PlayMode {
 			kickFretInside.material.SetColor("_EmissionColor", commonTrack.FretColor(kickIndex) * 2);
 
 			// initialize scoring variables
-			ptsPerNote = proInst.Contains(player.chosenInstrument) ? 30 : 25;
+			ptsPerNote = proInst.Contains(player.chosenInstrument) ? 60 : 50;
 			starsKeeper = new(Chart, scoreKeeper,
 				player.chosenInstrument,
 				ptsPerNote);
@@ -104,7 +104,7 @@ namespace YARG.PlayMode {
 
 		protected override void UpdateTrack() {
 
-			
+
 			// Ignore everything else until the song starts
 			if (!Play.Instance.SongStarted) {
 				return;
@@ -131,7 +131,7 @@ namespace YARG.PlayMode {
 				}
 				eventChartIndex++;
 			}
-			
+
 			while (beats.Count > beatChartIndex && beats[beatChartIndex].Time <= RelativeTime) {
 				var beatInfo = beats[beatChartIndex];
 
@@ -283,8 +283,7 @@ namespace YARG.PlayMode {
 					trackAnims.PlayKickShakeCameraAnim();
 				}
 
-				commonTrack.kickFlash.SetActive(true);
-				trackAnims.PlayKickFlashAnim();
+				commonTrack.kickFlash.PlayAnimation();
 			}
 
 			// Overstrum if no expected
@@ -344,7 +343,7 @@ namespace YARG.PlayMode {
 			if (hit.fret != kickIndex) {
 				drums[hit.fret].PlayParticles();
 			} else {
-				
+
 				kickNoteParticles.Stop();
 				kickNoteParticles.Play();
 			}

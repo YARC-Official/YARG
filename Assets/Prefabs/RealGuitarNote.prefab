@@ -237,6 +237,7 @@ MonoBehaviour:
   fullHopoGroup: {fileID: 0}
   fretNumber: {fileID: 5134052872940096443}
   lineRenderer: {fileID: 5864461325193466425}
+  fullLineRenderer: {fileID: 5864461325193466425}
 --- !u!1 &1294466957868725440
 GameObject:
   m_ObjectHideFlags: 0

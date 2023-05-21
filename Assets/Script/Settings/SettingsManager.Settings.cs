@@ -4,6 +4,7 @@ using UnityEngine;
 using YARG.PlayMode;
 using YARG.Serialization;
 using YARG.Settings.Types;
+using YARG.UI;
 
 namespace YARG.Settings {
 	public static partial class SettingsManager {
@@ -16,7 +17,7 @@ namespace YARG.Settings {
 			public IntSetting    CalibrationNumber          { get; private set; } = new(-120);
 			
 			public ToggleSetting VSync                      { get; private set; } = new(true,      VSyncCallback);
-			public ToggleSetting FpsStats                 	{ get; private set; } = new(false,    FpsCouterCallback);
+			public ToggleSetting FpsStats                   { get; private set; } = new(false,     FpsCouterCallback);
 			public IntSetting    FpsCap                     { get; private set; } = new(60, 1,     onChange: FpsCapCallback);
 			
 			public ToggleSetting LowQuality                 { get; private set; } = new(false,     LowQualityCallback);
@@ -28,16 +29,18 @@ namespace YARG.Settings {
 			public ToggleSetting NoKicks                    { get; private set; } = new(false);
 			public ToggleSetting AntiGhosting               { get; private set; } = new(true);
 			
-			public VolumeSetting MasterMusicVolume          { get; private set; } = new(0.75f, v => VolumeCallback(SongStem.Master, v));
+			public VolumeSetting MasterMusicVolume          { get; private set; } = new(0.75f,v => VolumeCallback(SongStem.Master, v));
 			public VolumeSetting GuitarVolume               { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Guitar, v));
 			public VolumeSetting RhythmVolume               { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Rhythm, v));
 			public VolumeSetting BassVolume                 { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Bass,   v));
 			public VolumeSetting KeysVolume                 { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Keys,   v));
 			public VolumeSetting DrumsVolume                { get; private set; } = new(1f,        DrumVolumeCallback);
 			public VolumeSetting VocalsVolume               { get; private set; } = new(1f,        VocalVolumeCallback);
-			public VolumeSetting SongVolume                 { get; private set; } = new(1f,   v   => VolumeCallback(SongStem.Song,   v));
-			public VolumeSetting CrowdVolume                { get; private set; } = new(0.5f,   v => VolumeCallback(SongStem.Crowd,  v));
-			public VolumeSetting SfxVolume                  { get; private set; } = new(0.8f, v   => VolumeCallback(SongStem.Sfx,    v));
+			public VolumeSetting SongVolume                 { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Song,   v));
+			public VolumeSetting CrowdVolume                { get; private set; } = new(0.5f, v => VolumeCallback(SongStem.Crowd,  v));
+			public VolumeSetting SfxVolume                  { get; private set; } = new(0.8f, v => VolumeCallback(SongStem.Sfx,    v));
+			public VolumeSetting PreviewVolume              { get; private set; } = new(0.25f);
+			public VolumeSetting MusicPlayerVolume          { get; private set; } = new(0.15f,     MusicPlayerVolumeCallback);
 			public VolumeSetting VocalMonitoring            { get; private set; } = new(0.7f,      VocalMonitoringCallback);
 			public ToggleSetting MuteOnMiss                 { get; private set; } = new(true);
 			public ToggleSetting UseStarpowerFx             { get; private set; } = new(true,      UseStarpowerFxChange);
@@ -66,6 +69,10 @@ namespace YARG.Settings {
 				GUIUtility.systemCopyBuffer = TwitchController.Instance.TextFilePath;
 			}
 
+			public void CopyCurrentSongJsonFilePath() {
+				GUIUtility.systemCopyBuffer = TwitchController.Instance.JsonFilePath;
+			}
+
 			public void ResetCameraSettings() {
 				TrackCamFOV.Data = 55f;
 				TrackCamYPos.Data = 2.66f;
@@ -85,6 +92,12 @@ namespace YARG.Settings {
 				FpsCounter.Instance.enabled = value;
 				// UpdateSettings()
 				FpsCounter.Instance.UpdateSettings(value);
+
+				// enable script if in editor
+#if UNITY_EDITOR
+				FpsCounter.Instance.enabled = true;
+				FpsCounter.Instance.SetVisible(true);
+#endif
 			}
 
 			private static void FpsCapCallback(int value) {
@@ -120,6 +133,10 @@ namespace YARG.Settings {
 
 			private static void VocalMonitoringCallback(float volume) {
 				AudioManager.Instance.SetVolume("vocalMonitoring", volume);
+			}
+
+			private static void MusicPlayerVolumeCallback(float volume) {
+				HelpBar.Instance.MusicPlayer.UpdateVolume();
 			}
 
 			private static void UseStarpowerFxChange(bool value) {

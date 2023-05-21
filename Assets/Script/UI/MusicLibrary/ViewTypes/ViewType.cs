@@ -11,6 +11,8 @@ namespace YARG.UI.MusicLibrary.ViewTypes {
 
 		public abstract string PrimaryText { get; }
 		public virtual string SecondaryText => string.Empty;
+		public virtual bool UseAsMadeFamousBy => false;
+
 		public virtual string SideText => string.Empty;
 
 		public virtual Sprite IconSprite => null;

@@ -8,6 +8,10 @@ using YARG.Util;
 namespace YARG.UI {
 	public class GameUI : MonoBehaviour {
 		[SerializeField]
+		private GameObject trackView;
+
+		[Space]
+		[SerializeField]
 		private Transform trackContainer;
 		[SerializeField]
 		private Image songProgress;
@@ -26,7 +30,7 @@ namespace YARG.UI {
 		public GameObject pauseMenu;
 		public RawImage background;
 		public VideoPlayer videoPlayer;
-
+		public Material trackMaterial;
 		public static GameUI Instance {
 			get;
 			private set;
@@ -50,15 +54,16 @@ namespace YARG.UI {
 			songProgress.fillAmount = Play.Instance.SongTime / Play.Instance.SongLength;
 		}
 
-		public void AddTrackImage(RenderTexture rt) {
-			var trackImage = new GameObject();
-			trackImage.transform.parent = trackContainer;
-			trackImage.transform.localScale = Vector3.one;
+		public void AddTrackImage(RenderTexture rt, CommonTrack commonTrack) {
+			var trackImage = Instantiate(trackView, trackContainer);
 
-			var rawImage = trackImage.AddComponent<RawImage>();
-			rawImage.texture = rt;
+			var view = trackImage.GetComponent<TrackView>();
+			view.TrackImage.texture = rt;
+			view.TrackImage.material = trackMaterial;
 
-			UpdateRawImageSizing();
+			commonTrack.TrackView = view;
+
+			UpdateAllSizing();
 		}
 
 		public void SetVocalTrackImage(RenderTexture rt) {
@@ -77,18 +82,9 @@ namespace YARG.UI {
 			lyric.text = str;
 		}
 
-		private void UpdateRawImageSizing() {
-			// Calculate the percent
-			float percent = 1f / trackContainer.childCount;
-			float heightAdd = 0f;
-			for (int i = 2; i < trackContainer.childCount; i++) {
-				percent += 0.12f;
-				heightAdd += 0.12f * (16f / 9f);
-			}
-
-			// Apply UVs
-			foreach (var rawImage in trackContainer.GetComponentsInChildren<RawImage>()) {
-				rawImage.uvRect = new Rect((1f - percent) / 2f, 0f, percent, 1f + heightAdd);
+		private void UpdateAllSizing() {
+			foreach (var trackView in trackContainer.GetComponentsInChildren<TrackView>()) {
+				trackView.UpdateSizing(trackContainer.childCount);
 			}
 		}
 

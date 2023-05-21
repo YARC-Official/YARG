@@ -81,12 +81,21 @@ namespace YARG.UI {
 		private const float GROUP_TIME_THRESHOLD = 0.1f;
 
 		private void OnEnable() {
+			// Set navigation scheme
+			Navigator.Instance.PushScheme(new NavigationScheme(new() {
+				new NavigationScheme.Entry(MenuAction.Back, "Back", () => {
+					MainMenu.Instance.ShowEditPlayers();
+				})
+			}, true));
+
 			playerNameField.text = null;
 
 			StartSelectDevice();
 		}
 
 		private void OnDisable() {
+			Navigator.Instance.PopScheme();
+
 			playerNameField.text = null;
 
 			selectedDevice = null;
@@ -217,6 +226,13 @@ namespace YARG.UI {
 			=> debounce >= ControlBinding.DEBOUNCE_MINIMUM ? debounce.ToString() : null;
 
 		private void StartBind() {
+			// Set navigation scheme
+			Navigator.Instance.PushScheme(new NavigationScheme(new() {
+				new NavigationScheme.Entry(MenuAction.Confirm, "Done", () => {
+					DoneBind();
+				})
+			}, true));
+
 			// Skip in certain conditions
 			if (inputStrategy.Mappings.Count < 1 || botMode ||
 				selectedDevice?.micIndex != InputStrategy.INVALID_MIC_INDEX) {
@@ -410,6 +426,8 @@ namespace YARG.UI {
 		}
 
 		public void DoneBind() {
+			Navigator.Instance.PopScheme();
+
 			// Stop event listener
 			currentDeviceListener?.Dispose();
 			currentDeviceListener = null;

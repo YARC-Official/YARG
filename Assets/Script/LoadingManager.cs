@@ -90,9 +90,9 @@ namespace YARG {
 
 		private void UpdateSongUi(SongScanner scanner) {
 			string subText = $"Folders Scanned: {scanner.TotalFoldersScanned}" +
-			                 $"\nSongs Scanned: {scanner.TotalSongsScanned}" +
-			                 $"\nErrors: {scanner.TotalErrorsEncountered}";
-			
+							 $"\nSongs Scanned: {scanner.TotalSongsScanned}" +
+							 $"\nErrors: {scanner.TotalErrorsEncountered}";
+
 			SetLoadingText("Loading songs...", subText);
 		}
 	}

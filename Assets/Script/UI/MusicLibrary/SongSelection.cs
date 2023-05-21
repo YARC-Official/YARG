@@ -21,8 +21,7 @@ namespace YARG.UI.MusicLibrary {
 		public static bool refreshFlag = true;
 
 		private const int SONG_VIEW_EXTRA = 6;
-		private const float INPUT_REPEAT_TIME = 0.035f;
-		private const float INPUT_REPEAT_COOLDOWN = 0.5f;
+		private const float SCROLL_TIME = 1f / 60f;
 
 		[SerializeField]
 		private GameObject songViewPrefab;
@@ -49,30 +48,35 @@ namespace YARG.UI.MusicLibrary {
 			private set {
 				_selectedIndex = value;
 
-				// Wrap
-				if (_selectedIndex < 0) {
-					_selectedIndex = _songs.Count - _selectedIndex - 2;
-				} else if (_selectedIndex >= _songs.Count) {
-					_selectedIndex -= _songs.Count;
+				if (_songs.Count <= 0) {
+					return;
 				}
 
-				if (_songs[value] is SongViewType song) {
-					GameManager.Instance.SelectedSong = song.SongEntry;
+				// Wrap
+				if (_selectedIndex < 0) {
+					_selectedIndex = _songs.Count - 1;
+				} else if (_selectedIndex >= _songs.Count) {
+					_selectedIndex = 0;
 				}
 
 				UpdateScrollbar();
 				UpdateSongViews();
+
+				if (_songs[_selectedIndex] is not SongViewType song) {
+					return;
+				}
+
+				if (song.SongEntry == GameManager.Instance.SelectedSong) {
+					return;
+				}
+
+				GameManager.Instance.SelectedSong = song.SongEntry;
+				GameManager.AudioManager.PreviewContext.PlayPreview(song.SongEntry);
 			}
 		}
 
-		private List<SongView> songViews = new();
-
-		// Handles keyboard navigation uniformly with everything else
-		private FiveFretInputStrategy keyboardHandler;
-
-		private NavigationType direction;
-		private bool directionHeld = false;
-		private float inputTimer = 0f;
+		private List<SongView> _songViews = new();
+		private float _scrollTimer = 0f;
 
 		private void Awake() {
 			refreshFlag = true;
@@ -85,20 +89,7 @@ namespace YARG.UI.MusicLibrary {
 				// Init and add
 				var songView = gameObject.GetComponent<SongView>();
 				songView.Init(i - SONG_VIEW_EXTRA);
-				songViews.Add(songView);
-			}
-
-			// Create keyboard handler if no players are using it
-			if (!PlayerManager.players.Any((player) => player.inputStrategy.InputDevice == Keyboard.current)) {
-				var keyboard = Keyboard.current;
-				keyboardHandler = new() {
-					InputDevice = keyboard,
-					microphoneIndex = -1,
-					botMode = false
-				};
-				keyboardHandler.SetMappingInputControl(FiveFretInputStrategy.STRUM_UP, keyboard.upArrowKey);
-				keyboardHandler.SetMappingInputControl(FiveFretInputStrategy.STRUM_DOWN, keyboard.downArrowKey);
-				keyboardHandler.SetMappingInputControl(FiveFretInputStrategy.RED, keyboard.escapeKey);
+				_songViews.Add(songView);
 			}
 
 			// Initialize sidebar
@@ -106,14 +97,26 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		private void OnEnable() {
-			// Bind input events
-			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
-			}
-			if (keyboardHandler != null) {
-				keyboardHandler.GenericNavigationEvent += OnGenericNavigation;
-				keyboardHandler.Enable();
-			}
+			// Set navigation scheme
+			Navigator.Instance.PushScheme(new NavigationScheme(new() {
+				new NavigationScheme.Entry(MenuAction.Up, "Up", () => {
+					SelectedIndex--;
+				}),
+				new NavigationScheme.Entry(MenuAction.Down, "Down", () => {
+					SelectedIndex++;
+				}),
+				new NavigationScheme.Entry(MenuAction.Confirm, "Confirm", () => {
+					_songs[SelectedIndex]?.PrimaryButtonClick();
+				}),
+				new NavigationScheme.Entry(MenuAction.Back, "Back", () => {
+					Back();
+				}),
+				new NavigationScheme.Entry(MenuAction.Shortcut1, "Search Artist", () => {
+					if (_songs[SelectedIndex] is SongViewType view) {
+						searchField.text = $"artist:{view.SongEntry.Artist}";
+					}
+				})
+			}, false));
 
 			if (refreshFlag) {
 				_songs = null;
@@ -123,21 +126,21 @@ namespace YARG.UI.MusicLibrary {
 				UpdateSearch();
 				refreshFlag = false;
 			}
+
+			// Play preview on enter for selected song
+			if (_songs[SelectedIndex] is SongViewType song) {
+				GameManager.AudioManager.PreviewContext.PlayPreview(song.SongEntry);
+			}
 		}
 
 		private void OnDisable() {
-			// Unbind input events
-			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
-			}
-			if (keyboardHandler != null) {
-				keyboardHandler.Disable();
-				keyboardHandler.GenericNavigationEvent -= OnGenericNavigation;
-			}
+			Navigator.Instance.PopScheme();
+
+			GameManager.AudioManager.DisposePreviewContext();
 		}
 
 		private void UpdateSongViews() {
-			foreach (var songView in songViews) {
+			foreach (var songView in _songViews) {
 				songView.UpdateView();
 			}
 
@@ -145,50 +148,18 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		private void Update() {
-			// Update input timer
+			if (_scrollTimer <= 0f) {
+				var delta = Mouse.current.scroll.ReadValue().y * Time.deltaTime;
 
-			inputTimer -= Time.deltaTime;
-			if (inputTimer <= 0f && directionHeld) {
-				switch (direction) {
-					case NavigationType.UP: SelectedIndex--; break;
-					case NavigationType.DOWN: SelectedIndex++; break;
+				if (delta > 0f) {
+					SelectedIndex--;
+					_scrollTimer = SCROLL_TIME;
+				} else if (delta < 0f) {
+					SelectedIndex++;
+					_scrollTimer = SCROLL_TIME;
 				}
-
-				inputTimer = INPUT_REPEAT_TIME;
-			}
-
-			// Scroll wheel
-
-			var scroll = Mouse.current.scroll.ReadValue().y;
-			if (scroll > 0f) {
-				SelectedIndex--;
-			} else if (scroll < 0f) {
-				SelectedIndex++;
-			}
-		}
-
-		private void OnGenericNavigation(NavigationType navigationType, bool pressed) {
-			if (navigationType == NavigationType.UP || navigationType == NavigationType.DOWN) {
-				direction = navigationType;
-				directionHeld = pressed;
-				inputTimer = INPUT_REPEAT_COOLDOWN;
-			}
-
-			if (!pressed) {
-				return;
-			}
-
-			SongViewType view = _songs[SelectedIndex] as SongViewType;
-			switch (navigationType) {
-				case NavigationType.UP: SelectedIndex--; break;
-				case NavigationType.DOWN: SelectedIndex++; break;
-				case NavigationType.PRIMARY: view?.PrimaryButtonClick(); break;
-				case NavigationType.SECONDARY: Back(); break;
-				case NavigationType.TERTIARY:
-					if (view != null) {
-						searchField.text = $"artist:{view.SongEntry.Artist}";
-					}
-					break;
+			} else {
+				_scrollTimer -= Time.deltaTime;
 			}
 		}
 
@@ -219,7 +190,8 @@ namespace YARG.UI.MusicLibrary {
 					.ToList();
 				_songs.Insert(0, new CategoryViewType(
 					"ALL SONGS",
-					$"<#00B6F5><b>{_songs.Count}</b> <#006488>{(_songs.Count == 1 ? "SONG" : "SONGS")}"
+					$"<#00B6F5><b>{_songs.Count}</b> <#006488>{(_songs.Count == 1 ? "SONG" : "SONGS")}",
+					SongContainer.Songs
 				));
 
 				// Add recommended songs
@@ -228,8 +200,22 @@ namespace YARG.UI.MusicLibrary {
 				}
 				_songs.Insert(0, new CategoryViewType(
 					_recommendedSongs.Count == 1 ? "RECOMMENDED SONG" : "RECOMMENDED SONGS",
-					$"<#00B6F5><b>{_recommendedSongs.Count}</b> <#006488>{(_recommendedSongs.Count == 1 ? "SONG" : "SONGS")}")
-				);
+					$"<#00B6F5><b>{_recommendedSongs.Count}</b> <#006488>{(_recommendedSongs.Count == 1 ? "SONG" : "SONGS")}",
+					_recommendedSongs
+				));
+
+				// Add buttons
+				_songs.Insert(0, new ButtonViewType(
+					"RANDOM SONG",
+					"Icon/Random",
+					() => {
+						// Get how many non-song things there are
+						int skip = _songs.Count - SongContainer.Songs.Count;
+
+						// Select random between all of the songs
+						SelectedIndex = Random.Range(skip, SongContainer.Songs.Count);
+					}
+				));
 			} else {
 				// Split up args
 				var split = searchField.text.Split(';');
@@ -306,16 +292,19 @@ namespace YARG.UI.MusicLibrary {
 			}
 
 			if (GameManager.Instance.SelectedSong == null) {
-				SelectedIndex = 1;
+				if (string.IsNullOrEmpty(searchField.text)) {
+					SelectedIndex = 2;
+				} else {
+					SelectedIndex = 1;
+				}
 			} else {
 				var index = _songs.FindIndex(song => {
-					var songType = song as SongViewType;
-					return songType != null && songType.SongEntry == GameManager.Instance.SelectedSong;
+					return song is SongViewType songType && songType.SongEntry == GameManager.Instance.SelectedSong;
 				});
 
 				SelectedIndex = Mathf.Max(1, index);
 			}
-			
+
 			UpdateSongViews();
 			UpdateScrollbar();
 		}

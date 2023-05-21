@@ -7,18 +7,25 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-// Copyright 2011 Arkem. All rights reserved.
+/*
+    Copyright 2011 Arkem. All rights reserved.
 
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+    Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
-// Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+    Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+    Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
 
-// THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+    THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+    IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+    (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+    HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// The below code was originally written by Arkem in Python, on this repo: https://github.com/arkem/py360
-// For the purposes of YARG, I (rjkiv on GitHub) have ported the necessary code to C#,
-// so that YARG can read the contents of a Rock Band CON file (.mid, .mogg, .dta, .png_xbox, etc)
+    The below code was originally written by Arkem in Python, on this repo: https://github.com/arkem/py360
+    For the purposes of YARG, I (rjkiv on GitHub) have ported the necessary code to C#,
+    so that YARG can read the contents of a Rock Band CON file (.mid, .mogg, .dta, .png_xbox, etc)
+
+    Further parsing improvements provided by Sonicfind (also github)
+*/
 
 namespace XboxSTFS {
 
@@ -34,7 +41,7 @@ namespace XboxSTFS {
     // Data includes size, name, path and firstblock and atime and utime
     public class FileListing {
         public string filename { get; private set; }
-        public bool isDirectory { get; private set; }
+        public byte flags { get; private set; }
         public uint numBlocks { get; private set; }
         public uint firstBlock { get; private set; }
         public uint size { get; private set; }
@@ -42,8 +49,7 @@ namespace XboxSTFS {
 
         public FileListing(byte[] data){
             filename = System.Text.Encoding.UTF8.GetString(data, 0, 0x28).TrimEnd('\0');
-            Assert.IsTrue(filename != "", "FileListing has empty filename");
-            isDirectory = (data[0x28] & 0x80) == 0x80;
+            flags = data[0x28];
             
             numBlocks = BitConverter.ToUInt32(new byte[4] { data[0x29], data[0x2A], data[0x2B], 0x00 });
             firstBlock = BitConverter.ToUInt32(new byte[4] { data[0x2F], data[0x30], data[0x31], 0x00 });
@@ -52,12 +58,13 @@ namespace XboxSTFS {
         }
 
         public override string ToString() => $"STFS File Listing: {filename}";
+        public bool isDirectory() { return (flags & 0x80) > 0; }
+        public bool isContinguous() { return (flags & 0x40) > 0; }
     }
 
     public class STFS {
         private string filename, magic;
-        private byte[] data;
-        private byte tableSizeShift;
+        private byte tableSizeShift = 0;
         private uint entryID, titleID, fileTableBlockNumber, allocatedCount;
         private ushort fileTableBlockCount;
         private int[,] tableSpacing = new int[2, 3] { {0xAB, 0x718F, 0xFE7DA}, {0xAC, 0x723A, 0xFD00B} };
@@ -65,54 +72,44 @@ namespace XboxSTFS {
 
         public STFS(string fname){
             filename = fname;
-            using var fs = new FileStream(filename, FileMode.Open, FileAccess.Read);
-			using var br = new BinaryReader(fs, new ASCIIEncoding());
+            var fs = new FileStream(filename, FileMode.Open, FileAccess.Read);
+            var br = new BinaryReader(fs, new ASCIIEncoding());
             magic = new string(new BinaryReader(fs, new ASCIIEncoding()).ReadChars(4));
             Assert.IsTrue((magic == "CON " || magic == "PIRS" || magic == "LIVE"), "STFS Magic not found");
             fs.Seek(0, SeekOrigin.Begin);
-            data = br.ReadBytes(0x971A); // header data (this is only a member during testing)
-            ParseHeader();
-            ParseFileTable();
+            ParseHeader(ref br);
+            ParseFileTable(ref fs, ref br);
         }
 
-        private byte[] ReadFileTable(uint firstBlock, ushort numBlocks){
-            byte[] buf = new byte[0x1000*numBlocks];
-            Parallel.For(0, numBlocks, i => {
-                Array.Copy(ReadBlock(FixBlocknum((uint)(firstBlock + i)),0x1000), 0, buf, i*0x1000, 0x1000);
-            });
-            return buf;
+        private byte[] ReadFileTable(ref FileStream fs, ref BinaryReader br, uint firstBlock, ushort numBlocks) {
+            return ReadBlocks_Contiguous(ref fs, ref br, firstBlock, numBlocks, (uint) 0x1000 * numBlocks);
         }
 
-        private void ParseFileTable(){
+        private void ParseFileTable(ref FileStream fs, ref BinaryReader br) {
             List<FileListing> fLists = new List<FileListing>();
             allFiles = new Dictionary<string, FileListing>();
-            data = ReadFileTable(fileTableBlockNumber, fileTableBlockCount);
+            var data = ReadFileTable(ref fs, ref br, fileTableBlockNumber, fileTableBlockCount);
 
             byte[] buf = new byte[0x40];
-            FileListing cur;
-            for(int x = 0; x < data.Length; x += 0x40){
+            for (int x = 0; x < data.Length; x += 0x40) {
                 Array.Copy(data, x, buf, 0, 0x40);
-                try {
-                    cur = new FileListing(buf);
-                    fLists.Add(cur);
-                }
-                catch(Exception e){
-                    
-                }
+                FileListing file = new FileListing(buf);
+                if (file.filename.Length == 0)
+                    break;
+                fLists.Add(file);
             }
 
             List<string> pathComponents = new List<string>();
-            foreach(FileListing fl in fLists){
+            foreach (FileListing fl in fLists) {
                 pathComponents.Clear();
                 pathComponents.Add(fl.filename);
                 FileListing a = fl;
 
-                while(a.pathIndex != -1 && a.pathIndex < fLists.Count){
+                while (a.pathIndex != -1 && a.pathIndex < fLists.Count) {
                     try {
                         a = fLists[a.pathIndex];
                         pathComponents.Add(a.filename);
-                    }
-                    catch(Exception ee){
+                    } catch (Exception ee) {
                         Debug.Log($"Indexing Error: {filename} {a.pathIndex} {fLists.Count}");
                     }
                 }
@@ -120,10 +117,9 @@ namespace XboxSTFS {
                 pathComponents.Reverse();
                 allFiles[Path.Combine(pathComponents.ToArray())] = fl;
             }
-            
         }
 
-        private uint FixBlocknum(uint blocknum){
+        private uint FixBlocknum(uint blocknum) {
             // Given a blocknumber calculate the block on disk that has the data taking into account hash blocks.
             // Every 0xAA blocks there is a hash table and depending on header data it
             // is 1 or 2 blocks long [((self.entry_id+0xFFF) & 0xF000) >> 0xC 0xB == 0, 0xA == 1]
@@ -132,61 +128,79 @@ namespace XboxSTFS {
             // This is the part of the Free60 STFS page that needed work
             uint blockAdjust = 0;
 
-            if(blocknum >= 0xAA) blockAdjust += (blocknum / 0xAA) + 1 << tableSizeShift;
-            if(blocknum >= 0x70E4) blockAdjust += ((blocknum / 0x70E4) + 1) << tableSizeShift;
+            if (blocknum >= 0xAA) blockAdjust += ((blocknum / 0xAA) + 1) << tableSizeShift;
+            if (blocknum >= 0x70E4) blockAdjust += ((blocknum / 0x70E4) + 1) << tableSizeShift;
             return blockAdjust + blocknum;
         }
 
-        // Read a block, given its block number
-        // If reading data blocks, call FixBlocknum first
-        private byte[] ReadBlock(uint blocknum, int length=0x1000){
-            using var fs = new FileStream(filename, FileMode.Open, FileAccess.Read);
-            using var br = new BinaryReader(fs, new ASCIIEncoding());
-            fs.Seek(0xC000 + blocknum * 0x1000, SeekOrigin.Begin);
-            return br.ReadBytes(length);
+        private byte[] ReadBlocks_Separate(ref FileStream fs, ref BinaryReader br, uint firstBlock, uint numBlocks, uint fileSize) {
+            byte[] fileBytes = new byte[fileSize];
+            for (uint i = 0; i < numBlocks; ++i) {
+                fs.Seek(0xC000 + FixBlocknum(firstBlock + i) * 0x1000, SeekOrigin.Begin);
+                if (i < numBlocks - 1)
+                    br.Read(fileBytes, (int) i * 0x1000, 0x1000);
+                else
+                    br.Read(fileBytes, (int) i * 0x1000, (int) fileSize % 0x1000);
+            }
+            return fileBytes;
         }
 
-        private void ParseHeader(){
+        private byte[] ReadBlocks_Contiguous(ref FileStream fs, ref BinaryReader br, uint blocknum, uint blockCount, uint fileSize) {
+            byte[] fileBytes = new byte[fileSize];
+            for (uint i = 0; i < blockCount;) {
+                uint block = blocknum + i;
+                fs.Seek(0xC000 + FixBlocknum(block) * 0x1000, SeekOrigin.Begin);
+                uint readCount = 170 - (block % 170);
+                uint readSize = 0x1000 * readCount;
+                uint offset = i * 0x1000;
+                if (readSize > fileSize - offset)
+                    readSize = fileSize - offset;
+
+                br.Read(fileBytes, (int) offset, (int) readSize);
+                i += readCount;
+            }
+            return fileBytes;
+        }
+
+        private void ParseHeader(ref BinaryReader br) {
+            var data = br.ReadBytes(0x971A);
             // parse the huge STFS header
             Assert.IsTrue(data.Length >= 0x971A, "STFS Data too short");
-            
+
             entryID = BitConverter.ToUInt32(new byte[4] { data[0x343], data[0x342], data[0x341], data[0x340] });
             titleID = BitConverter.ToUInt32(new byte[4] { data[0x363], data[0x362], data[0x361], data[0x360] });
             fileTableBlockCount = BitConverter.ToUInt16(new byte[2] { data[0x37C], data[0x37D] });
             fileTableBlockNumber = BitConverter.ToUInt32(new byte[4] { data[0x37E], data[0x37F], data[0x380], 0x00 });
             allocatedCount = BitConverter.ToUInt32(new byte[4] { data[0x398], data[0x397], data[0x396], data[0x395] });
-            
-            if(((entryID + 0xFFF) & 0xF000) >> 0xC == 0xB) tableSizeShift = 0;
-            else tableSizeShift = 1;
+
+            if (((entryID + 0xFFF) & 0xF000) >> 0xC != 0xB)
+                tableSizeShift = 1;
         }
 
         public override string ToString() => $"STFS Object {magic} ({filename})";
 
-        private byte[] ReadFile(FileListing fl){
-            // Given a FileListing object, return its data
-            byte[] fileBytes = new byte[fl.size];
-            uint lastSize = fl.size % 0x1000;
-
-            Parallel.For(0, fl.numBlocks, i => {
-                uint readLen = (i == (fl.numBlocks - 1)) ? lastSize : 0x1000;
-                Array.Copy(ReadBlock(FixBlocknum((uint)(fl.firstBlock + i)), (int)readLen), 0, fileBytes, i*0x1000, readLen);
-            });
-
-            return fileBytes;
+        private byte[] ReadFile(ref FileStream fs, ref BinaryReader br, FileListing fl) {
+            if (fl.isContinguous())
+                return ReadBlocks_Contiguous(ref fs, ref br, fl.firstBlock, fl.numBlocks, fl.size);
+            else
+                return ReadBlocks_Separate(ref fs, ref br, fl.firstBlock, fl.numBlocks, fl.size);
         }
 
         public void ExtractAllContents(){
             foreach(var f in allFiles){
-                if(allFiles[f.Key].isDirectory){
+                if(allFiles[f.Key].isDirectory()){
                     Debug.Log($"Creating directory: {f.Key}");
                     Directory.CreateDirectory(Path.Combine($"{filename}_out", f.Key));
                 }
             }
-            foreach(var f in allFiles){
-                if(!(allFiles[f.Key].isDirectory)){
+
+            var fs = new FileStream(filename, FileMode.Open, FileAccess.Read);
+            var br = new BinaryReader(fs, new ASCIIEncoding());
+            foreach (var f in allFiles){
+                if(!allFiles[f.Key].isDirectory()){
                     Debug.Log($"Writing file: {f.Key}");
                     try{
-                        File.WriteAllBytes(Path.Combine($"{filename}_out", f.Key), ReadFile(allFiles[f.Key]));
+                        File.WriteAllBytes(Path.Combine($"{filename}_out", f.Key), ReadFile(ref fs, ref br, allFiles[f.Key]));
                     }
                     catch(Exception e){
                         Debug.Log(e);
@@ -198,13 +212,15 @@ namespace XboxSTFS {
 
         // used for benchmarking
         public void MockExtract(){
+            var fs = new FileStream(filename, FileMode.Open, FileAccess.Read);
+            var br = new BinaryReader(fs, new ASCIIEncoding());
             var stopWatch = new System.Diagnostics.Stopwatch();
             var total = new System.Diagnostics.Stopwatch();
             total.Start();
             foreach(var f in allFiles){
-                if(!(allFiles[f.Key].isDirectory)){
+                if(!allFiles[f.Key].isDirectory()){
                     stopWatch.Restart();
-                    byte[] testFile = ReadFile(allFiles[f.Key]);
+                    byte[] testFile = ReadFile(ref fs, ref br, allFiles[f.Key]);
                     stopWatch.Stop();
                     Debug.Log($"read {testFile.Length} byte file {f.Key} in {stopWatch.ElapsedMilliseconds} ms.");
                 }
@@ -214,9 +230,11 @@ namespace XboxSTFS {
         }
 
         public byte[] GetFile(string fname){
-            foreach(var f in allFiles){
+            var fs = new FileStream(filename, FileMode.Open, FileAccess.Read);
+            var br = new BinaryReader(fs, new ASCIIEncoding());
+            foreach (var f in allFiles){
                 if(f.Key == fname){
-                    return ReadFile(allFiles[f.Key]);
+                    return ReadFile(ref fs, ref br, allFiles[f.Key]);
                 }
             }
             return null;

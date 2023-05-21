@@ -2,14 +2,17 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using DG.Tweening;
 using MoonscraperChartEditor.Song;
 using MoonscraperChartEditor.Song.IO;
 using TrombLoader.Helpers;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using YARG.Chart;
 using YARG.Data;
+using YARG.Input;
 using YARG.Serialization.Parser;
 using YARG.Settings;
 using YARG.Song;
@@ -64,6 +67,14 @@ namespace YARG.PlayMode {
 
 		public YargChart chart;
 
+		[Space]
+		[SerializeField]
+		private GameObject playResultScreen;
+		[SerializeField]
+		private RawImage playCover;
+		[SerializeField]
+		private GameObject scoreDisplay;
+
 		private int beatIndex = 0;
 		private int lyricIndex = 0;
 		private int lyricPhraseIndex = 0;
@@ -74,10 +85,15 @@ namespace YARG.PlayMode {
 
 		private List<AbstractTrack> _tracks;
 
+		private bool endReached = false;
+
 		private bool _paused = false;
 		public bool Paused {
 			get => _paused;
 			set {
+				// disable pausing once we reach end of song
+				if (endReached) return;
+
 				_paused = value;
 
 				GameUI.Instance.pauseMenu.SetActive(value);
@@ -107,12 +123,14 @@ namespace YARG.PlayMode {
 		private SongEntry Song => GameManager.Instance.SelectedSong;
 
 		private bool playingRhythm = false;
+		private bool playingVocals = false;
 
 		private void Awake() {
 			Instance = this;
 
 			ScoreKeeper.Reset();
 			StarScoreKeeper.Reset();
+			Navigator.Instance.PopAllSchemes();
 
 			backgroundRenderTexture.ClearTexture();
 
@@ -156,6 +174,11 @@ namespace YARG.PlayMode {
 				// Temporary, will make a better system later
 				if (player.chosenInstrument == "rhythm") {
 					playingRhythm = true;
+				}
+
+				// Temporary, same here
+				if (player.chosenInstrument == "vocals" || player.chosenInstrument == "harmVocals") {
+					playingVocals = true;
 				}
 
 				string trackPath = player.inputStrategy.GetTrackPath();
@@ -213,41 +236,50 @@ namespace YARG.PlayMode {
 				return;
 			}
 
-			// Next, a video
+			// Finally, a picture or video
 
-			string[] videoPaths = {
-				"bg.mp4",
-				"bg.mov",
-				"bg.webm",
+			string[] fileNames = {
+				"bg",
+				"background",
+				"video"
 			};
 
-			foreach (var file in videoPaths) {
-				var path = Path.Combine(Song.Location, file);
+			string[] videoExtensions = {
+				".mp4",
+				".mov",
+				".webm",
+			};
 
-				if (File.Exists(path)) {
-					GameUI.Instance.videoPlayer.url = path;
-					GameUI.Instance.videoPlayer.enabled = true;
+			foreach (var name in fileNames) {
+				foreach (var ext in videoExtensions) {
+					var path = Path.Combine(Song.Location, name + ext);
 
-					return;
+					if (File.Exists(path)) {
+						GameUI.Instance.videoPlayer.url = path;
+						GameUI.Instance.videoPlayer.enabled = true;
+						GameUI.Instance.videoPlayer.Prepare();
+
+						return;
+					}
 				}
 			}
 
-			// Finally, an image
-
-			string[] imagePaths = {
-				"bg.png",
-				"bg.jpg",
-				"bg.jpeg",
+			string[] imageExtensions = {
+				".png",
+				".jpg",
+				".jpeg",
 			};
 
-			foreach (var file in imagePaths) {
-				var path = Path.Combine(Song.Location, file);
+			foreach (var name in fileNames) {
+				foreach (var ext in imageExtensions) {
+					var path = Path.Combine(Song.Location, name + ext);
 
-				if (File.Exists(path)) {
-					var png = ImageHelper.LoadTextureFromFile(path);
+					if (File.Exists(path)) {
+						var png = ImageHelper.LoadTextureFromFile(path);
 
-					GameUI.Instance.background.texture = png;
-					return;
+						GameUI.Instance.background.texture = png;
+						return;
+					}
 				}
 			}
 		}
@@ -396,6 +428,18 @@ namespace YARG.PlayMode {
 			}
 
 			// Update lyrics
+			if (!playingVocals) {
+				UpdateGenericLyrics();
+			}
+
+			// End song
+			if (!endReached && realSongTime >= SongLength) {
+				endReached = true;
+				StartCoroutine(EndSong(true));
+			}
+		}
+
+		private void UpdateGenericLyrics() {
 			if (lyricIndex < chart.genericLyrics.Count) {
 				var lyric = chart.genericLyrics[lyricIndex];
 
@@ -425,12 +469,6 @@ namespace YARG.PlayMode {
 					GameUI.Instance.SetGenericLyric(o);
 					lyricPhraseIndex++;
 				}
-			}
-
-			// End song
-			if (realSongTime >= SongLength) {
-				MainMenu.isPostSong = true;
-				Exit();
 			}
 		}
 
@@ -486,7 +524,7 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		public void Exit() {
+		public IEnumerator EndSong(bool showResultScreen) {
 			// Dispose of all audio
 			GameManager.AudioManager.UnloadSong();
 
@@ -497,10 +535,31 @@ namespace YARG.PlayMode {
 			Time.timeScale = 1f;
 
 			backgroundRenderTexture.ClearTexture();
-			_tracks.Clear();
 
 			OnSongEnd?.Invoke(Song);
-			GameManager.Instance.LoadScene(SceneIndex.MENU);
+
+			// run animation + save if we've reached end of song
+			if (showResultScreen) {
+				yield return playCover
+					.DOFade(1f, 1f)
+					.WaitForCompletion();
+
+				// save scores and destroy tracks
+				foreach (var track in _tracks) {
+					track.SetPlayerScore();
+					Destroy(track.gameObject);
+				}
+				_tracks.Clear();
+				// save MicPlayer score and destroy it
+				if (MicPlayer.Instance != null) {
+					MicPlayer.Instance.SetPlayerScore();
+					Destroy(MicPlayer.Instance.gameObject);
+				}
+
+				// show play result screen; this is our main focus now
+				playResultScreen.SetActive(true);
+			}
+			scoreDisplay.SetActive(false);
 		}
 
 		public void LowerAudio(string name) {
@@ -519,6 +578,12 @@ namespace YARG.PlayMode {
 				stemsReverbed--;
 				audioReverb.Remove(name);
 			}
+		}
+
+		public void Exit(bool toSongSelect = true) {
+			StartCoroutine(EndSong(false));
+			MainMenu.showSongSelect = toSongSelect;
+			GameManager.Instance.LoadScene(SceneIndex.MENU);
 		}
 	}
 }

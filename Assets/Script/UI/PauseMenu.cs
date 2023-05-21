@@ -30,38 +30,33 @@ namespace YARG.UI {
 		}
 
 		private void OnEnable() {
-			// Bind input events
-			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
-			}
+			// Set navigation scheme
+			Navigator.Instance.PushScheme(new NavigationScheme(new() {
+				new NavigationScheme.Entry(MenuAction.Up, "Up", () => {
+					MoveOption(-1);
+				}),
+				new NavigationScheme.Entry(MenuAction.Down, "Down", () => {
+					MoveOption(1);
+				}),
+				new NavigationScheme.Entry(MenuAction.Confirm, "Confirm", () => {
+					SelectCurrentOption();
+				}),
+				new NavigationScheme.Entry(MenuAction.Back, "Back", () => {
+					OnResumeSelected();
+				})
+			}, false));
 		}
 
 		private void OnDisable() {
-			GameManager.Instance.SettingsMenu.gameObject.SetActive(false);
+			Navigator.Instance.PopScheme();
 
-			// Unbind input events
-			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
-			}
+			GameManager.Instance.SettingsMenu.gameObject.SetActive(false);
 		}
 
 		private void OnDestroy() {
 			foreach (var option in options) {
 				option.MouseHoverEvent -= HoverOption;
 				option.MouseClickEvent -= ClickOption;
-			}
-		}
-
-		private void OnGenericNavigation(NavigationType navigationType, bool pressed) {
-			if (!pressed) {
-				return;
-			}
-
-			switch (navigationType) {
-				case NavigationType.UP: MoveOption(-1); break;
-				case NavigationType.DOWN: MoveOption(1); break;
-				case NavigationType.PRIMARY: SelectCurrentOption(); break;
-				case NavigationType.SECONDARY: OnResumeSelected(); break;
 			}
 		}
 

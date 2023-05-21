@@ -48,12 +48,25 @@ namespace YARG.UI {
 		}
 
 		private void OnEnable() {
+			// Set navigation scheme
+			Navigator.Instance.PushScheme(new NavigationScheme(new() {
+				new NavigationScheme.Entry(MenuAction.Up, "Up", () => {
+					MoveOption(-1);
+				}),
+				new NavigationScheme.Entry(MenuAction.Down, "Down", () => {
+					MoveOption(1);
+				}),
+				new NavigationScheme.Entry(MenuAction.Confirm, "Confirm", () => {
+					Next();
+				}),
+				new NavigationScheme.Entry(MenuAction.Back, "Back", () => {
+					MainMenu.Instance.ShowSongSelect();
+				})
+			}, false));
+
+			// See if there are any mics
 			bool anyMics = false;
-
-			// Bind input events
 			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.GenericNavigationEvent += OnGenericNavigation;
-
 				if (player.inputStrategy is MicInputStrategy) {
 					anyMics = true;
 				}
@@ -69,33 +82,12 @@ namespace YARG.UI {
 			}
 		}
 
-		private void OnDisable() {
-			// Unbind input events
-			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.GenericNavigationEvent -= OnGenericNavigation;
-			}
-		}
-
 		private void OnDestroy() {
+			Navigator.Instance.PopScheme();
+
 			foreach (var option in options) {
 				option.MouseHoverEvent -= HoverOption;
 				option.MouseClickEvent -= ClickOption;
-			}
-		}
-
-		private void OnGenericNavigation(NavigationType navigationType, bool pressed) {
-			if (!pressed) {
-				return;
-			}
-
-			if (navigationType == NavigationType.UP) {
-				MoveOption(-1);
-			} else if (navigationType == NavigationType.DOWN) {
-				MoveOption(1);
-			} else if (navigationType == NavigationType.PRIMARY) {
-				Next();
-			} else if (navigationType == NavigationType.SECONDARY) {
-				MainMenu.Instance.ShowSongSelect();
 			}
 		}
 
