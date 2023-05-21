@@ -44,6 +44,8 @@ namespace YARG.Pools {
 		private TextMeshPro fretNumber;
 		[SerializeField]
 		private LineRenderer lineRenderer;
+		[SerializeField]
+		private LineRenderer fullLineRenderer;
 
 		private float _brutalVanishDistance;
 		/// <summary>
@@ -110,6 +112,9 @@ namespace YARG.Pools {
 			set => _colorCacheSustains = value;
 		}
 
+		private bool _useFullLineRenderer;
+		private LineRenderer CurrentLineRenderer => _useFullLineRenderer ? fullLineRenderer : lineRenderer;
+
 		private float lengthCache = 0f;
 
 		private State state = State.WAITING;
@@ -124,7 +129,8 @@ namespace YARG.Pools {
 			foreach (MeshRenderer r in meshRenderers) {
 				r.enabled = true;
 			}
-			lineRenderer.enabled = true;
+			lineRenderer.enabled = false;
+			fullLineRenderer.enabled = false;
 		}
 
 		private void OnDisable() {
@@ -139,6 +145,8 @@ namespace YARG.Pools {
 					obj.SetActive(inType == needType);
 				}
 			}
+
+			_useFullLineRenderer = type == ModelType.FULL || type == ModelType.FULL_HOPO;
 
 			// Show/hide models
 			SetModelActive(noteGroup, type, ModelType.NOTE);
@@ -201,7 +209,7 @@ namespace YARG.Pools {
 				return;
 			}
 
-			var mat = lineRenderer.materials[0];
+			var mat = CurrentLineRenderer.materials[0];
 			if (state == State.WAITING) {
 				mat.color = ColorCacheSustains;
 				mat.SetColor("_EmissionColor", ColorCacheSustains);
@@ -215,14 +223,14 @@ namespace YARG.Pools {
 		}
 
 		private void ResetLineAmplitude() {
-			lineRenderer.materials[0].SetFloat("_PrimaryAmplitude", 0f);
-			lineRenderer.materials[0].SetFloat("_SecondaryAmplitude", 0f);
-			lineRenderer.materials[0].SetFloat("_TertiaryAmplitude", 0f);
+			CurrentLineRenderer.materials[0].SetFloat("_PrimaryAmplitude", 0f);
+			CurrentLineRenderer.materials[0].SetFloat("_SecondaryAmplitude", 0f);
+			CurrentLineRenderer.materials[0].SetFloat("_TertiaryAmplitude", 0f);
 		}
 
 		private void SetLength(float length) {
 			if (length <= 0.2f) {
-				lineRenderer.enabled = false;
+				CurrentLineRenderer.enabled = false;
 				lengthCache = 0f;
 				return;
 			}
@@ -230,9 +238,9 @@ namespace YARG.Pools {
 			length *= pool.player.trackSpeed / Play.speed;
 			lengthCache = length;
 
-			lineRenderer.enabled = true;
-			lineRenderer.SetPosition(0, new(0f, 0.01f, length));
-			lineRenderer.SetPosition(1, Vector3.zero);
+			CurrentLineRenderer.enabled = true;
+			CurrentLineRenderer.SetPosition(0, new(0f, 0.01f, length));
+			CurrentLineRenderer.SetPosition(1, Vector3.zero);
 		}
 
 		public void HitNote() {
@@ -274,7 +282,7 @@ namespace YARG.Pools {
 				float newStart = -transform.localPosition.z - AbstractTrack.TRACK_END_OFFSET;
 
 				// Apply to line renderer
-				lineRenderer.SetPosition(1, new(0f, 0f, newStart));
+				CurrentLineRenderer.SetPosition(1, new(0f, 0f, newStart));
 			}
 
 			// Remove if off screen
@@ -285,10 +293,10 @@ namespace YARG.Pools {
 			// Line hit animation
 			if (state == State.HITTING) {
 				// Change line amplitude
-				var lineMat = lineRenderer.materials[0];
+				var lineMat = CurrentLineRenderer.materials[0];
 				lineMat.SetFloat("_PrimaryAmplitude", 0.38f);
 				lineMat.SetFloat("_SecondaryAmplitude", Mathf.Sin(Time.time * 4f));
-				lineMat.SetFloat("_TertiaryAmplitude", Mathf.Sin(Time.time * 1.7f)*0.222f);
+				lineMat.SetFloat("_TertiaryAmplitude", Mathf.Sin(Time.time * 1.7f) * 0.222f);
 
 				// Move line forward
 				float forwardSub = Time.deltaTime * pool.player.trackSpeed / 2.5f;
@@ -318,11 +326,19 @@ namespace YARG.Pools {
 				foreach (MeshRenderer r in meshRenderers) {
 					r.enabled = false;
 				}
+
+				CurrentLineRenderer.enabled = false;
+
 				UpdateLineColor();
 			} else {
 				foreach (MeshRenderer r in meshRenderers) {
 					r.enabled = true;
 				}
+
+				if (lengthCache > 0f) {
+					CurrentLineRenderer.enabled = true;
+				}
+
 				UpdateLineColor();
 			}
 		}
