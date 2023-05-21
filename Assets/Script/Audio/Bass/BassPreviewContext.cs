@@ -37,8 +37,9 @@ namespace YARG {
 			try {
 				while (!localCanceller.IsCancellationRequested) {
 					await UniTask.WaitUntil(() =>
-						_manager.CurrentPositionD >= PreviewEndTime ||
-						_manager.CurrentPositionD >= _manager.AudioLengthD,
+						_manager.IsPlaying &&
+						(_manager.CurrentPositionD >= PreviewEndTime ||
+						_manager.CurrentPositionD >= _manager.AudioLengthD),
 					cancellationToken: localCanceller.Token);
 
 					localCanceller.Token.ThrowIfCancellationRequested();
@@ -59,6 +60,8 @@ namespace YARG {
 		}
 
 		public async UniTask PlayPreview(SongEntry song) {
+			_nextSongToLoad = null;
+
 			// Skip if preview shouldn't be played
 			if (song == null || Mathf.Approximately(SettingsManager.Settings.PreviewVolume.Data, 0f)) {
 				return;
@@ -66,7 +69,7 @@ namespace YARG {
 
 			// If a preview is being loaded, WE DON'T want to mess with that process
 			if (_loadingPreview) {
-				if (_loadCanceller?.IsCancellationRequested ?? false) {
+				if (!_loadCanceller?.IsCancellationRequested ?? false) {
 					_loadCanceller.Cancel();
 					_loadCanceller.Dispose();
 				}
@@ -113,8 +116,12 @@ namespace YARG {
 			if (localCanceller.IsCancellationRequested) {
 				// If another song was requested during the load time, just load that
 				if (_nextSongToLoad != null) {
-					PlayPreview(_nextSongToLoad).Forget();
-					_nextSongToLoad = null;
+					_manager.UnloadSong();
+
+					// The new preview should be un-cancelled
+					_loadCanceller = new CancellationTokenSource();
+
+					await PlayPreview(_nextSongToLoad);
 				}
 
 				return;
