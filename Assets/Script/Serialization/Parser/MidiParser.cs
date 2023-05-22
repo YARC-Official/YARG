@@ -240,6 +240,9 @@ namespace YARG.Serialization.Parser {
 							case "BEAT":
 								ParseBeats(eventIR, trackChunk);
 								break;
+							case "VENUE":
+								ParseVenue(eventIR, trackChunk);
+								break;
 						}
 					} catch (Exception e) {
 						Debug.LogError($"Error while parsing track chunk named `{trackName.Text}`. Skipped.");
