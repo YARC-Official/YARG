@@ -212,6 +212,7 @@ namespace YARG.PlayMode {
 				};
 
 				// Bind events
+				player.inputStrategy.PauseEvent += PauseAction;
 				player.inputStrategy.StarpowerEvent += StarpowerAction;
 
 				// Add to players
@@ -312,6 +313,7 @@ namespace YARG.PlayMode {
 				playerInfo.player.lastScore = score;
 
 				// Unbind events
+				playerInfo.player.inputStrategy.PauseEvent -= PauseAction;
 				playerInfo.player.inputStrategy.StarpowerEvent -= StarpowerAction;
 			}
 		}
@@ -906,6 +908,10 @@ namespace YARG.PlayMode {
 
 		private void BeatAction() {
 			beat = true;
+		}
+
+		private void PauseAction() {
+			Play.Instance.Paused = !Play.Instance.Paused;
 		}
 
 		private void StarpowerAction(InputStrategy inputStrategy) {
