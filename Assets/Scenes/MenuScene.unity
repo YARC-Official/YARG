@@ -11533,17 +11533,7 @@ MonoBehaviour:
   m_ItemImage: {fileID: 0}
   m_Value: 0
   m_Options:
-    m_Options:
-    - m_Text: Five Fret
-      m_Image: {fileID: 0}
-    - m_Text: Microphone
-      m_Image: {fileID: 0}
-    - m_Text: Pro Guitar
-      m_Image: {fileID: 0}
-    - m_Text: Drums (Standard)
-      m_Image: {fileID: 0}
-    - m_Text: Drums (5-lane)
-      m_Image: {fileID: 0}
+    m_Options: []
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []

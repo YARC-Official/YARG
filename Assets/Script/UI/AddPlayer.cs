@@ -25,10 +25,16 @@ namespace YARG.UI {
 
 		private enum StrategyType {
 			FiveFretGuitar,
-			Vocals,
 			RealGuitar,
 			FourLaneDrums,
-			FiveLaneDrums
+			FiveLaneDrums,
+
+			// IMPORTANT: Vocals must be last in the list (excluding the count),
+			// types following it won't show up or be choosable
+			Vocals,
+
+			// Number of available strategies
+			Count 
 		}
 
 		[Flags]
@@ -207,23 +213,38 @@ namespace YARG.UI {
 			configureContainer.SetActive(true);
 			UpdateState(State.CONFIGURE);
 
-			if (selectedMicIndex != InputStrategy.INVALID_MIC_INDEX) {
-				// Set to MIC if the selected device is a MIC
-				inputStrategyDropdown.value = (int)StrategyType.Vocals;
-				inputStrategyDropdown.interactable = false;
-			} else {
-				inputStrategyDropdown.value = (int)StrategyType.FiveFretGuitar;
-				inputStrategyDropdown.interactable = true;
+			bool micSelected = selectedMicIndex != InputStrategy.INVALID_MIC_INDEX;
+			var options = new List<string>();
+			for (StrategyType strategy = 0; strategy < StrategyType.Count; strategy++)
+			{
+				// Don't display microphone as an option if no mic was selected
+				if (!micSelected && strategy == StrategyType.Vocals)
+					break;
+
+				string text = strategy switch {
+					StrategyType.FiveFretGuitar => "Five Fret Guitar",
+					StrategyType.RealGuitar => "Pro Guitar",
+					StrategyType.FourLaneDrums => "Drums (Standard)",
+					StrategyType.FiveLaneDrums => "Drums (5-lane)",
+					StrategyType.Vocals => "Microphone",
+					_ => throw new Exception("Invalid input strategy type!")
+				};
+				options.Add(text);
 			}
+			inputStrategyDropdown.ClearOptions();
+			inputStrategyDropdown.AddOptions(options);
+
+			inputStrategyDropdown.value = (int)(micSelected ? StrategyType.Vocals : StrategyType.FiveFretGuitar);
+			inputStrategyDropdown.interactable = !micSelected;
 		}
 
 		public void DoneConfigure() {
 			inputStrategy = (StrategyType)inputStrategyDropdown.value switch {
 				StrategyType.FiveFretGuitar => new FiveFretInputStrategy(),
-				StrategyType.Vocals => new MicInputStrategy(),
 				StrategyType.RealGuitar => new RealGuitarInputStrategy(),
 				StrategyType.FourLaneDrums => new DrumsInputStrategy(),
 				StrategyType.FiveLaneDrums => new GHDrumsInputStrategy(),
+				StrategyType.Vocals => new MicInputStrategy(),
 				_ => throw new Exception("Invalid input strategy type!")
 			};
 
