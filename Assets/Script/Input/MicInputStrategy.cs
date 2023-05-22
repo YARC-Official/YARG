@@ -66,12 +66,11 @@ namespace YARG.Input {
 			{ DOWN,          new(BindingType.BUTTON, "Navigate Down", DOWN) },
 		};
 
+		protected override void UpdatePlayerMode() { }
+
 		protected override void OnUpdate() {
 			base.OnUpdate();
-			UpdatePlayerMode();
-		}
 
-		protected override void UpdatePlayerMode() {
 			if (microphoneIndex == INVALID_MIC_INDEX) {
 				return;
 			}
