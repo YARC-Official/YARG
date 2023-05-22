@@ -17,6 +17,7 @@ namespace YARG.UI {
 	public class AddPlayer : MonoBehaviour {
 		private enum State {
 			SELECT_DEVICE,
+			SELECT_DEVICE_FOR_MIC,
 			CONFIGURE,
 			BIND,
 			RESOLVE
@@ -115,6 +116,7 @@ namespace YARG.UI {
 			state = newState;
 			subHeader.text = newState switch {
 				State.SELECT_DEVICE => "Step 1 - Select Device",
+				State.SELECT_DEVICE_FOR_MIC => "Step 1, Part 2 - Select Navigation Device",
 				State.CONFIGURE => "Step 2 - Configure",
 				State.BIND => "Step 3 - Bind",
 				State.RESOLVE => "More than one control was detected, please select the correct control from the list below.",
@@ -135,25 +137,35 @@ namespace YARG.UI {
 			}
 		}
 
-		private void StartSelectDevice() {
+		private void StartSelectDevice(bool micSelected = false) {
 			HideAll();
 			selectDeviceContainer.SetActive(true);
-			UpdateState(State.SELECT_DEVICE);
+			UpdateState(micSelected ? State.SELECT_DEVICE_FOR_MIC : State.SELECT_DEVICE);
 
 			// Destroy old devices
 			foreach (Transform t in devicesContainer) {
 				Destroy(t.gameObject);
 			}
 
-			// Add bot button
-			var botButton = Instantiate(deviceButtonPrefab, devicesContainer);
-			botButton.GetComponentInChildren<TextMeshProUGUI>().text = "Create a <color=#0c7027><b>BOT</b></color>";
-			botButton.GetComponentInChildren<Button>().onClick.AddListener(() => {
-				selectedDevice = null;
-				selectedMicIndex = InputStrategy.INVALID_MIC_INDEX;
-				botMode = true;
-				StartConfigure();
-			});
+			if (!micSelected) {
+				// Add bot button
+				var botButton = Instantiate(deviceButtonPrefab, devicesContainer);
+				botButton.GetComponentInChildren<TextMeshProUGUI>().text = "Create a <color=#0c7027><b>BOT</b></color>";
+				botButton.GetComponentInChildren<Button>().onClick.AddListener(() => {
+					selectedDevice = null;
+					selectedMicIndex = InputStrategy.INVALID_MIC_INDEX;
+					botMode = true;
+					StartConfigure();
+				});
+			} else {
+				// Allow skipping navigation device selection
+				var noneButton = Instantiate(deviceButtonPrefab, devicesContainer);
+				noneButton.GetComponentInChildren<TextMeshProUGUI>().text = "No device";
+				noneButton.GetComponentInChildren<Button>().onClick.AddListener(() => {
+					selectedDevice = null;
+					StartConfigure();
+				});
+			}
 
 			// Add devices
 			foreach (var device in InputSystem.devices) {
@@ -161,9 +173,12 @@ namespace YARG.UI {
 				button.GetComponentInChildren<TextMeshProUGUI>().text = $"<b>{device.displayName}</b> ({device.deviceId})";
 				button.GetComponentInChildren<Button>().onClick.AddListener(() => {
 					selectedDevice = device;
-					selectedMicIndex = InputStrategy.INVALID_MIC_INDEX;
 					StartConfigure();
 				});
+			}
+
+			if (micSelected) {
+				return;
 			}
 
 			// Add mics
@@ -173,9 +188,8 @@ namespace YARG.UI {
 
 				int capture = i;
 				button.GetComponentInChildren<Button>().onClick.AddListener(() => {
-					selectedDevice = null;
 					selectedMicIndex = capture;
-					StartConfigure();
+					StartSelectDevice(micSelected: true);
 				});
 			}
 		}
@@ -203,14 +217,8 @@ namespace YARG.UI {
 				_ => throw new Exception("Invalid input strategy type!")
 			};
 
-			if (selectedDevice == null) {
-				inputStrategy.InputDevice = null;
-				inputStrategy.microphoneIndex = selectedMicIndex;
-			} else {
-				inputStrategy.InputDevice = selectedDevice;
-				inputStrategy.microphoneIndex = InputStrategy.INVALID_MIC_INDEX;
-			}
-
+			inputStrategy.InputDevice = selectedDevice;
+			inputStrategy.microphoneIndex = selectedMicIndex;
 			inputStrategy.botMode = botMode;
 
 			playerName = playerNameField.text;
@@ -238,16 +246,9 @@ namespace YARG.UI {
 				})
 			}, true));
 
-			// Skip in certain conditions
-			if (inputStrategy.Mappings.Count < 1 || botMode ||
-				selectedMicIndex != InputStrategy.INVALID_MIC_INDEX) {
-
+			// Skip if binding is not needed
+			if (inputStrategy.Mappings.Count < 1 || botMode || selectedDevice == null) {
 				DoneBind();
-				return;
-			}
-
-			if (selectedDevice == null) {
-				Debug.LogError("No device selected when binding!");
 				return;
 			}
 
