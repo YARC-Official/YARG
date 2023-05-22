@@ -202,8 +202,10 @@ namespace YARG.UI {
 			if (selectedMicIndex != InputStrategy.INVALID_MIC_INDEX) {
 				// Set to MIC if the selected device is a MIC
 				inputStrategyDropdown.value = 1;
+				inputStrategyDropdown.interactable = false;
 			} else {
 				inputStrategyDropdown.value = 0;
+				inputStrategyDropdown.interactable = true;
 			}
 		}
 
