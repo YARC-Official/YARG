@@ -22,6 +22,12 @@ namespace YARG.Venue {
 
 		public static string VenueFolder => Path.Combine(GameManager.PersistentDataPath, "venue");
 
+		static VenueLoader() {
+			if (!Directory.Exists(VenueFolder)) {
+				Directory.CreateDirectory(VenueFolder);
+			}
+		}
+
 		public static TypePathPair? GetVenuePath(SongEntry song) {
 			// Try a local yarground first
 
