@@ -22,8 +22,9 @@ namespace YARG.Settings {
 			new() {
 				name = "General",
 				settings = {
-					new HeaderMetadata("SongManagement"),
+					new HeaderMetadata("FileManagement"),
 					new ButtonRowMetadata("OpenSongFolderManager"),
+					new ButtonRowMetadata("OpenVenueFolder"),
 					new ButtonRowMetadata("ExportOuvertSongs"),
 					new ButtonRowMetadata("CopyCurrentSongTextFilePath"),
 					new ButtonRowMetadata("CopyCurrentSongJsonFilePath"),

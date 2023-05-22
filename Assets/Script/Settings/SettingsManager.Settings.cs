@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using SFB;
 using UnityEngine;
 using YARG.PlayMode;
 using YARG.Serialization;
 using YARG.Settings.Types;
 using YARG.UI;
+using YARG.Venue;
 
 namespace YARG.Settings {
 	public static partial class SettingsManager {
@@ -57,6 +59,21 @@ namespace YARG.Settings {
 			
 			public void OpenSongFolderManager() {
 				GameManager.Instance.SettingsMenu.CurrentTab = "_SongFolderManager";
+			}
+
+			public void OpenVenueFolder() {
+#if UNITY_STANDALONE_WIN
+
+				// Start a file explorer process looking at the save folder
+				Process p = new();
+				p.StartInfo = new ProcessStartInfo("explorer.exe", VenueLoader.VenueFolder);
+				p.Start();
+
+#else
+			
+				GUIUtility.systemCopyBuffer = VenueLoader.VenueFolder;
+
+#endif
 			}
 
 			public void ExportOuvertSongs() {

@@ -220,67 +220,35 @@ namespace YARG.PlayMode {
 		}
 
 		private void LoadBackground() {
-			// Try a yarground first
-
-			string backgroundPath = Path.Combine(Song.Location, "bg.yarground");
-			if (File.Exists(backgroundPath)) {
-				var bundle = AssetBundle.LoadFromFile(backgroundPath);
-
-				// KEEP THIS PATH LOWERCASE
-				// Breaks things for other platforms, because Unity
-				var bg = bundle.LoadAsset<GameObject>("assets/_background.prefab");
-
-				var bgInstance = Instantiate(bg);
-
-				bgInstance.GetComponent<BundleBackgroundManager>().Bundle = bundle;
+			var typePathPair = VenueLoader.GetVenuePath(Song);
+			if (typePathPair == null) {
 				return;
 			}
 
-			// Finally, a picture or video
+			var type = typePathPair.Value.Type;
+			var path = typePathPair.Value.Path;
 
-			string[] fileNames = {
-				"bg",
-				"background",
-				"video"
-			};
+			switch (type) {
+				case VenueType.Yarground:
+					var bundle = AssetBundle.LoadFromFile(path);
 
-			string[] videoExtensions = {
-				".mp4",
-				".mov",
-				".webm",
-			};
+					// KEEP THIS PATH LOWERCASE
+					// Breaks things for other platforms, because Unity
+					var bg = bundle.LoadAsset<GameObject>("assets/_background.prefab");
 
-			foreach (var name in fileNames) {
-				foreach (var ext in videoExtensions) {
-					var path = Path.Combine(Song.Location, name + ext);
+					var bgInstance = Instantiate(bg);
 
-					if (File.Exists(path)) {
-						GameUI.Instance.videoPlayer.url = path;
-						GameUI.Instance.videoPlayer.enabled = true;
-						GameUI.Instance.videoPlayer.Prepare();
-
-						return;
-					}
-				}
-			}
-
-			string[] imageExtensions = {
-				".png",
-				".jpg",
-				".jpeg",
-			};
-
-			foreach (var name in fileNames) {
-				foreach (var ext in imageExtensions) {
-					var path = Path.Combine(Song.Location, name + ext);
-
-					if (File.Exists(path)) {
-						var png = ImageHelper.LoadTextureFromFile(path);
-
-						GameUI.Instance.background.texture = png;
-						return;
-					}
-				}
+					bgInstance.GetComponent<BundleBackgroundManager>().Bundle = bundle;
+					break;
+				case VenueType.Video:
+					GameUI.Instance.videoPlayer.url = path;
+					GameUI.Instance.videoPlayer.enabled = true;
+					GameUI.Instance.videoPlayer.Prepare();
+					break;
+				case VenueType.Image:
+					var png = ImageHelper.LoadTextureFromFile(path);
+					GameUI.Instance.background.texture = png;
+					break;
 			}
 		}
 

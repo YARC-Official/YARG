@@ -147,7 +147,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 12472066134892544
-    m_Localized: Song Management
+    m_Localized: File Management
     m_Metadata:
       m_Items: []
   - m_Id: 12472103388700672
@@ -228,6 +228,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 20387720246714368
     m_Localized: Music Player Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21043134349041664
+    m_Localized: Open Backgrounds/Venue Folder
     m_Metadata:
       m_Items: []
   references:

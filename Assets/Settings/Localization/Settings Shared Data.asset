@@ -15,104 +15,164 @@ MonoBehaviour:
   m_TableCollectionName: Settings
   m_TableCollectionNameGuidString: 0c40e690d26fdff4a92f0b3813ac68a4
   m_Entries:
-  - m_Id: 10570792762204160
-    m_Key: CalibrationNumber
+  - m_Id: 13045026696585216
+    m_Key: AddFolder
     m_Metadata:
       m_Items: []
-  - m_Id: 10637195569651712
-    m_Key: VSync
+  - m_Id: 13085251397345280
+    m_Key: AddUpgradeFolder
     m_Metadata:
       m_Items: []
-  - m_Id: 10637227156955136
-    m_Key: FpsCap
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10637270228262912
-    m_Key: LowQuality
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10637304978071552
-    m_Key: DisableBloom
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10637330240364544
-    m_Key: HighFovCamera
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10637368563720192
-    m_Key: ShowHitWindow
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10637402030071808
-    m_Key: UseCymbalModelsInFiveLane
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10638637965631488
-    m_Key: NoKicks
+  - m_Id: 10639285771689984
+    m_Key: AmIAwesome
     m_Metadata:
       m_Items: []
   - m_Id: 10638647188905984
     m_Key: AntiGhosting
     m_Metadata:
       m_Items: []
-  - m_Id: 10638707146481664
-    m_Key: MasterMusicVolume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10638756366639104
-    m_Key: GuitarVolume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10638786381078528
-    m_Key: RhythmVolume
-    m_Metadata:
-      m_Items: []
   - m_Id: 10638787589038080
     m_Key: BassVolume
     m_Metadata:
       m_Items: []
-  - m_Id: 10638788159463424
-    m_Key: KeysVolume
+  - m_Id: 10570792762204160
+    m_Key: CalibrationNumber
     m_Metadata:
       m_Items: []
-  - m_Id: 10638788599865344
-    m_Key: DrumsVolume
+  - m_Id: 19713037425598464
+    m_Key: CopyCurrentSongJsonFilePath
     m_Metadata:
       m_Items: []
-  - m_Id: 10638841787834368
-    m_Key: VocalsVolume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10638858523107328
-    m_Key: SongVolume
+  - m_Id: 12041263110283264
+    m_Key: CopyCurrentSongTextFilePath
     m_Metadata:
       m_Items: []
   - m_Id: 10638899434348544
     m_Key: CrowdVolume
     m_Metadata:
       m_Items: []
-  - m_Id: 10638910104657920
-    m_Key: SfxVolume
+  - m_Id: 10637304978071552
+    m_Key: DisableBloom
     m_Metadata:
       m_Items: []
-  - m_Id: 10638924633726976
-    m_Key: VocalMonitoring
+  - m_Id: 10638788599865344
+    m_Key: DrumsVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12041203517612032
+    m_Key: ExportOuvertSongs
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10637227156955136
+    m_Key: FpsCap
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16296015277178880
+    m_Key: FpsStats
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638756366639104
+    m_Key: GuitarVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13088551106633728
+    m_Key: Header.Cache
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12836607712681984
+    m_Key: Header.Camera
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12472135823253504
+    m_Key: Header.Framerate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12473817265201152
+    m_Key: Header.Graphics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12472103388700672
+    m_Key: Header.Other
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13084450683740160
+    m_Key: Header.SongFolders
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12472066134892544
+    m_Key: Header.FileManagement
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13084481612537856
+    m_Key: Header.SongUpgrades
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12472159567208448
+    m_Key: Header.Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10637330240364544
+    m_Key: HighFovCamera
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638788159463424
+    m_Key: KeysVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10637270228262912
+    m_Key: LowQuality
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638707146481664
+    m_Key: MasterMusicVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 20387720246714368
+    m_Key: MusicPlayerVolume
     m_Metadata:
       m_Items: []
   - m_Id: 10638943449374720
     m_Key: MuteOnMiss
     m_Metadata:
       m_Items: []
-  - m_Id: 10638955231174656
-    m_Key: UseStarpowerFx
+  - m_Id: 10638637965631488
+    m_Key: NoKicks
     m_Metadata:
       m_Items: []
-  - m_Id: 10638965775654912
-    m_Key: UseChipmunkSpeed
+  - m_Id: 12039401434898432
+    m_Key: OpenSongFolderManager
     m_Metadata:
       m_Items: []
-  - m_Id: 10639285771689984
-    m_Key: AmIAwesome
+  - m_Id: 17867012767817728
+    m_Key: PreviewVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13051785226084352
+    m_Key: RefreshAllCaches
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15356265326043136
+    m_Key: ResetCameraSettings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638786381078528
+    m_Key: RhythmVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638910104657920
+    m_Key: SfxVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10637368563720192
+    m_Key: ShowHitWindow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638858523107328
+    m_Key: SongVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10936750303469568
+    m_Key: Tab.Engine
     m_Metadata:
       m_Items: []
   - m_Id: 10936636654608384
@@ -123,52 +183,16 @@ MonoBehaviour:
     m_Key: Tab.Graphics
     m_Metadata:
       m_Items: []
-  - m_Id: 10936750303469568
-    m_Key: Tab.Engine
-    m_Metadata:
-      m_Items: []
   - m_Id: 10936772512309248
     m_Key: Tab.Sound
     m_Metadata:
       m_Items: []
-  - m_Id: 12039401434898432
-    m_Key: OpenSongFolderManager
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12041203517612032
-    m_Key: ExportOuvertSongs
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12041263110283264
-    m_Key: CopyCurrentSongTextFilePath
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12472066134892544
-    m_Key: Header.SongManagement
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12472103388700672
-    m_Key: Header.Other
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12472135823253504
-    m_Key: Header.Framerate
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12472159567208448
-    m_Key: Header.Volume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12473817265201152
-    m_Key: Header.Graphics
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12836607712681984
-    m_Key: Header.Camera
-    m_Metadata:
-      m_Items: []
   - m_Id: 12836661710151680
     m_Key: TrackCamFOV
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13037094139453440
+    m_Key: TrackCamRot
     m_Metadata:
       m_Items: []
   - m_Id: 12849290851770368
@@ -179,52 +203,32 @@ MonoBehaviour:
     m_Key: TrackCamZPos
     m_Metadata:
       m_Items: []
-  - m_Id: 13037094139453440
-    m_Key: TrackCamRot
+  - m_Id: 10638965775654912
+    m_Key: UseChipmunkSpeed
     m_Metadata:
       m_Items: []
-  - m_Id: 13045026696585216
-    m_Key: AddFolder
+  - m_Id: 10637402030071808
+    m_Key: UseCymbalModelsInFiveLane
     m_Metadata:
       m_Items: []
-  - m_Id: 13051785226084352
-    m_Key: RefreshAllCaches
+  - m_Id: 10638955231174656
+    m_Key: UseStarpowerFx
     m_Metadata:
       m_Items: []
-  - m_Id: 13084450683740160
-    m_Key: Header.SongFolders
+  - m_Id: 10638924633726976
+    m_Key: VocalMonitoring
     m_Metadata:
       m_Items: []
-  - m_Id: 13084481612537856
-    m_Key: Header.SongUpgrades
+  - m_Id: 10638841787834368
+    m_Key: VocalsVolume
     m_Metadata:
       m_Items: []
-  - m_Id: 13085251397345280
-    m_Key: AddUpgradeFolder
+  - m_Id: 10637195569651712
+    m_Key: VSync
     m_Metadata:
       m_Items: []
-  - m_Id: 13088551106633728
-    m_Key: Header.Cache
-    m_Metadata:
-      m_Items: []
-  - m_Id: 15356265326043136
-    m_Key: ResetCameraSettings
-    m_Metadata:
-      m_Items: []
-  - m_Id: 16296015277178880
-    m_Key: FpsStats
-    m_Metadata:
-      m_Items: []
-  - m_Id: 19713037425598464
-    m_Key: CopyCurrentSongJsonFilePath
-    m_Metadata:
-      m_Items: []
-  - m_Id: 17867012767817728
-    m_Key: PreviewVolume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 20387720246714368
-    m_Key: MusicPlayerVolume
+  - m_Id: 21043134349041664
+    m_Key: OpenVenueFolder
     m_Metadata:
       m_Items: []
   m_Metadata:
