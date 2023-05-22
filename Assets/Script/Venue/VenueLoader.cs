@@ -82,6 +82,11 @@ namespace YARG.Venue {
 
 		private static TypePathPair? GetVenuePathFromGlobal() {
 			var filePaths = Directory.GetFiles(VenueFolder);
+
+			if (filePaths.Length == 0) {
+				return null;
+			}
+
 			var path = filePaths[Random.Range(0, filePaths.Length)];
 			var extension = Path.GetExtension(path);
 
