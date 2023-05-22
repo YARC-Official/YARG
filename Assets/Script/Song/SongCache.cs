@@ -12,7 +12,7 @@ namespace YARG.Song {
 		/// <summary>
 		/// The date in which the cache version is based on (and cache revision)
 		/// </summary>
-		private const int CACHE_VERSION = 23_05_18_01;
+		private const int CACHE_VERSION = 23_05_21_01;
 
 		private readonly string _folder;
 		private readonly string _cacheFile;
@@ -85,7 +85,7 @@ namespace YARG.Song {
 				writer.Write((int) SongType.SongIni);
 			} else {
 				if (song is ConSongEntry conEntry) {
-					if (conEntry.MidiFileMemBlockOffsets == null) { // use the midi file offsets array to determine if CON or ExCON
+					if (conEntry.FLMidi == null) { // use the midi file offsets array to determine if CON or ExCON
 						writer.Write((int) SongType.ExtractedRbCon);
 					} else {
 						writer.Write((int) SongType.RbCon);
