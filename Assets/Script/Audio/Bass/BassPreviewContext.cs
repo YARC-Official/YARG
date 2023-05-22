@@ -17,7 +17,7 @@ namespace YARG {
 		private CancellationTokenSource _loadCanceller;
 
 		private bool _loadingPreview;
-		private SongEntry _nextSongToLoad;
+		private SongEntry _songToLoad;
 
 		public BassPreviewContext(IAudioManager manager) {
 			_manager = manager;
@@ -60,7 +60,7 @@ namespace YARG {
 		}
 
 		public async UniTask PlayPreview(SongEntry song) {
-			_nextSongToLoad = song;
+			_songToLoad = song;
 
 			// Skip if preview shouldn't be played
 			if (song == null || Mathf.Approximately(SettingsManager.Settings.PreviewVolume.Data, 0f)) {
@@ -102,26 +102,16 @@ namespace YARG {
 			// Load the song
 			_loadingPreview = true;
 			await UniTask.RunOnThreadPool(() => {
-				if (song is ExtractedConSongEntry conSong) {
+				if (_songToLoad is ExtractedConSongEntry conSong) {
 					_manager.LoadMogg(conSong, false, SongStem.Crowd);
 				} else {
-					_manager.LoadSong(AudioHelpers.GetSupportedStems(song.Location), false, SongStem.Crowd);
+					_manager.LoadSong(AudioHelpers.GetSupportedStems(_songToLoad.Location), false, SongStem.Crowd);
 				}
 			});
 			_loadingPreview = false;
 
 			// Finish here if cancelled
 			if (localCanceller.IsCancellationRequested) {
-				// If another song was requested during the load time, just load that
-				if (_nextSongToLoad != null) {
-					_manager.UnloadSong();
-
-					// The new preview should be un-cancelled
-					_loadCanceller = new CancellationTokenSource();
-
-					await PlayPreview(_nextSongToLoad);
-				}
-
 				return;
 			}
 
@@ -141,8 +131,6 @@ namespace YARG {
 			// Start the audio
 			_manager.FadeIn(SettingsManager.Settings.PreviewVolume.Data);
 			StartLooping().Forget();
-
-			return;
 		}
 
 		public void StopPreview() {
