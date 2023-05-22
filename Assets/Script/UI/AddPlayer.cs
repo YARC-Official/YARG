@@ -23,6 +23,14 @@ namespace YARG.UI {
 			RESOLVE
 		}
 
+		private enum StrategyType {
+			FiveFretGuitar,
+			Vocals,
+			RealGuitar,
+			FourLaneDrums,
+			FiveLaneDrums
+		}
+
 		[Flags]
 		private enum AllowedControl {
 			NONE = 0x00,
@@ -201,21 +209,21 @@ namespace YARG.UI {
 
 			if (selectedMicIndex != InputStrategy.INVALID_MIC_INDEX) {
 				// Set to MIC if the selected device is a MIC
-				inputStrategyDropdown.value = 1;
+				inputStrategyDropdown.value = (int)StrategyType.Vocals;
 				inputStrategyDropdown.interactable = false;
 			} else {
-				inputStrategyDropdown.value = 0;
+				inputStrategyDropdown.value = (int)StrategyType.FiveFretGuitar;
 				inputStrategyDropdown.interactable = true;
 			}
 		}
 
 		public void DoneConfigure() {
-			inputStrategy = inputStrategyDropdown.value switch {
-				0 => new FiveFretInputStrategy(),
-				1 => new MicInputStrategy(),
-				2 => new RealGuitarInputStrategy(),
-				3 => new DrumsInputStrategy(),
-				4 => new GHDrumsInputStrategy(),
+			inputStrategy = (StrategyType)inputStrategyDropdown.value switch {
+				StrategyType.FiveFretGuitar => new FiveFretInputStrategy(),
+				StrategyType.Vocals => new MicInputStrategy(),
+				StrategyType.RealGuitar => new RealGuitarInputStrategy(),
+				StrategyType.FourLaneDrums => new DrumsInputStrategy(),
+				StrategyType.FiveLaneDrums => new GHDrumsInputStrategy(),
 				_ => throw new Exception("Invalid input strategy type!")
 			};
 
