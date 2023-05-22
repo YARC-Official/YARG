@@ -60,7 +60,7 @@ namespace YARG {
 		}
 
 		public async UniTask PlayPreview(SongEntry song) {
-			_nextSongToLoad = null;
+			_nextSongToLoad = song;
 
 			// Skip if preview shouldn't be played
 			if (song == null || Mathf.Approximately(SettingsManager.Settings.PreviewVolume.Data, 0f)) {
@@ -73,8 +73,6 @@ namespace YARG {
 					_loadCanceller.Cancel();
 					_loadCanceller.Dispose();
 				}
-
-				_nextSongToLoad = song;
 				return;
 			}
 
@@ -93,8 +91,8 @@ namespace YARG {
 			_loadCanceller = new CancellationTokenSource();
 			var localCanceller = _loadCanceller;
 
-			// Wait for a 100 milliseconds to prevent spam loading (no one likes Music Library lag)
-			await UniTask.Delay(TimeSpan.FromMilliseconds(150.0), ignoreTimeScale: true);
+			// Wait for a X milliseconds to prevent spam loading (no one likes Music Library lag)
+			await UniTask.Delay(TimeSpan.FromMilliseconds(300.0), ignoreTimeScale: true);
 
 			// Check if cancelled
 			if (localCanceller.IsCancellationRequested) {
