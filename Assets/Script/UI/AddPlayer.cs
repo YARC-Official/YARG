@@ -66,7 +66,8 @@ namespace YARG.UI {
 
 		private State state = State.SELECT_DEVICE;
 
-		private (InputDevice device, int micIndex)? selectedDevice = null;
+		private InputDevice selectedDevice = null;
+		private int selectedMicIndex = InputStrategy.INVALID_MIC_INDEX;
 		private bool botMode = false;
 		private string playerName = null;
 		private InputStrategy inputStrategy = null;
@@ -99,6 +100,7 @@ namespace YARG.UI {
 			playerNameField.text = null;
 
 			selectedDevice = null;
+			selectedMicIndex = InputStrategy.INVALID_MIC_INDEX;
 			botMode = false;
 			inputStrategy = null;
 			playerName = null;
@@ -147,7 +149,8 @@ namespace YARG.UI {
 			var botButton = Instantiate(deviceButtonPrefab, devicesContainer);
 			botButton.GetComponentInChildren<TextMeshProUGUI>().text = "Create a <color=#0c7027><b>BOT</b></color>";
 			botButton.GetComponentInChildren<Button>().onClick.AddListener(() => {
-				selectedDevice = (null, InputStrategy.INVALID_MIC_INDEX);
+				selectedDevice = null;
+				selectedMicIndex = InputStrategy.INVALID_MIC_INDEX;
 				botMode = true;
 				StartConfigure();
 			});
@@ -157,7 +160,8 @@ namespace YARG.UI {
 				var button = Instantiate(deviceButtonPrefab, devicesContainer);
 				button.GetComponentInChildren<TextMeshProUGUI>().text = $"<b>{device.displayName}</b> ({device.deviceId})";
 				button.GetComponentInChildren<Button>().onClick.AddListener(() => {
-					selectedDevice = (device, InputStrategy.INVALID_MIC_INDEX);
+					selectedDevice = device;
+					selectedMicIndex = InputStrategy.INVALID_MIC_INDEX;
 					StartConfigure();
 				});
 			}
@@ -169,7 +173,8 @@ namespace YARG.UI {
 
 				int capture = i;
 				button.GetComponentInChildren<Button>().onClick.AddListener(() => {
-					selectedDevice = (null, capture);
+					selectedDevice = null;
+					selectedMicIndex = capture;
 					StartConfigure();
 				});
 			}
@@ -180,7 +185,7 @@ namespace YARG.UI {
 			configureContainer.SetActive(true);
 			UpdateState(State.CONFIGURE);
 
-			if (selectedDevice?.micIndex != InputStrategy.INVALID_MIC_INDEX) {
+			if (selectedMicIndex != InputStrategy.INVALID_MIC_INDEX) {
 				// Set to MIC if the selected device is a MIC
 				inputStrategyDropdown.value = 1;
 			} else {
@@ -198,11 +203,11 @@ namespace YARG.UI {
 				_ => throw new Exception("Invalid input strategy type!")
 			};
 
-			if (selectedDevice?.device == null) {
+			if (selectedDevice == null) {
 				inputStrategy.InputDevice = null;
-				inputStrategy.microphoneIndex = selectedDevice?.micIndex ?? InputStrategy.INVALID_MIC_INDEX;
+				inputStrategy.microphoneIndex = selectedMicIndex;
 			} else {
-				inputStrategy.InputDevice = selectedDevice?.device;
+				inputStrategy.InputDevice = selectedDevice;
 				inputStrategy.microphoneIndex = InputStrategy.INVALID_MIC_INDEX;
 			}
 
@@ -235,14 +240,13 @@ namespace YARG.UI {
 
 			// Skip in certain conditions
 			if (inputStrategy.Mappings.Count < 1 || botMode ||
-				selectedDevice?.micIndex != InputStrategy.INVALID_MIC_INDEX) {
+				selectedMicIndex != InputStrategy.INVALID_MIC_INDEX) {
 
 				DoneBind();
 				return;
 			}
 
-			var device = selectedDevice?.device;
-			if (device == null) {
+			if (selectedDevice == null) {
 				Debug.LogError("No device selected when binding!");
 				return;
 			}
@@ -297,7 +301,7 @@ namespace YARG.UI {
 				}
 
 				// Ignore if not from the selected device
-				if (eventPtr.deviceId != device.deviceId) {
+				if (eventPtr.deviceId != selectedDevice.deviceId) {
 					// Check if cancelling
 					if (eventPtr.deviceId == Keyboard.current.deviceId) {
 						var esc = Keyboard.current.escapeKey;
@@ -309,7 +313,7 @@ namespace YARG.UI {
 				}
 
 				// Handle cancelling
-				if (device is Keyboard keyboard) {
+				if (selectedDevice is Keyboard keyboard) {
 					var esc = keyboard.escapeKey;
 					if (esc.IsValueConsideredPressed(esc.ReadValueFromEvent(eventPtr))) {
 						CancelBind();
@@ -320,7 +324,7 @@ namespace YARG.UI {
 				// Find all active float-returning controls
 				//       Only controls that have changed | Constantly-changing controls like accelerometers | Non-physical controls like stick up/down/left/right
 				var flags = Enumerate.IgnoreControlsInCurrentState | Enumerate.IncludeNoisyControls | Enumerate.IncludeSyntheticControls;
-				var activeControls = from control in eventPtr.EnumerateControls(flags, device)
+				var activeControls = from control in eventPtr.EnumerateControls(flags, selectedDevice)
 									 where ControlAllowedAndActive(control, eventPtr)
 									 select control as InputControl<float>;
 
