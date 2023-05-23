@@ -34,75 +34,31 @@ namespace YARG.Serialization.Parser {
 				var argument = textEvent.Text[11..^2];
 
 				// Connect midi lighting name to YARG lighting name
-				string eventName = null;
-				switch (argument) {
-					case "":
-						eventName = "venue_light_default";
-						break;
-					case "strobe_fast":
-						eventName = "venue_light_strobeFast";
-						break;
-					case "verse":
-						eventName = "venue_light_verse";
-						break;
-					case "chorus":
-						eventName = "venue_light_chorus";
-						break;
-					case "manual_cool":
-						eventName = "venue_light_manual_cool";
-						break;
-					case "manual_warm":
-						eventName = "venue_light_manual_warm";
-						break;
-					case "dischord":
-						eventName = "venue_light_dischord";
-						break;
-					case "loop_cool":
-						eventName = "venue_light_loop_cool";
-						break;
-					case "silhouettes":
-						eventName = "venue_light_silhouettes";
-						break;
-					case "loop_warm":
-						eventName = "venue_light_loop_warm";
-						break;
-					case "silhouettes_spot":
-						eventName = "venue_light_silhouettes_spot";
-						break;
-					case "frenzy":
-						eventName = "venue_light_frenzy";
-						break;
-					case "blackout_fast":
-						eventName = "venue_light_blackout_fast";
-						break;
-					case "flare_fast":
-						eventName = "venue_light_flare_fast";
-						break;
-					case "searchlights":
-						eventName = "venue_light_searchlights";
-						break;
-					case "flare_slow":
-						eventName = "venue_light_flare_slow";
-						break;
-					case "harmony":
-						eventName = "venue_light_harmony";
-						break;
-					case "sweep":
-						eventName = "venue_light_sweep";
-						break;
-					case "bre":
-						eventName = "venue_light_bre";
-						break;
-					case "strobe_slow":
-						eventName = "venue_light_strobe_slow";
-						break;
-					case "blackout_slow":
-						eventName = "venue_light_blackout_slow";
-						break;
-					case "stomp":
-						eventName = "venue_light_onOffMode";
-						break;
-				}
+				string eventName = argument switch {
+					"" => "venue_light_default",
+					"strobe_fast" => "venue_light_strobeFast",
+					"verse" => "venue_light_verse",
+					"chorus" => "venue_light_chorus",
+					"manual_cool" => "venue_light_manualCool",
+					"manual_warm" => "venue_light_manualWarm",
+					"dischord" => "venue_light_dischord",
+					"loop_cool" => "venue_light_loopCool",
+					"silhouettes" => "venue_light_silhouettes",
+					"loop_warm" => "venue_light_loopWarm",
+					"silhouettes_spot" => "venue_light_silhouettesSpot",
+					"frenzy" => "venue_light_frenzy",
+					"blackout_fast" => "venue_light_blackoutFast",
+					"flare_fast" => "venue_light_flareFast",
+					"searchlights" => "venue_light_searchlights",
+					"flare_slow" => "venue_light_flareSlow",
+					"harmony" => "venue_light_harmony",
+					"sweep" => "venue_light_sweep",
+					"bre" => "venue_light_bre",
+					"strobe_slow" => "venue_light_strobeSlow",
+					"blackout_slow" => "venue_light_blackoutSlow",
+					"stomp" => "venue_light_stomp",
+					_ => null
+				};
 
 				if (eventName == null) {
 					continue;

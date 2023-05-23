@@ -234,7 +234,7 @@ namespace YARG.PlayMode {
 
 					// KEEP THIS PATH LOWERCASE
 					// Breaks things for other platforms, because Unity
-					var bg = bundle.LoadAsset<GameObject>("assets/_background.prefab");
+					var bg = bundle.LoadAsset<GameObject>(BundleBackgroundManager.BackgroundPrefabPath.ToLowerInvariant());
 
 					var bgInstance = Instantiate(bg);
 

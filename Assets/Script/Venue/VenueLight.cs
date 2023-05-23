@@ -12,26 +12,26 @@ namespace YARG.Venue {
 
 	public enum VenueLightAnimation {
 		None = 0,
+		ManualCool,
+		ManualWarm,
+		Dischord,
+		Stomp,
+		LoopCool,
+		LoopWarm,
+		Harmony,
+		Frenzy,
+		Silhouettes,
+		Searchlights,
+		Sweep,
 		StrobeFast,
 		StrobeSlow,
+		BlackoutFast,
+		BlackoutSlow,
+		FlareFast,
+		FlareSlow,
+		BRE,
 		Verse,
 		Chorus,
-		Manual_Cool,
-		Manual_Warm,
-		Dischord,
-		Loop_Cool,
-		Silhouettes,
-		Loop_Warm,
-		Frenzy,
-		Blackout_Fast,
-		Flare_Fast,
-		Searchlights,
-		Flare_Slow,
-		Harmony,
-		Sweep,
-		Bre,
-		Blackout_Slow,
-		Stomp,
 	}
 
 	[RequireComponent(typeof(Light))]
@@ -52,6 +52,13 @@ namespace YARG.Venue {
 			set {
 				ResetToDefault();
 				_animation = value;
+
+				switch (_animation) {
+					case VenueLightAnimation.BlackoutFast:
+					case VenueLightAnimation.BlackoutSlow:
+						SetOn(false);
+						break;
+				}
 			}
 		}
 
@@ -63,34 +70,12 @@ namespace YARG.Venue {
 
 				switch (Animation) {
 					case VenueLightAnimation.Stomp:
-						if (_animationFrame % 2 == 0) {
-							Toggle();
-						}
-						break;
-					case VenueLightAnimation.Flare_Slow:
-						if (_animationFrame % 2 == 0) {
-							Toggle();
-						}
-						break;
+					case VenueLightAnimation.FlareSlow:
 					case VenueLightAnimation.Dischord:
-						if (_animationFrame % 2 == 0) {
-							Toggle();
-						}
-						break;
 					case VenueLightAnimation.Searchlights:
-						if (_animationFrame % 2 == 0) {
-							Toggle();
-						}
-						break;
 					case VenueLightAnimation.Sweep:
-						if (_animationFrame % 2 == 0) {
-							Toggle();
-						}
-						break;
 					case VenueLightAnimation.Silhouettes:
-						if (_animationFrame % 2 == 0) {
-							Toggle();
-						}
+						SetOn(_animationFrame % 2 == 0);
 						break;
 					default:
 						_animationFrame = 0;
@@ -107,47 +92,21 @@ namespace YARG.Venue {
 			_defaultIntensity = _light.intensity;
 		}
 
-		public void On32ndNote() {
-			if (Animation == VenueLightAnimation.StrobeFast) {
-				Toggle();
+		public void On32ndNote(int noteIndex) {
+			switch (Animation) {
+				case VenueLightAnimation.StrobeFast:
+				case VenueLightAnimation.Frenzy:
+				case VenueLightAnimation.FlareFast:
+				case VenueLightAnimation.BRE:
+					Toggle();
+					break;
+				case VenueLightAnimation.StrobeSlow:
+				case VenueLightAnimation.FlareSlow:
+					if (noteIndex % 2 == 1) {
+						Toggle();
+					}
+					break;
 			}
-			if (Animation == VenueLightAnimation.Verse) {
-				ResetToDefault();
-			}
-			if (Animation == VenueLightAnimation.Chorus) {
-				ResetToDefault();
-			}
-			if (Animation == VenueLightAnimation.Manual_Cool) {
-				ResetToDefault();
-			}
-			if (Animation == VenueLightAnimation.Manual_Warm) {
-				ResetToDefault();
-			}
-			if (Animation == VenueLightAnimation.Loop_Cool) {
-				ResetToDefault();
-			}
-			if (Animation == VenueLightAnimation.Loop_Warm) {
-				ResetToDefault();
-			}
-			if (Animation == VenueLightAnimation.Frenzy) {
-				Toggle();
-			}
-			if (Animation == VenueLightAnimation.Blackout_Fast) {
-				Off();
-			}
-			if (Animation == VenueLightAnimation.Flare_Fast) {
-				Toggle();
-			}
-			if (Animation == VenueLightAnimation.Harmony) {
-				ResetToDefault();
-			}
-			if (Animation == VenueLightAnimation.Bre) {
-				Toggle();
-			}
-			if (Animation == VenueLightAnimation.Blackout_Slow) {
-				Off();
-			}
-
 		}
 
 		private void ResetToDefault() {
@@ -158,16 +117,12 @@ namespace YARG.Venue {
 			_light.intensity = _defaultIntensity;
 		}
 
-		private void Off() {
-			_light.intensity = 0f;
+		private void SetOn(bool on) {
+			_light.intensity = on ? _defaultIntensity : 0f;
 		}
 
 		private void Toggle() {
-			if (_light.intensity == 0f) {
-				_light.intensity = _defaultIntensity;
-			} else {
-				_light.intensity = 0f;
-			}
+			SetOn(_light.intensity == 0f);
 		}
 	}
 }
