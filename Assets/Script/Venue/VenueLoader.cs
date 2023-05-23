@@ -83,7 +83,7 @@ namespace YARG.Venue {
 		private static TypePathPair? GetVenuePathFromGlobal() {
 			var filePaths = Directory.GetFiles(VenueFolder);
 
-			if (filePaths.Length == 0) {
+			if (filePaths.Length <= 0) {
 				return null;
 			}
 
