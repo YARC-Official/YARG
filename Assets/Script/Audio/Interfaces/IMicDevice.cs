@@ -2,6 +2,8 @@
 
 namespace YARG {
 	public interface IMicDevice : IDisposable {
+
+		public bool IsMonitoring { get; set; }
 		
 		/// <summary>
 		/// The current pitch of this Microphone Device.
@@ -20,8 +22,6 @@ namespace YARG {
 		/// <returns>0 if successful, otherwise an error code.</returns>
 		public int Initialize(int device);
 
-		public bool StartPlayback();
-		
 		/// <summary>
 		/// Set the monitoring level of this Microphone Device.
 		/// </summary>

@@ -78,7 +78,7 @@ namespace YARG {
 
 			Bass.UpdatePeriod = 5;
 			Bass.DeviceBufferLength = 10;
-			Bass.PlaybackBufferLength = 100;
+			Bass.PlaybackBufferLength = 75;
 			Bass.DeviceNonStop = true;
 
 			Bass.Configure(Configuration.TruePlayPosition, 0);
@@ -96,7 +96,7 @@ namespace YARG {
 				Debug.LogError($"Bass Error: {Bass.LastError}");
 				return;
 			}
-
+			
 			LoadSfx();
 
 			Debug.Log($"BASS Successfully Initialized");
@@ -109,18 +109,30 @@ namespace YARG {
 			Debug.Log($"Playback Buffer Length: {Bass.PlaybackBufferLength}");
 
 			Debug.Log($"Current Device: {Bass.GetDeviceInfo(Bass.CurrentDevice).Name}");
+
+			int deviceIndex = 0;
 			
-			for(int i = 0; i < Bass.RecordingDeviceCount; i++) {
-				if (!Bass.RecordGetDeviceInfo(i, out var info)) continue;
-				
-				if(info.Type != DeviceType.Microphone) continue;
-				
+			while(Bass.RecordGetDeviceInfo(deviceIndex, out var info)) {
+				int device = deviceIndex;
+				deviceIndex++;
+			
+				if (!info.IsEnabled) 
+					continue;
+				if(info.Type != DeviceType.Microphone) 
+					continue;
 				var mic = new BassMicDevice();
-				mic.Initialize(i);
 				
-				Debug.Log($"Initialised mic: {info.Name}");
+				int result = mic.Initialize(device);
+				if (result != 0) {
+					Debug.LogError($"Failed to initialize mic: {info.Name} ({(Errors)result})");
+					continue;
+				}
+				
+				Debug.Log($"Initialized mic: {info.Name}");
 				
 				_micDevices.Add(mic);
+				Debug.Log($"Device {device}: {info.Name}");
+				break;
 			}
 		}
 
