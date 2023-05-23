@@ -17,9 +17,24 @@ namespace YARG.UI {
 	public class AddPlayer : MonoBehaviour {
 		private enum State {
 			SELECT_DEVICE,
+			SELECT_DEVICE_FOR_MIC,
 			CONFIGURE,
 			BIND,
 			RESOLVE
+		}
+
+		private enum StrategyType {
+			FiveFretGuitar,
+			RealGuitar,
+			FourLaneDrums,
+			FiveLaneDrums,
+
+			// IMPORTANT: Vocals must be last in the list (excluding the count),
+			// types following it won't show up or be choosable
+			Vocals,
+
+			// Number of available strategies
+			Count 
 		}
 
 		[Flags]
@@ -66,7 +81,8 @@ namespace YARG.UI {
 
 		private State state = State.SELECT_DEVICE;
 
-		private (InputDevice device, int micIndex)? selectedDevice = null;
+		private InputDevice selectedDevice = null;
+		private int selectedMicIndex = InputStrategy.INVALID_MIC_INDEX;
 		private bool botMode = false;
 		private string playerName = null;
 		private InputStrategy inputStrategy = null;
@@ -99,6 +115,7 @@ namespace YARG.UI {
 			playerNameField.text = null;
 
 			selectedDevice = null;
+			selectedMicIndex = InputStrategy.INVALID_MIC_INDEX;
 			botMode = false;
 			inputStrategy = null;
 			playerName = null;
@@ -113,6 +130,7 @@ namespace YARG.UI {
 			state = newState;
 			subHeader.text = newState switch {
 				State.SELECT_DEVICE => "Step 1 - Select Device",
+				State.SELECT_DEVICE_FOR_MIC => "Step 1, Part 2 - Select Navigation Device",
 				State.CONFIGURE => "Step 2 - Configure",
 				State.BIND => "Step 3 - Bind",
 				State.RESOLVE => "More than one control was detected, please select the correct control from the list below.",
@@ -133,33 +151,48 @@ namespace YARG.UI {
 			}
 		}
 
-		private void StartSelectDevice() {
+		private void StartSelectDevice(bool micSelected = false) {
 			HideAll();
 			selectDeviceContainer.SetActive(true);
-			UpdateState(State.SELECT_DEVICE);
+			UpdateState(micSelected ? State.SELECT_DEVICE_FOR_MIC : State.SELECT_DEVICE);
 
 			// Destroy old devices
 			foreach (Transform t in devicesContainer) {
 				Destroy(t.gameObject);
 			}
 
-			// Add bot button
-			var botButton = Instantiate(deviceButtonPrefab, devicesContainer);
-			botButton.GetComponentInChildren<TextMeshProUGUI>().text = "Create a <color=#0c7027><b>BOT</b></color>";
-			botButton.GetComponentInChildren<Button>().onClick.AddListener(() => {
-				selectedDevice = (null, InputStrategy.INVALID_MIC_INDEX);
-				botMode = true;
-				StartConfigure();
-			});
+			if (!micSelected) {
+				// Add bot button
+				var botButton = Instantiate(deviceButtonPrefab, devicesContainer);
+				botButton.GetComponentInChildren<TextMeshProUGUI>().text = "Create a <color=#0c7027><b>BOT</b></color>";
+				botButton.GetComponentInChildren<Button>().onClick.AddListener(() => {
+					selectedDevice = null;
+					selectedMicIndex = InputStrategy.INVALID_MIC_INDEX;
+					botMode = true;
+					StartConfigure();
+				});
+			} else {
+				// Allow skipping navigation device selection
+				var noneButton = Instantiate(deviceButtonPrefab, devicesContainer);
+				noneButton.GetComponentInChildren<TextMeshProUGUI>().text = "No device";
+				noneButton.GetComponentInChildren<Button>().onClick.AddListener(() => {
+					selectedDevice = null;
+					StartConfigure();
+				});
+			}
 
 			// Add devices
 			foreach (var device in InputSystem.devices) {
 				var button = Instantiate(deviceButtonPrefab, devicesContainer);
 				button.GetComponentInChildren<TextMeshProUGUI>().text = $"<b>{device.displayName}</b> ({device.deviceId})";
 				button.GetComponentInChildren<Button>().onClick.AddListener(() => {
-					selectedDevice = (device, InputStrategy.INVALID_MIC_INDEX);
+					selectedDevice = device;
 					StartConfigure();
 				});
+			}
+
+			if (micSelected) {
+				return;
 			}
 
 			// Add mics
@@ -169,8 +202,8 @@ namespace YARG.UI {
 
 				int capture = i;
 				button.GetComponentInChildren<Button>().onClick.AddListener(() => {
-					selectedDevice = (null, capture);
-					StartConfigure();
+					selectedMicIndex = capture;
+					StartSelectDevice(micSelected: true);
 				});
 			}
 		}
@@ -180,32 +213,43 @@ namespace YARG.UI {
 			configureContainer.SetActive(true);
 			UpdateState(State.CONFIGURE);
 
-			if (selectedDevice?.micIndex != InputStrategy.INVALID_MIC_INDEX) {
-				// Set to MIC if the selected device is a MIC
-				inputStrategyDropdown.value = 1;
-			} else {
-				inputStrategyDropdown.value = 0;
+			bool micSelected = selectedMicIndex != InputStrategy.INVALID_MIC_INDEX;
+			var options = new List<string>();
+			for (StrategyType strategy = 0; strategy < StrategyType.Count; strategy++)
+			{
+				// Don't display microphone as an option if no mic was selected and we're not in bot mode
+				if (!micSelected && !botMode && strategy == StrategyType.Vocals)
+					break;
+
+				string text = strategy switch {
+					StrategyType.FiveFretGuitar => "Five Fret Guitar",
+					StrategyType.RealGuitar => "Pro Guitar",
+					StrategyType.FourLaneDrums => "Drums (Standard)",
+					StrategyType.FiveLaneDrums => "Drums (5-lane)",
+					StrategyType.Vocals => "Microphone",
+					_ => throw new Exception("Invalid input strategy type!")
+				};
+				options.Add(text);
 			}
+			inputStrategyDropdown.ClearOptions();
+			inputStrategyDropdown.AddOptions(options);
+
+			inputStrategyDropdown.value = (int)(micSelected ? StrategyType.Vocals : StrategyType.FiveFretGuitar);
+			inputStrategyDropdown.interactable = !micSelected;
 		}
 
 		public void DoneConfigure() {
-			inputStrategy = inputStrategyDropdown.value switch {
-				0 => new FiveFretInputStrategy(),
-				1 => new MicInputStrategy(),
-				2 => new RealGuitarInputStrategy(),
-				3 => new DrumsInputStrategy(),
-				4 => new GHDrumsInputStrategy(),
+			inputStrategy = (StrategyType)inputStrategyDropdown.value switch {
+				StrategyType.FiveFretGuitar => new FiveFretInputStrategy(),
+				StrategyType.RealGuitar => new RealGuitarInputStrategy(),
+				StrategyType.FourLaneDrums => new DrumsInputStrategy(),
+				StrategyType.FiveLaneDrums => new GHDrumsInputStrategy(),
+				StrategyType.Vocals => new MicInputStrategy(),
 				_ => throw new Exception("Invalid input strategy type!")
 			};
 
-			if (selectedDevice?.device == null) {
-				inputStrategy.InputDevice = null;
-				inputStrategy.microphoneIndex = selectedDevice?.micIndex ?? InputStrategy.INVALID_MIC_INDEX;
-			} else {
-				inputStrategy.InputDevice = selectedDevice?.device;
-				inputStrategy.microphoneIndex = InputStrategy.INVALID_MIC_INDEX;
-			}
-
+			inputStrategy.InputDevice = selectedDevice;
+			inputStrategy.microphoneIndex = selectedMicIndex;
 			inputStrategy.botMode = botMode;
 
 			playerName = playerNameField.text;
@@ -233,17 +277,9 @@ namespace YARG.UI {
 				})
 			}, true));
 
-			// Skip in certain conditions
-			if (inputStrategy.Mappings.Count < 1 || botMode ||
-				selectedDevice?.micIndex != InputStrategy.INVALID_MIC_INDEX) {
-
+			// Skip if binding is not needed
+			if (inputStrategy.Mappings.Count < 1 || botMode || selectedDevice == null) {
 				DoneBind();
-				return;
-			}
-
-			var device = selectedDevice?.device;
-			if (device == null) {
-				Debug.LogError("No device selected when binding!");
 				return;
 			}
 
@@ -297,7 +333,7 @@ namespace YARG.UI {
 				}
 
 				// Ignore if not from the selected device
-				if (eventPtr.deviceId != device.deviceId) {
+				if (eventPtr.deviceId != selectedDevice.deviceId) {
 					// Check if cancelling
 					if (eventPtr.deviceId == Keyboard.current.deviceId) {
 						var esc = Keyboard.current.escapeKey;
@@ -309,7 +345,7 @@ namespace YARG.UI {
 				}
 
 				// Handle cancelling
-				if (device is Keyboard keyboard) {
+				if (selectedDevice is Keyboard keyboard) {
 					var esc = keyboard.escapeKey;
 					if (esc.IsValueConsideredPressed(esc.ReadValueFromEvent(eventPtr))) {
 						CancelBind();
@@ -320,7 +356,7 @@ namespace YARG.UI {
 				// Find all active float-returning controls
 				//       Only controls that have changed | Constantly-changing controls like accelerometers | Non-physical controls like stick up/down/left/right
 				var flags = Enumerate.IgnoreControlsInCurrentState | Enumerate.IncludeNoisyControls | Enumerate.IncludeSyntheticControls;
-				var activeControls = from control in eventPtr.EnumerateControls(flags, device)
+				var activeControls = from control in eventPtr.EnumerateControls(flags, selectedDevice)
 									 where ControlAllowedAndActive(control, eventPtr)
 									 select control as InputControl<float>;
 

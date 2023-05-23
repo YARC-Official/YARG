@@ -7,6 +7,8 @@ using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
 using UnityEngine;
+using XboxSTFS;
+using static XboxSTFS.XboxSTFSParser;
 using YARG.Chart;
 using YARG.Data;
 using YARG.DiffDownsample;
@@ -28,9 +30,7 @@ namespace YARG.Serialization.Parser {
 			// get base midi - read it in latin1 if RB, UTF-8 if clon
 			if (songEntry.SongType == SongType.RbCon) {
 				var conSong = (ConSongEntry) songEntry;
-				using var stream = new MemoryStream(XboxCONInnerFileRetriever.RetrieveFile(
-					conSong.Location, conSong.MidiFileSize, conSong.MidiFileMemBlockOffsets
-				));
+				using var stream = new MemoryStream(XboxSTFSParser.GetFile(conSong.Location, conSong.FLMidi));
 				midi = MidiFile.Read(stream, new ReadingSettings() { TextEncoding = Encoding.GetEncoding("iso-8859-1") });
 			} else if (songEntry.SongType == SongType.ExtractedRbCon) {
 				midi = MidiFile.Read(files[0], new ReadingSettings() { TextEncoding = Encoding.GetEncoding("iso-8859-1") });
@@ -239,6 +239,9 @@ namespace YARG.Serialization.Parser {
 								break;
 							case "BEAT":
 								ParseBeats(eventIR, trackChunk);
+								break;
+							case "VENUE":
+								ParseVenue(eventIR, trackChunk);
 								break;
 						}
 					} catch (Exception e) {

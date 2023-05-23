@@ -9,7 +9,9 @@ namespace YARG.Input {
 	public sealed class MicInputStrategy : InputStrategy {
 		public const string CONFIRM = "confirm";
 		public const string BACK = "back";
-		public const string MENU_ACTION = "menu_action";
+		public const string MENU_ACTION_1 = "menu_action_1";
+		public const string MENU_ACTION_2 = "menu_action_2";
+		public const string MENU_ACTION_3 = "menu_action_3";
 
 		public const string PAUSE = "pause";
 		public const string UP = "up";
@@ -59,19 +61,20 @@ namespace YARG.Input {
 		protected override Dictionary<string, ControlBinding> GetMappings() => new() {
 			{ CONFIRM,       new(BindingType.BUTTON, "Confirm/Select (Green)", CONFIRM) },
 			{ BACK,          new(BindingType.BUTTON, "Back (Red)", BACK) },
-			{ MENU_ACTION,     new(BindingType.BUTTON, "Menu Action (Yellow)", MENU_ACTION) },
+			{ MENU_ACTION_1, new(BindingType.BUTTON, "Menu Action 1 (Yellow)", MENU_ACTION_1) },
+			{ MENU_ACTION_2, new(BindingType.BUTTON, "Menu Action 2 (Blue)", MENU_ACTION_2) },
+			{ MENU_ACTION_3, new(BindingType.BUTTON, "Menu Action 3 (Orange)", MENU_ACTION_3) },
 
 			{ PAUSE,         new(BindingType.BUTTON, "Pause", PAUSE) },
 			{ UP,            new(BindingType.BUTTON, "Navigate Up", UP) },
 			{ DOWN,          new(BindingType.BUTTON, "Navigate Down", DOWN) },
 		};
 
+		protected override void UpdatePlayerMode() { }
+
 		protected override void OnUpdate() {
 			base.OnUpdate();
-			UpdatePlayerMode();
-		}
 
-		protected override void UpdatePlayerMode() {
 			if (microphoneIndex == INVALID_MIC_INDEX) {
 				return;
 			}
@@ -278,7 +281,9 @@ namespace YARG.Input {
 			NavigationEventForMapping(MenuAction.Confirm, CONFIRM);
 			NavigationEventForMapping(MenuAction.Back, BACK);
 
-			NavigationEventForMapping(MenuAction.Shortcut1, MENU_ACTION);
+			NavigationEventForMapping(MenuAction.Shortcut1, MENU_ACTION_1);
+			NavigationEventForMapping(MenuAction.Shortcut2, MENU_ACTION_2);
+			NavigationEventForMapping(MenuAction.Shortcut3, MENU_ACTION_3);
 
 			NavigationEventForMapping(MenuAction.Up, UP);
 			NavigationEventForMapping(MenuAction.Down, DOWN);

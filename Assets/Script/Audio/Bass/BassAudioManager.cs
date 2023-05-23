@@ -6,6 +6,8 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using ManagedBass;
 using UnityEngine;
+using XboxSTFS;
+using static XboxSTFS.XboxSTFSParser;
 using YARG.Serialization;
 using YARG.Song;
 using Debug = UnityEngine.Debug;
@@ -222,8 +224,7 @@ namespace YARG {
 			byte[] moggArray;
 			if (exConSong is ConSongEntry conSong) {
 				if (!conSong.UsingUpdateMogg)
-					moggArray = XboxCONInnerFileRetriever.RetrieveFile(conSong.Location,
-						conSong.MoggFileSize, conSong.MoggFileMemBlockOffsets)[conSong.MoggAddressAudioOffset..];
+					moggArray = XboxSTFSParser.GetFile(conSong.Location, conSong.FLMogg)[conSong.MoggAddressAudioOffset..];
 				else moggArray = File.ReadAllBytes(conSong.MoggPath)[conSong.MoggAddressAudioOffset..];
 			} else {
 				moggArray = File.ReadAllBytes(exConSong.MoggPath)[exConSong.MoggAddressAudioOffset..];

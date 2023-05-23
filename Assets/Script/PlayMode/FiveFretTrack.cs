@@ -188,12 +188,14 @@ namespace YARG.PlayMode {
 		private void UpdateInput() {
 			// Only want to decrease strum leniency on frames where we didn't strum
 			bool strummedCurrentNote = false;
+			bool strumLeniencyEnded = false;
 			if (strumLeniency > 0f && !strummed) {
 				strumLeniency -= Time.deltaTime;
 
 				if (strumLeniency <= 0f) {
-					UpdateOverstrums();
+					//UpdateOverstrums();
 					strumLeniency = 0f;
+					strumLeniencyEnded = true;
 				} else {
 					RemoveOldAllowedOverstrums();
 					if (IsOverstrumForgiven()) { // Consume allowed overstrum as soon as it's "hit"
@@ -222,6 +224,9 @@ namespace YARG.PlayMode {
 			}
 
 			if (expectedHits.Count <= 0) {
+				if (strumLeniencyEnded) {
+					UpdateOverstrums();
+				}
 				return;
 			}
 
@@ -252,7 +257,8 @@ namespace YARG.PlayMode {
 
 			// If strumming to recover combo, skip to first valid note within the timing window.
 			// This will make it easier to recover.
-			if ((strummed || strumLeniency > 0f) && !ChordPressed(chord)) {
+			bool recoveryStrum = Combo > 0 ? strumLeniencyEnded : (strummed || strumLeniency > 0f);
+			if (recoveryStrum && !ChordPressed(chord)) {
 				RemoveOldAllowedOverstrums();
 				var overstrumForgiven = IsOverstrumForgiven(false); // Do NOT consume allowed overstrums; this is done in other parts of the code
 
@@ -271,6 +277,7 @@ namespace YARG.PlayMode {
 
 					// If found...
 					if (found) {
+						strumLeniencyEnded = false;
 						// Miss all notes previous to the strummed note
 						while (expectedHits.Peek() != chord) {
 							var missedChord = expectedHits.Dequeue();
@@ -285,6 +292,9 @@ namespace YARG.PlayMode {
 						missedAnyNote = true;
 					}
 				}
+			}
+			if (strumLeniencyEnded) { // Strum leniency ended, and suitable strummable note wasn't found; overstrum
+				UpdateOverstrums();
 			}
 			// If tapping to recover combo during tap note section, skip to first valid note within the timing window.
 			// This will make it easier to recover.

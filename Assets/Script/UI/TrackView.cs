@@ -4,11 +4,14 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.PlayMode;
+using YARG.Settings;
 
 namespace YARG.UI {
 	public class TrackView : MonoBehaviour {
 		[field: SerializeField]
 		public RawImage TrackImage { get; private set; }
+		[SerializeField]
+		private AspectRatioFitter _aspectRatioFitter;
 
 		[Space]
 		[SerializeField]
@@ -36,6 +39,7 @@ namespace YARG.UI {
 
 		private void Start() {
 			_performanceTextSizer = new(24f, 3f);
+			_aspectRatioFitter.aspectRatio = (float) Screen.width / Screen.height;
 		}
 
 		public void UpdateSizing(int trackCount) {
@@ -89,6 +93,10 @@ namespace YARG.UI {
 		}
 
 		public void ShowPerformanceText(string text) {
+			if (SettingsManager.Settings.DisableTextNotifications.Data) {
+				return;
+			}
+
 			StopCoroutine("SizePerformanceText");
 			StartCoroutine(SizePerformanceText(text));
 		}

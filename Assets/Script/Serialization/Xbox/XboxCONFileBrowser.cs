@@ -6,6 +6,7 @@ using DtxCS;
 using DtxCS.DataTypes;
 using UnityEngine;
 using XboxSTFS;
+using static XboxSTFS.XboxSTFSParser;
 using YARG.Song;
 
 namespace YARG.Serialization {
@@ -15,12 +16,11 @@ namespace YARG.Serialization {
 				Dictionary<SongProUpgrade, DataArray> upgrade_dict){
 			var songList = new List<ConSongEntry>();
 			var dtaTree = new DataArray();
-
-			STFS theCON = new STFS(conName);
+			var CONFileListings = XboxSTFSParser.GetCONFileListings(conName);
 
 			// Attempt to read upgrades.dta, if it exists
-			if(theCON.GetFileSize(Path.Combine("songs_upgrades", "upgrades.dta")) > 0){
-				var dtaUpgradeTree = DTX.FromPlainTextBytes(theCON.GetFile(Path.Combine("songs_upgrades", "upgrades.dta")));
+			if(CONFileListings.TryGetValue(Path.Combine("songs_upgrades", "upgrades.dta"), out var UpgradeFL)){
+				var dtaUpgradeTree = DTX.FromPlainTextBytes(XboxSTFSParser.GetFile(conName, UpgradeFL));
 
 				// Read each shortname the dta file lists
 				for (int i = 0; i < dtaUpgradeTree.Count; i++) {
@@ -30,8 +30,7 @@ namespace YARG.Serialization {
 						upgr.ShortName = currentArray.Name;
 						upgr.UpgradeMidiPath = Path.Combine("songs_upgrades", $"{currentArray.Name}_plus.mid");
 						upgr.CONFilePath = conName;
-						upgr.UpgradeMidiFileSize = theCON.GetFileSize(upgr.UpgradeMidiPath);
-						upgr.UpgradeMidiFileMemBlockOffsets = theCON.GetMemOffsets(upgr.UpgradeMidiPath);
+						upgr.UpgradeFL = UpgradeFL;
 						upgrade_dict.Add(upgr, currentArray);
 					} catch (Exception e) {
 						Debug.Log($"Failed to get upgrade, skipping...");
@@ -42,7 +41,7 @@ namespace YARG.Serialization {
 
 			// Attempt to read songs.dta
 			try {
-				dtaTree = DTX.FromPlainTextBytes(theCON.GetFile(Path.Combine("songs", "songs.dta")));
+				dtaTree = DTX.FromPlainTextBytes(XboxSTFSParser.GetFile(conName, CONFileListings[Path.Combine("songs", "songs.dta")]));
 			} catch (Exception e) {
 				Debug.LogError($"Failed to parse songs.dta for `{conName}`.");
 				Debug.LogException(e);
@@ -81,8 +80,7 @@ namespace YARG.Serialization {
 					
 					// capture base midi, and if an update midi was provided, capture that as well
 					currentSong.NotesFile = Path.Combine("songs", currentSong.Location, $"{currentSong.Location}.mid");
-					currentSong.MidiFileSize = theCON.GetFileSize(currentSong.NotesFile);
-					currentSong.MidiFileMemBlockOffsets = theCON.GetMemOffsets(currentSong.NotesFile);
+					currentSong.FLMidi = CONFileListings[currentSong.NotesFile];
 					if(songCanBeUpdated && currentSong.DiscUpdate){
 						string updateMidiPath = Path.Combine(update_folder, currentSong.ShortName, $"{currentSong.ShortName}_update.mid");
 						if(File.Exists(updateMidiPath)) currentSong.UpdateMidiPath = updateMidiPath;
@@ -102,16 +100,13 @@ namespace YARG.Serialization {
 					}
 					if(!currentSong.UsingUpdateMogg){
 						currentSong.MoggPath = Path.Combine("songs", currentSong.Location, $"{currentSong.Location}.mogg");
-						currentSong.MoggFileSize = theCON.GetFileSize(currentSong.MoggPath);
-						currentSong.MoggFileMemBlockOffsets = theCON.GetMemOffsets(currentSong.MoggPath);
+						currentSong.FLMogg = CONFileListings[currentSong.MoggPath];
 					}
 					
 					// capture base image (if one was provided), OR if update image was found, capture that instead
 					string imgPath = Path.Combine("songs", currentSong.Location, "gen", $"{currentSong.Location}_keep.png_xbox");
-					currentSong.ImageFileSize = theCON.GetFileSize(imgPath);
-					currentSong.ImageFileMemBlockOffsets = theCON.GetMemOffsets(imgPath);
-					if(currentSong.HasAlbumArt && currentSong.ImageFileSize > 0 && currentSong.ImageFileMemBlockOffsets != null)
-						currentSong.ImagePath = imgPath;
+					if(CONFileListings.TryGetValue(imgPath, out var imgVal)) currentSong.FLImg = imgVal;
+					if(currentSong.HasAlbumArt && imgVal != null) currentSong.ImagePath = imgPath;
 					if(songCanBeUpdated){
 						string imgUpdatePath = Path.Combine(update_folder, currentSong.ShortName, "gen", $"{currentSong.ShortName}_keep.png_xbox");
 						if(currentSong.HasAlbumArt && currentSong.AlternatePath){
@@ -125,13 +120,11 @@ namespace YARG.Serialization {
 					
 					// Parse the mogg
 					if(!currentSong.UsingUpdateMogg){
-						using var fs = new FileStream(conName, FileMode.Open, FileAccess.Read);
-						using var br = new BinaryReader(fs);
-						fs.Seek(currentSong.MoggFileMemBlockOffsets[0], SeekOrigin.Begin);
+						var MoggBytes = XboxSTFSParser.GetMoggHeader(conName, currentSong.FLMogg);
 
-						currentSong.MoggHeader = br.ReadInt32();
-						currentSong.MoggAddressAudioOffset = br.ReadInt32();
-						currentSong.MoggAudioLength = currentSong.MoggFileSize - currentSong.MoggAddressAudioOffset;
+						currentSong.MoggHeader = BitConverter.ToInt32(MoggBytes, 0);
+						currentSong.MoggAddressAudioOffset = BitConverter.ToInt32(MoggBytes, 4);
+						currentSong.MoggAudioLength = currentSong.FLMogg.size - currentSong.MoggAddressAudioOffset;
 					}
 					else{
 						using var fs = new FileStream(currentSong.MoggPath, FileMode.Open, FileAccess.Read);

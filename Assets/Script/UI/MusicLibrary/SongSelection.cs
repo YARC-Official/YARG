@@ -1,4 +1,6 @@
 using System;
+using System.Text;
+using System.Globalization;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
@@ -6,6 +8,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using YARG.Data;
 using YARG.Input;
 using YARG.Song;
 using YARG.UI.MusicLibrary.ViewTypes;
@@ -77,6 +80,7 @@ namespace YARG.UI.MusicLibrary {
 
 		private List<SongView> _songViews = new();
 		private float _scrollTimer = 0f;
+		private bool searchBoxShouldBeEnabled = false;
 
 		private void Awake() {
 			refreshFlag = true;
@@ -127,6 +131,8 @@ namespace YARG.UI.MusicLibrary {
 				refreshFlag = false;
 			}
 
+			searchBoxShouldBeEnabled = true;
+
 			// Play preview on enter for selected song
 			if (_songs[SelectedIndex] is SongViewType song) {
 				GameManager.AudioManager.PreviewContext.PlayPreview(song.SongEntry);
@@ -160,6 +166,15 @@ namespace YARG.UI.MusicLibrary {
 				}
 			} else {
 				_scrollTimer -= Time.deltaTime;
+			}
+
+			if (Keyboard.current.escapeKey.wasPressedThisFrame) {
+				ClearSearchBox();
+			}
+
+			if (searchBoxShouldBeEnabled) {
+				searchField.ActivateInputField();
+				searchBoxShouldBeEnabled = false;
 			}
 		}
 
@@ -228,7 +243,7 @@ namespace YARG.UI.MusicLibrary {
 						// Artist filter
 						var artist = arg[7..];
 						songsOut = SongContainer.Songs
-							.Where(i => i.Artist?.ToLower() == artist.ToLower());
+							.Where(i => RemoveDiacritics(i.Artist).Contains(RemoveDiacritics(artist)));
 					} else if (arg.StartsWith("source:")) {
 						// Source filter
 						var source = arg[7..];
@@ -238,7 +253,7 @@ namespace YARG.UI.MusicLibrary {
 						// Album filter
 						var album = arg[6..];
 						songsOut = SongContainer.Songs
-							.Where(i => i.Album?.ToLower() == album.ToLower());
+							.Where(i => RemoveDiacritics(i.Album).Contains(RemoveDiacritics(album)));
 					} else if (arg.StartsWith("charter:")) {
 						// Charter filter
 						var charter = arg[8..];
@@ -254,6 +269,16 @@ namespace YARG.UI.MusicLibrary {
 						var genre = arg[6..];
 						songsOut = SongContainer.Songs
 							.Where(i => i.Genre?.ToLower() == genre.ToLower());
+					} else if (arg.StartsWith("instrument:")) {
+						// Instrument filter
+						var instrument = arg[11..];
+						if (instrument == "band") {
+							songsOut = SongContainer.Songs
+								.Where(i => i.BandDifficulty >= 0);
+						} else {
+							songsOut = SongContainer.Songs
+								.Where(i => i.HasInstrument(InstrumentHelper.FromStringName(instrument)));
+						}
 					} else if (!searched) {
 						// Search
 						searched = true;
@@ -309,12 +334,33 @@ namespace YARG.UI.MusicLibrary {
 			UpdateScrollbar();
 		}
 
-		private int Search(string input, SongEntry songInfo) {
-			string i = input.ToLowerInvariant();
+		private static string RemoveDiacritics(string text) {
+			var normalizedString = text?.ToLowerInvariant().Normalize(NormalizationForm.FormD);
+			var stringBuilder = new StringBuilder(capacity: normalizedString.Length);
 
-			// Get scores
-			int nameIndex = songInfo.NameNoParenthesis.ToLowerInvariant().IndexOf(i);
-			int artistIndex = songInfo.Artist.ToLowerInvariant().IndexOf(i, StringComparison.Ordinal);
+			for (int i = 0; i < normalizedString.Length; i++) {
+				char c = normalizedString[i];
+				var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
+				if (unicodeCategory != UnicodeCategory.NonSpacingMark) {
+					stringBuilder.Append(c);
+				}
+			}
+
+			return stringBuilder
+				.ToString()
+				.Normalize(NormalizationForm.FormC);
+		}
+
+		private int Search(string input, SongEntry songInfo) {
+			string normalizedInput = RemoveDiacritics(input);
+
+			// Get name index
+			string name = songInfo.NameNoParenthesis;
+			int nameIndex = RemoveDiacritics(name).IndexOf(normalizedInput);
+
+			// Get artist index
+			string artist = songInfo.Artist;
+			int artistIndex = RemoveDiacritics(artist).IndexOf(normalizedInput, StringComparison.Ordinal);
 
 			// Return the best search
 			if (nameIndex == -1 && artistIndex == -1) {
@@ -396,9 +442,14 @@ namespace YARG.UI.MusicLibrary {
 			if (string.IsNullOrEmpty(searchField.text)) {
 				MainMenu.Instance.ShowMainMenu();
 			} else {
-				searchField.text = "";
+				ClearSearchBox();
 				UpdateSearch();
 			}
+		}
+
+		private void ClearSearchBox() {
+			searchField.text = "";
+			searchField.ActivateInputField();
 		}
 	}
 }
