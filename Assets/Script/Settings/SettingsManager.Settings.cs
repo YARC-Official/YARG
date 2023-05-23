@@ -17,6 +17,8 @@ namespace YARG.Settings {
 			public List<string>  SongUpgradeFolders                               = new();
 			
 			public IntSetting    CalibrationNumber          { get; private set; } = new(-120);
+
+			public ToggleSetting DisablePerSongBackgrounds  { get; private set; } = new(false);
 			
 			public ToggleSetting VSync                      { get; private set; } = new(true,      VSyncCallback);
 			public ToggleSetting FpsStats                   { get; private set; } = new(false,     FpsCouterCallback);
@@ -52,6 +54,8 @@ namespace YARG.Settings {
 			public SliderSetting TrackCamYPos               { get; private set; } = new(2.66f,  0f,  4f,   CameraPosChange);
 			public SliderSetting TrackCamZPos               { get; private set; } = new(1.14f,  0f,  12f,  CameraPosChange);
 			public SliderSetting TrackCamRot                { get; private set; } = new(24.12f, 0f,  180f, CameraPosChange);
+
+			public ToggleSetting DisableTextNotifications   { get; private set; } = new(false);
 			
 			public ToggleSetting AmIAwesome                 { get; private set; } = new(false);
 

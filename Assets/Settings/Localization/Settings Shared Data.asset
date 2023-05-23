@@ -231,6 +231,18 @@ MonoBehaviour:
     m_Key: OpenVenueFolder
     m_Metadata:
       m_Items: []
+  - m_Id: 21443095007977472
+    m_Key: Header.Venues
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21443167489744896
+    m_Key: DisablePerSongBackgrounds
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21446097060093952
+    m_Key: DisableTextNotifications
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

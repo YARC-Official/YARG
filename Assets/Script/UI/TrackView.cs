@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.PlayMode;
+using YARG.Settings;
 
 namespace YARG.UI {
 	public class TrackView : MonoBehaviour {
@@ -92,6 +93,10 @@ namespace YARG.UI {
 		}
 
 		public void ShowPerformanceText(string text) {
+			if (SettingsManager.Settings.DisableTextNotifications.Data) {
+				return;
+			}
+
 			StopCoroutine("SizePerformanceText");
 			StartCoroutine(SizePerformanceText(text));
 		}

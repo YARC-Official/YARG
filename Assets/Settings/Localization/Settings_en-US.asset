@@ -234,6 +234,18 @@ MonoBehaviour:
     m_Localized: Open Backgrounds/Venue Folder
     m_Metadata:
       m_Items: []
+  - m_Id: 21443095007977472
+    m_Localized: Venues/Backgrounds
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21443167489744896
+    m_Localized: Disable Per Song Backgrounds
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21446097060093952
+    m_Localized: Disable Text Notifications
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

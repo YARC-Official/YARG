@@ -24,10 +24,12 @@ namespace YARG.Settings {
 				settings = {
 					new HeaderMetadata("FileManagement"),
 					new ButtonRowMetadata("OpenSongFolderManager"),
-					new ButtonRowMetadata("OpenVenueFolder"),
 					new ButtonRowMetadata("ExportOuvertSongs"),
 					new ButtonRowMetadata("CopyCurrentSongTextFilePath"),
 					new ButtonRowMetadata("CopyCurrentSongJsonFilePath"),
+					new HeaderMetadata("Venues"),
+					new ButtonRowMetadata("OpenVenueFolder"),
+					"DisablePerSongBackgrounds",
 					new HeaderMetadata("Other"),
 					"CalibrationNumber",
 					"ShowHitWindow",
@@ -81,6 +83,8 @@ namespace YARG.Settings {
 					"TrackCamYPos",
 					"TrackCamZPos",
 					"TrackCamRot",
+					new HeaderMetadata("Other"),
+					"DisableTextNotifications"
 				}
 			},
 			new() {

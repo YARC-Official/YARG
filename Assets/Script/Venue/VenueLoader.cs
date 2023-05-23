@@ -1,5 +1,6 @@
 using System.IO;
 using UnityEngine;
+using YARG.Settings;
 using YARG.Song;
 
 namespace YARG.Venue {
@@ -29,6 +30,11 @@ namespace YARG.Venue {
 		}
 
 		public static TypePathPair? GetVenuePath(SongEntry song) {
+			// If local backgrounds are disabled, skip right to global
+			if (SettingsManager.Settings.DisablePerSongBackgrounds.Data) {
+				return GetVenuePathFromGlobal();
+			}
+
 			// Try a local yarground first
 
 			string backgroundPath = Path.Combine(song.Location, "bg.yarground");
