@@ -14,6 +14,23 @@ namespace YARG.Venue {
 		None = 0,
 		StrobeFast,
 		StrobeSlow,
+		Verse,
+		Chorus,
+		Manual_Cool,
+		Manual_Warm,
+		Dischord,
+		Loop_Cool,
+		Silhouettes,
+		Loop_Warm,
+		Frenzy,
+		Blackout_Fast,
+		Flare_Fast,
+		Searchlights,
+		Flare_Slow,
+		Harmony,
+		Sweep,
+		Bre,
+		Blackout_Slow,
 		Stomp,
 	}
 
@@ -50,6 +67,31 @@ namespace YARG.Venue {
 							Toggle();
 						}
 						break;
+					case VenueLightAnimation.Flare_Slow:
+						if (_animationFrame % 2 == 0) {
+							Toggle();
+						}
+						break;
+					case VenueLightAnimation.Dischord:
+						if (_animationFrame % 2 == 0) {
+							Toggle();
+						}
+						break;
+					case VenueLightAnimation.Searchlights:
+						if (_animationFrame % 2 == 0) {
+							Toggle();
+						}
+						break;
+					case VenueLightAnimation.Sweep:
+						if (_animationFrame % 2 == 0) {
+							Toggle();
+						}
+						break;
+					case VenueLightAnimation.Silhouettes:
+						if (_animationFrame % 2 == 0) {
+							Toggle();
+						}
+						break;
 					default:
 						_animationFrame = 0;
 						break;
@@ -69,6 +111,43 @@ namespace YARG.Venue {
 			if (Animation == VenueLightAnimation.StrobeFast) {
 				Toggle();
 			}
+			if (Animation == VenueLightAnimation.Verse) {
+				ResetToDefault();
+			}
+			if (Animation == VenueLightAnimation.Chorus) {
+				ResetToDefault();
+			}
+			if (Animation == VenueLightAnimation.Manual_Cool) {
+				ResetToDefault();
+			}
+			if (Animation == VenueLightAnimation.Manual_Warm) {
+				ResetToDefault();
+			}
+			if (Animation == VenueLightAnimation.Loop_Cool) {
+				ResetToDefault();
+			}
+			if (Animation == VenueLightAnimation.Loop_Warm) {
+				ResetToDefault();
+			}
+			if (Animation == VenueLightAnimation.Frenzy) {
+				Toggle();
+			}
+			if (Animation == VenueLightAnimation.Blackout_Fast) {
+				Off();
+			}
+			if (Animation == VenueLightAnimation.Flare_Fast) {
+				Toggle();
+			}
+			if (Animation == VenueLightAnimation.Harmony) {
+				ResetToDefault();
+			}
+			if (Animation == VenueLightAnimation.Bre) {
+				Toggle();
+			}
+			if (Animation == VenueLightAnimation.Blackout_Slow) {
+				Off();
+			}
+
 		}
 
 		private void ResetToDefault() {
@@ -77,6 +156,10 @@ namespace YARG.Venue {
 			transform.rotation = _defaultRotation;
 			_light.color = _defaultColor;
 			_light.intensity = _defaultIntensity;
+		}
+
+		private void Off() {
+			_light.intensity = 0f;
 		}
 
 		private void Toggle() {
