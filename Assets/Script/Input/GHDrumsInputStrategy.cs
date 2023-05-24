@@ -39,6 +39,10 @@ namespace YARG.Input {
 			{ DOWN,          new(BindingType.BUTTON, "Navigate Down", DOWN) },
 		};
 
+		public override string GetIconName() {
+			return "ghDrums";
+		}
+
 		protected override void UpdatePlayerMode() {
 			// Deal with drum inputs
 
