@@ -7,13 +7,11 @@ using Cysharp.Threading.Tasks;
 using ManagedBass;
 using UnityEngine;
 using XboxSTFS;
-using static XboxSTFS.XboxSTFSParser;
-using YARG.Serialization;
 using YARG.Song;
 using Debug = UnityEngine.Debug;
 using DeviceType = ManagedBass.DeviceType;
 
-namespace YARG {
+namespace YARG.Audio {
 	public class BassAudioManager : MonoBehaviour, IAudioManager {
 		public bool UseStarpowerFx { get; set; }
 		public bool IsChipmunkSpeedup { get; set; }
@@ -50,7 +48,7 @@ namespace YARG {
 		private ISampleChannel[] _sfxSamples;
 
 		List<IMicDevice> _micDevices;
-		
+
 		private void Awake() {
 			SupportedFormats = new[] {
 				".ogg",
@@ -62,7 +60,7 @@ namespace YARG {
 			};
 
 			_micDevices = new List<IMicDevice>();
-			
+
 			_stemVolumes = new double[AudioHelpers.SupportedStems.Count];
 
 			_sfxSamples = new ISampleChannel[AudioHelpers.SfxPaths.Count];
@@ -98,7 +96,7 @@ namespace YARG {
 				Debug.LogError($"Bass Error: {Bass.LastError}");
 				return;
 			}
-			
+
 			LoadSfx();
 
 			Debug.Log($"BASS Successfully Initialized");
@@ -113,25 +111,28 @@ namespace YARG {
 			Debug.Log($"Current Device: {Bass.GetDeviceInfo(Bass.CurrentDevice).Name}");
 
 			int deviceIndex = 0;
-			
-			while(Bass.RecordGetDeviceInfo(deviceIndex, out var info)) {
+
+			// Look for microphones
+			while (Bass.RecordGetDeviceInfo(deviceIndex, out var info)) {
 				int device = deviceIndex;
 				deviceIndex++;
-			
-				if (!info.IsEnabled) 
+
+				if (!info.IsEnabled)
 					continue;
-				if(info.Type != DeviceType.Microphone) 
+
+				if (info.Type != DeviceType.Microphone)
 					continue;
+
 				var mic = new BassMicDevice();
-				
+
 				int result = mic.Initialize(device);
 				if (result != 0) {
 					Debug.LogError($"Failed to initialize mic: {info.Name} ({(Errors)result})");
 					continue;
 				}
-				
+
 				Debug.Log($"Initialized mic: {info.Name}");
-				
+
 				_micDevices.Add(mic);
 				Debug.Log($"Device {device}: {info.Name}");
 				break;

@@ -5,7 +5,7 @@ using UnityEngine;
 using YARG.Settings;
 using YARG.Song;
 
-namespace YARG {
+namespace YARG.Audio {
 	public class BassPreviewContext : IPreviewContext {
 
 		public double PreviewStartTime { get; private set; }

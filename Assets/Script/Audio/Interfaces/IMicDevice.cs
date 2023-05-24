@@ -1,15 +1,15 @@
 ﻿using System;
 
-namespace YARG {
+namespace YARG.Audio {
 	public interface IMicDevice : IDisposable {
 
 		public bool IsMonitoring { get; set; }
-		
+
 		/// <summary>
 		/// The current pitch of this Microphone Device.
 		/// </summary>
 		public float Pitch { get; }
-		
+
 		/// <summary>
 		/// The current amplitude of this Microphone Device.
 		/// </summary>

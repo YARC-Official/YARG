@@ -32,7 +32,7 @@ namespace YARG.PlayMode {
 			public bool hittingNote;
 		}
 
-		public static readonly Color[] HARMONIC_COLORS = new Color[] {
+		public static readonly Color[] HARMONIC_COLORS = {
 			new Color32(0, 204, 255, 255),
 			new Color32(255, 133, 0, 255),
 			new Color32(255, 219, 0, 255)
@@ -218,25 +218,28 @@ namespace YARG.PlayMode {
 				// Add to players
 				micInputs.Add(playerInfo);
 
-				if (!micStrategy.botMode) {
-					// Add child dummy audio source (for mic input reading)
-					var go = new GameObject();
-					go.transform.parent = transform;
-					var audio = go.AddComponent<AudioSource>();
-					dummyAudioSources.Add(micStrategy, audio);
-					audio.outputAudioMixerGroup = silentMixerGroup;
-					audio.loop = true;
-
-					// Start the mic!
-					var micName = Microphone.devices[micStrategy.microphoneIndex];
-					audio.clip = Microphone.Start(micName, true, 1, AudioSettings.outputSampleRate);
-
-					// Wait for the mic to start, then start the audio
-					while (Microphone.GetPosition(micName) <= 0) {
-						// This loop is weird, but it works.
-					}
-					audio.Play();
+				// The rest happens with bots
+				if (micStrategy.botMode) {
+					continue;
 				}
+
+				// Add child dummy audio source (for mic input reading)
+				var go = new GameObject();
+				go.transform.parent = transform;
+				var audio = go.AddComponent<AudioSource>();
+				dummyAudioSources.Add(micStrategy, audio);
+				audio.outputAudioMixerGroup = silentMixerGroup;
+				audio.loop = true;
+
+				// Start the mic!
+				var micName = Microphone.devices[micStrategy.microphoneIndex];
+				audio.clip = Microphone.Start(micName, true, 1, AudioSettings.outputSampleRate);
+
+				// Wait for the mic to start, then start the audio
+				while (Microphone.GetPosition(micName) <= 0) {
+					// This loop is weird, but it works.
+				}
+				audio.Play();
 			}
 
 			// Destroy if no mic is connected

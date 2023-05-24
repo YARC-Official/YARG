@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using YARG.Audio;
 using YARG.Serialization;
 
 namespace YARG.Song {

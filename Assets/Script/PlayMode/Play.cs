@@ -10,6 +10,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using YARG.Audio;
 using YARG.Chart;
 using YARG.Data;
 using YARG.Input;

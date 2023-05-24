@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using XboxSTFS;
+using YARG.Audio;
 using YARG.Serialization;
 
 namespace YARG.Song {
 	public static class CacheHelpers {
-		
+
 		public static void WriteExtractedConData(BinaryWriter writer, ExtractedConSongEntry ExCONSong) {
 
 			// update midi data
@@ -65,7 +66,7 @@ namespace YARG.Song {
 					writer.Write(ExCONSong.MatrixRatios[i, j]);
 				}
 			}
-			
+
 			// image data
 			writer.Write(ExCONSong.AlternatePath);
 			// Note: ImagePath can be an empty string if the song has no image
@@ -152,7 +153,7 @@ namespace YARG.Song {
 			ExCONSong.MoggHeader = reader.ReadInt32();
 			ExCONSong.MoggAddressAudioOffset = reader.ReadInt32();
 			ExCONSong.MoggAudioLength = reader.ReadInt64();
-			
+
 			// Read Stem Data
 			int stemCount = reader.ReadInt32();
 			var stemMaps = new Dictionary<SongStem, int[]>();
@@ -167,7 +168,7 @@ namespace YARG.Song {
 			}
 
 			ExCONSong.StemMaps = stemMaps;
-			
+
 			// Read Matrix Data
 			int matrixRowCount = reader.ReadInt32();
 			int matrixColCount = reader.ReadInt32();
@@ -181,9 +182,9 @@ namespace YARG.Song {
 			ExCONSong.MatrixRatios = matrixRatios;
 
 			/*/
-			 
+
 			 Image data
-			 
+
 			 */
 
 			ExCONSong.AlternatePath = reader.ReadBoolean();
@@ -216,7 +217,7 @@ namespace YARG.Song {
 				moggFL.pathIndex = reader.ReadInt16();
 			}
 			CONSong.FLMogg = moggFL;
-			
+
 			FileListing imgFL = new FileListing();
 			bool imgFLExists = reader.ReadBoolean();
 			if(imgFLExists){

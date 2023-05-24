@@ -6,15 +6,14 @@ using Cysharp.Threading.Tasks;
 using ManagedBass;
 using ManagedBass.Mix;
 using UnityEngine;
-using YARG.Serialization;
 
-namespace YARG {
+namespace YARG.Audio {
 	public class BassStemMixer : IStemMixer {
 
 		public int StemsLoaded { get; private set; }
-		
+
 		public bool IsPlaying { get; private set; }
-		
+
 		public IReadOnlyDictionary<SongStem, IStemChannel> Channels => _channels;
 
 		public IStemChannel LeadChannel { get; private set; }
@@ -27,7 +26,7 @@ namespace YARG {
 		private readonly float[,] _matrixRatios;
 
 		private int _mixerHandle;
-		
+
 		private int _moggSourceHandle;
 
 		private bool _disposed;
@@ -35,7 +34,7 @@ namespace YARG {
 		public BassStemMixer(IAudioManager manager) {
 			_manager = manager;
 			_channels = new Dictionary<SongStem, IStemChannel>();
-			
+
 			StemsLoaded = 0;
 			IsPlaying = false;
 		}
@@ -65,7 +64,7 @@ namespace YARG {
 			Bass.ChannelSetAttribute(mixer, (ChannelAttribute) 86017, 2);
 
 			_mixerHandle = mixer;
-			
+
 			return true;
 		}
 
@@ -73,14 +72,14 @@ namespace YARG {
 			if (!_isMogg) {
 				return false;
 			}
-			
+
 			int[] splitStreams = SplitMoggIntoChannels();
 
 			// There was an array splitting if its an empty array
 			if (splitStreams.Length == 0) {
 				return false;
 			}
-			
+
 			foreach((var stem, int[] channelIndexes) in _stemMaps) {
 				// For every channel index in this stem, add it to the list of channels
 				int[] channelStreams = channelIndexes.Select(i => splitStreams[i]).ToArray();
@@ -173,7 +172,7 @@ namespace YARG {
 						}
 						break;
 				}
-				
+
 			}
 		}
 
@@ -189,7 +188,7 @@ namespace YARG {
 			if (!BassMix.MixerAddChannel(_mixerHandle, bassChannel.StreamHandle, BassFlags.Default)) {
 				return (int) Bass.LastError;
 			}
-			
+
 			if (!BassMix.MixerAddChannel(_mixerHandle, bassChannel.ReverbStreamHandle, BassFlags.Default)) {
 				return (int) Bass.LastError;
 			}
@@ -203,7 +202,7 @@ namespace YARG {
 
 			return 0;
 		}
-		
+
 		public int AddMoggChannel(IStemChannel channel, IList<float[]> matrixes) {
 			if (channel is not BassMoggStem moggStem) {
 				throw new ArgumentException("Channel must be of type BassMoggStem");
@@ -220,7 +219,7 @@ namespace YARG {
 				if (!BassMix.MixerAddChannel(_mixerHandle, bassChannel, BassFlags.MixerChanMatrix)) {
 					return (int) Bass.LastError;
 				}
-				
+
 				if (!BassMix.MixerAddChannel(_mixerHandle, reverbChannel, BassFlags.MixerChanMatrix)) {
 					return (int) Bass.LastError;
 				}
@@ -233,7 +232,7 @@ namespace YARG {
 				if (!BassMix.ChannelSetMatrix(bassChannel, channelPanVol)) {
 					return (int) Bass.LastError;
 				}
-				
+
 				if (!BassMix.ChannelSetMatrix(reverbChannel, channelPanVol)) {
 					return (int) Bass.LastError;
 				}
@@ -302,7 +301,7 @@ namespace YARG {
 					if (!Bass.StreamFree(_mixerHandle)) {
 						Debug.LogError("Failed to free mixer stream. THIS WILL LEAK MEMORY!");
 					}
-					
+
 					_mixerHandle = 0;
 				}
 
@@ -323,10 +322,10 @@ namespace YARG {
 
 			var channelMap = new int[2];
 			channelMap[1] = -1;
-			
+
 			for (var i = 0; i < channels.Length; i++) {
 				channelMap[0] = i;
-				
+
 				int splitHandle = BassMix.CreateSplitStream(_moggSourceHandle, BassFlags.Decode | BassFlags.SplitPosition, channelMap);
 				if (splitHandle == 0) {
 					return Array.Empty<int>();

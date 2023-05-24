@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using SFB;
 using UnityEngine;
+using YARG.Audio;
 using YARG.PlayMode;
 using YARG.Serialization;
 using YARG.Settings.Types;
@@ -12,27 +13,27 @@ namespace YARG.Settings {
 	public static partial class SettingsManager {
 		public class SettingContainer {
 #pragma warning disable format
-			
+
 			public List<string>  SongFolders                                      = new();
 			public List<string>  SongUpgradeFolders                               = new();
-			
+
 			public IntSetting    CalibrationNumber          { get; private set; } = new(-120);
 
 			public ToggleSetting DisablePerSongBackgrounds  { get; private set; } = new(false);
-			
+
 			public ToggleSetting VSync                      { get; private set; } = new(true,      VSyncCallback);
 			public ToggleSetting FpsStats                   { get; private set; } = new(false,     FpsCouterCallback);
 			public IntSetting    FpsCap                     { get; private set; } = new(60, 1,     onChange: FpsCapCallback);
-			
+
 			public ToggleSetting LowQuality                 { get; private set; } = new(false,     LowQualityCallback);
 			public ToggleSetting DisableBloom               { get; private set; } = new(false,     DisableBloomCallback);
-			
+
 			public ToggleSetting ShowHitWindow              { get; private set; } = new(false);
 			public ToggleSetting UseCymbalModelsInFiveLane  { get; private set; } = new(true);
-			
+
 			public ToggleSetting NoKicks                    { get; private set; } = new(false);
 			public ToggleSetting AntiGhosting               { get; private set; } = new(true);
-			
+
 			public VolumeSetting MasterMusicVolume          { get; private set; } = new(0.75f,v => VolumeCallback(SongStem.Master, v));
 			public VolumeSetting GuitarVolume               { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Guitar, v));
 			public VolumeSetting RhythmVolume               { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Rhythm, v));
@@ -49,18 +50,18 @@ namespace YARG.Settings {
 			public ToggleSetting MuteOnMiss                 { get; private set; } = new(true);
 			public ToggleSetting UseStarpowerFx             { get; private set; } = new(true,      UseStarpowerFxChange);
 			public ToggleSetting UseChipmunkSpeed           { get; private set; } = new(false,     UseChipmunkSpeedChange);
-			
+
 			public SliderSetting TrackCamFOV                { get; private set; } = new(55f,    40f, 150f, CameraPosChange);
 			public SliderSetting TrackCamYPos               { get; private set; } = new(2.66f,  0f,  4f,   CameraPosChange);
 			public SliderSetting TrackCamZPos               { get; private set; } = new(1.14f,  0f,  12f,  CameraPosChange);
 			public SliderSetting TrackCamRot                { get; private set; } = new(24.12f, 0f,  180f, CameraPosChange);
 
 			public ToggleSetting DisableTextNotifications   { get; private set; } = new(false);
-			
+
 			public ToggleSetting AmIAwesome                 { get; private set; } = new(false);
 
 #pragma warning restore format
-			
+
 			public void OpenSongFolderManager() {
 				GameManager.Instance.SettingsMenu.CurrentTab = "_SongFolderManager";
 			}
@@ -74,7 +75,7 @@ namespace YARG.Settings {
 				p.Start();
 
 #else
-			
+
 				GUIUtility.systemCopyBuffer = VenueLoader.VenueFolder;
 
 #endif

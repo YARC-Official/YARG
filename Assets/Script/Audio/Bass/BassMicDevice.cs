@@ -2,39 +2,39 @@
 using ManagedBass;
 using UnityEngine;
 
-namespace YARG {
+namespace YARG.Audio {
 	public class BassMicDevice : IMicDevice {
 
 		// How often to record samples from the microphone in milliseconds (calls the callback function every n millis)
 		private const int RECORD_PERIOD_MILLIS = 10;
 
 		public bool IsMonitoring { get; set; }
-		
+
 		public float Pitch { get; private set; }
-		
+
 		public float Amplitude { get; private set; }
-		
+
 		private int _recordHandle;
 		private int _monitorPlaybackHandle;
-		
+
 		private bool _initialized;
 		private bool _disposed;
-		
+
 		private RecordProcedure _recordProcedure;
 
 		public int Initialize(int device) {
-			if(_initialized || _disposed) 
+			if(_initialized || _disposed)
 				return 0;
 
 			// Callback function to process any samples received from recording device
 			_recordProcedure += ProcessRecordData;
-			
+
 			// Must initialise device before recording
 			Bass.RecordInit(device);
 			Bass.RecordGetInfo(out var info);
-			
+
 			const BassFlags flags = BassFlags.Float;
-			
+
 			// We want to start recording immediately because of device context switching and device numbers.
 			// If we initialize the device but don't record immediately, the device number might change and we'll be recording from the wrong device.
 			_recordHandle = Bass.RecordStart(44100, info.Channels, flags, RECORD_PERIOD_MILLIS, _recordProcedure, IntPtr.Zero);
@@ -51,11 +51,11 @@ namespace YARG {
 				Debug.LogError($"Failed to create monitor stream: {Bass.LastError}");
 				return (int) Bass.LastError;
 			}
-			
+
 			Bass.ChannelPlay(_monitorPlaybackHandle, false);
 
 			IsMonitoring = true;
-			
+
 			SetMonitoringLevel(1);
 
 			_initialized = true;
@@ -63,7 +63,7 @@ namespace YARG {
 		}
 
 		public void SetMonitoringLevel(float volume) {
-			if(_monitorPlaybackHandle == 0) 
+			if(_monitorPlaybackHandle == 0)
 				return;
 
 			if (!Bass.ChannelSetAttribute(_monitorPlaybackHandle, ChannelAttribute.Volume, volume)) {
@@ -76,11 +76,11 @@ namespace YARG {
 			if (IsMonitoring) {
 				Bass.StreamPutData(_monitorPlaybackHandle, buffer, length);
 			}
-			
+
 			CalculatePitchAndAmplitude(buffer, length);
 			return true;
 		}
-		
+
 		private static unsafe void CalculatePitchAndAmplitude(IntPtr buffer, int length) {
 			var bufferPtr = (float*) buffer;
 			int samples = length / 4;
@@ -89,7 +89,7 @@ namespace YARG {
 				// Access sample index by: bufferPtr![i]
 			}
 		}
-		
+
 		public void Dispose() {
 			Dispose(true);
 			GC.SuppressFinalize(this);
@@ -99,21 +99,21 @@ namespace YARG {
 			if (!_disposed) {
 				// Free managed resources here
 				if (disposing) {
-					
+
 				}
-				
+
 				// Free unmanaged resources here
 				if (_recordHandle != 0) {
 					Bass.ChannelStop(_recordHandle);
 					Bass.StreamFree(_recordHandle);
 					_recordHandle = 0;
 				}
-				
+
 				if (_monitorPlaybackHandle != 0) {
 					Bass.StreamFree(_monitorPlaybackHandle);
 					_monitorPlaybackHandle = 0;
 				}
-				
+
 				_disposed = true;
 			}
 		}

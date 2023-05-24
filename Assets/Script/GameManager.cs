@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using YARG.Audio;
 using YARG.Input;
 using YARG.Settings;
 using YARG.Song;

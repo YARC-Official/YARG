@@ -2,7 +2,7 @@ using System;
 using Cysharp.Threading.Tasks;
 using YARG.Song;
 
-namespace YARG {
+namespace YARG.Audio {
 	public interface IPreviewContext : IDisposable {
 
 		public double PreviewStartTime { get; }

@@ -1,4 +1,4 @@
-namespace YARG {
+namespace YARG.Audio {
 	public enum SongStem {
 		Master = -2,
 		Sfx = -1,

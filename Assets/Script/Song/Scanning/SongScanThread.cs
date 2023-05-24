@@ -8,6 +8,7 @@ using System.Threading;
 using UnityEngine;
 using DtxCS.DataTypes;
 using XboxSTFS;
+using YARG.Audio;
 using static XboxSTFS.XboxSTFSParser;
 using YARG.Serialization;
 using YARG.Song.Preparsers;
@@ -185,7 +186,7 @@ namespace YARG.Song {
 
 			// Raw CON folder, so don't scan anymore subdirectories here
 			if (File.Exists(Path.Combine(subDir, "songs", "songs.dta"))) {
-				List<ExtractedConSongEntry> files = ExCONBrowser.BrowseFolder(subDir, 
+				List<ExtractedConSongEntry> files = ExCONBrowser.BrowseFolder(subDir,
 					_updateFolderPath, _songUpdateDict, _songUpgradeDict);
 
 				foreach (ExtractedConSongEntry file in files) {
@@ -219,7 +220,7 @@ namespace YARG.Song {
 					using var br = new BinaryReader(fs);
 					string fHeader = Encoding.UTF8.GetString(br.ReadBytes(4));
 					if (fHeader == "CON " || fHeader == "LIVE") {
-						List<ConSongEntry> SongsInsideCON = XboxCONFileBrowser.BrowseCON(file, 
+						List<ConSongEntry> SongsInsideCON = XboxCONFileBrowser.BrowseCON(file,
 							_updateFolderPath, _songUpdateDict, _songUpgradeDict);
 						// for each CON song that was found (assuming some WERE found)
 						if (SongsInsideCON != null) {
