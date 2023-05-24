@@ -60,13 +60,13 @@ namespace YARG {
 		}
 
 		public async UniTask PlayPreview(SongEntry song) {
-			_songToLoad = song;
-
 			// Skip if preview shouldn't be played
 			if (song == null || Mathf.Approximately(SettingsManager.Settings.PreviewVolume.Data, 0f)) {
 				return;
 			}
 
+			_songToLoad = song;
+			
 			// If a preview is being loaded, WE DON'T want to mess with that process
 			if (_loadingPreview) {
 				if (!_loadCanceller?.IsCancellationRequested ?? false) {
@@ -116,11 +116,11 @@ namespace YARG {
 			}
 
 			// Set preview start and end times
-			PreviewStartTime = song.PreviewStartTimeSpan.TotalSeconds;
+			PreviewStartTime = _songToLoad.PreviewStartTimeSpan.TotalSeconds;
 			if (PreviewStartTime <= 0.0) {
 				PreviewStartTime = 10.0;
 			}
-			PreviewEndTime = song.PreviewEndTimeSpan.TotalSeconds;
+			PreviewEndTime = _songToLoad.PreviewEndTimeSpan.TotalSeconds;
 			if (PreviewEndTime <= 0.0) {
 				PreviewEndTime = PreviewStartTime + Constants.PREVIEW_DURATION;
 			}
