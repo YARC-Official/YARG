@@ -116,11 +116,11 @@ namespace YARG {
 			}
 
 			// Set preview start and end times
-			PreviewStartTime = song.PreviewStartTimeSpan.TotalSeconds;
+			PreviewStartTime = _songToLoad.PreviewStartTimeSpan.TotalSeconds;
 			if (PreviewStartTime <= 0.0) {
 				PreviewStartTime = 10.0;
 			}
-			PreviewEndTime = song.PreviewEndTimeSpan.TotalSeconds;
+			PreviewEndTime = _songToLoad.PreviewEndTimeSpan.TotalSeconds;
 			if (PreviewEndTime <= 0.0) {
 				PreviewEndTime = PreviewStartTime + Constants.PREVIEW_DURATION;
 			}
