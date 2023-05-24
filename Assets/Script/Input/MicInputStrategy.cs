@@ -70,6 +70,10 @@ namespace YARG.Input {
 			{ DOWN,          new(BindingType.BUTTON, "Navigate Down", DOWN) },
 		};
 
+		public override string GetIconName() {
+			return "vocals";
+		}
+
 		protected override void UpdatePlayerMode() { }
 
 		protected override void OnUpdate() {

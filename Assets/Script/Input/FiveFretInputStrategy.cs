@@ -38,6 +38,10 @@ namespace YARG.Input {
 			{ PAUSE,      new(BindingType.BUTTON, "Pause", PAUSE) },
 		};
 
+		public override string GetIconName() {
+			return "guitar";
+		}
+
 		public override void InitializeBotMode(object rawChart) {
 			botChart = (List<NoteInfo>) rawChart;
 		}
