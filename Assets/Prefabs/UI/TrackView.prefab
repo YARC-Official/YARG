@@ -51,6 +51,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <TrackImage>k__BackingField: {fileID: 539163407594810661}
+  _aspectRatioFitter: {fileID: 4901975570370130400}
   _performanceText: {fileID: 8078771021002508975}
   _soloTopText: {fileID: 168029097117233520}
   _soloBottomText: {fileID: 9129968958286683376}

@@ -12,3 +12,4 @@ ProjectSettings/**/* eol=lf
 RawAssets/** filter=lfs diff=lfs merge=lfs -text
 Assets/Art/**/*.png filter=lfs diff=lfs merge=lfs -text
 Assets/Art/**/*.exr filter=lfs diff=lfs merge=lfs -text
+Assets/Art/**/*.jpg filter=lfs diff=lfs merge=lfs -text

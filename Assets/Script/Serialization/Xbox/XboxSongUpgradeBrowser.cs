@@ -45,15 +45,17 @@ namespace YARG.Serialization {
 					using var br = new BinaryReader(fs);
 					string fHeader = Encoding.UTF8.GetString(br.ReadBytes(4));
 					if (fHeader == "CON " || fHeader == "LIVE") {
-						STFS thisUpgradeCON = new STFS(file);
+						var thisUpgradeCONFileListings = XboxSTFSParser.GetCONFileListings(file);
 
 						// attempt to read the CON's upgrades.dta
-						try {
-							dtaTree = DTX.FromPlainTextBytes(thisUpgradeCON.GetFile(Path.Combine("songs_upgrades", "upgrades.dta")));
-						} catch (Exception e) {
-							Debug.LogError($"Failed to parse upgrades.dta for `{file}`.");
-							Debug.LogException(e);
-							continue;
+						if(thisUpgradeCONFileListings.TryGetValue(Path.Combine("songs_upgrades", "upgrades.dta"), out var UpgradeFL)){
+							try {
+								dtaTree = DTX.FromPlainTextBytes(XboxSTFSParser.GetFile(file, UpgradeFL));
+							} catch (Exception e) {
+								Debug.LogError($"Failed to parse upgrades.dta for `{file}`.");
+								Debug.LogException(e);
+								continue;
+							}
 						}
 
 						// Read each shortname the dta file lists
@@ -64,8 +66,7 @@ namespace YARG.Serialization {
 								upgr.ShortName = currentArray.Name;
 								upgr.UpgradeMidiPath = Path.Combine("songs_upgrades", $"{currentArray.Name}_plus.mid");
 								upgr.CONFilePath = file;
-								upgr.UpgradeMidiFileSize = thisUpgradeCON.GetFileSize(upgr.UpgradeMidiPath);
-								upgr.UpgradeMidiFileMemBlockOffsets = thisUpgradeCON.GetMemOffsets(upgr.UpgradeMidiPath);
+								upgr.UpgradeFL = UpgradeFL;
 								UpgradeSongDict.Add(upgr, currentArray);
 							} catch (Exception e) {
 								Debug.Log($"Failed to get upgrade, skipping...");

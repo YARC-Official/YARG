@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using XboxSTFS;
 using YARG.Serialization;
 
 namespace YARG.Song {
@@ -15,13 +16,16 @@ namespace YARG.Song {
 			writer.Write(ExCONSong.SongUpgrade.ShortName);
 			writer.Write(ExCONSong.SongUpgrade.UpgradeMidiPath);
 			writer.Write(ExCONSong.SongUpgrade.CONFilePath);
-			writer.Write(ExCONSong.SongUpgrade.UpgradeMidiFileSize);
-			if(ExCONSong.SongUpgrade.UpgradeMidiFileMemBlockOffsets != null){
-				writer.Write(ExCONSong.SongUpgrade.UpgradeMidiFileMemBlockOffsets.Length);
-				for(int i = 0; i < ExCONSong.SongUpgrade.UpgradeMidiFileMemBlockOffsets.Length; i++)
-					writer.Write(ExCONSong.SongUpgrade.UpgradeMidiFileMemBlockOffsets[i]);
+			if(ExCONSong.SongUpgrade.UpgradeFL == null) writer.Write(false);
+			else {
+				writer.Write(true);
+				writer.Write(ExCONSong.SongUpgrade.UpgradeFL.filename);
+				writer.Write(ExCONSong.SongUpgrade.UpgradeFL.flags);
+				writer.Write(ExCONSong.SongUpgrade.UpgradeFL.numBlocks);
+				writer.Write(ExCONSong.SongUpgrade.UpgradeFL.firstBlock);
+				writer.Write(ExCONSong.SongUpgrade.UpgradeFL.size);
+				writer.Write(ExCONSong.SongUpgrade.UpgradeFL.pathIndex);
 			}
-			else writer.Write(0u);
 
 			if(ExCONSong.RealGuitarTuning != null){
 				writer.Write(ExCONSong.RealGuitarTuning.Length);
@@ -70,28 +74,37 @@ namespace YARG.Song {
 
 		public static void WriteConData(BinaryWriter writer, ConSongEntry CONSong) {
 
-			// midi file size and memory offsets
-			writer.Write(CONSong.MidiFileSize);
-			writer.Write(CONSong.MidiFileMemBlockOffsets.Length);
-			for(int i = 0; i < CONSong.MidiFileMemBlockOffsets.Length; i++){
-				writer.Write(CONSong.MidiFileMemBlockOffsets[i]);
-			}
-
-			// mogg file size and memory offsets
-			writer.Write(CONSong.MoggFileSize);
-			writer.Write(CONSong.MoggFileMemBlockOffsets.Length);
-			for(int i = 0; i < CONSong.MoggFileMemBlockOffsets.Length; i++){
-				writer.Write(CONSong.MoggFileMemBlockOffsets[i]);
-			}
-
-			// image file size and memory offsets, if they exist
-			writer.Write(CONSong.ImageFileSize);
-			if(CONSong.ImageFileMemBlockOffsets == null) writer.Write(0);
+			if(CONSong.FLMidi == null) writer.Write(false);
 			else{
-				writer.Write(CONSong.ImageFileMemBlockOffsets.Length);
-				for(int i = 0; i < CONSong.ImageFileMemBlockOffsets.Length; i++){
-					writer.Write(CONSong.ImageFileMemBlockOffsets[i]);
-				}
+				writer.Write(true);
+				writer.Write(CONSong.FLMidi.filename);
+				writer.Write(CONSong.FLMidi.flags);
+				writer.Write(CONSong.FLMidi.numBlocks);
+				writer.Write(CONSong.FLMidi.firstBlock);
+				writer.Write(CONSong.FLMidi.size);
+				writer.Write(CONSong.FLMidi.pathIndex);
+			}
+
+			if(CONSong.FLMogg == null) writer.Write(false);
+			else{
+				writer.Write(true);
+				writer.Write(CONSong.FLMogg.filename);
+				writer.Write(CONSong.FLMogg.flags);
+				writer.Write(CONSong.FLMogg.numBlocks);
+				writer.Write(CONSong.FLMogg.firstBlock);
+				writer.Write(CONSong.FLMogg.size);
+				writer.Write(CONSong.FLMogg.pathIndex);
+			}
+
+			if(CONSong.FLImg == null) writer.Write(false);
+			else{
+				writer.Write(true);
+				writer.Write(CONSong.FLImg.filename);
+				writer.Write(CONSong.FLImg.flags);
+				writer.Write(CONSong.FLImg.numBlocks);
+				writer.Write(CONSong.FLImg.firstBlock);
+				writer.Write(CONSong.FLImg.size);
+				writer.Write(CONSong.FLImg.pathIndex);
 			}
 
 		}
@@ -107,14 +120,17 @@ namespace YARG.Song {
 			upgr.ShortName = reader.ReadString();
 			upgr.UpgradeMidiPath = reader.ReadString();
 			upgr.CONFilePath = reader.ReadString();
-			upgr.UpgradeMidiFileSize = reader.ReadUInt32();
-			uint upgrMidOffsetLength = reader.ReadUInt32();
-			if(upgrMidOffsetLength > 0){
-				upgr.UpgradeMidiFileMemBlockOffsets = new uint[upgrMidOffsetLength];
-				for(int i = 0; i < upgrMidOffsetLength; i++){
-					upgr.UpgradeMidiFileMemBlockOffsets[i] = reader.ReadUInt32();
-				}
+			FileListing upgrFL = new FileListing();
+			bool FLExists = reader.ReadBoolean();
+			if(FLExists){
+				upgrFL.filename = reader.ReadString();
+				upgrFL.flags = reader.ReadByte();
+				upgrFL.numBlocks = reader.ReadUInt32();
+				upgrFL.firstBlock = reader.ReadUInt32();
+				upgrFL.size = reader.ReadUInt32();
+				upgrFL.pathIndex = reader.ReadInt16();
 			}
+			upgr.UpgradeFL = upgrFL;
 			ExCONSong.SongUpgrade = upgr;
 
 			int guitarTuneLength = reader.ReadInt32();
@@ -177,31 +193,41 @@ namespace YARG.Song {
 
 		public static void ReadConData(BinaryReader reader, ConSongEntry CONSong) {
 
-			// midi file size and memory offsets
-			CONSong.MidiFileSize = reader.ReadUInt32();
-			uint midiOffsetsLength = reader.ReadUInt32();
-			CONSong.MidiFileMemBlockOffsets = new uint[midiOffsetsLength];
-			for(int i = 0; i < midiOffsetsLength; i++){
-				CONSong.MidiFileMemBlockOffsets[i] = reader.ReadUInt32();
+			FileListing midFL = new FileListing();
+			bool midiFLExists = reader.ReadBoolean();
+			if(midiFLExists){
+				midFL.filename = reader.ReadString();
+				midFL.flags = reader.ReadByte();
+				midFL.numBlocks = reader.ReadUInt32();
+				midFL.firstBlock = reader.ReadUInt32();
+				midFL.size = reader.ReadUInt32();
+				midFL.pathIndex = reader.ReadInt16();
 			}
+			CONSong.FLMidi = midFL;
 
-			// mogg file size and memory offsets
-			CONSong.MoggFileSize = reader.ReadUInt32();
-			uint moggOffsetsLength = reader.ReadUInt32();
-			CONSong.MoggFileMemBlockOffsets = new uint[moggOffsetsLength];
-			for(int i = 0; i < moggOffsetsLength; i++){
-				CONSong.MoggFileMemBlockOffsets[i] = reader.ReadUInt32();
+			FileListing moggFL = new FileListing();
+			bool moggFLExists = reader.ReadBoolean();
+			if(moggFLExists){
+				moggFL.filename = reader.ReadString();
+				moggFL.flags = reader.ReadByte();
+				moggFL.numBlocks = reader.ReadUInt32();
+				moggFL.firstBlock = reader.ReadUInt32();
+				moggFL.size = reader.ReadUInt32();
+				moggFL.pathIndex = reader.ReadInt16();
 			}
-
-			// image file size and memory offsets, if they exist
-			CONSong.ImageFileSize = reader.ReadUInt32();
-			uint imgOffsetsLength = reader.ReadUInt32();
-			if(imgOffsetsLength > 0){
-				CONSong.ImageFileMemBlockOffsets = new uint[imgOffsetsLength];
-				for(int i = 0; i < imgOffsetsLength; i++){
-					CONSong.ImageFileMemBlockOffsets[i] = reader.ReadUInt32();
-				}
+			CONSong.FLMogg = moggFL;
+			
+			FileListing imgFL = new FileListing();
+			bool imgFLExists = reader.ReadBoolean();
+			if(imgFLExists){
+				imgFL.filename = reader.ReadString();
+				imgFL.flags = reader.ReadByte();
+				imgFL.numBlocks = reader.ReadUInt32();
+				imgFL.firstBlock = reader.ReadUInt32();
+				imgFL.size = reader.ReadUInt32();
+				imgFL.pathIndex = reader.ReadInt16();
 			}
+			CONSong.FLImg = imgFL;
 
 		}
 
