@@ -7,7 +7,6 @@ using Cysharp.Threading.Tasks;
 using ManagedBass;
 using UnityEngine;
 using XboxSTFS;
-using static XboxSTFS.XboxSTFSParser;
 using YARG.Serialization;
 using YARG.Song;
 using Debug = UnityEngine.Debug;
@@ -221,14 +220,12 @@ namespace YARG {
 			Debug.Log("Loading mogg song");
 			UnloadSong();
 
-			byte[] moggArray;
-			if (exConSong is ConSongEntry conSong) {
-				if (!conSong.UsingUpdateMogg)
-					moggArray = XboxSTFSParser.GetFile(conSong.Location, conSong.FLMogg)[conSong.MoggAddressAudioOffset..];
-				else moggArray = File.ReadAllBytes(conSong.MoggPath)[conSong.MoggAddressAudioOffset..];
-			} else {
-				moggArray = File.ReadAllBytes(exConSong.MoggPath)[exConSong.MoggAddressAudioOffset..];
-			}
+			byte[] moggArray = exConSong.LoadMoggFile();
+
+			if (BitConverter.ToUInt32(moggArray, 0) != 0xA)
+				throw new Exception("Original unencrypted mogg replaced by an encrpyted mogg");
+
+			moggArray = moggArray[BitConverter.ToInt32(moggArray, 4)..];
 
 			int moggStreamHandle = Bass.CreateStream(moggArray, 0, moggArray.Length, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
 			if (moggStreamHandle == 0) {

@@ -12,166 +12,234 @@ using UnityEngine.Assertions;
 // so that YARG can read the contents of a Rock Band CON file (.mid, .mogg, .dta, .png_xbox, etc)
 
 namespace XboxSTFS {
+
+	public class ConMissingException : Exception {
+		public ConMissingException() : base("Original con file not found") { }
+	}
     // Object containing the information about a file in the STFS container
     public class FileListing {
-        public string filename { get; set; }
-        public byte flags { get; set; }
-        public uint numBlocks { get; set; }
-        public uint firstBlock { get; set; }
-        public uint size { get; set; }
-        public short pathIndex { get; set; }
+        public string Filename { get; private set; }
+        public byte Flags { get; private set; }
+        public int NumBlocks { get; private set; }
+        public int FirstBlock { get; private set; }
+		public short PathIndex { get; private set; }
+		public int Size { get; private set; }
+		public int LastWrite { get; private set; }
+        
 
-        public FileListing(byte[] data){
-            filename = System.Text.Encoding.UTF8.GetString(data, 0, 0x28).TrimEnd('\0');
-            flags = data[0x28];
+        public FileListing(ReadOnlySpan<byte> data){
+            Filename = System.Text.Encoding.UTF8.GetString(data.ToArray(), 0, 0x28).TrimEnd('\0');
+            Flags = data[0x28];
             
-            numBlocks = BitConverter.ToUInt32(new byte[4] { data[0x29], data[0x2A], data[0x2B], 0x00 });
-            firstBlock = BitConverter.ToUInt32(new byte[4] { data[0x2F], data[0x30], data[0x31], 0x00 });
-            pathIndex = BitConverter.ToInt16(new byte[2] { data[0x33], data[0x32] });
-            size = BitConverter.ToUInt32(new byte[4] { data[0x37], data[0x36], data[0x35], data[0x34] });
-        }
+            NumBlocks = BitConverter.ToInt32(new byte[4] { data[0x29], data[0x2A], data[0x2B], 0x00 });
+            FirstBlock = BitConverter.ToInt32(new byte[4] { data[0x2F], data[0x30], data[0x31], 0x00 });
+            PathIndex = BitConverter.ToInt16(new byte[2] { data[0x33], data[0x32] });
+            Size = BitConverter.ToInt32(new byte[4] { data[0x37], data[0x36], data[0x35], data[0x34] });
+			LastWrite = BitConverter.ToInt32(new byte[4] { data[0x3B], data[0x3A], data[0x39], data[0x38] });
+		}
+
+		public void SetParentDirectory(string parentDirectory) {
+			Filename = Path.Combine(parentDirectory, Filename);
+		}
 
         public FileListing(){}
 
-        public override string ToString() => $"STFS File Listing: {filename}";
-        public bool IsDirectory() { return (flags & 0x80) > 0; }
-        public bool IsContiguous() { return (flags & 0x40) > 0; }
+        public override string ToString() => $"STFS File Listing: {Filename}";
+        public bool IsDirectory() { return (Flags & 0x80) > 0; }
+        public bool IsContiguous() { return (Flags & 0x40) > 0; }
     }
 
-    public static class XboxSTFSParser {
+	public class XboxSTFSFile {
+		public string Filename { get; private set; }
+		private FileStream stream;
+		private List<FileListing> files = new();
+		private byte shiftValue;
 
-        private static uint FixBlocknum(uint blocknum, bool shift){
-            // Given a blocknumber calculate the block on disk that has the data taking into account hash blocks.
-            // Every 0xAA blocks there is a hash table and depending on header data it
-            // is 1 or 2 blocks long [((self.entry_id+0xFFF) & 0xF000) >> 0xC 0xB == 0, 0xA == 1]
-            // After 0x70e4 blocks there is another table of the same size every 0x70e4
-            // blocks and after 0x4af768 blocks there is one last table. This skews blocknumber to offset calcs.
-            // This is the part of the Free60 STFS page that needed work
-            uint blockAdjust = 0;
-            byte tableSizeShift = Convert.ToByte(shift);
+		public XboxSTFSFile() {}
 
-            if (blocknum >= 0xAA) blockAdjust += ((blocknum / 0xAA) + 1) << tableSizeShift;
-            if (blocknum >= 0x70E4) blockAdjust += ((blocknum / 0x70E4) + 1) << tableSizeShift;
-            return blockAdjust + blocknum;
-        }
+		public bool Load(string filename) {
+			byte[] buffer = new byte[4];
+			stream = new FileStream(filename, FileMode.Open, FileAccess.Read);
 
-        // given a CON file, retrieve the relevant FileListings for easy file extraction later
-        public static Dictionary<string, FileListing> GetCONFileListings(string CONName){
-            var fs = new FileStream(CONName, FileMode.Open, FileAccess.Read);
-            var br = new BinaryReader(fs, new ASCIIEncoding());
-            string magic = new string(new BinaryReader(fs, new ASCIIEncoding()).ReadChars(4));
-            Assert.IsTrue((magic == "CON " || magic == "PIRS" || magic == "LIVE"), "STFS Magic not found");
-            fs.Seek(0, SeekOrigin.Begin);
+			if (stream.Read(buffer) != 4)
+				return false;
 
-            // parse header for relevant info
-            var header = br.ReadBytes(0x971A);
-            Assert.IsTrue(header.Length >= 0x971A, "STFS header data too short");
-            uint entryID = BitConverter.ToUInt32(new byte[4] { header[0x343], header[0x342], header[0x341], header[0x340] });
-            ushort fileTableBlockCount = BitConverter.ToUInt16(new byte[2] { header[0x37C], header[0x37D] });
-            uint fileTableBlockNumber = BitConverter.ToUInt32(new byte[4] { header[0x37E], header[0x37F], header[0x380], 0x00 });
-            bool shiftTable = (((entryID + 0xFFF) & 0xF000) >> 0xC != 0xB);
+			string tag = Encoding.Default.GetString(buffer, 0, buffer.Length);
+			if (tag != "CON " && tag != "LIVE" && tag != "PIRS")
+				return false;
 
-            // parse file table
-            var fLists = new List<FileListing>();
-            var allFiles = new Dictionary<string, FileListing>();
-            // retrieve file table bytes
-            uint dataSize = (uint) 0x1000*fileTableBlockCount;
-            byte[] data = new byte[dataSize];
-            uint i = 0;
-            while(i < fileTableBlockCount){
-                uint block = fileTableBlockNumber + i;
-                fs.Seek(0xC000 + FixBlocknum(block,shiftTable)*0x1000, SeekOrigin.Begin);
-                uint readCount = 170 - (block % 170);
-                uint readSize = 0x1000 * readCount;
-                uint offset = i * 0x1000;
-                if(readSize > dataSize - offset) readSize = dataSize - offset;
-                br.Read(data, (int) offset, (int) readSize);
-                i += readCount;
-            }
-            // parse and retrieve FileListing entries
-            byte[] buf = new byte[0x40];
-            for (int x = 0; x < data.Length; x += 0x40) {
-                Array.Copy(data, x, buf, 0, 0x40);
-                FileListing file = new FileListing(buf);
-                if (file.filename.Length == 0) break;
-                fLists.Add(file);
-            }
+			stream.Seek(0x0340, SeekOrigin.Begin);
+			if (stream.Read(buffer) != 4)
+				return false;
 
-            List<string> pathComponents = new List<string>();
-            foreach (FileListing fl in fLists) {
-                pathComponents.Clear();
-                pathComponents.Add(fl.filename);
-                FileListing a = fl;
+			if (((((buffer[0] << 24 | buffer[1] << 16 | buffer[2] << 8 | buffer[3]) + 0xFFF) & 0xF000) >> 0xC) != 0xB)
+				shiftValue = 1;
 
-                while (a.pathIndex != -1 && a.pathIndex < fLists.Count) {
-                    try {
-                        a = fLists[a.pathIndex];
-                        pathComponents.Add(a.filename);
-                    } catch (Exception) {
-                        Debug.Log($"Indexing Error: {CONName} {a.pathIndex} {fLists.Count}");
-                    }
-                }
-                pathComponents.Add("");
-                pathComponents.Reverse();
-                allFiles[Path.Combine(pathComponents.ToArray())] = fl;
-            }
-            
-            return allFiles;
-        }
+			stream.Seek(0x37C, SeekOrigin.Begin);
+			if (stream.Read(buffer, 0, 2) != 2)
+				return false;
 
-        private static byte[] ReadBlocksSeparate(ref FileStream fs, ref BinaryReader br, FileListing fl, bool shift) {
-            byte[] fileBytes = new byte[fl.size];
-            for (uint i = 0; i < fl.numBlocks; ++i) {
-                fs.Seek(0xC000 + FixBlocknum(fl.firstBlock + i, shift) * 0x1000, SeekOrigin.Begin);
-                if (i < fl.numBlocks - 1) br.Read(fileBytes, (int) i * 0x1000, 0x1000);
-                else br.Read(fileBytes, (int) i * 0x1000, (int) fl.size % 0x1000);
-            }
-            return fileBytes;
-        }
+			int length = 0x1000 * (buffer[0] << 8 | buffer[1]);
 
-        private static byte[] ReadBlocksContiguous(ref FileStream fs, ref BinaryReader br, FileListing fl, bool shift) {
-            byte[] fileBytes = new byte[fl.size];
-            uint i = 0;
-            while(i < fl.numBlocks){
-                uint block = fl.firstBlock + i;
-                fs.Seek(0xC000 + FixBlocknum(block, shift) * 0x1000, SeekOrigin.Begin);
-                uint readCount = 170 - (block % 170);
-                uint readSize = 0x1000 * readCount;
-                uint offset = i * 0x1000;
-                if (readSize > fl.size - offset) readSize = fl.size - offset;
-                br.Read(fileBytes, (int) offset, (int) readSize);
-                i += readCount;
-            }
-            return fileBytes;
-        }
+			stream.Seek(0x37E, SeekOrigin.Begin);
+			if (stream.Read(buffer, 0, 3) != 3)
+				return false;
 
-        public static byte[] GetFile(string CONName, FileListing fl){
-            var fs = new FileStream(CONName, FileMode.Open, FileAccess.Read);
-            var br = new BinaryReader(fs, new ASCIIEncoding());
-            fs.Seek(0x340, SeekOrigin.Begin);
-            var buf = br.ReadBytes(4);
-            uint entryID = BitConverter.ToUInt32(new byte[4] { buf[3], buf[2], buf[1], buf[0] });
-            bool shiftTable = (((entryID + 0xFFF) & 0xF000) >> 0xC != 0xB);
-            if(fl.IsContiguous()) return ReadBlocksContiguous(ref fs, ref br, fl, shiftTable);
-            else return ReadBlocksSeparate(ref fs, ref br, fl, shiftTable);
-        }
+			int firstBlock = buffer[0] << 16 | buffer[1] << 8 | buffer[2];
 
-        public static byte[] GetMoggHeader(string CONName, FileListing fl){
-            var fs = new FileStream(CONName, FileMode.Open, FileAccess.Read);
-            var br = new BinaryReader(fs, new ASCIIEncoding());
-            fs.Seek(0x340, SeekOrigin.Begin);
-            var buf = br.ReadBytes(4);
-            uint entryID = BitConverter.ToUInt32(new byte[4] { buf[3], buf[2], buf[1], buf[0] });
-            bool shiftTable = (((entryID + 0xFFF) & 0xF000) >> 0xC != 0xB);
-            fs.Seek(0xC000 + FixBlocknum(fl.firstBlock, shiftTable) * 0x1000, SeekOrigin.Begin);
-            return br.ReadBytes(8);
-        }
-    }
+			byte[] fileListingBuffer = ReadContiguousBlocks(firstBlock, length);
+			for (int i = 0; i < length; i += 0x40) {
+				FileListing listing = new FileListing(new ReadOnlySpan<byte>(fileListingBuffer, i, 0x40));
+				if (listing.Filename.Length == 0)
+					break;
 
-    // static class STFS:
-    //     static Dictionary<string, FileListing> GetCONFileListings(CONname)
-    //         this fxn parses the header and file table, just as it does now
-    //     static byte[] GetFile(CONname, FileListing)
-    //         this fxn will also parse the entryID to determine the tableShiftSize
-    //         because tableShiftSize is used in FixBlocknum
+				if (listing.PathIndex != -1)
+					listing.SetParentDirectory(files[listing.PathIndex].Filename);
+				files.Add(listing);
+			}
+
+			Filename = filename;
+			return true;
+		}
+
+		public int GetFileIndex(string filename)
+		{
+			for (int i = 0; i < files.Count; ++i)
+				if (filename == files[i].Filename)
+					return i;
+			return -1;
+		}
+
+		public FileListing this[int index] { get { return files[index]; } }
+
+		public byte[] LoadSubFile(string filename)
+		{
+			for (int i = 0; i < files.Count; ++i)
+				if (filename == files[i].Filename)
+					return LoadSubFile(files[i]);
+			Debug.Log("File " + filename + " does not exist in CON and thus could not be loaded");
+			return new byte[0];
+		}
+
+		public byte[] LoadSubFile(int index)
+		{
+			if (index < 0 || index >= files.Count)
+				return new byte[0];
+			return LoadSubFile(files[index]);
+		}
+
+		public byte[] LoadSubFile(FileListing listing)
+		{
+			Debug.Assert(!listing.IsDirectory(), "Directory listing cannot be loaded as a file");
+			if (listing.IsContiguous())
+				return ReadContiguousBlocks(listing.FirstBlock, listing.Size);
+			else
+				return ReadSplitBlocks(listing.FirstBlock, listing.Size);
+		}
+
+		public bool IsMoggUnencrypted(int index) {
+			if (index < 0 || index >= files.Count)
+				throw new Exception("Index provided is not valid");
+
+			var listing = files[index];
+			Debug.Assert(!listing.IsDirectory(), "Directory listing cannot be loaded as a file");
+
+			long blockLocation = 0xC000 + (long)CalculateBlockNum(listing.FirstBlock) * 0x1000;
+			if (stream.Seek(blockLocation, SeekOrigin.Begin) != blockLocation)
+				throw new Exception("Seek error in CON-like subfile for Mogg");
+			return stream.ReadInt32LE() == 0xA;
+		}
+
+		private int CalculateBlockNum(int blocknum)
+		{
+			int blockAdjust = 0;
+			if (blocknum >= 0xAA)
+			{
+				blockAdjust += ((blocknum / 0xAA) + 1) << shiftValue;
+				if (blocknum >= 0x70E4)
+					blockAdjust += ((blocknum / 0x70E4) + 1) << shiftValue;
+			}
+			return blockAdjust + blocknum;
+		}
+
+		private byte[] ReadContiguousBlocks(int blockNum, int fileSize)
+		{
+			byte[] data = new byte[fileSize];
+			{
+				long pos = 0xC000 + (long)CalculateBlockNum(blockNum) * 0x1000;
+				if (stream.Seek(pos, SeekOrigin.Begin) != pos)
+					throw new Exception("File location is not valid");
+			}
+			
+			long skipVal = 0x1000 << shiftValue;
+			int div = blockNum / 28900;
+			int numBlocks = 170 - (blockNum % 170);
+			int readSize = 0x1000 * numBlocks;
+			int offset = 0;
+			while (true)
+			{
+				if (readSize > fileSize - offset)
+					readSize = fileSize - offset;
+
+				if (stream.Read(data, offset, readSize) != readSize)
+					throw new Exception("Read error in CON-like subfile - Type: Contiguous");
+
+				offset += readSize;
+				if (offset == fileSize)
+					break;
+
+				blockNum += numBlocks;
+				numBlocks = 170;
+				readSize = 170 * 0x1000;
+
+				stream.Seek(skipVal, SeekOrigin.Current);
+				if (blockNum == 170)
+					stream.Seek(skipVal, SeekOrigin.Current);
+				else if (blockNum == (div + 1) * 28900)
+				{
+					if (blockNum == 28900)
+						stream.Seek(skipVal, SeekOrigin.Current);
+					stream.Seek(skipVal, SeekOrigin.Current);
+					++div;
+				}
+			}
+			return data;
+		}
+
+		byte[] ReadSplitBlocks(int blockNum, int fileSize)
+		{
+			byte[] data = new byte[fileSize];
+			byte[] buffer = new byte[3];
+
+			int offset = 0;
+			while (true)
+			{
+				int block = CalculateBlockNum(blockNum);
+				long blockLocation = 0xC000 + (long)block * 0x1000;
+				if (stream.Seek(blockLocation, SeekOrigin.Begin) != blockLocation)
+					throw new Exception("Seek error in CON-like subfile - Type: Split");
+
+				int readSize = 0x1000;
+				if (readSize > fileSize - offset)
+					readSize = fileSize - offset;
+
+				if (stream.Read(data, offset, readSize) != readSize)
+					throw new Exception("Read error in CON-like subfile - Type: Split");
+
+				offset += readSize;
+				if (offset == fileSize)
+					break;
+
+				long hashlocation = blockLocation - ((blockNum % 170) * 4072 + 4075);
+				if (stream.Seek(hashlocation, SeekOrigin.Begin) != hashlocation)
+					throw new Exception("Seek error in CON-like subfile - Type: Split");
+
+				if (stream.Read(buffer, 0, 3) != 3)
+					throw new Exception("Read error in CON-like subfile - Type: Split");
+
+				blockNum = buffer[0] << 16 | buffer[1] << 8 | buffer[2];
+			}
+			return data;
+		}
+	}
 }
