@@ -7,6 +7,8 @@ namespace YARG {
 
 		// How often to record samples from the microphone in milliseconds (calls the callback function every n millis)
 		private const int RECORD_PERIOD_MILLIS = 10;
+
+		public bool IsMonitoring { get; set; }
 		
 		public float Pitch { get; private set; }
 		
@@ -16,7 +18,6 @@ namespace YARG {
 		private int _monitorPlaybackHandle;
 		
 		private bool _initialized;
-		private bool _isPlayback;
 		private bool _disposed;
 		
 		private RecordProcedure _recordProcedure;
@@ -36,7 +37,7 @@ namespace YARG {
 			
 			// We want to start recording immediately because of device context switching and device numbers.
 			// If we initialize the device but don't record immediately, the device number might change and we'll be recording from the wrong device.
-			_recordHandle = Bass.RecordStart(0, 0, flags, RECORD_PERIOD_MILLIS, _recordProcedure, IntPtr.Zero);
+			_recordHandle = Bass.RecordStart(44100, info.Channels, flags, RECORD_PERIOD_MILLIS, _recordProcedure, IntPtr.Zero);
 			if(_recordHandle == 0) {
 				// If we failed to start recording, we need to return the error code.
 				_initialized = false;
@@ -50,23 +51,15 @@ namespace YARG {
 				Debug.LogError($"Failed to create monitor stream: {Bass.LastError}");
 				return (int) Bass.LastError;
 			}
+			
+			Bass.ChannelPlay(_monitorPlaybackHandle, false);
 
-			StartPlayback();
+			IsMonitoring = true;
+			
 			SetMonitoringLevel(1);
 
 			_initialized = true;
 			return 0;
-		}
-
-		public bool StartPlayback() {
-			// True clears buffer before playback
-			_isPlayback = Bass.ChannelPlay(_monitorPlaybackHandle, true);
-
-			if (!_isPlayback) {
-				Debug.LogError($"{Bass.LastError}");
-			}
-			
-			return _isPlayback;
 		}
 
 		public void SetMonitoringLevel(float volume) {
@@ -80,7 +73,7 @@ namespace YARG {
 
 		private bool ProcessRecordData(int handle, IntPtr buffer, int length, IntPtr user) {
 			// Copies the data from the recording buffer to the monitor playback buffer.
-			if (_isPlayback) {
+			if (IsMonitoring) {
 				Bass.StreamPutData(_monitorPlaybackHandle, buffer, length);
 			}
 			
