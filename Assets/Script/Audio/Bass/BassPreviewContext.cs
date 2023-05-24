@@ -60,13 +60,13 @@ namespace YARG {
 		}
 
 		public async UniTask PlayPreview(SongEntry song) {
-			_songToLoad = song;
-
 			// Skip if preview shouldn't be played
 			if (song == null || Mathf.Approximately(SettingsManager.Settings.PreviewVolume.Data, 0f)) {
 				return;
 			}
 
+			_songToLoad = song;
+			
 			// If a preview is being loaded, WE DON'T want to mess with that process
 			if (_loadingPreview) {
 				if (!_loadCanceller?.IsCancellationRequested ?? false) {
