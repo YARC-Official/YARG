@@ -272,13 +272,20 @@ namespace YARG.UI.MusicLibrary {
 					} else if (arg.StartsWith("instrument:")) {
 						// Instrument filter
 						var instrument = arg[11..];
-						if (instrument == "band") {
+						/*f (instrument == "band") {
 							songsOut = SongContainer.Songs
 								.Where(i => i.BandDifficulty >= 0);
 						} else {
 							songsOut = SongContainer.Songs
 								.Where(i => i.HasInstrument(InstrumentHelper.FromStringName(instrument)));
-						}
+						}*/
+						songsOut = instrument switch {
+							"band" => SongContainer.Songs.Where(i => i.BandDifficulty >= 0),
+							"vocals" => SongContainer.Songs.Where(i => i.VocalParts < 2),
+							"harmVocals" => SongContainer.Songs.Where(i => i.VocalParts >= 2),
+							_ => SongContainer.Songs.Where(i =>
+								i.HasInstrument(InstrumentHelper.FromStringName(instrument))),
+						};
 					} else if (!searched) {
 						// Search
 						searched = true;
