@@ -178,6 +178,7 @@ namespace YARG.PlayMode {
 
 			// Start mics
 			foreach (var player in PlayerManager.players) {
+				/*
 				// Skip people who are sitting out
 				if (player.chosenInstrument != "vocals" && player.chosenInstrument != "harmVocals") {
 					continue;
@@ -189,7 +190,7 @@ namespace YARG.PlayMode {
 				}
 
 				// Skip if the player hasn't assigned a mic
-				if (micStrategy.microphoneIndex == InputStrategy.INVALID_MIC_INDEX && !micStrategy.botMode) {
+				if (micStrategy.microphoneIndex == InputStrategy.INVALID_MIC_INDEX && !micStrategy.BotMode) {
 					continue;
 				}
 
@@ -219,7 +220,7 @@ namespace YARG.PlayMode {
 				micInputs.Add(playerInfo);
 
 				// The rest happens with bots
-				if (micStrategy.botMode) {
+				if (micStrategy.BotMode) {
 					continue;
 				}
 
@@ -240,6 +241,7 @@ namespace YARG.PlayMode {
 					// This loop is weird, but it works.
 				}
 				audio.Play();
+				*/
 			}
 
 			// Destroy if no mic is connected
@@ -380,7 +382,7 @@ namespace YARG.PlayMode {
 				var micInput = (MicInputStrategy) player.inputStrategy;
 
 				// Update inputs
-				if (micInput.botMode) {
+				if (micInput.BotMode) {
 					micInput.InitializeBotMode(charts[botChartIndex]);
 					botChartIndex++;
 					botChartIndex %= charts.Count;

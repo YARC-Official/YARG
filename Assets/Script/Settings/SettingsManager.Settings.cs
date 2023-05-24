@@ -22,7 +22,7 @@ namespace YARG.Settings {
 			public ToggleSetting DisablePerSongBackgrounds  { get; private set; } = new(false);
 
 			public ToggleSetting VSync                      { get; private set; } = new(true,      VSyncCallback);
-			public ToggleSetting FpsStats                   { get; private set; } = new(false,     FpsCouterCallback);
+			public ToggleSetting FpsStats                   { get; private set; } = new(false,     FpsCounterCallback);
 			public IntSetting    FpsCap                     { get; private set; } = new(60, 1,     onChange: FpsCapCallback);
 
 			public ToggleSetting LowQuality                 { get; private set; } = new(false,     LowQualityCallback);
@@ -82,9 +82,7 @@ namespace YARG.Settings {
 			}
 
 			public void ExportOuvertSongs() {
-				StandaloneFileBrowser.SaveFilePanelAsync("Save Song List", null, "songs", "json", path => {
-					OuvertExport.ExportOuvertSongsTo(path);
-				});
+				StandaloneFileBrowser.SaveFilePanelAsync("Save Song List", null, "songs", "json", OuvertExport.ExportOuvertSongsTo);
 			}
 
 			public void CopyCurrentSongTextFilePath() {
@@ -109,7 +107,7 @@ namespace YARG.Settings {
 				QualitySettings.vSyncCount = value ? 1 : 0;
 			}
 
-			private static void FpsCouterCallback(bool value) {
+			private static void FpsCounterCallback(bool value) {
 				// disable script
 				FpsCounter.Instance.enabled = value;
 				// UpdateSettings()

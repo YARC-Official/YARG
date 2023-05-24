@@ -70,7 +70,7 @@ namespace YARG {
 			private static int nextPlayerName = 1;
 
 			public string name;
-			public string DisplayName => name + (inputStrategy.botMode ? " <color=#00DBFD>BOT</color>" : "");
+			public string DisplayName => name + (inputStrategy.BotMode ? " <color=#00DBFD>BOT</color>" : "");
 
 			public InputStrategy inputStrategy;
 

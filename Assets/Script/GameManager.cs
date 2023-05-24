@@ -75,7 +75,7 @@ namespace YARG {
 
 		private void OnDestroy() {
 			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.Disable();
+				player.inputStrategy?.Dispose();
 			}
 		}
 

@@ -40,14 +40,11 @@ namespace YARG.Audio {
 		}
 
 		private double[] _stemVolumes;
+		private ISampleChannel[] _sfxSamples;
 
 		private int _opusHandle;
 
 		private IStemMixer _mixer;
-
-		private ISampleChannel[] _sfxSamples;
-
-		List<IMicDevice> _micDevices;
 
 		private void Awake() {
 			SupportedFormats = new[] {
@@ -58,8 +55,6 @@ namespace YARG.Audio {
 				".aiff",
 				".opus",
 			};
-
-			_micDevices = new List<IMicDevice>();
 
 			_stemVolumes = new double[AudioHelpers.SupportedStems.Count];
 
@@ -109,34 +104,6 @@ namespace YARG.Audio {
 			Debug.Log($"Playback Buffer Length: {Bass.PlaybackBufferLength}");
 
 			Debug.Log($"Current Device: {Bass.GetDeviceInfo(Bass.CurrentDevice).Name}");
-
-			int deviceIndex = 0;
-
-			// Look for microphones
-			while (Bass.RecordGetDeviceInfo(deviceIndex, out var info)) {
-				int device = deviceIndex;
-				deviceIndex++;
-
-				if (!info.IsEnabled)
-					continue;
-
-				if (info.Type != DeviceType.Microphone)
-					continue;
-
-				var mic = new BassMicDevice();
-
-				int result = mic.Initialize(device);
-				if (result != 0) {
-					Debug.LogError($"Failed to initialize mic: {info.Name} ({(Errors)result})");
-					continue;
-				}
-
-				Debug.Log($"Initialized mic: {info.Name}");
-
-				_micDevices.Add(mic);
-				Debug.Log($"Device {device}: {info.Name}");
-				break;
-			}
 		}
 
 		public void Unload() {
@@ -152,11 +119,39 @@ namespace YARG.Audio {
 				sample?.Dispose();
 			}
 
-			foreach (var mic in _micDevices) {
-				mic?.Dispose();
+			Bass.Free();
+		}
+
+		public IList<UninitializedMic> GetAllInputDevices() {
+			var mics = new List<UninitializedMic>();
+
+			for (int deviceIndex = 0; Bass.RecordGetDeviceInfo(deviceIndex, out var info); deviceIndex++) {
+				if (!info.IsEnabled) {
+					continue;
+				}
+
+				if (info.Type != DeviceType.Microphone) {
+					continue;
+				}
+
+				mics.Add(new UninitializedMic(deviceIndex, info.Name, info.IsDefault));
 			}
 
-			Bass.Free();
+			return mics;
+		}
+
+		public IMicDevice CreateMicFromUninitialized(UninitializedMic uninitialized) {
+			var mic = new BassMicDevice();
+
+			int result = mic.Initialize(uninitialized.DeviceId);
+			if (result != 0) {
+				Debug.LogError($"Failed to initialize mic: {uninitialized.DisplayName} ({(Errors)result})");
+				return null;
+			}
+
+			Debug.Log($"Initialized mic: {uninitialized.DisplayName}");
+
+			return mic;
 		}
 
 		public void LoadSfx() {

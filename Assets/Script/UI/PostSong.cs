@@ -49,7 +49,7 @@ namespace YARG.UI {
 				}
 
 				// DQ bots
-				if (player.inputStrategy.botMode) {
+				if (player.inputStrategy.BotMode) {
 					disqualified.Add(player);
 					continue;
 				}

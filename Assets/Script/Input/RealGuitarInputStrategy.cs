@@ -95,8 +95,8 @@ namespace YARG.Input {
 
 			float songTime = Play.Instance.SongTime;
 
-			while (botChart.Count > botChartIndex && botChart[botChartIndex].time <= songTime) {
-				var note = botChart[botChartIndex];
+			while (botChart.Count > BotChartIndex && botChart[BotChartIndex].time <= songTime) {
+				var note = botChart[BotChartIndex];
 
 				// Press correct frets
 				for (int i = 0; i < ProGuitar.StringCount; i++) {
@@ -117,7 +117,7 @@ namespace YARG.Input {
 				}
 				StrumEvent?.Invoke(flag);
 
-				botChartIndex++;
+				BotChartIndex++;
 			}
 
 			// Constantly activate starpower

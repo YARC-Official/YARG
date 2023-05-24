@@ -58,7 +58,7 @@ namespace YARG.PlayMode {
 			input.FretChangeEvent += FretChangedAction;
 			input.StrumEvent += StrumAction;
 
-			if (input.botMode) {
+			if (input.BotMode) {
 				input.InitializeBotMode(Chart);
 			}
 
@@ -668,7 +668,7 @@ namespace YARG.PlayMode {
 			}
 
 			strummed = true;
-			if (!input.botMode) {
+			if (!input.BotMode) {
 				strumLeniency = Constants.STRUM_LENIENCY;
 			}
 		}
