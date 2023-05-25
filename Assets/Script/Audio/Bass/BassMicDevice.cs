@@ -81,13 +81,9 @@ namespace YARG.Audio {
 			return true;
 		}
 
-		private static unsafe void CalculatePitchAndAmplitude(IntPtr buffer, int length) {
-			var bufferPtr = (float*) buffer;
-			int samples = length / 4;
-
-			for (int i = 0; i < samples; i++) {
-				// Access sample index by: bufferPtr![i]
-			}
+		private void CalculatePitchAndAmplitude(IntPtr buffer, int length) {
+			Amplitude = PitchDetector.GetAmplitude(buffer, length);
+			Debug.Log(Amplitude);
 		}
 
 		public void Dispose() {
