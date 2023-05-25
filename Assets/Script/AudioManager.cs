@@ -5,10 +5,7 @@ using UnityEngine.Audio;
 
 namespace YARG {
 	public class AudioManager : MonoBehaviour {
-		public static AudioManager Instance {
-			get;
-			private set;
-		} = null;
+		public static AudioManager Instance { get; private set; }
 
 		/// <summary>
 		/// Unity inspector class ('cause we can't use dictionaries for some reason).

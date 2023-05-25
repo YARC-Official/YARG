@@ -83,7 +83,18 @@ namespace YARG.Audio {
 
 		private void CalculatePitchAndAmplitude(IntPtr buffer, int length) {
 			Amplitude = PitchDetector.GetAmplitude(buffer, length);
-			Debug.Log(Amplitude);
+
+			if (Amplitude <= 0f) {
+				return;
+			}
+
+			var pitch = PitchDetector.GetPitch(buffer, length);
+
+			if (pitch == null) {
+				return;
+			}
+
+			Pitch = pitch.Value;
 		}
 
 		public void Dispose() {

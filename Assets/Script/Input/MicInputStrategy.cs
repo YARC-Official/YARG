@@ -24,7 +24,7 @@ namespace YARG.Input {
 		public float VoiceNote { get; private set; }
 		public int VoiceOctave { get; private set; }
 
-		public bool VoiceDetected => VoiceAmplitude >= 1f;
+		public bool VoiceDetected => VoiceAmplitude > 0f;
 
 		public float TimeSinceNoVoice { get; private set; }
 		public float TimeSinceVoiceDetected { get; private set; }
@@ -56,8 +56,17 @@ namespace YARG.Input {
 			}
 
 			// Set info from mic
+			VoiceAmplitude = MicDevice.Amplitude;
 			VoicePitch = MicDevice.Pitch;
-			VoicePitch = MicDevice.Pitch;
+
+			// Get the note number from the hertz value
+			float midiNote = 12f * Mathf.Log(VoicePitch / 440f, 2f) + 69f;
+
+			// Calculate the octave of the note
+			VoiceOctave = (int) Mathf.Floor(midiNote / 12f);
+
+			// Get the pitch (and disregard the note)
+			VoiceNote = midiNote % 12f;
 
 			// Set timing infos
 			if (VoiceDetected) {

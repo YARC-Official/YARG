@@ -218,10 +218,9 @@ namespace YARG.UI {
 			UpdateState(State.Configure);
 
 			var options = new List<string>();
-			for (StrategyType strategy = 0; strategy < StrategyType.Count; strategy++)
-			{
+			for (StrategyType strategy = 0; strategy < StrategyType.Count; strategy++) {
 				// Don't display microphone as an option if no mic was selected and we're not in bot mode
-				if (_selectedMic != null && !_botMode && strategy == StrategyType.Vocals)
+				if (strategy == StrategyType.Vocals && _selectedMic == null && !_botMode)
 					break;
 
 				string text = strategy switch {
