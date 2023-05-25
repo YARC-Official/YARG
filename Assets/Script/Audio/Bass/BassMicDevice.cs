@@ -1,5 +1,6 @@
 ﻿using System;
 using ManagedBass;
+using ManagedBass.Fx;
 using UnityEngine;
 
 namespace YARG.Audio {
@@ -21,6 +22,13 @@ namespace YARG.Audio {
 		private bool _disposed;
 
 		private RecordProcedure _recordProcedure;
+
+		private readonly ReverbParameters _monitoringReverbParameters = new() {
+			fDryMix = 0.3f,
+			fWetMix = 1f,
+			fRoomSize = 0.4f,
+			fDamp = 0.7f
+		};
 
 		public int Initialize(int device) {
 			if(_initialized || _disposed)
@@ -51,6 +59,15 @@ namespace YARG.Audio {
 				Debug.LogError($"Failed to create monitor stream: {Bass.LastError}");
 				return (int) Bass.LastError;
 			}
+
+			// Add reverb to the monitor playback
+			int reverbHandle = Bass.ChannelSetFX(_monitorPlaybackHandle, EffectType.Freeverb, 0);
+			if(reverbHandle == 0) {
+				_initialized = false;
+				Debug.LogError($"Failed to add reverb to monitor stream: {Bass.LastError}");
+				return (int) Bass.LastError;
+			}
+			Bass.FXSetParameters(reverbHandle, _monitoringReverbParameters);
 
 			Bass.ChannelPlay(_monitorPlaybackHandle, false);
 
