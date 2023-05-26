@@ -150,31 +150,37 @@ namespace XboxSTFS {
 			return stream.ReadInt32LE() == 0xA;
 		}
 
+		internal const int BYTES_PER_BLOCK = 0x1000;
+		internal const int BLOCKS_PER_SECTION = 170;
+		internal const int BYTES_PER_SECTION = BLOCKS_PER_SECTION * BYTES_PER_BLOCK;
+		internal const int NUM_BLOCKS_SQUARED = BLOCKS_PER_SECTION * BLOCKS_PER_SECTION;
+
 		private int CalculateBlockNum(int blocknum)
 		{
 			int blockAdjust = 0;
-			if (blocknum >= 0xAA)
+			if (blocknum >= BLOCKS_PER_SECTION)
 			{
-				blockAdjust += ((blocknum / 0xAA) + 1) << shiftValue;
-				if (blocknum >= 0x70E4)
-					blockAdjust += ((blocknum / 0x70E4) + 1) << shiftValue;
+				blockAdjust += ((blocknum / BLOCKS_PER_SECTION) + 1) << shiftValue;
+				if (blocknum >= NUM_BLOCKS_SQUARED)
+					blockAdjust += ((blocknum / NUM_BLOCKS_SQUARED) + 1) << shiftValue;
 			}
 			return blockAdjust + blocknum;
 		}
 
+		
 		private byte[] ReadContiguousBlocks(int blockNum, int fileSize)
 		{
 			byte[] data = new byte[fileSize];
 			{
-				long pos = 0xC000 + (long)CalculateBlockNum(blockNum) * 0x1000;
+				long pos = 0xC000 + (long)CalculateBlockNum(blockNum) * BYTES_PER_BLOCK;
 				if (stream.Seek(pos, SeekOrigin.Begin) != pos)
 					throw new Exception("File location is not valid");
 			}
 			
-			long skipVal = 0x1000 << shiftValue;
-			int div = blockNum / 28900;
-			int numBlocks = 170 - (blockNum % 170);
-			int readSize = 0x1000 * numBlocks;
+			long skipVal = BYTES_PER_BLOCK << shiftValue;
+			int threshold = blockNum - (blockNum % NUM_BLOCKS_SQUARED) + NUM_BLOCKS_SQUARED;
+			int numBlocks = BLOCKS_PER_SECTION - (blockNum % BLOCKS_PER_SECTION);
+			int readSize = BYTES_PER_BLOCK * numBlocks;
 			int offset = 0;
 			while (true)
 			{
@@ -189,18 +195,18 @@ namespace XboxSTFS {
 					break;
 
 				blockNum += numBlocks;
-				numBlocks = 170;
-				readSize = 170 * 0x1000;
+				numBlocks = BLOCKS_PER_SECTION;
+				readSize = BYTES_PER_SECTION;
 
 				stream.Seek(skipVal, SeekOrigin.Current);
-				if (blockNum == 170)
+				if (blockNum == BLOCKS_PER_SECTION)
 					stream.Seek(skipVal, SeekOrigin.Current);
-				else if (blockNum == (div + 1) * 28900)
+				else if (blockNum == threshold)
 				{
-					if (blockNum == 28900)
+					if (blockNum == NUM_BLOCKS_SQUARED)
 						stream.Seek(skipVal, SeekOrigin.Current);
 					stream.Seek(skipVal, SeekOrigin.Current);
-					++div;
+					threshold += NUM_BLOCKS_SQUARED;
 				}
 			}
 			return data;
@@ -215,11 +221,11 @@ namespace XboxSTFS {
 			while (true)
 			{
 				int block = CalculateBlockNum(blockNum);
-				long blockLocation = 0xC000 + (long)block * 0x1000;
+				long blockLocation = 0xC000 + (long)block * BYTES_PER_BLOCK;
 				if (stream.Seek(blockLocation, SeekOrigin.Begin) != blockLocation)
 					throw new Exception("Seek error in CON-like subfile - Type: Split");
 
-				int readSize = 0x1000;
+				int readSize = BYTES_PER_BLOCK;
 				if (readSize > fileSize - offset)
 					readSize = fileSize - offset;
 
@@ -230,7 +236,7 @@ namespace XboxSTFS {
 				if (offset == fileSize)
 					break;
 
-				long hashlocation = blockLocation - ((blockNum % 170) * 4072 + 4075);
+				long hashlocation = blockLocation - ((blockNum % BLOCKS_PER_SECTION) * 4072 + 4075);
 				if (stream.Seek(hashlocation, SeekOrigin.Begin) != hashlocation)
 					throw new Exception("Seek error in CON-like subfile - Type: Split");
 
