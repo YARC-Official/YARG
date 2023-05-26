@@ -191,10 +191,17 @@ namespace YARG.PlayMode {
 
 		public virtual void SetPlayerScore() {
 			// Set score
+			float percentage;
+			if (GetChartCount() > 0) {
+				percentage = Chart.Count == 0 ? 1f : (float) notesHit / GetChartCount();
+			} else {
+				percentage = 0.0f;
+			}
+			
 			player.lastScore = new PlayerManager.LastScore {
 				percentage = new DiffPercent {
 					difficulty = player.chosenDifficulty,
-					percent = Chart.Count == 0 ? 1f : (float) notesHit / GetChartCount()
+					percent = percentage
 				},
 				score = new DiffScore {
 					difficulty = player.chosenDifficulty,
