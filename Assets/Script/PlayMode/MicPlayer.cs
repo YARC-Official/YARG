@@ -294,10 +294,11 @@ namespace YARG.PlayMode {
 		public void SetPlayerScore() {
 			// Create score
 			int totalSections = sectionsFailed + sectionsHit;
+			float percentage = totalSections > 0 ? (float)(totalSingPercent / totalSections) : 1.0f;
 			var score = new PlayerManager.LastScore {
 				percentage = new DiffPercent {
 					difficulty = micInputs[0].player.chosenDifficulty,
-					percent = totalSingPercent / totalSections
+					percent = percentage
 				},
 				score = new DiffScore {
 					difficulty = micInputs[0].player.chosenDifficulty,
