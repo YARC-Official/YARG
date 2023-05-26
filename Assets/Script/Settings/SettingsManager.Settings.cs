@@ -152,7 +152,9 @@ namespace YARG.Settings {
 			}
 
 			private static void VocalMonitoringCallback(float volume) {
-				AudioManager.Instance.SetVolume("vocalMonitoring", volume);
+				foreach (var player in PlayerManager.players) {
+					player.inputStrategy?.MicDevice?.SetMonitoringLevel(volume);
+				}
 			}
 
 			private static void MusicPlayerVolumeCallback(float volume) {
