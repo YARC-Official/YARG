@@ -2,12 +2,13 @@
 using ManagedBass;
 using ManagedBass.Fx;
 using UnityEngine;
+using YARG.Settings;
 
 namespace YARG.Audio {
 	public class BassMicDevice : IMicDevice {
 
 		// How often to record samples from the microphone in milliseconds (calls the callback function every n millis)
-		private const int RECORD_PERIOD_MILLIS = 10;
+		private const int RECORD_PERIOD_MILLIS = 50;
 
 		public bool IsMonitoring { get; set; }
 
@@ -73,7 +74,7 @@ namespace YARG.Audio {
 
 			IsMonitoring = true;
 
-			SetMonitoringLevel(1);
+			SetMonitoringLevel(SettingsManager.Settings.VocalMonitoring.Data);
 
 			_initialized = true;
 			return 0;

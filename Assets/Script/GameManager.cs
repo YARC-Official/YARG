@@ -34,9 +34,6 @@ namespace YARG {
 		[field: SerializeField]
 		public SettingsMenu SettingsMenu { get; private set; }
 
-		[SerializeField]
-		private AudioMixerGroup vocalGroup;
-
 		public SceneIndex CurrentScene { get; private set; } = SceneIndex.PERSISTANT;
 
 		public SongEntry SelectedSong { get; set; }

@@ -7,7 +7,9 @@ namespace YARG.Audio {
 		private const int SKIP_AMOUNT = 4;
 
 		private const int START_BOUND = 20;
-		private const int WINDOW_SIZE = 64;
+		private const int WINDOW_SIZE = 96;
+		private const int COMPARE_STEP_SIZE = 3;
+
 		private const float THRESHOLD = 0.05f;
 
 		public static unsafe float GetAmplitude(IntPtr buffer, int bufferByteLength) {
@@ -72,6 +74,7 @@ namespace YARG.Audio {
 
 			// Convert to Hz
 			float hertz = (float) length / realLength * 44100 / lowestCMNDF.Value;
+			Debug.Log(hertz);
 
 			// If the hertz is over 800, it is probably just a fricative (th, f, s, etc.)
 			if (hertz > 800f) {
@@ -104,7 +107,7 @@ namespace YARG.Audio {
 
 			float result = 0f;
 			int index = time + lag;
-			for (int i = 0; i < WINDOW_SIZE; i++) {
+			for (int i = 0; i < WINDOW_SIZE; i += COMPARE_STEP_SIZE) {
 				float sample1 = optimizedSamples[time + i];
 				float sample2 = optimizedSamples[index + i];
 				result += (sample1 * sample1) + (sample2 * sample2) - (2f * sample1 * sample2);
