@@ -438,15 +438,15 @@ namespace YARG.PlayMode {
 				commonTrack.TrackView.SetSoloBox(soloHitPercent + "%", $"{soloNotesHit}/{soloNoteCount}");
 			} else if (soloInProgress) {
 				commonTrack.TrackView.HideSoloBox(soloHitPercent + "%", soloHitPercent switch {
-					69 => "<i>NICE</i> SOLO!",
+					69 => "<i>NICE</i>\nSOLO",
 
-					>= 100 => "PERFECT SOLO!",
-					>= 95 => "AWESOME SOLO!",
-					>= 90 => "GREAT SOLO!",
-					>= 80 => "GOOD SOLO!",
-					>= 70 => "SOLID SOLO!",
-					>= 60 => "OKAY SOLO!",
-					_ => "MESSY SOLO!",
+					>= 100 => "PERFECT\nSOLO!",
+					>= 95  => "AWESOME\nSOLO!",
+					>= 90  => "GREAT\nSOLO!",
+					>= 80  => "GOOD\nSOLO!",
+					>= 70  => "SOLID\nSOLO",
+					>= 60  => "OKAY\nSOLO",
+					_      => "MESSY\nSOLO",
 				});
 
 				soloInProgress = false;
