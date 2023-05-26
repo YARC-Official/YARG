@@ -112,7 +112,7 @@ namespace YARG.Audio {
 				return;
 			}
 
-			Pitch = pitch.Value;
+			Pitch = Mathf.Lerp(Pitch, pitch.Value, 1f / RECORD_PERIOD_MILLIS * 24f);
 		}
 
 		public void Dispose() {
