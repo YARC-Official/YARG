@@ -19,7 +19,9 @@ using YARG.UI.MusicLibrary.ViewTypes;
 namespace YARG.UI.MusicLibrary {
 	public class Sidebar : MonoBehaviour {
 		[SerializeField]
-		private Transform _difficultyRingsContainer;
+		private Transform _difficultyRingsTopContainer;
+		[SerializeField]
+		private Transform _difficultyRingsBottomContainer;
 		[SerializeField]
 		private TextMeshProUGUI _album;
 		[SerializeField]
@@ -45,8 +47,16 @@ namespace YARG.UI.MusicLibrary {
 
 		public void Init() {
 			// Spawn 10 difficulty rings
-			for (int i = 0; i < 10; i++) {
-				var go = Instantiate(difficultyRingPrefab, _difficultyRingsContainer);
+			// for (int i = 0; i < 10; i++) {
+			// 	var go = Instantiate(difficultyRingPrefab, _difficultyRingsContainer);
+			// 	difficultyRings.Add(go.GetComponent<DifficultyRing>());
+			// }
+			for (int i = 0; i < 5; ++i) {
+				var go = Instantiate(difficultyRingPrefab, _difficultyRingsTopContainer);
+				difficultyRings.Add(go.GetComponent<DifficultyRing>());
+			}
+			for (int i = 0; i < 5; ++i) {
+				var go = Instantiate(difficultyRingPrefab, _difficultyRingsBottomContainer);
 				difficultyRings.Add(go.GetComponent<DifficultyRing>());
 			}
 		}

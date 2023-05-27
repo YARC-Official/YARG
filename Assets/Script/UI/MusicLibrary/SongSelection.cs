@@ -20,7 +20,7 @@ namespace YARG.UI.MusicLibrary {
 
 		public static bool refreshFlag = true;
 
-		private const int SONG_VIEW_EXTRA = 6;
+		private const int SONG_VIEW_EXTRA = 15;
 		private const float SCROLL_TIME = 1f / 60f;
 
 		[SerializeField]
