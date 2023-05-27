@@ -69,12 +69,8 @@ namespace YARG.Settings {
 
 		public void Browse() {
 			var startingDir = PathsReference[index];
-			StandaloneFileBrowser.OpenFolderPanelAsync("Choose Folder", startingDir, false, folder => {
-				if (folder == null || folder.Length == 0) {
-					return;
-				}
-
-				PathsReference[index] = folder[0];
+			FileExplorerHelper.OpenChooseFolder(startingDir, folder => {
+				PathsReference[index] = folder;
 				RefreshText();
 			});
 		}
