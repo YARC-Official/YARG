@@ -56,9 +56,7 @@ namespace YARG.PlayMode {
 
 		private bool audioStarted;
 		private float realSongTime;
-		public float SongTime {
-			get => realSongTime + PlayerManager.GlobalCalibration * speed;
-		}
+		public float SongTime => realSongTime - PlayerManager.AudioCalibration * speed;
 
 		public float SongLength {
 			get;

@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.Diagnostics;
-using SFB;
 using UnityEngine;
 using YARG.PlayMode;
 using YARG.Serialization;
@@ -17,7 +15,7 @@ namespace YARG.Settings {
 			public List<string>  SongFolders                                      = new();
 			public List<string>  SongUpgradeFolders                               = new();
 
-			public IntSetting    CalibrationNumber          { get; private set; } = new(-120);
+			public IntSetting    AudioCalibration           { get; private set; } = new(120);
 
 			public ToggleSetting DisablePerSongBackgrounds  { get; private set; } = new(false);
 
@@ -90,6 +88,11 @@ namespace YARG.Settings {
 
 				// Force update sliders
 				GameManager.Instance.SettingsMenu.UpdateSettingsForTab();
+			}
+
+			public void OpenCalibrator() {
+				GameManager.Instance.LoadScene(SceneIndex.CALIBRATION);
+				GameManager.Instance.SettingsMenu.gameObject.SetActive(false);
 			}
 
 			private static void VSyncCallback(bool value) {

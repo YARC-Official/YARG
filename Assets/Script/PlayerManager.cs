@@ -72,7 +72,7 @@ namespace YARG {
 		private static readonly List<string> RandomPlayerNames = new();
 		public static List<Player> players = new();
 
-		public static float GlobalCalibration => SettingsManager.Settings.CalibrationNumber.Data / 1000f;
+		public static float AudioCalibration => SettingsManager.Settings.AudioCalibration.Data / 1000f;
 
 		static PlayerManager() {
 			// Load credits file

@@ -260,6 +260,41 @@ namespace YARG {
 			IsAudioLoaded = true;
 		}
 
+		public void LoadCustomAudioFile(string audioPath) {
+			Debug.Log("Loading custom audio file");
+			UnloadSong();
+
+			_mixer = new BassStemMixer(this);
+			if (!_mixer.Create()) {
+				throw new Exception($"Failed to create mixer: {Bass.LastError}");
+			}
+
+			var stemChannel = new BassStemChannel(this, audioPath, SongStem.Song);
+			if (stemChannel.Load(false, PlayMode.Play.speed) != 0) {
+				Debug.LogError($"Failed to load stem! {audioPath}");
+				Debug.LogError($"Bass Error: {Bass.LastError}");
+				return;
+			}
+
+			if (_mixer.GetChannel(SongStem.Song) != null) {
+				Debug.LogError($"Stem already loaded! {audioPath}");
+				return;
+			}
+
+			if (_mixer.AddChannel(stemChannel) != 0) {
+				Debug.LogError($"Failed to add stem to mixer!");
+				Debug.LogError($"Bass Error: {Bass.LastError}");
+			}
+
+			Debug.Log($"Loaded {_mixer.StemsLoaded} stems");
+
+			// Setup audio length
+			AudioLengthD = _mixer.LeadChannel.LengthD;
+			AudioLengthF = (float) AudioLengthD;
+
+			IsAudioLoaded = true;
+		}
+
 		public void UnloadSong() {
 			IsPlaying = false;
 			IsAudioLoaded = false;
