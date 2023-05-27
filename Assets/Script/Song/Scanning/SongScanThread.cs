@@ -205,9 +205,9 @@ namespace YARG.Song {
 
 			// Iterate through the files in this current directory to look for CON files
 			try { // try-catch to prevent crash if user doesn't have permission to access a folder
-				foreach (var filename in Directory.EnumerateFiles(subDir)) {
-					XboxSTFSFile conFile = new();
-					if (!conFile.Load(filename))
+				foreach (var file in Directory.EnumerateFiles(subDir)) {
+					XboxSTFSFile conFile = XboxSTFSFile.LoadCON(file);
+					if (conFile == null)
 						continue;
 
 					dtaTree = BrowseCON(conFile, _songUpgradeDict);

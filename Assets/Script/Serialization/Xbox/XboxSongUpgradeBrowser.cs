@@ -35,8 +35,8 @@ namespace YARG.Serialization {
 			// THEN, find any loose CONs in this directory and parse those for upgrades as well
 			foreach (var file in Directory.EnumerateFiles(upgrade_folder)) {
 				if(Path.GetExtension(file) != ".mid" && Path.GetExtension(file) != ".dta"){
-					XboxSTFSFile conFile = new();
-					if (!conFile.Load(file)) { continue; }
+					XboxSTFSFile conFile = XboxSTFSFile.LoadCON(file);
+					if (conFile == null) { continue; }
 
 					byte[] upgradeFile = conFile.LoadSubFile(Path.Combine("song_upgrades","upgrades.dta"));
 					if (upgradeFile.Length == 0) { continue; }
