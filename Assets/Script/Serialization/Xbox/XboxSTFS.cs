@@ -50,46 +50,60 @@ namespace XboxSTFS {
     }
 
 	public class XboxSTFSFile {
-		public string Filename { get; private set; }
+		public string Filename { get { return stream.Name; } }
 		private FileStream stream;
+		private byte shiftValue = 0;
 		private List<FileListing> files = new();
-		private byte shiftValue;
+		private readonly object fileLock = new();
 
-		public XboxSTFSFile() {}
-
-		public bool Load(string filename) {
+		static public XboxSTFSFile LoadCON(string filename) {
 			byte[] buffer = new byte[4];
-			stream = new FileStream(filename, FileMode.Open, FileAccess.Read);
+			FileStream stream = new(filename, FileMode.Open, FileAccess.Read);
 
 			if (stream.Read(buffer) != 4)
-				return false;
+				return null;
 
 			string tag = Encoding.Default.GetString(buffer, 0, buffer.Length);
 			if (tag != "CON " && tag != "LIVE" && tag != "PIRS")
-				return false;
+				return null;
 
 			stream.Seek(0x0340, SeekOrigin.Begin);
 			if (stream.Read(buffer) != 4)
-				return false;
+				return null;
 
-			if (((((buffer[0] << 24 | buffer[1] << 16 | buffer[2] << 8 | buffer[3]) + 0xFFF) & 0xF000) >> 0xC) != 0xB)
+			byte shiftValue = 0;
+			int entryID = buffer[0] << 24 | buffer[1] << 16 | buffer[2] << 8 | buffer[3];
+			if ((((entryID + 0xFFF) & 0xF000) >> 0xC) != 0xB)
 				shiftValue = 1;
 
 			stream.Seek(0x37C, SeekOrigin.Begin);
 			if (stream.Read(buffer, 0, 2) != 2)
-				return false;
+				return null;
 
 			int length = 0x1000 * (buffer[0] << 8 | buffer[1]);
 
 			stream.Seek(0x37E, SeekOrigin.Begin);
 			if (stream.Read(buffer, 0, 3) != 3)
-				return false;
+				return null;
 
 			int firstBlock = buffer[0] << 16 | buffer[1] << 8 | buffer[2];
 
+			XboxSTFSFile con = new(stream, shiftValue);
+			try {
+				con.ParseFileList(firstBlock, length);
+				return con;
+			} catch(Exception) { return null; }
+		}
+
+		private XboxSTFSFile(FileStream stream, byte shiftValue) {
+			this.stream = stream;
+			this.shiftValue = shiftValue;
+		}
+
+		private void ParseFileList(int firstBlock, int length) {
 			byte[] fileListingBuffer = ReadContiguousBlocks(firstBlock, length);
 			for (int i = 0; i < length; i += 0x40) {
-				FileListing listing = new FileListing(new ReadOnlySpan<byte>(fileListingBuffer, i, 0x40));
+				FileListing listing = new(new ReadOnlySpan<byte>(fileListingBuffer, i, 0x40));
 				if (listing.Filename.Length == 0)
 					break;
 
@@ -97,9 +111,6 @@ namespace XboxSTFS {
 					listing.SetParentDirectory(files[listing.PathIndex].Filename);
 				files.Add(listing);
 			}
-
-			Filename = filename;
-			return true;
 		}
 
 		public int GetFileIndex(string filename)

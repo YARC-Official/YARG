@@ -74,9 +74,9 @@ namespace YARG.Song {
 
 			int numCons = reader.ReadInt32();
 			for (int i = 0; i < numCons; ++i) {
-				XboxSTFSFile con = new();
-				if (con.Load(reader.ReadString()))
-					conFiles.Add(con);
+				XboxSTFSFile conFile = XboxSTFSFile.LoadCON(reader.ReadString());
+				if (conFile != null)
+					conFiles.Add(conFile);
 			}
 
 			while (reader.BaseStream.Position < reader.BaseStream.Length) {
