@@ -3,81 +3,67 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.UI;
 
-public class FpsCounter : MonoBehaviour {
+namespace YARG.UI {
+	public class FpsCounter : MonoBehaviour {
+		public static FpsCounter Instance { get; private set; } = null;
 
-	// Instance
-	public static FpsCounter Instance { get; private set; } = null;
+		[SerializeField]
+		private Image fpsCircle;
+		[SerializeField]
+		private TextMeshProUGUI fpsText;
 
-	// FPS Counter
-	public Image fpsCircle;
-	public TextMeshProUGUI fpsText;
-	private float updateTime = 1f;
+		[SerializeField]
+		private Color fpsCircleGreen;
+		[SerializeField]
+		private Color fpsCircleYellow;
+		[SerializeField]
+		private Color fpsCircleRed;
 
-	// Awake
-	private void Awake() {
-		Instance = this;
-	}
+		[SerializeField]
+		private float fpsUpdateRate;
 
-	// check if the settings have changed and update the fps counter accordingly
-	public void UpdateSettings(bool value) {
-		SetVisible(value);
-	}
+		private float nextUpdateTime;
 
-	public void SetVisible(bool value) {
-		fpsText.gameObject.SetActive(value);
-		fpsCircle.gameObject.SetActive(value);
-	}
+		private void Awake() {
+			Instance = this;
+		}
 
-	// OnDestroy - set the instance to null
-	private void OnDestroy() {
-		Instance = null;
-	}
+		public void SetVisible(bool value) {
+			fpsText.gameObject.SetActive(value);
+			fpsCircle.gameObject.SetActive(value);
+		}
 
-	// Update is called once per frame
-	void Update() {
-		// update fps per second
-		if (Time.unscaledTime > updateTime) {
+		private void OnDestroy() {
+			Instance = null;
+		}
 
-			// (1 / unscaledDeltaTime) = FPS
+		void Update() {
+			// Wait for next update period
+			if (Time.unscaledTime < nextUpdateTime) {
+				return;
+			}
+
 			int fps = (int)(1f / Time.unscaledDeltaTime);
 
-			// Clear the FPS text
-			fpsText.text = "";
-
-			// Color the FPS sprite based on the FPS
+			// Color the circle sprite based on the FPS
 			if (fps < 30) {
-				// RED
-				if (ColorUtility.TryParseHtmlString("#FF0035", out Color color)) {
-					fpsCircle.color = color;
-				} else {
-					fpsCircle.color = Color.red;
-				}
+				fpsCircle.color = fpsCircleRed;
 			} else if (fps < 60) {
-				// YELLOW
-				if (ColorUtility.TryParseHtmlString("#FFD43A", out Color color)) {
-					fpsCircle.color = color;
-				} else {
-					fpsCircle.color = Color.yellow;
-				}
+				fpsCircle.color = fpsCircleYellow;
 			} else {
-				// GREEN
-				if (ColorUtility.TryParseHtmlString("#46E74F", out Color color)) {
-					fpsCircle.color = color;
-				} else {
-					fpsCircle.color = Color.green;
-				}
+				fpsCircle.color = fpsCircleGreen;
 			}
 
 			// Display the FPS
-			fpsText.text += "FPS: " + fps.ToString();
+			fpsText.text = $"FPS: {fps}";
 
 #if UNITY_EDITOR
 			// Display the memory usage
-			fpsText.text += "\nMemory: " + (Profiler.GetTotalAllocatedMemoryLong() / 1024 / 1024).ToString() + " MB";
+			fpsText.text += $"\nMemory: {Profiler.GetTotalAllocatedMemoryLong() / 1024 / 1024} MB";
 #endif
 
 			// reset the update time
-			updateTime = Time.unscaledTime + 1f;
+			nextUpdateTime = Time.unscaledTime + fpsUpdateRate;
 		}
 	}
 }

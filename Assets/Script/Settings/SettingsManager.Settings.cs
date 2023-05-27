@@ -109,10 +109,8 @@ namespace YARG.Settings {
 			}
 
 			private static void FpsCouterCallback(bool value) {
-				// disable script
 				FpsCounter.Instance.enabled = value;
-				// UpdateSettings()
-				FpsCounter.Instance.UpdateSettings(value);
+				FpsCounter.Instance.SetVisible(value);
 
 				// enable script if in editor
 #if UNITY_EDITOR
