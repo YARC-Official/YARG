@@ -18,17 +18,16 @@ namespace XboxSTFS {
 	}
     // Object containing the information about a file in the STFS container
     public class FileListing {
-        public string Filename { get; private set; }
+		public string Filename { get; private set; }
         public byte Flags { get; private set; }
         public int NumBlocks { get; private set; }
         public int FirstBlock { get; private set; }
 		public short PathIndex { get; private set; }
 		public int Size { get; private set; }
 		public int LastWrite { get; private set; }
-        
 
-        public FileListing(ReadOnlySpan<byte> data){
-            Filename = System.Text.Encoding.UTF8.GetString(data.ToArray(), 0, 0x28).TrimEnd('\0');
+		public FileListing(ReadOnlySpan<byte> data){
+			Filename = Encoding.UTF8.GetString(data.ToArray(), 0, 0x28).TrimEnd('\0');
             Flags = data[0x28];
             
             NumBlocks = BitConverter.ToInt32(new byte[4] { data[0x29], data[0x2A], data[0x2B], 0x00 });
@@ -46,13 +45,13 @@ namespace XboxSTFS {
 
         public override string ToString() => $"STFS File Listing: {Filename}";
         public bool IsDirectory() { return (Flags & 0x80) > 0; }
-        public bool IsContiguous() { return (Flags & 0x40) > 0; }
-    }
+		public bool IsContiguous() { return (Flags & 0x40) > 0; }
+	}
 
 	public class XboxSTFSFile {
 		public string Filename { get { return stream.Name; } }
 		private FileStream stream;
-		private byte shiftValue = 0;
+		private byte shift = 0;
 		private List<FileListing> files = new();
 		private readonly object fileLock = new();
 
@@ -71,10 +70,10 @@ namespace XboxSTFS {
 			if (stream.Read(buffer) != 4)
 				return null;
 
-			byte shiftValue = 0;
+			byte shift = 0;
 			int entryID = buffer[0] << 24 | buffer[1] << 16 | buffer[2] << 8 | buffer[3];
 			if ((((entryID + 0xFFF) & 0xF000) >> 0xC) != 0xB)
-				shiftValue = 1;
+				shift = 1;
 
 			stream.Seek(0x37C, SeekOrigin.Begin);
 			if (stream.Read(buffer, 0, 2) != 2)
@@ -88,16 +87,16 @@ namespace XboxSTFS {
 
 			int firstBlock = buffer[0] << 16 | buffer[1] << 8 | buffer[2];
 
-			XboxSTFSFile con = new(stream, shiftValue);
+			XboxSTFSFile con = new(stream, shift);
 			try {
 				con.ParseFileList(firstBlock, length);
 				return con;
 			} catch(Exception) { return null; }
 		}
 
-		private XboxSTFSFile(FileStream stream, byte shiftValue) {
+		private XboxSTFSFile(FileStream stream, byte shift) {
 			this.stream = stream;
-			this.shiftValue = shiftValue;
+			this.shift = shift;
 		}
 
 		private void ParseFileList(int firstBlock, int length) {
@@ -123,29 +122,24 @@ namespace XboxSTFS {
 
 		public FileListing this[int index] { get { return files[index]; } }
 
-		public byte[] LoadSubFile(string filename)
-		{
+		public byte[] LoadSubFile(string filename) {
 			for (int i = 0; i < files.Count; ++i)
-				if (filename == files[i].Filename)
-					return LoadSubFile(files[i]);
+				if (filename == files[i].Filename) {
+					lock (fileLock) {
+						return Load(files[i]);
+					}
+				}
 			Debug.Log("File " + filename + " does not exist in CON and thus could not be loaded");
 			return new byte[0];
 		}
 
-		public byte[] LoadSubFile(int index)
-		{
+		public byte[] LoadSubFile(int index) {
 			if (index < 0 || index >= files.Count)
 				return new byte[0];
-			return LoadSubFile(files[index]);
-		}
 
-		public byte[] LoadSubFile(FileListing listing)
-		{
-			Debug.Assert(!listing.IsDirectory(), "Directory listing cannot be loaded as a file");
-			if (listing.IsContiguous())
-				return ReadContiguousBlocks(listing.FirstBlock, listing.Size);
-			else
-				return ReadSplitBlocks(listing.FirstBlock, listing.Size);
+			lock (fileLock) {
+				return Load(files[index]);
+			}
 		}
 
 		public bool IsMoggUnencrypted(int index) {
@@ -156,9 +150,24 @@ namespace XboxSTFS {
 			Debug.Assert(!listing.IsDirectory(), "Directory listing cannot be loaded as a file");
 
 			long blockLocation = 0xC000 + (long)CalculateBlockNum(listing.FirstBlock) * 0x1000;
-			if (stream.Seek(blockLocation, SeekOrigin.Begin) != blockLocation)
-				throw new Exception("Seek error in CON-like subfile for Mogg");
-			return stream.ReadInt32LE() == 0xA;
+
+			lock (fileLock) {
+				if (stream.Seek(blockLocation, SeekOrigin.Begin) != blockLocation)
+					throw new Exception("Seek error in CON-like subfile for Mogg");
+				return stream.ReadInt32LE() == 0xA;
+			}
+		}
+
+		private byte[] Load(FileListing listing) {
+			Debug.Assert(!listing.IsDirectory(), "Directory listing cannot be loaded as a file");
+			try {
+				if (listing.IsContiguous())
+					return ReadContiguousBlocks(listing.FirstBlock, listing.Size);
+				else
+					return ReadSplitBlocks(listing.FirstBlock, listing.Size);
+			} catch (Exception e) {
+				throw new Exception(Filename + ": " + e.Message);
+			}
 		}
 
 		internal const int BYTES_PER_BLOCK = 0x1000;
@@ -166,35 +175,20 @@ namespace XboxSTFS {
 		internal const int BYTES_PER_SECTION = BLOCKS_PER_SECTION * BYTES_PER_BLOCK;
 		internal const int NUM_BLOCKS_SQUARED = BLOCKS_PER_SECTION * BLOCKS_PER_SECTION;
 
-		private int CalculateBlockNum(int blocknum)
-		{
-			int blockAdjust = 0;
-			if (blocknum >= BLOCKS_PER_SECTION)
-			{
-				blockAdjust += ((blocknum / BLOCKS_PER_SECTION) + 1) << shiftValue;
-				if (blocknum >= NUM_BLOCKS_SQUARED)
-					blockAdjust += ((blocknum / NUM_BLOCKS_SQUARED) + 1) << shiftValue;
-			}
-			return blockAdjust + blocknum;
-		}
-
-		
-		private byte[] ReadContiguousBlocks(int blockNum, int fileSize)
-		{
+		private byte[] ReadContiguousBlocks(int blockNum, int fileSize) {
 			byte[] data = new byte[fileSize];
 			{
 				long pos = 0xC000 + (long)CalculateBlockNum(blockNum) * BYTES_PER_BLOCK;
 				if (stream.Seek(pos, SeekOrigin.Begin) != pos)
 					throw new Exception("File location is not valid");
 			}
-			
-			long skipVal = BYTES_PER_BLOCK << shiftValue;
+
+			long skipVal = BYTES_PER_BLOCK << shift;
 			int threshold = blockNum - (blockNum % NUM_BLOCKS_SQUARED) + NUM_BLOCKS_SQUARED;
 			int numBlocks = BLOCKS_PER_SECTION - (blockNum % BLOCKS_PER_SECTION);
 			int readSize = BYTES_PER_BLOCK * numBlocks;
 			int offset = 0;
-			while (true)
-			{
+			while (true) {
 				if (readSize > fileSize - offset)
 					readSize = fileSize - offset;
 
@@ -212,8 +206,7 @@ namespace XboxSTFS {
 				stream.Seek(skipVal, SeekOrigin.Current);
 				if (blockNum == BLOCKS_PER_SECTION)
 					stream.Seek(skipVal, SeekOrigin.Current);
-				else if (blockNum == threshold)
-				{
+				else if (blockNum == threshold) {
 					if (blockNum == NUM_BLOCKS_SQUARED)
 						stream.Seek(skipVal, SeekOrigin.Current);
 					stream.Seek(skipVal, SeekOrigin.Current);
@@ -223,40 +216,49 @@ namespace XboxSTFS {
 			return data;
 		}
 
-		byte[] ReadSplitBlocks(int blockNum, int fileSize)
-		{
+		private byte[] ReadSplitBlocks(int blockNum, int fileSize) {
 			byte[] data = new byte[fileSize];
 			byte[] buffer = new byte[3];
 
 			int offset = 0;
-			while (true)
-			{
+			while (true) {
 				int block = CalculateBlockNum(blockNum);
 				long blockLocation = 0xC000 + (long)block * BYTES_PER_BLOCK;
+
 				if (stream.Seek(blockLocation, SeekOrigin.Begin) != blockLocation)
-					throw new Exception("Seek error in CON-like subfile - Type: Split");
+					throw new Exception("Pre-Seek error in CON-like subfile - Type: Split");
 
 				int readSize = BYTES_PER_BLOCK;
 				if (readSize > fileSize - offset)
 					readSize = fileSize - offset;
 
 				if (stream.Read(data, offset, readSize) != readSize)
-					throw new Exception("Read error in CON-like subfile - Type: Split");
+					throw new Exception("Pre-Read error in CON-like subfile - Type: Split");
 
 				offset += readSize;
 				if (offset == fileSize)
 					break;
 
-				long hashlocation = blockLocation - ((blockNum % BLOCKS_PER_SECTION) * 4072 + 4075);
+				long hashlocation = blockLocation - ((long)(blockNum % BLOCKS_PER_SECTION) * 4072 + 4075);
 				if (stream.Seek(hashlocation, SeekOrigin.Begin) != hashlocation)
-					throw new Exception("Seek error in CON-like subfile - Type: Split");
+					throw new Exception("Post-Seek error in CON-like subfile - Type: Split");
 
 				if (stream.Read(buffer, 0, 3) != 3)
-					throw new Exception("Read error in CON-like subfile - Type: Split");
+					throw new Exception("Post-Read error in CON-like subfile - Type: Split");
 
 				blockNum = buffer[0] << 16 | buffer[1] << 8 | buffer[2];
 			}
 			return data;
+		}
+
+		private int CalculateBlockNum(int blocknum) {
+			int blockAdjust = 0;
+			if (blocknum >= BLOCKS_PER_SECTION) {
+				blockAdjust += ((blocknum / BLOCKS_PER_SECTION) + 1) << shift;
+				if (blocknum >= NUM_BLOCKS_SQUARED)
+					blockAdjust += ((blocknum / NUM_BLOCKS_SQUARED) + 1) << shift;
+			}
+			return blockAdjust + blocknum;
 		}
 	}
 }

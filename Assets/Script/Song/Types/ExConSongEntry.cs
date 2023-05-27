@@ -406,10 +406,10 @@ namespace YARG.Song {
 			return File.ReadAllBytes(MoggPath);
 		}
 
-		public virtual async Task<byte[]> LoadImgFile(CancellationToken token) {
+		public virtual byte[] LoadImgFile() {
 			if (!HasAlbumArt || ImagePath.Length == 0)
 				return new byte[0];
-			return await File.ReadAllBytesAsync(ImagePath, token);
+			return File.ReadAllBytes(ImagePath);
 		}
 
 		public virtual bool IsMoggUnencrypted() {
