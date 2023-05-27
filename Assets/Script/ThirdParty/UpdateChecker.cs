@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using YARG.Data;
+using YARG.UI;
 
 namespace YARG {
 	public class UpdateChecker : MonoBehaviour {
