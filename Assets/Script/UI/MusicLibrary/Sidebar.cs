@@ -244,12 +244,12 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		private async UniTask LoadRbConCover(ExtractedConSongEntry conSongEntry) {
-			byte[] bytes = await conSongEntry.LoadImgFile(_cancellationToken.Token);
-			if (bytes.Length == 0)
-				return;
-
 			Texture2D texture = null;
 			try {
+				byte[] bytes = conSongEntry.LoadImgFile();
+				if (bytes.Length == 0)
+					return;
+
 				texture = await XboxImageTextureGenerator.GetTexture(bytes, _cancellationToken.Token);
 
 				_albumCover.texture = texture;

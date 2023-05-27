@@ -93,9 +93,10 @@ namespace YARG.Song {
 			return base.LoadMoggFile();
 		}
 
-		public override async Task<byte[]> LoadImgFile(CancellationToken token) {
+		public override byte[] LoadImgFile() {
 			if (AlternatePath)
-				return await base.LoadImgFile(token);
+				return base.LoadImgFile();
+
 			if (ImgIndex != -1)
 				return conFile.LoadSubFile(ImgIndex);
 			return new byte[0];
