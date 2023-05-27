@@ -34,7 +34,7 @@ namespace YARG.UI {
 			Vocals,
 
 			// Number of available strategies
-			Count 
+			Count
 		}
 
 		[Flags]
@@ -483,6 +483,8 @@ namespace YARG.UI {
 			// Set name
 			if (!string.IsNullOrEmpty(playerName)) {
 				player.name = playerName;
+			} else {
+				player.TryPickRandomName();
 			}
 
 			MainMenu.Instance.ShowEditPlayers();
