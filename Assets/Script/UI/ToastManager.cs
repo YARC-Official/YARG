@@ -207,9 +207,9 @@ namespace YARG.UI {
 
 		private void OnDeviceChange(InputDevice device, InputDeviceChange change) {
 			if (change == InputDeviceChange.Added) {
-				ToastMessage("Device added: " + device.name);
+				ToastMessage("Device added: " + device.displayName);
 			} else if (change == InputDeviceChange.Removed) {
-				ToastMessage("Device removed: " + device.name);
+				ToastMessage("Device removed: " + device.displayName);
 			}
 		}
 	}
