@@ -9,13 +9,13 @@ namespace YARG.Audio {
 
 		private const int MAX_DATA_LENGTH = 1024;
 
-		private const int START_BOUND = 20;
-		private const int WINDOW_SIZE = 64;
+		private const int START_BOUND = 32;
+		private const int WINDOW_SIZE = 48;
 
 		private const int DF_STEP_SIZE = 5;
 		private const int CMNDF_STEP_SIZE = 1;
 
-		private const float THRESHOLD = 0.05f;
+		private const float THRESHOLD = 0.025f;
 
 		public static unsafe float GetAmplitude(IntPtr buffer, int bufferByteLength) {
 			var bufferPtr = (float*) buffer;
