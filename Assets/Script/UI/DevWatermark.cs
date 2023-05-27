@@ -17,7 +17,6 @@ namespace YARG.UI {
 
 			// disable script
 			this.enabled = false;
-			Debug.Log("DevWatermark script disabled");
 		}
 	}
 }
