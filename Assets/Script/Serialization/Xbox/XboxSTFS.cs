@@ -203,15 +203,17 @@ namespace XboxSTFS {
 				numBlocks = BLOCKS_PER_SECTION;
 				readSize = BYTES_PER_SECTION;
 
-				stream.Seek(skipVal, SeekOrigin.Current);
+				int seekCount = 1;
 				if (blockNum == BLOCKS_PER_SECTION)
-					stream.Seek(skipVal, SeekOrigin.Current);
+					seekCount = 2;
 				else if (blockNum == threshold) {
 					if (blockNum == NUM_BLOCKS_SQUARED)
-						stream.Seek(skipVal, SeekOrigin.Current);
-					stream.Seek(skipVal, SeekOrigin.Current);
+						seekCount = 2;
+					++seekCount;
 					threshold += NUM_BLOCKS_SQUARED;
 				}
+
+				stream.Seek(seekCount * skipVal, SeekOrigin.Current);
 			}
 			return data;
 		}
