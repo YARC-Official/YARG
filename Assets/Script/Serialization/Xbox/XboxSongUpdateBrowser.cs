@@ -35,9 +35,7 @@ namespace YARG.Serialization {
 						UpdateSongDict[currentName].Add(currentArray);
 					}
 					else {
-						var dArray = new List<DataArray>();
-						dArray.Add(currentArray);
-						UpdateSongDict.Add(currentName, dArray);
+						UpdateSongDict.Add(currentName, new List<DataArray>() { currentArray });
 					}
 
 				} catch (Exception e) {
