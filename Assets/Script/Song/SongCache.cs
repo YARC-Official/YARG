@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using UnityEngine;
 using YARG.Data;
+using YARG.UI;
 
 namespace YARG.Song {
 	public class SongCache {

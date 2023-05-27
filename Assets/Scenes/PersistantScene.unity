@@ -4487,6 +4487,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fpsCircle: {fileID: 1604709612}
   fpsText: {fileID: 647926893}
+  fpsCircleGreen: {r: 0.2745098, g: 0.9058823, b: 0.3098039, a: 1}
+  fpsCircleYellow: {r: 1, g: 0.8313725, b: 0.2274509, a: 1}
+  fpsCircleRed: {r: 1, g: 0, b: 0.2078431, a: 1}
+  fpsUpdateRate: 1
 --- !u!1 &1953023866
 GameObject:
   m_ObjectHideFlags: 0
