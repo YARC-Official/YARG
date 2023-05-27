@@ -73,6 +73,10 @@ namespace YARG.Settings {
 				p.StartInfo = new ProcessStartInfo("explorer.exe", VenueLoader.VenueFolder);
 				p.Start();
 
+#elif UNITY_STANDALONE_OSX
+
+				System.Diagnostics.Process.Start("open", $"\"{VenueLoader.VenueFolder}\"");
+
 #else
 			
 				GUIUtility.systemCopyBuffer = VenueLoader.VenueFolder;
