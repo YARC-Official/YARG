@@ -63,8 +63,6 @@ namespace YARG.Audio {
 			return stems;
 		}
 
-#pragma warning disable format
-
 		public static SongStem GetStemFromName(string stem) {
 			return stem.ToLowerInvariant() switch {
 				"song"       => SongStem.Song,
@@ -99,7 +97,5 @@ namespace YARG.Audio {
 				_                   => SfxSample.NoteMiss,
 			};
 		}
-
-#pragma warning restore format
 	}
 }

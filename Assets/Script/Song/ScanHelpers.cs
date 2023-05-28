@@ -43,8 +43,14 @@ namespace YARG.Song {
 			entry.PreviewStart = section.GetField("preview_start_time", "0").Get(IntConverter);
 			entry.PreviewEnd = section.GetField("preview_end", "-1").Get(IntConverter);
 
-			int rawDelay = section.GetField("delay").Get(IntConverter);
-			entry.Delay = rawDelay / 1000.0;
+			string delay = section.GetField("delay");
+			// Decimal format (seconds)
+			if (delay.Contains(".")) {
+				entry.Delay = double.Parse(delay);
+			} else {
+				int rawDelay = section.GetField("delay").Get(IntConverter);
+				entry.Delay = rawDelay / 1000.0;
+			}
 
 			entry.HopoThreshold = section.GetField("hopo_frequency", "170").Get(IntConverter);
 			entry.EighthNoteHopo = section.GetField("eighthnote_hopo", "false").Get().ToLower() == "true";

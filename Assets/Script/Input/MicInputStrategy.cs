@@ -38,11 +38,15 @@ namespace YARG.Input {
 				{ MENU_ACTION_1, new(BindingType.BUTTON, "Menu Action 1 (Yellow)", MENU_ACTION_1) },
 				{ MENU_ACTION_2, new(BindingType.BUTTON, "Menu Action 2 (Blue)", MENU_ACTION_2) },
 				{ MENU_ACTION_3, new(BindingType.BUTTON, "Menu Action 3 (Orange)", MENU_ACTION_3) },
-
+				
 				{ PAUSE,         new(BindingType.BUTTON, "Pause", PAUSE) },
 				{ UP,            new(BindingType.BUTTON, "Navigate Up", UP) },
 				{ DOWN,          new(BindingType.BUTTON, "Navigate Down", DOWN) },
 			};
+		}
+
+		public override string GetIconName() {
+			return "vocals";
 		}
 
 		protected override void UpdatePlayerMode() { }

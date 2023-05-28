@@ -246,6 +246,14 @@ MonoBehaviour:
     m_Localized: Disable Text Notifications
     m_Metadata:
       m_Items: []
+  - m_Id: 22854215132372992
+    m_Localized: Calibration
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22854246069559296
+    m_Localized: Open Calibrator
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

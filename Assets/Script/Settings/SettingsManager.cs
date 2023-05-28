@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
 using YARG.Metadata;
@@ -30,8 +31,10 @@ namespace YARG.Settings {
 					new HeaderMetadata("Venues"),
 					new ButtonRowMetadata("OpenVenueFolder"),
 					"DisablePerSongBackgrounds",
+					new HeaderMetadata("Calibration"),
+					new ButtonRowMetadata("OpenCalibrator"),
+					"AudioCalibration",
 					new HeaderMetadata("Other"),
-					"CalibrationNumber",
 					"ShowHitWindow",
 					"UseCymbalModelsInFiveLane",
 					"AmIAwesome"
@@ -99,10 +102,7 @@ namespace YARG.Settings {
 
 		private static string SettingsFile => Path.Combine(GameManager.PersistentDataPath, "settings.json");
 
-		public static SettingContainer Settings {
-			get;
-			private set;
-		} = null;
+		public static SettingContainer Settings { get; private set; }
 
 		public static void LoadSettings() {
 			// Create settings container
@@ -155,13 +155,7 @@ namespace YARG.Settings {
 		}
 
 		public static Tab GetTabByName(string name) {
-			foreach (var tab in SETTINGS_TABS) {
-				if (tab.name == name) {
-					return tab;
-				}
-			}
-
-			return null;
+			return SETTINGS_TABS.FirstOrDefault(tab => tab.name == name);
 		}
 	}
 }

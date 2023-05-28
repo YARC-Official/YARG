@@ -1,12 +1,11 @@
 using System.Collections.Generic;
-using System.Diagnostics;
-using SFB;
 using UnityEngine;
 using YARG.Audio;
 using YARG.PlayMode;
 using YARG.Serialization;
 using YARG.Settings.Types;
 using YARG.UI;
+using YARG.Util;
 using YARG.Venue;
 
 namespace YARG.Settings {
@@ -17,7 +16,7 @@ namespace YARG.Settings {
 			public List<string>  SongFolders                                      = new();
 			public List<string>  SongUpgradeFolders                               = new();
 
-			public IntSetting    CalibrationNumber          { get; private set; } = new(-120);
+			public IntSetting    AudioCalibration           { get; private set; } = new(120);
 
 			public ToggleSetting DisablePerSongBackgrounds  { get; private set; } = new(false);
 
@@ -67,22 +66,11 @@ namespace YARG.Settings {
 			}
 
 			public void OpenVenueFolder() {
-#if UNITY_STANDALONE_WIN
-
-				// Start a file explorer process looking at the save folder
-				Process p = new();
-				p.StartInfo = new ProcessStartInfo("explorer.exe", VenueLoader.VenueFolder);
-				p.Start();
-
-#else
-
-				GUIUtility.systemCopyBuffer = VenueLoader.VenueFolder;
-
-#endif
+				FileExplorerHelper.OpenFolder(VenueLoader.VenueFolder);
 			}
 
 			public void ExportOuvertSongs() {
-				StandaloneFileBrowser.SaveFilePanelAsync("Save Song List", null, "songs", "json", OuvertExport.ExportOuvertSongsTo);
+				FileExplorerHelper.OpenSaveFile(null, "songs", "json", OuvertExport.ExportOuvertSongsTo);
 			}
 
 			public void CopyCurrentSongTextFilePath() {
@@ -103,6 +91,11 @@ namespace YARG.Settings {
 				GameManager.Instance.SettingsMenu.UpdateSettingsForTab();
 			}
 
+			public void OpenCalibrator() {
+				GameManager.Instance.LoadScene(SceneIndex.CALIBRATION);
+				GameManager.Instance.SettingsMenu.gameObject.SetActive(false);
+			}
+
 			private static void VSyncCallback(bool value) {
 				QualitySettings.vSyncCount = value ? 1 : 0;
 			}
@@ -110,8 +103,7 @@ namespace YARG.Settings {
 			private static void FpsCounterCallback(bool value) {
 				// disable script
 				FpsCounter.Instance.enabled = value;
-				// UpdateSettings()
-				FpsCounter.Instance.UpdateSettings(value);
+				FpsCounter.Instance.SetVisible(value);
 
 				// enable script if in editor
 #if UNITY_EDITOR

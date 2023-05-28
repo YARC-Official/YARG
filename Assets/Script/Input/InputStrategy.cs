@@ -108,6 +108,11 @@ namespace YARG.Input {
 		}
 
 		/// <returns>
+		/// The name of the icon to show in players menu edition
+		/// </returns>
+		public abstract string GetIconName();
+
+		/// <returns>
 		/// An array of the allow instruments for the input strategy.
 		/// </returns>
 		public abstract Instrument[] GetAllowedInstruments();

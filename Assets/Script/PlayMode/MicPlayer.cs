@@ -165,7 +165,7 @@ namespace YARG.PlayMode {
 		private string _lastSecondHarmonyLyric = "";
 
 		[Space]
-		public PerformanceTextSizer PerfTextSizer;
+		public PerformanceTextScaler perfTextSizer;
 		public float fontSize;
 		public float animTimeLength;
 
@@ -266,17 +266,18 @@ namespace YARG.PlayMode {
 			_starsKeeper = new(_scoreKeeper, _micInputs[0].Player.chosenInstrument, phrases, _ptsPerPhrase);
 
 			// Prepare performance text characteristics
-			PerfTextSizer = new PerformanceTextSizer(fontSize, animTimeLength);
+			perfTextSizer = new PerformanceTextScaler(animTimeLength);
 			preformaceText.color = Color.white;
 		}
 
 		public void SetPlayerScore() {
 			// Create score
-			int totalSections = _sectionsFailed + _sectionsHit;
+			int totalSections = sectionsFailed + sectionsHit;
+			float percentage = totalSections > 0 ? (float)(totalSingPercent / totalSections) : 1.0f;
 			var score = new PlayerManager.LastScore {
 				percentage = new DiffPercent {
-					difficulty = _micInputs[0].Player.chosenDifficulty,
-					percent = _totalSingPercent / totalSections
+					difficulty = micInputs[0].player.chosenDifficulty,
+					percent = percentage
 				},
 				score = new DiffScore {
 					difficulty = _micInputs[0].Player.chosenDifficulty,
@@ -604,8 +605,9 @@ namespace YARG.PlayMode {
 			}
 
 			// Animate and get performance text size given the current timestamp
-			PerfTextSizer.AnimTimeRemaining -= Time.deltaTime;
-			preformaceText.fontSize = PerfTextSizer.PerformanceTextFontSize();
+			perfTextSizer.AnimTimeRemaining -= Time.deltaTime;
+			var scale = perfTextSizer.PerformanceTextScale();
+			preformaceText.rectTransform.localScale = new Vector3(scale, scale, scale);
 
 			// Update combo text
 			if (Multiplier == 1) {

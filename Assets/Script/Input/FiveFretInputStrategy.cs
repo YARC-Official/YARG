@@ -40,6 +40,10 @@ namespace YARG.Input {
 			};
 		}
 
+		public override string GetIconName() {
+			return "guitar";
+		}
+
 		public override void InitializeBotMode(object rawChart) {
 			botChart = (List<NoteInfo>) rawChart;
 		}
