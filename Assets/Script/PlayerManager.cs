@@ -47,7 +47,7 @@ namespace YARG {
 
 			public void TryPickRandomName() {
 				// Skip if it is not a bot
-				if (!inputStrategy?.botMode ?? true) {
+				if (!inputStrategy?.BotMode ?? true) {
 					return;
 				}
 

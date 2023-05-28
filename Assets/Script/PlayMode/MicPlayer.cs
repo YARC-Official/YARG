@@ -105,9 +105,6 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private Camera trackCamera;
 
-		[SerializeField]
-		private AudioMixerGroup silentMixerGroup;
-
 		private bool _hasMic = false;
 		private List<PlayerInfo> _micInputs = new();
 
@@ -165,7 +162,7 @@ namespace YARG.PlayMode {
 		private string _lastSecondHarmonyLyric = "";
 
 		[Space]
-		public PerformanceTextScaler perfTextSizer;
+		public PerformanceTextScaler _perfTextSizer;
 		public float fontSize;
 		public float animTimeLength;
 
@@ -266,23 +263,23 @@ namespace YARG.PlayMode {
 			_starsKeeper = new(_scoreKeeper, _micInputs[0].Player.chosenInstrument, phrases, _ptsPerPhrase);
 
 			// Prepare performance text characteristics
-			perfTextSizer = new PerformanceTextScaler(animTimeLength);
+			_perfTextSizer = new PerformanceTextScaler(animTimeLength);
 			preformaceText.color = Color.white;
 		}
 
 		public void SetPlayerScore() {
 			// Create score
-			int totalSections = sectionsFailed + sectionsHit;
-			float percentage = totalSections > 0 ? (float)(totalSingPercent / totalSections) : 1.0f;
+			int totalSections = _sectionsFailed + _sectionsHit;
+			float percentage = totalSections > 0 ? _totalSingPercent / totalSections : 1.0f;
 			var score = new PlayerManager.LastScore {
 				percentage = new DiffPercent {
-					difficulty = micInputs[0].player.chosenDifficulty,
+					difficulty = _micInputs[0].Player.chosenDifficulty,
 					percent = percentage
 				},
 				score = new DiffScore {
 					difficulty = _micInputs[0].Player.chosenDifficulty,
-					score = (int) math.round(_scoreKeeper.Score),
-					stars = math.clamp((int) _starsKeeper.Stars, 0, 6)
+					score = Mathf.RoundToInt((float) _scoreKeeper.Score),
+					stars = Mathf.Clamp((int) _starsKeeper.Stars, 0, 6)
 				},
 				notesHit = _sectionsHit,
 				notesMissed = _sectionsFailed
@@ -605,8 +602,8 @@ namespace YARG.PlayMode {
 			}
 
 			// Animate and get performance text size given the current timestamp
-			perfTextSizer.AnimTimeRemaining -= Time.deltaTime;
-			var scale = perfTextSizer.PerformanceTextScale();
+			_perfTextSizer.AnimTimeRemaining -= Time.deltaTime;
+			var scale = _perfTextSizer.PerformanceTextScale();
 			preformaceText.rectTransform.localScale = new Vector3(scale, scale, scale);
 
 			// Update combo text
@@ -756,7 +753,7 @@ namespace YARG.PlayMode {
 			};
 
 			// Begin animation and start countdown
-			PerfTextSizer.AnimTimeRemaining = animTimeLength;
+			_perfTextSizer.AnimTimeRemaining = animTimeLength;
 
 			// Add to sing percent
 			_totalSingPercent += Mathf.Min(bestPercent, 1f);

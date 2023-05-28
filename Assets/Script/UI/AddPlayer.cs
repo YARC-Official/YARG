@@ -487,8 +487,8 @@ namespace YARG.UI {
 			PlayerManager.players.Add(player);
 
 			// Set name
-			if (!string.IsNullOrEmpty(playerName)) {
-				player.name = playerName;
+			if (!string.IsNullOrEmpty(_playerName)) {
+				player.name = _playerName;
 			} else {
 				player.TryPickRandomName();
 			}
