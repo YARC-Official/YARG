@@ -17,13 +17,15 @@ namespace YARG.Audio {
 
 		private float _voiceStartTimer;
 
-		private int _recordHandle;
+		private int _cleanRecordHandle;
+		private int _processedRecordHandle;
 		private int _monitorPlaybackHandle;
 
 		private bool _initialized;
 		private bool _disposed;
 
-		private RecordProcedure _recordProcedure;
+		private RecordProcedure _cleanRecordProcedure;
+		private RecordProcedure _processedRecordProcedure;
 		private DSPProcedure _monitoringGainProcedure;
 
 		private readonly ReverbParameters _monitoringReverbParameters = new() {
@@ -38,7 +40,8 @@ namespace YARG.Audio {
 				return 0;
 
 			// Callback function to process any samples received from recording device
-			_recordProcedure += ProcessRecordData;
+			_cleanRecordProcedure += ProcessCleanRecordData;
+			_processedRecordProcedure += ProcessRecordData;
 
 			// Must initialise device before recording
 			Bass.RecordInit(device);
@@ -48,13 +51,27 @@ namespace YARG.Audio {
 
 			// We want to start recording immediately because of device context switching and device numbers.
 			// If we initialize the device but don't record immediately, the device number might change and we'll be recording from the wrong device.
-			_recordHandle = Bass.RecordStart(44100, info.Channels, flags, RECORD_PERIOD_MILLIS, _recordProcedure, IntPtr.Zero);
-			if(_recordHandle == 0) {
+			_cleanRecordHandle = Bass.RecordStart(44100, info.Channels, flags, RECORD_PERIOD_MILLIS, _cleanRecordProcedure, IntPtr.Zero);
+			_processedRecordHandle = Bass.RecordStart(44100, info.Channels, flags, RECORD_PERIOD_MILLIS, _processedRecordProcedure, IntPtr.Zero);
+			if(_cleanRecordHandle == 0 || _processedRecordHandle == 0) {
 				// If we failed to start recording, we need to return the error code.
 				_initialized = false;
 				Debug.LogError($"Failed to start recording: {Bass.LastError}");
 				return (int) Bass.LastError;;
 			}
+
+			int lowEqHandle = Bass.ChannelSetFX(_processedRecordHandle, EffectType.PeakEQ, 0);
+			int highEqHandle = Bass.ChannelSetFX(_processedRecordHandle, EffectType.PeakEQ, 0);
+			Bass.FXSetParameters(lowEqHandle, new PeakEQParameters {
+				fBandwidth = 2.5f,
+				fCenter = 20f,
+				fGain = -10f
+			});
+			Bass.FXSetParameters(highEqHandle, new PeakEQParameters {
+				fBandwidth = 2.5f,
+				fCenter = 10_000f,
+				fGain = -10f
+			});
 
 			_monitorPlaybackHandle = Bass.CreateStream(44100, info.Channels, BassFlags.Float, StreamProcedureType.Push);
 			if(_monitorPlaybackHandle == 0) {
@@ -94,12 +111,16 @@ namespace YARG.Audio {
 			}
 		}
 
-		private bool ProcessRecordData(int handle, IntPtr buffer, int length, IntPtr user) {
+		private bool ProcessCleanRecordData(int handle, IntPtr buffer, int length, IntPtr user) {
 			// Copies the data from the recording buffer to the monitor playback buffer.
 			if (IsMonitoring) {
 				Bass.StreamPutData(_monitorPlaybackHandle, buffer, length);
 			}
 
+			return true;
+		}
+
+		private bool ProcessRecordData(int handle, IntPtr buffer, int length, IntPtr user) {
 			CalculatePitchAndAmplitude(buffer, length);
 			return true;
 		}
@@ -140,10 +161,16 @@ namespace YARG.Audio {
 				}
 
 				// Free unmanaged resources here
-				if (_recordHandle != 0) {
-					Bass.ChannelStop(_recordHandle);
-					Bass.StreamFree(_recordHandle);
-					_recordHandle = 0;
+				if (_cleanRecordHandle != 0) {
+					Bass.ChannelStop(_cleanRecordHandle);
+					Bass.StreamFree(_cleanRecordHandle);
+					_cleanRecordHandle = 0;
+				}
+
+				if (_processedRecordHandle != 0) {
+					Bass.ChannelStop(_processedRecordHandle);
+					Bass.StreamFree(_processedRecordHandle);
+					_processedRecordHandle = 0;
 				}
 
 				if (_monitorPlaybackHandle != 0) {
