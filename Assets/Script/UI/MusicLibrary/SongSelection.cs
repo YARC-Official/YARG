@@ -117,12 +117,12 @@ namespace YARG.UI.MusicLibrary {
 				new NavigationScheme.Entry(MenuAction.Shortcut1, "Search Artist", () => {
 					SearchByArtist();
 				}),
-				new NavigationScheme.Entry(MenuAction.Shortcut2, "Next section", () => {
-					SelectNextSection();
-				}),
-				new NavigationScheme.Entry(MenuAction.Shortcut3, "Random song", () => {
+				new NavigationScheme.Entry(MenuAction.Shortcut2, "Random song", () => {
 					ClearSearchBox();
 					SelectRandomSong();
+				}),
+				new NavigationScheme.Entry(MenuAction.Shortcut3, "Next section", () => {
+					SelectNextSection();
 				})
 			}, false));
 
@@ -337,17 +337,17 @@ namespace YARG.UI.MusicLibrary {
 				SelectedIndex = Mathf.Max(1, index);
 			}
 
-			setFirstLetters();
+			SetFirstLetters();
 			UpdateSongViews();
 			UpdateScrollbar();
 		}
 
-		private void setFirstLetters(){
+		private void SetFirstLetters(){
 			songsFirstLetter =
 				_songs
 				.OfType<SongViewType>()
 				.Select(song => song.SongEntry.NameNoParenthesis)
-				.Where(name => name != null && name.Any())
+				.Where(name => !string.IsNullOrEmpty(name))
 				.Select(name => Char.ToUpper(name[0]))
 				.Distinct()
 				.OrderBy(ch => ch)
@@ -495,25 +495,34 @@ namespace YARG.UI.MusicLibrary {
 			}
 
 			int skip = Mathf.Max(1, _songs.Count - SongContainer.Songs.Count);
-			string nextCharacter = GetNextLetterOrNumber(song.SongEntry.NameNoParenthesis);
+			var nameWithoutParenthesis = song.SongEntry.NameNoParenthesis;
+			string nextCharacter = GetNextLetterOrNumber(nameWithoutParenthesis);
 
-			var index = _songs.FindIndex(skip, song => {
-					return song is SongViewType songType &&
-						songType.SongEntry.NameNoParenthesis.Substring(0, 1) == nextCharacter
-					;
-				});
+			// If an error occurs no change is made
+			if(string.IsNullOrEmpty(nextCharacter)){
+				return;
+			}
+
+			var index = _songs.FindIndex(skip, song => 
+				song is SongViewType songType &&
+					songType.SongEntry.NameNoParenthesis.Substring(0, 1) == nextCharacter
+				);
 
 			SelectedIndex = index;
 		}
 
 		private string GetNextLetterOrNumber(string input){
-			string firstCharacter = input.Substring(0, 1).ToUpper();;
+			if(string.IsNullOrEmpty(input)){
+				return null;
+			}
+			
+			char firstCharacter = Char.ToUpper(input[0]);
 
 			int indexOfActualLetter = songsFirstLetter.FindIndex(letter  => {
-				return Char.ToString(letter) == firstCharacter;
+				return letter == firstCharacter;
 			});
 
-			bool isLast = indexOfActualLetter == (songsFirstLetter.Count() - 1);
+			bool isLast = indexOfActualLetter == (songsFirstLetter.Count - 1);
 
 			if(isLast){
 				var firstCharacterInList = Char.ToString(songsFirstLetter[0]);
