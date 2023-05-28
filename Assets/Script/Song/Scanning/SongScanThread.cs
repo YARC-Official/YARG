@@ -186,7 +186,7 @@ namespace YARG.Song {
 
 			// Raw CON folder, so don't scan anymore subdirectories here
 			string songs_folder = Path.Combine(subDir, "songs");
-			DataArray dtaTree = BrowseFolderForExCon(songs_folder, Path.Combine(subDir, "songs_upgrades"), _songUpgradeDict);
+			DataArray dtaTree = BrowseFolderForExCon(songs_folder, Path.Combine(subDir, "songs_upgrades"));
 			if (dtaTree != null)
 			{
 				for (int i = 0; i < dtaTree.Count; i++) {
@@ -210,7 +210,7 @@ namespace YARG.Song {
 					if (conFile == null)
 						continue;
 
-					dtaTree = BrowseCON(conFile, _songUpgradeDict);
+					dtaTree = BrowseCON(conFile);
 					if (dtaTree == null)
 						continue;
 
@@ -244,14 +244,14 @@ namespace YARG.Song {
 			}
 		}
 
-		private static DataArray BrowseFolderForExCon(string songs_folder, string songs_upgrades_folder, List<(SongProUpgrade, DataArray)> upgrades) {
+		private DataArray BrowseFolderForExCon(string songs_folder, string songs_upgrades_folder) {
 			string dtaPath = Path.Combine(songs_upgrades_folder, "upgrades.dta");
 			if (File.Exists(dtaPath)) {
 				DataArray dtaTree = DTX.FromPlainTextBytes(File.ReadAllBytes(dtaPath));
 
 				for (int i = 0; i < dtaTree.Count; i++) {
 					try {
-						upgrades.Add(new(new SongProUpgrade(songs_upgrades_folder, dtaTree[i].Name), (DataArray) dtaTree[i]));
+						_songUpgradeDict.Add(new(new SongProUpgrade(songs_upgrades_folder, dtaTree[i].Name), (DataArray) dtaTree[i]));
 					} catch (Exception e) {
 						Debug.Log($"Failed to get upgrade, skipping...");
 						Debug.LogException(e);
@@ -274,7 +274,7 @@ namespace YARG.Song {
 		internal static readonly string SongsFilePath = Path.Combine("songs", "songs.dta");
 		internal static readonly string SongUpgradesFilePath =  Path.Combine("song_upgrades","upgrades.dta");
 
-		private static DataArray BrowseCON(XboxSTFSFile conFile, List<(SongProUpgrade, DataArray)> upgrades) {
+		private DataArray BrowseCON(XboxSTFSFile conFile) {
 			byte[] dtaFile = conFile.LoadSubFile(SongUpgradesFilePath);
 			if (dtaFile.Length > 0) {
 				DataArray dtaTree = DTX.FromPlainTextBytes(dtaFile);
@@ -282,7 +282,7 @@ namespace YARG.Song {
 				// Read each shortname the dta file lists
 				for (int i = 0; i < dtaTree.Count; i++) {
 					try {
-						upgrades.Add(new(new SongProUpgrade(conFile, dtaTree[i].Name), (DataArray) dtaTree[i]));
+						_songUpgradeDict.Add(new(new SongProUpgrade(conFile, dtaTree[i].Name), (DataArray) dtaTree[i]));
 					} catch (Exception e) {
 						Debug.Log($"Failed to get upgrade, skipping...");
 						Debug.LogException(e);
