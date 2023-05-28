@@ -24,6 +24,7 @@ namespace YARG.Audio {
 		private bool _disposed;
 
 		private RecordProcedure _recordProcedure;
+		private DSPProcedure _monitoringGainProcedure;
 
 		private readonly ReverbParameters _monitoringReverbParameters = new() {
 			fDryMix = 0.3f,
@@ -63,7 +64,7 @@ namespace YARG.Audio {
 			}
 
 			// Add reverb to the monitor playback
-			int reverbHandle = Bass.ChannelSetFX(_monitorPlaybackHandle, EffectType.Freeverb, 0);
+			int reverbHandle = Bass.ChannelSetFX(_monitorPlaybackHandle, EffectType.Freeverb, 1);
 			if(reverbHandle == 0) {
 				_initialized = false;
 				Debug.LogError($"Failed to add reverb to monitor stream: {Bass.LastError}");
@@ -71,7 +72,10 @@ namespace YARG.Audio {
 			}
 			Bass.FXSetParameters(reverbHandle, _monitoringReverbParameters);
 
-			Bass.ChannelPlay(_monitorPlaybackHandle, false);
+			_monitoringGainProcedure = (_, _, buffer, length, _) => BassHelpers.ApplyGain(1.3f, buffer, length);
+
+			Bass.ChannelSetDSP(_monitorPlaybackHandle, _monitoringGainProcedure);
+			Bass.ChannelPlay(_monitorPlaybackHandle);
 
 			IsMonitoring = true;
 

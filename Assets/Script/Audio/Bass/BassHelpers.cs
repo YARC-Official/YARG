@@ -83,5 +83,15 @@ namespace YARG.Audio {
 			return seconds;
 		}
 
+		public static unsafe bool ApplyGain(float gain, IntPtr buffer, int length) {
+			var bufferPtr = (float*) buffer;
+
+			for (int i = 0; i < length / sizeof(float); i++) {
+				bufferPtr![i] *= gain;
+			}
+
+			return true;
+		}
+
 	}
 }
