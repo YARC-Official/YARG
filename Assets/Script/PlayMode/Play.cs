@@ -57,9 +57,7 @@ namespace YARG.PlayMode {
 
 		private bool audioStarted;
 		private float realSongTime;
-		public float SongTime {
-			get => realSongTime + PlayerManager.GlobalCalibration * speed;
-		}
+		public float SongTime => realSongTime - PlayerManager.AudioCalibration * speed - (float)Song.Delay;
 
 		public float SongLength {
 			get;
@@ -300,6 +298,12 @@ namespace YARG.PlayMode {
 			}
 
 			if (GameUI.Instance.videoPlayer.enabled) {
+				// Set the chart start offset here (if ini)
+				if (Song is IniSongEntry ini) {
+					GameUI.Instance.videoPlayer.time = ini.VideoStartOffset / 1000.0;
+				}
+
+				// Play the video
 				GameUI.Instance.videoPlayer.Play();
 			}
 
@@ -326,53 +330,53 @@ namespace YARG.PlayMode {
 				realSongTime = GameManager.AudioManager.CurrentPositionF;
 			}
 
-			UpdateAudio(new string[] {
+			UpdateAudio(new[] {
 				"guitar",
 				"realGuitar"
-			}, new string[] {
+			}, new[] {
 				"guitar"
 			});
 
 			// Swap what tracks depending on what instrument is playing
 			if (playingRhythm) {
 				// Mute rhythm
-				UpdateAudio(new string[] {
+				UpdateAudio(new[] {
 					"rhythm",
-				}, new string[] {
+				}, new[] {
 					"rhythm"
 				});
 
 				// Mute bass
-				UpdateAudio(new string[] {
+				UpdateAudio(new[] {
 					"bass",
 					"realBass"
-				}, new string[] {
+				}, new[] {
 					"bass",
 				});
 			} else {
 				// Mute bass
-				UpdateAudio(new string[] {
+				UpdateAudio(new[] {
 					"bass",
 					"realBass"
-				}, new string[] {
+				}, new[] {
 					"bass",
 					"rhythm"
 				});
 			}
 
 			// Mute keys
-			UpdateAudio(new string[] {
+			UpdateAudio(new[] {
 				"keys",
 				"realKeys"
-			}, new string[] {
+			}, new[] {
 				"keys"
 			});
 
 			// Mute drums
-			UpdateAudio(new string[] {
+			UpdateAudio(new[] {
 				"drums",
 				"realDrums"
-			}, new string[] {
+			}, new[] {
 				"drums",
 				"drums_1",
 				"drums_2",
@@ -425,7 +429,7 @@ namespace YARG.PlayMode {
 						var (_, str) = lyric.lyric[i];
 
 						if (str.EndsWith("-")) {
-							o += str[0..^1].Replace("=", "-");
+							o += str[..^1].Replace("=", "-");
 						} else {
 							o += str.Replace("=", "-") + " ";
 						}

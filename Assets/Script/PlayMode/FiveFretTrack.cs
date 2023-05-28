@@ -550,6 +550,11 @@ namespace YARG.PlayMode {
 			if (!pause) {
 				input.FretChangeEvent += FretChangedAction;
 				input.StrumEvent += StrumAction;
+
+				// Release any held frets
+				for (int i = 0; i < 5; i++) {
+					FretChangedAction(false, i);
+				}
 			} else {
 				input.FretChangeEvent -= FretChangedAction;
 				input.StrumEvent -= StrumAction;

@@ -47,6 +47,10 @@ namespace YARG.Input {
 			};
 		}
 
+		public override string GetIconName() {
+			return "drums";
+		}
+
 		protected override void UpdatePlayerMode() {
 			// Deal with drum inputs
 

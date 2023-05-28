@@ -27,7 +27,7 @@ namespace YARG.Audio {
 		StarPowerRelease,
 		Clap,
 		StarGain,
-		StarGold
+		StarGold,
 	}
 
 	public enum DSPType {

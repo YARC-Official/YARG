@@ -489,6 +489,8 @@ namespace YARG.UI {
 			// Set name
 			if (!string.IsNullOrEmpty(_playerName)) {
 				player.name = _playerName;
+			} else {
+				player.TryPickRandomName();
 			}
 
 			MainMenu.Instance.ShowEditPlayers();

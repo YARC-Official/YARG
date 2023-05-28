@@ -36,6 +36,11 @@ namespace YARG.Input {
 		private float? stringGroupingTimer = null;
 		private StrumFlag stringGroupingFlag = StrumFlag.NONE;
 
+
+		public override string GetIconName() {
+			return "realGuitar";
+		}
+
 		protected override void OnUpdate() {
 			base.OnUpdate();
 

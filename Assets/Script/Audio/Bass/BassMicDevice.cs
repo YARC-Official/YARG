@@ -13,8 +13,9 @@ namespace YARG.Audio {
 		public bool IsMonitoring { get; set; }
 
 		public float Pitch { get; private set; }
-
 		public float Amplitude { get; private set; }
+
+		private float _voiceStartTimer;
 
 		private int _recordHandle;
 		private int _monitorPlaybackHandle;
@@ -102,9 +103,12 @@ namespace YARG.Audio {
 		private void CalculatePitchAndAmplitude(IntPtr buffer, int length) {
 			Amplitude = PitchDetector.GetAmplitude(buffer, length);
 
-			if (Amplitude <= 0f) {
+			if (Amplitude <= 2f) {
+				_voiceStartTimer = 0f;
 				return;
 			}
+
+			_voiceStartTimer += 1f / RECORD_PERIOD_MILLIS;
 
 			var pitch = PitchDetector.GetPitch(buffer, length);
 
@@ -112,7 +116,11 @@ namespace YARG.Audio {
 				return;
 			}
 
-			Pitch = Mathf.Lerp(Pitch, pitch.Value, 1f / RECORD_PERIOD_MILLIS * 24f);
+			if (_voiceStartTimer < 0.07f) {
+				Pitch = pitch.Value;
+			} else {
+				Pitch = Mathf.Lerp(Pitch, pitch.Value, 1f / RECORD_PERIOD_MILLIS * 15f);
+			}
 		}
 
 		public void Dispose() {
