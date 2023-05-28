@@ -1,6 +1,15 @@
 ﻿using System;
-using System.Diagnostics;
 using SFB;
+
+#if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
+
+using System.Diagnostics;
+
+#else
+
+using UnityEngine;
+
+#endif
 
 namespace YARG.Util {
 	public static class FileExplorerHelper {
@@ -41,11 +50,11 @@ namespace YARG.Util {
 
 #elif UNITY_STANDALONE_OSX
 
-			Process.Start("open", $"\"{VenueLoader.VenueFolder}\"");
+			Process.Start("open", $"\"{folderPath}\"");
 
 #else
 
-			GUIUtility.systemCopyBuffer = VenueLoader.VenueFolder;
+			GUIUtility.systemCopyBuffer = folderPath;
 
 #endif
 		}
