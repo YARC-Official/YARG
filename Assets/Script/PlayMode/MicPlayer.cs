@@ -460,9 +460,9 @@ namespace YARG.PlayMode {
 				float correctRange = player.chosenDifficulty switch {
 					Difficulty.EASY => 4f,
 					Difficulty.MEDIUM => 4f,
-					Difficulty.HARD => 3f,
-					Difficulty.EXPERT => 2.5f,
-					Difficulty.EXPERT_PLUS => 2.5f,
+					Difficulty.HARD => 3.5f,
+					Difficulty.EXPERT => 3f,
+					Difficulty.EXPERT_PLUS => 3f,
 					_ => throw new Exception("Unreachable.")
 				};
 
