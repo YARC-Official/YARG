@@ -41,11 +41,11 @@ namespace YARG.Util {
 
 #elif UNITY_STANDALONE_OSX
 
-			Process.Start("open", $"\"{VenueLoader.VenueFolder}\"");
+			Process.Start("open", $"\"{folderPath}\"");
 
 #else
 
-			GUIUtility.systemCopyBuffer = VenueLoader.VenueFolder;
+			GUIUtility.systemCopyBuffer = folderPath;
 
 #endif
 		}
