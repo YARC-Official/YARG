@@ -40,6 +40,14 @@ namespace YARG {
 
 		public SongEntry SelectedSong { get; set; }
 
+#if UNITY_EDITOR
+
+		[field:Header("EDITOR ONLY")]
+		[field: SerializeField]
+		public Util.TestPlayInfo TestPlayInfo { get; private set; }
+
+#endif
+
 		private void Awake() {
 			Instance = this;
 

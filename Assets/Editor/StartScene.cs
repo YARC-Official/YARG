@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEditor.SceneManagement;
 
-namespace Mechacell.UnityEditorTools {
+namespace Editor {
 	[InitializeOnLoad]
 	public class StartScene {
 		static StartScene() {
