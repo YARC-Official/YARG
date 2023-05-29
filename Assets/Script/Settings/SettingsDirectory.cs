@@ -64,7 +64,7 @@ namespace YARG.Settings {
 			PathsReference.RemoveAt(index);
 
 			// Refresh
-			GameManager.Instance.SettingsMenu.UpdateSongFolderManager();
+			SettingsMenu.Instance.UpdateSongFolderManager();
 		}
 
 		public void Browse() {

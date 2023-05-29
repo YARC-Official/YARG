@@ -30,9 +30,6 @@ namespace YARG {
 
 		public static IAudioManager AudioManager { get; private set; }
 
-		[field: SerializeField]
-		public SettingsMenu SettingsMenu { get; private set; }
-
 		[SerializeField]
 		private AudioMixerGroup vocalGroup;
 

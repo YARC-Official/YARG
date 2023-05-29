@@ -251,6 +251,10 @@ MonoBehaviour:
     m_Key: OpenCalibrator
     m_Metadata:
       m_Items: []
+  - m_Id: 23598515176726528
+    m_Key: Dropdown.CameraPresets
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

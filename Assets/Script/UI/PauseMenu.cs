@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using YARG.Input;
 using YARG.PlayMode;
+using YARG.Settings;
 
 namespace YARG.UI {
 	public class PauseMenu : MonoBehaviour {
@@ -50,7 +51,7 @@ namespace YARG.UI {
 		private void OnDisable() {
 			Navigator.Instance.PopScheme();
 
-			GameManager.Instance.SettingsMenu.gameObject.SetActive(false);
+			SettingsMenu.Instance.gameObject.SetActive(false);
 		}
 
 		private void OnDestroy() {
@@ -139,7 +140,7 @@ namespace YARG.UI {
 		}
 
 		private void OnSettingsSelected() {
-			GameManager.Instance.SettingsMenu.gameObject.SetActive(true);
+			SettingsMenu.Instance.gameObject.SetActive(true);
 		}
 
 		private void OnQuitSelected() {

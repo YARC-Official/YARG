@@ -11,7 +11,7 @@ namespace YARG.Settings.Visuals {
 			RefreshVisual();
 		}
 
-		protected override void RefreshVisual() {
+		public override void RefreshVisual() {
 			toggle.isOn = Setting.Data;
 		}
 

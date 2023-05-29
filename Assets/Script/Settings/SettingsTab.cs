@@ -33,11 +33,11 @@ namespace YARG.Settings {
 				return;
 			}
 
-			button.interactable = GameManager.Instance.SettingsMenu.CurrentTab != tabName;
+			button.interactable = SettingsMenu.Instance.CurrentTab != tabName;
 		}
 
 		public void OnTabClick() {
-			GameManager.Instance.SettingsMenu.CurrentTab = tabName;
+			SettingsMenu.Instance.CurrentTab = tabName;
 		}
 	}
 }

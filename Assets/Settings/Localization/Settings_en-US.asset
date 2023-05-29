@@ -254,6 +254,10 @@ MonoBehaviour:
     m_Localized: Open Calibrator
     m_Metadata:
       m_Items: []
+  - m_Id: 23598515176726528
+    m_Localized: Camera Presets
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

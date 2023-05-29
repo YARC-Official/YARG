@@ -8,9 +8,13 @@ namespace YARG.Settings.Visuals {
 		[SerializeField]
 		private LocalizeStringEvent settingText;
 
+		public string SettingName { get; private set; }
+
 		protected T Setting { get; private set; }
 
 		public void SetSetting(string name) {
+			SettingName = name;
+
 			settingText.StringReference = new LocalizedString {
 				TableReference = "Settings",
 				TableEntryReference = name
@@ -22,6 +26,6 @@ namespace YARG.Settings.Visuals {
 		}
 
 		protected abstract void OnSettingInit();
-		protected abstract void RefreshVisual();
+		public abstract void RefreshVisual();
 	}
 }

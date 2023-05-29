@@ -61,7 +61,7 @@ namespace YARG.Settings {
 #pragma warning restore format
 
 			public void OpenSongFolderManager() {
-				GameManager.Instance.SettingsMenu.CurrentTab = "_SongFolderManager";
+				SettingsMenu.Instance.CurrentTab = "_SongFolderManager";
 			}
 
 			public void OpenVenueFolder() {
@@ -80,19 +80,9 @@ namespace YARG.Settings {
 				GUIUtility.systemCopyBuffer = TwitchController.Instance.JsonFilePath;
 			}
 
-			public void ResetCameraSettings() {
-				TrackCamFOV.Data = 55f;
-				TrackCamYPos.Data = 2.66f;
-				TrackCamZPos.Data = 1.14f;
-				TrackCamRot.Data = 24.12f;
-
-				// Force update sliders
-				GameManager.Instance.SettingsMenu.UpdateSettingsForTab();
-			}
-
 			public void OpenCalibrator() {
 				GameManager.Instance.LoadScene(SceneIndex.CALIBRATION);
-				GameManager.Instance.SettingsMenu.gameObject.SetActive(false);
+				SettingsMenu.Instance.gameObject.SetActive(false);
 			}
 
 			private static void VSyncCallback(bool value) {

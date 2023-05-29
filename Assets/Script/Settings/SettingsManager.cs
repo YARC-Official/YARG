@@ -19,6 +19,8 @@ namespace YARG.Settings {
 			public List<AbstractMetadata> Settings = new();
 		}
 
+		public static SettingContainer Settings { get; private set; }
+
 		public static readonly List<Tab> SettingsTabs = new() {
 			new() {
 				Name = "General",
@@ -80,7 +82,37 @@ namespace YARG.Settings {
 					"LowQuality",
 					"DisableBloom",
 					new HeaderMetadata("Camera"),
-					new ButtonRowMetadata("ResetCameraSettings"),
+					new PresetDropdownMetadata("CameraPresets", new[] {
+						"TrackCamFOV",
+						"TrackCamYPos",
+						"TrackCamZPos",
+						"TrackCamRot",
+					}, new() {
+						new DropdownPreset("Default", new() {
+							{ "TrackCamFOV", 55f },
+							{ "TrackCamYPos", 2.66f },
+							{ "TrackCamZPos", 1.14f },
+							{ "TrackCamRot", 24.12f },
+						}),
+						new DropdownPreset("The Band 1", new() {
+							{ "TrackCamFOV", 47.84f },
+							{ "TrackCamYPos", 2.43f },
+							{ "TrackCamZPos", 1.42f },
+							{ "TrackCamRot", 26f },
+						}),
+						new DropdownPreset("The Band 3", new() {
+							{ "TrackCamFOV", 57.29f },
+							{ "TrackCamYPos", 2.22f },
+							{ "TrackCamZPos", 1.61f },
+							{ "TrackCamRot", 23.65f },
+						}),
+						new DropdownPreset("Clone", new() {
+							{ "TrackCamFOV", 55f },
+							{ "TrackCamYPos", 2.07f },
+							{ "TrackCamZPos", 1.51f },
+							{ "TrackCamRot", 17.09f },
+						})
+					}),
 					"TrackCamFOV",
 					"TrackCamYPos",
 					"TrackCamZPos",
@@ -100,8 +132,6 @@ namespace YARG.Settings {
 		};
 
 		private static string SettingsFile => Path.Combine(GameManager.PersistentDataPath, "settings.json");
-
-		public static SettingContainer Settings { get; private set; }
 
 		public static void LoadSettings() {
 			// Create settings container
@@ -155,6 +185,16 @@ namespace YARG.Settings {
 
 		public static Tab GetTabByName(string name) {
 			return SettingsTabs.FirstOrDefault(tab => tab.Name == name);
+		}
+
+		public static void SetSettingsByName(string name, object value) {
+			var settingInfo = GetSettingByName(name);
+
+			if (settingInfo.DataType != value.GetType()) {
+				throw new Exception($"The setting `{name}` is of type {settingInfo.DataType}, not {value.GetType()}.");
+			}
+
+			settingInfo.DataAsObject = value;
 		}
 	}
 }
