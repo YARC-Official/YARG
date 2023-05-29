@@ -18,6 +18,13 @@ namespace YARG.Serialization.Parser {
 	public partial class MidiParser : AbstractParser {
 		private const bool FORCE_DOWNSAMPLE = false;
 
+		private static readonly ReadingSettings ReadSettings = new() {
+			InvalidChunkSizePolicy = InvalidChunkSizePolicy.Ignore,
+			NotEnoughBytesPolicy = NotEnoughBytesPolicy.Ignore,
+			NoHeaderChunkPolicy = NoHeaderChunkPolicy.Ignore,
+			InvalidChannelEventParameterValuePolicy = InvalidChannelEventParameterValuePolicy.ReadValid,
+		};
+
 		private struct EventIR {
 			public long startTick;
 			public long? endTick;
@@ -28,13 +35,19 @@ namespace YARG.Serialization.Parser {
 
 		public MidiParser(SongEntry songEntry, string[] files) : base(songEntry, files) {
 			// get base midi - read it in latin1 if RB, UTF-8 if clon
+			var readSettings = ReadSettings; // we need to modify these
 			if (songEntry.SongType == SongType.RbCon) {
 				var conSong = (ConSongEntry) songEntry;
 				using var stream = new MemoryStream(XboxSTFSParser.GetFile(conSong.Location, conSong.FLMidi));
-				midi = MidiFile.Read(stream, new ReadingSettings() { TextEncoding = Encoding.GetEncoding("iso-8859-1") });
+				readSettings.TextEncoding = Encoding.GetEncoding("iso-8859-1");
+				midi = MidiFile.Read(stream, readSettings);
 			} else if (songEntry.SongType == SongType.ExtractedRbCon) {
-				midi = MidiFile.Read(files[0], new ReadingSettings() { TextEncoding = Encoding.GetEncoding("iso-8859-1") });
-			} else midi = MidiFile.Read(files[0], new ReadingSettings() { TextEncoding = Encoding.UTF8 });
+				readSettings.TextEncoding = Encoding.GetEncoding("iso-8859-1");
+				midi = MidiFile.Read(files[0], readSettings);
+			} else {
+				readSettings.TextEncoding = Encoding.UTF8;
+				midi = MidiFile.Read(files[0], readSettings);
+			}
 
 			// if this is a RB song...
 			if (songEntry is ExtractedConSongEntry oof) {

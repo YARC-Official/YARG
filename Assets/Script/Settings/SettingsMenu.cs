@@ -1,31 +1,33 @@
+using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Input;
 using YARG.Settings.Metadata;
+using YARG.Settings.Types;
 using YARG.Settings.Visuals;
 using YARG.UI.MusicLibrary;
 using YARG.Util;
 
 namespace YARG.Settings {
+	[DefaultExecutionOrder(-10000)]
 	public class SettingsMenu : MonoBehaviour {
+		public static SettingsMenu Instance { get; private set; }
+
 		[SerializeField]
 		private GameObject _fullContainer;
-
 		[SerializeField]
 		private GameObject _halfContainer;
-
 		[SerializeField]
 		private Transform _previewContainer;
 
 		[Space]
 		[SerializeField]
 		private Transform _tabsContainer;
-
 		[SerializeField]
 		private Transform _settingsContainer;
 
@@ -36,21 +38,23 @@ namespace YARG.Settings {
 		[Space]
 		[SerializeField]
 		private GameObject _tabPrefab;
-
 		[SerializeField]
 		private GameObject _buttonPrefab;
-
 		[SerializeField]
 		private GameObject _headerPrefab;
-
 		[SerializeField]
 		private GameObject _directoryPrefab;
+		[SerializeField]
+		private GameObject _dropdownPrefab;
 
 		[Space]
 		[SerializeField]
 		private RawImage _previewRawImage;
 
 		private string _currentTab;
+
+		private readonly List<ISettingVisual> _settingVisuals = new();
+		private readonly List<SettingsDropdown> _settingDropdowns = new();
 
 		public string CurrentTab {
 			get => _currentTab;
@@ -63,7 +67,20 @@ namespace YARG.Settings {
 
 		public bool UpdateSongLibraryOnExit { get; set; } = false;
 
+		private bool _ready;
+
+		private void Awake() {
+			Instance = this;
+			gameObject.SetActive(false);
+
+			_ready = true;
+		}
+
 		private void OnEnable() {
+			if (!_ready) {
+				return;
+			}
+
 			// Set navigation scheme
 			Navigator.Instance.PushScheme(new NavigationScheme(new() {
 				new NavigationScheme.Entry(MenuAction.Back, "Back", () => { gameObject.SetActive(false); })
@@ -74,6 +91,10 @@ namespace YARG.Settings {
 		}
 
 		private async UniTask OnDisable() {
+			if (!_ready) {
+				return;
+			}
+
 			Navigator.Instance.PopScheme();
 
 			DestroyPreview();
@@ -142,6 +163,9 @@ namespace YARG.Settings {
 		}
 
 		private void UpdateSettings(Transform container) {
+			_settingVisuals.Clear();
+			_settingDropdowns.Clear();
+
 			// Destroy all previous settings
 			foreach (Transform t in container) {
 				Destroy(t.gameObject);
@@ -169,7 +193,19 @@ namespace YARG.Settings {
 						var settingPrefab = Addressables.LoadAssetAsync<GameObject>(setting.AddressableName)
 							.WaitForCompletion();
 						var go = Instantiate(settingPrefab, container);
-						go.GetComponent<ISettingVisual>().SetSetting(field.FieldName);
+
+						// Set the setting, and cache the object
+						var visual = go.GetComponent<ISettingVisual>();
+						visual.SetSetting(field.FieldName);
+						_settingVisuals.Add(visual);
+					} else if (settingMetadata is PresetDropdownMetadata dropdown) {
+						// Spawn the dropdown
+						var go = Instantiate(_dropdownPrefab, container);
+
+						// Set the setting, and cache the object
+						var settingsDropdown = go.GetComponent<SettingsDropdown>();
+						settingsDropdown.SetInfo(dropdown);
+						_settingDropdowns.Add(settingsDropdown);
 					}
 				}
 
@@ -283,6 +319,41 @@ namespace YARG.Settings {
 
 			UpdateTabs();
 			UpdateSettings(_settingsContainer);
+		}
+
+		public void UpdateSpecificSetting(string settingName) {
+			// If the settings menu is not open, ignore
+			if (!gameObject.activeSelf) {
+				return;
+			}
+
+			// Nothing in the song folder manager we can update
+			if (CurrentTab == "_SongFolderManager") {
+				return;
+			}
+
+			// Refresh all of the settings with that name
+			foreach (var settingVisual in _settingVisuals) {
+				if (settingVisual.SettingName != settingName) {
+					continue;
+				}
+
+				settingVisual.RefreshVisual();
+			}
+		}
+
+		public void UpdatePresetDropdowns(ISettingType withSetting) {
+			// If the settings menu is not open, ignore
+			if (!gameObject.activeSelf) {
+				return;
+			}
+
+			// Refresh all of the settings with that name
+			foreach (var dropdown in _settingDropdowns) {
+				if (dropdown.ModifiedSettings.Select(SettingsManager.GetSettingByName).Contains(withSetting)) {
+					dropdown.ForceUpdateValue();
+				}
+			}
 		}
 	}
 }

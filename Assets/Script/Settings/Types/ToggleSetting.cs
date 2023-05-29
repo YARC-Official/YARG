@@ -14,7 +14,16 @@ namespace YARG.Settings.Types {
 		public override string AddressableName => "Setting/Toggle";
 
 		public ToggleSetting(bool value, Action<bool> onChange = null) : base(onChange) {
-			Data = value;
+			_data = value;
+		}
+
+		public override bool IsSettingDataEqual(object obj) {
+			if (obj.GetType() != DataType) {
+				return false;
+			}
+
+			bool a = (bool) obj;
+			return a == Data;
 		}
 	}
 }

@@ -21,7 +21,16 @@ namespace YARG.Settings.Types {
 			Min = min;
 			Max = max;
 
-			Data = value;
+			_data = value;
+		}
+
+		public override bool IsSettingDataEqual(object obj) {
+			if (obj.GetType() != DataType) {
+				return false;
+			}
+
+			int a = (int) obj;
+			return a == Data;
 		}
 	}
 }

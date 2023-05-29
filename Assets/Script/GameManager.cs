@@ -30,9 +30,6 @@ namespace YARG {
 
 		public static IAudioManager AudioManager { get; private set; }
 
-		[field: SerializeField]
-		public SettingsMenu SettingsMenu { get; private set; }
-
 		[SerializeField]
 		private AudioMixerGroup vocalGroup;
 
@@ -42,8 +39,6 @@ namespace YARG {
 
 #if UNITY_EDITOR
 
-		[field:Header("EDITOR ONLY")]
-		[field: SerializeField]
 		public Util.TestPlayInfo TestPlayInfo { get; private set; }
 
 #endif
@@ -69,6 +64,12 @@ namespace YARG {
 			AudioManager.Initialize();
 
 			StageKitHapticsManager.Initialize();
+
+#if UNITY_EDITOR
+
+			TestPlayInfo = UnityEditor.AssetDatabase.LoadAssetAtPath<Util.TestPlayInfo>("Assets/Settings/TestPlayInfo.asset");
+
+#endif
 		}
 
 		private void Start() {

@@ -23,7 +23,16 @@ namespace YARG.Settings.Types {
 			Min = min;
 			Max = max;
 
-			Data = value;
+			_data = value;
+		}
+
+		public override bool IsSettingDataEqual(object obj) {
+			if (obj.GetType() != DataType) {
+				return false;
+			}
+
+			float a = (float) obj;
+			return Mathf.Approximately(a, Data);
 		}
 	}
 }

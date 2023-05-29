@@ -16,7 +16,16 @@ namespace YARG.Settings.Types {
 		public override string AddressableName => "Setting/Volume";
 
 		public VolumeSetting(float data, Action<float> onChange = null) : base(onChange) {
-			Data = data;
+			_data = data;
+		}
+
+		public override bool IsSettingDataEqual(object obj) {
+			if (obj.GetType() != DataType) {
+				return false;
+			}
+
+			float a = (float) obj;
+			return Mathf.Approximately(a, Data);
 		}
 	}
 }
