@@ -40,6 +40,9 @@ namespace YARG.Song {
 			}
 			else writer.Write(0);
 
+			// venue data
+			writer.Write(ExCONSong.VenueVersion);
+
 			// mogg data
 			writer.Write(ExCONSong.UsingUpdateMogg);
 			writer.Write(ExCONSong.MoggPath);
@@ -145,6 +148,9 @@ namespace YARG.Song {
 				for(int i = 0; i < bassTuneLength; i++)
 					ExCONSong.RealBassTuning[i] = reader.ReadInt32();
 			}
+
+			// venue data
+			ExCONSong.VenueVersion = reader.ReadInt32();
 
 			// mogg data
 			ExCONSong.UsingUpdateMogg = reader.ReadBoolean();

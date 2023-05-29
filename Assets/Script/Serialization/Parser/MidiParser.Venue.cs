@@ -11,14 +11,17 @@ namespace YARG.Serialization.Parser {
 				totalDelta += trackEvent.DeltaTime;
 
 				if (trackEvent is NoteOnEvent noteOnEvent) {
-					if (noteOnEvent.NoteNumber != 48) {
-						continue;
-					}
+					continue;
+				}
 
-					eventIR.Add(new EventIR {
-						startTick = totalDelta,
-						name = "venue_lightFrame_next"
-					});
+				// Track the lighting keyframe but in the new style
+				if(trackEvent is TextEvent textEv){
+					if(textEv.Text == "[next]"){
+						eventIR.Add(new EventIR {
+							startTick = totalDelta,
+							name = "venue_lightFrame_next"
+						});
+					}
 				}
 
 				// Sometimes events are stored as normal text events :/

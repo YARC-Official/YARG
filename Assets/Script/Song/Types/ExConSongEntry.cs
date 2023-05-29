@@ -30,6 +30,9 @@ namespace YARG.Song {
 		public int[] RealGuitarTuning { get; set; }
 		public int[] RealBassTuning { get; set; }
 
+		// venue info
+		public int VenueVersion { get; set; } = 0;
+
 		// .mogg info
 		public bool UsingUpdateMogg { get; set; } = false;
 		public string MoggPath { get; set; }
