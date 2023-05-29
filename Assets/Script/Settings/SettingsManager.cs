@@ -4,30 +4,29 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
-using YARG.Metadata;
+using YARG.Settings.Metadata;
 using YARG.Settings.Types;
 
 namespace YARG.Settings {
 	public static partial class SettingsManager {
 		public class Tab {
-			public string name;
-			public string icon = "Generic";
+			public string Name;
+			public string Icon = "Generic";
 
-			public string previewPath;
+			public string PreviewPath;
 
-			public bool showInGame = false;
-			public List<AbstractMetadata> settings = new();
+			public bool ShowInPlayMode;
+			public List<AbstractMetadata> Settings = new();
 		}
 
-		public static readonly List<Tab> SETTINGS_TABS = new() {
+		public static readonly List<Tab> SettingsTabs = new() {
 			new() {
-				name = "General",
-				settings = {
+				Name = "General",
+				Settings = {
 					new HeaderMetadata("FileManagement"),
 					new ButtonRowMetadata("OpenSongFolderManager"),
 					new ButtonRowMetadata("ExportOuvertSongs"),
-					new ButtonRowMetadata("CopyCurrentSongTextFilePath"),
-					new ButtonRowMetadata("CopyCurrentSongJsonFilePath"),
+					new ButtonRowMetadata("CopyCurrentSongTextFilePath", "CopyCurrentSongJsonFilePath"),
 					new HeaderMetadata("Venues"),
 					new ButtonRowMetadata("OpenVenueFolder"),
 					"DisablePerSongBackgrounds",
@@ -41,10 +40,10 @@ namespace YARG.Settings {
 				}
 			},
 			new() {
-				name = "Sound",
-				icon = "Sound",
-				showInGame = true,
-				settings = {
+				Name = "Sound",
+				Icon = "Sound",
+				ShowInPlayMode = true,
+				Settings = {
 					new HeaderMetadata("Volume"),
 					"MasterMusicVolume",
 					"GuitarVolume",
@@ -68,11 +67,11 @@ namespace YARG.Settings {
 				}
 			},
 			new() {
-				name = "Graphics",
-				icon = "Display",
-				showInGame = true,
-				previewPath = "SettingPreviews/TrackPreview",
-				settings = {
+				Name = "Graphics",
+				Icon = "Display",
+				ShowInPlayMode = true,
+				PreviewPath = "SettingPreviews/TrackPreview",
+				Settings = {
 					new HeaderMetadata("Framerate"),
 					"VSync",
 					"FpsStats",
@@ -91,9 +90,9 @@ namespace YARG.Settings {
 				}
 			},
 			new() {
-				name = "Engine",
-				icon = "Gameplay",
-				settings = {
+				Name = "Engine",
+				Icon = "Gameplay",
+				Settings = {
 					"NoKicks",
 					"AntiGhosting"
 				}
@@ -155,7 +154,7 @@ namespace YARG.Settings {
 		}
 
 		public static Tab GetTabByName(string name) {
-			return SETTINGS_TABS.FirstOrDefault(tab => tab.name == name);
+			return SettingsTabs.FirstOrDefault(tab => tab.Name == name);
 		}
 	}
 }

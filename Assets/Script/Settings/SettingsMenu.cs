@@ -3,9 +3,10 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Input;
-using YARG.Metadata;
+using YARG.Settings.Metadata;
 using YARG.Settings.Visuals;
 using YARG.UI.MusicLibrary;
 using YARG.Util;
@@ -13,39 +14,44 @@ using YARG.Util;
 namespace YARG.Settings {
 	public class SettingsMenu : MonoBehaviour {
 		[SerializeField]
-		private GameObject fullContainer;
+		private GameObject _fullContainer;
+
 		[SerializeField]
-		private GameObject halfContainer;
+		private GameObject _halfContainer;
+
 		[SerializeField]
-		private Transform previewContainer;
+		private Transform _previewContainer;
 
 		[Space]
 		[SerializeField]
-		private Transform tabsContainer;
+		private Transform _tabsContainer;
+
 		[SerializeField]
-		private Transform settingsContainer;
+		private Transform _settingsContainer;
 
 		[Space]
 		[SerializeField]
-		private Transform halfSettingsContainer;
+		private Transform _halfSettingsContainer;
 
 		[Space]
 		[SerializeField]
-		private GameObject tabPrefab;
+		private GameObject _tabPrefab;
+
 		[SerializeField]
-		private GameObject buttonPrefab;
+		private GameObject _buttonPrefab;
+
 		[SerializeField]
-		private GameObject headerPrefab;
+		private GameObject _headerPrefab;
+
 		[SerializeField]
-		private GameObject directoryPrefab;
+		private GameObject _directoryPrefab;
 
 		[Space]
 		[SerializeField]
-		private RenderTexture previewRenderTexture;
-		[SerializeField]
-		private RawImage previewRawImage;
+		private RawImage _previewRawImage;
 
 		private string _currentTab;
+
 		public string CurrentTab {
 			get => _currentTab;
 			set {
@@ -60,9 +66,7 @@ namespace YARG.Settings {
 		private void OnEnable() {
 			// Set navigation scheme
 			Navigator.Instance.PushScheme(new NavigationScheme(new() {
-				new NavigationScheme.Entry(MenuAction.Back, "Back", () => {
-					gameObject.SetActive(false);
-				})
+				new NavigationScheme.Entry(MenuAction.Back, "Back", () => { gameObject.SetActive(false); })
 			}, true));
 
 			ReturnToFirstTab();
@@ -98,22 +102,22 @@ namespace YARG.Settings {
 
 			var tabInfo = SettingsManager.GetTabByName(CurrentTab);
 
-			if (string.IsNullOrEmpty(tabInfo.previewPath)) {
-				if (!fullContainer.activeSelf) {
-					fullContainer.gameObject.SetActive(true);
-					halfContainer.gameObject.SetActive(false);
+			if (string.IsNullOrEmpty(tabInfo.PreviewPath)) {
+				if (!_fullContainer.activeSelf) {
+					_fullContainer.gameObject.SetActive(true);
+					_halfContainer.gameObject.SetActive(false);
 
 					UpdateTabs();
 				}
 
-				UpdateSettings(settingsContainer);
+				UpdateSettings(_settingsContainer);
 			} else {
-				if (!halfContainer.activeSelf) {
-					halfContainer.gameObject.SetActive(true);
-					fullContainer.gameObject.SetActive(false);
+				if (!_halfContainer.activeSelf) {
+					_halfContainer.gameObject.SetActive(true);
+					_fullContainer.gameObject.SetActive(false);
 				}
 
-				UpdateSettings(halfSettingsContainer);
+				UpdateSettings(_halfSettingsContainer);
 			}
 
 			UpdatePreview(tabInfo);
@@ -121,19 +125,19 @@ namespace YARG.Settings {
 
 		private void UpdateTabs() {
 			// Destroy all previous tabs
-			foreach (Transform t in tabsContainer) {
+			foreach (Transform t in _tabsContainer) {
 				Destroy(t.gameObject);
 			}
 
 			// Then, create new tabs!
-			foreach (var tab in SettingsManager.SETTINGS_TABS) {
+			foreach (var tab in SettingsManager.SettingsTabs) {
 				// Skip tabs that aren't shown in game, if we are in game
-				if (!tab.showInGame && GameManager.Instance.CurrentScene == SceneIndex.PLAY) {
+				if (!tab.ShowInPlayMode && GameManager.Instance.CurrentScene == SceneIndex.PLAY) {
 					continue;
 				}
 
-				var go = Instantiate(tabPrefab, tabsContainer);
-				go.GetComponent<SettingsTab>().SetTab(tab.name, tab.icon);
+				var go = Instantiate(_tabPrefab, _tabsContainer);
+				go.GetComponent<SettingsTab>().SetTab(tab.Name, tab.Icon);
 			}
 		}
 
@@ -143,18 +147,18 @@ namespace YARG.Settings {
 				Destroy(t.gameObject);
 			}
 
-			foreach (var tab in SettingsManager.SETTINGS_TABS) {
+			foreach (var tab in SettingsManager.SettingsTabs) {
 				// Look for the tab
-				if (tab.name != CurrentTab) {
+				if (tab.Name != CurrentTab) {
 					continue;
 				}
 
 				// Once we've found the tab, add the settings
-				foreach (var settingMetadata in tab.settings) {
+				foreach (var settingMetadata in tab.Settings) {
 					if (settingMetadata is ButtonRowMetadata buttonRow) {
 						// Spawn the button
-						var go = Instantiate(buttonPrefab, container);
-						go.GetComponent<SettingsButton>().SetInfo(buttonRow.Buttons[0]);
+						var go = Instantiate(_buttonPrefab, container);
+						go.GetComponent<SettingsButton>().SetInfo(buttonRow.Buttons);
 					} else if (settingMetadata is HeaderMetadata header) {
 						// Spawn in the header
 						SpawnHeader(container, $"Header.{header.HeaderName}");
@@ -162,7 +166,8 @@ namespace YARG.Settings {
 						var setting = SettingsManager.GetSettingByName(field.FieldName);
 
 						// Spawn the setting
-						var settingPrefab = Addressables.LoadAssetAsync<GameObject>(setting.AddressableName).WaitForCompletion();
+						var settingPrefab = Addressables.LoadAssetAsync<GameObject>(setting.AddressableName)
+							.WaitForCompletion();
 						var go = Instantiate(settingPrefab, container);
 						go.GetComponent<ISettingVisual>().SetSetting(field.FieldName);
 					}
@@ -177,16 +182,16 @@ namespace YARG.Settings {
 			UpdateSongLibraryOnExit = true;
 
 			// Destroy all previous settings
-			foreach (Transform t in settingsContainer) {
+			foreach (Transform t in _settingsContainer) {
 				Destroy(t.gameObject);
 			}
 
 			// Spawn header
-			SpawnHeader(settingsContainer, "Header.Cache");
+			SpawnHeader(_settingsContainer, "Header.Cache");
 
 			// Spawn refresh all button
 			{
-				var go = Instantiate(buttonPrefab, settingsContainer);
+				var go = Instantiate(_buttonPrefab, _settingsContainer);
 				go.GetComponent<SettingsButton>().SetCustomCallback(async () => {
 					LoadingManager.Instance.QueueSongRefresh(false);
 					await LoadingManager.Instance.StartLoad();
@@ -194,11 +199,11 @@ namespace YARG.Settings {
 			}
 
 			// Spawn header
-			SpawnHeader(settingsContainer, "Header.SongFolders");
+			SpawnHeader(_settingsContainer, "Header.SongFolders");
 
 			// Spawn add folder button
 			{
-				var go = Instantiate(buttonPrefab, settingsContainer);
+				var go = Instantiate(_buttonPrefab, _settingsContainer);
 				go.GetComponent<SettingsButton>().SetCustomCallback(() => {
 					SettingsManager.Settings.SongFolders.Add(string.Empty);
 
@@ -209,42 +214,14 @@ namespace YARG.Settings {
 
 			// Create all of the directories
 			for (int i = 0; i < SettingsManager.Settings.SongFolders.Count; i++) {
-				var path = SettingsManager.Settings.SongFolders[i];
-
-				var go = Instantiate(directoryPrefab, settingsContainer);
+				var go = Instantiate(_directoryPrefab, _settingsContainer);
 				go.GetComponent<SettingsDirectory>().SetIndex(i, false);
 			}
-
-			/*
-
-			// Spawn header
-			SpawnHeader(settingsContainer, "Header.SongUpgrades");
-
-			// Spawn add upgrade folder button
-			{
-				var go = Instantiate(buttonPrefab, settingsContainer);
-				go.GetComponent<SettingsButton>().SetCustomCallback(() => {
-					SettingsManager.Settings.SongUpgradeFolders.Add(string.Empty);
-
-					// Refresh everything
-					UpdateSongFolderManager();
-				}, "AddUpgradeFolder");
-			}
-
-			// Create all of the song upgrade directories
-			for (int i = 0; i < SettingsManager.Settings.SongUpgradeFolders.Count; i++) {
-				var path = SettingsManager.Settings.SongUpgradeFolders[i];
-
-				var go = Instantiate(directoryPrefab, settingsContainer);
-				go.GetComponent<SettingsDirectory>().SetIndex(i, true);
-			}
-
-			*/
 		}
 
 		private void SpawnHeader(Transform container, string localizationKey) {
 			// Spawn the header
-			var go = Instantiate(headerPrefab, container);
+			var go = Instantiate(_headerPrefab, container);
 
 			// Set header text
 			go.GetComponentInChildren<LocalizeStringEvent>().StringReference = new LocalizedString {
@@ -256,56 +233,56 @@ namespace YARG.Settings {
 		private void UpdatePreview(SettingsManager.Tab tabInfo) {
 			DestroyPreview();
 
-			if (string.IsNullOrEmpty(tabInfo.previewPath)) {
+			if (string.IsNullOrEmpty(tabInfo.PreviewPath)) {
 				return;
 			}
 
 			// Spawn prefab
-			var previewPrefab = Addressables.LoadAssetAsync<GameObject>(tabInfo.previewPath).WaitForCompletion();
-			Instantiate(previewPrefab, previewContainer);
+			var previewPrefab = Addressables.LoadAssetAsync<GameObject>(tabInfo.PreviewPath).WaitForCompletion();
+			Instantiate(previewPrefab, _previewContainer);
 
 			// Set render texture
 			CameraPreviewTexture.SetAllPreviews();
 
 			// Size raw image
-			previewRawImage.texture = CameraPreviewTexture.PreviewTexture;
-			var rect = previewRawImage.rectTransform.ToViewportSpaceCentered(v: false);
+			_previewRawImage.texture = CameraPreviewTexture.PreviewTexture;
+			var rect = _previewRawImage.rectTransform.ToViewportSpaceCentered(v: false);
 			rect.y = 0f;
-			previewRawImage.uvRect = rect;
+			_previewRawImage.uvRect = rect;
 		}
 
 		private void DestroyPreview() {
-			if (previewContainer == null)
+			if (_previewContainer == null)
 				return;
 
-			foreach (Transform t in previewContainer) {
+			foreach (Transform t in _previewContainer) {
 				Destroy(t.gameObject);
 			}
 		}
 
 		public void ReturnToFirstTab() {
 			// Select the first tab
-			foreach (var tab in SettingsManager.SETTINGS_TABS) {
+			foreach (var tab in SettingsManager.SettingsTabs) {
 				// Skip tabs that aren't shown in game, if we are in game
-				if (!tab.showInGame && GameManager.Instance.CurrentScene == SceneIndex.PLAY) {
+				if (!tab.ShowInPlayMode && GameManager.Instance.CurrentScene == SceneIndex.PLAY) {
 					continue;
 				}
 
-				CurrentTab = tab.name;
+				CurrentTab = tab.Name;
 				break;
 			}
 		}
 
 		public void ForceShowCurrentTabInFull() {
-			if (fullContainer.activeSelf) {
+			if (_fullContainer.activeSelf) {
 				return;
 			}
 
-			fullContainer.gameObject.SetActive(true);
-			halfContainer.gameObject.SetActive(false);
+			_fullContainer.gameObject.SetActive(true);
+			_halfContainer.gameObject.SetActive(false);
 
 			UpdateTabs();
-			UpdateSettings(settingsContainer);
+			UpdateSettings(_settingsContainer);
 		}
 	}
 }

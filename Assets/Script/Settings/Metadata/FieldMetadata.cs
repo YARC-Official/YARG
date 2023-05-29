@@ -1,4 +1,4 @@
-namespace YARG.Metadata {
+namespace YARG.Settings.Metadata {
 	public class FieldMetadata : AbstractMetadata {
 		public string FieldName { get; private set; }
 
