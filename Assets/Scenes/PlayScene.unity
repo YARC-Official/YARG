@@ -723,12 +723,12 @@ VideoPlayer:
   m_VideoClip: {fileID: 0}
   m_TargetCameraAlpha: 1
   m_TargetCamera3DLayout: 0
-  m_TargetCamera: {fileID: 0}
+  m_TargetCamera: {fileID: 534160434}
   m_TargetTexture: {fileID: 8400000, guid: 6f01deee09a9c5846a83d96667de20f1, type: 2}
   m_TimeReference: 0
   m_TargetMaterialRenderer: {fileID: 0}
   m_TargetMaterialProperty: 
-  m_RenderMode: 2
+  m_RenderMode: 0
   m_AspectRatio: 5
   m_DataSource: 1
   m_PlaybackSpeed: 1
