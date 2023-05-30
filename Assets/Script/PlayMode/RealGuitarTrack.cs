@@ -88,27 +88,8 @@ namespace YARG.PlayMode {
 				return;
 			}
 
-			var events = Play.Instance.chart.events;
+			// Update beats
 			var beats = Play.Instance.chart.beats;
-
-			// Update events (beat lines, starpower, etc.)
-			while (events.Count > eventChartIndex && events[eventChartIndex].time <= RelativeTime) {
-				var eventInfo = events[eventChartIndex];
-
-				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(RelativeTime, eventInfo.time);
-				// if (eventInfo.name == "beatLine_minor") {
-				// 	genericPool.Add("beatLine_minor", new(0f, 0.01f, compensation));
-				// } else if (eventInfo.name == "beatLine_major") {
-				// 	genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
-				if (eventInfo.name == $"starpower_{player.chosenInstrument}") {
-					StarpowerSection = eventInfo;
-				} else if (eventInfo.name == $"solo_{player.chosenInstrument}") {
-					SoloSection = eventInfo;
-				}
-
-				eventChartIndex++;
-			}
-			
 			while (beats.Count > beatChartIndex && beats[beatChartIndex].Time <= RelativeTime) {
 				var beatInfo = beats[beatChartIndex];
 
@@ -207,9 +188,9 @@ namespace YARG.PlayMode {
 			scoreKeeper.Add(PTS_PER_NOTE * Multiplier);
 
 			// Solo stuff
-			if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime) {
+			if (Play.Instance.SongTime >= CurrentSolo?.time && Play.Instance.SongTime <= CurrentSolo?.EndTime) {
 				soloNotesHit++;
-			} else if (Play.Instance.SongTime >= SoloSection?.EndTime + 10) {
+			} else if (Play.Instance.SongTime >= CurrentSolo?.EndTime + 10) {
 				soloNotesHit = 0;
 			}
 

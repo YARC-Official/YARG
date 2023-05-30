@@ -123,25 +123,35 @@ namespace YARG.PlayMode {
 
 		private int[] visualChartIndex;
 		private int[] chartIndex;
-		private int visualEventChartIndex;
-		private int eventChartIndex;
 
 		private string EndPhraseName {
 			get {
-				string endPhraseName = "vocal_endPhrase";
 				if (micInputs[0].player.chosenInstrument == "harmVocals") {
-					endPhraseName = "harmVocal_endPhrase";
+					return "harmVocal_endPhrase";
+				} else {
+					return "vocal_endPhrase";
 				}
-
-				return endPhraseName;
 			}
 		}
 
 		private float[] sectionSingTime;
 		private LyricInfo[] currentLyrics;
 
-		private EventInfo visualStarpowerSection;
-		private EventInfo starpowerSection;
+		private List<EventInfo> starpowerSections = new();
+		private int starpowerIndex = 0;
+		private int starpowerVisualIndex = 0;
+		public EventInfo CurrentStarpower =>
+			starpowerIndex < starpowerSections.Count ? starpowerSections[starpowerIndex] : null;
+		public EventInfo CurrentVisualStarpower =>
+			starpowerVisualIndex < starpowerSections.Count ? starpowerSections[starpowerVisualIndex] : null;
+
+		private List<EventInfo> endPhrases = new();
+		private int phraseEndIndex = 0;
+		private int phraseEndVisualIndex = 0;
+		public EventInfo CurrentPhraseEnd =>
+			phraseEndIndex < endPhrases.Count ? endPhrases[phraseEndIndex] : null;
+		public EventInfo CurrentVisualPhraseEnd =>
+			phraseEndVisualIndex < endPhrases.Count ? endPhrases[phraseEndVisualIndex] : null;
 
 		private ScoreKeeper scoreKeeper;
 		// easy, medium, hard, expert
@@ -276,9 +286,10 @@ namespace YARG.PlayMode {
 			// Setup scoring vars
 			scoreKeeper = new();
 
+			string phraseEndName = EndPhraseName;
 			int phrases = 0;
 			foreach (var ev in Play.Instance.chart.events) {
-				if (ev.name == EndPhraseName)
+				if (ev.name == phraseEndName)
 					phrases++;
 			}
 
@@ -289,6 +300,15 @@ namespace YARG.PlayMode {
 			// Prepare performance text characteristics
 			perfTextSizer = new PerformanceTextScaler(animTimeLength);
 			preformaceText.color = Color.white;
+
+			// Queue up events
+			foreach (var eventInfo in Play.Instance.chart.events) {
+				if (eventInfo.name == phraseEndName) {
+					endPhrases.Add(eventInfo);
+				} else if (eventInfo.name == "starpower_vocals") {
+					starpowerSections.Add(eventInfo);
+				}
+			}
 		}
 
 		public void SetPlayerScore() {
@@ -414,38 +434,11 @@ namespace YARG.PlayMode {
 				OnSongStart();
 			}
 
-			var events = Play.Instance.chart.events;
-
 			// Update event visuals
-			while (events.Count > visualEventChartIndex && events[visualEventChartIndex].time <= RelativeTime) {
-				var eventInfo = events[visualEventChartIndex];
-
-				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(RelativeTime, eventInfo.time);
-				if (eventInfo.name == EndPhraseName) {
-					notePool.AddEndPhraseLine(compensation);
-				} else if (eventInfo.name == "starpower_vocals") {
-					visualStarpowerSection = eventInfo;
-				}
-
-				visualEventChartIndex++;
-			}
-
-			// Update visual starpower
-			if (visualStarpowerSection?.EndTime < RelativeTime) {
-				visualStarpowerSection = null;
-			}
-
-			// Update event logic
-			while (events.Count > eventChartIndex && events[eventChartIndex].time <= Play.Instance.SongTime) {
-				var eventInfo = events[eventChartIndex];
-
-				if (eventInfo.name == EndPhraseName) {
-					UpdateEndPhrase();
-				} else if (eventInfo.name == "starpower_vocals") {
-					starpowerSection = eventInfo;
-				}
-
-				eventChartIndex++;
+			while (CurrentVisualPhraseEnd?.time <= RelativeTime) {
+				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(RelativeTime, CurrentVisualPhraseEnd.time);
+				notePool.AddEndPhraseLine(compensation);
+				phraseEndVisualIndex++;
 			}
 
 			for (int i = 0; i < charts.Count; i++) {
@@ -455,7 +448,7 @@ namespace YARG.PlayMode {
 				while (chart.Count > visualChartIndex[i] && chart[visualChartIndex[i]].time <= RelativeTime) {
 					var lyricInfo = chart[visualChartIndex[i]];
 
-					SpawnLyric(lyricInfo, RelativeTime, i);
+					SpawnLyric(lyricInfo, CurrentVisualStarpower, RelativeTime, i);
 
 					if (i <= 1 && visualChartIndex[i] + 1 < chart.Count) {
 						SpawnStarpowerActivate(lyricInfo, chart[visualChartIndex[i] + 1], RelativeTime, i == 1);
@@ -473,6 +466,16 @@ namespace YARG.PlayMode {
 				} else if (currentLyrics[i].EndTime < Play.Instance.SongTime) {
 					currentLyrics[i] = null;
 				}
+			}
+
+			// Clear out passed visual star power
+			while (CurrentVisualStarpower?.EndTime < RelativeTime) {
+				starpowerVisualIndex++;
+			}
+
+			// Update event logic
+			while (CurrentPhraseEnd?.time <= Play.Instance.SongTime) {
+				UpdateEndPhrase();
 			}
 
 			// Update player specific stuff
@@ -712,11 +715,14 @@ namespace YARG.PlayMode {
 		}
 
 		private void UpdateEndPhrase() {
+			// Move to next phrase end
+			phraseEndIndex++;
+
+			// Calculate the new sing time
+			CalculateSectionSingTime(Play.Instance.SongTime);
+
 			// Skip if there is no singing
 			if (sectionSingTime.Max() <= 0f) {
-				// Calculate the new sing time
-				CalculateSectionSingTime(Play.Instance.SongTime);
-
 				return;
 			}
 
@@ -789,9 +795,9 @@ namespace YARG.PlayMode {
 				}
 
 				// Starpower
-				if (starpowerSection != null && starpowerSection.EndTime <= Play.Instance.SongTime) {
+				if (CurrentStarpower?.EndTime <= Play.Instance.SongTime) {
 					starpowerCharge += 0.25f;
-					starpowerSection = null;
+					starpowerIndex++;
 				}
 
 				sectionsHit++;
@@ -801,24 +807,27 @@ namespace YARG.PlayMode {
 				sectionsFailed++;
 			}
 
-			// Calculate the new sing time
-			CalculateSectionSingTime(Play.Instance.SongTime);
+			// Clear out passed star power
+			while (CurrentStarpower?.EndTime < RelativeTime) {
+				starpowerIndex++;
+			}
 		}
 
-		private void SpawnLyric(LyricInfo lyricInfo, float time, int harmIndex) {
+		private void SpawnLyric(LyricInfo lyricInfo, EventInfo starpowerInfo, float time, int harmIndex) {
 			// Get correct position
 			float lagCompensation = CalcLagCompensation(time, lyricInfo.time);
 			var pos = TRACK_SPAWN_OFFSET - lagCompensation;
 
 			// Spawn text
+			bool starpower = time >= starpowerInfo?.time && time < starpowerInfo?.EndTime;
 			if (harmIndex == 0) {
-				lyricPool.AddLyric(lyricInfo, visualStarpowerSection != null, pos, false);
+				lyricPool.AddLyric(lyricInfo, starpower, pos, false);
 			} else if (harmIndex == 1) {
-				lyricPool.AddLyric(lyricInfo, visualStarpowerSection != null, pos, true);
+				lyricPool.AddLyric(lyricInfo, starpower, pos, true);
 				lastSecondHarmonyLyric = lyricInfo.lyric;
 			} else if (harmIndex == 2 && lastSecondHarmonyLyric != lyricInfo.lyric) {
 				// Only add if it's not the same as the last second harmony
-				lyricPool.AddLyric(lyricInfo, visualStarpowerSection != null, pos, true);
+				lyricPool.AddLyric(lyricInfo, starpower, pos, true);
 			}
 
 			// Spawn note
@@ -848,19 +857,7 @@ namespace YARG.PlayMode {
 
 		private void CalculateSectionSingTime(float start) {
 			// Get the end of the section
-			var end = 0f;
-			foreach (var e in Play.Instance.chart.events) {
-				if (e.time < start) {
-					continue;
-				}
-
-				if (e.name != EndPhraseName) {
-					continue;
-				}
-
-				end = e.time;
-				break;
-			}
+			var end = CurrentPhraseEnd?.time ?? 0f;
 
 			// Get all of the lyric times combined
 			for (int i = 0; i < charts.Count; i++) {

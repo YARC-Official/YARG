@@ -92,22 +92,8 @@ namespace YARG.PlayMode {
 				return;
 			}
 
-			// Update events (beat lines, starpower, etc.)
-			var events = Play.Instance.chart.events;
+			// Update beats
 			var beats = Play.Instance.chart.beats;
-
-			while (events.Count > eventChartIndex && events[eventChartIndex].time <= RelativeTime) {
-				var eventInfo = events[eventChartIndex];
-
-				if (eventInfo.name == $"starpower_{player.chosenInstrument}") {
-					StarpowerSection = eventInfo;
-				} else if (eventInfo.name == $"solo_{player.chosenInstrument}") {
-					SoloSection = eventInfo;
-				}
-
-				eventChartIndex++;
-			}
-
 			while (beats.Count > beatChartIndex && beats[beatChartIndex].Time <= RelativeTime) {
 				var beatInfo = beats[beatChartIndex];
 
@@ -364,7 +350,7 @@ namespace YARG.PlayMode {
 			lastHitNote = chord;
 
 			// Solo stuff
-			if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime) {
+			if (Play.Instance.SongTime >= CurrentSolo?.time && Play.Instance.SongTime <= CurrentSolo?.EndTime) {
 				soloNotesHit++;
 			}
 			foreach (var hit in chord) {

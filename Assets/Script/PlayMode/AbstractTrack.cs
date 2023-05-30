@@ -22,27 +22,31 @@ namespace YARG.PlayMode {
 		protected List<NoteInfo> Chart => Play.Instance.chart
 			.GetChartByName(player.chosenInstrument)[(int) player.chosenDifficulty];
 
+		// Track notes
 		protected int visualChartIndex = 0;
 		protected int inputChartIndex = 0;
 		protected int hitChartIndex = 0;
-		protected int eventChartIndex = 0;
 		protected int beatChartIndex = 0;
 
 		protected CommonTrack commonTrack;
 		protected TrackAnimations trackAnims;
 
-		public EventInfo StarpowerSection {
-			get;
-			protected set;
-		} = null;
-		public EventInfo SoloSection {
-			get;
-			protected set;
-		} = null;
-		public EventInfo FillSection {
-			get;
-			protected set;
-		} = null;
+		// Track events
+		protected List<EventInfo> starpowerSections = new();
+		protected int starpowerIndex = 0;
+		protected int starpowerVisualIndex = 0;
+		public EventInfo CurrentStarpower =>
+			starpowerIndex < starpowerSections.Count ? starpowerSections[starpowerIndex] : null;
+		public EventInfo CurrentVisualStarpower =>
+			starpowerVisualIndex < starpowerSections.Count ? starpowerSections[starpowerVisualIndex] : null;
+
+		protected List<EventInfo> soloSections = new();
+		protected int soloIndex = 0;
+		protected int soloVisualIndex = 0;
+		public EventInfo CurrentSolo =>
+			soloIndex < soloSections.Count ? soloSections[soloIndex] : null;
+		public EventInfo CurrentVisualSolo =>
+			soloVisualIndex < soloSections.Count ? soloSections[soloVisualIndex] : null;
 
 		protected int notesHit = 0;
 		// private int notesMissed = 0;
@@ -94,8 +98,8 @@ namespace YARG.PlayMode {
 				}
 
 				// End starpower if combo ends
-				if (StarpowerSection?.time <= Play.Instance.SongTime && value == 0) {
-					StarpowerSection = null;
+				if (CurrentStarpower?.time <= Play.Instance.SongTime && value == 0) {
+					starpowerIndex++;
 					StarpowerMissEvent?.Invoke();
 				}
 			}
@@ -189,6 +193,18 @@ namespace YARG.PlayMode {
 			// Initlaize interval sizes
 			intervalSize = commonTrack.noteStreakInterval;
 			halfIntervalSize = intervalSize / 2;
+
+			// Queue up events
+			string spName = $"starpower_{player.chosenInstrument}";
+			string soloName = $"solo_{player.chosenInstrument}";
+			string fillName = $"fill_{player.chosenInstrument}";
+			foreach (var eventInfo in Play.Instance.chart.events) {
+				if (eventInfo.name == spName) {
+					starpowerSections.Add(eventInfo);
+				} else if (eventInfo.name == soloName) {
+					soloSections.Add(eventInfo);
+				}
+			}
 
 			StartTrack();
 		}
@@ -307,7 +323,7 @@ namespace YARG.PlayMode {
 			}
 
 			float currentSolo = trackMaterial.GetFloat("SoloState");
-			if (Play.Instance.SongTime >= SoloSection?.time - 2 && Play.Instance.SongTime <= SoloSection?.EndTime - 1) {
+			if (Play.Instance.SongTime >= CurrentSolo?.time - 2 && Play.Instance.SongTime <= CurrentSolo?.EndTime - 1) {
 				trackMaterial.SetFloat("SoloState", Mathf.Lerp(currentSolo, 1f, Time.deltaTime * 2f));
 			} else {
 				trackMaterial.SetFloat("SoloState", Mathf.Lerp(currentSolo, 0f, Time.deltaTime * 2f));
@@ -334,7 +350,7 @@ namespace YARG.PlayMode {
 		private void UpdateStarpower() {
 			// Update starpower region
 			if (IsStarpowerHit()) {
-				StarpowerSection = null;
+				starpowerIndex++;
 				starpowerCharge += 0.25f;
 				if (starpowerCharge > 1f) {
 					starpowerCharge = 1f;
@@ -387,6 +403,14 @@ namespace YARG.PlayMode {
 					commonTrack.comboBase.material = commonTrack.baseNormal;
 				}
 			}
+
+			// Clear out passed SP phrases
+			while (CurrentStarpower?.EndTime < Play.Instance.SongTime - Constants.HIT_MARGIN) {
+				starpowerIndex++;
+			}
+			while (CurrentVisualStarpower?.EndTime < RelativeTime) {
+				starpowerVisualIndex++;
+			}
 		}
 
 		private void PauseAction() {
@@ -404,7 +428,8 @@ namespace YARG.PlayMode {
 			}
 
 			// Set solo box and text
-			if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime + Constants.HIT_MARGIN) {
+			if (Play.Instance.SongTime >= CurrentSolo?.time &&
+				Play.Instance.SongTime <= CurrentSolo?.EndTime + Constants.HIT_MARGIN) {
 				if (!soloInProgress) {
 					soloInProgress = true;
 					soloNotesHit = 0;
@@ -416,7 +441,7 @@ namespace YARG.PlayMode {
 							continue;
 						}
 
-						if (Chart[i].time > SoloSection?.EndTime) {
+						if (Chart[i].time > CurrentSolo?.EndTime) {
 							break;
 						}
 
@@ -604,6 +629,13 @@ namespace YARG.PlayMode {
 			recentlyBelowMaxMultiplier = Multiplier < MaxMultiplier;
 			recentStarpowerCharge = starpowerCharge;
 
+			// Clear out passed solo sections
+			while (CurrentSolo?.EndTime < Play.Instance.SongTime - Constants.HIT_MARGIN) {
+				soloIndex++;
+			}
+			while (CurrentVisualSolo?.EndTime < RelativeTime) {
+				soloVisualIndex++;
+			}
 		}
 
 		IEnumerator SoloBoxShowScore() {
@@ -629,8 +661,7 @@ namespace YARG.PlayMode {
 
 		private bool IsStarpowerHit() {
 			if (Chart.Count > hitChartIndex) {
-
-				return Chart[hitChartIndex].time >= StarpowerSection?.EndTime;
+				return Chart[hitChartIndex].time >= CurrentStarpower?.EndTime;
 			}
 
 			return false;
