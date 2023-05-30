@@ -123,10 +123,10 @@ namespace YARG.Util {
 		Superscript        = 1 << 28,
 		BaselineOffset     = 1 << 29,
 		Width              = 1 << 30,
-        LineBreak          = 1UL << 31,
-        FontWeight         = 1UL << 32,
-        Gradient 		   = 1UL << 33,
-        Rotate 			   = 1UL << 34,
-        AllCaps 		   = 1UL << 35
+		LineBreak          = 1UL << 31,
+		FontWeight         = 1UL << 32,
+		Gradient           = 1UL << 33,
+		Rotate             = 1UL << 34,
+		AllCaps            = 1UL << 35
 	}
 }
