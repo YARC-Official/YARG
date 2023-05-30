@@ -118,7 +118,7 @@ namespace YARG {
 					chosenInstrument = "guitar",
 					chosenDifficulty = Difficulty.EXPERT,
 					inputStrategy = new FiveFretInputStrategy {
-						botMode = true
+						BotMode = true
 					}
 				});
 
@@ -126,7 +126,7 @@ namespace YARG {
 					chosenInstrument = "realDrums",
 					chosenDifficulty = Difficulty.EXPERT_PLUS,
 					inputStrategy = new DrumsInputStrategy {
-						botMode = true
+						BotMode = true
 					}
 				});
 
@@ -134,7 +134,7 @@ namespace YARG {
 					chosenInstrument = "vocals",
 					chosenDifficulty = Difficulty.EXPERT,
 					inputStrategy = new MicInputStrategy {
-						botMode = true
+						BotMode = true
 					}
 				});
 			}

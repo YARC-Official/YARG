@@ -199,7 +199,7 @@ namespace YARG.Input {
 			}
 
 			// Update mapping states
-			foreach (var mapping in inputMappings.Values) {
+			foreach (var mapping in InputMappings.Values) {
 				mapping.UpdateState(eventPtr);
 			}
 
