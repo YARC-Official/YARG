@@ -499,13 +499,13 @@ namespace YARG.UI.MusicLibrary {
 			string nextCharacter = GetNextLetterOrNumber(nameWithoutParenthesis);
 
 			// If an error occurs no change is made
-			if(string.IsNullOrEmpty(nextCharacter)){
+			if (string.IsNullOrEmpty(nextCharacter)) {
 				return;
 			}
 
-			var index = _songs.FindIndex(skip, song => 
+			var index = _songs.FindIndex(skip, song =>
 				song is SongViewType songType &&
-					songType.SongEntry.NameNoParenthesis.Substring(0, 1) == nextCharacter
+					songType.SongEntry.NameNoParenthesis[..1] == nextCharacter
 				);
 
 			SelectedIndex = index;
@@ -515,22 +515,32 @@ namespace YARG.UI.MusicLibrary {
 			if(string.IsNullOrEmpty(input)){
 				return null;
 			}
-			
-			char firstCharacter = Char.ToUpper(input[0]);
 
-			int indexOfActualLetter = songsFirstLetter.FindIndex(letter  => {
+			char firstCharacter = char.ToUpper(input[0]);
+
+			int indexOfActualLetter = songsFirstLetter.FindIndex(letter => {
 				return letter == firstCharacter;
 			});
 
 			bool isLast = indexOfActualLetter == (songsFirstLetter.Count - 1);
 
-			if(isLast){
-				var firstCharacterInList = Char.ToString(songsFirstLetter[0]);
+			if (isLast) {
+				var firstCharacterInList = char.ToString(songsFirstLetter[0]);
 				return firstCharacterInList;
 			}
 
-			var nextCharacter = Char.ToString(songsFirstLetter[indexOfActualLetter + 1]);
+			var nextCharacter = char.ToString(songsFirstLetter[indexOfActualLetter + 1]);
 			return nextCharacter;
 		}
+
+#if UNITY_EDITOR
+		public void SetAsTestPlaySong() {
+			if (_songs[SelectedIndex] is not SongViewType song) {
+				return;
+			}
+
+			GameManager.Instance.TestPlayInfo.TestPlaySongHash = song.SongEntry.Checksum;
+		}
+#endif
 	}
 }

@@ -4,6 +4,7 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using YARG.Data;
+using YARG.Input;
 using YARG.Song;
 
 namespace YARG {
@@ -15,7 +16,7 @@ namespace YARG {
 		[SerializeField]
 		private TextMeshProUGUI subPhrase;
 
-		private Queue<Func<UniTask>> loadQueue = new();
+		private readonly Queue<Func<UniTask>> _loadQueue = new();
 
 		private void Awake() {
 			Instance = this;
@@ -39,22 +40,27 @@ namespace YARG {
 		}
 
 		public async UniTask StartLoad() {
-			if (loadQueue.Count <= 0) {
+			if (_loadQueue.Count <= 0) {
 				return;
 			}
 
 			gameObject.SetActive(true);
 
-			while (loadQueue.Count > 0) {
-				var func = loadQueue.Dequeue();
+			while (_loadQueue.Count > 0) {
+				var func = _loadQueue.Dequeue();
 				await func();
 			}
 
 			gameObject.SetActive(false);
+
+#if UNITY_EDITOR
+			// Test Play stuff
+			StartTestPlayMode();
+#endif
 		}
 
 		public void Queue(Func<UniTask> func) {
-			loadQueue.Enqueue(func);
+			_loadQueue.Enqueue(func);
 		}
 
 		public void QueueSongRefresh(bool fast) {
@@ -95,5 +101,57 @@ namespace YARG {
 
 			SetLoadingText("Loading songs...", subText);
 		}
+
+#if UNITY_EDITOR
+		private void StartTestPlayMode() {
+			var info = GameManager.Instance.TestPlayInfo;
+
+			// Skip if not test play mode
+			if (!info.TestPlayMode) {
+				return;
+			}
+			info.TestPlayMode = false;
+
+			// Add the bots
+			if (!info.NoBotsMode) {
+				AddTestPlayPlayer(new PlayerManager.Player {
+					chosenInstrument = "guitar",
+					chosenDifficulty = Difficulty.EXPERT,
+					inputStrategy = new FiveFretInputStrategy {
+						botMode = true
+					}
+				});
+
+				AddTestPlayPlayer(new PlayerManager.Player {
+					chosenInstrument = "realDrums",
+					chosenDifficulty = Difficulty.EXPERT_PLUS,
+					inputStrategy = new DrumsInputStrategy {
+						botMode = true
+					}
+				});
+
+				AddTestPlayPlayer(new PlayerManager.Player {
+					chosenInstrument = "vocals",
+					chosenDifficulty = Difficulty.EXPERT,
+					inputStrategy = new MicInputStrategy {
+						botMode = true
+					}
+				});
+			}
+
+			// Get the Test Play song by hash, and play it
+			if (SongContainer.SongsByHash.TryGetValue(info.TestPlaySongHash,
+				    out var song)) {
+
+				GameManager.Instance.SelectedSong = song;
+				GameManager.Instance.LoadScene(SceneIndex.PLAY);
+			}
+		}
+
+		private static void AddTestPlayPlayer(PlayerManager.Player p) {
+			PlayerManager.players.Add(p);
+			p.inputStrategy.Enable();
+		}
+#endif
 	}
 }

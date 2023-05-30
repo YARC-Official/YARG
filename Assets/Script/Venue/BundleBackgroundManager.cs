@@ -1,7 +1,8 @@
+using System;
 using System.IO;
 using UnityEngine;
+using YARG.PlayMode;
 using YARG.UI;
-
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -9,52 +10,45 @@ using UnityEditor;
 namespace YARG.Venue {
 	public class BundleBackgroundManager : MonoBehaviour {
 		// DO NOT CHANGE THIS! It will break existing venues
-		public const string BackgroundPrefabPath = "Assets/_Background.prefab";
+		public const string BACKGROUND_PREFAB_PATH = "Assets/_Background.prefab";
 
+		// DO NOT CHANGE the name of this! I *know* it doesn't follow naming conventions, but it will also break existing
+		// venues if we do change it.
 		[SerializeField]
 		private Camera mainCamera;
 
-		private RenderTexture bgTexture;
-
-		[HideInInspector]
 		public AssetBundle Bundle { get; set; }
 
-		private void Start() {
-			// Move object out of the way just in case
+		private void Awake() {
+			// Move object out of the way, so its effects don't collide with the tracks
+			transform.position += Vector3.forward * 10_000f;
 
-			transform.position += Vector3.up * 1000f;
-			bgTexture = new RenderTexture(Screen.currentResolution.width, Screen.currentResolution.height, 16, RenderTextureFormat.ARGB32);
-			bgTexture.Create();
-
-			mainCamera.targetTexture = bgTexture;
-
-			GameUI.Instance.background.texture = bgTexture;
+			// Destroy the default camera (venue has its own)
+			Destroy(Play.Instance.DefaultCamera.gameObject);
 		}
 
 		private void OnDestroy() {
-			bgTexture.Release();
 			Bundle.Unload(true);
 		}
 
 #if UNITY_EDITOR
 
-		// 
+		//
 		// HUGE thanks to the people over at Trombone Champ and NyxTheShield for giving us this code.
 		// This could not be done without them.
-		// 
+		//
 		// Code to export a background from the editor.
 		//
 
-		private GameObject backgroundReference;
+		private GameObject _backgroundReference;
 
 		[ContextMenu("Export Background")]
 		public void ExportBackground() {
-			backgroundReference = gameObject;
-			string path = EditorUtility.SaveFilePanel("Save Background", string.Empty, "bg",
-				"yarground");
+			_backgroundReference = gameObject;
+			string path = EditorUtility.SaveFilePanel("Save Background", string.Empty, "bg", "yarground");
 
-			BuildTargetGroup selectedBuildTargetGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
-			BuildTarget activeBuildTarget = EditorUserBuildSettings.activeBuildTarget;
+			var selectedBuildTargetGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
+			var activeBuildTarget = EditorUserBuildSettings.activeBuildTarget;
 
 			GameObject clonedBackground = null;
 
@@ -63,22 +57,22 @@ namespace YARG.Venue {
 					return;
 				}
 
-				clonedBackground = Instantiate(backgroundReference.gameObject);
+				clonedBackground = Instantiate(_backgroundReference.gameObject);
 
 				string fileName = Path.GetFileName(path);
 				string folderPath = Path.GetDirectoryName(path);
 
-				var assetPaths = new string[] {
-						BackgroundPrefabPath
-					};
+				var assetPaths = new[] {
+					BACKGROUND_PREFAB_PATH
+				};
 
-				PrefabUtility.SaveAsPrefabAsset(clonedBackground.gameObject, BackgroundPrefabPath);
+				PrefabUtility.SaveAsPrefabAsset(clonedBackground.gameObject, BACKGROUND_PREFAB_PATH);
 				AssetBundleBuild assetBundleBuild = default;
 				assetBundleBuild.assetBundleName = fileName;
 				assetBundleBuild.assetNames = assetPaths;
 
 				BuildPipeline.BuildAssetBundles(Application.temporaryCachePath,
-					new AssetBundleBuild[] { assetBundleBuild }, BuildAssetBundleOptions.ForceRebuildAssetBundle,
+					new[] { assetBundleBuild }, BuildAssetBundleOptions.ForceRebuildAssetBundle,
 					EditorUserBuildSettings.activeBuildTarget);
 				EditorPrefs.SetString("currentBuildingAssetBundlePath", folderPath);
 				EditorUserBuildSettings.SwitchActiveBuildTarget(selectedBuildTargetGroup, activeBuildTarget);
@@ -98,7 +92,7 @@ namespace YARG.Venue {
 				AssetDatabase.Refresh();
 
 				EditorUtility.DisplayDialog("Export Successful!", "Export Successful!", "OK");
-			} catch (System.Exception e) {
+			} catch (Exception e) {
 				Debug.LogError("Failed to bundle background/venue.");
 				Debug.LogException(e);
 			} finally {

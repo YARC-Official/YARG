@@ -18,7 +18,6 @@ using YARG.Serialization.Parser;
 using YARG.Settings;
 using YARG.Song;
 using YARG.UI;
-using YARG.Util;
 using YARG.Venue;
 
 namespace YARG.PlayMode {
@@ -42,13 +41,13 @@ namespace YARG.PlayMode {
 		public delegate void PauseStateChangeAction(bool pause);
 		public static event PauseStateChangeAction OnPauseToggle;
 
-		[SerializeField]
-		private RenderTexture backgroundRenderTexture;
-
 		public bool SongStarted {
 			get;
 			private set;
-		} = false;
+		}
+
+		[field: SerializeField]
+		public Camera DefaultCamera { get; private set; }
 
 		private OccurrenceList<string> audioLowering = new();
 		private OccurrenceList<string> audioReverb = new();
@@ -129,9 +128,11 @@ namespace YARG.PlayMode {
 
 			ScoreKeeper.Reset();
 			StarScoreKeeper.Reset();
-			Navigator.Instance.PopAllSchemes();
 
-			backgroundRenderTexture.ClearTexture();
+			// Force the music player to disable, and hide the help bar
+			// This is mostly for "Test Play" mode
+			Navigator.Instance.ForceHideMusicPlayer();
+			Navigator.Instance.PopAllSchemes();
 
 			// Song
 			StartSong();
@@ -233,7 +234,7 @@ namespace YARG.PlayMode {
 
 					// KEEP THIS PATH LOWERCASE
 					// Breaks things for other platforms, because Unity
-					var bg = bundle.LoadAsset<GameObject>(BundleBackgroundManager.BackgroundPrefabPath.ToLowerInvariant());
+					var bg = bundle.LoadAsset<GameObject>(BundleBackgroundManager.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
 
 					var bgInstance = Instantiate(bg);
 
@@ -506,8 +507,6 @@ namespace YARG.PlayMode {
 
 			// Unpause just in case
 			Time.timeScale = 1f;
-
-			backgroundRenderTexture.ClearTexture();
 
 			OnSongEnd?.Invoke(Song);
 

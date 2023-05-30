@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 using YARG.Data;
 using YARG.PlayMode;
 using YARG.Settings;

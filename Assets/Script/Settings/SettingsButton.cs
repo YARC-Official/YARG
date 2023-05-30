@@ -1,42 +1,42 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
+using UnityEngine.UI;
 
 namespace YARG.Settings {
 	public class SettingsButton : MonoBehaviour {
-		private string buttonName;
-		private Action customCallback;
-
 		[SerializeField]
-		private LocalizeStringEvent text;
+		private GameObject _buttonTemplate;
+		[SerializeField]
+		private Transform _container;
 
-		public void SetInfo(string buttonName) {
-			this.buttonName = buttonName;
-			customCallback = null;
+		public void SetInfo(IEnumerable<string> buttons) {
+			// Spawn button(s)
+			foreach (var buttonName in buttons) {
+				var button = Instantiate(_buttonTemplate, _container);
 
-			text.StringReference = new LocalizedString {
-				TableReference = "Settings",
-				TableEntryReference = buttonName
-			};
+				button.GetComponentInChildren<LocalizeStringEvent>().StringReference = new LocalizedString {
+					TableReference = "Settings",
+					TableEntryReference = buttonName
+				};
+
+				var capture = buttonName;
+				button.GetComponent<Button>().onClick.AddListener(() => SettingsManager.InvokeButton(capture));
+			}
+
+			// Remove the template
+			Destroy(_buttonTemplate);
 		}
 
 		public void SetCustomCallback(Action action, string localizationKey) {
-			buttonName = null;
-			customCallback = action;
-
-			text.StringReference = new LocalizedString {
+			_buttonTemplate.GetComponentInChildren<LocalizeStringEvent>().StringReference = new LocalizedString {
 				TableReference = "Settings",
 				TableEntryReference = localizationKey
 			};
-		}
 
-		public void OnClick() {
-			if (customCallback == null) {
-				SettingsManager.InvokeButton(buttonName);
-			} else {
-				customCallback.Invoke();
-			}
+			_buttonTemplate.GetComponent<Button>().onClick.AddListener(() => action?.Invoke());
 		}
 	}
 }

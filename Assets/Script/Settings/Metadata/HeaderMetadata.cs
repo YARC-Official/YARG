@@ -1,6 +1,4 @@
-using System.Collections.Generic;
-
-namespace YARG.Metadata {
+namespace YARG.Settings.Metadata {
 	public class HeaderMetadata : AbstractMetadata {
 		public string HeaderName { get; private set; }
 

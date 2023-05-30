@@ -133,6 +133,10 @@ namespace YARG.Input {
 			UpdateHelpBar().Forget();
 		}
 
+		public void ForceHideMusicPlayer() {
+			HelpBar.Instance.MusicPlayer.gameObject.SetActive(false);
+		}
+
 		private async UniTask UpdateHelpBar() {
 			// Wait one frame to update, in case another one gets pushed
 			await UniTask.WaitForEndOfFrame(this);

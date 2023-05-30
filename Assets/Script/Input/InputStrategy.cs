@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using PlasticBand.Haptics;
+using TMPro;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
@@ -187,8 +190,16 @@ namespace YARG.Input {
 				return;
 			}
 
+			// Ignore navigation events from the keyboard while a text box is selected
+			// We detect whether a text box is selected by seeing if a focused input field is a component of the currently selected object
+			if (eventPtr.deviceId == Keyboard.current.deviceId &&
+				(EventSystem.current.currentSelectedGameObject?.GetComponents<TMP_InputField>().Any(i => i.isFocused) ?? false)) {
+
+				return;
+			}
+
 			// Update mapping states
-			foreach (var mapping in InputMappings.Values) {
+			foreach (var mapping in inputMappings.Values) {
 				mapping.UpdateState(eventPtr);
 			}
 
