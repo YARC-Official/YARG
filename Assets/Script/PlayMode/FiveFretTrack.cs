@@ -38,6 +38,7 @@ namespace YARG.PlayMode {
 
 		// https://www.reddit.com/r/Rockband/comments/51t3c0/exactly_how_many_points_are_sustains_worth/
 		private const double SUSTAIN_PTS_PER_BEAT = 25.0;
+		private const double STARPOWER_PER_BEAT = 0.034;
 		private const int PTS_PER_NOTE = 50;
 		private int noteCount = -1;
 		protected override void StartTrack() {
@@ -151,6 +152,11 @@ namespace YARG.PlayMode {
 
 				// Sustain scoring
 				scoreKeeper.Add(susTracker.Update(heldNote) * Multiplier * SUSTAIN_PTS_PER_BEAT);
+
+				// Sustain whammy, if in starpower section
+				if ((StarpowerSection?.EndTime > RelativeTime) && (susTracker.Update(heldNote) != 0)) {
+					starpowerCharge += (float) (susTracker.Update(heldNote) * STARPOWER_PER_BEAT); // first attempt at autowhammy during OD sustains
+				}
 
 				if (heldNote.time + heldNote.length <= Play.Instance.SongTime) {
 					heldNotes.RemoveAt(i);

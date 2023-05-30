@@ -353,7 +353,8 @@ namespace YARG.PlayMode {
 					GameManager.AudioManager.PlaySoundEffect(SfxSample.StarPowerRelease);
 					SetReverb(false);
 				} else {
-					starpowerCharge -= Time.deltaTime / 25f * Play.speed;
+					//starpowerCharge -= Time.deltaTime / 25f * Play.speed; //original logic
+					starpowerCharge -= (float) ((Time.deltaTime * Play.Instance.CurrentBeatsPerSecond) * 0.03125); // calculates based on 32 beats for a full bar
 				}
 				if (!trackAnims.spShakeAscended) {
 					trackAnims.StarpowerTrackAnim();
