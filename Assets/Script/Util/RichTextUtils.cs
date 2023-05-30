@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -51,6 +52,8 @@ namespace YARG.Util {
                                                          RichTextTags.Strikethrough | RichTextTags.Underline |
                                                          RichTextTags.Subscript | RichTextTags.Superscript);
 
+        private static readonly Dictionary<ulong, Regex> RegexCache = new();
+
 		public static string StripRichTextTags(string text) {
 			return StripRichTextTagsPrivate(text, ALL_TAGS);
 		}
@@ -64,6 +67,10 @@ namespace YARG.Util {
 		}
 
 		private static string StripRichTextTagsPrivate(string text, RichTextTags tags) {
+			if(RegexCache.TryGetValue((ulong)tags, out var cachedRegex)) {
+				return cachedRegex.Replace(text, "");
+			}
+
 			var regexFormat = @"<\/*{0}.*?>|";
 
 			var sb = new StringBuilder();
@@ -76,7 +83,8 @@ namespace YARG.Util {
             if(sb.Length > 0)
 			    regexFormat = sb.Remove(sb.Length - 1, 1).ToString();
 
-			var regex = new Regex(regexFormat);
+			var regex = new Regex(regexFormat, RegexOptions.Compiled);
+			RegexCache.Add((ulong)tags, regex);
 
 			return regex.Replace(text, "");
 		}
