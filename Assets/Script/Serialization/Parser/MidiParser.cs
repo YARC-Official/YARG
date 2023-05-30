@@ -232,22 +232,21 @@ namespace YARG.Serialization.Parser {
 										chart.RealDrums[i] = ParseDrums(trackChunk, true, i, drumType, null);
 
 										chart.GhDrums[i] = ParseGHDrums(trackChunk, i, drumType, chart.RealDrums[i]);
-										ParseStarpower(eventIR, trackChunk, "drums");
-										ParseStarpower(eventIR, trackChunk, "realDrums");
-										ParseDrumFills(eventIR, trackChunk, "drums");
-										ParseDrumFills(eventIR, trackChunk, "realDrums");
 									}
+									ParseStarpower(eventIR, trackChunk, "drums");
+									ParseStarpower(eventIR, trackChunk, "realDrums");
+									ParseDrumFills(eventIR, trackChunk, "drums");
+									ParseDrumFills(eventIR, trackChunk, "realDrums");
 								} else {
 									for (int i = 0; i < 5; i++) {
 										chart.GhDrums[i] = ParseGHDrums(trackChunk, i, drumType, null);
 
 										chart.Drums[i] = ParseDrums(trackChunk, false, i, drumType, chart.GhDrums[i]);
 										chart.RealDrums[i] = ParseDrums(trackChunk, true, i, drumType, chart.GhDrums[i]);
-
-										// TODO: SP is still a bit broken on 5-lane and is therefore disabled for now
-										//ParseStarpower(eventIR, trackChunk, "ghDrums");
-										//ParseDrumFills(eventIR, trackChunk, "ghDrums");
 									}
+									// TODO: SP is still a bit broken on 5-lane and is therefore disabled for now
+									//ParseStarpower(eventIR, trackChunk, "ghDrums");
+									//ParseDrumFills(eventIR, trackChunk, "ghDrums");
 								}
 								break;
 							case "BEAT":
