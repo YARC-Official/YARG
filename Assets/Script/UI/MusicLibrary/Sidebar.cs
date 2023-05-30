@@ -1,20 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 using XboxSTFS;
-using static XboxSTFS.XboxSTFSParser;
 using YARG.Data;
 using YARG.Serialization;
 using YARG.Song;
 using YARG.UI.MusicLibrary.ViewTypes;
+using YARG.Util;
 
 namespace YARG.UI.MusicLibrary {
 	public class Sidebar : MonoBehaviour {
@@ -113,7 +111,7 @@ namespace YARG.UI.MusicLibrary {
 			_charter.text = songEntry.Charter;
 			_genre.text = songEntry.Genre;
 			_year.text = songEntry.Year;
-			HelpBar.Instance.SetInfoText(songEntry.LoadingPhrase);
+			HelpBar.Instance.SetInfoText(RichTextUtils.StripRichTextTagsExclude(songEntry.LoadingPhrase, RichTextUtils.GOOD_TAGS));
 
 			// Format and show length
 			if (songEntry.SongLengthTimeSpan.Hours > 0) {
@@ -135,10 +133,10 @@ namespace YARG.UI.MusicLibrary {
 			}
 
 			/*
-			
-				Guitar               ; Bass               ; 4 or 5 lane ; Keys     ; Mic (dependent on mic count) 
+
+				Guitar               ; Bass               ; 4 or 5 lane ; Keys     ; Mic (dependent on mic count)
 				Pro Guitar or Co-op  ; Pro Bass or Rhythm ; True Drums  ; Pro Keys ; Band
-			
+
 			*/
 
 			difficultyRings[0].SetInfo(songEntry, Instrument.GUITAR);
