@@ -116,7 +116,13 @@ namespace YARG.PlayMode {
 
 		private List<List<LyricInfo>> charts;
 
-		public float RelativeTime => Play.Instance.SongTime +
+		// Time values
+
+		// Convenience name for current song time
+		public float CurrentTime => Play.Instance.SongTime;
+
+		// Time relative to the beginning of the track, used for spawning notes and other visuals
+		public float TrackStartTime => Play.Instance.SongTime +
 			((TRACK_SPAWN_OFFSET + TRACK_END_OFFSET) / (TRACK_SPEED / Play.speed));
 
 		private bool beat = false;
@@ -435,8 +441,8 @@ namespace YARG.PlayMode {
 			}
 
 			// Update event visuals
-			while (CurrentVisualPhraseEnd?.time <= RelativeTime) {
-				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(RelativeTime, CurrentVisualPhraseEnd.time);
+			while (CurrentVisualPhraseEnd?.time <= TrackStartTime) {
+				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(TrackStartTime, CurrentVisualPhraseEnd.time);
 				notePool.AddEndPhraseLine(compensation);
 				phraseEndVisualIndex++;
 			}
@@ -445,13 +451,13 @@ namespace YARG.PlayMode {
 				var chart = charts[i];
 
 				// Spawn lyrics and starpower activate sections
-				while (chart.Count > visualChartIndex[i] && chart[visualChartIndex[i]].time <= RelativeTime) {
+				while (chart.Count > visualChartIndex[i] && chart[visualChartIndex[i]].time <= TrackStartTime) {
 					var lyricInfo = chart[visualChartIndex[i]];
 
-					SpawnLyric(lyricInfo, CurrentVisualStarpower, RelativeTime, i);
+					SpawnLyric(lyricInfo, CurrentVisualStarpower, TrackStartTime, i);
 
 					if (i <= 1 && visualChartIndex[i] + 1 < chart.Count) {
-						SpawnStarpowerActivate(lyricInfo, chart[visualChartIndex[i] + 1], RelativeTime, i == 1);
+						SpawnStarpowerActivate(lyricInfo, chart[visualChartIndex[i] + 1], TrackStartTime, i == 1);
 					}
 
 					visualChartIndex[i]++;
@@ -459,22 +465,22 @@ namespace YARG.PlayMode {
 
 				// Set current lyric
 				if (currentLyrics[i] == null) {
-					while (chart.Count > chartIndex[i] && chart[chartIndex[i]].time <= Play.Instance.SongTime) {
+					while (chart.Count > chartIndex[i] && chart[chartIndex[i]].time <= CurrentTime) {
 						currentLyrics[i] = chart[chartIndex[i]];
 						chartIndex[i]++;
 					}
-				} else if (currentLyrics[i].EndTime < Play.Instance.SongTime) {
+				} else if (currentLyrics[i].EndTime < CurrentTime) {
 					currentLyrics[i] = null;
 				}
 			}
 
 			// Clear out passed visual star power
-			while (CurrentVisualStarpower?.EndTime < RelativeTime) {
+			while (CurrentVisualStarpower?.EndTime < TrackStartTime) {
 				starpowerVisualIndex++;
 			}
 
 			// Update event logic
-			while (CurrentPhraseEnd?.time <= Play.Instance.SongTime) {
+			while (CurrentPhraseEnd?.time <= CurrentTime) {
 				UpdateEndPhrase();
 			}
 
@@ -517,7 +523,7 @@ namespace YARG.PlayMode {
 						}
 
 						// Get the needed pitch
-						float timeIntoNote = Play.Instance.SongTime - currentLyric.time;
+						float timeIntoNote = CurrentTime - currentLyric.time;
 						var (neededNote, neededOctave) = currentLyric.GetLerpedAndSplitNoteAtTime(timeIntoNote);
 
 						// Get the note the player is singing
@@ -795,7 +801,7 @@ namespace YARG.PlayMode {
 				}
 
 				// Starpower
-				if (CurrentStarpower?.EndTime <= Play.Instance.SongTime) {
+				if (CurrentStarpower?.EndTime <= CurrentTime) {
 					starpowerCharge += 0.25f;
 					starpowerIndex++;
 				}
@@ -808,7 +814,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Clear out passed star power
-			while (CurrentStarpower?.EndTime < RelativeTime) {
+			while (CurrentStarpower?.EndTime < TrackStartTime) {
 				starpowerIndex++;
 			}
 		}
@@ -946,7 +952,7 @@ namespace YARG.PlayMode {
 						continue;
 					}
 
-					if (Play.Instance.SongTime < start || Play.Instance.SongTime > end) {
+					if (CurrentTime < start || CurrentTime > end) {
 						continue;
 					}
 

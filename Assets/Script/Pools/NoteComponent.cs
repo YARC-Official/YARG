@@ -87,8 +87,8 @@ namespace YARG.Pools {
 
 				// If within starpower section
 				var track = pool.player.track;
-				if (track.RelativeTime >= track.CurrentVisualStarpower?.time &&
-					track.RelativeTime < track.CurrentVisualStarpower?.EndTime) {
+				if (track.TrackStartTime >= track.CurrentVisualStarpower?.time &&
+					track.TrackStartTime < track.CurrentVisualStarpower?.EndTime) {
 					return Color.white;
 				}
 
@@ -106,8 +106,8 @@ namespace YARG.Pools {
 
 				// If within starpower section
 				var track = pool.player.track;
-				if (track.RelativeTime >= track.CurrentVisualStarpower?.time &&
-					track.RelativeTime < track.CurrentVisualStarpower?.EndTime) {
+				if (track.TrackStartTime >= track.CurrentVisualStarpower?.time &&
+					track.TrackStartTime < track.CurrentVisualStarpower?.EndTime) {
 					return Color.white;
 				}
 

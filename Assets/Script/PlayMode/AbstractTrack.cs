@@ -16,7 +16,17 @@ namespace YARG.PlayMode {
 		public event StarpowerMissAction StarpowerMissEvent;
 
 		public PlayerManager.Player player;
-		public float RelativeTime => Play.Instance.SongTime +
+
+		// Time values
+
+		// Convenience name for current song time
+		public float CurrentTime => Play.Instance.SongTime;
+		// Time relative to the start of the hit window
+		public float HitMarginStartTime => Play.Instance.SongTime + Constants.HIT_MARGIN;
+		// Time relative to the end of the hit window
+		public float HitMarginEndTime => Play.Instance.SongTime - Constants.HIT_MARGIN;
+		// Time relative to the beginning of the track, used for spawning notes and other visuals
+		public float TrackStartTime => Play.Instance.SongTime +
 			((TRACK_SPAWN_OFFSET + TRACK_END_OFFSET) / (player.trackSpeed / Play.speed));
 
 		protected List<NoteInfo> Chart => Play.Instance.chart
@@ -98,7 +108,7 @@ namespace YARG.PlayMode {
 				}
 
 				// End starpower if combo ends
-				if (CurrentStarpower?.time <= Play.Instance.SongTime && value == 0) {
+				if (CurrentStarpower?.time <= CurrentTime && value == 0) {
 					starpowerIndex++;
 					StarpowerMissEvent?.Invoke();
 				}
@@ -323,7 +333,7 @@ namespace YARG.PlayMode {
 			}
 
 			float currentSolo = trackMaterial.GetFloat("SoloState");
-			if (Play.Instance.SongTime >= CurrentSolo?.time - 2 && Play.Instance.SongTime <= CurrentSolo?.EndTime - 1) {
+			if (CurrentTime >= CurrentSolo?.time - 2 && CurrentTime <= CurrentSolo?.EndTime - 1) {
 				trackMaterial.SetFloat("SoloState", Mathf.Lerp(currentSolo, 1f, Time.deltaTime * 2f));
 			} else {
 				trackMaterial.SetFloat("SoloState", Mathf.Lerp(currentSolo, 0f, Time.deltaTime * 2f));
@@ -405,10 +415,10 @@ namespace YARG.PlayMode {
 			}
 
 			// Clear out passed SP phrases
-			while (CurrentStarpower?.EndTime < Play.Instance.SongTime - Constants.HIT_MARGIN) {
+			while (CurrentStarpower?.EndTime < HitMarginEndTime) {
 				starpowerIndex++;
 			}
-			while (CurrentVisualStarpower?.EndTime < RelativeTime) {
+			while (CurrentVisualStarpower?.EndTime < TrackStartTime) {
 				starpowerVisualIndex++;
 			}
 		}
@@ -428,8 +438,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Set solo box and text
-			if (Play.Instance.SongTime >= CurrentSolo?.time &&
-				Play.Instance.SongTime <= CurrentSolo?.EndTime + Constants.HIT_MARGIN) {
+			if (CurrentSolo?.time <= HitMarginStartTime && CurrentSolo?.EndTime >= HitMarginEndTime) {
 				if (!soloInProgress) {
 					soloInProgress = true;
 					soloNotesHit = 0;
@@ -476,7 +485,7 @@ namespace YARG.PlayMode {
 
 				soloInProgress = false;
 			}
-			// } else if (Play.Instance.SongTime >= SoloSection?.EndTime && Play.Instance.SongTime <= SoloSection?.EndTime + 3) {
+			// } else if (HitMarginEndTime >= SoloSection?.EndTime && HitWindowEndTime <= SoloSection?.EndTime + 3) {
 			// 	// run ONCE
 			// 	if (soloInProgress) {
 			// 		soloPtsEarned = scoreKeeper.AddSolo(soloNotesHit, soloNoteCount);
@@ -587,7 +596,7 @@ namespace YARG.PlayMode {
 			// Deteremine behavior based on whether or not FC trumps SF
 			if (commonTrack.fullComboTrumpsStrongFinish) {
 				if (!strongFinishChecked) {
-					if (Play.Instance.SongTime > endTime) {
+					if (CurrentTime > endTime) {
 						strongFinishChecked = true;
 
 						if (FullCombo) {
@@ -599,7 +608,7 @@ namespace YARG.PlayMode {
 				}
 			} else {
 				if (!fullComboChecked) {
-					if (Play.Instance.SongTime > endTime) {
+					if (CurrentTime > endTime) {
 						fullComboChecked = true;
 
 						if (FullCombo) {
@@ -612,7 +621,7 @@ namespace YARG.PlayMode {
 					if (!strongFinishChecked) {
 						float checkTime = FullCombo ? offsetEndTime : endTime;
 
-						if (Play.Instance.SongTime > checkTime) {
+						if (CurrentTime > checkTime) {
 							strongFinishChecked = true;
 
 							if (_combo >= commonTrack.strongFinishCutoff) {
@@ -630,10 +639,10 @@ namespace YARG.PlayMode {
 			recentStarpowerCharge = starpowerCharge;
 
 			// Clear out passed solo sections
-			while (CurrentSolo?.EndTime < Play.Instance.SongTime - Constants.HIT_MARGIN) {
+			while (CurrentSolo?.EndTime < HitMarginEndTime) {
 				soloIndex++;
 			}
-			while (CurrentVisualSolo?.EndTime < RelativeTime) {
+			while (CurrentVisualSolo?.EndTime < TrackStartTime) {
 				soloVisualIndex++;
 			}
 		}

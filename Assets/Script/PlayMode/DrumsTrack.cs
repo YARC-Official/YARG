@@ -128,10 +128,10 @@ namespace YARG.PlayMode {
 
 			// Update beats
 			var beats = Play.Instance.chart.beats;
-			while (beats.Count > beatChartIndex && beats[beatChartIndex].Time <= RelativeTime) {
+			while (beats.Count > beatChartIndex && beats[beatChartIndex].Time <= TrackStartTime) {
 				var beatInfo = beats[beatChartIndex];
 
-				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(RelativeTime, beatInfo.Time);
+				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(TrackStartTime, beatInfo.Time);
 				if (beatInfo.Style is BeatStyle.STRONG or BeatStyle.WEAK) {
 					genericPool.Add("beatLine_minor", new(0f, 0.01f, compensation));
 				} else if (beatInfo.Style == BeatStyle.MEASURE) {
@@ -141,7 +141,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Since chart is sorted, this is guaranteed to work
-			while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= RelativeTime) {
+			while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= TrackStartTime) {
 				var noteInfo = Chart[visualChartIndex];
 
 				// Skip kick notes if noKickMode is enabled
@@ -155,20 +155,20 @@ namespace YARG.PlayMode {
 					noteInfo.isActivator = true;
 				}
 
-				SpawnNote(noteInfo, RelativeTime);
+				SpawnNote(noteInfo, TrackStartTime);
 				visualChartIndex++;
 			}
 
 			// Clear out passed fill sections
-			while (CurrentFill?.EndTime < Play.Instance.SongTime - Constants.HIT_MARGIN) {
+			while (CurrentFill?.EndTime < HitMarginEndTime) {
 				fillIndex++;
 			}
-			while (CurrentVisualFill?.EndTime < RelativeTime) {
+			while (CurrentVisualFill?.EndTime < TrackStartTime) {
 				fillVisualIndex++;
 			}
 
 			// Update expected input
-			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= Play.Instance.SongTime + Constants.HIT_MARGIN) {
+			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= HitMarginStartTime) {
 				var noteInfo = Chart[inputChartIndex];
 
 				// Skip kick notes if noKickMode is enabled
@@ -203,7 +203,7 @@ namespace YARG.PlayMode {
 
 		private void UpdateInput() {
 			// Handle misses (multiple a frame in case of lag)
-			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Constants.HIT_MARGIN) {
+			while (HitMarginEndTime > expectedHits.PeekOrNull()?[0].time) {
 				var missedChord = expectedHits.Dequeue();
 
 				// Call miss for each component
