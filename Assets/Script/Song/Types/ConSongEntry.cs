@@ -34,8 +34,10 @@ namespace YARG.Song {
 				MoggPath = reader.ReadString();
 
 			ImgIndex = reader.ReadInt32();
-			if (ImgIndex == -1)
+			if (ImgIndex == -1) {
 				ImagePath = reader.ReadString();
+				AlternatePath = ImagePath.Length > 0;
+			}
 		}
 
 		public override void WriteMetadataToCache(BinaryWriter writer) {
@@ -47,8 +49,12 @@ namespace YARG.Song {
 				writer.Write(MoggPath);
 
 			writer.Write(ImgIndex);
-			if (ImgIndex == -1)
-				writer.Write(ImagePath);
+			if (ImgIndex == -1) {
+				if (!AlternatePath)
+					writer.Write(string.Empty);
+				else
+					writer.Write(ImagePath);
+			}
 		}
 
 		public ConSongEntry(XboxSTFSFile conFile, DataArray dta) : base(dta) {
@@ -79,7 +85,7 @@ namespace YARG.Song {
 			if (UsingUpdateMogg)
 				MoggIndex = -1;
 
-			if (HasAlbumArt && AlternatePath)
+			if (!HasAlbumArt || AlternatePath)
 				ImgIndex = -1;
 		}
 
