@@ -2,8 +2,7 @@ using System.IO;
 using DtxCS.DataTypes;
 using XboxSTFS;
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
+using System;
 
 namespace YARG.Song {
 	public class ConSongEntry : ExtractedConSongEntry {
@@ -102,10 +101,9 @@ namespace YARG.Song {
 		public override byte[] LoadImgFile() {
 			if (AlternatePath)
 				return base.LoadImgFile();
-
 			if (ImgIndex != -1)
 				return conFile.LoadSubFile(ImgIndex);
-			return new byte[0];
+			return Array.Empty<byte>();
 		}
 
 		public override bool IsMoggUnencrypted() {

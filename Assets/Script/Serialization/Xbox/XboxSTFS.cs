@@ -135,7 +135,7 @@ namespace XboxSTFS {
 
 		public byte[] LoadSubFile(int index) {
 			if (index < 0 || index >= files.Count)
-				return new byte[0];
+				return Array.Empty<byte>();
 
 			lock (fileLock) {
 				return Load(files[index]);

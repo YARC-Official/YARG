@@ -5,8 +5,7 @@ using System.Collections.Generic;
 using YARG.Data;
 using YARG.Serialization;
 using XboxSTFS;
-using System.Threading;
-using System.Threading.Tasks;
+using System;
 
 namespace YARG.Song {
 	public class ExtractedConSongEntry : SongEntry {
@@ -378,7 +377,8 @@ namespace YARG.Song {
 			string dir = Path.Combine(folder, ShortName);
 			if (DiscUpdate) {
 				string updateMidiPath = Path.Combine(dir, $"{ShortName}_update.mid");
-				if (File.Exists(updateMidiPath)) UpdateMidiPath = updateMidiPath;
+				if (File.Exists(updateMidiPath))
+					UpdateMidiPath = updateMidiPath;
 				else {
 					Debug.LogError($"Couldn't update song {ShortName} - update file {UpdateMidiPath} not found!");
 					DiscUpdate = false; // to prevent breaking in-game if the user still tries to play the song
@@ -393,8 +393,10 @@ namespace YARG.Song {
 
 			string imgUpdatePath = Path.Combine(dir, "gen", $"{ShortName}_keep.png_xbox");
 			if (HasAlbumArt && AlternatePath) {
-				if (File.Exists(imgUpdatePath)) ImagePath = imgUpdatePath;
-				else AlternatePath = false;
+				if (File.Exists(imgUpdatePath))
+					ImagePath = imgUpdatePath;
+				else
+					AlternatePath = false;
 			}
 		}
 
@@ -408,7 +410,7 @@ namespace YARG.Song {
 
 		public virtual byte[] LoadImgFile() {
 			if (!HasAlbumArt || ImagePath.Length == 0)
-				return new byte[0];
+				return Array.Empty<byte>();
 			return File.ReadAllBytes(ImagePath);
 		}
 
