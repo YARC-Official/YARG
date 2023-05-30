@@ -307,17 +307,11 @@ namespace YARG.Pools {
 				lineMat.SetFloat("_ForwardOffset", lineMat.GetFloat("_ForwardOffset") + forwardSub);
 			}
 
-			float multiplier = pool.player.track.Multiplier;
-			float maxMultiplier = pool.player.track.MaxMultiplier;
-
 			// TODO: If/when health system gets added, this should use that instead. Multiplier isn't a good way to scale difficulty here.
 			if (pool.player.brutalMode) {
-				BrutalVanishDistance = System.Math.Min(
-					System.Math.Max(
-						0.25f, multiplier / maxMultiplier
-					),
-					0.80f
-				);
+				float multiplier = pool.player.track.Multiplier;
+				float maxMultiplier = pool.player.track.MaxMultiplier;
+				BrutalVanishDistance = Mathf.Clamp(multiplier / maxMultiplier, 0.25f, 0.80f);
 			} else {
 				BrutalVanishDistance = -1.0f;
 			}
