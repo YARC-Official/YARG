@@ -193,7 +193,8 @@ namespace YARG.Song {
 					try {
 						var currentArray = (DataArray) dtaTree[i];
 						ExtractedConSongEntry currentSong = new(songs_folder, currentArray);
-						if (ValidateConEntry(cacheFolder, subDir, currentSong, currentArray))
+						var updateValue = UpdateAndUpgradeCon(currentSong);
+						if (ValidateConEntry(cacheFolder, subDir, currentSong, currentArray, updateValue))
 							songs.Add(currentSong);
 					} catch (Exception e) {
 						Debug.Log($"Failed to load song, skipping...");
@@ -219,7 +220,8 @@ namespace YARG.Song {
 						try {
 							var currentArray = (DataArray) dtaTree[i];
 							ConSongEntry currentSong = new(conFile, currentArray);
-							if (ValidateConEntry(cacheFolder, subDir, currentSong, currentArray)) {
+							var updateValue = UpdateAndUpgradeCon(currentSong);
+							if (ValidateConEntry(cacheFolder, subDir, currentSong, currentArray, updateValue)) {
 								songs.Add(currentSong);
 								addConFile = true;
 							}
@@ -303,15 +305,17 @@ namespace YARG.Song {
 			return null;
 		}
 
-		private bool ValidateConEntry(string cacheFolder, string subDir, ExtractedConSongEntry currentSong, DataArray currentArray) {
-			// check if song has applicable updates and/or upgrades
+		private List<DataArray> UpdateAndUpgradeCon(ExtractedConSongEntry currentSong) {
 			if (_songUpdateDict.TryGetValue(currentSong.ShortName, out var updateValue)) {
 				foreach (var dtaUpdate in updateValue)
 					currentSong.SetFromDTA(dtaUpdate);
 				currentSong.Update(_updateFolderPath);
 			}
 			currentSong.Upgrade(_songUpgradeDict);
+			return updateValue;
+		}
 
+		private bool ValidateConEntry(string cacheFolder, string subDir, ExtractedConSongEntry currentSong, DataArray currentArray, List<DataArray> updateValue) {
 			var ExCONResult = ScanConSong(cacheFolder, currentSong);
 			if (ExCONResult == ScanResult.Ok) {
 				_songsScanned++;
