@@ -25,8 +25,6 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private NotePool notePool;
 		[SerializeField]
-		private Pool genericPool;
-		[SerializeField]
 		private ParticleGroup kickNoteParticles;
 		[SerializeField]
 		private MeshRenderer kickFretInside;
@@ -36,6 +34,14 @@ namespace YARG.PlayMode {
 		public bool shakeOnKick = true;
 
 		private Queue<List<NoteInfo>> expectedHits = new();
+
+		private int fillIndex = 0;
+		private int fillVisualIndex = 0;
+		private List<EventInfo> fillSections = new();
+		public EventInfo CurrentFill =>
+			fillIndex < fillSections.Count ? fillSections[fillIndex] : null;
+		public EventInfo CurrentVisualFill =>
+			fillVisualIndex < fillSections.Count ? fillSections[fillVisualIndex] : null;
 
 		private readonly string[] proInst = { "realDrums", "ghDrums" };
 
@@ -89,6 +95,14 @@ namespace YARG.PlayMode {
 			starsKeeper = new(Chart, scoreKeeper,
 				player.chosenInstrument,
 				ptsPerNote);
+
+			// Queue up events
+			string fillName = $"fill_{player.chosenInstrument}";
+			foreach (var eventInfo in Play.Instance.chart.events) {
+				if (eventInfo.name == fillName) {
+					fillSections.Add(eventInfo);
+				}
+			}
 		}
 
 		protected override void OnDestroy() {
@@ -110,42 +124,8 @@ namespace YARG.PlayMode {
 				return;
 			}
 
-			var events = Play.Instance.chart.events;
-			var beats = Play.Instance.chart.beats;
-
-			// Update events (beat lines, starpower, etc.)
-			while (events.Count > eventChartIndex && events[eventChartIndex].time <= RelativeTime) {
-				var eventInfo = events[eventChartIndex];
-
-				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(RelativeTime, eventInfo.time);
-				// if (eventInfo.name == "beatLine_minor") {
-				// 	genericPool.Add("beatLine_minor", new(0f, 0.01f, compensation));
-				// } else if (eventInfo.name == "beatLine_major") {
-				// 	genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
-				if (eventInfo.name == $"starpower_{player.chosenInstrument}") {
-					StarpowerSection = eventInfo;
-				} else if (eventInfo.name == $"fill_{player.chosenInstrument}") {
-					FillSection = eventInfo;
-				} else if (eventInfo.name == $"solo_{player.chosenInstrument}") {
-					SoloSection = eventInfo;
-				}
-				eventChartIndex++;
-			}
-
-			while (beats.Count > beatChartIndex && beats[beatChartIndex].Time <= RelativeTime) {
-				var beatInfo = beats[beatChartIndex];
-
-				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(RelativeTime, beatInfo.Time);
-				if (beatInfo.Style is BeatStyle.STRONG or BeatStyle.WEAK) {
-					genericPool.Add("beatLine_minor", new(0f, 0.01f, compensation));
-				} else if (beatInfo.Style == BeatStyle.MEASURE) {
-					genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
-				}
-				beatChartIndex++;
-			}
-
 			// Since chart is sorted, this is guaranteed to work
-			while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= RelativeTime) {
+			while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= TrackStartTime) {
 				var noteInfo = Chart[visualChartIndex];
 
 				// Skip kick notes if noKickMode is enabled
@@ -155,20 +135,24 @@ namespace YARG.PlayMode {
 				}
 
 				// TODO: Only one note should be an activator at any given timestamp
-				if (player.track.FillSection?.EndTime == noteInfo.time
-					&& starpowerCharge >= 0.5f
-					&& !IsStarPowerActive
-
-					) {
+				if (CurrentVisualFill?.EndTime == noteInfo.time && starpowerCharge >= 0.5f && !IsStarPowerActive) {
 					noteInfo.isActivator = true;
 				}
 
-				SpawnNote(noteInfo, RelativeTime);
+				SpawnNote(noteInfo, TrackStartTime);
 				visualChartIndex++;
 			}
 
+			// Clear out passed fill sections
+			while (CurrentFill?.EndTime < HitMarginEndTime) {
+				fillIndex++;
+			}
+			while (CurrentVisualFill?.EndTime < TrackStartTime) {
+				fillVisualIndex++;
+			}
+
 			// Update expected input
-			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= Play.Instance.SongTime + Constants.HIT_MARGIN) {
+			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= HitMarginStartTime) {
 				var noteInfo = Chart[inputChartIndex];
 
 				// Skip kick notes if noKickMode is enabled
@@ -203,7 +187,7 @@ namespace YARG.PlayMode {
 
 		private void UpdateInput() {
 			// Handle misses (multiple a frame in case of lag)
-			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Constants.HIT_MARGIN) {
+			while (HitMarginEndTime > expectedHits.PeekOrNull()?[0].time) {
 				var missedChord = expectedHits.Dequeue();
 
 				// Call miss for each component
@@ -383,10 +367,12 @@ namespace YARG.PlayMode {
 			var noteComp = notePool.AddNote(noteInfo, pos);
 			startFCDetection = true;
 			noteComp.SetInfo(
+				noteInfo,
 				commonTrack.NoteColor(noteInfo.fret),
 				commonTrack.SustainColor(noteInfo.fret),
 				noteInfo.length,
 				model,
+				noteInfo.time >= CurrentVisualStarpower?.time && noteInfo.time < CurrentVisualStarpower?.EndTime,
 				noteInfo.isActivator
 			);
 		}
