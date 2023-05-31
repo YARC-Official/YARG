@@ -14,7 +14,7 @@ namespace YARG.PlayMode {
 		public const float TRACK_SPAWN_OFFSET = 3f;
 		public const float TRACK_END_OFFSET = 1.95f;
 
-		public delegate void StarpowerMissAction();
+		public delegate void StarpowerMissAction(EventInfo missedPhrase);
 		public event StarpowerMissAction StarpowerMissEvent;
 
 		[SerializeField]
@@ -114,8 +114,12 @@ namespace YARG.PlayMode {
 
 				// End starpower if combo ends
 				if (CurrentStarpower?.time <= CurrentTime && value == 0) {
+					StarpowerMissEvent?.Invoke(CurrentStarpower);
+					// Only move to the next visual phrase if it is also the current logical phrase
+					if (starpowerVisualIndex == starpowerIndex) {
+						starpowerVisualIndex++;
+					}
 					starpowerIndex++;
-					StarpowerMissEvent?.Invoke();
 				}
 			}
 		}
@@ -261,6 +265,13 @@ namespace YARG.PlayMode {
 			// Don't update if paused
 			if (Play.Instance.Paused) {
 				return;
+			}
+
+			// Progress visual SP phrases
+			// This is placed here instead of UpdateStarpower() since it causes visual issues otherwise
+			// TODO: Tracks need to be refactored to address that
+			while (CurrentVisualStarpower?.EndTime < TrackStartTime) {
+				starpowerVisualIndex++;
 			}
 
 			UpdateMaterial();
@@ -439,9 +450,6 @@ namespace YARG.PlayMode {
 			// Clear out passed SP phrases
 			while (CurrentStarpower?.EndTime < HitMarginEndTime) {
 				starpowerIndex++;
-			}
-			while (CurrentVisualStarpower?.EndTime < TrackStartTime) {
-				starpowerVisualIndex++;
 			}
 		}
 

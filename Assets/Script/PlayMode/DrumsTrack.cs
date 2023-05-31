@@ -367,10 +367,12 @@ namespace YARG.PlayMode {
 			var noteComp = notePool.AddNote(noteInfo, pos);
 			startFCDetection = true;
 			noteComp.SetInfo(
+				noteInfo,
 				commonTrack.NoteColor(noteInfo.fret),
 				commonTrack.SustainColor(noteInfo.fret),
 				noteInfo.length,
 				model,
+				noteInfo.time >= CurrentVisualStarpower?.time && noteInfo.time < CurrentVisualStarpower?.EndTime,
 				noteInfo.isActivator
 			);
 		}

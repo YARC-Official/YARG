@@ -277,10 +277,12 @@ namespace YARG.PlayMode {
 				startFCDetection = true;
 				var model = noteInfo.hopo ? NoteComponent.ModelType.HOPO : NoteComponent.ModelType.NOTE;
 				noteComp.SetInfo(
+					noteInfo,
 					commonTrack.NoteColor(i),
 					commonTrack.SustainColor(i),
 					noteInfo.length,
-					model
+					model,
+					noteInfo.time >= CurrentVisualStarpower?.time && noteInfo.time < CurrentVisualStarpower?.EndTime
 				);
 				noteComp.SetFretNumber(noteInfo.muted ? "X" : noteInfo.stringFrets[i].ToString());
 			}

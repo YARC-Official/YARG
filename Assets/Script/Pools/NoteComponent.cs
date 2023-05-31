@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using YARG.Data;
 using YARG.PlayMode;
 
 namespace YARG.Pools {
@@ -47,6 +48,8 @@ namespace YARG.Pools {
 		[SerializeField]
 		private LineRenderer fullLineRenderer;
 
+		private NoteInfo _noteInfo;
+
 		private float _brutalVanishDistance;
 		/// <summary>
 		/// Ranges between -1 and 1. Notes will disappear when they reach this percentage down the track.
@@ -85,10 +88,7 @@ namespace YARG.Pools {
 					return Color.magenta;
 				}
 
-				// If within starpower section
-				var track = pool.player.track;
-				if (track.TrackStartTime >= track.CurrentVisualStarpower?.time &&
-					track.TrackStartTime < track.CurrentVisualStarpower?.EndTime) {
+				if (_isStarpower) {
 					return Color.white;
 				}
 
@@ -104,10 +104,7 @@ namespace YARG.Pools {
 					return Color.clear;
 				}
 
-				// If within starpower section
-				var track = pool.player.track;
-				if (track.TrackStartTime >= track.CurrentVisualStarpower?.time &&
-					track.TrackStartTime < track.CurrentVisualStarpower?.EndTime) {
+				if (_isStarpower) {
 					return Color.white;
 				}
 
@@ -123,11 +120,12 @@ namespace YARG.Pools {
 
 		private State state = State.WAITING;
 
+		private bool _isStarpower;
 		private bool isActivatorNote;
 
 		private void OnEnable() {
 			if (pool != null) {
-				pool.player.track.StarpowerMissEvent += UpdateColor;
+				pool.player.track.StarpowerMissEvent += OnStarpowerMissed;
 			}
 
 			foreach (MeshRenderer r in meshRenderers) {
@@ -139,11 +137,12 @@ namespace YARG.Pools {
 
 		private void OnDisable() {
 			if (pool != null) {
-				pool.player.track.StarpowerMissEvent -= UpdateColor;
+				pool.player.track.StarpowerMissEvent -= OnStarpowerMissed;
 			}
 		}
 
-		public void SetInfo(Color notes, Color sustains, float length, ModelType type, bool isDrumActivator = false) {
+		public void SetInfo(NoteInfo info, Color notes, Color sustains, float length, ModelType type,
+			bool isStarpowerNote, bool isDrumActivator = false) {
 			static void SetModelActive(GameObject obj, ModelType inType, ModelType needType) {
 				if (obj != null) {
 					obj.SetActive(inType == needType);
@@ -165,6 +164,8 @@ namespace YARG.Pools {
 			ColorCacheNotes = notes;
 			ColorCacheSustains = sustains;
 
+			_noteInfo = info;
+			_isStarpower = isStarpowerNote;
 			isActivatorNote = isDrumActivator;
 
 			UpdateColor();
@@ -280,6 +281,15 @@ namespace YARG.Pools {
 			state = State.MISSED;
 			UpdateLineColor();
 			ResetLineAmplitude();
+		}
+
+		private void OnStarpowerMissed(EventInfo missedPhrase) {
+			if (_noteInfo.time < missedPhrase.time || _noteInfo.time >= missedPhrase.EndTime) {
+				return;
+			}
+
+			_isStarpower = false;
+			UpdateColor();
 		}
 
 		private void Update() {
