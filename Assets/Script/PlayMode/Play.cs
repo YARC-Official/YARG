@@ -57,10 +57,8 @@ namespace YARG.PlayMode {
 		private float realSongTime;
 		public float SongTime => realSongTime - PlayerManager.AudioCalibration * speed - (float)Song.Delay;
 
-		public float SongLength {
-			get;
-			private set;
-		}
+		private float audioLength;
+		public float SongLength { get; private set; }
 
 		public YargChart chart;
 
@@ -152,7 +150,9 @@ namespace YARG.PlayMode {
 				GameManager.AudioManager.LoadSong(stems, isSpeedUp);
 			}
 
-			SongLength = GameManager.AudioManager.AudioLengthF;
+			// Get song length
+			audioLength = GameManager.AudioManager.AudioLengthF;
+			SongLength = audioLength;
 
 			GameUI.Instance.SetLoadingText("Loading chart...");
 
@@ -327,7 +327,13 @@ namespace YARG.PlayMode {
 
 			// Update this every frame to make sure all notes are spawned at the same time.
 			if (audioStarted) {
-				realSongTime = GameManager.AudioManager.CurrentPositionF;
+				float audioTime = GameManager.AudioManager.CurrentPositionF;
+				// We need to update the song time ourselves if the audio finishes before the song actually ends
+				if (audioTime < audioLength) {
+					realSongTime = GameManager.AudioManager.CurrentPositionF;
+				} else {
+					realSongTime += Time.deltaTime * speed;
+				}
 			}
 
 			UpdateAudio(new[] {
