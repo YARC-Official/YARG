@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using TMPro;
 using UnityEngine;
 using YARG.Chart;
 
@@ -12,10 +13,10 @@ namespace YARG.Util {
 		/// </summary>
 		public static bool PathsEqual(string a, string b) {
 #if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX
-			
+
 			// Linux is case sensitive
 			return Path.GetFullPath(a).Equals(Path.GetFullPath(b), StringComparison.CurrentCulture);
-			
+
 #else
 
 			// Windows and OSX are not case sensitive
