@@ -213,7 +213,7 @@ namespace YARG.UI.MusicLibrary {
 
 			var songEntry = songViewType.SongEntry;
 
-			if (songEntry.SongType == SongType.SongIni) {
+			if (songEntry is IniSongEntry) {
 				string[] possiblePaths = {
 					"album.png",
 					"album.jpg",
@@ -228,10 +228,8 @@ namespace YARG.UI.MusicLibrary {
 						break;
 					}
 				}
-			} else if (songEntry.SongType == SongType.RbCon) {
-				await LoadRbConCover((ConSongEntry) songEntry);
-			} else if (songEntry.SongType == SongType.ExtractedRbCon) {
-				await LoadExtractedRbConCover((ExtractedConSongEntry) songEntry);
+			} else {
+				await LoadRbConCover(songEntry as ExtractedConSongEntry);
 			}
 		}
 
@@ -254,44 +252,13 @@ namespace YARG.UI.MusicLibrary {
 			} catch (OperationCanceledException) { }
 		}
 
-		private async UniTask LoadRbConCover(ConSongEntry conSongEntry) {
-			if (string.IsNullOrEmpty(conSongEntry.ImagePath)) {
-				return;
-			}
-
+		private async UniTask LoadRbConCover(ExtractedConSongEntry conSongEntry) {
 			Texture2D texture = null;
-
 			try {
-				byte[] bytes;
-				if (conSongEntry.AlternatePath) {
-					bytes = File.ReadAllBytes(conSongEntry.ImagePath);
-				} else {
-					bytes = XboxSTFSParser.GetFile(conSongEntry.Location, conSongEntry.FLImg);
-				}
+				byte[] bytes = conSongEntry.LoadImgFile();
+				if (bytes.Length == 0)
+					return;
 
-				texture = await XboxImageTextureGenerator.GetTexture(bytes, _cancellationToken.Token);
-
-				_albumCover.texture = texture;
-				_albumCover.color = Color.white;
-				_albumCover.uvRect = new Rect(0f, 0f, 1f, -1f);
-			} catch (OperationCanceledException) {
-				// Dispose of the texture (prevent memory leaks)
-				if (texture != null) {
-					// This might seem weird, but we are destroying the *texture*, not the UI image.
-					Destroy(texture);
-				}
-			}
-		}
-
-		private async UniTask LoadExtractedRbConCover(ExtractedConSongEntry conSongEntry) {
-			if (string.IsNullOrEmpty(conSongEntry.ImagePath)) {
-				return;
-			}
-
-			Texture2D texture = null;
-
-			try {
-				var bytes = await File.ReadAllBytesAsync(conSongEntry.ImagePath, _cancellationToken.Token);
 				texture = await XboxImageTextureGenerator.GetTexture(bytes, _cancellationToken.Token);
 
 				_albumCover.texture = texture;

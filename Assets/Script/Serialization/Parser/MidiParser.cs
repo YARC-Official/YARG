@@ -8,7 +8,6 @@ using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
 using UnityEngine;
 using XboxSTFS;
-using static XboxSTFS.XboxSTFSParser;
 using YARG.Chart;
 using YARG.Data;
 using YARG.DiffDownsample;
@@ -35,19 +34,13 @@ namespace YARG.Serialization.Parser {
 
 		public MidiParser(SongEntry songEntry, string[] files) : base(songEntry, files) {
 			// get base midi - read it in latin1 if RB, UTF-8 if clon
+			
 			var readSettings = ReadSettings; // we need to modify these
-			if (songEntry.SongType == SongType.RbCon) {
-				var conSong = (ConSongEntry) songEntry;
-				using var stream = new MemoryStream(XboxSTFSParser.GetFile(conSong.Location, conSong.FLMidi));
-				readSettings.TextEncoding = Encoding.GetEncoding("iso-8859-1");
-				midi = MidiFile.Read(stream, readSettings);
-			} else if (songEntry.SongType == SongType.ExtractedRbCon) {
-				readSettings.TextEncoding = Encoding.GetEncoding("iso-8859-1");
+			readSettings.TextEncoding = songEntry is ConSongEntry ? Encoding.GetEncoding("iso-8859-1") : Encoding.UTF8;
+			if (songEntry is ConSongEntry conSong)
+				midi = MidiFile.Read(new MemoryStream(conSong.LoadMidiFile()), readSettings);
+			else
 				midi = MidiFile.Read(files[0], readSettings);
-			} else {
-				readSettings.TextEncoding = Encoding.UTF8;
-				midi = MidiFile.Read(files[0], readSettings);
-			}
 
 			// if this is a RB song...
 			if (songEntry is ExtractedConSongEntry oof) {
@@ -105,7 +98,7 @@ namespace YARG.Serialization.Parser {
 				}
 
 				// also, if this RB song has a pro upgrade, merge it as well
-				if (oof.SongUpgrade.UpgradeMidiPath != string.Empty) {
+				if (oof.SongUpgrade != null) {
 					using var stream = new MemoryStream(oof.SongUpgrade.GetUpgradeMidi());
 					MidiFile upgrade = MidiFile.Read(stream, new ReadingSettings() { TextEncoding = Encoding.GetEncoding("iso-8859-1") });
 
