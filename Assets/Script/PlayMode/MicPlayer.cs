@@ -565,6 +565,7 @@ namespace YARG.PlayMode {
 				}
 
 				// Update needle
+				bool wasNeedleActive = playerInfo.needleModel.activeSelf;
 				if (micInput.VoiceDetected) {
 					playerInfo.needleModel.SetActive(true);
 				} else {
@@ -606,10 +607,13 @@ namespace YARG.PlayMode {
 
 				// Update needle
 				float z = NoteAndOctaveToZ(micInput.VoiceNote, micInput.VoiceOctave + playerInfo.octaveOffset);
-				playerInfo.needle.localPosition = Vector3.Lerp(
-					playerInfo.needle.localPosition,
-					playerInfo.needle.localPosition.WithZ(z),
-					Time.deltaTime * 15f);
+				var newPosition = playerInfo.needle.localPosition.WithZ(z);
+				// Don't lerp if no voice was detected previously and needle wasn't active
+				if (micInput.VoiceDetectedThisFrame && !wasNeedleActive) {
+					playerInfo.needle.localPosition = newPosition;
+				} else {
+					playerInfo.needle.localPosition = Vector3.Lerp(playerInfo.needle.localPosition, newPosition, Time.deltaTime * 15f);
+				}
 			}
 
 			// Get the highest sing progresses
