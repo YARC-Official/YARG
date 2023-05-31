@@ -1,10 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using MoonscraperChartEditor.Song;
 using YARG.Chart;
 
 namespace YARG.Data {
 	public sealed class YargChart {
+		// Matches text inside [brackets], not including the brackets
+		// '[end]' -> 'end', '[section Solo] - "Solo"' -> 'section Solo'
+		private static readonly Regex textEventRegex = new(@"\[(.*?)\]", RegexOptions.Compiled | RegexOptions.Singleline);
 
 		private MoonSong _song;
 
@@ -87,6 +91,20 @@ namespace YARG.Data {
 
 		public YargChart(MoonSong song) {
 			_song = song;
+			if (song == null) {
+				return;
+			}
+
+			foreach (var globalEvent in song.eventsAndSections) {
+				string text = globalEvent.title;
+				// Strip away the [brackets] from events (and any garbage outside them)
+				var match = textEventRegex.Match(text);
+				if (match.Success) {
+					text = match.Groups[1].Value;
+				}
+
+				events.Add(new EventInfo(text, (float) globalEvent.time));
+			}
 		}
 
 		public List<NoteInfo>[] GetChartByName(string name) {
