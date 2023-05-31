@@ -25,8 +25,6 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private NotePool notePool;
 		[SerializeField]
-		private Pool genericPool;
-		[SerializeField]
 		private ParticleGroup kickNoteParticles;
 		[SerializeField]
 		private MeshRenderer kickFretInside;
@@ -124,20 +122,6 @@ namespace YARG.PlayMode {
 			// Ignore everything else until the song starts
 			if (!Play.Instance.SongStarted) {
 				return;
-			}
-
-			// Update beats
-			var beats = Play.Instance.chart.beats;
-			while (beats.Count > beatChartIndex && beats[beatChartIndex].Time <= TrackStartTime) {
-				var beatInfo = beats[beatChartIndex];
-
-				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(TrackStartTime, beatInfo.Time);
-				if (beatInfo.Style is BeatStyle.STRONG or BeatStyle.WEAK) {
-					genericPool.Add("beatLine_minor", new(0f, 0.01f, compensation));
-				} else if (beatInfo.Style == BeatStyle.MEASURE) {
-					genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
-				}
-				beatChartIndex++;
 			}
 
 			// Since chart is sorted, this is guaranteed to work

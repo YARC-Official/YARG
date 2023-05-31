@@ -2,8 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
+using YARG.Chart;
 using YARG.Data;
 using YARG.Input;
+using YARG.Pools;
 using YARG.Settings;
 using YARG.UI;
 
@@ -14,6 +16,9 @@ namespace YARG.PlayMode {
 
 		public delegate void StarpowerMissAction();
 		public event StarpowerMissAction StarpowerMissEvent;
+
+		[SerializeField]
+		protected Pool genericPool;
 
 		public PlayerManager.Player player;
 
@@ -36,7 +41,7 @@ namespace YARG.PlayMode {
 		protected int visualChartIndex = 0;
 		protected int inputChartIndex = 0;
 		protected int hitChartIndex = 0;
-		protected int beatChartIndex = 0;
+		protected int currentBeatIndex = 0;
 
 		protected CommonTrack commonTrack;
 		protected TrackAnimations trackAnims;
@@ -260,6 +265,7 @@ namespace YARG.PlayMode {
 
 			UpdateMaterial();
 
+			UpdateBeats();
 			UpdateTrack();
 
 			if (hitChartIndex > lastHit) {
@@ -304,6 +310,22 @@ namespace YARG.PlayMode {
 				commonTrack.comboRing.material = commonTrack.nonFCRing;
 				switchedRingMaterial = true;
 
+			}
+		}
+
+		private void UpdateBeats()
+		{
+			var beats = Play.Instance.chart.beats;
+			while (beats.Count > currentBeatIndex && beats[currentBeatIndex].Time <= TrackStartTime) {
+				var beatInfo = beats[currentBeatIndex];
+
+				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(TrackStartTime, beatInfo.Time);
+				if (beatInfo.Style is BeatStyle.STRONG or BeatStyle.WEAK) {
+					genericPool.Add("beatLine_minor", new(0f, 0.01f, compensation));
+				} else if (beatInfo.Style == BeatStyle.MEASURE) {
+					genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
+				}
+				currentBeatIndex++;
 			}
 		}
 
