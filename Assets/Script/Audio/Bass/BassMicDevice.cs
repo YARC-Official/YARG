@@ -28,6 +28,8 @@ namespace YARG.Audio {
 		private RecordProcedure _processedRecordProcedure;
 		private DSPProcedure _monitoringGainProcedure;
 
+		private PitchDetector _pitchDetector;
+
 		private readonly ReverbParameters _monitoringReverbParameters = new() {
 			fDryMix = 0.3f,
 			fWetMix = 1f,
@@ -98,7 +100,10 @@ namespace YARG.Audio {
 
 			SetMonitoringLevel(SettingsManager.Settings.VocalMonitoring.Data);
 
+			_pitchDetector = new PitchDetector();
+
 			_initialized = true;
+
 			return 0;
 		}
 
@@ -125,8 +130,10 @@ namespace YARG.Audio {
 			return true;
 		}
 
-		private void CalculatePitchAndAmplitude(IntPtr buffer, int length) {
-			Amplitude = PitchDetector.GetAmplitude(buffer, length);
+		private unsafe void CalculatePitchAndAmplitude(IntPtr buffer, int length) {
+			var bufferSpan = new Span<float>((float*) buffer, length);
+
+			Amplitude = _pitchDetector.GetAmplitude(bufferSpan);
 
 			if (Amplitude <= 2f) {
 				_voiceStartTimer = 0f;
@@ -135,16 +142,13 @@ namespace YARG.Audio {
 
 			_voiceStartTimer += 1f / RECORD_PERIOD_MILLIS;
 
-			var pitch = PitchDetector.GetPitch(buffer, length);
-
-			if (pitch == null) {
-				return;
-			}
+			var pitch = _pitchDetector.GetPitch(bufferSpan);
+			// Debug.Log(pitch);
 
 			if (_voiceStartTimer < 0.07f) {
-				Pitch = pitch.Value;
+				Pitch = pitch;
 			} else {
-				Pitch = Mathf.Lerp(Pitch, pitch.Value, 1f / RECORD_PERIOD_MILLIS * 15f);
+				Pitch = Mathf.Lerp(Pitch, pitch, 1f / RECORD_PERIOD_MILLIS * 15f);
 			}
 		}
 
