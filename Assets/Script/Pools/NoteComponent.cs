@@ -227,6 +227,10 @@ namespace YARG.Pools {
 		}
 
 		private void ResetLineAmplitude() {
+			if (_useFullLineRenderer) {
+				return;
+			}
+
 			CurrentLineRenderer.materials[0].SetFloat("_PrimaryAmplitude", 0f);
 			CurrentLineRenderer.materials[0].SetFloat("_SecondaryAmplitude", 0f);
 			CurrentLineRenderer.materials[0].SetFloat("_TertiaryAmplitude", 0f);
@@ -295,7 +299,7 @@ namespace YARG.Pools {
 			}
 
 			// Line hit animation
-			if (state == State.HITTING) {
+			if (state == State.HITTING && !_useFullLineRenderer) {
 				// Change line amplitude
 				var lineMat = CurrentLineRenderer.materials[0];
 				lineMat.SetFloat("_PrimaryAmplitude", 0.38f);
