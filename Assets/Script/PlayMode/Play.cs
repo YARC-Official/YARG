@@ -29,6 +29,7 @@ namespace YARG.PlayMode {
 		public static float speed = 1f;
 
 		public const float SONG_START_OFFSET = -2f;
+		public const float SONG_END_DELAY = 2f;
 
 		public delegate void BeatAction();
 		public static event BeatAction BeatEvent;
@@ -186,6 +187,9 @@ namespace YARG.PlayMode {
 					}
 				}
 			}
+
+			// Finally, append some additional time so the song doesn't just end immediately
+			SongLength += SONG_END_DELAY * speed;
 
 			GameUI.Instance.SetLoadingText("Spawning tracks...");
 
