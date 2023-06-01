@@ -103,6 +103,9 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		private void OnEnable() {
+			// Set up preview context
+			_previewContext = new(GameManager.AudioManager);
+
 			// Set navigation scheme
 			Navigator.Instance.PushScheme(new NavigationScheme(new() {
 				new NavigationScheme.Entry(MenuAction.Up, "Up", () => {
@@ -141,7 +144,6 @@ namespace YARG.UI.MusicLibrary {
 			searchBoxShouldBeEnabled = true;
 
 			// Play preview on enter for selected song
-			_previewContext = new(GameManager.AudioManager);
 			if (_songs[SelectedIndex] is SongViewType song) {
 				_previewContext.PlayPreview(song.SongEntry).Forget();
 			}
