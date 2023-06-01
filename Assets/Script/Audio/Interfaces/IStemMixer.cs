@@ -15,7 +15,6 @@ namespace YARG {
 		public IStemChannel LeadChannel { get; }
 		
 		public bool Create();
-		public bool SetupMogg(float speed);
 
 		public int Play(bool restart = false);
 
@@ -29,7 +28,6 @@ namespace YARG {
 		public void SetPosition(double position);
 		
 		public int AddChannel(IStemChannel channel);
-		public int AddMoggChannel(IMoggStemChannel channel, IList<float[]> matrixes);
 		
 		public bool RemoveChannel(IStemChannel channel);
 		

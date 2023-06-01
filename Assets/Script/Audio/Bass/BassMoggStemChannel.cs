@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 
 namespace YARG {
-	public class BassMoggStemChannel : IMoggStemChannel {
+	public class BassMoggStemChannel : IStemChannel {
 
 		public SongStem Stem { get; }
 		public double LengthD { get; private set; }
@@ -15,16 +15,21 @@ namespace YARG {
 		private List<IStemChannel> _channels = new();
 		public IReadOnlyList<IStemChannel> Channels => _channels;
 
+		private List<float[]> _matrixes;
+		public IReadOnlyList<float[]> Matrixes => _matrixes;
+
 		private bool _isLoaded;
 		private bool _disposed;
 
-		public BassMoggStemChannel(IAudioManager manager, SongStem stem, int[] splitStreams) {
+		public BassMoggStemChannel(IAudioManager manager, SongStem stem, int[] splitStreams, List<float[]> matrixes) {
 			_manager = manager;
 			Stem = stem;
 
 			foreach (int stream in splitStreams) {
 				_channels.Add(new BassStemChannel(_manager, Stem, stream));
 			}
+
+			_matrixes = matrixes;
 
 			Volume = 1;
 		}

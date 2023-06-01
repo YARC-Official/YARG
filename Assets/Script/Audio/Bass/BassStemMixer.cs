@@ -11,24 +11,18 @@ using YARG.Serialization;
 namespace YARG {
 	public class BassStemMixer : IStemMixer {
 
-		public int StemsLoaded { get; private set; }
+		public int StemsLoaded { get; protected set; }
 		
-		public bool IsPlaying { get; private set; }
+		public bool IsPlaying { get; protected set; }
 		
 		public IReadOnlyDictionary<SongStem, IStemChannel> Channels => _channels;
 
-		public IStemChannel LeadChannel { get; private set; }
+		public IStemChannel LeadChannel { get; protected set; }
 
-		private readonly IAudioManager _manager;
-		private readonly Dictionary<SongStem, IStemChannel> _channels;
-		private readonly bool _isMogg;
+		protected readonly IAudioManager _manager;
+		protected readonly Dictionary<SongStem, IStemChannel> _channels;
 
-		private readonly Dictionary<SongStem, int[]> _stemMaps;
-		private readonly float[,] _matrixRatios;
-
-		private int _mixerHandle;
-		
-		private int _moggSourceHandle;
+		protected int _mixerHandle;
 
 		private bool _disposed;
 
@@ -38,13 +32,6 @@ namespace YARG {
 			
 			StemsLoaded = 0;
 			IsPlaying = false;
-		}
-
-		public BassStemMixer(IAudioManager manager, int moggHandle, Dictionary<SongStem, int[]> maps, float[,] ratios) : this(manager) {
-			_isMogg = true;
-			_moggSourceHandle = moggHandle;
-			_stemMaps = maps;
-			_matrixRatios = ratios;
 		}
 
 		~BassStemMixer() {
@@ -66,43 +53,6 @@ namespace YARG {
 
 			_mixerHandle = mixer;
 			
-			return true;
-		}
-
-		public bool SetupMogg(float speed) {
-			if (!_isMogg) {
-				return false;
-			}
-			
-			int[] splitStreams = SplitMoggIntoChannels();
-
-			// There was an array splitting if its an empty array
-			if (splitStreams.Length == 0) {
-				return false;
-			}
-			
-			foreach((var stem, int[] channelIndexes) in _stemMaps) {
-				// For every channel index in this stem, add it to the list of channels
-				int[] channelStreams = channelIndexes.Select(i => splitStreams[i]).ToArray();
-				var channel = new BassMoggStemChannel(_manager, stem, channelStreams);
-				if (channel.Load(speed) < 0) {
-					return false;
-				}
-
-				var matrixes = new List<float[]>();
-				foreach (var channelIndex in channelIndexes) {
-					var matrix = new float[2];
-					matrix[0] = _matrixRatios[channelIndex, 0];
-					matrix[1] = _matrixRatios[channelIndex, 1];
-					matrixes.Add(matrix);
-				}
-
-				int code = AddMoggChannel(channel, matrixes);
-				if (code != 0) {
-					return false;
-				}
-			}
-
 			return true;
 		}
 
@@ -163,7 +113,7 @@ namespace YARG {
 			}
 		}
 
-		public int AddChannel(IStemChannel channel) {
+		public virtual int AddChannel(IStemChannel channel) {
 			if (channel is not BassStemChannel bassChannel) {
 				throw new ArgumentException("Channel must be of type BassStemChannel");
 			}
@@ -181,51 +131,6 @@ namespace YARG {
 			}
 
 			bassChannel.IsMixed = true;
-
-			_channels.Add(channel.Stem, channel);
-			StemsLoaded++;
-
-			if (channel.LengthD > LeadChannel?.LengthD || LeadChannel is null) {
-				LeadChannel = channel;
-			}
-
-			return 0;
-		}
-		
-		public int AddMoggChannel(IMoggStemChannel channel, IList<float[]> matrixes) {
-			if (channel is not BassMoggStemChannel moggStem) {
-				throw new ArgumentException("Channel must be of type BassMoggStem");
-			}
-
-			if (_channels.ContainsKey(channel.Stem)) {
-				return 0;
-			}
-
-			for (var i = 0; i < moggStem.Channels.Count; i++) {
-				var moggChannel = (BassStemChannel) moggStem.Channels[i];
-				if (!BassMix.MixerAddChannel(_mixerHandle, moggChannel.StreamHandle, BassFlags.MixerChanMatrix)) {
-					return (int) Bass.LastError;
-				}
-				
-				if (!BassMix.MixerAddChannel(_mixerHandle, moggChannel.ReverbStreamHandle, BassFlags.MixerChanMatrix)) {
-					return (int) Bass.LastError;
-				}
-
-				moggChannel.IsMixed = true;
-
-				float[,] channelPanVol = {
-					{ matrixes[i][0] },
-					{ matrixes[i][1] }
-				};
-
-				if (!BassMix.ChannelSetMatrix(moggChannel.StreamHandle, channelPanVol)) {
-					return (int) Bass.LastError;
-				}
-				
-				if (!BassMix.ChannelSetMatrix(moggChannel.ReverbStreamHandle, channelPanVol)) {
-					return (int) Bass.LastError;
-				}
-			}
 
 			_channels.Add(channel.Stem, channel);
 			StemsLoaded++;
@@ -278,54 +183,33 @@ namespace YARG {
 
 		private void Dispose(bool disposing) {
 			if (!_disposed) {
-				// Free managed resources here
 				if (disposing) {
-					foreach (var channel in _channels.Values) {
-						channel.Dispose();
-					}
-
-					_channels.Clear();
+					ReleaseManagedResources();
 				}
 
-				// Free unmanaged resources here
-				if (_mixerHandle != 0) {
-					if (!Bass.StreamFree(_mixerHandle)) {
-						Debug.LogError("Failed to free mixer stream. THIS WILL LEAK MEMORY!");
-					}
-					
-					_mixerHandle = 0;
-				}
-
-				if (_moggSourceHandle != 0) {
-					if (!Bass.StreamFree(_moggSourceHandle)) {
-						Debug.LogError("Failed to free Mogg source stream. THIS WILL LEAK MEMORY!");
-					}
-
-					_moggSourceHandle = 0;
-				}
-
+				ReleaseUnmanagedResources();
 				_disposed = true;
 			}
 		}
 
-		private int[] SplitMoggIntoChannels(float[,] matrixRatios) {
-			var channels = new int[matrixRatios.GetLength(0)];
-
-			var channelMap = new int[2];
-			channelMap[1] = -1;
-			
-			for (var i = 0; i < channels.Length; i++) {
-				channelMap[0] = i;
-				
-				int splitHandle = BassMix.CreateSplitStream(_moggSourceHandle, BassFlags.Decode | BassFlags.SplitPosition, channelMap);
-				if (splitHandle == 0) {
-					return Array.Empty<int>();
-				}
-
-				channels[i] = splitHandle;
+		protected virtual void ReleaseManagedResources() {
+			// Free managed resources here
+			foreach (var channel in _channels.Values) {
+				channel.Dispose();
 			}
 
-			return channels;
+			_channels.Clear();
+		}
+
+		protected virtual void ReleaseUnmanagedResources() {
+			// Free unmanaged resources here
+			if (_mixerHandle != 0) {
+				if (!Bass.StreamFree(_mixerHandle)) {
+					Debug.LogError("Failed to free mixer stream. THIS WILL LEAK MEMORY!");
+				}
+				
+				_mixerHandle = 0;
+			}
 		}
 	}
 
