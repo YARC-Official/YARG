@@ -111,15 +111,9 @@ namespace YARG.Serialization.Parser {
 					}
 
 				}
-			}
 
-			if(songEntry is ConSongEntry lol){
-				if(lol.MiloIndex != -1)
-					Debug.Log($"milo found within CON");
-				else Debug.Log($"milo path: {lol.MiloPath}");
-			}
-			else if(songEntry is ExtractedConSongEntry lmao){
-				Debug.Log($"milo path: {lmao.MiloPath}");
+				MiloParser.GetMidiFromMilo(oof.LoadMiloFile(), midi.GetTempoMap());
+
 			}
 
 		}
