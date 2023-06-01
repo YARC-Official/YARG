@@ -11,6 +11,9 @@ using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using UnityEngine;
 
+// parses RB style milos to extract their venue and lipsync information
+// kudos to PikminGuts92 for his 010 templates, making it much easier to understand how to parse these things
+// as well as AddyMills for his original RB-Tools scripts porting from .anim and .lipsync files to midi
 namespace YARG.Serialization.Parser {
     public static class MiloParser {
         // used for milo parsing
