@@ -180,6 +180,8 @@ namespace YARG {
 				return (int) Bass.LastError;
 			}
 
+			bassChannel.IsMixed = true;
+
 			_channels.Add(channel.Stem, channel);
 			StemsLoaded++;
 
@@ -208,6 +210,8 @@ namespace YARG {
 				if (!BassMix.MixerAddChannel(_mixerHandle, moggChannel.ReverbStreamHandle, BassFlags.MixerChanMatrix)) {
 					return (int) Bass.LastError;
 				}
+
+				moggChannel.IsMixed = true;
 
 				float[,] channelPanVol = {
 					{ matrixes[i][0] },
@@ -245,6 +249,8 @@ namespace YARG {
 			if (!BassMix.MixerRemoveChannel(bassChannel.StreamHandle)) {
 				return false;
 			}
+
+			bassChannel.IsMixed = false;
 
 			_channels.Remove(channel.Stem);
 			StemsLoaded--;

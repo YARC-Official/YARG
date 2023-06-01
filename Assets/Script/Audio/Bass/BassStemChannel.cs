@@ -19,6 +19,8 @@ namespace YARG {
 		public int StreamHandle { get; private set; }
 		public int ReverbStreamHandle { get; private set; }
 
+		public bool IsMixed { get; set; } = false;
+
 		private readonly string _path;
 		private readonly IAudioManager _manager;
 
@@ -222,7 +224,11 @@ namespace YARG {
 		}
 
 		public void SetPosition(double position) {
-			BassMix.ChannelSetPosition(StreamHandle, Bass.ChannelSeconds2Bytes(StreamHandle, position));
+			if (IsMixed) {
+				BassMix.ChannelSetPosition(StreamHandle, Bass.ChannelSeconds2Bytes(StreamHandle, position));
+			} else {
+				Bass.ChannelSetPosition(StreamHandle, Bass.ChannelSeconds2Bytes(StreamHandle, position));
+			}
 		}
 
 		public double GetLengthInSeconds() {
