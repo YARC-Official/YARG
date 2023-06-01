@@ -37,10 +37,9 @@ namespace YARG.Serialization.Parser {
 			
 			var readSettings = ReadSettings; // we need to modify these
 			readSettings.TextEncoding = songEntry is ConSongEntry ? Encoding.GetEncoding("iso-8859-1") : Encoding.UTF8;
-			if (songEntry is ConSongEntry conSong)
-				midi = MidiFile.Read(new MemoryStream(conSong.LoadMidiFile()), readSettings);
-			else
-				midi = MidiFile.Read(files[0], readSettings);
+			if(songEntry is ExtractedConSongEntry hotdog)
+				midi = MidiFile.Read(new MemoryStream(hotdog.LoadMidiFile()), readSettings);
+			else midi = MidiFile.Read(songEntry.NotesFile, readSettings);
 
 			// if this is a RB song...
 			if (songEntry is ExtractedConSongEntry oof) {
