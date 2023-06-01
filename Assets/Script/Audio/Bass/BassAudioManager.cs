@@ -31,14 +31,6 @@ namespace YARG {
 		public float CurrentPositionF => (float) GetPosition();
 		public float AudioLengthF { get; private set; }
 
-		private IPreviewContext _currentPreviewContext;
-		public IPreviewContext PreviewContext {
-			get {
-				_currentPreviewContext ??= new BassPreviewContext(this);
-				return _currentPreviewContext;
-			}
-		}
-
 		private double[] _stemVolumes;
 
 		private int _opusHandle;
@@ -333,11 +325,6 @@ namespace YARG {
 			}
 
 			IsPlaying = _mixer.IsPlaying;
-		}
-
-		public void DisposePreviewContext() {
-			_currentPreviewContext?.Dispose();
-			_currentPreviewContext = null;
 		}
 
 		public void FadeIn(float maxVolume) {

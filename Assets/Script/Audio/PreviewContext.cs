@@ -6,7 +6,7 @@ using YARG.Settings;
 using YARG.Song;
 
 namespace YARG {
-	public class BassPreviewContext : IPreviewContext {
+	public class PreviewContext {
 
 		public double PreviewStartTime { get; private set; }
 		public double PreviewEndTime { get; private set; }
@@ -19,7 +19,7 @@ namespace YARG {
 		private bool _loadingPreview;
 		private SongEntry _songToLoad;
 
-		public BassPreviewContext(IAudioManager manager) {
+		public PreviewContext(IAudioManager manager) {
 			_manager = manager;
 		}
 

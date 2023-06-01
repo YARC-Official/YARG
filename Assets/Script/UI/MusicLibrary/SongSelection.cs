@@ -40,6 +40,8 @@ namespace YARG.UI.MusicLibrary {
 		private List<ViewType> _songs;
 		private List<SongEntry> _recommendedSongs;
 
+		private PreviewContext _previewContext;
+
 		public IReadOnlyList<ViewType> Songs => _songs;
 
 		private int _selectedIndex;
@@ -71,7 +73,7 @@ namespace YARG.UI.MusicLibrary {
 				}
 
 				GameManager.Instance.SelectedSong = song.SongEntry;
-				GameManager.AudioManager.PreviewContext.PlayPreview(song.SongEntry);
+				_previewContext.PlayPreview(song.SongEntry).Forget();
 			}
 		}
 
@@ -138,15 +140,17 @@ namespace YARG.UI.MusicLibrary {
 			searchBoxShouldBeEnabled = true;
 
 			// Play preview on enter for selected song
+			_previewContext = new(GameManager.AudioManager);
 			if (_songs[SelectedIndex] is SongViewType song) {
-				GameManager.AudioManager.PreviewContext.PlayPreview(song.SongEntry);
+				_previewContext.PlayPreview(song.SongEntry).Forget();
 			}
 		}
 
 		private void OnDisable() {
 			Navigator.Instance.PopScheme();
 
-			GameManager.AudioManager.DisposePreviewContext();
+			_previewContext.Dispose();
+			_previewContext = null;
 		}
 
 		private void UpdateSongViews() {
