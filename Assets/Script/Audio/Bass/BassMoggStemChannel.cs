@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 
-namespace YARG {
+namespace YARG.Audio.BASS {
 	public class BassMoggStemChannel : IStemChannel {
 
 		public SongStem Stem { get; }

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
+using YARG.Audio;
 using YARG.Chart;
 using YARG.Data;
 using YARG.Input;

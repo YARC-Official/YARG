@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 
-namespace YARG {
+namespace YARG.Audio {
 	public interface IStemMixer : IDisposable {
 
 		public int StemsLoaded { get; }

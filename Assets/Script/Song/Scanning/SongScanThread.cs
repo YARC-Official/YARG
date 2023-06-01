@@ -8,6 +8,7 @@ using System.Threading;
 using UnityEngine;
 using DtxCS.DataTypes;
 using XboxSTFS;
+using YARG.Audio;
 using YARG.Serialization;
 using YARG.Song.Preparsers;
 using DtxCS;

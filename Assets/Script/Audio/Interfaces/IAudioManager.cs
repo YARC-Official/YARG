@@ -3,7 +3,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using YARG.Song;
 
-namespace YARG {
+namespace YARG.Audio {
 	public interface IAudioManager {
 		public bool UseStarpowerFx { get; set; }
 		public bool IsChipmunkSpeedup { get; set; }

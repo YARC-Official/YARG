@@ -8,7 +8,7 @@ using ManagedBass.Mix;
 using UnityEngine;
 using YARG.Serialization;
 
-namespace YARG {
+namespace YARG.Audio.BASS {
 	public class BassStemMixer : IStemMixer {
 
 		public int StemsLoaded { get; protected set; }

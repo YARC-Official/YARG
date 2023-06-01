@@ -6,7 +6,7 @@ using ManagedBass.Fx;
 using ManagedBass.Mix;
 using UnityEngine;
 
-namespace YARG {
+namespace YARG.Audio.BASS {
 	public class BassStemChannel : IStemChannel {
 
 		private const EffectType REVERB_TYPE = EffectType.Freeverb;

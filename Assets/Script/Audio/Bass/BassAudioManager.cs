@@ -12,7 +12,7 @@ using YARG.Serialization;
 using YARG.Song;
 using Debug = UnityEngine.Debug;
 
-namespace YARG {
+namespace YARG.Audio.BASS {
 	public class BassAudioManager : MonoBehaviour, IAudioManager {
 		public bool UseStarpowerFx { get; set; }
 		public bool IsChipmunkSpeedup { get; set; }

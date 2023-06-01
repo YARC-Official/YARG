@@ -3,7 +3,7 @@ using ManagedBass;
 using ManagedBass.Mix;
 using UnityEngine;
 
-namespace YARG {
+namespace YARG.Audio.BASS {
 	public class BassMoggStemMixer : BassStemMixer {
 
 		private int _moggSourceHandle;

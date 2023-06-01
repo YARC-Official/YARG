@@ -2,6 +2,7 @@
 using UnityEngine;
 using DtxCS.DataTypes;
 using System.Collections.Generic;
+using YARG.Audio;
 using YARG.Data;
 using YARG.Serialization;
 using XboxSTFS;

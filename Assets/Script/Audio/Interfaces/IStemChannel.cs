@@ -1,7 +1,7 @@
 using System;
 using Cysharp.Threading.Tasks;
 
-namespace YARG {
+namespace YARG.Audio {
 	public interface IStemChannel : IDisposable {
 
 		public SongStem Stem { get; }

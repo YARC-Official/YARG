@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace YARG {
+namespace YARG.Audio {
 	public static class AudioHelpers {
 		public static readonly IList<string> SupportedStems = new[] {
 			"song",
