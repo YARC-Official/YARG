@@ -169,18 +169,136 @@ namespace YARG.Serialization.Parser {
             return FileDict;
         }
 
+        // search a byte array "pattern" for a specific byte combination "src"
+        private static int Search(byte[] src, byte[] pattern) {
+            int maxFirstCharSlot = src.Length - pattern.Length + 1;
+            for (int i = 0; i < maxFirstCharSlot; i++) {
+                if (src[i] != pattern[0]) // compare only first byte
+                    continue;
+
+                // found a match on first byte, now try to match rest of the pattern
+                for (int j = pattern.Length - 1; j >= 1; j--) {
+                    if (src[i + j] != pattern[j]) break;
+                    if (j == 1) return i;
+                }
+            }
+            return -1;
+        }
+
+        private static readonly string[] AnimParts = { "lightpreset_interp", "lightpreset_keyframe_interp", "world_event",   
+            "spot_guitar", "spot_bass", "spot_drums", "spot_keyboard", "spot_vocal", "part2_sing", "part3_sing", "part4_sing", 
+            "postproc_interp", "shot_bg", "stagekit_fog" };
+
+        private static TrackChunk AnimToMidi(byte[] animBytes, TempoMap tmap){
+            using var ms = new MemoryStream(animBytes);
+            using var br = new BinaryReader(ms);
+            
+            var eventsDict = new Dictionary<string, List<(long time, string name)>>(); // time in ticks
+
+            // capture events' names and time in ticks when they occur
+            foreach (var part in AnimParts) {
+                var eventsList = new List<(long time, string name)>();
+                int offset = Search(animBytes, Encoding.UTF8.GetBytes(part));
+
+                if (offset != -1) {
+                    offset += part.Length + (part.EndsWith("interp") ? 5 : 13);
+
+                    ms.Seek(offset, SeekOrigin.Begin);
+                    int events = BinaryPrimitives.ReadInt32BigEndian(br.ReadBytes(4));
+                    bool listIsActive = true;
+
+                    for (int i = 0; i < events; i++) {
+                        if (part == "postproc_interp") br.ReadBytes(4);
+                        int eventLen = BinaryPrimitives.ReadInt32BigEndian(br.ReadBytes(4));
+                        string eventName = "";
+
+                        if (eventLen > 0) eventName = Encoding.UTF8.GetString(br.ReadBytes(eventLen), 0, eventLen);
+                        else if (eventsList.Count == 0) listIsActive = false;
+                        else eventName = eventsList.Last().name;
+
+                        var timeBuf = br.ReadBytes(4);
+                        Array.Reverse(timeBuf);
+                        double timeAdd = BitConverter.ToSingle(timeBuf) / 30; 
+                        if (timeAdd < 0) timeAdd = 0;
+                        // convert timeAdd from seconds to ticks
+                        long timeInTicks = TimeConverter.ConvertFrom(new MetricTimeSpan((long)(timeAdd * 1000000)), tmap); 
+                        if (listIsActive) eventsList.Add((timeInTicks, eventName));
+                    }
+                }
+                eventsDict.Add(part, eventsList);
+            }
+
+            //now that we have the eventsDict, we can make the VENUE track
+            var tracksToMerge = new List<TrackChunk>();
+            bool trackNameExists = false;
+
+            foreach(var part in AnimParts) {
+                long timeStart = 0;
+                var tempEvents = new List<MidiEvent>();
+                var prevType = "note_off";
+                foreach (var eventInstance in eventsDict[part]) {
+
+                    long timeVal = eventInstance.time - timeStart;
+                    int noteVal = 0;
+
+                    if (part.EndsWith("_sing") || part.StartsWith("spot_")) {
+                        noteVal = part switch {
+                            "part2_sing" => 87,
+                            "part3_sing" => 85,
+                            "part4_sing" => 86,
+                            "spot_keyboard" => 41,
+                            "spot_vocal" => 40,
+                            "spot_guitar" => 39,
+                            "spot_drums" => 38,
+                            "spot_bass" => 37,
+                            _ => throw new Exception($"Unknown singalong or spotlight event found at tick count {eventInstance.time}!"),
+                        };
+                        if (eventInstance.name.EndsWith("on")) {
+                            if(prevType == "note_on") {
+                                tempEvents.Add(new NoteOffEvent() { NoteNumber = (SevenBitNumber)noteVal, Velocity = (SevenBitNumber)0, DeltaTime = timeVal });
+                                timeStart += timeVal;
+                                tempEvents.Add(new NoteOnEvent() { NoteNumber = (SevenBitNumber)noteVal, Velocity = (SevenBitNumber)100, DeltaTime = 0 });
+                            }
+                            else tempEvents.Add(new NoteOnEvent() { NoteNumber = (SevenBitNumber)noteVal, Velocity = (SevenBitNumber)100, DeltaTime = timeVal });
+                            prevType = "note_on";
+                        }
+                        else if(eventInstance.name.EndsWith("off")) {
+                            tempEvents.Add(new NoteOffEvent() { NoteNumber = (SevenBitNumber)noteVal, Velocity = (SevenBitNumber)0, DeltaTime = timeVal });
+                            prevType = "note_off";
+                        }
+                        else throw new Exception($"Unknown state event found at tick count {eventInstance.time}");
+                    }
+                    else if(part == "lightpreset_interp") 
+                        tempEvents.Add(new TextEvent($"[lighting ({eventInstance.name})]") { DeltaTime = timeVal });
+                    else if(part == "stagekit_fog") 
+                        tempEvents.Add(new TextEvent($"[Fog{char.ToUpper(eventInstance.name[0]) + eventInstance.name[1..]}]") { DeltaTime = timeVal });
+                    else tempEvents.Add(new TextEvent($"[{eventInstance.name}]") { DeltaTime = timeVal });
+
+                    timeStart += timeVal;
+                }
+                if (!trackNameExists) {
+                    tempEvents.Insert(0, new SequenceTrackNameEvent("VENUE"));
+                    trackNameExists = true;
+                }
+                tracksToMerge.Add(new TrackChunk(tempEvents));
+            }
+            return Melanchall.DryWetMidi.Core.TrackChunkUtilities.Merge(tracksToMerge);
+        }
+
         // the main fxn we actually care about
         // TODO: change from void return val to a List of TrackChunks
         public static void GetMidiFromMilo(byte[] miloBytes, TempoMap tmap){
             // inflate milo bytes
             // get dictionary of files and filebytes from inflated milo
             var MiloFiles = ParseMiloForFiles(miloBytes);
+            var MiloTracks = new List<TrackChunk>();
 
             // with our list of files and filebytes from the milo, we must convert each file to a MIDI track
             foreach(var f in MiloFiles){
                 switch(f.Key){
                     case "song.anim":
                         Debug.Log("found song.anim file, must convert to midi VENUE track");
+                        MiloTracks.Add(AnimToMidi(f.Value, tmap));
                         break;
                     case "song.lipsync":
                         Debug.Log("found song.lipsync file, must convert to midi LIPSYNC1 track");
