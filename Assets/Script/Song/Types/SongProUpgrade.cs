@@ -1,21 +1,49 @@
 using System.Collections.Generic;
 using System.IO;
 using XboxSTFS;
-using static XboxSTFS.XboxSTFSParser;
-using YARG.Serialization;
 
 namespace YARG.Song {
 	public class SongProUpgrade {
-        public string ShortName { get; set; }
-        public string UpgradeMidiPath { get; set; }
+		private XboxSTFSFile conFile;
+        public string UpgradeMidiPath { get; private set; }
+        public int UpgradeMidiIndex { get; private set; }
 
-        // only used if an upgrade is contained inside a CON!
-        public string CONFilePath { get; set; } 
-        public FileListing UpgradeFL { get; set; }
+		public SongProUpgrade(BinaryReader reader, List<XboxSTFSFile> conFiles) {
+			UpgradeMidiIndex = reader.ReadInt32();
+			if (UpgradeMidiIndex != -1) {
+				string filename = reader.ReadString();
+				foreach (var con in conFiles)
+					if (con.Filename == filename) {
+						conFile = con;
+						break;
+					}
 
-        public byte[] GetUpgradeMidi(){
-            if(string.IsNullOrEmpty(CONFilePath)) return File.ReadAllBytes(UpgradeMidiPath);
-            else return XboxSTFSParser.GetFile(CONFilePath, UpgradeFL);
+				if (conFile == null)
+					throw new ConMissingException();
+			}
+			else
+				UpgradeMidiPath = reader.ReadString();
+		}
+
+		public void WriteToCache(BinaryWriter writer) {
+			writer.Write(UpgradeMidiIndex);
+			if (UpgradeMidiIndex != -1)
+				writer.Write(conFile.Filename);
+			else
+				writer.Write(UpgradeMidiPath);
+		}
+
+		public SongProUpgrade(string folder, string shortName) {
+			UpgradeMidiPath = Path.Combine(folder, $"{shortName}_plus.mid");
+		}
+
+		public SongProUpgrade(XboxSTFSFile conFile, string shortName) {
+			this.conFile = conFile;
+			UpgradeMidiIndex = conFile.GetFileIndex(Path.Combine("songs_upgrades", $"{shortName}_plus.mid"));
+		}
+
+		public byte[] GetUpgradeMidi(){
+			return conFile == null ? File.ReadAllBytes(UpgradeMidiPath) : conFile.LoadSubFile(UpgradeMidiIndex);
         }
     }
 }

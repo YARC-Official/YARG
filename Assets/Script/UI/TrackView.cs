@@ -35,7 +35,7 @@ namespace YARG.UI {
 		[SerializeField]
 		private Sprite _normalSoloBox;
 
-		private bool _soloBoxShowing = false;
+		private Coroutine _soloBoxHide = null;
 
 		private void Start() {
 			_performanceTextScaler = new(3f);
@@ -51,32 +51,27 @@ namespace YARG.UI {
 		}
 
 		public void SetSoloBox(string topText, string bottomText) {
-			// Show if hidden
-			if (!_soloBoxShowing) {
-				// Stop hide coroutine, if we are already hiding
-				StopCoroutine("HideSoloBoxCoroutine");
-
-				_soloBox.gameObject.SetActive(true);
-				_soloBoxCanvasGroup.alpha = 1f;
-
-				_soloBox.sprite = _normalSoloBox;
-				_soloBoxShowing = false;
-
-				_soloFullText.text = string.Empty;
+			// Stop hide coroutine if we were previously hiding
+			if (_soloBoxHide != null) {
+				StopCoroutine(_soloBoxHide);
+				_soloBoxHide = null;
 			}
 
+			_soloBox.gameObject.SetActive(true);
+			_soloBoxCanvasGroup.alpha = 1f;
+			_soloBox.sprite = _normalSoloBox;
+
+			_soloFullText.text = string.Empty;
 			_soloTopText.text = topText;
 			_soloBottomText.text = bottomText;
 		}
 
 		public void HideSoloBox(string percent, string fullText) {
-			_soloBoxShowing = false;
-
 			_soloTopText.text = string.Empty;
 			_soloBottomText.text = string.Empty;
 			_soloFullText.text = percent;
 
-			StartCoroutine(HideSoloBoxCoroutine(fullText));
+			_soloBoxHide = StartCoroutine(HideSoloBoxCoroutine(fullText));
 		}
 
 		private IEnumerator HideSoloBoxCoroutine(string fullText) {
@@ -91,6 +86,7 @@ namespace YARG.UI {
 				.WaitForCompletion();
 
 			_soloBox.gameObject.SetActive(false);
+			_soloBoxHide = null;
 		}
 
 		public void ShowPerformanceText(string text) {

@@ -36,6 +36,7 @@ namespace YARG.Input {
 
 		private float updateTimer;
 
+		private float previousDbCache;
 		private float dbCache;
 
 		private float pitchCache;
@@ -44,6 +45,7 @@ namespace YARG.Input {
 		private (float, int) noteCache;
 
 		public bool VoiceDetected => dbCache >= 0f;
+		public bool VoiceDetectedThisFrame => dbCache >= 0f && previousDbCache < 0f;
 
 		public float TimeSinceNoVoice { get; private set; }
 		public float TimeSinceVoiceDetected { get; private set; }
@@ -99,6 +101,7 @@ namespace YARG.Input {
 			}
 
 			// Decibels //
+			previousDbCache = dbCache;
 
 			// Get the root mean square
 			float sum = 0f;
@@ -119,7 +122,6 @@ namespace YARG.Input {
 			// Only update pitch if a voice is detected
 			if (dbCache < 0f) {
 				TimeSinceVoiceDetected = 0f;
-
 				TimeSinceNoVoice += Time.deltaTime;
 				return;
 			} else {
@@ -264,6 +266,7 @@ namespace YARG.Input {
 			}
 
 			// Set info based on lyric
+			previousDbCache = dbCache;
 			if (botLyricInfo == null) {
 				dbCache = -1f;
 				TimeSinceNoVoice += Time.deltaTime;
