@@ -127,6 +127,40 @@ namespace YARG.PlayMode {
 			// Since chart is sorted, this is guaranteed to work
 			while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= TrackStartTime) {
 				var noteInfo = Chart[visualChartIndex];
+				var chosenActivatorType = 0;
+				NoteInfo chosenActivatorNote = null;
+
+				for (int i = 0; i < 5; i++) {
+					var chordNote = Chart[visualChartIndex + i];
+					if (chordNote.time == noteInfo.time) {
+						// Cymbals always take priority.
+						if (chordNote.hopo) {
+							chosenActivatorType = 3;
+							chosenActivatorNote = chordNote;
+							continue;
+						}
+
+						// If there are no cymbals on this beat, pads are second.
+						if (!chordNote.hopo && chosenActivatorType < 3) {
+							chosenActivatorType = 2;
+							chosenActivatorNote = chordNote;
+							continue;
+						}
+
+						// Finally, if there's nothing else, kick notes must be used. 
+						if (chordNote.fret == 4 && chosenActivatorType < 2) {
+							chosenActivatorType = 1;
+							chosenActivatorNote = chordNote;
+							continue;
+						}
+
+						// If, somehow, none of these conditions are met, the current note will become an activator forcibly.
+						// This is fallback code that will (hopefully) never be needed.
+						if (chosenActivatorType == 0) {
+							chosenActivatorNote = noteInfo;
+						}
+					}
+				}
 
 				// Skip kick notes if noKickMode is enabled
 				if (noteInfo.fret == kickIndex && SettingsManager.Settings.NoKicks.Data) {
@@ -136,7 +170,7 @@ namespace YARG.PlayMode {
 
 				// TODO: Only one note should be an activator at any given timestamp
 				if (CurrentVisualFill?.EndTime == noteInfo.time && starpowerCharge >= 0.5f && !IsStarPowerActive) {
-					noteInfo.isActivator = true;
+					chosenActivatorNote.isActivator = true;
 				}
 
 				SpawnNote(noteInfo, TrackStartTime);
