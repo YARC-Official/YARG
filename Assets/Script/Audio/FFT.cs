@@ -37,6 +37,9 @@ namespace YARG.Audio {
 			}
 		}
 
+		/// <summary>
+		/// A Cooley-Tukey DFT algorithm.
+		/// </summary>
 		private static ReadOnlySpan<Complex> DoInternal(ReadOnlySpan<Complex> samples, bool inverse = false) {
 			if (samples.Length <= 1) {
 				return samples;

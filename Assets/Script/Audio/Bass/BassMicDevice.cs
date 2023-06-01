@@ -143,7 +143,7 @@ namespace YARG.Audio {
 			_voiceStartTimer += 1f / RECORD_PERIOD_MILLIS;
 
 			var pitch = _pitchDetector.GetPitch(bufferSpan);
-			// Debug.Log(pitch);
+			Debug.Log(pitch);
 
 			if (_voiceStartTimer < 0.07f) {
 				Pitch = pitch;
