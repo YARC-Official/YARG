@@ -14,8 +14,6 @@ namespace YARG.Audio.PitchDetection {
 			public CircularBuffer CircularBuffer;
 		}
 
-		private const int OCTAVE_STEPS = 96;
-
 		// A1, Midi note 33, 55.0Hz
 		private const float MIN_FREQUENCY = 50;
 		// A#6. Midi note 92
@@ -24,37 +22,36 @@ namespace YARG.Audio.PitchDetection {
 		private const float DETECT_OVERLAP_SEC = 0.005f;
 		private const float MAX_OCTAVE_SEC_RATE = 10.0f;
 
-		// time offset between pitch averaging values
+		// Time offset between pitch averaging values
 		private const float AVG_OFFSET = 0.005f;
-		// number of average pitch samples to take
+		// Number of average pitch samples to take
 		private const int AVG_COUNT = 1;
 		// Amount of samples to store in the history Buffer
 		private const float CIRCULAR_BUF_SAVE_TIME = 1.0f;
 
-		private PitchProcessor _DSP;
-		private readonly float _sampleRate;
+		// Default is 50ms, or one record every 20ms
+		private const int PITCH_RECORDS_PER_SECOND = 50;
 
-		// default is 50, or one record every 20ms
-		private int _pitchRecordsPerSecond = 50;
+		private readonly PitchProcessor _dsp;
 
-		private int _pitchBufSize;
+		private readonly int _pitchBufSize;
 
-		private int _detectOverlapSamples;
-		private float _maxOverlapDiff;
-		private int _samplesPerPitchBlock;
+		private readonly int _detectOverlapSamples;
+		private readonly float _maxOverlapDiff;
+		private readonly int _samplesPerPitchBlock;
 
-		private FilterInfo[] _filters;
+		private long _sampleReadPosition;
+
+		private readonly FilterInfo[] _filters;
 
 		public PitchTracker(float detectLevelThreshold = 0.01f, float sampleRate = 44100f) {
-			_sampleRate = sampleRate;
+			_dsp = new PitchProcessor(sampleRate, MIN_FREQUENCY, MAX_FREQUENCY, detectLevelThreshold);
 
-			_DSP = new PitchProcessor(_sampleRate, MIN_FREQUENCY, MAX_FREQUENCY, detectLevelThreshold);
-
-			_pitchBufSize = (int) ((1.0f / MIN_FREQUENCY * 2.0f + (AVG_COUNT - 1) * AVG_OFFSET) * _sampleRate) + 16;
-			_detectOverlapSamples = (int) (DETECT_OVERLAP_SEC * _sampleRate);
+			_pitchBufSize = (int) ((1.0f / MIN_FREQUENCY * 2.0f + (AVG_COUNT - 1) * AVG_OFFSET) * sampleRate) + 16;
+			_detectOverlapSamples = (int) (DETECT_OVERLAP_SEC * sampleRate);
 
 			_maxOverlapDiff = MAX_OCTAVE_SEC_RATE * DETECT_OVERLAP_SEC;
-			_samplesPerPitchBlock = (int) Mathf.Round(_sampleRate / _pitchRecordsPerSecond);
+			_samplesPerPitchBlock = (int) Mathf.Round(sampleRate / PITCH_RECORDS_PER_SECOND);
 
 			// Create the high and low filters
 			_filters = new FilterInfo[2];
@@ -62,14 +59,14 @@ namespace YARG.Audio.PitchDetection {
 				float highFreq = i == 0 ? 280f : 1500f;
 
 				var filter = new FilterInfo {
-					Low = new IIRFilter(IIRFilterType.HP, 5, _sampleRate) {
+					Low = new IIRFilter(IIRFilterType.HP, 5, sampleRate) {
 						FreqLow = 45
 					},
-					High = new IIRFilter(IIRFilterType.LP, 5, _sampleRate) {
+					High = new IIRFilter(IIRFilterType.LP, 5, sampleRate) {
 						FreqHigh = highFreq
 					},
 					Buffer = new float[_pitchBufSize + _detectOverlapSamples],
-					CircularBuffer = new CircularBuffer((int) (CIRCULAR_BUF_SAVE_TIME * _sampleRate + 0.5f) + 10000)
+					CircularBuffer = new CircularBuffer((int) (CIRCULAR_BUF_SAVE_TIME * sampleRate + 0.5f) + 10000)
 				};
 
 				_filters[i] = filter;
@@ -77,27 +74,11 @@ namespace YARG.Audio.PitchDetection {
 		}
 
 		/// <summary>
-		/// Get the frequency step
-		/// </summary>
-		public static float FrequencyStep => Mathf.Pow(2f, 1f / OCTAVE_STEPS);
-
-		/// <summary>
-		/// Get the number of samples that the detected pitch is offset from the Input Buffer.
-		/// This is just an estimate to sync up the samples and detected pitch
-		/// </summary>
-		public int DetectSampleOffset => (_pitchBufSize + _detectOverlapSamples) / 2;
-
-		/// <summary>
-		/// Get the current pitch position
-		/// </summary>
-		public long SampleReadPosition { get; private set; }
-
-		/// <summary>
 		/// Reset the pitch tracker. Call this when the sample position is
 		/// not consecutive from the previous position
 		/// </summary>
 		public void Reset() {
-			SampleReadPosition = 0;
+			_sampleReadPosition = 0;
 
 			foreach (var filter in _filters) {
 				filter.High.Reset();
@@ -142,11 +123,11 @@ namespace YARG.Audio.PitchDetection {
 				}
 
 				// Loop while there is enough samples in the circular Buffer
-				while (_filters[0].CircularBuffer.Read(_filters[0].Buffer, SampleReadPosition, _pitchBufSize + _detectOverlapSamples)) {
-					_filters[1].CircularBuffer.Read(_filters[1].Buffer, SampleReadPosition, _pitchBufSize + _detectOverlapSamples);
-					SampleReadPosition += _samplesPerPitchBlock;
+				while (_filters[0].CircularBuffer.Read(_filters[0].Buffer, _sampleReadPosition, _pitchBufSize + _detectOverlapSamples)) {
+					_filters[1].CircularBuffer.Read(_filters[1].Buffer, _sampleReadPosition, _pitchBufSize + _detectOverlapSamples);
+					_sampleReadPosition += _samplesPerPitchBlock;
 
-					var pitch1 = _DSP.DetectPitch(_filters[0].Buffer, _filters[1].Buffer, _pitchBufSize);
+					var pitch1 = _dsp.DetectPitch(_filters[0].Buffer, _filters[1].Buffer, _pitchBufSize);
 
 					if (pitch1 <= 0f) {
 						continue;
@@ -157,7 +138,7 @@ namespace YARG.Audio.PitchDetection {
 						SafeCopy(filter.Buffer, filter.Buffer, _detectOverlapSamples, 0, _pitchBufSize);
 					}
 
-					var pitch2 = _DSP.DetectPitch(_filters[0].Buffer, _filters[1].Buffer, _pitchBufSize);
+					var pitch2 = _dsp.DetectPitch(_filters[0].Buffer, _filters[1].Buffer, _pitchBufSize);
 
 					if (pitch2 <= 0f) {
 						continue;

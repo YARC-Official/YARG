@@ -1,73 +1,80 @@
 ﻿using System;
+using UnityEngine;
 
 namespace YARG.Audio.PitchDetection {
-	class CircularBuffer : IDisposable {
-		readonly int m_bufSize;
-		int _mBegBufOffset, _mAvailBuf;
-		float[] _mBuffer;
+	internal class CircularBuffer {
+		private readonly int _size;
+		private int _startBufferOffset;
+		private int _availableBuffer;
+		private readonly float[] _buffer;
 
-		public CircularBuffer(int BufferCount) {
-			m_bufSize = BufferCount;
+		public long StartPosition { get; set; }
 
-			if (m_bufSize > 0)
-				_mBuffer = new float[m_bufSize];
+		public int Available {
+			set => _availableBuffer = Mathf.Min(value, _size);
 		}
 
-		public void Dispose() => _mBuffer = null;
+		public CircularBuffer(int size) {
+			_size = size;
+
+			if (_size > 0) {
+				_buffer = new float[_size];
+			} else {
+				throw new InvalidOperationException("Invalid buffer size");
+			}
+		}
 
 		/// <summary>
 		/// Reset to the beginning of the Buffer
 		/// </summary>
-		public void Reset() => StartPosition = _mBegBufOffset = _mAvailBuf = 0;
+		public void Reset() {
+			StartPosition = 0;
+			_startBufferOffset = 0;
+			_availableBuffer = 0;
+		}
 
 		/// <summary>
 		/// Clear the Buffer
 		/// </summary>
-		public void Clear() => Array.Clear(_mBuffer, 0, _mBuffer.Length);
-
-		/// <summary>
-		/// Get or set the start position
-		/// </summary>
-		public long StartPosition { get; set; }
-
-		/// <summary>
-		/// Get or set the amount of avaliable space
-		/// </summary>
-		public int Available {
-			get { return _mAvailBuf; }
-			set { _mAvailBuf = Math.Min(value, m_bufSize); }
+		public void Clear() {
+			Array.Clear(_buffer, 0, _buffer.Length);
 		}
 
 		/// <summary>
 		/// Write data into the Buffer
 		/// </summary>
-		public int Write(float[] m_pInBuffer, int count) {
-			count = Math.Min(count, m_bufSize);
+		public int Write(ReadOnlySpan<float> inputBuffer, int count) {
+			count = Mathf.Min(count, _size);
 
-			var startPos = _mAvailBuf != m_bufSize ? _mAvailBuf : _mBegBufOffset;
-			var pass1Count = Math.Min(count, m_bufSize - startPos);
+			var startPos = _availableBuffer != _size ? _availableBuffer : _startBufferOffset;
+			var pass1Count = Mathf.Min(count, _size - startPos);
 			var pass2Count = count - pass1Count;
 
-			Array.Copy(m_pInBuffer, 0, _mBuffer, startPos, pass1Count);
-
-			if (pass2Count > 0)
-				Array.Copy(m_pInBuffer, pass1Count, _mBuffer, 0, pass2Count);
+			inputBuffer[..pass1Count].CopyTo(_buffer.AsSpan(startPos));
+			if (pass2Count > 0) {
+				inputBuffer.Slice(pass1Count, pass2Count).CopyTo(_buffer.AsSpan());
+			}
 
 			if (pass2Count == 0) {
 				// did not wrap around
-				if (_mAvailBuf != m_bufSize) _mAvailBuf += count; // have never wrapped around
-				else {
-					_mBegBufOffset += count;
+				if (_availableBuffer != _size) {
+					// have never wrapped around
+					_availableBuffer += count;
+				} else {
+					_startBufferOffset += count;
 					StartPosition += count;
 				}
 			} else {
 				// wrapped around
-				if (_mAvailBuf != m_bufSize)
-					StartPosition += pass2Count; // first time wrap-around
-				else StartPosition += count;
+				if (_availableBuffer == _size) {
+					StartPosition += count;
+				} else {
+					// first time wrap-around
+					StartPosition += pass2Count;
+				}
 
-				_mBegBufOffset = pass2Count;
-				_mAvailBuf = m_bufSize;
+				_startBufferOffset = pass2Count;
+				_availableBuffer = _size;
 			}
 
 			return count;
@@ -76,20 +83,22 @@ namespace YARG.Audio.PitchDetection {
 		/// <summary>
 		/// Read from the Buffer
 		/// </summary>
-		public bool Read(float[] outBuffer, long startRead, int readCount) {
+		public bool Read(Span<float> outBuffer, long startRead, int readCount) {
 			var endRead = (int) (startRead + readCount);
-			var endAvail = (int) (StartPosition + _mAvailBuf);
+			var endAvailable = (int) (StartPosition + _availableBuffer);
 
-			if (startRead < StartPosition || endRead > endAvail) return false;
+			if (startRead < StartPosition || endRead > endAvailable) {
+				return false;
+			}
 
-			var startReadPos = (int) ((startRead - StartPosition + _mBegBufOffset) % m_bufSize);
-			var block1Samples = Math.Min(readCount, m_bufSize - startReadPos);
+			var startReadPos = (int) ((startRead - StartPosition + _startBufferOffset) % _size);
+			var block1Samples = Mathf.Min(readCount, _size - startReadPos);
 			var block2Samples = readCount - block1Samples;
 
-			Array.Copy(_mBuffer, startReadPos, outBuffer, 0, block1Samples);
-
-			if (block2Samples > 0)
-				Array.Copy(_mBuffer, 0, outBuffer, block1Samples, block2Samples);
+			_buffer.AsSpan(startReadPos, block1Samples).CopyTo(outBuffer);
+			if (block2Samples > 0) {
+				_buffer.AsSpan(0, block2Samples).CopyTo(outBuffer[block1Samples..]);
+			}
 
 			return true;
 		}
