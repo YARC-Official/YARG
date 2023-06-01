@@ -33,7 +33,6 @@ namespace YARG.Song {
 
 		// pro upgrade info, if it exists
 		public SongProUpgrade SongUpgrade { get; private set; }
-
 		public int[] RealGuitarTuning { get; set; }
 		public int[] RealBassTuning { get; set; }
 
@@ -43,6 +42,10 @@ namespace YARG.Song {
 
 		public Dictionary<SongStem, int[]> StemMaps { get; set; } = new();
 		public float[,] MatrixRatios { get; set; }
+
+		// .milo info
+		public string MiloPath { get; set; }
+		public int VenueVersion { get; set; }
 
 		// image info
 		public bool AlternatePath { get; set; } = false;
@@ -82,6 +85,10 @@ namespace YARG.Song {
 				for (int i = 0; i < bassTuneLength; i++)
 					RealBassTuning[i] = reader.ReadInt32();
 			}
+
+			// read milo data
+			MiloPath = reader.ReadString();
+			VenueVersion = reader.ReadInt32();
 
 			// Read Stem Data
 			int stemCount = reader.ReadInt32();
@@ -144,6 +151,10 @@ namespace YARG.Song {
 					writer.Write(RealBassTuning[i]);
 			} else
 				writer.Write(0);
+
+			// write milo data
+			writer.Write(MiloPath);
+			writer.Write(VenueVersion);
 
 			// Write Stem Data
 			writer.Write(StemMaps.Count);
@@ -334,6 +345,7 @@ namespace YARG.Song {
 						RealBassTuning = new int[4];
 						for (int b = 0; b < 4; b++) RealBassTuning[b] = ((DataAtom) bassTunes[b]).Int;
 						break;
+					case "version": VenueVersion = ((DataAtom) dtaArray[1]).Int; break;
 					case "alternate_path":
 						if (dtaArray[1] is DataSymbol symAltPath)
 							AlternatePath = (symAltPath.Name.ToUpper() == "TRUE");
