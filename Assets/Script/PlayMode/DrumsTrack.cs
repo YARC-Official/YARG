@@ -131,6 +131,12 @@ namespace YARG.PlayMode {
 				NoteInfo chosenActivatorNote = null;
 
 				for (int i = 0; i < 5; i++) {
+
+					// Prevent out-of-bounds access at the end of a chart
+					if (Chart.Count <= visualChartIndex + i) {
+						break;
+					}
+
 					var chordNote = Chart[visualChartIndex + i];
 					if (chordNote.time == noteInfo.time) {
 						// Cymbals always take priority.
@@ -153,13 +159,13 @@ namespace YARG.PlayMode {
 							chosenActivatorNote = chordNote;
 							continue;
 						}
-
-						// If, somehow, none of these conditions are met, the current note will become an activator forcibly.
-						// This is fallback code that will (hopefully) never be needed.
-						if (chosenActivatorType == 0) {
-							chosenActivatorNote = noteInfo;
-						}
 					}
+				}
+
+				// If, somehow, none of the above conditions are met, the current note will become an activator forcibly.
+				// This is fallback code that will (hopefully) never be needed.
+				if (chosenActivatorNote == null) {
+					chosenActivatorNote = noteInfo;
 				}
 
 				// Skip kick notes if noKickMode is enabled
