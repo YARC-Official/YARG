@@ -285,36 +285,113 @@ namespace YARG.Serialization.Parser {
             return Melanchall.DryWetMidi.Core.TrackChunkUtilities.Merge(tracksToMerge);
         }
 
+        private static TrackChunk LipsyncToMidi(byte[] lipBytes, TempoMap tmap, string trackName){
+            using var ms = new MemoryStream(lipBytes);
+            using var br = new BinaryReader(ms);
+
+            ms.Seek(8, SeekOrigin.Begin);
+            int offset = BitConverter.ToInt32(br.ReadBytes(4)) + 17;
+
+            ms.Seek(offset, SeekOrigin.Begin);
+            int visemeCount = BinaryPrimitives.ReadInt32BigEndian(br.ReadBytes(4));
+
+            var visemes = new string[visemeCount];
+
+            for(int i = 0; i < visemeCount; i++) {
+                uint visemeNameLen = BinaryPrimitives.ReadUInt32BigEndian(br.ReadBytes(4));
+                visemes[i] = Encoding.UTF8.GetString(br.ReadBytes((int)visemeNameLen), 0, (int)visemeNameLen);
+                if (visemes[i].StartsWith("Exp") || visemes[i].EndsWith("Accent")) visemes[i] = visemes[i].ToLower();
+            }
+
+            uint frameCount = BinaryPrimitives.ReadUInt32BigEndian(br.ReadBytes(4));
+
+            br.ReadBytes(4); // skip unknown bytes
+
+            var lipsyncData = new (byte changes, byte[] byteArr)[frameCount];
+            for(int x = 0; x < frameCount; x++) {
+                byte cur = br.ReadByte();
+                lipsyncData[x] = (cur, (cur != 0) ? br.ReadBytes(cur * 2) : null!);
+            }
+            
+            var visemeFrame = new byte[visemeCount];
+            var prevFrame = new byte[visemeCount];
+
+            var visemeState = new List<List<byte>>(); // List of length frameCount (List of length visemeFrame)
+            
+            foreach(var lip in lipsyncData) {
+                if(lip.changes != 0) {
+                    int visemeEdit = 0;
+                    for(int y = 0; y < lip.changes * 2; y++) {
+                        if (y % 2 == 0) visemeEdit = lip.byteArr[y];
+                        else visemeFrame[visemeEdit] = lip.byteArr[y];
+                    }
+                }
+                visemeState.Add(new List<byte>(visemeFrame));
+            }
+
+            var lipsyncTrack = new List<MidiEvent> { new SequenceTrackNameEvent(trackName) };
+            long timeStart = 0;
+            
+            for (int y = 0; y < visemeState.Count; y++) {
+                double secs = y / 30.0;
+                long secsInTicks = TimeConverter.ConvertFrom(new MetricTimeSpan((long)(secs * 1000000)), tmap);
+                long timeVal = secsInTicks - timeStart;
+
+                if (timeVal < 0) throw new Exception("oopsie doopsie");
+                
+                if(!Enumerable.SequenceEqual(prevFrame, visemeState[y])) {
+                    timeStart += timeVal;
+                    for(int i = 0; i < visemeState[y].Count; i++) {
+                        if (visemeState[y][i] != prevFrame[i]) {
+                            string textEvent = $"[{visemes[i]} {visemeState[y][i]} hold]";
+                            if (offset != 17) textEvent = textEvent.ToLower();
+                            lipsyncTrack.Add(new TextEvent() { Text = textEvent, DeltaTime=timeVal });
+                            timeVal = 0;
+                        }
+                    }
+                    visemeState[y].CopyTo(prevFrame, 0);
+                }
+            }
+            return new TrackChunk(lipsyncTrack);
+        }
+
         // the main fxn we actually care about
         // TODO: change from void return val to a List of TrackChunks
-        public static void GetMidiFromMilo(byte[] miloBytes, TempoMap tmap){
+        public static List<TrackChunk> GetMidiFromMilo(byte[] miloBytes, TempoMap tmap){
             // inflate milo bytes
             // get dictionary of files and filebytes from inflated milo
-            var MiloFiles = ParseMiloForFiles(miloBytes);
             var MiloTracks = new List<TrackChunk>();
+            // if no milo bytes, return empty list
+            if(miloBytes == null || miloBytes.Length == 0) return MiloTracks;
 
+            var MiloFiles = ParseMiloForFiles(miloBytes);
             // with our list of files and filebytes from the milo, we must convert each file to a MIDI track
             foreach(var f in MiloFiles){
                 switch(f.Key){
                     case "song.anim":
-                        Debug.Log("found song.anim file, must convert to midi VENUE track");
                         MiloTracks.Add(AnimToMidi(f.Value, tmap));
+                        Debug.Log($"found VENUE track in the milo");
                         break;
                     case "song.lipsync":
-                        Debug.Log("found song.lipsync file, must convert to midi LIPSYNC1 track");
+                        MiloTracks.Add(LipsyncToMidi(f.Value, tmap, "LIPSYNC1"));
+                        Debug.Log($"found LIPSYNC1 track in the milo");
                         break;
                     case "part2.lipsync":
-                        Debug.Log("found part2.lipsync file, must convert to midi LIPSYNC2 track");
+                        MiloTracks.Add(LipsyncToMidi(f.Value, tmap, "LIPSYNC2"));
+                        Debug.Log($"found LIPSYNC2 track in the milo");
                         break;
                     case "part3.lipsync":
-                        Debug.Log("found part3.lipsync file, must convert to midi LIPSYNC3 track");
+                        MiloTracks.Add(LipsyncToMidi(f.Value, tmap, "LIPSYNC3"));
+                        Debug.Log($"found LIPSYNC3 track in the milo");
                         break;
                     case "part4.lipsync":
-                        Debug.Log("found part4.lipsync file, must convert to midi LIPSYNC4 track");
+                        MiloTracks.Add(LipsyncToMidi(f.Value, tmap, "LIPSYNC4"));
+                        Debug.Log($"found LIPSYNC4 track in the milo");
                         break;
                     default: break;
                 }
             }
+            return MiloTracks;
         }
     }
 }

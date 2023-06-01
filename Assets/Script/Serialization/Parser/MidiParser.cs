@@ -136,7 +136,10 @@ namespace YARG.Serialization.Parser {
 				}
 
 				// get midi tracks based from the milo, and append them to the midi to use
-				MiloParser.GetMidiFromMilo(oof.LoadMiloFile(), midi.GetTempoMap());
+				var miloTracks = MiloParser.GetMidiFromMilo(oof.LoadMiloFile(), midi.GetTempoMap());
+				foreach(var track in miloTracks){
+					midi.Chunks.Add(track);
+				}
 
 			}
 
