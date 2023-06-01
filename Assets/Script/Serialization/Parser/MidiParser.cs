@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
@@ -23,6 +24,10 @@ namespace YARG.Serialization.Parser {
 			NoHeaderChunkPolicy = NoHeaderChunkPolicy.Ignore,
 			InvalidChannelEventParameterValuePolicy = InvalidChannelEventParameterValuePolicy.ReadValid,
 		};
+
+		// Matches text inside [brackets], not including the brackets
+		// '[end]' -> 'end', '[section Solo] - "Solo"' -> 'section Solo'
+		private static readonly Regex textEventRegex = new(@"\[(.*?)\]", RegexOptions.Compiled | RegexOptions.Singleline);
 
 		private struct EventIR {
 			public long startTick;
@@ -161,6 +166,9 @@ namespace YARG.Serialization.Parser {
 
 						// Parse everything else
 						switch (trackName.Text) {
+							case "EVENTS":
+								ParseGlobalEvents(eventIR, trackChunk);
+								break;
 							case "PART GUITAR":
 								for (int i = 0; i < 4; i++) {
 									chart.Guitar[i] = ParseFiveFret(trackChunk, i);
@@ -258,7 +266,7 @@ namespace YARG.Serialization.Parser {
 
 			// Downsample instruments
 
-			foreach (var subChart in chart.allParts) {
+			foreach (var subChart in chart.AllParts) {
 				try {
 					// Downsample Five Fret instruments
 					if (subChart == chart.Guitar || subChart == chart.Bass || subChart == chart.Keys) {
@@ -286,7 +294,7 @@ namespace YARG.Serialization.Parser {
 			// Sort notes by time (just in case) and add delay
 
 			float lastNoteTime = 0f;
-			foreach (var part in chart.allParts) {
+			foreach (var part in chart.AllParts) {
 				foreach (var difficulty in part) {
 					if (difficulty == null || difficulty.Count <= 0) {
 						continue;
@@ -372,6 +380,29 @@ namespace YARG.Serialization.Parser {
 			// Look for bonus star power
 
 			// TODO
+		}
+
+		private void ParseGlobalEvents(List<EventIR> eventIR, TrackChunk trackChunk) {
+			long totalDelta = 0;
+
+			// Convert track events into intermediate representation
+			foreach (var trackEvent in trackChunk.Events) {
+				totalDelta += trackEvent.DeltaTime;
+
+				if (trackEvent is BaseTextEvent textEvent) {
+					string text = textEvent.Text;
+					// Strip away the [brackets] from events (and any garbage outside them)
+					var match = textEventRegex.Match(text);
+					if (match.Success) {
+						text = match.Groups[1].Value;
+					}
+
+					eventIR.Add(new EventIR {
+						startTick = totalDelta,
+						name = text
+					});
+				}
+			}
 		}
 
 		private void ParseStarpower(List<EventIR> eventIR, TrackChunk trackChunk, string instrument) {
