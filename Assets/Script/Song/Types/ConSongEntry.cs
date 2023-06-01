@@ -35,7 +35,7 @@ namespace YARG.Song {
 			ImgIndex = reader.ReadInt32();
 			if (ImgIndex == -1) {
 				ImagePath = reader.ReadString();
-				AlternatePath = ImagePath.Length > 0;
+				HasAlbumArt = AlternatePath = ImagePath.Length > 0;
 			}
 		}
 
