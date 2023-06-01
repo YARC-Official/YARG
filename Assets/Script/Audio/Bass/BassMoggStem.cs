@@ -228,6 +228,12 @@ namespace YARG {
 			return Bass.ChannelBytes2Seconds(_leadChannel, Bass.ChannelGetPosition(_leadChannel));
 		}
 
+		public void SetPosition(double position) {
+			foreach (var bassHandle in BassChannels) {
+				BassMix.ChannelSetPosition(bassHandle, Bass.ChannelSeconds2Bytes(bassHandle, position));
+			}
+		}
+
 		public double GetLengthInSeconds() {
 			return BassHelpers.GetChannelLengthInSeconds(_leadChannel);
 		}

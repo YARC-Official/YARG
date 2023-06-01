@@ -20,6 +20,7 @@ namespace YARG {
 		public void SetReverb(bool reverb);
 
 		public double GetPosition();
+		public void SetPosition(double position);
 		
 		public double GetLengthInSeconds();
 

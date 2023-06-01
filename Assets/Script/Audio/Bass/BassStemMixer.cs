@@ -159,21 +159,7 @@ namespace YARG {
 			}
 
 			foreach (var channel in Channels.Values) {
-				long channelPosition;
-				switch (channel) {
-					case BassStemChannel bassStemChannel:
-						int handle = bassStemChannel.StreamHandle;
-						channelPosition = Bass.ChannelSeconds2Bytes(handle, position);
-						BassMix.ChannelSetPosition(handle, channelPosition);
-						break;
-					case BassMoggStem bassMoggStem:
-						foreach (var bassHandle in bassMoggStem.BassChannels) {
-							channelPosition = Bass.ChannelSeconds2Bytes(bassHandle, position);
-							BassMix.ChannelSetPosition(bassHandle, channelPosition);
-						}
-						break;
-				}
-				
+				channel.SetPosition(position);
 			}
 		}
 

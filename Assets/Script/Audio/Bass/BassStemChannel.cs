@@ -205,6 +205,10 @@ namespace YARG {
 			return Bass.ChannelBytes2Seconds(StreamHandle, Bass.ChannelGetPosition(StreamHandle));
 		}
 
+		public void SetPosition(double position) {
+			BassMix.ChannelSetPosition(StreamHandle, Bass.ChannelSeconds2Bytes(StreamHandle, position));
+		}
+
 		public double GetLengthInSeconds() {
 			return BassHelpers.GetChannelLengthInSeconds(StreamHandle);
 		}
