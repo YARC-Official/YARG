@@ -7,10 +7,7 @@ using Cysharp.Threading.Tasks;
 using ManagedBass;
 using ManagedBass.Mix;
 using UnityEngine;
-using XboxSTFS;
-using YARG.Serialization;
 using YARG.Song;
-using Debug = UnityEngine.Debug;
 
 namespace YARG.Audio.BASS {
 	public class BassAudioManager : MonoBehaviour, IAudioManager {

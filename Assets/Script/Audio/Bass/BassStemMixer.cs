@@ -6,7 +6,6 @@ using Cysharp.Threading.Tasks;
 using ManagedBass;
 using ManagedBass.Mix;
 using UnityEngine;
-using YARG.Serialization;
 
 namespace YARG.Audio.BASS {
 	public class BassStemMixer : IStemMixer {

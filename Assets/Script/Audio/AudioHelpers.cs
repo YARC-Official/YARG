@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace YARG.Audio {
 	public static class AudioHelpers {
