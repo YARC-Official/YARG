@@ -266,7 +266,7 @@ namespace YARG.Serialization.Parser {
 
 			// Downsample instruments
 
-			foreach (var subChart in chart.allParts) {
+			foreach (var subChart in chart.AllParts) {
 				try {
 					// Downsample Five Fret instruments
 					if (subChart == chart.Guitar || subChart == chart.Bass || subChart == chart.Keys) {
@@ -294,7 +294,7 @@ namespace YARG.Serialization.Parser {
 			// Sort notes by time (just in case) and add delay
 
 			float lastNoteTime = 0f;
-			foreach (var part in chart.allParts) {
+			foreach (var part in chart.AllParts) {
 				foreach (var difficulty in part) {
 					if (difficulty == null || difficulty.Count <= 0) {
 						continue;

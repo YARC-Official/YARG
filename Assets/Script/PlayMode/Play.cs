@@ -175,7 +175,7 @@ namespace YARG.PlayMode {
 			}
 
 			// The song length must include all notes in the chart
-			foreach (var part in chart.allParts) {
+			foreach (var part in chart.AllParts) {
 				foreach (var difficulty in part) {
 					if (difficulty.Count < 1) {
 						continue;
