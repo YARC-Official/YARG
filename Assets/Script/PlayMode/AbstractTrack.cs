@@ -24,12 +24,15 @@ namespace YARG.PlayMode {
 
 		// Time values
 
+		public float HitMarginHalf => Constants.HIT_MARGIN * Play.speed;
+		public float HitMargin => HitMarginHalf * 2;
+
 		// Convenience name for current song time
 		public float CurrentTime => Play.Instance.SongTime;
 		// Time relative to the start of the hit window
-		public float HitMarginStartTime => Play.Instance.SongTime + Constants.HIT_MARGIN;
+		public float HitMarginStartTime => Play.Instance.SongTime + HitMarginHalf;
 		// Time relative to the end of the hit window
-		public float HitMarginEndTime => Play.Instance.SongTime - Constants.HIT_MARGIN;
+		public float HitMarginEndTime => Play.Instance.SongTime - HitMarginHalf;
 		// Time relative to the beginning of the track, used for spawning notes and other visuals
 		public float TrackStartTime => Play.Instance.SongTime +
 			((TRACK_SPAWN_OFFSET + TRACK_END_OFFSET) / (player.trackSpeed / Play.speed));
