@@ -78,11 +78,6 @@ namespace YARG.Audio.PitchDetection {
 		}
 
 		/// <summary>
-		/// Get the current pitch position
-		/// </summary>
-		public long CurrentPitchSamplePosition { get; private set; }
-
-		/// <summary>
 		/// Get the frequency step
 		/// </summary>
 		public static float FrequencyStep => Mathf.Pow(2f, 1f / OCTAVE_STEPS);
@@ -94,11 +89,17 @@ namespace YARG.Audio.PitchDetection {
 		public int DetectSampleOffset => (_pitchBufSize + _detectOverlapSamples) / 2;
 
 		/// <summary>
+		/// Get the current pitch position
+		/// </summary>
+		public long SampleReadPosition { get; private set; }
+
+		/// <summary>
 		/// Reset the pitch tracker. Call this when the sample position is
 		/// not consecutive from the previous position
 		/// </summary>
 		public void Reset() {
-			CurrentPitchSamplePosition = 0;
+			SampleReadPosition = 0;
+
 			_IIRFilterLowLow.Reset();
 			_IIRFilterLowHigh.Reset();
 			_IIRFilterHighLow.Reset();
@@ -130,13 +131,14 @@ namespace YARG.Audio.PitchDetection {
 		/// data do another pitch detect operation.
 		/// </summary>
 		/// <param name="input">Input Buffer. Samples must be in the range -1.0 to 1.0</param>
-		/// <param name="sampleCount">Number of samples to process. Zero means all samples in the Buffer</param>
-		public void ProcessBuffer(ReadOnlySpan<float> input) {
+		public float? ProcessBuffer(ReadOnlySpan<float> input) {
 			if (input == null) {
 				throw new ArgumentNullException(nameof(input), "Input buffer cannot be null");
 			}
 
-			var samplesProcessed = 0;
+			float? detectedPitch = null;
+
+			int samplesProcessed = 0;
 			while (samplesProcessed < input.Length) {
 				var frameCount = Mathf.Min(input.Length - samplesProcessed, _pitchBufSize + _detectOverlapSamples);
 
@@ -150,37 +152,37 @@ namespace YARG.Audio.PitchDetection {
 				_circularBufferHigh.Write(_pitchBufHigh, frameCount);
 
 				// Loop while there is enough samples in the circular Buffer
-				while (_circularBufferLow.Read(_pitchBufLow, CurrentPitchSamplePosition,
-					       _pitchBufSize + _detectOverlapSamples)) {
-					float detectedPitch = 0;
-
-					_circularBufferHigh.Read(_pitchBufHigh, CurrentPitchSamplePosition,
-						_pitchBufSize + _detectOverlapSamples);
+				while (_circularBufferLow.Read(_pitchBufLow, SampleReadPosition, _pitchBufSize + _detectOverlapSamples)) {
+					_circularBufferHigh.Read(_pitchBufHigh, SampleReadPosition, _pitchBufSize + _detectOverlapSamples);
+					SampleReadPosition += SamplesPerPitchBlock;
 
 					var pitch1 = _DSP.DetectPitch(_pitchBufLow, _pitchBufHigh, _pitchBufSize);
 
-					if (pitch1 > 0.0f) {
-						// Shift the buffers left by the overlapping amount
-						SafeCopy(_pitchBufLow, _pitchBufLow, _detectOverlapSamples, 0, _pitchBufSize);
-						SafeCopy(_pitchBufHigh, _pitchBufHigh, _detectOverlapSamples, 0, _pitchBufSize);
-
-						var pitch2 = _DSP.DetectPitch(_pitchBufLow, _pitchBufHigh, _pitchBufSize);
-
-						if (pitch2 > 0) {
-							var fDiff = Mathf.Max(pitch1, pitch2) / Mathf.Min(pitch1, pitch2) - 1;
-
-							if (fDiff < _maxOverlapDiff) detectedPitch = (pitch1 + pitch2) * 0.5f;
-						}
+					if (pitch1 <= 0f) {
+						continue;
 					}
 
-					// Log the pitch record
-					PitchDetected?.Invoke(new PitchRecord(detectedPitch));
+					// Shift the buffers left by the overlapping amount
+					SafeCopy(_pitchBufLow, _pitchBufLow, _detectOverlapSamples, 0, _pitchBufSize);
+					SafeCopy(_pitchBufHigh, _pitchBufHigh, _detectOverlapSamples, 0, _pitchBufSize);
 
-					CurrentPitchSamplePosition += SamplesPerPitchBlock;
+					var pitch2 = _DSP.DetectPitch(_pitchBufLow, _pitchBufHigh, _pitchBufSize);
+
+					if (pitch2 <= 0f) {
+						continue;
+					}
+
+					var fDiff = Mathf.Max(pitch1, pitch2) / Mathf.Min(pitch1, pitch2) - 1;
+
+					if (fDiff < _maxOverlapDiff) {
+						detectedPitch = (pitch1 + pitch2) * 0.5f;
+					}
 				}
 
 				samplesProcessed += frameCount;
 			}
+
+			return detectedPitch;
 		}
 
 		/// <summary>
@@ -255,7 +257,5 @@ namespace YARG.Audio.PitchDetection {
 			_circularBufferLow = new CircularBuffer((int) (CIRCULAR_BUF_SAVE_TIME * _sampleRate + 0.5f) + 10000);
 			_circularBufferHigh = new CircularBuffer((int) (CIRCULAR_BUF_SAVE_TIME * _sampleRate + 0.5f) + 10000);
 		}
-
-		public event Action<PitchRecord> PitchDetected;
 	}
 }

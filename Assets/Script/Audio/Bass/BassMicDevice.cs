@@ -16,8 +16,6 @@ namespace YARG.Audio {
 		public float Pitch { get; private set; }
 		public float Amplitude { get; private set; }
 
-		private float _voiceStartTimer;
-
 		private int _cleanRecordHandle;
 		private int _processedRecordHandle;
 		private int _monitorPlaybackHandle;
@@ -102,7 +100,6 @@ namespace YARG.Audio {
 			SetMonitoringLevel(SettingsManager.Settings.VocalMonitoring.Data);
 
 			_pitchDetector = new PitchTracker();
-			_pitchDetector.PitchDetected += OnPitchDetected;
 
 			_initialized = true;
 
@@ -152,20 +149,14 @@ namespace YARG.Audio {
 
 			// Skip pitch detection if not speaking
 			if (Amplitude <= 2f) {
-				_voiceStartTimer = 0f;
-				return;
-			}
-			_voiceStartTimer += 1f / RECORD_PERIOD_MILLIS;
-
-			_pitchDetector.ProcessBuffer(bufferSpan);
-		}
-
-		private void OnPitchDetected(PitchRecord record) {
-			if (record == null || record.Pitch <= 1) {
 				return;
 			}
 
-			Pitch = (float) record.Pitch;
+			// Process the pitch buffer
+			var pitchOutput = _pitchDetector.ProcessBuffer(bufferSpan);
+			if (pitchOutput != null) {
+				Pitch = pitchOutput.Value;
+			}
 		}
 
 		public void Dispose() {
