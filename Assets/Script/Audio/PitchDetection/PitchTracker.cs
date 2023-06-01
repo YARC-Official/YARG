@@ -6,12 +6,20 @@ namespace YARG.Audio.PitchDetection {
 	/// Tracks pitch
 	/// </summary>
 	public class PitchTracker {
+		private struct FilterInfo {
+			public IIRFilter High;
+			public IIRFilter Low;
+
+			public float[] Buffer;
+			public CircularBuffer CircularBuffer;
+		}
+
 		private const int OCTAVE_STEPS = 96;
 
 		// A1, Midi note 33, 55.0Hz
-		private const float MINIMUM_DETECTED_FREQUENCY = 50;
+		private const float MIN_FREQUENCY = 50;
 		// A#6. Midi note 92
-		private const float MAXIMUM_DETECTED_FREQUENCY = 1600;
+		private const float MAX_FREQUENCY = 1600;
 
 		private const float DETECT_OVERLAP_SEC = 0.005f;
 		private const float MAX_OCTAVE_SEC_RATE = 10.0f;
@@ -24,56 +32,47 @@ namespace YARG.Audio.PitchDetection {
 		private const float CIRCULAR_BUF_SAVE_TIME = 1.0f;
 
 		private PitchProcessor _DSP;
-		private CircularBuffer _circularBufferLow;
-		private CircularBuffer _circularBufferHigh;
 		private readonly float _sampleRate;
 
-		// -40dB
-		private float _detectLevelThreshold = 0.01f;
 		// default is 50, or one record every 20ms
 		private int _pitchRecordsPerSecond = 50;
 
-		private float[] _pitchBufLow, _pitchBufHigh;
 		private int _pitchBufSize;
 
 		private int _detectOverlapSamples;
 		private float _maxOverlapDiff;
+		private int _samplesPerPitchBlock;
 
-		private IIRFilter _IIRFilterLowLow, _IIRFilterLowHigh, _IIRFilterHighLow, _IIRFilterHighHigh;
+		private FilterInfo[] _filters;
 
-		public PitchTracker(float sampleRate = 44100f) {
+		public PitchTracker(float detectLevelThreshold = 0.01f, float sampleRate = 44100f) {
 			_sampleRate = sampleRate;
-			Setup();
-		}
 
-		/// <summary>
-		/// Set the detect level threshold, The value must be between 0.0001f and 1.0f (-80 dB to 0 dB)
-		/// </summary>
-		public float DetectLevelThreshold {
-			set {
-				var newValue = Mathf.Max(0.0001f, Mathf.Min(1.0f, value));
-				if (_detectLevelThreshold == newValue) {
-					return;
-				}
+			_DSP = new PitchProcessor(_sampleRate, MIN_FREQUENCY, MAX_FREQUENCY, detectLevelThreshold);
 
-				_detectLevelThreshold = newValue;
-				Setup();
-			}
-		}
+			_pitchBufSize = (int) ((1.0f / MIN_FREQUENCY * 2.0f + (AVG_COUNT - 1) * AVG_OFFSET) * _sampleRate) + 16;
+			_detectOverlapSamples = (int) (DETECT_OVERLAP_SEC * _sampleRate);
 
-		/// <summary>
-		/// Return the samples per pitch block
-		/// </summary>
-		public int SamplesPerPitchBlock { get; private set; }
+			_maxOverlapDiff = MAX_OCTAVE_SEC_RATE * DETECT_OVERLAP_SEC;
+			_samplesPerPitchBlock = (int) Mathf.Round(_sampleRate / _pitchRecordsPerSecond);
 
-		/// <summary>
-		/// Get or set the number of pitch records per second (default is 50, or one record every 20ms)
-		/// </summary>
-		public int PitchRecordsPerSecond {
-			get => _pitchRecordsPerSecond;
-			set {
-				_pitchRecordsPerSecond = Mathf.Max(1, Mathf.Min(100, value));
-				Setup();
+			// Create the high and low filters
+			_filters = new FilterInfo[2];
+			for (int i = 0; i < 2; i++) {
+				float highFreq = i == 0 ? 280f : 1500f;
+
+				var filter = new FilterInfo {
+					Low = new IIRFilter(IIRFilterType.HP, 5, _sampleRate) {
+						FreqLow = 45
+					},
+					High = new IIRFilter(IIRFilterType.LP, 5, _sampleRate) {
+						FreqHigh = highFreq
+					},
+					Buffer = new float[_pitchBufSize + _detectOverlapSamples],
+					CircularBuffer = new CircularBuffer((int) (CIRCULAR_BUF_SAVE_TIME * _sampleRate + 0.5f) + 10000)
+				};
+
+				_filters[i] = filter;
 			}
 		}
 
@@ -100,22 +99,16 @@ namespace YARG.Audio.PitchDetection {
 		public void Reset() {
 			SampleReadPosition = 0;
 
-			_IIRFilterLowLow.Reset();
-			_IIRFilterLowHigh.Reset();
-			_IIRFilterHighLow.Reset();
-			_IIRFilterHighHigh.Reset();
+			foreach (var filter in _filters) {
+				filter.High.Reset();
+				filter.Low.Reset();
+				Array.Clear(filter.Buffer, 0, filter.Buffer.Length);
 
-			_circularBufferLow.Reset();
-			_circularBufferLow.Clear();
-			_circularBufferHigh.Reset();
-			_circularBufferHigh.Clear();
-			Array.Clear(_pitchBufLow, 0, _pitchBufLow.Length);
-			Array.Clear(_pitchBufHigh, 0, _pitchBufHigh.Length);
-
-			_circularBufferLow.StartPosition = -_detectOverlapSamples;
-			_circularBufferLow.Available = _detectOverlapSamples;
-			_circularBufferHigh.StartPosition = -_detectOverlapSamples;
-			_circularBufferHigh.Available = _detectOverlapSamples;
+				filter.CircularBuffer.Reset();
+				filter.CircularBuffer.Clear();
+				filter.CircularBuffer.StartPosition = -_detectOverlapSamples;
+				filter.CircularBuffer.Available = _detectOverlapSamples;
+			}
 		}
 
 		/// <summary>
@@ -142,31 +135,29 @@ namespace YARG.Audio.PitchDetection {
 			while (samplesProcessed < input.Length) {
 				var frameCount = Mathf.Min(input.Length - samplesProcessed, _pitchBufSize + _detectOverlapSamples);
 
-				_IIRFilterLowLow.FilterBuffer(input, samplesProcessed, _pitchBufLow, 0, frameCount);
-				_IIRFilterLowHigh.FilterBuffer(_pitchBufLow, 0, _pitchBufLow, 0, frameCount);
-
-				_IIRFilterHighLow.FilterBuffer(input, samplesProcessed, _pitchBufHigh, 0, frameCount);
-				_IIRFilterHighHigh.FilterBuffer(_pitchBufHigh, 0, _pitchBufHigh, 0, frameCount);
-
-				_circularBufferLow.Write(_pitchBufLow, frameCount);
-				_circularBufferHigh.Write(_pitchBufHigh, frameCount);
+				foreach (var filter in _filters) {
+					filter.Low.FilterBuffer(input, samplesProcessed, filter.Buffer, 0, frameCount);
+					filter.High.FilterBuffer(filter.Buffer, 0, filter.Buffer, 0, frameCount);
+					filter.CircularBuffer.Write(filter.Buffer, frameCount);
+				}
 
 				// Loop while there is enough samples in the circular Buffer
-				while (_circularBufferLow.Read(_pitchBufLow, SampleReadPosition, _pitchBufSize + _detectOverlapSamples)) {
-					_circularBufferHigh.Read(_pitchBufHigh, SampleReadPosition, _pitchBufSize + _detectOverlapSamples);
-					SampleReadPosition += SamplesPerPitchBlock;
+				while (_filters[0].CircularBuffer.Read(_filters[0].Buffer, SampleReadPosition, _pitchBufSize + _detectOverlapSamples)) {
+					_filters[1].CircularBuffer.Read(_filters[1].Buffer, SampleReadPosition, _pitchBufSize + _detectOverlapSamples);
+					SampleReadPosition += _samplesPerPitchBlock;
 
-					var pitch1 = _DSP.DetectPitch(_pitchBufLow, _pitchBufHigh, _pitchBufSize);
+					var pitch1 = _DSP.DetectPitch(_filters[0].Buffer, _filters[1].Buffer, _pitchBufSize);
 
 					if (pitch1 <= 0f) {
 						continue;
 					}
 
 					// Shift the buffers left by the overlapping amount
-					SafeCopy(_pitchBufLow, _pitchBufLow, _detectOverlapSamples, 0, _pitchBufSize);
-					SafeCopy(_pitchBufHigh, _pitchBufHigh, _detectOverlapSamples, 0, _pitchBufSize);
+					foreach (var filter in _filters) {
+						SafeCopy(filter.Buffer, filter.Buffer, _detectOverlapSamples, 0, _pitchBufSize);
+					}
 
-					var pitch2 = _DSP.DetectPitch(_pitchBufLow, _pitchBufHigh, _pitchBufSize);
+					var pitch2 = _DSP.DetectPitch(_filters[0].Buffer, _filters[1].Buffer, _pitchBufSize);
 
 					if (pitch2 <= 0f) {
 						continue;
@@ -225,37 +216,6 @@ namespace YARG.Audio.PitchDetection {
 				for (int fromIdx = fromStart, toIdx = toStart; fromIdx <= fromEndIdx; fromIdx++, toIdx++)
 					to[toIdx] = from[fromIdx];
 			}
-		}
-
-		/// <summary>
-		/// Setup
-		/// </summary>
-		private void Setup() {
-			if (_sampleRate < 1)
-				return;
-
-			_DSP = new PitchProcessor(_sampleRate, MINIMUM_DETECTED_FREQUENCY, MAXIMUM_DETECTED_FREQUENCY,
-				_detectLevelThreshold);
-
-			_IIRFilterLowLow = new IIRFilter(IIRFilterType.HP, 5, (float) _sampleRate) { FreqLow = 45 };
-
-			_IIRFilterLowHigh = new IIRFilter(IIRFilterType.LP, 5, (float) _sampleRate) { FreqHigh = 280 };
-
-			_IIRFilterHighLow = new IIRFilter(IIRFilterType.HP, 5, (float) _sampleRate) { FreqLow = 45 };
-
-			_IIRFilterHighHigh = new IIRFilter(IIRFilterType.LP, 5, (float) _sampleRate) { FreqHigh = 1500 };
-
-			_detectOverlapSamples = (int) (DETECT_OVERLAP_SEC * _sampleRate);
-			_maxOverlapDiff = MAX_OCTAVE_SEC_RATE * DETECT_OVERLAP_SEC;
-
-			_pitchBufSize =
-				(int) ((1.0f / MINIMUM_DETECTED_FREQUENCY * 2.0f + (AVG_COUNT - 1) * AVG_OFFSET) * _sampleRate) + 16;
-			_pitchBufLow = new float[_pitchBufSize + _detectOverlapSamples];
-			_pitchBufHigh = new float[_pitchBufSize + _detectOverlapSamples];
-			SamplesPerPitchBlock = (int) Mathf.Round(_sampleRate / _pitchRecordsPerSecond);
-
-			_circularBufferLow = new CircularBuffer((int) (CIRCULAR_BUF_SAVE_TIME * _sampleRate + 0.5f) + 10000);
-			_circularBufferHigh = new CircularBuffer((int) (CIRCULAR_BUF_SAVE_TIME * _sampleRate + 0.5f) + 10000);
 		}
 	}
 }
