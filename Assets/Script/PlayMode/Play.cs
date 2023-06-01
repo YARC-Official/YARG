@@ -29,6 +29,7 @@ namespace YARG.PlayMode {
 		public static float speed = 1f;
 
 		public const float SONG_START_OFFSET = -2f;
+		public const float SONG_END_DELAY = 2f;
 
 		public delegate void BeatAction();
 		public static event BeatAction BeatEvent;
@@ -57,10 +58,8 @@ namespace YARG.PlayMode {
 		private float realSongTime;
 		public float SongTime => realSongTime - PlayerManager.AudioCalibration * speed - (float)Song.Delay;
 
-		public float SongLength {
-			get;
-			private set;
-		}
+		private float audioLength;
+		public float SongLength { get; private set; }
 
 		public YargChart chart;
 
@@ -152,18 +151,51 @@ namespace YARG.PlayMode {
 				GameManager.AudioManager.LoadSong(stems, isSpeedUp);
 			}
 
-			SongLength = GameManager.AudioManager.AudioLengthF;
+			// Get song length
+			audioLength = GameManager.AudioManager.AudioLengthF;
+			SongLength = audioLength;
 
 			GameUI.Instance.SetLoadingText("Loading chart...");
 
 			// Load chart (from midi, upgrades, etc.)
 			LoadChart();
 
+			// Adjust song length if needed
+			// The [end] event is allowed to make the chart shorter (but not longer)
+			for (int i = chart.events.Count - 1; i > 0; i--) {
+				var chartEvent = chart.events[i];
+				if (chartEvent.name != "end") {
+					continue;
+				}
+
+				if (chartEvent.time < SongLength) {
+					SongLength = chartEvent.time;
+					break;
+				}
+			}
+
+			// The song length must include all notes in the chart
+			foreach (var part in chart.AllParts) {
+				foreach (var difficulty in part) {
+					if (difficulty.Count < 1) {
+						continue;
+					}
+
+					var lastNote = difficulty[^1];
+					if (lastNote.EndTime > SongLength) {
+						SongLength = lastNote.EndTime;
+					}
+				}
+			}
+
+			// Finally, append some additional time so the song doesn't just end immediately
+			SongLength += SONG_END_DELAY * speed;
+
 			GameUI.Instance.SetLoadingText("Spawning tracks...");
 
 			// Spawn tracks
 			_tracks = new List<AbstractTrack>();
-			int i = 0;
+			int trackIndex = 0;
 			foreach (var player in PlayerManager.players) {
 				if (player.chosenInstrument == null) {
 					// Skip players that are sitting out
@@ -187,11 +219,11 @@ namespace YARG.PlayMode {
 				}
 
 				var prefab = Addressables.LoadAssetAsync<GameObject>(trackPath).WaitForCompletion();
-				var track = Instantiate(prefab, new Vector3(i * 25f, 100f, 0f), prefab.transform.rotation);
+				var track = Instantiate(prefab, new Vector3(trackIndex * 25f, 100f, 0f), prefab.transform.rotation);
 				_tracks.Add(track.GetComponent<AbstractTrack>());
-				_tracks[i].player = player;
+				_tracks[trackIndex].player = player;
 
-				i++;
+				trackIndex++;
 			}
 
 			// Load background (venue, video, image, etc.)
@@ -204,16 +236,6 @@ namespace YARG.PlayMode {
 
 			realSongTime = SONG_START_OFFSET;
 			StartCoroutine(StartAudio());
-
-			// End events override the audio length
-			foreach (var chartEvent in chart.events) {
-				// TODO: "chart.events" does not include the "end" event, as it is
-				// intermdiate representation of the midi file. The "end" event must be parsed.
-				if (chartEvent.name == "end") {
-					SongLength = chartEvent.time;
-					break;
-				}
-			}
 
 			OnSongStart?.Invoke(Song);
 		}
@@ -327,7 +349,13 @@ namespace YARG.PlayMode {
 
 			// Update this every frame to make sure all notes are spawned at the same time.
 			if (audioStarted) {
-				realSongTime = GameManager.AudioManager.CurrentPositionF;
+				float audioTime = GameManager.AudioManager.CurrentPositionF;
+				// We need to update the song time ourselves if the audio finishes before the song actually ends
+				if (audioTime < audioLength) {
+					realSongTime = GameManager.AudioManager.CurrentPositionF;
+				} else {
+					realSongTime += Time.deltaTime * speed;
+				}
 			}
 
 			UpdateAudio(new[] {

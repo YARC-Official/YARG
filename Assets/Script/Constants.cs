@@ -5,7 +5,8 @@ namespace YARG {
 		public static readonly YargVersion VERSION_TAG = YargVersion.Parse("v0.10.4");
 
 		// General
-		public const float HIT_MARGIN = 0.095f;
+		public const float HIT_MARGIN_FRONT = 0.095f;
+		public const float HIT_MARGIN_BACK = 0.095f;
 		// Guitar
 		public const float STRUM_LENIENCY = 0.065f;
 		public const bool ANCHORING = true;

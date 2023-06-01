@@ -60,9 +60,8 @@ namespace YARG.Song {
 			// mogg data
 			UsingUpdateMogg = reader.ReadBoolean();
 			MoggPath = reader.ReadString();
-
-			AlternatePath = reader.ReadBoolean();
 			ImagePath = reader.ReadString();
+			HasAlbumArt = ImagePath.Length > 0;
 		}
 
 		protected void ContinueCacheRead(BinaryReader reader, List<XboxSTFSFile> conFiles) {
@@ -121,10 +120,6 @@ namespace YARG.Song {
 			// mogg data
 			writer.Write(UsingUpdateMogg);
 			writer.Write(MoggPath);
-
-			// image data
-			writer.Write(AlternatePath);
-			// Note: ImagePath can be an empty string if the song has no image
 			writer.Write(ImagePath);
 		}
 
