@@ -10,7 +10,7 @@ namespace YARG {
 		
 		public double Volume { get; }
 
-		public int Load(bool isSpeedUp, float speed);
+		public int Load(float speed);
 
 		public void FadeIn(float maxVolume);
 		public UniTask FadeOut();

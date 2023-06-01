@@ -46,7 +46,7 @@ namespace YARG {
 			Dispose(false);
 		}
 
-		public int Load(bool isSpeedUp, float speed) {
+		public int Load(float speed) {
 			if (_disposed) {
 				return -1;
 			}
@@ -86,7 +86,7 @@ namespace YARG {
 			Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, _manager.GetVolumeSetting(Stem));
 			Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Volume, 0);
 
-			if (isSpeedUp) {
+			if (!Mathf.Approximately(speed, 1f)) {
 				// Gets relative speed from 100% (so 1.05f = 5% increase)
 				float percentageSpeed = Math.Abs(speed) * 100;
 				float relativeSpeed = percentageSpeed - 100;

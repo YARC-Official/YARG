@@ -99,7 +99,7 @@ namespace YARG {
 					_audioCalibrateContainer.SetActive(true);
 					_calibrationTimes.Clear();
 
-					GameManager.AudioManager.LoadCustomAudioFile(Path.Combine(Application.streamingAssetsPath, "calibration_music.ogg"));
+					GameManager.AudioManager.LoadCustomAudioFile(Path.Combine(Application.streamingAssetsPath, "calibration_music.ogg"), 1f);
 					GameManager.AudioManager.Play();
 					StartCoroutine(AudioCalibrateCoroutine());
 					break;

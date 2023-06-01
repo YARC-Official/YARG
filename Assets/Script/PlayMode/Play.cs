@@ -139,16 +139,13 @@ namespace YARG.PlayMode {
 		private void StartSong() {
 			GameUI.Instance.SetLoadingText("Loading audio...");
 
-			// Determine if speed is not 1
-			bool isSpeedUp = Math.Abs(speed - 1) > float.Epsilon;
-
 			// Load MOGG if CON, otherwise load stems
 			if (Song is ExtractedConSongEntry rawConSongEntry) {
-				GameManager.AudioManager.LoadMogg(rawConSongEntry, isSpeedUp);
+				GameManager.AudioManager.LoadMogg(rawConSongEntry, speed);
 			} else {
 				var stems = AudioHelpers.GetSupportedStems(Song.Location);
 
-				GameManager.AudioManager.LoadSong(stems, isSpeedUp);
+				GameManager.AudioManager.LoadSong(stems, speed);
 			}
 
 			// Get song length

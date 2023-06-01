@@ -30,9 +30,9 @@ namespace YARG {
 
 		public void LoadSfx();
 
-		public void LoadSong(ICollection<string> stems, bool isSpeedUp, params SongStem[] ignoreStems);
-		public void LoadMogg(ExtractedConSongEntry exConSong, bool isSpeedUp, params SongStem[] ignoreStems);
-		public void LoadCustomAudioFile(string audioPath);
+		public void LoadSong(ICollection<string> stems, float speed, params SongStem[] ignoreStems);
+		public void LoadMogg(ExtractedConSongEntry exConSong, float speed, params SongStem[] ignoreStems);
+		public void LoadCustomAudioFile(string audioPath, float speed);
 		public void UnloadSong();
 
 		public void Play();

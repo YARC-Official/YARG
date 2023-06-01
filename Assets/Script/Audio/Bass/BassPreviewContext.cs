@@ -103,9 +103,9 @@ namespace YARG {
 			_loadingPreview = true;
 			await UniTask.RunOnThreadPool(() => {
 				if (_songToLoad is ExtractedConSongEntry conSong) {
-					_manager.LoadMogg(conSong, false, SongStem.Crowd);
+					_manager.LoadMogg(conSong, 1f, SongStem.Crowd);
 				} else {
-					_manager.LoadSong(AudioHelpers.GetSupportedStems(_songToLoad.Location), false, SongStem.Crowd);
+					_manager.LoadSong(AudioHelpers.GetSupportedStems(_songToLoad.Location), 1f, SongStem.Crowd);
 				}
 			});
 			_loadingPreview = false;

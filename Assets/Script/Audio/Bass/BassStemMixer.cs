@@ -69,7 +69,7 @@ namespace YARG {
 			return true;
 		}
 
-		public bool SetupMogg(bool isSpeedUp) {
+		public bool SetupMogg(float speed) {
 			if (!_isMogg) {
 				return false;
 			}
@@ -85,7 +85,7 @@ namespace YARG {
 				// For every channel index in this stem, add it to the list of channels
 				int[] channelStreams = channelIndexes.Select(i => splitStreams[i]).ToArray();
 				var channel = new BassMoggStem(_manager, stem, channelStreams);
-				if (channel.Load(isSpeedUp, PlayMode.Play.speed) < 0) {
+				if (channel.Load(speed) < 0) {
 					return false;
 				}
 

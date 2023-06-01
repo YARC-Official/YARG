@@ -163,7 +163,7 @@ namespace YARG {
 			Debug.Log("Finished loading SFX");
 		}
 
-		public void LoadSong(ICollection<string> stems, bool isSpeedUp, params SongStem[] ignoreStems) {
+		public void LoadSong(ICollection<string> stems, float speed, params SongStem[] ignoreStems) {
 			Debug.Log("Loading song");
 			UnloadSong();
 
@@ -190,7 +190,7 @@ namespace YARG {
 				}
 
 				var stemChannel = new BassStemChannel(this, stemPath, songStem);
-				if (stemChannel.Load(isSpeedUp, PlayMode.Play.speed) != 0) {
+				if (stemChannel.Load(speed) != 0) {
 					Debug.LogError($"Failed to load stem! {stemPath}");
 					Debug.LogError($"Bass Error: {Bass.LastError}");
 					continue;
@@ -216,7 +216,7 @@ namespace YARG {
 			IsAudioLoaded = true;
 		}
 
-		public void LoadMogg(ExtractedConSongEntry exConSong, bool isSpeedUp, params SongStem[] ignoreStems) {
+		public void LoadMogg(ExtractedConSongEntry exConSong, float speed, params SongStem[] ignoreStems) {
 			Debug.Log("Loading mogg song");
 			UnloadSong();
 
@@ -244,7 +244,7 @@ namespace YARG {
 				throw new Exception($"Failed to create mixer: {Bass.LastError}");
 			}
 
-			if (!_mixer.SetupMogg(isSpeedUp)) {
+			if (!_mixer.SetupMogg(speed)) {
 				throw new Exception($"Failed to setup MOGG channels: {Bass.LastError}");
 			}
 
@@ -257,7 +257,7 @@ namespace YARG {
 			IsAudioLoaded = true;
 		}
 
-		public void LoadCustomAudioFile(string audioPath) {
+		public void LoadCustomAudioFile(string audioPath, float speed) {
 			Debug.Log("Loading custom audio file");
 			UnloadSong();
 
@@ -267,7 +267,7 @@ namespace YARG {
 			}
 
 			var stemChannel = new BassStemChannel(this, audioPath, SongStem.Song);
-			if (stemChannel.Load(false, PlayMode.Play.speed) != 0) {
+			if (stemChannel.Load(speed) != 0) {
 				Debug.LogError($"Failed to load stem! {audioPath}");
 				Debug.LogError($"Bass Error: {Bass.LastError}");
 				return;

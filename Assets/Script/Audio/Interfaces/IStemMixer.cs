@@ -15,7 +15,7 @@ namespace YARG {
 		public IStemChannel LeadChannel { get; }
 		
 		public bool Create();
-		public bool SetupMogg(bool isSpeedUp);
+		public bool SetupMogg(float speed);
 
 		public int Play(bool restart = false);
 
