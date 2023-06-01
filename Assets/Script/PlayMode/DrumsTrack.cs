@@ -130,10 +130,10 @@ namespace YARG.PlayMode {
 				var chosenActivatorType = 0;
 				NoteInfo chosenActivatorNote = null;
 
-				for (int i = 0; i < 5; i++) {
-
-					// Prevent out-of-bounds access at the end of a chart
-					if (Chart.Count <= visualChartIndex + i) {
+				// Check three notes before and after the current note to ensure none of the notes in the chord are skipped.
+				for (int i = -3; i < 3; i++) {
+					// Prevent out-of-bounds access at the beginning or end of a chart
+					if (Chart.Count <= visualChartIndex + i || visualChartIndex <= 3) {
 						break;
 					}
 
@@ -143,29 +143,23 @@ namespace YARG.PlayMode {
 						if (chordNote.hopo) {
 							chosenActivatorType = 3;
 							chosenActivatorNote = chordNote;
-							continue;
+							break;
 						}
 
 						// If there are no cymbals on this beat, pads are second.
-						if (!chordNote.hopo && chosenActivatorType < 3) {
+						if (chordNote.fret != 4) {
 							chosenActivatorType = 2;
 							chosenActivatorNote = chordNote;
 							continue;
 						}
 
 						// Finally, if there's nothing else, kick notes must be used. 
-						if (chordNote.fret == 4 && chosenActivatorType < 2) {
+						if (chosenActivatorType < 2) {
 							chosenActivatorType = 1;
 							chosenActivatorNote = chordNote;
 							continue;
 						}
 					}
-				}
-
-				// If, somehow, none of the above conditions are met, the current note will become an activator forcibly.
-				// This is fallback code that will (hopefully) never be needed.
-				if (chosenActivatorNote == null) {
-					chosenActivatorNote = noteInfo;
 				}
 
 				// Skip kick notes if noKickMode is enabled
@@ -176,7 +170,9 @@ namespace YARG.PlayMode {
 
 				// TODO: Only one note should be an activator at any given timestamp
 				if (CurrentVisualFill?.EndTime == noteInfo.time && starpowerCharge >= 0.5f && !IsStarPowerActive) {
-					chosenActivatorNote.isActivator = true;
+					if (chosenActivatorNote != null) {
+						chosenActivatorNote.isActivator = true;
+					}
 				}
 
 				SpawnNote(noteInfo, TrackStartTime);
