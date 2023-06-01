@@ -42,6 +42,17 @@ namespace YARG {
 			_effects = new Dictionary<EffectType, int>();
 		}
 
+		public BassStemChannel(IAudioManager manager, SongStem stem, int sourceStream) {
+			_manager = manager;
+			_sourceHandle = sourceStream;
+
+			Stem = stem;
+			Volume = 1;
+
+			_lastStemVolume = _manager.GetVolumeSetting(Stem);
+			_effects = new Dictionary<EffectType, int>();
+		}
+
 		~BassStemChannel() {
 			Dispose(false);
 		}
@@ -54,12 +65,17 @@ namespace YARG {
 				return 0;
 			}
 
-			_sourceHandle = Bass.CreateStream(_path, 0, 0, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
-			
 			if (_sourceHandle == 0) {
-				return (int) Bass.LastError;
+				if (string.IsNullOrEmpty(_path)) {
+					// Channel was not set up correctly for some reason
+					return -1;
+				}
+				_sourceHandle = Bass.CreateStream(_path, 0, 0, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
+				if (_sourceHandle == 0) {
+					return (int) Bass.LastError;
+				}
 			}
-			
+
 			int main = BassMix.CreateSplitStream(_sourceHandle, BassFlags.Decode | BassFlags.SplitPosition, null);
 			int reverbSplit = BassMix.CreateSplitStream(_sourceHandle, BassFlags.Decode | BassFlags.SplitPosition, null);
 

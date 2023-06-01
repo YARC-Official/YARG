@@ -29,7 +29,7 @@ namespace YARG {
 		public void SetPosition(double position);
 		
 		public int AddChannel(IStemChannel channel);
-		public int AddMoggChannel(IStemChannel channel, IList<float[]> matrixes);
+		public int AddMoggChannel(IMoggStemChannel channel, IList<float[]> matrixes);
 		
 		public bool RemoveChannel(IStemChannel channel);
 		

@@ -84,7 +84,7 @@ namespace YARG {
 			foreach((var stem, int[] channelIndexes) in _stemMaps) {
 				// For every channel index in this stem, add it to the list of channels
 				int[] channelStreams = channelIndexes.Select(i => splitStreams[i]).ToArray();
-				var channel = new BassMoggStem(_manager, stem, channelStreams);
+				var channel = new BassMoggStemChannel(_manager, stem, channelStreams);
 				if (channel.Load(speed) < 0) {
 					return false;
 				}
@@ -190,8 +190,8 @@ namespace YARG {
 			return 0;
 		}
 		
-		public int AddMoggChannel(IStemChannel channel, IList<float[]> matrixes) {
-			if (channel is not BassMoggStem moggStem) {
+		public int AddMoggChannel(IMoggStemChannel channel, IList<float[]> matrixes) {
+			if (channel is not BassMoggStemChannel moggStem) {
 				throw new ArgumentException("Channel must be of type BassMoggStem");
 			}
 
@@ -199,15 +199,13 @@ namespace YARG {
 				return 0;
 			}
 
-			for (var i = 0; i < moggStem.BassChannels.Length; i++) {
-				int bassChannel = moggStem.BassChannels[i];
-				int reverbChannel = moggStem.ReverbChannels[i];
-
-				if (!BassMix.MixerAddChannel(_mixerHandle, bassChannel, BassFlags.MixerChanMatrix)) {
+			for (var i = 0; i < moggStem.Channels.Count; i++) {
+				var moggChannel = (BassStemChannel) moggStem.Channels[i];
+				if (!BassMix.MixerAddChannel(_mixerHandle, moggChannel.StreamHandle, BassFlags.MixerChanMatrix)) {
 					return (int) Bass.LastError;
 				}
 				
-				if (!BassMix.MixerAddChannel(_mixerHandle, reverbChannel, BassFlags.MixerChanMatrix)) {
+				if (!BassMix.MixerAddChannel(_mixerHandle, moggChannel.ReverbStreamHandle, BassFlags.MixerChanMatrix)) {
 					return (int) Bass.LastError;
 				}
 
@@ -216,11 +214,11 @@ namespace YARG {
 					{ matrixes[i][1] }
 				};
 
-				if (!BassMix.ChannelSetMatrix(bassChannel, channelPanVol)) {
+				if (!BassMix.ChannelSetMatrix(moggChannel.StreamHandle, channelPanVol)) {
 					return (int) Bass.LastError;
 				}
 				
-				if (!BassMix.ChannelSetMatrix(reverbChannel, channelPanVol)) {
+				if (!BassMix.ChannelSetMatrix(moggChannel.ReverbStreamHandle, channelPanVol)) {
 					return (int) Bass.LastError;
 				}
 			}
@@ -304,8 +302,8 @@ namespace YARG {
 			}
 		}
 
-		private int[] SplitMoggIntoChannels() {
-			var channels = new int[_matrixRatios.GetLength(0)];
+		private int[] SplitMoggIntoChannels(float[,] matrixRatios) {
+			var channels = new int[matrixRatios.GetLength(0)];
 
 			var channelMap = new int[2];
 			channelMap[1] = -1;
