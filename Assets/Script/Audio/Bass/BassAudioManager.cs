@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using ManagedBass;
+using ManagedBass.Fx;
 using ManagedBass.Mix;
 using UnityEngine;
 using YARG.Song;
@@ -87,8 +88,8 @@ namespace YARG.Audio.BASS {
 
 			Debug.Log($"BASS Successfully Initialized");
 			Debug.Log($"BASS: {Bass.Version}");
-			Debug.Log($"BASS.FX: {Bass.Version}");
-			Debug.Log($"BASS.Mix: {Bass.Version}");
+			Debug.Log($"BASS.FX: {BassFx.Version}");
+			Debug.Log($"BASS.Mix: {BassMix.Version}");
 
 			Debug.Log($"Update Period: {Bass.UpdatePeriod}");
 			Debug.Log($"Device Buffer Length: {Bass.DeviceBufferLength}");
