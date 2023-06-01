@@ -2,6 +2,7 @@
 using ManagedBass;
 using ManagedBass.Fx;
 using UnityEngine;
+using YARG.Audio.PitchDetection;
 using YARG.Settings;
 
 namespace YARG.Audio {
@@ -28,7 +29,7 @@ namespace YARG.Audio {
 		private RecordProcedure _processedRecordProcedure;
 		private DSPProcedure _monitoringGainProcedure;
 
-		private PitchDetector _pitchDetector;
+		private PitchTracker _pitchDetector;
 
 		private readonly ReverbParameters _monitoringReverbParameters = new() {
 			fDryMix = 0.3f,
@@ -100,7 +101,8 @@ namespace YARG.Audio {
 
 			SetMonitoringLevel(SettingsManager.Settings.VocalMonitoring.Data);
 
-			_pitchDetector = new PitchDetector();
+			_pitchDetector = new PitchTracker();
+			_pitchDetector.PitchDetected += OnPitchDetected;
 
 			_initialized = true;
 
@@ -130,26 +132,40 @@ namespace YARG.Audio {
 			return true;
 		}
 
-		private unsafe void CalculatePitchAndAmplitude(IntPtr buffer, int length) {
-			var bufferSpan = new Span<float>((float*) buffer, length);
+		private unsafe void CalculatePitchAndAmplitude(IntPtr buffer, int byteLength) {
+			int length = byteLength / sizeof(float);
+			var bufferSpan = new ReadOnlySpan<float>((float*) buffer, length);
 
-			Amplitude = _pitchDetector.GetAmplitude(bufferSpan);
+			// Calculate the root mean square
+			float sum = 0f;
+			int count = 0;
+			for (int i = 0; i < length; i += 4, count++) {
+				sum += bufferSpan[i] * bufferSpan[i];
+			}
+			sum = Mathf.Sqrt(sum / count);
 
+			// Convert to decibels to get the amplitude
+			Amplitude = 20f * Mathf.Log10(sum * 180f);
+			if (Amplitude < -160f) {
+				Amplitude = -160f;
+			}
+
+			// Skip pitch detection if not speaking
 			if (Amplitude <= 2f) {
 				_voiceStartTimer = 0f;
 				return;
 			}
-
 			_voiceStartTimer += 1f / RECORD_PERIOD_MILLIS;
 
-			var pitch = _pitchDetector.GetPitch(bufferSpan);
-			Debug.Log(pitch);
+			_pitchDetector.ProcessBuffer(bufferSpan);
+		}
 
-			if (_voiceStartTimer < 0.07f) {
-				Pitch = pitch;
-			} else {
-				Pitch = Mathf.Lerp(Pitch, pitch, 1f / RECORD_PERIOD_MILLIS * 15f);
+		private void OnPitchDetected(PitchRecord record) {
+			if (record == null || record.Pitch <= 1) {
+				return;
 			}
+
+			Pitch = (float) record.Pitch;
 		}
 
 		public void Dispose() {
