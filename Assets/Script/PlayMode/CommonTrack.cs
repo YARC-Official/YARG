@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using YARG.UI;
@@ -14,6 +15,8 @@ namespace YARG.PlayMode {
 		[Space]
 		public MeshRenderer trackRenderer;
 		public Transform hitWindow;
+		public Transform fadeBegin;
+		public Transform fadeEnd;
 
 		[Space]
 		public TextMeshPro comboText;
@@ -106,6 +109,20 @@ namespace YARG.PlayMode {
 		public void StopCameraAnimation() {
 			cameraAnimation.Stop();
 			cameraAnimation.Rewind();
+		}
+
+		private void Awake() {
+			var startPos = fadeBegin.position;
+			var startVec4 = new Vector4(startPos.x, startPos.y, startPos.z);
+
+			var endPos = fadeEnd.position;
+			var endVec4 = new Vector4(endPos.x, endPos.y, endPos.z);
+
+			Debug.Log(startVec4);
+			Debug.Log(endVec4);
+
+			trackRenderer.materials[0].SetVector("_FadeZeroPosition", startVec4);
+			trackRenderer.materials[0].SetVector("_FadeFullPosition", endVec4);
 		}
 	}
 }
