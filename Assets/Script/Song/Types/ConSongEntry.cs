@@ -11,6 +11,7 @@ namespace YARG.Song {
 		private XboxSTFSFile conFile;
 		public int MidiIndex { get; private set; } = -1;
 		public int MoggIndex { get; private set; } = -1;
+		public int MiloIndex { get; private set; } = -1;
 		public int ImgIndex { get; private set; } = -1;
 
 		public ConSongEntry(BinaryReader reader, List<XboxSTFSFile> conFiles, string folder) : base(reader, folder) {
@@ -32,10 +33,14 @@ namespace YARG.Song {
 			if (MoggIndex == -1)
 				MoggPath = reader.ReadString();
 
+			MiloIndex = reader.ReadInt32();
+			if(MiloIndex == -1)
+				MiloPath = reader.ReadString();
+
 			ImgIndex = reader.ReadInt32();
 			if (ImgIndex == -1) {
 				ImagePath = reader.ReadString();
-				AlternatePath = ImagePath.Length > 0;
+				HasAlbumArt = AlternatePath = ImagePath.Length > 0;
 			}
 		}
 
@@ -46,6 +51,10 @@ namespace YARG.Song {
 			writer.Write(MoggIndex);
 			if (MoggIndex == -1)
 				writer.Write(MoggPath);
+
+			writer.Write(MiloIndex);
+			if(MiloIndex == -1)
+				writer.Write(MiloPath);
 
 			writer.Write(ImgIndex);
 			if (ImgIndex == -1) {
@@ -67,6 +76,11 @@ namespace YARG.Song {
 			string moggPath = Path.Combine(dir, $"{Location}.mogg");
 			MoggIndex = conFile.GetFileIndex(moggPath);
 
+			string miloPath = Path.Combine(dir, "gen", $"{Location}.milo_xbox");
+			int miloVal = conFile.GetFileIndex(miloPath);
+			if(miloVal != -1)
+				MiloIndex = miloVal;
+
 			string imgPath = Path.Combine(dir, "gen", $"{Location}_keep.png_xbox");
 			int imgVal = conFile.GetFileIndex(imgPath);
 			if (imgVal != -1)
@@ -84,6 +98,9 @@ namespace YARG.Song {
 			if (UsingUpdateMogg)
 				MoggIndex = -1;
 
+			if (UsingUpdateMilo)
+				MiloIndex = -1;
+
 			if (!HasAlbumArt || AlternatePath)
 				ImgIndex = -1;
 		}
@@ -96,6 +113,14 @@ namespace YARG.Song {
 			if (!UsingUpdateMogg)
 				return conFile.LoadSubFile(MoggIndex);
 			return base.LoadMoggFile();
+		}
+
+		public override byte[] LoadMiloFile(){
+			if(UsingUpdateMilo)
+				return base.LoadMiloFile();
+			if(MiloIndex != -1)
+				return conFile.LoadSubFile(MiloIndex);
+			return Array.Empty<byte>();
 		}
 
 		public override byte[] LoadImgFile() {

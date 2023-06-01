@@ -44,6 +44,7 @@ namespace YARG.Song {
 		public float[,] MatrixRatios { get; set; }
 
 		// .milo info
+		public bool UsingUpdateMilo { get; set; } = false;
 		public string MiloPath { get; set; }
 		public int VenueVersion { get; set; }
 
@@ -87,6 +88,7 @@ namespace YARG.Song {
 			}
 
 			// read milo data
+			UsingUpdateMilo = reader.ReadBoolean();
 			MiloPath = reader.ReadString();
 			VenueVersion = reader.ReadInt32();
 
@@ -153,6 +155,7 @@ namespace YARG.Song {
 				writer.Write(0);
 
 			// write milo data
+			writer.Write(UsingUpdateMilo);
 			writer.Write(MiloPath);
 			writer.Write(VenueVersion);
 
@@ -195,6 +198,10 @@ namespace YARG.Song {
 			NotesFile = Path.Combine(dir, $"{Location}.mid");
 
 			MoggPath = Path.Combine(dir, $"{Location}.mogg");
+
+			string miloPath = Path.Combine(dir, "gen", $"{Location}.milo_xbox");
+			if(File.Exists(miloPath))
+				MiloPath = miloPath;
 
 			string imgPath = Path.Combine(dir, "gen", $"{Location}_keep.png_xbox");
 			if (File.Exists(imgPath))
@@ -403,6 +410,12 @@ namespace YARG.Song {
 				MoggPath = updateMoggPath;
 			}
 
+			string updateMiloPath = Path.Combine(dir, "gen", $"{ShortName}.milo_xbox");
+			if(File.Exists(updateMiloPath)){
+				UsingUpdateMilo = true;
+				MiloPath = updateMiloPath;
+			}
+
 			string imgUpdatePath = Path.Combine(dir, "gen", $"{ShortName}_keep.png_xbox");
 			if (HasAlbumArt && AlternatePath) {
 				if (File.Exists(imgUpdatePath))
@@ -418,6 +431,12 @@ namespace YARG.Song {
 
 		public virtual byte[] LoadMoggFile() {
 			return File.ReadAllBytes(MoggPath);
+		}
+
+		public virtual byte[] LoadMiloFile(){
+			if(MiloPath.Length == 0) 
+				return Array.Empty<byte>();
+			return File.ReadAllBytes(MiloPath);
 		}
 
 		public virtual byte[] LoadImgFile() {
