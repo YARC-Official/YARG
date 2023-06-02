@@ -41,7 +41,7 @@ namespace YARG.Pools {
 		public void SetColor(int harmIndex) {
 			// Set line color
 			var lineColor = lineRenderer.material.color;
-			var harmColor = MicPlayer.HARMONIC_COLORS[harmIndex];
+			var harmColor = MicPlayer.HarmonicColors[harmIndex];
 			harmColor.a = lineColor.a;
 			lineRenderer.material.color = harmColor;
 		}

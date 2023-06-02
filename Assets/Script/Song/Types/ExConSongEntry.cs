@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using UnityEngine;
 using DtxCS.DataTypes;
 using System.Collections.Generic;

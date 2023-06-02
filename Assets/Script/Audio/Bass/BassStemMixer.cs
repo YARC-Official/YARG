@@ -28,7 +28,7 @@ namespace YARG.Audio.BASS {
 		public BassStemMixer(IAudioManager manager) {
 			_manager = manager;
 			_channels = new Dictionary<SongStem, IStemChannel>();
-			
+
 			StemsLoaded = 0;
 			IsPlaying = false;
 		}
@@ -51,7 +51,7 @@ namespace YARG.Audio.BASS {
 			Bass.ChannelSetAttribute(mixer, (ChannelAttribute) 86017, 2);
 
 			_mixerHandle = mixer;
-			
+
 			return true;
 		}
 
@@ -124,7 +124,7 @@ namespace YARG.Audio.BASS {
 			if (!BassMix.MixerAddChannel(_mixerHandle, bassChannel.StreamHandle, BassFlags.Default)) {
 				return (int) Bass.LastError;
 			}
-			
+
 			if (!BassMix.MixerAddChannel(_mixerHandle, bassChannel.ReverbStreamHandle, BassFlags.Default)) {
 				return (int) Bass.LastError;
 			}

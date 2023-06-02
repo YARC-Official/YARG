@@ -28,7 +28,7 @@ namespace YARG.Pools {
 
 		public void SetColor(int harmIndex) {
 			var lineColor = meshRenderer.material.color;
-			var harmColor = MicPlayer.HARMONIC_COLORS[harmIndex];
+			var harmColor = MicPlayer.HarmonicColors[harmIndex];
 			harmColor.a = lineColor.a;
 
 			meshRenderer.material.color = harmColor;

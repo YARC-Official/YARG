@@ -29,7 +29,7 @@ namespace YARG.Audio.BASS {
 		private double _lastStemVolume;
 
 		private int _sourceHandle;
-		
+
 		private bool _isReverbing;
 		private bool _disposed;
 
@@ -82,7 +82,7 @@ namespace YARG.Audio.BASS {
 			int reverbSplit = BassMix.CreateSplitStream(_sourceHandle, BassFlags.Decode | BassFlags.SplitPosition, null);
 
 			const BassFlags flags = BassFlags.SampleOverrideLowestVolume | BassFlags.Decode | BassFlags.FxFreeSource;
-			
+
 			StreamHandle = BassFx.TempoCreate(main, flags);
 			ReverbStreamHandle = BassFx.TempoCreate(reverbSplit, flags);
 
@@ -108,7 +108,7 @@ namespace YARG.Audio.BASS {
 				// Gets relative speed from 100% (so 1.05f = 5% increase)
 				float percentageSpeed = Math.Abs(speed) * 100;
 				float relativeSpeed = percentageSpeed - 100;
-				
+
 				Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Tempo, relativeSpeed);
 				Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Tempo, relativeSpeed);
 
@@ -164,7 +164,7 @@ namespace YARG.Audio.BASS {
 			_lastStemVolume = volumeSetting;
 
 			Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, newBassVol);
-			
+
 			if (_isReverbing) {
 				Bass.ChannelSlideAttribute(ReverbStreamHandle, ChannelAttribute.Volume, (float)(newBassVol * 0.7), 1);
 			} else {
@@ -184,13 +184,13 @@ namespace YARG.Audio.BASS {
 				int midEqHandle = BassHelpers.AddEqToChannel(ReverbStreamHandle, BassHelpers.MidEqParams);
 				int highEqHandle = BassHelpers.AddEqToChannel(ReverbStreamHandle, BassHelpers.HighEqParams);
 				int reverbFxHandle = BassHelpers.AddReverbToChannel(ReverbStreamHandle);
-				
+
 				double volumeSetting = _manager.GetVolumeSetting(Stem);
-				Bass.ChannelSlideAttribute(ReverbStreamHandle, ChannelAttribute.Volume,(float)(volumeSetting * Volume * 0.7f), 
+				Bass.ChannelSlideAttribute(ReverbStreamHandle, ChannelAttribute.Volume,(float)(volumeSetting * Volume * 0.7f),
 					BassHelpers.REVERB_SLIDE_IN_MILLISECONDS);
 
 				_effects.Add(REVERB_TYPE, reverbFxHandle);
-				
+
 				// Add low-high
 				_effects.Add(EffectType.PeakEQ, lowEqHandle);
 				_effects.Add(EffectType.PeakEQ + 1, midEqHandle);
@@ -206,12 +206,12 @@ namespace YARG.Audio.BASS {
 				Bass.ChannelRemoveFX(ReverbStreamHandle, _effects[EffectType.PeakEQ + 1]);
 				Bass.ChannelRemoveFX(ReverbStreamHandle, _effects[EffectType.PeakEQ + 2]);
 				Bass.ChannelRemoveFX(ReverbStreamHandle, _effects[REVERB_TYPE]);
-				
-				Bass.ChannelSlideAttribute(ReverbStreamHandle, ChannelAttribute.Volume, 0, 
+
+				Bass.ChannelSlideAttribute(ReverbStreamHandle, ChannelAttribute.Volume, 0,
 					BassHelpers.REVERB_SLIDE_OUT_MILLISECONDS);
 
 				_effects.Remove(REVERB_TYPE);
-				
+
 				// Remove low-high
 				_effects.Remove(EffectType.PeakEQ);
 				_effects.Remove(EffectType.PeakEQ + 1);

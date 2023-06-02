@@ -105,7 +105,7 @@ namespace YARG.UI.PlayResultScreen {
 				}
 
 				// Bots
-				if (player.inputStrategy.botMode) {
+				if (player.inputStrategy.BotMode) {
 					bot.Add(player);
 					continue;
 				}

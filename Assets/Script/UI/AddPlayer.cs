@@ -8,6 +8,7 @@ using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.Utilities;
 using UnityEngine.UI;
+using YARG.Audio;
 using YARG.Input;
 using YARG.Serialization;
 
@@ -16,11 +17,11 @@ namespace YARG.UI {
 
 	public class AddPlayer : MonoBehaviour {
 		private enum State {
-			SELECT_DEVICE,
-			SELECT_DEVICE_FOR_MIC,
-			CONFIGURE,
-			BIND,
-			RESOLVE
+			SelectDevice,
+			SelectDeviceForMic,
+			Configure,
+			Bind,
+			Resolve
 		}
 
 		private enum StrategyType {
@@ -39,17 +40,17 @@ namespace YARG.UI {
 
 		[Flags]
 		private enum AllowedControl {
-			NONE = 0x00,
+			None = 0x00,
 
 			// Control types
-			AXIS = 0x01,
-			BUTTON = 0x02,
+			Axis = 0x01,
+			Button = 0x02,
 
 			// Control attributes
-			NOISY = 0x0100,
-			SYNTHETIC = 0x0200,
+			Noisy = 0x0100,
+			Synthetic = 0x0200,
 
-			ALL = AXIS | BUTTON | NOISY | SYNTHETIC
+			All = Axis | Button | Noisy | Synthetic
 		}
 
 		[SerializeField]
@@ -79,20 +80,21 @@ namespace YARG.UI {
 		[SerializeField]
 		private GameObject bindHeaderContainer;
 
-		private State state = State.SELECT_DEVICE;
+		private State _state = State.SelectDevice;
 
-		private InputDevice selectedDevice = null;
-		private int selectedMicIndex = InputStrategy.INVALID_MIC_INDEX;
-		private bool botMode = false;
-		private string playerName = null;
-		private InputStrategy inputStrategy = null;
+		private InputDevice _selectedDevice = null;
+		private UninitializedMic? _selectedMic = null;
 
-		private ControlBinding currentBindUpdate = null;
-		private TextMeshProUGUI currentBindText = null;
-		private IDisposable currentDeviceListener = null;
-		private List<InputControl<float>> bindGroupingList = new();
-		private float bindGroupingTimer = 0f;
-		private AllowedControl allowedControls = AllowedControl.ALL;
+		private bool _botMode = false;
+		private string _playerName = null;
+		private InputStrategy _inputStrategy = null;
+
+		private ControlBinding _currentBindUpdate = null;
+		private TextMeshProUGUI _currentBindText = null;
+		private IDisposable _currentDeviceListener = null;
+		private List<InputControl<float>> _bindGroupingList = new();
+		private float _bindGroupingTimer = 0f;
+		private AllowedControl _allowedControls = AllowedControl.All;
 
 		private const float GROUP_TIME_THRESHOLD = 0.1f;
 
@@ -114,26 +116,27 @@ namespace YARG.UI {
 
 			playerNameField.text = null;
 
-			selectedDevice = null;
-			selectedMicIndex = InputStrategy.INVALID_MIC_INDEX;
-			botMode = false;
-			inputStrategy = null;
-			playerName = null;
+			_selectedDevice = null;
+			_selectedMic = null;
 
-			currentBindUpdate = null;
-			currentBindText = null;
-			currentDeviceListener?.Dispose();
-			currentDeviceListener = null;
+			_botMode = false;
+			_inputStrategy = null;
+			_playerName = null;
+
+			_currentBindUpdate = null;
+			_currentBindText = null;
+			_currentDeviceListener?.Dispose();
+			_currentDeviceListener = null;
 		}
 
 		private void UpdateState(State newState) {
-			state = newState;
+			_state = newState;
 			subHeader.text = newState switch {
-				State.SELECT_DEVICE => "Step 1 - Select Device",
-				State.SELECT_DEVICE_FOR_MIC => "Step 1, Part 2 - Select Navigation Device",
-				State.CONFIGURE => "Step 2 - Configure",
-				State.BIND => "Step 3 - Bind",
-				State.RESOLVE => "More than one control was detected, please select the correct control from the list below.",
+				State.SelectDevice => "Step 1 - Select Device",
+				State.SelectDeviceForMic => "Step 1, Part 2 - Select Navigation Device",
+				State.Configure => "Step 2 - Configure",
+				State.Bind => "Step 3 - Bind",
+				State.Resolve => "More than one control was detected, please select the correct control from the list below.",
 				_ => ""
 			};
 		}
@@ -146,15 +149,15 @@ namespace YARG.UI {
 		}
 
 		private void Update() {
-			switch (state) {
-				case State.BIND: UpdateBind(); break;
+			switch (_state) {
+				case State.Bind: UpdateBind(); break;
 			}
 		}
 
 		private void StartSelectDevice(bool micSelected = false) {
 			HideAll();
 			selectDeviceContainer.SetActive(true);
-			UpdateState(micSelected ? State.SELECT_DEVICE_FOR_MIC : State.SELECT_DEVICE);
+			UpdateState(micSelected ? State.SelectDeviceForMic : State.SelectDevice);
 
 			// Destroy old devices
 			foreach (Transform t in devicesContainer) {
@@ -166,9 +169,9 @@ namespace YARG.UI {
 				var botButton = Instantiate(deviceButtonPrefab, devicesContainer);
 				botButton.GetComponentInChildren<TextMeshProUGUI>().text = "Create a <color=#0c7027><b>BOT</b></color>";
 				botButton.GetComponentInChildren<Button>().onClick.AddListener(() => {
-					selectedDevice = null;
-					selectedMicIndex = InputStrategy.INVALID_MIC_INDEX;
-					botMode = true;
+					_selectedDevice = null;
+					_selectedMic = null;
+					_botMode = true;
 					StartConfigure();
 				});
 			} else {
@@ -176,7 +179,7 @@ namespace YARG.UI {
 				var noneButton = Instantiate(deviceButtonPrefab, devicesContainer);
 				noneButton.GetComponentInChildren<TextMeshProUGUI>().text = "No device";
 				noneButton.GetComponentInChildren<Button>().onClick.AddListener(() => {
-					selectedDevice = null;
+					_selectedDevice = null;
 					StartConfigure();
 				});
 			}
@@ -186,7 +189,7 @@ namespace YARG.UI {
 				var button = Instantiate(deviceButtonPrefab, devicesContainer);
 				button.GetComponentInChildren<TextMeshProUGUI>().text = $"<b>{device.displayName}</b> ({device.deviceId})";
 				button.GetComponentInChildren<Button>().onClick.AddListener(() => {
-					selectedDevice = device;
+					_selectedDevice = device;
 					StartConfigure();
 				});
 			}
@@ -196,13 +199,14 @@ namespace YARG.UI {
 			}
 
 			// Add mics
-			for (int i = 0; i < Microphone.devices.Length; i++) {
+			var mics = GameManager.AudioManager.GetAllInputDevices();
+			foreach (var mic in mics) {
 				var button = Instantiate(deviceButtonPrefab, devicesContainer);
-				button.GetComponentInChildren<TextMeshProUGUI>().text = $"(MIC) <b>{Microphone.devices[i]}</b>";
+				button.GetComponentInChildren<TextMeshProUGUI>().text = $"(MIC) <b>{mic.DisplayName}</b>";
 
-				int capture = i;
+				var capture = mic;
 				button.GetComponentInChildren<Button>().onClick.AddListener(() => {
-					selectedMicIndex = capture;
+					_selectedMic = capture;
 					StartSelectDevice(micSelected: true);
 				});
 			}
@@ -211,14 +215,12 @@ namespace YARG.UI {
 		private void StartConfigure() {
 			HideAll();
 			configureContainer.SetActive(true);
-			UpdateState(State.CONFIGURE);
+			UpdateState(State.Configure);
 
-			bool micSelected = selectedMicIndex != InputStrategy.INVALID_MIC_INDEX;
 			var options = new List<string>();
-			for (StrategyType strategy = 0; strategy < StrategyType.Count; strategy++)
-			{
+			for (StrategyType strategy = 0; strategy < StrategyType.Count; strategy++) {
 				// Don't display microphone as an option if no mic was selected and we're not in bot mode
-				if (!micSelected && !botMode && strategy == StrategyType.Vocals)
+				if (strategy == StrategyType.Vocals && _selectedMic == null && !_botMode)
 					break;
 
 				string text = strategy switch {
@@ -234,12 +236,12 @@ namespace YARG.UI {
 			inputStrategyDropdown.ClearOptions();
 			inputStrategyDropdown.AddOptions(options);
 
-			inputStrategyDropdown.value = (int)(micSelected ? StrategyType.Vocals : StrategyType.FiveFretGuitar);
-			inputStrategyDropdown.interactable = !micSelected;
+			inputStrategyDropdown.value = (int)(_selectedMic != null ? StrategyType.Vocals : StrategyType.FiveFretGuitar);
+			inputStrategyDropdown.interactable = _selectedMic == null;
 		}
 
 		public void DoneConfigure() {
-			inputStrategy = (StrategyType)inputStrategyDropdown.value switch {
+			_inputStrategy = (StrategyType)inputStrategyDropdown.value switch {
 				StrategyType.FiveFretGuitar => new FiveFretInputStrategy(),
 				StrategyType.RealGuitar => new RealGuitarInputStrategy(),
 				StrategyType.FourLaneDrums => new DrumsInputStrategy(),
@@ -248,22 +250,26 @@ namespace YARG.UI {
 				_ => throw new Exception("Invalid input strategy type!")
 			};
 
-			inputStrategy.InputDevice = selectedDevice;
-			inputStrategy.microphoneIndex = selectedMicIndex;
-			inputStrategy.botMode = botMode;
+			_inputStrategy.InputDevice = _selectedDevice;
+			_inputStrategy.BotMode = _botMode;
 
-			playerName = playerNameField.text;
+			// Create mic (if selected)
+			if (_selectedMic.HasValue) {
+				_inputStrategy.MicDevice = GameManager.AudioManager.CreateMicFromUninitialized(_selectedMic.Value);
+			}
+
+			_playerName = playerNameField.text;
 
 			// Try to load bindings
-			if (inputStrategy.InputDevice != null) {
-				InputBindSerializer.LoadBindsFromSave(inputStrategy);
+			if (_inputStrategy.InputDevice != null) {
+				InputBindSerializer.LoadBindsFromSave(_inputStrategy);
 			}
 
 			StartBind();
 		}
 
 		private string GetMappingText(ControlBinding binding)
-			=> $"<b>{binding.DisplayName}:</b> {inputStrategy.GetMappingInputControl(binding.BindingKey)?.displayName ?? "None"}";
+			=> $"<b>{binding.DisplayName}:</b> {_inputStrategy.GetMappingInputControl(binding.BindingKey)?.displayName ?? "None"}";
 
 		private string GetDebounceText(long debounce)
 			// Clear textbox if new threshold is below the minimum debounce amount
@@ -278,7 +284,7 @@ namespace YARG.UI {
 			}, true));
 
 			// Skip if binding is not needed
-			if (inputStrategy.Mappings.Count < 1 || botMode || selectedDevice == null) {
+			if (_inputStrategy.Mappings.Count < 1 || _botMode || _selectedDevice == null) {
 				DoneBind();
 				return;
 			}
@@ -286,7 +292,7 @@ namespace YARG.UI {
 			HideAll();
 			bindContainer.SetActive(true);
 			bindHeaderContainer.SetActive(true);
-			UpdateState(State.BIND);
+			UpdateState(State.Bind);
 
 			// Destroy old bindings
 			foreach (Transform t in bindingsContainer) {
@@ -294,16 +300,16 @@ namespace YARG.UI {
 			}
 
 			// Add bindings
-			foreach (var binding in inputStrategy.Mappings.Values) {
+			foreach (var binding in _inputStrategy.Mappings.Values) {
 				var button = Instantiate(bindingButtonPrefab, bindingsContainer);
 
 				var text = button.GetComponentInChildren<TextMeshProUGUI>();
 				text.text = GetMappingText(binding);
 
 				button.GetComponentInChildren<Button>().onClick.AddListener(() => {
-					if (currentBindUpdate == null) {
-						currentBindUpdate = binding;
-						currentBindText = text;
+					if (_currentBindUpdate == null) {
+						_currentBindUpdate = binding;
+						_currentBindText = text;
 						text.text = $"<b>{binding.DisplayName}:</b> Waiting for input... (Escape to cancel)";
 					}
 				});
@@ -322,8 +328,8 @@ namespace YARG.UI {
 			}
 
 			// Listen for device events
-			currentDeviceListener ??= InputSystem.onEvent.Call((eventPtr) => {
-				if (currentBindUpdate == null) {
+			_currentDeviceListener ??= InputSystem.onEvent.Call((eventPtr) => {
+				if (_currentBindUpdate == null) {
 					return;
 				}
 
@@ -333,7 +339,7 @@ namespace YARG.UI {
 				}
 
 				// Ignore if not from the selected device
-				if (eventPtr.deviceId != selectedDevice.deviceId) {
+				if (eventPtr.deviceId != _selectedDevice.deviceId) {
 					// Check if cancelling
 					if (eventPtr.deviceId == Keyboard.current.deviceId) {
 						var esc = Keyboard.current.escapeKey;
@@ -345,7 +351,7 @@ namespace YARG.UI {
 				}
 
 				// Handle cancelling
-				if (selectedDevice is Keyboard keyboard) {
+				if (_selectedDevice is Keyboard keyboard) {
 					var esc = keyboard.escapeKey;
 					if (esc.IsValueConsideredPressed(esc.ReadValueFromEvent(eventPtr))) {
 						CancelBind();
@@ -356,74 +362,74 @@ namespace YARG.UI {
 				// Find all active float-returning controls
 				//       Only controls that have changed | Constantly-changing controls like accelerometers | Non-physical controls like stick up/down/left/right
 				var flags = Enumerate.IgnoreControlsInCurrentState | Enumerate.IncludeNoisyControls | Enumerate.IncludeSyntheticControls;
-				var activeControls = from control in eventPtr.EnumerateControls(flags, selectedDevice)
+				var activeControls = from control in eventPtr.EnumerateControls(flags, _selectedDevice)
 									 where ControlAllowedAndActive(control, eventPtr)
 									 select control as InputControl<float>;
 
 				if (activeControls != null) {
 					foreach (var ctrl in activeControls) {
-						if (!bindGroupingList.Contains(ctrl)) {
-							bindGroupingList.Add(ctrl);
+						if (!_bindGroupingList.Contains(ctrl)) {
+							_bindGroupingList.Add(ctrl);
 						}
 					}
 
-					if (bindGroupingTimer <= 0f) {
-						bindGroupingTimer = GROUP_TIME_THRESHOLD;
+					if (_bindGroupingTimer <= 0f) {
+						_bindGroupingTimer = GROUP_TIME_THRESHOLD;
 					}
 				}
 			});
 		}
 
 		private void UpdateBind() {
-			if (bindGroupingTimer <= 0f) {
+			if (_bindGroupingTimer <= 0f) {
 				// Timer is inactive
 				return;
 			}
 
 			// Decrement timer
-			bindGroupingTimer -= Time.deltaTime;
-			if (bindGroupingTimer > 0f) {
+			_bindGroupingTimer -= Time.deltaTime;
+			if (_bindGroupingTimer > 0f) {
 				// Timer is still active
 				return;
 			}
 
 			// Check number of controls
-			int controlCount = bindGroupingList.Count;
+			int controlCount = _bindGroupingList.Count;
 			if (controlCount < 1) {
 				// No controls active
 				return;
 			} else if (controlCount > 1) {
 				// More than one control active, prompt user to pick which one
-				StartResolve(bindGroupingList);
+				StartResolve(_bindGroupingList);
 				return;
 			}
 
 			// Set mapping
-			SetBind(bindGroupingList[0]);
+			SetBind(_bindGroupingList[0]);
 		}
 
 		private bool IsControlAllowed(AllowedControl flag)
-			=> (allowedControls & flag) != 0;
+			=> (_allowedControls & flag) != 0;
 
 		private void AllowedControlChanged(bool enabled, AllowedControl flag) {
 			if (enabled) {
-				allowedControls |= flag;
+				_allowedControls |= flag;
 			} else {
-				allowedControls &= ~flag;
+				_allowedControls &= ~flag;
 			}
 		}
 
 		public void ButtonAllowedChanged(bool enabled)
-			=> AllowedControlChanged(enabled, AllowedControl.BUTTON);
+			=> AllowedControlChanged(enabled, AllowedControl.Button);
 
 		public void AxisAllowedChanged(bool enabled)
-			=> AllowedControlChanged(enabled, AllowedControl.AXIS);
+			=> AllowedControlChanged(enabled, AllowedControl.Axis);
 
 		public void NoisyAllowedChanged(bool enabled)
-			=> AllowedControlChanged(enabled, AllowedControl.NOISY);
+			=> AllowedControlChanged(enabled, AllowedControl.Noisy);
 
 		public void SyntheticAllowedChanged(bool enabled)
-			=> AllowedControlChanged(enabled, AllowedControl.SYNTHETIC);
+			=> AllowedControlChanged(enabled, AllowedControl.Synthetic);
 
 		private bool ControlAllowedAndActive(InputControl control, InputEventPtr eventPtr) {
 			// AnyKeyControl is excluded as it would always be active
@@ -437,10 +443,10 @@ namespace YARG.UI {
 			}
 
 			// Check that the control is allowed
-			if ((control.noisy && !IsControlAllowed(AllowedControl.NOISY)) ||
-				(control.synthetic && !IsControlAllowed(AllowedControl.SYNTHETIC)) ||
-				(control is ButtonControl && !IsControlAllowed(AllowedControl.BUTTON)) ||
-				(control is AxisControl && !IsControlAllowed(AllowedControl.AXIS))) {
+			if ((control.noisy && !IsControlAllowed(AllowedControl.Noisy)) ||
+				(control.synthetic && !IsControlAllowed(AllowedControl.Synthetic)) ||
+				(control is ButtonControl && !IsControlAllowed(AllowedControl.Button)) ||
+				(control is AxisControl && !IsControlAllowed(AllowedControl.Axis))) {
 				return false;
 			}
 
@@ -448,41 +454,41 @@ namespace YARG.UI {
 		}
 
 		private void SetBind(InputControl<float> control) {
-			inputStrategy.SetMappingInputControl(currentBindUpdate.BindingKey, control);
+			_inputStrategy.SetMappingInputControl(_currentBindUpdate.BindingKey, control);
 			CancelBind();
 		}
 
 		private void CancelBind() {
-			currentBindText.text = GetMappingText(currentBindUpdate);
-			currentBindText = null;
-			currentBindUpdate = null;
+			_currentBindText.text = GetMappingText(_currentBindUpdate);
+			_currentBindText = null;
+			_currentBindUpdate = null;
 
-			bindGroupingList.Clear();
-			bindGroupingTimer = 0f;
+			_bindGroupingList.Clear();
+			_bindGroupingTimer = 0f;
 		}
 
 		public void DoneBind() {
 			Navigator.Instance.PopScheme();
 
 			// Stop event listener
-			currentDeviceListener?.Dispose();
-			currentDeviceListener = null;
+			_currentDeviceListener?.Dispose();
+			_currentDeviceListener = null;
 
 			// Save bindings
-			if (inputStrategy.InputDevice != null) {
-				InputBindSerializer.SaveBindsFromInputStrategy(inputStrategy);
+			if (_inputStrategy.InputDevice != null) {
+				InputBindSerializer.SaveBindsFromInputStrategy(_inputStrategy);
 			}
 
 			// Create and add player
 			var player = new PlayerManager.Player() {
-				inputStrategy = inputStrategy
+				inputStrategy = _inputStrategy
 			};
 			player.inputStrategy.Enable();
 			PlayerManager.players.Add(player);
 
 			// Set name
-			if (!string.IsNullOrEmpty(playerName)) {
-				player.name = playerName;
+			if (!string.IsNullOrEmpty(_playerName)) {
+				player.name = _playerName;
 			} else {
 				player.TryPickRandomName();
 			}
@@ -497,12 +503,12 @@ namespace YARG.UI {
 			}
 
 			// Stop event listener
-			currentDeviceListener?.Dispose();
-			currentDeviceListener = null;
+			_currentDeviceListener?.Dispose();
+			_currentDeviceListener = null;
 
 			HideAll();
 			bindContainer.SetActive(true);
-			UpdateState(State.RESOLVE);
+			UpdateState(State.Resolve);
 
 			// Destroy old bindings
 			foreach (Transform t in bindingsContainer) {
@@ -516,7 +522,7 @@ namespace YARG.UI {
 				text.text = control.displayName;
 
 				button.GetComponentInChildren<Button>().onClick.AddListener(() => {
-					if (currentBindUpdate == null) {
+					if (_currentBindUpdate == null) {
 						return;
 					}
 

@@ -26,7 +26,7 @@ namespace YARG {
 			private static int _nextPlayerName = 1;
 
 			public string name;
-			public string DisplayName => name + (inputStrategy.botMode ? " <color=#00DBFD>BOT</color>" : "");
+			public string DisplayName => name + (inputStrategy.BotMode ? " <color=#00DBFD>BOT</color>" : "");
 
 			public InputStrategy inputStrategy;
 
@@ -47,7 +47,7 @@ namespace YARG {
 
 			public void TryPickRandomName() {
 				// Skip if it is not a bot
-				if (!inputStrategy?.botMode ?? true) {
+				if (!inputStrategy?.BotMode ?? true) {
 					return;
 				}
 
