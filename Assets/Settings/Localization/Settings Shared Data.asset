@@ -255,6 +255,18 @@ MonoBehaviour:
     m_Key: Dropdown.CameraPresets
     m_Metadata:
       m_Items: []
+  - m_Id: 24795285484228608
+    m_Key: Dropdown.Resolution
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24795465075937280
+    m_Key: Fullscreen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24806540718657536
+    m_Key: TestScene
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

@@ -258,6 +258,18 @@ MonoBehaviour:
     m_Localized: Camera Presets
     m_Metadata:
       m_Items: []
+  - m_Id: 24795285484228608
+    m_Localized: Resolution
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24795465075937280
+    m_Localized: Fullscreen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24806540718657536
+    m_Localized: Resolution
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

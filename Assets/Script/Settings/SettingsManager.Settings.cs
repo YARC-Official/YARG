@@ -24,6 +24,7 @@ namespace YARG.Settings {
 			public ToggleSetting FpsStats                   { get; private set; } = new(false,     FpsCouterCallback);
 			public IntSetting    FpsCap                     { get; private set; } = new(60, 1,     onChange: FpsCapCallback);
 
+			public ToggleSetting Fullscreen					{ get; private set; } = new(false,	   FullscreenCallback);
 			public ToggleSetting LowQuality                 { get; private set; } = new(false,     LowQualityCallback);
 			public ToggleSetting DisableBloom               { get; private set; } = new(false,     DisableBloomCallback);
 
@@ -86,6 +87,11 @@ namespace YARG.Settings {
 				SettingsMenu.Instance.gameObject.SetActive(false);
 			}
 
+			public void TestScene() {
+				GameManager.Instance.LoadScene(SceneIndex.TEST);
+				SettingsMenu.Instance.gameObject.SetActive(false);
+			}
+
 			private static void VSyncCallback(bool value) {
 				QualitySettings.vSyncCount = value ? 1 : 0;
 			}
@@ -103,6 +109,16 @@ namespace YARG.Settings {
 
 			private static void FpsCapCallback(int value) {
 				Application.targetFrameRate = value;
+			}
+
+			private static void FullscreenCallback(bool value) {
+				Screen.fullScreen = value;
+/*
+				Resolution[] resolutions = Screen.resolutions;
+
+				foreach (var res in resolutions) {
+            		Debug.LogError(res.width + "x" + res.height + " : " + res.refreshRate);
+        		}*/
 			}
 
 			private static void LowQualityCallback(bool value) {

@@ -14,7 +14,8 @@ namespace YARG {
 		PERSISTANT,
 		MENU,
 		PLAY,
-		CALIBRATION
+		CALIBRATION,
+		TEST,
 	}
 
 	public class GameManager : MonoBehaviour {

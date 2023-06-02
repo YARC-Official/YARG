@@ -79,6 +79,8 @@ namespace YARG.Settings {
 					"FpsStats",
 					"FpsCap",
 					new HeaderMetadata("Graphics"),
+					new ButtonRowMetadata("TestScene"),
+					"Fullscreen",
 					"LowQuality",
 					"DisableBloom",
 					new HeaderMetadata("Camera"),
