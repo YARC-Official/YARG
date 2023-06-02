@@ -123,7 +123,7 @@ namespace YARG.Input {
 
 			NavigationEventForMapping(MenuAction.Shortcut1, YELLOW);
 			NavigationEventForMapping(MenuAction.Shortcut2, BLUE);
-			NavigationEventForMapping(MenuAction.Shortcut3, ORANGE);
+			NavigationHoldableForMapping(MenuAction.Shortcut3, ORANGE);
 
 			NavigationHoldableForMapping(MenuAction.Up, STRUM_UP);
 			NavigationHoldableForMapping(MenuAction.Down, STRUM_DOWN);

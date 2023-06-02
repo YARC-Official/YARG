@@ -135,10 +135,10 @@ namespace YARG.UI.MusicLibrary {
 		private NavigationScheme GetNavigationScheme(){
 			return new NavigationScheme(new() {
 				new NavigationScheme.Entry(MenuAction.Up, "Up", () => {
-					SelectedIndex--;
+					ScrollUp();
 				}),
 				new NavigationScheme.Entry(MenuAction.Down, "Down", () => {
-					SelectedIndex++;
+					ScrollDown();
 				}),
 				new NavigationScheme.Entry(MenuAction.Confirm, "Confirm", () => {
 					_songs[SelectedIndex]?.PrimaryButtonClick();
@@ -152,10 +152,24 @@ namespace YARG.UI.MusicLibrary {
 				new NavigationScheme.Entry(MenuAction.Shortcut2, _nextFilter, () => {
 					ChangeFilter();
 				}),
-				new NavigationScheme.Entry(MenuAction.Shortcut3, "Next section", () => {
-					SelectNextSection();
-				})
+				new NavigationScheme.Entry(MenuAction.Shortcut3, "(Hold) Section", () => {})
 			}, false);
+		}
+
+		private void ScrollUp() {
+			if (Navigator.Instance.IsHeld(MenuAction.Shortcut3)) {
+				SelectPreviousSection();
+			} else {
+				SelectedIndex--;
+			}
+		}
+
+		private void ScrollDown() {
+			if (Navigator.Instance.IsHeld(MenuAction.Shortcut3)) {
+				SelectNextSection();
+			} else {
+				SelectedIndex++;
+			}
 		}
 
 		private void OnDisable() {
@@ -568,6 +582,21 @@ namespace YARG.UI.MusicLibrary {
 			SelectedIndex = Random.Range(skip, SongContainer.Songs.Count);
 		}
 
+		private void SelectPreviousSection(){
+			if (_songs[_selectedIndex] is not SongViewType song) {
+				return;
+			}
+
+			int skip = GetSkip();
+
+			if(SongIsRecommendedOrDivision(skip)){
+				SelectedIndex = 1;
+				return;
+			}
+
+			SelectedIndex = SongSorting.Instance.SelectNewSection(_songs, SelectedIndex, song, skip, SongSorting.PreviousNext.PREVIOUS);
+		}
+
 		private void SelectNextSection(){
 			if (_songs[_selectedIndex] is not SongViewType song) {
 				return;
@@ -580,7 +609,7 @@ namespace YARG.UI.MusicLibrary {
 				return;
 			}
 
-			SelectedIndex = SongSorting.Instance.SelectNextSection(_songs, SelectedIndex, song, skip);
+			SelectedIndex = SongSorting.Instance.SelectNewSection(_songs, SelectedIndex, song, skip, SongSorting.PreviousNext.NEXT);
 		}
 
 		private bool SongIsRecommendedOrDivision(int skip){

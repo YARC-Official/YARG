@@ -12,11 +12,11 @@ namespace YARG.Input {
 		Back,      // Red    | Red        |
 		Shortcut1, // Yellow | Yellow Cym |
 		Shortcut2, // Blue   | Blue Cym   |
-		Shortcut3, // Orange | Green Cym  |
+		Shortcut3, // Orange | Kick       |
 		Up,        // Strum  | Yellow     |
 		Down,      // Strum  | Blue       |
 		Pause,     // Pause  |            |
-		More,      // Select | Kick       |
+		More,      // Select | Green Cym  |
 	}
 
 	public readonly struct NavigationContext {
@@ -108,6 +108,10 @@ namespace YARG.Input {
 			);
 
 			_heldInputs.RemoveAll(i => i.Ctx.IsSameAs(ctx));
+		}
+
+		public bool IsHeld(MenuAction action) {
+			return _heldInputs.Any(i => i.Ctx.Action == action);
 		}
 
 		private void InvokeNavigationEvent(NavigationContext ctx) {

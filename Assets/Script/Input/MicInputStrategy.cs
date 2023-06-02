@@ -134,7 +134,7 @@ namespace YARG.Input {
 
 			NavigationEventForMapping(MenuAction.Shortcut1, MENU_ACTION_1);
 			NavigationEventForMapping(MenuAction.Shortcut2, MENU_ACTION_2);
-			NavigationEventForMapping(MenuAction.Shortcut3, MENU_ACTION_3);
+			NavigationHoldableForMapping(MenuAction.Shortcut3, MENU_ACTION_3);
 
 			NavigationEventForMapping(MenuAction.Up, UP);
 			NavigationEventForMapping(MenuAction.Down, DOWN);
