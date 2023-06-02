@@ -3634,6 +3634,9 @@
     },
     "m_Slots": [
         {
+            "m_Id": "be8c8ff208934d7686637b8593554eca"
+        },
+        {
             "m_Id": "7088f2f596ee431ca0a8a5e9daeb0f59"
         },
         {
@@ -3659,14 +3662,16 @@
         "61344ff8-16fc-4a18-910e-7c884f35bd8d",
         "6123979e-a0c5-4ecc-ad96-aec03486dddb",
         "9c9d5708-ab69-4d12-85ba-4dd72317c791",
-        "a7640173-6d8c-41de-8f3e-c78d99112dd7"
+        "a7640173-6d8c-41de-8f3e-c78d99112dd7",
+        "7b43e429-2dee-4eb3-adaa-191a8efc3260"
     ],
     "m_PropertyIds": [
         1829159229,
         787309274,
         882649026,
         -1761259065,
-        -1135590423
+        -1135590423,
+        1339793380
     ],
     "m_Dropdowns": [],
     "m_DropdownSelectedEntries": []
@@ -7107,6 +7112,20 @@
     },
     "m_Labels": [],
     "m_Space": 0
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.BooleanMaterialSlot",
+    "m_ObjectId": "be8c8ff208934d7686637b8593554eca",
+    "m_Id": 1339793380,
+    "m_DisplayName": "IsFading",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "_IsFading",
+    "m_StageCapability": 3,
+    "m_Value": true,
+    "m_DefaultValue": false
 }
 
 {
