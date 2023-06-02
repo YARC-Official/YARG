@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using UnityEngine;
 using YARG.Audio;
 using YARG.PlayMode;
@@ -11,6 +12,8 @@ using YARG.Venue;
 namespace YARG.Settings {
 	public static partial class SettingsManager {
 		public class SettingContainer {
+			public static bool IsLoading = true;
+
 #pragma warning disable format
 
 			public List<string>  SongFolders                                      = new();
@@ -112,10 +115,20 @@ namespace YARG.Settings {
 			}
 
 			private static void FullscreenModeCallback(int value) {
+				// Unity saves this information automatically
+				if (IsLoading) {
+					return;
+				}
+
 				Screen.fullScreenMode = (FullScreenMode) value;
 			}
 
 			private static void ResolutionCallback(Resolution? value) {
+				// Unity saves this information automatically
+				if (IsLoading) {
+					return;
+				}
+
 				Resolution resolution;
 
 				// If set to null, just get the "default" resolution.
