@@ -15,6 +15,7 @@ using YARG.Song;
 using YARG.UI.MusicLibrary.ViewTypes;
 using Random = UnityEngine.Random;
 using System.Threading;
+using YARG.Settings;
 
 namespace YARG.UI.MusicLibrary {
 	public class SongSelection : MonoBehaviour {
@@ -232,7 +233,8 @@ namespace YARG.UI.MusicLibrary {
 			// Start preview
 			if (!_previewContext.IsPlaying && _songs[SelectedIndex] is SongViewType song) {
 				_previewCanceller = new();
-				_previewContext.PlayPreview(song.SongEntry, _previewCanceller.Token).Forget();
+				float previewVolume = SettingsManager.Settings.PreviewVolume.Data;
+				_previewContext.PlayPreview(song.SongEntry, previewVolume, _previewCanceller.Token).Forget();
 			}
 		}
 

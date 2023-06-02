@@ -21,11 +21,11 @@ namespace YARG.Audio {
 			_manager = manager;
 		}
 
-		private async UniTask StartLooping(CancellationToken cancelToken) {
+		private async UniTask StartLooping(float volume, CancellationToken cancelToken) {
 			try {
 				while (!cancelToken.IsCancellationRequested) {
 					_manager.SetPosition(PreviewStartTime);
-					_manager.FadeIn(SettingsManager.Settings.PreviewVolume.Data);
+					_manager.FadeIn(volume);
 
 					await UniTask.WaitUntil(() => cancelToken.IsCancellationRequested || (_manager.IsPlaying &&
 						(_manager.CurrentPositionD >= PreviewEndTime || _manager.CurrentPositionD >= _manager.AudioLengthD)));
@@ -38,9 +38,9 @@ namespace YARG.Audio {
 			}
 		}
 
-		public async UniTask PlayPreview(SongEntry song, CancellationToken cancelToken) {
+		public async UniTask PlayPreview(SongEntry song, float volume, CancellationToken cancelToken) {
 			// Skip if preview shouldn't be played
-			if (song == null || Mathf.Approximately(SettingsManager.Settings.PreviewVolume.Data, 0f)) {
+			if (song == null || Mathf.Approximately(volume, 0f)) {
 				return;
 			}
 
@@ -87,7 +87,7 @@ namespace YARG.Audio {
 				}
 
 				// Play the audio
-				await StartLooping(cancelToken);
+				await StartLooping(volume, cancelToken);
 			} catch (Exception ex) {
 				Debug.LogError("Error while playing song preview!");
 				Debug.LogException(ex);
