@@ -3634,9 +3634,6 @@
     },
     "m_Slots": [
         {
-            "m_Id": "70bf76ebe58b45d494a4a9073c1c04b1"
-        },
-        {
             "m_Id": "7088f2f596ee431ca0a8a5e9daeb0f59"
         },
         {
@@ -3651,7 +3648,7 @@
     ],
     "synonyms": [],
     "m_Precision": 0,
-    "m_PreviewExpanded": true,
+    "m_PreviewExpanded": false,
     "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
@@ -4982,21 +4979,6 @@
         "y": 0.0,
         "z": 0.0
     },
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "70bf76ebe58b45d494a4a9073c1c04b1",
-    "m_Id": 1829159229,
-    "m_DisplayName": "Radius",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "_Radius",
-    "m_StageCapability": 3,
-    "m_Value": 699.4000244140625,
-    "m_DefaultValue": 0.0,
     "m_Labels": []
 }
 
@@ -8244,7 +8226,7 @@
         "location"
     ],
     "m_Precision": 1,
-    "m_PreviewExpanded": true,
+    "m_PreviewExpanded": false,
     "m_PreviewMode": 2,
     "m_CustomColors": {
         "m_SerializableColors": []

@@ -4,9 +4,6 @@
     "m_ObjectId": "5f8dd68fdf5a4b7e9c931e1e1a73cb0f",
     "m_Properties": [
         {
-            "m_Id": "86b1e3f930b64387a7be210b775df210"
-        },
-        {
             "m_Id": "56df2a264d054417a8c28c79b2d897ee"
         },
         {
@@ -1206,33 +1203,6 @@
 }
 
 {
-    "m_SGVersion": 1,
-    "m_Type": "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty",
-    "m_ObjectId": "86b1e3f930b64387a7be210b775df210",
-    "m_Guid": {
-        "m_GuidSerialized": "ab1884e8-9e25-4b8a-a171-fab351aa6e3e"
-    },
-    "m_Name": "Radius",
-    "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "Radius",
-    "m_DefaultReferenceName": "_Radius",
-    "m_OverrideReferenceName": "",
-    "m_GeneratePropertyBlock": true,
-    "m_UseCustomSlotLabel": false,
-    "m_CustomSlotLabel": "",
-    "m_Precision": 0,
-    "overrideHLSLDeclaration": false,
-    "hlslDeclarationOverride": 0,
-    "m_Hidden": false,
-    "m_Value": 0.0,
-    "m_FloatType": 0,
-    "m_RangeValues": {
-        "x": 0.0,
-        "y": 1.0
-    }
-}
-
-{
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.GroupData",
     "m_ObjectId": "86df2810ded2429b9591c311cf922003",
@@ -1632,9 +1602,6 @@
     "m_ObjectId": "d0c56db033ed4602833b8025786e3b17",
     "m_Name": "",
     "m_ChildObjectList": [
-        {
-            "m_Id": "86b1e3f930b64387a7be210b775df210"
-        },
         {
             "m_Id": "56df2a264d054417a8c28c79b2d897ee"
         },
