@@ -14,6 +14,8 @@ using YARG.Input;
 using YARG.Song;
 using YARG.UI.MusicLibrary.ViewTypes;
 using Random = UnityEngine.Random;
+using System.Threading;
+using YARG.Settings;
 
 namespace YARG.UI.MusicLibrary {
 	public class SongSelection : MonoBehaviour {
@@ -50,6 +52,7 @@ namespace YARG.UI.MusicLibrary {
 		private List<SongEntry> _recommendedSongs;
 
 		private PreviewContext _previewContext;
+		private CancellationTokenSource _previewCanceller = new();
 
 		public IReadOnlyList<ViewType> Songs => _songs;
 
@@ -82,7 +85,10 @@ namespace YARG.UI.MusicLibrary {
 				}
 
 				GameManager.Instance.SelectedSong = song.SongEntry;
-				_previewContext.PlayPreview(song.SongEntry).Forget();
+
+				if (!_previewCanceller.IsCancellationRequested) {
+					_previewCanceller.Cancel();
+				}
 			}
 		}
 
@@ -149,17 +155,15 @@ namespace YARG.UI.MusicLibrary {
 			}
 
 			searchBoxShouldBeEnabled = true;
-
-			// Play preview on enter for selected song
-			if (_songs[SelectedIndex] is SongViewType song) {
-				_previewContext.PlayPreview(song.SongEntry).Forget();
-			}
 		}
 
 		private void OnDisable() {
 			Navigator.Instance.PopScheme();
 
-			_previewContext.Dispose();
+			if (!_previewCanceller.IsCancellationRequested) {
+				_previewCanceller.Cancel();
+			}
+
 			_previewContext = null;
 		}
 
@@ -224,6 +228,13 @@ namespace YARG.UI.MusicLibrary {
 			if (searchBoxShouldBeEnabled) {
 				searchField.ActivateInputField();
 				searchBoxShouldBeEnabled = false;
+			}
+
+			// Start preview
+			if (!_previewContext.IsPlaying && _songs[SelectedIndex] is SongViewType song) {
+				_previewCanceller = new();
+				float previewVolume = SettingsManager.Settings.PreviewVolume.Data;
+				_previewContext.PlayPreview(song.SongEntry, previewVolume, _previewCanceller.Token).Forget();
 			}
 		}
 

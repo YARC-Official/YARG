@@ -60,6 +60,8 @@ namespace YARG.Settings {
 					"PreviewVolume",
 					"MusicPlayerVolume",
 					"VocalMonitoring",
+					new HeaderMetadata("Input"),
+					"MicrophoneSensitivity",
 					new HeaderMetadata("Other"),
 					"MuteOnMiss",
 					"UseStarpowerFx",

@@ -14,7 +14,6 @@ namespace YARG.Settings {
 #pragma warning disable format
 
 			public List<string>  SongFolders                                      = new();
-			public List<string>  SongUpgradeFolders                               = new();
 
 			public IntSetting    AudioCalibration           { get; private set; } = new(120);
 
@@ -47,6 +46,9 @@ namespace YARG.Settings {
 			public VolumeSetting PreviewVolume              { get; private set; } = new(0.25f);
 			public VolumeSetting MusicPlayerVolume          { get; private set; } = new(0.15f,     MusicPlayerVolumeCallback);
 			public VolumeSetting VocalMonitoring            { get; private set; } = new(0.7f,      VocalMonitoringCallback);
+
+			public SliderSetting MicrophoneSensitivity      { get; private set; } = new(2f,    -50f, 50f);
+
 			public ToggleSetting MuteOnMiss                 { get; private set; } = new(true);
 			public ToggleSetting UseStarpowerFx             { get; private set; } = new(true,      UseStarpowerFxChange);
 			public ToggleSetting UseChipmunkSpeed           { get; private set; } = new(false,     UseChipmunkSpeedChange);

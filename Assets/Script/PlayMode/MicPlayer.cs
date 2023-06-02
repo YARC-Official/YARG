@@ -582,12 +582,15 @@ namespace YARG.PlayMode {
 
 				// Update needle
 				float z = NoteAndOctaveToZ(micInput.VoiceNote, micInput.VoiceOctave + playerInfo.OctaveOffset);
-				var newPosition = playerInfo.Needle.localPosition.WithZ(z);
-				// Don't lerp if no voice was detected previously and needle wasn't active
-				if (micInput.VoiceDetected && !wasNeedleActive) {
-					playerInfo.Needle.localPosition = newPosition;
-				} else {
-					playerInfo.Needle.localPosition = Vector3.Lerp(playerInfo.Needle.localPosition, newPosition, Time.deltaTime * 15f);
+				if (!float.IsNaN(z)) {
+					var newPosition = playerInfo.Needle.localPosition.WithZ(z);
+
+					// Don't lerp if no voice was detected previously and needle wasn't active
+					if (micInput.VoiceDetected && !wasNeedleActive) {
+						playerInfo.Needle.localPosition = newPosition;
+					} else {
+						playerInfo.Needle.localPosition = Vector3.Lerp(playerInfo.Needle.localPosition, newPosition, Time.deltaTime * 15f);
+					}
 				}
 			}
 

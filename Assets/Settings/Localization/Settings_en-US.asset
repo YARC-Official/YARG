@@ -268,6 +268,12 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 24806540718657536
     m_Localized: Resolution
+  - m_Id: 25027136172974080
+    m_Localized: Input
+    m_Metadata:
+      m_Items: []
+  - m_Id: 25027162441900032
+    m_Localized: Microphone Sensitivity (Db)
     m_Metadata:
       m_Items: []
   references:

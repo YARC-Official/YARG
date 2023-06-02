@@ -11,146 +11,89 @@ namespace YARG.Audio {
 		public double PreviewStartTime { get; private set; }
 		public double PreviewEndTime { get; private set; }
 
+		public bool IsPlaying { get; private set; }
+
 		private readonly IAudioManager _manager;
 
-		private CancellationTokenSource _loopCanceller;
-		private CancellationTokenSource _loadCanceller;
-
-		private bool _loadingPreview;
-		private SongEntry _songToLoad;
+		private UniTask _loopTask;
 
 		public PreviewContext(IAudioManager manager) {
 			_manager = manager;
 		}
 
-		public async UniTask StartLooping() {
-			// Cancel any other loops
-			if (_loopCanceller != null && !_loopCanceller.IsCancellationRequested) {
-				_loopCanceller.Cancel();
-				_loopCanceller.Dispose();
-			}
-
-			// Since _loopCanceller is directly set to, we need a local copy of it
-			_loopCanceller = new CancellationTokenSource();
-			var localCanceller = _loopCanceller;
-
+		private async UniTask StartLooping(float volume, CancellationToken cancelToken) {
 			try {
-				while (!localCanceller.IsCancellationRequested) {
-					await UniTask.WaitUntil(() =>
-						_manager.IsPlaying &&
-						(_manager.CurrentPositionD >= PreviewEndTime ||
-						_manager.CurrentPositionD >= _manager.AudioLengthD),
-					cancellationToken: localCanceller.Token);
-
-					localCanceller.Token.ThrowIfCancellationRequested();
-
-					await _manager.FadeOut(localCanceller.Token);
-
-					localCanceller.Token.ThrowIfCancellationRequested();
-
+				while (!cancelToken.IsCancellationRequested) {
 					_manager.SetPosition(PreviewStartTime);
-					_manager.FadeIn(SettingsManager.Settings.PreviewVolume.Data);
+					_manager.FadeIn(volume);
+
+					await UniTask.WaitUntil(() => cancelToken.IsCancellationRequested || (_manager.IsPlaying &&
+						(_manager.CurrentPositionD >= PreviewEndTime || _manager.CurrentPositionD >= _manager.AudioLengthD)));
+
+					await _manager.FadeOut();
 				}
-			} catch (OperationCanceledException) {
-				// It's all good if we cancelled!
 			} catch (Exception e) {
-				Debug.LogError("An error has occurred while attempting to loop preview audio.");
+				Debug.LogError("Error while looping song preview!");
 				Debug.LogException(e);
 			}
 		}
 
-		public async UniTask PlayPreview(SongEntry song) {
+		public async UniTask PlayPreview(SongEntry song, float volume, CancellationToken cancelToken) {
 			// Skip if preview shouldn't be played
-			if (song == null || Mathf.Approximately(SettingsManager.Settings.PreviewVolume.Data, 0f)) {
+			if (song == null || Mathf.Approximately(volume, 0f)) {
 				return;
 			}
 
-			_songToLoad = song;
-			
-			// If a preview is being loaded, WE DON'T want to mess with that process
-			if (_loadingPreview) {
-				if (!_loadCanceller?.IsCancellationRequested ?? false) {
-					_loadCanceller.Cancel();
-					_loadCanceller.Dispose();
+			// Previews must be cancelled before attempting to start a new one
+			if (IsPlaying) {
+				Debug.LogError($"Attempted to play a new preview without cancelling the previous! Song: {song.Artist} - {song.Name}");
+				return;
+			}
+
+			IsPlaying = true;
+
+			try {
+				// Wait for a X milliseconds to prevent spam loading (no one likes Music Library lag)
+				await UniTask.Delay(TimeSpan.FromMilliseconds(300.0), ignoreTimeScale: true);
+
+				// Check if cancelled
+				if (cancelToken.IsCancellationRequested) {
+					return;
 				}
-				return;
-			}
 
-			// If something is playing, fade it out first
-			await _manager.FadeOut(_loadCanceller?.Token ?? default);
+				// Load the song
+				await UniTask.RunOnThreadPool(() => {
+					if (song is ExtractedConSongEntry conSong) {
+						_manager.LoadMogg(conSong, 1f, SongStem.Crowd);
+					} else {
+						_manager.LoadSong(AudioHelpers.GetSupportedStems(song.Location), 1f, SongStem.Crowd);
+					}
+				});
 
-			// Check if cancelled
-			if (_loadCanceller?.IsCancellationRequested ?? false) {
-				return;
-			}
-
-			// Stop current preview (also cancels other preview loads)
-			StopPreview();
-
-			// Since _loadCanceller is directly set to, we need a local copy of it
-			_loadCanceller = new CancellationTokenSource();
-			var localCanceller = _loadCanceller;
-
-			// Wait for a X milliseconds to prevent spam loading (no one likes Music Library lag)
-			await UniTask.Delay(TimeSpan.FromMilliseconds(300.0), ignoreTimeScale: true);
-
-			// Check if cancelled
-			if (localCanceller.IsCancellationRequested) {
-				return;
-			}
-
-			// Load the song
-			_loadingPreview = true;
-			await UniTask.RunOnThreadPool(() => {
-				if (_songToLoad is ExtractedConSongEntry conSong) {
-					_manager.LoadMogg(conSong, 1f, SongStem.Crowd);
-				} else {
-					_manager.LoadSong(AudioHelpers.GetSupportedStems(_songToLoad.Location), 1f, SongStem.Crowd);
+				// Check if cancelled
+				if (cancelToken.IsCancellationRequested) {
+					_manager.UnloadSong();
+					return;
 				}
-			});
-			_loadingPreview = false;
 
-			// Finish here if cancelled
-			if (localCanceller.IsCancellationRequested) {
-				return;
+				// Set preview start and end times
+				PreviewStartTime = song.PreviewStartTimeSpan.TotalSeconds;
+				if (PreviewStartTime <= 0.0) {
+					PreviewStartTime = 10.0;
+				}
+				PreviewEndTime = song.PreviewEndTimeSpan.TotalSeconds;
+				if (PreviewEndTime <= 0.0) {
+					PreviewEndTime = PreviewStartTime + Constants.PREVIEW_DURATION;
+				}
+
+				// Play the audio
+				await StartLooping(volume, cancelToken);
+			} catch (Exception ex) {
+				Debug.LogError("Error while playing song preview!");
+				Debug.LogException(ex);
+			} finally {
+				IsPlaying = false;
 			}
-
-			// Set preview start and end times
-			PreviewStartTime = _songToLoad.PreviewStartTimeSpan.TotalSeconds;
-			if (PreviewStartTime <= 0.0) {
-				PreviewStartTime = 10.0;
-			}
-			PreviewEndTime = _songToLoad.PreviewEndTimeSpan.TotalSeconds;
-			if (PreviewEndTime <= 0.0) {
-				PreviewEndTime = PreviewStartTime + Constants.PREVIEW_DURATION;
-			}
-
-			// Set the position of the preview
-			_manager.SetPosition(PreviewStartTime);
-
-			// Start the audio
-			_manager.FadeIn(SettingsManager.Settings.PreviewVolume.Data);
-			StartLooping().Forget();
-		}
-
-		public void StopPreview() {
-			if (_manager.IsAudioLoaded) {
-				_manager.UnloadSong();
-			}
-
-			if (!_loadCanceller?.IsCancellationRequested ?? false) {
-				_loadCanceller.Cancel();
-				_loadCanceller.Dispose();
-			}
-
-			if (!_loopCanceller?.IsCancellationRequested ?? false) {
-				_loopCanceller.Cancel();
-				_loopCanceller.Dispose();
-			}
-		}
-
-		public void Dispose() {
-			StopPreview();
 		}
 	}
 }

@@ -14,7 +14,6 @@ namespace YARG.Song {
 		private static readonly Dictionary<string, SongEntry> _songsByHash;
 
 		public static List<string> SongFolders => SettingsManager.Settings.SongFolders;
-		public static List<string> SongUpgradeFolders => SettingsManager.Settings.SongUpgradeFolders;
 
 		public static IReadOnlyList<SongEntry> Songs => _songs;
 		public static IReadOnlyDictionary<string, SongEntry> SongsByHash => _songsByHash;
@@ -50,18 +49,18 @@ namespace YARG.Song {
 
 		public static async UniTask ScanFolders(ICollection<string> folders, bool fast, Action<SongScanner> updateUi = null) {
 			var songsToRemove = _songs.Where(song => folders.Contains(song.CacheRoot)).ToList();
-			
+
 			_songs.RemoveAll(x => songsToRemove.Contains(x));
 			foreach (var song in songsToRemove) {
 				_songsByHash.Remove(song.Checksum);
 			}
-			
+
 			var scanner = new SongScanner(folders);
 			var songs = await scanner.StartScan(fast, updateUi);
 
 			AddSongs(songs.SongEntries);
 		}
-		
+
 		public static async UniTask ScanSingleFolder(string path, bool fast, Action<SongScanner> updateUi = null) {
 			var songsToRemove = _songs.Where(song => song.CacheRoot == path).ToList();
 

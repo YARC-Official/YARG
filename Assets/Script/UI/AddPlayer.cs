@@ -83,7 +83,7 @@ namespace YARG.UI {
 		private State _state = State.SelectDevice;
 
 		private InputDevice _selectedDevice = null;
-		private UninitializedMic? _selectedMic = null;
+		private IMicDevice _selectedMic = null;
 
 		private bool _botMode = false;
 		private string _playerName = null;
@@ -251,12 +251,8 @@ namespace YARG.UI {
 			};
 
 			_inputStrategy.InputDevice = _selectedDevice;
+			_inputStrategy.MicDevice = _selectedMic;
 			_inputStrategy.BotMode = _botMode;
-
-			// Create mic (if selected)
-			if (_selectedMic.HasValue) {
-				_inputStrategy.MicDevice = GameManager.AudioManager.CreateMicFromUninitialized(_selectedMic.Value);
-			}
 
 			_playerName = playerNameField.text;
 

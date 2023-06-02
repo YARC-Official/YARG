@@ -38,7 +38,18 @@ namespace YARG.Input {
 			}
 		}
 
-		public IMicDevice MicDevice { get; set; }
+		private IMicDevice _micDevice;
+		public IMicDevice MicDevice {
+			get => _micDevice;
+			set {
+				// Dispose old device
+				_micDevice?.Dispose();
+
+				// Initialize new device
+				_micDevice = value;
+				_micDevice?.Initialize();
+			}
+		}
 
 		/// <summary>
 		/// A list of the controls that correspond to each mapping.
