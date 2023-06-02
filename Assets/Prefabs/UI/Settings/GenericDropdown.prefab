@@ -354,7 +354,7 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1282293767543498426}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: YARG.Settings.SettingsDropdown, Assembly-CSharp
         m_MethodName: OnValueChange
         m_Mode: 1
@@ -553,9 +553,9 @@ MonoBehaviour:
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
-  m_enableWordWrapping: 1
+  m_enableWordWrapping: 0
   m_wordWrappingRatios: 0.4
-  m_overflowMode: 0
+  m_overflowMode: 1
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 1
@@ -802,9 +802,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5753369685943773596}
-  - component: {fileID: 1282293767543498426}
   m_Layer: 5
-  m_Name: Settings_PresetDropdown
+  m_Name: GenericDropdown
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -833,20 +832,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 1000, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1282293767543498426
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5753369685943773599}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 155a7bc0113d4067841c7c9411578c74, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _dropdownName: {fileID: 7748925732419506741}
-  _dropdown: {fileID: 2229706888576883306}
 --- !u!1 &5753369685971461696
 GameObject:
   m_ObjectHideFlags: 0

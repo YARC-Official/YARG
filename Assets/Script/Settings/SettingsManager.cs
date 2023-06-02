@@ -76,10 +76,12 @@ namespace YARG.Settings {
 				ShowInPlayMode = true,
 				PreviewPath = "SettingPreviews/TrackPreview",
 				Settings = {
-					new HeaderMetadata("Framerate"),
+					new HeaderMetadata("Display"),
 					"VSync",
-					"FpsStats",
 					"FpsCap",
+					"FullscreenMode",
+					"Resolution",
+					"FpsStats",
 					new HeaderMetadata("Graphics"),
 					"LowQuality",
 					"DisableBloom",
@@ -178,6 +180,8 @@ namespace YARG.Settings {
 		private static string SettingsFile => Path.Combine(GameManager.PersistentDataPath, "settings.json");
 
 		public static void LoadSettings() {
+			SettingContainer.IsLoading = true;
+
 			// Create settings container
 			try {
 				Settings = JsonConvert.DeserializeObject<SettingContainer>(File.ReadAllText(SettingsFile));
@@ -187,6 +191,8 @@ namespace YARG.Settings {
 
 			// If null, recreate
 			Settings ??= new SettingContainer();
+
+			SettingContainer.IsLoading = false;
 		}
 
 		public static void SaveSettings() {
