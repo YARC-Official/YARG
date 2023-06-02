@@ -19,6 +19,7 @@ namespace YARG.Audio {
 
 		public float Pitch { get; private set; }
 		public float Amplitude { get; private set; }
+		public bool VoiceDetected => Amplitude > SettingsManager.Settings.MicrophoneSensitivity.Data;
 
 		private int _deviceId;
 		private DeviceInfo _deviceInfo;
@@ -160,7 +161,7 @@ namespace YARG.Audio {
 			}
 
 			// Skip pitch detection if not speaking
-			if (Amplitude <= 2f) {
+			if (!VoiceDetected) {
 				return;
 			}
 

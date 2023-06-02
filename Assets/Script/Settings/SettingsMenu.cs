@@ -251,7 +251,7 @@ namespace YARG.Settings {
 			// Create all of the directories
 			for (int i = 0; i < SettingsManager.Settings.SongFolders.Count; i++) {
 				var go = Instantiate(_directoryPrefab, _settingsContainer);
-				go.GetComponent<SettingsDirectory>().SetIndex(i, false);
+				go.GetComponent<SettingsDirectory>().SetIndex(i);
 			}
 		}
 

@@ -19,6 +19,11 @@ namespace YARG.Audio {
 		public float Amplitude { get; }
 
 		/// <summary>
+		/// Whether or not a voice/singing is detected.
+		/// </summary>
+		public bool VoiceDetected { get; }
+
+		/// <summary>
 		/// Initialize the microphone device with the given device number.
 		/// </summary>
 		/// <param name="device">The device number to associate with this Microphone Device.</param>

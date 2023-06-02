@@ -9,51 +9,33 @@ using YARG.Util;
 
 namespace YARG.Settings {
 	public class SettingsDirectory : MonoBehaviour {
+		private static List<string> SongFolders => SettingsManager.Settings.SongFolders;
+
 		[SerializeField]
 		private TextMeshProUGUI pathText;
 		[SerializeField]
 		private TextMeshProUGUI songCountText;
 
-		private bool isUpgradeFolder;
-		private int index;
+		private int _index;
 
-		private List<string> _pathsReference;
-		private List<string> PathsReference {
-			get => _pathsReference;
-			set {
-				if (isUpgradeFolder) {
-					SettingsManager.Settings.SongUpgradeFolders = value;
-				} else {
-					SettingsManager.Settings.SongFolders = value;
-				}
-			}
-		}
-
-		public void SetIndex(int index, bool isUpgradeFolder) {
-			this.index = index;
-			this.isUpgradeFolder = isUpgradeFolder;
-
-			if (isUpgradeFolder) {
-				_pathsReference = SettingsManager.Settings.SongUpgradeFolders;
-			} else {
-				_pathsReference = SettingsManager.Settings.SongFolders;
-			}
-
+		public void SetIndex(int index) {
+			_index = index;
 			RefreshText();
 		}
 
 		private void RefreshText() {
-			if (string.IsNullOrEmpty(PathsReference[index])) {
+			if (string.IsNullOrEmpty(SongFolders[_index])) {
 				pathText.text = "<i>No Folder</i>";
 				songCountText.text = "";
 			} else {
-				pathText.text = PathsReference[index];
+				pathText.text = SongFolders[_index];
 
-				if (isUpgradeFolder) {
-					songCountText.text = "";
+				int songCount = SongContainer.Songs.Count(i =>
+					Utils.PathsEqual(i.CacheRoot, SongFolders[_index]));
+
+				if (songCount == 0) {
+					songCountText.text = "<alpha=#60>SCAN NEEDED";
 				} else {
-					int songCount = SongContainer.Songs.Count(i =>
-						Utils.PathsEqual(i.CacheRoot, PathsReference[index]));
 					songCountText.text = $"{songCount} <alpha=#60>SONGS";
 				}
 			}
@@ -61,22 +43,22 @@ namespace YARG.Settings {
 
 		public void Remove() {
 			// Remove the element
-			PathsReference.RemoveAt(index);
+			SongFolders.RemoveAt(_index);
 
 			// Refresh
 			SettingsMenu.Instance.UpdateSongFolderManager();
 		}
 
 		public void Browse() {
-			var startingDir = PathsReference[index];
+			var startingDir = SongFolders[_index];
 			FileExplorerHelper.OpenChooseFolder(startingDir, folder => {
-				PathsReference[index] = folder;
+				SongFolders[_index] = folder;
 				RefreshText();
 			});
 		}
 
 		public async void Refresh() {
-			LoadingManager.Instance.QueueSongFolderRefresh(PathsReference[index]);
+			LoadingManager.Instance.QueueSongFolderRefresh(SongFolders[_index]);
 			await LoadingManager.Instance.StartLoad();
 			RefreshText();
 		}
