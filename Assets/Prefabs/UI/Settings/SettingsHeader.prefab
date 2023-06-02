@@ -189,7 +189,7 @@ GameObject:
   - component: {fileID: 5418030377928633389}
   - component: {fileID: 9115088283461521973}
   m_Layer: 5
-  m_Name: Settings_Header
+  m_Name: SettingsHeader
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

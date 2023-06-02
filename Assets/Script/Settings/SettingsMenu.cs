@@ -54,7 +54,7 @@ namespace YARG.Settings {
 		private string _currentTab;
 
 		private readonly List<ISettingVisual> _settingVisuals = new();
-		private readonly List<SettingsDropdown> _settingDropdowns = new();
+		private readonly List<SettingsPresetDropdown> _settingDropdowns = new();
 
 		public string CurrentTab {
 			get => _currentTab;
@@ -203,7 +203,7 @@ namespace YARG.Settings {
 						var go = Instantiate(_dropdownPrefab, container);
 
 						// Set the setting, and cache the object
-						var settingsDropdown = go.GetComponent<SettingsDropdown>();
+						var settingsDropdown = go.GetComponent<SettingsPresetDropdown>();
 						settingsDropdown.SetInfo(dropdown);
 						_settingDropdowns.Add(settingsDropdown);
 					}

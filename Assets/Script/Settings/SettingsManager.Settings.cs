@@ -19,9 +19,12 @@ namespace YARG.Settings {
 
 			public ToggleSetting DisablePerSongBackgrounds  { get; private set; } = new(false);
 
-			public ToggleSetting VSync                      { get; private set; } = new(true,      VSyncCallback);
-			public ToggleSetting FpsStats                   { get; private set; } = new(false,     FpsCounterCallback);
-			public IntSetting    FpsCap                     { get; private set; } = new(60, 1,     onChange: FpsCapCallback);
+			public ToggleSetting     VSync                  { get; private set; } = new(true,      VSyncCallback);
+			public IntSetting        FpsCap                 { get; private set; } = new(60, 1,     onChange: FpsCapCallback);
+			public EnumSetting       FullscreenMode         { get; private set; } = new(typeof(FullScreenMode),
+				                                            (int) FullScreenMode.FullScreenWindow, FullscreenModeCallback);
+			public ResolutionSetting Resolution             { get; private set; } = new(           ResolutionCallback);
+			public ToggleSetting     FpsStats               { get; private set; } = new(false,     FpsCounterCallback);
 
 			public ToggleSetting LowQuality                 { get; private set; } = new(false,     LowQualityCallback);
 			public ToggleSetting DisableBloom               { get; private set; } = new(false,     DisableBloomCallback);
@@ -106,6 +109,45 @@ namespace YARG.Settings {
 
 			private static void FpsCapCallback(int value) {
 				Application.targetFrameRate = value;
+			}
+
+			private static void FullscreenModeCallback(int value) {
+				Screen.fullScreenMode = (FullScreenMode) value;
+			}
+
+			private static void ResolutionCallback(Resolution? value) {
+				Resolution resolution;
+
+				// If set to null, just get the "default" resolution.
+				if (value == null) {
+					// Since we actually can't get the highest resolution,
+					// we need to find it in the supported resolutions
+					var highest = new Resolution {
+						width = 0,
+						height = 0,
+						refreshRate = 0
+					};
+
+					foreach (var r in Screen.resolutions) {
+						if (r.refreshRate >= highest.refreshRate &&
+						    r.width >= highest.width &&
+						    r.height >= highest.height) {
+
+							highest = r;
+						}
+					}
+
+					resolution = highest;
+				} else {
+					resolution = value.Value;
+				}
+
+				var fullscreenMode = FullScreenMode.FullScreenWindow;
+				if (Settings != null) {
+					fullscreenMode = (FullScreenMode) Settings.FullscreenMode.Data;
+				}
+
+				Screen.SetResolution(resolution.width, resolution.height, fullscreenMode, resolution.refreshRate);
 			}
 
 			private static void LowQualityCallback(bool value) {

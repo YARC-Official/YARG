@@ -7,7 +7,7 @@ using YARG.Settings.Metadata;
 using YARG.Settings.Types;
 
 namespace YARG.Settings {
-	public class SettingsDropdown : MonoBehaviour {
+	public class SettingsPresetDropdown : MonoBehaviour {
 		[SerializeField]
 		private LocalizeStringEvent _dropdownName;
 		[SerializeField]
