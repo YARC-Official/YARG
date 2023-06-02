@@ -3,7 +3,7 @@ using ManagedBass;
 using ManagedBass.DirectX8;
 using ManagedBass.Fx;
 
-namespace YARG.Audio {
+namespace YARG.Audio.BASS {
 	public static class BassHelpers {
 
 		public const float SONG_VOLUME_MULTIPLIER = 0.7f;

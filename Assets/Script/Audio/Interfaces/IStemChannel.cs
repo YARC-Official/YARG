@@ -10,7 +10,7 @@ namespace YARG.Audio {
 
 		public double Volume { get; }
 
-		public int Load(bool isSpeedUp, float speed);
+		public int Load(float speed);
 
 		public void FadeIn(float maxVolume);
 		public UniTask FadeOut();
@@ -20,7 +20,8 @@ namespace YARG.Audio {
 		public void SetReverb(bool reverb);
 
 		public double GetPosition();
-
+		public void SetPosition(double position);
+		
 		public double GetLengthInSeconds();
 
 	}

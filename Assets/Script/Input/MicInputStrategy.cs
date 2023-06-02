@@ -110,6 +110,7 @@ namespace YARG.Input {
 			}
 
 			// Set info based on lyric
+			previousDbCache = dbCache;
 			if (botLyricInfo == null) {
 				VoiceAmplitude = -1f;
 				TimeSinceNoVoice += Time.deltaTime;

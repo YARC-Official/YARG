@@ -15,7 +15,6 @@ namespace YARG.Audio {
 		public IStemChannel LeadChannel { get; }
 
 		public bool Create();
-		public bool SetupMogg(bool isSpeedUp);
 
 		public int Play(bool restart = false);
 
@@ -29,8 +28,7 @@ namespace YARG.Audio {
 		public void SetPosition(double position);
 
 		public int AddChannel(IStemChannel channel);
-		public int AddMoggChannel(IStemChannel channel, IList<float[]> matrixes);
-
+		
 		public bool RemoveChannel(IStemChannel channel);
 
 		public IStemChannel GetChannel(SongStem stem);

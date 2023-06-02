@@ -23,8 +23,6 @@ namespace YARG.Audio {
 		public float CurrentPositionF { get; }
 		public float AudioLengthF { get; }
 
-		public IPreviewContext PreviewContext { get; }
-
 		public void Initialize();
 		public void Unload();
 
@@ -33,15 +31,13 @@ namespace YARG.Audio {
 
 		public void LoadSfx();
 
-		public void LoadSong(ICollection<string> stems, bool isSpeedUp, params SongStem[] ignoreStems);
-		public void LoadMogg(ExtractedConSongEntry exConSong, bool isSpeedUp, params SongStem[] ignoreStems);
-		public void LoadCustomAudioFile(string audioPath);
+		public void LoadSong(ICollection<string> stems, float speed, params SongStem[] ignoreStems);
+		public void LoadMogg(ExtractedConSongEntry exConSong, float speed, params SongStem[] ignoreStems);
+		public void LoadCustomAudioFile(string audioPath, float speed);
 		public void UnloadSong();
 
 		public void Play();
 		public void Pause();
-
-		public void DisposePreviewContext();
 
 		public void FadeIn(float maxVolume);
 		public UniTask FadeOut(CancellationToken token = default);

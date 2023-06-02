@@ -24,8 +24,6 @@ namespace YARG.PlayMode {
 		private ParticleGroup[] sustainParticles;
 		[SerializeField]
 		private NotePool notePool;
-		[SerializeField]
-		private Pool genericPool;
 
 		private Queue<NoteInfo> expectedHits = new();
 		private List<NoteInfo> heldNotes = new();
@@ -88,49 +86,16 @@ namespace YARG.PlayMode {
 				return;
 			}
 
-			var events = Play.Instance.chart.events;
-			var beats = Play.Instance.chart.beats;
-
-			// Update events (beat lines, starpower, etc.)
-			while (events.Count > eventChartIndex && events[eventChartIndex].time <= RelativeTime) {
-				var eventInfo = events[eventChartIndex];
-
-				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(RelativeTime, eventInfo.time);
-				// if (eventInfo.name == "beatLine_minor") {
-				// 	genericPool.Add("beatLine_minor", new(0f, 0.01f, compensation));
-				// } else if (eventInfo.name == "beatLine_major") {
-				// 	genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
-				if (eventInfo.name == $"starpower_{player.chosenInstrument}") {
-					StarpowerSection = eventInfo;
-				} else if (eventInfo.name == $"solo_{player.chosenInstrument}") {
-					SoloSection = eventInfo;
-				}
-
-				eventChartIndex++;
-			}
-			
-			while (beats.Count > beatChartIndex && beats[beatChartIndex].Time <= RelativeTime) {
-				var beatInfo = beats[beatChartIndex];
-
-				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(RelativeTime, beatInfo.Time);
-				if (beatInfo.Style is BeatStyle.STRONG or BeatStyle.WEAK) {
-					genericPool.Add("beatLine_minor", new(0f, 0.01f, compensation));
-				} else if (beatInfo.Style == BeatStyle.MEASURE) {
-					genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
-				}
-				beatChartIndex++;
-			}
-
 			// Since chart is sorted, this is guaranteed to work
-			while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= RelativeTime) {
+			while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= TrackStartTime) {
 				var noteInfo = Chart[visualChartIndex];
 
-				SpawnNote(noteInfo, RelativeTime);
+				SpawnNote(noteInfo, TrackStartTime);
 				visualChartIndex++;
 			}
 
 			// Update expected input
-			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= Play.Instance.SongTime + Constants.HIT_MARGIN) {
+			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= HitMarginStartTime) {
 				expectedHits.Enqueue(Chart[inputChartIndex]);
 
 				inputChartIndex++;
@@ -140,7 +105,7 @@ namespace YARG.PlayMode {
 			for (int i = heldNotes.Count - 1; i >= 0; i--) {
 				var heldNote = heldNotes[i];
 				scoreKeeper.Add(susTracker.Update(heldNote) * Multiplier * SUSTAIN_PTS_PER_BEAT);
-				if (heldNote.time + heldNote.length <= Play.Instance.SongTime) {
+				if (heldNote.time + heldNote.length <= CurrentTime) {
 					heldNotes.RemoveAt(i);
 					susTracker.Drop(heldNote);
 					EndSustainParticles(heldNote);
@@ -158,7 +123,7 @@ namespace YARG.PlayMode {
 
 		private void UpdateInput() {
 			// Handle misses (multiple a frame in case of lag)
-			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?.time > Constants.HIT_MARGIN) {
+			while (HitMarginEndTime > expectedHits.PeekOrNull()?.time) {
 				var missedNote = expectedHits.Dequeue();
 
 				// Call miss for each component
@@ -207,9 +172,9 @@ namespace YARG.PlayMode {
 			scoreKeeper.Add(PTS_PER_NOTE * Multiplier);
 
 			// Solo stuff
-			if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime) {
+			if (CurrentTime >= CurrentSolo?.time && CurrentTime <= CurrentSolo?.EndTime) {
 				soloNotesHit++;
-			} else if (Play.Instance.SongTime >= SoloSection?.EndTime + 10) {
+			} else if (CurrentTime >= CurrentSolo?.EndTime + 10) {
 				soloNotesHit = 0;
 			}
 
@@ -312,10 +277,12 @@ namespace YARG.PlayMode {
 				startFCDetection = true;
 				var model = noteInfo.hopo ? NoteComponent.ModelType.HOPO : NoteComponent.ModelType.NOTE;
 				noteComp.SetInfo(
+					noteInfo,
 					commonTrack.NoteColor(i),
 					commonTrack.SustainColor(i),
 					noteInfo.length,
-					model
+					model,
+					noteInfo.time >= CurrentVisualStarpower?.time && noteInfo.time < CurrentVisualStarpower?.EndTime
 				);
 				noteComp.SetFretNumber(noteInfo.muted ? "X" : noteInfo.stringFrets[i].ToString());
 			}

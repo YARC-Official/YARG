@@ -8,6 +8,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using YARG.Audio;
 using YARG.Data;
 using YARG.Input;
 using YARG.Song;
@@ -16,6 +17,12 @@ using Random = UnityEngine.Random;
 
 namespace YARG.UI.MusicLibrary {
 	public class SongSelection : MonoBehaviour {
+		private enum SortCriteria {
+			SongName = 1,
+			ArtistName,
+			SourceName,
+		}
+
 		public static SongSelection Instance { get; private set; }
 
 		public static bool refreshFlag = true;
@@ -37,8 +44,12 @@ namespace YARG.UI.MusicLibrary {
 		[SerializeField]
 		private Scrollbar scrollbar;
 
+		private SortCriteria _sortCriteria = SortCriteria.SongName;
+
 		private List<ViewType> _songs;
 		private List<SongEntry> _recommendedSongs;
+
+		private PreviewContext _previewContext;
 
 		public IReadOnlyList<ViewType> Songs => _songs;
 
@@ -71,7 +82,7 @@ namespace YARG.UI.MusicLibrary {
 				}
 
 				GameManager.Instance.SelectedSong = song.SongEntry;
-				GameManager.AudioManager.PreviewContext.PlayPreview(song.SongEntry);
+				_previewContext.PlayPreview(song.SongEntry).Forget();
 			}
 		}
 
@@ -100,6 +111,9 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		private void OnEnable() {
+			// Set up preview context
+			_previewContext = new(GameManager.AudioManager);
+
 			// Set navigation scheme
 			Navigator.Instance.PushScheme(new NavigationScheme(new() {
 				new NavigationScheme.Entry(MenuAction.Up, "Up", () => {
@@ -114,12 +128,11 @@ namespace YARG.UI.MusicLibrary {
 				new NavigationScheme.Entry(MenuAction.Back, "Back", () => {
 					Back();
 				}),
-				new NavigationScheme.Entry(MenuAction.Shortcut1, "Search Artist", () => {
-					SearchByArtist();
+				new NavigationScheme.Entry(MenuAction.Shortcut1, "Change Order", () => {
+					ChangeSongOrder();
 				}),
-				new NavigationScheme.Entry(MenuAction.Shortcut2, "Random song", () => {
-					ClearSearchBox();
-					SelectRandomSong();
+				new NavigationScheme.Entry(MenuAction.Shortcut2, "Search Artist/Source", () => {
+					ChangeFilter();
 				}),
 				new NavigationScheme.Entry(MenuAction.Shortcut3, "Next section", () => {
 					SelectNextSection();
@@ -139,14 +152,15 @@ namespace YARG.UI.MusicLibrary {
 
 			// Play preview on enter for selected song
 			if (_songs[SelectedIndex] is SongViewType song) {
-				GameManager.AudioManager.PreviewContext.PlayPreview(song.SongEntry);
+				_previewContext.PlayPreview(song.SongEntry).Forget();
 			}
 		}
 
 		private void OnDisable() {
 			Navigator.Instance.PopScheme();
 
-			GameManager.AudioManager.DisposePreviewContext();
+			_previewContext.Dispose();
+			_previewContext = null;
 		}
 
 		private void UpdateSongViews() {
@@ -155,6 +169,37 @@ namespace YARG.UI.MusicLibrary {
 			}
 
 			sidebar.UpdateSidebar().Forget();
+		}
+
+		private void ChangeSongOrder() {
+			if (_sortCriteria == SortCriteria.SongName) {
+				_sortCriteria = SortCriteria.ArtistName;
+			} else if (_sortCriteria == SortCriteria.ArtistName) {
+				_sortCriteria = SortCriteria.SourceName;
+			} else {
+				_sortCriteria = SortCriteria.SongName;
+			}
+			UpdateSearch();
+		}
+
+		private string GetSortName(SongEntry song) {
+			if (_sortCriteria == SortCriteria.ArtistName) {
+				return song.Artist;
+			} else if (_sortCriteria == SortCriteria.SourceName) {
+				return song.Source;
+			} else {
+				return song.NameNoParenthesis;
+			}
+		}
+
+		private void ChangeFilter() {
+			if (_songs[SelectedIndex] is SongViewType view) {
+				if (string.IsNullOrEmpty(searchField.text) || searchField.text.StartsWith("source:")) {
+					searchField.text = $"artist:{view.SongEntry.Artist}";
+				} else if (searchField.text.StartsWith("artist:")) {
+					searchField.text = $"source:{view.SongEntry.Source}";
+				}
+			}
 		}
 
 		private void Update() {
@@ -203,7 +248,7 @@ namespace YARG.UI.MusicLibrary {
 			if (string.IsNullOrEmpty(searchField.text)) {
 				// Add all songs
 				_songs = SongContainer.Songs
-					.OrderBy(song => song.NameNoParenthesis)
+					.OrderBy(song => GetSortName(song))
 					.Select(i => new SongViewType(i))
 					.Cast<ViewType>()
 					.ToList();
@@ -299,7 +344,7 @@ namespace YARG.UI.MusicLibrary {
 
 				// Sort
 				if (!searched) {
-					songsOut = songsOut.OrderBy(song => song.NameNoParenthesis);
+					songsOut = songsOut.OrderBy(song => GetSortName(song));
 				}
 
 				// Add header
@@ -346,7 +391,7 @@ namespace YARG.UI.MusicLibrary {
 			songsFirstLetter =
 				_songs
 				.OfType<SongViewType>()
-				.Select(song => song.SongEntry.NameNoParenthesis)
+				.Select(song => GetSortName(song.SongEntry))
 				.Where(name => !string.IsNullOrEmpty(name))
 				.Select(name => Char.ToUpper(name[0]))
 				.Distinct()
@@ -464,7 +509,11 @@ namespace YARG.UI.MusicLibrary {
 
 		public void Back() {
 			if (string.IsNullOrEmpty(searchField.text)) {
-				MainMenu.Instance.ShowMainMenu();
+				if (SelectedIndex > 2) {
+					SelectedIndex = 2;
+				} else {
+					MainMenu.Instance.ShowMainMenu();
+				}
 			} else {
 				ClearSearchBox();
 				UpdateSearch();
@@ -483,20 +532,14 @@ namespace YARG.UI.MusicLibrary {
 			SelectedIndex = Random.Range(skip, SongContainer.Songs.Count);
 		}
 
-		private void SearchByArtist(){
-			if (_songs[SelectedIndex] is SongViewType view) {
-				searchField.text = $"artist:{view.SongEntry.Artist}";
-			}
-		}
-
 		private void SelectNextSection(){
 			if (_songs[_selectedIndex] is not SongViewType song) {
 				return;
 			}
 
 			int skip = Mathf.Max(1, _songs.Count - SongContainer.Songs.Count);
-			var nameWithoutParenthesis = song.SongEntry.NameNoParenthesis;
-			string nextCharacter = GetNextLetterOrNumber(nameWithoutParenthesis);
+			var sortName = GetSortName(song.SongEntry);
+			string nextCharacter = GetNextLetterOrNumber(sortName);
 
 			// If an error occurs no change is made
 			if (string.IsNullOrEmpty(nextCharacter)) {
@@ -505,7 +548,7 @@ namespace YARG.UI.MusicLibrary {
 
 			var index = _songs.FindIndex(skip, song =>
 				song is SongViewType songType &&
-					songType.SongEntry.NameNoParenthesis[..1] == nextCharacter
+					GetSortName(songType.SongEntry)[..1] == nextCharacter
 				);
 
 			SelectedIndex = index;
