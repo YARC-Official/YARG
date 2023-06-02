@@ -432,6 +432,7 @@ namespace YARG.Audio.BASS {
 				case SongStem.Master:
 					MasterVolume = volume;
 					Bass.GlobalStreamVolume = (int) (10_000 * MasterVolume);
+					Bass.GlobalSampleVolume = (int) (10_000 * MasterVolume);
 					break;
 				case SongStem.Sfx:
 					SfxVolume = volume;
