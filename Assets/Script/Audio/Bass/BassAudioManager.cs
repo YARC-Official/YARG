@@ -9,6 +9,7 @@ using ManagedBass.Fx;
 using ManagedBass.Mix;
 using UnityEngine;
 using YARG.Song;
+using DeviceType = ManagedBass.DeviceType;
 
 namespace YARG.Audio.BASS {
 	public class BassAudioManager : MonoBehaviour, IAudioManager {
@@ -276,10 +277,10 @@ namespace YARG.Audio.BASS {
 
 			var channelMap = new int[2];
 			channelMap[1] = -1;
-			
+
 			for (var i = 0; i < splitStreams.Length; i++) {
 				channelMap[0] = i;
-				
+
 				int splitHandle = BassMix.CreateSplitStream(moggStreamHandle, BassFlags.Decode | BassFlags.SplitPosition, channelMap);
 				if (splitHandle == 0) {
 					throw new Exception($"Failed to create MOGG stream handle: {Bass.LastError}");
@@ -287,7 +288,7 @@ namespace YARG.Audio.BASS {
 
 				splitStreams[i] = splitHandle;
 			}
-			
+
 			// Set up channels
 			foreach ((var stem, int[] channelIndexes) in stemMaps) {
 				int[] channelStreams = channelIndexes.Select(i => splitStreams[i]).ToArray();

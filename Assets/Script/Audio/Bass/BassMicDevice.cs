@@ -2,6 +2,7 @@
 using ManagedBass;
 using ManagedBass.Fx;
 using UnityEngine;
+using YARG.Audio.BASS;
 using YARG.Audio.PitchDetection;
 using YARG.Settings;
 

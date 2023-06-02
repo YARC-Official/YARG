@@ -29,7 +29,7 @@ namespace YARG.Input {
 		public float TimeSinceNoVoice { get; private set; }
 		public float TimeSinceVoiceDetected { get; private set; }
 
-		private LyricInfo botLyricInfo = null;
+		private LyricInfo _botLyricInfo;
 
 		public MicInputStrategy() {
 			InputMappings = new() {
@@ -38,7 +38,7 @@ namespace YARG.Input {
 				{ MENU_ACTION_1, new(BindingType.BUTTON, "Menu Action 1 (Yellow)", MENU_ACTION_1) },
 				{ MENU_ACTION_2, new(BindingType.BUTTON, "Menu Action 2 (Blue)", MENU_ACTION_2) },
 				{ MENU_ACTION_3, new(BindingType.BUTTON, "Menu Action 3 (Orange)", MENU_ACTION_3) },
-				
+
 				{ PAUSE,         new(BindingType.BUTTON, "Pause", PAUSE) },
 				{ UP,            new(BindingType.BUTTON, "Navigate Up", UP) },
 				{ DOWN,          new(BindingType.BUTTON, "Navigate Down", DOWN) },
@@ -100,18 +100,17 @@ namespace YARG.Input {
 
 			// Get the next lyric
 			while (botChart.Count > BotChartIndex && botChart[BotChartIndex].time <= songTime) {
-				botLyricInfo = botChart[BotChartIndex];
+				_botLyricInfo = botChart[BotChartIndex];
 				BotChartIndex++;
 			}
 
 			// If we are past the lyric, null
-			if (botLyricInfo?.EndTime < songTime) {
-				botLyricInfo = null;
+			if (_botLyricInfo?.EndTime < songTime) {
+				_botLyricInfo = null;
 			}
 
 			// Set info based on lyric
-			previousDbCache = dbCache;
-			if (botLyricInfo == null) {
+			if (_botLyricInfo == null) {
 				VoiceAmplitude = -1f;
 				TimeSinceNoVoice += Time.deltaTime;
 				TimeSinceVoiceDetected = 0f;
@@ -120,8 +119,8 @@ namespace YARG.Input {
 				TimeSinceVoiceDetected += Time.deltaTime;
 				TimeSinceNoVoice = 0f;
 
-				float timeIntoNote = Play.Instance.SongTime - botLyricInfo.time;
-				(VoicePitch, VoiceOctave) = botLyricInfo.GetLerpedAndSplitNoteAtTime(timeIntoNote);
+				float timeIntoNote = Play.Instance.SongTime - _botLyricInfo.time;
+				(VoicePitch, VoiceOctave) = _botLyricInfo.GetLerpedAndSplitNoteAtTime(timeIntoNote);
 			}
 
 			// Constantly activate starpower
@@ -165,7 +164,7 @@ namespace YARG.Input {
 			TimeSinceNoVoice = default;
 			TimeSinceVoiceDetected = default;
 
-			botLyricInfo = null;
+			_botLyricInfo = null;
 		}
 	}
 }
