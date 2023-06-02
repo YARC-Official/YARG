@@ -393,6 +393,11 @@ namespace YARG.Audio.BASS {
 		}
 
 		public async UniTask FadeOut(CancellationToken token = default) {
+			if (IsFadingOut) {
+				Debug.LogWarning("Already fading out song!");
+				return;
+			}
+
 			if (IsPlaying) {
 				IsFadingOut = true;
 				await _mixer.FadeOut(token);
