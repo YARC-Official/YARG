@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using YARG.Audio;
+using YARG.Audio.BASS;
 using YARG.Input;
 using YARG.Settings;
 using YARG.Song;
@@ -30,8 +32,8 @@ namespace YARG {
 
 		public static IAudioManager AudioManager { get; private set; }
 
-		[SerializeField]
-		private AudioMixerGroup vocalGroup;
+		[field: SerializeField]
+		public SettingsMenu SettingsMenu { get; private set; }		
 
 		public SceneIndex CurrentScene { get; private set; } = SceneIndex.PERSISTANT;
 
@@ -83,7 +85,7 @@ namespace YARG {
 
 		private void OnDestroy() {
 			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.Disable();
+				player.inputStrategy?.Dispose();
 			}
 		}
 

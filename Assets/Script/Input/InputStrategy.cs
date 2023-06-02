@@ -8,17 +8,17 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.Utilities;
+using YARG.Audio;
 using YARG.Data;
 
 namespace YARG.Input {
-	public abstract class InputStrategy {
-		public const int INVALID_MIC_INDEX = -1;
+	public abstract class InputStrategy : IDisposable {
+		public bool BotMode { get; set; }
+		protected int BotChartIndex;
 
-		public bool botMode;
-		protected int botChartIndex;
+		private ISantrollerHaptics _haptics;
 
 		private InputDevice _inputDevice;
-		private ISantrollerHaptics _haptics;
 		public InputDevice InputDevice {
 			get => _inputDevice;
 			set {
@@ -38,24 +38,23 @@ namespace YARG.Input {
 			}
 		}
 
-		public int microphoneIndex = INVALID_MIC_INDEX;
+		public IMicDevice MicDevice { get; set; }
 
 		/// <summary>
 		/// A list of the controls that correspond to each mapping.
 		/// </summary>
-		protected Dictionary<string, ControlBinding> inputMappings;
-		public IReadOnlyDictionary<string, ControlBinding> Mappings => inputMappings;
+		protected Dictionary<string, ControlBinding> InputMappings = new();
+		public IReadOnlyDictionary<string, ControlBinding> Mappings => InputMappings;
 
 		public bool Enabled { get; private set; }
 
-		private IDisposable eventListener = null;
+		private IDisposable _eventListener = null;
 
-		public delegate void GenericCalibrationAction(InputStrategy inputStrategy);
 		/// <summary>
 		/// Gets invoked when the button for generic calibration is pressed.<br/>
 		/// Make sure <see cref="UpdatePlayerMode"/> is being called.
 		/// </summary>
-		public event GenericCalibrationAction GenericCalibrationEvent;
+		public event Action<InputStrategy> GenericCalibrationEvent;
 
 		/// <summary>
 		/// Gets invoked when the button for generic starpower is pressed.
@@ -68,12 +67,10 @@ namespace YARG.Input {
 		public event Action PauseEvent;
 
 		public InputStrategy() {
-			// Initialize mappings
-			inputMappings = GetMappings();
 			// Set up debounce overrides
-			foreach (var mapping in inputMappings.Values) {
+			foreach (var mapping in InputMappings.Values) {
 				string overrideKey = mapping.DebounceOverrideKey;
-				if (overrideKey != null && inputMappings.TryGetValue(overrideKey, out var overrideMapping)) {
+				if (overrideKey != null && InputMappings.TryGetValue(overrideKey, out var overrideMapping)) {
 					mapping.DebounceOverrideBinding = overrideMapping;
 				}
 			}
@@ -87,29 +84,31 @@ namespace YARG.Input {
 			// Bind events
 			InputSystem.onAfterUpdate += OnUpdate;
 			if (_inputDevice != null) {
-				eventListener = InputSystem.onEvent.ForDevice(_inputDevice).Call(OnInputEvent);
+				_eventListener = InputSystem.onEvent.ForDevice(_inputDevice).Call(OnInputEvent);
 			}
 
 			Enabled = true;
 		}
 
 		public void Disable() {
+			// TODO: Merge this with Dispose()
+
 			if (!Enabled) {
 				return;
 			}
 
 			// Unbind events
 			InputSystem.onAfterUpdate -= OnUpdate;
-			eventListener?.Dispose();
-			eventListener = null;
+			_eventListener?.Dispose();
+			_eventListener = null;
 
 			Enabled = false;
 		}
 
-		/// <returns>
-		/// The input mapping keys that will be present in <see cref="inputMappings"/>
-		/// </returns>
-		protected virtual Dictionary<string, ControlBinding> GetMappings() => new();
+		public void Dispose() {
+			Disable();
+			MicDevice?.Dispose();
+		}
 
 		/// <returns>
 		/// The name of the icon to show in players menu edition
@@ -130,7 +129,7 @@ namespace YARG.Input {
 		/// Resets the InputStrategy for a new song.
 		/// </summary>
 		public virtual void ResetForSong() {
-			botChartIndex = 0;
+			BotChartIndex = 0;
 		}
 
 		/// <summary>
@@ -167,14 +166,14 @@ namespace YARG.Input {
 		}
 
 		protected virtual void OnUpdate() {
-			if (botMode) {
+			if (BotMode) {
 				UpdateBotMode();
 				return;
 			}
 
 			// Update mapping debouncing
 			bool stateUpdated = false;
-			foreach (var mapping in inputMappings.Values) {
+			foreach (var mapping in InputMappings.Values) {
 				stateUpdated |= mapping.UpdateDebounce();
 			}
 
@@ -200,7 +199,7 @@ namespace YARG.Input {
 			}
 
 			// Update mapping states
-			foreach (var mapping in inputMappings.Values) {
+			foreach (var mapping in InputMappings.Values) {
 				mapping.UpdateState(eventPtr);
 			}
 
@@ -235,31 +234,31 @@ namespace YARG.Input {
 		}
 
 		protected bool IsMappingPressed(string key) {
-			return inputMappings[key].IsPressed();
+			return InputMappings[key].IsPressed();
 		}
 
 		protected bool WasMappingPressed(string key) {
-			return inputMappings[key].WasPressed();
+			return InputMappings[key].WasPressed();
 		}
 
 		protected bool WasMappingReleased(string key) {
-			return inputMappings[key].WasReleased();
+			return InputMappings[key].WasReleased();
 		}
 
 		protected float GetMappingValue(string key) {
-			return inputMappings[key].State.current;
+			return InputMappings[key].State.current;
 		}
 
 		protected float GetPreviousMappingValue(string key) {
-			return inputMappings[key].State.previous;
+			return InputMappings[key].State.previous;
 		}
 
 		public InputControl<float> GetMappingInputControl(string name) {
-			return inputMappings[name].Control;
+			return InputMappings[name].Control;
 		}
 
 		public void SetMappingInputControl(string name, InputControl<float> control) {
-			inputMappings[name].Control = control;
+			InputMappings[name].Control = control;
 		}
 
 		protected void NavigationEventForMapping(MenuAction action, string mapping) {

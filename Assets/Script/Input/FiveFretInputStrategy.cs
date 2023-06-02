@@ -24,19 +24,21 @@ namespace YARG.Input {
 		public event FretChangeAction FretChangeEvent;
 		public event StrumAction StrumEvent;
 
-		protected override Dictionary<string, ControlBinding> GetMappings() => new() {
-			{ GREEN,      new(BindingType.BUTTON, "Green", GREEN) },
-			{ RED,        new(BindingType.BUTTON, "Red", RED) },
-			{ YELLOW,     new(BindingType.BUTTON, "Yellow", YELLOW) },
-			{ BLUE,       new(BindingType.BUTTON, "Blue", BLUE) },
-			{ ORANGE,     new(BindingType.BUTTON, "Orange", ORANGE) },
+		public FiveFretInputStrategy() {
+			InputMappings = new() {
+				{ GREEN,      new(BindingType.BUTTON, "Green", GREEN) },
+				{ RED,        new(BindingType.BUTTON, "Red", RED) },
+				{ YELLOW,     new(BindingType.BUTTON, "Yellow", YELLOW) },
+				{ BLUE,       new(BindingType.BUTTON, "Blue", BLUE) },
+				{ ORANGE,     new(BindingType.BUTTON, "Orange", ORANGE) },
 
-			{ STRUM_UP,   new(BindingType.BUTTON, "Strum Up", STRUM_UP, STRUM_DOWN) },
-			{ STRUM_DOWN, new(BindingType.BUTTON, "Strum Down", STRUM_DOWN, STRUM_UP) },
+				{ STRUM_UP,   new(BindingType.BUTTON, "Strum Up", STRUM_UP, STRUM_DOWN) },
+				{ STRUM_DOWN, new(BindingType.BUTTON, "Strum Down", STRUM_DOWN, STRUM_UP) },
 
-			{ STAR_POWER, new(BindingType.BUTTON, "Star Power", STAR_POWER) },
-			{ PAUSE,      new(BindingType.BUTTON, "Pause", PAUSE) },
-		};
+				{ STAR_POWER, new(BindingType.BUTTON, "Star Power", STAR_POWER) },
+				{ PAUSE,      new(BindingType.BUTTON, "Pause", PAUSE) },
+			};
+		}
 
 		public override string GetIconName() {
 			return "guitar";
@@ -90,7 +92,7 @@ namespace YARG.Input {
 			float songTime = Play.Instance.SongTime;
 
 			bool resetForChord = false;
-			while (botChart.Count > botChartIndex && botChart[botChartIndex].time <= songTime) {
+			while (botChart.Count > BotChartIndex && botChart[BotChartIndex].time <= songTime) {
 				// Release old frets
 				if (!resetForChord) {
 					for (int i = 0; i < 5; i++) {
@@ -99,8 +101,8 @@ namespace YARG.Input {
 					resetForChord = true;
 				}
 
-				var noteInfo = botChart[botChartIndex];
-				botChartIndex++;
+				var noteInfo = botChart[BotChartIndex];
+				BotChartIndex++;
 
 				// Skip fret press if open note
 				if (noteInfo.fret != 5) {

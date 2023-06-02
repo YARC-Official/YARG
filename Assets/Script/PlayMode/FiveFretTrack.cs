@@ -56,7 +56,7 @@ namespace YARG.PlayMode {
 			input.FretChangeEvent += FretChangedAction;
 			input.StrumEvent += StrumAction;
 
-			if (input.botMode) {
+			if (input.BotMode) {
 				input.InitializeBotMode(Chart);
 			}
 
@@ -550,7 +550,7 @@ namespace YARG.PlayMode {
 				if (checkGhosting) {
 					var nextNote = GetNextNote(Chart[hitChartIndex - 1].time);
 					if ((nextNote == null || (!nextNote[0].hopo && !nextNote[0].tap)) ||
-					(Constants.ALLOW_GHOST_IF_NO_NOTES && nextNote[0].time - CurrentTime > Constants.HIT_MARGIN * Constants.ALLOW_GHOST_IF_NO_NOTES_THRESHOLD)) {
+					(Constants.ALLOW_GHOST_IF_NO_NOTES && nextNote[0].time - CurrentTime > HitMarginFront * Constants.ALLOW_GHOST_IF_NO_NOTES_THRESHOLD)) {
 						checkGhosting = false;
 					}
 					if (checkGhosting) {
@@ -639,7 +639,7 @@ namespace YARG.PlayMode {
 			}
 
 			strummed = true;
-			if (!input.botMode) {
+			if (!input.BotMode) {
 				strumLeniency = Constants.STRUM_LENIENCY;
 			}
 		}

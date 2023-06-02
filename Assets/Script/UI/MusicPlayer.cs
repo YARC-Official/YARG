@@ -2,6 +2,7 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Audio;
 using YARG.Settings;
 using YARG.Song;
 
@@ -55,9 +56,9 @@ namespace YARG.UI {
 
 			await UniTask.RunOnThreadPool(() => {
 				if (song is ExtractedConSongEntry conSong) {
-					GameManager.AudioManager.LoadMogg(conSong, false, SongStem.Crowd);
+					GameManager.AudioManager.LoadMogg(conSong, 1f, SongStem.Crowd);
 				} else {
-					GameManager.AudioManager.LoadSong(AudioHelpers.GetSupportedStems(song.Location), false, SongStem.Crowd);
+					GameManager.AudioManager.LoadSong(AudioHelpers.GetSupportedStems(song.Location), 1f, SongStem.Crowd);
 				}
 			});
 

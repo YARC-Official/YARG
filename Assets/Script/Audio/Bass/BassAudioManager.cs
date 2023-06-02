@@ -5,13 +5,13 @@ using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using ManagedBass;
+using ManagedBass.Fx;
+using ManagedBass.Mix;
 using UnityEngine;
-using XboxSTFS;
-using YARG.Serialization;
 using YARG.Song;
-using Debug = UnityEngine.Debug;
+using DeviceType = ManagedBass.DeviceType;
 
-namespace YARG {
+namespace YARG.Audio.BASS {
 	public class BassAudioManager : MonoBehaviour, IAudioManager {
 		public bool UseStarpowerFx { get; set; }
 		public bool IsChipmunkSpeedup { get; set; }
@@ -31,21 +31,12 @@ namespace YARG {
 		public float CurrentPositionF => (float) GetPosition();
 		public float AudioLengthF { get; private set; }
 
-		private IPreviewContext _currentPreviewContext;
-		public IPreviewContext PreviewContext {
-			get {
-				_currentPreviewContext ??= new BassPreviewContext(this);
-				return _currentPreviewContext;
-			}
-		}
-
 		private double[] _stemVolumes;
+		private ISampleChannel[] _sfxSamples;
 
 		private int _opusHandle;
 
 		private IStemMixer _mixer;
-
-		private ISampleChannel[] _sfxSamples;
 
 		private void Awake() {
 			SupportedFormats = new[] {
@@ -74,7 +65,7 @@ namespace YARG {
 
 			Bass.UpdatePeriod = 5;
 			Bass.DeviceBufferLength = 10;
-			Bass.PlaybackBufferLength = 100;
+			Bass.PlaybackBufferLength = 75;
 			Bass.DeviceNonStop = true;
 
 			Bass.Configure(Configuration.TruePlayPosition, 0);
@@ -97,8 +88,8 @@ namespace YARG {
 
 			Debug.Log($"BASS Successfully Initialized");
 			Debug.Log($"BASS: {Bass.Version}");
-			Debug.Log($"BASS.FX: {Bass.Version}");
-			Debug.Log($"BASS.Mix: {Bass.Version}");
+			Debug.Log($"BASS.FX: {BassFx.Version}");
+			Debug.Log($"BASS.Mix: {BassMix.Version}");
 
 			Debug.Log($"Update Period: {Bass.UpdatePeriod}");
 			Debug.Log($"Device Buffer Length: {Bass.DeviceBufferLength}");
@@ -121,6 +112,38 @@ namespace YARG {
 			}
 
 			Bass.Free();
+		}
+
+		public IList<UninitializedMic> GetAllInputDevices() {
+			var mics = new List<UninitializedMic>();
+
+			for (int deviceIndex = 0; Bass.RecordGetDeviceInfo(deviceIndex, out var info); deviceIndex++) {
+				if (!info.IsEnabled) {
+					continue;
+				}
+
+				if (info.Type != DeviceType.Microphone) {
+					continue;
+				}
+
+				mics.Add(new UninitializedMic(deviceIndex, info.Name, info.IsDefault));
+			}
+
+			return mics;
+		}
+
+		public IMicDevice CreateMicFromUninitialized(UninitializedMic uninitialized) {
+			var mic = new BassMicDevice();
+
+			int result = mic.Initialize(uninitialized.DeviceId);
+			if (result != 0) {
+				Debug.LogError($"Failed to initialize mic: {uninitialized.DisplayName} ({(Errors)result})");
+				return null;
+			}
+
+			Debug.Log($"Initialized mic: {uninitialized.DisplayName}");
+
+			return mic;
 		}
 
 		public void LoadSfx() {
@@ -163,7 +186,7 @@ namespace YARG {
 			Debug.Log("Finished loading SFX");
 		}
 
-		public void LoadSong(ICollection<string> stems, bool isSpeedUp, params SongStem[] ignoreStems) {
+		public void LoadSong(ICollection<string> stems, float speed, params SongStem[] ignoreStems) {
 			Debug.Log("Loading song");
 			UnloadSong();
 
@@ -190,7 +213,7 @@ namespace YARG {
 				}
 
 				var stemChannel = new BassStemChannel(this, stemPath, songStem);
-				if (stemChannel.Load(isSpeedUp, PlayMode.Play.speed) != 0) {
+				if (stemChannel.Load(speed) != 0) {
 					Debug.LogError($"Failed to load stem! {stemPath}");
 					Debug.LogError($"Bass Error: {Bass.LastError}");
 					continue;
@@ -216,10 +239,11 @@ namespace YARG {
 			IsAudioLoaded = true;
 		}
 
-		public void LoadMogg(ExtractedConSongEntry exConSong, bool isSpeedUp, params SongStem[] ignoreStems) {
+		public void LoadMogg(ExtractedConSongEntry exConSong, float speed, params SongStem[] ignoreStems) {
 			Debug.Log("Loading mogg song");
 			UnloadSong();
 
+			// Process MOGG data
 			byte[] moggArray = exConSong.LoadMoggFile();
 
 			if (BitConverter.ToUInt32(moggArray, 0) != 0xA)
@@ -227,6 +251,7 @@ namespace YARG {
 
 			moggArray = moggArray[BitConverter.ToInt32(moggArray, 4)..];
 
+			// Initialize stream
 			int moggStreamHandle = Bass.CreateStream(moggArray, 0, moggArray.Length, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
 			if (moggStreamHandle == 0) {
 				Debug.LogError($"Failed to load mogg file or position: {Bass.LastError}");
@@ -239,13 +264,52 @@ namespace YARG {
 				exConSong.StemMaps.Remove(stem);
 			}
 
-			_mixer = new BassStemMixer(this, moggStreamHandle, exConSong.StemMaps, exConSong.MatrixRatios);
+			// Initialize mixer
+			_mixer = new BassMoggStemMixer(this, moggStreamHandle);
 			if (!_mixer.Create()) {
 				throw new Exception($"Failed to create mixer: {Bass.LastError}");
 			}
 
-			if (!_mixer.SetupMogg(isSpeedUp)) {
-				throw new Exception($"Failed to setup MOGG channels: {Bass.LastError}");
+			// Split stream into multiple channels
+			var stemMaps = exConSong.StemMaps;
+			var matrixRatios = exConSong.MatrixRatios;
+			var splitStreams = new int[matrixRatios.GetLength(0)];
+
+			var channelMap = new int[2];
+			channelMap[1] = -1;
+
+			for (var i = 0; i < splitStreams.Length; i++) {
+				channelMap[0] = i;
+
+				int splitHandle = BassMix.CreateSplitStream(moggStreamHandle, BassFlags.Decode | BassFlags.SplitPosition, channelMap);
+				if (splitHandle == 0) {
+					throw new Exception($"Failed to create MOGG stream handle: {Bass.LastError}");
+				}
+
+				splitStreams[i] = splitHandle;
+			}
+
+			// Set up channels
+			foreach ((var stem, int[] channelIndexes) in stemMaps) {
+				int[] channelStreams = channelIndexes.Select(i => splitStreams[i]).ToArray();
+
+				var matrixes = new List<float[]>();
+				foreach (var channelIndex in channelIndexes) {
+					var matrix = new float[2];
+					matrix[0] = matrixRatios[channelIndex, 0];
+					matrix[1] = matrixRatios[channelIndex, 1];
+					matrixes.Add(matrix);
+				}
+
+				var channel = new BassMoggStemChannel(this, stem, channelStreams, matrixes);
+				if (channel.Load(speed) < 0) {
+					throw new Exception($"Failed to load MOGG stem channel: {Bass.LastError}");
+				}
+
+				int code = _mixer.AddChannel(channel);
+				if (code != 0) {
+					throw new Exception($"Failed to add MOGG stem channel to mixer: {Bass.LastError}");
+				}
 			}
 
 			Debug.Log($"Loaded {_mixer.StemsLoaded} stems");
@@ -257,7 +321,7 @@ namespace YARG {
 			IsAudioLoaded = true;
 		}
 
-		public void LoadCustomAudioFile(string audioPath) {
+		public void LoadCustomAudioFile(string audioPath, float speed) {
 			Debug.Log("Loading custom audio file");
 			UnloadSong();
 
@@ -267,7 +331,7 @@ namespace YARG {
 			}
 
 			var stemChannel = new BassStemChannel(this, audioPath, SongStem.Song);
-			if (stemChannel.Load(false, PlayMode.Play.speed) != 0) {
+			if (stemChannel.Load(speed) != 0) {
 				Debug.LogError($"Failed to load stem! {audioPath}");
 				Debug.LogError($"Bass Error: {Bass.LastError}");
 				return;
@@ -333,11 +397,6 @@ namespace YARG {
 			}
 
 			IsPlaying = _mixer.IsPlaying;
-		}
-
-		public void DisposePreviewContext() {
-			_currentPreviewContext?.Dispose();
-			_currentPreviewContext = null;
 		}
 
 		public void FadeIn(float maxVolume) {

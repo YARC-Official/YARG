@@ -62,7 +62,7 @@ namespace YARG.PlayMode {
 				ghStrat.DrumHitEvent += GHDrumHitAction;
 			}
 
-			if (input.botMode) {
+			if (input.BotMode) {
 				input.InitializeBotMode(Chart);
 			}
 
@@ -127,6 +127,40 @@ namespace YARG.PlayMode {
 			// Since chart is sorted, this is guaranteed to work
 			while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= TrackStartTime) {
 				var noteInfo = Chart[visualChartIndex];
+				var chosenActivatorType = 0;
+				NoteInfo chosenActivatorNote = null;
+
+				// Check three notes before and after the current note to ensure none of the notes in the chord are skipped.
+				for (int i = -3; i < 3; i++) {
+					// Prevent out-of-bounds access at the beginning or end of a chart
+					if (Chart.Count <= visualChartIndex + i || visualChartIndex <= 3) {
+						break;
+					}
+
+					var chordNote = Chart[visualChartIndex + i];
+					if (chordNote.time == noteInfo.time) {
+						// Cymbals always take priority.
+						if (chordNote.hopo) {
+							chosenActivatorType = 3;
+							chosenActivatorNote = chordNote;
+							break;
+						}
+
+						// If there are no cymbals on this beat, pads are second.
+						if (chordNote.fret != 4) {
+							chosenActivatorType = 2;
+							chosenActivatorNote = chordNote;
+							continue;
+						}
+
+						// Finally, if there's nothing else, kick notes must be used. 
+						if (chosenActivatorType < 2) {
+							chosenActivatorType = 1;
+							chosenActivatorNote = chordNote;
+							continue;
+						}
+					}
+				}
 
 				// Skip kick notes if noKickMode is enabled
 				if (noteInfo.fret == kickIndex && SettingsManager.Settings.NoKicks.Data) {
@@ -136,7 +170,9 @@ namespace YARG.PlayMode {
 
 				// TODO: Only one note should be an activator at any given timestamp
 				if (CurrentVisualFill?.EndTime == noteInfo.time && starpowerCharge >= 0.5f && !IsStarPowerActive) {
-					noteInfo.isActivator = true;
+					if (chosenActivatorNote != null) {
+						chosenActivatorNote.isActivator = true;
+					}
 				}
 
 				SpawnNote(noteInfo, TrackStartTime);
@@ -229,7 +265,7 @@ namespace YARG.PlayMode {
 
 		private void DrumHitAction(int drum, bool cymbal) {
 			// invert input in case lefty flip is on, bots don't need it
-			if (player.leftyFlip && !input.botMode) {
+			if (player.leftyFlip && !input.BotMode) {
 				switch (drum) {
 					case 0:
 						drum = kickIndex == 4 ? 3 : 4;

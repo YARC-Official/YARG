@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
+using YARG.Audio;
 using YARG.Chart;
 using YARG.Data;
 using YARG.Input;
@@ -24,12 +25,17 @@ namespace YARG.PlayMode {
 
 		// Time values
 
+		// Defined separately for convenience and extensibility
+		public float HitMarginFront => Constants.HIT_MARGIN_FRONT * Play.speed;
+		public float HitMarginBack => Constants.HIT_MARGIN_BACK * Play.speed;
+		public float HitMargin => HitMarginFront + HitMarginBack;
+
 		// Convenience name for current song time
 		public float CurrentTime => Play.Instance.SongTime;
 		// Time relative to the start of the hit window
-		public float HitMarginStartTime => Play.Instance.SongTime + Constants.HIT_MARGIN;
+		public float HitMarginStartTime => Play.Instance.SongTime + HitMarginFront;
 		// Time relative to the end of the hit window
-		public float HitMarginEndTime => Play.Instance.SongTime - Constants.HIT_MARGIN;
+		public float HitMarginEndTime => Play.Instance.SongTime - HitMarginBack;
 		// Time relative to the beginning of the track, used for spawning notes and other visuals
 		public float TrackStartTime => Play.Instance.SongTime +
 			((TRACK_SPAWN_OFFSET + TRACK_END_OFFSET) / (player.trackSpeed / Play.speed));
@@ -196,9 +202,15 @@ namespace YARG.PlayMode {
 			GameUI.Instance.AddTrackImage(commonTrack.TrackCamera.targetTexture, commonTrack);
 
 			// Adjust hit window
-			var scale = commonTrack.hitWindow.localScale;
-			commonTrack.hitWindow.localScale = new(scale.x, Constants.HIT_MARGIN * player.trackSpeed * 2f, scale.z);
-			commonTrack.hitWindow.gameObject.SetActive(SettingsManager.Settings.ShowHitWindow.Data);
+			const float baseSize = Constants.HIT_MARGIN_FRONT + Constants.HIT_MARGIN_BACK;
+			const float baseOffset = (Constants.HIT_MARGIN_FRONT - Constants.HIT_MARGIN_BACK) / 2; // Offsetting is done based on half of the size
+
+			var window = commonTrack.hitWindow;
+			window.localScale = window.localScale.WithY(baseSize * player.trackSpeed);
+			window.localPosition = window.localPosition.AddZ(baseOffset * player.trackSpeed);
+
+			// Display hit window
+			window.gameObject.SetActive(SettingsManager.Settings.ShowHitWindow.Data);
 
 			comboSunburstEmbeddedLight = commonTrack.comboSunburst.GetComponent<Light>();
 			commonTrack.kickFlash.SetColor(commonTrack.KickFlashColor);
@@ -206,7 +218,7 @@ namespace YARG.PlayMode {
 			scoreKeeper = new();
 
 			// Set the end time for STRONG FINISH and FULL COMBO performance text checking
-			endTime = Chart[^1].time + Constants.HIT_MARGIN + commonTrack.bufferPeriod;
+			endTime = Chart[^1].time + HitMarginBack + commonTrack.bufferPeriod;
 			offsetEndTime = endTime + 3f;
 
 			// Initlaize interval sizes

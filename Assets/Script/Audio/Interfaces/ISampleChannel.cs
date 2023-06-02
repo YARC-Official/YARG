@@ -1,6 +1,6 @@
 using System;
 
-namespace YARG {
+namespace YARG.Audio {
 	public interface ISampleChannel : IDisposable {
 
 		public SfxSample Sample { get; }

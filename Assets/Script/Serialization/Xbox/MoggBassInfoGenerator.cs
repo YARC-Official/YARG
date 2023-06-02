@@ -6,6 +6,7 @@ using System.Text;
 using DtxCS;
 using DtxCS.DataTypes;
 using UnityEngine;
+using YARG.Audio;
 using YARG.Data;
 using YARG.Song;
 
@@ -24,13 +25,13 @@ namespace YARG.Serialization {
 				foreach(var dta_update_root in dta_update_roots){
 					dta_update = dta_update_root.Array("song");
 					if(dta_update != null){
-						if(dta_update.Array("tracks") != null || dta_update.Array("pans") != null || 
+						if(dta_update.Array("tracks") != null || dta_update.Array("pans") != null ||
 							dta_update.Array("vols") != null || dta_update.Array("crowd_channels") != null)
 							dtas_to_parse.Add(dta_update);
 					}
 				}
 			}
-			
+
 			foreach(var dta_to_parse in dtas_to_parse){
 				for (int i = 1; i < dta_to_parse.Count; i++) {
 					var dtaArray = (DataArray) dta_to_parse[i];

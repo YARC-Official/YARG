@@ -6,7 +6,7 @@ using ManagedBass.Fx;
 using ManagedBass.Mix;
 using UnityEngine;
 
-namespace YARG {
+namespace YARG.Audio.BASS {
 	public class BassStemChannel : IStemChannel {
 
 		private const EffectType REVERB_TYPE = EffectType.Freeverb;
@@ -19,6 +19,8 @@ namespace YARG {
 		public int StreamHandle { get; private set; }
 		public int ReverbStreamHandle { get; private set; }
 
+		public bool IsMixed { get; set; } = false;
+
 		private readonly string _path;
 		private readonly IAudioManager _manager;
 
@@ -27,7 +29,7 @@ namespace YARG {
 		private double _lastStemVolume;
 
 		private int _sourceHandle;
-		
+
 		private bool _isReverbing;
 		private bool _disposed;
 
@@ -42,11 +44,22 @@ namespace YARG {
 			_effects = new Dictionary<EffectType, int>();
 		}
 
+		public BassStemChannel(IAudioManager manager, SongStem stem, int sourceStream) {
+			_manager = manager;
+			_sourceHandle = sourceStream;
+
+			Stem = stem;
+			Volume = 1;
+
+			_lastStemVolume = _manager.GetVolumeSetting(Stem);
+			_effects = new Dictionary<EffectType, int>();
+		}
+
 		~BassStemChannel() {
 			Dispose(false);
 		}
 
-		public int Load(bool isSpeedUp, float speed) {
+		public int Load(float speed) {
 			if (_disposed) {
 				return -1;
 			}
@@ -54,17 +67,22 @@ namespace YARG {
 				return 0;
 			}
 
-			_sourceHandle = Bass.CreateStream(_path, 0, 0, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
-			
 			if (_sourceHandle == 0) {
-				return (int) Bass.LastError;
+				if (string.IsNullOrEmpty(_path)) {
+					// Channel was not set up correctly for some reason
+					return -1;
+				}
+				_sourceHandle = Bass.CreateStream(_path, 0, 0, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
+				if (_sourceHandle == 0) {
+					return (int) Bass.LastError;
+				}
 			}
-			
+
 			int main = BassMix.CreateSplitStream(_sourceHandle, BassFlags.Decode | BassFlags.SplitPosition, null);
 			int reverbSplit = BassMix.CreateSplitStream(_sourceHandle, BassFlags.Decode | BassFlags.SplitPosition, null);
 
 			const BassFlags flags = BassFlags.SampleOverrideLowestVolume | BassFlags.Decode | BassFlags.FxFreeSource;
-			
+
 			StreamHandle = BassFx.TempoCreate(main, flags);
 			ReverbStreamHandle = BassFx.TempoCreate(reverbSplit, flags);
 
@@ -86,11 +104,11 @@ namespace YARG {
 			Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, _manager.GetVolumeSetting(Stem));
 			Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Volume, 0);
 
-			if (isSpeedUp) {
+			if (!Mathf.Approximately(speed, 1f)) {
 				// Gets relative speed from 100% (so 1.05f = 5% increase)
 				float percentageSpeed = Math.Abs(speed) * 100;
 				float relativeSpeed = percentageSpeed - 100;
-				
+
 				Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Tempo, relativeSpeed);
 				Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Tempo, relativeSpeed);
 
@@ -146,7 +164,7 @@ namespace YARG {
 			_lastStemVolume = volumeSetting;
 
 			Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, newBassVol);
-			
+
 			if (_isReverbing) {
 				Bass.ChannelSlideAttribute(ReverbStreamHandle, ChannelAttribute.Volume, (float)(newBassVol * 0.7), 1);
 			} else {
@@ -166,13 +184,13 @@ namespace YARG {
 				int midEqHandle = BassHelpers.AddEqToChannel(ReverbStreamHandle, BassHelpers.MidEqParams);
 				int highEqHandle = BassHelpers.AddEqToChannel(ReverbStreamHandle, BassHelpers.HighEqParams);
 				int reverbFxHandle = BassHelpers.AddReverbToChannel(ReverbStreamHandle);
-				
+
 				double volumeSetting = _manager.GetVolumeSetting(Stem);
-				Bass.ChannelSlideAttribute(ReverbStreamHandle, ChannelAttribute.Volume,(float)(volumeSetting * Volume * 0.7f), 
+				Bass.ChannelSlideAttribute(ReverbStreamHandle, ChannelAttribute.Volume,(float)(volumeSetting * Volume * 0.7f),
 					BassHelpers.REVERB_SLIDE_IN_MILLISECONDS);
 
 				_effects.Add(REVERB_TYPE, reverbFxHandle);
-				
+
 				// Add low-high
 				_effects.Add(EffectType.PeakEQ, lowEqHandle);
 				_effects.Add(EffectType.PeakEQ + 1, midEqHandle);
@@ -188,12 +206,12 @@ namespace YARG {
 				Bass.ChannelRemoveFX(ReverbStreamHandle, _effects[EffectType.PeakEQ + 1]);
 				Bass.ChannelRemoveFX(ReverbStreamHandle, _effects[EffectType.PeakEQ + 2]);
 				Bass.ChannelRemoveFX(ReverbStreamHandle, _effects[REVERB_TYPE]);
-				
-				Bass.ChannelSlideAttribute(ReverbStreamHandle, ChannelAttribute.Volume, 0, 
+
+				Bass.ChannelSlideAttribute(ReverbStreamHandle, ChannelAttribute.Volume, 0,
 					BassHelpers.REVERB_SLIDE_OUT_MILLISECONDS);
 
 				_effects.Remove(REVERB_TYPE);
-				
+
 				// Remove low-high
 				_effects.Remove(EffectType.PeakEQ);
 				_effects.Remove(EffectType.PeakEQ + 1);
@@ -203,6 +221,14 @@ namespace YARG {
 
 		public double GetPosition() {
 			return Bass.ChannelBytes2Seconds(StreamHandle, Bass.ChannelGetPosition(StreamHandle));
+		}
+
+		public void SetPosition(double position) {
+			if (IsMixed) {
+				BassMix.ChannelSetPosition(StreamHandle, Bass.ChannelSeconds2Bytes(StreamHandle, position));
+			} else {
+				Bass.ChannelSetPosition(StreamHandle, Bass.ChannelSeconds2Bytes(StreamHandle, position));
+			}
 		}
 
 		public double GetLengthInSeconds() {
