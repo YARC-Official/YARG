@@ -205,7 +205,7 @@ namespace YARG.Song {
 			};
 		}
 
-		public string getNextSortCriteriaButtonName(SortCriteria sortCriteria) {
+		public string GetNextSortCriteriaButtonName(SortCriteria sortCriteria) {
 			return sortCriteria switch {
 				SongSorting.SortCriteria.SONG => "Order by Artist",
 				SongSorting.SortCriteria.ARTIST => "Order by Source",

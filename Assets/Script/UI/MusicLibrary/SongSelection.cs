@@ -111,7 +111,7 @@ namespace YARG.UI.MusicLibrary {
 			_previewContext = new(GameManager.AudioManager);
 
 			// Set navigation scheme
-			var navigationScheme = getNavigationScheme();
+			var navigationScheme = GetNavigationScheme();
 			Navigator.Instance.PushScheme(navigationScheme);
 
 			if (refreshFlag) {
@@ -131,7 +131,7 @@ namespace YARG.UI.MusicLibrary {
 			}
 		}
 
-		private NavigationScheme getNavigationScheme(){
+		private NavigationScheme GetNavigationScheme(){
 			return new NavigationScheme(new() {
 				new NavigationScheme.Entry(MenuAction.Up, "Up", () => {
 					SelectedIndex--;
@@ -190,12 +190,12 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		private void UpdateNextSortCriteria(){
-			_nextSortCriteria = getNextSortCriteriaButtonName();
+			_nextSortCriteria = GetNextSortCriteriaButtonName();
 		}
 
 		private void UpdateNavigationScheme(){
-			Navigator.Instance.PopAllSchemes();
-			Navigator.Instance.PushScheme(getNavigationScheme());
+			Navigator.Instance.PopScheme();
+			Navigator.Instance.PushScheme(GetNavigationScheme());
 		}
 
 		private void ChangeFilter() {
@@ -581,8 +581,8 @@ namespace YARG.UI.MusicLibrary {
 			return Mathf.Max(1, _songs.Count - SongContainer.Songs.Count);
 		}
 
-		private string getNextSortCriteriaButtonName() {
-			return SongSorting.Instance.getNextSortCriteriaButtonName(_sortCriteria);
+		private string GetNextSortCriteriaButtonName() {
+			return SongSorting.Instance.GetNextSortCriteriaButtonName(_sortCriteria);
 		}
 
 		private Func<SongEntry, string> OrderBy(){
