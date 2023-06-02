@@ -26,8 +26,7 @@ namespace YARG.Audio {
 		public void Initialize();
 		public void Unload();
 
-		public IList<UninitializedMic> GetAllInputDevices();
-		public IMicDevice CreateMicFromUninitialized(UninitializedMic mic);
+		public IList<IMicDevice> GetAllInputDevices();
 
 		public void LoadSfx();
 

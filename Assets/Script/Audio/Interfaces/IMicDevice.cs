@@ -3,6 +3,9 @@
 namespace YARG.Audio {
 	public interface IMicDevice : IDisposable {
 
+		public string DisplayName { get; }
+		public bool IsDefault { get; }
+
 		public bool IsMonitoring { get; set; }
 
 		/// <summary>
@@ -20,7 +23,7 @@ namespace YARG.Audio {
 		/// </summary>
 		/// <param name="device">The device number to associate with this Microphone Device.</param>
 		/// <returns>0 if successful, otherwise an error code.</returns>
-		public int Initialize(int device);
+		public int Initialize();
 
 		/// <summary>
 		/// Set the monitoring level of this Microphone Device.

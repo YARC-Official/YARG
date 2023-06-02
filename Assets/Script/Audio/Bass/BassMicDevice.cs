@@ -12,10 +12,16 @@ namespace YARG.Audio {
 		// How often to record samples from the microphone in milliseconds (calls the callback function every n millis)
 		private const int RECORD_PERIOD_MILLIS = 50;
 
+		public string DisplayName => _deviceInfo.Name;
+		public bool IsDefault => _deviceInfo.IsDefault;
+
 		public bool IsMonitoring { get; set; }
 
 		public float Pitch { get; private set; }
 		public float Amplitude { get; private set; }
+
+		private int _deviceId;
+		private DeviceInfo _deviceInfo;
 
 		private int _cleanRecordHandle;
 		private int _processedRecordHandle;
@@ -37,7 +43,12 @@ namespace YARG.Audio {
 			fDamp = 0.7f
 		};
 
-		public int Initialize(int device) {
+		public BassMicDevice(int deviceId, DeviceInfo info) {
+			_deviceId = deviceId;
+			_deviceInfo = info;
+		}
+
+		public int Initialize() {
 			if(_initialized || _disposed)
 				return 0;
 
@@ -46,7 +57,7 @@ namespace YARG.Audio {
 			_processedRecordProcedure += ProcessRecordData;
 
 			// Must initialise device before recording
-			Bass.RecordInit(device);
+			Bass.RecordInit(_deviceId);
 			Bass.RecordGetInfo(out var info);
 
 			const BassFlags flags = BassFlags.Float;

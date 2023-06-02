@@ -114,8 +114,8 @@ namespace YARG.Audio.BASS {
 			Bass.Free();
 		}
 
-		public IList<UninitializedMic> GetAllInputDevices() {
-			var mics = new List<UninitializedMic>();
+		public IList<IMicDevice> GetAllInputDevices() {
+			var mics = new List<IMicDevice>();
 
 			for (int deviceIndex = 0; Bass.RecordGetDeviceInfo(deviceIndex, out var info); deviceIndex++) {
 				if (!info.IsEnabled) {
@@ -126,24 +126,10 @@ namespace YARG.Audio.BASS {
 					continue;
 				}
 
-				mics.Add(new UninitializedMic(deviceIndex, info.Name, info.IsDefault));
+				mics.Add(new BassMicDevice(deviceIndex, info));
 			}
 
 			return mics;
-		}
-
-		public IMicDevice CreateMicFromUninitialized(UninitializedMic uninitialized) {
-			var mic = new BassMicDevice();
-
-			int result = mic.Initialize(uninitialized.DeviceId);
-			if (result != 0) {
-				Debug.LogError($"Failed to initialize mic: {uninitialized.DisplayName} ({(Errors)result})");
-				return null;
-			}
-
-			Debug.Log($"Initialized mic: {uninitialized.DisplayName}");
-
-			return mic;
 		}
 
 		public void LoadSfx() {
@@ -407,6 +393,11 @@ namespace YARG.Audio.BASS {
 		}
 
 		public async UniTask FadeOut(CancellationToken token = default) {
+			if (IsFadingOut) {
+				Debug.LogWarning("Already fading out song!");
+				return;
+			}
+
 			if (IsPlaying) {
 				IsFadingOut = true;
 				await _mixer.FadeOut(token);
@@ -441,6 +432,7 @@ namespace YARG.Audio.BASS {
 				case SongStem.Master:
 					MasterVolume = volume;
 					Bass.GlobalStreamVolume = (int) (10_000 * MasterVolume);
+					Bass.GlobalSampleVolume = (int) (10_000 * MasterVolume);
 					break;
 				case SongStem.Sfx:
 					SfxVolume = volume;
