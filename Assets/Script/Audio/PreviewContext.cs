@@ -5,8 +5,8 @@ using UnityEngine;
 using YARG.Settings;
 using YARG.Song;
 
-namespace YARG {
-	public class BassPreviewContext : IPreviewContext {
+namespace YARG.Audio {
+	public class PreviewContext {
 
 		public double PreviewStartTime { get; private set; }
 		public double PreviewEndTime { get; private set; }
@@ -19,7 +19,7 @@ namespace YARG {
 		private bool _loadingPreview;
 		private SongEntry _songToLoad;
 
-		public BassPreviewContext(IAudioManager manager) {
+		public PreviewContext(IAudioManager manager) {
 			_manager = manager;
 		}
 
@@ -103,9 +103,9 @@ namespace YARG {
 			_loadingPreview = true;
 			await UniTask.RunOnThreadPool(() => {
 				if (_songToLoad is ExtractedConSongEntry conSong) {
-					_manager.LoadMogg(conSong, false, SongStem.Crowd);
+					_manager.LoadMogg(conSong, 1f, SongStem.Crowd);
 				} else {
-					_manager.LoadSong(AudioHelpers.GetSupportedStems(_songToLoad.Location), false, SongStem.Crowd);
+					_manager.LoadSong(AudioHelpers.GetSupportedStems(_songToLoad.Location), 1f, SongStem.Crowd);
 				}
 			});
 			_loadingPreview = false;

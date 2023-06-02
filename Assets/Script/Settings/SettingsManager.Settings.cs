@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using YARG.Audio;
 using YARG.PlayMode;
 using YARG.Serialization;
 using YARG.Settings.Types;

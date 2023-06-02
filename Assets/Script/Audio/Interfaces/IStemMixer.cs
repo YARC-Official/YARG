@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 
-namespace YARG {
+namespace YARG.Audio {
 	public interface IStemMixer : IDisposable {
 
 		public int StemsLoaded { get; }
@@ -15,7 +15,6 @@ namespace YARG {
 		public IStemChannel LeadChannel { get; }
 		
 		public bool Create();
-		public bool SetupMogg(bool isSpeedUp);
 
 		public int Play(bool restart = false);
 
@@ -29,7 +28,6 @@ namespace YARG {
 		public void SetPosition(double position);
 		
 		public int AddChannel(IStemChannel channel);
-		public int AddMoggChannel(IStemChannel channel, IList<float[]> matrixes);
 		
 		public bool RemoveChannel(IStemChannel channel);
 		

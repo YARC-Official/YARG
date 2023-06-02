@@ -8,6 +8,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using YARG.Audio;
 using YARG.Data;
 using YARG.Input;
 using YARG.Song;
@@ -40,6 +41,8 @@ namespace YARG.UI.MusicLibrary {
 		private List<ViewType> _songs;
 		private List<SongEntry> _recommendedSongs;
 
+		private PreviewContext _previewContext;
+
 		public IReadOnlyList<ViewType> Songs => _songs;
 
 		private int _selectedIndex;
@@ -71,7 +74,7 @@ namespace YARG.UI.MusicLibrary {
 				}
 
 				GameManager.Instance.SelectedSong = song.SongEntry;
-				GameManager.AudioManager.PreviewContext.PlayPreview(song.SongEntry);
+				_previewContext.PlayPreview(song.SongEntry).Forget();
 			}
 		}
 
@@ -100,6 +103,9 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		private void OnEnable() {
+			// Set up preview context
+			_previewContext = new(GameManager.AudioManager);
+
 			// Set navigation scheme
 			Navigator.Instance.PushScheme(new NavigationScheme(new() {
 				new NavigationScheme.Entry(MenuAction.Up, "Up", () => {
@@ -139,14 +145,15 @@ namespace YARG.UI.MusicLibrary {
 
 			// Play preview on enter for selected song
 			if (_songs[SelectedIndex] is SongViewType song) {
-				GameManager.AudioManager.PreviewContext.PlayPreview(song.SongEntry);
+				_previewContext.PlayPreview(song.SongEntry).Forget();
 			}
 		}
 
 		private void OnDisable() {
 			Navigator.Instance.PopScheme();
 
-			GameManager.AudioManager.DisposePreviewContext();
+			_previewContext.Dispose();
+			_previewContext = null;
 		}
 
 		private void UpdateSongViews() {

@@ -6,7 +6,7 @@ using ManagedBass.Fx;
 using ManagedBass.Mix;
 using UnityEngine;
 
-namespace YARG {
+namespace YARG.Audio.BASS {
 	public class BassStemChannel : IStemChannel {
 
 		private const EffectType REVERB_TYPE = EffectType.Freeverb;
@@ -18,6 +18,8 @@ namespace YARG {
 
 		public int StreamHandle { get; private set; }
 		public int ReverbStreamHandle { get; private set; }
+
+		public bool IsMixed { get; set; } = false;
 
 		private readonly string _path;
 		private readonly IAudioManager _manager;
@@ -42,11 +44,22 @@ namespace YARG {
 			_effects = new Dictionary<EffectType, int>();
 		}
 
+		public BassStemChannel(IAudioManager manager, SongStem stem, int sourceStream) {
+			_manager = manager;
+			_sourceHandle = sourceStream;
+
+			Stem = stem;
+			Volume = 1;
+
+			_lastStemVolume = _manager.GetVolumeSetting(Stem);
+			_effects = new Dictionary<EffectType, int>();
+		}
+
 		~BassStemChannel() {
 			Dispose(false);
 		}
 
-		public int Load(bool isSpeedUp, float speed) {
+		public int Load(float speed) {
 			if (_disposed) {
 				return -1;
 			}
@@ -54,12 +67,17 @@ namespace YARG {
 				return 0;
 			}
 
-			_sourceHandle = Bass.CreateStream(_path, 0, 0, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
-			
 			if (_sourceHandle == 0) {
-				return (int) Bass.LastError;
+				if (string.IsNullOrEmpty(_path)) {
+					// Channel was not set up correctly for some reason
+					return -1;
+				}
+				_sourceHandle = Bass.CreateStream(_path, 0, 0, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
+				if (_sourceHandle == 0) {
+					return (int) Bass.LastError;
+				}
 			}
-			
+
 			int main = BassMix.CreateSplitStream(_sourceHandle, BassFlags.Decode | BassFlags.SplitPosition, null);
 			int reverbSplit = BassMix.CreateSplitStream(_sourceHandle, BassFlags.Decode | BassFlags.SplitPosition, null);
 
@@ -86,7 +104,7 @@ namespace YARG {
 			Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, _manager.GetVolumeSetting(Stem));
 			Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Volume, 0);
 
-			if (isSpeedUp) {
+			if (!Mathf.Approximately(speed, 1f)) {
 				// Gets relative speed from 100% (so 1.05f = 5% increase)
 				float percentageSpeed = Math.Abs(speed) * 100;
 				float relativeSpeed = percentageSpeed - 100;
@@ -203,6 +221,14 @@ namespace YARG {
 
 		public double GetPosition() {
 			return Bass.ChannelBytes2Seconds(StreamHandle, Bass.ChannelGetPosition(StreamHandle));
+		}
+
+		public void SetPosition(double position) {
+			if (IsMixed) {
+				BassMix.ChannelSetPosition(StreamHandle, Bass.ChannelSeconds2Bytes(StreamHandle, position));
+			} else {
+				Bass.ChannelSetPosition(StreamHandle, Bass.ChannelSeconds2Bytes(StreamHandle, position));
+			}
 		}
 
 		public double GetLengthInSeconds() {

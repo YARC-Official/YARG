@@ -1,7 +1,7 @@
 using System;
 using Cysharp.Threading.Tasks;
 
-namespace YARG {
+namespace YARG.Audio {
 	public interface IStemChannel : IDisposable {
 
 		public SongStem Stem { get; }
@@ -10,7 +10,7 @@ namespace YARG {
 		
 		public double Volume { get; }
 
-		public int Load(bool isSpeedUp, float speed);
+		public int Load(float speed);
 
 		public void FadeIn(float maxVolume);
 		public UniTask FadeOut();
@@ -20,6 +20,7 @@ namespace YARG {
 		public void SetReverb(bool reverb);
 
 		public double GetPosition();
+		public void SetPosition(double position);
 		
 		public double GetLengthInSeconds();
 

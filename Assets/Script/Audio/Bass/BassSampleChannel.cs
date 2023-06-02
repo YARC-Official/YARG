@@ -1,7 +1,7 @@
 using System;
 using ManagedBass;
 
-namespace YARG {
+namespace YARG.Audio.BASS {
 	public class BassSampleChannel : ISampleChannel {
 
 		public SfxSample Sample { get; }

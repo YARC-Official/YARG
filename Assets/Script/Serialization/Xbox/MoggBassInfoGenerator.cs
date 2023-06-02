@@ -6,6 +6,7 @@ using System.Text;
 using DtxCS;
 using DtxCS.DataTypes;
 using UnityEngine;
+using YARG.Audio;
 using YARG.Data;
 using YARG.Song;
 
