@@ -15,15 +15,14 @@ using YARG.Song;
 using YARG.UI.MusicLibrary.ViewTypes;
 using Random = UnityEngine.Random;
 
-public enum SortCriteria
-{
-	SongName = 1,
-	ArtistName,
-	SourceName,
-}
-
 namespace YARG.UI.MusicLibrary {
 	public class SongSelection : MonoBehaviour {
+		private enum SortCriteria {
+			SongName = 1,
+			ArtistName,
+			SourceName,
+		}
+
 		public static SongSelection Instance { get; private set; }
 
 		public static bool refreshFlag = true;
@@ -44,7 +43,6 @@ namespace YARG.UI.MusicLibrary {
 		private GameObject noSongsText;
 		[SerializeField]
 		private Scrollbar scrollbar;
-
 
 		private SortCriteria _sortCriteria = SortCriteria.SongName;
 
