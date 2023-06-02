@@ -4102,7 +4102,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
     "m_ObjectId": "55cacb223f7f445b843dd4af9832daa4",
     "m_Id": 0,
-    "m_DisplayName": "FadeZeroPosition",
+    "m_DisplayName": "_FadeZeroPosition",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -6720,9 +6720,9 @@
     "m_Guid": {
         "m_GuidSerialized": "402d1d63-d848-4d0c-96c4-8d7e67bd57e1"
     },
-    "m_Name": "FadeFullPosition",
+    "m_Name": "_FadeFullPosition",
     "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "FadeFullPosition",
+    "m_RefNameGeneratedByDisplayName": "_FadeFullPosition",
     "m_DefaultReferenceName": "_FadeFullPosition",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": false,
@@ -6837,9 +6837,9 @@
     "m_Guid": {
         "m_GuidSerialized": "a77e398b-e88f-4181-ae8c-4f02694ff546"
     },
-    "m_Name": "FadeZeroPosition",
+    "m_Name": "_FadeZeroPosition",
     "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "FadeZeroPosition",
+    "m_RefNameGeneratedByDisplayName": "_FadeZeroPosition",
     "m_DefaultReferenceName": "_FadeZeroPosition",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": false,
@@ -7455,7 +7455,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
     "m_ObjectId": "c67c461d17424c258cd2208ec5ad4c3c",
     "m_Id": 0,
-    "m_DisplayName": "FadeFullPosition",
+    "m_DisplayName": "_FadeFullPosition",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
