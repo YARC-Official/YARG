@@ -19,11 +19,6 @@ using YARG.Settings;
 
 namespace YARG.UI.MusicLibrary {
 	public class SongSelection : MonoBehaviour {
-		private enum SortCriteria {
-			SongName = 1,
-			ArtistName,
-			SourceName,
-		}
 
 		public static SongSelection Instance { get; private set; }
 
@@ -46,7 +41,9 @@ namespace YARG.UI.MusicLibrary {
 		[SerializeField]
 		private Scrollbar scrollbar;
 
-		private SortCriteria _sortCriteria = SortCriteria.SongName;
+		private SongSorting.SortCriteria _sortCriteria = SongSorting.SortCriteria.SONG;
+		private String _nextSortCriteria = "Order by artist";
+		private String _nextFilter = "Search artist";
 
 		private List<ViewType> _songs;
 		private List<SongEntry> _recommendedSongs;
@@ -95,8 +92,7 @@ namespace YARG.UI.MusicLibrary {
 		private List<SongView> _songViews = new();
 		private float _scrollTimer = 0f;
 		private bool searchBoxShouldBeEnabled = false;
-
-		private List<char> songsFirstLetter;
+		private readonly int numberOfDivisions = 3; //RANDOM SONG, RECOMMENDEND SONGS, ALL SONGS
 
 		private void Awake() {
 			refreshFlag = true;
@@ -121,7 +117,23 @@ namespace YARG.UI.MusicLibrary {
 			_previewContext = new(GameManager.AudioManager);
 
 			// Set navigation scheme
-			Navigator.Instance.PushScheme(new NavigationScheme(new() {
+			var navigationScheme = GetNavigationScheme();
+			Navigator.Instance.PushScheme(navigationScheme);
+
+			if (refreshFlag) {
+				_songs = null;
+				_recommendedSongs = null;
+
+				// Get songs
+				UpdateSearch();
+				refreshFlag = false;
+			}
+
+			searchBoxShouldBeEnabled = true;
+		}
+
+		private NavigationScheme GetNavigationScheme(){
+			return new NavigationScheme(new() {
 				new NavigationScheme.Entry(MenuAction.Up, "Up", () => {
 					SelectedIndex--;
 				}),
@@ -134,27 +146,16 @@ namespace YARG.UI.MusicLibrary {
 				new NavigationScheme.Entry(MenuAction.Back, "Back", () => {
 					Back();
 				}),
-				new NavigationScheme.Entry(MenuAction.Shortcut1, "Change Order", () => {
+				new NavigationScheme.Entry(MenuAction.Shortcut1, _nextSortCriteria, () => {
 					ChangeSongOrder();
 				}),
-				new NavigationScheme.Entry(MenuAction.Shortcut2, "Search Artist/Source", () => {
+				new NavigationScheme.Entry(MenuAction.Shortcut2, _nextFilter, () => {
 					ChangeFilter();
 				}),
 				new NavigationScheme.Entry(MenuAction.Shortcut3, "Next section", () => {
 					SelectNextSection();
 				})
-			}, false));
-
-			if (refreshFlag) {
-				_songs = null;
-				_recommendedSongs = null;
-
-				// Get songs
-				UpdateSearch();
-				refreshFlag = false;
-			}
-
-			searchBoxShouldBeEnabled = true;
+			}, false);
 		}
 
 		private void OnDisable() {
@@ -176,35 +177,65 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		private void ChangeSongOrder() {
-			if (_sortCriteria == SortCriteria.SongName) {
-				_sortCriteria = SortCriteria.ArtistName;
-			} else if (_sortCriteria == SortCriteria.ArtistName) {
-				_sortCriteria = SortCriteria.SourceName;
-			} else {
-				_sortCriteria = SortCriteria.SongName;
-			}
+			UpdateSortLamda();
+			UpdateIndex();
 			UpdateSearch();
+			UpdateNextSortCriteria();
+			UpdateNavigationScheme();
 		}
 
-		private string GetSortName(SongEntry song) {
-			if (_sortCriteria == SortCriteria.ArtistName) {
-				return song.Artist;
-			} else if (_sortCriteria == SortCriteria.SourceName) {
-				return song.Source;
-			} else {
-				return song.NameNoParenthesis;
-			}
+		public void UpdateSortLamda(){
+			_sortCriteria = getNextSortCriteria();
+			SongSorting.Instance.OrderBy(_sortCriteria);
+		}
+
+		public SongSorting.SortCriteria getNextSortCriteria() {
+			return SongSorting.Instance.GetNextSortCriteria(_sortCriteria);
+		}
+
+		private void UpdateNextSortCriteria(){
+			_nextSortCriteria = GetNextSortCriteriaButtonName();
+		}
+
+		private void UpdateNavigationScheme(){
+			Navigator.Instance.PopScheme();
+			Navigator.Instance.PushScheme(GetNavigationScheme());
 		}
 
 		private void ChangeFilter() {
-			if (_songs[SelectedIndex] is SongViewType view) {
-				if (string.IsNullOrEmpty(searchField.text) || searchField.text.StartsWith("source:")) {
-					searchField.text = $"artist:{view.SongEntry.Artist}";
-				} else if (searchField.text.StartsWith("artist:")) {
-					searchField.text = $"source:{view.SongEntry.Source}";
-				}
+			UpdateFilter();
+			UpdateFilterButtonName();
+			UpdateNavigationScheme();
+		}
+
+		private void UpdateFilter(){
+			if (_songs[SelectedIndex] is not SongViewType view) {
+				return;
+			}
+
+			var text = searchField.text;
+
+			if (string.IsNullOrEmpty(text) || text.StartsWith("source:")) {
+				var artist = view.SongEntry.Artist;
+				searchField.text = $"artist:{artist}";
+				return;
+			}
+
+			if (text.StartsWith("artist:")) {
+				var source = view.SongEntry.Source;
+				searchField.text = $"source:{source}";
+				return;
 			}
 		}
+
+		private void UpdateFilterButtonName(){
+			_nextFilter = _nextFilter switch {
+				"Search artist" => "Search source",
+				"Search source" => "Search artist",
+				_ => "Search artist"
+			};
+		}
+
 
 		private void Update() {
 			if (_scrollTimer <= 0f) {
@@ -259,7 +290,8 @@ namespace YARG.UI.MusicLibrary {
 			if (string.IsNullOrEmpty(searchField.text)) {
 				// Add all songs
 				_songs = SongContainer.Songs
-					.OrderBy(song => GetSortName(song))
+					// .OrderBy(song => GetSortName(song))
+					.OrderBy(OrderBy())
 					.Select(i => new SongViewType(i))
 					.Cast<ViewType>()
 					.ToList();
@@ -355,7 +387,8 @@ namespace YARG.UI.MusicLibrary {
 
 				// Sort
 				if (!searched) {
-					songsOut = songsOut.OrderBy(song => GetSortName(song));
+					// songsOut = songsOut.OrderBy(song => GetSortName(song));
+					songsOut = songsOut.OrderBy(OrderBy());
 				}
 
 				// Add header
@@ -393,21 +426,13 @@ namespace YARG.UI.MusicLibrary {
 				SelectedIndex = Mathf.Max(1, index);
 			}
 
-			SetFirstLetters();
+			UpdateIndex();
 			UpdateSongViews();
 			UpdateScrollbar();
 		}
 
-		private void SetFirstLetters(){
-			songsFirstLetter =
-				_songs
-				.OfType<SongViewType>()
-				.Select(song => GetSortName(song.SongEntry))
-				.Where(name => !string.IsNullOrEmpty(name))
-				.Select(name => Char.ToUpper(name[0]))
-				.Distinct()
-				.OrderBy(ch => ch)
-				.ToList();
+		private void UpdateIndex(){
+			SongSorting.Instance.UpdateIndex(_songs);
 		}
 
 		private static string RemoveDiacritics(string text) {
@@ -548,43 +573,31 @@ namespace YARG.UI.MusicLibrary {
 				return;
 			}
 
-			int skip = Mathf.Max(1, _songs.Count - SongContainer.Songs.Count);
-			var sortName = GetSortName(song.SongEntry);
-			string nextCharacter = GetNextLetterOrNumber(sortName);
+			int skip = GetSkip();
 
-			// If an error occurs no change is made
-			if (string.IsNullOrEmpty(nextCharacter)) {
+			if(SongIsRecommendedOrDivision(skip)){
+				SelectedIndex = skip;
 				return;
 			}
 
-			var index = _songs.FindIndex(skip, song =>
-				song is SongViewType songType &&
-					GetSortName(songType.SongEntry)[..1] == nextCharacter
-				);
-
-			SelectedIndex = index;
+			SelectedIndex = SongSorting.Instance.SelectNextSection(_songs, SelectedIndex, song, skip);
 		}
 
-		private string GetNextLetterOrNumber(string input){
-			if(string.IsNullOrEmpty(input)){
-				return null;
-			}
+		private bool SongIsRecommendedOrDivision(int skip){
+			bool recommendedSongsAreVisible = skip == _recommendedSongs.Count + numberOfDivisions;
+			return recommendedSongsAreVisible && SelectedIndex < skip;
+		}
 
-			char firstCharacter = char.ToUpper(input[0]);
+		private int GetSkip(){
+			return Mathf.Max(1, _songs.Count - SongContainer.Songs.Count);
+		}
 
-			int indexOfActualLetter = songsFirstLetter.FindIndex(letter => {
-				return letter == firstCharacter;
-			});
+		private string GetNextSortCriteriaButtonName() {
+			return SongSorting.Instance.GetNextSortCriteriaButtonName(_sortCriteria);
+		}
 
-			bool isLast = indexOfActualLetter == (songsFirstLetter.Count - 1);
-
-			if (isLast) {
-				var firstCharacterInList = char.ToString(songsFirstLetter[0]);
-				return firstCharacterInList;
-			}
-
-			var nextCharacter = char.ToString(songsFirstLetter[indexOfActualLetter + 1]);
-			return nextCharacter;
+		private Func<SongEntry, string> OrderBy(){
+			return SongSorting.Instance.SortBy();
 		}
 
 #if UNITY_EDITOR
