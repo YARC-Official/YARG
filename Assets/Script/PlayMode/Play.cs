@@ -272,31 +272,18 @@ namespace YARG.PlayMode {
 		}
 
 		private void LoadChart() {
-			// Add main file
-			var files = new List<string> {
-				Path.Combine(Song.Location, Song.NotesFile)
-			};
-
-			// Look for upgrades and add
-			// var upgradeFolder = new DirectoryInfo(Path.Combine(song.RootFolder, "yarg_upgrade"));
-			// if (upgradeFolder.Exists) {
-			// 	foreach (var midi in upgradeFolder.GetFiles("*.mid")) {
-			// 		files.Add(midi.FullName);
-			// 	}
-			// }
-
 			// Parse
 
 			MoonSong moonSong = null;
 			if (Song.NotesFile.EndsWith(".chart")) {
 				Debug.Log("Reading .chart file");
-				moonSong = ChartReader.ReadChart(files[0]);
+				moonSong = ChartReader.ReadChart(Path.Combine(Song.Location, Song.NotesFile));
 			}
 
 			chart = new YargChart(moonSong);
 			if (Song.NotesFile.EndsWith(".mid")) {
 				// Parse
-				var parser = new MidiParser(Song, files.ToArray());
+				var parser = new MidiParser(Song);
 				chart.InitializeArrays();
 				parser.Parse(chart);
 			} else if (Song.NotesFile.EndsWith(".chart")) {

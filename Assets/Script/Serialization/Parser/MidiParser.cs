@@ -37,14 +37,17 @@ namespace YARG.Serialization.Parser {
 
 		public MidiFile midi;
 
-		public MidiParser(SongEntry songEntry, string[] files) : base(songEntry, files) {
+		public MidiParser(SongEntry songEntry) : base(songEntry) {
 			// get base midi - read it in latin1 if RB, UTF-8 if clon
-			
+
 			var readSettings = ReadSettings; // we need to modify these
 			readSettings.TextEncoding = songEntry is ConSongEntry ? Encoding.GetEncoding("iso-8859-1") : Encoding.UTF8;
-			if(songEntry is ExtractedConSongEntry hotdog)
+			if (songEntry is ExtractedConSongEntry hotdog) {
+				// hotdog brought to you by hugh
 				midi = MidiFile.Read(new MemoryStream(hotdog.LoadMidiFile()), readSettings);
-			else midi = MidiFile.Read(songEntry.NotesFile, readSettings);
+			} else {
+				midi = MidiFile.Read(Path.Combine(songEntry.Location, songEntry.NotesFile), readSettings);
+			}
 
 			// if this is a RB song...
 			if (songEntry is ExtractedConSongEntry oof) {

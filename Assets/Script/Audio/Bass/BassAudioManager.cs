@@ -9,6 +9,7 @@ using ManagedBass.Fx;
 using ManagedBass.Mix;
 using UnityEngine;
 using YARG.Song;
+using DeviceType = ManagedBass.DeviceType;
 
 namespace YARG.Audio.BASS {
 	public class BassAudioManager : MonoBehaviour, IAudioManager {
@@ -31,12 +32,11 @@ namespace YARG.Audio.BASS {
 		public float AudioLengthF { get; private set; }
 
 		private double[] _stemVolumes;
+		private ISampleChannel[] _sfxSamples;
 
 		private int _opusHandle;
 
 		private IStemMixer _mixer;
-
-		private ISampleChannel[] _sfxSamples;
 
 		private void Awake() {
 			SupportedFormats = new[] {
@@ -65,7 +65,7 @@ namespace YARG.Audio.BASS {
 
 			Bass.UpdatePeriod = 5;
 			Bass.DeviceBufferLength = 10;
-			Bass.PlaybackBufferLength = 100;
+			Bass.PlaybackBufferLength = 75;
 			Bass.DeviceNonStop = true;
 
 			Bass.Configure(Configuration.TruePlayPosition, 0);
@@ -112,6 +112,38 @@ namespace YARG.Audio.BASS {
 			}
 
 			Bass.Free();
+		}
+
+		public IList<UninitializedMic> GetAllInputDevices() {
+			var mics = new List<UninitializedMic>();
+
+			for (int deviceIndex = 0; Bass.RecordGetDeviceInfo(deviceIndex, out var info); deviceIndex++) {
+				if (!info.IsEnabled) {
+					continue;
+				}
+
+				if (info.Type != DeviceType.Microphone) {
+					continue;
+				}
+
+				mics.Add(new UninitializedMic(deviceIndex, info.Name, info.IsDefault));
+			}
+
+			return mics;
+		}
+
+		public IMicDevice CreateMicFromUninitialized(UninitializedMic uninitialized) {
+			var mic = new BassMicDevice();
+
+			int result = mic.Initialize(uninitialized.DeviceId);
+			if (result != 0) {
+				Debug.LogError($"Failed to initialize mic: {uninitialized.DisplayName} ({(Errors)result})");
+				return null;
+			}
+
+			Debug.Log($"Initialized mic: {uninitialized.DisplayName}");
+
+			return mic;
 		}
 
 		public void LoadSfx() {
@@ -245,10 +277,10 @@ namespace YARG.Audio.BASS {
 
 			var channelMap = new int[2];
 			channelMap[1] = -1;
-			
+
 			for (var i = 0; i < splitStreams.Length; i++) {
 				channelMap[0] = i;
-				
+
 				int splitHandle = BassMix.CreateSplitStream(moggStreamHandle, BassFlags.Decode | BassFlags.SplitPosition, channelMap);
 				if (splitHandle == 0) {
 					throw new Exception($"Failed to create MOGG stream handle: {Bass.LastError}");
@@ -256,7 +288,7 @@ namespace YARG.Audio.BASS {
 
 				splitStreams[i] = splitHandle;
 			}
-			
+
 			// Set up channels
 			foreach ((var stem, int[] channelIndexes) in stemMaps) {
 				int[] channelStreams = channelIndexes.Select(i => splitStreams[i]).ToArray();

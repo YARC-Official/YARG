@@ -21,7 +21,7 @@ namespace YARG.Settings {
 			public ToggleSetting DisablePerSongBackgrounds  { get; private set; } = new(false);
 
 			public ToggleSetting VSync                      { get; private set; } = new(true,      VSyncCallback);
-			public ToggleSetting FpsStats                   { get; private set; } = new(false,     FpsCouterCallback);
+			public ToggleSetting FpsStats                   { get; private set; } = new(false,     FpsCounterCallback);
 			public IntSetting    FpsCap                     { get; private set; } = new(60, 1,     onChange: FpsCapCallback);
 
 			public ToggleSetting Fullscreen					{ get; private set; } = new(false,	   FullscreenCallback);
@@ -96,7 +96,8 @@ namespace YARG.Settings {
 				QualitySettings.vSyncCount = value ? 1 : 0;
 			}
 
-			private static void FpsCouterCallback(bool value) {
+			private static void FpsCounterCallback(bool value) {
+				// disable script
 				FpsCounter.Instance.enabled = value;
 				FpsCounter.Instance.SetVisible(value);
 
@@ -149,7 +150,9 @@ namespace YARG.Settings {
 			}
 
 			private static void VocalMonitoringCallback(float volume) {
-				AudioManager.Instance.SetVolume("vocalMonitoring", volume);
+				foreach (var player in PlayerManager.players) {
+					player.inputStrategy?.MicDevice?.SetMonitoringLevel(volume);
+				}
 			}
 
 			private static void MusicPlayerVolumeCallback(float volume) {
