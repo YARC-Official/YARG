@@ -26,6 +26,10 @@ namespace YARG.Song {
 			ALBUM,
 			CHARTER,
 		}
+		public enum PreviousNext {
+			PREVIOUS = 1,
+			NEXT,
+		}
 
 		private readonly static SongSorting _instance = new SongSorting();
 
@@ -73,7 +77,11 @@ namespace YARG.Song {
 			};
 
 			sortBy = song => {
-				return song.NameNoParenthesis.ToUpper();
+				string name = song.NameNoParenthesis.ToUpper();
+				if(name.StartsWith("The ", StringComparison.InvariantCultureIgnoreCase)){
+					name = name.Substring(4);
+				}
+				return name;
 			};
 
 			return true;
@@ -86,7 +94,11 @@ namespace YARG.Song {
 			};
 
 			sortBy = song => {
-				return song.Artist.ToUpper();
+				string artist = song.Artist.ToUpper();
+				if(artist.StartsWith("The ", StringComparison.InvariantCultureIgnoreCase)){
+					artist = artist.Substring(4);
+				}
+				return artist;
 			};
 
 			return true;
@@ -162,6 +174,9 @@ namespace YARG.Song {
 			if(string.IsNullOrEmpty(value)){
 				return "";
 			}
+			if(value.StartsWith("The ", StringComparison.InvariantCultureIgnoreCase)){
+				return value.Substring(4,1).ToUpper();
+			}
 
 			return value.Substring(0,1).ToUpper();
 		}
@@ -218,7 +233,7 @@ namespace YARG.Song {
 			};
 		}
 
-		private string GetNextLetterOrNumber(SongViewType song){
+		private string GetNewSectionLetterOrNumber(SongViewType song, PreviousNext order = PreviousNext.NEXT){
 			if(null == song){
 				return null;
 			}
@@ -233,23 +248,29 @@ namespace YARG.Song {
 				return String.Equals(letter, firstCharacter, StringComparison.OrdinalIgnoreCase);
 			});
 
-			bool isLast = indexOfActualLetter == (songsFirstLetter.Count - 1);
-
-			if (isLast) {
-				var firstCharacterInList = songsFirstLetter[0];
-				return firstCharacterInList;
+			var newCharacter = firstCharacter;
+			if (order == PreviousNext.NEXT) {
+				if (indexOfActualLetter == (songsFirstLetter.Count - 1)) {
+					newCharacter = songsFirstLetter[0];
+				} else {
+					newCharacter = songsFirstLetter[indexOfActualLetter + 1];
+				}
+			} else {
+				if (indexOfActualLetter == 0) {
+					newCharacter = songsFirstLetter[songsFirstLetter.Count - 1];
+				} else {
+					newCharacter = songsFirstLetter[indexOfActualLetter - 1];
+				}
 			}
-
-			var nextCharacter = songsFirstLetter[indexOfActualLetter + 1];
-			return nextCharacter;
+			return newCharacter;
 		}
 
-		public int SelectNextSection(List<ViewType> songs, int selectedIndex, SongViewType song, int skip){
+		public int SelectNewSection(List<ViewType> songs, int selectedIndex, SongViewType song, int skip, PreviousNext order){
 
-			string nextCharacter = GetNextLetterOrNumber(song);
+			string newCharacter = GetNewSectionLetterOrNumber(song, order);
 
 			// If an error occurs no change is made
-			if (string.IsNullOrEmpty(nextCharacter)) {
+			if (string.IsNullOrEmpty(newCharacter)) {
 				return selectedIndex;
 			}
 
@@ -257,7 +278,7 @@ namespace YARG.Song {
 				song is SongViewType songType &&
 					String.Equals(
 						index(songType),
-						nextCharacter,
+						newCharacter,
 						StringComparison.OrdinalIgnoreCase)
 				);
 
