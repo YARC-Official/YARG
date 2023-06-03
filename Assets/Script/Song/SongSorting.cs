@@ -31,7 +31,16 @@ namespace YARG.Song {
 			NEXT,
 		}
 
+		private readonly static List<string> articles = new List<string>{
+			"The ",// The beatles, The day that never comes
+			"El ", // Los fabulosos cadillacs, El sol no regresa
+			"La ", // La quinta estacion, La bamba, La muralla verde
+			"Los ", // Los fabulosos cadillacs, Los enanitos verdes,
+		};
+
 		private readonly static SongSorting _instance = new SongSorting();
+
+		private readonly static string EMPTY_VALUE = " ";
 
 		private Func<SongViewType, string> index;
 
@@ -53,7 +62,7 @@ namespace YARG.Song {
 			};
 
 			sortBy = song => {
-				return song.NameNoParenthesis;
+				return RemoveArticle(song.NameNoParenthesis);
 			};
 		}
 
@@ -78,13 +87,23 @@ namespace YARG.Song {
 
 			sortBy = song => {
 				string name = song.NameNoParenthesis.ToUpper();
-				if(name.StartsWith("The ", StringComparison.InvariantCultureIgnoreCase)){
-					name = name.Substring(4);
-				}
-				return name;
+				return RemoveArticle(name);
 			};
 
 			return true;
+		}
+
+		public static string RemoveArticle(string name){
+			if(string.IsNullOrEmpty(name)){
+				return name;
+			}
+
+			foreach (var article in articles) {
+				if(name.StartsWith(article, StringComparison.InvariantCultureIgnoreCase)){
+					return name.Substring(article.Length);
+				}
+			}
+			return name;
 		}
 
 		public bool OrderByArtist() {
@@ -95,10 +114,7 @@ namespace YARG.Song {
 
 			sortBy = song => {
 				string artist = song.Artist.ToUpper();
-				if(artist.StartsWith("The ", StringComparison.InvariantCultureIgnoreCase)){
-					artist = artist.Substring(4);
-				}
-				return artist;
+				return RemoveArticle(artist);
 			};
 
 			return true;
@@ -125,7 +141,14 @@ namespace YARG.Song {
 			};
 
 			sortBy = song => {
-				return song.Album.ToUpper();
+				string album = song.Album.ToUpper();
+
+				if(string.IsNullOrEmpty(album)){
+					return EMPTY_VALUE;
+				}
+
+				return album.ToUpper();
+
 			};
 
 			return true;
@@ -138,7 +161,13 @@ namespace YARG.Song {
 			};
 
 			sortBy = song => {
-				return song.Charter.ToUpper();
+				string charter = song.Charter.ToUpper();
+
+				if(string.IsNullOrEmpty(charter)){
+					return EMPTY_VALUE;
+				}
+
+				return charter.ToUpper();
 			};
 
 			return true;
@@ -164,7 +193,8 @@ namespace YARG.Song {
 			};
 
 			sortBy = song => {
-				return song.Year.ToUpper();
+				string year = song.Year;
+				return GetYear(year);
 			};
 
 			return true;
@@ -172,18 +202,16 @@ namespace YARG.Song {
 
 		private static string GetFirstCharacter(string value) {
 			if(string.IsNullOrEmpty(value)){
-				return "";
-			}
-			if(value.StartsWith("The ", StringComparison.InvariantCultureIgnoreCase)){
-				return value.Substring(4,1).ToUpper();
+				return EMPTY_VALUE;
 			}
 
-			return value.Substring(0,1).ToUpper();
+			var name = RemoveArticle(value);
+			return name.Substring(0,1).ToUpper();
 		}
 
 		private static string GetYear(string value) {
 			if(string.IsNullOrEmpty(value)){
-				return "0";
+				return EMPTY_VALUE;
 			}
 
 			return value.Substring(0,4).ToUpper();
