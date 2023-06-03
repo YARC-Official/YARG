@@ -47,11 +47,11 @@ namespace YARG.Input {
         public long DebounceThreshold {
             get => _debounceThreshold;
             set {
-                // Limit debounce amount to 0-100 ms
-                // 100 ms is *very* generous, any larger and input registration will be very bad
+                // Limit debounce amount to 0-25 ms
+                // Any larger and input registration will be very bad since the max will limit to 40 inputs per second
                 // If someone needs a larger amount their controller is just busted lol
-                if (value > 100) {
-                    value = 100;
+                if (value > 25) {
+                    value = 25;
                 } else if (value < 0) {
                     value = 0;
                 }
