@@ -155,7 +155,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 12472135823253504
-    m_Localized: Framerate
+    m_Localized: Display
     m_Metadata:
       m_Items: []
   - m_Id: 12472159567208448
@@ -256,6 +256,38 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 23598515176726528
     m_Localized: Camera Presets
+    m_Metadata:
+      m_Items: []
+  - m_Id: 25027136172974080
+    m_Localized: Input
+    m_Metadata:
+      m_Items: []
+  - m_Id: 25027162441900032
+    m_Localized: Microphone Sensitivity (Db)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 25071377905475584
+    m_Localized: Fullscreen Mode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 25071429197619200
+    m_Localized: Resolution
+    m_Metadata:
+      m_Items: []
+  - m_Id: 25071457018437632
+    m_Localized: Fullscreen (Windows Only)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 25071572395352064
+    m_Localized: Borderless Fullscreen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 25071721024708608
+    m_Localized: Maximized Window (MacOS Only)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 25071794185953280
+    m_Localized: Windowed
     m_Metadata:
       m_Items: []
   references:

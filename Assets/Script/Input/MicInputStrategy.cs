@@ -24,7 +24,7 @@ namespace YARG.Input {
 		public float VoiceNote { get; private set; }
 		public int VoiceOctave { get; private set; }
 
-		public bool VoiceDetected => VoiceAmplitude > 0f;
+		public bool VoiceDetected { get; private set; }
 
 		public float TimeSinceNoVoice { get; private set; }
 		public float TimeSinceVoiceDetected { get; private set; }
@@ -60,6 +60,7 @@ namespace YARG.Input {
 			}
 
 			// Set info from mic
+			VoiceDetected = MicDevice.VoiceDetected;
 			VoiceAmplitude = MicDevice.Amplitude;
 			VoicePitch = MicDevice.Pitch;
 
@@ -133,7 +134,7 @@ namespace YARG.Input {
 
 			NavigationEventForMapping(MenuAction.Shortcut1, MENU_ACTION_1);
 			NavigationEventForMapping(MenuAction.Shortcut2, MENU_ACTION_2);
-			NavigationEventForMapping(MenuAction.Shortcut3, MENU_ACTION_3);
+			NavigationHoldableForMapping(MenuAction.Shortcut3, MENU_ACTION_3);
 
 			NavigationEventForMapping(MenuAction.Up, UP);
 			NavigationEventForMapping(MenuAction.Down, DOWN);

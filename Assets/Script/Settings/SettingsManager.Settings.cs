@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using UnityEngine;
 using YARG.Audio;
 using YARG.PlayMode;
@@ -11,18 +12,22 @@ using YARG.Venue;
 namespace YARG.Settings {
 	public static partial class SettingsManager {
 		public class SettingContainer {
+			public static bool IsLoading = true;
+
 #pragma warning disable format
 
 			public List<string>  SongFolders                                      = new();
-			public List<string>  SongUpgradeFolders                               = new();
 
 			public IntSetting    AudioCalibration           { get; private set; } = new(120);
 
 			public ToggleSetting DisablePerSongBackgrounds  { get; private set; } = new(false);
 
-			public ToggleSetting VSync                      { get; private set; } = new(true,      VSyncCallback);
-			public ToggleSetting FpsStats                   { get; private set; } = new(false,     FpsCounterCallback);
-			public IntSetting    FpsCap                     { get; private set; } = new(60, 1,     onChange: FpsCapCallback);
+			public ToggleSetting     VSync                  { get; private set; } = new(true,      VSyncCallback);
+			public IntSetting        FpsCap                 { get; private set; } = new(60, 1,     onChange: FpsCapCallback);
+			public EnumSetting       FullscreenMode         { get; private set; } = new(typeof(FullScreenMode),
+				                                            (int) FullScreenMode.FullScreenWindow, FullscreenModeCallback);
+			public ResolutionSetting Resolution             { get; private set; } = new(           ResolutionCallback);
+			public ToggleSetting     FpsStats               { get; private set; } = new(false,     FpsCounterCallback);
 
 			public ToggleSetting LowQuality                 { get; private set; } = new(false,     LowQualityCallback);
 			public ToggleSetting DisableBloom               { get; private set; } = new(false,     DisableBloomCallback);
@@ -46,6 +51,9 @@ namespace YARG.Settings {
 			public VolumeSetting PreviewVolume              { get; private set; } = new(0.25f);
 			public VolumeSetting MusicPlayerVolume          { get; private set; } = new(0.15f,     MusicPlayerVolumeCallback);
 			public VolumeSetting VocalMonitoring            { get; private set; } = new(0.7f,      VocalMonitoringCallback);
+
+			public SliderSetting MicrophoneSensitivity      { get; private set; } = new(2f,    -50f, 50f);
+
 			public ToggleSetting MuteOnMiss                 { get; private set; } = new(true);
 			public ToggleSetting UseStarpowerFx             { get; private set; } = new(true,      UseStarpowerFxChange);
 			public ToggleSetting UseChipmunkSpeed           { get; private set; } = new(false,     UseChipmunkSpeedChange);
@@ -104,6 +112,55 @@ namespace YARG.Settings {
 
 			private static void FpsCapCallback(int value) {
 				Application.targetFrameRate = value;
+			}
+
+			private static void FullscreenModeCallback(int value) {
+				// Unity saves this information automatically
+				if (IsLoading) {
+					return;
+				}
+
+				Screen.fullScreenMode = (FullScreenMode) value;
+			}
+
+			private static void ResolutionCallback(Resolution? value) {
+				// Unity saves this information automatically
+				if (IsLoading) {
+					return;
+				}
+
+				Resolution resolution;
+
+				// If set to null, just get the "default" resolution.
+				if (value == null) {
+					// Since we actually can't get the highest resolution,
+					// we need to find it in the supported resolutions
+					var highest = new Resolution {
+						width = 0,
+						height = 0,
+						refreshRate = 0
+					};
+
+					foreach (var r in Screen.resolutions) {
+						if (r.refreshRate >= highest.refreshRate &&
+						    r.width >= highest.width &&
+						    r.height >= highest.height) {
+
+							highest = r;
+						}
+					}
+
+					resolution = highest;
+				} else {
+					resolution = value.Value;
+				}
+
+				var fullscreenMode = FullScreenMode.FullScreenWindow;
+				if (Settings != null) {
+					fullscreenMode = (FullScreenMode) Settings.FullscreenMode.Data;
+				}
+
+				Screen.SetResolution(resolution.width, resolution.height, fullscreenMode, resolution.refreshRate);
 			}
 
 			private static void LowQualityCallback(bool value) {

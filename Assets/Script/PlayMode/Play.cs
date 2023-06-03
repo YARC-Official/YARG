@@ -232,7 +232,7 @@ namespace YARG.PlayMode {
 			// Hide loading screen
 			GameUI.Instance.loadingContainer.SetActive(false);
 
-			realSongTime = SONG_START_OFFSET;
+			realSongTime = SONG_START_OFFSET * speed;
 			StartCoroutine(StartAudio());
 
 			OnSongStart?.Invoke(Song);
@@ -300,7 +300,7 @@ namespace YARG.PlayMode {
 
 		private IEnumerator StartAudio() {
 			while (realSongTime < 0f) {
-				realSongTime += Time.deltaTime;
+				realSongTime += Time.deltaTime * speed;
 				yield return null;
 			}
 

@@ -363,7 +363,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 7
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &160057393
 MonoBehaviour:
@@ -444,7 +444,7 @@ MonoBehaviour:
     type: 3}
   _directoryPrefab: {fileID: 5753369685943773599, guid: 37057a242aeaf274982e4ac288d2c898,
     type: 3}
-  _dropdownPrefab: {fileID: 5753369685943773599, guid: 8a72b2a2fb6774a4c994f7a2c9f9f7fa,
+  _dropdownPrefab: {fileID: 1999843519985412308, guid: cbaa114fdcf159241b4f9851747410c0,
     type: 3}
   _previewRawImage: {fileID: 436902740}
 --- !u!1 &436902738
@@ -908,76 +908,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 531716086}
   m_CullTransparentMesh: 1
---- !u!1 &532586439
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 532586440}
-  - component: {fileID: 532586441}
-  m_Layer: 0
-  m_Name: Audio Manager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &532586440
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 532586439}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 6
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &532586441
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 532586439}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ab5555c3a08547241aa79922904b72d1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  audioMixer: {fileID: 24100000, guid: d5f8521c55f50a44eb1e292204769821, type: 2}
-  audioChannelsInspector:
-  - id: music
-    mixer: {fileID: -3295610497567946996, guid: d5f8521c55f50a44eb1e292204769821,
-      type: 2}
-  - id: song
-    mixer: {fileID: -4916780368411507814, guid: d5f8521c55f50a44eb1e292204769821,
-      type: 2}
-  - id: guitar
-    mixer: {fileID: -2065083422919873042, guid: d5f8521c55f50a44eb1e292204769821,
-      type: 2}
-  - id: bass
-    mixer: {fileID: 6650671750105694708, guid: d5f8521c55f50a44eb1e292204769821, type: 2}
-  - id: keys
-    mixer: {fileID: -1275169795809483805, guid: d5f8521c55f50a44eb1e292204769821,
-      type: 2}
-  - id: drums
-    mixer: {fileID: 898431374865327497, guid: d5f8521c55f50a44eb1e292204769821, type: 2}
-  - id: vocals
-    mixer: {fileID: -4788080081560174205, guid: d5f8521c55f50a44eb1e292204769821,
-      type: 2}
-  - id: crowd
-    mixer: {fileID: -4584868448079438921, guid: d5f8521c55f50a44eb1e292204769821,
-      type: 2}
-  - id: vocalMonitoring
-    mixer: {fileID: -541741410412472071, guid: d5f8521c55f50a44eb1e292204769821, type: 2}
 --- !u!1 &537033844
 GameObject:
   m_ObjectHideFlags: 0
@@ -2088,8 +2018,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8241ed3bc1487244ba78808cf37d12e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  vocalGroup: {fileID: -541741410412472071, guid: d5f8521c55f50a44eb1e292204769821,
-    type: 2}
+  <SettingsMenu>k__BackingField: {fileID: 0}
 --- !u!1 &826511794
 GameObject:
   m_ObjectHideFlags: 0
@@ -2813,7 +2742,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 8
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1204535812
 GameObject:
@@ -4568,7 +4497,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 9
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1931647618
 GameObject:

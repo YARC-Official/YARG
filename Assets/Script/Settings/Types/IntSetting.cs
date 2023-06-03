@@ -25,6 +25,10 @@ namespace YARG.Settings.Types {
 		}
 
 		public override bool IsSettingDataEqual(object obj) {
+			if (obj == null) {
+				return false;
+			}
+
 			if (obj.GetType() != DataType) {
 				return false;
 			}
