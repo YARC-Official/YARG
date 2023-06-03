@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using UnityEngine;
 using YARG.Data;
 using YARG.PlayMode;
 
@@ -13,16 +15,20 @@ namespace YARG.Input {
 		public const string STRUM_UP = "strum_up";
 		public const string STRUM_DOWN = "strum_down";
 
+		public const string WHAMMY = "whammy";
+
 		public const string STAR_POWER = "star_power";
 		public const string PAUSE = "pause";
 
 		private List<NoteInfo> botChart;
 
 		public delegate void FretChangeAction(bool pressed, int fret);
-		public delegate void StrumAction();
-
 		public event FretChangeAction FretChangeEvent;
-		public event StrumAction StrumEvent;
+
+		public event Action StrumEvent;
+
+		public delegate void WhammyChangeAction(float delta);
+		public event WhammyChangeAction WhammyEvent;
 
 		public FiveFretInputStrategy() {
 			InputMappings = new() {
@@ -34,6 +40,8 @@ namespace YARG.Input {
 
 				{ STRUM_UP,   new(BindingType.BUTTON, "Strum Up", STRUM_UP, STRUM_DOWN) },
 				{ STRUM_DOWN, new(BindingType.BUTTON, "Strum Down", STRUM_DOWN, STRUM_UP) },
+
+				{ WHAMMY,     new(BindingType.AXIS, "Whammy", WHAMMY) },
 
 				{ STAR_POWER, new(BindingType.BUTTON, "Star Power", STAR_POWER) },
 				{ PAUSE,      new(BindingType.BUTTON, "Pause", PAUSE) },
@@ -75,6 +83,13 @@ namespace YARG.Input {
 			if (WasMappingPressed(STRUM_DOWN)) {
 				StrumEvent?.Invoke();
 				CallGenericCalbirationEvent();
+			}
+
+			// Whammy!
+
+			float delta = GetPreviousMappingValue(WHAMMY) - GetMappingValue(WHAMMY);
+			if (!Mathf.Approximately(delta, 0f)) {
+				WhammyEvent?.Invoke(delta);
 			}
 
 			// Starpower

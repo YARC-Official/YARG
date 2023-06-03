@@ -402,7 +402,7 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		private void UpdateStarpower() {
+		protected virtual void UpdateStarpower() {
 			// Update starpower region
 			if (IsStarpowerHit()) {
 				starpowerIndex++;
@@ -424,8 +424,8 @@ namespace YARG.PlayMode {
 					GameManager.AudioManager.PlaySoundEffect(SfxSample.StarPowerRelease);
 					SetReverb(false);
 				} else {
-					//starpowerCharge -= Time.deltaTime / 25f * Play.speed; //original logic
-					starpowerCharge -= (float)((Time.deltaTime * Play.Instance.CurrentBeatsPerSecond) * 0.03125); // calculates based on 32 beats for a full bar
+					// calculates based on 32 beats for a full bar
+					starpowerCharge -= Time.deltaTime * Play.Instance.CurrentBeatsPerSecond * (1f / 32f);
 				}
 				if (!trackAnims.spShakeAscended) {
 					trackAnims.StarpowerTrackAnim();
