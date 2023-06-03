@@ -10,6 +10,8 @@ using YARG.Util;
 
 namespace YARG.PlayMode {
 	public class FiveFretTrack : AbstractTrack {
+		// I CAN'T WAIT UNTIL THE NEW ENGINE!!!!
+
 		private bool strummed = false;
 		private float strumLeniency;
 
@@ -38,6 +40,9 @@ namespace YARG.PlayMode {
 		private const double SUSTAIN_PTS_PER_BEAT = 25.0;
 		private const int PTS_PER_NOTE = 50;
 		private int noteCount = -1;
+
+		private float whammyAmount;
+
 		protected override void StartTrack() {
 			notePool.player = player;
 			genericPool.player = player;
@@ -55,6 +60,7 @@ namespace YARG.PlayMode {
 
 			input.FretChangeEvent += FretChangedAction;
 			input.StrumEvent += StrumAction;
+			input.WhammyEvent += WhammyEvent;
 
 			if (input.BotMode) {
 				input.InitializeBotMode(Chart);
@@ -82,6 +88,7 @@ namespace YARG.PlayMode {
 			// Unbind input
 			input.FretChangeEvent -= FretChangedAction;
 			input.StrumEvent -= StrumAction;
+			input.WhammyEvent -= WhammyEvent;
 		}
 
 		protected override void UpdateTrack() {
@@ -136,6 +143,24 @@ namespace YARG.PlayMode {
 
 			// Un-strum
 			strummed = false;
+		}
+
+		protected override void UpdateStarpower() {
+			base.UpdateStarpower();
+
+			// Update whammy amount
+			if (whammyAmount > 0f) {
+				whammyAmount -= Time.deltaTime;
+			}
+
+			// Add starpower on whammy
+			if (CurrentStarpower?.time > CurrentTime) {
+				return;
+			}
+
+			if (whammyAmount > 0f) {
+				starpowerCharge += Time.deltaTime * Play.Instance.CurrentBeatsPerSecond * (1f / 32f);
+			}
 		}
 
 		public override void SetReverb(bool on) {
@@ -400,7 +425,7 @@ namespace YARG.PlayMode {
 		private bool IsOverstrumForgiven(bool remove = true) {
 			for (int i = 0; i < allowedOverstrums.Count; i++) {
 				if (ChordPressed(allowedOverstrums[i], true)) {
-					// If we found a chord that was pressed, remove 
+					// If we found a chord that was pressed, remove
 					// all of the allowed overstrums before it.
 					// This prevents over-forgiving overstrums.
 
@@ -642,6 +667,11 @@ namespace YARG.PlayMode {
 			if (!input.BotMode) {
 				strumLeniency = Constants.STRUM_LENIENCY;
 			}
+		}
+
+		private void WhammyEvent(float delta) {
+			whammyAmount += Mathf.Abs(delta) * 0.25f;
+			whammyAmount = Mathf.Clamp(whammyAmount, 0f, 1f / 3f);
 		}
 
 		private void SpawnNote(NoteInfo noteInfo, float time) {
