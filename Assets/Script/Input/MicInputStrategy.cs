@@ -19,7 +19,6 @@ namespace YARG.Input {
 
 		private List<LyricInfo> botChart;
 
-		public float VoicePitch { get; private set; }
 		public float VoiceAmplitude { get; private set; }
 		public float VoiceNote { get; private set; }
 		public int VoiceOctave { get; private set; }
@@ -62,10 +61,9 @@ namespace YARG.Input {
 			// Set info from mic
 			VoiceDetected = MicDevice.VoiceDetected;
 			VoiceAmplitude = MicDevice.Amplitude;
-			VoicePitch = MicDevice.Pitch;
 
 			// Get the note number from the hertz value
-			float midiNote = 12f * Mathf.Log(VoicePitch / 440f, 2f) + 69f;
+			float midiNote = 12f * Mathf.Log(MicDevice.Pitch / 440f, 2f) + 69f;
 
 			// Calculate the octave of the note
 			VoiceOctave = (int) Mathf.Floor(midiNote / 12f);
@@ -112,16 +110,20 @@ namespace YARG.Input {
 
 			// Set info based on lyric
 			if (_botLyricInfo == null) {
-				VoiceAmplitude = -1f;
+				VoiceAmplitude = -100f;
+				VoiceDetected = false;
+
 				TimeSinceNoVoice += Time.deltaTime;
 				TimeSinceVoiceDetected = 0f;
 			} else {
-				VoiceAmplitude = 1f;
+				VoiceAmplitude = 100f;
+				VoiceDetected = true;
+
 				TimeSinceVoiceDetected += Time.deltaTime;
 				TimeSinceNoVoice = 0f;
 
 				float timeIntoNote = Play.Instance.SongTime - _botLyricInfo.time;
-				(VoicePitch, VoiceOctave) = _botLyricInfo.GetLerpedAndSplitNoteAtTime(timeIntoNote);
+				(VoiceNote, VoiceOctave) = _botLyricInfo.GetLerpedAndSplitNoteAtTime(timeIntoNote);
 			}
 
 			// Constantly activate starpower
@@ -158,7 +160,6 @@ namespace YARG.Input {
 		public override void ResetForSong() {
 			base.ResetForSong();
 
-			VoicePitch = default;
 			VoiceAmplitude = default;
 			VoiceNote = default;
 			VoiceOctave = default;

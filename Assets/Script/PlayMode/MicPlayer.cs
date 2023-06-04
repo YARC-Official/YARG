@@ -200,7 +200,7 @@ namespace YARG.PlayMode {
 				}
 
 				// Skip if the player hasn't assigned a mic
-				if (micStrategy.MicDevice == null) {
+				if (micStrategy.MicDevice == null && !micStrategy.BotMode) {
 					continue;
 				}
 
