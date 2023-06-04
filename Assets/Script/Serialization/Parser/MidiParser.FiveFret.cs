@@ -52,11 +52,26 @@ namespace YARG.Serialization.Parser {
 
 			var forceStateIR = FiveFretGetForceState(trackChunk, difficulty);
 
-			var noteIR = FiveFretNotePass(trackChunk, difficulty);
+			bool enhancedOpen = LookForEnhancedOpen(trackChunk);
+			var noteIR = FiveFretNotePass(trackChunk, difficulty, enhancedOpen);
 			FiveFretNoteStatePass(noteIR, forceStateIR, tempoMap);
 
 			var noteOutput = FiveFretIrToRealPass(noteIR, tempoMap);
 			return noteOutput;
+		}
+
+		private bool LookForEnhancedOpen(TrackChunk trackChunk) {
+			foreach (var trackEvent in trackChunk.Events) {
+				if (trackEvent is not BaseTextEvent textEvent) {
+					continue;
+				}
+
+				if (textEvent.Text == "[ENHANCED_OPENS]") {
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		private List<ForceStateIR> FiveFretGetForceState(TrackChunk trackChunk, int difficulty) {
@@ -173,7 +188,7 @@ namespace YARG.Serialization.Parser {
 			return forceIR;
 		}
 
-		private List<FiveFretIR> FiveFretNotePass(TrackChunk trackChunk, int difficulty) {
+		private List<FiveFretIR> FiveFretNotePass(TrackChunk trackChunk, int difficulty, bool enhancedOpen) {
 			long totalDelta = 0;
 
 			var noteIR = new List<FiveFretIR>();
@@ -183,7 +198,7 @@ namespace YARG.Serialization.Parser {
 			// we must store the ON events and wait until the
 			// OFF event to actually add the note. This stores
 			// the ON event timings.
-			long?[] fretState = new long?[5];
+			long?[] fretState = new long?[6];
 
 			// Convert track events into intermediate representation
 			foreach (var trackEvent in trackChunk.Events) {
@@ -194,25 +209,34 @@ namespace YARG.Serialization.Parser {
 				}
 
 				// Look for correct octave
+				var fret = -1;
 				if (noteEvent.GetNoteOctave() != 4 + difficulty) {
-					continue;
+					if (enhancedOpen && noteEvent.GetNoteOctave() == 3 + difficulty &&
+					    noteEvent.GetNoteName() == NoteName.B) {
+
+						fret = 5;
+					} else {
+						continue;
+					}
 				}
 
 				// Convert note to fret number (or special)
-				int fret = noteEvent.GetNoteName() switch {
-					// Green
-					NoteName.C => 0,
-					// Red
-					NoteName.CSharp => 1,
-					// Yellow
-					NoteName.D => 2,
-					// Blue
-					NoteName.DSharp => 3,
-					// Orange
-					NoteName.E => 4,
-					// Default
-					_ => -1
-				};
+				if (fret == -1) {
+					fret = noteEvent.GetNoteName() switch {
+						// Green
+						NoteName.C => 0,
+						// Red
+						NoteName.CSharp => 1,
+						// Yellow
+						NoteName.D => 2,
+						// Blue
+						NoteName.DSharp => 3,
+						// Orange
+						NoteName.E => 4,
+						// Default
+						_ => -1
+					};
+				}
 
 				// Skip if not an actual note
 				if (fret == -1) {
@@ -225,13 +249,14 @@ namespace YARG.Serialization.Parser {
 					// off so we can get the length of the note.
 					fretState[fret] = totalDelta;
 				} else if (noteEvent is NoteOffEvent) {
-					FretFlag fretFlag = fret switch {
+					var fretFlag = fret switch {
 						0 => FretFlag.GREEN,
 						1 => FretFlag.RED,
 						2 => FretFlag.YELLOW,
 						3 => FretFlag.BLUE,
 						4 => FretFlag.ORANGE,
-						_ => FretFlag.NONE
+						5 => FretFlag.OPEN,
+						_ => throw new Exception("Unreachable.")
 					};
 
 					// Here is were the notes are actually stored.
@@ -247,10 +272,11 @@ namespace YARG.Serialization.Parser {
 						noteIR.Add(currentChord);
 						currentChord = new FiveFretIR {
 							startTick = fretState[fret].Value,
-							endTick = new long[5],
+							endTick = new long[6],
 							fretFlag = fretFlag,
 							hopo = false
 						};
+
 						currentChord.endTick[fret] = totalDelta;
 					} else {
 						currentChord.endTick[fret] = totalDelta;
@@ -283,7 +309,7 @@ namespace YARG.Serialization.Parser {
 						break;
 					}*/
 				}
-				
+
 				// Force open note before checking auto-hopo
 				note.prevFretFlag = note.fretFlag;
 				if (force.Contains(ForceState.OPEN)) {
