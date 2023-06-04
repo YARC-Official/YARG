@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using YARG.Data;
 using YARG.Input;
 using YARG.PlayMode;
@@ -15,11 +17,6 @@ namespace YARG {
 			public int notesHit;
 			public int notesMissed;
 			public int maxCombo;
-		}
-
-		public struct RandomName {
-			public string name;
-			public int size;
 		}
 
 		public class Player {
@@ -69,7 +66,7 @@ namespace YARG {
 			}
 		}
 
-		private static readonly List<string> RandomPlayerNames = new();
+		private static readonly List<string> RandomPlayerNames;
 		public static List<Player> players = new();
 
 		public static float AudioCalibration => SettingsManager.Settings.AudioCalibration.Data / 1000f;
@@ -78,20 +75,17 @@ namespace YARG {
 			// Load credits file
 			var creditsPath = Addressables.LoadAssetAsync<TextAsset>("Credits").WaitForCompletion();
 
-			// Split credits into lines
-			var lines = creditsPath.text.Split(new[] { "\r\n", "\r", "\n" }, System.StringSplitOptions.RemoveEmptyEntries);
+			// Read json
+			var json = JsonConvert.DeserializeObject<
+				Dictionary<string, Dictionary<string, JObject>>
+			>(creditsPath.text);
 
-			foreach (var line in lines) {
-				if (line.StartsWith("<<") || line.StartsWith("<u>") || line.Length == 0) {
-					continue;
+			// Get names
+			RandomPlayerNames = new List<string>();
+			foreach (var (_, dict) in json) {
+				foreach (var (name, _) in dict) {
+					RandomPlayerNames.Add(name);
 				}
-
-				// Special conditions
-				if (line.Contains("EliteAsian (barely)")) {
-					continue;
-				}
-
-				RandomPlayerNames.Add(line);
 			}
 		}
 
