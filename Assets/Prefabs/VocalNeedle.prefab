@@ -51,6 +51,7 @@ MonoBehaviour:
   - {fileID: 9222097515348364671}
   - {fileID: 1803918062574965098}
   colorLights: []
+  emissionParticles: []
 --- !u!1 &2185522320261643361
 GameObject:
   m_ObjectHideFlags: 0
@@ -99,6 +100,7 @@ MonoBehaviour:
   keepAlpha: 1
   colorParticles: []
   colorLights: []
+  emissionParticles: []
 --- !u!1 &4808058869439382596
 GameObject:
   m_ObjectHideFlags: 0
