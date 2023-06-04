@@ -4,6 +4,8 @@ using YARG.Data;
 
 namespace YARG.Pools {
 	public class NotePool : Pool {
+		public float WhammyFactor { get; set; }
+
 		protected Dictionary<NoteInfo, List<NoteComponent>> activeNotes = new();
 
 		protected override void OnPooled(Poolable poolable) {

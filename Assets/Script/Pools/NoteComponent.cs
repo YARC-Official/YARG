@@ -123,6 +123,9 @@ namespace YARG.Pools {
 		private bool _isStarpower;
 		private bool isActivatorNote;
 
+		private float _secondaryAmplitudeTime;
+		private float _tertiaryAmplitudeTime;
+
 		private void OnEnable() {
 			if (pool != null) {
 				pool.player.track.StarpowerMissEvent += OnStarpowerMissed;
@@ -133,6 +136,10 @@ namespace YARG.Pools {
 			}
 			lineRenderer.enabled = false;
 			fullLineRenderer.enabled = false;
+
+			// Set it to Time.time to sync with other notes
+			_secondaryAmplitudeTime = Time.time;
+			_tertiaryAmplitudeTime = Time.time;
 		}
 
 		private void OnDisable() {
@@ -310,14 +317,20 @@ namespace YARG.Pools {
 
 			// Line hit animation
 			if (state == State.HITTING && !_useFullLineRenderer) {
+				float whammy = ((NotePool) pool).WhammyFactor * 1.5f;
+
+				// Update the amplitude times
+				_secondaryAmplitudeTime += Time.deltaTime * (4f + whammy);
+				_tertiaryAmplitudeTime += Time.deltaTime * (1.7f + whammy);
+
 				// Change line amplitude
 				var lineMat = CurrentLineRenderer.materials[0];
-				lineMat.SetFloat("_PrimaryAmplitude", 0.38f);
-				lineMat.SetFloat("_SecondaryAmplitude", Mathf.Sin(Time.time * 4f));
-				lineMat.SetFloat("_TertiaryAmplitude", Mathf.Sin(Time.time * 1.7f) * 0.222f);
+				lineMat.SetFloat("_PrimaryAmplitude", 0.18f + whammy * 0.2f);
+				lineMat.SetFloat("_SecondaryAmplitude", Mathf.Sin(_secondaryAmplitudeTime) * (whammy + 0.5f));
+				lineMat.SetFloat("_TertiaryAmplitude", Mathf.Sin(_tertiaryAmplitudeTime) * (whammy * 0.1f + 0.1f));
 
 				// Move line forward
-				float forwardSub = Time.deltaTime * pool.player.trackSpeed / 2.5f;
+				float forwardSub = Time.deltaTime * pool.player.trackSpeed / 2.5f * (1f + whammy * 0.1f);
 				lineMat.SetFloat("_ForwardOffset", lineMat.GetFloat("_ForwardOffset") + forwardSub);
 			}
 

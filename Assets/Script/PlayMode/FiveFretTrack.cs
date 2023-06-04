@@ -44,6 +44,7 @@ namespace YARG.PlayMode {
 
 		private float whammyAmount;
 		private bool whammyLastNote;
+		private float whammyAnimationAmount;
 
 		protected override void StartTrack() {
 			notePool.player = player;
@@ -158,14 +159,22 @@ namespace YARG.PlayMode {
 
 			base.UpdateStarpower();
 
+			// Update whammy amount and animation
+			if (whammyAmount > 0f) {
+				whammyAmount -= Time.deltaTime;
+				whammyAnimationAmount = Mathf.Lerp(whammyAnimationAmount, 1f, Time.deltaTime * 6f);
+			} else {
+				whammyAnimationAmount = Mathf.Lerp(whammyAnimationAmount, 0f, Time.deltaTime * 3f);
+			}
+			notePool.WhammyFactor = whammyAnimationAmount;
+
 			// Add starpower on whammy, only if there are held notes
 			if ((heldNotes.Count == 0 || CurrentStarpower?.time > CurrentTime) && !whammyLastNote) {
 				return;
 			}
 
-			// Update whammy amount
+			// Update starpower
 			if (whammyAmount > 0f) {
-				whammyAmount -= Time.deltaTime;
 				starpowerCharge += Time.deltaTime * Play.Instance.CurrentBeatsPerSecond * 0.034f;
 			}
 		}
