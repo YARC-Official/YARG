@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Melanchall.DryWetMidi.Multimedia;
 using UnityEngine;
 using YARG.Chart;
 using YARG.Data;
@@ -148,20 +149,18 @@ namespace YARG.PlayMode {
 		protected override void UpdateStarpower() {
 			base.UpdateStarpower();
 
-			// Update whammy amount
-			if (whammyAmount > 0f) {
-				whammyAmount -= Time.deltaTime;
-			}
-
-			// Add starpower on whammy
-			if (CurrentStarpower?.time > CurrentTime) {
+			// Add starpower on whammy, only if there are held notes
+			if ((heldNotes.Count == 0) || (CurrentStarpower?.time > CurrentTime)) {
 				return;
 			}
 
+			// Update whammy amount
 			if (whammyAmount > 0f) {
-				starpowerCharge += Time.deltaTime * Play.Instance.CurrentBeatsPerSecond * (1f / 32f);
+				whammyAmount -= Time.deltaTime;
+				starpowerCharge += Time.deltaTime * Play.Instance.CurrentBeatsPerSecond * 0.034f;
 			}
-		}
+
+    	}
 
 		public override void SetReverb(bool on) {
 			switch (player.chosenInstrument) {
