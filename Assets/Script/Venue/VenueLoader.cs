@@ -1,4 +1,5 @@
 using System.IO;
+using System.Collections.Generic;
 using UnityEngine;
 using YARG.Settings;
 using YARG.Song;
@@ -87,13 +88,24 @@ namespace YARG.Venue {
 		}
 
 		private static TypePathPair? GetVenuePathFromGlobal() {
-			var filePaths = Directory.GetFiles(VenueFolder);
+			string[] VALID_EXTENSIONS = {"*.yarground",
+			"*.mp4", "*.mov", "*.webm",
+			"*.png", "*.jpg", "*.jpeg"
+			};
 
-			if (filePaths.Length <= 0) {
+			List<string> filePaths = new();
+			foreach (string ext in VALID_EXTENSIONS) {
+				foreach (var file in Directory.GetFiles(VenueFolder, ext)) {
+					filePaths.Add(file);
+				}
+			}
+
+			if (filePaths.Count <= 0) {
 				return null;
 			}
 
-			var path = filePaths[Random.Range(0, filePaths.Length)];
+			var path = filePaths[Random.Range(0, filePaths.Count)];
+
 			var extension = Path.GetExtension(path);
 
 			return extension switch {

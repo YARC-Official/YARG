@@ -168,7 +168,6 @@ namespace YARG.PlayMode {
 					continue;
 				}
 
-				// TODO: Only one note should be an activator at any given timestamp
 				if (CurrentVisualFill?.EndTime == noteInfo.time && starpowerCharge >= 0.5f && !IsStarPowerActive) {
 					if (chosenActivatorNote != null) {
 						chosenActivatorNote.isActivator = true;
