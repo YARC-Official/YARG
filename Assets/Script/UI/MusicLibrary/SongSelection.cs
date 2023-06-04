@@ -192,7 +192,6 @@ namespace YARG.UI.MusicLibrary {
 
 		private void ChangeSongOrder() {
 			UpdateSortLamda();
-			UpdateIndex();
 			UpdateSearch();
 			UpdateNextSortCriteria();
 			UpdateNavigationScheme();
@@ -304,7 +303,6 @@ namespace YARG.UI.MusicLibrary {
 			if (string.IsNullOrEmpty(searchField.text)) {
 				// Add all songs
 				_songs = SongContainer.Songs
-					// .OrderBy(song => GetSortName(song))
 					.OrderBy(OrderBy())
 					.Select(i => new SongViewType(i))
 					.Cast<ViewType>()
