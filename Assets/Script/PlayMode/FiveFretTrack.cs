@@ -43,6 +43,7 @@ namespace YARG.PlayMode {
 		private int noteCount = -1;
 
 		private float whammyAmount;
+		private bool whammyLastNote;
 
 		protected override void StartTrack() {
 			notePool.player = player;
@@ -137,6 +138,10 @@ namespace YARG.PlayMode {
 					if (heldNote.fret < 5) frets[heldNote.fret].StopSustainParticles(); // TEMP (remove check later)
 
 					extendedSustain[heldNote.fret] = false;
+
+					if (heldNotes.Count == 0) {
+						whammyLastNote = false;
+					}
 				}
 			}
 
@@ -147,10 +152,14 @@ namespace YARG.PlayMode {
 		}
 
 		protected override void UpdateStarpower() {
+			if (IsStarpowerHit() && heldNotes.Count != 0) {
+				whammyLastNote = true;
+			}
+
 			base.UpdateStarpower();
 
 			// Add starpower on whammy, only if there are held notes
-			if ((heldNotes.Count == 0) || (CurrentStarpower?.time > CurrentTime)) {
+			if ((heldNotes.Count == 0 || CurrentStarpower?.time > CurrentTime) && !whammyLastNote) {
 				return;
 			}
 
@@ -159,8 +168,7 @@ namespace YARG.PlayMode {
 				whammyAmount -= Time.deltaTime;
 				starpowerCharge += Time.deltaTime * Play.Instance.CurrentBeatsPerSecond * 0.034f;
 			}
-
-    	}
+		}
 
 		public override void SetReverb(bool on) {
 			switch (player.chosenInstrument) {
@@ -466,6 +474,8 @@ namespace YARG.PlayMode {
 				if (heldNote.fret < 5) frets[heldNote.fret].StopSustainParticles(); // TEMP (remove check later)
 				extendedSustain[heldNote.fret] = false;
 			}
+
+			whammyLastNote = false;
 		}
 
 		private bool ChordPressed(List<NoteInfo> chordList, bool overstrumCheck = false) {
@@ -618,6 +628,8 @@ namespace YARG.PlayMode {
 							if (heldNote.fret < 5) frets[heldNote.fret].StopSustainParticles(); // TEMP (remove check later)
 							extendedSustain[heldNote.fret] = false;
 						}
+
+						whammyLastNote = false;
 					}
 				}
 			} else {
@@ -637,6 +649,8 @@ namespace YARG.PlayMode {
 					extendedSustain[heldNote.fret] = false;
 
 					letGo = heldNote;
+
+					whammyLastNote = false;
 				}
 
 				// Only stop audio if all notes were let go and...

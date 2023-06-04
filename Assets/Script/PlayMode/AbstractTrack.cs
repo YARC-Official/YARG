@@ -711,7 +711,7 @@ namespace YARG.PlayMode {
 			return (currentTime - noteTime) * (player.trackSpeed / Play.speed);
 		}
 
-		private bool IsStarpowerHit() {
+		protected bool IsStarpowerHit() {
 			if (Chart.Count > hitChartIndex) {
 				return Chart[hitChartIndex].time >= CurrentStarpower?.EndTime;
 			}
