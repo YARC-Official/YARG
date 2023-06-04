@@ -53,52 +53,31 @@ namespace YARG.Serialization.Parser {
 			if (songEntry is ExtractedConSongEntry oof) {
 				//...and it contains an update, merge the base and update midi
 				if (oof.DiscUpdate) {
-					List<string> BaseTracksToAdd = new List<string>();
-					List<string> UpdateTracksToAdd = new List<string>();
+					var TracksToAdd = new Dictionary<string, TrackChunk>();
+					var tmap = midi.GetTempoMap();
 					MidiFile midi_update = MidiFile.Read(oof.UpdateMidiPath, new ReadingSettings() { TextEncoding = Encoding.GetEncoding("iso-8859-1") });
 
-					// get base track names
+					bool BaseTMapParsed = false;
+					// get base track chunks
 					foreach (var trackChunk in midi.GetTrackChunks()) {
-						foreach (var trackEvent in trackChunk.Events) {
-							if (trackEvent is not SequenceTrackNameEvent trackName) continue;
-							BaseTracksToAdd.Add(trackName.Text);
-							break;
-						}
+						if(!BaseTMapParsed) BaseTMapParsed = true;
+						else TracksToAdd.Add(((SequenceTrackNameEvent)(trackChunk.Events[0])).Text, trackChunk);
 					}
 
-					// get update track names
+					bool UpdateTMapParsed = false;
+					// get update track chunks, replacing any base track chunks as necessary
 					foreach (var trackChunk in midi_update.GetTrackChunks()) {
-						foreach (var trackEvent in trackChunk.Events) {
-							if (trackEvent is not SequenceTrackNameEvent trackName) continue;
-							UpdateTracksToAdd.Add(trackName.Text);
-							// if a track is in both base and update, use the update track
-							if (BaseTracksToAdd.Find(s => s == trackName.Text) != null) BaseTracksToAdd.Remove(trackName.Text);
-							break;
-						}
+						if(!UpdateTMapParsed) UpdateTMapParsed = true;
+						else TracksToAdd[((SequenceTrackNameEvent)(trackChunk.Events[0])).Text] = trackChunk;
 					}
-
-					UpdateTracksToAdd.RemoveAt(0); // we want to stick with the base midi's tempomap
 
 					// create new midi to use and set the tempo map to the base midi's
 					MidiFile midi_merged = new MidiFile();
-					midi_merged.ReplaceTempoMap(midi.GetTempoMap());
+					midi_merged.ReplaceTempoMap(tmap);
 
-					// first, add approved base tracks to midi_merged
-					foreach (var trackChunk in midi.GetTrackChunks()) {
-						foreach (var trackEvent in trackChunk.Events) {
-							if (trackEvent is not SequenceTrackNameEvent trackName) continue;
-							if (BaseTracksToAdd.Find(s => s == trackName.Text) != null) midi_merged.Chunks.Add(trackChunk);
-							break;
-						}
-					}
-					// then, the update tracks
-					foreach (var trackChunk in midi_update.GetTrackChunks()) {
-						foreach (var trackEvent in trackChunk.Events) {
-							if (trackEvent is not SequenceTrackNameEvent trackName) continue;
-							if (UpdateTracksToAdd.Find(s => s == trackName.Text) != null) midi_merged.Chunks.Add(trackChunk);
-							break;
-						}
-					}
+					// add tracks to midi_merged
+					foreach(var pair in TracksToAdd)
+						midi_merged.Chunks.Add(pair.Value);
 
 					// finally, assign this new midi as the midi to use in-game
 					midi = midi_merged;
