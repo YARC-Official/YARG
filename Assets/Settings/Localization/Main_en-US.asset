@@ -30,6 +30,26 @@ MonoBehaviour:
     m_Localized: Enter number...
     m_Metadata:
       m_Items: []
+  - m_Id: 25388931303727104
+    m_Localized: A Game Started By
+    m_Metadata:
+      m_Items: []
+  - m_Id: 25388969404784640
+    m_Localized: Lead Artist
+    m_Metadata:
+      m_Items: []
+  - m_Id: 25389008676052992
+    m_Localized: Contributors
+    m_Metadata:
+      m_Items: []
+  - m_Id: 25509635210731520
+    m_Localized: Special Thanks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 25519120012664832
+    m_Localized: Lead Charter
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

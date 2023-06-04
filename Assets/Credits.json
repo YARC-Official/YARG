@@ -1,0 +1,290 @@
+{
+	"gameStartedBy": {
+		"EliteAsian": {
+			"roles": [ "developer", "artist" ],
+			"twitter": "EliteAsian123",
+			"twitch": "eliteasian123",
+			"github": "EliteAsian123",
+			"videoService": "UC0k5Wnt4vdbbb7ht_74I-Dg",
+			"discord": "EliteAsian#4623",
+			"email": "eliteasian123@gmail.com"
+		}
+	},
+	"leadArtist": {
+		"Kadu": {
+			"roles": [ "developer", "artist" ],
+			"twitter": "kaduyarg",
+			"twitch": "kaduwaengertner",
+			"github": "kaduwaengertner",
+			"videoService": "@kaduwaengertner",
+			"discord": "Kadu#7712",
+			"website": "https://kadu.live"
+		}
+	},
+	"leadCharter": {
+		"Synthesize": {
+			"roles": [ "charter" ]
+		}
+	},
+	"contributors": {
+		"The Fat Bastid": {
+			"github": "TheFatBastid",
+			"videoService": "UCCmx6jiTO-353X8KNaOgb3Q",
+			"discord": "The Fat Bastid#7712",
+			"steam": "thefatbastid",
+			"email": "tfb@sof.ws"
+		},
+		"grishhung": {
+			"roles": [ "developer", "charter" ],
+			"github": "grishhung",
+			"videoService": "@grishhung2828",
+			"discord": "grishhung#3460"
+		},
+		"Venerabela": {
+			"roles": [ "artist" ],
+			"twitter": "Venerabela",
+			"twitch": "Venerabela",
+			"github": "Venerabela",
+			"videoService": "@Venerabela",
+			"discord": "Venerabela#4709"
+		},
+		"ieee 802.11ac": {
+			"roles": [ "developer" ],
+			"github": "ieee802dot11ac",
+			"discord": "ieee 802.11ac#6337"
+		},
+		"<b>N</b>eves<b>PT</b>": {
+			"roles": [ "developer" ],
+			"twitter": "NevesPT",
+			"twitch": "PYukimura",
+			"github": "nevespt",
+			"discord": "NevesPT#0001"
+		},
+		"DD": {
+			"roles": [ "developer" ],
+			"twitter": "PepeWIthBadgers",
+			"twitch": "thelucasgamer215",
+			"github": "thoudankeykang",
+			"videoService": "UCb8uriNc-V___5dzkbLN4CQ",
+			"discord": "DD#5749"
+		},
+		"santorfo": {
+			"roles": [ "developer" ],
+			"twitter": "santorfo",
+			"github": "santorfo",
+			"discord": "santorfo#0521"
+		},
+		"Pantotone": {
+			"roles": [ "developer", "artist" ],
+			"twitter": "pantotone",
+			"twitch": "pantotone",
+			"github": "pantotone"
+		},
+		"3-UP": {
+			"roles": [ "charter" ],
+			"twitter": "3UP_MK8",
+			"twitch": "3UP_MK8",
+			"github": "three-up",
+			"videoService": "@3-upsarchive385",
+			"discord": "3-UP#5030"
+		},
+		"goulart": {
+			"roles": [ "developer" ],
+			"github": "raphaelgoulart",
+			"videoService": "UC3XvBZwNgvMy7mARnIiJmjA"
+		},
+		"WalterRalts": {
+			"roles": [ "charter" ],
+			"twitter": "@WalterRalts",
+			"github": "WalterRalts",
+			"videoService": "UCfAex9bYhueumzrotwCv8Aw",
+			"discord": "WalterRalts#3354"
+		},
+		"SamuelPalma": {
+			"roles": [ "developer" ],
+			"github": "SamuelPalma",
+			"discord": "SamuelPalma#1528"
+		},
+		"Roystermeat": {
+			"roles": [ "developer" ],
+			"twitter": "NightlyCalamity",
+			"twitch": "roystermeatt",
+			"github": "Roystermeat",
+			"videoService": "@nightlyCalamity",
+			"discord": "roystermeatt#9301"
+		},
+		"LysiX": {
+			"roles": [ "developer" ]
+		},
+		"Exoticri": {
+			"roles": [ "developer" ]
+		},
+		"jnack": {
+			"roles": [ "developer", "artist" ],
+			"twitter": "jfosheezy",
+			"twitch": "jnackmaclain",
+			"github": "jnackmclain",
+			"videoService": "@jnackmclain",
+			"discord": "jnack#7393"
+		},
+		"TheNathannator": {
+			"roles": [ "developer" ],
+			"github": "TheNathannator",
+			"discord": "TheNathannator#0924",
+			"videoService": "@TheNathannator"
+		},
+		"muskit": {
+			"roles": [ "developer" ],
+			"website": "https://muskit.net",
+			"github": "muskit",
+			"twitch": "musk1t",
+			"discord": "muskit#4052",
+			"twitter": "SlappyFlye"
+		},
+		"RileyTheFox": {
+			"roles": [ "developer" ],
+			"twitter": "RileyTheFoxGH",
+			"twitch": "RileyTheFoxGH",
+			"github": "RileyTheFox",
+			"videoService": "UC0z1fzavZ5mPIs2OSM-6CMg",
+			"discord": "Riley The Fox#3621"
+		},
+		"Mia Berth": {
+			"roles": [ "developer", "artist" ]
+		},
+		"HughToBasic35": {
+			"roles": [ "developer" ],
+			"github": "rjkiv",
+			"videoService": "@thisisRK",
+			"discord": "HughToBasic35#6250"
+		},
+		"Narrik Synthfox": {
+			"roles": [ "developer" ],
+			"github": "NarrikSynthfox",
+			"discord": "NarrikBwah#3076"
+		},
+		"ptigad": {
+			"roles": [ "developer" ]
+		},
+		"EscapeNumber001": {
+			"roles": [ "developer" ],
+			"github": "EscapeNumber001"
+		},
+		"jtanan44": {
+			"roles": [ "developer" ]
+		},
+		"PikminGuts92": {
+			"roles": [ "developer" ],
+			"twitter": "PikminGuts92",
+			"twitch": "PikminGuts92",
+			"github": "PikminGuts92",
+			"videoService": "UCCiJ_biLQoXH7P9v00QnRYg",
+			"discord": "PikminGuts92#0001"
+		},
+		"Pixelated_Pope": {
+			"roles": [ "developer" ]
+		},
+		"NyxTheShield": {
+			"roles": [ "developer" ],
+			"twitter": "nyxtheshield",
+			"github": "nyxtheshield",
+			"videoService":"@NyxTheShieldOFFICIAL",
+			"discord": "nyxtheshield"
+		},
+		"Emma": {
+			"roles": [ "developer" ]
+		},
+		"frickitickitavi": {
+			"roles": [ "charter" ],
+			"videoService": "UCPM9rREL7oGM1rybHRVKdhQ"
+		},
+		"Blahaszi": {
+			"roles": [ "artist" ],
+			"twitter": "blahaszi",
+			"github": "Blahaszi",
+			"discord": "Blahaszi#5569"
+		},
+		"marie0liie": {
+			"roles": [ "artist" ]
+		},
+		"Pixelholic": {
+			"roles": [ "artist" ]
+		},
+		"J Diddy": {
+			"roles": [ "developer" ],
+			"github": "JayDiddyThaGOAT",
+			"discord": "JayDiddyThaGOAT#4797"
+		},
+		"Dai": {
+			"roles": [ "charter" ],
+			"twitter": "DaiJyoubs",
+			"twitch": "Dai__",
+			"github": "Dai-uwu",
+			"videoService": "UCBrjFGCM4Zquw34F-yjFjkg",
+			"discord": "Dai#7777"
+		},
+		"Spachi": {
+			"roles": [ "charter" ],
+			"twitter": "zSpachi",
+			"twitch": "spachii",
+			"github": "zSpachi",
+			"videoService": "UCQpGzrCzoaiQ4wlV9pTzs5g",
+			"discord": "Spachi#0253"
+		},
+		"VCInventerman": {
+			"roles": [ "developer" ],
+			"twitter": "VCInventerman",
+			"github": "VCInventerman",
+			"discord": "VCInventerman#2577"
+		},
+		"LocalH": {
+			"roles": [ "developer" ],
+			"twitter": "LocalAitch",
+			"twitch": "LocalH",
+			"github": "LocalH",
+			"videoService": "@LocalAitch",
+			"discord": "LocalH#8850"
+		},
+		"Hubbubble": {
+			"roles": [ "charter" ],
+			"github": "Hubbubble1",
+			"videoService": "@hubbubble6856",
+			"discord": "Hubbubble#7524"
+		},
+		"Neomatt": {
+			"roles": [ "developer" ],
+			"github": "NeomattGZ",
+			"discord": "Neomatt#0135"
+		},
+		"Sonicfind": {
+			"roles": [ "developer" ],
+			"twitter": "Sonicfind2",
+			"github": "Sonicfind",
+			"videoService": "UCo1yW0tvf5YExIavoNFeaow",
+			"discord": "sonicfind#6404"
+		},
+		"Tris": {
+			"roles": [ "charter" ]
+		}
+	},
+	"specialThanks": {
+		"unison": {
+			"roles": [ "supporter" ]
+		},
+		"mc_jojo3": {
+			"roles": [ "supporter" ]
+		},
+		"JalapenoHalo": {
+			"roles": [ "supporter" ]
+		},
+		"FruitloopMcGee": {
+			"roles": [ "supporter" ]
+		},
+		"wreckem27": {
+			"roles": [ "supporter" ]
+		},
+		"Nick L.": {
+			"roles": [ "supporter" ]
+		}
+	}
+}
