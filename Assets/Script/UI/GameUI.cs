@@ -59,7 +59,6 @@ namespace YARG.UI {
 
 			var view = trackImage.GetComponent<TrackView>();
 			view.TrackImage.texture = rt;
-			view.TrackImage.material = trackMaterial;
 
 			commonTrack.TrackView = view;
 

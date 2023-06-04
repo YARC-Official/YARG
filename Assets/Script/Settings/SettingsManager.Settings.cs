@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
 using UnityEngine;
 using YARG.Audio;
@@ -58,10 +59,12 @@ namespace YARG.Settings {
 			public ToggleSetting UseStarpowerFx             { get; private set; } = new(true,      UseStarpowerFxChange);
 			public ToggleSetting UseChipmunkSpeed           { get; private set; } = new(false,     UseChipmunkSpeedChange);
 
-			public SliderSetting TrackCamFOV                { get; private set; } = new(55f,    40f, 150f, CameraPosChange);
-			public SliderSetting TrackCamYPos               { get; private set; } = new(2.66f,  0f,  4f,   CameraPosChange);
-			public SliderSetting TrackCamZPos               { get; private set; } = new(1.14f,  0f,  12f,  CameraPosChange);
-			public SliderSetting TrackCamRot                { get; private set; } = new(24.12f, 0f,  180f, CameraPosChange);
+			public SliderSetting TrackCamFOV                { get; private set; } = new(55f,    40f, 150f,    CameraPosChange);
+			public SliderSetting TrackCamYPos               { get; private set; } = new(2.66f,  0f,  4f,      CameraPosChange);
+			public SliderSetting TrackCamZPos               { get; private set; } = new(1.14f,  0f,  12f,     CameraPosChange);
+			public SliderSetting TrackCamRot                { get; private set; } = new(24.12f, 0f,  180f,    CameraPosChange);
+			public SliderSetting TrackFadePosition          { get; private set; } = new(3f,     0f,  3f, v => FadeChange(true,  v));
+			public SliderSetting TrackFadeSize              { get; private set; } = new(1.75f,  0f,  5f, v => FadeChange(false, v));
 
 			public ToggleSetting DisableTextNotifications   { get; private set; } = new(false);
 
@@ -210,6 +213,30 @@ namespace YARG.Settings {
 
 			private static void CameraPosChange(float value) {
 				CameraPositioner.UpdateAllPosition();
+			}
+
+			private static void FadeChange(bool isPosition, float value) {
+				if (IsLoading) {
+					return;
+				}
+
+				float position;
+				float size;
+
+				if (isPosition) {
+					position = value;
+					size = Settings.TrackFadeSize.Data;
+				} else {
+					position = Settings.TrackFadePosition.Data;
+					size = value;
+				}
+
+				// Yes, it's inefficient, but it only gets updated when the setting does.
+
+				// ReSharper disable Unity.PreferAddressByIdToGraphicsParams
+				Shader.SetGlobalVector("_FadeZeroPosition", new Vector4(0f, 0f, position, 0f));
+				Shader.SetGlobalVector("_FadeFullPosition", new Vector4(0f, 0f, position - size, 0f));
+				// ReSharper restore Unity.PreferAddressByIdToGraphicsParams
 			}
 		}
 	}
