@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Globalization;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,6 +36,8 @@ namespace YARG.Song {
 			"The ",// The beatles, The day that never comes
 			"El ", // Los fabulosos cadillacs, El sol no regresa
 			"La ", // La quinta estacion, La bamba, La muralla verde
+			"Le ", // Le temps de la rentrée
+			"Les ", // Les Rita Mitsouko, Les Wampas
 			"Los ", // Los fabulosos cadillacs, Los enanitos verdes,
 		};
 
@@ -175,8 +178,7 @@ namespace YARG.Song {
 
 		public bool OrderByGenre() {
 			index = song => {
-				string genre = song.SongEntry.Genre;
-				return GetFirstCharacter(genre);
+				return song.SongEntry.Genre.ToUpper();
 			};
 
 			sortBy = song => {
@@ -189,7 +191,7 @@ namespace YARG.Song {
 		public bool OrderByYear() {
 			index = song => {
 				string year = song.SongEntry.Year;
-				return GetYear(year);
+				return GetDecade(year);
 			};
 
 			sortBy = song => {
@@ -206,6 +208,11 @@ namespace YARG.Song {
 			}
 
 			var name = RemoveArticle(value);
+			if(Regex.IsMatch(name, @"^\W")){
+				return EMPTY_VALUE;
+			} else if (Regex.IsMatch(name, @"^\d")){
+				return "0-9";
+			}
 			return name.Substring(0,1).ToUpper();
 		}
 
@@ -213,8 +220,22 @@ namespace YARG.Song {
 			if(string.IsNullOrEmpty(value)){
 				return EMPTY_VALUE;
 			}
+			var match = Regex.Match(value, @"(\d{4})");
+			if(string.IsNullOrEmpty(match.Value)){
+				return value;
+			}
+			return match.Value.Substring(0,4);
+		}
 
-			return value.Substring(0,4).ToUpper();
+		private static string GetDecade(string value) {
+			if(string.IsNullOrEmpty(value)){
+				return EMPTY_VALUE;
+			}
+			var match = Regex.Match(value, @"(\d{4})");
+			if(string.IsNullOrEmpty(match.Value)){
+				return value;
+			}
+			return match.Value.Substring(0,3) + "0s";
 		}
 
 		public void UpdateIndex(List<ViewType> songs){
