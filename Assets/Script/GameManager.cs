@@ -65,6 +65,8 @@ namespace YARG {
 			AudioManager = gameObject.AddComponent<BassAudioManager>();
 			AudioManager.Initialize();
 
+			Shader.SetGlobalFloat("_IsFading", 1f);
+
 			StageKitHapticsManager.Initialize();
 
 #if UNITY_EDITOR

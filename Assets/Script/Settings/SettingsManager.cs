@@ -91,78 +91,104 @@ namespace YARG.Settings {
 						"TrackCamYPos",
 						"TrackCamZPos",
 						"TrackCamRot",
+						"TrackFadePosition",
+						"TrackFadeSize",
 					}, new() {
 						new DropdownPreset("Default", new() {
 							{ "TrackCamFOV", 55f },
 							{ "TrackCamYPos", 2.66f },
 							{ "TrackCamZPos", 1.14f },
 							{ "TrackCamRot", 24.12f },
+							{ "TrackFadePosition", 3f },
+							{ "TrackFadeSize", 1.25f },
 						}),
 						new DropdownPreset("High FOV", new() {
 							{ "TrackCamFOV", 60f },
 							{ "TrackCamYPos", 2.66f },
 							{ "TrackCamZPos", 1.27f },
 							{ "TrackCamRot", 24.12f },
+							{ "TrackFadePosition", 3f },
+							{ "TrackFadeSize", 1.25f },
 						}),
 						new DropdownPreset("The Band 1", new() {
 							{ "TrackCamFOV", 47.84f },
 							{ "TrackCamYPos", 2.43f },
 							{ "TrackCamZPos", 1.42f },
 							{ "TrackCamRot", 26f },
+							{ "TrackFadePosition", 3f },
+							{ "TrackFadeSize", 1.25f },
 						}),
 						new DropdownPreset("The Band 2", new() {
 							{ "TrackCamFOV", 44.97f },
 							{ "TrackCamYPos", 2.66f },
 							{ "TrackCamZPos", 0.86f },
 							{ "TrackCamRot", 24.12f },
+							{ "TrackFadePosition", 3f },
+							{ "TrackFadeSize", 1.25f },
 						}),
 						new DropdownPreset("The Band 3", new() {
 							{ "TrackCamFOV", 57.29f },
 							{ "TrackCamYPos", 2.22f },
 							{ "TrackCamZPos", 1.61f },
 							{ "TrackCamRot", 23.65f },
+							{ "TrackFadePosition", 3f },
+							{ "TrackFadeSize", 1.25f },
 						}),
 						new DropdownPreset("The Band 4", new() {
 							{ "TrackCamFOV", 62.16f },
 							{ "TrackCamYPos", 2.56f },
 							{ "TrackCamZPos", 1.20f },
 							{ "TrackCamRot", 19.43f },
+							{ "TrackFadePosition", 3f },
+							{ "TrackFadeSize", 1.25f },
 						}),
 						new DropdownPreset("Hero 2", new() {
 							{ "TrackCamFOV", 58.15f },
 							{ "TrackCamYPos", 1.82f },
 							{ "TrackCamZPos", 1.50f },
 							{ "TrackCamRot", 12.40f },
+							{ "TrackFadePosition", 3f },
+							{ "TrackFadeSize", 1.5f },
 						}),
 						new DropdownPreset("Hero 3", new() {
 							{ "TrackCamFOV", 52.71f },
 							{ "TrackCamYPos", 2.17f },
 							{ "TrackCamZPos", 1.14f },
 							{ "TrackCamRot", 15.21f },
+							{ "TrackFadePosition", 3f },
+							{ "TrackFadeSize", 1.5f },
 						}),
 						new DropdownPreset("Hero Traveling the World", new() {
 							{ "TrackCamFOV", 53.85f },
 							{ "TrackCamYPos", 1.97f },
 							{ "TrackCamZPos", 1.52f },
 							{ "TrackCamRot", 16.62f },
+							{ "TrackFadePosition", 3f },
+							{ "TrackFadeSize", 1.5f },
 						}),
 						new DropdownPreset("Hero Live", new() {
 							{ "TrackCamFOV", 62.16f },
 							{ "TrackCamYPos", 2.40f },
 							{ "TrackCamZPos", 1.42f },
 							{ "TrackCamRot", 21.31f },
+							{ "TrackFadePosition", 3f },
+							{ "TrackFadeSize", 1.25f },
 						}),
 						new DropdownPreset("Clone", new() {
 							{ "TrackCamFOV", 55f },
 							{ "TrackCamYPos", 2.07f },
 							{ "TrackCamZPos", 1.51f },
 							{ "TrackCamRot", 17.09f },
+							{ "TrackFadePosition", 3f },
+							{ "TrackFadeSize", 1.5f },
 						})
 					}),
 					"TrackCamFOV",
 					"TrackCamYPos",
 					"TrackCamZPos",
 					"TrackCamRot",
+					"TrackFadePosition",
+					"TrackFadeSize",
 					new HeaderMetadata("Other"),
 					"DisableTextNotifications"
 				}
@@ -193,6 +219,18 @@ namespace YARG.Settings {
 			Settings ??= new SettingContainer();
 
 			SettingContainer.IsLoading = false;
+
+			// Now that we're done loading, call all of the callbacks
+			var fields = typeof(SettingContainer).GetProperties();
+			foreach (var field in fields) {
+				var value = field.GetValue(Settings);
+
+				if (value is not ISettingType settingType) {
+					continue;
+				}
+
+				settingType.ForceInvokeCallback();
+			}
 		}
 
 		public static void SaveSettings() {
