@@ -5,13 +5,6 @@ using YARG.UI;
 
 namespace YARG.PlayMode {
 	public sealed class CommonTrack : MonoBehaviour {
-
-		private int _shaderZeroId;
-		private int _shaderFullId;
-
-		private Vector4 _fadeZeroVector;
-		private Vector4 _fadeFullVector;
-
 		[field: SerializeField]
 		public Camera TrackCamera { get; private set; }
 		public TrackView TrackView { get; set; }
@@ -116,34 +109,6 @@ namespace YARG.PlayMode {
 		public void StopCameraAnimation() {
 			cameraAnimation.Stop();
 			cameraAnimation.Rewind();
-		}
-
-		private void Awake() {
-			_shaderZeroId = Shader.PropertyToID("_FadeZeroPosition");
-			_shaderFullId = Shader.PropertyToID("_FadeFullPosition");
-			UpdateFadeVectors(fadeBegin.position, fadeEnd.position);
-
-			Debug.Log(_fadeZeroVector);
-			Debug.Log(_fadeFullVector);
-		}
-
-		private void Update() {
-			UpdateFadeVectors(fadeBegin.position, fadeEnd.position);
-		}
-
-		private void UpdateFadeVectors(Vector3 startPosition, Vector3 endPosition) {
-			_fadeZeroVector.x = startPosition.x;
-			_fadeZeroVector.y = startPosition.y;
-			_fadeZeroVector.z = startPosition.z;
-			_fadeZeroVector.w = 0;
-
-			_fadeFullVector.x = endPosition.x;
-			_fadeFullVector.y = endPosition.y;
-			_fadeFullVector.z = endPosition.z;
-			_fadeFullVector.w = 0;
-
-			Shader.SetGlobalVector(_shaderZeroId, _fadeZeroVector);
-			Shader.SetGlobalVector(_shaderFullId, _fadeFullVector);
 		}
 	}
 }

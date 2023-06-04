@@ -287,6 +287,14 @@ MonoBehaviour:
     m_Key: Enum.Windowed
     m_Metadata:
       m_Items: []
+  - m_Id: 25775451793645568
+    m_Key: TrackFadePosition
+    m_Metadata:
+      m_Items: []
+  - m_Id: 25775459376947200
+    m_Key: TrackFadeSize
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
