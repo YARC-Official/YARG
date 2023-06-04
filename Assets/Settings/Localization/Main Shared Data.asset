@@ -43,6 +43,10 @@ MonoBehaviour:
     m_Key: Credits.Header.specialThanks
     m_Metadata:
       m_Items: []
+  - m_Id: 25519120012664832
+    m_Key: Credits.Header.leadCharter
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

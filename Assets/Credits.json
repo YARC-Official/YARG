@@ -21,6 +21,11 @@
 			"website": "https://kadu.live"
 		}
 	},
+	"leadCharter": {
+		"Synthesize": {
+			"roles": [ "charter" ]
+		}
+	},
 	"contributors": {
 		"The Fat Bastid": {
 			"github": "TheFatBastid",
@@ -247,14 +252,19 @@
 			"discord": "Hubbubble#7524"
 		},
 		"Neomatt": {
+			"roles": [ "developer" ],
 			"github": "NeomattGZ",
 			"discord": "Neomatt#0135"
 		},
 		"Sonicfind": {
+			"roles": [ "developer" ],
 			"twitter": "Sonicfind2",
 			"github": "Sonicfind",
 			"videoService": "UCo1yW0tvf5YExIavoNFeaow",
 			"discord": "sonicfind#6404"
+		},
+		"Tris": {
+			"roles": [ "charter" ]
 		}
 	},
 	"specialThanks": {

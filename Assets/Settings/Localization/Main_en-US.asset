@@ -46,6 +46,10 @@ MonoBehaviour:
     m_Localized: Special Thanks
     m_Metadata:
       m_Items: []
+  - m_Id: 25519120012664832
+    m_Localized: Lead Charter
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

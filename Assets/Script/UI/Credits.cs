@@ -51,6 +51,9 @@ namespace YARG.UI {
 			CreateHeader("leadArtist");
 			CreateCredits(json["leadArtist"]);
 
+			CreateHeader("leadCharter");
+			CreateCredits(json["leadCharter"]);
+
 			CreateHeader("contributors");
 			CreateCredits(json["contributors"]);
 
