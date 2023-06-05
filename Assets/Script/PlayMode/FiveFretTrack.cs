@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Melanchall.DryWetMidi.Multimedia;
 using UnityEngine;
-using YARG.Chart;
 using YARG.Data;
 using YARG.Input;
 using YARG.Pools;
