@@ -42,8 +42,8 @@ namespace YARG.UI {
 					continue;
 				}
 
-				// DQ non-100% speeds
-				if (Play.speed != 1f) {
+				// DQ lower than 100% speeds
+				if (Play.speed < 1f) {
 					disqualified.Add(player);
 					continue;
 				}
