@@ -2269,9 +2269,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   songStartObject: {fileID: 0}
   applicationID: 1091177744416637028
-  defaultDetails: Hello there ladies and gentlemen!
-  defaultState: Are you ready to rock?
-  defaultLargeText: Yet Another Rhythm Game
+  stableDetails:
+    defaultDetails: Hello there ladies and gentlemen!
+    defaultState: Are you ready to rock?
+    defaultLargeImage: icon_stable
+    defaultLargeText: Yet Another Rhythm Game
+  nightlyDetails:
+    defaultDetails: Hello there ladies and gentlemen!
+    defaultState: Are you ready to test?
+    defaultLargeImage: icon_nightly
+    defaultLargeText: Yet Another Rhythm Game - Nightly Build
+  devDetails:
+    defaultDetails: Hello there ladies and gentlemen!
+    defaultState: Are you ready to develop?
+    defaultLargeImage: icon_dev
+    defaultLargeText: Yet Another Rhythm Game - Developer Build
   defaultSmallImage: 
   defaultSmallText: 
   currentDetails: 
