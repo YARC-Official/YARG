@@ -708,6 +708,7 @@ namespace YARG.PlayMode {
 
 			// Skip if there is no singing
 			if (_sectionSingTime.Max() <= 0f) {
+				CalculateSectionSingTime(CurrentTime);
 				return;
 			}
 
@@ -798,7 +799,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Calculate the new sing time
-			CalculateSectionSingTime(Play.Instance.SongTime);
+			CalculateSectionSingTime(CurrentTime);
 		}
 
 		private void SpawnLyric(LyricInfo lyricInfo, EventInfo starpowerInfo, float time, int harmIndex) {
