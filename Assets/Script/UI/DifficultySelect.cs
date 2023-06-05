@@ -70,6 +70,8 @@ namespace YARG.UI {
 				})
 			}, false));
 
+			Debug.Log(GameManager.Instance.SelectedSong.AvailableParts);
+
 			playerIndex = 0;
 			playersToConfigure.Clear();
 
@@ -217,8 +219,6 @@ namespace YARG.UI {
 			// Get available instruments
 			var availableInstruments = allInstruments
 				.Where(instrument => GameManager.Instance.SelectedSong.HasInstrument(instrument)).ToList();
-
-			Debug.Log(GameManager.Instance.SelectedSong.AvailableParts);
 
 			// Force add pro drums and five lane
 			if (availableInstruments.Contains(Instrument.DRUMS)) {
