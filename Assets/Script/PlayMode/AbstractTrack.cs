@@ -80,7 +80,7 @@ namespace YARG.PlayMode {
 		protected Light comboSunburstEmbeddedLight;
 
 		// Solo stuff
-		private bool soloInProgress = false;
+		protected bool soloInProgress = false;
 		protected int soloNoteCount = -1;
 		protected int soloNotesHit = 0;
 		private int soloHitPercent = 0;
