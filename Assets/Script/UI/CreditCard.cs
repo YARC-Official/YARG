@@ -32,6 +32,14 @@ namespace YARG.UI {
 			_info = info;
 			_headerText.text = name;
 
+			// Add the roles
+			if (info.TryGetValue("roles", out var token) && token.Type == JTokenType.Array) {
+				foreach (var role in token.ToObject<string[]>()) {
+					_headerText.text += $"<sprite name={role}>";
+				}
+			}
+
+			// Add the social info
 			foreach (var socialInfo in _socialInfos) {
 				if (!info.ContainsKey(socialInfo.Social)) {
 					socialInfo.Button.SetActive(false);
