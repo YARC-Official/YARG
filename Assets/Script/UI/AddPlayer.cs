@@ -202,7 +202,11 @@ namespace YARG.UI {
 			var mics = GameManager.AudioManager.GetAllInputDevices();
 			foreach (var mic in mics) {
 				var button = Instantiate(deviceButtonPrefab, devicesContainer);
-				button.GetComponentInChildren<TextMeshProUGUI>().text = $"(MIC) <b>{mic.DisplayName}</b>";
+				var textBox = button.GetComponentInChildren<TextMeshProUGUI>();
+				textBox.text = $"(MIC) <b>{mic.DisplayName}</b>";
+				if (mic.IsDefault) {
+					textBox.text += " <i>(Default)</i>";
+				}
 
 				var capture = mic;
 				button.GetComponentInChildren<Button>().onClick.AddListener(() => {

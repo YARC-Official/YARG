@@ -124,7 +124,8 @@ namespace YARG.Audio.BASS {
 
 				// We do not check the device type since there are too many that a recording device can be,
 				// instead we only exclude loopback devices
-				if (info.IsLoopback) {
+				// The "Default" device is also excluded here since we want the user to explicitly pick which microphone to use
+				if (info.IsLoopback || info.Name == "Default") {
 					continue;
 				}
 
