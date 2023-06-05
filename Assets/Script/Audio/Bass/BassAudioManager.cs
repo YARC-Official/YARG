@@ -122,7 +122,9 @@ namespace YARG.Audio.BASS {
 					continue;
 				}
 
-				if (info.Type != DeviceType.Microphone) {
+				// We do not check the device type since there are too many that a recording device can be,
+				// instead we only exclude loopback devices
+				if (info.IsLoopback) {
 					continue;
 				}
 
