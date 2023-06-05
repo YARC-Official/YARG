@@ -117,7 +117,7 @@ public class DiscordController : MonoBehaviour {
 
 		// if it's a Nightly build, use the Nightly logo, otherwise use the Stable logo
 		if (Constants.VERSION_TAG.beta) {
-			//defaultDetails = nightlyDetails;
+			defaultDetails = nightlyDetails;
 		} else {
 			defaultDetails = stableDetails;
 		}
@@ -289,11 +289,5 @@ public class DiscordController : MonoBehaviour {
 				End = endTimeStamp,
 			}
 		};
-	}
-
-	public override bool Equals(object obj) {
-		return obj is DiscordController controller &&
-			   base.Equals(obj) &&
-			   EqualityComparer<distinctDetails>.Default.Equals(defaultDetails, controller.defaultDetails);
 	}
 }
