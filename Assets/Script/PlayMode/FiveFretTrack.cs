@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using YARG.Chart;
 using YARG.Data;
 using YARG.Input;
 using YARG.Pools;
@@ -10,6 +9,8 @@ using YARG.Util;
 
 namespace YARG.PlayMode {
 	public class FiveFretTrack : AbstractTrack {
+		// I CAN'T WAIT UNTIL THE NEW ENGINE!!!!
+
 		private bool strummed = false;
 		private float strumLeniency;
 
@@ -20,8 +21,6 @@ namespace YARG.PlayMode {
 		private Fret[] frets;
 		[SerializeField]
 		private NotePool notePool;
-		[SerializeField]
-		private Pool genericPool;
 		[SerializeField]
 		private ParticleGroup openNoteParticles;
 
@@ -40,6 +39,11 @@ namespace YARG.PlayMode {
 		private const double SUSTAIN_PTS_PER_BEAT = 25.0;
 		private const int PTS_PER_NOTE = 50;
 		private int noteCount = -1;
+
+		private float whammyAmount;
+		private bool whammyLastNote;
+		private float whammyAnimationAmount;
+
 		protected override void StartTrack() {
 			notePool.player = player;
 			genericPool.player = player;
@@ -57,8 +61,9 @@ namespace YARG.PlayMode {
 
 			input.FretChangeEvent += FretChangedAction;
 			input.StrumEvent += StrumAction;
+			input.WhammyEvent += WhammyEvent;
 
-			if (input.botMode) {
+			if (input.BotMode) {
 				input.InitializeBotMode(Chart);
 			}
 
@@ -84,6 +89,7 @@ namespace YARG.PlayMode {
 			// Unbind input
 			input.FretChangeEvent -= FretChangedAction;
 			input.StrumEvent -= StrumAction;
+			input.WhammyEvent -= WhammyEvent;
 		}
 
 		protected override void UpdateTrack() {
@@ -92,44 +98,16 @@ namespace YARG.PlayMode {
 				return;
 			}
 
-			// Update events (beat lines, starpower, etc.)
-			var events = Play.Instance.chart.events;
-			var beats = Play.Instance.chart.beats;
-
-			while (events.Count > eventChartIndex && events[eventChartIndex].time <= RelativeTime) {
-				var eventInfo = events[eventChartIndex];
-
-				if (eventInfo.name == $"starpower_{player.chosenInstrument}") {
-					StarpowerSection = eventInfo;
-				} else if (eventInfo.name == $"solo_{player.chosenInstrument}") {
-					SoloSection = eventInfo;
-				}
-
-				eventChartIndex++;
-			}
-
-			while (beats.Count > beatChartIndex && beats[beatChartIndex].Time <= RelativeTime) {
-				var beatInfo = beats[beatChartIndex];
-
-				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(RelativeTime, beatInfo.Time);
-				if (beatInfo.Style is BeatStyle.STRONG or BeatStyle.WEAK) {
-					genericPool.Add("beatLine_minor", new(0f, 0.01f, compensation));
-				} else if (beatInfo.Style == BeatStyle.MEASURE) {
-					genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
-				}
-				beatChartIndex++;
-			}
-
 			// Since chart is sorted, this is guaranteed to work
-			while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= RelativeTime) {
+			while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= TrackStartTime) {
 				var noteInfo = Chart[visualChartIndex];
 
-				SpawnNote(noteInfo, RelativeTime);
+				SpawnNote(noteInfo, TrackStartTime);
 				visualChartIndex++;
 			}
 
 			// Update expected input
-			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= Play.Instance.SongTime + Constants.HIT_MARGIN) {
+			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= HitMarginStartTime) {
 				var noteInfo = Chart[inputChartIndex];
 
 				var peeked = expectedHits.ReversePeekOrNull();
@@ -152,13 +130,17 @@ namespace YARG.PlayMode {
 				// Sustain scoring
 				scoreKeeper.Add(susTracker.Update(heldNote) * Multiplier * SUSTAIN_PTS_PER_BEAT);
 
-				if (heldNote.time + heldNote.length <= Play.Instance.SongTime) {
+				if (heldNote.time + heldNote.length <= CurrentTime) {
 					heldNotes.RemoveAt(i);
 					susTracker.Drop(heldNote);
 					if (heldNote.fret < 5) frets[heldNote.fret].StopAnimation(); // TEMP (remove check later)
 					if (heldNote.fret < 5) frets[heldNote.fret].StopSustainParticles(); // TEMP (remove check later)
 
 					extendedSustain[heldNote.fret] = false;
+
+					if (heldNotes.Count == 0) {
+						whammyLastNote = false;
+					}
 				}
 			}
 
@@ -166,6 +148,33 @@ namespace YARG.PlayMode {
 
 			// Un-strum
 			strummed = false;
+		}
+
+		protected override void UpdateStarpower() {
+			if (IsStarpowerHit() && heldNotes.Count != 0) {
+				whammyLastNote = true;
+			}
+
+			base.UpdateStarpower();
+
+			// Update whammy amount and animation
+			if (whammyAmount > 0f) {
+				whammyAmount -= Time.deltaTime;
+				whammyAnimationAmount = Mathf.Lerp(whammyAnimationAmount, 1f, Time.deltaTime * 6f);
+			} else {
+				whammyAnimationAmount = Mathf.Lerp(whammyAnimationAmount, 0f, Time.deltaTime * 3f);
+			}
+			notePool.WhammyFactor = whammyAnimationAmount;
+
+			// Add starpower on whammy, only if there are held notes
+			if ((heldNotes.Count == 0 || CurrentStarpower?.time > CurrentTime || CurrentStarpower == null) && !whammyLastNote) {
+				return;
+			}
+
+			// Update starpower
+			if (whammyAmount > 0f) {
+				starpowerCharge += Time.deltaTime * Play.Instance.CurrentBeatsPerSecond * 0.034f;
+			}
 		}
 
 		public override void SetReverb(bool on) {
@@ -207,7 +216,7 @@ namespace YARG.PlayMode {
 
 
 			// Handle misses (multiple a frame in case of lag)
-			while (Play.Instance.SongTime - expectedHits.PeekOrNull()?[0].time > Constants.HIT_MARGIN) {
+			while (HitMarginEndTime > expectedHits.PeekOrNull()?[0].time) {
 				var missedChord = expectedHits.Dequeue();
 				ResetAllowedChordGhosts();
 				// Call miss for each component
@@ -248,9 +257,7 @@ namespace YARG.PlayMode {
 				}
 
 				// If infinite front-end window is disabled and the latest input is outside of the timing window, nothing happened.
-				if (!Constants.INFINITE_FRONTEND && latestInput.HasValue &&
-					Play.Instance.SongTime - latestInput.Value > Constants.HIT_MARGIN) {
-
+				if (!Constants.INFINITE_FRONTEND && latestInput.HasValue && HitMarginEndTime > latestInput.Value) {
 					return;
 				}
 			}
@@ -364,7 +371,7 @@ namespace YARG.PlayMode {
 			lastHitNote = chord;
 
 			// Solo stuff
-			if (Play.Instance.SongTime >= SoloSection?.time && Play.Instance.SongTime <= SoloSection?.EndTime) {
+			if (CurrentTime >= CurrentSolo?.time && CurrentTime <= CurrentSolo?.EndTime) {
 				soloNotesHit++;
 			}
 			foreach (var hit in chord) {
@@ -424,9 +431,7 @@ namespace YARG.PlayMode {
 
 		private void RemoveOldAllowedOverstrums() {
 			// Remove all old allowed overstrums
-			while (allowedOverstrums.Count > 0
-				&& Play.Instance.SongTime - allowedOverstrums[0][0].time > Constants.HIT_MARGIN) {
-
+			while (allowedOverstrums.Count > 0 && HitMarginEndTime > allowedOverstrums[0][0].time) {
 				allowedOverstrums.RemoveAt(0);
 			}
 		}
@@ -434,7 +439,7 @@ namespace YARG.PlayMode {
 		private bool IsOverstrumForgiven(bool remove = true) {
 			for (int i = 0; i < allowedOverstrums.Count; i++) {
 				if (ChordPressed(allowedOverstrums[i], true)) {
-					// If we found a chord that was pressed, remove 
+					// If we found a chord that was pressed, remove
 					// all of the allowed overstrums before it.
 					// This prevents over-forgiving overstrums.
 
@@ -476,6 +481,8 @@ namespace YARG.PlayMode {
 				if (heldNote.fret < 5) frets[heldNote.fret].StopSustainParticles(); // TEMP (remove check later)
 				extendedSustain[heldNote.fret] = false;
 			}
+
+			whammyLastNote = false;
 		}
 
 		private bool ChordPressed(List<NoteInfo> chordList, bool overstrumCheck = false) {
@@ -550,6 +557,11 @@ namespace YARG.PlayMode {
 			if (!pause) {
 				input.FretChangeEvent += FretChangedAction;
 				input.StrumEvent += StrumAction;
+
+				// Release any held frets
+				for (int i = 0; i < 5; i++) {
+					FretChangedAction(false, i);
+				}
 			} else {
 				input.FretChangeEvent -= FretChangedAction;
 				input.StrumEvent -= StrumAction;
@@ -557,7 +569,7 @@ namespace YARG.PlayMode {
 		}
 
 		private void FretChangedAction(bool pressed, int fret) {
-			latestInput = Play.Instance.SongTime;
+			latestInput = CurrentTime;
 			latestInputIsStrum = false;
 
 			// Should it check ghosting?
@@ -579,7 +591,7 @@ namespace YARG.PlayMode {
 				if (checkGhosting) {
 					var nextNote = GetNextNote(Chart[hitChartIndex - 1].time);
 					if ((nextNote == null || (!nextNote[0].hopo && !nextNote[0].tap)) ||
-					(Constants.ALLOW_GHOST_IF_NO_NOTES && nextNote[0].time - Play.Instance.SongTime > Constants.HIT_MARGIN * Constants.ALLOW_GHOST_IF_NO_NOTES_THRESHOLD)) {
+					(Constants.ALLOW_GHOST_IF_NO_NOTES && nextNote[0].time - CurrentTime > HitMarginFront * Constants.ALLOW_GHOST_IF_NO_NOTES_THRESHOLD)) {
 						checkGhosting = false;
 					}
 					if (checkGhosting) {
@@ -623,6 +635,8 @@ namespace YARG.PlayMode {
 							if (heldNote.fret < 5) frets[heldNote.fret].StopSustainParticles(); // TEMP (remove check later)
 							extendedSustain[heldNote.fret] = false;
 						}
+
+						whammyLastNote = false;
 					}
 				}
 			} else {
@@ -642,6 +656,8 @@ namespace YARG.PlayMode {
 					extendedSustain[heldNote.fret] = false;
 
 					letGo = heldNote;
+
+					whammyLastNote = false;
 				}
 
 				// Only stop audio if all notes were let go and...
@@ -651,7 +667,7 @@ namespace YARG.PlayMode {
 					// from stopping the audio if the player let go a handful
 					// of milliseconds too early (which is okay).
 					float endTime = letGo.time + letGo.length;
-					if (endTime - Play.Instance.SongTime > 0.15f) {
+					if (endTime - CurrentTime > 0.15f) {
 						StopAudio = true;
 					}
 				}
@@ -659,7 +675,7 @@ namespace YARG.PlayMode {
 		}
 
 		private void StrumAction() {
-			latestInput = Play.Instance.SongTime;
+			latestInput = CurrentTime;
 			latestInputIsStrum = true;
 
 			// Strum leniency already active and another strum inputted, a double strum occurred (must overstrum)
@@ -668,9 +684,14 @@ namespace YARG.PlayMode {
 			}
 
 			strummed = true;
-			if (!input.botMode) {
+			if (!input.BotMode) {
 				strumLeniency = Constants.STRUM_LENIENCY;
 			}
+		}
+
+		private void WhammyEvent(float delta) {
+			whammyAmount += Mathf.Abs(delta) * 0.25f;
+			whammyAmount = Mathf.Clamp(whammyAmount, 0f, 1f / 3f);
 		}
 
 		private void SpawnNote(NoteInfo noteInfo, float time) {
@@ -695,10 +716,12 @@ namespace YARG.PlayMode {
 			var noteComp = notePool.AddNote(noteInfo, pos);
 			startFCDetection = true;
 			noteComp.SetInfo(
+				noteInfo,
 				commonTrack.NoteColor(noteInfo.fret),
 				commonTrack.SustainColor(noteInfo.fret),
 				noteInfo.length,
-				model
+				model,
+				noteInfo.time >= CurrentVisualStarpower?.time && noteInfo.time < CurrentVisualStarpower?.EndTime
 			);
 		}
 

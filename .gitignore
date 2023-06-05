@@ -93,4 +93,8 @@ Assets/YargInput.cs
 .idea/
 Packages/com.thenathannator.hidrogen/
 Packages/com.thenathannator.plasticband/
+
+# Other
 Assets/Nyx
+Assets/Settings/TestPlayInfo.asset
+Assets/Settings/TestPlayInfo.asset.meta

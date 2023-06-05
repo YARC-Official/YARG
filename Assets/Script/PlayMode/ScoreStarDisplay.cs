@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Audio;
 using YARG.Chart;
 
 namespace YARG.PlayMode {

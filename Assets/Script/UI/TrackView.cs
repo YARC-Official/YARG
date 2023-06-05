@@ -17,7 +17,7 @@ namespace YARG.UI {
 		[SerializeField]
 		private TextMeshProUGUI _performanceText;
 		[SerializeField]
-		private PerformanceTextSizer _performanceTextSizer;
+		private PerformanceTextScaler _performanceTextScaler;
 
 		[Space]
 		[SerializeField]
@@ -35,10 +35,11 @@ namespace YARG.UI {
 		[SerializeField]
 		private Sprite _normalSoloBox;
 
-		private bool _soloBoxShowing = false;
+		private Coroutine _soloBoxHide = null;
 
 		private void Start() {
-			_performanceTextSizer = new(24f, 3f);
+			_performanceTextScaler = new(3f);
+			_performanceText.text = "";
 			_aspectRatioFitter.aspectRatio = (float) Screen.width / Screen.height;
 		}
 
@@ -50,32 +51,27 @@ namespace YARG.UI {
 		}
 
 		public void SetSoloBox(string topText, string bottomText) {
-			// Show if hidden
-			if (!_soloBoxShowing) {
-				// Stop hide coroutine, if we are already hiding
-				StopCoroutine("HideSoloBoxCoroutine");
-
-				_soloBox.gameObject.SetActive(true);
-				_soloBoxCanvasGroup.alpha = 1f;
-
-				_soloBox.sprite = _normalSoloBox;
-				_soloBoxShowing = false;
-
-				_soloFullText.text = string.Empty;
+			// Stop hide coroutine if we were previously hiding
+			if (_soloBoxHide != null) {
+				StopCoroutine(_soloBoxHide);
+				_soloBoxHide = null;
 			}
 
+			_soloBox.gameObject.SetActive(true);
+			_soloBoxCanvasGroup.alpha = 1f;
+			_soloBox.sprite = _normalSoloBox;
+
+			_soloFullText.text = string.Empty;
 			_soloTopText.text = topText;
 			_soloBottomText.text = bottomText;
 		}
 
 		public void HideSoloBox(string percent, string fullText) {
-			_soloBoxShowing = false;
-
 			_soloTopText.text = string.Empty;
 			_soloBottomText.text = string.Empty;
 			_soloFullText.text = percent;
 
-			StartCoroutine(HideSoloBoxCoroutine(fullText));
+			_soloBoxHide = StartCoroutine(HideSoloBoxCoroutine(fullText));
 		}
 
 		private IEnumerator HideSoloBoxCoroutine(string fullText) {
@@ -90,6 +86,7 @@ namespace YARG.UI {
 				.WaitForCompletion();
 
 			_soloBox.gameObject.SetActive(false);
+			_soloBoxHide = null;
 		}
 
 		public void ShowPerformanceText(string text) {
@@ -97,17 +94,21 @@ namespace YARG.UI {
 				return;
 			}
 
-			StopCoroutine("SizePerformanceText");
-			StartCoroutine(SizePerformanceText(text));
+			StopCoroutine(nameof(ScalePerformanceText));
+			StartCoroutine(ScalePerformanceText(text));
 		}
 
-		private IEnumerator SizePerformanceText(string text) {
-			_performanceText.text = text;
-			_performanceTextSizer.ResetAnimationTime();
+		private IEnumerator ScalePerformanceText(string text) {
+			var rect = _performanceText.rectTransform;
+			rect.localScale = Vector3.zero;
 
-			while (_performanceTextSizer.AnimTimeRemaining > 0f) {
-				_performanceTextSizer.AnimTimeRemaining -= Time.deltaTime;
-				_performanceText.fontSize = _performanceTextSizer.PerformanceTextFontSize();
+			_performanceText.text = text;
+			_performanceTextScaler.ResetAnimationTime();
+
+			while (_performanceTextScaler.AnimTimeRemaining > 0f) {
+				_performanceTextScaler.AnimTimeRemaining -= Time.deltaTime;
+				var scale = _performanceTextScaler.PerformanceTextScale();
+				rect.localScale = new Vector3(scale, scale, scale);
 
 				// Update animation every frame
 				yield return null;

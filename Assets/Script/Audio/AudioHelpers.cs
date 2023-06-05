@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
-namespace YARG {
+namespace YARG.Audio {
 	public static class AudioHelpers {
 		public static readonly IList<string> SupportedStems = new[] {
 			"song",
@@ -63,8 +62,6 @@ namespace YARG {
 
 			return stems;
 		}
-		
-#pragma warning disable format
 
 		public static SongStem GetStemFromName(string stem) {
 			return stem.ToLowerInvariant() switch {
@@ -96,11 +93,9 @@ namespace YARG {
 				"starpower_release" => SfxSample.StarPowerRelease,
 				"clap"              => SfxSample.Clap,
 				"star"              => SfxSample.StarGain,
-				"star_gold"              => SfxSample.StarGold,
+				"star_gold"         => SfxSample.StarGold,
 				_                   => SfxSample.NoteMiss,
 			};
 		}
-		
-#pragma warning restore format
 	}
 }

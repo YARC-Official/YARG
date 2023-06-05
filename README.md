@@ -104,6 +104,8 @@ Have fun!
 
 # 🔨 Building
 
+### ⚠️ If you wish to contribute, use the `dev` brach. Your PR will NOT be merged if it's on `master`. ⚠️
+
 ## Setup Instructions
 
 > **Warning**
@@ -203,7 +205,9 @@ BASS is the audio library for YARG. [It has it's own license for release](https:
 | [Discord GameSDK](https://discord.com/developers/docs/game-sdk/sdk-starter-guide) | Library | Discord Rich Presence
 | [DtxCS](https://github.com/maxton/DtxCS) | Library | Parsing `.dta` Files
 | [Moonscraper](https://github.com/FireFox2000000/Moonscraper-Chart-Editor) | Library | Parsing `.chart` Files
-| [DOTween](https://github.com/Demigiant/dotween) | Library | Animation utility
+| [DOTween](https://github.com/Demigiant/dotween) | Library | Animation Utility
+| [UniTask](https://github.com/Cysharp/UniTask) | Library | Async Library
+| [unity-toolbar-extender](https://github.com/marijnz/unity-toolbar-extender/) | Library | Unity Editor Stuff
 
 # 💸 Donate
 

@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using UnityEngine;
 using YARG.Data;
 using YARG.PlayMode;
 
@@ -13,30 +15,42 @@ namespace YARG.Input {
 		public const string STRUM_UP = "strum_up";
 		public const string STRUM_DOWN = "strum_down";
 
+		public const string WHAMMY = "whammy";
+
 		public const string STAR_POWER = "star_power";
 		public const string PAUSE = "pause";
 
 		private List<NoteInfo> botChart;
 
 		public delegate void FretChangeAction(bool pressed, int fret);
-		public delegate void StrumAction();
-
 		public event FretChangeAction FretChangeEvent;
-		public event StrumAction StrumEvent;
 
-		protected override Dictionary<string, ControlBinding> GetMappings() => new() {
-			{ GREEN,      new(BindingType.BUTTON, "Green", GREEN) },
-			{ RED,        new(BindingType.BUTTON, "Red", RED) },
-			{ YELLOW,     new(BindingType.BUTTON, "Yellow", YELLOW) },
-			{ BLUE,       new(BindingType.BUTTON, "Blue", BLUE) },
-			{ ORANGE,     new(BindingType.BUTTON, "Orange", ORANGE) },
+		public event Action StrumEvent;
 
-			{ STRUM_UP,   new(BindingType.BUTTON, "Strum Up", STRUM_UP, STRUM_DOWN) },
-			{ STRUM_DOWN, new(BindingType.BUTTON, "Strum Down", STRUM_DOWN, STRUM_UP) },
+		public delegate void WhammyChangeAction(float delta);
+		public event WhammyChangeAction WhammyEvent;
 
-			{ STAR_POWER, new(BindingType.BUTTON, "Star Power", STAR_POWER) },
-			{ PAUSE,      new(BindingType.BUTTON, "Pause", PAUSE) },
-		};
+		public FiveFretInputStrategy() {
+			InputMappings = new() {
+				{ GREEN,      new(BindingType.BUTTON, "Green", GREEN) },
+				{ RED,        new(BindingType.BUTTON, "Red", RED) },
+				{ YELLOW,     new(BindingType.BUTTON, "Yellow", YELLOW) },
+				{ BLUE,       new(BindingType.BUTTON, "Blue", BLUE) },
+				{ ORANGE,     new(BindingType.BUTTON, "Orange", ORANGE) },
+
+				{ STRUM_UP,   new(BindingType.BUTTON, "Strum Up", STRUM_UP, STRUM_DOWN) },
+				{ STRUM_DOWN, new(BindingType.BUTTON, "Strum Down", STRUM_DOWN, STRUM_UP) },
+
+				{ WHAMMY,     new(BindingType.AXIS, "Whammy", WHAMMY) },
+
+				{ STAR_POWER, new(BindingType.BUTTON, "Star Power", STAR_POWER) },
+				{ PAUSE,      new(BindingType.BUTTON, "Pause", PAUSE) },
+			};
+		}
+
+		public override string GetIconName() {
+			return "guitar";
+		}
 
 		public override void InitializeBotMode(object rawChart) {
 			botChart = (List<NoteInfo>) rawChart;
@@ -71,6 +85,13 @@ namespace YARG.Input {
 				CallGenericCalbirationEvent();
 			}
 
+			// Whammy!
+
+			float delta = GetPreviousMappingValue(WHAMMY) - GetMappingValue(WHAMMY);
+			if (!Mathf.Approximately(delta, 0f)) {
+				WhammyEvent?.Invoke(delta);
+			}
+
 			// Starpower
 
 			if (WasMappingPressed(STAR_POWER)) {
@@ -86,7 +107,7 @@ namespace YARG.Input {
 			float songTime = Play.Instance.SongTime;
 
 			bool resetForChord = false;
-			while (botChart.Count > botChartIndex && botChart[botChartIndex].time <= songTime) {
+			while (botChart.Count > BotChartIndex && botChart[BotChartIndex].time <= songTime) {
 				// Release old frets
 				if (!resetForChord) {
 					for (int i = 0; i < 5; i++) {
@@ -95,8 +116,8 @@ namespace YARG.Input {
 					resetForChord = true;
 				}
 
-				var noteInfo = botChart[botChartIndex];
-				botChartIndex++;
+				var noteInfo = botChart[BotChartIndex];
+				BotChartIndex++;
 
 				// Skip fret press if open note
 				if (noteInfo.fret != 5) {
@@ -117,7 +138,7 @@ namespace YARG.Input {
 
 			NavigationEventForMapping(MenuAction.Shortcut1, YELLOW);
 			NavigationEventForMapping(MenuAction.Shortcut2, BLUE);
-			NavigationEventForMapping(MenuAction.Shortcut3, ORANGE);
+			NavigationHoldableForMapping(MenuAction.Shortcut3, ORANGE);
 
 			NavigationHoldableForMapping(MenuAction.Up, STRUM_UP);
 			NavigationHoldableForMapping(MenuAction.Down, STRUM_DOWN);

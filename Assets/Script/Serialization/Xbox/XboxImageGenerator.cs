@@ -5,6 +5,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using YARG.Audio;
 
 namespace YARG.Serialization {
 	public static class XboxImageTextureGenerator {

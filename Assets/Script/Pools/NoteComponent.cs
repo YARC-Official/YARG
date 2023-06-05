@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using YARG.Data;
 using YARG.PlayMode;
 
 namespace YARG.Pools {
@@ -47,6 +48,8 @@ namespace YARG.Pools {
 		[SerializeField]
 		private LineRenderer fullLineRenderer;
 
+		private NoteInfo _noteInfo;
+
 		private float _brutalVanishDistance;
 		/// <summary>
 		/// Ranges between -1 and 1. Notes will disappear when they reach this percentage down the track.
@@ -85,8 +88,7 @@ namespace YARG.Pools {
 					return Color.magenta;
 				}
 
-				// If within starpower section
-				if (pool.player.track.StarpowerSection?.EndTime > pool.player.track.RelativeTime) {
+				if (_isStarpower) {
 					return Color.white;
 				}
 
@@ -102,8 +104,7 @@ namespace YARG.Pools {
 					return Color.clear;
 				}
 
-				// If within starpower section
-				if (pool.player.track.StarpowerSection?.EndTime > pool.player.track.RelativeTime) {
+				if (_isStarpower) {
 					return Color.white;
 				}
 
@@ -119,11 +120,15 @@ namespace YARG.Pools {
 
 		private State state = State.WAITING;
 
+		private bool _isStarpower;
 		private bool isActivatorNote;
+
+		private float _secondaryAmplitudeTime;
+		private float _tertiaryAmplitudeTime;
 
 		private void OnEnable() {
 			if (pool != null) {
-				pool.player.track.StarpowerMissEvent += UpdateColor;
+				pool.player.track.StarpowerMissEvent += OnStarpowerMissed;
 			}
 
 			foreach (MeshRenderer r in meshRenderers) {
@@ -131,15 +136,20 @@ namespace YARG.Pools {
 			}
 			lineRenderer.enabled = false;
 			fullLineRenderer.enabled = false;
+
+			// Set it to Time.time to sync with other notes
+			_secondaryAmplitudeTime = Time.time;
+			_tertiaryAmplitudeTime = Time.time;
 		}
 
 		private void OnDisable() {
 			if (pool != null) {
-				pool.player.track.StarpowerMissEvent -= UpdateColor;
+				pool.player.track.StarpowerMissEvent -= OnStarpowerMissed;
 			}
 		}
 
-		public void SetInfo(Color notes, Color sustains, float length, ModelType type, bool isDrumActivator = false) {
+		public void SetInfo(NoteInfo info, Color notes, Color sustains, float length, ModelType type,
+			bool isStarpowerNote, bool isDrumActivator = false) {
 			static void SetModelActive(GameObject obj, ModelType inType, ModelType needType) {
 				if (obj != null) {
 					obj.SetActive(inType == needType);
@@ -161,6 +171,8 @@ namespace YARG.Pools {
 			ColorCacheNotes = notes;
 			ColorCacheSustains = sustains;
 
+			_noteInfo = info;
+			_isStarpower = isStarpowerNote;
 			isActivatorNote = isDrumActivator;
 
 			UpdateColor();
@@ -223,6 +235,10 @@ namespace YARG.Pools {
 		}
 
 		private void ResetLineAmplitude() {
+			if (_useFullLineRenderer) {
+				return;
+			}
+
 			CurrentLineRenderer.materials[0].SetFloat("_PrimaryAmplitude", 0f);
 			CurrentLineRenderer.materials[0].SetFloat("_SecondaryAmplitude", 0f);
 			CurrentLineRenderer.materials[0].SetFloat("_TertiaryAmplitude", 0f);
@@ -274,6 +290,15 @@ namespace YARG.Pools {
 			ResetLineAmplitude();
 		}
 
+		private void OnStarpowerMissed(EventInfo missedPhrase) {
+			if (_noteInfo.time < missedPhrase.time || _noteInfo.time >= missedPhrase.EndTime) {
+				return;
+			}
+
+			_isStarpower = false;
+			UpdateColor();
+		}
+
 		private void Update() {
 			transform.localPosition -= new Vector3(0f, 0f, Time.deltaTime * pool.player.trackSpeed);
 			if (state == State.HITTING) {
@@ -291,29 +316,29 @@ namespace YARG.Pools {
 			}
 
 			// Line hit animation
-			if (state == State.HITTING) {
+			if (state == State.HITTING && !_useFullLineRenderer) {
+				float whammy = ((NotePool) pool).WhammyFactor * 1.5f;
+
+				// Update the amplitude times
+				_secondaryAmplitudeTime += Time.deltaTime * (4f + whammy);
+				_tertiaryAmplitudeTime += Time.deltaTime * (1.7f + whammy);
+
 				// Change line amplitude
 				var lineMat = CurrentLineRenderer.materials[0];
-				lineMat.SetFloat("_PrimaryAmplitude", 0.38f);
-				lineMat.SetFloat("_SecondaryAmplitude", Mathf.Sin(Time.time * 4f));
-				lineMat.SetFloat("_TertiaryAmplitude", Mathf.Sin(Time.time * 1.7f) * 0.222f);
+				lineMat.SetFloat("_PrimaryAmplitude", 0.18f + whammy * 0.2f);
+				lineMat.SetFloat("_SecondaryAmplitude", Mathf.Sin(_secondaryAmplitudeTime) * (whammy + 0.5f));
+				lineMat.SetFloat("_TertiaryAmplitude", Mathf.Sin(_tertiaryAmplitudeTime) * (whammy * 0.1f + 0.1f));
 
 				// Move line forward
-				float forwardSub = Time.deltaTime * pool.player.trackSpeed / 2.5f;
+				float forwardSub = Time.deltaTime * pool.player.trackSpeed / 2.5f * (1f + whammy * 0.1f);
 				lineMat.SetFloat("_ForwardOffset", lineMat.GetFloat("_ForwardOffset") + forwardSub);
 			}
 
-			float multiplier = pool.player.track.Multiplier;
-			float maxMultiplier = pool.player.track.MaxMultiplier;
-
 			// TODO: If/when health system gets added, this should use that instead. Multiplier isn't a good way to scale difficulty here.
 			if (pool.player.brutalMode) {
-				BrutalVanishDistance = System.Math.Min(
-					System.Math.Max(
-						0.25f, multiplier / maxMultiplier
-					),
-					0.80f
-				);
+				float multiplier = pool.player.track.Multiplier;
+				float maxMultiplier = pool.player.track.MaxMultiplier;
+				BrutalVanishDistance = Mathf.Clamp(multiplier / maxMultiplier, 0.25f, 0.80f);
 			} else {
 				BrutalVanishDistance = -1.0f;
 			}

@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using YARG.Audio;
+using YARG.Audio.BASS;
 using YARG.Input;
 using YARG.Settings;
 using YARG.Song;
@@ -31,14 +33,17 @@ namespace YARG {
 		public static IAudioManager AudioManager { get; private set; }
 
 		[field: SerializeField]
-		public SettingsMenu SettingsMenu { get; private set; }
-
-		[SerializeField]
-		private AudioMixerGroup vocalGroup;
+		public SettingsMenu SettingsMenu { get; private set; }		
 
 		public SceneIndex CurrentScene { get; private set; } = SceneIndex.PERSISTANT;
 
 		public SongEntry SelectedSong { get; set; }
+
+#if UNITY_EDITOR
+
+		public Util.TestPlayInfo TestPlayInfo { get; private set; }
+
+#endif
 
 		private void Awake() {
 			Instance = this;
@@ -60,7 +65,15 @@ namespace YARG {
 			AudioManager = gameObject.AddComponent<BassAudioManager>();
 			AudioManager.Initialize();
 
+			Shader.SetGlobalFloat("_IsFading", 1f);
+
 			StageKitHapticsManager.Initialize();
+
+#if UNITY_EDITOR
+
+			TestPlayInfo = UnityEditor.AssetDatabase.LoadAssetAtPath<Util.TestPlayInfo>("Assets/Settings/TestPlayInfo.asset");
+
+#endif
 		}
 
 		private void Start() {
@@ -74,7 +87,7 @@ namespace YARG {
 
 		private void OnDestroy() {
 			foreach (var player in PlayerManager.players) {
-				player.inputStrategy.Disable();
+				player.inputStrategy?.Dispose();
 			}
 		}
 

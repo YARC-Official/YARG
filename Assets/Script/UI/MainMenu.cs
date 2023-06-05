@@ -143,7 +143,7 @@ namespace YARG.UI {
 		}
 
 		public void ShowSettingsMenu() {
-			GameManager.Instance.SettingsMenu.gameObject.SetActive(true);
+			SettingsMenu.Instance.gameObject.SetActive(true);
 		}
 
 		public void ShowCalibrationScene() {

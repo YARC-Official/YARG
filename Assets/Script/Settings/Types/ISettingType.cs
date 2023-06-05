@@ -6,5 +6,8 @@ namespace YARG.Settings.Types {
 		public Type DataType { get; }
 
 		public string AddressableName { get; }
+
+		public void ForceInvokeCallback();
+		public bool IsSettingDataEqual(object obj);
 	}
 }

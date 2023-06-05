@@ -12,7 +12,7 @@ namespace YARG.Settings.Visuals {
 			RefreshVisual();
 		}
 
-		protected override void RefreshVisual() {
+		public override void RefreshVisual() {
 			inputField.text = Setting.Data.ToString(CultureInfo.InvariantCulture);
 		}
 

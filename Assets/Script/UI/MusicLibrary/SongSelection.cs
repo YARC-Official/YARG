@@ -8,22 +8,23 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using YARG.Audio;
 using YARG.Data;
 using YARG.Input;
 using YARG.Song;
 using YARG.UI.MusicLibrary.ViewTypes;
 using Random = UnityEngine.Random;
+using System.Threading;
+using YARG.Settings;
 
 namespace YARG.UI.MusicLibrary {
 	public class SongSelection : MonoBehaviour {
-		public static SongSelection Instance {
-			get;
-			private set;
-		} = null;
+
+		public static SongSelection Instance { get; private set; }
 
 		public static bool refreshFlag = true;
 
-		private const int SONG_VIEW_EXTRA = 6;
+		private const int SONG_VIEW_EXTRA = 15;
 		private const float SCROLL_TIME = 1f / 60f;
 
 		[SerializeField]
@@ -40,8 +41,15 @@ namespace YARG.UI.MusicLibrary {
 		[SerializeField]
 		private Scrollbar scrollbar;
 
+		private SongSorting.SortCriteria _sortCriteria = SongSorting.SortCriteria.SONG;
+		private String _nextSortCriteria = "Order by artist";
+		private String _nextFilter = "Search artist";
+
 		private List<ViewType> _songs;
 		private List<SongEntry> _recommendedSongs;
+
+		private PreviewContext _previewContext;
+		private CancellationTokenSource _previewCanceller = new();
 
 		public IReadOnlyList<ViewType> Songs => _songs;
 
@@ -74,13 +82,17 @@ namespace YARG.UI.MusicLibrary {
 				}
 
 				GameManager.Instance.SelectedSong = song.SongEntry;
-				GameManager.AudioManager.PreviewContext.PlayPreview(song.SongEntry);
+
+				if (!_previewCanceller.IsCancellationRequested) {
+					_previewCanceller.Cancel();
+				}
 			}
 		}
 
 		private List<SongView> _songViews = new();
 		private float _scrollTimer = 0f;
 		private bool searchBoxShouldBeEnabled = false;
+		private readonly int numberOfDivisions = 3; //RANDOM SONG, RECOMMENDEND SONGS, ALL SONGS
 
 		private void Awake() {
 			refreshFlag = true;
@@ -101,26 +113,12 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		private void OnEnable() {
+			// Set up preview context
+			_previewContext = new(GameManager.AudioManager);
+
 			// Set navigation scheme
-			Navigator.Instance.PushScheme(new NavigationScheme(new() {
-				new NavigationScheme.Entry(MenuAction.Up, "Up", () => {
-					SelectedIndex--;
-				}),
-				new NavigationScheme.Entry(MenuAction.Down, "Down", () => {
-					SelectedIndex++;
-				}),
-				new NavigationScheme.Entry(MenuAction.Confirm, "Confirm", () => {
-					_songs[SelectedIndex]?.PrimaryButtonClick();
-				}),
-				new NavigationScheme.Entry(MenuAction.Back, "Back", () => {
-					Back();
-				}),
-				new NavigationScheme.Entry(MenuAction.Shortcut1, "Search Artist", () => {
-					if (_songs[SelectedIndex] is SongViewType view) {
-						searchField.text = $"artist:{view.SongEntry.Artist}";
-					}
-				})
-			}, false));
+			var navigationScheme = GetNavigationScheme();
+			Navigator.Instance.PushScheme(navigationScheme);
 
 			if (refreshFlag) {
 				_songs = null;
@@ -132,17 +130,56 @@ namespace YARG.UI.MusicLibrary {
 			}
 
 			searchBoxShouldBeEnabled = true;
+		}
 
-			// Play preview on enter for selected song
-			if (_songs[SelectedIndex] is SongViewType song) {
-				GameManager.AudioManager.PreviewContext.PlayPreview(song.SongEntry);
+		private NavigationScheme GetNavigationScheme(){
+			return new NavigationScheme(new() {
+				new NavigationScheme.Entry(MenuAction.Up, "Up", () => {
+					ScrollUp();
+				}),
+				new NavigationScheme.Entry(MenuAction.Down, "Down", () => {
+					ScrollDown();
+				}),
+				new NavigationScheme.Entry(MenuAction.Confirm, "Confirm", () => {
+					_songs[SelectedIndex]?.PrimaryButtonClick();
+				}),
+				new NavigationScheme.Entry(MenuAction.Back, "Back", () => {
+					Back();
+				}),
+				new NavigationScheme.Entry(MenuAction.Shortcut1, _nextSortCriteria, () => {
+					ChangeSongOrder();
+				}),
+				new NavigationScheme.Entry(MenuAction.Shortcut2, _nextFilter, () => {
+					ChangeFilter();
+				}),
+				new NavigationScheme.Entry(MenuAction.Shortcut3, "(Hold) Section", () => {})
+			}, false);
+		}
+
+		private void ScrollUp() {
+			if (Navigator.Instance.IsHeld(MenuAction.Shortcut3)) {
+				SelectPreviousSection();
+			} else {
+				SelectedIndex--;
+			}
+		}
+
+		private void ScrollDown() {
+			if (Navigator.Instance.IsHeld(MenuAction.Shortcut3)) {
+				SelectNextSection();
+			} else {
+				SelectedIndex++;
 			}
 		}
 
 		private void OnDisable() {
 			Navigator.Instance.PopScheme();
 
-			GameManager.AudioManager.DisposePreviewContext();
+			if (!_previewCanceller.IsCancellationRequested) {
+				_previewCanceller.Cancel();
+			}
+
+			_previewContext = null;
 		}
 
 		private void UpdateSongViews() {
@@ -152,6 +189,66 @@ namespace YARG.UI.MusicLibrary {
 
 			sidebar.UpdateSidebar().Forget();
 		}
+
+		private void ChangeSongOrder() {
+			UpdateSortLamda();
+			UpdateSearch();
+			UpdateNextSortCriteria();
+			UpdateNavigationScheme();
+		}
+
+		public void UpdateSortLamda(){
+			_sortCriteria = getNextSortCriteria();
+			SongSorting.Instance.OrderBy(_sortCriteria);
+		}
+
+		public SongSorting.SortCriteria getNextSortCriteria() {
+			return SongSorting.Instance.GetNextSortCriteria(_sortCriteria);
+		}
+
+		private void UpdateNextSortCriteria(){
+			_nextSortCriteria = GetNextSortCriteriaButtonName();
+		}
+
+		private void UpdateNavigationScheme(){
+			Navigator.Instance.PopScheme();
+			Navigator.Instance.PushScheme(GetNavigationScheme());
+		}
+
+		private void ChangeFilter() {
+			UpdateFilter();
+			UpdateFilterButtonName();
+			UpdateNavigationScheme();
+		}
+
+		private void UpdateFilter(){
+			if (_songs[SelectedIndex] is not SongViewType view) {
+				return;
+			}
+
+			var text = searchField.text;
+
+			if (string.IsNullOrEmpty(text) || text.StartsWith("source:")) {
+				var artist = view.SongEntry.Artist;
+				searchField.text = $"artist:{artist}";
+				return;
+			}
+
+			if (text.StartsWith("artist:")) {
+				var source = view.SongEntry.Source;
+				searchField.text = $"source:{source}";
+				return;
+			}
+		}
+
+		private void UpdateFilterButtonName(){
+			_nextFilter = _nextFilter switch {
+				"Search artist" => "Search source",
+				"Search source" => "Search artist",
+				_ => "Search artist"
+			};
+		}
+
 
 		private void Update() {
 			if (_scrollTimer <= 0f) {
@@ -176,6 +273,13 @@ namespace YARG.UI.MusicLibrary {
 				searchField.ActivateInputField();
 				searchBoxShouldBeEnabled = false;
 			}
+
+			// Start preview
+			if (!_previewContext.IsPlaying && _songs[SelectedIndex] is SongViewType song) {
+				_previewCanceller = new();
+				float previewVolume = SettingsManager.Settings.PreviewVolume.Data;
+				_previewContext.PlayPreview(song.SongEntry, previewVolume, _previewCanceller.Token).Forget();
+			}
 		}
 
 		public void OnScrollBarChange() {
@@ -199,7 +303,7 @@ namespace YARG.UI.MusicLibrary {
 			if (string.IsNullOrEmpty(searchField.text)) {
 				// Add all songs
 				_songs = SongContainer.Songs
-					.OrderBy(song => song.NameNoParenthesis)
+					.OrderBy(OrderBy())
 					.Select(i => new SongViewType(i))
 					.Cast<ViewType>()
 					.ToList();
@@ -224,11 +328,7 @@ namespace YARG.UI.MusicLibrary {
 					"RANDOM SONG",
 					"Icon/Random",
 					() => {
-						// Get how many non-song things there are
-						int skip = _songs.Count - SongContainer.Songs.Count;
-
-						// Select random between all of the songs
-						SelectedIndex = Random.Range(skip, SongContainer.Songs.Count);
+						SelectRandomSong();
 					}
 				));
 			} else {
@@ -243,7 +343,7 @@ namespace YARG.UI.MusicLibrary {
 						// Artist filter
 						var artist = arg[7..];
 						songsOut = SongContainer.Songs
-							.Where(i => RemoveDiacritics(i.Artist).Contains(RemoveDiacritics(artist)));
+							.Where(i => RemoveDiacriticsAndArticle(i.Artist) == RemoveDiacriticsAndArticle(artist));
 					} else if (arg.StartsWith("source:")) {
 						// Source filter
 						var source = arg[7..];
@@ -253,7 +353,7 @@ namespace YARG.UI.MusicLibrary {
 						// Album filter
 						var album = arg[6..];
 						songsOut = SongContainer.Songs
-							.Where(i => RemoveDiacritics(i.Album).Contains(RemoveDiacritics(album)));
+							.Where(i => RemoveDiacritics(i.Album) == RemoveDiacritics(album));
 					} else if (arg.StartsWith("charter:")) {
 						// Charter filter
 						var charter = arg[8..];
@@ -272,13 +372,20 @@ namespace YARG.UI.MusicLibrary {
 					} else if (arg.StartsWith("instrument:")) {
 						// Instrument filter
 						var instrument = arg[11..];
-						if (instrument == "band") {
+						/*f (instrument == "band") {
 							songsOut = SongContainer.Songs
 								.Where(i => i.BandDifficulty >= 0);
 						} else {
 							songsOut = SongContainer.Songs
 								.Where(i => i.HasInstrument(InstrumentHelper.FromStringName(instrument)));
-						}
+						}*/
+						songsOut = instrument switch {
+							"band" => SongContainer.Songs.Where(i => i.BandDifficulty >= 0),
+							"vocals" => SongContainer.Songs.Where(i => i.VocalParts < 2),
+							"harmVocals" => SongContainer.Songs.Where(i => i.VocalParts >= 2),
+							_ => SongContainer.Songs.Where(i =>
+								i.HasInstrument(InstrumentHelper.FromStringName(instrument))),
+						};
 					} else if (!searched) {
 						// Search
 						searched = true;
@@ -292,7 +399,8 @@ namespace YARG.UI.MusicLibrary {
 
 				// Sort
 				if (!searched) {
-					songsOut = songsOut.OrderBy(song => song.NameNoParenthesis);
+					// songsOut = songsOut.OrderBy(song => GetSortName(song));
+					songsOut = songsOut.OrderBy(OrderBy());
 				}
 
 				// Add header
@@ -330,12 +438,26 @@ namespace YARG.UI.MusicLibrary {
 				SelectedIndex = Mathf.Max(1, index);
 			}
 
+			UpdateIndex();
 			UpdateSongViews();
 			UpdateScrollbar();
 		}
 
+		private void UpdateIndex(){
+			SongSorting.Instance.UpdateIndex(_songs);
+		}
+
+		private static string RemoveDiacriticsAndArticle(string text){
+			var textWithoutDiacretics = RemoveDiacritics(text);
+			return SongSorting.RemoveArticle(textWithoutDiacretics);
+		}
+
 		private static string RemoveDiacritics(string text) {
-			var normalizedString = text?.ToLowerInvariant().Normalize(NormalizationForm.FormD);
+			if (text == null) {
+				return null;
+			}
+
+			var normalizedString = text.ToLowerInvariant().Normalize(NormalizationForm.FormD);
 			var stringBuilder = new StringBuilder(capacity: normalizedString.Length);
 
 			for (int i = 0; i < normalizedString.Length; i++) {
@@ -440,7 +562,11 @@ namespace YARG.UI.MusicLibrary {
 
 		public void Back() {
 			if (string.IsNullOrEmpty(searchField.text)) {
-				MainMenu.Instance.ShowMainMenu();
+				if (SelectedIndex > 2) {
+					SelectedIndex = 2;
+				} else {
+					MainMenu.Instance.ShowMainMenu();
+				}
 			} else {
 				ClearSearchBox();
 				UpdateSearch();
@@ -451,5 +577,69 @@ namespace YARG.UI.MusicLibrary {
 			searchField.text = "";
 			searchField.ActivateInputField();
 		}
+
+		private void SelectRandomSong(){
+			// Get how many non-song things there are
+			int skip = _songs.Count - SongContainer.Songs.Count;
+			// Select random between all of the songs
+			SelectedIndex = Random.Range(skip, SongContainer.Songs.Count);
+		}
+
+		private void SelectPreviousSection(){
+			if (_songs[_selectedIndex] is not SongViewType song) {
+				return;
+			}
+
+			int skip = GetSkip();
+
+			if(SongIsRecommendedOrDivision(skip)){
+				SelectedIndex = 1;
+				return;
+			}
+
+			SelectedIndex = SongSorting.Instance.SelectNewSection(_songs, SelectedIndex, song, skip, SongSorting.PreviousNext.PREVIOUS);
+		}
+
+		private void SelectNextSection(){
+			if (_songs[_selectedIndex] is not SongViewType song) {
+				return;
+			}
+
+			int skip = GetSkip();
+
+			if(SongIsRecommendedOrDivision(skip)){
+				SelectedIndex = skip;
+				return;
+			}
+
+			SelectedIndex = SongSorting.Instance.SelectNewSection(_songs, SelectedIndex, song, skip, SongSorting.PreviousNext.NEXT);
+		}
+
+		private bool SongIsRecommendedOrDivision(int skip){
+			bool recommendedSongsAreVisible = skip == _recommendedSongs.Count + numberOfDivisions;
+			return recommendedSongsAreVisible && SelectedIndex < skip;
+		}
+
+		private int GetSkip(){
+			return Mathf.Max(1, _songs.Count - SongContainer.Songs.Count);
+		}
+
+		private string GetNextSortCriteriaButtonName() {
+			return SongSorting.Instance.GetNextSortCriteriaButtonName(_sortCriteria);
+		}
+
+		private Func<SongEntry, string> OrderBy(){
+			return SongSorting.Instance.SortBy();
+		}
+
+#if UNITY_EDITOR
+		public void SetAsTestPlaySong() {
+			if (_songs[SelectedIndex] is not SongViewType song) {
+				return;
+			}
+
+			GameManager.Instance.TestPlayInfo.TestPlaySongHash = song.SongEntry.Checksum;
+		}
+#endif
 	}
 }

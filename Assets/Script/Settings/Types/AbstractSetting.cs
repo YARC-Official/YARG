@@ -8,7 +8,9 @@ namespace YARG.Settings.Types {
 		public virtual T Data {
 			get => default;
 			set {
-				onChange?.Invoke(value);
+				_onChange?.Invoke(value);
+
+				SettingsMenu.Instance.UpdatePresetDropdowns(this);
 			}
 		}
 
@@ -20,10 +22,16 @@ namespace YARG.Settings.Types {
 
 		public abstract string AddressableName { get; }
 
-		protected Action<T> onChange;
+		private readonly Action<T> _onChange;
 
-		public AbstractSetting(Action<T> onChange) {
-			this.onChange = onChange;
+		protected AbstractSetting(Action<T> onChange) {
+			_onChange = onChange;
 		}
+
+		public void ForceInvokeCallback() {
+			_onChange?.Invoke(Data);
+		}
+
+		public abstract bool IsSettingDataEqual(object obj);
 	}
 }

@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using YARG.UI;
@@ -14,6 +15,8 @@ namespace YARG.PlayMode {
 		[Space]
 		public MeshRenderer trackRenderer;
 		public Transform hitWindow;
+		public Transform fadeBegin;
+		public Transform fadeEnd;
 
 		[Space]
 		public TextMeshPro comboText;

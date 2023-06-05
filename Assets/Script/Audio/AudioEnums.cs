@@ -1,4 +1,4 @@
-namespace YARG {
+namespace YARG.Audio {
 	public enum SongStem {
 		Master = -2,
 		Sfx = -1,
@@ -27,7 +27,7 @@ namespace YARG {
 		StarPowerRelease,
 		Clap,
 		StarGain,
-		StarGold
+		StarGold,
 	}
 
 	public enum DSPType {

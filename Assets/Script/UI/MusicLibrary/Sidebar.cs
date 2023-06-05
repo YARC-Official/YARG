@@ -1,25 +1,25 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 using XboxSTFS;
-using static XboxSTFS.XboxSTFSParser;
 using YARG.Data;
 using YARG.Serialization;
 using YARG.Song;
 using YARG.UI.MusicLibrary.ViewTypes;
+using YARG.Util;
 
 namespace YARG.UI.MusicLibrary {
 	public class Sidebar : MonoBehaviour {
 		[SerializeField]
-		private Transform _difficultyRingsContainer;
+		private Transform _difficultyRingsTopContainer;
+		[SerializeField]
+		private Transform _difficultyRingsBottomContainer;
 		[SerializeField]
 		private TextMeshProUGUI _album;
 		[SerializeField]
@@ -45,8 +45,16 @@ namespace YARG.UI.MusicLibrary {
 
 		public void Init() {
 			// Spawn 10 difficulty rings
-			for (int i = 0; i < 10; i++) {
-				var go = Instantiate(difficultyRingPrefab, _difficultyRingsContainer);
+			// for (int i = 0; i < 10; i++) {
+			// 	var go = Instantiate(difficultyRingPrefab, _difficultyRingsContainer);
+			// 	difficultyRings.Add(go.GetComponent<DifficultyRing>());
+			// }
+			for (int i = 0; i < 5; ++i) {
+				var go = Instantiate(difficultyRingPrefab, _difficultyRingsTopContainer);
+				difficultyRings.Add(go.GetComponent<DifficultyRing>());
+			}
+			for (int i = 0; i < 5; ++i) {
+				var go = Instantiate(difficultyRingPrefab, _difficultyRingsBottomContainer);
 				difficultyRings.Add(go.GetComponent<DifficultyRing>());
 			}
 		}
@@ -103,7 +111,7 @@ namespace YARG.UI.MusicLibrary {
 			_charter.text = songEntry.Charter;
 			_genre.text = songEntry.Genre;
 			_year.text = songEntry.Year;
-			HelpBar.Instance.SetInfoText(songEntry.LoadingPhrase);
+			HelpBar.Instance.SetInfoText(RichTextUtils.StripRichTextTagsExclude(songEntry.LoadingPhrase, RichTextUtils.GOOD_TAGS));
 
 			// Format and show length
 			if (songEntry.SongLengthTimeSpan.Hours > 0) {
@@ -125,10 +133,10 @@ namespace YARG.UI.MusicLibrary {
 			}
 
 			/*
-			
-				Guitar               ; Bass               ; 4 or 5 lane ; Keys     ; Mic (dependent on mic count) 
+
+				Guitar               ; Bass               ; 4 or 5 lane ; Keys     ; Mic (dependent on mic count)
 				Pro Guitar or Co-op  ; Pro Bass or Rhythm ; True Drums  ; Pro Keys ; Band
-			
+
 			*/
 
 			difficultyRings[0].SetInfo(songEntry, Instrument.GUITAR);
@@ -205,7 +213,7 @@ namespace YARG.UI.MusicLibrary {
 
 			var songEntry = songViewType.SongEntry;
 
-			if (songEntry.SongType == SongType.SongIni) {
+			if (songEntry is IniSongEntry) {
 				string[] possiblePaths = {
 					"album.png",
 					"album.jpg",
@@ -220,10 +228,8 @@ namespace YARG.UI.MusicLibrary {
 						break;
 					}
 				}
-			} else if (songEntry.SongType == SongType.RbCon) {
-				await LoadRbConCover((ConSongEntry) songEntry);
-			} else if (songEntry.SongType == SongType.ExtractedRbCon) {
-				await LoadExtractedRbConCover((ExtractedConSongEntry) songEntry);
+			} else {
+				await LoadRbConCover(songEntry as ExtractedConSongEntry);
 			}
 		}
 
@@ -246,44 +252,13 @@ namespace YARG.UI.MusicLibrary {
 			} catch (OperationCanceledException) { }
 		}
 
-		private async UniTask LoadRbConCover(ConSongEntry conSongEntry) {
-			if (string.IsNullOrEmpty(conSongEntry.ImagePath)) {
-				return;
-			}
-
+		private async UniTask LoadRbConCover(ExtractedConSongEntry conSongEntry) {
 			Texture2D texture = null;
-
 			try {
-				byte[] bytes;
-				if (conSongEntry.AlternatePath) {
-					bytes = File.ReadAllBytes(conSongEntry.ImagePath);
-				} else {
-					bytes = XboxSTFSParser.GetFile(conSongEntry.Location, conSongEntry.FLImg);
-				}
+				byte[] bytes = conSongEntry.LoadImgFile();
+				if (bytes.Length == 0)
+					return;
 
-				texture = await XboxImageTextureGenerator.GetTexture(bytes, _cancellationToken.Token);
-
-				_albumCover.texture = texture;
-				_albumCover.color = Color.white;
-				_albumCover.uvRect = new Rect(0f, 0f, 1f, -1f);
-			} catch (OperationCanceledException) {
-				// Dispose of the texture (prevent memory leaks)
-				if (texture != null) {
-					// This might seem weird, but we are destroying the *texture*, not the UI image.
-					Destroy(texture);
-				}
-			}
-		}
-
-		private async UniTask LoadExtractedRbConCover(ExtractedConSongEntry conSongEntry) {
-			if (string.IsNullOrEmpty(conSongEntry.ImagePath)) {
-				return;
-			}
-
-			Texture2D texture = null;
-
-			try {
-				var bytes = await File.ReadAllBytesAsync(conSongEntry.ImagePath, _cancellationToken.Token);
 				texture = await XboxImageTextureGenerator.GetTexture(bytes, _cancellationToken.Token);
 
 				_albumCover.texture = texture;

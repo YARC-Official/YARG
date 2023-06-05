@@ -15,7 +15,7 @@ namespace YARG.Settings.Visuals {
 			RefreshVisual();
 		}
 
-		protected override void RefreshVisual() {
+		public override void RefreshVisual() {
 			slider.SetValueWithoutNotify(Setting.Data);
 			inputField.text = (Setting.Data * 100f).ToString("N1", CultureInfo.InvariantCulture) + "%";
 		}

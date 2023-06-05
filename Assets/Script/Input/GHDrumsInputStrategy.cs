@@ -24,20 +24,26 @@ namespace YARG.Input {
 
 		public event DrumHitAction DrumHitEvent;
 
-		protected override Dictionary<string, ControlBinding> GetMappings() => new() {
-			{ RED_PAD,       new(BindingType.BUTTON, "Red Pad", RED_PAD) },
-			{ YELLOW_CYMBAL, new(BindingType.BUTTON, "Yellow Cymbal", YELLOW_CYMBAL) },
-			{ BLUE_PAD,      new(BindingType.BUTTON, "Blue Pad", BLUE_PAD) },
-			{ ORANGE_CYMBAL, new(BindingType.BUTTON, "Orange Cymbal", ORANGE_CYMBAL) },
-			{ GREEN_PAD,     new(BindingType.BUTTON, "Green Pad", GREEN_PAD) },
+		public GHDrumsInputStrategy() {
+			InputMappings = new() {
+				{ RED_PAD,       new(BindingType.BUTTON, "Red Pad", RED_PAD) },
+				{ YELLOW_CYMBAL, new(BindingType.BUTTON, "Yellow Cymbal", YELLOW_CYMBAL) },
+				{ BLUE_PAD,      new(BindingType.BUTTON, "Blue Pad", BLUE_PAD) },
+				{ ORANGE_CYMBAL, new(BindingType.BUTTON, "Orange Cymbal", ORANGE_CYMBAL) },
+				{ GREEN_PAD,     new(BindingType.BUTTON, "Green Pad", GREEN_PAD) },
 
-			{ KICK,          new(BindingType.BUTTON, "Kick", KICK) },
-			{ KICK_ALT,      new(BindingType.BUTTON, "Kick Alt", KICK_ALT) },
+				{ KICK,          new(BindingType.BUTTON, "Kick", KICK) },
+				{ KICK_ALT,      new(BindingType.BUTTON, "Kick Alt", KICK_ALT) },
 
-			{ PAUSE,         new(BindingType.BUTTON, "Pause", PAUSE) },
-			{ UP,            new(BindingType.BUTTON, "Navigate Up", UP) },
-			{ DOWN,          new(BindingType.BUTTON, "Navigate Down", DOWN) },
-		};
+				{ PAUSE,         new(BindingType.BUTTON, "Pause", PAUSE) },
+				{ UP,            new(BindingType.BUTTON, "Navigate Up", UP) },
+				{ DOWN,          new(BindingType.BUTTON, "Navigate Down", DOWN) },
+			};
+		}
+
+		public override string GetIconName() {
+			return "ghDrums";
+		}
 
 		protected override void UpdatePlayerMode() {
 			// Deal with drum inputs
@@ -92,9 +98,9 @@ namespace YARG.Input {
 
 			float songTime = Play.Instance.SongTime;
 
-			while (botChart.Count > botChartIndex && botChart[botChartIndex].time <= songTime) {
-				var noteInfo = botChart[botChartIndex];
-				botChartIndex++;
+			while (botChart.Count > BotChartIndex && botChart[BotChartIndex].time <= songTime) {
+				var noteInfo = botChart[BotChartIndex];
+				BotChartIndex++;
 
 				if (noteInfo.fret == 5 && SettingsManager.Settings.NoKicks.Data) {
 					continue;
@@ -117,8 +123,8 @@ namespace YARG.Input {
 			NavigationEventForMapping(MenuAction.Up, UP);
 			NavigationEventForMapping(MenuAction.Down, DOWN);
 
-			NavigationEventForMapping(MenuAction.More, KICK);
-			NavigationEventForMapping(MenuAction.More, KICK_ALT);
+			NavigationHoldableForMapping(MenuAction.Shortcut3, KICK);
+			NavigationHoldableForMapping(MenuAction.Shortcut3, KICK_ALT);
 
 			if (WasMappingPressed(PAUSE)) {
 				CallPauseEvent();
