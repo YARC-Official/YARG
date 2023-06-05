@@ -169,7 +169,7 @@ namespace YARG.PlayMode {
 			notePool.WhammyFactor = whammyAnimationAmount;
 
 			// Add starpower on whammy, only if there are held notes
-			if ((heldNotes.Count == 0 || CurrentStarpower?.time > CurrentTime) && !whammyLastNote) {
+			if ((heldNotes.Count == 0 || CurrentStarpower?.time > CurrentTime || CurrentStarpower == null) && !whammyLastNote) {
 				return;
 			}
 

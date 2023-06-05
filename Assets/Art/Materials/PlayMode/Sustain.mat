@@ -15,7 +15,7 @@ Material:
   m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 2999
+  m_CustomRenderQueue: 2995
   stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
@@ -110,7 +110,7 @@ Material:
     - _PrimaryAmplitude: 1
     - _PrimaryFrequency: 10
     - _QueueControl: 0
-    - _QueueOffset: -1
+    - _QueueOffset: -5
     - _ReceiveShadows: 1
     - _SecondaryAmplitude: 1
     - _SecondaryFrequency: 10
