@@ -129,6 +129,11 @@ namespace YARG.Audio {
 		}
 
 		private bool ProcessCleanRecordData(int handle, IntPtr buffer, int length, IntPtr user) {
+			// Wait for initialization to complete before processing data
+			if (!_initialized) {
+				return true;
+			}
+
 			// Copies the data from the recording buffer to the monitor playback buffer.
 			if (IsMonitoring) {
 				Bass.StreamPutData(_monitorPlaybackHandle, buffer, length);
@@ -138,6 +143,11 @@ namespace YARG.Audio {
 		}
 
 		private bool ProcessRecordData(int handle, IntPtr buffer, int length, IntPtr user) {
+			// Wait for initialization to complete before processing data
+			if (!_initialized) {
+				return true;
+			}
+
 			CalculatePitchAndAmplitude(buffer, length);
 			return true;
 		}

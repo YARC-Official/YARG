@@ -29,7 +29,7 @@ namespace YARG.Serialization.Parser {
 		private class FiveFretIR {
 			public long startTick;
 			// This is an array due to extended sustains
-			public long[] endTick;
+			public long[] endTick = new long[6];
 
 			public FretFlag fretFlag;
 			public FretFlag prevFretFlag;
@@ -272,7 +272,6 @@ namespace YARG.Serialization.Parser {
 						noteIR.Add(currentChord);
 						currentChord = new FiveFretIR {
 							startTick = fretState[fret].Value,
-							endTick = new long[6],
 							fretFlag = fretFlag,
 							hopo = false
 						};

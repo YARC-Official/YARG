@@ -16,7 +16,7 @@ namespace YARG.Util {
 		private FadeLight[] fadeLights;
 		private Light[] normalLights;
 
-		private void Start() {
+		private void Awake() {
 			particles = GetComponentsInChildren<ParticleSystem>();
 
 			List<FadeLight> fadeLightsList = new();
