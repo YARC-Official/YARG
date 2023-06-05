@@ -793,7 +793,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Clear out passed star power
-			while (CurrentStarpower?.EndTime < TrackStartTime) {
+			while (CurrentStarpower?.EndTime < CurrentTime) {
 				_starpowerIndex++;
 			}
 
