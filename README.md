@@ -104,7 +104,7 @@ Have fun!
 
 # 🔨 Building
 
-### ⚠️ If you wish to contribute, use the `dev` brach. Your PR will NOT be merged if it's on `master`. ⚠️
+### ⚠️ If you wish to contribute, use the `dev` branch. Your PR will NOT be merged if it's on `master`. ⚠️
 
 ## Setup Instructions
 
