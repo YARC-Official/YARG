@@ -34,9 +34,24 @@ namespace YARG.Venue {
 		}
 
 		private void VenueEvent(string eventName) {
-			if (eventName == "venue_lightFrame_next") {
-				foreach (var light in _lights) {
-					light.AnimationFrame++;
+			if (eventName.StartsWith("venue_lightFrame_")) {
+				eventName = eventName.Replace("venue_lightFrame_", "");
+				switch (eventName) {
+					case "next":
+						foreach (var light in _lights) {
+							light.AnimationFrame++;
+						}
+						break;
+					case "previous":
+						foreach (var light in _lights) {
+							light.AnimationFrame--;
+						}
+						break;
+					case "first":
+						foreach (var light in _lights) {
+							light.AnimationFrame = 0;
+						}
+						break;
 				}
 			} else if (eventName.StartsWith("venue_light_")) {
 				eventName = eventName.Replace("venue_light_", "");

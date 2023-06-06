@@ -4,6 +4,17 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Melanchall.DryWetMidi.Core;
 
+/* TODO
+Parsing:
+- Camera cuts, thinking we'll need a new info type for this one
+
+Handling:
+- Post-processing handling
+- Performer spotlights
+- Performer sing-alongs
+- Bonus effects
+*/
+
 namespace YARG.Serialization.Parser {
 	public partial class MidiParser : AbstractParser {
 		// Matches lighting events and groups the text inside (parentheses), not including the parentheses
@@ -47,7 +58,26 @@ namespace YARG.Serialization.Parser {
 		private void ProcessNoteEvent(List<EventIR> eventIR, NoteOnEvent noteEvent, long startTick, long endTick) {
 			// Handle notes that are equivalent to other text events
 			string eventText = (byte)noteEvent.NoteNumber switch {
+				// Post-processing
+				110 => "[video_trails.pp]",
+				109 => "[video_security.pp]",
+				108 => "[video_bw.pp]",
+				107 => "[video_a.pp]",
+				106 => "[film_blue_filter.pp]",
+				105 => "[ProFilm_mirror_a.pp]",
+				104 => "[ProFilm_b.pp]",
+				103 => "[ProFilm_a.pp]",
+				102 => "[photocopy.pp]",
+				101 => "[photo_negative.pp]",
+				100 => "[film_silvertone.pp]",
+				99 => "[film_sepia_ink.pp]",
+				98 => "[film_16mm.pp]",
+				97 => "[contrast_a.pp]",
+				96 => "[ProFilm_a.pp]",
+
 				// Lighting keyframes
+				50 => "[first]",
+				49 => "[prev]",
 				48 => "[next]",
 
 				_ => null
@@ -57,6 +87,34 @@ namespace YARG.Serialization.Parser {
 				ProcessText(eventIR, eventText, startTick);
 				return;
 			}
+
+			// Handle events with length
+			eventText = (byte)noteEvent.NoteNumber switch {
+				// Performer sing-alongs
+				87 => "venue_singalong_guitarOrKeys",
+				86 => "venue_singalong_drums",
+				85 => "venue_singalong_bassOrKeys",
+
+				// Performer spotlights
+				41 => "venue_spotlight_keys",
+				40 => "venue_spotlight_vocals",
+				39 => "venue_spotlight_guitar",
+				38 => "venue_spotlight_drums",
+				37 => "venue_spotlight_bass",
+
+				_ => null
+			};
+
+			if (eventText != null) {
+				eventIR.Add(new EventIR {
+					startTick = startTick,
+					endTick = endTick,
+					name = eventText
+				});
+				return;
+			}
+
+			// TODO: Camera cuts
 		}
 
 		private void ProcessText(List<EventIR> eventIR, string text, long eventTick) {
@@ -70,9 +128,14 @@ namespace YARG.Serialization.Parser {
 			string finalText = null;
 			switch (text) {
 				case "next": finalText = "venue_lightFrame_next"; break;
+				case "prev": finalText = "venue_lightFrame_previous"; break;
+				case "first": finalText = "venue_lightFrame_first"; break;
 
 				case "verse": finalText = "venue_light_verse"; break;
 				case "chorus": finalText = "venue_light_chorus"; break;
+
+				case "bonusfx": finalText = "venue_bonus_fx"; break;
+				case "bonusfx_optional": finalText = "venue_bonus_fx_optional"; break;
 
 				default:
 					// Venue lighting
@@ -85,6 +148,13 @@ namespace YARG.Serialization.Parser {
 						finalText = $"venue_light_{lightingType}";
 						break;
 					}
+
+					// Post-processing
+					if (text.EndsWith(".pp")) {
+						finalText = $"venue_postProcess_{text.Replace(".pp", "")}";
+						break;
+					}
+
 					break;
 			}
 
