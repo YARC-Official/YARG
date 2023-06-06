@@ -99,29 +99,6 @@ namespace YARG.Serialization.Parser {
 
 				}
 
-				// if this is a RB song and the venue version < 30, we have the old RB2 style venue
-				// we must give the YARG parser the new, updated, RB3 style venue equivalent!
-				if(oof.VenueVersion < 30){
-					var midiWithNewVenue = new MidiFile();
-					midiWithNewVenue.ReplaceTempoMap(midi.GetTempoMap());
-					foreach(var trackChunk in midi.GetTrackChunks()){
-						foreach(var trackEvent in trackChunk.Events){
-							if (trackEvent is not SequenceTrackNameEvent trackName) continue;
-							if(trackName.Text == "VENUE"){
-								midiWithNewVenue.Chunks.Add(LegacyVenueConverter.ConvertVenue(trackChunk));
-								Debug.Log("Legacy VENUE track detected and converted to the newer style.");
-								Debug.Log(LegacyVenueConverter.ConvertVenue(trackChunk).Events.Count);
-								break;
-							}
-							else{
-								midiWithNewVenue.Chunks.Add(trackChunk);
-								break;
-							}
-						}
-					}
-					midi = midiWithNewVenue;
-				}
-
 				var ForbiddenVenueSrcs = new HashSet<string> { "tbrb", "beatles", "tbrbdlc", "tbrbcdlc" };
 				if(!ForbiddenVenueSrcs.Contains(oof.Source)){ // skip beatles venues cuz they're built different
 					// get midi tracks based from the milo, and append them to the midi to use
