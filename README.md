@@ -115,7 +115,7 @@ Have fun!
 > If you don't follow these instructions, **YOU WILL NOT BE ABLE TO RUN THE GAME**.
 
 1. Make sure you have the latest version of [Blender](https://www.blender.org/) installed. This is for loading models, even if you don't plan on editing them.
-2. Make sure you have [Python (3.10)](https://www.python.org/downloads/) or greater installed. Be sure it is added to system path. This is required to downloading dependencies.
+2. Make sure you have [Python (3.10)](https://www.python.org/downloads/) or greater installed. Be sure it is added to system path. This is required to download dependencies.
 3. Clone the repository. If you don't know how to do this:
   1. Download [Git](https://git-scm.com/downloads). Be sure it is added to system path.
   2. Open the command prompt in the directory you want to store the repository.
@@ -127,7 +127,7 @@ Have fun!
   4. Click "Install"
 5. Open the command prompt at the root of the repo, and type in:
   1. `pip install requests`
-  2. `python InstallLibraries/install.py`. This may take a bit. Wait for the command prompt to say "Done!" before closing. This installs all needed dependencies for you.
+  2. `python InstallLibraries/install.py`. This may take a bit. Wait for the command prompt to say "Done!" before closing. This installs all of the needed dependencies for you.
 6. Open the project in Unity (select "Open" and select YARG's repo's folder).
 7. Load in **without** entering safe mode. Click "Ignore".
 8. (You may need to) click on `NuGet` on the menu bar, then click on `Restore Packages`.
