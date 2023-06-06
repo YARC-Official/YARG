@@ -15,10 +15,15 @@ namespace YARG.UI {
 		private enum State {
 			INSTRUMENT,
 			DIFFICULTY,
-
-			VOCALS,
-			VOCALS_DIFFICULTY
 		}
+
+		private static List<string> _expertPlusAllowedList = new() {
+			"drums",
+			"realDrums",
+			"ghDrums",
+			"vocals",
+			"harmVocals",
+		};
 
 		[SerializeField]
 		private GenericOption[] options;
@@ -29,7 +34,8 @@ namespace YARG.UI {
 		[SerializeField]
 		private Toggle brutalModeCheckbox;
 
-		private int playerIndex;
+		private List<PlayerManager.Player> playersToConfigure = new(); // Used to more cleanly handle vocals players
+		private int playerIndex; // The current player index (not used for vocals)
 		private string[] instruments;
 		private Difficulty[] difficulties;
 		private State state;
@@ -64,22 +70,36 @@ namespace YARG.UI {
 				})
 			}, false));
 
+			Debug.Log(GameManager.Instance.SelectedSong.AvailableParts);
+
+			playerIndex = 0;
+			playersToConfigure.Clear();
+
 			// See if there are any mics
 			bool anyMics = false;
-			foreach (var player in PlayerManager.players) {
+			for (int index = 0; index < PlayerManager.players.Count; index++) {
+				var player = PlayerManager.players[index];
 				if (player.inputStrategy is MicInputStrategy) {
+					playersToConfigure.Add(player);
 					anyMics = true;
 				}
 			}
 
-			// Update options
-			playerIndex = 0;
-			if (anyMics) {
-				UpdateVocalOptions();
-				brutalModeCheckbox.interactable = false;
-			} else {
-				UpdateInstrument();
+			// Use first player otherwise
+			if (playersToConfigure.Count < 1) {
+				playersToConfigure.Add(PlayerManager.players[playerIndex]);
 			}
+
+			// Get player info
+			var allowedInstruments = playersToConfigure[0].inputStrategy.GetAllowedInstruments();
+			string headerText = playersToConfigure[0].DisplayName;
+			if (anyMics) {
+				headerText = "Options for All Vocals";
+				brutalModeCheckbox.interactable = false;
+				playerIndex = -1;
+			}
+
+			UpdateInstrument(headerText, allowedInstruments);
 		}
 
 		private void OnDestroy() {
@@ -128,44 +148,25 @@ namespace YARG.UI {
 		}
 
 		public void Next() {
-			var player = PlayerManager.players[playerIndex];
-
 			if (state == State.INSTRUMENT) {
 				if (selected >= instruments.Length) {
-					player.chosenInstrument = null;
+					foreach (var player in playersToConfigure) {
+						player.chosenInstrument = null;
+					}
 					IncreasePlayerIndex();
 				} else {
-					player.chosenInstrument = instruments[selected];
-					bool showExpertPlus = player.chosenInstrument == "drums"
-						|| player.chosenInstrument == "realDrums"
-						|| player.chosenInstrument == "ghDrums";
-					UpdateDifficulty(player.chosenInstrument, showExpertPlus);
+					string instrument = instruments[selected];
+					foreach (var player in playersToConfigure) {
+						player.chosenInstrument = instrument;
+					}
+					bool showExpertPlus = _expertPlusAllowedList.Contains(instrument);
+					UpdateDifficulty(instrument, showExpertPlus);
 				}
 			} else if (state == State.DIFFICULTY) {
-				player.chosenDifficulty = difficulties[selected];
-				OnInstrumentSelection?.Invoke(player);
-				IncreasePlayerIndex();
-			} else if (state == State.VOCALS) {
-				if (selected == 2) {
-					foreach (var p in PlayerManager.players) {
-						p.chosenInstrument = null;
-					}
-
-					playerIndex = -1;
-					IncreasePlayerIndex();
-				} else {
-					foreach (var p in PlayerManager.players) {
-						p.chosenInstrument = selected == 0 ? "vocals" : "harmVocals";
-					}
-					UpdateVocalDifficulties();
+				foreach (var player in playersToConfigure) {
+					player.chosenDifficulty = difficulties[selected];
+					OnInstrumentSelection?.Invoke(player);
 				}
-			} else if (state == State.VOCALS_DIFFICULTY) {
-				foreach (var p in PlayerManager.players) {
-					p.chosenDifficulty = (Difficulty) selected;
-				}
-
-				playerIndex = -1;
-				OnInstrumentSelection?.Invoke(player);
 				IncreasePlayerIndex();
 			}
 		}
@@ -199,16 +200,18 @@ namespace YARG.UI {
 				// Play song
 				GameManager.Instance.LoadScene(SceneIndex.PLAY);
 			} else {
-				UpdateInstrument();
+				var player = PlayerManager.players[playerIndex];
+				playersToConfigure.Clear();
+				playersToConfigure.Add(player);
+				UpdateInstrument(player.DisplayName, player.inputStrategy.GetAllowedInstruments());
 			}
 		}
 
-		private void UpdateInstrument() {
-			// Header
-			var player = PlayerManager.players[playerIndex];
-			header.text = player.DisplayName;
-
+		private void UpdateInstrument(string headerText, Instrument[] allowedInstruments) {
 			state = State.INSTRUMENT;
+
+			// Header
+			header.text = headerText;
 
 			// Get allowed instruments
 			var allInstruments = (Instrument[]) Enum.GetValues(typeof(Instrument));
@@ -216,8 +219,6 @@ namespace YARG.UI {
 			// Get available instruments
 			var availableInstruments = allInstruments
 				.Where(instrument => GameManager.Instance.SelectedSong.HasInstrument(instrument)).ToList();
-
-			Debug.Log(GameManager.Instance.SelectedSong.AvailableParts);
 
 			// Force add pro drums and five lane
 			if (availableInstruments.Contains(Instrument.DRUMS)) {
@@ -233,7 +234,7 @@ namespace YARG.UI {
 			}
 
 			// Filter out to only allowed instruments
-			availableInstruments.RemoveAll(i => !player.inputStrategy.GetAllowedInstruments().Contains(i));
+			availableInstruments.RemoveAll(i => !allowedInstruments.Contains(i));
 
 			optionCount = availableInstruments.Count + 1;
 
@@ -247,7 +248,7 @@ namespace YARG.UI {
 			ops[^1] = "Sit Out";
 
 			// Set text and sprites
-			for (int i = 0; i < 6; i++) {
+			for (int i = 0; i < options.Length; i++) {
 				options[i].SetText("");
 				options[i].SetSelected(false);
 
@@ -316,62 +317,6 @@ namespace YARG.UI {
 
 			selected = optionCount - 1;
 			options[optionCount - 1].SetSelected(true);
-		}
-
-		private void UpdateVocalOptions() {
-			header.text = "Options for All Vocals";
-
-			state = State.VOCALS;
-
-			optionCount = 3;
-			string[] ops = {
-				"Solo",
-				"Harmony",
-				"Sit Out (All Vocals)",
-				null,
-				null,
-				null
-			};
-
-			for (int i = 0; i < 6; i++) {
-				options[i].SetText(ops[i]);
-				options[i].SetSelected(false);
-
-				if (i == 0) {
-					var sprite = Addressables.LoadAssetAsync<Sprite>("FontSprites[vocals]").WaitForCompletion();
-					options[i].SetImage(sprite);
-				} else if (i == 1) {
-					var sprite = Addressables.LoadAssetAsync<Sprite>("FontSprites[harmVocals]").WaitForCompletion();
-					options[i].SetImage(sprite);
-				}
-			}
-
-			selected = 0;
-			options[0].SetSelected(true);
-		}
-
-		private void UpdateVocalDifficulties() {
-			header.text = "Options for All Vocals";
-
-			state = State.VOCALS_DIFFICULTY;
-
-			optionCount = 5;
-			string[] ops = {
-				"Easy",
-				"Medium",
-				"Hard",
-				"Expert",
-				"Expert+",
-				null
-			};
-
-			for (int i = 0; i < 6; i++) {
-				options[i].SetText(ops[i]);
-				options[i].SetSelected(false);
-			}
-
-			selected = 3;
-			options[3].SetSelected(true);
 		}
 	}
 }

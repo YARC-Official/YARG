@@ -6,6 +6,7 @@ using EasySharpIni;
 namespace YARG.Song {
 	public class IniSongEntry : SongEntry {
 		private static readonly IntConverter IntConverter = new();
+		private static readonly BooleanConverter BooleanConverter = new();
 
 		public string Playlist { get; private set; } = string.Empty;
 		public string SubPlaylist { get; private set; } = string.Empty;
@@ -91,7 +92,7 @@ namespace YARG.Song {
 			}
 
 			HopoThreshold = section.GetField("hopo_frequency", "170").Get(IntConverter);
-			EighthNoteHopo = section.GetField("eighthnote_hopo", "false").Get().ToLower() == "true";
+			EighthNoteHopo = section.GetField("eighthnote_hopo", "false").Get(BooleanConverter);
 			MultiplierNote = section.GetField("multiplier_note", "116").Get(IntConverter);
 
 			PartDifficulties = new() {
@@ -123,26 +124,16 @@ namespace YARG.Song {
 			}
 
 			DrumType = DrumType.Unknown;
-			if (section.ContainsField("pro_drums")) {
-				switch (section.GetField("pro_drums")) {
-					case "true":
-					case "1":
-						DrumType = DrumType.FourLane;
-						break;
-				}
-			} else if (section.ContainsField("five_lane_drums")) {
-				switch (section.GetField("five_lane_drums")) {
-					case "true":
-					case "1":
-						DrumType = DrumType.FiveLane;
-						break;
-				}
+			if (section.GetField("pro_drums", "false").Get(BooleanConverter)) {
+				DrumType = DrumType.FourLane;
+			} else if (section.GetField("five_lane_drums", "false").Get(BooleanConverter)) {
+				DrumType = DrumType.FiveLane;
 			}
 
 			LoadingPhrase = section.GetField("loading_phrase");
 			Source = section.GetField("icon");
-			HasLyrics = section.GetField("lyrics").Get().ToLower() == "true";
-			IsModChart = section.GetField("modchart").Get().ToLower() == "true";
+			HasLyrics = section.GetField("lyrics").Get(BooleanConverter);
+			IsModChart = section.GetField("modchart").Get(BooleanConverter);
 			VideoStartOffset = section.GetField("video_start_time", "0").Get(IntConverter);
 			return ScanResult.Ok;
 		}
