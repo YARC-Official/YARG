@@ -52,28 +52,25 @@ namespace YARG.UI.MusicLibrary {
 		private CancellationTokenSource _previewCanceller = new();
 
 		public IReadOnlyList<ViewType> Songs => _songs;
+		public ViewType CurrentSelection => _selectedIndex < _songs.Count ? _songs[_selectedIndex] : null;
 
 		private int _selectedIndex;
 		public int SelectedIndex {
 			get => _selectedIndex;
 			private set {
-				_selectedIndex = value;
-
-				if (_songs.Count <= 0) {
-					return;
-				}
-
-				// Wrap
-				if (_selectedIndex < 0) {
+				// Wrap value to bounds
+				if (value < 0) {
 					_selectedIndex = _songs.Count - 1;
-				} else if (_selectedIndex >= _songs.Count) {
+				} else if (value >= _songs.Count) {
 					_selectedIndex = 0;
+				} else {
+					_selectedIndex = value;
 				}
 
 				UpdateScrollbar();
 				UpdateSongViews();
 
-				if (_songs[_selectedIndex] is not SongViewType song) {
+				if (CurrentSelection is not SongViewType song) {
 					return;
 				}
 
@@ -141,7 +138,7 @@ namespace YARG.UI.MusicLibrary {
 					ScrollDown();
 				}),
 				new NavigationScheme.Entry(MenuAction.Confirm, "Confirm", () => {
-					_songs[SelectedIndex]?.PrimaryButtonClick();
+					CurrentSelection?.PrimaryButtonClick();
 				}),
 				new NavigationScheme.Entry(MenuAction.Back, "Back", () => {
 					Back();
@@ -222,7 +219,7 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		private void UpdateFilter(){
-			if (_songs[SelectedIndex] is not SongViewType view) {
+			if (CurrentSelection is not SongViewType view) {
 				return;
 			}
 
@@ -275,7 +272,7 @@ namespace YARG.UI.MusicLibrary {
 			}
 
 			// Start preview
-			if (!_previewContext.IsPlaying && _songs[SelectedIndex] is SongViewType song) {
+			if (!_previewContext.IsPlaying && CurrentSelection is SongViewType song) {
 				_previewCanceller = new();
 				float previewVolume = SettingsManager.Settings.PreviewVolume.Data;
 				_previewContext.PlayPreview(song.SongEntry, previewVolume, _previewCanceller.Token).Forget();
@@ -586,7 +583,7 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		private void SelectPreviousSection(){
-			if (_songs[_selectedIndex] is not SongViewType song) {
+			if (CurrentSelection is not SongViewType song) {
 				return;
 			}
 
@@ -601,7 +598,7 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		private void SelectNextSection(){
-			if (_songs[_selectedIndex] is not SongViewType song) {
+			if (CurrentSelection is not SongViewType song) {
 				return;
 			}
 
@@ -634,7 +631,7 @@ namespace YARG.UI.MusicLibrary {
 
 #if UNITY_EDITOR
 		public void SetAsTestPlaySong() {
-			if (_songs[SelectedIndex] is not SongViewType song) {
+			if (CurrentSelection is not SongViewType song) {
 				return;
 			}
 

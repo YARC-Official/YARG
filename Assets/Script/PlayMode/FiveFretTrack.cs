@@ -371,9 +371,10 @@ namespace YARG.PlayMode {
 			lastHitNote = chord;
 
 			// Solo stuff
-			if (CurrentTime >= CurrentSolo?.time && CurrentTime <= CurrentSolo?.EndTime) {
+			if (soloInProgress) {
 				soloNotesHit++;
 			}
+
 			foreach (var hit in chord) {
 				hitChartIndex++;
 				// Hit notes

@@ -23,16 +23,11 @@ namespace YARG.PlayMode {
 		}
 
 		private void Update() {
-			if (_currentSprite >= _textures.Length) {
-				return;
-			}
-
-			if (_updateTimer > SecondsPerFrame) {
-				_updateTimer = 0f;
+			_updateTimer += Time.deltaTime;
+			while (_updateTimer >= SecondsPerFrame && _currentSprite < _textures.Length) {
+				_updateTimer -= SecondsPerFrame;
 				UpdateTexture();
 				_currentSprite++;
-			} else {
-				_updateTimer += Time.deltaTime;
 			}
 		}
 

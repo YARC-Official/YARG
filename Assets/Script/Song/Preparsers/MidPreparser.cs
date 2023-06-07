@@ -28,6 +28,12 @@ namespace YARG.Song.Preparsers {
 			{ MidIOHelper.VOCALS_TRACK, Instrument.VOCALS },
 			{ "PART REAL_GUITAR", Instrument.REAL_GUITAR },
 			{ "PART REAL_BASS", Instrument.REAL_BASS },
+			{ "HARM1", Instrument.HARMONY },
+			{ "HARM2", Instrument.HARMONY },
+			{ "HARM3", Instrument.HARMONY },
+			{ "PART HARM1", Instrument.HARMONY },
+			{ "PART HARM2", Instrument.HARMONY },
+			{ "PART HARM3", Instrument.HARMONY },
 
 		};
 

@@ -1,7 +1,7 @@
 {
 	"gameStartedBy": {
 		"EliteAsian": {
-			"roles": [ "developer", "artist" ],
+			"roles": [ "developer", "artist", "charter" ],
 			"twitter": "EliteAsian123",
 			"twitch": "eliteasian123",
 			"github": "EliteAsian123",
@@ -17,17 +17,24 @@
 			"twitch": "kaduwaengertner",
 			"github": "kaduwaengertner",
 			"videoService": "@kaduwaengertner",
-			"discord": "Kadu#7712",
+			"discord": "kadu",
 			"website": "https://kadu.live"
 		}
 	},
 	"leadCharter": {
 		"Synthesize": {
-			"roles": [ "charter" ]
+			"roles": [ "charter" ],
+			"twitter": "SynthesizeTime",
+			"twitch": "synthesizetime",
+			"github": "SynthesizeTime",
+			"videoService": "UCDGGCLLZxSXrYQtDGFy0BiQ",
+			"discord": "Synthesize#2853",
+			"email": "aaronhubbard081503@outlook.com"
 		}
 	},
 	"contributors": {
 		"The Fat Bastid": {
+			"roles": [ "developer" ],
 			"github": "TheFatBastid",
 			"videoService": "UCCmx6jiTO-353X8KNaOgb3Q",
 			"discord": "The Fat Bastid#7712",

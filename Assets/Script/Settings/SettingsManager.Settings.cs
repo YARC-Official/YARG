@@ -145,9 +145,9 @@ namespace YARG.Settings {
 					};
 
 					foreach (var r in Screen.resolutions) {
-						if (r.refreshRate >= highest.refreshRate &&
-						    r.width >= highest.width &&
-						    r.height >= highest.height) {
+						if (r.refreshRate >= highest.refreshRate ||
+							r.width >= highest.width ||
+							r.height >= highest.height) {
 
 							highest = r;
 						}

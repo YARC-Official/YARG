@@ -47,6 +47,9 @@ namespace YARG.PlayMode {
 		protected int visualChartIndex = 0;
 		protected int inputChartIndex = 0;
 		protected int hitChartIndex = 0;
+		public NoteInfo CurrentNote => 
+			hitChartIndex < Chart.Count ? Chart[hitChartIndex] : null;
+
 		protected int currentBeatIndex = 0;
 
 		protected CommonTrack commonTrack;
@@ -80,7 +83,7 @@ namespace YARG.PlayMode {
 		protected Light comboSunburstEmbeddedLight;
 
 		// Solo stuff
-		private bool soloInProgress = false;
+		protected bool soloInProgress = false;
 		protected int soloNoteCount = -1;
 		protected int soloNotesHit = 0;
 		private int soloHitPercent = 0;
@@ -119,7 +122,7 @@ namespace YARG.PlayMode {
 				}
 
 				// End starpower if combo ends
-				if (CurrentStarpower?.time <= CurrentTime && value == 0) {
+				if (value == 0 && CurrentStarpower?.time <= HitMarginStartTime && CurrentNote?.time >= CurrentStarpower?.time) {
 					StarpowerMissEvent?.Invoke(CurrentStarpower);
 					// Only move to the next visual phrase if it is also the current logical phrase
 					if (starpowerVisualIndex == starpowerIndex) {
@@ -712,11 +715,7 @@ namespace YARG.PlayMode {
 		}
 
 		protected bool IsStarpowerHit() {
-			if (Chart.Count > hitChartIndex) {
-				return Chart[hitChartIndex].time >= CurrentStarpower?.EndTime;
-			}
-
-			return false;
+			return CurrentNote?.time >= CurrentStarpower?.EndTime;
 		}
 
 		public abstract void SetReverb(bool on);
