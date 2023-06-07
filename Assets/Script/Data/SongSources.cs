@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace YARG.Data {
 	public static class SongSources {
-		private static readonly Dictionary<string, string> DEFAULT_SOURCES = new() {
+		public static readonly Dictionary<string, string> DEFAULT_SOURCES = new() {
 			{ "yarg", "YARG" },
 
 			{ "gh1", "Guitar Hero" },
