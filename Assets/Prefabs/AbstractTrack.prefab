@@ -59,8 +59,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <TrackCamera>k__BackingField: {fileID: 3209698564276094243}
+  <TrackMaterialHandler>k__BackingField: {fileID: 110974490431925762}
   cameraAnimation: {fileID: 1552777706109494942}
-  trackRenderer: {fileID: 6705658293223943274}
   hitWindow: {fileID: 4405145901572709445}
   fadeBegin: {fileID: 0}
   fadeEnd: {fileID: 0}
@@ -1266,6 +1266,7 @@ GameObject:
   - component: {fileID: 6095465098754807046}
   - component: {fileID: 6705658293223943274}
   - component: {fileID: 4091776711919776617}
+  - component: {fileID: 110974490431925762}
   m_Layer: 7
   m_Name: TrackModel
   m_TagString: Untagged
@@ -1280,7 +1281,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3468215309777557950}
-  m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: -0.0000020191073, y: 0.7071068, z: 0.7071068, w: 0.0000020191073}
   m_LocalPosition: {x: 0, y: 0, z: -0.066}
   m_LocalScale: {x: 100, y: 100, z: 100}
   m_ConstrainProportionsScale: 0
@@ -1289,7 +1290,7 @@ Transform:
   - {fileID: 2172866567066784705}
   m_Father: {fileID: 90376540996421698}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 180}
 --- !u!33 &6095465098754807046
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -1318,7 +1319,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: bce0db5801ff5ec499444ec50d59c1f7, type: 2}
+  - {fileID: 2100000, guid: 40710ac73948c2147bc06c7db0511e5d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1353,6 +1354,19 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 0.02, y: 0.06, z: 0.0001}
   m_Center: {x: 0, y: -2.3283064e-10, z: 1.4006218e-10}
+--- !u!114 &110974490431925762
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3468215309777557950}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68915979b2673a3488d93dcc454ac2cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _trackMesh: {fileID: 6705658293223943274}
 --- !u!1 &4193094083648882787
 GameObject:
   m_ObjectHideFlags: 0
@@ -12631,22 +12645,22 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 043eb3e77aa6c7d42a828ea431d06a13,
         type: 3}
       propertyPath: m_LocalRotation.w
-      value: -0.00000030029614
+      value: -0.0000003002961
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 043eb3e77aa6c7d42a828ea431d06a13,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.00000029754906
+      value: -0.00000035541558
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 043eb3e77aa6c7d42a828ea431d06a13,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.7071069
+      value: 0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 043eb3e77aa6c7d42a828ea431d06a13,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.70710677
+      value: 0.7071067
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 043eb3e77aa6c7d42a828ea431d06a13,
         type: 3}

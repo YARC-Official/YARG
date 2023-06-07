@@ -47,7 +47,7 @@ namespace YARG.PlayMode {
 		protected int visualChartIndex = 0;
 		protected int inputChartIndex = 0;
 		protected int hitChartIndex = 0;
-		public NoteInfo CurrentNote => 
+		public NoteInfo CurrentNote =>
 			hitChartIndex < Chart.Count ? Chart[hitChartIndex] : null;
 
 		protected int currentBeatIndex = 0;
@@ -359,33 +359,31 @@ namespace YARG.PlayMode {
 
 		private void UpdateMaterial() {
 			// Update track UV
-			var trackMaterial = commonTrack.trackRenderer.material;
-			var oldOffset = trackMaterial.GetVector("TexOffset");
-			float movement = Time.deltaTime * player.trackSpeed / 4f;
-			trackMaterial.SetVector("TexOffset", new(oldOffset.x, oldOffset.y - movement));
+			commonTrack.TrackMaterialHandler.ScrollTrack(player.trackSpeed);
 
 			// Update track groove
-			float currentGroove = trackMaterial.GetFloat("GrooveState");
+			float currentGroove = commonTrack.TrackMaterialHandler.GrooveState;
 			if (Multiplier >= MaxMultiplier) {
-				trackMaterial.SetFloat("GrooveState", Mathf.Lerp(currentGroove, 1f, Time.deltaTime * 5f));
+				commonTrack.TrackMaterialHandler.GrooveState = Mathf.Lerp(currentGroove, 1f, Time.deltaTime * 5f);
 			} else {
-				trackMaterial.SetFloat("GrooveState", Mathf.Lerp(currentGroove, 0f, Time.deltaTime * 3f));
+				commonTrack.TrackMaterialHandler.GrooveState = Mathf.Lerp(currentGroove, 0f, Time.deltaTime * 3f);
 			}
 
-			// Update track starpower
-			float currentStarpower = trackMaterial.GetFloat("StarpowerState");
-			if (IsStarPowerActive) {
-				trackMaterial.SetFloat("StarpowerState", Mathf.Lerp(currentStarpower, 1f, Time.deltaTime * 2f));
-			} else {
-				trackMaterial.SetFloat("StarpowerState", Mathf.Lerp(currentStarpower, 0f, Time.deltaTime * 4f));
-			}
-
-			float currentSolo = trackMaterial.GetFloat("SoloState");
-			if (CurrentTime >= CurrentSolo?.time - 2 && CurrentTime <= CurrentSolo?.EndTime - 1) {
-				trackMaterial.SetFloat("SoloState", Mathf.Lerp(currentSolo, 1f, Time.deltaTime * 2f));
-			} else {
-				trackMaterial.SetFloat("SoloState", Mathf.Lerp(currentSolo, 0f, Time.deltaTime * 2f));
-			}
+			//
+			// // Update track starpower
+			// float currentStarpower = trackMaterial.GetFloat("StarpowerState");
+			// if (IsStarPowerActive) {
+			// 	trackMaterial.SetFloat("StarpowerState", Mathf.Lerp(currentStarpower, 1f, Time.deltaTime * 2f));
+			// } else {
+			// 	trackMaterial.SetFloat("StarpowerState", Mathf.Lerp(currentStarpower, 0f, Time.deltaTime * 4f));
+			// }
+			//
+			// float currentSolo = trackMaterial.GetFloat("SoloState");
+			// if (CurrentTime >= CurrentSolo?.time - 2 && CurrentTime <= CurrentSolo?.EndTime - 1) {
+			// 	trackMaterial.SetFloat("SoloState", Mathf.Lerp(currentSolo, 1f, Time.deltaTime * 2f));
+			// } else {
+			// 	trackMaterial.SetFloat("SoloState", Mathf.Lerp(currentSolo, 0f, Time.deltaTime * 2f));
+			// }
 
 			// Update starpower bar
 			var starpowerMat = commonTrack.starpowerBarTop.material;
