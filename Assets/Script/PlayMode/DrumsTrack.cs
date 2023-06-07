@@ -300,7 +300,7 @@ namespace YARG.PlayMode {
 				// otherwise only play it when actually hitting a kick
 				if (Chart.Count < 1 || CurrentTime < Chart[0].time || CurrentTime >= Chart[^1].time) {
 					commonTrack.kickFlash.PlayAnimation();
-					if (shakeOnKick) {
+					if (shakeOnKick && SettingsManager.Settings.KickBounce.Data) {
 						trackAnims.PlayKickShakeCameraAnim();
 					}
 				}
@@ -333,7 +333,7 @@ namespace YARG.PlayMode {
 					// Play kick flash/shake
 					if (note.fret == kickIndex) {
 						commonTrack.kickFlash.PlayAnimation();
-						if (shakeOnKick) {
+						if (shakeOnKick && SettingsManager.Settings.KickBounce.Data) {
 							trackAnims.PlayKickShakeCameraAnim();
 						}
 					}

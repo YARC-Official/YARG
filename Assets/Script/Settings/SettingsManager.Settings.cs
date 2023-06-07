@@ -37,6 +37,7 @@ namespace YARG.Settings {
 			public ToggleSetting UseCymbalModelsInFiveLane  { get; private set; } = new(true);
 
 			public ToggleSetting NoKicks                    { get; private set; } = new(false);
+			public ToggleSetting KickBounce                 { get; private set; } = new(true);
 			public ToggleSetting AntiGhosting               { get; private set; } = new(true);
 
 			public VolumeSetting MasterMusicVolume          { get; private set; } = new(0.75f,v => VolumeCallback(SongStem.Master, v));

@@ -38,6 +38,7 @@ namespace YARG.Settings {
 					new HeaderMetadata("Other"),
 					"ShowHitWindow",
 					"UseCymbalModelsInFiveLane",
+					"KickBounce",
 					"AmIAwesome"
 				}
 			},
