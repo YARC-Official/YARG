@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using UnityEngine;
 using DtxCS.DataTypes;
 using System.Collections.Generic;
@@ -303,6 +303,8 @@ namespace YARG.Song {
 						break;
 					case "game_origin":
 						Source = ((DataSymbol) dtaArray[1]).Name;
+						var HMXSrcs = new HashSet<string> { "rb1", "rb1_dlc", "rb1dlc", "gdrb", "greenday", "beatles", "tbrb", "tbrbdlc", 
+							"lego", "lrb", "rb2", "rb3", "rb3_dlc", "rb3dlc" };
 						// if the source is UGC/UGC_plus but no "UGC_" in shortname, assume it's a custom
 						if (Source == "ugc" || Source == "ugc_plus") {
 							if (!(ShortName.Contains("UGC_"))) {
@@ -310,12 +312,9 @@ namespace YARG.Song {
 							}
 						}
 						// if the source is any official RB game or its DLC, charter = Harmonix
-						if (Source == "rb1" || Source == "rb1_dlc" || Source == "rb1dlc" ||
-							Source == "gdrb" || Source == "greenday" || Source == "beatles" ||
-							Source == "tbrb" || Source == "lego" || Source == "lrb" ||
-							Source == "rb2" || Source == "rb3" || Source == "rb3_dlc" || Source == "rb3dlc") {
-							Charter = "Harmonix";
-						}
+						if(HMXSrcs.Contains(Source)) Charter = "Harmonix";
+						// if the source is meant for usage in TBRB, it's a master track
+						if(SongSources.DEFAULT_SOURCES[Source].Contains("Beatles")) IsMaster = true;
 						break;
 					case "genre": Genre = ((DataSymbol) dtaArray[1]).Name; break;
 					case "rating": SongRating = ((DataAtom) dtaArray[1]).Int; break;
