@@ -295,6 +295,10 @@ MonoBehaviour:
     m_Key: TrackFadeSize
     m_Metadata:
       m_Items: []
+  - m_Id: 26591864540614656
+    m_Key: KickBounce
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

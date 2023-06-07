@@ -298,6 +298,10 @@ MonoBehaviour:
     m_Localized: Fade Size
     m_Metadata:
       m_Items: []
+  - m_Id: 26591864540614656
+    m_Localized: Drum Kick Bounce
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
