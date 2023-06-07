@@ -172,7 +172,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Update starpower
-			if (whammyAmount > 0f) {
+			if ((whammyAmount > 0f) || input.BotMode) {
 				starpowerCharge += Time.deltaTime * Play.Instance.CurrentBeatsPerSecond * 0.034f;
 			}
 		}
