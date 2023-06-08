@@ -64,13 +64,13 @@ namespace YARG.PlayMode {
 		public EventInfo CurrentVisualStarpower =>
 			starpowerVisualIndex < starpowerSections.Count ? starpowerSections[starpowerVisualIndex] : null;
 
-		protected List<EventInfo> soloSections = new();
+		protected List<(EventInfo info, int noteCount)> soloSections = new();
 		protected int soloIndex = 0;
 		protected int soloVisualIndex = 0;
-		public EventInfo CurrentSolo =>
-			soloIndex < soloSections.Count ? soloSections[soloIndex] : null;
-		public EventInfo CurrentVisualSolo =>
-			soloVisualIndex < soloSections.Count ? soloSections[soloVisualIndex] : null;
+		public (EventInfo info, int noteCount) CurrentSolo =>
+			soloIndex < soloSections.Count ? soloSections[soloIndex] : default;
+		public (EventInfo info, int noteCount) CurrentVisualSolo =>
+			soloVisualIndex < soloSections.Count ? soloSections[soloVisualIndex] : default;
 
 		protected int notesHit = 0;
 		// private int notesMissed = 0;
@@ -232,11 +232,16 @@ namespace YARG.PlayMode {
 			string spName = $"starpower_{player.chosenInstrument}";
 			string soloName = $"solo_{player.chosenInstrument}";
 			string fillName = $"fill_{player.chosenInstrument}";
+			int soloNoteIndex = 0; // Solos cannot share notes, so we can save some iteration time and only go start-to-end once
 			foreach (var eventInfo in Play.Instance.chart.events) {
 				if (eventInfo.name == spName) {
 					starpowerSections.Add(eventInfo);
 				} else if (eventInfo.name == soloName) {
-					soloSections.Add(eventInfo);
+					// Get note count of solo
+					int noteCount = GetNoteCountForPhrase(eventInfo, out soloNoteIndex, startIndex: soloNoteIndex);
+					if (noteCount > 0) {
+						soloSections.Add((eventInfo, noteCount));
+					}
 				}
 			}
 
@@ -381,7 +386,7 @@ namespace YARG.PlayMode {
 			}
 
 			float currentSolo = trackMaterial.GetFloat("SoloState");
-			if (CurrentTime >= CurrentSolo?.time - 2 && CurrentTime <= CurrentSolo?.EndTime - 1) {
+			if (CurrentTime >= CurrentSolo.info?.time - 2 && CurrentTime <= CurrentSolo.info?.EndTime - 1) {
 				trackMaterial.SetFloat("SoloState", Mathf.Lerp(currentSolo, 1f, Time.deltaTime * 2f));
 			} else {
 				trackMaterial.SetFloat("SoloState", Mathf.Lerp(currentSolo, 0f, Time.deltaTime * 2f));
@@ -484,25 +489,11 @@ namespace YARG.PlayMode {
 			}
 
 			// Set solo box and text
-			if (CurrentSolo?.time <= HitMarginStartTime && CurrentSolo?.EndTime >= HitMarginEndTime) {
+			if (CurrentSolo.info?.time <= HitMarginStartTime && CurrentSolo.info?.EndTime >= HitMarginEndTime) {
 				if (!soloInProgress) {
 					soloInProgress = true;
 					soloNotesHit = 0;
-					soloNoteCount = 0;
-
-					float lastNoteTime = -1f;
-					for (int i = hitChartIndex; i < Chart.Count; i++) {
-						if (Chart[i].time == lastNoteTime) {
-							continue;
-						}
-
-						if (Chart[i].time > CurrentSolo?.EndTime) {
-							break;
-						}
-
-						soloNoteCount++;
-						lastNoteTime = Chart[i].time;
-					}
+					soloNoteCount = CurrentSolo.noteCount;
 				}
 
 				// Set text color
@@ -685,10 +676,10 @@ namespace YARG.PlayMode {
 			recentStarpowerCharge = starpowerCharge;
 
 			// Clear out passed solo sections
-			while (CurrentSolo?.EndTime < HitMarginEndTime) {
+			while (CurrentSolo.info?.EndTime < HitMarginEndTime) {
 				soloIndex++;
 			}
-			while (CurrentVisualSolo?.EndTime < TrackStartTime) {
+			while (CurrentVisualSolo.info?.EndTime < TrackStartTime) {
 				soloVisualIndex++;
 			}
 		}
@@ -722,6 +713,31 @@ namespace YARG.PlayMode {
 
 		public virtual int GetChartCount() {
 			return Chart.Count;
+		}
+
+		protected int GetNoteCountForPhrase(EventInfo phrase, out int newIndex, bool chordsAreSingleNote = true, int startIndex = 0) {
+			int noteCount = 0;
+			float lastNoteTime = -1f;
+			for (newIndex = startIndex; newIndex < Chart.Count; newIndex++) {
+				var note = Chart[newIndex];
+				if (note.time > phrase.EndTime) {
+					// End of phrase reached
+					break;
+				}
+
+				if ((note.time == lastNoteTime && chordsAreSingleNote) // Chords count as a single note
+					|| note.time < phrase.time) { // Skip notes that are before the phrase
+					continue;
+				}
+				lastNoteTime = note.time;
+
+				// Determine if note start is within the phrase
+				if (note.time >= phrase.time && note.time <= phrase.EndTime) {
+					noteCount++;
+				}
+			}
+
+			return noteCount;
 		}
 	}
 }
