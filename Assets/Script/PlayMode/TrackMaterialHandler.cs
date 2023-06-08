@@ -5,6 +5,7 @@ using UnityEngine;
 namespace YARG.PlayMode {
 	public class TrackMaterialHandler : MonoBehaviour {
 		private static readonly int ScrollProperty = Shader.PropertyToID("_Scroll");
+		private static readonly int StarpowerStateProperty = Shader.PropertyToID("_Starpower_State");
 
 		private static readonly int Layer1ColorProperty = Shader.PropertyToID("_Layer_1_Color");
 		private static readonly int Layer2ColorProperty = Shader.PropertyToID("_Layer_2_Color");
@@ -25,7 +26,7 @@ namespace YARG.PlayMode {
 		private static Preset _normalPreset;
 		private static Preset _groovePreset;
 
-		public float _grooveState;
+		private float _grooveState;
 		public float GrooveState {
 			get => _grooveState;
 			set {
@@ -35,6 +36,11 @@ namespace YARG.PlayMode {
 				_material.SetColor(Layer3ColorProperty, Color.Lerp(_normalPreset.Layer3.Color, _groovePreset.Layer3.Color, value));
 				_material.SetColor(Layer4ColorProperty, Color.Lerp(_normalPreset.Layer4.Color, _groovePreset.Layer4.Color, value));
 			}
+		}
+
+		public float StarpowerState {
+			get => _material.GetFloat(StarpowerStateProperty);
+			set => _material.SetFloat(StarpowerStateProperty, value);
 		}
 
 		[SerializeField]
@@ -56,7 +62,7 @@ namespace YARG.PlayMode {
 					Color = FromHex("FFFFFF", 0f)
 				},
 				Layer4 = new() {
-					Color = FromHex("414141", 1f)
+					Color = FromHex("575757", 1f)
 				}
 			};
 
@@ -71,7 +77,7 @@ namespace YARG.PlayMode {
 					Color = FromHex("FFFFFF", 0f)
 				},
 				Layer4 = new() {
-					Color = FromHex("213B89", 1f)
+					Color = FromHex("2C499E", 1f)
 				}
 			};
 		}
