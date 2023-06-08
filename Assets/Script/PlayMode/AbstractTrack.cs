@@ -232,10 +232,16 @@ namespace YARG.PlayMode {
 			string spName = $"starpower_{player.chosenInstrument}";
 			string soloName = $"solo_{player.chosenInstrument}";
 			string fillName = $"fill_{player.chosenInstrument}";
-			int soloNoteIndex = 0; // Solos cannot share notes, so we can save some iteration time and only go start-to-end once
+			// Solos and SP cannot share notes, so we can save some iteration time and only go start-to-end once overall
+			int spNoteIndex = 0;
+			int soloNoteIndex = 0;
 			foreach (var eventInfo in Play.Instance.chart.events) {
 				if (eventInfo.name == spName) {
-					starpowerSections.Add(eventInfo);
+					// Don't add empty SP phrases
+					int noteCount = GetNoteCountForPhrase(eventInfo, out spNoteIndex, startIndex: spNoteIndex);
+					if (noteCount > 0) {
+						starpowerSections.Add(eventInfo);
+					}
 				} else if (eventInfo.name == soloName) {
 					// Get note count of solo
 					int noteCount = GetNoteCountForPhrase(eventInfo, out soloNoteIndex, startIndex: soloNoteIndex);
