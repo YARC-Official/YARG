@@ -235,16 +235,17 @@ namespace YARG.PlayMode {
 			// Solos and SP cannot share notes, so we can save some iteration time and only go start-to-end once overall
 			int spNoteIndex = 0;
 			int soloNoteIndex = 0;
+			bool chordsAreSingleNote = player.chosenInstrument is "drums" or "realDrums" or "ghDrums";
 			foreach (var eventInfo in Play.Instance.chart.events) {
 				if (eventInfo.name == spName) {
 					// Don't add empty SP phrases
-					int noteCount = GetNoteCountForPhrase(eventInfo, out spNoteIndex, startIndex: spNoteIndex);
+					int noteCount = GetNoteCountForPhrase(eventInfo, out spNoteIndex, chordsAreSingleNote, spNoteIndex);
 					if (noteCount > 0) {
 						starpowerSections.Add(eventInfo);
 					}
 				} else if (eventInfo.name == soloName) {
 					// Get note count of solo
-					int noteCount = GetNoteCountForPhrase(eventInfo, out soloNoteIndex, startIndex: soloNoteIndex);
+					int noteCount = GetNoteCountForPhrase(eventInfo, out soloNoteIndex, chordsAreSingleNote, soloNoteIndex);
 					if (noteCount > 0) {
 						soloSections.Add((eventInfo, noteCount));
 					}
