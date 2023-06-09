@@ -172,10 +172,8 @@ namespace YARG.PlayMode {
 			scoreKeeper.Add(PTS_PER_NOTE * Multiplier);
 
 			// Solo stuff
-			if (CurrentTime >= CurrentSolo?.time && CurrentTime <= CurrentSolo?.EndTime) {
+			if (soloInProgress) {
 				soloNotesHit++;
-			} else if (CurrentTime >= CurrentSolo?.EndTime + 10) {
-				soloNotesHit = 0;
 			}
 
 			// Play particles

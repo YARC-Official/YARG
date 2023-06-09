@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using YARG.Chart;
 using YARG.Data;
 using YARG.Input;
 using YARG.Pools;
@@ -10,6 +9,8 @@ using YARG.Util;
 
 namespace YARG.PlayMode {
 	public class FiveFretTrack : AbstractTrack {
+		// I CAN'T WAIT UNTIL THE NEW ENGINE!!!!
+
 		private bool strummed = false;
 		private float strumLeniency;
 
@@ -38,6 +39,11 @@ namespace YARG.PlayMode {
 		private const double SUSTAIN_PTS_PER_BEAT = 25.0;
 		private const int PTS_PER_NOTE = 50;
 		private int noteCount = -1;
+
+		private float whammyAmount;
+		private bool whammyLastNote;
+		private float whammyAnimationAmount;
+
 		protected override void StartTrack() {
 			notePool.player = player;
 			genericPool.player = player;
@@ -55,6 +61,7 @@ namespace YARG.PlayMode {
 
 			input.FretChangeEvent += FretChangedAction;
 			input.StrumEvent += StrumAction;
+			input.WhammyEvent += WhammyEvent;
 
 			if (input.BotMode) {
 				input.InitializeBotMode(Chart);
@@ -82,6 +89,7 @@ namespace YARG.PlayMode {
 			// Unbind input
 			input.FretChangeEvent -= FretChangedAction;
 			input.StrumEvent -= StrumAction;
+			input.WhammyEvent -= WhammyEvent;
 		}
 
 		protected override void UpdateTrack() {
@@ -129,6 +137,10 @@ namespace YARG.PlayMode {
 					if (heldNote.fret < 5) frets[heldNote.fret].StopSustainParticles(); // TEMP (remove check later)
 
 					extendedSustain[heldNote.fret] = false;
+
+					if (heldNotes.Count == 0) {
+						whammyLastNote = false;
+					}
 				}
 			}
 
@@ -136,6 +148,33 @@ namespace YARG.PlayMode {
 
 			// Un-strum
 			strummed = false;
+		}
+
+		protected override void UpdateStarpower() {
+			if (IsStarpowerHit() && heldNotes.Count != 0) {
+				whammyLastNote = true;
+			}
+
+			base.UpdateStarpower();
+
+			// Update whammy amount and animation
+			if (whammyAmount > 0f) {
+				whammyAmount -= Time.deltaTime;
+				whammyAnimationAmount = Mathf.Lerp(whammyAnimationAmount, 1f, Time.deltaTime * 6f);
+			} else {
+				whammyAnimationAmount = Mathf.Lerp(whammyAnimationAmount, 0f, Time.deltaTime * 3f);
+			}
+			notePool.WhammyFactor = whammyAnimationAmount;
+
+			// Add starpower on whammy, only if there are held notes
+			if ((heldNotes.Count == 0 || CurrentStarpower?.time > CurrentTime || CurrentStarpower == null) && !whammyLastNote) {
+				return;
+			}
+
+			// Update starpower
+			if ((whammyAmount > 0f) || input.BotMode) {
+				starpowerCharge += Time.deltaTime * Play.Instance.CurrentBeatsPerSecond * 0.034f;
+			}
 		}
 
 		public override void SetReverb(bool on) {
@@ -332,9 +371,10 @@ namespace YARG.PlayMode {
 			lastHitNote = chord;
 
 			// Solo stuff
-			if (CurrentTime >= CurrentSolo?.time && CurrentTime <= CurrentSolo?.EndTime) {
+			if (soloInProgress) {
 				soloNotesHit++;
 			}
+
 			foreach (var hit in chord) {
 				hitChartIndex++;
 				// Hit notes
@@ -400,7 +440,7 @@ namespace YARG.PlayMode {
 		private bool IsOverstrumForgiven(bool remove = true) {
 			for (int i = 0; i < allowedOverstrums.Count; i++) {
 				if (ChordPressed(allowedOverstrums[i], true)) {
-					// If we found a chord that was pressed, remove 
+					// If we found a chord that was pressed, remove
 					// all of the allowed overstrums before it.
 					// This prevents over-forgiving overstrums.
 
@@ -442,6 +482,8 @@ namespace YARG.PlayMode {
 				if (heldNote.fret < 5) frets[heldNote.fret].StopSustainParticles(); // TEMP (remove check later)
 				extendedSustain[heldNote.fret] = false;
 			}
+
+			whammyLastNote = false;
 		}
 
 		private bool ChordPressed(List<NoteInfo> chordList, bool overstrumCheck = false) {
@@ -594,6 +636,8 @@ namespace YARG.PlayMode {
 							if (heldNote.fret < 5) frets[heldNote.fret].StopSustainParticles(); // TEMP (remove check later)
 							extendedSustain[heldNote.fret] = false;
 						}
+
+						whammyLastNote = false;
 					}
 				}
 			} else {
@@ -613,6 +657,8 @@ namespace YARG.PlayMode {
 					extendedSustain[heldNote.fret] = false;
 
 					letGo = heldNote;
+
+					whammyLastNote = false;
 				}
 
 				// Only stop audio if all notes were let go and...
@@ -642,6 +688,11 @@ namespace YARG.PlayMode {
 			if (!input.BotMode) {
 				strumLeniency = Constants.STRUM_LENIENCY;
 			}
+		}
+
+		private void WhammyEvent(float delta) {
+			whammyAmount += Mathf.Abs(delta) * 0.25f;
+			whammyAmount = Mathf.Clamp(whammyAmount, 0f, 1f / 3f);
 		}
 
 		private void SpawnNote(NoteInfo noteInfo, float time) {

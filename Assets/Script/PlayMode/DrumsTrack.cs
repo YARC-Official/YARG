@@ -296,13 +296,14 @@ namespace YARG.PlayMode {
 				drums[drum].Pulse();
 			} else {
 				PlayKickFretAnimation();
-
-				if (shakeOnKick) {
-					//commonTrack.PlayKickCameraAnimation();
-					trackAnims.PlayKickShakeCameraAnim();
+				// Only play kick flash/shake now when outside of the chart,
+				// otherwise only play it when actually hitting a kick
+				if (Chart.Count < 1 || CurrentTime < Chart[0].time || CurrentTime >= Chart[^1].time) {
+					commonTrack.kickFlash.PlayAnimation();
+					if (shakeOnKick && SettingsManager.Settings.KickBounce.Data) {
+						trackAnims.PlayKickShakeCameraAnim();
+					}
 				}
-
-				commonTrack.kickFlash.PlayAnimation();
 			}
 
 			// Overstrum if no expected
@@ -328,6 +329,13 @@ namespace YARG.PlayMode {
 					hit = note;
 					if (note.isActivator) {
 						(input as DrumsInputStrategy).ActivateStarpower();
+					}
+					// Play kick flash/shake
+					if (note.fret == kickIndex) {
+						commonTrack.kickFlash.PlayAnimation();
+						if (shakeOnKick && SettingsManager.Settings.KickBounce.Data) {
+							trackAnims.PlayKickShakeCameraAnim();
+						}
 					}
 					break;
 				}

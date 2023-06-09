@@ -62,6 +62,8 @@ MonoBehaviour:
   cameraAnimation: {fileID: 1552777706109494942}
   trackRenderer: {fileID: 6705658293223943274}
   hitWindow: {fileID: 4405145901572709445}
+  fadeBegin: {fileID: 0}
+  fadeEnd: {fileID: 0}
   comboText: {fileID: 24723221875665680}
   comboMeterRenderer: {fileID: 5158185222957906181}
   starpowerBarTop: {fileID: 1638471387717129506}
@@ -11999,7 +12001,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.01
-  far clip plane: 8
+  far clip plane: 10
   field of view: 55
   orthographic: 0
   orthographic size: 5
@@ -12576,7 +12578,7 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 0.02, y: 0.02, z: 0.9}
+  m_Size: {x: 0.02, y: 0.02, z: 0.835}
   m_Center: {x: -0.00096836593, y: 0.014996303, z: 0.000052601106}
 --- !u!4 &2172866567066784705 stripped
 Transform:
@@ -12700,7 +12702,7 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 0.02, y: 0.02, z: 0.9}
+  m_Size: {x: 0.02, y: 0.02, z: 0.835}
   m_Center: {x: -0.00096839573, y: 0.014996298, z: 0.00005260121}
 --- !u!4 &3366220930003635383 stripped
 Transform:

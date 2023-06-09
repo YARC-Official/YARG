@@ -27,6 +27,26 @@ MonoBehaviour:
     m_Key: enterNumber
     m_Metadata:
       m_Items: []
+  - m_Id: 25388931303727104
+    m_Key: Credits.Header.gameStartedBy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 25388969404784640
+    m_Key: Credits.Header.leadArtist
+    m_Metadata:
+      m_Items: []
+  - m_Id: 25389008676052992
+    m_Key: Credits.Header.contributors
+    m_Metadata:
+      m_Items: []
+  - m_Id: 25509635210731520
+    m_Key: Credits.Header.specialThanks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 25519120012664832
+    m_Key: Credits.Header.leadCharter
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

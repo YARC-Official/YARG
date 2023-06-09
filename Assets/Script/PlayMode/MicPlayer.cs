@@ -200,7 +200,7 @@ namespace YARG.PlayMode {
 				}
 
 				// Skip if the player hasn't assigned a mic
-				if (micStrategy.MicDevice == null) {
+				if (micStrategy.MicDevice == null && !micStrategy.BotMode) {
 					continue;
 				}
 
@@ -706,11 +706,9 @@ namespace YARG.PlayMode {
 			// Move to next phrase end
 			_phraseEndIndex++;
 
-			// Calculate the new sing time
-			CalculateSectionSingTime(Play.Instance.SongTime);
-
 			// Skip if there is no singing
 			if (_sectionSingTime.Max() <= 0f) {
+				CalculateSectionSingTime(CurrentTime);
 				return;
 			}
 
@@ -796,9 +794,12 @@ namespace YARG.PlayMode {
 			}
 
 			// Clear out passed star power
-			while (CurrentStarpower?.EndTime < TrackStartTime) {
+			while (CurrentStarpower?.EndTime < CurrentTime) {
 				_starpowerIndex++;
 			}
+
+			// Calculate the new sing time
+			CalculateSectionSingTime(CurrentTime);
 		}
 
 		private void SpawnLyric(LyricInfo lyricInfo, EventInfo starpowerInfo, float time, int harmIndex) {

@@ -136,13 +136,13 @@ namespace YARG.Input {
 
 			NavigationEventForMapping(MenuAction.Shortcut1, YELLOW_CYMBAL);
 			NavigationEventForMapping(MenuAction.Shortcut2, BLUE_CYMBAL);
-			NavigationEventForMapping(MenuAction.Shortcut3, GREEN_CYMBAL);
+			NavigationEventForMapping(MenuAction.More, GREEN_CYMBAL);
 
 			NavigationEventForMapping(MenuAction.Up, YELLOW_PAD);
 			NavigationEventForMapping(MenuAction.Down, BLUE_PAD);
 
-			NavigationEventForMapping(MenuAction.More, KICK);
-			NavigationEventForMapping(MenuAction.More, KICK_ALT);
+			NavigationHoldableForMapping(MenuAction.Shortcut3, KICK);
+			NavigationHoldableForMapping(MenuAction.Shortcut3, KICK_ALT);
 
 			if (WasMappingPressed(PAUSE)) {
 				CallPauseEvent();

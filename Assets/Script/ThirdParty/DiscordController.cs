@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using Discord;
+using Unity.Collections;
 using UnityEngine;
+using YARG;
 using YARG.Data;
 using YARG.PlayMode;
 using YARG.Song;
@@ -43,6 +46,16 @@ public class DiscordController : MonoBehaviour {
 		}
 	}
 
+	[System.Serializable]
+	private struct distinctDetails {
+		public string defaultDetails;
+		public string defaultState;
+		public string defaultLargeImage;
+		public string defaultLargeText;
+	}
+	
+	private distinctDetails defaultDetails;
+
 	[SerializeField]
 	private GameObject songStartObject;
 
@@ -52,13 +65,26 @@ public class DiscordController : MonoBehaviour {
 	[Space]
 	[Header("Default Values")]
 	[SerializeField]
-	private string defaultDetails = "Hello there ladies and gentlemen!"; //Line of text just below the game name
+	private distinctDetails stableDetails = new distinctDetails {
+		defaultDetails = "Hello there ladies and gentlemen!",
+		defaultState = "Are you ready to rock?",
+		defaultLargeImage = "icon_stable",
+		defaultLargeText = "Yet Another Rhythm Game"
+	};
 	[SerializeField]
-	private string defaultState = "Are you ready to rock?"; //smaller 2nd line of text
-	private string defaultLargeImage = "logo"; // string name comes from the assets uploaded to the app
-	//private string defaultLargeImage = "https://cld.pt/dl/download/6e981054-9955-427a-9e4a-80b92a503a01/Icon.gif"; // URL to an animated Logo
+	private distinctDetails nightlyDetails = new distinctDetails {
+		defaultDetails = "Hello there ladies and gentlemen!",
+		defaultState = "Are you ready to test?",
+		defaultLargeImage = "icon_nightly",
+		defaultLargeText = "Yet Another Rhythm Game - Nightly Build"
+	};
 	[SerializeField]
-	private string defaultLargeText = "Yet Another Rhythm Game"; //Tooltip text for the large icon
+	private distinctDetails devDetails = new distinctDetails {
+		defaultDetails = "Hello there ladies and gentlemen!",
+		defaultState = "Are you ready to develop?",
+		defaultLargeImage = "icon_dev",
+		defaultLargeText = "Yet Another Rhythm Game - Developer Build"
+	};
 	[SerializeField]
 	private string defaultSmallImage = ""; // little overlay image on the bottom right of the Large image
 	[SerializeField]
@@ -88,6 +114,20 @@ public class DiscordController : MonoBehaviour {
 
 	private void Start() {
 		Instance = this;
+
+		// if it's a Nightly build, use the Nightly logo, otherwise use the Stable logo
+		if (Constants.VERSION_TAG.beta) {
+			defaultDetails = nightlyDetails;
+		} else {
+			defaultDetails = stableDetails;
+		}
+
+		// if it's running in the editor, use the Dev logo
+		#if UNITY_EDITOR
+			defaultDetails = devDetails;
+		#endif
+
+		
 
 		// Listen to the changing of songs
 		Play.OnSongStart += OnSongStart;
@@ -137,7 +177,7 @@ public class DiscordController : MonoBehaviour {
 
 			// Time data
 			pause ? 0 : DateTimeOffset.Now.ToUnixTimeMilliseconds(),
-			pause ? 0 : DateTimeOffset.Now.AddSeconds(songLengthSeconds - Play.Instance.SongTime).ToUnixTimeMilliseconds()
+			pause ? 0 : DateTimeOffset.Now.AddSeconds(Play.Instance.SongLength- Play.Instance.SongTime).ToUnixTimeMilliseconds()
 		);
 	}
 
@@ -151,7 +191,7 @@ public class DiscordController : MonoBehaviour {
 			songName,
 			"by " + artistName,
 			DateTimeOffset.Now.ToUnixTimeMilliseconds(),
-			DateTimeOffset.Now.AddSeconds(songLengthSeconds).ToUnixTimeMilliseconds()
+			DateTimeOffset.Now.AddSeconds(Play.Instance.SongLength- Play.Instance.SongTime).ToUnixTimeMilliseconds()
 		);
 	}
 
@@ -221,13 +261,13 @@ public class DiscordController : MonoBehaviour {
 	private void SetDefaultActivity() {
 		CurrentActivity = new Activity {
 			Assets = {
-				LargeImage = defaultLargeImage,
-				LargeText = defaultLargeText,
+				LargeImage = defaultDetails.defaultLargeImage,
+				LargeText = defaultDetails.defaultLargeText,
 				SmallImage = defaultSmallImage,
 				SmallText = defaultSmallText
 			},
-			Details = defaultDetails,
-			State = defaultState,
+			Details = defaultDetails.defaultDetails,
+			State = defaultDetails.defaultState,
 			Timestamps = {
 				Start = gameStartTime
 			}
@@ -237,8 +277,8 @@ public class DiscordController : MonoBehaviour {
 	private void SetActivity(string smallImage, string smallText, string details, string state, long startTimeStamp, long endTimeStamp) {
 		CurrentActivity = new Activity {
 			Assets = {
-				LargeImage = defaultLargeImage, //the YARG logo and tooltip does not change, at this point in time.
-				LargeText = defaultLargeText,
+				LargeImage = defaultDetails.defaultLargeImage, //the YARG logo and tooltip does not change, at this point in time.
+				LargeText = defaultDetails.defaultLargeText,
 				SmallImage = smallImage,
 				SmallText = smallText,
 			},

@@ -47,6 +47,9 @@ namespace YARG.PlayMode {
 		protected int visualChartIndex = 0;
 		protected int inputChartIndex = 0;
 		protected int hitChartIndex = 0;
+		public NoteInfo CurrentNote => 
+			hitChartIndex < Chart.Count ? Chart[hitChartIndex] : null;
+
 		protected int currentBeatIndex = 0;
 
 		protected CommonTrack commonTrack;
@@ -80,7 +83,7 @@ namespace YARG.PlayMode {
 		protected Light comboSunburstEmbeddedLight;
 
 		// Solo stuff
-		private bool soloInProgress = false;
+		protected bool soloInProgress = false;
 		protected int soloNoteCount = -1;
 		protected int soloNotesHit = 0;
 		private int soloHitPercent = 0;
@@ -119,7 +122,7 @@ namespace YARG.PlayMode {
 				}
 
 				// End starpower if combo ends
-				if (CurrentStarpower?.time <= CurrentTime && value == 0) {
+				if (value == 0 && CurrentStarpower?.time <= HitMarginStartTime && CurrentNote?.time >= CurrentStarpower?.time) {
 					StarpowerMissEvent?.Invoke(CurrentStarpower);
 					// Only move to the next visual phrase if it is also the current logical phrase
 					if (starpowerVisualIndex == starpowerIndex) {
@@ -402,7 +405,7 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		private void UpdateStarpower() {
+		protected virtual void UpdateStarpower() {
 			// Update starpower region
 			if (IsStarpowerHit()) {
 				starpowerIndex++;
@@ -424,8 +427,8 @@ namespace YARG.PlayMode {
 					GameManager.AudioManager.PlaySoundEffect(SfxSample.StarPowerRelease);
 					SetReverb(false);
 				} else {
-					//starpowerCharge -= Time.deltaTime / 25f * Play.speed; //original logic
-					starpowerCharge -= (float)((Time.deltaTime * Play.Instance.CurrentBeatsPerSecond) * 0.03125); // calculates based on 32 beats for a full bar
+					// calculates based on 32 beats for a full bar
+					starpowerCharge -= Time.deltaTime * Play.Instance.CurrentBeatsPerSecond * (1f / 32f);
 				}
 				if (!trackAnims.spShakeAscended) {
 					trackAnims.StarpowerTrackAnim();
@@ -711,12 +714,8 @@ namespace YARG.PlayMode {
 			return (currentTime - noteTime) * (player.trackSpeed / Play.speed);
 		}
 
-		private bool IsStarpowerHit() {
-			if (Chart.Count > hitChartIndex) {
-				return Chart[hitChartIndex].time >= CurrentStarpower?.EndTime;
-			}
-
-			return false;
+		protected bool IsStarpowerHit() {
+			return CurrentNote?.time >= CurrentStarpower?.EndTime;
 		}
 
 		public abstract void SetReverb(bool on);

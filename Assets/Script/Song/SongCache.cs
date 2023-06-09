@@ -12,9 +12,11 @@ namespace YARG.Song {
 	public class SongCache {
 
 		/// <summary>
-		/// The date in which the cache version is based on (and cache revision)
+		/// The date revision of the cache format.
+		/// Format is YY_MM_DD_RR: Y = year, M = month, D = day, R = revision (reset across dates, only increment
+		/// if multiple cache version changes happen in a single day).
 		/// </summary>
-		private const int CACHE_VERSION = 01_06_23_01;
+		private const int CACHE_VERSION = 23_06_05_01;
 
 		private readonly string _folder;
 		private readonly string _cacheFile;

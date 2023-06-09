@@ -24,8 +24,12 @@ namespace YARG.Settings.Types {
 
 		private readonly Action<T> _onChange;
 
-		public AbstractSetting(Action<T> onChange) {
+		protected AbstractSetting(Action<T> onChange) {
 			_onChange = onChange;
+		}
+
+		public void ForceInvokeCallback() {
+			_onChange?.Invoke(Data);
 		}
 
 		public abstract bool IsSettingDataEqual(object obj);

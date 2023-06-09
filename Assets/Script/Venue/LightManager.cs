@@ -34,32 +34,48 @@ namespace YARG.Venue {
 		}
 
 		private void VenueEvent(string eventName) {
-			if (eventName == "venue_lightFrame_next") {
-				foreach (var light in _lights) {
-					light.AnimationFrame++;
+			if (eventName.StartsWith("venue_lightFrame_")) {
+				eventName = eventName.Replace("venue_lightFrame_", "");
+				switch (eventName) {
+					case "next":
+						foreach (var light in _lights) {
+							light.AnimationFrame++;
+						}
+						break;
+					case "previous":
+						foreach (var light in _lights) {
+							light.AnimationFrame--;
+						}
+						break;
+					case "first":
+						foreach (var light in _lights) {
+							light.AnimationFrame = 0;
+						}
+						break;
 				}
-			} else {
+			} else if (eventName.StartsWith("venue_light_")) {
+				eventName = eventName.Replace("venue_light_", "");
 				VenueLightAnimation anim = eventName switch {
-					"venue_light_manualCool" => VenueLightAnimation.ManualCool,
-					"venue_light_manualWarm" => VenueLightAnimation.ManualWarm,
-					"venue_light_dischord" => VenueLightAnimation.Dischord,
-					"venue_light_stomp" => VenueLightAnimation.Stomp,
-					"venue_light_loopCool" => VenueLightAnimation.LoopCool,
-					"venue_light_loopWarm" => VenueLightAnimation.LoopWarm,
-					"venue_light_harmony" => VenueLightAnimation.Harmony,
-					"venue_light_frenzy" => VenueLightAnimation.Frenzy,
-					"venue_light_silhouettes" => VenueLightAnimation.Silhouettes,
-					"venue_light_searchlights" => VenueLightAnimation.Searchlights,
-					"venue_light_sweep" => VenueLightAnimation.Sweep,
-					"venue_light_strobeFast" => VenueLightAnimation.StrobeFast,
-					"venue_light_strobeSlow" => VenueLightAnimation.StrobeSlow,
-					"venue_light_blackoutFast" => VenueLightAnimation.BlackoutFast,
-					"venue_light_blackoutSlow" => VenueLightAnimation.BlackoutSlow,
-					"venue_light_flareFast" => VenueLightAnimation.FlareFast,
-					"venue_light_flareSlow" => VenueLightAnimation.FlareSlow,
-					"venue_light_bre" => VenueLightAnimation.BRE,
-					"venue_light_verse" => VenueLightAnimation.Verse,
-					"venue_light_chorus" => VenueLightAnimation.Chorus,
+					"manual_cool" => VenueLightAnimation.ManualCool,
+					"manual_warm" => VenueLightAnimation.ManualWarm,
+					"dischord" => VenueLightAnimation.Dischord,
+					"stomp" => VenueLightAnimation.Stomp,
+					"loop_cool" => VenueLightAnimation.LoopCool,
+					"loop_warm" => VenueLightAnimation.LoopWarm,
+					"harmony" => VenueLightAnimation.Harmony,
+					"frenzy" => VenueLightAnimation.Frenzy,
+					"silhouettes" => VenueLightAnimation.Silhouettes,
+					"searchlights" => VenueLightAnimation.Searchlights,
+					"sweep" => VenueLightAnimation.Sweep,
+					"strobe_fast" => VenueLightAnimation.StrobeFast,
+					"strobe_slow" => VenueLightAnimation.StrobeSlow,
+					"blackout_fast" => VenueLightAnimation.BlackoutFast,
+					"blackout_slow" => VenueLightAnimation.BlackoutSlow,
+					"flare_fast" => VenueLightAnimation.FlareFast,
+					"flare_slow" => VenueLightAnimation.FlareSlow,
+					"bre" => VenueLightAnimation.BRE,
+					"verse" => VenueLightAnimation.Verse,
+					"chorus" => VenueLightAnimation.Chorus,
 					_ => VenueLightAnimation.None
 				};
 
