@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using DG.Tweening;
 using TMPro;
@@ -69,19 +70,20 @@ namespace YARG.UI {
 			_soloBottomText.text = noteCountText;
 		}
 
-		public void HideSoloBox(int finalPercent) {
+		public void HideSoloBox(int finalPercent, double scoreBonus) {
 			string percentageText = $"{finalPercent}%";
 
 			_soloTopText.text = string.Empty;
 			_soloBottomText.text = string.Empty;
 			_soloFullText.text = percentageText;
 
-			_soloBoxHide = StartCoroutine(HideSoloBoxCoroutine(finalPercent));
+			_soloBoxHide = StartCoroutine(HideSoloBoxCoroutine(finalPercent, scoreBonus));
 		}
 
-		private IEnumerator HideSoloBoxCoroutine(int finalPercent) {
+		private IEnumerator HideSoloBoxCoroutine(int finalPercent, double scoreBonus) {
 			yield return new WaitForSeconds(1f);
 
+			// Show performance text
 			string resultText = finalPercent switch {
 				>= 100 => "PERFECT\nSOLO!",
 				>= 95  => "AWESOME\nSOLO!",
@@ -96,6 +98,12 @@ namespace YARG.UI {
 
 			yield return new WaitForSeconds(1f);
 
+			// Show point bonus
+			_soloFullText.text = $"{Math.Round(scoreBonus)}\nPOINTS";
+
+			yield return new WaitForSeconds(1f);
+
+			// Fade out the box
 			yield return _soloBoxCanvasGroup
 				.DOFade(0f, 0.25f)
 				.WaitForCompletion();

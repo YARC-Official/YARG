@@ -618,7 +618,8 @@ namespace YARG.PlayMode {
 
 				commonTrack.TrackView.SetSoloBox(SoloHitPercent, soloNotesHit, soloNoteCount);
 			} else if (soloInProgress) {
-				commonTrack.TrackView.HideSoloBox(SoloHitPercent);
+				double soloPtsEarned = scoreKeeper.AddSolo(soloNotesHit, soloNoteCount);
+				commonTrack.TrackView.HideSoloBox(SoloHitPercent, soloPtsEarned);
 
 				soloInProgress = false;
 			}
