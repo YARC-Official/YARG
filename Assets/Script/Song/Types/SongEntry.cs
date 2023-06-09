@@ -104,12 +104,24 @@ namespace YARG.Song {
 			VocalParts = reader.ReadInt32();
 			CacheRoot = folder;
 
-			// Songs from Beatles RB have a Year value of "YYYY (MM DD)" or "MM DD YYYY".
-			// This standardizes the Year values to only include the actual year of the song.
-			if (Source == "tbrb") {
-				Year = Year[0..4];
-			} else if (Source == "tbrbdlc") {
-				Year = Year[^4..];
+			// Some songs may include their full date within the Year field. This code removes the month and day from those fields.
+			int yearFirstIndex = 0;
+			int contiguousNumCount = 0;
+			if (Year.Length > 4) {
+				for (int i = 0; i < Year.Length; i++) {
+					if (contiguousNumCount >= 4) {
+						break;
+					}
+
+					if (char.IsDigit(Year[i])) {
+						contiguousNumCount++;
+					} else {
+						contiguousNumCount = 0;
+						yearFirstIndex = i + 1;
+					}
+				}
+				int yearLastIndex = yearFirstIndex + contiguousNumCount;
+				Year = Year[yearFirstIndex..yearLastIndex];
 			}
 		}
 
