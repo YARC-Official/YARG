@@ -6,6 +6,7 @@ namespace YARG.PlayMode {
 	public class TrackMaterialHandler : MonoBehaviour {
 		private static readonly int ScrollProperty = Shader.PropertyToID("_Scroll");
 		private static readonly int StarpowerStateProperty = Shader.PropertyToID("_Starpower_State");
+		private static readonly int WavinessProperty = Shader.PropertyToID("_Waviness");
 
 		private static readonly int Layer1ColorProperty = Shader.PropertyToID("_Layer_1_Color");
 		private static readonly int Layer2ColorProperty = Shader.PropertyToID("_Layer_2_Color");
@@ -31,10 +32,13 @@ namespace YARG.PlayMode {
 			get => _grooveState;
 			set {
 				_grooveState = value;
+
 				_material.SetColor(Layer1ColorProperty, Color.Lerp(_normalPreset.Layer1.Color, _groovePreset.Layer1.Color, value));
 				_material.SetColor(Layer2ColorProperty, Color.Lerp(_normalPreset.Layer2.Color, _groovePreset.Layer2.Color, value));
 				_material.SetColor(Layer3ColorProperty, Color.Lerp(_normalPreset.Layer3.Color, _groovePreset.Layer3.Color, value));
 				_material.SetColor(Layer4ColorProperty, Color.Lerp(_normalPreset.Layer4.Color, _groovePreset.Layer4.Color, value));
+
+				_material.SetFloat(WavinessProperty, value);
 			}
 		}
 
