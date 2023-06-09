@@ -82,7 +82,7 @@ namespace YARG.PlayMode {
 
 		private List<AbstractTrack> _tracks;
 
-		private bool endReached = false;
+		public bool endReached { get; private set; } = false;
 
 		private bool _paused = false;
 		public bool Paused {

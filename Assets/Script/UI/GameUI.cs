@@ -14,8 +14,6 @@ namespace YARG.UI {
 		[SerializeField]
 		private Transform trackContainer;
 		[SerializeField]
-		private Image songProgress;
-		[SerializeField]
 		private TextMeshProUGUI songTitle;
 		[SerializeField]
 		private TextMeshProUGUI bandName;
@@ -48,10 +46,6 @@ namespace YARG.UI {
 				songTitle.text = $"{GameManager.Instance.SelectedSong.Name} ({Play.speed * 100}%)";
 				bandName.text = $"{GameManager.Instance.SelectedSong.Artist}";
 			}
-		}
-
-		private void Update() {
-			songProgress.fillAmount = Play.Instance.SongTime / Play.Instance.SongLength;
 		}
 
 		public void AddTrackImage(RenderTexture rt, CommonTrack commonTrack) {
