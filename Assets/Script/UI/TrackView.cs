@@ -50,34 +50,49 @@ namespace YARG.UI {
 			TrackImage.transform.localScale = new Vector3(scale, scale, scale);
 		}
 
-		public void SetSoloBox(string topText, string bottomText) {
+		public void SetSoloBox(int hitPercent, int notesHit, int totalNotes) {
 			// Stop hide coroutine if we were previously hiding
 			if (_soloBoxHide != null) {
 				StopCoroutine(_soloBoxHide);
 				_soloBoxHide = null;
 			}
 
+			string percentageText = $"{hitPercent}%";
+			string noteCountText = $"{notesHit}/{totalNotes}";
+
 			_soloBox.gameObject.SetActive(true);
 			_soloBoxCanvasGroup.alpha = 1f;
 			_soloBox.sprite = _normalSoloBox;
 
 			_soloFullText.text = string.Empty;
-			_soloTopText.text = topText;
-			_soloBottomText.text = bottomText;
+			_soloTopText.text = percentageText;
+			_soloBottomText.text = noteCountText;
 		}
 
-		public void HideSoloBox(string percent, string fullText) {
+		public void HideSoloBox(int finalPercent) {
+			string percentageText = $"{finalPercent}%";
+
 			_soloTopText.text = string.Empty;
 			_soloBottomText.text = string.Empty;
-			_soloFullText.text = percent;
+			_soloFullText.text = percentageText;
 
-			_soloBoxHide = StartCoroutine(HideSoloBoxCoroutine(fullText));
+			_soloBoxHide = StartCoroutine(HideSoloBoxCoroutine(finalPercent));
 		}
 
-		private IEnumerator HideSoloBoxCoroutine(string fullText) {
+		private IEnumerator HideSoloBoxCoroutine(int finalPercent) {
 			yield return new WaitForSeconds(1f);
 
-			_soloFullText.text = fullText;
+			string resultText = finalPercent switch {
+				>= 100 => "PERFECT\nSOLO!",
+				>= 95  => "AWESOME\nSOLO!",
+				>= 90  => "GREAT\nSOLO!",
+				>= 80  => "GOOD\nSOLO!",
+				>= 70  => "SOLID\nSOLO",
+				   69  => "<i>NICE</i>\nSOLO",
+				>= 60  => "OKAY\nSOLO",
+				_      => "MESSY\nSOLO",
+			};
+			_soloFullText.text = resultText;
 
 			yield return new WaitForSeconds(1f);
 

@@ -86,9 +86,8 @@ namespace YARG.PlayMode {
 		protected bool soloInProgress = false;
 		protected int soloNoteCount = -1;
 		protected int soloNotesHit = 0;
-		private int soloHitPercent = 0;
+		private int SoloHitPercent => soloNoteCount > 0 ? Mathf.FloorToInt((float) soloNotesHit / soloNoteCount * 100f) : 0;
 		private int lastHit = -1;
-		private double soloPtsEarned;
 
 		private bool FullCombo = true;
 
@@ -617,20 +616,9 @@ namespace YARG.PlayMode {
 				// );
 				// commonTrack.soloText.gameObject.SetActive(true);
 
-				soloHitPercent = Mathf.FloorToInt((float) soloNotesHit / soloNoteCount * 100f);
-				commonTrack.TrackView.SetSoloBox(soloHitPercent + "%", $"{soloNotesHit}/{soloNoteCount}");
+				commonTrack.TrackView.SetSoloBox(SoloHitPercent, soloNotesHit, soloNoteCount);
 			} else if (soloInProgress) {
-				commonTrack.TrackView.HideSoloBox(soloHitPercent + "%", soloHitPercent switch {
-					69 => "<i>NICE</i>\nSOLO",
-
-					>= 100 => "PERFECT\nSOLO!",
-					>= 95  => "AWESOME\nSOLO!",
-					>= 90  => "GREAT\nSOLO!",
-					>= 80  => "GOOD\nSOLO!",
-					>= 70  => "SOLID\nSOLO",
-					>= 60  => "OKAY\nSOLO",
-					_      => "MESSY\nSOLO",
-				});
+				commonTrack.TrackView.HideSoloBox(SoloHitPercent);
 
 				soloInProgress = false;
 			}
