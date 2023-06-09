@@ -600,7 +600,10 @@ namespace YARG.PlayMode {
 
 		private void UpdateSolo() {
 			// Set solo box and text
-			if (CurrentSolo.info?.time <= HitMarginStartTime && CurrentSolo.info?.EndTime >= HitMarginEndTime) {
+			// Solo active when within hit window bounds,
+			// enabled after the first note is the front note in the hit window and disabled after the last note is hit
+			if (CurrentSolo.info?.time <= HitMarginStartTime && CurrentSolo.info?.EndTime >= HitMarginEndTime
+				&& CurrentNote?.time >= CurrentSolo.info?.time) {
 				if (!soloInProgress) {
 					soloInProgress = true;
 					soloNotesHit = 0;
