@@ -34,7 +34,17 @@ namespace YARG.UI {
 
 		[Space]
 		[SerializeField]
-		private Sprite _normalSoloBox;
+		private Sprite _soloSpriteNormal;
+		[SerializeField]
+		private Sprite _soloSpritePerfect;
+		[SerializeField]
+		private Sprite _soloSpriteMessy;
+		[SerializeField]
+		private TMP_ColorGradient _soloGradientNormal;
+		[SerializeField]
+		private TMP_ColorGradient _soloGradientPerfect;
+		[SerializeField]
+		private TMP_ColorGradient _soloGradientMessy;
 
 		private Coroutine _soloBoxHide = null;
 
@@ -61,26 +71,37 @@ namespace YARG.UI {
 			string percentageText = $"{hitPercent}%";
 			string noteCountText = $"{notesHit}/{totalNotes}";
 
+			// Show solo box
 			_soloBox.gameObject.SetActive(true);
+			_soloBox.sprite = _soloSpriteNormal;
 			_soloBoxCanvasGroup.alpha = 1f;
-			_soloBox.sprite = _normalSoloBox;
 
+			// Set solo text
 			_soloFullText.text = string.Empty;
 			_soloTopText.text = percentageText;
 			_soloBottomText.text = noteCountText;
 		}
 
 		public void HideSoloBox(int finalPercent, double scoreBonus) {
-			string percentageText = $"{finalPercent}%";
-
 			_soloTopText.text = string.Empty;
 			_soloBottomText.text = string.Empty;
-			_soloFullText.text = percentageText;
 
 			_soloBoxHide = StartCoroutine(HideSoloBoxCoroutine(finalPercent, scoreBonus));
 		}
 
 		private IEnumerator HideSoloBoxCoroutine(int finalPercent, double scoreBonus) {
+			// Set textbox color
+			var (sprite, gradient) = finalPercent switch {
+				>= 100 => (_soloSpritePerfect, _soloGradientPerfect),
+				>= 60  => (_soloSpriteNormal, _soloGradientNormal),
+				_      => (_soloSpriteMessy, _soloGradientMessy),
+			};
+			_soloBox.sprite = sprite;
+			_soloFullText.colorGradientPreset = gradient;
+
+			// Display final hit percentage
+			_soloFullText.text = $"{finalPercent}%";
+
 			yield return new WaitForSeconds(1f);
 
 			// Show performance text
