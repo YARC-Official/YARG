@@ -106,14 +106,16 @@ namespace YARG.UI {
 
 			// Show performance text
 			string resultText = finalPercent switch {
-				>= 100 => "PERFECT\nSOLO!",
+				>  100 => "HOW!?",
+				   100 => "PERFECT\nSOLO!",
 				>= 95  => "AWESOME\nSOLO!",
 				>= 90  => "GREAT\nSOLO!",
 				>= 80  => "GOOD\nSOLO!",
 				>= 70  => "SOLID\nSOLO",
 				   69  => "<i>NICE</i>\nSOLO",
 				>= 60  => "OKAY\nSOLO",
-				_      => "MESSY\nSOLO",
+				>=  0  => "MESSY\nSOLO",
+				<   0  => "HOW!?",
 			};
 			_soloFullText.text = resultText;
 
