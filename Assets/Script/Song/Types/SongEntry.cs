@@ -105,9 +105,9 @@ namespace YARG.Song {
 			CacheRoot = folder;
 
 			// Some songs may include their full date within the Year field. This code removes the month and day from those fields.
-			int yearFirstIndex = 0;
-			int contiguousNumCount = 0;
 			if (Year.Length > 4) {
+				int yearFirstIndex = 0;
+				int contiguousNumCount = 0;
 				for (int i = 0; i < Year.Length; i++) {
 					if (contiguousNumCount >= 4) {
 						break;
