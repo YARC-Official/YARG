@@ -103,6 +103,14 @@ namespace YARG.Song {
 			AvailableParts = (ulong) reader.ReadInt64();
 			VocalParts = reader.ReadInt32();
 			CacheRoot = folder;
+
+			// Songs from Beatles RB have a Year value of "YYYY (MM DD)" or "MM DD YYYY".
+			// This standardizes the Year values to only include the actual year of the song.
+			if (Source == "tbrb") {
+				Year = Year[0..4];
+			} else if (Source == "tbrbdlc") {
+				Year = Year[^4..];
+			}
 		}
 
 		public void ReadCacheEnding(BinaryReader reader) {
