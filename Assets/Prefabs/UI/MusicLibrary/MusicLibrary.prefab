@@ -591,7 +591,6 @@ MonoBehaviour:
   sidebar: {fileID: 5958352451011471034}
   noSongsText: {fileID: 4030813026458977986}
   scrollbar: {fileID: 4030813026755114794}
-  _testPlayInfo: {fileID: 11400000, guid: 4ed095b3d05a7b84a85e1ae02f8689bb, type: 2}
 --- !u!1 &4030813025300223061
 GameObject:
   m_ObjectHideFlags: 0
@@ -739,9 +738,9 @@ RectTransform:
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 1, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 104.89}
-  m_SizeDelta: {x: 1920, y: 160.21}
+  m_SizeDelta: {x: 0, y: 160.21}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!222 &4030813025846028987
 CanvasRenderer:
@@ -1647,10 +1646,10 @@ RectTransform:
   m_Father: {fileID: 530135278568337520}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 174.45148, y: -37.517063}
-  m_SizeDelta: {x: 348.90295, y: 75.03413}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &8760454767777276699
 MonoBehaviour:
@@ -5161,10 +5160,10 @@ RectTransform:
   m_Father: {fileID: 530135278568337520}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 174.45148, y: -112.55119}
-  m_SizeDelta: {x: 348.90295, y: 75.03413}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &5280056635917129584
 MonoBehaviour:

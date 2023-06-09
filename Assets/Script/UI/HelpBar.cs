@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using YARG.Input;
@@ -54,10 +55,16 @@ namespace YARG.UI {
 				var go = Instantiate(_buttonPrefab, _buttonContainer);
 				go.GetComponent<HelpBarButton>().SetInfoFromSchemeEntry(entry, _menuActionColors[(int) entry.Type]);
 			}
+
+			SetInfoText(String.Empty);
 		}
 
 		public void SetInfoText(string str) {
-			_infoText.text = str;
+			if (str == String.Empty && !MusicPlayer.gameObject.activeInHierarchy) {
+				_infoText.text = Constants.VERSION_TAG.ToString();
+			} else {
+				_infoText.text = str;
+			}
 		}
 	}
 }

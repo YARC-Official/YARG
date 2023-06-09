@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -254,6 +253,21 @@ namespace YARG.PlayMode {
 					// KEEP THIS PATH LOWERCASE
 					// Breaks things for other platforms, because Unity
 					var bg = bundle.LoadAsset<GameObject>(BundleBackgroundManager.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
+
+					// Fix for non-Windows machines
+					// Probably there's a better way to do this.
+#if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+					Renderer[] renderers = bg.GetComponentsInChildren<Renderer>();
+
+					foreach (Renderer renderer in renderers) {
+						Material[] materials = renderer.sharedMaterials;
+
+						for (int i = 0; i < materials.Length; i++) {
+							Material material = materials[i];
+							material.shader = Shader.Find(material.shader.name);
+						}
+					}
+#endif
 
 					var bgInstance = Instantiate(bg);
 

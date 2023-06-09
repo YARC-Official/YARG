@@ -103,6 +103,26 @@ namespace YARG.Song {
 			AvailableParts = (ulong) reader.ReadInt64();
 			VocalParts = reader.ReadInt32();
 			CacheRoot = folder;
+
+			// Some songs may include their full date within the Year field. This code removes the month and day from those fields.
+			if (Year.Length > 4) {
+				int yearFirstIndex = 0;
+				int contiguousNumCount = 0;
+				for (int i = 0; i < Year.Length; i++) {
+					if (contiguousNumCount >= 4) {
+						break;
+					}
+
+					if (char.IsDigit(Year[i])) {
+						contiguousNumCount++;
+					} else {
+						contiguousNumCount = 0;
+						yearFirstIndex = i + 1;
+					}
+				}
+				int yearLastIndex = yearFirstIndex + contiguousNumCount;
+				Year = Year[yearFirstIndex..yearLastIndex];
+			}
 		}
 
 		public void ReadCacheEnding(BinaryReader reader) {
