@@ -127,6 +127,9 @@ namespace YARG.Serialization.Parser {
 			// Turn text event into the event name the game should use
 			string finalText = null;
 			switch (text) {
+				case "FogOn": finalText = "venue_fog_on"; break;
+				case "FogOff": finalText = "venue_fog_off"; break;
+					
 				case "next": finalText = "venue_lightFrame_next"; break;
 				case "prev": finalText = "venue_lightFrame_previous"; break;
 				case "first": finalText = "venue_lightFrame_first"; break;
