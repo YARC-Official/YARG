@@ -607,15 +607,6 @@ namespace YARG.PlayMode {
 					soloNoteCount = CurrentSolo.noteCount;
 				}
 
-				// Set text color
-				// commonTrack.soloText.colorGradient = new VertexGradient(
-				// 	new Color(1f, 1f, 1f),
-				// 	new Color(1f, 1f, 1f),
-				// 	new Color(0.1320755f, 0.1320755f, 0.1320755f),
-				// 	new Color(0.1320755f, 0.1320755f, 0.1320755f)
-				// );
-				// commonTrack.soloText.gameObject.SetActive(true);
-
 				commonTrack.TrackView.SetSoloBox(SoloHitPercent, soloNotesHit, soloNoteCount);
 			} else if (soloInProgress) {
 				double soloPtsEarned = scoreKeeper.AddSolo(soloNotesHit, soloNoteCount);
@@ -623,56 +614,6 @@ namespace YARG.PlayMode {
 
 				soloInProgress = false;
 			}
-			// } else if (HitMarginEndTime >= SoloSection?.EndTime && HitWindowEndTime <= SoloSection?.EndTime + 3) {
-			// 	// run ONCE
-			// 	if (soloInProgress) {
-			// 		soloPtsEarned = scoreKeeper.AddSolo(soloNotesHit, soloNoteCount);
-			// 		soloNotesHit = 0; // Reset count
-
-			// 		// set box text
-			// 		if (soloHitPercent >= 100f) {
-			// 			// Set text color
-			// 			commonTrack.soloText.colorGradient = new VertexGradient(
-			// 				new Color(1f, 0.619472f, 0f),
-			// 				new Color(1f, 0.619472f, 0f),
-			// 				new Color(0.5377358f, 0.2550798f, 0f),
-			// 				new Color(0.5377358f, 0.2550798f, 0f)
-			// 			);
-			// 			commonTrack.soloBox.sprite = commonTrack.soloPerfectSprite;
-			// 			commonTrack.soloText.text = "PERFECT\nSOLO!";
-			// 		} else if (soloHitPercent >= 95f) {
-			// 			commonTrack.soloText.text = "AWESOME\nSOLO!";
-			// 		} else if (soloHitPercent >= 90f) {
-			// 			commonTrack.soloText.text = "GREAT\nSOLO!";
-			// 		} else if (soloHitPercent >= 80f) {
-			// 			commonTrack.soloText.text = "GOOD\nSOLO!";
-			// 		} else if (soloHitPercent >= 70f) {
-			// 			commonTrack.soloText.text = "SOLID\nSOLO!";
-			// 		} else if (soloHitPercent >= 60f) {
-			// 			commonTrack.soloText.text = "OKAY\nSOLO!";
-			// 		} else {
-			// 			// Set text color
-			// 			commonTrack.soloText.colorGradient = new VertexGradient(
-			// 				new Color(1f, 0.1933962f, 0.1933962f),
-			// 				new Color(1f, 0.1933962f, 0.1933962f),
-			// 				new Color(1f, 0.1332366f, 0.06132078f),
-			// 				new Color(1f, 0.1332366f, 0.06132078f)
-			// 			);
-
-			// 			commonTrack.soloBox.sprite = commonTrack.soloMessySprite;
-			// 			commonTrack.soloText.text = "MESSY\nSOLO!";
-			// 		}
-
-			// 		// show points earned after some time
-			// 		StartCoroutine(SoloBoxShowScore());
-
-			// 		soloInProgress = false;
-			// 	}
-			// } else {
-			// 	commonTrack.soloText.text = null;
-			// 	commonTrack.soloText.gameObject.SetActive(false);
-			// 	commonTrack.soloBox.gameObject.SetActive(false);
-			// }
 
 			// Clear out passed solo sections
 			while (CurrentSolo.info?.EndTime < HitMarginEndTime) {
@@ -681,11 +622,6 @@ namespace YARG.PlayMode {
 			while (CurrentVisualSolo.info?.EndTime < TrackStartTime) {
 				soloVisualIndex++;
 			}
-		}
-
-		IEnumerator SoloBoxShowScore() {
-			yield return new WaitForSeconds(1.5f);
-			// commonTrack.soloText.text = $"{soloPtsEarned:n0}\nPOINTS";
 		}
 
 		private void BeatAction() {
