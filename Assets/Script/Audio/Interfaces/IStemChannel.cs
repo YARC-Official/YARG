@@ -21,7 +21,7 @@ namespace YARG.Audio {
 
 		public double GetPosition();
 		public void SetPosition(double position);
-		
+
 		public double GetLengthInSeconds();
 
 	}
