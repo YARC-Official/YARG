@@ -53,7 +53,7 @@ public class DiscordController : MonoBehaviour {
 		public string defaultLargeImage;
 		public string defaultLargeText;
 	}
-	
+
 	private distinctDetails defaultDetails;
 
 	[SerializeField]
@@ -123,11 +123,11 @@ public class DiscordController : MonoBehaviour {
 		}
 
 		// if it's running in the editor, use the Dev logo
-		#if UNITY_EDITOR
-			defaultDetails = devDetails;
-		#endif
+#if UNITY_EDITOR
+		defaultDetails = devDetails;
+#endif
 
-		
+
 
 		// Listen to the changing of songs
 		Play.OnSongStart += OnSongStart;
@@ -170,14 +170,14 @@ public class DiscordController : MonoBehaviour {
 			// State data
 			pause ? "pause1" : currentSmallImage,
 			pause ? "Paused" : currentSmallText,
-			
+
 			// Song data
 			songName,
 			"by " + artistName,
 
 			// Time data
 			pause ? 0 : DateTimeOffset.Now.ToUnixTimeMilliseconds(),
-			pause ? 0 : DateTimeOffset.Now.AddSeconds(Play.Instance.SongLength- Play.Instance.SongTime).ToUnixTimeMilliseconds()
+			pause ? 0 : DateTimeOffset.Now.AddSeconds((Play.Instance.SongLength - Play.Instance.SongTime) / Play.speed).ToUnixTimeMilliseconds()
 		);
 	}
 
@@ -191,7 +191,7 @@ public class DiscordController : MonoBehaviour {
 			songName,
 			"by " + artistName,
 			DateTimeOffset.Now.ToUnixTimeMilliseconds(),
-			DateTimeOffset.Now.AddSeconds(Play.Instance.SongLength- Play.Instance.SongTime).ToUnixTimeMilliseconds()
+			DateTimeOffset.Now.AddSeconds((Play.Instance.SongLength - Play.Instance.SongTime) / Play.speed).ToUnixTimeMilliseconds()
 		);
 	}
 
