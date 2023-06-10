@@ -184,6 +184,10 @@ public class DiscordController : MonoBehaviour {
 	private void OnSongStart(SongEntry song) {
 		songLengthSeconds = song.SongLengthTimeSpan.Seconds;
 		songName = song.Name;
+		if (Play.speed != 1f) {
+			songName += $" ({Play.speed * 100f}%)";
+		}
+
 		artistName = song.Artist;
 		SetActivity(
 			currentSmallImage,
