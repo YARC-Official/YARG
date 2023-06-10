@@ -110,10 +110,9 @@ namespace YARG.PlayMode {
 					if (ev.time <= note.time && note.time < ev.EndTime) {
 						// solo notes get double score, effectively
 						BaseScore += ptPerNote;
-						goto leaveSoloCheck;
+						break;
 					}
 				}
-				leaveSoloCheck:;
 			}
 
 			SetupScoreThreshold(instrument);
