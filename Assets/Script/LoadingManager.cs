@@ -24,8 +24,7 @@ namespace YARG {
 
 		private async UniTask Start() {
 			Queue(async () => {
-				SetLoadingText("Fetching sources from web...");
-				await SongSources.LoadSources();
+				await SongSources.LoadSources(i => SetLoadingText("Loading song sources...", i));
 			});
 
 			// Fast scan (cache read) on startup

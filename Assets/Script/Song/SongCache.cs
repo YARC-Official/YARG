@@ -7,6 +7,7 @@ using UnityEngine;
 using YARG.Data;
 using YARG.UI;
 using XboxSTFS;
+using YARG.Util;
 
 namespace YARG.Song {
 	public class SongCache {
@@ -26,7 +27,7 @@ namespace YARG.Song {
 
 			string hex = BitConverter.ToString(SHA1.Create().ComputeHash(Encoding.UTF8.GetBytes(folder))).Replace("-", "");
 
-			_cacheFile = Path.Combine(GameManager.PersistentDataPath, "caches", $"{hex}.bin");
+			_cacheFile = Path.Combine(PathHelper.PersistentDataPath, "caches", $"{hex}.bin");
 		}
 
 		public void WriteCache(List<SongEntry> songs, List<XboxSTFSFile> conFiles) {
@@ -34,8 +35,8 @@ namespace YARG.Song {
 				return;
 			}
 
-			if (!Directory.Exists(Path.Combine(GameManager.PersistentDataPath, "caches"))) {
-				Directory.CreateDirectory(Path.Combine(GameManager.PersistentDataPath, "caches"));
+			if (!Directory.Exists(Path.Combine(PathHelper.PersistentDataPath, "caches"))) {
+				Directory.CreateDirectory(Path.Combine(PathHelper.PersistentDataPath, "caches"));
 			}
 
 			using var writer = new NullStringBinaryWriter(File.Open(_cacheFile, FileMode.Create, FileAccess.ReadWrite));

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using YARG.Util;
 
 namespace YARG.Song {
 	public enum ScanResult {
@@ -201,9 +202,9 @@ namespace YARG.Song {
 
 		private async UniTask WriteBadSongs() {
 #if UNITY_EDITOR
-			string badSongsPath = Path.Combine(GameManager.PersistentDataPath, "badsongs.txt");
+			string badSongsPath = Path.Combine(PathHelper.PersistentDataPath, "badsongs.txt");
 #else
-			string badSongsPath = Path.Combine(GameManager.ExecutablePath, "badsongs.txt");
+			string badSongsPath = Path.Combine(PathHelper.ExecutablePath, "badsongs.txt");
 #endif
 
 			await using var stream = new FileStream(badSongsPath, FileMode.Create, FileAccess.Write);
