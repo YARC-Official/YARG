@@ -330,7 +330,7 @@ namespace YARG.PlayMode {
 
 			GameManager.AudioManager.Play();
 
-			GameManager.AudioManager.AddSongEndCallback(OnEndReached);
+			GameManager.AudioManager.SongEnd += OnEndReached;
 			audioStarted = true;
 		}
 

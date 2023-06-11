@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using ManagedBass;
 
 namespace YARG.Audio {
 	public interface IStemMixer : IDisposable {
@@ -10,6 +9,8 @@ namespace YARG.Audio {
 		public int StemsLoaded { get; }
 
 		public bool IsPlaying { get; }
+
+		public event Action SongEnd;
 
 		public IReadOnlyDictionary<SongStem, IStemChannel> Channels { get; }
 
@@ -33,8 +34,6 @@ namespace YARG.Audio {
 		public bool RemoveChannel(IStemChannel channel);
 
 		public IStemChannel GetChannel(SongStem stem);
-
-		public void SetSync(SyncFlags sync, Action callback);
 
 	}
 }

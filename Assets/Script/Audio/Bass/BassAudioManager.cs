@@ -31,7 +31,22 @@ namespace YARG.Audio.BASS {
 		public float CurrentPositionF => (float) GetPosition();
 		public float AudioLengthF { get; private set; }
 
-		private IAudioManager.SongEndCallback _songEndCallback;
+		public event Action SongEnd {
+			add {
+				if (_mixer is null) {
+					throw new InvalidOperationException("No song is currently loaded!");
+				}
+
+				_mixer.SongEnd += value;
+			}
+			remove {
+				if (_mixer is null) {
+					throw new InvalidOperationException("No song is currently loaded!");
+				}
+
+				_mixer.SongEnd -= value;
+			}
+		}
 
 		private double[] _stemVolumes;
 		private ISampleChannel[] _sfxSamples;
@@ -231,10 +246,6 @@ namespace YARG.Audio.BASS {
 			AudioLengthD = _mixer.LeadChannel.LengthD;
 			AudioLengthF = (float) AudioLengthD;
 
-			_mixer.SetSync(SyncFlags.End, () => {
-				UnityMainThreadCallback.QueueEvent(_songEndCallback.Invoke);
-			});
-
 			IsAudioLoaded = true;
 		}
 
@@ -317,10 +328,6 @@ namespace YARG.Audio.BASS {
 			AudioLengthD = _mixer.LeadChannel.LengthD;
 			AudioLengthF = (float) AudioLengthD;
 
-			_mixer.SetSync(SyncFlags.End, () => {
-				UnityMainThreadCallback.QueueEvent(_songEndCallback.Invoke);
-			});
-
 			IsAudioLoaded = true;
 		}
 
@@ -400,14 +407,6 @@ namespace YARG.Audio.BASS {
 			}
 
 			IsPlaying = _mixer.IsPlaying;
-		}
-
-		public void AddSongEndCallback(IAudioManager.SongEndCallback callback) {
-			_songEndCallback += callback;
-		}
-
-		public void RemoveSongEndCallback(IAudioManager.SongEndCallback callback) {
-			_songEndCallback -= callback;
 		}
 
 		public void FadeIn(float maxVolume) {

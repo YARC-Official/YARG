@@ -18,6 +18,23 @@ namespace YARG.Audio.BASS {
 
 		public IStemChannel LeadChannel { get; protected set; }
 
+		public event Action SongEnd {
+			add {
+				if (LeadChannel is null) {
+					throw new InvalidOperationException("No song is currently loaded!");
+				}
+
+				LeadChannel.ChannelEnd += value;
+			}
+			remove {
+				if (LeadChannel is null) {
+					throw new InvalidOperationException("No song is currently loaded!");
+				}
+
+				LeadChannel.ChannelEnd -= value;
+			}
+		}
+
 		protected readonly IAudioManager _manager;
 		protected readonly Dictionary<SongStem, IStemChannel> _channels;
 
@@ -173,12 +190,6 @@ namespace YARG.Audio.BASS {
 
 		public IStemChannel GetChannel(SongStem stem) {
 			return !_channels.ContainsKey(stem) ? null : _channels[stem];
-		}
-
-		public void SetSync(SyncFlags sync, Action callback) {
-			BassMix.ChannelSetSync(((BassStemChannel) LeadChannel).StreamHandle, sync, 0, (_, _, _, _) => {
-				UnityMainThreadCallback.QueueEvent(callback);
-			}, IntPtr.Zero);
 		}
 
 		public void Dispose() {

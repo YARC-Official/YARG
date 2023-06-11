@@ -10,6 +10,8 @@ namespace YARG.Audio {
 
 		public double Volume { get; }
 
+		public event Action ChannelEnd;
+
 		public int Load(float speed);
 
 		public void FadeIn(float maxVolume);
