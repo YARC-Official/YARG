@@ -585,7 +585,10 @@ namespace YARG.PlayMode {
 		}
 
 		public void Exit(bool toSongSelect = true) {
-			StartCoroutine(EndSong(false));
+			if (!endReached) {
+				endReached = true;
+				StartCoroutine(EndSong(false));
+			}
 			MainMenu.showSongSelect = toSongSelect;
 			GameManager.Instance.LoadScene(SceneIndex.MENU);
 		}
