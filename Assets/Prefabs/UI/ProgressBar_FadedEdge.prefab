@@ -91,7 +91,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_ShowMaskGraphic: 0
-  m_DownSamplingRate: 1
+  m_DownSamplingRate: 0
   m_Softness: 1
   m_Alpha: 1
   m_IgnoreParent: 0
@@ -159,8 +159,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   progressImg: {fileID: 3528978556472045014}
   progressMask: {fileID: 1237948711251383258}
-  maskFullPosition: 0
-  _value: 1
+  useCustomPosition: 0
+  customPosition: 0
+  value: 1
 --- !u!1 &2527691484552706571
 GameObject:
   m_ObjectHideFlags: 0

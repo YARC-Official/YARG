@@ -7,16 +7,21 @@ namespace YARG.UI {
 		private RectTransform progressImg;
         [SerializeField]
 		private RectTransform progressMask;
+
+		[Space]
+		[Header("Mask's Full Position")]
 		[SerializeField]
-		private float maskFullPosition;
+		private bool useCustomPosition;
+		[SerializeField]
+		private float customPosition;
 
 		[Space]
 		[SerializeField]
         [Range(0, 1)]
-        private float _value;
+        private float value;
 
 		void OnValidate() {
-			SetProgress(_value);
+			SetProgress(value);
 		}
 
         /// <summary>
@@ -25,7 +30,7 @@ namespace YARG.UI {
 		/// <param name="progress">A value from 0 to 1 inclusive.</param>
         public void SetProgress(float progress) {
 			progress = Mathf.Clamp01(progress);
-			float mW = maskFullPosition > 0 ? maskFullPosition : progressMask.rect.width;
+			float mW = useCustomPosition ? customPosition : progressMask.rect.width;
 			float iW = progressImg.rect.width;
 			var mPos = progressMask.anchoredPosition;
 			var iPos = progressImg.anchoredPosition;
