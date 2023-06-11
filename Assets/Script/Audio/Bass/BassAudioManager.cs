@@ -31,15 +31,12 @@ namespace YARG.Audio.BASS {
 		public float CurrentPositionF => (float) GetPosition();
 		public float AudioLengthF { get; private set; }
 
-		private IAudioManager.SongEndCallback _songEndCallback;
-
 		private double[] _stemVolumes;
 		private ISampleChannel[] _sfxSamples;
 
 		private int _opusHandle;
 
 		private IStemMixer _mixer;
-
 
 		private void Awake() {
 			SupportedFormats = new[] {
@@ -75,10 +72,7 @@ namespace YARG.Audio.BASS {
 			Bass.Configure(Configuration.UpdateThreads, 2);
 			Bass.Configure(Configuration.FloatDSP, true);
 
-			// Undocumented BASS_CONFIG_MP3_OLDGAPS config.
 			Bass.Configure((Configuration) 68, 1);
-
-			// Disable undocumented BASS_CONFIG_DEV_TIMEOUT config. Prevents pausing audio output if a device times out.
 			Bass.Configure((Configuration) 70, false);
 
 			int deviceCount = Bass.DeviceCount;
@@ -231,10 +225,6 @@ namespace YARG.Audio.BASS {
 			AudioLengthD = _mixer.LeadChannel.LengthD;
 			AudioLengthF = (float) AudioLengthD;
 
-			_mixer.SetSync(SyncFlags.End, () => {
-				UnityMainThreadCallback.QueueEvent(_songEndCallback.Invoke);
-			});
-
 			IsAudioLoaded = true;
 		}
 
@@ -317,10 +307,6 @@ namespace YARG.Audio.BASS {
 			AudioLengthD = _mixer.LeadChannel.LengthD;
 			AudioLengthF = (float) AudioLengthD;
 
-			_mixer.SetSync(SyncFlags.End, () => {
-				UnityMainThreadCallback.QueueEvent(_songEndCallback.Invoke);
-			});
-
 			IsAudioLoaded = true;
 		}
 
@@ -400,14 +386,6 @@ namespace YARG.Audio.BASS {
 			}
 
 			IsPlaying = _mixer.IsPlaying;
-		}
-
-		public void AddSongEndCallback(IAudioManager.SongEndCallback callback) {
-			_songEndCallback += callback;
-		}
-
-		public void RemoveSongEndCallback(IAudioManager.SongEndCallback callback) {
-			_songEndCallback -= callback;
 		}
 
 		public void FadeIn(float maxVolume) {
