@@ -9,6 +9,23 @@ namespace YARG.Audio.BASS {
 		public double LengthD { get; private set; }
 		public double Volume { get; private set; }
 
+		public event Action ChannelEnd {
+			add {
+				if (_leadChannel is null) {
+					throw new InvalidOperationException("No song is currently loaded!");
+				}
+
+				_leadChannel.ChannelEnd += value;
+			}
+			remove {
+				if (_leadChannel is null) {
+					throw new InvalidOperationException("No song is currently loaded!");
+				}
+
+				_leadChannel.ChannelEnd -= value;
+			}
+		}
+
 		private readonly IAudioManager _manager;
 
 		private IStemChannel _leadChannel;
