@@ -329,8 +329,6 @@ namespace YARG.PlayMode {
 			}
 
 			GameManager.AudioManager.Play();
-
-			GameManager.AudioManager.AddSongEndCallback(OnEndReached);
 			audioStarted = true;
 		}
 
@@ -433,11 +431,12 @@ namespace YARG.PlayMode {
 			if (!playingVocals) {
 				UpdateGenericLyrics();
 			}
-		}
 
-		private void OnEndReached() {
-			endReached = true;
-			StartCoroutine(EndSong(true));
+			// End song
+			if (!endReached && realSongTime >= SongLength) {
+				endReached = true;
+				StartCoroutine(EndSong(true));
+			}
 		}
 
 		private void UpdateGenericLyrics() {

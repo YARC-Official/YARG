@@ -11,9 +11,9 @@ namespace YARG.Audio.BASS {
 	public class BassStemMixer : IStemMixer {
 
 		public int StemsLoaded { get; protected set; }
-
+		
 		public bool IsPlaying { get; protected set; }
-
+		
 		public IReadOnlyDictionary<SongStem, IStemChannel> Channels => _channels;
 
 		public IStemChannel LeadChannel { get; protected set; }
@@ -175,12 +175,6 @@ namespace YARG.Audio.BASS {
 			return !_channels.ContainsKey(stem) ? null : _channels[stem];
 		}
 
-		public void SetSync(SyncFlags sync, Action callback) {
-			BassMix.ChannelSetSync(((BassStemChannel) LeadChannel).StreamHandle, sync, 0, (_, _, _, _) => {
-				UnityMainThreadCallback.QueueEvent(callback);
-			}, IntPtr.Zero);
-		}
-
 		public void Dispose() {
 			Dispose(true);
 			GC.SuppressFinalize(this);
@@ -212,7 +206,7 @@ namespace YARG.Audio.BASS {
 				if (!Bass.StreamFree(_mixerHandle)) {
 					Debug.LogError("Failed to free mixer stream. THIS WILL LEAK MEMORY!");
 				}
-
+				
 				_mixerHandle = 0;
 			}
 		}

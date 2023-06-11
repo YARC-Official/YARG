@@ -5,9 +5,6 @@ using YARG.Song;
 
 namespace YARG.Audio {
 	public interface IAudioManager {
-
-		public delegate void SongEndCallback();
-
 		public bool UseStarpowerFx { get; set; }
 		public bool IsChipmunkSpeedup { get; set; }
 
@@ -40,9 +37,6 @@ namespace YARG.Audio {
 
 		public void Play();
 		public void Pause();
-
-		public void AddSongEndCallback(SongEndCallback callback);
-		public void RemoveSongEndCallback(SongEndCallback callback);
 
 		public void FadeIn(float maxVolume);
 		public UniTask FadeOut(CancellationToken token = default);
