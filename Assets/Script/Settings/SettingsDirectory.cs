@@ -31,7 +31,7 @@ namespace YARG.Settings {
 				pathText.text = SongFolders[_index];
 
 				int songCount = SongContainer.Songs.Count(i =>
-					Utils.PathsEqual(i.CacheRoot, SongFolders[_index]));
+					PathHelper.PathsEqual(i.CacheRoot, SongFolders[_index]));
 
 				if (songCount == 0) {
 					songCountText.text = "<alpha=#60>SCAN NEEDED";

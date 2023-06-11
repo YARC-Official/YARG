@@ -31,12 +31,30 @@ namespace YARG.Audio.BASS {
 		public float CurrentPositionF => (float) GetPosition();
 		public float AudioLengthF { get; private set; }
 
+		public event Action SongEnd {
+			add {
+				if (_mixer is null) {
+					throw new InvalidOperationException("No song is currently loaded!");
+				}
+
+				_mixer.SongEnd += value;
+			}
+			remove {
+				if (_mixer is null) {
+					throw new InvalidOperationException("No song is currently loaded!");
+				}
+
+				_mixer.SongEnd -= value;
+			}
+		}
+
 		private double[] _stemVolumes;
 		private ISampleChannel[] _sfxSamples;
 
 		private int _opusHandle;
 
 		private IStemMixer _mixer;
+
 
 		private void Awake() {
 			SupportedFormats = new[] {
@@ -72,7 +90,10 @@ namespace YARG.Audio.BASS {
 			Bass.Configure(Configuration.UpdateThreads, 2);
 			Bass.Configure(Configuration.FloatDSP, true);
 
+			// Undocumented BASS_CONFIG_MP3_OLDGAPS config.
 			Bass.Configure((Configuration) 68, 1);
+
+			// Disable undocumented BASS_CONFIG_DEV_TIMEOUT config. Prevents pausing audio output if a device times out.
 			Bass.Configure((Configuration) 70, false);
 
 			int deviceCount = Bass.DeviceCount;

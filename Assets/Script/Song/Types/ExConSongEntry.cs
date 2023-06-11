@@ -303,18 +303,21 @@ namespace YARG.Song {
 						break;
 					case "game_origin":
 						Source = ((DataSymbol) dtaArray[1]).Name;
-						var HMXSrcs = new HashSet<string> { "rb1", "rb1_dlc", "rb1dlc", "gdrb", "greenday", "beatles", "tbrb", "tbrbdlc", 
-							"lego", "lrb", "rb2", "rb3", "rb3_dlc", "rb3dlc" };
 						// if the source is UGC/UGC_plus but no "UGC_" in shortname, assume it's a custom
 						if (Source == "ugc" || Source == "ugc_plus") {
 							if (!(ShortName.Contains("UGC_"))) {
 								Source = "customs";
 							}
 						}
+
 						// if the source is any official RB game or its DLC, charter = Harmonix
-						if(HMXSrcs.Contains(Source)) Charter = "Harmonix";
+						if (SongSources.GetSource(Source).Type == SongSources.SourceType.RB) {
+							Charter = "Harmonix";
+						}
+
 						// if the source is meant for usage in TBRB, it's a master track
-						if(SongSources.DEFAULT_SOURCES[Source].Contains("Beatles")) IsMaster = true;
+						// TODO: NEVER assume localized version contains "Beatles"
+						if(SongSources.SourceToGameName(Source).Contains("Beatles")) IsMaster = true;
 						break;
 					case "genre": Genre = ((DataSymbol) dtaArray[1]).Name; break;
 					case "rating": SongRating = ((DataAtom) dtaArray[1]).Int; break;
@@ -429,7 +432,7 @@ namespace YARG.Song {
 		}
 
 		public virtual byte[] LoadMiloFile(){
-			if(MiloPath.Length == 0) 
+			if(MiloPath.Length == 0)
 				return Array.Empty<byte>();
 			return File.ReadAllBytes(MiloPath);
 		}

@@ -234,22 +234,14 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		private async UniTask LoadSongIniCover(string filePath) {
-			// Load file
-#if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
-			using UnityWebRequest uwr = UnityWebRequestTexture.GetTexture(new System.Uri(filePath));
-#else
-			using UnityWebRequest uwr = UnityWebRequestTexture.GetTexture(filePath);
-#endif
+			var texture = await TextureLoader.Load(filePath, _cancellationToken.Token);
 
-			try {
-				await uwr.SendWebRequest().WithCancellation(_cancellationToken.Token);
-				var texture = DownloadHandlerTexture.GetContent(uwr);
-
+			if (texture != null) {
 				// Set album cover
 				_albumCover.texture = texture;
 				_albumCover.color = Color.white;
 				_albumCover.uvRect = new Rect(0f, 0f, 1f, 1f);
-			} catch (OperationCanceledException) { }
+			}
 		}
 
 		private async UniTask LoadRbConCover(ExtractedConSongEntry conSongEntry) {
