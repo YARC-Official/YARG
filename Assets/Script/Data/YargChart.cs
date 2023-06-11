@@ -107,13 +107,45 @@ namespace YARG.Data {
 				return;
 			}
 
+			GenericLyricInfo currentLyricPhrase = null;
 			foreach (var globalEvent in song.eventsAndSections) {
+				float time = (float)globalEvent.time;
 				string text = globalEvent.title;
 				// Strip away the [brackets] from events (and any garbage outside them)
 				var match = textEventRegex.Match(text);
 				if (match.Success) {
 					text = match.Groups[1].Value;
 				}
+
+				switch (text) {
+					case LyricHelper.PhraseStartText:
+						// Phrase start events can start new phrases without a preceding end
+						if (currentLyricPhrase != null) {
+							currentLyricPhrase.length = time - currentLyricPhrase.time;
+							genericLyrics.Add(currentLyricPhrase);
+						}
+
+						// Start new phrase
+						currentLyricPhrase = new() {
+							time = time
+						};
+						break;
+
+					case LyricHelper.PhraseEndText:
+						// Complete phrase and add it to the list
+						currentLyricPhrase.length = time - currentLyricPhrase.time;
+						genericLyrics.Add(currentLyricPhrase);
+						currentLyricPhrase = null;
+						break;
+
+					default:
+						if (text.StartsWith(LyricHelper.LYRIC_EVENT_PREFIX)) {
+							// Add lyric to current phrase, or ignore if outside a phrase
+							currentLyricPhrase?.lyric.Add((time, text.Replace(LyricHelper.LYRIC_EVENT_PREFIX, "")));
+						}
+						break;
+				}
+
 
 				events.Add(new EventInfo(text, (float) globalEvent.time));
 			}
