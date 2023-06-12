@@ -13,6 +13,8 @@ namespace YARG.PlayMode {
 		private static readonly int Layer3ColorProperty = Shader.PropertyToID("_Layer_3_Color");
 		private static readonly int Layer4ColorProperty = Shader.PropertyToID("_Layer_4_Color");
 
+		private static readonly int SoloStateProperty = Shader.PropertyToID("_Solo_State");
+
 		public struct Preset {
 			public struct Layer {
 				public Color Color;
@@ -42,6 +44,19 @@ namespace YARG.PlayMode {
 			}
 		}
 
+		private float _soloState;
+		public float SoloState {
+			get => _soloState;
+			set {
+				_soloState = value;
+
+				foreach (var material in _trimMaterials) {
+					material.SetFloat(SoloStateProperty, value);
+				}
+				_material.SetFloat(SoloStateProperty, value);
+			}
+		}
+
 		public float StarpowerState {
 			get => _material.GetFloat(StarpowerStateProperty);
 			set => _material.SetFloat(StarpowerStateProperty, value);
@@ -49,11 +64,18 @@ namespace YARG.PlayMode {
 
 		[SerializeField]
 		private MeshRenderer _trackMesh;
+		[SerializeField]
+		private MeshRenderer[] _trackTrims;
 
 		private Material _material;
+		private readonly List<Material> _trimMaterials = new();
 
 		private void Awake() {
+			// Get materials
 			_material = _trackMesh.material;
+			foreach (var trim in _trackTrims) {
+				_trimMaterials.Add(trim.material);
+			}
 
 			_normalPreset = new() {
 				Layer1 = new() {

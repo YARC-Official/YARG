@@ -377,13 +377,12 @@ namespace YARG.PlayMode {
 				matHandler.StarpowerState = Mathf.Lerp(matHandler.StarpowerState, 0f, Time.deltaTime * 4f);
 			}
 
-			//
-			// float currentSolo = trackMaterial.GetFloat("SoloState");
-			// if (CurrentTime >= CurrentSolo?.time - 2 && CurrentTime <= CurrentSolo?.EndTime - 1) {
-			// 	trackMaterial.SetFloat("SoloState", Mathf.Lerp(currentSolo, 1f, Time.deltaTime * 2f));
-			// } else {
-			// 	trackMaterial.SetFloat("SoloState", Mathf.Lerp(currentSolo, 0f, Time.deltaTime * 2f));
-			// }
+			// Update track solo
+			if (CurrentTime >= CurrentVisualSolo?.time && CurrentTime <= CurrentSolo?.EndTime) {
+				matHandler.SoloState = Mathf.Lerp(matHandler.SoloState, 1f, Time.deltaTime * 5f);
+			} else {
+				matHandler.SoloState = Mathf.Lerp(matHandler.SoloState, 0f, Time.deltaTime * 3f);
+			}
 
 			// Update starpower bar
 			var starpowerMat = commonTrack.starpowerBarTop.material;
