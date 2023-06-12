@@ -10,6 +10,8 @@ namespace YARG.Audio {
 
 		public bool IsPlaying { get; }
 
+		public event Action SongEnd;
+
 		public IReadOnlyDictionary<SongStem, IStemChannel> Channels { get; }
 
 		public IStemChannel LeadChannel { get; }
@@ -28,7 +30,7 @@ namespace YARG.Audio {
 		public void SetPosition(double position);
 
 		public int AddChannel(IStemChannel channel);
-		
+
 		public bool RemoveChannel(IStemChannel channel);
 
 		public IStemChannel GetChannel(SongStem stem);

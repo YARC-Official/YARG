@@ -23,9 +23,11 @@ namespace YARG.UI {
 		private float fpsUpdateRate;
 
 		private float nextUpdateTime;
+		int screenRate;
 
 		private void Awake() {
 			Instance = this;
+			screenRate = Screen.currentResolution.refreshRate;
 		}
 
 		public void SetVisible(bool value) {
@@ -44,22 +46,24 @@ namespace YARG.UI {
 			}
 
 			int fps = (int)(1f / Time.unscaledDeltaTime);
+			
 
 			// Color the circle sprite based on the FPS
+			// red if lower than 30, yellow if lower than screen refresh rate, green otherwise
 			if (fps < 30) {
 				fpsCircle.color = fpsCircleRed;
-			} else if (fps < 60) {
+			} else if (fps < screenRate) {
 				fpsCircle.color = fpsCircleYellow;
 			} else {
 				fpsCircle.color = fpsCircleGreen;
 			}
 
 			// Display the FPS
-			fpsText.text = $"FPS: {fps}";
+			fpsText.text = $"<b>FPS:</b> {fps}";
 
 #if UNITY_EDITOR
 			// Display the memory usage
-			fpsText.text += $"\nMemory: {Profiler.GetTotalAllocatedMemoryLong() / 1024 / 1024} MB";
+			fpsText.text += $"   •   <b>Memory:</b> {Profiler.GetTotalAllocatedMemoryLong() / 1024 / 1024} MB";
 #endif
 
 			// reset the update time

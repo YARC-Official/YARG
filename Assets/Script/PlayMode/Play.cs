@@ -54,7 +54,7 @@ namespace YARG.PlayMode {
 
 		private int stemsReverbed;
 
-		private bool audioStarted;
+		private bool audioRunning;
 		private float realSongTime;
 		public float SongTime => realSongTime - PlayerManager.AudioCalibration * speed - (float)Song.Delay;
 
@@ -318,18 +318,33 @@ namespace YARG.PlayMode {
 				yield return null;
 			}
 
+			float? startVideoIn = null;
 			if (GameUI.Instance.videoPlayer.enabled) {
 				// Set the chart start offset here (if ini)
 				if (Song is IniSongEntry ini) {
-					GameUI.Instance.videoPlayer.time = ini.VideoStartOffset / 1000.0;
+					if (ini.VideoStartOffset < 0) {
+						startVideoIn = Mathf.Abs(ini.VideoStartOffset / 1000f);
+					} else {
+						GameUI.Instance.videoPlayer.time = ini.VideoStartOffset / 1000.0;
+					}
 				}
 
-				// Play the video
-				GameUI.Instance.videoPlayer.Play();
+				// Play the video if a start time wasn't defined
+				if (startVideoIn == null) {
+					GameUI.Instance.videoPlayer.Play();
+				}
 			}
 
 			GameManager.AudioManager.Play();
-			audioStarted = true;
+
+			GameManager.AudioManager.SongEnd += OnEndReached;
+			audioRunning = true;
+
+			if (startVideoIn != null) {
+				// Wait, then start on time
+				yield return new WaitForSeconds(startVideoIn.Value);
+				GameUI.Instance.videoPlayer.Play();
+			}
 		}
 
 		private void Update() {
@@ -347,14 +362,12 @@ namespace YARG.PlayMode {
 			}
 
 			// Update this every frame to make sure all notes are spawned at the same time.
-			if (audioStarted) {
-				float audioTime = GameManager.AudioManager.CurrentPositionF;
+			float audioTime = GameManager.AudioManager.CurrentPositionF;
+			if (audioRunning && audioTime < audioLength) {
+				realSongTime = audioTime;
+			} else {
 				// We need to update the song time ourselves if the audio finishes before the song actually ends
-				if (audioTime < audioLength) {
-					realSongTime = GameManager.AudioManager.CurrentPositionF;
-				} else {
-					realSongTime += Time.deltaTime * speed;
-				}
+				realSongTime += Time.deltaTime * speed;
 			}
 
 			UpdateAudio(new[] {
@@ -437,6 +450,11 @@ namespace YARG.PlayMode {
 				endReached = true;
 				StartCoroutine(EndSong(true));
 			}
+		}
+
+		private void OnEndReached() {
+			audioLength = GameManager.AudioManager.CurrentPositionF;
+			audioRunning = false;
 		}
 
 		private void UpdateGenericLyrics() {
@@ -526,6 +544,7 @@ namespace YARG.PlayMode {
 
 		public IEnumerator EndSong(bool showResultScreen) {
 			// Dispose of all audio
+			GameManager.AudioManager.SongEnd -= OnEndReached;
 			GameManager.AudioManager.UnloadSong();
 
 			// Call events
@@ -579,7 +598,10 @@ namespace YARG.PlayMode {
 		}
 
 		public void Exit(bool toSongSelect = true) {
-			StartCoroutine(EndSong(false));
+			if (!endReached) {
+				endReached = true;
+				StartCoroutine(EndSong(false));
+			}
 			MainMenu.showSongSelect = toSongSelect;
 			GameManager.Instance.LoadScene(SceneIndex.MENU);
 		}

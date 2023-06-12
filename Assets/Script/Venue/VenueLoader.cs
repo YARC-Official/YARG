@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using YARG.Settings;
 using YARG.Song;
+using YARG.Util;
 
 namespace YARG.Venue {
 	public enum VenueType {
@@ -22,7 +23,7 @@ namespace YARG.Venue {
 			}
 		}
 
-		public static string VenueFolder => Path.Combine(GameManager.PersistentDataPath, "venue");
+		public static string VenueFolder => Path.Combine(PathHelper.PersistentDataPath, "venue");
 
 		static VenueLoader() {
 			if (!Directory.Exists(VenueFolder)) {
