@@ -32,10 +32,6 @@ namespace YARG {
 				if (File.Exists(ScoreFile)) {
 					string json = await File.ReadAllTextAsync(ScoreFile);
 					scores = await Task.Run(() => JsonConvert.DeserializeObject<Dictionary<string, SongScore>>(json));
-					if (scores == null) {
-						scores = new();
-						Debug.LogWarning("scores.json seems to be corrupt!");
-					}
 				} else {
 					scores = new();
 
