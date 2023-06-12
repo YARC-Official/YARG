@@ -386,6 +386,10 @@ namespace YARG.PlayMode {
 					frets[hit.fret].PlayAnimation();
 				} else {
 					openNoteParticles.Play();
+
+					for (int i = 0; i < 5; i++) {
+						frets[i].PlayAnimation();
+					}
 				}
 
 				// If sustained, add to held
