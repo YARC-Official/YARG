@@ -211,7 +211,7 @@ namespace YARG.Audio.BASS {
 		protected virtual void ReleaseManagedResources() {
 			// Free managed resources here
 			foreach (var channel in _channels.Values) {
-				channel.Dispose();
+				channel?.Dispose();
 			}
 
 			_channels.Clear();
