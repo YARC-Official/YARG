@@ -221,20 +221,20 @@ namespace YARG.PlayMode {
 
 
 			// Handle misses (multiple a frame in case of lag)
-			while (HitMarginEndTime > expectedHits.PeekOrNull()?[0].time) {	
-					var missedChord = expectedHits.Dequeue();
-					ResetAllowedChordGhosts();
-					// Call miss for each component
-					Combo = 0;
-					missedAnyNote = true;
-					StopAudio = true;
-					lastHitNote = null;
-					foreach (var hit in missedChord) {
-						hitChartIndex++;
-						notePool.MissNote(hit);
-						if (hit.fret < 5) extendedSustain[hit.fret] = false;
-					}
-					allowedOverstrums.Clear(); // Disallow all overstrums upon missing
+			while (HitMarginEndTime > expectedHits.PeekOrNull()?[0].time) {
+				var missedChord = expectedHits.Dequeue();
+				ResetAllowedChordGhosts();
+				// Call miss for each component
+				Combo = 0;
+				missedAnyNote = true;
+				StopAudio = true;
+				lastHitNote = null;
+				foreach (var hit in missedChord) {
+					hitChartIndex++;
+					notePool.MissNote(hit);
+					if (hit.fret < 5) extendedSustain[hit.fret] = false;
+				}
+				allowedOverstrums.Clear(); // Disallow all overstrums upon missing
 			}
 
 			if (expectedHits.Count <= 0) {
@@ -434,7 +434,6 @@ namespace YARG.PlayMode {
 				}
 			}
 		}
-		
 
 		private void RemoveOldAllowedOverstrums() {
 			// Remove all old allowed overstrums

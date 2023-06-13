@@ -221,7 +221,6 @@ namespace YARG.PlayMode {
 		}
 
 		private void UpdateInput() {
-			
 			//Disables overstrums if chart ended/hasn't started
 			if(!CurrentlyInChart) {
 				return;
@@ -229,25 +228,24 @@ namespace YARG.PlayMode {
 			
 			// Handle misses (multiple a frame in case of lag)
 			while (HitMarginEndTime > expectedHits.PeekOrNull()?[0].time) {
-					var missedChord = expectedHits.Dequeue();
+				var missedChord = expectedHits.Dequeue();
 
-					// Call miss for each component
-					foreach (var hit in missedChord) {
-						hitChartIndex++;
+				// Call miss for each component
+				foreach (var hit in missedChord) {
+					hitChartIndex++;
 
-						// The player should not be penalized for missing activator notes
-						if (hit.isActivator) {
-							continue;
-						}
-
-						Combo = 0;
-						missedAnyNote = true;
-						notePool.MissNote(hit);
-						StopAudio = true;
+					// The player should not be penalized for missing activator notes
+					if (hit.isActivator) {
+						continue;
 					}
+
+					Combo = 0;
+					missedAnyNote = true;
+					notePool.MissNote(hit);
+					StopAudio = true;
+				}
 			}
 		}
-		
 
 		protected override void PauseToggled(bool pause) {
 			if (!pause) {
