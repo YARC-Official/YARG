@@ -689,6 +689,11 @@ namespace YARG.PlayMode {
 			latestInput = CurrentTime;
 			latestInputIsStrum = true;
 
+			// Ignore inputs until the first note enters the hit window
+			if (!CurrentlyInChart) {
+				return;
+			}
+
 			// Strum leniency already active and another strum inputted, a double strum occurred (must overstrum)
 			if (strumLeniency > 0f) {
 				UpdateOverstrums();
