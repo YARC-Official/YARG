@@ -149,18 +149,24 @@ namespace YARG.UI.MusicLibrary {
 				new NavigationScheme.Entry(MenuAction.Shortcut2, _nextFilter, () => {
 					ChangeFilter();
 				}),
-				new NavigationScheme.Entry(MenuAction.Shortcut3, "Next Section", () => {
-					SelectNextSection();
-				})
+				new NavigationScheme.Entry(MenuAction.Shortcut3, "(Hold) Section", () => {})
 			}, false);
 		}
 
 		private void ScrollUp() {
-			SelectedIndex--;
+			if (Navigator.Instance.IsHeld(MenuAction.Shortcut3)) {
+				SelectPreviousSection();
+			} else {
+				SelectedIndex--;
+			}
 		}
 
 		private void ScrollDown() {
-			SelectedIndex++;
+			if (Navigator.Instance.IsHeld(MenuAction.Shortcut3)) {
+				SelectNextSection();
+			} else {
+				SelectedIndex++;
+			}
 		}
 
 		private void OnDisable() {
