@@ -195,6 +195,11 @@ namespace YARG.PlayMode {
 		}
 
 		private void UpdateInput() {
+			//Disables overstrums if chart ended/hasn't started
+			if(!CurrentlyInChart) {
+				return;
+			}
+
 			// Only want to decrease strum leniency on frames where we didn't strum
 			bool strummedCurrentNote = false;
 			bool strumLeniencyEnded = false;
@@ -386,6 +391,10 @@ namespace YARG.PlayMode {
 					frets[hit.fret].PlayAnimation();
 				} else {
 					openNoteParticles.Play();
+
+					for (int i = 0; i < 5; i++) {
+						frets[i].PlayAnimation();
+					}
 				}
 
 				// If sustained, add to held
@@ -573,6 +582,13 @@ namespace YARG.PlayMode {
 			latestInput = CurrentTime;
 			latestInputIsStrum = false;
 
+			frets[fret].SetPressed(pressed);
+
+			// Ignore inputs until the first note enters the hit window
+			if (!CurrentlyInChart) {
+				return;
+			}
+
 			// Should it check ghosting?
 			if (SettingsManager.Settings.AntiGhosting.Data && allowedGhosts > 0 && pressed && hitChartIndex > 0) {
 				bool checkGhosting = true;
@@ -609,9 +625,7 @@ namespace YARG.PlayMode {
 					}
 				}
 			}
-
-			frets[fret].SetPressed(pressed);
-
+			
 			if (pressed) {
 				// Let go of held notes if wrong note pressed
 				if (!IsExtendedSustain()) { // Unless it's extended sustains
@@ -678,6 +692,11 @@ namespace YARG.PlayMode {
 		private void StrumAction() {
 			latestInput = CurrentTime;
 			latestInputIsStrum = true;
+
+			// Ignore inputs until the first note enters the hit window
+			if (!CurrentlyInChart) {
+				return;
+			}
 
 			// Strum leniency already active and another strum inputted, a double strum occurred (must overstrum)
 			if (strumLeniency > 0f) {

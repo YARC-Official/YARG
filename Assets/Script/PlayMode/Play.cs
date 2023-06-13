@@ -318,20 +318,33 @@ namespace YARG.PlayMode {
 				yield return null;
 			}
 
+			float? startVideoIn = null;
 			if (GameUI.Instance.videoPlayer.enabled) {
 				// Set the chart start offset here (if ini)
 				if (Song is IniSongEntry ini) {
-					GameUI.Instance.videoPlayer.time = ini.VideoStartOffset / 1000.0;
+					if (ini.VideoStartOffset < 0) {
+						startVideoIn = Mathf.Abs(ini.VideoStartOffset / 1000f);
+					} else {
+						GameUI.Instance.videoPlayer.time = ini.VideoStartOffset / 1000.0;
+					}
 				}
 
-				// Play the video
-				GameUI.Instance.videoPlayer.Play();
+				// Play the video if a start time wasn't defined
+				if (startVideoIn == null) {
+					GameUI.Instance.videoPlayer.Play();
+				}
 			}
 
 			GameManager.AudioManager.Play();
 
 			GameManager.AudioManager.SongEnd += OnEndReached;
 			audioRunning = true;
+
+			if (startVideoIn != null) {
+				// Wait, then start on time
+				yield return new WaitForSeconds(startVideoIn.Value);
+				GameUI.Instance.videoPlayer.Play();
+			}
 		}
 
 		private void Update() {
