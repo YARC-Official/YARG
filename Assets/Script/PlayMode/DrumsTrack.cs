@@ -221,11 +221,11 @@ namespace YARG.PlayMode {
 		}
 
 		private void UpdateInput() {
-			//Disables overstrums if chart ended/hasn't started
-			if(!CurrentlyInChart) {
+			// Ignore inputs until the first note enters the hit window
+			if (!CurrentlyInChart) {
 				return;
 			}
-			
+
 			// Handle misses (multiple a frame in case of lag)
 			while (HitMarginEndTime > expectedHits.PeekOrNull()?[0].time) {
 				var missedChord = expectedHits.Dequeue();
@@ -311,11 +311,11 @@ namespace YARG.PlayMode {
 				}
 			}
 
-			//Disables overstrums if chart ended/hasn't started
-			if(!CurrentlyInChart) {
+			// Ignore inputs until the first note enters the hit window
+			if (!CurrentlyInChart) {
 				return;
 			}
-			
+
 			// Overstrum if no expected
 			if (expectedHits.Count <= 0) {
 				Combo = 0;

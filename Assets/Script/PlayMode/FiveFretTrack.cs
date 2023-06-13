@@ -578,6 +578,13 @@ namespace YARG.PlayMode {
 			latestInput = CurrentTime;
 			latestInputIsStrum = false;
 
+			frets[fret].SetPressed(pressed);
+
+			// Ignore inputs until the first note enters the hit window
+			if (!CurrentlyInChart) {
+				return;
+			}
+
 			// Should it check ghosting?
 			if (SettingsManager.Settings.AntiGhosting.Data && allowedGhosts > 0 && pressed && hitChartIndex > 0) {
 				bool checkGhosting = true;
@@ -613,13 +620,6 @@ namespace YARG.PlayMode {
 						}
 					}
 				}
-			}
-
-			frets[fret].SetPressed(pressed);
-
-			//Disables overstrums if chart ended/hasn't started
-			if(!CurrentlyInChart) {
-				return;
 			}
 			
 			if (pressed) {
