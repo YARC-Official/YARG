@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using UnityEngine;
 using DtxCS.DataTypes;
 using System.Collections.Generic;
@@ -309,13 +309,15 @@ namespace YARG.Song {
 								Source = "customs";
 							}
 						}
+
 						// if the source is any official RB game or its DLC, charter = Harmonix
-						if (Source == "rb1" || Source == "rb1_dlc" || Source == "rb1dlc" ||
-							Source == "gdrb" || Source == "greenday" || Source == "beatles" ||
-							Source == "tbrb" || Source == "lego" || Source == "lrb" ||
-							Source == "rb2" || Source == "rb3" || Source == "rb3_dlc" || Source == "rb3dlc") {
+						if (SongSources.GetSource(Source).Type == SongSources.SourceType.RB) {
 							Charter = "Harmonix";
 						}
+
+						// if the source is meant for usage in TBRB, it's a master track
+						// TODO: NEVER assume localized version contains "Beatles"
+						if(SongSources.SourceToGameName(Source).Contains("Beatles")) IsMaster = true;
 						break;
 					case "genre": Genre = ((DataSymbol) dtaArray[1]).Name; break;
 					case "rating": SongRating = ((DataAtom) dtaArray[1]).Int; break;
@@ -430,7 +432,7 @@ namespace YARG.Song {
 		}
 
 		public virtual byte[] LoadMiloFile(){
-			if(MiloPath.Length == 0) 
+			if(MiloPath.Length == 0)
 				return Array.Empty<byte>();
 			return File.ReadAllBytes(MiloPath);
 		}

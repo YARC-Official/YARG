@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using DG.Tweening;
 using TMPro;
@@ -33,7 +34,17 @@ namespace YARG.UI {
 
 		[Space]
 		[SerializeField]
-		private Sprite _normalSoloBox;
+		private Sprite _soloSpriteNormal;
+		[SerializeField]
+		private Sprite _soloSpritePerfect;
+		[SerializeField]
+		private Sprite _soloSpriteMessy;
+		[SerializeField]
+		private TMP_ColorGradient _soloGradientNormal;
+		[SerializeField]
+		private TMP_ColorGradient _soloGradientPerfect;
+		[SerializeField]
+		private TMP_ColorGradient _soloGradientMessy;
 
 		private Coroutine _soloBoxHide = null;
 
@@ -50,37 +61,72 @@ namespace YARG.UI {
 			TrackImage.transform.localScale = new Vector3(scale, scale, scale);
 		}
 
-		public void SetSoloBox(string topText, string bottomText) {
+		public void SetSoloBox(int hitPercent, int notesHit, int totalNotes) {
 			// Stop hide coroutine if we were previously hiding
 			if (_soloBoxHide != null) {
 				StopCoroutine(_soloBoxHide);
 				_soloBoxHide = null;
 			}
 
-			_soloBox.gameObject.SetActive(true);
-			_soloBoxCanvasGroup.alpha = 1f;
-			_soloBox.sprite = _normalSoloBox;
+			string percentageText = $"{hitPercent}%";
+			string noteCountText = $"{notesHit}/{totalNotes}";
 
+			// Show solo box
+			_soloBox.gameObject.SetActive(true);
+			_soloBox.sprite = _soloSpriteNormal;
+			_soloBoxCanvasGroup.alpha = 1f;
+
+			// Set solo text
 			_soloFullText.text = string.Empty;
-			_soloTopText.text = topText;
-			_soloBottomText.text = bottomText;
+			_soloTopText.text = percentageText;
+			_soloBottomText.text = noteCountText;
 		}
 
-		public void HideSoloBox(string percent, string fullText) {
+		public void HideSoloBox(int finalPercent, double scoreBonus) {
 			_soloTopText.text = string.Empty;
 			_soloBottomText.text = string.Empty;
-			_soloFullText.text = percent;
 
-			_soloBoxHide = StartCoroutine(HideSoloBoxCoroutine(fullText));
+			_soloBoxHide = StartCoroutine(HideSoloBoxCoroutine(finalPercent, scoreBonus));
 		}
 
-		private IEnumerator HideSoloBoxCoroutine(string fullText) {
+		private IEnumerator HideSoloBoxCoroutine(int finalPercent, double scoreBonus) {
+			// Set textbox color
+			var (sprite, gradient) = finalPercent switch {
+				>= 100 => (_soloSpritePerfect, _soloGradientPerfect),
+				>= 60  => (_soloSpriteNormal, _soloGradientNormal),
+				_      => (_soloSpriteMessy, _soloGradientMessy),
+			};
+			_soloBox.sprite = sprite;
+			_soloFullText.colorGradientPreset = gradient;
+
+			// Display final hit percentage
+			_soloFullText.text = $"{finalPercent}%";
+
 			yield return new WaitForSeconds(1f);
 
-			_soloFullText.text = fullText;
+			// Show performance text
+			string resultText = finalPercent switch {
+				>  100 => "HOW!?",
+				   100 => "PERFECT\nSOLO!",
+				>= 95  => "AWESOME\nSOLO!",
+				>= 90  => "GREAT\nSOLO!",
+				>= 80  => "GOOD\nSOLO!",
+				>= 70  => "SOLID\nSOLO",
+				   69  => "<i>NICE</i>\nSOLO",
+				>= 60  => "OKAY\nSOLO",
+				>=  0  => "MESSY\nSOLO",
+				<   0  => "HOW!?",
+			};
+			_soloFullText.text = resultText;
 
 			yield return new WaitForSeconds(1f);
 
+			// Show point bonus
+			_soloFullText.text = $"{Math.Round(scoreBonus)}\nPOINTS";
+
+			yield return new WaitForSeconds(1f);
+
+			// Fade out the box
 			yield return _soloBoxCanvasGroup
 				.DOFade(0f, 0.25f)
 				.WaitForCompletion();

@@ -21,6 +21,30 @@ namespace YARG.Audio.BASS {
 
 		public bool IsMixed { get; set; } = false;
 
+		private int _channelEndHandle;
+		private event Action _channelEnd;
+		public event Action ChannelEnd {
+			add {
+				if (_channelEndHandle == 0) {
+					SyncProcedure sync = (_, _, _, _) => {
+						// Prevent potential race conditions by caching the value as a local
+						var end = _channelEnd;
+						if (end != null) {
+							UnityMainThreadCallback.QueueEvent(end.Invoke);
+						}
+					};
+					_channelEndHandle = IsMixed
+						? BassMix.ChannelSetSync(StreamHandle, SyncFlags.End, 0, sync)
+						: Bass.ChannelSetSync(StreamHandle, SyncFlags.End, 0, sync);
+				}
+
+				_channelEnd += value;
+			}
+			remove {
+				_channelEnd -= value;
+			}
+		}
+
 		private readonly string _path;
 		private readonly IAudioManager _manager;
 

@@ -49,6 +49,7 @@ namespace YARG.PlayMode {
 		protected int hitChartIndex = 0;
 		public NoteInfo CurrentNote =>
 			hitChartIndex < Chart.Count ? Chart[hitChartIndex] : null;
+		public bool CurrentlyInChart => Chart.Count >= 0 && HitMarginStartTime >= Chart[0].time && HitMarginEndTime < Chart[^1].time;
 
 		protected int currentBeatIndex = 0;
 
@@ -64,13 +65,13 @@ namespace YARG.PlayMode {
 		public EventInfo CurrentVisualStarpower =>
 			starpowerVisualIndex < starpowerSections.Count ? starpowerSections[starpowerVisualIndex] : null;
 
-		protected List<EventInfo> soloSections = new();
+		protected List<(EventInfo info, int noteCount)> soloSections = new();
 		protected int soloIndex = 0;
 		protected int soloVisualIndex = 0;
-		public EventInfo CurrentSolo =>
-			soloIndex < soloSections.Count ? soloSections[soloIndex] : null;
-		public EventInfo CurrentVisualSolo =>
-			soloVisualIndex < soloSections.Count ? soloSections[soloVisualIndex] : null;
+		public (EventInfo info, int noteCount) CurrentSolo =>
+			soloIndex < soloSections.Count ? soloSections[soloIndex] : default;
+		public (EventInfo info, int noteCount) CurrentVisualSolo =>
+			soloVisualIndex < soloSections.Count ? soloSections[soloVisualIndex] : default;
 
 		protected int notesHit = 0;
 		// private int notesMissed = 0;
@@ -86,9 +87,8 @@ namespace YARG.PlayMode {
 		protected bool soloInProgress = false;
 		protected int soloNoteCount = -1;
 		protected int soloNotesHit = 0;
-		private int soloHitPercent = 0;
+		private int SoloHitPercent => soloNoteCount > 0 ? Mathf.FloorToInt((float) soloNotesHit / soloNoteCount * 100f) : 0;
 		private int lastHit = -1;
-		private double soloPtsEarned;
 
 		private bool FullCombo = true;
 
@@ -232,11 +232,23 @@ namespace YARG.PlayMode {
 			string spName = $"starpower_{player.chosenInstrument}";
 			string soloName = $"solo_{player.chosenInstrument}";
 			string fillName = $"fill_{player.chosenInstrument}";
+			// Solos and SP cannot share notes, so we can save some iteration time and only go start-to-end once overall
+			int spNoteIndex = 0;
+			int soloNoteIndex = 0;
+			bool chordsAreSingleNote = player.chosenInstrument is "drums" or "realDrums" or "ghDrums";
 			foreach (var eventInfo in Play.Instance.chart.events) {
 				if (eventInfo.name == spName) {
-					starpowerSections.Add(eventInfo);
+					// Don't add empty SP phrases
+					int noteCount = GetNoteCountForPhrase(eventInfo, out spNoteIndex, chordsAreSingleNote, spNoteIndex);
+					if (noteCount > 0) {
+						starpowerSections.Add(eventInfo);
+					}
 				} else if (eventInfo.name == soloName) {
-					soloSections.Add(eventInfo);
+					// Get note count of solo
+					int noteCount = GetNoteCountForPhrase(eventInfo, out soloNoteIndex, chordsAreSingleNote, soloNoteIndex);
+					if (noteCount > 0) {
+						soloSections.Add((eventInfo, noteCount));
+					}
 				}
 			}
 
@@ -304,6 +316,7 @@ namespace YARG.PlayMode {
 			UpdateStarpower();
 			UpdateFullComboState();
 			UpdateInfo();
+			UpdateSolo();
 
 			if (Multiplier >= MaxMultiplier) {
 				commonTrack.comboSunburst.gameObject.SetActive(true);
@@ -480,105 +493,6 @@ namespace YARG.PlayMode {
 				commonTrack.comboText.text = $"{Multiplier}<sub>x</sub>";
 			}
 
-			// Set solo box and text
-			if (CurrentSolo?.time <= HitMarginStartTime && CurrentSolo?.EndTime >= HitMarginEndTime) {
-				if (!soloInProgress) {
-					soloInProgress = true;
-					soloNotesHit = 0;
-					soloNoteCount = 0;
-
-					float lastNoteTime = -1f;
-					for (int i = hitChartIndex; i < Chart.Count; i++) {
-						if (Chart[i].time == lastNoteTime) {
-							continue;
-						}
-
-						if (Chart[i].time > CurrentSolo?.EndTime) {
-							break;
-						}
-
-						soloNoteCount++;
-						lastNoteTime = Chart[i].time;
-					}
-				}
-
-				// Set text color
-				// commonTrack.soloText.colorGradient = new VertexGradient(
-				// 	new Color(1f, 1f, 1f),
-				// 	new Color(1f, 1f, 1f),
-				// 	new Color(0.1320755f, 0.1320755f, 0.1320755f),
-				// 	new Color(0.1320755f, 0.1320755f, 0.1320755f)
-				// );
-				// commonTrack.soloText.gameObject.SetActive(true);
-
-				soloHitPercent = Mathf.FloorToInt((float) soloNotesHit / soloNoteCount * 100f);
-				commonTrack.TrackView.SetSoloBox(soloHitPercent + "%", $"{soloNotesHit}/{soloNoteCount}");
-			} else if (soloInProgress) {
-				commonTrack.TrackView.HideSoloBox(soloHitPercent + "%", soloHitPercent switch {
-					69 => "<i>NICE</i>\nSOLO",
-
-					>= 100 => "PERFECT\nSOLO!",
-					>= 95  => "AWESOME\nSOLO!",
-					>= 90  => "GREAT\nSOLO!",
-					>= 80  => "GOOD\nSOLO!",
-					>= 70  => "SOLID\nSOLO",
-					>= 60  => "OKAY\nSOLO",
-					_      => "MESSY\nSOLO",
-				});
-
-				soloInProgress = false;
-			}
-			// } else if (HitMarginEndTime >= SoloSection?.EndTime && HitWindowEndTime <= SoloSection?.EndTime + 3) {
-			// 	// run ONCE
-			// 	if (soloInProgress) {
-			// 		soloPtsEarned = scoreKeeper.AddSolo(soloNotesHit, soloNoteCount);
-			// 		soloNotesHit = 0; // Reset count
-
-			// 		// set box text
-			// 		if (soloHitPercent >= 100f) {
-			// 			// Set text color
-			// 			commonTrack.soloText.colorGradient = new VertexGradient(
-			// 				new Color(1f, 0.619472f, 0f),
-			// 				new Color(1f, 0.619472f, 0f),
-			// 				new Color(0.5377358f, 0.2550798f, 0f),
-			// 				new Color(0.5377358f, 0.2550798f, 0f)
-			// 			);
-			// 			commonTrack.soloBox.sprite = commonTrack.soloPerfectSprite;
-			// 			commonTrack.soloText.text = "PERFECT\nSOLO!";
-			// 		} else if (soloHitPercent >= 95f) {
-			// 			commonTrack.soloText.text = "AWESOME\nSOLO!";
-			// 		} else if (soloHitPercent >= 90f) {
-			// 			commonTrack.soloText.text = "GREAT\nSOLO!";
-			// 		} else if (soloHitPercent >= 80f) {
-			// 			commonTrack.soloText.text = "GOOD\nSOLO!";
-			// 		} else if (soloHitPercent >= 70f) {
-			// 			commonTrack.soloText.text = "SOLID\nSOLO!";
-			// 		} else if (soloHitPercent >= 60f) {
-			// 			commonTrack.soloText.text = "OKAY\nSOLO!";
-			// 		} else {
-			// 			// Set text color
-			// 			commonTrack.soloText.colorGradient = new VertexGradient(
-			// 				new Color(1f, 0.1933962f, 0.1933962f),
-			// 				new Color(1f, 0.1933962f, 0.1933962f),
-			// 				new Color(1f, 0.1332366f, 0.06132078f),
-			// 				new Color(1f, 0.1332366f, 0.06132078f)
-			// 			);
-
-			// 			commonTrack.soloBox.sprite = commonTrack.soloMessySprite;
-			// 			commonTrack.soloText.text = "MESSY\nSOLO!";
-			// 		}
-
-			// 		// show points earned after some time
-			// 		StartCoroutine(SoloBoxShowScore());
-
-			// 		soloInProgress = false;
-			// 	}
-			// } else {
-			// 	commonTrack.soloText.text = null;
-			// 	commonTrack.soloText.gameObject.SetActive(false);
-			// 	commonTrack.soloBox.gameObject.SetActive(false);
-			// }
-
 			// Update status
 			int index = Combo % 10;
 			if (Multiplier != 1 && index == 0) {
@@ -680,19 +594,35 @@ namespace YARG.PlayMode {
 			recentNoteStreakInterval = currentNoteStreakInterval;
 			recentlyBelowMaxMultiplier = Multiplier < MaxMultiplier;
 			recentStarpowerCharge = starpowerCharge;
-
-			// Clear out passed solo sections
-			while (CurrentSolo?.EndTime < HitMarginEndTime) {
-				soloIndex++;
-			}
-			while (CurrentVisualSolo?.EndTime < TrackStartTime) {
-				soloVisualIndex++;
-			}
 		}
 
-		IEnumerator SoloBoxShowScore() {
-			yield return new WaitForSeconds(1.5f);
-			// commonTrack.soloText.text = $"{soloPtsEarned:n0}\nPOINTS";
+		private void UpdateSolo() {
+			// Set solo box and text
+			// Solo active when within hit window bounds,
+			// enabled after the first note is the front note in the hit window and disabled after the last note is hit
+			if (CurrentSolo.info?.time <= HitMarginStartTime && CurrentSolo.info?.EndTime >= HitMarginEndTime
+				&& CurrentNote?.time >= CurrentSolo.info?.time) {
+				if (!soloInProgress) {
+					soloInProgress = true;
+					soloNotesHit = 0;
+					soloNoteCount = CurrentSolo.noteCount;
+				}
+
+				commonTrack.TrackView.SetSoloBox(SoloHitPercent, soloNotesHit, soloNoteCount);
+			} else if (soloInProgress) {
+				double soloPtsEarned = scoreKeeper.AddSolo(soloNotesHit, soloNoteCount);
+				commonTrack.TrackView.HideSoloBox(SoloHitPercent, soloPtsEarned);
+
+				soloInProgress = false;
+			}
+
+			// Clear out passed solo sections
+			while (CurrentSolo.info?.EndTime < HitMarginEndTime) {
+				soloIndex++;
+			}
+			while (CurrentVisualSolo.info?.EndTime < TrackStartTime) {
+				soloVisualIndex++;
+			}
 		}
 
 		private void BeatAction() {
@@ -719,6 +649,31 @@ namespace YARG.PlayMode {
 
 		public virtual int GetChartCount() {
 			return Chart.Count;
+		}
+
+		protected int GetNoteCountForPhrase(EventInfo phrase, out int newIndex, bool chordsAreSingleNote = true, int startIndex = 0) {
+			int noteCount = 0;
+			float lastNoteTime = -1f;
+			for (newIndex = startIndex; newIndex < Chart.Count; newIndex++) {
+				var note = Chart[newIndex];
+				if (note.time > phrase.EndTime) {
+					// End of phrase reached
+					break;
+				}
+
+				if ((note.time == lastNoteTime && chordsAreSingleNote) // Chords count as a single note
+					|| note.time < phrase.time) { // Skip notes that are before the phrase
+					continue;
+				}
+				lastNoteTime = note.time;
+
+				// Determine if note start is within the phrase
+				if (note.time >= phrase.time && note.time <= phrase.EndTime) {
+					noteCount++;
+				}
+			}
+
+			return noteCount;
 		}
 	}
 }

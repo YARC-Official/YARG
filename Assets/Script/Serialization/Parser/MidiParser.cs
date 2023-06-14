@@ -96,20 +96,16 @@ namespace YARG.Serialization.Parser {
 							}
 						}
 					}
-
 				}
 
-				var ForbiddenVenueSrcs = new HashSet<string> { "tbrb", "beatles", "tbrbdlc", "tbrbcdlc" };
-				if(!ForbiddenVenueSrcs.Contains(oof.Source)){ // skip beatles venues cuz they're built different
-					// get midi tracks based from the milo, and append them to the midi to use
+				// TODO: NEVER assume localized version contains "Beatles"
+				if(!SongSources.SourceToGameName(oof.Source).Contains("Beatles")){ // skip beatles venues cuz they're built different
 					var miloTracks = MiloParser.GetMidiFromMilo(oof.LoadMiloFile(), midi.GetTempoMap());
 					foreach(var track in miloTracks){
 						midi.Chunks.Add(track);
 					}
 				}
-
 			}
-
 		}
 
 		public override void Parse(YargChart chart) {

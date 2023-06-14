@@ -11,12 +11,29 @@ namespace YARG.Audio.BASS {
 	public class BassStemMixer : IStemMixer {
 
 		public int StemsLoaded { get; protected set; }
-		
+
 		public bool IsPlaying { get; protected set; }
-		
+
 		public IReadOnlyDictionary<SongStem, IStemChannel> Channels => _channels;
 
 		public IStemChannel LeadChannel { get; protected set; }
+
+		public event Action SongEnd {
+			add {
+				if (LeadChannel is null) {
+					throw new InvalidOperationException("No song is currently loaded!");
+				}
+
+				LeadChannel.ChannelEnd += value;
+			}
+			remove {
+				if (LeadChannel is null) {
+					throw new InvalidOperationException("No song is currently loaded!");
+				}
+
+				LeadChannel.ChannelEnd -= value;
+			}
+		}
 
 		protected readonly IAudioManager _manager;
 		protected readonly Dictionary<SongStem, IStemChannel> _channels;
@@ -194,7 +211,7 @@ namespace YARG.Audio.BASS {
 		protected virtual void ReleaseManagedResources() {
 			// Free managed resources here
 			foreach (var channel in _channels.Values) {
-				channel.Dispose();
+				channel?.Dispose();
 			}
 
 			_channels.Clear();
@@ -206,7 +223,7 @@ namespace YARG.Audio.BASS {
 				if (!Bass.StreamFree(_mixerHandle)) {
 					Debug.LogError("Failed to free mixer stream. THIS WILL LEAK MEMORY!");
 				}
-				
+
 				_mixerHandle = 0;
 			}
 		}

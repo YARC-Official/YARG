@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Input;
+using YARG.Util;
 
 namespace YARG.Serialization {
 	public static class InputBindSerializer {
@@ -21,7 +22,7 @@ namespace YARG.Serialization {
 
 		private static List<InputDeviceSave> inputBindSaves = new();
 
-		private static string InputBindFile => Path.Combine(GameManager.PersistentDataPath, "inputBinds.json");
+		private static string InputBindFile => Path.Combine(PathHelper.PersistentDataPath, "inputBinds.json");
 
 		static InputBindSerializer() {
 			// Load from JSON
@@ -131,7 +132,7 @@ namespace YARG.Serialization {
 
 		private static void SaveToJsonFile() {
 			var json = JsonConvert.SerializeObject(inputBindSaves);
-			File.WriteAllText(Path.Combine(GameManager.PersistentDataPath, "inputBinds.json"), json);
+			File.WriteAllText(Path.Combine(PathHelper.PersistentDataPath, "inputBinds.json"), json);
 		}
 	}
 }

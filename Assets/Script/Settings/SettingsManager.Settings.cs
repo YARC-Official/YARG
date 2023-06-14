@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using Newtonsoft.Json;
 using UnityEngine;
 using YARG.Audio;
 using YARG.PlayMode;
