@@ -4,6 +4,8 @@ using UnityEngine;
 
 namespace YARG.PlayMode {
 	public class TrackMaterialHandler : MonoBehaviour {
+		// MOST OF THIS CLASS IS TEMPORARY UNTIL THE TRACK TEXTURE SETTINGS ARE IN
+
 		private static readonly int ScrollProperty = Shader.PropertyToID("_Scroll");
 		private static readonly int StarpowerStateProperty = Shader.PropertyToID("_Starpower_State");
 		private static readonly int WavinessProperty = Shader.PropertyToID("_Waviness");
