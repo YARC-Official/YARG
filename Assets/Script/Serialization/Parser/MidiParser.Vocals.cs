@@ -174,8 +174,13 @@ namespace YARG.Serialization.Parser {
 					}
 
 					// Extend last lyric if +
-					if (l == "+") {
+					if (l == "+" || l == "+-") {
 						var lyric = lyrics[^1];
+
+						// Workaround for Guitar Hero weirdness
+						if (l == "+-") {
+							lyric.lyric += "-";
+						}
 
 						// Add end pointer for first note
 						var (_, (firstNote, firstOctave)) = lyric.pitchOverTime[^1];
