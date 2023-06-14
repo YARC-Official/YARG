@@ -14,8 +14,8 @@ namespace YARG.Pools {
 
 		private void Update() {
 			// Update lyric location
-			lastLyricLocationBottom -= Time.deltaTime * MicPlayer.TRACK_SPEED;
-			lastLyricLocationTop -= Time.deltaTime * MicPlayer.TRACK_SPEED;
+			lastLyricLocationBottom -= Time.deltaTime * MicPlayer.trackSpeed;
+			lastLyricLocationTop -= Time.deltaTime * MicPlayer.trackSpeed;
 		}
 
 		public Transform AddLyric(LyricInfo lyric, bool starpower, float x, bool onTop) {
