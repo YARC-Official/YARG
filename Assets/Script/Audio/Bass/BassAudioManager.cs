@@ -86,6 +86,8 @@ namespace YARG.Audio.BASS {
 			Bass.PlaybackBufferLength = 75;
 			Bass.DeviceNonStop = true;
 
+			// Affects Windows only. Forces device names to be in UTF-8 on Windows rather than ANSI.
+			Bass.Configure(Configuration.UnicodeDeviceInformation, true);
 			Bass.Configure(Configuration.TruePlayPosition, 0);
 			Bass.Configure(Configuration.UpdateThreads, 2);
 			Bass.Configure(Configuration.FloatDSP, true);
@@ -138,15 +140,24 @@ namespace YARG.Audio.BASS {
 		public IList<IMicDevice> GetAllInputDevices() {
 			var mics = new List<IMicDevice>();
 
+			var typeWhitelist = new List<DeviceType> {
+				DeviceType.Headset,
+				DeviceType.Digital,
+				DeviceType.Line,
+				DeviceType.Headphones,
+				DeviceType.Microphone,
+			};
+
 			for (int deviceIndex = 0; Bass.RecordGetDeviceInfo(deviceIndex, out var info); deviceIndex++) {
 				if (!info.IsEnabled) {
 					continue;
 				}
 
-				// We do not check the device type since there are too many that a recording device can be,
-				// instead we only exclude loopback devices
+				//Debug.Log($"Device {deviceIndex}: Name: {info.Name}. Type: {info.Type}. IsLoopback: {info.IsLoopback}.");
+
+				// Check if type is in whitelist
 				// The "Default" device is also excluded here since we want the user to explicitly pick which microphone to use
-				if (info.IsLoopback || info.Name == "Default") {
+				if (!typeWhitelist.Contains(info.Type) || info.Name == "Default") {
 					continue;
 				}
 
