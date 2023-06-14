@@ -391,7 +391,7 @@ namespace YARG.PlayMode {
 			}
 
 			// Update track solo
-			if (CurrentTime >= CurrentVisualSolo?.time && CurrentTime <= CurrentSolo?.EndTime) {
+			if (CurrentTime >= CurrentVisualSolo.info?.time && CurrentTime <= CurrentSolo.info?.EndTime) {
 				matHandler.SoloState = Mathf.Lerp(matHandler.SoloState, 1f, Time.deltaTime * 5f);
 			} else {
 				matHandler.SoloState = Mathf.Lerp(matHandler.SoloState, 0f, Time.deltaTime * 3f);
