@@ -28,8 +28,8 @@ namespace YARG.Song {
 			}
 		}
 
-		private readonly static List<Tuple<string, string>> troublesomeCharacters = new List<Tuple<string, string>>{
-			Tuple.Create("Æ", "AE") // Tool - Ænema
+		private readonly static List<(string, string)> troublesomeCharacters = new List<(string, string)>{
+			("Æ", "AE") // Tool - Ænema
 		};
 
 		public IEnumerable<SongEntry> Search(string value){
