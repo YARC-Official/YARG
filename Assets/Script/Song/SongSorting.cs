@@ -77,7 +77,7 @@ namespace YARG.Song {
 			};
 		}
 
-		public bool OrderByName() {
+		private bool OrderByName() {
 			index = song => {
 				string name = song.SongEntry.NameNoParenthesis;
 				return GetFirstCharacter(name);
@@ -104,7 +104,7 @@ namespace YARG.Song {
 			return name;
 		}
 
-		public bool OrderByArtist() {
+		private bool OrderByArtist() {
 			index = song => {
 				string artist = song.SongEntry.Artist;
 				return GetFirstCharacter(artist);
@@ -118,7 +118,7 @@ namespace YARG.Song {
 			return true;
 		}
 
-		public bool OrderByDuration() {
+		private bool OrderByDuration() {
 			index = song => {
 				return GetSongLengthBySection(song.SongEntry);
 			};
@@ -134,17 +134,17 @@ namespace YARG.Song {
 			var minutes = songEntry.SongLengthTimeSpan.TotalMinutes;
 
 			return minutes switch {
-				double m when m <= 0.00f => "-",
-				double m when m <= 2.00f => "00:00 - 02:00",
-				double m when m <= 5.00f => "02:00 - 05:00",
-				double m when m <= 10.00f => "05:00 - 10:00",
-				double m when m <= 15.00f => "10:00 - 15:00",
-				double m when m <= 20.00f => "15:00 - 20:00",
+				<= 0.00f => "-",
+				<= 2.00f => "00:00 - 02:00",
+				<= 5.00f => "02:00 - 05:00",
+				<= 10.00f => "05:00 - 10:00",
+				<= 15.00f => "10:00 - 15:00",
+				<= 20.00f => "15:00 - 20:00",
 				_ => "20:00+",
 			};
 		}
 
-		public bool OrderBySource() {
+		private bool OrderBySource() {
 			index = song => {
 				string source = song.SongEntry.Source;
 				return SongSources.SourceToGameName(source);
@@ -158,7 +158,7 @@ namespace YARG.Song {
 			return true;
 		}
 
-		public bool OrderByAlbum() {
+		private bool OrderByAlbum() {
 			index = song => {
 				string album = song.SongEntry.Album;
 				return GetFirstCharacter(album);
@@ -178,7 +178,7 @@ namespace YARG.Song {
 			return true;
 		}
 
-		public bool OrderByCharter() {
+		private bool OrderByCharter() {
 			index = song => {
 				string charter = song.SongEntry.Charter;
 				return GetFirstCharacter(charter);
@@ -197,7 +197,7 @@ namespace YARG.Song {
 			return true;
 		}
 
-		public bool OrderByGenre() {
+		private bool OrderByGenre() {
 			index = song => {
 				return song.SongEntry.Genre.ToUpper();
 			};
@@ -209,7 +209,7 @@ namespace YARG.Song {
 			return true;
 		}
 		
-		public bool OrderByYear() {
+		private bool OrderByYear() {
 			index = song => {
 				string year = song.SongEntry.Year;
 				return GetDecade(year);
@@ -308,14 +308,14 @@ namespace YARG.Song {
 
 		public string GetNextSortCriteriaButtonName(SortCriteria sortCriteria) {
 			return sortCriteria switch {
-				SongSorting.SortCriteria.SONG => "Order by Artist",
-				SongSorting.SortCriteria.ARTIST => "Order by Source",
-				SongSorting.SortCriteria.SOURCE => "Order by Year",
-				SongSorting.SortCriteria.YEAR => "Order by Duration",
-				SongSorting.SortCriteria.DURATION =>"Order by Genre",
-				SongSorting.SortCriteria.GENRE => "Order by Album",
-				SongSorting.SortCriteria.ALBUM => "Order by Charter",
-				SongSorting.SortCriteria.CHARTER => "Order by Song",
+				SortCriteria.SONG => "Order by Artist",
+				SortCriteria.ARTIST => "Order by Source",
+				SortCriteria.SOURCE => "Order by Year",
+				SortCriteria.YEAR => "Order by Duration",
+				SortCriteria.DURATION =>"Order by Genre",
+				SortCriteria.GENRE => "Order by Album",
+				SortCriteria.ALBUM => "Order by Charter",
+				SortCriteria.CHARTER => "Order by Song",
 				_ => "Order by Song"
 			};
 		}
