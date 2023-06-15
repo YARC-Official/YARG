@@ -9,11 +9,13 @@ namespace YARG.PlayMode {
 		public Camera TrackCamera { get; private set; }
 		public TrackView TrackView { get; set; }
 
+		[field: SerializeField]
+		public TrackMaterialHandler TrackMaterialHandler { get; private set; }
+
 		[SerializeField]
 		private Animation cameraAnimation;
 
 		[Space]
-		public MeshRenderer trackRenderer;
 		public Transform hitWindow;
 		public Transform fadeBegin;
 		public Transform fadeEnd;
