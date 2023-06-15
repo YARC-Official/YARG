@@ -23,6 +23,7 @@ namespace YARG.Song {
 			ARTIST,
 			SOURCE,
 			YEAR,
+			DURATION,
 			GENRE,
 			ALBUM,
 			CHARTER,
@@ -34,7 +35,7 @@ namespace YARG.Song {
 
 		private readonly static List<string> articles = new List<string>{
 			"The ",// The beatles, The day that never comes
-			"El ", // Los fabulosos cadillacs, El sol no regresa
+			"El ", // El final, El sol no regresa
 			"La ", // La quinta estacion, La bamba, La muralla verde
 			"Le ", // Le temps de la rentrée
 			"Les ", // Les Rita Mitsouko, Les Wampas
@@ -59,14 +60,7 @@ namespace YARG.Song {
 		}
 
 		private SongSorting(){
-			index = song => {
-				string name = song.SongEntry.NameNoParenthesis;
-				return GetFirstCharacter(name);
-			};
-
-			sortBy = song => {
-				return RemoveArticle(song.NameNoParenthesis);
-			};
+			OrderByName();
 		}
 
 		public void OrderBy(SortCriteria sortCriteria) {
@@ -75,6 +69,7 @@ namespace YARG.Song {
 				SortCriteria.ARTIST => OrderByArtist(),
 				SortCriteria.SOURCE => OrderBySource(),
 				SortCriteria.YEAR => OrderByYear(),
+				SortCriteria.DURATION => OrderByDuration(),
 				SortCriteria.GENRE => OrderByGenre(),
 				SortCriteria.ALBUM => OrderByAlbum(),
 				SortCriteria.CHARTER => OrderByCharter(),
@@ -121,6 +116,32 @@ namespace YARG.Song {
 			};
 
 			return true;
+		}
+
+		public bool OrderByDuration() {
+			index = song => {
+				return GetSongLengthBySection(song.SongEntry);
+			};
+
+			sortBy = song => {
+				return song.SongLengthTimeSpan.ToString(@"h\:mm\:ss");
+			};
+
+			return true;
+		}
+
+		private string GetSongLengthBySection(SongEntry songEntry){
+			var minutes = songEntry.SongLengthTimeSpan.TotalMinutes;
+
+			return minutes switch {
+				double m when m <= 0.00f => "-",
+				double m when m <= 2.00f => "00:00 - 02:00",
+				double m when m <= 5.00f => "02:00 - 05:00",
+				double m when m <= 10.00f => "05:00 - 10:00",
+				double m when m <= 15.00f => "10:00 - 15:00",
+				double m when m <= 20.00f => "15:00 - 20:00",
+				_ => "20:00+",
+			};
 		}
 
 		public bool OrderBySource() {
@@ -276,7 +297,8 @@ namespace YARG.Song {
 				SortCriteria.SONG => SortCriteria.ARTIST,
 				SortCriteria.ARTIST => SortCriteria.SOURCE,
 				SortCriteria.SOURCE => SortCriteria.YEAR,
-				SortCriteria.YEAR => SortCriteria.GENRE,
+				SortCriteria.YEAR => SortCriteria.DURATION,
+				SortCriteria.DURATION => SortCriteria.GENRE,
 				SortCriteria.GENRE => SortCriteria.ALBUM,
 				SortCriteria.ALBUM => SortCriteria.CHARTER,
 				SortCriteria.CHARTER => SortCriteria.SONG,
@@ -289,7 +311,8 @@ namespace YARG.Song {
 				SongSorting.SortCriteria.SONG => "Order by Artist",
 				SongSorting.SortCriteria.ARTIST => "Order by Source",
 				SongSorting.SortCriteria.SOURCE => "Order by Year",
-				SongSorting.SortCriteria.YEAR => "Order by Genre",
+				SongSorting.SortCriteria.YEAR => "Order by Duration",
+				SongSorting.SortCriteria.DURATION =>"Order by Genre",
 				SongSorting.SortCriteria.GENRE => "Order by Album",
 				SongSorting.SortCriteria.ALBUM => "Order by Charter",
 				SongSorting.SortCriteria.CHARTER => "Order by Song",

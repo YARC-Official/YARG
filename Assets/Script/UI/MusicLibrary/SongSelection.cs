@@ -58,15 +58,7 @@ namespace YARG.UI.MusicLibrary {
 		public int SelectedIndex {
 			get => _selectedIndex;
 			private set {
-				// Wrap value to bounds
-				if (value < 0) {
-					_selectedIndex = _songs.Count - 1;
-				} else if (value >= _songs.Count) {
-					_selectedIndex = 0;
-				} else {
-					_selectedIndex = value;
-				}
-
+				SetSelectedIndex(value);
 				UpdateScrollbar();
 				UpdateSongViews();
 
@@ -84,6 +76,21 @@ namespace YARG.UI.MusicLibrary {
 					_previewCanceller.Cancel();
 				}
 			}
+		}
+
+		private void SetSelectedIndex(int value){
+				// Wrap value to bounds
+				if (value < 0) {
+					_selectedIndex = _songs.Count - 1;
+					return;
+				}
+
+				if (value >= _songs.Count) {
+					_selectedIndex = 0;
+					return;
+				}
+
+				_selectedIndex = value;
 		}
 
 		private List<SongView> _songViews = new();
@@ -157,17 +164,19 @@ namespace YARG.UI.MusicLibrary {
 		private void ScrollUp() {
 			if (Navigator.Instance.IsHeld(MenuAction.Shortcut3)) {
 				SelectPreviousSection();
-			} else {
-				SelectedIndex--;
+				return;
 			}
+
+			SelectedIndex--;
 		}
 
 		private void ScrollDown() {
 			if (Navigator.Instance.IsHeld(MenuAction.Shortcut3)) {
 				SelectNextSection();
-			} else {
-				SelectedIndex++;
+				return;
 			}
+
+			SelectedIndex++;
 		}
 
 		private void OnDisable() {
@@ -253,19 +262,7 @@ namespace YARG.UI.MusicLibrary {
 
 
 		private void Update() {
-			if (_scrollTimer <= 0f) {
-				var delta = Mouse.current.scroll.ReadValue().y * Time.deltaTime;
-
-				if (delta > 0f) {
-					SelectedIndex--;
-					_scrollTimer = SCROLL_TIME;
-				} else if (delta < 0f) {
-					SelectedIndex++;
-					_scrollTimer = SCROLL_TIME;
-				}
-			} else {
-				_scrollTimer -= Time.deltaTime;
-			}
+			SetScrollTimer();
 
 			if (Keyboard.current.escapeKey.wasPressedThisFrame) {
 				ClearSearchBox();
@@ -276,7 +273,30 @@ namespace YARG.UI.MusicLibrary {
 				searchBoxShouldBeEnabled = false;
 			}
 
-			// Start preview
+			StartPreview();
+		}
+
+		private void SetScrollTimer(){
+			if (_scrollTimer > 0f) {
+				_scrollTimer -= Time.deltaTime;
+				return;
+			}
+
+			var delta = Mouse.current.scroll.ReadValue().y * Time.deltaTime;
+
+			if (delta > 0f) {
+				SelectedIndex--;
+				_scrollTimer = SCROLL_TIME;
+				return;
+			}
+
+			if (delta < 0f) {
+				SelectedIndex++;
+				_scrollTimer = SCROLL_TIME;
+			}
+		}
+
+		private void StartPreview(){
 			if (!_previewContext.IsPlaying && CurrentSelection is SongViewType song) {
 				_previewCanceller = new();
 				float previewVolume = SettingsManager.Settings.PreviewVolume.Data;
@@ -396,7 +416,7 @@ namespace YARG.UI.MusicLibrary {
 			_songs.Insert(index, new ButtonViewType(
 				$"<#00B6F5><b>{section}</b><#006488>",
 				"Icon/ChevronDown",
-				() => { }
+				() => SelectedIndex++
 			));
 		}
 
@@ -441,10 +461,11 @@ namespace YARG.UI.MusicLibrary {
 			var searchBoxHasContent = !string.IsNullOrEmpty(searchField.text);
 
 			if (searchBoxHasContent) {
-					SelectedIndex = 1;
-			} else {
-				SelectedIndex = 2;
+				SelectedIndex = 1;
+				return;
 			}
+
+			SelectedIndex = 2;
 		}
 
 		private void UpdateIndex(){
