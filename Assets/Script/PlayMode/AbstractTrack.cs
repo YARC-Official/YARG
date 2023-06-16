@@ -47,7 +47,7 @@ namespace YARG.PlayMode {
 		protected int visualChartIndex = 0;
 		protected int inputChartIndex = 0;
 		protected int hitChartIndex = 0;
-		public NoteInfo CurrentNote => 
+		public NoteInfo CurrentNote =>
 			hitChartIndex < Chart.Count ? Chart[hitChartIndex] : null;
 		public bool CurrentlyInChart => Chart.Count >= 0 && HitMarginStartTime >= Chart[0].time && HitMarginEndTime < Chart[^1].time;
 
@@ -371,33 +371,30 @@ namespace YARG.PlayMode {
 		protected abstract void UpdateTrack();
 
 		private void UpdateMaterial() {
+			var matHandler = commonTrack.TrackMaterialHandler;
+
 			// Update track UV
-			var trackMaterial = commonTrack.trackRenderer.material;
-			var oldOffset = trackMaterial.GetVector("TexOffset");
-			float movement = Time.deltaTime * player.trackSpeed / 4f;
-			trackMaterial.SetVector("TexOffset", new(oldOffset.x, oldOffset.y - movement));
+			commonTrack.TrackMaterialHandler.ScrollTrack(player.trackSpeed);
 
 			// Update track groove
-			float currentGroove = trackMaterial.GetFloat("GrooveState");
 			if (Multiplier >= MaxMultiplier) {
-				trackMaterial.SetFloat("GrooveState", Mathf.Lerp(currentGroove, 1f, Time.deltaTime * 5f));
+				matHandler.GrooveState = Mathf.Lerp(matHandler.GrooveState, 1f, Time.deltaTime * 5f);
 			} else {
-				trackMaterial.SetFloat("GrooveState", Mathf.Lerp(currentGroove, 0f, Time.deltaTime * 3f));
+				matHandler.GrooveState = Mathf.Lerp(matHandler.GrooveState, 0f, Time.deltaTime * 3f);
 			}
 
 			// Update track starpower
-			float currentStarpower = trackMaterial.GetFloat("StarpowerState");
 			if (IsStarPowerActive) {
-				trackMaterial.SetFloat("StarpowerState", Mathf.Lerp(currentStarpower, 1f, Time.deltaTime * 2f));
+				matHandler.StarpowerState = Mathf.Lerp(matHandler.StarpowerState, 1f, Time.deltaTime * 2f);
 			} else {
-				trackMaterial.SetFloat("StarpowerState", Mathf.Lerp(currentStarpower, 0f, Time.deltaTime * 4f));
+				matHandler.StarpowerState = Mathf.Lerp(matHandler.StarpowerState, 0f, Time.deltaTime * 4f);
 			}
 
-			float currentSolo = trackMaterial.GetFloat("SoloState");
-			if (CurrentTime >= CurrentSolo.info?.time - 2 && CurrentTime <= CurrentSolo.info?.EndTime - 1) {
-				trackMaterial.SetFloat("SoloState", Mathf.Lerp(currentSolo, 1f, Time.deltaTime * 2f));
+			// Update track solo
+			if (CurrentTime >= CurrentVisualSolo.info?.time && CurrentTime <= CurrentSolo.info?.EndTime) {
+				matHandler.SoloState = Mathf.Lerp(matHandler.SoloState, 1f, Time.deltaTime * 5f);
 			} else {
-				trackMaterial.SetFloat("SoloState", Mathf.Lerp(currentSolo, 0f, Time.deltaTime * 2f));
+				matHandler.SoloState = Mathf.Lerp(matHandler.SoloState, 0f, Time.deltaTime * 3f);
 			}
 
 			// Update starpower bar

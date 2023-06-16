@@ -90,7 +90,7 @@ namespace YARG.Song {
 
 			sortBy = song => {
 				string name = song.NameNoParenthesis.ToUpper();
-				return RemoveArticle(name);
+				return SongSearching.RemoveDiacriticsAndArticle(name);
 			};
 
 			return true;
@@ -207,10 +207,13 @@ namespace YARG.Song {
 				return EMPTY_VALUE;
 			}
 
-			var name = RemoveArticle(value);
+			var name = SongSearching.RemoveDiacriticsAndArticle(value);
+
 			if(Regex.IsMatch(name, @"^\W")){
 				return EMPTY_VALUE;
-			} else if (Regex.IsMatch(name, @"^\d")){
+			}
+
+			if(Regex.IsMatch(name, @"^\d")){
 				return "0-9";
 			}
 			return name.Substring(0,1).ToUpper();
@@ -246,6 +249,18 @@ namespace YARG.Song {
 				.Distinct()
 				.OrderBy(ch => ch)
 				.ToList();
+		}
+
+		public List<string> GetSongsFirstLetter(){
+			return songsFirstLetter;
+		}
+
+		public int GetSectionsSize(){
+			return songsFirstLetter.Count;
+		}
+
+		public string GetLastSection(){
+			return songsFirstLetter[songsFirstLetter.Count - 1];
 		}
 
 		public Func<SongEntry, string> SortBy(){
@@ -332,6 +347,17 @@ namespace YARG.Song {
 				);
 
 			return _index;
+		}
+
+		public int GetIndexOfLetter(List<ViewType> songs, string value, int skip){
+			return songs.FindIndex(skip, song =>
+				song is SongViewType songType &&
+					String.Equals(
+						index(songType),
+						value,
+						StringComparison.OrdinalIgnoreCase
+					)
+			);
 		}
 	}
 }
