@@ -352,17 +352,16 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		private void UpdateBeats()
-		{
+		private void UpdateBeats() {
 			var beats = Play.Instance.chart.beats;
 			while (beats.Count > currentBeatIndex && beats[currentBeatIndex].Time <= TrackStartTime) {
 				var beatInfo = beats[currentBeatIndex];
 
-				float compensation = TRACK_SPAWN_OFFSET - CalcLagCompensation(TrackStartTime, beatInfo.Time);
+				float z = TRACK_SPAWN_OFFSET - CalcLagCompensation(TrackStartTime, beatInfo.Time);
 				if (beatInfo.Style is BeatStyle.STRONG or BeatStyle.WEAK) {
-					genericPool.Add("beatLine_minor", new(0f, 0.01f, compensation));
+					genericPool.Add("beatLine_minor", new(0f, 0.01f, z));
 				} else if (beatInfo.Style == BeatStyle.MEASURE) {
-					genericPool.Add("beatLine_major", new(0f, 0.01f, compensation));
+					genericPool.Add("beatLine_major", new(0f, 0.01f, z));
 				}
 				currentBeatIndex++;
 			}

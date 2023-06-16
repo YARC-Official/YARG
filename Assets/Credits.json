@@ -157,7 +157,12 @@
 			"discord": "rileythefox"
 		},
 		"Mia Berth": {
-			"roles": [ "developer", "artist" ]
+			"roles": [ "developer", "artist" ],
+			"github": "berthrage",
+			"videoService": "@MiaBerth",
+			"twitter": "MiaBerth",
+			"discord": "miaberth",
+			"email": "miaberthrage@gmail.com"
 		},
 		"HughToBasic35": {
 			"roles": [ "developer" ],

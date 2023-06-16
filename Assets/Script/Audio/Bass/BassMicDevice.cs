@@ -8,9 +8,10 @@ using YARG.Settings;
 
 namespace YARG.Audio {
 	public class BassMicDevice : IMicDevice {
-
 		// How often to record samples from the microphone in milliseconds (calls the callback function every n millis)
 		private const int RECORD_PERIOD_MILLIS = 50;
+
+		public float PitchUpdatesPerSecond => 1000f / RECORD_PERIOD_MILLIS;
 
 		public string DisplayName => _deviceInfo.Name;
 		public bool IsDefault => _deviceInfo.IsDefault;
