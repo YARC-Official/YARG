@@ -96,7 +96,14 @@ namespace YARG.Audio.BASS {
 					// Channel was not set up correctly for some reason
 					return -1;
 				}
-				_sourceHandle = Bass.CreateStream(_path, 0, 0, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
+
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+				const BassFlags flags = BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile | (BassFlags)805306368;
+#else
+				// Currently don't have the new BASS update which has the mogg fix.
+				const BassFlags flags = BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile;
+#endif
+				_sourceHandle = Bass.CreateStream(_path, 0, 0, flags);
 				if (_sourceHandle == 0) {
 					return (int) Bass.LastError;
 				}
@@ -105,10 +112,10 @@ namespace YARG.Audio.BASS {
 			int main = BassMix.CreateSplitStream(_sourceHandle, BassFlags.Decode | BassFlags.SplitPosition, null);
 			int reverbSplit = BassMix.CreateSplitStream(_sourceHandle, BassFlags.Decode | BassFlags.SplitPosition, null);
 
-			const BassFlags flags = BassFlags.SampleOverrideLowestVolume | BassFlags.Decode | BassFlags.FxFreeSource;
+			const BassFlags tempoFlags = BassFlags.SampleOverrideLowestVolume | BassFlags.Decode | BassFlags.FxFreeSource;
 
-			StreamHandle = BassFx.TempoCreate(main, flags);
-			ReverbStreamHandle = BassFx.TempoCreate(reverbSplit, flags);
+			StreamHandle = BassFx.TempoCreate(main, tempoFlags);
+			ReverbStreamHandle = BassFx.TempoCreate(reverbSplit, tempoFlags);
 
 			// Apply a compressor to balance stem volume
 			Bass.ChannelSetFX(StreamHandle, EffectType.Compressor, 1);
