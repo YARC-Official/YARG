@@ -590,7 +590,11 @@ namespace YARG.PlayMode {
 					if (micInput.VoiceDetected && !wasNeedleActive) {
 						playerInfo.Needle.localPosition = newPosition;
 					} else {
-						playerInfo.Needle.localPosition = Vector3.Lerp(playerInfo.Needle.localPosition, newPosition, Time.deltaTime * 15f);
+						float rate = micInput.MicDevice?.PitchUpdatesPerSecond ?? 40f;
+
+						// Lerp to the update rate of the mic so it isn't jagged
+						playerInfo.Needle.localPosition = Vector3.Lerp(playerInfo.Needle.localPosition, newPosition,
+							Time.deltaTime * rate);
 					}
 				}
 			}

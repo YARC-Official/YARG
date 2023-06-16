@@ -58,15 +58,7 @@ namespace YARG.UI.MusicLibrary {
 		public int SelectedIndex {
 			get => _selectedIndex;
 			private set {
-				// Wrap value to bounds
-				if (value < 0) {
-					_selectedIndex = _songs.Count - 1;
-				} else if (value >= _songs.Count) {
-					_selectedIndex = 0;
-				} else {
-					_selectedIndex = value;
-				}
-
+				SetSelectedIndex(value);
 				UpdateScrollbar();
 				UpdateSongViews();
 
@@ -86,10 +78,26 @@ namespace YARG.UI.MusicLibrary {
 			}
 		}
 
+		private void SetSelectedIndex(int value){
+				// Wrap value to bounds
+				if (value < 0) {
+					_selectedIndex = _songs.Count - 1;
+					return;
+				}
+
+				if (value >= _songs.Count) {
+					_selectedIndex = 0;
+					return;
+				}
+
+				_selectedIndex = value;
+		}
+
 		private List<SongView> _songViews = new();
 		private float _scrollTimer = 0f;
 		private bool searchBoxShouldBeEnabled = false;
-		private readonly int numberOfDivisions = 3; //RANDOM SONG, RECOMMENDEND SONGS, ALL SONGS
+		private readonly int NUMBER_OF_DIVISIONS = 3; //RANDOM SONG, RECOMMENDEND SONGS, ALL SONGS
+		private readonly int MIN_SONGS_FOR_SECTION_HEADERS = 30;
 
 		private void Awake() {
 			refreshFlag = true;
@@ -156,17 +164,19 @@ namespace YARG.UI.MusicLibrary {
 		private void ScrollUp() {
 			if (Navigator.Instance.IsHeld(MenuAction.Shortcut3)) {
 				SelectPreviousSection();
-			} else {
-				SelectedIndex--;
+				return;
 			}
+
+			SelectedIndex--;
 		}
 
 		private void ScrollDown() {
 			if (Navigator.Instance.IsHeld(MenuAction.Shortcut3)) {
 				SelectNextSection();
-			} else {
-				SelectedIndex++;
+				return;
 			}
+
+			SelectedIndex++;
 		}
 
 		private void OnDisable() {
@@ -213,6 +223,10 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		private void ChangeFilter() {
+			if (CurrentSelection is not SongViewType view) {
+				return;
+			}
+
 			UpdateFilter();
 			UpdateFilterButtonName();
 			UpdateNavigationScheme();
@@ -248,19 +262,7 @@ namespace YARG.UI.MusicLibrary {
 
 
 		private void Update() {
-			if (_scrollTimer <= 0f) {
-				var delta = Mouse.current.scroll.ReadValue().y * Time.deltaTime;
-
-				if (delta > 0f) {
-					SelectedIndex--;
-					_scrollTimer = SCROLL_TIME;
-				} else if (delta < 0f) {
-					SelectedIndex++;
-					_scrollTimer = SCROLL_TIME;
-				}
-			} else {
-				_scrollTimer -= Time.deltaTime;
-			}
+			SetScrollTimer();
 
 			if (Keyboard.current.escapeKey.wasPressedThisFrame) {
 				ClearSearchBox();
@@ -271,7 +273,30 @@ namespace YARG.UI.MusicLibrary {
 				searchBoxShouldBeEnabled = false;
 			}
 
-			// Start preview
+			StartPreview();
+		}
+
+		private void SetScrollTimer(){
+			if (_scrollTimer > 0f) {
+				_scrollTimer -= Time.deltaTime;
+				return;
+			}
+
+			var delta = Mouse.current.scroll.ReadValue().y * Time.deltaTime;
+
+			if (delta > 0f) {
+				SelectedIndex--;
+				_scrollTimer = SCROLL_TIME;
+				return;
+			}
+
+			if (delta < 0f) {
+				SelectedIndex++;
+				_scrollTimer = SCROLL_TIME;
+			}
+		}
+
+		private void StartPreview(){
 			if (!_previewContext.IsPlaying && CurrentSelection is SongViewType song) {
 				_previewCanceller = new();
 				float previewVolume = SettingsManager.Settings.PreviewVolume.Data;
@@ -288,128 +313,129 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		public void UpdateSearch() {
-			// Get recommended songs
-			if (_recommendedSongs == null) {
-				_recommendedSongs = new();
+			SetRecommendedSongs();
 
-				if (SongContainer.Songs.Count > 0) {
-					FillRecommendedSongs();
-				}
-			}
+			bool searchBoxHasContent = !string.IsNullOrEmpty(searchField.text);
 
-			if (string.IsNullOrEmpty(searchField.text)) {
-				// Add all songs
-				_songs = SongContainer.Songs
-					.OrderBy(OrderBy())
-					.Select(i => new SongViewType(i))
-					.Cast<ViewType>()
-					.ToList();
-				_songs.Insert(0, new CategoryViewType(
-					"ALL SONGS",
-					$"<#00B6F5><b>{_songs.Count}</b> <#006488>{(_songs.Count == 1 ? "SONG" : "SONGS")}",
-					SongContainer.Songs
-				));
-
-				// Add recommended songs
-				foreach (var song in _recommendedSongs) {
-					_songs.Insert(0, new SongViewType(song));
-				}
-				_songs.Insert(0, new CategoryViewType(
-					_recommendedSongs.Count == 1 ? "RECOMMENDED SONG" : "RECOMMENDED SONGS",
-					$"<#00B6F5><b>{_recommendedSongs.Count}</b> <#006488>{(_recommendedSongs.Count == 1 ? "SONG" : "SONGS")}",
-					_recommendedSongs
-				));
-
-				// Add buttons
-				_songs.Insert(0, new ButtonViewType(
-					"RANDOM SONG",
-					"Icon/Random",
-					() => {
-						SelectRandomSong();
-					}
-				));
+			if (searchBoxHasContent) {
+				IEnumerable<SongEntry> songsOut = SongSearching.Instance.Search(searchField.text);
+				AddFilteredSongs(songsOut);
+				AddSearchResultsHeader();
 			} else {
-				// Split up args
-				var split = searchField.text.Split(';');
-				IEnumerable<SongEntry> songsOut = SongContainer.Songs;
-
-				// Go through them all
-				bool searched = false;
-				foreach (var arg in split) {
-					if (arg.StartsWith("artist:")) {
-						// Artist filter
-						var artist = arg[7..];
-						songsOut = SongContainer.Songs
-							.Where(i => RemoveDiacriticsAndArticle(i.Artist) == RemoveDiacriticsAndArticle(artist));
-					} else if (arg.StartsWith("source:")) {
-						// Source filter
-						var source = arg[7..];
-						songsOut = SongContainer.Songs
-							.Where(i => i.Source?.ToLower() == source.ToLower());
-					} else if (arg.StartsWith("album:")) {
-						// Album filter
-						var album = arg[6..];
-						songsOut = SongContainer.Songs
-							.Where(i => RemoveDiacritics(i.Album) == RemoveDiacritics(album));
-					} else if (arg.StartsWith("charter:")) {
-						// Charter filter
-						var charter = arg[8..];
-						songsOut = SongContainer.Songs
-							.Where(i => i.Charter?.ToLower() == charter.ToLower());
-					} else if (arg.StartsWith("year:")) {
-						// Year filter
-						var year = arg[5..];
-						songsOut = SongContainer.Songs
-							.Where(i => i.Year?.ToLower() == year.ToLower());
-					} else if (arg.StartsWith("genre:")) {
-						// Genre filter
-						var genre = arg[6..];
-						songsOut = SongContainer.Songs
-							.Where(i => i.Genre?.ToLower() == genre.ToLower());
-					} else if (arg.StartsWith("instrument:")) {
-						// Instrument filter
-						var instrument = arg[11..];
-						/*f (instrument == "band") {
-							songsOut = SongContainer.Songs
-								.Where(i => i.BandDifficulty >= 0);
-						} else {
-							songsOut = SongContainer.Songs
-								.Where(i => i.HasInstrument(InstrumentHelper.FromStringName(instrument)));
-						}*/
-						songsOut = instrument switch {
-							"band" => SongContainer.Songs.Where(i => i.BandDifficulty >= 0),
-							"vocals" => SongContainer.Songs.Where(i => i.VocalParts < 2),
-							"harmVocals" => SongContainer.Songs.Where(i => i.VocalParts >= 2),
-							_ => SongContainer.Songs.Where(i =>
-								i.HasInstrument(InstrumentHelper.FromStringName(instrument))),
-						};
-					} else if (!searched) {
-						// Search
-						searched = true;
-						songsOut = songsOut
-							.Select(i => new { score = Search(arg, i), songInfo = i })
-							.Where(i => i.score >= 0)
-							.OrderBy(i => i.score)
-							.Select(i => i.songInfo);
-					}
-				}
-
-				// Sort
-				if (!searched) {
-					// songsOut = songsOut.OrderBy(song => GetSortName(song));
-					songsOut = songsOut.OrderBy(OrderBy());
-				}
-
-				// Add header
-				_songs = songsOut.Select(i => new SongViewType(i)).Cast<ViewType>().ToList();
-				_songs.Insert(0, new CategoryViewType(
-					"SEARCH RESULTS",
-					$"<#00B6F5><b>{_songs.Count}</b> <#006488>{(_songs.Count == 1 ? "SONG" : "SONGS")}"
-				));
+				AddAllSongs();
+				AddSongsCount();
+				AddAllReccomendedSongs();
+				AddReccommendendSongsHeader();
+				AddRandomSongHeader();
 			}
 
+			TryToRemoveHeaders();
+			SetSelectedIndex();
+			UpdateIndex();
+			UpdateSongViews();
+			UpdateScrollbar();
+			AddSectionHeaders();
+		}
+
+		private void SetRecommendedSongs(){
+			if (_recommendedSongs != null){
+				return;
+			}
+
+			_recommendedSongs = new();
+			
+			if (SongContainer.Songs.Count > 0) {
+				FillRecommendedSongs();
+			}
+		}
+
+		private void AddAllSongs(){
+			_songs = SongContainer.Songs
+				.OrderBy(OrderBy())
+				.Select(i => new SongViewType(i))
+				.Cast<ViewType>()
+				.ToList();
+		}
+
+		private void AddSongsCount(){
+			var count = _songs.Count;
+
+			_songs.Insert(0, new CategoryViewType(
+				"ALL SONGS",
+				$"<#00B6F5><b>{count}</b> <#006488>{(count == 1 ? "SONG" : "SONGS")}",
+				SongContainer.Songs
+			));
+		}
+
+		private void AddAllReccomendedSongs(){
+			foreach (var song in _recommendedSongs) {
+				_songs.Insert(0, new SongViewType(song));
+			}
+		}
+
+		private void AddReccommendendSongsHeader(){
+			_songs.Insert(0, new CategoryViewType(
+				_recommendedSongs.Count == 1 ? "RECOMMENDED SONG" : "RECOMMENDED SONGS",
+				$"<#00B6F5><b>{_recommendedSongs.Count}</b> <#006488>{(_recommendedSongs.Count == 1 ? "SONG" : "SONGS")}",
+				_recommendedSongs
+			));
+		}
+
+		private void AddRandomSongHeader(){
+			_songs.Insert(0, new ButtonViewType(
+				"RANDOM SONG",
+				"Icon/Random",
+				() => {
+					SelectRandomSong();
+				}
+			));
+		}
+
+		private void AddSectionHeaders() {
+			bool sectionHeadersAreVisible = SectionHeadersAreVisible();
+
+			if(!sectionHeadersAreVisible){
+				return;
+			}
+
+			List<string> sections = SongSorting.Instance.GetSongsFirstLetter();
+			int skip = GetSkip();
+
+			foreach (var section in sections) {
+				AddSectionHeader(section, skip);
+			}
+		}
+
+		private bool SectionHeadersAreVisible(){
+			return _songs.Count >= MIN_SONGS_FOR_SECTION_HEADERS;
+		}
+
+		private void AddSectionHeader(string section, int skip) {
+			var index = SongSorting.Instance.GetIndexOfLetter(_songs, section, skip);
+			
+			_songs.Insert(index, new ButtonViewType(
+				$"<#00B6F5><b>{section}</b><#006488>",
+				"Icon/ChevronDown",
+				() => SelectedIndex++
+			));
+		}
+
+		private void AddFilteredSongs(IEnumerable<SongEntry> songsOut){
+			_songs = songsOut.Select(i => new SongViewType(i)).Cast<ViewType>().ToList();
+		}
+
+		private void AddSearchResultsHeader(){
+			var count = _songs.Count;
+			_songs.Insert(0, new CategoryViewType(
+				"SEARCH RESULTS",
+				$"<#00B6F5><b>{count}</b> <#006488>{(count == 1 ? "SONG" : "SONGS")}"
+			));
+		}
+
+		private void TryToRemoveHeaders(){
 			// Count songs
 			int songCount = 0;
+
 			foreach (var viewType in _songs) {
 				if (viewType is SongViewType) {
 					songCount++;
@@ -420,77 +446,30 @@ namespace YARG.UI.MusicLibrary {
 			if (songCount <= 0) {
 				_songs.Clear();
 			}
+		}
 
-			if (GameManager.Instance.SelectedSong == null) {
-				if (string.IsNullOrEmpty(searchField.text)) {
-					SelectedIndex = 2;
-				} else {
-					SelectedIndex = 1;
-				}
-			} else {
+		private void SetSelectedIndex(){
+			if (GameManager.Instance.SelectedSong != null) {
 				var index = _songs.FindIndex(song => {
 					return song is SongViewType songType && songType.SongEntry == GameManager.Instance.SelectedSong;
 				});
 
 				SelectedIndex = Mathf.Max(1, index);
+				return;
 			}
 
-			UpdateIndex();
-			UpdateSongViews();
-			UpdateScrollbar();
+			var searchBoxHasContent = !string.IsNullOrEmpty(searchField.text);
+
+			if (searchBoxHasContent) {
+				SelectedIndex = 1;
+				return;
+			}
+
+			SelectedIndex = 2;
 		}
 
 		private void UpdateIndex(){
 			SongSorting.Instance.UpdateIndex(_songs);
-		}
-
-		private static string RemoveDiacriticsAndArticle(string text){
-			var textWithoutDiacretics = RemoveDiacritics(text);
-			return SongSorting.RemoveArticle(textWithoutDiacretics);
-		}
-
-		private static string RemoveDiacritics(string text) {
-			if (text == null) {
-				return null;
-			}
-
-			var normalizedString = text.ToLowerInvariant().Normalize(NormalizationForm.FormD);
-			var stringBuilder = new StringBuilder(capacity: normalizedString.Length);
-
-			for (int i = 0; i < normalizedString.Length; i++) {
-				char c = normalizedString[i];
-				var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
-				if (unicodeCategory != UnicodeCategory.NonSpacingMark) {
-					stringBuilder.Append(c);
-				}
-			}
-
-			return stringBuilder
-				.ToString()
-				.Normalize(NormalizationForm.FormC);
-		}
-
-		private int Search(string input, SongEntry songInfo) {
-			string normalizedInput = RemoveDiacritics(input);
-
-			// Get name index
-			string name = songInfo.NameNoParenthesis;
-			int nameIndex = RemoveDiacritics(name).IndexOf(normalizedInput);
-
-			// Get artist index
-			string artist = songInfo.Artist;
-			int artistIndex = RemoveDiacritics(artist).IndexOf(normalizedInput, StringComparison.Ordinal);
-
-			// Return the best search
-			if (nameIndex == -1 && artistIndex == -1) {
-				return -1;
-			} else if (nameIndex == -1) {
-				return artistIndex;
-			} else if (artistIndex == -1) {
-				return nameIndex;
-			} else {
-				return Mathf.Min(nameIndex, artistIndex);
-			}
 		}
 
 		private void FillRecommendedSongs() {
@@ -558,16 +537,22 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		public void Back() {
-			if (string.IsNullOrEmpty(searchField.text)) {
-				if (SelectedIndex > 2) {
-					SelectedIndex = 2;
-				} else {
-					MainMenu.Instance.ShowMainMenu();
-				}
-			} else {
+			bool searchBoxHasContent = !string.IsNullOrEmpty(searchField.text);
+
+			if (searchBoxHasContent) {
 				ClearSearchBox();
 				UpdateSearch();
+				ResetSearchButton();
+				UpdateNavigationScheme();
+				return;
 			}
+
+			if (SelectedIndex > 2) {
+				SelectedIndex = 2;
+				return;
+			}
+
+			MainMenu.Instance.ShowMainMenu();
 		}
 
 		private void ClearSearchBox() {
@@ -575,49 +560,64 @@ namespace YARG.UI.MusicLibrary {
 			searchField.ActivateInputField();
 		}
 
+		private void ResetSearchButton(){
+			_nextFilter = "Search artist";
+		}
+
 		private void SelectRandomSong(){
-			// Get how many non-song things there are
-			int skip = _songs.Count - SongContainer.Songs.Count;
+			int skip = GetSkip();
 			// Select random between all of the songs
 			SelectedIndex = Random.Range(skip, SongContainer.Songs.Count);
 		}
 
 		private void SelectPreviousSection(){
 			if (CurrentSelection is not SongViewType song) {
+				SelectedIndex--;
 				return;
 			}
 
-			int skip = GetSkip();
+			int firstSongIndex = GetFirstSongIndex();
 
-			if(SongIsRecommendedOrDivision(skip)){
-				SelectedIndex = 1;
+			if(SongIsRecommendedOrDivision(firstSongIndex)){
+				SelectedIndex = GetLastSongIndex(firstSongIndex);
 				return;
 			}
 
-			SelectedIndex = SongSorting.Instance.SelectNewSection(_songs, SelectedIndex, song, skip, SongSorting.PreviousNext.PREVIOUS);
+			SelectedIndex = SongSorting.Instance.SelectNewSection(_songs, SelectedIndex, song, firstSongIndex, SongSorting.PreviousNext.PREVIOUS);
 		}
 
 		private void SelectNextSection(){
 			if (CurrentSelection is not SongViewType song) {
+				SelectedIndex++;
 				return;
 			}
 
-			int skip = GetSkip();
+			int firstSongIndex = GetFirstSongIndex();
 
-			if(SongIsRecommendedOrDivision(skip)){
-				SelectedIndex = skip;
+			if(SongIsRecommendedOrDivision(firstSongIndex)){
+				SelectedIndex = firstSongIndex + 1;//Ad first header
 				return;
 			}
 
-			SelectedIndex = SongSorting.Instance.SelectNewSection(_songs, SelectedIndex, song, skip, SongSorting.PreviousNext.NEXT);
+			SelectedIndex = SongSorting.Instance.SelectNewSection(_songs, SelectedIndex, song, firstSongIndex, SongSorting.PreviousNext.NEXT);
 		}
 
 		private bool SongIsRecommendedOrDivision(int skip){
-			bool recommendedSongsAreVisible = skip == _recommendedSongs.Count + numberOfDivisions;
+			bool recommendedSongsAreVisible = skip == _recommendedSongs.Count + NUMBER_OF_DIVISIONS;
 			return recommendedSongsAreVisible && SelectedIndex < skip;
 		}
 
+		private int GetFirstSongIndex(){
+			return Mathf.Max(1, _songs.Count - SongContainer.Songs.Count - SongSorting.Instance.GetSectionsSize());
+		}
+
+		private int GetLastSongIndex(int skip){
+			string lastSection = SongSorting.Instance.GetLastSection();
+			return SongSorting.Instance.GetIndexOfLetter(_songs, lastSection, skip);
+		}
+
 		private int GetSkip(){
+			// Get how many non-song things there are
 			return Mathf.Max(1, _songs.Count - SongContainer.Songs.Count);
 		}
 

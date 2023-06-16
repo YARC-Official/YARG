@@ -8,9 +8,10 @@ using YARG.Settings;
 
 namespace YARG.Audio {
 	public class BassMicDevice : IMicDevice {
-
 		// How often to record samples from the microphone in milliseconds (calls the callback function every n millis)
 		private const int RECORD_PERIOD_MILLIS = 50;
+
+		public float PitchUpdatesPerSecond => 1000f / RECORD_PERIOD_MILLIS;
 
 		public string DisplayName => _deviceInfo.Name;
 		public bool IsDefault => _deviceInfo.IsDefault;
@@ -61,7 +62,7 @@ namespace YARG.Audio {
 			Bass.RecordInit(_deviceId);
 			Bass.RecordGetInfo(out var info);
 
-			const BassFlags flags = BassFlags.Float;
+			const BassFlags flags = BassFlags.Default;
 
 			// We want to start recording immediately because of device context switching and device numbers.
 			// If we initialize the device but don't record immediately, the device number might change and we'll be recording from the wrong device.
@@ -71,7 +72,7 @@ namespace YARG.Audio {
 				// If we failed to start recording, we need to return the error code.
 				_initialized = false;
 				Debug.LogError($"Failed to start recording: {Bass.LastError}");
-				return (int) Bass.LastError;;
+				return (int) Bass.LastError;
 			}
 
 			int lowEqHandle = Bass.ChannelSetFX(_processedRecordHandle, EffectType.PeakEQ, 0);
@@ -87,7 +88,7 @@ namespace YARG.Audio {
 				fGain = -10f
 			});
 
-			_monitorPlaybackHandle = Bass.CreateStream(44100, info.Channels, BassFlags.Float, StreamProcedureType.Push);
+			_monitorPlaybackHandle = Bass.CreateStream(44100, info.Channels, flags, StreamProcedureType.Push);
 			if(_monitorPlaybackHandle == 0) {
 				_initialized = false;
 				Debug.LogError($"Failed to create monitor stream: {Bass.LastError}");
@@ -153,13 +154,22 @@ namespace YARG.Audio {
 		}
 
 		private unsafe void CalculatePitchAndAmplitude(IntPtr buffer, int byteLength) {
-			int length = byteLength / sizeof(float);
-			var bufferSpan = new ReadOnlySpan<float>((float*) buffer, length);
+			int sampleCount = byteLength / sizeof(short);
+			float* floatBuffer = stackalloc float[sampleCount];
+
+			// Convert 16 bit buffer to floats
+			// If this isn't 16 bit god knows what device they're using.
+			var shortBufferSpan = new ReadOnlySpan<short>((short*) buffer, sampleCount);
+			for (int i = 0; i < sampleCount; i++) {
+				floatBuffer[i] = shortBufferSpan[i] / 32768f;
+			}
+
+			var bufferSpan = new ReadOnlySpan<float>(floatBuffer, sampleCount);
 
 			// Calculate the root mean square
 			float sum = 0f;
 			int count = 0;
-			for (int i = 0; i < length; i += 4, count++) {
+			for (int i = 0; i < sampleCount; i += 4, count++) {
 				sum += bufferSpan[i] * bufferSpan[i];
 			}
 			sum = Mathf.Sqrt(sum / count);
