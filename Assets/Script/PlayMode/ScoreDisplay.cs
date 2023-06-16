@@ -16,7 +16,7 @@ namespace YARG.PlayMode {
 		private ProgressBarFadedEdge songProgress;
 
 		private void Start() {
-			scoreText.text = $"<mspace=0.59em>0";
+			scoreText.text = $"<mspace=0.538em>0";
 			StartCoroutine(LateStart());
 		}
 
@@ -42,7 +42,7 @@ namespace YARG.PlayMode {
 		}
 
 		private void OnScoreChange() {
-			scoreText.text = $"<mspace=0.59em>{ScoreKeeper.TotalScore:n0}";
+			scoreText.text = $"<mspace=0.538em>{ScoreKeeper.TotalScore:n0}";
 		}
 
 		private void Update() {
