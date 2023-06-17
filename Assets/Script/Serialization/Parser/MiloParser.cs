@@ -242,6 +242,7 @@ namespace YARG.Serialization.Parser {
                 foreach (var eventInstance in eventsDict[part]) {
 
                     long timeVal = eventInstance.time - timeStart;
+                    if(timeVal < 0) throw new Exception ($"uh oh spaghettio, anim timeVal is negative!");
                     int noteVal = 0;
 
                     if (part.EndsWith("_sing") || part.StartsWith("spot_")) {
@@ -259,7 +260,6 @@ namespace YARG.Serialization.Parser {
                         if (eventInstance.name.EndsWith("on")) {
                             if(prevType == "note_on") {
                                 tempEvents.Add(new NoteOffEvent() { NoteNumber = (SevenBitNumber)noteVal, Velocity = (SevenBitNumber)0, DeltaTime = timeVal });
-                                timeStart += timeVal;
                                 tempEvents.Add(new NoteOnEvent() { NoteNumber = (SevenBitNumber)noteVal, Velocity = (SevenBitNumber)100, DeltaTime = 0 });
                             }
                             else tempEvents.Add(new NoteOnEvent() { NoteNumber = (SevenBitNumber)noteVal, Velocity = (SevenBitNumber)100, DeltaTime = timeVal });
@@ -340,7 +340,7 @@ namespace YARG.Serialization.Parser {
                 long secsInTicks = TimeConverter.ConvertFrom(new MetricTimeSpan((long)(secs * 1000000)), tmap);
                 long timeVal = secsInTicks - timeStart;
 
-                if (timeVal < 0) throw new Exception("oopsie doopsie");
+                if (timeVal < 0) throw new Exception("oopsie doopsie, lipsync timeVal is negative!");
                 
                 if(!Enumerable.SequenceEqual(prevFrame, visemeState[y])) {
                     timeStart += timeVal;
@@ -359,7 +359,6 @@ namespace YARG.Serialization.Parser {
         }
 
         // the main fxn we actually care about
-        // TODO: change from void return val to a List of TrackChunks
         public static List<TrackChunk> GetMidiFromMilo(byte[] miloBytes, TempoMap tmap){
             // inflate milo bytes
             // get dictionary of files and filebytes from inflated milo
