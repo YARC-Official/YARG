@@ -330,11 +330,11 @@ namespace YARG.UI.MusicLibrary {
 			}
 
 			TryToRemoveHeaders();
-			SetSelectedIndex();
 			UpdateIndex();
 			UpdateSongViews();
 			UpdateScrollbar();
 			AddSectionHeaders();
+			SetSelectedIndex();
 		}
 
 		private void SetRecommendedSongs(){
@@ -450,10 +450,7 @@ namespace YARG.UI.MusicLibrary {
 
 		private void SetSelectedIndex(){
 			if (GameManager.Instance.SelectedSong != null) {
-				var index = _songs.FindIndex(song => {
-					return song is SongViewType songType && songType.SongEntry == GameManager.Instance.SelectedSong;
-				});
-
+				int index = GetIndexOfSelectedSong();
 				SelectedIndex = Mathf.Max(1, index);
 				return;
 			}
@@ -468,72 +465,21 @@ namespace YARG.UI.MusicLibrary {
 			SelectedIndex = 2;
 		}
 
+		private int GetIndexOfSelectedSong(){
+			var selectedSong = GameManager.Instance.SelectedSong;
+
+			return _songs.FindIndex(song => {
+				return song is SongViewType songType && songType.SongEntry == selectedSong;
+			});
+		}
+
+
 		private void UpdateIndex(){
 			SongSorting.Instance.UpdateIndex(_songs);
 		}
 
 		private void FillRecommendedSongs() {
-			var mostPlayed = ScoreManager.SongsByPlayCount().Take(10).ToList();
-			if (mostPlayed.Count > 0) {
-				// Add two random top ten most played songs (ten tries each)
-				for (int i = 0; i < 2; i++) {
-					for (int t = 0; t < 10; t++) {
-						int n = Random.Range(0, mostPlayed.Count);
-						if (_recommendedSongs.Contains(mostPlayed[n])) {
-							continue;
-						}
-
-						_recommendedSongs.Add(mostPlayed[n]);
-						break;
-					}
-				}
-
-				// Add two random songs from artists that are in the most played (ten tries each)
-				for (int i = 0; i < 2; i++) {
-					for (int t = 0; t < 10; t++) {
-						int n = Random.Range(0, mostPlayed.Count);
-						var baseSong = mostPlayed[n];
-
-						// Look all songs by artist
-						var sameArtistSongs = SongContainer.Songs
-							.Where(i => i.Artist?.ToLower() == baseSong.Artist?.ToLower())
-							.ToList();
-						if (sameArtistSongs.Count <= 1) {
-							continue;
-						}
-
-						// Pick
-						n = Random.Range(0, sameArtistSongs.Count);
-
-						// Skip if included
-						if (mostPlayed.Contains(sameArtistSongs[n])) {
-							continue;
-						}
-						if (_recommendedSongs.Contains(sameArtistSongs[n])) {
-							continue;
-						}
-
-						// Add
-						_recommendedSongs.Add(sameArtistSongs[n]);
-						break;
-					}
-				}
-			}
-
-			// Add a completely random song (ten tries)
-			var songsAsArray = SongContainer.Songs;
-			for (int t = 0; t < 10; t++) {
-				int n = Random.Range(0, songsAsArray.Count);
-				if (_recommendedSongs.Contains(songsAsArray[n])) {
-					continue;
-				}
-
-				_recommendedSongs.Add(songsAsArray[n]);
-				break;
-			}
-
-			// Reverse list because we add it backwards
-			_recommendedSongs.Reverse();
+			_recommendedSongs = RecommendedSongs.Instance.GetRecommendedSongs();
 		}
 
 		public void Back() {
