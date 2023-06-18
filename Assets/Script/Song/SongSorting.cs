@@ -1,6 +1,7 @@
 using System;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace YARG.Song {
@@ -81,11 +82,6 @@ namespace YARG.Song {
 	}
 
 	public static class SongSorting {
-		public enum PreviousOrNext {
-			Next = 0,
-			Previous,
-		}
-
 		public enum Sort {
 			Song = 0,
 			Artist,
@@ -97,15 +93,27 @@ namespace YARG.Song {
 			Charter,
 		}
 
-		private static readonly Func<SongEntry, string>[] OrderingFunctions = {
+		private static readonly Func<SongEntry, string>[] HeaderFunctions = {
 			song => GetFirstCharacter(song.NameNoParenthesis),                      // Song
-			song => GetFirstCharacter(song.Artist),                                 // Artist
+			song => song.Artist,                                                    // Artist
 			song => SongSources.SourceToGameName(song.Source),                      // Source
 			song => GetDecade(song.Year),                                           // Year
 			song => GetSongDurationBySection(song.SongLengthTimeSpan.TotalMinutes), // Duration
 			song => song.Genre.ToUpper(),                                           // Genre
 			song => GetFirstCharacter(song.Album),                                  // Album
 			song => GetFirstCharacter(song.Charter),                                // Charter
+		};
+
+		private static readonly Func<SongEntry, string>[] OrderFunctions = {
+			song => RemoveArticle(song.NameNoParenthesis),       // Song
+			song => RemoveArticle(song.Artist),                  // Artist
+			song => song.Source,                                 // Source
+			song => GetYear(song.Year),                          // Year
+			song => ((int) song.SongLengthTimeSpan.TotalSeconds) // Duration
+				.ToString(CultureInfo.InvariantCulture),
+			song => song.Genre,                                  // Genre
+			song => song.Album,                                  // Album
+			song => song.Charter,                                // Charter
 		};
 
 		private static readonly string[] Articles = {
@@ -120,16 +128,28 @@ namespace YARG.Song {
 		private static SortedSongList[] _sortCache;
 
 		public static void GenerateSortCache() {
-			_sortCache = new SortedSongList[OrderingFunctions.Length];
+			_sortCache = new SortedSongList[HeaderFunctions.Length];
 
-			for (int i = 0; i < OrderingFunctions.Length; i++) {
-				var func = OrderingFunctions[i];
+			var defaultOrderingFunction = OrderFunctions[0];
 
+			for (int i = 0; i < HeaderFunctions.Length; i++) {
+				var headerFunc = HeaderFunctions[i];
+				var orderFunc = OrderFunctions[i];
+
+				// Sort the songs
 				var songList = new SortedSongList();
-				var sortedSongs = SongContainer.Songs.ToList().OrderBy(song => func(song));
+				var sortedSongs = SongContainer.Songs
+					.OrderBy(song => orderFunc(song).ToUpperInvariant());
 
+				// Then sort by name (if it isn't already)
+				if (i != 0) {
+					sortedSongs = sortedSongs
+						.ThenBy(song => defaultOrderingFunction(song).ToUpperInvariant());
+				}
+
+				// Then separate them by sections
 				foreach (var song in sortedSongs) {
-					songList.AddSongToSection(func(song), song);
+					songList.AddSongToSection(headerFunc(song).ToUpperInvariant(), song);
 				}
 
 				_sortCache[i] = songList;
@@ -184,6 +204,19 @@ namespace YARG.Song {
 			return name[..1].ToUpper();
 		}
 
+		private static string GetYear(string value) {
+			if (string.IsNullOrEmpty(value)){
+				return string.Empty;
+			}
+
+			var match = Regex.Match(value, @"(\d{4})");
+			if (string.IsNullOrEmpty(match.Value)) {
+				return value;
+			}
+
+			return match.Value[..4];
+		}
+
 		private static string GetDecade(string value) {
 			if (string.IsNullOrEmpty(value)) {
 				return string.Empty;
@@ -203,7 +236,7 @@ namespace YARG.Song {
 				Sort.Artist   => "Order by Source",
 				Sort.Source   => "Order by Year",
 				Sort.Year     => "Order by Duration",
-				Sort.Duration =>"Order by Genre",
+				Sort.Duration => "Order by Genre",
 				Sort.Genre    => "Order by Album",
 				Sort.Album    => "Order by Charter",
 				Sort.Charter  => "Order by Song",
