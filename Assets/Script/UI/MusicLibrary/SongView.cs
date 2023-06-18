@@ -48,14 +48,14 @@ namespace YARG.UI.MusicLibrary {
 			int realIndex = SongSelection.Instance.SelectedIndex + _relativeSongIndex;
 			bool selected = _relativeSongIndex == 0;
 
-			if (realIndex < 0 || realIndex >= SongSelection.Instance.Songs.Count) {
+			if (realIndex < 0 || realIndex >= SongSelection.Instance.ViewList.Count) {
 				_canvasGroup.alpha = 0f;
 				return;
 			}
 
 			_canvasGroup.alpha = 1f;
 
-			var viewType = SongSelection.Instance.Songs[realIndex];
+			var viewType = SongSelection.Instance.ViewList[realIndex];
 
 			_sideText.text = viewType.SideText;
 
@@ -135,14 +135,14 @@ namespace YARG.UI.MusicLibrary {
 
 		public void SecondaryTextClick() {
 			int realIndex = SongSelection.Instance.SelectedIndex + _relativeSongIndex;
-			var viewType = SongSelection.Instance.Songs[realIndex];
+			var viewType = SongSelection.Instance.ViewList[realIndex];
 
 			viewType.SecondaryTextClick();
 		}
 
 		public void IconClick() {
 			int realIndex = SongSelection.Instance.SelectedIndex + _relativeSongIndex;
-			var viewType = SongSelection.Instance.Songs[realIndex];
+			var viewType = SongSelection.Instance.ViewList[realIndex];
 
 			viewType.IconClick();
 		}

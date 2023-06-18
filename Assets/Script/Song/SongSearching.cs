@@ -22,6 +22,7 @@ namespace YARG.Song {
 			("Æ", "AE") // Tool - Ænema
 		};
 
+		// TODO: Make search query separate. This gets rid of the need of a tuple in SearchSongs
 		public static SortedSongList Search(string value, SongSorting.Sort sort) {
 			var songsOut = new List<SongEntry>(SongContainer.Songs);
 			bool searching = false;
@@ -29,14 +30,21 @@ namespace YARG.Song {
 			if (!string.IsNullOrEmpty(value)) {
 				var split = value.Split(';');
 				foreach (var arg in split) {
-					var (isSearching, songs) = SearchSongs(arg);
+					var (isSearching, songsEnumerable) = SearchSongs(arg);
+					var songs = songsEnumerable.ToList();
 
 					if (isSearching) {
 						searching = true;
-					}
+						songsOut.Clear();
+						songsOut.AddRange(songs);
+					} else {
+						foreach (var song in songsOut.ToArray()) {
+							if (songs.Contains(song)) {
+								continue;
+							}
 
-					foreach (var song in songs) {
-						songsOut.Remove(song);
+							songsOut.Remove(song);
+						}
 					}
 				}
 			}

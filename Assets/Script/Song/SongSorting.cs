@@ -1,57 +1,64 @@
 using System;
-using System.Collections;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 
 namespace YARG.Song {
 	public class SortedSongList {
-		private readonly OrderedDictionary _sections;
+		/// <summary>
+		/// The order of the sections.
+		/// </summary>
+		private readonly List<string> _sectionsOrder;
+
+		/// <summary>
+		/// The dictionary of sections.
+		/// </summary>
+		private readonly Dictionary<string, List<SongEntry>> _sections;
+
+		public IReadOnlyList<string> SectionNames => _sectionsOrder;
 
 		public SortedSongList() {
+			_sectionsOrder = new();
 			_sections = new();
 		}
 
 		public SortedSongList(SortedSongList other) {
-			_sections = new();
+			_sectionsOrder = new(other._sectionsOrder);
 
-			// OrderedDictionary sucks...
-			foreach (DictionaryEntry entry in other._sections) {
-				_sections.Add(entry.Key, entry.Value);
-			}
+			// Make sure to copy the sub-lists
+			_sections = other._sections.ToDictionary(i => i.Key,
+				i => new List<SongEntry>(i.Value));
 		}
 
 		public void AddSongToSection(string section, SongEntry song) {
-			if (!_sections.Contains(section)) {
-				var list = new List<SongEntry> {
+			if (_sections.TryGetValue(section, out var list)) {
+				list.Add(song);
+			} else {
+				var newList = new List<SongEntry> {
 					song
 				};
 
-				_sections.Add(section, list);
-			} else {
-				((List<SongEntry>) _sections[section]).Add(song);
+				_sectionsOrder.Add(section);
+				_sections.Add(section, newList);
 			}
 		}
 
-		public IReadOnlyList<SongEntry> SongsInSection(string sectionName) {
-			foreach (DictionaryEntry section in _sections) {
-				if ((string) section.Key != sectionName) {
-					continue;
-				}
-
-				return (List<SongEntry>) section.Value;
+		public IEnumerable<SongEntry> SongsInSection(string section) {
+			if (_sections.TryGetValue(section, out var list)) {
+				return list;
 			}
 
 			return null;
 		}
 
+		public int SongCount() {
+			return _sections.Select(i => i.Value.Count).Sum();
+		}
+
 		public void Intersect(List<SongEntry> songs) {
 			// Intersect
-			var removeSections = new HashSet<string>();
-			foreach (DictionaryEntry section in _sections) {
-				var list = (List<SongEntry>) section.Value;
-
+			var sectionsToRemove = new List<string>();
+			foreach (var (section, list) in _sections) {
 				foreach (var song in new List<SongEntry>(list)) {
 					if (songs.Contains(song)) {
 						continue;
@@ -61,18 +68,15 @@ namespace YARG.Song {
 				}
 
 				if (list.Count == 0) {
-					removeSections.Add((string) section.Key);
+					sectionsToRemove.Add(section);
 				}
 			}
 
 			// Remove empty sections
-			foreach (var empty in removeSections) {
+			foreach (var empty in sectionsToRemove) {
+				_sectionsOrder.Remove(empty);
 				_sections.Remove(empty);
 			}
-		}
-
-		public ICollection SectionsCollection() {
-			return _sections.Keys;
 		}
 	}
 
