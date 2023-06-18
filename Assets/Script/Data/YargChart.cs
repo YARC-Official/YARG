@@ -25,24 +25,25 @@ namespace YARG.Data {
 			get => guitar ??= LoadArray(ChartLoader.GuitarLoader);
 			set => guitar = value;
 		}
-		
+
 		private List<NoteInfo>[] guitarCoop;
 		public List<NoteInfo>[] GuitarCoop {
 			get => guitarCoop ??= LoadArray(ChartLoader.GuitarCoopLoader);
 			set => guitarCoop = value;
 		}
+
 		private List<NoteInfo>[] rhythm;
 		public List<NoteInfo>[] Rhythm {
 			get => rhythm ??= LoadArray(ChartLoader.RhythmLoader);
 			set => rhythm = value;
 		}
-		
+
 		private List<NoteInfo>[] bass;
 		public List<NoteInfo>[] Bass {
 			get => bass ??= LoadArray(ChartLoader.BassLoader);
 			set => bass = value;
 		}
-		
+
 		private List<NoteInfo>[] keys;
 		public List<NoteInfo>[] Keys {
 			get => keys ??= LoadArray(ChartLoader.KeysLoader);
@@ -51,14 +52,14 @@ namespace YARG.Data {
 
 		private List<NoteInfo>[] realGuitar;
 		public List<NoteInfo>[] RealGuitar {
-			get => keys ??= CreateArray(); // TODO: Needs chartloaders once Pro Guitar parsing is implemented in the MS code
-			set => keys = value;
+			get => realGuitar ??= CreateArray(); // TODO: Needs chartloaders once Pro Guitar parsing is implemented in the MS code
+			set => realGuitar = value;
 		}
 
 		private List<NoteInfo>[] realBass;
 		public List<NoteInfo>[] RealBass {
-			get => keys ??= CreateArray(); // TODO: Needs chartloaders once Pro Guitar parsing is implemented in the MS code
-			set => keys = value;
+			get => realBass ??= CreateArray(); // TODO: Needs chartloaders once Pro Guitar parsing is implemented in the MS code
+			set => realBass = value;
 		}
 
 		private List<NoteInfo>[] drums;
