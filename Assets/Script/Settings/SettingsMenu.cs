@@ -110,7 +110,7 @@ namespace YARG.Settings {
 				await LoadingManager.Instance.StartLoad();
 
 				// Then refresh song select
-				SongSelection.refreshFlag = true;
+				SongSelection.RefreshFlag = true;
 			}
 		}
 

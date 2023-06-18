@@ -1,386 +1,219 @@
 using System;
-using System.Text;
+using System.Collections;
 using System.Text.RegularExpressions;
-using System.Globalization;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
-using Cysharp.Threading.Tasks;
-using TMPro;
-using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.UI;
-using YARG.Audio;
-using YARG.Data;
-using YARG.Input;
-using YARG.Song;
-using YARG.UI.MusicLibrary.ViewTypes;
-using Random = UnityEngine.Random;
 
 namespace YARG.Song {
-	public class SongSorting {
-		public enum SortCriteria {
-			SONG = 1,
-			ARTIST,
-			SOURCE,
-			YEAR,
-			DURATION,
-			GENRE,
-			ALBUM,
-			CHARTER,
-		}
-		public enum PreviousNext {
-			PREVIOUS = 1,
-			NEXT,
+	public class SortedSongList {
+		private readonly OrderedDictionary _sections;
+
+		public SortedSongList() {
+			_sections = new();
 		}
 
-		private readonly static List<string> articles = new List<string>{
-			"The ",// The beatles, The day that never comes
-			"El ", // El final, El sol no regresa
-			"La ", // La quinta estacion, La bamba, La muralla verde
-			"Le ", // Le temps de la rentrée
+		public SortedSongList(SortedSongList other) {
+			_sections = new();
+
+			// OrderedDictionary sucks...
+			foreach (DictionaryEntry entry in other._sections) {
+				_sections.Add(entry.Key, entry.Value);
+			}
+		}
+
+		public void AddSongToSection(string section, SongEntry song) {
+			if (!_sections.Contains(section)) {
+				var list = new List<SongEntry> {
+					song
+				};
+
+				_sections.Add(section, list);
+			} else {
+				((List<SongEntry>) _sections[section]).Add(song);
+			}
+		}
+
+		public IReadOnlyList<SongEntry> SongsInSection(string sectionName) {
+			foreach (DictionaryEntry section in _sections) {
+				if ((string) section.Key != sectionName) {
+					continue;
+				}
+
+				return (List<SongEntry>) section.Value;
+			}
+
+			return null;
+		}
+
+		public void Intersect(List<SongEntry> songs) {
+			// Intersect
+			var removeSections = new HashSet<string>();
+			foreach (DictionaryEntry section in _sections) {
+				var list = (List<SongEntry>) section.Value;
+
+				foreach (var song in new List<SongEntry>(list)) {
+					if (songs.Contains(song)) {
+						continue;
+					}
+
+					list.Remove(song);
+				}
+
+				if (list.Count == 0) {
+					removeSections.Add((string) section.Key);
+				}
+			}
+
+			// Remove empty sections
+			foreach (var empty in removeSections) {
+				_sections.Remove(empty);
+			}
+		}
+
+		public ICollection SectionsCollection() {
+			return _sections.Keys;
+		}
+	}
+
+	public static class SongSorting {
+		public enum PreviousOrNext {
+			Next = 0,
+			Previous,
+		}
+
+		public enum Sort {
+			Song = 0,
+			Artist,
+			Source,
+			Year,
+			Duration,
+			Genre,
+			Album,
+			Charter,
+		}
+
+		private static readonly Func<SongEntry, string>[] OrderingFunctions = {
+			song => GetFirstCharacter(song.NameNoParenthesis),                      // Song
+			song => GetFirstCharacter(song.Artist),                                 // Artist
+			song => SongSources.SourceToGameName(song.Source),                      // Source
+			song => GetDecade(song.Year),                                           // Year
+			song => GetSongDurationBySection(song.SongLengthTimeSpan.TotalMinutes), // Duration
+			song => song.Genre.ToUpper(),                                           // Genre
+			song => GetFirstCharacter(song.Album),                                  // Album
+			song => GetFirstCharacter(song.Charter),                                // Charter
+		};
+
+		private static readonly string[] Articles = {
+			"The ", // The beatles, The day that never comes
+			"El ",  // El final, El sol no regresa
+			"La ",  // La quinta estacion, La bamba, La muralla verde
+			"Le ",  // Le temps de la rentrée
 			"Les ", // Les Rita Mitsouko, Les Wampas
 			"Los ", // Los fabulosos cadillacs, Los enanitos verdes,
 		};
 
-		private readonly static SongSorting _instance = new SongSorting();
+		private static SortedSongList[] _sortCache;
 
-		private readonly static string EMPTY_VALUE = " ";
+		public static void GenerateSortCache() {
+			_sortCache = new SortedSongList[OrderingFunctions.Length];
 
-		private Func<SongViewType, string> index;
+			for (int i = 0; i < OrderingFunctions.Length; i++) {
+				var func = OrderingFunctions[i];
 
-		private Func<SongEntry, string> sortBy;
+				var songList = new SortedSongList();
+				var sortedSongs = SongContainer.Songs.ToList().OrderBy(song => func(song));
 
-		private List<string> songsFirstLetter;
+				foreach (var song in sortedSongs) {
+					songList.AddSongToSection(func(song), song);
+				}
 
-		public static SongSorting Instance {
-			get
-			{
-				return _instance;
+				_sortCache[i] = songList;
 			}
 		}
 
-		private SongSorting(){
-			OrderByName();
+		public static SortedSongList GetSortCache(Sort sort) {
+			return _sortCache[(int) sort];
 		}
 
-		public void OrderBy(SortCriteria sortCriteria) {
-			_ = sortCriteria switch {
-				SortCriteria.SONG => OrderByName(),
-				SortCriteria.ARTIST => OrderByArtist(),
-				SortCriteria.SOURCE => OrderBySource(),
-				SortCriteria.YEAR => OrderByYear(),
-				SortCriteria.DURATION => OrderByDuration(),
-				SortCriteria.GENRE => OrderByGenre(),
-				SortCriteria.ALBUM => OrderByAlbum(),
-				SortCriteria.CHARTER => OrderByCharter(),
-				_ => OrderByName()
-			};
-		}
-
-		private bool OrderByName() {
-			index = song => {
-				string name = song.SongEntry.NameNoParenthesis;
-				return GetFirstCharacter(name);
-			};
-
-			sortBy = song => {
-				string name = song.NameNoParenthesis.ToUpper();
-				return SongSearching.RemoveDiacriticsAndArticle(name);
-			};
-
-			return true;
-		}
-
-		public static string RemoveArticle(string name){
-			if(string.IsNullOrEmpty(name)){
+		public static string RemoveArticle(string name) {
+			if (string.IsNullOrEmpty(name)) {
 				return name;
 			}
 
-			foreach (var article in articles) {
-				if(name.StartsWith(article, StringComparison.InvariantCultureIgnoreCase)){
-					return name.Substring(article.Length);
+			foreach (var article in Articles) {
+				if (name.StartsWith(article, StringComparison.InvariantCultureIgnoreCase)) {
+					return name[article.Length..];
 				}
 			}
+
 			return name;
 		}
 
-		private bool OrderByArtist() {
-			index = song => {
-				string artist = song.SongEntry.Artist;
-				return GetFirstCharacter(artist);
-			};
-
-			sortBy = song => {
-				string artist = song.Artist.ToUpper();
-				return RemoveArticle(artist);
-			};
-
-			return true;
-		}
-
-		private bool OrderByDuration() {
-			index = song => {
-				return GetSongLengthBySection(song.SongEntry);
-			};
-
-			sortBy = song => {
-				return song.SongLengthTimeSpan.ToString(@"h\:mm\:ss");
-			};
-
-			return true;
-		}
-
-		private string GetSongLengthBySection(SongEntry songEntry){
-			var minutes = songEntry.SongLengthTimeSpan.TotalMinutes;
-
+		private static string GetSongDurationBySection(double minutes) {
 			return minutes switch {
-				<= 0.00f => "-",
-				<= 2.00f => "00:00 - 02:00",
-				<= 5.00f => "02:00 - 05:00",
-				<= 10.00f => "05:00 - 10:00",
-				<= 15.00f => "10:00 - 15:00",
-				<= 20.00f => "15:00 - 20:00",
-				_ => "20:00+",
+				<= 0.00  => "-",
+				<= 2.00  => "00:00 - 02:00",
+				<= 5.00  => "02:00 - 05:00",
+				<= 10.00 => "05:00 - 10:00",
+				<= 15.00 => "10:00 - 15:00",
+				<= 20.00 => "15:00 - 20:00",
+				_        => "20:00+",
 			};
-		}
-
-		private bool OrderBySource() {
-			index = song => {
-				string source = song.SongEntry.Source;
-				return SongSources.SourceToGameName(source);
-			};
-
-			sortBy = song => {
-				string source = song.Source;
-				return SongSources.SourceToGameName(source);
-			};
-
-			return true;
-		}
-
-		private bool OrderByAlbum() {
-			index = song => {
-				string album = song.SongEntry.Album;
-				return GetFirstCharacter(album);
-			};
-
-			sortBy = song => {
-				string album = song.Album.ToUpper();
-
-				if(string.IsNullOrEmpty(album)){
-					return EMPTY_VALUE;
-				}
-
-				return album.ToUpper();
-
-			};
-
-			return true;
-		}
-
-		private bool OrderByCharter() {
-			index = song => {
-				string charter = song.SongEntry.Charter;
-				return GetFirstCharacter(charter);
-			};
-
-			sortBy = song => {
-				string charter = song.Charter.ToUpper();
-
-				if(string.IsNullOrEmpty(charter)){
-					return EMPTY_VALUE;
-				}
-
-				return charter.ToUpper();
-			};
-
-			return true;
-		}
-
-		private bool OrderByGenre() {
-			index = song => {
-				return song.SongEntry.Genre.ToUpper();
-			};
-
-			sortBy = song => {
-				return song.Genre.ToUpper();
-			};
-
-			return true;
-		}
-		
-		private bool OrderByYear() {
-			index = song => {
-				string year = song.SongEntry.Year;
-				return GetDecade(year);
-			};
-
-			sortBy = song => {
-				string year = song.Year;
-				return GetYear(year);
-			};
-
-			return true;
 		}
 
 		private static string GetFirstCharacter(string value) {
-			if(string.IsNullOrEmpty(value)){
-				return EMPTY_VALUE;
+			if (string.IsNullOrEmpty(value)) {
+				return string.Empty;
 			}
 
 			var name = SongSearching.RemoveDiacriticsAndArticle(value);
 
-			if(Regex.IsMatch(name, @"^\W")){
-				return EMPTY_VALUE;
+			if (Regex.IsMatch(name, @"^\W")) {
+				return string.Empty;
 			}
 
-			if(Regex.IsMatch(name, @"^\d")){
+			if (Regex.IsMatch(name, @"^\d")) {
 				return "0-9";
 			}
-			return name.Substring(0,1).ToUpper();
-		}
 
-		private static string GetYear(string value) {
-			if(string.IsNullOrEmpty(value)){
-				return EMPTY_VALUE;
-			}
-			var match = Regex.Match(value, @"(\d{4})");
-			if(string.IsNullOrEmpty(match.Value)){
-				return value;
-			}
-			return match.Value.Substring(0,4);
+			return name[..1].ToUpper();
 		}
 
 		private static string GetDecade(string value) {
-			if(string.IsNullOrEmpty(value)){
-				return EMPTY_VALUE;
+			if (string.IsNullOrEmpty(value)) {
+				return string.Empty;
 			}
+
 			var match = Regex.Match(value, @"(\d{4})");
-			if(string.IsNullOrEmpty(match.Value)){
+			if (string.IsNullOrEmpty(match.Value)) {
 				return value;
 			}
-			return match.Value.Substring(0,3) + "0s";
+
+			return match.Value[..3] + "0s";
 		}
 
-		public void UpdateIndex(List<ViewType> songs){
-			songsFirstLetter = songs
-				.OfType<SongViewType>()
-				.Select(index)
-				.Where(value => !string.IsNullOrEmpty(value))
-				.Distinct()
-				.OrderBy(ch => ch)
-				.ToList();
-		}
-
-		public List<string> GetSongsFirstLetter(){
-			return songsFirstLetter;
-		}
-
-		public int GetSectionsSize(){
-			return songsFirstLetter.Count;
-		}
-
-		public string GetLastSection(){
-			return songsFirstLetter[songsFirstLetter.Count - 1];
-		}
-
-		public Func<SongEntry, string> SortBy(){
-			return sortBy;
-		}
-
-		public Func<SongViewType, string> Index(){
-			return index;
-		}
-
-		public SortCriteria GetNextSortCriteria(SortCriteria sortCriteria) {
+		public static string GetNextSortButtonName(Sort sortCriteria) {
 			return sortCriteria switch {
-				SortCriteria.SONG => SortCriteria.ARTIST,
-				SortCriteria.ARTIST => SortCriteria.SOURCE,
-				SortCriteria.SOURCE => SortCriteria.YEAR,
-				SortCriteria.YEAR => SortCriteria.DURATION,
-				SortCriteria.DURATION => SortCriteria.GENRE,
-				SortCriteria.GENRE => SortCriteria.ALBUM,
-				SortCriteria.ALBUM => SortCriteria.CHARTER,
-				SortCriteria.CHARTER => SortCriteria.SONG,
-				_ => SortCriteria.SONG
+				Sort.Song     => "Order by Artist",
+				Sort.Artist   => "Order by Source",
+				Sort.Source   => "Order by Year",
+				Sort.Year     => "Order by Duration",
+				Sort.Duration =>"Order by Genre",
+				Sort.Genre    => "Order by Album",
+				Sort.Album    => "Order by Charter",
+				Sort.Charter  => "Order by Song",
+				_             => "Order by Song"
 			};
 		}
 
-		public string GetNextSortCriteriaButtonName(SortCriteria sortCriteria) {
-			return sortCriteria switch {
-				SortCriteria.SONG => "Order by Artist",
-				SortCriteria.ARTIST => "Order by Source",
-				SortCriteria.SOURCE => "Order by Year",
-				SortCriteria.YEAR => "Order by Duration",
-				SortCriteria.DURATION =>"Order by Genre",
-				SortCriteria.GENRE => "Order by Album",
-				SortCriteria.ALBUM => "Order by Charter",
-				SortCriteria.CHARTER => "Order by Song",
-				_ => "Order by Song"
-			};
-		}
-
-		private string GetNewSectionLetterOrNumber(SongViewType song, PreviousNext order = PreviousNext.NEXT){
-			if(null == song){
-				return null;
+		public static Sort GetNextSortCriteria(Sort sortCriteria) {
+			var next = (int) sortCriteria + 1;
+			if (next >= Enum.GetNames(typeof(Sort)).Length) {
+				next = 0;
 			}
 
-			string firstCharacter = index(song);
-
-			if(string.IsNullOrEmpty(firstCharacter)){
-				return null;
-			}
-
-			int indexOfActualLetter = songsFirstLetter.FindIndex(letter => {
-				return String.Equals(letter, firstCharacter, StringComparison.OrdinalIgnoreCase);
-			});
-
-			var newCharacter = firstCharacter;
-			if (order == PreviousNext.NEXT) {
-				if (indexOfActualLetter == (songsFirstLetter.Count - 1)) {
-					newCharacter = songsFirstLetter[0];
-				} else {
-					newCharacter = songsFirstLetter[indexOfActualLetter + 1];
-				}
-			} else {
-				if (indexOfActualLetter == 0) {
-					newCharacter = songsFirstLetter[songsFirstLetter.Count - 1];
-				} else {
-					newCharacter = songsFirstLetter[indexOfActualLetter - 1];
-				}
-			}
-			return newCharacter;
-		}
-
-		public int SelectNewSection(List<ViewType> songs, int selectedIndex, SongViewType song, int skip, PreviousNext order){
-
-			string newCharacter = GetNewSectionLetterOrNumber(song, order);
-
-			// If an error occurs no change is made
-			if (string.IsNullOrEmpty(newCharacter)) {
-				return selectedIndex;
-			}
-
-			var _index = songs.FindIndex(skip, song =>
-				song is SongViewType songType &&
-					String.Equals(
-						index(songType),
-						newCharacter,
-						StringComparison.OrdinalIgnoreCase)
-				);
-
-			return _index;
-		}
-
-		public int GetIndexOfLetter(List<ViewType> songs, string value, int skip){
-			return songs.FindIndex(skip, song =>
-				song is SongViewType songType &&
-					String.Equals(
-						index(songType),
-						value,
-						StringComparison.OrdinalIgnoreCase
-					)
-			);
+			return (Sort) next;
 		}
 	}
 }
