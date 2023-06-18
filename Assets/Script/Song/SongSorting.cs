@@ -44,7 +44,7 @@ namespace YARG.Song {
 			}
 		}
 
-		public IEnumerable<SongEntry> SongsInSection(string section) {
+		public IReadOnlyList<SongEntry> SongsInSection(string section) {
 			if (_sections.TryGetValue(section, out var list)) {
 				return list;
 			}

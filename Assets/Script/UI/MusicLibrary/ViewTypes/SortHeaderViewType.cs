@@ -7,24 +7,24 @@ namespace YARG.UI.MusicLibrary.ViewTypes {
 	public class SortHeaderViewType : ViewType {
 		public override BackgroundType Background => BackgroundType.Category;
 
-		public override string PrimaryText => $"<color=white>{_primary}</color>";
+		public override string PrimaryText => $"<#00B6F5><b>{_primary}</b><#006488>";
 
-		private string _primary;
-		private string _iconPath;
-		private Action _buttonAction;
+		public override string SideText => $"<#00B6F5><b>{_songCount}</b> <#006488>{(_songCount == 1 ? "SONG" : "SONGS")}";
 
-		public SortHeaderViewType(string primary, string iconPath, Action buttonAction) {
+		private readonly string _primary;
+		private readonly int _songCount;
+
+		public SortHeaderViewType(string primary, int songCount) {
 			_primary = primary;
-			_iconPath = iconPath;
-			_buttonAction = buttonAction;
+			_songCount = songCount;
 		}
 
 		public override async UniTask<Sprite> GetIcon() {
-			return await Addressables.LoadAssetAsync<Sprite>(_iconPath).ToUniTask();
+			return await Addressables.LoadAssetAsync<Sprite>("Icon/ChevronDown").ToUniTask();
 		}
 
 		public override void PrimaryButtonClick() {
-			_buttonAction?.Invoke();
+			SongSelection.Instance.SelectNextSection();
 		}
 	}
 }

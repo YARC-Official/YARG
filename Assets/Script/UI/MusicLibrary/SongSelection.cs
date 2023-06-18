@@ -340,15 +340,13 @@ namespace YARG.UI.MusicLibrary {
 			_viewList = new();
 
 			foreach (var section in _sortedSongs.SectionNames) {
+				var songs = _sortedSongs.SongsInSection(section);
+
 				// Create header
-				_viewList.Add(new SortHeaderViewType(
-					$"<#00B6F5><b>{section}</b><#006488>",
-					"Icon/ChevronDown",
-					() => SelectedIndex++
-				));
+				_viewList.Add(new SortHeaderViewType(section, songs.Count));
 
 				// Add all of the songs
-				foreach (var song in _sortedSongs.SongsInSection(section)) {
+				foreach (var song in songs) {
 					_viewList.Add(new SongViewType(song));
 				}
 			}
@@ -470,31 +468,20 @@ namespace YARG.UI.MusicLibrary {
 			SelectedIndex = Random.Range(skip, SongContainer.Songs.Count);
 		}
 
-		private void SelectPreviousSection() {
-			if (CurrentSelection is not SongViewType) {
-				SelectedIndex--;
-				return;
-			}
-
-			SelectedIndex = _viewList.FindLastIndex(0, SelectedIndex,
-				i => i is SortHeaderViewType);
+		public void SelectPreviousSection() {
+			SelectedIndex = _viewList.FindLastIndex(SelectedIndex - 1, i => i is SortHeaderViewType);
 
 			// Wrap back around
-			if (SelectedIndex == -1) {
+			if (SelectedIndex == _viewList.Count - 1) {
 				SelectedIndex = _viewList.FindLastIndex(i => i is SortHeaderViewType);
 			}
 		}
 
-		private void SelectNextSection() {
-			if (CurrentSelection is not SongViewType) {
-				SelectedIndex++;
-				return;
-			}
-
-			SelectedIndex = _viewList.FindIndex(SelectedIndex, i => i is SortHeaderViewType);
+		public void SelectNextSection() {
+			SelectedIndex = _viewList.FindIndex(SelectedIndex + 1, i => i is SortHeaderViewType);
 
 			// Wrap back around to recommended
-			if (SelectedIndex == -1) {
+			if (SelectedIndex == _viewList.Count - 1) {
 				SelectedIndex = _viewList.FindIndex(i => i is SortHeaderViewType);
 			}
 		}
