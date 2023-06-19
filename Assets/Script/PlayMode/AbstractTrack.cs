@@ -49,7 +49,7 @@ namespace YARG.PlayMode {
 		protected int hitChartIndex = 0;
 		public NoteInfo CurrentNote =>
 			hitChartIndex < Chart.Count ? Chart[hitChartIndex] : null;
-		public bool CurrentlyInChart => Chart.Count >= 0 && HitMarginStartTime >= Chart[0].time && HitMarginEndTime < Chart[^1].time;
+		public bool CurrentlyInChart => Chart.Count >= 0 && HitMarginStartTime >= Chart[0].time && HitMarginEndTime < Chart[^1].EndTime;
 
 		protected int currentBeatIndex = 0;
 
