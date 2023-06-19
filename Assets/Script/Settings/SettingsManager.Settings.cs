@@ -21,6 +21,8 @@ namespace YARG.Settings {
 
 			public ToggleSetting DisablePerSongBackgrounds  { get; private set; } = new(false);
 
+			public SliderSetting ShowCursorTimer            { get; private set; } = new(2f, 0f, 5f);
+
 			public ToggleSetting     VSync                  { get; private set; } = new(true,      VSyncCallback);
 			public IntSetting        FpsCap                 { get; private set; } = new(60, 1,     onChange: FpsCapCallback);
 			public EnumSetting       FullscreenMode         { get; private set; } = new(typeof(FullScreenMode),
