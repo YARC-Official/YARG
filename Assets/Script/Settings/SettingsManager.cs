@@ -41,6 +41,7 @@ namespace YARG.Settings {
 					"UseCymbalModelsInFiveLane",
 					"KickBounce",
 					"ShowCursorTimer",
+					"PressThreshold",
 					"AmIAwesome"
 				}
 			},

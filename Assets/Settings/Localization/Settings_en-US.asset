@@ -308,6 +308,10 @@ MonoBehaviour:
       (0 = Always Show)'
     m_Metadata:
       m_Items: []
+  - m_Id: 31586592042115072
+    m_Localized: Input Press Threshold
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
