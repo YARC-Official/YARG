@@ -14,6 +14,8 @@ namespace YARG.Venue {
 
 		// DO NOT CHANGE the name of this! I *know* it doesn't follow naming conventions, but it will also break existing
 		// venues if we do change it.
+		//
+		// ReSharper disable once InconsistentNaming
 		[SerializeField]
 		private Camera mainCamera;
 
