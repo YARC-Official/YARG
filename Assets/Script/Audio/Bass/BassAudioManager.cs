@@ -274,14 +274,11 @@ namespace YARG.Audio.BASS {
 
 			// Initialize stream
 
-#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
-			// Last flag is new BASS_STREAM_NOREORDER flag, which is not in the BassFlags enum,
+			// Last flag is new BASS_SAMPLE_NOREORDER flag, which is not in the BassFlags enum,
 			// as it was made as part of an update to fix <= 8 channel oggs.
-			const BassFlags flags = BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile | (BassFlags)805306368;
-#else
-			// Currently don't have the new BASS update which has the mogg fix.
-			const BassFlags flags = BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile;
-#endif
+			// https://www.un4seen.com/forum/?topic=20148.msg140872#msg140872
+			const BassFlags flags = BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile | (BassFlags)64;
+
 			int moggStreamHandle = Bass.CreateStream(moggArray, 0, moggArray.Length, flags);
 			if (moggStreamHandle == 0) {
 				Debug.LogError($"Failed to load mogg file or position: {Bass.LastError}");
