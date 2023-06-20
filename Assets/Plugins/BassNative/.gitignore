@@ -1,8 +1,0 @@
-# Ignore Windows binaries
-*.dll
-
-# Ignore Mac binaries
-*.dylib
-
-# Ignore Linux binaries
-*.so

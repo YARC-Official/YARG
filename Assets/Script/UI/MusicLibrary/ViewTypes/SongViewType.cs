@@ -38,7 +38,7 @@ namespace YARG.UI.MusicLibrary.ViewTypes {
 		public override void SecondaryTextClick() {
 			base.SecondaryTextClick();
 
-			SongSelection.Instance.searchField.text = $"artist:{SongEntry.Artist}";
+			SongSelection.Instance.SetSearchInput($"artist:{SongEntry.Artist}");
 		}
 
 		public override void PrimaryButtonClick() {
@@ -50,7 +50,7 @@ namespace YARG.UI.MusicLibrary.ViewTypes {
 		public override void IconClick() {
 			base.IconClick();
 
-			SongSelection.Instance.searchField.text = $"source:{SongEntry.Source}";
+			SongSelection.Instance.SetSearchInput($"source:{SongEntry.Source}");
 		}
 	}
 }

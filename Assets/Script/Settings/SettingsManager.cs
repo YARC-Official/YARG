@@ -40,6 +40,7 @@ namespace YARG.Settings {
 					"ShowHitWindow",
 					"UseCymbalModelsInFiveLane",
 					"KickBounce",
+					"ShowCursorTimer",
 					"AmIAwesome"
 				}
 			},

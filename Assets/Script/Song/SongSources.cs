@@ -100,10 +100,10 @@ namespace YARG.Song {
 
 		public static string SourcesFolder => Path.Combine(PathHelper.StreamingAssetsPath, "sources");
 
-		private const string SOURCE_REPO_FOLDER = "OpenSource-master";
+		public const string SOURCE_REPO_FOLDER = "OpenSource-master";
 
-		private const string SOURCE_COMMIT_URL = "https://api.github.com/repos/YARC-Official/OpenSource/commits?per_page=1";
-		private const string SOURCE_ZIP_URL = "https://github.com/YARC-Official/OpenSource/archive/refs/heads/master.zip";
+		public const string SOURCE_COMMIT_URL = "https://api.github.com/repos/YARC-Official/OpenSource/commits?per_page=1";
+		public const string SOURCE_ZIP_URL = "https://github.com/YARC-Official/OpenSource/archive/refs/heads/master.zip";
 
 		private static readonly string[] SourceTypes = {
 			"base",
@@ -176,9 +176,9 @@ namespace YARG.Song {
 				}
 
 				// Delete the old folder
-				var baseDir = Path.Combine(SourcesFolder, SOURCE_REPO_FOLDER);
-				if (Directory.Exists(baseDir)) {
-					Directory.Delete(baseDir, true);
+				var repoDir = Path.Combine(SourcesFolder, SOURCE_REPO_FOLDER);
+				if (Directory.Exists(repoDir)) {
+					Directory.Delete(repoDir, true);
 				}
 
 				// Extract the base and extras folder
@@ -186,18 +186,18 @@ namespace YARG.Song {
 				ZipFile.ExtractToDirectory(zipPath, SourcesFolder);
 
 				// Delete the random folders
-				var ignoreFolder = Path.Combine(baseDir, "ignore");
+				var ignoreFolder = Path.Combine(repoDir, "ignore");
 				if (Directory.Exists(ignoreFolder)) {
 					Directory.Delete(ignoreFolder, true);
 				}
 
-				var githubFolder = Path.Combine(baseDir, ".github");
+				var githubFolder = Path.Combine(repoDir, ".github");
 				if (Directory.Exists(githubFolder)) {
 					Directory.Delete(githubFolder, true);
 				}
 
 				// Delete the random files
-				foreach (var file in Directory.GetFiles(baseDir)) {
+				foreach (var file in Directory.GetFiles(repoDir)) {
 					File.Delete(file);
 				}
 
