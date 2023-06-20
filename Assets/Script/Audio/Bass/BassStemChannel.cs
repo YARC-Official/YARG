@@ -97,12 +97,11 @@ namespace YARG.Audio.BASS {
 					return -1;
 				}
 
-#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
-				const BassFlags flags = BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile | (BassFlags)805306368;
-#else
-				// Currently don't have the new BASS update which has the mogg fix.
-				const BassFlags flags = BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile;
-#endif
+				// Last flag is new BASS_SAMPLE_NOREORDER flag, which is not in the BassFlags enum,
+				// as it was made as part of an update to fix <= 8 channel oggs.
+				// https://www.un4seen.com/forum/?topic=20148.msg140872#msg140872
+				const BassFlags flags = BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile | (BassFlags)64;
+
 				_sourceHandle = Bass.CreateStream(_path, 0, 0, flags);
 				if (_sourceHandle == 0) {
 					return (int) Bass.LastError;
