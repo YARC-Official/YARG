@@ -76,12 +76,6 @@ jobs:
           hdiutil attach ${{ runner.temp }}/BlenderInstall/blender.dmg && 
           cp -R /Volumes/Blender/Blender.app /Applications && 
           hdiutil unmount /Volumes/Blender
-
-      ###########################
-      #    Install Libraries    #
-      ###########################
-      - name: "[Pre-install] Install Libraries"
-        run: pip3 install requests && python3 InstallLibraries/install.py
         
       ###########################
       #    Restore  Packages    #
