@@ -52,10 +52,10 @@ namespace YARG.Serialization.Parser {
 						break;
 					}
 
+					// Get lyric text
 					string l = lyricEvent.Text.Trim();
-
-					// Remove state changes
-					if (l.StartsWith("[") && l.EndsWith("]")) {
+					if (textEventRegex.IsMatch(l)) {
+						// This is a normal text event, not a lyric
 						continue;
 					}
 
@@ -142,10 +142,10 @@ namespace YARG.Serialization.Parser {
 						break;
 					}
 
+					// Get lyric text
 					string l = lyricEvent.Text.Trim();
-
-					// Remove state changes
-					if (l.StartsWith("[") && l.EndsWith("]")) {
+					if (textEventRegex.IsMatch(l)) {
+						// This is a normal text event, not a lyric
 						continue;
 					}
 
@@ -174,8 +174,13 @@ namespace YARG.Serialization.Parser {
 					}
 
 					// Extend last lyric if +
-					if (l == "+") {
+					if (l == "+" || l == "+-") {
 						var lyric = lyrics[^1];
+
+						// Workaround for Guitar Hero weirdness
+						if (l == "+-") {
+							lyric.lyric += "-";
+						}
 
 						// Add end pointer for first note
 						var (_, (firstNote, firstOctave)) = lyric.pitchOverTime[^1];

@@ -1,30 +1,9 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
-using TMPro;
 using UnityEngine;
 using YARG.Chart;
 
 namespace YARG.Util {
 	public static class Utils {
-		/// <summary>
-		/// Checks if the path <paramref name="a"/> is equal to the path <paramref name="b"/>.<br/>
-		/// Platform specific case sensitivity is taken into account.
-		/// </summary>
-		public static bool PathsEqual(string a, string b) {
-#if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX
-
-			// Linux is case sensitive
-			return Path.GetFullPath(a).Equals(Path.GetFullPath(b), StringComparison.CurrentCulture);
-
-#else
-
-			// Windows and OSX are not case sensitive
-			return Path.GetFullPath(a).Equals(Path.GetFullPath(b), StringComparison.CurrentCultureIgnoreCase);
-
-#endif
-		}
-
 		/// <summary>
 		/// Calculates the length of an Info(Note) object in beats.
 		/// </summary>

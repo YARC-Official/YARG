@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Melanchall.DryWetMidi.Multimedia;
 using UnityEngine;
-using YARG.Chart;
 using YARG.Data;
 using YARG.Input;
 using YARG.Pools;
@@ -43,6 +41,8 @@ namespace YARG.PlayMode {
 		private int noteCount = -1;
 
 		private float whammyAmount;
+		private bool whammyLastNote;
+		private float whammyAnimationAmount;
 
 		protected override void StartTrack() {
 			notePool.player = player;
@@ -137,6 +137,10 @@ namespace YARG.PlayMode {
 					if (heldNote.fret < 5) frets[heldNote.fret].StopSustainParticles(); // TEMP (remove check later)
 
 					extendedSustain[heldNote.fret] = false;
+
+					if (heldNotes.Count == 0) {
+						whammyLastNote = false;
+					}
 				}
 			}
 
@@ -147,20 +151,31 @@ namespace YARG.PlayMode {
 		}
 
 		protected override void UpdateStarpower() {
+			if (IsStarpowerHit() && heldNotes.Count != 0) {
+				whammyLastNote = true;
+			}
+
 			base.UpdateStarpower();
 
+			// Update whammy amount and animation
+			if (whammyAmount > 0f) {
+				whammyAmount -= Time.deltaTime;
+				whammyAnimationAmount = Mathf.Lerp(whammyAnimationAmount, 1f, Time.deltaTime * 6f);
+			} else {
+				whammyAnimationAmount = Mathf.Lerp(whammyAnimationAmount, 0f, Time.deltaTime * 3f);
+			}
+			notePool.WhammyFactor = whammyAnimationAmount;
+
 			// Add starpower on whammy, only if there are held notes
-			if ((heldNotes.Count == 0) || (CurrentStarpower?.time > CurrentTime)) {
+			if ((heldNotes.Count == 0 || CurrentStarpower?.time > CurrentTime || CurrentStarpower == null) && !whammyLastNote) {
 				return;
 			}
 
-			// Update whammy amount
-			if (whammyAmount > 0f) {
-				whammyAmount -= Time.deltaTime;
+			// Update starpower
+			if ((whammyAmount > 0f) || input.BotMode) {
 				starpowerCharge += Time.deltaTime * Play.Instance.CurrentBeatsPerSecond * 0.034f;
 			}
-
-    	}
+		}
 
 		public override void SetReverb(bool on) {
 			switch (player.chosenInstrument) {
@@ -180,6 +195,11 @@ namespace YARG.PlayMode {
 		}
 
 		private void UpdateInput() {
+			//Disables overstrums if chart ended/hasn't started
+			if(!CurrentlyInChart) {
+				return;
+			}
+
 			// Only want to decrease strum leniency on frames where we didn't strum
 			bool strummedCurrentNote = false;
 			bool strumLeniencyEnded = false;
@@ -356,9 +376,10 @@ namespace YARG.PlayMode {
 			lastHitNote = chord;
 
 			// Solo stuff
-			if (CurrentTime >= CurrentSolo?.time && CurrentTime <= CurrentSolo?.EndTime) {
+			if (soloInProgress) {
 				soloNotesHit++;
 			}
+
 			foreach (var hit in chord) {
 				hitChartIndex++;
 				// Hit notes
@@ -370,6 +391,10 @@ namespace YARG.PlayMode {
 					frets[hit.fret].PlayAnimation();
 				} else {
 					openNoteParticles.Play();
+
+					for (int i = 0; i < 5; i++) {
+						frets[i].PlayAnimation();
+					}
 				}
 
 				// If sustained, add to held
@@ -466,6 +491,8 @@ namespace YARG.PlayMode {
 				if (heldNote.fret < 5) frets[heldNote.fret].StopSustainParticles(); // TEMP (remove check later)
 				extendedSustain[heldNote.fret] = false;
 			}
+
+			whammyLastNote = false;
 		}
 
 		private bool ChordPressed(List<NoteInfo> chordList, bool overstrumCheck = false) {
@@ -555,6 +582,13 @@ namespace YARG.PlayMode {
 			latestInput = CurrentTime;
 			latestInputIsStrum = false;
 
+			frets[fret].SetPressed(pressed);
+
+			// Ignore inputs until the first note enters the hit window
+			if (!CurrentlyInChart) {
+				return;
+			}
+
 			// Should it check ghosting?
 			if (SettingsManager.Settings.AntiGhosting.Data && allowedGhosts > 0 && pressed && hitChartIndex > 0) {
 				bool checkGhosting = true;
@@ -591,9 +625,7 @@ namespace YARG.PlayMode {
 					}
 				}
 			}
-
-			frets[fret].SetPressed(pressed);
-
+			
 			if (pressed) {
 				// Let go of held notes if wrong note pressed
 				if (!IsExtendedSustain()) { // Unless it's extended sustains
@@ -618,6 +650,8 @@ namespace YARG.PlayMode {
 							if (heldNote.fret < 5) frets[heldNote.fret].StopSustainParticles(); // TEMP (remove check later)
 							extendedSustain[heldNote.fret] = false;
 						}
+
+						whammyLastNote = false;
 					}
 				}
 			} else {
@@ -637,6 +671,8 @@ namespace YARG.PlayMode {
 					extendedSustain[heldNote.fret] = false;
 
 					letGo = heldNote;
+
+					whammyLastNote = false;
 				}
 
 				// Only stop audio if all notes were let go and...
@@ -656,6 +692,11 @@ namespace YARG.PlayMode {
 		private void StrumAction() {
 			latestInput = CurrentTime;
 			latestInputIsStrum = true;
+
+			// Ignore inputs until the first note enters the hit window
+			if (!CurrentlyInChart) {
+				return;
+			}
 
 			// Strum leniency already active and another strum inputted, a double strum occurred (must overstrum)
 			if (strumLeniency > 0f) {

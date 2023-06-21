@@ -4,11 +4,11 @@ using System.IO;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using YARG.Settings;
+using YARG.Util;
 
 namespace YARG.Song {
 	public static class SongContainer {
-
-		public static string CacheFolder => Path.Combine(GameManager.PersistentDataPath, "caches");
+		public static string CacheFolder => Path.Combine(PathHelper.PersistentDataPath, "caches");
 
 		private static readonly List<SongEntry> _songs;
 		private static readonly Dictionary<string, SongEntry> _songsByHash;

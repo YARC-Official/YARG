@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using YARG.Chart;
 using YARG.Data;
 using YARG.Input;
 using YARG.Pools;
@@ -30,7 +29,6 @@ namespace YARG.PlayMode {
 
 		private const int PTS_PER_NOTE = 120;
 		private const int SUSTAIN_PTS_PER_BEAT = 60;
-
 
 		protected override void StartTrack() {
 			notePool.player = player;
@@ -172,10 +170,8 @@ namespace YARG.PlayMode {
 			scoreKeeper.Add(PTS_PER_NOTE * Multiplier);
 
 			// Solo stuff
-			if (CurrentTime >= CurrentSolo?.time && CurrentTime <= CurrentSolo?.EndTime) {
+			if (soloInProgress) {
 				soloNotesHit++;
-			} else if (CurrentTime >= CurrentSolo?.EndTime + 10) {
-				soloNotesHit = 0;
 			}
 
 			// Play particles

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -24,8 +25,7 @@ namespace YARG {
 
 		private async UniTask Start() {
 			Queue(async () => {
-				SetLoadingText("Fetching sources from web...");
-				await SongSources.LoadSources();
+				await SongSources.LoadSources(i => SetLoadingText("Loading song sources...", i));
 			});
 
 			// Fast scan (cache read) on startup
@@ -67,12 +67,21 @@ namespace YARG {
 			Queue(async () => {
 				await ScanSongFolders(fast);
 			});
+			QueueSongSort();
 		}
 
 		public void QueueSongFolderRefresh(string path) {
 			// Refreshes 1 folder (called when clicking "Refresh" on a folder in settings)
 			Queue(async () => {
 				await ScanSongFolder(path, false);
+			});
+			QueueSongSort();
+		}
+
+		public void QueueSongSort() {
+			Queue(async () => {
+				SetLoadingText("Sorting songs...");
+				await UniTask.RunOnThreadPool(SongSorting.GenerateSortCache);
 			});
 		}
 

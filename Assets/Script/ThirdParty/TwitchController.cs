@@ -6,6 +6,7 @@ using YARG.PlayMode;
 using YARG.Song;
 using YARG.UI;
 using Newtonsoft.Json;
+using YARG.Util;
 
 namespace YARG {
 	public class TwitchController : MonoBehaviour {
@@ -17,9 +18,9 @@ namespace YARG {
 		}
 
 		// Creates .TXT file witth current song information
-		public string TextFilePath => Path.Combine(GameManager.PersistentDataPath, "currentSong.txt");
+		public string TextFilePath => Path.Combine(PathHelper.PersistentDataPath, "currentSong.txt");
 		// Creates .JSON file with current song information
-		public string JsonFilePath => Path.Combine(GameManager.PersistentDataPath, "currentSong.json");
+		public string JsonFilePath => Path.Combine(PathHelper.PersistentDataPath, "currentSong.json");
 
 		private void Start() {
 			Instance = this;
@@ -65,7 +66,7 @@ namespace YARG {
 			if (TagRegex.IsMatch(str)) {
 				str = TagRegex.Replace(str, string.Empty);
 			}
-			
+
 			// Convert to JSON
 			string json = JsonConvert.SerializeObject(song);
 

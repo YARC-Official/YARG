@@ -7,14 +7,17 @@ using UnityEngine;
 using YARG.Data;
 using YARG.UI;
 using XboxSTFS;
+using YARG.Util;
 
 namespace YARG.Song {
 	public class SongCache {
 
 		/// <summary>
-		/// The date in which the cache version is based on (and cache revision)
+		/// The date revision of the cache format.
+		/// Format is YY_MM_DD_RR: Y = year, M = month, D = day, R = revision (reset across dates, only increment
+		/// if multiple cache version changes happen in a single day).
 		/// </summary>
-		private const int CACHE_VERSION = 01_06_23_01;
+		private const int CACHE_VERSION = 23_06_05_01;
 
 		private readonly string _folder;
 		private readonly string _cacheFile;
@@ -24,7 +27,7 @@ namespace YARG.Song {
 
 			string hex = BitConverter.ToString(SHA1.Create().ComputeHash(Encoding.UTF8.GetBytes(folder))).Replace("-", "");
 
-			_cacheFile = Path.Combine(GameManager.PersistentDataPath, "caches", $"{hex}.bin");
+			_cacheFile = Path.Combine(PathHelper.PersistentDataPath, "caches", $"{hex}.bin");
 		}
 
 		public void WriteCache(List<SongEntry> songs, List<XboxSTFSFile> conFiles) {
@@ -32,8 +35,8 @@ namespace YARG.Song {
 				return;
 			}
 
-			if (!Directory.Exists(Path.Combine(GameManager.PersistentDataPath, "caches"))) {
-				Directory.CreateDirectory(Path.Combine(GameManager.PersistentDataPath, "caches"));
+			if (!Directory.Exists(Path.Combine(PathHelper.PersistentDataPath, "caches"))) {
+				Directory.CreateDirectory(Path.Combine(PathHelper.PersistentDataPath, "caches"));
 			}
 
 			using var writer = new NullStringBinaryWriter(File.Open(_cacheFile, FileMode.Create, FileAccess.ReadWrite));

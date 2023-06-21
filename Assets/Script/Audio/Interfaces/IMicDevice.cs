@@ -2,6 +2,7 @@
 
 namespace YARG.Audio {
 	public interface IMicDevice : IDisposable {
+		public float PitchUpdatesPerSecond { get; }
 
 		public string DisplayName { get; }
 		public bool IsDefault { get; }

@@ -16,7 +16,7 @@ namespace YARG.Util {
 		private FadeLight[] fadeLights;
 		private Light[] normalLights;
 
-		private void Start() {
+		private void Awake() {
 			particles = GetComponentsInChildren<ParticleSystem>();
 
 			List<FadeLight> fadeLightsList = new();
@@ -60,7 +60,14 @@ namespace YARG.Util {
 			}
 		}
 
-		public void Play() {
+		public void SetStartSpeed(float speed) {
+			foreach (var particle in particles) {
+				var main = particle.main;
+				main.startSpeed = speed;
+			}
+		}
+
+		public void Play(float speed = 4.0f) {
 			foreach (var particle in particles) {
 				if (particle.main.loop && particle.isEmitting) {
 					continue;

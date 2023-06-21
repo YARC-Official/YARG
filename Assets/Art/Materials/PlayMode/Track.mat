@@ -131,7 +131,7 @@ Material:
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _Layer_2_Parallax: 0.85
+    - _Layer_2_Parallax: 0.9
     - _Layer_2_Wavy_Amount: 0.01
     - _Layer_3_Parallax: 1
     - _Layer_3_Wavy_Amount: 0

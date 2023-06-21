@@ -14,8 +14,6 @@ namespace YARG.UI {
 		[SerializeField]
 		private Transform trackContainer;
 		[SerializeField]
-		private Image songProgress;
-		[SerializeField]
 		private TextMeshProUGUI songTitle;
 		[SerializeField]
 		private TextMeshProUGUI bandName;
@@ -50,16 +48,11 @@ namespace YARG.UI {
 			}
 		}
 
-		private void Update() {
-			songProgress.fillAmount = Play.Instance.SongTime / Play.Instance.SongLength;
-		}
-
 		public void AddTrackImage(RenderTexture rt, CommonTrack commonTrack) {
 			var trackImage = Instantiate(trackView, trackContainer);
 
 			var view = trackImage.GetComponent<TrackView>();
 			view.TrackImage.texture = rt;
-			view.TrackImage.material = trackMaterial;
 
 			commonTrack.TrackView = view;
 

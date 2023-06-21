@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -5,6 +6,7 @@ using YARG.Song;
 
 namespace YARG.Audio {
 	public interface IAudioManager {
+
 		public bool UseStarpowerFx { get; set; }
 		public bool IsChipmunkSpeedup { get; set; }
 
@@ -22,6 +24,8 @@ namespace YARG.Audio {
 
 		public float CurrentPositionF { get; }
 		public float AudioLengthF { get; }
+
+		public event Action SongEnd;
 
 		public void Initialize();
 		public void Unload();
