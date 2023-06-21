@@ -10,6 +10,7 @@ using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.Utilities;
 using YARG.Audio;
 using YARG.Data;
+using YARG.Settings;
 
 namespace YARG.Input {
 	public abstract class InputStrategy : IDisposable {
@@ -233,7 +234,7 @@ namespace YARG.Input {
 				return button.isPressed;
 			}
 
-			return control.IsActuated(ControlBinding.DEFAULT_PRESS_THRESHOLD);
+			return control.IsActuated(SettingsManager.Settings.PressThreshold.Data);
 		}
 
 		public static bool IsControlPressed(InputControl<float> control, InputEventPtr eventPtr) {
@@ -241,7 +242,7 @@ namespace YARG.Input {
 				return button.IsValueConsideredPressed(button.ReadValueFromEvent(eventPtr));
 			}
 
-			return control.ReadValueFromEvent(eventPtr) >= ControlBinding.DEFAULT_PRESS_THRESHOLD;
+			return control.ReadValueFromEvent(eventPtr) >= SettingsManager.Settings.PressThreshold.Data;
 		}
 
 		protected bool IsMappingPressed(string key) {

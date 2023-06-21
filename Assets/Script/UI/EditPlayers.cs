@@ -1,5 +1,7 @@
+using System.Globalization;
 using UnityEngine;
 using YARG.Input;
+using YARG.PlayMode;
 
 namespace YARG.UI {
 	public class EditPlayers : MonoBehaviour {
@@ -11,6 +13,17 @@ namespace YARG.UI {
 		[SerializeField]
 		private Transform addButton;
 
+		[SerializeField]
+		private TMPro.TMP_InputField micSpeedInput;
+
+		public void SetVocalTrackSpeed() {
+			MicPlayer.trackSpeed = float.Parse(micSpeedInput.text, CultureInfo.InvariantCulture);
+		}
+
+		public void SetVocalSpeedInputText() {
+			micSpeedInput.text = MicPlayer.trackSpeed.ToString("N2", CultureInfo.InvariantCulture);
+		}
+
 		private void OnEnable() {
 			// Set navigation scheme
 			Navigator.Instance.PushScheme(new NavigationScheme(new() {
@@ -20,6 +33,7 @@ namespace YARG.UI {
 			}, true));
 
 			UpdatePlayers();
+			SetVocalSpeedInputText();
 		}
 
 		private void OnDisable() {

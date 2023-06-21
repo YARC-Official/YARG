@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using YARG.Chart;
 using YARG.Data;
 using YARG.Input;
 using YARG.Pools;
@@ -30,7 +29,6 @@ namespace YARG.PlayMode {
 
 		private const int PTS_PER_NOTE = 120;
 		private const int SUSTAIN_PTS_PER_BEAT = 60;
-
 
 		protected override void StartTrack() {
 			notePool.player = player;

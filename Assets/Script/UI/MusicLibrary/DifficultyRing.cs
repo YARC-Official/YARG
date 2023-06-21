@@ -14,7 +14,7 @@ namespace YARG.UI.MusicLibrary {
 
 		[SerializeField]
 		private Sprite[] ringSprites;
-		
+
 		private Button _searchButton;
 
 		private void Awake() {
@@ -63,7 +63,7 @@ namespace YARG.UI.MusicLibrary {
 				color.a = 0.2f;
 			}
 			instrumentIcon.color = color;
-			
+
 			// Set search filter by instrument
 			_searchButton.onClick.RemoveAllListeners();
 			if (hasInstrument) {
@@ -72,7 +72,7 @@ namespace YARG.UI.MusicLibrary {
 		}
 
 		private void SearchFilter(string instrument) {
-			SongSelection.Instance.searchField.text = $"instrument:{instrument}";
+			SongSelection.Instance.SetSearchInput($"instrument:{instrument}");
 		}
 
 		private void OnDestroy() {

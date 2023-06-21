@@ -298,6 +298,20 @@ MonoBehaviour:
     m_Localized: Fade Size
     m_Metadata:
       m_Items: []
+  - m_Id: 26591864540614656
+    m_Localized: Drum Kick Bounce
+    m_Metadata:
+      m_Items: []
+  - m_Id: 31231598726078464
+    m_Localized: 'Cursor Show Time
+
+      (0 = Always Show)'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 31586592042115072
+    m_Localized: Input Press Threshold
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

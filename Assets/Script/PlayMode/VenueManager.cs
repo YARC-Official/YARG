@@ -3,9 +3,9 @@ using UnityEngine;
 
 namespace YARG.PlayMode {
 	public class VenueManager : MonoBehaviour {
-		public static event Action<string> OnEventRecieve;
+		public static event Action<string> OnEventReceive;
 
-		private int eventIndex = 0;
+		private int _eventIndex;
 
 		private void Update() {
 			if (!Play.Instance.SongStarted) {
@@ -15,13 +15,13 @@ namespace YARG.PlayMode {
 			var chart = Play.Instance.chart;
 
 			// Update venue events
-			while (chart.events.Count > eventIndex && chart.events[eventIndex].time <= Play.Instance.SongTime) {
-				var name = chart.events[eventIndex].name;
+			while (chart.events.Count > _eventIndex && chart.events[_eventIndex].time <= Play.Instance.SongTime) {
+				var name = chart.events[_eventIndex].name;
 				if (name.StartsWith("venue_")) {
-					OnEventRecieve?.Invoke(name);
+					OnEventReceive?.Invoke(name);
 				}
 
-				eventIndex++;
+				_eventIndex++;
 			}
 		}
 	}

@@ -38,7 +38,7 @@ namespace YARG.PlayMode {
 			new Color32(255, 219, 0, 255)
 		};
 
-		public const float TRACK_SPEED = 4f;
+		public static float trackSpeed = 4f;
 
 		public const float TRACK_SPAWN_OFFSET = 12f;
 		public const float TRACK_END_OFFSET = 5f;
@@ -119,7 +119,7 @@ namespace YARG.PlayMode {
 
 		// Time relative to the beginning of the track, used for spawning notes and other visuals
 		public float TrackStartTime => Play.Instance.SongTime +
-			((TRACK_SPAWN_OFFSET + TRACK_END_OFFSET) / (TRACK_SPEED / Play.speed));
+			((TRACK_SPAWN_OFFSET + TRACK_END_OFFSET) / (trackSpeed / Play.speed));
 
 		private bool _beat = false;
 
@@ -210,6 +210,7 @@ namespace YARG.PlayMode {
 				// Spawn needle
 				var needle = Instantiate(needlePrefab, transform).GetComponent<VocalNeedle>();
 				needle.transform.localPosition = needlePrefab.transform.position;
+				needle.ParticleSpeed = trackSpeed;
 
 				// Create player info
 				var playerInfo = new PlayerInfo {
@@ -589,7 +590,11 @@ namespace YARG.PlayMode {
 					if (micInput.VoiceDetected && !wasNeedleActive) {
 						playerInfo.Needle.localPosition = newPosition;
 					} else {
-						playerInfo.Needle.localPosition = Vector3.Lerp(playerInfo.Needle.localPosition, newPosition, Time.deltaTime * 15f);
+						float rate = micInput.MicDevice?.PitchUpdatesPerSecond ?? 40f;
+
+						// Lerp to the update rate of the mic so it isn't jagged
+						playerInfo.Needle.localPosition = Vector3.Lerp(playerInfo.Needle.localPosition, newPosition,
+							Time.deltaTime * rate);
 					}
 				}
 			}
@@ -877,7 +882,7 @@ namespace YARG.PlayMode {
 		}
 
 		private float CalcLagCompensation(float currentTime, float noteTime) {
-			return (currentTime - noteTime) * (TRACK_SPEED / Play.speed);
+			return (currentTime - noteTime) * (trackSpeed / Play.speed);
 		}
 
 		public static float NoteAndOctaveToZ(float note, int octave) {

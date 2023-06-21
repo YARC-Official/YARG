@@ -1,14 +1,22 @@
+using System.IO;
+using System.Threading;
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
+using YARG.UI;
 namespace YARG.PlayMode {
 	public class ScoreDisplay : MonoBehaviour {
 		[SerializeField]
 		private TextMeshProUGUI scoreText;
 
+		[Space]
+		[SerializeField]
+		private ProgressBarFadedEdge songProgress;
+
 		private void Start() {
-			scoreText.text = $"<mspace=0.59em>0";
+			scoreText.text = $"<mspace=0.538em>0";
 			StartCoroutine(LateStart());
 		}
 
@@ -34,7 +42,15 @@ namespace YARG.PlayMode {
 		}
 
 		private void OnScoreChange() {
-			scoreText.text = $"<mspace=0.59em>{ScoreKeeper.TotalScore:n0}";
+			scoreText.text = $"<mspace=0.538em>{ScoreKeeper.TotalScore:n0}";
+		}
+
+		private void Update() {
+			if (!Play.Instance.endReached) {
+				songProgress.SetProgress(Play.Instance.SongTime / Play.Instance.SongLength);
+			} else {
+				songProgress.SetProgress(1f);
+			}
 		}
 	}
 }

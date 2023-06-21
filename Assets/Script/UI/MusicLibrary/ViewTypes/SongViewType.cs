@@ -1,3 +1,5 @@
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Data;
 using YARG.Song;
@@ -23,33 +25,20 @@ namespace YARG.UI.MusicLibrary.ViewTypes {
 			}
 		}
 
-		public override Sprite IconSprite {
-			get {
-				if (SongEntry.Source == null) {
-					return Resources.Load<Sprite>("Sources/custom");
-				}
-
-				string folderPath = $"Sources/{SongEntry.Source}";
-				var loadedSprite = Resources.Load<Sprite>(folderPath);
-
-				if (loadedSprite == null) {
-					return Resources.Load<Sprite>("Sources/custom");
-				}
-
-				return loadedSprite;
-			}
-		}
-
 		public SongEntry SongEntry { get; private set; }
 
 		public SongViewType(SongEntry songEntry) {
 			SongEntry = songEntry;
 		}
 
+		public override async UniTask<Sprite> GetIcon() {
+			return await SongSources.SourceToIcon(SongEntry.Source);
+		}
+
 		public override void SecondaryTextClick() {
 			base.SecondaryTextClick();
 
-			SongSelection.Instance.searchField.text = $"artist:{SongEntry.Artist}";
+			SongSelection.Instance.SetSearchInput($"artist:{SongEntry.Artist}");
 		}
 
 		public override void PrimaryButtonClick() {
@@ -61,7 +50,7 @@ namespace YARG.UI.MusicLibrary.ViewTypes {
 		public override void IconClick() {
 			base.IconClick();
 
-			SongSelection.Instance.searchField.text = $"source:{SongEntry.Source}";
+			SongSelection.Instance.SetSearchInput($"source:{SongEntry.Source}");
 		}
 	}
 }

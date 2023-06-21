@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using Newtonsoft.Json;
 using UnityEngine;
 using YARG.Audio;
 using YARG.PlayMode;
@@ -23,6 +21,9 @@ namespace YARG.Settings {
 
 			public ToggleSetting DisablePerSongBackgrounds  { get; private set; } = new(false);
 
+			public SliderSetting PressThreshold             { get; private set; } = new(0.75f, 0f, 1f);
+			public SliderSetting ShowCursorTimer            { get; private set; } = new(2f, 0f, 5f);
+
 			public ToggleSetting     VSync                  { get; private set; } = new(true,      VSyncCallback);
 			public IntSetting        FpsCap                 { get; private set; } = new(60, 1,     onChange: FpsCapCallback);
 			public EnumSetting       FullscreenMode         { get; private set; } = new(typeof(FullScreenMode),
@@ -37,6 +38,7 @@ namespace YARG.Settings {
 			public ToggleSetting UseCymbalModelsInFiveLane  { get; private set; } = new(true);
 
 			public ToggleSetting NoKicks                    { get; private set; } = new(false);
+			public ToggleSetting KickBounce                 { get; private set; } = new(true);
 			public ToggleSetting AntiGhosting               { get; private set; } = new(true);
 
 			public VolumeSetting MasterMusicVolume          { get; private set; } = new(0.75f,v => VolumeCallback(SongStem.Master, v));

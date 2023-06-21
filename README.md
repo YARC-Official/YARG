@@ -32,19 +32,22 @@ We **DO NOT** encourage, advocate, or promote **PIRATING** of songs, or of anyth
 
 # 📃 Table of Contents
 
-- [Downloading and Playing](#-downloading-and-playing)
+- [👉 Disclaimer](#-disclaimer)
+- [📃 Table of Contents](#-table-of-contents)
+- [📥 Downloading and Playing](#-downloading-and-playing)
   - [Windows](#windows)
   - [Mac](#mac)
   - [Linux](#linux)
   - [In-Game Setup](#in-game-setup)
-- [Building](#-building)
+- [🔨 Building](#-building)
+    - [⚠️ If you wish to contribute, use the `dev` branch. Your PR will NOT be merged if it's on `master`. ⚠️](#️-if-you-wish-to-contribute-use-the-dev-branch-your-pr-will-not-be-merged-if-its-on-master-️)
   - [Setup Instructions](#setup-instructions)
   - [Unity YAML Merge Tool](#unity-yaml-merge-tool)
-- [Contributing](#️-contributing)
-- [License](#️-license)
-- [External Licenses](#-external-licenses)
-- [External Assets and Libraries](#-external-assets-and-libraries)
-- [Donate](#-donate)
+- [✍️ Contributing](#️-contributing)
+- [🛡️ License](#️-license)
+- [🧰 External Licenses](#-external-licenses)
+- [📦 External Assets and Libraries](#-external-assets-and-libraries)
+- [💸 Donate](#-donate)
 
 # 📥 Downloading and Playing
 
@@ -115,23 +118,19 @@ Have fun!
 > If you don't follow these instructions, **YOU WILL NOT BE ABLE TO RUN THE GAME**.
 
 1. Make sure you have the latest version of [Blender](https://www.blender.org/) installed. This is for loading models, even if you don't plan on editing them.
-2. Make sure you have [Python (3.10)](https://www.python.org/downloads/) or greater installed. Be sure it is added to system path. This is required to download dependencies.
-3. Clone the repository. If you don't know how to do this:
+2. Clone the repository. If you don't know how to do this:
   1. Download [Git](https://git-scm.com/downloads). Be sure it is added to system path.
   2. Open the command prompt in the directory you want to store the repository.
   3. Type in `git clone https://github.com/YARC-Official/YARG.git`.
-4. Install Unity Hub and Unity `2021.3.21f1` (LTS).
-  1. Download and install [Unity Hub](https://unity.com/download).
-  2. Sign-in/create an account with a personal license (free).
-  3. In Unity Hub, click on "Install Editor" and select `2021.3.21f1` (LTS). It may be favourable to unselect Visual Studio if you are not using it.
-  4. Click "Install"
-5. Open the command prompt at the root of the repo, and type in:
-  1. `pip install requests`
-  2. `python InstallLibraries/install.py`. This may take a bit. Wait for the command prompt to say "Done!" before closing. This installs all of the needed dependencies for you.
-6. Open the project in Unity (select "Open" and select YARG's repo's folder).
-7. Load in **without** entering safe mode. Click "Ignore".
-8. (You may need to) click on `NuGet` on the menu bar, then click on `Restore Packages`.
-9. You're ready to go!
+3. Install Unity Hub and Unity `2021.3.21f1` (LTS).
+  4. Download and install [Unity Hub](https://unity.com/download).
+  5. Sign-in/create an account with a personal license (free).
+  6. In Unity Hub, click on "Install Editor" and select `2021.3.21f1` (LTS). It may be favourable to unselect Visual Studio if you are not using it.
+  7. Click "Install"
+4. Open the project in Unity (select "Open" and select YARG's repo's folder).
+5. Load in **without** entering safe mode. Click "Ignore".
+6. (You may need to) click on `NuGet` on the menu bar, then click on `Restore Packages`.
+7. You're ready to go!
 
 ## Unity YAML Merge Tool
 
@@ -179,7 +178,7 @@ Some libraries/assets are **packaged** with the source code have licenses that m
 
 Please note that other libraries are **not** packaged within the source code, and are to be install by NuGet.
 
-BASS is the audio library for YARG. [It has it's own license for release](https://www.un4seen.com/).
+BASS is the audio library for YARG. [It has it's own license for release](https://www.un4seen.com/). BASS is free for non-commercial use, ensure you have the correct license if you intend to distribute YARG (and therefore BASS) commercially.
 
 # 📦 External Assets and Libraries
 

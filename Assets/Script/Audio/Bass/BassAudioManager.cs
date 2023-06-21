@@ -31,12 +31,30 @@ namespace YARG.Audio.BASS {
 		public float CurrentPositionF => (float) GetPosition();
 		public float AudioLengthF { get; private set; }
 
+		public event Action SongEnd {
+			add {
+				if (_mixer is null) {
+					throw new InvalidOperationException("No song is currently loaded!");
+				}
+
+				_mixer.SongEnd += value;
+			}
+			remove {
+				if (_mixer is null) {
+					throw new InvalidOperationException("No song is currently loaded!");
+				}
+
+				_mixer.SongEnd -= value;
+			}
+		}
+
 		private double[] _stemVolumes;
 		private ISampleChannel[] _sfxSamples;
 
 		private int _opusHandle;
 
 		private IStemMixer _mixer;
+
 
 		private void Awake() {
 			SupportedFormats = new[] {
@@ -68,11 +86,16 @@ namespace YARG.Audio.BASS {
 			Bass.PlaybackBufferLength = 75;
 			Bass.DeviceNonStop = true;
 
+			// Affects Windows only. Forces device names to be in UTF-8 on Windows rather than ANSI.
+			Bass.Configure(Configuration.UnicodeDeviceInformation, true);
 			Bass.Configure(Configuration.TruePlayPosition, 0);
 			Bass.Configure(Configuration.UpdateThreads, 2);
 			Bass.Configure(Configuration.FloatDSP, true);
 
+			// Undocumented BASS_CONFIG_MP3_OLDGAPS config.
 			Bass.Configure((Configuration) 68, 1);
+
+			// Disable undocumented BASS_CONFIG_DEV_TIMEOUT config. Prevents pausing audio output if a device times out.
 			Bass.Configure((Configuration) 70, false);
 
 			int deviceCount = Bass.DeviceCount;
@@ -117,15 +140,24 @@ namespace YARG.Audio.BASS {
 		public IList<IMicDevice> GetAllInputDevices() {
 			var mics = new List<IMicDevice>();
 
+			var typeWhitelist = new List<DeviceType> {
+				DeviceType.Headset,
+				DeviceType.Digital,
+				DeviceType.Line,
+				DeviceType.Headphones,
+				DeviceType.Microphone,
+			};
+
 			for (int deviceIndex = 0; Bass.RecordGetDeviceInfo(deviceIndex, out var info); deviceIndex++) {
 				if (!info.IsEnabled) {
 					continue;
 				}
 
-				// We do not check the device type since there are too many that a recording device can be,
-				// instead we only exclude loopback devices
+				//Debug.Log($"Device {deviceIndex}: Name: {info.Name}. Type: {info.Type}. IsLoopback: {info.IsLoopback}.");
+
+				// Check if type is in whitelist
 				// The "Default" device is also excluded here since we want the user to explicitly pick which microphone to use
-				if (info.IsLoopback || info.Name == "Default") {
+				if (!typeWhitelist.Contains(info.Type) || info.Name == "Default") {
 					continue;
 				}
 
@@ -241,7 +273,13 @@ namespace YARG.Audio.BASS {
 			moggArray = moggArray[BitConverter.ToInt32(moggArray, 4)..];
 
 			// Initialize stream
-			int moggStreamHandle = Bass.CreateStream(moggArray, 0, moggArray.Length, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
+
+			// Last flag is new BASS_SAMPLE_NOREORDER flag, which is not in the BassFlags enum,
+			// as it was made as part of an update to fix <= 8 channel oggs.
+			// https://www.un4seen.com/forum/?topic=20148.msg140872#msg140872
+			const BassFlags flags = BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile | (BassFlags)64;
+
+			int moggStreamHandle = Bass.CreateStream(moggArray, 0, moggArray.Length, flags);
 			if (moggStreamHandle == 0) {
 				Debug.LogError($"Failed to load mogg file or position: {Bass.LastError}");
 				return;

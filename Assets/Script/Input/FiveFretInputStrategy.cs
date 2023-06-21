@@ -18,6 +18,7 @@ namespace YARG.Input {
 		public const string WHAMMY = "whammy";
 
 		public const string STAR_POWER = "star_power";
+		public const string TILT = "tilt";
 		public const string PAUSE = "pause";
 
 		private List<NoteInfo> botChart;
@@ -44,6 +45,7 @@ namespace YARG.Input {
 				{ WHAMMY,     new(BindingType.AXIS, "Whammy", WHAMMY) },
 
 				{ STAR_POWER, new(BindingType.BUTTON, "Star Power", STAR_POWER) },
+				{ TILT,       new(BindingType.BUTTON, "Tilt", TILT) }, // tilt is a button as PS2 guitars don't have a tilt axis
 				{ PAUSE,      new(BindingType.BUTTON, "Pause", PAUSE) },
 			};
 		}
@@ -94,7 +96,7 @@ namespace YARG.Input {
 
 			// Starpower
 
-			if (WasMappingPressed(STAR_POWER)) {
+			if (WasMappingPressed(STAR_POWER) || WasMappingPressed(TILT)) { // checking for tilt
 				CallStarpowerEvent();
 			}
 		}
