@@ -18,16 +18,16 @@ namespace YARG.Settings {
 
 			public List<string>  SongFolders                                      = new();
 
-			public IntSetting    AudioCalibration           { get; private set; } = new(120);
+			public IntSetting    AudioCalibration           { get; } = new(120);
 
-			public ToggleSetting DisablePerSongBackgrounds  { get; private set; } = new(false);
+			public ToggleSetting DisablePerSongBackgrounds  { get; } = new(false);
 
-			public SliderSetting PressThreshold             { get; private set; } = new(0.75f, 0f, 1f);
-			public SliderSetting ShowCursorTimer            { get; private set; } = new(2f, 0f, 5f);
+			public SliderSetting PressThreshold             { get; } = new(0.75f, 0f, 1f);
+			public SliderSetting ShowCursorTimer            { get; } = new(2f, 0f, 5f);
 
-			public ToggleSetting     VSync                  { get; private set; } = new(true,      VSyncCallback);
-			public IntSetting        FpsCap                 { get; private set; } = new(60, 1,     onChange: FpsCapCallback);
-			public DropdownSetting   FullscreenMode         { get; private set; } = new(new() {
+			public ToggleSetting     VSync                  { get; } = new(true,      VSyncCallback);
+			public IntSetting        FpsCap                 { get; } = new(60, 1,     onChange: FpsCapCallback);
+			public DropdownSetting   FullscreenMode         { get; } = new(new() {
 #if UNITY_STANDALONE_WIN
 					"ExclusiveFullScreen",
 #elif UNITY_STANDALONE_OSX
@@ -36,49 +36,54 @@ namespace YARG.Settings {
 					"FullScreenWindow",
 					"Windowed",
 				}, "FullScreenWindow", FullscreenModeCallback);
-			public ResolutionSetting Resolution             { get; private set; } = new(           ResolutionCallback);
-			public ToggleSetting     FpsStats               { get; private set; } = new(false,     FpsCounterCallback);
+			public ResolutionSetting Resolution             { get; } = new(           ResolutionCallback);
+			public ToggleSetting     FpsStats               { get; } = new(false,     FpsCounterCallback);
 
-			public ToggleSetting LowQuality                 { get; private set; } = new(false,     LowQualityCallback);
-			public ToggleSetting DisableBloom               { get; private set; } = new(false,     DisableBloomCallback);
+			public ToggleSetting LowQuality                 { get; } = new(false,     LowQualityCallback);
+			public ToggleSetting DisableBloom               { get; } = new(false,     DisableBloomCallback);
 
-			public ToggleSetting ShowHitWindow              { get; private set; } = new(false);
-			public ToggleSetting UseCymbalModelsInFiveLane  { get; private set; } = new(true);
+			public ToggleSetting ShowHitWindow              { get; } = new(false);
+			public ToggleSetting UseCymbalModelsInFiveLane  { get; } = new(true);
 
-			public ToggleSetting NoKicks                    { get; private set; } = new(false);
-			public ToggleSetting KickBounce                 { get; private set; } = new(true);
-			public ToggleSetting AntiGhosting               { get; private set; } = new(true);
+			public ToggleSetting NoKicks                    { get; } = new(false);
+			public ToggleSetting KickBounce                 { get; } = new(true);
+			public ToggleSetting AntiGhosting               { get; } = new(true);
 
-			public VolumeSetting MasterMusicVolume          { get; private set; } = new(0.75f,v => VolumeCallback(SongStem.Master, v));
-			public VolumeSetting GuitarVolume               { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Guitar, v));
-			public VolumeSetting RhythmVolume               { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Rhythm, v));
-			public VolumeSetting BassVolume                 { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Bass,   v));
-			public VolumeSetting KeysVolume                 { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Keys,   v));
-			public VolumeSetting DrumsVolume                { get; private set; } = new(1f,        DrumVolumeCallback);
-			public VolumeSetting VocalsVolume               { get; private set; } = new(1f,        VocalVolumeCallback);
-			public VolumeSetting SongVolume                 { get; private set; } = new(1f,   v => VolumeCallback(SongStem.Song,   v));
-			public VolumeSetting CrowdVolume                { get; private set; } = new(0.5f, v => VolumeCallback(SongStem.Crowd,  v));
-			public VolumeSetting SfxVolume                  { get; private set; } = new(0.8f, v => VolumeCallback(SongStem.Sfx,    v));
-			public VolumeSetting PreviewVolume              { get; private set; } = new(0.25f);
-			public VolumeSetting MusicPlayerVolume          { get; private set; } = new(0.15f,     MusicPlayerVolumeCallback);
-			public VolumeSetting VocalMonitoring            { get; private set; } = new(0.7f,      VocalMonitoringCallback);
+			public VolumeSetting MasterMusicVolume          { get; } = new(0.75f,v => VolumeCallback(SongStem.Master, v));
+			public VolumeSetting GuitarVolume               { get; } = new(1f,   v => VolumeCallback(SongStem.Guitar, v));
+			public VolumeSetting RhythmVolume               { get; } = new(1f,   v => VolumeCallback(SongStem.Rhythm, v));
+			public VolumeSetting BassVolume                 { get; } = new(1f,   v => VolumeCallback(SongStem.Bass,   v));
+			public VolumeSetting KeysVolume                 { get; } = new(1f,   v => VolumeCallback(SongStem.Keys,   v));
+			public VolumeSetting DrumsVolume                { get; } = new(1f,        DrumVolumeCallback);
+			public VolumeSetting VocalsVolume               { get; } = new(1f,        VocalVolumeCallback);
+			public VolumeSetting SongVolume                 { get; } = new(1f,   v => VolumeCallback(SongStem.Song,   v));
+			public VolumeSetting CrowdVolume                { get; } = new(0.5f, v => VolumeCallback(SongStem.Crowd,  v));
+			public VolumeSetting SfxVolume                  { get; } = new(0.8f, v => VolumeCallback(SongStem.Sfx,    v));
+			public VolumeSetting PreviewVolume              { get; } = new(0.25f);
+			public VolumeSetting MusicPlayerVolume          { get; } = new(0.15f,     MusicPlayerVolumeCallback);
+			public VolumeSetting VocalMonitoring            { get; } = new(0.7f,      VocalMonitoringCallback);
 
-			public SliderSetting MicrophoneSensitivity      { get; private set; } = new(2f,    -50f, 50f);
+			public SliderSetting MicrophoneSensitivity      { get; } = new(2f,    -50f, 50f);
 
-			public ToggleSetting MuteOnMiss                 { get; private set; } = new(true);
-			public ToggleSetting UseStarpowerFx             { get; private set; } = new(true,      UseStarpowerFxChange);
-			public ToggleSetting UseChipmunkSpeed           { get; private set; } = new(false,     UseChipmunkSpeedChange);
+			public ToggleSetting MuteOnMiss                 { get; } = new(true);
+			public ToggleSetting UseStarpowerFx             { get; } = new(true,      UseStarpowerFxChange);
+			public ToggleSetting UseChipmunkSpeed           { get; } = new(false,     UseChipmunkSpeedChange);
 
-			public SliderSetting TrackCamFOV                { get; private set; } = new(55f,    40f, 150f,    CameraPosChange);
-			public SliderSetting TrackCamYPos               { get; private set; } = new(2.66f,  0f,  4f,      CameraPosChange);
-			public SliderSetting TrackCamZPos               { get; private set; } = new(1.14f,  0f,  12f,     CameraPosChange);
-			public SliderSetting TrackCamRot                { get; private set; } = new(24.12f, 0f,  180f,    CameraPosChange);
-			public SliderSetting TrackFadePosition          { get; private set; } = new(3f,     0f,  3f, v => FadeChange(true,  v));
-			public SliderSetting TrackFadeSize              { get; private set; } = new(1.75f,  0f,  5f, v => FadeChange(false, v));
+			public SliderSetting TrackCamFOV                { get; } = new(55f,    40f, 150f,    CameraPosChange);
+			public SliderSetting TrackCamYPos               { get; } = new(2.66f,  0f,  4f,      CameraPosChange);
+			public SliderSetting TrackCamZPos               { get; } = new(1.14f,  0f,  12f,     CameraPosChange);
+			public SliderSetting TrackCamRot                { get; } = new(24.12f, 0f,  180f,    CameraPosChange);
+			public SliderSetting TrackFadePosition          { get; } = new(3f,     0f,  3f, v => FadeChange(true,  v));
+			public SliderSetting TrackFadeSize              { get; } = new(1.75f,  0f,  5f, v => FadeChange(false, v));
 
-			public ToggleSetting DisableTextNotifications   { get; private set; } = new(false);
+			public ToggleSetting   DisableTextNotifications { get; } = new(false);
+			public DropdownSetting LyricBackground          { get; } = new(new() {
+				"Normal",
+				"Transparent",
+				"None",
+			}, "Normal");
 
-			public ToggleSetting AmIAwesome                 { get; private set; } = new(false);
+			public ToggleSetting AmIAwesome                 { get; } = new(false);
 
 #pragma warning restore format
 

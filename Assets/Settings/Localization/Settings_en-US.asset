@@ -312,6 +312,22 @@ MonoBehaviour:
     m_Localized: Input Press Threshold
     m_Metadata:
       m_Items: []
+  - m_Id: 32040511641870336
+    m_Localized: Normal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 32040561948352512
+    m_Localized: Transparent
+    m_Metadata:
+      m_Items: []
+  - m_Id: 32040568017510400
+    m_Localized: None
+    m_Metadata:
+      m_Items: []
+  - m_Id: 32040983111000064
+    m_Localized: Lyric Background
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

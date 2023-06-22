@@ -20,7 +20,7 @@ namespace YARG.Settings.Visuals {
 			foreach (var name in Setting.PossibleValues) {
 				_dropdown.options.Add(new(new LocalizedString {
 					TableReference = "Settings",
-					TableEntryReference = $"DropdownEntry.{name}"
+					TableEntryReference = $"{SettingName}.{name}"
 				}.GetLocalizedString()));
 			}
 

@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using YARG.Data;
 using YARG.PlayMode;
+using YARG.Settings;
 
 namespace YARG.UI {
 	public class GenericLyricContainer : MonoBehaviour {
@@ -11,11 +12,33 @@ namespace YARG.UI {
 		[SerializeField]
 		private TextMeshProUGUI _lyricText;
 
+		[Space]
+		[SerializeField]
+		private GameObject _normalBackground;
+		[SerializeField]
+		private GameObject _transparentBackground;
+
 		private int _lyricIndex;
 		private int _lyricPhraseIndex;
 
 		private void Start() {
 			_lyricText.text = string.Empty;
+
+			// Set proper background
+			switch (SettingsManager.Settings.LyricBackground.Data) {
+				case "Normal":
+					_normalBackground.SetActive(true);
+					_transparentBackground.SetActive(false);
+					break;
+				case "Transparent":
+					_normalBackground.SetActive(false);
+					_transparentBackground.SetActive(true);
+					break;
+				case "None":
+					_normalBackground.SetActive(false);
+					_transparentBackground.SetActive(false);
+					break;
+			}
 
 			// Temporary
 			bool playingVocals = false;
