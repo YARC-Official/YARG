@@ -275,7 +275,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 25071457018437632
-    m_Localized: Fullscreen (Windows Only)
+    m_Localized: Fullscreen
     m_Metadata:
       m_Items: []
   - m_Id: 25071572395352064
@@ -283,7 +283,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 25071721024708608
-    m_Localized: Maximized Window (MacOS Only)
+    m_Localized: Maximized Window
     m_Metadata:
       m_Items: []
   - m_Id: 25071794185953280

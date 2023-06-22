@@ -18,12 +18,11 @@ namespace YARG.Settings.Types {
 		}
 
 		public override bool IsSettingDataEqual(object obj) {
-			if (obj.GetType() != DataType) {
+			if (obj is not bool other) {
 				return false;
 			}
 
-			bool a = (bool) obj;
-			return a == Data;
+			return other == Data;
 		}
 	}
 }

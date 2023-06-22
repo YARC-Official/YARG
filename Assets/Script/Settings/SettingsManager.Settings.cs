@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Audio;
@@ -26,8 +27,15 @@ namespace YARG.Settings {
 
 			public ToggleSetting     VSync                  { get; private set; } = new(true,      VSyncCallback);
 			public IntSetting        FpsCap                 { get; private set; } = new(60, 1,     onChange: FpsCapCallback);
-			public EnumSetting       FullscreenMode         { get; private set; } = new(typeof(FullScreenMode),
-				                                            (int) FullScreenMode.FullScreenWindow, FullscreenModeCallback);
+			public DropdownSetting   FullscreenMode         { get; private set; } = new(new() {
+#if UNITY_STANDALONE_WIN
+					"ExclusiveFullScreen",
+#elif UNITY_STANDALONE_OSX
+					"MaximizedWindow",
+#endif
+					"FullScreenWindow",
+					"Windowed",
+				}, "FullScreenWindow", FullscreenModeCallback);
 			public ResolutionSetting Resolution             { get; private set; } = new(           ResolutionCallback);
 			public ToggleSetting     FpsStats               { get; private set; } = new(false,     FpsCounterCallback);
 
@@ -119,13 +127,13 @@ namespace YARG.Settings {
 				Application.targetFrameRate = value;
 			}
 
-			private static void FullscreenModeCallback(int value) {
+			private static void FullscreenModeCallback(string value) {
 				// Unity saves this information automatically
 				if (IsLoading) {
 					return;
 				}
 
-				Screen.fullScreenMode = (FullScreenMode) value;
+				Screen.fullScreenMode = Enum.Parse<FullScreenMode>(value);
 			}
 
 			private static void ResolutionCallback(Resolution? value) {
@@ -162,7 +170,7 @@ namespace YARG.Settings {
 
 				var fullscreenMode = FullScreenMode.FullScreenWindow;
 				if (Settings != null) {
-					fullscreenMode = (FullScreenMode) Settings.FullscreenMode.Data;
+					fullscreenMode = Enum.Parse<FullScreenMode>(Settings.FullscreenMode.Data);
 				}
 
 				Screen.SetResolution(resolution.width, resolution.height, fullscreenMode, resolution.refreshRate);

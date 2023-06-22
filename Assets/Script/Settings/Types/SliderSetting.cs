@@ -27,12 +27,11 @@ namespace YARG.Settings.Types {
 		}
 
 		public override bool IsSettingDataEqual(object obj) {
-			if (obj.GetType() != DataType) {
+			if (obj is not float other) {
 				return false;
 			}
 
-			float a = (float) obj;
-			return Mathf.Approximately(a, Data);
+			return Mathf.Approximately(other, Data);
 		}
 	}
 }
