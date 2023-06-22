@@ -4,14 +4,12 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using UnityEngine;
-using YARG.Data;
 using YARG.UI;
 using XboxSTFS;
 using YARG.Util;
 
 namespace YARG.Song {
-	public class SongCache {
-
+	public readonly struct CacheFolder {
 		/// <summary>
 		/// The date revision of the cache format.
 		/// Format is YY_MM_DD_RR: Y = year, M = month, D = day, R = revision (reset across dates, only increment
@@ -19,15 +17,22 @@ namespace YARG.Song {
 		/// </summary>
 		private const int CACHE_VERSION = 23_06_05_01;
 
-		private readonly string _folder;
 		private readonly string _cacheFile;
 
-		public SongCache(string folder) {
-			_folder = folder;
+		public readonly string Folder;
+		public readonly bool Portable;
 
-			string hex = BitConverter.ToString(SHA1.Create().ComputeHash(Encoding.UTF8.GetBytes(folder))).Replace("-", "");
+		public CacheFolder(string folder, bool portable) {
+			Folder = folder;
 
-			_cacheFile = Path.Combine(PathHelper.PersistentDataPath, "caches", $"{hex}.bin");
+			if (!portable) {
+				string hex = BitConverter.ToString(SHA1.Create().ComputeHash(Encoding.UTF8.GetBytes(folder))).Replace("-", "");
+				_cacheFile = Path.Combine(PathHelper.PersistentDataPath, "caches", $"{hex}.bin");
+			} else {
+				_cacheFile = Path.Combine(folder, "cache.bin");
+			}
+
+			Portable = portable;
 		}
 
 		public void WriteCache(List<SongEntry> songs, List<XboxSTFSFile> conFiles) {
@@ -85,9 +90,9 @@ namespace YARG.Song {
 			while (reader.BaseStream.Position < reader.BaseStream.Length) {
 				try {
 					SongEntry song = (SongType) reader.ReadInt32() switch {
-						SongType.SongIni => new IniSongEntry(reader, _folder),
-						SongType.ExtractedRbCon => new ExtractedConSongEntry(reader, conFiles, _folder),
-						SongType.RbCon => new ConSongEntry(reader, conFiles, _folder),
+						SongType.SongIni => new IniSongEntry(reader, Folder),
+						SongType.ExtractedRbCon => new ExtractedConSongEntry(reader, conFiles, Folder),
+						SongType.RbCon => new ConSongEntry(reader, conFiles, Folder),
 						_ => null
 					};
 
@@ -106,6 +111,30 @@ namespace YARG.Song {
 			}
 
 			return new(songs, conFiles);
+		}
+
+		public override int GetHashCode() {
+			return HashCode.Combine(Folder, Portable);
+		}
+
+		public bool Equals(CacheFolder other) {
+			return Folder == other.Folder && Portable == other.Portable;
+		}
+
+		public override bool Equals(object obj) {
+			return obj is CacheFolder other && Equals(other);
+		}
+
+		public static bool operator ==(CacheFolder left, CacheFolder right) {
+			return left.Equals(right);
+		}
+
+		public static bool operator !=(CacheFolder left, CacheFolder right) {
+			return !left.Equals(right);
+		}
+
+		public override string ToString() {
+			return Folder;
 		}
 	}
 }
