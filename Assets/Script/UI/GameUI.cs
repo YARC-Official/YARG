@@ -18,8 +18,6 @@ namespace YARG.UI {
 		[SerializeField]
 		private TextMeshProUGUI bandName;
 		[SerializeField]
-		private TextMeshProUGUI lyric;
-		[SerializeField]
 		private RawImage vocalTrack;
 		[SerializeField]
 		private TextMeshProUGUI loadingText;
@@ -28,11 +26,10 @@ namespace YARG.UI {
 		public GameObject pauseMenu;
 		public RawImage background;
 		public VideoPlayer videoPlayer;
-		public Material trackMaterial;
 		public static GameUI Instance {
 			get;
 			private set;
-		} = null;
+		}
 
 		private void Awake() {
 			Instance = this;
@@ -69,10 +66,6 @@ namespace YARG.UI {
 
 		public void RemoveVocalTrackImage() {
 			Destroy(vocalTrack.gameObject);
-		}
-
-		public void SetGenericLyric(string str) {
-			lyric.text = str;
 		}
 
 		private void UpdateAllSizing() {
