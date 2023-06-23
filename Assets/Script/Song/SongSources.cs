@@ -81,7 +81,8 @@ namespace YARG.Song {
 						return null;
 					}
 
-					var texture = await TextureLoader.Load(imagePath);
+					var texture = await TextureLoader.LoadWithMips(imagePath);
+					texture.mipMapBias = -0.5f;
 
 					if (texture == null) {
 						Debug.LogWarning($"Failed to load texture at `{imagePath}`!");
