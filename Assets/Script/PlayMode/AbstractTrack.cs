@@ -93,6 +93,7 @@ namespace YARG.PlayMode {
 		private bool FullCombo = true;
 
 		// Used for performance text purposes
+		private bool nameShown = false;
 		private bool hotStartChecked = false;
 		private bool fullComboChecked = false;
 		private bool strongFinishChecked = false;
@@ -194,6 +195,7 @@ namespace YARG.PlayMode {
 		private void Start() {
 			player.track = this;
 			FullCombo = true;
+			nameShown = false;
 
 			player.inputStrategy.StarpowerEvent += StarpowerAction;
 			player.inputStrategy.PauseEvent += PauseAction;
@@ -251,7 +253,6 @@ namespace YARG.PlayMode {
 					}
 				}
 			}
-
 			StartTrack();
 		}
 
@@ -302,7 +303,6 @@ namespace YARG.PlayMode {
 			}
 
 			UpdateMaterial();
-
 			UpdateBeats();
 			UpdateTrack();
 
@@ -315,6 +315,7 @@ namespace YARG.PlayMode {
 			// I REALLY hope that doesn't break something. - grishhung
 			UpdateStarpower();
 			UpdateFullComboState();
+			DisplayPlayerCard();
 			UpdateInfo();
 			UpdateSolo();
 
@@ -332,6 +333,15 @@ namespace YARG.PlayMode {
 			}
 
 			Beat = false;
+		}
+
+		private void DisplayPlayerCard() {
+			if (!nameShown) {
+				nameShown = true;
+				// show player names
+				commonTrack.TrackView.SetPlayerRing(player);
+				commonTrack.TrackView.ShowUserText($"{player.DisplayName}");
+			}
 		}
 
 		private void UpdateFullComboState() {

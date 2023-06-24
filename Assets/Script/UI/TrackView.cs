@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.PlayMode;
 using YARG.Settings;
+using YARG.Data;
+using YARG.UI.MusicLibrary;
 
 namespace YARG.UI {
 	public class TrackView : MonoBehaviour {
@@ -17,6 +19,10 @@ namespace YARG.UI {
 		[Space]
 		[SerializeField]
 		private TextMeshProUGUI _performanceText;
+		[SerializeField]
+		private TextMeshProUGUI _userText;
+		[SerializeField]
+		public DifficultyRing _difficultyRing;
 		[SerializeField]
 		private PerformanceTextScaler _performanceTextScaler;
 
@@ -52,6 +58,11 @@ namespace YARG.UI {
 			_performanceTextScaler = new(3f);
 			_performanceText.text = "";
 			_aspectRatioFitter.aspectRatio = (float) Screen.width / Screen.height;
+		}
+		public void SetPlayerRing(PlayerManager.Player player) {
+			_performanceTextScaler = new(3f);
+			_aspectRatioFitter.aspectRatio = (float) Screen.width / Screen.height;
+			_difficultyRing.SetInfo(YARG.PlayMode.Play.Instance.Song, InstrumentHelper.FromStringName(player.chosenInstrument));
 		}
 
 		public void UpdateSizing(int trackCount) {
@@ -93,8 +104,8 @@ namespace YARG.UI {
 			// Set textbox color
 			var (sprite, gradient) = finalPercent switch {
 				>= 100 => (_soloSpritePerfect, _soloGradientPerfect),
-				>= 60  => (_soloSpriteNormal, _soloGradientNormal),
-				_      => (_soloSpriteMessy, _soloGradientMessy),
+				>= 60 => (_soloSpriteNormal, _soloGradientNormal),
+				_ => (_soloSpriteMessy, _soloGradientMessy),
 			};
 			_soloBox.sprite = sprite;
 			_soloFullText.colorGradientPreset = gradient;
@@ -107,12 +118,12 @@ namespace YARG.UI {
 			// Show performance text
 			string resultText = finalPercent switch {
 				>  100 => "HOW!?",
-				   100 => "PERFECT\nSOLO!",
+				100 => "PERFECT\nSOLO!",
 				>= 95  => "AWESOME\nSOLO!",
 				>= 90  => "GREAT\nSOLO!",
 				>= 80  => "GOOD\nSOLO!",
 				>= 70  => "SOLID\nSOLO",
-				   69  => "<i>NICE</i>\nSOLO",
+				69  => "<i>NICE</i>\nSOLO",
 				>= 60  => "OKAY\nSOLO",
 				>=  0  => "MESSY\nSOLO",
 				<   0  => "HOW!?",
@@ -144,6 +155,11 @@ namespace YARG.UI {
 			StartCoroutine(ScalePerformanceText(text));
 		}
 
+		public void ShowUserText(string text) {
+			StopCoroutine(nameof(ScaleUserText));
+			StartCoroutine(ScaleUserText(text));
+		}
+
 		private IEnumerator ScalePerformanceText(string text) {
 			var rect = _performanceText.rectTransform;
 			rect.localScale = Vector3.zero;
@@ -161,6 +177,24 @@ namespace YARG.UI {
 			}
 
 			_performanceText.text = string.Empty;
+		}
+
+		private IEnumerator ScaleUserText(string text) {
+			var rect = _userText.rectTransform;
+			rect.localScale = Vector3.zero;
+
+			_userText.text = text;
+			_performanceTextScaler.ResetAnimationTime();
+
+			while (_performanceTextScaler.AnimTimeRemaining > 0f) {
+				_performanceTextScaler.AnimTimeRemaining -= Time.deltaTime;
+				var scale = _performanceTextScaler.PerformanceTextScale();
+				rect.localScale = new Vector3(scale, scale, scale);
+
+				// Update animation every frame
+				yield return null;
+			}
+			_userText.text = string.Empty;
 		}
 	}
 }
