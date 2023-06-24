@@ -389,11 +389,12 @@ namespace YARG.Song {
 				return ScanResult.NotASong;
 			}
 
-			try {
-				if (!file.IsMoggUnencrypted())
-					return ScanResult.EncryptedMogg;
-			} catch {
+			if (string.IsNullOrEmpty(file.MoggPath)) {
 				return ScanResult.NoAudioFile;
+			}
+
+			if (!file.IsMoggUnencrypted()) {
+				return ScanResult.EncryptedMogg;
 			}
 
 			// all good - go ahead and build the cache info

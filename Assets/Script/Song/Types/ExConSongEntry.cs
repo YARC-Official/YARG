@@ -193,15 +193,24 @@ namespace YARG.Song {
 			string dir = Path.Combine(folder, Location);
 			NotesFile = Path.Combine(dir, $"{Location}.mid");
 
-			MoggPath = Path.Combine(dir, $"{Location}.mogg");
+			// Load a .mogg or .yarg_mogg
+			var yargModePath = Path.Combine(dir, $"{Location}.yarg_mogg");
+			var moggPath = Path.Combine(dir, $"{Location}.mogg");
+			if (File.Exists(yargModePath)) {
+				MoggPath = yargModePath;
+			} else if (File.Exists(moggPath)) {
+				MoggPath = moggPath;
+			}
 
 			string miloPath = Path.Combine(dir, "gen", $"{Location}.milo_xbox");
-			if(File.Exists(miloPath))
+			if (File.Exists(miloPath)) {
 				MiloPath = miloPath;
+			}
 
 			string imgPath = Path.Combine(dir, "gen", $"{Location}_keep.png_xbox");
-			if (File.Exists(imgPath))
+			if (File.Exists(imgPath)) {
 				ImagePath = imgPath;
+			}
 
 			Location = dir;
 		}
@@ -390,7 +399,7 @@ namespace YARG.Song {
 			}
 		}
 
-		virtual public void Update(string folder) {
+		public virtual void Update(string folder) {
 			string dir = Path.Combine(folder, ShortName);
 			if (DiscUpdate) {
 				string updateMidiPath = Path.Combine(dir, $"{ShortName}_update.mid");
@@ -428,6 +437,18 @@ namespace YARG.Song {
 		}
 
 		public virtual byte[] LoadMoggFile() {
+			if (MoggPath.EndsWith(".yarg_mogg")) {
+				var stream = new YargMoggReadStream(MoggPath);
+
+				byte[] bytes = new byte[stream.Length];
+
+				// This should be fine because we are doing `stream.Length`
+				// ReSharper disable once MustUseReturnValue
+				stream.Read(bytes, 0, bytes.Length);
+
+				return bytes;
+			}
+
 			return File.ReadAllBytes(MoggPath);
 		}
 
@@ -444,8 +465,14 @@ namespace YARG.Song {
 		}
 
 		public virtual bool IsMoggUnencrypted() {
-			var fs = new FileStream(MoggPath, FileMode.Open, FileAccess.Read);
-			return fs.ReadInt32LE() == 0xA;
+			if (MoggPath.EndsWith(".yarg_mogg")) {
+				var fs = new YargMoggReadStream(MoggPath);
+				int readInt32Le = fs.ReadInt32LE();
+				return readInt32Le == 0xF0;
+			} else {
+				var fs = new FileStream(MoggPath, FileMode.Open, FileAccess.Read);
+				return fs.ReadInt32LE() == 0x0A;
+			}
 		}
 
 		public byte[] LoadMidiUpdateFile() {
