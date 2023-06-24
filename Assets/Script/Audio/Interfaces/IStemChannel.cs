@@ -21,6 +21,8 @@ namespace YARG.Audio {
 
 		public void SetReverb(bool reverb);
 
+		public void SetWhammyPitch(float percent);
+
 		public double GetPosition();
 		public void SetPosition(double position);
 
