@@ -21,6 +21,30 @@ namespace YARG.Audio.BASS {
 
 		public bool IsMixed { get; set; } = false;
 
+		private int _channelEndHandle;
+		private event Action _channelEnd;
+		public event Action ChannelEnd {
+			add {
+				if (_channelEndHandle == 0) {
+					SyncProcedure sync = (_, _, _, _) => {
+						// Prevent potential race conditions by caching the value as a local
+						var end = _channelEnd;
+						if (end != null) {
+							UnityMainThreadCallback.QueueEvent(end.Invoke);
+						}
+					};
+					_channelEndHandle = IsMixed
+						? BassMix.ChannelSetSync(StreamHandle, SyncFlags.End, 0, sync)
+						: Bass.ChannelSetSync(StreamHandle, SyncFlags.End, 0, sync);
+				}
+
+				_channelEnd += value;
+			}
+			remove {
+				_channelEnd -= value;
+			}
+		}
+
 		private readonly string _path;
 		private readonly IAudioManager _manager;
 
@@ -72,7 +96,13 @@ namespace YARG.Audio.BASS {
 					// Channel was not set up correctly for some reason
 					return -1;
 				}
-				_sourceHandle = Bass.CreateStream(_path, 0, 0, BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile);
+
+				// Last flag is new BASS_SAMPLE_NOREORDER flag, which is not in the BassFlags enum,
+				// as it was made as part of an update to fix <= 8 channel oggs.
+				// https://www.un4seen.com/forum/?topic=20148.msg140872#msg140872
+				const BassFlags flags = BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile | (BassFlags)64;
+
+				_sourceHandle = Bass.CreateStream(_path, 0, 0, flags);
 				if (_sourceHandle == 0) {
 					return (int) Bass.LastError;
 				}
@@ -81,10 +111,10 @@ namespace YARG.Audio.BASS {
 			int main = BassMix.CreateSplitStream(_sourceHandle, BassFlags.Decode | BassFlags.SplitPosition, null);
 			int reverbSplit = BassMix.CreateSplitStream(_sourceHandle, BassFlags.Decode | BassFlags.SplitPosition, null);
 
-			const BassFlags flags = BassFlags.SampleOverrideLowestVolume | BassFlags.Decode | BassFlags.FxFreeSource;
+			const BassFlags tempoFlags = BassFlags.SampleOverrideLowestVolume | BassFlags.Decode | BassFlags.FxFreeSource;
 
-			StreamHandle = BassFx.TempoCreate(main, flags);
-			ReverbStreamHandle = BassFx.TempoCreate(reverbSplit, flags);
+			StreamHandle = BassFx.TempoCreate(main, tempoFlags);
+			ReverbStreamHandle = BassFx.TempoCreate(reverbSplit, tempoFlags);
 
 			// Apply a compressor to balance stem volume
 			Bass.ChannelSetFX(StreamHandle, EffectType.Compressor, 1);

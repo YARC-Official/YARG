@@ -1,3 +1,6 @@
+using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -35,6 +38,7 @@ namespace YARG.UI.MusicLibrary {
 		private Image _icon;
 
 		private int _relativeSongIndex;
+		private CancellationTokenSource _cancellationTokenSource;
 
 		public void Init(int relativeSongIndex) {
 			_relativeSongIndex = relativeSongIndex;
@@ -44,14 +48,14 @@ namespace YARG.UI.MusicLibrary {
 			int realIndex = SongSelection.Instance.SelectedIndex + _relativeSongIndex;
 			bool selected = _relativeSongIndex == 0;
 
-			if (realIndex < 0 || realIndex >= SongSelection.Instance.Songs.Count) {
+			if (realIndex < 0 || realIndex >= SongSelection.Instance.ViewList.Count) {
 				_canvasGroup.alpha = 0f;
 				return;
-			} else {
-				_canvasGroup.alpha = 1f;
 			}
 
-			var viewType = SongSelection.Instance.Songs[realIndex];
+			_canvasGroup.alpha = 1f;
+
+			var viewType = SongSelection.Instance.ViewList[realIndex];
 
 			_sideText.text = viewType.SideText;
 
@@ -75,19 +79,34 @@ namespace YARG.UI.MusicLibrary {
 			}
 
 			// Set icon
-			var iconSprite = viewType.IconSprite;
-			if (iconSprite == null) {
-				_icon.gameObject.SetActive(false);
-			} else {
-				_icon.gameObject.SetActive(true);
-				_icon.sprite = iconSprite;
+			if (_cancellationTokenSource is { IsCancellationRequested: false }) {
+				_cancellationTokenSource.Cancel();
 			}
+			_cancellationTokenSource = new CancellationTokenSource();
+			SetIcon(viewType, _cancellationTokenSource.Token).Forget();
 
 			// Set secondary text type
 			_secondaryTextContiner.SetActive(!viewType.UseAsMadeFamousBy);
 			_asMadeFamousByTextContainer.SetActive(viewType.UseAsMadeFamousBy);
 
 			SetBackground(viewType.Background, selected);
+		}
+
+		private async UniTask SetIcon(ViewType type, CancellationToken token) {
+			_icon.gameObject.SetActive(false);
+
+			try {
+				var icon = await type.GetIcon();
+
+				token.ThrowIfCancellationRequested();
+
+				if (icon == null) {
+					_icon.gameObject.SetActive(false);
+				} else {
+					_icon.gameObject.SetActive(true);
+					_icon.sprite = icon;
+				}
+			} catch (OperationCanceledException) { }
 		}
 
 		private void SetBackground(ViewType.BackgroundType type, bool selected) {
@@ -116,14 +135,14 @@ namespace YARG.UI.MusicLibrary {
 
 		public void SecondaryTextClick() {
 			int realIndex = SongSelection.Instance.SelectedIndex + _relativeSongIndex;
-			var viewType = SongSelection.Instance.Songs[realIndex];
+			var viewType = SongSelection.Instance.ViewList[realIndex];
 
 			viewType.SecondaryTextClick();
 		}
 
 		public void IconClick() {
 			int realIndex = SongSelection.Instance.SelectedIndex + _relativeSongIndex;
-			var viewType = SongSelection.Instance.Songs[realIndex];
+			var viewType = SongSelection.Instance.ViewList[realIndex];
 
 			viewType.IconClick();
 		}

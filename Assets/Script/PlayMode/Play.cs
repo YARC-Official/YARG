@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -55,9 +54,9 @@ namespace YARG.PlayMode {
 
 		private int stemsReverbed;
 
-		private bool audioStarted;
+		private bool audioRunning;
 		private float realSongTime;
-		public float SongTime => realSongTime - PlayerManager.AudioCalibration * speed - (float)Song.Delay;
+		public float SongTime => realSongTime - PlayerManager.AudioCalibration * speed - (float) Song.Delay;
 
 		private float audioLength;
 		public float SongLength { get; private set; }
@@ -73,8 +72,6 @@ namespace YARG.PlayMode {
 		private GameObject scoreDisplay;
 
 		private int beatIndex = 0;
-		private int lyricIndex = 0;
-		private int lyricPhraseIndex = 0;
 
 		// tempo (updated throughout play)
 		public float CurrentBeatsPerSecond { get; private set; } = 0f;
@@ -82,7 +79,7 @@ namespace YARG.PlayMode {
 
 		private List<AbstractTrack> _tracks;
 
-		private bool endReached = false;
+		public bool endReached { get; private set; } = false;
 
 		private bool _paused = false;
 		public bool Paused {
@@ -117,7 +114,7 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		private SongEntry Song => GameManager.Instance.SelectedSong;
+		public SongEntry Song => GameManager.Instance.SelectedSong;
 
 		private bool playingRhythm = false;
 		private bool playingVocals = false;
@@ -206,7 +203,7 @@ namespace YARG.PlayMode {
 				}
 
 				// Temporary, same here
-				if (player.chosenInstrument == "vocals" || player.chosenInstrument == "harmVocals") {
+				if (player.chosenInstrument is "vocals" or "harmVocals") {
 					playingVocals = true;
 				}
 
@@ -255,6 +252,21 @@ namespace YARG.PlayMode {
 					// Breaks things for other platforms, because Unity
 					var bg = bundle.LoadAsset<GameObject>(BundleBackgroundManager.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
 
+					// Fix for non-Windows machines
+					// Probably there's a better way to do this.
+#if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+					Renderer[] renderers = bg.GetComponentsInChildren<Renderer>();
+
+					foreach (Renderer renderer in renderers) {
+						Material[] materials = renderer.sharedMaterials;
+
+						for (int i = 0; i < materials.Length; i++) {
+							Material material = materials[i];
+							material.shader = Shader.Find(material.shader.name);
+						}
+					}
+#endif
+
 					var bgInstance = Instantiate(bg);
 
 					bgInstance.GetComponent<BundleBackgroundManager>().Bundle = bundle;
@@ -300,22 +312,37 @@ namespace YARG.PlayMode {
 
 		private IEnumerator StartAudio() {
 			while (realSongTime < 0f) {
-				realSongTime += Time.deltaTime * speed;
+				// Wait until the song time is 0
 				yield return null;
 			}
 
+			float? startVideoIn = null;
 			if (GameUI.Instance.videoPlayer.enabled) {
 				// Set the chart start offset here (if ini)
 				if (Song is IniSongEntry ini) {
-					GameUI.Instance.videoPlayer.time = ini.VideoStartOffset / 1000.0;
+					if (ini.VideoStartOffset < 0) {
+						startVideoIn = Mathf.Abs(ini.VideoStartOffset / 1000f);
+					} else {
+						GameUI.Instance.videoPlayer.time = ini.VideoStartOffset / 1000.0;
+					}
 				}
 
-				// Play the video
-				GameUI.Instance.videoPlayer.Play();
+				// Play the video if a start time wasn't defined
+				if (startVideoIn == null) {
+					GameUI.Instance.videoPlayer.Play();
+				}
 			}
 
 			GameManager.AudioManager.Play();
-			audioStarted = true;
+
+			GameManager.AudioManager.SongEnd += OnEndReached;
+			audioRunning = true;
+
+			if (startVideoIn != null) {
+				// Wait, then start on time
+				yield return new WaitForSeconds(startVideoIn.Value);
+				GameUI.Instance.videoPlayer.Play();
+			}
 		}
 
 		private void Update() {
@@ -333,14 +360,12 @@ namespace YARG.PlayMode {
 			}
 
 			// Update this every frame to make sure all notes are spawned at the same time.
-			if (audioStarted) {
-				float audioTime = GameManager.AudioManager.CurrentPositionF;
+			float audioTime = GameManager.AudioManager.CurrentPositionF;
+			if (audioRunning && audioTime < audioLength) {
+				realSongTime = audioTime;
+			} else {
 				// We need to update the song time ourselves if the audio finishes before the song actually ends
-				if (audioTime < audioLength) {
-					realSongTime = GameManager.AudioManager.CurrentPositionF;
-				} else {
-					realSongTime += Time.deltaTime * speed;
-				}
+				realSongTime += Time.deltaTime * speed;
 			}
 
 			UpdateAudio(new[] {
@@ -413,11 +438,6 @@ namespace YARG.PlayMode {
 				}
 			}
 
-			// Update lyrics
-			if (!playingVocals) {
-				UpdateGenericLyrics();
-			}
-
 			// End song
 			if (!endReached && realSongTime >= SongLength) {
 				endReached = true;
@@ -425,37 +445,9 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		private void UpdateGenericLyrics() {
-			if (lyricIndex < chart.genericLyrics.Count) {
-				var lyric = chart.genericLyrics[lyricIndex];
-
-				if (lyricPhraseIndex >= lyric.lyric.Count && lyric.EndTime < SongTime) {
-					// Clear phrase
-					GameUI.Instance.SetGenericLyric(string.Empty);
-
-					lyricPhraseIndex = 0;
-					lyricIndex++;
-				} else if (lyricPhraseIndex < lyric.lyric.Count && lyric.lyric[lyricPhraseIndex].time < SongTime) {
-					// Consolidate lyrics
-					string o = "<color=#ffb700>";
-					for (int i = 0; i < lyric.lyric.Count; i++) {
-						var (_, str) = lyric.lyric[i];
-
-						if (str.EndsWith("-")) {
-							o += str[..^1].Replace("=", "-");
-						} else {
-							o += str.Replace("=", "-") + " ";
-						}
-
-						if (i + 1 > lyricPhraseIndex) {
-							o += "</color>";
-						}
-					}
-
-					GameUI.Instance.SetGenericLyric(o);
-					lyricPhraseIndex++;
-				}
-			}
+		private void OnEndReached() {
+			audioLength = GameManager.AudioManager.CurrentPositionF;
+			audioRunning = false;
 		}
 
 		private void UpdateAudio(string[] trackNames, string[] stemNames) {
@@ -512,6 +504,7 @@ namespace YARG.PlayMode {
 
 		public IEnumerator EndSong(bool showResultScreen) {
 			// Dispose of all audio
+			GameManager.AudioManager.SongEnd -= OnEndReached;
 			GameManager.AudioManager.UnloadSong();
 
 			// Call events
@@ -565,7 +558,10 @@ namespace YARG.PlayMode {
 		}
 
 		public void Exit(bool toSongSelect = true) {
-			StartCoroutine(EndSong(false));
+			if (!endReached) {
+				endReached = true;
+				StartCoroutine(EndSong(false));
+			}
 			MainMenu.showSongSelect = toSongSelect;
 			GameManager.Instance.LoadScene(SceneIndex.MENU);
 		}

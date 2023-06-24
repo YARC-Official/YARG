@@ -14,14 +14,6 @@ namespace YARG.UI {
 		[SerializeField]
 		private Transform trackContainer;
 		[SerializeField]
-		private Image songProgress;
-		[SerializeField]
-		private TextMeshProUGUI songTitle;
-		[SerializeField]
-		private TextMeshProUGUI bandName;
-		[SerializeField]
-		private TextMeshProUGUI lyric;
-		[SerializeField]
 		private RawImage vocalTrack;
 		[SerializeField]
 		private TextMeshProUGUI loadingText;
@@ -30,28 +22,13 @@ namespace YARG.UI {
 		public GameObject pauseMenu;
 		public RawImage background;
 		public VideoPlayer videoPlayer;
-		public Material trackMaterial;
 		public static GameUI Instance {
 			get;
 			private set;
-		} = null;
+		}
 
 		private void Awake() {
 			Instance = this;
-		}
-
-		private void Start() {
-			if (Play.speed == 1f) {
-				songTitle.text = $"{GameManager.Instance.SelectedSong.Name}";
-				bandName.text = $"{GameManager.Instance.SelectedSong.Artist}";
-			} else {
-				songTitle.text = $"{GameManager.Instance.SelectedSong.Name} ({Play.speed * 100}%)";
-				bandName.text = $"{GameManager.Instance.SelectedSong.Artist}";
-			}
-		}
-
-		private void Update() {
-			songProgress.fillAmount = Play.Instance.SongTime / Play.Instance.SongLength;
 		}
 
 		public void AddTrackImage(RenderTexture rt, CommonTrack commonTrack) {
@@ -75,10 +52,6 @@ namespace YARG.UI {
 
 		public void RemoveVocalTrackImage() {
 			Destroy(vocalTrack.gameObject);
-		}
-
-		public void SetGenericLyric(string str) {
-			lyric.text = str;
 		}
 
 		private void UpdateAllSizing() {

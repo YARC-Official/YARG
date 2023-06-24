@@ -33,7 +33,7 @@ Transform:
   - {fileID: 6962578940164096103}
   - {fileID: 6208878199056653654}
   m_Father: {fileID: 2999289846860309450}
-  m_RootOrder: 18
+  m_RootOrder: 16
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2000483846830673011
 PrefabInstance:
@@ -42,41 +42,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 9009791116786606237}
     m_Modifications:
-    - target: {fileID: 92557977566226713, guid: 397b1ea7bf093d24ab47c16be25edc6d,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: -89.98
-      objectReference: {fileID: 0}
-    - target: {fileID: 92557977566226713, guid: 397b1ea7bf093d24ab47c16be25edc6d,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 92557977566226713, guid: 397b1ea7bf093d24ab47c16be25edc6d,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 229151077694486635, guid: 397b1ea7bf093d24ab47c16be25edc6d,
         type: 3}
-      propertyPath: fadeOut
+      propertyPath: _fadeOut
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 2171860084974843366, guid: 397b1ea7bf093d24ab47c16be25edc6d,
-        type: 3}
-      propertyPath: m_Animations.Array.size
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 2171860084974843366, guid: 397b1ea7bf093d24ab47c16be25edc6d,
-        type: 3}
-      propertyPath: m_Animations.Array.data[2]
-      value: 
-      objectReference: {fileID: 7400000, guid: 695ad0fddcbe91845b304d578dd3e771, type: 2}
-    - target: {fileID: 2171860084974843366, guid: 397b1ea7bf093d24ab47c16be25edc6d,
-        type: 3}
-      propertyPath: m_Animations.Array.data[3]
-      value: 
-      objectReference: {fileID: 7400000, guid: 2fb635cbdadd34e4abf520e9b2292ff9, type: 2}
     - target: {fileID: 3269232338164336536, guid: 397b1ea7bf093d24ab47c16be25edc6d,
         type: 3}
       propertyPath: m_RootOrder
@@ -141,11 +111,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Fret0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8898876613081581807, guid: 397b1ea7bf093d24ab47c16be25edc6d,
-        type: 3}
-      propertyPath: m_CullingMask.m_Bits
-      value: 343
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 397b1ea7bf093d24ab47c16be25edc6d, type: 3}
@@ -378,7 +343,7 @@ PrefabInstance:
     - target: {fileID: 3428214408121423510, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: m_RootOrder
-      value: 13
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 3428214408121423510, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
@@ -399,16 +364,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalPosition.z
       value: 1.296
-      objectReference: {fileID: 0}
-    - target: {fileID: 4405145901572709445, guid: ba68df35237e09f4abcf788160c15375,
-        type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0.007
-      objectReference: {fileID: 0}
-    - target: {fileID: 4405145901572709445, guid: ba68df35237e09f4abcf788160c15375,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -2.179
       objectReference: {fileID: 0}
     - target: {fileID: 4431318561618230466, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
@@ -509,12 +464,17 @@ PrefabInstance:
     - target: {fileID: 6259667599787939869, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: m_RootOrder
-      value: 16
+      value: 13
       objectReference: {fileID: 0}
     - target: {fileID: 6259667599787939869, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: m_LocalPosition.z
       value: -3.8140001
+      objectReference: {fileID: 0}
+    - target: {fileID: 6314393092021672358, guid: ba68df35237e09f4abcf788160c15375,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 14
       objectReference: {fileID: 0}
     - target: {fileID: 6916089516438199787, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
@@ -559,7 +519,7 @@ PrefabInstance:
     - target: {fileID: 7417495158134921613, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: m_RootOrder
-      value: 17
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 7809402107982387610, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
@@ -584,7 +544,7 @@ PrefabInstance:
     - target: {fileID: 8827236743751183564, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: m_RootOrder
-      value: 15
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 8827236743751183564, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
@@ -642,6 +602,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5bbf1353505d7d74bb2e3b17c09a3e46, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  genericPool: {fileID: 6222960093224628221}
   recentlyBelowMaxMultiplier: 1
   fiveLaneMode: 0
   drums:
@@ -650,7 +611,6 @@ MonoBehaviour:
   - {fileID: 5679235278124433300}
   - {fileID: 8672493750730203813}
   notePool: {fileID: 9121291244003754727}
-  genericPool: {fileID: 6222960093224628221}
   kickNoteParticles: {fileID: 8279289512315810390}
   kickFretInside: {fileID: 7646940955347713414}
   kickFretAnimation: {fileID: 7820602527186232055}
@@ -688,24 +648,9 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 229151077694486635, guid: 397b1ea7bf093d24ab47c16be25edc6d,
         type: 3}
-      propertyPath: fadeOut
+      propertyPath: _fadeOut
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 2171860084974843366, guid: 397b1ea7bf093d24ab47c16be25edc6d,
-        type: 3}
-      propertyPath: m_Animations.Array.size
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 2171860084974843366, guid: 397b1ea7bf093d24ab47c16be25edc6d,
-        type: 3}
-      propertyPath: m_Animations.Array.data[2]
-      value: 
-      objectReference: {fileID: 7400000, guid: 695ad0fddcbe91845b304d578dd3e771, type: 2}
-    - target: {fileID: 2171860084974843366, guid: 397b1ea7bf093d24ab47c16be25edc6d,
-        type: 3}
-      propertyPath: m_Animations.Array.data[3]
-      value: 
-      objectReference: {fileID: 7400000, guid: 2fb635cbdadd34e4abf520e9b2292ff9, type: 2}
     - target: {fileID: 3269232338164336536, guid: 397b1ea7bf093d24ab47c16be25edc6d,
         type: 3}
       propertyPath: m_RootOrder
@@ -771,11 +716,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Fret1
       objectReference: {fileID: 0}
-    - target: {fileID: 8898876613081581807, guid: 397b1ea7bf093d24ab47c16be25edc6d,
-        type: 3}
-      propertyPath: m_CullingMask.m_Bits
-      value: 599
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 397b1ea7bf093d24ab47c16be25edc6d, type: 3}
 --- !u!4 &16880283838031973 stripped
@@ -805,7 +745,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 229151077694486635, guid: 397b1ea7bf093d24ab47c16be25edc6d,
         type: 3}
-      propertyPath: fadeOut
+      propertyPath: _fadeOut
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3269232338164336536, guid: 397b1ea7bf093d24ab47c16be25edc6d,
@@ -872,11 +812,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Fret2
-      objectReference: {fileID: 0}
-    - target: {fileID: 8898876613081581807, guid: 397b1ea7bf093d24ab47c16be25edc6d,
-        type: 3}
-      propertyPath: m_CullingMask.m_Bits
-      value: 1111
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 397b1ea7bf093d24ab47c16be25edc6d, type: 3}
@@ -1343,7 +1278,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 229151077694486635, guid: 397b1ea7bf093d24ab47c16be25edc6d,
         type: 3}
-      propertyPath: fadeOut
+      propertyPath: _fadeOut
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3269232338164336536, guid: 397b1ea7bf093d24ab47c16be25edc6d,
@@ -1410,11 +1345,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Fret3
-      objectReference: {fileID: 0}
-    - target: {fileID: 8898876613081581807, guid: 397b1ea7bf093d24ab47c16be25edc6d,
-        type: 3}
-      propertyPath: m_CullingMask.m_Bits
-      value: 2135
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 397b1ea7bf093d24ab47c16be25edc6d, type: 3}

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using UnityEngine;
 using DtxCS.DataTypes;
@@ -15,6 +14,8 @@ using DtxCS;
 
 namespace YARG.Song {
 	public class SongScanThread {
+		private static readonly string SongsFilePath = Path.Combine("songs", "songs.dta");
+		private static readonly string SongUpgradesFilePath =  Path.Combine("song_upgrades", "upgrades.dta");
 
 		private Thread _thread;
 
@@ -33,38 +34,36 @@ namespace YARG.Song {
 		private List<XboxSTFSFile> _conFiles;
 		private List<(SongProUpgrade, DataArray)> _songUpgradeDict = new();
 
-		private readonly Dictionary<string, List<SongEntry>> _songsByCacheFolder;
+		private readonly Dictionary<CacheFolder, List<SongEntry>> _songsByCacheFolder;
+
+		private readonly List<CacheFolder>                     _cacheErrors;
 		private readonly Dictionary<string, List<SongError>> _songErrors;
-		private readonly Dictionary<string, SongCache>       _songCaches;
-		private readonly List<string>                        _cacheErrors;
 
 		public IReadOnlyList<SongEntry> Songs => _songsByCacheFolder.Values.SelectMany(x => x).ToList();
 		public IReadOnlyDictionary<string, List<SongError>> SongErrors => _songErrors;
-		public IReadOnlyList<string> CacheErrors => _cacheErrors;
+		public IReadOnlyList<CacheFolder> CacheErrors => _cacheErrors;
 
 		public SongScanThread(bool fast) {
-			_songsByCacheFolder = new Dictionary<string, List<SongEntry>>();
+			_songsByCacheFolder = new Dictionary<CacheFolder, List<SongEntry>>();
 			_songErrors = new Dictionary<string, List<SongError>>();
-			_songCaches = new Dictionary<string, SongCache>();
-			_cacheErrors = new List<string>();
+			_cacheErrors = new List<CacheFolder>();
 			_conFiles = new List<XboxSTFSFile>();
 
 			_thread = fast ? new Thread(FastScan) : new Thread(FullScan);
 		}
 
-		public void AddFolder(string folder) {
+		public void AddFolder(CacheFolder cacheFolder) {
 			if (IsScanning()) {
 				throw new Exception("Cannot add folder while scanning");
 			}
 
-			if (_songsByCacheFolder.ContainsKey(folder)) {
+			if (_songsByCacheFolder.ContainsKey(cacheFolder)) {
 				Debug.LogWarning("Two song folders with same directory!");
 				return;
 			}
 
-			_songsByCacheFolder.Add(folder, new List<SongEntry>());
-			_songErrors.Add(folder, new List<SongError>());
-			_songCaches.Add(folder, new SongCache(folder));
+			_songsByCacheFolder.Add(cacheFolder, new List<SongEntry>());
+			_songErrors.Add(cacheFolder.Folder, new List<SongError>());
 		}
 
 		public bool IsScanning() {
@@ -97,21 +96,21 @@ namespace YARG.Song {
 
 		private void FullScan() {
 			Debug.Log("Performing full scan");
-			foreach (string cache in _songsByCacheFolder.Keys) {
+			foreach (var cache in _songsByCacheFolder.Keys) {
 				// Folder doesn't exist, so report as an error and skip
-				if (!Directory.Exists(cache)) {
-					_songErrors[cache].Add(new SongError(cache, ScanResult.InvalidDirectory, ""));
+				if (!Directory.Exists(cache.Folder)) {
+					_songErrors[cache.Folder].Add(new SongError(cache.Folder, ScanResult.InvalidDirectory, ""));
 
 					Debug.LogError($"Invalid song directory: {cache}");
 					continue;
 				}
 
 				Debug.Log($"Scanning folder: {cache}");
-				ScanSubDirectory(cache, cache, _songsByCacheFolder[cache]);
+				ScanSubDirectory(cache.Folder, cache.Folder, _songsByCacheFolder[cache]);
 
 				Debug.Log($"Finished scanning {cache}, writing cache");
 
-				_songCaches[cache].WriteCache(_songsByCacheFolder[cache], _conFiles);
+				cache.WriteCache(_songsByCacheFolder[cache], _conFiles);
 				Debug.Log("Wrote cache");
 			}
 		}
@@ -120,25 +119,25 @@ namespace YARG.Song {
 			Debug.Log("Performing fast scan");
 
 			// This is stupid
-			var caches = new Dictionary<string, List<SongEntry>>();
-			foreach (string folder in _songsByCacheFolder.Keys) {
+			var caches = new Dictionary<CacheFolder, List<SongEntry>>();
+			foreach (var cache in _songsByCacheFolder.Keys) {
 				try {
-					Debug.Log($"Reading cache of {folder}");
-					var cacheScan = _songCaches[folder].ReadCache();
-					caches.Add(folder, cacheScan.Item1);
+					Debug.Log($"Reading cache of {cache}");
+					var cacheScan = cache.ReadCache();
+					caches.Add(cache, cacheScan.Item1);
 					_conFiles.AddRange(cacheScan.Item2);
-					Debug.Log($"Read cache of {folder}");
+					Debug.Log($"Read cache of {cache}");
 				} catch (Exception e) {
-					_cacheErrors.Add(folder);
+					_cacheErrors.Add(cache);
 
 					Debug.LogException(e);
-					Debug.LogError($"Failed to read cache of {folder}");
+					Debug.LogError($"Failed to read cache of {cache}");
 				}
 			}
 
-			foreach (var cache in caches) {
-				_songsByCacheFolder[cache.Key] = cache.Value;
-				Debug.Log($"Songs read from {cache.Key}: {cache.Value.Count}");
+			foreach (var (cache, songs) in caches) {
+				_songsByCacheFolder[cache] = songs;
+				Debug.Log($"Songs read from {cache}: {songs.Count}");
 			}
 		}
 
@@ -186,14 +185,13 @@ namespace YARG.Song {
 			}
 
 			// Raw CON folder, so don't scan anymore subdirectories here
-			string songs_folder = Path.Combine(subDir, "songs");
-			DataArray dtaTree = BrowseFolderForExCon(songs_folder, Path.Combine(subDir, "songs_upgrades"));
-			if (dtaTree != null)
-			{
+			string songsFolder = Path.Combine(subDir, "songs");
+			var dtaTree = BrowseFolderForExCon(songsFolder, Path.Combine(subDir, "songs_upgrades"));
+			if (dtaTree != null) {
 				for (int i = 0; i < dtaTree.Count; i++) {
 					try {
 						var currentArray = (DataArray) dtaTree[i];
-						ExtractedConSongEntry currentSong = new(songs_folder, currentArray);
+						ExtractedConSongEntry currentSong = new(songsFolder, currentArray);
 						var updateValue = UpdateAndUpgradeCon(currentSong);
 						if (ValidateConEntry(cacheFolder, subDir, currentSong, currentArray, updateValue))
 							songs.Add(currentSong);
@@ -247,14 +245,15 @@ namespace YARG.Song {
 			}
 		}
 
-		private DataArray BrowseFolderForExCon(string songs_folder, string songs_upgrades_folder) {
-			string dtaPath = Path.Combine(songs_upgrades_folder, "upgrades.dta");
+		private DataArray BrowseFolderForExCon(string songsFolder, string songsUpgradesFolder) {
+			string dtaPath = Path.Combine(songsUpgradesFolder, "upgrades.dta");
 			if (File.Exists(dtaPath)) {
-				DataArray dtaTree = DTX.FromPlainTextBytes(File.ReadAllBytes(dtaPath));
+				var dtaTree = DTX.FromPlainTextBytes(File.ReadAllBytes(dtaPath));
 
 				for (int i = 0; i < dtaTree.Count; i++) {
 					try {
-						_songUpgradeDict.Add(new(new SongProUpgrade(songs_upgrades_folder, dtaTree[i].Name), (DataArray) dtaTree[i]));
+						_songUpgradeDict.Add(new(new SongProUpgrade(songsUpgradesFolder, dtaTree[i].Name),
+							(DataArray) dtaTree[i]));
 					} catch (Exception e) {
 						Debug.Log($"Failed to get upgrade, skipping...");
 						Debug.LogException(e);
@@ -262,25 +261,23 @@ namespace YARG.Song {
 				}
 			}
 
-			dtaPath = Path.Combine(songs_folder, "songs.dta");
+			dtaPath = Path.Combine(songsFolder, "songs.dta");
 			if (File.Exists(dtaPath)) {
 				try {
 					return DTX.FromPlainTextBytes(File.ReadAllBytes(dtaPath));
 				} catch (Exception e) {
-					Debug.LogError($"Failed to parse songs.dta for `{songs_folder}`.");
+					Debug.LogError($"Failed to parse songs.dta for `{songsFolder}`.");
 					Debug.LogException(e);
 				}
 			}
+
 			return null;
 		}
-
-		internal static readonly string SongsFilePath = Path.Combine("songs", "songs.dta");
-		internal static readonly string SongUpgradesFilePath =  Path.Combine("song_upgrades","upgrades.dta");
 
 		private DataArray BrowseCON(XboxSTFSFile conFile) {
 			byte[] dtaFile = conFile.LoadSubFile(SongUpgradesFilePath);
 			if (dtaFile.Length > 0) {
-				DataArray dtaTree = DTX.FromPlainTextBytes(dtaFile);
+				var dtaTree = DTX.FromPlainTextBytes(dtaFile);
 
 				// Read each shortname the dta file lists
 				for (int i = 0; i < dtaTree.Count; i++) {
@@ -317,18 +314,18 @@ namespace YARG.Song {
 		}
 
 		private bool ValidateConEntry(string cacheFolder, string subDir, ExtractedConSongEntry currentSong, DataArray currentArray, List<DataArray> updateValue) {
-			var ExCONResult = ScanConSong(cacheFolder, currentSong);
-			if (ExCONResult == ScanResult.Ok) {
+			var exConResult = ScanConSong(cacheFolder, currentSong);
+			if (exConResult == ScanResult.Ok) {
 				_songsScanned++;
 				songsScanned = _songsScanned;
 				MoggBASSInfoGenerator.Generate(currentSong, currentArray.Array("song"), updateValue);
 				return true;
 			}
 
-			if (ExCONResult != ScanResult.NotASong) {
+			if (exConResult != ScanResult.NotASong) {
 				_errorsEncountered++;
 				errorsEncountered = _errorsEncountered;
-				_songErrors[cacheFolder].Add(new SongError(subDir, ExCONResult, currentSong.Name));
+				_songErrors[cacheFolder].Add(new SongError(subDir, exConResult, currentSong.Name));
 				Debug.LogWarning($"Error encountered with {subDir}");
 			}
 			return false;
@@ -400,40 +397,39 @@ namespace YARG.Song {
 			}
 
 			// all good - go ahead and build the cache info
-			List<byte> bytes = new List<byte>();
-			ulong tracks;
+			var bytes = new List<byte>();
 
 			// add base midi
 			byte[] notes = file.LoadMidiFile();
 			bytes.AddRange(notes);
-			if (!MidPreparser.GetAvailableTracks(notes, out ulong base_tracks)) {
+			if (!MidPreparser.GetAvailableTracks(notes, out ulong baseTracks)) {
 				return ScanResult.CorruptedNotesFile;
 			}
-			tracks = base_tracks;
+
 			// add update midi, if it exists
+			ulong tracks = baseTracks;
 			if (file.DiscUpdate) {
 				byte[] update = file.LoadMidiUpdateFile();
 				bytes.AddRange(update);
-				if (!MidPreparser.GetAvailableTracks(update, out ulong update_tracks)) {
+				if (!MidPreparser.GetAvailableTracks(update, out ulong updateTracks)) {
 					return ScanResult.CorruptedNotesFile;
 				}
-				tracks |= update_tracks;
+				tracks |= updateTracks;
 			}
+
 			// add upgrade midi, if it exists
 			if (file.SongUpgrade != null) {
-				byte[] upgrade_midi = file.SongUpgrade.GetUpgradeMidi();
-				bytes.AddRange(upgrade_midi);
-				if(!MidPreparser.GetAvailableTracks(upgrade_midi, out ulong upgrade_tracks)){
+				byte[] upgradeMidi = file.SongUpgrade.GetUpgradeMidi();
+				bytes.AddRange(upgradeMidi);
+				if(!MidPreparser.GetAvailableTracks(upgradeMidi, out ulong upgradeTracks)){
 					return ScanResult.CorruptedNotesFile;
 				}
-				tracks |= upgrade_tracks;
+				tracks |= upgradeTracks;
 			}
 
 			string checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes.ToArray())).Replace("-", "");
 			file.FinishScan(cache, checksum, tracks);
 			return ScanResult.Ok;
 		}
-
-		
 	}
 }

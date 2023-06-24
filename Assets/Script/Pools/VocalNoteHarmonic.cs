@@ -10,7 +10,7 @@ namespace YARG.Pools {
 		private float lengthCache;
 
 		public void SetInfo(List<(float, (float note, int octave))> pitchOverTime, float length) {
-			float timeMul = MicPlayer.TRACK_SPEED / Play.speed;
+			float timeMul = MicPlayer.trackSpeed / Play.speed;
 
 			// Get length
 			length *= timeMul;
@@ -47,7 +47,7 @@ namespace YARG.Pools {
 		}
 
 		private void Update() {
-			transform.localPosition -= new Vector3(Time.deltaTime * MicPlayer.TRACK_SPEED, 0f, 0f);
+			transform.localPosition -= new Vector3(Time.deltaTime * MicPlayer.trackSpeed, 0f, 0f);
 
 			if (transform.localPosition.x < -12f - lengthCache) {
 				MoveToPool();

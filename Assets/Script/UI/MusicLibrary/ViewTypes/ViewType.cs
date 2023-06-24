@@ -1,3 +1,5 @@
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace YARG.UI.MusicLibrary.ViewTypes {
@@ -15,7 +17,9 @@ namespace YARG.UI.MusicLibrary.ViewTypes {
 
 		public virtual string SideText => string.Empty;
 
-		public virtual Sprite IconSprite => null;
+		public virtual async UniTask<Sprite> GetIcon() {
+			return null;
+		}
 
 		public virtual void SecondaryTextClick() {
 

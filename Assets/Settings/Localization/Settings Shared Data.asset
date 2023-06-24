@@ -272,19 +272,19 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 25071457018437632
-    m_Key: Enum.ExclusiveFullScreen
+    m_Key: FullscreenMode.ExclusiveFullScreen
     m_Metadata:
       m_Items: []
   - m_Id: 25071572395352064
-    m_Key: Enum.FullScreenWindow
+    m_Key: FullscreenMode.FullScreenWindow
     m_Metadata:
       m_Items: []
   - m_Id: 25071721024708608
-    m_Key: Enum.MaximizedWindow
+    m_Key: FullscreenMode.MaximizedWindow
     m_Metadata:
       m_Items: []
   - m_Id: 25071794185953280
-    m_Key: Enum.Windowed
+    m_Key: FullscreenMode.Windowed
     m_Metadata:
       m_Items: []
   - m_Id: 25775451793645568
@@ -293,6 +293,34 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 25775459376947200
     m_Key: TrackFadeSize
+    m_Metadata:
+      m_Items: []
+  - m_Id: 26591864540614656
+    m_Key: KickBounce
+    m_Metadata:
+      m_Items: []
+  - m_Id: 31231598726078464
+    m_Key: ShowCursorTimer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 31586592042115072
+    m_Key: PressThreshold
+    m_Metadata:
+      m_Items: []
+  - m_Id: 32040511641870336
+    m_Key: LyricBackground.Normal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 32040561948352512
+    m_Key: LyricBackground.Transparent
+    m_Metadata:
+      m_Items: []
+  - m_Id: 32040568017510400
+    m_Key: LyricBackground.None
+    m_Metadata:
+      m_Items: []
+  - m_Id: 32040983111000064
+    m_Key: LyricBackground
     m_Metadata:
       m_Items: []
   m_Metadata:

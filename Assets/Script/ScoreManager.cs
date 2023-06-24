@@ -8,13 +8,14 @@ using Newtonsoft.Json;
 using UnityEngine;
 using YARG.Data;
 using YARG.Song;
+using YARG.Util;
 
 namespace YARG {
 	public static class ScoreManager {
 		/// <value>
 		/// The location of the score file.
 		/// </value>
-		public static string ScoreFile => Path.Combine(GameManager.PersistentDataPath, "scores.json");
+		public static string ScoreFile => Path.Combine(PathHelper.PersistentDataPath, "scores.json");
 
 		private static Dictionary<string, SongScore> scores = null;
 

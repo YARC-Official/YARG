@@ -1,5 +1,18 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-2474558226325650239
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 5
 --- !u!21 &2100000
 Material:
   serializedVersion: 8
@@ -8,11 +21,11 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Track
-  m_Shader: {fileID: -6465566751694194690, guid: 58be30943be769540adcb5480fbbd720,
+  m_Shader: {fileID: -6465566751694194690, guid: 8c0cff8935ab4de4eae67720113d6968,
     type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords: []
-  m_LightmapFlags: 1
+  m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: 2990
@@ -22,8 +35,8 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseMap:
-        m_Texture: {fileID: 2800000, guid: 42170eceb0b852543988f17c8f806b71, type: 3}
-        m_Scale: {x: 1, y: 0.5}
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
         m_Texture: {fileID: 0}
@@ -45,17 +58,25 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _GrooveOverlay:
-        m_Texture: {fileID: 2800000, guid: d0d84991823c3a44284c51666e7f352a, type: 3}
+    - _Fade_Texture:
+        m_Texture: {fileID: 2800000, guid: 3a7b5e0f1167007468ed04ef880893ce, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _GrooveTex:
-        m_Texture: {fileID: 2800000, guid: 6f8641b63b730184986c316796fca872, type: 3}
+    - _Layer_2_Texture:
+        m_Texture: {fileID: 2800000, guid: 98b8b19da466ee346b67113ba7cd79e9, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Layer_3_Texture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Layer_4_Texture:
+        m_Texture: {fileID: 2800000, guid: e349c5c40c8fa2f4d97e8c7fcfa96c47, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 42170eceb0b852543988f17c8f806b71, type: 3}
-        m_Scale: {x: 1, y: 0.5}
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
         m_Texture: {fileID: 0}
@@ -69,16 +90,16 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _ShadowTex:
-        m_Texture: {fileID: 2800000, guid: 7aada040434df7f41977d0ad9184e95c, type: 3}
+    - _Solo_Texture:
+        m_Texture: {fileID: 2800000, guid: a28aa2a5fa147a145bb2e3df0d9b2f49, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SpecGlossMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _StarpowerOverlay:
-        m_Texture: {fileID: 2800000, guid: d461cc368b0418746b2e20617f5d0924, type: 3}
+    - _Starpower_Texture:
+        m_Texture: {fileID: 2800000, guid: 539dd2580c8d17e43a43c760f489fd72, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
@@ -95,13 +116,8 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - GrooveState: 0
-    - SoloState: 0
-    - StarpowerState: 0
     - _AlphaClip: 0
-    - _AlphaToMask: 0
     - _Blend: 0
-    - _BlendModePreserveSpecular: 1
     - _BumpScale: 1
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
@@ -110,48 +126,46 @@ Material:
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
-    - _DstBlendAlpha: 0
     - _EnvironmentReflections: 1
+    - _Fade_Offset: -0.5
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
+    - _Layer_2_Parallax: 0.9
+    - _Layer_2_Wavy_Amount: 0.01
+    - _Layer_3_Parallax: 1
+    - _Layer_3_Wavy_Amount: 0
+    - _Layer_4_Parallax: 1
+    - _Layer_4_Wavy_Amount: 0.01
     - _Metallic: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _QueueControl: 0
     - _QueueOffset: -10
-    - _Radius: 0
     - _ReceiveShadows: 1
-    - _Smoothness: 0
+    - _Scroll: 0
+    - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
+    - _Solo_Offset: -0.06
+    - _Solo_State: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _SrcBlendAlpha: 1
+    - _Starpower_Emission_Amount: 1
+    - _Starpower_Offset: -0.2
+    - _Starpower_State: 0
     - _Surface: 0
+    - _Waviness: 0
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
-    - TexOffset: {r: 0, g: 0, b: 0, a: 0}
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _FadeFullPosition: {r: 0, g: 0, b: 0, a: 0}
-    - _FadeZeroPosition: {r: 0, g: 0, b: 2.83, a: 0}
-    - _Position: {r: 0, g: 0, b: 0, a: 0}
-    - _ShadowOffset: {r: 0, g: -0.87, b: 0, a: 0}
-    - _ShadowTilingAndOffset: {r: 1, g: -0.33, b: 0, a: 0}
+    - _Layer_1_Color: {r: 0.058823504, g: 0.058823504, b: 0.058823504, a: 1}
+    - _Layer_2_Color: {r: 0.29411766, g: 0.29411766, b: 0.29411766, a: 0.1490196}
+    - _Layer_3_Color: {r: 1, g: 1, b: 1, a: 0}
+    - _Layer_4_Color: {r: 0.3301887, g: 0.3301887, b: 0.3301887, a: 1}
+    - _Solo_Color: {r: 0, g: 0.7058823, b: 1, a: 0.019607844}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+    - _Starpower_Color: {r: 1, g: 0.59607846, b: 0, a: 1}
   m_BuildTextureStacks: []
---- !u!114 &4215397105575776098
-MonoBehaviour:
-  m_ObjectHideFlags: 11
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  version: 7

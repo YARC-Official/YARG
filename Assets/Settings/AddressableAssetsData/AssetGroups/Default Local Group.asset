@@ -72,11 +72,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 50266abeb1da561478acfa688b469cfa
-    m_Address: sourceIcons
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a95405bf47ae6e24f92f1229bc480b4b
     m_Address: Credits
     m_ReadOnly: 0
@@ -93,7 +88,12 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a85b71f74814dfc4c92b0f7e07662318
-    m_Address: Setting/Enum
+    m_Address: Setting/Dropdown
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4a4ba0f5f6fbdff4ca0556b981ef1d61
+    m_Address: Icon/ChevronDown
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

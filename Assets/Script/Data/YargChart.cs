@@ -25,24 +25,25 @@ namespace YARG.Data {
 			get => guitar ??= LoadArray(ChartLoader.GuitarLoader);
 			set => guitar = value;
 		}
-		
+
 		private List<NoteInfo>[] guitarCoop;
 		public List<NoteInfo>[] GuitarCoop {
 			get => guitarCoop ??= LoadArray(ChartLoader.GuitarCoopLoader);
 			set => guitarCoop = value;
 		}
+
 		private List<NoteInfo>[] rhythm;
 		public List<NoteInfo>[] Rhythm {
 			get => rhythm ??= LoadArray(ChartLoader.RhythmLoader);
 			set => rhythm = value;
 		}
-		
+
 		private List<NoteInfo>[] bass;
 		public List<NoteInfo>[] Bass {
 			get => bass ??= LoadArray(ChartLoader.BassLoader);
 			set => bass = value;
 		}
-		
+
 		private List<NoteInfo>[] keys;
 		public List<NoteInfo>[] Keys {
 			get => keys ??= LoadArray(ChartLoader.KeysLoader);
@@ -51,14 +52,14 @@ namespace YARG.Data {
 
 		private List<NoteInfo>[] realGuitar;
 		public List<NoteInfo>[] RealGuitar {
-			get => keys ??= CreateArray(); // TODO: Needs chartloaders once Pro Guitar parsing is implemented in the MS code
-			set => keys = value;
+			get => realGuitar ??= CreateArray(); // TODO: Needs chartloaders once Pro Guitar parsing is implemented in the MS code
+			set => realGuitar = value;
 		}
 
 		private List<NoteInfo>[] realBass;
 		public List<NoteInfo>[] RealBass {
-			get => keys ??= CreateArray(); // TODO: Needs chartloaders once Pro Guitar parsing is implemented in the MS code
-			set => keys = value;
+			get => realBass ??= CreateArray(); // TODO: Needs chartloaders once Pro Guitar parsing is implemented in the MS code
+			set => realBass = value;
 		}
 
 		private List<NoteInfo>[] drums;
@@ -107,13 +108,45 @@ namespace YARG.Data {
 				return;
 			}
 
+			GenericLyricInfo currentLyricPhrase = null;
 			foreach (var globalEvent in song.eventsAndSections) {
+				float time = (float)globalEvent.time;
 				string text = globalEvent.title;
 				// Strip away the [brackets] from events (and any garbage outside them)
 				var match = textEventRegex.Match(text);
 				if (match.Success) {
 					text = match.Groups[1].Value;
 				}
+
+				switch (text) {
+					case LyricHelper.PhraseStartText:
+						// Phrase start events can start new phrases without a preceding end
+						if (currentLyricPhrase != null) {
+							currentLyricPhrase.length = time - currentLyricPhrase.time;
+							genericLyrics.Add(currentLyricPhrase);
+						}
+
+						// Start new phrase
+						currentLyricPhrase = new() {
+							time = time
+						};
+						break;
+
+					case LyricHelper.PhraseEndText:
+						// Complete phrase and add it to the list
+						currentLyricPhrase.length = time - currentLyricPhrase.time;
+						genericLyrics.Add(currentLyricPhrase);
+						currentLyricPhrase = null;
+						break;
+
+					default:
+						if (text.StartsWith(LyricHelper.LYRIC_EVENT_PREFIX)) {
+							// Add lyric to current phrase, or ignore if outside a phrase
+							currentLyricPhrase?.lyric.Add((time, text.Replace(LyricHelper.LYRIC_EVENT_PREFIX, "")));
+						}
+						break;
+				}
+
 
 				events.Add(new EventInfo(text, (float) globalEvent.time));
 			}

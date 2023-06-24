@@ -92,8 +92,8 @@ namespace YARG.Chart {
 					}
 				}
 
-				// Last beat should never be a strong beat if denominator is bigger than 4.
-				if (currentBeatInMeasure == currentTS.numerator - 1 && currentTS.denominator > 4) {
+				// Last beat of measure should never be a strong beat if denominator is bigger than 4.
+				if (currentBeatInMeasure == currentTS.numerator - 1 && currentTS.denominator > 4 && currentTick < lastTick + forwardStep) {
 					style = BeatStyle.WEAK;
 				}
 
@@ -142,7 +142,7 @@ namespace YARG.Chart {
 			{
 				foreach (var songObject in chart.chartObjects) {
 					if (songObject.tick <= lastTick) continue;
-					
+
 					lastTick = songObject.tick;
 
 					if (songObject is MoonNote note)

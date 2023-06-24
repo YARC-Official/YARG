@@ -1,19 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using YARG.Settings;
+using YARG.Util;
 
 namespace YARG.Song {
 	public static class SongContainer {
-
-		public static string CacheFolder => Path.Combine(GameManager.PersistentDataPath, "caches");
-
 		private static readonly List<SongEntry> _songs;
 		private static readonly Dictionary<string, SongEntry> _songsByHash;
-
-		public static List<string> SongFolders => SettingsManager.Settings.SongFolders;
 
 		public static IReadOnlyList<SongEntry> Songs => _songs;
 		public static IReadOnlyDictionary<string, SongEntry> SongsByHash => _songsByHash;
@@ -36,19 +31,19 @@ namespace YARG.Song {
 			TrySelectedSongReset();
 		}
 
-		public static async UniTask<List<string>> ScanAllFolders(bool fast, Action<SongScanner> updateUi = null) {
+		public static async UniTask<List<CacheFolder>> ScanAllFolders(bool fast, Action<SongScanner> updateUi = null) {
 			_songs.Clear();
 			_songsByHash.Clear();
 
-			var scanner = new SongScanner(SongFolders);
+			var scanner = new SongScanner(SettingsManager.Settings.SongFolders, new[] { PathHelper.SetlistPath });
 			var output = await scanner.StartScan(fast, updateUi);
 
 			AddSongs(output.SongEntries);
 			return output.ErroredCaches;
 		}
 
-		public static async UniTask ScanFolders(ICollection<string> folders, bool fast, Action<SongScanner> updateUi = null) {
-			var songsToRemove = _songs.Where(song => folders.Contains(song.CacheRoot)).ToList();
+		public static async UniTask ScanFolders(ICollection<CacheFolder> folders, bool fast, Action<SongScanner> updateUi = null) {
+			var songsToRemove = _songs.Where(song => folders.Any(i => i.Folder == song.CacheRoot)).ToList();
 
 			_songs.RemoveAll(x => songsToRemove.Contains(x));
 			foreach (var song in songsToRemove) {

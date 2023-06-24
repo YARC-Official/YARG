@@ -6,7 +6,7 @@
 			"twitch": "eliteasian123",
 			"github": "EliteAsian123",
 			"videoService": "UC0k5Wnt4vdbbb7ht_74I-Dg",
-			"discord": "EliteAsian#4623",
+			"discord": "eliteasian",
 			"email": "eliteasian123@gmail.com"
 		}
 	},
@@ -37,7 +37,7 @@
 			"roles": [ "developer" ],
 			"github": "TheFatBastid",
 			"videoService": "UCCmx6jiTO-353X8KNaOgb3Q",
-			"discord": "The Fat Bastid#7712",
+			"discord": "thefatbastid",
 			"steam": "thefatbastid",
 			"email": "tfb@sof.ws"
 		},
@@ -65,7 +65,7 @@
 			"twitter": "NevesPT",
 			"twitch": "PYukimura",
 			"github": "nevespt",
-			"discord": "NevesPT#0001"
+			"discord": "nevespt"
 		},
 		"DD": {
 			"roles": [ "developer" ],
@@ -79,7 +79,7 @@
 			"roles": [ "developer" ],
 			"twitter": "santorfo",
 			"github": "santorfo",
-			"discord": "santorfo#0521"
+			"discord": "santorfo"
 		},
 		"Pantotone": {
 			"roles": [ "developer", "artist" ],
@@ -93,7 +93,7 @@
 			"twitch": "3UP_MK8",
 			"github": "three-up",
 			"videoService": "@3-upsarchive385",
-			"discord": "3-UP#5030"
+			"discord": "3_up"
 		},
 		"goulart": {
 			"roles": [ "developer" ],
@@ -132,12 +132,12 @@
 			"twitch": "jnackmaclain",
 			"github": "jnackmclain",
 			"videoService": "@jnackmclain",
-			"discord": "jnack#7393"
+			"discord": "jnack"
 		},
 		"TheNathannator": {
 			"roles": [ "developer" ],
 			"github": "TheNathannator",
-			"discord": "TheNathannator#0924",
+			"discord": "thenathannator",
 			"videoService": "@TheNathannator"
 		},
 		"muskit": {
@@ -145,7 +145,7 @@
 			"website": "https://muskit.net",
 			"github": "muskit",
 			"twitch": "musk1t",
-			"discord": "muskit#4052",
+			"discord": "muskit",
 			"twitter": "SlappyFlye"
 		},
 		"RileyTheFox": {
@@ -154,16 +154,21 @@
 			"twitch": "RileyTheFoxGH",
 			"github": "RileyTheFox",
 			"videoService": "UC0z1fzavZ5mPIs2OSM-6CMg",
-			"discord": "Riley The Fox#3621"
+			"discord": "rileythefox"
 		},
 		"Mia Berth": {
-			"roles": [ "developer", "artist" ]
+			"roles": [ "developer", "artist" ],
+			"github": "berthrage",
+			"videoService": "@MiaBerth",
+			"twitter": "MiaBerth",
+			"discord": "miaberth",
+			"email": "miaberthrage@gmail.com"
 		},
 		"HughToBasic35": {
 			"roles": [ "developer" ],
 			"github": "rjkiv",
 			"videoService": "@thisisRK",
-			"discord": "HughToBasic35#6250"
+			"discord": "hughtobasic"
 		},
 		"Narrik Synthfox": {
 			"roles": [ "developer" ],
@@ -185,8 +190,8 @@
 			"twitter": "PikminGuts92",
 			"twitch": "PikminGuts92",
 			"github": "PikminGuts92",
-			"videoService": "UCCiJ_biLQoXH7P9v00QnRYg",
-			"discord": "PikminGuts92#0001"
+			"videoService": "@PikminGuts92",
+			"discord": "pikminguts92"
 		},
 		"Pixelated_Pope": {
 			"roles": [ "developer" ]
@@ -220,7 +225,7 @@
 		"J Diddy": {
 			"roles": [ "developer" ],
 			"github": "JayDiddyThaGOAT",
-			"discord": "JayDiddyThaGOAT#4797"
+			"discord": "jaydiddythagoat"
 		},
 		"Dai": {
 			"roles": [ "charter" ],
@@ -250,13 +255,13 @@
 			"twitch": "LocalH",
 			"github": "LocalH",
 			"videoService": "@LocalAitch",
-			"discord": "LocalH#8850"
+			"discord": "localh"
 		},
 		"Hubbubble": {
 			"roles": [ "charter" ],
 			"github": "Hubbubble1",
 			"videoService": "@hubbubble6856",
-			"discord": "Hubbubble#7524"
+			"discord": "hubbubble"
 		},
 		"Neomatt": {
 			"roles": [ "developer" ],

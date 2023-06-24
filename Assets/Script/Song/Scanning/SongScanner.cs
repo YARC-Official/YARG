@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using YARG.Util;
 
 namespace YARG.Song {
 	public enum ScanResult {
@@ -31,19 +32,18 @@ namespace YARG.Song {
 
 	public readonly struct ScanOutput {
 		public List<SongEntry> SongEntries { get; }
-		public List<string> ErroredCaches { get; }
+		public List<CacheFolder> ErroredCaches { get; }
 
-		public ScanOutput(List<SongEntry> songEntries, List<string> erroredCaches) {
+		public ScanOutput(List<SongEntry> songEntries, List<CacheFolder> erroredCaches) {
 			SongEntries = songEntries;
 			ErroredCaches = erroredCaches;
 		}
 	}
 
 	public class SongScanner {
-
 		private const int MAX_THREAD_COUNT = 2;
 
-		private readonly ICollection<string> _songFolders;
+		private readonly List<CacheFolder> _songFolders;
 
 		private SongScanThread[] _scanThreads;
 
@@ -54,10 +54,18 @@ namespace YARG.Song {
 		private bool _isScanning;
 		private bool _hasScanned;
 
-		public SongScanner(ICollection<string> songFolders) {
-			_songFolders = songFolders;
+		public SongScanner(IEnumerable<CacheFolder> songFolders) {
+			_songFolders = songFolders.ToList();
+		}
 
-			Debug.Log("Initialized SongScanner");
+		public SongScanner(IEnumerable<string> songFolders, IEnumerable<string> portableFolders = null) {
+			_songFolders = new();
+
+			_songFolders.AddRange(songFolders.Select(i => new CacheFolder(i, false)));
+
+			if (portableFolders is not null) {
+				_songFolders.AddRange(portableFolders.Select(i => new CacheFolder(i, true)));
+			}
 		}
 
 		private void OnDestroy() {
@@ -81,7 +89,7 @@ namespace YARG.Song {
 			}
 
 			var songs = new List<SongEntry>();
-			var cacheErrors = new List<string>();
+			var cacheErrors = new List<CacheFolder>();
 
 			if (_songFolders.Count == 0) {
 				Debug.LogWarning("No song folders added to SongScanner. Returning");
@@ -162,15 +170,15 @@ namespace YARG.Song {
 		private void AssignFoldersToThreads() {
 			var drives = DriveInfo.GetDrives();
 
-			var driveFolders = drives.ToDictionary(drive => drive, _ => new List<string>());
+			var driveFolders = drives.ToDictionary(drive => drive, _ => new List<CacheFolder>());
 
 			foreach (var folder in _songFolders) {
-				if (string.IsNullOrEmpty(folder)) {
+				if (string.IsNullOrEmpty(folder.Folder)) {
 					Debug.LogWarning("Song folder is null/empty. This is a problem with the settings menu!");
 					continue;
 				}
 
-				var drive = drives.FirstOrDefault(d => folder.StartsWith(d.RootDirectory.Name));
+				var drive = drives.FirstOrDefault(d => folder.Folder.StartsWith(d.RootDirectory.Name));
 				if (drive == null) {
 					Debug.LogError($"Folder {folder} is not on a drive");
 					continue;
@@ -201,9 +209,9 @@ namespace YARG.Song {
 
 		private async UniTask WriteBadSongs() {
 #if UNITY_EDITOR
-			string badSongsPath = Path.Combine(GameManager.PersistentDataPath, "badsongs.txt");
+			string badSongsPath = Path.Combine(PathHelper.PersistentDataPath, "badsongs.txt");
 #else
-			string badSongsPath = Path.Combine(GameManager.ExecutablePath, "badsongs.txt");
+			string badSongsPath = Path.Combine(PathHelper.ExecutablePath, "badsongs.txt");
 #endif
 
 			await using var stream = new FileStream(badSongsPath, FileMode.Create, FileAccess.Write);

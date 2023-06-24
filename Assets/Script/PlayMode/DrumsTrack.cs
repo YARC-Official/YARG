@@ -221,6 +221,11 @@ namespace YARG.PlayMode {
 		}
 
 		private void UpdateInput() {
+			// Ignore inputs until the first note enters the hit window
+			if (!CurrentlyInChart) {
+				return;
+			}
+
 			// Handle misses (multiple a frame in case of lag)
 			while (HitMarginEndTime > expectedHits.PeekOrNull()?[0].time) {
 				var missedChord = expectedHits.Dequeue();
@@ -300,10 +305,15 @@ namespace YARG.PlayMode {
 				// otherwise only play it when actually hitting a kick
 				if (Chart.Count < 1 || CurrentTime < Chart[0].time || CurrentTime >= Chart[^1].time) {
 					commonTrack.kickFlash.PlayAnimation();
-					if (shakeOnKick) {
+					if (shakeOnKick && SettingsManager.Settings.KickBounce.Data) {
 						trackAnims.PlayKickShakeCameraAnim();
 					}
 				}
+			}
+
+			// Ignore inputs until the first note enters the hit window
+			if (!CurrentlyInChart) {
+				return;
 			}
 
 			// Overstrum if no expected
@@ -333,7 +343,7 @@ namespace YARG.PlayMode {
 					// Play kick flash/shake
 					if (note.fret == kickIndex) {
 						commonTrack.kickFlash.PlayAnimation();
-						if (shakeOnKick) {
+						if (shakeOnKick && SettingsManager.Settings.KickBounce.Data) {
 							trackAnims.PlayKickShakeCameraAnim();
 						}
 					}
