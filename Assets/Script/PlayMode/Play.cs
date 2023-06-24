@@ -114,7 +114,7 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		private SongEntry Song => GameManager.Instance.SelectedSong;
+		public SongEntry Song => GameManager.Instance.SelectedSong;
 
 		private bool playingRhythm = false;
 		private bool playingVocals = false;
