@@ -31,6 +31,9 @@ namespace YARG.Audio.BASS {
 		public float CurrentPositionF => (float) GetPosition();
 		public float AudioLengthF { get; private set; }
 
+		[Range(0, 1)]
+		public float whammyPitchPercent;
+
 		public event Action SongEnd {
 			add {
 				if (_mixer is null) {
@@ -55,6 +58,15 @@ namespace YARG.Audio.BASS {
 
 		private IStemMixer _mixer;
 
+		private void Update() {
+			if (_mixer is null || _mixer.Channels.Count == 0) {
+				return;
+			}
+
+			foreach (var channel in _mixer.Channels) {
+				channel.Value.SetWhammyPitch(whammyPitchPercent);
+			}
+		}
 
 		private void Awake() {
 			SupportedFormats = new[] {
