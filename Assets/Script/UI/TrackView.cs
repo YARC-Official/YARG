@@ -104,8 +104,8 @@ namespace YARG.UI {
 			// Set textbox color
 			var (sprite, gradient) = finalPercent switch {
 				>= 100 => (_soloSpritePerfect, _soloGradientPerfect),
-				>= 60 =>  (_soloSpriteNormal, _soloGradientNormal),
-				_ =>	  (_soloSpriteMessy, _soloGradientMessy),
+				>= 60  => (_soloSpriteNormal, _soloGradientNormal),
+				_	   => (_soloSpriteMessy, _soloGradientMessy),
 			};
 			_soloBox.sprite = sprite;
 			_soloFullText.colorGradientPreset = gradient;
