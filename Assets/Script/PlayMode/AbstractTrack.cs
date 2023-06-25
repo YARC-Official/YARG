@@ -253,6 +253,7 @@ namespace YARG.PlayMode {
 					}
 				}
 			}
+
 			StartTrack();
 		}
 
@@ -303,6 +304,7 @@ namespace YARG.PlayMode {
 			}
 
 			UpdateMaterial();
+
 			UpdateBeats();
 			UpdateTrack();
 

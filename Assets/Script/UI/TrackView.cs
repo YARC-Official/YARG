@@ -104,8 +104,8 @@ namespace YARG.UI {
 			// Set textbox color
 			var (sprite, gradient) = finalPercent switch {
 				>= 100 => (_soloSpritePerfect, _soloGradientPerfect),
-				>= 60 => (_soloSpriteNormal, _soloGradientNormal),
-				_ => (_soloSpriteMessy, _soloGradientMessy),
+				>= 60 =>  (_soloSpriteNormal, _soloGradientNormal),
+				_ =>	  (_soloSpriteMessy, _soloGradientMessy),
 			};
 			_soloBox.sprite = sprite;
 			_soloFullText.colorGradientPreset = gradient;
@@ -118,12 +118,12 @@ namespace YARG.UI {
 			// Show performance text
 			string resultText = finalPercent switch {
 				>  100 => "HOW!?",
-				100 => "PERFECT\nSOLO!",
+				   100 => "PERFECT\nSOLO!",
 				>= 95  => "AWESOME\nSOLO!",
 				>= 90  => "GREAT\nSOLO!",
 				>= 80  => "GOOD\nSOLO!",
 				>= 70  => "SOLID\nSOLO",
-				69  => "<i>NICE</i>\nSOLO",
+				   69  => "<i>NICE</i>\nSOLO",
 				>= 60  => "OKAY\nSOLO",
 				>=  0  => "MESSY\nSOLO",
 				<   0  => "HOW!?",
