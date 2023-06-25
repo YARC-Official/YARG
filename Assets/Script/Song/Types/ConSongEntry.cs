@@ -110,8 +110,9 @@ namespace YARG.Song {
 		}
 
 		public override byte[] LoadMoggFile() {
-			if (!UsingUpdateMogg)
+			if (!UsingUpdateMogg) {
 				return conFile.LoadSubFile(MoggIndex);
+			}
 			return base.LoadMoggFile();
 		}
 

@@ -389,7 +389,12 @@ namespace YARG.Song {
 				return ScanResult.NotASong;
 			}
 
-			if (string.IsNullOrEmpty(file.MoggPath)) {
+			// Check if audio files
+			if (file is ConSongEntry con) {
+				if (con.MoggIndex == -1) {
+					return ScanResult.NoAudioFile;
+				}
+			} else if (string.IsNullOrEmpty(file.MoggPath)) {
 				return ScanResult.NoAudioFile;
 			}
 
