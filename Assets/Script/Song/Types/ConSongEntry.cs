@@ -110,10 +110,14 @@ namespace YARG.Song {
 		}
 
 		public override byte[] LoadMoggFile() {
-			if (!UsingUpdateMogg) {
-				return conFile.LoadSubFile(MoggIndex);
+			// For some reason `UsingUpdateMogg` is false here.
+			// TODO: Redo CON scanning, because it's quite odd
+			// if (UsingUpdateMogg) {
+			if (MoggIndex == -1) {
+				return base.LoadMoggFile();
 			}
-			return base.LoadMoggFile();
+
+			return conFile.LoadSubFile(MoggIndex);
 		}
 
 		public override byte[] LoadMiloFile(){
@@ -133,6 +137,10 @@ namespace YARG.Song {
 		}
 
 		public override bool IsMoggUnencrypted() {
+			if (UsingUpdateMogg) {
+				return base.IsMoggUnencrypted();
+			}
+
 			return conFile.IsMoggUnencrypted(MoggIndex);
 		}
 	}

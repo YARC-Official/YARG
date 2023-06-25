@@ -194,10 +194,10 @@ namespace YARG.Song {
 			NotesFile = Path.Combine(dir, $"{Location}.mid");
 
 			// Load a .mogg or .yarg_mogg
-			var yargModePath = Path.Combine(dir, $"{Location}.yarg_mogg");
+			var yargMoggPath = Path.Combine(dir, $"{Location}.yarg_mogg");
 			var moggPath = Path.Combine(dir, $"{Location}.mogg");
-			if (File.Exists(yargModePath)) {
-				MoggPath = yargModePath;
+			if (File.Exists(yargMoggPath)) {
+				MoggPath = yargMoggPath;
 			} else if (File.Exists(moggPath)) {
 				MoggPath = moggPath;
 			}
