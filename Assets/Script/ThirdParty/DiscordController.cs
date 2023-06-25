@@ -1,7 +1,5 @@
 using System;
-using System.Net;
 using Discord;
-using Newtonsoft.Json.Linq;
 using UnityEngine;
 using YARG.PlayMode;
 using YARG.Song;
@@ -187,7 +185,7 @@ namespace YARG.ThirdParty {
 			SetDefaultActivity();
 		}
 
-		private void OnInstrumentSelection(YARG.PlayerManager.Player playerInfo) {
+		private void OnInstrumentSelection(PlayerManager.Player playerInfo) {
 			// ToLowerInvariant() because the DISCORD API DOESN'T HAVE UPPERCASE ARTWORK NAMES (WHY)
 			_currentSmallImage = playerInfo.chosenInstrument.ToLowerInvariant();
 
@@ -214,76 +212,10 @@ namespace YARG.ThirdParty {
 		}
 
 		private void SetSourceIcon() {
-			var sourceIconName = Play.Instance.Song.Source;
+			var sourceIconName = SongSources.GetSource(Play.Instance.Song.Source);
 
-			// get icon from github raw file: https://github.com/YARC-Official/OpenSource/blob/master/base/icons/{$sourceIcon}.png
-			var sourceIcon = "";
-			string[] folderName = new[] { "base", "extra" };
-
-			// foreach folder check if icon exists and set it
-			foreach (var folder in folderName) {
-				Debug.Log("Searching for icon in " + folder);
-
-				var sourceIconJson =
-					$"https://raw.githubusercontent.com/YARC-Official/OpenSource/master/{folder}/index.json";
-				//sourceIcon = $"https://raw.githubusercontent.com/YARC-Official/OpenSource/master/{folder}/icons/{sourceIconNameJson}.png";
-
-
-				// read json file and check if icon exists
-				var json = new WebClient().DownloadString(sourceIconJson);
-
-				// parse json
-				var parsedJson = JObject.Parse(json);
-				var sources = parsedJson["sources"];
-
-				// check if icon exists
-				foreach (var source in sources) {
-					var sourceIds = source["ids"];
-					var sourceNames = source["names"];
-					var sourceIconNameJson = source["icon"];
-
-					// sourceIds is an array of ids
-					foreach (var sourceId in sourceIds) {
-						try {
-							var array = sourceId.ToObject<string[]>();
-							foreach (var id in array) {
-								if (id == sourceIconName) {
-									sourceIcon =
-										$"https://raw.githubusercontent.com/YARC-Official/OpenSource/master/{folder}/icons/{sourceIconNameJson}.png";
-									sourceIconName = sourceNames["en-US"].ToString();
-									Debug.Log("Icon found in " + folder);
-									break;
-								}
-							}
-						} catch (System.Exception) {
-							// sourceId is not an array
-							if (sourceId.ToString() == sourceIconName) {
-								sourceIcon =
-									$"https://raw.githubusercontent.com/YARC-Official/OpenSource/master/{folder}/icons/{sourceIconNameJson}.png";
-								sourceIconName = sourceNames["en-US"].ToString();
-								Debug.Log("Icon found in " + folder);
-								break;
-							}
-						}
-					}
-				}
-
-				// if icon found break
-				if (sourceIcon != "") {
-					break;
-				}
-			}
-
-			// if icon not found set it to default
-			if (sourceIcon == "") {
-				sourceIcon = "https://raw.githubusercontent.com/YARC-Official/OpenSource/master/base/icons/custom.png";
-				sourceIconName = "Custom";
-			}
-
-			_currentSmallImage = sourceIcon;
-			_currentSmallText = sourceIconName;
-
-			Debug.Log("Source Icon: " + sourceIcon);
+			_currentSmallImage = sourceIconName.GetIconURL();
+			_currentSmallText = sourceIconName.GetDisplayName();
 		}
 
 		private void Update() {
