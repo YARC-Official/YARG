@@ -871,7 +871,7 @@ namespace YARG.PlayMode {
 		}
 
 		private float GetSingTimeMultiplier(Difficulty diff) {
-			return diff switch {
+			float multiplier = diff switch {
 				Difficulty.EASY => 0.45f,
 				Difficulty.MEDIUM => 0.5f,
 				Difficulty.HARD => 0.55f,
@@ -879,6 +879,8 @@ namespace YARG.PlayMode {
 				Difficulty.EXPERT_PLUS => 0.7f,
 				_ => throw new Exception("Unreachable.")
 			};
+
+			return multiplier / Play.speed;
 		}
 
 		private float CalcLagCompensation(float currentTime, float noteTime) {
