@@ -210,7 +210,11 @@ namespace YARG.PlayMode {
 				// Spawn needle
 				var needle = Instantiate(needlePrefab, transform).GetComponent<VocalNeedle>();
 				needle.transform.localPosition = needlePrefab.transform.position;
-				needle.ParticleSpeed = trackSpeed;
+				needle.SetLineProperties(
+					4f / trackSpeed,
+					trackSpeed,
+					trackSpeed / 4f * 50.0f
+				);
 
 				// Create player info
 				var playerInfo = new PlayerInfo {

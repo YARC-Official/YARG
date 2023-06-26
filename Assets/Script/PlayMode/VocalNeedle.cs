@@ -11,17 +11,15 @@ namespace YARG.PlayMode {
 		[SerializeField]
 		private Texture2D[] needleTextures;
 
-		private float _particleSpeed;
-		public float ParticleSpeed {
-			get {
-				return _particleSpeed;
-			}
-			set {
-				_particleSpeed = value;
-				activeParticles.SetStartSpeed(value);
-				nonActiveParticles.SetStartSpeed(value);
-			}
+		public void SetLineProperties(float lifetime, float startSpeed, float emissionRate) {
+			activeParticles.SetStartLifetime(lifetime);
+			activeParticles.SetStartSpeed(startSpeed);
+			activeParticles.SetEmissionRate(emissionRate);
+			nonActiveParticles.SetStartLifetime(lifetime);
+			nonActiveParticles.SetStartSpeed(startSpeed);
+			nonActiveParticles.SetEmissionRate(emissionRate);
 		}
+
 
 		private void Start() {
 			// Give random needle (for now)
