@@ -54,8 +54,22 @@ namespace YARG.Audio.BASS {
 
 		private int _sourceHandle;
 
+		private int _pitchFxHandle;
+		private int _pitchFxReverbHandle;
+
 		private bool _isReverbing;
 		private bool _disposed;
+
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+		private PitchShiftWindowsParameters _pitchParams = new() {
+#else
+		private PitchShiftParameters _pitchParams = new() {
+#endif
+			fPitchShift = 1,
+			fSemitones = 0,
+			lFFTsize = 2048,
+			lOsamp = 32,
+		};
 
 		public BassStemChannel(IAudioManager manager, string path, SongStem stem) {
 			_manager = manager;
@@ -133,6 +147,18 @@ namespace YARG.Audio.BASS {
 
 			Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, _manager.GetVolumeSetting(Stem));
 			Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Volume, 0);
+
+			_pitchFxHandle = Bass.ChannelSetFX(StreamHandle, EffectType.PitchShift, 0);
+
+			if (_pitchFxHandle == 0) {
+				Debug.LogError("Failed to add pitchshift: " + Bass.LastError);
+			}
+
+			_pitchFxReverbHandle = Bass.ChannelSetFX(ReverbStreamHandle, EffectType.PitchShift, 0);
+
+			if (_pitchFxReverbHandle == 0) {
+				Debug.LogError("Failed to add pitchshift: " + Bass.LastError);
+			}
 
 			if (!Mathf.Approximately(speed, 1f)) {
 				// Gets relative speed from 100% (so 1.05f = 5% increase)
@@ -246,6 +272,37 @@ namespace YARG.Audio.BASS {
 				_effects.Remove(EffectType.PeakEQ);
 				_effects.Remove(EffectType.PeakEQ + 1);
 				_effects.Remove(EffectType.PeakEQ + 2);
+			}
+		}
+
+		private float lastShift;
+
+		public void SetWhammyPitch(float percent) {
+			if (Stem != SongStem.Guitar && Stem != SongStem.Bass && Stem != SongStem.Rhythm)
+				return;
+
+			percent = Mathf.Clamp(percent, 0f, 1f);
+
+			float shift = Mathf.Pow(2, (-2 * percent) / 12);
+
+			if (Math.Abs(shift - lastShift) < float.Epsilon) {
+				return;
+			}
+
+			lastShift = shift;
+
+			Debug.Log(shift);
+
+			_pitchParams.fPitchShift = shift;
+
+			Debug.Log(_pitchFxHandle);
+
+			if (!Bass.FXSetParameters(_pitchFxHandle, _pitchParams)) {
+				Debug.LogError("Failed to set params (normal fx): " + Bass.LastError);
+			}
+
+			if (!Bass.FXSetParameters(_pitchFxReverbHandle, _pitchParams)) {
+				Debug.LogError("Failed to set params (reverb fx): " + Bass.LastError);
 			}
 		}
 

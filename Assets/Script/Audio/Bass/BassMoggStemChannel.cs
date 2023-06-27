@@ -112,6 +112,12 @@ namespace YARG.Audio.BASS {
 			}
 		}
 
+		public void SetWhammyPitch(float percent) {
+			foreach (var channel in _channels) {
+				channel.SetWhammyPitch(percent);
+			}
+		}
+
 		public double GetPosition() {
 			return _leadChannel.GetPosition();
 		}
