@@ -2065,30 +2065,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb438f304d0d4064fb1de229c53becde, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  songStartObject: {fileID: 0}
-  applicationID: 1091177744416637028
-  stableDetails:
-    defaultDetails: Hello there ladies and gentlemen!
-    defaultState: Are you ready to rock?
-    defaultLargeImage: icon_stable
-    defaultLargeText: Yet Another Rhythm Game
-  nightlyDetails:
-    defaultDetails: Hello there ladies and gentlemen!
-    defaultState: Are you ready to test?
-    defaultLargeImage: icon_nightly
-    defaultLargeText: Yet Another Rhythm Game - Nightly Build
-  devDetails:
-    defaultDetails: Hello there ladies and gentlemen!
-    defaultState: Are you ready to develop?
-    defaultLargeImage: icon_dev
-    defaultLargeText: Yet Another Rhythm Game - Developer Build
-  defaultSmallImage: 
-  defaultSmallText: 
-  currentDetails: 
-  currenttState: 
-  currentLargeText: 
-  currentSmallImage: 
-  currentSmallText: 
+  _applicationID: 1091177744416637028
+  _stableDetails:
+    DefaultDetails: Hello there ladies and gentlemen!
+    DefaultState: Are you ready to rock?
+    DefaultLargeImage: icon_stable
+    DefaultLargeText: Yet Another Rhythm Game
+  _nightlyDetails:
+    DefaultDetails: Hello there ladies and gentlemen!
+    DefaultState: Are you ready to test?
+    DefaultLargeImage: icon_nightly
+    DefaultLargeText: Yet Another Rhythm Game - Nightly Build
+  _devDetails:
+    DefaultDetails: Hello there ladies and gentlemen!
+    DefaultState: Are you ready to develop?
+    DefaultLargeImage: icon_dev
+    DefaultLargeText: Yet Another Rhythm Game - Developer Build
 --- !u!4 &874125451
 Transform:
   m_ObjectHideFlags: 0

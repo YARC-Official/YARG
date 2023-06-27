@@ -21,12 +21,21 @@ namespace YARG.Util {
 		/// </summary>
 		public static string StreamingAssetsPath { get; private set; }
 
+		/// <summary>
+		/// YARG's setlist path.
+		/// </summary>
+		public static string SetlistPath { get; private set; }
+
 		public static void Init() {
 			// Save this data as Application.* is main thread only (why Unity)
 			PersistentDataPath = SanitizePath(Application.persistentDataPath);
 			ApplicationDataPath = SanitizePath(Application.dataPath);
 			ExecutablePath = Directory.GetParent(ApplicationDataPath)?.FullName;
 			StreamingAssetsPath = SanitizePath(Application.streamingAssetsPath);
+
+			// Get the setlist path
+			var localAppdata = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+			SetlistPath = Path.Join(localAppdata, "YARC", "Setlists");
 		}
 
 		private static string SanitizePath(string path) {

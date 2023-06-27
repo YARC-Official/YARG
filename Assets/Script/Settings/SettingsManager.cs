@@ -194,7 +194,8 @@ namespace YARG.Settings {
 					"TrackFadePosition",
 					"TrackFadeSize",
 					new HeaderMetadata("Other"),
-					"DisableTextNotifications"
+					"DisableTextNotifications",
+					"LyricBackground"
 				}
 			},
 			new() {

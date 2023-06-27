@@ -267,8 +267,10 @@ namespace YARG.Audio.BASS {
 			// Process MOGG data
 			byte[] moggArray = exConSong.LoadMoggFile();
 
-			if (BitConverter.ToUInt32(moggArray, 0) != 0xA)
-				throw new Exception("Original unencrypted mogg replaced by an encrpyted mogg");
+			// Double check MOGG version
+			if (BitConverter.ToUInt32(moggArray, 0) != 0x0A && BitConverter.ToUInt32(moggArray, 0) != 0xF0) {
+				throw new Exception("Original unencrypted mogg replaced by an encrypted mogg");
+			}
 
 			moggArray = moggArray[BitConverter.ToInt32(moggArray, 4)..];
 

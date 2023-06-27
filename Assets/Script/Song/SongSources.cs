@@ -38,18 +38,20 @@ namespace YARG.Song {
 		}
 
 		public class ParsedSource {
-			public SourceType Type { get; private set; }
-
-			private string _icon;
+			private readonly string _icon;
 			private readonly Dictionary<string, string> _names;
+
+			public SourceType Type { get; private set; }
+			public bool IsFromBase { get; private set; }
 
 			private bool _isLoadingIcon;
 			private Sprite _iconCache;
 
-			public ParsedSource(string icon, Dictionary<string, string> names, SourceType type) {
+			public ParsedSource(string icon, Dictionary<string, string> names, SourceType type, bool isFromBase) {
 				_icon = icon;
 				_names = names;
 				Type = type;
+				IsFromBase = isFromBase;
 			}
 
 			public string GetDisplayName() {
@@ -81,7 +83,8 @@ namespace YARG.Song {
 						return null;
 					}
 
-					var texture = await TextureLoader.Load(imagePath);
+					var texture = await TextureLoader.LoadWithMips(imagePath);
+					texture.mipMapBias = -0.5f;
 
 					if (texture == null) {
 						Debug.LogWarning($"Failed to load texture at `{imagePath}`!");
@@ -96,13 +99,23 @@ namespace YARG.Song {
 
 				return _iconCache;
 			}
+
+			public string GetIconURL() {
+				if (IsFromBase) {
+					return RAW_ICON_URL + $"base/icons/{_icon}.png";
+				}
+
+				return RAW_ICON_URL + $"extra/icons/{_icon}.png";
+			}
 		}
 
 		public static string SourcesFolder => Path.Combine(PathHelper.StreamingAssetsPath, "sources");
 
 		public const string SOURCE_REPO_FOLDER = "OpenSource-master";
 
-		public const string SOURCE_COMMIT_URL = "https://api.github.com/repos/YARC-Official/OpenSource/commits?per_page=1";
+		private const string SOURCE_COMMIT_URL = "https://api.github.com/repos/YARC-Official/OpenSource/commits?per_page=1";
+		private const string RAW_ICON_URL = "https://raw.githubusercontent.com/YARC-Official/OpenSource/master/";
+
 		public const string SOURCE_ZIP_URL = "https://github.com/YARC-Official/OpenSource/archive/refs/heads/master.zip";
 
 		private static readonly string[] SourceTypes = {
@@ -225,7 +238,7 @@ namespace YARG.Song {
 							"rb"      => SourceType.RB,
 							"gh"      => SourceType.GH,
 							_         => SourceType.Custom
-						});
+						}, sources.type == "base");
 
 						foreach (var id in source.ids) {
 							_sources.Add(id, parsed);

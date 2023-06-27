@@ -72,8 +72,6 @@ namespace YARG.PlayMode {
 		private GameObject scoreDisplay;
 
 		private int beatIndex = 0;
-		private int lyricIndex = 0;
-		private int lyricPhraseIndex = 0;
 
 		// tempo (updated throughout play)
 		public float CurrentBeatsPerSecond { get; private set; } = 0f;
@@ -116,7 +114,7 @@ namespace YARG.PlayMode {
 			}
 		}
 
-		private SongEntry Song => GameManager.Instance.SelectedSong;
+		public SongEntry Song => GameManager.Instance.SelectedSong;
 
 		private bool playingRhythm = false;
 		private bool playingVocals = false;
@@ -205,7 +203,7 @@ namespace YARG.PlayMode {
 				}
 
 				// Temporary, same here
-				if (player.chosenInstrument == "vocals" || player.chosenInstrument == "harmVocals") {
+				if (player.chosenInstrument is "vocals" or "harmVocals") {
 					playingVocals = true;
 				}
 
@@ -440,11 +438,6 @@ namespace YARG.PlayMode {
 				}
 			}
 
-			// Update lyrics
-			if (!playingVocals) {
-				UpdateGenericLyrics();
-			}
-
 			// End song
 			if (!endReached && realSongTime >= SongLength) {
 				endReached = true;
@@ -455,39 +448,6 @@ namespace YARG.PlayMode {
 		private void OnEndReached() {
 			audioLength = GameManager.AudioManager.CurrentPositionF;
 			audioRunning = false;
-		}
-
-		private void UpdateGenericLyrics() {
-			if (lyricIndex < chart.genericLyrics.Count) {
-				var lyric = chart.genericLyrics[lyricIndex];
-
-				if (lyricPhraseIndex >= lyric.lyric.Count && lyric.EndTime < SongTime) {
-					// Clear phrase
-					GameUI.Instance.SetGenericLyric(string.Empty);
-
-					lyricPhraseIndex = 0;
-					lyricIndex++;
-				} else if (lyricPhraseIndex < lyric.lyric.Count && lyric.lyric[lyricPhraseIndex].time < SongTime) {
-					// Consolidate lyrics
-					string o = "<color=#ffb700>";
-					for (int i = 0; i < lyric.lyric.Count; i++) {
-						var (_, str) = lyric.lyric[i];
-
-						if (str.EndsWith("-")) {
-							o += str[..^1].Replace("=", "-");
-						} else {
-							o += str.Replace("=", "-") + " ";
-						}
-
-						if (i + 1 > lyricPhraseIndex) {
-							o += "</color>";
-						}
-					}
-
-					GameUI.Instance.SetGenericLyric(o);
-					lyricPhraseIndex++;
-				}
-			}
 		}
 
 		private void UpdateAudio(string[] trackNames, string[] stemNames) {

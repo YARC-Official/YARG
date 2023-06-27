@@ -67,6 +67,20 @@ namespace YARG.Util {
 			}
 		}
 
+		public void SetStartLifetime(float lifetime) {
+			foreach (var particle in particles) {
+				var main = particle.main;
+				main.startLifetime = lifetime;
+			}
+		}
+
+		public void SetEmissionRate(float rate) {
+			foreach (var particle in particles) {
+				var e = particle.emission;
+				e.rateOverTime = rate;
+			}
+		}
+
 		public void Play(float speed = 4.0f) {
 			foreach (var particle in particles) {
 				if (particle.main.loop && particle.isEmitting) {
