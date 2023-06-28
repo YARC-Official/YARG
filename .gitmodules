@@ -1,0 +1,3 @@
+[submodule "Assets/Plugins/YARG.Core"]
+	path = Assets/Plugins/YARG.Core
+	url = https://github.com/YARC-Official/YARG.Core

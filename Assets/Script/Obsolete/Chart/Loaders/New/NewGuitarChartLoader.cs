@@ -27,7 +27,7 @@ namespace YARG.Chart
             var notes = new List<GuitarNote>();
             var chart = GetChart(song, difficulty);
 
-            var starpowers = chart.starPower.ToArray();
+            var starpowers = chart.specialPhrases.ToArray();
 
             // Previous note (could be same tick)
             Note previousGameNote = null;

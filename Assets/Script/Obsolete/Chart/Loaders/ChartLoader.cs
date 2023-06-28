@@ -19,9 +19,9 @@ namespace YARG.Chart
             var chart = song.GetChart(Instrument, MoonSong.Difficulty.Expert);
 
             // Star Power
-            foreach (var sp in chart.starPower)
+            foreach (var sp in chart.specialPhrases)
             {
-                if (sp.flags != Starpower.Flags.None)
+                if (sp.type != SpecialPhrase.Type.Starpower)
                 {
                     continue;
                 }
@@ -65,7 +65,7 @@ namespace YARG.Chart
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected double GetStarpowerLength(MoonSong song, Starpower sp)
+        protected double GetStarpowerLength(MoonSong song, SpecialPhrase sp)
         {
             return GetLength(song, sp.time, sp.tick, sp.length - 1);
         }
