@@ -5,63 +5,71 @@ using UnityEngine.Video;
 using YARG.PlayMode;
 using YARG.Util;
 
-namespace YARG.UI {
-	public class GameUI : MonoBehaviour {
-		[SerializeField]
-		private GameObject trackView;
+namespace YARG.UI
+{
+    public class GameUI : MonoBehaviour
+    {
+        [SerializeField]
+        private GameObject trackView;
 
-		[Space]
-		[SerializeField]
-		private Transform trackContainer;
-		[SerializeField]
-		private RawImage vocalTrack;
-		[SerializeField]
-		private TextMeshProUGUI loadingText;
+        [Space]
+        [SerializeField]
+        private Transform trackContainer;
 
-		public GameObject loadingContainer;
-		public GameObject pauseMenu;
-		public RawImage background;
-		public VideoPlayer videoPlayer;
-		public static GameUI Instance {
-			get;
-			private set;
-		}
+        [SerializeField]
+        private RawImage vocalTrack;
 
-		private void Awake() {
-			Instance = this;
-		}
+        [SerializeField]
+        private TextMeshProUGUI loadingText;
 
-		public void AddTrackImage(RenderTexture rt, CommonTrack commonTrack) {
-			var trackImage = Instantiate(trackView, trackContainer);
+        public GameObject loadingContainer;
+        public GameObject pauseMenu;
+        public RawImage background;
+        public VideoPlayer videoPlayer;
+        public static GameUI Instance { get; private set; }
 
-			var view = trackImage.GetComponent<TrackView>();
-			view.TrackImage.texture = rt;
+        private void Awake()
+        {
+            Instance = this;
+        }
 
-			commonTrack.TrackView = view;
+        public void AddTrackImage(RenderTexture rt, CommonTrack commonTrack)
+        {
+            var trackImage = Instantiate(trackView, trackContainer);
 
-			UpdateAllSizing();
-		}
+            var view = trackImage.GetComponent<TrackView>();
+            view.TrackImage.texture = rt;
 
-		public void SetVocalTrackImage(RenderTexture rt) {
-			vocalTrack.texture = rt;
+            commonTrack.TrackView = view;
 
-			// TODO: Whyyy. figure out a better way to scale.
-			var rect = vocalTrack.rectTransform.ToViewportSpace();
-			vocalTrack.uvRect = new(0f, rect.y / 1.9f, rect.width, rect.height);
-		}
+            UpdateAllSizing();
+        }
 
-		public void RemoveVocalTrackImage() {
-			Destroy(vocalTrack.gameObject);
-		}
+        public void SetVocalTrackImage(RenderTexture rt)
+        {
+            vocalTrack.texture = rt;
 
-		private void UpdateAllSizing() {
-			foreach (var trackView in trackContainer.GetComponentsInChildren<TrackView>()) {
-				trackView.UpdateSizing(trackContainer.childCount);
-			}
-		}
+            // TODO: Whyyy. figure out a better way to scale.
+            var rect = vocalTrack.rectTransform.ToViewportSpace();
+            vocalTrack.uvRect = new(0f, rect.y / 1.9f, rect.width, rect.height);
+        }
 
-		public void SetLoadingText(string str) {
-			loadingText.text = str;
-		}
-	}
+        public void RemoveVocalTrackImage()
+        {
+            Destroy(vocalTrack.gameObject);
+        }
+
+        private void UpdateAllSizing()
+        {
+            foreach (var trackView in trackContainer.GetComponentsInChildren<TrackView>())
+            {
+                trackView.UpdateSizing(trackContainer.childCount);
+            }
+        }
+
+        public void SetLoadingText(string str)
+        {
+            loadingText.text = str;
+        }
+    }
 }

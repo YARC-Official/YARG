@@ -3,142 +3,183 @@ using YARG.Data;
 using YARG.PlayMode;
 using YARG.Settings;
 
-namespace YARG.Input {
-	public class GHDrumsInputStrategy : InputStrategy {
-		public const string RED_PAD = "red_pad";
-		public const string YELLOW_CYMBAL = "yellow_cymbal";
-		public const string BLUE_PAD = "blue_pad";
-		public const string ORANGE_CYMBAL = "orange_cymbal";
-		public const string GREEN_PAD = "green_pad";
+namespace YARG.Input
+{
+    public class GHDrumsInputStrategy : InputStrategy
+    {
+        public const string RED_PAD = "red_pad";
+        public const string YELLOW_CYMBAL = "yellow_cymbal";
+        public const string BLUE_PAD = "blue_pad";
+        public const string ORANGE_CYMBAL = "orange_cymbal";
+        public const string GREEN_PAD = "green_pad";
 
-		public const string KICK = "kick";
-		public const string KICK_ALT = "kick_alt";
+        public const string KICK = "kick";
+        public const string KICK_ALT = "kick_alt";
 
-		public const string PAUSE = "pause";
-		public const string UP = "up";
-		public const string DOWN = "down";
+        public const string PAUSE = "pause";
+        public const string UP = "up";
+        public const string DOWN = "down";
 
-		private List<NoteInfo> botChart;
+        private List<NoteInfo> botChart;
 
-		public delegate void DrumHitAction(int drum);
+        public delegate void DrumHitAction(int drum);
 
-		public event DrumHitAction DrumHitEvent;
+        public event DrumHitAction DrumHitEvent;
 
-		public GHDrumsInputStrategy() {
-			InputMappings = new() {
-				{ RED_PAD,       new(BindingType.BUTTON, "Red Pad", RED_PAD) },
-				{ YELLOW_CYMBAL, new(BindingType.BUTTON, "Yellow Cymbal", YELLOW_CYMBAL) },
-				{ BLUE_PAD,      new(BindingType.BUTTON, "Blue Pad", BLUE_PAD) },
-				{ ORANGE_CYMBAL, new(BindingType.BUTTON, "Orange Cymbal", ORANGE_CYMBAL) },
-				{ GREEN_PAD,     new(BindingType.BUTTON, "Green Pad", GREEN_PAD) },
+        public GHDrumsInputStrategy()
+        {
+            InputMappings = new()
+            {
+                {
+                    RED_PAD, new(BindingType.BUTTON, "Red Pad", RED_PAD)
+                },
+                {
+                    YELLOW_CYMBAL, new(BindingType.BUTTON, "Yellow Cymbal", YELLOW_CYMBAL)
+                },
+                {
+                    BLUE_PAD, new(BindingType.BUTTON, "Blue Pad", BLUE_PAD)
+                },
+                {
+                    ORANGE_CYMBAL, new(BindingType.BUTTON, "Orange Cymbal", ORANGE_CYMBAL)
+                },
+                {
+                    GREEN_PAD, new(BindingType.BUTTON, "Green Pad", GREEN_PAD)
+                },
+                {
+                    KICK, new(BindingType.BUTTON, "Kick", KICK)
+                },
+                {
+                    KICK_ALT, new(BindingType.BUTTON, "Kick Alt", KICK_ALT)
+                },
+                {
+                    PAUSE, new(BindingType.BUTTON, "Pause", PAUSE)
+                },
+                {
+                    UP, new(BindingType.BUTTON, "Navigate Up", UP)
+                },
+                {
+                    DOWN, new(BindingType.BUTTON, "Navigate Down", DOWN)
+                },
+            };
+        }
 
-				{ KICK,          new(BindingType.BUTTON, "Kick", KICK) },
-				{ KICK_ALT,      new(BindingType.BUTTON, "Kick Alt", KICK_ALT) },
+        public override string GetIconName()
+        {
+            return "ghDrums";
+        }
 
-				{ PAUSE,         new(BindingType.BUTTON, "Pause", PAUSE) },
-				{ UP,            new(BindingType.BUTTON, "Navigate Up", UP) },
-				{ DOWN,          new(BindingType.BUTTON, "Navigate Down", DOWN) },
-			};
-		}
+        protected override void UpdatePlayerMode()
+        {
+            // Deal with drum inputs
 
-		public override string GetIconName() {
-			return "ghDrums";
-		}
+            if (WasMappingPressed(RED_PAD))
+            {
+                DrumHitEvent?.Invoke(0);
+                CallGenericCalbirationEvent();
+            }
 
-		protected override void UpdatePlayerMode() {
-			// Deal with drum inputs
+            if (WasMappingPressed(YELLOW_CYMBAL))
+            {
+                DrumHitEvent?.Invoke(1);
+                CallGenericCalbirationEvent();
+            }
 
-			if (WasMappingPressed(RED_PAD)) {
-				DrumHitEvent?.Invoke(0);
-				CallGenericCalbirationEvent();
-			}
+            if (WasMappingPressed(BLUE_PAD))
+            {
+                DrumHitEvent?.Invoke(2);
+                CallGenericCalbirationEvent();
+            }
 
-			if (WasMappingPressed(YELLOW_CYMBAL)) {
-				DrumHitEvent?.Invoke(1);
-				CallGenericCalbirationEvent();
-			}
+            if (WasMappingPressed(ORANGE_CYMBAL))
+            {
+                DrumHitEvent?.Invoke(3);
+                CallGenericCalbirationEvent();
+            }
 
-			if (WasMappingPressed(BLUE_PAD)) {
-				DrumHitEvent?.Invoke(2);
-				CallGenericCalbirationEvent();
-			}
+            if (WasMappingPressed(GREEN_PAD))
+            {
+                DrumHitEvent?.Invoke(4);
+                CallGenericCalbirationEvent();
+            }
 
-			if (WasMappingPressed(ORANGE_CYMBAL)) {
-				DrumHitEvent?.Invoke(3);
-				CallGenericCalbirationEvent();
-			}
+            if (WasMappingPressed(KICK))
+            {
+                DrumHitEvent?.Invoke(5);
+                CallGenericCalbirationEvent();
+            }
 
-			if (WasMappingPressed(GREEN_PAD)) {
-				DrumHitEvent?.Invoke(4);
-				CallGenericCalbirationEvent();
-			}
+            if (WasMappingPressed(KICK_ALT))
+            {
+                DrumHitEvent?.Invoke(5);
+                CallGenericCalbirationEvent();
+            }
 
-			if (WasMappingPressed(KICK)) {
-				DrumHitEvent?.Invoke(5);
-				CallGenericCalbirationEvent();
-			}
+            // Constantly activate starpower
+            //CallStarpowerEvent();
+        }
 
-			if (WasMappingPressed(KICK_ALT)) {
-				DrumHitEvent?.Invoke(5);
-				CallGenericCalbirationEvent();
-			}
+        public override void InitializeBotMode(object rawChart)
+        {
+            botChart = (List<NoteInfo>) rawChart;
+        }
 
-			// Constantly activate starpower
-			//CallStarpowerEvent();
-		}
+        protected override void UpdateBotMode()
+        {
+            if (botChart == null)
+            {
+                return;
+            }
 
-		public override void InitializeBotMode(object rawChart) {
-			botChart = (List<NoteInfo>) rawChart;
-		}
+            float songTime = Play.Instance.SongTime;
 
-		protected override void UpdateBotMode() {
-			if (botChart == null) {
-				return;
-			}
+            while (botChart.Count > BotChartIndex && botChart[BotChartIndex].time <= songTime)
+            {
+                var noteInfo = botChart[BotChartIndex];
+                BotChartIndex++;
 
-			float songTime = Play.Instance.SongTime;
+                if (noteInfo.fret == 5 && SettingsManager.Settings.NoKicks.Data)
+                {
+                    continue;
+                }
 
-			while (botChart.Count > BotChartIndex && botChart[BotChartIndex].time <= songTime) {
-				var noteInfo = botChart[BotChartIndex];
-				BotChartIndex++;
+                // Hit
+                DrumHitEvent?.Invoke(noteInfo.fret);
+            }
 
-				if (noteInfo.fret == 5 && SettingsManager.Settings.NoKicks.Data) {
-					continue;
-				}
+            // Constantly activate starpower
+            //CallStarpowerEvent();
+        }
 
-				// Hit
-				DrumHitEvent?.Invoke(noteInfo.fret);
-			}
+        protected override void UpdateNavigationMode()
+        {
+            NavigationEventForMapping(MenuAction.Confirm, GREEN_PAD);
+            NavigationEventForMapping(MenuAction.Back, RED_PAD);
 
-			// Constantly activate starpower
-			//CallStarpowerEvent();
-		}
+            NavigationEventForMapping(MenuAction.Shortcut1, YELLOW_CYMBAL);
 
-		protected override void UpdateNavigationMode() {
-			NavigationEventForMapping(MenuAction.Confirm, GREEN_PAD);
-			NavigationEventForMapping(MenuAction.Back, RED_PAD);
+            NavigationEventForMapping(MenuAction.Up, UP);
+            NavigationEventForMapping(MenuAction.Down, DOWN);
 
-			NavigationEventForMapping(MenuAction.Shortcut1, YELLOW_CYMBAL);
+            NavigationHoldableForMapping(MenuAction.Shortcut3, KICK);
+            NavigationHoldableForMapping(MenuAction.Shortcut3, KICK_ALT);
 
-			NavigationEventForMapping(MenuAction.Up, UP);
-			NavigationEventForMapping(MenuAction.Down, DOWN);
+            if (WasMappingPressed(PAUSE))
+            {
+                CallPauseEvent();
+            }
+        }
 
-			NavigationHoldableForMapping(MenuAction.Shortcut3, KICK);
-			NavigationHoldableForMapping(MenuAction.Shortcut3, KICK_ALT);
+        public override Instrument[] GetAllowedInstruments()
+        {
+            return new Instrument[]
+            {
+                Instrument.GH_DRUMS,
+            };
+        }
 
-			if (WasMappingPressed(PAUSE)) {
-				CallPauseEvent();
-			}
-		}
-
-		public override Instrument[] GetAllowedInstruments() {
-			return new Instrument[] {
-				Instrument.GH_DRUMS,
-			};
-		}
-
-		public override string GetTrackPath() {
-			return "Tracks/GHDrums";
-		}
-	}
+        public override string GetTrackPath()
+        {
+            return "Tracks/GHDrums";
+        }
+    }
 }

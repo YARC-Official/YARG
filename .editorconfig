@@ -1,26 +1,142 @@
 [*.{cs,vb}]
 
-# IDE0044: Add readonly modifier
-dotnet_diagnostic.IDE0044.severity = none
-# IDE0051: Remove unused private members
-dotnet_diagnostic.IDE0051.severity = none
-# IDE0060: Remove unused parameters
-dotnet_diagnostic.IDE0060.severity = silent
-# IDE0017: Use object initializers
-dotnet_diagnostic.IDE0017.severity = none
-# IDE0001: Name can be simplified
-dotnet_diagnostic.IDE0001.severity = suggestion
+# IDE0044: Add readonly modifier (Not needed on Unity serialized fields)
+dotnet_diagnostic.ide0044.severity = none
 # IDE0031: Null check can be simplified (Unity is stupid)
-dotnet_diagnostic.IDE0031.severity = silent
+dotnet_diagnostic.ide0031.severity = silent
 
-# Formatting
-indent_style = tab
-csharp_new_line_before_open_brace = none
-csharp_new_line_before_else = false
-csharp_new_line_before_catch = false
-csharp_new_line_before_finally = false
-csharp_new_line_before_members_in_object_initializers = false
-csharp_new_line_before_members_in_anonymous_types = false
-csharp_new_line_between_query_expression_clauses = false
+# Microsoft .NET properties
+csharp_preferred_modifier_order = public, private, protected, internal, file, new, static, abstract, virtual, sealed, readonly, override, extern, unsafe, volatile, async, required:suggestion
 csharp_space_after_cast = true
-csharp_space_around_declaration_statements = ignore
+csharp_style_prefer_utf8_string_literals = true:suggestion
+csharp_style_var_elsewhere = false:none
+csharp_style_var_for_built_in_types = false:none
+dotnet_naming_rule.constants_rule.import_to_resharper = as_predefined
+dotnet_naming_rule.constants_rule.severity = warning
+dotnet_naming_rule.constants_rule.style = all_upper_style
+dotnet_naming_rule.constants_rule.symbols = constants_symbols
+dotnet_naming_rule.private_constants_rule.import_to_resharper = as_predefined
+dotnet_naming_rule.private_constants_rule.severity = warning
+dotnet_naming_rule.private_constants_rule.style = all_upper_style
+dotnet_naming_rule.private_constants_rule.symbols = private_constants_symbols
+dotnet_naming_style.all_upper_style.capitalization = all_upper
+dotnet_naming_style.all_upper_style.word_separator = _
+dotnet_naming_symbols.constants_symbols.applicable_accessibilities = public,internal,protected,protected_internal,private_protected
+dotnet_naming_symbols.constants_symbols.applicable_kinds = field
+dotnet_naming_symbols.constants_symbols.required_modifiers = const
+dotnet_naming_symbols.private_constants_symbols.applicable_accessibilities = private
+dotnet_naming_symbols.private_constants_symbols.applicable_kinds = field
+dotnet_naming_symbols.private_constants_symbols.required_modifiers = const
+dotnet_style_parentheses_in_arithmetic_binary_operators = never_if_unnecessary:none
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:none
+dotnet_style_parentheses_in_relational_binary_operators = never_if_unnecessary:none
+dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
+dotnet_style_predefined_type_for_member_access = true:suggestion
+dotnet_style_qualification_for_event = false:suggestion
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_method = false:suggestion
+dotnet_style_qualification_for_property = false:suggestion
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:suggestion
+
+# ReSharper properties
+resharper_align_multiline_binary_expressions_chain = false
+resharper_align_multiline_statement_conditions = false
+resharper_apply_auto_detected_rules = false
+resharper_autodetect_indent_settings = true
+resharper_braces_for_for = required_for_multiline_statement
+resharper_braces_for_foreach = required_for_multiline_statement
+resharper_braces_for_ifelse = required_for_multiline_statement
+resharper_braces_for_while = required_for_multiline_statement
+resharper_csharp_int_align_comments = true
+resharper_csharp_keep_blank_lines_in_code = 1
+resharper_csharp_keep_blank_lines_in_declarations = 1
+resharper_formatter_off_tag = @formatter:off
+resharper_formatter_on_tag = @formatter:on
+resharper_formatter_tags_enabled = true
+resharper_for_built_in_types = use_var_when_evident
+resharper_indent_preprocessor_directives = normal
+resharper_int_align_nested_ternary = true
+resharper_int_align_switch_expressions = true
+resharper_int_align_switch_sections = true
+resharper_keep_existing_embedded_arrangement = false
+resharper_keep_existing_expr_member_arrangement = false
+resharper_keep_existing_initializer_arrangement = false
+resharper_keep_existing_switch_expression_arrangement = false
+resharper_max_enum_members_on_line = 1
+resharper_method_or_operator_body = expression_body
+resharper_place_accessorholder_attribute_on_same_line = false
+resharper_place_accessor_attribute_on_same_line = false
+resharper_place_field_attribute_on_same_line = false
+resharper_place_record_field_attribute_on_same_line = true
+resharper_place_simple_initializer_on_single_line = false
+resharper_show_autodetect_configure_formatting_tip = false
+resharper_trailing_comma_in_multiline_lists = true
+resharper_use_indent_from_vs = false
+
+# ReSharper inspection severities
+resharper_arrange_attributes_highlighting = hint
+resharper_arrange_constructor_or_destructor_body_highlighting = hint
+resharper_arrange_redundant_parentheses_highlighting = hint
+resharper_arrange_this_qualifier_highlighting = hint
+resharper_arrange_trailing_comma_in_multiline_lists_highlighting = none
+resharper_arrange_type_member_modifiers_highlighting = hint
+resharper_arrange_type_modifiers_highlighting = hint
+resharper_built_in_type_reference_style_for_member_access_highlighting = hint
+resharper_built_in_type_reference_style_highlighting = hint
+resharper_convert_if_statement_to_conditional_ternary_expression_highlighting = none
+resharper_convert_if_statement_to_return_statement_highlighting = none
+resharper_convert_if_statement_to_switch_statement_highlighting = none
+resharper_enforce_do_while_statement_braces_highlighting = hint
+resharper_enforce_fixed_statement_braces_highlighting = hint
+resharper_enforce_foreach_statement_braces_highlighting = hint
+resharper_enforce_for_statement_braces_highlighting = hint
+resharper_enforce_if_statement_braces_highlighting = hint
+resharper_enforce_lock_statement_braces_highlighting = hint
+resharper_enforce_using_statement_braces_highlighting = hint
+resharper_enforce_while_statement_braces_highlighting = hint
+resharper_field_can_be_made_read_only_global_highlighting = none
+resharper_foreach_can_be_partly_converted_to_query_using_another_get_enumerator_highlighting = none
+resharper_local_variable_hides_member_highlighting = none
+resharper_member_can_be_private_global_highlighting = hint
+resharper_member_hides_static_from_outer_class_highlighting = none
+resharper_parameter_hides_member_highlighting = hint
+resharper_redundant_base_qualifier_highlighting = warning
+resharper_suggest_var_or_type_elsewhere_highlighting = hint
+resharper_suggest_var_or_type_simple_types_highlighting = hint
+resharper_unity_incorrect_method_signature_highlighting = none
+resharper_web_config_module_not_resolved_highlighting = warning
+resharper_web_config_type_not_resolved_highlighting = warning
+resharper_web_config_wrong_module_highlighting = warning
+
+[*]
+charset = utf-8-bom
+end_of_line = crlf
+trim_trailing_whitespace = true
+insert_final_newline = false
+indent_style = space
+indent_size = 4
+
+[{*.har,*.jsb2,*.jsb3,*.json,.babelrc,.eslintrc,.stylelintrc,bowerrc,jest.config}]
+indent_style = tab
+tab_width = 4
+
+[{*.yaml,*.yml}]
+indent_style = space
+indent_size = 2
+
+[*.asmdef]
+indent_style = tab
+tab_width = 4
+
+[*.asmref]
+indent_style = tab
+tab_width = 4
+
+[*.inputactions]
+indent_style = tab
+tab_width = 4
+
+[*.{appxmanifest,asax,ascx,aspx,axaml,build,c,c++,cc,cginc,compute,cp,cpp,cs,cshtml,cu,cuh,cxx,dtd,fs,fsi,fsscript,fsx,fx,fxh,h,hh,hlsl,hlsli,hlslinc,hpp,hxx,inc,inl,ino,ipp,ixx,master,ml,mli,mpp,mq4,mq5,mqh,nuspec,paml,razor,resw,resx,shader,skin,tpp,usf,ush,vb,xaml,xamlx,xoml,xsd}]
+indent_style = space
+indent_size = 4
+tab_width = 4

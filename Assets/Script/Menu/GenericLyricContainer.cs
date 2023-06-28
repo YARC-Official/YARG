@@ -5,87 +5,106 @@ using YARG.Data;
 using YARG.PlayMode;
 using YARG.Settings;
 
-namespace YARG.UI {
-	public class GenericLyricContainer : MonoBehaviour {
-		private static List<GenericLyricInfo> LyricInfos => Play.Instance.chart.genericLyrics;
+namespace YARG.UI
+{
+    public class GenericLyricContainer : MonoBehaviour
+    {
+        private static List<GenericLyricInfo> LyricInfos => Play.Instance.chart.genericLyrics;
 
-		[SerializeField]
-		private TextMeshProUGUI _lyricText;
+        [SerializeField]
+        private TextMeshProUGUI _lyricText;
 
-		[Space]
-		[SerializeField]
-		private GameObject _normalBackground;
-		[SerializeField]
-		private GameObject _transparentBackground;
+        [Space]
+        [SerializeField]
+        private GameObject _normalBackground;
 
-		private int _lyricIndex;
-		private int _lyricPhraseIndex;
+        [SerializeField]
+        private GameObject _transparentBackground;
 
-		private void Start() {
-			_lyricText.text = string.Empty;
+        private int _lyricIndex;
+        private int _lyricPhraseIndex;
 
-			// Set proper background
-			switch (SettingsManager.Settings.LyricBackground.Data) {
-				case "Normal":
-					_normalBackground.SetActive(true);
-					_transparentBackground.SetActive(false);
-					break;
-				case "Transparent":
-					_normalBackground.SetActive(false);
-					_transparentBackground.SetActive(true);
-					break;
-				case "None":
-					_normalBackground.SetActive(false);
-					_transparentBackground.SetActive(false);
-					break;
-			}
+        private void Start()
+        {
+            _lyricText.text = string.Empty;
 
-			// Temporary
-			bool playingVocals = false;
-			foreach (var player in PlayerManager.players) {
-				if (player.chosenInstrument is "vocals" or "harmVocals") {
-					playingVocals = true;
-				}
-			}
+            // Set proper background
+            switch (SettingsManager.Settings.LyricBackground.Data)
+            {
+                case "Normal":
+                    _normalBackground.SetActive(true);
+                    _transparentBackground.SetActive(false);
+                    break;
+                case "Transparent":
+                    _normalBackground.SetActive(false);
+                    _transparentBackground.SetActive(true);
+                    break;
+                case "None":
+                    _normalBackground.SetActive(false);
+                    _transparentBackground.SetActive(false);
+                    break;
+            }
 
-			// Disable if there are no lyrics or someone is singing
-			if (LyricInfos.Count <= 0 || playingVocals) {
-				gameObject.SetActive(false);
-			}
-		}
+            // Temporary
+            bool playingVocals = false;
+            foreach (var player in PlayerManager.players)
+            {
+                if (player.chosenInstrument is "vocals" or "harmVocals")
+                {
+                    playingVocals = true;
+                }
+            }
 
-		private void Update() {
-			if (_lyricIndex >= LyricInfos.Count) {
-				return;
-			}
+            // Disable if there are no lyrics or someone is singing
+            if (LyricInfos.Count <= 0 || playingVocals)
+            {
+                gameObject.SetActive(false);
+            }
+        }
 
-			var lyric = LyricInfos[_lyricIndex];
-			if (_lyricPhraseIndex >= lyric.lyric.Count && lyric.EndTime < Play.Instance.SongTime) {
-				// Clear phrase
-				_lyricText.text = string.Empty;
+        private void Update()
+        {
+            if (_lyricIndex >= LyricInfos.Count)
+            {
+                return;
+            }
 
-				_lyricPhraseIndex = 0;
-				_lyricIndex++;
-			} else if (_lyricPhraseIndex < lyric.lyric.Count && lyric.lyric[_lyricPhraseIndex].time < Play.Instance.SongTime) {
-				// Consolidate lyrics
-				string o = "<color=#5CB9FF>";
-				for (int i = 0; i < lyric.lyric.Count; i++) {
-					(_, string str) = lyric.lyric[i];
+            var lyric = LyricInfos[_lyricIndex];
+            if (_lyricPhraseIndex >= lyric.lyric.Count && lyric.EndTime < Play.Instance.SongTime)
+            {
+                // Clear phrase
+                _lyricText.text = string.Empty;
 
-					if (str.EndsWith("-")) {
-						o += str[..^1].Replace("=", "-");
-					} else {
-						o += str.Replace("=", "-") + " ";
-					}
+                _lyricPhraseIndex = 0;
+                _lyricIndex++;
+            }
+            else if (_lyricPhraseIndex < lyric.lyric.Count &&
+                lyric.lyric[_lyricPhraseIndex].time < Play.Instance.SongTime)
+            {
+                // Consolidate lyrics
+                string o = "<color=#5CB9FF>";
+                for (int i = 0; i < lyric.lyric.Count; i++)
+                {
+                    (_, string str) = lyric.lyric[i];
 
-					if (i + 1 > _lyricPhraseIndex) {
-						o += "</color>";
-					}
-				}
+                    if (str.EndsWith("-"))
+                    {
+                        o += str[..^1].Replace("=", "-");
+                    }
+                    else
+                    {
+                        o += str.Replace("=", "-") + " ";
+                    }
 
-				_lyricText.text = o;
-				_lyricPhraseIndex++;
-			}
-		}
-	}
+                    if (i + 1 > _lyricPhraseIndex)
+                    {
+                        o += "</color>";
+                    }
+                }
+
+                _lyricText.text = o;
+                _lyricPhraseIndex++;
+            }
+        }
+    }
 }

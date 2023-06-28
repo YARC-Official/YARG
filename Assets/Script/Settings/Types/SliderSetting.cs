@@ -1,37 +1,44 @@
 using System;
 using UnityEngine;
 
-namespace YARG.Settings.Types {
-	public class SliderSetting : AbstractSetting<float> {
-		private float _data;
-		public override float Data {
-			get => _data;
-			set {
-				_data = Mathf.Clamp(value, Min, Max);
-				base.Data = value;
-			}
-		}
+namespace YARG.Settings.Types
+{
+    public class SliderSetting : AbstractSetting<float>
+    {
+        private float _data;
 
-		public override string AddressableName => "Setting/Slider";
+        public override float Data
+        {
+            get => _data;
+            set
+            {
+                _data = Mathf.Clamp(value, Min, Max);
+                base.Data = value;
+            }
+        }
 
-		public float Min { get; private set; }
-		public float Max { get; private set; }
+        public override string AddressableName => "Setting/Slider";
 
-		public SliderSetting(float value, float min = float.NegativeInfinity, float max = float.PositiveInfinity,
-			Action<float> onChange = null) : base(onChange) {
+        public float Min { get; private set; }
+        public float Max { get; private set; }
 
-			Min = min;
-			Max = max;
+        public SliderSetting(float value, float min = float.NegativeInfinity, float max = float.PositiveInfinity,
+            Action<float> onChange = null) : base(onChange)
+        {
+            Min = min;
+            Max = max;
 
-			_data = value;
-		}
+            _data = value;
+        }
 
-		public override bool IsSettingDataEqual(object obj) {
-			if (obj is not float other) {
-				return false;
-			}
+        public override bool IsSettingDataEqual(object obj)
+        {
+            if (obj is not float other)
+            {
+                return false;
+            }
 
-			return Mathf.Approximately(other, Data);
-		}
-	}
+            return Mathf.Approximately(other, Data);
+        }
+    }
 }

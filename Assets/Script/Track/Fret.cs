@@ -2,103 +2,117 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using YARG.Util;
 
-namespace YARG.PlayMode {
-	public class Fret : MonoBehaviour {
-		[SerializeField]
-		private bool _fadeOut;
+namespace YARG.PlayMode
+{
+    public class Fret : MonoBehaviour
+    {
+        [SerializeField]
+        private bool _fadeOut;
 
-		[SerializeField]
-		private ParticleGroup _hitParticles;
-		[SerializeField]
-		private ParticleGroup _sustainParticles;
+        [SerializeField]
+        private ParticleGroup _hitParticles;
 
-		[SerializeField]
-		private Animation _animation;
+        [SerializeField]
+        private ParticleGroup _sustainParticles;
 
-		[SerializeField]
-		private MeshRenderer _meshRenderer;
+        [SerializeField]
+        private Animation _animation;
 
-		[SerializeField]
-		private int _topMaterialIndex;
-		[SerializeField]
-		private int _innerMaterialIndex;
+        [SerializeField]
+        private MeshRenderer _meshRenderer;
 
-		/// <value>
-		/// Whether or not the fret is pressed. Used for data purposes.
-		/// </value>
-		public bool IsPressed {
-			get;
-			private set;
-		}
+        [SerializeField]
+        private int _topMaterialIndex;
 
-		public void SetColor(Color top, Color inner, Color particles) {
-			_meshRenderer.materials[_topMaterialIndex].color = top;
-			_meshRenderer.materials[_topMaterialIndex].SetColor("_EmissionColor", top * 11.5f);
-			_meshRenderer.materials[_innerMaterialIndex].color = inner;
+        [SerializeField]
+        private int _innerMaterialIndex;
 
-			_hitParticles.Colorize(particles);
-			_sustainParticles.Colorize(particles);
-		}
+        /// <value>
+        /// Whether or not the fret is pressed. Used for data purposes.
+        /// </value>
+        public bool IsPressed { get; private set; }
 
-		public void SetPressed(bool pressed) {
-			_meshRenderer.materials[_innerMaterialIndex].SetFloat("Fade", pressed ? 1f : 0f);
+        public void SetColor(Color top, Color inner, Color particles)
+        {
+            _meshRenderer.materials[_topMaterialIndex].color = top;
+            _meshRenderer.materials[_topMaterialIndex].SetColor("_EmissionColor", top * 11.5f);
+            _meshRenderer.materials[_innerMaterialIndex].color = inner;
 
-			IsPressed = pressed;
-		}
+            _hitParticles.Colorize(particles);
+            _sustainParticles.Colorize(particles);
+        }
 
-		public void Pulse() {
-			_meshRenderer.materials[_innerMaterialIndex].SetFloat("Fade", 1f);
-		}
+        public void SetPressed(bool pressed)
+        {
+            _meshRenderer.materials[_innerMaterialIndex].SetFloat("Fade", pressed ? 1f : 0f);
 
-		private void Update() {
-			if (!_fadeOut) {
-				return;
-			}
+            IsPressed = pressed;
+        }
 
-			var mat = _meshRenderer.materials[_innerMaterialIndex];
-			float fade = mat.GetFloat("Fade") - Time.deltaTime * 4f;
-			mat.SetFloat("Fade", Mathf.Max(fade, 0f));
-		}
+        public void Pulse()
+        {
+            _meshRenderer.materials[_innerMaterialIndex].SetFloat("Fade", 1f);
+        }
 
-		public void PlayParticles() {
-			_hitParticles.Play();
-		}
+        private void Update()
+        {
+            if (!_fadeOut)
+            {
+                return;
+            }
 
-		public void PlaySustainParticles() {
-			_sustainParticles.Play();
-		}
+            var mat = _meshRenderer.materials[_innerMaterialIndex];
+            float fade = mat.GetFloat("Fade") - Time.deltaTime * 4f;
+            mat.SetFloat("Fade", Mathf.Max(fade, 0f));
+        }
 
-		public void PlayAnimation() {
-			StopAnimation();
+        public void PlayParticles()
+        {
+            _hitParticles.Play();
+        }
 
-			_animation.Play("FretsGuitar");
-		}
+        public void PlaySustainParticles()
+        {
+            _sustainParticles.Play();
+        }
 
-		public void PlayAnimationDrums() {
-			StopAnimation();
+        public void PlayAnimation()
+        {
+            StopAnimation();
 
-			_animation.Play("FretsDrums");
-		}
+            _animation.Play("FretsGuitar");
+        }
 
-		public void PlayAnimationDrumsHighBounce() {
-			StopAnimation();
+        public void PlayAnimationDrums()
+        {
+            StopAnimation();
 
-			_animation.Play("FretsDrumsHighBounce");
-		}
+            _animation.Play("FretsDrums");
+        }
 
-		public void PlayAnimationSustainsLooped() {
-			StopAnimation();
+        public void PlayAnimationDrumsHighBounce()
+        {
+            StopAnimation();
 
-			_animation.Play("FretsGuitarSustains");
-		}
+            _animation.Play("FretsDrumsHighBounce");
+        }
 
-		public void StopAnimation() {
-			_animation.Stop();
-			_animation.Rewind();
-		}
+        public void PlayAnimationSustainsLooped()
+        {
+            StopAnimation();
 
-		public void StopSustainParticles() {
-			_sustainParticles.Stop();
-		}
-	}
+            _animation.Play("FretsGuitarSustains");
+        }
+
+        public void StopAnimation()
+        {
+            _animation.Stop();
+            _animation.Rewind();
+        }
+
+        public void StopSustainParticles()
+        {
+            _sustainParticles.Stop();
+        }
+    }
 }

@@ -1,116 +1,145 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace YARG.Util {
-	public class ParticleGroup : MonoBehaviour {
-		public bool keepAlpha = true;
+namespace YARG.Util
+{
+    public class ParticleGroup : MonoBehaviour
+    {
+        public bool keepAlpha = true;
 
-		[SerializeField]
-		private ParticleSystem[] colorParticles;
-		[SerializeField]
-		private Light[] colorLights;
-		[SerializeField]
-		private ParticleSystem[] emissionParticles;
+        [SerializeField]
+        private ParticleSystem[] colorParticles;
 
-		private ParticleSystem[] particles;
-		private FadeLight[] fadeLights;
-		private Light[] normalLights;
+        [SerializeField]
+        private Light[] colorLights;
 
-		private void Awake() {
-			particles = GetComponentsInChildren<ParticleSystem>();
+        [SerializeField]
+        private ParticleSystem[] emissionParticles;
 
-			List<FadeLight> fadeLightsList = new();
-			List<Light> normalLightsList = new();
-			foreach (var light in GetComponentsInChildren<Light>()) {
-				var fadeLight = light.GetComponent<FadeLight>();
-				if (fadeLight != null) {
-					fadeLightsList.Add(fadeLight);
-				} else {
-					normalLightsList.Add(light);
-					light.enabled = false;
-				}
-			}
+        private ParticleSystem[] particles;
+        private FadeLight[] fadeLights;
+        private Light[] normalLights;
 
-			fadeLights = fadeLightsList.ToArray();
-			normalLights = normalLightsList.ToArray();
-		}
+        private void Awake()
+        {
+            particles = GetComponentsInChildren<ParticleSystem>();
 
-		public void Colorize(Color color) {
-			// Set colors of particles
-			foreach (var ps in colorParticles) {
-				var m = ps.main;
+            List<FadeLight> fadeLightsList = new();
+            List<Light> normalLightsList = new();
+            foreach (var light in GetComponentsInChildren<Light>())
+            {
+                var fadeLight = light.GetComponent<FadeLight>();
+                if (fadeLight != null)
+                {
+                    fadeLightsList.Add(fadeLight);
+                }
+                else
+                {
+                    normalLightsList.Add(light);
+                    light.enabled = false;
+                }
+            }
 
-				var c = color;
-				if (keepAlpha) {
-					c.a = m.startColor.color.a;
-				}
+            fadeLights = fadeLightsList.ToArray();
+            normalLights = normalLightsList.ToArray();
+        }
 
-				m.startColor = c;
-			}
+        public void Colorize(Color color)
+        {
+            // Set colors of particles
+            foreach (var ps in colorParticles)
+            {
+                var m = ps.main;
 
-			foreach (var ps in emissionParticles) {
-				var material = ps.GetComponent<ParticleSystemRenderer>().material;
-				material.color = color;
-				material.SetColor("_EmissionColor", color * 35f);
-			}
+                var c = color;
+                if (keepAlpha)
+                {
+                    c.a = m.startColor.color.a;
+                }
 
-			// Set colors of lights
-			foreach (var light in colorLights) {
-				light.color = color;
-			}
-		}
+                m.startColor = c;
+            }
 
-		public void SetStartSpeed(float speed) {
-			foreach (var particle in particles) {
-				var main = particle.main;
-				main.startSpeed = speed;
-			}
-		}
+            foreach (var ps in emissionParticles)
+            {
+                var material = ps.GetComponent<ParticleSystemRenderer>().material;
+                material.color = color;
+                material.SetColor("_EmissionColor", color * 35f);
+            }
 
-		public void SetStartLifetime(float lifetime) {
-			foreach (var particle in particles) {
-				var main = particle.main;
-				main.startLifetime = lifetime;
-			}
-		}
+            // Set colors of lights
+            foreach (var light in colorLights)
+            {
+                light.color = color;
+            }
+        }
 
-		public void SetEmissionRate(float rate) {
-			foreach (var particle in particles) {
-				var e = particle.emission;
-				e.rateOverTime = rate;
-			}
-		}
+        public void SetStartSpeed(float speed)
+        {
+            foreach (var particle in particles)
+            {
+                var main = particle.main;
+                main.startSpeed = speed;
+            }
+        }
 
-		public void Play(float speed = 4.0f) {
-			foreach (var particle in particles) {
-				if (particle.main.loop && particle.isEmitting) {
-					continue;
-				}
+        public void SetStartLifetime(float lifetime)
+        {
+            foreach (var particle in particles)
+            {
+                var main = particle.main;
+                main.startLifetime = lifetime;
+            }
+        }
 
-				particle.Play();
-			}
+        public void SetEmissionRate(float rate)
+        {
+            foreach (var particle in particles)
+            {
+                var e = particle.emission;
+                e.rateOverTime = rate;
+            }
+        }
 
-			foreach (var fadeLight in fadeLights) {
-				fadeLight.Play();
-			}
+        public void Play(float speed = 4.0f)
+        {
+            foreach (var particle in particles)
+            {
+                if (particle.main.loop && particle.isEmitting)
+                {
+                    continue;
+                }
 
-			foreach (var light in normalLights) {
-				light.enabled = true;
-			}
-		}
+                particle.Play();
+            }
 
-		public void Stop() {
-			foreach (var particle in particles) {
-				if (particle.main.loop && !particle.isEmitting) {
-					continue;
-				}
+            foreach (var fadeLight in fadeLights)
+            {
+                fadeLight.Play();
+            }
 
-				particle.Stop();
-			}
+            foreach (var light in normalLights)
+            {
+                light.enabled = true;
+            }
+        }
 
-			foreach (var light in normalLights) {
-				light.enabled = false;
-			}
-		}
-	}
+        public void Stop()
+        {
+            foreach (var particle in particles)
+            {
+                if (particle.main.loop && !particle.isEmitting)
+                {
+                    continue;
+                }
+
+                particle.Stop();
+            }
+
+            foreach (var light in normalLights)
+            {
+                light.enabled = false;
+            }
+        }
+    }
 }

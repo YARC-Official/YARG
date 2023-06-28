@@ -17,135 +17,153 @@ using Random = UnityEngine.Random;
 using System.Threading;
 using YARG.Settings;
 
-namespace YARG.UI.MusicLibrary {
-	public class RecommendedSongs {
+namespace YARG.UI.MusicLibrary
+{
+    public class RecommendedSongs
+    {
+        private readonly static RecommendedSongs _instance = new RecommendedSongs();
 
-		private readonly static RecommendedSongs _instance = new RecommendedSongs();
+        private static readonly int TRIES = 10;
 
-		private static readonly int TRIES = 10;
+        public static RecommendedSongs Instance
+        {
+            get { return _instance; }
+        }
 
-		public static RecommendedSongs Instance {
-			get
-			{
-				return _instance;
-			}
-		}
+        private List<SongEntry> _recommendedSongs;
 
-		private List<SongEntry> _recommendedSongs;
+        public List<SongEntry> GetRecommendedSongs()
+        {
+            _recommendedSongs = new();
 
-		public List<SongEntry> GetRecommendedSongs() {
-			_recommendedSongs = new();
+            AddMostPlayedSongs();
+            AddRandomSong();
+            return GetReversedRecommendedSongs();
+        }
 
-			AddMostPlayedSongs();
-			AddRandomSong();
-			return GetReversedRecommendedSongs();
-		}
+        private void AddMostPlayedSongs()
+        {
+            var mostPlayed = GetMostPlayedSongs();
 
-		private void AddMostPlayedSongs() {
-			var mostPlayed = GetMostPlayedSongs();
+            if (mostPlayed.Count <= 0)
+            {
+                return;
+            }
 
-			if(mostPlayed.Count <= 0) {
-				return;
-			}
+            AddTwoTopTenMostPlayedSongs(mostPlayed);
+            AddTwoRandomSongsMostPlayedArtists(mostPlayed);
+        }
 
-			AddTwoTopTenMostPlayedSongs(mostPlayed);
-			AddTwoRandomSongsMostPlayedArtists(mostPlayed);
-		}
+        private List<SongEntry> GetMostPlayedSongs()
+        {
+            return ScoreManager.SongsByPlayCount().Take(10).ToList();
+        }
 
-		private List<SongEntry> GetMostPlayedSongs() {
-			return ScoreManager.SongsByPlayCount().Take(10).ToList();
-		}
+        private void AddTwoTopTenMostPlayedSongs(List<SongEntry> songs)
+        {
+            var count = songs.Count;
 
-		private void AddTwoTopTenMostPlayedSongs(List<SongEntry> songs) {
-			var count = songs.Count;
+            // Add two random top ten most played songs (ten tries each)
+            for (int i = 0; i < 2; i++)
+            {
+                for (int t = 0; t < TRIES; t++)
+                {
+                    int n = Random.Range(0, count);
+                    var song = songs[n];
 
-			// Add two random top ten most played songs (ten tries each)
-			for (int i = 0; i < 2; i++) {
-				for (int t = 0; t < TRIES; t++) {
+                    if (_recommendedSongs.Contains(song))
+                    {
+                        continue;
+                    }
 
-					int n = Random.Range(0, count);
-					var song = songs[n];
+                    _recommendedSongs.Add(song);
+                    break;
+                }
+            }
+        }
 
-					if (_recommendedSongs.Contains(song)) {
-						continue;
-					}
+        private void AddTwoRandomSongsMostPlayedArtists(List<SongEntry> songs)
+        {
+            // Add two random songs from artists that are in the most played (ten tries each)
+            for (int i = 0; i < 2; i++)
+            {
+                for (int t = 0; t < TRIES; t++)
+                {
+                    var sameArtistSongs = GetAllSongsFromSameArtist(songs);
 
-					_recommendedSongs.Add(song);
-					break;
-				}
-			}
-		}
+                    if (sameArtistSongs.Count <= 1)
+                    {
+                        continue;
+                    }
 
-		private void AddTwoRandomSongsMostPlayedArtists(List<SongEntry> songs) {
-			// Add two random songs from artists that are in the most played (ten tries each)
-			for (int i = 0; i < 2; i++) {
-				for (int t = 0; t < TRIES; t++) {
-					var sameArtistSongs = GetAllSongsFromSameArtist(songs);
+                    // Pick
+                    var count = sameArtistSongs.Count;
+                    var n = Random.Range(0, count);
+                    var song = sameArtistSongs[n];
 
-					if (sameArtistSongs.Count <= 1) {
-						continue;
-					}
+                    // Skip if included in most played songs
+                    if (songs.Contains(song))
+                    {
+                        continue;
+                    }
 
-					// Pick
-					var count = sameArtistSongs.Count;
-					var n = Random.Range(0, count);
-					var song = sameArtistSongs[n];
+                    // Skip if already included in recommendedSongs
+                    if (_recommendedSongs.Contains(song))
+                    {
+                        continue;
+                    }
 
-					// Skip if included in most played songs
-					if (songs.Contains(song)) {
-						continue;
-					}
+                    // Add
+                    _recommendedSongs.Add(song);
+                    break;
+                }
+            }
+        }
 
-					// Skip if already included in recommendedSongs
-					if (_recommendedSongs.Contains(song)) {
-						continue;
-					}
+        private List<SongEntry> GetAllSongsFromSameArtist(List<SongEntry> songs)
+        {
+            var count = songs.Count;
+            int n = Random.Range(0, count);
+            var baseSong = songs[n];
+            var artist = baseSong.Artist;
 
-					// Add
-					_recommendedSongs.Add(song);
-					break;
-				}
-			}
-		}
+            return SongContainer.Songs
+                .Where(i => RemoveDiacriticsAndArticle(i.Artist) == RemoveDiacriticsAndArticle(artist))
+                .ToList();
+        }
 
-		private List<SongEntry> GetAllSongsFromSameArtist(List<SongEntry> songs){
-			var count = songs.Count;
-			int n = Random.Range(0, count);
-			var baseSong = songs[n];
-			var artist = baseSong.Artist;
+        private string RemoveDiacriticsAndArticle(string value)
+        {
+            return SongSearching.RemoveDiacriticsAndArticle(value);
+        }
 
-			return SongContainer.Songs
-				.Where(i => RemoveDiacriticsAndArticle(i.Artist) == RemoveDiacriticsAndArticle(artist))
-				.ToList();
-		}
+        private void AddRandomSong()
+        {
+            var songs = SongContainer.Songs;
+            var count = songs.Count;
 
-		private string RemoveDiacriticsAndArticle(string value){
-			return SongSearching.RemoveDiacriticsAndArticle(value);
-		}
+            // Add a completely random song (ten tries)
+            for (int t = 0; t < TRIES; t++)
+            {
+                int n = Random.Range(0, count);
 
-		private void AddRandomSong() {
-			var songs = SongContainer.Songs;
-			var count = songs.Count;
+                var song = songs[n];
 
-			// Add a completely random song (ten tries)
-			for (int t = 0; t < TRIES; t++) {
-				int n = Random.Range(0, count);
+                if (_recommendedSongs.Contains(song))
+                {
+                    continue;
+                }
 
-				var song = songs[n];
+                _recommendedSongs.Add(song);
+                break;
+            }
+        }
 
-				if (_recommendedSongs.Contains(song)) {
-					continue;
-				}
-
-				_recommendedSongs.Add(song);
-				break;
-			}
-		}
-
-		private List<SongEntry> GetReversedRecommendedSongs(){
-			// Reverse list because we add it backwards
-			_recommendedSongs.Reverse();
-			return _recommendedSongs;
-		}
-	}
+        private List<SongEntry> GetReversedRecommendedSongs()
+        {
+            // Reverse list because we add it backwards
+            _recommendedSongs.Reverse();
+            return _recommendedSongs;
+        }
+    }
 }

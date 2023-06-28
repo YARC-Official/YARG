@@ -1,37 +1,47 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace YARG.Settings.Types {
-	public class DropdownSetting : AbstractSetting<string> {
-		private string _data;
-		public override string Data {
-			get => _data;
-			set {
-				_data = value;
-				base.Data = value;
-			}
-		}
+namespace YARG.Settings.Types
+{
+    public class DropdownSetting : AbstractSetting<string>
+    {
+        private string _data;
 
-		public override string AddressableName => "Setting/Dropdown";
+        public override string Data
+        {
+            get => _data;
+            set
+            {
+                _data = value;
+                base.Data = value;
+            }
+        }
 
-		private readonly List<string> _possibleValues;
-		public IReadOnlyList<string> PossibleValues => _possibleValues;
+        public override string AddressableName => "Setting/Dropdown";
 
-		public DropdownSetting(List<string> possibleValues, string value, Action<string> onChange = null) : base(onChange) {
-			_possibleValues = possibleValues;
-			_data = value;
-		}
+        private readonly List<string> _possibleValues;
+        public IReadOnlyList<string> PossibleValues => _possibleValues;
 
-		public int IndexOfOption(string option) {
-			return _possibleValues.IndexOf(option);
-		}
+        public DropdownSetting(List<string> possibleValues, string value, Action<string> onChange = null) :
+            base(onChange)
+        {
+            _possibleValues = possibleValues;
+            _data = value;
+        }
 
-		public override bool IsSettingDataEqual(object obj) {
-			if (obj is not string other) {
-				return false;
-			}
+        public int IndexOfOption(string option)
+        {
+            return _possibleValues.IndexOf(option);
+        }
 
-			return other == Data;
-		}
-	}
+        public override bool IsSettingDataEqual(object obj)
+        {
+            if (obj is not string other)
+            {
+                return false;
+            }
+
+            return other == Data;
+        }
+    }
 }

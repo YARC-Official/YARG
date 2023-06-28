@@ -10,116 +10,151 @@ using YARG.Data;
 using YARG.Song;
 using YARG.Util;
 
-namespace YARG {
-	public static class ScoreManager {
-		/// <value>
-		/// The location of the score file.
-		/// </value>
-		public static string ScoreFile => Path.Combine(PathHelper.PersistentDataPath, "scores.json");
+namespace YARG
+{
+    public static class ScoreManager
+    {
+        /// <value>
+        /// The location of the score file.
+        /// </value>
+        public static string ScoreFile => Path.Combine(PathHelper.PersistentDataPath, "scores.json");
 
-		private static Dictionary<string, SongScore> scores = null;
+        private static Dictionary<string, SongScore> scores = null;
 
-		/// <summary>
-		/// Should be called before you access any scores.
-		/// </summary>
-		public static async UniTask FetchScores() {
-			if (scores != null) {
-				return;
-			}
+        /// <summary>
+        /// Should be called before you access any scores.
+        /// </summary>
+        public static async UniTask FetchScores()
+        {
+            if (scores != null)
+            {
+                return;
+            }
 
-			// Read from score file OR create new
-			try {
-				if (File.Exists(ScoreFile)) {
-					string json = await File.ReadAllTextAsync(ScoreFile);
-					scores = await Task.Run(() => JsonConvert.DeserializeObject<Dictionary<string, SongScore>>(json));
-				} else {
-					scores = new();
+            // Read from score file OR create new
+            try
+            {
+                if (File.Exists(ScoreFile))
+                {
+                    string json = await File.ReadAllTextAsync(ScoreFile);
+                    scores = await Task.Run(() => JsonConvert.DeserializeObject<Dictionary<string, SongScore>>(json));
+                }
+                else
+                {
+                    scores = new();
 
-					// Create a dummy score file if one doesn't exist.
-					Directory.CreateDirectory(new FileInfo(ScoreFile).DirectoryName);
-					File.WriteAllText(ScoreFile.ToString(), "{}");
-				}
-			} catch (System.Exception e) {
-				// If we fail to read the score file, so just create empty scores.
-				scores = new();
-				Debug.LogException(e);
-			}
-		}
+                    // Create a dummy score file if one doesn't exist.
+                    Directory.CreateDirectory(new FileInfo(ScoreFile).DirectoryName);
+                    File.WriteAllText(ScoreFile.ToString(), "{}");
+                }
+            }
+            catch (System.Exception e)
+            {
+                // If we fail to read the score file, so just create empty scores.
+                scores = new();
+                Debug.LogException(e);
+            }
+        }
 
-		public static void PushScore(SongEntry song, SongScore score) {
-			if (!scores.TryGetValue(song.Checksum, out var oldScore)) {
-				// If the score info doesn't exist, just add the new one.
-				scores.Add(song.Checksum, score);
-			} else {
-				// Otherwise, MERGE!
-				oldScore.lastPlayed = score.lastPlayed;
-				oldScore.timesPlayed += score.timesPlayed;
+        public static void PushScore(SongEntry song, SongScore score)
+        {
+            if (!scores.TryGetValue(song.Checksum, out var oldScore))
+            {
+                // If the score info doesn't exist, just add the new one.
+                scores.Add(song.Checksum, score);
+            }
+            else
+            {
+                // Otherwise, MERGE!
+                oldScore.lastPlayed = score.lastPlayed;
+                oldScore.timesPlayed += score.timesPlayed;
 
-				// Create a highestScore dictionary for backwards compatibility (if null)
-				oldScore.highestScore ??= new();
+                // Create a highestScore dictionary for backwards compatibility (if null)
+                oldScore.highestScore ??= new();
 
-				// Merge high scores
-				foreach (var kvp in score.highestPercent) { // percent
-					if (oldScore.highestPercent.TryGetValue(kvp.Key, out var old)) {
-						if (old < kvp.Value) {
-							oldScore.highestPercent[kvp.Key] = kvp.Value;
-						}
-					} else {
-						oldScore.highestPercent.Add(kvp.Key, kvp.Value);
-					}
-				}
-				foreach (var kvp in score.highestScore) { // score
-					if (oldScore.highestScore.TryGetValue(kvp.Key, out var old)) {
-						if (old < kvp.Value) {
-							oldScore.highestScore[kvp.Key] = kvp.Value;
-						}
-					} else {
-						oldScore.highestScore.Add(kvp.Key, kvp.Value);
-					}
-				}
-			}
+                // Merge high scores
+                foreach (var kvp in score.highestPercent)
+                {
+                    // percent
+                    if (oldScore.highestPercent.TryGetValue(kvp.Key, out var old))
+                    {
+                        if (old < kvp.Value)
+                        {
+                            oldScore.highestPercent[kvp.Key] = kvp.Value;
+                        }
+                    }
+                    else
+                    {
+                        oldScore.highestPercent.Add(kvp.Key, kvp.Value);
+                    }
+                }
 
-			// Save ASAP!
-			SaveScore();
-		}
+                foreach (var kvp in score.highestScore)
+                {
+                    // score
+                    if (oldScore.highestScore.TryGetValue(kvp.Key, out var old))
+                    {
+                        if (old < kvp.Value)
+                        {
+                            oldScore.highestScore[kvp.Key] = kvp.Value;
+                        }
+                    }
+                    else
+                    {
+                        oldScore.highestScore.Add(kvp.Key, kvp.Value);
+                    }
+                }
+            }
 
-		public static SongScore GetScore(SongEntry song) {
-			if (scores.TryGetValue(song.Checksum, out var o)) {
-				return o;
-			}
+            // Save ASAP!
+            SaveScore();
+        }
 
-			return null;
-		}
+        public static SongScore GetScore(SongEntry song)
+        {
+            if (scores.TryGetValue(song.Checksum, out var o))
+            {
+                return o;
+            }
 
-		public static void SaveScore() {
-			var scoreCopy = new Dictionary<string, SongScore>(scores);
+            return null;
+        }
 
-			// Prevent game lag by saving on another thread
-			ThreadPool.QueueUserWorkItem(_ => {
-				string json = JsonConvert.SerializeObject(scores);
-				File.WriteAllText(ScoreFile.ToString(), json);
-			});
-		}
+        public static void SaveScore()
+        {
+            var scoreCopy = new Dictionary<string, SongScore>(scores);
 
-		public static List<SongEntry> SongsByPlayCount() {
-			return scores
-				.OrderByDescending(i => i.Value.lastPlayed)
-				.Select(i => {
-					if (SongContainer.SongsByHash.TryGetValue(i.Key, out var song)) {
-						return song;
-					}
+            // Prevent game lag by saving on another thread
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                string json = JsonConvert.SerializeObject(scores);
+                File.WriteAllText(ScoreFile.ToString(), json);
+            });
+        }
 
-					return null;
-				})
-				.Where(i => i != null)
-				.ToList();
-		}
+        public static List<SongEntry> SongsByPlayCount()
+        {
+            return scores
+                .OrderByDescending(i => i.Value.lastPlayed)
+                .Select(i =>
+                {
+                    if (SongContainer.SongsByHash.TryGetValue(i.Key, out var song))
+                    {
+                        return song;
+                    }
 
-		/// <summary>
-		/// Force reset scores. This makes the game re-scan if needed.
-		/// </summary>
-		public static void Reset() {
-			scores = null;
-		}
-	}
+                    return null;
+                })
+                .Where(i => i != null)
+                .ToList();
+        }
+
+        /// <summary>
+        /// Force reset scores. This makes the game re-scan if needed.
+        /// </summary>
+        public static void Reset()
+        {
+            scores = null;
+        }
+    }
 }

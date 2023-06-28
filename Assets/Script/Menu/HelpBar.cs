@@ -3,68 +3,85 @@ using TMPro;
 using UnityEngine;
 using YARG.Input;
 
-namespace YARG.UI {
-	[DefaultExecutionOrder(-25)]
-	public class HelpBar : MonoBehaviour {
-		public static HelpBar Instance { get; private set; }
+namespace YARG.UI
+{
+    [DefaultExecutionOrder(-25)]
+    public class HelpBar : MonoBehaviour
+    {
+        public static HelpBar Instance { get; private set; }
 
-		[SerializeField]
-		private Transform _buttonContainer;
-		[SerializeField]
-		private TextMeshProUGUI _infoText;
+        [SerializeField]
+        private Transform _buttonContainer;
 
-		[Space]
-		[SerializeField]
-		private GameObject _buttonPrefab;
-		[field: SerializeField]
-		public MusicPlayer MusicPlayer { get; private set; }
+        [SerializeField]
+        private TextMeshProUGUI _infoText;
 
-		[Space]
-		[SerializeField]
-		private Color[] _menuActionColors;
+        [Space]
+        [SerializeField]
+        private GameObject _buttonPrefab;
 
-		private void Awake() {
-			Instance = this;
-		}
+        [field: SerializeField]
+        public MusicPlayer MusicPlayer { get; private set; }
 
-		private void ResetHelpbar() {
-			foreach (Transform button in _buttonContainer) {
-				Destroy(button.gameObject);
-			}
+        [Space]
+        [SerializeField]
+        private Color[] _menuActionColors;
 
-			_infoText.text = null;
-		}
+        private void Awake()
+        {
+            Instance = this;
+        }
 
-		public void SetInfoFromScheme(NavigationScheme scheme) {
-			ResetHelpbar();
+        private void ResetHelpbar()
+        {
+            foreach (Transform button in _buttonContainer)
+            {
+                Destroy(button.gameObject);
+            }
 
-			// Show/hide music player
-			if (GameManager.Instance.CurrentScene == SceneIndex.MENU) {
-				MusicPlayer.gameObject.SetActive(scheme.AllowsMusicPlayer);
-			} else {
-				MusicPlayer.gameObject.SetActive(false);
-			}
+            _infoText.text = null;
+        }
 
-			// Spawn all buttons
-			foreach (var entry in scheme.Entries) {
-				// Don't make buttons for up and down
-				if (entry.Type == MenuAction.Up || entry.Type == MenuAction.Down) {
-					continue;
-				}
+        public void SetInfoFromScheme(NavigationScheme scheme)
+        {
+            ResetHelpbar();
 
-				var go = Instantiate(_buttonPrefab, _buttonContainer);
-				go.GetComponent<HelpBarButton>().SetInfoFromSchemeEntry(entry, _menuActionColors[(int) entry.Type]);
-			}
+            // Show/hide music player
+            if (GameManager.Instance.CurrentScene == SceneIndex.MENU)
+            {
+                MusicPlayer.gameObject.SetActive(scheme.AllowsMusicPlayer);
+            }
+            else
+            {
+                MusicPlayer.gameObject.SetActive(false);
+            }
 
-			SetInfoText(String.Empty);
-		}
+            // Spawn all buttons
+            foreach (var entry in scheme.Entries)
+            {
+                // Don't make buttons for up and down
+                if (entry.Type == MenuAction.Up || entry.Type == MenuAction.Down)
+                {
+                    continue;
+                }
 
-		public void SetInfoText(string str) {
-			if (str == String.Empty && !MusicPlayer.gameObject.activeInHierarchy) {
-				_infoText.text = Constants.VERSION_TAG.ToString();
-			} else {
-				_infoText.text = str;
-			}
-		}
-	}
+                var go = Instantiate(_buttonPrefab, _buttonContainer);
+                go.GetComponent<HelpBarButton>().SetInfoFromSchemeEntry(entry, _menuActionColors[(int) entry.Type]);
+            }
+
+            SetInfoText(String.Empty);
+        }
+
+        public void SetInfoText(string str)
+        {
+            if (str == String.Empty && !MusicPlayer.gameObject.activeInHierarchy)
+            {
+                _infoText.text = Constants.VERSION_TAG.ToString();
+            }
+            else
+            {
+                _infoText.text = str;
+            }
+        }
+    }
 }

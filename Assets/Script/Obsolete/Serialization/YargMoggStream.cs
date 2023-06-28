@@ -1,120 +1,140 @@
 ﻿using System.IO;
 
-namespace YARG.Serialization {
-	public class YargMoggReadStream : Stream {
-		private readonly FileStream _fileStream;
+namespace YARG.Serialization
+{
+    public class YargMoggReadStream : Stream
+    {
+        private readonly FileStream _fileStream;
 
-		private readonly byte[] _baseEncryptionMatrix;
-		private readonly byte[] _encryptionMatrix;
-		private int             _currentRow;
+        private readonly byte[] _baseEncryptionMatrix;
+        private readonly byte[] _encryptionMatrix;
+        private int _currentRow;
 
-		public override bool CanRead  => _fileStream.CanRead;
-		public override bool CanSeek  => _fileStream.CanSeek;
-		public override long Length   => _fileStream.Length;
-		public override long Position {
-			get => _fileStream.Position;
-			set => _fileStream.Position = value;
-		}
+        public override bool CanRead => _fileStream.CanRead;
+        public override bool CanSeek => _fileStream.CanSeek;
+        public override long Length => _fileStream.Length;
 
-		public override bool CanWrite => false;
+        public override long Position
+        {
+            get => _fileStream.Position;
+            set => _fileStream.Position = value;
+        }
 
-		public YargMoggReadStream(string path) {
-			_fileStream = new FileStream(path, FileMode.Open, FileAccess.Read);
+        public override bool CanWrite => false;
 
-			// Get the encryption matrix
-			_baseEncryptionMatrix = _fileStream.ReadBytes(16);
-			for (int i = 0; i < 16; i++) {
-				_baseEncryptionMatrix[i] = (byte) Mod(_baseEncryptionMatrix[i] - i * 12, 255);
-			}
+        public YargMoggReadStream(string path)
+        {
+            _fileStream = new FileStream(path, FileMode.Open, FileAccess.Read);
 
-			_encryptionMatrix = new byte[16];
-			ResetEncryptionMatrix();
-		}
+            // Get the encryption matrix
+            _baseEncryptionMatrix = _fileStream.ReadBytes(16);
+            for (int i = 0; i < 16; i++)
+            {
+                _baseEncryptionMatrix[i] = (byte) Mod(_baseEncryptionMatrix[i] - i * 12, 255);
+            }
 
-		private void ResetEncryptionMatrix() {
-			_currentRow = 0;
-			for (int i = 0; i < 16; i++) {
-				_encryptionMatrix[i] = _baseEncryptionMatrix[i];
-			}
-		}
+            _encryptionMatrix = new byte[16];
+            ResetEncryptionMatrix();
+        }
 
-		private void RollEncryptionMatrix() {
-			int i = _currentRow;
-			_currentRow = Mod(_currentRow + 1, 4);
+        private void ResetEncryptionMatrix()
+        {
+            _currentRow = 0;
+            for (int i = 0; i < 16; i++)
+            {
+                _encryptionMatrix[i] = _baseEncryptionMatrix[i];
+            }
+        }
 
-			// Get the current and next matrix index
-			int currentIndex = GetIndexInMatrix(i, i * 4);
-			int nextIndex = GetIndexInMatrix(_currentRow, (i + 1) * 4);
+        private void RollEncryptionMatrix()
+        {
+            int i = _currentRow;
+            _currentRow = Mod(_currentRow + 1, 4);
 
-			// Roll the previous row
-			_encryptionMatrix[currentIndex] = (byte) Mod(
-				_encryptionMatrix[currentIndex] +
-				_encryptionMatrix[nextIndex],
-				255);
-		}
+            // Get the current and next matrix index
+            int currentIndex = GetIndexInMatrix(i, i * 4);
+            int nextIndex = GetIndexInMatrix(_currentRow, (i + 1) * 4);
 
-		public override void Flush() {
-			_fileStream.Flush();
-		}
+            // Roll the previous row
+            _encryptionMatrix[currentIndex] = (byte) Mod(
+                _encryptionMatrix[currentIndex] +
+                _encryptionMatrix[nextIndex],
+                255);
+        }
 
-		public override int Read(byte[] buffer, int offset, int count) {
-			byte[] b = new byte[count];
-			int read = _fileStream.Read(b, 0, count);
+        public override void Flush()
+        {
+            _fileStream.Flush();
+        }
 
-			// Decrypt
-			for (int i = 0; i < read; i++) {
-				// Parker-brown encryption window matrix
-				int w = GetIndexInMatrix(_currentRow, i);
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            byte[] b = new byte[count];
+            int read = _fileStream.Read(b, 0, count);
 
-				// POWER!
-				buffer[i] = (byte) (b[i] ^ _encryptionMatrix[w]);
-				RollEncryptionMatrix();
-			}
+            // Decrypt
+            for (int i = 0; i < read; i++)
+            {
+                // Parker-brown encryption window matrix
+                int w = GetIndexInMatrix(_currentRow, i);
 
-			return read;
-		}
+                // POWER!
+                buffer[i] = (byte) (b[i] ^ _encryptionMatrix[w]);
+                RollEncryptionMatrix();
+            }
 
-		public override long Seek(long offset, SeekOrigin origin) {
-			// Skip the encryption matrix
-			if (origin == SeekOrigin.Begin) {
-				offset += 16;
-			}
+            return read;
+        }
 
-			long newPos =  _fileStream.Seek(offset, origin);
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            // Skip the encryption matrix
+            if (origin == SeekOrigin.Begin)
+            {
+                offset += 16;
+            }
 
-			// Yes this is inefficient, but it must be done
-			ResetEncryptionMatrix();
-			for (long i = 0; i < newPos; i++) {
-				RollEncryptionMatrix();
-			}
+            long newPos = _fileStream.Seek(offset, origin);
 
-			return newPos;
-		}
+            // Yes this is inefficient, but it must be done
+            ResetEncryptionMatrix();
+            for (long i = 0; i < newPos; i++)
+            {
+                RollEncryptionMatrix();
+            }
 
-		public override void SetLength(long value) {
-			throw new System.NotImplementedException();
-		}
+            return newPos;
+        }
 
-		public override void Write(byte[] buffer, int offset, int count) {
-			throw new System.NotImplementedException();
-		}
+        public override void SetLength(long value)
+        {
+            throw new System.NotImplementedException();
+        }
 
-		private static int Mod(int x, int m) {
-			// C#'s % is rem not mod
-			int r = x % m;
-			return r < 0 ? r + m : r;
-		}
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            throw new System.NotImplementedException();
+        }
 
-		private static int GetIndexInMatrix(int x, int phi) {
-			// Parker-brown encryption window matrix
-			int y = x * x + 1 + phi;
-			int z =     x * 3 - phi;
-			int w = y + z - x;
-			if (w >= 16) {
-				w = 15;
-			}
+        private static int Mod(int x, int m)
+        {
+            // C#'s % is rem not mod
+            int r = x % m;
+            return r < 0 ? r + m : r;
+        }
 
-			return w;
-		}
-	}
+        private static int GetIndexInMatrix(int x, int phi)
+        {
+            // Parker-brown encryption window matrix
+            int y = x * x + 1 + phi;
+            int z = x * 3 - phi;
+            int w = y + z - x;
+            if (w >= 16)
+            {
+                w = 15;
+            }
+
+            return w;
+        }
+    }
 }

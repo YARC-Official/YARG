@@ -6,78 +6,91 @@ using UnityEngine.Localization.Components;
 using YARG.Settings.Metadata;
 using YARG.Settings.Types;
 
-namespace YARG.Settings {
-	public class SettingsPresetDropdown : MonoBehaviour {
-		[SerializeField]
-		private LocalizeStringEvent _dropdownName;
-		[SerializeField]
-		private TMP_Dropdown _dropdown;
+namespace YARG.Settings
+{
+    public class SettingsPresetDropdown : MonoBehaviour
+    {
+        [SerializeField]
+        private LocalizeStringEvent _dropdownName;
 
-		private IReadOnlyList<DropdownPreset> _presets;
+        [SerializeField]
+        private TMP_Dropdown _dropdown;
 
-		public IReadOnlyList<string> ModifiedSettings { get; private set; }
+        private IReadOnlyList<DropdownPreset> _presets;
 
-		public void SetInfo(PresetDropdownMetadata metadata) {
-			_presets = metadata.DefaultPresets;
-			ModifiedSettings = metadata.ModifiedSettings;
+        public IReadOnlyList<string> ModifiedSettings { get; private set; }
 
-			// Set dropdown name
-			_dropdownName.StringReference = new LocalizedString {
-				TableReference = "Settings",
-				TableEntryReference = $"Dropdown.{metadata.DropdownName}"
-			};
+        public void SetInfo(PresetDropdownMetadata metadata)
+        {
+            _presets = metadata.DefaultPresets;
+            ModifiedSettings = metadata.ModifiedSettings;
 
-			// Set dropdown options
-			_dropdown.options.Clear();
-			foreach (var preset in metadata.DefaultPresets) {
-				_dropdown.options.Add(new TMP_Dropdown.OptionData(preset.Name));
-			}
+            // Set dropdown name
+            _dropdownName.StringReference = new LocalizedString
+            {
+                TableReference = "Settings", TableEntryReference = $"Dropdown.{metadata.DropdownName}"
+            };
 
-			// Add custom option
-			_dropdown.options.Add(new TMP_Dropdown.OptionData("<i>Custom</i>"));
+            // Set dropdown options
+            _dropdown.options.Clear();
+            foreach (var preset in metadata.DefaultPresets)
+            {
+                _dropdown.options.Add(new TMP_Dropdown.OptionData(preset.Name));
+            }
 
-			// Set value
-			ForceUpdateValue();
-		}
+            // Add custom option
+            _dropdown.options.Add(new TMP_Dropdown.OptionData("<i>Custom</i>"));
 
-		public void OnValueChange() {
-			if (_dropdown.value >= _presets.Count) {
-				return;
-			}
+            // Set value
+            ForceUpdateValue();
+        }
 
-			var preset = _presets[_dropdown.value];
+        public void OnValueChange()
+        {
+            if (_dropdown.value >= _presets.Count)
+            {
+                return;
+            }
 
-			foreach (var (name, value) in preset.Values) {
-				// Set the setting value
-				SettingsManager.SetSettingsByName(name, value);
+            var preset = _presets[_dropdown.value];
 
-				// Force update visuals
-				SettingsMenu.Instance.UpdateSpecificSetting(name);
-			}
-		}
+            foreach (var (name, value) in preset.Values)
+            {
+                // Set the setting value
+                SettingsManager.SetSettingsByName(name, value);
 
-		public void ForceUpdateValue() {
-			for (var i = 0; i < _presets.Count; i++) {
-				var preset = _presets[i];
+                // Force update visuals
+                SettingsMenu.Instance.UpdateSpecificSetting(name);
+            }
+        }
 
-				// Check if the preset matches the current settings
-				bool okay = true;
-				foreach (var (name, value) in preset.Values) {
-					if (!SettingsManager.GetSettingByName(name).IsSettingDataEqual(value)) {
-						okay = false;
-						break;
-					}
-				}
+        public void ForceUpdateValue()
+        {
+            for (var i = 0; i < _presets.Count; i++)
+            {
+                var preset = _presets[i];
 
-				if (!okay) {
-					continue;
-				}
+                // Check if the preset matches the current settings
+                bool okay = true;
+                foreach (var (name, value) in preset.Values)
+                {
+                    if (!SettingsManager.GetSettingByName(name).IsSettingDataEqual(value))
+                    {
+                        okay = false;
+                        break;
+                    }
+                }
 
-				_dropdown.SetValueWithoutNotify(i);
-				return;
-			}
+                if (!okay)
+                {
+                    continue;
+                }
 
-			_dropdown.SetValueWithoutNotify(_presets.Count);
-		}
-	}
+                _dropdown.SetValueWithoutNotify(i);
+                return;
+            }
+
+            _dropdown.SetValueWithoutNotify(_presets.Count);
+        }
+    }
 }

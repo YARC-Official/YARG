@@ -9,111 +9,116 @@ using UnityEngine.UI;
 [ExecuteInEditMode]
 public class LayoutElementFitParent : MonoBehaviour
 {
-	[SerializeField] private float aspectRatio = 1;
+    [SerializeField]
+    private float aspectRatio = 1;
 
-	[SerializeField] private bool updateMin = false;
-	[SerializeField] private bool updatePreferred = false;
+    [SerializeField]
+    private bool updateMin = false;
 
-	private bool isDirty = false;
-	private Vector2 lastParentSize;
+    [SerializeField]
+    private bool updatePreferred = false;
 
-	private new RectTransform transform;
-	private LayoutElement layoutElement;
+    private bool isDirty = false;
+    private Vector2 lastParentSize;
 
-	public float AspectRatio
-	{
-		get { return aspectRatio; }
-		set
-		{
-			aspectRatio = value;
-			isDirty = true;
-		}
-	}
+    private new RectTransform transform;
+    private LayoutElement layoutElement;
 
-	public bool UpdateMin
-	{
-		get { return updateMin; }
-		set
-		{
-			updateMin = value;
-			isDirty = true;
-		}
-	}
+    public float AspectRatio
+    {
+        get { return aspectRatio; }
+        set
+        {
+            aspectRatio = value;
+            isDirty = true;
+        }
+    }
 
-	public bool UpdatePreferred
-	{
-		get { return updatePreferred; }
-		set
-		{
-			updatePreferred = value;
-			isDirty = true;
-		}
-	}
+    public bool UpdateMin
+    {
+        get { return updateMin; }
+        set
+        {
+            updateMin = value;
+            isDirty = true;
+        }
+    }
 
-	private void OnEnable()
-	{
-		transform = GetComponent<RectTransform>();
-		layoutElement = GetComponent<LayoutElement>();
+    public bool UpdatePreferred
+    {
+        get { return updatePreferred; }
+        set
+        {
+            updatePreferred = value;
+            isDirty = true;
+        }
+    }
 
-		isDirty = true;
-	}
+    private void OnEnable()
+    {
+        transform = GetComponent<RectTransform>();
+        layoutElement = GetComponent<LayoutElement>();
 
-	private void Update()
-	{
-		Vector2 parentSize = GetParentSize();
+        isDirty = true;
+    }
 
-		// Mark as dirty if parent's size changes
-		if (lastParentSize != parentSize)
-		{
-			lastParentSize = parentSize;
-			isDirty = true;
-		}
+    private void Update()
+    {
+        Vector2 parentSize = GetParentSize();
 
-		// Only recalculate layout size if something has changed
-		if (!isDirty) return;
-		isDirty = false;
+        // Mark as dirty if parent's size changes
+        if (lastParentSize != parentSize)
+        {
+            lastParentSize = parentSize;
+            isDirty = true;
+        }
 
-		float neededWidth = parentSize.y * aspectRatio;
-		float neededHeight = parentSize.x / aspectRatio;
+        // Only recalculate layout size if something has changed
+        if (!isDirty) return;
+        isDirty = false;
 
-		// Is height the limiting factor?
-		if (neededWidth <= parentSize.x)
-		{
-			// Scale to match parent's height
-			SetSizes(neededWidth, parentSize.y);
-		}
-		else
-		{
-			// Scale to match parent's width
-			SetSizes(parentSize.x, neededHeight);
-		}
-	}
+        float neededWidth = parentSize.y * aspectRatio;
+        float neededHeight = parentSize.x / aspectRatio;
+
+        // Is height the limiting factor?
+        if (neededWidth <= parentSize.x)
+        {
+            // Scale to match parent's height
+            SetSizes(neededWidth, parentSize.y);
+        }
+        else
+        {
+            // Scale to match parent's width
+            SetSizes(parentSize.x, neededHeight);
+        }
+    }
 
 #if UNITY_EDITOR
-	private void OnValidate()
-	{
-		// Inspector fields have changed, mark as dirty
-		isDirty = true;
-	}
+    private void OnValidate()
+    {
+        // Inspector fields have changed, mark as dirty
+        isDirty = true;
+    }
 #endif
 
-	private void SetSizes(float x, float y)
-	{
-		if (updateMin)
-		{
-			layoutElement.minWidth = x;
-			layoutElement.minHeight = y;
-		}
-		if (updatePreferred)
-		{
-			layoutElement.preferredWidth = x;
-			layoutElement.preferredHeight = y;
-		}
-	}
+    private void SetSizes(float x, float y)
+    {
+        if (updateMin)
+        {
+            layoutElement.minWidth = x;
+            layoutElement.minHeight = y;
+        }
 
-	private Vector2 GetParentSize()
-	{
-		var parent = transform.parent as RectTransform;
-		return parent == null ? Vector2.zero : parent.rect.size;
-	}
+        if (updatePreferred)
+        {
+            layoutElement.preferredWidth = x;
+            layoutElement.preferredHeight = y;
+        }
+    }
+
+    private Vector2 GetParentSize()
+    {
+        var parent = transform.parent as RectTransform;
+        return parent == null ? Vector2.zero : parent.rect.size;
+    }
 }

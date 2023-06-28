@@ -1,202 +1,233 @@
 ﻿using System;
 using UnityEngine;
 
-namespace YARG.Audio.PitchDetection {
-	/// <summary>
-	/// Tracks pitch
-	/// </summary>
-	public class PitchTracker {
-		private struct FilterInfo {
-			public IIRFilter High;
-			public IIRFilter Low;
+namespace YARG.Audio.PitchDetection
+{
+    /// <summary>
+    /// Tracks pitch
+    /// </summary>
+    public class PitchTracker
+    {
+        private struct FilterInfo
+        {
+            public IIRFilter High;
+            public IIRFilter Low;
 
-			public float[] Buffer;
-			public CircularBuffer CircularBuffer;
-		}
+            public float[] Buffer;
+            public CircularBuffer CircularBuffer;
+        }
 
-		// A1, Midi note 33, 55.0Hz
-		private const float MIN_FREQUENCY = 50;
-		// A#6. Midi note 92
-		private const float MAX_FREQUENCY = 1600;
+        // A1, Midi note 33, 55.0Hz
+        private const float MIN_FREQUENCY = 50;
 
-		private const float DETECT_OVERLAP_SEC = 0.005f;
-		private const float MAX_OCTAVE_SEC_RATE = 10.0f;
+        // A#6. Midi note 92
+        private const float MAX_FREQUENCY = 1600;
 
-		// Time offset between pitch averaging values
-		private const float AVG_OFFSET = 0.005f;
-		// Number of average pitch samples to take
-		private const int AVG_COUNT = 1;
-		// Amount of samples to store in the history Buffer
-		private const float CIRCULAR_BUF_SAVE_TIME = 1.0f;
+        private const float DETECT_OVERLAP_SEC = 0.005f;
+        private const float MAX_OCTAVE_SEC_RATE = 10.0f;
 
-		// Default is 50ms, or one record every 20ms
-		private const int PITCH_RECORDS_PER_SECOND = 50;
+        // Time offset between pitch averaging values
+        private const float AVG_OFFSET = 0.005f;
 
-		private readonly PitchProcessor _dsp;
+        // Number of average pitch samples to take
+        private const int AVG_COUNT = 1;
 
-		private readonly int _pitchBufSize;
+        // Amount of samples to store in the history Buffer
+        private const float CIRCULAR_BUF_SAVE_TIME = 1.0f;
 
-		private readonly int _detectOverlapSamples;
-		private readonly float _maxOverlapDiff;
-		private readonly int _samplesPerPitchBlock;
+        // Default is 50ms, or one record every 20ms
+        private const int PITCH_RECORDS_PER_SECOND = 50;
 
-		private long _sampleReadPosition;
+        private readonly PitchProcessor _dsp;
 
-		private readonly FilterInfo[] _filters;
+        private readonly int _pitchBufSize;
 
-		public PitchTracker(float detectLevelThreshold = 0.01f, float sampleRate = 44100f) {
-			_dsp = new PitchProcessor(sampleRate, MIN_FREQUENCY, MAX_FREQUENCY, detectLevelThreshold);
+        private readonly int _detectOverlapSamples;
+        private readonly float _maxOverlapDiff;
+        private readonly int _samplesPerPitchBlock;
 
-			_pitchBufSize = (int) ((1.0f / MIN_FREQUENCY * 2.0f + (AVG_COUNT - 1) * AVG_OFFSET) * sampleRate) + 16;
-			_detectOverlapSamples = (int) (DETECT_OVERLAP_SEC * sampleRate);
+        private long _sampleReadPosition;
 
-			_maxOverlapDiff = MAX_OCTAVE_SEC_RATE * DETECT_OVERLAP_SEC;
-			_samplesPerPitchBlock = (int) Mathf.Round(sampleRate / PITCH_RECORDS_PER_SECOND);
+        private readonly FilterInfo[] _filters;
 
-			// Create the high and low filters
-			_filters = new FilterInfo[2];
-			for (int i = 0; i < 2; i++) {
-				float highFreq = i == 0 ? 280f : 1500f;
+        public PitchTracker(float detectLevelThreshold = 0.01f, float sampleRate = 44100f)
+        {
+            _dsp = new PitchProcessor(sampleRate, MIN_FREQUENCY, MAX_FREQUENCY, detectLevelThreshold);
 
-				var filter = new FilterInfo {
-					Low = new IIRFilter(IIRFilterType.HP, 5, sampleRate) {
-						FreqLow = 45
-					},
-					High = new IIRFilter(IIRFilterType.LP, 5, sampleRate) {
-						FreqHigh = highFreq
-					},
-					Buffer = new float[_pitchBufSize + _detectOverlapSamples],
-					CircularBuffer = new CircularBuffer((int) (CIRCULAR_BUF_SAVE_TIME * sampleRate + 0.5f) + 10000)
-				};
+            _pitchBufSize = (int) ((1.0f / MIN_FREQUENCY * 2.0f + (AVG_COUNT - 1) * AVG_OFFSET) * sampleRate) + 16;
+            _detectOverlapSamples = (int) (DETECT_OVERLAP_SEC * sampleRate);
 
-				_filters[i] = filter;
-			}
-		}
+            _maxOverlapDiff = MAX_OCTAVE_SEC_RATE * DETECT_OVERLAP_SEC;
+            _samplesPerPitchBlock = (int) Mathf.Round(sampleRate / PITCH_RECORDS_PER_SECOND);
 
-		/// <summary>
-		/// Reset the pitch tracker. Call this when the sample position is
-		/// not consecutive from the previous position
-		/// </summary>
-		public void Reset() {
-			_sampleReadPosition = 0;
+            // Create the high and low filters
+            _filters = new FilterInfo[2];
+            for (int i = 0; i < 2; i++)
+            {
+                float highFreq = i == 0 ? 280f : 1500f;
 
-			foreach (var filter in _filters) {
-				filter.High.Reset();
-				filter.Low.Reset();
-				Array.Clear(filter.Buffer, 0, filter.Buffer.Length);
+                var filter = new FilterInfo
+                {
+                    Low = new IIRFilter(IIRFilterType.HP, 5, sampleRate)
+                    {
+                        FreqLow = 45
+                    },
+                    High = new IIRFilter(IIRFilterType.LP, 5, sampleRate)
+                    {
+                        FreqHigh = highFreq
+                    },
+                    Buffer = new float[_pitchBufSize + _detectOverlapSamples],
+                    CircularBuffer = new CircularBuffer((int) (CIRCULAR_BUF_SAVE_TIME * sampleRate + 0.5f) + 10000)
+                };
 
-				filter.CircularBuffer.Reset();
-				filter.CircularBuffer.Clear();
-				filter.CircularBuffer.StartPosition = -_detectOverlapSamples;
-				filter.CircularBuffer.Available = _detectOverlapSamples;
-			}
-		}
+                _filters[i] = filter;
+            }
+        }
 
-		/// <summary>
-		/// Process the passed in Buffer of data. During this call, the PitchDetected event will
-		/// be fired zero or more times, depending how many pitch records will fit in the new
-		/// and previously cached Buffer.
-		///
-		/// This means that there is no size restriction on the Buffer that is passed into ProcessBuffer.
-		/// For instance, ProcessBuffer can be called with one very large Buffer that contains all of the
-		/// audio to be processed (many PitchDetected events will be fired), or just a small Buffer at
-		/// a time which is more typical for realtime applications. In the latter case, the PitchDetected
-		/// event might not be fired at all since additional calls must first be made to accumulate enough
-		/// data do another pitch detect operation.
-		/// </summary>
-		/// <param name="input">Input Buffer. Samples must be in the range -1.0 to 1.0</param>
-		public float? ProcessBuffer(ReadOnlySpan<float> input) {
-			if (input == null) {
-				throw new ArgumentNullException(nameof(input), "Input buffer cannot be null");
-			}
+        /// <summary>
+        /// Reset the pitch tracker. Call this when the sample position is
+        /// not consecutive from the previous position
+        /// </summary>
+        public void Reset()
+        {
+            _sampleReadPosition = 0;
 
-			float? detectedPitch = null;
+            foreach (var filter in _filters)
+            {
+                filter.High.Reset();
+                filter.Low.Reset();
+                Array.Clear(filter.Buffer, 0, filter.Buffer.Length);
 
-			int samplesProcessed = 0;
-			while (samplesProcessed < input.Length) {
-				var frameCount = Mathf.Min(input.Length - samplesProcessed, _pitchBufSize + _detectOverlapSamples);
+                filter.CircularBuffer.Reset();
+                filter.CircularBuffer.Clear();
+                filter.CircularBuffer.StartPosition = -_detectOverlapSamples;
+                filter.CircularBuffer.Available = _detectOverlapSamples;
+            }
+        }
 
-				foreach (var filter in _filters) {
-					filter.Low.FilterBuffer(input, samplesProcessed, filter.Buffer, 0, frameCount);
-					filter.High.FilterBuffer(filter.Buffer, 0, filter.Buffer, 0, frameCount);
-					filter.CircularBuffer.Write(filter.Buffer, frameCount);
-				}
+        /// <summary>
+        /// Process the passed in Buffer of data. During this call, the PitchDetected event will
+        /// be fired zero or more times, depending how many pitch records will fit in the new
+        /// and previously cached Buffer.
+        ///
+        /// This means that there is no size restriction on the Buffer that is passed into ProcessBuffer.
+        /// For instance, ProcessBuffer can be called with one very large Buffer that contains all of the
+        /// audio to be processed (many PitchDetected events will be fired), or just a small Buffer at
+        /// a time which is more typical for realtime applications. In the latter case, the PitchDetected
+        /// event might not be fired at all since additional calls must first be made to accumulate enough
+        /// data do another pitch detect operation.
+        /// </summary>
+        /// <param name="input">Input Buffer. Samples must be in the range -1.0 to 1.0</param>
+        public float? ProcessBuffer(ReadOnlySpan<float> input)
+        {
+            if (input == null)
+            {
+                throw new ArgumentNullException(nameof(input), "Input buffer cannot be null");
+            }
 
-				// Loop while there is enough samples in the circular Buffer
-				while (_filters[0].CircularBuffer.Read(_filters[0].Buffer, _sampleReadPosition, _pitchBufSize + _detectOverlapSamples)) {
-					_filters[1].CircularBuffer.Read(_filters[1].Buffer, _sampleReadPosition, _pitchBufSize + _detectOverlapSamples);
-					_sampleReadPosition += _samplesPerPitchBlock;
+            float? detectedPitch = null;
 
-					var pitch1 = _dsp.DetectPitch(_filters[0].Buffer, _filters[1].Buffer, _pitchBufSize);
+            int samplesProcessed = 0;
+            while (samplesProcessed < input.Length)
+            {
+                var frameCount = Mathf.Min(input.Length - samplesProcessed, _pitchBufSize + _detectOverlapSamples);
 
-					if (pitch1 <= 0f) {
-						continue;
-					}
+                foreach (var filter in _filters)
+                {
+                    filter.Low.FilterBuffer(input, samplesProcessed, filter.Buffer, 0, frameCount);
+                    filter.High.FilterBuffer(filter.Buffer, 0, filter.Buffer, 0, frameCount);
+                    filter.CircularBuffer.Write(filter.Buffer, frameCount);
+                }
 
-					// Shift the buffers left by the overlapping amount
-					foreach (var filter in _filters) {
-						SafeCopy(filter.Buffer, filter.Buffer, _detectOverlapSamples, 0, _pitchBufSize);
-					}
+                // Loop while there is enough samples in the circular Buffer
+                while (_filters[0].CircularBuffer.Read(_filters[0].Buffer, _sampleReadPosition,
+                    _pitchBufSize + _detectOverlapSamples))
+                {
+                    _filters[1].CircularBuffer.Read(_filters[1].Buffer, _sampleReadPosition,
+                        _pitchBufSize + _detectOverlapSamples);
+                    _sampleReadPosition += _samplesPerPitchBlock;
 
-					var pitch2 = _dsp.DetectPitch(_filters[0].Buffer, _filters[1].Buffer, _pitchBufSize);
+                    var pitch1 = _dsp.DetectPitch(_filters[0].Buffer, _filters[1].Buffer, _pitchBufSize);
 
-					if (pitch2 <= 0f) {
-						continue;
-					}
+                    if (pitch1 <= 0f)
+                    {
+                        continue;
+                    }
 
-					var fDiff = Mathf.Max(pitch1, pitch2) / Mathf.Min(pitch1, pitch2) - 1;
+                    // Shift the buffers left by the overlapping amount
+                    foreach (var filter in _filters)
+                    {
+                        SafeCopy(filter.Buffer, filter.Buffer, _detectOverlapSamples, 0, _pitchBufSize);
+                    }
 
-					if (fDiff < _maxOverlapDiff) {
-						detectedPitch = (pitch1 + pitch2) * 0.5f;
-					}
-				}
+                    var pitch2 = _dsp.DetectPitch(_filters[0].Buffer, _filters[1].Buffer, _pitchBufSize);
 
-				samplesProcessed += frameCount;
-			}
+                    if (pitch2 <= 0f)
+                    {
+                        continue;
+                    }
 
-			return detectedPitch;
-		}
+                    var fDiff = Mathf.Max(pitch1, pitch2) / Mathf.Min(pitch1, pitch2) - 1;
 
-		/// <summary>
-		/// Copy the values from one Buffer to a different or the same Buffer.
-		/// It is safe to copy to the same Buffer, even if the areas overlap
-		/// </summary>
-		private static void SafeCopy<T>(T[] from, T[] to, int fromStart, int toStart, int length) {
-			if (to == null || from.Length == 0 || to.Length == 0)
-				return;
+                    if (fDiff < _maxOverlapDiff)
+                    {
+                        detectedPitch = (pitch1 + pitch2) * 0.5f;
+                    }
+                }
 
-			var fromEndIdx = fromStart + length;
-			var toEndIdx = toStart + length;
+                samplesProcessed += frameCount;
+            }
 
-			if (fromStart < 0) {
-				toStart -= fromStart;
-				fromStart = 0;
-			}
+            return detectedPitch;
+        }
 
-			if (toStart < 0) {
-				fromStart -= toStart;
-				toStart = 0;
-			}
+        /// <summary>
+        /// Copy the values from one Buffer to a different or the same Buffer.
+        /// It is safe to copy to the same Buffer, even if the areas overlap
+        /// </summary>
+        private static void SafeCopy<T>(T[] from, T[] to, int fromStart, int toStart, int length)
+        {
+            if (to == null || from.Length == 0 || to.Length == 0) return;
 
-			if (fromEndIdx >= from.Length) {
-				toEndIdx -= fromEndIdx - from.Length + 1;
-				fromEndIdx = from.Length - 1;
-			}
+            var fromEndIdx = fromStart + length;
+            var toEndIdx = toStart + length;
 
-			if (toEndIdx >= to.Length) {
-				fromEndIdx -= toEndIdx - to.Length + 1;
-				toEndIdx = from.Length - 1;
-			}
+            if (fromStart < 0)
+            {
+                toStart -= fromStart;
+                fromStart = 0;
+            }
 
-			if (fromStart < toStart) {
-				// Shift right, so start at the right
-				for (int fromIdx = fromEndIdx, toIdx = toEndIdx; fromIdx >= fromStart; fromIdx--, toIdx--)
-					to[toIdx] = from[fromIdx];
-			} else {
-				// Shift left, so start at the left
-				for (int fromIdx = fromStart, toIdx = toStart; fromIdx <= fromEndIdx; fromIdx++, toIdx++)
-					to[toIdx] = from[fromIdx];
-			}
-		}
-	}
+            if (toStart < 0)
+            {
+                fromStart -= toStart;
+                toStart = 0;
+            }
+
+            if (fromEndIdx >= from.Length)
+            {
+                toEndIdx -= fromEndIdx - from.Length + 1;
+                fromEndIdx = from.Length - 1;
+            }
+
+            if (toEndIdx >= to.Length)
+            {
+                fromEndIdx -= toEndIdx - to.Length + 1;
+                toEndIdx = from.Length - 1;
+            }
+
+            if (fromStart < toStart)
+            {
+                // Shift right, so start at the right
+                for (int fromIdx = fromEndIdx, toIdx = toEndIdx; fromIdx >= fromStart; fromIdx--, toIdx--)
+                    to[toIdx] = from[fromIdx];
+            }
+            else
+            {
+                // Shift left, so start at the left
+                for (int fromIdx = fromStart, toIdx = toStart; fromIdx <= fromEndIdx; fromIdx++, toIdx++)
+                    to[toIdx] = from[fromIdx];
+            }
+        }
+    }
 }

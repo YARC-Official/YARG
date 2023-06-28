@@ -3,71 +3,85 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.UI;
 
-namespace YARG.UI {
-	public class FpsCounter : MonoBehaviour {
-		public static FpsCounter Instance { get; private set; } = null;
+namespace YARG.UI
+{
+    public class FpsCounter : MonoBehaviour
+    {
+        public static FpsCounter Instance { get; private set; } = null;
 
-		[SerializeField]
-		private Image fpsCircle;
-		[SerializeField]
-		private TextMeshProUGUI fpsText;
+        [SerializeField]
+        private Image fpsCircle;
 
-		[SerializeField]
-		private Color fpsCircleGreen;
-		[SerializeField]
-		private Color fpsCircleYellow;
-		[SerializeField]
-		private Color fpsCircleRed;
+        [SerializeField]
+        private TextMeshProUGUI fpsText;
 
-		[SerializeField]
-		private float fpsUpdateRate;
+        [SerializeField]
+        private Color fpsCircleGreen;
 
-		private float nextUpdateTime;
-		int screenRate;
+        [SerializeField]
+        private Color fpsCircleYellow;
 
-		private void Awake() {
-			Instance = this;
-			screenRate = Screen.currentResolution.refreshRate;
-		}
+        [SerializeField]
+        private Color fpsCircleRed;
 
-		public void SetVisible(bool value) {
-			fpsText.gameObject.SetActive(value);
-			fpsCircle.gameObject.SetActive(value);
-		}
+        [SerializeField]
+        private float fpsUpdateRate;
 
-		private void OnDestroy() {
-			Instance = null;
-		}
+        private float nextUpdateTime;
+        int screenRate;
 
-		void Update() {
-			// Wait for next update period
-			if (Time.unscaledTime < nextUpdateTime) {
-				return;
-			}
+        private void Awake()
+        {
+            Instance = this;
+            screenRate = Screen.currentResolution.refreshRate;
+        }
 
-			int fps = (int)(1f / Time.unscaledDeltaTime);
-			
+        public void SetVisible(bool value)
+        {
+            fpsText.gameObject.SetActive(value);
+            fpsCircle.gameObject.SetActive(value);
+        }
 
-			// Color the circle sprite based on the FPS
-			// red if lower than 30, yellow if lower than screen refresh rate, green otherwise
-			if (fps < 30) {
-				fpsCircle.color = fpsCircleRed;
-			} else if (fps < screenRate) {
-				fpsCircle.color = fpsCircleYellow;
-			} else {
-				fpsCircle.color = fpsCircleGreen;
-			}
+        private void OnDestroy()
+        {
+            Instance = null;
+        }
 
-			// Display the FPS
-			fpsText.text = $"<b>FPS:</b> {fps}";
+        void Update()
+        {
+            // Wait for next update period
+            if (Time.unscaledTime < nextUpdateTime)
+            {
+                return;
+            }
+
+            int fps = (int) (1f / Time.unscaledDeltaTime);
+
+            // Color the circle sprite based on the FPS
+            // red if lower than 30, yellow if lower than screen refresh rate, green otherwise
+            if (fps < 30)
+            {
+                fpsCircle.color = fpsCircleRed;
+            }
+            else if (fps < screenRate)
+            {
+                fpsCircle.color = fpsCircleYellow;
+            }
+            else
+            {
+                fpsCircle.color = fpsCircleGreen;
+            }
+
+            // Display the FPS
+            fpsText.text = $"<b>FPS:</b> {fps}";
 
 #if UNITY_EDITOR
-			// Display the memory usage
-			fpsText.text += $"   •   <b>Memory:</b> {Profiler.GetTotalAllocatedMemoryLong() / 1024 / 1024} MB";
+            // Display the memory usage
+            fpsText.text += $"   •   <b>Memory:</b> {Profiler.GetTotalAllocatedMemoryLong() / 1024 / 1024} MB";
 #endif
 
-			// reset the update time
-			nextUpdateTime = Time.unscaledTime + fpsUpdateRate;
-		}
-	}
+            // reset the update time
+            nextUpdateTime = Time.unscaledTime + fpsUpdateRate;
+        }
+    }
 }

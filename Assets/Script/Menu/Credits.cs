@@ -8,96 +8,111 @@ using UnityEngine.Localization.Components;
 using UnityEngine.UI;
 using YARG.Input;
 
-namespace YARG.UI {
-	public class Credits : MonoBehaviour, IDragHandler, IScrollHandler {
-		[SerializeField]
-		private TextAsset _creditsFile;
-		[SerializeField]
-		private Transform _creditsContainer;
-		[SerializeField]
-		private ScrollRect _scrollRect;
+namespace YARG.UI
+{
+    public class Credits : MonoBehaviour, IDragHandler, IScrollHandler
+    {
+        [SerializeField]
+        private TextAsset _creditsFile;
 
-		[Space]
-		[SerializeField]
-		private GameObject _headerTemplate;
-		[SerializeField]
-		private GameObject _cardTemplate;
+        [SerializeField]
+        private Transform _creditsContainer;
 
-		private float _scrollRate = 40f;
+        [SerializeField]
+        private ScrollRect _scrollRect;
 
-		private void OnEnable() {
-			// Set navigation scheme
-			Navigator.Instance.PushScheme(new NavigationScheme(new() {
-				new NavigationScheme.Entry(MenuAction.Back, "Back", () => {
-					MainMenu.Instance.ShowMainMenu();
-				})
-			}, true));
+        [Space]
+        [SerializeField]
+        private GameObject _headerTemplate;
 
-			_scrollRect.verticalNormalizedPosition = 1f;
-		}
+        [SerializeField]
+        private GameObject _cardTemplate;
 
-		private void OnDisable() {
-			Navigator.Instance.PopScheme();
-		}
+        private float _scrollRate = 40f;
 
-		private void Start() {
-			var json = JsonConvert.DeserializeObject<
-				Dictionary<string, Dictionary<string, JObject>>
-			>(_creditsFile.text);
+        private void OnEnable()
+        {
+            // Set navigation scheme
+            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            {
+                new NavigationScheme.Entry(MenuAction.Back, "Back", () => { MainMenu.Instance.ShowMainMenu(); })
+            }, true));
 
-			CreateHeader("gameStartedBy");
-			CreateCredits(json["gameStartedBy"]);
+            _scrollRect.verticalNormalizedPosition = 1f;
+        }
 
-			CreateHeader("leadArtist");
-			CreateCredits(json["leadArtist"]);
+        private void OnDisable()
+        {
+            Navigator.Instance.PopScheme();
+        }
 
-			CreateHeader("leadCharter");
-			CreateCredits(json["leadCharter"]);
+        private void Start()
+        {
+            var json = JsonConvert.DeserializeObject<
+                Dictionary<string, Dictionary<string, JObject>>
+            >(_creditsFile.text);
 
-			CreateHeader("contributors");
-			CreateCredits(json["contributors"]);
+            CreateHeader("gameStartedBy");
+            CreateCredits(json["gameStartedBy"]);
 
-			CreateHeader("specialThanks");
-			CreateCredits(json["specialThanks"]);
+            CreateHeader("leadArtist");
+            CreateCredits(json["leadArtist"]);
 
-			_headerTemplate.SetActive(false);
-			_cardTemplate.SetActive(false);
-		}
+            CreateHeader("leadCharter");
+            CreateCredits(json["leadCharter"]);
 
-		private void Update() {
-			// Return the scroll rate
-			if (_scrollRate < 40f) {
-				_scrollRate += Time.deltaTime * 10f;
-				_scrollRate = Mathf.Min(_scrollRate, 40f);
-			}
+            CreateHeader("contributors");
+            CreateCredits(json["contributors"]);
 
-			if (_scrollRate > 0f) {
-				// Use velocity, so the scroll speed stays consistent in different lengths
-				_scrollRect.velocity = new Vector2(0f, _scrollRate);
-			}
-		}
+            CreateHeader("specialThanks");
+            CreateCredits(json["specialThanks"]);
 
-		private void CreateHeader(string id) {
-			var header = Instantiate(_headerTemplate, _creditsContainer);
-			header.GetComponent<LocalizeStringEvent>().StringReference = new LocalizedString {
-				TableReference = "Main",
-				TableEntryReference = $"Credits.Header.{id}"
-			};
-		}
+            _headerTemplate.SetActive(false);
+            _cardTemplate.SetActive(false);
+        }
 
-		private void CreateCredits(Dictionary<string, JObject> credits) {
-			foreach (var (name, info) in credits) {
-				var card = Instantiate(_cardTemplate, _creditsContainer);
-				card.GetComponent<CreditCard>().SetFromJObject(name, info);
-			}
-		}
+        private void Update()
+        {
+            // Return the scroll rate
+            if (_scrollRate < 40f)
+            {
+                _scrollRate += Time.deltaTime * 10f;
+                _scrollRate = Mathf.Min(_scrollRate, 40f);
+            }
 
-		public void OnDrag(PointerEventData eventData) {
-			_scrollRate = -10f;
-		}
+            if (_scrollRate > 0f)
+            {
+                // Use velocity, so the scroll speed stays consistent in different lengths
+                _scrollRect.velocity = new Vector2(0f, _scrollRate);
+            }
+        }
 
-		public void OnScroll(PointerEventData eventData) {
-			_scrollRate = -10f;
-		}
-	}
+        private void CreateHeader(string id)
+        {
+            var header = Instantiate(_headerTemplate, _creditsContainer);
+            header.GetComponent<LocalizeStringEvent>().StringReference = new LocalizedString
+            {
+                TableReference = "Main", TableEntryReference = $"Credits.Header.{id}"
+            };
+        }
+
+        private void CreateCredits(Dictionary<string, JObject> credits)
+        {
+            foreach (var (name, info) in credits)
+            {
+                var card = Instantiate(_cardTemplate, _creditsContainer);
+                card.GetComponent<CreditCard>().SetFromJObject(name, info);
+            }
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            _scrollRate = -10f;
+        }
+
+        public void OnScroll(PointerEventData eventData)
+        {
+            _scrollRate = -10f;
+        }
+    }
 }

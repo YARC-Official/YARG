@@ -4,13 +4,16 @@ using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
 using YARG.Settings;
 
-namespace YARG.Input {
-    public enum BindingType {
+namespace YARG.Input
+{
+    public enum BindingType
+    {
         BUTTON,
         AXIS
     }
 
-    public class ControlBinding {
+    public class ControlBinding
+    {
         /// <summary>
         /// The minimum number of milliseconds for the debounce threshold.
         /// </summary>
@@ -22,11 +25,15 @@ namespace YARG.Input {
         public string DebounceOverrideKey { get; }
 
         private InputControl<float> _control;
-        public InputControl<float> Control {
+
+        public InputControl<float> Control
+        {
             get => _control;
-            set {
+            set
+            {
                 _control = value;
-                if (value is ButtonControl button) {
+                if (value is ButtonControl button)
+                {
                     pressPoint = button.pressPointOrDefault;
                 }
             }
@@ -40,18 +47,24 @@ namespace YARG.Input {
         private Stopwatch debounceTimer = new();
 
         private long _debounceThreshold = 0;
+
         /// <summary>
         /// The debounce time threshold, in milliseconds. Use 0 or less to disable debounce.
         /// </summary>
-        public long DebounceThreshold {
+        public long DebounceThreshold
+        {
             get => _debounceThreshold;
-            set {
+            set
+            {
                 // Limit debounce amount to 0-25 ms
                 // Any larger and input registration will be very bad since the max will limit to 40 inputs per second
                 // If someone needs a larger amount their controller is just busted lol
-                if (value > 25) {
+                if (value > 25)
+                {
                     value = 25;
-                } else if (value < 0) {
+                }
+                else if (value < 0)
+                {
                     value = 0;
                 }
 
@@ -65,43 +78,53 @@ namespace YARG.Input {
         /// </summary>
         public ControlBinding DebounceOverrideBinding { get; set; } = null;
 
-        public ControlBinding(BindingType type, string displayName, string bindingKey, string debounceOverrideKey = null) {
+        public ControlBinding(BindingType type, string displayName, string bindingKey,
+            string debounceOverrideKey = null)
+        {
             Type = type;
             DisplayName = displayName;
             BindingKey = bindingKey;
             DebounceOverrideKey = debounceOverrideKey;
         }
 
-        public bool IsPressed() {
+        public bool IsPressed()
+        {
             // Ignore if unmapped
-            if (_control == null) {
+            if (_control == null)
+            {
                 return false;
             }
 
             return _state.current >= pressPoint;
         }
 
-        public bool WasPressed() {
+        public bool WasPressed()
+        {
             // Ignore if unmapped
-            if (_control == null) {
+            if (_control == null)
+            {
                 return false;
             }
 
             return _state.previous < pressPoint && _state.current >= pressPoint;
         }
 
-        public bool WasReleased() {
+        public bool WasReleased()
+        {
             // Ignore if unmapped
-            if (_control == null) {
+            if (_control == null)
+            {
                 return false;
             }
 
             return _state.previous >= pressPoint && _state.current < pressPoint;
         }
 
-        public void UpdateState(InputEventPtr eventPtr) {
+        public void UpdateState(InputEventPtr eventPtr)
+        {
             // Ignore if unmapped
-            if (_control == null) {
+            if (_control == null)
+            {
                 return;
             }
 
@@ -110,18 +133,22 @@ namespace YARG.Input {
             // Don't read new value unless there was a value change
             // Controls not changed in a delta state event (which MIDI devices use) will report the wrong value
             float value = _state.postDebounce;
-            if (_control.HasValueChangeInEvent(eventPtr)) {
+            if (_control.HasValueChangeInEvent(eventPtr))
+            {
                 value = _control.ReadValueFromEvent(eventPtr);
             }
 
             // Store value
             _state.postDebounce = value;
-            if (!debounceTimer.IsRunning) {
+            if (!debounceTimer.IsRunning)
+            {
                 _state.current = value;
 
-                if (WasPressed() || WasReleased()) {
+                if (WasPressed() || WasReleased())
+                {
                     // Start debounce timer
-                    if (DebounceThreshold >= DEBOUNCE_MINIMUM && Type == BindingType.BUTTON) {
+                    if (DebounceThreshold >= DEBOUNCE_MINIMUM && Type == BindingType.BUTTON)
+                    {
                         debounceTimer.Start();
                     }
 
@@ -139,17 +166,22 @@ namespace YARG.Input {
         /// <returns>
         /// True if debouncing has finished and the binding state changed, false otherwise.
         /// </returns>
-        public bool UpdateDebounce() {
+        public bool UpdateDebounce()
+        {
             // Ignore if not a button, or threshold is below the minimum
-            if (Type != BindingType.BUTTON || DebounceThreshold < DEBOUNCE_MINIMUM) {
-                if (debounceTimer.IsRunning) {
+            if (Type != BindingType.BUTTON || DebounceThreshold < DEBOUNCE_MINIMUM)
+            {
+                if (debounceTimer.IsRunning)
+                {
                     debounceTimer.Reset();
                 }
+
                 return false;
             }
 
             // Check time elapsed
-            if (debounceTimer.ElapsedMilliseconds >= DebounceThreshold) {
+            if (debounceTimer.ElapsedMilliseconds >= DebounceThreshold)
+            {
                 OverrideDebounce();
                 return true;
             }
@@ -160,8 +192,10 @@ namespace YARG.Input {
         /// <summary>
         /// Forcibly stops the debounce timer for this binding.
         /// </summary>
-        public void OverrideDebounce() {
-            if (DebounceThreshold >= DEBOUNCE_MINIMUM && debounceTimer.IsRunning) {
+        public void OverrideDebounce()
+        {
+            if (DebounceThreshold >= DEBOUNCE_MINIMUM && debounceTimer.IsRunning)
+            {
                 // Stop timer and progress state history forward
                 debounceTimer.Reset();
                 _state.previous = _state.current;

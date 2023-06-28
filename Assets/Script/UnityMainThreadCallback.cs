@@ -2,23 +2,29 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace YARG {
-	public class UnityMainThreadCallback : MonoBehaviour {
+namespace YARG
+{
+    public class UnityMainThreadCallback : MonoBehaviour
+    {
+        private static readonly Queue<Action> CallbackQueue = new();
 
-		private static readonly Queue<Action> CallbackQueue = new();
+        private void Update()
+        {
+            lock (CallbackQueue)
+            {
+                while (CallbackQueue.Count > 0)
+                {
+                    CallbackQueue.Dequeue().Invoke();
+                }
+            }
+        }
 
-		private void Update() {
-			lock (CallbackQueue) {
-				while (CallbackQueue.Count > 0) {
-					CallbackQueue.Dequeue().Invoke();
-				}
-			}
-		}
-
-		public static void QueueEvent(Action action) {
-			lock (CallbackQueue) {
-				CallbackQueue.Enqueue(action);
-			}
-		}
-	}
+        public static void QueueEvent(Action action)
+        {
+            lock (CallbackQueue)
+            {
+                CallbackQueue.Enqueue(action);
+            }
+        }
+    }
 }

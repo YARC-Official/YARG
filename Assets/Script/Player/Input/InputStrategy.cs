@@ -12,294 +12,340 @@ using YARG.Audio;
 using YARG.Data;
 using YARG.Settings;
 
-namespace YARG.Input {
-	public abstract class InputStrategy : IDisposable {
-		public bool BotMode { get; set; }
-		protected int BotChartIndex;
+namespace YARG.Input
+{
+    public abstract class InputStrategy : IDisposable
+    {
+        public bool BotMode { get; set; }
+        protected int BotChartIndex;
 
-		private ISantrollerHaptics _haptics;
+        private ISantrollerHaptics _haptics;
 
-		private InputDevice _inputDevice;
-		public InputDevice InputDevice {
-			get => _inputDevice;
-			set {
-				bool enabled = Enabled;
-				if (enabled) {
-					Disable();
-				}
+        private InputDevice _inputDevice;
 
-				_inputDevice = value;
-				if (_inputDevice is ISantrollerHaptics haptics) {
-					_haptics = haptics;
-				}
+        public InputDevice InputDevice
+        {
+            get => _inputDevice;
+            set
+            {
+                bool enabled = Enabled;
+                if (enabled)
+                {
+                    Disable();
+                }
 
-				if (enabled) {
-					Enable();
-				}
-			}
-		}
+                _inputDevice = value;
+                if (_inputDevice is ISantrollerHaptics haptics)
+                {
+                    _haptics = haptics;
+                }
 
-		private IMicDevice _micDevice;
-		public IMicDevice MicDevice {
-			get => _micDevice;
-			set {
-				// Dispose old device
-				_micDevice?.Dispose();
+                if (enabled)
+                {
+                    Enable();
+                }
+            }
+        }
 
-				// Initialize new device
-				_micDevice = value;
-				_micDevice?.Initialize();
-			}
-		}
+        private IMicDevice _micDevice;
 
-		/// <summary>
-		/// A list of the controls that correspond to each mapping.
-		/// </summary>
-		protected Dictionary<string, ControlBinding> InputMappings = new();
-		public IReadOnlyDictionary<string, ControlBinding> Mappings => InputMappings;
+        public IMicDevice MicDevice
+        {
+            get => _micDevice;
+            set
+            {
+                // Dispose old device
+                _micDevice?.Dispose();
 
-		public bool Enabled { get; private set; }
+                // Initialize new device
+                _micDevice = value;
+                _micDevice?.Initialize();
+            }
+        }
 
-		private IDisposable _eventListener = null;
+        /// <summary>
+        /// A list of the controls that correspond to each mapping.
+        /// </summary>
+        protected Dictionary<string, ControlBinding> InputMappings = new();
 
-		/// <summary>
-		/// Gets invoked when the button for generic calibration is pressed.<br/>
-		/// Make sure <see cref="UpdatePlayerMode"/> is being called.
-		/// </summary>
-		public event Action<InputStrategy> GenericCalibrationEvent;
+        public IReadOnlyDictionary<string, ControlBinding> Mappings => InputMappings;
 
-		/// <summary>
-		/// Gets invoked when the button for generic starpower is pressed.
-		/// </summary>
-		public event Action<InputStrategy> StarpowerEvent;
+        public bool Enabled { get; private set; }
 
-		/// <summary>
-		/// Gets invoked when the button for generic pause is pressed.
-		/// </summary>
-		public event Action PauseEvent;
+        private IDisposable _eventListener = null;
 
-		public InputStrategy() {
-			// Set up debounce overrides
-			foreach (var mapping in InputMappings.Values) {
-				string overrideKey = mapping.DebounceOverrideKey;
-				if (overrideKey != null && InputMappings.TryGetValue(overrideKey, out var overrideMapping)) {
-					mapping.DebounceOverrideBinding = overrideMapping;
-				}
-			}
-		}
+        /// <summary>
+        /// Gets invoked when the button for generic calibration is pressed.<br/>
+        /// Make sure <see cref="UpdatePlayerMode"/> is being called.
+        /// </summary>
+        public event Action<InputStrategy> GenericCalibrationEvent;
 
-		public void Enable() {
-			if (Enabled) {
-				return;
-			}
+        /// <summary>
+        /// Gets invoked when the button for generic starpower is pressed.
+        /// </summary>
+        public event Action<InputStrategy> StarpowerEvent;
 
-			// Bind events
-			InputSystem.onAfterUpdate += OnUpdate;
-			if (_inputDevice != null) {
-				_eventListener = InputSystem.onEvent.ForDevice(_inputDevice).Call(OnInputEvent);
-			}
+        /// <summary>
+        /// Gets invoked when the button for generic pause is pressed.
+        /// </summary>
+        public event Action PauseEvent;
 
-			Enabled = true;
-		}
+        public InputStrategy()
+        {
+            // Set up debounce overrides
+            foreach (var mapping in InputMappings.Values)
+            {
+                string overrideKey = mapping.DebounceOverrideKey;
+                if (overrideKey != null && InputMappings.TryGetValue(overrideKey, out var overrideMapping))
+                {
+                    mapping.DebounceOverrideBinding = overrideMapping;
+                }
+            }
+        }
 
-		public void Disable() {
-			// TODO: Merge this with Dispose()
+        public void Enable()
+        {
+            if (Enabled)
+            {
+                return;
+            }
 
-			if (!Enabled) {
-				return;
-			}
+            // Bind events
+            InputSystem.onAfterUpdate += OnUpdate;
+            if (_inputDevice != null)
+            {
+                _eventListener = InputSystem.onEvent.ForDevice(_inputDevice).Call(OnInputEvent);
+            }
 
-			// Unbind events
-			InputSystem.onAfterUpdate -= OnUpdate;
-			_eventListener?.Dispose();
-			_eventListener = null;
+            Enabled = true;
+        }
 
-			Enabled = false;
-		}
+        public void Disable()
+        {
+            // TODO: Merge this with Dispose()
 
-		public void Dispose() {
-			Disable();
-			MicDevice?.Dispose();
-		}
+            if (!Enabled)
+            {
+                return;
+            }
 
-		/// <returns>
-		/// The name of the icon to show in players menu edition
-		/// </returns>
-		public abstract string GetIconName();
+            // Unbind events
+            InputSystem.onAfterUpdate -= OnUpdate;
+            _eventListener?.Dispose();
+            _eventListener = null;
 
-		/// <returns>
-		/// An array of the allow instruments for the input strategy.
-		/// </returns>
-		public abstract Instrument[] GetAllowedInstruments();
+            Enabled = false;
+        }
 
-		/// <returns>
-		/// The path of the track addressable.
-		/// </returns>
-		public abstract string GetTrackPath();
+        public void Dispose()
+        {
+            Disable();
+            MicDevice?.Dispose();
+        }
 
-		/// <summary>
-		/// Resets the InputStrategy for a new song.
-		/// </summary>
-		public virtual void ResetForSong() {
-			BotChartIndex = 0;
-		}
+        /// <returns>
+        /// The name of the icon to show in players menu edition
+        /// </returns>
+        public abstract string GetIconName();
 
-		/// <summary>
-		/// Initializes the bot mode for this particular InputStrategy.
-		/// </summary>
-		/// <param name="chart">A reference to the current chart.</param>
-		public abstract void InitializeBotMode(object chart);
+        /// <returns>
+        /// An array of the allow instruments for the input strategy.
+        /// </returns>
+        public abstract Instrument[] GetAllowedInstruments();
 
-		/// <summary>
-		/// Updates the player mode (normal mode) for this particular InputStrategy.
-		/// </summary>
-		protected abstract void UpdatePlayerMode();
+        /// <returns>
+        /// The path of the track addressable.
+        /// </returns>
+        public abstract string GetTrackPath();
 
-		/// <summary>
-		/// Updates the bot mode for this particular InputStrategy.
-		/// </summary>
-		protected abstract void UpdateBotMode();
+        /// <summary>
+        /// Resets the InputStrategy for a new song.
+        /// </summary>
+        public virtual void ResetForSong()
+        {
+            BotChartIndex = 0;
+        }
 
-		/// <summary>
-		/// Updates the navigation mode (menu mode) for this particular InputStrategy.
-		/// </summary>
-		protected abstract void UpdateNavigationMode();
+        /// <summary>
+        /// Initializes the bot mode for this particular InputStrategy.
+        /// </summary>
+        /// <param name="chart">A reference to the current chart.</param>
+        public abstract void InitializeBotMode(object chart);
 
-		protected void CallStarpowerEvent() {
-			StarpowerEvent?.Invoke(this);
-		}
+        /// <summary>
+        /// Updates the player mode (normal mode) for this particular InputStrategy.
+        /// </summary>
+        protected abstract void UpdatePlayerMode();
 
-		protected void CallPauseEvent() {
-			PauseEvent?.Invoke();
-		}
+        /// <summary>
+        /// Updates the bot mode for this particular InputStrategy.
+        /// </summary>
+        protected abstract void UpdateBotMode();
 
-		protected void CallGenericCalbirationEvent() {
-			GenericCalibrationEvent?.Invoke(this);
-		}
+        /// <summary>
+        /// Updates the navigation mode (menu mode) for this particular InputStrategy.
+        /// </summary>
+        protected abstract void UpdateNavigationMode();
 
-		protected virtual void OnUpdate() {
-			if (BotMode) {
-				UpdateBotMode();
-				return;
-			}
+        protected void CallStarpowerEvent()
+        {
+            StarpowerEvent?.Invoke(this);
+        }
 
-			// Update mapping debouncing
-			bool stateUpdated = false;
-			foreach (var mapping in InputMappings.Values) {
-				stateUpdated |= mapping.UpdateDebounce();
-			}
+        protected void CallPauseEvent()
+        {
+            PauseEvent?.Invoke();
+        }
 
-			// Update inputs if necessary
-			if (stateUpdated) {
-				UpdateNavigationMode();
-				UpdatePlayerMode();
-			}
-		}
+        protected void CallGenericCalbirationEvent()
+        {
+            GenericCalibrationEvent?.Invoke(this);
+        }
 
-		private void OnInputEvent(InputEventPtr eventPtr) {
-			// Only take state events
-			if (!eventPtr.IsA<StateEvent>() && !eventPtr.IsA<DeltaStateEvent>()) {
-				return;
-			}
+        protected virtual void OnUpdate()
+        {
+            if (BotMode)
+            {
+                UpdateBotMode();
+                return;
+            }
 
-			// Ignore navigation events from the keyboard while a text box is selected
-			// We detect whether a text box is selected by seeing if a focused input field is a component of the currently selected object
-			if (eventPtr.deviceId == Keyboard.current.deviceId &&
-				(EventSystem.current.currentSelectedGameObject?.GetComponents<TMP_InputField>().Any(i => i.isFocused) ?? false)) {
+            // Update mapping debouncing
+            bool stateUpdated = false;
+            foreach (var mapping in InputMappings.Values)
+            {
+                stateUpdated |= mapping.UpdateDebounce();
+            }
 
-				return;
-			}
+            // Update inputs if necessary
+            if (stateUpdated)
+            {
+                UpdateNavigationMode();
+                UpdatePlayerMode();
+            }
+        }
 
-			// Update mapping states
-			foreach (var mapping in InputMappings.Values) {
-				mapping.UpdateState(eventPtr);
-			}
+        private void OnInputEvent(InputEventPtr eventPtr)
+        {
+            // Only take state events
+            if (!eventPtr.IsA<StateEvent>() && !eventPtr.IsA<DeltaStateEvent>())
+            {
+                return;
+            }
 
-			// Update inputs
-			UpdateNavigationMode();
-			UpdatePlayerMode();
-		}
+            // Ignore navigation events from the keyboard while a text box is selected
+            // We detect whether a text box is selected by seeing if a focused input field is a component of the currently selected object
+            if (eventPtr.deviceId == Keyboard.current.deviceId &&
+                (EventSystem.current.currentSelectedGameObject?.GetComponents<TMP_InputField>().Any(i => i.isFocused) ??
+                    false))
+            {
+                return;
+            }
 
-		/// <summary>
-		/// Forces the input strategy to update.
-		/// </summary>
-		public void ForceUpdate() {
-			UpdateNavigationMode();
-			UpdatePlayerMode();
-			OnUpdate();
-		}
+            // Update mapping states
+            foreach (var mapping in InputMappings.Values)
+            {
+                mapping.UpdateState(eventPtr);
+            }
 
-		public static bool IsControlPressed(InputControl<float> control) {
-			if (control is ButtonControl button) {
-				return button.isPressed;
-			}
+            // Update inputs
+            UpdateNavigationMode();
+            UpdatePlayerMode();
+        }
 
-			return control.IsActuated(SettingsManager.Settings.PressThreshold.Data);
-		}
+        /// <summary>
+        /// Forces the input strategy to update.
+        /// </summary>
+        public void ForceUpdate()
+        {
+            UpdateNavigationMode();
+            UpdatePlayerMode();
+            OnUpdate();
+        }
 
-		public static bool IsControlPressed(InputControl<float> control, InputEventPtr eventPtr) {
-			if (control is ButtonControl button) {
-				return button.IsValueConsideredPressed(button.ReadValueFromEvent(eventPtr));
-			}
+        public static bool IsControlPressed(InputControl<float> control)
+        {
+            if (control is ButtonControl button)
+            {
+                return button.isPressed;
+            }
 
-			return control.ReadValueFromEvent(eventPtr) >= SettingsManager.Settings.PressThreshold.Data;
-		}
+            return control.IsActuated(SettingsManager.Settings.PressThreshold.Data);
+        }
 
-		protected bool IsMappingPressed(string key) {
-			return InputMappings[key].IsPressed();
-		}
+        public static bool IsControlPressed(InputControl<float> control, InputEventPtr eventPtr)
+        {
+            if (control is ButtonControl button)
+            {
+                return button.IsValueConsideredPressed(button.ReadValueFromEvent(eventPtr));
+            }
 
-		protected bool WasMappingPressed(string key) {
-			return InputMappings[key].WasPressed();
-		}
+            return control.ReadValueFromEvent(eventPtr) >= SettingsManager.Settings.PressThreshold.Data;
+        }
 
-		protected bool WasMappingReleased(string key) {
-			return InputMappings[key].WasReleased();
-		}
+        protected bool IsMappingPressed(string key)
+        {
+            return InputMappings[key].IsPressed();
+        }
 
-		protected float GetMappingValue(string key) {
-			return InputMappings[key].State.current;
-		}
+        protected bool WasMappingPressed(string key)
+        {
+            return InputMappings[key].WasPressed();
+        }
 
-		protected float GetPreviousMappingValue(string key) {
-			return InputMappings[key].State.previous;
-		}
+        protected bool WasMappingReleased(string key)
+        {
+            return InputMappings[key].WasReleased();
+        }
 
-		public InputControl<float> GetMappingInputControl(string name) {
-			return InputMappings[name].Control;
-		}
+        protected float GetMappingValue(string key)
+        {
+            return InputMappings[key].State.current;
+        }
 
-		public void SetMappingInputControl(string name, InputControl<float> control) {
-			InputMappings[name].Control = control;
-		}
+        protected float GetPreviousMappingValue(string key)
+        {
+            return InputMappings[key].State.previous;
+        }
 
-		protected void NavigationEventForMapping(MenuAction action, string mapping) {
-			if (WasMappingPressed(mapping)) {
-				Navigator.Instance.CallNavigationEvent(action, this);
-			}
-		}
+        public InputControl<float> GetMappingInputControl(string name)
+        {
+            return InputMappings[name].Control;
+        }
 
-		protected void NavigationHoldableForMapping(MenuAction action, string mapping) {
-			if (WasMappingPressed(mapping)) {
-				Navigator.Instance.StartNavigationHold(action, this);
-			} else if (WasMappingReleased(mapping)) {
-				Navigator.Instance.EndNavigationHold(action, this);
-			}
-		}
+        public void SetMappingInputControl(string name, InputControl<float> control)
+        {
+            InputMappings[name].Control = control;
+        }
 
-		public void SendStarPowerFill(float fill)
-			=> _haptics?.SetStarPowerFill(fill);
+        protected void NavigationEventForMapping(MenuAction action, string mapping)
+        {
+            if (WasMappingPressed(mapping))
+            {
+                Navigator.Instance.CallNavigationEvent(action, this);
+            }
+        }
 
-		public void SendStarPowerActive(bool enabled)
-			=> _haptics?.SetStarPowerActive(enabled);
+        protected void NavigationHoldableForMapping(MenuAction action, string mapping)
+        {
+            if (WasMappingPressed(mapping))
+            {
+                Navigator.Instance.StartNavigationHold(action, this);
+            }
+            else if (WasMappingReleased(mapping))
+            {
+                Navigator.Instance.EndNavigationHold(action, this);
+            }
+        }
 
-		public void SendMultiplier(uint multiplier)
-			=> _haptics?.SetMultiplier(multiplier);
+        public void SendStarPowerFill(float fill) => _haptics?.SetStarPowerFill(fill);
 
-		public void SendSolo(bool enabled)
-			=> _haptics?.SetSolo(enabled);
+        public void SendStarPowerActive(bool enabled) => _haptics?.SetStarPowerActive(enabled);
 
-		public virtual void ResetHaptics()
-			=> _haptics?.ResetHaptics();
-	}
+        public void SendMultiplier(uint multiplier) => _haptics?.SetMultiplier(multiplier);
+
+        public void SendSolo(bool enabled) => _haptics?.SetSolo(enabled);
+
+        public virtual void ResetHaptics() => _haptics?.ResetHaptics();
+    }
 }

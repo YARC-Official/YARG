@@ -19,241 +19,271 @@ using YARG.Song;
 using YARG.UI;
 using YARG.Venue;
 
-namespace YARG.PlayMode {
-	public class Play : MonoBehaviour {
-		public static Play Instance {
-			get;
-			private set;
-		}
+namespace YARG.PlayMode
+{
+    public class Play : MonoBehaviour
+    {
+        public static Play Instance { get; private set; }
 
-		public static float speed = 1f;
+        public static float speed = 1f;
 
-		public const float SONG_START_OFFSET = -2f;
-		public const float SONG_END_DELAY = 2f;
+        public const float SONG_START_OFFSET = -2f;
+        public const float SONG_END_DELAY = 2f;
 
-		public delegate void BeatAction();
-		public static event BeatAction BeatEvent;
+        public delegate void BeatAction();
 
-		public delegate void SongStateChangeAction(SongEntry songInfo);
-		public static event SongStateChangeAction OnSongStart;
-		public static event SongStateChangeAction OnSongEnd;
+        public static event BeatAction BeatEvent;
 
-		public delegate void PauseStateChangeAction(bool pause);
-		public static event PauseStateChangeAction OnPauseToggle;
+        public delegate void SongStateChangeAction(SongEntry songInfo);
 
-		public bool SongStarted {
-			get;
-			private set;
-		}
+        public static event SongStateChangeAction OnSongStart;
+        public static event SongStateChangeAction OnSongEnd;
 
-		[field: SerializeField]
-		public Camera DefaultCamera { get; private set; }
+        public delegate void PauseStateChangeAction(bool pause);
 
-		private OccurrenceList<string> audioLowering = new();
-		private OccurrenceList<string> audioReverb = new();
+        public static event PauseStateChangeAction OnPauseToggle;
 
-		private int stemsReverbed;
+        public bool SongStarted { get; private set; }
 
-		private bool audioRunning;
-		private float realSongTime;
-		public float SongTime => realSongTime - PlayerManager.AudioCalibration * speed - (float) Song.Delay;
+        [field: SerializeField]
+        public Camera DefaultCamera { get; private set; }
 
-		private float audioLength;
-		public float SongLength { get; private set; }
+        private OccurrenceList<string> audioLowering = new();
+        private OccurrenceList<string> audioReverb = new();
 
-		public YargChart chart;
+        private int stemsReverbed;
 
-		[Space]
-		[SerializeField]
-		private GameObject playResultScreen;
-		[SerializeField]
-		private RawImage playCover;
-		[SerializeField]
-		private GameObject scoreDisplay;
+        private bool audioRunning;
+        private float realSongTime;
+        public float SongTime => realSongTime - PlayerManager.AudioCalibration * speed - (float) Song.Delay;
 
-		private int beatIndex = 0;
+        private float audioLength;
+        public float SongLength { get; private set; }
 
-		// tempo (updated throughout play)
-		public float CurrentBeatsPerSecond { get; private set; } = 0f;
-		public float CurrentTempo => CurrentBeatsPerSecond * 60; // BPM
+        public YargChart chart;
 
-		private List<AbstractTrack> _tracks;
+        [Space]
+        [SerializeField]
+        private GameObject playResultScreen;
 
-		public bool endReached { get; private set; } = false;
+        [SerializeField]
+        private RawImage playCover;
 
-		private bool _paused = false;
-		public bool Paused {
-			get => _paused;
-			set {
-				// disable pausing once we reach end of song
-				if (endReached) return;
+        [SerializeField]
+        private GameObject scoreDisplay;
 
-				_paused = value;
+        private int beatIndex = 0;
 
-				GameUI.Instance.pauseMenu.SetActive(value);
+        // tempo (updated throughout play)
+        public float CurrentBeatsPerSecond { get; private set; } = 0f;
+        public float CurrentTempo => CurrentBeatsPerSecond * 60; // BPM
 
-				if (value) {
-					Time.timeScale = 0f;
+        private List<AbstractTrack> _tracks;
 
-					GameManager.AudioManager.Pause();
+        public bool endReached { get; private set; } = false;
 
-					if (GameUI.Instance.videoPlayer.enabled) {
-						GameUI.Instance.videoPlayer.Pause();
-					}
-				} else {
-					Time.timeScale = 1f;
+        private bool _paused = false;
 
-					GameManager.AudioManager.Play();
+        public bool Paused
+        {
+            get => _paused;
+            set
+            {
+                // disable pausing once we reach end of song
+                if (endReached) return;
 
-					if (GameUI.Instance.videoPlayer.enabled) {
-						GameUI.Instance.videoPlayer.Play();
-					}
-				}
+                _paused = value;
 
-				OnPauseToggle?.Invoke(_paused);
-			}
-		}
+                GameUI.Instance.pauseMenu.SetActive(value);
 
-		public SongEntry Song => GameManager.Instance.SelectedSong;
+                if (value)
+                {
+                    Time.timeScale = 0f;
 
-		private bool playingRhythm = false;
-		private bool playingVocals = false;
+                    GameManager.AudioManager.Pause();
 
-		private void Awake() {
-			Instance = this;
+                    if (GameUI.Instance.videoPlayer.enabled)
+                    {
+                        GameUI.Instance.videoPlayer.Pause();
+                    }
+                }
+                else
+                {
+                    Time.timeScale = 1f;
 
-			ScoreKeeper.Reset();
-			StarScoreKeeper.Reset();
+                    GameManager.AudioManager.Play();
 
-			// Force the music player to disable, and hide the help bar
-			// This is mostly for "Test Play" mode
-			Navigator.Instance.ForceHideMusicPlayer();
-			Navigator.Instance.PopAllSchemes();
+                    if (GameUI.Instance.videoPlayer.enabled)
+                    {
+                        GameUI.Instance.videoPlayer.Play();
+                    }
+                }
 
-			// Song
-			StartSong();
-		}
+                OnPauseToggle?.Invoke(_paused);
+            }
+        }
 
-		private void StartSong() {
-			GameUI.Instance.SetLoadingText("Loading audio...");
+        public SongEntry Song => GameManager.Instance.SelectedSong;
 
-			// Load MOGG if CON, otherwise load stems
-			if (Song is ExtractedConSongEntry rawConSongEntry) {
-				GameManager.AudioManager.LoadMogg(rawConSongEntry, speed);
-			} else {
-				var stems = AudioHelpers.GetSupportedStems(Song.Location);
+        private bool playingRhythm = false;
+        private bool playingVocals = false;
 
-				GameManager.AudioManager.LoadSong(stems, speed);
-			}
+        private void Awake()
+        {
+            Instance = this;
 
-			// Get song length
-			audioLength = GameManager.AudioManager.AudioLengthF;
-			SongLength = audioLength;
+            ScoreKeeper.Reset();
+            StarScoreKeeper.Reset();
 
-			GameUI.Instance.SetLoadingText("Loading chart...");
+            // Force the music player to disable, and hide the help bar
+            // This is mostly for "Test Play" mode
+            Navigator.Instance.ForceHideMusicPlayer();
+            Navigator.Instance.PopAllSchemes();
 
-			// Load chart (from midi, upgrades, etc.)
-			LoadChart();
+            // Song
+            StartSong();
+        }
 
-			// Adjust song length if needed
-			// The [end] event is allowed to make the chart shorter (but not longer)
-			for (int i = chart.events.Count - 1; i > 0; i--) {
-				var chartEvent = chart.events[i];
-				if (chartEvent.name != "end") {
-					continue;
-				}
+        private void StartSong()
+        {
+            GameUI.Instance.SetLoadingText("Loading audio...");
 
-				if (chartEvent.time < SongLength) {
-					SongLength = chartEvent.time;
-					break;
-				}
-			}
+            // Load MOGG if CON, otherwise load stems
+            if (Song is ExtractedConSongEntry rawConSongEntry)
+            {
+                GameManager.AudioManager.LoadMogg(rawConSongEntry, speed);
+            }
+            else
+            {
+                var stems = AudioHelpers.GetSupportedStems(Song.Location);
 
-			// The song length must include all notes in the chart
-			foreach (var part in chart.AllParts) {
-				foreach (var difficulty in part) {
-					if (difficulty.Count < 1) {
-						continue;
-					}
+                GameManager.AudioManager.LoadSong(stems, speed);
+            }
 
-					var lastNote = difficulty[^1];
-					if (lastNote.EndTime > SongLength) {
-						SongLength = lastNote.EndTime;
-					}
-				}
-			}
+            // Get song length
+            audioLength = GameManager.AudioManager.AudioLengthF;
+            SongLength = audioLength;
 
-			// Finally, append some additional time so the song doesn't just end immediately
-			SongLength += SONG_END_DELAY * speed;
+            GameUI.Instance.SetLoadingText("Loading chart...");
 
-			GameUI.Instance.SetLoadingText("Spawning tracks...");
+            // Load chart (from midi, upgrades, etc.)
+            LoadChart();
 
-			// Spawn tracks
-			_tracks = new List<AbstractTrack>();
-			int trackIndex = 0;
-			foreach (var player in PlayerManager.players) {
-				if (player.chosenInstrument == null) {
-					// Skip players that are sitting out
-					continue;
-				}
+            // Adjust song length if needed
+            // The [end] event is allowed to make the chart shorter (but not longer)
+            for (int i = chart.events.Count - 1; i > 0; i--)
+            {
+                var chartEvent = chart.events[i];
+                if (chartEvent.name != "end")
+                {
+                    continue;
+                }
 
-				// Temporary, will make a better system later
-				if (player.chosenInstrument == "rhythm") {
-					playingRhythm = true;
-				}
+                if (chartEvent.time < SongLength)
+                {
+                    SongLength = chartEvent.time;
+                    break;
+                }
+            }
 
-				// Temporary, same here
-				if (player.chosenInstrument is "vocals" or "harmVocals") {
-					playingVocals = true;
-				}
+            // The song length must include all notes in the chart
+            foreach (var part in chart.AllParts)
+            {
+                foreach (var difficulty in part)
+                {
+                    if (difficulty.Count < 1)
+                    {
+                        continue;
+                    }
 
-				string trackPath = player.inputStrategy.GetTrackPath();
+                    var lastNote = difficulty[^1];
+                    if (lastNote.EndTime > SongLength)
+                    {
+                        SongLength = lastNote.EndTime;
+                    }
+                }
+            }
 
-				if (trackPath == null) {
-					continue;
-				}
+            // Finally, append some additional time so the song doesn't just end immediately
+            SongLength += SONG_END_DELAY * speed;
 
-				var prefab = Addressables.LoadAssetAsync<GameObject>(trackPath).WaitForCompletion();
-				var track = Instantiate(prefab, new Vector3(trackIndex * 25f, 100f, 0f), prefab.transform.rotation);
-				_tracks.Add(track.GetComponent<AbstractTrack>());
-				_tracks[trackIndex].player = player;
+            GameUI.Instance.SetLoadingText("Spawning tracks...");
 
-				trackIndex++;
-			}
+            // Spawn tracks
+            _tracks = new List<AbstractTrack>();
+            int trackIndex = 0;
+            foreach (var player in PlayerManager.players)
+            {
+                if (player.chosenInstrument == null)
+                {
+                    // Skip players that are sitting out
+                    continue;
+                }
 
-			// Load background (venue, video, image, etc.)
-			LoadBackground();
+                // Temporary, will make a better system later
+                if (player.chosenInstrument == "rhythm")
+                {
+                    playingRhythm = true;
+                }
 
-			SongStarted = true;
+                // Temporary, same here
+                if (player.chosenInstrument is "vocals" or "harmVocals")
+                {
+                    playingVocals = true;
+                }
 
-			// Hide loading screen
-			GameUI.Instance.loadingContainer.SetActive(false);
+                string trackPath = player.inputStrategy.GetTrackPath();
 
-			realSongTime = SONG_START_OFFSET * speed;
-			StartCoroutine(StartAudio());
+                if (trackPath == null)
+                {
+                    continue;
+                }
 
-			OnSongStart?.Invoke(Song);
-		}
+                var prefab = Addressables.LoadAssetAsync<GameObject>(trackPath).WaitForCompletion();
+                var track = Instantiate(prefab, new Vector3(trackIndex * 25f, 100f, 0f), prefab.transform.rotation);
+                _tracks.Add(track.GetComponent<AbstractTrack>());
+                _tracks[trackIndex].player = player;
 
-		private void LoadBackground() {
-			var typePathPair = VenueLoader.GetVenuePath(Song);
-			if (typePathPair == null) {
-				return;
-			}
+                trackIndex++;
+            }
 
-			var type = typePathPair.Value.Type;
-			var path = typePathPair.Value.Path;
+            // Load background (venue, video, image, etc.)
+            LoadBackground();
 
-			switch (type) {
-				case VenueType.Yarground:
-					var bundle = AssetBundle.LoadFromFile(path);
+            SongStarted = true;
 
-					// KEEP THIS PATH LOWERCASE
-					// Breaks things for other platforms, because Unity
-					var bg = bundle.LoadAsset<GameObject>(BundleBackgroundManager.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
+            // Hide loading screen
+            GameUI.Instance.loadingContainer.SetActive(false);
 
-					// Fix for non-Windows machines
-					// Probably there's a better way to do this.
+            realSongTime = SONG_START_OFFSET * speed;
+            StartCoroutine(StartAudio());
+
+            OnSongStart?.Invoke(Song);
+        }
+
+        private void LoadBackground()
+        {
+            var typePathPair = VenueLoader.GetVenuePath(Song);
+            if (typePathPair == null)
+            {
+                return;
+            }
+
+            var type = typePathPair.Value.Type;
+            var path = typePathPair.Value.Path;
+
+            switch (type)
+            {
+                case VenueType.Yarground:
+                    var bundle = AssetBundle.LoadFromFile(path);
+
+                    // KEEP THIS PATH LOWERCASE
+                    // Breaks things for other platforms, because Unity
+                    var bg = bundle.LoadAsset<GameObject>(BundleBackgroundManager.BACKGROUND_PREFAB_PATH
+                        .ToLowerInvariant());
+
+                    // Fix for non-Windows machines
+                    // Probably there's a better way to do this.
 #if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
 					Renderer[] renderers = bg.GetComponentsInChildren<Renderer>();
 
@@ -267,303 +297,359 @@ namespace YARG.PlayMode {
 					}
 #endif
 
-					var bgInstance = Instantiate(bg);
+                    var bgInstance = Instantiate(bg);
 
-					bgInstance.GetComponent<BundleBackgroundManager>().Bundle = bundle;
-					break;
-				case VenueType.Video:
-					GameUI.Instance.videoPlayer.url = path;
-					GameUI.Instance.videoPlayer.enabled = true;
-					GameUI.Instance.videoPlayer.Prepare();
-					break;
-				case VenueType.Image:
-					var png = ImageHelper.LoadTextureFromFile(path);
-					GameUI.Instance.background.texture = png;
-					break;
-			}
-		}
+                    bgInstance.GetComponent<BundleBackgroundManager>().Bundle = bundle;
+                    break;
+                case VenueType.Video:
+                    GameUI.Instance.videoPlayer.url = path;
+                    GameUI.Instance.videoPlayer.enabled = true;
+                    GameUI.Instance.videoPlayer.Prepare();
+                    break;
+                case VenueType.Image:
+                    var png = ImageHelper.LoadTextureFromFile(path);
+                    GameUI.Instance.background.texture = png;
+                    break;
+            }
+        }
 
-		private void LoadChart() {
-			// Parse
+        private void LoadChart()
+        {
+            // Parse
 
-			MoonSong moonSong = null;
-			if (Song.NotesFile.EndsWith(".chart")) {
-				Debug.Log("Reading .chart file");
-				moonSong = ChartReader.ReadChart(Path.Combine(Song.Location, Song.NotesFile));
-			}
+            MoonSong moonSong = null;
+            if (Song.NotesFile.EndsWith(".chart"))
+            {
+                Debug.Log("Reading .chart file");
+                moonSong = ChartReader.ReadChart(Path.Combine(Song.Location, Song.NotesFile));
+            }
 
-			chart = new YargChart(moonSong);
-			if (Song.NotesFile.EndsWith(".mid")) {
-				// Parse
-				var parser = new MidiParser(Song);
-				chart.InitializeArrays();
-				parser.Parse(chart);
-			} else if (Song.NotesFile.EndsWith(".chart")) {
-				var handler = new BeatHandler(moonSong);
-				handler.GenerateBeats();
-				chart.beats = handler.Beats;
-			}
+            chart = new YargChart(moonSong);
+            if (Song.NotesFile.EndsWith(".mid"))
+            {
+                // Parse
+                var parser = new MidiParser(Song);
+                chart.InitializeArrays();
+                parser.Parse(chart);
+            }
+            else if (Song.NotesFile.EndsWith(".chart"))
+            {
+                var handler = new BeatHandler(moonSong);
+                handler.GenerateBeats();
+                chart.beats = handler.Beats;
+            }
 
-			// initialize current tempo
-			if (chart.beats.Count > 2) {
-				CurrentBeatsPerSecond = chart.beats[1].Time - chart.beats[0].Time;
-			}
-		}
+            // initialize current tempo
+            if (chart.beats.Count > 2)
+            {
+                CurrentBeatsPerSecond = chart.beats[1].Time - chart.beats[0].Time;
+            }
+        }
 
-		private IEnumerator StartAudio() {
-			while (realSongTime < 0f) {
-				// Wait until the song time is 0
-				yield return null;
-			}
+        private IEnumerator StartAudio()
+        {
+            while (realSongTime < 0f)
+            {
+                // Wait until the song time is 0
+                yield return null;
+            }
 
-			float? startVideoIn = null;
-			if (GameUI.Instance.videoPlayer.enabled) {
-				// Set the chart start offset here (if ini)
-				if (Song is IniSongEntry ini) {
-					if (ini.VideoStartOffset < 0) {
-						startVideoIn = Mathf.Abs(ini.VideoStartOffset / 1000f);
-					} else {
-						GameUI.Instance.videoPlayer.time = ini.VideoStartOffset / 1000.0;
-					}
-				}
+            float? startVideoIn = null;
+            if (GameUI.Instance.videoPlayer.enabled)
+            {
+                // Set the chart start offset here (if ini)
+                if (Song is IniSongEntry ini)
+                {
+                    if (ini.VideoStartOffset < 0)
+                    {
+                        startVideoIn = Mathf.Abs(ini.VideoStartOffset / 1000f);
+                    }
+                    else
+                    {
+                        GameUI.Instance.videoPlayer.time = ini.VideoStartOffset / 1000.0;
+                    }
+                }
 
-				// Play the video if a start time wasn't defined
-				if (startVideoIn == null) {
-					GameUI.Instance.videoPlayer.Play();
-				}
-			}
+                // Play the video if a start time wasn't defined
+                if (startVideoIn == null)
+                {
+                    GameUI.Instance.videoPlayer.Play();
+                }
+            }
 
-			GameManager.AudioManager.Play();
+            GameManager.AudioManager.Play();
 
-			GameManager.AudioManager.SongEnd += OnEndReached;
-			audioRunning = true;
+            GameManager.AudioManager.SongEnd += OnEndReached;
+            audioRunning = true;
 
-			if (startVideoIn != null) {
-				// Wait, then start on time
-				yield return new WaitForSeconds(startVideoIn.Value);
-				GameUI.Instance.videoPlayer.Play();
-			}
-		}
+            if (startVideoIn != null)
+            {
+                // Wait, then start on time
+                yield return new WaitForSeconds(startVideoIn.Value);
+                GameUI.Instance.videoPlayer.Play();
+            }
+        }
 
-		private void Update() {
-			if (!SongStarted) {
-				return;
-			}
+        private void Update()
+        {
+            if (!SongStarted)
+            {
+                return;
+            }
 
-			// Pausing
-			if (Keyboard.current.escapeKey.wasPressedThisFrame) {
-				Paused = !Paused;
-			}
+            // Pausing
+            if (Keyboard.current.escapeKey.wasPressedThisFrame)
+            {
+                Paused = !Paused;
+            }
 
-			if (Paused) {
-				return;
-			}
+            if (Paused)
+            {
+                return;
+            }
 
-			// Update this every frame to make sure all notes are spawned at the same time.
-			float audioTime = GameManager.AudioManager.CurrentPositionF;
-			if (audioRunning && audioTime < audioLength) {
-				realSongTime = audioTime;
-			} else {
-				// We need to update the song time ourselves if the audio finishes before the song actually ends
-				realSongTime += Time.deltaTime * speed;
-			}
+            // Update this every frame to make sure all notes are spawned at the same time.
+            float audioTime = GameManager.AudioManager.CurrentPositionF;
+            if (audioRunning && audioTime < audioLength)
+            {
+                realSongTime = audioTime;
+            }
+            else
+            {
+                // We need to update the song time ourselves if the audio finishes before the song actually ends
+                realSongTime += Time.deltaTime * speed;
+            }
 
-			UpdateAudio(new[] {
-				"guitar",
-				"realGuitar"
-			}, new[] {
-				"guitar"
-			});
+            UpdateAudio(new[]
+            {
+                "guitar", "realGuitar"
+            }, new[]
+            {
+                "guitar"
+            });
 
-			// Swap what tracks depending on what instrument is playing
-			if (playingRhythm) {
-				// Mute rhythm
-				UpdateAudio(new[] {
-					"rhythm",
-				}, new[] {
-					"rhythm"
-				});
+            // Swap what tracks depending on what instrument is playing
+            if (playingRhythm)
+            {
+                // Mute rhythm
+                UpdateAudio(new[]
+                {
+                    "rhythm",
+                }, new[]
+                {
+                    "rhythm"
+                });
 
-				// Mute bass
-				UpdateAudio(new[] {
-					"bass",
-					"realBass"
-				}, new[] {
-					"bass",
-				});
-			} else {
-				// Mute bass
-				UpdateAudio(new[] {
-					"bass",
-					"realBass"
-				}, new[] {
-					"bass",
-					"rhythm"
-				});
-			}
+                // Mute bass
+                UpdateAudio(new[]
+                {
+                    "bass", "realBass"
+                }, new[]
+                {
+                    "bass",
+                });
+            }
+            else
+            {
+                // Mute bass
+                UpdateAudio(new[]
+                {
+                    "bass", "realBass"
+                }, new[]
+                {
+                    "bass", "rhythm"
+                });
+            }
 
-			// Mute keys
-			UpdateAudio(new[] {
-				"keys",
-				"realKeys"
-			}, new[] {
-				"keys"
-			});
+            // Mute keys
+            UpdateAudio(new[]
+            {
+                "keys", "realKeys"
+            }, new[]
+            {
+                "keys"
+            });
 
-			// Mute drums
-			UpdateAudio(new[] {
-				"drums",
-				"realDrums"
-			}, new[] {
-				"drums",
-				"drums_1",
-				"drums_2",
-				"drums_3",
-				"drums_4"
-			});
+            // Mute drums
+            UpdateAudio(new[]
+            {
+                "drums", "realDrums"
+            }, new[]
+            {
+                "drums", "drums_1", "drums_2", "drums_3", "drums_4"
+            });
 
-			// Update beats
-			while (chart.beats.Count > beatIndex && chart.beats[beatIndex].Time <= SongTime) {
-				foreach (var track in _tracks) {
-					if (!track.IsStarPowerActive || !GameManager.AudioManager.UseStarpowerFx) continue;
+            // Update beats
+            while (chart.beats.Count > beatIndex && chart.beats[beatIndex].Time <= SongTime)
+            {
+                foreach (var track in _tracks)
+                {
+                    if (!track.IsStarPowerActive || !GameManager.AudioManager.UseStarpowerFx) continue;
 
-					GameManager.AudioManager.PlaySoundEffect(SfxSample.Clap);
-					break;
-				}
-				BeatEvent?.Invoke();
-				beatIndex++;
+                    GameManager.AudioManager.PlaySoundEffect(SfxSample.Clap);
+                    break;
+                }
 
-				if (beatIndex < chart.beats.Count) {
-					CurrentBeatsPerSecond = 1 / (chart.beats[beatIndex].Time - chart.beats[beatIndex - 1].Time);
-				}
-			}
+                BeatEvent?.Invoke();
+                beatIndex++;
 
-			// End song
-			if (!endReached && realSongTime >= SongLength) {
-				endReached = true;
-				StartCoroutine(EndSong(true));
-			}
-		}
+                if (beatIndex < chart.beats.Count)
+                {
+                    CurrentBeatsPerSecond = 1 / (chart.beats[beatIndex].Time - chart.beats[beatIndex - 1].Time);
+                }
+            }
 
-		private void OnEndReached() {
-			audioLength = GameManager.AudioManager.CurrentPositionF;
-			audioRunning = false;
-		}
+            // End song
+            if (!endReached && realSongTime >= SongLength)
+            {
+                endReached = true;
+                StartCoroutine(EndSong(true));
+            }
+        }
 
-		private void UpdateAudio(string[] trackNames, string[] stemNames) {
-			if (SettingsManager.Settings.MuteOnMiss.Data) {
-				// Get total amount of players with the instrument (and the amount lowered)
-				int amountWithInstrument = 0;
-				int amountLowered = 0;
+        private void OnEndReached()
+        {
+            audioLength = GameManager.AudioManager.CurrentPositionF;
+            audioRunning = false;
+        }
 
-				for (int i = 0; i < trackNames.Length; i++) {
-					amountWithInstrument += PlayerManager.PlayersWithInstrument(trackNames[i]);
-					amountLowered += audioLowering.GetCount(trackNames[i]);
-				}
+        private void UpdateAudio(string[] trackNames, string[] stemNames)
+        {
+            if (SettingsManager.Settings.MuteOnMiss.Data)
+            {
+                // Get total amount of players with the instrument (and the amount lowered)
+                int amountWithInstrument = 0;
+                int amountLowered = 0;
 
-				// Skip if no one is playing the instrument
-				if (amountWithInstrument <= 0) {
-					return;
-				}
+                for (int i = 0; i < trackNames.Length; i++)
+                {
+                    amountWithInstrument += PlayerManager.PlayersWithInstrument(trackNames[i]);
+                    amountLowered += audioLowering.GetCount(trackNames[i]);
+                }
 
-				// Lower all volumes to a minimum of 5%
-				float percent = 1f - (float) amountLowered / amountWithInstrument;
-				foreach (var name in stemNames) {
-					var stem = AudioHelpers.GetStemFromName(name);
+                // Skip if no one is playing the instrument
+                if (amountWithInstrument <= 0)
+                {
+                    return;
+                }
 
-					GameManager.AudioManager.SetStemVolume(stem, percent * 0.95f + 0.05f);
-				}
-			}
+                // Lower all volumes to a minimum of 5%
+                float percent = 1f - (float) amountLowered / amountWithInstrument;
+                foreach (var name in stemNames)
+                {
+                    var stem = AudioHelpers.GetStemFromName(name);
 
-			// Reverb audio with starpower
+                    GameManager.AudioManager.SetStemVolume(stem, percent * 0.95f + 0.05f);
+                }
+            }
 
-			if (GameManager.AudioManager.UseStarpowerFx) {
-				GameManager.AudioManager.ApplyReverb(SongStem.Song, stemsReverbed > 0);
+            // Reverb audio with starpower
 
-				foreach (var name in stemNames) {
-					var stem = AudioHelpers.GetStemFromName(name);
+            if (GameManager.AudioManager.UseStarpowerFx)
+            {
+                GameManager.AudioManager.ApplyReverb(SongStem.Song, stemsReverbed > 0);
 
-					bool applyReverb = audioReverb.GetCount(name) > 0;
+                foreach (var name in stemNames)
+                {
+                    var stem = AudioHelpers.GetStemFromName(name);
 
-					// Drums have multiple stems so need to reverb them all if it is drums
-					switch (stem) {
-						case SongStem.Drums:
-							GameManager.AudioManager.ApplyReverb(SongStem.Drums, applyReverb);
-							GameManager.AudioManager.ApplyReverb(SongStem.Drums1, applyReverb);
-							GameManager.AudioManager.ApplyReverb(SongStem.Drums2, applyReverb);
-							GameManager.AudioManager.ApplyReverb(SongStem.Drums3, applyReverb);
-							GameManager.AudioManager.ApplyReverb(SongStem.Drums4, applyReverb);
-							break;
-						default:
-							GameManager.AudioManager.ApplyReverb(stem, applyReverb);
-							break;
-					}
-				}
-			}
-		}
+                    bool applyReverb = audioReverb.GetCount(name) > 0;
 
-		public IEnumerator EndSong(bool showResultScreen) {
-			// Dispose of all audio
-			GameManager.AudioManager.SongEnd -= OnEndReached;
-			GameManager.AudioManager.UnloadSong();
+                    // Drums have multiple stems so need to reverb them all if it is drums
+                    switch (stem)
+                    {
+                        case SongStem.Drums:
+                            GameManager.AudioManager.ApplyReverb(SongStem.Drums, applyReverb);
+                            GameManager.AudioManager.ApplyReverb(SongStem.Drums1, applyReverb);
+                            GameManager.AudioManager.ApplyReverb(SongStem.Drums2, applyReverb);
+                            GameManager.AudioManager.ApplyReverb(SongStem.Drums3, applyReverb);
+                            GameManager.AudioManager.ApplyReverb(SongStem.Drums4, applyReverb);
+                            break;
+                        default:
+                            GameManager.AudioManager.ApplyReverb(stem, applyReverb);
+                            break;
+                    }
+                }
+            }
+        }
 
-			// Call events
-			OnSongEnd?.Invoke(Song);
+        public IEnumerator EndSong(bool showResultScreen)
+        {
+            // Dispose of all audio
+            GameManager.AudioManager.SongEnd -= OnEndReached;
+            GameManager.AudioManager.UnloadSong();
 
-			// Unpause just in case
-			Time.timeScale = 1f;
+            // Call events
+            OnSongEnd?.Invoke(Song);
 
-			OnSongEnd?.Invoke(Song);
+            // Unpause just in case
+            Time.timeScale = 1f;
 
-			// run animation + save if we've reached end of song
-			if (showResultScreen) {
-				yield return playCover
-					.DOFade(1f, 1f)
-					.WaitForCompletion();
+            OnSongEnd?.Invoke(Song);
 
-				// save scores and destroy tracks
-				foreach (var track in _tracks) {
-					track.SetPlayerScore();
-					Destroy(track.gameObject);
-				}
-				_tracks.Clear();
-				// save MicPlayer score and destroy it
-				if (MicPlayer.Instance != null) {
-					MicPlayer.Instance.SetPlayerScore();
-					Destroy(MicPlayer.Instance.gameObject);
-				}
+            // run animation + save if we've reached end of song
+            if (showResultScreen)
+            {
+                yield return playCover
+                    .DOFade(1f, 1f)
+                    .WaitForCompletion();
 
-				// show play result screen; this is our main focus now
-				playResultScreen.SetActive(true);
-			}
-			scoreDisplay.SetActive(false);
-		}
+                // save scores and destroy tracks
+                foreach (var track in _tracks)
+                {
+                    track.SetPlayerScore();
+                    Destroy(track.gameObject);
+                }
 
-		public void LowerAudio(string name) {
-			audioLowering.Add(name);
-		}
+                _tracks.Clear();
+                // save MicPlayer score and destroy it
+                if (MicPlayer.Instance != null)
+                {
+                    MicPlayer.Instance.SetPlayerScore();
+                    Destroy(MicPlayer.Instance.gameObject);
+                }
 
-		public void RaiseAudio(string name) {
-			audioLowering.Remove(name);
-		}
+                // show play result screen; this is our main focus now
+                playResultScreen.SetActive(true);
+            }
 
-		public void ReverbAudio(string name, bool apply) {
-			if (apply) {
-				stemsReverbed++;
-				audioReverb.Add(name);
-			} else {
-				stemsReverbed--;
-				audioReverb.Remove(name);
-			}
-		}
+            scoreDisplay.SetActive(false);
+        }
 
-		public void Exit(bool toSongSelect = true) {
-			if (!endReached) {
-				endReached = true;
-				StartCoroutine(EndSong(false));
-			}
-			MainMenu.showSongSelect = toSongSelect;
-			GameManager.Instance.LoadScene(SceneIndex.MENU);
-		}
-	}
+        public void LowerAudio(string name)
+        {
+            audioLowering.Add(name);
+        }
+
+        public void RaiseAudio(string name)
+        {
+            audioLowering.Remove(name);
+        }
+
+        public void ReverbAudio(string name, bool apply)
+        {
+            if (apply)
+            {
+                stemsReverbed++;
+                audioReverb.Add(name);
+            }
+            else
+            {
+                stemsReverbed--;
+                audioReverb.Remove(name);
+            }
+        }
+
+        public void Exit(bool toSongSelect = true)
+        {
+            if (!endReached)
+            {
+                endReached = true;
+                StartCoroutine(EndSong(false));
+            }
+
+            MainMenu.showSongSelect = toSongSelect;
+            GameManager.Instance.LoadScene(SceneIndex.MENU);
+        }
+    }
 }

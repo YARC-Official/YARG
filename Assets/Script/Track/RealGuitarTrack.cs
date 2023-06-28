@@ -7,301 +7,357 @@ using YARG.Pools;
 using YARG.Util;
 using static YARG.Input.RealGuitarInputStrategy;
 
-namespace YARG.PlayMode {
-	public class RealGuitarTrack : AbstractTrack {
-		private StrumFlag strumFlag = StrumFlag.NONE;
-		private int[] fretCache = new int[6];
+namespace YARG.PlayMode
+{
+    public class RealGuitarTrack : AbstractTrack
+    {
+        private StrumFlag strumFlag = StrumFlag.NONE;
+        private int[] fretCache = new int[6];
 
-		private RealGuitarInputStrategy input;
+        private RealGuitarInputStrategy input;
 
-		[Space]
-		[SerializeField]
-		private TextMeshPro[] fretNumbers;
-		[SerializeField]
-		private ParticleGroup[] hitParticles;
-		[SerializeField]
-		private ParticleGroup[] sustainParticles;
-		[SerializeField]
-		private NotePool notePool;
+        [Space]
+        [SerializeField]
+        private TextMeshPro[] fretNumbers;
 
-		private Queue<NoteInfo> expectedHits = new();
-		private List<NoteInfo> heldNotes = new();
+        [SerializeField]
+        private ParticleGroup[] hitParticles;
 
-		private const int PTS_PER_NOTE = 120;
-		private const int SUSTAIN_PTS_PER_BEAT = 60;
+        [SerializeField]
+        private ParticleGroup[] sustainParticles;
 
-		protected override void StartTrack() {
-			notePool.player = player;
-			genericPool.player = player;
+        [SerializeField]
+        private NotePool notePool;
 
-			// Lefty flip (TODO)
+        private Queue<NoteInfo> expectedHits = new();
+        private List<NoteInfo> heldNotes = new();
 
-			// if (player.leftyFlip) {
-			// 	fretNumbers = fretNumbers.Reverse().ToArray();
-			// 	hitParticles = hitParticles.Reverse().ToArray();
-			// 	sustainParticles = sustainParticles.Reverse().ToArray();
-			// 	stringColors = stringColors.Reverse().ToArray();
-			// }
+        private const int PTS_PER_NOTE = 120;
+        private const int SUSTAIN_PTS_PER_BEAT = 60;
 
-			// Inputs
+        protected override void StartTrack()
+        {
+            notePool.player = player;
+            genericPool.player = player;
 
-			input = (RealGuitarInputStrategy) player.inputStrategy;
-			input.ResetForSong();
+            // Lefty flip (TODO)
 
-			input.FretChangeEvent += FretChangedAction;
-			input.StrumEvent += StrumAction;
+            // if (player.leftyFlip) {
+            // 	fretNumbers = fretNumbers.Reverse().ToArray();
+            // 	hitParticles = hitParticles.Reverse().ToArray();
+            // 	sustainParticles = sustainParticles.Reverse().ToArray();
+            // 	stringColors = stringColors.Reverse().ToArray();
+            // }
 
-			if (input.BotMode) {
-				input.InitializeBotMode(Chart);
-			}
+            // Inputs
 
-			// Color particles
+            input = (RealGuitarInputStrategy) player.inputStrategy;
+            input.ResetForSong();
 
-			for (int i = 0; i < 6; i++) {
-				hitParticles[i].Colorize(commonTrack.FretColor(i));
-			}
+            input.FretChangeEvent += FretChangedAction;
+            input.StrumEvent += StrumAction;
 
-			for (int i = 0; i < 6; i++) {
-				sustainParticles[i].Colorize(commonTrack.FretColor(i));
-			}
+            if (input.BotMode)
+            {
+                input.InitializeBotMode(Chart);
+            }
 
-			starsKeeper = new(Chart, scoreKeeper,
-				player.chosenInstrument,
-				PTS_PER_NOTE, SUSTAIN_PTS_PER_BEAT);
-		}
+            // Color particles
 
-		protected override void OnDestroy() {
-			base.OnDestroy();
+            for (int i = 0; i < 6; i++)
+            {
+                hitParticles[i].Colorize(commonTrack.FretColor(i));
+            }
 
-			// Unbind input
-			input.FretChangeEvent -= FretChangedAction;
-			input.StrumEvent -= StrumAction;
-		}
+            for (int i = 0; i < 6; i++)
+            {
+                sustainParticles[i].Colorize(commonTrack.FretColor(i));
+            }
 
-		protected override void UpdateTrack() {
-			// Ignore everything else until the song starts
-			if (!Play.Instance.SongStarted) {
-				return;
-			}
+            starsKeeper = new(Chart, scoreKeeper,
+                player.chosenInstrument,
+                PTS_PER_NOTE, SUSTAIN_PTS_PER_BEAT);
+        }
 
-			// Since chart is sorted, this is guaranteed to work
-			while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= TrackStartTime) {
-				var noteInfo = Chart[visualChartIndex];
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
 
-				SpawnNote(noteInfo, TrackStartTime);
-				visualChartIndex++;
-			}
+            // Unbind input
+            input.FretChangeEvent -= FretChangedAction;
+            input.StrumEvent -= StrumAction;
+        }
 
-			// Update expected input
-			while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= HitMarginStartTime) {
-				expectedHits.Enqueue(Chart[inputChartIndex]);
+        protected override void UpdateTrack()
+        {
+            // Ignore everything else until the song starts
+            if (!Play.Instance.SongStarted)
+            {
+                return;
+            }
 
-				inputChartIndex++;
-			}
+            // Since chart is sorted, this is guaranteed to work
+            while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= TrackStartTime)
+            {
+                var noteInfo = Chart[visualChartIndex];
 
-			// Update held notes
-			for (int i = heldNotes.Count - 1; i >= 0; i--) {
-				var heldNote = heldNotes[i];
-				scoreKeeper.Add(susTracker.Update(heldNote) * Multiplier * SUSTAIN_PTS_PER_BEAT);
-				if (heldNote.time + heldNote.length <= CurrentTime) {
-					heldNotes.RemoveAt(i);
-					susTracker.Drop(heldNote);
-					EndSustainParticles(heldNote);
-				}
-			}
+                SpawnNote(noteInfo, TrackStartTime);
+                visualChartIndex++;
+            }
 
-			UpdateInput();
+            // Update expected input
+            while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= HitMarginStartTime)
+            {
+                expectedHits.Enqueue(Chart[inputChartIndex]);
 
-			strumFlag = StrumFlag.NONE;
-		}
+                inputChartIndex++;
+            }
 
-		public override void SetReverb(bool on) {
-			Play.Instance.ReverbAudio("guitar", on);
-		}
+            // Update held notes
+            for (int i = heldNotes.Count - 1; i >= 0; i--)
+            {
+                var heldNote = heldNotes[i];
+                scoreKeeper.Add(susTracker.Update(heldNote) * Multiplier * SUSTAIN_PTS_PER_BEAT);
+                if (heldNote.time + heldNote.length <= CurrentTime)
+                {
+                    heldNotes.RemoveAt(i);
+                    susTracker.Drop(heldNote);
+                    EndSustainParticles(heldNote);
+                }
+            }
 
-		private void UpdateInput() {
-			// Handle misses (multiple a frame in case of lag)
-			while (HitMarginEndTime > expectedHits.PeekOrNull()?.time) {
-				var missedNote = expectedHits.Dequeue();
+            UpdateInput();
 
-				// Call miss for each component
-				hitChartIndex++;
-				missedAnyNote = true;
-				Combo = 0;
-				notePool.MissNote(missedNote);
-				StopAudio = true;
-			}
+            strumFlag = StrumFlag.NONE;
+        }
 
+        public override void SetReverb(bool on)
+        {
+            Play.Instance.ReverbAudio("guitar", on);
+        }
 
-			if (expectedHits.Count <= 0) {
-				// UpdateOverstrums();
-				return;
-			}
+        private void UpdateInput()
+        {
+            // Handle misses (multiple a frame in case of lag)
+            while (HitMarginEndTime > expectedHits.PeekOrNull()?.time)
+            {
+                var missedNote = expectedHits.Dequeue();
 
-			// Handle hits (one per frame so no double hits)
-			var note = expectedHits.Peek();
-			if (!note.hopo && strumFlag == StrumFlag.NONE) {
-				return;
-			} else if (note.hopo && Combo <= 0 && strumFlag == StrumFlag.NONE) {
-				return;
-			}
+                // Call miss for each component
+                hitChartIndex++;
+                missedAnyNote = true;
+                Combo = 0;
+                notePool.MissNote(missedNote);
+                StopAudio = true;
+            }
 
-			// Check if correct chord is pressed
-			if (!NotePressed(note) || !NoteStrummed(note)) {
-				// UpdateOverstrums();
+            if (expectedHits.Count <= 0)
+            {
+                // UpdateOverstrums();
+                return;
+            }
 
-				if (!note.hopo) {
-					Combo = 0;
-				}
+            // Handle hits (one per frame so no double hits)
+            var note = expectedHits.Peek();
+            if (!note.hopo && strumFlag == StrumFlag.NONE)
+            {
+                return;
+            }
+            else if (note.hopo && Combo <= 0 && strumFlag == StrumFlag.NONE)
+            {
+                return;
+            }
 
-				return;
-			}
+            // Check if correct chord is pressed
+            if (!NotePressed(note) || !NoteStrummed(note))
+            {
+                // UpdateOverstrums();
 
-			// If so, hit!
-			hitChartIndex++;
-			expectedHits.Dequeue();
+                if (!note.hopo)
+                {
+                    Combo = 0;
+                }
 
-			Combo++;
+                return;
+            }
 
-			// Hit notes
-			notePool.HitNote(note);
-			StopAudio = false;
-			notesHit++;
-			scoreKeeper.Add(PTS_PER_NOTE * Multiplier);
+            // If so, hit!
+            hitChartIndex++;
+            expectedHits.Dequeue();
 
-			// Solo stuff
-			if (soloInProgress) {
-				soloNotesHit++;
-			}
+            Combo++;
 
-			// Play particles
-			for (int i = 0; i < 6; i++) {
-				if (note.stringFrets[i] == -1) {
-					continue;
-				}
+            // Hit notes
+            notePool.HitNote(note);
+            StopAudio = false;
+            notesHit++;
+            scoreKeeper.Add(PTS_PER_NOTE * Multiplier);
 
-				hitParticles[i].Play();
-			}
+            // Solo stuff
+            if (soloInProgress)
+            {
+                soloNotesHit++;
+            }
 
-			// If sustained, add to held
-			if (note.length > 0.2f) {
-				heldNotes.Add(note);
-				scoreKeeper.Add(susTracker.Strum(note) * Multiplier * SUSTAIN_PTS_PER_BEAT);
-				StartSustainParticles(note);
-			}
-		}
+            // Play particles
+            for (int i = 0; i < 6; i++)
+            {
+                if (note.stringFrets[i] == -1)
+                {
+                    continue;
+                }
 
-		protected override void PauseToggled(bool pause) {
-			if (!pause) {
-				input.FretChangeEvent += FretChangedAction;
-				input.StrumEvent += StrumAction;
-			} else {
-				input.FretChangeEvent -= FretChangedAction;
-				input.StrumEvent -= StrumAction;
-			}
-		}
+                hitParticles[i].Play();
+            }
 
-		private bool NoteStrummed(NoteInfo note) {
-			int extras = 0;
-			for (int str = 0; str < note.stringFrets.Length; str++) {
-				bool has = strumFlag.HasFlag(StrumFlagFromInt(str));
+            // If sustained, add to held
+            if (note.length > 0.2f)
+            {
+                heldNotes.Add(note);
+                scoreKeeper.Add(susTracker.Strum(note) * Multiplier * SUSTAIN_PTS_PER_BEAT);
+                StartSustainParticles(note);
+            }
+        }
 
-				if (note.stringFrets[str] == -1) {
-					if (has) {
-						extras++;
-					}
+        protected override void PauseToggled(bool pause)
+        {
+            if (!pause)
+            {
+                input.FretChangeEvent += FretChangedAction;
+                input.StrumEvent += StrumAction;
+            }
+            else
+            {
+                input.FretChangeEvent -= FretChangedAction;
+                input.StrumEvent -= StrumAction;
+            }
+        }
 
-					continue;
-				}
+        private bool NoteStrummed(NoteInfo note)
+        {
+            int extras = 0;
+            for (int str = 0; str < note.stringFrets.Length; str++)
+            {
+                bool has = strumFlag.HasFlag(StrumFlagFromInt(str));
 
-				if (!has) {
-					return false;
-				}
-			}
+                if (note.stringFrets[str] == -1)
+                {
+                    if (has)
+                    {
+                        extras++;
+                    }
 
-			// Ignore extras for now
-			// return extras <= 3;
-			return true;
-		}
+                    continue;
+                }
 
-		private bool NotePressed(NoteInfo note) {
-			if (note.muted) {
-				// It seems like this is just how they work...
-				return true;
-			}
+                if (!has)
+                {
+                    return false;
+                }
+            }
 
-			for (int str = 0; str < note.stringFrets.Length; str++) {
-				if (note.stringFrets[str] == -1) {
-					continue;
-				}
+            // Ignore extras for now
+            // return extras <= 3;
+            return true;
+        }
 
-				if (note.stringFrets[str] != fretCache[str]) {
-					return false;
-				}
-			}
+        private bool NotePressed(NoteInfo note)
+        {
+            if (note.muted)
+            {
+                // It seems like this is just how they work...
+                return true;
+            }
 
-			return true;
-		}
+            for (int str = 0; str < note.stringFrets.Length; str++)
+            {
+                if (note.stringFrets[str] == -1)
+                {
+                    continue;
+                }
 
-		private void StrumAction(StrumFlag str) {
-			strumFlag = str;
-		}
+                if (note.stringFrets[str] != fretCache[str])
+                {
+                    return false;
+                }
+            }
 
-		private void FretChangedAction(int str, int fret) {
-			fretCache[str] = fret;
+            return true;
+        }
 
-			if (fret == 0) {
-				fretNumbers[str].text = "";
-			} else {
-				fretNumbers[str].text = fret.ToString();
-			}
-		}
+        private void StrumAction(StrumFlag str)
+        {
+            strumFlag = str;
+        }
 
-		private void SpawnNote(NoteInfo noteInfo, float time) {
-			float lagCompensation = CalcLagCompensation(time, noteInfo.time);
-			for (int i = 0; i < 6; i++) {
-				if (noteInfo.stringFrets[i] == -1) {
-					continue;
-				}
+        private void FretChangedAction(int str, int fret)
+        {
+            fretCache[str] = fret;
 
-				// Set correct position
-				float x = fretNumbers[i].transform.localPosition.x;
-				var pos = new Vector3(x, 0f, TRACK_SPAWN_OFFSET - lagCompensation);
+            if (fret == 0)
+            {
+                fretNumbers[str].text = "";
+            }
+            else
+            {
+                fretNumbers[str].text = fret.ToString();
+            }
+        }
 
-				// Set note info
-				var noteComp = notePool.AddNote(noteInfo, pos);
-				startFCDetection = true;
-				var model = noteInfo.hopo ? NoteComponent.ModelType.HOPO : NoteComponent.ModelType.NOTE;
-				noteComp.SetInfo(
-					noteInfo,
-					commonTrack.NoteColor(i),
-					commonTrack.SustainColor(i),
-					noteInfo.length,
-					model,
-					noteInfo.time >= CurrentVisualStarpower?.time && noteInfo.time < CurrentVisualStarpower?.EndTime
-				);
-				noteComp.SetFretNumber(noteInfo.muted ? "X" : noteInfo.stringFrets[i].ToString());
-			}
-		}
+        private void SpawnNote(NoteInfo noteInfo, float time)
+        {
+            float lagCompensation = CalcLagCompensation(time, noteInfo.time);
+            for (int i = 0; i < 6; i++)
+            {
+                if (noteInfo.stringFrets[i] == -1)
+                {
+                    continue;
+                }
 
-		private void StartSustainParticles(NoteInfo note) {
-			for (int i = 0; i < 6; i++) {
-				if (note.stringFrets[i] == -1) {
-					continue;
-				}
+                // Set correct position
+                float x = fretNumbers[i].transform.localPosition.x;
+                var pos = new Vector3(x, 0f, TRACK_SPAWN_OFFSET - lagCompensation);
 
-				sustainParticles[i].Play();
-			}
-		}
+                // Set note info
+                var noteComp = notePool.AddNote(noteInfo, pos);
+                startFCDetection = true;
+                var model = noteInfo.hopo ? NoteComponent.ModelType.HOPO : NoteComponent.ModelType.NOTE;
+                noteComp.SetInfo(
+                    noteInfo,
+                    commonTrack.NoteColor(i),
+                    commonTrack.SustainColor(i),
+                    noteInfo.length,
+                    model,
+                    noteInfo.time >= CurrentVisualStarpower?.time && noteInfo.time < CurrentVisualStarpower?.EndTime
+                );
+                noteComp.SetFretNumber(noteInfo.muted ? "X" : noteInfo.stringFrets[i].ToString());
+            }
+        }
 
-		private void EndSustainParticles(NoteInfo note) {
-			for (int i = 0; i < 6; i++) {
-				if (note.stringFrets[i] == -1) {
-					continue;
-				}
+        private void StartSustainParticles(NoteInfo note)
+        {
+            for (int i = 0; i < 6; i++)
+            {
+                if (note.stringFrets[i] == -1)
+                {
+                    continue;
+                }
 
-				sustainParticles[i].Stop();
-			}
-		}
-	}
+                sustainParticles[i].Play();
+            }
+        }
+
+        private void EndSustainParticles(NoteInfo note)
+        {
+            for (int i = 0; i < 6; i++)
+            {
+                if (note.stringFrets[i] == -1)
+                {
+                    continue;
+                }
+
+                sustainParticles[i].Stop();
+            }
+        }
+    }
 }

@@ -1,17 +1,21 @@
 ﻿using System.IO;
 
-namespace YARG.Song {
-	public class NullStringBinaryWriter : BinaryWriter {
+namespace YARG.Song
+{
+    public class NullStringBinaryWriter : BinaryWriter
+    {
+        public NullStringBinaryWriter(Stream output) : base(output)
+        {
+        }
 
-		public NullStringBinaryWriter(Stream output) : base(output)
-		{
-		}
+        public override void Write(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                value = string.Empty;
+            }
 
-		public override void Write(string value) {
-			if (string.IsNullOrEmpty(value)) {
-				value = string.Empty;
-			}
-			base.Write(value);
-		}
-	}
+            base.Write(value);
+        }
+    }
 }

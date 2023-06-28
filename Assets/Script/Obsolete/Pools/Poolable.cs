@@ -1,16 +1,20 @@
 using UnityEngine;
 
-namespace YARG.Pools {
-	public abstract class Poolable : MonoBehaviour {
-		public string poolId;
+namespace YARG.Pools
+{
+    public abstract class Poolable : MonoBehaviour
+    {
+        public string poolId;
 
-		[HideInInspector]
-		public Pool pool;
-		[HideInInspector]
-		public object data;
+        [HideInInspector]
+        public Pool pool;
 
-		public void MoveToPool() {
-			pool.Remove(this);
-		}
-	}
+        [HideInInspector]
+        public object data;
+
+        public void MoveToPool()
+        {
+            pool.Remove(this);
+        }
+    }
 }

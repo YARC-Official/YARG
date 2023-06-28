@@ -4,49 +4,61 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Settings.Types;
 
-namespace YARG.Settings.Visuals {
-	public class SliderSettingVisual : AbstractSettingVisual<SliderSetting> {
-		[SerializeField]
-		private Slider slider;
-		[SerializeField]
-		private TMP_InputField inputField;
+namespace YARG.Settings.Visuals
+{
+    public class SliderSettingVisual : AbstractSettingVisual<SliderSetting>
+    {
+        [SerializeField]
+        private Slider slider;
 
-		// Unity sucks -_-
-		private bool ignoreCallback = false;
+        [SerializeField]
+        private TMP_InputField inputField;
 
-		protected override void OnSettingInit() {
-			ignoreCallback = true;
+        // Unity sucks -_-
+        private bool ignoreCallback = false;
 
-			slider.minValue = Setting.Min;
-			slider.maxValue = Setting.Max;
+        protected override void OnSettingInit()
+        {
+            ignoreCallback = true;
 
-			ignoreCallback = false;
+            slider.minValue = Setting.Min;
+            slider.maxValue = Setting.Max;
 
-			RefreshVisual();
-		}
+            ignoreCallback = false;
 
-		public override void RefreshVisual() {
-			slider.SetValueWithoutNotify(Setting.Data);
-			inputField.text = Setting.Data.ToString("N2", CultureInfo.InvariantCulture);
-		}
+            RefreshVisual();
+        }
 
-		public void OnSliderChange() {
-			if (ignoreCallback) {
-				return;
-			}
+        public override void RefreshVisual()
+        {
+            slider.SetValueWithoutNotify(Setting.Data);
+            inputField.text = Setting.Data.ToString("N2", CultureInfo.InvariantCulture);
+        }
 
-			Setting.Data = slider.value;
-			RefreshVisual();
-		}
+        public void OnSliderChange()
+        {
+            if (ignoreCallback)
+            {
+                return;
+            }
 
-		public void OnTextChange() {
-			string text = inputField.text;
+            Setting.Data = slider.value;
+            RefreshVisual();
+        }
 
-			try {
-				Setting.Data = float.Parse(text, CultureInfo.InvariantCulture);
-			} catch { }
+        public void OnTextChange()
+        {
+            string text = inputField.text;
 
-			RefreshVisual();
-		}
-	}
+            try
+            {
+                Setting.Data = float.Parse(text, CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+            }
+
+            RefreshVisual();
+        }
+    }
 }

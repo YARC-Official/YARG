@@ -6,145 +6,184 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.UI.MusicLibrary.ViewTypes;
 
-namespace YARG.UI.MusicLibrary {
-	public class SongView : MonoBehaviour {
-		[SerializeField]
-		private CanvasGroup _canvasGroup;
+namespace YARG.UI.MusicLibrary
+{
+    public class SongView : MonoBehaviour
+    {
+        [SerializeField]
+        private CanvasGroup _canvasGroup;
 
-		[Space]
-		[SerializeField]
-		private GameObject _normalBackground;
-		[SerializeField]
-		private GameObject _selectedBackground;
-		[SerializeField]
-		private GameObject _categoryBackground;
-		[SerializeField]
-		private GameObject _selectedCategoryBackground;
+        [Space]
+        [SerializeField]
+        private GameObject _normalBackground;
 
-		[Space]
-		[SerializeField]
-		private GameObject _secondaryTextContiner;
-		[SerializeField]
-		private GameObject _asMadeFamousByTextContainer;
+        [SerializeField]
+        private GameObject _selectedBackground;
 
-		[Space]
-		[SerializeField]
-		private TextMeshProUGUI _primaryText;
-		[SerializeField]
-		private TextMeshProUGUI[] _secondaryText;
-		[SerializeField]
-		private TextMeshProUGUI _sideText;
-		[SerializeField]
-		private Image _icon;
+        [SerializeField]
+        private GameObject _categoryBackground;
 
-		private int _relativeSongIndex;
-		private CancellationTokenSource _cancellationTokenSource;
+        [SerializeField]
+        private GameObject _selectedCategoryBackground;
 
-		public void Init(int relativeSongIndex) {
-			_relativeSongIndex = relativeSongIndex;
-		}
+        [Space]
+        [SerializeField]
+        private GameObject _secondaryTextContiner;
 
-		public void UpdateView() {
-			int realIndex = SongSelection.Instance.SelectedIndex + _relativeSongIndex;
-			bool selected = _relativeSongIndex == 0;
+        [SerializeField]
+        private GameObject _asMadeFamousByTextContainer;
 
-			if (realIndex < 0 || realIndex >= SongSelection.Instance.ViewList.Count) {
-				_canvasGroup.alpha = 0f;
-				return;
-			}
+        [Space]
+        [SerializeField]
+        private TextMeshProUGUI _primaryText;
 
-			_canvasGroup.alpha = 1f;
+        [SerializeField]
+        private TextMeshProUGUI[] _secondaryText;
 
-			var viewType = SongSelection.Instance.ViewList[realIndex];
+        [SerializeField]
+        private TextMeshProUGUI _sideText;
 
-			_sideText.text = viewType.SideText;
+        [SerializeField]
+        private Image _icon;
 
-			// Change font styles if selected
-			if (selected) {
-				_primaryText.color = Color.white;
-				_primaryText.text = $"<b>{viewType.PrimaryText}</b>";
+        private int _relativeSongIndex;
+        private CancellationTokenSource _cancellationTokenSource;
 
-				foreach (var text in _secondaryText) {
-					text.color = new Color(0.192f, 0.894f, 0.945f, 1.0f);
-					text.text = $"<font-weight=500>{viewType.SecondaryText}</font-weight>";
-				}
-			} else {
-				_primaryText.color = new Color(0.192f, 0.894f, 0.945f, 1.0f);
-				_primaryText.text = viewType.PrimaryText;
+        public void Init(int relativeSongIndex)
+        {
+            _relativeSongIndex = relativeSongIndex;
+        }
 
-				foreach (var text in _secondaryText) {
-					text.color = new Color(0.192f, 0.894f, 0.945f, 0.3f);
-					text.text = viewType.SecondaryText;
-				}
-			}
+        public void UpdateView()
+        {
+            int realIndex = SongSelection.Instance.SelectedIndex + _relativeSongIndex;
+            bool selected = _relativeSongIndex == 0;
 
-			// Set icon
-			if (_cancellationTokenSource is { IsCancellationRequested: false }) {
-				_cancellationTokenSource.Cancel();
-			}
-			_cancellationTokenSource = new CancellationTokenSource();
-			SetIcon(viewType, _cancellationTokenSource.Token).Forget();
+            if (realIndex < 0 || realIndex >= SongSelection.Instance.ViewList.Count)
+            {
+                _canvasGroup.alpha = 0f;
+                return;
+            }
 
-			// Set secondary text type
-			_secondaryTextContiner.SetActive(!viewType.UseAsMadeFamousBy);
-			_asMadeFamousByTextContainer.SetActive(viewType.UseAsMadeFamousBy);
+            _canvasGroup.alpha = 1f;
 
-			SetBackground(viewType.Background, selected);
-		}
+            var viewType = SongSelection.Instance.ViewList[realIndex];
 
-		private async UniTask SetIcon(ViewType type, CancellationToken token) {
-			_icon.gameObject.SetActive(false);
+            _sideText.text = viewType.SideText;
 
-			try {
-				var icon = await type.GetIcon();
+            // Change font styles if selected
+            if (selected)
+            {
+                _primaryText.color = Color.white;
+                _primaryText.text = $"<b>{viewType.PrimaryText}</b>";
 
-				token.ThrowIfCancellationRequested();
+                foreach (var text in _secondaryText)
+                {
+                    text.color = new Color(0.192f, 0.894f, 0.945f, 1.0f);
+                    text.text = $"<font-weight=500>{viewType.SecondaryText}</font-weight>";
+                }
+            }
+            else
+            {
+                _primaryText.color = new Color(0.192f, 0.894f, 0.945f, 1.0f);
+                _primaryText.text = viewType.PrimaryText;
 
-				if (icon == null) {
-					_icon.gameObject.SetActive(false);
-				} else {
-					_icon.gameObject.SetActive(true);
-					_icon.sprite = icon;
-				}
-			} catch (OperationCanceledException) { }
-		}
+                foreach (var text in _secondaryText)
+                {
+                    text.color = new Color(0.192f, 0.894f, 0.945f, 0.3f);
+                    text.text = viewType.SecondaryText;
+                }
+            }
 
-		private void SetBackground(ViewType.BackgroundType type, bool selected) {
-			_normalBackground.SetActive(false);
-			_selectedBackground.SetActive(false);
-			_categoryBackground.SetActive(false);
-			_selectedCategoryBackground.SetActive(false);
+            // Set icon
+            if (_cancellationTokenSource is { IsCancellationRequested: false })
+            {
+                _cancellationTokenSource.Cancel();
+            }
 
-			switch (type) {
-				case ViewType.BackgroundType.Normal:
-					if (selected) {
-						_selectedBackground.SetActive(true);
-					} else {
-						_normalBackground.SetActive(true);
-					}
-					break;
-				case ViewType.BackgroundType.Category:
-					if (selected) {
-						_selectedCategoryBackground.SetActive(true);
-					} else {
-						_categoryBackground.SetActive(true);
-					}
-					break;
-			}
-		}
+            _cancellationTokenSource = new CancellationTokenSource();
+            SetIcon(viewType, _cancellationTokenSource.Token).Forget();
 
-		public void SecondaryTextClick() {
-			int realIndex = SongSelection.Instance.SelectedIndex + _relativeSongIndex;
-			var viewType = SongSelection.Instance.ViewList[realIndex];
+            // Set secondary text type
+            _secondaryTextContiner.SetActive(!viewType.UseAsMadeFamousBy);
+            _asMadeFamousByTextContainer.SetActive(viewType.UseAsMadeFamousBy);
 
-			viewType.SecondaryTextClick();
-		}
+            SetBackground(viewType.Background, selected);
+        }
 
-		public void IconClick() {
-			int realIndex = SongSelection.Instance.SelectedIndex + _relativeSongIndex;
-			var viewType = SongSelection.Instance.ViewList[realIndex];
+        private async UniTask SetIcon(ViewType type, CancellationToken token)
+        {
+            _icon.gameObject.SetActive(false);
 
-			viewType.IconClick();
-		}
-	}
+            try
+            {
+                var icon = await type.GetIcon();
+
+                token.ThrowIfCancellationRequested();
+
+                if (icon == null)
+                {
+                    _icon.gameObject.SetActive(false);
+                }
+                else
+                {
+                    _icon.gameObject.SetActive(true);
+                    _icon.sprite = icon;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+
+        private void SetBackground(ViewType.BackgroundType type, bool selected)
+        {
+            _normalBackground.SetActive(false);
+            _selectedBackground.SetActive(false);
+            _categoryBackground.SetActive(false);
+            _selectedCategoryBackground.SetActive(false);
+
+            switch (type)
+            {
+                case ViewType.BackgroundType.Normal:
+                    if (selected)
+                    {
+                        _selectedBackground.SetActive(true);
+                    }
+                    else
+                    {
+                        _normalBackground.SetActive(true);
+                    }
+
+                    break;
+                case ViewType.BackgroundType.Category:
+                    if (selected)
+                    {
+                        _selectedCategoryBackground.SetActive(true);
+                    }
+                    else
+                    {
+                        _categoryBackground.SetActive(true);
+                    }
+
+                    break;
+            }
+        }
+
+        public void SecondaryTextClick()
+        {
+            int realIndex = SongSelection.Instance.SelectedIndex + _relativeSongIndex;
+            var viewType = SongSelection.Instance.ViewList[realIndex];
+
+            viewType.SecondaryTextClick();
+        }
+
+        public void IconClick()
+        {
+            int realIndex = SongSelection.Instance.SelectedIndex + _relativeSongIndex;
+            var viewType = SongSelection.Instance.ViewList[realIndex];
+
+            viewType.IconClick();
+        }
+    }
 }

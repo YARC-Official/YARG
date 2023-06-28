@@ -4,166 +4,211 @@ using UnityEngine;
 using YARG.Data;
 using YARG.PlayMode;
 
-namespace YARG.Input {
-	public class FiveFretInputStrategy : InputStrategy {
-		public const string GREEN = "green";
-		public const string RED = "red";
-		public const string YELLOW = "yellow";
-		public const string BLUE = "blue";
-		public const string ORANGE = "orange";
+namespace YARG.Input
+{
+    public class FiveFretInputStrategy : InputStrategy
+    {
+        public const string GREEN = "green";
+        public const string RED = "red";
+        public const string YELLOW = "yellow";
+        public const string BLUE = "blue";
+        public const string ORANGE = "orange";
 
-		public const string STRUM_UP = "strum_up";
-		public const string STRUM_DOWN = "strum_down";
+        public const string STRUM_UP = "strum_up";
+        public const string STRUM_DOWN = "strum_down";
 
-		public const string WHAMMY = "whammy";
+        public const string WHAMMY = "whammy";
 
-		public const string STAR_POWER = "star_power";
-		public const string TILT = "tilt";
-		public const string PAUSE = "pause";
+        public const string STAR_POWER = "star_power";
+        public const string TILT = "tilt";
+        public const string PAUSE = "pause";
 
-		private List<NoteInfo> botChart;
+        private List<NoteInfo> botChart;
 
-		public delegate void FretChangeAction(bool pressed, int fret);
-		public event FretChangeAction FretChangeEvent;
+        public delegate void FretChangeAction(bool pressed, int fret);
 
-		public event Action StrumEvent;
+        public event FretChangeAction FretChangeEvent;
 
-		public delegate void WhammyChangeAction(float delta);
-		public event WhammyChangeAction WhammyEvent;
+        public event Action StrumEvent;
 
-		public FiveFretInputStrategy() {
-			InputMappings = new() {
-				{ GREEN,      new(BindingType.BUTTON, "Green", GREEN) },
-				{ RED,        new(BindingType.BUTTON, "Red", RED) },
-				{ YELLOW,     new(BindingType.BUTTON, "Yellow", YELLOW) },
-				{ BLUE,       new(BindingType.BUTTON, "Blue", BLUE) },
-				{ ORANGE,     new(BindingType.BUTTON, "Orange", ORANGE) },
+        public delegate void WhammyChangeAction(float delta);
 
-				{ STRUM_UP,   new(BindingType.BUTTON, "Strum Up", STRUM_UP, STRUM_DOWN) },
-				{ STRUM_DOWN, new(BindingType.BUTTON, "Strum Down", STRUM_DOWN, STRUM_UP) },
+        public event WhammyChangeAction WhammyEvent;
 
-				{ WHAMMY,     new(BindingType.AXIS, "Whammy", WHAMMY) },
+        public FiveFretInputStrategy()
+        {
+            InputMappings = new()
+            {
+                {
+                    GREEN, new(BindingType.BUTTON, "Green", GREEN)
+                },
+                {
+                    RED, new(BindingType.BUTTON, "Red", RED)
+                },
+                {
+                    YELLOW, new(BindingType.BUTTON, "Yellow", YELLOW)
+                },
+                {
+                    BLUE, new(BindingType.BUTTON, "Blue", BLUE)
+                },
+                {
+                    ORANGE, new(BindingType.BUTTON, "Orange", ORANGE)
+                },
+                {
+                    STRUM_UP, new(BindingType.BUTTON, "Strum Up", STRUM_UP, STRUM_DOWN)
+                },
+                {
+                    STRUM_DOWN, new(BindingType.BUTTON, "Strum Down", STRUM_DOWN, STRUM_UP)
+                },
+                {
+                    WHAMMY, new(BindingType.AXIS, "Whammy", WHAMMY)
+                },
+                {
+                    STAR_POWER, new(BindingType.BUTTON, "Star Power", STAR_POWER)
+                },
+                {
+                    TILT, new(BindingType.BUTTON, "Tilt", TILT)
+                }, // tilt is a button as PS2 guitars don't have a tilt axis
+                {
+                    PAUSE, new(BindingType.BUTTON, "Pause", PAUSE)
+                },
+            };
+        }
 
-				{ STAR_POWER, new(BindingType.BUTTON, "Star Power", STAR_POWER) },
-				{ TILT,       new(BindingType.BUTTON, "Tilt", TILT) }, // tilt is a button as PS2 guitars don't have a tilt axis
-				{ PAUSE,      new(BindingType.BUTTON, "Pause", PAUSE) },
-			};
-		}
+        public override string GetIconName()
+        {
+            return "guitar";
+        }
 
-		public override string GetIconName() {
-			return "guitar";
-		}
+        public override void InitializeBotMode(object rawChart)
+        {
+            botChart = (List<NoteInfo>) rawChart;
+        }
 
-		public override void InitializeBotMode(object rawChart) {
-			botChart = (List<NoteInfo>) rawChart;
-		}
+        protected override void UpdatePlayerMode()
+        {
+            void HandleFret(string mapping, int index)
+            {
+                if (WasMappingPressed(mapping))
+                {
+                    FretChangeEvent?.Invoke(true, index);
+                }
+                else if (WasMappingReleased(mapping))
+                {
+                    FretChangeEvent?.Invoke(false, index);
+                }
+            }
 
-		protected override void UpdatePlayerMode() {
-			void HandleFret(string mapping, int index) {
-				if (WasMappingPressed(mapping)) {
-					FretChangeEvent?.Invoke(true, index);
-				} else if (WasMappingReleased(mapping)) {
-					FretChangeEvent?.Invoke(false, index);
-				}
-			}
+            // Deal with fret inputs
 
-			// Deal with fret inputs
+            HandleFret(GREEN, 0);
+            HandleFret(RED, 1);
+            HandleFret(YELLOW, 2);
+            HandleFret(BLUE, 3);
+            HandleFret(ORANGE, 4);
 
-			HandleFret(GREEN, 0);
-			HandleFret(RED, 1);
-			HandleFret(YELLOW, 2);
-			HandleFret(BLUE, 3);
-			HandleFret(ORANGE, 4);
+            // Deal with strumming
 
-			// Deal with strumming
+            if (WasMappingPressed(STRUM_UP))
+            {
+                StrumEvent?.Invoke();
+                CallGenericCalbirationEvent();
+            }
 
-			if (WasMappingPressed(STRUM_UP)) {
-				StrumEvent?.Invoke();
-				CallGenericCalbirationEvent();
-			}
+            if (WasMappingPressed(STRUM_DOWN))
+            {
+                StrumEvent?.Invoke();
+                CallGenericCalbirationEvent();
+            }
 
-			if (WasMappingPressed(STRUM_DOWN)) {
-				StrumEvent?.Invoke();
-				CallGenericCalbirationEvent();
-			}
+            // Whammy!
 
-			// Whammy!
+            float delta = GetPreviousMappingValue(WHAMMY) - GetMappingValue(WHAMMY);
+            if (!Mathf.Approximately(delta, 0f))
+            {
+                WhammyEvent?.Invoke(delta);
+            }
 
-			float delta = GetPreviousMappingValue(WHAMMY) - GetMappingValue(WHAMMY);
-			if (!Mathf.Approximately(delta, 0f)) {
-				WhammyEvent?.Invoke(delta);
-			}
+            // Starpower
 
-			// Starpower
+            if (WasMappingPressed(STAR_POWER) || WasMappingPressed(TILT))
+            {
+                // checking for tilt
+                CallStarpowerEvent();
+            }
+        }
 
-			if (WasMappingPressed(STAR_POWER) || WasMappingPressed(TILT)) { // checking for tilt
-				CallStarpowerEvent();
-			}
-		}
+        protected override void UpdateBotMode()
+        {
+            if (botChart == null)
+            {
+                return;
+            }
 
-		protected override void UpdateBotMode() {
-			if (botChart == null) {
-				return;
-			}
+            float songTime = Play.Instance.SongTime;
 
-			float songTime = Play.Instance.SongTime;
+            bool resetForChord = false;
+            while (botChart.Count > BotChartIndex && botChart[BotChartIndex].time <= songTime)
+            {
+                // Release old frets
+                if (!resetForChord)
+                {
+                    for (int i = 0; i < 5; i++)
+                    {
+                        FretChangeEvent?.Invoke(false, i);
+                    }
 
-			bool resetForChord = false;
-			while (botChart.Count > BotChartIndex && botChart[BotChartIndex].time <= songTime) {
-				// Release old frets
-				if (!resetForChord) {
-					for (int i = 0; i < 5; i++) {
-						FretChangeEvent?.Invoke(false, i);
-					}
-					resetForChord = true;
-				}
+                    resetForChord = true;
+                }
 
-				var noteInfo = botChart[BotChartIndex];
-				BotChartIndex++;
+                var noteInfo = botChart[BotChartIndex];
+                BotChartIndex++;
 
-				// Skip fret press if open note
-				if (noteInfo.fret != 5) {
-					FretChangeEvent?.Invoke(true, noteInfo.fret);
-				}
+                // Skip fret press if open note
+                if (noteInfo.fret != 5)
+                {
+                    FretChangeEvent?.Invoke(true, noteInfo.fret);
+                }
 
-				// Strum
-				StrumEvent?.Invoke();
-			}
+                // Strum
+                StrumEvent?.Invoke();
+            }
 
-			// Constantly activate starpower
-			CallStarpowerEvent();
-		}
+            // Constantly activate starpower
+            CallStarpowerEvent();
+        }
 
-		protected override void UpdateNavigationMode() {
-			NavigationEventForMapping(MenuAction.Confirm, GREEN);
-			NavigationEventForMapping(MenuAction.Back, RED);
+        protected override void UpdateNavigationMode()
+        {
+            NavigationEventForMapping(MenuAction.Confirm, GREEN);
+            NavigationEventForMapping(MenuAction.Back, RED);
 
-			NavigationEventForMapping(MenuAction.Shortcut1, YELLOW);
-			NavigationEventForMapping(MenuAction.Shortcut2, BLUE);
-			NavigationHoldableForMapping(MenuAction.Shortcut3, ORANGE);
+            NavigationEventForMapping(MenuAction.Shortcut1, YELLOW);
+            NavigationEventForMapping(MenuAction.Shortcut2, BLUE);
+            NavigationHoldableForMapping(MenuAction.Shortcut3, ORANGE);
 
-			NavigationHoldableForMapping(MenuAction.Up, STRUM_UP);
-			NavigationHoldableForMapping(MenuAction.Down, STRUM_DOWN);
+            NavigationHoldableForMapping(MenuAction.Up, STRUM_UP);
+            NavigationHoldableForMapping(MenuAction.Down, STRUM_DOWN);
 
-			NavigationEventForMapping(MenuAction.More, STAR_POWER);
+            NavigationEventForMapping(MenuAction.More, STAR_POWER);
 
-			if (WasMappingPressed(PAUSE)) {
-				CallPauseEvent();
-			}
-		}
+            if (WasMappingPressed(PAUSE))
+            {
+                CallPauseEvent();
+            }
+        }
 
-		public override Instrument[] GetAllowedInstruments() {
-			return new Instrument[] {
-				Instrument.GUITAR,
-				Instrument.BASS,
-				Instrument.KEYS,
-				Instrument.GUITAR_COOP,
-				Instrument.RHYTHM,
-			};
-		}
+        public override Instrument[] GetAllowedInstruments()
+        {
+            return new Instrument[]
+            {
+                Instrument.GUITAR, Instrument.BASS, Instrument.KEYS, Instrument.GUITAR_COOP, Instrument.RHYTHM,
+            };
+        }
 
-		public override string GetTrackPath() {
-			return "Tracks/FiveFret";
-		}
-	}
+        public override string GetTrackPath()
+        {
+            return "Tracks/FiveFret";
+        }
+    }
 }
