@@ -199,6 +199,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Kick_Fret_Drums
       objectReference: {fileID: 0}
+    - target: {fileID: 964514076419344267, guid: c2d6805c230b3e24892518b26ce3bf53,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c2d6805c230b3e24892518b26ce3bf53, type: 3}
 --- !u!23 &7646940955347713414 stripped
@@ -474,7 +479,7 @@ PrefabInstance:
     - target: {fileID: 6314393092021672358, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: m_RootOrder
-      value: 14
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 6916089516438199787, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
@@ -519,7 +524,7 @@ PrefabInstance:
     - target: {fileID: 7417495158134921613, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
       propertyPath: m_RootOrder
-      value: 15
+      value: 14
       objectReference: {fileID: 0}
     - target: {fileID: 7809402107982387610, guid: ba68df35237e09f4abcf788160c15375,
         type: 3}
