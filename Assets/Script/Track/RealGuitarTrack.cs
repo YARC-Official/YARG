@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using YARG.Data;
-using YARG.Input;
+using YARG.Player.Input;
 using YARG.Pools;
 using YARG.Util;
-using static YARG.Input.RealGuitarInputStrategy;
+using static YARG.Player.Input.RealGuitarInputStrategy;
 
 namespace YARG.PlayMode
 {

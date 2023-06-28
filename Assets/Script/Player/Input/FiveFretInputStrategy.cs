@@ -4,7 +4,7 @@ using UnityEngine;
 using YARG.Data;
 using YARG.PlayMode;
 
-namespace YARG.Input
+namespace YARG.Player.Input
 {
     public class FiveFretInputStrategy : InputStrategy
     {
@@ -22,9 +22,6 @@ namespace YARG.Input
         public const string STAR_POWER = "star_power";
         public const string TILT = "tilt";
         public const string PAUSE = "pause";
-
-        private List<NoteInfo> botChart;
-
         public delegate void FretChangeAction(bool pressed, int fret);
 
         public event FretChangeAction FretChangeEvent;
@@ -80,11 +77,6 @@ namespace YARG.Input
             return "guitar";
         }
 
-        public override void InitializeBotMode(object rawChart)
-        {
-            botChart = (List<NoteInfo>) rawChart;
-        }
-
         protected override void UpdatePlayerMode()
         {
             void HandleFret(string mapping, int index)
@@ -136,46 +128,6 @@ namespace YARG.Input
                 // checking for tilt
                 CallStarpowerEvent();
             }
-        }
-
-        protected override void UpdateBotMode()
-        {
-            if (botChart == null)
-            {
-                return;
-            }
-
-            float songTime = Play.Instance.SongTime;
-
-            bool resetForChord = false;
-            while (botChart.Count > BotChartIndex && botChart[BotChartIndex].time <= songTime)
-            {
-                // Release old frets
-                if (!resetForChord)
-                {
-                    for (int i = 0; i < 5; i++)
-                    {
-                        FretChangeEvent?.Invoke(false, i);
-                    }
-
-                    resetForChord = true;
-                }
-
-                var noteInfo = botChart[BotChartIndex];
-                BotChartIndex++;
-
-                // Skip fret press if open note
-                if (noteInfo.fret != 5)
-                {
-                    FretChangeEvent?.Invoke(true, noteInfo.fret);
-                }
-
-                // Strum
-                StrumEvent?.Invoke();
-            }
-
-            // Constantly activate starpower
-            CallStarpowerEvent();
         }
 
         protected override void UpdateNavigationMode()

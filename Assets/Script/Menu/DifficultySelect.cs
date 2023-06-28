@@ -7,7 +7,6 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
 using YARG.Data;
-using YARG.Input;
 using YARG.PlayMode;
 
 namespace YARG.UI

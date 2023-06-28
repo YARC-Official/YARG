@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using YARG.Input;
 using YARG.PlayMode;
 using YARG.Settings;
 

@@ -1,10 +1,9 @@
 using System.Collections.Generic;
-using UnityEngine;
 using YARG.Data;
 using YARG.PlayMode;
 using YARG.Settings;
 
-namespace YARG.Input
+namespace YARG.Player.Input
 {
     public class DrumsInputStrategy : InputStrategy
     {
@@ -23,8 +22,6 @@ namespace YARG.Input
         public const string PAUSE = "pause";
         public const string UP = "up";
         public const string DOWN = "down";
-
-        private List<NoteInfo> botChart;
 
         public delegate void DrumHitAction(int drum, bool cymbal);
 
@@ -134,36 +131,6 @@ namespace YARG.Input
             {
                 DrumHitEvent?.Invoke(4, false);
                 CallGenericCalbirationEvent();
-            }
-        }
-
-        public override void InitializeBotMode(object rawChart)
-        {
-            botChart = (List<NoteInfo>) rawChart;
-        }
-
-        protected override void UpdateBotMode()
-        {
-            if (botChart == null)
-            {
-                return;
-            }
-
-            float songTime = Play.Instance.SongTime;
-
-            while (botChart.Count > BotChartIndex && botChart[BotChartIndex].time <= songTime)
-            {
-                var noteInfo = botChart[BotChartIndex];
-                BotChartIndex++;
-
-                // Deal with no kicks
-                if (noteInfo.fret == 4 && SettingsManager.Settings.NoKicks.Data)
-                {
-                    continue;
-                }
-
-                // Hit
-                DrumHitEvent?.Invoke(noteInfo.fret, noteInfo.hopo);
             }
         }
 

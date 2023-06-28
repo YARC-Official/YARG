@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using PlasticBand.Haptics;
 using UnityEngine.InputSystem;
 
-namespace YARG.Input
+namespace YARG.Player.Input
 {
     public static class StageKitHapticsManager
     {

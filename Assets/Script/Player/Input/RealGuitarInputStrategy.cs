@@ -5,7 +5,7 @@ using UnityEngine;
 using YARG.Data;
 using YARG.PlayMode;
 
-namespace YARG.Input
+namespace YARG.Player.Input
 {
     public class RealGuitarInputStrategy : InputStrategy
     {
@@ -99,55 +99,6 @@ namespace YARG.Input
             }
 
             // Constantly activate starpower (for now)
-            CallStarpowerEvent();
-        }
-
-        public override void InitializeBotMode(object rawChart)
-        {
-            botChart = (List<NoteInfo>) rawChart;
-        }
-
-        protected override void UpdateBotMode()
-        {
-            if (botChart == null)
-            {
-                return;
-            }
-
-            float songTime = Play.Instance.SongTime;
-
-            while (botChart.Count > BotChartIndex && botChart[BotChartIndex].time <= songTime)
-            {
-                var note = botChart[BotChartIndex];
-
-                // Press correct frets
-                for (int i = 0; i < ProGuitar.StringCount; i++)
-                {
-                    int fret = note.stringFrets[i];
-                    if (fret == -1)
-                    {
-                        fret = 0;
-                    }
-
-                    FretChangeEvent?.Invoke(i, fret);
-                }
-
-                // Strum correct strings
-                StrumFlag flag = StrumFlag.NONE;
-                for (int i = 0; i < ProGuitar.StringCount; i++)
-                {
-                    if (note.stringFrets[i] != -1)
-                    {
-                        flag |= StrumFlagFromInt(i);
-                    }
-                }
-
-                StrumEvent?.Invoke(flag);
-
-                BotChartIndex++;
-            }
-
-            // Constantly activate starpower
             CallStarpowerEvent();
         }
 

@@ -5,7 +5,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.UI;
 
-namespace YARG.Input
+namespace YARG.Player.Input
 {
     public enum MenuAction
     {

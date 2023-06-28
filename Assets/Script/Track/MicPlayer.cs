@@ -8,7 +8,6 @@ using UnityEngine.Audio;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 using YARG.Data;
-using YARG.Input;
 using YARG.Pools;
 using YARG.Settings;
 using YARG.UI;

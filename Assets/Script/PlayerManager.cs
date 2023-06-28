@@ -3,7 +3,6 @@ using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using YARG.Data;
-using YARG.Input;
 using YARG.PlayMode;
 using YARG.Settings;
 using UnityEngine;

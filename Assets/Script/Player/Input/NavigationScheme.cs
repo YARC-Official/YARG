@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace YARG.Input
+namespace YARG.Player.Input
 {
     public class NavigationScheme
     {

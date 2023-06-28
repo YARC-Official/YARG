@@ -1,6 +1,5 @@
 using System.Globalization;
 using UnityEngine;
-using YARG.Input;
 using YARG.PlayMode;
 
 namespace YARG.UI

@@ -10,7 +10,6 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using YARG.Audio;
 using YARG.Data;
-using YARG.Input;
 using YARG.Song;
 using YARG.UI.MusicLibrary.ViewTypes;
 using Random = UnityEngine.Random;

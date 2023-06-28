@@ -4,7 +4,7 @@ using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
 using YARG.Settings;
 
-namespace YARG.Input
+namespace YARG.Player.Input
 {
     public enum BindingType
     {

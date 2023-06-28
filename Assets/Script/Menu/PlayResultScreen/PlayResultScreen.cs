@@ -6,7 +6,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Data;
-using YARG.Input;
 using YARG.PlayMode;
 
 namespace YARG.UI.PlayResultScreen

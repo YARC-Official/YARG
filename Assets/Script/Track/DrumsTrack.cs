@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using YARG.Chart;
 using YARG.Data;
-using YARG.Input;
+using YARG.Player.Input;
 using YARG.Pools;
 using YARG.Settings;
 using YARG.Util;

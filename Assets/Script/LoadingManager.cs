@@ -5,7 +5,7 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using YARG.Data;
-using YARG.Input;
+using YARG.Player.Input;
 using YARG.Song;
 
 namespace YARG

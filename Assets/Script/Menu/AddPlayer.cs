@@ -9,7 +9,7 @@ using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.Utilities;
 using UnityEngine.UI;
 using YARG.Audio;
-using YARG.Input;
+using YARG.Player.Input;
 using YARG.Serialization;
 
 namespace YARG.UI

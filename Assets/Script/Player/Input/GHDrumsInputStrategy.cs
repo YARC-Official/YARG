@@ -3,7 +3,7 @@ using YARG.Data;
 using YARG.PlayMode;
 using YARG.Settings;
 
-namespace YARG.Input
+namespace YARG.Player.Input
 {
     public class GHDrumsInputStrategy : InputStrategy
     {
@@ -19,9 +19,6 @@ namespace YARG.Input
         public const string PAUSE = "pause";
         public const string UP = "up";
         public const string DOWN = "down";
-
-        private List<NoteInfo> botChart;
-
         public delegate void DrumHitAction(int drum);
 
         public event DrumHitAction DrumHitEvent;
@@ -112,38 +109,6 @@ namespace YARG.Input
             {
                 DrumHitEvent?.Invoke(5);
                 CallGenericCalbirationEvent();
-            }
-
-            // Constantly activate starpower
-            //CallStarpowerEvent();
-        }
-
-        public override void InitializeBotMode(object rawChart)
-        {
-            botChart = (List<NoteInfo>) rawChart;
-        }
-
-        protected override void UpdateBotMode()
-        {
-            if (botChart == null)
-            {
-                return;
-            }
-
-            float songTime = Play.Instance.SongTime;
-
-            while (botChart.Count > BotChartIndex && botChart[BotChartIndex].time <= songTime)
-            {
-                var noteInfo = botChart[BotChartIndex];
-                BotChartIndex++;
-
-                if (noteInfo.fret == 5 && SettingsManager.Settings.NoKicks.Data)
-                {
-                    continue;
-                }
-
-                // Hit
-                DrumHitEvent?.Invoke(noteInfo.fret);
             }
 
             // Constantly activate starpower

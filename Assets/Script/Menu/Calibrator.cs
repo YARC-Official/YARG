@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using TMPro;
 using UnityEngine;
-using YARG.Input;
 using YARG.Settings;
 
 namespace YARG

@@ -1,7 +1,6 @@
 using System;
 using TMPro;
 using UnityEngine;
-using YARG.Input;
 
 namespace YARG.UI
 {

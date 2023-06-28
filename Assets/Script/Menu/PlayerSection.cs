@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
-using YARG.Input;
+using YARG.Player.Input;
 
 namespace YARG.UI
 {
