@@ -4,40 +4,48 @@ using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
 using UnityEngine.UI;
 
-namespace YARG.Settings {
-	public class SettingsTab : MonoBehaviour {
-		[SerializeField]
-		private Image icon;
-		[SerializeField]
-		private Button button;
-		[SerializeField]
-		private LocalizeStringEvent text;
+namespace YARG.Settings
+{
+    public class SettingsTab : MonoBehaviour
+    {
+        [SerializeField]
+        private Image icon;
 
-		private string tabName;
+        [SerializeField]
+        private Button button;
 
-		public void SetTab(string tabName, string iconName) {
-			this.tabName = tabName;
+        [SerializeField]
+        private LocalizeStringEvent text;
 
-			// Set icon
-			icon.sprite = Addressables.LoadAssetAsync<Sprite>($"SettingIcons[{iconName}]").WaitForCompletion();
+        private string tabName;
 
-			// Set text
-			text.StringReference = new LocalizedString {
-				TableReference = "Settings",
-				TableEntryReference = $"Tab.{tabName}"
-			};
-		}
+        public void SetTab(string tabName, string iconName)
+        {
+            this.tabName = tabName;
 
-		private void Update() {
-			if (tabName == null) {
-				return;
-			}
+            // Set icon
+            icon.sprite = Addressables.LoadAssetAsync<Sprite>($"SettingIcons[{iconName}]").WaitForCompletion();
 
-			button.interactable = SettingsMenu.Instance.CurrentTab != tabName;
-		}
+            // Set text
+            text.StringReference = new LocalizedString
+            {
+                TableReference = "Settings", TableEntryReference = $"Tab.{tabName}"
+            };
+        }
 
-		public void OnTabClick() {
-			SettingsMenu.Instance.CurrentTab = tabName;
-		}
-	}
+        private void Update()
+        {
+            if (tabName == null)
+            {
+                return;
+            }
+
+            button.interactable = SettingsMenu.Instance.CurrentTab != tabName;
+        }
+
+        public void OnTabClick()
+        {
+            SettingsMenu.Instance.CurrentTab = tabName;
+        }
+    }
 }

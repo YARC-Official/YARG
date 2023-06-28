@@ -1,13 +1,13 @@
 using System;
 
-namespace YARG.Audio {
-	public interface ISampleChannel : IDisposable {
+namespace YARG.Audio
+{
+    public interface ISampleChannel : IDisposable
+    {
+        public SfxSample Sample { get; }
 
-		public SfxSample Sample { get; }
+        public int Load();
 
-		public int Load();
-
-		public void Play();
-
-	}
+        public void Play();
+    }
 }

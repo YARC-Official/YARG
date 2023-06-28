@@ -20,9 +20,9 @@ namespace TrombLoader.Helpers
             if (bytes.Count() > 0)
             {
                 Texture2D Tex2D = new Texture2D(2, 2);
-                if (Tex2D.LoadImage(bytes))
-                    return Tex2D;
+                if (Tex2D.LoadImage(bytes)) return Tex2D;
             }
+
             return null;
         }
 
@@ -67,7 +67,9 @@ namespace TrombLoader.Helpers
         /// <returns>A Sprite, or null if the Texture2D is null.</returns>
         public static Sprite LoadSpriteFromTexture(Texture2D texture, float pixelsPerUnit = 100.0f)
         {
-            if (texture) return Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f), pixelsPerUnit);
+            if (texture)
+                return Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f),
+                    pixelsPerUnit);
             return null;
         }
 
@@ -97,7 +99,7 @@ namespace TrombLoader.Helpers
         {
             Stream stream = asm.GetManifestResourceStream(resourcePath);
             byte[] data = new byte[stream.Length];
-            stream.Read(data, 0, (int)stream.Length);
+            stream.Read(data, 0, (int) stream.Length);
             return data;
         }
     }

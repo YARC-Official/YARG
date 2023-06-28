@@ -3,37 +3,37 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 
-namespace YARG.Audio {
-	public interface IStemMixer : IDisposable {
+namespace YARG.Audio
+{
+    public interface IStemMixer : IDisposable
+    {
+        public int StemsLoaded { get; }
 
-		public int StemsLoaded { get; }
+        public bool IsPlaying { get; }
 
-		public bool IsPlaying { get; }
+        public event Action SongEnd;
 
-		public event Action SongEnd;
+        public IReadOnlyDictionary<SongStem, IStemChannel> Channels { get; }
 
-		public IReadOnlyDictionary<SongStem, IStemChannel> Channels { get; }
+        public IStemChannel LeadChannel { get; }
 
-		public IStemChannel LeadChannel { get; }
+        public bool Create();
 
-		public bool Create();
+        public int Play(bool restart = false);
 
-		public int Play(bool restart = false);
+        public void FadeIn(float maxVolume);
+        public UniTask FadeOut(CancellationToken token = default);
 
-		public void FadeIn(float maxVolume);
-		public UniTask FadeOut(CancellationToken token = default);
+        public int Pause();
 
-		public int Pause();
+        public double GetPosition();
 
-		public double GetPosition();
+        public void SetPosition(double position);
 
-		public void SetPosition(double position);
+        public int AddChannel(IStemChannel channel);
 
-		public int AddChannel(IStemChannel channel);
+        public bool RemoveChannel(IStemChannel channel);
 
-		public bool RemoveChannel(IStemChannel channel);
-
-		public IStemChannel GetChannel(SongStem stem);
-
-	}
+        public IStemChannel GetChannel(SongStem stem);
+    }
 }

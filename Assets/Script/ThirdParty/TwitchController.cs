@@ -8,83 +8,91 @@ using YARG.UI;
 using Newtonsoft.Json;
 using YARG.Util;
 
-namespace YARG {
-	public class TwitchController : MonoBehaviour {
-		private static Regex TagRegex = new(@"<[^>]*>", RegexOptions.Compiled);
+namespace YARG
+{
+    public class TwitchController : MonoBehaviour
+    {
+        private static Regex TagRegex = new(@"<[^>]*>", RegexOptions.Compiled);
 
-		public static TwitchController Instance {
-			get;
-			private set;
-		}
+        public static TwitchController Instance { get; private set; }
 
-		// Creates .TXT file witth current song information
-		public string TextFilePath => Path.Combine(PathHelper.PersistentDataPath, "currentSong.txt");
-		// Creates .JSON file with current song information
-		public string JsonFilePath => Path.Combine(PathHelper.PersistentDataPath, "currentSong.json");
+        // Creates .TXT file witth current song information
+        public string TextFilePath => Path.Combine(PathHelper.PersistentDataPath, "currentSong.txt");
 
-		private void Start() {
-			Instance = this;
+        // Creates .JSON file with current song information
+        public string JsonFilePath => Path.Combine(PathHelper.PersistentDataPath, "currentSong.json");
 
-			// While YARG should blank the file on exit, you never know if a crash or something prevented that.
-			BlankSongFile();
+        private void Start()
+        {
+            Instance = this;
 
-			// Listen to the changing of songs
-			Play.OnSongStart += OnSongStart;
-			Play.OnSongEnd += OnSongEnd;
+            // While YARG should blank the file on exit, you never know if a crash or something prevented that.
+            BlankSongFile();
 
-			// Listen to instrument selection - NYI, let's confirm the rest works
-			DifficultySelect.OnInstrumentSelection += OnInstrumentSelection;
+            // Listen to the changing of songs
+            Play.OnSongStart += OnSongStart;
+            Play.OnSongEnd += OnSongEnd;
 
-			// Listen to pausing - NYI, let's confirm the rest works
-			Play.OnPauseToggle += OnPauseToggle;
-		}
+            // Listen to instrument selection - NYI, let's confirm the rest works
+            DifficultySelect.OnInstrumentSelection += OnInstrumentSelection;
 
-		private void BlankSongFile() {
-			// Open the text file for appending
-			using var writer = new StreamWriter(TextFilePath, false);
-			using var jsonWriter = new StreamWriter(JsonFilePath, false);
+            // Listen to pausing - NYI, let's confirm the rest works
+            Play.OnPauseToggle += OnPauseToggle;
+        }
 
-			// Make the file blank (Avoid errors in OBS)
-			writer.Write("");
-			jsonWriter.Write("");
-		}
+        private void BlankSongFile()
+        {
+            // Open the text file for appending
+            using var writer = new StreamWriter(TextFilePath, false);
+            using var jsonWriter = new StreamWriter(JsonFilePath, false);
 
-		private void OnApplicationQuit() {
-			BlankSongFile();
-		}
+            // Make the file blank (Avoid errors in OBS)
+            writer.Write("");
+            jsonWriter.Write("");
+        }
 
-		void OnSongStart(SongEntry song) {
-			// Open the text file for appending
-			using var writer = new StreamWriter(TextFilePath, false);
-			using var jsonWriter = new StreamWriter(JsonFilePath, false);
+        private void OnApplicationQuit()
+        {
+            BlankSongFile();
+        }
 
-			// Get the input
-			string str = $"{song.Name}\n{song.Artist}\n{song.Album}\n{song.Genre}\n" +
-				$"{song.Year}\n{SongSources.SourceToGameName(song.Source)}\n{song.Charter}";
+        void OnSongStart(SongEntry song)
+        {
+            // Open the text file for appending
+            using var writer = new StreamWriter(TextFilePath, false);
+            using var jsonWriter = new StreamWriter(JsonFilePath, false);
 
-			// Strip tags
-			if (TagRegex.IsMatch(str)) {
-				str = TagRegex.Replace(str, string.Empty);
-			}
+            // Get the input
+            string str = $"{song.Name}\n{song.Artist}\n{song.Album}\n{song.Genre}\n" +
+                $"{song.Year}\n{SongSources.SourceToGameName(song.Source)}\n{song.Charter}";
 
-			// Convert to JSON
-			string json = JsonConvert.SerializeObject(song);
+            // Strip tags
+            if (TagRegex.IsMatch(str))
+            {
+                str = TagRegex.Replace(str, string.Empty);
+            }
 
-			// Write text to the file
-			writer.Write(str);
-			jsonWriter.Write(json);
-		}
+            // Convert to JSON
+            string json = JsonConvert.SerializeObject(song);
 
-		void OnSongEnd(SongEntry song) {
-			BlankSongFile();
-		}
+            // Write text to the file
+            writer.Write(str);
+            jsonWriter.Write(json);
+        }
 
-		private void OnInstrumentSelection(PlayerManager.Player playerInfo) {
-			// Selecting Instrument
-		}
+        void OnSongEnd(SongEntry song)
+        {
+            BlankSongFile();
+        }
 
-		private void OnPauseToggle(bool pause) {
-			// Game Paused
-		}
-	}
+        private void OnInstrumentSelection(PlayerManager.Player playerInfo)
+        {
+            // Selecting Instrument
+        }
+
+        private void OnPauseToggle(bool pause)
+        {
+            // Game Paused
+        }
+    }
 }

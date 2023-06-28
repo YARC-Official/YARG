@@ -5,38 +5,44 @@ using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
 using UnityEngine.UI;
 
-namespace YARG.Settings {
-	public class SettingsButton : MonoBehaviour {
-		[SerializeField]
-		private GameObject _buttonTemplate;
-		[SerializeField]
-		private Transform _container;
+namespace YARG.Settings
+{
+    public class SettingsButton : MonoBehaviour
+    {
+        [SerializeField]
+        private GameObject _buttonTemplate;
 
-		public void SetInfo(IEnumerable<string> buttons) {
-			// Spawn button(s)
-			foreach (var buttonName in buttons) {
-				var button = Instantiate(_buttonTemplate, _container);
+        [SerializeField]
+        private Transform _container;
 
-				button.GetComponentInChildren<LocalizeStringEvent>().StringReference = new LocalizedString {
-					TableReference = "Settings",
-					TableEntryReference = buttonName
-				};
+        public void SetInfo(IEnumerable<string> buttons)
+        {
+            // Spawn button(s)
+            foreach (var buttonName in buttons)
+            {
+                var button = Instantiate(_buttonTemplate, _container);
 
-				var capture = buttonName;
-				button.GetComponent<Button>().onClick.AddListener(() => SettingsManager.InvokeButton(capture));
-			}
+                button.GetComponentInChildren<LocalizeStringEvent>().StringReference = new LocalizedString
+                {
+                    TableReference = "Settings", TableEntryReference = buttonName
+                };
 
-			// Remove the template
-			Destroy(_buttonTemplate);
-		}
+                var capture = buttonName;
+                button.GetComponent<Button>().onClick.AddListener(() => SettingsManager.InvokeButton(capture));
+            }
 
-		public void SetCustomCallback(Action action, string localizationKey) {
-			_buttonTemplate.GetComponentInChildren<LocalizeStringEvent>().StringReference = new LocalizedString {
-				TableReference = "Settings",
-				TableEntryReference = localizationKey
-			};
+            // Remove the template
+            Destroy(_buttonTemplate);
+        }
 
-			_buttonTemplate.GetComponent<Button>().onClick.AddListener(() => action?.Invoke());
-		}
-	}
+        public void SetCustomCallback(Action action, string localizationKey)
+        {
+            _buttonTemplate.GetComponentInChildren<LocalizeStringEvent>().StringReference = new LocalizedString
+            {
+                TableReference = "Settings", TableEntryReference = localizationKey
+            };
+
+            _buttonTemplate.GetComponent<Button>().onClick.AddListener(() => action?.Invoke());
+        }
+    }
 }

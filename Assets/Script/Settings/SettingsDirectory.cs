@@ -7,60 +7,75 @@ using UnityEngine;
 using YARG.Song;
 using YARG.Util;
 
-namespace YARG.Settings {
-	public class SettingsDirectory : MonoBehaviour {
-		private static List<string> SongFolders => SettingsManager.Settings.SongFolders;
+namespace YARG.Settings
+{
+    public class SettingsDirectory : MonoBehaviour
+    {
+        private static List<string> SongFolders => SettingsManager.Settings.SongFolders;
 
-		[SerializeField]
-		private TextMeshProUGUI pathText;
-		[SerializeField]
-		private TextMeshProUGUI songCountText;
+        [SerializeField]
+        private TextMeshProUGUI pathText;
 
-		private int _index;
+        [SerializeField]
+        private TextMeshProUGUI songCountText;
 
-		public void SetIndex(int index) {
-			_index = index;
-			RefreshText();
-		}
+        private int _index;
 
-		private void RefreshText() {
-			if (string.IsNullOrEmpty(SongFolders[_index])) {
-				pathText.text = "<i>No Folder</i>";
-				songCountText.text = "";
-			} else {
-				pathText.text = SongFolders[_index];
+        public void SetIndex(int index)
+        {
+            _index = index;
+            RefreshText();
+        }
 
-				int songCount = SongContainer.Songs.Count(i =>
-					PathHelper.PathsEqual(i.CacheRoot, SongFolders[_index]));
+        private void RefreshText()
+        {
+            if (string.IsNullOrEmpty(SongFolders[_index]))
+            {
+                pathText.text = "<i>No Folder</i>";
+                songCountText.text = "";
+            }
+            else
+            {
+                pathText.text = SongFolders[_index];
 
-				if (songCount == 0) {
-					songCountText.text = "<alpha=#60>SCAN NEEDED";
-				} else {
-					songCountText.text = $"{songCount} <alpha=#60>SONGS";
-				}
-			}
-		}
+                int songCount = SongContainer.Songs.Count(i =>
+                    PathHelper.PathsEqual(i.CacheRoot, SongFolders[_index]));
 
-		public void Remove() {
-			// Remove the element
-			SongFolders.RemoveAt(_index);
+                if (songCount == 0)
+                {
+                    songCountText.text = "<alpha=#60>SCAN NEEDED";
+                }
+                else
+                {
+                    songCountText.text = $"{songCount} <alpha=#60>SONGS";
+                }
+            }
+        }
 
-			// Refresh
-			SettingsMenu.Instance.UpdateSongFolderManager();
-		}
+        public void Remove()
+        {
+            // Remove the element
+            SongFolders.RemoveAt(_index);
 
-		public void Browse() {
-			var startingDir = SongFolders[_index];
-			FileExplorerHelper.OpenChooseFolder(startingDir, folder => {
-				SongFolders[_index] = folder;
-				RefreshText();
-			});
-		}
+            // Refresh
+            SettingsMenu.Instance.UpdateSongFolderManager();
+        }
 
-		public async void Refresh() {
-			LoadingManager.Instance.QueueSongFolderRefresh(SongFolders[_index]);
-			await LoadingManager.Instance.StartLoad();
-			RefreshText();
-		}
-	}
+        public void Browse()
+        {
+            var startingDir = SongFolders[_index];
+            FileExplorerHelper.OpenChooseFolder(startingDir, folder =>
+            {
+                SongFolders[_index] = folder;
+                RefreshText();
+            });
+        }
+
+        public async void Refresh()
+        {
+            LoadingManager.Instance.QueueSongFolderRefresh(SongFolders[_index]);
+            await LoadingManager.Instance.StartLoad();
+            RefreshText();
+        }
+    }
 }
