@@ -4,7 +4,7 @@ namespace YARG.PlayMode
 {
     public class KickFlashAnimation : MonoBehaviour
     {
-        private const float SecondsPerFrame = 1f / 35f;
+        private const float SECONDS_PER_FRAME = 1f / 45f;
 
         [SerializeField]
         private Texture2D[] _textures;
@@ -29,9 +29,9 @@ namespace YARG.PlayMode
         private void Update()
         {
             _updateTimer += Time.deltaTime;
-            while (_updateTimer >= SecondsPerFrame && _currentSprite < _textures.Length)
+            while (_updateTimer >= SECONDS_PER_FRAME && _currentSprite < _textures.Length)
             {
-                _updateTimer -= SecondsPerFrame;
+                _updateTimer -= SECONDS_PER_FRAME;
                 UpdateTexture();
                 _currentSprite++;
             }
