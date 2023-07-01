@@ -76,10 +76,10 @@ A community made one is [available as well](https://youtu.be/hEJHuAGGlD8).
 3. Inside the folder you extracted the game to, open a terminal and run `chmod +x ./YARG.x86_64` to give the game executable permission.
 4. You can now double-click the `YARG.x86_64` file or use `./YARG.x86_64` in a terminal to run the game, however there are some dependencies that will be needed for HID devices (such as PS3 and Wii instruments).
 5. Next, install `hidapi` and `libudev`:
-  - (Package names may differ depending on package repositories.)
-  - On apt-based distros (such as Ubuntu or Debian), use `sudo apt install libhidapi-hidraw0 libudev1`.
-  - On pacman-based distros (such as Arch Linux), use `pacman -S hidapi systemd-libs`.
-  - On Fedora, use `dnf install hidapi systemd-libs`.
+   - (Package names may differ depending on package repositories.)
+   - On apt-based distros (such as Ubuntu or Debian), use `sudo apt install libhidapi-hidraw0 libudev1`.
+   - On pacman-based distros (such as Arch Linux), use `pacman -S hidapi systemd-libs`.
+   - On Fedora, use `dnf install hidapi systemd-libs`.
 6. Finally, create a new udev rules file called `69-hid.rules` inside of `/etc/udev/rules.d/` or `/usr/lib/udev/rules.d/`, with the following contents:
   ```
   KERNEL=="hidraw*", TAG+="uaccess"
@@ -115,20 +115,21 @@ Have fun!
 >
 > If you would like to build the game yourself, please follow these instructions.
 >
-> If you don't follow these instructions, **YOU WILL NOT BE ABLE TO RUN THE GAME**.
+> If you don't follow these instructions, it is possible that **YOU WILL NOT BE ABLE TO RUN THE GAME**.
 
 1. Make sure you have the latest version of [Blender](https://www.blender.org/) installed. This is for loading models, even if you don't plan on editing them.
-2. Clone the repository. If you don't know how to do this:
-  1. Download [Git](https://git-scm.com/downloads). Be sure it is added to system path.
-  2. Open the command prompt in the directory you want to store the repository.
-  3. Type in `git clone https://github.com/YARC-Official/YARG.git`.
+2. Clone the repository. If you are not familiar with git, I recommend using [GitHub Desktop](https://desktop.github.com/). If, however, you want to use the command line version:
+   1. Download [Git](https://git-scm.com/downloads). Be sure it is added to system path.
+   2. Open the command prompt in the directory you want to store the repository.
+   3. Type in `git clone --recursive https://github.com/YARC-Official/YARG.git`.
+   4. Because YARG contains submodules, you may need to do `git submodule update` when things get updated.
 3. Install Unity Hub and Unity `2021.3.21f1` (LTS).
-  4. Download and install [Unity Hub](https://unity.com/download).
-  5. Sign-in/create an account with a personal license (free).
-  6. In Unity Hub, click on "Install Editor" and select `2021.3.21f1` (LTS). It may be favourable to unselect Visual Studio if you are not using it.
-  7. Click "Install"
+   1. Download and install [Unity Hub](https://unity.com/download).
+   2. Sign-in/create an account with a personal license (free).
+   3. In Unity Hub, click on "Install Editor" and select `2021.3.21f1` (LTS). It may be favourable to unselect Visual Studio if you are not using it.
+   4. Click "Install"
 4. Open the project in Unity (select "Open" and select YARG's repo's folder).
-5. Load in **without** entering safe mode. Click "Ignore".
+5. (You may need to) load in **without** entering safe mode. Click "Ignore".
 6. (You may need to) click on `NuGet` on the menu bar, then click on `Restore Packages`.
 7. You're ready to go!
 
