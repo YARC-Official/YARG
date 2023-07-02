@@ -12,6 +12,13 @@ namespace YARG.Audio.BASS
     {
         private const EffectType REVERB_TYPE = EffectType.Freeverb;
 
+        private static readonly List<SongStem> WHAMMY_PITCH_BEND_STEMS = new()
+        {
+            SongStem.Guitar,
+            SongStem.Bass,
+            SongStem.Rhythm,
+        };
+
         public SongStem Stem { get; }
         public double LengthD { get; private set; }
 
@@ -164,18 +171,21 @@ namespace YARG.Audio.BASS
             Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, _manager.GetVolumeSetting(Stem));
             Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Volume, 0);
 
-            _pitchFxHandle = Bass.ChannelSetFX(StreamHandle, EffectType.PitchShift, 0);
-
-            if (_pitchFxHandle == 0)
+            if (WHAMMY_PITCH_BEND_STEMS.Contains(Stem))
             {
-                Debug.LogError("Failed to add pitchshift: " + Bass.LastError);
-            }
+                _pitchFxHandle = Bass.ChannelSetFX(StreamHandle, EffectType.PitchShift, 0);
 
-            _pitchFxReverbHandle = Bass.ChannelSetFX(ReverbStreamHandle, EffectType.PitchShift, 0);
+                if (_pitchFxHandle == 0)
+                {
+                    Debug.LogError("Failed to add pitchshift: " + Bass.LastError);
+                }
 
-            if (_pitchFxReverbHandle == 0)
-            {
-                Debug.LogError("Failed to add pitchshift: " + Bass.LastError);
+                _pitchFxReverbHandle = Bass.ChannelSetFX(ReverbStreamHandle, EffectType.PitchShift, 0);
+
+                if (_pitchFxReverbHandle == 0)
+                {
+                    Debug.LogError("Failed to add pitchshift: " + Bass.LastError);
+                }
             }
 
             if (!Mathf.Approximately(speed, 1f))
@@ -315,7 +325,8 @@ namespace YARG.Audio.BASS
 
         public void SetWhammyPitch(float percent)
         {
-            if (Stem != SongStem.Guitar && Stem != SongStem.Bass && Stem != SongStem.Rhythm) return;
+            if (_pitchFxHandle == 0 || _pitchFxReverbHandle == 0)
+                return;
 
             percent = Mathf.Clamp(percent, 0f, 1f);
 
@@ -331,8 +342,6 @@ namespace YARG.Audio.BASS
             Debug.Log(shift);
 
             _pitchParams.fPitchShift = shift;
-
-            Debug.Log(_pitchFxHandle);
 
             if (!Bass.FXSetParameters(_pitchFxHandle, _pitchParams))
             {
