@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using YARG.Data;
 using YARG.Player.Navigation;
 using YARG.PlayMode;
@@ -33,43 +34,22 @@ namespace YARG.Player.Input
 
         public event WhammyChangeAction WhammyEvent;
 
-        public FiveFretInputStrategy() : base(null)
+        public FiveFretInputStrategy(IReadOnlyList<InputDevice> inputDevices) : base(inputDevices)
         {
             InputMappings = new()
             {
-                {
-                    GREEN, new(BindingType.BUTTON, "Green", GREEN)
-                },
-                {
-                    RED, new(BindingType.BUTTON, "Red", RED)
-                },
-                {
-                    YELLOW, new(BindingType.BUTTON, "Yellow", YELLOW)
-                },
-                {
-                    BLUE, new(BindingType.BUTTON, "Blue", BLUE)
-                },
-                {
-                    ORANGE, new(BindingType.BUTTON, "Orange", ORANGE)
-                },
-                {
-                    STRUM_UP, new(BindingType.BUTTON, "Strum Up", STRUM_UP, STRUM_DOWN)
-                },
-                {
-                    STRUM_DOWN, new(BindingType.BUTTON, "Strum Down", STRUM_DOWN, STRUM_UP)
-                },
-                {
-                    WHAMMY, new(BindingType.AXIS, "Whammy", WHAMMY)
-                },
-                {
-                    STAR_POWER, new(BindingType.BUTTON, "Star Power", STAR_POWER)
-                },
-                {
-                    TILT, new(BindingType.BUTTON, "Tilt", TILT)
-                }, // tilt is a button as PS2 guitars don't have a tilt axis
-                {
-                    PAUSE, new(BindingType.BUTTON, "Pause", PAUSE)
-                },
+                { GREEN,      new(BindingType.BUTTON, "Green",      GREEN) },
+                { RED,        new(BindingType.BUTTON, "Red",        RED) },
+                { YELLOW,     new(BindingType.BUTTON, "Yellow",     YELLOW) },
+                { BLUE,       new(BindingType.BUTTON, "Blue",       BLUE) },
+                { ORANGE,     new(BindingType.BUTTON, "Orange",     ORANGE) },
+                { STRUM_UP,   new(BindingType.BUTTON, "Strum Up",   STRUM_UP, STRUM_DOWN) },
+                { STRUM_DOWN, new(BindingType.BUTTON, "Strum Down", STRUM_DOWN, STRUM_UP) },
+                { WHAMMY,     new(BindingType.AXIS,   "Whammy",     WHAMMY) },
+                { STAR_POWER, new(BindingType.BUTTON, "Star Power", STAR_POWER) },
+                // tilt is a button as PS2 guitars don't have a tilt axis
+                { TILT,       new(BindingType.BUTTON, "Tilt",       TILT) },
+                { PAUSE,      new(BindingType.BUTTON, "Pause",      PAUSE) },
             };
         }
 

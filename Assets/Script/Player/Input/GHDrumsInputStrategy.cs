@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine.InputSystem;
 using YARG.Data;
 using YARG.Player.Navigation;
 using YARG.PlayMode;
@@ -24,40 +25,20 @@ namespace YARG.Player.Input
 
         public event DrumHitAction DrumHitEvent;
 
-        public GHDrumsInputStrategy() : base(null)
+        public GHDrumsInputStrategy(IReadOnlyList<InputDevice> inputDevices) : base(inputDevices)
         {
             InputMappings = new()
             {
-                {
-                    RED_PAD, new(BindingType.BUTTON, "Red Pad", RED_PAD)
-                },
-                {
-                    YELLOW_CYMBAL, new(BindingType.BUTTON, "Yellow Cymbal", YELLOW_CYMBAL)
-                },
-                {
-                    BLUE_PAD, new(BindingType.BUTTON, "Blue Pad", BLUE_PAD)
-                },
-                {
-                    ORANGE_CYMBAL, new(BindingType.BUTTON, "Orange Cymbal", ORANGE_CYMBAL)
-                },
-                {
-                    GREEN_PAD, new(BindingType.BUTTON, "Green Pad", GREEN_PAD)
-                },
-                {
-                    KICK, new(BindingType.BUTTON, "Kick", KICK)
-                },
-                {
-                    KICK_ALT, new(BindingType.BUTTON, "Kick Alt", KICK_ALT)
-                },
-                {
-                    PAUSE, new(BindingType.BUTTON, "Pause", PAUSE)
-                },
-                {
-                    UP, new(BindingType.BUTTON, "Navigate Up", UP)
-                },
-                {
-                    DOWN, new(BindingType.BUTTON, "Navigate Down", DOWN)
-                },
+                { RED_PAD,       new(BindingType.BUTTON, "Red Pad",       RED_PAD) },
+                { YELLOW_CYMBAL, new(BindingType.BUTTON, "Yellow Cymbal", YELLOW_CYMBAL) },
+                { BLUE_PAD,      new(BindingType.BUTTON, "Blue Pad",      BLUE_PAD) },
+                { ORANGE_CYMBAL, new(BindingType.BUTTON, "Orange Cymbal", ORANGE_CYMBAL) },
+                { GREEN_PAD,     new(BindingType.BUTTON, "Green Pad",     GREEN_PAD) },
+                { KICK,          new(BindingType.BUTTON, "Kick",          KICK) },
+                { KICK_ALT,      new(BindingType.BUTTON, "Kick Alt",      KICK_ALT) },
+                { PAUSE,         new(BindingType.BUTTON, "Pause",         PAUSE) },
+                { UP,            new(BindingType.BUTTON, "Navigate Up",   UP) },
+                { DOWN,          new(BindingType.BUTTON, "Navigate Down", DOWN) },
             };
         }
 

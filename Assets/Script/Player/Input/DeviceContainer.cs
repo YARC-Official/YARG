@@ -37,7 +37,7 @@ namespace YARG.Player.Input
             micDevice.Initialize();
             profile.MicInput = new MicInput(micDevice);
 
-            AddInputToProfile<FiveFretInputStrategy>(profile, Mouse.current);
+            // AddInputToProfile<FiveFretInputStrategy>(profile, Mouse.current);
         }
 
         public static void AddInputToProfile<T>(Profile profile, InputDevice inputDevice) where T : InputStrategy, new()

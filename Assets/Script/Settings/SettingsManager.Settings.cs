@@ -36,7 +36,7 @@ namespace YARG.Settings
 #if UNITY_STANDALONE_WIN
                 "ExclusiveFullScreen",
 #elif UNITY_STANDALONE_OSX
-					"MaximizedWindow",
+                "MaximizedWindow",
 #endif
                 "FullScreenWindow",
                 "Windowed",

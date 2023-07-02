@@ -1,8 +1,7 @@
 using System.Collections.Generic;
+using UnityEngine.InputSystem;
 using YARG.Data;
 using YARG.Player.Navigation;
-using YARG.PlayMode;
-using YARG.Settings;
 
 namespace YARG.Player.Input
 {
@@ -28,46 +27,22 @@ namespace YARG.Player.Input
 
         public event DrumHitAction DrumHitEvent;
 
-        public DrumsInputStrategy() : base(null)
+        public DrumsInputStrategy(IReadOnlyList<InputDevice> inputDevices) : base(inputDevices)
         {
             InputMappings = new()
             {
-                {
-                    RED_PAD, new(BindingType.BUTTON, "Red Pad", RED_PAD)
-                },
-                {
-                    YELLOW_PAD, new(BindingType.BUTTON, "Yellow Pad (Menu Up)", YELLOW_PAD)
-                },
-                {
-                    BLUE_PAD, new(BindingType.BUTTON, "Blue Pad (Menu Down)", BLUE_PAD)
-                },
-                {
-                    GREEN_PAD, new(BindingType.BUTTON, "Green Pad", GREEN_PAD)
-                },
-                {
-                    YELLOW_CYMBAL, new(BindingType.BUTTON, "Yellow Cymbal", YELLOW_CYMBAL)
-                },
-                {
-                    BLUE_CYMBAL, new(BindingType.BUTTON, "Blue Cymbal", BLUE_CYMBAL)
-                },
-                {
-                    GREEN_CYMBAL, new(BindingType.BUTTON, "Green Cymbal", GREEN_CYMBAL)
-                },
-                {
-                    KICK, new(BindingType.BUTTON, "Kick", KICK)
-                },
-                {
-                    KICK_ALT, new(BindingType.BUTTON, "Kick Alt", KICK_ALT)
-                },
-                {
-                    PAUSE, new(BindingType.BUTTON, "Pause", PAUSE)
-                },
-                {
-                    UP, new(BindingType.BUTTON, "Navigate Up", UP)
-                },
-                {
-                    DOWN, new(BindingType.BUTTON, "Navigate Down", DOWN)
-                },
+                { RED_PAD,       new(BindingType.BUTTON, "Red Pad",              RED_PAD) },
+                { YELLOW_PAD,    new(BindingType.BUTTON, "Yellow Pad (Menu Up)", YELLOW_PAD) },
+                { BLUE_PAD,      new(BindingType.BUTTON, "Blue Pad (Menu Down)", BLUE_PAD) },
+                { GREEN_PAD,     new(BindingType.BUTTON, "Green Pad",            GREEN_PAD) },
+                { YELLOW_CYMBAL, new(BindingType.BUTTON, "Yellow Cymbal",        YELLOW_CYMBAL) },
+                { BLUE_CYMBAL,   new(BindingType.BUTTON, "Blue Cymbal",          BLUE_CYMBAL) },
+                { GREEN_CYMBAL,  new(BindingType.BUTTON, "Green Cymbal",         GREEN_CYMBAL) },
+                { KICK,          new(BindingType.BUTTON, "Kick",                 KICK) },
+                { KICK_ALT,      new(BindingType.BUTTON, "Kick Alt",             KICK_ALT) },
+                { PAUSE,         new(BindingType.BUTTON, "Pause",                PAUSE) },
+                { UP,            new(BindingType.BUTTON, "Navigate Up",          UP) },
+                { DOWN,          new(BindingType.BUTTON, "Navigate Down",        DOWN) },
             };
         }
 

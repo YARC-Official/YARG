@@ -42,6 +42,10 @@ namespace YARG.Player.Input
         private float? stringGroupingTimer = null;
         private StrumFlag stringGroupingFlag = StrumFlag.NONE;
 
+        public RealGuitarInputStrategy(IReadOnlyList<InputDevice> inputDevices) : base(inputDevices)
+        {
+        }
+
         public override string GetIconName()
         {
             return "realGuitar";
@@ -119,10 +123,6 @@ namespace YARG.Player.Input
         public override string GetTrackPath()
         {
             return "Tracks/RealGuitar";
-        }
-
-        public RealGuitarInputStrategy(IReadOnlyList<InputDevice> inputDevices) : base(inputDevices)
-        {
         }
     }
 }
