@@ -195,7 +195,7 @@ namespace YARG.PlayMode
             {
                 foreach (var difficulty in part)
                 {
-                    if (difficulty.Count < 1)
+                    if (difficulty == null || difficulty.Count < 1)
                     {
                         continue;
                     }
