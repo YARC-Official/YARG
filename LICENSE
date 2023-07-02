@@ -1,6 +1,9 @@
-MIT License
+                                  YARG License
+                                  Version  1.0
+                                 July 7th, 2023
 
-Copyright (c) 2023 EliteAsian123
+        Copyright (c) 2022-2023 EliteAsian123 <eliteasian123@gmail.com>,
+                   Kadu Waengertner, Yet Another Rhythm Game
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -9,8 +12,14 @@ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+- The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+- Except for reasonable and customary use in describing the origin of the work,
+  this license does not grant permission to use the name "YARG" (in reference to
+  "Yet Another Rhythm Game") or any associated YARG logos. Any use of trademarks,
+  service marks, or logos requires separate written permission from the copyright
+  holders listed above.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
