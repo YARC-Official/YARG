@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Data;
+using YARG.Player.Navigation;
 using YARG.PlayMode;
 
 namespace YARG.Player.Input

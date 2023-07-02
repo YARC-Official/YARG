@@ -13,6 +13,7 @@ using YARG.Audio;
 using YARG.Chart;
 using YARG.Data;
 using YARG.Player.Input;
+using YARG.Player.Navigation;
 using YARG.Serialization.Parser;
 using YARG.Settings;
 using YARG.Song;

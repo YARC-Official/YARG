@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using YARG.Player.Input;
+using YARG.Player.Navigation;
 
 namespace YARG.UI
 {

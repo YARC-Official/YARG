@@ -16,6 +16,7 @@ using Random = UnityEngine.Random;
 using System.Threading;
 using UnityEngine.Serialization;
 using YARG.Player.Input;
+using YARG.Player.Navigation;
 using YARG.Settings;
 
 namespace YARG.UI.MusicLibrary

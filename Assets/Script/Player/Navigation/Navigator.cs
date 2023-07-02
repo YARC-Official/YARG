@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using YARG.Player.Input;
 using YARG.UI;
 
-namespace YARG.Player.Input
+namespace YARG.Player.Navigation
 {
     public enum MenuAction
     {

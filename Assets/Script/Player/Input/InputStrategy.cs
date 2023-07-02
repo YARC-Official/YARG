@@ -10,6 +10,7 @@ using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.Utilities;
 using YARG.Audio;
 using YARG.Data;
+using YARG.Player.Navigation;
 using YARG.Settings;
 
 namespace YARG.Player.Input

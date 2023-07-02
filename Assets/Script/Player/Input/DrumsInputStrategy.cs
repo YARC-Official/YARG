@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using YARG.Data;
+using YARG.Player.Navigation;
 using YARG.PlayMode;
 using YARG.Settings;
 
