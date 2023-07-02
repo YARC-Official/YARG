@@ -32,7 +32,7 @@ namespace YARG.Player.Input
 
         public event WhammyChangeAction WhammyEvent;
 
-        public FiveFretInputStrategy()
+        public FiveFretInputStrategy() : base(null)
         {
             InputMappings = new()
             {

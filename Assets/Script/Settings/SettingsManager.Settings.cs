@@ -240,7 +240,7 @@ namespace YARG.Settings
             {
                 foreach (var player in PlayerManager.players)
                 {
-                    player.inputStrategy?.MicDevice?.SetMonitoringLevel(volume);
+                    // player.inputStrategy?.MicDevice?.SetMonitoringLevel(volume);
                 }
             }
 

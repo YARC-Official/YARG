@@ -12,6 +12,7 @@ using UnityEngine.UI;
 using YARG.Audio;
 using YARG.Chart;
 using YARG.Data;
+using YARG.Player.Input;
 using YARG.Serialization.Parser;
 using YARG.Settings;
 using YARG.Song;

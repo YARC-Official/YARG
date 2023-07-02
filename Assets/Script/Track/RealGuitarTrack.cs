@@ -57,10 +57,10 @@ namespace YARG.PlayMode
             input.FretChangeEvent += FretChangedAction;
             input.StrumEvent += StrumAction;
 
-            if (input.BotMode)
-            {
-                input.InitializeBotMode(Chart);
-            }
+            // if (input.BotMode)
+            // {
+            //     input.InitializeBotMode(Chart);
+            // }
 
             // Color particles
 

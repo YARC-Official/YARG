@@ -78,10 +78,10 @@ namespace YARG.PlayMode
             input.StrumEvent += StrumAction;
             input.WhammyEvent += WhammyEvent;
 
-            if (input.BotMode)
-            {
-                input.InitializeBotMode(Chart);
-            }
+            // if (input.BotMode)
+            // {
+            //     input.InitializeBotMode(Chart);
+            // }
 
             // Color frets
             for (int i = 0; i < 5; i++)
@@ -212,7 +212,7 @@ namespace YARG.PlayMode
             }
 
             // Update starpower
-            if ((whammyAmount > 0f) || input.BotMode)
+            if ((whammyAmount > 0f) /*|| input.BotMode*/)
             {
                 starpowerCharge += Time.deltaTime * Play.Instance.CurrentBeatsPerSecond * 0.034f;
             }
@@ -904,10 +904,10 @@ namespace YARG.PlayMode
             }
 
             strummed = true;
-            if (!input.BotMode)
-            {
-                strumLeniency = Constants.STRUM_LENIENCY;
-            }
+            // if (!input.BotMode)
+            // {
+            //     strumLeniency = Constants.STRUM_LENIENCY;
+            // }
         }
 
         private void WhammyEvent(float delta)

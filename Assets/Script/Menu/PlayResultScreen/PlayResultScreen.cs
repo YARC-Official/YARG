@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Data;
+using YARG.Player.Input;
 using YARG.PlayMode;
 
 namespace YARG.UI.PlayResultScreen
@@ -122,11 +123,11 @@ namespace YARG.UI.PlayResultScreen
                 }
 
                 // Bots
-                if (player.inputStrategy.BotMode)
-                {
-                    bot.Add(player);
-                    continue;
-                }
+                // if (player.inputStrategy.BotMode)
+                // {
+                //     bot.Add(player);
+                //     continue;
+                // }
 
                 // DQ speeds below 100%
                 if (Play.speed < 1f)

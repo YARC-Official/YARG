@@ -6,6 +6,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
 using UnityEngine.UI;
+using YARG.Player.Input;
 
 namespace YARG.UI
 {

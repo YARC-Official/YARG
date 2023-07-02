@@ -5,6 +5,7 @@ using UnityEngine;
 using YARG.Audio;
 using YARG.Chart;
 using YARG.Data;
+using YARG.Player.Input;
 using YARG.Pools;
 using YARG.Settings;
 using YARG.UI;

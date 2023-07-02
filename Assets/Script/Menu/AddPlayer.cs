@@ -286,27 +286,27 @@ namespace YARG.UI
 
         public void DoneConfigure()
         {
-            _inputStrategy = (StrategyType) inputStrategyDropdown.value switch
-            {
-                StrategyType.FiveFretGuitar => new FiveFretInputStrategy(),
-                StrategyType.RealGuitar     => new RealGuitarInputStrategy(),
-                StrategyType.FourLaneDrums  => new DrumsInputStrategy(),
-                StrategyType.FiveLaneDrums  => new GHDrumsInputStrategy(),
-                StrategyType.Vocals         => new MicInputStrategy(),
-                _                           => throw new Exception("Invalid input strategy type!")
-            };
+            // _inputStrategy = (StrategyType) inputStrategyDropdown.value switch
+            // {
+            //     StrategyType.FiveFretGuitar => new FiveFretInputStrategy(),
+            //     StrategyType.RealGuitar     => new RealGuitarInputStrategy(),
+            //     StrategyType.FourLaneDrums  => new DrumsInputStrategy(),
+            //     StrategyType.FiveLaneDrums  => new GHDrumsInputStrategy(),
+            //     // StrategyType.Vocals         => new MicInputStrategy(),
+            //     _                           => throw new Exception("Invalid input strategy type!")
+            // };
 
-            _inputStrategy.InputDevice = _selectedDevice;
-            _inputStrategy.MicDevice = _selectedMic;
-            _inputStrategy.BotMode = _botMode;
+            // _inputStrategy.InputDevice = _selectedDevice;
+            // _inputStrategy.MicDevice = _selectedMic;
+            // _inputStrategy.BotMode = _botMode;
 
             _playerName = playerNameField.text;
 
             // Try to load bindings
-            if (_inputStrategy.InputDevice != null)
-            {
-                InputBindSerializer.LoadBindsFromSave(_inputStrategy);
-            }
+            // if (_inputStrategy.InputDevice != null)
+            // {
+            //     InputBindSerializer.LoadBindsFromSave(_inputStrategy);
+            // }
 
             StartBind();
         }
@@ -552,17 +552,17 @@ namespace YARG.UI
             _currentDeviceListener = null;
 
             // Save bindings
-            if (_inputStrategy.InputDevice != null)
-            {
-                InputBindSerializer.SaveBindsFromInputStrategy(_inputStrategy);
-            }
+            // if (_inputStrategy.InputDevice != null)
+            // {
+            //     InputBindSerializer.SaveBindsFromInputStrategy(_inputStrategy);
+            // }
 
             // Create and add player
             var player = new PlayerManager.Player()
             {
                 inputStrategy = _inputStrategy
             };
-            player.inputStrategy.Enable();
+            // player.inputStrategy.Enable();
             PlayerManager.players.Add(player);
 
             // Set name

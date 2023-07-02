@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Player.Input;
 using YARG.Settings;
 
 namespace YARG.UI

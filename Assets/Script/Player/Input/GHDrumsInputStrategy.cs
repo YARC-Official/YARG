@@ -23,7 +23,7 @@ namespace YARG.Player.Input
 
         public event DrumHitAction DrumHitEvent;
 
-        public GHDrumsInputStrategy()
+        public GHDrumsInputStrategy() : base(null)
         {
             InputMappings = new()
             {

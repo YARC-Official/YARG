@@ -145,7 +145,7 @@ namespace YARG
                     chosenDifficulty = Difficulty.EXPERT,
                     inputStrategy = new FiveFretInputStrategy
                     {
-                        BotMode = true
+                        // BotMode = true
                     }
                 });
 
@@ -155,19 +155,19 @@ namespace YARG
                     chosenDifficulty = Difficulty.EXPERT_PLUS,
                     inputStrategy = new DrumsInputStrategy
                     {
-                        BotMode = true
+                        // BotMode = true
                     }
                 });
 
-                AddTestPlayPlayer(new PlayerManager.Player
-                {
-                    chosenInstrument = "vocals",
-                    chosenDifficulty = Difficulty.EXPERT,
-                    inputStrategy = new MicInputStrategy
-                    {
-                        BotMode = true
-                    }
-                });
+                // AddTestPlayPlayer(new PlayerManager.Player
+                // {
+                //     chosenInstrument = "vocals",
+                //     chosenDifficulty = Difficulty.EXPERT,
+                //     inputStrategy = new MicInputStrategy
+                //     {
+                //         BotMode = true
+                //     }
+                // });
             }
 
             // Get the Test Play song by hash, and play it
@@ -182,7 +182,7 @@ namespace YARG
         private static void AddTestPlayPlayer(PlayerManager.Player p)
         {
             PlayerManager.players.Add(p);
-            p.inputStrategy.Enable();
+            // p.inputStrategy.Enable();
         }
 #endif
     }

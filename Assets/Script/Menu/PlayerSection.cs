@@ -34,13 +34,13 @@ namespace YARG.UI
 
             // Pro-guitar lefty flip is a little bit more complicated (TODO)
             // Mic doesn't have a lefty flip
-            leftyFlipToggle.interactable =
-                player.inputStrategy is not RealGuitarInputStrategy &&
-                player.inputStrategy is not MicInputStrategy;
+            // leftyFlipToggle.interactable =
+            //     player.inputStrategy is not RealGuitarInputStrategy &&
+            //     player.inputStrategy is not MicInputStrategy;
 
             // Mic doesn't have a track speed
-            trackSpeedField.interactable =
-                player.inputStrategy is not MicInputStrategy;
+            // trackSpeedField.interactable =
+            //     player.inputStrategy is not MicInputStrategy;
         }
 
         private void SetInstrumentIcon(PlayerManager.Player player)

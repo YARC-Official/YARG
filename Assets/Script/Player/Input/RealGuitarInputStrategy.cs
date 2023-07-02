@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using PlasticBand.Devices;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using YARG.Data;
 using YARG.PlayMode;
 
@@ -68,38 +69,38 @@ namespace YARG.Player.Input
 
         protected override void UpdatePlayerMode()
         {
-            if (InputDevice is not ProGuitar input)
-            {
-                return;
-            }
-
-            // Update frets
-            for (int i = 0; i < ProGuitar.StringCount; i++)
-            {
-                int fret = input.GetFret(i).ReadValue();
-                if (fret != fretCache[i])
-                {
-                    FretChangeEvent?.Invoke(i, fret);
-                    fretCache[i] = fret;
-                }
-            }
-
-            // Update strums
-            for (int i = 0; i < ProGuitar.StringCount; i++)
-            {
-                float vel = input.GetVelocity(i).ReadValue();
-                if (vel != velocityCache[i])
-                {
-                    stringGroupingFlag |= StrumFlagFromInt(i);
-                    velocityCache[i] = vel;
-
-                    // Start grouping if not already
-                    stringGroupingTimer ??= 0.05f;
-                }
-            }
-
-            // Constantly activate starpower (for now)
-            CallStarpowerEvent();
+            // if (InputDevice is not ProGuitar input)
+            // {
+            //     return;
+            // }
+            //
+            // // Update frets
+            // for (int i = 0; i < ProGuitar.StringCount; i++)
+            // {
+            //     int fret = input.GetFret(i).ReadValue();
+            //     if (fret != fretCache[i])
+            //     {
+            //         FretChangeEvent?.Invoke(i, fret);
+            //         fretCache[i] = fret;
+            //     }
+            // }
+            //
+            // // Update strums
+            // for (int i = 0; i < ProGuitar.StringCount; i++)
+            // {
+            //     float vel = input.GetVelocity(i).ReadValue();
+            //     if (vel != velocityCache[i])
+            //     {
+            //         stringGroupingFlag |= StrumFlagFromInt(i);
+            //         velocityCache[i] = vel;
+            //
+            //         // Start grouping if not already
+            //         stringGroupingTimer ??= 0.05f;
+            //     }
+            // }
+            //
+            // // Constantly activate starpower (for now)
+            // CallStarpowerEvent();
         }
 
         protected override void UpdateNavigationMode()
@@ -118,6 +119,10 @@ namespace YARG.Player.Input
         public override string GetTrackPath()
         {
             return "Tracks/RealGuitar";
+        }
+
+        public RealGuitarInputStrategy(IReadOnlyList<InputDevice> inputDevices) : base(inputDevices)
+        {
         }
     }
 }

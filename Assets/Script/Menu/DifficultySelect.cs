@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
 using YARG.Data;
+using YARG.Player.Input;
 using YARG.PlayMode;
 
 namespace YARG.UI
@@ -83,11 +84,11 @@ namespace YARG.UI
             for (int index = 0; index < PlayerManager.players.Count; index++)
             {
                 var player = PlayerManager.players[index];
-                if (player.inputStrategy is MicInputStrategy)
-                {
-                    playersToConfigure.Add(player);
-                    anyMics = true;
-                }
+                // if (player.inputStrategy is MicInputStrategy)
+                // {
+                //     playersToConfigure.Add(player);
+                //     anyMics = true;
+                // }
             }
 
             // Use first player otherwise
@@ -221,12 +222,12 @@ namespace YARG.UI
             brutalModeCheckbox.isOn = false;
 
             // Next non-mic player
-            playerIndex++;
-            while (playerIndex < PlayerManager.players.Count
-                && PlayerManager.players[playerIndex].inputStrategy is MicInputStrategy)
-            {
-                playerIndex++;
-            }
+            // playerIndex++;
+            // while (playerIndex < PlayerManager.players.Count
+            //     && PlayerManager.players[playerIndex].inputStrategy is MicInputStrategy)
+            // {
+            //     playerIndex++;
+            // }
 
             if (playerIndex >= PlayerManager.players.Count)
             {

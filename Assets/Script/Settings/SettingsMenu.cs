@@ -6,6 +6,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
 using UnityEngine.UI;
+using YARG.Player.Input;
 using YARG.Settings.Metadata;
 using YARG.Settings.Types;
 using YARG.Settings.Visuals;
