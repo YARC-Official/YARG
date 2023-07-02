@@ -484,7 +484,8 @@ namespace YARG.PlayMode
             {
                 foreach (var track in _tracks)
                 {
-                    if (!track.IsStarPowerActive || !GameManager.AudioManager.UseStarpowerFx) continue;
+                    if (!track.IsStarPowerActive || !GameManager.AudioManager.Options.UseStarpowerFx)
+                        continue;
 
                     GameManager.AudioManager.PlaySoundEffect(SfxSample.Clap);
                     break;
@@ -545,7 +546,7 @@ namespace YARG.PlayMode
 
             // Reverb audio with starpower
 
-            if (GameManager.AudioManager.UseStarpowerFx)
+            if (GameManager.AudioManager.Options.UseStarpowerFx)
             {
                 GameManager.AudioManager.ApplyReverb(SongStem.Song, stemsReverbed > 0);
 

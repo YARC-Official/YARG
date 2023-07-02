@@ -15,8 +15,7 @@ namespace YARG.Audio.BASS
 {
     public class BassAudioManager : MonoBehaviour, IAudioManager
     {
-        public bool UseStarpowerFx { get; set; }
-        public bool IsChipmunkSpeedup { get; set; }
+        public AudioOptions Options { get; set; } = new();
 
         public IList<string> SupportedFormats { get; private set; }
 

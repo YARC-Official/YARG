@@ -251,12 +251,12 @@ namespace YARG.Settings
 
             private static void UseStarpowerFxChange(bool value)
             {
-                GameManager.AudioManager.UseStarpowerFx = value;
+                GameManager.AudioManager.Options.UseStarpowerFx = value;
             }
 
             private static void UseChipmunkSpeedChange(bool value)
             {
-                GameManager.AudioManager.IsChipmunkSpeedup = value;
+                GameManager.AudioManager.Options.IsChipmunkSpeedup = value;
             }
 
             private static void CameraPosChange(float value)

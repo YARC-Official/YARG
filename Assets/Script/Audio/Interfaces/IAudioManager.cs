@@ -8,8 +8,7 @@ namespace YARG.Audio
 {
     public interface IAudioManager
     {
-        public bool UseStarpowerFx { get; set; }
-        public bool IsChipmunkSpeedup { get; set; }
+        public AudioOptions Options { get; set; }
 
         public IList<string> SupportedFormats { get; }
 

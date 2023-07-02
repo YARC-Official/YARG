@@ -198,7 +198,7 @@ namespace YARG.Audio.BASS
                 Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Tempo, relativeSpeed);
 
                 // Have to handle pitch separately for some reason
-                if (_manager.IsChipmunkSpeedup)
+                if (_manager.Options.IsChipmunkSpeedup)
                 {
                     float semitoneShift = percentageSpeed switch
                     {
