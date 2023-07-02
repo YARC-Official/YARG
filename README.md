@@ -129,8 +129,9 @@ Have fun!
    3. In Unity Hub, click on "Install Editor" and select `2021.3.21f1` (LTS). It may be favourable to unselect Visual Studio if you are not using it.
    4. Click "Install"
 4. Open the project in Unity (select "Open" and select YARG's repo's folder).
-5. (You may need to) load in **without** entering safe mode. Click "Ignore".
-6. (You may need to) click on `NuGet` on the menu bar, then click on `Restore Packages`.
+5. Load in **without** entering safe mode. Click "Ignore".
+6. Click on `YARG` on the top menu bar, then click on `Rebuild YARG.Core`.
+6. (You may need to) click on `NuGet` on the top menu bar, then click on `Restore Packages`.
 7. You're ready to go!
 
 ## Unity YAML Merge Tool
