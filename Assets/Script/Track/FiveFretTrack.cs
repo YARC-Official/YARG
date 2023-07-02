@@ -464,14 +464,14 @@ namespace YARG.PlayMode
             StopAudio = false;
             lastHitNote = chord;
 
+            // Solo stuff
+            if (soloInProgress)
+            {
+                soloNotesHit++;
+            }
+
             foreach (var hit in chord)
             {
-                // Solo stuff
-                if (soloInProgress)
-                {
-                    soloNotesHit++;
-                }
-
                 hitChartIndex++;
                 // Hit notes
                 notePool.HitNote(hit);
