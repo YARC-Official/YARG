@@ -257,7 +257,7 @@ namespace YARG.PlayMode
             SongStarted = true;
 
             // Hide loading screen
-            GameUI.Instance.loadingContainer.SetActive(false);
+            GameUI.Instance.SetLoadingText("");
 
             realSongTime = SONG_START_OFFSET * speed;
             StartCoroutine(StartAudio());
