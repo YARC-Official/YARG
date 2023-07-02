@@ -124,7 +124,7 @@ namespace YARG.Data
 
 #pragma warning restore format
 
-        private List<MoonSong.MoonInstrument> _loadedEvents = new();
+        private List<string> _loadedEvents = new();
 
         public List<EventInfo> events = new();
         public List<Beat> beats = new();
@@ -251,14 +251,14 @@ namespace YARG.Data
                 notes[(int) diff] = loader.GetNotesFromChart(_song, diff);
             }
 
-            if (_loadedEvents.Contains(instrument))
+            if (_loadedEvents.Contains(instrumentName))
             {
                 return notes;
             }
 
             events.AddRange(loader.GetEventsFromChart(_song));
             events.Sort((e1, e2) => e1.time.CompareTo(e2.time));
-            _loadedEvents.Add(instrument);
+            _loadedEvents.Add(instrumentName);
 
             return notes;
         }
