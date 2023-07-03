@@ -126,7 +126,7 @@ namespace YARG
 #if UNITY_EDITOR
         private void StartTestPlayMode()
         {
-            var info = GameManager.Instance.TestPlayInfo;
+            var info = GlobalVariables.Instance.TestPlayInfo;
 
             // Skip if not test play mode
             if (!info.TestPlayMode)
@@ -137,45 +137,45 @@ namespace YARG
             info.TestPlayMode = false;
 
             // Add the bots
-            if (!info.NoBotsMode)
-            {
-                AddTestPlayPlayer(new PlayerManager.Player
-                {
-                    chosenInstrument = "guitar",
-                    chosenDifficulty = Difficulty.EXPERT,
-                    inputStrategy = new FiveFretInputStrategy
-                    {
-                        // BotMode = true
-                    }
-                });
-
-                AddTestPlayPlayer(new PlayerManager.Player
-                {
-                    chosenInstrument = "realDrums",
-                    chosenDifficulty = Difficulty.EXPERT_PLUS,
-                    inputStrategy = new DrumsInputStrategy
-                    {
-                        // BotMode = true
-                    }
-                });
-
-                // AddTestPlayPlayer(new PlayerManager.Player
-                // {
-                //     chosenInstrument = "vocals",
-                //     chosenDifficulty = Difficulty.EXPERT,
-                //     inputStrategy = new MicInputStrategy
-                //     {
-                //         BotMode = true
-                //     }
-                // });
-            }
+            // if (!info.NoBotsMode)
+            // {
+            //     AddTestPlayPlayer(new PlayerManager.Player
+            //     {
+            //         chosenInstrument = "guitar",
+            //         chosenDifficulty = Difficulty.EXPERT,
+            //         inputStrategy = new FiveFretInputStrategy
+            //         {
+            //             // BotMode = true
+            //         }
+            //     });
+            //
+            //     AddTestPlayPlayer(new PlayerManager.Player
+            //     {
+            //         chosenInstrument = "realDrums",
+            //         chosenDifficulty = Difficulty.EXPERT_PLUS,
+            //         inputStrategy = new DrumsInputStrategy
+            //         {
+            //             // BotMode = true
+            //         }
+            //     });
+            //
+            //     // AddTestPlayPlayer(new PlayerManager.Player
+            //     // {
+            //     //     chosenInstrument = "vocals",
+            //     //     chosenDifficulty = Difficulty.EXPERT,
+            //     //     inputStrategy = new MicInputStrategy
+            //     //     {
+            //     //         BotMode = true
+            //     //     }
+            //     // });
+            // }
 
             // Get the Test Play song by hash, and play it
             if (SongContainer.SongsByHash.TryGetValue(info.TestPlaySongHash,
                 out var song))
             {
-                GameManager.Instance.SelectedSong = song;
-                GameManager.Instance.LoadScene(SceneIndex.PLAY);
+                GlobalVariables.Instance.SelectedSong = song;
+                GlobalVariables.Instance.LoadScene(SceneIndex.PLAY);
             }
         }
 

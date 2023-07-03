@@ -233,7 +233,7 @@ namespace YARG.UI
             }
 
             // Add mics
-            var mics = GameManager.AudioManager.GetAllInputDevices();
+            var mics = GlobalVariables.AudioManager.GetAllInputDevices();
             foreach (var mic in mics)
             {
                 var button = Instantiate(deviceButtonPrefab, devicesContainer);

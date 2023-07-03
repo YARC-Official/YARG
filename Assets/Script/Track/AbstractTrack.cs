@@ -134,7 +134,7 @@ namespace YARG.PlayMode
             {
                 if (_combo >= 10 && value == 0)
                 {
-                    GameManager.AudioManager.PlaySoundEffect(SfxSample.NoteMiss);
+                    GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.NoteMiss);
                 }
 
                 _combo = value;
@@ -506,7 +506,7 @@ namespace YARG.PlayMode
 
                 trackAnims.StarpowerLightsAnimSingleFrame();
                 //starpowerHit = true;
-                GameManager.AudioManager.PlaySoundEffect(SfxSample.StarPowerAward);
+                GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarPowerAward);
             }
 
             // Update starpower active
@@ -516,7 +516,7 @@ namespace YARG.PlayMode
                 {
                     IsStarPowerActive = false;
                     starpowerCharge = 0f;
-                    GameManager.AudioManager.PlaySoundEffect(SfxSample.StarPowerRelease);
+                    GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarPowerRelease);
                     SetReverb(false);
                 }
                 else
@@ -772,7 +772,7 @@ namespace YARG.PlayMode
         {
             if (!IsStarPowerActive && starpowerCharge >= 0.5f)
             {
-                GameManager.AudioManager.PlaySoundEffect(SfxSample.StarPowerDeploy);
+                GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarPowerDeploy);
                 SetReverb(true);
                 IsStarPowerActive = true;
             }

@@ -15,7 +15,7 @@ namespace YARG.Player.Input
         public static void RefreshMics()
         {
             _possibleMics.Clear();
-            _possibleMics.AddRange(GameManager.AudioManager.GetAllInputDevices());
+            _possibleMics.AddRange(GlobalVariables.AudioManager.GetAllInputDevices());
         }
 
         public static void RefreshInputs()
@@ -24,27 +24,27 @@ namespace YARG.Player.Input
             _possibleInputs.AddRange(InputSystem.devices);
         }
 
-        public static void AddMicToProfile(Profile profile, IMicDevice micDevice)
+        public static void AddMicToProfile(YargPlayer yargPlayer, IMicDevice micDevice)
         {
             // Remove old mic input, if it was on
-            if (profile.MicInput is not null)
+            if (yargPlayer.MicInput is not null)
             {
-                profile.MicInput.MicDevice?.Dispose();
-                profile.MicInput = null;
+                yargPlayer.MicInput.MicDevice?.Dispose();
+                yargPlayer.MicInput = null;
             }
 
             // Initialize new one
             micDevice.Initialize();
-            profile.MicInput = new MicInput(micDevice);
+            yargPlayer.MicInput = new MicInput(micDevice);
 
             // AddInputToProfile<FiveFretInputStrategy>(profile, Mouse.current);
         }
 
-        public static void AddInputToProfile<T>(Profile profile, InputDevice inputDevice) where T : InputStrategy, new()
+        public static void AddInputToProfile<T>(YargPlayer yargPlayer, InputDevice inputDevice) where T : InputStrategy, new()
         {
             // TODO: Don't allow changing input device on a input strategy
             var inputStrategy = new T();
-            profile.InputStrategy = inputStrategy;
+            yargPlayer.InputStrategy = inputStrategy;
         }
     }
 }

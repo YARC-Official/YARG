@@ -120,7 +120,7 @@ namespace YARG.Settings
 
             public void OpenCalibrator()
             {
-                GameManager.Instance.LoadScene(SceneIndex.CALIBRATION);
+                GlobalVariables.Instance.LoadScene(SceneIndex.CALIBRATION);
                 SettingsMenu.Instance.gameObject.SetActive(false);
             }
 
@@ -217,23 +217,23 @@ namespace YARG.Settings
 
             private static void VolumeCallback(SongStem stem, float volume)
             {
-                GameManager.AudioManager.UpdateVolumeSetting(stem, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(stem, volume);
             }
 
             private static void DrumVolumeCallback(float volume)
             {
-                GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums, volume);
-                GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums1, volume);
-                GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums2, volume);
-                GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums3, volume);
-                GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums4, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Drums, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Drums1, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Drums2, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Drums3, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Drums4, volume);
             }
 
             private static void VocalVolumeCallback(float volume)
             {
-                GameManager.AudioManager.UpdateVolumeSetting(SongStem.Vocals, volume);
-                GameManager.AudioManager.UpdateVolumeSetting(SongStem.Vocals1, volume);
-                GameManager.AudioManager.UpdateVolumeSetting(SongStem.Vocals2, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Vocals, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Vocals1, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Vocals2, volume);
             }
 
             private static void VocalMonitoringCallback(float volume)
@@ -251,12 +251,12 @@ namespace YARG.Settings
 
             private static void UseStarpowerFxChange(bool value)
             {
-                GameManager.AudioManager.UseStarpowerFx = value;
+                GlobalVariables.AudioManager.UseStarpowerFx = value;
             }
 
             private static void UseChipmunkSpeedChange(bool value)
             {
-                GameManager.AudioManager.IsChipmunkSpeedup = value;
+                GlobalVariables.AudioManager.IsChipmunkSpeedup = value;
             }
 
             private static void CameraPosChange(float value)

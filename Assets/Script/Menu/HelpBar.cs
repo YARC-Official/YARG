@@ -48,7 +48,7 @@ namespace YARG.UI
             ResetHelpbar();
 
             // Show/hide music player
-            if (GameManager.Instance.CurrentScene == SceneIndex.MENU)
+            if (GlobalVariables.Instance.CurrentScene == SceneIndex.MENU)
             {
                 MusicPlayer.gameObject.SetActive(scheme.AllowsMusicPlayer);
             }

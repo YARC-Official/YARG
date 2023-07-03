@@ -5,18 +5,44 @@ namespace YARG.Player
 {
     public static class ProfileContainer
     {
-        private static List<Profile> _profiles;
-        public static IReadOnlyList<Profile> Profiles => _profiles;
 
-        public static void CreateProfile(YargProfile profileInfo)
+        /*
+
+         Profiles can only be assigned to 1 player at a time so the ProfileContainer only exposes the available profiles.
+
+         */
+
+        private static List<YargProfile> _availableProfiles;
+        private static List<YargProfile> _takenProfiles;
+
+        public static IReadOnlyList<YargProfile> AvailableProfiles => _availableProfiles;
+
+        public static bool TakeProfile(YargProfile profile)
         {
-            var profile = new Profile(profileInfo);
-            _profiles.Add(profile);
+            if (!_availableProfiles.Contains(profile))
+            {
+                return false;
+            }
+
+            _availableProfiles.Remove(profile);
+            _takenProfiles.Add(profile);
+            return true;
         }
 
-        public static bool RemoveProfile(Profile profile)
+        public static bool ReturnProfile(YargProfile profile)
         {
-            return _profiles.Remove(profile);
+            if (_availableProfiles.Contains(profile))
+            {
+                return false;
+            }
+            if (!_takenProfiles.Contains(profile))
+            {
+                return false;
+            }
+
+            _availableProfiles.Add(profile);
+            _takenProfiles.Remove(profile);
+            return true;
         }
     }
 }
