@@ -168,17 +168,27 @@ namespace YARG.Audio.BASS
             if (_manager.Options.UseWhammyFx && WHAMMY_PITCH_BEND_STEMS.Contains(Stem))
             {
                 _pitchFxHandle = Bass.ChannelSetFX(StreamHandle, EffectType.PitchShift, 0);
-
                 if (_pitchFxHandle == 0)
                 {
-                    Debug.LogError("Failed to add pitchshift: " + Bass.LastError);
+                    Debug.LogError("Failed to add pitch shift (normal fx): " + Bass.LastError);
+                }
+                else if (!BassHelpers.FXSetParameters(_pitchFxHandle, _pitchParams))
+                {
+                    Debug.LogError("Failed to set pitch shift params (normal fx): " + Bass.LastError);
+                    Bass.ChannelRemoveFX(StreamHandle, _pitchFxHandle);
+                    _pitchFxHandle = 0;
                 }
 
                 _pitchFxReverbHandle = Bass.ChannelSetFX(ReverbStreamHandle, EffectType.PitchShift, 0);
-
                 if (_pitchFxReverbHandle == 0)
                 {
-                    Debug.LogError("Failed to add pitchshift: " + Bass.LastError);
+                    Debug.LogError("Failed to add pitch shift (reverb fx): " + Bass.LastError);
+                }
+                else if (!BassHelpers.FXSetParameters(_pitchFxReverbHandle, _pitchParams))
+                {
+                    Debug.LogError("Failed to set pitch shift params (reverb fx): " + Bass.LastError);
+                    Bass.ChannelRemoveFX(ReverbStreamHandle, _pitchFxReverbHandle);
+                    _pitchFxReverbHandle = 0;
                 }
             }
 
