@@ -363,7 +363,9 @@ namespace YARG.Audio.BASS
 
         public double GetPosition()
         {
-            return Bass.ChannelBytes2Seconds(StreamHandle, Bass.ChannelGetPosition(StreamHandle));
+            double position = Bass.ChannelBytes2Seconds(StreamHandle, Bass.ChannelGetPosition(StreamHandle));
+            position -= GetDesyncOffset();
+            return position;
         }
 
         public void SetPosition(double position)
