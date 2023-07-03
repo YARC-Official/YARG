@@ -10,12 +10,13 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using YARG.Audio;
 using YARG.Data;
-using YARG.Input;
 using YARG.Song;
 using YARG.UI.MusicLibrary.ViewTypes;
 using Random = UnityEngine.Random;
 using System.Threading;
 using UnityEngine.Serialization;
+using YARG.Player.Input;
+using YARG.Player.Navigation;
 using YARG.Settings;
 
 namespace YARG.UI.MusicLibrary
@@ -77,12 +78,12 @@ namespace YARG.UI.MusicLibrary
                     return;
                 }
 
-                if (song.SongEntry == GameManager.Instance.SelectedSong)
+                if (song.SongEntry == GlobalVariables.Instance.SelectedSong)
                 {
                     return;
                 }
 
-                GameManager.Instance.SelectedSong = song.SongEntry;
+                GlobalVariables.Instance.SelectedSong = song.SongEntry;
 
                 if (!_previewCanceller.IsCancellationRequested)
                 {
@@ -118,7 +119,7 @@ namespace YARG.UI.MusicLibrary
         private void OnEnable()
         {
             // Set up preview context
-            _previewContext = new(GameManager.AudioManager);
+            _previewContext = new(GlobalVariables.AudioManager);
 
             // Set navigation scheme
             var navigationScheme = GetNavigationScheme();
@@ -356,7 +357,7 @@ namespace YARG.UI.MusicLibrary
 
             if (!string.IsNullOrEmpty(_searchField.text))
             {
-                GameManager.Instance.SelectedSong = null;
+                GlobalVariables.Instance.SelectedSong = null;
 
                 // Create the category
                 int count = _sortedSongs.SongCount();
@@ -477,7 +478,7 @@ namespace YARG.UI.MusicLibrary
 
         private void SetSelectedIndex()
         {
-            if (GameManager.Instance.SelectedSong != null)
+            if (GlobalVariables.Instance.SelectedSong != null)
             {
                 int index = GetIndexOfSelectedSong();
                 SelectedIndex = Mathf.Max(1, index);
@@ -495,7 +496,7 @@ namespace YARG.UI.MusicLibrary
 
         private int GetIndexOfSelectedSong()
         {
-            var selectedSong = GameManager.Instance.SelectedSong;
+            var selectedSong = GlobalVariables.Instance.SelectedSong;
 
             return _viewList.FindIndex(song =>
             {
@@ -590,7 +591,7 @@ namespace YARG.UI.MusicLibrary
                 return;
             }
 
-            GameManager.Instance.TestPlayInfo.TestPlaySongHash = song.SongEntry.Checksum;
+            GlobalVariables.Instance.TestPlayInfo.TestPlaySongHash = song.SongEntry.Checksum;
         }
 #endif
     }

@@ -1,7 +1,8 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using YARG.Input;
+using YARG.Player.Input;
+using YARG.Player.Navigation;
 using YARG.Settings;
 
 namespace YARG.UI
@@ -163,7 +164,7 @@ namespace YARG.UI
         {
             if (PlayerManager.players.Count > 0)
             {
-                GameManager.Instance.LoadScene(SceneIndex.CALIBRATION);
+                GlobalVariables.Instance.LoadScene(SceneIndex.CALIBRATION);
             }
         }
 

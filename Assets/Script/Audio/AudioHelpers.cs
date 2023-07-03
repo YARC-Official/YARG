@@ -37,7 +37,7 @@ namespace YARG.Audio
             foreach (string filePath in Directory.GetFiles(folder))
             {
                 // Check if file format is supported
-                if (!GameManager.AudioManager.SupportedFormats.Contains(Path.GetExtension(filePath).ToLowerInvariant()))
+                if (!GlobalVariables.AudioManager.SupportedFormats.Contains(Path.GetExtension(filePath).ToLowerInvariant()))
                 {
                     continue;
                 }

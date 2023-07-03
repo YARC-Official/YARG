@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using TMPro;
 using UnityEngine;
-using YARG.Input;
+using YARG.Player.Input;
 using YARG.Settings;
 
 namespace YARG
@@ -75,7 +75,7 @@ namespace YARG
                     _audioCalibrateText.color = Color.green;
                     _audioCalibrateText.text = "STRUMMED";
 
-                    _calibrationTimes.Add(GameManager.AudioManager.CurrentPositionF);
+                    _calibrationTimes.Add(GlobalVariables.AudioManager.CurrentPositionF);
                     break;
             }
         }
@@ -95,7 +95,7 @@ namespace YARG
 
         private void UpdateForState()
         {
-            GameManager.AudioManager.UnloadSong();
+            GlobalVariables.AudioManager.UnloadSong();
             StopAllCoroutines();
 
             _startingStateContainer.SetActive(false);
@@ -115,9 +115,9 @@ namespace YARG
                     _audioCalibrateContainer.SetActive(true);
                     _calibrationTimes.Clear();
 
-                    GameManager.AudioManager.LoadCustomAudioFile(
+                    GlobalVariables.AudioManager.LoadCustomAudioFile(
                         Path.Combine(Application.streamingAssetsPath, "calibration_music.ogg"), 1f);
-                    GameManager.AudioManager.Play();
+                    GlobalVariables.AudioManager.Play();
                     StartCoroutine(AudioCalibrateCoroutine());
                     break;
                 case State.AudioDone:
@@ -203,20 +203,20 @@ namespace YARG
             _audioCalibrateText.color = Color.white;
             _audioCalibrateText.text = "1";
 
-            yield return new WaitUntil(() => GameManager.AudioManager.CurrentPositionF >= SECONDS_PER_BEAT * 1f);
+            yield return new WaitUntil(() => GlobalVariables.AudioManager.CurrentPositionF >= SECONDS_PER_BEAT * 1f);
             _audioCalibrateText.color = Color.white;
             _audioCalibrateText.text = "2";
 
-            yield return new WaitUntil(() => GameManager.AudioManager.CurrentPositionF >= SECONDS_PER_BEAT * 2f);
+            yield return new WaitUntil(() => GlobalVariables.AudioManager.CurrentPositionF >= SECONDS_PER_BEAT * 2f);
             _audioCalibrateText.color = Color.white;
             _audioCalibrateText.text = "3";
 
-            yield return new WaitUntil(() => GameManager.AudioManager.CurrentPositionF >= SECONDS_PER_BEAT * 3f);
+            yield return new WaitUntil(() => GlobalVariables.AudioManager.CurrentPositionF >= SECONDS_PER_BEAT * 3f);
             _audioCalibrateText.color = Color.white;
             _audioCalibrateText.text = "4";
 
             yield return new WaitUntil(() =>
-                GameManager.AudioManager.CurrentPositionF >= GameManager.AudioManager.AudioLengthF);
+                GlobalVariables.AudioManager.CurrentPositionF >= GlobalVariables.AudioManager.AudioLengthF);
             _state = State.AudioDone;
             UpdateForState();
         }
@@ -231,7 +231,7 @@ namespace YARG
         {
             if (_state == State.Starting)
             {
-                GameManager.Instance.LoadScene(SceneIndex.MENU);
+                GlobalVariables.Instance.LoadScene(SceneIndex.MENU);
             }
             else
             {

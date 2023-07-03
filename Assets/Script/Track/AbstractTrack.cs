@@ -1,11 +1,10 @@
-using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
 using YARG.Audio;
-using YARG.Chart;
 using YARG.Data;
-using YARG.Input;
+using YARG.Gameplay;
+using YARG.Player.Input;
 using YARG.Pools;
 using YARG.Settings;
 using YARG.UI;
@@ -134,7 +133,7 @@ namespace YARG.PlayMode
             {
                 if (_combo >= 10 && value == 0)
                 {
-                    GameManager.AudioManager.PlaySoundEffect(SfxSample.NoteMiss);
+                    GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.NoteMiss);
                 }
 
                 _combo = value;
@@ -416,11 +415,11 @@ namespace YARG.PlayMode
                 var beatInfo = beats[currentBeatIndex];
 
                 float z = TRACK_SPAWN_OFFSET - CalcLagCompensation(TrackStartTime, beatInfo.Time);
-                if (beatInfo.Style is BeatStyle.STRONG or BeatStyle.WEAK)
+                if (beatInfo.Style is BeatStyle.Strong or BeatStyle.Weak)
                 {
                     genericPool.Add("beatLine_minor", new(0f, 0.01f, z));
                 }
-                else if (beatInfo.Style == BeatStyle.MEASURE)
+                else if (beatInfo.Style == BeatStyle.Measure)
                 {
                     genericPool.Add("beatLine_major", new(0f, 0.01f, z));
                 }
@@ -506,7 +505,7 @@ namespace YARG.PlayMode
 
                 trackAnims.StarpowerLightsAnimSingleFrame();
                 //starpowerHit = true;
-                GameManager.AudioManager.PlaySoundEffect(SfxSample.StarPowerAward);
+                GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarPowerAward);
             }
 
             // Update starpower active
@@ -516,7 +515,7 @@ namespace YARG.PlayMode
                 {
                     IsStarPowerActive = false;
                     starpowerCharge = 0f;
-                    GameManager.AudioManager.PlaySoundEffect(SfxSample.StarPowerRelease);
+                    GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarPowerRelease);
                     SetReverb(false);
                 }
                 else
@@ -772,7 +771,7 @@ namespace YARG.PlayMode
         {
             if (!IsStarPowerActive && starpowerCharge >= 0.5f)
             {
-                GameManager.AudioManager.PlaySoundEffect(SfxSample.StarPowerDeploy);
+                GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarPowerDeploy);
                 SetReverb(true);
                 IsStarPowerActive = true;
             }

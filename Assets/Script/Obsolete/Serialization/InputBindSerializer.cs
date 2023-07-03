@@ -4,7 +4,7 @@ using System.IO;
 using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using YARG.Input;
+using YARG.Player.Input;
 using YARG.Util;
 
 namespace YARG.Serialization
@@ -44,60 +44,60 @@ namespace YARG.Serialization
 
         public static void LoadBindsFromSave(InputStrategy inputStrategy)
         {
-            try
-            {
-                // Look from correct bind (using input strategy and device)
-                InputDeviceSave inputBindSave = null;
-                foreach (InputDeviceSave bindSave in inputBindSaves)
-                {
-                    if (bindSave.deviceName != inputStrategy.InputDevice.name)
-                    {
-                        continue;
-                    }
-
-                    if (bindSave.inputStrategy != inputStrategy.GetType().Name)
-                    {
-                        continue;
-                    }
-
-                    inputBindSave = bindSave;
-                    break;
-                }
-
-                if (inputBindSave == null)
-                {
-                    return;
-                }
-
-                // Set binds
-                foreach (var binding in inputStrategy.Mappings.Values)
-                {
-                    if (!inputBindSave.binds.ContainsKey(binding.BindingKey))
-                    {
-                        continue;
-                    }
-
-                    var savedBinding = inputBindSave.binds[binding.BindingKey];
-                    var control = InputControlPath.TryFindControl(inputStrategy.InputDevice, savedBinding.controlPath);
-                    if (control is not InputControl<float> floatControl)
-                    {
-                        continue;
-                    }
-
-                    binding.Control = floatControl;
-                    binding.DebounceThreshold = savedBinding.debounceThreshold;
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogWarning("Failed to load input binds from JSON. Ignoring.");
-                Debug.LogException(e);
-
-                if (File.Exists(InputBindFile))
-                {
-                    File.Delete(InputBindFile);
-                }
-            }
+            // try
+            // {
+            //     // Look from correct bind (using input strategy and device)
+            //     InputDeviceSave inputBindSave = null;
+            //     foreach (InputDeviceSave bindSave in inputBindSaves)
+            //     {
+            //         if (bindSave.deviceName != inputStrategy.InputDevice.name)
+            //         {
+            //             continue;
+            //         }
+            //
+            //         if (bindSave.inputStrategy != inputStrategy.GetType().Name)
+            //         {
+            //             continue;
+            //         }
+            //
+            //         inputBindSave = bindSave;
+            //         break;
+            //     }
+            //
+            //     if (inputBindSave == null)
+            //     {
+            //         return;
+            //     }
+            //
+            //     // Set binds
+            //     foreach (var binding in inputStrategy.Mappings.Values)
+            //     {
+            //         if (!inputBindSave.binds.ContainsKey(binding.BindingKey))
+            //         {
+            //             continue;
+            //         }
+            //
+            //         var savedBinding = inputBindSave.binds[binding.BindingKey];
+            //         var control = InputControlPath.TryFindControl(inputStrategy.InputDevice, savedBinding.controlPath);
+            //         if (control is not InputControl<float> floatControl)
+            //         {
+            //             continue;
+            //         }
+            //
+            //         binding.Control = floatControl;
+            //         binding.DebounceThreshold = savedBinding.debounceThreshold;
+            //     }
+            // }
+            // catch (Exception e)
+            // {
+            //     Debug.LogWarning("Failed to load input binds from JSON. Ignoring.");
+            //     Debug.LogException(e);
+            //
+            //     if (File.Exists(InputBindFile))
+            //     {
+            //         File.Delete(InputBindFile);
+            //     }
+            // }
         }
 
         public static void SaveBindsFromInputStrategy(InputStrategy inputStrategy)
@@ -108,10 +108,10 @@ namespace YARG.Serialization
                 InputDeviceSave inputBindSave = null;
                 foreach (InputDeviceSave bindSave in inputBindSaves)
                 {
-                    if (bindSave.deviceName != inputStrategy.InputDevice.name)
-                    {
-                        continue;
-                    }
+                    // if (bindSave.deviceName != inputStrategy.InputDevice.name)
+                    // {
+                    //     continue;
+                    // }
 
                     if (bindSave.inputStrategy != inputStrategy.GetType().Name)
                     {
@@ -130,7 +130,7 @@ namespace YARG.Serialization
                 // Create new bind save if none found
                 inputBindSave = new InputDeviceSave
                 {
-                    inputStrategy = inputStrategy.GetType().Name, deviceName = inputStrategy.InputDevice.name
+                    // inputStrategy = inputStrategy.GetType().Name, deviceName = inputStrategy.InputDevice.name
                 };
                 inputBindSaves.Add(inputBindSave);
 

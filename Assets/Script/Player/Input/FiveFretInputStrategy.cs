@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using YARG.Data;
+using YARG.Player.Navigation;
 using YARG.PlayMode;
 
-namespace YARG.Input
+namespace YARG.Player.Input
 {
     public class FiveFretInputStrategy : InputStrategy
     {
@@ -22,9 +24,6 @@ namespace YARG.Input
         public const string STAR_POWER = "star_power";
         public const string TILT = "tilt";
         public const string PAUSE = "pause";
-
-        private List<NoteInfo> botChart;
-
         public delegate void FretChangeAction(bool pressed, int fret);
 
         public event FretChangeAction FretChangeEvent;
@@ -35,54 +34,28 @@ namespace YARG.Input
 
         public event WhammyChangeAction WhammyEvent;
 
-        public FiveFretInputStrategy()
+        public FiveFretInputStrategy(IReadOnlyList<InputDevice> inputDevices) : base(inputDevices)
         {
             InputMappings = new()
             {
-                {
-                    GREEN, new(BindingType.BUTTON, "Green", GREEN)
-                },
-                {
-                    RED, new(BindingType.BUTTON, "Red", RED)
-                },
-                {
-                    YELLOW, new(BindingType.BUTTON, "Yellow", YELLOW)
-                },
-                {
-                    BLUE, new(BindingType.BUTTON, "Blue", BLUE)
-                },
-                {
-                    ORANGE, new(BindingType.BUTTON, "Orange", ORANGE)
-                },
-                {
-                    STRUM_UP, new(BindingType.BUTTON, "Strum Up", STRUM_UP, STRUM_DOWN)
-                },
-                {
-                    STRUM_DOWN, new(BindingType.BUTTON, "Strum Down", STRUM_DOWN, STRUM_UP)
-                },
-                {
-                    WHAMMY, new(BindingType.AXIS, "Whammy", WHAMMY)
-                },
-                {
-                    STAR_POWER, new(BindingType.BUTTON, "Star Power", STAR_POWER)
-                },
-                {
-                    TILT, new(BindingType.BUTTON, "Tilt", TILT)
-                }, // tilt is a button as PS2 guitars don't have a tilt axis
-                {
-                    PAUSE, new(BindingType.BUTTON, "Pause", PAUSE)
-                },
+                { GREEN,      new(BindingType.BUTTON, "Green",      GREEN) },
+                { RED,        new(BindingType.BUTTON, "Red",        RED) },
+                { YELLOW,     new(BindingType.BUTTON, "Yellow",     YELLOW) },
+                { BLUE,       new(BindingType.BUTTON, "Blue",       BLUE) },
+                { ORANGE,     new(BindingType.BUTTON, "Orange",     ORANGE) },
+                { STRUM_UP,   new(BindingType.BUTTON, "Strum Up",   STRUM_UP, STRUM_DOWN) },
+                { STRUM_DOWN, new(BindingType.BUTTON, "Strum Down", STRUM_DOWN, STRUM_UP) },
+                { WHAMMY,     new(BindingType.AXIS,   "Whammy",     WHAMMY) },
+                { STAR_POWER, new(BindingType.BUTTON, "Star Power", STAR_POWER) },
+                // tilt is a button as PS2 guitars don't have a tilt axis
+                { TILT,       new(BindingType.BUTTON, "Tilt",       TILT) },
+                { PAUSE,      new(BindingType.BUTTON, "Pause",      PAUSE) },
             };
         }
 
         public override string GetIconName()
         {
             return "guitar";
-        }
-
-        public override void InitializeBotMode(object rawChart)
-        {
-            botChart = (List<NoteInfo>) rawChart;
         }
 
         protected override void UpdatePlayerMode()
@@ -136,46 +109,6 @@ namespace YARG.Input
                 // checking for tilt
                 CallStarpowerEvent();
             }
-        }
-
-        protected override void UpdateBotMode()
-        {
-            if (botChart == null)
-            {
-                return;
-            }
-
-            float songTime = Play.Instance.SongTime;
-
-            bool resetForChord = false;
-            while (botChart.Count > BotChartIndex && botChart[BotChartIndex].time <= songTime)
-            {
-                // Release old frets
-                if (!resetForChord)
-                {
-                    for (int i = 0; i < 5; i++)
-                    {
-                        FretChangeEvent?.Invoke(false, i);
-                    }
-
-                    resetForChord = true;
-                }
-
-                var noteInfo = botChart[BotChartIndex];
-                BotChartIndex++;
-
-                // Skip fret press if open note
-                if (noteInfo.fret != 5)
-                {
-                    FretChangeEvent?.Invoke(true, noteInfo.fret);
-                }
-
-                // Strum
-                StrumEvent?.Invoke();
-            }
-
-            // Constantly activate starpower
-            CallStarpowerEvent();
         }
 
         protected override void UpdateNavigationMode()

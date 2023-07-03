@@ -8,7 +8,7 @@ using UnityEngine.Audio;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 using YARG.Data;
-using YARG.Input;
+using YARG.Player.Input;
 using YARG.Pools;
 using YARG.Settings;
 using YARG.UI;
@@ -227,16 +227,17 @@ namespace YARG.PlayMode
                 }
 
                 // Skip over non-mic strategy players
-                if (player.inputStrategy is not MicInputStrategy micStrategy)
-                {
-                    continue;
-                }
+                // if (player.inputStrategy is not MicInputStrategy micStrategy)
+                // {
+                //     continue;
+                // }
+                InputStrategy micStrategy = null;
 
                 // Skip if the player hasn't assigned a mic
-                if (micStrategy.MicDevice == null && !micStrategy.BotMode)
-                {
-                    continue;
-                }
+                // if (micStrategy.MicDevice == null && !micStrategy.BotMode)
+                // {
+                //     continue;
+                // }
 
                 micStrategy.ResetForSong();
                 _hasMic = true;
@@ -442,15 +443,15 @@ namespace YARG.PlayMode
             {
                 playerInfo.SingProgresses = new float[harmonyCount];
                 var player = playerInfo.Player;
-                var micInput = (MicInputStrategy) player.inputStrategy;
-
-                // Update inputs
-                if (micInput.BotMode)
-                {
-                    micInput.InitializeBotMode(_charts[botChartIndex]);
-                    botChartIndex++;
-                    botChartIndex %= _charts.Count;
-                }
+                // var micInput = (MicInputStrategy) player.inputStrategy;
+                //
+                // // Update inputs
+                // if (micInput.BotMode)
+                // {
+                //     micInput.InitializeBotMode(_charts[botChartIndex]);
+                //     botChartIndex++;
+                //     botChartIndex %= _charts.Count;
+                // }
             }
 
             // Set up current lyrics
@@ -543,167 +544,167 @@ namespace YARG.PlayMode
             }
 
             // Update player specific stuff
-            foreach (var playerInfo in _micInputs)
-            {
-                var player = playerInfo.Player;
-                var micInput = (MicInputStrategy) player.inputStrategy;
-
-                // Get the correct range
-                float correctRange = player.chosenDifficulty switch
-                {
-                    Difficulty.EASY        => 4f,
-                    Difficulty.MEDIUM      => 4f,
-                    Difficulty.HARD        => 3.5f,
-                    Difficulty.EXPERT      => 3f,
-                    Difficulty.EXPERT_PLUS => 3f,
-                    _                      => throw new Exception("Unreachable.")
-                };
-
-                // See if the (any) pitch is correct
-                bool pitchCorrect = micInput.VoiceDetected;
-                int targetLyricIndex = -1;
-                if (micInput.VoiceDetected)
-                {
-                    // Get the best matching pitch
-                    float bestDistance = float.MaxValue;
-                    int bestDistanceIndex = -1;
-                    int bestDistanceOctave = -1;
-                    for (int i = 0; i < _currentLyrics.Length; i++)
-                    {
-                        var currentLyric = _currentLyrics[i];
-
-                        if (currentLyric == null)
-                        {
-                            continue;
-                        }
-
-                        if (currentLyric.inharmonic)
-                        {
-                            bestDistance = correctRange;
-                            bestDistanceIndex = i;
-                            bestDistanceOctave = micInput.VoiceOctave;
-
-                            continue;
-                        }
-
-                        // Get the needed pitch
-                        float timeIntoNote = CurrentTime - currentLyric.time;
-                        var (neededNote, neededOctave) = currentLyric.GetLerpedAndSplitNoteAtTime(timeIntoNote);
-
-                        // Get the note the player is singing
-                        float currentNote = micInput.VoiceNote;
-
-                        // Check if it is in the right threshold
-                        float dist = Mathf.Abs(neededNote - currentNote);
-
-                        // Check to see if it is the best
-                        if (dist < bestDistance)
-                        {
-                            bestDistance = dist;
-                            bestDistanceIndex = i;
-                            bestDistanceOctave = neededOctave;
-                        }
-                        else if (Mathf.Approximately(dist, bestDistance))
-                        {
-                            // If it is the same distance, check the octave distance
-                            int bestOctaveDistance = Mathf.Abs(bestDistanceOctave - micInput.VoiceOctave);
-                            int neededOctaveDistance = Mathf.Abs(neededOctave - micInput.VoiceOctave);
-
-                            // Close one wins!
-                            if (neededOctaveDistance < bestOctaveDistance)
-                            {
-                                bestDistance = dist;
-                                bestDistanceIndex = i;
-                                bestDistanceOctave = neededOctave;
-                            }
-                        }
-                    }
-
-                    // Check if the best pitch is in the threshold
-                    if (bestDistanceIndex != -1)
-                    {
-                        pitchCorrect = bestDistance <= correctRange;
-
-                        // Get the octave offset
-                        if (pitchCorrect)
-                        {
-                            playerInfo.OctaveOffset = bestDistanceOctave - micInput.VoiceOctave;
-                        }
-
-                        targetLyricIndex = bestDistanceIndex;
-                    }
-                }
-
-                // Update needle
-                bool wasNeedleActive = playerInfo.NeedleModel.activeSelf;
-                if (micInput.VoiceDetected)
-                {
-                    playerInfo.NeedleModel.SetActive(true);
-                }
-                else
-                {
-                    playerInfo.NeedleModel.SetActive(micInput.TimeSinceNoVoice < 0.25f);
-                }
-
-                if (pitchCorrect && targetLyricIndex != -1)
-                {
-                    playerInfo.HittingNote = true;
-                    playerInfo.SingProgresses[targetLyricIndex] += Time.deltaTime;
-
-                    playerInfo.ActiveParticles.Play();
-                    playerInfo.NonActiveParticles.Stop();
-
-                    // Fade in the needle light
-                    playerInfo.NeedleLight.intensity =
-                        Mathf.Lerp(playerInfo.NeedleLight.intensity, 0.35f,
-                            Time.deltaTime * 8f);
-
-                    // Changes colors of particles according to the note hit.
-                    playerInfo.NeedleLight.color = HarmonicColors[targetLyricIndex];
-                    playerInfo.ActiveParticles.Colorize(HarmonicColors[targetLyricIndex]);
-                }
-                else
-                {
-                    playerInfo.HittingNote = false;
-
-                    // Fade out the needle light
-                    playerInfo.NeedleLight.intensity =
-                        Mathf.Lerp(playerInfo.NeedleLight.intensity, 0f,
-                            Time.deltaTime * 8f);
-
-                    playerInfo.ActiveParticles.Stop();
-
-                    if (micInput.VoiceDetected)
-                    {
-                        playerInfo.NonActiveParticles.Play();
-                    }
-                    else
-                    {
-                        playerInfo.NonActiveParticles.Stop();
-                    }
-                }
-
-                // Update needle
-                float z = NoteAndOctaveToZ(micInput.VoiceNote, micInput.VoiceOctave + playerInfo.OctaveOffset);
-                if (!float.IsNaN(z))
-                {
-                    var newPosition = playerInfo.Needle.localPosition.WithZ(z);
-
-                    // Don't lerp if no voice was detected previously and needle wasn't active
-                    if (micInput.VoiceDetected && !wasNeedleActive)
-                    {
-                        playerInfo.Needle.localPosition = newPosition;
-                    }
-                    else
-                    {
-                        float rate = micInput.MicDevice?.PitchUpdatesPerSecond ?? 40f;
-
-                        // Lerp to the update rate of the mic so it isn't jagged
-                        playerInfo.Needle.localPosition = Vector3.Lerp(playerInfo.Needle.localPosition, newPosition,
-                            Time.deltaTime * rate);
-                    }
-                }
-            }
+            // foreach (var playerInfo in _micInputs)
+            // {
+            //     var player = playerInfo.Player;
+            //     var micInput = (InputStrategy) player.inputStrategy;
+            //
+            //     // Get the correct range
+            //     float correctRange = player.chosenDifficulty switch
+            //     {
+            //         Difficulty.EASY        => 4f,
+            //         Difficulty.MEDIUM      => 4f,
+            //         Difficulty.HARD        => 3.5f,
+            //         Difficulty.EXPERT      => 3f,
+            //         Difficulty.EXPERT_PLUS => 3f,
+            //         _                      => throw new Exception("Unreachable.")
+            //     };
+            //
+            //     // See if the (any) pitch is correct
+            //     bool pitchCorrect = micInput.VoiceDetected;
+            //     int targetLyricIndex = -1;
+            //     if (micInput.VoiceDetected)
+            //     {
+            //         // Get the best matching pitch
+            //         float bestDistance = float.MaxValue;
+            //         int bestDistanceIndex = -1;
+            //         int bestDistanceOctave = -1;
+            //         for (int i = 0; i < _currentLyrics.Length; i++)
+            //         {
+            //             var currentLyric = _currentLyrics[i];
+            //
+            //             if (currentLyric == null)
+            //             {
+            //                 continue;
+            //             }
+            //
+            //             if (currentLyric.inharmonic)
+            //             {
+            //                 bestDistance = correctRange;
+            //                 bestDistanceIndex = i;
+            //                 bestDistanceOctave = micInput.VoiceOctave;
+            //
+            //                 continue;
+            //             }
+            //
+            //             // Get the needed pitch
+            //             float timeIntoNote = CurrentTime - currentLyric.time;
+            //             var (neededNote, neededOctave) = currentLyric.GetLerpedAndSplitNoteAtTime(timeIntoNote);
+            //
+            //             // Get the note the player is singing
+            //             float currentNote = micInput.VoiceNote;
+            //
+            //             // Check if it is in the right threshold
+            //             float dist = Mathf.Abs(neededNote - currentNote);
+            //
+            //             // Check to see if it is the best
+            //             if (dist < bestDistance)
+            //             {
+            //                 bestDistance = dist;
+            //                 bestDistanceIndex = i;
+            //                 bestDistanceOctave = neededOctave;
+            //             }
+            //             else if (Mathf.Approximately(dist, bestDistance))
+            //             {
+            //                 // If it is the same distance, check the octave distance
+            //                 int bestOctaveDistance = Mathf.Abs(bestDistanceOctave - micInput.VoiceOctave);
+            //                 int neededOctaveDistance = Mathf.Abs(neededOctave - micInput.VoiceOctave);
+            //
+            //                 // Close one wins!
+            //                 if (neededOctaveDistance < bestOctaveDistance)
+            //                 {
+            //                     bestDistance = dist;
+            //                     bestDistanceIndex = i;
+            //                     bestDistanceOctave = neededOctave;
+            //                 }
+            //             }
+            //         }
+            //
+            //         // Check if the best pitch is in the threshold
+            //         if (bestDistanceIndex != -1)
+            //         {
+            //             pitchCorrect = bestDistance <= correctRange;
+            //
+            //             // Get the octave offset
+            //             if (pitchCorrect)
+            //             {
+            //                 playerInfo.OctaveOffset = bestDistanceOctave - micInput.VoiceOctave;
+            //             }
+            //
+            //             targetLyricIndex = bestDistanceIndex;
+            //         }
+            //     }
+            //
+            //     // Update needle
+            //     bool wasNeedleActive = playerInfo.NeedleModel.activeSelf;
+            //     if (micInput.VoiceDetected)
+            //     {
+            //         playerInfo.NeedleModel.SetActive(true);
+            //     }
+            //     else
+            //     {
+            //         playerInfo.NeedleModel.SetActive(micInput.TimeSinceNoVoice < 0.25f);
+            //     }
+            //
+            //     if (pitchCorrect && targetLyricIndex != -1)
+            //     {
+            //         playerInfo.HittingNote = true;
+            //         playerInfo.SingProgresses[targetLyricIndex] += Time.deltaTime;
+            //
+            //         playerInfo.ActiveParticles.Play();
+            //         playerInfo.NonActiveParticles.Stop();
+            //
+            //         // Fade in the needle light
+            //         playerInfo.NeedleLight.intensity =
+            //             Mathf.Lerp(playerInfo.NeedleLight.intensity, 0.35f,
+            //                 Time.deltaTime * 8f);
+            //
+            //         // Changes colors of particles according to the note hit.
+            //         playerInfo.NeedleLight.color = HarmonicColors[targetLyricIndex];
+            //         playerInfo.ActiveParticles.Colorize(HarmonicColors[targetLyricIndex]);
+            //     }
+            //     else
+            //     {
+            //         playerInfo.HittingNote = false;
+            //
+            //         // Fade out the needle light
+            //         playerInfo.NeedleLight.intensity =
+            //             Mathf.Lerp(playerInfo.NeedleLight.intensity, 0f,
+            //                 Time.deltaTime * 8f);
+            //
+            //         playerInfo.ActiveParticles.Stop();
+            //
+            //         if (micInput.VoiceDetected)
+            //         {
+            //             playerInfo.NonActiveParticles.Play();
+            //         }
+            //         else
+            //         {
+            //             playerInfo.NonActiveParticles.Stop();
+            //         }
+            //     }
+            //
+            //     // Update needle
+            //     float z = NoteAndOctaveToZ(micInput.VoiceNote, micInput.VoiceOctave + playerInfo.OctaveOffset);
+            //     if (!float.IsNaN(z))
+            //     {
+            //         var newPosition = playerInfo.Needle.localPosition.WithZ(z);
+            //
+            //         // Don't lerp if no voice was detected previously and needle wasn't active
+            //         if (micInput.VoiceDetected && !wasNeedleActive)
+            //         {
+            //             playerInfo.Needle.localPosition = newPosition;
+            //         }
+            //         else
+            //         {
+            //             float rate = micInput.MicDevice?.PitchUpdatesPerSecond ?? 40f;
+            //
+            //             // Lerp to the update rate of the mic so it isn't jagged
+            //             playerInfo.Needle.localPosition = Vector3.Lerp(playerInfo.Needle.localPosition, newPosition,
+            //                 Time.deltaTime * rate);
+            //         }
+            //     }
+            // }
 
             // Get the highest sing progresses
             float[] highestSingProgresses = new float[_currentLyrics.Length];

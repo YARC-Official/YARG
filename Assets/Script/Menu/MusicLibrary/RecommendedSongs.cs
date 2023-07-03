@@ -1,6 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.UI;
+using YARG.Audio;
+using YARG.Data;
 using YARG.Song;
 
 namespace YARG.UI.MusicLibrary

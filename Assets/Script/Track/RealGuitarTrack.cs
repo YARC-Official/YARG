@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using YARG.Data;
-using YARG.Input;
+using YARG.Player.Input;
 using YARG.Pools;
 using YARG.Util;
-using static YARG.Input.RealGuitarInputStrategy;
+using static YARG.Player.Input.RealGuitarInputStrategy;
 
 namespace YARG.PlayMode
 {
@@ -72,10 +72,10 @@ namespace YARG.PlayMode
             input.StrumEvent += StrumAction;
             input.WhammyEvent += WhammyEvent;
 
-            if (input.BotMode)
-            {
-                input.InitializeBotMode(Chart);
-            }
+            // if (input.BotMode)
+            // {
+            //     input.InitializeBotMode(Chart);
+            // }
 
             // Color particles
 

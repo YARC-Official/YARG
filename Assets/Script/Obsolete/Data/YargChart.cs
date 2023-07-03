@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using MoonscraperChartEditor.Song;
 using YARG.Chart;
+using YARG.Gameplay;
 
 namespace YARG.Data
 {
@@ -14,8 +15,6 @@ namespace YARG.Data
             new(@"\[(.*?)\]", RegexOptions.Compiled | RegexOptions.Singleline);
 
         private MoonSong _song;
-
-#pragma warning disable format
 
         private List<List<NoteInfo>[]> allParts;
 
@@ -166,7 +165,7 @@ namespace YARG.Data
 
                 switch (text)
                 {
-                    case LyricHelper.PhraseStartText:
+                    case "phrase_start":
                         // Phrase start events can start new phrases without a preceding end
                         if (currentLyricPhrase != null)
                         {
@@ -181,21 +180,21 @@ namespace YARG.Data
                         };
                         break;
 
-                    case LyricHelper.PhraseEndText:
+                    case "phrase_end":
                         // Complete phrase and add it to the list
                         currentLyricPhrase.length = time - currentLyricPhrase.time;
                         genericLyrics.Add(currentLyricPhrase);
                         currentLyricPhrase = null;
                         break;
 
-                    default:
-                        if (text.StartsWith(LyricHelper.LYRIC_EVENT_PREFIX))
-                        {
-                            // Add lyric to current phrase, or ignore if outside a phrase
-                            currentLyricPhrase?.lyric.Add((time, text.Replace(LyricHelper.LYRIC_EVENT_PREFIX, "")));
-                        }
-
-                        break;
+                    // default:
+                    //     if (text.StartsWith(LyricHelper.LYRIC_EVENT_PREFIX))
+                    //     {
+                    //         // Add lyric to current phrase, or ignore if outside a phrase
+                    //         currentLyricPhrase?.lyric.Add((time, text.Replace(LyricHelper.LYRIC_EVENT_PREFIX, "")));
+                    //     }
+                    //
+                    //     break;
                 }
 
                 events.Add(new EventInfo(text, (float) globalEvent.time));

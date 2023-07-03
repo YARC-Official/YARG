@@ -88,14 +88,14 @@ namespace YARG.Song
 
         private static void TrySelectedSongReset()
         {
-            if (GameManager.Instance.SelectedSong == null)
+            if (GlobalVariables.Instance.SelectedSong == null)
             {
                 return;
             }
 
-            if (!_songsByHash.ContainsKey(GameManager.Instance.SelectedSong.Checksum))
+            if (!_songsByHash.ContainsKey(GlobalVariables.Instance.SelectedSong.Checksum))
             {
-                GameManager.Instance.SelectedSong = null;
+                GlobalVariables.Instance.SelectedSong = null;
             }
         }
     }

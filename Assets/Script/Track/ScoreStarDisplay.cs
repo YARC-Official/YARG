@@ -1,9 +1,8 @@
 using System.Collections.Generic;
-using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Audio;
-using YARG.Chart;
+using YARG.Gameplay;
 
 namespace YARG.PlayMode
 {
@@ -46,7 +45,7 @@ namespace YARG.PlayMode
             var beats = Play.Instance.chart.beats;
             foreach (var ev in beats)
             {
-                if (ev.Style == BeatStyle.MEASURE)
+                if (ev.Style == BeatStyle.Measure)
                 {
                     bars.Add(ev.Time);
                 }
@@ -105,7 +104,7 @@ namespace YARG.PlayMode
 
                     curStar = topStar;
 
-                    GameManager.AudioManager.PlaySoundEffect(SfxSample.StarGain);
+                    GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarGain);
                 }
 
                 if (curStar <= 4) SetStarProgress(objStars[curStar], curProgress);
@@ -133,7 +132,7 @@ namespace YARG.PlayMode
                 // disable progress meters
                 objGoldMeterMaster.SetActive(false);
 
-                GameManager.AudioManager.PlaySoundEffect(SfxSample.StarGold);
+                GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarGold);
                 goldAchieved = true; // so we stop trying to update
             }
         }

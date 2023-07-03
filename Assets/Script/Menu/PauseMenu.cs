@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
-using YARG.Input;
+using YARG.Player.Input;
+using YARG.Player.Navigation;
 using YARG.PlayMode;
 using YARG.Settings;
 
@@ -156,8 +157,8 @@ namespace YARG.UI
 
         private void OnRestartSelected()
         {
-            GameManager.AudioManager.UnloadSong();
-            GameManager.Instance.LoadScene(SceneIndex.PLAY);
+            GlobalVariables.AudioManager.UnloadSong();
+            GlobalVariables.Instance.LoadScene(SceneIndex.PLAY);
             Play.Instance.Paused = false;
         }
 

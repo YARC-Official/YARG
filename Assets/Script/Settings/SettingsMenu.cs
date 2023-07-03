@@ -6,7 +6,8 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
 using UnityEngine.UI;
-using YARG.Input;
+using YARG.Player.Input;
+using YARG.Player.Navigation;
 using YARG.Settings.Metadata;
 using YARG.Settings.Types;
 using YARG.Settings.Visuals;
@@ -181,7 +182,7 @@ namespace YARG.Settings
             foreach (var tab in SettingsManager.SettingsTabs)
             {
                 // Skip tabs that aren't shown in game, if we are in game
-                if (!tab.ShowInPlayMode && GameManager.Instance.CurrentScene == SceneIndex.PLAY)
+                if (!tab.ShowInPlayMode && GlobalVariables.Instance.CurrentScene == SceneIndex.PLAY)
                 {
                     continue;
                 }
@@ -352,7 +353,7 @@ namespace YARG.Settings
             foreach (var tab in SettingsManager.SettingsTabs)
             {
                 // Skip tabs that aren't shown in game, if we are in game
-                if (!tab.ShowInPlayMode && GameManager.Instance.CurrentScene == SceneIndex.PLAY)
+                if (!tab.ShowInPlayMode && GlobalVariables.Instance.CurrentScene == SceneIndex.PLAY)
                 {
                     continue;
                 }

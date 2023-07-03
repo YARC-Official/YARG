@@ -36,7 +36,7 @@ namespace YARG.Settings
 #if UNITY_STANDALONE_WIN
                 "ExclusiveFullScreen",
 #elif UNITY_STANDALONE_OSX
-					"MaximizedWindow",
+                "MaximizedWindow",
 #endif
                 "FullScreenWindow",
                 "Windowed",
@@ -123,7 +123,7 @@ namespace YARG.Settings
 
             public void OpenCalibrator()
             {
-                GameManager.Instance.LoadScene(SceneIndex.CALIBRATION);
+                GlobalVariables.Instance.LoadScene(SceneIndex.CALIBRATION);
                 SettingsMenu.Instance.gameObject.SetActive(false);
             }
 
@@ -220,30 +220,30 @@ namespace YARG.Settings
 
             private static void VolumeCallback(SongStem stem, float volume)
             {
-                GameManager.AudioManager.UpdateVolumeSetting(stem, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(stem, volume);
             }
 
             private static void DrumVolumeCallback(float volume)
             {
-                GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums, volume);
-                GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums1, volume);
-                GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums2, volume);
-                GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums3, volume);
-                GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums4, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Drums, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Drums1, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Drums2, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Drums3, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Drums4, volume);
             }
 
             private static void VocalVolumeCallback(float volume)
             {
-                GameManager.AudioManager.UpdateVolumeSetting(SongStem.Vocals, volume);
-                GameManager.AudioManager.UpdateVolumeSetting(SongStem.Vocals1, volume);
-                GameManager.AudioManager.UpdateVolumeSetting(SongStem.Vocals2, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Vocals, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Vocals1, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Vocals2, volume);
             }
 
             private static void VocalMonitoringCallback(float volume)
             {
                 foreach (var player in PlayerManager.players)
                 {
-                    player.inputStrategy?.MicDevice?.SetMonitoringLevel(volume);
+                    // player.inputStrategy?.MicDevice?.SetMonitoringLevel(volume);
                 }
             }
 
@@ -254,27 +254,27 @@ namespace YARG.Settings
 
             private static void UseStarpowerFxChange(bool value)
             {
-                GameManager.AudioManager.Options.UseStarpowerFx = value;
+                GlobalVariables.AudioManager.Options.UseStarpowerFx = value;
             }
 
             private static void UseWhammyFxChange(bool value)
             {
-                GameManager.AudioManager.Options.UseWhammyFx = value;
+                GlobalVariables.AudioManager.Options.UseWhammyFx = value;
             }
 
             private static void WhammyPitchShiftAmountChange(float value)
             {
-                GameManager.AudioManager.Options.WhammyPitchShiftAmount = value;
+                GlobalVariables.AudioManager.Options.WhammyPitchShiftAmount = value;
             }
 
             private static void WhammyOversampleFactorChange(int value)
             {
-                GameManager.AudioManager.Options.WhammyOversampleFactor = value;
+                GlobalVariables.AudioManager.Options.WhammyOversampleFactor = value;
             }
 
             private static void UseChipmunkSpeedChange(bool value)
             {
-                GameManager.AudioManager.Options.IsChipmunkSpeedup = value;
+                GlobalVariables.AudioManager.Options.IsChipmunkSpeedup = value;
             }
 
             private static void CameraPosChange(float value)

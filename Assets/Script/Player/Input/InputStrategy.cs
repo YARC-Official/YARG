@@ -10,69 +10,25 @@ using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.Utilities;
 using YARG.Audio;
 using YARG.Data;
+using YARG.Player.Navigation;
 using YARG.Settings;
 
-namespace YARG.Input
+namespace YARG.Player.Input
 {
     public abstract class InputStrategy : IDisposable
     {
-        public bool BotMode { get; set; }
-        protected int BotChartIndex;
+        // private ISantrollerHaptics _haptics;
 
-        private ISantrollerHaptics _haptics;
-
-        private InputDevice _inputDevice;
-
-        public InputDevice InputDevice
-        {
-            get => _inputDevice;
-            set
-            {
-                bool enabled = Enabled;
-                if (enabled)
-                {
-                    Disable();
-                }
-
-                _inputDevice = value;
-                if (_inputDevice is ISantrollerHaptics haptics)
-                {
-                    _haptics = haptics;
-                }
-
-                if (enabled)
-                {
-                    Enable();
-                }
-            }
-        }
-
-        private IMicDevice _micDevice;
-
-        public IMicDevice MicDevice
-        {
-            get => _micDevice;
-            set
-            {
-                // Dispose old device
-                _micDevice?.Dispose();
-
-                // Initialize new device
-                _micDevice = value;
-                _micDevice?.Initialize();
-            }
-        }
+        public IReadOnlyList<InputDevice> InputDevices { get; private set; }
 
         /// <summary>
         /// A list of the controls that correspond to each mapping.
         /// </summary>
         protected Dictionary<string, ControlBinding> InputMappings = new();
 
+        private readonly List<IDisposable> _eventListeners = new();
+
         public IReadOnlyDictionary<string, ControlBinding> Mappings => InputMappings;
-
-        public bool Enabled { get; private set; }
-
-        private IDisposable _eventListener = null;
 
         /// <summary>
         /// Gets invoked when the button for generic calibration is pressed.<br/>
@@ -90,8 +46,18 @@ namespace YARG.Input
         /// </summary>
         public event Action PauseEvent;
 
-        public InputStrategy()
+        public InputStrategy(IReadOnlyList<InputDevice> inputDevices)
         {
+            InputDevices = inputDevices;
+
+            // Bind all events from the input device(s)
+            InputSystem.onAfterUpdate += OnUpdate;
+            foreach (var inputDevice in InputDevices)
+            {
+                var listener = InputSystem.onEvent.ForDevice(inputDevice).Call(OnInputEvent);
+                _eventListeners.Add(listener);
+            }
+
             // Set up debounce overrides
             foreach (var mapping in InputMappings.Values)
             {
@@ -103,44 +69,13 @@ namespace YARG.Input
             }
         }
 
-        public void Enable()
-        {
-            if (Enabled)
-            {
-                return;
-            }
-
-            // Bind events
-            InputSystem.onAfterUpdate += OnUpdate;
-            if (_inputDevice != null)
-            {
-                _eventListener = InputSystem.onEvent.ForDevice(_inputDevice).Call(OnInputEvent);
-            }
-
-            Enabled = true;
-        }
-
-        public void Disable()
-        {
-            // TODO: Merge this with Dispose()
-
-            if (!Enabled)
-            {
-                return;
-            }
-
-            // Unbind events
-            InputSystem.onAfterUpdate -= OnUpdate;
-            _eventListener?.Dispose();
-            _eventListener = null;
-
-            Enabled = false;
-        }
-
         public void Dispose()
         {
-            Disable();
-            MicDevice?.Dispose();
+            InputSystem.onAfterUpdate -= OnUpdate;
+            foreach (var eventListener in _eventListeners)
+            {
+                eventListener?.Dispose();
+            }
         }
 
         /// <returns>
@@ -163,24 +98,12 @@ namespace YARG.Input
         /// </summary>
         public virtual void ResetForSong()
         {
-            BotChartIndex = 0;
         }
-
-        /// <summary>
-        /// Initializes the bot mode for this particular InputStrategy.
-        /// </summary>
-        /// <param name="chart">A reference to the current chart.</param>
-        public abstract void InitializeBotMode(object chart);
 
         /// <summary>
         /// Updates the player mode (normal mode) for this particular InputStrategy.
         /// </summary>
         protected abstract void UpdatePlayerMode();
-
-        /// <summary>
-        /// Updates the bot mode for this particular InputStrategy.
-        /// </summary>
-        protected abstract void UpdateBotMode();
 
         /// <summary>
         /// Updates the navigation mode (menu mode) for this particular InputStrategy.
@@ -204,12 +127,6 @@ namespace YARG.Input
 
         protected virtual void OnUpdate()
         {
-            if (BotMode)
-            {
-                UpdateBotMode();
-                return;
-            }
-
             // Update mapping debouncing
             bool stateUpdated = false;
             foreach (var mapping in InputMappings.Values)
@@ -338,14 +255,14 @@ namespace YARG.Input
             }
         }
 
-        public void SendStarPowerFill(float fill) => _haptics?.SetStarPowerFill(fill);
-
-        public void SendStarPowerActive(bool enabled) => _haptics?.SetStarPowerActive(enabled);
-
-        public void SendMultiplier(uint multiplier) => _haptics?.SetMultiplier(multiplier);
-
-        public void SendSolo(bool enabled) => _haptics?.SetSolo(enabled);
-
-        public virtual void ResetHaptics() => _haptics?.ResetHaptics();
+        // public void SendStarPowerFill(float fill) => _haptics?.SetStarPowerFill(fill);
+        //
+        // public void SendStarPowerActive(bool enabled) => _haptics?.SetStarPowerActive(enabled);
+        //
+        // public void SendMultiplier(uint multiplier) => _haptics?.SetMultiplier(multiplier);
+        //
+        // public void SendSolo(bool enabled) => _haptics?.SetSolo(enabled);
+        //
+        // public virtual void ResetHaptics() => _haptics?.ResetHaptics();
     }
 }

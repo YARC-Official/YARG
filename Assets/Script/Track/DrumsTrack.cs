@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using YARG.Chart;
 using YARG.Data;
-using YARG.Input;
+using YARG.Player.Input;
 using YARG.Pools;
 using YARG.Settings;
 using YARG.Util;
@@ -76,10 +76,10 @@ namespace YARG.PlayMode
                 ghStrat.DrumHitEvent += GHDrumHitAction;
             }
 
-            if (input.BotMode)
-            {
-                input.InitializeBotMode(Chart);
-            }
+            // if (input.BotMode)
+            // {
+            //     input.InitializeBotMode(Chart);
+            // }
 
             // GH vs RB
 
@@ -183,7 +183,7 @@ namespace YARG.PlayMode
                             continue;
                         }
 
-                        // Finally, if there's nothing else, kick notes must be used. 
+                        // Finally, if there's nothing else, kick notes must be used.
                         if (chosenActivatorType < 2)
                         {
                             chosenActivatorType = 1;
@@ -332,7 +332,7 @@ namespace YARG.PlayMode
         private void DrumHitAction(int drum, bool cymbal)
         {
             // invert input in case lefty flip is on, bots don't need it
-            if (player.leftyFlip && !input.BotMode)
+            if (player.leftyFlip /*&& !input.BotMode*/)
             {
                 switch (drum)
                 {

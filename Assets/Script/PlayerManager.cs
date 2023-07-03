@@ -3,11 +3,11 @@ using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using YARG.Data;
-using YARG.Input;
 using YARG.PlayMode;
 using YARG.Settings;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using YARG.Player.Input;
 
 namespace YARG
 {
@@ -27,7 +27,7 @@ namespace YARG
             private static int _nextPlayerName = 1;
 
             public string name;
-            public string DisplayName => name + (inputStrategy.BotMode ? " <color=#00DBFD>BOT</color>" : "");
+            public string DisplayName => name;
 
             public InputStrategy inputStrategy;
 
@@ -50,10 +50,10 @@ namespace YARG
             public void TryPickRandomName()
             {
                 // Skip if it is not a bot
-                if (!inputStrategy?.BotMode ?? true)
-                {
-                    return;
-                }
+                // if (!inputStrategy?.BotMode ?? true)
+                // {
+                //     return;
+                // }
 
                 var shuffledNames = new List<string>(RandomPlayerNames);
                 shuffledNames.Shuffle();

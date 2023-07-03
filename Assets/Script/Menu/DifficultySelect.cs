@@ -7,7 +7,8 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
 using YARG.Data;
-using YARG.Input;
+using YARG.Player.Input;
+using YARG.Player.Navigation;
 using YARG.PlayMode;
 
 namespace YARG.UI
@@ -74,7 +75,7 @@ namespace YARG.UI
                 new NavigationScheme.Entry(MenuAction.Back, "Back", () => { MainMenu.Instance.ShowSongSelect(); })
             }, false));
 
-            Debug.Log(GameManager.Instance.SelectedSong.AvailableParts);
+            Debug.Log(GlobalVariables.Instance.SelectedSong.AvailableParts);
 
             playerIndex = 0;
             playersToConfigure.Clear();
@@ -84,11 +85,11 @@ namespace YARG.UI
             for (int index = 0; index < PlayerManager.players.Count; index++)
             {
                 var player = PlayerManager.players[index];
-                if (player.inputStrategy is MicInputStrategy)
-                {
-                    playersToConfigure.Add(player);
-                    anyMics = true;
-                }
+                // if (player.inputStrategy is MicInputStrategy)
+                // {
+                //     playersToConfigure.Add(player);
+                //     anyMics = true;
+                // }
             }
 
             // Use first player otherwise
@@ -222,12 +223,12 @@ namespace YARG.UI
             brutalModeCheckbox.isOn = false;
 
             // Next non-mic player
-            playerIndex++;
-            while (playerIndex < PlayerManager.players.Count
-                && PlayerManager.players[playerIndex].inputStrategy is MicInputStrategy)
-            {
-                playerIndex++;
-            }
+            // playerIndex++;
+            // while (playerIndex < PlayerManager.players.Count
+            //     && PlayerManager.players[playerIndex].inputStrategy is MicInputStrategy)
+            // {
+            //     playerIndex++;
+            // }
 
             if (playerIndex >= PlayerManager.players.Count)
             {
@@ -238,7 +239,7 @@ namespace YARG.UI
                 }
 
                 // Play song
-                GameManager.Instance.LoadScene(SceneIndex.PLAY);
+                GlobalVariables.Instance.LoadScene(SceneIndex.PLAY);
             }
             else
             {
@@ -261,7 +262,7 @@ namespace YARG.UI
 
             // Get available instruments
             var availableInstruments = allInstruments
-                .Where(instrument => GameManager.Instance.SelectedSong.HasInstrument(instrument)).ToList();
+                .Where(instrument => GlobalVariables.Instance.SelectedSong.HasInstrument(instrument)).ToList();
 
             // Force add pro drums and five lane
             if (availableInstruments.Contains(Instrument.DRUMS))
@@ -335,7 +336,7 @@ namespace YARG.UI
             var availableDifficulties = new List<Difficulty>();
             for (int i = 0; i < (int) Difficulty.EXPERT_PLUS; i++)
             {
-                if (!GameManager.Instance.SelectedSong.HasPart(instrument, (Difficulty) i))
+                if (!GlobalVariables.Instance.SelectedSong.HasPart(instrument, (Difficulty) i))
                 {
                     continue;
                 }

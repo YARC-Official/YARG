@@ -1,7 +1,8 @@
 using System;
 using TMPro;
 using UnityEngine;
-using YARG.Input;
+using YARG.Player.Input;
+using YARG.Player.Navigation;
 
 namespace YARG.UI
 {
@@ -47,7 +48,7 @@ namespace YARG.UI
             ResetHelpbar();
 
             // Show/hide music player
-            if (GameManager.Instance.CurrentScene == SceneIndex.MENU)
+            if (GlobalVariables.Instance.CurrentScene == SceneIndex.MENU)
             {
                 MusicPlayer.gameObject.SetActive(scheme.AllowsMusicPlayer);
             }

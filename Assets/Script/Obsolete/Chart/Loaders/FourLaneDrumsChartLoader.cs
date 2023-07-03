@@ -54,22 +54,22 @@ namespace YARG.Chart
             var chart = GetChart(song, Difficulty.EXPERT);
 
             // SP activations
-            foreach (var sp in chart.starPower)
+            foreach (var sp in chart.specialPhrases)
             {
-                if ((sp.flags & Starpower.Flags.ProDrums_Activation) == 0)
-                {
-                    continue;
-                }
-
-                events.Add(
-                    new EventInfo($"fill_{InstrumentName}", (float) sp.time, (float) GetDrumFillLength(song, sp)));
+                // if ((sp.flags & Starpower.Flags.ProDrums_Activation) == 0)
+                // {
+                //     continue;
+                // }
+                //
+                // events.Add(
+                //     new EventInfo($"fill_{InstrumentName}", (float) sp.time, (float) GetDrumFillLength(song, sp)));
             }
 
             return events;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected double GetDrumFillLength(MoonSong song, Starpower sp)
+        protected double GetDrumFillLength(MoonSong song, SpecialPhrase sp)
         {
             return GetLength(song, sp.time, sp.tick, sp.length);
         }

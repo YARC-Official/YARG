@@ -8,10 +8,9 @@ using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
 using UnityEngine;
-using XboxSTFS;
-using YARG.Chart;
 using YARG.Data;
 using YARG.DiffDownsample;
+using YARG.Gameplay;
 using YARG.Song;
 
 namespace YARG.Serialization.Parser
@@ -455,14 +454,14 @@ namespace YARG.Serialization.Parser
                 {
                     chart.beats.Add(new Beat
                     {
-                        Time = ev.time, Style = BeatStyle.STRONG,
+                        Time = ev.time, Style = BeatStyle.Strong,
                     });
                 }
                 else if (ev.name is "beatLine_major")
                 {
                     chart.beats.Add(new Beat
                     {
-                        Time = ev.time, Style = BeatStyle.MEASURE,
+                        Time = ev.time, Style = BeatStyle.Measure,
                     });
                 }
             }
