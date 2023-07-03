@@ -65,14 +65,8 @@ namespace YARG.Audio.BASS
         private bool _isReverbing;
         private bool _disposed;
 
-#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
-        private PitchShiftWindowsParameters _pitchParams = new()
-        {
-#else
-		private PitchShiftParameters _pitchParams = new() {
-#endif
-            fPitchShift = 1, fSemitones = 0, lFFTsize = 2048, lOsamp = 32,
-        };
+		private PitchShiftParametersStruct _pitchParams = new(1, 0, AudioOptions.WHAMMY_FFT_DEFAULT,
+            AudioOptions.WHAMMY_OVERSAMPLE_DEFAULT);
 
         public BassStemChannel(IAudioManager manager, string path, SongStem stem)
         {
@@ -164,18 +158,38 @@ namespace YARG.Audio.BASS
             Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, _manager.GetVolumeSetting(Stem));
             Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Volume, 0);
 
-            _pitchFxHandle = Bass.ChannelSetFX(StreamHandle, EffectType.PitchShift, 0);
-
-            if (_pitchFxHandle == 0)
+            if (_manager.Options.UseWhammyFx && AudioHelpers.PitchBendAllowedStems.Contains(Stem))
             {
-                Debug.LogError("Failed to add pitchshift: " + Bass.LastError);
-            }
+                // Setting the FFT size causes a crash in BASS_FX :/
+                // _pitchParams.FFTSize = _manager.Options.WhammyFFTSize;
+                _pitchParams.OversampleFactor = _manager.Options.WhammyOversampleFactor;
 
-            _pitchFxReverbHandle = Bass.ChannelSetFX(ReverbStreamHandle, EffectType.PitchShift, 0);
+                _pitchFxHandle = Bass.ChannelSetFX(StreamHandle, EffectType.PitchShift, 0);
+                if (_pitchFxHandle == 0)
+                {
+                    Debug.LogError("Failed to add pitch shift (normal fx): " + Bass.LastError);
+                }
+                else if (!BassHelpers.FXSetParameters(_pitchFxHandle, _pitchParams))
+                {
+                    Debug.LogError("Failed to set pitch shift params (normal fx): " + Bass.LastError);
+                    Bass.ChannelRemoveFX(StreamHandle, _pitchFxHandle);
+                    _pitchFxHandle = 0;
+                }
 
-            if (_pitchFxReverbHandle == 0)
-            {
-                Debug.LogError("Failed to add pitchshift: " + Bass.LastError);
+                _pitchFxReverbHandle = Bass.ChannelSetFX(ReverbStreamHandle, EffectType.PitchShift, 0);
+                if (_pitchFxReverbHandle == 0)
+                {
+                    Debug.LogError("Failed to add pitch shift (reverb fx): " + Bass.LastError);
+                }
+                else if (!BassHelpers.FXSetParameters(_pitchFxReverbHandle, _pitchParams))
+                {
+                    Debug.LogError("Failed to set pitch shift params (reverb fx): " + Bass.LastError);
+                    Bass.ChannelRemoveFX(ReverbStreamHandle, _pitchFxReverbHandle);
+                    _pitchFxReverbHandle = 0;
+                }
+
+                // Set position to trigger the pitch bend delay compensation
+                SetPosition(0);
             }
 
             if (!Mathf.Approximately(speed, 1f))
@@ -188,7 +202,7 @@ namespace YARG.Audio.BASS
                 Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Tempo, relativeSpeed);
 
                 // Have to handle pitch separately for some reason
-                if (_manager.IsChipmunkSpeedup)
+                if (_manager.Options.IsChipmunkSpeedup)
                 {
                     float semitoneShift = percentageSpeed switch
                     {
@@ -311,47 +325,55 @@ namespace YARG.Audio.BASS
             }
         }
 
-        private float lastShift;
-
         public void SetWhammyPitch(float percent)
         {
-            if (Stem != SongStem.Guitar && Stem != SongStem.Bass && Stem != SongStem.Rhythm) return;
+            if (_pitchFxHandle == 0 || _pitchFxReverbHandle == 0)
+                return;
 
             percent = Mathf.Clamp(percent, 0f, 1f);
 
-            float shift = Mathf.Pow(2, (-2 * percent) / 12);
-
-            if (Math.Abs(shift - lastShift) < float.Epsilon)
-            {
-                return;
-            }
-
-            lastShift = shift;
-
-            Debug.Log(shift);
-
+            float shift = Mathf.Pow(2, -(_manager.Options.WhammyPitchShiftAmount * percent) / 12);
             _pitchParams.fPitchShift = shift;
 
-            Debug.Log(_pitchFxHandle);
-
-            if (!Bass.FXSetParameters(_pitchFxHandle, _pitchParams))
+            if (!BassHelpers.FXSetParameters(_pitchFxHandle, _pitchParams))
             {
                 Debug.LogError("Failed to set params (normal fx): " + Bass.LastError);
             }
 
-            if (!Bass.FXSetParameters(_pitchFxReverbHandle, _pitchParams))
+            if (!BassHelpers.FXSetParameters(_pitchFxReverbHandle, _pitchParams))
             {
                 Debug.LogError("Failed to set params (reverb fx): " + Bass.LastError);
             }
         }
 
-        public double GetPosition()
+        private double GetDesyncOffset()
         {
-            return Bass.ChannelBytes2Seconds(StreamHandle, Bass.ChannelGetPosition(StreamHandle));
+            // Hack to get desync of pitch-bent channels
+            if (_pitchFxHandle != 0 && _pitchFxReverbHandle != 0)
+            {
+                // The desync is caused by the FFT window
+                // BASS_FX does not account for it automatically so we must do it ourselves
+                // (thanks Matt/Oscar for the info!)
+                double sampleRate = Bass.ChannelGetAttribute(StreamHandle, ChannelAttribute.Frequency);
+                return _pitchParams.FFTSize / sampleRate;
+            }
+
+            return 0;
         }
 
-        public void SetPosition(double position)
+        public double GetPosition(bool desyncCompensation = true)
         {
+            double position = Bass.ChannelBytes2Seconds(StreamHandle, Bass.ChannelGetPosition(StreamHandle));
+            if (desyncCompensation)
+                position -= GetDesyncOffset();
+            return position;
+        }
+
+        public void SetPosition(double position, bool desyncCompensation = true)
+        {
+            if (desyncCompensation)
+                position += GetDesyncOffset();
+
             if (IsMixed)
             {
                 BassMix.ChannelSetPosition(StreamHandle, Bass.ChannelSeconds2Bytes(StreamHandle, position));

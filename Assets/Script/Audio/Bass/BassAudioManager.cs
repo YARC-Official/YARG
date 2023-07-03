@@ -15,8 +15,7 @@ namespace YARG.Audio.BASS
 {
     public class BassAudioManager : MonoBehaviour, IAudioManager
     {
-        public bool UseStarpowerFx { get; set; }
-        public bool IsChipmunkSpeedup { get; set; }
+        public AudioOptions Options { get; set; } = new();
 
         public IList<string> SupportedFormats { get; private set; }
 
@@ -32,9 +31,6 @@ namespace YARG.Audio.BASS
 
         public float CurrentPositionF => (float) GetPosition();
         public float AudioLengthF { get; private set; }
-
-        [Range(0, 1)]
-        public float whammyPitchPercent;
 
         public event Action SongEnd
         {
@@ -64,19 +60,6 @@ namespace YARG.Audio.BASS
         private int _opusHandle;
 
         private IStemMixer _mixer;
-
-        private void Update()
-        {
-            if (_mixer is null || _mixer.Channels.Count == 0)
-            {
-                return;
-            }
-
-            foreach (var channel in _mixer.Channels)
-            {
-                channel.Value.SetWhammyPitch(whammyPitchPercent);
-            }
-        }
 
         private void Awake()
         {
@@ -579,14 +562,23 @@ namespace YARG.Audio.BASS
 
         public void ApplyReverb(SongStem stem, bool reverb) => _mixer?.GetChannel(stem)?.SetReverb(reverb);
 
-        public double GetPosition()
+        public void SetWhammyPitch(SongStem stem, float percent)
+        {
+            if (!AudioHelpers.PitchBendAllowedStems.Contains(stem))
+                return;
+
+            _mixer?.GetChannel(stem)?.SetWhammyPitch(percent);
+        }
+
+        public double GetPosition(bool desyncCompensation = true)
         {
             if (_mixer is null) return -1;
 
-            return _mixer.GetPosition();
+            return _mixer.GetPosition(desyncCompensation);
         }
 
-        public void SetPosition(double position) => _mixer?.SetPosition(position);
+        public void SetPosition(double position, bool desyncCompensation = true)
+            => _mixer?.SetPosition(position, desyncCompensation);
 
         private void OnApplicationQuit()
         {

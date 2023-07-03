@@ -31,6 +31,12 @@ namespace YARG.Audio.BASS
             fBandwidth = 0.75f, fCenter = 6000.0f, fGain = 2f
         };
 
+        public static unsafe bool FXSetParameters<T>(int Handle, T Parameters)
+            where T : unmanaged, IEffectParameter
+        {
+            return Bass.FXSetParameters(Handle, (IntPtr)(void*)&Parameters);
+        }
+
         public static int AddReverbToChannel(int handle)
         {
             // Set reverb FX

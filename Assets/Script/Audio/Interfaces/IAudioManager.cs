@@ -8,8 +8,7 @@ namespace YARG.Audio
 {
     public interface IAudioManager
     {
-        public bool UseStarpowerFx { get; set; }
-        public bool IsChipmunkSpeedup { get; set; }
+        public AudioOptions Options { get; set; }
 
         public IList<string> SupportedFormats { get; }
 
@@ -57,7 +56,9 @@ namespace YARG.Audio
 
         public void ApplyReverb(SongStem stem, bool reverb);
 
-        public double GetPosition();
-        public void SetPosition(double position);
+        public void SetWhammyPitch(SongStem stem, float percent);
+
+        public double GetPosition(bool desyncCompensation = true);
+        public void SetPosition(double position, bool desyncCompensation = true);
     }
 }
