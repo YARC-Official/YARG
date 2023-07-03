@@ -328,6 +328,10 @@ MonoBehaviour:
     m_Localized: Lyric Background
     m_Metadata:
       m_Items: []
+  - m_Id: 36054625388216320
+    m_Localized: Use Whammy FX
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

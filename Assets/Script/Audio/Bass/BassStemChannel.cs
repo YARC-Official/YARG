@@ -171,7 +171,7 @@ namespace YARG.Audio.BASS
             Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, _manager.GetVolumeSetting(Stem));
             Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Volume, 0);
 
-            if (WHAMMY_PITCH_BEND_STEMS.Contains(Stem))
+            if (_manager.Options.UseWhammyFx && WHAMMY_PITCH_BEND_STEMS.Contains(Stem))
             {
                 _pitchFxHandle = Bass.ChannelSetFX(StreamHandle, EffectType.PitchShift, 0);
 

@@ -77,6 +77,7 @@ namespace YARG.Settings
                     new HeaderMetadata("Other"),
                     "MuteOnMiss",
                     "UseStarpowerFx",
+                    "UseWhammyFx",
                     // "ClapsInStarpower",
                     // "ReverbInStarpower",
                     "UseChipmunkSpeed",

@@ -311,6 +311,10 @@ MonoBehaviour:
     m_Key: UseStarpowerFx
     m_Metadata:
       m_Items: []
+  - m_Id: 36054625388216320
+    m_Key: UseWhammyFx
+    m_Metadata:
+      m_Items: []
   - m_Id: 10638924633726976
     m_Key: VocalMonitoring
     m_Metadata:
