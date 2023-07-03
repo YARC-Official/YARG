@@ -178,6 +178,9 @@ namespace YARG.PlayMode
 
             UpdateInput();
 
+            // Update pitch bend
+            Play.Instance.UpdateWhammyPitch(player.chosenInstrument, heldNotes.Count > 0);
+
             // Un-strum
             strummed = false;
         }
@@ -914,6 +917,8 @@ namespace YARG.PlayMode
         {
             whammyAmount += Mathf.Abs(delta) * 0.25f;
             whammyAmount = Mathf.Clamp(whammyAmount, 0f, 1f / 3f);
+
+            Play.Instance.TrackWhammyPitch(player.chosenInstrument, delta, heldNotes.Count > 0);
         }
 
         private void SpawnNote(NoteInfo noteInfo, float time)

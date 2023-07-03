@@ -12,13 +12,6 @@ namespace YARG.Audio.BASS
     {
         private const EffectType REVERB_TYPE = EffectType.Freeverb;
 
-        private static readonly List<SongStem> WHAMMY_PITCH_BEND_STEMS = new()
-        {
-            SongStem.Guitar,
-            SongStem.Bass,
-            SongStem.Rhythm,
-        };
-
         public SongStem Stem { get; }
         public double LengthD { get; private set; }
 
@@ -165,7 +158,7 @@ namespace YARG.Audio.BASS
             Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, _manager.GetVolumeSetting(Stem));
             Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Volume, 0);
 
-            if (_manager.Options.UseWhammyFx && WHAMMY_PITCH_BEND_STEMS.Contains(Stem))
+            if (_manager.Options.UseWhammyFx && AudioHelpers.PitchBendAllowedStems.Contains(Stem))
             {
                 // Setting the FFT size causes a crash in BASS_FX :/
                 // _pitchParams.FFTSize = _manager.Options.WhammyFFTSize;
@@ -332,8 +325,6 @@ namespace YARG.Audio.BASS
             }
         }
 
-        private float lastShift;
-
         public void SetWhammyPitch(float percent)
         {
             if (_pitchFxHandle == 0 || _pitchFxReverbHandle == 0)
@@ -342,16 +333,6 @@ namespace YARG.Audio.BASS
             percent = Mathf.Clamp(percent, 0f, 1f);
 
             float shift = Mathf.Pow(2, (-2 * percent) / 12);
-
-            if (Math.Abs(shift - lastShift) < float.Epsilon)
-            {
-                return;
-            }
-
-            lastShift = shift;
-
-            Debug.Log(shift);
-
             _pitchParams.fPitchShift = shift;
 
             if (!BassHelpers.FXSetParameters(_pitchFxHandle, _pitchParams))

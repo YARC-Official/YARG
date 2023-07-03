@@ -32,9 +32,6 @@ namespace YARG.Audio.BASS
         public float CurrentPositionF => (float) GetPosition();
         public float AudioLengthF { get; private set; }
 
-        [Range(0, 1)]
-        public float whammyPitchPercent;
-
         public event Action SongEnd
         {
             add
@@ -63,19 +60,6 @@ namespace YARG.Audio.BASS
         private int _opusHandle;
 
         private IStemMixer _mixer;
-
-        private void Update()
-        {
-            if (_mixer is null || _mixer.Channels.Count == 0)
-            {
-                return;
-            }
-
-            foreach (var channel in _mixer.Channels)
-            {
-                channel.Value.SetWhammyPitch(whammyPitchPercent);
-            }
-        }
 
         private void Awake()
         {
@@ -577,6 +561,14 @@ namespace YARG.Audio.BASS
         }
 
         public void ApplyReverb(SongStem stem, bool reverb) => _mixer?.GetChannel(stem)?.SetReverb(reverb);
+
+        public void SetWhammyPitch(SongStem stem, float percent)
+        {
+            if (!AudioHelpers.PitchBendAllowedStems.Contains(stem))
+                return;
+
+            _mixer?.GetChannel(stem)?.SetWhammyPitch(percent);
+        }
 
         public double GetPosition()
         {

@@ -56,6 +56,8 @@ namespace YARG.Audio
 
         public void ApplyReverb(SongStem stem, bool reverb);
 
+        public void SetWhammyPitch(SongStem stem, float percent);
+
         public double GetPosition();
         public void SetPosition(double position);
     }

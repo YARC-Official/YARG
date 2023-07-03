@@ -50,6 +50,7 @@ namespace YARG.PlayMode
 
         private OccurrenceList<string> audioLowering = new();
         private OccurrenceList<string> audioReverb = new();
+        private Dictionary<string, float> audioPitchBend = new();
 
         private int stemsReverbed;
 
@@ -639,6 +640,33 @@ namespace YARG.PlayMode
                 stemsReverbed--;
                 audioReverb.Remove(name);
             }
+        }
+
+        public void TrackWhammyPitch(string name, float delta, bool enable)
+        {
+            if (!audioPitchBend.TryGetValue(name, out float current))
+                current = 0f;
+
+            // Accumulate delta
+            // We take in a delta value to account for multiple players on the same part,
+            // if we used absolute then there would be no way to prevent the pitch jittering
+            // due to two players whammying at the same time
+            current += delta;
+            audioPitchBend[name] = current;
+
+            // Set the pitch
+            UpdateWhammyPitch(name, enable);
+        }
+
+        public void UpdateWhammyPitch(string name, bool enable)
+        {
+            if (!audioPitchBend.TryGetValue(name, out float current))
+                current = 0f;
+
+            // Set pitch bend
+            float percent = enable ? Mathf.Clamp(current, 0f, 1f) : 0f;
+            var stem = AudioHelpers.GetStemFromName(name);
+            GameManager.AudioManager.SetWhammyPitch(stem, percent);
         }
 
         public void Exit(bool toSongSelect = true)
