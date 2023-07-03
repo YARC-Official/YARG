@@ -35,10 +35,24 @@ namespace YARG.PlayMode
         private const int PTS_PER_NOTE = 120;
         private const int SUSTAIN_PTS_PER_BEAT = 60;
 
+        private string stemName;
+
+        private float whammyAmount;
+        private bool whammyLastNote;
+        private float whammyAnimationAmount;
+
         protected override void StartTrack()
         {
             notePool.player = player;
             genericPool.player = player;
+
+            // Stem name
+            stemName = player.chosenInstrument switch
+            {
+                "realGuitar" => "guitar",
+                "realBass" => "bass",
+                _ => ""
+            };
 
             // Lefty flip (TODO)
 
@@ -56,6 +70,7 @@ namespace YARG.PlayMode
 
             input.FretChangeEvent += FretChangedAction;
             input.StrumEvent += StrumAction;
+            input.WhammyEvent += WhammyEvent;
 
             if (input.BotMode)
             {
@@ -86,6 +101,7 @@ namespace YARG.PlayMode
             // Unbind input
             input.FretChangeEvent -= FretChangedAction;
             input.StrumEvent -= StrumAction;
+            input.WhammyEvent -= WhammyEvent;
         }
 
         protected override void UpdateTrack()
@@ -123,12 +139,56 @@ namespace YARG.PlayMode
                     heldNotes.RemoveAt(i);
                     susTracker.Drop(heldNote);
                     EndSustainParticles(heldNote);
+
+                    if (heldNotes.Count == 0)
+                    {
+                        whammyLastNote = false;
+                    }
                 }
             }
 
             UpdateInput();
 
+            // Update pitch bend
+            Play.Instance.UpdateWhammyPitch(stemName, heldNotes.Count > 0);
+
             strumFlag = StrumFlag.NONE;
+        }
+
+        protected override void UpdateStarpower()
+        {
+            if (IsStarpowerHit() && heldNotes.Count != 0)
+            {
+                whammyLastNote = true;
+            }
+
+            base.UpdateStarpower();
+
+            // Update whammy amount and animation
+            if (whammyAmount > 0f)
+            {
+                whammyAmount -= Time.deltaTime;
+                whammyAnimationAmount = Mathf.Lerp(whammyAnimationAmount, 1f, Time.deltaTime * 6f);
+            }
+            else
+            {
+                whammyAnimationAmount = Mathf.Lerp(whammyAnimationAmount, 0f, Time.deltaTime * 3f);
+            }
+
+            notePool.WhammyFactor = whammyAnimationAmount;
+
+            // Add starpower on whammy, only if there are held notes
+            if ((heldNotes.Count == 0 || CurrentStarpower?.time > CurrentTime || CurrentStarpower == null) &&
+                !whammyLastNote)
+            {
+                return;
+            }
+
+            // Update starpower
+            if ((whammyAmount > 0f) || input.BotMode)
+            {
+                starpowerCharge += Time.deltaTime * Play.Instance.CurrentBeatsPerSecond * 0.034f;
+            }
         }
 
         public override void SetReverb(bool on)
@@ -302,6 +362,14 @@ namespace YARG.PlayMode
             {
                 fretNumbers[str].text = fret.ToString();
             }
+        }
+
+        private void WhammyEvent(float delta)
+        {
+            whammyAmount += Mathf.Abs(delta) * 0.25f;
+            whammyAmount = Mathf.Clamp(whammyAmount, 0f, 1f / 3f);
+
+            Play.Instance.TrackWhammyPitch(stemName, delta, heldNotes.Count > 0);
         }
 
         private void SpawnNote(NoteInfo noteInfo, float time)
