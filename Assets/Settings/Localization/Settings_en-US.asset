@@ -332,6 +332,10 @@ MonoBehaviour:
     m_Localized: Use Whammy FX
     m_Metadata:
       m_Items: []
+  - m_Id: 36056030748491776
+    m_Localized: Whammy Oversample Factor
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

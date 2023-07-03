@@ -167,6 +167,10 @@ namespace YARG.Audio.BASS
 
             if (_manager.Options.UseWhammyFx && WHAMMY_PITCH_BEND_STEMS.Contains(Stem))
             {
+                // Setting the FFT size causes a crash in BASS_FX :/
+                // _pitchParams.FFTSize = _manager.Options.WhammyFFTSize;
+                _pitchParams.OversampleFactor = _manager.Options.WhammyOversampleFactor;
+
                 _pitchFxHandle = Bass.ChannelSetFX(StreamHandle, EffectType.PitchShift, 0);
                 if (_pitchFxHandle == 0)
                 {

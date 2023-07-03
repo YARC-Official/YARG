@@ -327,6 +327,10 @@ MonoBehaviour:
     m_Key: VSync
     m_Metadata:
       m_Items: []
+  - m_Id: 36056030748491776
+    m_Key: WhammyOversampleFactor
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

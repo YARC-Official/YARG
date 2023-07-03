@@ -74,6 +74,7 @@ namespace YARG.Settings
             public ToggleSetting MuteOnMiss { get; } = new(true);
             public ToggleSetting UseStarpowerFx { get; } = new(true, UseStarpowerFxChange);
             public ToggleSetting UseWhammyFx { get; } = new(true, UseWhammyFxChange);
+            public IntSetting WhammyOversampleFactor { get; } = new(8, 4, 32, WhammyOversampleFactorChange);
             public ToggleSetting UseChipmunkSpeed { get; } = new(false, UseChipmunkSpeedChange);
 
             public SliderSetting TrackCamFOV { get; } = new(55f, 40f, 150f, CameraPosChange);
@@ -258,6 +259,11 @@ namespace YARG.Settings
             private static void UseWhammyFxChange(bool value)
             {
                 GameManager.AudioManager.Options.UseWhammyFx = value;
+            }
+
+            private static void WhammyOversampleFactorChange(int value)
+            {
+                GameManager.AudioManager.Options.WhammyOversampleFactor = value;
             }
 
             private static void UseChipmunkSpeedChange(bool value)
