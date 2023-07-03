@@ -101,7 +101,7 @@ namespace YARG.PlayMode
                 {
                     Time.timeScale = 0f;
 
-                    GameManager.AudioManager.Pause();
+                    GlobalVariables.AudioManager.Pause();
 
                     if (GameUI.Instance.videoPlayer.enabled)
                     {
@@ -112,7 +112,7 @@ namespace YARG.PlayMode
                 {
                     Time.timeScale = 1f;
 
-                    GameManager.AudioManager.Play();
+                    GlobalVariables.AudioManager.Play();
 
                     if (GameUI.Instance.videoPlayer.enabled)
                     {
@@ -124,7 +124,7 @@ namespace YARG.PlayMode
             }
         }
 
-        public SongEntry Song => GameManager.Instance.SelectedSong;
+        public SongEntry Song => GlobalVariables.Instance.SelectedSong;
 
         private bool playingRhythm = false;
         private bool playingVocals = false;
@@ -152,17 +152,17 @@ namespace YARG.PlayMode
             // Load MOGG if CON, otherwise load stems
             if (Song is ExtractedConSongEntry rawConSongEntry)
             {
-                GameManager.AudioManager.LoadMogg(rawConSongEntry, speed);
+                GlobalVariables.AudioManager.LoadMogg(rawConSongEntry, speed);
             }
             else
             {
                 var stems = AudioHelpers.GetSupportedStems(Song.Location);
 
-                GameManager.AudioManager.LoadSong(stems, speed);
+                GlobalVariables.AudioManager.LoadSong(stems, speed);
             }
 
             // Get song length
-            audioLength = GameManager.AudioManager.AudioLengthF;
+            audioLength = GlobalVariables.AudioManager.AudioLengthF;
             SongLength = audioLength;
 
             GameUI.Instance.SetLoadingText("Loading chart...");
@@ -378,9 +378,9 @@ namespace YARG.PlayMode
                 }
             }
 
-            GameManager.AudioManager.Play();
+            GlobalVariables.AudioManager.Play();
 
-            GameManager.AudioManager.SongEnd += OnEndReached;
+            GlobalVariables.AudioManager.SongEnd += OnEndReached;
             audioRunning = true;
 
             if (startVideoIn != null)
@@ -410,7 +410,7 @@ namespace YARG.PlayMode
             }
 
             // Update this every frame to make sure all notes are spawned at the same time.
-            float audioTime = GameManager.AudioManager.CurrentPositionF;
+            float audioTime = GlobalVariables.AudioManager.CurrentPositionF;
             if (audioRunning && audioTime < audioLength)
             {
                 realSongTime = audioTime;
@@ -485,9 +485,9 @@ namespace YARG.PlayMode
             {
                 foreach (var track in _tracks)
                 {
-                    if (!track.IsStarPowerActive || !GameManager.AudioManager.UseStarpowerFx) continue;
+                    if (!track.IsStarPowerActive || !GlobalVariables.AudioManager.UseStarpowerFx) continue;
 
-                    GameManager.AudioManager.PlaySoundEffect(SfxSample.Clap);
+                    GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.Clap);
                     break;
                 }
 
@@ -510,7 +510,7 @@ namespace YARG.PlayMode
 
         private void OnEndReached()
         {
-            audioLength = GameManager.AudioManager.CurrentPositionF;
+            audioLength = GlobalVariables.AudioManager.CurrentPositionF;
             audioRunning = false;
         }
 
@@ -540,15 +540,15 @@ namespace YARG.PlayMode
                 {
                     var stem = AudioHelpers.GetStemFromName(name);
 
-                    GameManager.AudioManager.SetStemVolume(stem, percent * 0.95f + 0.05f);
+                    GlobalVariables.AudioManager.SetStemVolume(stem, percent * 0.95f + 0.05f);
                 }
             }
 
             // Reverb audio with starpower
 
-            if (GameManager.AudioManager.UseStarpowerFx)
+            if (GlobalVariables.AudioManager.UseStarpowerFx)
             {
-                GameManager.AudioManager.ApplyReverb(SongStem.Song, stemsReverbed > 0);
+                GlobalVariables.AudioManager.ApplyReverb(SongStem.Song, stemsReverbed > 0);
 
                 foreach (var name in stemNames)
                 {
@@ -560,14 +560,14 @@ namespace YARG.PlayMode
                     switch (stem)
                     {
                         case SongStem.Drums:
-                            GameManager.AudioManager.ApplyReverb(SongStem.Drums, applyReverb);
-                            GameManager.AudioManager.ApplyReverb(SongStem.Drums1, applyReverb);
-                            GameManager.AudioManager.ApplyReverb(SongStem.Drums2, applyReverb);
-                            GameManager.AudioManager.ApplyReverb(SongStem.Drums3, applyReverb);
-                            GameManager.AudioManager.ApplyReverb(SongStem.Drums4, applyReverb);
+                            GlobalVariables.AudioManager.ApplyReverb(SongStem.Drums, applyReverb);
+                            GlobalVariables.AudioManager.ApplyReverb(SongStem.Drums1, applyReverb);
+                            GlobalVariables.AudioManager.ApplyReverb(SongStem.Drums2, applyReverb);
+                            GlobalVariables.AudioManager.ApplyReverb(SongStem.Drums3, applyReverb);
+                            GlobalVariables.AudioManager.ApplyReverb(SongStem.Drums4, applyReverb);
                             break;
                         default:
-                            GameManager.AudioManager.ApplyReverb(stem, applyReverb);
+                            GlobalVariables.AudioManager.ApplyReverb(stem, applyReverb);
                             break;
                     }
                 }
@@ -577,8 +577,8 @@ namespace YARG.PlayMode
         public IEnumerator EndSong(bool showResultScreen)
         {
             // Dispose of all audio
-            GameManager.AudioManager.SongEnd -= OnEndReached;
-            GameManager.AudioManager.UnloadSong();
+            GlobalVariables.AudioManager.SongEnd -= OnEndReached;
+            GlobalVariables.AudioManager.UnloadSong();
 
             // Call events
             OnSongEnd?.Invoke(Song);
@@ -650,7 +650,7 @@ namespace YARG.PlayMode
             }
 
             MainMenu.showSongSelect = toSongSelect;
-            GameManager.Instance.LoadScene(SceneIndex.MENU);
+            GlobalVariables.Instance.LoadScene(SceneIndex.MENU);
         }
     }
 }

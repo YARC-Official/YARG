@@ -105,7 +105,7 @@ namespace YARG.PlayMode
 
                     curStar = topStar;
 
-                    GameManager.AudioManager.PlaySoundEffect(SfxSample.StarGain);
+                    GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarGain);
                 }
 
                 if (curStar <= 4) SetStarProgress(objStars[curStar], curProgress);
@@ -133,7 +133,7 @@ namespace YARG.PlayMode
                 // disable progress meters
                 objGoldMeterMaster.SetActive(false);
 
-                GameManager.AudioManager.PlaySoundEffect(SfxSample.StarGold);
+                GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarGold);
                 goldAchieved = true; // so we stop trying to update
             }
         }

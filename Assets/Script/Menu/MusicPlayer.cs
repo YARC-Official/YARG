@@ -48,12 +48,12 @@ namespace YARG.UI
 
         private void OnDisable()
         {
-            GameManager.AudioManager.UnloadSong();
+            GlobalVariables.AudioManager.UnloadSong();
         }
 
         private void UpdatePlayOrPauseSprite()
         {
-            if (GameManager.AudioManager.IsPlaying)
+            if (GlobalVariables.AudioManager.IsPlaying)
             {
                 _playPauseButton.sprite = _pauseSprite;
             }
@@ -71,11 +71,11 @@ namespace YARG.UI
             {
                 if (song is ExtractedConSongEntry conSong)
                 {
-                    GameManager.AudioManager.LoadMogg(conSong, 1f, SongStem.Crowd);
+                    GlobalVariables.AudioManager.LoadMogg(conSong, 1f, SongStem.Crowd);
                 }
                 else
                 {
-                    GameManager.AudioManager.LoadSong(AudioHelpers.GetSupportedStems(song.Location), 1f,
+                    GlobalVariables.AudioManager.LoadSong(AudioHelpers.GetSupportedStems(song.Location), 1f,
                         SongStem.Crowd);
                 }
             });
@@ -92,29 +92,29 @@ namespace YARG.UI
 
         private void Play()
         {
-            GameManager.AudioManager.Play();
+            GlobalVariables.AudioManager.Play();
             UpdateVolume();
         }
 
         public void UpdateVolume()
         {
-            if (GameManager.AudioManager.IsPlaying && gameObject.activeSelf)
+            if (GlobalVariables.AudioManager.IsPlaying && gameObject.activeSelf)
             {
-                GameManager.AudioManager.SetAllStemsVolume(SettingsManager.Settings.MusicPlayerVolume.Data);
+                GlobalVariables.AudioManager.SetAllStemsVolume(SettingsManager.Settings.MusicPlayerVolume.Data);
             }
         }
 
         public void PlayOrPauseClick()
         {
-            if (!GameManager.AudioManager.IsAudioLoaded)
+            if (!GlobalVariables.AudioManager.IsAudioLoaded)
             {
                 return;
             }
 
-            if (GameManager.AudioManager.IsPlaying)
+            if (GlobalVariables.AudioManager.IsPlaying)
             {
                 _wasPaused = true;
-                GameManager.AudioManager.Pause();
+                GlobalVariables.AudioManager.Pause();
             }
             else
             {

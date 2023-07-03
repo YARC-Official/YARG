@@ -164,7 +164,7 @@ namespace YARG.UI
         {
             if (PlayerManager.players.Count > 0)
             {
-                GameManager.Instance.LoadScene(SceneIndex.CALIBRATION);
+                GlobalVariables.Instance.LoadScene(SceneIndex.CALIBRATION);
             }
         }
 

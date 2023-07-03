@@ -20,9 +20,9 @@ namespace YARG
         CALIBRATION
     }
 
-    public class GameManager : MonoBehaviour
+    public class GlobalVariables : MonoBehaviour
     {
-        public static GameManager Instance { get; private set; }
+        public static GlobalVariables Instance { get; private set; }
 
         public delegate void UpdateAction();
 

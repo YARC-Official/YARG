@@ -74,15 +74,15 @@ namespace YARG.UI.PlayResultScreen
             string name;
             if (Play.speed == 1f)
             {
-                name = GameManager.Instance?.SelectedSong.Name;
+                name = GlobalVariables.Instance?.SelectedSong.Name;
             }
             else
             {
-                name = $"{GameManager.Instance.SelectedSong.Name} <size=50%>({Play.speed * 100}% speed)";
+                name = $"{GlobalVariables.Instance.SelectedSong.Name} <size=50%>({Play.speed * 100}% speed)";
             }
 
             songTitle.SetText(name);
-            songArtist.SetText(GameManager.Instance?.SelectedSong?.Artist);
+            songArtist.SetText(GlobalVariables.Instance?.SelectedSong?.Artist);
             score.SetText(ScoreKeeper.TotalScore.ToString("n0"));
 
             int stars = (int) StarScoreKeeper.BandStars;
@@ -110,7 +110,7 @@ namespace YARG.UI.PlayResultScreen
             {
                 lastPlayed = DateTime.Now, timesPlayed = 1, highestPercent = new(), highestScore = new()
             };
-            var oldScore = ScoreManager.GetScore(GameManager.Instance?.SelectedSong);
+            var oldScore = ScoreManager.GetScore(GlobalVariables.Instance?.SelectedSong);
 
             highScores = new();
             disqualified = new();
@@ -165,7 +165,7 @@ namespace YARG.UI.PlayResultScreen
                 }
             }
 
-            ScoreManager.PushScore(GameManager.Instance?.SelectedSong, songScore);
+            ScoreManager.PushScore(GlobalVariables.Instance?.SelectedSong, songScore);
         }
 
         /// <summary>
@@ -298,8 +298,8 @@ namespace YARG.UI.PlayResultScreen
         // TODO: replace with common restart call (ie. what the pause menu calls)
         public void PlayRestart()
         {
-            GameManager.AudioManager.UnloadSong();
-            GameManager.Instance.LoadScene(SceneIndex.PLAY);
+            GlobalVariables.AudioManager.UnloadSong();
+            GlobalVariables.Instance.LoadScene(SceneIndex.PLAY);
             Play.Instance.Paused = false;
         }
 
