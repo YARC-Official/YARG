@@ -505,7 +505,7 @@ namespace YARG.UI.MusicLibrary
 
         private void FillRecommendedSongs()
         {
-            _recommendedSongs = RecommendedSongs.Instance.GetRecommendedSongs();
+            _recommendedSongs = RecommendedSongs.GetRecommendedSongs();
         }
 
         public void Back()

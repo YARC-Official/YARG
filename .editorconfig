@@ -116,6 +116,14 @@ insert_final_newline = false
 indent_style = space
 indent_size = 4
 
+# Microsoft .NET properties
+csharp_style_var_elsewhere = true:suggestion
+csharp_style_var_for_built_in_types = false:none
+csharp_style_var_when_type_is_apparent = true:suggestion
+
+# ReSharper properties
+resharper_outdent_statement_labels = true
+
 [{*.har,*.jsb2,*.jsb3,*.json,.babelrc,.eslintrc,.stylelintrc,bowerrc,jest.config}]
 indent_style = tab
 tab_width = 4
