@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using DG.Tweening;
 using MoonscraperChartEditor.Song;
 using MoonscraperChartEditor.Song.IO;
@@ -50,7 +51,9 @@ namespace YARG.PlayMode
 
         private OccurrenceList<string> audioLowering = new();
         private OccurrenceList<string> audioReverb = new();
-        private Dictionary<string, float> audioPitchBend = new();
+        private Dictionary<SongStem, (float percent, bool enabled)> audioPitchBend = new(
+            AudioHelpers.PitchBendAllowedStems.Select((stem) => new KeyValuePair<SongStem, (float, bool)>(stem, (0f, false)))
+        );
 
         private int stemsReverbed;
 
@@ -480,6 +483,9 @@ namespace YARG.PlayMode
                 "drums", "drums_1", "drums_2", "drums_3", "drums_4"
             });
 
+            // Update whammy pitch state
+            UpdateWhammyPitch();
+
             // Update beats
             while (chart.beats.Count > beatIndex && chart.beats[beatIndex].Time <= SongTime)
             {
@@ -644,29 +650,35 @@ namespace YARG.PlayMode
 
         public void TrackWhammyPitch(string name, float delta, bool enable)
         {
-            if (!audioPitchBend.TryGetValue(name, out float current))
-                current = 0f;
+            var stem = name switch
+            {
+                "guitar" or "realGuitar" => SongStem.Guitar,
+                "bass" or "realBass" => SongStem.Bass,
+                "rhythm" => SongStem.Rhythm,
+                _ => SongStem.Song
+            };
+            if (!audioPitchBend.TryGetValue(stem, out var current))
+                return;
 
             // Accumulate delta
             // We take in a delta value to account for multiple players on the same part,
             // if we used absolute then there would be no way to prevent the pitch jittering
             // due to two players whammying at the same time
-            current += delta;
-            audioPitchBend[name] = current;
-
-            // Set the pitch
-            UpdateWhammyPitch(name, enable);
+            current.percent += delta;
+            current.enabled = enable;
+            audioPitchBend[stem] = current;
         }
 
-        public void UpdateWhammyPitch(string name, bool enable)
+        private void UpdateWhammyPitch()
         {
-            if (!audioPitchBend.TryGetValue(name, out float current))
-                current = 0f;
-
             // Set pitch bend
-            float percent = enable ? Mathf.Clamp(current, 0f, 1f) : 0f;
-            var stem = AudioHelpers.GetStemFromName(name);
-            GameManager.AudioManager.SetWhammyPitch(stem, percent);
+            foreach (var (stem, current) in audioPitchBend)
+            {
+                float percent = current.enabled ? Mathf.Clamp(current.percent, 0f, 1f) : 0f;
+                // The pitch is always set regardless of the enable state, seems like it prevents
+                // issues with whammiable stems becoming muddy over time
+                GameManager.AudioManager.SetWhammyPitch(stem, percent);
+            }
         }
 
         public void Exit(bool toSongSelect = true)

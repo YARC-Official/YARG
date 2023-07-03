@@ -149,9 +149,6 @@ namespace YARG.PlayMode
 
             UpdateInput();
 
-            // Update pitch bend
-            Play.Instance.UpdateWhammyPitch(stemName, heldNotes.Count > 0);
-
             strumFlag = StrumFlag.NONE;
         }
 

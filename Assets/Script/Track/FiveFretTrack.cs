@@ -178,9 +178,6 @@ namespace YARG.PlayMode
 
             UpdateInput();
 
-            // Update pitch bend
-            Play.Instance.UpdateWhammyPitch(player.chosenInstrument, heldNotes.Count > 0);
-
             // Un-strum
             strummed = false;
         }
