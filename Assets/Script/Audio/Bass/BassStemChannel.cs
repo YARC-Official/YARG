@@ -72,14 +72,8 @@ namespace YARG.Audio.BASS
         private bool _isReverbing;
         private bool _disposed;
 
-#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
-        private PitchShiftWindowsParameters _pitchParams = new()
-        {
-#else
-		private PitchShiftParameters _pitchParams = new() {
-#endif
-            fPitchShift = 1, fSemitones = 0, lFFTsize = 2048, lOsamp = 32,
-        };
+		private PitchShiftParametersStruct _pitchParams = new(1, 0, AudioOptions.WHAMMY_FFT_DEFAULT,
+            AudioOptions.WHAMMY_OVERSAMPLE_DEFAULT);
 
         public BassStemChannel(IAudioManager manager, string path, SongStem stem)
         {
@@ -343,12 +337,12 @@ namespace YARG.Audio.BASS
 
             _pitchParams.fPitchShift = shift;
 
-            if (!Bass.FXSetParameters(_pitchFxHandle, _pitchParams))
+            if (!BassHelpers.FXSetParameters(_pitchFxHandle, _pitchParams))
             {
                 Debug.LogError("Failed to set params (normal fx): " + Bass.LastError);
             }
 
-            if (!Bass.FXSetParameters(_pitchFxReverbHandle, _pitchParams))
+            if (!BassHelpers.FXSetParameters(_pitchFxReverbHandle, _pitchParams))
             {
                 Debug.LogError("Failed to set params (reverb fx): " + Bass.LastError);
             }
