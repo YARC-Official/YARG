@@ -106,12 +106,6 @@ namespace YARG.PlayMode
 
         protected override void UpdateTrack()
         {
-            // Ignore everything else until the song starts
-            if (!Play.Instance.SongStarted)
-            {
-                return;
-            }
-
             // Since chart is sorted, this is guaranteed to work
             while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= TrackStartTime)
             {

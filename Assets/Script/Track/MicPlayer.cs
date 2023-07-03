@@ -11,6 +11,7 @@ using YARG.Data;
 using YARG.Player.Input;
 using YARG.Pools;
 using YARG.Settings;
+using YARG.Song;
 using YARG.UI;
 using YARG.Util;
 
@@ -122,8 +123,6 @@ namespace YARG.PlayMode
 
         private bool _hasMic = false;
         private readonly List<PlayerInfo> _micInputs = new();
-
-        private bool _onSongStartCalled = false;
 
         private List<List<LyricInfo>> _charts;
 
@@ -308,35 +307,19 @@ namespace YARG.PlayMode
             // Hide starpower
             starpowerOverlay.material.SetFloat("AlphaMultiplier", 0f);
 
-            // Setup scoring vars
-            _scoreKeeper = new();
-
-            string phraseEndName = EndPhraseName;
-            int phrases = 0;
-            foreach (var ev in Play.Instance.chart.events)
-            {
-                if (ev.name == phraseEndName) phrases++;
-            }
-
-            // note: micInput.Count = number of players on vocals
-            _ptsPerPhrase = _maxPoints[(int) _micInputs[0].Player.chosenDifficulty];
-            _starsKeeper = new(_scoreKeeper, _micInputs[0].Player.chosenInstrument, phrases, _ptsPerPhrase);
-
             // Prepare performance text characteristics
             _perfTextSizer = new PerformanceTextScaler(animTimeLength);
             preformaceText.color = Color.white;
 
-            // Queue up events
-            foreach (var eventInfo in Play.Instance.chart.events)
+            if (Play.Instance.SongStarted)
             {
-                if (eventInfo.name == phraseEndName)
-                {
-                    _endPhrases.Add(eventInfo);
-                }
-                else if (eventInfo.name == "starpower_vocals")
-                {
-                    _starpowerSections.Add(eventInfo);
-                }
+                OnSongStart();
+            }
+            else
+            {
+                // Disable updates until the song starts
+                enabled = false;
+                Play.OnSongStart += OnSongStart;
             }
         }
 
@@ -391,6 +374,16 @@ namespace YARG.PlayMode
 
             // Unbind events
             Play.BeatEvent -= BeatAction;
+        }
+
+        private void OnSongStart(SongEntry song)
+        {
+            Play.OnSongStart -= OnSongStart;
+
+            // Enable updates
+            enabled = true;
+
+            OnSongStart();
         }
 
         private void OnSongStart()
@@ -465,27 +458,36 @@ namespace YARG.PlayMode
                 starpowerOverlay.transform.localPosition = starpowerOverlay.transform.localPosition.WithZ(0f);
                 starpowerOverlay.transform.localScale = starpowerOverlay.transform.localScale.WithY(1.18f);
             }
+
+            // Queue up events
+            int phrases = 0;
+            string phraseEndName = EndPhraseName;
+            foreach (var eventInfo in Play.Instance.chart.events)
+            {
+                if (eventInfo.name == phraseEndName)
+                {
+                    phrases++;
+                    _endPhrases.Add(eventInfo);
+                }
+                else if (eventInfo.name == "starpower_vocals")
+                {
+                    _starpowerSections.Add(eventInfo);
+                }
+            }
+
+            // Setup scoring vars
+            _scoreKeeper = new();
+            // note: micInput.Count = number of players on vocals
+            _ptsPerPhrase = _maxPoints[(int) _micInputs[0].Player.chosenDifficulty];
+            _starsKeeper = new(_scoreKeeper, _micInputs[0].Player.chosenInstrument, phrases, _ptsPerPhrase);
         }
 
         private void Update()
         {
-            // Ignore everything else until the song starts
-            if (!Play.Instance.SongStarted)
-            {
-                return;
-            }
-
             // Ignore if paused
             if (Play.Instance.Paused)
             {
                 return;
-            }
-
-            // Call "OnSongStart"
-            if (!_onSongStartCalled)
-            {
-                _onSongStartCalled = true;
-                OnSongStart();
             }
 
             // Update event visuals

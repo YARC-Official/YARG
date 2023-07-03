@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Audio;
 using YARG.Gameplay;
+using YARG.Song;
 
 namespace YARG.PlayMode
 {
@@ -42,6 +43,32 @@ namespace YARG.PlayMode
 
         private void Start()
         {
+            height = GetComponent<RectTransform>().rect.height;
+
+            if (Play.Instance.SongStarted)
+            {
+                OnSongStart();
+            }
+            else
+            {
+                // Disable updates until the song starts
+                enabled = false;
+                Play.OnSongStart += OnSongStart;
+            }
+        }
+
+        private void OnSongStart(SongEntry song)
+        {
+            Play.OnSongStart -= OnSongStart;
+
+            // Enable updates
+            enabled = true;
+
+            OnSongStart();
+        }
+
+        private void OnSongStart()
+        {
             var beats = Play.Instance.chart.beats;
             foreach (var ev in beats)
             {
@@ -50,8 +77,6 @@ namespace YARG.PlayMode
                     bars.Add(ev.Time);
                 }
             }
-
-            height = GetComponent<RectTransform>().rect.height;
         }
 
         private void OnScoreChange()

@@ -7,6 +7,7 @@ using YARG.Gameplay;
 using YARG.Player.Input;
 using YARG.Pools;
 using YARG.Settings;
+using YARG.Song;
 using YARG.UI;
 
 namespace YARG.PlayMode
@@ -217,9 +218,6 @@ namespace YARG.PlayMode
 
             // Assign render texture to camera
             commonTrack.TrackCamera.targetTexture = renderTexture;
-
-            // AMONG US
-            susTracker = new(Play.Instance.chart.beats);
         }
 
         private void Start()
@@ -255,18 +253,44 @@ namespace YARG.PlayMode
 
             scoreKeeper = new();
 
+            // Initialize interval sizes
+            intervalSize = commonTrack.noteStreakInterval;
+            halfIntervalSize = intervalSize / 2;
+
+            if (Play.Instance.SongStarted)
+            {
+                OnSongStart();
+            }
+            else
+            {
+                // Disable updates until the song starts
+                enabled = false;
+                Play.OnSongStart += OnSongStart;
+            }
+        }
+
+        private void OnSongStart(SongEntry song)
+        {
+            Play.OnSongStart -= OnSongStart;
+
+            // Enable updates
+            enabled = true;
+
+            OnSongStart();
+        }
+
+        private void OnSongStart()
+        {
             // Set the end time for STRONG FINISH and FULL COMBO performance text checking
             endTime = Chart[^1].time + HitMarginBack + commonTrack.bufferPeriod;
             offsetEndTime = endTime + 3f;
 
-            // Initlaize interval sizes
-            intervalSize = commonTrack.noteStreakInterval;
-            halfIntervalSize = intervalSize / 2;
+            // AMONG US
+            susTracker = new(Play.Instance.chart.beats);
 
             // Queue up events
             string spName = $"starpower_{player.chosenInstrument}";
             string soloName = $"solo_{player.chosenInstrument}";
-            string fillName = $"fill_{player.chosenInstrument}";
             // Solos and SP cannot share notes, so we can save some iteration time and only go start-to-end once overall
             int spNoteIndex = 0;
             int soloNoteIndex = 0;

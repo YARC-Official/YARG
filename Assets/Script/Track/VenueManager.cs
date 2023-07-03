@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using YARG.Song;
 
 namespace YARG.PlayMode
 {
@@ -9,13 +10,26 @@ namespace YARG.PlayMode
 
         private int _eventIndex;
 
-        private void Update()
+        private void Start()
         {
             if (!Play.Instance.SongStarted)
             {
-                return;
+                // Disable updates until the song starts
+                enabled = false;
+                Play.OnSongStart += OnSongStart;
             }
+        }
 
+        private void OnSongStart(SongEntry song)
+        {
+            Play.OnSongStart -= OnSongStart;
+
+            // Enable updates
+            enabled = true;
+        }
+
+        private void Update()
+        {
             var chart = Play.Instance.chart;
 
             // Update venue events

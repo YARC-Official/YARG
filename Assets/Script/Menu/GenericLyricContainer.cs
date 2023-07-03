@@ -4,13 +4,12 @@ using UnityEngine;
 using YARG.Data;
 using YARG.PlayMode;
 using YARG.Settings;
+using YARG.Song;
 
 namespace YARG.UI
 {
     public class GenericLyricContainer : MonoBehaviour
     {
-        private static List<GenericLyricInfo> LyricInfos => Play.Instance.chart.genericLyrics;
-
         [SerializeField]
         private TextMeshProUGUI _lyricText;
 
@@ -21,6 +20,7 @@ namespace YARG.UI
         [SerializeField]
         private GameObject _transparentBackground;
 
+        private List<GenericLyricInfo> _lyrics;
         private int _lyricIndex;
         private int _lyricPhraseIndex;
 
@@ -45,6 +45,30 @@ namespace YARG.UI
                     break;
             }
 
+            if (Play.Instance.SongStarted)
+            {
+                OnSongStart();
+            }
+            else
+            {
+                // Disable updates until the song starts
+                enabled = false;
+                Play.OnSongStart += OnSongStart;
+            }
+        }
+
+        private void OnSongStart(SongEntry song)
+        {
+            Play.OnSongStart -= OnSongStart;
+
+            // Enable updates
+            enabled = true;
+
+            OnSongStart();
+        }
+
+        private void OnSongStart()
+        {
             // Temporary
             bool playingVocals = false;
             foreach (var player in PlayerManager.players)
@@ -56,7 +80,8 @@ namespace YARG.UI
             }
 
             // Disable if there are no lyrics or someone is singing
-            if (LyricInfos.Count <= 0 || playingVocals)
+            _lyrics = Play.Instance.chart.genericLyrics;
+            if (_lyrics.Count <= 0 || playingVocals)
             {
                 gameObject.SetActive(false);
             }
@@ -64,12 +89,12 @@ namespace YARG.UI
 
         private void Update()
         {
-            if (_lyricIndex >= LyricInfos.Count)
+            if (_lyricIndex >= _lyrics.Count)
             {
                 return;
             }
 
-            var lyric = LyricInfos[_lyricIndex];
+            var lyric = _lyrics[_lyricIndex];
             if (_lyricPhraseIndex >= lyric.lyric.Count && lyric.EndTime < Play.Instance.SongTime)
             {
                 // Clear phrase
