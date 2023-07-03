@@ -11,6 +11,11 @@ namespace YARG.Audio
         public bool UseWhammyFx { get; set; }
         public bool IsChipmunkSpeedup { get; set; }
 
+        /// <summary>
+        /// The number of semitones to bend the pitch by. Must be at least 1;
+        /// </summary>
+        public float WhammyPitchShiftAmount { get; set; } = 1f;
+
         // Not implemented, as changing the FFT size causes BASS_FX to crash
         // /// <summary>
         // /// The size of the whammy FFT buffer. Must be a power of 2, up to 8192.

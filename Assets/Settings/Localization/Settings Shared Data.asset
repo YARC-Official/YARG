@@ -331,6 +331,10 @@ MonoBehaviour:
     m_Key: WhammyOversampleFactor
     m_Metadata:
       m_Items: []
+  - m_Id: 36111086550138880
+    m_Key: WhammyPitchShiftAmount
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

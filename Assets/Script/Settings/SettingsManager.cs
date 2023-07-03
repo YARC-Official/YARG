@@ -78,6 +78,7 @@ namespace YARG.Settings
                     "MuteOnMiss",
                     "UseStarpowerFx",
                     "UseWhammyFx",
+                    "WhammyPitchShiftAmount",
                     "WhammyOversampleFactor",
                     // "ClapsInStarpower",
                     // "ReverbInStarpower",

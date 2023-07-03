@@ -332,7 +332,7 @@ namespace YARG.Audio.BASS
 
             percent = Mathf.Clamp(percent, 0f, 1f);
 
-            float shift = Mathf.Pow(2, (-2 * percent) / 12);
+            float shift = Mathf.Pow(2, -(_manager.Options.WhammyPitchShiftAmount * percent) / 12);
             _pitchParams.fPitchShift = shift;
 
             if (!BassHelpers.FXSetParameters(_pitchFxHandle, _pitchParams))
