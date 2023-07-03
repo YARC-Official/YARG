@@ -122,11 +122,11 @@ namespace YARG.Input
             }
 
             // Whammy!
-
-            float delta = GetPreviousMappingValue(WHAMMY) - GetMappingValue(WHAMMY);
-            if (!Mathf.Approximately(delta, 0f))
+            float currentWhammy = GetMappingValue(WHAMMY);
+            float deltaWhammy = currentWhammy - GetPreviousMappingValue(WHAMMY);
+            if (!Mathf.Approximately(deltaWhammy, 0f))
             {
-                WhammyEvent?.Invoke(delta);
+                WhammyEvent?.Invoke(deltaWhammy);
             }
 
             // Starpower
