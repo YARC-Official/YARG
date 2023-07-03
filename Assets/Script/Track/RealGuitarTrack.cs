@@ -193,7 +193,7 @@ namespace YARG.PlayMode
 
         public override void SetReverb(bool on)
         {
-            Play.Instance.ReverbAudio("guitar", on);
+            Play.Instance.ReverbAudio(stemName, on);
         }
 
         private void UpdateInput()
