@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using MoonscraperChartEditor.Song;
 using YARG.Chart;
+using YARG.Gameplay;
 
 namespace YARG.Data
 {

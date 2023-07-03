@@ -1,10 +1,9 @@
-using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
 using YARG.Audio;
-using YARG.Chart;
 using YARG.Data;
+using YARG.Gameplay;
 using YARG.Player.Input;
 using YARG.Pools;
 using YARG.Settings;
@@ -416,11 +415,11 @@ namespace YARG.PlayMode
                 var beatInfo = beats[currentBeatIndex];
 
                 float z = TRACK_SPAWN_OFFSET - CalcLagCompensation(TrackStartTime, beatInfo.Time);
-                if (beatInfo.Style is BeatStyle.STRONG or BeatStyle.WEAK)
+                if (beatInfo.Style is BeatStyle.Strong or BeatStyle.Weak)
                 {
                     genericPool.Add("beatLine_minor", new(0f, 0.01f, z));
                 }
-                else if (beatInfo.Style == BeatStyle.MEASURE)
+                else if (beatInfo.Style == BeatStyle.Measure)
                 {
                     genericPool.Add("beatLine_major", new(0f, 0.01f, z));
                 }

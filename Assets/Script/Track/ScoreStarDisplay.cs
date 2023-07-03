@@ -1,9 +1,8 @@
 using System.Collections.Generic;
-using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Audio;
-using YARG.Chart;
+using YARG.Gameplay;
 
 namespace YARG.PlayMode
 {
@@ -46,7 +45,7 @@ namespace YARG.PlayMode
             var beats = Play.Instance.chart.beats;
             foreach (var ev in beats)
             {
-                if (ev.Style == BeatStyle.MEASURE)
+                if (ev.Style == BeatStyle.Measure)
                 {
                     bars.Add(ev.Time);
                 }

@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using MoonscraperChartEditor.Song;
+using ChartEvent = YARG.Core.Chart.ChartEvent;
 
-namespace YARG.Chart
+namespace YARG.Gameplay
 {
     public class BeatHandler
     {
@@ -27,7 +28,7 @@ namespace YARG.Chart
         {
             Beats.Add(new Beat(tick, (float) _song.TickToTime(tick), type));
 
-            if (type == BeatStyle.MEASURE) Measures.Add(Beats[^1]);
+            if (type == BeatStyle.Measure) Measures.Add(Beats[^1]);
         }
 
         // Thanks mdsitton for the CH beat generation algorithm when I was making SideyBot :)
@@ -46,10 +47,10 @@ namespace YARG.Chart
             int beatsInTS = 0;
 
             // The last beat style that was generated. Always starts as a measure.
-            BeatStyle lastStyle = BeatStyle.MEASURE;
+            BeatStyle lastStyle = BeatStyle.Measure;
 
             // lastTick + forwardStep ensures we will always look ahead 1 more beat than the lastTick.
-            while (currentTick < lastTick + forwardStep || lastStyle != BeatStyle.MEASURE)
+            while (currentTick < lastTick + forwardStep || lastStyle != BeatStyle.Measure)
             {
                 // Gets previous time signature before currentTick.
                 currentTS = _song.GetPrevTS(currentTick);
@@ -61,7 +62,7 @@ namespace YARG.Chart
                     lastTS.denominator != currentTS.denominator;
 
                 // If denominator is larger than 4 start off with weak beats, if 4 or less use strong beats
-                var style = currentTS.denominator > 4 ? BeatStyle.WEAK : BeatStyle.STRONG;
+                var style = currentTS.denominator > 4 ? BeatStyle.Weak : BeatStyle.Strong;
 
                 // New time signature. First beat of a new time sig is always a measure.
                 if (hasTsChanged)
@@ -78,13 +79,13 @@ namespace YARG.Chart
 
                 if (currentTS.denominator <= 4 || currentBeatInMeasure % currentSubBeat == 0)
                 {
-                    style = BeatStyle.STRONG;
+                    style = BeatStyle.Strong;
                 }
 
                 // Make it a measure if first beat of a measure.
                 if (currentBeatInMeasure == 0)
                 {
-                    style = BeatStyle.MEASURE;
+                    style = BeatStyle.Measure;
 
                     // Handle 1/x TS's so that only the first beat in the TS gets a measure line
                     // and then from there it is marked at a strong beat every quarter note with everything else as weak
@@ -92,16 +93,16 @@ namespace YARG.Chart
                     {
                         if (currentTick >= lastTick)
                         {
-                            style = BeatStyle.MEASURE;
+                            style = BeatStyle.Measure;
                         }
                         // if not quarter note length beats every quarter note is stressed
                         else if (currentTS.denominator <= 4 || (beatsInTS % currentSubBeat) == 0)
                         {
-                            style = BeatStyle.STRONG;
+                            style = BeatStyle.Strong;
                         }
                         else
                         {
-                            style = BeatStyle.WEAK;
+                            style = BeatStyle.Weak;
                         }
                     }
                 }
@@ -110,7 +111,7 @@ namespace YARG.Chart
                 if (currentBeatInMeasure == currentTS.numerator - 1 && currentTS.denominator > 4 &&
                     currentTick < lastTick + forwardStep)
                 {
-                    style = BeatStyle.WEAK;
+                    style = BeatStyle.Weak;
                 }
 
                 AddBeat(currentTick, style);
@@ -135,7 +136,7 @@ namespace YARG.Chart
             }
         }
 
-        public int GetNoteMeasure(Note note)
+        public int GetEventMeasure(ChartEvent note)
         {
             int dif = CurrentMeasure;
 

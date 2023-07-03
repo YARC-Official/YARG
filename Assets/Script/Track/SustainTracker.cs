@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
-using YARG.Chart;
 using YARG.Data;
+using YARG.Gameplay;
 
 namespace YARG.PlayMode
 {

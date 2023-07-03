@@ -1,7 +1,11 @@
-﻿namespace YARG.Gameplay
+﻿using UnityEngine;
+
+namespace YARG.Gameplay
 {
-    public class GameManager
+    public class GameManager : MonoBehaviour
     {
-        
+
+        public double SongStartTime { get; private set; }
+
     }
 }

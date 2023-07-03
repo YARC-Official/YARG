@@ -1,4 +1,4 @@
-﻿namespace YARG.Chart
+﻿namespace YARG.Gameplay
 {
     public struct Beat
     {
@@ -16,8 +16,8 @@
 
     public enum BeatStyle
     {
-        MEASURE,
-        STRONG,
-        WEAK,
+        Measure,
+        Strong,
+        Weak,
     }
 }
