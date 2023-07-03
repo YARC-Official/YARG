@@ -190,6 +190,9 @@ namespace YARG.Audio.BASS
                     Bass.ChannelRemoveFX(ReverbStreamHandle, _pitchFxReverbHandle);
                     _pitchFxReverbHandle = 0;
                 }
+
+                // Set position to trigger the pitch bend delay compensation
+                SetPosition(0);
             }
 
             if (!Mathf.Approximately(speed, 1f))
@@ -358,6 +361,21 @@ namespace YARG.Audio.BASS
             }
         }
 
+        private double GetDesyncOffset()
+        {
+            // Hack to get desync of pitch-bent channels
+            if (_pitchFxHandle != 0 && _pitchFxReverbHandle != 0)
+            {
+                // The desync is caused by the FFT window
+                // BASS_FX does not account for it automatically so we must do it ourselves
+                // (thanks Matt/Oscar for the info!)
+                double sampleRate = Bass.ChannelGetAttribute(StreamHandle, ChannelAttribute.Frequency);
+                return _pitchParams.FFTSize / sampleRate;
+            }
+
+            return 0;
+        }
+
         public double GetPosition()
         {
             return Bass.ChannelBytes2Seconds(StreamHandle, Bass.ChannelGetPosition(StreamHandle));
@@ -365,6 +383,8 @@ namespace YARG.Audio.BASS
 
         public void SetPosition(double position)
         {
+            position += GetDesyncOffset();
+
             if (IsMixed)
             {
                 BassMix.ChannelSetPosition(StreamHandle, Bass.ChannelSeconds2Bytes(StreamHandle, position));
