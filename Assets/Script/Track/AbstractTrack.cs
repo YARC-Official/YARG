@@ -270,7 +270,7 @@ namespace YARG.PlayMode
             // Solos and SP cannot share notes, so we can save some iteration time and only go start-to-end once overall
             int spNoteIndex = 0;
             int soloNoteIndex = 0;
-            bool chordsAreSingleNote = player.chosenInstrument is "drums" or "realDrums" or "ghDrums";
+            bool chordsAreSingleNote = player.chosenInstrument is not ("drums" or "realDrums" or "ghDrums");
             foreach (var eventInfo in Play.Instance.chart.events)
             {
                 if (eventInfo.name == spName)

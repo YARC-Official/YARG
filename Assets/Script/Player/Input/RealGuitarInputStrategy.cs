@@ -34,10 +34,14 @@ namespace YARG.Player.Input
         public event FretChangeAction FretChangeEvent;
         public event StrumAction StrumEvent;
 
+        public delegate void WhammyChangeAction(float delta);
+        public event WhammyChangeAction WhammyEvent;
+
         private List<NoteInfo> botChart;
 
         private int[] fretCache = new int[ProGuitar.StringCount];
         private float[] velocityCache = new float[ProGuitar.StringCount];
+        private float previousWhammy = 0f;
 
         private float? stringGroupingTimer = null;
         private StrumFlag stringGroupingFlag = StrumFlag.NONE;

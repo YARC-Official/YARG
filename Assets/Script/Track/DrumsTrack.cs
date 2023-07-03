@@ -464,6 +464,12 @@ namespace YARG.PlayMode
             notePool.HitNote(hit);
             StopAudio = false;
 
+            // Solo stuff
+            if (soloInProgress)
+            {
+                soloNotesHit++;
+            }
+
             // Play particles
             if (hit.fret != kickIndex)
             {

@@ -26,9 +26,9 @@ namespace YARG.Audio
 
         public int Pause();
 
-        public double GetPosition();
+        public double GetPosition(bool desyncCompensation = true);
 
-        public void SetPosition(double position);
+        public void SetPosition(double position, bool desyncCompensation = true);
 
         public int AddChannel(IStemChannel channel);
 

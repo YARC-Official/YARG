@@ -23,6 +23,13 @@ namespace YARG.Audio
             0.5, 0.45, 0.5, 0.45, 0.5, 0.15, 1.0, 1.0,
         };
 
+        public static readonly List<SongStem> PitchBendAllowedStems = new()
+        {
+            SongStem.Guitar,
+            SongStem.Bass,
+            SongStem.Rhythm,
+        };
+
         public static ICollection<string> GetSupportedStems(string folder)
         {
             var stems = new List<string>();

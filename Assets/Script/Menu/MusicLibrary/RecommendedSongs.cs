@@ -1,74 +1,73 @@
-using System;
-using System.Text;
-using System.Globalization;
 using System.Collections.Generic;
 using System.Linq;
-using Cysharp.Threading.Tasks;
-using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using YARG.Audio;
 using YARG.Data;
 using YARG.Song;
-using YARG.UI.MusicLibrary.ViewTypes;
-using Random = UnityEngine.Random;
-using System.Threading;
-using YARG.Settings;
 
 namespace YARG.UI.MusicLibrary
 {
-    public class RecommendedSongs
+    public static class RecommendedSongs
     {
-        private readonly static RecommendedSongs _instance = new RecommendedSongs();
+        private const int TRIES = 10;
 
-        private static readonly int TRIES = 10;
+        private static readonly List<SongEntry> _recommendedSongs = new();
 
-        public static RecommendedSongs Instance
+        public static List<SongEntry> GetRecommendedSongs()
         {
-            get { return _instance; }
-        }
-
-        private List<SongEntry> _recommendedSongs;
-
-        public List<SongEntry> GetRecommendedSongs()
-        {
-            _recommendedSongs = new();
+            _recommendedSongs.Clear();
 
             AddMostPlayedSongs();
-            AddRandomSong();
-            return GetReversedRecommendedSongs();
+
+            // Fill the rest of the spaces with random songs
+            int left = 5 - _recommendedSongs.Count;
+            for (int i = 0; i < left; i++)
+            {
+                AddRandomSong();
+            }
+
+            // YARG songs first
+            _recommendedSongs.Sort((x, y) =>
+            {
+                // This is technically YARG songs last because of the reverse below
+                if (x.Source.ToLowerInvariant() == "yarg") return -1;
+                if (y.Source.ToLowerInvariant() == "yarg") return 1;
+                return 0;
+            });
+
+            // Reverse (because that's how they are added to the song select)
+            _recommendedSongs.Reverse();
+
+            return _recommendedSongs;
         }
 
-        private void AddMostPlayedSongs()
+        private static void AddMostPlayedSongs()
         {
-            var mostPlayed = GetMostPlayedSongs();
+            // Get the top ten most played songs
+            var mostPlayed = ScoreManager.SongsByPlayCount().Take(10).ToList();
 
+            // If no songs were played, skip
             if (mostPlayed.Count <= 0)
             {
                 return;
             }
 
-            AddTwoTopTenMostPlayedSongs(mostPlayed);
-            AddTwoRandomSongsMostPlayedArtists(mostPlayed);
+            AddMostPlayedSongs(mostPlayed);
+            Debug.Log(_recommendedSongs.Count);
+            AddSongsFromTopPlayedArtists(mostPlayed);
+            Debug.Log(_recommendedSongs.Count);
         }
 
-        private List<SongEntry> GetMostPlayedSongs()
+        private static void AddMostPlayedSongs(List<SongEntry> mostPlayed)
         {
-            return ScoreManager.SongsByPlayCount().Take(10).ToList();
-        }
-
-        private void AddTwoTopTenMostPlayedSongs(List<SongEntry> songs)
-        {
-            var count = songs.Count;
-
             // Add two random top ten most played songs (ten tries each)
             for (int i = 0; i < 2; i++)
             {
                 for (int t = 0; t < TRIES; t++)
                 {
-                    int n = Random.Range(0, count);
-                    var song = songs[n];
+                    var song = mostPlayed.Pick();
 
                     if (_recommendedSongs.Contains(song))
                     {
@@ -81,27 +80,34 @@ namespace YARG.UI.MusicLibrary
             }
         }
 
-        private void AddTwoRandomSongsMostPlayedArtists(List<SongEntry> songs)
+        private static void AddSongsFromTopPlayedArtists(List<SongEntry> mostPlayed)
         {
-            // Add two random songs from artists that are in the most played (ten tries each)
-            for (int i = 0; i < 2; i++)
+            // Pick 1 or 2...
+            int choices = 2;
+            if (Random.value <= 0.5f)
+            {
+                choices = 1;
+            }
+
+            // ...random songs from artists that are in the most played (ten tries each)
+            for (int i = 0; i < choices; i++)
             {
                 for (int t = 0; t < TRIES; t++)
                 {
-                    var sameArtistSongs = GetAllSongsFromSameArtist(songs);
+                    // Pick a random song, and get all of the songs from that artist
+                    var sameArtistSongs = GetAllSongsFromArtist(mostPlayed.Pick().Artist);
 
+                    // If the artist only has one song, it is guaranteed to not pass the rest of the ifs
                     if (sameArtistSongs.Count <= 1)
                     {
                         continue;
                     }
 
-                    // Pick
-                    var count = sameArtistSongs.Count;
-                    var n = Random.Range(0, count);
-                    var song = sameArtistSongs[n];
+                    // Pick a random song from that artist
+                    var song = sameArtistSongs.Pick();
 
                     // Skip if included in most played songs
-                    if (songs.Contains(song))
+                    if (mostPlayed.Contains(song))
                     {
                         continue;
                     }
@@ -119,34 +125,52 @@ namespace YARG.UI.MusicLibrary
             }
         }
 
-        private List<SongEntry> GetAllSongsFromSameArtist(List<SongEntry> songs)
+        private static List<SongEntry> GetAllSongsFromArtist(string artist)
         {
-            var count = songs.Count;
-            int n = Random.Range(0, count);
-            var baseSong = songs[n];
-            var artist = baseSong.Artist;
-
             return SongContainer.Songs
                 .Where(i => RemoveDiacriticsAndArticle(i.Artist) == RemoveDiacriticsAndArticle(artist))
                 .ToList();
         }
 
-        private string RemoveDiacriticsAndArticle(string value)
+        private static string RemoveDiacriticsAndArticle(string value)
         {
             return SongSearching.RemoveDiacriticsAndArticle(value);
         }
 
-        private void AddRandomSong()
+        private static void AddRandomSong()
         {
-            var songs = SongContainer.Songs;
-            var count = songs.Count;
+            // Try to add a YARG setlist song (we love bias!)
+            if (Random.value <= 0.6f)
+            {
+                var yargSongs = SongContainer.Songs
+                    .Where(i => i.Source.ToLowerInvariant() == "yarg").ToList();
+
+                // Skip if the user has no YARG songs :(
+                if (yargSongs.Count <= 0)
+                {
+                    goto RandomSong;
+                }
+
+                var song = yargSongs.Pick();
+
+                // Skip if the song was already in recommended
+                if (_recommendedSongs.Contains(song))
+                {
+                    goto RandomSong;
+                }
+
+                // Add the YARG song
+                _recommendedSongs.Add(song);
+
+                return;
+            }
+
+        RandomSong:
 
             // Add a completely random song (ten tries)
             for (int t = 0; t < TRIES; t++)
             {
-                int n = Random.Range(0, count);
-
-                var song = songs[n];
+                var song = ((IList<SongEntry>) SongContainer.Songs).Pick();
 
                 if (_recommendedSongs.Contains(song))
                 {
@@ -156,13 +180,6 @@ namespace YARG.UI.MusicLibrary
                 _recommendedSongs.Add(song);
                 break;
             }
-        }
-
-        private List<SongEntry> GetReversedRecommendedSongs()
-        {
-            // Reverse list because we add it backwards
-            _recommendedSongs.Reverse();
-            return _recommendedSongs;
         }
     }
 }

@@ -73,6 +73,9 @@ namespace YARG.Settings
 
             public ToggleSetting MuteOnMiss { get; } = new(true);
             public ToggleSetting UseStarpowerFx { get; } = new(true, UseStarpowerFxChange);
+            public ToggleSetting UseWhammyFx { get; } = new(true, UseWhammyFxChange);
+            public SliderSetting WhammyPitchShiftAmount { get; } = new(1, 1, 12, WhammyPitchShiftAmountChange);
+            public IntSetting WhammyOversampleFactor { get; } = new(8, 4, 32, WhammyOversampleFactorChange);
             public ToggleSetting UseChipmunkSpeed { get; } = new(false, UseChipmunkSpeedChange);
 
             public SliderSetting TrackCamFOV { get; } = new(55f, 40f, 150f, CameraPosChange);
@@ -251,12 +254,27 @@ namespace YARG.Settings
 
             private static void UseStarpowerFxChange(bool value)
             {
-                GlobalVariables.AudioManager.UseStarpowerFx = value;
+                GlobalVariables.AudioManager.Options.UseStarpowerFx = value;
+            }
+
+            private static void UseWhammyFxChange(bool value)
+            {
+                GlobalVariables.AudioManager.Options.UseWhammyFx = value;
+            }
+
+            private static void WhammyPitchShiftAmountChange(float value)
+            {
+                GlobalVariables.AudioManager.Options.WhammyPitchShiftAmount = value;
+            }
+
+            private static void WhammyOversampleFactorChange(int value)
+            {
+                GlobalVariables.AudioManager.Options.WhammyOversampleFactor = value;
             }
 
             private static void UseChipmunkSpeedChange(bool value)
             {
-                GlobalVariables.AudioManager.IsChipmunkSpeedup = value;
+                GlobalVariables.AudioManager.Options.IsChipmunkSpeedup = value;
             }
 
             private static void CameraPosChange(float value)

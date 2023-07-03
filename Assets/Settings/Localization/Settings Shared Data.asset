@@ -31,12 +31,12 @@ MonoBehaviour:
     m_Key: AntiGhosting
     m_Metadata:
       m_Items: []
-  - m_Id: 10638787589038080
-    m_Key: BassVolume
-    m_Metadata:
-      m_Items: []
   - m_Id: 10570792762204160
     m_Key: AudioCalibration
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10638787589038080
+    m_Key: BassVolume
     m_Metadata:
       m_Items: []
   - m_Id: 19713037425598464
@@ -55,6 +55,18 @@ MonoBehaviour:
     m_Key: DisableBloom
     m_Metadata:
       m_Items: []
+  - m_Id: 21443167489744896
+    m_Key: DisablePerSongBackgrounds
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21446097060093952
+    m_Key: DisableTextNotifications
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23598515176726528
+    m_Key: Dropdown.CameraPresets
+    m_Metadata:
+      m_Items: []
   - m_Id: 10638788599865344
     m_Key: DrumsVolume
     m_Metadata:
@@ -71,12 +83,36 @@ MonoBehaviour:
     m_Key: FpsStats
     m_Metadata:
       m_Items: []
+  - m_Id: 25071377905475584
+    m_Key: FullscreenMode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 25071457018437632
+    m_Key: FullscreenMode.ExclusiveFullScreen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 25071572395352064
+    m_Key: FullscreenMode.FullScreenWindow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 25071721024708608
+    m_Key: FullscreenMode.MaximizedWindow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 25071794185953280
+    m_Key: FullscreenMode.Windowed
+    m_Metadata:
+      m_Items: []
   - m_Id: 10638756366639104
     m_Key: GuitarVolume
     m_Metadata:
       m_Items: []
   - m_Id: 13088551106633728
     m_Key: Header.Cache
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22854215132372992
+    m_Key: Header.Calibration
     m_Metadata:
       m_Items: []
   - m_Id: 12836607712681984
@@ -87,8 +123,16 @@ MonoBehaviour:
     m_Key: Header.Display
     m_Metadata:
       m_Items: []
+  - m_Id: 12472066134892544
+    m_Key: Header.FileManagement
+    m_Metadata:
+      m_Items: []
   - m_Id: 12473817265201152
     m_Key: Header.Graphics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 25027136172974080
+    m_Key: Header.Input
     m_Metadata:
       m_Items: []
   - m_Id: 12472103388700672
@@ -99,12 +143,12 @@ MonoBehaviour:
     m_Key: Header.SongFolders
     m_Metadata:
       m_Items: []
-  - m_Id: 12472066134892544
-    m_Key: Header.FileManagement
-    m_Metadata:
-      m_Items: []
   - m_Id: 13084481612537856
     m_Key: Header.SongUpgrades
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21443095007977472
+    m_Key: Header.Venues
     m_Metadata:
       m_Items: []
   - m_Id: 12472159567208448
@@ -119,12 +163,36 @@ MonoBehaviour:
     m_Key: KeysVolume
     m_Metadata:
       m_Items: []
+  - m_Id: 26591864540614656
+    m_Key: KickBounce
+    m_Metadata:
+      m_Items: []
   - m_Id: 10637270228262912
     m_Key: LowQuality
     m_Metadata:
       m_Items: []
+  - m_Id: 32040983111000064
+    m_Key: LyricBackground
+    m_Metadata:
+      m_Items: []
+  - m_Id: 32040568017510400
+    m_Key: LyricBackground.None
+    m_Metadata:
+      m_Items: []
+  - m_Id: 32040511641870336
+    m_Key: LyricBackground.Normal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 32040561948352512
+    m_Key: LyricBackground.Transparent
+    m_Metadata:
+      m_Items: []
   - m_Id: 10638707146481664
     m_Key: MasterMusicVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 25027162441900032
+    m_Key: MicrophoneSensitivity
     m_Metadata:
       m_Items: []
   - m_Id: 20387720246714368
@@ -139,8 +207,20 @@ MonoBehaviour:
     m_Key: NoKicks
     m_Metadata:
       m_Items: []
+  - m_Id: 22854246069559296
+    m_Key: OpenCalibrator
+    m_Metadata:
+      m_Items: []
   - m_Id: 12039401434898432
     m_Key: OpenSongFolderManager
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21043134349041664
+    m_Key: OpenVenueFolder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 31586592042115072
+    m_Key: PressThreshold
     m_Metadata:
       m_Items: []
   - m_Id: 17867012767817728
@@ -155,12 +235,20 @@ MonoBehaviour:
     m_Key: ResetCameraSettings
     m_Metadata:
       m_Items: []
+  - m_Id: 25071429197619200
+    m_Key: Resolution
+    m_Metadata:
+      m_Items: []
   - m_Id: 10638786381078528
     m_Key: RhythmVolume
     m_Metadata:
       m_Items: []
   - m_Id: 10638910104657920
     m_Key: SfxVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 31231598726078464
+    m_Key: ShowCursorTimer
     m_Metadata:
       m_Items: []
   - m_Id: 10637368563720192
@@ -203,6 +291,14 @@ MonoBehaviour:
     m_Key: TrackCamZPos
     m_Metadata:
       m_Items: []
+  - m_Id: 25775451793645568
+    m_Key: TrackFadePosition
+    m_Metadata:
+      m_Items: []
+  - m_Id: 25775459376947200
+    m_Key: TrackFadeSize
+    m_Metadata:
+      m_Items: []
   - m_Id: 10638965775654912
     m_Key: UseChipmunkSpeed
     m_Metadata:
@@ -213,6 +309,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 10638955231174656
     m_Key: UseStarpowerFx
+    m_Metadata:
+      m_Items: []
+  - m_Id: 36054625388216320
+    m_Key: UseWhammyFx
     m_Metadata:
       m_Items: []
   - m_Id: 10638924633726976
@@ -227,100 +327,12 @@ MonoBehaviour:
     m_Key: VSync
     m_Metadata:
       m_Items: []
-  - m_Id: 21043134349041664
-    m_Key: OpenVenueFolder
+  - m_Id: 36056030748491776
+    m_Key: WhammyOversampleFactor
     m_Metadata:
       m_Items: []
-  - m_Id: 21443095007977472
-    m_Key: Header.Venues
-    m_Metadata:
-      m_Items: []
-  - m_Id: 21443167489744896
-    m_Key: DisablePerSongBackgrounds
-    m_Metadata:
-      m_Items: []
-  - m_Id: 21446097060093952
-    m_Key: DisableTextNotifications
-    m_Metadata:
-      m_Items: []
-  - m_Id: 22854215132372992
-    m_Key: Header.Calibration
-    m_Metadata:
-      m_Items: []
-  - m_Id: 22854246069559296
-    m_Key: OpenCalibrator
-    m_Metadata:
-      m_Items: []
-  - m_Id: 23598515176726528
-    m_Key: Dropdown.CameraPresets
-    m_Metadata:
-      m_Items: []
-  - m_Id: 25027136172974080
-    m_Key: Header.Input
-    m_Metadata:
-      m_Items: []
-  - m_Id: 25027162441900032
-    m_Key: MicrophoneSensitivity
-    m_Metadata:
-      m_Items: []
-  - m_Id: 25071377905475584
-    m_Key: FullscreenMode
-    m_Metadata:
-      m_Items: []
-  - m_Id: 25071429197619200
-    m_Key: Resolution
-    m_Metadata:
-      m_Items: []
-  - m_Id: 25071457018437632
-    m_Key: FullscreenMode.ExclusiveFullScreen
-    m_Metadata:
-      m_Items: []
-  - m_Id: 25071572395352064
-    m_Key: FullscreenMode.FullScreenWindow
-    m_Metadata:
-      m_Items: []
-  - m_Id: 25071721024708608
-    m_Key: FullscreenMode.MaximizedWindow
-    m_Metadata:
-      m_Items: []
-  - m_Id: 25071794185953280
-    m_Key: FullscreenMode.Windowed
-    m_Metadata:
-      m_Items: []
-  - m_Id: 25775451793645568
-    m_Key: TrackFadePosition
-    m_Metadata:
-      m_Items: []
-  - m_Id: 25775459376947200
-    m_Key: TrackFadeSize
-    m_Metadata:
-      m_Items: []
-  - m_Id: 26591864540614656
-    m_Key: KickBounce
-    m_Metadata:
-      m_Items: []
-  - m_Id: 31231598726078464
-    m_Key: ShowCursorTimer
-    m_Metadata:
-      m_Items: []
-  - m_Id: 31586592042115072
-    m_Key: PressThreshold
-    m_Metadata:
-      m_Items: []
-  - m_Id: 32040511641870336
-    m_Key: LyricBackground.Normal
-    m_Metadata:
-      m_Items: []
-  - m_Id: 32040561948352512
-    m_Key: LyricBackground.Transparent
-    m_Metadata:
-      m_Items: []
-  - m_Id: 32040568017510400
-    m_Key: LyricBackground.None
-    m_Metadata:
-      m_Items: []
-  - m_Id: 32040983111000064
-    m_Key: LyricBackground
+  - m_Id: 36111086550138880
+    m_Key: WhammyPitchShiftAmount
     m_Metadata:
       m_Items: []
   m_Metadata:
