@@ -570,14 +570,15 @@ namespace YARG.Audio.BASS
             _mixer?.GetChannel(stem)?.SetWhammyPitch(percent);
         }
 
-        public double GetPosition()
+        public double GetPosition(bool desyncCompensation = true)
         {
             if (_mixer is null) return -1;
 
-            return _mixer.GetPosition();
+            return _mixer.GetPosition(desyncCompensation);
         }
 
-        public void SetPosition(double position) => _mixer?.SetPosition(position);
+        public void SetPosition(double position, bool desyncCompensation = true)
+            => _mixer?.SetPosition(position, desyncCompensation);
 
         private void OnApplicationQuit()
         {

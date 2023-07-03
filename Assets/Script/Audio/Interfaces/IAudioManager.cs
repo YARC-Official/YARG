@@ -58,7 +58,7 @@ namespace YARG.Audio
 
         public void SetWhammyPitch(SongStem stem, float percent);
 
-        public double GetPosition();
-        public void SetPosition(double position);
+        public double GetPosition(bool desyncCompensation = true);
+        public void SetPosition(double position, bool desyncCompensation = true);
     }
 }

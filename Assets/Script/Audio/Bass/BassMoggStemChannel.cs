@@ -144,16 +144,16 @@ namespace YARG.Audio.BASS
             }
         }
 
-        public double GetPosition()
+        public double GetPosition(bool desyncCompensation = true)
         {
-            return _leadChannel.GetPosition();
+            return _leadChannel.GetPosition(desyncCompensation);
         }
 
-        public void SetPosition(double position)
+        public void SetPosition(double position, bool desyncCompensation = true)
         {
             foreach (var channel in _channels)
             {
-                channel.SetPosition(position);
+                channel.SetPosition(position, desyncCompensation);
             }
         }
 

@@ -361,16 +361,18 @@ namespace YARG.Audio.BASS
             return 0;
         }
 
-        public double GetPosition()
+        public double GetPosition(bool desyncCompensation = true)
         {
             double position = Bass.ChannelBytes2Seconds(StreamHandle, Bass.ChannelGetPosition(StreamHandle));
-            position -= GetDesyncOffset();
+            if (desyncCompensation)
+                position -= GetDesyncOffset();
             return position;
         }
 
-        public void SetPosition(double position)
+        public void SetPosition(double position, bool desyncCompensation = true)
         {
-            position += GetDesyncOffset();
+            if (desyncCompensation)
+                position += GetDesyncOffset();
 
             if (IsMixed)
             {
