@@ -113,15 +113,15 @@ namespace YARG.PlayMode
             }
         }
 
-        public StarScoreKeeper(List<NoteInfo> chart, ScoreKeeper scoreKeeper, string instrument, int ptPerNote = 25,
-            double ptSusPerBeat = 0)
+        public StarScoreKeeper(YargChart chart, List<NoteInfo> track, ScoreKeeper scoreKeeper, string instrument,
+            int ptPerNote = 25, double ptSusPerBeat = 0)
         {
             instances.Add(this);
             this.scoreKeeper = scoreKeeper;
 
             // solo sections
             List<EventInfo> soloEvents = new();
-            foreach (var ev in Play.Instance.chart.events)
+            foreach (var ev in chart.events)
             {
                 if (ev.name == $"solo_{instrument}")
                 {
@@ -131,12 +131,12 @@ namespace YARG.PlayMode
 
             // calculate and store base score
             BaseScore = 0;
-            foreach (var note in chart)
+            foreach (var note in track)
             {
                 BaseScore += ptPerNote;
                 if (note.length > .2f)
                 {
-                    BaseScore += ptSusPerBeat * Utils.InfoLengthInBeats(note, Play.Instance.chart.beats);
+                    BaseScore += ptSusPerBeat * note.GetLengthInBeats(chart.beats);
                 }
 
                 // check if note is in a solo section

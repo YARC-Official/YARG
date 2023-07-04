@@ -94,7 +94,7 @@ namespace YARG.PlayMode
             openNoteParticles.Colorize(commonTrack.FretColor(5));
 
             // initialize scoring variables
-            starsKeeper = new(Chart, scoreKeeper,
+            starsKeeper = new(Play.Instance.chart, Chart, scoreKeeper,
                 player.chosenInstrument,
                 PTS_PER_NOTE);
 

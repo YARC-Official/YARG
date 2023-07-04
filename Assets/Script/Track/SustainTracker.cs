@@ -43,7 +43,7 @@ namespace YARG.PlayMode
         public double Update(AbstractInfo note)
         {
             // TODO: account for multiple tempo changes between this frame and last frame (for lag spikes)
-            double remainingBeats = note.LengthInBeats - noteProgress[note];
+            double remainingBeats = note.GetLengthInBeats(_beats) - noteProgress[note];
             // pt/b * s * b/s = pt
             double beatsThisFrame = math.min(Time.deltaTime * Play.Instance.CurrentBeatsPerSecond, remainingBeats);
             noteProgress[note] += beatsThisFrame;

@@ -110,7 +110,7 @@ namespace YARG.PlayMode
 
             // initialize scoring variables
             ptsPerNote = proInst.Contains(player.chosenInstrument) ? 60 : 50;
-            starsKeeper = new(Chart, scoreKeeper,
+            starsKeeper = new(Play.Instance.chart, Chart, scoreKeeper,
                 player.chosenInstrument,
                 ptsPerNote);
 

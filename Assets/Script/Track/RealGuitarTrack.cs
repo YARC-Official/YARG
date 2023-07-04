@@ -89,7 +89,7 @@ namespace YARG.PlayMode
                 sustainParticles[i].Colorize(commonTrack.FretColor(i));
             }
 
-            starsKeeper = new(Chart, scoreKeeper,
+            starsKeeper = new(Play.Instance.chart, Chart, scoreKeeper,
                 player.chosenInstrument,
                 PTS_PER_NOTE, SUSTAIN_PTS_PER_BEAT);
         }
