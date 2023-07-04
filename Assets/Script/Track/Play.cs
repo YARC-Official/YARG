@@ -66,6 +66,23 @@ namespace YARG.PlayMode
             remove => _onSongEnd -= value;
         }
 
+        public delegate void ChartLoadAction(YargChart chart);
+
+        private static event ChartLoadAction _onChartLoaded;
+        public static event ChartLoadAction OnChartLoaded
+        {
+            add
+            {
+                _onChartLoaded += value;
+
+                // Invoke now if already loaded, this event is only fired once
+                var chart = Instance?.chart;
+                if (chart != null)
+                    value?.Invoke(chart);
+            }
+            remove => _onChartLoaded -= value;
+        }
+
         public delegate void PauseStateChangeAction(bool pause);
 
         public static event PauseStateChangeAction OnPauseToggle;
@@ -90,7 +107,7 @@ namespace YARG.PlayMode
         private float audioLength;
         public float SongLength { get; private set; }
 
-        public YargChart chart;
+        private YargChart chart;
 
         [Space]
         [SerializeField]
@@ -210,6 +227,7 @@ namespace YARG.PlayMode
             {
                 LoadChart();
             });
+            _onChartLoaded?.Invoke(chart);
 
             // Spawn tracks
             GameUI.Instance.SetLoadingText("Spawning tracks...");

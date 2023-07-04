@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Audio;
+using YARG.Data;
 using YARG.Gameplay;
 using YARG.Song;
 
@@ -45,15 +46,24 @@ namespace YARG.PlayMode
         {
             height = GetComponent<RectTransform>().rect.height;
 
-            if (Play.Instance.SongStarted)
+            // Disable updates until the song starts
+            enabled = false;
+            Play.OnChartLoaded += OnChartLoaded;
+            Play.OnSongStart += OnSongStart;
+        }
+
+        private void OnChartLoaded(YargChart chart)
+        {
+            Play.OnChartLoaded -= OnChartLoaded;
+
+            // Find measures
+            var beats = chart.beats;
+            foreach (var ev in beats)
             {
-                OnSongStart();
-            }
-            else
-            {
-                // Disable updates until the song starts
-                enabled = false;
-                Play.OnSongStart += OnSongStart;
+                if (ev.Style == BeatStyle.Measure)
+                {
+                    bars.Add(ev.Time);
+                }
             }
         }
 
@@ -63,20 +73,6 @@ namespace YARG.PlayMode
 
             // Enable updates
             enabled = true;
-
-            OnSongStart();
-        }
-
-        private void OnSongStart()
-        {
-            var beats = Play.Instance.chart.beats;
-            foreach (var ev in beats)
-            {
-                if (ev.Style == BeatStyle.Measure)
-                {
-                    bars.Add(ev.Time);
-                }
-            }
         }
 
         private void OnScoreChange()

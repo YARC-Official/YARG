@@ -311,16 +311,10 @@ namespace YARG.PlayMode
             _perfTextSizer = new PerformanceTextScaler(animTimeLength);
             preformaceText.color = Color.white;
 
-            if (Play.Instance.SongStarted)
-            {
-                OnSongStart();
-            }
-            else
-            {
-                // Disable updates until the song starts
-                enabled = false;
-                Play.OnSongStart += OnSongStart;
-            }
+            // Disable updates until the song starts
+            enabled = false;
+            Play.OnSongStart += OnSongStart;
+            Play.OnChartLoaded += OnChartLoaded;
         }
 
         public void SetPlayerScore()
@@ -376,62 +370,29 @@ namespace YARG.PlayMode
             Play.BeatEvent -= BeatAction;
         }
 
-        private void OnSongStart(SongEntry song)
+        private void OnChartLoaded(YargChart chart)
         {
-            Play.OnSongStart -= OnSongStart;
+            Play.OnChartLoaded -= OnChartLoaded;
 
-            // Enable updates
-            enabled = true;
-
-            OnSongStart();
-        }
-
-        private void OnSongStart()
-        {
             // Get chart(s)
             if (_micInputs[0].Player.chosenInstrument == "harmVocals")
             {
-                _charts = Play.Instance.chart.harmLyrics.ToList();
+                _charts = chart.harmLyrics.ToList();
             }
             else
             {
-                _charts = new List<List<LyricInfo>>
-                {
-                    Play.Instance.chart.realLyrics
-                };
-            }
-
-            // Set up harmony vocal track
-            if (_micInputs[0].Player.chosenInstrument == "harmVocals")
-            {
-                trackRenderer.material.SetTexture("_BaseMap", harmonyTexture);
+                _charts = new List<List<LyricInfo>>() { chart.realLyrics };
             }
 
             // Get count of harmony parts
-            int harmonyCount = 1;
-            if (_micInputs[0].Player.chosenInstrument == "harmVocals")
-            {
-                harmonyCount = Play.Instance.chart.harmLyrics.Length;
-            }
+            int harmonyCount = _charts.Count;
 
             // Set up chart indices
             _visualChartIndex = new int[harmonyCount];
             _chartIndex = new int[harmonyCount];
 
-            // Set up bars
-            for (int i = 0; i < 3; i++)
-            {
-                barImages[i].color = HarmonicColors[i];
-            }
-
-            // Hide bars if solo
-            if (harmonyCount == 1)
-            {
-                barContainer.SetActive(false);
-            }
-
             // Set up sing progresses
-            int botChartIndex = 0;
+            // int botChartIndex = 0;
             foreach (var playerInfo in _micInputs)
             {
                 playerInfo.SingProgresses = new float[harmonyCount];
@@ -452,17 +413,10 @@ namespace YARG.PlayMode
             _sectionSingTime = new float[harmonyCount];
             CalculateSectionSingTime(0f);
 
-            // Size starpower overlay
-            if (_charts.Count > 1)
-            {
-                starpowerOverlay.transform.localPosition = starpowerOverlay.transform.localPosition.WithZ(0f);
-                starpowerOverlay.transform.localScale = starpowerOverlay.transform.localScale.WithY(1.18f);
-            }
-
             // Queue up events
             int phrases = 0;
             string phraseEndName = EndPhraseName;
-            foreach (var eventInfo in Play.Instance.chart.events)
+            foreach (var eventInfo in chart.events)
             {
                 if (eventInfo.name == phraseEndName)
                 {
@@ -480,6 +434,39 @@ namespace YARG.PlayMode
             // note: micInput.Count = number of players on vocals
             _ptsPerPhrase = _maxPoints[(int) _micInputs[0].Player.chosenDifficulty];
             _starsKeeper = new(_scoreKeeper, _micInputs[0].Player.chosenInstrument, phrases, _ptsPerPhrase);
+        }
+
+        private void OnSongStart(SongEntry song)
+        {
+            Play.OnSongStart -= OnSongStart;
+
+            // Enable updates
+            enabled = true;
+
+            // Set up harmony vocal track
+            if (_micInputs[0].Player.chosenInstrument == "harmVocals")
+            {
+                trackRenderer.material.SetTexture("_BaseMap", harmonyTexture);
+            }
+
+            // Set up bars
+            for (int i = 0; i < 3; i++)
+            {
+                barImages[i].color = HarmonicColors[i];
+            }
+
+            // Hide bars if solo
+            if (_charts.Count == 1)
+            {
+                barContainer.SetActive(false);
+            }
+
+            // Size starpower overlay
+            if (_charts.Count > 1)
+            {
+                starpowerOverlay.transform.localPosition = starpowerOverlay.transform.localPosition.WithZ(0f);
+                starpowerOverlay.transform.localScale = starpowerOverlay.transform.localScale.WithY(1.18f);
+            }
         }
 
         private void Update()

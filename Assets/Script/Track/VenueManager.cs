@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
+using YARG.Data;
 using YARG.Song;
 
 namespace YARG.PlayMode
@@ -8,15 +10,31 @@ namespace YARG.PlayMode
     {
         public static event Action<string> OnEventReceive;
 
-        private int _eventIndex;
+        private const string VENUE_PREFIX = "venue_";
+
+        private int _eventIndex = 0;
+        private List<EventInfo> _venueEvents = new();
+        private EventInfo CurrentEvent => _eventIndex < _venueEvents.Count ? _venueEvents[_eventIndex] : null;
 
         private void Start()
         {
-            if (!Play.Instance.SongStarted)
+            // Disable updates until the song starts
+            enabled = false;
+            Play.OnChartLoaded += OnChartLoaded;
+            Play.OnSongStart += OnSongStart;
+        }
+
+        private void OnChartLoaded(YargChart chart)
+        {
+            Play.OnChartLoaded -= OnChartLoaded;
+
+            // Queue up events
+            foreach (var eventInfo in chart.events)
             {
-                // Disable updates until the song starts
-                enabled = false;
-                Play.OnSongStart += OnSongStart;
+                if (eventInfo.name.StartsWith(VENUE_PREFIX))
+                {
+                    _venueEvents.Add(eventInfo);
+                }
             }
         }
 
@@ -30,17 +48,10 @@ namespace YARG.PlayMode
 
         private void Update()
         {
-            var chart = Play.Instance.chart;
-
             // Update venue events
-            while (chart.events.Count > _eventIndex && chart.events[_eventIndex].time <= Play.Instance.SongTime)
+            while (CurrentEvent != null && CurrentEvent.time <= Play.Instance.SongTime)
             {
-                var name = chart.events[_eventIndex].name;
-                if (name.StartsWith("venue_"))
-                {
-                    OnEventReceive?.Invoke(name);
-                }
-
+                OnEventReceive?.Invoke(name);
                 _eventIndex++;
             }
         }

@@ -45,30 +45,16 @@ namespace YARG.UI
                     break;
             }
 
-            if (Play.Instance.SongStarted)
-            {
-                OnSongStart();
-            }
-            else
-            {
-                // Disable updates until the song starts
-                enabled = false;
-                Play.OnSongStart += OnSongStart;
-            }
+            // Disable updates until the song starts
+            enabled = false;
+            Play.OnChartLoaded += OnChartLoaded;
+            Play.OnSongStart += OnSongStart;
         }
 
-        private void OnSongStart(SongEntry song)
+        private void OnChartLoaded(YargChart chart)
         {
-            Play.OnSongStart -= OnSongStart;
+            Play.OnChartLoaded -= OnChartLoaded;
 
-            // Enable updates
-            enabled = true;
-
-            OnSongStart();
-        }
-
-        private void OnSongStart()
-        {
             // Temporary
             bool playingVocals = false;
             foreach (var player in PlayerManager.players)
@@ -80,11 +66,19 @@ namespace YARG.UI
             }
 
             // Disable if there are no lyrics or someone is singing
-            _lyrics = Play.Instance.chart.genericLyrics;
+            _lyrics = chart.genericLyrics;
             if (_lyrics.Count <= 0 || playingVocals)
             {
                 gameObject.SetActive(false);
             }
+        }
+
+        private void OnSongStart(SongEntry song)
+        {
+            Play.OnSongStart -= OnSongStart;
+
+            // Enable updates
+            enabled = true;
         }
 
         private void Update()
