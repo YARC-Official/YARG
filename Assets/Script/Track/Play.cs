@@ -38,8 +38,33 @@ namespace YARG.PlayMode
 
         public delegate void SongStateChangeAction(SongEntry songInfo);
 
-        public static event SongStateChangeAction OnSongStart;
-        public static event SongStateChangeAction OnSongEnd;
+        private static event SongStateChangeAction _onSongStart;
+        public static event SongStateChangeAction OnSongStart
+        {
+            add
+            {
+                _onSongStart += value;
+
+                // Invoke now if already started, this event is only fired once
+                if (Instance?.SongStarted ?? false)
+                    value?.Invoke(Instance.Song);
+            }
+            remove => _onSongStart -= value;
+        }
+
+        private static event SongStateChangeAction _onSongEnd;
+        public static event SongStateChangeAction OnSongEnd
+        {
+            add
+            {
+                _onSongEnd += value;
+
+                // Invoke now if already ended, this event is only fired once
+                if (Instance?.endReached ?? false)
+                    value?.Invoke(Instance.Song);
+            }
+            remove => _onSongEnd -= value;
+        }
 
         public delegate void PauseStateChangeAction(bool pause);
 
@@ -196,7 +221,7 @@ namespace YARG.PlayMode
 
             // Fire song start event
             SongStarted = true;
-            OnSongStart?.Invoke(Song);
+            _onSongStart?.Invoke(Song);
 
             // Hide loading screen
             GameUI.Instance.SetLoadingText("");
@@ -604,13 +629,11 @@ namespace YARG.PlayMode
             GlobalVariables.AudioManager.SongEnd -= OnEndReached;
             GlobalVariables.AudioManager.UnloadSong();
 
-            // Call events
-            OnSongEnd?.Invoke(Song);
-
             // Unpause just in case
             Time.timeScale = 1f;
 
-            OnSongEnd?.Invoke(Song);
+            // Call events
+            _onSongEnd?.Invoke(Song);
 
             // run animation + save if we've reached end of song
             if (showResultScreen)
