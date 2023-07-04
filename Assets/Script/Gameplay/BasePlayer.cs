@@ -6,7 +6,7 @@ using YARG.Player;
 
 namespace YARG.Gameplay
 {
-    public abstract class BasePlayer<TEngine, TNote> : MonoBehaviour where TEngine : BaseEngine where TNote : BaseNote
+    public abstract class BasePlayer<TEngine, TNote> : MonoBehaviour where TEngine : BaseEngine where TNote : Note<TNote>
     {
 
         private bool _isInitialized;
