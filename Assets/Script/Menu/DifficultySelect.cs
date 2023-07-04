@@ -239,7 +239,7 @@ namespace YARG.UI
                 }
 
                 // Play song
-                GlobalVariables.Instance.LoadScene(SceneIndex.PLAY);
+                GlobalVariables.Instance.LoadScene(SceneIndex.Play);
             }
             else
             {

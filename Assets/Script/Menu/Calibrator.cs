@@ -231,7 +231,7 @@ namespace YARG
         {
             if (_state == State.Starting)
             {
-                GlobalVariables.Instance.LoadScene(SceneIndex.MENU);
+                GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
             }
             else
             {

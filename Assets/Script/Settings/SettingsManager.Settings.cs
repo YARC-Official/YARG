@@ -123,7 +123,7 @@ namespace YARG.Settings
 
             public void OpenCalibrator()
             {
-                GlobalVariables.Instance.LoadScene(SceneIndex.CALIBRATION);
+                GlobalVariables.Instance.LoadScene(SceneIndex.Calibration);
                 SettingsMenu.Instance.gameObject.SetActive(false);
             }
 

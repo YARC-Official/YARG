@@ -158,7 +158,7 @@ namespace YARG.UI
         private void OnRestartSelected()
         {
             GlobalVariables.AudioManager.UnloadSong();
-            GlobalVariables.Instance.LoadScene(SceneIndex.PLAY);
+            GlobalVariables.Instance.LoadScene(SceneIndex.Play);
             Play.Instance.Paused = false;
         }
 

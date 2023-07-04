@@ -175,7 +175,7 @@ namespace YARG
                 out var song))
             {
                 GlobalVariables.Instance.SelectedSong = song;
-                GlobalVariables.Instance.LoadScene(SceneIndex.PLAY);
+                GlobalVariables.Instance.LoadScene(SceneIndex.Play);
             }
         }
 

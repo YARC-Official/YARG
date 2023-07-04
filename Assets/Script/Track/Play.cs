@@ -690,7 +690,7 @@ namespace YARG.PlayMode
             }
 
             MainMenu.showSongSelect = toSongSelect;
-            GlobalVariables.Instance.LoadScene(SceneIndex.MENU);
+            GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
         }
     }
 }
