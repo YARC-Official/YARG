@@ -677,7 +677,7 @@ namespace YARG.PlayMode
                 float percent = current.enabled ? Mathf.Clamp(current.percent, 0f, 1f) : 0f;
                 // The pitch is always set regardless of the enable state, seems like it prevents
                 // issues with whammiable stems becoming muddy over time
-                GameManager.AudioManager.SetWhammyPitch(stem, percent);
+                GlobalVariables.AudioManager.SetWhammyPitch(stem, percent);
             }
         }
 
