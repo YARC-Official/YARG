@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using MoonscraperChartEditor.Song;
 using MoonscraperChartEditor.Song.IO;
@@ -135,7 +136,11 @@ namespace YARG.PlayMode
         private void Awake()
         {
             Instance = this;
+        }
 
+        private void Start()
+        {
+            // Reset score stuff
             ScoreKeeper.Reset();
             StarScoreKeeper.Reset();
 
@@ -144,25 +149,30 @@ namespace YARG.PlayMode
             Navigator.Instance.ForceHideMusicPlayer();
             Navigator.Instance.PopAllSchemes();
 
-            // Song
-            StartSong();
+            // Load song
+            // (disable updates until loaded)
+            enabled = false;
+            StartCoroutine(StartSong().ToCoroutine());
         }
 
-        private void StartSong()
+        private async UniTask StartSong()
         {
             GameUI.Instance.SetLoadingText("Loading audio...");
 
-            // Load MOGG if CON, otherwise load stems
-            if (Song is ExtractedConSongEntry rawConSongEntry)
+            await UniTask.RunOnThreadPool(() =>
             {
-                GlobalVariables.AudioManager.LoadMogg(rawConSongEntry, speed);
-            }
-            else
-            {
-                var stems = AudioHelpers.GetSupportedStems(Song.Location);
+                // Load MOGG if CON, otherwise load stems
+                if (Song is ExtractedConSongEntry rawConSongEntry)
+                {
+                    GlobalVariables.AudioManager.LoadMogg(rawConSongEntry, speed);
+                }
+                else
+                {
+                    var stems = AudioHelpers.GetSupportedStems(Song.Location);
 
-                GlobalVariables.AudioManager.LoadSong(stems, speed);
-            }
+                    GlobalVariables.AudioManager.LoadSong(stems, speed);
+                }
+            });
 
             // Get song length
             audioLength = GlobalVariables.AudioManager.AudioLengthF;
@@ -171,7 +181,115 @@ namespace YARG.PlayMode
             GameUI.Instance.SetLoadingText("Loading chart...");
 
             // Load chart (from midi, upgrades, etc.)
-            LoadChart();
+            await UniTask.RunOnThreadPool(() =>
+            {
+                LoadChart();
+            });
+
+            // Spawn tracks
+            GameUI.Instance.SetLoadingText("Spawning tracks...");
+            await SpawnTracks();
+
+            // Load background (venue, video, image, etc.)
+            GameUI.Instance.SetLoadingText("Loading background...");
+            await LoadBackground();
+
+            // Fire song start event
+            SongStarted = true;
+            OnSongStart?.Invoke(Song);
+
+            // Hide loading screen
+            GameUI.Instance.SetLoadingText("");
+
+            realSongTime = SONG_START_OFFSET * speed;
+            StartCoroutine(StartAudio());
+
+            enabled = true;
+        }
+
+        private async UniTask LoadBackground()
+        {
+            var typePathPair = VenueLoader.GetVenuePath(Song);
+            if (typePathPair == null)
+            {
+                return;
+            }
+
+            var type = typePathPair.Value.Type;
+            var path = typePathPair.Value.Path;
+
+            switch (type)
+            {
+                case VenueType.Yarground:
+                    var bundle = await AssetBundle.LoadFromFileAsync(path);
+
+                    // KEEP THIS PATH LOWERCASE
+                    // Breaks things for other platforms, because Unity
+                    var bg = (GameObject)await bundle.LoadAssetAsync<GameObject>(BundleBackgroundManager.BACKGROUND_PREFAB_PATH
+                        .ToLowerInvariant());
+
+                    // Fix for non-Windows machines
+                    // Probably there's a better way to do this.
+#if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+					Renderer[] renderers = bg.GetComponentsInChildren<Renderer>();
+
+					foreach (Renderer renderer in renderers) {
+						Material[] materials = renderer.sharedMaterials;
+
+						for (int i = 0; i < materials.Length; i++) {
+							Material material = materials[i];
+							material.shader = Shader.Find(material.shader.name);
+						}
+					}
+#endif
+
+                    var bgInstance = Instantiate(bg);
+
+                    bgInstance.GetComponent<BundleBackgroundManager>().Bundle = bundle;
+                    break;
+                case VenueType.Video:
+                    GameUI.Instance.videoPlayer.url = path;
+                    GameUI.Instance.videoPlayer.enabled = true;
+                    GameUI.Instance.videoPlayer.Prepare();
+                    break;
+                case VenueType.Image:
+                    var png = await ImageHelper.LoadTextureFromFileAsync(path);
+                    GameUI.Instance.background.texture = png;
+                    break;
+            }
+        }
+
+        private void LoadChart()
+        {
+            // Parse
+
+            MoonSong moonSong = null;
+            if (Song.NotesFile.EndsWith(".chart"))
+            {
+                Debug.Log("Reading .chart file");
+                moonSong = ChartReader.ReadChart(Path.Combine(Song.Location, Song.NotesFile));
+            }
+
+            chart = new YargChart(moonSong);
+            if (Song.NotesFile.EndsWith(".mid"))
+            {
+                // Parse
+                var parser = new MidiParser(Song);
+                chart.InitializeArrays();
+                parser.Parse(chart);
+            }
+            else if (Song.NotesFile.EndsWith(".chart"))
+            {
+                var handler = new BeatHandler(moonSong);
+                handler.GenerateBeats();
+                chart.beats = handler.Beats;
+            }
+
+            // initialize current tempo
+            if (chart.beats.Count > 2)
+            {
+                CurrentBeatsPerSecond = chart.beats[1].Time - chart.beats[0].Time;
+            }
 
             // Adjust song length if needed
             // The [end] event is allowed to make the chart shorter (but not longer)
@@ -210,9 +328,10 @@ namespace YARG.PlayMode
 
             // Finally, append some additional time so the song doesn't just end immediately
             SongLength += SONG_END_DELAY * speed;
+        }
 
-            GameUI.Instance.SetLoadingText("Spawning tracks...");
-
+        private async UniTask SpawnTracks()
+        {
             // Spawn tracks
             _tracks = new List<AbstractTrack>();
             int trackIndex = 0;
@@ -243,110 +362,13 @@ namespace YARG.PlayMode
                     continue;
                 }
 
-                var prefab = Addressables.LoadAssetAsync<GameObject>(trackPath).WaitForCompletion();
-                var track = Instantiate(prefab, new Vector3(trackIndex * 25f, 100f, 0f), prefab.transform.rotation);
-                _tracks.Add(track.GetComponent<AbstractTrack>());
-                _tracks[trackIndex].player = player;
+                var prefab = await Addressables.LoadAssetAsync<GameObject>(trackPath);
+                var trackfab = Instantiate(prefab, new Vector3(trackIndex * 25f, 100f, 0f), prefab.transform.rotation);
+                var track = trackfab.GetComponent<AbstractTrack>();
+                track.player = player;
+                _tracks.Add(track);
 
                 trackIndex++;
-            }
-
-            // Load background (venue, video, image, etc.)
-            LoadBackground();
-
-            SongStarted = true;
-
-            // Hide loading screen
-            GameUI.Instance.SetLoadingText("");
-
-            realSongTime = SONG_START_OFFSET * speed;
-            StartCoroutine(StartAudio());
-
-            OnSongStart?.Invoke(Song);
-        }
-
-        private void LoadBackground()
-        {
-            var typePathPair = VenueLoader.GetVenuePath(Song);
-            if (typePathPair == null)
-            {
-                return;
-            }
-
-            var type = typePathPair.Value.Type;
-            var path = typePathPair.Value.Path;
-
-            switch (type)
-            {
-                case VenueType.Yarground:
-                    var bundle = AssetBundle.LoadFromFile(path);
-
-                    // KEEP THIS PATH LOWERCASE
-                    // Breaks things for other platforms, because Unity
-                    var bg = bundle.LoadAsset<GameObject>(BundleBackgroundManager.BACKGROUND_PREFAB_PATH
-                        .ToLowerInvariant());
-
-                    // Fix for non-Windows machines
-                    // Probably there's a better way to do this.
-#if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
-					Renderer[] renderers = bg.GetComponentsInChildren<Renderer>();
-
-					foreach (Renderer renderer in renderers) {
-						Material[] materials = renderer.sharedMaterials;
-
-						for (int i = 0; i < materials.Length; i++) {
-							Material material = materials[i];
-							material.shader = Shader.Find(material.shader.name);
-						}
-					}
-#endif
-
-                    var bgInstance = Instantiate(bg);
-
-                    bgInstance.GetComponent<BundleBackgroundManager>().Bundle = bundle;
-                    break;
-                case VenueType.Video:
-                    GameUI.Instance.videoPlayer.url = path;
-                    GameUI.Instance.videoPlayer.enabled = true;
-                    GameUI.Instance.videoPlayer.Prepare();
-                    break;
-                case VenueType.Image:
-                    var png = ImageHelper.LoadTextureFromFile(path);
-                    GameUI.Instance.background.texture = png;
-                    break;
-            }
-        }
-
-        private void LoadChart()
-        {
-            // Parse
-
-            MoonSong moonSong = null;
-            if (Song.NotesFile.EndsWith(".chart"))
-            {
-                Debug.Log("Reading .chart file");
-                moonSong = ChartReader.ReadChart(Path.Combine(Song.Location, Song.NotesFile));
-            }
-
-            chart = new YargChart(moonSong);
-            if (Song.NotesFile.EndsWith(".mid"))
-            {
-                // Parse
-                var parser = new MidiParser(Song);
-                chart.InitializeArrays();
-                parser.Parse(chart);
-            }
-            else if (Song.NotesFile.EndsWith(".chart"))
-            {
-                var handler = new BeatHandler(moonSong);
-                handler.GenerateBeats();
-                chart.beats = handler.Beats;
-            }
-
-            // initialize current tempo
-            if (chart.beats.Count > 2)
-            {
-                CurrentBeatsPerSecond = chart.beats[1].Time - chart.beats[0].Time;
             }
         }
 
@@ -396,11 +418,6 @@ namespace YARG.PlayMode
 
         private void Update()
         {
-            if (!SongStarted)
-            {
-                return;
-            }
-
             // Pausing
             if (Keyboard.current.escapeKey.wasPressedThisFrame)
             {

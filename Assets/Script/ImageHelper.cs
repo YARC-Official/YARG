@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Reflection;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace TrombLoader.Helpers
@@ -34,6 +35,18 @@ namespace TrombLoader.Helpers
         public static Texture2D LoadTextureFromFile(string path)
         {
             if (File.Exists(path)) return LoadTextureRaw(File.ReadAllBytes(path));
+
+            return null;
+        }
+
+        /// <summary>
+        /// Load a texture asynchronously, given a file path.
+        /// </summary>
+        /// <param name="path">Path to the file.</param>
+        /// <returns>A Texture2D, or null if the file cannot be found.</returns>
+        public static async UniTask<Texture2D> LoadTextureFromFileAsync(string path)
+        {
+            if (File.Exists(path)) return LoadTextureRaw(await File.ReadAllBytesAsync(path));
 
             return null;
         }
