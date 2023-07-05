@@ -43,15 +43,20 @@ namespace YARG
 
         private void Awake()
         {
-            Instance = this;
-            Players = new List<YargPlayer>();
-
             Debug.Log($"YARG {Constants.VERSION_TAG}");
-
+            Instance = this;
             PathHelper.Init();
+
+            int profileCount = ProfileContainer.LoadProfiles();
+            Debug.Log($"Loaded {profileCount} profiles");
+
+            int savedCount = ProfileContainer.SaveProfiles();
+            Debug.Log($"Saved {savedCount} profiles");
 
             AudioManager = gameObject.AddComponent<BassAudioManager>();
             AudioManager.Initialize();
+
+            Players = new List<YargPlayer>();
 
             Shader.SetGlobalFloat("_IsFading", 1f);
 
