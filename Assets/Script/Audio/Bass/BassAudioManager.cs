@@ -32,6 +32,8 @@ namespace YARG.Audio.BASS
         public float CurrentPositionF => (float) GetPosition();
         public float AudioLengthF { get; private set; }
 
+        private bool _isInitialized;
+
         public event Action SongEnd
         {
             add
@@ -77,6 +79,12 @@ namespace YARG.Audio.BASS
 
         public void Initialize()
         {
+            if (_isInitialized)
+            {
+                Debug.LogError("BASS is already initialized! An error has occurred somewhere and Unity must be restarted.");
+                return;
+            }
+
             Debug.Log("Initializing BASS...");
             string bassPath = GetBassDirectory();
             string opusLibDirectory = Path.Combine(bassPath, "bassopus");
@@ -107,7 +115,11 @@ namespace YARG.Audio.BASS
             if (!Bass.Init(-1, 44100, DeviceInitFlags.Default | DeviceInitFlags.Latency, IntPtr.Zero))
             {
                 Debug.LogError("Failed to initialize BASS");
-                Debug.LogError($"Bass Error: {Bass.LastError}");
+                Debug.LogError($"Error: {Bass.LastError}");
+                if (Bass.LastError == Errors.Already)
+                {
+                    Debug.LogError("BASS is already initialized! An error has occurred somewhere and Unity must be restarted.");
+                }
                 return;
             }
 
@@ -123,6 +135,8 @@ namespace YARG.Audio.BASS
             Debug.Log($"Playback Buffer Length: {Bass.PlaybackBufferLength}");
 
             Debug.Log($"Current Device: {Bass.GetDeviceInfo(Bass.CurrentDevice).Name}");
+
+            _isInitialized = true;
         }
 
         public void Unload()
@@ -580,9 +594,15 @@ namespace YARG.Audio.BASS
         public void SetPosition(double position, bool desyncCompensation = true)
             => _mixer?.SetPosition(position, desyncCompensation);
 
-        private void OnApplicationQuit()
+        private void OnDestroy()
         {
+            if (!_isInitialized)
+            {
+                return;
+            }
+
             Unload();
+            _isInitialized = false;
         }
 
         private static string GetBassDirectory()
