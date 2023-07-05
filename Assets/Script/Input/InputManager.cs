@@ -11,9 +11,9 @@ namespace YARG.Input
     public class InputManager : MonoBehaviour
     {
 
-        public delegate void GameInputEvent<TAction>(YargPlayer player, GameInput<TAction> action) where TAction : Enum;
+        public delegate void GameInputEvent(YargPlayer player, GameInput input);
 
-        public static event GameInputEvent<Enum> OnGameInput;
+        public static event GameInputEvent OnGameInput;
 
         private void Start()
         {
@@ -34,16 +34,19 @@ namespace YARG.Input
             {
                 var player = GlobalVariables.Instance.Players[i];
 
-                // If device paired to current player's profile in some way...
-                // just example code don't treat this as exact.
-                if (InputMappings.GetMapForProfile(player.Profile).Contains(device))
+                var profileBinds = BindsContainer.GetBindsForProfile(player.Profile);
+
+                // Profile does not have this device mapped to anything.
+                if (!profileBinds.ContainsDevice(device))
                 {
-                    foreach (var control in eventPtr.EnumerateChangedControls())
+                    continue;
+                }
+
+                foreach (var control in eventPtr.EnumerateChangedControls())
+                {
+                    if(profileBinds.GetBindsForDevice(device).ContainsControl(control))
                     {
-                        if(control in mappingsForPlayer)
-                        {
-                            FireGameInput(player, eventPtr, control);
-                        }
+                        FireGameInput(player, eventPtr, control);
                     }
                 }
             }
@@ -72,7 +75,7 @@ namespace YARG.Input
                 // if player gamemode == some instrument
                 // create correct input
 
-                var gameInput = new GuitarInput(action, (float)eventPtr.time, phase);
+                var gameInput = new GameInput((int)action, eventPtr.time, phase);
                 OnGameInput?.Invoke(player, gameInput);
             }
         }

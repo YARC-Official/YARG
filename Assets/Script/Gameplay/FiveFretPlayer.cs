@@ -40,7 +40,7 @@ namespace YARG.Gameplay
             // input.onGameInput -= OnGameInput;
         }
 
-        private void OnGameInput(YargPlayer inputPlayer, GuitarInput input)
+        private void OnGameInput(YargPlayer inputPlayer, GameInput input)
         {
             if(inputPlayer != Player)
             {
