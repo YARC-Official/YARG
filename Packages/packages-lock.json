@@ -14,6 +14,13 @@
       "dependencies": {},
       "hash": "305695ad5d194dda0d6b00777c2459202a1ef4ea"
     },
+    "com.github-glitchenzo.nugetforunity": {
+      "version": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity#v3.1.3",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "f9fb82dbaa73fd209d6565775b57ee6268645ea2"
+    },
     "com.marijnzwemmer.unity-toolbar-extender": {
       "version": "https://github.com/marijnz/unity-toolbar-extender.git",
       "depth": 0,
