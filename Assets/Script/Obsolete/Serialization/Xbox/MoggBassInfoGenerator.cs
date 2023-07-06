@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -246,14 +246,11 @@ namespace YARG.Serialization
 
             for (int i = 0; i < PanData.Length; i++)
             {
-                float theta = PanData[i] * ((float) Math.PI / 4);
-                float ratioL = (float) (Math.Sqrt(2) / 2) * ((float) Math.Cos(theta) - (float) Math.Sin(theta));
-                float ratioR = (float) (Math.Sqrt(2) / 2) * ((float) Math.Cos(theta) + (float) Math.Sin(theta));
-
+                float theta = (PanData[i] + 1) * ((float) Math.PI / 4);
                 float volRatio = (float) Math.Pow(10, VolumeData[i] / 20);
 
-                song.MatrixRatios[i, 0] = volRatio * ratioL;
-                song.MatrixRatios[i, 1] = volRatio * ratioR;
+                song.MatrixRatios[i, 0] = volRatio * (float) Math.Cos(theta);
+                song.MatrixRatios[i, 1] = volRatio * (float) Math.Sin(theta);
             }
 
             // END BASS Matrix calculation ------------------------------------------------------------------
