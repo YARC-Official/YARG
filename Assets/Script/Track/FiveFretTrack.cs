@@ -5,6 +5,7 @@ using YARG.Data;
 using YARG.Player.Input;
 using YARG.Pools;
 using YARG.Settings;
+using YARG.Song;
 using YARG.Util;
 
 namespace YARG.PlayMode
@@ -57,8 +58,22 @@ namespace YARG.PlayMode
         private bool whammyLastNote;
         private float whammyAnimationAmount;
 
-        protected override void StartTrack()
+        protected override void OnChartLoaded(YargChart chart)
         {
+            base.OnChartLoaded(chart);
+
+            // initialize scoring variables
+            starsKeeper = new(chart, Notes, scoreKeeper,
+                player.chosenInstrument,
+                PTS_PER_NOTE);
+
+            noteCount = GetNoteCount();
+        }
+
+        protected override void OnSongStart(SongEntry song)
+        {
+            base.OnSongStart(song);
+
             notePool.player = player;
             genericPool.player = player;
 
@@ -92,13 +107,6 @@ namespace YARG.PlayMode
             }
 
             openNoteParticles.Colorize(commonTrack.FretColor(5));
-
-            // initialize scoring variables
-            starsKeeper = new(Chart, scoreKeeper,
-                player.chosenInstrument,
-                PTS_PER_NOTE);
-
-            noteCount = GetChartCount();
         }
 
         protected override void OnDestroy()
@@ -113,25 +121,19 @@ namespace YARG.PlayMode
 
         protected override void UpdateTrack()
         {
-            // Ignore everything else until the song starts
-            if (!Play.Instance.SongStarted)
-            {
-                return;
-            }
-
             // Since chart is sorted, this is guaranteed to work
-            while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= TrackStartTime)
+            while (Notes.Count > visualNoteIndex && Notes[visualNoteIndex].time <= TrackStartTime)
             {
-                var noteInfo = Chart[visualChartIndex];
+                var noteInfo = Notes[visualNoteIndex];
 
                 SpawnNote(noteInfo, TrackStartTime);
-                visualChartIndex++;
+                visualNoteIndex++;
             }
 
             // Update expected input
-            while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= HitMarginStartTime)
+            while (Notes.Count > inputNoteIndex && Notes[inputNoteIndex].time <= HitMarginStartTime)
             {
-                var noteInfo = Chart[inputChartIndex];
+                var noteInfo = Notes[inputNoteIndex];
 
                 var peeked = expectedHits.ReversePeekOrNull();
                 if (peeked?[0].time == noteInfo.time)
@@ -149,7 +151,7 @@ namespace YARG.PlayMode
                     expectedHits.Enqueue(l);
                 }
 
-                inputChartIndex++;
+                inputNoteIndex++;
             }
 
             // Update held notes
@@ -282,7 +284,7 @@ namespace YARG.PlayMode
                 lastHitNote = null;
                 foreach (var hit in missedChord)
                 {
-                    hitChartIndex++;
+                    hitNoteIndex++;
                     notePool.MissNote(hit);
                     if (hit.fret < 5) extendedSustain[hit.fret] = false;
                 }
@@ -365,7 +367,7 @@ namespace YARG.PlayMode
                             var missedChord = expectedHits.Dequeue();
                             foreach (var hit in missedChord)
                             {
-                                hitChartIndex++;
+                                hitNoteIndex++;
                                 notePool.MissNote(hit);
                             }
                         }
@@ -414,7 +416,7 @@ namespace YARG.PlayMode
                         var missedChord = expectedHits.Dequeue();
                         foreach (var hit in missedChord)
                         {
-                            hitChartIndex++;
+                            hitNoteIndex++;
                             notePool.MissNote(hit);
                         }
                     }
@@ -472,7 +474,7 @@ namespace YARG.PlayMode
 
             foreach (var hit in chord)
             {
-                hitChartIndex++;
+                hitNoteIndex++;
                 // Hit notes
                 notePool.HitNote(hit);
 
@@ -742,7 +744,7 @@ namespace YARG.PlayMode
             }
 
             // Should it check ghosting?
-            if (SettingsManager.Settings.AntiGhosting.Data && allowedGhosts > 0 && pressed && hitChartIndex > 0)
+            if (SettingsManager.Settings.AntiGhosting.Data && allowedGhosts > 0 && pressed && hitNoteIndex > 0)
             {
                 bool checkGhosting = true;
                 if (Constants.ALLOW_DESC_GHOSTS)
@@ -768,7 +770,7 @@ namespace YARG.PlayMode
 
                 if (checkGhosting)
                 {
-                    var nextNote = GetNextNote(Chart[hitChartIndex - 1].time);
+                    var nextNote = GetNextNote(Notes[hitNoteIndex - 1].time);
                     if ((nextNote == null || (!nextNote[0].hopo && !nextNote[0].tap)) ||
                         (Constants.ALLOW_GHOST_IF_NO_NOTES && nextNote[0].time - CurrentTime >
                             HitMarginFront * Constants.ALLOW_GHOST_IF_NO_NOTES_THRESHOLD))
@@ -1004,24 +1006,24 @@ namespace YARG.PlayMode
 
         private List<NoteInfo> GetNextNote(float currentChordTime)
         {
-            var i = hitChartIndex;
+            var i = hitNoteIndex;
             List<NoteInfo> chord = new();
-            while (Chart.Count > i)
+            while (Notes.Count > i)
             {
-                if (Chart[i].time > currentChordTime)
+                if (Notes[i].time > currentChordTime)
                 {
-                    var nextChordTime = Chart[i].time;
-                    chord.Add(Chart[i]);
+                    var nextChordTime = Notes[i].time;
+                    chord.Add(Notes[i]);
                     i++;
-                    while (Chart.Count > i)
+                    while (Notes.Count > i)
                     {
-                        if (Chart[i].time > nextChordTime)
+                        if (Notes[i].time > nextChordTime)
                         {
                             break;
                         }
                         else
                         {
-                            chord.Add(Chart[i]);
+                            chord.Add(Notes[i]);
                             i++;
                         }
                     }
@@ -1076,7 +1078,7 @@ namespace YARG.PlayMode
             return extendedSustain.Any(x => x);
         }
 
-        public override int GetChartCount()
+        public override int GetNoteCount()
         {
             if (noteCount > -1)
             {
@@ -1084,9 +1086,9 @@ namespace YARG.PlayMode
             }
 
             int count = 0;
-            for (int i = 0; i < Chart.Count; i++)
+            for (int i = 0; i < Notes.Count; i++)
             {
-                if (i == 0 || Chart[i].time > Chart[i - 1].time)
+                if (i == 0 || Notes[i].time > Notes[i - 1].time)
                 {
                     count++;
                 }

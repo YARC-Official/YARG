@@ -4,6 +4,7 @@ using UnityEngine;
 using YARG.Data;
 using YARG.Player.Input;
 using YARG.Pools;
+using YARG.Song;
 using YARG.Util;
 using static YARG.Player.Input.RealGuitarInputStrategy;
 
@@ -41,8 +42,19 @@ namespace YARG.PlayMode
         private bool whammyLastNote;
         private float whammyAnimationAmount;
 
-        protected override void StartTrack()
+        protected override void OnChartLoaded(YargChart chart)
         {
+            base.OnChartLoaded(chart);
+
+            starsKeeper = new(chart, Notes, scoreKeeper,
+                player.chosenInstrument,
+                PTS_PER_NOTE, SUSTAIN_PTS_PER_BEAT);
+        }
+
+        protected override void OnSongStart(SongEntry song)
+        {
+            base.OnSongStart(song);
+
             notePool.player = player;
             genericPool.player = player;
 
@@ -88,10 +100,6 @@ namespace YARG.PlayMode
             {
                 sustainParticles[i].Colorize(commonTrack.FretColor(i));
             }
-
-            starsKeeper = new(Chart, scoreKeeper,
-                player.chosenInstrument,
-                PTS_PER_NOTE, SUSTAIN_PTS_PER_BEAT);
         }
 
         protected override void OnDestroy()
@@ -106,27 +114,21 @@ namespace YARG.PlayMode
 
         protected override void UpdateTrack()
         {
-            // Ignore everything else until the song starts
-            if (!Play.Instance.SongStarted)
-            {
-                return;
-            }
-
             // Since chart is sorted, this is guaranteed to work
-            while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= TrackStartTime)
+            while (Notes.Count > visualNoteIndex && Notes[visualNoteIndex].time <= TrackStartTime)
             {
-                var noteInfo = Chart[visualChartIndex];
+                var noteInfo = Notes[visualNoteIndex];
 
                 SpawnNote(noteInfo, TrackStartTime);
-                visualChartIndex++;
+                visualNoteIndex++;
             }
 
             // Update expected input
-            while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= HitMarginStartTime)
+            while (Notes.Count > inputNoteIndex && Notes[inputNoteIndex].time <= HitMarginStartTime)
             {
-                expectedHits.Enqueue(Chart[inputChartIndex]);
+                expectedHits.Enqueue(Notes[inputNoteIndex]);
 
-                inputChartIndex++;
+                inputNoteIndex++;
             }
 
             // Update held notes
@@ -201,7 +203,7 @@ namespace YARG.PlayMode
                 var missedNote = expectedHits.Dequeue();
 
                 // Call miss for each component
-                hitChartIndex++;
+                hitNoteIndex++;
                 missedAnyNote = true;
                 Combo = 0;
                 notePool.MissNote(missedNote);
@@ -239,7 +241,7 @@ namespace YARG.PlayMode
             }
 
             // If so, hit!
-            hitChartIndex++;
+            hitNoteIndex++;
             expectedHits.Dequeue();
 
             Combo++;

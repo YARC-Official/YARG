@@ -22,7 +22,8 @@ namespace YARG.UI
         [SerializeField]
         private TextMeshProUGUI loadingText;
 
-        public GameObject loadingContainer;
+        [SerializeField]
+        private GameObject loadingContainer;
         public GameObject pauseMenu;
         public RawImage background;
         public VideoPlayer videoPlayer;
@@ -69,6 +70,10 @@ namespace YARG.UI
 
         public void SetLoadingText(string str)
         {
+            if (!string.IsNullOrEmpty(str) && !loadingContainer.activeSelf)
+                loadingContainer.SetActive(true);
+            else if (string.IsNullOrEmpty(str) && loadingContainer.activeSelf)
+                loadingContainer.SetActive(false);
             loadingText.text = str;
         }
     }

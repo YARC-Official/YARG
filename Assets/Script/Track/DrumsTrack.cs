@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using YARG.Chart;
 using YARG.Data;
 using YARG.Player.Input;
 using YARG.Pools;
 using YARG.Settings;
+using YARG.Song;
 using YARG.Util;
 
 namespace YARG.PlayMode
@@ -57,8 +57,31 @@ namespace YARG.PlayMode
 
         private int ptsPerNote;
 
-        protected override void StartTrack()
+        protected override void OnChartLoaded(YargChart chart)
         {
+            base.OnChartLoaded(chart);
+
+            // initialize scoring variables
+            ptsPerNote = proInst.Contains(player.chosenInstrument) ? 60 : 50;
+            starsKeeper = new(chart, Notes, scoreKeeper,
+                player.chosenInstrument,
+                ptsPerNote);
+
+            // Queue up events
+            string fillName = $"fill_{player.chosenInstrument}";
+            foreach (var eventInfo in chart.events)
+            {
+                if (eventInfo.name == fillName)
+                {
+                    fillSections.Add(eventInfo);
+                }
+            }
+        }
+
+        protected override void OnSongStart(SongEntry song)
+        {
+            base.OnSongStart(song);
+
             notePool.player = player;
             genericPool.player = player;
 
@@ -107,22 +130,6 @@ namespace YARG.PlayMode
             // Color Kick Frets
             kickFretInside.material.color = (commonTrack.FretColor(kickIndex));
             kickFretInside.material.SetColor("_EmissionColor", commonTrack.FretColor(kickIndex) * 2);
-
-            // initialize scoring variables
-            ptsPerNote = proInst.Contains(player.chosenInstrument) ? 60 : 50;
-            starsKeeper = new(Chart, scoreKeeper,
-                player.chosenInstrument,
-                ptsPerNote);
-
-            // Queue up events
-            string fillName = $"fill_{player.chosenInstrument}";
-            foreach (var eventInfo in Play.Instance.chart.events)
-            {
-                if (eventInfo.name == fillName)
-                {
-                    fillSections.Add(eventInfo);
-                }
-            }
         }
 
         protected override void OnDestroy()
@@ -142,16 +149,10 @@ namespace YARG.PlayMode
 
         protected override void UpdateTrack()
         {
-            // Ignore everything else until the song starts
-            if (!Play.Instance.SongStarted)
-            {
-                return;
-            }
-
             // Since chart is sorted, this is guaranteed to work
-            while (Chart.Count > visualChartIndex && Chart[visualChartIndex].time <= TrackStartTime)
+            while (Notes.Count > visualNoteIndex && Notes[visualNoteIndex].time <= TrackStartTime)
             {
-                var noteInfo = Chart[visualChartIndex];
+                var noteInfo = Notes[visualNoteIndex];
                 var chosenActivatorType = 0;
                 NoteInfo chosenActivatorNote = null;
 
@@ -159,12 +160,12 @@ namespace YARG.PlayMode
                 for (int i = -3; i < 3; i++)
                 {
                     // Prevent out-of-bounds access at the beginning or end of a chart
-                    if (Chart.Count <= visualChartIndex + i || visualChartIndex <= 3)
+                    if (Notes.Count <= visualNoteIndex + i || visualNoteIndex <= 3)
                     {
                         break;
                     }
 
-                    var chordNote = Chart[visualChartIndex + i];
+                    var chordNote = Notes[visualNoteIndex + i];
                     if (chordNote.time == noteInfo.time)
                     {
                         // Cymbals always take priority.
@@ -196,7 +197,7 @@ namespace YARG.PlayMode
                 // Skip kick notes if noKickMode is enabled
                 if (noteInfo.fret == kickIndex && SettingsManager.Settings.NoKicks.Data)
                 {
-                    visualChartIndex++;
+                    visualNoteIndex++;
                     continue;
                 }
 
@@ -209,7 +210,7 @@ namespace YARG.PlayMode
                 }
 
                 SpawnNote(noteInfo, TrackStartTime);
-                visualChartIndex++;
+                visualNoteIndex++;
             }
 
             // Clear out passed fill sections
@@ -224,14 +225,14 @@ namespace YARG.PlayMode
             }
 
             // Update expected input
-            while (Chart.Count > inputChartIndex && Chart[inputChartIndex].time <= HitMarginStartTime)
+            while (Notes.Count > inputNoteIndex && Notes[inputNoteIndex].time <= HitMarginStartTime)
             {
-                var noteInfo = Chart[inputChartIndex];
+                var noteInfo = Notes[inputNoteIndex];
 
                 // Skip kick notes if noKickMode is enabled
                 if (noteInfo.fret == kickIndex && SettingsManager.Settings.NoKicks.Data)
                 {
-                    inputChartIndex++;
+                    inputNoteIndex++;
                     continue;
                 }
 
@@ -251,7 +252,7 @@ namespace YARG.PlayMode
                     expectedHits.Enqueue(l);
                 }
 
-                inputChartIndex++;
+                inputNoteIndex++;
             }
 
             UpdateInput();
@@ -282,7 +283,7 @@ namespace YARG.PlayMode
                 // Call miss for each component
                 foreach (var hit in missedChord)
                 {
-                    hitChartIndex++;
+                    hitNoteIndex++;
 
                     // The player should not be penalized for missing activator notes
                     if (hit.isActivator)
@@ -375,7 +376,7 @@ namespace YARG.PlayMode
                 PlayKickFretAnimation();
                 // Only play kick flash/shake now when outside of the chart,
                 // otherwise only play it when actually hitting a kick
-                if (Chart.Count < 1 || CurrentTime < Chart[0].time || CurrentTime >= Chart[^1].time)
+                if (Notes.Count < 1 || CurrentTime < Notes[0].time || CurrentTime >= Notes[^1].time)
                 {
                     commonTrack.kickFlash.PlayAnimation();
                     if (shakeOnKick && SettingsManager.Settings.KickBounce.Data)
@@ -460,7 +461,7 @@ namespace YARG.PlayMode
             }
 
             // Hit note
-            hitChartIndex++;
+            hitNoteIndex++;
             notePool.HitNote(hit);
             StopAudio = false;
 

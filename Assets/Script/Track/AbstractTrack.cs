@@ -7,6 +7,7 @@ using YARG.Gameplay;
 using YARG.Player.Input;
 using YARG.Pools;
 using YARG.Settings;
+using YARG.Song;
 using YARG.UI;
 
 namespace YARG.PlayMode
@@ -46,18 +47,17 @@ namespace YARG.PlayMode
             Play.Instance.SongTime +
             ((TRACK_SPAWN_OFFSET + TRACK_END_OFFSET) / (player.trackSpeed / Play.speed));
 
-        protected List<NoteInfo> Chart =>
-            Play.Instance.chart
-                .GetChartByName(player.chosenInstrument)[(int) player.chosenDifficulty];
+        protected List<NoteInfo> Notes { get; private set; }
+        protected List<Beat> Beats { get; private set; }
 
         // Track notes
-        protected int visualChartIndex = 0;
-        protected int inputChartIndex = 0;
-        protected int hitChartIndex = 0;
-        public NoteInfo CurrentNote => hitChartIndex < Chart.Count ? Chart[hitChartIndex] : null;
+        protected int visualNoteIndex = 0;
+        protected int inputNoteIndex = 0;
+        protected int hitNoteIndex = 0;
+        public NoteInfo CurrentNote => hitNoteIndex < Notes.Count ? Notes[hitNoteIndex] : null;
 
         public bool CurrentlyInChart =>
-            Chart.Count >= 0 && HitMarginStartTime >= Chart[0].time && HitMarginEndTime < Chart[^1].EndTime;
+            Notes.Count >= 0 && HitMarginStartTime >= Notes[0].time && HitMarginEndTime < Notes[^1].EndTime;
 
         protected int currentBeatIndex = 0;
 
@@ -217,9 +217,6 @@ namespace YARG.PlayMode
 
             // Assign render texture to camera
             commonTrack.TrackCamera.targetTexture = renderTexture;
-
-            // AMONG US
-            susTracker = new(Play.Instance.chart.beats);
         }
 
         private void Start()
@@ -255,23 +252,39 @@ namespace YARG.PlayMode
 
             scoreKeeper = new();
 
-            // Set the end time for STRONG FINISH and FULL COMBO performance text checking
-            endTime = Chart[^1].time + HitMarginBack + commonTrack.bufferPeriod;
-            offsetEndTime = endTime + 3f;
-
-            // Initlaize interval sizes
+            // Initialize interval sizes
             intervalSize = commonTrack.noteStreakInterval;
             halfIntervalSize = intervalSize / 2;
+
+            // Disable updates until the song starts
+            enabled = false;
+            Play.OnChartLoaded += OnChartLoaded;
+            Play.OnSongStart += OnSongStart;
+        }
+
+        protected virtual void OnChartLoaded(YargChart chart)
+        {
+            Play.OnChartLoaded -= OnChartLoaded;
+
+            // Get chart data
+            Notes = chart.GetChartByName(player.chosenInstrument)[(int) player.chosenDifficulty];
+            Beats = chart.beats;
+
+            // Set the end time for STRONG FINISH and FULL COMBO performance text checking
+            endTime = Notes[^1].time + HitMarginBack + commonTrack.bufferPeriod;
+            offsetEndTime = endTime + 3f;
+
+            // AMONG US
+            susTracker = new(Beats);
 
             // Queue up events
             string spName = $"starpower_{player.chosenInstrument}";
             string soloName = $"solo_{player.chosenInstrument}";
-            string fillName = $"fill_{player.chosenInstrument}";
             // Solos and SP cannot share notes, so we can save some iteration time and only go start-to-end once overall
             int spNoteIndex = 0;
             int soloNoteIndex = 0;
             bool chordsAreSingleNote = player.chosenInstrument is not ("drums" or "realDrums" or "ghDrums");
-            foreach (var eventInfo in Play.Instance.chart.events)
+            foreach (var eventInfo in chart.events)
             {
                 if (eventInfo.name == spName)
                 {
@@ -293,11 +306,15 @@ namespace YARG.PlayMode
                     }
                 }
             }
-
-            StartTrack();
         }
 
-        protected abstract void StartTrack();
+        protected virtual void OnSongStart(SongEntry song)
+        {
+            Play.OnSongStart -= OnSongStart;
+
+            // Enable updates
+            enabled = true;
+        }
 
         public virtual void SetPlayerScore()
         {
@@ -307,7 +324,7 @@ namespace YARG.PlayMode
                 percentage = new DiffPercent
                 {
                     difficulty = player.chosenDifficulty,
-                    percent = Chart.Count == 0 ? 1f : (float) notesHit / GetChartCount()
+                    percent = Notes.Count == 0 ? 1f : (float) notesHit / GetNoteCount()
                 },
                 score = new DiffScore
                 {
@@ -316,7 +333,7 @@ namespace YARG.PlayMode
                     stars = math.clamp((int) starsKeeper.Stars, 0, 6)
                 },
                 notesHit = notesHit,
-                notesMissed = GetChartCount() - notesHit,
+                notesMissed = GetNoteCount() - notesHit,
                 maxCombo = MaxCombo
             };
         }
@@ -356,9 +373,9 @@ namespace YARG.PlayMode
             UpdateBeats();
             UpdateTrack();
 
-            if (hitChartIndex > lastHit)
+            if (hitNoteIndex > lastHit)
             {
-                lastHit = hitChartIndex;
+                lastHit = hitNoteIndex;
             }
 
             // NOTE: UpdateInfo() originally was before UpdateStarpower().
@@ -409,10 +426,9 @@ namespace YARG.PlayMode
 
         private void UpdateBeats()
         {
-            var beats = Play.Instance.chart.beats;
-            while (beats.Count > currentBeatIndex && beats[currentBeatIndex].Time <= TrackStartTime)
+            while (Beats.Count > currentBeatIndex && Beats[currentBeatIndex].Time <= TrackStartTime)
             {
-                var beatInfo = beats[currentBeatIndex];
+                var beatInfo = Beats[currentBeatIndex];
 
                 float z = TRACK_SPAWN_OFFSET - CalcLagCompensation(TrackStartTime, beatInfo.Time);
                 if (beatInfo.Style is BeatStyle.Strong or BeatStyle.Weak)
@@ -789,9 +805,9 @@ namespace YARG.PlayMode
 
         public abstract void SetReverb(bool on);
 
-        public virtual int GetChartCount()
+        public virtual int GetNoteCount()
         {
-            return Chart.Count;
+            return Notes.Count;
         }
 
         protected int GetNoteCountForPhrase(EventInfo phrase, out int newIndex, bool chordsAreSingleNote = true,
@@ -799,9 +815,9 @@ namespace YARG.PlayMode
         {
             int noteCount = 0;
             float lastNoteTime = -1f;
-            for (newIndex = startIndex; newIndex < Chart.Count; newIndex++)
+            for (newIndex = startIndex; newIndex < Notes.Count; newIndex++)
             {
-                var note = Chart[newIndex];
+                var note = Notes[newIndex];
                 if (note.time > phrase.EndTime)
                 {
                     // End of phrase reached
