@@ -13,16 +13,27 @@ using Debug = UnityEngine.Debug;
 
 namespace Editor
 {
-    public class YARGCoreBuilder: IPreprocessBuildWithReport
+    [InitializeOnLoad]
+    public class YARGCoreBuilder : IPreprocessBuildWithReport
     {
         private const string DLL_PATH = "Assets/Plugins/YARG.Core/YARG.Core.dll";
         private const string HASH_PATH = "Assets/Plugins/YARG.Core/YARG.Core.hash";
 
-        // Call automatically on build
+        // For automatically building in the Editor upon any recompilations
+        static YARGCoreBuilder()
+        {
+            // Don't do anything if entering play mode
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
+                return;
+
+            BuildYARGCoreDLL(wait: true);
+        }
+
+        // For automatically building upon creating a Player build
         public int callbackOrder => -10000;
         public void OnPreprocessBuild(BuildReport report)
         {
-            BuildYARGCoreDLL(wait: true);
+            BuildYARGCoreDLL(wait: true, force: true);
         }
 
         [MenuItem("YARG/Rebuild YARG.Core", false)]
