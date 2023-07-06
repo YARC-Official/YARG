@@ -22,13 +22,13 @@ namespace Editor
         public int callbackOrder => -10000;
         public void OnPreprocessBuild(BuildReport report)
         {
-            BuildYARGCoreDLL();
+            BuildYARGCoreDLL(wait: true);
         }
 
         [MenuItem("YARG/Rebuild YARG.Core", false)]
-        public static void BuildButton() => BuildYARGCoreDLL(force: true);
+        public static void BuildButton() => BuildYARGCoreDLL(wait: false, force: true);
 
-        public static void BuildYARGCoreDLL(bool force = false)
+        public static void BuildYARGCoreDLL(bool wait = false, bool force = false)
         {
             // Check the current commit hash
             string currentHash = GetCurrentCommitHash();
@@ -41,13 +41,19 @@ namespace Editor
             Debug.Log("Rebuilding YARG.Core...");
 
             // Get all of the script files
+            if (wait)
+                EditorUtility.DisplayProgressBar("Building YARG.Core", "Finding files", 0f);
+
             string projectRoot = Directory.GetParent(Application.dataPath)?.ToString();
             string submodulePath = Path.Join(projectRoot, "YARG.Core", "YARG.Core");
             var paths = new List<string>();
             GetAllFiles(submodulePath, paths);
+            Debug.Log($"Found {paths.Count} script files.");
+
+            if (wait)
+                EditorUtility.DisplayProgressBar("Building YARG.Core", "Starting build", 0.1f);
 
             // Create the assembly with all of the scripts
-            Debug.Log($"Found {paths.Count} script files.");
             var assembly = new AssemblyBuilder(DLL_PATH, paths.ToArray())
             {
                 // Exclude the (maybe) already build DLL
@@ -80,10 +86,16 @@ namespace Editor
             }
 
             // Wait
-            while (assembly.status != AssemblyBuilderStatus.Finished)
+            if (wait)
+                EditorUtility.DisplayProgressBar("Building YARG.Core", "Building", 0.2f);
+
+            while (wait && assembly.status != AssemblyBuilderStatus.Finished)
             {
                 System.Threading.Thread.Sleep(10);
             }
+
+            if (wait)
+                EditorUtility.ClearProgressBar();
         }
 
         private static void GetAllFiles(string directory, List<string> outputFiles)
