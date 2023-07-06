@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Xml;
+using NugetForUnity;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -61,10 +63,10 @@ namespace Editor
             GetAllFiles(submodulePath, paths);
             Debug.Log($"Found {paths.Count} script files.");
 
+            // Create the assembly with all of the scripts
             if (wait)
                 EditorUtility.DisplayProgressBar("Building YARG.Core", "Starting build", 0.1f);
 
-            // Create the assembly with all of the scripts
             var assembly = new AssemblyBuilder(DLL_PATH, paths.ToArray())
             {
                 // Exclude the (maybe) already build DLL
@@ -73,6 +75,15 @@ namespace Editor
                     DLL_PATH
                 },
             };
+
+            // Ensure all package references are resolved
+            if (wait)
+                EditorUtility.DisplayProgressBar("Building YARG.Core", "Resolving packages", 0f);
+
+            string projectPath = Path.Join(submodulePath, "YARG.Core.csproj");
+            var newReferences = FindMissingReferences(projectPath, assembly.defaultReferences);
+            if (newReferences.Length > 0)
+                assembly.additionalReferences = newReferences;
 
             // Called on main thread
             assembly.buildFinished += (assemblyPath, compilerMessages) =>
@@ -125,6 +136,64 @@ namespace Editor
             {
                 GetAllFiles(path, outputFiles);
             }
+        }
+
+        private static string[] FindMissingReferences(string projectFilePath, string[] existingReferences)
+        {
+            var newReferences = new List<string>();
+
+            // Load project file
+            var projectFile = new XmlDocument();
+            projectFile.Load(projectFilePath);
+
+            // Load Nuget config file, NugetForUnity is strange with this lol
+            if (NugetHelper.NugetConfigFile is null)
+                NugetHelper.LoadNugetConfigFile();
+
+            // Find unresolved package references
+            var packageReferences = projectFile.GetElementsByTagName("PackageReference");
+            for (int index = 0; index < packageReferences.Count; index++)
+            {
+                // Get package info
+                var packageReference = packageReferences[index];
+                string packageName = packageReference.Attributes["Include"].Value;
+                string packageVersion = packageReference.Attributes["Version"].Value;
+
+                // Check for an existing reference
+                if (existingReferences.Any((reference) => reference.EndsWith($"{packageName}.dll")))
+                    continue;
+
+                // Search for the package on NuGet
+                var packageIdentifier = new NugetPackageIdentifier(packageName, packageVersion);
+                foreach (var package in NugetHelper.Search(packageName))
+                {
+                    if (package.Title != packageName || !package.InRange(packageIdentifier))
+                        continue;
+
+                    // Install the package
+                    Debug.Log($"Installing {package.Title} v{package.Version}");
+                    if (!NugetHelper.Install(package))
+                    {
+                        Debug.LogWarning($"Failed to install {package.Title} v{package.Version}!");
+                        continue;
+                    }
+
+                    // Get the best-fit framework
+                    var frameworkGroup = NugetHelper.GetNullableBestDependencyFrameworkGroupForCurrentSettings(package);
+                    if (frameworkGroup is null)
+                    {
+                        Debug.LogWarning($"Could not determine best framework for {package.Title} v{package.Version}! A second rebuild may be necessary for all packages to be resolved.");
+                        break;
+                    }
+
+                    // Add reference to the assembly
+                    string referencePath = Path.Join(NugetHelper.NugetConfigFile.RepositoryPath, frameworkGroup.TargetFramework);
+                    newReferences.Add(referencePath);
+                    break;
+                }
+            }
+
+            return newReferences.ToArray();
         }
 
         private static string GetCurrentCommitHash()
