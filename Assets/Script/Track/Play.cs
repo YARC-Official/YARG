@@ -127,7 +127,7 @@ namespace YARG.PlayMode
             }
         }
 
-        public SongEntry Song => GlobalVariables.Instance.SelectedSong;
+        public SongEntry Song => GlobalVariables.Instance.CurrentSong;
 
         private bool playingRhythm = false;
         private bool playingVocals = false;

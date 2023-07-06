@@ -1213,8 +1213,9 @@ GameObject:
   - component: {fileID: 330585546}
   - component: {fileID: 330585548}
   - component: {fileID: 330585549}
+  - component: {fileID: 330585550}
   m_Layer: 0
-  m_Name: Play Manager
+  m_Name: Game Manager
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1263,6 +1264,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77fa4d8f39844ad5b9a74e1ebad7564d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &330585550
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f9d6d58525b4d22961cb5f7264164de, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _fiveFretGuitarPrefab: {fileID: 2999289846860309454, guid: 2a3c8615b3f54e64db089dedc04d5445,
+    type: 3}
+  _sixFretGuitarPrefab: {fileID: 0}
+  _fourLaneDrumsPrefab: {fileID: 2999289846860309454, guid: 5b03c2f1f2df12f4f9b6cdfb655a3f3b,
+    type: 3}
+  _fiveLaneDrumsPrefab: {fileID: 2999289846860309454, guid: 31b157bc18aca20488bd44fee8a7eb00,
+    type: 3}
+  _proGuitarPrefab: {fileID: 8431480376043174353, guid: 3994a880487709b47a6e0ebef8611ab9,
+    type: 3}
 --- !u!1 &334520971
 GameObject:
   m_ObjectHideFlags: 0

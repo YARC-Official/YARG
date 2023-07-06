@@ -78,12 +78,12 @@ namespace YARG.UI.MusicLibrary
                     return;
                 }
 
-                if (song.SongEntry == GlobalVariables.Instance.SelectedSong)
+                if (song.SongEntry == GlobalVariables.Instance.CurrentSong)
                 {
                     return;
                 }
 
-                GlobalVariables.Instance.SelectedSong = song.SongEntry;
+                GlobalVariables.Instance.CurrentSong = song.SongEntry;
 
                 if (!_previewCanceller.IsCancellationRequested)
                 {
@@ -357,7 +357,7 @@ namespace YARG.UI.MusicLibrary
 
             if (!string.IsNullOrEmpty(_searchField.text))
             {
-                GlobalVariables.Instance.SelectedSong = null;
+                GlobalVariables.Instance.CurrentSong = null;
 
                 // Create the category
                 int count = _sortedSongs.SongCount();
@@ -478,7 +478,7 @@ namespace YARG.UI.MusicLibrary
 
         private void SetSelectedIndex()
         {
-            if (GlobalVariables.Instance.SelectedSong != null)
+            if (GlobalVariables.Instance.CurrentSong != null)
             {
                 int index = GetIndexOfSelectedSong();
                 SelectedIndex = Mathf.Max(1, index);
@@ -496,7 +496,7 @@ namespace YARG.UI.MusicLibrary
 
         private int GetIndexOfSelectedSong()
         {
-            var selectedSong = GlobalVariables.Instance.SelectedSong;
+            var selectedSong = GlobalVariables.Instance.CurrentSong;
 
             return _viewList.FindIndex(song =>
             {

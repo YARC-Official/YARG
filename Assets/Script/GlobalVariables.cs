@@ -35,7 +35,8 @@ namespace YARG
 
         public SceneIndex CurrentScene { get; private set; } = SceneIndex.Persistant;
 
-        public SongEntry SelectedSong { get; set; }
+        public SongEntry CurrentSong;
+        public float SongSpeed = 1f;
 
 #if UNITY_EDITOR
         public Util.TestPlayInfo TestPlayInfo { get; private set; }

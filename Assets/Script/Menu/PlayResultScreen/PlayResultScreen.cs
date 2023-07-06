@@ -74,15 +74,15 @@ namespace YARG.UI.PlayResultScreen
             string name;
             if (Play.speed == 1f)
             {
-                name = GlobalVariables.Instance?.SelectedSong.Name;
+                name = GlobalVariables.Instance?.CurrentSong.Name;
             }
             else
             {
-                name = $"{GlobalVariables.Instance.SelectedSong.Name} <size=50%>({Play.speed * 100}% speed)";
+                name = $"{GlobalVariables.Instance.CurrentSong.Name} <size=50%>({Play.speed * 100}% speed)";
             }
 
             songTitle.SetText(name);
-            songArtist.SetText(GlobalVariables.Instance?.SelectedSong?.Artist);
+            songArtist.SetText(GlobalVariables.Instance?.CurrentSong?.Artist);
             score.SetText(ScoreKeeper.TotalScore.ToString("n0"));
 
             int stars = (int) StarScoreKeeper.BandStars;
@@ -110,7 +110,7 @@ namespace YARG.UI.PlayResultScreen
             {
                 lastPlayed = DateTime.Now, timesPlayed = 1, highestPercent = new(), highestScore = new()
             };
-            var oldScore = ScoreManager.GetScore(GlobalVariables.Instance?.SelectedSong);
+            var oldScore = ScoreManager.GetScore(GlobalVariables.Instance?.CurrentSong);
 
             highScores = new();
             disqualified = new();
@@ -165,7 +165,7 @@ namespace YARG.UI.PlayResultScreen
                 }
             }
 
-            ScoreManager.PushScore(GlobalVariables.Instance?.SelectedSong, songScore);
+            ScoreManager.PushScore(GlobalVariables.Instance?.CurrentSong, songScore);
         }
 
         /// <summary>

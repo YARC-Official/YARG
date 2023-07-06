@@ -75,7 +75,7 @@ namespace YARG.UI
                 new NavigationScheme.Entry(MenuAction.Back, "Back", () => { MainMenu.Instance.ShowSongSelect(); })
             }, false));
 
-            Debug.Log(GlobalVariables.Instance.SelectedSong.AvailableParts);
+            Debug.Log(GlobalVariables.Instance.CurrentSong.AvailableParts);
 
             playerIndex = 0;
             playersToConfigure.Clear();
@@ -262,7 +262,7 @@ namespace YARG.UI
 
             // Get available instruments
             var availableInstruments = allInstruments
-                .Where(instrument => GlobalVariables.Instance.SelectedSong.HasInstrument(instrument)).ToList();
+                .Where(instrument => GlobalVariables.Instance.CurrentSong.HasInstrument(instrument)).ToList();
 
             // Force add pro drums and five lane
             if (availableInstruments.Contains(Instrument.DRUMS))
@@ -336,7 +336,7 @@ namespace YARG.UI
             var availableDifficulties = new List<Difficulty>();
             for (int i = 0; i < (int) Difficulty.EXPERT_PLUS; i++)
             {
-                if (!GlobalVariables.Instance.SelectedSong.HasPart(instrument, (Difficulty) i))
+                if (!GlobalVariables.Instance.CurrentSong.HasPart(instrument, (Difficulty) i))
                 {
                     continue;
                 }

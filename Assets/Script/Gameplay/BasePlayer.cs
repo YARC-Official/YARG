@@ -6,33 +6,27 @@ using YARG.Player;
 
 namespace YARG.Gameplay
 {
-    public abstract class BasePlayer<TEngine, TNote> : MonoBehaviour where TEngine : BaseEngine where TNote : Note<TNote>
+    public abstract class BasePlayer : MonoBehaviour
     {
+        protected GameManager GameManager { get; private set; }
 
-        private bool _isInitialized;
+        public YargPlayer Player;
 
-        protected GameManager GameManager;
-
-        protected TEngine Engine { get; set; }
-        protected YargPlayer Player { get; private set; }
-
-        protected List<TNote> Notes { get; private set; }
-
-        public virtual void Initialize(YargPlayer player, List<TNote> notes)
-        {
-            if(_isInitialized)
-            {
-                return;
-            }
-
-            Player = player;
-            Notes = notes;
-        }
+        protected bool IsInitialized { get; private set; }
 
         protected virtual void Awake()
         {
             GameManager = FindObjectOfType<GameManager>();
         }
+
+        protected void Initialize(YargPlayer player)
+        {
+            Player = player;
+
+            IsInitialized = true;
+        }
+
+        protected abstract void Update();
 
         protected void Start()
         {
@@ -44,9 +38,27 @@ namespace YARG.Gameplay
             UnsubscribeFromInputEvents();
         }
 
-        protected abstract void Update();
-
         protected abstract void SubscribeToInputEvents();
         protected abstract void UnsubscribeFromInputEvents();
+    }
+
+    public abstract class BasePlayer<TEngine, TNote> : BasePlayer
+        where TEngine : BaseEngine where TNote : Note<TNote>
+    {
+        protected TEngine    Engine { get; set; }
+
+        protected List<TNote> Notes { get; private set; }
+
+        public virtual void Initialize(YargPlayer player, List<TNote> notes)
+        {
+            if (IsInitialized)
+            {
+                return;
+            }
+
+            Initialize(player);
+
+            Notes = notes;
+        }
     }
 }

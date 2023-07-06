@@ -174,7 +174,7 @@ namespace YARG
             if (SongContainer.SongsByHash.TryGetValue(info.TestPlaySongHash,
                 out var song))
             {
-                GlobalVariables.Instance.SelectedSong = song;
+                GlobalVariables.Instance.CurrentSong = song;
                 GlobalVariables.Instance.LoadScene(SceneIndex.Play);
             }
         }
