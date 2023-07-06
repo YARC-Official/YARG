@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -7,11 +9,14 @@ using UnityEditor.Build.Reporting;
 using UnityEditor.Compilation;
 using UnityEngine;
 
+using Debug = UnityEngine.Debug;
+
 namespace Editor
 {
     public class YARGCoreBuilder: IPreprocessBuildWithReport
     {
         private const string DLL_PATH = "Assets/Plugins/YARG.Core/YARG.Core.dll";
+        private const string HASH_PATH = "Assets/Plugins/YARG.Core/YARG.Core.hash";
 
         // Call automatically on build
         public int callbackOrder => -10000;
@@ -21,8 +26,18 @@ namespace Editor
         }
 
         [MenuItem("YARG/Rebuild YARG.Core", false)]
-        public static void BuildYARGCoreDLL()
+        public static void BuildButton() => BuildYARGCoreDLL(force: true);
+
+        public static void BuildYARGCoreDLL(bool force = false)
         {
+            // Check the current commit hash
+            string currentHash = GetCurrentCommitHash();
+            if (!force && File.Exists(HASH_PATH) && File.ReadAllText(HASH_PATH) == currentHash)
+                return;
+
+            // Store new commit hash
+            File.WriteAllText(HASH_PATH, currentHash);
+
             Debug.Log("Rebuilding YARG.Core...");
 
             // Get all of the script files
@@ -87,6 +102,49 @@ namespace Editor
             {
                 GetAllFiles(path, outputFiles);
             }
+        }
+
+        private static string GetCurrentCommitHash()
+        {
+            // Ask Git what the current hash is for each submodule
+            // (no way to target just a specific submodule, as far as I can tell)
+            var process = Process.Start(new ProcessStartInfo()
+            {
+                FileName = "git.exe",
+                Arguments = @"submodule foreach ""git rev-parse HEAD""",
+                WorkingDirectory = "./",
+                UseShellExecute = false, // Must be false to redirect input/output/error
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+            });
+            process.WaitForExit();
+
+            // Bail out on error
+            var stdOut = process.StandardOutput;
+            string error = process.StandardError.ReadToEnd();
+            if (!string.IsNullOrEmpty(error))
+                throw new Exception($"Failed to get commit hash! Command output:\n{stdOut.ReadToEnd()}{error}");
+
+            // Find the line that has the commit hash
+            // The output is formatted like this:
+            //     Entering '<submodule>'
+            //     <commit hash>
+            string hash = "";
+            do
+            {
+                string line = stdOut.ReadLine();
+                if (line.Contains("YARG.Core"))
+                {
+                    hash = stdOut.ReadLine();
+                    break;
+                }
+            }
+            while (!stdOut.EndOfStream);
+            if (string.IsNullOrEmpty(hash))
+                throw new Exception($"Failed to get commit hash! Command output:\n{stdOut.ReadToEnd()}{error}");
+
+            return hash;
         }
     }
 }
