@@ -18,7 +18,7 @@ namespace Editor
     [InitializeOnLoad]
     public class YARGCoreBuilder : IPreprocessBuildWithReport
     {
-        private const string DLL_PATH = "Assets/Plugins/YARG.Core/YARG.Core.dll";
+        private const string OUTPUT_FOLDER = "Assets/Plugins/YARG.Core";
         private const string HASH_PATH = "Assets/Plugins/YARG.Core/YARG.Core.hash";
 
         // For automatically building in the Editor upon any recompilations
@@ -28,22 +28,23 @@ namespace Editor
             if (EditorApplication.isPlayingOrWillChangePlaymode)
                 return;
 
-            BuildYARGCoreDLL(wait: true);
+            BuildYARGCoreDLL();
         }
 
         // For automatically building upon creating a Player build
         public int callbackOrder => -10000;
         public void OnPreprocessBuild(BuildReport report)
         {
-            BuildYARGCoreDLL(wait: true, force: true);
+            BuildYARGCoreDLL(force: true, debug: false);
         }
 
         [MenuItem("YARG/Rebuild YARG.Core", false)]
-        public static void BuildButton() => BuildYARGCoreDLL(wait: false, force: true);
+        public static void BuildButton() => BuildYARGCoreDLL(force: true);
 
-        public static void BuildYARGCoreDLL(bool wait = false, bool force = false)
+        public static void BuildYARGCoreDLL(bool force = false, bool debug = true)
         {
             // Check the current commit hash
+            EditorUtility.DisplayProgressBar("Building YARG.Core", "Checking Git commit hash", 0f);
             string currentHash = GetCurrentCommitHash();
             if (!force && File.Exists(HASH_PATH) && File.ReadAllText(HASH_PATH) == currentHash)
                 return;
@@ -53,71 +54,52 @@ namespace Editor
 
             Debug.Log("Rebuilding YARG.Core...");
 
-            // Get all of the script files
-            if (wait)
-                EditorUtility.DisplayProgressBar("Building YARG.Core", "Finding files", 0f);
-
+            // Ensure all package references are resolved in Unity
+            EditorUtility.DisplayProgressBar("Building YARG.Core", "Restoring packages", 0.1f);
             string projectRoot = Directory.GetParent(Application.dataPath)?.ToString();
             string submodulePath = Path.Join(projectRoot, "YARG.Core", "YARG.Core");
-            var paths = new List<string>();
-            GetAllFiles(submodulePath, paths);
-            Debug.Log($"Found {paths.Count} script files.");
-
-            // Create the assembly with all of the scripts
-            if (wait)
-                EditorUtility.DisplayProgressBar("Building YARG.Core", "Starting build", 0.1f);
-
-            var assembly = new AssemblyBuilder(DLL_PATH, paths.ToArray())
-            {
-                // Exclude the (maybe) already build DLL
-                excludeReferences = new[]
-                {
-                    DLL_PATH
-                },
-            };
-
-            // Ensure all package references are resolved
-            if (wait)
-                EditorUtility.DisplayProgressBar("Building YARG.Core", "Resolving packages", 0f);
-
             string projectPath = Path.Join(submodulePath, "YARG.Core.csproj");
-            var newReferences = FindMissingReferences(projectPath, assembly.defaultReferences);
-            if (newReferences.Length > 0)
-                assembly.additionalReferences = newReferences;
+            var packages = RestorePackages(projectPath);
 
-            // Called on main thread
-            assembly.buildFinished += (assemblyPath, compilerMessages) =>
+            // Build the project
+            EditorUtility.DisplayProgressBar("Building YARG.Core", "Building project", 0.4f);
+            string outputDirectory = BuildProject(projectPath, debug);
+            Debug.Log($"Built YARG.Core to {outputDirectory}");
+
+            // Copy output files to plugin folder
+            // TODO: Ignore Unity-provided references
+            EditorUtility.DisplayProgressBar("Building YARG.Core", "Copying files", 0.9f);
+            foreach (var path in Directory.GetFiles(outputDirectory))
             {
-                var errorCount = compilerMessages.Count(m => m.type == CompilerMessageType.Error);
-                var warningCount = compilerMessages.Count(m => m.type == CompilerMessageType.Warning);
+                if (Path.GetExtension(path) != ".dll")
+                    continue;
 
-                Debug.Log("Done rebuilding YARG.Core!");
-                Debug.Log($"Errors: {errorCount} - Warnings: {warningCount}");
+                // Check if it's already installed as a package
+                string name = Path.GetFileNameWithoutExtension(path);
+                if (name == "YARG.Core" || packages.Contains(name))
+                    continue;
 
-                if (errorCount == 0)
+                // Copy .dll
+                string newPath = Path.Combine(OUTPUT_FOLDER, $"{name}.dll");
+                File.Copy(path, newPath, overwrite: true);
+
+                // Copy .pdb if present
+                string pdbName = $"{name}.pdb";
+                string pdbPath = Path.Combine(outputDirectory, pdbName);
+                if (File.Exists(pdbPath))
                 {
-                    AssetDatabase.ImportAsset(assemblyPath);
+                    File.Copy(pdbPath, Path.Combine(OUTPUT_FOLDER, pdbName), overwrite: true);
                 }
-            };
 
-            // Start build of assembly
-            if (!assembly.Build())
-            {
-                Debug.LogError("Failed to start build of the YARG.Core assembly!");
-                return;
+                // Import YARG.Core immediately
+                if (name == "YARG.Core")
+                {
+                    AssetDatabase.ImportAsset(newPath);
+                }
             }
+            Debug.Log($"Copied files to {OUTPUT_FOLDER}");
 
-            // Wait
-            if (wait)
-                EditorUtility.DisplayProgressBar("Building YARG.Core", "Building", 0.2f);
-
-            while (wait && assembly.status != AssemblyBuilderStatus.Finished)
-            {
-                System.Threading.Thread.Sleep(10);
-            }
-
-            if (wait)
-                EditorUtility.ClearProgressBar();
+            EditorUtility.ClearProgressBar();
         }
 
         private static void GetAllFiles(string directory, List<string> outputFiles)
@@ -138,10 +120,8 @@ namespace Editor
             }
         }
 
-        private static string[] FindMissingReferences(string projectFilePath, string[] existingReferences)
+        private static string[] RestorePackages(string projectFilePath)
         {
-            var newReferences = new List<string>();
-
             // Load project file
             var projectFile = new XmlDocument();
             projectFile.Load(projectFilePath);
@@ -159,12 +139,13 @@ namespace Editor
                 string packageName = packageReference.Attributes["Include"].Value;
                 string packageVersion = packageReference.Attributes["Version"].Value;
 
-                // Check for an existing reference
-                if (existingReferences.Any((reference) => reference.EndsWith($"{packageName}.dll")))
+                // Check for an existing installed package
+                var packageIdentifier = new NugetPackageIdentifier(packageName, packageVersion);
+                if (NugetHelper.InstalledPackages.Any((package) =>
+                    package.Title == packageName && package.InRange(packageIdentifier)))
                     continue;
 
                 // Search for the package on NuGet
-                var packageIdentifier = new NugetPackageIdentifier(packageName, packageVersion);
                 foreach (var package in NugetHelper.Search(packageName))
                 {
                     if (package.Title != packageName || !package.InRange(packageIdentifier))
@@ -177,46 +158,45 @@ namespace Editor
                         Debug.LogWarning($"Failed to install {package.Title} v{package.Version}!");
                         continue;
                     }
-
-                    // Get the best-fit framework
-                    var frameworkGroup = NugetHelper.GetNullableBestDependencyFrameworkGroupForCurrentSettings(package);
-                    if (frameworkGroup is null)
-                    {
-                        Debug.LogWarning($"Could not determine best framework for {package.Title} v{package.Version}! A second rebuild may be necessary for all packages to be resolved.");
-                        break;
-                    }
-
-                    // Add reference to the assembly
-                    string referencePath = Path.Join(NugetHelper.NugetConfigFile.RepositoryPath, frameworkGroup.TargetFramework);
-                    newReferences.Add(referencePath);
                     break;
                 }
             }
 
-            return newReferences.ToArray();
+            return NugetHelper.InstalledPackages.Select((package) => package.Title).ToArray();
+        }
+
+        private static string BuildProject(string projectFile, bool debug)
+        {
+            // Fire up `dotnet` to publish the project
+            string command = debug ? "build" : "publish";
+            var output = RunCommand("dotnet",
+                @$"{command} ""{projectFile}"" /property:GenerateFullPaths=true /consoleloggerparameters:NoSummary");
+
+            string outputPath = "";
+            do
+            {
+                string line = output.ReadLine();
+                if (line is null)
+                    break;
+
+                const string search = "YARG.Core -> ";
+                int index = line.IndexOf(search);
+                if (index >= 0)
+                {
+                    outputPath = line.Substring(index + search.Length);
+                    break;
+                }
+            }
+            while (!output.EndOfStream);
+
+            return Directory.GetParent(outputPath)?.ToString();
         }
 
         private static string GetCurrentCommitHash()
         {
             // Ask Git what the current hash is for each submodule
             // (no way to target just a specific submodule, as far as I can tell)
-            var process = Process.Start(new ProcessStartInfo()
-            {
-                FileName = "git.exe",
-                Arguments = @"submodule foreach ""git rev-parse HEAD""",
-                WorkingDirectory = "./",
-                UseShellExecute = false, // Must be false to redirect input/output/error
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true,
-            });
-            process.WaitForExit();
-
-            // Bail out on error
-            var stdOut = process.StandardOutput;
-            string error = process.StandardError.ReadToEnd();
-            if (!string.IsNullOrEmpty(error))
-                throw new Exception($"Failed to get commit hash! Command output:\n{stdOut.ReadToEnd()}{error}");
+            var output = RunCommand("git", @"submodule foreach ""git rev-parse HEAD""");
 
             // Find the line that has the commit hash
             // The output is formatted like this:
@@ -225,18 +205,46 @@ namespace Editor
             string hash = "";
             do
             {
-                string line = stdOut.ReadLine();
+                string line = output.ReadLine();
+                if (line is null)
+                    break;
+
                 if (line.Contains("YARG.Core"))
                 {
-                    hash = stdOut.ReadLine();
+                    hash = output.ReadLine();
                     break;
                 }
             }
-            while (!stdOut.EndOfStream);
+            while (!output.EndOfStream);
+
             if (string.IsNullOrEmpty(hash))
-                throw new Exception($"Failed to get commit hash! Command output:\n{stdOut.ReadToEnd()}{error}");
+                throw new Exception($"Failed to get commit hash! Command output:\n{output.ReadToEnd()}");
 
             return hash;
+        }
+
+        private static StreamReader RunCommand(string command, string args)
+        {
+            // Run the command
+            var process = Process.Start(new ProcessStartInfo()
+            {
+                FileName = $"{command}.exe",
+                Arguments = args,
+                UseShellExecute = false, // Must be false to redirect input/output/error
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+            });
+            process.WaitForExit();
+
+            // Bail out on error
+            var output = process.StandardOutput;
+            string error = process.StandardError.ReadToEnd();
+            if (!string.IsNullOrEmpty(error))
+                throw new Exception($"Error when running command! Command output:\n{output.ReadToEnd()}{error}");
+
+            EditorUtility.ClearProgressBar();
+            return output;
         }
     }
 }
