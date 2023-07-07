@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using EasySharpIni;
+using YARG.Audio;
 
 namespace YARG.Song
 {
@@ -178,6 +179,14 @@ namespace YARG.Song
             IsModChart = section.GetField("modchart").Get(BooleanConverter);
             VideoStartOffset = section.GetField("video_start_time", "0").Get(IntConverter);
             return ScanResult.Ok;
+        }
+
+        public override void LoadAudio(IAudioManager manager, float speed, params SongStem[] ignoreStems)
+        {
+            var stems = AudioHelpers.GetSupportedStems(Location);
+            foreach (var stem in ignoreStems)
+                stems.Remove(stem);
+            manager.LoadSong(stems, speed);
         }
     }
 }

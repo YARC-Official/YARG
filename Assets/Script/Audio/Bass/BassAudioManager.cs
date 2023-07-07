@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -222,7 +222,7 @@ namespace YARG.Audio.BASS
             Debug.Log("Finished loading SFX");
         }
 
-        public void LoadSong(ICollection<string> stems, float speed, params SongStem[] ignoreStems)
+        public void LoadSong(IDictionary<SongStem, string> stems, float speed)
         {
             Debug.Log("Loading song");
             UnloadSong();
@@ -233,37 +233,13 @@ namespace YARG.Audio.BASS
                 throw new Exception($"Failed to create mixer: {Bass.LastError}");
             }
 
-            foreach (string stemPath in stems)
+            foreach (var stem in stems)
             {
-                // Gets the file name with no extensions (i.e guitar.ogg -> guitar)
-                string stemName = Path.GetFileNameWithoutExtension(stemPath);
-
-                // Gets the index (SongStem to int) from the name
-                var songStem = AudioHelpers.GetStemFromName(stemName);
-
-                // Skip stems specified in ignore stems parameter
-                if (ignoreStems.Contains(songStem))
-                {
-                    continue;
-                }
-
-                // Assign 1 stem songs to the song stem
-                if (stems.Count == 1)
-                {
-                    songStem = SongStem.Song;
-                }
-
-                var stemChannel = new BassStemChannel(this, stemPath, songStem);
+                var stemChannel = new BassStemChannel(this, stem.Value, stems.Count > 1 ? stem.Key : SongStem.Song);
                 if (stemChannel.Load(speed) != 0)
                 {
-                    Debug.LogError($"Failed to load stem! {stemPath}");
+                    Debug.LogError($"Failed to load stem! {stem.Value}");
                     Debug.LogError($"Bass Error: {Bass.LastError}");
-                    continue;
-                }
-
-                if (_mixer.GetChannel(songStem) != null)
-                {
-                    Debug.LogError($"Stem already loaded! {stemPath}");
                     continue;
                 }
 

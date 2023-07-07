@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -34,8 +34,8 @@ namespace YARG.Audio
 
         public void LoadSfx();
 
-        public void LoadSong(ICollection<string> stems, float speed, params SongStem[] ignoreStems);
         public void LoadMogg(ExtractedConSongEntry exConSong, float speed, params SongStem[] ignoreStems);
+        public void LoadSong(IDictionary<SongStem, string> stems, float speed);
         public void LoadCustomAudioFile(string audioPath, float speed);
         public void UnloadSong();
 

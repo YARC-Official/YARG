@@ -581,5 +581,10 @@ namespace YARG.Song
         {
             return File.ReadAllBytes(UpdateMidiPath);
         }
+
+        public override void LoadAudio(IAudioManager manager, float speed, params SongStem[] ignoreStems)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
