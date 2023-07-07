@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
@@ -14,6 +14,8 @@ namespace YARG.Input
         public delegate void GameInputEvent(YargPlayer player, GameInput input);
 
         public static event GameInputEvent OnGameInput;
+        
+        private double _inputStartTime; // Time reference for when inputs started being tracked
 
         private void Start()
         {
@@ -64,18 +66,14 @@ namespace YARG.Input
 
             if (control is ButtonControl button)
             {
-                var phase = ActionType.Performed;
-                float val = button.ReadValueFromEvent(eventPtr);
-
-                if (val < 0.5f)
-                {
-                    phase = ActionType.Cancelled;
-                }
+                float value = button.ReadValueFromEvent(eventPtr);
+                bool pressed = button.IsValueConsideredPressed(value);
 
                 // if player gamemode == some instrument
                 // create correct input
 
-                var gameInput = new GameInput((int)action, eventPtr.time, phase);
+                double time = eventPtr.time - _inputStartTime;
+                var gameInput = GameInput.Create(time, action, pressed);
                 OnGameInput?.Invoke(player, gameInput);
             }
         }

@@ -47,8 +47,6 @@ namespace YARG.Gameplay
                 return;
             }
 
-            input.Time -= GameManager.SongStartTime;
-
             Engine.QueueInput(input);
         }
     }
