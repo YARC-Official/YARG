@@ -77,15 +77,14 @@ namespace YARG.Song
             }
         }
 
-        public Tuple<List<SongEntry>, List<XboxSTFSFile>> ReadCache()
+        public (List<SongEntry>, List<XboxSTFSFile>) ReadCache()
         {
             var songs = new List<SongEntry>();
             var conFiles = new List<XboxSTFSFile>();
 
             if (!File.Exists(_cacheFile))
             {
-                Debug.LogError("Cache file does not exist. Skipping");
-                return new(songs, conFiles);
+                throw new Exception("Song cache does not exist. Rescan required.");
             }
 
             using var reader = new BinaryReader(File.Open(_cacheFile, FileMode.Open, FileAccess.Read));
@@ -94,8 +93,8 @@ namespace YARG.Song
 
             if (version != CACHE_VERSION)
             {
-                ToastManager.ToastWarning("Song Cache version is invalid. Rescan required.");
-                throw new Exception("Song Cache version is invalid. Rescan required.");
+                ToastManager.ToastWarning("Song cache version is invalid. Rescan required.");
+                throw new Exception("Song cache version is invalid. Rescan required.");
             }
 
             int numCons = reader.ReadInt32();
@@ -131,7 +130,7 @@ namespace YARG.Song
                 }
             }
 
-            return new(songs, conFiles);
+            return (songs, conFiles);
         }
 
         public override int GetHashCode()
