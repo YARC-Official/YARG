@@ -128,11 +128,13 @@ Have fun!
    2. Sign-in/create an account with a personal license (free).
    3. In Unity Hub, click on "Install Editor" and select `2021.3.21f1` (LTS). It may be favourable to unselect Visual Studio if you are not using it.
    4. Click "Install"
-4. Open the project in Unity (select "Open" and select YARG's repo's folder).
-5. Load in **without** entering safe mode. Click "Ignore".
-6. Click on `YARG` on the top menu bar, then click on `Rebuild YARG.Core`.
-6. (You may need to) click on `NuGet` on the top menu bar, then click on `Restore Packages`.
-7. You're ready to go!
+4. Install the [.NET SDK](https://dotnet.microsoft.com/en-us/download/visual-studio-sdks). This is required to develop and build the submodules.
+   - You will need the SDK specifically, not the runtime!
+5. Open the project in Unity (select "Open" and select YARG's repo's folder).
+6. Load in **without** entering safe mode. Click "Ignore".
+7. Click on `YARG` on the top menu bar, then click on `Rebuild YARG.Core`.
+8. (You may need to) click on `NuGet` on the top menu bar, then click on `Restore Packages`.
+9. You're ready to go!
 
 ## Unity YAML Merge Tool
 
