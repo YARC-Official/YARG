@@ -14,6 +14,9 @@ namespace YARG.Input
         public delegate void GameInputEvent(YargPlayer player, GameInput input);
 
         public static event GameInputEvent OnGameInput;
+
+        // Input events are timestamped directly in the constructor, so we can use them to get the current time
+        public static double CurrentInputTime => new InputEvent(StateEvent.Type, 0, InputDevice.InvalidDeviceId).time;
         
         private double _inputStartTime; // Time reference for when inputs started being tracked
 
