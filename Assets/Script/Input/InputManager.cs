@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
+using UnityEngine.InputSystem.Utilities;
 using YARG.Core.Input;
 using YARG.Player;
 
@@ -20,21 +21,31 @@ namespace YARG.Input
         
         private double _inputStartTime; // Time reference for when inputs started being tracked
 
+        private IDisposable _eventListener;
+
         private void Start()
         {
-            InputSystem.onEvent -= OnEvent;
-
-            InputSystem.onEvent += OnEvent;
-            Debug.Log("Subscribed to InputSystem event");
+            _eventListener?.Dispose();
+            // InputSystem.onEvent is *not* a C# event, it's a property which is intended to be used with observables
+            // In order to unsubscribe from it you *must* keep track of the IDisposable returned at the end
+            _eventListener = InputSystem.onEvent.Call(OnEvent);
         }
 
         private void OnDestroy()
         {
-            InputSystem.onEvent -= OnEvent;
+            _eventListener?.Dispose();
+            _eventListener = null;
         }
 
-        private void OnEvent(InputEventPtr eventPtr, InputDevice device)
+        private void OnEvent(InputEventPtr eventPtr)
         {
+            // Only take state events
+            if (!eventPtr.IsA<StateEvent>() && !eventPtr.IsA<DeltaStateEvent>())
+            {
+                return;
+            }
+
+            var device = InputSystem.GetDeviceById(eventPtr.deviceId);
             for (int i = 0; i < GlobalVariables.Instance.Players.Count; i++)
             {
                 var player = GlobalVariables.Instance.Players[i];
