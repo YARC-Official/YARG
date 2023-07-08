@@ -28,18 +28,21 @@ namespace YARG.Input
 
         protected void FireEvent(double time, int value)
         {
+            time = InputManager.GetRelativeTime(time);
             var input = new GameInput(time, _action, value);
             InputProcessed?.Invoke(input);
         }
 
         protected void FireEvent(double time, float value)
         {
+            time = InputManager.GetRelativeTime(time);
             var input = new GameInput(time, _action, value);
             InputProcessed?.Invoke(input);
         }
 
         protected void FireEvent(double time, bool value)
         {
+            time = InputManager.GetRelativeTime(time);
             var input = new GameInput(time, _action, value);
             InputProcessed?.Invoke(input);
         }

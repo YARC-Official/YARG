@@ -16,10 +16,13 @@ namespace YARG.Input
 
         public static event GameInputEvent OnGameInput;
 
+        // Time reference for when inputs started being tracked
+        public static double InputTimeOffset { get; private set; }
+
         // Input events are timestamped directly in the constructor, so we can use them to get the current time
         public static double CurrentInputTime => new InputEvent(StateEvent.Type, 0, InputDevice.InvalidDeviceId).time;
-        
-        private double _inputStartTime; // Time reference for when inputs started being tracked
+
+        public static double CurrentRelativeInputTime => CurrentInputTime - InputTimeOffset;
 
         private IDisposable _eventListener;
 
@@ -35,6 +38,11 @@ namespace YARG.Input
         {
             _eventListener?.Dispose();
             _eventListener = null;
+        }
+
+        public static double GetRelativeTime(double timeFromInputSystem)
+        {
+            return timeFromInputSystem - InputTimeOffset;
         }
 
         private void OnEvent(InputEventPtr eventPtr)
@@ -86,7 +94,7 @@ namespace YARG.Input
                 // if player gamemode == some instrument
                 // create correct input
 
-                double time = eventPtr.time - _inputStartTime;
+                double time = eventPtr.time - InputTimeOffset;
                 var gameInput = GameInput.Create(time, action, pressed);
                 OnGameInput?.Invoke(player, gameInput);
             }
