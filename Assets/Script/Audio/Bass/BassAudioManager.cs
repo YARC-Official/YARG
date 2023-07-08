@@ -292,35 +292,26 @@ namespace YARG.Audio.BASS
 
             for (var i = 0; i < stemMaps.Count; i++)
             {
-                int[] channelStreams = new int[stemMaps[i].Item2.Length];
-                var matrixes = new List<float[]>();
-                for (int j = 0; j < channelStreams.Length; ++j)
+                for (int j = 0; j < stemMaps[i].Item2.Length; ++j)
                 {
-                    int channelIndex = stemMaps[i].Item2[j];
-                    channelMap[0] = channelIndex;
+                    channelMap[0] = stemMaps[i].Item2[j];
                     int splitHandle = BassMix.CreateSplitStream(moggStreamHandle, BassFlags.Decode | BassFlags.SplitPosition, channelMap);
                     if (splitHandle == 0)
                     {
                         throw new Exception($"Failed to create MOGG stream handle: {Bass.LastError}");
                     }
-                    channelStreams[j] = splitHandle;
 
-                    var matrix = new float[2];
-                    matrix[0] = stemMaps[i].Item3[2 * j];
-                    matrix[1] = stemMaps[i].Item3[2 * j + 1];
-                    matrixes.Add(matrix);
-                }
+                    var channel = new BassMoggStemChannel(this, stemMaps[i].Item1, splitHandle, stemMaps[i].Item3[2 * j], stemMaps[i].Item3[2 * j + 1]);
+                    if (channel.Load(speed) < 0)
+                    {
+                        throw new Exception($"Failed to load MOGG stem channel: {Bass.LastError}");
+                    }
 
-                var channel = new BassMoggStemChannel(this, stemMaps[i].Item1, channelStreams, matrixes);
-                if (channel.Load(speed) < 0)
-                {
-                    throw new Exception($"Failed to load MOGG stem channel: {Bass.LastError}");
-                }
-
-                int code = mixer.AddChannel(channel);
-                if (code != 0)
-                {
-                    throw new Exception($"Failed to add MOGG stem channel to mixer: {Bass.LastError}");
+                    int code = mixer.AddChannel(channel);
+                    if (code != 0)
+                    {
+                        throw new Exception($"Failed to add MOGG stem channel to mixer: {Bass.LastError}");
+                    }
                 }
             }
 
@@ -353,7 +344,7 @@ namespace YARG.Audio.BASS
                 return;
             }
 
-            if (_mixer.GetChannel(SongStem.Song) != null)
+            if (_mixer.GetChannels(SongStem.Song) != null)
             {
                 Debug.LogError($"Stem already loaded! {audioPath}");
                 return;
@@ -394,17 +385,7 @@ namespace YARG.Audio.BASS
                 return;
             }
 
-            foreach (var channel in _mixer.Channels.Values)
-            {
-                if (fadeIn)
-                {
-                    channel.SetVolume(0);
-                }
-                else
-                {
-                    channel.SetVolume(channel.Volume);
-                }
-            }
+            _mixer.SetPlayVolume(fadeIn);
 
             if (_mixer.Play() != 0)
             {
@@ -432,10 +413,8 @@ namespace YARG.Audio.BASS
         public void FadeIn(float maxVolume)
         {
             Play(true);
-            if (IsPlaying)
-            {
-                _mixer?.FadeIn(maxVolume);
-            }
+            if (IsPlaying && _mixer != null)
+                _mixer.FadeIn(maxVolume);
         }
 
         public async UniTask FadeOut(CancellationToken token = default)
@@ -463,9 +442,12 @@ namespace YARG.Audio.BASS
 
         public void SetStemVolume(SongStem stem, double volume)
         {
-            var channel = _mixer?.GetChannel(stem);
+            if (_mixer == null)
+                return;
 
-            channel?.SetVolume(volume);
+            var stemChannels = _mixer.GetChannels(stem);
+            for (int i = 0; i < stemChannels.Length; ++i)
+                stemChannels[i].SetVolume(volume);
         }
 
         public void SetAllStemsVolume(double volume)
@@ -475,10 +457,9 @@ namespace YARG.Audio.BASS
                 return;
             }
 
-            foreach (var (_, channel) in _mixer.Channels)
-            {
-                channel.SetVolume(volume);
-            }
+            foreach (var (_, stem) in _mixer.Channels)
+                for (int i = 0; i < stem.Count; ++i)
+                    stem[i].SetVolume(volume);
         }
 
         public void UpdateVolumeSetting(SongStem stem, double volume)
@@ -509,14 +490,19 @@ namespace YARG.Audio.BASS
             };
         }
 
-        public void ApplyReverb(SongStem stem, bool reverb) => _mixer?.GetChannel(stem)?.SetReverb(reverb);
-
+        public void ApplyReverb(SongStem stem, bool reverb)
+        {
+            foreach (var channel in _mixer.GetChannels(stem))
+                channel.SetReverb(reverb);
+        }
+       
         public void SetWhammyPitch(SongStem stem, float percent)
         {
-            if (!AudioHelpers.PitchBendAllowedStems.Contains(stem))
+            if (_mixer == null || !AudioHelpers.PitchBendAllowedStems.Contains(stem))
                 return;
 
-            _mixer?.GetChannel(stem)?.SetWhammyPitch(percent);
+            foreach (var channel in _mixer.GetChannels(stem))
+                channel.SetWhammyPitch(percent);
         }
 
         public double GetPosition(bool desyncCompensation = true)

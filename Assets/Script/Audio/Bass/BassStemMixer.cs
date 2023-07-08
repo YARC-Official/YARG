@@ -15,7 +15,7 @@ namespace YARG.Audio.BASS
 
         public bool IsPlaying { get; protected set; }
 
-        public IReadOnlyDictionary<SongStem, IStemChannel> Channels => _channels;
+        public IReadOnlyDictionary<SongStem, List<IStemChannel>> Channels => _channels;
 
         public IStemChannel LeadChannel { get; protected set; }
 
@@ -42,7 +42,7 @@ namespace YARG.Audio.BASS
         }
 
         protected readonly IAudioManager _manager;
-        protected readonly Dictionary<SongStem, IStemChannel> _channels;
+        protected readonly Dictionary<SongStem, List<IStemChannel>> _channels;
 
         protected int _mixerHandle;
 
@@ -51,7 +51,7 @@ namespace YARG.Audio.BASS
         public BassStemMixer(IAudioManager manager)
         {
             _manager = manager;
-            _channels = new Dictionary<SongStem, IStemChannel>();
+            _channels = new Dictionary<SongStem, List<IStemChannel>>();
 
             StemsLoaded = 0;
             IsPlaying = false;
@@ -102,15 +102,18 @@ namespace YARG.Audio.BASS
 
         public void FadeIn(float maxVolume)
         {
-            foreach (var channel in Channels.Values)
-            {
-                channel.FadeIn(maxVolume);
-            }
+            foreach (var stem in Channels.Values)
+                for (int i = 0; i < stem.Count; i++)
+                    stem[i].FadeIn(maxVolume);
         }
 
         public UniTask FadeOut(CancellationToken token = default)
         {
-            var fadeOuts = Enumerable.Select(Channels.Values, channel => channel.FadeOut()).ToList();
+            List<IStemChannel> stemChannels = new();
+            foreach (var stem in Channels.Values)
+                stemChannels.AddRange(stem);
+
+            var fadeOuts = Enumerable.Select(stemChannels, channel => channel.FadeOut()).ToList();
             return UniTask.WhenAll(fadeOuts).AttachExternalCancellation(token);
         }
 
@@ -149,10 +152,16 @@ namespace YARG.Audio.BASS
                 return;
             }
 
+            foreach (var stem in Channels.Values)
+                for (int i = 0; i < stem.Count; i++)
+                    stem[i].SetPosition(position, desyncCompensation);
+        }
+
+        public void SetPlayVolume(bool fadeIn)
+        {
             foreach (var channel in Channels.Values)
-            {
-                channel.SetPosition(position, desyncCompensation);
-            }
+                for (int i = 0; i < channel.Count; i++)
+                    channel[i].SetVolume(fadeIn ? 0 : channel[i].Volume);
         }
 
         public virtual int AddChannel(IStemChannel channel)
@@ -179,7 +188,7 @@ namespace YARG.Audio.BASS
 
             bassChannel.IsMixed = true;
 
-            _channels.Add(channel.Stem, channel);
+            _channels.Add(channel.Stem, new() { channel });
             StemsLoaded++;
 
             if (channel.LengthD > LeadChannel?.LengthD || LeadChannel is null)
@@ -215,11 +224,14 @@ namespace YARG.Audio.BASS
             if (channel == LeadChannel)
             {
                 // Update lead channel
-                foreach (var c in _channels.Values)
+                foreach (var stem in Channels.Values)
                 {
-                    if (c.LengthD > LeadChannel?.LengthD)
+                    for (int i = 0; i < stem.Count; i++)
                     {
-                        LeadChannel = c;
+                        if (LeadChannel is null || stem[i].LengthD > LeadChannel.LengthD)
+                        {
+                            LeadChannel = stem[i];
+                        }
                     }
                 }
             }
@@ -227,9 +239,9 @@ namespace YARG.Audio.BASS
             return true;
         }
 
-        public IStemChannel GetChannel(SongStem stem)
+        public IStemChannel[] GetChannels(SongStem stem)
         {
-            return !_channels.ContainsKey(stem) ? null : _channels[stem];
+            return !_channels.ContainsKey(stem) ? Array.Empty<IStemChannel>() : _channels[stem].ToArray();
         }
 
         public void Dispose()
@@ -255,10 +267,9 @@ namespace YARG.Audio.BASS
         protected virtual void ReleaseManagedResources()
         {
             // Free managed resources here
-            foreach (var channel in _channels.Values)
-            {
-                channel?.Dispose();
-            }
+            foreach (var stem in Channels.Values)
+                for (int i = 0; i < stem.Count; i++)
+                    stem[i].Dispose();
 
             _channels.Clear();
         }

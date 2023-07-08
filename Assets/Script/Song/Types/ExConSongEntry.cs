@@ -641,18 +641,18 @@ namespace YARG.Song
                         break;
                     //drum (0 1 2): mono kick, stereo snare/kit --> (0) (1 2)
                     case 3:
-                        stemMaps.Add(new(SongStem.Drums1, new[] { DrumIndices[0] }, DrumStemValues[0..2]));
+                        stemMaps.Add(new(SongStem.Drums1, DrumIndices[0..1], DrumStemValues[0..2]));
                         stemMaps.Add(new(SongStem.Drums2, DrumIndices[1..3], DrumStemValues[2..6]));
                         break;
                     //drum (0 1 2 3): mono kick, mono snare, stereo kit --> (0) (1) (2 3)
                     case 4:
-                        stemMaps.Add(new(SongStem.Drums1, new[] { DrumIndices[0] }, DrumStemValues[0..2]));
-                        stemMaps.Add(new(SongStem.Drums2, new[] { DrumIndices[1] }, DrumStemValues[2..4]));
+                        stemMaps.Add(new(SongStem.Drums1, DrumIndices[0..1], DrumStemValues[0..2]));
+                        stemMaps.Add(new(SongStem.Drums2, DrumIndices[1..2], DrumStemValues[2..4]));
                         stemMaps.Add(new(SongStem.Drums3, DrumIndices[2..4], DrumStemValues[4..8]));
                         break;
                     //drum (0 1 2 3 4): mono kick, stereo snare, stereo kit --> (0) (1 2) (3 4)
                     case 5:
-                        stemMaps.Add(new(SongStem.Drums1, new[] { DrumIndices[0] }, DrumStemValues[0..2]));
+                        stemMaps.Add(new(SongStem.Drums1, DrumIndices[0..1], DrumStemValues[0..2]));
                         stemMaps.Add(new(SongStem.Drums2, DrumIndices[1..3], DrumStemValues[2..6]));
                         stemMaps.Add(new(SongStem.Drums3, DrumIndices[3..5], DrumStemValues[6..10]));
                         break;
