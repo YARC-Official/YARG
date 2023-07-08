@@ -82,7 +82,7 @@ namespace YARG.Song
 
             SongLength = section.GetField("song_length", "-1").Get(IntConverter);
             PreviewStart = section.GetField("preview_start_time", "0").Get(IntConverter);
-            PreviewEnd = section.GetField("preview_end", "-1").Get(IntConverter);
+            PreviewEnd = section.GetField("preview_end_time", "-1").Get(IntConverter);
 
             {
                 var delayField = section.GetField("delay");
