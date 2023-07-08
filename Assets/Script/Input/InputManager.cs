@@ -9,8 +9,14 @@ using YARG.Player;
 
 namespace YARG.Input
 {
+    using Enumerate = InputControlExtensions.Enumerate;
+
     public class InputManager : MonoBehaviour
     {
+        public const Enumerate DEFAULT_CONTROL_ENUMERATION_FLAGS = 
+            Enumerate.IgnoreControlsInCurrentState | // Only controls that have changed
+            Enumerate.IncludeNoisyControls |         // Constantly-changing controls like accelerometers 
+            Enumerate.IncludeSyntheticControls;      // Non-physical controls like stick up/down/left/right
 
         public delegate void GameInputEvent(YargPlayer player, GameInput input);
 
@@ -66,7 +72,7 @@ namespace YARG.Input
                     continue;
                 }
 
-                foreach (var control in eventPtr.EnumerateChangedControls())
+                foreach (var control in eventPtr.EnumerateControls(DEFAULT_CONTROL_ENUMERATION_FLAGS))
                 {
                     if(profileBinds.GetBindsForDevice(device).ContainsControl(control))
                     {
