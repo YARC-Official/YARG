@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using ManagedBass;
 using ManagedBass.Mix;
 using UnityEngine;
@@ -16,54 +16,41 @@ namespace YARG.Audio.BASS
 
         public override int AddChannel(IStemChannel channel)
         {
-            if (channel is not BassMoggStemChannel moggStem)
+            if (channel is not BassMoggStemChannel moggChannel)
             {
                 throw new ArgumentException("Channel must be of type BassMoggStemChannel");
             }
 
-            if (_channels.ContainsKey(channel.Stem))
+
+            if (!BassMix.MixerAddChannel(_mixerHandle, moggChannel.StreamHandle, BassFlags.MixerChanMatrix | BassFlags.MixerChanDownMix) ||
+                !BassMix.MixerAddChannel(_mixerHandle, moggChannel.ReverbStreamHandle, BassFlags.MixerChanMatrix | BassFlags.MixerChanDownMix))
             {
-                return 0;
+                return (int) Bass.LastError;
             }
 
-            var matrixes = moggStem.Matrixes;
-            for (var i = 0; i < moggStem.Channels.Count; i++)
+            moggChannel.IsMixed = true;
+
+            float[,] channelPanVol =
             {
-                var moggChannel = (BassStemChannel) moggStem.Channels[i];
-                if (!BassMix.MixerAddChannel(_mixerHandle, moggChannel.StreamHandle, BassFlags.MixerChanMatrix))
                 {
-                    return (int) Bass.LastError;
+                    moggChannel.left
+                },
+                {
+                    moggChannel.right
                 }
+            };
 
-                if (!BassMix.MixerAddChannel(_mixerHandle, moggChannel.ReverbStreamHandle, BassFlags.MixerChanMatrix))
-                {
-                    return (int) Bass.LastError;
-                }
-
-                moggChannel.IsMixed = true;
-
-                float[,] channelPanVol =
-                {
-                    {
-                        matrixes[i][0]
-                    },
-                    {
-                        matrixes[i][1]
-                    }
-                };
-
-                if (!BassMix.ChannelSetMatrix(moggChannel.StreamHandle, channelPanVol))
-                {
-                    return (int) Bass.LastError;
-                }
-
-                if (!BassMix.ChannelSetMatrix(moggChannel.ReverbStreamHandle, channelPanVol))
-                {
-                    return (int) Bass.LastError;
-                }
+            if (!BassMix.ChannelSetMatrix(moggChannel.StreamHandle, channelPanVol) ||
+                !BassMix.ChannelSetMatrix(moggChannel.ReverbStreamHandle, channelPanVol))
+            {
+                return (int) Bass.LastError;
             }
 
-            _channels.Add(channel.Stem, channel);
+            if (_channels.TryGetValue(channel.Stem, out var list))
+                list.Add(channel);
+            else
+                _channels.Add(channel.Stem, new() { channel });
+
             StemsLoaded++;
 
             if (channel.LengthD > LeadChannel?.LengthD || LeadChannel is null)

@@ -1,4 +1,4 @@
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -66,19 +66,7 @@ namespace YARG.UI
         private async UniTask NextSong()
         {
             var song = SongContainer.Songs[Random.Range(0, SongContainer.Songs.Count)];
-
-            await UniTask.RunOnThreadPool(() =>
-            {
-                if (song is ExtractedConSongEntry conSong)
-                {
-                    GameManager.AudioManager.LoadMogg(conSong, 1f, SongStem.Crowd);
-                }
-                else
-                {
-                    GameManager.AudioManager.LoadSong(AudioHelpers.GetSupportedStems(song.Location), 1f,
-                        SongStem.Crowd);
-                }
-            });
+            await UniTask.RunOnThreadPool(() => song.LoadAudio(GameManager.AudioManager, 1f, SongStem.Crowd));
 
             // Set song title text
             _songText.text = song.Name;

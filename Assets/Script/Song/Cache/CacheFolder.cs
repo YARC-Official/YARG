@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
@@ -17,7 +17,7 @@ namespace YARG.Song
         /// Format is YY_MM_DD_RR: Y = year, M = month, D = day, R = revision (reset across dates, only increment
         /// if multiple cache version changes happen in a single day).
         /// </summary>
-        private const int CACHE_VERSION = 23_06_05_01;
+        private const int CACHE_VERSION = 23_07_06_01;
 
         private readonly string _cacheFile;
 

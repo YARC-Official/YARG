@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -151,18 +151,7 @@ namespace YARG.PlayMode
         private void StartSong()
         {
             GameUI.Instance.SetLoadingText("Loading audio...");
-
-            // Load MOGG if CON, otherwise load stems
-            if (Song is ExtractedConSongEntry rawConSongEntry)
-            {
-                GameManager.AudioManager.LoadMogg(rawConSongEntry, speed);
-            }
-            else
-            {
-                var stems = AudioHelpers.GetSupportedStems(Song.Location);
-
-                GameManager.AudioManager.LoadSong(stems, speed);
-            }
+            Song.LoadAudio(GameManager.AudioManager, speed);
 
             // Get song length
             audioLength = GameManager.AudioManager.AudioLengthF;
