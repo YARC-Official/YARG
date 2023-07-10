@@ -68,6 +68,8 @@ namespace YARG.UI.PlayResultScreen
         public HashSet<PlayerManager.Player> disqualified;
         public HashSet<PlayerManager.Player> bot;
 
+        public static event Action<bool> OnEnabled;
+        
         void OnEnable()
         {
             // Populate header information
@@ -98,6 +100,8 @@ namespace YARG.UI.PlayResultScreen
             CreatePlayerCards();
 
             StartCoroutine(EnableAnimation());
+
+            OnEnabled?.Invoke(true);
         }
 
         /// <summary>
@@ -309,6 +313,7 @@ namespace YARG.UI.PlayResultScreen
         public void PlayExit()
         {
             Play.Instance.Exit();
+            OnEnabled?.Invoke(false);
         }
     }
 }

@@ -7,6 +7,7 @@ using YARG.Data;
 using YARG.Serialization;
 using XboxSTFS;
 using System;
+using System.Linq;
 
 namespace YARG.Song
 {
@@ -42,8 +43,21 @@ namespace YARG.Song
         public bool UsingUpdateMogg { get; set; } = false;
         public string MoggPath { get; set; }
 
-        public Dictionary<SongStem, int[]> StemMaps { get; set; } = new();
-        public float[,] MatrixRatios { get; set; }
+
+        public int[] DrumIndices { get; set; } = Array.Empty<int>();
+        public int[] BassIndices { get; set; } = Array.Empty<int>();
+        public int[] GuitarIndices { get; set; } = Array.Empty<int>();
+        public int[] KeysIndices { get; set; } = Array.Empty<int>();
+        public int[] VocalsIndices { get; set; } = Array.Empty<int>();
+        public int[] CrowdIndices { get; set; } = Array.Empty<int>();
+        public int[] TrackIndices { get; set; } = Array.Empty<int>();
+        public float[] TrackStemValues { get; set; } = Array.Empty<float>();
+        public float[] DrumStemValues { get; set; } = Array.Empty<float>();
+        public float[] BassStemValues { get; set; } = Array.Empty<float>();
+        public float[] GuitarStemValues { get; set; } = Array.Empty<float>();
+        public float[] KeysStemValues { get; set; } = Array.Empty<float>();
+        public float[] VocalsStemValues { get; set; } = Array.Empty<float>();
+        public float[] CrowdStemValues { get; set; } = Array.Empty<float>();
 
         // .milo info
         public bool UsingUpdateMilo { get; set; } = false;
@@ -98,33 +112,44 @@ namespace YARG.Song
             MiloPath = reader.ReadString();
             VenueVersion = reader.ReadInt32();
 
-            // Read Stem Data
-            int stemCount = reader.ReadInt32();
-            StemMaps = new Dictionary<SongStem, int[]>();
-            for (int i = 0; i < stemCount; i++)
-            {
-                var stem = (SongStem) reader.ReadInt32();
-                int stemLength = reader.ReadInt32();
-                var stemMap = new int[stemLength];
-                for (int j = 0; j < stemLength; j++)
-                {
-                    stemMap[j] = reader.ReadInt32();
-                }
+            DrumIndices = ReadIntArray(reader);
+            BassIndices = ReadIntArray(reader);
+            GuitarIndices = ReadIntArray(reader);
+            KeysIndices = ReadIntArray(reader);
+            VocalsIndices = ReadIntArray(reader);
+            TrackIndices = ReadIntArray(reader);
+            CrowdIndices = ReadIntArray(reader);
 
-                StemMaps.Add(stem, stemMap);
-            }
+            DrumStemValues = ReadFloatArray(reader);
+            BassStemValues = ReadFloatArray(reader);
+            GuitarStemValues = ReadFloatArray(reader);
+            KeysStemValues = ReadFloatArray(reader);
+            VocalsStemValues = ReadFloatArray(reader);
+            TrackStemValues = ReadFloatArray(reader);
+            CrowdStemValues = ReadFloatArray(reader);
+        }
 
-            // Read Matrix Data
-            int matrixRowCount = reader.ReadInt32();
-            int matrixColCount = reader.ReadInt32();
-            MatrixRatios = new float[matrixRowCount, matrixColCount];
-            for (int i = 0; i < matrixRowCount; i++)
-            {
-                for (int j = 0; j < matrixColCount; j++)
-                {
-                    MatrixRatios[i, j] = reader.ReadSingle();
-                }
-            }
+        private static int[] ReadIntArray(BinaryReader reader)
+        {
+            int length = reader.ReadInt32();
+            if (length == 0)
+                return Array.Empty<int>();
+
+            int[] values = new int[length];
+            for (int i = 0; i < length; ++i)
+                values[i] = reader.ReadInt32();
+            return values;
+        }
+        private static float[] ReadFloatArray(BinaryReader reader)
+        {
+            int length = reader.ReadInt32();
+            if (length == 0)
+                return Array.Empty<float>();
+
+            float[] values = new float[length];
+            for (int i = 0; i < length; ++i)
+                values[i] = reader.ReadSingle();
+            return values;
         }
 
         public override void WriteMetadataToCache(BinaryWriter writer)
@@ -169,28 +194,36 @@ namespace YARG.Song
             writer.Write(MiloPath);
             writer.Write(VenueVersion);
 
-            // Write Stem Data
-            writer.Write(StemMaps.Count);
-            foreach (var stem in StemMaps)
-            {
-                writer.Write((int) stem.Key);
-                writer.Write(stem.Value.Length);
-                foreach (int i in stem.Value)
-                {
-                    writer.Write(i);
-                }
-            }
+            WriteArray(DrumIndices, writer);
+            WriteArray(BassIndices, writer);
+            WriteArray(GuitarIndices, writer);
+            WriteArray(KeysIndices, writer);
+            WriteArray(VocalsIndices, writer);
+            WriteArray(TrackIndices, writer);
+            WriteArray(CrowdIndices, writer);
+            
+            WriteArray(DrumStemValues, writer);
+            WriteArray(BassStemValues, writer);
+            WriteArray(GuitarStemValues, writer);
+            WriteArray(KeysStemValues, writer);
+            WriteArray(VocalsStemValues, writer);
+            WriteArray(TrackStemValues, writer);
+            WriteArray(CrowdStemValues, writer);
+        }
 
-            // Write Matrix Data
-            writer.Write(MatrixRatios.GetLength(0));
-            writer.Write(MatrixRatios.GetLength(1));
-            for (int i = 0; i < MatrixRatios.GetLength(0); i++)
-            {
-                for (int j = 0; j < MatrixRatios.GetLength(1); j++)
-                {
-                    writer.Write(MatrixRatios[i, j]);
-                }
-            }
+        private static void WriteArray(int[] values, BinaryWriter writer)
+        {
+            int length = values.Length;
+            writer.Write(length);
+            for (int i = 0; i < length; ++i)
+                writer.Write(values[i]);
+        }
+        private static void WriteArray(float[] values, BinaryWriter writer)
+        {
+            int length = values.Length;
+            writer.Write(length);
+            for (int i = 0; i < length; ++i)
+                writer.Write(values[i]);
         }
 
         protected ExtractedConSongEntry(DataArray dta)
@@ -580,6 +613,77 @@ namespace YARG.Song
         public byte[] LoadMidiUpdateFile()
         {
             return File.ReadAllBytes(UpdateMidiPath);
+        }
+
+        public override void LoadAudio(IAudioManager manager, float speed, params SongStem[] ignoreStems)
+        {
+            var file = LoadMoggFile();
+            if (file == Array.Empty<byte>())
+                throw new Exception("Mogg file not present");
+
+            switch (BitConverter.ToInt32(file))
+            {
+                case 0x0A:
+                case 0xF0:
+                    break;
+                default:
+                    throw new Exception("Original unencrypted mogg replaced by an encrypted mogg");
+            }
+
+            List<(SongStem, int[], float[])> stemMaps = new();
+            if (DrumIndices != Array.Empty<int>() && !ignoreStems.Contains(SongStem.Drums))
+            {
+                switch (DrumIndices.Length)
+                {
+                    //drum (0 1): stereo kit --> (0 1)
+                    case 2:
+                        stemMaps.Add(new(SongStem.Drums, DrumIndices, DrumStemValues));
+                        break;
+                    //drum (0 1 2): mono kick, stereo snare/kit --> (0) (1 2)
+                    case 3:
+                        stemMaps.Add(new(SongStem.Drums1, DrumIndices[0..1], DrumStemValues[0..2]));
+                        stemMaps.Add(new(SongStem.Drums2, DrumIndices[1..3], DrumStemValues[2..6]));
+                        break;
+                    //drum (0 1 2 3): mono kick, mono snare, stereo kit --> (0) (1) (2 3)
+                    case 4:
+                        stemMaps.Add(new(SongStem.Drums1, DrumIndices[0..1], DrumStemValues[0..2]));
+                        stemMaps.Add(new(SongStem.Drums2, DrumIndices[1..2], DrumStemValues[2..4]));
+                        stemMaps.Add(new(SongStem.Drums3, DrumIndices[2..4], DrumStemValues[4..8]));
+                        break;
+                    //drum (0 1 2 3 4): mono kick, stereo snare, stereo kit --> (0) (1 2) (3 4)
+                    case 5:
+                        stemMaps.Add(new(SongStem.Drums1, DrumIndices[0..1], DrumStemValues[0..2]));
+                        stemMaps.Add(new(SongStem.Drums2, DrumIndices[1..3], DrumStemValues[2..6]));
+                        stemMaps.Add(new(SongStem.Drums3, DrumIndices[3..5], DrumStemValues[6..10]));
+                        break;
+                    //drum (0 1 2 3 4 5): stereo kick, stereo snare, stereo kit --> (0 1) (2 3) (4 5)
+                    case 6:
+                        stemMaps.Add(new(SongStem.Drums1, DrumIndices[0..2], DrumStemValues[0..4]));
+                        stemMaps.Add(new(SongStem.Drums2, DrumIndices[2..4], DrumStemValues[4..8]));
+                        stemMaps.Add(new(SongStem.Drums3, DrumIndices[4..6], DrumStemValues[8..12]));
+                        break;
+                }
+            }
+
+            if (BassIndices != Array.Empty<int>() && !ignoreStems.Contains(SongStem.Bass))
+                stemMaps.Add(new(SongStem.Bass, BassIndices, BassStemValues));
+
+            if (GuitarIndices != Array.Empty<int>() && !ignoreStems.Contains(SongStem.Guitar))
+                stemMaps.Add(new(SongStem.Guitar, GuitarIndices, GuitarStemValues));
+
+            if (KeysIndices != Array.Empty<int>() && !ignoreStems.Contains(SongStem.Keys))
+                stemMaps.Add(new(SongStem.Keys, KeysIndices, KeysStemValues));
+
+            if (VocalsIndices != Array.Empty<int>() && !ignoreStems.Contains(SongStem.Vocals))
+                stemMaps.Add(new(SongStem.Vocals, VocalsIndices, VocalsStemValues));
+
+            if (TrackIndices != Array.Empty<int>() && !ignoreStems.Contains(SongStem.Song))
+                stemMaps.Add(new(SongStem.Song, TrackIndices, TrackStemValues));
+
+            if (CrowdIndices != Array.Empty<int>() && !ignoreStems.Contains(SongStem.Crowd))
+                stemMaps.Add(new(SongStem.Crowd, CrowdIndices, CrowdStemValues));
+
+            manager.LoadMogg(file, stemMaps, speed);
         }
     }
 }

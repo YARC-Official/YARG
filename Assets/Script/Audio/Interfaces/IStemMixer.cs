@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -13,7 +13,7 @@ namespace YARG.Audio
 
         public event Action SongEnd;
 
-        public IReadOnlyDictionary<SongStem, IStemChannel> Channels { get; }
+        public IReadOnlyDictionary<SongStem, List<IStemChannel>> Channels { get; }
 
         public IStemChannel LeadChannel { get; }
 
@@ -30,10 +30,12 @@ namespace YARG.Audio
 
         public void SetPosition(double position, bool desyncCompensation = true);
 
+        public void SetPlayVolume(bool fadeIn);
+
         public int AddChannel(IStemChannel channel);
 
         public bool RemoveChannel(IStemChannel channel);
 
-        public IStemChannel GetChannel(SongStem stem);
+        public IStemChannel[] GetChannels(SongStem stem);
     }
 }

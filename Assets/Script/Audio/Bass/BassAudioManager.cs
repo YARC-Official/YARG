@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -236,7 +236,7 @@ namespace YARG.Audio.BASS
             Debug.Log("Finished loading SFX");
         }
 
-        public void LoadSong(ICollection<string> stems, float speed, params SongStem[] ignoreStems)
+        public void LoadSong(IDictionary<SongStem, string> stems, float speed)
         {
             Debug.Log("Loading song");
             UnloadSong();
@@ -247,37 +247,13 @@ namespace YARG.Audio.BASS
                 throw new Exception($"Failed to create mixer: {Bass.LastError}");
             }
 
-            foreach (string stemPath in stems)
+            foreach (var stem in stems)
             {
-                // Gets the file name with no extensions (i.e guitar.ogg -> guitar)
-                string stemName = Path.GetFileNameWithoutExtension(stemPath);
-
-                // Gets the index (SongStem to int) from the name
-                var songStem = AudioHelpers.GetStemFromName(stemName);
-
-                // Skip stems specified in ignore stems parameter
-                if (ignoreStems.Contains(songStem))
-                {
-                    continue;
-                }
-
-                // Assign 1 stem songs to the song stem
-                if (stems.Count == 1)
-                {
-                    songStem = SongStem.Song;
-                }
-
-                var stemChannel = new BassStemChannel(this, stemPath, songStem);
+                var stemChannel = new BassStemChannel(this, stem.Value, stems.Count > 1 ? stem.Key : SongStem.Song);
                 if (stemChannel.Load(speed) != 0)
                 {
-                    Debug.LogError($"Failed to load stem! {stemPath}");
+                    Debug.LogError($"Failed to load stem! {stem.Value}");
                     Debug.LogError($"Bass Error: {Bass.LastError}");
-                    continue;
-                }
-
-                if (_mixer.GetChannel(songStem) != null)
-                {
-                    Debug.LogError($"Stem already loaded! {stemPath}");
                     continue;
                 }
 
@@ -297,106 +273,70 @@ namespace YARG.Audio.BASS
             IsAudioLoaded = true;
         }
 
-        public void LoadMogg(ExtractedConSongEntry exConSong, float speed, params SongStem[] ignoreStems)
+        public void LoadMogg(byte[] moggArray, List<(SongStem, int[], float[])> stemMaps, float speed)
         {
             Debug.Log("Loading mogg song");
             UnloadSong();
 
-            // Process MOGG data
-            byte[] moggArray = exConSong.LoadMoggFile();
-
-            // Double check MOGG version
-            if (BitConverter.ToUInt32(moggArray, 0) != 0x0A && BitConverter.ToUInt32(moggArray, 0) != 0xF0)
-            {
-                throw new Exception("Original unencrypted mogg replaced by an encrypted mogg");
-            }
-
-            moggArray = moggArray[BitConverter.ToInt32(moggArray, 4)..];
-
             // Initialize stream
-
             // Last flag is new BASS_SAMPLE_NOREORDER flag, which is not in the BassFlags enum,
             // as it was made as part of an update to fix <= 8 channel oggs.
             // https://www.un4seen.com/forum/?topic=20148.msg140872#msg140872
             const BassFlags flags = BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile | (BassFlags) 64;
 
-            int moggStreamHandle = Bass.CreateStream(moggArray, 0, moggArray.Length, flags);
+            int start = BitConverter.ToInt32(moggArray, 4);
+            int moggStreamHandle = Bass.CreateStream(moggArray, start, moggArray.Length - start, flags);
             if (moggStreamHandle == 0)
             {
                 Debug.LogError($"Failed to load mogg file or position: {Bass.LastError}");
                 return;
             }
 
-            // Remove ignored stems from stem maps
-            var stems = exConSong.StemMaps.Keys.Where(ignoreStems.Contains).ToList();
-            foreach (var stem in stems)
-            {
-                exConSong.StemMaps.Remove(stem);
-            }
-
             // Initialize mixer
-            _mixer = new BassMoggStemMixer(this, moggStreamHandle);
-            if (!_mixer.Create())
+            BassMoggStemMixer mixer = new(this, moggStreamHandle);
+            if (!mixer.Create())
             {
                 throw new Exception($"Failed to create mixer: {Bass.LastError}");
             }
 
             // Split stream into multiple channels
-            var stemMaps = exConSong.StemMaps;
-            var matrixRatios = exConSong.MatrixRatios;
-            var splitStreams = new int[matrixRatios.GetLength(0)];
 
             var channelMap = new int[2];
             channelMap[1] = -1;
 
-            for (var i = 0; i < splitStreams.Length; i++)
+            for (var i = 0; i < stemMaps.Count; i++)
             {
-                channelMap[0] = i;
-
-                int splitHandle = BassMix.CreateSplitStream(moggStreamHandle,
-                    BassFlags.Decode | BassFlags.SplitPosition, channelMap);
-                if (splitHandle == 0)
+                for (int j = 0; j < stemMaps[i].Item2.Length; ++j)
                 {
-                    throw new Exception($"Failed to create MOGG stream handle: {Bass.LastError}");
-                }
+                    channelMap[0] = stemMaps[i].Item2[j];
+                    int splitHandle = BassMix.CreateSplitStream(moggStreamHandle, BassFlags.Decode | BassFlags.SplitPosition, channelMap);
+                    if (splitHandle == 0)
+                    {
+                        throw new Exception($"Failed to create MOGG stream handle: {Bass.LastError}");
+                    }
 
-                splitStreams[i] = splitHandle;
-            }
+                    var channel = new BassMoggStemChannel(this, stemMaps[i].Item1, splitHandle, stemMaps[i].Item3[2 * j], stemMaps[i].Item3[2 * j + 1]);
+                    if (channel.Load(speed) < 0)
+                    {
+                        throw new Exception($"Failed to load MOGG stem channel: {Bass.LastError}");
+                    }
 
-            // Set up channels
-            foreach ((var stem, int[] channelIndexes) in stemMaps)
-            {
-                int[] channelStreams = channelIndexes.Select(i => splitStreams[i]).ToArray();
-
-                var matrixes = new List<float[]>();
-                foreach (var channelIndex in channelIndexes)
-                {
-                    var matrix = new float[2];
-                    matrix[0] = matrixRatios[channelIndex, 0];
-                    matrix[1] = matrixRatios[channelIndex, 1];
-                    matrixes.Add(matrix);
-                }
-
-                var channel = new BassMoggStemChannel(this, stem, channelStreams, matrixes);
-                if (channel.Load(speed) < 0)
-                {
-                    throw new Exception($"Failed to load MOGG stem channel: {Bass.LastError}");
-                }
-
-                int code = _mixer.AddChannel(channel);
-                if (code != 0)
-                {
-                    throw new Exception($"Failed to add MOGG stem channel to mixer: {Bass.LastError}");
+                    int code = mixer.AddChannel(channel);
+                    if (code != 0)
+                    {
+                        throw new Exception($"Failed to add MOGG stem channel to mixer: {Bass.LastError}");
+                    }
                 }
             }
 
-            Debug.Log($"Loaded {_mixer.StemsLoaded} stems");
+            Debug.Log($"Loaded {mixer.StemsLoaded} stems");
 
             // Setup audio length
-            AudioLengthD = _mixer.LeadChannel.LengthD;
+            AudioLengthD = mixer.LeadChannel.LengthD;
             AudioLengthF = (float) AudioLengthD;
 
             IsAudioLoaded = true;
+            _mixer = mixer;
         }
 
         public void LoadCustomAudioFile(string audioPath, float speed)
@@ -418,7 +358,7 @@ namespace YARG.Audio.BASS
                 return;
             }
 
-            if (_mixer.GetChannel(SongStem.Song) != null)
+            if (_mixer.GetChannels(SongStem.Song) != null)
             {
                 Debug.LogError($"Stem already loaded! {audioPath}");
                 return;
@@ -459,17 +399,7 @@ namespace YARG.Audio.BASS
                 return;
             }
 
-            foreach (var channel in _mixer.Channels.Values)
-            {
-                if (fadeIn)
-                {
-                    channel.SetVolume(0);
-                }
-                else
-                {
-                    channel.SetVolume(channel.Volume);
-                }
-            }
+            _mixer.SetPlayVolume(fadeIn);
 
             if (_mixer.Play() != 0)
             {
@@ -497,10 +427,8 @@ namespace YARG.Audio.BASS
         public void FadeIn(float maxVolume)
         {
             Play(true);
-            if (IsPlaying)
-            {
-                _mixer?.FadeIn(maxVolume);
-            }
+            if (IsPlaying && _mixer != null)
+                _mixer.FadeIn(maxVolume);
         }
 
         public async UniTask FadeOut(CancellationToken token = default)
@@ -528,9 +456,12 @@ namespace YARG.Audio.BASS
 
         public void SetStemVolume(SongStem stem, double volume)
         {
-            var channel = _mixer?.GetChannel(stem);
+            if (_mixer == null)
+                return;
 
-            channel?.SetVolume(volume);
+            var stemChannels = _mixer.GetChannels(stem);
+            for (int i = 0; i < stemChannels.Length; ++i)
+                stemChannels[i].SetVolume(volume);
         }
 
         public void SetAllStemsVolume(double volume)
@@ -540,10 +471,9 @@ namespace YARG.Audio.BASS
                 return;
             }
 
-            foreach (var (_, channel) in _mixer.Channels)
-            {
-                channel.SetVolume(volume);
-            }
+            foreach (var (_, stem) in _mixer.Channels)
+                for (int i = 0; i < stem.Count; ++i)
+                    stem[i].SetVolume(volume);
         }
 
         public void UpdateVolumeSetting(SongStem stem, double volume)
@@ -574,14 +504,20 @@ namespace YARG.Audio.BASS
             };
         }
 
-        public void ApplyReverb(SongStem stem, bool reverb) => _mixer?.GetChannel(stem)?.SetReverb(reverb);
+        public void ApplyReverb(SongStem stem, bool reverb)
+        {
+            if (_mixer == null) return;
+
+            foreach (var channel in _mixer.GetChannels(stem))
+                channel.SetReverb(reverb);
+        }
 
         public void SetWhammyPitch(SongStem stem, float percent)
         {
-            if (!AudioHelpers.PitchBendAllowedStems.Contains(stem))
-                return;
+            if (_mixer == null || !AudioHelpers.PitchBendAllowedStems.Contains(stem)) return;
 
-            _mixer?.GetChannel(stem)?.SetWhammyPitch(percent);
+            foreach (var channel in _mixer.GetChannels(stem))
+                channel.SetWhammyPitch(percent);
         }
 
         public double GetPosition(bool desyncCompensation = true)

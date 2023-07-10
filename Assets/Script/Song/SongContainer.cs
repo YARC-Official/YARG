@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
+using UnityEngine;
 using YARG.Settings;
 using YARG.Util;
 
@@ -40,10 +41,17 @@ namespace YARG.Song
             _songs.Clear();
             _songsByHash.Clear();
 
-            var scanner = new SongScanner(SettingsManager.Settings.SongFolders, new[]
+            // Add setlists as portable folder if installed
+            IEnumerable<string> portableFolders = null;
+            if (!string.IsNullOrEmpty(PathHelper.SetlistPath))
             {
-                PathHelper.SetlistPath
-            });
+                portableFolders = new[]
+                {
+                    PathHelper.SetlistPath
+                };
+            }
+
+            var scanner = new SongScanner(SettingsManager.Settings.SongFolders, portableFolders);
             var output = await scanner.StartScan(fast, updateUi);
 
             AddSongs(output.SongEntries);

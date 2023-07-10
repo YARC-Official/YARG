@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -200,21 +200,7 @@ namespace YARG.PlayMode
         private async UniTask StartSong()
         {
             GameUI.Instance.SetLoadingText("Loading audio...");
-
-            await UniTask.RunOnThreadPool(() =>
-            {
-                // Load MOGG if CON, otherwise load stems
-                if (Song is ExtractedConSongEntry rawConSongEntry)
-                {
-                    GlobalVariables.AudioManager.LoadMogg(rawConSongEntry, speed);
-                }
-                else
-                {
-                    var stems = AudioHelpers.GetSupportedStems(Song.Location);
-
-                    GlobalVariables.AudioManager.LoadSong(stems, speed);
-                }
-            });
+            Song.LoadAudio(GlobalVariables.AudioManager, speed);
 
             // Get song length
             audioLength = GlobalVariables.AudioManager.AudioLengthF;

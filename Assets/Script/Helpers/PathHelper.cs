@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 
 namespace YARG.Util
@@ -27,7 +28,12 @@ namespace YARG.Util
         public static string StreamingAssetsPath { get; private set; }
 
         /// <summary>
-        /// YARG's setlist path.
+        /// YARC Launcher path.
+        /// </summary>
+        public static string LauncherPath { get; private set; }
+
+        /// <summary>
+        /// YARC Launcher setlist path.
         /// </summary>
         public static string SetlistPath { get; private set; }
 
@@ -39,9 +45,22 @@ namespace YARG.Util
             ExecutablePath = Directory.GetParent(ApplicationDataPath)?.FullName;
             StreamingAssetsPath = SanitizePath(Application.streamingAssetsPath);
 
-            // Get the setlist path
+            // Get the launcher path
             var localAppdata = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            SetlistPath = Path.Join(localAppdata, "YARC", "Setlists");
+            LauncherPath = Path.Join(localAppdata, "YARC", "Launcher");
+
+            // Use the launcher settings to find the setlist path
+            try
+            {
+                var settingsFile = File.ReadAllText(Path.Join(LauncherPath, "settings.json"));
+                var json = JObject.Parse(settingsFile);
+                SetlistPath = Path.Join(json["download_location"]!.ToString(), "Setlists", "official");
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("Failed to find setlist path. Is it installed?");
+                Debug.LogException(e);
+            }
         }
 
         private static string SanitizePath(string path)

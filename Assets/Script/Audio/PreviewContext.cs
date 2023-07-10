@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -76,17 +76,7 @@ namespace YARG.Audio
                 }
 
                 // Load the song
-                await UniTask.RunOnThreadPool(() =>
-                {
-                    if (song is ExtractedConSongEntry conSong)
-                    {
-                        _manager.LoadMogg(conSong, 1f, SongStem.Crowd);
-                    }
-                    else
-                    {
-                        _manager.LoadSong(AudioHelpers.GetSupportedStems(song.Location), 1f, SongStem.Crowd);
-                    }
-                });
+                await UniTask.RunOnThreadPool(() => song.LoadAudio(_manager, 1f, SongStem.Crowd));
 
                 // Check if cancelled
                 if (cancelToken.IsCancellationRequested)

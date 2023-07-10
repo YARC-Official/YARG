@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using YARG.Audio;
 using YARG.Data;
 
 namespace YARG.Song
@@ -188,6 +189,8 @@ namespace YARG.Song
             writer.Write(NotesFile);
             writer.Write(Location);
         }
+
+        public abstract void LoadAudio(IAudioManager manager, float speed, params SongStem[] ignoreStems);
 
         public bool HasInstrument(Instrument instrument)
         {
