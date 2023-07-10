@@ -76,7 +76,7 @@ namespace Editor
 
                 // Check if it's already installed as a package
                 string name = Path.GetFileNameWithoutExtension(path);
-                if (name == "YARG.Core" || packages.Contains(name))
+                if (name != "YARG.Core" && packages.Contains(name))
                     continue;
 
                 // Copy .dll
