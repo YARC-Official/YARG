@@ -492,14 +492,15 @@ namespace YARG.Audio.BASS
 
         public void ApplyReverb(SongStem stem, bool reverb)
         {
+            if (_mixer == null) return;
+
             foreach (var channel in _mixer.GetChannels(stem))
                 channel.SetReverb(reverb);
         }
-       
+
         public void SetWhammyPitch(SongStem stem, float percent)
         {
-            if (_mixer == null || !AudioHelpers.PitchBendAllowedStems.Contains(stem))
-                return;
+            if (_mixer == null || !AudioHelpers.PitchBendAllowedStems.Contains(stem)) return;
 
             foreach (var channel in _mixer.GetChannels(stem))
                 channel.SetWhammyPitch(percent);
