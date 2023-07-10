@@ -1,11 +1,8 @@
 ﻿using System.Collections.Generic;
-using TagLib.Mpeg;
 using UnityEngine;
-using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Player;
-using YARG.Song;
 
 namespace YARG.Gameplay
 {
@@ -14,19 +11,19 @@ namespace YARG.Gameplay
 
         [Header("Instrument Prefabs")]
         [SerializeField]
-        private GameObject _fiveFretGuitarPrefab;
+        private GameObject fiveFretGuitarPrefab;
 
         [SerializeField]
-        private GameObject _sixFretGuitarPrefab;
+        private GameObject sixFretGuitarPrefab;
 
         [SerializeField]
-        private GameObject _fourLaneDrumsPrefab;
+        private GameObject fourLaneDrumsPrefab;
 
         [SerializeField]
-        private GameObject _fiveLaneDrumsPrefab;
+        private GameObject fiveLaneDrumsPrefab;
 
         [SerializeField]
-        private GameObject _proGuitarPrefab;
+        private GameObject proGuitarPrefab;
 
         public SongChart Chart { get; private set; }
 
@@ -55,15 +52,7 @@ namespace YARG.Gameplay
         {
             var song = GlobalVariables.Instance.CurrentSong;
 
-            if (song is ExtractedConSongEntry exConSong)
-            {
-                GlobalVariables.AudioManager.LoadMogg(exConSong, GlobalVariables.Instance.SongSpeed);
-            }
-            else
-            {
-                var stems = AudioHelpers.GetSupportedStems(song.Location);
-                GlobalVariables.AudioManager.LoadSong(stems, GlobalVariables.Instance.SongSpeed);
-            }
+            song.LoadAudio(GlobalVariables.AudioManager, GlobalVariables.Instance.SongSpeed);
 
             SongLength = GlobalVariables.AudioManager.AudioLengthD;
         }
@@ -81,19 +70,19 @@ namespace YARG.Gameplay
                 switch (player.Profile.InstrumentType)
                 {
                     case GameMode.FiveFretGuitar:
-                        prefab = _fiveFretGuitarPrefab;
+                        prefab = fiveFretGuitarPrefab;
                         break;
                     case GameMode.SixFretGuitar:
-                        prefab = _sixFretGuitarPrefab;
+                        prefab = sixFretGuitarPrefab;
                         break;
                     case GameMode.FourLaneDrums:
-                        prefab = _fourLaneDrumsPrefab;
+                        prefab = fourLaneDrumsPrefab;
                         break;
                     case GameMode.FiveLaneDrums:
-                        prefab = _fiveLaneDrumsPrefab;
+                        prefab = fiveLaneDrumsPrefab;
                         break;
                     case GameMode.ProGuitar:
-                        prefab = _proGuitarPrefab;
+                        prefab = proGuitarPrefab;
                         break;
                     default:
                         continue;

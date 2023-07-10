@@ -1276,14 +1276,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f9d6d58525b4d22961cb5f7264164de, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _fiveFretGuitarPrefab: {fileID: 2999289846860309454, guid: 2a3c8615b3f54e64db089dedc04d5445,
+  fiveFretGuitarPrefab: {fileID: 2999289846860309454, guid: 2a3c8615b3f54e64db089dedc04d5445,
     type: 3}
-  _sixFretGuitarPrefab: {fileID: 0}
-  _fourLaneDrumsPrefab: {fileID: 2999289846860309454, guid: 5b03c2f1f2df12f4f9b6cdfb655a3f3b,
+  sixFretGuitarPrefab: {fileID: 0}
+  fourLaneDrumsPrefab: {fileID: 2999289846860309454, guid: 5b03c2f1f2df12f4f9b6cdfb655a3f3b,
     type: 3}
-  _fiveLaneDrumsPrefab: {fileID: 2999289846860309454, guid: 31b157bc18aca20488bd44fee8a7eb00,
+  fiveLaneDrumsPrefab: {fileID: 2999289846860309454, guid: 31b157bc18aca20488bd44fee8a7eb00,
     type: 3}
-  _proGuitarPrefab: {fileID: 8431480376043174353, guid: 3994a880487709b47a6e0ebef8611ab9,
+  proGuitarPrefab: {fileID: 8431480376043174353, guid: 3994a880487709b47a6e0ebef8611ab9,
     type: 3}
 --- !u!1 &334520971
 GameObject:
