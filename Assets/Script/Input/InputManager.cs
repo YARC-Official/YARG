@@ -60,25 +60,16 @@ namespace YARG.Input
             }
 
             var device = InputSystem.GetDeviceById(eventPtr.deviceId);
-            for (int i = 0; i < GlobalVariables.Instance.Players.Count; i++)
+            foreach (var player in GlobalVariables.Instance.Players)
             {
-                var player = GlobalVariables.Instance.Players[i];
+                // TODO: Bindings don't have anything subscribed to their input event yet
+                var profileBinds = player.Bindings;
 
-                var profileBinds = BindsContainer.GetBindsForProfile(player.Profile);
-
-                // Profile does not have this device mapped to anything.
-                if (!profileBinds.ContainsDevice(device))
-                {
+                var deviceBinds = profileBinds.TryGetBindsForDevice(device);
+                if (deviceBinds == null)
                     continue;
-                }
 
-                foreach (var control in eventPtr.EnumerateControls(DEFAULT_CONTROL_ENUMERATION_FLAGS))
-                {
-                    if(profileBinds.GetBindsForDevice(device).ContainsControl(control))
-                    {
-                        FireGameInput(player, eventPtr, control);
-                    }
-                }
+                deviceBinds.ProcessInputEvent(eventPtr);
             }
         }
 
