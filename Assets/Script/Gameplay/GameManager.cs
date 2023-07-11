@@ -52,7 +52,7 @@ namespace YARG.Gameplay
         {
             var song = GlobalVariables.Instance.CurrentSong;
 
-            song.LoadAudio(GlobalVariables.AudioManager, GlobalVariables.Instance.SongSpeed);
+            song.LoadAudio(GlobalVariables.AudioManager, GlobalVariables.Instance.songSpeed);
 
             SongLength = GlobalVariables.AudioManager.AudioLengthD;
         }

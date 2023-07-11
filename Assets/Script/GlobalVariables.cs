@@ -1,13 +1,12 @@
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
-using UnityEngine.Audio;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using YARG.Audio;
 using YARG.Audio.BASS;
 using YARG.Player;
 using YARG.Player.Input;
+using YARG.Replays;
 using YARG.Settings;
 using YARG.Song;
 using YARG.Util;
@@ -36,7 +35,9 @@ namespace YARG
         public SceneIndex CurrentScene { get; private set; } = SceneIndex.Persistant;
 
         public SongEntry CurrentSong;
-        public float SongSpeed = 1f;
+
+        public float songSpeed = 1f;
+        public bool  isReplay;
 
 #if UNITY_EDITOR
         public Util.TestPlayInfo TestPlayInfo { get; private set; }
@@ -46,7 +47,9 @@ namespace YARG
         {
             Debug.Log($"YARG {Constants.VERSION_TAG}");
             Instance = this;
+
             PathHelper.Init();
+            ReplayContainer.Init();
 
             int profileCount = ProfileContainer.LoadProfiles();
             Debug.Log($"Loaded {profileCount} profiles");

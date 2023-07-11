@@ -2,6 +2,7 @@
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
+using YARG.Core.Input;
 using YARG.Player;
 
 namespace YARG.Gameplay
@@ -10,19 +11,26 @@ namespace YARG.Gameplay
     {
         protected GameManager GameManager { get; private set; }
 
+        private List<GameInput> _replayInputs;
+
+        public IReadOnlyList<GameInput> ReplayInputs => _replayInputs.AsReadOnly();
+
         public YargPlayer Player;
 
+        protected bool IsReplay      { get; private set; }
         protected bool IsInitialized { get; private set; }
 
         protected virtual void Awake()
         {
             GameManager = FindObjectOfType<GameManager>();
+            _replayInputs = new List<GameInput>();
         }
 
         protected void Initialize(YargPlayer player)
         {
             Player = player;
 
+            IsReplay = GlobalVariables.Instance.isReplay;
             IsInitialized = true;
         }
 
@@ -38,6 +46,11 @@ namespace YARG.Gameplay
             UnsubscribeFromInputEvents();
         }
 
+        protected void AddReplayInput(GameInput input)
+        {
+            _replayInputs.Add(input);
+        }
+
         protected abstract void SubscribeToInputEvents();
         protected abstract void UnsubscribeFromInputEvents();
     }
@@ -45,7 +58,7 @@ namespace YARG.Gameplay
     public abstract class BasePlayer<TEngine, TNote> : BasePlayer
         where TEngine : BaseEngine where TNote : Note<TNote>
     {
-        protected TEngine    Engine { get; set; }
+        protected TEngine Engine { get; set; }
 
         protected List<TNote> Notes { get; private set; }
 
