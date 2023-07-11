@@ -161,7 +161,7 @@ If you want to contribute, please feel free! Please join [our Discord](https://d
 
 # 🛡️ License
 
-YARG is licensed under the MIT License - see the [`LICENSE`](../master/LICENSE) file for details.
+YARC Launcher is licensed under the YARG License - see the [`LICENSE`](../master/LICENSE) file for details. Essentially, you can do whatever you want with any of the code, *except* for YARG (and related) logos. You DO NOT have permission to redistribute any YARG branding.
 
 # 🧰 External Licenses
 
