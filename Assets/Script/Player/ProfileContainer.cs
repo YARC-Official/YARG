@@ -15,77 +15,72 @@ namespace YARG.Player
 
          */
 
-        private static readonly List<YargProfile> AvailableProfiles;
-        private static readonly List<YargProfile> TakenProfiles;
+        private static readonly List<YargProfile> _allProfiles;
+        private static readonly List<YargProfile> _takenProfiles;
+
+        public static IReadOnlyList<YargProfile> Profiles => _allProfiles;
+        public static IReadOnlyList<YargProfile> TakenProfiles => _takenProfiles;
 
         static ProfileContainer()
         {
-            AvailableProfiles = new List<YargProfile>();
-            TakenProfiles = new List<YargProfile>();
+            _allProfiles = new List<YargProfile>();
+            _takenProfiles = new List<YargProfile>();
         }
-
-        public static IReadOnlyList<YargProfile> Profiles => AvailableProfiles;
 
         public static bool TakeProfile(YargProfile profile)
         {
-            if (!AvailableProfiles.Contains(profile))
+            if (_takenProfiles.Contains(profile))
             {
                 return false;
             }
 
-            AvailableProfiles.Remove(profile);
-            TakenProfiles.Add(profile);
+            _takenProfiles.Add(profile);
             return true;
         }
 
         public static bool ReturnProfile(YargProfile profile)
         {
-            if (AvailableProfiles.Contains(profile))
-            {
-                return false;
-            }
-            if (!TakenProfiles.Contains(profile))
+            if (!_takenProfiles.Contains(profile))
             {
                 return false;
             }
 
-            AvailableProfiles.Add(profile);
-            TakenProfiles.Remove(profile);
+            _takenProfiles.Remove(profile);
             return true;
         }
 
         public static bool AddProfile(YargProfile profile)
         {
-            if (AvailableProfiles.Contains(profile))
+            if (_allProfiles.Contains(profile))
             {
                 return false;
             }
 
-            AvailableProfiles.Add(profile);
+            _allProfiles.Add(profile);
             return true;
         }
 
         public static bool RemoveProfile(YargProfile profile)
         {
+            if (!_allProfiles.Contains(profile))
+            {
+                return false;
+            }
+
             // TODO: Where would we handle removing YargPlayers with this profile?
-            if (TakenProfiles.Contains(profile))
+            if (_takenProfiles.Contains(profile))
             {
                 return false;
             }
 
-            if (!AvailableProfiles.Contains(profile))
-            {
-                return false;
-            }
-
-            AvailableProfiles.Remove(profile);
+            _allProfiles.Remove(profile);
             return true;
         }
 
         public static int LoadProfiles()
         {
-            AvailableProfiles.Clear();
-            TakenProfiles.Clear();
+            _allProfiles.Clear();
+            _takenProfiles.Clear();
 
             string profilesPath = Path.Combine(PathHelper.PersistentDataPath, "profiles.json");
             if (!File.Exists(profilesPath))
@@ -99,58 +94,21 @@ namespace YARG.Player
 
             if (profiles is not null)
             {
-                AvailableProfiles.AddRange(profiles);
+                _allProfiles.AddRange(profiles);
             }
 
-            return AvailableProfiles.Count;
+            return _allProfiles.Count;
         }
 
         public static int SaveProfiles()
         {
-            // Test profiles, remove later
-            var profile1 = new YargProfile
-            {
-                Name = "Riley",
-                NoteSpeed = 10,
-                HighwayLength = 1.5f,
-            };
-
-            var profile2 = new YargProfile
-            {
-                Name = "Nathan",
-                NoteSpeed = 8,
-                HighwayLength = 1.2f,
-                InstrumentType = GameMode.FourLaneDrums,
-            };
-
-            var profile3 = new YargProfile
-            {
-                Name = "EliteAsian",
-                NoteSpeed = 3,
-                HighwayLength = 0.5f,
-                InstrumentType = GameMode.Vocals,
-                IsBot = true,
-            };
-
             string profilesPath = Path.Combine(PathHelper.PersistentDataPath, "profiles.json");
 
-            var allProfiles = new List<YargProfile>();
-            allProfiles.AddRange(AvailableProfiles);
-            allProfiles.AddRange(TakenProfiles);
-
-            // Test (prevents duplicating profiles over and over again)
-            if (allProfiles.Count == 0)
-            {
-                allProfiles.Add(profile1);
-                allProfiles.Add(profile2);
-                allProfiles.Add(profile3);
-            }
-
-            string profilesJson = JsonConvert.SerializeObject(allProfiles, Formatting.Indented);
+            string profilesJson = JsonConvert.SerializeObject(_allProfiles, Formatting.Indented);
 
             File.WriteAllText(profilesPath, profilesJson);
 
-            return allProfiles.Count;
+            return _allProfiles.Count;
         }
     }
 }

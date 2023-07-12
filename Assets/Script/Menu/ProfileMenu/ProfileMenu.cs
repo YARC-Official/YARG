@@ -19,6 +19,17 @@ namespace YARG.Menu
             RefreshList();
         }
 
+        private void OnDisable()
+        {
+            ProfileContainer.SaveProfiles();
+        }
+
+        // TODO: Move the ProfileContainer
+        private void OnApplicationQuit()
+        {
+            ProfileContainer.SaveProfiles();
+        }
+
         public void Back()
         {
             MenuNavigator.Instance.PopMenu();

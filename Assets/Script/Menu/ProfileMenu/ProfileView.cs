@@ -1,3 +1,4 @@
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using YARG.Core;
@@ -17,12 +18,33 @@ namespace YARG.Menu
             _profile = profile;
 
             _profileName.text = profile.Name;
+
+            if (!ProfileContainer.TakenProfiles.Contains(profile))
+            {
+                _profileName.text += " (LOGGED OUT)";
+            }
         }
 
         public void RemoveProfile()
         {
-            ProfileContainer.RemoveProfile(_profile);
-            Destroy(gameObject);
+            if (ProfileContainer.RemoveProfile(_profile))
+            {
+                Destroy(gameObject);
+            }
+        }
+
+        public void LoginOrLogout()
+        {
+            if (ProfileContainer.TakenProfiles.Contains(_profile))
+            {
+                ProfileContainer.ReturnProfile(_profile);
+                Init(_profile);
+            }
+            else
+            {
+                ProfileContainer.TakeProfile(_profile);
+                Init(_profile);
+            }
         }
     }
 }
