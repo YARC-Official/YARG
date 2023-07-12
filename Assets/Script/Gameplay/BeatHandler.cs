@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
-using MoonscraperChartEditor.Song;
-using ChartEvent = YARG.Core.Chart.ChartEvent;
+using YARG.Core.Chart;
 
 namespace YARG.Gameplay
 {
     public class BeatHandler
     {
-        private readonly MoonSong _song;
+        private readonly SongChart _song;
 
         public List<Beat> Beats;
         public List<Beat> Measures;
@@ -16,7 +15,7 @@ namespace YARG.Gameplay
 
         public int CurrentMeasure { get; private set; }
 
-        public BeatHandler(MoonSong song)
+        public BeatHandler(SongChart song)
         {
             _song = song;
 
@@ -40,8 +39,8 @@ namespace YARG.Gameplay
             // How many ticks to move forward to get to the next beat.
             uint forwardStep = 0;
 
-            TimeSignature lastTS = null;
-            TimeSignature currentTS;
+            TimeSignatureChange lastTS = null;
+            TimeSignatureChange currentTS;
 
             int currentBeatInMeasure = 0;
             int beatsInTS = 0;
@@ -53,16 +52,16 @@ namespace YARG.Gameplay
             while (currentTick < lastTick + forwardStep || lastStyle != BeatStyle.Measure)
             {
                 // Gets previous time signature before currentTick.
-                currentTS = _song.GetPrevTS(currentTick);
+                currentTS = _song.SyncTrack.GetPrevTimeSignature(currentTick);
 
                 // The number of "beats within a beat" there is
-                uint currentSubBeat = currentTS.denominator / 4;
+                uint currentSubBeat = currentTS.Denominator / 4;
 
-                bool hasTsChanged = lastTS == null || lastTS.numerator != currentTS.numerator ||
-                    lastTS.denominator != currentTS.denominator;
+                bool hasTsChanged = lastTS == null || lastTS.Numerator != currentTS.Numerator ||
+                    lastTS.Denominator != currentTS.Denominator;
 
                 // If denominator is larger than 4 start off with weak beats, if 4 or less use strong beats
-                var style = currentTS.denominator > 4 ? BeatStyle.Weak : BeatStyle.Strong;
+                var style = currentTS.Denominator > 4 ? BeatStyle.Weak : BeatStyle.Strong;
 
                 // New time signature. First beat of a new time sig is always a measure.
                 if (hasTsChanged)
@@ -72,12 +71,12 @@ namespace YARG.Gameplay
                 }
 
                 // Beat count is equal to TS numerator, so its a new measure.
-                if (currentBeatInMeasure == currentTS.numerator)
+                if (currentBeatInMeasure == currentTS.Numerator)
                 {
                     currentBeatInMeasure = 0;
                 }
 
-                if (currentTS.denominator <= 4 || currentBeatInMeasure % currentSubBeat == 0)
+                if (currentTS.Denominator <= 4 || currentBeatInMeasure % currentSubBeat == 0)
                 {
                     style = BeatStyle.Strong;
                 }
@@ -89,14 +88,14 @@ namespace YARG.Gameplay
 
                     // Handle 1/x TS's so that only the first beat in the TS gets a measure line
                     // and then from there it is marked at a strong beat every quarter note with everything else as weak
-                    if (currentTS.numerator == 1 && beatsInTS > 0)
+                    if (currentTS.Numerator == 1 && beatsInTS > 0)
                     {
                         if (currentTick >= lastTick)
                         {
                             style = BeatStyle.Measure;
                         }
                         // if not quarter note length beats every quarter note is stressed
-                        else if (currentTS.denominator <= 4 || (beatsInTS % currentSubBeat) == 0)
+                        else if (currentTS.Denominator <= 4 || (beatsInTS % currentSubBeat) == 0)
                         {
                             style = BeatStyle.Strong;
                         }
@@ -108,7 +107,7 @@ namespace YARG.Gameplay
                 }
 
                 // Last beat of measure should never be a strong beat if denominator is bigger than 4.
-                if (currentBeatInMeasure == currentTS.numerator - 1 && currentTS.denominator > 4 &&
+                if (currentBeatInMeasure == currentTS.Numerator - 1 && currentTS.Denominator > 4 &&
                     currentTick < lastTick + forwardStep)
                 {
                     style = BeatStyle.Weak;
@@ -119,7 +118,7 @@ namespace YARG.Gameplay
                 currentBeatInMeasure++;
                 beatsInTS++;
 
-                forwardStep = (uint) (_song.resolution * 4) / currentTS.denominator;
+                forwardStep = _song.Resolution * 4 / currentTS.Denominator;
                 currentTick += forwardStep;
                 lastTS = currentTS;
                 lastStyle = style;
@@ -143,38 +142,6 @@ namespace YARG.Gameplay
             while (dif < Measures.Count && note.Time >= Measures[dif].Time) dif++;
 
             return dif;
-        }
-    }
-
-    public static class SongHelpers
-    {
-        public static uint GetLastTick(this MoonSong song)
-        {
-            uint lastTick = 0;
-            foreach (var songEvent in song.events)
-            {
-                if (songEvent.tick > lastTick)
-                {
-                    lastTick = songEvent.tick;
-                }
-            }
-
-            foreach (var chart in song.Charts)
-            {
-                foreach (var songObject in chart.chartObjects)
-                {
-                    if (songObject.tick <= lastTick) continue;
-
-                    lastTick = songObject.tick;
-
-                    if (songObject is MoonNote note)
-                    {
-                        lastTick += note.length;
-                    }
-                }
-            }
-
-            return lastTick;
         }
     }
 }
