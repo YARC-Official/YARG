@@ -54,6 +54,34 @@ namespace YARG.Player
             return true;
         }
 
+        public static bool AddProfile(YargProfile profile)
+        {
+            if (AvailableProfiles.Contains(profile))
+            {
+                return false;
+            }
+
+            AvailableProfiles.Add(profile);
+            return true;
+        }
+
+        public static bool RemoveProfile(YargProfile profile)
+        {
+            // TODO: Where would we handle removing YargPlayers with this profile?
+            if (TakenProfiles.Contains(profile))
+            {
+                return false;
+            }
+
+            if (!AvailableProfiles.Contains(profile))
+            {
+                return false;
+            }
+
+            AvailableProfiles.Remove(profile);
+            return true;
+        }
+
         public static int LoadProfiles()
         {
             AvailableProfiles.Clear();
