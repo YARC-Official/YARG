@@ -9,7 +9,6 @@ namespace YARG.Menu
     {
         public static MenuNavigator Instance { get; private set; }
 
-        [Serializable]
         public enum Menu
         {
             None,
@@ -17,7 +16,8 @@ namespace YARG.Menu
             MusicLibrary,
             DifficultySelect,
             Credits,
-            ProfileMenu
+            ProfileMenu,
+            BindingMenu
         }
 
         private Dictionary<Menu, MenuObject> _menus;
