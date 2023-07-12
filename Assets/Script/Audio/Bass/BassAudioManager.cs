@@ -344,15 +344,9 @@ namespace YARG.Audio.BASS
                 return;
             }
 
-            if (_mixer.GetChannels(SongStem.Song) != null)
-            {
-                Debug.LogError($"Stem already loaded! {audioPath}");
-                return;
-            }
-
             if (_mixer.AddChannel(stemChannel) != 0)
             {
-                Debug.LogError($"Failed to add stem to mixer!");
+                Debug.LogError("Failed to add stem to mixer!");
                 Debug.LogError($"Bass Error: {Bass.LastError}");
             }
 
