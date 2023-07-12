@@ -1,13 +1,11 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace YARG
+namespace YARG.Menu
 {
     public class MainMenuBackground : MonoBehaviour
     {
         public static MainMenuBackground Instance { get; private set; }
-
-        public bool cursorMoves = true;
 
         [SerializeField]
         private Transform cameraContainer;
@@ -31,21 +29,13 @@ namespace YARG
             cameraContainer.transform.position = Vector3.Lerp(cameraContainer.transform.position,
                 new Vector3(0, 0.5f, 0), Time.deltaTime * 1.5f);
 
-            Vector2 mousePos;
-            if (cursorMoves)
-            {
-                // Get the mouse position
-                mousePos = Mouse.current.position.ReadValue();
-                mousePos = camera.ScreenToViewportPoint(mousePos);
+            // Get the mouse position
+            var mousePos = Mouse.current.position.ReadValue();
+            mousePos = camera.ScreenToViewportPoint(mousePos);
 
-                // Clamp
-                mousePos.x = Mathf.Clamp(mousePos.x, 0f, 1f);
-                mousePos.y = Mathf.Clamp(mousePos.y, 0f, 1f);
-            }
-            else
-            {
-                mousePos = new Vector2(0f, 0.5f);
-            }
+            // Clamp
+            mousePos.x = Mathf.Clamp(mousePos.x, 0f, 1f);
+            mousePos.y = Mathf.Clamp(mousePos.y, 0f, 1f);
 
             // Move camera with the cursor
             camera.transform.localPosition = camera.transform.localPosition

@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
 using YARG.Data;
+using YARG.Menu;
 using YARG.Player.Input;
 using YARG.Player.Navigation;
 using YARG.PlayMode;
@@ -69,10 +70,10 @@ namespace YARG.UI
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
-                new NavigationScheme.Entry(MenuAction.Up, "Up", () => { MoveOption(-1); }),
-                new NavigationScheme.Entry(MenuAction.Down, "Down", () => { MoveOption(1); }),
-                new NavigationScheme.Entry(MenuAction.Confirm, "Confirm", () => { Next(); }),
-                new NavigationScheme.Entry(MenuAction.Back, "Back", () => { MainMenu.Instance.ShowSongSelect(); })
+                new NavigationScheme.Entry(MenuAction.Up, "Up", () => MoveOption(-1)),
+                new NavigationScheme.Entry(MenuAction.Down, "Down", () => MoveOption(1)),
+                new NavigationScheme.Entry(MenuAction.Confirm, "Confirm", Next),
+                new NavigationScheme.Entry(MenuAction.Back, "Back", () => MenuNavigator.Instance.PopMenu())
             }, false));
 
             Debug.Log(GlobalVariables.Instance.CurrentSong.AvailableParts);

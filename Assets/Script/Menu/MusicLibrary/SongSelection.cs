@@ -15,6 +15,7 @@ using YARG.UI.MusicLibrary.ViewTypes;
 using Random = UnityEngine.Random;
 using System.Threading;
 using UnityEngine.Serialization;
+using YARG.Menu;
 using YARG.Player.Input;
 using YARG.Player.Navigation;
 using YARG.Settings;
@@ -528,7 +529,7 @@ namespace YARG.UI.MusicLibrary
                 return;
             }
 
-            MainMenu.Instance.ShowMainMenu();
+            MenuNavigator.Instance.PopMenu();
         }
 
         private void ClearSearchBox()

@@ -733,7 +733,7 @@ namespace YARG.PlayMode
                 StartCoroutine(EndSong(false));
             }
 
-            MainMenu.showSongSelect = toSongSelect;
+            // MainMenu.showSongSelect = toSongSelect;
             GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
         }
     }

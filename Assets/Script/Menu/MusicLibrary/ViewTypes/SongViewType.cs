@@ -2,6 +2,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Data;
+using YARG.Menu;
 using YARG.Song;
 
 namespace YARG.UI.MusicLibrary.ViewTypes
@@ -56,7 +57,7 @@ namespace YARG.UI.MusicLibrary.ViewTypes
         {
             base.PrimaryButtonClick();
 
-            MainMenu.Instance.ShowPreSong();
+            MenuNavigator.Instance.PushMenu(MenuNavigator.Menu.DifficultySelect);
         }
 
         public override void IconClick()
