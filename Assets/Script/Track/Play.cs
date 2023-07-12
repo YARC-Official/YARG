@@ -309,7 +309,7 @@ namespace YARG.PlayMode
             }
             else if (Song.NotesFile.EndsWith(".chart"))
             {
-                var handler = new BeatHandler(moonSong);
+                var handler = new BeatHandler(null);
                 handler.GenerateBeats();
                 chart.beats = handler.Beats;
             }

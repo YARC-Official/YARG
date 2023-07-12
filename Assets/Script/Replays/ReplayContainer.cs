@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
+using YARG.Core;
+using YARG.Core.Engine.Guitar;
 using YARG.Core.Replays;
 using YARG.Core.Replays.IO;
+using YARG.Gameplay;
+using YARG.Song;
 using YARG.Util;
 
 namespace YARG.Replays
@@ -12,10 +17,11 @@ namespace YARG.Replays
     {
         private const int CACHE_VERSION = 23_07_11_1;
 
-        private static List<ReplayEntry> _replays;
+        public static string ReplayDirectory { get; private set; }
 
-        private static string _replayDirectory;
         private static string _replayCacheFile;
+
+        private static List<ReplayEntry> _replays;
 
         private static FileSystemWatcher _watcher;
 
@@ -23,12 +29,12 @@ namespace YARG.Replays
         {
             _replays = new List<ReplayEntry>();
 
-            _replayDirectory = Path.Combine(PathHelper.PersistentDataPath, "replays");
-            _replayCacheFile = Path.Combine(_replayDirectory, "cache.bin");
+            ReplayDirectory = Path.Combine(PathHelper.PersistentDataPath, "replays");
+            _replayCacheFile = Path.Combine(ReplayDirectory, "cache.bin");
 
-            Directory.CreateDirectory(_replayDirectory);
+            Directory.CreateDirectory(ReplayDirectory);
 
-            _watcher = new FileSystemWatcher(_replayDirectory, "*.replay")
+            _watcher = new FileSystemWatcher(ReplayDirectory, "*.replay")
             {
                 EnableRaisingEvents = true, IncludeSubdirectories = true,
             };
@@ -55,7 +61,40 @@ namespace YARG.Replays
 
         public static ReplayReadResult LoadReplayFile(ReplayEntry entry, out Replay replay)
         {
-            return ReplayIO.ReadReplay(entry.ReplayFile, out replay);
+            return ReplayIO.ReadReplay(Path.Combine(ReplayDirectory, entry.ReplayFile), out replay);
+        }
+
+        public static Replay CreateNewReplay(SongEntry song, IList<BasePlayer> players)
+        {
+            var replay = new Replay
+            {
+                Header = new ReplayHeader
+                {
+                    // not good
+                    GameVersion = Constants.VERSION_TAG.version,
+                },
+                SongName = song.Name,
+                ArtistName = song.Artist,
+                CharterName = song.Charter,
+                SongChecksum = song.Checksum,
+                Date = DateTime.Now,
+                PlayerCount = players.Count,
+                PlayerNames = new string[players.Count],
+                Frames = new ReplayFrame[players.Count],
+            };
+
+            int bandScore = 0;
+
+            for (int i = 0; i < players.Count; i++)
+            {
+                replay.PlayerNames[i] = players[i].Player.Profile.Name;
+                replay.Frames[i] = CreateReplayFrame(i, players[i], out int score);
+                bandScore += score;
+            }
+
+            replay.BandScore = bandScore;
+
+            return replay;
         }
 
         public static void LoadReplayCache()
@@ -75,7 +114,7 @@ namespace YARG.Replays
                 return;
             }
 
-            while(stream.Position < stream.Length)
+            while (stream.Position < stream.Length)
             {
                 var replay = new ReplayEntry
                 {
@@ -121,6 +160,7 @@ namespace YARG.Replays
                 {
                     writer.Write(entry.PlayerNames[i]);
                 }
+
                 writer.Write(entry.GameVersion);
                 writer.Write(entry.ReplayFile);
             }
@@ -134,6 +174,46 @@ namespace YARG.Replays
         private static void OnReplayDeleted(object sender, FileSystemEventArgs e)
         {
             Debug.Log("Deleted:" + e.Name);
+        }
+
+        private static ReplayFrame CreateReplayFrame(int id, BasePlayer player, out int playerScore)
+        {
+            ReplayFrame frame = null;
+            playerScore = 0;
+            switch (player.Player.Profile.Instrument.ToGameMode())
+            {
+                case GameMode.FiveFretGuitar:
+                    var fivePlayer = (FiveFretPlayer) player;
+                    var fiveFrame = new ReplayFrame<GuitarStats>
+                    {
+                        Stats = new GuitarStats(fivePlayer.Engine.EngineStats),
+                    };
+
+                    playerScore = fiveFrame.Stats.Score;
+                    break;
+                case GameMode.SixFretGuitar:
+                    break;
+                case GameMode.FourLaneDrums:
+                    break;
+                case GameMode.FiveLaneDrums:
+                    break;
+                case GameMode.ProGuitar:
+                    break;
+                case GameMode.Vocals:
+                    break;
+                default:
+                    frame = new ReplayFrame<GuitarStats>();
+                    break;
+            }
+
+            frame!.PlayerId = id;
+            frame.PlayerName = player.Player.Profile.Name;
+            frame.Instrument = player.Player.Profile.Instrument;
+            frame.Difficulty = player.Player.Profile.Difficulty;
+            frame.Inputs = player.ReplayInputs.ToArray();
+            frame.InputCount = player.ReplayInputs.Count;
+
+            return frame;
         }
     }
 }

@@ -1,14 +1,17 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Chart;
+using YARG.Core.Replays.IO;
 using YARG.Player;
+using YARG.Replays;
+using YARG.Song;
 
 namespace YARG.Gameplay
 {
     public class GameManager : MonoBehaviour
     {
-
         [Header("Instrument Prefabs")]
         [SerializeField]
         private GameObject fiveFretGuitarPrefab;
@@ -25,22 +28,27 @@ namespace YARG.Gameplay
         [SerializeField]
         private GameObject proGuitarPrefab;
 
+        public SongEntry Song  { get; private set; }
         public SongChart Chart { get; private set; }
 
         public double SongStartTime { get; private set; }
         public double SongLength    { get; private set; }
 
+        public bool IsReplay { get; private set; }
+
         public bool Paused { get; private set; }
 
         private List<BasePlayer> _players;
-        private List<Beat> _beats;
+        private List<Beat>       _beats;
 
         private void Awake()
         {
             _beats = new List<Beat>();
-            Chart = SongChart.FromFile(GlobalVariables.Instance.CurrentSong.NotesFile);
+            Song = GlobalVariables.Instance.CurrentSong;
+            Chart = SongChart.FromFile(new SongMetadata(), Song.NotesFile);
+            IsReplay = GlobalVariables.Instance.isReplay;
 
-            var beatHandler = new BeatHandler(null);
+            var beatHandler = new BeatHandler(Chart);
             beatHandler.GenerateBeats();
             _beats = beatHandler.Beats;
 
@@ -130,5 +138,28 @@ namespace YARG.Gameplay
             }
         }
 
+        private void EndSong()
+        {
+            if (!IsReplay)
+            {
+                var replay = ReplayContainer.CreateNewReplay(Song, _players);
+                var entry = new ReplayEntry
+                {
+                    SongName = replay.SongName,
+                    ArtistName = replay.ArtistName,
+                    CharterName = replay.CharterName,
+                    BandScore = replay.BandScore,
+                    Date = replay.Date,
+                    SongChecksum = replay.SongChecksum,
+                    PlayerCount = replay.PlayerCount,
+                    PlayerNames = replay.PlayerNames,
+                    GameVersion = replay.Header.GameVersion,
+                };
+
+                entry.ReplayFile = entry.GetReplayName();
+
+                ReplayIO.WriteReplay(Path.Combine(ReplayContainer.ReplayDirectory, entry.ReplayFile), replay);
+            }
+        }
     }
 }

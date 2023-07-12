@@ -40,14 +40,15 @@ namespace YARG.Gameplay
             // input.onGameInput -= OnGameInput;
         }
 
-        private void OnGameInput(YargPlayer inputPlayer, GameInput input)
+        private void OnGameInput(GameInput input)
         {
-            if(inputPlayer != Player)
+            if (GameManager.IsReplay)
             {
                 return;
             }
 
             Engine.QueueInput(input);
+            AddReplayInput(input);
         }
     }
 }

@@ -17,7 +17,6 @@ namespace YARG.Gameplay
 
         public YargPlayer Player;
 
-        protected bool IsReplay      { get; private set; }
         protected bool IsInitialized { get; private set; }
 
         protected virtual void Awake()
@@ -30,7 +29,6 @@ namespace YARG.Gameplay
         {
             Player = player;
 
-            IsReplay = GlobalVariables.Instance.isReplay;
             IsInitialized = true;
         }
 
@@ -58,7 +56,7 @@ namespace YARG.Gameplay
     public abstract class BasePlayer<TEngine, TNote> : BasePlayer
         where TEngine : BaseEngine where TNote : Note<TNote>
     {
-        protected TEngine Engine { get; set; }
+        public TEngine Engine { get; protected set; }
 
         protected List<TNote> Notes { get; private set; }
 
