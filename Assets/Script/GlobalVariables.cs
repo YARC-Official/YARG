@@ -51,10 +51,10 @@ namespace YARG
             PathHelper.Init();
             ReplayContainer.Init();
 
-            int profileCount = ProfileContainer.LoadProfiles();
+            int profileCount = PlayerContainer.LoadProfiles();
             Debug.Log($"Loaded {profileCount} profiles");
 
-            int savedCount = ProfileContainer.SaveProfiles();
+            int savedCount = PlayerContainer.SaveProfiles();
             Debug.Log($"Saved {savedCount} profiles");
 
             AudioManager = gameObject.AddComponent<BassAudioManager>();

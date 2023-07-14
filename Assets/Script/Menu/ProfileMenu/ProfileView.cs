@@ -19,7 +19,7 @@ namespace YARG.Menu
 
             _profileName.text = profile.Name;
 
-            if (!ProfileContainer.IsProfileTaken(profile))
+            if (!PlayerContainer.IsProfileTaken(profile))
             {
                 _profileName.text += " (LOGGED OUT)";
             }
@@ -27,7 +27,7 @@ namespace YARG.Menu
 
         public void RemoveProfile()
         {
-            if (ProfileContainer.RemoveProfile(_profile))
+            if (PlayerContainer.RemoveProfile(_profile))
             {
                 Destroy(gameObject);
             }
@@ -35,11 +35,11 @@ namespace YARG.Menu
 
         public async void LoginOrLogout()
         {
-            var player = ProfileContainer.GetPlayerFromProfile(_profile);
+            var player = PlayerContainer.GetPlayerFromProfile(_profile);
 
             if (player is not null)
             {
-                ProfileContainer.DisposePlayer(player);
+                PlayerContainer.DisposePlayer(player);
                 Init(_profile);
             }
             else
@@ -49,7 +49,7 @@ namespace YARG.Menu
                 if (device == null) return;
 
                 // Create a player from the profile (and return if failed)
-                player = ProfileContainer.CreatePlayerFromProfile(_profile);
+                player = PlayerContainer.CreatePlayerFromProfile(_profile);
                 if (player is null) return;
 
                 // Re-initialize the ProfileView

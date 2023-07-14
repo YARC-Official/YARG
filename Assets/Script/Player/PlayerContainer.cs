@@ -12,7 +12,7 @@ namespace YARG.Player
     /// <see cref="YargProfile"/>s are used to store and serialize profile settings, names, etc.
     /// Once a profile is "taken," it turns into a <see cref="YargPlayer"/>.
     /// </summary>
-    public static class ProfileContainer
+    public static class PlayerContainer
     {
         private static readonly List<YargProfile> _profiles;
         private static readonly List<YargPlayer> _players;
@@ -27,9 +27,9 @@ namespace YARG.Player
         /// <summary>
         /// A list of all of the active players.
         /// </summary>
-        public static IReadOnlyList<YargPlayer> Players = _players;
+        public static IReadOnlyList<YargPlayer> Players => _players;
 
-        static ProfileContainer()
+        static PlayerContainer()
         {
             _profiles = new List<YargProfile>();
             _players = new List<YargPlayer>();
