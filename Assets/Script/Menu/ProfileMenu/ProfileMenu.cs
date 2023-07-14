@@ -30,11 +30,6 @@ namespace YARG.Menu
             ProfileContainer.SaveProfiles();
         }
 
-        public void Back()
-        {
-            MenuNavigator.Instance.PopMenu();
-        }
-
         private void RefreshList()
         {
             // Remove old ones

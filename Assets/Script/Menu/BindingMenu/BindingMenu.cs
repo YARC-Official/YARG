@@ -1,12 +1,8 @@
 ﻿using UnityEngine;
 
-namespace YARG.Menu.BindingMenu
+namespace YARG.Menu
 {
     public class BindingMenu : MonoBehaviour
     {
-        public void Back()
-        {
-            MenuNavigator.Instance.PopMenu();
-        }
     }
 }

@@ -1,5 +1,4 @@
-using System;
-using TMPro;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Helpers.Extensions;
@@ -8,6 +7,9 @@ namespace YARG.Menu
 {
     public class InputDeviceDialog : MonoBehaviour
     {
+        private static InputDeviceDialog _instance;
+        private static InputDevice _selectedDevice;
+
         [SerializeField]
         private Transform _deviceContainer;
 
@@ -15,8 +17,14 @@ namespace YARG.Menu
         [SerializeField]
         private GameObject _deviceEntryPrefab;
 
+        private void Awake()
+        {
+            _instance = this;
+        }
+
         private void OnEnable()
         {
+            _selectedDevice = null;
             RefreshList();
         }
 
@@ -27,8 +35,26 @@ namespace YARG.Menu
             foreach (var device in InputSystem.devices)
             {
                 var button = Instantiate(_deviceEntryPrefab, _deviceContainer);
-                button.GetComponent<DeviceEntry>().Init(device);
+                button.GetComponent<DeviceEntry>().Init(device, SelectDevice);
             }
+        }
+
+        private static void SelectDevice(InputDevice inputDevice)
+        {
+            _selectedDevice = inputDevice;
+            MenuNavigator.Instance.PopMenu();
+        }
+
+        public static async UniTask<InputDevice> ShowDialog()
+        {
+            // Open dialog
+            MenuNavigator.Instance.PushMenu(MenuNavigator.Menu.InputDeviceDialog);
+
+            // Wait until the dialog is closed
+            await UniTask.WaitUntil(() => !_instance.gameObject.activeSelf);
+
+            // Return the result
+            return _selectedDevice;
         }
     }
 }
