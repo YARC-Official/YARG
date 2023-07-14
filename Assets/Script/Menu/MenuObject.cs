@@ -8,6 +8,9 @@ namespace YARG.Menu
         [field: SerializeField]
         public MenuNavigator.Menu Menu { get; private set; }
 
+        [field: SerializeField]
+        public bool HideBelow { get; private set; } = true;
+
         private void Start()
         {
             Assert.AreNotEqual(Menu, MenuNavigator.Menu.None);

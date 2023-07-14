@@ -44,6 +44,8 @@ namespace YARG.Menu
             {
                 ProfileContainer.TakeProfile(_profile);
                 Init(_profile);
+
+                MenuNavigator.Instance.PushMenu(MenuNavigator.Menu.InputDeviceDialog);
             }
         }
     }

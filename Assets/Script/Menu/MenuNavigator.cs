@@ -17,7 +17,8 @@ namespace YARG.Menu
             DifficultySelect,
             Credits,
             ProfileMenu,
-            BindingMenu
+            BindingMenu,
+            InputDeviceDialog,
         }
 
         private Dictionary<Menu, MenuObject> _menus;
@@ -40,21 +41,24 @@ namespace YARG.Menu
 
         public void PushMenu(Menu menu)
         {
-            // Close the currently open one
-            if (_openMenus.TryPeek(out var currentMenuEnum) &&
-                _menus.TryGetValue(currentMenuEnum, out var currentMenu))
-            {
-                currentMenu.gameObject.SetActive(false);
-            }
+            bool hideOther;
 
             // Show the new one
             if (_menus.TryGetValue(menu, out var newMenu))
             {
                 newMenu.gameObject.SetActive(true);
+                hideOther = newMenu.HideBelow;
             }
             else
             {
                 throw new InvalidOperationException($"Failed to open menu {menu}.");
+            }
+
+            // Close the currently open one
+            if (hideOther && _openMenus.TryPeek(out var currentMenuEnum) &&
+                _menus.TryGetValue(currentMenuEnum, out var currentMenu))
+            {
+                currentMenu.gameObject.SetActive(false);
             }
 
             // ... and push it onto the stack
@@ -82,7 +86,8 @@ namespace YARG.Menu
             if (_menus.TryGetValue(menu, out var newMenu))
             {
                 newMenu.gameObject.SetActive(true);
-            }else
+            }
+            else
             {
                 throw new InvalidOperationException($"Failed to open menu {menu}.");
             }
