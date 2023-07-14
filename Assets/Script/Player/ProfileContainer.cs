@@ -1,86 +1,126 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 using YARG.Core;
 using YARG.Util;
 
 namespace YARG.Player
 {
+    /// <summary>
+    /// A class that manages all of the <see cref="YargProfile"/>s and <see cref="YargPlayer"/>s.
+    /// <br/><br/>
+    /// <see cref="YargProfile"/>s are used to store and serialize profile settings, names, etc.
+    /// Once a profile is "taken," it turns into a <see cref="YargPlayer"/>.
+    /// </summary>
     public static class ProfileContainer
     {
+        private static readonly List<YargProfile> _profiles;
+        private static readonly List<YargPlayer> _players;
 
-        /*
+        private static readonly Dictionary<YargProfile, YargPlayer> _playersByProfile;
 
-         Profiles can only be assigned to 1 player at a time so the ProfileContainer only exposes the available profiles.
+        /// <summary>
+        /// A list of all of the profiles (taken or not).
+        /// </summary>
+        public static IReadOnlyList<YargProfile> Profiles => _profiles;
 
-         */
-
-        private static readonly List<YargProfile> _allProfiles;
-        private static readonly List<YargProfile> _takenProfiles;
-
-        public static IReadOnlyList<YargProfile> Profiles => _allProfiles;
-        public static IReadOnlyList<YargProfile> TakenProfiles => _takenProfiles;
+        /// <summary>
+        /// A list of all of the active players.
+        /// </summary>
+        public static IReadOnlyList<YargPlayer> Players = _players;
 
         static ProfileContainer()
         {
-            _allProfiles = new List<YargProfile>();
-            _takenProfiles = new List<YargProfile>();
-        }
-
-        public static bool TakeProfile(YargProfile profile)
-        {
-            if (_takenProfiles.Contains(profile))
-            {
-                return false;
-            }
-
-            _takenProfiles.Add(profile);
-            return true;
-        }
-
-        public static bool ReturnProfile(YargProfile profile)
-        {
-            if (!_takenProfiles.Contains(profile))
-            {
-                return false;
-            }
-
-            _takenProfiles.Remove(profile);
-            return true;
+            _profiles = new List<YargProfile>();
+            _players = new List<YargPlayer>();
+            _playersByProfile = new Dictionary<YargProfile, YargPlayer>();
         }
 
         public static bool AddProfile(YargProfile profile)
         {
-            if (_allProfiles.Contains(profile))
+            if (_profiles.Contains(profile))
             {
                 return false;
             }
 
-            _allProfiles.Add(profile);
+            _profiles.Add(profile);
             return true;
         }
 
         public static bool RemoveProfile(YargProfile profile)
         {
-            if (!_allProfiles.Contains(profile))
+            if (!_profiles.Contains(profile))
             {
                 return false;
             }
 
-            // TODO: Where would we handle removing YargPlayers with this profile?
-            if (_takenProfiles.Contains(profile))
+            // A profile that is taken can't be removed
+            if (_playersByProfile.ContainsKey(profile))
             {
                 return false;
             }
 
-            _allProfiles.Remove(profile);
+            _profiles.Remove(profile);
             return true;
+        }
+
+        public static bool IsProfileTaken(YargProfile profile)
+        {
+            return _playersByProfile.ContainsKey(profile);
+        }
+
+        public static YargPlayer CreatePlayerFromProfile(YargProfile profile)
+        {
+            if (!_profiles.Contains(profile))
+            {
+                return null;
+            }
+
+            if (IsProfileTaken(profile))
+            {
+                return null;
+            }
+
+            var player = new YargPlayer(profile);
+            _players.Add(player);
+            _playersByProfile.Add(profile, player);
+
+            return player;
+        }
+
+        public static bool DisposePlayer(YargPlayer player)
+        {
+            if (!_players.Contains(player))
+            {
+                return false;
+            }
+
+            _players.Remove(player);
+            _playersByProfile.Remove(player.Profile);
+
+            player.Dispose();
+
+            return true;
+        }
+
+        public static YargPlayer GetPlayerFromProfile(YargProfile profile)
+        {
+            if (!_playersByProfile.TryGetValue(profile, out var player))
+            {
+                return null;
+            }
+
+            return player;
         }
 
         public static int LoadProfiles()
         {
-            _allProfiles.Clear();
-            _takenProfiles.Clear();
+            _profiles.Clear();
+
+            // Players must be disposed
+            _players.ForEach(i => i.Dispose());
+            _players.Clear();
 
             string profilesPath = Path.Combine(PathHelper.PersistentDataPath, "profiles.json");
             if (!File.Exists(profilesPath))
@@ -89,26 +129,25 @@ namespace YARG.Player
             }
 
             string profilesJson = File.ReadAllText(profilesPath);
-
             var profiles = JsonConvert.DeserializeObject<List<YargProfile>>(profilesJson);
 
             if (profiles is not null)
             {
-                _allProfiles.AddRange(profiles);
+                _profiles.AddRange(profiles);
             }
 
-            return _allProfiles.Count;
+            return _profiles.Count;
         }
 
         public static int SaveProfiles()
         {
             string profilesPath = Path.Combine(PathHelper.PersistentDataPath, "profiles.json");
 
-            string profilesJson = JsonConvert.SerializeObject(_allProfiles, Formatting.Indented);
+            string profilesJson = JsonConvert.SerializeObject(_profiles, Formatting.Indented);
 
             File.WriteAllText(profilesPath, profilesJson);
 
-            return _allProfiles.Count;
+            return _profiles.Count;
         }
     }
 }

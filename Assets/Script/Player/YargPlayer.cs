@@ -1,10 +1,11 @@
+using System;
 using YARG.Core;
 using YARG.Input;
 using YARG.Player.Input;
 
 namespace YARG.Player
 {
-    public class YargPlayer
+    public class YargPlayer : IDisposable
     {
         public YargProfile Profile { get; private set; }
 
@@ -19,21 +20,11 @@ namespace YARG.Player
             Bindings = new(profile);
         }
 
-        public void SetProfile(YargProfile profile)
+        public void Dispose()
         {
-            if (Profile is not null)
-            {
-                if (!ProfileContainer.ReturnProfile(Profile))
-                {
-                    return;
-                }
-            }
+            // Add all dispose stuff here
 
-            if (ProfileContainer.TakeProfile(profile))
-            {
-                Profile = profile;
-                Bindings = new(profile);
-            }
+            InputStrategy?.Dispose();
         }
     }
 }
