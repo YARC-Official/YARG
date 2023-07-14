@@ -21,13 +21,13 @@ namespace YARG.Menu
 
         private void OnDisable()
         {
-            ProfileContainer.SaveProfiles();
+            PlayerContainer.SaveProfiles();
         }
 
         // TODO: Move the ProfileContainer
         private void OnApplicationQuit()
         {
-            ProfileContainer.SaveProfiles();
+            PlayerContainer.SaveProfiles();
         }
 
         private void RefreshList()
@@ -36,7 +36,7 @@ namespace YARG.Menu
             _profileList.transform.DestroyChildren();
 
             // Spawn in a profile view for each player
-            foreach (var profile in ProfileContainer.Profiles)
+            foreach (var profile in PlayerContainer.Profiles)
             {
                 var go = Instantiate(_profileViewPrefab, _profileList);
                 go.GetComponent<ProfileView>().Init(profile);
@@ -45,7 +45,7 @@ namespace YARG.Menu
 
         public void AddProfile()
         {
-            ProfileContainer.AddProfile(new YargProfile
+            PlayerContainer.AddProfile(new YargProfile
             {
                 Name = "Nathan",
                 NoteSpeed = 8,

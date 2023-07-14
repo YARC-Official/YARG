@@ -19,7 +19,7 @@ namespace YARG.Menu
 
             _profileName.text = profile.Name;
 
-            if (!ProfileContainer.TakenProfiles.Contains(profile))
+            if (!PlayerContainer.IsProfileTaken(profile))
             {
                 _profileName.text += " (LOGGED OUT)";
             }
@@ -27,25 +27,33 @@ namespace YARG.Menu
 
         public void RemoveProfile()
         {
-            if (ProfileContainer.RemoveProfile(_profile))
+            if (PlayerContainer.RemoveProfile(_profile))
             {
                 Destroy(gameObject);
             }
         }
 
-        public void LoginOrLogout()
+        public async void LoginOrLogout()
         {
-            if (ProfileContainer.TakenProfiles.Contains(_profile))
+            var player = PlayerContainer.GetPlayerFromProfile(_profile);
+
+            if (player is not null)
             {
-                ProfileContainer.ReturnProfile(_profile);
+                PlayerContainer.DisposePlayer(player);
                 Init(_profile);
             }
             else
             {
-                ProfileContainer.TakeProfile(_profile);
-                Init(_profile);
+                // Prompt the user to select a device
+                var device = await InputDeviceDialog.ShowDialog();
+                if (device == null) return;
 
-                MenuNavigator.Instance.PushMenu(MenuNavigator.Menu.InputDeviceDialog);
+                // Create a player from the profile (and return if failed)
+                player = PlayerContainer.CreatePlayerFromProfile(_profile);
+                if (player is null) return;
+
+                // Re-initialize the ProfileView
+                Init(_profile);
             }
         }
     }
