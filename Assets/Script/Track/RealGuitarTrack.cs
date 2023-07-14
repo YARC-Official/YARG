@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using YARG.Data;
+using YARG.Helpers.Extensions;
 using YARG.Player.Input;
 using YARG.Pools;
 using YARG.Song;

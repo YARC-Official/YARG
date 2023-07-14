@@ -2,8 +2,8 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
+using YARG.Helpers.Extensions;
 using YARG.PlayMode;
-using YARG.Util;
 
 namespace YARG.UI
 {

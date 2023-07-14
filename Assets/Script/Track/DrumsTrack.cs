@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using YARG.Data;
+using YARG.Helpers.Extensions;
 using YARG.Player.Input;
 using YARG.Pools;
 using YARG.Settings;

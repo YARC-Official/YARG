@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Data;
+using YARG.Helpers.Extensions;
 using YARG.Player.Input;
 using YARG.Player.Navigation;
 using YARG.PlayMode;
@@ -69,7 +70,7 @@ namespace YARG.UI.PlayResultScreen
         public HashSet<PlayerManager.Player> bot;
 
         public static event Action<bool> OnEnabled;
-        
+
         void OnEnable()
         {
             // Populate header information
@@ -178,11 +179,7 @@ namespace YARG.UI.PlayResultScreen
         private void CreatePlayerCards()
         {
             // clear existing cards (may be left in for dev preview)
-            foreach (Transform pc in playerCardsContainer.transform)
-            {
-                Destroy(pc.gameObject);
-            }
-
+            playerCardsContainer.transform.DestroyChildren();
             playerCards.Clear();
 
             foreach (var player in PlayerManager.players)

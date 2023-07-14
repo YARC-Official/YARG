@@ -6,13 +6,12 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
 using UnityEngine.UI;
-using YARG.Player.Input;
+using YARG.Helpers.Extensions;
 using YARG.Player.Navigation;
 using YARG.Settings.Metadata;
 using YARG.Settings.Types;
 using YARG.Settings.Visuals;
 using YARG.UI.MusicLibrary;
-using YARG.Util;
 
 namespace YARG.Settings
 {
@@ -173,10 +172,7 @@ namespace YARG.Settings
         private void UpdateTabs()
         {
             // Destroy all previous tabs
-            foreach (Transform t in _tabsContainer)
-            {
-                Destroy(t.gameObject);
-            }
+            _tabsContainer.DestroyChildren();
 
             // Then, create new tabs!
             foreach (var tab in SettingsManager.SettingsTabs)
@@ -198,10 +194,7 @@ namespace YARG.Settings
             _settingDropdowns.Clear();
 
             // Destroy all previous settings
-            foreach (Transform t in container)
-            {
-                Destroy(t.gameObject);
-            }
+            container.DestroyChildren();
 
             foreach (var tab in SettingsManager.SettingsTabs)
             {
@@ -261,10 +254,7 @@ namespace YARG.Settings
             UpdateSongLibraryOnExit = true;
 
             // Destroy all previous settings
-            foreach (Transform t in _settingsContainer)
-            {
-                Destroy(t.gameObject);
-            }
+            _settingsContainer.DestroyChildren();
 
             // Spawn header
             SpawnHeader(_settingsContainer, "Header.Cache");
@@ -341,10 +331,7 @@ namespace YARG.Settings
         {
             if (_previewContainer == null) return;
 
-            foreach (Transform t in _previewContainer)
-            {
-                Destroy(t.gameObject);
-            }
+            _previewContainer.DestroyChildren();
         }
 
         public void ReturnToFirstTab()

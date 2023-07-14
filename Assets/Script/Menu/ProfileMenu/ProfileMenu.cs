@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using YARG.Core;
+using YARG.Helpers.Extensions;
 using YARG.Player;
 
 namespace YARG.Menu
@@ -37,10 +38,7 @@ namespace YARG.Menu
         private void RefreshList()
         {
             // Remove old ones
-            foreach (Transform child in _profileList.transform)
-            {
-                Destroy(child.gameObject);
-            }
+            _profileList.transform.DestroyChildren();
 
             // Spawn in a profile view for each player
             foreach (var profile in ProfileContainer.Profiles)
