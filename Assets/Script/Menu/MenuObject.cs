@@ -15,5 +15,10 @@ namespace YARG.Menu
         {
             Assert.AreNotEqual(Menu, MenuNavigator.Menu.None);
         }
+
+        public void CloseMenu()
+        {
+            MenuNavigator.Instance.PopMenu();
+        }
     }
 }
