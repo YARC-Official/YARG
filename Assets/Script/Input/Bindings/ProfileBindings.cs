@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine.InputSystem;
 using YARG.Core;
 
@@ -18,7 +19,9 @@ namespace YARG.Input
         public bool AddDevice(InputDevice device)
         {
             if (_deviceBindings.ContainsKey(device))
+            {
                 return false;
+            }
 
             _deviceBindings.Add(device, new(device));
             return true;
@@ -27,17 +30,6 @@ namespace YARG.Input
         public bool ContainsDevice(InputDevice device)
         {
             return _deviceBindings.ContainsKey(device);
-        }
-
-        public bool ContainsDeviceForControl(InputControl control)
-        {
-            foreach (var bindings in _deviceBindings.Values)
-            {
-                if (bindings.ContainsControl(control))
-                    return true;
-            }
-
-            return false;
         }
 
         public DeviceBindings TryGetBindsForDevice(InputDevice device)

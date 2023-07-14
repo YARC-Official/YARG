@@ -13,9 +13,9 @@ namespace YARG.Input
 
     public class InputManager : MonoBehaviour
     {
-        public const Enumerate DEFAULT_CONTROL_ENUMERATION_FLAGS = 
+        public const Enumerate DEFAULT_CONTROL_ENUMERATION_FLAGS =
             Enumerate.IgnoreControlsInCurrentState | // Only controls that have changed
-            Enumerate.IncludeNoisyControls |         // Constantly-changing controls like accelerometers 
+            Enumerate.IncludeNoisyControls |         // Constantly-changing controls like accelerometers
             Enumerate.IncludeSyntheticControls;      // Non-physical controls like stick up/down/left/right
 
         public delegate void GameInputEvent(YargPlayer player, GameInput input);
@@ -66,10 +66,10 @@ namespace YARG.Input
                 var profileBinds = player.Bindings;
 
                 var deviceBinds = profileBinds.TryGetBindsForDevice(device);
-                if (deviceBinds == null)
-                    continue;
+                if (deviceBinds == null) continue;
 
-                deviceBinds.ProcessInputEvent(eventPtr);
+                var gameModeBinds = deviceBinds.GetBindingsForGameMode(player.Profile.InstrumentType);
+                gameModeBinds.ProcessInputEvent(eventPtr);
             }
         }
 
