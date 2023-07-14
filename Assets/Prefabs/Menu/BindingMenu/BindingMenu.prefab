@@ -117,6 +117,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <Menu>k__BackingField: 6
+  <HideBelow>k__BackingField: 1
 --- !u!114 &4074408503449261894
 MonoBehaviour:
   m_ObjectHideFlags: 0
