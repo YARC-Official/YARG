@@ -16,14 +16,19 @@ namespace YARG.Player
 
         public YargPlayer(YargProfile profile)
         {
+            SwapToProfile(profile);
+        }
+
+        public void SwapToProfile(YargProfile profile)
+        {
+            // TODO: deal with the previous bindings, etc.
+
             Profile = profile;
             Bindings = new(profile);
         }
 
         public void Dispose()
         {
-            // Add all dispose stuff here
-
             InputStrategy?.Dispose();
         }
     }

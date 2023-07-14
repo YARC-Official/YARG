@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using JetBrains.Annotations;
 using Newtonsoft.Json;
 using YARG.Core;
 using YARG.Util;
@@ -100,6 +99,26 @@ namespace YARG.Player
             _playersByProfile.Remove(player.Profile);
 
             player.Dispose();
+
+            return true;
+        }
+
+        public static bool SwapPlayerToProfile(YargPlayer player, YargProfile newProfile)
+        {
+            if (!_players.Contains(player))
+            {
+                return false;
+            }
+
+            if (IsProfileTaken(newProfile))
+            {
+                return false;
+            }
+
+            _playersByProfile.Remove(player.Profile);
+            _playersByProfile.Add(newProfile, player);
+
+            player.SwapToProfile(newProfile);
 
             return true;
         }
