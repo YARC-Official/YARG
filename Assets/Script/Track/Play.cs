@@ -153,6 +153,9 @@ namespace YARG.PlayMode
             GameUI.Instance.SetLoadingText("Loading audio...");
             Song.LoadAudio(GameManager.AudioManager, speed);
 
+            bool isYargSong = Song.Source.ToLowerInvariant() == "yarg";
+            GameManager.AudioManager.Options.UseMinimumStemVolume = isYargSong;
+
             // Get song length
             audioLength = GameManager.AudioManager.AudioLengthF;
             SongLength = audioLength;
@@ -573,6 +576,7 @@ namespace YARG.PlayMode
         public IEnumerator EndSong(bool showResultScreen)
         {
             // Dispose of all audio
+            GameManager.AudioManager.Options.UseMinimumStemVolume = false;
             GameManager.AudioManager.SongEnd -= OnEndReached;
             GameManager.AudioManager.UnloadSong();
 

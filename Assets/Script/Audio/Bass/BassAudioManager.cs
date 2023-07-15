@@ -436,12 +436,13 @@ namespace YARG.Audio.BASS
 
         public void SetStemVolume(SongStem stem, double volume)
         {
-            if (_mixer == null)
-                return;
+            if (_mixer == null) return;
 
             var stemChannels = _mixer.GetChannels(stem);
-            for (int i = 0; i < stemChannels.Length; ++i)
-                stemChannels[i].SetVolume(volume);
+            foreach (var stemChannel in stemChannels)
+            {
+                stemChannel.SetVolume(volume);
+            }
         }
 
         public void SetAllStemsVolume(double volume)

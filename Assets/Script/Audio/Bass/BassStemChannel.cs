@@ -252,6 +252,12 @@ namespace YARG.Audio.BASS
             double oldBassVol = _lastStemVolume * Volume;
             double newBassVol = volumeSetting * newVolume;
 
+            // Limit minimum stem volume
+            if (_manager.Options.UseMinimumStemVolume)
+            {
+                newBassVol = Math.Max(newBassVol, AudioOptions.MINIMUM_STEM_VOLUME);
+            }
+
             // Values are the same, no need to change
             if (Math.Abs(oldBassVol - newBassVol) < double.Epsilon)
             {
