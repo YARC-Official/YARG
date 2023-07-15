@@ -3,6 +3,7 @@ using YARG.Core.Chart;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Guitar.Engines;
 using YARG.Core.Input;
+using YARG.Input;
 using YARG.Player;
 
 namespace YARG.Gameplay
@@ -27,22 +28,17 @@ namespace YARG.Gameplay
 
         protected override void SubscribeToInputEvents()
         {
-            throw new System.NotImplementedException();
-
-            // Have some class that handles creation of GameInputs
-            // input.onGameInput += OnGameInput;
+            InputManager.OnGameInput += OnGameInput;
         }
 
         protected override void UnsubscribeFromInputEvents()
         {
-            throw new System.NotImplementedException();
-
-            // input.onGameInput -= OnGameInput;
+            InputManager.OnGameInput -= OnGameInput;
         }
 
-        private void OnGameInput(GameInput input)
+        private void OnGameInput(YargPlayer player, GameInput input)
         {
-            if (GameManager.IsReplay)
+            if (player != Player || GameManager.IsReplay)
             {
                 return;
             }

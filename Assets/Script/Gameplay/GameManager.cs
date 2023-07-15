@@ -45,7 +45,11 @@ namespace YARG.Gameplay
         {
             _beats = new List<Beat>();
             Song = GlobalVariables.Instance.CurrentSong;
-            Chart = SongChart.FromFile(new SongMetadata(), Song.NotesFile);
+
+            string notesFile = Path.Combine(Song.Location, Song.NotesFile);
+            Debug.Log(notesFile);
+            Chart = SongChart.FromFile(new SongMetadata(), notesFile);
+
             IsReplay = GlobalVariables.Instance.isReplay;
 
             var beatHandler = new BeatHandler(Chart);

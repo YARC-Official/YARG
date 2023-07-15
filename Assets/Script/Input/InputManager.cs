@@ -62,6 +62,13 @@ namespace YARG.Input
             var device = InputSystem.GetDeviceById(eventPtr.deviceId);
             foreach (var player in GlobalVariables.Instance.Players)
             {
+                foreach (var control in eventPtr.EnumerateChangedControls())
+                {
+                    FireGameInput(player, eventPtr, control);
+                }
+
+                return;
+
                 // TODO: Bindings don't have anything subscribed to their input event yet
                 var profileBinds = player.Bindings;
 
@@ -75,24 +82,40 @@ namespace YARG.Input
 
         private void FireGameInput(YargPlayer player, InputEventPtr eventPtr, InputControl control)
         {
-            // Fetch action from the action mappings according to the player's profile and device.
-            // just use green for example
-            var action = GuitarAction.Green;
-
-            // Some invalid action
-            if(action == null)
-                return;
-
             if (control is ButtonControl button)
             {
                 float value = button.ReadValueFromEvent(eventPtr);
-                bool pressed = button.IsValueConsideredPressed(value);
 
-                // if player gamemode == some instrument
-                // create correct input
+                GuitarAction action;
+                switch (button.name)
+                {
+                    case "greenFret":
+                        action = GuitarAction.Green;
+                        break;
+                    case "redFret":
+                        action = GuitarAction.Red;
+                        break;
+                    case "yellowFret":
+                        action = GuitarAction.Yellow;
+                        break;
+                    case "blueFret":
+                        action = GuitarAction.Blue;
+                        break;
+                    case "orangeFret":
+                        action = GuitarAction.Orange;
+                        break;
+                    case "strumDown":
+                        action = GuitarAction.StrumDown;
+                        break;
+                    case "strumUp":
+                        action = GuitarAction.StrumUp;
+                        break;
+                    default:
+                        return;
+                }
 
                 double time = eventPtr.time - InputTimeOffset;
-                var gameInput = GameInput.Create(time, action, pressed);
+                var gameInput = new GameInput(time, (int) action, value);
                 OnGameInput?.Invoke(player, gameInput);
             }
         }
