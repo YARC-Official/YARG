@@ -3,9 +3,9 @@ using UnityEngine;
 
 namespace YARG.Gameplay
 {
-    public abstract class Pool : MonoBehaviour
+    public class Pool : MonoBehaviour
     {
-        private readonly Stack<GameObject> _stack;
+        private readonly Stack<GameObject> _stack = new();
 
         [SerializeField]
         private GameObject _prefab;
@@ -28,14 +28,13 @@ namespace YARG.Gameplay
             return gameObject;
         }
 
-        public GameObject Take()
+        public GameObject TakeNoActivate()
         {
             if (_stack.TryPop(out var obj))
             {
-                obj.SetActive(true);
                 return obj;
             }
-            
+
             return CreateNew();
         }
 

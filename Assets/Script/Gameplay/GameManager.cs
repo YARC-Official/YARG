@@ -138,7 +138,7 @@ namespace YARG.Gameplay
             switch (yargPlayer.Profile.InstrumentType)
             {
                 case GameMode.FiveFretGuitar:
-                    var notes = Chart.FiveFretGuitar.Difficulties[yargPlayer.Profile.Difficulty].Notes;
+                    var notes = Chart.FiveFretBass.Difficulties[yargPlayer.Profile.Difficulty].Notes;
                     (basePlayer as FiveFretPlayer)?.Initialize(yargPlayer, notes);
                     break;
                 case GameMode.SixFretGuitar:

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Input;
@@ -11,6 +10,9 @@ namespace YARG.Gameplay
 {
     public abstract class BasePlayer : MonoBehaviour
     {
+        public const float STRIKE_LINE_POS = -2f;
+        public const float TRACK_WIDTH = 2f;
+
         [field: Header("Visuals")]
         [field: SerializeField]
         public Camera TrackCamera { get; private set; }
@@ -19,6 +21,10 @@ namespace YARG.Gameplay
         protected ComboMeter ComboMeter;
         [SerializeField]
         protected StarpowerBar StarpowerBar;
+
+        [Header("Pools")]
+        [SerializeField]
+        protected Pool NotePool;
 
         protected GameManager GameManager { get; private set; }
 
@@ -52,11 +58,12 @@ namespace YARG.Gameplay
 
             UpdateInputs();
             UpdateVisuals();
+            UpdateNotes();
         }
 
         protected abstract void UpdateInputs();
-
         protected abstract void UpdateVisuals();
+        protected abstract void UpdateNotes();
 
         protected void Start()
         {
@@ -84,6 +91,19 @@ namespace YARG.Gameplay
         public TEngine Engine { get; protected set; }
 
         protected List<TNote> Notes { get; private set; }
+        protected TNote NextNoteToSpawn = null;
+
+        public virtual void Initialize(YargPlayer player, List<TNote> notes)
+        {
+            if (IsInitialized)
+            {
+                return;
+            }
+
+            Initialize(player);
+
+            Notes = notes;
+        }
 
         protected override void UpdateInputs()
         {
@@ -103,16 +123,30 @@ namespace YARG.Gameplay
             StarpowerBar.SetStarpower(stats.StarPowerAmount);
         }
 
-        public virtual void Initialize(YargPlayer player, List<TNote> notes)
+        protected override void UpdateNotes()
         {
-            if (IsInitialized)
+            // Set to first note if null
+            NextNoteToSpawn ??= Notes[0];
+
+            if (NextNoteToSpawn.Time > GameManager.SongTime) return;
+
+            // Spawn note (and child notes)
+            SpawnNote(NextNoteToSpawn);
+            foreach (var note in NextNoteToSpawn.ChildNotes)
             {
-                return;
+                SpawnNote(note);
             }
 
-            Initialize(player);
-
-            Notes = notes;
+            NextNoteToSpawn = NextNoteToSpawn.NextNote;
         }
+
+        protected void SpawnNote(TNote note)
+        {
+            var noteObj = NotePool.TakeNoActivate();
+            InitializeSpawnedNote(noteObj, note);
+            noteObj.SetActive(true);
+        }
+
+        protected abstract void InitializeSpawnedNote(GameObject noteObj, TNote note);
     }
 }
