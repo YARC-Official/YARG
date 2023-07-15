@@ -39,6 +39,7 @@ namespace YARG.Gameplay
 
         public double SongStartTime { get; private set; }
         public double SongLength    { get; private set; }
+        public double SongTime      => GlobalVariables.AudioManager.CurrentPositionD;
 
         public bool IsReplay { get; private set; }
 
@@ -74,6 +75,7 @@ namespace YARG.Gameplay
 
             SongLength = GlobalVariables.AudioManager.AudioLengthD;
 
+            GlobalVariables.AudioManager.Play();
             InputManager.InputTimeOffset = InputManager.CurrentInputTime;
         }
 
