@@ -33,8 +33,9 @@ namespace YARG
             Play.OnSongStart += OnSongStart;
             Play.OnSongEnd += OnSongEnd;
 
+            // TODO: FIX
             // Listen to instrument selection - NYI, let's confirm the rest works
-            DifficultySelect.OnInstrumentSelection += OnInstrumentSelection;
+            // DifficultySelect.OnInstrumentSelection += OnInstrumentSelection;
 
             // Listen to pausing - NYI, let's confirm the rest works
             Play.OnPauseToggle += OnPauseToggle;
@@ -85,10 +86,10 @@ namespace YARG
             BlankSongFile();
         }
 
-        private void OnInstrumentSelection(PlayerManager.Player playerInfo)
-        {
-            // Selecting Instrument
-        }
+        // private void OnInstrumentSelection(PlayerManager.Player playerInfo)
+        // {
+        //     // Selecting Instrument
+        // }
 
         private void OnPauseToggle(bool pause)
         {

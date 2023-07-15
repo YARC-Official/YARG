@@ -62,17 +62,20 @@ namespace YARG.Venue
 
             MainLightState = new();
 
-            VenueManager.OnEventReceive += VenueEvent;
+            // TODO: FIX
+            // VenueManager.OnEventReceive += VenueEvent;
         }
 
         private void OnDestroy()
         {
-            VenueManager.OnEventReceive -= VenueEvent;
+            // TODO: FIX
+            // VenueManager.OnEventReceive -= VenueEvent;
         }
 
         private void Update()
         {
-            _32NoteUpdate += 1f / Play.Instance.CurrentBeatsPerSecond * Time.deltaTime;
+            // TODO: FIX
+            // _32NoteUpdate += 1f / Play.Instance.CurrentBeatsPerSecond * Time.deltaTime;
 
             bool thirtySecondNote = false;
             if (_32NoteUpdate >= 1f / 32f)

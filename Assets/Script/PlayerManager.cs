@@ -40,7 +40,7 @@ namespace YARG
             public Difficulty chosenDifficulty = Difficulty.EXPERT;
 
             public LastScore? lastScore = null;
-            public AbstractTrack track = null;
+            // public AbstractTrack track = null;
 
             public Player()
             {

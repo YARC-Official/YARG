@@ -241,10 +241,10 @@ namespace YARG.Settings
 
             private static void VocalMonitoringCallback(float volume)
             {
-                foreach (var player in PlayerManager.players)
-                {
-                    // player.inputStrategy?.MicDevice?.SetMonitoringLevel(volume);
-                }
+                // foreach (var player in PlayerManager.players)
+                // {
+                //     // player.inputStrategy?.MicDevice?.SetMonitoringLevel(volume);
+                // }
             }
 
             private static void MusicPlayerVolumeCallback(float volume)

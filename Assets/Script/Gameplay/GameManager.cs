@@ -4,6 +4,7 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Replays.IO;
+using YARG.Gameplay.HUD;
 using YARG.Input;
 using YARG.Player;
 using YARG.Replays;
@@ -13,6 +14,10 @@ namespace YARG.Gameplay
 {
     public class GameManager : MonoBehaviour
     {
+        [Header("References")]
+        [SerializeField]
+        private TrackViewManager _trackViewManager;
+
         [Header("Instrument Prefabs")]
         [SerializeField]
         private GameObject fiveFretGuitarPrefab;
@@ -116,8 +121,10 @@ namespace YARG.Gameplay
                 var basePlayer = playerObject.GetComponent<BasePlayer>();
                 basePlayer.Player = player;
 
+
                 LoadChart(player, basePlayer);
 
+                _trackViewManager.CreateTrackView(basePlayer);
                 _players.Add(basePlayer);
             }
         }

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using UnityEngine;
+using YARG.Gameplay;
 using YARG.PlayMode;
 using YARG.UI;
 #if UNITY_EDITOR
@@ -28,8 +29,9 @@ namespace YARG.Venue
             // Move object out of the way, so its effects don't collide with the tracks
             transform.position += Vector3.forward * 10_000f;
 
+            // TODO: FIX
             // Destroy the default camera (venue has its own)
-            Destroy(Play.Instance.DefaultCamera.gameObject);
+            // Destroy(GameManager.Instance.DefaultCamera.gameObject);
         }
 
         private void OnDestroy()

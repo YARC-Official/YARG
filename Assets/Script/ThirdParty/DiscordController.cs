@@ -123,7 +123,7 @@ namespace YARG.ThirdParty
             Play.OnSongEnd += OnSongEnd;
 
             // Listen to instrument selection
-            DifficultySelect.OnInstrumentSelection += OnInstrumentSelection;
+            // DifficultySelect.OnInstrumentSelection += OnInstrumentSelection;
 
             // Listen to pausing
             Play.OnPauseToggle += OnPauseToggle;
@@ -154,7 +154,7 @@ namespace YARG.ThirdParty
             // Not sure why the discord controller would ever be destroyed but, eh you never know, right?
             Play.OnSongStart -= OnSongStart;
             Play.OnSongEnd -= OnSongEnd;
-            DifficultySelect.OnInstrumentSelection -= OnInstrumentSelection;
+            // DifficultySelect.OnInstrumentSelection -= OnInstrumentSelection;
             Play.OnPauseToggle -= OnPauseToggle;
         }
 
@@ -188,11 +188,12 @@ namespace YARG.ThirdParty
 
             _artistName = song.Artist;
 
+            // TODO: FIX
             // if more then 1 player is playing, set the source icon
-            if (PlayerManager.players.Count > 1)
-            {
-                SetSourceIcon();
-            }
+            // if (PlayerManager.players.Count > 1)
+            // {
+            //     SetSourceIcon();
+            // }
 
             SetActivity(
                 _currentSmallImage,
@@ -210,33 +211,34 @@ namespace YARG.ThirdParty
             SetDefaultActivity();
         }
 
-        private void OnInstrumentSelection(PlayerManager.Player playerInfo)
-        {
-            // ToLowerInvariant() because the DISCORD API DOESN'T HAVE UPPERCASE ARTWORK NAMES (WHY)
-            _currentSmallImage = playerInfo.chosenInstrument.ToLowerInvariant();
-
-#pragma warning disable format
-
-            _currentSmallText = playerInfo.chosenInstrument switch
-            {
-                "vocals"     => "Belting one out",
-                "harmVocals" => "Belting one out, with friends!",
-                "drums"      => "Working the skins",
-                "realDrums"  => "Really working the skins",
-                "ghDrums"    => "Working the skins +1",
-                "guitar"     => "Making it talk",
-                "guitarCoop" => "GTR_COOP_PLACEHOLDER",
-                "rhythm"     => "RHYTHM_PLACEHOLDER",
-                "realGuitar" => "Really making it talk",
-                "bass"       => "In the groove",
-                "realBass"   => "Really in the groove",
-                "keys"       => "Tickling the ivory",
-                "realKeys"   => "Really tickling the ivory",
-                _            => ""
-            };
-
-#pragma warning restore format
-        }
+        // TODO: FIX
+//         private void OnInstrumentSelection(PlayerManager.Player playerInfo)
+//         {
+//             // ToLowerInvariant() because the DISCORD API DOESN'T HAVE UPPERCASE ARTWORK NAMES (WHY)
+//             _currentSmallImage = playerInfo.chosenInstrument.ToLowerInvariant();
+//
+// #pragma warning disable format
+//
+//             _currentSmallText = playerInfo.chosenInstrument switch
+//             {
+//                 "vocals"     => "Belting one out",
+//                 "harmVocals" => "Belting one out, with friends!",
+//                 "drums"      => "Working the skins",
+//                 "realDrums"  => "Really working the skins",
+//                 "ghDrums"    => "Working the skins +1",
+//                 "guitar"     => "Making it talk",
+//                 "guitarCoop" => "GTR_COOP_PLACEHOLDER",
+//                 "rhythm"     => "RHYTHM_PLACEHOLDER",
+//                 "realGuitar" => "Really making it talk",
+//                 "bass"       => "In the groove",
+//                 "realBass"   => "Really in the groove",
+//                 "keys"       => "Tickling the ivory",
+//                 "realKeys"   => "Really tickling the ivory",
+//                 _            => ""
+//             };
+//
+// #pragma warning restore format
+//         }
 
         private void SetSourceIcon()
         {

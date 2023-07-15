@@ -56,5 +56,11 @@ namespace YARG.Menu
                 Init(_profile);
             }
         }
+
+        public void ShowBindingMenu()
+        {
+            BindingMenu.CurrentProfile = _profile;
+            MenuNavigator.Instance.PushMenu(MenuNavigator.Menu.BindingMenu);
+        }
     }
 }

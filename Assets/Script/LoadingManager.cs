@@ -62,7 +62,7 @@ namespace YARG
 
 #if UNITY_EDITOR
             // Test Play stuff
-            StartTestPlayMode();
+            // StartTestPlayMode();
 #endif
         }
 
@@ -124,66 +124,66 @@ namespace YARG
         }
 
 #if UNITY_EDITOR
-        private void StartTestPlayMode()
-        {
-            var info = GlobalVariables.Instance.TestPlayInfo;
-
-            // Skip if not test play mode
-            if (!info.TestPlayMode)
-            {
-                return;
-            }
-
-            info.TestPlayMode = false;
-
-            // Add the bots
-            // if (!info.NoBotsMode)
-            // {
-            //     AddTestPlayPlayer(new PlayerManager.Player
-            //     {
-            //         chosenInstrument = "guitar",
-            //         chosenDifficulty = Difficulty.EXPERT,
-            //         inputStrategy = new FiveFretInputStrategy
-            //         {
-            //             // BotMode = true
-            //         }
-            //     });
-            //
-            //     AddTestPlayPlayer(new PlayerManager.Player
-            //     {
-            //         chosenInstrument = "realDrums",
-            //         chosenDifficulty = Difficulty.EXPERT_PLUS,
-            //         inputStrategy = new DrumsInputStrategy
-            //         {
-            //             // BotMode = true
-            //         }
-            //     });
-            //
-            //     // AddTestPlayPlayer(new PlayerManager.Player
-            //     // {
-            //     //     chosenInstrument = "vocals",
-            //     //     chosenDifficulty = Difficulty.EXPERT,
-            //     //     inputStrategy = new MicInputStrategy
-            //     //     {
-            //     //         BotMode = true
-            //     //     }
-            //     // });
-            // }
-
-            // Get the Test Play song by hash, and play it
-            if (SongContainer.SongsByHash.TryGetValue(info.TestPlaySongHash,
-                out var song))
-            {
-                GlobalVariables.Instance.CurrentSong = song;
-                GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
-            }
-        }
-
-        private static void AddTestPlayPlayer(PlayerManager.Player p)
-        {
-            PlayerManager.players.Add(p);
-            // p.inputStrategy.Enable();
-        }
+        // private void StartTestPlayMode()
+        // {
+        //     var info = GlobalVariables.Instance.TestPlayInfo;
+        //
+        //     // Skip if not test play mode
+        //     if (!info.TestPlayMode)
+        //     {
+        //         return;
+        //     }
+        //
+        //     info.TestPlayMode = false;
+        //
+        //     // Add the bots
+        //     // if (!info.NoBotsMode)
+        //     // {
+        //     //     AddTestPlayPlayer(new PlayerManager.Player
+        //     //     {
+        //     //         chosenInstrument = "guitar",
+        //     //         chosenDifficulty = Difficulty.EXPERT,
+        //     //         inputStrategy = new FiveFretInputStrategy
+        //     //         {
+        //     //             // BotMode = true
+        //     //         }
+        //     //     });
+        //     //
+        //     //     AddTestPlayPlayer(new PlayerManager.Player
+        //     //     {
+        //     //         chosenInstrument = "realDrums",
+        //     //         chosenDifficulty = Difficulty.EXPERT_PLUS,
+        //     //         inputStrategy = new DrumsInputStrategy
+        //     //         {
+        //     //             // BotMode = true
+        //     //         }
+        //     //     });
+        //     //
+        //     //     // AddTestPlayPlayer(new PlayerManager.Player
+        //     //     // {
+        //     //     //     chosenInstrument = "vocals",
+        //     //     //     chosenDifficulty = Difficulty.EXPERT,
+        //     //     //     inputStrategy = new MicInputStrategy
+        //     //     //     {
+        //     //     //         BotMode = true
+        //     //     //     }
+        //     //     // });
+        //     // }
+        //
+        //     // Get the Test Play song by hash, and play it
+        //     if (SongContainer.SongsByHash.TryGetValue(info.TestPlaySongHash,
+        //         out var song))
+        //     {
+        //         GlobalVariables.Instance.CurrentSong = song;
+        //         GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+        //     }
+        // }
+        //
+        // private static void AddTestPlayPlayer(PlayerManager.Player p)
+        // {
+        //     PlayerManager.players.Add(p);
+        //     // p.inputStrategy.Enable();
+        // }
 #endif
     }
 }

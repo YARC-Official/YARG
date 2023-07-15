@@ -86,10 +86,12 @@ namespace YARG.UI.PlayResultScreen
 
             songTitle.SetText(name);
             songArtist.SetText(GlobalVariables.Instance?.CurrentSong?.Artist);
-            score.SetText(ScoreKeeper.TotalScore.ToString("n0"));
 
-            int stars = (int) StarScoreKeeper.BandStars;
-            starDisplay.SetStars(stars, stars <= 5 ? StarType.Standard : StarType.Gold);
+            // TODO: FIX
+            // score.SetText(ScoreKeeper.TotalScore.ToString("n0"));
+            //
+            // int stars = (int) StarScoreKeeper.BandStars;
+            // starDisplay.SetStars(stars, stars <= 5 ? StarType.Standard : StarType.Gold);
 
             // change graphics depending on clear/fail
             backgroundBorderFail.gameObject.SetActive(hasFailed);
