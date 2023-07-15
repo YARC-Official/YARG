@@ -123,74 +123,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &85510832
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 85510835}
-  - component: {fileID: 85510834}
-  - component: {fileID: 85510833}
-  m_Layer: 0
-  m_Name: EventSystem
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &85510833
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 85510832}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f231c4fb786f3946a6b90b886c48677, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SendPointerHoverToParent: 1
-  m_HorizontalAxis: Horizontal
-  m_VerticalAxis: Vertical
-  m_SubmitButton: Submit
-  m_CancelButton: Cancel
-  m_InputActionsPerSecond: 10
-  m_RepeatDelay: 0.5
-  m_ForceModuleActive: 0
---- !u!114 &85510834
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 85510832}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 76c392e42b5098c458856cdf6ecaaaa1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_FirstSelected: {fileID: 0}
-  m_sendNavigationEvents: 1
-  m_DragThreshold: 10
---- !u!4 &85510835
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 85510832}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 4
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &318454370
 GameObject:
   m_ObjectHideFlags: 0
@@ -220,16 +152,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f9d6d58525b4d22961cb5f7264164de, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _trackViewManager: {fileID: 0}
-  fiveFretGuitarPrefab: {fileID: 2999289846860309454, guid: 9a4b3df150828c34587a6ad8b086ea7d,
+  _trackViewManager: {fileID: 1330928978}
+  fiveFretGuitarPrefab: {fileID: 7381119128095886790, guid: 0f7a37c9e4abcad4da73b7603d4b7596,
     type: 3}
   sixFretGuitarPrefab: {fileID: 0}
-  fourLaneDrumsPrefab: {fileID: 2999289846860309454, guid: 2ee54986d321ae94c9b6cb35f2a788e9,
-    type: 3}
-  fiveLaneDrumsPrefab: {fileID: 2999289846860309454, guid: 2415f5f7de9d6944083ef1f9b543ddbd,
-    type: 3}
-  proGuitarPrefab: {fileID: 8431480376043174353, guid: ce9d9ce43b881b540b7db3f175219827,
-    type: 3}
+  fourLaneDrumsPrefab: {fileID: 0}
+  fiveLaneDrumsPrefab: {fileID: 0}
+  proGuitarPrefab: {fileID: 0}
 --- !u!4 &318454372
 Transform:
   m_ObjectHideFlags: 0
@@ -257,7 +186,7 @@ GameObject:
   - component: {fileID: 1330928977}
   - component: {fileID: 1330928978}
   m_Layer: 5
-  m_Name: Tracks
+  m_Name: Tracks View Manager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -321,7 +250,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d91557b093c94541a16865d7aea2083f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _trackViewContainer: {fileID: 0}
   _trackViewPrefab: {fileID: 504031665406120138, guid: 06628de4f7ccad849a699ee59bdd2f37,
     type: 3}
 --- !u!1 &1460620180

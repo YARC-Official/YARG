@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace YARG.Gameplay.HUD
 {
@@ -8,9 +9,35 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private GameObject _trackViewPrefab;
 
-        public void CreateTrackView(BasePlayer basePlayer)
+        private readonly List<TrackView> _trackViews = new();
+
+        public void CreateTrackView(BasePlayer player)
         {
-            var trackView = Instantiate(_trackViewPrefab, transform);
+            // Create a track view
+            var trackView = Instantiate(_trackViewPrefab, transform).GetComponent<TrackView>();
+
+            // Set up render texture
+            var descriptor = new RenderTextureDescriptor(
+                Screen.width, Screen.height,
+                RenderTextureFormat.ARGBHalf
+            );
+            descriptor.mipCount = 0;
+            var renderTexture = new RenderTexture(descriptor);
+
+            // Set render target
+            player.TrackCamera.targetTexture = renderTexture;
+            trackView.TrackImage.texture = renderTexture;
+
+            UpdateAllSizing();
+            _trackViews.Add(trackView);
+        }
+
+        private void UpdateAllSizing()
+        {
+            foreach (var trackView in _trackViews)
+            {
+                trackView.UpdateSizing(_trackViews.Count);
+            }
         }
     }
 }

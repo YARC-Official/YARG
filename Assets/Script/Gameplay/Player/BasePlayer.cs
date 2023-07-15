@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Input;
@@ -10,6 +11,15 @@ namespace YARG.Gameplay
 {
     public abstract class BasePlayer : MonoBehaviour
     {
+        [field: Header("Visuals")]
+        [field: SerializeField]
+        public Camera TrackCamera { get; private set; }
+
+        [SerializeField]
+        protected ComboMeter ComboMeter;
+        [SerializeField]
+        protected StarpowerBar StarpowerBar;
+
         protected GameManager GameManager { get; private set; }
 
         private List<GameInput> _replayInputs;
@@ -33,7 +43,20 @@ namespace YARG.Gameplay
             IsInitialized = true;
         }
 
-        protected abstract void Update();
+        protected void Update()
+        {
+            if (GameManager.Paused)
+            {
+                return;
+            }
+
+            UpdateInputs();
+            UpdateVisuals();
+        }
+
+        protected abstract void UpdateInputs();
+
+        protected abstract void UpdateVisuals();
 
         protected void Start()
         {
@@ -55,19 +78,15 @@ namespace YARG.Gameplay
     }
 
     public abstract class BasePlayer<TEngine, TNote> : BasePlayer
-        where TEngine : BaseEngine where TNote : Note<TNote>
+        where TEngine : BaseEngine
+        where TNote : Note<TNote>
     {
         public TEngine Engine { get; protected set; }
 
         protected List<TNote> Notes { get; private set; }
 
-        protected override void Update()
+        protected override void UpdateInputs()
         {
-            if (GameManager.Paused)
-            {
-                return;
-            }
-
             if (Engine.IsInputQueued)
             {
                 Engine.UpdateEngine();
@@ -76,6 +95,12 @@ namespace YARG.Gameplay
             {
                 Engine.UpdateEngine(InputManager.BeforeUpdateTime);
             }
+        }
+
+        protected void UpdateBaseVisuals(BaseStats stats)
+        {
+            ComboMeter.SetCombo(stats.ScoreMultiplier, 4, stats.Combo);
+            StarpowerBar.SetStarpower(stats.StarPowerAmount);
         }
 
         public virtual void Initialize(YargPlayer player, List<TNote> notes)

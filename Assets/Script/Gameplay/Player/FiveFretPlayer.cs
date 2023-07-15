@@ -11,7 +11,6 @@ namespace YARG.Gameplay
 {
     public class FiveFretPlayer : BasePlayer<GuitarEngine, GuitarNote>
     {
-
         private readonly GuitarEngineParameters _engineParams = new(0.14, 1, 0.08,
             0.065, true);
 
@@ -21,20 +20,15 @@ namespace YARG.Gameplay
 
             Engine = new YargFiveFretEngine(Notes, _engineParams);
 
-            Engine.OnNoteMissed += ((index, note) =>
+            Engine.OnNoteMissed += (index, note) =>
             {
                 Debug.Log("Missed note at " + note.Time);
-            });
+            };
         }
 
-        protected override void Update()
+        protected override void UpdateVisuals()
         {
-            base.Update();
-
-            if(GameManager.Paused)
-            {
-                return;
-            }
+            UpdateBaseVisuals(Engine.EngineStats);
         }
 
         protected override void SubscribeToInputEvents()
