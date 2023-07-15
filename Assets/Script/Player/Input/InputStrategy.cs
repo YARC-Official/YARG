@@ -204,7 +204,7 @@ namespace YARG.Input
 
         protected virtual void OnUpdate()
         {
-            if (BotMode)
+            if (BotMode && GameManager.Instance.CurrentScene == SceneIndex.PLAY)
             {
                 UpdateBotMode();
                 return;
