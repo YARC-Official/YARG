@@ -3,6 +3,7 @@ using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Input;
+using YARG.Input;
 using YARG.Player;
 
 namespace YARG.Gameplay
@@ -59,6 +60,23 @@ namespace YARG.Gameplay
         public TEngine Engine { get; protected set; }
 
         protected List<TNote> Notes { get; private set; }
+
+        protected override void Update()
+        {
+            if (GameManager.Paused)
+            {
+                return;
+            }
+
+            if (Engine.IsInputQueued)
+            {
+                Engine.UpdateEngine();
+            }
+            else
+            {
+                Engine.UpdateEngine(InputManager.BeforeUpdateTime);
+            }
+        }
 
         public virtual void Initialize(YargPlayer player, List<TNote> notes)
         {

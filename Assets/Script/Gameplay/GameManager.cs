@@ -4,6 +4,7 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Replays.IO;
+using YARG.Input;
 using YARG.Player;
 using YARG.Replays;
 using YARG.Song;
@@ -67,14 +68,24 @@ namespace YARG.Gameplay
             song.LoadAudio(GlobalVariables.AudioManager, GlobalVariables.Instance.songSpeed);
 
             SongLength = GlobalVariables.AudioManager.AudioLengthD;
+
+            InputManager.InputTimeOffset = InputManager.CurrentInputTime;
         }
 
         private void CreatePlayers()
         {
             _players = new List<BasePlayer>();
 
+            var profile = new YargProfile
+            {
+                Name = "RileyTheFox"
+            };
+
+            PlayerContainer.AddProfile(profile);
+            PlayerContainer.CreatePlayerFromProfile(profile);
+
             int count = -1;
-            foreach (var player in GlobalVariables.Instance.Players)
+            foreach (var player in PlayerContainer.Players)
             {
                 count++;
                 GameObject prefab;
@@ -101,6 +112,7 @@ namespace YARG.Gameplay
                 }
 
                 var playerObject = Instantiate(prefab, new Vector3(count * 25f, 100f, 0f), prefab.transform.rotation);
+                Debug.Log("Instantiated");
                 var basePlayer = playerObject.GetComponent<BasePlayer>();
                 basePlayer.Player = player;
 

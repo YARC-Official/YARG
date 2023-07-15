@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Guitar.Engines;
@@ -19,11 +20,21 @@ namespace YARG.Gameplay
             base.Initialize(player, notes);
 
             Engine = new YargFiveFretEngine(Notes, _engineParams);
+
+            Engine.OnNoteMissed += ((index, note) =>
+            {
+                Debug.Log("Missed note at " + note.Time);
+            });
         }
 
         protected override void Update()
         {
-            throw new System.NotImplementedException();
+            base.Update();
+
+            if(GameManager.Paused)
+            {
+                return;
+            }
         }
 
         protected override void SubscribeToInputEvents()

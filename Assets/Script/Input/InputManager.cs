@@ -22,28 +22,34 @@ namespace YARG.Input
 
         public static event GameInputEvent OnGameInput;
 
+        public static double BeforeUpdateTime { get; private set; }
+
         // Time reference for when inputs started being tracked
-        public static double InputTimeOffset { get; private set; }
+        public static double InputTimeOffset { get; set; }
 
         // Input events are timestamped directly in the constructor, so we can use them to get the current time
         public static double CurrentInputTime => new InputEvent(StateEvent.Type, 0, InputDevice.InvalidDeviceId).time;
 
-        public static double CurrentRelativeInputTime => CurrentInputTime - InputTimeOffset;
-
-        private IDisposable _eventListener;
+        private IDisposable _onEventListener;
 
         private void Start()
         {
-            _eventListener?.Dispose();
+            _onEventListener?.Dispose();
             // InputSystem.onEvent is *not* a C# event, it's a property which is intended to be used with observables
             // In order to unsubscribe from it you *must* keep track of the IDisposable returned at the end
-            _eventListener = InputSystem.onEvent.Call(OnEvent);
+            _onEventListener = InputSystem.onEvent.Call(OnEvent);
+
+            InputSystem.onBeforeUpdate += () =>
+            {
+                var timestampEvent = new InputEvent(StateEvent.Type, 0, InputDevice.InvalidDeviceId);
+                BeforeUpdateTime = timestampEvent.time - InputTimeOffset;
+            };
         }
 
         private void OnDestroy()
         {
-            _eventListener?.Dispose();
-            _eventListener = null;
+            _onEventListener?.Dispose();
+            _onEventListener = null;
         }
 
         public static double GetRelativeTime(double timeFromInputSystem)
@@ -60,7 +66,7 @@ namespace YARG.Input
             }
 
             var device = InputSystem.GetDeviceById(eventPtr.deviceId);
-            foreach (var player in GlobalVariables.Instance.Players)
+            foreach (var player in PlayerContainer.Players)
             {
                 foreach (var control in eventPtr.EnumerateChangedControls())
                 {
