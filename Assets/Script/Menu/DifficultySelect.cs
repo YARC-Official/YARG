@@ -240,7 +240,7 @@ namespace YARG.UI
                 }
 
                 // Play song
-                GlobalVariables.Instance.LoadScene(SceneIndex.Play);
+                GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
             }
             else
             {

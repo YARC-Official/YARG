@@ -1211,7 +1211,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 330585546}
-  - component: {fileID: 330585548}
   - component: {fileID: 330585549}
   - component: {fileID: 330585550}
   m_Layer: 0
@@ -1236,22 +1235,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &330585548
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 330585543}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a58d9a874276a5b4fbf16453413dbafb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  <DefaultCamera>k__BackingField: {fileID: 534160434}
-  playResultScreen: {fileID: 872764183}
-  playCover: {fileID: 1786159589}
-  scoreDisplay: {fileID: 703550373}
 --- !u!114 &330585549
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1259,7 +1242,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 77fa4d8f39844ad5b9a74e1ebad7564d, type: 3}
   m_Name: 
@@ -2652,6 +2635,11 @@ PrefabInstance:
       propertyPath: m_SizeDelta.x
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1682100933276730676, guid: 039fee0ec42345d4f88c0625255415d4,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1682100933276730677, guid: 039fee0ec42345d4f88c0625255415d4,
         type: 3}
       propertyPath: m_Pivot.x
@@ -2777,12 +2765,6 @@ PrefabInstance:
 --- !u!224 &703550372 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1682100933276730677, guid: 039fee0ec42345d4f88c0625255415d4,
-    type: 3}
-  m_PrefabInstance: {fileID: 703550371}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &703550373 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1682100933276730678, guid: 039fee0ec42345d4f88c0625255415d4,
     type: 3}
   m_PrefabInstance: {fileID: 703550371}
   m_PrefabAsset: {fileID: 0}
@@ -4285,12 +4267,6 @@ PrefabInstance:
 --- !u!224 &872764182 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 2622748021188204704, guid: f15c8630e57e4a14baea6d0dcbbe5e49,
-    type: 3}
-  m_PrefabInstance: {fileID: 872764181}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &872764183 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2622748021188204719, guid: f15c8630e57e4a14baea6d0dcbbe5e49,
     type: 3}
   m_PrefabInstance: {fileID: 872764181}
   m_PrefabAsset: {fileID: 0}
@@ -6412,7 +6388,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 330585548}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: YARG.Game, Assembly-CSharp
         m_MethodName: Exit
         m_Mode: 1

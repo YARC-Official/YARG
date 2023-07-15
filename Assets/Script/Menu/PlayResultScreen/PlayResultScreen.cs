@@ -300,7 +300,7 @@ namespace YARG.UI.PlayResultScreen
         public void PlayRestart()
         {
             GlobalVariables.AudioManager.UnloadSong();
-            GlobalVariables.Instance.LoadScene(SceneIndex.Play);
+            GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
             Play.Instance.Paused = false;
         }
 

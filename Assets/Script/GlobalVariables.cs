@@ -15,9 +15,9 @@ namespace YARG
 {
     public enum SceneIndex
     {
-        Persistant,
+        Persistent,
         Menu,
-        Play,
+        Gameplay,
         Calibration
     }
 
@@ -32,7 +32,7 @@ namespace YARG
         [field: SerializeField]
         public SettingsMenu SettingsMenu { get; private set; }
 
-        public SceneIndex CurrentScene { get; private set; } = SceneIndex.Persistant;
+        public SceneIndex CurrentScene { get; private set; } = SceneIndex.Persistent;
 
         public SongEntry CurrentSong;
 
@@ -96,7 +96,7 @@ namespace YARG
         public void LoadScene(SceneIndex scene)
         {
             // Unload the current scene and load in the new one, or just load in the new one
-            if (CurrentScene != SceneIndex.Persistant)
+            if (CurrentScene != SceneIndex.Persistent)
             {
                 // Unload the current scene
                 var asyncOp = SceneManager.UnloadSceneAsync((int) CurrentScene);

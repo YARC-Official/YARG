@@ -178,7 +178,7 @@ namespace YARG.Settings
             foreach (var tab in SettingsManager.SettingsTabs)
             {
                 // Skip tabs that aren't shown in game, if we are in game
-                if (!tab.ShowInPlayMode && GlobalVariables.Instance.CurrentScene == SceneIndex.Play)
+                if (!tab.ShowInPlayMode && GlobalVariables.Instance.CurrentScene == SceneIndex.Gameplay)
                 {
                     continue;
                 }
@@ -340,7 +340,7 @@ namespace YARG.Settings
             foreach (var tab in SettingsManager.SettingsTabs)
             {
                 // Skip tabs that aren't shown in game, if we are in game
-                if (!tab.ShowInPlayMode && GlobalVariables.Instance.CurrentScene == SceneIndex.Play)
+                if (!tab.ShowInPlayMode && GlobalVariables.Instance.CurrentScene == SceneIndex.Gameplay)
                 {
                     continue;
                 }

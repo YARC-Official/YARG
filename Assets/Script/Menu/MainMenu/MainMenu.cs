@@ -1,10 +1,13 @@
+using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Player.Input;
 using YARG.Player.Navigation;
 using YARG.Settings;
+using YARG.Song;
 
 namespace YARG.Menu
 {
@@ -64,6 +67,17 @@ namespace YARG.Menu
         public void ShowSettingsMenu()
         {
             SettingsMenu.Instance.gameObject.SetActive(true);
+        }
+
+        private void Update()
+        {
+            if (Keyboard.current.backspaceKey.wasPressedThisFrame)
+            {
+                var random = new System.Random();
+                var randomSong = SongContainer.Songs[random.Next(SongContainer.Songs.Count)];
+                GlobalVariables.Instance.CurrentSong = randomSong;
+                GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+            }
         }
 
         public void Quit()
