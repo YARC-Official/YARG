@@ -135,17 +135,44 @@ namespace YARG.Gameplay
 
         private void LoadChart(YargPlayer yargPlayer, BasePlayer basePlayer)
         {
-            switch (yargPlayer.Profile.InstrumentType)
+            switch (yargPlayer.Profile.Instrument)
             {
-                case GameMode.FiveFretGuitar:
-                    var notes = Chart.FiveFretBass.Difficulties[yargPlayer.Profile.Difficulty].Notes;
+                case Instrument.FiveFretGuitar:
+                    var notes = Chart.FiveFretGuitar.Difficulties[yargPlayer.Profile.Difficulty].Notes;
+                    goto initFiveFret;
+                case Instrument.FiveFretBass:
+                    notes = Chart.FiveFretBass.Difficulties[yargPlayer.Profile.Difficulty].Notes;
+                    goto initFiveFret;
+                case Instrument.FiveFretRhythm:
+                    notes = Chart.FiveFretRhythm.Difficulties[yargPlayer.Profile.Difficulty].Notes;
+                    goto initFiveFret;
+                case Instrument.FiveFretCoopGuitar:
+                    notes = Chart.FiveFretCoop.Difficulties[yargPlayer.Profile.Difficulty].Notes;
+                    goto initFiveFret;
+                case Instrument.Keys:
+                    notes = Chart.Keys.Difficulties[yargPlayer.Profile.Difficulty].Notes;
+
+                initFiveFret:
                     (basePlayer as FiveFretPlayer)?.Initialize(yargPlayer, notes);
                     break;
-                case GameMode.SixFretGuitar:
-                case GameMode.FourLaneDrums:
-                case GameMode.FiveLaneDrums:
-                case GameMode.ProGuitar:
-                case GameMode.Vocals:
+                case Instrument.SixFretGuitar:
+                case Instrument.SixFretBass:
+                case Instrument.SixFretRhythm:
+                case Instrument.SixFretCoopGuitar:
+
+                case Instrument.FourLaneDrums:
+                case Instrument.ProDrums:
+
+                case Instrument.FiveLaneDrums:
+
+                case Instrument.ProGuitar_17Fret:
+                case Instrument.ProGuitar_22Fret:
+                case Instrument.ProBass_17Fret:
+                case Instrument.ProBass_22Fret:
+
+                case Instrument.Vocals:
+                case Instrument.Harmony:
+
                 default:
                     break;
             }
