@@ -91,7 +91,7 @@ namespace YARG.Gameplay
         public TEngine Engine { get; protected set; }
 
         protected List<TNote> Notes { get; private set; }
-        protected TNote NextNoteToSpawn = null;
+        protected IEnumerator<TNote> NoteEnumerator { get; private set; }
 
         public virtual void Initialize(YargPlayer player, List<TNote> notes)
         {
@@ -103,6 +103,9 @@ namespace YARG.Gameplay
             Initialize(player);
 
             Notes = notes;
+
+            NoteEnumerator = Notes.GetEnumerator();
+            NoteEnumerator.MoveNext();
         }
 
         protected override void UpdateInputs()
@@ -125,19 +128,18 @@ namespace YARG.Gameplay
 
         protected override void UpdateNotes()
         {
-            // Set to first note if null
-            NextNoteToSpawn ??= Notes[0];
-
-            if (NextNoteToSpawn.Time > GameManager.SongTime) return;
-
-            // Spawn note (and child notes)
-            SpawnNote(NextNoteToSpawn);
-            foreach (var note in NextNoteToSpawn.ChildNotes)
+            while (NoteEnumerator.Current?.Time <= GameManager.SongTime)
             {
-                SpawnNote(note);
-            }
+                var note = NoteEnumerator.Current;
 
-            NextNoteToSpawn = NextNoteToSpawn.NextNote;
+                SpawnNote(note);
+                foreach (var child in note.ChildNotes)
+                {
+                    SpawnNote(child);
+                }
+
+                NoteEnumerator.MoveNext();
+            }
         }
 
         protected void SpawnNote(TNote note)
