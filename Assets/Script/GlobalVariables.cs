@@ -48,6 +48,8 @@ namespace YARG
             Debug.Log($"YARG {Constants.VERSION_TAG}");
             Instance = this;
 
+            ConsoleRedirect.Redirect();
+
             PathHelper.Init();
             ReplayContainer.Init();
 

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Engine.Guitar;
@@ -20,10 +21,17 @@ namespace YARG.Gameplay
 
             Engine = new YargFiveFretEngine(Notes, _engineParams);
 
-            Engine.OnNoteMissed += (index, note) =>
+            Engine.OnNoteHit += (index, note) =>
             {
-                Debug.Log("Missed note at " + note.Time);
+                Debug.Log($"[{index} Hit note at " + note.Time);
             };
+
+            // Engine.OnNoteMissed += (index, note) =>
+            // {
+            //     Debug.Log($"[{index}] Missed note at " + note.Time);
+            // };
+
+            Engine.OnOverstrum += () => Debug.Log("Overstrummed");
         }
 
         protected override void UpdateVisuals()
