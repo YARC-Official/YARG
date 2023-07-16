@@ -1,6 +1,3 @@
-using System;
-using System.Text;
-using System.Globalization;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
@@ -9,13 +6,11 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using YARG.Audio;
-using YARG.Data;
 using YARG.Input;
 using YARG.Song;
 using YARG.UI.MusicLibrary.ViewTypes;
 using Random = UnityEngine.Random;
 using System.Threading;
-using UnityEngine.Serialization;
 using YARG.Settings;
 
 namespace YARG.UI.MusicLibrary
@@ -25,6 +20,9 @@ namespace YARG.UI.MusicLibrary
         public static SongSelection Instance { get; private set; }
 
         public static bool RefreshFlag = true;
+
+        // This stuff should stay the same even after you exit the menus
+        private static SongSorting.Sort _sort = SongSorting.Sort.Song;
 
         private const int SONG_VIEW_EXTRA = 15;
         private const float SCROLL_TIME = 1f / 60f;
@@ -45,7 +43,6 @@ namespace YARG.UI.MusicLibrary
         [SerializeField]
         private Scrollbar _scrollbar;
 
-        private SongSorting.Sort _sort = SongSorting.Sort.Song;
         private string _nextSortCriteria = "Order by artist";
         private string _nextFilter = "Search artist";
 
@@ -119,6 +116,9 @@ namespace YARG.UI.MusicLibrary
         {
             // Set up preview context
             _previewContext = new(GameManager.AudioManager);
+
+            // Update sort name
+            _nextSortCriteria = SongSorting.GetNextSortButtonName(_sort);
 
             // Set navigation scheme
             var navigationScheme = GetNavigationScheme();
@@ -230,7 +230,7 @@ namespace YARG.UI.MusicLibrary
         public void NextSort()
         {
             _sort = SongSorting.GetNextSortCriteria(_sort);
-            _nextSortCriteria = GetNextSortCriteriaButtonName();
+            _nextSortCriteria = SongSorting.GetNextSortButtonName(_sort);
         }
 
         private void UpdateNavigationScheme()
@@ -497,10 +497,13 @@ namespace YARG.UI.MusicLibrary
         {
             var selectedSong = GameManager.Instance.SelectedSong;
 
-            return _viewList.FindIndex(song =>
-            {
-                return song is SongViewType songType && songType.SongEntry == selectedSong;
-            });
+            // Get the first index after the recommended songs
+            int startOfSongs = _viewList.FindIndex(i => i is SortHeaderViewType);
+
+            int songIndex = _viewList.FindIndex(startOfSongs,
+                song => song is SongViewType songType && songType.SongEntry == selectedSong);
+
+            return songIndex;
         }
 
         private void FillRecommendedSongs()
@@ -575,11 +578,6 @@ namespace YARG.UI.MusicLibrary
         {
             // Get how many non-song things there are
             return Mathf.Max(1, _viewList.Count - SongContainer.Songs.Count);
-        }
-
-        private string GetNextSortCriteriaButtonName()
-        {
-            return SongSorting.GetNextSortButtonName(_sort);
         }
 
 #if UNITY_EDITOR
