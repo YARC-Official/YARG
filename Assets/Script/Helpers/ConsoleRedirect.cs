@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
-
 using UnityEngine;
+
+using SystemDebug = System.Diagnostics.Debug;
+using UnityDebug = UnityEngine.Debug;
 
 namespace YARG.Util
 {
@@ -16,11 +19,11 @@ namespace YARG.Util
     {
         private class UnityTextWriter : TextWriter
         {
-            private StringBuilder buffer = new StringBuilder();
+            private StringBuilder buffer = new(1024);
 
             public override void Flush()
             {
-                Debug.Log(buffer.ToString());
+                UnityDebug.Log(buffer.ToString());
                 buffer.Length = 0;
             }
 
@@ -61,9 +64,49 @@ namespace YARG.Util
             }
         }
 
+        private class UnityTraceListener : TraceListener
+        {
+            private StringBuilder buffer = new(1024);
+
+            public override bool IsThreadSafe => false;
+
+            public override void Write(string message)
+            {
+                buffer.Append(message);
+                if (message.Contains('\n'))
+                {
+                    UnityDebug.Log(buffer.ToString());
+                    buffer.Length = 0;
+                }
+            }
+
+            public override void WriteLine(string message)
+            {
+                UnityDebug.Log(message);
+            }
+
+            public override void Fail(string message)
+            {
+                UnityDebug.Assert(false, message);
+            }
+
+            public override void Fail(string message, string detailMessage)
+            {
+                if (string.IsNullOrEmpty(detailMessage))
+                    UnityDebug.Assert(false, message);
+                else
+                    UnityDebug.Assert(false, $"{message}\n{detailMessage}");
+            }
+        }
+
         public static void Redirect()
         {
-            Console.SetOut(new UnityTextWriter());
+            var consoleRedirect = new UnityTextWriter();
+            var traceRedirect = new UnityTraceListener();
+
+            Console.SetOut(consoleRedirect);
+            Trace.Listeners.Add(traceRedirect);
+            SystemDebug.Listeners.Add(traceRedirect);
         }
     }
 }
