@@ -31,9 +31,9 @@ namespace YARG.Gameplay
             UpdateBaseVisuals(Engine.EngineStats);
         }
 
-        protected override void InitializeSpawnedNote(GameObject noteObj, GuitarNote note)
+        protected override void InitializeSpawnedNote(IPoolable poolable, GuitarNote note)
         {
-            noteObj.GetComponent<FiveFretVisualNote>().NoteRef = note;
+            ((FiveFretVisualNote) poolable).NoteRef = note;
         }
 
         protected override void SubscribeToInputEvents()

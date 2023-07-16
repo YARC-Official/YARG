@@ -142,11 +142,11 @@ namespace YARG.Gameplay
 
         protected void SpawnNote(TNote note)
         {
-            var noteObj = NotePool.TakeNoActivate();
-            InitializeSpawnedNote(noteObj, note);
-            noteObj.SetActive(true);
+            var poolable = NotePool.TakeWithoutEnabling();
+            InitializeSpawnedNote(poolable, note);
+            poolable.EnableFromPool();
         }
 
-        protected abstract void InitializeSpawnedNote(GameObject noteObj, TNote note);
+        protected abstract void InitializeSpawnedNote(IPoolable poolable, TNote note);
     }
 }

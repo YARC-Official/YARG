@@ -3,12 +3,15 @@ using YARG.Core.Chart;
 
 namespace YARG.Gameplay
 {
-    public abstract class VisualNote<TNote, TPlayer> : MonoBehaviour
+    public abstract class VisualNote<TNote, TPlayer> : MonoBehaviour, IPoolable
         where TNote : Note<TNote>
         where TPlayer : BasePlayer
     {
+        private const float REMOVE_POINT = -4f;
+
         protected GameManager GameManager { get; private set;  }
         protected TPlayer Player { get; private set; }
+        public Pool ParentPool { get; set; }
 
         public TNote NoteRef { get; set; }
 
@@ -18,9 +21,9 @@ namespace YARG.Gameplay
             Player = GetComponentInParent<TPlayer>();
         }
 
-        private void OnEnable()
+        public void EnableFromPool()
         {
-            if (NoteRef is null) return;
+            gameObject.SetActive(true);
 
             InitializeNote();
 
@@ -36,6 +39,16 @@ namespace YARG.Gameplay
             float z = (float) (NoteRef.Time - GameManager.SongTime) * noteSpeed - BasePlayer.STRIKE_LINE_POS;
 
             transform.localPosition = transform.localPosition.WithZ(z);
+
+            if (z < REMOVE_POINT)
+            {
+                ParentPool.Return(this);
+            }
+        }
+
+        public void DisableIntoPool()
+        {
+            gameObject.SetActive(false);
         }
     }
 }

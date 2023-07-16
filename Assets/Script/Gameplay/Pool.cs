@@ -3,9 +3,17 @@ using UnityEngine;
 
 namespace YARG.Gameplay
 {
+    public interface IPoolable
+    {
+        public Pool ParentPool { get; set; }
+
+        public void EnableFromPool();
+        public void DisableIntoPool();
+    }
+
     public class Pool : MonoBehaviour
     {
-        private readonly Stack<GameObject> _stack = new();
+        private readonly Stack<IPoolable> _pooled = new();
 
         [SerializeField]
         private GameObject _prefab;
@@ -16,32 +24,43 @@ namespace YARG.Gameplay
         {
             for (int i = 0; i < _prewarmAmount; i++)
             {
-                var gameObject = CreateNew();
-                gameObject.SetActive(false);
+                _pooled.Push(CreateNew());
             }
         }
 
-        private GameObject CreateNew()
+        private IPoolable CreateNew()
         {
             var gameObject = Instantiate(_prefab, transform);
-            _stack.Push(gameObject);
-            return gameObject;
+            gameObject.SetActive(false);
+
+            var poolable = gameObject.GetComponent<IPoolable>();
+            poolable.ParentPool = this;
+
+            return poolable;
         }
 
-        public GameObject TakeNoActivate()
+        public IPoolable TakeWithoutEnabling()
         {
-            if (_stack.TryPop(out var obj))
+            if (_pooled.TryPop(out var poolable))
             {
-                return obj;
+                return poolable;
             }
 
-            return CreateNew();
+            poolable = CreateNew();
+            return poolable;
         }
 
-        public void Return(GameObject obj)
+        public IPoolable Take()
         {
-            obj.SetActive(false);
-            _stack.Push(obj);
+            var poolable = TakeWithoutEnabling();
+            poolable.EnableFromPool();
+            return poolable;
+        }
+
+        public void Return(IPoolable poolable)
+        {
+            poolable.DisableIntoPool();
+            _pooled.Push(poolable);
         }
     }
 }
