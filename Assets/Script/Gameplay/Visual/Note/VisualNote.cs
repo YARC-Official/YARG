@@ -36,7 +36,9 @@ namespace YARG.Gameplay
         private void Update()
         {
             float noteSpeed = Player.Player.Profile.NoteSpeed;
+
             float z = (float) (NoteRef.Time - GameManager.SongTime) * noteSpeed - BasePlayer.STRIKE_LINE_POS;
+            z += BasePlayer.STRIKE_LINE_POS;
 
             transform.localPosition = transform.localPosition.WithZ(z);
 

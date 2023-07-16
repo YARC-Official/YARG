@@ -8,6 +8,7 @@ using YARG.Gameplay.HUD;
 using YARG.Input;
 using YARG.Player;
 using YARG.Replays;
+using YARG.Settings;
 using YARG.Song;
 
 namespace YARG.Gameplay
@@ -39,7 +40,8 @@ namespace YARG.Gameplay
 
         public double SongStartTime { get; private set; }
         public double SongLength    { get; private set; }
-        public double SongTime      => GlobalVariables.AudioManager.CurrentPositionD;
+        public double SongTime      => GlobalVariables.AudioManager.CurrentPositionD +
+            SettingsManager.Settings.AudioCalibration.Data / 1000f;
 
         public bool IsReplay { get; private set; }
 

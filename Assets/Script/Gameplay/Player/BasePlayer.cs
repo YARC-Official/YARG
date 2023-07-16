@@ -11,7 +11,11 @@ namespace YARG.Gameplay
     public abstract class BasePlayer : MonoBehaviour
     {
         public const float STRIKE_LINE_POS = -2f;
+        public const float SPAWN_OFFSET = 5f;
+
         public const float TRACK_WIDTH = 2f;
+
+        public double SpawnTimeOffset => (SPAWN_OFFSET + -STRIKE_LINE_POS) / Player.Profile.NoteSpeed;
 
         [field: Header("Visuals")]
         [field: SerializeField]
@@ -128,7 +132,7 @@ namespace YARG.Gameplay
 
         protected override void UpdateNotes()
         {
-            while (NoteEnumerator.Current?.Time <= GameManager.SongTime)
+            while (NoteEnumerator.Current?.Time <= GameManager.SongTime + SpawnTimeOffset)
             {
                 var note = NoteEnumerator.Current;
 
