@@ -4,7 +4,7 @@ namespace YARG
 {
     public static class Constants
     {
-        public static readonly YargVersion VERSION_TAG = YargVersion.Parse("v0.11.0");
+        public static readonly YargVersion VERSION_TAG = YargVersion.Parse("v0.11.1");
 
         // General
         public const float HIT_MARGIN_FRONT = 0.095f;
