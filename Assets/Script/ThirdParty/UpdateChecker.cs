@@ -42,7 +42,7 @@ namespace YARG
                 // Setup request
                 var request =
                     (HttpWebRequest) WebRequest.Create(
-                        "https://api.github.com/repos/EliteAsian123/YARG/releases/latest");
+                        "https://api.github.com/repos/YARC-Official/YARG/releases/latest");
                 request.UserAgent = "YARG";
 
                 // Sets up a cancellation token to cancel the request if needed (such as menu being hidden)
