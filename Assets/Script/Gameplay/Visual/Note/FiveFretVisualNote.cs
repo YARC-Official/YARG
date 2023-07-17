@@ -6,7 +6,7 @@ namespace YARG.Gameplay
     public class FiveFretVisualNote : VisualNote<GuitarNote, FiveFretPlayer>
     {
         // TODO: Move this to player profiles
-        private static readonly Color[] Colors =
+        public static readonly Color[] Colors =
         {
             Color.magenta,
             Color.green,

@@ -10,13 +10,16 @@ using YARG.Player;
 
 namespace YARG.Gameplay
 {
-    public class FiveFretPlayer : BasePlayer<GuitarEngine, GuitarNote>
+    public sealed class FiveFretPlayer : BasePlayer<GuitarEngine, GuitarNote>
     {
         private readonly GuitarEngineParameters _engineParams = new(0.14, 1, 0.08,
             0.065, true);
 
         public int Score;
         public int NoteStreak;
+
+        [SerializeField]
+        private Fret[] _frets;
 
         public override void Initialize(YargPlayer player, InstrumentDifficulty<GuitarNote> chart)
         {
@@ -37,6 +40,14 @@ namespace YARG.Gameplay
             };
 
             Engine.OnOverstrum += () => Debug.Log("Overstrummed");
+
+            // Color the frets appropriately
+            for (int i = 0; i < 5; i++)
+            {
+                // TODO: Move colors to profile
+                var c = FiveFretVisualNote.Colors[i + 1];
+                _frets[i].Initialize(c, c, c);
+            }
         }
 
         protected override void Update()
