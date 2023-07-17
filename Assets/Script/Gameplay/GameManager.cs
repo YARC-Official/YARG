@@ -48,11 +48,10 @@ namespace YARG.Gameplay
         public bool Paused { get; private set; }
 
         private List<BasePlayer> _players;
-        private List<Beat>       _beats;
+        private List<Beatline>   _beats;
 
         private void Awake()
         {
-            _beats = new List<Beat>();
             Song = GlobalVariables.Instance.CurrentSong;
 
             string notesFile = Path.Combine(Song.Location, Song.NotesFile);
@@ -61,9 +60,9 @@ namespace YARG.Gameplay
 
             IsReplay = GlobalVariables.Instance.isReplay;
 
-            var beatHandler = new BeatHandler(Chart);
-            beatHandler.GenerateBeats();
-            _beats = beatHandler.Beats;
+            _beats = Chart.SyncTrack.Beatlines;
+            if (_beats is null || _beats.Count < 1)
+                _beats = Chart.SyncTrack.GenerateComplexBeatlines();
 
             LoadSong();
             CreatePlayers();
