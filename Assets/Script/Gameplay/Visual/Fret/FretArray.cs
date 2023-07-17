@@ -45,6 +45,11 @@ namespace YARG.Gameplay
             }
         }
 
+        public void SetPressed(int index, bool pressed)
+        {
+            _frets[index].SetPressed(pressed);
+        }
+
         public void SetPressed(bool[] pressed)
         {
             for (int i = 0; i < _fretCount; i++)

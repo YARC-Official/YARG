@@ -59,16 +59,6 @@ namespace YARG.Gameplay
 
             Score = Engine.EngineStats.Score;
             NoteStreak = Engine.EngineStats.Combo;
-
-            // TODO: There is probably a better way of doing this, but idk
-            _fretArray.SetPressed(new[]
-            {
-                Engine.IsFretHeld(GuitarAction.Green),
-                Engine.IsFretHeld(GuitarAction.Red),
-                Engine.IsFretHeld(GuitarAction.Yellow),
-                Engine.IsFretHeld(GuitarAction.Blue),
-                Engine.IsFretHeld(GuitarAction.Orange),
-            });
         }
 
         protected override void UpdateInputs()
@@ -85,6 +75,11 @@ namespace YARG.Gameplay
         protected override void UpdateVisuals()
         {
             UpdateBaseVisuals(Engine.EngineStats);
+
+            for(var fret = GuitarAction.Green; fret <= GuitarAction.Orange; fret++)
+            {
+                _fretArray.SetPressed((int)fret, Engine.IsFretHeld(fret));
+            }
         }
 
         protected override void InitializeSpawnedNote(IPoolable poolable, GuitarNote note)
