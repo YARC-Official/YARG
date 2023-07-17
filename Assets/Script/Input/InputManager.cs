@@ -121,7 +121,7 @@ namespace YARG.Input
                 }
 
                 double time = eventPtr.time - InputTimeOffset;
-                var gameInput = new GameInput(time, (int) action, value);
+                var gameInput = new GameInput(time, (int) action, button.IsValueConsideredPressed(value));
                 OnGameInput?.Invoke(player, gameInput);
             }
         }
