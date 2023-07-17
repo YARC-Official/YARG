@@ -21,6 +21,9 @@ namespace YARG.Gameplay
         {
             GameManager = FindObjectOfType<GameManager>();
             Player = GetComponentInParent<TPlayer>();
+
+            // Hide everything at the start
+            HideNote();
         }
 
         public void EnableFromPool()

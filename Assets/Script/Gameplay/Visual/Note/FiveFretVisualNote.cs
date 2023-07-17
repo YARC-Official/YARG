@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
+using UnityEngine.Serialization;
 using YARG.Core.Chart;
 
 namespace YARG.Gameplay
@@ -17,11 +19,11 @@ namespace YARG.Gameplay
         };
 
         [SerializeField]
-        private NoteGroup _normalGroup;
-        // [SerializeField]
-        // private NoteGroup _hopoGroup;
-        // [SerializeField]
-        // private NoteGroup _tapGroup;
+        private NoteGroup _strumGroup;
+        [SerializeField]
+        private NoteGroup _hopoGroup;
+        [SerializeField]
+        private NoteGroup _tapGroup;
 
         protected override void InitializeNote()
         {
@@ -29,15 +31,23 @@ namespace YARG.Gameplay
                 BasePlayer.TRACK_WIDTH / 5f * NoteRef.Fret - BasePlayer.TRACK_WIDTH / 2f - 1f / 5f,
                 0f, 0f);
 
-            _normalGroup.SetActive(true);
-            _normalGroup.ColoredMaterial.color = Colors[NoteRef.Fret];
+            var noteGroup = NoteRef.Type switch
+            {
+                GuitarNoteType.Strum => _strumGroup,
+                GuitarNoteType.Hopo  => _hopoGroup,
+                GuitarNoteType.Tap   => _tapGroup,
+                _                    => throw new Exception("Unreachable.")
+            };
+
+            noteGroup.SetActive(true);
+            noteGroup.ColoredMaterial.color = Colors[NoteRef.Fret];
         }
 
         protected override void HideNote()
         {
-            _normalGroup.SetActive(false);
-            // _hopoGroup.SetActive(false);
-            // _tapGroup.SetActive(false);
+            _strumGroup.SetActive(false);
+            _hopoGroup.SetActive(false);
+            _tapGroup.SetActive(false);
         }
     }
 }
