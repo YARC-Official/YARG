@@ -42,7 +42,7 @@ namespace YARG.Gameplay
 
             transform.localPosition = transform.localPosition.WithZ(z);
 
-            if (z < REMOVE_POINT)
+            if (z < REMOVE_POINT || NoteRef.WasHit || NoteRef.WasMissed)
             {
                 ParentPool.Return(this);
             }
