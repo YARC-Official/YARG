@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using YARG.Audio;
-using YARG.Data;
+using YARG.Core;
 
 namespace YARG.Song
 {

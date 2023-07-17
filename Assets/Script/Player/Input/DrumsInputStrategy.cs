@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
-using YARG.Data;
+using YARG.Core;
 using YARG.Player.Navigation;
 
 namespace YARG.Player.Input
@@ -140,7 +140,7 @@ namespace YARG.Player.Input
         {
             return new Instrument[]
             {
-                Instrument.DRUMS, Instrument.REAL_DRUMS
+                Instrument.FourLaneDrums, Instrument.ProDrums
             };
         }
 

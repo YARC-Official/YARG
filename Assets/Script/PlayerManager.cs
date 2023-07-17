@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using YARG.Core;
 using YARG.Data;
 using YARG.PlayMode;
 using YARG.Settings;
@@ -36,8 +37,8 @@ namespace YARG
 
             public bool brutalMode = false;
 
-            public string chosenInstrument = "guitar";
-            public Difficulty chosenDifficulty = Difficulty.EXPERT;
+            public Instrument? chosenInstrument = Instrument.FiveFretGuitar;
+            public Difficulty chosenDifficulty = Difficulty.Expert;
 
             public LastScore? lastScore = null;
             // public AbstractTrack track = null;
@@ -101,7 +102,7 @@ namespace YARG
             }
         }
 
-        public static int PlayersWithInstrument(string instrument)
+        public static int PlayersWithInstrument(Instrument instrument)
         {
             return players.Count(i => i.chosenInstrument == instrument);
         }

@@ -2,8 +2,11 @@ using System.Collections.Generic;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
+using YARG.Core;
 using YARG.Data;
 using YARG.Song;
+
+using TimeConverter = Melanchall.DryWetMidi.Interaction.TimeConverter;
 
 namespace YARG.Serialization.Parser
 {
@@ -32,7 +35,7 @@ namespace YARG.Serialization.Parser
 
             // Expert+ is just Expert with double-kick
             bool doubleKick = false;
-            if (difficulty == (int) Difficulty.EXPERT_PLUS)
+            if (difficulty == (int) Difficulty.ExpertPlus)
             {
                 doubleKick = true;
                 difficulty--;

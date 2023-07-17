@@ -181,7 +181,7 @@ namespace YARG.Song
                 "vocals"     => SongContainer.Songs.Where(i => i.VocalParts < 2),
                 "harmVocals" => SongContainer.Songs.Where(i => i.VocalParts >= 2),
                 _ => SongContainer.Songs.Where(i =>
-                    i.HasInstrument(InstrumentHelper.FromStringName(instrument))),
+                    i.HasInstrument(InstrumentHelper.FromResourceName(instrument))),
             };
         }
 
@@ -198,7 +198,7 @@ namespace YARG.Song
 
         private static Func<SongEntry, bool> SongIsMissing(string instrument)
         {
-            return s => !s.HasInstrument(InstrumentHelper.FromStringName(instrument));
+            return s => !s.HasInstrument(InstrumentHelper.FromResourceName(instrument));
         }
 
         public static string RemoveDiacritics(string text)

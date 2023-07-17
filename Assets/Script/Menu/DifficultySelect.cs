@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
+using YARG.Core;
 using YARG.Data;
 using YARG.Menu;
 using YARG.Player.Input;
@@ -22,13 +23,13 @@ namespace YARG.UI
             DIFFICULTY,
         }
 
-        private static List<string> _expertPlusAllowedList = new()
+        private static List<Instrument> _expertPlusAllowedList = new()
         {
-            "drums",
-            "realDrums",
-            "ghDrums",
-            "vocals",
-            "harmVocals",
+            Instrument.FourLaneDrums,
+            Instrument.ProDrums,
+            Instrument.FiveLaneDrums,
+            Instrument.Vocals,
+            Instrument.Harmony,
         };
 
         [SerializeField]
@@ -45,7 +46,7 @@ namespace YARG.UI
 
         private List<PlayerManager.Player> playersToConfigure = new(); // Used to more cleanly handle vocals players
         private int playerIndex;                                       // The current player index (not used for vocals)
-        private string[] instruments;
+        private Instrument[] instruments;
         private Difficulty[] difficulties;
         private State state;
 
@@ -181,7 +182,7 @@ namespace YARG.UI
                 }
                 else
                 {
-                    string instrument = instruments[selected];
+                    var instrument = instruments[selected];
                     foreach (var player in playersToConfigure)
                     {
                         player.chosenInstrument = instrument;
@@ -266,20 +267,20 @@ namespace YARG.UI
                 .Where(instrument => GlobalVariables.Instance.CurrentSong.HasInstrument(instrument)).ToList();
 
             // Force add pro drums and five lane
-            if (availableInstruments.Contains(Instrument.DRUMS))
+            if (availableInstruments.Contains(Instrument.FourLaneDrums))
             {
-                availableInstruments.Add(Instrument.GH_DRUMS);
+                availableInstruments.Add(Instrument.FiveLaneDrums);
 
                 // Add real drums if not present
-                if (!availableInstruments.Contains(Instrument.REAL_DRUMS))
+                if (!availableInstruments.Contains(Instrument.ProDrums))
                 {
-                    availableInstruments.Add(Instrument.REAL_DRUMS);
+                    availableInstruments.Add(Instrument.ProDrums);
                 }
             }
-            else if (availableInstruments.Contains(Instrument.GH_DRUMS))
+            else if (availableInstruments.Contains(Instrument.FiveLaneDrums))
             {
-                availableInstruments.Add(Instrument.DRUMS);
-                availableInstruments.Add(Instrument.REAL_DRUMS);
+                availableInstruments.Add(Instrument.FourLaneDrums);
+                availableInstruments.Add(Instrument.ProDrums);
             }
 
             // Filter out to only allowed instruments
@@ -289,10 +290,10 @@ namespace YARG.UI
 
             // Add to options
             var ops = new string[availableInstruments.Count + 1];
-            instruments = new string[availableInstruments.Count];
+            instruments = new Instrument[availableInstruments.Count];
             for (int i = 0; i < instruments.Length; i++)
             {
-                instruments[i] = availableInstruments[i].ToStringName();
+                instruments[i] = availableInstruments[i];
                 ops[i] = availableInstruments[i].ToLocalizedName();
             }
 
@@ -311,7 +312,7 @@ namespace YARG.UI
 
                 if (i < instruments.Length)
                 {
-                    var sprite = Addressables.LoadAssetAsync<Sprite>($"FontSprites[{instruments[i]}]")
+                    var sprite = Addressables.LoadAssetAsync<Sprite>($"FontSprites[{instruments[i].ToResourceName()}]")
                         .WaitForCompletion();
                     options[i].SetImage(sprite);
                 }
@@ -322,20 +323,19 @@ namespace YARG.UI
             options[0].SetSelected(true);
         }
 
-        private void UpdateDifficulty(string chosenInstrument, bool showExpertPlus)
+        private void UpdateDifficulty(Instrument instrument, bool showExpertPlus)
         {
             state = State.DIFFICULTY;
 
             // Get the correct instrument
-            var instrument = InstrumentHelper.FromStringName(chosenInstrument);
-            if (instrument == Instrument.REAL_DRUMS || instrument == Instrument.GH_DRUMS)
+            if (instrument == Instrument.ProDrums || instrument == Instrument.FiveLaneDrums)
             {
-                instrument = Instrument.DRUMS;
+                instrument = Instrument.FourLaneDrums;
             }
 
             // Get the available difficulties
             var availableDifficulties = new List<Difficulty>();
-            for (int i = 0; i < (int) Difficulty.EXPERT_PLUS; i++)
+            for (int i = 0; i < (int) Difficulty.ExpertPlus; i++)
             {
                 if (!GlobalVariables.Instance.CurrentSong.HasPart(instrument, (Difficulty) i))
                 {
@@ -347,7 +347,7 @@ namespace YARG.UI
 
             if (showExpertPlus)
             {
-                availableDifficulties.Add(Difficulty.EXPERT_PLUS);
+                availableDifficulties.Add(Difficulty.ExpertPlus);
             }
 
             optionCount = availableDifficulties.Count;
@@ -357,15 +357,7 @@ namespace YARG.UI
 
             for (int i = 0; i < optionCount; i++)
             {
-                ops[i] = availableDifficulties[i] switch
-                {
-                    Difficulty.EASY        => "Easy",
-                    Difficulty.MEDIUM      => "Medium",
-                    Difficulty.HARD        => "Hard",
-                    Difficulty.EXPERT      => "Expert",
-                    Difficulty.EXPERT_PLUS => "Expert+",
-                    _                      => "Unknown"
-                };
+                ops[i] = availableDifficulties[i].ToDisplayName();
                 difficulties[i] = availableDifficulties[i];
             }
 

@@ -4,7 +4,7 @@ using System.IO;
 using Melanchall.DryWetMidi.Core;
 using MoonscraperChartEditor.Song.IO;
 using UnityEngine;
-using YARG.Data;
+using YARG.Core;
 
 namespace YARG.Song.Preparsers
 {
@@ -21,55 +21,55 @@ namespace YARG.Song.Preparsers
         private static readonly IReadOnlyDictionary<string, Instrument> PartLookup = new Dictionary<string, Instrument>
         {
             {
-                MidIOHelper.GUITAR_TRACK, Instrument.GUITAR
+                MidIOHelper.GUITAR_TRACK, Instrument.FiveFretGuitar
             },
             {
-                MidIOHelper.GH1_GUITAR_TRACK, Instrument.GUITAR
+                MidIOHelper.GH1_GUITAR_TRACK, Instrument.FiveFretGuitar
             },
             {
-                MidIOHelper.GUITAR_COOP_TRACK, Instrument.GUITAR_COOP
+                MidIOHelper.GUITAR_COOP_TRACK, Instrument.FiveFretCoopGuitar
             },
             {
-                MidIOHelper.BASS_TRACK, Instrument.BASS
+                MidIOHelper.BASS_TRACK, Instrument.FiveFretBass
             },
             {
-                MidIOHelper.RHYTHM_TRACK, Instrument.RHYTHM
+                MidIOHelper.RHYTHM_TRACK, Instrument.FiveFretRhythm
             },
             {
-                MidIOHelper.DRUMS_TRACK, Instrument.DRUMS
+                MidIOHelper.DRUMS_TRACK, Instrument.FourLaneDrums
             },
             {
-                "PART DRUM", Instrument.DRUMS
+                "PART DRUM", Instrument.FourLaneDrums
             },
             {
-                MidIOHelper.KEYS_TRACK, Instrument.KEYS
+                MidIOHelper.KEYS_TRACK, Instrument.Keys
             },
             {
-                MidIOHelper.VOCALS_TRACK, Instrument.VOCALS
+                MidIOHelper.VOCALS_TRACK, Instrument.Vocals
             },
             {
-                "PART REAL_GUITAR", Instrument.REAL_GUITAR
+                "PART REAL_GUITAR", Instrument.ProGuitar_17Fret
             },
             {
-                "PART REAL_BASS", Instrument.REAL_BASS
+                "PART REAL_BASS", Instrument.ProBass_17Fret
             },
             {
-                "HARM1", Instrument.HARMONY
+                "HARM1", Instrument.Harmony
             },
             {
-                "HARM2", Instrument.HARMONY
+                "HARM2", Instrument.Harmony
             },
             {
-                "HARM3", Instrument.HARMONY
+                "HARM3", Instrument.Harmony
             },
             {
-                "PART HARM1", Instrument.HARMONY
+                "PART HARM1", Instrument.Harmony
             },
             {
-                "PART HARM2", Instrument.HARMONY
+                "PART HARM2", Instrument.Harmony
             },
             {
-                "PART HARM3", Instrument.HARMONY
+                "PART HARM3", Instrument.Harmony
             },
         };
 

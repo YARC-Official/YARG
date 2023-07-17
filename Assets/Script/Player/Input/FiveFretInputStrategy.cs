@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using YARG.Data;
+using YARG.Core;
 using YARG.Player.Navigation;
 using YARG.PlayMode;
 
@@ -135,7 +135,7 @@ namespace YARG.Player.Input
         {
             return new Instrument[]
             {
-                Instrument.GUITAR, Instrument.BASS, Instrument.KEYS, Instrument.GUITAR_COOP, Instrument.RHYTHM,
+                Instrument.FiveFretGuitar, Instrument.FiveFretBass, Instrument.Keys, Instrument.FiveFretCoopGuitar, Instrument.FiveFretRhythm,
             };
         }
 

@@ -3,6 +3,7 @@ using UnityEngine;
 using DtxCS.DataTypes;
 using System.Collections.Generic;
 using YARG.Audio;
+using YARG.Core;
 using YARG.Data;
 using YARG.Serialization;
 using XboxSTFS;
@@ -379,19 +380,22 @@ namespace YARG.Song
                                 continue;
                             }
 
-                            var inst = InstrumentHelper.FromStringName(name);
-                            if (inst == Instrument.INVALID)
+                            try
                             {
-                                continue;
+                                var inst = InstrumentHelper.FromResourceName(name);
+                                PartDifficulties[inst] = DtaDifficulty.ToNumberedDiff(inst, dtaDiff);
                             }
-
-                            PartDifficulties[inst] = DtaDifficulty.ToNumberedDiff(inst, dtaDiff);
+                            catch (Exception ex)
+                            {
+                                Debug.LogError("Failed to set instrument difficulty!");
+                                Debug.LogException(ex);
+                            }
                         }
 
                         // Set pro drums
-                        if (PartDifficulties.ContainsKey(Instrument.DRUMS))
+                        if (PartDifficulties.ContainsKey(Instrument.FourLaneDrums))
                         {
-                            PartDifficulties[Instrument.REAL_DRUMS] = PartDifficulties[Instrument.DRUMS];
+                            PartDifficulties[Instrument.ProDrums] = PartDifficulties[Instrument.FourLaneDrums];
                         }
 
                         break;
@@ -502,7 +506,7 @@ namespace YARG.Song
             }
 
             // must be done after the above parallel loop due to race issues with ranks and vocalParts
-            if (PartDifficulties.TryGetValue(Instrument.VOCALS, out var voxRank))
+            if (PartDifficulties.TryGetValue(Instrument.Vocals, out var voxRank))
             {
                 // at least one vocal part exists
                 if (voxRank != -1)
@@ -515,7 +519,7 @@ namespace YARG.Song
                     else
                     {
                         // since vocal parts != 0, we know vocal_parts was parsed earlier - so there's harmonies - set difficulty
-                        PartDifficulties[Instrument.HARMONY] = PartDifficulties[Instrument.VOCALS];
+                        PartDifficulties[Instrument.Harmony] = PartDifficulties[Instrument.Vocals];
                     }
                 }
             }

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using YARG.Data;
+using YARG.Core;
 
 namespace YARG.Song.Preparsers
 {
@@ -15,16 +15,16 @@ namespace YARG.Song.Preparsers
             new Dictionary<Difficulty, string>
             {
                 {
-                    Difficulty.EASY, "Easy"
+                    Difficulty.Easy, "Easy"
                 },
                 {
-                    Difficulty.MEDIUM, "Medium"
+                    Difficulty.Medium, "Medium"
                 },
                 {
-                    Difficulty.HARD, "Hard"
+                    Difficulty.Hard, "Hard"
                 },
                 {
-                    Difficulty.EXPERT, "Expert"
+                    Difficulty.Expert, "Expert"
                 }
             };
 
@@ -32,22 +32,22 @@ namespace YARG.Song.Preparsers
             new Dictionary<Instrument, string>
             {
                 {
-                    Instrument.GUITAR, "Single"
+                    Instrument.FiveFretGuitar, "Single"
                 },
                 {
-                    Instrument.GUITAR_COOP, "DoubleGuitar"
+                    Instrument.FiveFretCoopGuitar, "DoubleGuitar"
                 },
                 {
-                    Instrument.BASS, "DoubleBass"
+                    Instrument.FiveFretBass, "DoubleBass"
                 },
                 {
-                    Instrument.RHYTHM, "DoubleRhythm"
+                    Instrument.FiveFretRhythm, "DoubleRhythm"
                 },
                 {
-                    Instrument.DRUMS, "Drums"
+                    Instrument.FourLaneDrums, "Drums"
                 },
                 {
-                    Instrument.KEYS, "Keyboard"
+                    Instrument.Keys, "Keyboard"
                 },
                 // { Instrument.GHLiveGuitar, "GHLGuitar" },
                 // { Instrument.GHLiveBass, "GHLBass" },
@@ -151,7 +151,7 @@ namespace YARG.Song.Preparsers
                 }
             }
 
-            track = (Instrument.INVALID, (Difficulty) (-1));
+            track = default;
             return false;
         }
     }

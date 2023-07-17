@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using YARG.Core;
 using YARG.Data;
 using YARG.PlayMode;
 using YARG.Settings;
@@ -59,7 +60,7 @@ namespace YARG.UI
             bool playingVocals = false;
             foreach (var player in PlayerManager.players)
             {
-                if (player.chosenInstrument is "vocals" or "harmVocals")
+                if (player.chosenInstrument is Instrument.Vocals or Instrument.Harmony)
                 {
                     playingVocals = true;
                 }

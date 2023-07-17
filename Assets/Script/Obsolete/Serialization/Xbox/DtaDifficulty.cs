@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using YARG.Data;
+using YARG.Core;
 
 namespace YARG.Serialization
 {
@@ -8,61 +8,61 @@ namespace YARG.Serialization
         private static readonly Dictionary<Instrument, int[]> DiffMaps = new()
         {
             {
-                Instrument.GUITAR, new int[]
+                Instrument.FiveFretGuitar, new int[]
                 {
                     139, 176, 221, 267, 333, 409
                 }
             },
             {
-                Instrument.BASS, new int[]
+                Instrument.FiveFretBass, new int[]
                 {
                     135, 181, 228, 293, 364, 436
                 }
             },
             {
-                Instrument.DRUMS, new int[]
+                Instrument.FourLaneDrums, new int[]
                 {
                     124, 151, 178, 242, 345, 448
                 }
             },
             {
-                Instrument.KEYS, new int[]
+                Instrument.Keys, new int[]
                 {
                     153, 211, 269, 327, 385, 443
                 }
             },
             {
-                Instrument.VOCALS, new int[]
+                Instrument.Vocals, new int[]
                 {
                     132, 175, 218, 279, 353, 427
                 }
             },
             {
-                Instrument.REAL_GUITAR, new int[]
+                Instrument.ProGuitar_17Fret, new int[]
                 {
                     150, 205, 264, 323, 382, 442
                 }
             },
             {
-                Instrument.REAL_BASS, new int[]
+                Instrument.ProBass_17Fret, new int[]
                 {
                     150, 208, 267, 325, 384, 442
                 }
             },
             {
-                Instrument.REAL_DRUMS, new int[]
+                Instrument.ProDrums, new int[]
                 {
                     124, 151, 178, 242, 345, 448
                 }
             },
+            // {
+            //     Instrument.ProKeys, new int[]
+            //     {
+            //         153, 211, 269, 327, 385, 443
+            //     }
+            // },
             {
-                Instrument.REAL_KEYS, new int[]
-                {
-                    153, 211, 269, 327, 385, 443
-                }
-            },
-            {
-                Instrument.HARMONY, new int[]
+                Instrument.Harmony, new int[]
                 {
                     132, 175, 218, 279, 353, 427
                 }

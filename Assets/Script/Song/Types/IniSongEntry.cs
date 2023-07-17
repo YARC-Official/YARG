@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using EasySharpIni;
 using YARG.Audio;
+using YARG.Core;
 
 namespace YARG.Song
 {
@@ -106,43 +107,43 @@ namespace YARG.Song
             PartDifficulties = new()
             {
                 {
-                    Data.Instrument.GUITAR, section.GetField("diff_guitar", "-1").Get(IntConverter)
+                    Instrument.FiveFretGuitar, section.GetField("diff_guitar", "-1").Get(IntConverter)
                 },
                 {
-                    Data.Instrument.GUITAR_COOP, section.GetField("diff_guitar_coop", "-1").Get(IntConverter)
+                    Instrument.FiveFretCoopGuitar, section.GetField("diff_guitar_coop", "-1").Get(IntConverter)
                 },
                 {
-                    Data.Instrument.REAL_GUITAR, section.GetField("diff_guitar_real", "-1").Get(IntConverter)
+                    Instrument.ProGuitar_17Fret, section.GetField("diff_guitar_real", "-1").Get(IntConverter)
                 },
                 {
-                    Data.Instrument.RHYTHM, section.GetField("diff_rhythm", "-1").Get(IntConverter)
+                    Instrument.FiveFretRhythm, section.GetField("diff_rhythm", "-1").Get(IntConverter)
                 },
                 {
-                    Data.Instrument.BASS, section.GetField("diff_bass", "-1").Get(IntConverter)
+                    Instrument.FiveFretBass, section.GetField("diff_bass", "-1").Get(IntConverter)
                 },
                 {
-                    Data.Instrument.REAL_BASS, section.GetField("diff_bass_real", "-1").Get(IntConverter)
+                    Instrument.ProBass_17Fret, section.GetField("diff_bass_real", "-1").Get(IntConverter)
                 },
                 {
-                    Data.Instrument.DRUMS, section.GetField("diff_drums", "-1").Get(IntConverter)
+                    Instrument.FourLaneDrums, section.GetField("diff_drums", "-1").Get(IntConverter)
                 },
                 {
-                    Data.Instrument.GH_DRUMS, section.GetField("diff_drums", "-1").Get(IntConverter)
+                    Instrument.FiveLaneDrums, section.GetField("diff_drums", "-1").Get(IntConverter)
                 },
                 {
-                    Data.Instrument.REAL_DRUMS, section.GetField("diff_drums_real", "-1").Get(IntConverter)
+                    Instrument.ProDrums, section.GetField("diff_drums_real", "-1").Get(IntConverter)
                 },
                 {
-                    Data.Instrument.KEYS, section.GetField("diff_keys", "-1").Get(IntConverter)
+                    Instrument.Keys, section.GetField("diff_keys", "-1").Get(IntConverter)
+                },
+                // {
+                //     Instrument.ProKeys, section.GetField("diff_keys_real", "-1").Get(IntConverter)
+                // },
+                {
+                    Instrument.Vocals, section.GetField("diff_vocals", "-1").Get(IntConverter)
                 },
                 {
-                    Data.Instrument.REAL_KEYS, section.GetField("diff_keys_real", "-1").Get(IntConverter)
-                },
-                {
-                    Data.Instrument.VOCALS, section.GetField("diff_vocals", "-1").Get(IntConverter)
-                },
-                {
-                    Data.Instrument.HARMONY, section.GetField("diff_vocals_harm", "-1").Get(IntConverter)
+                    Instrument.Harmony, section.GetField("diff_vocals_harm", "-1").Get(IntConverter)
                 },
             };
 
@@ -150,11 +151,11 @@ namespace YARG.Song
 
             // TODO: Preparse this
             // Get vocal count from difficulties
-            if (PartDifficulties.GetValueOrDefault(Data.Instrument.HARMONY, -1) != -1)
+            if (PartDifficulties.GetValueOrDefault(Instrument.Harmony, -1) != -1)
             {
                 VocalParts = 3;
             }
-            else if (PartDifficulties.GetValueOrDefault(Data.Instrument.VOCALS, -1) != -1)
+            else if (PartDifficulties.GetValueOrDefault(Instrument.Vocals, -1) != -1)
             {
                 VocalParts = 1;
             }

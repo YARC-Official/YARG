@@ -5,6 +5,7 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Core;
 using YARG.Data;
 using YARG.Helpers.Extensions;
 using YARG.Player.Input;
@@ -162,12 +163,13 @@ namespace YARG.UI.PlayResultScreen
 
                 // Override or add score/percentage
                 // TODO: override scores/percentages independently
+                string instrumentName = player.chosenInstrument.Value.ToResourceName();
                 if (oldScore == null || oldScore.highestScore == null ||
-                    !oldScore.highestScore.TryGetValue(player.chosenInstrument, out var oldHighestSc) ||
+                    !oldScore.highestScore.TryGetValue(instrumentName, out var oldHighestSc) ||
                     lastScore.score > oldHighestSc)
                 {
-                    songScore.highestPercent[player.chosenInstrument] = lastScore.percentage;
-                    songScore.highestScore[player.chosenInstrument] = lastScore.score;
+                    songScore.highestPercent[instrumentName] = lastScore.percentage;
+                    songScore.highestScore[instrumentName] = lastScore.score;
                     highScores.Add(player);
                 }
             }

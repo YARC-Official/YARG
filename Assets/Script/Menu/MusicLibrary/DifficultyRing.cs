@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
+using YARG.Core;
 using YARG.Data;
 using YARG.Song;
 
@@ -34,13 +35,13 @@ namespace YARG.UI.MusicLibrary
             _searchButton.onClick.RemoveAllListeners();
             if (show)
             {
-                _searchButton.onClick.AddListener(() => SearchFilter(instrument.ToStringName()));
+                _searchButton.onClick.AddListener(() => SearchFilter(instrument.ToResourceName()));
             }
         }
 
         public void SetInfo(bool hasInstrument, Instrument instrument, int difficulty)
         {
-            SetInfo(hasInstrument, instrument.ToStringName(), difficulty);
+            SetInfo(hasInstrument, instrument.ToResourceName(), difficulty);
         }
 
         public void SetInfo(bool hasInstrument, string instrumentName, int difficulty)

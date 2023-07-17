@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using PlasticBand.Devices;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using YARG.Core;
 using YARG.Data;
 using YARG.PlayMode;
 
@@ -120,7 +121,7 @@ namespace YARG.Player.Input
         {
             return new Instrument[]
             {
-                Instrument.REAL_GUITAR, Instrument.REAL_BASS,
+                Instrument.ProGuitar_17Fret, Instrument.ProBass_17Fret,
             };
         }
 

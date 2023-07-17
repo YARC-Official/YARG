@@ -55,15 +55,7 @@ namespace YARG.UI
             };
 
             var score = player.lastScore.Value;
-            text[0].text = player.chosenDifficulty switch
-            {
-                Difficulty.EASY        => "Easy",
-                Difficulty.MEDIUM      => "Medium",
-                Difficulty.HARD        => "Hard",
-                Difficulty.EXPERT      => "Expert",
-                Difficulty.EXPERT_PLUS => "Expert+",
-                _                      => throw new System.Exception("Unreachable")
-            };
+            text[0].text = player.chosenDifficulty.ToDisplayName();
             text[1].text = $"{score.percentage.percent * 100f:N1}%" + end;
             text[2].text = $"{score.notesHit} hit";
             text[3].text = $"{score.notesMissed} missed";

@@ -3,7 +3,7 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using YARG.Data;
+using YARG.Core;
 using YARG.Player.Input;
 using YARG.Player.Navigation;
 
@@ -126,7 +126,7 @@ namespace YARG.UI.PlayResultScreen
             playerName.text = player.DisplayName;
             difficulty.text = player.chosenDifficulty switch
             {
-                Difficulty.EXPERT_PLUS => "EXPERT+",
+                Difficulty.ExpertPlus => "EXPERT+",
                 _                      => player.chosenDifficulty.ToString()
             };
             instrumentSymbol.text = $"<sprite name=\"{player.chosenInstrument}\">";
