@@ -13,11 +13,11 @@ namespace YARG.Song
     public readonly struct CacheFolder
     {
         /// <summary>
-        /// The date revision of the cache format.
+        /// The date revision of the cache format, relative to UTC.
         /// Format is YY_MM_DD_RR: Y = year, M = month, D = day, R = revision (reset across dates, only increment
         /// if multiple cache version changes happen in a single day).
         /// </summary>
-        private const int CACHE_VERSION = 23_07_06_01;
+        private const int CACHE_VERSION = 23_07_17_01;
 
         private readonly string _cacheFile;
 
