@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using YARG.Core;
@@ -136,43 +136,54 @@ namespace YARG.Gameplay
 
         private void LoadChart(YargPlayer yargPlayer, BasePlayer basePlayer)
         {
-            switch (yargPlayer.Profile.Instrument)
-            {
-                case Instrument.FiveFretGuitar:
-                    var notes = Chart.FiveFretGuitar.Difficulties[yargPlayer.Profile.Difficulty].Notes;
-                    goto initFiveFret;
-                case Instrument.FiveFretBass:
-                    notes = Chart.FiveFretBass.Difficulties[yargPlayer.Profile.Difficulty].Notes;
-                    goto initFiveFret;
-                case Instrument.FiveFretRhythm:
-                    notes = Chart.FiveFretRhythm.Difficulties[yargPlayer.Profile.Difficulty].Notes;
-                    goto initFiveFret;
-                case Instrument.FiveFretCoopGuitar:
-                    notes = Chart.FiveFretCoop.Difficulties[yargPlayer.Profile.Difficulty].Notes;
-                    goto initFiveFret;
-                case Instrument.Keys:
-                    notes = Chart.Keys.Difficulties[yargPlayer.Profile.Difficulty].Notes;
+            var profile = yargPlayer.Profile;
+            var instrument = profile.Instrument;
+            var difficulty = profile.Difficulty;
+            // int vocalsPart = profile.VocalsPart;
 
-                initFiveFret:
+            switch (profile.InstrumentType)
+            {
+                case GameMode.FiveFretGuitar:
+                {
+                    var notes = Chart.GetFiveFretTrack(instrument).Difficulties[difficulty].Notes;
                     (basePlayer as FiveFretPlayer)?.Initialize(yargPlayer, notes);
                     break;
-                case Instrument.SixFretGuitar:
-                case Instrument.SixFretBass:
-                case Instrument.SixFretRhythm:
-                case Instrument.SixFretCoopGuitar:
+                }
 
-                case Instrument.FourLaneDrums:
-                case Instrument.ProDrums:
+                case GameMode.SixFretGuitar:
+                {
+                    var notes = Chart.GetSixFretTrack(instrument).Difficulties[difficulty].Notes;
+                    // (basePlayer as SixFretPlayer)?.Initialize(yargPlayer, notes);
+                    break;
+                }
 
-                case Instrument.FiveLaneDrums:
+                case GameMode.FourLaneDrums:
+                {
+                    var notes = Chart.GetDrumsTrack(instrument).Difficulties[difficulty].Notes;
+                    // (basePlayer as FourLaneDrumsPlayer)?.Initialize(yargPlayer, notes);
+                    break;
+                }
 
-                case Instrument.ProGuitar_17Fret:
-                case Instrument.ProGuitar_22Fret:
-                case Instrument.ProBass_17Fret:
-                case Instrument.ProBass_22Fret:
+                case GameMode.FiveLaneDrums:
+                {
+                    var notes = Chart.GetDrumsTrack(instrument).Difficulties[difficulty].Notes;
+                    // (basePlayer as FiveLaneDrumsPlayer)?.Initialize(yargPlayer, notes);
+                    break;
+                }
 
-                case Instrument.Vocals:
-                case Instrument.Harmony:
+                case GameMode.ProGuitar:
+                {
+                    var notes = Chart.GetProGuitarTrack(instrument).Difficulties[difficulty].Notes;
+                    // (basePlayer as ProGuitarPlayer)?.Initialize(yargPlayer, notes);
+                    break;
+                }
+
+                case GameMode.Vocals:
+                {
+                    // var notes = Chart.GetVocalsTrack(instrument).Parts[vocalsPart];
+                    // (basePlayer as VocalsPlayer)?.Initialize(yargPlayer, notes);
+                    break;
+                }
 
                 default:
                     break;
