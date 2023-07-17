@@ -44,7 +44,7 @@ namespace YARG.Gameplay
             float noteSpeed = Player.Player.Profile.NoteSpeed;
 
             // TODO: Take calibration into consideration
-            float z = BasePlayer.STRIKE_LINE_POS + (float) (NoteRef.Time - GameManager.RealSongTime) * noteSpeed;
+            float z = BasePlayer.STRIKE_LINE_POS + (float) (NoteRef.Time - GameManager.SongTime) * noteSpeed;
 
             transform.localPosition = transform.localPosition.WithZ(z);
 
