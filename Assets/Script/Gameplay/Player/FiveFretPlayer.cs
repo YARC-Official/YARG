@@ -57,7 +57,7 @@ namespace YARG.Gameplay
         {
             if (Player.Profile.IsBot)
             {
-                Engine.UpdateBot(GameManager.RealSongTime);
+                Engine.UpdateBot(InputManager.BeforeUpdateTime);
                 return;
             }
 
