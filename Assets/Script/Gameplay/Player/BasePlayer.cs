@@ -94,10 +94,10 @@ namespace YARG.Gameplay
     {
         public TEngine Engine { get; protected set; }
 
-        protected List<TNote> Notes { get; private set; }
+        protected InstrumentDifficulty<TNote> Chart { get; private set; }
         protected IEnumerator<TNote> NoteEnumerator { get; private set; }
 
-        public virtual void Initialize(YargPlayer player, List<TNote> notes)
+        public virtual void Initialize(YargPlayer player, InstrumentDifficulty<TNote> chart)
         {
             if (IsInitialized)
             {
@@ -106,9 +106,9 @@ namespace YARG.Gameplay
 
             Initialize(player);
 
-            Notes = notes;
+            Chart = chart;
 
-            NoteEnumerator = Notes.GetEnumerator();
+            NoteEnumerator = Chart.Notes.GetEnumerator();
             NoteEnumerator.MoveNext();
         }
 

@@ -15,11 +15,11 @@ namespace YARG.Gameplay
         private readonly GuitarEngineParameters _engineParams = new(0.14, 1, 0.08,
             0.065, true);
 
-        public override void Initialize(YargPlayer player, List<GuitarNote> notes)
+        public override void Initialize(YargPlayer player, InstrumentDifficulty<GuitarNote> chart)
         {
-            base.Initialize(player, notes);
+            base.Initialize(player, chart);
 
-            Engine = new YargFiveFretEngine(Notes, _engineParams);
+            Engine = new YargFiveFretEngine(Chart.Notes, _engineParams);
 
             Engine.OnNoteHit += (index, note) =>
             {
