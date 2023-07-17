@@ -45,6 +45,11 @@ namespace YARG.Gameplay
 
             Score = Engine.EngineStats.Score;
             NoteStreak = Engine.EngineStats.Combo;
+
+            if (Engine.IsFretHeld(GuitarAction.Green))
+            {
+                Debug.Log("gween");
+            }
         }
 
         protected override void UpdateInputs()
