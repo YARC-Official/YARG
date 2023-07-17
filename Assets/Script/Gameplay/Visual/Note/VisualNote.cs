@@ -34,6 +34,7 @@ namespace YARG.Gameplay
         }
 
         protected abstract void InitializeNote();
+        protected abstract void HideNote();
 
         private void Update()
         {
@@ -52,6 +53,7 @@ namespace YARG.Gameplay
 
         public void DisableIntoPool()
         {
+            HideNote();
             gameObject.SetActive(false);
         }
     }
