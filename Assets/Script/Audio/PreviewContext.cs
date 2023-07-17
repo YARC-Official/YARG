@@ -57,8 +57,7 @@ namespace YARG.Audio
             // Previews must be cancelled before attempting to start a new one
             if (IsPlaying)
             {
-                Debug.LogError(
-                    $"Attempted to play a new preview without cancelling the previous! Song: {song.Artist} - {song.Name}");
+                Debug.LogError($"Attempted to play a new preview without cancelling the previous! Song: {song.Artist} - {song.Name}");
                 return;
             }
 

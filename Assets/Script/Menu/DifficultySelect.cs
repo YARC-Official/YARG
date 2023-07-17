@@ -77,8 +77,6 @@ namespace YARG.UI
                 new NavigationScheme.Entry(MenuAction.Back, "Back", () => MenuNavigator.Instance.PopMenu())
             }, false));
 
-            Debug.Log(GlobalVariables.Instance.CurrentSong.AvailableParts);
-
             playerIndex = 0;
             playersToConfigure.Clear();
 

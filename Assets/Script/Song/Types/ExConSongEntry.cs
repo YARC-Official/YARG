@@ -293,7 +293,6 @@ namespace YARG.Song
         public void SetFromDTA(DataArray dta)
         {
             ShortName = dta.Name;
-            // Debug.Log($"this shortname: {dta.Name}");
             for (int i = 1; i < dta.Count; i++)
             {
                 DataArray dtaArray = (DataArray) dta[i];

@@ -68,7 +68,7 @@ namespace YARG.Audio.BASS
             {
                 if (!Bass.StreamFree(_moggSourceHandle))
                 {
-                    Debug.LogError("Failed to free mixer stream. THIS WILL LEAK MEMORY!");
+                    Debug.LogError($"Failed to free mixer stream (THIS WILL LEAK MEMORY!): {Bass.LastError}");
                 }
 
                 _moggSourceHandle = 0;

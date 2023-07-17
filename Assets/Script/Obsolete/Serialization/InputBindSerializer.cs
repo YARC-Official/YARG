@@ -36,9 +36,10 @@ namespace YARG.Serialization
                 var json = File.ReadAllText(InputBindFile);
                 inputBindSaves = JsonConvert.DeserializeObject<List<InputDeviceSave>>(json);
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 Debug.LogWarning("Failed to load input binds from JSON. Ignoring.");
+                Debug.LogException(e);
             }
         }
 

@@ -52,6 +52,7 @@ namespace YARG
             {
                 // If we fail to read the score file, so just create empty scores.
                 scores = new();
+                Debug.LogError("Failed to read scores file!");
                 Debug.LogException(e);
             }
         }

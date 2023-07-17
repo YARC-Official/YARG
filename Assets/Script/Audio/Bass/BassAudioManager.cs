@@ -114,12 +114,10 @@ namespace YARG.Audio.BASS
 
             if (!Bass.Init(-1, 44100, DeviceInitFlags.Default | DeviceInitFlags.Latency, IntPtr.Zero))
             {
-                Debug.LogError("Failed to initialize BASS");
-                Debug.LogError($"Error: {Bass.LastError}");
                 if (Bass.LastError == Errors.Already)
-                {
                     Debug.LogError("BASS is already initialized! An error has occurred somewhere and Unity must be restarted.");
-                }
+                else
+                    Debug.LogError($"Failed to initialize BASS: {Bass.LastError}");
                 return;
             }
 
@@ -215,7 +213,7 @@ namespace YARG.Audio.BASS
 
                 if (!File.Exists(sfxPath))
                 {
-                    Debug.LogError($"SFX path does not exist! {sfxPath}");
+                    Debug.LogError($"SFX {sfxPath} does not exist!");
                     continue;
                 }
 
@@ -224,8 +222,7 @@ namespace YARG.Audio.BASS
                 var sfx = new BassSampleChannel(this, sfxPath, 8, sfxSample);
                 if (sfx.Load() != 0)
                 {
-                    Debug.LogError($"Failed to load SFX! {sfxPath}");
-                    Debug.LogError($"Bass Error: {Bass.LastError}");
+                    Debug.LogError($"Failed to load SFX {sfxPath}: {Bass.LastError}");
                     continue;
                 }
 
@@ -247,20 +244,19 @@ namespace YARG.Audio.BASS
                 throw new Exception($"Failed to create mixer: {Bass.LastError}");
             }
 
-            foreach (var stem in stems)
+            foreach (var (stemType, path) in stems)
             {
-                var stemChannel = new BassStemChannel(this, stem.Value, stems.Count > 1 ? stem.Key : SongStem.Song);
+                var stemChannel = new BassStemChannel(this, path, stems.Count > 1 ? stemType : SongStem.Song);
                 if (stemChannel.Load(speed) != 0)
                 {
-                    Debug.LogError($"Failed to load stem! {stem.Value}");
-                    Debug.LogError($"Bass Error: {Bass.LastError}");
+                    Debug.LogError($"Failed to load stem {path}: {Bass.LastError}");
                     continue;
                 }
 
                 if (_mixer.AddChannel(stemChannel) != 0)
                 {
-                    Debug.LogError($"Failed to add stem to mixer!");
-                    Debug.LogError($"Bass Error: {Bass.LastError}");
+                    Debug.LogError($"Failed to add stem {stemType} to mixer: {Bass.LastError}");
+                    continue;
                 }
             }
 
@@ -288,8 +284,7 @@ namespace YARG.Audio.BASS
             int moggStreamHandle = Bass.CreateStream(moggArray, start, moggArray.Length - start, flags);
             if (moggStreamHandle == 0)
             {
-                Debug.LogError($"Failed to load mogg file or position: {Bass.LastError}");
-                return;
+                throw new Exception($"Failed to load mogg file or position: {Bass.LastError}");
             }
 
             // Initialize mixer
@@ -353,9 +348,7 @@ namespace YARG.Audio.BASS
             var stemChannel = new BassStemChannel(this, audioPath, SongStem.Song);
             if (stemChannel.Load(speed) != 0)
             {
-                Debug.LogError($"Failed to load stem! {audioPath}");
-                Debug.LogError($"Bass Error: {Bass.LastError}");
-                return;
+                throw new Exception($"Failed to load stem {audioPath}: {Bass.LastError}");
             }
 
             if (_mixer.GetChannels(SongStem.Song) != null)
@@ -366,8 +359,7 @@ namespace YARG.Audio.BASS
 
             if (_mixer.AddChannel(stemChannel) != 0)
             {
-                Debug.LogError($"Failed to add stem to mixer!");
-                Debug.LogError($"Bass Error: {Bass.LastError}");
+                throw new Exception($"Failed to add stem to mixer: {Bass.LastError}");
             }
 
             Debug.Log($"Loaded {_mixer.StemsLoaded} stems");

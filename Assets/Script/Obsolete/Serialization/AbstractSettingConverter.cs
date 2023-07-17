@@ -12,7 +12,7 @@ namespace YARG.Serialization
         {
             if (existingValue == null)
             {
-                Debug.LogWarning("The `existingValue` is null! Returning null.");
+                Debug.LogWarning($"No existing setting value was provided!");
                 return null;
             }
 

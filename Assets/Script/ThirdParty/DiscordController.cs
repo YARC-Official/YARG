@@ -261,6 +261,7 @@ namespace YARG.ThirdParty
             }
             catch (Exception e)
             {
+                Debug.LogError("Failed to run Discord client callbacks!");
                 Debug.LogException(e);
 
                 TryDispose();
@@ -282,7 +283,7 @@ namespace YARG.ThirdParty
             }
             catch (Exception e)
             {
-                Debug.Log("Failed to clear activity or dispose of Discord.");
+                Debug.Log("Failed to dispose of Discord client.");
                 Debug.LogException(e);
             }
         }

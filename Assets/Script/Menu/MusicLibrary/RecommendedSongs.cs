@@ -55,9 +55,7 @@ namespace YARG.UI.MusicLibrary
             }
 
             AddMostPlayedSongs(mostPlayed);
-            Debug.Log(_recommendedSongs.Count);
             AddSongsFromTopPlayedArtists(mostPlayed);
-            Debug.Log(_recommendedSongs.Count);
         }
 
         private static void AddMostPlayedSongs(List<SongEntry> mostPlayed)

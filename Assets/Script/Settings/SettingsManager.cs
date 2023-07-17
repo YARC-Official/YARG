@@ -249,6 +249,7 @@ namespace YARG.Settings
             }
             catch (Exception e)
             {
+                Debug.LogError("Failed to load settings!");
                 Debug.LogException(e);
             }
 
@@ -285,6 +286,7 @@ namespace YARG.Settings
             }
             catch (Exception e)
             {
+                Debug.LogError("Failed to delete settings!");
                 Debug.LogException(e);
             }
         }

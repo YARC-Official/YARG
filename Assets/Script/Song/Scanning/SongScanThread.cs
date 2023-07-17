@@ -140,7 +140,6 @@ namespace YARG.Song
             {
                 try
                 {
-                    Debug.Log($"Reading cache of {cache}");
                     var cacheScan = cache.ReadCache();
                     caches.Add(cache, cacheScan.Item1);
                     _conFiles.AddRange(cacheScan.Item2);
@@ -150,8 +149,8 @@ namespace YARG.Song
                 {
                     _cacheErrors.Add(cache);
 
+                    Debug.LogError($"Failed to read cache of {cache}!");
                     Debug.LogException(e);
-                    Debug.LogError($"Failed to read cache of {cache}");
                 }
             }
 
@@ -228,7 +227,7 @@ namespace YARG.Song
                     }
                     catch (Exception e)
                     {
-                        Debug.Log($"Failed to load song, skipping...");
+                        Debug.LogError($"Failed to load song, skipping...");
                         Debug.LogException(e);
                     }
                 }
@@ -264,7 +263,7 @@ namespace YARG.Song
                         }
                         catch (Exception e)
                         {
-                            Debug.Log($"Failed to load song, skipping...");
+                            Debug.LogError($"Failed to load song, skipping...");
                             Debug.LogException(e);
                         }
                     }
@@ -283,6 +282,7 @@ namespace YARG.Song
             }
             catch (Exception e)
             {
+                Debug.LogError($"Failed to check {subDir} for CON files!");
                 Debug.LogException(e);
             }
         }
@@ -303,7 +303,7 @@ namespace YARG.Song
                     }
                     catch (Exception e)
                     {
-                        Debug.Log($"Failed to get upgrade, skipping...");
+                        Debug.LogError($"Failed to get upgrade, skipping...");
                         Debug.LogException(e);
                     }
                 }
@@ -342,7 +342,7 @@ namespace YARG.Song
                     }
                     catch (Exception e)
                     {
-                        Debug.Log($"Failed to get upgrade, skipping...");
+                        Debug.LogError($"Failed to get upgrade, skipping...");
                         Debug.LogException(e);
                     }
                 }

@@ -174,7 +174,6 @@ namespace XboxSTFS
                     }
                 }
 
-            Debug.Log("File " + filename + " does not exist in CON and thus could not be loaded");
             return new byte[0];
         }
 

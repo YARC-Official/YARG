@@ -50,16 +50,23 @@ namespace YARG.Util
             LauncherPath = Path.Join(localAppdata, "YARC", "Launcher");
 
             // Use the launcher settings to find the setlist path
-            try
+            string settingsPath = Path.Join(LauncherPath, "settings.json");
+            if (File.Exists(settingsPath))
             {
-                var settingsFile = File.ReadAllText(Path.Join(LauncherPath, "settings.json"));
-                var json = JObject.Parse(settingsFile);
-                SetlistPath = Path.Join(json["download_location"]!.ToString(), "Setlists", "official");
-            }
-            catch (Exception e)
-            {
-                Debug.LogWarning("Failed to find setlist path. Is it installed?");
-                Debug.LogException(e);
+                try
+                {
+                    var settingsFile = File.ReadAllText(settingsPath);
+                    var json = JObject.Parse(settingsFile);
+                    if (json.TryGetValue("download_location", out var downloadLocation))
+                    {
+                        SetlistPath = Path.Join(downloadLocation.ToString(), "Setlists", "official");
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning("Failed to load setlist path. Is it installed?");
+                    Debug.LogException(e);
+                }
             }
         }
 

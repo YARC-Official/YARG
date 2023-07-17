@@ -162,14 +162,16 @@ namespace YARG.Song
 
             // Look for the current version
             updateText("Checking version...");
+            string sourceVersionPath = Path.Combine(SourcesFolder, "version.txt");
             string currentVersion = null;
             try
             {
-                currentVersion = await File.ReadAllTextAsync(Path.Combine(SourcesFolder, "version.txt"));
+                if (File.Exists(sourceVersionPath))
+                    currentVersion = await File.ReadAllTextAsync(sourceVersionPath);
             }
             catch (Exception e)
             {
-                Debug.LogWarning("Failed to get current song source version. Skipping.");
+                Debug.LogWarning("Failed to get current song source version.");
                 Debug.LogException(e);
             }
 

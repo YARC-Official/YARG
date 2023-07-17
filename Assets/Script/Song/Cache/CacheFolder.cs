@@ -72,7 +72,8 @@ namespace YARG.Song
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"Failed to write {song.Name} to cache: {e}");
+                    Debug.LogError($"Failed to write {song.Name} to cache!");
+                    Debug.LogException(e);
                 }
             }
         }
@@ -122,10 +123,8 @@ namespace YARG.Song
                 }
                 catch (Exception e)
                 {
-                    Debug.Log("Reader position: " + reader.BaseStream.Position);
-                    Debug.LogError("Failed to read song from cache");
-                    Debug.LogError(e.Message);
-                    Debug.LogError(e.StackTrace);
+                    Debug.LogError($"Failed to read song from cache! Reader position: {reader.BaseStream.Position}");
+                    Debug.LogException(e);
                     if (e is not ConMissingException) throw new Exception("Song Cache is corrupted.");
                 }
             }

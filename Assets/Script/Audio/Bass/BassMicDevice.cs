@@ -131,7 +131,7 @@ namespace YARG.Audio
 
             if (!Bass.ChannelSetAttribute(_monitorPlaybackHandle, ChannelAttribute.Volume, volume))
             {
-                Debug.LogError($"Failed to set volume attrib: {Bass.LastError}");
+                Debug.LogError($"Failed to set volume attribute: {Bass.LastError}");
             }
         }
 

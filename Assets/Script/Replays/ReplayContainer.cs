@@ -168,12 +168,12 @@ namespace YARG.Replays
 
         private static void OnReplayCreated(object sender, FileSystemEventArgs e)
         {
-            Debug.Log("Created:" + e.Name);
+            Debug.Log("Created: " + e.Name);
         }
 
         private static void OnReplayDeleted(object sender, FileSystemEventArgs e)
         {
-            Debug.Log("Deleted:" + e.Name);
+            Debug.Log("Deleted: " + e.Name);
         }
 
         private static ReplayFrame CreateReplayFrame(int id, BasePlayer player, out int playerScore)

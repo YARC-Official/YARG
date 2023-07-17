@@ -59,11 +59,6 @@ namespace YARG.Serialization
                 }
             }
 
-            // Debug.Log($"Song updates:");
-            // foreach(var item in UpdateSongDict){
-            // 	Debug.Log($"{item.Key} has update array count of {item.Value.Count}");
-            // }
-
             return UpdateSongDict;
         }
     }

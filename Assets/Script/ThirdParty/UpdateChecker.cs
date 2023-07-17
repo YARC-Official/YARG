@@ -81,9 +81,8 @@ namespace YARG
             }
             catch (Exception e)
             {
-                Debug.Log("Update check cancelled");
-                Debug.LogError(e.Message);
-                Debug.LogError(e.StackTrace);
+                Debug.LogError("Failed to check for updates!");
+                Debug.LogException(e);
             }
             finally
             {
