@@ -5,10 +5,10 @@ using System.IO;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace SFB {
-
-    public class StandaloneFileBrowserLinux : IStandaloneFileBrowser {
-        
+namespace SFB
+{
+    public class StandaloneFileBrowserLinux : IStandaloneFileBrowser
+    {
         private static Action<string[]> _openFileCb;
         private static Action<string[]> _openFolderCb;
         private static Action<string> _saveFileCb;
@@ -36,43 +36,48 @@ namespace SFB {
             DialogInit();
         }
 
-        public string[] OpenFilePanel(string title, string directory, ExtensionFilter[] extensions, bool multiselect) {
+        public string[] OpenFilePanel(string title, string directory, ExtensionFilter[] extensions, bool multiselect)
+        {
             var paths = Marshal.PtrToStringAnsi(DialogOpenFilePanel(
                 title,
                 directory,
                 GetFilterFromFileExtensionList(extensions),
                 multiselect));
-            return paths.Split((char)28);
+            return paths.Split((char) 28);
         }
 
-        public void OpenFilePanelAsync(string title, string directory, ExtensionFilter[] extensions, bool multiselect, Action<string[]> cb) {
+        public void OpenFilePanelAsync(string title, string directory, ExtensionFilter[] extensions, bool multiselect, Action<string[]> cb)
+        {
             _openFileCb = cb;
             DialogOpenFilePanelAsync(
                 title,
                 directory,
                 GetFilterFromFileExtensionList(extensions),
                 multiselect,
-                (string result) => { _openFileCb.Invoke(result.Split((char)28)); });
+                (string result) => { _openFileCb.Invoke(result.Split((char) 28)); });
         }
 
-        public string[] OpenFolderPanel(string title, string directory, bool multiselect) {
+        public string[] OpenFolderPanel(string title, string directory, bool multiselect)
+        {
             var paths = Marshal.PtrToStringAnsi(DialogOpenFolderPanel(
                 title,
                 directory,
                 multiselect));
-            return paths.Split((char)28);
+            return paths.Split((char) 28);
         }
 
-        public void OpenFolderPanelAsync(string title, string directory, bool multiselect, Action<string[]> cb) {
+        public void OpenFolderPanelAsync(string title, string directory, bool multiselect, Action<string[]> cb)
+        {
             _openFolderCb = cb;
             DialogOpenFolderPanelAsync(
                 title,
                 directory,
                 multiselect,
-                (string result) => { _openFolderCb.Invoke(result.Split((char)28)); });
+                (string result) => { _openFolderCb.Invoke(result.Split((char) 28)); });
         }
 
-        public string SaveFilePanel(string title, string directory, string defaultName, ExtensionFilter[] extensions) {
+        public string SaveFilePanel(string title, string directory, string defaultName, ExtensionFilter[] extensions)
+        {
             return Marshal.PtrToStringAnsi(DialogSaveFilePanel(
                 title,
                 directory,
@@ -80,7 +85,8 @@ namespace SFB {
                 GetFilterFromFileExtensionList(extensions)));
         }
 
-        public void SaveFilePanelAsync(string title, string directory, string defaultName, ExtensionFilter[] extensions, Action<string> cb) {
+        public void SaveFilePanelAsync(string title, string directory, string defaultName, ExtensionFilter[] extensions, Action<string> cb)
+        {
             _saveFileCb = cb;
             DialogSaveFilePanelAsync(
                 title,
@@ -90,16 +96,20 @@ namespace SFB {
                 (string result) => { _saveFileCb.Invoke(result); });
         }
 
-        private static string GetFilterFromFileExtensionList(ExtensionFilter[] extensions) {
-            if (extensions == null) {
+        private static string GetFilterFromFileExtensionList(ExtensionFilter[] extensions)
+        {
+            if (extensions == null)
+            {
                 return "";
             }
 
             var filterString = "";
-            foreach (var filter in extensions) {
+            foreach (var filter in extensions)
+            {
                 filterString += filter.Name + ";";
 
-                foreach (var ext in filter.Extensions) {
+                foreach (var ext in filter.Extensions)
+                {
                     filterString += ext + ",";
                 }
 
