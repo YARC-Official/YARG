@@ -38,12 +38,16 @@ namespace YARG.Gameplay
 
         public YargPlayer Player;
 
+        protected bool IsFc;
+
         protected bool IsInitialized { get; private set; }
 
         protected virtual void Awake()
         {
             GameManager = FindObjectOfType<GameManager>();
             _replayInputs = new List<GameInput>();
+
+            IsFc = true;
         }
 
         protected void Initialize(YargPlayer player)
@@ -154,5 +158,9 @@ namespace YARG.Gameplay
         }
 
         protected abstract void InitializeSpawnedNote(IPoolable poolable, TNote note);
+
+        protected abstract void OnNoteHit(int index, TNote note);
+        protected abstract void OnNoteMissed(int index, TNote note);
+        protected abstract void OnOverstrum();
     }
 }

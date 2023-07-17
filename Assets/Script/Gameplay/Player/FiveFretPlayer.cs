@@ -31,17 +31,9 @@ namespace YARG.Gameplay
 
             Debug.Log("Note count: " + Chart.Notes.Count);
 
-            // Engine.OnNoteHit += (index, note) =>
-            // {
-            //     Debug.Log($"[{index}] Hit note at " + note.Time);
-            // };
-
-            Engine.OnNoteMissed += (index, note) =>
-            {
-                Debug.Log($"[{index}] Missed note at " + note.Time);
-            };
-
-            Engine.OnOverstrum += () => Debug.Log("Overstrummed");
+            Engine.OnNoteHit += OnNoteHit;
+            Engine.OnNoteMissed += OnNoteMissed;
+            Engine.OnOverstrum += OnOverstrum;
 
             // TODO: Move colors to profile
             _fretArray.Initialize(new[] {
@@ -85,6 +77,29 @@ namespace YARG.Gameplay
         protected override void InitializeSpawnedNote(IPoolable poolable, GuitarNote note)
         {
             ((FiveFretVisualNote) poolable).NoteRef = note;
+        }
+
+        protected override void OnNoteHit(int index, GuitarNote note)
+        {
+
+        }
+
+        protected override void OnNoteMissed(int index, GuitarNote note)
+        {
+            if (IsFc)
+            {
+                ComboMeter.SetFullCombo(false);
+                IsFc = false;
+            }
+        }
+
+        protected override void OnOverstrum()
+        {
+            if (IsFc)
+            {
+                ComboMeter.SetFullCombo(false);
+                IsFc = false;
+            }
         }
 
         protected override void SubscribeToInputEvents()
