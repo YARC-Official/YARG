@@ -15,11 +15,13 @@ namespace YARG.Gameplay
         private readonly GuitarEngineParameters _engineParams = new(0.14, 1, 0.08,
             0.065, true);
 
+        [Header("Five Fret Specific")]
+        [SerializeField]
+        private FretArray _fretArray;
+
+        [Space]
         public int Score;
         public int NoteStreak;
-
-        [SerializeField]
-        private Fret[] _frets;
 
         public override void Initialize(YargPlayer player, InstrumentDifficulty<GuitarNote> chart)
         {
@@ -41,13 +43,14 @@ namespace YARG.Gameplay
 
             Engine.OnOverstrum += () => Debug.Log("Overstrummed");
 
-            // Color the frets appropriately
-            for (int i = 0; i < 5; i++)
-            {
-                // TODO: Move colors to profile
-                var c = FiveFretVisualNote.Colors[i + 1];
-                _frets[i].Initialize(c, c, c);
-            }
+            // TODO: Move colors to profile
+            _fretArray.Initialize(new[] {
+                Color.green,
+                Color.red,
+                Color.yellow,
+                Color.blue,
+                new(1f, 0.5f, 0f),
+            });
         }
 
         protected override void Update()
@@ -57,10 +60,15 @@ namespace YARG.Gameplay
             Score = Engine.EngineStats.Score;
             NoteStreak = Engine.EngineStats.Combo;
 
-            if (Engine.IsFretHeld(GuitarAction.Green))
+            // TODO: There is probably a better way of doing this, but idk
+            _fretArray.SetPressed(new[]
             {
-                Debug.Log("gween");
-            }
+                Engine.IsFretHeld(GuitarAction.Green),
+                Engine.IsFretHeld(GuitarAction.Red),
+                Engine.IsFretHeld(GuitarAction.Yellow),
+                Engine.IsFretHeld(GuitarAction.Blue),
+                Engine.IsFretHeld(GuitarAction.Orange),
+            });
         }
 
         protected override void UpdateInputs()

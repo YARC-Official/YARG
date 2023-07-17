@@ -5,6 +5,8 @@ namespace YARG.Gameplay
 {
     public class Fret : MonoBehaviour
     {
+        private static readonly int _fade = Shader.PropertyToID("Fade");
+
         [SerializeField]
         private ParticleGroup _hitParticles;
         [SerializeField]
@@ -22,17 +24,24 @@ namespace YARG.Gameplay
         [SerializeField]
         private int _innerIndex;
 
+        private Material _innerMaterial;
+
         public void Initialize(Color top, Color inner, Color particles)
         {
-            var topMat = _fretMesh.materials[_topIndex];
-            topMat.color = top;
-            topMat.SetColor("_EmissionColor", top * 11.5f);
+            var topMaterial = _fretMesh.materials[_topIndex];
+            topMaterial.color = top;
+            topMaterial.SetColor("_EmissionColor", top * 11.5f);
 
-            var innerMat = _fretMesh.materials[_innerIndex];
-            innerMat.color = inner;
+            _innerMaterial = _fretMesh.materials[_innerIndex];
+            _innerMaterial.color = inner;
 
             _hitParticles.Colorize(particles);
             _sustainParticles.Colorize(particles);
+        }
+
+        public void SetPressed(bool pressed)
+        {
+            _innerMaterial.SetFloat(_fade, pressed ? 1f : 0f);
         }
     }
 }
