@@ -7,6 +7,8 @@ namespace YARG.Gameplay
         where TNote : Note<TNote>
         where TPlayer : BasePlayer
     {
+        // TODO: Migrate this to using ECS DOTS or something to speed it up.
+
         private const float REMOVE_POINT = -4f;
 
         protected GameManager GameManager { get; private set;  }
@@ -37,8 +39,8 @@ namespace YARG.Gameplay
         {
             float noteSpeed = Player.Player.Profile.NoteSpeed;
 
-            float z = (float) (NoteRef.Time - GameManager.SongTime) * noteSpeed - BasePlayer.STRIKE_LINE_POS;
-            z += BasePlayer.STRIKE_LINE_POS;
+            // TODO: Take calibration into consideration
+            float z = BasePlayer.STRIKE_LINE_POS + (float) (NoteRef.Time - GameManager.RealSongTime) * noteSpeed;
 
             transform.localPosition = transform.localPosition.WithZ(z);
 

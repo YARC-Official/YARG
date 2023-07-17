@@ -40,9 +40,10 @@ namespace YARG.Gameplay
 
         public double SongStartTime { get; private set; }
         public double SongLength    { get; private set; }
-        public double RealSongTime => GlobalVariables.AudioManager.CurrentPositionD;
-        public double SongTime      => RealSongTime +
-            SettingsManager.Settings.AudioCalibration.Data / 1000f;
+
+        public double RealSongTime     => GlobalVariables.AudioManager.CurrentPositionD;
+        public double AudioCalibration => SettingsManager.Settings.AudioCalibration.Data / 1000.0;
+        public double SongTime         => RealSongTime + AudioCalibration;
 
         public bool IsReplay { get; private set; }
 
