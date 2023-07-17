@@ -115,12 +115,32 @@ PrefabInstance:
       propertyPath: m_Name
       value: FiveFretVisual
       objectReference: {fileID: 0}
+    - target: {fileID: 332508866956410726, guid: 5800c42510b55c549be95ec3ecd75e1c,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1265137121616536561, guid: 5800c42510b55c549be95ec3ecd75e1c,
         type: 3}
       propertyPath: _prefab
       value: 
       objectReference: {fileID: 861361446070616044, guid: 03b0fdd0f2d131d4682ccf3aaf6ee2a7,
         type: 3}
+    - target: {fileID: 2501665274994779726, guid: 5800c42510b55c549be95ec3ecd75e1c,
+        type: 3}
+      propertyPath: _ringMesh
+      value: 
+      objectReference: {fileID: 8697479185713912627}
+    - target: {fileID: 2501665274994779726, guid: 5800c42510b55c549be95ec3ecd75e1c,
+        type: 3}
+      propertyPath: _fcRingMaterial
+      value: 
+      objectReference: {fileID: 2100000, guid: 2ec3da37cdae15d498102fa513ce900a, type: 2}
+    - target: {fileID: 2501665274994779726, guid: 5800c42510b55c549be95ec3ecd75e1c,
+        type: 3}
+      propertyPath: _noFcRingMaterial
+      value: 
+      objectReference: {fileID: 2100000, guid: ce3039f4da289c046b33066e508567f0, type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5800c42510b55c549be95ec3ecd75e1c, type: 3}
 --- !u!114 &3700759359327549745 stripped
@@ -181,9 +201,9 @@ MonoBehaviour:
   ComboMeter: {fileID: 5015223353156281294}
   StarpowerBar: {fileID: 3700759359327549745}
   NotePool: {fileID: 8548042937441511025}
+  _fretArray: {fileID: 1060069523843335645}
   Score: 0
   NoteStreak: 0
-  _fretArray: {fileID: 1060069523843335645}
 --- !u!114 &8548042937441511025 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1265137121616536561, guid: 5800c42510b55c549be95ec3ecd75e1c,
@@ -196,3 +216,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!23 &8697479185713912627 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 2278174339011780275, guid: 5800c42510b55c549be95ec3ecd75e1c,
+    type: 3}
+  m_PrefabInstance: {fileID: 7434902305530561920}
+  m_PrefabAsset: {fileID: 0}

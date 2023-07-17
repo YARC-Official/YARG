@@ -12,6 +12,15 @@ namespace YARG.Gameplay
         [SerializeField]
         private MeshRenderer _comboMesh;
 
+        [Header("FC Ring")]
+        [SerializeField]
+        private MeshRenderer _ringMesh;
+
+        [SerializeField]
+        private Material _fcRingMaterial;
+        [SerializeField]
+        private Material _noFcRingMaterial;
+
         public void SetCombo(int multiplier, int maxMultiplier, int combo)
         {
             _multiplierText.text = $"{multiplier}<sub>x</sub>";
@@ -27,6 +36,11 @@ namespace YARG.Gameplay
             }
 
             _comboMesh.material.SetFloat(_spriteNum, index);
+        }
+
+        public void SetFullCombo(bool isFc)
+        {
+            _ringMesh.material = isFc ? _fcRingMaterial : _noFcRingMaterial;
         }
     }
 }
