@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using YARG.Audio;
 using YARG.Audio.BASS;
+using YARG.Core;
 using YARG.Player;
 using YARG.Player.Input;
 using YARG.Replays;
@@ -48,7 +49,7 @@ namespace YARG
             Debug.Log($"YARG {Constants.VERSION_TAG}");
             Instance = this;
 
-            ConsoleRedirect.Redirect();
+            YargTrace.AddListener(new YargUnityTraceListener());
 
             PathHelper.Init();
             ReplayContainer.Init();
