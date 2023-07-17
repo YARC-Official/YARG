@@ -4,6 +4,7 @@ using DtxCS.DataTypes;
 using System.Collections.Generic;
 using YARG.Audio;
 using YARG.Core;
+using YARG.Core.Chart;
 using YARG.Data;
 using YARG.Serialization;
 using XboxSTFS;
@@ -237,11 +238,11 @@ namespace YARG.Song
             return File.Exists(NotesFile);
         }
 
-        public void FinishScan(string cache, string checksum, ulong tracks)
+        public void FinishScan(string cache, string checksum, AvailableParts parts)
         {
             CacheRoot = cache;
             Checksum = checksum;
-            AvailableParts = tracks;
+            AvailableParts = parts;
         }
 
         public ExtractedConSongEntry(string folder, DataArray dta) : this(dta)

@@ -8,8 +8,8 @@ using UnityEngine;
 using DtxCS.DataTypes;
 using XboxSTFS;
 using YARG.Audio;
+using YARG.Core.Chart;
 using YARG.Serialization;
-using YARG.Song.Preparsers;
 using DtxCS;
 
 namespace YARG.Song
@@ -435,28 +435,24 @@ namespace YARG.Song
 
             string checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes)).Replace("-", "");
 
-            var tracks = ulong.MaxValue;
-
-            if (notesFile.EndsWith(".mid"))
+            AvailableParts parts;
+            switch (Path.GetExtension(notesFile))
             {
-                if (!MidPreparser.GetAvailableTracks(bytes, out ulong availTracks))
-                {
-                    return ScanResult.CorruptedNotesFile;
-                }
+                case ".mid":
+                    if (!MidPreparser.GetAvailableTracks(bytes, out parts))
+                        return ScanResult.CorruptedNotesFile;
+                    break;
 
-                tracks = availTracks;
-            }
-            else if (notesFile.EndsWith(".chart"))
-            {
-                if (!ChartPreparser.GetAvailableTracks(bytes, out ulong availTracks))
-                {
-                    return ScanResult.CorruptedNotesFile;
-                }
+                case ".chart":
+                    if (!ChartPreparser.GetAvailableTracks(bytes, out parts))
+                        return ScanResult.CorruptedNotesFile;
+                    break;
 
-                tracks = availTracks;
+                default: // To satisfy static analysis
+                    return ScanResult.NotASong;
             }
 
-            song = new IniSongEntry(cache, directory, checksum, notesFile, tracks);
+            song = new IniSongEntry(cache, directory, checksum, notesFile, parts);
             return song.ParseIni();
         }
 
@@ -498,23 +494,22 @@ namespace YARG.Song
             // add base midi
             byte[] notes = file.LoadMidiFile();
             bytes.AddRange(notes);
-            if (!MidPreparser.GetAvailableTracks(notes, out ulong baseTracks))
+            if (!MidPreparser.GetAvailableTracks(notes, out var parts))
             {
                 return ScanResult.CorruptedNotesFile;
             }
 
             // add update midi, if it exists
-            ulong tracks = baseTracks;
             if (file.DiscUpdate)
             {
                 byte[] update = file.LoadMidiUpdateFile();
                 bytes.AddRange(update);
-                if (!MidPreparser.GetAvailableTracks(update, out ulong updateTracks))
+                if (!MidPreparser.GetAvailableTracks(update, out var updateParts))
                 {
                     return ScanResult.CorruptedNotesFile;
                 }
 
-                tracks |= updateTracks;
+                parts.Merge(updateParts);
             }
 
             // add upgrade midi, if it exists
@@ -522,16 +517,16 @@ namespace YARG.Song
             {
                 byte[] upgradeMidi = file.SongUpgrade.GetUpgradeMidi();
                 bytes.AddRange(upgradeMidi);
-                if (!MidPreparser.GetAvailableTracks(upgradeMidi, out ulong upgradeTracks))
+                if (!MidPreparser.GetAvailableTracks(upgradeMidi, out var upgradeParts))
                 {
                     return ScanResult.CorruptedNotesFile;
                 }
 
-                tracks |= upgradeTracks;
+                parts.Merge(upgradeParts);
             }
 
             string checksum = BitConverter.ToString(SHA1.Create().ComputeHash(bytes.ToArray())).Replace("-", "");
-            file.FinishScan(cache, checksum, tracks);
+            file.FinishScan(cache, checksum, parts);
             return ScanResult.Ok;
         }
     }

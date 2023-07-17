@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using YARG.Audio;
 using YARG.Core;
+using YARG.Core.Chart;
 
 namespace YARG.Song
 {
@@ -64,7 +65,7 @@ namespace YARG.Song
         public Dictionary<Instrument, int> PartDifficulties { get; protected set; } = new();
         public int BandDifficulty { get; protected set; }
 
-        public ulong AvailableParts { get; protected set; }
+        public AvailableParts AvailableParts { get; protected set; }
         public int VocalParts { get; protected set; }
 
         public string Checksum { get; protected set; }
@@ -108,7 +109,7 @@ namespace YARG.Song
             }
 
             BandDifficulty = reader.ReadInt32();
-            AvailableParts = (ulong) reader.ReadInt64();
+            AvailableParts = AvailableParts.Deserialize(reader);
             VocalParts = reader.ReadInt32();
             CacheRoot = folder;
 
@@ -179,7 +180,7 @@ namespace YARG.Song
             }
 
             writer.Write(BandDifficulty);
-            writer.Write(AvailableParts);
+            AvailableParts.Serialize(writer);
             writer.Write(VocalParts);
         }
 
@@ -194,15 +195,13 @@ namespace YARG.Song
 
         public bool HasInstrument(Instrument instrument)
         {
-            // FL is my favourite hexadecimal number
-            long instrumentBits = 0xFL << (int) instrument * 4;
-            return (AvailableParts & (ulong) instrumentBits) != 0;
+            return AvailableParts.IsInstrumentAvailable(instrument);
         }
 
         public bool HasPart(Instrument instrument, Difficulty difficulty)
         {
-            long instrumentBits = 0x1L << (int) instrument * 4 + (int) difficulty;
-            return (AvailableParts & (ulong) instrumentBits) != 0;
+            var difficulties = AvailableParts.GetAvailableDifficulties(instrument);
+            return (difficulties & difficulty.ToDifficultyMask()) != 0;
         }
     }
 }

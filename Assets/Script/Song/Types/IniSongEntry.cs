@@ -4,6 +4,7 @@ using System.IO;
 using EasySharpIni;
 using YARG.Audio;
 using YARG.Core;
+using YARG.Core.Chart;
 
 namespace YARG.Song
 {
@@ -40,13 +41,13 @@ namespace YARG.Song
             writer.Write(VideoStartOffset);
         }
 
-        public IniSongEntry(string cache, string directory, string checksum, string notesFile, ulong tracks)
+        public IniSongEntry(string cache, string directory, string checksum, string notesFile, AvailableParts parts)
         {
             CacheRoot = cache;
             Location = directory;
             Checksum = checksum;
             NotesFile = notesFile;
-            AvailableParts = tracks;
+            AvailableParts = parts;
         }
 
         public ScanResult ParseIni()
