@@ -96,28 +96,18 @@ namespace YARG.Gameplay
             foreach (var player in PlayerContainer.Players)
             {
                 count++;
-                GameObject prefab;
-
-                switch (player.Profile.InstrumentType)
+                var prefab = player.Profile.InstrumentType switch
                 {
-                    case GameMode.FiveFretGuitar:
-                        prefab = fiveFretGuitarPrefab;
-                        break;
-                    case GameMode.SixFretGuitar:
-                        prefab = sixFretGuitarPrefab;
-                        break;
-                    case GameMode.FourLaneDrums:
-                        prefab = fourLaneDrumsPrefab;
-                        break;
-                    case GameMode.FiveLaneDrums:
-                        prefab = fiveLaneDrumsPrefab;
-                        break;
-                    case GameMode.ProGuitar:
-                        prefab = proGuitarPrefab;
-                        break;
-                    default:
-                        continue;
-                }
+                    GameMode.FiveFretGuitar => fiveFretGuitarPrefab,
+                    GameMode.SixFretGuitar  => sixFretGuitarPrefab,
+                    GameMode.FourLaneDrums  => fourLaneDrumsPrefab,
+                    GameMode.FiveLaneDrums  => fiveLaneDrumsPrefab,
+                    GameMode.ProGuitar      => proGuitarPrefab,
+
+                    _ => null
+                };
+                if (prefab == null)
+                    continue;
 
                 var playerObject = Instantiate(prefab, new Vector3(count * 25f, 100f, 0f), prefab.transform.rotation);
                 Debug.Log("Instantiated");
