@@ -40,7 +40,8 @@ namespace YARG.Gameplay
 
         public double SongStartTime { get; private set; }
         public double SongLength    { get; private set; }
-        public double SongTime      => GlobalVariables.AudioManager.CurrentPositionD +
+        public double RealSongTime => GlobalVariables.AudioManager.CurrentPositionD;
+        public double SongTime      => RealSongTime +
             SettingsManager.Settings.AudioCalibration.Data / 1000f;
 
         public bool IsReplay { get; private set; }
@@ -86,7 +87,8 @@ namespace YARG.Gameplay
 
             var profile = new YargProfile
             {
-                Name = "RileyTheFox"
+                Name = "RileyTheFox",
+                IsBot = true,
             };
 
             PlayerContainer.AddProfile(profile);

@@ -15,23 +15,47 @@ namespace YARG.Gameplay
         private readonly GuitarEngineParameters _engineParams = new(0.14, 1, 0.08,
             0.065, true);
 
+        public int Score;
+        public int NoteStreak;
+
         public override void Initialize(YargPlayer player, InstrumentDifficulty<GuitarNote> chart)
         {
             base.Initialize(player, chart);
 
             Engine = new YargFiveFretEngine(Chart.Notes, _engineParams);
 
-            Engine.OnNoteHit += (index, note) =>
-            {
-                Debug.Log($"[{index} Hit note at " + note.Time);
-            };
+            Debug.Log("Note count: " + Chart.Notes.Count);
 
-            // Engine.OnNoteMissed += (index, note) =>
+            // Engine.OnNoteHit += (index, note) =>
             // {
-            //     Debug.Log($"[{index}] Missed note at " + note.Time);
+            //     Debug.Log($"[{index}] Hit note at " + note.Time);
             // };
 
+            Engine.OnNoteMissed += (index, note) =>
+            {
+                Debug.Log($"[{index}] Missed note at " + note.Time);
+            };
+
             Engine.OnOverstrum += () => Debug.Log("Overstrummed");
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            Score = Engine.EngineStats.Score;
+            NoteStreak = Engine.EngineStats.Combo;
+        }
+
+        protected override void UpdateInputs()
+        {
+            if (Player.Profile.IsBot)
+            {
+                Engine.UpdateBot(GameManager.RealSongTime);
+                return;
+            }
+
+            base.UpdateInputs();
         }
 
         protected override void UpdateVisuals()

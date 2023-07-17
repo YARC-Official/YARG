@@ -53,7 +53,7 @@ namespace YARG.Gameplay
             IsInitialized = true;
         }
 
-        protected void Update()
+        protected virtual void Update()
         {
             if (GameManager.Paused)
             {
