@@ -10,8 +10,10 @@ namespace YARG.Gameplay.Visuals
     {
         [SerializeField]
         private NoteGroup _strumGroup;
+
         [SerializeField]
         private NoteGroup _hopoGroup;
+
         [SerializeField]
         private NoteGroup _tapGroup;
 
@@ -22,7 +24,7 @@ namespace YARG.Gameplay.Visuals
                 0f, 0f);
 
             // Get which note model to use
-            var noteGroup = NoteRef.Type switch
+            NoteGroup = NoteRef.Type switch
             {
                 GuitarNoteType.Strum => _strumGroup,
                 GuitarNoteType.Hopo  => _hopoGroup,
@@ -31,14 +33,13 @@ namespace YARG.Gameplay.Visuals
             };
 
             // Get which note color to use
-            var colorArray = NoteRef.IsStarPower
-                ? ColorProfile.Default.FiveFret.StarpowerNoteColors
-                : ColorProfile.Default.FiveFret.NoteColors;
-            var color = colorArray[NoteRef.Fret];
+            var color = NoteRef.IsStarPower
+                ? ColorProfile.Default.FiveFret.StarpowerNoteColor
+                : ColorProfile.Default.FiveFret.NoteColors[NoteRef.Fret];
 
             // Show and set material!
-            noteGroup.SetActive(true);
-            noteGroup.ColoredMaterial.color = color;
+            NoteGroup.SetActive(true);
+            NoteGroup.ColoredMaterial.color = color;
         }
 
         protected override void HideNote()
@@ -46,6 +47,19 @@ namespace YARG.Gameplay.Visuals
             _strumGroup.SetActive(false);
             _hopoGroup.SetActive(false);
             _tapGroup.SetActive(false);
+        }
+
+        protected override void Update()
+        {
+            if (NoteRef.IsStarPower)
+            {
+                NoteGroup.ColoredMaterial.color = ColorProfile.Default.FiveFret.StarpowerNoteColor;
+            }
+            else
+            {
+                NoteGroup.ColoredMaterial.color = ColorProfile.Default.FiveFret.NoteColors[NoteRef.Fret];
+            }
+            base.Update();
         }
     }
 }

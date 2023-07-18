@@ -18,6 +18,8 @@ namespace YARG.Gameplay.Visuals
 
         public TNote NoteRef { get; set; }
 
+        protected NoteGroup NoteGroup;
+
         private void Awake()
         {
             GameManager = FindObjectOfType<GameManager>();
@@ -40,7 +42,7 @@ namespace YARG.Gameplay.Visuals
         protected abstract void InitializeNote();
         protected abstract void HideNote();
 
-        private void Update()
+        protected virtual void Update()
         {
             float noteSpeed = Player.Player.Profile.NoteSpeed;
 

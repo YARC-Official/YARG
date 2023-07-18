@@ -39,16 +39,6 @@ namespace YARG.Settings.ColorProfiles
                 new Color32(255, 67, 0, 255),
             };
 
-            public Color[] StarpowerNoteColors =
-            {
-                Color.white,
-                Color.white,
-                Color.white,
-                Color.white,
-                Color.white,
-                Color.white,
-            };
-
             public Color[] ParticleColors =
             {
                 new Color32(200, 0, 255, 255),
@@ -58,6 +48,8 @@ namespace YARG.Settings.ColorProfiles
                 new Color32(0, 171, 255, 255),
                 new Color32(255, 101, 0, 255),
             };
+
+            public Color StarpowerNoteColor = Color.white;
         }
 
         public FiveFretColors FiveFret = new();

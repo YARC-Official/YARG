@@ -34,6 +34,16 @@ namespace YARG.Gameplay.Player
             Engine.OnNoteMissed += OnNoteMissed;
             Engine.OnOverstrum += OnOverstrum;
 
+            Engine.OnStarPowerPhraseHit += note =>
+            {
+                Debug.Log("Hit star power phrase at " + note.Time);
+            };
+
+            Engine.OnStarPowerPhraseMissed += note =>
+            {
+                Debug.Log("Missed star power phrase at " + note.Time);
+            };
+
             _fretArray.Initialize(ColorProfile.Default);
         }
 
