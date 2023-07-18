@@ -43,5 +43,17 @@ namespace YARG.Gameplay.Visuals
         {
             _innerMaterial.SetFloat(_fade, pressed ? 1f : 0f);
         }
+
+        public void PlayHitAnimation()
+        {
+            _hitParticles.Play();
+            _animation.Play("FretsGuitar");
+        }
+
+        public void StopAnimation()
+        {
+            _animation.Stop();
+            _animation.Rewind();
+        }
     }
 }

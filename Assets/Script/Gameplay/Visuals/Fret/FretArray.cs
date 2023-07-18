@@ -54,12 +54,9 @@ namespace YARG.Gameplay.Visuals
             _frets[index].SetPressed(pressed);
         }
 
-        public void SetPressed(bool[] pressed)
+        public void PlayHitAnimation(int index)
         {
-            for (int i = 0; i < _fretCount; i++)
-            {
-                _frets[i].SetPressed(pressed[i]);
-            }
+            _frets[index].PlayHitAnimation();
         }
     }
 }

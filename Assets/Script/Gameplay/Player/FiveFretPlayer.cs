@@ -73,7 +73,19 @@ namespace YARG.Gameplay.Player
 
         protected override void OnNoteHit(int index, GuitarNote note)
         {
+            OnNoteHitSpecific(note);
+            foreach (var child in note.ChildNotes)
+            {
+                OnNoteHitSpecific(child);
+            }
+        }
 
+        // TODO: Not sure of the best way to do this, but this is the simplest to me
+        private void OnNoteHitSpecific(GuitarNote note)
+        {
+            if (note.Fret == 0) return;
+
+            _fretArray.PlayHitAnimation(note.Fret - 1);
         }
 
         protected override void OnNoteMissed(int index, GuitarNote note)
