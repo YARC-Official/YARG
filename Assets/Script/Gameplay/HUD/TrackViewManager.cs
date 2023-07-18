@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using YARG.Gameplay.Player;
 
 namespace YARG.Gameplay.HUD
 {

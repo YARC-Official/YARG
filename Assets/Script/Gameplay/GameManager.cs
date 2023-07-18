@@ -5,6 +5,7 @@ using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Replays.IO;
 using YARG.Gameplay.HUD;
+using YARG.Gameplay.Player;
 using YARG.Input;
 using YARG.Player;
 using YARG.Replays;

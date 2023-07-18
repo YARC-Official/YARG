@@ -2,10 +2,13 @@
 using UnityEngine.InputSystem;
 using YARG.Settings;
 
-namespace YARG.PlayMode
+namespace YARG.Gameplay.HUD
 {
     public class HideCursor : MonoBehaviour
     {
+        [SerializeField]
+        private GameManager _gameManager;
+
         private float _cursorHideTimer;
 
         private void Start()
@@ -23,7 +26,7 @@ namespace YARG.PlayMode
             float showCursorSetting = SettingsManager.Settings.ShowCursorTimer.Data;
 
             // Always show if paused, or if settings say so
-            if (Play.Instance.Paused || Mathf.Approximately(showCursorSetting, 0f))
+            if (_gameManager.Paused || Mathf.Approximately(showCursorSetting, 0f))
             {
                 Cursor.visible = true;
                 return;

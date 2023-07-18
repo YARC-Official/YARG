@@ -1,19 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Guitar.Engines;
 using YARG.Core.Input;
+using YARG.Gameplay.Visuals;
 using YARG.Input;
 using YARG.Player;
 
-namespace YARG.Gameplay
+namespace YARG.Gameplay.Player
 {
     public sealed class FiveFretPlayer : BasePlayer<GuitarEngine, GuitarNote>
     {
-        private readonly GuitarEngineParameters _engineParams = new(0.14, 1, 0.08,
-            0.065, false, true);
+        private readonly GuitarEngineParameters _engineParams = new(0.14, 1, 0.08, 0.065, false, true);
 
         [Header("Five Fret Specific")]
         [SerializeField]

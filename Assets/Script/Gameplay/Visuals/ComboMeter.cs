@@ -1,7 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
 
-namespace YARG.Gameplay
+namespace YARG.Gameplay.Visuals
 {
     public class ComboMeter : MonoBehaviour
     {

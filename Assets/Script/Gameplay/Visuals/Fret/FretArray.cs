@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace YARG.Gameplay
+namespace YARG.Gameplay.Visuals
 {
     public class FretArray : MonoBehaviour
     {

@@ -8,6 +8,7 @@ using YARG.Core.Engine.Guitar;
 using YARG.Core.Replays;
 using YARG.Core.Replays.IO;
 using YARG.Gameplay;
+using YARG.Gameplay.Player;
 using YARG.Song;
 using YARG.Util;
 

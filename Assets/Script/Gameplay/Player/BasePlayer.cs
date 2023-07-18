@@ -3,10 +3,11 @@ using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Input;
+using YARG.Gameplay.Visuals;
 using YARG.Input;
 using YARG.Player;
 
-namespace YARG.Gameplay
+namespace YARG.Gameplay.Player
 {
     public abstract class BasePlayer : MonoBehaviour
     {

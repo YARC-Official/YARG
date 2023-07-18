@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using YARG.Util;
 
-namespace YARG.Gameplay
+namespace YARG.Gameplay.Visuals
 {
     public class Fret : MonoBehaviour
     {

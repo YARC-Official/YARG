@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
 using YARG.Core.Chart;
+using YARG.Gameplay.Player;
 
-namespace YARG.Gameplay
+namespace YARG.Gameplay.Visuals
 {
     public abstract class VisualNote<TNote, TPlayer> : MonoBehaviour, IPoolable
         where TNote : Note<TNote>
