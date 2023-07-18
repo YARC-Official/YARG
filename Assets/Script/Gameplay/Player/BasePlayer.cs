@@ -141,6 +141,12 @@ namespace YARG.Gameplay.Player
             {
                 var note = NoteEnumerator.Current;
 
+                // Skip this frame if the pool is full
+                if (!NotePool.CanSpawnAmount(note.ChildNotes.Count + 1))
+                {
+                    break;
+                }
+
                 SpawnNote(note);
                 foreach (var child in note.ChildNotes)
                 {
@@ -154,6 +160,12 @@ namespace YARG.Gameplay.Player
         protected void SpawnNote(TNote note)
         {
             var poolable = NotePool.TakeWithoutEnabling();
+            if (poolable == null)
+            {
+                Debug.LogWarning("Attempted to spawn note, but it's at its cap!");
+                return;
+            }
+
             InitializeSpawnedNote(poolable, note);
             poolable.EnableFromPool();
         }

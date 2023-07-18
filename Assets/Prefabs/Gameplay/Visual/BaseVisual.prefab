@@ -1303,6 +1303,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _prefab: {fileID: 0}
   _prewarmAmount: 15
+  _objectCap: 500
 --- !u!1 &4315058809814086876
 GameObject:
   m_ObjectHideFlags: 0
@@ -1356,6 +1357,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _multiplierText: {fileID: 24723221875665680}
   _comboMesh: {fileID: 5158185222957906181}
+  _ringMesh: {fileID: 0}
+  _fcRingMaterial: {fileID: 0}
+  _noFcRingMaterial: {fileID: 0}
 --- !u!1 &4375285852884754376
 GameObject:
   m_ObjectHideFlags: 0
