@@ -6,6 +6,7 @@ using YARG.Core.Input;
 using YARG.Gameplay.Visuals;
 using YARG.Input;
 using YARG.Player;
+using YARG.Settings.ColorProfiles;
 
 namespace YARG.Gameplay.Player
 {
@@ -33,14 +34,7 @@ namespace YARG.Gameplay.Player
             Engine.OnNoteMissed += OnNoteMissed;
             Engine.OnOverstrum += OnOverstrum;
 
-            // TODO: Move colors to profile
-            _fretArray.Initialize(new[] {
-                Color.green,
-                Color.red,
-                Color.yellow,
-                Color.blue,
-                new(1f, 0.5f, 0f),
-            });
+            _fretArray.Initialize(ColorProfile.Default);
         }
 
         protected override void Update()

@@ -2,22 +2,12 @@
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Gameplay.Player;
+using YARG.Settings.ColorProfiles;
 
 namespace YARG.Gameplay.Visuals
 {
     public class FiveFretVisualNote : VisualNote<GuitarNote, FiveFretPlayer>
     {
-        // TODO: Move this to player profiles
-        public static readonly Color[] Colors =
-        {
-            Color.magenta,
-            Color.green,
-            Color.red,
-            Color.yellow,
-            Color.blue,
-            new(1f, 0.5f, 0f),
-        };
-
         [SerializeField]
         private NoteGroup _strumGroup;
         [SerializeField]
@@ -31,6 +21,7 @@ namespace YARG.Gameplay.Visuals
                 BasePlayer.TRACK_WIDTH / 5f * NoteRef.Fret - BasePlayer.TRACK_WIDTH / 2f - 1f / 5f,
                 0f, 0f);
 
+            // Get which note model to use
             var noteGroup = NoteRef.Type switch
             {
                 GuitarNoteType.Strum => _strumGroup,
@@ -39,8 +30,15 @@ namespace YARG.Gameplay.Visuals
                 _                    => throw new Exception("Unreachable.")
             };
 
+            // Get which note color to use
+            var colorArray = NoteRef.IsStarPower
+                ? ColorProfile.Default.FiveFret.StarpowerNoteColors
+                : ColorProfile.Default.FiveFret.NoteColors;
+            var color = colorArray[NoteRef.Fret];
+
+            // Show and set material!
             noteGroup.SetActive(true);
-            noteGroup.ColoredMaterial.color = Colors[NoteRef.Fret];
+            noteGroup.ColoredMaterial.color = color;
         }
 
         protected override void HideNote()

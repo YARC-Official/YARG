@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using YARG.Settings.ColorProfiles;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -21,7 +22,7 @@ namespace YARG.Gameplay.Visuals
 
         public IReadOnlyList<Fret> Frets => _frets;
 
-        public void Initialize(Color[] colors)
+        public void Initialize(ColorProfile colorProfile)
         {
             _frets.Clear();
             for (int i = 0; i < _fretCount; i++)
@@ -41,7 +42,10 @@ namespace YARG.Gameplay.Visuals
                 _frets.Add(fretComp);
 
                 // Color
-                fretComp.Initialize(colors[i], colors[i], colors[i]);
+                fretComp.Initialize(
+                    colorProfile.FiveFret.FretColors[i + 1],
+                    colorProfile.FiveFret.FretInnerColors[i + 1],
+                    colorProfile.FiveFret.ParticleColors[i + 1]);
             }
         }
 
