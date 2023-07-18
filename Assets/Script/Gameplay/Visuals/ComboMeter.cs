@@ -23,7 +23,7 @@ namespace YARG.Gameplay.Visuals
 
         public void SetCombo(int multiplier, int maxMultiplier, int combo)
         {
-            _multiplierText.text = $"{multiplier}<sub>x</sub>";
+            _multiplierText.text = multiplier != 1 ? $"{multiplier}<sub>x</sub>" : string.Empty;
 
             int index = combo % 10;
             if (multiplier != 1 && index == 0)
