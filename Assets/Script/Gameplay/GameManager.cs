@@ -43,7 +43,7 @@ namespace YARG.Gameplay
         public double SongLength    { get; private set; }
 
         public double RealSongTime     => GlobalVariables.AudioManager.CurrentPositionD;
-        public double AudioCalibration => SettingsManager.Settings.AudioCalibration.Data / 1000.0;
+        public double AudioCalibration => -SettingsManager.Settings.AudioCalibration.Data / 1000.0;
         public double SongTime         => RealSongTime + AudioCalibration;
 
         public bool IsReplay { get; private set; }
@@ -80,7 +80,7 @@ namespace YARG.Gameplay
             SongLength = GlobalVariables.AudioManager.AudioLengthD;
 
             GlobalVariables.AudioManager.Play();
-            InputManager.InputTimeOffset = InputManager.CurrentInputTime;
+            InputManager.InputTimeOffset = InputManager.CurrentInputTime - AudioCalibration;
         }
 
         private void CreatePlayers()
