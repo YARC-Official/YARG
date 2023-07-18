@@ -23,6 +23,9 @@ namespace YARG.Gameplay.Player
         public Camera TrackCamera { get; private set; }
 
         [SerializeField]
+        protected TrackMaterial TrackMaterial;
+
+        [SerializeField]
         protected ComboMeter ComboMeter;
         [SerializeField]
         protected StarpowerBar StarpowerBar;
@@ -131,6 +134,8 @@ namespace YARG.Gameplay.Player
 
         protected void UpdateBaseVisuals(BaseStats stats)
         {
+            TrackMaterial.SetTrackScroll(GameManager.SongTime, Player.Profile.NoteSpeed);
+
             ComboMeter.SetCombo(stats.ScoreMultiplier, 4, stats.Combo);
             StarpowerBar.SetStarpower(stats.StarPowerAmount);
         }
