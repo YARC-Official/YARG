@@ -46,6 +46,7 @@ namespace YARG.Gameplay.Visuals
 
         public void PlayHitAnimation()
         {
+            StopAnimation();
             _hitParticles.Play();
             _animation.Play("FretsGuitar");
         }
