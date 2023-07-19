@@ -10,12 +10,20 @@ namespace YARG.Gameplay.Visuals
     {
         [SerializeField]
         private NoteGroup _strumGroup;
-
         [SerializeField]
         private NoteGroup _hopoGroup;
-
         [SerializeField]
         private NoteGroup _tapGroup;
+
+        [Space]
+        [SerializeField]
+        private SustainLine _sustainLine;
+
+        // Make sure the remove it later if it has a sustain
+        protected override float RemovePointOffset =>
+            (float) NoteRef.TimeLength * Player.Player.Profile.NoteSpeed;
+
+        private bool _notesHiddenForSustain = false;
 
         protected override void InitializeElement()
         {
@@ -36,20 +44,41 @@ namespace YARG.Gameplay.Visuals
             NoteGroup.SetActive(true);
             // TODO: Note material seed
 
-            // Set note color
-            UpdateColor();
-        }
+            // Set line length
+            if (NoteRef.IsSustain)
+            {
+                _notesHiddenForSustain = false;
+                _sustainLine.gameObject.SetActive(true);
 
-        protected override void HideElement()
-        {
-            _strumGroup.SetActive(false);
-            _hopoGroup.SetActive(false);
-            _tapGroup.SetActive(false);
+                float len = (float) NoteRef.TimeLength * Player.Player.Profile.NoteSpeed;
+                _sustainLine.SetInitialLength(len);
+            }
+
+            // Set note and sustain color
+            UpdateColor();
         }
 
         protected override void UpdateElement()
         {
-            base.UpdateElement();
+            if (NoteRef.WasHit)
+            {
+                if (NoteRef.IsSustain)
+                {
+                    // Once hit, hide the notes but still show sustain
+                    if (!_notesHiddenForSustain)
+                    {
+                        HideNotes();
+                        _notesHiddenForSustain = true;
+                    }
+
+                    _sustainLine.UpdateLengthForHit();
+                }
+                else
+                {
+                    ParentPool.Return(this);
+                    return;
+                }
+            }
 
             UpdateColor();
         }
@@ -61,8 +90,32 @@ namespace YARG.Gameplay.Visuals
                 ? ColorProfile.Default.FiveFret.StarpowerNoteColor
                 : ColorProfile.Default.FiveFret.NoteColors[NoteRef.Fret];
 
-            // Set the color
+            // Set the note color
             NoteGroup.ColoredMaterial.color = color;
+
+            // Set the sustain color
+            if (!NoteRef.WasMissed)
+            {
+                _sustainLine.SetColor(color);
+            }
+            else
+            {
+                _sustainLine.SetMissed();
+            }
+        }
+
+        private void HideNotes()
+        {
+            _strumGroup.SetActive(false);
+            _hopoGroup.SetActive(false);
+            _tapGroup.SetActive(false);
+        }
+
+        protected override void HideElement()
+        {
+            HideNotes();
+
+            _sustainLine.gameObject.SetActive(false);
         }
     }
 }

@@ -18,6 +18,7 @@ namespace YARG.Gameplay.Visuals
         public Pool ParentPool { get; set; }
 
         protected abstract double ElementTime { get; }
+        protected virtual float RemovePointOffset => 0f;
 
         protected bool Initialized { get; private set; }
 
@@ -77,7 +78,7 @@ namespace YARG.Gameplay.Visuals
             var cacheTransform = transform;
             cacheTransform.localPosition = cacheTransform.localPosition.WithZ(z);
 
-            if (z < REMOVE_POINT)
+            if (z < REMOVE_POINT - RemovePointOffset)
             {
                 ParentPool.Return(this);
                 return;

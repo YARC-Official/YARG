@@ -12,13 +12,5 @@ namespace YARG.Gameplay.Visuals
         protected NoteGroup NoteGroup;
 
         protected override double ElementTime => NoteRef.Time;
-
-        protected override void UpdateElement()
-        {
-            if (NoteRef.WasHit || NoteRef.WasMissed)
-            {
-                ParentPool.Return(this);
-            }
-        }
     }
 }

@@ -105,7 +105,7 @@ namespace YARG.Gameplay
             var profile = new YargProfile
             {
                 Name = "RileyTheFox",
-                IsBot = true,
+                IsBot = false,
                 NoteSpeed = 5,
             };
 
