@@ -19,10 +19,6 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         private FretArray _fretArray;
 
-        [Space]
-        public int Score;
-        public int NoteStreak;
-
         public override void Initialize(YargPlayer player, InstrumentDifficulty<GuitarNote> chart, List<Beatline> beats)
         {
             base.Initialize(player, chart, beats);
@@ -53,7 +49,7 @@ namespace YARG.Gameplay.Player
             base.Update();
 
             Score = Engine.EngineStats.Score;
-            NoteStreak = Engine.EngineStats.Combo;
+            Combo = Engine.EngineStats.Combo;
         }
 
         protected override void UpdateInputs()

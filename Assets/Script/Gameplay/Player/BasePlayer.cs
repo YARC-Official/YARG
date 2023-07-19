@@ -48,6 +48,9 @@ namespace YARG.Gameplay.Player
 
         public YargPlayer Player;
 
+        public int Score { get; protected set; }
+        public int Combo { get; protected set; }
+
         protected bool IsFc;
 
         protected bool IsInitialized { get; private set; }

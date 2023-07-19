@@ -83,7 +83,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _prefab: {fileID: 6252920090088018630, guid: b19c1dd36da7bd24593970f089eee836, type: 3}
   _prewarmAmount: 10
-  _objectCap: 30
+  _objectCap: 100
 --- !u!1 &539331920876373676
 GameObject:
   m_ObjectHideFlags: 0

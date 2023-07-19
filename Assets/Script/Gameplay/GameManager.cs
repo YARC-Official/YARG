@@ -59,6 +59,9 @@ namespace YARG.Gameplay
 
         public bool Paused { get; private set; }
 
+        public int BandScore { get; private set; }
+        public int BandCombo { get; private set; }
+
         private List<BasePlayer> _players;
         private List<Beatline>   _beats;
 
@@ -74,7 +77,9 @@ namespace YARG.Gameplay
 
             _beats = Chart.SyncTrack.Beatlines;
             if (_beats is null || _beats.Count < 1)
+            {
                 _beats = Chart.SyncTrack.GenerateBeatlines(Chart.GetLastTick());
+            }
 
             LoadSong();
             CreatePlayers();
@@ -84,6 +89,21 @@ namespace YARG.Gameplay
         {
             // It is more performant to calculate this per frame instead of per call
             RealSongTime = GlobalVariables.AudioManager.CurrentPositionD;
+
+            if (Paused)
+            {
+                return;
+            }
+
+            int totalScore = 0;
+            int totalCombo = 0;
+            foreach (var player in _players)
+            {
+                totalScore += player.Score;
+                totalCombo += player.Combo;
+            }
+
+            BandScore = totalScore;
         }
 
         private void LoadSong()
@@ -105,8 +125,8 @@ namespace YARG.Gameplay
             var profile = new YargProfile
             {
                 Name = "RileyTheFox",
-                IsBot = false,
-                NoteSpeed = 5,
+                IsBot = true,
+                NoteSpeed = 7.5f,
             };
 
             // var profile2 = new YargProfile
@@ -138,7 +158,9 @@ namespace YARG.Gameplay
                     _ => null
                 };
                 if (prefab == null)
+                {
                     continue;
+                }
 
                 var playerObject = Instantiate(prefab, new Vector3(count * 25f, 100f, 0f), prefab.transform.rotation);
                 Debug.Log("Instantiated");
