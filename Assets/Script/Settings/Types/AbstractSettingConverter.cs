@@ -1,9 +1,8 @@
 using System;
 using Newtonsoft.Json;
 using UnityEngine;
-using YARG.Settings.Types;
 
-namespace YARG.Serialization
+namespace YARG.Settings.Types
 {
     public sealed class AbstractSettingConverter : JsonConverter<ISettingType>
     {

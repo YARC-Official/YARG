@@ -1,6 +1,5 @@
 using System;
 using Newtonsoft.Json;
-using YARG.Serialization;
 
 namespace YARG.Settings.Types
 {

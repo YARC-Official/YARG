@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
-using YARG.Song;
 
-namespace YARG.Serialization
+namespace YARG.Song
 {
     public static class OuvertExport
     {

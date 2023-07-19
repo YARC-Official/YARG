@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using YARG.Audio;
 using YARG.PlayMode;
-using YARG.Serialization;
 using YARG.Settings.Types;
 using YARG.UI;
 using YARG.Util;
+using YARG.Song;
 using YARG.Venue;
 
 namespace YARG.Settings
