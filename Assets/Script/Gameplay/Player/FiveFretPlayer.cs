@@ -79,7 +79,7 @@ namespace YARG.Gameplay.Player
 
         protected override void InitializeSpawnedNote(IPoolable poolable, GuitarNote note)
         {
-            ((FiveFretVisualNote) poolable).NoteRef = note;
+            ((FiveFretNoteElement) poolable).NoteRef = note;
         }
 
         protected override void OnNoteHit(int index, GuitarNote note)

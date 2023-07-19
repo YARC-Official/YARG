@@ -109,7 +109,7 @@ namespace YARG.Gameplay.Player
                     break;
                 }
 
-                ((VisualBeatline) poolable).BeatlineRef = beatline;
+                ((BeatlineElement) poolable).BeatlineRef = beatline;
                 poolable.EnableFromPool();
 
                 _beatlineEnumerator.MoveNext();

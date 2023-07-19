@@ -94,6 +94,9 @@ namespace YARG.Gameplay
 
         public void Return(IPoolable poolable)
         {
+            // Skip if the stack already contains this poolable
+            if (_pooled.Contains(poolable)) return;
+
             _spawnedCount--;
 
             poolable.DisableIntoPool();

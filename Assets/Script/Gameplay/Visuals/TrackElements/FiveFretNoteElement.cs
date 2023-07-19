@@ -6,7 +6,7 @@ using YARG.Settings.ColorProfiles;
 
 namespace YARG.Gameplay.Visuals
 {
-    public class FiveFretVisualNote : VisualNote<GuitarNote, FiveFretPlayer>
+    public sealed class FiveFretNoteElement : NoteElement<GuitarNote, FiveFretPlayer>
     {
         [SerializeField]
         private NoteGroup _strumGroup;
@@ -17,7 +17,7 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private NoteGroup _tapGroup;
 
-        protected override void InitializeNote()
+        protected override void InitializeElement()
         {
             transform.localPosition = new Vector3(
                 BasePlayer.TRACK_WIDTH / 5f * NoteRef.Fret - BasePlayer.TRACK_WIDTH / 2f - 1f / 5f,
@@ -32,34 +32,37 @@ namespace YARG.Gameplay.Visuals
                 _                    => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
             };
 
-            // Get which note color to use
-            var color = NoteRef.IsStarPower
-                ? ColorProfile.Default.FiveFret.StarpowerNoteColor
-                : ColorProfile.Default.FiveFret.NoteColors[NoteRef.Fret];
-
-            // Show and set material!
+            // Show and set material properties
             NoteGroup.SetActive(true);
-            NoteGroup.ColoredMaterial.color = color;
+            // TODO: Note material seed
+
+            // Set note color
+            UpdateColor();
         }
 
-        protected override void HideNote()
+        protected override void HideElement()
         {
             _strumGroup.SetActive(false);
             _hopoGroup.SetActive(false);
             _tapGroup.SetActive(false);
         }
 
-        protected override void Update()
+        protected override void UpdateElement()
         {
-            if (NoteRef.IsStarPower)
-            {
-                NoteGroup.ColoredMaterial.color = ColorProfile.Default.FiveFret.StarpowerNoteColor;
-            }
-            else
-            {
-                NoteGroup.ColoredMaterial.color = ColorProfile.Default.FiveFret.NoteColors[NoteRef.Fret];
-            }
-            base.Update();
+            base.UpdateElement();
+
+            UpdateColor();
+        }
+
+        private void UpdateColor()
+        {
+            // Get which note color to use
+            var color = NoteRef.IsStarPower
+                ? ColorProfile.Default.FiveFret.StarpowerNoteColor
+                : ColorProfile.Default.FiveFret.NoteColors[NoteRef.Fret];
+
+            // Set the color
+            NoteGroup.ColoredMaterial.color = color;
         }
     }
 }
