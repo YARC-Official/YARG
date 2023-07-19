@@ -106,10 +106,22 @@ namespace YARG.Gameplay
             {
                 Name = "RileyTheFox",
                 IsBot = true,
+                NoteSpeed = 5,
             };
+
+            // var profile2 = new YargProfile
+            // {
+            //     Name = "EliteAsian",
+            //     Instrument = Instrument.FiveFretBass,
+            //     IsBot = true,
+            //     NoteSpeed = 7,
+            // };
 
             PlayerContainer.AddProfile(profile);
             PlayerContainer.CreatePlayerFromProfile(profile);
+
+            // PlayerContainer.AddProfile(profile2);
+            // PlayerContainer.CreatePlayerFromProfile(profile2);
 
             int count = -1;
             foreach (var player in PlayerContainer.Players)
@@ -155,35 +167,35 @@ namespace YARG.Gameplay
                 case GameMode.FiveFretGuitar:
                 {
                     var chart = Chart.GetFiveFretTrack(instrument).Difficulties[difficulty];
-                    (basePlayer as FiveFretPlayer)?.Initialize(yargPlayer, chart);
+                    (basePlayer as FiveFretPlayer)?.Initialize(yargPlayer, chart, _beats);
                     break;
                 }
 
                 case GameMode.SixFretGuitar:
                 {
                     var chart = Chart.GetSixFretTrack(instrument).Difficulties[difficulty];
-                    // (basePlayer as SixFretPlayer)?.Initialize(yargPlayer, chart);
+                    // (basePlayer as SixFretPlayer)?.Initialize(yargPlayer, chart, _beats);
                     break;
                 }
 
                 case GameMode.FourLaneDrums:
                 {
                     var chart = Chart.GetDrumsTrack(instrument).Difficulties[difficulty];
-                    // (basePlayer as FourLaneDrumsPlayer)?.Initialize(yargPlayer, chart);
+                    // (basePlayer as FourLaneDrumsPlayer)?.Initialize(yargPlayer, chart, _beats);
                     break;
                 }
 
                 case GameMode.FiveLaneDrums:
                 {
                     var chart = Chart.GetDrumsTrack(instrument).Difficulties[difficulty];
-                    // (basePlayer as FiveLaneDrumsPlayer)?.Initialize(yargPlayer, chart);
+                    // (basePlayer as FiveLaneDrumsPlayer)?.Initialize(yargPlayer, chart, _beats);
                     break;
                 }
 
                 case GameMode.ProGuitar:
                 {
                     var chart = Chart.GetProGuitarTrack(instrument).Difficulties[difficulty];
-                    // (basePlayer as ProGuitarPlayer)?.Initialize(yargPlayer, chart);
+                    // (basePlayer as ProGuitarPlayer)?.Initialize(yargPlayer, chart, _beats);
                     break;
                 }
 

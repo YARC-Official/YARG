@@ -143,6 +143,18 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: ce3039f4da289c046b33066e508567f0, type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5800c42510b55c549be95ec3ecd75e1c, type: 3}
+--- !u!114 &155632028176750329 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7279785948408697721, guid: 5800c42510b55c549be95ec3ecd75e1c,
+    type: 3}
+  m_PrefabInstance: {fileID: 7434902305530561920}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &3700759359327549745 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6085956593584340145, guid: 5800c42510b55c549be95ec3ecd75e1c,
@@ -214,6 +226,7 @@ MonoBehaviour:
   ComboMeter: {fileID: 5015223353156281294}
   StarpowerBar: {fileID: 3700759359327549745}
   NotePool: {fileID: 8548042937441511025}
+  BeatlinePool: {fileID: 155632028176750329}
   _fretArray: {fileID: 1060069523843335645}
   Score: 0
   NoteStreak: 0

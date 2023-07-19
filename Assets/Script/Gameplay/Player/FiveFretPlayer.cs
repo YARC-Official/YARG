@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Guitar.Engines;
@@ -22,9 +23,9 @@ namespace YARG.Gameplay.Player
         public int Score;
         public int NoteStreak;
 
-        public override void Initialize(YargPlayer player, InstrumentDifficulty<GuitarNote> chart)
+        public override void Initialize(YargPlayer player, InstrumentDifficulty<GuitarNote> chart, List<Beatline> beats)
         {
-            base.Initialize(player, chart);
+            base.Initialize(player, chart, beats);
 
             Engine = new YargFiveFretEngine(Chart.Notes, _engineParams);
 

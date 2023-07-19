@@ -12,7 +12,7 @@ namespace YARG.Gameplay.Player
     public abstract class BasePlayer : MonoBehaviour
     {
         public const float STRIKE_LINE_POS = -2f;
-        public const float SPAWN_OFFSET = 5f;
+        public const float SPAWN_OFFSET    = 5f;
 
         public const float TRACK_WIDTH = 2f;
 
@@ -27,6 +27,7 @@ namespace YARG.Gameplay.Player
 
         [SerializeField]
         protected ComboMeter ComboMeter;
+
         [SerializeField]
         protected StarpowerBar StarpowerBar;
 
@@ -34,7 +35,12 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         protected Pool NotePool;
 
+        [SerializeField]
+        protected Pool BeatlinePool;
+
         protected GameManager GameManager { get; private set; }
+
+        protected List<Beatline> Beatlines { get; private set; }
 
         private List<GameInput> _replayInputs;
 
@@ -46,6 +52,8 @@ namespace YARG.Gameplay.Player
 
         protected bool IsInitialized { get; private set; }
 
+        private IEnumerator<Beatline> _beatlineEnumerator;
+
         protected virtual void Awake()
         {
             GameManager = FindObjectOfType<GameManager>();
@@ -54,9 +62,13 @@ namespace YARG.Gameplay.Player
             IsFc = true;
         }
 
-        protected void Initialize(YargPlayer player)
+        protected void Initialize(YargPlayer player, List<Beatline> beats)
         {
             Player = player;
+            Beatlines = beats;
+
+            _beatlineEnumerator = Beatlines.GetEnumerator();
+            _beatlineEnumerator.MoveNext();
 
             IsInitialized = true;
         }
@@ -71,11 +83,38 @@ namespace YARG.Gameplay.Player
             UpdateInputs();
             UpdateVisuals();
             UpdateNotes();
+            UpdateBeatlines();
         }
 
         protected abstract void UpdateInputs();
         protected abstract void UpdateVisuals();
         protected abstract void UpdateNotes();
+
+        private void UpdateBeatlines()
+        {
+            while (_beatlineEnumerator.Current?.Time <= GameManager.SongTime + SpawnTimeOffset)
+            {
+                var beatline = _beatlineEnumerator.Current;
+
+                // Skip this frame if the pool is full
+                if (!BeatlinePool.CanSpawnAmount(1))
+                {
+                    break;
+                }
+
+                var poolable = BeatlinePool.TakeWithoutEnabling();
+                if (poolable == null)
+                {
+                    Debug.LogWarning("Attempted to spawn beatline, but it's at its cap!");
+                    break;
+                }
+
+                ((VisualBeatline) poolable).BeatlineRef = beatline;
+                poolable.EnableFromPool();
+
+                _beatlineEnumerator.MoveNext();
+            }
+        }
 
         protected void Start()
         {
@@ -102,17 +141,17 @@ namespace YARG.Gameplay.Player
     {
         public TEngine Engine { get; protected set; }
 
-        protected InstrumentDifficulty<TNote> Chart { get; private set; }
-        protected IEnumerator<TNote> NoteEnumerator { get; private set; }
+        protected InstrumentDifficulty<TNote> Chart          { get; private set; }
+        protected IEnumerator<TNote>          NoteEnumerator { get; private set; }
 
-        public virtual void Initialize(YargPlayer player, InstrumentDifficulty<TNote> chart)
+        public virtual void Initialize(YargPlayer player, InstrumentDifficulty<TNote> chart, List<Beatline> beats)
         {
             if (IsInitialized)
             {
                 return;
             }
 
-            Initialize(player);
+            Initialize(player, beats);
 
             Chart = chart;
 

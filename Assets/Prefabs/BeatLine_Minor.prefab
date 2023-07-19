@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 3557919860777482623}
   - component: {fileID: 5182645852504128968}
   - component: {fileID: 7571642345733379731}
-  - component: {fileID: 5818509754309577681}
   m_Layer: 0
   m_Name: BeatLine_Minor
   m_TagString: Untagged
@@ -84,17 +83,3 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &5818509754309577681
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2407992086261055499}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aa013690efa8b2640af95b11ae1ca7e7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  poolId: beatLine_minor
-  pool: {fileID: 0}

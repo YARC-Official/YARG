@@ -29,7 +29,7 @@ namespace YARG.Gameplay.Visuals
                 GuitarNoteType.Strum => _strumGroup,
                 GuitarNoteType.Hopo  => _hopoGroup,
                 GuitarNoteType.Tap   => _tapGroup,
-                _                    => throw new Exception("Unreachable.")
+                _                    => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
             };
 
             // Get which note color to use
