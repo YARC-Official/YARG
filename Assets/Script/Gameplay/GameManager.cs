@@ -74,7 +74,7 @@ namespace YARG.Gameplay
 
             _beats = Chart.SyncTrack.Beatlines;
             if (_beats is null || _beats.Count < 1)
-                _beats = Chart.SyncTrack.GenerateBeatlines();
+                _beats = Chart.SyncTrack.GenerateBeatlines(Chart.GetLastTick());
 
             LoadSong();
             CreatePlayers();
