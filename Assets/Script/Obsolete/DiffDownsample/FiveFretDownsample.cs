@@ -1,413 +1,417 @@
-using System.Collections.Generic;
-using YARG.Data;
+// using System.Collections.Generic;
+// using YARG.Data;
 
-namespace YARG.DiffDownsample
-{
-    public static class FiveFretDownsample
-    {
-        private static readonly Dictionary<FretFlag, FretFlag> CHORD_EXPERT_TO_HARD_MAPPING = new()
-        {
-            // Three Wide
-            {
-                FretFlag.GREEN | FretFlag.RED | FretFlag.YELLOW, FretFlag.GREEN | FretFlag.YELLOW
-            },
-            {
-                FretFlag.RED | FretFlag.YELLOW | FretFlag.BLUE, FretFlag.RED | FretFlag.BLUE
-            },
-            {
-                FretFlag.YELLOW | FretFlag.BLUE | FretFlag.ORANGE, FretFlag.YELLOW | FretFlag.ORANGE
-            },
-            // Four Wide (Left)
-            {
-                FretFlag.GREEN | FretFlag.RED | FretFlag.YELLOW | FretFlag.BLUE, FretFlag.GREEN | FretFlag.BLUE
-            },
-            {
-                FretFlag.GREEN | FretFlag.RED | FretFlag.BLUE, FretFlag.GREEN | FretFlag.BLUE
-            },
-            {
-                FretFlag.GREEN | FretFlag.YELLOW | FretFlag.BLUE, FretFlag.GREEN | FretFlag.BLUE
-            },
-            // Four Wide (Right)
-            {
-                FretFlag.RED | FretFlag.YELLOW | FretFlag.BLUE | FretFlag.ORANGE, FretFlag.RED | FretFlag.ORANGE
-            },
-            {
-                FretFlag.RED | FretFlag.YELLOW | FretFlag.ORANGE, FretFlag.RED | FretFlag.ORANGE
-            },
-            {
-                FretFlag.RED | FretFlag.BLUE | FretFlag.ORANGE, FretFlag.RED | FretFlag.ORANGE
-            },
-            // Five Wide
-            {
-                FretFlag.GREEN | FretFlag.RED | FretFlag.YELLOW | FretFlag.BLUE | FretFlag.ORANGE,
-                FretFlag.GREEN | FretFlag.ORANGE // Only time when GREEN-ORANGE is permitted in hard
-            },
-            {
-                FretFlag.GREEN | FretFlag.YELLOW | FretFlag.ORANGE, FretFlag.RED | FretFlag.BLUE
-            },
-            {
-                FretFlag.GREEN | FretFlag.BLUE | FretFlag.ORANGE, FretFlag.BLUE | FretFlag.ORANGE
-            },
-            {
-                FretFlag.GREEN | FretFlag.RED | FretFlag.ORANGE, FretFlag.GREEN | FretFlag.RED
-            },
-            {
-                FretFlag.GREEN | FretFlag.RED | FretFlag.BLUE | FretFlag.ORANGE, FretFlag.RED | FretFlag.BLUE
-            },
-            {
-                FretFlag.GREEN | FretFlag.RED | FretFlag.YELLOW | FretFlag.ORANGE, FretFlag.GREEN | FretFlag.YELLOW
-            },
-            {
-                FretFlag.GREEN | FretFlag.YELLOW | FretFlag.BLUE | FretFlag.ORANGE, FretFlag.YELLOW | FretFlag.ORANGE
-            }
-        };
 
-        private static readonly Dictionary<FretFlag, FretFlag> CHORD_HARD_TO_MEDIUM_MAPPING = new()
-        {
-            // No orange chords
-            {
-                FretFlag.GREEN | FretFlag.ORANGE, FretFlag.RED | FretFlag.BLUE
-            },
-            {
-                FretFlag.RED | FretFlag.ORANGE, FretFlag.RED | FretFlag.BLUE
-            },
-            {
-                FretFlag.YELLOW | FretFlag.ORANGE, FretFlag.YELLOW | FretFlag.BLUE
-            },
-            {
-                FretFlag.BLUE | FretFlag.ORANGE, FretFlag.YELLOW | FretFlag.BLUE
-            },
-            // No green and blue
-            {
-                FretFlag.GREEN | FretFlag.BLUE, FretFlag.GREEN | FretFlag.YELLOW
-            },
-        };
+// Do we wanna keep this at all? Commenting it out instead of removing in case we wanna port it over somehow
 
-        private static readonly Dictionary<FretFlag, FretFlag> CHORD_MEDIUM_TO_EASY_MAPPING = new()
-        {
-            // No chords
-            {
-                FretFlag.GREEN | FretFlag.RED, FretFlag.GREEN
-            },
-            {
-                FretFlag.GREEN | FretFlag.YELLOW, FretFlag.RED
-            },
-            {
-                FretFlag.RED | FretFlag.YELLOW, FretFlag.RED
-            },
-            {
-                FretFlag.RED | FretFlag.BLUE, FretFlag.YELLOW
-            },
-            {
-                FretFlag.YELLOW | FretFlag.BLUE, FretFlag.YELLOW
-            },
-        };
 
-        private class ChordedNoteInfo
-        {
-            public float time;
-            public float[] length;
+// namespace YARG.DiffDownsample
+// {
+//     public static class FiveFretDownsample
+//     {
+//         private static readonly Dictionary<FretFlag, FretFlag> CHORD_EXPERT_TO_HARD_MAPPING = new()
+//         {
+//             // Three Wide
+//             {
+//                 FretFlag.GREEN | FretFlag.RED | FretFlag.YELLOW, FretFlag.GREEN | FretFlag.YELLOW
+//             },
+//             {
+//                 FretFlag.RED | FretFlag.YELLOW | FretFlag.BLUE, FretFlag.RED | FretFlag.BLUE
+//             },
+//             {
+//                 FretFlag.YELLOW | FretFlag.BLUE | FretFlag.ORANGE, FretFlag.YELLOW | FretFlag.ORANGE
+//             },
+//             // Four Wide (Left)
+//             {
+//                 FretFlag.GREEN | FretFlag.RED | FretFlag.YELLOW | FretFlag.BLUE, FretFlag.GREEN | FretFlag.BLUE
+//             },
+//             {
+//                 FretFlag.GREEN | FretFlag.RED | FretFlag.BLUE, FretFlag.GREEN | FretFlag.BLUE
+//             },
+//             {
+//                 FretFlag.GREEN | FretFlag.YELLOW | FretFlag.BLUE, FretFlag.GREEN | FretFlag.BLUE
+//             },
+//             // Four Wide (Right)
+//             {
+//                 FretFlag.RED | FretFlag.YELLOW | FretFlag.BLUE | FretFlag.ORANGE, FretFlag.RED | FretFlag.ORANGE
+//             },
+//             {
+//                 FretFlag.RED | FretFlag.YELLOW | FretFlag.ORANGE, FretFlag.RED | FretFlag.ORANGE
+//             },
+//             {
+//                 FretFlag.RED | FretFlag.BLUE | FretFlag.ORANGE, FretFlag.RED | FretFlag.ORANGE
+//             },
+//             // Five Wide
+//             {
+//                 FretFlag.GREEN | FretFlag.RED | FretFlag.YELLOW | FretFlag.BLUE | FretFlag.ORANGE,
+//                 FretFlag.GREEN | FretFlag.ORANGE // Only time when GREEN-ORANGE is permitted in hard
+//             },
+//             {
+//                 FretFlag.GREEN | FretFlag.YELLOW | FretFlag.ORANGE, FretFlag.RED | FretFlag.BLUE
+//             },
+//             {
+//                 FretFlag.GREEN | FretFlag.BLUE | FretFlag.ORANGE, FretFlag.BLUE | FretFlag.ORANGE
+//             },
+//             {
+//                 FretFlag.GREEN | FretFlag.RED | FretFlag.ORANGE, FretFlag.GREEN | FretFlag.RED
+//             },
+//             {
+//                 FretFlag.GREEN | FretFlag.RED | FretFlag.BLUE | FretFlag.ORANGE, FretFlag.RED | FretFlag.BLUE
+//             },
+//             {
+//                 FretFlag.GREEN | FretFlag.RED | FretFlag.YELLOW | FretFlag.ORANGE, FretFlag.GREEN | FretFlag.YELLOW
+//             },
+//             {
+//                 FretFlag.GREEN | FretFlag.YELLOW | FretFlag.BLUE | FretFlag.ORANGE, FretFlag.YELLOW | FretFlag.ORANGE
+//             }
+//         };
 
-            public FretFlag frets;
-            public bool hopo;
-            public bool tap;
-            public bool autoHopo;
-        }
+//         private static readonly Dictionary<FretFlag, FretFlag> CHORD_HARD_TO_MEDIUM_MAPPING = new()
+//         {
+//             // No orange chords
+//             {
+//                 FretFlag.GREEN | FretFlag.ORANGE, FretFlag.RED | FretFlag.BLUE
+//             },
+//             {
+//                 FretFlag.RED | FretFlag.ORANGE, FretFlag.RED | FretFlag.BLUE
+//             },
+//             {
+//                 FretFlag.YELLOW | FretFlag.ORANGE, FretFlag.YELLOW | FretFlag.BLUE
+//             },
+//             {
+//                 FretFlag.BLUE | FretFlag.ORANGE, FretFlag.YELLOW | FretFlag.BLUE
+//             },
+//             // No green and blue
+//             {
+//                 FretFlag.GREEN | FretFlag.BLUE, FretFlag.GREEN | FretFlag.YELLOW
+//             },
+//         };
 
-        private static List<ChordedNoteInfo> ConsolidateToChords(List<NoteInfo> input)
-        {
-            // +1 due to the null at the beginning that is later removed
-            var output = new List<ChordedNoteInfo>(input.Count + 1);
+//         private static readonly Dictionary<FretFlag, FretFlag> CHORD_MEDIUM_TO_EASY_MAPPING = new()
+//         {
+//             // No chords
+//             {
+//                 FretFlag.GREEN | FretFlag.RED, FretFlag.GREEN
+//             },
+//             {
+//                 FretFlag.GREEN | FretFlag.YELLOW, FretFlag.RED
+//             },
+//             {
+//                 FretFlag.RED | FretFlag.YELLOW, FretFlag.RED
+//             },
+//             {
+//                 FretFlag.RED | FretFlag.BLUE, FretFlag.YELLOW
+//             },
+//             {
+//                 FretFlag.YELLOW | FretFlag.BLUE, FretFlag.YELLOW
+//             },
+//         };
 
-            // Consolidate
-            float currentChordTime = -1f;
-            ChordedNoteInfo currentChord = null;
-            foreach (var note in input)
-            {
-                // Skip open notes and such (expert only)
-                if (note.fret > 4)
-                {
-                    continue;
-                }
+//         private class ChordedNoteInfo
+//         {
+//             public float time;
+//             public float[] length;
 
-                if (currentChordTime != note.time)
-                {
-                    output.Add(currentChord);
-                    currentChordTime = note.time;
+//             public FretFlag frets;
+//             public bool hopo;
+//             public bool tap;
+//             public bool autoHopo;
+//         }
 
-                    // Start a new chord
-                    currentChord = new ChordedNoteInfo
-                    {
-                        time = note.time,
-                        length = new float[5],
-                        frets = (FretFlag) (1 << note.fret),
-                        hopo = note.hopo,
-                        tap = note.tap,
-                        autoHopo = note.autoHopo
-                    };
+//         private static List<ChordedNoteInfo> ConsolidateToChords(List<NoteInfo> input)
+//         {
+//             // +1 due to the null at the beginning that is later removed
+//             var output = new List<ChordedNoteInfo>(input.Count + 1);
 
-                    // Set proper length
-                    currentChord.length[note.fret] = note.length;
-                }
-                else
-                {
-                    currentChord.frets |= (FretFlag) (1 << note.fret);
-                    currentChord.length[note.fret] = note.length;
-                }
-            }
+//             // Consolidate
+//             float currentChordTime = -1f;
+//             ChordedNoteInfo currentChord = null;
+//             foreach (var note in input)
+//             {
+//                 // Skip open notes and such (expert only)
+//                 if (note.fret > 4)
+//                 {
+//                     continue;
+//                 }
 
-            // Remove null, add last chord
-            output.Add(currentChord);
-            output.RemoveAt(0);
+//                 if (currentChordTime != note.time)
+//                 {
+//                     output.Add(currentChord);
+//                     currentChordTime = note.time;
 
-            return output;
-        }
+//                     // Start a new chord
+//                     currentChord = new ChordedNoteInfo
+//                     {
+//                         time = note.time,
+//                         length = new float[5],
+//                         frets = (FretFlag) (1 << note.fret),
+//                         hopo = note.hopo,
+//                         tap = note.tap,
+//                         autoHopo = note.autoHopo
+//                     };
 
-        private static List<NoteInfo> SplitToNotes(List<ChordedNoteInfo> chords)
-        {
-            var output = new List<NoteInfo>();
+//                     // Set proper length
+//                     currentChord.length[note.fret] = note.length;
+//                 }
+//                 else
+//                 {
+//                     currentChord.frets |= (FretFlag) (1 << note.fret);
+//                     currentChord.length[note.fret] = note.length;
+//                 }
+//             }
 
-            foreach (var chord in chords)
-            {
-                for (int i = 0; i < 5; i++)
-                {
-                    if (!chord.frets.HasFlag((FretFlag) (1 << i)))
-                    {
-                        continue;
-                    }
+//             // Remove null, add last chord
+//             output.Add(currentChord);
+//             output.RemoveAt(0);
 
-                    output.Add(new NoteInfo
-                    {
-                        time = chord.time,
-                        length = chord.length[i],
-                        fret = i,
-                        hopo = chord.hopo,
-                        tap = chord.tap,
-                        autoHopo = chord.autoHopo
-                    });
-                }
-            }
+//             return output;
+//         }
 
-            return output;
-        }
+//         private static List<NoteInfo> SplitToNotes(List<ChordedNoteInfo> chords)
+//         {
+//             var output = new List<NoteInfo>();
 
-        private static List<ChordedNoteInfo> CleanChords(List<ChordedNoteInfo> input)
-        {
-            FretFlag lastChord = FretFlag.NONE;
-            foreach (var chord in input)
-            {
-                if (chord.hopo && chord.frets == lastChord)
-                {
-                    chord.hopo = false;
-                    chord.autoHopo = false;
-                }
+//             foreach (var chord in chords)
+//             {
+//                 for (int i = 0; i < 5; i++)
+//                 {
+//                     if (!chord.frets.HasFlag((FretFlag) (1 << i)))
+//                     {
+//                         continue;
+//                     }
 
-                lastChord = chord.frets;
-            }
+//                     output.Add(new NoteInfo
+//                     {
+//                         time = chord.time,
+//                         length = chord.length[i],
+//                         fret = i,
+//                         hopo = chord.hopo,
+//                         tap = chord.tap,
+//                         autoHopo = chord.autoHopo
+//                     });
+//                 }
+//             }
 
-            return input;
-        }
+//             return output;
+//         }
 
-        private static List<ChordedNoteInfo> ApplyChordMapping(List<ChordedNoteInfo> input,
-            Dictionary<FretFlag, FretFlag> mapping)
-        {
-            foreach (var chord in input)
-            {
-                if (!mapping.TryGetValue(chord.frets, out var newChord))
-                {
-                    continue;
-                }
+//         private static List<ChordedNoteInfo> CleanChords(List<ChordedNoteInfo> input)
+//         {
+//             FretFlag lastChord = FretFlag.NONE;
+//             foreach (var chord in input)
+//             {
+//                 if (chord.hopo && chord.frets == lastChord)
+//                 {
+//                     chord.hopo = false;
+//                     chord.autoHopo = false;
+//                 }
 
-                // Get the min length
-                float length = float.PositiveInfinity;
-                for (int i = 0; i < 5; i++)
-                {
-                    if (!chord.frets.HasFlag((FretFlag) (1 << i)))
-                    {
-                        continue;
-                    }
+//                 lastChord = chord.frets;
+//             }
 
-                    if (chord.length[i] < length)
-                    {
-                        length = chord.length[i];
-                    }
-                }
+//             return input;
+//         }
 
-                chord.frets = newChord;
+//         private static List<ChordedNoteInfo> ApplyChordMapping(List<ChordedNoteInfo> input,
+//             Dictionary<FretFlag, FretFlag> mapping)
+//         {
+//             foreach (var chord in input)
+//             {
+//                 if (!mapping.TryGetValue(chord.frets, out var newChord))
+//                 {
+//                     continue;
+//                 }
 
-                // Force set lengths to the smallest in the chord
-                for (int i = 0; i < 5; i++)
-                {
-                    if (chord.frets.HasFlag((FretFlag) (1 << i)))
-                    {
-                        chord.length[i] = length;
-                    }
-                }
-            }
+//                 // Get the min length
+//                 float length = float.PositiveInfinity;
+//                 for (int i = 0; i < 5; i++)
+//                 {
+//                     if (!chord.frets.HasFlag((FretFlag) (1 << i)))
+//                     {
+//                         continue;
+//                     }
 
-            return input;
-        }
+//                     if (chord.length[i] < length)
+//                     {
+//                         length = chord.length[i];
+//                     }
+//                 }
 
-        public static List<NoteInfo> DownsampleExpertToHard(List<NoteInfo> input)
-        {
-            var output = new List<NoteInfo>();
+//                 chord.frets = newChord;
 
-            // Remove some auto HOPOs
-            int consecutiveRemovals = 0;
-            foreach (var note in input)
-            {
-                bool maxConsecutiveReached = false;
+//                 // Force set lengths to the smallest in the chord
+//                 for (int i = 0; i < 5; i++)
+//                 {
+//                     if (chord.frets.HasFlag((FretFlag) (1 << i)))
+//                     {
+//                         chord.length[i] = length;
+//                     }
+//                 }
+//             }
 
-                // Only skip up to 2 auto hopos
-                if (note.autoHopo)
-                {
-                    if (consecutiveRemovals < 2)
-                    {
-                        consecutiveRemovals++;
-                        continue;
-                    }
-                    else
-                    {
-                        consecutiveRemovals = 0;
-                        maxConsecutiveReached = true;
-                    }
-                }
-                else
-                {
-                    consecutiveRemovals = 0;
-                }
+//             return input;
+//         }
 
-                // Clone
-                var newNote = note.Duplicate();
+//         public static List<NoteInfo> DownsampleExpertToHard(List<NoteInfo> input)
+//         {
+//             var output = new List<NoteInfo>();
 
-                // Convert auto hopos to forced if max consecutive
-                if (maxConsecutiveReached)
-                {
-                    newNote.hopo = false;
-                }
+//             // Remove some auto HOPOs
+//             int consecutiveRemovals = 0;
+//             foreach (var note in input)
+//             {
+//                 bool maxConsecutiveReached = false;
 
-                output.Add(newNote);
-            }
+//                 // Only skip up to 2 auto hopos
+//                 if (note.autoHopo)
+//                 {
+//                     if (consecutiveRemovals < 2)
+//                     {
+//                         consecutiveRemovals++;
+//                         continue;
+//                     }
+//                     else
+//                     {
+//                         consecutiveRemovals = 0;
+//                         maxConsecutiveReached = true;
+//                     }
+//                 }
+//                 else
+//                 {
+//                     consecutiveRemovals = 0;
+//                 }
 
-            // Remove notes that are less than 0.2 seconds apart
-            var chords = ConsolidateToChords(output);
-            float lastTime = -1f;
-            for (int i = 0; i < chords.Count; i++)
-            {
-                if (chords[i].time - lastTime <= 0.2f)
-                {
-                    chords.RemoveAt(i);
-                    i--;
-                }
-                else
-                {
-                    lastTime = chords[i].time;
-                }
-            }
+//                 // Clone
+//                 var newNote = note.Duplicate();
 
-            // Apply chord mapping
-            ApplyChordMapping(chords, CHORD_EXPERT_TO_HARD_MAPPING);
+//                 // Convert auto hopos to forced if max consecutive
+//                 if (maxConsecutiveReached)
+//                 {
+//                     newNote.hopo = false;
+//                 }
 
-            return SplitToNotes(CleanChords(chords));
-        }
+//                 output.Add(newNote);
+//             }
 
-        public static List<NoteInfo> DownsampleHardToMedium(List<NoteInfo> input)
-        {
-            var output = new List<NoteInfo>(input);
+//             // Remove notes that are less than 0.2 seconds apart
+//             var chords = ConsolidateToChords(output);
+//             float lastTime = -1f;
+//             for (int i = 0; i < chords.Count; i++)
+//             {
+//                 if (chords[i].time - lastTime <= 0.2f)
+//                 {
+//                     chords.RemoveAt(i);
+//                     i--;
+//                 }
+//                 else
+//                 {
+//                     lastTime = chords[i].time;
+//                 }
+//             }
 
-            // No HOPOs!
-            foreach (var note in output)
-            {
-                note.autoHopo = false;
-                note.hopo = false;
-            }
+//             // Apply chord mapping
+//             ApplyChordMapping(chords, CHORD_EXPERT_TO_HARD_MAPPING);
 
-            // Apply chord mapping
-            var chords = ConsolidateToChords(output);
-            ApplyChordMapping(chords, CHORD_HARD_TO_MEDIUM_MAPPING);
+//             return SplitToNotes(CleanChords(chords));
+//         }
 
-            // Remove single orange notes
-            FretFlag lastChord = FretFlag.NONE;
-            foreach (var chord in chords)
-            {
-                if (chord.frets == FretFlag.ORANGE)
-                {
-                    if (lastChord == FretFlag.BLUE)
-                    {
-                        chord.length[1] = chord.length[4];
-                        chord.frets = FretFlag.RED;
-                    }
-                    else
-                    {
-                        chord.length[3] = chord.length[4];
-                        chord.frets = FretFlag.BLUE;
-                    }
-                }
+//         public static List<NoteInfo> DownsampleHardToMedium(List<NoteInfo> input)
+//         {
+//             var output = new List<NoteInfo>(input);
 
-                lastChord = chord.frets;
-            }
+//             // No HOPOs!
+//             foreach (var note in output)
+//             {
+//                 note.autoHopo = false;
+//                 note.hopo = false;
+//             }
 
-            // Remove notes that are less than 0.35 seconds apart
-            float lastTime = -1f;
-            for (int i = 0; i < chords.Count; i++)
-            {
-                if (chords[i].time - lastTime <= 0.35f)
-                {
-                    chords.RemoveAt(i);
-                    i--;
-                }
-                else
-                {
-                    lastTime = chords[i].time;
-                }
-            }
+//             // Apply chord mapping
+//             var chords = ConsolidateToChords(output);
+//             ApplyChordMapping(chords, CHORD_HARD_TO_MEDIUM_MAPPING);
 
-            return SplitToNotes(CleanChords(chords));
-        }
+//             // Remove single orange notes
+//             FretFlag lastChord = FretFlag.NONE;
+//             foreach (var chord in chords)
+//             {
+//                 if (chord.frets == FretFlag.ORANGE)
+//                 {
+//                     if (lastChord == FretFlag.BLUE)
+//                     {
+//                         chord.length[1] = chord.length[4];
+//                         chord.frets = FretFlag.RED;
+//                     }
+//                     else
+//                     {
+//                         chord.length[3] = chord.length[4];
+//                         chord.frets = FretFlag.BLUE;
+//                     }
+//                 }
 
-        public static List<NoteInfo> DownsampleMediumToEasy(List<NoteInfo> input)
-        {
-            // Apply chord mapping
-            var chords = ConsolidateToChords(input);
-            ApplyChordMapping(chords, CHORD_MEDIUM_TO_EASY_MAPPING);
+//                 lastChord = chord.frets;
+//             }
 
-            // Remove single blue notes
-            FretFlag lastChord = FretFlag.NONE;
-            foreach (var chord in chords)
-            {
-                if (chord.frets == FretFlag.BLUE)
-                {
-                    if (lastChord == FretFlag.RED)
-                    {
-                        chord.length[0] = chord.length[3];
-                        chord.frets = FretFlag.GREEN;
-                    }
-                    else
-                    {
-                        chord.length[1] = chord.length[3];
-                        chord.frets = FretFlag.RED;
-                    }
-                }
+//             // Remove notes that are less than 0.35 seconds apart
+//             float lastTime = -1f;
+//             for (int i = 0; i < chords.Count; i++)
+//             {
+//                 if (chords[i].time - lastTime <= 0.35f)
+//                 {
+//                     chords.RemoveAt(i);
+//                     i--;
+//                 }
+//                 else
+//                 {
+//                     lastTime = chords[i].time;
+//                 }
+//             }
 
-                lastChord = chord.frets;
-            }
+//             return SplitToNotes(CleanChords(chords));
+//         }
 
-            // Remove notes that are less than 0.45 seconds apart
-            float lastTime = -1f;
-            for (int i = 0; i < chords.Count; i++)
-            {
-                if (chords[i].time - lastTime <= 0.45f)
-                {
-                    chords.RemoveAt(i);
-                    i--;
-                }
-                else
-                {
-                    lastTime = chords[i].time;
-                }
-            }
+//         public static List<NoteInfo> DownsampleMediumToEasy(List<NoteInfo> input)
+//         {
+//             // Apply chord mapping
+//             var chords = ConsolidateToChords(input);
+//             ApplyChordMapping(chords, CHORD_MEDIUM_TO_EASY_MAPPING);
 
-            return SplitToNotes(CleanChords(chords));
-        }
-    }
-}
+//             // Remove single blue notes
+//             FretFlag lastChord = FretFlag.NONE;
+//             foreach (var chord in chords)
+//             {
+//                 if (chord.frets == FretFlag.BLUE)
+//                 {
+//                     if (lastChord == FretFlag.RED)
+//                     {
+//                         chord.length[0] = chord.length[3];
+//                         chord.frets = FretFlag.GREEN;
+//                     }
+//                     else
+//                     {
+//                         chord.length[1] = chord.length[3];
+//                         chord.frets = FretFlag.RED;
+//                     }
+//                 }
+
+//                 lastChord = chord.frets;
+//             }
+
+//             // Remove notes that are less than 0.45 seconds apart
+//             float lastTime = -1f;
+//             for (int i = 0; i < chords.Count; i++)
+//             {
+//                 if (chords[i].time - lastTime <= 0.45f)
+//                 {
+//                     chords.RemoveAt(i);
+//                     i--;
+//                 }
+//                 else
+//                 {
+//                     lastTime = chords[i].time;
+//                 }
+//             }
+
+//             return SplitToNotes(CleanChords(chords));
+//         }
+//     }
+// }

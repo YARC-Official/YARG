@@ -2,7 +2,7 @@
 using TMPro;
 using UnityEngine;
 using YARG.Core;
-using YARG.Data;
+using YARG.Core.Chart;
 using YARG.PlayMode;
 using YARG.Settings;
 using YARG.Song;
@@ -21,7 +21,7 @@ namespace YARG.UI
         [SerializeField]
         private GameObject _transparentBackground;
 
-        private List<GenericLyricInfo> _lyrics;
+        private List<VocalsPhrase> _lyrics;
         private int _lyricIndex;
         private int _lyricPhraseIndex;
 
@@ -48,39 +48,40 @@ namespace YARG.UI
 
             // Disable updates until the song starts
             enabled = false;
-            Play.OnChartLoaded += OnChartLoaded;
-            Play.OnSongStart += OnSongStart;
+            // Temporarily disabled during the rewrite/transition to YARG.Core
+            // Play.OnChartLoaded += OnChartLoaded;
+            // Play.OnSongStart += OnSongStart;
         }
 
-        private void OnChartLoaded(YargChart chart)
-        {
-            Play.OnChartLoaded -= OnChartLoaded;
+        // private void OnChartLoaded(SongChart chart)
+        // {
+        //     Play.OnChartLoaded -= OnChartLoaded;
 
-            // Temporary
-            bool playingVocals = false;
-            foreach (var player in PlayerManager.players)
-            {
-                if (player.chosenInstrument is Instrument.Vocals or Instrument.Harmony)
-                {
-                    playingVocals = true;
-                }
-            }
+        //     // Temporary
+        //     bool playingVocals = false;
+        //     foreach (var player in PlayerManager.players)
+        //     {
+        //         if (player.chosenInstrument is Instrument.Vocals or Instrument.Harmony)
+        //         {
+        //             playingVocals = true;
+        //         }
+        //     }
 
-            // Disable if there are no lyrics or someone is singing
-            _lyrics = chart.genericLyrics;
-            if (_lyrics.Count <= 0 || playingVocals)
-            {
-                gameObject.SetActive(false);
-            }
-        }
+        //     // Disable if there are no lyrics or someone is singing
+        //     _lyrics = chart.GenericLyrics;
+        //     if (_lyrics.Count <= 0 || playingVocals)
+        //     {
+        //         gameObject.SetActive(false);
+        //     }
+        // }
 
-        private void OnSongStart(SongEntry song)
-        {
-            Play.OnSongStart -= OnSongStart;
+        // private void OnSongStart(SongEntry song)
+        // {
+        //     Play.OnSongStart -= OnSongStart;
 
-            // Enable updates
-            enabled = true;
-        }
+        //     // Enable updates
+        //     enabled = true;
+        // }
 
         private void Update()
         {
@@ -89,8 +90,8 @@ namespace YARG.UI
                 return;
             }
 
-            var lyric = _lyrics[_lyricIndex];
-            if (_lyricPhraseIndex >= lyric.lyric.Count && lyric.EndTime < Play.Instance.SongTime)
+            var phrase = _lyrics[_lyricIndex];
+            if (_lyricPhraseIndex >= phrase.Lyrics.Count && phrase.Bounds.TimeEnd < Play.Instance.SongTime)
             {
                 // Clear phrase
                 _lyricText.text = string.Empty;
@@ -98,14 +99,14 @@ namespace YARG.UI
                 _lyricPhraseIndex = 0;
                 _lyricIndex++;
             }
-            else if (_lyricPhraseIndex < lyric.lyric.Count &&
-                lyric.lyric[_lyricPhraseIndex].time < Play.Instance.SongTime)
+            else if (_lyricPhraseIndex < phrase.Lyrics.Count &&
+                phrase.Lyrics[_lyricPhraseIndex].Time < Play.Instance.SongTime)
             {
                 // Consolidate lyrics
                 string o = "<color=#5CB9FF>";
-                for (int i = 0; i < lyric.lyric.Count; i++)
+                for (int i = 0; i < phrase.Lyrics.Count; i++)
                 {
-                    (_, string str) = lyric.lyric[i];
+                    string str = phrase.Lyrics[i].Text;
 
                     if (str.EndsWith("-"))
                     {

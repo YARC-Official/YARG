@@ -70,22 +70,22 @@ namespace YARG.PlayMode
             remove => _onSongEnd -= value;
         }
 
-        public delegate void ChartLoadAction(YargChart chart);
+        // public delegate void ChartLoadAction(SongChart chart);
 
-        private static event ChartLoadAction _onChartLoaded;
-        public static event ChartLoadAction OnChartLoaded
-        {
-            add
-            {
-                // _onChartLoaded += value;
-                //
-                // // Invoke now if already loaded, this event is only fired once
-                // var chart = Instance?.chart;
-                // if (chart != null)
-                //     value?.Invoke(chart);
-            }
-            remove => _onChartLoaded -= value;
-        }
+        // private static event ChartLoadAction _onChartLoaded;
+        // public static event ChartLoadAction OnChartLoaded
+        // {
+        //     add
+        //     {
+        //         _onChartLoaded += value;
+                
+        //         // Invoke now if already loaded, this event is only fired once
+        //         var chart = Instance?.chart;
+        //         if (chart != null)
+        //             value?.Invoke(chart);
+        //     }
+        //     remove => _onChartLoaded -= value;
+        // }
 
         public delegate void PauseStateChangeAction(bool pause);
 

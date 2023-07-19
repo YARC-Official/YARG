@@ -38,7 +38,7 @@ namespace YARG.Player.Input
         public delegate void WhammyChangeAction(float delta);
         public event WhammyChangeAction WhammyEvent;
 
-        private List<NoteInfo> botChart;
+        // private List<NoteInfo> botChart;
 
         private int[] fretCache = new int[ProGuitar.StringCount];
         private float[] velocityCache = new float[ProGuitar.StringCount];
