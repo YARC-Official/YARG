@@ -42,9 +42,18 @@ namespace YARG.Gameplay
         public double SongStartTime { get; private set; }
         public double SongLength    { get; private set; }
 
-        public double RealSongTime     => GlobalVariables.AudioManager.CurrentPositionD;
         public double AudioCalibration => -SettingsManager.Settings.AudioCalibration.Data / 1000.0;
-        public double SongTime         => RealSongTime + AudioCalibration;
+
+        /// <summary>
+        /// The time into the song <b>without</b> accounting for calibration.<br/>
+        /// This is updated every frame.
+        /// </summary>
+        public double RealSongTime { get; private set; }
+        /// <summary>
+        /// The time into the song <b>accounting</b> for calibration.<br/>
+        /// This is updated every frame.
+        /// </summary>
+        public double SongTime => RealSongTime + AudioCalibration;
 
         public bool IsReplay { get; private set; }
 
@@ -69,6 +78,12 @@ namespace YARG.Gameplay
 
             LoadSong();
             CreatePlayers();
+        }
+
+        private void Update()
+        {
+            // It is more performant to calculate this per frame instead of per call
+            RealSongTime = GlobalVariables.AudioManager.CurrentPositionD;
         }
 
         private void LoadSong()

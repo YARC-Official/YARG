@@ -94,7 +94,7 @@ namespace YARG.Audio.BASS
 
             Bass.UpdatePeriod = 5;
             Bass.DeviceBufferLength = 10;
-            Bass.PlaybackBufferLength = 75;
+            Bass.PlaybackBufferLength = BassHelpers.PLAYBACK_BUFFER_LENGTH;
             Bass.DeviceNonStop = true;
 
             // Affects Windows only. Forces device names to be in UTF-8 on Windows rather than ANSI.

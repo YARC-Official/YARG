@@ -348,6 +348,8 @@ namespace YARG.Audio.BASS
 
         private double GetDesyncOffset()
         {
+            double desync = BassHelpers.PLAYBACK_BUFFER_DESYNC;
+
             // Hack to get desync of pitch-bent channels
             if (_pitchFxHandle != 0 && _pitchFxReverbHandle != 0)
             {
@@ -355,10 +357,10 @@ namespace YARG.Audio.BASS
                 // BASS_FX does not account for it automatically so we must do it ourselves
                 // (thanks Matt/Oscar for the info!)
                 double sampleRate = Bass.ChannelGetAttribute(StreamHandle, ChannelAttribute.Frequency);
-                return _pitchParams.FFTSize / sampleRate;
+                desync += _pitchParams.FFTSize / sampleRate;
             }
 
-            return 0;
+            return desync;
         }
 
         public double GetPosition(bool desyncCompensation = true)

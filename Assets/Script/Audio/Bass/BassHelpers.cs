@@ -7,6 +7,9 @@ namespace YARG.Audio.BASS
 {
     public static class BassHelpers
     {
+        public const int PLAYBACK_BUFFER_LENGTH = 75;
+        public const double PLAYBACK_BUFFER_DESYNC = PLAYBACK_BUFFER_LENGTH / 1000.0;
+
         public const float SONG_VOLUME_MULTIPLIER = 0.7f;
 
         public const int FADE_TIME_MILLISECONDS = 1000;
