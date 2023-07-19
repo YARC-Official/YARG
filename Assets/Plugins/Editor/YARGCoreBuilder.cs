@@ -240,8 +240,8 @@ namespace Editor
             // Bail out on error
             var output = process.StandardOutput;
             string error = process.StandardError.ReadToEnd();
-            if (!string.IsNullOrEmpty(error))
-                throw new Exception($"Error when running command! Command output:\n{output.ReadToEnd()}{error}");
+            if (!string.IsNullOrEmpty(error) || process.ExitCode != 0)
+                throw new Exception($"Error when running command! Exit code: {process.ExitCode}, command output:\n{output.ReadToEnd()}{error}");
 
             EditorUtility.ClearProgressBar();
             return output;
