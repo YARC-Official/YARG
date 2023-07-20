@@ -145,6 +145,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _lineRenderer: {fileID: 2050657351025087226}
+  _material: {fileID: 2100000, guid: d48ab1d390f77c245be4530d285c3c67, type: 2}
 --- !u!120 &2050657351025087226
 LineRenderer:
   m_ObjectHideFlags: 0

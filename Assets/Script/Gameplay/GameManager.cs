@@ -65,6 +65,8 @@ namespace YARG.Gameplay
         private List<BasePlayer> _players;
         private List<Beatline>   _beats;
 
+        public IReadOnlyList<Beatline> Beats { get; private set; }
+
         private void Awake()
         {
             Song = GlobalVariables.Instance.CurrentSong;
@@ -80,6 +82,7 @@ namespace YARG.Gameplay
             {
                 _beats = Chart.SyncTrack.GenerateBeatlines(Chart.GetLastTick());
             }
+            Beats = _beats.AsReadOnly();
 
             LoadSong();
             CreatePlayers();

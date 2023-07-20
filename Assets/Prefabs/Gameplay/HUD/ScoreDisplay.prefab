@@ -145,7 +145,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1682100932150968561}
-  - component: {fileID: 3987264613460094480}
+  - component: {fileID: 3417901565077600796}
   m_Layer: 5
   m_Name: Stars
   m_TagString: Untagged
@@ -179,7 +179,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 160, y: 32}
   m_Pivot: {x: 0.5, y: 1}
---- !u!114 &3987264613460094480
+--- !u!114 &3417901565077600796
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -188,9 +188,23 @@ MonoBehaviour:
   m_GameObject: {fileID: 1682100932150968562}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6225c8c72f9c490aac59ab04f440122e, type: 3}
+  m_Script: {fileID: 11500000, guid: 93c23e1d66ed4059a05caa976b3d1f7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  starObjects:
+  - {fileID: 1682100932898782573}
+  - {fileID: 7229847859671621566}
+  - {fileID: 4096561045326221240}
+  - {fileID: 481869321003389834}
+  - {fileID: 500244737860305069}
+  goldMeterObjects:
+  - {fileID: 4378126842520780952}
+  - {fileID: 8433043820256494874}
+  - {fileID: 2302898695580999361}
+  - {fileID: 5527681620171533673}
+  - {fileID: 4489824478613844875}
+  goldMeterParent: {fileID: 6244827274338962148}
+  goldMeterLine: {fileID: 525818391533477391}
 --- !u!1 &1682100932476655700
 GameObject:
   m_ObjectHideFlags: 0
@@ -1390,6 +1404,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ce4a84a3d1b86154ca243594c1135468, type: 3}
+--- !u!1 &7229847859671621566 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6609833393552099944, guid: ce4a84a3d1b86154ca243594c1135468,
+    type: 3}
+  m_PrefabInstance: {fileID: 4606984652080043478}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &7229847859671621567 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6609833393552099945, guid: ce4a84a3d1b86154ca243594c1135468,
@@ -1576,6 +1596,12 @@ RectTransform:
     type: 3}
   m_PrefabInstance: {fileID: 5540234108924917509}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1682100932898782573 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6609833393552099944, guid: ce4a84a3d1b86154ca243594c1135468,
+    type: 3}
+  m_PrefabInstance: {fileID: 5540234108924917509}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &6707313310903097826
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1740,6 +1766,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ce4a84a3d1b86154ca243594c1135468, type: 3}
+--- !u!1 &481869321003389834 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6609833393552099944, guid: ce4a84a3d1b86154ca243594c1135468,
+    type: 3}
+  m_PrefabInstance: {fileID: 6707313310903097826}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &481869321003389835 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6609833393552099945, guid: ce4a84a3d1b86154ca243594c1135468,
@@ -1916,6 +1948,12 @@ RectTransform:
     type: 3}
   m_PrefabInstance: {fileID: 6722714822541839045}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &500244737860305069 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6609833393552099944, guid: ce4a84a3d1b86154ca243594c1135468,
+    type: 3}
+  m_PrefabInstance: {fileID: 6722714822541839045}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &7161621586186814928
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2080,6 +2118,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ce4a84a3d1b86154ca243594c1135468, type: 3}
+--- !u!1 &4096561045326221240 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6609833393552099944, guid: ce4a84a3d1b86154ca243594c1135468,
+    type: 3}
+  m_PrefabInstance: {fileID: 7161621586186814928}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &4096561045326221241 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6609833393552099945, guid: ce4a84a3d1b86154ca243594c1135468,

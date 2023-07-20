@@ -10,11 +10,12 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private LineRenderer _lineRenderer;
 
+        [SerializeField]
         private Material _material;
 
         private void Awake()
         {
-            _material = _lineRenderer.materials[0];
+            _material = _lineRenderer.material;
         }
 
         public void SetInitialLength(float len)
