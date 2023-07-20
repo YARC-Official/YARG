@@ -295,6 +295,12 @@ namespace YARG.UI.MusicLibrary
                 ClearSearchBox();
             }
 
+            if (Keyboard.current.backspaceKey.wasPressedThisFrame && CurrentSelection is SongViewType)
+            {
+                GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+                return;
+            }
+
             if (_searchBoxShouldBeEnabled)
             {
                 _searchField.ActivateInputField();
