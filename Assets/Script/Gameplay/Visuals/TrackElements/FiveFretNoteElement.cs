@@ -42,7 +42,7 @@ namespace YARG.Gameplay.Visuals
 
             // Show and set material properties
             NoteGroup.SetActive(true);
-            // TODO: Note material seed
+            NoteGroup.InitializeRandomness();
 
             // Set line length
             if (NoteRef.IsSustain)

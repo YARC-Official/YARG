@@ -24,17 +24,16 @@ namespace YARG.Gameplay.Player
 
         [SerializeField]
         protected TrackMaterial TrackMaterial;
-
         [SerializeField]
         protected ComboMeter ComboMeter;
-
         [SerializeField]
         protected StarpowerBar StarpowerBar;
+        [SerializeField]
+        protected SunburstEffects SunburstEffects;
 
         [Header("Pools")]
         [SerializeField]
         protected Pool NotePool;
-
         [SerializeField]
         protected Pool BeatlinePool;
 
@@ -176,10 +175,14 @@ namespace YARG.Gameplay.Player
 
         protected void UpdateBaseVisuals(BaseStats stats)
         {
+            bool groove = stats.ScoreMultiplier == 4;
+
             TrackMaterial.SetTrackScroll(GameManager.SongTime, Player.Profile.NoteSpeed);
+            TrackMaterial.GrooveMode = groove;
 
             ComboMeter.SetCombo(stats.ScoreMultiplier, 4, stats.Combo);
             StarpowerBar.SetStarpower(stats.StarPowerAmount);
+            SunburstEffects.SetSunburstEffects(groove, false);
         }
 
         protected override void UpdateNotes()

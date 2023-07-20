@@ -36,8 +36,7 @@ namespace YARG.Gameplay.Visuals
         private static Preset _groovePreset;
 
         private float _grooveState;
-
-        public float GrooveState
+        private float GrooveState
         {
             get => _grooveState;
             set
@@ -56,6 +55,9 @@ namespace YARG.Gameplay.Visuals
                 _material.SetFloat(_wavinessProperty, value);
             }
         }
+
+        [HideInInspector]
+        public bool GrooveMode;
 
         private float _soloState;
 
@@ -138,6 +140,18 @@ namespace YARG.Gameplay.Visuals
                     Color = FromHex("2C499E", 1f)
                 }
             };
+        }
+
+        private void Update()
+        {
+            if (GrooveMode)
+            {
+                GrooveState = Mathf.Lerp(GrooveState, 1f, Time.deltaTime * 5f);
+            }
+            else
+            {
+                GrooveState = Mathf.Lerp(GrooveState, 0f, Time.deltaTime * 3f);
+            }
         }
 
         private static Color FromHex(string hex, float alpha)
