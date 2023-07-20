@@ -183,13 +183,29 @@ namespace Editor
                 int index = line.IndexOf(search);
                 if (index >= 0)
                 {
-                    outputPath = line.Substring(index + search.Length);
-                    break;
+                    var path = line.AsSpan().Slice(index + search.Length);
+                    if (debug)
+                    {
+                        // Debug builds only output one path, which is for the built assembly
+                        outputPath = Path.GetDirectoryName(path).ToString();
+                        break;
+                    }
+                    else
+                    {
+                        // Publish builds output two paths: one for the built assembly, and one for the publish folder
+                        if (path.EndsWith(".dll"))
+                            // This is the built assembly path
+                            continue;
+
+                        // This is the publish folder path, we want to copy from here
+                        outputPath = path.ToString();
+                        break;
+                    }
                 }
             }
             while (!output.EndOfStream);
 
-            return Directory.GetParent(outputPath)?.ToString();
+            return outputPath;
         }
 
         private static string GetCurrentCommitHash()
