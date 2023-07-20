@@ -9,7 +9,7 @@ namespace YARG.Gameplay.Visuals
     {
         private const float WEAK_BEAT_SCALE   = 0.04f;
         private const float STRONG_BEAT_SCALE = 0.08f;
-        private const float MEASURE_SCALE     = 0.13f;
+        private const float MEASURE_SCALE     = 0.11f;
 
         private const float WEAK_BEAT_ALPHA   = 0.2f;
         private const float STRONG_BEAT_ALPHA = 0.40f;
