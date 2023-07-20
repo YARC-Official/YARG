@@ -19,11 +19,15 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         private FretArray _fretArray;
 
-        public override void Initialize(YargPlayer player, InstrumentDifficulty<GuitarNote> chart, List<Beatline> beats)
-        {
-            base.Initialize(player, chart, beats);
+        public override float[] StarMultiplierThresholds { get; } =
+            { 0.21f, 0.46f, 0.77f, 1.85f, 3.08f, 4.52f };
+        public override int[] StarScoreThresholds { get; protected set; }
 
-            Engine = new YargFiveFretEngine(Chart.Notes, _engineParams);
+        public override void Initialize(YargPlayer player, InstrumentDifficulty<GuitarNote> chart, SyncTrack syncTrack, List<Beatline> beats)
+        {
+            base.Initialize(player, chart, syncTrack, beats);
+
+            Engine = new YargFiveFretEngine(Chart, SyncTrack, _engineParams);
 
             Debug.Log("Note count: " + Chart.Notes.Count);
 
@@ -31,15 +35,11 @@ namespace YARG.Gameplay.Player
             Engine.OnNoteMissed += OnNoteMissed;
             Engine.OnOverstrum += OnOverstrum;
 
-            Engine.OnStarPowerPhraseHit += note =>
+            StarScoreThresholds = new int[StarMultiplierThresholds.Length];
+            for (int i = 0; i < StarMultiplierThresholds.Length; i++)
             {
-                Debug.Log("Hit star power phrase at " + note.Time);
-            };
-
-            Engine.OnStarPowerPhraseMissed += note =>
-            {
-                Debug.Log("Missed star power phrase at " + note.Time);
-            };
+                StarScoreThresholds[i] = Mathf.FloorToInt(Engine.BaseScore * StarMultiplierThresholds[i]);
+            }
 
             _fretArray.Initialize(ColorProfile.Default);
         }

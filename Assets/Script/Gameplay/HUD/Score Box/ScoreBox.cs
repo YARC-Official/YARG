@@ -15,12 +15,15 @@ namespace YARG.Gameplay.HUD
         private TextMeshProUGUI songProgressBar;
 
         private GameManager _gameManager;
+        private StarDisplay _starDisplay;
 
         private int _bandScore;
 
         private void Awake()
         {
             _gameManager = FindObjectOfType<GameManager>();
+
+            _starDisplay = GetComponentInChildren<StarDisplay>();
         }
 
         // Start is called before the first frame update
@@ -41,7 +44,48 @@ namespace YARG.Gameplay.HUD
             {
                 _bandScore = _gameManager.BandScore;
                 scoreText.text = SCORE_PREFIX + _bandScore.ToString("N0");
+
+                UpdateStars();
             }
+        }
+
+        private void UpdateStars()
+        {
+            double totalStarCount = 0;
+
+            foreach (var player in _gameManager.Players)
+            {
+                if (player.StarScoreThresholds[0] == 0)
+                {
+                    continue;
+                }
+
+                int fullStars = 5;
+                while (fullStars >= 0 && player.Score < player.StarScoreThresholds[fullStars])
+                {
+                    fullStars--;
+                }
+
+                fullStars++;
+
+                totalStarCount += fullStars;
+
+                double progressToNextStar = 0;
+                if (fullStars == 0)
+                {
+                    progressToNextStar = player.Score / (double)player.StarScoreThresholds[fullStars];
+                }
+                else if (fullStars < 6)
+                {
+                    int previousStarThreshold = player.StarScoreThresholds[fullStars - 1];
+                    progressToNextStar = (player.Score - previousStarThreshold) /
+                        (double)(player.StarScoreThresholds[fullStars] - previousStarThreshold);
+                }
+
+                totalStarCount += progressToNextStar;
+            }
+
+            _starDisplay.SetStars(totalStarCount);
         }
     }
 }

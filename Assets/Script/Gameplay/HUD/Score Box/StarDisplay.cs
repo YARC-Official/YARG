@@ -99,7 +99,7 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            double topStar = Math.Floor(stars);
+            int topStar = (int) stars;
 
             double starProgress = stars - topStar;
 
@@ -112,9 +112,10 @@ namespace YARG.Gameplay.HUD
                         SetStarProgress(starObjects[i], 1);
                     }
 
-                    _currentStar = (int) topStar;
+                    _currentStar = topStar;
 
                     GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarGain);
+                    Debug.Log($"Gained star at {_gameManager.BandScore} ({stars})");
                 }
 
                 if (_currentStar < 5)

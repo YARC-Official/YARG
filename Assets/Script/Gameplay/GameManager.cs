@@ -65,6 +65,8 @@ namespace YARG.Gameplay
         private List<BasePlayer> _players;
         private List<Beatline>   _beats;
 
+        public IReadOnlyList<BasePlayer> Players => _players;
+
         public IReadOnlyList<Beatline> Beats { get; private set; }
 
         private void Awake()
@@ -129,7 +131,7 @@ namespace YARG.Gameplay
             {
                 Name = "RileyTheFox",
                 IsBot = true,
-                NoteSpeed = 7.5f,
+                NoteSpeed = 6.5f,
             };
 
             // var profile2 = new YargProfile
@@ -192,7 +194,7 @@ namespace YARG.Gameplay
                 case GameMode.FiveFretGuitar:
                 {
                     var chart = Chart.GetFiveFretTrack(instrument).Difficulties[difficulty];
-                    (basePlayer as FiveFretPlayer)?.Initialize(yargPlayer, chart, _beats);
+                    (basePlayer as FiveFretPlayer)?.Initialize(yargPlayer, chart, Chart.SyncTrack, _beats);
                     break;
                 }
 

@@ -47,6 +47,10 @@ namespace YARG.Gameplay.Player
 
         public YargPlayer Player;
 
+        public abstract float[] StarMultiplierThresholds { get; }
+
+        public abstract int[] StarScoreThresholds { get; protected set; }
+
         public int Score { get; protected set; }
         public int Combo { get; protected set; }
 
@@ -143,10 +147,13 @@ namespace YARG.Gameplay.Player
     {
         public TEngine Engine { get; protected set; }
 
-        protected InstrumentDifficulty<TNote> Chart          { get; private set; }
-        protected IEnumerator<TNote>          NoteEnumerator { get; private set; }
+        protected InstrumentDifficulty<TNote> Chart { get; private set; }
 
-        public virtual void Initialize(YargPlayer player, InstrumentDifficulty<TNote> chart, List<Beatline> beats)
+        protected SyncTrack SyncTrack { get; private set; }
+
+        protected IEnumerator<TNote> NoteEnumerator { get; private set; }
+
+        public virtual void Initialize(YargPlayer player, InstrumentDifficulty<TNote> chart, SyncTrack syncTrack, List<Beatline> beats)
         {
             if (IsInitialized)
             {
@@ -156,6 +163,7 @@ namespace YARG.Gameplay.Player
             Initialize(player, beats);
 
             Chart = chart;
+            SyncTrack = syncTrack;
 
             NoteEnumerator = Chart.Notes.GetEnumerator();
             NoteEnumerator.MoveNext();
