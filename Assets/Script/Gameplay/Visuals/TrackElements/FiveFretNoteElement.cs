@@ -51,7 +51,7 @@ namespace YARG.Gameplay.Visuals
                 _sustainLine.gameObject.SetActive(true);
 
                 float len = (float) NoteRef.TimeLength * Player.Player.Profile.NoteSpeed;
-                _sustainLine.SetInitialLength(len);
+                _sustainLine.Initialize(len);
             }
 
             // Set note and sustain color
@@ -71,7 +71,7 @@ namespace YARG.Gameplay.Visuals
                         _notesHiddenForSustain = true;
                     }
 
-                    _sustainLine.UpdateLengthForHit();
+                    _sustainLine.UpdateSustainLine(Player.Player.Profile.NoteSpeed);
                 }
                 else
                 {
