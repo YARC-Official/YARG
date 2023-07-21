@@ -116,6 +116,9 @@ namespace YARG.Input
                     case "strumUp":
                         action = GuitarAction.StrumUp;
                         break;
+                    case "selectButton":
+                        action = GuitarAction.StarPower;
+                        break;
                     default:
                         return;
                 }
