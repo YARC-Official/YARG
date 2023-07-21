@@ -43,33 +43,43 @@ namespace Editor
 
         public static void BuildYARGCoreDLL(bool force = false, bool debug = true)
         {
-            // Check the current commit hash
-            EditorUtility.DisplayProgressBar("Building YARG.Core", "Checking Git commit hash", 0f);
-            if (!force && !CheckCommitHash())
-                return;
+            try
+            {
+                // Check the current commit hash
+                EditorUtility.DisplayProgressBar("Building YARG.Core", "Checking Git commit hash", 0f);
+                if (!force && !CheckCommitHash())
+                    return;
 
-            Debug.Log("Rebuilding YARG.Core...");
+                Debug.Log("Rebuilding YARG.Core...");
 
-            // Get directories
-            string projectRoot = Directory.GetParent(Application.dataPath)?.ToString();
-            string submodulePath = Path.Join(projectRoot, "YARG.Core", "YARG.Core");
-            string projectPath = Path.Join(submodulePath, "YARG.Core.csproj");
+                // Get directories
+                string projectRoot = Directory.GetParent(Application.dataPath)?.ToString();
+                string submodulePath = Path.Join(projectRoot, "YARG.Core", "YARG.Core");
+                string projectPath = Path.Join(submodulePath, "YARG.Core.csproj");
 
-            // Ensure all package references are resolved in Unity
-            EditorUtility.DisplayProgressBar("Building YARG.Core", "Restoring packages", 0.1f);
-            var packages = RestorePackages(projectPath);
+                // Ensure all package references are resolved in Unity
+                EditorUtility.DisplayProgressBar("Building YARG.Core", "Restoring packages", 0.1f);
+                var packages = RestorePackages(projectPath);
 
-            // Build the project
-            EditorUtility.DisplayProgressBar("Building YARG.Core", "Building project", 0.4f);
-            string buildOutput = BuildProject(projectPath, debug);
-            Debug.Log($"Built YARG.Core to {buildOutput}");
+                // Build the project
+                EditorUtility.DisplayProgressBar("Building YARG.Core", "Building project", 0.4f);
+                string buildOutput = BuildProject(projectPath, debug);
+                Debug.Log($"Built YARG.Core to {buildOutput}");
 
-            // Copy output files to plugin folder
-            // TODO: Ignore Unity-provided references
-            EditorUtility.DisplayProgressBar("Building YARG.Core", "Copying files", 0.9f);
-            CopyBuildOutput(buildOutput, OUTPUT_FOLDER, packages);
-
-            EditorUtility.ClearProgressBar();
+                // Copy output files to plugin folder
+                // TODO: Ignore Unity-provided references
+                EditorUtility.DisplayProgressBar("Building YARG.Core", "Copying files", 0.9f);
+                CopyBuildOutput(buildOutput, OUTPUT_FOLDER, packages);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError("Error while building YARG.Core!");
+                Debug.LogException(ex);
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
+            }
         }
 
         private static bool CheckCommitHash()
@@ -275,7 +285,6 @@ namespace Editor
             if (!string.IsNullOrEmpty(error) || process.ExitCode != 0)
                 throw new Exception($"Error when running command! Exit code: {process.ExitCode}, command output:\n{output.ReadToEnd()}{error}");
 
-            EditorUtility.ClearProgressBar();
             return output;
         }
     }
