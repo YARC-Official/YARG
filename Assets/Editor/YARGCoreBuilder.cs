@@ -45,6 +45,10 @@ namespace Editor
         {
             try
             {
+                // Ensure output directory exists
+                if (!Directory.Exists(OUTPUT_FOLDER))
+                    Directory.CreateDirectory(OUTPUT_FOLDER);
+
                 // Check the current commit hash
                 EditorUtility.DisplayProgressBar("Building YARG.Core", "Checking Git commit hash", 0f);
                 if (!force && !CheckCommitHash())
