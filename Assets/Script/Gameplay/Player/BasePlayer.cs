@@ -185,14 +185,14 @@ namespace YARG.Gameplay.Player
 
         protected void UpdateBaseVisuals(BaseStats stats)
         {
-            bool groove = stats.ScoreMultiplier == 4;
+            bool groove = stats.ScoreMultiplier is 4 or 8;
 
             TrackMaterial.SetTrackScroll(GameManager.SongTime, Player.Profile.NoteSpeed);
             TrackMaterial.GrooveMode = groove;
 
-            ComboMeter.SetCombo(stats.ScoreMultiplier, 4, stats.Combo);
+            ComboMeter.SetCombo(stats.ScoreMultiplier, stats.IsStarPowerActive ? 8 : 4, stats.Combo);
             StarpowerBar.SetStarpower(stats.StarPowerAmount);
-            SunburstEffects.SetSunburstEffects(groove, false);
+            SunburstEffects.SetSunburstEffects(groove, stats.IsStarPowerActive);
         }
 
         protected override void UpdateNotes()

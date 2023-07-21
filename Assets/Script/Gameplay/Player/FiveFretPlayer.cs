@@ -13,17 +13,21 @@ namespace YARG.Gameplay.Player
 {
     public sealed class FiveFretPlayer : BasePlayer<GuitarEngine, GuitarNote>
     {
-        private readonly GuitarEngineParameters _engineParams = new(0.14, 1, 0.08, 0.07, false, true);
+        private readonly GuitarEngineParameters _engineParams = new(0.16, 1, 0.08, 0.07, 0.035, false, true);
 
         [Header("Five Fret Specific")]
         [SerializeField]
         private FretArray _fretArray;
 
         public override float[] StarMultiplierThresholds { get; } =
-            { 0.21f, 0.46f, 0.77f, 1.85f, 3.08f, 4.52f };
+        {
+            0.21f, 0.46f, 0.77f, 1.85f, 3.08f, 4.52f
+        };
+
         public override int[] StarScoreThresholds { get; protected set; }
 
-        public override void Initialize(YargPlayer player, InstrumentDifficulty<GuitarNote> chart, SyncTrack syncTrack, List<Beatline> beats)
+        public override void Initialize(YargPlayer player, InstrumentDifficulty<GuitarNote> chart, SyncTrack syncTrack,
+            List<Beatline> beats)
         {
             base.Initialize(player, chart, syncTrack, beats);
 
@@ -34,6 +38,11 @@ namespace YARG.Gameplay.Player
             Engine.OnNoteHit += OnNoteHit;
             Engine.OnNoteMissed += OnNoteMissed;
             Engine.OnOverstrum += OnOverstrum;
+
+            Engine.OnStarPowerStatus += (status) =>
+            {
+                Debug.Log("Star Power set to: " + status);
+            };
 
             StarScoreThresholds = new int[StarMultiplierThresholds.Length];
             for (int i = 0; i < StarMultiplierThresholds.Length; i++)
@@ -68,9 +77,9 @@ namespace YARG.Gameplay.Player
         {
             UpdateBaseVisuals(Engine.EngineStats);
 
-            for(var fret = GuitarAction.Green; fret <= GuitarAction.Orange; fret++)
+            for (var fret = GuitarAction.Green; fret <= GuitarAction.Orange; fret++)
             {
-                _fretArray.SetPressed((int)fret, Engine.IsFretHeld(fret));
+                _fretArray.SetPressed((int) fret, Engine.IsFretHeld(fret));
             }
         }
 
