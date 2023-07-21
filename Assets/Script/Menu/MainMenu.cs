@@ -176,7 +176,7 @@ namespace YARG.UI
 
         public void OpenLatestRelease()
         {
-            Application.OpenURL("https://github.com/EliteAsian123/YARG/releases/latest");
+            Application.OpenURL("https://github.com/YARC-Official/YARG/releases/latest");
         }
 
         public void Quit()

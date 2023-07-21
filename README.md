@@ -57,7 +57,7 @@ A community made one is [available as well](https://youtu.be/hEJHuAGGlD8).
 
 ## Windows
 
-1. Go to [the latest release](https://github.com/EliteAsian123/YARG/releases/latest) and click on the "Assets" dropdown, then click on `YARG_vX.X.X-Windows-x64.zip` to download.
+1. Go to [the latest release](https://github.com/YARC-Official/YARG/releases/latest) and click on the "Assets" dropdown, then click on `YARG_vX.X.X-Windows-x64.zip` to download.
 2. Extract the contents of the zip file by right clicking it and pressing "Extract All..."
 3. Choose where you want to extract it to, then click "Extract".
 4. Open the extracted folder and double-click `YARG.exe` (if you don't have file extensions on, it is called just `YARG`)
@@ -65,13 +65,13 @@ A community made one is [available as well](https://youtu.be/hEJHuAGGlD8).
 
 ## Mac
 
-1. Go to the [the latest release](https://github.com/EliteAsian123/YARG/releases/latest) and click on the "Assets" dropdown, then click on `YARG_vX.X.X-MacOS-Universal.dmg` to download.
+1. Go to the [the latest release](https://github.com/YARC-Official/YARG/releases/latest) and click on the "Assets" dropdown, then click on `YARG_vX.X.X-MacOS-Universal.dmg` to download.
 2. Open the downloaded .dmg and drag the YARG app to your Apps folder.
 3. Double-click the YARG app to run it.
 
 ## Linux
 
-1. Go to [the latest release](https://github.com/EliteAsian123/YARG/releases/latest) and click on the "Assets" dropdown, then click on `YARG_vX.X.X-Linux-x86_64.zip` to download.
+1. Go to [the latest release](https://github.com/YARC-Official/YARG/releases/latest) and click on the "Assets" dropdown, then click on `YARG_vX.X.X-Linux-x86_64.zip` to download.
 2. Extract the zip to the location of your choosing.
 3. Inside the folder you extracted the game to, open a terminal and run `chmod +x ./YARG.x86_64` to give the game executable permission.
 4. You can now double-click the `YARG.x86_64` file or use `./YARG.x86_64` in a terminal to run the game, however there are some dependencies that will be needed for HID devices (such as PS3 and Wii instruments).
