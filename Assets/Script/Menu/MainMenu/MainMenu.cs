@@ -69,17 +69,6 @@ namespace YARG.Menu
             SettingsMenu.Instance.gameObject.SetActive(true);
         }
 
-        private void Update()
-        {
-            if (Keyboard.current.backspaceKey.wasPressedThisFrame)
-            {
-                var random = new System.Random();
-                var randomSong = SongContainer.Songs[random.Next(SongContainer.Songs.Count)];
-                GlobalVariables.Instance.CurrentSong = randomSong;
-                GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
-            }
-        }
-
         public void Quit()
         {
 #if UNITY_EDITOR
