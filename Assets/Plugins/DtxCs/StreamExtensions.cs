@@ -7,7 +7,7 @@ using System;
 using System.Text;
 using System.IO;
 
-static class StreamExtensions
+public static class StreamExtensions
 {
     /// <summary>
     /// Read a signed 8-bit integer from the stream.
