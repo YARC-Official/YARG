@@ -45,50 +45,68 @@ namespace Editor
         {
             // Check the current commit hash
             EditorUtility.DisplayProgressBar("Building YARG.Core", "Checking Git commit hash", 0f);
-            string currentHash = GetCurrentCommitHash();
-            if (!force && File.Exists(HASH_PATH) && File.ReadAllText(HASH_PATH) == currentHash)
+            if (!force && !CheckCommitHash())
                 return;
-
-            // Store new commit hash
-            File.WriteAllText(HASH_PATH, currentHash);
 
             Debug.Log("Rebuilding YARG.Core...");
 
-            // Ensure all package references are resolved in Unity
-            EditorUtility.DisplayProgressBar("Building YARG.Core", "Restoring packages", 0.1f);
+            // Get directories
             string projectRoot = Directory.GetParent(Application.dataPath)?.ToString();
             string submodulePath = Path.Join(projectRoot, "YARG.Core", "YARG.Core");
             string projectPath = Path.Join(submodulePath, "YARG.Core.csproj");
+
+            // Ensure all package references are resolved in Unity
+            EditorUtility.DisplayProgressBar("Building YARG.Core", "Restoring packages", 0.1f);
             var packages = RestorePackages(projectPath);
 
             // Build the project
             EditorUtility.DisplayProgressBar("Building YARG.Core", "Building project", 0.4f);
-            string outputDirectory = BuildProject(projectPath, debug);
-            Debug.Log($"Built YARG.Core to {outputDirectory}");
+            string buildOutput = BuildProject(projectPath, debug);
+            Debug.Log($"Built YARG.Core to {buildOutput}");
 
             // Copy output files to plugin folder
             // TODO: Ignore Unity-provided references
             EditorUtility.DisplayProgressBar("Building YARG.Core", "Copying files", 0.9f);
-            foreach (var path in Directory.GetFiles(outputDirectory))
-            {
-                if (Path.GetExtension(path) != ".dll")
-                    continue;
+            CopyBuildOutput(buildOutput, OUTPUT_FOLDER, packages);
 
-                // Check if it's already installed as a package
+            EditorUtility.ClearProgressBar();
+        }
+
+        private static bool CheckCommitHash()
+        {
+            // Check the current commit hash
+            string currentHash = GetCurrentCommitHash();
+            if (File.Exists(HASH_PATH) && File.ReadAllText(HASH_PATH) == currentHash)
+                return false;
+
+            // Store new commit hash
+            if (string.IsNullOrEmpty(currentHash))
+                Debug.LogWarning("Failed to read commit hash! Forcing a rebuild.");
+            else
+                File.WriteAllText(HASH_PATH, currentHash);
+
+            return true;
+        }
+
+        private static void CopyBuildOutput(string buildOutput, string destination, string[] existingReferences)
+        {
+            foreach (var path in Directory.GetFiles(buildOutput, "*.dll"))
+            {
+                // Check if the .dll already exists as a reference
                 string name = Path.GetFileNameWithoutExtension(path);
-                if (name != "YARG.Core" && packages.Contains(name))
+                if (name != "YARG.Core" && existingReferences.Contains(name))
                     continue;
 
                 // Copy .dll
-                string newPath = Path.Combine(OUTPUT_FOLDER, $"{name}.dll");
+                string newPath = Path.Combine(destination, $"{name}.dll");
                 File.Copy(path, newPath, overwrite: true);
 
                 // Copy .pdb if present
                 string pdbName = $"{name}.pdb";
-                string pdbPath = Path.Combine(outputDirectory, pdbName);
+                string pdbPath = Path.Combine(buildOutput, pdbName);
                 if (File.Exists(pdbPath))
                 {
-                    File.Copy(pdbPath, Path.Combine(OUTPUT_FOLDER, pdbName), overwrite: true);
+                    File.Copy(pdbPath, Path.Combine(destination, pdbName), overwrite: true);
                 }
 
                 // Import YARG.Core immediately
@@ -97,9 +115,7 @@ namespace Editor
                     AssetDatabase.ImportAsset(newPath);
                 }
             }
-            Debug.Log($"Copied files to {OUTPUT_FOLDER}");
-
-            EditorUtility.ClearProgressBar();
+            Debug.Log($"Copied files to {destination}");
         }
 
         private static void GetAllFiles(string directory, List<string> outputFiles)
