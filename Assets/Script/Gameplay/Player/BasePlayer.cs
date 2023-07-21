@@ -30,6 +30,8 @@ namespace YARG.Gameplay.Player
         protected StarpowerBar StarpowerBar;
         [SerializeField]
         protected SunburstEffects SunburstEffects;
+        [SerializeField]
+        protected HitWindowDisplay HitWindowDisplay;
 
         [Header("Pools")]
         [SerializeField]

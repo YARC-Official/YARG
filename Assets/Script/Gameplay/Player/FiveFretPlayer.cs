@@ -42,6 +42,7 @@ namespace YARG.Gameplay.Player
             }
 
             _fretArray.Initialize(ColorProfile.Default);
+            HitWindowDisplay.SetHitWindowInfo(_engineParams, player.Profile.NoteSpeed);
         }
 
         protected override void Update()
