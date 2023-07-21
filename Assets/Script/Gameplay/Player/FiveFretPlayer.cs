@@ -13,7 +13,7 @@ namespace YARG.Gameplay.Player
 {
     public sealed class FiveFretPlayer : BasePlayer<GuitarEngine, GuitarNote>
     {
-        private readonly GuitarEngineParameters _engineParams = new(0.14, 1, 0.08, 0.065, false, true);
+        private readonly GuitarEngineParameters _engineParams = new(0.14, 1, 0.08, 0.07, false, true);
 
         [Header("Five Fret Specific")]
         [SerializeField]
