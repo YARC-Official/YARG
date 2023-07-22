@@ -32,24 +32,24 @@ namespace YARG.Gameplay.Visuals
             ResetAmplitudes();
         }
 
-        public void SetColor(Color c)
+        public void SetColor(NoteElemState state, Color c)
         {
-            _material.color = c;
-            _material.SetColor(_emissionColor, c);
-        }
-
-        public void SetMissed()
-        {
-            _material.color = new(0f, 0f, 0f, 1f);
-            _material.SetColor(_emissionColor, new(0.1f, 0.1f, 0.1f, 1f));
-
-            ResetAmplitudes();
-        }
-
-        public void UpdateSustainLine(float noteSpeed)
-        {
-            UpdateLengthForHit();
-            UpdateAnimation(noteSpeed);
+            switch (state)
+            {
+                case NoteElemState.Waiting:
+                    _material.color = c;
+                    _material.SetColor(_emissionColor, c);
+                    break;
+                case NoteElemState.Hit:
+                    _material.color = c;
+                    _material.SetColor(_emissionColor, c * 3f);
+                    break;
+                case NoteElemState.Missed:
+                    _material.color = new(0f, 0f, 0f, 1f);
+                    _material.SetColor(_emissionColor, new(0.1f, 0.1f, 0.1f, 1f));
+                    ResetAmplitudes();
+                    break;
+            }
         }
 
         private void ResetAmplitudes()
@@ -57,6 +57,12 @@ namespace YARG.Gameplay.Visuals
             _material.SetFloat(_primaryAmplitude, 0f);
             _material.SetFloat(_secondaryAmplitude, 0f);
             _material.SetFloat(_tertiaryAmplitude, 0f);
+        }
+
+        public void UpdateSustainLine(float noteSpeed)
+        {
+            UpdateLengthForHit();
+            UpdateAnimation(noteSpeed);
         }
 
         private void UpdateLengthForHit()

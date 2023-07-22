@@ -17,7 +17,14 @@ namespace YARG.Gameplay.Visuals
         protected TPlayer Player { get; private set; }
         public Pool ParentPool { get; set; }
 
+        /// <summary>
+        /// The time at which the element resides.
+        /// </summary>
         protected abstract double ElementTime { get; }
+        /// <summary>
+        /// How many move units the element should be kept for past the <see cref="REMOVE_POINT"/>.
+        /// Should be positive.
+        /// </summary>
         protected virtual float RemovePointOffset => 0f;
 
         protected bool Initialized { get; private set; }

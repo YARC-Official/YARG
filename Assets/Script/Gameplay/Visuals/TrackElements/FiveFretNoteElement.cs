@@ -23,10 +23,10 @@ namespace YARG.Gameplay.Visuals
         protected override float RemovePointOffset =>
             (float) NoteRef.TimeLength * Player.Player.Profile.NoteSpeed;
 
-        private bool _notesHiddenForSustain = false;
-
         protected override void InitializeElement()
         {
+            base.InitializeElement();
+
             transform.localPosition = new Vector3(
                 BasePlayer.TRACK_WIDTH / 5f * NoteRef.Fret - BasePlayer.TRACK_WIDTH / 2f - 1f / 5f,
                 0f, 0f);
@@ -47,7 +47,6 @@ namespace YARG.Gameplay.Visuals
             // Set line length
             if (NoteRef.IsSustain)
             {
-                _notesHiddenForSustain = false;
                 _sustainLine.gameObject.SetActive(true);
 
                 float len = (float) NoteRef.TimeLength * Player.Player.Profile.NoteSpeed;
@@ -58,29 +57,36 @@ namespace YARG.Gameplay.Visuals
             UpdateColor();
         }
 
+        protected override void HitStateChanged(NoteElemState from, NoteElemState to)
+        {
+            if (to != NoteElemState.Hit) return;
+
+            if (NoteRef.IsSustain)
+            {
+                HideNotes();
+            }
+            else
+            {
+                ParentPool.Return(this);
+            }
+        }
+
         protected override void UpdateElement()
         {
-            if (NoteRef.WasHit)
-            {
-                if (NoteRef.IsSustain)
-                {
-                    // Once hit, hide the notes but still show sustain
-                    if (!_notesHiddenForSustain)
-                    {
-                        HideNotes();
-                        _notesHiddenForSustain = true;
-                    }
+            base.UpdateElement();
 
-                    _sustainLine.UpdateSustainLine(Player.Player.Profile.NoteSpeed);
-                }
-                else
-                {
-                    ParentPool.Return(this);
-                    return;
-                }
-            }
-
+            // Color should be updated every frame in case of starpower state changes
             UpdateColor();
+
+            // Update sustain line
+            UpdateSustain();
+        }
+
+        private void UpdateSustain()
+        {
+            if (State != NoteElemState.Hit) return;
+
+            _sustainLine.UpdateSustainLine(Player.Player.Profile.NoteSpeed);
         }
 
         private void UpdateColor()
@@ -93,22 +99,10 @@ namespace YARG.Gameplay.Visuals
             // Set the note color
             NoteGroup.ColoredMaterial.color = color;
 
-            // Set the sustain color
-            if (!NoteRef.WasMissed)
-            {
-                _sustainLine.SetColor(color);
-            }
-            else
-            {
-                _sustainLine.SetMissed();
-            }
-        }
+            // The rest of this method is for sustain only
+            if (!NoteRef.IsSustain) return;
 
-        private void HideNotes()
-        {
-            _strumGroup.SetActive(false);
-            _hopoGroup.SetActive(false);
-            _tapGroup.SetActive(false);
+            _sustainLine.SetColor(State, color);
         }
 
         protected override void HideElement()
@@ -116,6 +110,13 @@ namespace YARG.Gameplay.Visuals
             HideNotes();
 
             _sustainLine.gameObject.SetActive(false);
+        }
+
+        private void HideNotes()
+        {
+            _strumGroup.SetActive(false);
+            _hopoGroup.SetActive(false);
+            _tapGroup.SetActive(false);
         }
     }
 }
