@@ -78,11 +78,14 @@ Shader "Unlit/MenuBackground"
                 // Create gradient
                 float3 color = float3(0, 0, 0);
                 float amount = 0;
-                iteration(color, amount, uv,  sideAPoint,      _Color_SideA);
-                iteration(color, amount, uv, -sideBPoint,      _Color_SideB);
-                iteration(color, amount, uv,  bgPoint, _Color_Background);
-                iteration(color, amount, uv, -bgPoint, _Color_Background);
-                iteration(color, amount, uv, float2(0, 0),     _Color_Background);
+                iteration(color, amount, uv,  sideAPoint, _Color_SideA);
+                iteration(color, amount, uv, -sideBPoint, _Color_SideB);
+                iteration(color, amount, uv,  bgPoint,    _Color_Background);
+                iteration(color, amount, uv, -bgPoint,    _Color_Background);
+
+                // This middle point makes things overall darker and more spaced out,
+                // however I don't really like the look of it.
+                // iteration(color, amount, uv, float2(0, 0), _Color_Background);
 
                 return float4(color, 1.0);
             }
