@@ -1,4 +1,3 @@
-using System.Linq;
 using TMPro;
 using UnityEngine;
 using YARG.Core;
@@ -6,10 +5,20 @@ using YARG.Player;
 
 namespace YARG.Menu
 {
-    public class ProfileView : MonoBehaviour
+    public class ProfileView : NavigatableBehaviour
     {
         [SerializeField]
+        private GameObject _selectionBackground;
+
+        [Space]
+        [SerializeField]
         private TextMeshProUGUI _profileName;
+
+        [Space]
+        [SerializeField]
+        private GameObject _connectGroup;
+        [SerializeField]
+        private GameObject _disconnectGroup;
 
         private YargProfile _profile;
 
@@ -19,10 +28,14 @@ namespace YARG.Menu
 
             _profileName.text = profile.Name;
 
-            if (!PlayerContainer.IsProfileTaken(profile))
-            {
-                _profileName.text += " (LOGGED OUT)";
-            }
+            bool taken = PlayerContainer.IsProfileTaken(profile);
+            _connectGroup.gameObject.SetActive(!taken);
+            _disconnectGroup.gameObject.SetActive(taken);
+        }
+
+        protected override void OnSelectionChanged(bool selected)
+        {
+            _selectionBackground.SetActive(selected);
         }
 
         public void RemoveProfile()
@@ -30,10 +43,11 @@ namespace YARG.Menu
             if (PlayerContainer.RemoveProfile(_profile))
             {
                 Destroy(gameObject);
+                NavigationGroup.RemoveNavigatable(this);
             }
         }
 
-        public async void LoginOrLogout()
+        public async void ConnectOrDisconnect()
         {
             var player = PlayerContainer.GetPlayerFromProfile(_profile);
 

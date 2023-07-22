@@ -8,6 +8,10 @@ namespace YARG.Menu
     public class ProfileMenu : MonoBehaviour
     {
         [SerializeField]
+        private NavigationGroup _profileNavigationGroup;
+
+        [Space]
+        [SerializeField]
         private Transform _profileList;
 
         [Space]
@@ -34,12 +38,15 @@ namespace YARG.Menu
         {
             // Remove old ones
             _profileList.transform.DestroyChildren();
+            _profileNavigationGroup.ClearNavigatables();
 
             // Spawn in a profile view for each player
             foreach (var profile in PlayerContainer.Profiles)
             {
                 var go = Instantiate(_profileViewPrefab, _profileList);
                 go.GetComponent<ProfileView>().Init(profile);
+
+                _profileNavigationGroup.AddNavigatable(go.GetComponent<NavigatableBehaviour>());
             }
         }
 
