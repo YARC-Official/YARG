@@ -6,7 +6,10 @@ Shader "Unlit/MenuBackground"
         _Color_SideB      ("Color Side B",     Color) = (0.929, 0.188, 0.125, 1)
         _Color_Background ("Color Background", Color) = (0.000, 0.043, 0.098, 1)
 
-        _Point_Strength   ("Point Strength",   float) = 1.5
+        _Point_Strength   ("Point Strength", float) = 1.5
+
+        [NoScaleOffset] _NoiseTex ("Dither Texture", 2D) = "grey" {}
+        _NoiseRange ("Noise Range", float) = 0.1
     }
     SubShader
     {
@@ -26,19 +29,24 @@ Shader "Unlit/MenuBackground"
             float4 _Color_Background;
             float _Point_Strength;
 
+            sampler2D _NoiseTex;
+            float4 _NoiseTex_TexelSize;
+            float _NoiseRange;
+
             const float EPSILON = 1e-6;
 
             struct appdata
             {
                 float4 vertex : POSITION;
                 float2 uv : TEXCOORD0;
+                float4 screenPos : TEXCOORD1;
             };
 
             struct v2f
             {
-                float2 uv : TEXCOORD0;
-                UNITY_FOG_COORDS(1)
                 float4 vertex : SV_POSITION;
+                float2 uv : TEXCOORD0;
+                float4 screenPos : TEXCOORD1;
             };
 
             v2f vert(appdata v)
@@ -46,6 +54,7 @@ Shader "Unlit/MenuBackground"
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.uv = v.uv;
+                o.screenPos = ComputeScreenPos(o.vertex);
                 return o;
             }
 
@@ -68,7 +77,18 @@ Shader "Unlit/MenuBackground"
 
             float4 frag(v2f i) : SV_Target
             {
-                const float2 uv = i.uv.xy - 0.5;
+                float2 uv = i.uv.xy - 0.5;
+
+                // Calculate pixel accurate UVs for the noise texture
+                // screen pos * screen resolution * (1 / noise texture resolution)
+                const float2 noiseUV = i.screenPos * _ScreenParams.xy * _NoiseTex_TexelSize.xy;
+                const float3 noise = tex2D(_NoiseTex, noiseUV);
+
+                // Scale noise to be in a range
+                const float3 dither = noise * _NoiseRange - _NoiseRange / 2.0;
+
+                // Add the dither
+                uv += dither.xy;
 
                 // Get the points of the gradient
                 const float2 sideAPoint = circle(0.75, 0.2, _SinTime.x);
@@ -87,7 +107,9 @@ Shader "Unlit/MenuBackground"
                 // however I don't really like the look of it.
                 // iteration(color, amount, uv, float2(0, 0), _Color_Background);
 
-                return float4(color, 1.0);
+                float4 frag = float4(color, 1.0);
+
+                return frag;
             }
 
             ENDCG
