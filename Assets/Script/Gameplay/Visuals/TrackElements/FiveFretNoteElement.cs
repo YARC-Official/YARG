@@ -57,9 +57,9 @@ namespace YARG.Gameplay.Visuals
             UpdateColor();
         }
 
-        protected override void HitStateChanged(NoteElemState from, NoteElemState to)
+        public override void HitNote()
         {
-            if (to != NoteElemState.Hit) return;
+            base.HitNote();
 
             if (NoteRef.IsSustain)
             {
@@ -73,8 +73,6 @@ namespace YARG.Gameplay.Visuals
 
         protected override void UpdateElement()
         {
-            base.UpdateElement();
-
             // Color should be updated every frame in case of starpower state changes
             UpdateColor();
 
@@ -84,7 +82,7 @@ namespace YARG.Gameplay.Visuals
 
         private void UpdateSustain()
         {
-            if (State != NoteElemState.Hit) return;
+            if (!NoteRef.WasHit) return;
 
             _sustainLine.UpdateSustainLine(Player.Player.Profile.NoteSpeed);
         }
@@ -102,7 +100,7 @@ namespace YARG.Gameplay.Visuals
             // The rest of this method is for sustain only
             if (!NoteRef.IsSustain) return;
 
-            _sustainLine.SetColor(State, color);
+            _sustainLine.SetColor(SustainState, color);
         }
 
         protected override void HideElement()

@@ -1331,7 +1331,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5156534054691692974}
-  - component: {fileID: 1265137121616536561}
+  - component: {fileID: 3161527738386327264}
   m_Layer: 0
   m_Name: Note Pool
   m_TagString: Untagged
@@ -1354,7 +1354,7 @@ Transform:
   m_Father: {fileID: 5425012175883758073}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1265137121616536561
+--- !u!114 &3161527738386327264
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1363,7 +1363,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3697970661882051677}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
+  m_Script: {fileID: 11500000, guid: c24a6ee95ca2444fa768766e48b11579, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _prefab: {fileID: 0}

@@ -51,8 +51,13 @@ namespace YARG.Gameplay.Player
                 Debug.Log("Sustain started on note: " + note.Time);
             };
 
-            Engine.OnSustainEnd += (note, timeEnded) =>
+            Engine.OnSustainEnd += (chordParent, timeEnded) =>
             {
+                foreach (var note in chordParent.ChordEnumerator())
+                {
+                    (NotePool.GetByKey(note) as FiveFretNoteElement)?.SustainEnd();
+                }
+
                 Debug.Log("Sustain ended at time: " + timeEnded);
             };
 
@@ -100,25 +105,28 @@ namespace YARG.Gameplay.Player
             ((FiveFretNoteElement) poolable).NoteRef = note;
         }
 
-        protected override void OnNoteHit(int index, GuitarNote note)
+        protected override void OnNoteHit(int index, GuitarNote chordParent)
         {
-            OnNoteHitSpecific(note);
-            foreach (var child in note.ChildNotes)
+            foreach (var note in chordParent.ChordEnumerator())
             {
-                OnNoteHitSpecific(child);
+                // TODO: It is possible that this should be moved to BasePlayer
+                (NotePool.GetByKey(note) as FiveFretNoteElement)?.HitNote();
+
+                if (note.Fret != 0)
+                {
+                    _fretArray.PlayHitAnimation(note.Fret - 1);
+                }
             }
         }
 
-        // TODO: Not sure of the best way to do this, but this is the simplest to me
-        private void OnNoteHitSpecific(GuitarNote note)
+        protected override void OnNoteMissed(int index, GuitarNote chordParent)
         {
-            if (note.Fret == 0) return;
+            foreach (var note in chordParent.ChordEnumerator())
+            {
+                // TODO: It is possible that this should be moved to BasePlayer
+                (NotePool.GetByKey(note) as FiveFretNoteElement)?.MissNote();
+            }
 
-            _fretArray.PlayHitAnimation(note.Fret - 1);
-        }
-
-        protected override void OnNoteMissed(int index, GuitarNote note)
-        {
             if (IsFc)
             {
                 ComboMeter.SetFullCombo(false);

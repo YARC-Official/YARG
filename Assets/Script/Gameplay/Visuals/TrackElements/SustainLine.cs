@@ -32,19 +32,19 @@ namespace YARG.Gameplay.Visuals
             ResetAmplitudes();
         }
 
-        public void SetColor(NoteElemState state, Color c)
+        public void SetColor(SustainState state, Color c)
         {
             switch (state)
             {
-                case NoteElemState.Waiting:
+                case SustainState.Waiting:
                     _material.color = c;
                     _material.SetColor(_emissionColor, c);
                     break;
-                case NoteElemState.Hit:
+                case SustainState.Hitting:
                     _material.color = c;
                     _material.SetColor(_emissionColor, c * 3f);
                     break;
-                case NoteElemState.Missed:
+                case SustainState.Missed:
                     _material.color = new(0f, 0f, 0f, 1f);
                     _material.SetColor(_emissionColor, new(0.1f, 0.1f, 0.1f, 1f));
                     ResetAmplitudes();

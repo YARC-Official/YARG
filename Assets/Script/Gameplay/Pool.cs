@@ -24,7 +24,7 @@ namespace YARG.Gameplay
         private int _spawnedCount;
         private int TotalCount => _pooled.Count + _spawnedCount;
 
-        private void Awake()
+        protected virtual void Awake()
         {
             for (int i = 0; i < _prewarmAmount; i++)
             {
@@ -101,6 +101,13 @@ namespace YARG.Gameplay
 
             poolable.DisableIntoPool();
             _pooled.Push(poolable);
+
+            OnReturned(poolable);
+        }
+
+        protected virtual void OnReturned(IPoolable poolable)
+        {
+
         }
     }
 }

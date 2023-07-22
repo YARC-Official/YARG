@@ -35,7 +35,7 @@ namespace YARG.Gameplay.Player
 
         [Header("Pools")]
         [SerializeField]
-        protected Pool NotePool;
+        protected KeyedPool NotePool;
         [SerializeField]
         protected Pool BeatlinePool;
 
@@ -219,7 +219,7 @@ namespace YARG.Gameplay.Player
 
         protected void SpawnNote(TNote note)
         {
-            var poolable = NotePool.TakeWithoutEnabling();
+            var poolable = NotePool.KeyedTakeWithoutEnabling(note);
             if (poolable == null)
             {
                 Debug.LogWarning("Attempted to spawn note, but it's at its cap!");

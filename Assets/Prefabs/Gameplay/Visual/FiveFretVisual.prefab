@@ -141,6 +141,12 @@ PrefabInstance:
       propertyPath: _noFcRingMaterial
       value: 
       objectReference: {fileID: 2100000, guid: ce3039f4da289c046b33066e508567f0, type: 2}
+    - target: {fileID: 3161527738386327264, guid: 5800c42510b55c549be95ec3ecd75e1c,
+        type: 3}
+      propertyPath: _prefab
+      value: 
+      objectReference: {fileID: 861361446070616044, guid: 03b0fdd0f2d131d4682ccf3aaf6ee2a7,
+        type: 3}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5800c42510b55c549be95ec3ecd75e1c, type: 3}
 --- !u!114 &155632028176750329 stripped
@@ -215,6 +221,18 @@ Camera:
     type: 3}
   m_PrefabInstance: {fileID: 7434902305530561920}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &5534384060604769120 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3161527738386327264, guid: 5800c42510b55c549be95ec3ecd75e1c,
+    type: 3}
+  m_PrefabInstance: {fileID: 7434902305530561920}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c24a6ee95ca2444fa768766e48b11579, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &7275388750557486603 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 277336160789584779, guid: 5800c42510b55c549be95ec3ecd75e1c,
@@ -251,21 +269,9 @@ MonoBehaviour:
   StarpowerBar: {fileID: 3700759359327549745}
   SunburstEffects: {fileID: 1442216845985701587}
   HitWindowDisplay: {fileID: 7275388750557486603}
-  NotePool: {fileID: 8548042937441511025}
+  NotePool: {fileID: 5534384060604769120}
   BeatlinePool: {fileID: 155632028176750329}
   _fretArray: {fileID: 1060069523843335645}
---- !u!114 &8548042937441511025 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1265137121616536561, guid: 5800c42510b55c549be95ec3ecd75e1c,
-    type: 3}
-  m_PrefabInstance: {fileID: 7434902305530561920}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!23 &8697479185713912627 stripped
 MeshRenderer:
   m_CorrespondingSourceObject: {fileID: 2278174339011780275, guid: 5800c42510b55c549be95ec3ecd75e1c,
