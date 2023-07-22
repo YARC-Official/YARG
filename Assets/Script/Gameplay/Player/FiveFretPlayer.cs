@@ -39,9 +39,21 @@ namespace YARG.Gameplay.Player
             Engine.OnNoteMissed += OnNoteMissed;
             Engine.OnOverstrum += OnOverstrum;
 
+            // These events are examples of how they can be used
+            // They should be replaced in the future with proper events to be used by the frontend
             Engine.OnStarPowerStatus += (status) =>
             {
                 Debug.Log("Star Power set to: " + status);
+            };
+
+            Engine.OnSustainStart += (note) =>
+            {
+                Debug.Log("Sustain started on note: " + note.Time);
+            };
+
+            Engine.OnSustainEnd += (note, timeEnded) =>
+            {
+                Debug.Log("Sustain ended at time: " + timeEnded);
             };
 
             StarScoreThresholds = new int[StarMultiplierThresholds.Length];
