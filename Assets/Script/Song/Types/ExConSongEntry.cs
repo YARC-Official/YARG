@@ -203,7 +203,7 @@ namespace YARG.Song
             WriteArray(VocalsIndices, writer);
             WriteArray(TrackIndices, writer);
             WriteArray(CrowdIndices, writer);
-            
+
             WriteArray(DrumStemValues, writer);
             WriteArray(BassStemValues, writer);
             WriteArray(GuitarStemValues, writer);
@@ -382,7 +382,21 @@ namespace YARG.Song
 
                             try
                             {
-                                var inst = InstrumentHelper.FromResourceName(name);
+                                var inst = name switch
+                                {
+                                    "guitar" => Instrument.FiveFretGuitar,
+                                    "bass"   => Instrument.FiveFretBass,
+                                    "drum"   => Instrument.FourLaneDrums,
+                                    "keys"   => Instrument.Keys,
+
+                                    "real_guitar" => Instrument.ProGuitar_17Fret,
+                                    "real_bass"   => Instrument.ProBass_17Fret,
+                                    // "real_keys"   => Instrument.ProKeys,
+
+                                    "vocals" => Instrument.Vocals,
+
+                                    _ => throw new NotImplementedException($"Unhandled instrument name {name}!")
+                                };
                                 PartDifficulties[inst] = DtaDifficulty.ToNumberedDiff(inst, dtaDiff);
                             }
                             catch (Exception ex)
