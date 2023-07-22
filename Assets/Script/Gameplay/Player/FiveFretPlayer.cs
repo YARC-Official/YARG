@@ -41,14 +41,14 @@ namespace YARG.Gameplay.Player
 
             // These events are examples of how they can be used
             // They should be replaced in the future with proper events to be used by the frontend
-            Engine.OnStarPowerStatus += (status) =>
+            Engine.OnSoloStart += (solo) =>
             {
-                Debug.Log("Star Power set to: " + status);
+                Debug.Log($"Solo started (total notes: {solo.NoteCount}");
             };
 
-            Engine.OnSustainStart += (note) =>
+            Engine.OnSoloEnd += (solo) =>
             {
-                Debug.Log("Sustain started on note: " + note.Time);
+                Debug.Log($"Solo ended (hit notes: {solo.NotesHit}/{solo.NoteCount}");
             };
 
             Engine.OnSustainEnd += (chordParent, timeEnded) =>
@@ -57,8 +57,6 @@ namespace YARG.Gameplay.Player
                 {
                     (NotePool.GetByKey(note) as FiveFretNoteElement)?.SustainEnd();
                 }
-
-                Debug.Log("Sustain ended at time: " + timeEnded);
             };
 
             StarScoreThresholds = new int[StarMultiplierThresholds.Length];
