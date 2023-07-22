@@ -137,9 +137,9 @@ namespace YARG.Song
                 {
                     Instrument.Keys, section.GetField("diff_keys", "-1").Get(IntConverter)
                 },
-                // {
-                //     Instrument.ProKeys, section.GetField("diff_keys_real", "-1").Get(IntConverter)
-                // },
+                {
+                    Instrument.ProKeys, section.GetField("diff_keys_real", "-1").Get(IntConverter)
+                },
                 {
                     Instrument.Vocals, section.GetField("diff_vocals", "-1").Get(IntConverter)
                 },

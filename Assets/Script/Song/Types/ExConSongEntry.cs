@@ -391,7 +391,7 @@ namespace YARG.Song
 
                                     "real_guitar" => Instrument.ProGuitar_17Fret,
                                     "real_bass"   => Instrument.ProBass_17Fret,
-                                    // "real_keys"   => Instrument.ProKeys,
+                                    "real_keys"   => Instrument.ProKeys,
 
                                     "vocals" => Instrument.Vocals,
 

@@ -23,8 +23,7 @@ namespace YARG.Data
 
                 Instrument.ProGuitar_17Fret => "Pro Guitar",
                 Instrument.ProBass_17Fret   => "Pro Bass",
-
-                // Instrument.ProKeys => "Pro Keys",
+                Instrument.ProKeys          => "Pro Keys",
 
                 Instrument.Vocals  => "Vocals",
                 Instrument.Harmony => "Harmony",
@@ -49,8 +48,7 @@ namespace YARG.Data
 
                 Instrument.ProGuitar_17Fret => "realGuitar",
                 Instrument.ProBass_17Fret   => "realBass",
-
-                // Instrument.ProKeys => "realKeys",
+                Instrument.ProKeys          => "realKeys",
 
                 Instrument.Vocals  => "vocals",
                 Instrument.Harmony => "harmVocals",
@@ -75,8 +73,7 @@ namespace YARG.Data
 
                 "realGuitar" => Instrument.ProGuitar_17Fret,
                 "realBass"   => Instrument.ProBass_17Fret,
-
-                // "realKeys" => Instrument.ProKeys,
+                "realKeys"   => Instrument.ProKeys,
 
                 "vocals"     => Instrument.Vocals,
                 "harmVocals" => Instrument.Harmony,

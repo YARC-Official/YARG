@@ -55,12 +55,12 @@ namespace YARG.Serialization
                     124, 151, 178, 242, 345, 448
                 }
             },
-            // {
-            //     Instrument.ProKeys, new int[]
-            //     {
-            //         153, 211, 269, 327, 385, 443
-            //     }
-            // },
+            {
+                Instrument.ProKeys, new int[]
+                {
+                    153, 211, 269, 327, 385, 443
+                }
+            },
             {
                 Instrument.Harmony, new int[]
                 {

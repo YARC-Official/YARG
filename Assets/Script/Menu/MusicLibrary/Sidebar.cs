@@ -221,7 +221,7 @@ namespace YARG.UI.MusicLibrary
             }
 
             _difficultyRings[7].SetInfo(false, "trueDrums", -1);
-            // _difficultyRings[8].SetInfo(songEntry, Instrument.ProKeys);
+            _difficultyRings[8].SetInfo(songEntry, Instrument.ProKeys);
 
             // Band difficulty
             if (songEntry.BandDifficulty == -1)
