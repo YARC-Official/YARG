@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Audio;
+using YARG.Menu.Settings;
 using YARG.PlayMode;
 using YARG.Settings.Types;
 using YARG.UI;

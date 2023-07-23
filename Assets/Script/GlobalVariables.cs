@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 using YARG.Audio;
 using YARG.Audio.BASS;
 using YARG.Core;
+using YARG.Menu.Settings;
 using YARG.Player;
 using YARG.Player.Input;
 using YARG.Replays;

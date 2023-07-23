@@ -4,8 +4,9 @@ using UnityEngine;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
 using UnityEngine.UI;
+using YARG.Settings;
 
-namespace YARG.Settings
+namespace YARG.Menu.Settings
 {
     public class SettingsButton : MonoBehaviour
     {

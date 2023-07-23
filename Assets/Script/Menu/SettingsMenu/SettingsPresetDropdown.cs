@@ -3,10 +3,11 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
+using YARG.Settings;
 using YARG.Settings.Metadata;
 using YARG.Settings.Types;
 
-namespace YARG.Settings
+namespace YARG.Menu.Settings
 {
     public class SettingsPresetDropdown : MonoBehaviour
     {

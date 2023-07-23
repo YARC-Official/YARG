@@ -8,12 +8,14 @@ using UnityEngine.Localization.Components;
 using UnityEngine.UI;
 using YARG.Helpers.Extensions;
 using YARG.Player.Navigation;
+using YARG.Settings;
 using YARG.Settings.Metadata;
 using YARG.Settings.Types;
 using YARG.Settings.Visuals;
 using YARG.UI.MusicLibrary;
+using YARG.Util;
 
-namespace YARG.Settings
+namespace YARG.Menu.Settings
 {
     [DefaultExecutionOrder(-10000)]
     public class SettingsMenu : MonoBehaviour

@@ -4,10 +4,11 @@ using Cysharp.Threading.Tasks;
 using SFB;
 using TMPro;
 using UnityEngine;
+using YARG.Settings;
 using YARG.Song;
 using YARG.Util;
 
-namespace YARG.Settings
+namespace YARG.Menu.Settings
 {
     public class SettingsDirectory : MonoBehaviour
     {

@@ -1,5 +1,6 @@
 using System;
 using Newtonsoft.Json;
+using YARG.Menu.Settings;
 
 namespace YARG.Settings.Types
 {
