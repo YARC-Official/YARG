@@ -1,17 +1,20 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using YARG.Core.Input;
 
 namespace YARG.Input
 {
+    public delegate void GameInputProcessed(ref GameInput input);
+
     /// <summary>
     /// A binding to one or more controls.
     /// </summary>
     public abstract class ControlBinding
     {
-        public event Action<GameInput> InputProcessed;
+        public event GameInputProcessed InputProcessed;
 
         public string DisplayName { get; }
 
@@ -30,21 +33,34 @@ namespace YARG.Input
         {
             time = InputManager.GetRelativeTime(time);
             var input = new GameInput(time, _action, value);
-            InputProcessed?.Invoke(input);
+            FireEvent(ref input);
         }
 
         protected void FireEvent(double time, float value)
         {
             time = InputManager.GetRelativeTime(time);
             var input = new GameInput(time, _action, value);
-            InputProcessed?.Invoke(input);
+            FireEvent(ref input);
         }
 
         protected void FireEvent(double time, bool value)
         {
             time = InputManager.GetRelativeTime(time);
             var input = new GameInput(time, _action, value);
-            InputProcessed?.Invoke(input);
+            FireEvent(ref input);
+        }
+
+        protected void FireEvent(ref GameInput input)
+        {
+            try
+            {
+                InputProcessed?.Invoke(ref input);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Exception when firing input event for {DisplayName}!");
+                Debug.LogException(ex);
+            }
         }
     }
 
