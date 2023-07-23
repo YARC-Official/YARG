@@ -41,7 +41,7 @@ namespace YARG.Menu
 
             if (selected)
             {
-                _profileSidebar.UpdateSidebar(_profile);
+                _profileSidebar.UpdateSidebar(_profile, this);
             }
         }
 
