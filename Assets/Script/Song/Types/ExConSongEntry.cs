@@ -8,6 +8,7 @@ using YARG.Serialization;
 using XboxSTFS;
 using System;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 
 namespace YARG.Song
 {
@@ -684,6 +685,12 @@ namespace YARG.Song
                 stemMaps.Add(new(SongStem.Crowd, CrowdIndices, CrowdStemValues));
 
             manager.LoadMogg(file, stemMaps, speed);
+        }
+
+        public override async UniTask<bool> LoadPreviewAudio(IAudioManager manager, float speed)
+        {
+            await UniTask.RunOnThreadPool(() => LoadAudio(manager, speed, SongStem.Crowd));
+            return false;
         }
     }
 }

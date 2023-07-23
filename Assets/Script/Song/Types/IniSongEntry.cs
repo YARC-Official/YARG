@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using EasySharpIni;
 using YARG.Audio;
+using Cysharp.Threading.Tasks;
 
 namespace YARG.Song
 {
@@ -187,6 +188,22 @@ namespace YARG.Song
             foreach (var stem in ignoreStems)
                 stems.Remove(stem);
             manager.LoadSong(stems, speed);
+        }
+
+        public override async UniTask<bool> LoadPreviewAudio(IAudioManager manager, float speed)
+        {
+            string previewBase = Path.Combine(Location, "preview");
+            foreach (var ext in GameManager.AudioManager.SupportedFormats)
+            {
+                string previewFile = previewBase + ext;
+                if (File.Exists(previewFile))
+                {
+                    await UniTask.RunOnThreadPool(() => manager.LoadCustomAudioFile(previewFile, 1));
+                    return true;
+                }
+            }
+            await UniTask.RunOnThreadPool(() => LoadAudio(manager, speed, SongStem.Crowd));
+            return false;
         }
     }
 }

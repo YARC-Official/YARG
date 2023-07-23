@@ -76,7 +76,7 @@ namespace YARG.Audio
                 }
 
                 // Load the song
-                await UniTask.RunOnThreadPool(() => song.LoadAudio(_manager, 1f, SongStem.Crowd));
+                bool usesPreviewFile = await song.LoadPreviewAudio(_manager, 1f);
 
                 // Check if cancelled
                 if (cancelToken.IsCancellationRequested)
@@ -85,17 +85,24 @@ namespace YARG.Audio
                     return;
                 }
 
-                // Set preview start and end times
-                PreviewStartTime = song.PreviewStartTimeSpan.TotalSeconds;
-                if (PreviewStartTime <= 0.0)
+                if (!usesPreviewFile)
                 {
-                    PreviewStartTime = 10.0;
+                    // Set preview start and end times
+                    PreviewStartTime = song.PreviewStartTimeSpan.TotalSeconds;
+                    if (PreviewStartTime <= 0.0)
+                    {
+                        PreviewStartTime = 10.0;
+                    }
+                    PreviewEndTime = song.PreviewEndTimeSpan.TotalSeconds;
+                    if (PreviewEndTime <= 0.0)
+                    {
+                        PreviewEndTime = PreviewStartTime + Constants.PREVIEW_DURATION;
+                    }
                 }
-
-                PreviewEndTime = song.PreviewEndTimeSpan.TotalSeconds;
-                if (PreviewEndTime <= 0.0)
+                else
                 {
-                    PreviewEndTime = PreviewStartTime + Constants.PREVIEW_DURATION;
+                    PreviewStartTime = 0;
+                    PreviewEndTime = double.MaxValue;
                 }
 
                 // Play the audio
