@@ -179,7 +179,7 @@ namespace YARG.Gameplay.Player
             }
             else
             {
-                Engine.UpdateEngine(InputManager.BeforeUpdateTime);
+                Engine.UpdateEngine(InputManager.InputUpdateTime);
             }
         }
 

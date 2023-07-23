@@ -22,7 +22,7 @@ namespace YARG.Input
 
         public static event GameInputEvent OnGameInput;
 
-        public static double BeforeUpdateTime { get; private set; }
+        public static double InputUpdateTime { get; private set; }
 
         // Time reference for when inputs started being tracked
         public static double InputTimeOffset { get; set; }
@@ -39,7 +39,7 @@ namespace YARG.Input
             // In order to unsubscribe from it you *must* keep track of the IDisposable returned at the end
             _onEventListener = InputSystem.onEvent.Call(OnEvent);
 
-            InputSystem.onBeforeUpdate += OnBeforeUpdate;
+            InputSystem.onAfterUpdate += OnAfterUpdate;
         }
 
         private void OnDestroy()
@@ -47,7 +47,7 @@ namespace YARG.Input
             _onEventListener?.Dispose();
             _onEventListener = null;
 
-            InputSystem.onBeforeUpdate -= OnBeforeUpdate;
+            InputSystem.onAfterUpdate -= OnAfterUpdate;
         }
 
         public static double GetRelativeTime(double timeFromInputSystem)
@@ -55,9 +55,9 @@ namespace YARG.Input
             return timeFromInputSystem - InputTimeOffset;
         }
 
-        private void OnBeforeUpdate()
+        private void OnAfterUpdate()
         {
-            BeforeUpdateTime = CurrentInputTime - InputTimeOffset;
+            InputUpdateTime = CurrentInputTime - InputTimeOffset;
         }
 
         private void OnEvent(InputEventPtr eventPtr)
