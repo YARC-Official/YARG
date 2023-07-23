@@ -39,22 +39,25 @@ namespace YARG.Input
             // In order to unsubscribe from it you *must* keep track of the IDisposable returned at the end
             _onEventListener = InputSystem.onEvent.Call(OnEvent);
 
-            InputSystem.onBeforeUpdate += () =>
-            {
-                var timestampEvent = new InputEvent(StateEvent.Type, 0, InputDevice.InvalidDeviceId);
-                BeforeUpdateTime = timestampEvent.time - InputTimeOffset;
-            };
+            InputSystem.onBeforeUpdate += OnBeforeUpdate;
         }
 
         private void OnDestroy()
         {
             _onEventListener?.Dispose();
             _onEventListener = null;
+
+            InputSystem.onBeforeUpdate -= OnBeforeUpdate;
         }
 
         public static double GetRelativeTime(double timeFromInputSystem)
         {
             return timeFromInputSystem - InputTimeOffset;
+        }
+
+        private void OnBeforeUpdate()
+        {
+            BeforeUpdateTime = CurrentInputTime - InputTimeOffset;
         }
 
         private void OnEvent(InputEventPtr eventPtr)
