@@ -9,6 +9,24 @@ namespace YARG.Input
         private readonly Dictionary<InputControl, ControlBinding> _bindings = new();
         private readonly List<ControlBinding> _uniqueBindings = new();
 
+        public event GameInputProcessed InputProcessed
+        {
+            add
+            {
+                foreach (var binding in _uniqueBindings)
+                {
+                    binding.InputProcessed += value;
+                }
+            }
+            remove
+            {
+                foreach (var binding in _uniqueBindings)
+                {
+                    binding.InputProcessed -= value;
+                }
+            }
+        }
+
         public InputDevice Device { get; }
 
         public GameModeBindings(InputDevice device)

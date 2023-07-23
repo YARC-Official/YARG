@@ -11,9 +11,43 @@ namespace YARG.Input
 
         private Dictionary<InputDevice, DeviceBindings> _deviceBindings;
 
+        public event GameInputProcessed MenuInputProcessed
+        {
+            add
+            {
+                foreach (var deviceBindings in _deviceBindings.Values)
+                {
+                    deviceBindings.MenuBinds.InputProcessed += value;
+                }
+            }
+            remove
+            {
+                foreach (var deviceBindings in _deviceBindings.Values)
+                {
+                    deviceBindings.MenuBinds.InputProcessed -= value;
+                }
+            }
+        }
+
         public ProfileBindings(YargProfile profile)
         {
             Profile = profile;
+        }
+
+        public void SubscribeToGameModeInputs(GameMode mode, GameInputProcessed onInputProcessed)
+        {
+            foreach (var deviceBindings in _deviceBindings.Values)
+            {
+                deviceBindings.SubscribeToInputsForGameMode(mode, onInputProcessed);
+            }
+        }
+
+        public void UnsubscribeToGameModeInputs(GameMode mode, GameInputProcessed onInputProcessed)
+        {
+            foreach (var deviceBindings in _deviceBindings.Values)
+            {
+                deviceBindings.UnsubscribeToInputsForGameMode(mode, onInputProcessed);
+            }
         }
 
         public bool AddDevice(InputDevice device)

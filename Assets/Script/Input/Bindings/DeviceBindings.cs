@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using YARG.Core;
@@ -18,6 +18,24 @@ namespace YARG.Input
             Device = device;
 
             MenuBinds = new(device);
+        }
+
+        public void SubscribeToInputsForGameMode(GameMode mode, GameInputProcessed onInputProcessed)
+        {
+            var modeBindings = TryGetBindingsForGameMode(mode);
+            if (modeBindings is null)
+                return;
+
+            modeBindings.InputProcessed += onInputProcessed;
+        }
+
+        public void UnsubscribeToInputsForGameMode(GameMode mode, GameInputProcessed onInputProcessed)
+        {
+            var modeBindings = TryGetBindingsForGameMode(mode);
+            if (modeBindings is null)
+                return;
+
+            modeBindings.InputProcessed -= onInputProcessed;
         }
 
         public bool AddBindingsForGameMode(GameMode mode, GameModeBindings bindings)
