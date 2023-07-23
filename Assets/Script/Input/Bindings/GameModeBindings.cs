@@ -32,10 +32,10 @@ namespace YARG.Input
             return true;
         }
 
-        public bool AddOrReplaceBinding(InputControl control, ControlBinding binding)
+        public void AddOrReplaceBinding(InputControl control, ControlBinding binding)
         {
-            _ = RemoveBinding(control);
-            return AddBinding(control, binding);
+            RemoveBinding(control);
+            AddBinding(control, binding);
         }
 
         public bool ContainsControl(InputControl control)

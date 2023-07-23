@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 using YARG.Core;
 
 namespace YARG.Input
 {
     public class DeviceBindings
     {
-        private readonly Dictionary<GameMode, GameModeBindings> _bindsByGameMode;
+        private readonly Dictionary<GameMode, GameModeBindings> _bindsByGameMode = new();
 
         public GameModeBindings MenuBinds { get; private set; }
 
@@ -16,21 +17,45 @@ namespace YARG.Input
         {
             Device = device;
 
-            _bindsByGameMode = new();
             MenuBinds = new(device);
         }
 
-        public GameModeBindings GetBindingsForGameMode(GameMode mode)
+        public bool AddBindingsForGameMode(GameMode mode, GameModeBindings bindings)
         {
-            if (_bindsByGameMode.TryGetValue(mode, out var bindings))
-            {
-                return bindings;
-            }
+            if (ContainsBindingsForGameMode(mode))
+                return false;
 
-            // Create a binding object if there isn't one yet for that game mode
-            var newBindings = new GameModeBindings(Device);
-            _bindsByGameMode[mode] = newBindings;
-            return newBindings;
+            _bindsByGameMode.Add(mode, bindings);
+            return true;
+        }
+
+        public void AddOrReplaceBindingsForGameMode(GameMode mode, GameModeBindings bindings)
+        {
+            RemoveBindingsForGameMode(mode);
+            AddBindingsForGameMode(mode, bindings);
+        }
+
+        public bool ContainsBindingsForGameMode(GameMode mode)
+        {
+            return _bindsByGameMode.ContainsKey(mode);
+        }
+
+        public GameModeBindings TryGetBindingsForGameMode(GameMode mode)
+        {
+            return _bindsByGameMode.TryGetValue(mode, out var bindings) ? bindings : null;
+        }
+
+        public bool RemoveBindingsForGameMode(GameMode mode)
+        {
+            return _bindsByGameMode.Remove(mode);
+        }
+
+        public void ProcessInputEvent(InputEventPtr eventPtr)
+        {
+            foreach (var bindings in _bindsByGameMode.Values)
+            {
+                bindings.ProcessInputEvent(eventPtr);
+            }
         }
     }
 }

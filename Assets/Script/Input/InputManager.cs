@@ -80,9 +80,7 @@ namespace YARG.Input
 
                 var deviceBinds = profileBinds.TryGetBindsForDevice(device);
                 if (deviceBinds == null) continue;
-
-                var gameModeBinds = deviceBinds.GetBindingsForGameMode(player.Profile.InstrumentType);
-                gameModeBinds.ProcessInputEvent(eventPtr);
+                deviceBinds.ProcessInputEvent(eventPtr);
             }
         }
 
