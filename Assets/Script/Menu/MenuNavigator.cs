@@ -16,8 +16,8 @@ namespace YARG.Menu
             MusicLibrary,
             DifficultySelect,
             Credits,
-            ProfileMenu,
-            BindingMenu,
+            ProfilesMenu,
+            EditProfileMenu,
             InputDeviceDialog,
         }
 

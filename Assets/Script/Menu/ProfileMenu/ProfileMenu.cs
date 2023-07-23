@@ -12,6 +12,8 @@ namespace YARG.Menu
 
         [Space]
         [SerializeField]
+        private ProfileSidebar _profileSidebar;
+        [SerializeField]
         private Transform _profileList;
 
         [Space]
@@ -36,6 +38,9 @@ namespace YARG.Menu
 
         private void RefreshList()
         {
+            // Deselect
+            _profileSidebar.HideContents();
+
             // Remove old ones
             _profileList.transform.DestroyChildren();
             _profileNavigationGroup.ClearNavigatables();
@@ -44,7 +49,7 @@ namespace YARG.Menu
             foreach (var profile in PlayerContainer.Profiles)
             {
                 var go = Instantiate(_profileViewPrefab, _profileList);
-                go.GetComponent<ProfileView>().Init(profile);
+                go.GetComponent<ProfileView>().Init(profile, _profileSidebar);
 
                 _profileNavigationGroup.AddNavigatable(go.GetComponent<NavigatableBehaviour>());
             }
@@ -61,6 +66,11 @@ namespace YARG.Menu
             });
 
             RefreshList();
+        }
+
+        public void EditProfile()
+        {
+            MenuNavigator.Instance.PushMenu(MenuNavigator.Menu.EditProfileMenu);
         }
     }
 }

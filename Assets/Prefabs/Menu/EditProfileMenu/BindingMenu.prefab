@@ -326,7 +326,7 @@ PrefabInstance:
     - target: {fileID: 6360272364437934348, guid: fbe721481a76d3340871db2a026bbbcb,
         type: 3}
       propertyPath: m_text
-      value: Instrument Settings
+      value: Profiles
       objectReference: {fileID: 0}
     - target: {fileID: 7914805979046334047, guid: fbe721481a76d3340871db2a026bbbcb,
         type: 3}

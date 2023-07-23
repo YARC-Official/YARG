@@ -20,11 +20,13 @@ namespace YARG.Menu
         [SerializeField]
         private GameObject _disconnectGroup;
 
+        private ProfileSidebar _profileSidebar;
         private YargProfile _profile;
 
-        public void Init(YargProfile profile)
+        public void Init(YargProfile profile, ProfileSidebar sidebar)
         {
             _profile = profile;
+            _profileSidebar = sidebar;
 
             _profileName.text = profile.Name;
 
@@ -36,10 +38,20 @@ namespace YARG.Menu
         protected override void OnSelectionChanged(bool selected)
         {
             _selectionBackground.SetActive(selected);
+
+            if (selected)
+            {
+                _profileSidebar.UpdateSidebar(_profile);
+            }
         }
 
         public void RemoveProfile()
         {
+            if (Selected)
+            {
+                _profileSidebar.HideContents();
+            }
+
             if (PlayerContainer.RemoveProfile(_profile))
             {
                 Destroy(gameObject);
@@ -54,7 +66,7 @@ namespace YARG.Menu
             if (player is not null)
             {
                 PlayerContainer.DisposePlayer(player);
-                Init(_profile);
+                Init(_profile, _profileSidebar);
             }
             else
             {
@@ -67,14 +79,8 @@ namespace YARG.Menu
                 if (player is null) return;
 
                 // Re-initialize the ProfileView
-                Init(_profile);
+                Init(_profile, _profileSidebar);
             }
-        }
-
-        public void ShowBindingMenu()
-        {
-            BindingMenu.CurrentProfile = _profile;
-            MenuNavigator.Instance.PushMenu(MenuNavigator.Menu.BindingMenu);
         }
     }
 }

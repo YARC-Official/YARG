@@ -3550,8 +3550,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51c8d99c9051d5e4dad739d52d82d2e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cameraContainer: {fileID: 1136556133}
-  camera: {fileID: 1973211656}
+  _cameraContainer: {fileID: 0}
+  _camera: {fileID: 0}
 --- !u!1 &991081339
 GameObject:
   m_ObjectHideFlags: 0
@@ -4607,7 +4607,7 @@ PrefabInstance:
     - target: {fileID: 8708184733134376299, guid: cccf866ef69cf784b989cd792919610b,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_StringArgument
-      value: ProfileMenu
+      value: ProfilesMenu
       objectReference: {fileID: 0}
     - target: {fileID: 8708184733134376299, guid: cccf866ef69cf784b989cd792919610b,
         type: 3}
@@ -7997,7 +7997,7 @@ PrefabInstance:
     - target: {fileID: 3672239862567044613, guid: eb97faa6940a14c4693536df5c7bbba8,
         type: 3}
       propertyPath: m_RootOrder
-      value: 7
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 3672239862567044613, guid: eb97faa6940a14c4693536df5c7bbba8,
         type: 3}
