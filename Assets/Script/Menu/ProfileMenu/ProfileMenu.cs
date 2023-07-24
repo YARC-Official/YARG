@@ -59,10 +59,10 @@ namespace YARG.Menu
         {
             PlayerContainer.AddProfile(new YargProfile
             {
-                Name = "Nathan",
-                NoteSpeed = 8,
-                HighwayLength = 1.2f,
-                InstrumentType = GameMode.FourLaneDrums,
+                Name = "New Profile",
+                NoteSpeed = 5,
+                HighwayLength = 1,
+                InstrumentType = GameMode.FiveFretGuitar,
             });
 
             RefreshList();
