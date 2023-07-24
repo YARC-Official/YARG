@@ -343,7 +343,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3376582597907470690}
   m_Layer: 5
-  m_Name: GenericHeader
+  m_Name: Header
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
