@@ -7,9 +7,6 @@ namespace YARG.Menu.Profiles
 {
     public class ProfileView : NavigatableBehaviour
     {
-        [SerializeField]
-        private GameObject _selectionBackground;
-
         [Space]
         [SerializeField]
         private TextMeshProUGUI _profileName;
@@ -37,8 +34,6 @@ namespace YARG.Menu.Profiles
 
         protected override void OnSelectionChanged(bool selected)
         {
-            _selectionBackground.SetActive(selected);
-
             if (selected)
             {
                 _profileSidebar.UpdateSidebar(_profile, this);

@@ -52,7 +52,7 @@ namespace YARG.Menu.Profiles
                 var go = Instantiate(_profileViewPrefab, _profileList);
                 go.GetComponent<ProfileView>().Init(profile, _profileSidebar);
 
-                _navigationGroup.AddNavigatable(go.GetComponent<NavigatableBehaviour>());
+                _navigationGroup.AddNavigatable(go);
             }
         }
 

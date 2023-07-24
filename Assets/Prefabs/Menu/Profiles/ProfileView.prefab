@@ -171,7 +171,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f619620d1b3cdae4db3800695ce98341, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _selectionBackground: {fileID: 3252246694410732907}
+  SelectionBackground: {fileID: 3252246694410732907}
   _profileName: {fileID: 4097472151370784344}
   _connectGroup: {fileID: 3655587951731118034}
   _disconnectGroup: {fileID: 1792506467082320330}

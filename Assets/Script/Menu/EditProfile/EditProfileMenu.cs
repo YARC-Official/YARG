@@ -44,7 +44,7 @@ namespace YARG.Menu.EditProfile
                 var go = Instantiate(_gameModeViewPrefab, _gameModeList);
                 go.GetComponent<GameModeView>().Init(gameMode, this);
 
-                _gameModeNavGroup.AddNavigatable(go.GetComponent<NavigatableBehaviour>());
+                _gameModeNavGroup.AddNavigatable(go);
             }
 
             // Select first game mode
@@ -54,13 +54,26 @@ namespace YARG.Menu.EditProfile
         // This is initially called from the "OnSelectionChanged." See method usages.
         public void RefreshBindings(GameMode gameMode)
         {
+            // TODO: Make this *not* hard coded
+            void CreateHeader(string id)
+            {
+                var go = Instantiate(_bindHeaderPrefab, _bindsList);
+                go.GetComponent<BindHeader>().Init(id);
+
+                _bindsNavGroup.AddNavigatable(go);
+            }
+
             _selectedGameMode = gameMode;
 
             // Remove old ones
             _bindsList.DestroyChildren();
             _bindsNavGroup.ClearNavigatables();
 
-            Instantiate(_bindHeaderPrefab, _bindsList);
+            CreateHeader("greenFret");
+            CreateHeader("redFret");
+            CreateHeader("yellowFret");
+            CreateHeader("blueFret");
+            CreateHeader("orangeFret");
         }
     }
 }

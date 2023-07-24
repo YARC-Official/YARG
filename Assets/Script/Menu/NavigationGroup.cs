@@ -13,6 +13,11 @@ namespace YARG.Menu
             n.NavigationGroup = this;
         }
 
+        public void AddNavigatable(GameObject n)
+        {
+            AddNavigatable(n.GetComponent<NavigatableBehaviour>());
+        }
+
         public void RemoveNavigatable(NavigatableBehaviour n)
         {
             _navigatables.Remove(n);

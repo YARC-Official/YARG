@@ -5,6 +5,9 @@ namespace YARG.Menu
 {
     public abstract class NavigatableBehaviour : MonoBehaviour, IPointerDownHandler
     {
+        [SerializeField]
+        protected GameObject SelectionBackground;
+
         public NavigationGroup NavigationGroup { get; set; }
 
         private bool _selected;
@@ -21,7 +24,13 @@ namespace YARG.Menu
                 }
 
                 _selected = value;
+
+                // Call events
                 OnSelectionChanged(value);
+                if (SelectionBackground != null)
+                {
+                    SelectionBackground.SetActive(value);
+                }
             }
         }
 
