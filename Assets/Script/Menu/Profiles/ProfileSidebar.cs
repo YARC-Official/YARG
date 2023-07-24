@@ -2,7 +2,7 @@
 using UnityEngine;
 using YARG.Core;
 
-namespace YARG.Menu
+namespace YARG.Menu.Profiles
 {
     public class ProfileSidebar : MonoBehaviour
     {

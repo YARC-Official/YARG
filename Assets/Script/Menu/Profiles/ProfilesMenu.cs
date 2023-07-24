@@ -3,9 +3,9 @@ using YARG.Core;
 using YARG.Helpers.Extensions;
 using YARG.Player;
 
-namespace YARG.Menu
+namespace YARG.Menu.Profiles
 {
-    public class ProfileMenu : MonoBehaviour
+    public class ProfilesMenu : MonoBehaviour
     {
         [SerializeField]
         private NavigationGroup _profileNavigationGroup;
@@ -70,7 +70,7 @@ namespace YARG.Menu
 
         public void EditProfile()
         {
-            MenuNavigator.Instance.PushMenu(MenuNavigator.Menu.EditProfileMenu);
+            MenuNavigator.Instance.PushMenu(MenuNavigator.Menu.EditProfile);
         }
     }
 }

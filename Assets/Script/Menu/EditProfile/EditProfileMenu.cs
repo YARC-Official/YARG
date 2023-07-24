@@ -1,10 +1,9 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using YARG.Core;
 
-namespace YARG.Menu
+namespace YARG.Menu.EditProfile
 {
-    public class BindingMenu : MonoBehaviour
+    public class EditProfileMenu : MonoBehaviour
     {
         public static YargProfile CurrentProfile { get; set; }
 

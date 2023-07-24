@@ -3,7 +3,7 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Player;
 
-namespace YARG.Menu
+namespace YARG.Menu.Profiles
 {
     public class ProfileView : NavigatableBehaviour
     {

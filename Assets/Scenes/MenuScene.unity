@@ -4317,7 +4317,7 @@ PrefabInstance:
     - target: {fileID: 1731608351740115684, guid: 77ea2d83e16963e4c80f1c9f9708620b,
         type: 3}
       propertyPath: m_Name
-      value: BindingMenu
+      value: EditProfile
       objectReference: {fileID: 0}
     - target: {fileID: 1731608351740115684, guid: 77ea2d83e16963e4c80f1c9f9708620b,
         type: 3}
@@ -4607,7 +4607,7 @@ PrefabInstance:
     - target: {fileID: 8708184733134376299, guid: cccf866ef69cf784b989cd792919610b,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_StringArgument
-      value: ProfilesMenu
+      value: Profiles
       objectReference: {fileID: 0}
     - target: {fileID: 8708184733134376299, guid: cccf866ef69cf784b989cd792919610b,
         type: 3}
@@ -6981,7 +6981,7 @@ PrefabInstance:
     - target: {fileID: 1731608351740115684, guid: 6814ad1b861f1fa4a93d6c5db38dee86,
         type: 3}
       propertyPath: m_Name
-      value: ProfilesMenu
+      value: Profiles
       objectReference: {fileID: 0}
     - target: {fileID: 1731608351740115684, guid: 6814ad1b861f1fa4a93d6c5db38dee86,
         type: 3}
