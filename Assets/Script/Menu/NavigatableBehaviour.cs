@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 
 namespace YARG.Menu
 {
-    public abstract class NavigatableBehaviour : MonoBehaviour, IPointerClickHandler
+    public abstract class NavigatableBehaviour : MonoBehaviour, IPointerDownHandler
     {
         public NavigationGroup NavigationGroup { get; set; }
 
@@ -27,7 +27,7 @@ namespace YARG.Menu
 
         protected abstract void OnSelectionChanged(bool selected);
 
-        public void OnPointerClick(PointerEventData eventData)
+        public void OnPointerDown(PointerEventData eventData)
         {
             Selected = true;
         }

@@ -402,7 +402,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 085cd22a10634199ba45f1ea5f0a1b6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _profileNavigationGroup: {fileID: 398563533533948189}
+  _navigationGroup: {fileID: 398563533533948189}
   _profileSidebar: {fileID: 7898968641357467819}
   _profileList: {fileID: 2542308448775651636}
   _profileViewPrefab: {fileID: 1863348019200065187, guid: 7e9189d6a05c0ba4485c260aab1a1414,
@@ -1465,8 +1465,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 5881746760155002837}
-        m_TargetAssemblyTypeName: YARG.Menu.ProfileMenu, Assembly-CSharp
+      - m_Target: {fileID: 7898968641357467819}
+        m_TargetAssemblyTypeName: YARG.Menu.Profiles.ProfileSidebar, Assembly-CSharp
         m_MethodName: EditProfile
         m_Mode: 1
         m_Arguments:

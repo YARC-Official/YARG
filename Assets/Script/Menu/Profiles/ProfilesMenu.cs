@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Serialization;
 using YARG.Core;
 using YARG.Helpers.Extensions;
 using YARG.Player;
@@ -8,7 +9,7 @@ namespace YARG.Menu.Profiles
     public class ProfilesMenu : MonoBehaviour
     {
         [SerializeField]
-        private NavigationGroup _profileNavigationGroup;
+        private NavigationGroup _navigationGroup;
 
         [Space]
         [SerializeField]
@@ -43,7 +44,7 @@ namespace YARG.Menu.Profiles
 
             // Remove old ones
             _profileList.transform.DestroyChildren();
-            _profileNavigationGroup.ClearNavigatables();
+            _navigationGroup.ClearNavigatables();
 
             // Spawn in a profile view for each player
             foreach (var profile in PlayerContainer.Profiles)
@@ -51,7 +52,7 @@ namespace YARG.Menu.Profiles
                 var go = Instantiate(_profileViewPrefab, _profileList);
                 go.GetComponent<ProfileView>().Init(profile, _profileSidebar);
 
-                _profileNavigationGroup.AddNavigatable(go.GetComponent<NavigatableBehaviour>());
+                _navigationGroup.AddNavigatable(go.GetComponent<NavigatableBehaviour>());
             }
         }
 
@@ -66,11 +67,6 @@ namespace YARG.Menu.Profiles
             });
 
             RefreshList();
-        }
-
-        public void EditProfile()
-        {
-            MenuNavigator.Instance.PushMenu(MenuNavigator.Menu.EditProfile);
         }
     }
 }

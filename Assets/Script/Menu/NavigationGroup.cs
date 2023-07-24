@@ -30,5 +30,12 @@ namespace YARG.Menu
                 navigatable.Selected = false;
             }
         }
+
+        public void SelectFirst()
+        {
+            if (_navigatables.Count < 1) return;
+
+            _navigatables[0].Selected = true;
+        }
     }
 }

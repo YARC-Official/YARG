@@ -1,6 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
 using YARG.Core;
+using YARG.Menu.EditProfile;
 
 namespace YARG.Menu.Profiles
 {
@@ -56,6 +57,12 @@ namespace YARG.Menu.Profiles
                 _profileName.text = _profile.Name;
                 _profileView.Init(_profile, this);
             }
+        }
+
+        public void EditProfile()
+        {
+            MenuNavigator.Instance.PushMenu(MenuNavigator.Menu.EditProfile);
+            EditProfileMenu.CurrentProfile = _profile;
         }
     }
 }
