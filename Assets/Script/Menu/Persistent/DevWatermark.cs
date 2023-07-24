@@ -10,19 +10,19 @@ namespace YARG.Menu
 
         void Start()
         {
-            // check if Constants.VERSION_TAG ends with "b"
-            if (Constants.VERSION_TAG.beta)
+            // check if GlobalVariables.CurrentVersion ends with "b"
+            if (GlobalVariables.CurrentVersion.Beta)
             {
-                watermarkText.text = $"<b>YARG {Constants.VERSION_TAG}</b>  Developer Build";
+                watermarkText.text = $"<b>YARG {GlobalVariables.CurrentVersion}</b>  Developer Build";
                 watermarkText.gameObject.SetActive(true);
             }
             else
             {
-                this.gameObject.SetActive(false);
+                gameObject.SetActive(false);
             }
 
             // disable script
-            this.enabled = false;
+            enabled = false;
         }
     }
 }

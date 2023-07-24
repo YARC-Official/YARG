@@ -1,45 +1,45 @@
-namespace YARG.Data
+namespace YARG
 {
     public struct YargVersion
     {
-        public int version;
-        public int major;
-        public int minor;
-        public bool beta;
+        public int Major;
+        public int Minor;
+        public int Revision;
+        public bool Beta;
 
-        public YargVersion(int version, int major, int minor)
+        public YargVersion(int major, int minor, int revision)
         {
-            this.version = version;
-            this.major = major;
-            this.minor = minor;
-            beta = false;
+            Major = major;
+            Minor = minor;
+            Revision = revision;
+            Beta = false;
         }
 
-        public YargVersion(int version, int major, int minor, bool beta)
+        public YargVersion(int major, int minor, int revision, bool beta)
         {
-            this.version = version;
-            this.major = major;
-            this.minor = minor;
-            this.beta = beta;
+            Major = major;
+            Minor = minor;
+            Revision = revision;
+            Beta = beta;
         }
 
         public override string ToString()
         {
-            if (beta)
+            if (Beta)
             {
-                return $"v{version}.{major}.{minor}b";
+                return $"v{Major}.{Minor}.{Revision}b";
             }
             else
             {
-                return $"v{version}.{major}.{minor}";
+                return $"v{Major}.{Minor}.{Revision}";
             }
         }
 
-        public static YargVersion Parse(string version)
+        public static YargVersion Parse(string major)
         {
             try
             {
-                string[] split = version[1..].Split('.');
+                string[] split = major[1..].Split('.');
 
                 bool beta = false;
                 if (split[2].EndsWith("b"))
@@ -48,11 +48,11 @@ namespace YARG.Data
                     beta = true;
                 }
 
-                int versionNum = int.Parse(split[0]);
-                int majorNum = int.Parse(split[1]);
-                int minorNum = int.Parse(split[2]);
+                int majorNum = int.Parse(split[0]);
+                int minorNum = int.Parse(split[1]);
+                int revisionNum = int.Parse(split[2]);
 
-                return new YargVersion(versionNum, majorNum, minorNum, beta);
+                return new YargVersion(majorNum, minorNum, revisionNum, beta);
             }
             catch
             {
@@ -72,8 +72,8 @@ namespace YARG.Data
 
         public static bool operator ==(YargVersion a, YargVersion b)
         {
-            return a.version == b.version && a.major == b.major &&
-                a.minor == b.minor && a.beta == b.beta;
+            return a.Major == b.Major && a.Minor == b.Minor &&
+                a.Revision == b.Revision && a.Beta == b.Beta;
         }
 
         public static bool operator !=(YargVersion a, YargVersion b)
@@ -88,28 +88,28 @@ namespace YARG.Data
                 return false;
             }
 
-            if (a.version > b.version)
+            if (a.Major > b.Major)
             {
                 return true;
             }
 
-            if (a.version == b.version)
+            if (a.Major == b.Major)
             {
-                if (a.major > b.major)
+                if (a.Minor > b.Minor)
                 {
                     return true;
                 }
 
-                if (a.major == b.major)
+                if (a.Minor == b.Minor)
                 {
-                    if (a.minor > b.minor)
+                    if (a.Revision > b.Revision)
                     {
                         return true;
                     }
 
-                    if (a.minor == b.minor)
+                    if (a.Revision == b.Revision)
                     {
-                        if (!a.beta && b.beta)
+                        if (!a.Beta && b.Beta)
                         {
                             return true;
                         }

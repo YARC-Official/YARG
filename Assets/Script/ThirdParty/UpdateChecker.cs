@@ -65,7 +65,7 @@ namespace YARG
 
                     LatestVersion = YargVersion.Parse(releaseTag);
 
-                    if (Constants.VERSION_TAG < LatestVersion)
+                    if (GlobalVariables.CurrentVersion < LatestVersion)
                     {
                         IsOutOfDate = true;
 

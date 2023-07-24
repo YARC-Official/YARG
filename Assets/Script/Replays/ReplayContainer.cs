@@ -72,7 +72,7 @@ namespace YARG.Replays
                 Header = new ReplayHeader
                 {
                     // not good
-                    GameVersion = Constants.VERSION_TAG.version,
+                    GameVersion = GlobalVariables.CurrentVersion.Major,
                 },
                 SongName = song.Name,
                 ArtistName = song.Artist,

@@ -103,7 +103,7 @@ namespace YARG.Menu
         {
             if (str == String.Empty && !MusicPlayer.gameObject.activeInHierarchy)
             {
-                _infoText.text = Constants.VERSION_TAG.ToString();
+                _infoText.text = GlobalVariables.CurrentVersion.ToString();
             }
             else
             {

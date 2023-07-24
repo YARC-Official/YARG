@@ -25,6 +25,8 @@ namespace YARG
 
     public class GlobalVariables : MonoBehaviour
     {
+        public static readonly YargVersion CurrentVersion = YargVersion.Parse("v0.11.0");
+
         public static GlobalVariables Instance { get; private set; }
 
         public List<YargPlayer> Players { get; private set; }
@@ -47,7 +49,7 @@ namespace YARG
 
         private void Awake()
         {
-            Debug.Log($"YARG {Constants.VERSION_TAG}");
+            Debug.Log($"YARG {GlobalVariables.CurrentVersion}");
             Instance = this;
 
             YargTrace.AddListener(new YargUnityTraceListener());

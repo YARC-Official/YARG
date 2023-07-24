@@ -4,7 +4,7 @@ using System.Reflection;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-namespace TrombLoader.Helpers
+namespace YARG.Helpers
 {
     /// <summary>
     /// Utility class for loading Texture2D and Sprite objects.

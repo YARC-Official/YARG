@@ -34,7 +34,7 @@ namespace YARG.Menu
 
         private void Start()
         {
-            _versionText.text = Constants.VERSION_TAG.ToString();
+            _versionText.text = GlobalVariables.CurrentVersion.ToString();
         }
 
         private void OnEnable()

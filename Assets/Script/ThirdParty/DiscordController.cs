@@ -103,7 +103,7 @@ namespace YARG.ThirdParty
             Instance = this;
 
             // if it's a Nightly build, use the Nightly logo, otherwise use the Stable logo
-            if (Constants.VERSION_TAG.beta)
+            if (GlobalVariables.CurrentVersion.Beta)
             {
                 _defaultDetails = _nightlyDetails;
             }
