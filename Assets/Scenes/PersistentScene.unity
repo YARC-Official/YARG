@@ -4049,7 +4049,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 674775830}
-        m_TargetAssemblyTypeName: YARG.UI.MusicPlayer, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.MusicPlayer, Assembly-CSharp
         m_MethodName: SkipClick
         m_Mode: 1
         m_Arguments:
@@ -4621,7 +4621,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 674775830}
-        m_TargetAssemblyTypeName: YARG.UI.MusicPlayer, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.MusicPlayer, Assembly-CSharp
         m_MethodName: PlayOrPauseClick
         m_Mode: 1
         m_Arguments:

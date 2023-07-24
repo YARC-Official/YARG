@@ -1,19 +1,11 @@
 using System;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Globalization;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Text;
 using Cysharp.Threading.Tasks;
-using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.UI;
-using YARG.Audio;
 using YARG.Data;
-using YARG.Song;
-using YARG.UI.MusicLibrary.ViewTypes;
-using Random = UnityEngine.Random;
 
 namespace YARG.Song
 {
@@ -130,7 +122,8 @@ namespace YARG.Song
             return (true, SongContainer.Songs
                 .Select(i => new
                 {
-                    score = Search(arg, i), songInfo = i
+                    score = Search(arg, i),
+                    songInfo = i
                 })
                 .Where(i => i.score >= 0)
                 .OrderBy(i => i.score)

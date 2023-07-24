@@ -466,7 +466,7 @@ PrefabInstance:
     - target: {fileID: 8708184733134376299, guid: cccf866ef69cf784b989cd792919610b,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: YARG.UI.MainMenu, Assembly-CSharp
+      value: YARG.Menu.MainMenu, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 8708184733134376299, guid: cccf866ef69cf784b989cd792919610b,
         type: 3}
@@ -646,7 +646,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1164825760}
-        m_TargetAssemblyTypeName: YARG.UI.CreditCard, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.CreditCard, Assembly-CSharp
         m_MethodName: OpenSocial
         m_Mode: 5
         m_Arguments:
@@ -779,7 +779,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1164825760}
-        m_TargetAssemblyTypeName: YARG.UI.CreditCard, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.CreditCard, Assembly-CSharp
         m_MethodName: OpenSocial
         m_Mode: 5
         m_Arguments:
@@ -1204,7 +1204,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1014972175}
-        m_TargetAssemblyTypeName: YARG.UI.Socials, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.Socials, Assembly-CSharp
         m_MethodName: OpenDiscord
         m_Mode: 1
         m_Arguments:
@@ -1442,7 +1442,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1164825760}
-        m_TargetAssemblyTypeName: YARG.UI.CreditCard, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.CreditCard, Assembly-CSharp
         m_MethodName: OpenSocial
         m_Mode: 5
         m_Arguments:
@@ -1665,7 +1665,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1164825760}
-        m_TargetAssemblyTypeName: YARG.UI.CreditCard, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.CreditCard, Assembly-CSharp
         m_MethodName: OpenSocial
         m_Mode: 5
         m_Arguments:
@@ -2434,7 +2434,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1164825760}
-        m_TargetAssemblyTypeName: YARG.UI.CreditCard, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.CreditCard, Assembly-CSharp
         m_MethodName: OpenSocial
         m_Mode: 5
         m_Arguments:
@@ -3805,7 +3805,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1164825760}
-        m_TargetAssemblyTypeName: YARG.UI.CreditCard, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.CreditCard, Assembly-CSharp
         m_MethodName: OpenSocial
         m_Mode: 5
         m_Arguments:
@@ -5157,7 +5157,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 874813134}
-        m_TargetAssemblyTypeName: YARG.UI.MainMenu, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.MainMenu, Assembly-CSharp
         m_MethodName: ShowSongSelect
         m_Mode: 1
         m_Arguments:
@@ -6038,7 +6038,7 @@ PrefabInstance:
     - target: {fileID: 8708184733134376299, guid: cccf866ef69cf784b989cd792919610b,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: YARG.UI.MainMenu, Assembly-CSharp
+      value: YARG.Menu.MainMenu, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 8708184733134376299, guid: cccf866ef69cf784b989cd792919610b,
         type: 3}
@@ -6369,7 +6369,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1014972175}
-        m_TargetAssemblyTypeName: YARG.UI.Socials, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.Socials, Assembly-CSharp
         m_MethodName: OpenGithub
         m_Mode: 1
         m_Arguments:
@@ -6502,7 +6502,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1164825760}
-        m_TargetAssemblyTypeName: YARG.UI.CreditCard, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.CreditCard, Assembly-CSharp
         m_MethodName: OpenSocial
         m_Mode: 5
         m_Arguments:
@@ -8286,7 +8286,7 @@ PrefabInstance:
     - target: {fileID: 8708184733134376299, guid: cccf866ef69cf784b989cd792919610b,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
-      value: YARG.UI.MainMenu, Assembly-CSharp
+      value: YARG.Menu.MainMenu, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 8708184733134376299, guid: cccf866ef69cf784b989cd792919610b,
         type: 3}

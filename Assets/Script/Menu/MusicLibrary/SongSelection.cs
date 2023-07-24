@@ -1,26 +1,19 @@
-using System;
-using System.Text;
-using System.Globalization;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using YARG.Audio;
-using YARG.Data;
-using YARG.Song;
-using YARG.UI.MusicLibrary.ViewTypes;
-using Random = UnityEngine.Random;
-using System.Threading;
-using UnityEngine.Serialization;
-using YARG.Menu;
-using YARG.Player.Input;
 using YARG.Player.Navigation;
 using YARG.Settings;
+using YARG.Song;
 
-namespace YARG.UI.MusicLibrary
+using Random = UnityEngine.Random;
+
+namespace YARG.Menu.MusicLibrary
 {
     public class SongSelection : MonoBehaviour
     {
@@ -282,7 +275,7 @@ namespace YARG.UI.MusicLibrary
             {
                 "Search artist" => "Search source",
                 "Search source" => "Search artist",
-                _               => "Search artist"
+                _ => "Search artist"
             };
         }
 

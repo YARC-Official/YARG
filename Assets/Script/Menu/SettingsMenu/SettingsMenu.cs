@@ -7,12 +7,12 @@ using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
 using UnityEngine.UI;
 using YARG.Helpers.Extensions;
+using YARG.Menu.MusicLibrary;
 using YARG.Player.Navigation;
 using YARG.Settings;
 using YARG.Settings.Metadata;
 using YARG.Settings.Types;
 using YARG.Settings.Visuals;
-using YARG.UI.MusicLibrary;
 using YARG.Util;
 
 namespace YARG.Menu.Settings
@@ -302,7 +302,8 @@ namespace YARG.Menu.Settings
             // Set header text
             go.GetComponentInChildren<LocalizeStringEvent>().StringReference = new LocalizedString
             {
-                TableReference = "Settings", TableEntryReference = localizationKey
+                TableReference = "Settings",
+                TableEntryReference = localizationKey
             };
         }
 

@@ -6,7 +6,7 @@ using YARG.Core;
 using YARG.Data;
 using YARG.Song;
 
-namespace YARG.UI.MusicLibrary
+namespace YARG.Menu.MusicLibrary
 {
     public class DifficultyRing : MonoBehaviour
     {

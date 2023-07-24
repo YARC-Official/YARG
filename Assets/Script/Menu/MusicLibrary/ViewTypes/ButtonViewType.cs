@@ -1,10 +1,9 @@
 using System;
-using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
-namespace YARG.UI.MusicLibrary.ViewTypes
+namespace YARG.Menu.MusicLibrary
 {
     public class ButtonViewType : ViewType
     {

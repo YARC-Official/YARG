@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using YARG.Data;
 
-namespace YARG.UI
+namespace YARG.Menu
 {
     public class ScoreSection : MonoBehaviour
     {

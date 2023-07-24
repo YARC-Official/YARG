@@ -203,7 +203,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 6622513572522471069}
-        m_TargetAssemblyTypeName: YARG.UI.MusicLibrary.SongView, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.MusicLibrary.SongView, Assembly-CSharp
         m_MethodName: SecondaryTextClick
         m_Mode: 1
         m_Arguments:
@@ -419,7 +419,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 6622513572522471069}
-        m_TargetAssemblyTypeName: YARG.UI.MusicLibrary.SongView, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.MusicLibrary.SongView, Assembly-CSharp
         m_MethodName: SecondaryTextClick
         m_Mode: 1
         m_Arguments:
@@ -989,7 +989,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 6622513572522471069}
-        m_TargetAssemblyTypeName: YARG.UI.MusicLibrary.SongView, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.MusicLibrary.SongView, Assembly-CSharp
         m_MethodName: SecondaryTextClick
         m_Mode: 1
         m_Arguments:
@@ -1274,7 +1274,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 6622513572522471069}
-        m_TargetAssemblyTypeName: YARG.UI.MusicLibrary.SongView, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.MusicLibrary.SongView, Assembly-CSharp
         m_MethodName: IconClick
         m_Mode: 1
         m_Arguments:

@@ -4,7 +4,7 @@ using Newtonsoft.Json.Linq;
 using TMPro;
 using UnityEngine;
 
-namespace YARG.UI
+namespace YARG.Menu
 {
     public class CreditCard : MonoBehaviour
     {

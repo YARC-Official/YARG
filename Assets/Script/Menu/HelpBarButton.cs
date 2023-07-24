@@ -1,10 +1,9 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using YARG.Player.Input;
 using YARG.Player.Navigation;
 
-namespace YARG.UI
+namespace YARG.Menu
 {
     public class HelpBarButton : MonoBehaviour
     {

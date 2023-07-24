@@ -347,7 +347,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 5192951244311028893}
-        m_TargetAssemblyTypeName: YARG.UI.PlayerSection, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.PlayerSection, Assembly-CSharp
         m_MethodName: UpdateTrackSpeed
         m_Mode: 1
         m_Arguments:
@@ -697,7 +697,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 5192951244311028893}
-        m_TargetAssemblyTypeName: YARG.UI.PlayerSection, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.PlayerSection, Assembly-CSharp
         m_MethodName: DeletePlayer
         m_Mode: 1
         m_Arguments:
@@ -1159,7 +1159,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 5192951244311028893}
-        m_TargetAssemblyTypeName: YARG.UI.PlayerSection, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.PlayerSection, Assembly-CSharp
         m_MethodName: UpdateLeftyFlip
         m_Mode: 1
         m_Arguments:

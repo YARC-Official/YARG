@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace YARG.UI
+namespace YARG.Menu
 {
     public class GenericOption : MonoBehaviour
     {

@@ -289,7 +289,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls:
         - m_Target: {fileID: 3251447652236622835}
-          m_TargetAssemblyTypeName: YARG.UI.GenericOption, Assembly-CSharp
+          m_TargetAssemblyTypeName: YARG.Menu.GenericOption, Assembly-CSharp
           m_MethodName: MouseEnter
           m_Mode: 1
           m_Arguments:
@@ -305,7 +305,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls:
         - m_Target: {fileID: 3251447652236622835}
-          m_TargetAssemblyTypeName: YARG.UI.GenericOption, Assembly-CSharp
+          m_TargetAssemblyTypeName: YARG.Menu.GenericOption, Assembly-CSharp
           m_MethodName: MouseClick
           m_Mode: 1
           m_Arguments:

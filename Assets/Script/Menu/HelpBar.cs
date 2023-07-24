@@ -1,10 +1,9 @@
 using System;
 using TMPro;
 using UnityEngine;
-using YARG.Player.Input;
 using YARG.Player.Navigation;
 
-namespace YARG.UI
+namespace YARG.Menu
 {
     [DefaultExecutionOrder(-25)]
     public class HelpBar : MonoBehaviour

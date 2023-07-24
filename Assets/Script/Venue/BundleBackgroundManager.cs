@@ -2,8 +2,8 @@ using System;
 using System.IO;
 using UnityEngine;
 using YARG.Gameplay;
+using YARG.Menu;
 using YARG.PlayMode;
-using YARG.UI;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif

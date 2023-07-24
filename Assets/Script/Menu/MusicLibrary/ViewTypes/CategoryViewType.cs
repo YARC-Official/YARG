@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using YARG.Song;
 
-namespace YARG.UI.MusicLibrary.ViewTypes
+namespace YARG.Menu.MusicLibrary
 {
     public class CategoryViewType : ViewType
     {

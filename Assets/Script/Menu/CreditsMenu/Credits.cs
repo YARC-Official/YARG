@@ -6,11 +6,9 @@ using UnityEngine.EventSystems;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
 using UnityEngine.UI;
-using YARG.Menu;
-using YARG.Player.Input;
 using YARG.Player.Navigation;
 
-namespace YARG.UI
+namespace YARG.Menu
 {
     public class Credits : MonoBehaviour, IDragHandler, IScrollHandler
     {

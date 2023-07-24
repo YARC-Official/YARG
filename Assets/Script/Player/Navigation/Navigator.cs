@@ -4,7 +4,7 @@ using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Player.Input;
-using YARG.UI;
+using YARG.Menu;
 
 namespace YARG.Player.Navigation
 {

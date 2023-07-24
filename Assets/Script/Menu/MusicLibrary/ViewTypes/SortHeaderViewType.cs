@@ -1,9 +1,8 @@
-﻿using System;
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
-namespace YARG.UI.MusicLibrary.ViewTypes
+namespace YARG.Menu.MusicLibrary
 {
     public class SortHeaderViewType : ViewType
     {

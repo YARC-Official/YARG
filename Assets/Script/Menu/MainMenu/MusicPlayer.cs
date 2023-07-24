@@ -6,7 +6,7 @@ using YARG.Audio;
 using YARG.Settings;
 using YARG.Song;
 
-namespace YARG.UI
+namespace YARG.Menu
 {
     public class MusicPlayer : MonoBehaviour
     {

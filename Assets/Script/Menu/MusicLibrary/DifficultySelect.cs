@@ -8,12 +8,10 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Data;
-using YARG.Menu;
-using YARG.Player.Input;
 using YARG.Player.Navigation;
 using YARG.PlayMode;
 
-namespace YARG.UI
+namespace YARG.Menu
 {
     public class DifficultySelect : MonoBehaviour
     {

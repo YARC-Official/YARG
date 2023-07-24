@@ -1,11 +1,9 @@
 using System.IO;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json;
 using UnityEngine;
-using YARG.Data;
 using YARG.PlayMode;
 using YARG.Song;
-using YARG.UI;
-using Newtonsoft.Json;
 using YARG.Util;
 
 namespace YARG

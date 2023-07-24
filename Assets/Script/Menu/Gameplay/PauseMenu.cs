@@ -1,12 +1,10 @@
 using System;
 using UnityEngine;
 using YARG.Menu.Settings;
-using YARG.Player.Input;
 using YARG.Player.Navigation;
 using YARG.PlayMode;
-using YARG.Settings;
 
-namespace YARG.UI
+namespace YARG.Menu
 {
     public class PauseMenu : MonoBehaviour
     {

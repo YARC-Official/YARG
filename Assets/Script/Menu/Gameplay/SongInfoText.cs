@@ -5,7 +5,7 @@ using UnityEngine;
 using YARG.PlayMode;
 using YARG.Util;
 
-namespace YARG.UI
+namespace YARG.Menu
 {
     public class SongInfoText : MonoBehaviour
     {

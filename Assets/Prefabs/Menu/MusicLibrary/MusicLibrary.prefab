@@ -1012,7 +1012,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 4030813025219603277}
-        m_TargetAssemblyTypeName: YARG.UI.SongSelect, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.SongSelect, Assembly-CSharp
         m_MethodName: UpdateSearch
         m_Mode: 1
         m_Arguments:
@@ -1460,7 +1460,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 4030813025219603277}
-        m_TargetAssemblyTypeName: YARG.UI.SongSelect.SongSelection, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.SongSelect.SongSelection, Assembly-CSharp
         m_MethodName: OnScrollBarChange
         m_Mode: 1
         m_Arguments:
@@ -2015,7 +2015,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 5958352451011471034}
-        m_TargetAssemblyTypeName: YARG.UI.MusicLibrary.Sidebar, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.MusicLibrary.Sidebar, Assembly-CSharp
         m_MethodName: SearchFilter
         m_Mode: 5
         m_Arguments:
@@ -2266,7 +2266,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: YARG.UI.MusicLibrary.SelectedSongView, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.MusicLibrary.SelectedSongView, Assembly-CSharp
         m_MethodName: SearchFilter
         m_Mode: 5
         m_Arguments:
@@ -2459,7 +2459,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: YARG.UI.MusicLibrary.SelectedSongView, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.MusicLibrary.SelectedSongView, Assembly-CSharp
         m_MethodName: SearchFilter
         m_Mode: 5
         m_Arguments:
@@ -2725,7 +2725,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: YARG.UI.MusicLibrary.SelectedSongView, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.MusicLibrary.SelectedSongView, Assembly-CSharp
         m_MethodName: SearchFilter
         m_Mode: 5
         m_Arguments:
@@ -2996,7 +2996,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 5958352451011471034}
-        m_TargetAssemblyTypeName: YARG.UI.MusicLibrary.Sidebar, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.MusicLibrary.Sidebar, Assembly-CSharp
         m_MethodName: SearchFilter
         m_Mode: 5
         m_Arguments:
@@ -3189,7 +3189,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 5958352451011471034}
-        m_TargetAssemblyTypeName: YARG.UI.MusicLibrary.Sidebar, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.MusicLibrary.Sidebar, Assembly-CSharp
         m_MethodName: SearchFilter
         m_Mode: 5
         m_Arguments:
@@ -3449,7 +3449,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 5958352451011471034}
-        m_TargetAssemblyTypeName: YARG.UI.MusicLibrary.Sidebar, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.MusicLibrary.Sidebar, Assembly-CSharp
         m_MethodName: SearchFilter
         m_Mode: 5
         m_Arguments:
@@ -3642,7 +3642,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: YARG.UI.MusicLibrary.SelectedSongView, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.MusicLibrary.SelectedSongView, Assembly-CSharp
         m_MethodName: SearchFilter
         m_Mode: 5
         m_Arguments:
@@ -4250,7 +4250,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 5958352451011471034}
-        m_TargetAssemblyTypeName: YARG.UI.MusicLibrary.Sidebar, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.MusicLibrary.Sidebar, Assembly-CSharp
         m_MethodName: SearchFilter
         m_Mode: 5
         m_Arguments:
@@ -4559,7 +4559,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: YARG.UI.MusicLibrary.SelectedSongView, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.MusicLibrary.SelectedSongView, Assembly-CSharp
         m_MethodName: SearchFilter
         m_Mode: 5
         m_Arguments:
@@ -4694,7 +4694,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 5958352451011471034}
-        m_TargetAssemblyTypeName: YARG.UI.MusicLibrary.Sidebar, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.MusicLibrary.Sidebar, Assembly-CSharp
         m_MethodName: PrimaryButtonClick
         m_Mode: 1
         m_Arguments:
@@ -5190,7 +5190,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 4030813025219603277}
-        m_TargetAssemblyTypeName: YARG.UI.MusicLibrary.SongSelection, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.MusicLibrary.SongSelection, Assembly-CSharp
         m_MethodName: Back
         m_Mode: 1
         m_Arguments:
@@ -5459,7 +5459,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 4030813025219603277}
-        m_TargetAssemblyTypeName: YARG.UI.MusicLibrary.SongSelection, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.MusicLibrary.SongSelection, Assembly-CSharp
         m_MethodName: SetAsTestPlaySong
         m_Mode: 1
         m_Arguments:

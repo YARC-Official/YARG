@@ -1,8 +1,7 @@
-using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-namespace YARG.UI.MusicLibrary.ViewTypes
+namespace YARG.Menu.MusicLibrary
 {
     public abstract class ViewType
     {

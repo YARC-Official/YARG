@@ -222,7 +222,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 2066481331629264645}
-        m_TargetAssemblyTypeName: YARG.UI.HelpBarButton, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.HelpBarButton, Assembly-CSharp
         m_MethodName: OnClick
         m_Mode: 1
         m_Arguments:

@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.UI;
 
-namespace YARG.UI
+namespace YARG.Menu
 {
     public class FpsCounter : MonoBehaviour
     {

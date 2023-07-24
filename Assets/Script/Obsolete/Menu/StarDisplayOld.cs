@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Unity.Mathematics;
 
-namespace YARG.UI
+namespace YARG.Menu
 {
     public enum StarType
     {

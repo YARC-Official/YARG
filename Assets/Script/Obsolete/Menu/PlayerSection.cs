@@ -3,9 +3,8 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
-using YARG.Player.Input;
 
-namespace YARG.UI
+namespace YARG.Menu
 {
     public class PlayerSection : MonoBehaviour
     {

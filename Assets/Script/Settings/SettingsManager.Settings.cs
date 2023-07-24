@@ -5,7 +5,7 @@ using YARG.Audio;
 using YARG.Menu.Settings;
 using YARG.PlayMode;
 using YARG.Settings.Types;
-using YARG.UI;
+using YARG.Menu;
 using YARG.Util;
 using YARG.Song;
 using YARG.Venue;

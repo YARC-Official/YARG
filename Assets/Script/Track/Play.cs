@@ -18,7 +18,7 @@ using YARG.Player.Navigation;
 using YARG.Serialization.Parser;
 using YARG.Settings;
 using YARG.Song;
-using YARG.UI;
+using YARG.Menu;
 using YARG.Venue;
 
 namespace YARG.PlayMode

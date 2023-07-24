@@ -4,9 +4,8 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using YARG.UI.MusicLibrary.ViewTypes;
 
-namespace YARG.UI.MusicLibrary
+namespace YARG.Menu.MusicLibrary
 {
     public class SongView : MonoBehaviour
     {

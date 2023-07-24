@@ -4,10 +4,9 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
-using YARG.Player.Input;
 using YARG.Player.Navigation;
 
-namespace YARG.UI.PlayResultScreen
+namespace YARG.Menu.PlayResultScreen
 {
     // TODO: move into more appropriate spot?
     public enum ClearStatus

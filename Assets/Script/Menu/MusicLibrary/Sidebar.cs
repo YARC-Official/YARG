@@ -5,16 +5,13 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Networking;
 using UnityEngine.UI;
-using XboxSTFS;
 using YARG.Core;
 using YARG.Serialization;
 using YARG.Song;
-using YARG.UI.MusicLibrary.ViewTypes;
 using YARG.Util;
 
-namespace YARG.UI.MusicLibrary
+namespace YARG.Menu.MusicLibrary
 {
     public class Sidebar : MonoBehaviour
     {

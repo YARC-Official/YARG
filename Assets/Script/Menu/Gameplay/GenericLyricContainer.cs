@@ -1,13 +1,11 @@
 ﻿using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using YARG.Core;
 using YARG.Core.Chart;
 using YARG.PlayMode;
 using YARG.Settings;
-using YARG.Song;
 
-namespace YARG.UI
+namespace YARG.Menu
 {
     public class GenericLyricContainer : MonoBehaviour
     {

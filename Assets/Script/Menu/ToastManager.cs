@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
-namespace YARG.UI
+namespace YARG.Menu
 {
     public class ToastManager : MonoBehaviour
     {
