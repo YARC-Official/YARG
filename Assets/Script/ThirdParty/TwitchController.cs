@@ -14,7 +14,7 @@ namespace YARG
 
         public static TwitchController Instance { get; private set; }
 
-        // Creates .TXT file witth current song information
+        // Creates .TXT file with current song information
         public string TextFilePath => Path.Combine(PathHelper.PersistentDataPath, "currentSong.txt");
 
         // Creates .JSON file with current song information

@@ -135,7 +135,8 @@ namespace YARG.Song
         private const string SOURCE_COMMIT_URL =
             "https://api.github.com/repos/YARC-Official/OpenSource/commits?per_page=1";
 
-        private const string RAW_ICON_URL = "https://raw.githubusercontent.com/YARC-Official/OpenSource/master/";
+        private const string RAW_ICON_URL =
+            "https://raw.githubusercontent.com/YARC-Official/OpenSource/master/";
 
         public const string SOURCE_ZIP_URL =
             "https://github.com/YARC-Official/OpenSource/archive/refs/heads/master.zip";

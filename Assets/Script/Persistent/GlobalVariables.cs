@@ -49,7 +49,7 @@ namespace YARG
 
         private void Awake()
         {
-            Debug.Log($"YARG {GlobalVariables.CurrentVersion}");
+            Debug.Log($"YARG {CurrentVersion}");
             Instance = this;
 
             YargTrace.AddListener(new YargUnityTraceListener());
