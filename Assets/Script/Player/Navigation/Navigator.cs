@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Player.Input;
 using YARG.Menu;
@@ -72,7 +71,7 @@ namespace YARG.Player.Navigation
         private void Awake()
         {
             Instance = this;
-            UpdateHelpBar().Forget();
+            UpdateHelpBar();
         }
 
         private void Update()
@@ -146,19 +145,19 @@ namespace YARG.Player.Navigation
         public void PushScheme(NavigationScheme scheme)
         {
             _schemeStack.Push(scheme);
-            UpdateHelpBar().Forget();
+            UpdateHelpBar();
         }
 
         public void PopScheme()
         {
             _schemeStack.Pop();
-            UpdateHelpBar().Forget();
+            UpdateHelpBar();
         }
 
         public void PopAllSchemes()
         {
             _schemeStack.Clear();
-            UpdateHelpBar().Forget();
+            UpdateHelpBar();
         }
 
         public void ForceHideMusicPlayer()
@@ -166,11 +165,8 @@ namespace YARG.Player.Navigation
             HelpBar.Instance.MusicPlayer.gameObject.SetActive(false);
         }
 
-        private async UniTask UpdateHelpBar()
+        private void UpdateHelpBar()
         {
-            // Wait one frame to update, in case another one gets pushed
-            await UniTask.WaitForEndOfFrame(this);
-
             if (_schemeStack.Count <= 0)
             {
                 HelpBar.Instance.gameObject.SetActive(false);
