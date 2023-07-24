@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using YARG.Core;
 using YARG.Player.Navigation;
 
 namespace YARG.Menu
@@ -27,16 +29,35 @@ namespace YARG.Menu
         [SerializeField]
         private Color[] _menuActionColors;
 
+        private readonly List<HelpBarButton> _buttons = new();
+
         private void Awake()
         {
             Instance = this;
+            // Cache help bar buttons
+            foreach (var _ in EnumExtensions<MenuAction>.Values)
+            {
+                var buttonObj = Instantiate(_buttonPrefab, _buttonContainer);
+                var button = buttonObj.GetComponent<HelpBarButton>();
+                _buttons.Add(button);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            Instance = null;
+            foreach (Transform button in _buttonContainer)
+            {
+                Destroy(button.gameObject);
+            }
+            _buttons.Clear();
         }
 
         private void ResetHelpbar()
         {
-            foreach (Transform button in _buttonContainer)
+            foreach (var button in _buttons)
             {
-                Destroy(button.gameObject);
+                button.gameObject.SetActive(false);
             }
 
             _infoText.text = null;
@@ -56,20 +77,26 @@ namespace YARG.Menu
                 MusicPlayer.gameObject.SetActive(false);
             }
 
-            // Spawn all buttons
+            // Update buttons
+            int buttonIndex = 0;
             foreach (var entry in scheme.Entries)
             {
-                // Don't make buttons for up and down
-                if (entry.Type == MenuAction.Up || entry.Type == MenuAction.Down)
+                if (buttonIndex >= _buttons.Count)
                 {
-                    continue;
+                    Debug.LogWarning("Too many actions in navigation scheme! Some actions will be ignored and unavailable.");
+                    break;
                 }
 
-                var go = Instantiate(_buttonPrefab, _buttonContainer);
-                go.GetComponent<HelpBarButton>().SetInfoFromSchemeEntry(entry, _menuActionColors[(int) entry.Type]);
+                // Don't make buttons for up and down
+                if (entry.Type == MenuAction.Up || entry.Type == MenuAction.Down)
+                    continue;
+
+                var button = _buttons[buttonIndex];
+                button.gameObject.SetActive(true);
+                button.SetInfoFromSchemeEntry(entry, _menuActionColors[(int) entry.Type]);
             }
 
-            SetInfoText(String.Empty);
+            SetInfoText(string.Empty);
         }
 
         public void SetInfoText(string str)
