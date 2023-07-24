@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using YARG.Player.Navigation;
+using YARG.Menu.Navigation;
 
 namespace YARG.Menu
 {

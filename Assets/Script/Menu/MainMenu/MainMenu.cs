@@ -6,7 +6,7 @@ using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Menu.Settings;
 using YARG.Player.Input;
-using YARG.Player.Navigation;
+using YARG.Menu.Navigation;
 using YARG.Settings;
 using YARG.Song;
 

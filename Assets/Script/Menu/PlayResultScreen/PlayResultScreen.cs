@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Data;
 using YARG.Helpers.Extensions;
-using YARG.Player.Navigation;
+using YARG.Menu.Navigation;
 using YARG.PlayMode;
 
 namespace YARG.Menu.PlayResultScreen

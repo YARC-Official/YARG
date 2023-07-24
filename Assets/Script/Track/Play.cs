@@ -14,7 +14,7 @@ using UnityEngine.UI;
 using YARG.Audio;
 using YARG.Data;
 using YARG.Gameplay;
-using YARG.Player.Navigation;
+using YARG.Menu.Navigation;
 using YARG.Serialization.Parser;
 using YARG.Settings;
 using YARG.Song;

@@ -8,7 +8,7 @@ using UnityEngine.Localization.Components;
 using UnityEngine.UI;
 using YARG.Helpers.Extensions;
 using YARG.Menu.MusicLibrary;
-using YARG.Player.Navigation;
+using YARG.Menu.Navigation;
 using YARG.Settings;
 using YARG.Settings.Metadata;
 using YARG.Settings.Types;

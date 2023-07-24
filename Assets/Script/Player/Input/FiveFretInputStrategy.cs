@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core;
-using YARG.Player.Navigation;
+using YARG.Menu.Navigation;
 using YARG.PlayMode;
 
 namespace YARG.Player.Input

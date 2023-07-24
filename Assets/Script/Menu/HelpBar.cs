@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using YARG.Core;
-using YARG.Player.Navigation;
+using YARG.Menu.Navigation;
 
 namespace YARG.Menu
 {

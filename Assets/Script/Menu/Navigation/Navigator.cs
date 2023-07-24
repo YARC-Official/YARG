@@ -5,7 +5,7 @@ using UnityEngine;
 using YARG.Player.Input;
 using YARG.Menu;
 
-namespace YARG.Player.Navigation
+namespace YARG.Menu.Navigation
 {
     public enum MenuAction
     {

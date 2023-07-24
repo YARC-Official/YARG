@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 using YARG.Menu.Settings;
-using YARG.Player.Navigation;
+using YARG.Menu.Navigation;
 using YARG.PlayMode;
 
 namespace YARG.Menu

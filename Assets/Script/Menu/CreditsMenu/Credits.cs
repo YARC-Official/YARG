@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
 using UnityEngine.UI;
-using YARG.Player.Navigation;
+using YARG.Menu.Navigation;
 
 namespace YARG.Menu
 {

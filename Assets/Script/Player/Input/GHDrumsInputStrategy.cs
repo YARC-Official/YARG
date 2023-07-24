@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using YARG.Core;
-using YARG.Player.Navigation;
+using YARG.Menu.Navigation;
 using YARG.PlayMode;
 using YARG.Settings;
 

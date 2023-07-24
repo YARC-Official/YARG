@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using YARG.Audio;
-using YARG.Player.Navigation;
+using YARG.Menu.Navigation;
 using YARG.Settings;
 using YARG.Song;
 

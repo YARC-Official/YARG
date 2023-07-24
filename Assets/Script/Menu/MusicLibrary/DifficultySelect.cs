@@ -8,7 +8,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Data;
-using YARG.Player.Navigation;
+using YARG.Menu.Navigation;
 using YARG.PlayMode;
 
 namespace YARG.Menu
