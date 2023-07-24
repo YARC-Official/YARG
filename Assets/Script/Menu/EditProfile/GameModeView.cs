@@ -13,11 +13,13 @@ namespace YARG.Menu.EditProfile
         [SerializeField]
         private TextMeshProUGUI _gameModeName;
 
+        private EditProfileMenu _editProfileMenu;
         private GameMode _gameMode;
 
-        public void Init(GameMode gameMode)
+        public void Init(GameMode gameMode, EditProfileMenu editProfileMenu)
         {
             _gameMode = gameMode;
+            _editProfileMenu = editProfileMenu;
 
             _gameModeName.text = gameMode.ToString();
         }
@@ -25,6 +27,7 @@ namespace YARG.Menu.EditProfile
         protected override void OnSelectionChanged(bool selected)
         {
             _selectionBackground.SetActive(selected);
+            _editProfileMenu.RefreshBindings(_gameMode);
         }
     }
 }
