@@ -97,19 +97,19 @@ namespace YARG.Input
                 switch (button.name)
                 {
                     case "greenFret":
-                        action = GuitarAction.Green;
+                        action = GuitarAction.GreenFret;
                         break;
                     case "redFret":
-                        action = GuitarAction.Red;
+                        action = GuitarAction.RedFret;
                         break;
                     case "yellowFret":
-                        action = GuitarAction.Yellow;
+                        action = GuitarAction.YellowFret;
                         break;
                     case "blueFret":
-                        action = GuitarAction.Blue;
+                        action = GuitarAction.BlueFret;
                         break;
                     case "orangeFret":
-                        action = GuitarAction.Orange;
+                        action = GuitarAction.OrangeFret;
                         break;
                     case "strumDown":
                         action = GuitarAction.StrumDown;

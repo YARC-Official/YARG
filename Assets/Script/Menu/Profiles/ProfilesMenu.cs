@@ -63,7 +63,7 @@ namespace YARG.Menu.Profiles
                 Name = "New Profile",
                 NoteSpeed = 5,
                 HighwayLength = 1,
-                InstrumentType = GameMode.FiveFretGuitar,
+                GameMode = GameMode.FiveFretGuitar,
             });
 
             RefreshList();

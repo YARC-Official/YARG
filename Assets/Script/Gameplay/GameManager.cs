@@ -152,7 +152,7 @@ namespace YARG.Gameplay
             foreach (var player in PlayerContainer.Players)
             {
                 count++;
-                var prefab = player.Profile.InstrumentType switch
+                var prefab = player.Profile.GameMode switch
                 {
                     GameMode.FiveFretGuitar => fiveFretGuitarPrefab,
                     GameMode.SixFretGuitar  => sixFretGuitarPrefab,
@@ -189,7 +189,7 @@ namespace YARG.Gameplay
             var difficulty = profile.Difficulty;
             // int vocalsPart = profile.VocalsPart;
 
-            switch (profile.InstrumentType)
+            switch (profile.GameMode)
             {
                 case GameMode.FiveFretGuitar:
                 {

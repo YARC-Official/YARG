@@ -10,7 +10,7 @@ namespace YARG.Input
 
         private readonly Dictionary<InputControl, MenuAction>   _menuBinds;
         private readonly Dictionary<InputControl, GuitarAction> _guitarBinds;
-        private readonly Dictionary<InputControl, DrumAction>   _drumBinds;
+        private readonly Dictionary<InputControl, DrumsAction>  _drumBinds;
 
         public bool IsEmpty => _menuBinds.Count == 0 && _guitarBinds.Count == 0 && _drumBinds.Count == 0;
 
@@ -23,7 +23,7 @@ namespace YARG.Input
         {
             _menuBinds = new Dictionary<InputControl, MenuAction>();
             _guitarBinds = new Dictionary<InputControl, GuitarAction>();
-            _drumBinds = new Dictionary<InputControl, DrumAction>();
+            _drumBinds = new Dictionary<InputControl, DrumsAction>();
         }
 
         public bool ContainsControl(InputControl control)
