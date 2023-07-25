@@ -99,7 +99,7 @@ namespace YARG.Settings
 
             public void OpenSongFolderManager()
             {
-                SettingsMenu.Instance.CurrentTab = "_SongFolderManager";
+                SettingsMenu.Instance.CurrentTab = SONG_FOLDER_MANAGER_TAB;
             }
 
             public void OpenVenueFolder()

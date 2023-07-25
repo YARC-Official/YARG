@@ -136,7 +136,7 @@ namespace YARG.Menu.Settings
 
         public void UpdateSettingsForTab()
         {
-            if (CurrentTab == "_SongFolderManager")
+            if (CurrentTab == SettingsManager.SONG_FOLDER_MANAGER_TAB)
             {
                 UpdateSongFolderManager();
 
@@ -376,7 +376,7 @@ namespace YARG.Menu.Settings
             }
 
             // Nothing in the song folder manager we can update
-            if (CurrentTab == "_SongFolderManager")
+            if (CurrentTab == SettingsManager.SONG_FOLDER_MANAGER_TAB)
             {
                 return;
             }

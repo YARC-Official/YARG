@@ -38,6 +38,8 @@ namespace YARG.Settings
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
 
+        public const string SONG_FOLDER_MANAGER_TAB = "_SongFolderManager";
+
         public static SettingContainer Settings { get; private set; }
 
         public static readonly List<Tab> SettingsTabs = new()
