@@ -111,7 +111,7 @@ namespace YARG.Venue
             List<string> filePaths = new();
             foreach (string ext in VALID_EXTENSIONS)
             {
-                foreach (var file in Directory.GetFiles(VenueFolder, ext))
+                foreach (var file in Directory.EnumerateFiles(VenueFolder, ext, PathHelper.SafeSearchOptions))
                 {
                     filePaths.Add(file);
                 }

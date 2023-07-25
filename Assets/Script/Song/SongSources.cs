@@ -248,7 +248,7 @@ namespace YARG.Song
                 }
 
                 // Delete the random files
-                foreach (var file in Directory.GetFiles(repoDir))
+                foreach (var file in Directory.EnumerateFiles(repoDir))
                 {
                     File.Delete(file);
                 }

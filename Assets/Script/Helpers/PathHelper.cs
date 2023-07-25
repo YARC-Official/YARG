@@ -37,6 +37,16 @@ namespace YARG.Util
         /// </summary>
         public static string SetlistPath { get; private set; }
 
+        /// <summary>
+        /// Safe options to use when enumerating files or directories.
+        /// </summary>
+        public static EnumerationOptions SafeSearchOptions { get; } = new()
+        {
+            RecurseSubdirectories = true,
+            ReturnSpecialDirectories = false,
+            IgnoreInaccessible = true,
+        };
+
         public static void Init()
         {
             // Save this data as Application.* is main thread only (why Unity)
@@ -66,6 +76,94 @@ namespace YARG.Util
                 {
                     Debug.LogWarning("Failed to load setlist path. Is it installed?");
                     Debug.LogException(e);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Safely enumerates a directory for files using the given processing delegate.
+        /// </summary>
+        /// <param name="path">
+        /// The path to enumerate files from.
+        /// </param>
+        /// <param name="processFile">
+        /// The action used to process the enumerated files. Return false to stop enumeration, true to continue.
+        /// </param>
+        public static void SafeEnumerateFiles(string path, Func<string, bool> processFile)
+        {
+            SafeEnumerateFiles(path, "*", processFile);
+        }
+
+        /// <summary>
+        /// Safely enumerates a directory for files using the given processing delegate.
+        /// </summary>
+        /// <param name="path">
+        /// The path to enumerate files from.
+        /// </param>
+        /// <param name="searchPattern">
+        /// The search pattern to use in the enumeration.
+        /// </param>
+        /// <param name="processFile">
+        /// The action used to process the enumerated files. Return false to stop enumeration, true to continue.
+        /// </param>
+        public static void SafeEnumerateFiles(string path, string searchPattern, Func<string, bool> processFile)
+        {
+            foreach (var file in Directory.EnumerateFiles(path, searchPattern, SafeSearchOptions))
+            {
+                try
+                {
+                    if (!processFile(file))
+                        return;
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"Error while enumerating {path}! Current file: {file}");
+                    Debug.LogException(ex);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Safely enumerates a directory for files using the given processing delegate.
+        /// </summary>
+        /// <param name="path">
+        /// The path to enumerate files from.
+        /// </param>
+        /// <param name="processDirectory">
+        /// The action used to process the enumerated directories.
+        /// Return false to stop enumeration, true to continue.
+        /// </param>
+        public static void SafeEnumerateDirectories(string path, Func<string, bool> processDirectory)
+        {
+            SafeEnumerateDirectories(path, "*", processDirectory);
+        }
+
+        /// <summary>
+        /// Safely enumerates a directory for other directories using the given processing delegate.
+        /// </summary>
+        /// <param name="path">
+        /// The path to enumerate directories from.
+        /// </param>
+        /// <param name="searchPattern">
+        /// The search pattern to use in the enumeration.
+        /// </param>
+        /// <param name="processDirectory">
+        /// The action used to process the enumerated directories.
+        /// Return false to stop enumeration, true to continue.
+        /// </param>
+        public static void SafeEnumerateDirectories(string path, string searchPattern, Func<string, bool> processDirectory)
+        {
+            foreach (var directory in Directory.EnumerateDirectories(path, searchPattern, SafeSearchOptions))
+            {
+                try
+                {
+                    if (!processDirectory(directory))
+                        return;
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"Error while enumerating {path}! Current directory: {directory}");
+                    Debug.LogException(ex);
                 }
             }
         }

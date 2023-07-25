@@ -104,7 +104,7 @@ namespace Editor
 
         private static void CopyBuildOutput(string buildOutput, string destination, string[] existingReferences)
         {
-            foreach (var path in Directory.GetFiles(buildOutput, "*.dll"))
+            foreach (var path in Directory.EnumerateFiles(buildOutput, "*.dll"))
             {
                 // Check if the .dll already exists as a reference
                 string name = Path.GetFileNameWithoutExtension(path);
@@ -130,24 +130,6 @@ namespace Editor
                 }
             }
             Debug.Log($"Copied files to {destination}");
-        }
-
-        private static void GetAllFiles(string directory, List<string> outputFiles)
-        {
-            // Get all files in folder
-            foreach (var path in Directory.GetFiles(directory))
-            {
-                if (Path.GetExtension(path) == ".cs")
-                {
-                    outputFiles.Add(path);
-                }
-            }
-
-            // Recursively call for all folders in that directory
-            foreach (var path in Directory.GetDirectories(directory))
-            {
-                GetAllFiles(path, outputFiles);
-            }
         }
 
         private static string[] RestorePackages(string projectFilePath)

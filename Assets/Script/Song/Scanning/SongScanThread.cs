@@ -4,13 +4,14 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
-using UnityEngine;
+using DtxCS;
 using DtxCS.DataTypes;
+using UnityEngine;
 using XboxSTFS;
 using YARG.Audio;
 using YARG.Core.Chart;
 using YARG.Serialization;
-using DtxCS;
+using YARG.Util;
 
 namespace YARG.Song
 {
@@ -185,7 +186,7 @@ namespace YARG.Song
                 {
                     _upgradeFolderPath = upgradePath;
                     Debug.Log($"Song upgrades found at {_upgradeFolderPath}");
-                    _songUpgradeDict = XboxSongUpgradeBrowser.FetchSongUpgrades(_upgradeFolderPath, ref _conFiles);
+                    _songUpgradeDict = XboxSongUpgradeBrowser.FetchSongUpgrades(_upgradeFolderPath, _conFiles);
                     Debug.Log($"Total count of song upgrades found: {_songUpgradeDict.Count}");
                 }
             }
@@ -236,55 +237,49 @@ namespace YARG.Song
             }
 
             // Iterate through the files in this current directory to look for CON files
-            try
+            PathHelper.SafeEnumerateFiles(subDir, (file) =>
             {
-                // try-catch to prevent crash if user doesn't have permission to access a folder
-                foreach (var file in Directory.EnumerateFiles(subDir))
+                var conFile = XboxSTFSFile.LoadCON(file);
+                if (conFile == null) return true;
+
+                dtaTree = BrowseCON(conFile);
+                if (dtaTree == null) return true;
+
+                bool addConFile = false;
+                for (int i = 0; i < dtaTree.Count; i++)
                 {
-                    XboxSTFSFile conFile = XboxSTFSFile.LoadCON(file);
-                    if (conFile == null) continue;
-
-                    dtaTree = BrowseCON(conFile);
-                    if (dtaTree == null) continue;
-
-                    bool addConFile = false;
-                    for (int i = 0; i < dtaTree.Count; i++)
+                    try
                     {
-                        try
+                        var currentArray = (DataArray) dtaTree[i];
+                        var currentSong = new ConSongEntry(conFile, currentArray);
+                        var updateValue = UpdateAndUpgradeCon(currentSong);
+                        if (ValidateConEntry(cacheFolder, subDir, currentSong, currentArray, updateValue))
                         {
-                            var currentArray = (DataArray) dtaTree[i];
-                            ConSongEntry currentSong = new(conFile, currentArray);
-                            var updateValue = UpdateAndUpgradeCon(currentSong);
-                            if (ValidateConEntry(cacheFolder, subDir, currentSong, currentArray, updateValue))
-                            {
-                                songs.Add(currentSong);
-                                addConFile = true;
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            Debug.LogError($"Failed to load song, skipping...");
-                            Debug.LogException(e);
+                            songs.Add(currentSong);
+                            addConFile = true;
                         }
                     }
-
-                    if (addConFile) _conFiles.Add(conFile);
-                }
-
-                string[] subdirectories = Directory.GetDirectories(subDir);
-                foreach (string subdirectory in subdirectories)
-                {
-                    if (subdirectory != _updateFolderPath && subdirectory != _upgradeFolderPath)
+                    catch (Exception e)
                     {
-                        ScanSubDirectory(cacheFolder, subdirectory, songs);
+                        Debug.LogError($"Failed to load song, skipping...");
+                        Debug.LogException(e);
                     }
                 }
-            }
-            catch (Exception e)
+
+                if (addConFile) _conFiles.Add(conFile);
+
+                return true;
+            });
+
+            PathHelper.SafeEnumerateDirectories(subDir, (directory) =>
             {
-                Debug.LogError($"Failed to check {subDir} for CON files!");
-                Debug.LogException(e);
-            }
+                if (directory != _updateFolderPath && directory != _upgradeFolderPath)
+                {
+                    ScanSubDirectory(cacheFolder, directory, songs);
+                }
+
+                return true;
+            });
         }
 
         private DataArray BrowseFolderForExCon(string songsFolder, string songsUpgradesFolder)
