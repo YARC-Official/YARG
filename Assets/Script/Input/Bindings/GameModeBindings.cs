@@ -1,95 +1,79 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 
 namespace YARG.Input
 {
-    public class GameModeBindings
+    public class GameModeBindings : IEnumerable<ControlBinding>
     {
-        private readonly Dictionary<InputControl, ControlBinding> _bindings = new();
-        private readonly List<ControlBinding> _uniqueBindings = new();
+        private readonly List<ControlBinding> _bindings = new();
 
         public event GameInputProcessed InputProcessed
         {
             add
             {
-                foreach (var binding in _uniqueBindings)
+                foreach (var binding in _bindings)
                 {
                     binding.InputProcessed += value;
                 }
             }
             remove
             {
-                foreach (var binding in _uniqueBindings)
+                foreach (var binding in _bindings)
                 {
                     binding.InputProcessed -= value;
                 }
             }
         }
 
-        public InputDevice Device { get; }
-
-        public GameModeBindings(InputDevice device)
+        public ControlBinding TryGetBindingByName(string name)
         {
-            Device = device;
+            foreach (var binding in _bindings)
+            {
+                if (binding.Name == name)
+                    return binding;
+            }
+
+            return null;
         }
 
-        public bool AddBinding(InputControl control, ControlBinding binding)
+        public ControlBinding TryGetBindingByAction(int action)
         {
-            // Don't add the control if it's already assigned
-            if (_bindings.ContainsKey(control))
-                return false;
+            foreach (var binding in _bindings)
+            {
+                if (binding.Action == action)
+                    return binding;
+            }
 
-            _bindings.Add(control, binding);
-
-            // Keep track of all unique bindings that have been added
-            // Multiple controls can be assigned to the same binding
-            if (!_uniqueBindings.Contains(binding))
-                _uniqueBindings.Add(binding);
-
-            return true;
-        }
-
-        public void AddOrReplaceBinding(InputControl control, ControlBinding binding)
-        {
-            RemoveBinding(control);
-            AddBinding(control, binding);
+            return null;
         }
 
         public bool ContainsControl(InputControl control)
         {
-            return _bindings.ContainsKey(control);
-        }
+            foreach (var binding in _bindings)
+            {
+                if (binding.ContainsControl(control))
+                    return true;
+            }
 
-        public bool ContainsBinding(ControlBinding binding)
-        {
-            return _bindings.ContainsValue(binding);
-        }
-
-        public ControlBinding TryGetBinding(InputControl control)
-        {
-            return _bindings.TryGetValue(control, out var binding) ? binding : null;
-        }
-
-        public bool RemoveBinding(InputControl control)
-        {
-            // Get the old binding
-            if (!_bindings.Remove(control, out var oldBinding))
-                return false;
-
-            // Remove from unique binds if needed
-            if (!ContainsBinding(oldBinding))
-                _uniqueBindings.Remove(oldBinding);
-
-            return true;
+            return false;
         }
 
         public void ProcessInputEvent(InputEventPtr eventPtr)
         {
-            foreach (var binding in _uniqueBindings)
+            foreach (var binding in _bindings)
             {
                 binding.ProcessInputEvent(eventPtr);
             }
         }
+
+        public List<ControlBinding>.Enumerator GetEnumerator()
+        {
+            return _bindings.GetEnumerator();
+        }
+
+        IEnumerator<ControlBinding> IEnumerable<ControlBinding>.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

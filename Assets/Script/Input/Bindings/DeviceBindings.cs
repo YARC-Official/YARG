@@ -9,15 +9,13 @@ namespace YARG.Input
     {
         private readonly Dictionary<GameMode, GameModeBindings> _bindsByGameMode = new();
 
-        public GameModeBindings MenuBinds { get; private set; }
+        public GameModeBindings MenuBinds { get; private set; } = new();
 
         public InputDevice Device { get; }
 
         public DeviceBindings(InputDevice device)
         {
             Device = device;
-
-            MenuBinds = new(device);
         }
 
         public void SubscribeToInputsForGameMode(GameMode mode, GameInputProcessed onInputProcessed)
