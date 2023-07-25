@@ -30,6 +30,9 @@ namespace YARG.Menu.EditProfile
 
         public async void AddNewBind()
         {
+            // Select item to prevent confusion
+            Selected = true;
+
             var control = await InputControlDialogMenu.Show(_inputDevice);
             if (control == null) return;
 

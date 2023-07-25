@@ -67,12 +67,19 @@ namespace YARG.Menu.EditProfile
             var gameModeBindings = deviceBindings.GetOrCreateBindingsForGameMode(gameMode);
 
             // Create the list of bindings
-            foreach (var binding in gameModeBindings)
+            foreach (var bindingGroup in gameModeBindings)
             {
+                // Create header
                 var go = Instantiate(_bindHeaderPrefab, _bindsList);
-                go.GetComponent<BindHeader>().Init(deviceBindings.Device, binding);
+                go.GetComponent<BindHeader>().Init(deviceBindings.Device, bindingGroup);
 
                 _bindsNavGroup.AddNavigatable(go);
+
+                // Create the actual bindings
+                // foreach (var binding in bindingGroup)
+                // {
+                //
+                // }
             }
         }
     }

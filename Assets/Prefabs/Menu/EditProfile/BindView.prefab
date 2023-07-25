@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 1358820489987950325}
   - component: {fileID: 8295487428063467047}
   - component: {fileID: 5558922865694241235}
+  - component: {fileID: 8510575987802826830}
   m_Layer: 5
   m_Name: BindView
   m_TagString: Untagged
@@ -79,6 +80,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &8510575987802826830
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1426678564427857758}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af5bf7d950fd72743b53addd966a0a6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SelectionBackground: {fileID: 4112798753867176024}
+  _bindText: {fileID: 3851634176070897936}
 --- !u!1 &2650806165637032062
 GameObject:
   m_ObjectHideFlags: 0

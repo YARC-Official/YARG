@@ -59,6 +59,9 @@ namespace YARG.Menu.Profiles
 
         public async void ConnectOrDisconnect()
         {
+            // Select item to prevent confusion
+            Selected = true;
+
             var player = PlayerContainer.GetPlayerFromProfile(_profile);
 
             if (player is not null)
