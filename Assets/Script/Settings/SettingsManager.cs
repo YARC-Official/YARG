@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,227 +13,219 @@ namespace YARG.Settings
 {
     public static partial class SettingsManager
     {
-        public class Tab
+        public class Tab : IEnumerable<AbstractMetadata>
         {
-            public string Name;
-            public string Icon = "Generic";
+            public string Name { get; }
+            public string Icon { get; }
+            public string PreviewPath { get; }
+            public bool ShowInPlayMode { get; }
 
-            public string PreviewPath;
+            private List<AbstractMetadata> _settings = new();
+            public IReadOnlyList<AbstractMetadata> Settings => _settings;
 
-            public bool ShowInPlayMode;
-            public List<AbstractMetadata> Settings = new();
+            public Tab(string name, string icon = "Generic", string previewPath = null, bool showInPlayMode = false)
+            {
+                Name = name;
+                Icon = icon;
+                PreviewPath = previewPath;
+                ShowInPlayMode = showInPlayMode;
+            }
+
+            // For collection initializer support
+            public void Add(AbstractMetadata setting) => _settings.Add(setting);
+            public List<AbstractMetadata>.Enumerator GetEnumerator() => _settings.GetEnumerator();
+            IEnumerator<AbstractMetadata> IEnumerable<AbstractMetadata>.GetEnumerator() => GetEnumerator();
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
 
         public static SettingContainer Settings { get; private set; }
 
         public static readonly List<Tab> SettingsTabs = new()
         {
-            new()
+            new(name: "General")
             {
-                Name = "General",
-                Settings =
-                {
-                    new HeaderMetadata("FileManagement"),
-                    new ButtonRowMetadata("OpenSongFolderManager"),
-                    new ButtonRowMetadata("ExportOuvertSongs"),
-                    new ButtonRowMetadata("CopyCurrentSongTextFilePath", "CopyCurrentSongJsonFilePath"),
-                    new HeaderMetadata("Venues"),
-                    new ButtonRowMetadata("OpenVenueFolder"),
-                    "DisablePerSongBackgrounds",
-                    new HeaderMetadata("Calibration"),
-                    new ButtonRowMetadata("OpenCalibrator"),
-                    "AudioCalibration",
-                    new HeaderMetadata("Other"),
-                    "ShowHitWindow",
-                    "UseCymbalModelsInFiveLane",
-                    "KickBounce",
-                    "ShowCursorTimer",
-                    "PressThreshold",
-                    "AmIAwesome"
-                }
+                new HeaderMetadata("FileManagement"),
+                new ButtonRowMetadata("OpenSongFolderManager"),
+                new ButtonRowMetadata("ExportOuvertSongs"),
+                new ButtonRowMetadata("CopyCurrentSongTextFilePath", "CopyCurrentSongJsonFilePath"),
+                new HeaderMetadata("Venues"),
+                new ButtonRowMetadata("OpenVenueFolder"),
+                "DisablePerSongBackgrounds",
+                new HeaderMetadata("Calibration"),
+                new ButtonRowMetadata("OpenCalibrator"),
+                "AudioCalibration",
+                new HeaderMetadata("Other"),
+                "ShowHitWindow",
+                "UseCymbalModelsInFiveLane",
+                "KickBounce",
+                "ShowCursorTimer",
+                "PressThreshold",
+                "AmIAwesome"
             },
-            new()
+            new(name: "Sound", icon: "Sound", showInPlayMode: true)
             {
-                Name = "Sound",
-                Icon = "Sound",
-                ShowInPlayMode = true,
-                Settings =
-                {
-                    new HeaderMetadata("Volume"),
-                    "MasterMusicVolume",
-                    "GuitarVolume",
-                    "RhythmVolume",
-                    "BassVolume",
-                    "KeysVolume",
-                    "DrumsVolume",
-                    "VocalsVolume",
-                    "SongVolume",
-                    "CrowdVolume",
-                    "SfxVolume",
-                    "PreviewVolume",
-                    "MusicPlayerVolume",
-                    "VocalMonitoring",
-                    new HeaderMetadata("Input"),
-                    "MicrophoneSensitivity",
-                    new HeaderMetadata("Other"),
-                    "MuteOnMiss",
-                    "UseStarpowerFx",
-                    // "UseWhammyFx",
-                    // "WhammyPitchShiftAmount",
-                    // "WhammyOversampleFactor",
-                    // "ClapsInStarpower",
-                    // "ReverbInStarpower",
-                    "UseChipmunkSpeed",
-                }
+                new HeaderMetadata("Volume"),
+                "MasterMusicVolume",
+                "GuitarVolume",
+                "RhythmVolume",
+                "BassVolume",
+                "KeysVolume",
+                "DrumsVolume",
+                "VocalsVolume",
+                "SongVolume",
+                "CrowdVolume",
+                "SfxVolume",
+                "PreviewVolume",
+                "MusicPlayerVolume",
+                "VocalMonitoring",
+                new HeaderMetadata("Input"),
+                "MicrophoneSensitivity",
+                new HeaderMetadata("Other"),
+                "MuteOnMiss",
+                "UseStarpowerFx",
+                // "UseWhammyFx",
+                // "WhammyPitchShiftAmount",
+                // "WhammyOversampleFactor",
+                // "ClapsInStarpower",
+                // "ReverbInStarpower",
+                "UseChipmunkSpeed",
             },
-            new()
+            new(name: "Graphics", icon: "Display", previewPath: "SettingPreviews/TrackPreview", showInPlayMode: true)
             {
-                Name = "Graphics",
-                Icon = "Display",
-                ShowInPlayMode = true,
-                PreviewPath = "SettingPreviews/TrackPreview",
-                Settings =
+                new HeaderMetadata("Display"),
+                "VSync",
+                "FpsCap",
+                "FullscreenMode",
+                "Resolution",
+                "FpsStats",
+                new HeaderMetadata("Graphics"),
+                "LowQuality",
+                "DisableBloom",
+                new HeaderMetadata("Camera"),
+                new PresetDropdownMetadata("CameraPresets", new[]
                 {
-                    new HeaderMetadata("Display"),
-                    "VSync",
-                    "FpsCap",
-                    "FullscreenMode",
-                    "Resolution",
-                    "FpsStats",
-                    new HeaderMetadata("Graphics"),
-                    "LowQuality",
-                    "DisableBloom",
-                    new HeaderMetadata("Camera"),
-                    new PresetDropdownMetadata("CameraPresets", new[]
-                    {
-                        "TrackCamFOV",
-                        "TrackCamYPos",
-                        "TrackCamZPos",
-                        "TrackCamRot",
-                        "TrackFadePosition",
-                        "TrackFadeSize",
-                    }, new()
-                    {
-                        new DropdownPreset("Default", new()
-                        {
-                            { "TrackCamFOV", 55f },
-                            { "TrackCamYPos", 2.66f },
-                            { "TrackCamZPos", 1.14f },
-                            { "TrackCamRot", 24.12f },
-                            { "TrackFadePosition", 3f },
-                            { "TrackFadeSize", 1.25f },
-                        }),
-                        new DropdownPreset("High FOV", new()
-                        {
-                            { "TrackCamFOV", 60f },
-                            { "TrackCamYPos", 2.66f },
-                            { "TrackCamZPos", 1.27f },
-                            { "TrackCamRot", 24.12f },
-                            { "TrackFadePosition", 3f },
-                            { "TrackFadeSize", 1.25f },
-                        }),
-                        new DropdownPreset("The Band 1", new()
-                        {
-                            { "TrackCamFOV", 47.84f },
-                            { "TrackCamYPos", 2.43f },
-                            { "TrackCamZPos", 1.42f },
-                            { "TrackCamRot", 26f },
-                            { "TrackFadePosition", 3f },
-                            { "TrackFadeSize", 1.25f },
-                        }),
-                        new DropdownPreset("The Band 2", new()
-                        {
-                            { "TrackCamFOV", 44.97f },
-                            { "TrackCamYPos", 2.66f },
-                            { "TrackCamZPos", 0.86f },
-                            { "TrackCamRot", 24.12f },
-                            { "TrackFadePosition", 3f },
-                            { "TrackFadeSize", 1.25f },
-                        }),
-                        new DropdownPreset("The Band 3", new()
-                        {
-                            { "TrackCamFOV", 57.29f },
-                            { "TrackCamYPos", 2.22f },
-                            { "TrackCamZPos", 1.61f },
-                            { "TrackCamRot", 23.65f },
-                            { "TrackFadePosition", 3f },
-                            { "TrackFadeSize", 1.25f },
-                        }),
-                        new DropdownPreset("The Band 4", new()
-                        {
-                            { "TrackCamFOV", 62.16f },
-                            { "TrackCamYPos", 2.56f },
-                            { "TrackCamZPos", 1.20f },
-                            { "TrackCamRot", 19.43f },
-                            { "TrackFadePosition", 3f },
-                            { "TrackFadeSize", 1.25f },
-                        }),
-                        new DropdownPreset("Hero 2", new()
-                        {
-                            { "TrackCamFOV", 58.15f },
-                            { "TrackCamYPos", 1.82f },
-                            { "TrackCamZPos", 1.50f },
-                            { "TrackCamRot", 12.40f },
-                            { "TrackFadePosition", 3f },
-                            { "TrackFadeSize", 1.5f },
-                        }),
-                        new DropdownPreset("Hero 3", new()
-                        {
-                            { "TrackCamFOV", 52.71f },
-                            { "TrackCamYPos", 2.17f },
-                            { "TrackCamZPos", 1.14f },
-                            { "TrackCamRot", 15.21f },
-                            { "TrackFadePosition", 3f },
-                            { "TrackFadeSize", 1.5f },
-                        }),
-                        new DropdownPreset("Hero Traveling the World", new()
-                        {
-                            { "TrackCamFOV", 53.85f },
-                            { "TrackCamYPos", 1.97f },
-                            { "TrackCamZPos", 1.52f },
-                            { "TrackCamRot", 16.62f },
-                            { "TrackFadePosition", 3f },
-                            { "TrackFadeSize", 1.5f },
-                        }),
-                        new DropdownPreset("Hero Live", new()
-                        {
-                            { "TrackCamFOV", 62.16f },
-                            { "TrackCamYPos", 2.40f },
-                            { "TrackCamZPos", 1.42f },
-                            { "TrackCamRot", 21.31f },
-                            { "TrackFadePosition", 3f },
-                            { "TrackFadeSize", 1.25f },
-                        }),
-                        new DropdownPreset("Clone", new()
-                        {
-                            { "TrackCamFOV", 55f },
-                            { "TrackCamYPos", 2.07f },
-                            { "TrackCamZPos", 1.51f },
-                            { "TrackCamRot", 17.09f },
-                            { "TrackFadePosition", 3f },
-                            { "TrackFadeSize", 1.5f },
-                        })
-                    }),
                     "TrackCamFOV",
                     "TrackCamYPos",
                     "TrackCamZPos",
                     "TrackCamRot",
                     "TrackFadePosition",
                     "TrackFadeSize",
-                    new HeaderMetadata("Other"),
-                    "DisableTextNotifications",
-                    "LyricBackground"
-                }
-            },
-            new()
-            {
-                Name = "Engine",
-                Icon = "Gameplay",
-                Settings =
+                }, new()
                 {
-                    "NoKicks",
-                    "AntiGhosting"
-                }
+                    new DropdownPreset("Default", new()
+                    {
+                        { "TrackCamFOV", 55f },
+                        { "TrackCamYPos", 2.66f },
+                        { "TrackCamZPos", 1.14f },
+                        { "TrackCamRot", 24.12f },
+                        { "TrackFadePosition", 3f },
+                        { "TrackFadeSize", 1.25f },
+                    }),
+                    new DropdownPreset("High FOV", new()
+                    {
+                        { "TrackCamFOV", 60f },
+                        { "TrackCamYPos", 2.66f },
+                        { "TrackCamZPos", 1.27f },
+                        { "TrackCamRot", 24.12f },
+                        { "TrackFadePosition", 3f },
+                        { "TrackFadeSize", 1.25f },
+                    }),
+                    new DropdownPreset("The Band 1", new()
+                    {
+                        { "TrackCamFOV", 47.84f },
+                        { "TrackCamYPos", 2.43f },
+                        { "TrackCamZPos", 1.42f },
+                        { "TrackCamRot", 26f },
+                        { "TrackFadePosition", 3f },
+                        { "TrackFadeSize", 1.25f },
+                    }),
+                    new DropdownPreset("The Band 2", new()
+                    {
+                        { "TrackCamFOV", 44.97f },
+                        { "TrackCamYPos", 2.66f },
+                        { "TrackCamZPos", 0.86f },
+                        { "TrackCamRot", 24.12f },
+                        { "TrackFadePosition", 3f },
+                        { "TrackFadeSize", 1.25f },
+                    }),
+                    new DropdownPreset("The Band 3", new()
+                    {
+                        { "TrackCamFOV", 57.29f },
+                        { "TrackCamYPos", 2.22f },
+                        { "TrackCamZPos", 1.61f },
+                        { "TrackCamRot", 23.65f },
+                        { "TrackFadePosition", 3f },
+                        { "TrackFadeSize", 1.25f },
+                    }),
+                    new DropdownPreset("The Band 4", new()
+                    {
+                        { "TrackCamFOV", 62.16f },
+                        { "TrackCamYPos", 2.56f },
+                        { "TrackCamZPos", 1.20f },
+                        { "TrackCamRot", 19.43f },
+                        { "TrackFadePosition", 3f },
+                        { "TrackFadeSize", 1.25f },
+                    }),
+                    new DropdownPreset("Hero 2", new()
+                    {
+                        { "TrackCamFOV", 58.15f },
+                        { "TrackCamYPos", 1.82f },
+                        { "TrackCamZPos", 1.50f },
+                        { "TrackCamRot", 12.40f },
+                        { "TrackFadePosition", 3f },
+                        { "TrackFadeSize", 1.5f },
+                    }),
+                    new DropdownPreset("Hero 3", new()
+                    {
+                        { "TrackCamFOV", 52.71f },
+                        { "TrackCamYPos", 2.17f },
+                        { "TrackCamZPos", 1.14f },
+                        { "TrackCamRot", 15.21f },
+                        { "TrackFadePosition", 3f },
+                        { "TrackFadeSize", 1.5f },
+                    }),
+                    new DropdownPreset("Hero Traveling the World", new()
+                    {
+                        { "TrackCamFOV", 53.85f },
+                        { "TrackCamYPos", 1.97f },
+                        { "TrackCamZPos", 1.52f },
+                        { "TrackCamRot", 16.62f },
+                        { "TrackFadePosition", 3f },
+                        { "TrackFadeSize", 1.5f },
+                    }),
+                    new DropdownPreset("Hero Live", new()
+                    {
+                        { "TrackCamFOV", 62.16f },
+                        { "TrackCamYPos", 2.40f },
+                        { "TrackCamZPos", 1.42f },
+                        { "TrackCamRot", 21.31f },
+                        { "TrackFadePosition", 3f },
+                        { "TrackFadeSize", 1.25f },
+                    }),
+                    new DropdownPreset("Clone", new()
+                    {
+                        { "TrackCamFOV", 55f },
+                        { "TrackCamYPos", 2.07f },
+                        { "TrackCamZPos", 1.51f },
+                        { "TrackCamRot", 17.09f },
+                        { "TrackFadePosition", 3f },
+                        { "TrackFadeSize", 1.5f },
+                    })
+                }),
+                "TrackCamFOV",
+                "TrackCamYPos",
+                "TrackCamZPos",
+                "TrackCamRot",
+                "TrackFadePosition",
+                "TrackFadeSize",
+                new HeaderMetadata("Other"),
+                "DisableTextNotifications",
+                "LyricBackground"
+            },
+            new(name: "Engine", icon: "Gameplay")
+            {
+                "NoKicks",
+                "AntiGhosting"
             },
         };
 
