@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using YARG.Settings.ColorProfiles;
+using YARG.Settings.Customization;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -42,10 +42,11 @@ namespace YARG.Gameplay.Visuals
                 _frets.Add(fretComp);
 
                 // Color
+                var colors = colorProfile.FiveFretGuitar;
                 fretComp.Initialize(
-                    colorProfile.FiveFret.FretColors[i + 1],
-                    colorProfile.FiveFret.FretInnerColors[i + 1],
-                    colorProfile.FiveFret.ParticleColors[i + 1]);
+                    colors.GetFretColor(i + 1),
+                    colors.GetFretInnerColor(i + 1),
+                    colors.GetNoteParticleColor(i + 1));
             }
         }
 

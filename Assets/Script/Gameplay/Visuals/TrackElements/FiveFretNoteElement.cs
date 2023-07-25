@@ -2,7 +2,6 @@
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Gameplay.Player;
-using YARG.Settings.ColorProfiles;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -89,10 +88,12 @@ namespace YARG.Gameplay.Visuals
 
         private void UpdateColor()
         {
+            var colors = base.Player.Player.ColorProfile.FiveFretGuitar;
+
             // Get which note color to use
             var color = NoteRef.IsStarPower
-                ? ColorProfile.Default.FiveFret.StarpowerNoteColor
-                : ColorProfile.Default.FiveFret.NoteColors[NoteRef.Fret];
+                ? colors.GetNoteStarPowerColor(NoteRef.Fret)
+                : colors.GetNoteColor(NoteRef.Fret);
 
             // Set the note color
             NoteGroup.ColoredMaterial.color = color;

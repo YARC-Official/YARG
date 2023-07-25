@@ -2,6 +2,7 @@ using System;
 using YARG.Core;
 using YARG.Input;
 using YARG.Player.Input;
+using YARG.Settings.Customization;
 
 namespace YARG.Player
 {
@@ -13,6 +14,8 @@ namespace YARG.Player
         public MicInput MicInput;
 
         public ProfileBindings Bindings { get; private set; }
+
+        public ColorProfile ColorProfile = ColorProfile.Default;
 
         public YargPlayer(YargProfile profile)
         {

@@ -7,7 +7,6 @@ using YARG.Core.Input;
 using YARG.Gameplay.Visuals;
 using YARG.Input;
 using YARG.Player;
-using YARG.Settings.ColorProfiles;
 
 namespace YARG.Gameplay.Player
 {
@@ -65,7 +64,7 @@ namespace YARG.Gameplay.Player
                 StarScoreThresholds[i] = Mathf.FloorToInt(Engine.BaseScore * StarMultiplierThresholds[i]);
             }
 
-            _fretArray.Initialize(ColorProfile.Default);
+            _fretArray.Initialize(player.ColorProfile);
             HitWindowDisplay.SetHitWindowInfo(_engineParams, player.Profile.NoteSpeed);
         }
 
