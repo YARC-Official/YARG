@@ -53,7 +53,7 @@ namespace YARG.Input
         private bool _currentValue;
         private bool _postDebounceValue;
 
-        public ButtonBinding(string displayName, int action) : base(displayName, action)
+        public ButtonBinding(string name, int action) : base(name, action)
         {
         }
 

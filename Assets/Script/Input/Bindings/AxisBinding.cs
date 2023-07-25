@@ -12,7 +12,7 @@ namespace YARG.Input
     {
         private float _currentValue;
 
-        public AxisBinding(string displayName, int action) : base(displayName, action)
+        public AxisBinding(string name, int action) : base(name, action)
         {
         }
 

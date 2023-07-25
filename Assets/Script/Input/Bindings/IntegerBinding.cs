@@ -11,7 +11,7 @@ namespace YARG.Input
     {
         private int _currentValue;
 
-        public IntegerBinding(string displayName, int action) : base(displayName, action)
+        public IntegerBinding(string name, int action) : base(name, action)
         {
         }
 

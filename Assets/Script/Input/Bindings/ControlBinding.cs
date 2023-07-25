@@ -14,16 +14,25 @@ namespace YARG.Input
     /// </summary>
     public abstract class ControlBinding
     {
+        /// <summary>
+        /// Fired when an input event has been processed by this binding.
+        /// </summary>
         public event GameInputProcessed InputProcessed;
 
-        public string DisplayName { get; }
+        /// <summary>
+        /// The translation key name for this binding.
+        /// </summary>
+        public string Name { get; }
 
-        protected readonly int _action;
+        /// <summary>
+        /// The action enum value for this binding.
+        /// </summary>
+        public int Action { get; }
 
-        public ControlBinding(string displayName, int action)
+        public ControlBinding(string name, int action)
         {
-            DisplayName = displayName;
-            _action = action;
+            Name = name;
+            Action = action;
         }
 
         public virtual void UpdateForFrame() { }
@@ -32,21 +41,21 @@ namespace YARG.Input
         protected void FireEvent(double time, int value)
         {
             time = InputManager.GetRelativeTime(time);
-            var input = new GameInput(time, _action, value);
+            var input = new GameInput(time, Action, value);
             FireEvent(ref input);
         }
 
         protected void FireEvent(double time, float value)
         {
             time = InputManager.GetRelativeTime(time);
-            var input = new GameInput(time, _action, value);
+            var input = new GameInput(time, Action, value);
             FireEvent(ref input);
         }
 
         protected void FireEvent(double time, bool value)
         {
             time = InputManager.GetRelativeTime(time);
-            var input = new GameInput(time, _action, value);
+            var input = new GameInput(time, Action, value);
             FireEvent(ref input);
         }
 
@@ -58,7 +67,7 @@ namespace YARG.Input
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Exception when firing input event for {DisplayName}!");
+                Debug.LogError($"Exception when firing input event for {Name}!");
                 Debug.LogException(ex);
             }
         }
@@ -95,7 +104,7 @@ namespace YARG.Input
 
         protected List<SingleBinding> _bindings = new();
 
-        public ControlBinding(string displayName, int action) : base(displayName, action)
+        public ControlBinding(string name, int action) : base(name, action)
         {
         }
 
@@ -134,12 +143,7 @@ namespace YARG.Input
             return null;
         }
 
-        protected virtual void OnControlAdded(SingleBinding binding)
-        {
-        }
-
-        protected virtual void OnControlRemoved(SingleBinding binding)
-        {
-        }
+        protected virtual void OnControlAdded(SingleBinding binding) { }
+        protected virtual void OnControlRemoved(SingleBinding binding) { }
     }
 }
