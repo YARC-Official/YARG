@@ -35,6 +35,10 @@ namespace YARG.Input
             Action = action;
         }
 
+        public abstract bool AddControl(InputControl control);
+        public abstract bool RemoveControl(InputControl control);
+        public abstract bool ContainsControl(InputControl control);
+
         public virtual void UpdateForFrame() { }
         public abstract void ProcessInputEvent(InputEventPtr eventPtr);
 
@@ -108,39 +112,62 @@ namespace YARG.Input
         {
         }
 
-        public void AddControl(InputControl<TState> control)
+        public override bool AddControl(InputControl control)
         {
-            if (!ContainsControl(control))
-                return;
+            return control is InputControl<TState> tControl && AddControl(tControl);
+        }
+
+        public override bool RemoveControl(InputControl control)
+        {
+            return control is InputControl<TState> tControl && RemoveControl(tControl);
+        }
+
+        public override bool ContainsControl(InputControl control)
+        {
+            return control is InputControl<TState> tControl && ContainsControl(tControl);
+        }
+
+        public bool AddControl(InputControl<TState> control)
+        {
+            if (ContainsControl(control))
+                return false;
 
             var binding = new SingleBinding(control);
             _bindings.Add(binding);
             OnControlAdded(binding);
+            return true;
         }
 
-        public void RemoveControl(InputControl<TState> control)
+        public bool RemoveControl(InputControl<TState> control)
         {
-            var binding = FindBinding(control);
-            if (binding is null)
-                return;
+            if (!TryFindBinding(control, out var binding))
+                return false;
 
-            _bindings.Remove(binding);
+            bool removed = _bindings.Remove(binding);
+            if (removed)
+                OnControlRemoved(binding);
+
+            return removed;
         }
 
         public bool ContainsControl(InputControl<TState> control)
         {
-            return FindBinding(control) is not null;
+            return TryFindBinding(control, out _);
         }
 
-        private SingleBinding FindBinding(InputControl<TState> control)
+        private bool TryFindBinding(InputControl<TState> control, out SingleBinding foundBinding)
         {
             foreach (var binding in _bindings)
             {
                 if (binding.Control == control)
-                    return binding;
+                {
+                    foundBinding = binding;
+                    return true;
+                }
             }
 
-            return null;
+            foundBinding = null;
+            return false;
         }
 
         protected virtual void OnControlAdded(SingleBinding binding) { }
