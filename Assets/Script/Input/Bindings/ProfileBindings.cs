@@ -9,7 +9,7 @@ namespace YARG.Input
     {
         public YargProfile Profile { get; }
 
-        private Dictionary<InputDevice, DeviceBindings> _deviceBindings;
+        private readonly Dictionary<InputDevice, DeviceBindings> _deviceBindings;
 
         public event GameInputProcessed MenuInputProcessed
         {
@@ -32,6 +32,7 @@ namespace YARG.Input
         public ProfileBindings(YargProfile profile)
         {
             Profile = profile;
+            _deviceBindings = new();
         }
 
         public void SubscribeToGameModeInputs(GameMode mode, GameInputProcessed onInputProcessed)
@@ -74,6 +75,12 @@ namespace YARG.Input
         public bool RemoveDevice(InputDevice device)
         {
             return _deviceBindings.Remove(device);
+        }
+
+        // TODO: TEMPORARY
+        public DeviceBindings GetBindingsForFirstDevice()
+        {
+            return _deviceBindings.FirstOrDefault().Value;
         }
     }
 }

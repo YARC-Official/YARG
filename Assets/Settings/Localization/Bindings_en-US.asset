@@ -38,6 +38,22 @@ MonoBehaviour:
     m_Localized: Orange Fret
     m_Metadata:
       m_Items: []
+  - m_Id: 293665559142400
+    m_Localized: Strum Up
+    m_Metadata:
+      m_Items: []
+  - m_Id: 293678251106304
+    m_Localized: Strum Down
+    m_Metadata:
+      m_Items: []
+  - m_Id: 293687327580160
+    m_Localized: Star Power Activate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 293697981112320
+    m_Localized: Whammy
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

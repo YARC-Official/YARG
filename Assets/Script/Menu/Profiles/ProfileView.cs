@@ -73,6 +73,9 @@ namespace YARG.Menu.Profiles
                 player = PlayerContainer.CreatePlayerFromProfile(_profile);
                 if (player is null) return;
 
+                // Then, add the device to the bindings
+                if (!player.Bindings.AddDevice(device)) return;
+
                 // Re-initialize the ProfileView
                 Init(_profile, _profileSidebar);
             }

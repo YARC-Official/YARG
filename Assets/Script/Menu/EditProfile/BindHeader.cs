@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
+using YARG.Input;
 
 namespace YARG.Menu.EditProfile
 {
@@ -11,16 +12,16 @@ namespace YARG.Menu.EditProfile
         [SerializeField]
         private LocalizeStringEvent _bindingNameText;
 
-        private string _bindingName;
+        private ControlBinding _binding;
 
-        public void Init(string bindingName)
+        public void Init(ControlBinding binding)
         {
-            _bindingName = bindingName;
+            _binding = binding;
 
             _bindingNameText.StringReference = new LocalizedString
             {
                 TableReference = "Bindings",
-                TableEntryReference = _bindingName
+                TableEntryReference = _binding.Name
             };
         }
 

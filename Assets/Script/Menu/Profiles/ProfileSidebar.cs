@@ -2,6 +2,7 @@
 using UnityEngine;
 using YARG.Core;
 using YARG.Menu.EditProfile;
+using YARG.Player;
 
 namespace YARG.Menu.Profiles
 {
@@ -61,8 +62,11 @@ namespace YARG.Menu.Profiles
 
         public void EditProfile()
         {
-            MenuNavigator.Instance.PushMenu(MenuNavigator.Menu.EditProfile);
+            // Only allow profile editing if it's taken
+            if (!PlayerContainer.IsProfileTaken(_profile)) return;
+
             EditProfileMenu.CurrentProfile = _profile;
+            MenuNavigator.Instance.PushMenu(MenuNavigator.Menu.EditProfile);
         }
     }
 }

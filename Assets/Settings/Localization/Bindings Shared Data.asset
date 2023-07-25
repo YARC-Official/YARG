@@ -16,23 +16,39 @@ MonoBehaviour:
   m_TableCollectionNameGuidString: f465ba9635928c74faf29645191515b8
   m_Entries:
   - m_Id: 47527092224
-    m_Key: greenFret
+    m_Key: fiveFret_Green
     m_Metadata:
       m_Items: []
   - m_Id: 88832598016
-    m_Key: redFret
+    m_Key: fiveFret_Red
     m_Metadata:
       m_Items: []
   - m_Id: 114573041664
-    m_Key: yellowFret
+    m_Key: fiveFret_Yellow
     m_Metadata:
       m_Items: []
   - m_Id: 144612646912
-    m_Key: blueFret
+    m_Key: fiveFret_Blue
     m_Metadata:
       m_Items: []
   - m_Id: 168276910080
-    m_Key: orangeFret
+    m_Key: fiveFret_Orange
+    m_Metadata:
+      m_Items: []
+  - m_Id: 293665559142400
+    m_Key: guitar_StrumUp
+    m_Metadata:
+      m_Items: []
+  - m_Id: 293678251106304
+    m_Key: guitar_StrumDown
+    m_Metadata:
+      m_Items: []
+  - m_Id: 293687327580160
+    m_Key: guitar_StarPower
+    m_Metadata:
+      m_Items: []
+  - m_Id: 293697981112320
+    m_Key: guitar_Whammy
     m_Metadata:
       m_Items: []
   m_Metadata:

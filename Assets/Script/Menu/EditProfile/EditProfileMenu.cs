@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using YARG.Core;
 using YARG.Helpers.Extensions;
+using YARG.Player;
 
 namespace YARG.Menu.EditProfile
 {
@@ -54,26 +55,25 @@ namespace YARG.Menu.EditProfile
         // This is initially called from the "OnSelectionChanged." See method usages.
         public void RefreshBindings(GameMode gameMode)
         {
-            // TODO: Make this *not* hard coded
-            void CreateHeader(string id)
-            {
-                var go = Instantiate(_bindHeaderPrefab, _bindsList);
-                go.GetComponent<BindHeader>().Init(id);
-
-                _bindsNavGroup.AddNavigatable(go);
-            }
-
             _selectedGameMode = gameMode;
 
             // Remove old ones
             _bindsList.DestroyChildren();
             _bindsNavGroup.ClearNavigatables();
 
-            CreateHeader("greenFret");
-            CreateHeader("redFret");
-            CreateHeader("yellowFret");
-            CreateHeader("blueFret");
-            CreateHeader("orangeFret");
+            // Get the bindings
+            var player = PlayerContainer.GetPlayerFromProfile(CurrentProfile);
+            var deviceBindings = player.Bindings.GetBindingsForFirstDevice();
+            var gameModeBindings = deviceBindings.GetOrCreateBindingsForGameMode(gameMode);
+
+            // Create the list of bindings
+            foreach (var binding in gameModeBindings)
+            {
+                var go = Instantiate(_bindHeaderPrefab, _bindsList);
+                go.GetComponent<BindHeader>().Init(binding);
+
+                _bindsNavGroup.AddNavigatable(go);
+            }
         }
     }
 }

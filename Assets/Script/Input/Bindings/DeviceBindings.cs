@@ -61,6 +61,16 @@ namespace YARG.Input
             return _bindsByGameMode.TryGetValue(mode, out var bindings) ? bindings : null;
         }
 
+        public GameModeBindings GetOrCreateBindingsForGameMode(GameMode mode)
+        {
+            var bindings = TryGetBindingsForGameMode(mode);
+            if (bindings is not null) return bindings;
+
+            var newBindings = GameModeBindings.CreateBindingsForGameMode(mode);
+            AddBindingsForGameMode(mode, newBindings);
+            return newBindings;
+        }
+
         public bool RemoveBindingsForGameMode(GameMode mode)
         {
             return _bindsByGameMode.Remove(mode);
