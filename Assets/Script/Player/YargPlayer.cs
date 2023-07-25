@@ -16,6 +16,7 @@ namespace YARG.Player
         public ProfileBindings Bindings { get; private set; }
 
         public ColorProfile ColorProfile = ColorProfile.Default;
+        public CameraSettings CameraSettings = CameraSettings.Default;
 
         public YargPlayer(YargProfile profile)
         {
