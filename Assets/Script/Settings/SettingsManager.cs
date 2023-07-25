@@ -270,7 +270,7 @@ namespace YARG.Settings
 
         public static void SaveSettings()
         {
-            File.WriteAllText(SettingsFile, JsonConvert.SerializeObject(Settings));
+            File.WriteAllText(SettingsFile, JsonConvert.SerializeObject(Settings, Formatting.Indented));
         }
 
         public static void DeleteSettings()
