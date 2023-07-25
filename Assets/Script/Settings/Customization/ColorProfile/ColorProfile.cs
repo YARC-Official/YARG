@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-
-namespace YARG.Settings.Customization
+﻿namespace YARG.Settings.Customization
 {
     public partial class ColorProfile
     {
@@ -12,6 +10,8 @@ namespace YARG.Settings.Customization
         public ColorProfile(string name)
         {
             Name = name;
+
+            FiveFretGuitar = new FiveFretGuitarColors();
         }
     }
 }
