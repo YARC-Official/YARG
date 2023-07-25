@@ -27,14 +27,16 @@ namespace YARG.Menu
 
                 // Call events
                 OnSelectionChanged(value);
-                if (SelectionBackground != null)
-                {
-                    SelectionBackground.SetActive(value);
-                }
             }
         }
 
-        protected abstract void OnSelectionChanged(bool selected);
+        protected virtual void OnSelectionChanged(bool selected)
+        {
+            if (SelectionBackground != null)
+            {
+                SelectionBackground.SetActive(selected);
+            }
+        }
 
         public void OnPointerDown(PointerEventData eventData)
         {

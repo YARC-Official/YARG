@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using YARG.Core;
+using YARG.Menu.InputDeviceDialog;
 using YARG.Player;
 
 namespace YARG.Menu.Profiles
@@ -34,6 +35,8 @@ namespace YARG.Menu.Profiles
 
         protected override void OnSelectionChanged(bool selected)
         {
+            base.OnSelectionChanged(selected);
+
             if (selected)
             {
                 _profileSidebar.UpdateSidebar(_profile, this);
@@ -66,7 +69,7 @@ namespace YARG.Menu.Profiles
             else
             {
                 // Prompt the user to select a device
-                var device = await InputDeviceDialog.ShowDialog();
+                var device = await InputDeviceDialogMenu.Show();
                 if (device == null) return;
 
                 // Create a player from the profile (and return if failed)

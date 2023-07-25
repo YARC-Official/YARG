@@ -3,11 +3,11 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Helpers.Extensions;
 
-namespace YARG.Menu
+namespace YARG.Menu.InputDeviceDialog
 {
-    public class InputDeviceDialog : MonoBehaviour
+    public class InputDeviceDialogMenu : MonoBehaviour
     {
-        private static InputDeviceDialog _instance;
+        private static InputDeviceDialogMenu _instance;
         private static InputDevice _selectedDevice;
 
         [SerializeField]
@@ -45,7 +45,7 @@ namespace YARG.Menu
             MenuNavigator.Instance.PopMenu();
         }
 
-        public static async UniTask<InputDevice> ShowDialog()
+        public static async UniTask<InputDevice> Show()
         {
             // Open dialog
             MenuNavigator.Instance.PushMenu(MenuNavigator.Menu.InputDeviceDialog);

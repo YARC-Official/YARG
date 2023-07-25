@@ -23,6 +23,8 @@ namespace YARG.Menu.EditProfile
 
         protected override void OnSelectionChanged(bool selected)
         {
+            base.OnSelectionChanged(selected);
+
             _editProfileMenu.RefreshBindings(_gameMode);
         }
     }

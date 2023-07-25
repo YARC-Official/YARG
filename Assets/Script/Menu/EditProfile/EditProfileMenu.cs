@@ -70,7 +70,7 @@ namespace YARG.Menu.EditProfile
             foreach (var binding in gameModeBindings)
             {
                 var go = Instantiate(_bindHeaderPrefab, _bindsList);
-                go.GetComponent<BindHeader>().Init(binding);
+                go.GetComponent<BindHeader>().Init(deviceBindings.Device, binding);
 
                 _bindsNavGroup.AddNavigatable(go);
             }

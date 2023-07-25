@@ -19,6 +19,7 @@ namespace YARG.Menu
             Profiles,
             EditProfile,
             InputDeviceDialog,
+            InputControlDialog,
         }
 
         private Dictionary<Menu, MenuObject> _menus;

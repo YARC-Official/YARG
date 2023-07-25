@@ -1,8 +1,9 @@
-﻿using UnityEditor.Localization.Plugins.XLIFF.V12;
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
 using YARG.Input;
+using YARG.Menu.InputControlDialog;
 
 namespace YARG.Menu.EditProfile
 {
@@ -12,10 +13,12 @@ namespace YARG.Menu.EditProfile
         [SerializeField]
         private LocalizeStringEvent _bindingNameText;
 
+        private InputDevice _inputDevice;
         private ControlBinding _binding;
 
-        public void Init(ControlBinding binding)
+        public void Init(InputDevice inputDevice, ControlBinding binding)
         {
+            _inputDevice = inputDevice;
             _binding = binding;
 
             _bindingNameText.StringReference = new LocalizedString
@@ -25,8 +28,12 @@ namespace YARG.Menu.EditProfile
             };
         }
 
-        protected override void OnSelectionChanged(bool selected)
+        public async void AddNewBind()
         {
+            var control = await InputControlDialogMenu.Show(_inputDevice);
+            if (control == null) return;
+
+            _binding.AddControl(control);
         }
     }
 }
