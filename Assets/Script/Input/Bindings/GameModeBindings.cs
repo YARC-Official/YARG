@@ -1,11 +1,13 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 
 namespace YARG.Input
 {
-    public class GameModeBindings : IEnumerable<ControlBinding>
+    public partial class GameModeBindings : IEnumerable<ControlBinding>
     {
         private readonly List<ControlBinding> _bindings = new();
 
@@ -66,6 +68,17 @@ namespace YARG.Input
             {
                 binding.ProcessInputEvent(eventPtr);
             }
+        }
+
+        // For collection initializer support
+        private void Add(ControlBinding binding)
+        {
+            // Don't add more than one binding for the same action
+            // Bindings already support multiple controls
+            if (_bindings.Any((bind) => bind.Name == binding.Name || bind.Action == binding.Action))
+                throw new InvalidOperationException($"A binding already exists for action {binding.Action}!");
+
+            _bindings.Add(binding);
         }
 
         public List<ControlBinding>.Enumerator GetEnumerator()
