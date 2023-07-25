@@ -85,24 +85,31 @@ namespace YARG.Audio
                     return;
                 }
 
+                double audioLength = _manager.AudioLengthD;
                 if (!usesPreviewFile)
                 {
                     // Set preview start and end times
                     PreviewStartTime = song.PreviewStartTimeSpan.TotalSeconds;
-                    if (PreviewStartTime <= 0.0)
+                    if (PreviewStartTime <= 0.0 || PreviewStartTime >= audioLength)
                     {
-                        PreviewStartTime = 10.0;
+                        if (20 <= audioLength)
+                            PreviewStartTime = 10;
+                        else
+                            PreviewStartTime = audioLength / 2;
                     }
+
                     PreviewEndTime = song.PreviewEndTimeSpan.TotalSeconds;
-                    if (PreviewEndTime <= 0.0)
+                    if (PreviewEndTime <= 0.0 || PreviewEndTime + 1 >= audioLength)
                     {
                         PreviewEndTime = PreviewStartTime + Constants.PREVIEW_DURATION;
+                        if (PreviewEndTime + 1 > audioLength)
+                            PreviewEndTime = audioLength - 1;
                     }
                 }
                 else
                 {
                     PreviewStartTime = 0;
-                    PreviewEndTime = double.MaxValue;
+                    PreviewEndTime = audioLength - 1;
                 }
 
                 // Play the audio
