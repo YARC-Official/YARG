@@ -90,6 +90,14 @@ namespace YARG.Gameplay
             CreatePlayers();
         }
 
+        private void Start()
+        {
+            GlobalVariables.AudioManager.Play();
+            InputManager.InputTimeOffset = InputManager.CurrentInputTime - AudioCalibration;
+
+            GlobalVariables.AudioManager.SongEnd += EndSong;
+        }
+
         private void Update()
         {
             // It is more performant to calculate this per frame instead of per call
@@ -254,6 +262,8 @@ namespace YARG.Gameplay
 
         private void EndSong()
         {
+            GlobalVariables.AudioManager.SongEnd -= EndSong;
+
             if (!IsReplay)
             {
                 var replay = ReplayContainer.CreateNewReplay(Song, _players);
@@ -273,6 +283,8 @@ namespace YARG.Gameplay
                 entry.ReplayFile = entry.GetReplayName();
 
                 ReplayIO.WriteReplay(Path.Combine(ReplayContainer.ReplayDirectory, entry.ReplayFile), replay);
+
+                Debug.Log("Wrote replay");
             }
         }
     }

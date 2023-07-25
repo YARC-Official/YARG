@@ -75,6 +75,12 @@ namespace YARG.Gameplay.Player
             Player = player;
             Beatlines = beats;
 
+            if (GameManager.IsReplay)
+            {
+                // _replayInputs = new List<GameInput>(GlobalVariables.Instance.CurrentReplay.Frames[0].Inputs);
+                // Debug.Log("Initialized replay inputs with " + _replayInputs.Count + " inputs");
+            }
+
             _beatlineEnumerator = Beatlines.GetEnumerator();
             _beatlineEnumerator.MoveNext();
 
@@ -155,6 +161,8 @@ namespace YARG.Gameplay.Player
 
         protected IEnumerator<TNote> NoteEnumerator { get; private set; }
 
+        private int _replayInputIndex;
+
         public virtual void Initialize(YargPlayer player, InstrumentDifficulty<TNote> chart, SyncTrack syncTrack, List<Beatline> beats)
         {
             if (IsInitialized)
@@ -173,6 +181,21 @@ namespace YARG.Gameplay.Player
 
         protected override void UpdateInputs()
         {
+            if (Player.Profile.IsBot)
+            {
+                Engine.UpdateBot(InputManager.InputUpdateTime);
+                return;
+            }
+
+            if (GameManager.IsReplay)
+            {
+                while (_replayInputIndex < ReplayInputs.Count &&
+                    InputManager.InputUpdateTime >= ReplayInputs[_replayInputIndex].Time)
+                {
+                    Engine.QueueInput(ReplayInputs[_replayInputIndex++]);
+                }
+            }
+
             if (Engine.IsInputQueued)
             {
                 Engine.UpdateEngine();

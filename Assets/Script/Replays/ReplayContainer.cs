@@ -191,6 +191,7 @@ namespace YARG.Replays
                     };
 
                     playerScore = fiveFrame.Stats.Score;
+                    frame = fiveFrame;
                     break;
                 case GameMode.SixFretGuitar:
                     break;

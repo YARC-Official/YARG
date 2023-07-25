@@ -50,10 +50,15 @@ namespace YARG.Gameplay.Player
                 Debug.Log($"Solo ended (hit notes: {solo.NotesHit}/{solo.NoteCount}");
             };
 
-            Engine.OnSustainEnd += (chordParent, timeEnded) =>
+            Engine.OnSustainEnd += (parent, timeEnded) =>
             {
-                foreach (var note in chordParent.ChordEnumerator())
+                foreach (var note in parent.ChordEnumerator())
                 {
+                    if(parent.IsDisjoint && parent != note)
+                    {
+                        continue;
+                    }
+
                     (NotePool.GetByKey(note) as FiveFretNoteElement)?.SustainEnd();
                 }
             };
@@ -74,17 +79,6 @@ namespace YARG.Gameplay.Player
 
             Score = Engine.EngineStats.Score;
             Combo = Engine.EngineStats.Combo;
-        }
-
-        protected override void UpdateInputs()
-        {
-            if (Player.Profile.IsBot)
-            {
-                Engine.UpdateBot(InputManager.InputUpdateTime);
-                return;
-            }
-
-            base.UpdateInputs();
         }
 
         protected override void UpdateVisuals()
