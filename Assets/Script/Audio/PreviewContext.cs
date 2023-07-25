@@ -76,7 +76,7 @@ namespace YARG.Audio
                 }
 
                 // Load the song
-                await UniTask.RunOnThreadPool(() => song.LoadAudio(_manager, 1f, SongStem.Crowd));
+                bool usesPreviewFile = await song.LoadPreviewAudio(_manager, 1f);
 
                 // Check if cancelled
                 if (cancelToken.IsCancellationRequested)
@@ -85,17 +85,31 @@ namespace YARG.Audio
                     return;
                 }
 
-                // Set preview start and end times
-                PreviewStartTime = song.PreviewStartTimeSpan.TotalSeconds;
-                if (PreviewStartTime <= 0.0)
+                double audioLength = _manager.AudioLengthD;
+                if (!usesPreviewFile)
                 {
-                    PreviewStartTime = 10.0;
-                }
+                    // Set preview start and end times
+                    PreviewStartTime = song.PreviewStartTimeSpan.TotalSeconds;
+                    if (PreviewStartTime <= 0.0 || PreviewStartTime >= audioLength)
+                    {
+                        if (20 <= audioLength)
+                            PreviewStartTime = 10;
+                        else
+                            PreviewStartTime = audioLength / 2;
+                    }
 
-                PreviewEndTime = song.PreviewEndTimeSpan.TotalSeconds;
-                if (PreviewEndTime <= 0.0)
+                    PreviewEndTime = song.PreviewEndTimeSpan.TotalSeconds;
+                    if (PreviewEndTime <= 0.0 || PreviewEndTime + 1 >= audioLength)
+                    {
+                        PreviewEndTime = PreviewStartTime + Constants.PREVIEW_DURATION;
+                        if (PreviewEndTime + 1 > audioLength)
+                            PreviewEndTime = audioLength - 1;
+                    }
+                }
+                else
                 {
-                    PreviewEndTime = PreviewStartTime + Constants.PREVIEW_DURATION;
+                    PreviewStartTime = 0;
+                    PreviewEndTime = audioLength - 1;
                 }
 
                 // Play the audio

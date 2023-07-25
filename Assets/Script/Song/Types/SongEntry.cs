@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Cysharp.Threading.Tasks;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using YARG.Audio;
@@ -191,6 +192,8 @@ namespace YARG.Song
         }
 
         public abstract void LoadAudio(IAudioManager manager, float speed, params SongStem[] ignoreStems);
+
+        public abstract UniTask<bool> LoadPreviewAudio(IAudioManager manager, float speed);
 
         public bool HasInstrument(Instrument instrument)
         {
