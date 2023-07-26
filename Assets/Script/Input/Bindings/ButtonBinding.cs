@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
+using YARG.Settings;
 
 namespace YARG.Input
 {
@@ -137,10 +138,13 @@ namespace YARG.Input
 
         protected override void OnControlAdded(SingleBinding binding)
         {
+            float pressPoint = SettingsManager.Settings.PressThreshold.Data;
             if (binding.Control is ButtonControl button)
             {
-                binding.Parameters.PressPoint = button.pressPoint;
+                pressPoint = button.pressPointOrDefault;
             }
+
+            binding.Parameters.PressPoint = pressPoint;
         }
     }
 }
