@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Input;
 
-namespace YARG.Menu.EditProfile
+namespace YARG.Menu.Profiles
 {
     public class BindView : NavigatableBehaviour
     {

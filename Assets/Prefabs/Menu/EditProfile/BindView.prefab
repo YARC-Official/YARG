@@ -330,7 +330,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 8510575987802826830}
-        m_TargetAssemblyTypeName: YARG.Menu.EditProfile.BindView, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.Profiles.BindView, Assembly-CSharp
         m_MethodName: DeleteBinding
         m_Mode: 1
         m_Arguments:

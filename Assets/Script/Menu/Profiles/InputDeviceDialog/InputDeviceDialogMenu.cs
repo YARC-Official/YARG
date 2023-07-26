@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Helpers.Extensions;
 
-namespace YARG.Menu.InputDeviceDialog
+namespace YARG.Menu.Profiles
 {
     public class InputDeviceDialogMenu : MonoBehaviour
     {

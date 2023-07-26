@@ -11,7 +11,7 @@ using UnityEngine.InputSystem.Utilities;
 using YARG.Helpers.Extensions;
 using YARG.Player.Input;
 
-namespace YARG.Menu.InputControlDialog
+namespace YARG.Menu.Profiles
 {
     // TODO: Clean this up when we get real UI
     public class InputControlDialogMenu : MonoBehaviour

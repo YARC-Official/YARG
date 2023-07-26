@@ -3,9 +3,8 @@ using UnityEngine.InputSystem;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
 using YARG.Input;
-using YARG.Menu.InputControlDialog;
 
-namespace YARG.Menu.EditProfile
+namespace YARG.Menu.Profiles
 {
     public class BindHeader : NavigatableBehaviour
     {

@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace YARG.Menu.InputDeviceDialog
+namespace YARG.Menu.Profiles
 {
     public class DeviceEntry : MonoBehaviour
     {

@@ -124,7 +124,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 2460836567121033557}
-        m_TargetAssemblyTypeName: YARG.Menu.InputControlDialog.ControlEntry, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.Profiles.ControlEntry, Assembly-CSharp
         m_MethodName: SelectControl
         m_Mode: 1
         m_Arguments:

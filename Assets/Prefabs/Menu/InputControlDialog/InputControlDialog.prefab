@@ -948,7 +948,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 821096685352862351}
-        m_TargetAssemblyTypeName: YARG.Menu.InputControlDialog.InputControlDialogMenu,
+        m_TargetAssemblyTypeName: YARG.Menu.Profiles.InputControlDialogMenu,
           Assembly-CSharp
         m_MethodName: CancelAndClose
         m_Mode: 1

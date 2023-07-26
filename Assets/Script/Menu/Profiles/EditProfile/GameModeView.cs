@@ -2,7 +2,7 @@
 using UnityEngine;
 using YARG.Core;
 
-namespace YARG.Menu.EditProfile
+namespace YARG.Menu.Profiles
 {
     public class GameModeView : NavigatableBehaviour
     {

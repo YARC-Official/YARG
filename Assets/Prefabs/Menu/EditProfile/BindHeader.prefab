@@ -429,7 +429,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 2261990737259503794}
-        m_TargetAssemblyTypeName: YARG.Menu.EditProfile.BindHeader, Assembly-CSharp
+        m_TargetAssemblyTypeName: YARG.Menu.Profiles.BindHeader, Assembly-CSharp
         m_MethodName: AddNewBind
         m_Mode: 1
         m_Arguments:

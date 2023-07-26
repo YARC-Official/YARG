@@ -1,7 +1,6 @@
 ﻿using TMPro;
 using UnityEngine;
 using YARG.Core;
-using YARG.Menu.EditProfile;
 using YARG.Player;
 
 namespace YARG.Menu.Profiles

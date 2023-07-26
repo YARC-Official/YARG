@@ -3,7 +3,7 @@ using YARG.Core;
 using YARG.Helpers.Extensions;
 using YARG.Player;
 
-namespace YARG.Menu.EditProfile
+namespace YARG.Menu.Profiles
 {
     public class EditProfileMenu : MonoBehaviour
     {
