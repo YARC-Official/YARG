@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -171,7 +171,7 @@ namespace YARG.Menu.Profiles
             try
             {
                 // Create a listener
-                var listener = InputSystem.onEvent.Call(Listen);
+                var listener = InputSystem.onEvent.ForDevice(_inputDevice).Call(Listen);
 
                 // Listen until we cancel or an input is grabbed
                 await UniTask.WaitUntil(() => _state != State.Waiting,
