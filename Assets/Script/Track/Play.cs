@@ -586,8 +586,6 @@ namespace YARG.PlayMode
             // Unpause just in case
             Time.timeScale = 1f;
 
-            OnSongEnd?.Invoke(Song);
-
             // run animation + save if we've reached end of song
             if (showResultScreen)
             {
