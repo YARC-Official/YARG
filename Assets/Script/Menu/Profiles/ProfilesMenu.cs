@@ -23,24 +23,11 @@ namespace YARG.Menu.Profiles
 
         private void OnEnable()
         {
-            // TODO: We'll probably want to be a little more granular with this
-            // to allow navigating this menu with controllers
-            // Maybe only disable when editing controls?
-            foreach (var player in PlayerContainer.Players)
-            {
-                player.DisableInputs();
-            }
-
             RefreshList();
         }
 
         private void OnDisable()
         {
-            foreach (var player in PlayerContainer.Players)
-            {
-                player.EnableInputs();
-            }
-
             PlayerContainer.SaveProfiles();
         }
 

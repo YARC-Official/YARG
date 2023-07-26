@@ -29,11 +29,19 @@ namespace YARG.Menu.Profiles
         [SerializeField]
         private GameObject _bindViewPrefab;
 
+        private YargPlayer _currentPlayer;
         private GameMode _selectedGameMode;
 
         private void OnEnable()
         {
+            _currentPlayer = PlayerContainer.GetPlayerFromProfile(CurrentProfile);
+            _currentPlayer.DisableInputs();
             RefreshGameModes();
+        }
+
+        private void OnDisable()
+        {
+            _currentPlayer.EnableInputs();
         }
 
         private void RefreshGameModes()
@@ -65,8 +73,7 @@ namespace YARG.Menu.Profiles
             _bindsNavGroup.ClearNavigatables();
 
             // Get the bindings
-            var player = PlayerContainer.GetPlayerFromProfile(CurrentProfile);
-            var deviceBindings = player.Bindings.GetBindingsForFirstDevice();
+            var deviceBindings = _currentPlayer.Bindings.GetBindingsForFirstDevice();
             var gameModeBindings = deviceBindings.GetOrCreateBindingsForGameMode(gameMode);
 
             // Create the list of bindings
