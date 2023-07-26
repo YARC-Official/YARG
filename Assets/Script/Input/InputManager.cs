@@ -78,19 +78,18 @@ namespace YARG.Input
         {
             // Only take state events
             if (!eventPtr.IsA<StateEvent>() && !eventPtr.IsA<DeltaStateEvent>())
-            {
                 return;
-            }
 
             var device = InputSystem.GetDeviceById(eventPtr.deviceId);
             foreach (var player in PlayerContainer.Players)
             {
-                // TODO: Bindings don't have anything subscribed to their input event yet
                 var profileBinds = player.Bindings;
-
                 var deviceBinds = profileBinds.TryGetBindsForDevice(device);
-                if (deviceBinds == null) continue;
+                if (deviceBinds is null)
+                    continue;
+
                 deviceBinds.ProcessInputEvent(eventPtr);
+                break;
             }
         }
     }
