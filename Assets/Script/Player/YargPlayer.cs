@@ -13,6 +13,7 @@ namespace YARG.Player
         public InputStrategy InputStrategy;
         public MicInput MicInput;
 
+        public bool InputsEnabled { get; private set; }
         public ProfileBindings Bindings { get; private set; }
 
         public ColorProfile ColorProfile = ColorProfile.Default;
@@ -27,12 +28,34 @@ namespace YARG.Player
         {
             // TODO: deal with the previous bindings, etc.
 
+            // Force-disable inputs
+            DisableInputs();
+
             Profile = profile;
             Bindings = new(profile);
         }
 
+        public void EnableInputs()
+        {
+            if (InputsEnabled || Bindings == null)
+                return;
+
+            Bindings.EnableInputs();
+            InputsEnabled = true;
+        }
+
+        public void DisableInputs()
+        {
+            if (!InputsEnabled || Bindings == null)
+                return;
+
+            Bindings.DisableInputs();
+            InputsEnabled = false;
+        }
+
         public void Dispose()
         {
+            DisableInputs();
             InputStrategy?.Dispose();
         }
     }

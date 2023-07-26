@@ -35,6 +35,22 @@ namespace YARG.Input
             _deviceBindings = new();
         }
 
+        public void EnableInputs()
+        {
+            foreach (var deviceBindings in _deviceBindings.Values)
+            {
+                deviceBindings.EnableInputs();
+            }
+        }
+
+        public void DisableInputs()
+        {
+            foreach (var deviceBindings in _deviceBindings.Values)
+            {
+                deviceBindings.DisableInputs();
+            }
+        }
+
         public void SubscribeToGameModeInputs(GameMode mode, GameInputProcessed onInputProcessed)
         {
             foreach (var deviceBindings in _deviceBindings.Values)

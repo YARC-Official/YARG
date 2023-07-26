@@ -29,6 +29,22 @@ namespace YARG.Input
             }
         }
 
+        public void EnableInputs()
+        {
+            foreach (var binding in _bindings)
+            {
+                binding.Enable();
+            }
+        }
+
+        public void DisableInputs()
+        {
+            foreach (var binding in _bindings)
+            {
+                binding.Disable();
+            }
+        }
+
         public ControlBinding TryGetBindingByName(string name)
         {
             foreach (var binding in _bindings)

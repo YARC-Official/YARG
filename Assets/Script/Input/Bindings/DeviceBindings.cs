@@ -18,6 +18,24 @@ namespace YARG.Input
             Device = device;
         }
 
+        public void EnableInputs()
+        {
+            MenuBinds.EnableInputs();
+            foreach (var bindings in _bindsByGameMode.Values)
+            {
+                bindings.EnableInputs();
+            }
+        }
+
+        public void DisableInputs()
+        {
+            MenuBinds.DisableInputs();
+            foreach (var bindings in _bindsByGameMode.Values)
+            {
+                bindings.DisableInputs();
+            }
+        }
+
         public void SubscribeToInputsForGameMode(GameMode mode, GameInputProcessed onInputProcessed)
         {
             var modeBindings = TryGetBindingsForGameMode(mode);

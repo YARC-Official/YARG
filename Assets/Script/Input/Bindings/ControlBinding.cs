@@ -34,6 +34,11 @@ namespace YARG.Input
         /// </summary>
         public int Action { get; }
 
+        /// <summary>
+        /// Whether or not this control is enabled.
+        /// </summary>
+        public bool Enabled { get; protected set; } = false;
+
         public ControlBinding(string name, int action)
         {
             Name = name;
@@ -44,6 +49,16 @@ namespace YARG.Input
         public abstract bool RemoveControl(InputControl control);
         public abstract bool ContainsControl(InputControl control);
         public abstract IEnumerable<ISingleBinding> AllControls();
+
+        public virtual void Enable()
+        {
+            Enabled = true;
+        }
+
+        public virtual void Disable()
+        {
+            Enabled = false;
+        }
 
         public virtual void UpdateForFrame() { }
         public abstract void ProcessInputEvent(InputEventPtr eventPtr);
@@ -71,6 +86,9 @@ namespace YARG.Input
 
         protected void FireEvent(ref GameInput input)
         {
+            if (!Enabled)
+                return;
+
             try
             {
                 InputProcessed?.Invoke(ref input);
