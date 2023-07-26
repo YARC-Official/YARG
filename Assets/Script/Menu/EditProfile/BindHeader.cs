@@ -13,11 +13,13 @@ namespace YARG.Menu.EditProfile
         [SerializeField]
         private LocalizeStringEvent _bindingNameText;
 
+        private EditProfileMenu _editProfileMenu;
         private InputDevice _inputDevice;
         private ControlBinding _binding;
 
-        public void Init(InputDevice inputDevice, ControlBinding binding)
+        public void Init(EditProfileMenu editProfileMenu, InputDevice inputDevice, ControlBinding binding)
         {
+            _editProfileMenu = editProfileMenu;
             _inputDevice = inputDevice;
             _binding = binding;
 
@@ -37,6 +39,7 @@ namespace YARG.Menu.EditProfile
             if (control == null) return;
 
             _binding.AddControl(control);
+            _editProfileMenu.RefreshBindings();
         }
     }
 }

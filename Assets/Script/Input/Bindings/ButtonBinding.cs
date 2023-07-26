@@ -60,7 +60,7 @@ namespace YARG.Input
         public override void ProcessInputEvent(InputEventPtr eventPtr)
         {
             bool state = false;
-            foreach (var binding in _bindings)
+            foreach (var binding in Bindings)
             {
                 var value = binding.UpdateState(eventPtr);
                 state |= value >= binding.Parameters.PressPoint;

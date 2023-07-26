@@ -14,6 +14,11 @@ namespace YARG.Input
     /// </summary>
     public abstract class ControlBinding
     {
+        public interface ISingleBinding
+        {
+            public InputControl InputControl { get; }
+        }
+
         /// <summary>
         /// Fired when an input event has been processed by this binding.
         /// </summary>
@@ -38,6 +43,7 @@ namespace YARG.Input
         public abstract bool AddControl(InputControl control);
         public abstract bool RemoveControl(InputControl control);
         public abstract bool ContainsControl(InputControl control);
+        public abstract IEnumerable<ISingleBinding> AllControls();
 
         public virtual void UpdateForFrame() { }
         public abstract void ProcessInputEvent(InputEventPtr eventPtr);
@@ -84,11 +90,13 @@ namespace YARG.Input
         where TState : struct
         where TParams : new()
     {
-        protected class SingleBinding
+        protected class SingleBinding : ISingleBinding
         {
             public InputControl<TState> Control;
-            public TState State = default;
+            public TState State;
             public TParams Parameters = new();
+
+            public InputControl InputControl => Control;
 
             public SingleBinding(InputControl<TState> control)
             {
@@ -106,7 +114,7 @@ namespace YARG.Input
             }
         }
 
-        protected List<SingleBinding> _bindings = new();
+        protected List<SingleBinding> Bindings = new();
 
         public ControlBinding(string name, int action) : base(name, action)
         {
@@ -127,13 +135,18 @@ namespace YARG.Input
             return control is InputControl<TState> tControl && ContainsControl(tControl);
         }
 
+        public override IEnumerable<ISingleBinding> AllControls()
+        {
+            return Bindings;
+        }
+
         public bool AddControl(InputControl<TState> control)
         {
             if (ContainsControl(control))
                 return false;
 
             var binding = new SingleBinding(control);
-            _bindings.Add(binding);
+            Bindings.Add(binding);
             OnControlAdded(binding);
             return true;
         }
@@ -143,7 +156,7 @@ namespace YARG.Input
             if (!TryFindBinding(control, out var binding))
                 return false;
 
-            bool removed = _bindings.Remove(binding);
+            bool removed = Bindings.Remove(binding);
             if (removed)
                 OnControlRemoved(binding);
 
@@ -157,7 +170,7 @@ namespace YARG.Input
 
         private bool TryFindBinding(InputControl<TState> control, out SingleBinding foundBinding)
         {
-            foreach (var binding in _bindings)
+            foreach (var binding in Bindings)
             {
                 if (binding.Control == control)
                 {

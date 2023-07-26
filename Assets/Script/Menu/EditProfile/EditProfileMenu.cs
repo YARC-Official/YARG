@@ -25,6 +25,8 @@ namespace YARG.Menu.EditProfile
         private GameObject _gameModeViewPrefab;
         [SerializeField]
         private GameObject _bindHeaderPrefab;
+        [SerializeField]
+        private GameObject _bindViewPrefab;
 
         private GameMode _selectedGameMode;
 
@@ -67,20 +69,29 @@ namespace YARG.Menu.EditProfile
             var gameModeBindings = deviceBindings.GetOrCreateBindingsForGameMode(gameMode);
 
             // Create the list of bindings
-            foreach (var bindingGroup in gameModeBindings)
+            foreach (var controlBinding in gameModeBindings)
             {
                 // Create header
-                var go = Instantiate(_bindHeaderPrefab, _bindsList);
-                go.GetComponent<BindHeader>().Init(deviceBindings.Device, bindingGroup);
+                var header = Instantiate(_bindHeaderPrefab, _bindsList);
+                header.GetComponent<BindHeader>().Init(this, deviceBindings.Device, controlBinding);
 
-                _bindsNavGroup.AddNavigatable(go);
+                _bindsNavGroup.AddNavigatable(header);
 
                 // Create the actual bindings
-                // foreach (var binding in bindingGroup)
-                // {
-                //
-                // }
+                foreach (var binding in controlBinding.AllControls())
+                {
+                    // Create bind view
+                    var bindView = Instantiate(_bindViewPrefab, _bindsList);
+                    bindView.GetComponent<BindView>().Init(binding.InputControl);
+
+                    _bindsNavGroup.AddNavigatable(bindView);
+                }
             }
+        }
+
+        public void RefreshBindings()
+        {
+            RefreshBindings(_selectedGameMode);
         }
     }
 }

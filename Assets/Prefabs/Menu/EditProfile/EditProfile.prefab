@@ -139,6 +139,8 @@ MonoBehaviour:
     type: 3}
   _bindHeaderPrefab: {fileID: 1426678564427857758, guid: d03ff859a75fb154e9155e4eef90fbe1,
     type: 3}
+  _bindViewPrefab: {fileID: 1426678564427857758, guid: b872e309db128c848949d0b94f5b5265,
+    type: 3}
 --- !u!1 &3543220600999407231
 GameObject:
   m_ObjectHideFlags: 0
@@ -499,7 +501,7 @@ MonoBehaviour:
   m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 1
   m_ChildControlWidth: 1
-  m_ChildControlHeight: 1
+  m_ChildControlHeight: 0
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
