@@ -71,62 +71,12 @@ namespace YARG.Input
             var device = InputSystem.GetDeviceById(eventPtr.deviceId);
             foreach (var player in PlayerContainer.Players)
             {
-                foreach (var control in eventPtr.EnumerateChangedControls())
-                {
-                    FireGameInput(player, eventPtr, control);
-                }
-
-                return;
-
                 // TODO: Bindings don't have anything subscribed to their input event yet
                 var profileBinds = player.Bindings;
 
                 var deviceBinds = profileBinds.TryGetBindsForDevice(device);
                 if (deviceBinds == null) continue;
                 deviceBinds.ProcessInputEvent(eventPtr);
-            }
-        }
-
-        private void FireGameInput(YargPlayer player, InputEventPtr eventPtr, InputControl control)
-        {
-            if (control is ButtonControl button)
-            {
-                float value = button.ReadValueFromEvent(eventPtr);
-
-                GuitarAction action;
-                switch (button.name)
-                {
-                    case "greenFret":
-                        action = GuitarAction.GreenFret;
-                        break;
-                    case "redFret":
-                        action = GuitarAction.RedFret;
-                        break;
-                    case "yellowFret":
-                        action = GuitarAction.YellowFret;
-                        break;
-                    case "blueFret":
-                        action = GuitarAction.BlueFret;
-                        break;
-                    case "orangeFret":
-                        action = GuitarAction.OrangeFret;
-                        break;
-                    case "strumDown":
-                        action = GuitarAction.StrumDown;
-                        break;
-                    case "strumUp":
-                        action = GuitarAction.StrumUp;
-                        break;
-                    case "selectButton":
-                        action = GuitarAction.StarPower;
-                        break;
-                    default:
-                        return;
-                }
-
-                double time = eventPtr.time - InputTimeOffset;
-                var gameInput = new GameInput(time, (int) action, button.IsValueConsideredPressed(value));
-                OnGameInput?.Invoke(player, gameInput);
             }
         }
     }
