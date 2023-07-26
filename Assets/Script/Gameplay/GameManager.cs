@@ -135,27 +135,6 @@ namespace YARG.Gameplay
         {
             _players = new List<BasePlayer>();
 
-            var profile = new YargProfile
-            {
-                Name = "RileyTheFox",
-                IsBot = true,
-                NoteSpeed = 6.5f,
-            };
-
-            // var profile2 = new YargProfile
-            // {
-            //     Name = "EliteAsian",
-            //     Instrument = Instrument.FiveFretBass,
-            //     IsBot = true,
-            //     NoteSpeed = 7,
-            // };
-
-            PlayerContainer.AddProfile(profile);
-            PlayerContainer.CreatePlayerFromProfile(profile);
-
-            // PlayerContainer.AddProfile(profile2);
-            // PlayerContainer.CreatePlayerFromProfile(profile2);
-
             int count = -1;
             foreach (var player in PlayerContainer.Players)
             {
