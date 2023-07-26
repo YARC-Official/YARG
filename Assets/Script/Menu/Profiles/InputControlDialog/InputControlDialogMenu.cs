@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -9,7 +9,8 @@ using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.Utilities;
 using YARG.Helpers.Extensions;
-using YARG.Player.Input;
+using YARG.Input;
+using YARG.Settings;
 
 namespace YARG.Menu.Profiles
 {
@@ -71,6 +72,59 @@ namespace YARG.Menu.Profiles
             }
         }
 
+        public static async UniTask<InputControl> Show(InputDevice device)
+        {
+            _inputDevice = device;
+            _grabbedControl = null;
+            _state = State.Waiting;
+
+            _bindGroupingTimer = null;
+            _possibleControls.Clear();
+
+            _cancellationToken = new();
+            var token = _cancellationToken.Token;
+
+            // Open dialog
+            MenuNavigator.Instance.PushMenu(MenuNavigator.Menu.InputControlDialog);
+
+            // Reset menu
+            _instance._controlContainer.DestroyChildren();
+            _instance._waitingText.SetActive(true);
+
+            try
+            {
+                // Create a listener
+                var listener = InputSystem.onEvent.ForDevice(_inputDevice).Call(Listen);
+
+                // Listen until we cancel or an input is grabbed
+                await UniTask.WaitUntil(() => _state != State.Waiting, cancellationToken: token);
+                _instance._waitingText.SetActive(false);
+
+                // Dispose
+                listener?.Dispose();
+
+                // If there is only one option, just return that
+                if (_possibleControls.Count == 1)
+                {
+                    MenuNavigator.Instance.PopMenu();
+                    return _possibleControls[0];
+                }
+
+                // Otherwise... display the options
+                _instance.RefreshList();
+
+                // Wait until the dialog is closed
+                await UniTask.WaitUntil(() => !_instance.gameObject.activeSelf, cancellationToken: token);
+
+                // Return the result
+                return _grabbedControl;
+            }
+            catch (OperationCanceledException)
+            {
+                return null;
+            }
+        }
+
         private void RefreshList()
         {
             _controlContainer.DestroyChildren();
@@ -104,17 +158,9 @@ namespace YARG.Menu.Profiles
         {
             // Only take state events
             if (!eventPtr.IsA<StateEvent>() && !eventPtr.IsA<DeltaStateEvent>())
-            {
                 return;
-            }
 
-            // Find all active float-returning controls
-            // Only controls that have changed
-            //  | Constantly-changing controls like accelerometers
-            //  | Non-physical controls like stick up/down/left/right
-            var flags = InputControlExtensions.Enumerate.IgnoreControlsInCurrentState
-                | InputControlExtensions.Enumerate.IncludeNoisyControls
-                | InputControlExtensions.Enumerate.IncludeSyntheticControls;
+            var flags = InputManager.DEFAULT_CONTROL_ENUMERATION_FLAGS;
             var activeControls = from control in eventPtr.EnumerateControls(flags, _inputDevice)
                 where ControlAllowedAndActive(control, eventPtr)
                 select control as InputControl<float>;
@@ -141,7 +187,7 @@ namespace YARG.Menu.Profiles
             }
 
             // Ensure control is pressed
-            if (!InputStrategy.IsControlPressed(floatControl, eventPtr))
+            if (!IsControlPressed(floatControl, eventPtr))
             {
                 return false;
             }
@@ -149,59 +195,14 @@ namespace YARG.Menu.Profiles
             return true;
         }
 
-        public static async UniTask<InputControl> Show(InputDevice device)
+        private static bool IsControlPressed(InputControl<float> control, InputEventPtr eventPtr)
         {
-            _inputDevice = device;
-            _grabbedControl = null;
-            _state = State.Waiting;
-
-            _bindGroupingTimer = null;
-            _possibleControls.Clear();
-
-            _cancellationToken = new();
-            var token = _cancellationToken.Token;
-
-            // Open dialog
-            MenuNavigator.Instance.PushMenu(MenuNavigator.Menu.InputControlDialog);
-
-            // Reset menu
-            _instance._controlContainer.DestroyChildren();
-            _instance._waitingText.SetActive(true);
-
-            try
+            if (control is ButtonControl button)
             {
-                // Create a listener
-                var listener = InputSystem.onEvent.ForDevice(_inputDevice).Call(Listen);
-
-                // Listen until we cancel or an input is grabbed
-                await UniTask.WaitUntil(() => _state != State.Waiting,
-                    cancellationToken: token);
-                _instance._waitingText.SetActive(false);
-
-                // Dispose
-                listener?.Dispose();
-
-                if (_possibleControls.Count == 1)
-                {
-                    // If there is only one option, just return that
-                    MenuNavigator.Instance.PopMenu();
-                    return _possibleControls[0];
-                }
-
-                // Otherwise... display the options
-                _instance.RefreshList();
-
-                // Wait until the dialog is closed
-                await UniTask.WaitUntil(() => !_instance.gameObject.activeSelf,
-                    cancellationToken: token);
-
-                // Return the result
-                return _grabbedControl;
+                return button.IsValueConsideredPressed(button.ReadValueFromEvent(eventPtr));
             }
-            catch (OperationCanceledException)
-            {
-                return null;
-            }
+
+            return control.ReadValueFromEvent(eventPtr) >= SettingsManager.Settings.PressThreshold.Data;
         }
     }
 }
