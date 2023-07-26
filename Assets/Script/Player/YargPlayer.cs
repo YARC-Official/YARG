@@ -1,5 +1,6 @@
 using System;
 using YARG.Core;
+using YARG.Core.Input;
 using YARG.Input;
 using YARG.Player.Input;
 using YARG.Settings.Customization;
@@ -8,6 +9,8 @@ namespace YARG.Player
 {
     public class YargPlayer : IDisposable
     {
+        public event MenuInputEvent MenuInput;
+
         public YargProfile Profile { get; private set; }
 
         public InputStrategy InputStrategy;
@@ -41,6 +44,9 @@ namespace YARG.Player
                 return;
 
             Bindings.EnableInputs();
+            Bindings.MenuInputProcessed += OnMenuInput;
+            InputManager.RegisterPlayer(this);
+
             InputsEnabled = true;
         }
 
@@ -50,7 +56,15 @@ namespace YARG.Player
                 return;
 
             Bindings.DisableInputs();
+            Bindings.MenuInputProcessed -= OnMenuInput;
+            InputManager.UnregisterPlayer(this);
+
             InputsEnabled = false;
+        }
+
+        private void OnMenuInput(ref GameInput input)
+        {
+            MenuInput?.Invoke(this, ref input);
         }
 
         public void Dispose()

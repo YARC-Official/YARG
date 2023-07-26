@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.Utilities;
 using YARG.Core.Input;
@@ -11,6 +10,8 @@ namespace YARG.Input
 {
     using Enumerate = InputControlExtensions.Enumerate;
 
+    public delegate void MenuInputEvent(YargPlayer player, ref GameInput input);
+
     public class InputManager : MonoBehaviour
     {
         public const Enumerate DEFAULT_CONTROL_ENUMERATION_FLAGS =
@@ -18,9 +19,7 @@ namespace YARG.Input
             Enumerate.IncludeNoisyControls |         // Constantly-changing controls like accelerometers
             Enumerate.IncludeSyntheticControls;      // Non-physical controls like stick up/down/left/right
 
-        public delegate void GameInputEvent(YargPlayer player, GameInput input);
-
-        public static event GameInputEvent OnGameInput;
+        public static event MenuInputEvent MenuInput;
 
         public static double InputUpdateTime { get; private set; }
 
@@ -53,6 +52,21 @@ namespace YARG.Input
         public static double GetRelativeTime(double timeFromInputSystem)
         {
             return timeFromInputSystem - InputTimeOffset;
+        }
+
+        public static void RegisterPlayer(YargPlayer player)
+        {
+            player.MenuInput += OnMenuInput;
+        }
+
+        public static void UnregisterPlayer(YargPlayer player)
+        {
+            player.MenuInput -= OnMenuInput;
+        }
+
+        private static void OnMenuInput(YargPlayer player, ref GameInput input)
+        {
+            MenuInput?.Invoke(player, ref input);
         }
 
         private void OnAfterUpdate()

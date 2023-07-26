@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Guitar.Engines;
@@ -136,21 +137,16 @@ namespace YARG.Gameplay.Player
 
         protected override void SubscribeToInputEvents()
         {
-            InputManager.OnGameInput += OnGameInput;
+            Player.Bindings.SubscribeToGameModeInputs(GameMode.FiveFretGuitar, OnGameInput);
         }
 
         protected override void UnsubscribeFromInputEvents()
         {
-            InputManager.OnGameInput -= OnGameInput;
+            Player.Bindings.UnsubscribeToGameModeInputs(GameMode.FiveFretGuitar, OnGameInput);
         }
 
-        private void OnGameInput(YargPlayer player, GameInput input)
+        private void OnGameInput(ref GameInput input)
         {
-            if (player != Player || GameManager.IsReplay)
-            {
-                return;
-            }
-
             Engine.QueueInput(input);
             AddReplayInput(input);
         }
