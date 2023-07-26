@@ -82,7 +82,7 @@ namespace YARG.Menu.EditProfile
                 {
                     // Create bind view
                     var bindView = Instantiate(_bindViewPrefab, _bindsList);
-                    bindView.GetComponent<BindView>().Init(binding.InputControl);
+                    bindView.GetComponent<BindView>().Init(this, controlBinding, binding.InputControl);
 
                     _bindsNavGroup.AddNavigatable(bindView);
                 }

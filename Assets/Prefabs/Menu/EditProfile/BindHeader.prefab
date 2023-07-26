@@ -56,7 +56,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SelectionBackground: {fileID: 4112798753867176024}
   _bindingNameText: {fileID: 3750816602721794853}
-  _waitingSection: {fileID: 0}
 --- !u!222 &5885225188898954495
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -398,7 +397,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}

@@ -21,10 +21,11 @@ namespace YARG.Menu.EditProfile
             _binding = binding;
             _control = control;
 
-            _bindText.text = control.displayName;
+            _bindText.text = $"<font-weight=400>{control.device.displayName}</font-weight> - " +
+                $"<font-weight=600>{control.displayName}</font-weight>";
         }
 
-        public void DeleteBind()
+        public void DeleteBinding()
         {
             _binding.RemoveControl(_control);
             _editProfileMenu.RefreshBindings();
