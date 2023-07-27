@@ -1,5 +1,8 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
+using YARG.Settings;
 
 namespace YARG.Input
 {
@@ -13,6 +16,26 @@ namespace YARG.Input
 
         public AxisBinding(string name, int action) : base(name, action)
         {
+        }
+
+        public override bool IsControlActuated(InputControl<float> control)
+        {
+            float previousValue = control.ReadValueFromPreviousFrame();
+            float value = control.ReadValue();
+            return !Mathf.Approximately(previousValue, value);
+        }
+
+        public override bool IsControlActuated(InputControl<float> control, InputEventPtr eventPtr)
+        {
+            float previousValue = control.ReadValueFromPreviousFrame();
+            float value = control.ReadValue();
+            if (control.HasValueChangeInEvent(eventPtr))
+            {
+                previousValue = value;
+                value = control.ReadValueFromEvent(eventPtr);
+            }
+
+            return !Mathf.Approximately(previousValue, value);
         }
 
         public override void ProcessInputEvent(InputEventPtr eventPtr)

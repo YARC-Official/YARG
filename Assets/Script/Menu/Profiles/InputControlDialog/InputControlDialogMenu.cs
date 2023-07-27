@@ -30,10 +30,11 @@ namespace YARG.Menu.Profiles
 
         private static State _state;
         private static InputDevice _inputDevice;
+        private static ControlBinding _binding;
         private static InputControl _grabbedControl;
 
         private static float? _bindGroupingTimer;
-        private static readonly List<InputControl<float>> _possibleControls = new();
+        private static readonly List<InputControl> _possibleControls = new();
 
         private static CancellationTokenSource _cancellationToken;
 
@@ -72,11 +73,12 @@ namespace YARG.Menu.Profiles
             }
         }
 
-        public static async UniTask<InputControl> Show(InputDevice device)
+        public static async UniTask<InputControl> Show(InputDevice device, ControlBinding binding)
         {
-            _inputDevice = device;
-            _grabbedControl = null;
             _state = State.Waiting;
+            _inputDevice = device;
+            _binding = binding;
+            _grabbedControl = null;
 
             _bindGroupingTimer = null;
             _possibleControls.Clear();
@@ -161,9 +163,8 @@ namespace YARG.Menu.Profiles
                 return;
 
             var flags = InputManager.DEFAULT_CONTROL_ENUMERATION_FLAGS;
-            var activeControls = from control in eventPtr.EnumerateControls(flags, _inputDevice)
-                where ControlAllowedAndActive(control, eventPtr)
-                select control as InputControl<float>;
+            var activeControls = eventPtr.EnumerateControls(flags, _inputDevice)
+                .Where((control) => ControlAllowedAndActive(control) && _binding.IsControlActuated(control, eventPtr));
 
             // Add all controls
             foreach (var control in activeControls)
@@ -178,31 +179,15 @@ namespace YARG.Menu.Profiles
             }
         }
 
-        private static bool ControlAllowedAndActive(InputControl control, InputEventPtr eventPtr)
+        private static bool ControlAllowedAndActive(InputControl control)
         {
             // AnyKeyControl is excluded as it would always be active
-            if (control is not InputControl<float> floatControl || floatControl is AnyKeyControl)
-            {
-                return false;
-            }
-
-            // Ensure control is pressed
-            if (!IsControlPressed(floatControl, eventPtr))
+            if (control is AnyKeyControl)
             {
                 return false;
             }
 
             return true;
-        }
-
-        private static bool IsControlPressed(InputControl<float> control, InputEventPtr eventPtr)
-        {
-            if (control is ButtonControl button)
-            {
-                return button.IsValueConsideredPressed(button.ReadValueFromEvent(eventPtr));
-            }
-
-            return control.ReadValueFromEvent(eventPtr) >= SettingsManager.Settings.PressThreshold.Data;
         }
     }
 }

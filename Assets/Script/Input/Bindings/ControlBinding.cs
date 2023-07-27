@@ -54,6 +54,10 @@ namespace YARG.Input
             Action = action;
         }
 
+        public abstract bool IsControlCompatible(InputControl control);
+        public abstract bool IsControlActuated(InputControl control);
+        public abstract bool IsControlActuated(InputControl control, InputEventPtr eventPtr);
+
         public abstract bool AddControl(InputControl control);
         public abstract bool RemoveControl(InputControl control);
         public abstract bool ContainsControl(InputControl control);
@@ -147,19 +151,49 @@ namespace YARG.Input
         {
         }
 
+        public override bool IsControlCompatible(InputControl control)
+        {
+            return IsControlCompatible(control, out _);
+        }
+
+        public virtual bool IsControlCompatible(InputControl control, out InputControl<TState> typedControl)
+        {
+            if (control is InputControl<TState> tControl)
+            {
+                typedControl = tControl;
+                return true;
+            }
+
+            typedControl = null;
+            return false;
+        }
+
+        public override bool IsControlActuated(InputControl control)
+        {
+            return IsControlCompatible(control, out var tControl) && IsControlActuated(tControl);
+        }
+
+        public override bool IsControlActuated(InputControl control, InputEventPtr eventPtr)
+        {
+            return IsControlCompatible(control, out var tControl) && IsControlActuated(tControl, eventPtr);
+        }
+
+        public abstract bool IsControlActuated(InputControl<TState> control);
+        public abstract bool IsControlActuated(InputControl<TState> control, InputEventPtr eventPtr);
+
         public override bool AddControl(InputControl control)
         {
-            return control is InputControl<TState> tControl && AddControl(tControl);
+            return IsControlCompatible(control, out var tControl) && AddControl(tControl);
         }
 
         public override bool RemoveControl(InputControl control)
         {
-            return control is InputControl<TState> tControl && RemoveControl(tControl);
+            return IsControlCompatible(control, out var tControl) && RemoveControl(tControl);
         }
 
         public override bool ContainsControl(InputControl control)
         {
-            return control is InputControl<TState> tControl && ContainsControl(tControl);
+            return IsControlCompatible(control, out var tControl) && ContainsControl(tControl);
         }
 
         public bool AddControl(InputControl<TState> control)

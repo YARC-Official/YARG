@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
 using YARG.Settings;
@@ -56,6 +57,29 @@ namespace YARG.Input
 
         public ButtonBinding(string name, int action) : base(name, action)
         {
+        }
+
+        public override bool IsControlActuated(InputControl<float> control)
+        {
+            float pressPoint = SettingsManager.Settings.PressThreshold.Data;
+            if (control is ButtonControl button)
+                pressPoint = button.pressPointOrDefault;
+
+            float value = control.ReadValue();
+            return value >= pressPoint;
+        }
+
+        public override bool IsControlActuated(InputControl<float> control, InputEventPtr eventPtr)
+        {
+            float pressPoint = SettingsManager.Settings.PressThreshold.Data;
+            if (control is ButtonControl button)
+                pressPoint = button.pressPointOrDefault;
+
+            float value = control.ReadValue();
+            if (control.HasValueChangeInEvent(eventPtr))
+                value = control.ReadValueFromEvent(eventPtr);
+
+            return value >= pressPoint;
         }
 
         public override void ProcessInputEvent(InputEventPtr eventPtr)
