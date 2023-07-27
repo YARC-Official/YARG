@@ -56,27 +56,6 @@ namespace YARG.Input
             new AxisBinding("guitar_Whammy", (int) GuitarAction.Whammy),
         };
 
-        public static BindingCollection CreateProGuitarBindings() => new()
-        {
-            new IntegerBinding("proGuitar_String1_Fret", (int) ProGuitarAction.String1_Fret),
-            new IntegerBinding("proGuitar_String2_Fret", (int) ProGuitarAction.String2_Fret),
-            new IntegerBinding("proGuitar_String3_Fret", (int) ProGuitarAction.String3_Fret),
-            new IntegerBinding("proGuitar_String4_Fret", (int) ProGuitarAction.String4_Fret),
-            new IntegerBinding("proGuitar_String5_Fret", (int) ProGuitarAction.String5_Fret),
-            new IntegerBinding("proGuitar_String6_Fret", (int) ProGuitarAction.String6_Fret),
-
-            new ButtonBinding("proGuitar_String1_Strum", (int) ProGuitarAction.String1_Strum),
-            new ButtonBinding("proGuitar_String2_Strum", (int) ProGuitarAction.String2_Strum),
-            new ButtonBinding("proGuitar_String3_Strum", (int) ProGuitarAction.String3_Strum),
-            new ButtonBinding("proGuitar_String4_Strum", (int) ProGuitarAction.String4_Strum),
-            new ButtonBinding("proGuitar_String5_Strum", (int) ProGuitarAction.String5_Strum),
-            new ButtonBinding("proGuitar_String6_Strum", (int) ProGuitarAction.String6_Strum),
-
-            new ButtonBinding("guitar_StarPower", (int) ProGuitarAction.StarPower),
-
-            new AxisBinding("guitar_Whammy", (int) ProGuitarAction.Whammy),
-        };
-
         public static BindingCollection CreateFourLaneDrumsBindings() => new()
         {
             new ButtonBinding("drums_RedPad",    (int) DrumsAction.RedDrum),
@@ -102,6 +81,61 @@ namespace YARG.Input
             new ButtonBinding("drums_Kick", (int) DrumsAction.Kick),
         };
 
+        public static BindingCollection CreateProGuitarBindings() => new()
+        {
+            new IntegerBinding("proGuitar_String1_Fret", (int) ProGuitarAction.String1_Fret),
+            new IntegerBinding("proGuitar_String2_Fret", (int) ProGuitarAction.String2_Fret),
+            new IntegerBinding("proGuitar_String3_Fret", (int) ProGuitarAction.String3_Fret),
+            new IntegerBinding("proGuitar_String4_Fret", (int) ProGuitarAction.String4_Fret),
+            new IntegerBinding("proGuitar_String5_Fret", (int) ProGuitarAction.String5_Fret),
+            new IntegerBinding("proGuitar_String6_Fret", (int) ProGuitarAction.String6_Fret),
+
+            new ButtonBinding("proGuitar_String1_Strum", (int) ProGuitarAction.String1_Strum),
+            new ButtonBinding("proGuitar_String2_Strum", (int) ProGuitarAction.String2_Strum),
+            new ButtonBinding("proGuitar_String3_Strum", (int) ProGuitarAction.String3_Strum),
+            new ButtonBinding("proGuitar_String4_Strum", (int) ProGuitarAction.String4_Strum),
+            new ButtonBinding("proGuitar_String5_Strum", (int) ProGuitarAction.String5_Strum),
+            new ButtonBinding("proGuitar_String6_Strum", (int) ProGuitarAction.String6_Strum),
+
+            new ButtonBinding("guitar_StarPower", (int) ProGuitarAction.StarPower),
+
+            new AxisBinding("guitar_Whammy", (int) ProGuitarAction.Whammy),
+        };
+
+        public static BindingCollection CreateProKeysBindings() => new()
+        {
+            // new IntegerBinding("proKeys_Key1",  (int) ProKeysAction.Key1),
+            // new IntegerBinding("proKeys_Key2",  (int) ProKeysAction.Key2),
+            // new IntegerBinding("proKeys_Key3",  (int) ProKeysAction.Key3),
+            // new IntegerBinding("proKeys_Key4",  (int) ProKeysAction.Key4),
+            // new IntegerBinding("proKeys_Key5",  (int) ProKeysAction.Key5),
+            // new IntegerBinding("proKeys_Key6",  (int) ProKeysAction.Key6),
+            // new IntegerBinding("proKeys_Key7",  (int) ProKeysAction.Key7),
+            // new IntegerBinding("proKeys_Key8",  (int) ProKeysAction.Key8),
+            // new IntegerBinding("proKeys_Key9",  (int) ProKeysAction.Key9),
+            // new IntegerBinding("proKeys_Key10", (int) ProKeysAction.Key10),
+            // new IntegerBinding("proKeys_Key11", (int) ProKeysAction.Key11),
+            // new IntegerBinding("proKeys_Key12", (int) ProKeysAction.Key12),
+            // new IntegerBinding("proKeys_Key12", (int) ProKeysAction.Key12),
+            // new IntegerBinding("proKeys_Key13", (int) ProKeysAction.Key13),
+            // new IntegerBinding("proKeys_Key14", (int) ProKeysAction.Key14),
+            // new IntegerBinding("proKeys_Key15", (int) ProKeysAction.Key15),
+            // new IntegerBinding("proKeys_Key16", (int) ProKeysAction.Key16),
+            // new IntegerBinding("proKeys_Key17", (int) ProKeysAction.Key17),
+            // new IntegerBinding("proKeys_Key18", (int) ProKeysAction.Key18),
+            // new IntegerBinding("proKeys_Key19", (int) ProKeysAction.Key19),
+            // new IntegerBinding("proKeys_Key20", (int) ProKeysAction.Key20),
+            // new IntegerBinding("proKeys_Key21", (int) ProKeysAction.Key21),
+            // new IntegerBinding("proKeys_Key22", (int) ProKeysAction.Key22),
+            // new IntegerBinding("proKeys_Key23", (int) ProKeysAction.Key23),
+            // new IntegerBinding("proKeys_Key24", (int) ProKeysAction.Key24),
+            // new IntegerBinding("proKeys_Key25", (int) ProKeysAction.Key25),
+
+            // new ButtonBinding("proKeys_StarPower", (int) ProKeysAction.StarPower),
+
+            // new AxisBinding("proKeys_TouchEffects", (int) ProKeysAction.TouchEffects),
+        };
+
         public static BindingCollection CreateVocalsBindings() => new()
         {
             // Only needed if we want to over-do it and run audio devices
@@ -122,7 +156,7 @@ namespace YARG.Input
                 GameMode.FiveLaneDrums => CreateFiveLaneDrumsBindings(),
 
                 GameMode.ProGuitar => CreateProGuitarBindings(),
-                // GameMode.ProKeys => CreateProKeysBindings(),
+                GameMode.ProKeys => CreateProKeysBindings(),
 
                 GameMode.Vocals => CreateVocalsBindings(),
 
