@@ -171,69 +171,10 @@ namespace YARG.Gameplay
 
                 // Setup player
                 var basePlayer = playerObject.GetComponent<BasePlayer>();
-                basePlayer.Player = player;
+                basePlayer.Initialize(player, _chart);
                 _players.Add(basePlayer);
 
                 _trackViewManager.CreateTrackView(basePlayer);
-
-                // Load it up
-                LoadChart(player, basePlayer);
-            }
-        }
-
-        private void LoadChart(YargPlayer yargPlayer, BasePlayer basePlayer)
-        {
-            var profile = yargPlayer.Profile;
-            var instrument = profile.Instrument;
-            var difficulty = profile.Difficulty;
-            // int vocalsPart = profile.VocalsPart;
-
-            switch (profile.GameMode)
-            {
-                case GameMode.FiveFretGuitar:
-                {
-                    var chart = _chart.GetFiveFretTrack(instrument).Difficulties[difficulty];
-                    (basePlayer as FiveFretPlayer)?.Initialize(yargPlayer, chart, _chart.SyncTrack, _beats);
-                    break;
-                }
-
-                case GameMode.SixFretGuitar:
-                {
-                    var chart = _chart.GetSixFretTrack(instrument).Difficulties[difficulty];
-                    // (basePlayer as SixFretPlayer)?.Initialize(yargPlayer, chart, _beats);
-                    break;
-                }
-
-                case GameMode.FourLaneDrums:
-                {
-                    var chart = _chart.GetDrumsTrack(instrument).Difficulties[difficulty];
-                    // (basePlayer as FourLaneDrumsPlayer)?.Initialize(yargPlayer, chart, _beats);
-                    break;
-                }
-
-                case GameMode.FiveLaneDrums:
-                {
-                    var chart = _chart.GetDrumsTrack(instrument).Difficulties[difficulty];
-                    // (basePlayer as FiveLaneDrumsPlayer)?.Initialize(yargPlayer, chart, _beats);
-                    break;
-                }
-
-                case GameMode.ProGuitar:
-                {
-                    var chart = _chart.GetProGuitarTrack(instrument).Difficulties[difficulty];
-                    // (basePlayer as ProGuitarPlayer)?.Initialize(yargPlayer, chart, _beats);
-                    break;
-                }
-
-                case GameMode.Vocals:
-                {
-                    // var chart = Chart.GetVocalsTrack(instrument).Parts[vocalsPart];
-                    // (basePlayer as VocalsPlayer)?.Initialize(yargPlayer, chart);
-                    break;
-                }
-
-                default:
-                    break;
             }
         }
 

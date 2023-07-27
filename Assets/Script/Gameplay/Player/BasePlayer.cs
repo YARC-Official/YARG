@@ -41,13 +41,13 @@ namespace YARG.Gameplay.Player
 
         protected GameManager GameManager { get; private set; }
 
-        protected List<Beatline> Beatlines { get; private set; }
+        protected SyncTrack SyncTrack { get; private set; }
 
         private List<GameInput> _replayInputs;
 
         public IReadOnlyList<GameInput> ReplayInputs => _replayInputs.AsReadOnly();
 
-        public YargPlayer Player;
+        public YargPlayer Player { get; private set; }
 
         public abstract float[] StarMultiplierThresholds { get; }
 
@@ -70,10 +70,13 @@ namespace YARG.Gameplay.Player
             IsFc = true;
         }
 
-        protected void Initialize(YargPlayer player, List<Beatline> beats)
+        public virtual void Initialize(YargPlayer player, SongChart chart)
         {
+            if (IsInitialized)
+                return;
+
             Player = player;
-            Beatlines = beats;
+            SyncTrack = chart.SyncTrack;
 
             if (GameManager.IsReplay)
             {
@@ -81,7 +84,7 @@ namespace YARG.Gameplay.Player
                 // Debug.Log("Initialized replay inputs with " + _replayInputs.Count + " inputs");
             }
 
-            _beatlineEnumerator = Beatlines.GetEnumerator();
+            _beatlineEnumerator = SyncTrack.Beatlines.GetEnumerator();
             _beatlineEnumerator.MoveNext();
 
             IsInitialized = true;
@@ -153,31 +156,34 @@ namespace YARG.Gameplay.Player
         where TEngine : BaseEngine
         where TNote : Note<TNote>
     {
-        public TEngine Engine { get; protected set; }
+        public TEngine Engine { get; private set; }
 
-        protected InstrumentDifficulty<TNote> Chart { get; private set; }
-
-        protected SyncTrack SyncTrack { get; private set; }
+        protected InstrumentDifficulty<TNote> Notes { get; private set; }
 
         protected IEnumerator<TNote> NoteEnumerator { get; private set; }
 
         private int _replayInputIndex;
 
-        public virtual void Initialize(YargPlayer player, InstrumentDifficulty<TNote> chart, SyncTrack syncTrack, List<Beatline> beats)
+        public override void Initialize(YargPlayer player, SongChart chart)
         {
             if (IsInitialized)
-            {
                 return;
-            }
 
-            Initialize(player, beats);
+            base.Initialize(player, chart);
 
-            Chart = chart;
-            SyncTrack = syncTrack;
+            Notes = GetNotes(chart);
 
-            NoteEnumerator = Chart.Notes.GetEnumerator();
+            NoteEnumerator = Notes.Notes.GetEnumerator();
             NoteEnumerator.MoveNext();
+
+            Engine = CreateEngine();
+
+            FinishInitialization();
         }
+
+        protected abstract InstrumentDifficulty<TNote> GetNotes(SongChart chart);
+        protected abstract TEngine CreateEngine();
+        protected abstract void FinishInitialization();
 
         protected override void UpdateInputs()
         {

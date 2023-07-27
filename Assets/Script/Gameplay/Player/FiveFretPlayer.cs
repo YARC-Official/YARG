@@ -1,13 +1,10 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Guitar.Engines;
 using YARG.Core.Input;
 using YARG.Gameplay.Visuals;
-using YARG.Input;
-using YARG.Player;
 
 namespace YARG.Gameplay.Player
 {
@@ -26,32 +23,35 @@ namespace YARG.Gameplay.Player
 
         public override int[] StarScoreThresholds { get; protected set; }
 
-        public override void Initialize(YargPlayer player, InstrumentDifficulty<GuitarNote> chart, SyncTrack syncTrack,
-            List<Beatline> beats)
+        protected override InstrumentDifficulty<GuitarNote> GetNotes(SongChart chart)
         {
-            base.Initialize(player, chart, syncTrack, beats);
+            var track = chart.GetFiveFretTrack(Player.Profile.Instrument);
+            return track.Difficulties[Player.Profile.Difficulty];
+        }
 
-            Engine = new YargFiveFretEngine(Chart, SyncTrack, _engineParams);
+        protected override GuitarEngine CreateEngine()
+        {
+            var engine = new YargFiveFretEngine(Notes, SyncTrack, _engineParams);
 
-            Debug.Log("Note count: " + Chart.Notes.Count);
+            Debug.Log("Note count: " + Notes.Notes.Count);
 
-            Engine.OnNoteHit += OnNoteHit;
-            Engine.OnNoteMissed += OnNoteMissed;
-            Engine.OnOverstrum += OnOverstrum;
+            engine.OnNoteHit += OnNoteHit;
+            engine.OnNoteMissed += OnNoteMissed;
+            engine.OnOverstrum += OnOverstrum;
 
             // These events are examples of how they can be used
             // They should be replaced in the future with proper events to be used by the frontend
-            Engine.OnSoloStart += (solo) =>
+            engine.OnSoloStart += (solo) =>
             {
                 Debug.Log($"Solo started (total notes: {solo.NoteCount}");
             };
 
-            Engine.OnSoloEnd += (solo) =>
+            engine.OnSoloEnd += (solo) =>
             {
                 Debug.Log($"Solo ended (hit notes: {solo.NotesHit}/{solo.NoteCount}");
             };
 
-            Engine.OnSustainEnd += (parent, timeEnded) =>
+            engine.OnSustainEnd += (parent, timeEnded) =>
             {
                 foreach (var note in parent.ChordEnumerator())
                 {
@@ -64,14 +64,19 @@ namespace YARG.Gameplay.Player
                 }
             };
 
+            return engine;
+        }
+
+        protected override void FinishInitialization()
+        {
             StarScoreThresholds = new int[StarMultiplierThresholds.Length];
             for (int i = 0; i < StarMultiplierThresholds.Length; i++)
             {
                 StarScoreThresholds[i] = Mathf.FloorToInt(Engine.BaseScore * StarMultiplierThresholds[i]);
             }
 
-            _fretArray.Initialize(player.ColorProfile);
-            HitWindowDisplay.SetHitWindowInfo(_engineParams, player.Profile.NoteSpeed);
+            _fretArray.Initialize(Player.ColorProfile);
+            HitWindowDisplay.SetHitWindowInfo(_engineParams, Player.Profile.NoteSpeed);
         }
 
         protected override void Update()
