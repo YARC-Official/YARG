@@ -21,13 +21,16 @@ namespace YARG.Input
 
         public static event MenuInputEvent MenuInput;
 
-        public static double InputUpdateTime { get; private set; }
-
         // Time reference for when inputs started being tracked
         public static double InputTimeOffset { get; set; }
 
+        public static double CurrentUpdateTime { get; private set; }
+
         // Input events are timestamped directly in the constructor, so we can use them to get the current time
         public static double CurrentInputTime => new InputEvent(StateEvent.Type, 0, InputDevice.InvalidDeviceId).time;
+
+        public static double RelativeInputTime => GetRelativeTime(CurrentUpdateTime);
+        public static double RelativeUpdateTime => GetRelativeTime(CurrentInputTime);
 
         private IDisposable _onEventListener;
 
@@ -71,7 +74,7 @@ namespace YARG.Input
 
         private void OnAfterUpdate()
         {
-            InputUpdateTime = CurrentInputTime - InputTimeOffset;
+            CurrentUpdateTime = CurrentInputTime;
         }
 
         private void OnEvent(InputEventPtr eventPtr)

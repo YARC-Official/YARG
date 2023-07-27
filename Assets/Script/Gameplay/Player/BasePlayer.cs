@@ -189,14 +189,14 @@ namespace YARG.Gameplay.Player
         {
             if (Player.Profile.IsBot)
             {
-                Engine.UpdateBot(InputManager.InputUpdateTime);
+                Engine.UpdateBot(InputManager.RelativeUpdateTime);
                 return;
             }
 
             if (GameManager.IsReplay)
             {
                 while (_replayInputIndex < ReplayInputs.Count &&
-                    InputManager.InputUpdateTime >= ReplayInputs[_replayInputIndex].Time)
+                    InputManager.RelativeUpdateTime >= ReplayInputs[_replayInputIndex].Time)
                 {
                     Engine.QueueInput(ReplayInputs[_replayInputIndex++]);
                 }
@@ -208,7 +208,7 @@ namespace YARG.Gameplay.Player
             }
             else
             {
-                Engine.UpdateEngine(InputManager.InputUpdateTime);
+                Engine.UpdateEngine(InputManager.RelativeUpdateTime);
             }
         }
 
