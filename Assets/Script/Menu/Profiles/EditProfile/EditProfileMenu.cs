@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Helpers.Extensions;
@@ -86,7 +86,7 @@ namespace YARG.Menu.Profiles
                 _bindsNavGroup.AddNavigatable(header);
 
                 // Create the actual bindings
-                foreach (var binding in controlBinding.AllControls())
+                foreach (var binding in controlBinding.Controls)
                 {
                     // Create bind view
                     var bindView = Instantiate(_bindViewPrefab, _bindsList);

@@ -10,20 +10,22 @@ namespace YARG.Input
 {
     public delegate void GameInputProcessed(ref GameInput input);
 
+    public interface ISingleBinding
+    {
+        public InputControl InputControl { get; }
+    }
+
     /// <summary>
     /// A binding to one or more controls.
     /// </summary>
     public abstract class ControlBinding
     {
-        public interface ISingleBinding
-        {
-            public InputControl InputControl { get; }
-        }
-
         /// <summary>
         /// Fired when an input event has been processed by this binding.
         /// </summary>
         public event GameInputProcessed InputProcessed;
+
+        public abstract IEnumerable<ISingleBinding> Controls { get; }
 
         /// <summary>
         /// The name for this binding.
@@ -55,7 +57,6 @@ namespace YARG.Input
         public abstract bool AddControl(InputControl control);
         public abstract bool RemoveControl(InputControl control);
         public abstract bool ContainsControl(InputControl control);
-        public abstract IEnumerable<ISingleBinding> AllControls();
 
         public virtual void Enable()
         {
@@ -140,6 +141,7 @@ namespace YARG.Input
         }
 
         protected List<SingleBinding> Bindings = new();
+        public override IEnumerable<ISingleBinding> Controls => Bindings;
 
         public ControlBinding(string name, int action) : base(name, action)
         {
@@ -158,11 +160,6 @@ namespace YARG.Input
         public override bool ContainsControl(InputControl control)
         {
             return control is InputControl<TState> tControl && ContainsControl(tControl);
-        }
-
-        public override IEnumerable<ISingleBinding> AllControls()
-        {
-            return Bindings;
         }
 
         public bool AddControl(InputControl<TState> control)
