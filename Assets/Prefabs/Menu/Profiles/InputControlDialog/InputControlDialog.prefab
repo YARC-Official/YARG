@@ -491,7 +491,7 @@ GameObject:
   - component: {fileID: 3672239862567044611}
   - component: {fileID: 3672239862567044608}
   - component: {fileID: 2118128790194141011}
-  - component: {fileID: 821096685352862351}
+  - component: {fileID: 6357735387614967952}
   m_Layer: 5
   m_Name: InputControlDialog
   m_TagString: Untagged
@@ -595,7 +595,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <Menu>k__BackingField: 8
   <HideBelow>k__BackingField: 0
---- !u!114 &821096685352862351
+--- !u!114 &6357735387614967952
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -947,9 +947,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 821096685352862351}
-        m_TargetAssemblyTypeName: YARG.Menu.Profiles.InputControlDialogMenu,
-          Assembly-CSharp
+      - m_Target: {fileID: 6357735387614967952}
+        m_TargetAssemblyTypeName: YARG.Menu.Profiles.InputControlDialogMenu, Assembly-CSharp
         m_MethodName: CancelAndClose
         m_Mode: 1
         m_Arguments:
