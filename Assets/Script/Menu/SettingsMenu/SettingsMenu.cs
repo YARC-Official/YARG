@@ -316,6 +316,7 @@ namespace YARG.Menu.Settings
             }
 
             // Spawn prefab
+            _previewContainer.gameObject.SetActive(true);
             var previewPrefab = Addressables.LoadAssetAsync<GameObject>(tabInfo.PreviewPath).WaitForCompletion();
             Instantiate(previewPrefab, _previewContainer);
 
@@ -334,6 +335,7 @@ namespace YARG.Menu.Settings
             if (_previewContainer == null) return;
 
             _previewContainer.DestroyChildren();
+            _previewContainer.gameObject.SetActive(false);
         }
 
         public void ReturnToFirstTab()

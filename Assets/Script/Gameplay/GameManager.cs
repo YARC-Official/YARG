@@ -77,7 +77,7 @@ namespace YARG.Gameplay
             Debug.Log(notesFile);
             Chart = SongChart.FromFile(new SongMetadata(), notesFile);
 
-            IsReplay = GlobalVariables.Instance.isReplay;
+            IsReplay = GlobalVariables.Instance.IsReplay;
 
             var syncTrack = Chart.SyncTrack;
             if (syncTrack.Beatlines is null or { Count: < 1 })
@@ -123,7 +123,7 @@ namespace YARG.Gameplay
         {
             var song = GlobalVariables.Instance.CurrentSong;
 
-            song.LoadAudio(GlobalVariables.AudioManager, GlobalVariables.Instance.songSpeed);
+            song.LoadAudio(GlobalVariables.AudioManager, GlobalVariables.Instance.SongSpeed);
 
             SongLength = GlobalVariables.AudioManager.AudioLengthD;
 

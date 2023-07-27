@@ -129,6 +129,42 @@ namespace YARG.Menu.MusicLibrary
             _searchBoxShouldBeEnabled = true;
         }
 
+        private void OnDisable()
+        {
+            Navigator.Instance.PopScheme();
+
+            if (!_previewCanceller.IsCancellationRequested)
+            {
+                _previewCanceller.Cancel();
+            }
+
+            _previewContext = null;
+        }
+
+        private void Update()
+        {
+            SetScrollTimer();
+
+            if (Keyboard.current.escapeKey.wasPressedThisFrame)
+            {
+                ClearSearchBox();
+            }
+
+            if (Keyboard.current.enterKey.wasPressedThisFrame && CurrentSelection is SongViewType)
+            {
+                GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+                return;
+            }
+
+            if (_searchBoxShouldBeEnabled)
+            {
+                _searchField.ActivateInputField();
+                _searchBoxShouldBeEnabled = false;
+            }
+
+            StartPreview();
+        }
+
         private void SetSelectedIndex(int value)
         {
             // Wrap value to bounds
@@ -187,18 +223,6 @@ namespace YARG.Menu.MusicLibrary
             }
 
             SelectedIndex++;
-        }
-
-        private void OnDisable()
-        {
-            Navigator.Instance.PopScheme();
-
-            if (!_previewCanceller.IsCancellationRequested)
-            {
-                _previewCanceller.Cancel();
-            }
-
-            _previewContext = null;
         }
 
         private void UpdateSongViews()
@@ -274,30 +298,6 @@ namespace YARG.Menu.MusicLibrary
                 "Search source" => "Search artist",
                 _ => "Search artist"
             };
-        }
-
-        private void Update()
-        {
-            SetScrollTimer();
-
-            if (Keyboard.current.escapeKey.wasPressedThisFrame)
-            {
-                ClearSearchBox();
-            }
-
-            if (Keyboard.current.enterKey.wasPressedThisFrame && CurrentSelection is SongViewType)
-            {
-                GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
-                return;
-            }
-
-            if (_searchBoxShouldBeEnabled)
-            {
-                _searchField.ActivateInputField();
-                _searchBoxShouldBeEnabled = false;
-            }
-
-            StartPreview();
         }
 
         private void SetScrollTimer()

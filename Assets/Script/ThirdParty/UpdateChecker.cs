@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Threading;
+using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -19,13 +20,13 @@ namespace YARG
 
         public YargVersion LatestVersion { get; private set; }
 
-        private void Start()
+        private async UniTask Start()
         {
             enabled = false;
-            CheckForUpdates();
+            await CheckForUpdates();
         }
 
-        private async void CheckForUpdates()
+        private async UniTask CheckForUpdates()
         {
             // #if UNITY_EDITOR
             // return;

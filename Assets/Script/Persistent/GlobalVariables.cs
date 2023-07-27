@@ -23,6 +23,7 @@ namespace YARG
         Calibration
     }
 
+    [DefaultExecutionOrder(-5000)]
     public class GlobalVariables : MonoSingleton<GlobalVariables>
     {
         public static readonly YargVersion CurrentVersion = YargVersion.Parse("v0.11.0");
@@ -38,8 +39,8 @@ namespace YARG
 
         public SongEntry CurrentSong;
 
-        public float songSpeed = 1f;
-        public bool  isReplay;
+        public float SongSpeed = 1f;
+        public bool  IsReplay;
 
 #if UNITY_EDITOR
         public TestPlayInfo TestPlayInfo { get; private set; }

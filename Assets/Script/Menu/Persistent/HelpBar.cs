@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using YARG.Core;
+using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
 
 namespace YARG.Menu
@@ -42,11 +43,7 @@ namespace YARG.Menu
 
         protected override void SingletonDestroy()
         {
-            Instance = null;
-            foreach (Transform button in _buttonContainer)
-            {
-                Destroy(button.gameObject);
-            }
+            _buttonContainer.DestroyChildren();
             _buttons.Clear();
         }
 

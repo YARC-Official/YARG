@@ -64,7 +64,7 @@ namespace YARG.Menu
 
         public void PushMenuUnity(string menuName)
         {
-            PushMenu((Menu) Enum.Parse(typeof(Menu), menuName));
+            PushMenu(Enum.Parse<Menu>(menuName));
         }
 
         public void PopMenu()

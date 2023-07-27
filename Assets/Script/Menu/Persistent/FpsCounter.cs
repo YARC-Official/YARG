@@ -26,7 +26,7 @@ namespace YARG.Menu
         private float fpsUpdateRate;
 
         private float nextUpdateTime;
-        int screenRate;
+        private int screenRate;
 
         protected override void SingletonAwake()
         {
