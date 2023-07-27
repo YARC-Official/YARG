@@ -194,20 +194,15 @@ namespace YARG.Audio.BASS
 
             if (!Mathf.Approximately(speed, 1f))
             {
-                // Gets relative speed from 100% (so 1.05f = 5% increase)
-                float percentageSpeed = Math.Abs(speed) * 100;
-                float relativeSpeed = percentageSpeed - 100;
-
-                Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Tempo, relativeSpeed);
-                Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Tempo, relativeSpeed);
+                SetSpeed(speed);
 
                 // Have to handle pitch separately for some reason
                 if (_manager.Options.IsChipmunkSpeedup)
                 {
-                    float semitoneShift = percentageSpeed switch
+                    float semitoneShift = speed switch
                     {
-                        > 100 => percentageSpeed / 9 - 100 / 9,
-                        < 100 => percentageSpeed / 3 - 100 / 3,
+                        > 1 => speed / 9 - 1 / 9,
+                        < 1 => speed / 3 - 1 / 3,
                         _     => 0
                     };
 
@@ -323,6 +318,19 @@ namespace YARG.Audio.BASS
                 _effects.Remove(EffectType.PeakEQ + 1);
                 _effects.Remove(EffectType.PeakEQ + 2);
             }
+        }
+
+        public void SetSpeed(float speed)
+        {
+            if (Mathf.Approximately(speed, 1f))
+                speed = 1f;
+
+            // Gets relative speed from 100% (so 1.05f = 5% increase)
+            float percentageSpeed = Math.Abs(speed) * 100;
+            float relativeSpeed = percentageSpeed - 100;
+
+            Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Tempo, relativeSpeed);
+            Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Tempo, relativeSpeed);
         }
 
         public void SetWhammyPitch(float percent)

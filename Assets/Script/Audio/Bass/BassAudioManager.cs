@@ -504,6 +504,11 @@ namespace YARG.Audio.BASS
                 channel.SetReverb(reverb);
         }
 
+        public void SetSpeed(float speed)
+        {
+            _mixer?.SetSpeed(speed);
+        }
+
         public void SetWhammyPitch(SongStem stem, float percent)
         {
             if (_mixer == null || !AudioHelpers.PitchBendAllowedStems.Contains(stem)) return;

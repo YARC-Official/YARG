@@ -56,6 +56,7 @@ namespace YARG.Audio
 
         public void ApplyReverb(SongStem stem, bool reverb);
 
+        public void SetSpeed(float speed);
         public void SetWhammyPitch(SongStem stem, float percent);
 
         public double GetPosition(bool desyncCompensation = true);

@@ -164,6 +164,13 @@ namespace YARG.Audio.BASS
                     channel[i].SetVolume(fadeIn ? 0 : channel[i].Volume);
         }
 
+        public void SetSpeed(float speed)
+        {
+            foreach (var channel in Channels.Values)
+                for (int i = 0; i < channel.Count; i++)
+                    channel[i].SetSpeed(speed);
+        }
+
         public virtual int AddChannel(IStemChannel channel)
         {
             if (channel is not BassStemChannel bassChannel)

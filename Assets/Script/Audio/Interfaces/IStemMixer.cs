@@ -32,6 +32,8 @@ namespace YARG.Audio
 
         public void SetPlayVolume(bool fadeIn);
 
+        public void SetSpeed(float speed);
+
         public int AddChannel(IStemChannel channel);
 
         public bool RemoveChannel(IStemChannel channel);

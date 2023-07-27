@@ -22,6 +22,7 @@ namespace YARG.Audio
 
         public void SetReverb(bool reverb);
 
+        public void SetSpeed(float speed);
         public void SetWhammyPitch(float percent);
 
         public double GetPosition(bool desyncCompensation = true);
