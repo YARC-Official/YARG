@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
@@ -22,11 +22,7 @@ namespace YARG.Menu.Profiles
             _inputDevice = inputDevice;
             _binding = binding;
 
-            _bindingNameText.StringReference = new LocalizedString
-            {
-                TableReference = "Bindings",
-                TableEntryReference = _binding.Name
-            };
+            _bindingNameText.StringReference = _binding.Name;
         }
 
         public async void AddNewBind()

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
+using UnityEngine.Localization;
 using YARG.Core.Input;
 
 namespace YARG.Input
@@ -25,9 +26,14 @@ namespace YARG.Input
         public event GameInputProcessed InputProcessed;
 
         /// <summary>
-        /// The translation key name for this binding.
+        /// The name for this binding.
         /// </summary>
-        public string Name { get; }
+        public LocalizedString Name { get; }
+
+        /// <summary>
+        /// The key string for this binding.
+        /// </summary>
+        public string Key { get; }
 
         /// <summary>
         /// The action enum value for this binding.
@@ -41,7 +47,8 @@ namespace YARG.Input
 
         public ControlBinding(string name, int action)
         {
-            Name = name;
+            Key = name;
+            Name = new("Bindings", name);
             Action = action;
         }
 
@@ -95,7 +102,7 @@ namespace YARG.Input
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Exception when firing input event for {Name}!");
+                Debug.LogError($"Exception when firing input event for {Key}!");
                 Debug.LogException(ex);
             }
         }
