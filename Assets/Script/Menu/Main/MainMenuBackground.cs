@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace YARG.Menu
+namespace YARG.Menu.Main
 {
     public class MainMenuBackground : MonoBehaviour
     {

@@ -8,8 +8,6 @@ namespace YARG.Menu
 {
     public class MenuNavigator : MonoSingleton<MenuNavigator>
     {
-        // These are used in the Unity inspector
-        [SuppressMessage("ReSharper", "UnusedMember.Global")]
         public enum Menu
         {
             None,
@@ -64,11 +62,6 @@ namespace YARG.Menu
 
             // ... and push it onto the stack
             _openMenus.Push(menu);
-        }
-
-        public void PushMenuUnity(string menuName)
-        {
-            PushMenu(Enum.Parse<Menu>(menuName));
         }
 
         public void PopMenu()
