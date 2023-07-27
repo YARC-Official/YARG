@@ -12,6 +12,13 @@ namespace YARG
 {
     public class LoadingManager : MonoBehaviour
     {
+        private struct QueuedTask
+        {
+            public string Text;
+            public string SubText;
+            public Func<UniTask> Function;
+        }
+
         public static LoadingManager Instance { get; private set; }
 
         [SerializeField]
@@ -20,7 +27,7 @@ namespace YARG
         [SerializeField]
         private TextMeshProUGUI subPhrase;
 
-        private readonly Queue<Func<UniTask>> _loadQueue = new();
+        private readonly Queue<QueuedTask> _loadQueue = new();
 
         private void Awake()
         {
@@ -54,8 +61,8 @@ namespace YARG
 
             while (_loadQueue.Count > 0)
             {
-                var func = _loadQueue.Dequeue();
-                await func();
+                var task = _loadQueue.Dequeue();
+                await task.Function();
             }
 
             gameObject.SetActive(false);
@@ -66,9 +73,15 @@ namespace YARG
 #endif
         }
 
-        public void Queue(Func<UniTask> func)
+        public void Queue(Func<UniTask> func, string title = "Loading...", string sub = null)
         {
-            _loadQueue.Enqueue(func);
+            var task = new QueuedTask
+            {
+                Text = title,
+                SubText = sub,
+                Function = func,
+            };
+            _loadQueue.Enqueue(task);
         }
 
         public void QueueSongRefresh(bool fast)
