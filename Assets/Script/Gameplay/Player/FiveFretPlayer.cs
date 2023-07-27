@@ -139,21 +139,5 @@ namespace YARG.Gameplay.Player
                 IsFc = false;
             }
         }
-
-        protected override void SubscribeToInputEvents()
-        {
-            Player.Bindings.SubscribeToGameplayInputs(GameMode.FiveFretGuitar, OnGameInput);
-        }
-
-        protected override void UnsubscribeFromInputEvents()
-        {
-            Player.Bindings.UnsubscribeFromGameplayInputs(GameMode.FiveFretGuitar, OnGameInput);
-        }
-
-        private void OnGameInput(ref GameInput input)
-        {
-            Engine.QueueInput(input);
-            AddReplayInput(input);
-        }
     }
 }

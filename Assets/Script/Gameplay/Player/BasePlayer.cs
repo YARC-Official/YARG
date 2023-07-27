@@ -267,5 +267,23 @@ namespace YARG.Gameplay.Player
         protected abstract void OnNoteHit(int index, TNote note);
         protected abstract void OnNoteMissed(int index, TNote note);
         protected abstract void OnOverstrum();
+
+        protected override void SubscribeToInputEvents()
+        {
+            Player.Bindings.SubscribeToGameplayInputs(Player.Profile.GameMode, OnGameInput);
+        }
+
+        protected override void UnsubscribeFromInputEvents()
+        {
+            Player.Bindings.UnsubscribeFromGameplayInputs(Player.Profile.GameMode, OnGameInput);
+        }
+
+        protected void OnGameInput(ref GameInput input)
+        {
+            double adjustedTime = input.Time * GameManager.SelectedSongSpeed;
+            input = new(adjustedTime, input.Action, input.Integer);
+            Engine.QueueInput(input);
+            AddReplayInput(input);
+        }
     }
 }
