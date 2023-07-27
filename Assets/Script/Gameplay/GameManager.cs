@@ -108,6 +108,8 @@ namespace YARG.Gameplay
             int totalCombo = 0;
             foreach (var player in _players)
             {
+                player.UpdateWithTimes(InputManager.RelativeUpdateTime, SongTime);
+
                 totalScore += player.Score;
                 totalCombo += player.Combo;
             }
@@ -167,7 +169,6 @@ namespace YARG.Gameplay
                 }
 
                 var playerObject = Instantiate(prefab, new Vector3(count * 25f, 100f, 0f), prefab.transform.rotation);
-                Debug.Log("Instantiated");
 
                 // Setup player
                 var basePlayer = playerObject.GetComponent<BasePlayer>();

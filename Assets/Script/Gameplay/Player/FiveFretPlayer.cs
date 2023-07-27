@@ -79,17 +79,17 @@ namespace YARG.Gameplay.Player
             HitWindowDisplay.SetHitWindowInfo(_engineParams, Player.Profile.NoteSpeed);
         }
 
-        protected override void Update()
+        public override void UpdateWithTimes(double inputTime, double songTime)
         {
-            base.Update();
+            base.UpdateWithTimes(inputTime, songTime);
 
             Score = Engine.EngineStats.Score;
             Combo = Engine.EngineStats.Combo;
         }
 
-        protected override void UpdateVisuals()
+        protected override void UpdateVisuals(double songTime)
         {
-            UpdateBaseVisuals(Engine.EngineStats);
+            UpdateBaseVisuals(Engine.EngineStats, songTime);
 
             for (var fret = GuitarAction.GreenFret; fret <= GuitarAction.OrangeFret; fret++)
             {

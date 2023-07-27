@@ -92,24 +92,28 @@ namespace YARG.Gameplay.Player
 
         protected virtual void Update()
         {
+        }
+
+        public virtual void UpdateWithTimes(double inputTime, double songTime)
+        {
             if (GameManager.Paused)
             {
                 return;
             }
 
-            UpdateInputs();
-            UpdateVisuals();
-            UpdateNotes();
-            UpdateBeatlines();
+            UpdateInputs(inputTime);
+            UpdateVisuals(songTime);
+            UpdateNotes(songTime);
+            UpdateBeatlines(songTime);
         }
 
-        protected abstract void UpdateInputs();
-        protected abstract void UpdateVisuals();
-        protected abstract void UpdateNotes();
+        protected abstract void UpdateInputs(double inputTime);
+        protected abstract void UpdateVisuals(double songTime);
+        protected abstract void UpdateNotes(double songTime);
 
-        private void UpdateBeatlines()
+        private void UpdateBeatlines(double songTime)
         {
-            while (_beatlineEnumerator.Current?.Time <= GameManager.SongTime + SpawnTimeOffset)
+            while (_beatlineEnumerator.Current?.Time <= songTime + SpawnTimeOffset)
             {
                 var beatline = _beatlineEnumerator.Current;
 
@@ -185,18 +189,17 @@ namespace YARG.Gameplay.Player
         protected abstract TEngine CreateEngine();
         protected abstract void FinishInitialization();
 
-        protected override void UpdateInputs()
+        protected override void UpdateInputs(double inputTime)
         {
             if (Player.Profile.IsBot)
             {
-                Engine.UpdateBot(InputManager.RelativeUpdateTime);
+                Engine.UpdateBot(inputTime);
                 return;
             }
 
             if (GameManager.IsReplay)
             {
-                while (_replayInputIndex < ReplayInputs.Count &&
-                    InputManager.RelativeUpdateTime >= ReplayInputs[_replayInputIndex].Time)
+                while (_replayInputIndex < ReplayInputs.Count && inputTime >= ReplayInputs[_replayInputIndex].Time)
                 {
                     Engine.QueueInput(ReplayInputs[_replayInputIndex++]);
                 }
@@ -208,15 +211,15 @@ namespace YARG.Gameplay.Player
             }
             else
             {
-                Engine.UpdateEngine(InputManager.RelativeUpdateTime);
+                Engine.UpdateEngine(inputTime);
             }
         }
 
-        protected void UpdateBaseVisuals(BaseStats stats)
+        protected void UpdateBaseVisuals(BaseStats stats, double songTime)
         {
             bool groove = stats.ScoreMultiplier is 4 or 8;
 
-            TrackMaterial.SetTrackScroll(GameManager.SongTime, Player.Profile.NoteSpeed);
+            TrackMaterial.SetTrackScroll(songTime, Player.Profile.NoteSpeed);
             TrackMaterial.GrooveMode = groove;
 
             ComboMeter.SetCombo(stats.ScoreMultiplier, stats.IsStarPowerActive ? 8 : 4, stats.Combo);
@@ -224,9 +227,9 @@ namespace YARG.Gameplay.Player
             SunburstEffects.SetSunburstEffects(groove, stats.IsStarPowerActive);
         }
 
-        protected override void UpdateNotes()
+        protected override void UpdateNotes(double songTime)
         {
-            while (NoteEnumerator.Current?.Time <= GameManager.SongTime + SpawnTimeOffset)
+            while (NoteEnumerator.Current?.Time <= songTime + SpawnTimeOffset)
             {
                 var note = NoteEnumerator.Current;
 
