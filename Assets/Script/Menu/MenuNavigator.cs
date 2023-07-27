@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using UnityEngine;
 
@@ -7,6 +8,8 @@ namespace YARG.Menu
 {
     public class MenuNavigator : MonoSingleton<MenuNavigator>
     {
+        // These are used in the Unity inspector
+        [SuppressMessage("ReSharper", "UnusedMember.Global")]
         public enum Menu
         {
             None,
@@ -18,6 +21,7 @@ namespace YARG.Menu
             EditProfile,
             InputDeviceDialog,
             InputControlDialog,
+            Replays,
         }
 
         private Dictionary<Menu, MenuObject> _menus;

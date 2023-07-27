@@ -284,7 +284,6 @@ GameObject:
   - component: {fileID: 1731608351740115690}
   - component: {fileID: 4004993937793846201}
   - component: {fileID: 5881746760155002837}
-  - component: {fileID: 6756343773961521756}
   m_Layer: 5
   m_Name: ProfilesMenu
   m_TagString: Untagged
@@ -407,18 +406,6 @@ MonoBehaviour:
   _profileList: {fileID: 2542308448775651636}
   _profileViewPrefab: {fileID: 1863348019200065187, guid: 7e9189d6a05c0ba4485c260aab1a1414,
     type: 3}
---- !u!114 &6756343773961521756
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1731608351740115684}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7792aa537b804208a803f971074a1a45, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1731608352109147677
 GameObject:
   m_ObjectHideFlags: 0
