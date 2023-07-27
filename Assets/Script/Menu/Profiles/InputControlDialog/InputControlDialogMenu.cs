@@ -50,7 +50,7 @@ namespace YARG.Menu.Profiles
         private static InputDevice _inputDevice;
         private static ControlBinding _binding;
         private static AllowedControl _allowedControls = AllowedControl.All;
-        private static ActuationSettings _bindSettings;
+        private static ActuationSettings _bindSettings = new();
         private static InputControl _grabbedControl;
 
         private static float? _bindGroupingTimer;
