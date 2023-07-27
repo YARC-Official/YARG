@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Helpers.Extensions;
@@ -72,25 +72,22 @@ namespace YARG.Menu.Profiles
             _bindsList.DestroyChildren();
             _bindsNavGroup.ClearNavigatables();
 
-            // Get the bindings
-            var deviceBindings = _currentPlayer.Bindings.GetBindingsForFirstDevice();
-            var gameModeBindings = deviceBindings.GetOrCreateBindingsForGameMode(gameMode);
-
             // Create the list of bindings
-            foreach (var controlBinding in gameModeBindings)
+            var deviceBindings = _currentPlayer.Bindings.GetBindingsForFirstDevice();
+            foreach (var binding in deviceBindings[gameMode].Gameplay)
             {
                 // Create header
                 var header = Instantiate(_bindHeaderPrefab, _bindsList);
-                header.GetComponent<BindHeader>().Init(this, deviceBindings.Device, controlBinding);
+                header.GetComponent<BindHeader>().Init(this, deviceBindings.Device, binding);
 
                 _bindsNavGroup.AddNavigatable(header);
 
                 // Create the actual bindings
-                foreach (var binding in controlBinding.Controls)
+                foreach (var control in binding.Controls)
                 {
                     // Create bind view
                     var bindView = Instantiate(_bindViewPrefab, _bindsList);
-                    bindView.GetComponent<BindView>().Init(this, controlBinding, binding.InputControl);
+                    bindView.GetComponent<BindView>().Init(this, binding, control.InputControl);
 
                     _bindsNavGroup.AddNavigatable(bindView);
                 }

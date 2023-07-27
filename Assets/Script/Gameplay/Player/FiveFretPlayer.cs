@@ -137,12 +137,12 @@ namespace YARG.Gameplay.Player
 
         protected override void SubscribeToInputEvents()
         {
-            Player.Bindings.SubscribeToGameModeInputs(GameMode.FiveFretGuitar, OnGameInput);
+            Player.Bindings.SubscribeToGameplayInputs(GameMode.FiveFretGuitar, OnGameInput);
         }
 
         protected override void UnsubscribeFromInputEvents()
         {
-            Player.Bindings.UnsubscribeToGameModeInputs(GameMode.FiveFretGuitar, OnGameInput);
+            Player.Bindings.UnsubscribeFromGameplayInputs(GameMode.FiveFretGuitar, OnGameInput);
         }
 
         private void OnGameInput(ref GameInput input)

@@ -18,14 +18,14 @@ namespace YARG.Input
             {
                 foreach (var deviceBindings in _deviceBindings.Values)
                 {
-                    deviceBindings.MenuBinds.InputProcessed += value;
+                    deviceBindings.MenuInputProcessed += value;
                 }
             }
             remove
             {
                 foreach (var deviceBindings in _deviceBindings.Values)
                 {
-                    deviceBindings.MenuBinds.InputProcessed -= value;
+                    deviceBindings.MenuInputProcessed -= value;
                 }
             }
         }
@@ -52,28 +52,26 @@ namespace YARG.Input
             }
         }
 
-        public void SubscribeToGameModeInputs(GameMode mode, GameInputProcessed onInputProcessed)
+        public void SubscribeToGameplayInputs(GameMode mode, GameInputProcessed onInputProcessed)
         {
             foreach (var deviceBindings in _deviceBindings.Values)
             {
-                deviceBindings.SubscribeToInputsForGameMode(mode, onInputProcessed);
+                deviceBindings[mode].Gameplay.InputProcessed += onInputProcessed;
             }
         }
 
-        public void UnsubscribeToGameModeInputs(GameMode mode, GameInputProcessed onInputProcessed)
+        public void UnsubscribeFromGameplayInputs(GameMode mode, GameInputProcessed onInputProcessed)
         {
             foreach (var deviceBindings in _deviceBindings.Values)
             {
-                deviceBindings.UnsubscribeToInputsForGameMode(mode, onInputProcessed);
+                deviceBindings[mode].Gameplay.InputProcessed -= onInputProcessed;
             }
         }
 
         public bool AddDevice(InputDevice device)
         {
             if (_deviceBindings.ContainsKey(device))
-            {
                 return false;
-            }
 
             _deviceBindings.Add(device, new(device));
             return true;
