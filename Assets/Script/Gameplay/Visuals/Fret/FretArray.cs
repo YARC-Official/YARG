@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using YARG.Settings.Customization;
+using YARG.Core.Game;
 
 namespace YARG.Gameplay.Visuals
 {

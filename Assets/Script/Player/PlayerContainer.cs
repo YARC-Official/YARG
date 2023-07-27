@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
-using YARG.Core;
+using YARG.Core.Game;
 using YARG.Util;
 
 namespace YARG.Player

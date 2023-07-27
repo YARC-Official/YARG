@@ -2,6 +2,7 @@
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Gameplay.Player;
+using YARG.Helpers.Extensions;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -96,12 +97,12 @@ namespace YARG.Gameplay.Visuals
                 : colors.GetNoteColor(NoteRef.Fret);
 
             // Set the note color
-            NoteGroup.ColoredMaterial.color = color;
+            NoteGroup.ColoredMaterial.color = color.ToUnityColor();
 
             // The rest of this method is for sustain only
             if (!NoteRef.IsSustain) return;
 
-            _sustainLine.SetColor(SustainState, color);
+            _sustainLine.SetColor(SustainState, color.ToUnityColor());
         }
 
         protected override void HideElement()

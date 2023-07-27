@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine.InputSystem;
-using YARG.Core;
+using YARG.Core.Game;
 
 namespace YARG.Input
 {

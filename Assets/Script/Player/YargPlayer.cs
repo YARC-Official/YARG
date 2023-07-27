@@ -1,5 +1,5 @@
 using System;
-using YARG.Core;
+using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Input;
 using YARG.Player.Input;

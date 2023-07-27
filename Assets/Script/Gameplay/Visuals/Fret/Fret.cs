@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
+using YARG.Helpers.Extensions;
 using YARG.Util;
+using Color = System.Drawing.Color;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -29,14 +31,14 @@ namespace YARG.Gameplay.Visuals
         public void Initialize(Color top, Color inner, Color particles)
         {
             var topMaterial = _fretMesh.materials[_topIndex];
-            topMaterial.color = top;
-            topMaterial.SetColor("_EmissionColor", top * 11.5f);
+            topMaterial.color = top.ToUnityColor();
+            topMaterial.SetColor("_EmissionColor", top.ToUnityColor() * 11.5f);
 
             _innerMaterial = _fretMesh.materials[_innerIndex];
-            _innerMaterial.color = inner;
+            _innerMaterial.color = inner.ToUnityColor();
 
-            _hitParticles.Colorize(particles);
-            _sustainParticles.Colorize(particles);
+            _hitParticles.Colorize(particles.ToUnityColor());
+            _sustainParticles.Colorize(particles.ToUnityColor());
         }
 
         public void SetPressed(bool pressed)

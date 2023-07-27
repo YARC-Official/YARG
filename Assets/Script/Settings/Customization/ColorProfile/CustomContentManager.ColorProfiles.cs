@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using YARG.Core.Game;
 
 namespace YARG.Settings.Customization
 {

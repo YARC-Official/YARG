@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
-using UnityEngine.Serialization;
 using YARG.Core;
+using YARG.Core.Game;
 using YARG.Helpers.Extensions;
 using YARG.Player;
 
