@@ -77,6 +77,8 @@ namespace YARG.Gameplay
 
         public IReadOnlyList<BasePlayer> Players => _players;
 
+        private UniTask _syncAudio = UniTask.CompletedTask;
+
         private void Awake()
         {
             Song = GlobalVariables.Instance.CurrentSong;
@@ -126,6 +128,9 @@ namespace YARG.Gameplay
                 RealSongTime = GlobalVariables.AudioManager.CurrentPositionD;
             }
 
+            if (_syncAudio.Status != UniTaskStatus.Pending)
+                _syncAudio = SyncAudio();
+
             if (Paused)
             {
                 return;
@@ -142,6 +147,40 @@ namespace YARG.Gameplay
             }
 
             BandScore = totalScore;
+        }
+
+        private async UniTask SyncAudio()
+        {
+            const double SyncThreshold = 0.025;
+            double inputTime = InputManager.RelativeUpdateTime;
+            double audioTime = SongTime;
+
+            if (audioTime < 0.0)
+                return;
+
+            double delta = inputTime - audioTime;
+            if (Math.Abs(delta) < SyncThreshold)
+                return;
+
+            Debug.Log($"Resyncing audio position. Input: {inputTime}, audio: {audioTime}, delta: {delta}");
+
+            float speed = delta > 0.0 ? 1.05f : 0.95f;
+            GlobalVariables.AudioManager.SetSpeed(speed);
+
+            await UniTask.WaitUntil(() =>
+            {
+                double newDelta = InputManager.RelativeUpdateTime - GlobalVariables.AudioManager.CurrentPositionD;
+                return Math.Abs(newDelta) < SyncThreshold ||
+                    // Detect overshooting
+                    (delta > 0.0 && newDelta < 0.0) ||
+                    (delta < 0.0 && newDelta > 0.0);
+            });
+            GlobalVariables.AudioManager.SetSpeed(1f);
+
+            inputTime = InputManager.RelativeUpdateTime;
+            audioTime = GlobalVariables.AudioManager.CurrentPositionD;
+            double finalDelta = inputTime - audioTime;
+            Debug.Log($"Audio synced. Input: {inputTime}, audio: {audioTime}, delta: {finalDelta}");
         }
 
         private async UniTask LoadChart()
