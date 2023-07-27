@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -10,7 +10,6 @@ using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.Utilities;
 using YARG.Helpers.Extensions;
 using YARG.Input;
-using YARG.Settings;
 
 namespace YARG.Menu.Profiles
 {
@@ -31,6 +30,7 @@ namespace YARG.Menu.Profiles
         private static State _state;
         private static InputDevice _inputDevice;
         private static ControlBinding _binding;
+        private static ActuationSettings _bindSettings;
         private static InputControl _grabbedControl;
 
         private static float? _bindGroupingTimer;
@@ -73,7 +73,7 @@ namespace YARG.Menu.Profiles
             }
         }
 
-        public static async UniTask<InputControl> Show(InputDevice device, ControlBinding binding)
+        public static async UniTask<bool> Show(InputDevice device, ControlBinding binding)
         {
             _state = State.Waiting;
             _inputDevice = device;
@@ -105,25 +105,32 @@ namespace YARG.Menu.Profiles
                 // Dispose
                 listener?.Dispose();
 
-                // If there is only one option, just return that
-                if (_possibleControls.Count == 1)
+                // Get the actuated control
+                if (_possibleControls.Count > 1)
                 {
-                    MenuNavigator.Instance.PopMenu();
-                    return _possibleControls[0];
+                    // Multiple controls actuated, let the user choose
+                    _instance.RefreshList();
+
+                    // Wait until the dialog is closed
+                    await UniTask.WaitUntil(() => !_instance.gameObject.activeSelf, cancellationToken: token);
+                }
+                else if (_possibleControls.Count == 1)
+                {
+                    _grabbedControl = _possibleControls[0];
+                }
+                else
+                {
+                    return false;
                 }
 
-                // Otherwise... display the options
-                _instance.RefreshList();
-
-                // Wait until the dialog is closed
-                await UniTask.WaitUntil(() => !_instance.gameObject.activeSelf, cancellationToken: token);
-
-                // Return the result
-                return _grabbedControl;
+                // Add the binding
+                binding.AddControl(_bindSettings, _grabbedControl);
+                MenuNavigator.Instance.PopMenu();
+                return true;
             }
             catch (OperationCanceledException)
             {
-                return null;
+                return false;
             }
         }
 
@@ -134,7 +141,7 @@ namespace YARG.Menu.Profiles
             foreach (var bind in _possibleControls)
             {
                 var button = Instantiate(_controlEntryPrefab, _controlContainer);
-                button.GetComponent<ControlEntry>().Init(bind, SelectAndClose);
+                button.GetComponent<ControlEntry>().Init(bind, SelectControl);
             }
         }
 
@@ -150,10 +157,9 @@ namespace YARG.Menu.Profiles
             }
         }
 
-        private static void SelectAndClose(InputControl control)
+        private static void SelectControl(InputControl control)
         {
             _grabbedControl = control;
-            MenuNavigator.Instance.PopMenu();
         }
 
         private static void Listen(InputEventPtr eventPtr)
@@ -164,7 +170,8 @@ namespace YARG.Menu.Profiles
 
             var flags = InputManager.DEFAULT_CONTROL_ENUMERATION_FLAGS;
             var activeControls = eventPtr.EnumerateControls(flags, _inputDevice)
-                .Where((control) => ControlAllowedAndActive(control) && _binding.IsControlActuated(control, eventPtr));
+                .Where((control) => ControlAllowed(control) &&
+                    _binding.IsControlActuated(_bindSettings, control, eventPtr));
 
             // Add all controls
             foreach (var control in activeControls)
@@ -179,7 +186,7 @@ namespace YARG.Menu.Profiles
             }
         }
 
-        private static bool ControlAllowedAndActive(InputControl control)
+        private static bool ControlAllowed(InputControl control)
         {
             // AnyKeyControl is excluded as it would always be active
             if (control is AnyKeyControl)

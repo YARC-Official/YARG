@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 
@@ -15,14 +16,7 @@ namespace YARG.Input
         {
         }
 
-        public override bool IsControlActuated(InputControl<int> control)
-        {
-            int previousValue = control.ReadValueFromPreviousFrame();
-            int value = control.ReadValue();
-            return value != previousValue;
-        }
-
-        public override bool IsControlActuated(InputControl<int> control, InputEventPtr eventPtr)
+        public override bool IsControlActuated(ActuationSettings settings, InputControl<int> control, InputEventPtr eventPtr)
         {
             int previousValue = control.ReadValueFromPreviousFrame();
             int value = control.ReadValue();
@@ -32,7 +26,7 @@ namespace YARG.Input
                 value = control.ReadValueFromEvent(eventPtr);
             }
 
-            return value != previousValue;
+            return Math.Abs(value - previousValue) >= settings.IntegerDeltaThreshold;
         }
 
         public override void ProcessInputEvent(InputEventPtr eventPtr)

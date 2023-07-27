@@ -15,6 +15,13 @@ namespace YARG.Input
         public InputControl InputControl { get; }
     }
 
+    public class ActuationSettings
+    {
+        public float ButtonPressThreshold = 0.5f;
+        public float AxisDeltaThreshold = 0.05f;
+        public int IntegerDeltaThreshold = 1;
+    }
+
     /// <summary>
     /// A binding to one or more controls.
     /// </summary>
@@ -25,7 +32,15 @@ namespace YARG.Input
         /// </summary>
         public event GameInputProcessed InputProcessed;
 
+        /// <summary>
+        /// The controls bound to this binding.
+        /// </summary>
         public abstract IEnumerable<ISingleBinding> Controls { get; }
+
+        /// <summary>
+        /// The type used for this binding.
+        /// </summary>
+        public abstract Type ControlType { get; }
 
         /// <summary>
         /// The name for this binding.
@@ -55,10 +70,9 @@ namespace YARG.Input
         }
 
         public abstract bool IsControlCompatible(InputControl control);
-        public abstract bool IsControlActuated(InputControl control);
-        public abstract bool IsControlActuated(InputControl control, InputEventPtr eventPtr);
+        public abstract bool IsControlActuated(ActuationSettings settings, InputControl control, InputEventPtr eventPtr);
 
-        public abstract bool AddControl(InputControl control);
+        public abstract bool AddControl(ActuationSettings settings, InputControl control);
         public abstract bool RemoveControl(InputControl control);
         public abstract bool ContainsControl(InputControl control);
 
@@ -147,6 +161,8 @@ namespace YARG.Input
         protected List<SingleBinding> Bindings = new();
         public override IEnumerable<ISingleBinding> Controls => Bindings;
 
+        public override Type ControlType => typeof(TState);
+
         public ControlBinding(string name, int action) : base(name, action)
         {
         }
@@ -168,22 +184,16 @@ namespace YARG.Input
             return false;
         }
 
-        public override bool IsControlActuated(InputControl control)
+        public override bool IsControlActuated(ActuationSettings settings, InputControl control, InputEventPtr eventPtr)
         {
-            return IsControlCompatible(control, out var tControl) && IsControlActuated(tControl);
+            return IsControlCompatible(control, out var tControl) && IsControlActuated(settings, tControl, eventPtr);
         }
 
-        public override bool IsControlActuated(InputControl control, InputEventPtr eventPtr)
-        {
-            return IsControlCompatible(control, out var tControl) && IsControlActuated(tControl, eventPtr);
-        }
+        public abstract bool IsControlActuated(ActuationSettings settings, InputControl<TState> control, InputEventPtr eventPtr);
 
-        public abstract bool IsControlActuated(InputControl<TState> control);
-        public abstract bool IsControlActuated(InputControl<TState> control, InputEventPtr eventPtr);
-
-        public override bool AddControl(InputControl control)
+        public override bool AddControl(ActuationSettings settings, InputControl control)
         {
-            return IsControlCompatible(control, out var tControl) && AddControl(tControl);
+            return IsControlCompatible(control, out var tControl) && AddControl(settings, tControl);
         }
 
         public override bool RemoveControl(InputControl control)
@@ -196,14 +206,14 @@ namespace YARG.Input
             return IsControlCompatible(control, out var tControl) && ContainsControl(tControl);
         }
 
-        public bool AddControl(InputControl<TState> control)
+        public bool AddControl(ActuationSettings settings, InputControl<TState> control)
         {
             if (ContainsControl(control))
                 return false;
 
             var binding = new SingleBinding(control);
             Bindings.Add(binding);
-            OnControlAdded(binding);
+            OnControlAdded(settings, binding);
             return true;
         }
 
@@ -239,7 +249,7 @@ namespace YARG.Input
             return false;
         }
 
-        protected virtual void OnControlAdded(SingleBinding binding) { }
+        protected virtual void OnControlAdded(ActuationSettings settings, SingleBinding binding) { }
         protected virtual void OnControlRemoved(SingleBinding binding) { }
     }
 }

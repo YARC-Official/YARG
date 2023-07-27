@@ -30,10 +30,7 @@ namespace YARG.Menu.Profiles
             // Select item to prevent confusion
             Selected = true;
 
-            var control = await InputControlDialogMenu.Show(_inputDevice, _binding);
-            if (control == null) return;
-
-            _binding.AddControl(control);
+            await InputControlDialogMenu.Show(_inputDevice, _binding);
             _editProfileMenu.RefreshBindings();
         }
     }
