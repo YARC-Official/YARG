@@ -61,10 +61,11 @@ namespace YARG.Input
         public override bool IsControlActuated(ActuationSettings settings, InputControl<float> control,
             InputEventPtr eventPtr)
         {
+            if (!control.HasValueChangeInEvent(eventPtr))
+                return false;
+
             float pressPoint = settings.ButtonPressThreshold;
-            float value = control.ReadValue();
-            if (control.HasValueChangeInEvent(eventPtr))
-                value = control.ReadValueFromEvent(eventPtr);
+            float value = control.ReadValueFromEvent(eventPtr);
 
             return value >= pressPoint;
         }

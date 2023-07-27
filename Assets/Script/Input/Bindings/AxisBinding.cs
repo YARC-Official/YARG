@@ -19,13 +19,12 @@ namespace YARG.Input
 
         public override bool IsControlActuated(ActuationSettings settings, InputControl<float> control, InputEventPtr eventPtr)
         {
-            float previousValue = control.ReadValueFromPreviousFrame();
-            float value = control.ReadValue();
-            if (control.HasValueChangeInEvent(eventPtr))
-            {
-                previousValue = value;
-                value = control.ReadValueFromEvent(eventPtr);
-            }
+            if (!control.HasValueChangeInEvent(eventPtr))
+                return false;
+
+            // The buffer that ReadValue reads from is not updated until after all events have been processed
+            float previousValue = control.ReadValue();
+            float value = control.ReadValueFromEvent(eventPtr);
 
             return Math.Abs(value - previousValue) >= settings.AxisDeltaThreshold;
         }
