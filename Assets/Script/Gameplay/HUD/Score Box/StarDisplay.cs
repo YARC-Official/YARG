@@ -44,7 +44,16 @@ namespace YARG.Gameplay.HUD
 
         private void Start()
         {
-            _measures = _gameManager.Beats.Where(b => b.Type == BeatlineType.Measure).GetEnumerator();
+            _gameManager.ChartLoaded += OnChartLoaded;
+            enabled = false;
+        }
+
+        private void OnChartLoaded(SongChart chart)
+        {
+            _gameManager.ChartLoaded -= OnChartLoaded;
+            enabled = true;
+
+            _measures = chart.SyncTrack.Beatlines.Where(b => b.Type == BeatlineType.Measure).GetEnumerator();
             _measures.MoveNext();
         }
 

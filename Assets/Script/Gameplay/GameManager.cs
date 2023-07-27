@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Chart;
@@ -36,8 +38,12 @@ namespace YARG.Gameplay
         [SerializeField]
         private GameObject proGuitarPrefab;
 
+        // All access to chart data must be done through this event,
+        // since things are loaded asynchronously
+        // Players are initialized by hand and don't go through this event
+        public event Action<SongChart> ChartLoaded;
+
         public SongEntry Song  { get; private set; }
-        public SongChart Chart { get; private set; }
 
         public double SongStartTime { get; private set; }
         public double SongLength    { get; private set; }
@@ -62,40 +68,30 @@ namespace YARG.Gameplay
         public int BandScore { get; private set; }
         public int BandCombo { get; private set; }
 
+        private SongChart _chart;
+
         private List<BasePlayer> _players;
         private List<Beatline>   _beats;
 
         public IReadOnlyList<BasePlayer> Players => _players;
 
-        public IReadOnlyList<Beatline> Beats { get; private set; }
-
         private void Awake()
         {
             Song = GlobalVariables.Instance.CurrentSong;
-
-            string notesFile = Path.Combine(Song.Location, Song.NotesFile);
-            Debug.Log(notesFile);
-            Chart = SongChart.FromFile(new SongMetadata(), notesFile);
-
             IsReplay = GlobalVariables.Instance.IsReplay;
-
-            var syncTrack = Chart.SyncTrack;
-            if (syncTrack.Beatlines is null or { Count: < 1 })
-                Chart.SyncTrack.GenerateBeatlines(Chart.GetLastTick());
-
-            _beats = Chart.SyncTrack.Beatlines;
-            Beats = _beats.AsReadOnly();
-
-            LoadSong();
-            CreatePlayers();
         }
 
-        private void Start()
+        private async UniTask Start()
         {
+            enabled = false;
+            LoadingManager.Instance.Queue(LoadChart, "Loading chart...");
+            LoadingManager.Instance.Queue(LoadAudio, "Loading audio...");
+            await LoadingManager.Instance.StartLoad();
+            CreatePlayers();
+            enabled = true;
+
             GlobalVariables.AudioManager.Play();
             InputManager.InputTimeOffset = InputManager.CurrentInputTime - AudioCalibration;
-
-            GlobalVariables.AudioManager.SongEnd += EndSong;
         }
 
         private void Update()
@@ -119,16 +115,32 @@ namespace YARG.Gameplay
             BandScore = totalScore;
         }
 
-        private void LoadSong()
+        private async UniTask LoadChart()
         {
-            var song = GlobalVariables.Instance.CurrentSong;
+            await UniTask.RunOnThreadPool(() =>
+            {
+                string notesFile = Path.Combine(Song.Location, Song.NotesFile);
+                Debug.Log(notesFile);
+                _chart = SongChart.FromFile(new SongMetadata(), notesFile);
 
-            song.LoadAudio(GlobalVariables.AudioManager, GlobalVariables.Instance.SongSpeed);
+                var syncTrack = _chart.SyncTrack;
+                if (syncTrack.Beatlines is null or { Count: < 1 })
+                    _chart.SyncTrack.GenerateBeatlines(_chart.GetLastTick());
 
-            SongLength = GlobalVariables.AudioManager.AudioLengthD;
+                _beats = _chart.SyncTrack.Beatlines;
+            });
 
-            GlobalVariables.AudioManager.Play();
-            InputManager.InputTimeOffset = InputManager.CurrentInputTime - AudioCalibration;
+            ChartLoaded?.Invoke(_chart);
+        }
+
+        private async UniTask LoadAudio()
+        {
+            await UniTask.RunOnThreadPool(() =>
+            {
+                Song.LoadAudio(GlobalVariables.AudioManager, GlobalVariables.Instance.SongSpeed);
+                SongLength = GlobalVariables.AudioManager.AudioLengthD;
+                GlobalVariables.AudioManager.SongEnd += EndSong;
+            });
         }
 
         private void CreatePlayers()
@@ -180,35 +192,35 @@ namespace YARG.Gameplay
             {
                 case GameMode.FiveFretGuitar:
                 {
-                    var chart = Chart.GetFiveFretTrack(instrument).Difficulties[difficulty];
-                    (basePlayer as FiveFretPlayer)?.Initialize(yargPlayer, chart, Chart.SyncTrack, _beats);
+                    var chart = _chart.GetFiveFretTrack(instrument).Difficulties[difficulty];
+                    (basePlayer as FiveFretPlayer)?.Initialize(yargPlayer, chart, _chart.SyncTrack, _beats);
                     break;
                 }
 
                 case GameMode.SixFretGuitar:
                 {
-                    var chart = Chart.GetSixFretTrack(instrument).Difficulties[difficulty];
+                    var chart = _chart.GetSixFretTrack(instrument).Difficulties[difficulty];
                     // (basePlayer as SixFretPlayer)?.Initialize(yargPlayer, chart, _beats);
                     break;
                 }
 
                 case GameMode.FourLaneDrums:
                 {
-                    var chart = Chart.GetDrumsTrack(instrument).Difficulties[difficulty];
+                    var chart = _chart.GetDrumsTrack(instrument).Difficulties[difficulty];
                     // (basePlayer as FourLaneDrumsPlayer)?.Initialize(yargPlayer, chart, _beats);
                     break;
                 }
 
                 case GameMode.FiveLaneDrums:
                 {
-                    var chart = Chart.GetDrumsTrack(instrument).Difficulties[difficulty];
+                    var chart = _chart.GetDrumsTrack(instrument).Difficulties[difficulty];
                     // (basePlayer as FiveLaneDrumsPlayer)?.Initialize(yargPlayer, chart, _beats);
                     break;
                 }
 
                 case GameMode.ProGuitar:
                 {
-                    var chart = Chart.GetProGuitarTrack(instrument).Difficulties[difficulty];
+                    var chart = _chart.GetProGuitarTrack(instrument).Difficulties[difficulty];
                     // (basePlayer as ProGuitarPlayer)?.Initialize(yargPlayer, chart, _beats);
                     break;
                 }
