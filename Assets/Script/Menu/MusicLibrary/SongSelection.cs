@@ -15,10 +15,8 @@ using Random = UnityEngine.Random;
 
 namespace YARG.Menu.MusicLibrary
 {
-    public class SongSelection : MonoBehaviour
+    public class SongSelection : MonoSingleton<SongSelection>
     {
-        public static SongSelection Instance { get; private set; }
-
         public static bool RefreshFlag = true;
 
         private const int SONG_VIEW_EXTRA = 15;
@@ -89,10 +87,9 @@ namespace YARG.Menu.MusicLibrary
         private float _scrollTimer = 0f;
         private bool _searchBoxShouldBeEnabled = false;
 
-        private void Awake()
+        protected override void SingletonAwake()
         {
             RefreshFlag = true;
-            Instance = this;
 
             // Create all of the song views
             _songViewObjects = new();

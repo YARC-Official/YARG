@@ -6,7 +6,7 @@ using YARG.Song;
 
 namespace YARG.ThirdParty
 {
-    public class DiscordController : MonoBehaviour
+    public class DiscordController : MonoSingleton<DiscordController>
     {
         /*
         TODO:
@@ -22,8 +22,6 @@ namespace YARG.ThirdParty
         Pausing the timer (instead of blanking it)
         Other specalized things that only very popular apps can do (like spotify and fortnite)
         */
-
-        public static DiscordController Instance { get; private set; }
 
         private Discord.Discord _discord;
 
@@ -100,8 +98,6 @@ namespace YARG.ThirdParty
 
         private void Start()
         {
-            Instance = this;
-
             // if it's a Nightly build, use the Nightly logo, otherwise use the Stable logo
             if (GlobalVariables.CurrentVersion.Beta)
             {
@@ -148,9 +144,8 @@ namespace YARG.ThirdParty
             SetDefaultActivity();
         }
 
-        private void OnDestroy()
+        protected override void SingletonDestroy()
         {
-            // Not sure why the discord controller would ever be destroyed but, eh you never know, right?
             Play.OnSongStart -= OnSongStart;
             Play.OnSongEnd -= OnSongEnd;
             // DifficultySelect.OnInstrumentSelection -= OnInstrumentSelection;

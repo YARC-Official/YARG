@@ -26,10 +26,8 @@ namespace YARG.PlayMode
      * THIS IS A DUMMY CLASS FOR NOW
      */
 
-    public class Play : MonoBehaviour
+    public class Play : MonoSingleton<Play>
     {
-        public static Play Instance { get; private set; }
-
         public static float speed = 1f;
 
         public const float SONG_START_OFFSET = -2f;
@@ -148,11 +146,6 @@ namespace YARG.PlayMode
         }
 
         public SongEntry Song => GlobalVariables.Instance.CurrentSong;
-
-        private void Awake()
-        {
-            Instance = this;
-        }
 
         public IEnumerator EndSong(bool showResultScreen)
         {

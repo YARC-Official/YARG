@@ -10,10 +10,8 @@ using YARG.Menu;
 
 namespace YARG
 {
-    public class UpdateChecker : MonoBehaviour
+    public class UpdateChecker : MonoSingleton<UpdateChecker>
     {
-        public static UpdateChecker Instance { get; private set; }
-
         private CancellationTokenSource updateTokenSource;
 
         public bool CheckedForUpdates { get; private set; }
@@ -21,9 +19,9 @@ namespace YARG
 
         public YargVersion LatestVersion { get; private set; }
 
-        private void Awake()
+        private void Start()
         {
-            Instance = this;
+            enabled = false;
             CheckForUpdates();
         }
 

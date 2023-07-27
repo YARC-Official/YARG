@@ -23,11 +23,9 @@ namespace YARG
         Calibration
     }
 
-    public class GlobalVariables : MonoBehaviour
+    public class GlobalVariables : MonoSingleton<GlobalVariables>
     {
         public static readonly YargVersion CurrentVersion = YargVersion.Parse("v0.11.0");
-
-        public static GlobalVariables Instance { get; private set; }
 
         public List<YargPlayer> Players { get; private set; }
 
@@ -47,10 +45,9 @@ namespace YARG
         public TestPlayInfo TestPlayInfo { get; private set; }
 #endif
 
-        private void Awake()
+        protected override void SingletonAwake()
         {
             Debug.Log($"YARG {CurrentVersion}");
-            Instance = this;
 
             YargTrace.AddListener(new YargUnityTraceListener());
 

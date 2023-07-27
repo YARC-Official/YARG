@@ -8,10 +8,8 @@ using YARG.Menu.Navigation;
 namespace YARG.Menu
 {
     [DefaultExecutionOrder(-25)]
-    public class HelpBar : MonoBehaviour
+    public class HelpBar : MonoSingleton<HelpBar>
     {
-        public static HelpBar Instance { get; private set; }
-
         [SerializeField]
         private Transform _buttonContainer;
 
@@ -31,9 +29,8 @@ namespace YARG.Menu
 
         private readonly List<HelpBarButton> _buttons = new();
 
-        private void Awake()
+        protected override void SingletonAwake()
         {
-            Instance = this;
             // Cache help bar buttons
             foreach (var _ in EnumExtensions<MenuAction>.Values)
             {
@@ -43,7 +40,7 @@ namespace YARG.Menu
             }
         }
 
-        private void OnDestroy()
+        protected override void SingletonDestroy()
         {
             Instance = null;
             foreach (Transform button in _buttonContainer)

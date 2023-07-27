@@ -45,7 +45,7 @@ namespace YARG.Menu.Navigation
         }
     }
 
-    public class Navigator : MonoBehaviour
+    public class Navigator : MonoSingleton<Navigator>
     {
         private const float InputRepeatTime = 0.035f;
         private const float InputRepeatCooldown = 0.5f;
@@ -61,16 +61,13 @@ namespace YARG.Menu.Navigation
             }
         }
 
-        public static Navigator Instance { get; private set; }
-
         public event Action<NavigationContext> NavigationEvent;
 
         private List<HoldContext> _heldInputs = new();
         private Stack<NavigationScheme> _schemeStack = new();
 
-        private void Awake()
+        private void Start()
         {
-            Instance = this;
             UpdateHelpBar();
         }
 

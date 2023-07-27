@@ -18,10 +18,8 @@ using YARG.Settings.Visuals;
 namespace YARG.Menu.Settings
 {
     [DefaultExecutionOrder(-10000)]
-    public class SettingsMenu : MonoBehaviour
+    public class SettingsMenu : MonoSingleton<SettingsMenu>
     {
-        public static SettingsMenu Instance { get; private set; }
-
         [SerializeField]
         private GameObject _fullContainer;
 
@@ -80,11 +78,12 @@ namespace YARG.Menu.Settings
 
         public bool UpdateSongLibraryOnExit { get; set; } = false;
 
-        private bool _ready;
+        // Workaround to avoid errors when deactivating menu during startup
+        private bool _ready = false;
 
-        private void Awake()
+        protected override void SingletonAwake()
         {
-            Instance = this;
+            // Settings menu defaults to active so that it will be initialized at startup
             gameObject.SetActive(false);
 
             _ready = true;

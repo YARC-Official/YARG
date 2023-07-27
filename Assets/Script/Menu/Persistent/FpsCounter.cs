@@ -5,10 +5,8 @@ using UnityEngine.UI;
 
 namespace YARG.Menu
 {
-    public class FpsCounter : MonoBehaviour
+    public class FpsCounter : MonoSingleton<FpsCounter>
     {
-        public static FpsCounter Instance { get; private set; } = null;
-
         [SerializeField]
         private Image fpsCircle;
 
@@ -30,9 +28,8 @@ namespace YARG.Menu
         private float nextUpdateTime;
         int screenRate;
 
-        private void Awake()
+        protected override void SingletonAwake()
         {
-            Instance = this;
             screenRate = Screen.currentResolution.refreshRate;
         }
 
@@ -40,11 +37,6 @@ namespace YARG.Menu
         {
             fpsText.gameObject.SetActive(value);
             fpsCircle.gameObject.SetActive(value);
-        }
-
-        private void OnDestroy()
-        {
-            Instance = null;
         }
 
         void Update()

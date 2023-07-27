@@ -8,11 +8,9 @@ using YARG.Song;
 
 namespace YARG
 {
-    public class TwitchController : MonoBehaviour
+    public class TwitchController : MonoSingleton<TwitchController>
     {
         private static Regex TagRegex = new(@"<[^>]*>", RegexOptions.Compiled);
-
-        public static TwitchController Instance { get; private set; }
 
         // Creates .TXT file with current song information
         public string TextFilePath => Path.Combine(PathHelper.PersistentDataPath, "currentSong.txt");
@@ -22,8 +20,6 @@ namespace YARG
 
         private void Start()
         {
-            Instance = this;
-
             // While YARG should blank the file on exit, you never know if a crash or something prevented that.
             BlankSongFile();
 

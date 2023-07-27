@@ -10,7 +10,7 @@ using YARG.Song;
 
 namespace YARG
 {
-    public class LoadingManager : MonoBehaviour
+    public class LoadingManager : MonoSingleton<LoadingManager>
     {
         private struct QueuedTask
         {
@@ -19,8 +19,6 @@ namespace YARG
             public Func<UniTask> Function;
         }
 
-        public static LoadingManager Instance { get; private set; }
-
         [SerializeField]
         private TextMeshProUGUI loadingPhrase;
 
@@ -28,11 +26,6 @@ namespace YARG
         private TextMeshProUGUI subPhrase;
 
         private readonly Queue<QueuedTask> _loadQueue = new();
-
-        private void Awake()
-        {
-            Instance = this;
-        }
 
         private async UniTask Start()
         {

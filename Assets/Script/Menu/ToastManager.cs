@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace YARG.Menu
 {
-    public class ToastManager : MonoBehaviour
+    public class ToastManager : MonoSingleton<ToastManager>
     {
         /* Currently handles:
         Devices at startup
@@ -103,11 +103,8 @@ namespace YARG.Menu
             }
         }
 
-        public static ToastManager Instance { get; private set; }
-
         private void Start()
         {
-            Instance = this;
             toastFab.SetActive(false);
             ToastInformation("Devices found: " + (Microphone.devices.Length + InputSystem.devices.Count));
             // Watch for added or removed devices

@@ -4,10 +4,8 @@ using UnityEngine.Rendering.Universal;
 
 namespace YARG
 {
-    public class GraphicsManager : MonoBehaviour
+    public class GraphicsManager : MonoSingleton<GraphicsManager>
     {
-        public static GraphicsManager Instance { get; private set; }
-
         [SerializeField]
         private VolumeProfile postProcessingProfile = null;
 
@@ -25,10 +23,8 @@ namespace YARG
             get => QualitySettings.GetQualityLevel() == 0;
         }
 
-        private void Awake()
+        protected override void SingletonAwake()
         {
-            Instance = this;
-
             if (!postProcessingProfile.TryGet(out bloom))
             {
                 Debug.LogError("Could not find bloom component in the post process volume.");

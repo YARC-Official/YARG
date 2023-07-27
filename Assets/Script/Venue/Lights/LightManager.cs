@@ -4,8 +4,7 @@ using YARG.PlayMode;
 
 namespace YARG.Venue
 {
-    [DefaultExecutionOrder(-100)]
-    public class LightManager : MonoBehaviour
+    public class LightManager : MonoSingleton<LightManager>
     {
         public enum LightAnimation
         {
@@ -46,8 +45,6 @@ namespace YARG.Venue
             public Color? Color;
         }
 
-        public static LightManager Instance { get; private set; }
-
         public LightAnimation Animation { get; private set; }
         public int AnimationFrame { get; private set; }
 
@@ -58,15 +55,13 @@ namespace YARG.Venue
 
         private void Start()
         {
-            Instance = this;
-
             MainLightState = new();
 
             // TODO: FIX
             // VenueManager.OnEventReceive += VenueEvent;
         }
 
-        private void OnDestroy()
+        protected override void SingletonDestroy()
         {
             // TODO: FIX
             // VenueManager.OnEventReceive -= VenueEvent;

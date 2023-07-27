@@ -5,10 +5,8 @@ using UnityEngine;
 
 namespace YARG.Menu
 {
-    public class MenuNavigator : MonoBehaviour
+    public class MenuNavigator : MonoSingleton<MenuNavigator>
     {
-        public static MenuNavigator Instance { get; private set; }
-
         public enum Menu
         {
             None,
@@ -26,17 +24,15 @@ namespace YARG.Menu
 
         private readonly Stack<Menu> _openMenus = new();
 
-        private void Awake()
-        {
-            Instance = this;
-        }
-
-        private void Start()
+        protected override void SingletonAwake()
         {
             // Convert to dictionary with "Menu" as key
             var children = GetComponentsInChildren<MenuObject>(true);
             _menus = children.ToDictionary(i => i.Menu, i => i);
+        }
 
+        private void Start()
+        {
             PushMenu(Menu.MainMenu);
         }
 
