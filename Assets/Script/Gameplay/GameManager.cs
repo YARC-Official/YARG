@@ -38,6 +38,8 @@ namespace YARG.Gameplay
         [SerializeField]
         private GameObject proGuitarPrefab;
 
+        private const float SONG_START_DELAY = 2f;
+
         // All access to chart data must be done through this event,
         // since things are loaded asynchronously
         // Players are initialized by hand and don't go through this event
@@ -83,21 +85,46 @@ namespace YARG.Gameplay
 
         private async UniTask Start()
         {
+            // Disable until everything's loaded
             enabled = false;
+
+            // Load chart/audio
             LoadingManager.Instance.Queue(LoadChart, "Loading chart...");
             LoadingManager.Instance.Queue(LoadAudio, "Loading audio...");
             await LoadingManager.Instance.StartLoad();
-            CreatePlayers();
-            enabled = true;
 
-            GlobalVariables.AudioManager.Play();
-            InputManager.InputTimeOffset = InputManager.CurrentInputTime - AudioCalibration;
+            // Spawn players
+            CreatePlayers();
+
+            // Set time offsets
+            RealSongTime = -SONG_START_DELAY;
+            InputManager.InputTimeOffset = InputManager.CurrentInputTime
+                - AudioCalibration // Subtract audio calibration so that times are adjusted for it
+                + SONG_START_DELAY; // Add delay so that times before the audio actually starts are negative
+
+            // Loaded, enable updates
+            enabled = true;
         }
 
         private void Update()
         {
-            // It is more performant to calculate this per frame instead of per call
-            RealSongTime = GlobalVariables.AudioManager.CurrentPositionD;
+            // Calculate song time
+            if (RealSongTime < 0.0)
+            {
+                // Drive song time using input time until it's time to start the audio
+                RealSongTime = InputManager.RelativeUpdateTime;
+                if (RealSongTime >= 0.0)
+                {
+                    // Start audio
+                    GlobalVariables.AudioManager.Play();
+                    // Seek to calculated time to keep everything in sync
+                    GlobalVariables.AudioManager.SetPosition(RealSongTime);
+                }
+            }
+            else
+            {
+                RealSongTime = GlobalVariables.AudioManager.CurrentPositionD;
+            }
 
             if (Paused)
             {
