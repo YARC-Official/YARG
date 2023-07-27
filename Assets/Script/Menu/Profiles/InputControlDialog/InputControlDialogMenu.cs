@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -23,6 +23,25 @@ namespace YARG.Menu.Profiles
             Done
         }
 
+        [Flags]
+        private enum AllowedControl
+        {
+            None = 0,
+
+            // Control types
+            Axis = 0x01,
+            Button = 0x02,
+            // Doesn't really make sense unless we want to allow things like binding specific
+            // values to a button binding or using a range of values as an axis
+            // Integer = 0x04,
+
+            // Control attributes
+            Noisy = 0x0100,
+            Synthetic = 0x0200,
+
+            All = Axis | Button | Noisy | Synthetic
+        }
+
         private const float GROUP_TIME_THRESHOLD = 0.1f;
 
         private static InputControlDialogMenu _instance;
@@ -30,6 +49,7 @@ namespace YARG.Menu.Profiles
         private static State _state;
         private static InputDevice _inputDevice;
         private static ControlBinding _binding;
+        private static AllowedControl _allowedControls = AllowedControl.All;
         private static ActuationSettings _bindSettings;
         private static InputControl _grabbedControl;
 
@@ -190,6 +210,16 @@ namespace YARG.Menu.Profiles
         {
             // AnyKeyControl is excluded as it would always be active
             if (control is AnyKeyControl)
+            {
+                return false;
+            }
+
+            // Check that the control is allowed
+            if ((control.noisy && (_allowedControls & AllowedControl.Noisy) == 0) ||
+                (control.synthetic && (_allowedControls & AllowedControl.Synthetic) == 0) ||
+                // Buttons must be checked before axes, as ButtonControl inherits from AxisControl
+                (control is ButtonControl && (_allowedControls & AllowedControl.Button) == 0) ||
+                (control is AxisControl && (_allowedControls & AllowedControl.Axis) == 0))
             {
                 return false;
             }
