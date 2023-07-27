@@ -9,7 +9,7 @@ using SFB;
 
 using Debug = UnityEngine.Debug;
 
-namespace YARG.Util
+namespace YARG.Helpers
 {
     public static class FileExplorerHelper
     {

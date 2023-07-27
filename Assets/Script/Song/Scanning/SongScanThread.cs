@@ -10,8 +10,8 @@ using UnityEngine;
 using XboxSTFS;
 using YARG.Audio;
 using YARG.Core.Chart;
+using YARG.Helpers;
 using YARG.Serialization;
-using YARG.Util;
 
 namespace YARG.Song
 {

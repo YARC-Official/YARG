@@ -6,6 +6,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
 using UnityEngine.UI;
+using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Navigation;
@@ -13,7 +14,6 @@ using YARG.Settings;
 using YARG.Settings.Metadata;
 using YARG.Settings.Types;
 using YARG.Settings.Visuals;
-using YARG.Util;
 
 namespace YARG.Menu.Settings
 {

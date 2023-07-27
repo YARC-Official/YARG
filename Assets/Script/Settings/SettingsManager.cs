@@ -5,9 +5,9 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
+using YARG.Helpers;
 using YARG.Settings.Metadata;
 using YARG.Settings.Types;
-using YARG.Util;
 
 namespace YARG.Settings
 {

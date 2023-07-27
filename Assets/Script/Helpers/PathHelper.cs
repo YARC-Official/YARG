@@ -3,7 +3,7 @@ using System.IO;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-namespace YARG.Util
+namespace YARG.Helpers
 {
     public static class PathHelper
     {

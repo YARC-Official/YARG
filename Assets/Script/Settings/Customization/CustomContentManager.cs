@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
-using YARG.Util;
+using YARG.Helpers;
 
 namespace YARG.Settings.Customization
 {

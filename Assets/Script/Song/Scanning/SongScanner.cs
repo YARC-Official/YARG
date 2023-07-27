@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-using YARG.Util;
+using YARG.Helpers;
 
 namespace YARG.Song
 {

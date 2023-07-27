@@ -9,8 +9,8 @@ using YARG.Core.Replays;
 using YARG.Core.Replays.IO;
 using YARG.Gameplay;
 using YARG.Gameplay.Player;
+using YARG.Helpers;
 using YARG.Song;
-using YARG.Util;
 
 namespace YARG.Replays
 {

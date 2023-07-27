@@ -5,8 +5,8 @@ using System.Security.Cryptography;
 using System.Text;
 using UnityEngine;
 using XboxSTFS;
+using YARG.Helpers;
 using YARG.Menu;
-using YARG.Util;
 
 namespace YARG.Song
 {

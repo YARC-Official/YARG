@@ -9,7 +9,7 @@ using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
-using YARG.Util;
+using YARG.Helpers;
 
 namespace YARG.Song
 {

@@ -7,8 +7,8 @@ using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEngine;
 using YARG.Data;
+using YARG.Helpers;
 using YARG.Song;
-using YARG.Util;
 
 namespace YARG
 {

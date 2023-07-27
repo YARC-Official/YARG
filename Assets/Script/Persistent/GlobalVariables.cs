@@ -5,13 +5,13 @@ using UnityEngine.SceneManagement;
 using YARG.Audio;
 using YARG.Audio.BASS;
 using YARG.Core;
+using YARG.Helpers;
 using YARG.Menu.Settings;
 using YARG.Player;
 using YARG.Player.Input;
 using YARG.Replays;
 using YARG.Settings;
 using YARG.Song;
-using YARG.Util;
 
 namespace YARG
 {
@@ -44,7 +44,7 @@ namespace YARG
         public bool  isReplay;
 
 #if UNITY_EDITOR
-        public Util.TestPlayInfo TestPlayInfo { get; private set; }
+        public TestPlayInfo TestPlayInfo { get; private set; }
 #endif
 
         private void Awake()
@@ -74,7 +74,7 @@ namespace YARG
 
 #if UNITY_EDITOR
             TestPlayInfo =
-                UnityEditor.AssetDatabase.LoadAssetAtPath<Util.TestPlayInfo>("Assets/Settings/TestPlayInfo.asset");
+                UnityEditor.AssetDatabase.LoadAssetAtPath<TestPlayInfo>("Assets/Settings/TestPlayInfo.asset");
 #endif
         }
 

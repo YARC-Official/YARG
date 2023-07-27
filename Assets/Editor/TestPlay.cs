@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 using UnityToolbarExtender;
-using YARG.Util;
+using YARG.Helpers;
 
 namespace Editor
 {

@@ -4,9 +4,9 @@ using Cysharp.Threading.Tasks;
 using SFB;
 using TMPro;
 using UnityEngine;
+using YARG.Helpers;
 using YARG.Settings;
 using YARG.Song;
-using YARG.Util;
 
 namespace YARG.Menu.Settings
 {

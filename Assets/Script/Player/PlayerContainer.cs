@@ -2,7 +2,7 @@
 using System.IO;
 using Newtonsoft.Json;
 using YARG.Core.Game;
-using YARG.Util;
+using YARG.Helpers;
 
 namespace YARG.Player
 {

@@ -4,7 +4,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace YARG.Util
+namespace YARG.Helpers
 {
     public static class TextureLoader
     {

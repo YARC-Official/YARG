@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace YARG.Util
+namespace YARG.Helpers
 {
     [CreateAssetMenu(fileName = "TestPlayInfo", menuName = "YARG/TestPlayInfo", order = 1)]
     public class TestPlayInfo : ScriptableObject

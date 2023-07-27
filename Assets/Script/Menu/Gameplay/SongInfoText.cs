@@ -2,8 +2,8 @@
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using YARG.Helpers;
 using YARG.PlayMode;
-using YARG.Util;
 
 namespace YARG.Menu
 {

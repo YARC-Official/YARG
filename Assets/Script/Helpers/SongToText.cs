@@ -7,7 +7,7 @@ using UnityEngine;
 using YARG.PlayMode;
 using YARG.Song;
 
-namespace YARG.Util
+namespace YARG.Helpers
 {
     public static class SongToText
     {

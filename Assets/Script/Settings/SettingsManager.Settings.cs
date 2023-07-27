@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Audio;
+using YARG.Helpers;
 using YARG.Menu.Settings;
 using YARG.PlayMode;
 using YARG.Settings.Types;
 using YARG.Menu;
-using YARG.Util;
 using YARG.Song;
 using YARG.Venue;
 

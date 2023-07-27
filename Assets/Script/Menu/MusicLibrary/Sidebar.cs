@@ -7,9 +7,9 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
+using YARG.Helpers;
 using YARG.Serialization;
 using YARG.Song;
-using YARG.Util;
 
 namespace YARG.Menu.MusicLibrary
 {

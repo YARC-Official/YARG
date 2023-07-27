@@ -8,8 +8,8 @@ using DtxCS.DataTypes;
 using UnityEngine;
 using XboxSTFS;
 using YARG.Data;
+using YARG.Helpers;
 using YARG.Song;
-using YARG.Util;
 
 namespace YARG.Serialization
 {

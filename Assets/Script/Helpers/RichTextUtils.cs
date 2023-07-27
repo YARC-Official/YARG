@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace YARG.Util
+namespace YARG.Helpers
 {
     public static class RichTextUtils
     {

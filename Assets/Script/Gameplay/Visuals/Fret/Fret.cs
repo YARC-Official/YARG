@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using YARG.Helpers.Extensions;
-using YARG.Util;
+using YARG.Helpers;
 using Color = System.Drawing.Color;
 
 namespace YARG.Gameplay.Visuals
