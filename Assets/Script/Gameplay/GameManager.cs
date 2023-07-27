@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using YARG.Core;
@@ -79,11 +79,11 @@ namespace YARG.Gameplay
 
             IsReplay = GlobalVariables.Instance.isReplay;
 
+            var syncTrack = Chart.SyncTrack;
+            if (syncTrack.Beatlines is null or { Count: < 1 })
+                Chart.SyncTrack.GenerateBeatlines(Chart.GetLastTick());
+
             _beats = Chart.SyncTrack.Beatlines;
-            if (_beats is null || _beats.Count < 1)
-            {
-                _beats = Chart.SyncTrack.GenerateBeatlines(Chart.GetLastTick());
-            }
             Beats = _beats.AsReadOnly();
 
             LoadSong();
