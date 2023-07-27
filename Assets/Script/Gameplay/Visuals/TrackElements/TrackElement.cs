@@ -74,13 +74,11 @@ namespace YARG.Gameplay.Visuals
             // Skip if not initialized
             if (!Initialized) return;
 
-            float noteSpeed = Player.Player.Profile.NoteSpeed;
-
             // TODO: Take calibration into consideration
             float z =
                 BasePlayer.STRIKE_LINE_POS                     // Shift origin to the strike line
                 + (float) (ElementTime - GameManager.SongTime) // Get time of note relative to now
-                * noteSpeed;                                   // Adjust speed (units/s)
+                * Player.NoteSpeed;                            // Adjust speed (units/s)
 
             var cacheTransform = transform;
             cacheTransform.localPosition = cacheTransform.localPosition.WithZ(z);

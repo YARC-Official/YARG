@@ -76,7 +76,7 @@ namespace YARG.Gameplay.Player
             }
 
             _fretArray.Initialize(Player.ColorProfile);
-            HitWindowDisplay.SetHitWindowInfo(_engineParams, Player.Profile.NoteSpeed);
+            HitWindowDisplay.SetHitWindowInfo(_engineParams, NoteSpeed);
         }
 
         public override void UpdateWithTimes(double inputTime, double songTime)

@@ -21,7 +21,7 @@ namespace YARG.Gameplay.Visuals
 
         // Make sure the remove it later if it has a sustain
         protected override float RemovePointOffset =>
-            (float) NoteRef.TimeLength * Player.Player.Profile.NoteSpeed;
+            (float) NoteRef.TimeLength * Player.NoteSpeed;
 
         protected override void InitializeElement()
         {
@@ -49,7 +49,7 @@ namespace YARG.Gameplay.Visuals
             {
                 _sustainLine.gameObject.SetActive(true);
 
-                float len = (float) NoteRef.TimeLength * Player.Player.Profile.NoteSpeed;
+                float len = (float) NoteRef.TimeLength * Player.NoteSpeed;
                 _sustainLine.Initialize(len);
             }
 
@@ -84,7 +84,7 @@ namespace YARG.Gameplay.Visuals
         {
             if (!NoteRef.WasHit) return;
 
-            _sustainLine.UpdateSustainLine(Player.Player.Profile.NoteSpeed);
+            _sustainLine.UpdateSustainLine(Player.NoteSpeed);
         }
 
         private void UpdateColor()

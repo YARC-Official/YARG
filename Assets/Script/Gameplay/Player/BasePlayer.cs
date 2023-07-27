@@ -16,7 +16,7 @@ namespace YARG.Gameplay.Player
 
         public const float TRACK_WIDTH = 2f;
 
-        public double SpawnTimeOffset => (SPAWN_OFFSET + -STRIKE_LINE_POS) / Player.Profile.NoteSpeed;
+        public double SpawnTimeOffset => (SPAWN_OFFSET + -STRIKE_LINE_POS) / NoteSpeed;
 
         [field: Header("Visuals")]
         [field: SerializeField]
@@ -48,6 +48,8 @@ namespace YARG.Gameplay.Player
         public IReadOnlyList<GameInput> ReplayInputs => _replayInputs.AsReadOnly();
 
         public YargPlayer Player { get; private set; }
+
+        public float NoteSpeed => Player.Profile.NoteSpeed / GameManager.SelectedSongSpeed;
 
         public abstract float[] StarMultiplierThresholds { get; }
 
@@ -219,7 +221,7 @@ namespace YARG.Gameplay.Player
         {
             bool groove = stats.ScoreMultiplier is 4 or 8;
 
-            TrackMaterial.SetTrackScroll(songTime, Player.Profile.NoteSpeed);
+            TrackMaterial.SetTrackScroll(songTime, NoteSpeed);
             TrackMaterial.GrooveMode = groove;
 
             ComboMeter.SetCombo(stats.ScoreMultiplier, stats.IsStarPowerActive ? 8 : 4, stats.Combo);
