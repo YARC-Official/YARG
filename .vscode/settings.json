@@ -10,5 +10,8 @@
         "Obj/":true,
         "temp/":true,
         "Temp/":true
-    }
+    },
+    "dotnet.defaultSolution": "YARG.sln",
+    "dotnet.server.useOmnisharp": true,
+    "omnisharp.useModernNet": false
 }
