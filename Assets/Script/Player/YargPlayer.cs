@@ -2,7 +2,6 @@ using System;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Input;
-using YARG.Player.Input;
 using YARG.Settings.Customization;
 
 namespace YARG.Player
@@ -13,8 +12,8 @@ namespace YARG.Player
 
         public YargProfile Profile { get; private set; }
 
-        public InputStrategy InputStrategy;
-        public MicInput MicInput;
+        // public InputStrategy InputStrategy;
+        // public MicInput MicInput;
 
         public bool InputsEnabled { get; private set; }
         public ProfileBindings Bindings { get; private set; }
@@ -70,7 +69,7 @@ namespace YARG.Player
         public void Dispose()
         {
             DisableInputs();
-            InputStrategy?.Dispose();
+            // InputStrategy?.Dispose();
         }
     }
 }

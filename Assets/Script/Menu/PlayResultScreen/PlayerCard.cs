@@ -218,10 +218,12 @@ namespace YARG.Menu.PlayResultScreen
 
         private void NavigationEvent(NavigationContext ctx)
         {
-            if (ctx.InputStrategy != player.inputStrategy)
-            {
-                return;
-            }
+            // TODO: Use YargPlayer instead
+            return;
+            // if (ctx.Player != player.inputStrategy)
+            // {
+            //     return;
+            // }
 
             int desiredPage = curPage;
 

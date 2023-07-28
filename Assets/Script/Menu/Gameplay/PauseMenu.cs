@@ -42,7 +42,7 @@ namespace YARG.Menu
             {
                 new NavigationScheme.Entry(MenuAction.Up, "Up", () => { MoveOption(-1); }),
                 new NavigationScheme.Entry(MenuAction.Down, "Down", () => { MoveOption(1); }),
-                new NavigationScheme.Entry(MenuAction.Confirm, "Confirm", () => { SelectCurrentOption(); }),
+                new NavigationScheme.Entry(MenuAction.Select, "Confirm", () => { SelectCurrentOption(); }),
                 new NavigationScheme.Entry(MenuAction.Back, "Back", () => { OnResumeSelected(); })
             }, false));
         }

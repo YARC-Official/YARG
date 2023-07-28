@@ -81,13 +81,11 @@ namespace YARG.Menu.Persistent
                     break;
                 }
 
-                // Don't make buttons for up and down
-                if (entry.Type == MenuAction.Up || entry.Type == MenuAction.Down)
-                    continue;
-
                 var button = _buttons[buttonIndex];
                 button.gameObject.SetActive(true);
                 button.SetInfoFromSchemeEntry(entry, _menuActionColors[(int) entry.Type]);
+
+                buttonIndex++;
             }
 
             SetInfoText(string.Empty);

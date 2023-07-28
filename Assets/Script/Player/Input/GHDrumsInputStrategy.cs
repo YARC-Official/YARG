@@ -99,7 +99,7 @@ namespace YARG.Player.Input
 
         protected override void UpdateNavigationMode()
         {
-            NavigationEventForMapping(MenuAction.Confirm, GREEN_PAD);
+            NavigationEventForMapping(MenuAction.Select, GREEN_PAD);
             NavigationEventForMapping(MenuAction.Back, RED_PAD);
 
             NavigationEventForMapping(MenuAction.Shortcut1, YELLOW_CYMBAL);

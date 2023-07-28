@@ -282,7 +282,7 @@ namespace YARG.Menu.PlayResultScreen
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
-                new NavigationScheme.Entry(MenuAction.Confirm, "Exit", () => { PlayExit(); }),
+                new NavigationScheme.Entry(MenuAction.Select, "Exit", () => { PlayExit(); }),
                 new NavigationScheme.Entry(MenuAction.Shortcut1, "Restart", () => { PlayRestart(); })
             }, false));
 

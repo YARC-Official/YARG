@@ -18,9 +18,24 @@ namespace YARG.Menu.Navigation
                 DisplayName = displayName;
                 Func = func;
             }
+
+            public static readonly Entry NavigateUp = new(MenuAction.Up, "Up", () =>
+            {
+
+            });
+
+            public static readonly Entry NavigateDown = new(MenuAction.Down, "Down", () =>
+            {
+
+            });
+
+            public static readonly Entry NavigateSelect = new(MenuAction.Select, "Select", () =>
+            {
+
+            });
         }
 
-        private List<Entry> _entries;
+        private readonly List<Entry> _entries;
         public IReadOnlyList<Entry> Entries => _entries;
 
         public bool AllowsMusicPlayer { get; private set; }

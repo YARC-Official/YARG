@@ -20,10 +20,9 @@ namespace YARG.Menu.Main
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
-                new NavigationScheme.Entry(MenuAction.Confirm, "Quickplay", () =>
-                {
-                    MenuManager.Instance.PushMenu(MenuManager.Menu.MusicLibrary);
-                })
+                NavigationScheme.Entry.NavigateSelect,
+                NavigationScheme.Entry.NavigateUp,
+                NavigationScheme.Entry.NavigateDown,
             }, true));
         }
 

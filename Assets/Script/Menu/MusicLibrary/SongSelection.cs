@@ -194,7 +194,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 new NavigationScheme.Entry(MenuAction.Up, "Up", ScrollUp),
                 new NavigationScheme.Entry(MenuAction.Down, "Down", ScrollDown),
-                new NavigationScheme.Entry(MenuAction.Confirm, "Confirm",
+                new NavigationScheme.Entry(MenuAction.Select, "Confirm",
                     () => { CurrentSelection?.PrimaryButtonClick(); }),
                 new NavigationScheme.Entry(MenuAction.Back, "Back", Back),
                 new NavigationScheme.Entry(MenuAction.Shortcut1, _nextSortCriteria, ChangeSongOrder),
