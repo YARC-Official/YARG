@@ -181,6 +181,7 @@ namespace YARG.Menu.Profiles
         private static void SelectControl(InputControl control)
         {
             _grabbedControl = control;
+            _instance.gameObject.SetActive(false);
         }
 
         private static void Listen(InputEventPtr eventPtr)
