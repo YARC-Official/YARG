@@ -15,7 +15,9 @@ namespace YARG.Menu
 {
     public class DifficultySelect : MonoBehaviour
     {
-        private enum State
+        // TODO: Make this work again
+
+        /*private enum State
         {
             INSTRUMENT,
             DIFFICULTY,
@@ -370,6 +372,6 @@ namespace YARG.Menu
 
             selected = optionCount - 1;
             options[optionCount - 1].SetSelected(true);
-        }
+        }*/
     }
 }

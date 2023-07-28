@@ -1,11 +1,6 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using TMPro;
 using UnityEngine;
-using YARG.Player.Input;
-using YARG.Settings;
 
 namespace YARG
 {
@@ -35,6 +30,9 @@ namespace YARG
         private State _state = State.Starting;
         private List<float> _calibrationTimes = new();
 
+        // TODO: Make this work again lol
+
+        /*
         private void Start()
         {
             UpdateForState();
@@ -239,5 +237,8 @@ namespace YARG
                 UpdateForState();
             }
         }
+
+
+        */
     }
 }

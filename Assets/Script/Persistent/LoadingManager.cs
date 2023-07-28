@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using YARG.Data;
-using YARG.Player.Input;
 using YARG.Song;
 
 namespace YARG

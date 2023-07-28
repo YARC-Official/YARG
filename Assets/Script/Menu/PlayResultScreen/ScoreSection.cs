@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using YARG.Data;
+using YARG.Player;
 
 namespace YARG.Menu
 {
@@ -23,8 +23,11 @@ namespace YARG.Menu
         [SerializeField]
         private List<TextMeshProUGUI> text;
 
-        public void SetScore(PlayerManager.Player player, ScoreType type)
+        public void SetScore(YargPlayer player, ScoreType type)
         {
+            // TODO: Wow! Yet another thing that doesn't work.
+
+            /*
             if (player.chosenInstrument == null)
             {
                 playerName.text = player.DisplayName;
@@ -60,7 +63,7 @@ namespace YARG.Menu
             text[2].text = $"{score.notesHit} hit";
             text[3].text = $"{score.notesMissed} missed";
             text[4].text = $"{score.score.score:N0} pts";
-            text[5].text = $"{score.score.stars}/6 stars";
+            text[5].text = $"{score.score.stars}/6 stars";*/
         }
     }
 }

@@ -8,7 +8,6 @@ using YARG.Core;
 using YARG.Helpers;
 using YARG.Menu.Settings;
 using YARG.Player;
-using YARG.Player.Input;
 using YARG.Replays;
 using YARG.Settings;
 using YARG.Song;
@@ -67,8 +66,6 @@ namespace YARG
             Players = new List<YargPlayer>();
 
             Shader.SetGlobalFloat("_IsFading", 1f);
-
-            StageKitHapticsManager.Initialize();
 
 #if UNITY_EDITOR
             TestPlayInfo =

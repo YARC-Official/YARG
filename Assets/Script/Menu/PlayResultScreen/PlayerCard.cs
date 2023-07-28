@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Menu.Navigation;
+using YARG.Player;
 
 namespace YARG.Menu.PlayResultScreen
 {
@@ -20,6 +21,8 @@ namespace YARG.Menu.PlayResultScreen
 
     public class PlayerCard : MonoBehaviour
     {
+        private const int PAGE_COUNT = 2;
+
         public static readonly Dictionary<ClearStatus, Color> statusColor = new()
         {
             {
@@ -39,10 +42,9 @@ namespace YARG.Menu.PlayResultScreen
             },
         };
 
-        private PlayerManager.Player player;
+        private YargPlayer _player;
 
-        private int curPage = 0;
-        private int pageCount = 2;
+        private int _currentPage = 0;
 
         [SerializeField]
         private Sprite backgroundDisqualified;
@@ -106,10 +108,9 @@ namespace YARG.Menu.PlayResultScreen
         [SerializeField]
         private RawImage bottomBanner;
 
-        public void Setup(PlayerManager.Player player, ClearStatus cs, bool isHighScore)
+        public void Setup(YargPlayer player, ClearStatus cs, bool isHighScore)
         {
-            Debug.Log($"Setting up PlayerCard for {player.DisplayName}");
-            this.player = player;
+            _player = player;
 
             // set window frame
             containerImg.sprite = cs switch
@@ -122,18 +123,21 @@ namespace YARG.Menu.PlayResultScreen
 
             /* Set Content */
             fcSymbol.gameObject.SetActive(cs == ClearStatus.FullCombo);
-            playerName.text = player.DisplayName;
-            difficulty.text = player.chosenDifficulty switch
+            playerName.text = player.Profile.Name;
+            difficulty.text = player.Profile.Difficulty switch
             {
                 Difficulty.ExpertPlus => "EXPERT+",
-                _                      => player.chosenDifficulty.ToString()
+                _ => player.Profile.Difficulty.ToString()
             };
-            instrumentSymbol.text = $"<sprite name=\"{player.chosenInstrument}\">";
+            instrumentSymbol.text = $"<sprite name=\"{player.Profile.Instrument}\">";
 
             // if (!player.lastScore.HasValue) {
             // 	return;
             // }
 
+            // TODO: Scores
+
+            /*
             var scr = player.lastScore.Value;
             percentage.text = $"{Mathf.FloorToInt(scr.percentage.percent * 100f)}%";
             score.text = $"{scr.score.score:N0}";
@@ -146,6 +150,7 @@ namespace YARG.Menu.PlayResultScreen
             detailNotesHit.text = $"{scr.notesHit}<color=#ffffff> / {scr.notesHit + scr.notesMissed}";
             detailMaxStreak.text = scr.maxCombo.ToString();
             detailMissedNotes.text = scr.notesMissed.ToString();
+            */
 
             /* Bottom banner */
             // Text
@@ -225,7 +230,7 @@ namespace YARG.Menu.PlayResultScreen
             //     return;
             // }
 
-            int desiredPage = curPage;
+            int desiredPage = _currentPage;
 
             switch (ctx.Action)
             {
@@ -237,14 +242,14 @@ namespace YARG.Menu.PlayResultScreen
                     break;
             }
 
-            desiredPage = Mathf.Clamp(desiredPage + 1, 0, pageCount - 1);
+            desiredPage = Mathf.Clamp(desiredPage + 1, 0, PAGE_COUNT - 1);
 
             // we don't go anywhere
-            if (desiredPage == curPage) return;
+            if (desiredPage == _currentPage) return;
 
             // TODO: pages, secstions
 
-            curPage = desiredPage;
+            _currentPage = desiredPage;
         }
     }
 }

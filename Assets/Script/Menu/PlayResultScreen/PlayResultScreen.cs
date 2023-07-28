@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using YARG.Data;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
+using YARG.Player;
 using YARG.PlayMode;
 
 namespace YARG.Menu.PlayResultScreen
@@ -64,9 +65,9 @@ namespace YARG.Menu.PlayResultScreen
 
         private List<PlayerCard> playerCards = new();
 
-        public HashSet<PlayerManager.Player> highScores;
-        public HashSet<PlayerManager.Player> disqualified;
-        public HashSet<PlayerManager.Player> bot;
+        public HashSet<YargPlayer> highScores;
+        public HashSet<YargPlayer> disqualified;
+        public HashSet<YargPlayer> bot;
 
         public static event Action<bool> OnEnabled;
 
@@ -121,10 +122,13 @@ namespace YARG.Menu.PlayResultScreen
             highScores = new();
             disqualified = new();
             bot = new();
-            foreach (var player in PlayerManager.players)
+            foreach (var player in PlayerContainer.Players)
             {
+                // TODO: Make this work
+
+                /*
                 // Skip "Sit Out"s
-                if (player.chosenInstrument == null)
+                if (player.Profile.chosenInstrument == null)
                 {
                     continue;
                 }
@@ -170,6 +174,8 @@ namespace YARG.Menu.PlayResultScreen
                     songScore.highestScore[instrumentName] = lastScore.score;
                     highScores.Add(player);
                 }
+
+                */
             }
 
             ScoreManager.PushScore(GlobalVariables.Instance?.CurrentSong, songScore);
@@ -184,10 +190,12 @@ namespace YARG.Menu.PlayResultScreen
             playerCardsContainer.transform.DestroyChildren();
             playerCards.Clear();
 
-            foreach (var player in PlayerManager.players)
+            foreach (var player in PlayerContainer.Players)
             {
+                // TODO: Yeah you get the point
+
                 // skip players sitting out
-                if (player.chosenInstrument == null) continue;
+                // if (player.chosenInstrument == null) continue;
 
                 var pc = Instantiate(playerCardPrefab, playerCardsContainer.transform).GetComponent<PlayerCard>();
 
