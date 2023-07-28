@@ -303,6 +303,8 @@ namespace YARG.Gameplay
 
                 Debug.Log("Wrote replay");
             }
+
+            GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
         }
     }
 }
