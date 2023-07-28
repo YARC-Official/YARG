@@ -1,26 +1,25 @@
 namespace YARG
 {
-    public struct YargVersion
+    public readonly struct YargVersion
     {
-        public int Major;
-        public int Minor;
-        public int Revision;
-        public bool Beta;
+        public readonly int Major;
+        public readonly int Minor;
+        public readonly int Revision;
+        public readonly bool Beta;
 
-        public YargVersion(int major, int minor, int revision)
-        {
-            Major = major;
-            Minor = minor;
-            Revision = revision;
-            Beta = false;
-        }
+        public readonly int VersionBits;
 
-        public YargVersion(int major, int minor, int revision, bool beta)
+        public YargVersion(int major, int minor, int revision, bool beta = false)
         {
             Major = major;
             Minor = minor;
             Revision = revision;
             Beta = beta;
+
+            VersionBits = (byte) Major << 24;
+            VersionBits |= (byte) Minor << 16;
+            VersionBits |= (byte) Revision << 8;
+            VersionBits |= (byte) (Beta ? 1 : 0);
         }
 
         public override string ToString()
