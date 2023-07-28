@@ -1,11 +1,26 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace YARG.Menu
+namespace YARG.Menu.Navigation
 {
-    public class NavigationGroup : MonoBehaviour
+    public sealed class NavigationGroup : MonoBehaviour
     {
-        private List<NavigatableBehaviour> _navigatables = new();
+        private readonly List<NavigatableBehaviour> _navigatables = new();
+
+        [SerializeField]
+        private bool _addAllChildrenOnAwake;
+
+        private void Awake()
+        {
+            if (_addAllChildrenOnAwake)
+            {
+                foreach (var navigatable in GetComponentsInChildren<NavigatableBehaviour>())
+                {
+                    navigatable.NavigationGroup = this;
+                    _navigatables.Add(navigatable);
+                }
+            }
+        }
 
         public void AddNavigatable(NavigatableBehaviour n)
         {

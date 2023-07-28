@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1358820489987950325}
   - component: {fileID: 4631318696401058285}
+  - component: {fileID: 7573311416459841125}
   - component: {fileID: 5885225188898954495}
   - component: {fileID: 1581700313570264670}
   m_Layer: 5
@@ -54,8 +55,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a5a495b7997424bb436b40537647ae1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SelectionBackground: {fileID: 4112798753867176024}
+  SelectionBackground: {fileID: 0}
   _bindingNameText: {fileID: 3750816602721794853}
+--- !u!114 &7573311416459841125
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1426678564427857758}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5028cf3ef3a42b2ba95c87cda9b514c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _selectionVisuals:
+  - {fileID: 4112798753867176024}
 --- !u!222 &5885225188898954495
 CanvasRenderer:
   m_ObjectHideFlags: 0

@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Input;
+using YARG.Menu.Navigation;
 
 namespace YARG.Menu.Profiles
 {

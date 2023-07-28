@@ -377,7 +377,8 @@ GameObject:
   m_Component:
   - component: {fileID: 8708184733134376298}
   - component: {fileID: 8708184733134376297}
-  - component: {fileID: 8708184733134376299}
+  - component: {fileID: 8947925650443576158}
+  - component: {fileID: 5572848605896800309}
   - component: {fileID: 1300767423824717202}
   - component: {fileID: 1781996627438884094}
   m_Layer: 5
@@ -418,7 +419,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8708184733134376309}
   m_CullTransparentMesh: 1
---- !u!114 &8708184733134376299
+--- !u!114 &8947925650443576158
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -427,41 +428,26 @@ MonoBehaviour:
   m_GameObject: {fileID: 8708184733134376309}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Script: {fileID: 11500000, guid: 415519b8353a4d0589628d2259ed63a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Navigation:
-    m_Mode: 4
-    m_WrapAround: 0
-    m_SelectOnUp: {fileID: 0}
-    m_SelectOnDown: {fileID: 0}
-    m_SelectOnLeft: {fileID: 0}
-    m_SelectOnRight: {fileID: 0}
-  m_Transition: 1
-  m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 0}
-    m_HighlightedColor: {r: 1, g: 1, b: 1, a: 1}
-    m_PressedColor: {r: 1, g: 1, b: 1, a: 1}
-    m_SelectedColor: {r: 1, g: 1, b: 1, a: 1}
-    m_DisabledColor: {r: 1, g: 1, b: 1, a: 0}
-    m_ColorMultiplier: 1
-    m_FadeDuration: 0.05
-  m_SpriteState:
-    m_HighlightedSprite: {fileID: 0}
-    m_PressedSprite: {fileID: 0}
-    m_SelectedSprite: {fileID: 0}
-    m_DisabledSprite: {fileID: 0}
-  m_AnimationTriggers:
-    m_NormalTrigger: Normal
-    m_HighlightedTrigger: Highlighted
-    m_PressedTrigger: Pressed
-    m_SelectedTrigger: Selected
-    m_DisabledTrigger: Disabled
-  m_Interactable: 1
-  m_TargetGraphic: {fileID: 7290593809168235268}
-  m_OnClick:
+  _onClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &5572848605896800309
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8708184733134376309}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5028cf3ef3a42b2ba95c87cda9b514c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _selectionVisuals:
+  - {fileID: 7050808470183067143}
 --- !u!114 &1300767423824717202
 MonoBehaviour:
   m_ObjectHideFlags: 0

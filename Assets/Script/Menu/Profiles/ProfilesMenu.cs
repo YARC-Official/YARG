@@ -2,6 +2,7 @@
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Helpers.Extensions;
+using YARG.Menu.Navigation;
 using YARG.Player;
 
 namespace YARG.Menu.Profiles
