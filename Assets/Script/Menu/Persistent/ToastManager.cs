@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
-namespace YARG.Menu
+namespace YARG.Menu.Persistent
 {
     public class ToastManager : MonoSingleton<ToastManager>
     {
@@ -20,7 +20,7 @@ namespace YARG.Menu
         Information: #00AFF7
         Warning: #FFEE57
         Error: #FF0031
-        Message Color: #FFFFFF    
+        Message Color: #FFFFFF
         */
         [Header("Colors")]
         [SerializeField]

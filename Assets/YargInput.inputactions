@@ -90,28 +90,6 @@
             "bindings": [
                 {
                     "name": "",
-                    "id": "c035198e-be31-4579-a4c6-66f5b69342f4",
-                    "path": "*/{Submit}",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Submit",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "390c0109-b2ca-461a-930d-835a59b771e3",
-                    "path": "*/{Cancel}",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Cancel",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "4a5e377e-350b-45c8-85c2-63d68a51bdaa",
                     "path": "<Mouse>/position",
                     "interactions": "",

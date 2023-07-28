@@ -1,6 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
 using YARG.Core.Game;
+using YARG.Menu.Navigation;
 using YARG.Player;
 
 namespace YARG.Menu.Profiles
@@ -65,7 +66,7 @@ namespace YARG.Menu.Profiles
             if (!PlayerContainer.IsProfileTaken(_profile)) return;
 
             EditProfileMenu.CurrentProfile = _profile;
-            MenuNavigator.Instance.PushMenu(MenuNavigator.Menu.EditProfile);
+            MenuManager.Instance.PushMenu(MenuManager.Menu.EditProfile);
         }
     }
 }

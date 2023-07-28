@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using UnityEngine;
 
 namespace YARG.Menu
 {
-    public class MenuNavigator : MonoSingleton<MenuNavigator>
+    public class MenuManager : MonoSingleton<MenuManager>
     {
         public enum Menu
         {

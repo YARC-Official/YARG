@@ -1,6 +1,5 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using YARG.Menu.Settings;
 using YARG.Menu.Navigation;
 
@@ -23,10 +22,11 @@ namespace YARG.Menu.Main
             {
                 new NavigationScheme.Entry(MenuAction.Confirm, "Quickplay", () =>
                 {
-                    MenuNavigator.Instance.PushMenu(MenuNavigator.Menu.MusicLibrary);
+                    MenuManager.Instance.PushMenu(MenuManager.Menu.MusicLibrary);
                 })
             }, true));
         }
+
         private void OnDisable()
         {
             Navigator.Instance.PopScheme();
@@ -34,7 +34,7 @@ namespace YARG.Menu.Main
 
         public void QuickPlay()
         {
-            MenuNavigator.Instance.PushMenu(MenuNavigator.Menu.MusicLibrary);
+            MenuManager.Instance.PushMenu(MenuManager.Menu.MusicLibrary);
         }
 
         public void Practice()
@@ -44,12 +44,12 @@ namespace YARG.Menu.Main
 
         public void Profiles()
         {
-            MenuNavigator.Instance.PushMenu(MenuNavigator.Menu.Profiles);
+            MenuManager.Instance.PushMenu(MenuManager.Menu.Profiles);
         }
 
         public void Replays()
         {
-            MenuNavigator.Instance.PushMenu(MenuNavigator.Menu.Replays);
+            MenuManager.Instance.PushMenu(MenuManager.Menu.Replays);
         }
 
         public void Settings()

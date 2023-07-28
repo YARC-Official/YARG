@@ -525,7 +525,7 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            MenuNavigator.Instance.PopMenu();
+            MenuManager.Instance.PopMenu();
         }
 
         private void ClearSearchBox()

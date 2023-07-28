@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 
-namespace YARG.Menu
+namespace YARG.Menu.Persistent
 {
     public class DevWatermark : MonoBehaviour
     {

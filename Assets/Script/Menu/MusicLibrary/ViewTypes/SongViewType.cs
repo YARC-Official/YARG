@@ -1,6 +1,7 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Data;
+using YARG.Menu.Navigation;
 using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
@@ -55,7 +56,7 @@ namespace YARG.Menu.MusicLibrary
         {
             base.PrimaryButtonClick();
 
-            MenuNavigator.Instance.PushMenu(MenuNavigator.Menu.DifficultySelect);
+            MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
         }
 
         public override void IconClick()

@@ -35,7 +35,7 @@ namespace YARG.Menu
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
-                new NavigationScheme.Entry(MenuAction.Back, "Back", () => MenuNavigator.Instance.PopMenu())
+                new NavigationScheme.Entry(MenuAction.Back, "Back", () => MenuManager.Instance.PopMenu())
             }, true));
 
             _scrollRect.verticalNormalizedPosition = 1f;

@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using YARG.Player.Input;
 using YARG.Menu;
+using YARG.Menu.Persistent;
 
 namespace YARG.Menu.Navigation
 {

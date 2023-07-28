@@ -10,6 +10,7 @@ using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.Utilities;
 using YARG.Helpers.Extensions;
 using YARG.Input;
+using YARG.Menu.Navigation;
 
 namespace YARG.Menu.Profiles
 {
@@ -107,7 +108,7 @@ namespace YARG.Menu.Profiles
             var token = _cancellationToken.Token;
 
             // Open dialog
-            MenuNavigator.Instance.PushMenu(MenuNavigator.Menu.InputControlDialog);
+            MenuManager.Instance.PushMenu(MenuManager.Menu.InputControlDialog);
 
             // Reset menu
             _instance._controlContainer.DestroyChildren();
@@ -145,7 +146,7 @@ namespace YARG.Menu.Profiles
 
                 // Add the binding
                 binding.AddControl(_bindSettings, _grabbedControl);
-                MenuNavigator.Instance.PopMenu();
+                MenuManager.Instance.PopMenu();
                 return true;
             }
             catch (OperationCanceledException)
@@ -173,7 +174,7 @@ namespace YARG.Menu.Profiles
             }
             finally
             {
-                MenuNavigator.Instance.PopMenu();
+                MenuManager.Instance.PopMenu();
             }
         }
 

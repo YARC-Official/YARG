@@ -7,6 +7,7 @@ using UnityEngine;
 using XboxSTFS;
 using YARG.Helpers;
 using YARG.Menu;
+using YARG.Menu.Persistent;
 
 namespace YARG.Song
 {

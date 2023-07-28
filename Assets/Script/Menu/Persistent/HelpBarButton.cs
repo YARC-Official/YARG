@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Menu.Navigation;
 
-namespace YARG.Menu
+namespace YARG.Menu.Persistent
 {
     public class HelpBarButton : MonoBehaviour
     {

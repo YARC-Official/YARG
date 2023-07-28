@@ -2,6 +2,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Helpers.Extensions;
+using YARG.Menu.Navigation;
 
 namespace YARG.Menu.Profiles
 {
@@ -42,13 +43,13 @@ namespace YARG.Menu.Profiles
         private static void SelectDevice(InputDevice inputDevice)
         {
             _selectedDevice = inputDevice;
-            MenuNavigator.Instance.PopMenu();
+            MenuManager.Instance.PopMenu();
         }
 
         public static async UniTask<InputDevice> Show()
         {
             // Open dialog
-            MenuNavigator.Instance.PushMenu(MenuNavigator.Menu.InputDeviceDialog);
+            MenuManager.Instance.PushMenu(MenuManager.Menu.InputDeviceDialog);
 
             // Wait until the dialog is closed
             await UniTask.WaitUntil(() => !_instance.gameObject.activeSelf);

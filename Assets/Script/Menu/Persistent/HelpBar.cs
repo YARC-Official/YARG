@@ -6,7 +6,7 @@ using YARG.Core;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
 
-namespace YARG.Menu
+namespace YARG.Menu.Persistent
 {
     [DefaultExecutionOrder(-25)]
     public class HelpBar : MonoSingleton<HelpBar>

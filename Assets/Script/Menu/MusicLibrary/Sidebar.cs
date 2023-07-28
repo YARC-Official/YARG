@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Helpers;
+using YARG.Menu.Persistent;
 using YARG.Serialization;
 using YARG.Song;
 

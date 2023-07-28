@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.UI;
 
-namespace YARG.Menu
+namespace YARG.Menu.Persistent
 {
     public class FpsCounter : MonoSingleton<FpsCounter>
     {

@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using UnityEngine;
 using YARG.Data;
 using YARG.Menu;
+using YARG.Menu.Persistent;
 
 namespace YARG
 {
