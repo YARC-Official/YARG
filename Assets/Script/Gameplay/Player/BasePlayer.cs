@@ -282,6 +282,11 @@ namespace YARG.Gameplay.Player
 
         protected void OnGameInput(ref GameInput input)
         {
+            if (GameManager.Paused)
+            {
+                return;
+            }
+
             double adjustedTime = input.Time * GameManager.SelectedSongSpeed;
             input = new(adjustedTime, input.Action, input.Integer);
             Engine.QueueInput(input);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Replays.IO;
@@ -21,6 +22,9 @@ namespace YARG.Gameplay
         [Header("References")]
         [SerializeField]
         private TrackViewManager _trackViewManager;
+
+        [SerializeField]
+        private GameObject _pauseMenu;
 
         [Header("Instrument Prefabs")]
         [SerializeField]
@@ -82,6 +86,8 @@ namespace YARG.Gameplay
         public int BandScore { get; private set; }
         public int BandCombo { get; private set; }
 
+        private double _pauseStartTime;
+
         private SongChart _chart;
 
         private List<BasePlayer> _players;
@@ -124,6 +130,15 @@ namespace YARG.Gameplay
 
         private void Update()
         {
+            if (Keyboard.current.escapeKey.wasPressedThisFrame)
+            {
+                SetPaused(!Paused);
+            }
+            if (Paused)
+            {
+                return;
+            }
+
             // Calculate song time
             if (RealSongTime < 0.0)
             {
@@ -265,14 +280,20 @@ namespace YARG.Gameplay
 
         public void SetPaused(bool paused)
         {
-            // Set pause menu gameobject active status
+            Paused = paused;
+            _pauseMenu.SetActive(paused);
+
+            Debug.Log($"Paused: {paused}");
 
             if (paused)
             {
+                _pauseStartTime = InputManager.CurrentInputTime;
                 GlobalVariables.AudioManager.Pause();
             }
             else
             {
+                double totalPauseTime = InputManager.CurrentInputTime - _pauseStartTime;
+                InputManager.InputTimeOffset += totalPauseTime;
                 GlobalVariables.AudioManager.Play();
             }
         }
@@ -280,6 +301,7 @@ namespace YARG.Gameplay
         private void EndSong()
         {
             GlobalVariables.AudioManager.SongEnd -= EndSong;
+            GlobalVariables.AudioManager.UnloadSong();
 
             if (!IsReplay)
             {

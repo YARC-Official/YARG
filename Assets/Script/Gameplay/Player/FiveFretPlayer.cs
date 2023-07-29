@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using YARG.Core;
+using YARG.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Guitar.Engines;
@@ -62,6 +62,16 @@ namespace YARG.Gameplay.Player
 
                     (NotePool.GetByKey(note) as FiveFretNoteElement)?.SustainEnd();
                 }
+            };
+
+            engine.OnStarPowerPhraseHit += _ =>
+            {
+                GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarPowerAward);
+            };
+
+            engine.OnStarPowerStatus += (status) =>
+            {
+                GlobalVariables.AudioManager.PlaySoundEffect(status ? SfxSample.StarPowerDeploy : SfxSample.StarPowerRelease);
             };
 
             return engine;
