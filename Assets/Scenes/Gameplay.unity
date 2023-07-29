@@ -268,7 +268,7 @@ PrefabInstance:
     - target: {fileID: 227366190812778480, guid: 039fee0ec42345d4f88c0625255415d4,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -187.3
+      value: 2.5158997
       objectReference: {fileID: 0}
     - target: {fileID: 1682100932476655723, guid: 039fee0ec42345d4f88c0625255415d4,
         type: 3}
@@ -398,7 +398,7 @@ PrefabInstance:
     - target: {fileID: 2517693471320601084, guid: 039fee0ec42345d4f88c0625255415d4,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 187.3
+      value: -2.5158997
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 039fee0ec42345d4f88c0625255415d4, type: 3}
@@ -439,6 +439,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _trackViewManager: {fileID: 1330928978}
+  _pauseMenu: {fileID: 800626785}
   fiveFretGuitarPrefab: {fileID: 7381119128095886790, guid: 0f7a37c9e4abcad4da73b7603d4b7596,
     type: 3}
   sixFretGuitarPrefab: {fileID: 0}
