@@ -110,7 +110,7 @@ namespace YARG.Input
             // Override debounce for a corresponding control, if requested
             DebounceOverrideBinding?.OverrideDebounce();
 
-            FireEvent(time, state);
+            FireInputEvent(time, state);
         }
 
         public override void UpdateForFrame()
@@ -151,6 +151,8 @@ namespace YARG.Input
 
         protected override void OnControlAdded(ActuationSettings settings, SingleBinding binding)
         {
+            base.OnControlAdded(settings, binding);
+
             float pressPoint = settings.ButtonPressThreshold;
             if (binding.Control is ButtonControl button)
             {

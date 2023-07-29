@@ -48,7 +48,7 @@ namespace YARG.Input
                 return;
 
             _currentValue = state;
-            FireEvent(time, state);
+            FireInputEvent(time, state);
         }
     }
 }

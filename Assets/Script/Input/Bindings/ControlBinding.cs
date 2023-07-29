@@ -30,6 +30,11 @@ namespace YARG.Input
     public abstract class ControlBinding
     {
         /// <summary>
+        /// Fired when a binding has been added or removed.
+        /// </summary>
+        public event Action BindingsChanged;
+
+        /// <summary>
         /// Fired when an input event has been processed by this binding.
         /// </summary>
         public event GameInputProcessed InputProcessed;
@@ -97,28 +102,33 @@ namespace YARG.Input
         public abstract void OnDeviceAdded(InputDevice device);
         public abstract void OnDeviceRemoved(InputDevice device);
 
-        protected void FireEvent(double time, int value)
+        protected void FireBindingsChanged()
+        {
+            BindingsChanged?.Invoke();
+        }
+
+        protected void FireInputEvent(double time, int value)
         {
             time = InputManager.GetRelativeTime(time);
             var input = new GameInput(time, Action, value);
-            FireEvent(ref input);
+            FireInputEvent(ref input);
         }
 
-        protected void FireEvent(double time, float value)
+        protected void FireInputEvent(double time, float value)
         {
             time = InputManager.GetRelativeTime(time);
             var input = new GameInput(time, Action, value);
-            FireEvent(ref input);
+            FireInputEvent(ref input);
         }
 
-        protected void FireEvent(double time, bool value)
+        protected void FireInputEvent(double time, bool value)
         {
             time = InputManager.GetRelativeTime(time);
             var input = new GameInput(time, Action, value);
-            FireEvent(ref input);
+            FireInputEvent(ref input);
         }
 
-        protected void FireEvent(ref GameInput input)
+        protected void FireInputEvent(ref GameInput input)
         {
             if (!Enabled)
                 return;
@@ -277,7 +287,9 @@ namespace YARG.Input
         public override void OnDeviceAdded(InputDevice device)
         {
             string serial = device.GetSerial();
+
             // Search by index, can't modify a collection while enumerating it
+            bool controlsModified = false;
             for (int i = 0; i < _unresolvedBindings.Count; i++)
             {
                 var binding = _unresolvedBindings[i];
@@ -291,12 +303,17 @@ namespace YARG.Input
                 _unresolvedBindings.RemoveAt(i);
                 i--;
                 Bindings.Add(deserialized);
+                controlsModified = true;
             }
+
+            if (controlsModified)
+                FireBindingsChanged();
         }
 
         public override void OnDeviceRemoved(InputDevice device)
         {
             // Search by index, can't modify a collection while enumerating it
+            bool controlsModified = false;
             for (int i = 0; i < Bindings.Count; i++)
             {
                 var binding = Bindings[i];
@@ -310,11 +327,22 @@ namespace YARG.Input
                 Bindings.RemoveAt(i);
                 i--;
                 _unresolvedBindings.Add(serialized);
+                controlsModified = true;
             }
+
+            if (controlsModified)
+                FireBindingsChanged();
         }
 
-        protected virtual void OnControlAdded(ActuationSettings settings, SingleBinding binding) { }
-        protected virtual void OnControlRemoved(SingleBinding binding) { }
+        protected virtual void OnControlAdded(ActuationSettings settings, SingleBinding binding)
+        {
+            FireBindingsChanged();
+        }
+
+        protected virtual void OnControlRemoved(SingleBinding binding)
+        {
+            FireBindingsChanged();
+        }
 
         protected virtual SerializedInputControl SerializeControl(SingleBinding binding)
         {

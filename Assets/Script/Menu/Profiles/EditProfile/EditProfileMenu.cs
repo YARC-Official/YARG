@@ -37,11 +37,14 @@ namespace YARG.Menu.Profiles
         {
             _currentPlayer = PlayerContainer.GetPlayerFromProfile(CurrentProfile);
             _currentPlayer.DisableInputs();
+            _currentPlayer.Bindings.BindingsChanged += RefreshBindings;
+
             RefreshGameModes();
         }
 
         private void OnDisable()
         {
+            _currentPlayer.Bindings.BindingsChanged -= RefreshBindings;
             _currentPlayer.EnableInputs();
         }
 

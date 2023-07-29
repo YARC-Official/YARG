@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using YARG.Core;
@@ -8,6 +9,20 @@ namespace YARG.Input
     public class GameModeBindings
     {
         public GameMode GameMode { get; }
+
+        public event Action BindingsChanged
+        {
+            add
+            {
+                Menu.BindingsChanged += value;
+                Gameplay.BindingsChanged += value;
+            }
+            remove
+            {
+                Menu.BindingsChanged -= value;
+                Gameplay.BindingsChanged -= value;
+            }
+        }
 
         public BindingCollection Menu { get; }
         public BindingCollection Gameplay { get; }

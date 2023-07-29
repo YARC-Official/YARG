@@ -21,21 +21,31 @@ namespace YARG.Input
 
         public GameModeBindings this[GameMode mode] => _bindsByGameMode[mode];
 
+        public event Action BindingsChanged
+        {
+            add
+            {
+                foreach (var bindings in _bindsByGameMode.Values)
+                    bindings.BindingsChanged += value;
+            }
+            remove
+            {
+                foreach (var bindings in _bindsByGameMode.Values)
+                    bindings.BindingsChanged -= value;
+            }
+        }
+
         public event GameInputProcessed MenuInputProcessed
         {
             add
             {
                 foreach (var bindings in _bindsByGameMode.Values)
-                {
                     bindings.Menu.InputProcessed += value;
-                }
             }
             remove
             {
                 foreach (var bindings in _bindsByGameMode.Values)
-                {
                     bindings.Menu.InputProcessed -= value;
-                }
             }
         }
 

@@ -29,7 +29,6 @@ namespace YARG.Menu.Profiles
         public void DeleteBinding()
         {
             _binding.RemoveControl(_control);
-            _editProfileMenu.RefreshBindings();
         }
     }
 }

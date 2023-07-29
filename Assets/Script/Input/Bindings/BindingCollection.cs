@@ -13,21 +13,31 @@ namespace YARG.Input
     {
         private readonly List<ControlBinding> _bindings = new();
 
+        public event Action BindingsChanged
+        {
+            add
+            {
+                foreach (var binding in _bindings)
+                    binding.BindingsChanged += value;
+            }
+            remove
+            {
+                foreach (var binding in _bindings)
+                    binding.BindingsChanged -= value;
+            }
+        }
+
         public event GameInputProcessed InputProcessed
         {
             add
             {
                 foreach (var binding in _bindings)
-                {
                     binding.InputProcessed += value;
-                }
             }
             remove
             {
                 foreach (var binding in _bindings)
-                {
                     binding.InputProcessed -= value;
-                }
             }
         }
 

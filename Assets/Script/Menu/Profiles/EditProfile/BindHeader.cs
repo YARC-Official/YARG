@@ -33,7 +33,6 @@ namespace YARG.Menu.Profiles
             Selected = true;
 
             await InputControlDialogMenu.Show(_player, _binding);
-            _editProfileMenu.RefreshBindings();
         }
     }
 }
