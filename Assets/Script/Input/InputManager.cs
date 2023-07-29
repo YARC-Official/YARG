@@ -12,7 +12,7 @@ namespace YARG.Input
 
     public delegate void MenuInputEvent(YargPlayer player, ref GameInput input);
 
-    public class InputManager : MonoBehaviour
+    public static class InputManager
     {
         public const Enumerate DEFAULT_CONTROL_ENUMERATION_FLAGS =
             Enumerate.IgnoreControlsInCurrentState | // Only controls that have changed
@@ -35,9 +35,9 @@ namespace YARG.Input
         public static double RelativeInputTime => GetRelativeTime(CurrentUpdateTime);
         public static double RelativeUpdateTime => GetRelativeTime(CurrentInputTime);
 
-        private IDisposable _onEventListener;
+        private static IDisposable _onEventListener;
 
-        private void Start()
+        public static void Initialize()
         {
             _onEventListener?.Dispose();
             // InputSystem.onEvent is *not* a C# event, it's a property which is intended to be used with observables
@@ -48,7 +48,7 @@ namespace YARG.Input
             InputSystem.onDeviceChange += OnDeviceChange;
         }
 
-        private void OnDestroy()
+        public static void Destroy()
         {
             _onEventListener?.Dispose();
             _onEventListener = null;
@@ -77,12 +77,12 @@ namespace YARG.Input
             MenuInput?.Invoke(player, ref input);
         }
 
-        private void OnAfterUpdate()
+        private static void OnAfterUpdate()
         {
             CurrentUpdateTime = CurrentInputTime;
         }
 
-        private void OnEvent(InputEventPtr eventPtr)
+        private static void OnEvent(InputEventPtr eventPtr)
         {
             // Only take state events
             if (!eventPtr.IsA<StateEvent>() && !eventPtr.IsA<DeltaStateEvent>())
@@ -100,7 +100,7 @@ namespace YARG.Input
             }
         }
 
-        private void OnDeviceChange(InputDevice device, InputDeviceChange change)
+        private static void OnDeviceChange(InputDevice device, InputDeviceChange change)
         {
             switch (change)
             {

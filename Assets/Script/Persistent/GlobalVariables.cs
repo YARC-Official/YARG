@@ -6,6 +6,7 @@ using YARG.Audio;
 using YARG.Audio.BASS;
 using YARG.Core;
 using YARG.Helpers;
+using YARG.Input;
 using YARG.Menu.Settings;
 using YARG.Player;
 using YARG.Replays;
@@ -79,6 +80,7 @@ namespace YARG
 
             // High polling rate
             InputSystem.pollingFrequency = 500f;
+            InputManager.Initialize();
 
             LoadScene(SceneIndex.Menu);
         }
