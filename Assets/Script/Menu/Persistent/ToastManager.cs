@@ -107,10 +107,6 @@ namespace YARG.Menu.Persistent
         private void Start()
         {
             toastFab.SetActive(false);
-            ToastInformation("Devices found: " + (Microphone.devices.Length + InputSystem.devices.Count));
-            // Watch for added or removed devices
-            InputManager.DeviceAdded += OnDeviceAdded;
-            InputManager.DeviceRemoved += OnDeviceRemoved;
         }
 
         /// <summary>
@@ -240,16 +236,6 @@ namespace YARG.Menu.Persistent
 
             toastFab.SetActive(false);
             queueChecker = null;
-        }
-
-        private void OnDeviceAdded(InputDevice device)
-        {
-            ToastMessage($"Device added: {device.displayName}");
-        }
-
-        private void OnDeviceRemoved(InputDevice device)
-        {
-            ToastMessage($"Device removed: {device.displayName}");
         }
     }
 }

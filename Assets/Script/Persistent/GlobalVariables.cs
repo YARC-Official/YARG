@@ -77,9 +77,6 @@ namespace YARG
         private void Start()
         {
             SettingsManager.LoadSettings();
-
-            // High polling rate
-            InputSystem.pollingFrequency = 500f;
             InputManager.Initialize();
 
             LoadScene(SceneIndex.Menu);

@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.Utilities;
 using YARG.Core.Input;
+using YARG.Menu.Persistent;
 using YARG.Player;
 
 namespace YARG.Input
@@ -39,6 +40,10 @@ namespace YARG.Input
 
         public static void Initialize()
         {
+            // High polling rate
+            // TODO: Allow configuring this?
+            InputSystem.pollingFrequency = 500f;
+
             _onEventListener?.Dispose();
             // InputSystem.onEvent is *not* a C# event, it's a property which is intended to be used with observables
             // In order to unsubscribe from it you *must* keep track of the IDisposable returned at the end
@@ -46,6 +51,9 @@ namespace YARG.Input
 
             InputSystem.onAfterUpdate += OnAfterUpdate;
             InputSystem.onDeviceChange += OnDeviceChange;
+
+            // Notify of all current devices
+            ToastManager.ToastInformation("Devices found: " + (Microphone.devices.Length + InputSystem.devices.Count));
         }
 
         public static void Destroy()
@@ -107,12 +115,14 @@ namespace YARG.Input
                 case InputDeviceChange.Added:
                 // case InputDeviceChange.Enabled: // Devices are enabled/disabled when gaining/losing window focus
                 case InputDeviceChange.Reconnected:
+                    ToastManager.ToastMessage($"Device added: {device.displayName}");
                     DeviceAdded?.Invoke(device);
                     break;
 
                 case InputDeviceChange.Removed:
                 // case InputDeviceChange.Disabled: // Devices are enabled/disabled when gaining/losing window focus
                 case InputDeviceChange.Disconnected:
+                    ToastManager.ToastMessage($"Device removed: {device.displayName}");
                     DeviceRemoved?.Invoke(device);
                     break;
             }
