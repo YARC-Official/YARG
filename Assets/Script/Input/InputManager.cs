@@ -54,6 +54,10 @@ namespace YARG.Input
 
             // Notify of all current devices
             ToastManager.ToastInformation("Devices found: " + (Microphone.devices.Length + InputSystem.devices.Count));
+            foreach (var device in InputSystem.devices)
+            {
+                DeviceAdded?.Invoke(device);
+            }
         }
 
         public static void Destroy()
