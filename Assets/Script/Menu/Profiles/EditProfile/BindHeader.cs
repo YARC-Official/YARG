@@ -4,6 +4,7 @@ using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
 using YARG.Input;
 using YARG.Menu.Navigation;
+using YARG.Player;
 
 namespace YARG.Menu.Profiles
 {
@@ -14,13 +15,13 @@ namespace YARG.Menu.Profiles
         private LocalizeStringEvent _bindingNameText;
 
         private EditProfileMenu _editProfileMenu;
-        private InputDevice _inputDevice;
+        private YargPlayer _player;
         private ControlBinding _binding;
 
-        public void Init(EditProfileMenu editProfileMenu, InputDevice inputDevice, ControlBinding binding)
+        public void Init(EditProfileMenu editProfileMenu, YargPlayer player, ControlBinding binding)
         {
             _editProfileMenu = editProfileMenu;
-            _inputDevice = inputDevice;
+            _player = player;
             _binding = binding;
 
             _bindingNameText.StringReference = _binding.Name;
@@ -31,7 +32,7 @@ namespace YARG.Menu.Profiles
             // Select item to prevent confusion
             Selected = true;
 
-            await InputControlDialogMenu.Show(_inputDevice, _binding);
+            await InputControlDialogMenu.Show(_player, _binding);
             _editProfileMenu.RefreshBindings();
         }
     }

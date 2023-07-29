@@ -1,6 +1,7 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 using YARG.Core;
 using YARG.Core.Game;
 
@@ -10,22 +11,26 @@ namespace YARG.Input
     {
         public YargProfile Profile { get; }
 
-        private readonly Dictionary<InputDevice, DeviceBindings> _deviceBindings;
+        private readonly Dictionary<GameMode, GameModeBindings> _bindsByGameMode = new();
+
+        private readonly List<InputDevice> _devices = new();
+
+        public GameModeBindings this[GameMode mode] => _bindsByGameMode[mode];
 
         public event GameInputProcessed MenuInputProcessed
         {
             add
             {
-                foreach (var deviceBindings in _deviceBindings.Values)
+                foreach (var bindings in _bindsByGameMode.Values)
                 {
-                    deviceBindings.MenuInputProcessed += value;
+                    bindings.Menu.InputProcessed += value;
                 }
             }
             remove
             {
-                foreach (var deviceBindings in _deviceBindings.Values)
+                foreach (var bindings in _bindsByGameMode.Values)
                 {
-                    deviceBindings.MenuInputProcessed -= value;
+                    bindings.Menu.InputProcessed -= value;
                 }
             }
         }
@@ -33,69 +38,69 @@ namespace YARG.Input
         public ProfileBindings(YargProfile profile)
         {
             Profile = profile;
-            _deviceBindings = new();
+            foreach (var mode in EnumExtensions<GameMode>.Values)
+            {
+                var menuBindings = BindingCollection.CreateMenuBindings();
+                var gameplayBindings = BindingCollection.CreateGameplayBindings(mode);
+                _bindsByGameMode.Add(mode, new GameModeBindings(menuBindings, gameplayBindings));
+            }
         }
 
         public void EnableInputs()
         {
-            foreach (var deviceBindings in _deviceBindings.Values)
+            foreach (var bindings in _bindsByGameMode.Values)
             {
-                deviceBindings.EnableInputs();
+                bindings.EnableInputs();
             }
         }
 
         public void DisableInputs()
         {
-            foreach (var deviceBindings in _deviceBindings.Values)
+            foreach (var bindings in _bindsByGameMode.Values)
             {
-                deviceBindings.DisableInputs();
+                bindings.DisableInputs();
             }
         }
 
         public void SubscribeToGameplayInputs(GameMode mode, GameInputProcessed onInputProcessed)
         {
-            foreach (var deviceBindings in _deviceBindings.Values)
-            {
-                deviceBindings[mode].Gameplay.InputProcessed += onInputProcessed;
-            }
+            _bindsByGameMode[mode].Gameplay.InputProcessed += onInputProcessed;
         }
 
         public void UnsubscribeFromGameplayInputs(GameMode mode, GameInputProcessed onInputProcessed)
         {
-            foreach (var deviceBindings in _deviceBindings.Values)
-            {
-                deviceBindings[mode].Gameplay.InputProcessed -= onInputProcessed;
-            }
+            _bindsByGameMode[mode].Gameplay.InputProcessed -= onInputProcessed;
         }
 
         public bool AddDevice(InputDevice device)
         {
-            if (_deviceBindings.ContainsKey(device))
+            if (_devices.Contains(device))
                 return false;
 
-            _deviceBindings.Add(device, new(device));
+            _devices.Add(device);
             return true;
         }
 
         public bool ContainsDevice(InputDevice device)
         {
-            return _deviceBindings.ContainsKey(device);
-        }
-
-        public DeviceBindings TryGetBindsForDevice(InputDevice device)
-        {
-            return _deviceBindings.TryGetValue(device, out var bindings) ? bindings : null;
+            return _devices.Contains(device);
         }
 
         public bool RemoveDevice(InputDevice device)
         {
-            return _deviceBindings.Remove(device);
+            return _devices.Remove(device);
         }
 
-        // TODO: TEMPORARY
-        public DeviceBindings GetBindingsForFirstDevice()
+        public void ProcessInputEvent(InputEventPtr eventPtr)
         {
-            return _deviceBindings.FirstOrDefault().Value;
+            var device = InputSystem.GetDeviceById(eventPtr.deviceId);
+            if (!_devices.Contains(device))
+                throw new InvalidOperationException($"Device {device} is not paired to profile {Profile.Name}!");
+
+            foreach (var bindings in _bindsByGameMode.Values)
+            {
+                bindings.ProcessInputEvent(eventPtr);
+            }
         }
     }
 }

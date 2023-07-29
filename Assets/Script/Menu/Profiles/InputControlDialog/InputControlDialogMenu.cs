@@ -11,6 +11,7 @@ using UnityEngine.InputSystem.Utilities;
 using YARG.Helpers.Extensions;
 using YARG.Input;
 using YARG.Menu.Navigation;
+using YARG.Player;
 
 namespace YARG.Menu.Profiles
 {
@@ -48,7 +49,7 @@ namespace YARG.Menu.Profiles
         private static InputControlDialogMenu _instance;
 
         private static State _state;
-        private static InputDevice _inputDevice;
+        private static YargPlayer _player;
         private static ControlBinding _binding;
         private static AllowedControl _allowedControls = AllowedControl.All;
         private static ActuationSettings _bindSettings = new();
@@ -94,10 +95,10 @@ namespace YARG.Menu.Profiles
             }
         }
 
-        public static async UniTask<bool> Show(InputDevice device, ControlBinding binding)
+        public static async UniTask<bool> Show(YargPlayer player, ControlBinding binding)
         {
             _state = State.Waiting;
-            _inputDevice = device;
+            _player = player;
             _binding = binding;
             _grabbedControl = null;
 
@@ -117,7 +118,7 @@ namespace YARG.Menu.Profiles
             try
             {
                 // Create a listener
-                var listener = InputSystem.onEvent.ForDevice(_inputDevice).Call(Listen);
+                var listener = InputSystem.onEvent.Call(Listen);
 
                 // Listen until we cancel or an input is grabbed
                 await UniTask.WaitUntil(() => _state != State.Waiting, cancellationToken: token);
@@ -190,8 +191,13 @@ namespace YARG.Menu.Profiles
             if (!eventPtr.IsA<StateEvent>() && !eventPtr.IsA<DeltaStateEvent>())
                 return;
 
+            // Ignore unbound devices
+            var device = InputSystem.GetDeviceById(eventPtr.deviceId);
+            if (!_player.Bindings.ContainsDevice(device))
+                return;
+
             var flags = InputManager.DEFAULT_CONTROL_ENUMERATION_FLAGS;
-            var activeControls = eventPtr.EnumerateControls(flags, _inputDevice)
+            var activeControls = eventPtr.EnumerateControls(flags, device)
                 .Where((control) => ControlAllowed(control) &&
                     _binding.IsControlActuated(_bindSettings, control, eventPtr));
 

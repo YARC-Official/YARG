@@ -74,12 +74,12 @@ namespace YARG.Menu.Profiles
             _bindsNavGroup.ClearNavigatables();
 
             // Create the list of bindings
-            var deviceBindings = _currentPlayer.Bindings.GetBindingsForFirstDevice();
-            foreach (var binding in deviceBindings[gameMode].Gameplay)
+            var bindings = _currentPlayer.Bindings;
+            foreach (var binding in bindings[gameMode].Gameplay)
             {
                 // Create header
                 var header = Instantiate(_bindHeaderPrefab, _bindsList);
-                header.GetComponent<BindHeader>().Init(this, deviceBindings.Device, binding);
+                header.GetComponent<BindHeader>().Init(this, _currentPlayer, binding);
 
                 _bindsNavGroup.AddNavigatable(header);
 

@@ -87,11 +87,10 @@ namespace YARG.Input
             foreach (var player in PlayerContainer.Players)
             {
                 var profileBinds = player.Bindings;
-                var deviceBinds = profileBinds.TryGetBindsForDevice(device);
-                if (deviceBinds is null)
+                if (!profileBinds.ContainsDevice(device))
                     continue;
 
-                deviceBinds.ProcessInputEvent(eventPtr);
+                profileBinds.ProcessInputEvent(eventPtr);
                 break;
             }
         }
