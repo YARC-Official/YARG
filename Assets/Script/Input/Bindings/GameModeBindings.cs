@@ -1,16 +1,19 @@
 using UnityEngine.InputSystem.LowLevel;
+using YARG.Core;
 
 namespace YARG.Input
 {
     public class GameModeBindings
     {
+        public GameMode GameMode { get; }
+
         public BindingCollection Menu { get; }
         public BindingCollection Gameplay { get; }
 
-        public GameModeBindings(BindingCollection menu, BindingCollection gameplay)
+        public GameModeBindings(GameMode mode)
         {
-            Menu = menu;
-            Gameplay = gameplay;
+            Menu = BindingCollection.CreateMenuBindings();
+            Gameplay = BindingCollection.CreateGameplayBindings(mode);
         }
 
         public void EnableInputs()

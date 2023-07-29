@@ -40,9 +40,7 @@ namespace YARG.Input
             Profile = profile;
             foreach (var mode in EnumExtensions<GameMode>.Values)
             {
-                var menuBindings = BindingCollection.CreateMenuBindings();
-                var gameplayBindings = BindingCollection.CreateGameplayBindings(mode);
-                _bindsByGameMode.Add(mode, new GameModeBindings(menuBindings, gameplayBindings));
+                _bindsByGameMode.Add(mode, new(mode));
             }
         }
 
