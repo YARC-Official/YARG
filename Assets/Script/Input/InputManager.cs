@@ -118,14 +118,14 @@ namespace YARG.Input
             {
                 case InputDeviceChange.Added:
                 // case InputDeviceChange.Enabled: // Devices are enabled/disabled when gaining/losing window focus
-                case InputDeviceChange.Reconnected:
+                // case InputDeviceChange.Reconnected: // Fired alongside Added, not needed
                     ToastManager.ToastMessage($"Device added: {device.displayName}");
                     DeviceAdded?.Invoke(device);
                     break;
 
                 case InputDeviceChange.Removed:
                 // case InputDeviceChange.Disabled: // Devices are enabled/disabled when gaining/losing window focus
-                case InputDeviceChange.Disconnected:
+                // case InputDeviceChange.Disconnected: // Fired alongside Removed, not needed
                     ToastManager.ToastMessage($"Device removed: {device.displayName}");
                     DeviceRemoved?.Invoke(device);
                     break;
