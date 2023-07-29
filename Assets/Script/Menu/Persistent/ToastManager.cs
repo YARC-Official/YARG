@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using YARG.Input;
 
 namespace YARG.Menu.Persistent
 {
@@ -108,7 +109,8 @@ namespace YARG.Menu.Persistent
             toastFab.SetActive(false);
             ToastInformation("Devices found: " + (Microphone.devices.Length + InputSystem.devices.Count));
             // Watch for added or removed devices
-            InputSystem.onDeviceChange += OnDeviceChange;
+            InputManager.DeviceAdded += OnDeviceAdded;
+            InputManager.DeviceRemoved += OnDeviceRemoved;
         }
 
         /// <summary>
@@ -240,16 +242,14 @@ namespace YARG.Menu.Persistent
             queueChecker = null;
         }
 
-        private void OnDeviceChange(InputDevice device, InputDeviceChange change)
+        private void OnDeviceAdded(InputDevice device)
         {
-            if (change == InputDeviceChange.Added)
-            {
-                ToastMessage("Device added: " + device.displayName);
-            }
-            else if (change == InputDeviceChange.Removed)
-            {
-                ToastMessage("Device removed: " + device.displayName);
-            }
+            ToastMessage($"Device added: {device.displayName}");
+        }
+
+        private void OnDeviceRemoved(InputDevice device)
+        {
+            ToastMessage($"Device removed: {device.displayName}");
         }
     }
 }

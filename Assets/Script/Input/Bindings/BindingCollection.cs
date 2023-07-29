@@ -100,6 +100,22 @@ namespace YARG.Input
             return false;
         }
 
+        public void OnDeviceAdded(InputDevice device)
+        {
+            foreach (var binding in _bindings)
+            {
+                binding.OnDeviceAdded(device);
+            }
+        }
+
+        public void OnDeviceRemoved(InputDevice device)
+        {
+            foreach (var binding in _bindings)
+            {
+                binding.OnDeviceRemoved(device);
+            }
+        }
+
         public void ProcessInputEvent(InputEventPtr eventPtr)
         {
             foreach (var binding in _bindings)

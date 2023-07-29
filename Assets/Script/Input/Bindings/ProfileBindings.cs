@@ -120,27 +120,73 @@ namespace YARG.Input
         public bool AddDevice(InputDevice device)
         {
             string serial = device.GetSerial();
-            if (_devices.ContainsKey(serial))
+            if (ContainsDevice(device))
                 return false;
 
-            _devices.Add(serial, device);
+            _devices[serial] = device;
+            NotifyDeviceAdded(device);
             return true;
         }
 
         public bool ContainsDevice(InputDevice device)
         {
-            return _devices.ContainsKey(device.GetSerial());
+            string serial = device.GetSerial();
+            return _devices.TryGetValue(serial, out var registered) && registered is not null;
         }
 
         public bool RemoveDevice(InputDevice device)
         {
-            return _devices.Remove(device.GetSerial());
+            string serial = device.GetSerial();
+            if (!_devices.Remove(serial))
+                return false;
+
+            NotifyDeviceRemoved(device);
+            return true;
+        }
+
+        public void OnDeviceAdded(InputDevice device)
+        {
+            // Ignore already-added devices
+            if (ContainsDevice(device))
+                return;
+
+            string serial = device.GetSerial();
+            _devices[serial] = device;
+            NotifyDeviceAdded(device);
+        }
+
+        public void OnDeviceRemoved(InputDevice device)
+        {
+            // Ignore devices not registered to this profile
+            if (!ContainsDevice(device))
+                return;
+
+            // Need to retain the serial for serialization
+            string serial = device.GetSerial();
+            _devices[serial] = null;
+            NotifyDeviceRemoved(device);
+        }
+
+        private void NotifyDeviceAdded(InputDevice device)
+        {
+            foreach (var bindings in _bindsByGameMode.Values)
+            {
+                bindings.OnDeviceAdded(device);
+            }
+        }
+
+        private void NotifyDeviceRemoved(InputDevice device)
+        {
+            foreach (var bindings in _bindsByGameMode.Values)
+            {
+                bindings.OnDeviceRemoved(device);
+            }
         }
 
         public void ProcessInputEvent(InputEventPtr eventPtr)
         {
             var device = InputSystem.GetDeviceById(eventPtr.deviceId);
-            if (!_devices.ContainsKey(device.GetSerial()))
+            if (!ContainsDevice(device))
                 throw new InvalidOperationException($"Device {device} is not paired to profile {Profile.Name}!");
 
             foreach (var bindings in _bindsByGameMode.Values)

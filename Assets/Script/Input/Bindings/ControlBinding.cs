@@ -73,7 +73,6 @@ namespace YARG.Input
 
         public abstract List<SerializedInputControl> Serialize();
         public abstract void Deserialize(List<SerializedInputControl> serialized);
-        public abstract void ResolveBindsForDevice(InputDevice device);
 
         public abstract bool IsControlCompatible(InputControl control);
         public abstract bool IsControlActuated(ActuationSettings settings, InputControl control, InputEventPtr eventPtr);
@@ -94,6 +93,9 @@ namespace YARG.Input
 
         public virtual void UpdateForFrame() { }
         public abstract void ProcessInputEvent(InputEventPtr eventPtr);
+
+        public abstract void OnDeviceAdded(InputDevice device);
+        public abstract void OnDeviceRemoved(InputDevice device);
 
         protected void FireEvent(double time, int value)
         {
@@ -190,22 +192,6 @@ namespace YARG.Input
             }
         }
 
-        public override void ResolveBindsForDevice(InputDevice device)
-        {
-            string serial = device.GetSerial();
-            foreach (var binding in _unresolvedBindings)
-            {
-                if (binding.DeviceSerial != serial)
-                    continue;
-
-                var deserialized = DeserializeControl(device, binding);
-                if (deserialized is null)
-                    continue;
-
-                Bindings.Add(deserialized);
-            }
-        }
-
         public override bool IsControlCompatible(InputControl control)
         {
             return IsControlCompatible(control, out _);
@@ -286,6 +272,45 @@ namespace YARG.Input
 
             foundBinding = null;
             return false;
+        }
+
+        public override void OnDeviceAdded(InputDevice device)
+        {
+            string serial = device.GetSerial();
+            // Search by index, can't modify a collection while enumerating it
+            for (int i = 0; i < _unresolvedBindings.Count; i++)
+            {
+                var binding = _unresolvedBindings[i];
+                if (binding.DeviceSerial != serial)
+                    continue;
+
+                var deserialized = DeserializeControl(device, binding);
+                if (deserialized is null)
+                    continue;
+
+                _unresolvedBindings.RemoveAt(i);
+                i--;
+                Bindings.Add(deserialized);
+            }
+        }
+
+        public override void OnDeviceRemoved(InputDevice device)
+        {
+            // Search by index, can't modify a collection while enumerating it
+            for (int i = 0; i < Bindings.Count; i++)
+            {
+                var binding = Bindings[i];
+                if (binding.InputControl.device != device)
+                    continue;
+
+                var serialized = SerializeControl(binding);
+                if (serialized is null)
+                    continue;
+
+                Bindings.RemoveAt(i);
+                i--;
+                _unresolvedBindings.Add(serialized);
+            }
         }
 
         protected virtual void OnControlAdded(ActuationSettings settings, SingleBinding binding) { }

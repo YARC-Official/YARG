@@ -4,6 +4,7 @@ using System.IO;
 using Newtonsoft.Json;
 using UnityEngine;
 using YARG.Core;
+using UnityEngine.InputSystem;
 using YARG.Core.Game;
 using YARG.Helpers;
 using YARG.Input;
@@ -43,6 +44,12 @@ namespace YARG.Player
         /// A list of all of the active players.
         /// </summary>
         public static IReadOnlyList<YargPlayer> Players => _players;
+
+        static PlayerContainer()
+        {
+            InputManager.DeviceAdded += OnDeviceAdded;
+            InputManager.DeviceRemoved += OnDeviceRemoved;
+        }
 
         public static bool AddProfile(YargProfile profile)
         {
@@ -135,6 +142,22 @@ namespace YARG.Player
             }
 
             return bindings;
+        }
+
+        private static void OnDeviceAdded(InputDevice device)
+        {
+            foreach (var player in _players)
+            {
+                player.Bindings.OnDeviceAdded(device);
+            }
+        }
+
+        private static void OnDeviceRemoved(InputDevice device)
+        {
+            foreach (var player in _players)
+            {
+                player.Bindings.OnDeviceRemoved(device);
+            }
         }
 
         public static int LoadProfiles()

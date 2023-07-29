@@ -19,6 +19,9 @@ namespace YARG.Input
             Enumerate.IncludeNoisyControls |         // Constantly-changing controls like accelerometers
             Enumerate.IncludeSyntheticControls;      // Non-physical controls like stick up/down/left/right
 
+        public static event Action<InputDevice> DeviceAdded;
+        public static event Action<InputDevice> DeviceRemoved;
+
         public static event MenuInputEvent MenuInput;
 
         // Time reference for when inputs started being tracked
@@ -42,6 +45,7 @@ namespace YARG.Input
             _onEventListener = InputSystem.onEvent.Call(OnEvent);
 
             InputSystem.onAfterUpdate += OnAfterUpdate;
+            InputSystem.onDeviceChange += OnDeviceChange;
         }
 
         private void OnDestroy()
@@ -50,6 +54,7 @@ namespace YARG.Input
             _onEventListener = null;
 
             InputSystem.onAfterUpdate -= OnAfterUpdate;
+            InputSystem.onDeviceChange -= OnDeviceChange;
         }
 
         public static double GetRelativeTime(double timeFromInputSystem)
@@ -92,6 +97,24 @@ namespace YARG.Input
 
                 profileBinds.ProcessInputEvent(eventPtr);
                 break;
+            }
+        }
+
+        private void OnDeviceChange(InputDevice device, InputDeviceChange change)
+        {
+            switch (change)
+            {
+                case InputDeviceChange.Added:
+                // case InputDeviceChange.Enabled: // Devices are enabled/disabled when gaining/losing window focus
+                case InputDeviceChange.Reconnected:
+                    DeviceAdded?.Invoke(device);
+                    break;
+
+                case InputDeviceChange.Removed:
+                // case InputDeviceChange.Disabled: // Devices are enabled/disabled when gaining/losing window focus
+                case InputDeviceChange.Disconnected:
+                    DeviceRemoved?.Invoke(device);
+                    break;
             }
         }
     }

@@ -1,3 +1,4 @@
+using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using YARG.Core;
 using YARG.Input.Serialization;
@@ -42,6 +43,18 @@ namespace YARG.Input
         {
             Menu.DisableInputs();
             Gameplay.DisableInputs();
+        }
+
+        public void OnDeviceAdded(InputDevice device)
+        {
+            Menu.OnDeviceAdded(device);
+            Gameplay.OnDeviceAdded(device);
+        }
+
+        public void OnDeviceRemoved(InputDevice device)
+        {
+            Menu.OnDeviceRemoved(device);
+            Gameplay.OnDeviceRemoved(device);
         }
 
         public void ProcessInputEvent(InputEventPtr eventPtr)
