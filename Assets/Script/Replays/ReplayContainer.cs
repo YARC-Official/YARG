@@ -26,6 +26,8 @@ namespace YARG.Replays
 
         private static FileSystemWatcher _watcher;
 
+        public static IReadOnlyList<ReplayEntry> Replays => _replays;
+
         public static void Init()
         {
             _replays = new List<ReplayEntry>();

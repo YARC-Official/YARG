@@ -61,7 +61,21 @@ namespace YARG.Menu.MusicLibrary
             get => _selectedIndex;
             private set
             {
-                SetSelectedIndex(value);
+
+                // Properly wrap the value
+                if (value < 0)
+                {
+                    _selectedIndex = _viewList.Count - 1;
+                }
+                else if (value >= _viewList.Count)
+                {
+                    _selectedIndex = 0;
+                }
+                else
+                {
+                    _selectedIndex = value;
+                }
+
                 UpdateScrollbar();
                 UpdateSongViews();
 
@@ -143,7 +157,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void Update()
         {
-            SetScrollTimer();
+            UpdateScroll();
 
             if (Keyboard.current.escapeKey.wasPressedThisFrame)
             {
@@ -163,24 +177,6 @@ namespace YARG.Menu.MusicLibrary
             }
 
             StartPreview();
-        }
-
-        private void SetSelectedIndex(int value)
-        {
-            // Wrap value to bounds
-            if (value < 0)
-            {
-                _selectedIndex = _viewList.Count - 1;
-                return;
-            }
-
-            if (value >= _viewList.Count)
-            {
-                _selectedIndex = 0;
-                return;
-            }
-
-            _selectedIndex = value;
         }
 
         public void SetSearchInput(string query)
@@ -300,7 +296,7 @@ namespace YARG.Menu.MusicLibrary
             };
         }
 
-        private void SetScrollTimer()
+        private void UpdateScroll()
         {
             if (_scrollTimer > 0f)
             {
