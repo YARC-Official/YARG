@@ -47,7 +47,7 @@ namespace YARG.Menu.Persistent
             _buttons.Clear();
         }
 
-        private void ResetHelpbar()
+        private void ResetHelpBar()
         {
             foreach (var button in _buttons)
             {
@@ -59,7 +59,7 @@ namespace YARG.Menu.Persistent
 
         public void SetInfoFromScheme(NavigationScheme scheme)
         {
-            ResetHelpbar();
+            ResetHelpBar();
 
             // Show/hide music player
             if (GlobalVariables.Instance.CurrentScene == SceneIndex.Menu)
@@ -93,7 +93,7 @@ namespace YARG.Menu.Persistent
 
         public void SetInfoText(string str)
         {
-            if (str == String.Empty && !MusicPlayer.gameObject.activeInHierarchy)
+            if (str == string.Empty && !MusicPlayer.gameObject.activeInHierarchy)
             {
                 _infoText.text = GlobalVariables.CurrentVersion.ToString();
             }

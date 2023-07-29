@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using YARG.Menu.Navigation;
 using YARG.Replays;
 
 namespace YARG.Menu.Replays
@@ -68,6 +70,20 @@ namespace YARG.Menu.Replays
         private void OnEnable()
         {
             UpdateReplayViews();
+
+            // Set navigation scheme
+            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            {
+                new NavigationScheme.Entry(MenuAction.Select, "Select", () =>
+                {
+
+                })
+            }, true));
+        }
+
+        private void OnDisable()
+        {
+            Navigator.Instance.PopScheme();
         }
 
         private void UpdateReplayViews()
@@ -110,6 +126,11 @@ namespace YARG.Menu.Replays
                 SelectedIndex++;
                 _scrollTimer = SCROLL_TIME;
             }
+        }
+
+        public void OnScrollBarChange()
+        {
+            SelectedIndex = Mathf.FloorToInt(_scrollbar.value * (Replays.Count - 1));
         }
 
         private void UpdateScrollbar()

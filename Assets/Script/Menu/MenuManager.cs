@@ -39,10 +39,9 @@ namespace YARG.Menu
         {
             bool hideOther;
 
-            // Show the new one
+            // Get the new one
             if (_menus.TryGetValue(menu, out var newMenu))
             {
-                newMenu.gameObject.SetActive(true);
                 hideOther = newMenu.HideBelow;
             }
             else
@@ -56,6 +55,9 @@ namespace YARG.Menu
             {
                 currentMenu.gameObject.SetActive(false);
             }
+
+            // Show the new one
+            newMenu.gameObject.SetActive(true);
 
             // ... and push it onto the stack
             _openMenus.Push(menu);
@@ -73,7 +75,7 @@ namespace YARG.Menu
             _openMenus.Pop();
             var menu = _openMenus.Peek();
 
-            // Show the new one
+            // Show the under one
             if (_menus.TryGetValue(menu, out var newMenu))
             {
                 newMenu.gameObject.SetActive(true);

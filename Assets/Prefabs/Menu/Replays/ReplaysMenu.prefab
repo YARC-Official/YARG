@@ -128,8 +128,8 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: YARG.Menu.SongSelect.SongSelection, Assembly-CSharp
+      - m_Target: {fileID: 2297200881685797724}
+        m_TargetAssemblyTypeName: YARG.Menu.Replays.ReplaysMenu, Assembly-CSharp
         m_MethodName: OnScrollBarChange
         m_Mode: 1
         m_Arguments:
