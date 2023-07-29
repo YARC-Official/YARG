@@ -21,6 +21,10 @@ namespace YARG.Menu.Profiles
         [SerializeField]
         private GameObject _editNameContainer;
 
+        [Space]
+        [SerializeField]
+        private ProfilesMenu _profileMenu;
+
         private ProfileView _profileView;
         private YargProfile _profile;
 
@@ -56,7 +60,7 @@ namespace YARG.Menu.Profiles
             {
                 _profile.Name = _nameInput.text;
                 _profileName.text = _profile.Name;
-                _profileView.Init(_profile, this);
+                _profileView.Init(_profileMenu, _profile, this);
             }
         }
 

@@ -18,11 +18,13 @@ namespace YARG.Menu.Profiles
         [SerializeField]
         private GameObject _disconnectGroup;
 
+        private ProfilesMenu _profileMenu;
         private ProfileSidebar _profileSidebar;
         private YargProfile _profile;
 
-        public void Init(YargProfile profile, ProfileSidebar sidebar)
+        public void Init(ProfilesMenu menu, YargProfile profile, ProfileSidebar sidebar)
         {
+            _profileMenu = menu;
             _profile = profile;
             _profileSidebar = sidebar;
 
@@ -67,13 +69,13 @@ namespace YARG.Menu.Profiles
             if (player is not null)
             {
                 PlayerContainer.DisposePlayer(player);
-                Init(_profile, _profileSidebar);
+                Init(_profileMenu, _profile, _profileSidebar);
             }
             else
             {
                 // Prompt the user to select a device
-                var device = await InputDeviceDialogMenu.Show();
-                if (device == null) return;
+                var device = await _profileMenu.ShowDeviceDialog();
+                if (device is null) return;
 
                 // Create a player from the profile (and return if failed)
                 player = PlayerContainer.CreatePlayerFromProfile(_profile);
@@ -83,7 +85,7 @@ namespace YARG.Menu.Profiles
                 if (!player.Bindings.AddDevice(device)) return;
 
                 // Re-initialize the ProfileView
-                Init(_profile, _profileSidebar);
+                Init(_profileMenu, _profile, _profileSidebar);
             }
         }
     }

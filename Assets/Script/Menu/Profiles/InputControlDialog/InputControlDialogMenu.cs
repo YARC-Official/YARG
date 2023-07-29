@@ -46,19 +46,17 @@ namespace YARG.Menu.Profiles
 
         private const float GROUP_TIME_THRESHOLD = 0.1f;
 
-        private static InputControlDialogMenu _instance;
+        private State _state;
+        private YargPlayer _player;
+        private ControlBinding _binding;
+        private AllowedControl _allowedControls = AllowedControl.All;
+        private ActuationSettings _bindSettings = new();
+        private InputControl _grabbedControl;
 
-        private static State _state;
-        private static YargPlayer _player;
-        private static ControlBinding _binding;
-        private static AllowedControl _allowedControls = AllowedControl.All;
-        private static ActuationSettings _bindSettings = new();
-        private static InputControl _grabbedControl;
+        private float? _bindGroupingTimer;
+        private readonly List<InputControl> _possibleControls = new();
 
-        private static float? _bindGroupingTimer;
-        private static readonly List<InputControl> _possibleControls = new();
-
-        private static CancellationTokenSource _cancellationToken;
+        private CancellationTokenSource _cancellationToken;
 
         [SerializeField]
         private Transform _controlContainer;
@@ -68,11 +66,6 @@ namespace YARG.Menu.Profiles
         [Space]
         [SerializeField]
         private GameObject _controlEntryPrefab;
-
-        private void Awake()
-        {
-            _instance = this;
-        }
 
         private void OnDisable()
         {
@@ -95,7 +88,7 @@ namespace YARG.Menu.Profiles
             }
         }
 
-        public static async UniTask<bool> Show(YargPlayer player, ControlBinding binding)
+        public async UniTask<bool> Show(YargPlayer player, ControlBinding binding)
         {
             _state = State.Waiting;
             _player = player;
@@ -109,32 +102,29 @@ namespace YARG.Menu.Profiles
             var token = _cancellationToken.Token;
 
             // Open dialog
-            MenuManager.Instance.PushMenu(MenuManager.Menu.InputControlDialog);
+            gameObject.SetActive(true);
 
             // Reset menu
-            _instance._controlContainer.DestroyChildren();
-            _instance._waitingText.SetActive(true);
+            _controlContainer.DestroyChildren();
+            _waitingText.SetActive(true);
 
             try
             {
-                // Create a listener
-                var listener = InputSystem.onEvent.Call(Listen);
-
                 // Listen until we cancel or an input is grabbed
-                await UniTask.WaitUntil(() => _state != State.Waiting, cancellationToken: token);
-                _instance._waitingText.SetActive(false);
-
-                // Dispose
-                listener?.Dispose();
+                using (var listener = InputSystem.onEvent.Call(Listen))
+                {
+                    await UniTask.WaitUntil(() => _state != State.Waiting, cancellationToken: token);
+                    _waitingText.SetActive(false);
+                }
 
                 // Get the actuated control
                 if (_possibleControls.Count > 1)
                 {
                     // Multiple controls actuated, let the user choose
-                    _instance.RefreshList();
+                    RefreshList();
 
                     // Wait until the dialog is closed
-                    await UniTask.WaitUntil(() => !_instance.gameObject.activeSelf, cancellationToken: token);
+                    await UniTask.WaitUntil(() => !gameObject.activeSelf, cancellationToken: token);
                 }
                 else if (_possibleControls.Count == 1)
                 {
@@ -147,12 +137,16 @@ namespace YARG.Menu.Profiles
 
                 // Add the binding
                 binding.AddControl(_bindSettings, _grabbedControl);
-                MenuManager.Instance.PopMenu();
                 return true;
             }
             catch (OperationCanceledException)
             {
                 return false;
+            }
+            finally
+            {
+                // Close dialog
+                gameObject.SetActive(false);
             }
         }
 
@@ -169,23 +163,17 @@ namespace YARG.Menu.Profiles
 
         public void CancelAndClose()
         {
-            try
-            {
-                _cancellationToken?.Dispose();
-            }
-            finally
-            {
-                MenuManager.Instance.PopMenu();
-            }
+            _cancellationToken?.Dispose();
+            gameObject.SetActive(false);
         }
 
-        private static void SelectControl(InputControl control)
+        private void SelectControl(InputControl control)
         {
             _grabbedControl = control;
-            _instance.gameObject.SetActive(false);
+            gameObject.SetActive(false);
         }
 
-        private static void Listen(InputEventPtr eventPtr)
+        private void Listen(InputEventPtr eventPtr)
         {
             // Only take state events
             if (!eventPtr.IsA<StateEvent>() && !eventPtr.IsA<DeltaStateEvent>())
@@ -214,7 +202,7 @@ namespace YARG.Menu.Profiles
             }
         }
 
-        private static bool ControlAllowed(InputControl control)
+        private bool ControlAllowed(InputControl control)
         {
             // AnyKeyControl is excluded as it would always be active
             if (control is AnyKeyControl)

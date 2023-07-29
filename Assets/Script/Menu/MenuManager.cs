@@ -16,8 +16,6 @@ namespace YARG.Menu
             Credits,
             Profiles,
             EditProfile,
-            InputDeviceDialog,
-            InputControlDialog,
             Replays,
         }
 

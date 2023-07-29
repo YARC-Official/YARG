@@ -8,8 +8,7 @@ namespace YARG.Menu.Profiles
 {
     public class InputDeviceDialogMenu : MonoBehaviour
     {
-        private static InputDeviceDialogMenu _instance;
-        private static InputDevice _selectedDevice;
+        private InputDevice _selectedDevice;
 
         [SerializeField]
         private Transform _deviceContainer;
@@ -17,11 +16,6 @@ namespace YARG.Menu.Profiles
         [Space]
         [SerializeField]
         private GameObject _deviceEntryPrefab;
-
-        private void Awake()
-        {
-            _instance = this;
-        }
 
         private void OnEnable()
         {
@@ -40,19 +34,21 @@ namespace YARG.Menu.Profiles
             }
         }
 
-        private static void SelectDevice(InputDevice inputDevice)
+        public void Cancel() => SelectDevice(null);
+
+        private void SelectDevice(InputDevice inputDevice)
         {
             _selectedDevice = inputDevice;
-            MenuManager.Instance.PopMenu();
+            gameObject.SetActive(false);
         }
 
-        public static async UniTask<InputDevice> Show()
+        public async UniTask<InputDevice> Show()
         {
             // Open dialog
-            MenuManager.Instance.PushMenu(MenuManager.Menu.InputDeviceDialog);
+            gameObject.SetActive(true);
 
             // Wait until the dialog is closed
-            await UniTask.WaitUntil(() => !_instance.gameObject.activeSelf);
+            await UniTask.WaitUntil(() => !gameObject.activeSelf);
 
             // Return the result
             return _selectedDevice;

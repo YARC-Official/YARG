@@ -32,7 +32,7 @@ namespace YARG.Menu.Profiles
             // Select item to prevent confusion
             Selected = true;
 
-            await InputControlDialogMenu.Show(_player, _binding);
+            await _editProfileMenu.ShowControlDialog(_player, _binding);
         }
     }
 }

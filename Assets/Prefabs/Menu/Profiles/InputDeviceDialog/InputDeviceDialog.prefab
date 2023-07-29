@@ -141,7 +141,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0.0000076293945}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &461718332
@@ -490,7 +490,6 @@ GameObject:
   - component: {fileID: 3672239862567044610}
   - component: {fileID: 3672239862567044611}
   - component: {fileID: 3672239862567044608}
-  - component: {fileID: 2118128790194141011}
   - component: {fileID: 7229254240250674556}
   m_Layer: 5
   m_Name: InputDeviceDialog
@@ -581,20 +580,6 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
---- !u!114 &2118128790194141011
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3672239862567044622}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d8ace06a29e24742a57e7063a7345cf9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  <Menu>k__BackingField: 7
-  <HideBelow>k__BackingField: 0
 --- !u!114 &7229254240250674556
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -810,9 +795,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: YARG.Menu.MenuNavigator, Assembly-CSharp
-        m_MethodName: PopMenu
+      - m_Target: {fileID: 7229254240250674556}
+        m_TargetAssemblyTypeName: YARG.Menu.Profiles.InputDeviceDialogMenu, Assembly-CSharp
+        m_MethodName: Cancel
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

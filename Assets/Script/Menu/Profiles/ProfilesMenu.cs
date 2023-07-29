@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using Cysharp.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.InputSystem;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Helpers.Extensions;
@@ -21,6 +23,10 @@ namespace YARG.Menu.Profiles
         [Space]
         [SerializeField]
         private GameObject _profileViewPrefab;
+
+        [Space]
+        [SerializeField]
+        private InputDeviceDialogMenu _deviceDialog;
 
         private void OnEnable()
         {
@@ -51,7 +57,7 @@ namespace YARG.Menu.Profiles
             foreach (var profile in PlayerContainer.Profiles)
             {
                 var go = Instantiate(_profileViewPrefab, _profileList);
-                go.GetComponent<ProfileView>().Init(profile, _profileSidebar);
+                go.GetComponent<ProfileView>().Init(this, profile, _profileSidebar);
 
                 _navigationGroup.AddNavigatable(go);
             }
@@ -68,6 +74,11 @@ namespace YARG.Menu.Profiles
             });
 
             RefreshList();
+        }
+
+        public UniTask<InputDevice> ShowDeviceDialog()
+        {
+            return _deviceDialog.Show();
         }
     }
 }

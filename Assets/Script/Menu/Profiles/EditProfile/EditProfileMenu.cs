@@ -1,7 +1,9 @@
-﻿using UnityEngine;
+﻿using Cysharp.Threading.Tasks;
+using UnityEngine;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Helpers.Extensions;
+using YARG.Input;
 using YARG.Menu.Navigation;
 using YARG.Player;
 
@@ -29,6 +31,10 @@ namespace YARG.Menu.Profiles
         private GameObject _bindHeaderPrefab;
         [SerializeField]
         private GameObject _bindViewPrefab;
+
+        [Space]
+        [SerializeField]
+        private InputControlDialogMenu _controlDialog;
 
         private YargPlayer _currentPlayer;
         private GameMode _selectedGameMode;
@@ -101,6 +107,11 @@ namespace YARG.Menu.Profiles
         public void RefreshBindings()
         {
             RefreshBindings(_selectedGameMode);
+        }
+
+        public UniTask<bool> ShowControlDialog(YargPlayer player, ControlBinding binding)
+        {
+            return _controlDialog.Show(player, binding);
         }
     }
 }
