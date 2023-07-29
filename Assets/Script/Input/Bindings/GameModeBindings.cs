@@ -1,5 +1,6 @@
 using UnityEngine.InputSystem.LowLevel;
 using YARG.Core;
+using YARG.Input.Serialization;
 
 namespace YARG.Input
 {
@@ -14,6 +15,21 @@ namespace YARG.Input
         {
             Menu = BindingCollection.CreateMenuBindings();
             Gameplay = BindingCollection.CreateGameplayBindings(mode);
+        }
+
+        public SerializedGameModeBindings Serialize()
+        {
+            return new()
+            {
+                Menu = Menu.Serialize(),
+                Gameplay = Gameplay.Serialize(),
+            };
+        }
+
+        public void Deserialize(SerializedGameModeBindings serialized)
+        {
+            Menu.Deserialize(serialized.Menu);
+            Gameplay.Deserialize(serialized.Gameplay);
         }
 
         public void EnableInputs()

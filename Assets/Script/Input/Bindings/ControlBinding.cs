@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.Localization;
 using YARG.Core.Input;
+using YARG.Input.Serialization;
 
 namespace YARG.Input
 {
@@ -68,6 +70,10 @@ namespace YARG.Input
             Name = new("Bindings", name);
             Action = action;
         }
+
+        public abstract List<SerializedInputControl> Serialize();
+        public abstract void Deserialize(List<SerializedInputControl> serialized);
+        public abstract void ResolveBindsForDevice(InputDevice device);
 
         public abstract bool IsControlCompatible(InputControl control);
         public abstract bool IsControlActuated(ActuationSettings settings, InputControl control, InputEventPtr eventPtr);
@@ -158,6 +164,8 @@ namespace YARG.Input
             }
         }
 
+        private List<SerializedInputControl> _unresolvedBindings = new();
+
         protected List<SingleBinding> Bindings = new();
         public override IEnumerable<ISingleBinding> Controls => Bindings;
 
@@ -165,6 +173,37 @@ namespace YARG.Input
 
         public ControlBinding(string name, int action) : base(name, action)
         {
+        }
+
+        public override List<SerializedInputControl> Serialize()
+        {
+            return new(Bindings.Select((binding) => SerializeControl(binding))
+                .Concat(_unresolvedBindings));
+        }
+
+        public override void Deserialize(List<SerializedInputControl> serialized)
+        {
+            foreach (var binding in serialized)
+            {
+                // Bindings will be resolved later
+                _unresolvedBindings.Add(binding);
+            }
+        }
+
+        public override void ResolveBindsForDevice(InputDevice device)
+        {
+            string serial = device.GetSerial();
+            foreach (var binding in _unresolvedBindings)
+            {
+                if (binding.DeviceSerial != serial)
+                    continue;
+
+                var deserialized = DeserializeControl(device, binding);
+                if (deserialized is null)
+                    continue;
+
+                Bindings.Add(deserialized);
+            }
         }
 
         public override bool IsControlCompatible(InputControl control)
@@ -251,5 +290,32 @@ namespace YARG.Input
 
         protected virtual void OnControlAdded(ActuationSettings settings, SingleBinding binding) { }
         protected virtual void OnControlRemoved(SingleBinding binding) { }
+
+        protected virtual SerializedInputControl SerializeControl(SingleBinding binding)
+        {
+            return new SerializedInputControl()
+            {
+                DeviceSerial = binding.Control.device.GetSerial(),
+                ControlPath = binding.Control.path,
+            };
+        }
+
+        protected virtual SingleBinding DeserializeControl(InputDevice device, SerializedInputControl serialized)
+        {
+            var control = InputControlPath.TryFindControl(device, serialized.ControlPath);
+            if (control == null)
+            {
+                Debug.LogWarning($"Could not find control {serialized.ControlPath} on device {device}!");
+                return null;
+            }
+
+            if (control is not InputControl<TState> tControl)
+            {
+                Debug.LogWarning($"Found control {serialized.ControlPath}, but it was not of the right type! Expected a derivative of {typeof(InputControl<TState>)}, found {control.GetType()}");
+                return null;
+            }
+
+            return new SingleBinding(tControl);
+        }
     }
 }

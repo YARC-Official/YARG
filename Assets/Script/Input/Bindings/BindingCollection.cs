@@ -2,8 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
+using YARG.Input.Serialization;
 
 namespace YARG.Input
 {
@@ -26,6 +28,26 @@ namespace YARG.Input
                 {
                     binding.InputProcessed -= value;
                 }
+            }
+        }
+
+        public Dictionary<string, List<SerializedInputControl>> Serialize()
+        {
+            return _bindings.ToDictionary((binding) => binding.Key, (binding) => binding.Serialize());
+        }
+
+        public void Deserialize(Dictionary<string, List<SerializedInputControl>> serialized)
+        {
+            foreach (var (key, bindings) in serialized)
+            {
+                var binding = TryGetBindingByKey(key);
+                if (binding is null)
+                {
+                    Debug.LogWarning($"Encountered invalid binding key {key}!");
+                    continue;
+                }
+
+                binding.Deserialize(bindings);
             }
         }
 

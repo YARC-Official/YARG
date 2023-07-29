@@ -2,6 +2,7 @@ using System.Diagnostics;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
+using YARG.Input.Serialization;
 
 namespace YARG.Input
 {
@@ -157,6 +158,34 @@ namespace YARG.Input
             }
 
             binding.Parameters.PressPoint = pressPoint;
+        }
+
+        private const string PRESS_POINT_NAME = nameof(ButtonBindingParameters.PressPoint);
+
+        protected override SerializedInputControl SerializeControl(SingleBinding binding)
+        {
+            var serialized = base.SerializeControl(binding);
+            if (serialized is null)
+                return null;
+
+            serialized.Parameters.Add(PRESS_POINT_NAME, binding.Parameters.PressPoint.ToString());
+
+            return serialized;
+        }
+
+        protected override SingleBinding DeserializeControl(InputDevice device, SerializedInputControl serialized)
+        {
+            var binding = base.DeserializeControl(device, serialized);
+            if (binding is null)
+                return null;
+
+            if (!serialized.Parameters.TryGetValue(PRESS_POINT_NAME, out string pressPointText) ||
+                !float.TryParse(pressPointText, out float pressPoint))
+                pressPoint = InputSystem.settings.defaultButtonPressPoint;
+
+            binding.Parameters.PressPoint = pressPoint;
+
+            return binding;
         }
     }
 }

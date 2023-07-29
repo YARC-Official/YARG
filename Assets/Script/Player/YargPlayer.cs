@@ -12,7 +12,6 @@ namespace YARG.Player
 
         public YargProfile Profile { get; private set; }
 
-        // public InputStrategy InputStrategy;
         // public MicInput MicInput;
 
         public bool InputsEnabled { get; private set; }
@@ -21,12 +20,12 @@ namespace YARG.Player
         public ColorProfile ColorProfile = ColorProfile.Default;
         public CameraSettings CameraSettings = CameraSettings.Default;
 
-        public YargPlayer(YargProfile profile)
+        public YargPlayer(YargProfile profile, ProfileBindings bindings)
         {
-            SwapToProfile(profile);
+            SwapToProfile(profile, bindings);
         }
 
-        public void SwapToProfile(YargProfile profile)
+        public void SwapToProfile(YargProfile profile, ProfileBindings bindings)
         {
             // TODO: deal with the previous bindings, etc.
 
@@ -34,7 +33,7 @@ namespace YARG.Player
             DisableInputs();
 
             Profile = profile;
-            Bindings = new(profile);
+            Bindings = bindings;
         }
 
         public void EnableInputs()

@@ -1,8 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
+using UnityEngine;
+using YARG.Core;
 using YARG.Core.Game;
 using YARG.Helpers;
+using YARG.Input;
+using YARG.Input.Serialization;
 
 namespace YARG.Player
 {
@@ -17,10 +22,17 @@ namespace YARG.Player
         private const string  PROFILES_FILE = "profiles.json";
         private static string ProfilesPath => Path.Combine(PathHelper.PersistentDataPath, PROFILES_FILE);
 
+        private const string  BINDINGS_FILE = "bindings.json";
+        private static string BindingsPath => Path.Combine(PathHelper.PersistentDataPath, BINDINGS_FILE);
+
+        private static readonly GuidConverter _guidConverter = new();
+
         private static readonly List<YargProfile> _profiles = new();
         private static readonly List<YargPlayer> _players = new();
 
+        private static readonly Dictionary<Guid, YargProfile> _profilesById = new();
         private static readonly Dictionary<YargProfile, YargPlayer> _playersByProfile = new();
+        private static readonly Dictionary<Guid, ProfileBindings> _bindings = new();
 
         /// <summary>
         /// A list of all of the profiles (taken or not).
@@ -67,7 +79,8 @@ namespace YARG.Player
             if (IsProfileTaken(profile))
                 return null;
 
-            var player = new YargPlayer(profile);
+            var bindings = GetBindingsForProfile(profile);
+            var player = new YargPlayer(profile, bindings);
             _players.Add(player);
             _playersByProfile.Add(profile, player);
 
@@ -98,7 +111,8 @@ namespace YARG.Player
             _playersByProfile.Remove(player.Profile);
             _playersByProfile.Add(newProfile, player);
 
-            player.SwapToProfile(newProfile);
+            var bindings = GetBindingsForProfile(newProfile);
+            player.SwapToProfile(newProfile, bindings);
 
             return true;
         }
@@ -109,6 +123,18 @@ namespace YARG.Player
                 return null;
 
             return player;
+        }
+
+        public static ProfileBindings GetBindingsForProfile(YargProfile profile)
+        {
+            if (!_bindings.TryGetValue(profile.Id, out var bindings))
+            {
+                // Bindings must always be provided
+                bindings = new(profile);
+                _bindings.Add(profile.Id, bindings);
+            }
+
+            return bindings;
         }
 
         public static int LoadProfiles()
@@ -126,7 +152,16 @@ namespace YARG.Player
             string profilesJson = File.ReadAllText(profilesPath);
             var profiles = JsonConvert.DeserializeObject<List<YargProfile>>(profilesJson);
             if (profiles is not null)
+            {
                 _profiles.AddRange(profiles);
+                // Store profiles by ID
+                foreach (var profile in _profiles)
+                {
+                    _profilesById.Add(profile.Id, profile);
+                }
+            }
+
+            LoadBindings();
 
             return _profiles.Count;
         }
@@ -136,7 +171,45 @@ namespace YARG.Player
             string profilesJson = JsonConvert.SerializeObject(_profiles, Formatting.Indented);
             File.WriteAllText(ProfilesPath, profilesJson);
 
+            SaveBindings();
+
             return _profiles.Count;
+        }
+
+        public static int LoadBindings()
+        {
+            _bindings.Clear();
+
+            string bindingsPath = BindingsPath;
+            if (!File.Exists(bindingsPath))
+                return 0;
+
+            string bindingsJson = File.ReadAllText(bindingsPath);
+            var bindings = JsonConvert.DeserializeObject<Dictionary<Guid, SerializedProfileBindings>>(bindingsJson, _guidConverter);
+            if (bindings is not null)
+            {
+                foreach (var (id, serialized) in bindings)
+                {
+                    if (!_profilesById.TryGetValue(id, out var profile))
+                    {
+                        Debug.LogWarning($"Bindings exist for profile ID {id}, but the corresponding profile was not found! Bindings will be discarded.");
+                        continue;
+                    }
+
+                    var deserialized = ProfileBindings.Deserialize(profile, serialized);
+                    _bindings.Add(id, deserialized);
+                }
+            }
+
+            return _bindings.Count;
+        }
+
+        public static int SaveBindings()
+        {
+            string bindingsJson = JsonConvert.SerializeObject(_bindings, Formatting.Indented, _guidConverter);
+            File.WriteAllText(BindingsPath, bindingsJson);
+
+            return _bindings.Count;
         }
     }
 }
