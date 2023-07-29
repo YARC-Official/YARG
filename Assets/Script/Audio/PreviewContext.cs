@@ -9,6 +9,8 @@ namespace YARG.Audio
 {
     public class PreviewContext
     {
+        private const double DEFAULT_PREVIEW_DURATION = 30.0;
+
         public double PreviewStartTime { get; private set; }
         public double PreviewEndTime { get; private set; }
 
@@ -94,7 +96,7 @@ namespace YARG.Audio
                 PreviewEndTime = song.PreviewEndTimeSpan.TotalSeconds;
                 if (PreviewEndTime <= 0.0)
                 {
-                    PreviewEndTime = PreviewStartTime + Constants.PREVIEW_DURATION;
+                    PreviewEndTime = PreviewStartTime + DEFAULT_PREVIEW_DURATION;
                 }
 
                 // Play the audio
