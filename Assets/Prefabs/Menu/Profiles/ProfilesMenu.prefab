@@ -556,7 +556,7 @@ MonoBehaviour:
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 0
-  m_Spacing: 10
+  m_Spacing: 15
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 1
   m_ChildControlWidth: 1
@@ -1070,6 +1070,27 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 6389155857400239023}
     m_Modifications:
+    - target: {fileID: 719737562248201140, guid: 30455cc33f47e564894a0ec80dcbed66,
+        type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 65eb8871e80c89b46ad5218c280b28d2,
+        type: 3}
+    - target: {fileID: 719737562248201140, guid: 30455cc33f47e564894a0ec80dcbed66,
+        type: 3}
+      propertyPath: m_Color.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 719737562248201140, guid: 30455cc33f47e564894a0ec80dcbed66,
+        type: 3}
+      propertyPath: m_Color.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 719737562248201140, guid: 30455cc33f47e564894a0ec80dcbed66,
+        type: 3}
+      propertyPath: m_Color.r
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1071800837622904608, guid: 30455cc33f47e564894a0ec80dcbed66,
         type: 3}
       propertyPath: m_Color.b
@@ -1124,6 +1145,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 1675296661440499702, guid: 30455cc33f47e564894a0ec80dcbed66,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -2
       objectReference: {fileID: 0}
     - target: {fileID: 3252069457828798820, guid: 30455cc33f47e564894a0ec80dcbed66,
         type: 3}
@@ -1255,6 +1281,21 @@ PrefabInstance:
       propertyPath: m_Name
       value: Edit
       objectReference: {fileID: 0}
+    - target: {fileID: 8339972663341831657, guid: 30455cc33f47e564894a0ec80dcbed66,
+        type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 8339972663341831657, guid: 30455cc33f47e564894a0ec80dcbed66,
+        type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 8339972663341831657, guid: 30455cc33f47e564894a0ec80dcbed66,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -2
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 30455cc33f47e564894a0ec80dcbed66, type: 3}
 --- !u!1 &2483706525546546326 stripped
@@ -1276,7 +1317,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
-  m_MinWidth: 35
+  m_MinWidth: 50
   m_MinHeight: -1
   m_PreferredWidth: -1
   m_PreferredHeight: -1
@@ -1575,7 +1616,7 @@ PrefabInstance:
     - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 275
+      value: 222
       objectReference: {fileID: 0}
     - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3,
         type: 3}
@@ -1620,7 +1661,7 @@ PrefabInstance:
     - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -25
+      value: -50
       objectReference: {fileID: 0}
     - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3,
         type: 3}
@@ -1739,7 +1780,7 @@ PrefabInstance:
     - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: -50
       objectReference: {fileID: 0}
     - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3,
         type: 3}
