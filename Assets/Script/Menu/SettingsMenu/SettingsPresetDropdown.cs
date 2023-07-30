@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
+using YARG.Helpers;
 using YARG.Settings;
 using YARG.Settings.Metadata;
 using YARG.Settings.Types;
@@ -27,10 +28,8 @@ namespace YARG.Menu.Settings
             ModifiedSettings = metadata.ModifiedSettings;
 
             // Set dropdown name
-            _dropdownName.StringReference = new LocalizedString
-            {
-                TableReference = "Settings", TableEntryReference = $"Dropdown.{metadata.DropdownName}"
-            };
+            _dropdownName.StringReference =
+                LocaleHelper.StringReference("Settings", $"Dropdown.{metadata.DropdownName}");
 
             // Set dropdown options
             _dropdown.options.Clear();

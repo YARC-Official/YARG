@@ -299,11 +299,8 @@ namespace YARG.Menu.Settings
             var go = Instantiate(_headerPrefab, container);
 
             // Set header text
-            go.GetComponentInChildren<LocalizeStringEvent>().StringReference = new LocalizedString
-            {
-                TableReference = "Settings",
-                TableEntryReference = localizationKey
-            };
+            go.GetComponentInChildren<LocalizeStringEvent>().StringReference =
+                LocaleHelper.StringReference("Settings", localizationKey);
         }
 
         private void UpdatePreview(SettingsManager.Tab tabInfo)

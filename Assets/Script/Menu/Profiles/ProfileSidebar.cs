@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Localization.Settings;
 using YARG.Core;
 using YARG.Core.Game;
+using YARG.Helpers;
 using YARG.Player;
 
 namespace YARG.Menu.Profiles
@@ -49,8 +50,7 @@ namespace YARG.Menu.Profiles
                 _gameModesByIndex.Add(gameMode);
 
                 // Create the dropdown option
-                string name = LocalizationSettings.StringDatabase.GetLocalizedString(
-                    "Main", $"GameMode.{gameMode}");
+                string name = LocaleHelper.LocalizeString($"GameMode.{gameMode}");
                 _gameModeDropdown.options.Add(new TMP_Dropdown.OptionData(name));
             }
         }

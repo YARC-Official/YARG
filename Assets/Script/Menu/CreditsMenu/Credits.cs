@@ -6,6 +6,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
 using UnityEngine.UI;
+using YARG.Helpers;
 using YARG.Menu.Navigation;
 
 namespace YARG.Menu
@@ -90,10 +91,8 @@ namespace YARG.Menu
         private void CreateHeader(string id)
         {
             var header = Instantiate(_headerTemplate, _creditsContainer);
-            header.GetComponent<LocalizeStringEvent>().StringReference = new LocalizedString
-            {
-                TableReference = "Main", TableEntryReference = $"Credits.Header.{id}"
-            };
+            header.GetComponent<LocalizeStringEvent>().StringReference =
+                LocaleHelper.StringReference($"Credits.Header.{id}");
         }
 
         private void CreateCredits(Dictionary<string, JObject> credits)

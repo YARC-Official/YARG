@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
+using YARG.Helpers;
 using YARG.Settings.Types;
 
 namespace YARG.Settings.Visuals
@@ -18,10 +19,7 @@ namespace YARG.Settings.Visuals
         {
             SettingName = name;
 
-            settingText.StringReference = new LocalizedString
-            {
-                TableReference = "Settings", TableEntryReference = name
-            };
+            settingText.StringReference = LocaleHelper.StringReference("Settings", name);
 
             Setting = (T) SettingsManager.GetSettingByName(name);
 

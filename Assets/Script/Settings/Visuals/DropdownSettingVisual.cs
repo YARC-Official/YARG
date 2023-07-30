@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Localization;
+using YARG.Helpers;
 using YARG.Settings.Types;
 
 namespace YARG.Settings.Visuals
@@ -23,10 +24,7 @@ namespace YARG.Settings.Visuals
             _dropdown.options.Clear();
             foreach (var name in Setting.PossibleValues)
             {
-                _dropdown.options.Add(new(new LocalizedString
-                {
-                    TableReference = "Settings", TableEntryReference = $"{SettingName}.{name}"
-                }.GetLocalizedString()));
+                _dropdown.options.Add(new(LocaleHelper.LocalizeString("Settings", $"{SettingName}.{name}")));
             }
 
             // Select the right option

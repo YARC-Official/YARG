@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
 using UnityEngine.UI;
+using YARG.Helpers;
 using YARG.Settings;
 
 namespace YARG.Menu.Settings
@@ -23,10 +24,8 @@ namespace YARG.Menu.Settings
             {
                 var button = Instantiate(_buttonTemplate, _container);
 
-                button.GetComponentInChildren<LocalizeStringEvent>().StringReference = new LocalizedString
-                {
-                    TableReference = "Settings", TableEntryReference = buttonName
-                };
+                button.GetComponentInChildren<LocalizeStringEvent>().StringReference =
+                    LocaleHelper.StringReference("Settings", buttonName);
 
                 var capture = buttonName;
                 button.GetComponent<Button>().onClick.AddListener(() => SettingsManager.InvokeButton(capture));
@@ -38,10 +37,8 @@ namespace YARG.Menu.Settings
 
         public void SetCustomCallback(Action action, string localizationKey)
         {
-            _buttonTemplate.GetComponentInChildren<LocalizeStringEvent>().StringReference = new LocalizedString
-            {
-                TableReference = "Settings", TableEntryReference = localizationKey
-            };
+            _buttonTemplate.GetComponentInChildren<LocalizeStringEvent>().StringReference =
+                LocaleHelper.StringReference("Settings", localizationKey);
 
             _buttonTemplate.GetComponent<Button>().onClick.AddListener(() => action?.Invoke());
         }

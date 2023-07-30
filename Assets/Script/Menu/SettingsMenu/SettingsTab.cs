@@ -3,6 +3,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
 using UnityEngine.UI;
+using YARG.Helpers;
 using YARG.Settings;
 
 namespace YARG.Menu.Settings
@@ -28,10 +29,7 @@ namespace YARG.Menu.Settings
             icon.sprite = Addressables.LoadAssetAsync<Sprite>($"SettingIcons[{iconName}]").WaitForCompletion();
 
             // Set text
-            text.StringReference = new LocalizedString
-            {
-                TableReference = "Settings", TableEntryReference = $"Tab.{tabName}"
-            };
+            text.StringReference = LocaleHelper.StringReference("Settings", $"Tab.{tabName}");
         }
 
         private void Update()
