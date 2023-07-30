@@ -15,20 +15,39 @@ namespace YARG.Menu.Profiles
         private EditProfileMenu _editProfileMenu;
 
         private GameMode _gameMode;
+        private bool _isMenu;
 
         public void Init(GameMode gameMode, EditProfileMenu editProfileMenu)
         {
-            _gameMode = gameMode;
             _editProfileMenu = editProfileMenu;
 
+            _gameMode = gameMode;
+            _isMenu = false;
+
             _gameModeName.StringReference = LocaleHelper.StringReference($"GameMode.{gameMode}");
+        }
+
+        public void InitAsMenu(EditProfileMenu editProfileMenu)
+        {
+            _editProfileMenu = editProfileMenu;
+
+            _isMenu = true;
+
+            _gameModeName.StringReference = LocaleHelper.StringReference("GameMode.Menu");
         }
 
         protected override void OnSelectionChanged(bool selected)
         {
             base.OnSelectionChanged(selected);
 
-            _editProfileMenu.RefreshBindings(_gameMode);
+            if (_isMenu)
+            {
+                _editProfileMenu.RefreshMenuBindings();
+            }
+            else
+            {
+                _editProfileMenu.RefreshBindings(_gameMode);
+            }
         }
     }
 }

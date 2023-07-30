@@ -18,18 +18,6 @@ MonoBehaviour:
   m_Metadata:
     m_Items: []
   m_TableData:
-  - m_Id: 1947714576384
-    m_Localized: Enter folder path...
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4590235148288
-    m_Localized: Enter text...
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12501665570816
-    m_Localized: Enter number...
-    m_Metadata:
-      m_Items: []
   - m_Id: 25388931303727104
     m_Localized: A Game Started By
     m_Metadata:
@@ -72,6 +60,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 45803463461167104
     m_Localized: Pro Keys
+    m_Metadata:
+      m_Items: []
+  - m_Id: 46059775260483584
+    m_Localized: Menu
     m_Metadata:
       m_Items: []
   references:

@@ -15,16 +15,8 @@ MonoBehaviour:
   m_TableCollectionName: Main
   m_TableCollectionNameGuidString: 56b585007d526c847adec3eb05f44424
   m_Entries:
-  - m_Id: 1947714576384
-    m_Key: enterFolderPath
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4590235148288
-    m_Key: enterText
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12501665570816
-    m_Key: enterNumber
+  - m_Id: 25389008676052992
+    m_Key: Credits.Header.contributors
     m_Metadata:
       m_Items: []
   - m_Id: 25388931303727104
@@ -35,32 +27,28 @@ MonoBehaviour:
     m_Key: Credits.Header.leadArtist
     m_Metadata:
       m_Items: []
-  - m_Id: 25389008676052992
-    m_Key: Credits.Header.contributors
+  - m_Id: 25519120012664832
+    m_Key: Credits.Header.leadCharter
     m_Metadata:
       m_Items: []
   - m_Id: 25509635210731520
     m_Key: Credits.Header.specialThanks
     m_Metadata:
       m_Items: []
-  - m_Id: 25519120012664832
-    m_Key: Credits.Header.leadCharter
-    m_Metadata:
-      m_Items: []
   - m_Id: 45803154252881920
     m_Key: GameMode.FiveFretGuitar
     m_Metadata:
       m_Items: []
-  - m_Id: 45803259555078144
-    m_Key: GameMode.SixFretGuitar
+  - m_Id: 45803377607958528
+    m_Key: GameMode.FiveLaneDrums
     m_Metadata:
       m_Items: []
   - m_Id: 45803309349855232
     m_Key: GameMode.FourLaneDrums
     m_Metadata:
       m_Items: []
-  - m_Id: 45803377607958528
-    m_Key: GameMode.FiveLaneDrums
+  - m_Id: 46059775260483584
+    m_Key: GameMode.Menu
     m_Metadata:
       m_Items: []
   - m_Id: 45803425460772864
@@ -69,6 +57,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 45803463461167104
     m_Key: GameMode.ProKeys
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45803259555078144
+    m_Key: GameMode.SixFretGuitar
     m_Metadata:
       m_Items: []
   m_Metadata:

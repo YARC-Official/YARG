@@ -37,7 +37,9 @@ namespace YARG.Menu.Profiles
         private InputControlDialogMenu _controlDialog;
 
         private YargPlayer _currentPlayer;
+
         private GameMode _selectedGameMode;
+        private bool _selectingMenuBinds;
 
         private void OnEnable()
         {
@@ -61,9 +63,14 @@ namespace YARG.Menu.Profiles
             _gameModeNavGroup.ClearNavigatables();
 
             // Spawn in a game mode view for the selected game mode
-            var go = Instantiate(_gameModeViewPrefab, _gameModeList);
-            go.GetComponent<GameModeView>().Init(_currentPlayer.Profile.GameMode, this);
-            _gameModeNavGroup.AddNavigatable(go);
+            var gameModeView = Instantiate(_gameModeViewPrefab, _gameModeList);
+            gameModeView.GetComponent<GameModeView>().Init(_currentPlayer.Profile.GameMode, this);
+            _gameModeNavGroup.AddNavigatable(gameModeView);
+
+            // Spawn in a game mode view for the menu binds
+            gameModeView = Instantiate(_gameModeViewPrefab, _gameModeList);
+            gameModeView.GetComponent<GameModeView>().InitAsMenu(this);
+            _gameModeNavGroup.AddNavigatable(gameModeView);
 
             // Select first game mode
             _gameModeNavGroup.SelectFirst();
@@ -73,14 +80,26 @@ namespace YARG.Menu.Profiles
         public void RefreshBindings(GameMode gameMode)
         {
             _selectedGameMode = gameMode;
+            _selectingMenuBinds = false;
 
+            RefreshFromBindingCollection(_currentPlayer.Bindings[gameMode]);
+        }
+
+        public void RefreshMenuBindings()
+        {
+            _selectingMenuBinds = true;
+
+            RefreshFromBindingCollection(_currentPlayer.Bindings.MenuBindings);
+        }
+
+        private void RefreshFromBindingCollection(BindingCollection collection)
+        {
             // Remove old ones
             _bindsList.DestroyChildren();
             _bindsNavGroup.ClearNavigatables();
 
             // Create the list of bindings
-            var bindings = _currentPlayer.Bindings;
-            foreach (var binding in bindings[gameMode])
+            foreach (var binding in collection)
             {
                 // Create header
                 var header = Instantiate(_bindHeaderPrefab, _bindsList);
@@ -102,7 +121,14 @@ namespace YARG.Menu.Profiles
 
         public void RefreshBindings()
         {
-            RefreshBindings(_selectedGameMode);
+            if (_selectingMenuBinds)
+            {
+                RefreshMenuBindings();
+            }
+            else
+            {
+                RefreshBindings(_selectedGameMode);
+            }
         }
 
         public UniTask<bool> ShowControlDialog(YargPlayer player, ControlBinding binding)

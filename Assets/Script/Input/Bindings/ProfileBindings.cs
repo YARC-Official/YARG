@@ -30,6 +30,8 @@ namespace YARG.Input
                 {
                     bindings.BindingsChanged += value;
                 }
+
+                MenuBindings.BindingsChanged += value;
             }
             remove
             {
@@ -37,6 +39,8 @@ namespace YARG.Input
                 {
                     bindings.BindingsChanged -= value;
                 }
+
+                MenuBindings.BindingsChanged -= value;
             }
         }
 
