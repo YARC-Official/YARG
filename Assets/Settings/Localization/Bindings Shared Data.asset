@@ -15,39 +15,83 @@ MonoBehaviour:
   m_TableCollectionName: Bindings
   m_TableCollectionNameGuidString: f465ba9635928c74faf29645191515b8
   m_Entries:
-  - m_Id: 47527092224
+  - m_Id: 2124130725257216
+    m_Key: menu_Green
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2124134890201088
+    m_Key: menu_Red
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2124139789148160
+    m_Key: menu_Yellow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2124142871961600
+    m_Key: menu_Blue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2124148156784640
+    m_Key: menu_Orange
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2124152502083584
+    m_Key: menu_Up
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2124212996530176
+    m_Key: menu_Down
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2124221586464768
+    m_Key: menu_Left
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2124230713270272
+    m_Key: menu_Right
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2124238808276992
+    m_Key: menu_Start
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2124246903283712
+    m_Key: menu_Select
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2124287374123008
     m_Key: fiveFret_Green
     m_Metadata:
       m_Items: []
-  - m_Id: 88832598016
+  - m_Id: 2124300829450240
     m_Key: fiveFret_Red
     m_Metadata:
       m_Items: []
-  - m_Id: 114573041664
+  - m_Id: 2124309104812032
     m_Key: fiveFret_Yellow
     m_Metadata:
       m_Items: []
-  - m_Id: 144612646912
+  - m_Id: 2124315417239552
     m_Key: fiveFret_Blue
     m_Metadata:
       m_Items: []
-  - m_Id: 168276910080
+  - m_Id: 2124321775804416
     m_Key: fiveFret_Orange
     m_Metadata:
       m_Items: []
-  - m_Id: 293665559142400
+  - m_Id: 2124328704794624
     m_Key: guitar_StrumUp
     m_Metadata:
       m_Items: []
-  - m_Id: 293678251106304
+  - m_Id: 2124334845255680
     m_Key: guitar_StrumDown
     m_Metadata:
       m_Items: []
-  - m_Id: 293687327580160
+  - m_Id: 2124341153488896
     m_Key: guitar_StarPower
     m_Metadata:
       m_Items: []
-  - m_Id: 293697981112320
+  - m_Id: 2124346555752448
     m_Key: guitar_Whammy
     m_Metadata:
       m_Items: []

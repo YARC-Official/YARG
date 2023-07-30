@@ -8,6 +8,9 @@ namespace YARG.Input
     {
         public static BindingCollection CreateMenuBindings() => new()
         {
+            new ButtonBinding("menu_Start",  (int) MenuAction.Start),
+            new ButtonBinding("menu_Select", (int) MenuAction.Select),
+
             new ButtonBinding("menu_Green",  (int) MenuAction.Green),
             new ButtonBinding("menu_Red",    (int) MenuAction.Red),
             new ButtonBinding("menu_Yellow", (int) MenuAction.Yellow),
@@ -18,9 +21,6 @@ namespace YARG.Input
             new ButtonBinding("menu_Down",  (int) MenuAction.Down),
             new ButtonBinding("menu_Left",  (int) MenuAction.Left),
             new ButtonBinding("menu_Right", (int) MenuAction.Right),
-
-            new ButtonBinding("menu_Start",  (int) MenuAction.Start),
-            new ButtonBinding("menu_Select", (int) MenuAction.Select),
         };
 
         public static BindingCollection CreateFiveFretGuitarBindings() => new()

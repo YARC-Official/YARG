@@ -18,39 +18,83 @@ MonoBehaviour:
   m_Metadata:
     m_Items: []
   m_TableData:
-  - m_Id: 47527092224
-    m_Localized: Green Fret
+  - m_Id: 2124315417239552
+    m_Localized: Blue Fret (Fourth)
     m_Metadata:
       m_Items: []
-  - m_Id: 88832598016
-    m_Localized: Red Fret
+  - m_Id: 2124300829450240
+    m_Localized: Red Fret (Second)
     m_Metadata:
       m_Items: []
-  - m_Id: 114573041664
-    m_Localized: Yellow Fret
+  - m_Id: 2124287374123008
+    m_Localized: Green Fret (First)
     m_Metadata:
       m_Items: []
-  - m_Id: 144612646912
-    m_Localized: Blue Fret
+  - m_Id: 2124321775804416
+    m_Localized: Orange Fret (Fifth)
     m_Metadata:
       m_Items: []
-  - m_Id: 168276910080
-    m_Localized: Orange Fret
+  - m_Id: 2124309104812032
+    m_Localized: Yellow Fret (Third)
     m_Metadata:
       m_Items: []
-  - m_Id: 293665559142400
+  - m_Id: 2124230713270272
+    m_Localized: Right
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2124238808276992
+    m_Localized: Start (Pause)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2124246903283712
+    m_Localized: Select
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2124221586464768
+    m_Localized: Left
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2124148156784640
+    m_Localized: Orange (Shortcut 3)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2124139789148160
+    m_Localized: Yellow (Shortcut 1)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2124130725257216
+    m_Localized: Green (Confirm)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2124212996530176
+    m_Localized: Down
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2124142871961600
+    m_Localized: Blue (Shortcut 2)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2124134890201088
+    m_Localized: Red (Back)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2124152502083584
+    m_Localized: Up
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2124328704794624
     m_Localized: Strum Up
     m_Metadata:
       m_Items: []
-  - m_Id: 293678251106304
+  - m_Id: 2124334845255680
     m_Localized: Strum Down
     m_Metadata:
       m_Items: []
-  - m_Id: 293687327580160
-    m_Localized: Star Power Activate
+  - m_Id: 2124341153488896
+    m_Localized: Star Power
     m_Metadata:
       m_Items: []
-  - m_Id: 293697981112320
+  - m_Id: 2124346555752448
     m_Localized: Whammy
     m_Metadata:
       m_Items: []
