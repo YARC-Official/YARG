@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
+using YARG.Player;
 
 namespace YARG.Menu.Profiles
 {
@@ -29,6 +30,9 @@ namespace YARG.Menu.Profiles
 
             foreach (var device in InputSystem.devices)
             {
+                if (PlayerContainer.IsDeviceTaken(device))
+                    continue;
+
                 var button = Instantiate(_deviceEntryPrefab, _deviceContainer);
                 button.GetComponent<DeviceEntry>().Init(device, SelectDevice);
             }

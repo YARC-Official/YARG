@@ -144,6 +144,17 @@ namespace YARG.Player
             return bindings;
         }
 
+        public static bool IsDeviceTaken(InputDevice device)
+        {
+            foreach (var player in _players)
+            {
+                if (player.Bindings.ContainsDevice(device))
+                    return true;
+            }
+
+            return false;
+        }
+
         private static void OnDeviceAdded(InputDevice device)
         {
             foreach (var player in _players)
