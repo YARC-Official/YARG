@@ -20,13 +20,9 @@ namespace YARG.Player
     /// </summary>
     public static class PlayerContainer
     {
-        private const string  PROFILES_FILE = "profiles.json";
-        private static string ProfilesPath => Path.Combine(PathHelper.PersistentDataPath, PROFILES_FILE);
-
-        private const string  BINDINGS_FILE = "bindings.json";
-        private static string BindingsPath => Path.Combine(PathHelper.PersistentDataPath, BINDINGS_FILE);
-
-        private static readonly GuidConverter _guidConverter = new();
+        private static string ProfilesDirectory => Path.Combine(PathHelper.PersistentDataPath, "profiles");
+        private static string ProfilesPath => Path.Combine(ProfilesDirectory, "profiles.json");
+        private static string BindingsPath => Path.Combine(ProfilesDirectory, "bindings.json");
 
         private static readonly List<YargProfile> _profiles = new();
         private static readonly List<YargPlayer> _players = new();
@@ -47,6 +43,9 @@ namespace YARG.Player
 
         static PlayerContainer()
         {
+            // Make sure the folder exists to prevent errors
+            Directory.CreateDirectory(ProfilesDirectory);
+
             InputManager.DeviceAdded += OnDeviceAdded;
             InputManager.DeviceRemoved += OnDeviceRemoved;
         }
@@ -208,14 +207,15 @@ namespace YARG.Player
                 return 0;
 
             string bindingsJson = File.ReadAllText(bindingsPath);
-            var bindings = JsonConvert.DeserializeObject<Dictionary<Guid, SerializedProfileBindings>>(bindingsJson, _guidConverter);
+            var bindings = JsonConvert.DeserializeObject<Dictionary<Guid, SerializedProfileBindings>>(bindingsJson);
             if (bindings is not null)
             {
                 foreach (var (id, serialized) in bindings)
                 {
                     if (!_profilesById.TryGetValue(id, out var profile))
                     {
-                        Debug.LogWarning($"Bindings exist for profile ID {id}, but the corresponding profile was not found! Bindings will be discarded.");
+                        Debug.LogWarning($"Bindings exist for profile ID {id}, but the corresponding profile was not" +
+                            " found! Bindings will be discarded.");
                         continue;
                     }
 
@@ -229,7 +229,7 @@ namespace YARG.Player
 
         public static int SaveBindings()
         {
-            string bindingsJson = JsonConvert.SerializeObject(_bindings, Formatting.Indented, _guidConverter);
+            string bindingsJson = JsonConvert.SerializeObject(_bindings, Formatting.Indented);
             File.WriteAllText(BindingsPath, bindingsJson);
 
             return _bindings.Count;
