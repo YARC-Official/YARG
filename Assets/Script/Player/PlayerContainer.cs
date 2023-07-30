@@ -184,15 +184,29 @@ namespace YARG.Player
                 return 0;
 
             string profilesJson = File.ReadAllText(profilesPath);
-            var profiles = JsonConvert.DeserializeObject<List<YargProfile>>(profilesJson);
-            if (profiles is not null)
+            List<YargProfile> profiles;
+            try
             {
-                _profiles.AddRange(profiles);
-                // Store profiles by ID
-                foreach (var profile in _profiles)
-                {
-                    _profilesById.Add(profile.Id, profile);
-                }
+                profiles = JsonConvert.DeserializeObject<List<YargProfile>>(profilesJson);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error while loading profiles! Bindings loading will be skipped.");
+                Debug.LogException(ex);
+                return 0;
+            }
+
+            if (profiles is null)
+            {
+                Debug.LogWarning($"Failed to load profiles! Bindings loading will be skipped.");
+                return 0;
+            }
+
+            _profiles.AddRange(profiles);
+            // Store profiles by ID
+            foreach (var profile in _profiles)
+            {
+                _profilesById.Add(profile.Id, profile);
             }
 
             LoadBindings();
@@ -219,21 +233,34 @@ namespace YARG.Player
                 return 0;
 
             string bindingsJson = File.ReadAllText(bindingsPath);
-            var bindings = JsonConvert.DeserializeObject<Dictionary<Guid, SerializedProfileBindings>>(bindingsJson);
-            if (bindings is not null)
+            Dictionary<Guid, SerializedProfileBindings> bindings;
+            try
             {
-                foreach (var (id, serialized) in bindings)
-                {
-                    if (!_profilesById.TryGetValue(id, out var profile))
-                    {
-                        Debug.LogWarning($"Bindings exist for profile ID {id}, but the corresponding profile was not" +
-                            " found! Bindings will be discarded.");
-                        continue;
-                    }
+                bindings = JsonConvert.DeserializeObject<Dictionary<Guid, SerializedProfileBindings>>(bindingsJson);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error while loading bindings!");
+                Debug.LogException(ex);
+                return 0;
+            }
 
-                    var deserialized = ProfileBindings.Deserialize(profile, serialized);
-                    _bindings.Add(id, deserialized);
+            if (bindings is null)
+            {
+                Debug.LogWarning($"Failed to load bindings!");
+                return 0;
+            }
+
+            foreach (var (id, serialized) in bindings)
+            {
+                if (!_profilesById.TryGetValue(id, out var profile))
+                {
+                    Debug.LogWarning($"Bindings exist for profile ID {id}, but the corresponding profile was not found! Bindings will be discarded.");
+                    continue;
                 }
+
+                var deserialized = ProfileBindings.Deserialize(profile, serialized);
+                _bindings.Add(id, deserialized);
             }
 
             return _bindings.Count;
