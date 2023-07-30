@@ -50,6 +50,30 @@ MonoBehaviour:
     m_Localized: Lead Charter
     m_Metadata:
       m_Items: []
+  - m_Id: 45803154252881920
+    m_Localized: Five Fret Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45803259555078144
+    m_Localized: Six Fret Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45803309349855232
+    m_Localized: Standard Drums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45803377607958528
+    m_Localized: 5-Lane Drums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45803425460772864
+    m_Localized: Pro Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45803463461167104
+    m_Localized: Pro Keys
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -47,6 +47,30 @@ MonoBehaviour:
     m_Key: Credits.Header.leadCharter
     m_Metadata:
       m_Items: []
+  - m_Id: 45803154252881920
+    m_Key: GameMode.FiveFretGuitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45803259555078144
+    m_Key: GameMode.SixFretGuitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45803309349855232
+    m_Key: GameMode.FourLaneDrums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45803377607958528
+    m_Key: GameMode.FiveLaneDrums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45803425460772864
+    m_Key: GameMode.ProGuitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45803463461167104
+    m_Key: GameMode.ProKeys
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

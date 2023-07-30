@@ -1,7 +1,9 @@
-﻿using TMPro;
+﻿using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.Localization.Settings;
+using YARG.Core;
 using YARG.Core.Game;
-using YARG.Menu.Navigation;
 using YARG.Player;
 
 namespace YARG.Menu.Profiles
@@ -12,6 +14,8 @@ namespace YARG.Menu.Profiles
         private TextMeshProUGUI _profileName;
         [SerializeField]
         private TMP_InputField _nameInput;
+        [SerializeField]
+        private TMP_Dropdown _gameModeDropdown;
         [SerializeField]
         private GameObject _contents;
 
@@ -28,6 +32,29 @@ namespace YARG.Menu.Profiles
         private ProfileView _profileView;
         private YargProfile _profile;
 
+        private readonly List<GameMode> _gameModesByIndex = new();
+
+        private void Awake()
+        {
+            // Setup dropdown items
+            _gameModeDropdown.options.Clear();
+            foreach (var gameMode in EnumExtensions<GameMode>.Values)
+            {
+                // Skip vocals. It can be assigned to a profile separately.
+                if (gameMode == GameMode.Vocals)
+                {
+                    return;
+                }
+
+                _gameModesByIndex.Add(gameMode);
+
+                // Create the dropdown option
+                string name = LocalizationSettings.StringDatabase.GetLocalizedString(
+                    "Main", $"GameMode.{gameMode}");
+                _gameModeDropdown.options.Add(new TMP_Dropdown.OptionData(name));
+            }
+        }
+
         public void UpdateSidebar(YargProfile profile, ProfileView profileView)
         {
             _profile = profile;
@@ -35,8 +62,11 @@ namespace YARG.Menu.Profiles
 
             _contents.SetActive(true);
 
+            // Display the profile's options
             _profileName.text = _profile.Name;
+            _gameModeDropdown.value = _gameModesByIndex.IndexOf(profile.GameMode);
 
+            // Show the proper name container (hide the editing version)
             _nameContainer.SetActive(true);
             _editNameContainer.SetActive(false);
         }
@@ -71,6 +101,11 @@ namespace YARG.Menu.Profiles
 
             EditProfileMenu.CurrentProfile = _profile;
             MenuManager.Instance.PushMenu(MenuManager.Menu.EditProfile);
+        }
+
+        public void ChangeGameMode()
+        {
+            _profile.GameMode = _gameModesByIndex[_gameModeDropdown.value];
         }
     }
 }
