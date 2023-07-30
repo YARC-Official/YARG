@@ -80,7 +80,7 @@ namespace YARG.Menu.Profiles
 
             // Create the list of bindings
             var bindings = _currentPlayer.Bindings;
-            foreach (var binding in bindings[gameMode].Gameplay)
+            foreach (var binding in bindings[gameMode])
             {
                 // Create header
                 var header = Instantiate(_bindHeaderPrefab, _bindsList);

@@ -3,16 +3,14 @@ using YARG.Core;
 
 namespace YARG.Input.Serialization
 {
+    using BindingCollection = Dictionary<string, List<SerializedInputControl>>;
+
     public class SerializedProfileBindings
     {
         public List<string> DeviceSerials = new();
-        public Dictionary<GameMode, SerializedGameModeBindings> Bindings = new();
-    }
 
-    public class SerializedGameModeBindings
-    {
-        public Dictionary<string, List<SerializedInputControl>> Menu = new();
-        public Dictionary<string, List<SerializedInputControl>> Gameplay = new();
+        public Dictionary<GameMode, BindingCollection> Bindings = new();
+        public BindingCollection MenuBindings = new();
     }
 
     public class SerializedInputControl

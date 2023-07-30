@@ -15,47 +15,47 @@ namespace YARG.Input
     {
         public YargProfile Profile { get; }
 
-        private readonly Dictionary<GameMode, GameModeBindings> _bindsByGameMode = new();
-
         private readonly Dictionary<string, InputDevice> _devices = new();
 
-        public GameModeBindings this[GameMode mode] => _bindsByGameMode[mode];
+        private readonly Dictionary<GameMode, BindingCollection> _bindsByGameMode = new();
+        public readonly BindingCollection MenuBindings;
+
+        public BindingCollection this[GameMode mode] => _bindsByGameMode[mode];
 
         public event Action BindingsChanged
         {
             add
             {
                 foreach (var bindings in _bindsByGameMode.Values)
+                {
                     bindings.BindingsChanged += value;
+                }
             }
             remove
             {
                 foreach (var bindings in _bindsByGameMode.Values)
+                {
                     bindings.BindingsChanged -= value;
+                }
             }
         }
 
         public event GameInputProcessed MenuInputProcessed
         {
-            add
-            {
-                foreach (var bindings in _bindsByGameMode.Values)
-                    bindings.Menu.InputProcessed += value;
-            }
-            remove
-            {
-                foreach (var bindings in _bindsByGameMode.Values)
-                    bindings.Menu.InputProcessed -= value;
-            }
+            add    => MenuBindings.InputProcessed += value;
+            remove => MenuBindings.InputProcessed -= value;
         }
 
         public ProfileBindings(YargProfile profile)
         {
             Profile = profile;
+
             foreach (var mode in EnumExtensions<GameMode>.Values)
             {
-                _bindsByGameMode.Add(mode, new(mode));
+                _bindsByGameMode.Add(mode, BindingCollection.CreateGameplayBindings(mode));
             }
+
+            MenuBindings = BindingCollection.CreateMenuBindings();
         }
 
         public ProfileBindings(YargProfile profile, SerializedProfileBindings bindings)
@@ -67,7 +67,7 @@ namespace YARG.Input
                 _devices.Add(serial, null);
             }
 
-            foreach (var (mode, serializedMode) in bindings.Bindings)
+            foreach (var (mode, serializedBinds) in bindings.Bindings)
             {
                 if (!_bindsByGameMode.TryGetValue(mode, out var modeBindings))
                 {
@@ -75,8 +75,10 @@ namespace YARG.Input
                     continue;
                 }
 
-                modeBindings.Deserialize(serializedMode);
+                modeBindings.Deserialize(serializedBinds);
             }
+
+            MenuBindings.Deserialize(bindings.MenuBindings);
         }
 
         public SerializedProfileBindings Serialize()
@@ -93,6 +95,8 @@ namespace YARG.Input
                 serialized.Bindings.Add(mode, bindings.Serialize());
             }
 
+            serialized.MenuBindings = MenuBindings.Serialize();
+
             return serialized;
         }
 
@@ -107,6 +111,8 @@ namespace YARG.Input
             {
                 bindings.EnableInputs();
             }
+
+            MenuBindings.EnableInputs();
         }
 
         public void DisableInputs()
@@ -115,16 +121,18 @@ namespace YARG.Input
             {
                 bindings.DisableInputs();
             }
+
+            MenuBindings.DisableInputs();
         }
 
         public void SubscribeToGameplayInputs(GameMode mode, GameInputProcessed onInputProcessed)
         {
-            _bindsByGameMode[mode].Gameplay.InputProcessed += onInputProcessed;
+            _bindsByGameMode[mode].InputProcessed += onInputProcessed;
         }
 
         public void UnsubscribeFromGameplayInputs(GameMode mode, GameInputProcessed onInputProcessed)
         {
-            _bindsByGameMode[mode].Gameplay.InputProcessed -= onInputProcessed;
+            _bindsByGameMode[mode].InputProcessed -= onInputProcessed;
         }
 
         public bool AddDevice(InputDevice device)
@@ -183,6 +191,8 @@ namespace YARG.Input
             {
                 bindings.OnDeviceAdded(device);
             }
+
+            MenuBindings.OnDeviceAdded(device);
         }
 
         private void NotifyDeviceRemoved(InputDevice device)
@@ -191,18 +201,24 @@ namespace YARG.Input
             {
                 bindings.OnDeviceRemoved(device);
             }
+
+            MenuBindings.OnDeviceRemoved(device);
         }
 
         public void ProcessInputEvent(InputEventPtr eventPtr)
         {
             var device = InputSystem.GetDeviceById(eventPtr.deviceId);
             if (!ContainsDevice(device))
+            {
                 throw new InvalidOperationException($"Device {device} is not paired to profile {Profile.Name}!");
+            }
 
             foreach (var bindings in _bindsByGameMode.Values)
             {
                 bindings.ProcessInputEvent(eventPtr);
             }
+
+            MenuBindings.ProcessInputEvent(eventPtr);
         }
     }
 }

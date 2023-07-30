@@ -1,5 +1,4 @@
-﻿using TMPro;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Localization.Components;
 using YARG.Core;
 using YARG.Helpers;
@@ -14,6 +13,7 @@ namespace YARG.Menu.Profiles
         private LocalizeStringEvent _gameModeName;
 
         private EditProfileMenu _editProfileMenu;
+
         private GameMode _gameMode;
 
         public void Init(GameMode gameMode, EditProfileMenu editProfileMenu)
