@@ -17,14 +17,17 @@ namespace YARG.Gameplay.Visuals
 
         public void SetSunburstEffects(bool groove, bool starpower)
         {
-            _grooveSunburstEffect.SetActive(groove);
-            _grooveLightEffect.SetActive(groove);
+            _grooveSunburstEffect.SetActive(groove && !starpower);
+            _grooveLightEffect.SetActive(groove && !starpower);
+
+            _starpowerSunburstEffect.SetActive(starpower);
+            _starpowerLightEffect.SetActive(starpower);
         }
 
         private void Update()
         {
             _grooveSunburstEffect.transform.Rotate(0f, 0f, Time.deltaTime * -25f);
-            // _starpowerSunburstEffect.transform.Rotate(0f, 0f, Time.deltaTime * -25f);
+            _starpowerSunburstEffect.transform.Rotate(0f, 0f, Time.deltaTime * -25f);
         }
     }
 }

@@ -126,6 +126,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 861361446070616044, guid: 03b0fdd0f2d131d4682ccf3aaf6ee2a7,
         type: 3}
+    - target: {fileID: 2166581194060232035, guid: 5800c42510b55c549be95ec3ecd75e1c,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2501665274994779726, guid: 5800c42510b55c549be95ec3ecd75e1c,
         type: 3}
       propertyPath: _ringMesh
