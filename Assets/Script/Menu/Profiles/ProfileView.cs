@@ -1,5 +1,7 @@
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using YARG.Core.Game;
 using YARG.Menu.Navigation;
 using YARG.Player;
@@ -11,12 +13,20 @@ namespace YARG.Menu.Profiles
         [Space]
         [SerializeField]
         private TextMeshProUGUI _profileName;
+        [SerializeField]
+        private Image _profilePicture;
 
         [Space]
         [SerializeField]
         private GameObject _connectGroup;
         [SerializeField]
         private GameObject _disconnectGroup;
+
+        [Space]
+        [SerializeField]
+        private Sprite _profileGenericSprite;
+        [SerializeField]
+        private Sprite _profileBotSprite;
 
         private ProfilesMenu _profileMenu;
         private ProfileSidebar _profileSidebar;
@@ -33,6 +43,8 @@ namespace YARG.Menu.Profiles
             bool taken = PlayerContainer.IsProfileTaken(profile);
             _connectGroup.gameObject.SetActive(!taken);
             _disconnectGroup.gameObject.SetActive(taken);
+
+            _profilePicture.sprite = profile.IsBot ? _profileBotSprite : _profileGenericSprite;
         }
 
         protected override void OnSelectionChanged(bool selected)
@@ -64,12 +76,27 @@ namespace YARG.Menu.Profiles
             // Select item to prevent confusion
             Selected = true;
 
+            if (!_profile.IsBot)
+            {
+                await ConnectOrDisconnectAsPlayer();
+            }
+            else
+            {
+                ConnectOrDisconnectAsBot();
+            }
+
+            // Re-initialize self and sidebar
+            Init(_profileMenu, _profile, _profileSidebar);
+            _profileSidebar.UpdateSidebar(_profile, this);
+        }
+
+        private async UniTask ConnectOrDisconnectAsPlayer()
+        {
             var player = PlayerContainer.GetPlayerFromProfile(_profile);
 
             if (player is not null)
             {
                 PlayerContainer.DisposePlayer(player);
-                Init(_profileMenu, _profile, _profileSidebar);
             }
             else
             {
@@ -82,10 +109,21 @@ namespace YARG.Menu.Profiles
                 if (player is null) return;
 
                 // Then, add the device to the bindings
-                if (!player.Bindings.AddDevice(device)) return;
+                player.Bindings.AddDevice(device);
+            }
+        }
 
-                // Re-initialize the ProfileView
-                Init(_profileMenu, _profile, _profileSidebar);
+        private void ConnectOrDisconnectAsBot()
+        {
+            var player = PlayerContainer.GetPlayerFromProfile(_profile);
+
+            if (player is not null)
+            {
+                PlayerContainer.DisposePlayer(player);
+            }
+            else
+            {
+                PlayerContainer.CreatePlayerFromProfile(_profile);
             }
         }
     }

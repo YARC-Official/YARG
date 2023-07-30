@@ -97,8 +97,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _profileName: {fileID: 4097472151370784344}
+  _profilePicture: {fileID: 3837991091834801202}
   _connectGroup: {fileID: 3655587951731118034}
   _disconnectGroup: {fileID: 1792506467082320330}
+  _profileGenericSprite: {fileID: 21300000, guid: 6c06aca89bc095245ba69514188d3fce,
+    type: 3}
+  _profileBotSprite: {fileID: 21300000, guid: 2a0312c2e46460a4dbce351a4b20985f, type: 3}
 --- !u!114 &6415387404162001723
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -76,6 +76,20 @@ namespace YARG.Menu.Profiles
             RefreshList();
         }
 
+        public void AddBotProfile()
+        {
+            PlayerContainer.AddProfile(new YargProfile
+            {
+                Name = "Bot",
+                NoteSpeed = 5,
+                HighwayLength = 1,
+                GameMode = GameMode.FiveFretGuitar,
+                IsBot = true
+            });
+
+            RefreshList();
+        }
+
         public UniTask<InputDevice> ShowDeviceDialog()
         {
             return _deviceDialog.Show();

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Localization.Settings;
+using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Helpers;
@@ -12,13 +12,17 @@ namespace YARG.Menu.Profiles
     public class ProfileSidebar : MonoBehaviour
     {
         [SerializeField]
+        private GameObject _contents;
+        [SerializeField]
         private TextMeshProUGUI _profileName;
         [SerializeField]
         private TMP_InputField _nameInput;
         [SerializeField]
         private TMP_Dropdown _gameModeDropdown;
         [SerializeField]
-        private GameObject _contents;
+        private Image _profilePicture;
+        [SerializeField]
+        private Button _editProfileButton;
 
         [Space]
         [SerializeField]
@@ -29,6 +33,12 @@ namespace YARG.Menu.Profiles
         [Space]
         [SerializeField]
         private ProfilesMenu _profileMenu;
+
+        [Space]
+        [SerializeField]
+        private Sprite _profileGenericSprite;
+        [SerializeField]
+        private Sprite _profileBotSprite;
 
         private ProfileView _profileView;
         private YargProfile _profile;
@@ -69,6 +79,12 @@ namespace YARG.Menu.Profiles
             // Show the proper name container (hide the editing version)
             _nameContainer.SetActive(true);
             _editNameContainer.SetActive(false);
+
+            // Display the proper profile picture
+            _profilePicture.sprite = profile.IsBot ? _profileBotSprite : _profileGenericSprite;
+
+            // Enable/disable the edit profile button
+            _editProfileButton.interactable = !_profile.IsBot && PlayerContainer.IsProfileTaken(_profile);
         }
 
         public void HideContents()
