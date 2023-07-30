@@ -96,7 +96,7 @@ namespace YARG.Menu.Profiles
                 return;
             }
 
-            if (!_profile.IsBot)
+            if (!_profile.IsBot && player.Bindings.Empty)
             {
                 // Prompt the user to select a device
                 var device = await _profileMenu.ShowDeviceDialog();

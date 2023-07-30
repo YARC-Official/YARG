@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -19,6 +20,8 @@ namespace YARG.Input
 
         private readonly Dictionary<GameMode, BindingCollection> _bindsByGameMode = new();
         public readonly BindingCollection MenuBindings;
+
+        public bool Empty => _devices.Count < 1;
 
         public BindingCollection this[GameMode mode] => _bindsByGameMode[mode];
 
