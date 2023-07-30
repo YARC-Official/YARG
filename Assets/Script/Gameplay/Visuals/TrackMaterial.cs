@@ -6,7 +6,7 @@ namespace YARG.Gameplay.Visuals
 {
     public class TrackMaterial : MonoBehaviour
     {
-        // MOST OF THIS CLASS IS TEMPORARY UNTIL THE TRACK TEXTURE SETTINGS ARE IN
+        // TODO: MOST OF THIS CLASS IS TEMPORARY UNTIL THE TRACK TEXTURE SETTINGS ARE IN
 
         private static readonly int _scrollProperty = Shader.PropertyToID("_Scroll");
         private static readonly int _starpowerStateProperty = Shader.PropertyToID("_Starpower_State");
@@ -58,6 +58,8 @@ namespace YARG.Gameplay.Visuals
 
         [HideInInspector]
         public bool GrooveMode;
+        [HideInInspector]
+        public bool StarpowerMode;
 
         private float _soloState;
 
@@ -151,6 +153,15 @@ namespace YARG.Gameplay.Visuals
             else
             {
                 GrooveState = Mathf.Lerp(GrooveState, 0f, Time.deltaTime * 3f);
+            }
+
+            if (StarpowerMode)
+            {
+                StarpowerState = Mathf.Lerp(StarpowerState, 1f, Time.deltaTime * 2f);
+            }
+            else
+            {
+                StarpowerState = Mathf.Lerp(StarpowerState, 0f, Time.deltaTime * 4f);
             }
         }
 

@@ -219,12 +219,14 @@ namespace YARG.Gameplay.Player
 
         protected void UpdateBaseVisuals(BaseStats stats, double songTime)
         {
-            bool groove = stats.ScoreMultiplier is 4 or 8;
+            int maxMultiplier = stats.IsStarPowerActive ? 8 : 4;
+            bool groove = stats.ScoreMultiplier == maxMultiplier;
 
             TrackMaterial.SetTrackScroll(songTime, NoteSpeed);
             TrackMaterial.GrooveMode = groove;
+            TrackMaterial.StarpowerMode = stats.IsStarPowerActive;
 
-            ComboMeter.SetCombo(stats.ScoreMultiplier, stats.IsStarPowerActive ? 8 : 4, stats.Combo);
+            ComboMeter.SetCombo(stats.ScoreMultiplier, maxMultiplier, stats.Combo);
             StarpowerBar.SetStarpower(stats.StarPowerAmount);
             SunburstEffects.SetSunburstEffects(groove, stats.IsStarPowerActive);
         }
