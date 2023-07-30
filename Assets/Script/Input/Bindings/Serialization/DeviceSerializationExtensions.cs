@@ -12,20 +12,20 @@ namespace YARG.Input.Serialization
         private static readonly Regex _xinputUserIndexRegex = new(@"\""userIndex\"":\d,");
         private static readonly SHA1 _hashAlgorithm = SHA1.Create();
 
-        private static readonly Dictionary<InputDevice, string> _serialCache = new();
+        private static readonly Dictionary<InputDevice, string> _hashCache = new();
 
-        public static string GetSerial(this InputDevice device)
+        public static SerializedInputDevice Serialize(this InputDevice device)
         {
-            // Use the device's serial if present
+            return SerializedInputDevice.Serialize(device);
+        }
+
+        public static string GetHash(this InputDevice device)
+        {
+            // Check if we have a calculated hash cached already
+            if (_hashCache.TryGetValue(device, out string hash))
+                return hash;
+
             var description = device.description;
-            if (!string.IsNullOrEmpty(description.serial))
-                return description.serial;
-
-            // Check if we have a calculated serial cached already
-            if (_serialCache.TryGetValue(device, out string serial))
-                return serial;
-
-            // Hash the description, best shot we have without a proper serial
             string descriptionJson = description.ToJson();
             // Exclude user index on XInput devices
             if (description.interfaceName == "XInput")
@@ -33,13 +33,13 @@ namespace YARG.Input.Serialization
 
             // Calculate the hash
             var descriptionBytes = Encoding.Default.GetBytes(descriptionJson);
-            var hash = _hashAlgorithm.ComputeHash(descriptionBytes);
-            serial = BitConverter.ToString(hash).Replace("-", "");
+            var hashBytes = _hashAlgorithm.ComputeHash(descriptionBytes);
+            hash = BitConverter.ToString(hashBytes).Replace("-", "");
 
-            // Cache the calculated serial
-            _serialCache.Add(device, serial);
+            // Cache the calculated hash
+            _hashCache.Add(device, hash);
 
-            return serial;
+            return hash;
         }
     }
 }

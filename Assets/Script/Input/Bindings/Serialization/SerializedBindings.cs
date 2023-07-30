@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine.InputSystem;
 using YARG.Core;
 
 namespace YARG.Input.Serialization
@@ -7,15 +8,35 @@ namespace YARG.Input.Serialization
 
     public class SerializedProfileBindings
     {
-        public List<string> DeviceSerials = new();
+        public List<SerializedInputDevice> Devices = new();
 
         public Dictionary<GameMode, BindingCollection> Bindings = new();
         public BindingCollection MenuBindings = new();
     }
 
+    public class SerializedInputDevice
+    {
+        public string Layout;
+        public string Hash;
+
+        public static SerializedInputDevice Serialize(InputDevice device)
+        {
+            return new()
+            {
+                Layout = device.layout,
+                Hash = device.GetHash(),
+            };
+        }
+
+        public bool MatchesDevice(InputDevice device)
+        {
+            return Layout == device.layout && Hash == device.GetHash();
+        }
+    }
+
     public class SerializedInputControl
     {
-        public string DeviceSerial;
+        public SerializedInputDevice Device;
         public string ControlPath;
         public Dictionary<string, string> Parameters = new();
     }

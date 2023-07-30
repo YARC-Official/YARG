@@ -286,14 +286,12 @@ namespace YARG.Input
 
         public override void OnDeviceAdded(InputDevice device)
         {
-            string serial = device.GetSerial();
-
             // Search by index, can't modify a collection while enumerating it
             bool controlsModified = false;
             for (int i = 0; i < _unresolvedBindings.Count; i++)
             {
                 var binding = _unresolvedBindings[i];
-                if (binding.DeviceSerial != serial)
+                if (!binding.Device.MatchesDevice(device))
                     continue;
 
                 var deserialized = DeserializeControl(device, binding);
@@ -348,7 +346,7 @@ namespace YARG.Input
         {
             return new SerializedInputControl()
             {
-                DeviceSerial = binding.Control.device.GetSerial(),
+                Device = binding.Control.device.Serialize(),
                 ControlPath = binding.Control.path,
             };
         }

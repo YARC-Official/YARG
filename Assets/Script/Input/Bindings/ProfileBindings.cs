@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -16,7 +15,8 @@ namespace YARG.Input
     {
         public YargProfile Profile { get; }
 
-        private readonly Dictionary<string, InputDevice> _devices = new();
+        private readonly List<SerializedInputDevice> _unresolvedDevices = new();
+        private readonly List<InputDevice> _devices = new();
 
         private readonly Dictionary<GameMode, BindingCollection> _bindsByGameMode = new();
         public readonly BindingCollection MenuBindings;
@@ -68,10 +68,10 @@ namespace YARG.Input
         public ProfileBindings(YargProfile profile, SerializedProfileBindings bindings)
             : this(profile)
         {
-            foreach (string serial in bindings.DeviceSerials)
+            foreach (var device in bindings.Devices)
             {
                 // Devices will be resolved later
-                _devices.Add(serial, null);
+                _unresolvedDevices.Add(device);
             }
 
             foreach (var (mode, serializedBinds) in bindings.Bindings)
@@ -92,9 +92,14 @@ namespace YARG.Input
         {
             var serialized = new SerializedProfileBindings();
 
-            foreach (var serial in _devices.Keys)
+            foreach (var device in _devices)
             {
-                serialized.DeviceSerials.Add(serial);
+                serialized.Devices.Add(device.Serialize());
+            }
+
+            foreach (var device in _unresolvedDevices)
+            {
+                serialized.Devices.Add(device);
             }
 
             foreach (var (mode, bindings) in _bindsByGameMode)
@@ -152,29 +157,38 @@ namespace YARG.Input
 
         public bool AddDevice(InputDevice device)
         {
-            string serial = device.GetSerial();
+            // Ignore already-added devices
             if (ContainsDevice(device))
                 return false;
 
-            _devices[serial] = device;
+            // Remove corresponding serialized entry
+            int index = FindSerializedIndex(device);
+            if (index >= 0)
+                _unresolvedDevices.RemoveAt(index);
+
+            _devices.Add(device);
             NotifyDeviceAdded(device);
+            return true;
+        }
+
+        public bool RemoveDevice(InputDevice device)
+        {
+            // Remove without serializing
+            if (!_devices.Remove(device))
+                return false;
+
+            NotifyDeviceRemoved(device);
             return true;
         }
 
         public bool ContainsDevice(InputDevice device)
         {
-            string serial = device.GetSerial();
-            return _devices.TryGetValue(serial, out var registered) && registered is not null;
+            return _devices.Contains(device);
         }
 
-        public bool RemoveDevice(InputDevice device)
+        private int FindSerializedIndex(InputDevice device)
         {
-            string serial = device.GetSerial();
-            if (!_devices.Remove(serial))
-                return false;
-
-            NotifyDeviceRemoved(device);
-            return true;
+            return _unresolvedDevices.FindIndex((dev) => dev.MatchesDevice(device));
         }
 
         public void OnDeviceAdded(InputDevice device)
@@ -183,8 +197,13 @@ namespace YARG.Input
             if (ContainsDevice(device))
                 return;
 
-            string serial = device.GetSerial();
-            _devices[serial] = device;
+            // Ignore devices not registered to this profile
+            int serializedIndex = FindSerializedIndex(device);
+            if (serializedIndex < 0)
+                return;
+
+            _unresolvedDevices.RemoveAt(serializedIndex);
+            _devices.Add(device);
             NotifyDeviceAdded(device);
         }
 
@@ -194,9 +213,13 @@ namespace YARG.Input
             if (!ContainsDevice(device))
                 return;
 
-            // Need to retain the serial for serialization
-            string serial = device.GetSerial();
-            _devices[serial] = null;
+            // Ensure devices aren't serialized twice
+            int serializedIndex = FindSerializedIndex(device);
+            if (serializedIndex >= 0)
+                return;
+
+            _devices.Remove(device);
+            _unresolvedDevices.Add(device.Serialize());
             NotifyDeviceRemoved(device);
         }
 
