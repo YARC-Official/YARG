@@ -1,6 +1,8 @@
 ﻿using TMPro;
 using UnityEngine;
+using UnityEngine.Localization.Components;
 using YARG.Core;
+using YARG.Helpers;
 using YARG.Menu.Navigation;
 
 namespace YARG.Menu.Profiles
@@ -9,7 +11,7 @@ namespace YARG.Menu.Profiles
     {
         [Space]
         [SerializeField]
-        private TextMeshProUGUI _gameModeName;
+        private LocalizeStringEvent _gameModeName;
 
         private EditProfileMenu _editProfileMenu;
         private GameMode _gameMode;
@@ -19,7 +21,7 @@ namespace YARG.Menu.Profiles
             _gameMode = gameMode;
             _editProfileMenu = editProfileMenu;
 
-            _gameModeName.text = gameMode.ToString();
+            _gameModeName.StringReference = LocaleHelper.StringReference($"GameMode.{gameMode}");
         }
 
         protected override void OnSelectionChanged(bool selected)

@@ -60,14 +60,10 @@ namespace YARG.Menu.Profiles
             _gameModeList.transform.DestroyChildren();
             _gameModeNavGroup.ClearNavigatables();
 
-            // Spawn in a profile view for each player
-            foreach (var gameMode in EnumExtensions<GameMode>.Values)
-            {
-                var go = Instantiate(_gameModeViewPrefab, _gameModeList);
-                go.GetComponent<GameModeView>().Init(gameMode, this);
-
-                _gameModeNavGroup.AddNavigatable(go);
-            }
+            // Spawn in a game mode view for the selected game mode
+            var go = Instantiate(_gameModeViewPrefab, _gameModeList);
+            go.GetComponent<GameModeView>().Init(_currentPlayer.Profile.GameMode, this);
+            _gameModeNavGroup.AddNavigatable(go);
 
             // Select first game mode
             _gameModeNavGroup.SelectFirst();
