@@ -1,5 +1,6 @@
 ﻿using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using YARG.Replays;
 
 namespace YARG.Menu.Replays
@@ -21,7 +22,24 @@ namespace YARG.Menu.Replays
         [SerializeField]
         private TextMeshProUGUI _score;
 
+        private Button _button;
+
         private ReplayEntry _replay;
+
+        private void Awake()
+        {
+            _button = GetComponent<Button>();
+
+            _button.onClick.AddListener(() =>
+            {
+                GlobalVariables.Instance.IsReplay = true;
+                GlobalVariables.Instance.CurrentReplay = _replay;
+
+                GlobalVariables.AudioManager.UnloadSong();
+
+                GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+            });
+        }
 
         public void ShowAsReplay(bool selected, ReplayEntry replay)
         {
@@ -51,11 +69,14 @@ namespace YARG.Menu.Replays
             var c = _artistName.color;
             c.a = selected ? 1f : 0.5f;
             _artistName.color = c;
+
+            _button.interactable = true;
         }
 
         public void Hide()
         {
             _canvasGroup.alpha = 0f;
+            _button.interactable = false;
 
             _replay = null;
         }
