@@ -87,6 +87,7 @@ namespace YARG.Player
 
             var bindings = GetBindingsForProfile(profile);
             var player = new YargPlayer(profile, bindings);
+            player.EnableInputs();
             _players.Add(player);
             _playersByProfile.Add(profile, player);
 

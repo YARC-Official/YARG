@@ -11,7 +11,7 @@ using YARG.Input.Serialization;
 namespace YARG.Input
 {
     [JsonConverter(typeof(ProfileBindingsConverter))]
-    public class ProfileBindings
+    public class ProfileBindings : IDisposable
     {
         public YargProfile Profile { get; }
 
@@ -107,6 +107,14 @@ namespace YARG.Input
         public static ProfileBindings Deserialize(YargProfile profile, SerializedProfileBindings serialized)
         {
             return new(profile, serialized);
+        }
+
+        public void ResolveDevices()
+        {
+            foreach (var device in InputSystem.devices)
+            {
+                OnDeviceAdded(device);
+            }
         }
 
         public void EnableInputs()
@@ -223,6 +231,14 @@ namespace YARG.Input
             }
 
             MenuBindings.ProcessInputEvent(eventPtr);
+        }
+
+        public void Dispose()
+        {
+            foreach (var device in InputSystem.devices)
+            {
+                OnDeviceRemoved(device);
+            }
         }
     }
 }

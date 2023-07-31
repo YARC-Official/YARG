@@ -14,7 +14,7 @@ namespace YARG.Player
 
         // public MicInput MicInput;
 
-        public bool InputsEnabled { get; private set; }
+        public bool InputsEnabled { get; private set; } = false;
         public ProfileBindings Bindings { get; private set; }
 
         public ColorProfile ColorProfile = ColorProfile.Default;
@@ -27,13 +27,21 @@ namespace YARG.Player
 
         public void SwapToProfile(YargProfile profile, ProfileBindings bindings)
         {
-            // TODO: deal with the previous bindings, etc.
-
             // Force-disable inputs
+            bool enabled = InputsEnabled;
             DisableInputs();
 
+            // Swap to the new profile
+            Bindings?.Dispose();
             Profile = profile;
             Bindings = bindings;
+
+            // Resolve bindings
+            Bindings.ResolveDevices();
+
+            // Re-enable inputs
+            if (enabled)
+                EnableInputs();
         }
 
         public void EnableInputs()
@@ -68,7 +76,7 @@ namespace YARG.Player
         public void Dispose()
         {
             DisableInputs();
-            // InputStrategy?.Dispose();
+            Bindings?.Dispose();
         }
     }
 }
