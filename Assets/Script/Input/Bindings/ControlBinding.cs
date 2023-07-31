@@ -195,8 +195,24 @@ namespace YARG.Input
 
         public override void Deserialize(List<SerializedInputControl> serialized)
         {
+            if (serialized is null)
+            {
+                Debug.LogWarning($"Encountered invalid controls list for binding {Key}!");
+                return;
+            }
+
             foreach (var binding in serialized)
             {
+                if (binding is null || string.IsNullOrEmpty(binding.ControlPath) || binding.Device is null ||
+                    string.IsNullOrEmpty(binding.Device.Layout) || string.IsNullOrEmpty(binding.Device.Hash))
+                {
+                    Debug.LogWarning($"Encountered invalid control for binding {Key}!");
+                    return;
+                }
+
+                // Don't bail out on invalid parameters, they're not necessary for deserialization
+                binding.Parameters ??= new();
+
                 // Bindings will be resolved later
                 _unresolvedBindings.Add(binding);
             }

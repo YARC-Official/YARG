@@ -68,21 +68,49 @@ namespace YARG.Input
         public ProfileBindings(YargProfile profile, SerializedProfileBindings bindings)
             : this(profile)
         {
-            foreach (var device in bindings.Devices)
+            if (bindings is null)
             {
-                // Devices will be resolved later
-                _unresolvedDevices.Add(device);
+                Debug.LogWarning($"Encountered invalid bindings for profile {profile.Name}!");
+                return;
             }
 
-            foreach (var (mode, serializedBinds) in bindings.Bindings)
+            if (bindings.Devices is null)
             {
-                if (!_bindsByGameMode.TryGetValue(mode, out var modeBindings))
+                Debug.LogWarning($"Encountered invalid device list for profile {profile.Name}!");
+                // Continue to next part of the bindings, salvage as much as possible
+            }
+            else
+            {
+                foreach (var device in bindings.Devices)
                 {
-                    Debug.LogWarning($"Encountered invalid game mode {mode}!");
-                    continue;
-                }
+                    if (device is null || string.IsNullOrEmpty(device.Layout) || string.IsNullOrEmpty(device.Hash))
+                    {
+                        Debug.LogWarning($"Encountered invalid device entry in bindings for profile {profile.Name}!");
+                        continue;
+                    }
 
-                modeBindings.Deserialize(serializedBinds);
+                    // Devices will be resolved later
+                    _unresolvedDevices.Add(device);
+                }
+            }
+
+            if (bindings.Bindings is null)
+            {
+                Debug.LogWarning($"Encountered invalid bindings list for profile {profile.Name}!");
+                // Continue to next part of the bindings, salvage as much as possible
+            }
+            else
+            {
+                foreach (var (mode, serializedBinds) in bindings.Bindings)
+                {
+                    if (!_bindsByGameMode.TryGetValue(mode, out var modeBindings))
+                    {
+                        Debug.LogWarning($"Encountered invalid game mode {mode} in bindings for profile {profile.Name}!");
+                        continue;
+                    }
+
+                    modeBindings.Deserialize(serializedBinds);
+                }
             }
 
             MenuBindings.Deserialize(bindings.MenuBindings);

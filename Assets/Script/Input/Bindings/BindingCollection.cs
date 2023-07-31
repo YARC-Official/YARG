@@ -48,6 +48,12 @@ namespace YARG.Input
 
         public void Deserialize(Dictionary<string, List<SerializedInputControl>> serialized)
         {
+            if (serialized is null)
+            {
+                Debug.LogWarning($"Encountered invalid bindings list!");
+                return;
+            }
+
             foreach (var (key, bindings) in serialized)
             {
                 var binding = TryGetBindingByKey(key);
