@@ -47,6 +47,12 @@ namespace YARG.Menu.Profiles
             _profilePicture.sprite = profile.IsBot ? _profileBotSprite : _profileGenericSprite;
         }
 
+        private void Reinitialize()
+        {
+            Init(_profileMenu, _profile, _profileSidebar);
+            _profileSidebar.UpdateSidebar(_profile, this);
+        }
+
         protected override void OnSelectionChanged(bool selected)
         {
             base.OnSelectionChanged(selected);
@@ -71,60 +77,57 @@ namespace YARG.Menu.Profiles
             }
         }
 
-        public async void ConnectOrDisconnect()
+        public async void Connect()
         {
             // Select item to prevent confusion
             Selected = true;
 
+            if (PlayerContainer.IsProfileTaken(_profile))
+            {
+                Debug.LogError($"Attempted to connect already-taken profile {_profile.Name}!");
+                return;
+            }
+
+            // Create player from profile
+            var player = PlayerContainer.CreatePlayerFromProfile(_profile);
+            if (player is null)
+            {
+                Debug.LogError($"Failed to connect profile {_profile.Name}!");
+                return;
+            }
+
             if (!_profile.IsBot)
-            {
-                await ConnectOrDisconnectAsPlayer();
-            }
-            else
-            {
-                ConnectOrDisconnectAsBot();
-            }
-
-            // Re-initialize self and sidebar
-            Init(_profileMenu, _profile, _profileSidebar);
-            _profileSidebar.UpdateSidebar(_profile, this);
-        }
-
-        private async UniTask ConnectOrDisconnectAsPlayer()
-        {
-            var player = PlayerContainer.GetPlayerFromProfile(_profile);
-
-            if (player is not null)
-            {
-                PlayerContainer.DisposePlayer(player);
-            }
-            else
             {
                 // Prompt the user to select a device
                 var device = await _profileMenu.ShowDeviceDialog();
-                if (device is null) return;
-
-                // Create a player from the profile (and return if failed)
-                player = PlayerContainer.CreatePlayerFromProfile(_profile);
-                if (player is null) return;
+                if (device is null)
+                {
+                    // Don't leak player when cancelling
+                    PlayerContainer.DisposePlayer(player);
+                    return;
+                }
 
                 // Then, add the device to the bindings
                 player.Bindings.AddDevice(device);
             }
+
+            Reinitialize();
         }
 
-        private void ConnectOrDisconnectAsBot()
+        public void Disconnect()
         {
-            var player = PlayerContainer.GetPlayerFromProfile(_profile);
+            // Select item to prevent confusion
+            Selected = true;
 
-            if (player is not null)
+            var player = PlayerContainer.GetPlayerFromProfile(_profile);
+            if (player is null)
             {
-                PlayerContainer.DisposePlayer(player);
+                Debug.LogError($"Could not get player for profile {_profile.Name}!");
+                return;
             }
-            else
-            {
-                PlayerContainer.CreatePlayerFromProfile(_profile);
-            }
+
+            PlayerContainer.DisposePlayer(player);
+            Reinitialize();
         }
     }
 }
