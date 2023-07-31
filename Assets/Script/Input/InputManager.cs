@@ -27,14 +27,13 @@ namespace YARG.Input
 
         // Time reference for when inputs started being tracked
         public static double InputTimeOffset { get; set; }
-
         public static double CurrentUpdateTime { get; private set; }
 
         // Input events are timestamped directly in the constructor, so we can use them to get the current time
         public static double CurrentInputTime => new InputEvent(StateEvent.Type, 0, InputDevice.InvalidDeviceId).time;
 
-        public static double RelativeInputTime => GetRelativeTime(CurrentUpdateTime);
-        public static double RelativeUpdateTime => GetRelativeTime(CurrentInputTime);
+        public static double RelativeInputTime => GetRelativeTime(CurrentInputTime);
+        public static double RelativeUpdateTime => GetRelativeTime(CurrentUpdateTime);
 
         private static IDisposable _onEventListener;
 

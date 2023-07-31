@@ -75,11 +75,26 @@ namespace YARG.Gameplay
         public double SongTime => RealSongTime + AudioCalibration;
 
         /// <summary>
-        /// The current input update time, accounting for song speed.
+        /// The current input update time, accounting for song speed, <b>and for</b> calibration.
+        /// </summary>
+        // Remember that calibration is already accounted for by "relative update time"
+        public double InputTime => InputManager.RelativeUpdateTime * SelectedSongSpeed;
+        /// <summary>
+        /// The current input update <b>at this instant</b>, accounting for song speed, <b>and for</b> calibration.
+        /// </summary>
+        public double InstantInputTime => InputManager.RelativeUpdateTime * SelectedSongSpeed;
+
+        /// <summary>
+        /// The current input update time, accounting for song speed, but <b>not</b> for calibration.
         /// </summary>
         // Uses the selected song speed and not the actual song speed,
         // audio is synced to the inputs and not vice versa
-        public double InputTime => InputManager.RelativeUpdateTime * SelectedSongSpeed;
+        public double RealInputTime => InputTime - AudioCalibration;
+
+        /// <summary>
+        /// The current input time <b>at this instant</b>, accounting for song speed, but <b>not</b> for calibration.
+        /// </summary>
+        public double RealInstantInputTime => InstantInputTime - AudioCalibration;
 
         public bool IsReplay { get; private set; }
 
@@ -161,7 +176,7 @@ namespace YARG.Gameplay
             RealSongTime = -SongStartDelay;
             InputManager.InputTimeOffset = InputManager.CurrentInputTime
                 - AudioCalibration // Subtract audio calibration so that times are adjusted for it
-                + SongStartDelay; // Add delay so that times before the audio actually starts are negative
+                + SongStartDelay;  // Add delay so that times before the audio actually starts are negative
 
             // Loaded, enable updates
             enabled = true;
@@ -182,7 +197,7 @@ namespace YARG.Gameplay
             if (RealSongTime < 0.0)
             {
                 // Drive song time using input time until it's time to start the audio
-                RealSongTime = InputTime;
+                RealSongTime = RealInputTime;
                 if (RealSongTime >= 0.0)
                 {
                     // Start audio
@@ -219,29 +234,35 @@ namespace YARG.Gameplay
 
         private async UniTask SyncAudio()
         {
-            const double SyncThreshold = 0.025;
-            const float SpeedAdjustment = 0.05f;
+            const double INITIAL_SYNC_THRESH = 0.015;
+            const double ADJUST_SYNC_THRESH = 0.005;
+            const float SPEED_ADJUSTMENT = 0.05f;
 
-            double inputTime = InputTime;
-            double audioTime = SongTime;
+            // DON'T use any "SongTime" variables for this because that is
+            // updated every frame. This is async.
+            double inputTime = RealInstantInputTime;
+            double audioTime = GlobalVariables.AudioManager.CurrentPositionD;
 
             if (audioTime < 0.0)
                 return;
 
             double delta = inputTime - audioTime;
-            if (Math.Abs(delta) < SyncThreshold)
+            if (Math.Abs(delta) < INITIAL_SYNC_THRESH)
                 return;
 
             Debug.Log($"Resyncing audio position. Input: {inputTime}, audio: {audioTime}, delta: {delta}");
 
-            float speedAdjustment = delta > 0.0 ? SpeedAdjustment : -SpeedAdjustment;
+            float speedAdjustment = delta > 0.0 ? SPEED_ADJUSTMENT : -SPEED_ADJUSTMENT;
             ActualSongSpeed = SelectedSongSpeed + speedAdjustment;
             GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
 
             await UniTask.WaitUntil(() =>
             {
-                double newDelta = InputTime - GlobalVariables.AudioManager.CurrentPositionD;
-                return Math.Abs(newDelta) < SyncThreshold ||
+                double newDelta = RealInstantInputTime - GlobalVariables.AudioManager.CurrentPositionD;
+
+                // Make sure to use a lower threshold so we don't have to *constantly*
+                // sync things up.
+                return Math.Abs(newDelta) < ADJUST_SYNC_THRESH ||
                     // Detect overshooting
                     (delta > 0.0 && newDelta < 0.0) ||
                     (delta < 0.0 && newDelta > 0.0);
@@ -249,7 +270,7 @@ namespace YARG.Gameplay
             ActualSongSpeed = SelectedSongSpeed;
             GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
 
-            inputTime = InputTime;
+            inputTime = RealInstantInputTime;
             audioTime = GlobalVariables.AudioManager.CurrentPositionD;
             double finalDelta = inputTime - audioTime;
             Debug.Log($"Audio synced. Input: {inputTime}, audio: {audioTime}, delta: {finalDelta}");
