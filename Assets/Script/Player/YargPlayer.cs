@@ -37,7 +37,7 @@ namespace YARG.Player
             Bindings = bindings;
 
             // Resolve bindings
-            Bindings.ResolveDevices();
+            Bindings?.ResolveDevices();
 
             // Re-enable inputs
             if (enabled)

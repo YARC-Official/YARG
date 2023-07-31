@@ -386,6 +386,7 @@ namespace YARG.Gameplay
                 Debug.Log("Wrote replay");
             }
 
+            GlobalVariables.Instance.IsReplay = false;
             GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
         }
     }
