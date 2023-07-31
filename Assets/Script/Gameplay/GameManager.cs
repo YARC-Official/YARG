@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core;
 using YARG.Core.Chart;
+using YARG.Core.Game;
+using YARG.Core.Replays;
 using YARG.Core.Replays.IO;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
@@ -86,9 +88,13 @@ namespace YARG.Gameplay
         public int BandScore { get; private set; }
         public int BandCombo { get; private set; }
 
+        public Replay Replay { get; private set; }
+
         private double _pauseStartTime;
 
         private SongChart _chart;
+
+        private IReadOnlyList<YargPlayer> _yargPlayers;
 
         private List<BasePlayer> _players;
         private List<Beatline>   _beats;
@@ -100,9 +106,42 @@ namespace YARG.Gameplay
         private void Awake()
         {
             Song = GlobalVariables.Instance.CurrentSong;
+            IsReplay = GlobalVariables.Instance.IsReplay;
             SelectedSongSpeed = GlobalVariables.Instance.SongSpeed;
             ActualSongSpeed = SelectedSongSpeed;
-            IsReplay = GlobalVariables.Instance.IsReplay;
+
+            _yargPlayers = PlayerContainer.Players;
+
+            if (IsReplay)
+            {
+                string checksum = GlobalVariables.Instance.CurrentReplay.SongChecksum;
+                var result = ReplayContainer.LoadReplayFile(GlobalVariables.Instance.CurrentReplay, out var replay);
+
+                Song = SongContainer.SongsByHash[checksum];
+                if (Song is null || result != ReplayReadResult.Valid)
+                {
+                    GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                }
+
+                Replay = replay;
+
+                var players = new List<YargPlayer>();
+                foreach (var frame in Replay.Frames)
+                {
+                    var profile = new YargProfile
+                    {
+                        Name = frame.PlayerName,
+                        GameMode = frame.Instrument.ToGameMode(),
+                        Instrument = frame.Instrument,
+                        Difficulty = frame.Difficulty,
+                        NoteSpeed = 7,
+                    };
+
+                    players.Add(new YargPlayer(profile, null));
+                }
+
+                _yargPlayers = players;
+            }
         }
 
         private async UniTask Start()
@@ -248,10 +287,10 @@ namespace YARG.Gameplay
         {
             _players = new List<BasePlayer>();
 
-            int count = -1;
-            foreach (var player in PlayerContainer.Players)
+            int index = -1;
+            foreach (var player in _yargPlayers)
             {
-                count++;
+                index++;
                 var prefab = player.Profile.GameMode switch
                 {
                     GameMode.FiveFretGuitar => fiveFretGuitarPrefab,
@@ -267,11 +306,11 @@ namespace YARG.Gameplay
                     continue;
                 }
 
-                var playerObject = Instantiate(prefab, new Vector3(count * 25f, 100f, 0f), prefab.transform.rotation);
+                var playerObject = Instantiate(prefab, new Vector3(index * 25f, 100f, 0f), prefab.transform.rotation);
 
                 // Setup player
                 var basePlayer = playerObject.GetComponent<BasePlayer>();
-                basePlayer.Initialize(player, _chart);
+                basePlayer.Initialize(index, player, _chart);
                 _players.Add(basePlayer);
 
                 _trackViewManager.CreateTrackView(basePlayer);

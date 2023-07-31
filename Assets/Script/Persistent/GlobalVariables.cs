@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using YARG.Audio;
 using YARG.Audio.BASS;
@@ -37,7 +36,8 @@ namespace YARG
 
         public SceneIndex CurrentScene { get; private set; } = SceneIndex.Persistent;
 
-        public SongEntry CurrentSong;
+        public SongEntry   CurrentSong;
+        public ReplayEntry CurrentReplay;
 
         public float SongSpeed = 1f;
         public bool  IsReplay;

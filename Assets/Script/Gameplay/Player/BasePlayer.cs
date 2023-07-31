@@ -72,7 +72,7 @@ namespace YARG.Gameplay.Player
             IsFc = true;
         }
 
-        public virtual void Initialize(YargPlayer player, SongChart chart)
+        public virtual void Initialize(int index, YargPlayer player, SongChart chart)
         {
             if (IsInitialized)
                 return;
@@ -82,8 +82,8 @@ namespace YARG.Gameplay.Player
 
             if (GameManager.IsReplay)
             {
-                // _replayInputs = new List<GameInput>(GlobalVariables.Instance.CurrentReplay.Frames[0].Inputs);
-                // Debug.Log("Initialized replay inputs with " + _replayInputs.Count + " inputs");
+                _replayInputs = new List<GameInput>(GameManager.Replay.Frames[index].Inputs);
+                Debug.Log("Initialized replay inputs with " + _replayInputs.Count + " inputs");
             }
 
             _beatlineEnumerator = SyncTrack.Beatlines.GetEnumerator();
@@ -141,12 +141,18 @@ namespace YARG.Gameplay.Player
 
         protected void Start()
         {
-            SubscribeToInputEvents();
+            if (!GameManager.IsReplay)
+            {
+                SubscribeToInputEvents();
+            }
         }
 
         private void OnDestroy()
         {
-            UnsubscribeFromInputEvents();
+            if (!GameManager.IsReplay)
+            {
+                UnsubscribeFromInputEvents();
+            }
         }
 
         protected void AddReplayInput(GameInput input)
@@ -170,12 +176,12 @@ namespace YARG.Gameplay.Player
 
         private int _replayInputIndex;
 
-        public override void Initialize(YargPlayer player, SongChart chart)
+        public override void Initialize(int index, YargPlayer player, SongChart chart)
         {
             if (IsInitialized)
                 return;
 
-            base.Initialize(player, chart);
+            base.Initialize(index, player, chart);
 
             Notes = GetNotes(chart);
 
