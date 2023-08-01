@@ -77,7 +77,12 @@ namespace YARG.Menu.Profiles
             }
         }
 
-        public async void Connect()
+        public async void ConnectButtonAction()
+        {
+            await Connect(true);
+        }
+
+        public async UniTask Connect(bool resolveDevices)
         {
             // Select item to prevent confusion
             Selected = true;
@@ -89,7 +94,7 @@ namespace YARG.Menu.Profiles
             }
 
             // Create player from profile
-            var player = PlayerContainer.CreatePlayerFromProfile(_profile);
+            var player = PlayerContainer.CreatePlayerFromProfile(_profile, resolveDevices);
             if (player is null)
             {
                 Debug.LogError($"Failed to connect profile {_profile.Name}!");

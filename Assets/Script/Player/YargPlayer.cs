@@ -20,12 +20,12 @@ namespace YARG.Player
         public ColorProfile ColorProfile = ColorProfile.Default;
         public CameraSettings CameraSettings = CameraSettings.Default;
 
-        public YargPlayer(YargProfile profile, ProfileBindings bindings)
+        public YargPlayer(YargProfile profile, ProfileBindings bindings, bool resolveDevices)
         {
-            SwapToProfile(profile, bindings);
+            SwapToProfile(profile, bindings, resolveDevices);
         }
 
-        public void SwapToProfile(YargProfile profile, ProfileBindings bindings)
+        public void SwapToProfile(YargProfile profile, ProfileBindings bindings, bool resolveDevices)
         {
             // Force-disable inputs
             bool enabled = InputsEnabled;
@@ -37,7 +37,10 @@ namespace YARG.Player
             Bindings = bindings;
 
             // Resolve bindings
-            Bindings?.ResolveDevices();
+            if (resolveDevices)
+            {
+                Bindings?.ResolveDevices();
+            }
 
             // Re-enable inputs
             if (enabled)

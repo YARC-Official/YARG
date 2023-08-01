@@ -119,6 +119,35 @@ namespace YARG.Menu.Profiles
             MenuManager.Instance.PushMenu(MenuManager.Menu.EditProfile);
         }
 
+        public async void ConnectManuallyOrAddNewDevice()
+        {
+            if (!PlayerContainer.IsProfileTaken(_profile))
+            {
+                // Just do the same as the auto connect button, but don't resolve devices.
+                await _profileView.Connect(false);
+            }
+            else
+            {
+                // If it's taken, then prompt to add a new device
+                var device = await _profileMenu.ShowDeviceDialog();
+                if (device is null)
+                {
+                    return;
+                }
+
+                // Then, add the device to the bindings
+                var player = PlayerContainer.GetPlayerFromProfile(_profile);
+                if (player.Bindings.ContainsDevice(device))
+                {
+                    player.Bindings.OnDeviceAdded(device);
+                }
+                else
+                {
+                    player.Bindings.AddDevice(device);
+                }
+            }
+        }
+
         public void ChangeGameMode()
         {
             _profile.GameMode = _gameModesByIndex[_gameModeDropdown.value];

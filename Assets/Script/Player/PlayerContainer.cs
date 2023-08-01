@@ -77,7 +77,7 @@ namespace YARG.Player
             return _playersByProfile.ContainsKey(profile);
         }
 
-        public static YargPlayer CreatePlayerFromProfile(YargProfile profile)
+        public static YargPlayer CreatePlayerFromProfile(YargProfile profile, bool resolveDevices)
         {
             if (!_profiles.Contains(profile))
                 return null;
@@ -86,7 +86,7 @@ namespace YARG.Player
                 return null;
 
             var bindings = GetBindingsForProfile(profile);
-            var player = new YargPlayer(profile, bindings);
+            var player = new YargPlayer(profile, bindings, resolveDevices);
             player.EnableInputs();
             _players.Add(player);
             _playersByProfile.Add(profile, player);
@@ -119,7 +119,7 @@ namespace YARG.Player
             _playersByProfile.Add(newProfile, player);
 
             var bindings = GetBindingsForProfile(newProfile);
-            player.SwapToProfile(newProfile, bindings);
+            player.SwapToProfile(newProfile, bindings, true);
 
             return true;
         }

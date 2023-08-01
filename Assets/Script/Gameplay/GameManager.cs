@@ -152,7 +152,7 @@ namespace YARG.Gameplay
                         NoteSpeed = 7,
                     };
 
-                    players.Add(new YargPlayer(profile, null));
+                    players.Add(new YargPlayer(profile, null, false));
                 }
 
                 _yargPlayers = players;
