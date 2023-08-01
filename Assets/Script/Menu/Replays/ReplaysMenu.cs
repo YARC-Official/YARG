@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using YARG.Core.Input;
 using YARG.Menu.Navigation;
 using YARG.Replays;
 
@@ -74,7 +75,7 @@ namespace YARG.Menu.Replays
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
-                new NavigationScheme.Entry(MenuAction.Select, "Select", () =>
+                new NavigationScheme.Entry(MenuAction.Green, "Select", () =>
                 {
 
                 })

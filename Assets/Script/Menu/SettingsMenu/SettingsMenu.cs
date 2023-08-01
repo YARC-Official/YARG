@@ -6,6 +6,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
 using UnityEngine.UI;
+using YARG.Core.Input;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Menu.MusicLibrary;
@@ -99,7 +100,7 @@ namespace YARG.Menu.Settings
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
-                new NavigationScheme.Entry(MenuAction.Back, "Back", () => { gameObject.SetActive(false); })
+                new NavigationScheme.Entry(MenuAction.Red, "Back", () => { gameObject.SetActive(false); })
             }, true));
 
             ReturnToFirstTab();

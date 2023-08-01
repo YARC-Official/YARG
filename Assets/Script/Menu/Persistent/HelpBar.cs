@@ -1,8 +1,8 @@
-using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using YARG.Core;
+using YARG.Core.Input;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
 
@@ -79,6 +79,12 @@ namespace YARG.Menu.Persistent
                 {
                     Debug.LogWarning("Too many actions in navigation scheme! Some actions will be ignored and unavailable.");
                     break;
+                }
+
+                // Skip directional binds in help bar
+                if (entry.Type is MenuAction.Left or MenuAction.Right or MenuAction.Up or MenuAction.Down)
+                {
+                    continue;
                 }
 
                 var button = _buttons[buttonIndex];

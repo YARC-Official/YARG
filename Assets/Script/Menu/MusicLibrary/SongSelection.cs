@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using YARG.Audio;
+using YARG.Core.Input;
 using YARG.Menu.Navigation;
 using YARG.Settings;
 using YARG.Song;
@@ -190,18 +191,18 @@ namespace YARG.Menu.MusicLibrary
             {
                 new NavigationScheme.Entry(MenuAction.Up, "Up", ScrollUp),
                 new NavigationScheme.Entry(MenuAction.Down, "Down", ScrollDown),
-                new NavigationScheme.Entry(MenuAction.Select, "Confirm",
+                new NavigationScheme.Entry(MenuAction.Green, "Confirm",
                     () => { CurrentSelection?.PrimaryButtonClick(); }),
-                new NavigationScheme.Entry(MenuAction.Back, "Back", Back),
-                new NavigationScheme.Entry(MenuAction.Shortcut1, _nextSortCriteria, ChangeSongOrder),
-                new NavigationScheme.Entry(MenuAction.Shortcut2, _nextFilter, ChangeFilter),
-                new NavigationScheme.Entry(MenuAction.Shortcut3, "(Hold) Section", () => { })
+                new NavigationScheme.Entry(MenuAction.Red, "Back", Back),
+                new NavigationScheme.Entry(MenuAction.Yellow, _nextSortCriteria, ChangeSongOrder),
+                new NavigationScheme.Entry(MenuAction.Blue, _nextFilter, ChangeFilter),
+                new NavigationScheme.Entry(MenuAction.Orange, "(Hold) Section", () => { })
             }, false);
         }
 
         private void ScrollUp()
         {
-            if (Navigator.Instance.IsHeld(MenuAction.Shortcut3))
+            if (Navigator.Instance.IsHeld(MenuAction.Orange))
             {
                 SelectPreviousSection();
                 return;
@@ -212,7 +213,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void ScrollDown()
         {
-            if (Navigator.Instance.IsHeld(MenuAction.Shortcut3))
+            if (Navigator.Instance.IsHeld(MenuAction.Orange))
             {
                 SelectNextSection();
                 return;

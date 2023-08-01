@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using YARG.Core.Input;
 using YARG.Menu.Settings;
 using YARG.Menu.Navigation;
 using YARG.PlayMode;
@@ -42,8 +43,8 @@ namespace YARG.Menu
             {
                 new NavigationScheme.Entry(MenuAction.Up, "Up", () => { MoveOption(-1); }),
                 new NavigationScheme.Entry(MenuAction.Down, "Down", () => { MoveOption(1); }),
-                new NavigationScheme.Entry(MenuAction.Select, "Confirm", () => { SelectCurrentOption(); }),
-                new NavigationScheme.Entry(MenuAction.Back, "Back", () => { OnResumeSelected(); })
+                new NavigationScheme.Entry(MenuAction.Green, "Confirm", () => { SelectCurrentOption(); }),
+                new NavigationScheme.Entry(MenuAction.Red, "Back", () => { OnResumeSelected(); })
             }, false));
         }
 

@@ -2,25 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using YARG.Core.Input;
 using YARG.Menu.Persistent;
 using YARG.Player;
 
 namespace YARG.Menu.Navigation
 {
-    public enum MenuAction
-    {
-        //         // Guitar | Drums      |
-        Select,    // Green  | Green      |
-        Back,      // Red    | Red        |
-        Shortcut1, // Yellow | Yellow Cym |
-        Shortcut2, // Blue   | Blue Cym   |
-        Shortcut3, // Orange | Kick       |
-        Up,        // Strum  | Yellow     |
-        Down,      // Strum  | Blue       |
-        Pause,     // Pause  |            |
-        More,      // Select | Green Cym  |
-    }
-
     public readonly struct NavigationContext
     {
         /// <summary>

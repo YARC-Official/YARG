@@ -21,6 +21,7 @@ namespace YARG.Menu.Navigation
                 if (value)
                 {
                     NavigationGroup.DeselectAll();
+                    NavigationGroup.CurrentNavigationGroup = NavigationGroup;
                 }
 
                 _selected = value;

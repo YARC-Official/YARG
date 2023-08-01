@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
+using YARG.Core.Input;
 using YARG.Menu.Navigation;
 using YARG.Player;
 

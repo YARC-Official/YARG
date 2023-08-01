@@ -6,6 +6,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
 using UnityEngine.UI;
+using YARG.Core.Input;
 using YARG.Helpers;
 using YARG.Menu.Navigation;
 
@@ -36,7 +37,7 @@ namespace YARG.Menu
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
-                new NavigationScheme.Entry(MenuAction.Back, "Back", () => MenuManager.Instance.PopMenu())
+                new NavigationScheme.Entry(MenuAction.Red, "Back", () => MenuManager.Instance.PopMenu())
             }, true));
 
             _scrollRect.verticalNormalizedPosition = 1f;

@@ -5,6 +5,7 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Core.Input;
 using YARG.Data;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
@@ -291,7 +292,7 @@ namespace YARG.Menu.PlayResultScreen
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 new NavigationScheme.Entry(MenuAction.Select, "Exit", () => { PlayExit(); }),
-                new NavigationScheme.Entry(MenuAction.Shortcut1, "Restart", () => { PlayRestart(); })
+                new NavigationScheme.Entry(MenuAction.Yellow, "Restart", () => { PlayRestart(); })
             }, false));
 
             foreach (var pc in playerCards)

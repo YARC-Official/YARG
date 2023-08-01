@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using YARG.Core.Input;
 
 namespace YARG.Menu.Navigation
 {
@@ -21,17 +22,17 @@ namespace YARG.Menu.Navigation
 
             public static readonly Entry NavigateUp = new(MenuAction.Up, "Up", () =>
             {
-
+                NavigationGroup.CurrentNavigationGroup.SelectPrevious();
             });
 
             public static readonly Entry NavigateDown = new(MenuAction.Down, "Down", () =>
             {
-
+                NavigationGroup.CurrentNavigationGroup.SelectNext();
             });
 
-            public static readonly Entry NavigateSelect = new(MenuAction.Select, "Select", () =>
+            public static readonly Entry NavigateSelect = new(MenuAction.Green, "Confirm", () =>
             {
-
+                NavigationGroup.CurrentNavigationGroup.ConfirmSelection();
             });
         }
 

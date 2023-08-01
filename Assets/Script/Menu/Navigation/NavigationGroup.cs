@@ -5,6 +5,8 @@ namespace YARG.Menu.Navigation
 {
     public sealed class NavigationGroup : MonoBehaviour
     {
+        public static NavigationGroup CurrentNavigationGroup;
+
         private readonly List<NavigatableBehaviour> _navigatables = new();
 
         [SerializeField]
@@ -56,6 +58,56 @@ namespace YARG.Menu.Navigation
             if (_navigatables.Count < 1) return;
 
             _navigatables[0].Selected = true;
+        }
+
+        public int CurrentSelectedIndex()
+        {
+            for (int i = 0; i < _navigatables.Count; i++)
+            {
+                if (_navigatables[i].Selected)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        public void SelectNext()
+        {
+            int selected = CurrentSelectedIndex();
+            if (selected == -1) return;
+
+            selected++;
+            if (selected >= _navigatables.Count)
+            {
+                selected = 0;
+            }
+
+            _navigatables[selected].Selected = true;
+        }
+
+        public void SelectPrevious()
+        {
+            int selected = CurrentSelectedIndex();
+            if (selected == -1) return;
+
+            selected--;
+            if (selected < 0)
+            {
+                selected = _navigatables.Count - 1;
+            }
+
+            _navigatables[selected].Selected = true;
+        }
+
+        public void ConfirmSelection()
+        {
+            var nav = _navigatables[CurrentSelectedIndex()];
+            if (nav is INavigationConfirmable confirmable)
+            {
+                confirmable.Confirm();
+            }
         }
     }
 }
