@@ -20,32 +20,56 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private TextMeshProUGUI _sectionName;
 
-        private Section _section;
+        private int _relativeSectionIndex;
+        private PracticeSectionMenu _practiceSectionMenu;
 
-        public void ShowAsSection(Section section)
+        public void Init(int relativeSectionIndex, PracticeSectionMenu practiceSectionMenu)
         {
+            _relativeSectionIndex = relativeSectionIndex;
+            _practiceSectionMenu = practiceSectionMenu;
+        }
+
+        public void UpdateView()
+        {
+            int hoveredIndex = _practiceSectionMenu.HoveredIndex;
+            int realIndex = hoveredIndex + _relativeSectionIndex;
+
+            // Hide if out of range
+            if (realIndex < 0 || realIndex >= _practiceSectionMenu.Sections.Count)
+            {
+                _canvasGroup.alpha = 0f;
+                _button.interactable = false;
+                return;
+            }
+
+            int? firstSelected = _practiceSectionMenu.FirstSelectedIndex;
+
+            bool selected = _relativeSectionIndex == 0;
+            bool highlighted = selected || firstSelected == realIndex;
+            bool between = false;
+            if (firstSelected < hoveredIndex)
+            {
+                between = realIndex > firstSelected && realIndex < hoveredIndex;
+            }
+            else if (firstSelected > hoveredIndex)
+            {
+                between = realIndex > hoveredIndex && realIndex < firstSelected;
+            }
+
+            var section = _practiceSectionMenu.Sections[realIndex];
+
             _canvasGroup.alpha = 1f;
             _button.interactable = true;
 
-            _section = section;
+            _sectionName.text = section.Name;
 
-            _sectionName.text = _section.Name;
+            _normalBackground.SetActive(!highlighted && !between);
+            _selectedBackground.SetActive(highlighted || between);
 
-            _normalBackground.SetActive(true);
-            _selectedBackground.SetActive(false);
-
-            // if (selected)
-            // {
-            //     _sectionName.text = $"<color=white><font-weight=700>{_sectionName.text}</font-weight></color>";
-            // }
-        }
-
-        public void Hide()
-        {
-            _canvasGroup.alpha = 0f;
-            _button.interactable = false;
-
-            _section = null;
+            if (highlighted || between)
+            {
+                _sectionName.text = $"<color=white><font-weight=700>{_sectionName.text}</font-weight></color>";
+            }
         }
     }
 }

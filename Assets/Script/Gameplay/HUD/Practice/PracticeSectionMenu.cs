@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using YARG.Core.Chart;
+using YARG.Core.Input;
+using YARG.Menu.Navigation;
 
 namespace YARG.Gameplay.HUD
 {
@@ -14,6 +16,7 @@ namespace YARG.Gameplay.HUD
         private GameManager _gameManager;
 
         private List<Section> _sections;
+        public IReadOnlyList<Section> Sections => _sections;
 
         [SerializeField]
         private Transform _sectionContainer;
@@ -50,6 +53,8 @@ namespace YARG.Gameplay.HUD
             }
         }
 
+        public int? FirstSelectedIndex { get; private set; }
+
         private float _scrollTimer;
 
         private void Awake()
@@ -62,12 +67,13 @@ namespace YARG.Gameplay.HUD
             // Create all of the section views
             for (int i = 0; i < SECTION_VIEW_EXTRA * 2 + 1; i++)
             {
+                int relativeIndex = i - SECTION_VIEW_EXTRA;
                 var gameObject = Instantiate(_sectionViewPrefab, _sectionContainer);
 
                 // Add
                 var sectionView = gameObject.GetComponent<PracticeSectionView>();
+                sectionView.Init(relativeIndex, this);
                 _sectionViews.Add(sectionView);
-                sectionView.Hide();
             }
         }
 
@@ -79,6 +85,24 @@ namespace YARG.Gameplay.HUD
             {
                 UpdateSectionViews();
             }
+
+            FirstSelectedIndex = null;
+
+            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            {
+                new NavigationScheme.Entry(MenuAction.Green, "Confirm", () =>
+                {
+                    FirstSelectedIndex = HoveredIndex;
+                }),
+                new NavigationScheme.Entry(MenuAction.Up, "Up", () =>
+                {
+                    HoveredIndex--;
+                }),
+                new NavigationScheme.Entry(MenuAction.Down, "Up", () =>
+                {
+                    HoveredIndex++;
+                })
+            }, false));
         }
 
         private void OnDisable()
@@ -95,19 +119,9 @@ namespace YARG.Gameplay.HUD
 
         private void UpdateSectionViews()
         {
-            for (int i = 0; i < _sectionViews.Count; i++)
+            foreach (var sectionView in _sectionViews)
             {
-                // Hide if it's not in range
-                int relativeIndex = i - SECTION_VIEW_EXTRA;
-                int realIndex = HoveredIndex + relativeIndex;
-                if (realIndex < 0 || realIndex >= _sections.Count)
-                {
-                    _sectionViews[i].Hide();
-                    continue;
-                }
-
-                // Otherwise, show as a replay
-                _sectionViews[i].ShowAsSection(_sections[realIndex]);
+                sectionView.UpdateView();
             }
         }
 
