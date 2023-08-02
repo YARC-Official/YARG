@@ -71,7 +71,7 @@ namespace YARG.Gameplay.HUD
                 .WaitForCompletion();
         }
 
-        public void HitNote()
+        private void Update()
         {
             if (_soloEnded) return;
 

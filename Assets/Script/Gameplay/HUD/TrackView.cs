@@ -1,4 +1,3 @@
-using UnityEditor.Localization.Plugins.XLIFF.V20;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Engine;
@@ -28,14 +27,6 @@ namespace YARG.Gameplay.HUD
             scale = 1f - scale;
 
             TrackImage.transform.localScale = new Vector3(scale, scale, scale);
-        }
-
-        public void HitNote()
-        {
-            if (_soloBox.gameObject.activeSelf)
-            {
-                _soloBox.HitNote();
-            }
         }
 
         public void StartSolo(SoloSection solo)
