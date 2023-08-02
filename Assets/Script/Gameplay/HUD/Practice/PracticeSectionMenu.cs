@@ -53,9 +53,16 @@ namespace YARG.Gameplay.HUD
             }
         }
 
+
         public int? FirstSelectedIndex { get; private set; }
+        public int? LastSelectedIndex  { get; private set; }
+
+        private bool _selectedFirstIndex;
 
         private float _scrollTimer;
+
+        private uint _finalTick;
+        private double _finalChartTime;
 
         private void Awake()
         {
@@ -92,7 +99,36 @@ namespace YARG.Gameplay.HUD
             {
                 new NavigationScheme.Entry(MenuAction.Green, "Confirm", () =>
                 {
-                    FirstSelectedIndex = HoveredIndex;
+                    if (!_selectedFirstIndex)
+                    {
+                        _selectedFirstIndex = true;
+                        FirstSelectedIndex = HoveredIndex;
+                    }
+                    else
+                    {
+                        LastSelectedIndex = HoveredIndex;
+
+                        int first = FirstSelectedIndex!.Value;
+                        int last = LastSelectedIndex!.Value;
+
+                        if (last < first)
+                        {
+                            (first, last) = (last, first);
+                            last++;
+                        }
+
+                        if (last >= _sections.Count)
+                        {
+                            // Not ideal. Need a better way of handling practice sections to display them in the UI
+                            _gameManager.SetPracticeSection(_sections[first], new Section("End", _finalChartTime, _finalTick));
+                        }
+                        else
+                        {
+                            _gameManager.SetPracticeSection(_sections[first], _sections[last]);
+                        }
+
+                        _gameManager.SetPaused(false);
+                    }
                 }),
                 new NavigationScheme.Entry(MenuAction.Up, "Up", () =>
                 {
@@ -108,11 +144,14 @@ namespace YARG.Gameplay.HUD
         private void OnDisable()
         {
             _gameManager.ChartLoaded -= OnChartLoaded;
+            Navigator.Instance.PopScheme();
         }
 
         private void OnChartLoaded(SongChart chart)
         {
             _sections = chart.Sections;
+            _finalTick = chart.GetLastTick();
+            _finalChartTime = chart.SyncTrack.TickToTime(_finalTick);
 
             UpdateSectionViews();
         }

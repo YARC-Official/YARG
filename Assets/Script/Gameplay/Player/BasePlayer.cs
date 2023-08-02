@@ -110,6 +110,8 @@ namespace YARG.Gameplay.Player
 
         public abstract void SetPracticeSection(Section start, Section end);
 
+        public abstract void ResetPracticeSection();
+
         protected abstract void UpdateInputs(double inputTime);
         protected abstract void UpdateVisuals(double songTime);
         protected abstract void UpdateNotes(double songTime);
@@ -217,6 +219,14 @@ namespace YARG.Gameplay.Player
             BeatlineEnumerator.MoveNext();
 
             Engine = CreateEngine();
+        }
+
+        public override void ResetPracticeSection()
+        {
+            foreach (var note in NoteTrack.Notes)
+            {
+                note.ResetNoteState();
+            }
         }
 
         protected override void UpdateInputs(double inputTime)

@@ -54,7 +54,7 @@ namespace YARG.Gameplay
         // Players are initialized by hand and don't go through this event
         public event Action<SongChart> ChartLoaded;
 
-        public SongEntry Song  { get; private set; }
+        public SongEntry Song { get; private set; }
 
         public float SelectedSongSpeed { get; private set; }
         public float ActualSongSpeed   { get; private set; }
@@ -71,6 +71,7 @@ namespace YARG.Gameplay
         /// This is updated every frame.
         /// </summary>
         public double RealSongTime { get; private set; }
+
         /// <summary>
         /// The time into the song <b>accounting</b> for calibration.<br/>
         /// This is updated every frame.
@@ -82,6 +83,7 @@ namespace YARG.Gameplay
         /// </summary>
         // Remember that calibration is already accounted for by "relative update time"
         public double InputTime => InputManager.RelativeUpdateTime * SelectedSongSpeed;
+
         /// <summary>
         /// The current input update <b>at this instant</b>, accounting for song speed, <b>and for</b> calibration.
         /// </summary>
@@ -99,7 +101,7 @@ namespace YARG.Gameplay
         /// </summary>
         public double RealInstantInputTime => InstantInputTime - AudioCalibration;
 
-        public bool IsReplay { get; private set; }
+        public bool IsReplay   { get; private set; }
         public bool IsPractice { get; private set; }
 
         public bool Paused { get; private set; }
@@ -165,6 +167,7 @@ namespace YARG.Gameplay
 
             if (IsPractice)
             {
+                Paused = true;
                 _practiceSectionMenu.gameObject.SetActive(true);
             }
         }
@@ -198,6 +201,7 @@ namespace YARG.Gameplay
             {
                 SetPaused(!Paused);
             }
+
             if (Paused)
             {
                 return;
@@ -221,13 +225,7 @@ namespace YARG.Gameplay
                 RealSongTime = GlobalVariables.AudioManager.CurrentPositionD;
             }
 
-            if (_syncAudio.Status != UniTaskStatus.Pending)
-                _syncAudio = SyncAudio();
-
-            if (Paused)
-            {
-                return;
-            }
+            if (_syncAudio.Status != UniTaskStatus.Pending) _syncAudio = SyncAudio();
 
             int totalScore = 0;
             int totalCombo = 0;
@@ -253,12 +251,10 @@ namespace YARG.Gameplay
             double inputTime = RealInstantInputTime;
             double audioTime = GlobalVariables.AudioManager.CurrentPositionD;
 
-            if (audioTime < 0.0)
-                return;
+            if (audioTime < 0.0) return;
 
             double delta = inputTime - audioTime;
-            if (Math.Abs(delta) < INITIAL_SYNC_THRESH)
-                return;
+            if (Math.Abs(delta) < INITIAL_SYNC_THRESH) return;
 
             Debug.Log($"Resyncing audio position. Input: {inputTime}, audio: {audioTime}, delta: {delta}");
 
@@ -347,6 +343,36 @@ namespace YARG.Gameplay
             }
         }
 
+        public void SetPracticeSection(Section start, Section end)
+        {
+            foreach (var player in Players)
+            {
+                player.SetPracticeSection(start, end);
+            }
+
+            Debug.Log($"{start.Name} ({start.Time}) - {end.Name} ({end.Time})");
+
+            if (start.Time - SONG_START_DELAY > 0)
+            {
+                RealSongTime = start.Time - SONG_START_DELAY;
+                GlobalVariables.AudioManager.SetPosition(start.Time - SONG_START_DELAY);
+
+                InputManager.InputTimeOffset = InputManager.CurrentInputTime
+                    - start.Time        // Add section start time
+                    - AudioCalibration  // Subtract audio calibration so that times are adjusted for it
+                    + SongStartDelay; // Subtract delay so that times before the audio actually starts are negative
+            }
+            else
+            {
+                RealSongTime = -SongStartDelay;
+                InputManager.InputTimeOffset = InputManager.CurrentInputTime
+                    - AudioCalibration // Subtract audio calibration so that times are adjusted for it
+                    + SongStartDelay;  // Add delay so that times before the audio actually starts are negative
+
+                GlobalVariables.AudioManager.SetPosition(0);
+            }
+        }
+
         public void SetPaused(bool paused)
         {
             Paused = paused;
@@ -364,6 +390,8 @@ namespace YARG.Gameplay
                 double totalPauseTime = InputManager.CurrentInputTime - _pauseStartTime;
                 InputManager.InputTimeOffset += totalPauseTime;
                 GlobalVariables.AudioManager.Play();
+
+                _practiceSectionMenu.gameObject.SetActive(false);
             }
         }
 
