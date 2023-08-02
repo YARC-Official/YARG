@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -16,12 +17,21 @@ using Random = UnityEngine.Random;
 
 namespace YARG.Menu.MusicLibrary
 {
+    public enum MusicLibraryMode
+    {
+        QuickPlay,
+        Practice
+    }
+
     public class MusicLibraryMenu : MonoSingleton<MusicLibraryMenu>
     {
-        public static bool RefreshFlag = true;
-
         private const int SONG_VIEW_EXTRA = 15;
         private const float SCROLL_TIME = 1f / 60f;
+
+        public static bool RefreshFlag = true;
+
+        [HideInInspector]
+        public MusicLibraryMode LibraryMode;
 
         [SerializeField]
         private GameObject _songViewPrefab;
@@ -29,13 +39,12 @@ namespace YARG.Menu.MusicLibrary
         [Space]
         [SerializeField]
         private TMP_InputField _searchField;
-
+        [SerializeField]
+        private TextMeshProUGUI _subHeader;
         [SerializeField]
         private Transform _songListContent;
-
         [SerializeField]
         private Sidebar _sidebar;
-
         [SerializeField]
         private Scrollbar _scrollbar;
 
@@ -141,6 +150,14 @@ namespace YARG.Menu.MusicLibrary
                 RefreshFlag = false;
             }
 
+            // Set proper text
+            _subHeader.text = LibraryMode switch
+            {
+                MusicLibraryMode.QuickPlay => "Quickplay",
+                MusicLibraryMode.Practice  => "Practice",
+                _                          => throw new Exception("Unreachable.")
+            };
+
             _searchBoxShouldBeEnabled = true;
         }
 
@@ -167,6 +184,7 @@ namespace YARG.Menu.MusicLibrary
 
             if (Keyboard.current.enterKey.wasPressedThisFrame && CurrentSelection is SongViewType)
             {
+                GlobalVariables.Instance.IsPractice = LibraryMode == MusicLibraryMode.Practice;
                 GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
                 return;
             }

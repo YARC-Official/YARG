@@ -2,13 +2,11 @@
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Chart;
-using YARG.Gameplay;
 
-namespace YARG.Menu.Gameplay
+namespace YARG.Gameplay.HUD
 {
     public class PracticeView : MonoBehaviour
     {
-
         private GameManager _gameManager;
 
         [SerializeField]

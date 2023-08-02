@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using YARG.Menu.MusicLibrary;
 using YARG.Menu.Settings;
 using YARG.Menu.Navigation;
 
@@ -33,12 +34,22 @@ namespace YARG.Menu.Main
 
         public void QuickPlay()
         {
-            MenuManager.Instance.PushMenu(MenuManager.Menu.MusicLibrary);
+            var menu = MenuManager.Instance.PushMenu(MenuManager.Menu.MusicLibrary, false);
+
+            var musicLibraryMenu = menu.GetComponent<MusicLibraryMenu>();
+            musicLibraryMenu.LibraryMode = MusicLibraryMode.QuickPlay;
+
+            menu.gameObject.SetActive(true);
         }
 
         public void Practice()
         {
-            // MenuNavigator.Instance.PushMenu(MenuNavigator.Menu.MusicLibrary);
+            var menu = MenuManager.Instance.PushMenu(MenuManager.Menu.MusicLibrary, false);
+
+            var musicLibraryMenu = menu.GetComponent<MusicLibraryMenu>();
+            musicLibraryMenu.LibraryMode = MusicLibraryMode.Practice;
+
+            menu.gameObject.SetActive(true);
         }
 
         public void Profiles()

@@ -35,7 +35,7 @@ namespace YARG.Menu
             PushMenu(Menu.MainMenu);
         }
 
-        public void PushMenu(Menu menu)
+        public MenuObject PushMenu(Menu menu, bool setActiveImmediate = true)
         {
             bool hideOther;
 
@@ -57,10 +57,15 @@ namespace YARG.Menu
             }
 
             // Show the new one
-            newMenu.gameObject.SetActive(true);
+            if (setActiveImmediate)
+            {
+                newMenu.gameObject.SetActive(true);
+            }
 
             // ... and push it onto the stack
             _openMenus.Push(menu);
+
+            return newMenu;
         }
 
         public void PopMenu()

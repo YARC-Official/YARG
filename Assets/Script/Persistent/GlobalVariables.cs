@@ -41,10 +41,7 @@ namespace YARG
 
         public float SongSpeed = 1f;
         public bool  IsReplay;
-
-#if UNITY_EDITOR
-        public TestPlayInfo TestPlayInfo { get; private set; }
-#endif
+        public bool  IsPractice;
 
         protected override void SingletonAwake()
         {
@@ -67,11 +64,6 @@ namespace YARG
             Players = new List<YargPlayer>();
 
             Shader.SetGlobalFloat("_IsFading", 1f);
-
-#if UNITY_EDITOR
-            TestPlayInfo =
-                UnityEditor.AssetDatabase.LoadAssetAtPath<TestPlayInfo>("Assets/Settings/TestPlayInfo.asset");
-#endif
         }
 
         private void Start()

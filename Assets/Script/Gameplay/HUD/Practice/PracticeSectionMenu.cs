@@ -3,10 +3,9 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using YARG.Core.Chart;
-using YARG.Gameplay;
 using YARG.Menu.Navigation;
 
-namespace YARG.Menu.Gameplay
+namespace YARG.Gameplay.HUD
 {
     public class PracticeSectionMenu : MonoBehaviour
     {

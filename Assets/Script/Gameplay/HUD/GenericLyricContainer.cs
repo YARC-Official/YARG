@@ -5,7 +5,7 @@ using YARG.Core.Chart;
 using YARG.PlayMode;
 using YARG.Settings;
 
-namespace YARG.Menu
+namespace YARG.Gameplay.HUD
 {
     public class GenericLyricContainer : MonoBehaviour
     {
