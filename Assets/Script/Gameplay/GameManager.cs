@@ -26,6 +26,9 @@ namespace YARG.Gameplay
         private TrackViewManager _trackViewManager;
 
         [SerializeField]
+        private PracticeSectionMenu _practiceSectionMenu;
+
+        [SerializeField]
         private GameObject _pauseMenu;
 
         [Header("Instrument Prefabs")]
@@ -97,6 +100,7 @@ namespace YARG.Gameplay
         public double RealInstantInputTime => InstantInputTime - AudioCalibration;
 
         public bool IsReplay { get; private set; }
+        public bool IsPractice { get; private set; }
 
         public bool Paused { get; private set; }
 
@@ -122,6 +126,7 @@ namespace YARG.Gameplay
         {
             Song = GlobalVariables.Instance.CurrentSong;
             IsReplay = GlobalVariables.Instance.IsReplay;
+            IsPractice = GlobalVariables.Instance.IsPractice;
             SelectedSongSpeed = GlobalVariables.Instance.SongSpeed;
             ActualSongSpeed = SelectedSongSpeed;
 
@@ -156,6 +161,11 @@ namespace YARG.Gameplay
                 }
 
                 _yargPlayers = players;
+            }
+
+            if (IsPractice)
+            {
+                _practiceSectionMenu.gameObject.SetActive(true);
             }
         }
 
