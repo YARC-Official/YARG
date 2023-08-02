@@ -292,7 +292,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnSoloStart(SoloSection solo)
         {
-            TrackView.StartSolo(solo.NoteCount);
+            TrackView.StartSolo(solo);
         }
 
         protected virtual void OnSoloEnd(SoloSection solo)

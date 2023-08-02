@@ -3,6 +3,7 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Core.Engine;
 
 namespace YARG.Gameplay.HUD
 {
@@ -34,38 +35,35 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private TMP_ColorGradient _soloGradientMessy;
 
-        private int _noteCount;
-        private int _hitCount;
-        private int _soloBonus;
+        private bool _soloEnded;
+        private SoloSection _solo;
 
-        private int HitPercent => Mathf.FloorToInt((float) _hitCount / _noteCount * 100f);
+        private int HitPercent => Mathf.FloorToInt((float) _solo.NotesHit / _solo.NoteCount * 100f);
 
-        private bool _inSolo;
+        private Coroutine _currentCoroutine;
 
-        private Coroutine _currentCoroutine = null;
-
-        public void StartSolo(int noteCount)
+        public void StartSolo(SoloSection solo)
         {
             // Don't even bother if the solo has no points
-            if (noteCount == 0) return;
+            if (solo.NoteCount == 0) return;
 
-            _noteCount = noteCount;
-            _inSolo = true;
+            _solo = solo;
+            _soloEnded = false;
             gameObject.SetActive(true);
 
             StopCurrentCoroutine();
 
-            _currentCoroutine = StartCoroutine(ShowCoroutine(noteCount));
+            _currentCoroutine = StartCoroutine(ShowCoroutine());
         }
 
-        private IEnumerator ShowCoroutine(int noteCount)
+        private IEnumerator ShowCoroutine()
         {
             _soloFullText.text = string.Empty;
             _soloBox.sprite = _soloSpriteNormal;
 
             // Set some dummy text
             _soloTopText.text = "0%";
-            _soloBottomText.text = $"0/{noteCount}";
+            _soloBottomText.text = $"0/{_solo.NoteCount}";
 
             // Fade in the box
             yield return _soloBoxCanvasGroup
@@ -75,24 +73,23 @@ namespace YARG.Gameplay.HUD
 
         public void HitNote()
         {
-            if (!_inSolo) return;
-
-            _hitCount++;
+            if (_soloEnded) return;
 
             _soloTopText.text = $"{HitPercent}%";
-            _soloBottomText.text = $"{_hitCount}/{_noteCount}";
+            _soloBottomText.text = $"{_solo.NotesHit}/{_solo.NoteCount}";
         }
 
         public void EndSolo(int soloBonus)
         {
             StopCurrentCoroutine();
 
-            _inSolo = false;
             _currentCoroutine = StartCoroutine(HideCoroutine(soloBonus));
         }
 
         private IEnumerator HideCoroutine(int soloBonus)
         {
+            _soloEnded = true;
+
             // Hide the top and bottom text
             _soloTopText.text = string.Empty;
             _soloBottomText.text = string.Empty;
@@ -142,6 +139,7 @@ namespace YARG.Gameplay.HUD
 
             _soloBox.gameObject.SetActive(false);
             _currentCoroutine = null;
+            _solo = null;
         }
 
         private void StopCurrentCoroutine()

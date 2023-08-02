@@ -1,6 +1,7 @@
 using UnityEditor.Localization.Plugins.XLIFF.V20;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Core.Engine;
 
 namespace YARG.Gameplay.HUD
 {
@@ -37,9 +38,9 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        public void StartSolo(int noteCount)
+        public void StartSolo(SoloSection solo)
         {
-            _soloBox.StartSolo(noteCount);
+            _soloBox.StartSolo(solo);
         }
 
         public void EndSolo(int soloBonus)
