@@ -55,10 +55,10 @@ namespace YARG.Menu.MusicLibrary
 
         public void UpdateView()
         {
-            int realIndex = SongSelection.Instance.SelectedIndex + _relativeSongIndex;
+            int realIndex = MusicLibraryMenu.Instance.SelectedIndex + _relativeSongIndex;
             bool selected = _relativeSongIndex == 0;
 
-            if (realIndex < 0 || realIndex >= SongSelection.Instance.ViewList.Count)
+            if (realIndex < 0 || realIndex >= MusicLibraryMenu.Instance.ViewList.Count)
             {
                 _canvasGroup.alpha = 0f;
                 return;
@@ -66,7 +66,7 @@ namespace YARG.Menu.MusicLibrary
 
             _canvasGroup.alpha = 1f;
 
-            var viewType = SongSelection.Instance.ViewList[realIndex];
+            var viewType = MusicLibraryMenu.Instance.ViewList[realIndex];
 
             _sideText.text = viewType.SideText;
 
@@ -171,16 +171,16 @@ namespace YARG.Menu.MusicLibrary
 
         public void SecondaryTextClick()
         {
-            int realIndex = SongSelection.Instance.SelectedIndex + _relativeSongIndex;
-            var viewType = SongSelection.Instance.ViewList[realIndex];
+            int realIndex = MusicLibraryMenu.Instance.SelectedIndex + _relativeSongIndex;
+            var viewType = MusicLibraryMenu.Instance.ViewList[realIndex];
 
             viewType.SecondaryTextClick();
         }
 
         public void IconClick()
         {
-            int realIndex = SongSelection.Instance.SelectedIndex + _relativeSongIndex;
-            var viewType = SongSelection.Instance.ViewList[realIndex];
+            int realIndex = MusicLibraryMenu.Instance.SelectedIndex + _relativeSongIndex;
+            var viewType = MusicLibraryMenu.Instance.ViewList[realIndex];
 
             viewType.IconClick();
         }

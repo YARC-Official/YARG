@@ -16,7 +16,7 @@ using Random = UnityEngine.Random;
 
 namespace YARG.Menu.MusicLibrary
 {
-    public class SongSelection : MonoSingleton<SongSelection>
+    public class MusicLibraryMenu : MonoSingleton<MusicLibraryMenu>
     {
         public static bool RefreshFlag = true;
 
@@ -576,17 +576,5 @@ namespace YARG.Menu.MusicLibrary
         {
             return SongSorting.GetNextSortButtonName(_sort);
         }
-
-#if UNITY_EDITOR
-        public void SetAsTestPlaySong()
-        {
-            if (CurrentSelection is not SongViewType song)
-            {
-                return;
-            }
-
-            GlobalVariables.Instance.TestPlayInfo.TestPlaySongHash = song.SongEntry.Checksum;
-        }
-#endif
     }
 }

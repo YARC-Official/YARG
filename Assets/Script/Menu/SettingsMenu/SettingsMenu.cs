@@ -130,7 +130,7 @@ namespace YARG.Menu.Settings
                 await LoadingManager.Instance.StartLoad();
 
                 // Then refresh song select
-                SongSelection.RefreshFlag = true;
+                MusicLibraryMenu.RefreshFlag = true;
             }
         }
 

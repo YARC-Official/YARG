@@ -49,7 +49,7 @@ namespace YARG.Menu.MusicLibrary
         {
             base.SecondaryTextClick();
 
-            SongSelection.Instance.SetSearchInput($"artist:{SongEntry.Artist}");
+            MusicLibraryMenu.Instance.SetSearchInput($"artist:{SongEntry.Artist}");
         }
 
         public override void PrimaryButtonClick()
@@ -63,7 +63,7 @@ namespace YARG.Menu.MusicLibrary
         {
             base.IconClick();
 
-            SongSelection.Instance.SetSearchInput($"source:{SongEntry.Source}");
+            MusicLibraryMenu.Instance.SetSearchInput($"source:{SongEntry.Source}");
         }
     }
 }

@@ -29,7 +29,7 @@ namespace YARG.Menu.MusicLibrary
 
         public override void PrimaryButtonClick()
         {
-            SongSelection.Instance.SelectNextSection();
+            MusicLibraryMenu.Instance.SelectNextSection();
         }
     }
 }

@@ -89,7 +89,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void SearchFilter(string instrument)
         {
-            SongSelection.Instance.SetSearchInput($"instrument:{instrument}");
+            MusicLibraryMenu.Instance.SetSearchInput($"instrument:{instrument}");
         }
 
         private void OnDestroy()

@@ -80,12 +80,12 @@ namespace YARG.Menu.MusicLibrary
                 _cancellationToken = null;
             }
 
-            if (SongSelection.Instance.ViewList.Count <= 0)
+            if (MusicLibraryMenu.Instance.ViewList.Count <= 0)
             {
                 return;
             }
 
-            var viewType = SongSelection.Instance.ViewList[SongSelection.Instance.SelectedIndex];
+            var viewType = MusicLibraryMenu.Instance.ViewList[MusicLibraryMenu.Instance.SelectedIndex];
 
             if (viewType is CategoryViewType categoryViewType)
             {
@@ -247,7 +247,7 @@ namespace YARG.Menu.MusicLibrary
 
             _cancellationToken = new();
 
-            var viewType = SongSelection.Instance.ViewList[SongSelection.Instance.SelectedIndex];
+            var viewType = MusicLibraryMenu.Instance.ViewList[MusicLibraryMenu.Instance.SelectedIndex];
             if (viewType is not SongViewType songViewType)
             {
                 return;
@@ -319,13 +319,13 @@ namespace YARG.Menu.MusicLibrary
 
         public void PrimaryButtonClick()
         {
-            var viewType = SongSelection.Instance.ViewList[SongSelection.Instance.SelectedIndex];
+            var viewType = MusicLibraryMenu.Instance.ViewList[MusicLibraryMenu.Instance.SelectedIndex];
             viewType.PrimaryButtonClick();
         }
 
         public void SearchFilter(string type)
         {
-            var viewType = SongSelection.Instance.ViewList[SongSelection.Instance.SelectedIndex];
+            var viewType = MusicLibraryMenu.Instance.ViewList[MusicLibraryMenu.Instance.SelectedIndex];
             if (viewType is not SongViewType songViewType)
             {
                 return;
@@ -342,7 +342,7 @@ namespace YARG.Menu.MusicLibrary
                 "genre"   => songEntry.Genre,
                 _         => throw new Exception("Unreachable")
             };
-            SongSelection.Instance.SetSearchInput($"{type}:{value}");
+            MusicLibraryMenu.Instance.SetSearchInput($"{type}:{value}");
         }
     }
 }
