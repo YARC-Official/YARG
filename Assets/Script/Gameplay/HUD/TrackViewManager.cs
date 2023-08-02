@@ -12,7 +12,7 @@ namespace YARG.Gameplay.HUD
 
         private readonly List<TrackView> _trackViews = new();
 
-        public void CreateTrackView(BasePlayer player)
+        public TrackView CreateTrackView(BasePlayer player)
         {
             // Create a track view
             var trackView = Instantiate(_trackViewPrefab, transform).GetComponent<TrackView>();
@@ -31,6 +31,7 @@ namespace YARG.Gameplay.HUD
 
             UpdateAllSizing();
             _trackViews.Add(trackView);
+            return trackView;
         }
 
         private void UpdateAllSizing()

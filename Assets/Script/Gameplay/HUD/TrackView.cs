@@ -1,3 +1,4 @@
+using UnityEditor.Localization.Plugins.XLIFF.V20;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,6 +12,10 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private AspectRatioFitter _aspectRatioFitter;
 
+        [Space]
+        [SerializeField]
+        private SoloBox _soloBox;
+
         private void Start()
         {
             _aspectRatioFitter.aspectRatio = (float) Screen.width / Screen.height;
@@ -22,6 +27,24 @@ namespace YARG.Gameplay.HUD
             scale = 1f - scale;
 
             TrackImage.transform.localScale = new Vector3(scale, scale, scale);
+        }
+
+        public void HitNote()
+        {
+            if (_soloBox.gameObject.activeSelf)
+            {
+                _soloBox.HitNote();
+            }
+        }
+
+        public void StartSolo(int noteCount)
+        {
+            _soloBox.StartSolo(noteCount);
+        }
+
+        public void EndSolo(int soloBonus)
+        {
+            _soloBox.EndSolo(soloBonus);
         }
     }
 }

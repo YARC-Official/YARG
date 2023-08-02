@@ -3,6 +3,7 @@ using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Input;
+using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Input;
 using YARG.Player;
@@ -40,6 +41,7 @@ namespace YARG.Gameplay.Player
         protected Pool BeatlinePool;
 
         protected GameManager GameManager { get; private set; }
+        protected TrackView TrackView { get; private set; }
 
         protected SyncTrack SyncTrack { get; private set; }
 
@@ -72,12 +74,13 @@ namespace YARG.Gameplay.Player
             IsFc = true;
         }
 
-        public virtual void Initialize(int index, YargPlayer player, SongChart chart)
+        public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView)
         {
-            if (IsInitialized)
-                return;
+            if (IsInitialized) return;
 
             Player = player;
+            TrackView = trackView;
+
             SyncTrack = chart.SyncTrack;
 
             if (GameManager.IsReplay)
@@ -90,6 +93,7 @@ namespace YARG.Gameplay.Player
             _beatlineEnumerator.MoveNext();
 
             IsInitialized = true;
+
         }
 
         protected virtual void Update()
@@ -176,12 +180,11 @@ namespace YARG.Gameplay.Player
 
         private int _replayInputIndex;
 
-        public override void Initialize(int index, YargPlayer player, SongChart chart)
+        public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView)
         {
-            if (IsInitialized)
-                return;
+            if (IsInitialized) return;
 
-            base.Initialize(index, player, chart);
+            base.Initialize(index, player, chart, trackView);
 
             Notes = GetNotes(chart);
 
@@ -274,9 +277,28 @@ namespace YARG.Gameplay.Player
 
         protected abstract void InitializeSpawnedNote(IPoolable poolable, TNote note);
 
-        protected abstract void OnNoteHit(int index, TNote note);
-        protected abstract void OnNoteMissed(int index, TNote note);
-        protected abstract void OnOverstrum();
+        protected virtual void OnNoteHit(int index, TNote note)
+        {
+            TrackView.HitNote();
+        }
+
+        protected virtual void OnNoteMissed(int index, TNote note)
+        {
+        }
+
+        protected virtual void OnOverstrum()
+        {
+        }
+
+        protected virtual void OnSoloStart(SoloSection solo)
+        {
+            TrackView.StartSolo(solo.NoteCount);
+        }
+
+        protected virtual void OnSoloEnd(SoloSection solo)
+        {
+            TrackView.EndSolo(0);
+        }
 
         protected override void SubscribeToInputEvents()
         {

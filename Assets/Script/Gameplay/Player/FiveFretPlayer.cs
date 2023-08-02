@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using YARG.Audio;
 using YARG.Core.Chart;
+using YARG.Core.Engine;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Guitar.Engines;
 using YARG.Core.Input;
@@ -39,17 +40,8 @@ namespace YARG.Gameplay.Player
             engine.OnNoteMissed += OnNoteMissed;
             engine.OnOverstrum += OnOverstrum;
 
-            // These events are examples of how they can be used
-            // They should be replaced in the future with proper events to be used by the frontend
-            engine.OnSoloStart += (solo) =>
-            {
-                Debug.Log($"Solo started (total notes: {solo.NoteCount}");
-            };
-
-            engine.OnSoloEnd += (solo) =>
-            {
-                Debug.Log($"Solo ended (hit notes: {solo.NotesHit}/{solo.NoteCount}");
-            };
+            engine.OnSoloStart += OnSoloStart;
+            engine.OnSoloEnd += OnSoloEnd;
 
             engine.OnSustainEnd += (parent, timeEnded) =>
             {
@@ -114,6 +106,8 @@ namespace YARG.Gameplay.Player
 
         protected override void OnNoteHit(int index, GuitarNote chordParent)
         {
+            base.OnNoteHit(index, chordParent);
+
             foreach (var note in chordParent.ChordEnumerator())
             {
                 // TODO: It is possible that this should be moved to BasePlayer
@@ -128,6 +122,8 @@ namespace YARG.Gameplay.Player
 
         protected override void OnNoteMissed(int index, GuitarNote chordParent)
         {
+            base.OnNoteMissed(index, chordParent);
+
             foreach (var note in chordParent.ChordEnumerator())
             {
                 // TODO: It is possible that this should be moved to BasePlayer
@@ -143,6 +139,8 @@ namespace YARG.Gameplay.Player
 
         protected override void OnOverstrum()
         {
+            base.OnOverstrum();
+
             if (IsFc)
             {
                 ComboMeter.SetFullCombo(false);
