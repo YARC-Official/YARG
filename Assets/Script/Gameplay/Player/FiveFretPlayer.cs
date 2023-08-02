@@ -32,9 +32,9 @@ namespace YARG.Gameplay.Player
 
         protected override GuitarEngine CreateEngine()
         {
-            var engine = new YargFiveFretEngine(Notes, SyncTrack, _engineParams);
+            var engine = new YargFiveFretEngine(NoteTrack, SyncTrack, _engineParams);
 
-            Debug.Log("Note count: " + Notes.Notes.Count);
+            Debug.Log("Note count: " + NoteTrack.Notes.Count);
 
             engine.OnNoteHit += OnNoteHit;
             engine.OnNoteMissed += OnNoteMissed;

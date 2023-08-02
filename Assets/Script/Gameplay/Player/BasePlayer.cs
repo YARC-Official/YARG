@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Input;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
-using YARG.Input;
 using YARG.Player;
 
 namespace YARG.Gameplay.Player
@@ -41,7 +41,7 @@ namespace YARG.Gameplay.Player
         protected Pool BeatlinePool;
 
         protected GameManager GameManager { get; private set; }
-        protected TrackView TrackView { get; private set; }
+        protected TrackView   TrackView   { get; private set; }
 
         protected SyncTrack SyncTrack { get; private set; }
 
@@ -64,7 +64,7 @@ namespace YARG.Gameplay.Player
 
         protected bool IsInitialized { get; private set; }
 
-        private IEnumerator<Beatline> _beatlineEnumerator;
+        protected IEnumerator<Beatline> BeatlineEnumerator;
 
         protected virtual void Awake()
         {
@@ -89,15 +89,10 @@ namespace YARG.Gameplay.Player
                 Debug.Log("Initialized replay inputs with " + _replayInputs.Count + " inputs");
             }
 
-            _beatlineEnumerator = SyncTrack.Beatlines.GetEnumerator();
-            _beatlineEnumerator.MoveNext();
+            BeatlineEnumerator = SyncTrack.Beatlines.GetEnumerator();
+            BeatlineEnumerator.MoveNext();
 
             IsInitialized = true;
-
-        }
-
-        protected virtual void Update()
-        {
         }
 
         public virtual void UpdateWithTimes(double inputTime, double songTime)
@@ -113,15 +108,17 @@ namespace YARG.Gameplay.Player
             UpdateBeatlines(songTime);
         }
 
+        public abstract void SetPracticeSection(Section start, Section end);
+
         protected abstract void UpdateInputs(double inputTime);
         protected abstract void UpdateVisuals(double songTime);
         protected abstract void UpdateNotes(double songTime);
 
         private void UpdateBeatlines(double songTime)
         {
-            while (_beatlineEnumerator.Current?.Time <= songTime + SpawnTimeOffset)
+            while (BeatlineEnumerator.Current?.Time <= songTime + SpawnTimeOffset)
             {
-                var beatline = _beatlineEnumerator.Current;
+                var beatline = BeatlineEnumerator.Current;
 
                 // Skip this frame if the pool is full
                 if (!BeatlinePool.CanSpawnAmount(1))
@@ -139,7 +136,7 @@ namespace YARG.Gameplay.Player
                 ((BeatlineElement) poolable).BeatlineRef = beatline;
                 poolable.EnableFromPool();
 
-                _beatlineEnumerator.MoveNext();
+                BeatlineEnumerator.MoveNext();
             }
         }
 
@@ -174,7 +171,8 @@ namespace YARG.Gameplay.Player
     {
         public TEngine Engine { get; private set; }
 
-        protected InstrumentDifficulty<TNote> Notes { get; private set; }
+        private   InstrumentDifficulty<TNote> FullNoteTrack { get; set; }
+        protected InstrumentDifficulty<TNote> NoteTrack     { get; private set; }
 
         protected IEnumerator<TNote> NoteEnumerator { get; private set; }
 
@@ -186,9 +184,10 @@ namespace YARG.Gameplay.Player
 
             base.Initialize(index, player, chart, trackView);
 
-            Notes = GetNotes(chart);
+            FullNoteTrack = GetNotes(chart);
+            NoteTrack = FullNoteTrack;
 
-            NoteEnumerator = Notes.Notes.GetEnumerator();
+            NoteEnumerator = NoteTrack.Notes.GetEnumerator();
             NoteEnumerator.MoveNext();
 
             Engine = CreateEngine();
@@ -199,6 +198,26 @@ namespace YARG.Gameplay.Player
         protected abstract InstrumentDifficulty<TNote> GetNotes(SongChart chart);
         protected abstract TEngine CreateEngine();
         protected abstract void FinishInitialization();
+
+        public override void SetPracticeSection(Section start, Section end)
+        {
+            var notes = FullNoteTrack.Notes.Where(n => n.Time >= start.Time && n.Time < end.Time).ToList();
+
+            var instrument = FullNoteTrack.Instrument;
+            var difficulty = FullNoteTrack.Difficulty;
+            var phrases = FullNoteTrack.Phrases;
+            var textEvents = FullNoteTrack.TextEvents;
+
+            NoteTrack = new InstrumentDifficulty<TNote>(instrument, difficulty, notes, phrases, textEvents);
+
+            NoteEnumerator = NoteTrack.Notes.GetEnumerator();
+            NoteEnumerator.MoveNext();
+
+            BeatlineEnumerator = SyncTrack.Beatlines.Where(b => b.Time >= start.Time && b.Time <= end.Time).GetEnumerator();
+            BeatlineEnumerator.MoveNext();
+
+            Engine = CreateEngine();
+        }
 
         protected override void UpdateInputs(double inputTime)
         {
