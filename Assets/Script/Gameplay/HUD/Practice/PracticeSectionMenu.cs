@@ -173,9 +173,8 @@ namespace YARG.Gameplay.HUD
                     _gameManager.SetPracticeSection(_sections[first], _sections[last]);
                 }
 
-                // Hide selection and unpause
+                // Hide menu
                 gameObject.SetActive(false);
-                _gameManager.SetPaused(false);
             }
         }
 

@@ -349,8 +349,12 @@ namespace YARG.Gameplay
             }
 
             Debug.Log($"{start.Name} ({start.Time}) - {end.Name} ({end.Time})");
-
             SetSongTime(start.Time);
+
+            // Unpause and start audio manually to bypass the input time compensation SetPaused() does
+            Paused = false;
+            if (RealSongTime >= 0)
+                GlobalVariables.AudioManager.Play();
         }
 
         private void SetSongTime(double time, double delayTime = SONG_START_DELAY)
