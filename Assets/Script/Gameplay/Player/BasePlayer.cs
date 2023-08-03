@@ -173,7 +173,7 @@ namespace YARG.Gameplay.Player
     {
         public TEngine Engine { get; private set; }
 
-        private   InstrumentDifficulty<TNote> FullNoteTrack { get; set; }
+        private   InstrumentDifficulty<TNote> OriginalNoteTrack { get; set; }
         protected InstrumentDifficulty<TNote> NoteTrack     { get; private set; }
 
         protected IEnumerator<TNote> NoteEnumerator { get; private set; }
@@ -186,8 +186,8 @@ namespace YARG.Gameplay.Player
 
             base.Initialize(index, player, chart, trackView);
 
-            FullNoteTrack = GetNotes(chart);
-            NoteTrack = FullNoteTrack;
+            OriginalNoteTrack = GetNotes(chart);
+            NoteTrack = OriginalNoteTrack;
 
             NoteEnumerator = NoteTrack.Notes.GetEnumerator();
             NoteEnumerator.MoveNext();
@@ -203,22 +203,31 @@ namespace YARG.Gameplay.Player
 
         public override void SetPracticeSection(Section start, Section end)
         {
-            var notes = FullNoteTrack.Notes.Where(n => n.Time >= start.Time && n.Time < end.Time).ToList();
+            var practiceNotes = OriginalNoteTrack.Notes.Where(n => n.Time >= start.Time && n.Time < end.TimeEnd).ToList();
 
-            var instrument = FullNoteTrack.Instrument;
-            var difficulty = FullNoteTrack.Difficulty;
-            var phrases = FullNoteTrack.Phrases;
-            var textEvents = FullNoteTrack.TextEvents;
+            Debug.Log($"Practice notes: {practiceNotes.Count}");
 
-            NoteTrack = new InstrumentDifficulty<TNote>(instrument, difficulty, notes, phrases, textEvents);
+            var instrument = OriginalNoteTrack.Instrument;
+            var difficulty = OriginalNoteTrack.Difficulty;
+            var phrases = OriginalNoteTrack.Phrases;
+            var textEvents = OriginalNoteTrack.TextEvents;
+
+            NoteTrack = new InstrumentDifficulty<TNote>(instrument, difficulty, practiceNotes, phrases, textEvents);
 
             NoteEnumerator = NoteTrack.Notes.GetEnumerator();
             NoteEnumerator.MoveNext();
 
-            BeatlineEnumerator = SyncTrack.Beatlines.Where(b => b.Time >= start.Time && b.Time <= end.Time).GetEnumerator();
+            BeatlineEnumerator = SyncTrack.Beatlines.Where(b => b.Time >= start.Time && b.Time <= end.TimeEnd).GetEnumerator();
             BeatlineEnumerator.MoveNext();
 
             Engine = CreateEngine();
+            ResetPracticeSection();
+
+            if (practiceNotes.Count > 0)
+            {
+                practiceNotes[0].OverridePreviousNote();
+                practiceNotes[^1].OverrideNextNote();
+            }
         }
 
         public override void ResetPracticeSection()
@@ -227,6 +236,9 @@ namespace YARG.Gameplay.Player
             {
                 note.ResetNoteState();
             }
+
+            IsFc = true;
+            ComboMeter.SetFullCombo(true);
         }
 
         protected override void UpdateInputs(double inputTime)

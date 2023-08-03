@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Cysharp.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core;
@@ -172,6 +173,11 @@ namespace YARG.Gameplay
                 Paused = true;
                 _practiceSectionMenu.gameObject.SetActive(true);
             }
+            else
+            {
+                // Not good but will work for now
+                Destroy(_pauseMenu.transform.Find("Background/ChangeSection").gameObject);
+            }
         }
 
         private async UniTask Start()
@@ -294,6 +300,10 @@ namespace YARG.Gameplay
                     _chart.SyncTrack.GenerateBeatlines(_chart.GetLastTick());
 
                 _beats = _chart.SyncTrack.Beatlines;
+
+                uint lastTick = _chart.GetLastTick();
+                _chart.Sections[^1].TickLength = lastTick;
+                _chart.Sections[^1].TimeLength = _chart.SyncTrack.TickToTime(lastTick);
             });
 
             ChartLoaded?.Invoke(_chart);
@@ -349,13 +359,25 @@ namespace YARG.Gameplay
                 player.SetPracticeSection(start, end);
             }
 
-            Debug.Log($"{start.Name} ({start.Time}) - {end.Name} ({end.Time})");
+            Debug.Log($"{start.Name} ({start.Time}) - {end.Name} ({end.TimeEnd})");
             SetSongTime(start.Time);
 
             // Unpause and start audio manually to bypass the input time compensation SetPaused() does
             Paused = false;
             if (RealSongTime >= 0)
                 GlobalVariables.AudioManager.Play();
+        }
+
+        public void ChangeSection()
+        {
+            if (!IsPractice)
+            {
+                return;
+            }
+
+            Paused = true;
+            _pauseMenu.SetActive(false);
+            _practiceSectionMenu.gameObject.SetActive(true);
         }
 
         private void SetSongTime(double time, double delayTime = SONG_START_DELAY)

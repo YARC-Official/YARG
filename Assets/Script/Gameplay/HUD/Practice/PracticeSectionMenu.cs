@@ -100,7 +100,10 @@ namespace YARG.Gameplay.HUD
         private void OnDisable()
         {
             if (_navigationPushed)
+            {
                 Navigator.Instance.PopScheme();
+                _navigationPushed = false;
+            }
         }
 
         private void OnChartLoaded(SongChart chart)
@@ -118,6 +121,7 @@ namespace YARG.Gameplay.HUD
         private void Initialize()
         {
             FirstSelectedIndex = null;
+            LastSelectedIndex = null;
             RegisterNavigationScheme();
             UpdateSectionViews();
         }
@@ -157,21 +161,7 @@ namespace YARG.Gameplay.HUD
                 int first = FirstSelectedIndex.Value;
                 int last = LastSelectedIndex.Value;
 
-                if (last < first)
-                {
-                    (first, last) = (last, first);
-                    last++;
-                }
-
-                if (last >= _sections.Count)
-                {
-                    // Not ideal. Need a better way of handling practice sections to display them in the UI
-                    _gameManager.SetPracticeSection(_sections[first], new Section("End", _finalChartTime, _finalTick));
-                }
-                else
-                {
-                    _gameManager.SetPracticeSection(_sections[first], _sections[last]);
-                }
+                _gameManager.SetPracticeSection(_sections[first], _sections[last]);
 
                 // Hide menu
                 gameObject.SetActive(false);
