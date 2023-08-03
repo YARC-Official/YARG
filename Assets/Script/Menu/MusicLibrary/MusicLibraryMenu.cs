@@ -515,8 +515,18 @@ namespace YARG.Menu.MusicLibrary
 
         private void Confirm()
         {
-            GlobalVariables.Instance.IsPractice = LibraryMode == MusicLibraryMode.Practice;
-            GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+            // Temporary until part selection is fixed
+            if (CurrentSelection is SongViewType song)
+            {
+                GlobalVariables.Instance.CurrentSong = song.SongEntry;
+                GlobalVariables.Instance.IsPractice = LibraryMode == MusicLibraryMode.Practice;
+                GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+                return;
+            }
+            else
+            {
+                CurrentSelection?.PrimaryButtonClick();
+            }
         }
 
         private void Back()
