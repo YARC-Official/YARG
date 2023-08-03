@@ -350,17 +350,20 @@ namespace YARG.Gameplay
 
             Debug.Log($"{start.Name} ({start.Time}) - {end.Name} ({end.Time})");
 
-            SetSongTime(start.Time - SONG_START_DELAY);
+            SetSongTime(start.Time);
         }
 
         private void SetSongTime(double time, double delayTime = SONG_START_DELAY)
         {
             double seekTime = time - delayTime;
+            double inputTime = InputManager.CurrentInputTime;
 
             RealSongTime = seekTime;
-            InputManager.InputTimeOffset = InputManager.CurrentInputTime
+            double inputOffset = InputManager.InputTimeOffset = inputTime
                 - time - AudioCalibration // Offset backwards by the given time and by the audio calibration
-                + SONG_START_DELAY;       // Bump forward by the delay so that times before the audio are negative
+                + delayTime;              // Bump forward by the delay so that times before the audio are negative
+
+            Debug.Log($"Set song time to {time}. Seek time: {seekTime}, input offset: {inputOffset}, input time: {inputTime}");
 
             // Audio seeking cannot go negative
             if (seekTime < 0)
