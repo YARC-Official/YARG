@@ -92,28 +92,25 @@ namespace YARG
                 return true;
             }
 
-            if (a.Major == b.Major)
+            if (a.Major != b.Major) return false;
+
+            if (a.Minor > b.Minor)
             {
-                if (a.Minor > b.Minor)
-                {
-                    return true;
-                }
+                return true;
+            }
 
-                if (a.Minor == b.Minor)
-                {
-                    if (a.Revision > b.Revision)
-                    {
-                        return true;
-                    }
+            if (a.Minor != b.Minor) return false;
 
-                    if (a.Revision == b.Revision)
-                    {
-                        if (!a.Beta && b.Beta)
-                        {
-                            return true;
-                        }
-                    }
-                }
+            if (a.Revision > b.Revision)
+            {
+                return true;
+            }
+
+            if (a.Revision != b.Revision) return false;
+
+            if (!a.Beta && b.Beta)
+            {
+                return true;
             }
 
             return false;

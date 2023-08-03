@@ -1,7 +1,6 @@
 ﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using YARG.Core.Chart;
 
 namespace YARG.Gameplay.HUD
 {
@@ -11,14 +10,18 @@ namespace YARG.Gameplay.HUD
         private CanvasGroup _canvasGroup;
         [SerializeField]
         private Button _button;
-        [SerializeField]
-        private GameObject _normalBackground;
-        [SerializeField]
-        private GameObject _selectedBackground;
 
         [Space]
         [SerializeField]
         private TextMeshProUGUI _sectionName;
+
+        [Space]
+        [SerializeField]
+        private Color _normalColor;
+        [SerializeField]
+        private Color _betweenColor;
+        [SerializeField]
+        private Color _highlightedColor;
 
         private int _relativeSectionIndex;
         private PracticeSectionMenu _practiceSectionMenu;
@@ -61,14 +64,19 @@ namespace YARG.Gameplay.HUD
             _canvasGroup.alpha = 1f;
             _button.interactable = true;
 
+            // Set text color
             _sectionName.text = section.Name;
-
-            _normalBackground.SetActive(!highlighted && !between);
-            _selectedBackground.SetActive(highlighted || between);
-
-            if (highlighted || between)
+            if (highlighted)
             {
-                _sectionName.text = $"<color=white><font-weight=700>{_sectionName.text}</font-weight></color>";
+                _sectionName.color = _highlightedColor;
+            }
+            else if (between)
+            {
+                _sectionName.color = _betweenColor;
+            }
+            else
+            {
+                _sectionName.color = _normalColor;
             }
         }
     }
