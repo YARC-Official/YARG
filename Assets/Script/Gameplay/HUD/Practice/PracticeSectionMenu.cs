@@ -134,7 +134,7 @@ namespace YARG.Gameplay.HUD
                 {
                     HoveredIndex--;
                 }),
-                new NavigationScheme.Entry(MenuAction.Down, "Up", () =>
+                new NavigationScheme.Entry(MenuAction.Down, "Down", () =>
                 {
                     HoveredIndex++;
                 })
