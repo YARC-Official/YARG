@@ -185,11 +185,8 @@ namespace YARG.Gameplay
             // Spawn players
             CreatePlayers();
 
-            // Set time offsets
-            RealSongTime = -SongStartDelay;
-            InputManager.InputTimeOffset = InputManager.CurrentInputTime
-                - AudioCalibration // Subtract audio calibration so that times are adjusted for it
-                + SongStartDelay;  // Add delay so that times before the audio actually starts are negative
+            // Set start time
+            SetSongTime(0);
 
             // Loaded, enable updates
             enabled = true;
@@ -352,25 +349,22 @@ namespace YARG.Gameplay
 
             Debug.Log($"{start.Name} ({start.Time}) - {end.Name} ({end.Time})");
 
-            if (start.Time - SONG_START_DELAY > 0)
-            {
-                RealSongTime = start.Time - SONG_START_DELAY;
-                GlobalVariables.AudioManager.SetPosition(start.Time - SONG_START_DELAY);
+            SetSongTime(start.Time - SONG_START_DELAY);
+        }
 
-                InputManager.InputTimeOffset = InputManager.CurrentInputTime
-                    - start.Time        // Add section start time
-                    - AudioCalibration  // Subtract audio calibration so that times are adjusted for it
-                    + SongStartDelay; // Subtract delay so that times before the audio actually starts are negative
-            }
-            else
-            {
-                RealSongTime = -SongStartDelay;
-                InputManager.InputTimeOffset = InputManager.CurrentInputTime
-                    - AudioCalibration // Subtract audio calibration so that times are adjusted for it
-                    + SongStartDelay;  // Add delay so that times before the audio actually starts are negative
+        private void SetSongTime(double time, double delayTime = SONG_START_DELAY)
+        {
+            double seekTime = time - delayTime;
 
-                GlobalVariables.AudioManager.SetPosition(0);
-            }
+            RealSongTime = seekTime;
+            InputManager.InputTimeOffset = InputManager.CurrentInputTime
+                - time - AudioCalibration // Offset backwards by the given time and by the audio calibration
+                + SONG_START_DELAY;       // Bump forward by the delay so that times before the audio are negative
+
+            // Audio seeking cannot go negative
+            if (seekTime < 0)
+                seekTime = 0;
+            GlobalVariables.AudioManager.SetPosition(seekTime);
         }
 
         public void SetPaused(bool paused)
