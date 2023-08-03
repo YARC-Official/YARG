@@ -391,7 +391,8 @@ namespace YARG.Gameplay
             {
                 double totalPauseTime = InputManager.CurrentInputTime - _pauseStartTime;
                 InputManager.InputTimeOffset += totalPauseTime;
-                GlobalVariables.AudioManager.Play();
+                if (RealSongTime >= 0)
+                    GlobalVariables.AudioManager.Play();
             }
         }
 
