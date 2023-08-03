@@ -167,6 +167,7 @@ namespace YARG.Gameplay
 
             if (IsPractice)
             {
+                // Don't start until a section has been selected
                 Paused = true;
                 _practiceSectionMenu.gameObject.SetActive(true);
             }
@@ -384,8 +385,6 @@ namespace YARG.Gameplay
                 double totalPauseTime = InputManager.CurrentInputTime - _pauseStartTime;
                 InputManager.InputTimeOffset += totalPauseTime;
                 GlobalVariables.AudioManager.Play();
-
-                _practiceSectionMenu.gameObject.SetActive(false);
             }
         }
 

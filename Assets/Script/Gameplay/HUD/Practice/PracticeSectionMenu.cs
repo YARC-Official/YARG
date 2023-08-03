@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -14,6 +14,8 @@ namespace YARG.Gameplay.HUD
         private const float SCROLL_TIME = 1f / 60f;
 
         private GameManager _gameManager;
+
+        private bool _navigationPushed = false;
 
         private List<Section> _sections;
         public IReadOnlyList<Section> Sections => _sections;
@@ -67,17 +69,21 @@ namespace YARG.Gameplay.HUD
         private void Awake()
         {
             _gameManager = FindObjectOfType<GameManager>();
-        }
+            if (!_gameManager.IsPractice)
+            {
+                Destroy(gameObject);
+                return;
+            }
 
-        private void Start()
-        {
+            _gameManager.ChartLoaded += OnChartLoaded;
+            enabled = false;
+
             // Create all of the section views
             for (int i = 0; i < SECTION_VIEW_EXTRA * 2 + 1; i++)
             {
                 int relativeIndex = i - SECTION_VIEW_EXTRA;
                 var gameObject = Instantiate(_sectionViewPrefab, _sectionContainer);
 
-                // Add
                 var sectionView = gameObject.GetComponent<PracticeSectionView>();
                 sectionView.Init(relativeIndex, this);
                 _sectionViews.Add(sectionView);
@@ -86,14 +92,50 @@ namespace YARG.Gameplay.HUD
 
         private void OnEnable()
         {
-            _gameManager.ChartLoaded += OnChartLoaded;
+            // Wait until the chart has been loaded
+            if (_sections is null)
+                return;
 
-            if (_sections is not null)
-            {
-                UpdateSectionViews();
-            }
+            Initialize();
+        }
 
+        private void OnDisable()
+        {
+            if (_navigationPushed)
+                Navigator.Instance.PopScheme();
+        }
+
+        private void OnChartLoaded(SongChart chart)
+        {
+            _gameManager.ChartLoaded -= OnChartLoaded;
+            enabled = true;
+
+            _sections = chart.Sections;
+            _finalTick = chart.GetLastTick();
+            _finalChartTime = chart.SyncTrack.TickToTime(_finalTick);
+
+            Initialize();
+        }
+
+        private void Initialize()
+        {
             FirstSelectedIndex = null;
+            RegisterNavigationScheme();
+            UpdateSectionViews();
+        }
+
+        private void UpdateSectionViews()
+        {
+            foreach (var sectionView in _sectionViews)
+            {
+                sectionView.UpdateView();
+            }
+        }
+
+        private void RegisterNavigationScheme()
+        {
+            if (_navigationPushed)
+                return;
 
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
@@ -127,6 +169,8 @@ namespace YARG.Gameplay.HUD
                             _gameManager.SetPracticeSection(_sections[first], _sections[last]);
                         }
 
+                        // Hide selection and unpause
+                        gameObject.SetActive(false);
                         _gameManager.SetPaused(false);
                     }
                 }),
@@ -139,29 +183,7 @@ namespace YARG.Gameplay.HUD
                     HoveredIndex++;
                 })
             }, false));
-        }
-
-        private void OnDisable()
-        {
-            _gameManager.ChartLoaded -= OnChartLoaded;
-            Navigator.Instance.PopScheme();
-        }
-
-        private void OnChartLoaded(SongChart chart)
-        {
-            _sections = chart.Sections;
-            _finalTick = chart.GetLastTick();
-            _finalChartTime = chart.SyncTrack.TickToTime(_finalTick);
-
-            UpdateSectionViews();
-        }
-
-        private void UpdateSectionViews()
-        {
-            foreach (var sectionView in _sectionViews)
-            {
-                sectionView.UpdateView();
-            }
+            _navigationPushed = true;
         }
 
         private void Update()
