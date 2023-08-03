@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using YARG.Core.Input;
+using YARG.Input;
 using YARG.Menu.Persistent;
 using YARG.Player;
 
@@ -56,6 +57,7 @@ namespace YARG.Menu.Navigation
         private void Start()
         {
             UpdateHelpBar();
+            InputManager.MenuInput += ProcessInput;
         }
 
         private void Update()
@@ -76,30 +78,31 @@ namespace YARG.Menu.Navigation
             // UpdateKeyboardInput();
         }
 
-        public void CallNavigationEvent(MenuAction action, YargPlayer player)
+        private void ProcessInput(YargPlayer player, ref GameInput input)
         {
-            InvokeNavigationEvent(new NavigationContext(action, player));
+            var action = (MenuAction)input.Action;
+            var context = new NavigationContext(action, player);
+            if (input.Button)
+                StartNavigationHold(context);
+            else
+                EndNavigationHold(context);
         }
 
-        public void StartNavigationHold(MenuAction action, YargPlayer player)
+        private void StartNavigationHold(NavigationContext context)
         {
-            var ctx = new NavigationContext(action, player);
-
             // Skip if the input is already being held
-            if (_heldInputs.Any(i => i.Context.IsSameAs(ctx)))
+            if (_heldInputs.Any(i => i.Context.IsSameAs(context)))
             {
                 return;
             }
 
-            InvokeNavigationEvent(ctx);
-            _heldInputs.Add(new HoldContext(ctx));
+            InvokeNavigationEvent(context);
+            _heldInputs.Add(new HoldContext(context));
         }
 
-        public void EndNavigationHold(MenuAction action, YargPlayer binding)
+        private void EndNavigationHold(NavigationContext context)
         {
-            var ctx = new NavigationContext(action, binding);
-
-            _heldInputs.RemoveAll(i => i.Context.IsSameAs(ctx));
+            _heldInputs.RemoveAll(i => i.Context.IsSameAs(context));
         }
 
         public bool IsHeld(MenuAction action)
