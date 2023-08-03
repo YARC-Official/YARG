@@ -182,13 +182,6 @@ namespace YARG.Menu.MusicLibrary
                 ClearSearchBox();
             }
 
-            if (Keyboard.current.enterKey.wasPressedThisFrame && CurrentSelection is SongViewType)
-            {
-                GlobalVariables.Instance.IsPractice = LibraryMode == MusicLibraryMode.Practice;
-                GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
-                return;
-            }
-
             if (_searchBoxShouldBeEnabled)
             {
                 _searchField.ActivateInputField();
@@ -209,8 +202,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 new NavigationScheme.Entry(MenuAction.Up, "Up", ScrollUp),
                 new NavigationScheme.Entry(MenuAction.Down, "Down", ScrollDown),
-                new NavigationScheme.Entry(MenuAction.Green, "Confirm",
-                    () => { CurrentSelection?.PrimaryButtonClick(); }),
+                new NavigationScheme.Entry(MenuAction.Green, "Confirm", Confirm),
                 new NavigationScheme.Entry(MenuAction.Red, "Back", Back),
                 new NavigationScheme.Entry(MenuAction.Yellow, _nextSortCriteria, ChangeSongOrder),
                 new NavigationScheme.Entry(MenuAction.Blue, _nextFilter, ChangeFilter),
@@ -521,7 +513,13 @@ namespace YARG.Menu.MusicLibrary
             _recommendedSongs = RecommendedSongs.GetRecommendedSongs();
         }
 
-        public void Back()
+        private void Confirm()
+        {
+            GlobalVariables.Instance.IsPractice = LibraryMode == MusicLibraryMode.Practice;
+            GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+        }
+
+        private void Back()
         {
             bool searchBoxHasContent = !string.IsNullOrEmpty(_searchField.text);
 
