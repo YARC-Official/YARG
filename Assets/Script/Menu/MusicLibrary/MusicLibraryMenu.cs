@@ -64,6 +64,8 @@ namespace YARG.Menu.MusicLibrary
         public IReadOnlyList<ViewType> ViewList => _viewList;
         public ViewType CurrentSelection => _selectedIndex < _viewList?.Count ? _viewList[_selectedIndex] : null;
 
+        private SongEntry _currentSong;
+
         private int _selectedIndex;
 
         public int SelectedIndex
@@ -94,12 +96,12 @@ namespace YARG.Menu.MusicLibrary
                     return;
                 }
 
-                if (song.SongEntry == GlobalVariables.Instance.CurrentSong)
+                if (song.SongEntry == _currentSong)
                 {
                     return;
                 }
 
-                GlobalVariables.Instance.CurrentSong = song.SongEntry;
+                _currentSong = song.SongEntry;
 
                 if (!_previewCanceller.IsCancellationRequested)
                 {
@@ -361,7 +363,7 @@ namespace YARG.Menu.MusicLibrary
 
             if (!string.IsNullOrEmpty(_searchField.text))
             {
-                GlobalVariables.Instance.CurrentSong = null;
+                _currentSong = null;
 
                 // Create the category
                 int count = _sortedSongs.SongCount();
@@ -482,10 +484,11 @@ namespace YARG.Menu.MusicLibrary
 
         private void SetSelectedIndex()
         {
-            if (GlobalVariables.Instance.CurrentSong != null)
+            if (_currentSong != null)
             {
-                int index = GetIndexOfSelectedSong();
-                SelectedIndex = Mathf.Max(1, index);
+                int index = _viewList.FindIndex((song) => song is SongViewType songView &&
+                    songView.SongEntry == _currentSong);
+                SelectedIndex = Math.Max(1, index);
                 return;
             }
 
@@ -496,16 +499,6 @@ namespace YARG.Menu.MusicLibrary
             }
 
             SelectedIndex = 2;
-        }
-
-        private int GetIndexOfSelectedSong()
-        {
-            var selectedSong = GlobalVariables.Instance.CurrentSong;
-
-            return _viewList.FindIndex(song =>
-            {
-                return song is SongViewType songType && songType.SongEntry == selectedSong;
-            });
         }
 
         private void FillRecommendedSongs()
