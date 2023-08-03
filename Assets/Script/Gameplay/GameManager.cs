@@ -143,6 +143,7 @@ namespace YARG.Gameplay
                 if (Song is null || result != ReplayReadResult.Valid)
                 {
                     GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                    return;
                 }
 
                 Replay = replay;
