@@ -81,13 +81,13 @@ namespace YARG.Gameplay
         /// <summary>
         /// The current input update time, accounting for song speed, <b>and for</b> calibration.
         /// </summary>
-        // Remember that calibration is already accounted for by "relative update time"
+        // Remember that calibration is already accounted for by the input offset time
         public double InputTime => InputManager.RelativeUpdateTime * SelectedSongSpeed;
 
         /// <summary>
-        /// The current input update <b>at this instant</b>, accounting for song speed, <b>and for</b> calibration.
+        /// The current input time <b>at this instant</b>, accounting for song speed, <b>and for</b> calibration.
         /// </summary>
-        public double InstantInputTime => InputManager.RelativeUpdateTime * SelectedSongSpeed;
+        public double InstantInputTime => InputManager.RelativeInputTime * SelectedSongSpeed;
 
         /// <summary>
         /// The current input update time, accounting for song speed, but <b>not</b> for calibration.
