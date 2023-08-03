@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -58,8 +58,6 @@ namespace YARG.Gameplay.HUD
 
         public int? FirstSelectedIndex { get; private set; }
         public int? LastSelectedIndex  { get; private set; }
-
-        private bool _selectedFirstIndex;
 
         private float _scrollTimer;
 
@@ -139,51 +137,56 @@ namespace YARG.Gameplay.HUD
 
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
-                new NavigationScheme.Entry(MenuAction.Green, "Confirm", () =>
-                {
-                    if (!_selectedFirstIndex)
-                    {
-                        _selectedFirstIndex = true;
-                        FirstSelectedIndex = HoveredIndex;
-                    }
-                    else
-                    {
-                        LastSelectedIndex = HoveredIndex;
-
-                        int first = FirstSelectedIndex!.Value;
-                        int last = LastSelectedIndex!.Value;
-
-                        if (last < first)
-                        {
-                            (first, last) = (last, first);
-                            last++;
-                        }
-
-                        if (last >= _sections.Count)
-                        {
-                            // Not ideal. Need a better way of handling practice sections to display them in the UI
-                            _gameManager.SetPracticeSection(_sections[first], new Section("End", _finalChartTime, _finalTick));
-                        }
-                        else
-                        {
-                            _gameManager.SetPracticeSection(_sections[first], _sections[last]);
-                        }
-
-                        // Hide selection and unpause
-                        gameObject.SetActive(false);
-                        _gameManager.SetPaused(false);
-                    }
-                }),
-                new NavigationScheme.Entry(MenuAction.Up, "Up", () =>
-                {
-                    HoveredIndex--;
-                }),
-                new NavigationScheme.Entry(MenuAction.Down, "Down", () =>
-                {
-                    HoveredIndex++;
-                })
+                new NavigationScheme.Entry(MenuAction.Green, "Confirm", Confirm),
+                new NavigationScheme.Entry(MenuAction.Up, "Up", Up),
+                new NavigationScheme.Entry(MenuAction.Down, "Down", Down)
             }, false));
             _navigationPushed = true;
+        }
+
+        private void Confirm()
+        {
+            if (FirstSelectedIndex == null)
+            {
+                FirstSelectedIndex = HoveredIndex;
+            }
+            else
+            {
+                LastSelectedIndex = HoveredIndex;
+
+                int first = FirstSelectedIndex.Value;
+                int last = LastSelectedIndex.Value;
+
+                if (last < first)
+                {
+                    (first, last) = (last, first);
+                    last++;
+                }
+
+                if (last >= _sections.Count)
+                {
+                    // Not ideal. Need a better way of handling practice sections to display them in the UI
+                    _gameManager.SetPracticeSection(_sections[first], new Section("End", _finalChartTime, _finalTick));
+                }
+                else
+                {
+                    _gameManager.SetPracticeSection(_sections[first], _sections[last]);
+                }
+
+                // Hide selection and unpause
+                gameObject.SetActive(false);
+                _gameManager.SetPaused(false);
+            }
+        }
+
+        private void Up()
+        {
+            HoveredIndex--;
+        }
+
+        private void Down()
+        {
+            HoveredIndex++;
         }
 
         private void Update()
