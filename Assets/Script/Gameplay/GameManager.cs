@@ -423,6 +423,14 @@ namespace YARG.Gameplay
                 Debug.Log("Wrote replay");
             }
 
+            QuitSong();
+        }
+
+        public void QuitSong()
+        {
+            GlobalVariables.AudioManager.SongEnd -= EndSong;
+            GlobalVariables.AudioManager.UnloadSong();
+
             GlobalVariables.Instance.IsReplay = false;
             GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
         }
