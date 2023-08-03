@@ -224,43 +224,15 @@ namespace YARG.Audio.BASS
 
         private bool SetCompressor()
         {
-            // To deduplicate code
-            static bool _SetCompressor(int streamHandle, out int compressorHandle)
-            {
-                compressorHandle = Bass.ChannelSetFX(streamHandle, EffectType.Compressor, 1);
-                if (compressorHandle == 0)
-                {
-                    Debug.LogError($"Failed to create compressor handle: {Bass.LastError}");
-                    return false;
-                }
-
-                var compressorParams = new CompressorParameters
-                {
-                    fGain = -3,
-                    fThreshold = -2,
-                    fAttack = 0.01f,
-                    fRelease = 0.1f,
-                    fRatio = 4,
-                };
-
-                if (!Bass.FXSetParameters(compressorHandle, compressorParams))
-                {
-                    Debug.LogError($"Failed to apply compressor parameters: {Bass.LastError}");
-                    Bass.ChannelRemoveFX(streamHandle, compressorHandle);
-                    compressorHandle = 0;
-                    return false;
-                }
-
-                return true;
-            }
-
-            if (!_SetCompressor(StreamHandle, out int streamCompressor))
+            int streamCompressor = BassHelpers.AddCompressorToChannel(StreamHandle);
+            if (streamCompressor == 0)
             {
                 Debug.LogError($"Failed to set up compressor for main stream!");
                 return false;
             }
 
-            if (!_SetCompressor(ReverbStreamHandle, out int reverbCompressor))
+            int reverbCompressor = BassHelpers.AddCompressorToChannel(ReverbStreamHandle);
+            if (reverbCompressor == 0)
             {
                 Debug.LogError($"Failed to set up compressor for reverb stream!");
                 return false;
@@ -274,38 +246,19 @@ namespace YARG.Audio.BASS
 
         private bool SetPitchBend()
         {
-            static bool _SetPitchBend(int streamHandle, PitchShiftParametersStruct parameters,
-                out int pitchHandle)
-            {
-                pitchHandle = Bass.ChannelSetFX(streamHandle, EffectType.PitchShift, 0);
-                if (pitchHandle == 0)
-                {
-                    Debug.LogError($"Failed to create pitch bend handle: {Bass.LastError}");
-                    return false;
-                }
-
-                if (!BassHelpers.FXSetParameters(pitchHandle, parameters))
-                {
-                    Debug.LogError($"Failed to apply pitch bend parameters: {Bass.LastError}");
-                    Bass.ChannelRemoveFX(streamHandle, pitchHandle);
-                    pitchHandle = 0;
-                    return false;
-                }
-
-                return true;
-            }
-
             // Setting the FFT size causes a crash in BASS_FX :/
             // _pitchParams.FFTSize = _manager.Options.WhammyFFTSize;
             _pitchParams.OversampleFactor = _manager.Options.WhammyOversampleFactor;
 
-            if (!_SetPitchBend(StreamHandle, _pitchParams, out int streamPitch))
+            int streamPitch = BassHelpers.FXAddParameters(StreamHandle, EffectType.PitchShift, _pitchParams);
+            if (streamPitch == 0)
             {
                 Debug.LogError($"Failed to set up pitch bend for main stream!");
                 return false;
             }
 
-            if (!_SetPitchBend(ReverbStreamHandle, _pitchParams, out int reverbPitch))
+            int reverbPitch = BassHelpers.FXAddParameters(ReverbStreamHandle, EffectType.PitchShift, _pitchParams);
+            if (reverbPitch == 0)
             {
                 Debug.LogError($"Failed to set up pitch bend for reverb stream!");
                 return false;
