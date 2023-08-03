@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 
 namespace YARG.Song
 {
@@ -150,37 +151,40 @@ namespace YARG.Song
 
         private static SortedSongList[] _sortCache;
 
-        public static void GenerateSortCache()
+        public static UniTask GenerateSortCache()
         {
-            _sortCache = new SortedSongList[HeaderFunctions.Length];
-
-            var defaultOrderingFunction = OrderFunctions[0];
-
-            for (int i = 0; i < HeaderFunctions.Length; i++)
+            return UniTask.RunOnThreadPool(() =>
             {
-                var headerFunc = HeaderFunctions[i];
-                var orderFunc = OrderFunctions[i];
+                _sortCache = new SortedSongList[HeaderFunctions.Length];
 
-                // Sort the songs
-                var songList = new SortedSongList();
-                var sortedSongs = SongContainer.Songs
-                    .OrderBy(song => orderFunc(song).ToUpperInvariant());
+                var defaultOrderingFunction = OrderFunctions[0];
 
-                // Then sort by name (if it isn't already)
-                if (i != 0)
+                for (int i = 0; i < HeaderFunctions.Length; i++)
                 {
-                    sortedSongs = sortedSongs
-                        .ThenBy(song => defaultOrderingFunction(song).ToUpperInvariant());
-                }
+                    var headerFunc = HeaderFunctions[i];
+                    var orderFunc = OrderFunctions[i];
 
-                // Then separate them by sections
-                foreach (var song in sortedSongs)
-                {
-                    songList.AddSongToSection(headerFunc(song).ToUpperInvariant(), song);
-                }
+                    // Sort the songs
+                    var songList = new SortedSongList();
+                    var sortedSongs = SongContainer.Songs
+                        .OrderBy(song => orderFunc(song).ToUpperInvariant());
 
-                _sortCache[i] = songList;
-            }
+                    // Then sort by name (if it isn't already)
+                    if (i != 0)
+                    {
+                        sortedSongs = sortedSongs
+                            .ThenBy(song => defaultOrderingFunction(song).ToUpperInvariant());
+                    }
+
+                    // Then separate them by sections
+                    foreach (var song in sortedSongs)
+                    {
+                        songList.AddSongToSection(headerFunc(song).ToUpperInvariant(), song);
+                    }
+
+                    _sortCache[i] = songList;
+                }
+            });
         }
 
         public static SortedSongList GetSortCache(Sort sort)

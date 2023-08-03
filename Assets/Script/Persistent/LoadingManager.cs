@@ -26,16 +26,12 @@ namespace YARG
 
         private async UniTask Start()
         {
-            Queue(async () => { await SongSources.LoadSources(i => SetLoadingText("Loading song sources...", i)); });
+            Queue(async () => await SongSources.LoadSources(SetSubText), "Loading song sources...");
 
             // Fast scan (cache read) on startup
             QueueSongRefresh(true);
 
-            Queue(async () =>
-            {
-                SetLoadingText("Reading scores...");
-                await ScoreManager.FetchScores();
-            });
+            Queue(ScoreManager.FetchScores, "Reading scores...");
 
             await StartLoad();
         }
@@ -52,6 +48,7 @@ namespace YARG
             while (_loadQueue.Count > 0)
             {
                 var task = _loadQueue.Dequeue();
+                SetLoadingText(task.Text, task.SubText);
                 await task.Function();
             }
 
@@ -76,29 +73,24 @@ namespace YARG
 
         public void QueueSongRefresh(bool fast)
         {
-            Queue(async () => { await ScanSongFolders(fast); });
+            Queue(async () => await ScanSongFolders(fast), "Loading songs...");
             QueueSongSort();
         }
 
         public void QueueSongFolderRefresh(string path)
         {
             // Refreshes 1 folder (called when clicking "Refresh" on a folder in settings)
-            Queue(async () => { await ScanSongFolder(path, false); });
+            Queue(async () => await ScanSongFolder(path, false), "Loading songs from folder...");
             QueueSongSort();
         }
 
         public void QueueSongSort()
         {
-            Queue(async () =>
-            {
-                SetLoadingText("Sorting songs...");
-                await UniTask.RunOnThreadPool(SongSorting.GenerateSortCache);
-            });
+            Queue(SongSorting.GenerateSortCache, "Sorting songs...");
         }
 
         private async UniTask ScanSongFolders(bool fast)
         {
-            SetLoadingText("Loading songs...");
             var errors = await SongContainer.ScanAllFolders(fast, UpdateSongUi);
 
             // Pass all errored caches in at once so it can run in parallel
@@ -107,7 +99,6 @@ namespace YARG
 
         private async UniTask ScanSongFolder(string path, bool fast)
         {
-            SetLoadingText("Loading songs from folder...");
             await SongContainer.ScanSingleFolder(path, fast, UpdateSongUi);
         }
 
@@ -117,13 +108,18 @@ namespace YARG
             subPhrase.text = sub;
         }
 
+        private void SetSubText(string sub)
+        {
+            subPhrase.text = sub;
+        }
+
         private void UpdateSongUi(SongScanner scanner)
         {
             string subText = $"Folders Scanned: {scanner.TotalFoldersScanned}" +
                 $"\nSongs Scanned: {scanner.TotalSongsScanned}" +
                 $"\nErrors: {scanner.TotalErrorsEncountered}";
 
-            SetLoadingText("Loading songs...", subText);
+            SetSubText(subText);
         }
 
 #if UNITY_EDITOR
