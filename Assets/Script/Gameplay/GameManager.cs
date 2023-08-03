@@ -391,9 +391,6 @@ namespace YARG.Gameplay
 
         private void EndSong()
         {
-            GlobalVariables.AudioManager.SongEnd -= EndSong;
-            GlobalVariables.AudioManager.UnloadSong();
-
             if (!IsReplay)
             {
                 var replay = ReplayContainer.CreateNewReplay(Song, _players);
