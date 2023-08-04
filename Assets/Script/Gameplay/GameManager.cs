@@ -23,6 +23,8 @@ namespace YARG.Gameplay
 {
     public class GameManager : MonoBehaviour
     {
+        private const float SONG_START_DELAY = 2f;
+
         [Header("References")]
         [SerializeField]
         private TrackViewManager _trackViewManager;
@@ -49,7 +51,16 @@ namespace YARG.Gameplay
         [SerializeField]
         private GameObject proGuitarPrefab;
 
-        private const float SONG_START_DELAY = 2f;
+        private SongChart _chart;
+
+        private double _pauseStartTime;
+
+        private List<BasePlayer> _players;
+        private List<Beatline>   _beats;
+
+        private IReadOnlyList<YargPlayer> _yargPlayers;
+
+        private UniTask _syncAudio = UniTask.CompletedTask;
 
         // All access to chart data must be done through this event,
         // since things are loaded asynchronously
@@ -61,8 +72,7 @@ namespace YARG.Gameplay
         public float SelectedSongSpeed { get; private set; }
         public float ActualSongSpeed   { get; private set; }
 
-        public double SongStartTime { get; private set; }
-        public double SongLength    { get; private set; }
+        public double SongLength { get; private set; }
 
         public double SongStartDelay => SONG_START_DELAY * SelectedSongSpeed;
 
@@ -113,18 +123,7 @@ namespace YARG.Gameplay
 
         public Replay Replay { get; private set; }
 
-        private double _pauseStartTime;
-
-        private SongChart _chart;
-
-        private IReadOnlyList<YargPlayer> _yargPlayers;
-
-        private List<BasePlayer> _players;
-        private List<Beatline>   _beats;
-
         public IReadOnlyList<BasePlayer> Players => _players;
-
-        private UniTask _syncAudio = UniTask.CompletedTask;
 
         private void Awake()
         {
@@ -355,18 +354,28 @@ namespace YARG.Gameplay
 
         public void SetPracticeSection(Section start, Section end)
         {
+            SetPracticeSection(start.Tick, end.TickEnd);
+        }
+
+        public void SetPracticeSection(uint tickStart, uint tickEnd)
+        {
+            double timeStart = _chart.SyncTrack.TickToTime(tickStart);
+            double timeEnd = _chart.SyncTrack.TickToTime(tickEnd);
+
             foreach (var player in Players)
             {
-                player.SetPracticeSection(start, end);
+                player.SetPracticeSection(timeStart, timeEnd);
             }
 
-            Debug.Log($"{start.Name} ({start.Time}) - {end.Name} ({end.TimeEnd})");
-            SetSongTime(start.Time);
+            SetSongTime(timeStart);
 
             // Unpause and start audio manually to bypass the input time compensation SetPaused() does
             Paused = false;
+
             if (RealSongTime >= 0)
+            {
                 GlobalVariables.AudioManager.Play();
+            }
         }
 
         public void ChangeSection()
@@ -391,11 +400,11 @@ namespace YARG.Gameplay
                 - time - AudioCalibration // Offset backwards by the given time and by the audio calibration
                 + delayTime;              // Bump forward by the delay so that times before the audio are negative
 
-            Debug.Log($"Set song time to {time}. Seek time: {seekTime}, input offset: {inputOffset}, input time: {inputTime}");
+            Debug.Log(
+                $"Set song time to {time}. Seek time: {seekTime}, input offset: {inputOffset}, input time: {inputTime}");
 
             // Audio seeking cannot go negative
-            if (seekTime < 0)
-                seekTime = 0;
+            if (seekTime < 0) seekTime = 0;
             GlobalVariables.AudioManager.SetPosition(seekTime);
         }
 
@@ -415,8 +424,7 @@ namespace YARG.Gameplay
             {
                 double totalPauseTime = InputManager.CurrentInputTime - _pauseStartTime;
                 InputManager.InputTimeOffset += totalPauseTime;
-                if (RealSongTime >= 0)
-                    GlobalVariables.AudioManager.Play();
+                if (RealSongTime >= 0) GlobalVariables.AudioManager.Play();
             }
         }
 

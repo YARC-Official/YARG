@@ -108,7 +108,7 @@ namespace YARG.Gameplay.Player
             UpdateBeatlines(songTime);
         }
 
-        public abstract void SetPracticeSection(Section start, Section end);
+        public abstract void SetPracticeSection(double timeStart, double timeEnd);
 
         public abstract void ResetPracticeSection();
 
@@ -201,9 +201,9 @@ namespace YARG.Gameplay.Player
         protected abstract TEngine CreateEngine();
         protected abstract void FinishInitialization();
 
-        public override void SetPracticeSection(Section start, Section end)
+        public override void SetPracticeSection(double timeStart, double timeEnd)
         {
-            var practiceNotes = OriginalNoteTrack.Notes.Where(n => n.Time >= start.Time && n.Time < end.TimeEnd).ToList();
+            var practiceNotes = OriginalNoteTrack.Notes.Where(n => n.Time >= timeStart && n.Time < timeEnd).ToList();
 
             Debug.Log($"Practice notes: {practiceNotes.Count}");
 
@@ -217,7 +217,7 @@ namespace YARG.Gameplay.Player
             NoteEnumerator = NoteTrack.Notes.GetEnumerator();
             NoteEnumerator.MoveNext();
 
-            BeatlineEnumerator = SyncTrack.Beatlines.Where(b => b.Time >= start.Time && b.Time <= end.TimeEnd).GetEnumerator();
+            BeatlineEnumerator = SyncTrack.Beatlines.Where(b => b.Time >= timeStart && b.Time <= timeEnd).GetEnumerator();
             BeatlineEnumerator.MoveNext();
 
             Engine = CreateEngine();
@@ -232,10 +232,7 @@ namespace YARG.Gameplay.Player
 
         public override void ResetPracticeSection()
         {
-            foreach (var note in NoteTrack.Notes)
-            {
-                note.ResetNoteState();
-            }
+            Engine.Reset();
 
             IsFc = true;
             ComboMeter.SetFullCombo(true);
