@@ -4,7 +4,7 @@ using System.IO;
 using EasySharpIni;
 using YARG.Audio;
 using YARG.Core;
-using YARG.Core.Chart;
+using YARG.Core.Song;
 
 namespace YARG.Song
 {

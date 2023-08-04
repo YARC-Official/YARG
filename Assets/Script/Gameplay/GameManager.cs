@@ -10,6 +10,7 @@ using YARG.Core.Chart;
 using YARG.Core.Game;
 using YARG.Core.Replays;
 using YARG.Core.Replays.IO;
+using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
 using YARG.Input;
@@ -293,7 +294,7 @@ namespace YARG.Gameplay
             {
                 string notesFile = Path.Combine(Song.Location, Song.NotesFile);
                 Debug.Log(notesFile);
-                _chart = SongChart.FromFile(new SongMetadata(), notesFile);
+                _chart = SongChart.FromFile(ParseSettings.Default, notesFile);
 
                 var syncTrack = _chart.SyncTrack;
                 if (syncTrack.Beatlines is null or { Count: < 1 })

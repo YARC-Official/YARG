@@ -9,7 +9,7 @@ using DtxCS.DataTypes;
 using UnityEngine;
 using XboxSTFS;
 using YARG.Audio;
-using YARG.Core.Chart;
+using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Serialization;
 
