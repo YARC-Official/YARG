@@ -147,5 +147,17 @@ namespace YARG.Gameplay.Player
                 IsFc = false;
             }
         }
+
+        protected override bool InterceptInput(ref GameInput input)
+        {
+            //if(input.GetAction<GuitarAction>())
+            if (input.GetAction<GuitarAction>() == GuitarAction.StarPower && input.Button && GameManager.IsPractice)
+            {
+                GameManager.PracticeManager.ResetPractice();
+                return true;
+            }
+
+            return false;
+        }
     }
 }

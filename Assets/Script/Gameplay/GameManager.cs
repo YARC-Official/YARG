@@ -30,9 +30,6 @@ namespace YARG.Gameplay
         private TrackViewManager _trackViewManager;
 
         [SerializeField]
-        private PracticeSectionMenu _practiceSectionMenu;
-
-        [SerializeField]
         private GameObject _pauseMenu;
 
         [Header("Instrument Prefabs")]
@@ -66,6 +63,8 @@ namespace YARG.Gameplay
         // since things are loaded asynchronously
         // Players are initialized by hand and don't go through this event
         public event Action<SongChart> ChartLoaded;
+
+        public PracticeManager PracticeManager { get; private set; }
 
         public SongEntry Song { get; private set; }
 
@@ -127,13 +126,14 @@ namespace YARG.Gameplay
 
         private void Awake()
         {
+            PracticeManager = GetComponent<PracticeManager>();
+            _yargPlayers = PlayerContainer.Players;
+
             Song = GlobalVariables.Instance.CurrentSong;
             IsReplay = GlobalVariables.Instance.IsReplay;
             IsPractice = GlobalVariables.Instance.IsPractice;
             SelectedSongSpeed = GlobalVariables.Instance.SongSpeed;
             ActualSongSpeed = SelectedSongSpeed;
-
-            _yargPlayers = PlayerContainer.Players;
 
             if (IsReplay)
             {
@@ -165,18 +165,13 @@ namespace YARG.Gameplay
                 }
 
                 _yargPlayers = players;
-            }
-
-            if (IsPractice)
+            } else if (IsPractice)
             {
-                // Don't start until a section has been selected
-                Paused = true;
-                _practiceSectionMenu.gameObject.SetActive(true);
+                ChangeSection();
             }
             else
             {
-                // Not good but will work for now
-                Destroy(_pauseMenu.transform.Find("Background/ChangeSection").gameObject);
+                Destroy(PracticeManager);
             }
         }
 
@@ -199,6 +194,9 @@ namespace YARG.Gameplay
             // Loaded, enable updates
             enabled = true;
         }
+
+        public TextMeshProUGUI inputtime;
+        public TextMeshProUGUI noteindex;
 
         private void Update()
         {
@@ -229,6 +227,9 @@ namespace YARG.Gameplay
             {
                 RealSongTime = GlobalVariables.AudioManager.CurrentPositionD;
             }
+
+            inputtime.text = $"{InputTime:0.0000}";
+            noteindex.text = ((FiveFretPlayer)_players[0]).Engine.State.NoteIndex.ToString();
 
             if (_syncAudio.Status != UniTaskStatus.Pending) _syncAudio = SyncAudio();
 
@@ -352,32 +353,6 @@ namespace YARG.Gameplay
             }
         }
 
-        public void SetPracticeSection(Section start, Section end)
-        {
-            SetPracticeSection(start.Tick, end.TickEnd);
-        }
-
-        public void SetPracticeSection(uint tickStart, uint tickEnd)
-        {
-            double timeStart = _chart.SyncTrack.TickToTime(tickStart);
-            double timeEnd = _chart.SyncTrack.TickToTime(tickEnd);
-
-            foreach (var player in Players)
-            {
-                player.SetPracticeSection(timeStart, timeEnd);
-            }
-
-            SetSongTime(timeStart);
-
-            // Unpause and start audio manually to bypass the input time compensation SetPaused() does
-            Paused = false;
-
-            if (RealSongTime >= 0)
-            {
-                GlobalVariables.AudioManager.Play();
-            }
-        }
-
         public void ChangeSection()
         {
             if (!IsPractice)
@@ -387,10 +362,10 @@ namespace YARG.Gameplay
 
             Paused = true;
             _pauseMenu.SetActive(false);
-            _practiceSectionMenu.gameObject.SetActive(true);
+            PracticeManager.DisplayPracticeMenu();
         }
 
-        private void SetSongTime(double time, double delayTime = SONG_START_DELAY)
+        public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
         {
             double seekTime = time - delayTime;
             double inputTime = InputManager.CurrentInputTime;
@@ -408,7 +383,7 @@ namespace YARG.Gameplay
             GlobalVariables.AudioManager.SetPosition(seekTime);
         }
 
-        public void SetPaused(bool paused)
+        public void SetPaused(bool paused, bool timeCompensation = true)
         {
             Paused = paused;
             _pauseMenu.SetActive(paused);
@@ -422,14 +397,24 @@ namespace YARG.Gameplay
             }
             else
             {
-                double totalPauseTime = InputManager.CurrentInputTime - _pauseStartTime;
-                InputManager.InputTimeOffset += totalPauseTime;
-                if (RealSongTime >= 0) GlobalVariables.AudioManager.Play();
+                if (timeCompensation)
+                {
+                    double totalPauseTime = InputManager.CurrentInputTime - _pauseStartTime;
+                    InputManager.InputTimeOffset += totalPauseTime;
+                }
+                if (RealSongTime >= 0)
+                {
+                    GlobalVariables.AudioManager.Play();
+                }
             }
         }
 
         private void EndSong()
         {
+            if (IsPractice)
+            {
+                PracticeManager.ResetPractice();
+            }
             if (!IsReplay)
             {
                 var replay = ReplayContainer.CreateNewReplay(Song, _players);

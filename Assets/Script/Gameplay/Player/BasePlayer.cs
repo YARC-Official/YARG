@@ -64,7 +64,9 @@ namespace YARG.Gameplay.Player
 
         protected bool IsInitialized { get; private set; }
 
-        protected IEnumerator<Beatline> BeatlineEnumerator;
+        protected List<Beatline> Beatlines;
+
+        protected int BeatlineIndex;
 
         protected virtual void Awake()
         {
@@ -89,8 +91,8 @@ namespace YARG.Gameplay.Player
                 Debug.Log("Initialized replay inputs with " + _replayInputs.Count + " inputs");
             }
 
-            BeatlineEnumerator = SyncTrack.Beatlines.GetEnumerator();
-            BeatlineEnumerator.MoveNext();
+            Beatlines = SyncTrack.Beatlines;
+            BeatlineIndex = 0;
 
             IsInitialized = true;
         }
@@ -108,7 +110,7 @@ namespace YARG.Gameplay.Player
             UpdateBeatlines(songTime);
         }
 
-        public abstract void SetPracticeSection(double timeStart, double timeEnd);
+        public abstract void SetPracticeSection(uint start, uint end);
 
         public abstract void ResetPracticeSection();
 
@@ -118,9 +120,9 @@ namespace YARG.Gameplay.Player
 
         private void UpdateBeatlines(double songTime)
         {
-            while (BeatlineEnumerator.Current?.Time <= songTime + SpawnTimeOffset)
+            while (BeatlineIndex < Beatlines.Count && Beatlines[BeatlineIndex].Time <= songTime + SpawnTimeOffset)
             {
-                var beatline = BeatlineEnumerator.Current;
+                var beatline = Beatlines[BeatlineIndex];
 
                 // Skip this frame if the pool is full
                 if (!BeatlinePool.CanSpawnAmount(1))
@@ -138,7 +140,7 @@ namespace YARG.Gameplay.Player
                 ((BeatlineElement) poolable).BeatlineRef = beatline;
                 poolable.EnableFromPool();
 
-                BeatlineEnumerator.MoveNext();
+                BeatlineIndex++;
             }
         }
 
@@ -171,14 +173,17 @@ namespace YARG.Gameplay.Player
         where TEngine : BaseEngine
         where TNote : Note<TNote>
     {
+        private int _replayInputIndex;
+
         public TEngine Engine { get; private set; }
 
-        private   InstrumentDifficulty<TNote> OriginalNoteTrack { get; set; }
-        protected InstrumentDifficulty<TNote> NoteTrack     { get; private set; }
+        protected List<TNote> Notes { get; private set; }
 
-        protected IEnumerator<TNote> NoteEnumerator { get; private set; }
+        protected int NoteIndex { get; private set; }
 
-        private int _replayInputIndex;
+        protected InstrumentDifficulty<TNote> NoteTrack { get; private set; }
+
+        private InstrumentDifficulty<TNote> OriginalNoteTrack { get; set; }
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView)
         {
@@ -189,8 +194,8 @@ namespace YARG.Gameplay.Player
             OriginalNoteTrack = GetNotes(chart);
             NoteTrack = OriginalNoteTrack;
 
-            NoteEnumerator = NoteTrack.Notes.GetEnumerator();
-            NoteEnumerator.MoveNext();
+            Notes = NoteTrack.Notes;
+            NoteIndex = 0;
 
             Engine = CreateEngine();
 
@@ -201,9 +206,9 @@ namespace YARG.Gameplay.Player
         protected abstract TEngine CreateEngine();
         protected abstract void FinishInitialization();
 
-        public override void SetPracticeSection(double timeStart, double timeEnd)
+        public override void SetPracticeSection(uint start, uint end)
         {
-            var practiceNotes = OriginalNoteTrack.Notes.Where(n => n.Time >= timeStart && n.Time < timeEnd).ToList();
+            var practiceNotes = OriginalNoteTrack.Notes.Where(n => n.Tick >= start && n.TickEnd < end).ToList();
 
             Debug.Log($"Practice notes: {practiceNotes.Count}");
 
@@ -214,11 +219,11 @@ namespace YARG.Gameplay.Player
 
             NoteTrack = new InstrumentDifficulty<TNote>(instrument, difficulty, practiceNotes, phrases, textEvents);
 
-            NoteEnumerator = NoteTrack.Notes.GetEnumerator();
-            NoteEnumerator.MoveNext();
+            Notes = NoteTrack.Notes;
+            NoteIndex = 0;
 
-            BeatlineEnumerator = SyncTrack.Beatlines.Where(b => b.Time >= timeStart && b.Time <= timeEnd).GetEnumerator();
-            BeatlineEnumerator.MoveNext();
+            Beatlines = SyncTrack.Beatlines.Where(b => b.Tick >= start && b.TickEnd <= end).ToList();
+            BeatlineIndex = 0;
 
             Engine = CreateEngine();
             ResetPracticeSection();
@@ -236,6 +241,9 @@ namespace YARG.Gameplay.Player
 
             IsFc = true;
             ComboMeter.SetFullCombo(true);
+
+            NoteIndex = 0;
+            BeatlineIndex = 0;
         }
 
         protected override void UpdateInputs(double inputTime)
@@ -280,9 +288,9 @@ namespace YARG.Gameplay.Player
 
         protected override void UpdateNotes(double songTime)
         {
-            while (NoteEnumerator.Current?.Time <= songTime + SpawnTimeOffset)
+            while (NoteIndex < Notes.Count && Notes[NoteIndex].Time <= songTime + SpawnTimeOffset)
             {
-                var note = NoteEnumerator.Current;
+                var note = Notes[NoteIndex];
 
                 // Skip this frame if the pool is full
                 if (!NotePool.CanSpawnAmount(note.ChildNotes.Count + 1))
@@ -296,7 +304,7 @@ namespace YARG.Gameplay.Player
                     SpawnNote(child);
                 }
 
-                NoteEnumerator.MoveNext();
+                NoteIndex++;
             }
         }
 
@@ -354,10 +362,17 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
+            if (InterceptInput(ref input))
+            {
+                return;
+            }
+
             double adjustedTime = input.Time * GameManager.SelectedSongSpeed;
             input = new(adjustedTime, input.Action, input.Integer);
             Engine.QueueInput(input);
             AddReplayInput(input);
         }
+
+        protected abstract bool InterceptInput(ref GameInput input);
     }
 }

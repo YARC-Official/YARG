@@ -161,7 +161,7 @@ namespace YARG.Gameplay.HUD
                 int first = FirstSelectedIndex.Value;
                 int last = LastSelectedIndex.Value;
 
-                _gameManager.SetPracticeSection(_sections[first], _sections[last]);
+                _gameManager.PracticeManager.SetPracticeSection(_sections[first], _sections[last]);
 
                 // Hide menu
                 gameObject.SetActive(false);
