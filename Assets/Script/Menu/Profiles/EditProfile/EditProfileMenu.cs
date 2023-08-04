@@ -48,12 +48,16 @@ namespace YARG.Menu.Profiles
             _currentPlayer.Bindings.BindingsChanged += RefreshBindings;
 
             RefreshGameModes();
+
+            Navigator.Instance.PushScheme(NavigationScheme.EmptyWithMusicPlayer);
         }
 
         private void OnDisable()
         {
             _currentPlayer.Bindings.BindingsChanged -= RefreshBindings;
             _currentPlayer.EnableInputs();
+
+            Navigator.Instance.PopScheme();
         }
 
         private void RefreshGameModes()

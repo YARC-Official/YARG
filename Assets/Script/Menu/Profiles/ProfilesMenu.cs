@@ -1,4 +1,5 @@
-﻿using Cysharp.Threading.Tasks;
+﻿using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core;
@@ -31,17 +32,15 @@ namespace YARG.Menu.Profiles
         private void OnEnable()
         {
             RefreshList();
+
+            Navigator.Instance.PushScheme(NavigationScheme.EmptyWithMusicPlayer);
         }
 
         private void OnDisable()
         {
             PlayerContainer.SaveProfiles();
-        }
 
-        // TODO: Move the ProfileContainer
-        private void OnApplicationQuit()
-        {
-            PlayerContainer.SaveProfiles();
+            Navigator.Instance.PopScheme();
         }
 
         private void RefreshList()

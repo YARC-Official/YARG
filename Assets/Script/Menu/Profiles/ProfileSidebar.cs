@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,6 +12,8 @@ namespace YARG.Menu.Profiles
 {
     public class ProfileSidebar : MonoBehaviour
     {
+        private const string NUMBER_FORMAT = "0.0###";
+
         [SerializeField]
         private GameObject _contents;
         [SerializeField]
@@ -18,11 +21,13 @@ namespace YARG.Menu.Profiles
         [SerializeField]
         private TMP_InputField _nameInput;
         [SerializeField]
-        private TMP_Dropdown _gameModeDropdown;
-        [SerializeField]
         private Image _profilePicture;
         [SerializeField]
         private Button _editProfileButton;
+        [SerializeField]
+        private TMP_Dropdown _gameModeDropdown;
+        [SerializeField]
+        private TMP_InputField _noteSpeedField;
 
         [Space]
         [SerializeField]
@@ -75,6 +80,7 @@ namespace YARG.Menu.Profiles
             // Display the profile's options
             _profileName.text = _profile.Name;
             _gameModeDropdown.value = _gameModesByIndex.IndexOf(profile.GameMode);
+            _noteSpeedField.text = profile.NoteSpeed.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
 
             // Show the proper name container (hide the editing version)
             _nameContainer.SetActive(true);
@@ -151,6 +157,17 @@ namespace YARG.Menu.Profiles
         public void ChangeGameMode()
         {
             _profile.GameMode = _gameModesByIndex[_gameModeDropdown.value];
+        }
+
+        public void ChangeNoteSpeed()
+        {
+            if (float.TryParse(_noteSpeedField.text, out var speed))
+            {
+                _profile.NoteSpeed = Mathf.Clamp(speed, 0f, 100f);
+            }
+
+            // Always format it after
+            _noteSpeedField.text = _profile.NoteSpeed.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
         }
     }
 }

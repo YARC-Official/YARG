@@ -36,6 +36,8 @@ namespace YARG.Menu.Navigation
             });
         }
 
+        public static readonly NavigationScheme EmptyWithMusicPlayer = new(new(), true);
+
         private readonly List<Entry> _entries;
         public IReadOnlyList<Entry> Entries => _entries;
 

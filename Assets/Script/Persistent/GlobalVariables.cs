@@ -74,6 +74,11 @@ namespace YARG
             LoadScene(SceneIndex.Menu);
         }
 
+        private void OnApplicationQuit()
+        {
+            PlayerContainer.SaveProfiles();
+        }
+
         private void LoadSceneAdditive(SceneIndex scene)
         {
             var asyncOp = SceneManager.LoadSceneAsync((int) scene, LoadSceneMode.Additive);
