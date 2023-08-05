@@ -227,17 +227,16 @@ namespace YARG.Gameplay.Player
 
             Engine = CreateEngine();
             ResetPracticeSection();
-
-            if (practiceNotes.Count > 0)
-            {
-                practiceNotes[0].OverridePreviousNote();
-                practiceNotes[^1].OverrideNextNote();
-            }
         }
 
         public override void ResetPracticeSection()
         {
             Engine.Reset();
+            if (NoteTrack.Notes.Count > 0)
+            {
+                NoteTrack.Notes[0].OverridePreviousNote();
+                NoteTrack.Notes[^1].OverrideNextNote();
+            }
 
             IsFc = true;
             ComboMeter.SetFullCombo(true);
