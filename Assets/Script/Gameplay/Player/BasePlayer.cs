@@ -231,7 +231,7 @@ namespace YARG.Gameplay.Player
 
         public override void ResetPracticeSection()
         {
-            Engine.Reset();
+            Engine.Reset(true);
             if (NoteTrack.Notes.Count > 0)
             {
                 NoteTrack.Notes[0].OverridePreviousNote();
