@@ -243,6 +243,9 @@ namespace YARG.Gameplay.Player
 
             NoteIndex = 0;
             BeatlineIndex = 0;
+
+            NotePool.ReturnAllObjects();
+            BeatlinePool.ReturnAllObjects();
         }
 
         protected override void UpdateInputs(double inputTime)

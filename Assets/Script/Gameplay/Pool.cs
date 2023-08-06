@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace YARG.Gameplay
@@ -21,8 +22,8 @@ namespace YARG.Gameplay
         private int _objectCap = 500;
 
         private readonly Stack<IPoolable> _pooled = new();
-        private int _spawnedCount;
-        private int TotalCount => _pooled.Count + _spawnedCount;
+        private readonly List<IPoolable> _spawnedObjects = new();
+        private int TotalCount => _pooled.Count + _spawnedObjects.Count;
 
         protected virtual void Awake()
         {
@@ -67,14 +68,14 @@ namespace YARG.Gameplay
         {
             if (_pooled.TryPop(out var poolable))
             {
-                _spawnedCount++;
+                _spawnedObjects.Add(poolable);
                 return poolable;
             }
 
             poolable = CreateNew();
             if (poolable != null)
             {
-                _spawnedCount++;
+                _spawnedObjects.Add(poolable);
             }
 
             return poolable;
@@ -97,12 +98,20 @@ namespace YARG.Gameplay
             // Skip if the stack already contains this poolable
             if (_pooled.Contains(poolable)) return;
 
-            _spawnedCount--;
+            _spawnedObjects.Remove(poolable);
 
             poolable.DisableIntoPool();
             _pooled.Push(poolable);
 
             OnReturned(poolable);
+        }
+
+        public void ReturnAllObjects()
+        {
+            foreach (var poolable in _spawnedObjects.ToList())
+            {
+                Return(poolable);
+            }
         }
 
         protected virtual void OnReturned(IPoolable poolable)
