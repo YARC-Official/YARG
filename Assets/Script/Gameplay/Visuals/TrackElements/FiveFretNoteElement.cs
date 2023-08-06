@@ -23,6 +23,10 @@ namespace YARG.Gameplay.Visuals
 
         [Space]
         [SerializeField]
+        private SustainLine _normalSustainLine;
+        [SerializeField]
+        private SustainLine _openSustainLine;
+
         private SustainLine _sustainLine;
 
         // Make sure the remove it later if it has a sustain
@@ -50,6 +54,8 @@ namespace YARG.Gameplay.Visuals
                     GuitarNoteType.Tap   => _tapGroup,
                     _                    => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
                 };
+
+                _sustainLine = _normalSustainLine;
             }
             else
             {
@@ -65,6 +71,8 @@ namespace YARG.Gameplay.Visuals
                     GuitarNoteType.Hopo  => _openHopoGroup,
                     _                    => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
                 };
+
+                _sustainLine = _openSustainLine;
             }
 
             // Show and set material properties
@@ -144,7 +152,8 @@ namespace YARG.Gameplay.Visuals
         {
             HideNotes();
 
-            _sustainLine.gameObject.SetActive(false);
+            _normalSustainLine.gameObject.SetActive(false);
+            _openSustainLine.gameObject.SetActive(false);
         }
 
         private void HideNotes()

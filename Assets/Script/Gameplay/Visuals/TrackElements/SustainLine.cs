@@ -13,8 +13,9 @@ namespace YARG.Gameplay.Visuals
 
         [SerializeField]
         private LineRenderer _lineRenderer;
-
         [SerializeField]
+        private bool _setShaderProperties = true;
+
         private Material _material;
 
         private void Awake()
@@ -54,6 +55,8 @@ namespace YARG.Gameplay.Visuals
 
         private void ResetAmplitudes()
         {
+            if (!_setShaderProperties) return;
+
             _material.SetFloat(_primaryAmplitude, 0f);
             _material.SetFloat(_secondaryAmplitude, 0f);
             _material.SetFloat(_tertiaryAmplitude, 0f);
@@ -77,6 +80,8 @@ namespace YARG.Gameplay.Visuals
 
         private void UpdateAnimation(float noteSpeed)
         {
+            if (!_setShaderProperties) return;
+
             // float whammy = ((NotePool) pool).WhammyFactor * 1.5f;
             float whammy = 0f;
 
