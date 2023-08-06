@@ -87,7 +87,7 @@ namespace YARG.Gameplay.HUD
         private void NextNoteStreakNotification()
         {
             // We could make this more complex if we wanted to
-            _nextStreakCount += 10;
+            _nextStreakCount += 100;
         }
     }
 }
