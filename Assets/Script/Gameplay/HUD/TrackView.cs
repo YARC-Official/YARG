@@ -15,6 +15,8 @@ namespace YARG.Gameplay.HUD
         [Space]
         [SerializeField]
         private SoloBox _soloBox;
+        [SerializeField]
+        private TextNotifications _textNotifications;
 
         private void Start()
         {
@@ -32,11 +34,23 @@ namespace YARG.Gameplay.HUD
         public void StartSolo(SoloSection solo)
         {
             _soloBox.StartSolo(solo);
+
+            // No text notifications during the solo
+            _textNotifications.gameObject.SetActive(false);
         }
 
         public void EndSolo(int soloBonus)
         {
-            _soloBox.EndSolo(soloBonus);
+            _soloBox.EndSolo(soloBonus, () =>
+            {
+                // Show text notifications again
+                _textNotifications.gameObject.SetActive(true);
+            });
+        }
+
+        public void UpdateNoteStreak(int streak)
+        {
+            _textNotifications.UpdateNoteStreak(streak);
         }
     }
 }

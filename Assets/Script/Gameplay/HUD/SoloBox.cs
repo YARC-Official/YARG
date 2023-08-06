@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -79,14 +80,14 @@ namespace YARG.Gameplay.HUD
             _soloBottomText.text = $"{_solo.NotesHit}/{_solo.NoteCount}";
         }
 
-        public void EndSolo(int soloBonus)
+        public void EndSolo(int soloBonus, Action endCallback)
         {
             StopCurrentCoroutine();
 
-            _currentCoroutine = StartCoroutine(HideCoroutine(soloBonus));
+            _currentCoroutine = StartCoroutine(HideCoroutine(soloBonus, endCallback));
         }
 
-        private IEnumerator HideCoroutine(int soloBonus)
+        private IEnumerator HideCoroutine(int soloBonus, Action endCallback)
         {
             _soloEnded = true;
 
@@ -140,6 +141,8 @@ namespace YARG.Gameplay.HUD
             _soloBox.gameObject.SetActive(false);
             _currentCoroutine = null;
             _solo = null;
+
+            endCallback?.Invoke();
         }
 
         private void StopCurrentCoroutine()

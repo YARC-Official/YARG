@@ -283,6 +283,8 @@ namespace YARG.Gameplay.Player
             ComboMeter.SetCombo(stats.ScoreMultiplier, maxMultiplier, stats.Combo);
             StarpowerBar.SetStarpower(stats.StarPowerAmount);
             SunburstEffects.SetSunburstEffects(groove, stats.IsStarPowerActive);
+
+            TrackView.UpdateNoteStreak(stats.Combo);
         }
 
         protected override void UpdateNotes(double songTime)
