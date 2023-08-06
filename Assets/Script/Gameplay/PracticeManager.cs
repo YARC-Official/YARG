@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Gameplay.HUD;
 
@@ -10,6 +11,9 @@ namespace YARG.Gameplay
         [Header("References")]
         [SerializeField]
         private PracticeSectionMenu practiceSectionMenu;
+
+        [SerializeField]
+        private PracticeHud practiceHud;
 
         private GameManager _gameManager;
 
@@ -56,6 +60,8 @@ namespace YARG.Gameplay
 
             _gameManager.SetSongTime(songTime);
             _gameManager.SetPaused(false, false);
+
+            practiceHud.SetSections(GetSectionsInPractice(tickStart, tickEnd));
         }
 
         public void AdjustPracticeStartEnd(int start, int end)
@@ -81,6 +87,11 @@ namespace YARG.Gameplay
             SetPracticeSection(_tickStart, _tickEnd);
         }
 
+        public Section[] GetSectionsInPractice(uint start, uint end)
+        {
+            return _chart.Sections.Where(s => s.Tick >= start && s.TickEnd <= end).ToArray();
+        }
+
         public void ResetPractice()
         {
             foreach (var player in _gameManager.Players)
@@ -89,6 +100,8 @@ namespace YARG.Gameplay
             }
 
             _gameManager.SetSongTime(_chart.SyncTrack.TickToTime(_tickStart));
+
+            practiceHud.UpdateHud();
         }
     }
 }

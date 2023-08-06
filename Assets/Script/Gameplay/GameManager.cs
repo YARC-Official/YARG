@@ -171,6 +171,7 @@ namespace YARG.Gameplay
             }
             else
             {
+                Destroy(_pauseMenu.transform.Find("Background/ChangeSection").gameObject);
                 Destroy(PracticeManager);
             }
         }
@@ -228,8 +229,8 @@ namespace YARG.Gameplay
                 RealSongTime = GlobalVariables.AudioManager.CurrentPositionD;
             }
 
-            inputtime.text = $"{InputTime:0.0000}";
-            noteindex.text = ((FiveFretPlayer)_players[0]).Engine.State.NoteIndex.ToString();
+            inputtime.text = ((FiveFretPlayer) _players[0]).Engine.State.ButtonMask.ToString();
+            noteindex.text = ((FiveFretPlayer) _players[0]).Engine.State.NoteIndex.ToString();
 
             if (_syncAudio.Status != UniTaskStatus.Pending) _syncAudio = SyncAudio();
 
