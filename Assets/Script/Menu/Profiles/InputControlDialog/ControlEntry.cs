@@ -8,7 +8,7 @@ namespace YARG.Menu.Profiles
     public class ControlEntry : MonoBehaviour
     {
         [SerializeField]
-        private TextMeshProUGUI _deviceName;
+        private TextMeshProUGUI _controlName;
 
         private InputControl _inputControl;
         private Action<InputControl> _selectCallback;
@@ -18,7 +18,7 @@ namespace YARG.Menu.Profiles
             _inputControl = inputControl;
             _selectCallback = selectCallback;
 
-            _deviceName.text = inputControl.displayName;
+            _controlName.text = inputControl.displayName;
         }
 
         public void SelectControl()

@@ -1902,6 +1902,7 @@ MonoBehaviour:
   <SettingsMenu>k__BackingField: {fileID: 340418945}
   SongSpeed: 1
   IsReplay: 0
+  IsPractice: 0
 --- !u!114 &788257162
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2252,7 +2253,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1957070994}
   m_HandleRect: {fileID: 1957070993}
   m_Direction: 2
-  m_Value: 0
+  m_Value: 1
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -4175,7 +4176,7 @@ MonoBehaviour:
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 1920, y: 1080}
-  m_ScreenMatchMode: 0
+  m_ScreenMatchMode: 1
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
@@ -5611,7 +5612,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 4257247bb7751ac4db3281af42826ba9, type: 3}
+  m_Sprite: {fileID: 21300000, guid: f8e4313acf88a66489837d9e04101138, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1

@@ -61,7 +61,9 @@ namespace YARG.Menu.Profiles
         [SerializeField]
         private Transform _controlContainer;
         [SerializeField]
-        private GameObject _waitingText;
+        private GameObject _controlChooseContainer;
+        [SerializeField]
+        private GameObject _waitingContainer;
 
         [Space]
         [SerializeField]
@@ -106,7 +108,8 @@ namespace YARG.Menu.Profiles
 
             // Reset menu
             _controlContainer.DestroyChildren();
-            _waitingText.SetActive(true);
+            _waitingContainer.SetActive(true);
+            _controlChooseContainer.SetActive(false);
 
             try
             {
@@ -114,7 +117,8 @@ namespace YARG.Menu.Profiles
                 using (var listener = InputSystem.onEvent.Call(Listen))
                 {
                     await UniTask.WaitUntil(() => _state != State.Waiting, cancellationToken: token);
-                    _waitingText.SetActive(false);
+                    _waitingContainer.SetActive(false);
+                    _controlChooseContainer.SetActive(true);
                 }
 
                 // Get the actuated control
