@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Note_Tap
+  m_Name: NoteMetal
   m_Shader: {fileID: -6465566751694194690, guid: 0c474304b74472f4a8b212da29713486,
     type: 3}
   m_ValidKeywords: []
@@ -35,7 +35,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseMap:
-        m_Texture: {fileID: 2800000, guid: ef93ace754e88724abc0706e0f3ccbd7, type: 3}
+        m_Texture: {fileID: 2800000, guid: c2387eea6ceed41499291b7bef47673d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
@@ -59,7 +59,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: ef93ace754e88724abc0706e0f3ccbd7, type: 3}
+        m_Texture: {fileID: 2800000, guid: c2387eea6ceed41499291b7bef47673d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:

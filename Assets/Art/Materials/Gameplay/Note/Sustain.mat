@@ -99,7 +99,7 @@ Material:
     - _DstBlendAlpha: 10
     - _EmissionStrength: 1
     - _EnvironmentReflections: 1
-    - _ForwardOffset: 0
+    - _ForwardOffset: 23.210754
     - _Frequency: 5
     - _GlossMapScale: 0
     - _Glossiness: 0
@@ -107,12 +107,12 @@ Material:
     - _Metallic: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.005
-    - _PrimaryAmplitude: 0
+    - _PrimaryAmplitude: 0.18
     - _PrimaryFrequency: 10
     - _QueueControl: 0
     - _QueueOffset: -5
     - _ReceiveShadows: 1
-    - _SecondaryAmplitude: 0
+    - _SecondaryAmplitude: 0.47380185
     - _SecondaryFrequency: 10
     - _Smoothness: 0
     - _SmoothnessTextureChannel: 0
@@ -120,7 +120,7 @@ Material:
     - _SrcBlend: 5
     - _SrcBlendAlpha: 1
     - _Surface: 1
-    - _TertiaryAmplitude: 0
+    - _TertiaryAmplitude: 0.07968688
     - _WorkflowMode: 1
     - _ZWrite: 0
     m_Colors:

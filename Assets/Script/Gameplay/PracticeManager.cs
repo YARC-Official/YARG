@@ -61,7 +61,7 @@ namespace YARG.Gameplay
             _gameManager.SetSongTime(songTime);
             _gameManager.SetPaused(false, false);
 
-            practiceHud.SetSections(GetSectionsInPractice(tickStart, tickEnd));
+            // practiceHud.SetSections(GetSectionsInPractice(tickStart, tickEnd));
         }
 
         public void AdjustPracticeStartEnd(int start, int end)

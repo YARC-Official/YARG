@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7137662299531785058}
   m_Layer: 6
-  m_Name: Notes_Full_HOPO
+  m_Name: Open
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -24,8 +24,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 813959795042240314}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.000043996, y: -0.004, z: 0}
-  m_LocalScale: {x: 0.9735863, y: 1.2512, z: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5312122841397978341}
@@ -44,7 +44,7 @@ GameObject:
   - component: {fileID: 4132597056536066752}
   - component: {fileID: 2920260908173878507}
   m_Layer: 0
-  m_Name: Full_HOPO
+  m_Name: Full
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -59,7 +59,7 @@ Transform:
   m_GameObject: {fileID: 8683695084516483187}
   m_LocalRotation: {x: 0.000000021855692, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.078, y: 0.07, z: 0.05}
+  m_LocalScale: {x: 0.07593973, y: 0.087584, z: 0.05}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7137662299531785058}
@@ -93,8 +93,8 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: c893e1c8cd100e6438525b5e9b15a99b, type: 2}
-  - {fileID: 2100000, guid: 44b1e7efc7bd61a478085c4e65e79343, type: 2}
+  - {fileID: 2100000, guid: e059236123aed23458b6a1a0ef73403c, type: 2}
+  - {fileID: 2100000, guid: 58da9d225f612af438aead0e3c970fe9, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

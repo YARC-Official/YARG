@@ -8,12 +8,16 @@ namespace YARG.Gameplay.Visuals
 {
     public sealed class FiveFretNoteElement : NoteElement<GuitarNote, FiveFretPlayer>
     {
+        private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
+
         [SerializeField]
         private NoteGroup _strumGroup;
         [SerializeField]
         private NoteGroup _hopoGroup;
         [SerializeField]
         private NoteGroup _tapGroup;
+        [SerializeField]
+        private NoteGroup _openGroup;
 
         [Space]
         [SerializeField]
@@ -27,18 +31,39 @@ namespace YARG.Gameplay.Visuals
         {
             base.InitializeElement();
 
-            transform.localPosition = new Vector3(
-                BasePlayer.TRACK_WIDTH / 5f * NoteRef.Fret - BasePlayer.TRACK_WIDTH / 2f - 1f / 5f,
-                0f, 0f);
-
-            // Get which note model to use
-            NoteGroup = NoteRef.Type switch
+            if (NoteRef.Fret != 0)
             {
-                GuitarNoteType.Strum => _strumGroup,
-                GuitarNoteType.Hopo  => _hopoGroup,
-                GuitarNoteType.Tap   => _tapGroup,
-                _                    => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
-            };
+                // Deal with non-open notes
+
+                // Set the position
+                transform.localPosition = new Vector3(
+                    BasePlayer.TRACK_WIDTH / 5f * NoteRef.Fret - BasePlayer.TRACK_WIDTH / 2f - 1f / 5f,
+                    0f, 0f);
+
+                // Get which note model to use
+                NoteGroup = NoteRef.Type switch
+                {
+                    GuitarNoteType.Strum => _strumGroup,
+                    GuitarNoteType.Hopo  => _hopoGroup,
+                    GuitarNoteType.Tap   => _tapGroup,
+                    _                    => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
+                };
+            }
+            else
+            {
+                // Deal with open notes
+
+                // Set the position
+                transform.localPosition = Vector3.zero;
+
+                // Get which note model to use
+                NoteGroup = NoteRef.Type switch
+                {
+                    GuitarNoteType.Strum => _openGroup,
+                    GuitarNoteType.Hopo  => _openGroup,
+                    _                    => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
+                };
+            }
 
             // Show and set material properties
             NoteGroup.SetActive(true);
@@ -89,7 +114,7 @@ namespace YARG.Gameplay.Visuals
 
         private void UpdateColor()
         {
-            var colors = base.Player.Player.ColorProfile.FiveFretGuitar;
+            var colors = Player.Player.ColorProfile.FiveFretGuitar;
 
             // Get which note color to use
             var color = NoteRef.IsStarPower
@@ -98,6 +123,7 @@ namespace YARG.Gameplay.Visuals
 
             // Set the note color
             NoteGroup.ColoredMaterial.color = color.ToUnityColor();
+            NoteGroup.ColoredMaterial.SetColor(_emissionColor, color.ToUnityColor() * 8f);
 
             // The rest of this method is for sustain only
             if (!NoteRef.IsSustain) return;
@@ -117,6 +143,7 @@ namespace YARG.Gameplay.Visuals
             _strumGroup.SetActive(false);
             _hopoGroup.SetActive(false);
             _tapGroup.SetActive(false);
+            _openGroup.SetActive(false);
         }
     }
 }
