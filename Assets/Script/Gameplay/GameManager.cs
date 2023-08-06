@@ -303,9 +303,11 @@ namespace YARG.Gameplay
 
                 _beats = _chart.SyncTrack.Beatlines;
 
-                uint lastTick = _chart.GetLastTick();
-                _chart.Sections[^1].TickLength = lastTick;
-                _chart.Sections[^1].TimeLength = _chart.SyncTrack.TickToTime(lastTick);
+                if (_chart.Sections.Count > 0) {
+                    uint lastTick = _chart.GetLastTick();
+                    _chart.Sections[^1].TickLength = lastTick;
+                    _chart.Sections[^1].TimeLength = _chart.SyncTrack.TickToTime(lastTick);
+                }
             });
 
             ChartLoaded?.Invoke(_chart);

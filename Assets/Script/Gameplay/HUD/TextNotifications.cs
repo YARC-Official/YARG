@@ -26,7 +26,10 @@ namespace YARG.Gameplay.HUD
 
         private void OnDisable()
         {
-            StopCoroutine(_coroutine);
+            if (_coroutine != null)
+            {
+                StopCoroutine(_coroutine);
+            }
         }
 
         public void UpdateNoteStreak(int streak)
