@@ -18,6 +18,8 @@ namespace YARG.Gameplay.Visuals
         private NoteGroup _tapGroup;
         [SerializeField]
         private NoteGroup _openGroup;
+        [SerializeField]
+        private NoteGroup _openHopoGroup;
 
         [Space]
         [SerializeField]
@@ -60,7 +62,7 @@ namespace YARG.Gameplay.Visuals
                 NoteGroup = NoteRef.Type switch
                 {
                     GuitarNoteType.Strum => _openGroup,
-                    GuitarNoteType.Hopo  => _openGroup,
+                    GuitarNoteType.Hopo  => _openHopoGroup,
                     _                    => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
                 };
             }
@@ -125,6 +127,13 @@ namespace YARG.Gameplay.Visuals
             NoteGroup.ColoredMaterial.color = color.ToUnityColor();
             NoteGroup.ColoredMaterial.SetColor(_emissionColor, color.ToUnityColor() * 8f);
 
+            // TODO: Temporary
+            // Change color for open HOPOs
+            if (NoteRef.Fret == 0 && NoteRef.Type == GuitarNoteType.Hopo)
+            {
+                NoteGroup.ColoredMaterial.color += new Color(3f, 3f, 3f, 0f);
+            }
+
             // The rest of this method is for sustain only
             if (!NoteRef.IsSustain) return;
 
@@ -144,6 +153,7 @@ namespace YARG.Gameplay.Visuals
             _hopoGroup.SetActive(false);
             _tapGroup.SetActive(false);
             _openGroup.SetActive(false);
+            _openHopoGroup.SetActive(false);
         }
     }
 }
