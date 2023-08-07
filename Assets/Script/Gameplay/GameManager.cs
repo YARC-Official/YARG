@@ -207,8 +207,10 @@ namespace YARG.Gameplay
             // Listen for menu inputs
             InputManager.MenuInput += OnMenuInput;
 
+#if UNITY_EDITOR
             // Show debug info
             _debugText.gameObject.SetActive(true);
+#endif
         }
 
         private void Update()
@@ -241,9 +243,11 @@ namespace YARG.Gameplay
                 RealSongTime = GlobalVariables.AudioManager.CurrentPositionD;
             }
 
+#if UNITY_EDITOR
             byte buttonMask = ((FiveFretPlayer) _players[0]).Engine.State.ButtonMask;
             int noteIndex = ((FiveFretPlayer) _players[0]).Engine.State.NoteIndex;
             _debugText.text = $"Note index: {noteIndex}\nButtons: {buttonMask}\nInput time: {InputTime:0.000000}\nSong time: {SongTime:0.000000}";
+#endif
 
             if (_syncAudio.Status != UniTaskStatus.Pending) _syncAudio = SyncAudio();
 
@@ -377,6 +381,9 @@ namespace YARG.Gameplay
 
             Paused = true;
             _pauseMenu.SetActive(false);
+#if UNITY_EDITOR
+            _debugText.gameObject.SetActive(false);
+#endif
             PracticeManager.DisplayPracticeMenu();
         }
 
@@ -411,6 +418,9 @@ namespace YARG.Gameplay
         {
             Paused = paused;
             _pauseMenu.SetActive(paused);
+#if UNITY_EDITOR
+            _debugText.gameObject.SetActive(!paused);
+#endif
 
             Debug.Log($"Paused: {paused}");
 
