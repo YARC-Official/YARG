@@ -47,18 +47,55 @@ namespace YARG.Gameplay.HUD
 
         private void Update()
         {
+            speedPercentText.text = $"{_gameManager.SelectedSongSpeed * 100f:0}%";
 
+            int notesHit = 0;
+            int totalNotes = 0;
+            foreach (var player in _gameManager.Players)
+            {
+                notesHit += player.NotesHit;
+                totalNotes += player.TotalNotes;
+            }
+
+            _percentHit = (float)notesHit / totalNotes;
+
+            percentHitText.text = $"{_percentHit * 100f:0}%";
+
+            while(_currentSectionIndex < _sections.Length && _gameManager.SongTime >= _sections[_currentSectionIndex].TimeEnd)
+            {
+                _currentSectionIndex++;
+
+                if(_currentSectionIndex < _sections.Length)
+                {
+                    sectionText.text = $"{_sections[_currentSectionIndex].Name}";
+                }
+            }
         }
 
-        public void UpdateHud()
+        public void ResetPractice()
         {
-            speedPercentText.text = $"{_gameManager.SelectedSongSpeed * 100f:0}%";
+            if(_percentHit > _bestPercentHit)
+            {
+                _bestPercentHit = _percentHit;
+
+                bestPercentText.text = $"{_bestPercentHit * 100f:0}%";
+            }
+
+            _currentSectionIndex = 0;
+
+            if(_sections.Length > 0)
+            {
+                sectionText.text = $"{_sections[_currentSectionIndex].Name}";
+            }
         }
 
         public void SetSections(Section[] sections)
         {
             _sections = sections;
             _currentSectionIndex = 0;
+
+            _percentHit = 0f;
+            _bestPercentHit = 0f;
         }
     }
 }

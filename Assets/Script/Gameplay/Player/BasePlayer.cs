@@ -60,6 +60,9 @@ namespace YARG.Gameplay.Player
         public int Score { get; protected set; }
         public int Combo { get; protected set; }
 
+        public int NotesHit   { get; protected set; }
+        public int TotalNotes { get; protected set; }
+
         protected bool IsFc;
 
         protected bool IsInitialized { get; private set; }
@@ -196,6 +199,7 @@ namespace YARG.Gameplay.Player
 
             Notes = NoteTrack.Notes;
             NoteIndex = 0;
+            TotalNotes = Notes.Count;
 
             Engine = CreateEngine();
 
@@ -221,6 +225,8 @@ namespace YARG.Gameplay.Player
 
             Notes = NoteTrack.Notes;
             NoteIndex = 0;
+            NotesHit = 0;
+            TotalNotes = Notes.Count;
 
             Beatlines = SyncTrack.Beatlines.Where(b => b.Tick >= start && b.TickEnd <= end).ToList();
             BeatlineIndex = 0;
@@ -243,6 +249,8 @@ namespace YARG.Gameplay.Player
 
             NoteIndex = 0;
             BeatlineIndex = 0;
+            NotesHit = 0;
+            TotalNotes = Notes.Count;
 
             NotePool.ReturnAllObjects();
             BeatlinePool.ReturnAllObjects();

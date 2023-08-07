@@ -15,6 +15,9 @@ namespace YARG.Gameplay
         [SerializeField]
         private PracticeHud practiceHud;
 
+        [SerializeField]
+        private GameObject scoreDisplayObject;
+
         private GameManager _gameManager;
 
         private SongChart _chart;
@@ -28,6 +31,9 @@ namespace YARG.Gameplay
         {
             _gameManager = FindObjectOfType<GameManager>();
             _gameManager.ChartLoaded += OnChartLoaded;
+
+            practiceHud.gameObject.SetActive(true);
+            scoreDisplayObject.SetActive(false);
         }
 
         private void OnChartLoaded(SongChart chart)
@@ -61,7 +67,7 @@ namespace YARG.Gameplay
             _gameManager.SetSongTime(songTime);
             _gameManager.SetPaused(false, false);
 
-            // practiceHud.SetSections(GetSectionsInPractice(tickStart, tickEnd));
+            practiceHud.SetSections(GetSectionsInPractice(tickStart, tickEnd));
         }
 
         public void AdjustPracticeStartEnd(int start, int end)
@@ -87,11 +93,6 @@ namespace YARG.Gameplay
             SetPracticeSection(_tickStart, _tickEnd);
         }
 
-        public Section[] GetSectionsInPractice(uint start, uint end)
-        {
-            return _chart.Sections.Where(s => s.Tick >= start && s.TickEnd <= end).ToArray();
-        }
-
         public void ResetPractice()
         {
             foreach (var player in _gameManager.Players)
@@ -101,7 +102,12 @@ namespace YARG.Gameplay
 
             _gameManager.SetSongTime(_chart.SyncTrack.TickToTime(_tickStart));
 
-            practiceHud.UpdateHud();
+            practiceHud.ResetPractice();
+        }
+
+        private Section[] GetSectionsInPractice(uint start, uint end)
+        {
+            return _chart.Sections.Where(s => s.Tick >= start && s.TickEnd <= end).ToArray();
         }
     }
 }
