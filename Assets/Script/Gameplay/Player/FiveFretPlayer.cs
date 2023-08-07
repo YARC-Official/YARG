@@ -150,12 +150,9 @@ namespace YARG.Gameplay.Player
 
         protected override bool InterceptInput(ref GameInput input)
         {
-            //if(input.GetAction<GuitarAction>())
-            if (input.GetAction<GuitarAction>() == GuitarAction.StarPower && input.Button && GameManager.IsPractice)
-            {
-                GameManager.PracticeManager.ResetPractice();
+            // Ignore SP in practice mode
+            if (input.GetAction<GuitarAction>() == GuitarAction.StarPower && GameManager.IsPractice)
                 return true;
-            }
 
             return false;
         }

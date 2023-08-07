@@ -489,8 +489,15 @@ namespace YARG.Gameplay
             var action = (MenuAction) input.Action;
             switch (action)
             {
+                // Pause
                 case MenuAction.Start:
                     SetPaused(!Paused);
+                    break;
+
+                // Practice mode reset
+                case MenuAction.Select:
+                    if (IsPractice)
+                        PracticeManager.ResetPractice();
                     break;
             }
         }
