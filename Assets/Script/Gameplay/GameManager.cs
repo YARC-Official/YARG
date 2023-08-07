@@ -67,8 +67,10 @@ namespace YARG.Gameplay
 
         public SongEntry Song { get; private set; }
 
+        private float _syncSpeedAdjustment = 0f;
+
         public float SelectedSongSpeed { get; private set; }
-        public float ActualSongSpeed   { get; private set; }
+        public float ActualSongSpeed => SelectedSongSpeed + _syncSpeedAdjustment;
 
         public double SongLength { get; private set; }
 
@@ -132,7 +134,6 @@ namespace YARG.Gameplay
             IsReplay = GlobalVariables.Instance.IsReplay;
             IsPractice = GlobalVariables.Instance.IsPractice;
             SelectedSongSpeed = GlobalVariables.Instance.SongSpeed;
-            ActualSongSpeed = SelectedSongSpeed;
 
             if (IsReplay)
             {
@@ -264,8 +265,7 @@ namespace YARG.Gameplay
 
             Debug.Log($"Resyncing audio position. Input: {inputTime}, audio: {audioTime}, delta: {delta}");
 
-            float speedAdjustment = delta > 0.0 ? SPEED_ADJUSTMENT : -SPEED_ADJUSTMENT;
-            ActualSongSpeed = SelectedSongSpeed + speedAdjustment;
+            _syncSpeedAdjustment = delta > 0.0 ? SPEED_ADJUSTMENT : -SPEED_ADJUSTMENT;
             GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
 
             await UniTask.WaitUntil(() =>
@@ -279,7 +279,7 @@ namespace YARG.Gameplay
                     (delta > 0.0 && newDelta < 0.0) ||
                     (delta < 0.0 && newDelta > 0.0);
             });
-            ActualSongSpeed = SelectedSongSpeed;
+            _syncSpeedAdjustment = 0f;
             GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
 
             inputTime = RealInstantInputTime;
@@ -388,7 +388,8 @@ namespace YARG.Gameplay
         public void SetSongSpeed(float speed)
         {
             SelectedSongSpeed = speed;
-            GlobalVariables.AudioManager.SetSpeed(SelectedSongSpeed);
+            // Set based on the actual song speed, so as to not break resyncing
+            GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
         }
 
         public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(SelectedSongSpeed + deltaSpeed);
