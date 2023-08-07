@@ -66,12 +66,11 @@ namespace YARG.Gameplay
         {
             if (ctx.Action == MenuAction.Left)
             {
-                _gameManager.SelectedSongSpeed -= 0.05f;
-                GlobalVariables.AudioManager.SetSpeed(_gameManager.SelectedSongSpeed);
-            } else if (ctx.Action == MenuAction.Right)
+                _gameManager.AdjustSongSpeed(-0.05f);
+            }
+            else if (ctx.Action == MenuAction.Right)
             {
-                _gameManager.SelectedSongSpeed += 0.05f;
-                GlobalVariables.AudioManager.SetSpeed(_gameManager.SelectedSongSpeed);
+                _gameManager.AdjustSongSpeed(0.05f);
             }
         }
 

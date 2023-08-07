@@ -67,7 +67,7 @@ namespace YARG.Gameplay
 
         public SongEntry Song { get; private set; }
 
-        public float SelectedSongSpeed { get; set; }
+        public float SelectedSongSpeed { get; private set; }
         public float ActualSongSpeed   { get; private set; }
 
         public double SongLength { get; private set; }
@@ -384,6 +384,14 @@ namespace YARG.Gameplay
             if (seekTime < 0) seekTime = 0;
             GlobalVariables.AudioManager.SetPosition(seekTime);
         }
+
+        public void SetSongSpeed(float speed)
+        {
+            SelectedSongSpeed = speed;
+            GlobalVariables.AudioManager.SetSpeed(SelectedSongSpeed);
+        }
+
+        public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(SelectedSongSpeed + deltaSpeed);
 
         public void SetPaused(bool paused, bool timeCompensation = true)
         {
