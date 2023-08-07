@@ -10,7 +10,6 @@ using YARG.Core.Chart;
 using YARG.Core.Game;
 using YARG.Core.Replays;
 using YARG.Core.Replays.IO;
-using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
 using YARG.Input;
@@ -68,7 +67,7 @@ namespace YARG.Gameplay
 
         public SongEntry Song { get; private set; }
 
-        public float SelectedSongSpeed { get; private set; }
+        public float SelectedSongSpeed { get; set; }
         public float ActualSongSpeed   { get; private set; }
 
         public double SongLength { get; private set; }

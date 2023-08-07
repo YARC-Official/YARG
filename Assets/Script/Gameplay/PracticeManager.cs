@@ -1,7 +1,9 @@
 ﻿using System.Linq;
 using UnityEngine;
 using YARG.Core.Chart;
+using YARG.Core.Input;
 using YARG.Gameplay.HUD;
+using YARG.Menu.Navigation;
 
 namespace YARG.Gameplay
 {
@@ -32,14 +34,35 @@ namespace YARG.Gameplay
             _gameManager = FindObjectOfType<GameManager>();
             _gameManager.ChartLoaded += OnChartLoaded;
 
+            Navigator.Instance.NavigationEvent += OnNavigationEvent;
+
             practiceHud.gameObject.SetActive(true);
             scoreDisplayObject.SetActive(false);
+        }
+
+        private void OnDestroy()
+        {
+            _gameManager.ChartLoaded -= OnChartLoaded;
+            Navigator.Instance.NavigationEvent -= OnNavigationEvent;
         }
 
         private void OnChartLoaded(SongChart chart)
         {
             _chart = chart;
             _lastTick = chart.GetLastTick();
+        }
+
+        private void OnNavigationEvent(NavigationContext ctx)
+        {
+            if (ctx.Action == MenuAction.Left)
+            {
+                _gameManager.SelectedSongSpeed -= 0.05f;
+                GlobalVariables.AudioManager.SetSpeed(_gameManager.SelectedSongSpeed);
+            } else if (ctx.Action == MenuAction.Right)
+            {
+                _gameManager.SelectedSongSpeed += 0.05f;
+                GlobalVariables.AudioManager.SetSpeed(_gameManager.SelectedSongSpeed);
+            }
         }
 
         public void DisplayPracticeMenu()
