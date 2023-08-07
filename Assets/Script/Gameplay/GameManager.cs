@@ -14,6 +14,7 @@ using YARG.Core.Replays.IO;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
 using YARG.Input;
+using YARG.Menu.Navigation;
 using YARG.Player;
 using YARG.Replays;
 using YARG.Settings;
@@ -182,7 +183,7 @@ namespace YARG.Gameplay
 
         private void OnDestroy()
         {
-            InputManager.MenuInput -= OnMenuInput;
+            Navigator.Instance.NavigationEvent -= OnNavigationEvent;
         }
 
         private async UniTask Start()
@@ -205,7 +206,7 @@ namespace YARG.Gameplay
             enabled = true;
 
             // Listen for menu inputs
-            InputManager.MenuInput += OnMenuInput;
+            Navigator.Instance.NavigationEvent += OnNavigationEvent;
 
 #if UNITY_EDITOR
             // Show debug info
@@ -484,10 +485,9 @@ namespace YARG.Gameplay
             GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
         }
 
-        private void OnMenuInput(YargPlayer player, ref GameInput input)
+        private void OnNavigationEvent(NavigationContext context)
         {
-            var action = (MenuAction) input.Action;
-            switch (action)
+            switch (context.Action)
             {
                 // Pause
                 case MenuAction.Start:
