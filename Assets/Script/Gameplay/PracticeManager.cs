@@ -35,9 +35,19 @@ namespace YARG.Gameplay
             _gameManager.ChartLoaded += OnChartLoaded;
 
             Navigator.Instance.NavigationEvent += OnNavigationEvent;
+        }
 
-            practiceHud.gameObject.SetActive(true);
-            scoreDisplayObject.SetActive(false);
+        private void Start()
+        {
+            if (_gameManager.IsPractice)
+            {
+                practiceHud.gameObject.SetActive(true);
+                scoreDisplayObject.SetActive(false);
+            }
+            else
+            {
+                Destroy(this);
+            }
         }
 
         private void OnDestroy()

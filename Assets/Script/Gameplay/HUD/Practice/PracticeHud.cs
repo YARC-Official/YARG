@@ -45,6 +45,14 @@ namespace YARG.Gameplay.HUD
             _currentSectionIndex = 0;
         }
 
+        private void Start()
+        {
+            if (!_gameManager.IsPractice)
+            {
+                Destroy(gameObject);
+            }
+        }
+
         private void Update()
         {
             if (_gameManager.Players is null)
