@@ -337,6 +337,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnNoteHit(int index, TNote note)
         {
+            NotesHit++;
         }
 
         protected virtual void OnNoteMissed(int index, TNote note)

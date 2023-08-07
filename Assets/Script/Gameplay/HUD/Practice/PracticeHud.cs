@@ -47,6 +47,11 @@ namespace YARG.Gameplay.HUD
 
         private void Update()
         {
+            if (_gameManager.Players is null)
+            {
+                return;
+            }
+
             speedPercentText.text = $"{_gameManager.SelectedSongSpeed * 100f:0}%";
 
             int notesHit = 0;
@@ -59,6 +64,7 @@ namespace YARG.Gameplay.HUD
 
             _percentHit = (float)notesHit / totalNotes;
 
+            notesHitTotalText.text = $"{notesHit}/{totalNotes}";
             percentHitText.text = $"{_percentHit * 100f:0}%";
 
             while(_currentSectionIndex < _sections.Length && _gameManager.SongTime >= _sections[_currentSectionIndex].TimeEnd)
