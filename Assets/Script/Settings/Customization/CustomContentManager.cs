@@ -26,7 +26,7 @@ namespace YARG.Settings.Customization
                 return;
             }
 
-            PathHelper.SafeEnumerateFiles(folderPath, "*.json", (path) =>
+            PathHelper.SafeEnumerateFiles(folderPath, "*.json", true, (path) =>
             {
                 string jsonFile = File.ReadAllText(path);
                 var item = JsonConvert.DeserializeObject<T>(jsonFile);

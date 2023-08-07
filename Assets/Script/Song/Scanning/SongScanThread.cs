@@ -237,7 +237,7 @@ namespace YARG.Song
             }
 
             // Iterate through the files in this current directory to look for CON files
-            PathHelper.SafeEnumerateFiles(subDir, (file) =>
+            PathHelper.SafeEnumerateFiles(subDir, false, (file) =>
             {
                 var conFile = XboxSTFSFile.LoadCON(file);
                 if (conFile == null) return true;
@@ -271,7 +271,7 @@ namespace YARG.Song
                 return true;
             });
 
-            PathHelper.SafeEnumerateDirectories(subDir, (directory) =>
+            PathHelper.SafeEnumerateDirectories(subDir, false, (directory) =>
             {
                 if (directory != _updateFolderPath && directory != _upgradeFolderPath)
                 {

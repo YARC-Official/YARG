@@ -39,10 +39,21 @@ namespace YARG.Helpers
 
         /// <summary>
         /// Safe options to use when enumerating files or directories.
+        /// Recurses subdirectories.
         /// </summary>
         public static EnumerationOptions SafeSearchOptions { get; } = new()
         {
             RecurseSubdirectories = true,
+            ReturnSpecialDirectories = false,
+            IgnoreInaccessible = true,
+        };
+
+        /// <summary>
+        /// Safe options to use when enumerating files or directories.
+        /// Does not recurse subdirectories.
+        /// </summary>
+        public static EnumerationOptions SafeSearchOptions_NoRecurse { get; } = new()
+        {
             ReturnSpecialDirectories = false,
             IgnoreInaccessible = true,
         };
@@ -89,9 +100,9 @@ namespace YARG.Helpers
         /// <param name="processFile">
         /// The action used to process the enumerated files. Return false to stop enumeration, true to continue.
         /// </param>
-        public static void SafeEnumerateFiles(string path, Func<string, bool> processFile)
+        public static void SafeEnumerateFiles(string path, bool recurse, Func<string, bool> processFile)
         {
-            SafeEnumerateFiles(path, "*", processFile);
+            SafeEnumerateFiles(path, "*", recurse, processFile);
         }
 
         /// <summary>
@@ -106,9 +117,10 @@ namespace YARG.Helpers
         /// <param name="processFile">
         /// The action used to process the enumerated files. Return false to stop enumeration, true to continue.
         /// </param>
-        public static void SafeEnumerateFiles(string path, string searchPattern, Func<string, bool> processFile)
+        public static void SafeEnumerateFiles(string path, string searchPattern, bool recurse, Func<string, bool> processFile)
         {
-            foreach (var file in Directory.EnumerateFiles(path, searchPattern, SafeSearchOptions))
+            var options = recurse ? SafeSearchOptions : SafeSearchOptions_NoRecurse;
+            foreach (var file in Directory.EnumerateFiles(path, searchPattern, options))
             {
                 try
                 {
@@ -133,9 +145,9 @@ namespace YARG.Helpers
         /// The action used to process the enumerated directories.
         /// Return false to stop enumeration, true to continue.
         /// </param>
-        public static void SafeEnumerateDirectories(string path, Func<string, bool> processDirectory)
+        public static void SafeEnumerateDirectories(string path, bool recurse, Func<string, bool> processDirectory)
         {
-            SafeEnumerateDirectories(path, "*", processDirectory);
+            SafeEnumerateDirectories(path, "*", recurse, processDirectory);
         }
 
         /// <summary>
@@ -151,9 +163,10 @@ namespace YARG.Helpers
         /// The action used to process the enumerated directories.
         /// Return false to stop enumeration, true to continue.
         /// </param>
-        public static void SafeEnumerateDirectories(string path, string searchPattern, Func<string, bool> processDirectory)
+        public static void SafeEnumerateDirectories(string path, string searchPattern, bool recurse, Func<string, bool> processDirectory)
         {
-            foreach (var directory in Directory.EnumerateDirectories(path, searchPattern, SafeSearchOptions))
+            var options = recurse ? SafeSearchOptions : SafeSearchOptions_NoRecurse;
+            foreach (var directory in Directory.EnumerateDirectories(path, searchPattern, options))
             {
                 try
                 {

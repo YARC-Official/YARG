@@ -44,7 +44,7 @@ namespace YARG.Serialization
             }
 
             // THEN, find any loose CONs in this directory and parse those for upgrades as well
-            PathHelper.SafeEnumerateFiles(upgrade_folder, (file) =>
+            PathHelper.SafeEnumerateFiles(upgrade_folder, true, (file) =>
             {
                 string extension = Path.GetExtension(file);
                 if (extension is ".mid" or ".dta")
