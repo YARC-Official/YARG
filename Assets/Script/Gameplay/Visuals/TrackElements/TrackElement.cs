@@ -26,6 +26,11 @@ namespace YARG.Gameplay.Visuals
         /// Should be positive.
         /// </summary>
         protected virtual float RemovePointOffset => 0f;
+        /// <summary>
+        /// The lefty flip position multiplier. <c>1</c> if lefty flip is off, <c>-1</c> if it is on.
+        /// This is not automatically accounted for.
+        /// </summary>
+        protected float LeftyFlipMultiplier => Player.Player.Profile.LeftyFlip ? -1f : 1f;
 
         protected bool Initialized { get; private set; }
 

@@ -77,7 +77,7 @@ namespace YARG.Gameplay.Player
                 StarScoreThresholds[i] = Mathf.FloorToInt(Engine.BaseScore * StarMultiplierThresholds[i]);
             }
 
-            _fretArray.Initialize(Player.ColorProfile);
+            _fretArray.Initialize(Player.ColorProfile, Player.Profile.LeftyFlip);
             HitWindowDisplay.SetHitWindowInfo(_engineParams, NoteSpeed);
         }
 

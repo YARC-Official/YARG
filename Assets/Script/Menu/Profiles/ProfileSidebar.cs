@@ -28,6 +28,8 @@ namespace YARG.Menu.Profiles
         private TMP_Dropdown _gameModeDropdown;
         [SerializeField]
         private TMP_InputField _noteSpeedField;
+        [SerializeField]
+        private Toggle _leftyFlipToggle;
 
         [Space]
         [SerializeField]
@@ -81,6 +83,7 @@ namespace YARG.Menu.Profiles
             _profileName.text = _profile.Name;
             _gameModeDropdown.value = _gameModesByIndex.IndexOf(profile.GameMode);
             _noteSpeedField.text = profile.NoteSpeed.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
+            _leftyFlipToggle.isOn = profile.LeftyFlip;
 
             // Show the proper name container (hide the editing version)
             _nameContainer.SetActive(true);
@@ -168,6 +171,11 @@ namespace YARG.Menu.Profiles
 
             // Always format it after
             _noteSpeedField.text = _profile.NoteSpeed.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
+        }
+
+        public void ChangeLeftyFlip()
+        {
+            _profile.LeftyFlip = _leftyFlipToggle.isOn;
         }
     }
 }

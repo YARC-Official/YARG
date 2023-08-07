@@ -22,7 +22,7 @@ namespace YARG.Gameplay.Visuals
 
         public IReadOnlyList<Fret> Frets => _frets;
 
-        public void Initialize(ColorProfile colorProfile)
+        public void Initialize(ColorProfile colorProfile, bool leftyFlip)
         {
             _frets.Clear();
             for (int i = 0; i < _fretCount; i++)
@@ -31,7 +31,7 @@ namespace YARG.Gameplay.Visuals
 
                 // Position
                 float x = _trackWidth / _fretCount * i - _trackWidth / 2f + 1f / _fretCount;
-                fret.transform.localPosition = new(x, 0f, 0f);
+                fret.transform.localPosition = new(leftyFlip ? -x : x, 0f, 0f);
 
                 // Scale
                 float scale = (_trackWidth / WIDTH_NUMERATOR) / (_fretCount / WIDTH_DENOMINATOR);
