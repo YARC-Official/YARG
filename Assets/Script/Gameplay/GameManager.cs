@@ -32,6 +32,9 @@ namespace YARG.Gameplay
         [SerializeField]
         private GameObject _pauseMenu;
 
+        [SerializeField]
+        private TextMeshProUGUI _debugText;
+
         [Header("Instrument Prefabs")]
         [SerializeField]
         private GameObject fiveFretGuitarPrefab;
@@ -203,10 +206,10 @@ namespace YARG.Gameplay
 
             // Listen for menu inputs
             InputManager.MenuInput += OnMenuInput;
-        }
 
-        public TextMeshProUGUI inputtime;
-        public TextMeshProUGUI noteindex;
+            // Show debug info
+            _debugText.gameObject.SetActive(true);
+        }
 
         private void Update()
         {
@@ -238,8 +241,9 @@ namespace YARG.Gameplay
                 RealSongTime = GlobalVariables.AudioManager.CurrentPositionD;
             }
 
-            inputtime.text = ((FiveFretPlayer) _players[0]).Engine.State.ButtonMask.ToString();
-            noteindex.text = ((FiveFretPlayer) _players[0]).Engine.State.NoteIndex.ToString();
+            byte buttonMask = ((FiveFretPlayer) _players[0]).Engine.State.ButtonMask;
+            int noteIndex = ((FiveFretPlayer) _players[0]).Engine.State.NoteIndex;
+            _debugText.text = $"Note index: {noteIndex}\nButtons: {buttonMask}\nInput time: {InputTime:0.000000}\nSong time: {SongTime:0.000000}";
 
             if (_syncAudio.Status != UniTaskStatus.Pending) _syncAudio = SyncAudio();
 
