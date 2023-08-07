@@ -8,6 +8,7 @@ using UnityEngine.InputSystem;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Game;
+using YARG.Core.Input;
 using YARG.Core.Replays;
 using YARG.Core.Replays.IO;
 using YARG.Gameplay.HUD;
@@ -176,6 +177,11 @@ namespace YARG.Gameplay
             }
         }
 
+        private void OnDestroy()
+        {
+            InputManager.MenuInput -= OnMenuInput;
+        }
+
         private async UniTask Start()
         {
             // Disable until everything's loaded
@@ -194,6 +200,9 @@ namespace YARG.Gameplay
 
             // Loaded, enable updates
             enabled = true;
+
+            // Listen for menu inputs
+            InputManager.MenuInput += OnMenuInput;
         }
 
         public TextMeshProUGUI inputtime;
@@ -459,6 +468,17 @@ namespace YARG.Gameplay
 
             GlobalVariables.Instance.IsReplay = false;
             GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+        }
+
+        private void OnMenuInput(YargPlayer player, ref GameInput input)
+        {
+            var action = (MenuAction) input.Action;
+            switch (action)
+            {
+                case MenuAction.Start:
+                    SetPaused(!Paused);
+                    break;
+            }
         }
     }
 }
