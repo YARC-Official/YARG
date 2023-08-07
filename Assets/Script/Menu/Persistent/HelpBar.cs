@@ -24,10 +24,6 @@ namespace YARG.Menu.Persistent
         [field: SerializeField]
         public MusicPlayer MusicPlayer { get; private set; }
 
-        [Space]
-        [SerializeField]
-        private Color[] _menuActionColors;
-
         private readonly List<HelpBarButton> _buttons = new();
 
         protected override void SingletonAwake()
@@ -81,15 +77,15 @@ namespace YARG.Menu.Persistent
                     break;
                 }
 
-                // Skip directional binds in help bar
-                if (entry.Type is MenuAction.Left or MenuAction.Right or MenuAction.Up or MenuAction.Down)
+                // Skip actions without icons
+                if (!GlobalVariables.Instance.MenuIcons.HasIcon(entry.Type))
                 {
                     continue;
                 }
 
                 var button = _buttons[buttonIndex];
                 button.gameObject.SetActive(true);
-                button.SetInfoFromSchemeEntry(entry, _menuActionColors[(int) entry.Type]);
+                button.SetInfoFromSchemeEntry(entry);
 
                 buttonIndex++;
             }

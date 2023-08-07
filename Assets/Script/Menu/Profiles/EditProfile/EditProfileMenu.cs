@@ -38,8 +38,8 @@ namespace YARG.Menu.Profiles
 
         private YargPlayer _currentPlayer;
 
-        private GameMode _selectedGameMode;
-        private bool _selectingMenuBinds;
+        public GameMode SelectedGameMode { get; private set; }
+        public bool SelectingMenuBinds { get; private set; }
 
         private void OnEnable()
         {
@@ -83,15 +83,15 @@ namespace YARG.Menu.Profiles
         // This is initially called from the "OnSelectionChanged." See method usages.
         public void RefreshBindings(GameMode gameMode)
         {
-            _selectedGameMode = gameMode;
-            _selectingMenuBinds = false;
+            SelectedGameMode = gameMode;
+            SelectingMenuBinds = false;
 
             RefreshFromBindingCollection(_currentPlayer.Bindings[gameMode]);
         }
 
         public void RefreshMenuBindings()
         {
-            _selectingMenuBinds = true;
+            SelectingMenuBinds = true;
 
             RefreshFromBindingCollection(_currentPlayer.Bindings.MenuBindings);
         }
@@ -125,13 +125,13 @@ namespace YARG.Menu.Profiles
 
         public void RefreshBindings()
         {
-            if (_selectingMenuBinds)
+            if (SelectingMenuBinds)
             {
                 RefreshMenuBindings();
             }
             else
             {
-                RefreshBindings(_selectedGameMode);
+                RefreshBindings(SelectedGameMode);
             }
         }
 

@@ -2,6 +2,8 @@
 using UnityEngine.InputSystem;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
+using UnityEngine.UI;
+using YARG.Core.Input;
 using YARG.Input;
 using YARG.Menu.Navigation;
 using YARG.Player;
@@ -13,6 +15,8 @@ namespace YARG.Menu.Profiles
         [Space]
         [SerializeField]
         private LocalizeStringEvent _bindingNameText;
+        [SerializeField]
+        private Image _bindingIcon;
 
         private EditProfileMenu _editProfileMenu;
         private YargPlayer _player;
@@ -25,6 +29,22 @@ namespace YARG.Menu.Profiles
             _binding = binding;
 
             _bindingNameText.StringReference = _binding.Name;
+
+            var icons = GlobalVariables.Instance.MenuIcons;
+
+            if (editProfileMenu.SelectingMenuBinds && icons.HasIcon((MenuAction) binding.Action))
+            {
+                // Show icons for menu actions
+                _bindingIcon.gameObject.SetActive(true);
+
+                _bindingIcon.sprite = icons.GetIcon((MenuAction) binding.Action);
+                _bindingIcon.color = icons.GetColor((MenuAction) binding.Action);
+            }
+            else
+            {
+                // Don't for anything else
+                _bindingIcon.gameObject.SetActive(false);
+            }
         }
 
         public async void AddNewBind()

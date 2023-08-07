@@ -15,12 +15,16 @@ namespace YARG.Menu.Persistent
 
         private NavigationScheme.Entry? _entry;
 
-        public void SetInfoFromSchemeEntry(NavigationScheme.Entry entry, Color c)
+        public void SetInfoFromSchemeEntry(NavigationScheme.Entry entry)
         {
             _entry = entry;
 
             _text.text = entry.DisplayName;
-            _buttonImage.color = c;
+
+            // Set the icon
+            var icons = GlobalVariables.Instance.MenuIcons;
+            _buttonImage.sprite = icons.GetIcon(entry.Type);
+            _buttonImage.color = icons.GetColor(entry.Type);
         }
 
         public void OnClick()

@@ -33,12 +33,15 @@ namespace YARG
 
         [field: SerializeField]
         public SettingsMenu SettingsMenu { get; private set; }
+        [field: SerializeField]
+        public MenuIconsObject MenuIcons { get; private set; }
 
         public SceneIndex CurrentScene { get; private set; } = SceneIndex.Persistent;
 
         public SongEntry   CurrentSong;
         public ReplayEntry CurrentReplay;
 
+        [Space]
         public float SongSpeed = 1f;
         public bool  IsReplay;
         public bool  IsPractice;

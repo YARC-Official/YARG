@@ -1900,6 +1900,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <SettingsMenu>k__BackingField: {fileID: 340418945}
+  <MenuIcons>k__BackingField: {fileID: 11400000, guid: a5527a10e86be16408e824bfff6a124d,
+    type: 2}
   SongSpeed: 1
   IsReplay: 0
   IsPractice: 0
@@ -2253,7 +2255,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1957070994}
   m_HandleRect: {fileID: 1957070993}
   m_Direction: 2
-  m_Value: 1
+  m_Value: 0
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
