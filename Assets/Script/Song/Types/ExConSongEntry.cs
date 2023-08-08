@@ -647,7 +647,7 @@ namespace YARG.Song
                     throw new Exception("Original unencrypted mogg replaced by an encrypted mogg");
             }
 
-            List<(SongStem, int[], float[])> stemMaps = new();
+            List<MoggStemMap> stemMaps = new();
             if (DrumIndices != Array.Empty<int>() && !ignoreStems.Contains(SongStem.Drums))
             {
                 switch (DrumIndices.Length)

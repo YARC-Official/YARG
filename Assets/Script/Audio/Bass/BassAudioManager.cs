@@ -269,7 +269,7 @@ namespace YARG.Audio.BASS
             IsAudioLoaded = true;
         }
 
-        public void LoadMogg(byte[] moggArray, List<(SongStem, int[], float[])> stemMaps, float speed)
+        public void LoadMogg(byte[] moggArray, List<MoggStemMap> stemMaps, float speed)
         {
             Debug.Log("Loading mogg song");
             UnloadSong();
@@ -299,18 +299,19 @@ namespace YARG.Audio.BASS
             var channelMap = new int[2];
             channelMap[1] = -1;
 
-            for (var i = 0; i < stemMaps.Count; i++)
+            foreach (var stemMap in stemMaps)
             {
-                for (int j = 0; j < stemMaps[i].Item2.Length; ++j)
+                for (int channelIndex = 0; channelIndex < stemMap.ChannelIndicies.Length; ++channelIndex)
                 {
-                    channelMap[0] = stemMaps[i].Item2[j];
+                    channelMap[0] = stemMap.ChannelIndicies[channelIndex];
                     int splitHandle = BassMix.CreateSplitStream(moggStreamHandle, BassFlags.Decode | BassFlags.SplitPosition, channelMap);
                     if (splitHandle == 0)
                     {
                         throw new Exception($"Failed to create MOGG stream handle: {Bass.LastError}");
                     }
 
-                    var channel = new BassMoggStemChannel(this, stemMaps[i].Item1, splitHandle, stemMaps[i].Item3[2 * j], stemMaps[i].Item3[2 * j + 1]);
+                    var channel = new BassMoggStemChannel(this, stemMap.Stem, splitHandle,
+                        stemMap.GetLeftPan(channelIndex), stemMap.GetRightPan(channelIndex));
                     if (channel.Load(speed) < 0)
                     {
                         throw new Exception($"Failed to load MOGG stem channel: {Bass.LastError}");

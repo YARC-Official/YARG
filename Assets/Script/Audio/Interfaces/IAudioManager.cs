@@ -35,7 +35,7 @@ namespace YARG.Audio
         public void LoadSfx();
 
         public void LoadSong(IDictionary<SongStem, string> stems, float speed);
-        public void LoadMogg(byte[] moggArray, List<(SongStem, int[], float[])> stemMaps, float speed);
+        public void LoadMogg(byte[] moggArray, List<MoggStemMap> stemMaps, float speed);
         public void LoadCustomAudioFile(string audioPath, float speed);
         public void UnloadSong();
 

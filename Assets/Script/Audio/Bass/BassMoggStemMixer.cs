@@ -32,12 +32,8 @@ namespace YARG.Audio.BASS
 
             float[,] channelPanVol =
             {
-                {
-                    moggChannel.left
-                },
-                {
-                    moggChannel.right
-                }
+                { moggChannel.left },
+                { moggChannel.right }
             };
 
             if (!BassMix.ChannelSetMatrix(moggChannel.StreamHandle, channelPanVol) ||
