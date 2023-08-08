@@ -70,9 +70,9 @@ Material:
     - _OutlineWidth: 0
     - _PerspectiveFilter: 0.875
     - _Reflectivity: 10
-    - _ScaleRatioA: 1
-    - _ScaleRatioB: 1
-    - _ScaleRatioC: 1
+    - _ScaleRatioA: 0.9
+    - _ScaleRatioB: 0.73125
+    - _ScaleRatioC: 0.73125
     - _ScaleX: 1
     - _ScaleY: 1
     - _ShaderFlags: 0
@@ -117,9 +117,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71c1514a6bd24e1e882cebbe1904ce04, type: 3}
   m_Name: RedHatDisplay-LightItalic
   m_EditorClassIdentifier: 
-  hashCode: 0
+  hashCode: -1693901795
   material: {fileID: -1507465141707026231}
-  materialHashCode: 0
+  materialHashCode: -1184544867
   m_Version: 1.1.0
   m_SourceFontFileGUID: 06ce2e72693702c4f98d93d63e271ea8
   m_SourceFontFile_EditorRef: {fileID: 12800000, guid: 06ce2e72693702c4f98d93d63e271ea8,

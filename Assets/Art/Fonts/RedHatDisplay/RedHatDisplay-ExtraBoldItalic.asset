@@ -70,9 +70,9 @@ Material:
     - _OutlineWidth: 0
     - _PerspectiveFilter: 0.875
     - _Reflectivity: 10
-    - _ScaleRatioA: 1
-    - _ScaleRatioB: 1
-    - _ScaleRatioC: 1
+    - _ScaleRatioA: 0.9
+    - _ScaleRatioB: 0.73125
+    - _ScaleRatioC: 0.73125
     - _ScaleX: 1
     - _ScaleY: 1
     - _ShaderFlags: 0
@@ -164,9 +164,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71c1514a6bd24e1e882cebbe1904ce04, type: 3}
   m_Name: RedHatDisplay-ExtraBoldItalic
   m_EditorClassIdentifier: 
-  hashCode: 0
+  hashCode: 293319580
   material: {fileID: -3976029404524076794}
-  materialHashCode: 0
+  materialHashCode: 47549628
   m_Version: 1.1.0
   m_SourceFontFileGUID: e61c2ce9006bfd44488181a03a90088f
   m_SourceFontFile_EditorRef: {fileID: 12800000, guid: e61c2ce9006bfd44488181a03a90088f,
