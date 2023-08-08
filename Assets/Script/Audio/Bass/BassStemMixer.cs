@@ -103,8 +103,12 @@ namespace YARG.Audio.BASS
         public void FadeIn(float maxVolume)
         {
             foreach (var stem in Channels.Values)
-                for (int i = 0; i < stem.Count; i++)
-                    stem[i].FadeIn(maxVolume);
+            {
+                foreach (var channel in stem)
+                {
+                    channel.FadeIn(maxVolume);
+                }
+            }
         }
 
         public UniTask FadeOut(CancellationToken token = default)
@@ -113,7 +117,7 @@ namespace YARG.Audio.BASS
             foreach (var stem in Channels.Values)
                 stemChannels.AddRange(stem);
 
-            var fadeOuts = Enumerable.Select(stemChannels, channel => channel.FadeOut()).ToList();
+            var fadeOuts = stemChannels.Select((channel) => channel.FadeOut()).ToArray();
             return UniTask.WhenAll(fadeOuts).AttachExternalCancellation(token);
         }
 
@@ -153,22 +157,34 @@ namespace YARG.Audio.BASS
             }
 
             foreach (var stem in Channels.Values)
-                for (int i = 0; i < stem.Count; i++)
-                    stem[i].SetPosition(position, desyncCompensation);
+            {
+                foreach (var channel in stem)
+                {
+                    channel.SetPosition(position, desyncCompensation);
+                }
+            }
         }
 
         public void SetPlayVolume(bool fadeIn)
         {
-            foreach (var channel in Channels.Values)
-                for (int i = 0; i < channel.Count; i++)
-                    channel[i].SetVolume(fadeIn ? 0 : channel[i].Volume);
+            foreach (var stem in Channels.Values)
+            {
+                foreach (var channel in stem)
+                {
+                    channel.SetVolume(fadeIn ? 0 : channel.Volume);
+                }
+            }
         }
 
         public void SetSpeed(float speed)
         {
-            foreach (var channel in Channels.Values)
-                for (int i = 0; i < channel.Count; i++)
-                    channel[i].SetSpeed(speed);
+            foreach (var stem in Channels.Values)
+            {
+                foreach (var channel in stem)
+                {
+                    channel.SetSpeed(speed);
+                }
+            }
         }
 
         public virtual int AddChannel(IStemChannel channel)
@@ -275,8 +291,12 @@ namespace YARG.Audio.BASS
         {
             // Free managed resources here
             foreach (var stem in Channels.Values)
-                for (int i = 0; i < stem.Count; i++)
-                    stem[i].Dispose();
+            {
+                foreach (var channel in stem)
+                {
+                    channel.Dispose();
+                }
+            }
 
             _channels.Clear();
         }
