@@ -291,9 +291,15 @@ namespace YARG.Gameplay
             if (_previousSpeedMultiplier != speedMultiplier)
             {
                 _previousSpeedMultiplier = speedMultiplier;
-                _syncSpeedAdjustment = (delta > 0 ? SPEED_ADJUSTMENT : -SPEED_ADJUSTMENT) * speedMultiplier;
-                GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
-                Debug.Log($"Adjusted speed to {ActualSongSpeed:0.00} for audio syncing.\nInput: {inputTime}, audio: {audioTime}, delta: {delta}");
+
+                float adjustment = (delta > 0 ? SPEED_ADJUSTMENT : -SPEED_ADJUSTMENT) * speedMultiplier;
+                adjustment = Math.Max(adjustment, 0.05f);
+                if (!Mathf.Approximately(adjustment, _syncSpeedAdjustment))
+                {
+                    _syncSpeedAdjustment = adjustment;
+                    GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
+                    Debug.Log($"Adjusted speed to {ActualSongSpeed:0.00} for audio syncing.\nInput: {inputTime}, audio: {audioTime}, delta: {delta}");
+                }
             }
             // No change in speed, check if we're below the threshold
             else if (deltaAbs < ADJUST_SYNC_THRESH ||
