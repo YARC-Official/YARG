@@ -50,6 +50,8 @@ namespace YARG.Menu.Persistent
                 button.gameObject.SetActive(false);
             }
 
+            gameObject.SetActive(false);
+
             _infoText.text = null;
         }
 
@@ -94,6 +96,8 @@ namespace YARG.Menu.Persistent
 
                 buttonIndex++;
             }
+
+            gameObject.SetActive(true);
 
             SetInfoText(string.Empty);
         }
