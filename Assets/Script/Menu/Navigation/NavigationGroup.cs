@@ -82,7 +82,7 @@ namespace YARG.Menu.Navigation
             return -1;
         }
 
-        public void SelectNext()
+        public void SelectNext(NavigationContext context)
         {
             int selected = CurrentSelectedIndex();
             if (selected == -1) return;
@@ -90,13 +90,17 @@ namespace YARG.Menu.Navigation
             selected++;
             if (selected >= _navigatables.Count)
             {
+                // Stop at group bounds on repeated inputs
+                if (context.IsRepeat)
+                    return;
+
                 selected = 0;
             }
 
             _navigatables[selected].Selected = true;
         }
 
-        public void SelectPrevious()
+        public void SelectPrevious(NavigationContext context)
         {
             int selected = CurrentSelectedIndex();
             if (selected == -1) return;
@@ -104,6 +108,10 @@ namespace YARG.Menu.Navigation
             selected--;
             if (selected < 0)
             {
+                // Stop at group bounds on repeated inputs
+                if (context.IsRepeat)
+                    return;
+
                 selected = _navigatables.Count - 1;
             }
 
