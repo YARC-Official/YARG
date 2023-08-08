@@ -456,7 +456,7 @@ namespace YARG.Gameplay
 
         public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
         {
-            double seekTime = time - delayTime;
+            double seekTime = time - delayTime - AudioCalibration;
             double inputTime = InputManager.CurrentUpdateTime;
 
             RealSongTime = seekTime;
