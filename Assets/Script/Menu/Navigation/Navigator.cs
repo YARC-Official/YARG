@@ -17,19 +17,30 @@ namespace YARG.Menu.Navigation
         public readonly MenuAction Action;
 
         /// <summary>
-        /// The <see cref="Player"/> that this event was invoked from. Can be null.
+        /// The <see cref="YargPlayer"/> that this event was invoked from.
         /// </summary>
         public readonly YargPlayer Player;
 
-        public NavigationContext(MenuAction action, YargPlayer player)
+        /// <summary>
+        /// Whether or not this action is a repeat.
+        /// </summary>
+        public readonly bool IsRepeat;
+
+        public NavigationContext(MenuAction action, YargPlayer player, bool repeat = false)
         {
             Action = action;
             Player = player;
+            IsRepeat = repeat;
         }
 
         public bool IsSameAs(NavigationContext other)
         {
             return other.Action == Action && other.Player == Player;
+        }
+
+        public NavigationContext AsRepeat()
+        {
+            return new(Action, Player, true);
         }
     }
 
@@ -37,6 +48,14 @@ namespace YARG.Menu.Navigation
     {
         private const float INPUT_REPEAT_TIME = 0.035f;
         private const float INPUT_REPEAT_COOLDOWN = 0.5f;
+
+        private static readonly HashSet<MenuAction> RepeatActions = new()
+        {
+            MenuAction.Up,
+            MenuAction.Down,
+            MenuAction.Left,
+            MenuAction.Right,
+        };
 
         private class HoldContext
         {
@@ -70,7 +89,7 @@ namespace YARG.Menu.Navigation
                 if (heldInput.Timer <= 0f)
                 {
                     heldInput.Timer = INPUT_REPEAT_TIME;
-                    InvokeNavigationEvent(heldInput.Context);
+                    InvokeNavigationEvent(heldInput.Context.AsRepeat());
                 }
             }
 
@@ -97,7 +116,9 @@ namespace YARG.Menu.Navigation
             }
 
             InvokeNavigationEvent(context);
-            _heldInputs.Add(new HoldContext(context));
+
+            if (RepeatActions.Contains(context.Action))
+                _heldInputs.Add(new HoldContext(context));
         }
 
         private void EndNavigationHold(NavigationContext context)
