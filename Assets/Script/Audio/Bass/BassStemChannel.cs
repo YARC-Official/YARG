@@ -324,11 +324,10 @@ namespace YARG.Audio.BASS
 
         public void SetSpeed(float speed)
         {
-            if (Mathf.Approximately(speed, 1f))
-                speed = 1f;
+            speed = (float)Math.Round(Math.Clamp(speed, 0.05, 50), 2);
 
             // Gets relative speed from 100% (so 1.05f = 5% increase)
-            float percentageSpeed = Math.Abs(speed) * 100;
+            float percentageSpeed = speed * 100;
             float relativeSpeed = percentageSpeed - 100;
 
             Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Tempo, relativeSpeed);
