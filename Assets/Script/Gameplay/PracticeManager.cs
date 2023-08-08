@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Input;
@@ -9,6 +9,7 @@ namespace YARG.Gameplay
 {
     public class PracticeManager : MonoBehaviour
     {
+        private const double SECTION_RESTART_DELAY = 2;
 
         [Header("References")]
         [SerializeField]
@@ -26,12 +27,16 @@ namespace YARG.Gameplay
 
         private uint _tickStart;
         private uint _tickEnd;
+        private double _timeStart;
+        private double _timeEnd;
 
         private uint _lastTick;
 
         private void Awake()
         {
             _gameManager = FindObjectOfType<GameManager>();
+
+            enabled = false;
             _gameManager.ChartLoaded += OnChartLoaded;
 
             Navigator.Instance.NavigationEvent += OnNavigationEvent;
@@ -56,8 +61,20 @@ namespace YARG.Gameplay
             Navigator.Instance.NavigationEvent -= OnNavigationEvent;
         }
 
+        private void Update()
+        {
+            if (_gameManager.Paused)
+                return;
+
+            if (_gameManager.SongTime > _timeEnd + SECTION_RESTART_DELAY)
+                ResetPractice();
+        }
+
         private void OnChartLoaded(SongChart chart)
         {
+            _gameManager.ChartLoaded -= OnChartLoaded;
+            enabled = true;
+
             _chart = chart;
             _lastTick = chart.GetLastTick();
         }
@@ -81,48 +98,25 @@ namespace YARG.Gameplay
 
         public void SetPracticeSection(Section start, Section end)
         {
-            SetPracticeSection(start.Tick, end.TickEnd);
+            SetPracticeSection(start.Tick, end.TickEnd, start.Time, end.TimeEnd);
         }
 
-        public void SetPracticeSection(uint tickStart, uint tickEnd)
+        public void SetPracticeSection(uint tickStart, uint tickEnd, double timeStart, double timeEnd)
         {
             _tickStart = tickStart;
             _tickEnd = tickEnd;
+            _timeStart = timeStart;
+            _timeEnd = timeEnd;
 
             foreach (var player in _gameManager.Players)
             {
                 player.SetPracticeSection(tickStart, tickEnd);
             }
 
-            double songTime = _chart.SyncTrack.TickToTime(tickStart);
-
-            _gameManager.SetSongTime(songTime);
+            _gameManager.SetSongTime(timeStart);
             _gameManager.SetPaused(false, false);
 
             practiceHud.SetSections(GetSectionsInPractice(tickStart, tickEnd));
-        }
-
-        public void AdjustPracticeStartEnd(int start, int end)
-        {
-            if(_tickStart - start < 0)
-            {
-                _tickStart = 0;
-            }
-            else
-            {
-                _tickStart -= (uint)start;
-            }
-
-            if(_tickEnd + end > _lastTick)
-            {
-                _tickEnd = _lastTick;
-            }
-            else
-            {
-                _tickEnd += (uint)end;
-            }
-
-            SetPracticeSection(_tickStart, _tickEnd);
         }
 
         public void ResetPractice()
@@ -132,7 +126,7 @@ namespace YARG.Gameplay
                 player.ResetPracticeSection();
             }
 
-            _gameManager.SetSongTime(_chart.SyncTrack.TickToTime(_tickStart));
+            _gameManager.SetSongTime(_timeStart);
 
             practiceHud.ResetPractice();
         }
