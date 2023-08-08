@@ -121,7 +121,7 @@ namespace YARG.Gameplay
             }
 
             _gameManager.SetSongTime(timeStart);
-            _gameManager.SetPaused(false, false);
+            _gameManager.Resume(inputCompensation: false);
 
             practiceHud.SetSections(GetSectionsInPractice(tickStart, tickEnd));
         }

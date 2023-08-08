@@ -451,15 +451,9 @@ namespace YARG.Gameplay
         public void ChangeSection()
         {
             if (!IsPractice)
-            {
                 return;
-            }
 
-            Paused = true;
-            _pauseMenu.SetActive(false);
-#if UNITY_EDITOR
-            _debugText.gameObject.SetActive(false);
-#endif
+            Pause(showMenu: false);
             PracticeManager.DisplayPracticeMenu();
         }
 
@@ -517,33 +511,48 @@ namespace YARG.Gameplay
 
         public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(SelectedSongSpeed + deltaSpeed);
 
-        public void SetPaused(bool paused, bool timeCompensation = true)
+        public void Pause(bool showMenu = true)
         {
-            Paused = paused;
-            _pauseMenu.SetActive(paused);
+            if (Paused)
+                return;
+
+            Paused = true;
+            _pauseMenu.SetActive(showMenu);
 #if UNITY_EDITOR
-            _debugText.gameObject.SetActive(!paused);
+            _debugText.gameObject.SetActive(false);
 #endif
 
-            Debug.Log($"Paused: {paused}");
+            _pauseStartTime = InputManager.CurrentInputTime;
+            GlobalVariables.AudioManager.Pause();
+        }
 
+        public void Resume(bool inputCompensation = true)
+        {
+            if (!Paused)
+                return;
+
+            Paused = false;
+            _pauseMenu.SetActive(false);
+#if UNITY_EDITOR
+            _debugText.gameObject.SetActive(true);
+#endif
+
+            if (inputCompensation)
+            {
+                double totalPauseTime = InputManager.CurrentInputTime - _pauseStartTime;
+                InputManager.InputTimeOffset += totalPauseTime;
+            }
+
+            if (RealSongTime >= 0)
+                GlobalVariables.AudioManager.Play();
+        }
+
+        public void SetPaused(bool paused)
+        {
             if (paused)
-            {
-                _pauseStartTime = InputManager.CurrentInputTime;
-                GlobalVariables.AudioManager.Pause();
-            }
+                Pause();
             else
-            {
-                if (timeCompensation)
-                {
-                    double totalPauseTime = InputManager.CurrentInputTime - _pauseStartTime;
-                    InputManager.InputTimeOffset += totalPauseTime;
-                }
-                if (RealSongTime >= 0)
-                {
-                    GlobalVariables.AudioManager.Play();
-                }
-            }
+                Resume();
         }
 
         private void EndSong()
