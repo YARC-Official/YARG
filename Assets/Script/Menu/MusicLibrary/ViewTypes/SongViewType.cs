@@ -14,24 +14,21 @@ namespace YARG.Menu.MusicLibrary
         public override string SecondaryText => SongEntry.Artist;
         public override bool UseAsMadeFamousBy => !SongEntry.IsMaster;
 
-        public override string SideText
-        {
-            get
-            {
-                // Song score
-                var score = ScoreManager.GetScore(SongEntry);
-                if (score == null || score.highestPercent.Count <= 0)
-                {
-                    return string.Empty;
-                }
-                else
-                {
-                    var (instrument, highest) = score.GetHighestPercent();
-                    return
-                        $"<sprite name=\"{instrument}\"> <b>{highest.difficulty.ToChar()}</b> {Mathf.Floor(highest.percent * 100f):N0}%";
-                }
-            }
-        }
+        public override string SideText =>
+            // TODO: Disable scores for now
+            // get
+            // {
+            //     var score = ScoreManager.GetScore(SongEntry);
+            //     if (score == null || score.highestPercent.Count <= 0)
+            //     {
+            //         return string.Empty;
+            //     }
+            //
+            //     var (instrument, highest) = score.GetHighestPercent();
+            //     return $"<sprite name=\"{instrument}\"> <b>{highest.difficulty.ToChar()}</b> " +
+            //         $"{Mathf.Floor(highest.percent * 100f):N0}%";
+            // }
+            string.Empty;
 
         public SongEntry SongEntry { get; private set; }
 
@@ -56,6 +53,7 @@ namespace YARG.Menu.MusicLibrary
         {
             base.PrimaryButtonClick();
 
+            GlobalVariables.Instance.CurrentSong = SongEntry;
             MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
         }
 

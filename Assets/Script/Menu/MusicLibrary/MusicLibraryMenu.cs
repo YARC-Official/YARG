@@ -157,8 +157,11 @@ namespace YARG.Menu.MusicLibrary
             {
                 MusicLibraryMode.QuickPlay => "Quickplay",
                 MusicLibraryMode.Practice  => "Practice",
-                _                          => throw new Exception("Unreachable.")
+                _ => throw new Exception("Unreachable.")
             };
+
+            // Set IsPractice as well
+            GlobalVariables.Instance.IsPractice = LibraryMode == MusicLibraryMode.Practice;
 
             _searchBoxShouldBeEnabled = true;
         }
@@ -508,18 +511,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void Confirm()
         {
-            // Temporary until part selection is fixed
-            if (CurrentSelection is SongViewType song)
-            {
-                GlobalVariables.Instance.CurrentSong = song.SongEntry;
-                GlobalVariables.Instance.IsPractice = LibraryMode == MusicLibraryMode.Practice;
-                GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
-                return;
-            }
-            else
-            {
-                CurrentSelection?.PrimaryButtonClick();
-            }
+            CurrentSelection?.PrimaryButtonClick();
         }
 
         private void Back()
