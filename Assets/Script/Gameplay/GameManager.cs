@@ -90,6 +90,8 @@ namespace YARG.Gameplay
         public SongEntry Song { get; private set; }
 
         private float _syncSpeedAdjustment = 0f;
+        private int _syncSpeedMultiplier = 0;
+        private double _syncStartDelta;
 
         public float SelectedSongSpeed { get; private set; }
         public float ActualSongSpeed => SelectedSongSpeed + _syncSpeedAdjustment;
@@ -253,7 +255,10 @@ namespace YARG.Gameplay
 #if UNITY_EDITOR
             byte buttonMask = ((FiveFretPlayer) _players[0]).Engine.State.ButtonMask;
             int noteIndex = ((FiveFretPlayer) _players[0]).Engine.State.NoteIndex;
-            _debugText.text = $"Note index: {noteIndex}\nButtons: {buttonMask}\nInput time: {InputTime:0.000000}\nSong time: {SongTime:0.000000}";
+            _debugText.text = $"Note index: {noteIndex}\nButtons: {buttonMask}\n"
+                + $"Input time: {InputTime:0.000000}\nSong time: {SongTime:0.000000}\nTime difference: {InputTime - SongTime:0.000000}\n"
+                + $"Speed adjustment: {_syncSpeedAdjustment:0.00}\nSpeed multiplier: {_syncSpeedMultiplier}\n"
+                + $"Sync start delta: {_syncStartDelta:0.000000}";
 #endif
 
             int totalScore = 0;
@@ -268,9 +273,6 @@ namespace YARG.Gameplay
 
             BandScore = totalScore;
         }
-
-        private int _previousSpeedMultiplier = 0;
-        private double _previousDelta;
 
         private void SyncAudio()
         {
@@ -289,21 +291,26 @@ namespace YARG.Gameplay
             double delta = inputTime - audioTime;
             double deltaAbs = Math.Abs(delta);
             // Don't sync if below the initial sync threshold, and we haven't adjusted the speed
-            if (_previousSpeedMultiplier == 0 && deltaAbs < initialThreshold)
+            if (_syncSpeedMultiplier == 0 && deltaAbs < initialThreshold)
                 return;
 
             // We're now syncing, determine how much to adjust the song speed by
-            int speedMultiplier = (int)Math.Round(deltaAbs / initialThreshold);
-            if (speedMultiplier < 1)
-                speedMultiplier = 1;
+            int speedMultiplier = (int)Math.Round(delta / initialThreshold);
+            if (speedMultiplier == 0)
+                speedMultiplier = delta > 0 ? 1 : -1;
 
             // Only change speed when the multiplier changes
-            if (_previousSpeedMultiplier != speedMultiplier)
+            if (_syncSpeedMultiplier != speedMultiplier)
             {
-                _previousSpeedMultiplier = speedMultiplier;
+                if (_syncSpeedMultiplier == 0)
+                {
+                    Debug.Log("Starting audio resync.");
+                    _syncStartDelta = delta;
+                }
 
-                float adjustment = (delta > 0 ? SPEED_ADJUSTMENT : -SPEED_ADJUSTMENT) * speedMultiplier;
-                adjustment = Math.Max(adjustment, 0.05f);
+                _syncSpeedMultiplier = speedMultiplier;
+
+                float adjustment = SPEED_ADJUSTMENT * speedMultiplier;
                 if (!Mathf.Approximately(adjustment, _syncSpeedAdjustment))
                 {
                     _syncSpeedAdjustment = adjustment;
@@ -311,19 +318,19 @@ namespace YARG.Gameplay
                     Debug.Log($"Adjusted speed to {ActualSongSpeed:0.00} for audio syncing.\nInput: {inputTime}, audio: {audioTime}, delta: {delta}");
                 }
             }
+
             // No change in speed, check if we're below the threshold
-            else if (deltaAbs < adjustThreshold ||
+            if (deltaAbs < adjustThreshold ||
                 // Also check if we overshot and passed 0
-                (delta > 0.0 && _previousDelta < 0.0) ||
-                (delta < 0.0 && _previousDelta > 0.0))
+                (delta > 0.0 && _syncStartDelta < 0.0) ||
+                (delta < 0.0 && _syncStartDelta > 0.0))
             {
-                _previousSpeedMultiplier = 0;
+                _syncStartDelta = 0;
+                _syncSpeedMultiplier = 0;
                 _syncSpeedAdjustment = 0f;
                 GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
                 Debug.Log($"Audio synced.\nInput: {inputTime}, audio: {audioTime}, delta: {delta}");
             }
-
-            _previousDelta = delta;
         }
 
         private async UniTask LoadReplay()
@@ -500,7 +507,7 @@ namespace YARG.Gameplay
                 $"(base: {InputTimeBase}, offset: {InputTimeOffset}, absolute: {InputManager.CurrentUpdateTime})");
         }
 
-        public void SetSongSpeed(float speed)
+        private async UniTask SetSongSpeedTask(float speed)
         {
             // 10% - 4995%, we reserve 5% so that audio syncing can still function
             speed = Math.Clamp(speed, 10 / 100f, 4995 / 100f);
@@ -508,14 +515,23 @@ namespace YARG.Gameplay
             // Set speed; save old for input offset compensation
             SelectedSongSpeed = speed;
 
-            // Adjust input offset, otherwise input time will desync
-            SetInputBase(InputTime);
-
             // Set based on the actual song speed, so as to not break resyncing
             GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
 
+            // Wait until next frame to apply input offset,
+            // seems to help avoid sudden jumps in speed
+            await UniTask.NextFrame();
+
+            // Adjust input offset, otherwise input time will desync
+            SetInputBase(InputTime);
+
             Debug.Log($"Set song speed to {speed:0.00}.\n"
                 + $"Input time: {InputTime:0.000000}, song time: {SongTime:0.000000}");
+        }
+
+        public void SetSongSpeed(float speed)
+        {
+            SetSongSpeedTask(speed).Forget();
         }
 
         public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(SelectedSongSpeed + deltaSpeed);
