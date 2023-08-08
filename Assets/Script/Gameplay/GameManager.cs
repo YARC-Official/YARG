@@ -483,7 +483,10 @@ namespace YARG.Gameplay
 
         public void SetSongSpeed(float speed)
         {
+            // 10% - 4995%, we reserve 5% so that audio syncing can still function
+            speed = Math.Clamp(speed, 10 / 100f, 4995 / 100f);
             SelectedSongSpeed = speed;
+
             // Set based on the actual song speed, so as to not break resyncing
             GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
         }
