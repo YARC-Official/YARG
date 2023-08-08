@@ -53,6 +53,11 @@ namespace YARG.Menu.Persistent
             _infoText.text = null;
         }
 
+        public void Reset()
+        {
+            ResetHelpBar();
+        }
+
         public void SetInfoFromScheme(NavigationScheme scheme)
         {
             ResetHelpBar();

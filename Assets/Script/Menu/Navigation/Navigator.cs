@@ -168,11 +168,10 @@ namespace YARG.Menu.Navigation
         {
             if (_schemeStack.Count <= 0)
             {
-                HelpBar.Instance.gameObject.SetActive(false);
+                HelpBar.Instance.Reset();
             }
             else
             {
-                HelpBar.Instance.gameObject.SetActive(true);
                 HelpBar.Instance.SetInfoFromScheme(_schemeStack.Peek());
             }
         }
