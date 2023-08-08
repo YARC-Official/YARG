@@ -10,6 +10,7 @@ using UnityEngine.UI;
 using YARG.Audio;
 using YARG.Core.Input;
 using YARG.Menu.Navigation;
+using YARG.Player;
 using YARG.Settings;
 using YARG.Song;
 
@@ -47,6 +48,8 @@ namespace YARG.Menu.MusicLibrary
         private Sidebar _sidebar;
         [SerializeField]
         private Scrollbar _scrollbar;
+        [SerializeField]
+        private GameObject _noPlayerWarning;
 
         private SongSorting.Sort _sort = SongSorting.Sort.Song;
         private string _nextSortCriteria = "Order by artist";
@@ -162,6 +165,9 @@ namespace YARG.Menu.MusicLibrary
 
             // Set IsPractice as well
             GlobalVariables.Instance.IsPractice = LibraryMode == MusicLibraryMode.Practice;
+
+            // Show no player warning
+            _noPlayerWarning.SetActive(PlayerContainer.Players.Count <= 0);
 
             _searchBoxShouldBeEnabled = true;
         }

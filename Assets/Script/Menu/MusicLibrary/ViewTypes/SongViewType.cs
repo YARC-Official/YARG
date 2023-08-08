@@ -2,6 +2,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Data;
 using YARG.Menu.Navigation;
+using YARG.Player;
 using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
@@ -52,6 +53,8 @@ namespace YARG.Menu.MusicLibrary
         public override void PrimaryButtonClick()
         {
             base.PrimaryButtonClick();
+
+            if (PlayerContainer.Players.Count <= 0) return;
 
             GlobalVariables.Instance.CurrentSong = SongEntry;
             MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
