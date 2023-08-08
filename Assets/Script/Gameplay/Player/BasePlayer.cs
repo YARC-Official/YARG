@@ -380,7 +380,7 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
-            double adjustedTime = input.Time * GameManager.SelectedSongSpeed;
+            double adjustedTime = GameManager.GetRelativeInputTime(input.Time);
             input = new(adjustedTime, input.Action, input.Integer);
             Engine.QueueInput(input);
             AddReplayInput(input);

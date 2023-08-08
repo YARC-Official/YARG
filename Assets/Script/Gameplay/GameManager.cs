@@ -113,10 +113,21 @@ namespace YARG.Gameplay
         public double SongTime => RealSongTime + AudioCalibration;
 
         /// <summary>
+        /// The input time that is considered to be 0.
+        /// Applied before song speed is factored in.
+        /// </summary>
+        public static double InputTimeOffset { get; private set; }
+        /// <summary>
+        /// The base time added on to relative time to get the real current input time.
+        /// Applied after song speed is.
+        /// </summary>
+        public static double InputTimeBase { get; private set; }
+
+        /// <summary>
         /// The current input update time, accounting for song speed, <b>and for</b> calibration.
         /// </summary>
         // Remember that calibration is already accounted for by the input offset time
-        public double InputTime => InputManager.RelativeUpdateTime * SelectedSongSpeed;
+        public double InputTime => GetRelativeInputTime(InputManager.CurrentUpdateTime);
 
         /// <summary>
         /// The current input update time, accounting for song speed, but <b>not</b> for calibration.
@@ -453,23 +464,40 @@ namespace YARG.Gameplay
             }
         }
 
+        public double GetRelativeInputTime(double timeFromInputSystem)
+        {
+            return InputTimeBase + ((timeFromInputSystem - InputTimeOffset) * SelectedSongSpeed);
+        }
+
+        private void SetInputBase(double inputBase)
+        {
+            InputTimeBase = inputBase;
+            InputTimeOffset = InputManager.CurrentUpdateTime;
+        }
+
         public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
         {
-            double seekTime = time - delayTime - AudioCalibration;
-            double inputTime = InputManager.CurrentUpdateTime;
+            // Account for song speed and calibration
+            delayTime *= SelectedSongSpeed;
+            time -= AudioCalibration;
 
+            // Seek time
+            // Doesn't account for audio calibration for better audio syncing
+            // since seeking is slightly delayed
+            double seekTime = time - delayTime;
+
+            // Set input offsets
+            SetInputBase(seekTime);
+
+            // Set audio/song time
             RealSongTime = seekTime;
-            double inputOffset = InputManager.InputTimeOffset = inputTime
-                - time - AudioCalibration // Offset backwards by the given time and by the audio calibration
-                + delayTime;              // Bump forward by the delay so that times before the audio are negative
 
-            double relativeInput = InputManager.RelativeUpdateTime;
-            Debug.Log($"Set song time to {time}.\n" +
-                $"Seek time: {seekTime}, input time: {relativeInput} (offset: {inputOffset}, absolute: {inputTime})");
-
-            // Audio seeking cannot go negative
+            // Audio seeking; cannot go negative
             if (seekTime < 0) seekTime = 0;
             GlobalVariables.AudioManager.SetPosition(seekTime);
+
+            Debug.Log($"Set song time to {time}.\nSeek time: {seekTime}, input time: {InputTime} " +
+                $"(base: {InputTimeBase}, offset: {InputTimeOffset}, absolute: {InputManager.CurrentUpdateTime})");
         }
 
         public void SetSongSpeed(float speed)
@@ -478,32 +506,16 @@ namespace YARG.Gameplay
             speed = Math.Clamp(speed, 10 / 100f, 4995 / 100f);
 
             // Set speed; save old for input offset compensation
-            float oldSpeed = SelectedSongSpeed;
             SelectedSongSpeed = speed;
 
             // Adjust input offset, otherwise input time will desync
-            // TODO: This isn't 100% functional yet, changing speed quickly will still cause things to desync
-            double oldOffset = InputManager.InputTimeOffset;
-            double oldRelative = InputManager.RelativeUpdateTime;
-
-            double oldBeforeSpeed = oldRelative * oldSpeed;
-            double oldAfterSpeed = oldRelative * speed;
-            double timeDifference = oldBeforeSpeed - oldAfterSpeed;
-
-            double newOffset = InputManager.InputTimeOffset = oldOffset - timeDifference;
-            double newRelative = InputManager.RelativeUpdateTime;
-            double newBeforeSpeed = newRelative * oldSpeed;
-            double newAfterSpeed = newRelative * speed;
-
-            Debug.Log($"Set song speed to {speed:0.00}.\n"
-                + $"Old input offset: {oldOffset:0.000000}, new: {newOffset:0.000000}, "
-                + $"old input: {oldRelative:0.000000}, new: {newRelative:0.000000}, "
-                + $"old w/old speed: {oldBeforeSpeed:0.000000}, old w/new: {oldAfterSpeed:0.000000}, "
-                + $"new w/old speed: {newBeforeSpeed:0.000000}, new w/new: {newAfterSpeed:0.000000}, "
-                + $"difference: {timeDifference:0.000000}");
+            SetInputBase(InputTime);
 
             // Set based on the actual song speed, so as to not break resyncing
             GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
+
+            Debug.Log($"Set song speed to {speed:0.00}.\n"
+                + $"Input time: {InputTime:0.000000}, song time: {SongTime:0.000000}");
         }
 
         public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(SelectedSongSpeed + deltaSpeed);
@@ -519,7 +531,7 @@ namespace YARG.Gameplay
             _debugText.gameObject.SetActive(false);
 #endif
 
-            _pauseStartTime = InputManager.CurrentUpdateTime;
+            _pauseStartTime = InputTime;
             GlobalVariables.AudioManager.Pause();
         }
 
@@ -535,10 +547,7 @@ namespace YARG.Gameplay
 #endif
 
             if (inputCompensation)
-            {
-                double totalPauseTime = InputManager.CurrentUpdateTime - _pauseStartTime;
-                InputManager.InputTimeOffset += totalPauseTime;
-            }
+                SetInputBase(_pauseStartTime);
 
             if (RealSongTime >= 0)
                 GlobalVariables.AudioManager.Play();

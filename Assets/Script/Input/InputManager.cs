@@ -25,15 +25,11 @@ namespace YARG.Input
 
         public static event MenuInputEvent MenuInput;
 
-        // Time reference for when inputs started being tracked
-        public static double InputTimeOffset { get; set; }
+        // Current input time as of when the input system finished updating
         public static double CurrentUpdateTime { get; private set; }
 
         // Input events are timestamped directly in the constructor, so we can use them to get the current time
         public static double CurrentInputTime => new InputEvent(StateEvent.Type, 0, InputDevice.InvalidDeviceId).time;
-
-        public static double RelativeInputTime => GetRelativeTime(CurrentInputTime);
-        public static double RelativeUpdateTime => GetRelativeTime(CurrentUpdateTime);
 
         private static IDisposable _onEventListener;
 
@@ -66,11 +62,6 @@ namespace YARG.Input
 
             InputSystem.onAfterUpdate -= OnAfterUpdate;
             InputSystem.onDeviceChange -= OnDeviceChange;
-        }
-
-        public static double GetRelativeTime(double timeFromInputSystem)
-        {
-            return timeFromInputSystem - InputTimeOffset;
         }
 
         public static void RegisterPlayer(YargPlayer player)

@@ -109,21 +109,18 @@ namespace YARG.Input
 
         protected void FireInputEvent(double time, int value)
         {
-            time = InputManager.GetRelativeTime(time);
             var input = new GameInput(time, Action, value);
             FireInputEvent(ref input);
         }
 
         protected void FireInputEvent(double time, float value)
         {
-            time = InputManager.GetRelativeTime(time);
             var input = new GameInput(time, Action, value);
             FireInputEvent(ref input);
         }
 
         protected void FireInputEvent(double time, bool value)
         {
-            time = InputManager.GetRelativeTime(time);
             var input = new GameInput(time, Action, value);
             FireInputEvent(ref input);
         }
