@@ -58,6 +58,7 @@ namespace YARG.Audio.BASS
         private double _lastStemVolume;
 
         private int _sourceHandle;
+        private bool _sourceIsSplit;
 
         private int _pitchFxHandle;
         private int _pitchFxReverbHandle;
@@ -80,10 +81,11 @@ namespace YARG.Audio.BASS
             _effects = new Dictionary<EffectType, int>();
         }
 
-        public BassStemChannel(IAudioManager manager, SongStem stem, int sourceStream)
+        public BassStemChannel(IAudioManager manager, SongStem stem, int sourceStream, bool isSplit)
         {
             _manager = manager;
             _sourceHandle = sourceStream;
+            _sourceIsSplit = isSplit;
 
             Stem = stem;
             Volume = 1;
@@ -392,6 +394,9 @@ namespace YARG.Audio.BASS
             {
                 Bass.ChannelSetPosition(StreamHandle, Bass.ChannelSeconds2Bytes(StreamHandle, position));
             }
+
+            if (_sourceIsSplit && !BassMix.SplitStreamReset(_sourceHandle))
+                Debug.LogError($"Failed to reset stream: {Bass.LastError}");
         }
 
         public double GetLengthInSeconds()

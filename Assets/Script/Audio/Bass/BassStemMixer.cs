@@ -45,6 +45,8 @@ namespace YARG.Audio.BASS
         protected readonly Dictionary<SongStem, List<IStemChannel>> _channels;
 
         protected int _mixerHandle;
+        protected int _sourceStream;
+        protected bool _sourceIsSplit;
 
         private bool _disposed;
 
@@ -55,6 +57,12 @@ namespace YARG.Audio.BASS
 
             StemsLoaded = 0;
             IsPlaying = false;
+        }
+
+        public BassStemMixer(IAudioManager manager, int sourceStream, bool isSplit) : this(manager)
+        {
+            _sourceStream = sourceStream;
+            _sourceIsSplit = isSplit;
         }
 
         ~BassStemMixer()
@@ -163,6 +171,9 @@ namespace YARG.Audio.BASS
                     channel.SetPosition(position, desyncCompensation);
                 }
             }
+
+            if (_sourceStream != 0 && _sourceIsSplit && !BassMix.SplitStreamReset(_sourceStream))
+                Debug.LogError($"Failed to reset stream: {Bass.LastError}");
         }
 
         public void SetPlayVolume(bool fadeIn)
@@ -312,6 +323,16 @@ namespace YARG.Audio.BASS
                 }
 
                 _mixerHandle = 0;
+            }
+
+            if (_sourceStream != 0)
+            {
+                if (!Bass.StreamFree(_sourceStream))
+                {
+                    Debug.LogError($"Failed to free mixer source stream (THIS WILL LEAK MEMORY!): {Bass.LastError}");
+                }
+
+                _sourceStream = 0;
             }
         }
     }

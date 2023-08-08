@@ -6,7 +6,7 @@
         public readonly float right;
 
         public BassMoggStemChannel(IAudioManager manager, SongStem stem, int splitStreams, float left, float right)
-            : base(manager, stem, splitStreams)
+            : base(manager, stem, splitStreams, true)
         {
             this.left = left;
             this.right = right;
