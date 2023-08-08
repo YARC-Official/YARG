@@ -44,8 +44,8 @@ namespace YARG.Gameplay.HUD
 
         private void Start()
         {
-            _gameManager.ChartLoaded += OnChartLoaded;
             enabled = false;
+            _gameManager.ChartLoaded += OnChartLoaded;
         }
 
         private void OnChartLoaded(SongChart chart)

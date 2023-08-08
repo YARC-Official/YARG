@@ -70,7 +70,20 @@ namespace YARG.Gameplay
         // All access to chart data must be done through this event,
         // since things are loaded asynchronously
         // Players are initialized by hand and don't go through this event
-        public event Action<SongChart> ChartLoaded;
+        private event Action<SongChart> _chartLoaded;
+        public event Action<SongChart> ChartLoaded
+        {
+            add
+            {
+                _chartLoaded += value;
+
+                // Invoke now if already loaded, this event is only fired once
+                var chart = _chart;
+                if (chart != null)
+                    value?.Invoke(chart);
+            }
+            remove => _chartLoaded -= value;
+        }
 
         public PracticeManager PracticeManager { get; private set; }
 
@@ -380,7 +393,7 @@ namespace YARG.Gameplay
             if (_loadFailure)
                 return;
 
-            ChartLoaded?.Invoke(_chart);
+            _chartLoaded?.Invoke(_chart);
         }
 
         private async UniTask LoadAudio()
