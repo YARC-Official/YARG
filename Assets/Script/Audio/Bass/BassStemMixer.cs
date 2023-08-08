@@ -164,12 +164,26 @@ namespace YARG.Audio.BASS
                 return;
             }
 
+            bool playing = IsPlaying;
+            if (playing)
+            {
+                // Pause when seeking to avoid desyncing individual stems
+                Pause();
+            }
+
             foreach (var stem in Channels.Values)
             {
                 foreach (var channel in stem)
                 {
                     channel.SetPosition(position, desyncCompensation);
                 }
+            }
+
+            if (playing)
+            {
+                // Account for update period when resuming
+                Bass.ChannelUpdate(_mixerHandle, Bass.UpdatePeriod);
+                Play();
             }
 
             if (_sourceStream != 0 && _sourceIsSplit && !BassMix.SplitStreamReset(_sourceStream))
