@@ -1012,7 +1012,7 @@ PrefabInstance:
     - target: {fileID: 227366190812778480, guid: 039fee0ec42345d4f88c0625255415d4,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -187.3
+      value: 2.5158997
       objectReference: {fileID: 0}
     - target: {fileID: 1682100932476655723, guid: 039fee0ec42345d4f88c0625255415d4,
         type: 3}
@@ -1147,7 +1147,7 @@ PrefabInstance:
     - target: {fileID: 2517693471320601084, guid: 039fee0ec42345d4f88c0625255415d4,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 187.3
+      value: -2.5158997
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 039fee0ec42345d4f88c0625255415d4, type: 3}
@@ -1803,9 +1803,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 318454371}
-        m_TargetAssemblyTypeName: YARG.Gameplay.GameManager, Assembly-CSharp
-        m_MethodName: QuitSong
+      - m_Target: {fileID: 800626789}
+        m_TargetAssemblyTypeName: YARG.Gameplay.HUD.PauseMenu, Assembly-CSharp
+        m_MethodName: Quit
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2171,6 +2171,7 @@ GameObject:
   - component: {fileID: 800626786}
   - component: {fileID: 800626788}
   - component: {fileID: 800626787}
+  - component: {fileID: 800626789}
   m_Layer: 5
   m_Name: Pause Menu
   m_TagString: Untagged
@@ -2237,6 +2238,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 800626785}
   m_CullTransparentMesh: 1
+--- !u!114 &800626789
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 800626785}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a5c23225dc861948b6ec713e8c7050e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _gameManager: {fileID: 318454371}
+  _changeSectionButton: {fileID: 1303352618}
 --- !u!1 &820110413
 GameObject:
   m_ObjectHideFlags: 0
@@ -2760,8 +2775,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 318454371}
-        m_TargetAssemblyTypeName: YARG.Gameplay.GameManager, Assembly-CSharp
+      - m_Target: {fileID: 800626789}
+        m_TargetAssemblyTypeName: YARG.Gameplay.HUD.PauseMenu, Assembly-CSharp
         m_MethodName: ChangeSection
         m_Mode: 1
         m_Arguments:
@@ -4653,10 +4668,10 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 318454371}
-        m_TargetAssemblyTypeName: YARG.Gameplay.GameManager, Assembly-CSharp
-        m_MethodName: SetPaused
-        m_Mode: 6
+      - m_Target: {fileID: 800626789}
+        m_TargetAssemblyTypeName: YARG.Gameplay.HUD.PauseMenu, Assembly-CSharp
+        m_MethodName: Resume
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine

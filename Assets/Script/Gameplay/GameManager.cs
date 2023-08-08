@@ -205,7 +205,7 @@ namespace YARG.Gameplay
             // Initialize/destroy practice mode
             if (IsPractice)
             {
-                ChangeSection();
+                PracticeManager.DisplayPracticeMenu();
             }
             else
             {
@@ -213,7 +213,6 @@ namespace YARG.Gameplay
                 // Show debug info
                 _debugText.gameObject.SetActive(true);
 #endif
-                Destroy(_pauseMenu.transform.Find("Background/ChangeSection").gameObject);
                 Destroy(PracticeManager);
             }
         }
@@ -446,15 +445,6 @@ namespace YARG.Gameplay
                 basePlayer.Initialize(index, player, _chart, trackView);
                 _players.Add(basePlayer);
             }
-        }
-
-        public void ChangeSection()
-        {
-            if (!IsPractice)
-                return;
-
-            Pause(showMenu: false);
-            PracticeManager.DisplayPracticeMenu();
         }
 
         public void SetSongTime(double time, double delayTime = SONG_START_DELAY)

@@ -100,6 +100,7 @@ namespace YARG.Gameplay
 
         public void DisplayPracticeMenu()
         {
+            _gameManager.Pause(showMenu: false);
             practiceSectionMenu.gameObject.SetActive(true);
         }
 
