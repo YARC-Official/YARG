@@ -23,13 +23,13 @@ namespace YARG.Menu.Persistent
 
             // Set the icon
             var icons = GlobalVariables.Instance.MenuIcons;
-            _buttonImage.sprite = icons.GetIcon(entry.Type);
-            _buttonImage.color = icons.GetColor(entry.Type);
+            _buttonImage.sprite = icons.GetIcon(entry.Action);
+            _buttonImage.color = icons.GetColor(entry.Action);
         }
 
         public void OnClick()
         {
-            _entry?.Func();
+            _entry?.Invoke();
         }
     }
 }

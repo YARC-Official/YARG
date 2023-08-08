@@ -9,17 +9,6 @@ namespace YARG.Menu.Navigation
     {
         public readonly struct Entry
         {
-            public readonly MenuAction Type;
-            public readonly string DisplayName;
-            public readonly Action Func;
-
-            public Entry(MenuAction type, string displayName, Action func)
-            {
-                Type = type;
-                DisplayName = displayName;
-                Func = func;
-            }
-
             public static readonly Entry NavigateUp = new(MenuAction.Up, "Up", () =>
             {
                 NavigationGroup.CurrentNavigationGroup.SelectPrevious();
@@ -34,6 +23,31 @@ namespace YARG.Menu.Navigation
             {
                 NavigationGroup.CurrentNavigationGroup.ConfirmSelection();
             });
+
+            public readonly MenuAction Action;
+            public readonly string DisplayName;
+            private readonly Action<NavigationContext> _handler;
+
+            public Entry(MenuAction action, string displayName, Action handler)
+            {
+                Action = action;
+                DisplayName = displayName;
+                _handler = (ctx) => handler?.Invoke();
+            }
+
+            public Entry(MenuAction action, string displayName, Action<NavigationContext> handler)
+            {
+                Action = action;
+                DisplayName = displayName;
+                _handler = handler;
+            }
+
+            public void Invoke() => Invoke(new(Action, null));
+
+            public void Invoke(NavigationContext context)
+            {
+                _handler?.Invoke(context);
+            }
         }
 
         public static readonly NavigationScheme EmptyWithMusicPlayer = new(new(), true);
@@ -49,11 +63,11 @@ namespace YARG.Menu.Navigation
             AllowsMusicPlayer = allowsMusicPlayer;
         }
 
-        public void InvokeFuncs(MenuAction type)
+        public void InvokeFuncs(NavigationContext context)
         {
-            foreach (var entry in _entries.Where(i => i.Type == type))
+            foreach (var entry in _entries.Where(i => i.Action == context.Action))
             {
-                entry.Func?.Invoke();
+                entry.Invoke(context);
             }
         }
     }

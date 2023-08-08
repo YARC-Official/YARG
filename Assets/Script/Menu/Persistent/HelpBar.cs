@@ -83,7 +83,7 @@ namespace YARG.Menu.Persistent
                 }
 
                 // Skip actions without icons
-                if (!GlobalVariables.Instance.MenuIcons.HasIcon(entry.Type))
+                if (!GlobalVariables.Instance.MenuIcons.HasIcon(entry.Action))
                 {
                     continue;
                 }

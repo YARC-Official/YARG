@@ -137,7 +137,7 @@ namespace YARG.Menu.Navigation
 
             if (_schemeStack.Count > 0)
             {
-                _schemeStack.Peek().InvokeFuncs(ctx.Action);
+                _schemeStack.Peek().InvokeFuncs(ctx);
             }
         }
 
