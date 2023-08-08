@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Input;
@@ -81,13 +81,20 @@ namespace YARG.Gameplay
 
         private void OnNavigationEvent(NavigationContext ctx)
         {
-            if (ctx.Action == MenuAction.Left)
+            switch (ctx.Action)
             {
-                _gameManager.AdjustSongSpeed(-0.05f);
-            }
-            else if (ctx.Action == MenuAction.Right)
-            {
-                _gameManager.AdjustSongSpeed(0.05f);
+                // Song speed
+                case MenuAction.Left:
+                    _gameManager.AdjustSongSpeed(-0.05f);
+                    break;
+                case MenuAction.Right:
+                    _gameManager.AdjustSongSpeed(0.05f);
+                    break;
+
+                // Reset
+                case MenuAction.Select:
+                    ResetPractice();
+                    break;
             }
         }
 

@@ -568,12 +568,6 @@ namespace YARG.Gameplay
                 case MenuAction.Start:
                     SetPaused(!Paused);
                     break;
-
-                // Practice mode reset
-                case MenuAction.Select:
-                    if (IsPractice)
-                        PracticeManager.ResetPractice();
-                    break;
             }
         }
     }
