@@ -29,8 +29,9 @@ namespace YARG.Gameplay.HUD
             player.TrackCamera.targetTexture = renderTexture;
             trackView.TrackImage.texture = renderTexture;
 
-            UpdateAllSizing();
             _trackViews.Add(trackView);
+            UpdateAllSizing();
+
             return trackView;
         }
 
