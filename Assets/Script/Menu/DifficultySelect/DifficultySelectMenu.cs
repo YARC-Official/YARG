@@ -208,7 +208,7 @@ namespace YARG.Menu.DifficultySelect
             // Filter out to only allowed instruments
             availableInstruments.RemoveAll(i => !allowedInstruments.Contains(i));
 
-            _optionCount = availableInstruments.Count + 1;
+            _optionCount = availableInstruments.Count;
 
             // Add to options
             var ops = new string[availableInstruments.Count];
