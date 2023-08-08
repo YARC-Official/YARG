@@ -455,6 +455,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7792aa537b804208a803f971074a1a45, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _defaultGroup: 0
   _addAllChildrenOnAwake: 0
 --- !u!224 &7714513749028259369 stripped
 RectTransform:
@@ -712,6 +713,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7792aa537b804208a803f971074a1a45, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _defaultGroup: 1
   _addAllChildrenOnAwake: 0
 --- !u!224 &8568271729368785615 stripped
 RectTransform:

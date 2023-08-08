@@ -10,6 +10,9 @@ namespace YARG.Menu.Navigation
         private readonly List<NavigatableBehaviour> _navigatables = new();
 
         [SerializeField]
+        private bool _defaultGroup;
+
+        [SerializeField]
         private bool _addAllChildrenOnAwake;
 
         private void Awake()
@@ -22,6 +25,12 @@ namespace YARG.Menu.Navigation
                     _navigatables.Add(navigatable);
                 }
             }
+        }
+
+        private void OnEnable()
+        {
+            if (_defaultGroup)
+                CurrentNavigationGroup = this;
         }
 
         public void AddNavigatable(NavigatableBehaviour n)

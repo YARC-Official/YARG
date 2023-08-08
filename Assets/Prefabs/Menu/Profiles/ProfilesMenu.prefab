@@ -2517,6 +2517,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7792aa537b804208a803f971074a1a45, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _defaultGroup: 1
   _addAllChildrenOnAwake: 0
 --- !u!1 &1709403987837879535 stripped
 GameObject:
