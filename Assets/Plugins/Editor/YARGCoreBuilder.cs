@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Xml;
 using NugetForUnity;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
-using UnityEditor.Compilation;
 using UnityEngine;
 
 using Debug = UnityEngine.Debug;
@@ -20,6 +20,15 @@ namespace Editor
     {
         private const string OUTPUT_FOLDER = "Assets/Plugins/YARG.Core";
         private const string HASH_PATH = "Assets/Plugins/YARG.Core/YARG.Core.hash";
+
+        // NugetForUnity doesn't expose their list of Unity pre-installed references,
+        // and I'd rather not re-implement it ourselves lol
+        private delegate HashSet<string> UnityPreImportedLibraryResolver_GetAlreadyImportedLibs();
+        private static readonly UnityPreImportedLibraryResolver_GetAlreadyImportedLibs s_GetAlreadyImportedLibs =
+            (UnityPreImportedLibraryResolver_GetAlreadyImportedLibs) Assembly.GetAssembly(typeof(NugetHelper))
+            .GetType("NugetForUnity.UnityPreImportedLibraryResolver").GetMethod("GetAlreadyImportedLibs",
+                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static, null, new Type[] { }, null)
+            .CreateDelegate(typeof(UnityPreImportedLibraryResolver_GetAlreadyImportedLibs));
 
         // For automatically building in the Editor upon any recompilations
         static YARGCoreBuilder()
@@ -38,8 +47,11 @@ namespace Editor
             BuildYARGCoreDLL(force: true, debug: false);
         }
 
-        [MenuItem("YARG/Rebuild YARG.Core", false)]
-        public static void BuildButton() => BuildYARGCoreDLL(force: true);
+        [MenuItem("YARG/Rebuild YARG.Core (Debug)", false)]
+        public static void BuildDebug() => BuildYARGCoreDLL(force: true);
+
+        [MenuItem("YARG/Rebuild YARG.Core (Release)", false)]
+        public static void BuildRelease() => BuildYARGCoreDLL(force: true, debug: false);
 
         public static void BuildYARGCoreDLL(bool force = false, bool debug = true)
         {
@@ -74,6 +86,9 @@ namespace Editor
                 // TODO: Ignore Unity-provided references
                 EditorUtility.DisplayProgressBar("Building YARG.Core", "Copying files", 0.9f);
                 CopyBuildOutput(buildOutput, OUTPUT_FOLDER, packages);
+
+                EditorUtility.DisplayProgressBar("Building YARG.Core", "Removing conflicting files", 0.95f);
+                RemoveConflictingFromOutput(buildOutput, packages);
             }
             catch (Exception ex)
             {
@@ -102,7 +117,7 @@ namespace Editor
             return true;
         }
 
-        private static void CopyBuildOutput(string buildOutput, string destination, string[] existingReferences)
+        private static void CopyBuildOutput(string buildOutput, string destination, HashSet<string> existingReferences)
         {
             foreach (var path in Directory.EnumerateFiles(buildOutput, "*.dll"))
             {
@@ -132,7 +147,21 @@ namespace Editor
             Debug.Log($"Copied files to {destination}");
         }
 
-        private static string[] RestorePackages(string projectFilePath)
+        private static void RemoveConflictingFromOutput(string buildOutput, HashSet<string> existingReferences)
+        {
+            foreach (var path in Directory.EnumerateFiles(buildOutput, "*.dll"))
+            {
+                // Check if the .dll already exists as a reference
+                string name = Path.GetFileNameWithoutExtension(path);
+                if (name == "YARG.Core" || !existingReferences.Contains(name))
+                    continue;
+
+                // Remove the .dll
+                File.Delete(path);
+            }
+        }
+
+        private static HashSet<string> RestorePackages(string projectFilePath)
         {
             // Load project file
             var projectFile = new XmlDocument();
@@ -142,7 +171,8 @@ namespace Editor
             if (NugetHelper.NugetConfigFile is null)
                 NugetHelper.LoadNugetConfigFile();
 
-            // Find unresolved package references
+            // Find package references
+            var existingReferences = s_GetAlreadyImportedLibs();
             var packageReferences = projectFile.GetElementsByTagName("PackageReference");
             for (int index = 0; index < packageReferences.Count; index++)
             {
@@ -153,9 +183,14 @@ namespace Editor
 
                 // Check for an existing installed package
                 var packageIdentifier = new NugetPackageIdentifier(packageName, packageVersion);
-                if (NugetHelper.InstalledPackages.Any((package) =>
-                    package.Title == packageName && package.InRange(packageIdentifier)))
+                var existingPackage = NugetHelper.InstalledPackages.FirstOrDefault((package) =>
+                    package.Id == packageName && package.InRange(packageIdentifier));
+                if (existingPackage is not null)
+                {
+                    // Add to references
+                    GetPackageDlls(existingPackage, existingReferences);
                     continue;
+                }
 
                 // Search for the package on NuGet
                 foreach (var package in NugetHelper.Search(packageName))
@@ -170,11 +205,29 @@ namespace Editor
                         Debug.LogWarning($"Failed to install {package.Title} v{package.Version}!");
                         continue;
                     }
+
+                    // Add to references
+                    GetPackageDlls(package, existingReferences);
                     break;
                 }
             }
 
-            return NugetHelper.InstalledPackages.Select((package) => package.Title).ToArray();
+            return existingReferences;
+        }
+
+        private static void GetPackageDlls(NugetPackage package, HashSet<string> existingReferences)
+        {
+            // Note: This assumes there is only one target framework folder at a time in the package's install folder
+            // NugetForUnity seems to only install one at a time, but there may be issues if more than one exists
+            string installFolder = Path.Combine(NugetHelper.NugetConfigFile.RepositoryPath, $"{package.Id}.{package.Version}");
+            foreach (var path in Directory.EnumerateFiles(installFolder, "*.dll", SearchOption.AllDirectories))
+            {
+                string name = Path.GetFileNameWithoutExtension(path);
+                if (existingReferences.Contains(name))
+                    continue;
+
+                existingReferences.Add(name);
+            }
         }
 
         private static string BuildProject(string projectFile, bool debug)
