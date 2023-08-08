@@ -485,7 +485,31 @@ namespace YARG.Gameplay
         {
             // 10% - 4995%, we reserve 5% so that audio syncing can still function
             speed = Math.Clamp(speed, 10 / 100f, 4995 / 100f);
+
+            // Set speed; save old for input offset compensation
+            float oldSpeed = SelectedSongSpeed;
             SelectedSongSpeed = speed;
+
+            // Adjust input offset, otherwise input time will desync
+            // TODO: This isn't 100% functional yet, changing speed quickly will still cause things to desync
+            double oldOffset = InputManager.InputTimeOffset;
+            double oldRelative = InputManager.RelativeUpdateTime;
+
+            double oldBeforeSpeed = oldRelative * oldSpeed;
+            double oldAfterSpeed = oldRelative * speed;
+            double timeDifference = oldBeforeSpeed - oldAfterSpeed;
+
+            double newOffset = InputManager.InputTimeOffset = oldOffset - timeDifference;
+            double newRelative = InputManager.RelativeUpdateTime;
+            double newBeforeSpeed = newRelative * oldSpeed;
+            double newAfterSpeed = newRelative * speed;
+
+            Debug.Log($"Set song speed to {speed:0.00}.\n"
+                + $"Old input offset: {oldOffset:0.000000}, new: {newOffset:0.000000}, "
+                + $"old input: {oldRelative:0.000000}, new: {newRelative:0.000000}, "
+                + $"old w/old speed: {oldBeforeSpeed:0.000000}, old w/new: {oldAfterSpeed:0.000000}, "
+                + $"new w/old speed: {newBeforeSpeed:0.000000}, new w/new: {newAfterSpeed:0.000000}, "
+                + $"difference: {timeDifference:0.000000}");
 
             // Set based on the actual song speed, so as to not break resyncing
             GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
