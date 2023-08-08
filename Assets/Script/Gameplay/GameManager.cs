@@ -171,6 +171,7 @@ namespace YARG.Gameplay
         private void OnDestroy()
         {
             Navigator.Instance.NavigationEvent -= OnNavigationEvent;
+            GlobalVariables.AudioManager.SongEnd -= OnAudioEnd;
         }
 
         private async UniTask Start()
@@ -427,7 +428,7 @@ namespace YARG.Gameplay
                 {
                     Song.LoadAudio(GlobalVariables.AudioManager, SelectedSongSpeed);
                     SongLength = GlobalVariables.AudioManager.AudioLengthD;
-                    GlobalVariables.AudioManager.SongEnd += EndSong;
+                    GlobalVariables.AudioManager.SongEnd += OnAudioEnd;
                 }
                 catch (Exception ex)
                 {
@@ -611,11 +612,22 @@ namespace YARG.Gameplay
 
         public void QuitSong()
         {
-            GlobalVariables.AudioManager.SongEnd -= EndSong;
             GlobalVariables.AudioManager.UnloadSong();
 
             GlobalVariables.Instance.IsReplay = false;
             GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+        }
+
+        private void OnAudioEnd()
+        {
+            if (IsPractice)
+            {
+                PracticeManager.ResetPractice();
+                return;
+            }
+
+            GlobalVariables.AudioManager.SongEnd -= OnAudioEnd;
+            EndSong();
         }
 
         private void OnNavigationEvent(NavigationContext context)
