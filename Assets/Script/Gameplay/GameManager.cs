@@ -235,10 +235,9 @@ namespace YARG.Gameplay
             else
             {
                 RealSongTime = GlobalVariables.AudioManager.CurrentPositionD;
+                // Sync if needed
+                SyncAudio();
             }
-
-            // Sync if needed
-            SyncAudio();
 
 #if UNITY_EDITOR
             byte buttonMask = ((FiveFretPlayer) _players[0]).Engine.State.ButtonMask;
@@ -271,19 +270,19 @@ namespace YARG.Gameplay
             double inputTime = InputTime;
             double audioTime = SongTime;
 
-            // Don't sync before the audio's actually started
-            if (audioTime < 0)
-                return;
+            // Account for song speed
+            double initialThreshold = INITIAL_SYNC_THRESH * SelectedSongSpeed;
+            double adjustThreshold = ADJUST_SYNC_THRESH * SelectedSongSpeed;
 
             // Check the difference between input and audio times
             double delta = inputTime - audioTime;
             double deltaAbs = Math.Abs(delta);
             // Don't sync if below the initial sync threshold, and we haven't adjusted the speed
-            if (_previousSpeedMultiplier == 0 && deltaAbs < INITIAL_SYNC_THRESH)
+            if (_previousSpeedMultiplier == 0 && deltaAbs < initialThreshold)
                 return;
 
             // We're now syncing, determine how much to adjust the song speed by
-            int speedMultiplier = (int)Math.Round(deltaAbs / INITIAL_SYNC_THRESH);
+            int speedMultiplier = (int)Math.Round(deltaAbs / initialThreshold);
             if (speedMultiplier < 1)
                 speedMultiplier = 1;
 
@@ -302,7 +301,7 @@ namespace YARG.Gameplay
                 }
             }
             // No change in speed, check if we're below the threshold
-            else if (deltaAbs < ADJUST_SYNC_THRESH ||
+            else if (deltaAbs < adjustThreshold ||
                 // Also check if we overshot and passed 0
                 (delta > 0.0 && _previousDelta < 0.0) ||
                 (delta < 0.0 && _previousDelta > 0.0))

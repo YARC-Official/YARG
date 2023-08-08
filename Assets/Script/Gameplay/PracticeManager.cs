@@ -66,7 +66,8 @@ namespace YARG.Gameplay
             if (_gameManager.Paused)
                 return;
 
-            if (_gameManager.SongTime > _timeEnd + SECTION_RESTART_DELAY)
+            double endPoint = _timeEnd + (SECTION_RESTART_DELAY * _gameManager.SelectedSongSpeed);
+            if (_gameManager.SongTime >= endPoint)
                 ResetPractice();
         }
 
