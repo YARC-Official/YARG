@@ -286,16 +286,27 @@ namespace YARG.Gameplay
 
             Debug.Log($"Resyncing audio position. Input: {inputTime}, audio: {audioTime}, delta: {delta}");
 
-            _syncSpeedAdjustment = delta > 0.0 ? SPEED_ADJUSTMENT : -SPEED_ADJUSTMENT;
-            GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
-
+            int previousMultiplier = 0;
             await UniTask.WaitUntil(() =>
             {
                 double newDelta = RealInstantInputTime - GlobalVariables.AudioManager.CurrentPositionD;
+                double newDeltaAbs = Math.Abs(newDelta);
+
+                // Make the speed faster depending on how large the desync is
+                int speedMultiplier = (int)Math.Round(newDeltaAbs / INITIAL_SYNC_THRESH);
+                if (speedMultiplier < 1)
+                    speedMultiplier = 1;
+
+                if (previousMultiplier != speedMultiplier)
+                {
+                    previousMultiplier = speedMultiplier;
+                    _syncSpeedAdjustment = (newDelta > 0.0 ? SPEED_ADJUSTMENT : -SPEED_ADJUSTMENT) * speedMultiplier;
+                    GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
+                }
 
                 // Make sure to use a lower threshold so we don't have to *constantly*
                 // sync things up.
-                return Math.Abs(newDelta) < ADJUST_SYNC_THRESH ||
+                return newDeltaAbs < ADJUST_SYNC_THRESH ||
                     // Detect overshooting
                     (delta > 0.0 && newDelta < 0.0) ||
                     (delta < 0.0 && newDelta > 0.0);
