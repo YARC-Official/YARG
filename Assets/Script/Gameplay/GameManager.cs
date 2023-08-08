@@ -247,13 +247,14 @@ namespace YARG.Gameplay
                 RealSongTime = GlobalVariables.AudioManager.CurrentPositionD;
             }
 
+            // Sync if needed
+            SyncAudio();
+
 #if UNITY_EDITOR
             byte buttonMask = ((FiveFretPlayer) _players[0]).Engine.State.ButtonMask;
             int noteIndex = ((FiveFretPlayer) _players[0]).Engine.State.NoteIndex;
             _debugText.text = $"Note index: {noteIndex}\nButtons: {buttonMask}\nInput time: {InputTime:0.000000}\nSong time: {SongTime:0.000000}";
 #endif
-
-            if (_syncAudio.Status != UniTaskStatus.Pending) _syncAudio = SyncAudio();
 
             int totalScore = 0;
             int totalCombo = 0;
@@ -268,56 +269,55 @@ namespace YARG.Gameplay
             BandScore = totalScore;
         }
 
-        private async UniTask SyncAudio()
+        private int _previousSpeedMultiplier = 0;
+        private double _previousDelta;
+
+        private void SyncAudio()
         {
             const double INITIAL_SYNC_THRESH = 0.015;
             const double ADJUST_SYNC_THRESH = 0.005;
             const float SPEED_ADJUSTMENT = 0.05f;
 
-            // DON'T use any "SongTime" variables for this because that is
-            // updated every frame. This is async.
-            double inputTime = RealInstantInputTime;
-            double audioTime = GlobalVariables.AudioManager.CurrentPositionD;
+            double inputTime = InputTime;
+            double audioTime = SongTime;
 
-            if (audioTime < 0.0) return;
+            // Don't sync before the audio's actually started
+            if (audioTime < 0)
+                return;
 
+            // Check the difference between input and audio times
             double delta = inputTime - audioTime;
-            if (Math.Abs(delta) < INITIAL_SYNC_THRESH) return;
+            double deltaAbs = Math.Abs(delta);
+            // Don't sync if below the initial sync threshold, and we haven't adjusted the speed
+            if (_previousSpeedMultiplier == 0 && deltaAbs < INITIAL_SYNC_THRESH)
+                return;
 
-            Debug.Log($"Resyncing audio position. Input: {inputTime}, audio: {audioTime}, delta: {delta}");
+            // We're now syncing, determine how much to adjust the song speed by
+            int speedMultiplier = (int)Math.Round(deltaAbs / INITIAL_SYNC_THRESH);
+            if (speedMultiplier < 1)
+                speedMultiplier = 1;
 
-            int previousMultiplier = 0;
-            await UniTask.WaitUntil(() =>
+            // Only change speed when the multiplier changes
+            if (_previousSpeedMultiplier != speedMultiplier)
             {
-                double newDelta = RealInstantInputTime - GlobalVariables.AudioManager.CurrentPositionD;
-                double newDeltaAbs = Math.Abs(newDelta);
+                _previousSpeedMultiplier = speedMultiplier;
+                _syncSpeedAdjustment = (delta > 0 ? SPEED_ADJUSTMENT : -SPEED_ADJUSTMENT) * speedMultiplier;
+                GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
+                Debug.Log($"Adjusted speed to {ActualSongSpeed:0.00} for audio syncing.\nInput: {inputTime}, audio: {audioTime}, delta: {delta}");
+            }
+            // No change in speed, check if we're below the threshold
+            else if (deltaAbs < ADJUST_SYNC_THRESH ||
+                // Also check if we overshot and passed 0
+                (delta > 0.0 && _previousDelta < 0.0) ||
+                (delta < 0.0 && _previousDelta > 0.0))
+            {
+                _previousSpeedMultiplier = 0;
+                _syncSpeedAdjustment = 0f;
+                GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
+                Debug.Log($"Audio synced.\nInput: {inputTime}, audio: {audioTime}, delta: {delta}");
+            }
 
-                // Make the speed faster depending on how large the desync is
-                int speedMultiplier = (int)Math.Round(newDeltaAbs / INITIAL_SYNC_THRESH);
-                if (speedMultiplier < 1)
-                    speedMultiplier = 1;
-
-                if (previousMultiplier != speedMultiplier)
-                {
-                    previousMultiplier = speedMultiplier;
-                    _syncSpeedAdjustment = (newDelta > 0.0 ? SPEED_ADJUSTMENT : -SPEED_ADJUSTMENT) * speedMultiplier;
-                    GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
-                }
-
-                // Make sure to use a lower threshold so we don't have to *constantly*
-                // sync things up.
-                return newDeltaAbs < ADJUST_SYNC_THRESH ||
-                    // Detect overshooting
-                    (delta > 0.0 && newDelta < 0.0) ||
-                    (delta < 0.0 && newDelta > 0.0);
-            });
-            _syncSpeedAdjustment = 0f;
-            GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
-
-            inputTime = RealInstantInputTime;
-            audioTime = GlobalVariables.AudioManager.CurrentPositionD;
-            double finalDelta = inputTime - audioTime;
-            Debug.Log($"Audio synced. Input: {inputTime}, audio: {audioTime}, delta: {finalDelta}");
+            _previousDelta = delta;
         }
 
         private async UniTask LoadReplay()
