@@ -15,6 +15,7 @@ using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
 using YARG.Input;
 using YARG.Menu.Navigation;
+using YARG.Menu.Persistent;
 using YARG.Player;
 using YARG.Replays;
 using YARG.Settings;
@@ -60,6 +61,9 @@ namespace YARG.Gameplay
         private List<Beatline>   _beats;
 
         private IReadOnlyList<YargPlayer> _yargPlayers;
+
+        private bool _loadFailure;
+        private string _loadFailureMessage;
 
         private UniTask _syncAudio = UniTask.CompletedTask;
 
@@ -140,44 +144,11 @@ namespace YARG.Gameplay
             IsPractice = GlobalVariables.Instance.IsPractice;
             SelectedSongSpeed = GlobalVariables.Instance.SongSpeed;
 
-            if (IsReplay)
+            if (Song is null)
             {
-                string checksum = GlobalVariables.Instance.CurrentReplay.SongChecksum;
-                var result = ReplayContainer.LoadReplayFile(GlobalVariables.Instance.CurrentReplay, out var replay);
-
-                Song = SongContainer.SongsByHash[checksum];
-                if (Song is null || result != ReplayReadResult.Valid)
-                {
-                    GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
-                    return;
-                }
-
-                Replay = replay;
-
-                var players = new List<YargPlayer>();
-                foreach (var frame in Replay.Frames)
-                {
-                    var profile = new YargProfile
-                    {
-                        Name = frame.PlayerName,
-                        GameMode = frame.Instrument.ToGameMode(),
-                        Instrument = frame.Instrument,
-                        Difficulty = frame.Difficulty,
-                        NoteSpeed = 7,
-                    };
-
-                    players.Add(new YargPlayer(profile, null, false));
-                }
-
-                _yargPlayers = players;
-            } else if (IsPractice)
-            {
-                ChangeSection();
-            }
-            else
-            {
-                Destroy(_pauseMenu.transform.Find("Background/ChangeSection").gameObject);
-                Destroy(PracticeManager);
+                Debug.Assert(false, "Null song set when loading gameplay!");
+                GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                return;
             }
         }
 
@@ -191,10 +162,20 @@ namespace YARG.Gameplay
             // Disable until everything's loaded
             enabled = false;
 
-            // Load chart/audio
+            // Load song
+            if (IsReplay)
+                LoadingManager.Instance.Queue(LoadReplay, "Loading replay...");
             LoadingManager.Instance.Queue(LoadChart, "Loading chart...");
             LoadingManager.Instance.Queue(LoadAudio, "Loading audio...");
             await LoadingManager.Instance.StartLoad();
+
+            if (_loadFailure)
+            {
+                Debug.LogError(_loadFailureMessage);
+                ToastManager.ToastError(_loadFailureMessage);
+                GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                return;
+            }
 
             // Spawn players
             CreatePlayers();
@@ -208,10 +189,20 @@ namespace YARG.Gameplay
             // Listen for menu inputs
             Navigator.Instance.NavigationEvent += OnNavigationEvent;
 
+            // Initialize/destroy practice mode
+            if (IsPractice)
+            {
+                ChangeSection();
+            }
+            else
+            {
 #if UNITY_EDITOR
-            // Show debug info
-            _debugText.gameObject.SetActive(true);
+                // Show debug info
+                _debugText.gameObject.SetActive(true);
 #endif
+                Destroy(_pauseMenu.transform.Find("Background/ChangeSection").gameObject);
+                Destroy(PracticeManager);
+            }
         }
 
         private void Update()
@@ -306,26 +297,88 @@ namespace YARG.Gameplay
             Debug.Log($"Audio synced. Input: {inputTime}, audio: {audioTime}, delta: {finalDelta}");
         }
 
+        private async UniTask LoadReplay()
+        {
+            string checksum = GlobalVariables.Instance.CurrentReplay.SongChecksum;
+            Replay replay = null;
+            ReplayReadResult result;
+            try
+            {
+                result = await UniTask.RunOnThreadPool(() => ReplayContainer.LoadReplayFile(
+                GlobalVariables.Instance.CurrentReplay, out replay));
+            }
+            catch (Exception ex)
+            {
+                _loadFailure = true;
+                _loadFailureMessage = "Failed to load replay!";
+                Debug.LogException(ex, this);
+                return;
+            }
+
+            Song = SongContainer.SongsByHash[checksum];
+            if (Song is null || result != ReplayReadResult.Valid)
+            {
+                _loadFailure = true;
+                _loadFailureMessage = "Failed to load replay!";
+                return;
+            }
+
+            Replay = replay;
+
+            var players = new List<YargPlayer>();
+            foreach (var frame in Replay.Frames)
+            {
+                var profile = new YargProfile
+                {
+                    Name = frame.PlayerName,
+                    GameMode = frame.Instrument.ToGameMode(),
+                    Instrument = frame.Instrument,
+                    Difficulty = frame.Difficulty,
+                    NoteSpeed = 7,
+                };
+
+                players.Add(new YargPlayer(profile, null, false));
+            }
+
+            _yargPlayers = players;
+        }
+
         private async UniTask LoadChart()
         {
             await UniTask.RunOnThreadPool(() =>
             {
+                // Load chart
                 string notesFile = Path.Combine(Song.Location, Song.NotesFile);
-                Debug.Log(notesFile);
-                _chart = SongChart.FromFile(ParseSettings.Default, notesFile);
+                Debug.Log($"Loading chart file {notesFile}");
+                try
+                {
+                    _chart = SongChart.FromFile(ParseSettings.Default, notesFile);
+                }
+                catch (Exception ex)
+                {
+                    _loadFailure = true;
+                    _loadFailureMessage = "Failed to load chart!";
+                    Debug.LogException(ex, this);
+                    return;
+                }
 
+                // Ensure sync track is present
                 var syncTrack = _chart.SyncTrack;
                 if (syncTrack.Beatlines is null or { Count: < 1 })
                     _chart.SyncTrack.GenerateBeatlines(_chart.GetLastTick());
 
                 _beats = _chart.SyncTrack.Beatlines;
 
+                // Set length of the final section
                 if (_chart.Sections.Count > 0) {
                     uint lastTick = _chart.GetLastTick();
                     _chart.Sections[^1].TickLength = lastTick;
                     _chart.Sections[^1].TimeLength = _chart.SyncTrack.TickToTime(lastTick);
                 }
             });
+
+            if (_loadFailure)
+                return;
 
             ChartLoaded?.Invoke(_chart);
         }
@@ -334,9 +387,18 @@ namespace YARG.Gameplay
         {
             await UniTask.RunOnThreadPool(() =>
             {
-                Song.LoadAudio(GlobalVariables.AudioManager, SelectedSongSpeed);
-                SongLength = GlobalVariables.AudioManager.AudioLengthD;
-                GlobalVariables.AudioManager.SongEnd += EndSong;
+                try
+                {
+                    Song.LoadAudio(GlobalVariables.AudioManager, SelectedSongSpeed);
+                    SongLength = GlobalVariables.AudioManager.AudioLengthD;
+                    GlobalVariables.AudioManager.SongEnd += EndSong;
+                }
+                catch (Exception ex)
+                {
+                    _loadFailure = true;
+                    _loadFailureMessage = "Failed to load audio!";
+                    Debug.LogException(ex, this);
+                }
             });
         }
 
