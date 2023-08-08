@@ -119,21 +119,11 @@ namespace YARG.Gameplay
         public double InputTime => InputManager.RelativeUpdateTime * SelectedSongSpeed;
 
         /// <summary>
-        /// The current input time <b>at this instant</b>, accounting for song speed, <b>and for</b> calibration.
-        /// </summary>
-        public double InstantInputTime => InputManager.RelativeInputTime * SelectedSongSpeed;
-
-        /// <summary>
         /// The current input update time, accounting for song speed, but <b>not</b> for calibration.
         /// </summary>
         // Uses the selected song speed and not the actual song speed,
         // audio is synced to the inputs and not vice versa
         public double RealInputTime => InputTime - AudioCalibration;
-
-        /// <summary>
-        /// The current input time <b>at this instant</b>, accounting for song speed, but <b>not</b> for calibration.
-        /// </summary>
-        public double RealInstantInputTime => InstantInputTime - AudioCalibration;
 
         public bool IsReplay   { get; private set; }
         public bool IsPractice { get; private set; }
@@ -461,7 +451,7 @@ namespace YARG.Gameplay
         public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
         {
             double seekTime = time - delayTime;
-            double inputTime = InputManager.CurrentInputTime;
+            double inputTime = InputManager.CurrentUpdateTime;
 
             RealSongTime = seekTime;
             double inputOffset = InputManager.InputTimeOffset = inputTime
@@ -523,7 +513,7 @@ namespace YARG.Gameplay
             _debugText.gameObject.SetActive(false);
 #endif
 
-            _pauseStartTime = InputManager.CurrentInputTime;
+            _pauseStartTime = InputManager.CurrentUpdateTime;
             GlobalVariables.AudioManager.Pause();
         }
 
@@ -540,7 +530,7 @@ namespace YARG.Gameplay
 
             if (inputCompensation)
             {
-                double totalPauseTime = InputManager.CurrentInputTime - _pauseStartTime;
+                double totalPauseTime = InputManager.CurrentUpdateTime - _pauseStartTime;
                 InputManager.InputTimeOffset += totalPauseTime;
             }
 
