@@ -464,8 +464,9 @@ namespace YARG.Gameplay
                 - time - AudioCalibration // Offset backwards by the given time and by the audio calibration
                 + delayTime;              // Bump forward by the delay so that times before the audio are negative
 
-            Debug.Log(
-                $"Set song time to {time}. Seek time: {seekTime}, input offset: {inputOffset}, input time: {inputTime}");
+            double relativeInput = InputManager.RelativeUpdateTime;
+            Debug.Log($"Set song time to {time}.\n" +
+                $"Seek time: {seekTime}, input time: {relativeInput} (offset: {inputOffset}, absolute: {inputTime})");
 
             // Audio seeking cannot go negative
             if (seekTime < 0) seekTime = 0;
