@@ -25,7 +25,7 @@ namespace YARG.Gameplay
 {
     public class GameManager : MonoBehaviour
     {
-        private const float SONG_START_DELAY = 2f;
+        private const double SONG_START_DELAY = 2;
 
         [Header("References")]
         [SerializeField]
