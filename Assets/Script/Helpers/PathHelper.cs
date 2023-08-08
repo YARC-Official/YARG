@@ -61,7 +61,7 @@ namespace YARG.Helpers
         public static void Init()
         {
             // Save this data as Application.* is main thread only (why Unity)
-            PersistentDataPath = SanitizePath(Application.persistentDataPath);
+            PersistentDataPath = SanitizePath(Application.persistentDataPath, true);
             ApplicationDataPath = SanitizePath(Application.dataPath);
             ExecutablePath = Directory.GetParent(ApplicationDataPath)?.FullName;
             StreamingAssetsPath = SanitizePath(Application.streamingAssetsPath);
@@ -117,15 +117,15 @@ namespace YARG.Helpers
         /// <param name="processFile">
         /// The action used to process the enumerated files. Return false to stop enumeration, true to continue.
         /// </param>
-        public static void SafeEnumerateFiles(string path, string searchPattern, bool recurse, Func<string, bool> processFile)
+        public static void SafeEnumerateFiles(string path, string searchPattern, bool recurse,
+            Func<string, bool> processFile)
         {
             var options = recurse ? SafeSearchOptions : SafeSearchOptions_NoRecurse;
             foreach (var file in Directory.EnumerateFiles(path, searchPattern, options))
             {
                 try
                 {
-                    if (!processFile(file))
-                        return;
+                    if (!processFile(file)) return;
                 }
                 catch (Exception ex)
                 {
@@ -163,15 +163,15 @@ namespace YARG.Helpers
         /// The action used to process the enumerated directories.
         /// Return false to stop enumeration, true to continue.
         /// </param>
-        public static void SafeEnumerateDirectories(string path, string searchPattern, bool recurse, Func<string, bool> processDirectory)
+        public static void SafeEnumerateDirectories(string path, string searchPattern, bool recurse,
+            Func<string, bool> processDirectory)
         {
             var options = recurse ? SafeSearchOptions : SafeSearchOptions_NoRecurse;
             foreach (var directory in Directory.EnumerateDirectories(path, searchPattern, options))
             {
                 try
                 {
-                    if (!processDirectory(directory))
-                        return;
+                    if (!processDirectory(directory)) return;
                 }
                 catch (Exception ex)
                 {
@@ -181,7 +181,7 @@ namespace YARG.Helpers
             }
         }
 
-        private static string SanitizePath(string path)
+        private static string SanitizePath(string path, bool useDev = false)
         {
             // this is to handle a strange edge case in path naming in windows.
             // modern windows can handle / or \ in path names with seemingly one exception,
@@ -190,7 +190,14 @@ namespace YARG.Helpers
             // c:/users/joe blow\appdata <- okay!
             // c:/users/joe blow/appdata <- "Please choose an app to open joe"
             // so let's just set them all to \ on windows to be sure.
-            return path.Replace("/", Path.DirectorySeparatorChar.ToString());
+            path = path.Replace("/", Path.DirectorySeparatorChar.ToString());
+#if UNITY_EDITOR || YARG_TEST_BUILD
+            if (useDev)
+            {
+                path = Path.Combine(path, "dev");
+            }
+#endif
+            return path;
         }
 
         /// <summary>
