@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -252,66 +253,64 @@ namespace YARG.Menu.MusicLibrary
             }
 
             var songEntry = songViewType.SongEntry;
-
-            if (songEntry is IniSongEntry)
-            {
-                string[] possiblePaths =
-                {
-                    "album.png", "album.jpg", "album.jpeg",
-                };
-
-                // Load album art from one of the paths
-                foreach (string path in possiblePaths)
-                {
-                    string fullPath = Path.Combine(songEntry.Location, path);
-                    if (File.Exists(fullPath))
-                    {
-                        await LoadSongIniCover(fullPath);
-                        break;
-                    }
-                }
-            }
+            if (songEntry.IniData != null)
+                await LoadSongIniCover(songEntry.Directory);
             else
             {
-                await LoadRbConCover(songEntry as ExtractedConSongEntry);
+                var file = songEntry.RBData.LoadImgFile();
+                if (file != null)
+                    await LoadRbConCover(file);
             }
         }
 
-        private async UniTask LoadSongIniCover(string filePath)
+        private async UniTask LoadSongIniCover(string directory)
         {
-            var texture = await TextureLoader.Load(filePath, _cancellationToken.Token);
-
-            if (texture != null)
+            string[] possiblePaths =
             {
-                // Set album cover
-                _albumCover.texture = texture;
-                _albumCover.color = Color.white;
-                _albumCover.uvRect = new Rect(0f, 0f, 1f, 1f);
+                "album.png", "album.jpg", "album.jpeg",
+            };
+
+            // Load album art from one of the paths
+            foreach (string path in possiblePaths)
+            {
+                string fullPath = Path.Combine(directory, path);
+                if (File.Exists(fullPath))
+                {
+                    var texture = await TextureLoader.Load(fullPath, _cancellationToken.Token);
+                    if (texture != null)
+                    {
+                        // Set album cover
+                        _albumCover.texture = texture;
+                        _albumCover.color = Color.white;
+                        _albumCover.uvRect = new Rect(0f, 0f, 1f, 1f);
+                    }
+                    break;
+                }
             }
         }
 
-        private async UniTask LoadRbConCover(ExtractedConSongEntry conSongEntry)
+        private async UniTask LoadRbConCover(byte[] file)
         {
-            Texture2D texture = null;
-            try
+            XboxImageSettings? settings = null;
+            await Task.Run(() => settings = XboxImageTextureGenerator.GetTexture(file, _cancellationToken.Token));
+            if (settings != null)
             {
-                byte[] bytes = conSongEntry.LoadImgFile();
-                if (bytes.Length == 0) return;
-
-                texture = await XboxImageTextureGenerator.GetTexture(bytes, _cancellationToken.Token);
-
+                bool isDXT1 = ((settings.bitsPerPixel == 0x04) && (settings.format == 0x08));
+                var texture = new Texture2D(settings.width,
+                                            settings.height,
+                                            isDXT1 ? UnityEngine.Experimental.Rendering.GraphicsFormat.RGBA_DXT1_SRGB : UnityEngine.Experimental.Rendering.GraphicsFormat.RGBA_DXT5_SRGB,
+                                            UnityEngine.Experimental.Rendering.TextureCreationFlags.None);
+                unsafe
+                {
+                    fixed (byte* data = file)
+                    {
+                        texture.LoadRawTextureData((IntPtr) (data + 32), file.Length - 32);
+                    }
+                }
+                texture.Apply();
                 _albumCover.texture = texture;
                 _albumCover.color = Color.white;
                 _albumCover.uvRect = new Rect(0f, 0f, 1f, -1f);
-            }
-            catch (OperationCanceledException)
-            {
-                // Dispose of the texture (prevent memory leaks)
-                if (texture != null)
-                {
-                    // This might seem weird, but we are destroying the *texture*, not the UI image.
-                    Destroy(texture);
-                }
             }
         }
 
