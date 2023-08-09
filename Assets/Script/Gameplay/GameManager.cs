@@ -160,6 +160,8 @@ namespace YARG.Gameplay
             IsPractice = GlobalVariables.Instance.IsPractice;
             SelectedSongSpeed = GlobalVariables.Instance.SongSpeed;
 
+            Navigator.Instance.PopAllSchemes();
+
             if (Song is null)
             {
                 Debug.Assert(false, "Null song set when loading gameplay!");
