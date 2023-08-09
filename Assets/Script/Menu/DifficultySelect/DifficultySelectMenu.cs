@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -8,6 +8,7 @@ using UnityEngine.AddressableAssets;
 using YARG.Core;
 using YARG.Core.Input;
 using YARG.Data;
+using YARG.Gameplay;
 using YARG.Menu.Navigation;
 using YARG.Player;
 using YARG.PlayMode;
@@ -182,22 +183,12 @@ namespace YARG.Menu.DifficultySelect
             _header.text = headerText;
 
             // Get allowed instruments
-            var allInstruments = (Instrument[]) Enum.GetValues(typeof(Instrument));
-
-            // Get available instruments
-            var availableInstruments = allInstruments
-                .Where(instrument => GlobalVariables.Instance.CurrentSong.HasInstrument(instrument)).ToList();
+            var availableInstruments = GlobalVariables.Instance.CurrentSong.Parts.GetInstruments();
 
             // Force add pro drums and five lane
             if (availableInstruments.Contains(Instrument.FourLaneDrums))
             {
                 availableInstruments.Add(Instrument.FiveLaneDrums);
-
-                // Add real drums if not present
-                if (!availableInstruments.Contains(Instrument.ProDrums))
-                {
-                    availableInstruments.Add(Instrument.ProDrums);
-                }
             }
             else if (availableInstruments.Contains(Instrument.FiveLaneDrums))
             {
@@ -222,20 +213,21 @@ namespace YARG.Menu.DifficultySelect
             // Set text and sprites
             for (int i = 0; i < _options.Length; i++)
             {
-                _options[i].SetText("");
                 _options[i].SetSelected(false);
 
                 if (i < ops.Length)
                 {
                     _options[i].SetText(ops[i]);
-                }
 
-                if (i < _instruments.Length)
-                {
-                    var sprite = Addressables.LoadAssetAsync<Sprite>($"FontSprites[{_instruments[i].ToResourceName()}]")
-                        .WaitForCompletion();
-                    _options[i].SetImage(sprite);
+                    if (i < _instruments.Length)
+                    {
+                        var sprite = Addressables.LoadAssetAsync<Sprite>($"FontSprites[{_instruments[i].ToResourceName()}]")
+                            .WaitForCompletion();
+                        _options[i].SetImage(sprite);
+                    }
                 }
+                else
+                    _options[i].SetText("");
             }
 
             // Select
@@ -257,7 +249,7 @@ namespace YARG.Menu.DifficultySelect
             var availableDifficulties = new List<Difficulty>();
             for (int i = 0; i < (int) Difficulty.ExpertPlus; i++)
             {
-                if (!GlobalVariables.Instance.CurrentSong.HasPart(instrument, (Difficulty) i))
+                if (!GlobalVariables.Instance.CurrentSong.Parts.HasPart(instrument, i))
                 {
                     continue;
                 }
