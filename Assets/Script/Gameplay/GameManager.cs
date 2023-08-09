@@ -32,7 +32,7 @@ namespace YARG.Gameplay
         private TrackViewManager _trackViewManager;
 
         [SerializeField]
-        private GameObject _pauseMenu;
+        private PauseMenuManager _pauseMenu;
 
         [SerializeField]
         private TextMeshProUGUI _debugText;
@@ -539,11 +539,22 @@ namespace YARG.Gameplay
 
         public void Pause(bool showMenu = true)
         {
-            if (Paused)
-                return;
+            if (Paused) return;
 
             Paused = true;
-            _pauseMenu.SetActive(showMenu);
+
+            if (showMenu)
+            {
+                if (GlobalVariables.Instance.IsPractice)
+                {
+                    _pauseMenu.PushMenu(PauseMenuManager.Menu.PracticePause);
+                }
+                else
+                {
+                    _pauseMenu.PushMenu(PauseMenuManager.Menu.QuickPlayPause);
+                }
+            }
+
 #if UNITY_EDITOR
             _debugText.gameObject.SetActive(false);
 #endif
@@ -554,11 +565,11 @@ namespace YARG.Gameplay
 
         public void Resume(bool inputCompensation = true)
         {
-            if (!Paused)
-                return;
+            if (!Paused) return;
 
             Paused = false;
-            _pauseMenu.SetActive(false);
+            _pauseMenu.gameObject.SetActive(false);
+
 #if UNITY_EDITOR
             _debugText.gameObject.SetActive(true);
 #endif
