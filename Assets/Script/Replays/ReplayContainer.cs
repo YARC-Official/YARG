@@ -7,6 +7,7 @@ using YARG.Core;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Replays;
 using YARG.Core.Replays.IO;
+using YARG.Core.Song;
 using YARG.Gameplay.Player;
 using YARG.Helpers;
 using YARG.Song;
@@ -73,7 +74,7 @@ namespace YARG.Replays
             return ReplayIO.ReadReplay(Path.Combine(ReplayDirectory, entry.ReplayFile), out replay);
         }
 
-        public static Replay CreateNewReplay(SongEntry song, IList<BasePlayer> players)
+        public static Replay CreateNewReplay(SongMetadata song, IList<BasePlayer> players)
         {
             var replay = new Replay
             {
@@ -84,7 +85,7 @@ namespace YARG.Replays
                 SongName = song.Name,
                 ArtistName = song.Artist,
                 CharterName = song.Charter,
-                SongChecksum = song.Checksum,
+                SongChecksum = song.Hash,
                 Date = DateTime.Now,
                 PlayerCount = players.Count,
                 PlayerNames = new string[players.Count],
@@ -131,7 +132,7 @@ namespace YARG.Replays
                     CharterName = reader.ReadString(),
                     BandScore = reader.ReadInt32(),
                     Date = DateTime.FromBinary(reader.ReadInt64()),
-                    SongChecksum = reader.ReadString(),
+                    SongChecksum = new(reader),
                     PlayerCount = reader.ReadInt32()
                 };
 
@@ -155,7 +156,7 @@ namespace YARG.Replays
         public static void WriteReplayCache()
         {
             using var stream = File.Open(_replayCacheFile, FileMode.Create);
-            using var writer = new NullStringBinaryWriter(stream);
+            using var writer = new BinaryWriter(stream);
 
             writer.Write(CACHE_VERSION);
             foreach (var entry in _replays)
@@ -165,7 +166,7 @@ namespace YARG.Replays
                 writer.Write(entry.CharterName);
                 writer.Write(entry.BandScore);
                 writer.Write(entry.Date.ToBinary());
-                writer.Write(entry.SongChecksum);
+                entry.SongChecksum.Serialize(writer);
                 writer.Write(entry.PlayerCount);
                 for (int i = 0; i < entry.PlayerCount; i++)
                 {

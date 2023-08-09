@@ -1,9 +1,10 @@
-using System.IO;
+﻿using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Helpers;
 using YARG.Settings;
 using YARG.Song;
+using YARG.Core.Song;
 
 namespace YARG.Venue
 {
@@ -38,7 +39,7 @@ namespace YARG.Venue
             }
         }
 
-        public static TypePathPair? GetVenuePath(SongEntry song)
+        public static TypePathPair? GetVenuePath(SongMetadata song)
         {
             // If local backgrounds are disabled, skip right to global
             if (SettingsManager.Settings.DisablePerSongBackgrounds.Data)
@@ -48,7 +49,8 @@ namespace YARG.Venue
 
             // Try a local yarground first
 
-            string backgroundPath = Path.Combine(song.Location, "bg.yarground");
+            string directory = song.Directory;
+            string backgroundPath = Path.Combine(directory, "bg.yarground");
             if (File.Exists(backgroundPath))
             {
                 return new(VenueType.Yarground, backgroundPath);
@@ -68,10 +70,10 @@ namespace YARG.Venue
 
             foreach (var name in fileNames)
             {
+                var file_base = Path.Combine(directory, name);
                 foreach (var ext in videoExtensions)
                 {
-                    var path = Path.Combine(song.Location, name + ext);
-
+                    var path = file_base + ext;
                     if (File.Exists(path))
                     {
                         return new(VenueType.Video, path);
@@ -86,9 +88,10 @@ namespace YARG.Venue
 
             foreach (var name in fileNames)
             {
+                var file_base = Path.Combine(directory, name);
                 foreach (var ext in imageExtensions)
                 {
-                    var path = Path.Combine(song.Location, name + ext);
+                    var path = file_base + ext;
 
                     if (File.Exists(path))
                     {
