@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -268,7 +268,7 @@ namespace YARG.Menu.Settings
                 {
                     LoadingManager.Instance.QueueSongRefresh(false);
                     await LoadingManager.Instance.StartLoad();
-                }, "RefreshAllCaches");
+                }, "RefreshCache");
             }
 
             // Spawn header
