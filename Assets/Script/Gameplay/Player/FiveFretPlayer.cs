@@ -1,17 +1,17 @@
 ﻿using UnityEngine;
 using YARG.Audio;
 using YARG.Core.Chart;
-using YARG.Core.Engine;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Guitar.Engines;
 using YARG.Core.Input;
 using YARG.Gameplay.Visuals;
+using YARG.Settings;
 
 namespace YARG.Gameplay.Player
 {
     public sealed class FiveFretPlayer : BasePlayer<GuitarEngine, GuitarNote>
     {
-        private readonly GuitarEngineParameters _engineParams = new(0.16, 1, 0.08, 0.07, 0.035, false, true);
+        private GuitarEngineParameters _engineParams;
 
         [Header("Five Fret Specific")]
         [SerializeField]
@@ -32,6 +32,8 @@ namespace YARG.Gameplay.Player
 
         protected override GuitarEngine CreateEngine()
         {
+            _engineParams = new GuitarEngineParameters(0.16, 1, 0.08, 0.07, 0.035,
+                SettingsManager.Settings.InfiniteFrontEnd.Data, SettingsManager.Settings.AntiGhosting.Data);
             var engine = new YargFiveFretEngine(NoteTrack, SyncTrack, _engineParams);
 
             Debug.Log("Note count: " + NoteTrack.Notes.Count);
@@ -47,7 +49,7 @@ namespace YARG.Gameplay.Player
             {
                 foreach (var note in parent.ChordEnumerator())
                 {
-                    if(parent.IsDisjoint && parent != note)
+                    if (parent.IsDisjoint && parent != note)
                     {
                         continue;
                     }
@@ -63,7 +65,9 @@ namespace YARG.Gameplay.Player
 
             engine.OnStarPowerStatus += (status) =>
             {
-                GlobalVariables.AudioManager.PlaySoundEffect(status ? SfxSample.StarPowerDeploy : SfxSample.StarPowerRelease);
+                GlobalVariables.AudioManager.PlaySoundEffect(status
+                    ? SfxSample.StarPowerDeploy
+                    : SfxSample.StarPowerRelease);
             };
 
             return engine;
@@ -151,8 +155,7 @@ namespace YARG.Gameplay.Player
         protected override bool InterceptInput(ref GameInput input)
         {
             // Ignore SP in practice mode
-            if (input.GetAction<GuitarAction>() == GuitarAction.StarPower && GameManager.IsPractice)
-                return true;
+            if (input.GetAction<GuitarAction>() == GuitarAction.StarPower && GameManager.IsPractice) return true;
 
             return false;
         }
