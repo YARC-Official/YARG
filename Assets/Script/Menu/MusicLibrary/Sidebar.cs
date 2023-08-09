@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -7,6 +7,8 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
+using YARG.Core.Chart;
+using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Menu.Persistent;
 using YARG.Serialization;
@@ -132,22 +134,23 @@ namespace YARG.Menu.MusicLibrary
                 RichTextUtils.StripRichTextTagsExclude(songEntry.LoadingPhrase, RichTextUtils.GOOD_TAGS));
 
             // Format and show length
-            if (songEntry.SongLengthTimeSpan.Hours > 0)
+            var time = TimeSpan.FromMilliseconds(songEntry.SongLength);
+            if (time.Hours > 0)
             {
-                _length.text = songEntry.SongLengthTimeSpan.ToString(@"h\:mm\:ss");
+                _length.text = time.ToString(@"h\:mm\:ss");
             }
             else
             {
-                _length.text = songEntry.SongLengthTimeSpan.ToString(@"m\:ss");
+                _length.text = time.ToString(@"m\:ss");
             }
 
-            UpdateDifficulties(songEntry);
+            UpdateDifficulties(songEntry.Parts);
 
             // Finally, update album cover
             await LoadAlbumCover();
         }
 
-        private void UpdateDifficulties(SongEntry songEntry)
+        private void UpdateDifficulties(AvailableParts parts)
         {
             // Show all difficulty rings
             foreach (var difficultyRing in _difficultyRings)
@@ -162,74 +165,69 @@ namespace YARG.Menu.MusicLibrary
 
             */
 
-            _difficultyRings[0].SetInfo(songEntry, Instrument.FiveFretGuitar);
-            _difficultyRings[1].SetInfo(songEntry, Instrument.FiveFretBass);
+
+            _difficultyRings[0].SetInfo("guitar", "FiveFretGuitar", parts.GetValues(Instrument.FiveFretGuitar));
+            _difficultyRings[1].SetInfo("bass", "FiveFretBass", parts.GetValues(Instrument.FiveFretBass));
 
             // 5-lane or 4-lane
-            if (songEntry.DrumType == DrumType.FiveLane)
+            if (parts.GetDrumType() == DrumsType.FiveLane)
             {
-                _difficultyRings[2].SetInfo(songEntry, Instrument.FiveLaneDrums);
+                _difficultyRings[2].SetInfo("ghDrums", "FiveLaneDrums", parts.GetValues(Instrument.FiveLaneDrums));
             }
             else
             {
-                _difficultyRings[2].SetInfo(songEntry, Instrument.FourLaneDrums);
+                _difficultyRings[2].SetInfo("drums", "FourLaneDrums", parts.GetValues(Instrument.FourLaneDrums));
             }
 
-            _difficultyRings[3].SetInfo(songEntry, Instrument.Keys);
+            _difficultyRings[3].SetInfo("keys", "Keys", parts.GetValues(Instrument.Keys));
 
-            // Mic (with mic count)
-            if (songEntry.VocalParts == 0)
-            {
-                _difficultyRings[4].SetInfo(false, "vocals", -1);
-            }
-            else
+            if (parts.HasInstrument(Instrument.Harmony))
             {
                 _difficultyRings[4].SetInfo(
-                    true,
-                    songEntry.VocalParts switch
+                    parts.VocalsCount switch
                     {
-                        2    => "twoVocals",
+                        2 => "twoVocals",
                         >= 3 => "harmVocals",
-                        _    => "vocals"
+                        _ => "vocals"
                     },
-                    songEntry.PartDifficulties.GetValueOrDefault(Instrument.Vocals, -1)
+                    "Harmony",
+                    parts.GetValues(Instrument.Harmony)
                 );
+            }
+            else
+            {
+                _difficultyRings[4].SetInfo("vocals", "Vocals", parts.GetValues(Instrument.Vocals));
             }
 
             // Protar or Co-op
-            int realGuitarDiff = songEntry.PartDifficulties.GetValueOrDefault(Instrument.ProGuitar_17Fret, -1);
-            if (songEntry.DrumType == DrumType.FourLane && realGuitarDiff == -1)
+            if (parts.HasInstrument(Instrument.ProGuitar_17Fret) || parts.HasInstrument(Instrument.ProGuitar_22Fret))
             {
-                _difficultyRings[5].SetInfo(songEntry, Instrument.FiveFretCoopGuitar);
+                var values = parts.GetValues(Instrument.ProGuitar_17Fret);
+                if (values.intensity == -1)
+                    values = parts.GetValues(Instrument.ProGuitar_22Fret);
+                _difficultyRings[5].SetInfo("realGuitar", "ProGuitar", values);
             }
             else
             {
-                _difficultyRings[5].SetInfo(songEntry, Instrument.ProGuitar_17Fret);
+                _difficultyRings[5].SetInfo("guitarCoop", "FiveFretCoopGuitar", parts.GetValues(Instrument.FiveFretCoopGuitar));
             }
 
-            // Pro bass or Rhythm
-            int realBassDiff = songEntry.PartDifficulties.GetValueOrDefault(Instrument.ProBass_17Fret, -1);
-            if (songEntry.DrumType == DrumType.FiveLane && realBassDiff == -1)
+            // ProBass or Rhythm
+            if (parts.HasInstrument(Instrument.ProBass_17Fret) || parts.HasInstrument(Instrument.ProBass_22Fret))
             {
-                _difficultyRings[6].SetInfo(songEntry, Instrument.FiveFretRhythm);
+                var values = parts.GetValues(Instrument.ProBass_17Fret);
+                if (values.intensity == -1)
+                    values = parts.GetValues(Instrument.ProBass_22Fret);
+                _difficultyRings[6].SetInfo("realBass", "ProBass", values);
             }
             else
             {
-                _difficultyRings[6].SetInfo(songEntry, Instrument.ProBass_17Fret);
+                _difficultyRings[6].SetInfo("rhythm", "FiveFretRhythm", parts.GetValues(Instrument.FiveFretRhythm));
             }
 
-            _difficultyRings[7].SetInfo(false, "trueDrums", -1);
-            _difficultyRings[8].SetInfo(songEntry, Instrument.ProKeys);
-
-            // Band difficulty
-            if (songEntry.BandDifficulty == -1)
-            {
-                _difficultyRings[9].SetInfo(false, "band", -1);
-            }
-            else
-            {
-                _difficultyRings[9].SetInfo(true, "band", songEntry.BandDifficulty);
-            }
+            _difficultyRings[7].SetInfo("trueDrums", "TrueDrums", new PartValues(-1));
+            _difficultyRings[8].SetInfo("realKeys", "ProKeys", parts.GetValues(Instrument.ProKeys));
+            _difficultyRings[9].SetInfo("band", "Band", new PartValues(parts.BandDifficulty));
         }
 
         public async UniTask LoadAlbumCover()
