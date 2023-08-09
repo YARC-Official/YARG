@@ -1,16 +1,19 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using Cysharp.Threading.Tasks;
+using Melanchall.DryWetMidi.Core;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Replays;
 using YARG.Core.Replays.IO;
+using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
 using YARG.Input;
@@ -87,7 +90,7 @@ namespace YARG.Gameplay
 
         public PracticeManager PracticeManager { get; private set; }
 
-        public SongEntry Song { get; private set; }
+        public SongMetadata Song { get; private set; }
 
         private float _syncSpeedAdjustment = 0f;
         private int _syncSpeedMultiplier = 0;
@@ -350,7 +353,6 @@ namespace YARG.Gameplay
 
         private async UniTask LoadReplay()
         {
-            string checksum = GlobalVariables.Instance.CurrentReplay.SongChecksum;
             Replay replay = null;
             ReplayReadResult result;
             try
@@ -399,11 +401,13 @@ namespace YARG.Gameplay
             await UniTask.RunOnThreadPool(() =>
             {
                 // Load chart
-                string notesFile = Path.Combine(Song.Location, Song.NotesFile);
-                Debug.Log($"Loading chart file {notesFile}");
+                
                 try
                 {
-                    _chart = SongChart.FromFile(ParseSettings.Default, notesFile);
+                    if (Song.IniData != null)
+                        _chart = SongChart.FromFile(ParseSettings.Default, Song.IniData.chartFile.FullName);
+                    else
+                        LoadCONChart();
                 }
                 catch (Exception ex)
                 {
@@ -434,13 +438,53 @@ namespace YARG.Gameplay
             _chartLoaded?.Invoke(_chart);
         }
 
+        private void LoadIniChart()
+        {
+            string notesFile = Song.IniData.chartFile.FullName;
+            Debug.Log($"Loading chart file {notesFile}");
+            _chart = SongChart.FromFile(ParseSettings.Default, notesFile);
+        }
+
+        private void LoadCONChart()
+        {
+            Debug.Log($"Loading CON chart file");
+            var rbData = Song.RBData;
+            byte[]? chartFile = rbData.LoadMidiFile();
+            if (chartFile == null)
+                throw new Exception("Base midi file not present");
+
+            using MemoryStream chartStream = new(chartFile);
+            _chart = SongChart.FromMidi(ParseSettings.Default, MidiFile.Read(chartStream));
+
+            var shared = rbData.SharedMetadata;
+            if (shared.UpdateMidi != null)
+            {
+                chartFile = shared.LoadMidiUpdateFile();
+                if (chartFile == null)
+                    throw new Exception("Scanned update midi file not present");
+
+                using MemoryStream updateStream = new(chartFile);
+                _chart.Append(SongChart.FromMidi(ParseSettings.Default, MidiFile.Read(updateStream)));
+            }
+
+            if (shared.Upgrade != null)
+            {
+                chartFile = shared.Upgrade.LoadUpgradeMidi();
+                if (chartFile == null)
+                    throw new Exception("Scanned upgrade midi file not present");
+
+                using MemoryStream upgradeStream = new(chartFile);
+                _chart.Append(SongChart.FromMidi(ParseSettings.Default, MidiFile.Read(upgradeStream)));
+            }
+        }
+
         private async UniTask LoadAudio()
         {
             await UniTask.RunOnThreadPool(() =>
             {
                 try
                 {
-                    Song.LoadAudio(GlobalVariables.AudioManager, SelectedSongSpeed);
+                    IAudioManager.LoadAudio(GlobalVariables.AudioManager, Song, SelectedSongSpeed);
                     SongLength = GlobalVariables.AudioManager.AudioLengthD;
                     GlobalVariables.AudioManager.SongEnd += OnAudioEnd;
                 }
