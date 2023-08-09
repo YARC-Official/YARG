@@ -51,7 +51,18 @@ namespace YARG.Gameplay.Player
 
         public YargPlayer Player { get; private set; }
 
-        public float NoteSpeed => Player.Profile.NoteSpeed / GameManager.SelectedSongSpeed;
+        public float NoteSpeed
+        {
+            get
+            {
+                if (GameManager.IsPractice && GameManager.SelectedSongSpeed < 1)
+                {
+                    return Player.Profile.NoteSpeed;
+                }
+
+                return Player.Profile.NoteSpeed / GameManager.SelectedSongSpeed;
+            }
+        }
 
         public abstract float[] StarMultiplierThresholds { get; }
 

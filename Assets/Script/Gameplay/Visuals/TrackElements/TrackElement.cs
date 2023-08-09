@@ -80,6 +80,7 @@ namespace YARG.Gameplay.Visuals
             if (!Initialized) return;
 
             // TODO: Take calibration into consideration
+
             float z =
                 BasePlayer.STRIKE_LINE_POS                     // Shift origin to the strike line
                 + (float) (ElementTime - GameManager.SongTime) // Get time of note relative to now
