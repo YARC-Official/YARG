@@ -15,6 +15,9 @@ namespace YARG.Menu.Navigation
         [SerializeField]
         private bool _addAllChildrenOnAwake;
 
+        [SerializeField]
+        private bool _selectFirst;
+
         private void Awake()
         {
             if (_addAllChildrenOnAwake)
@@ -25,12 +28,19 @@ namespace YARG.Menu.Navigation
                     _navigatables.Add(navigatable);
                 }
             }
+
+            if (_selectFirst)
+            {
+                SelectFirst();
+            }
         }
 
         private void OnEnable()
         {
             if (_defaultGroup)
+            {
                 CurrentNavigationGroup = this;
+            }
         }
 
         public void AddNavigatable(NavigatableBehaviour n)

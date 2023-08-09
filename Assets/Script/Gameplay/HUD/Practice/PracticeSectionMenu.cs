@@ -14,6 +14,7 @@ namespace YARG.Gameplay.HUD
         private const float SCROLL_TIME = 1f / 60f;
 
         private GameManager _gameManager;
+        private PauseMenuManager _pauseMenuManager;
 
         private bool _navigationPushed = false;
 
@@ -67,13 +68,14 @@ namespace YARG.Gameplay.HUD
         private void Awake()
         {
             _gameManager = FindObjectOfType<GameManager>();
+            _pauseMenuManager = FindObjectOfType<PauseMenuManager>();
+
             if (!_gameManager.IsPractice)
             {
                 Destroy(gameObject);
                 return;
             }
 
-            enabled = false;
             _gameManager.ChartLoaded += OnChartLoaded;
 
             // Create all of the section views
@@ -91,8 +93,7 @@ namespace YARG.Gameplay.HUD
         private void OnEnable()
         {
             // Wait until the chart has been loaded
-            if (_sections is null)
-                return;
+            if (_sections is null) return;
 
             Initialize();
         }
@@ -109,13 +110,12 @@ namespace YARG.Gameplay.HUD
         private void OnChartLoaded(SongChart chart)
         {
             _gameManager.ChartLoaded -= OnChartLoaded;
-            enabled = true;
 
             _sections = chart.Sections;
             _finalTick = chart.GetLastTick();
             _finalChartTime = chart.SyncTrack.TickToTime(_finalTick);
 
-            Initialize();
+            _pauseMenuManager.PushMenu(PauseMenuManager.Menu.SelectSections);
         }
 
         private void Initialize()
@@ -145,6 +145,8 @@ namespace YARG.Gameplay.HUD
                 new NavigationScheme.Entry(MenuAction.Up, "Up", Up),
                 new NavigationScheme.Entry(MenuAction.Down, "Down", Down)
             }, false));
+
+
             _navigationPushed = true;
         }
 
@@ -164,7 +166,7 @@ namespace YARG.Gameplay.HUD
                 _gameManager.PracticeManager.SetPracticeSection(_sections[first], _sections[last]);
 
                 // Hide menu
-                gameObject.SetActive(false);
+                _pauseMenuManager.PopMenu();
             }
         }
 

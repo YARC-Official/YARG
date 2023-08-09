@@ -81,6 +81,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _defaultGroup: 1
   _addAllChildrenOnAwake: 1
+  _selectFirst: 1
 --- !u!1 &8918172421923777625
 GameObject:
   m_ObjectHideFlags: 0
