@@ -13,13 +13,11 @@ namespace YARG.Gameplay
 
         [Header("References")]
         [SerializeField]
-        private PracticeSectionMenu practiceSectionMenu;
-
+        private PauseMenuManager _pauseMenu;
         [SerializeField]
-        private PracticeHud practiceHud;
-
+        private PracticeHud _practiceHud;
         [SerializeField]
-        private GameObject scoreDisplayObject;
+        private GameObject _scoreDisplayObject;
 
         private GameManager _gameManager;
 
@@ -46,8 +44,8 @@ namespace YARG.Gameplay
         {
             if (_gameManager.IsPractice)
             {
-                practiceHud.gameObject.SetActive(true);
-                scoreDisplayObject.SetActive(false);
+                _practiceHud.gameObject.SetActive(true);
+                _scoreDisplayObject.SetActive(false);
             }
             else
             {
@@ -102,7 +100,7 @@ namespace YARG.Gameplay
         public void DisplayPracticeMenu()
         {
             _gameManager.Pause(showMenu: false);
-            practiceSectionMenu.gameObject.SetActive(true);
+            _pauseMenu.PushMenu(PauseMenuManager.Menu.SelectSections);
         }
 
         public void SetPracticeSection(Section start, Section end)
@@ -125,7 +123,7 @@ namespace YARG.Gameplay
             _gameManager.SetSongTime(timeStart);
             _gameManager.Resume(inputCompensation: false);
 
-            practiceHud.SetSections(GetSectionsInPractice(tickStart, tickEnd));
+            _practiceHud.SetSections(GetSectionsInPractice(tickStart, tickEnd));
         }
 
         public void ResetPractice()
@@ -137,7 +135,7 @@ namespace YARG.Gameplay
 
             _gameManager.SetSongTime(_timeStart);
 
-            practiceHud.ResetPractice();
+            _practiceHud.ResetPractice();
         }
 
         private Section[] GetSectionsInPractice(uint start, uint end)

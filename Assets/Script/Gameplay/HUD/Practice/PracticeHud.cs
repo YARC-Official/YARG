@@ -8,7 +8,6 @@ namespace YARG.Gameplay.HUD
 {
     public class PracticeHud : MonoBehaviour
     {
-
         [Header("References")]
         [SerializeField]
         private TextMeshProUGUI speedPercentText;
