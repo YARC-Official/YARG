@@ -36,7 +36,7 @@ namespace YARG.Song
             var songs = new List<SongData>();
 
             // Convert SongInfo to SongData
-            foreach (var song in SongContainer.Songs)
+            foreach (var song in GlobalVariables.Instance.Container.Songs)
             {
                 songs.Add(new SongData
                 {

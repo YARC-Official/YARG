@@ -139,7 +139,7 @@ namespace YARG
                 .OrderByDescending(i => i.Value.lastPlayed)
                 .Select(i =>
                 {
-                    if (SongContainer.SongsByHash.TryGetValue(i.Key, out var song))
+                    if (GlobalVariables.Instance.Container.SongsByHash.TryGetValue(i.Key, out var song))
                     {
                         return song;
                     }

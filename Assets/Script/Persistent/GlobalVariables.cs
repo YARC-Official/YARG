@@ -1,9 +1,11 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using YARG.Audio;
 using YARG.Audio.BASS;
 using YARG.Core;
+using YARG.Core.Song;
+using YARG.Core.Song.Cache;
 using YARG.Helpers;
 using YARG.Input;
 using YARG.Menu.Settings;
@@ -38,7 +40,10 @@ namespace YARG
 
         public SceneIndex CurrentScene { get; private set; } = SceneIndex.Persistent;
 
-        public SongEntry   CurrentSong;
+        public SongContainer Container { get; private set; }
+        public SongSorting SortedSongs { get; private set; }
+
+        public SongMetadata CurrentSong;
         public ReplayEntry CurrentReplay;
 
         [Space]
@@ -108,6 +113,12 @@ namespace YARG
             {
                 LoadSceneAdditive(scene);
             }
+        }
+
+        public void SetSongList(SongCache cache)
+        {
+            Container = new(cache);
+            SortedSongs = new(Container);
         }
     }
 }
