@@ -2,6 +2,7 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using YARG.Core.Song;
 using YARG.Settings;
 using YARG.Song;
 
@@ -48,7 +49,7 @@ namespace YARG.Audio
             }
         }
 
-        public async UniTask PlayPreview(SongEntry song, float volume, CancellationToken cancelToken)
+        public async UniTask PlayPreview(SongMetadata song, float volume, CancellationToken cancelToken)
         {
             // Skip if preview shouldn't be played
             if (song == null || Mathf.Approximately(volume, 0f))
@@ -77,7 +78,7 @@ namespace YARG.Audio
                 }
 
                 // Load the song
-                await UniTask.RunOnThreadPool(() => song.LoadAudio(_manager, 1f, SongStem.Crowd));
+                bool usesPreviewFile = await IAudioManager.LoadPreviewAudio(_manager, song, 1f);
 
                 // Check if cancelled
                 if (cancelToken.IsCancellationRequested)
@@ -86,17 +87,31 @@ namespace YARG.Audio
                     return;
                 }
 
-                // Set preview start and end times
-                PreviewStartTime = song.PreviewStartTimeSpan.TotalSeconds;
-                if (PreviewStartTime <= 0.0)
+                double audioLength = _manager.AudioLengthD;
+                if (!usesPreviewFile)
                 {
-                    PreviewStartTime = 10.0;
-                }
+                    // Set preview start and end times
+                    PreviewStartTime = TimeSpan.FromMilliseconds(song.PreviewStart).TotalSeconds;
+                    if (PreviewStartTime <= 0.0 || PreviewStartTime >= audioLength)
+                    {
+                        if (20 <= audioLength)
+                            PreviewStartTime = 10;
+                        else
+                            PreviewStartTime = audioLength / 2;
+                    }
 
-                PreviewEndTime = song.PreviewEndTimeSpan.TotalSeconds;
-                if (PreviewEndTime <= 0.0)
+                    PreviewEndTime = TimeSpan.FromMilliseconds(song.PreviewEnd).TotalSeconds;
+                    if (PreviewEndTime <= 0.0 || PreviewEndTime + 1 >= audioLength)
+                    {
+                        PreviewEndTime = PreviewStartTime + DEFAULT_PREVIEW_DURATION;
+                        if (PreviewEndTime + 1 > audioLength)
+                            PreviewEndTime = audioLength - 1;
+                    }
+                }
+                else
                 {
-                    PreviewEndTime = PreviewStartTime + DEFAULT_PREVIEW_DURATION;
+                    PreviewStartTime = 0;
+                    PreviewEndTime = audioLength - 1;
                 }
 
                 // Play the audio
