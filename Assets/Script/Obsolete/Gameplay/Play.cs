@@ -19,6 +19,7 @@ using YARG.Settings;
 using YARG.Song;
 using YARG.Menu;
 using YARG.Venue;
+using YARG.Core.Song;
 
 namespace YARG.PlayMode
 {
@@ -37,7 +38,7 @@ namespace YARG.PlayMode
 
         public static event BeatAction BeatEvent;
 
-        public delegate void SongStateChangeAction(SongEntry songInfo);
+        public delegate void SongStateChangeAction(SongMetadata songInfo);
 
         private static event SongStateChangeAction _onSongStart;
         public static event SongStateChangeAction OnSongStart
@@ -145,7 +146,7 @@ namespace YARG.PlayMode
             }
         }
 
-        public SongEntry Song => GlobalVariables.Instance.CurrentSong;
+        public SongMetadata Song => GlobalVariables.Instance.CurrentSong;
 
         public IEnumerator EndSong(bool showResultScreen)
         {

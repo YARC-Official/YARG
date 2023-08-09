@@ -1,5 +1,6 @@
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using UnityEngine;
+using YARG.Core.Song;
 using YARG.Data;
 using YARG.Menu.Navigation;
 using YARG.Player;
@@ -31,9 +32,9 @@ namespace YARG.Menu.MusicLibrary
             // }
             string.Empty;
 
-        public SongEntry SongEntry { get; private set; }
+        public SongMetadata SongEntry { get; private set; }
 
-        public SongViewType(SongEntry songEntry)
+        public SongViewType(SongMetadata songEntry)
         {
             SongEntry = songEntry;
         }

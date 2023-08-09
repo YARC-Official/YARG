@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text.RegularExpressions;
+using YARG.Core.Song;
 
 namespace YARG.Replays
 {
@@ -13,7 +14,7 @@ namespace YARG.Replays
         public string   CharterName;
         public int      BandScore;
         public DateTime Date;
-        public string   SongChecksum;
+        public HashWrapper   SongChecksum;
         public int      PlayerCount;
         public string[] PlayerNames;
 

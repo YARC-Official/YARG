@@ -1,6 +1,7 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using YARG.Core.Song;
 using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
@@ -9,9 +10,9 @@ namespace YARG.Menu.MusicLibrary
     {
         private const int TRIES = 10;
 
-        private static readonly List<SongEntry> _recommendedSongs = new();
+        private static readonly List<SongMetadata> _recommendedSongs = new();
 
-        public static List<SongEntry> GetRecommendedSongs()
+        public static List<SongMetadata> GetRecommendedSongs()
         {
             _recommendedSongs.Clear();
 
@@ -28,8 +29,8 @@ namespace YARG.Menu.MusicLibrary
             _recommendedSongs.Sort((x, y) =>
             {
                 // This is technically YARG songs last because of the reverse below
-                if (x.Source.ToLowerInvariant() == "yarg") return -1;
-                if (y.Source.ToLowerInvariant() == "yarg") return 1;
+                if (x.Source.SortStr == "yarg") return -1;
+                if (y.Source.SortStr == "yarg") return 1;
                 return 0;
             });
 
@@ -54,7 +55,7 @@ namespace YARG.Menu.MusicLibrary
             AddSongsFromTopPlayedArtists(mostPlayed);
         }
 
-        private static void AddMostPlayedSongs(List<SongEntry> mostPlayed)
+        private static void AddMostPlayedSongs(List<SongMetadata> mostPlayed)
         {
             // Add two random top ten most played songs (ten tries each)
             for (int i = 0; i < 2; i++)
@@ -74,7 +75,7 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
-        private static void AddSongsFromTopPlayedArtists(List<SongEntry> mostPlayed)
+        private static void AddSongsFromTopPlayedArtists(List<SongMetadata> mostPlayed)
         {
             // Pick 1 or 2...
             int choices = 2;
@@ -119,7 +120,7 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
-        private static List<SongEntry> GetAllSongsFromArtist(string artist)
+        private static List<SongMetadata> GetAllSongsFromArtist(string artist)
         {
             return GlobalVariables.Instance.Container.Songs
                 .Where(i => RemoveDiacriticsAndArticle(i.Artist) == RemoveDiacriticsAndArticle(artist))
