@@ -366,7 +366,7 @@ namespace YARG.Gameplay
                 return;
             }
 
-            Song = SongContainer.SongsByHash[checksum];
+            Song = GlobalVariables.Instance.Container.SongsByHash[GlobalVariables.Instance.CurrentReplay.SongChecksum][0];
             if (Song is null || result != ReplayReadResult.Valid)
             {
                 _loadFailure = true;

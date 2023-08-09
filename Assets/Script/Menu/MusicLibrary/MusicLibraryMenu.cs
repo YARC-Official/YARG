@@ -436,7 +436,7 @@ namespace YARG.Menu.MusicLibrary
 
             _recommendedSongs = new();
 
-            if (SongContainer.Songs.Count > 0)
+            if (GlobalVariables.Instance.Container.Songs.Count > 0)
             {
                 FillRecommendedSongs();
             }
@@ -449,7 +449,7 @@ namespace YARG.Menu.MusicLibrary
             _viewList.Insert(0, new CategoryViewType(
                 "ALL SONGS",
                 $"<#00B6F5><b>{count}</b> <#006488>{(count == 1 ? "SONG" : "SONGS")}",
-                SongContainer.Songs
+                GlobalVariables.Instance.Container.Songs
             ));
         }
 
@@ -558,7 +558,7 @@ namespace YARG.Menu.MusicLibrary
             int skip = GetSkip();
 
             // Select random between all of the songs
-            SelectedIndex = Random.Range(skip, SongContainer.Songs.Count);
+            SelectedIndex = Random.Range(skip, GlobalVariables.Instance.Container.Songs.Count);
         }
 
         public void SelectPreviousSection()
@@ -586,12 +586,12 @@ namespace YARG.Menu.MusicLibrary
         private int GetSkip()
         {
             // Get how many non-song things there are
-            return Mathf.Max(1, _viewList.Count - SongContainer.Songs.Count);
         }
 
         private string GetNextSortCriteriaButtonName()
         {
             return SongSorting.GetNextSortButtonName(_sort);
+            return Mathf.Max(1, _viewList.Count - GlobalVariables.Instance.Container.Songs.Count);
         }
     }
 }

@@ -1,110 +1,66 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Cysharp.Threading.Tasks;
-using UnityEngine;
-using YARG.Helpers;
-using YARG.Settings;
+﻿using System.Collections.Generic;
+using YARG.Core.Song.Cache;
+using YARG.Core.Song;
 
 namespace YARG.Song
 {
-    public static class SongContainer
+    public class SongContainer
     {
-        private static readonly List<SongEntry> _songs;
-        private static readonly Dictionary<string, SongEntry> _songsByHash;
+        private Dictionary<HashWrapper, List<SongMetadata>> _entries;
+        private List<SongMetadata> _songs;
 
-        public static IReadOnlyList<SongEntry> Songs => _songs;
-        public static IReadOnlyDictionary<string, SongEntry> SongsByHash => _songsByHash;
+        public SortedDictionary<string, List<SongMetadata>> Titles { get; private set; }
+        public SortedDictionary<string, List<SongMetadata>> Years { get; private set; }
+        public SortedDictionary<string, List<SongMetadata>> ArtistAlbums { get; private set; }
+        public SortedDictionary<string, List<SongMetadata>> SongLengths { get; private set; }
+        public SortedDictionary<SortString, List<SongMetadata>> Instruments { get; private set; }
+        public SortedDictionary<SortString, List<SongMetadata>> Artists { get; private set; }
+        public SortedDictionary<SortString, List<SongMetadata>> Albums { get; private set; }
+        public SortedDictionary<SortString, List<SongMetadata>> Genres { get; private set; }
+        public SortedDictionary<SortString, List<SongMetadata>> Charters { get; private set; }
+        public SortedDictionary<SortString, List<SongMetadata>> Playlists { get; private set; }
+        public SortedDictionary<SortString, List<SongMetadata>> Sources { get; private set; }
 
-        static SongContainer()
+        public int Count => _songs.Count;
+        public IReadOnlyDictionary<HashWrapper, List<SongMetadata>> SongsByHash => _entries;
+        public IReadOnlyList<SongMetadata> Songs => _songs;
+
+        public SongContainer()
         {
-            _songs = new List<SongEntry>();
-            _songsByHash = new Dictionary<string, SongEntry>();
+            _entries = new();
+            _songs = new();
+            Titles = new();
+            Years = new();
+            ArtistAlbums = new();
+            SongLengths = new();
+            Instruments = new();
+            Artists = new();
+            Albums = new();
+            Genres = new();
+            Charters = new();
+            Playlists = new();
+            Sources = new();
         }
 
-        public static void AddSongs(ICollection<SongEntry> songs)
+        public SongContainer(SongCache cache)
         {
-            _songs.AddRange(songs);
+            _entries = cache.entries;
+            _songs = new();
+            foreach (var node in _entries)
+                _songs.AddRange(node.Value);
+            _songs.TrimExcess();
 
-            foreach (var songEntry in songs)
-            {
-                if (_songsByHash.ContainsKey(songEntry.Checksum)) continue;
-
-                _songsByHash.Add(songEntry.Checksum, songEntry);
-            }
-
-            TrySelectedSongReset();
-        }
-
-        public static async UniTask<List<CacheFolder>> ScanAllFolders(bool fast, Action<SongScanner> updateUi = null)
-        {
-            _songs.Clear();
-            _songsByHash.Clear();
-
-            // Add setlists as portable folder if installed
-            IEnumerable<string> portableFolders = null;
-            if (!string.IsNullOrEmpty(PathHelper.SetlistPath))
-            {
-                portableFolders = new[]
-                {
-                    PathHelper.SetlistPath
-                };
-            }
-
-            var scanner = new SongScanner(SettingsManager.Settings.SongFolders, portableFolders);
-            var output = await scanner.StartScan(fast, updateUi);
-
-            AddSongs(output.SongEntries);
-            return output.ErroredCaches;
-        }
-
-        public static async UniTask ScanFolders(ICollection<CacheFolder> folders, bool fast,
-            Action<SongScanner> updateUi = null)
-        {
-            var songsToRemove = _songs.Where(song => folders.Any(i => i.Folder == song.CacheRoot)).ToList();
-
-            _songs.RemoveAll(x => songsToRemove.Contains(x));
-            foreach (var song in songsToRemove)
-            {
-                _songsByHash.Remove(song.Checksum);
-            }
-
-            var scanner = new SongScanner(folders);
-            var songs = await scanner.StartScan(fast, updateUi);
-
-            AddSongs(songs.SongEntries);
-        }
-
-        public static async UniTask ScanSingleFolder(string path, bool fast, Action<SongScanner> updateUi = null)
-        {
-            var songsToRemove = _songs.Where(song => song.CacheRoot == path).ToList();
-
-            _songs.RemoveAll(x => songsToRemove.Contains(x));
-            foreach (var song in songsToRemove)
-            {
-                _songsByHash.Remove(song.Checksum);
-            }
-
-            var scanner = new SongScanner(new[]
-            {
-                path
-            });
-            var songs = await scanner.StartScan(fast, updateUi);
-
-            AddSongs(songs.SongEntries);
-        }
-
-        private static void TrySelectedSongReset()
-        {
-            if (GlobalVariables.Instance.CurrentSong == null)
-            {
-                return;
-            }
-
-            if (!_songsByHash.ContainsKey(GlobalVariables.Instance.CurrentSong.Checksum))
-            {
-                GlobalVariables.Instance.CurrentSong = null;
-            }
+            Titles = cache.titles.Elements;
+            Years = cache.years.Elements;
+            ArtistAlbums = cache.artistAlbums.Elements;
+            SongLengths = cache.songLengths.Elements;
+            Instruments = cache.instruments.Elements;
+            Artists = cache.artists.Elements;
+            Albums = cache.albums.Elements;
+            Genres = cache.genres.Elements;
+            Charters = cache.charters.Elements;
+            Playlists = cache.playlists.Elements;
+            Sources = cache.sources.Elements;
         }
     }
 }
