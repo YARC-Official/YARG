@@ -56,6 +56,7 @@ namespace YARG.Settings
             public ToggleSetting NoKicks { get; } = new(false);
             public ToggleSetting KickBounce { get; } = new(true);
             public ToggleSetting AntiGhosting { get; } = new(true);
+            public ToggleSetting InfiniteFrontEnd {get;} = new(false);
 
             public VolumeSetting MasterMusicVolume { get; } = new(0.75f, v => VolumeCallback(SongStem.Master, v));
             public VolumeSetting GuitarVolume { get; } = new(1f, v => VolumeCallback(SongStem.Guitar, v));

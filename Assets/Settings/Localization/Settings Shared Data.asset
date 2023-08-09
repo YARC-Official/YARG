@@ -335,6 +335,10 @@ MonoBehaviour:
     m_Key: WhammyPitchShiftAmount
     m_Metadata:
       m_Items: []
+  - m_Id: 49647502809153536
+    m_Key: InfiniteFrontEnd
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

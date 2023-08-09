@@ -227,7 +227,8 @@ namespace YARG.Settings
             new(name: "Engine", icon: "Gameplay")
             {
                 "NoKicks",
-                "AntiGhosting"
+                "AntiGhosting",
+                "InfiniteFrontEnd"
             },
         };
 
