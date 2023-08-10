@@ -59,7 +59,7 @@ namespace YARG.Gameplay.HUD
             return newMenu;
         }
 
-        public void PopMenu()
+        public void PopMenu(bool resume = true)
         {
             // Close the currently open one
             if (_openMenus.TryPeek(out var currentMenuEnum) &&
@@ -82,10 +82,16 @@ namespace YARG.Gameplay.HUD
             }
 
             // Resume if nothing left
-            if (_openMenus.Count <= 0)
+            if (_openMenus.Count <= 0 && resume)
             {
                 _gameManager.Resume();
             }
+        }
+
+        public void OpenMenu(Menu menu)
+        {
+            PopMenu(false);
+            PushMenu(menu);
         }
 
         public void Quit()

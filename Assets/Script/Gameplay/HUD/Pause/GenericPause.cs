@@ -39,8 +39,7 @@ namespace YARG.Gameplay.HUD
 
         public void SelectSections()
         {
-            _pauseMenuManager.PopMenu();
-            _pauseMenuManager.PushMenu(PauseMenuManager.Menu.SelectSections);
+            _pauseMenuManager.OpenMenu(PauseMenuManager.Menu.SelectSections);
         }
 
         public void BackToLibrary()
