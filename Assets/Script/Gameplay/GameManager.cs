@@ -150,6 +150,8 @@ namespace YARG.Gameplay
 
         public IReadOnlyList<BasePlayer> Players => _players;
 
+        private bool _isShowDebugText;
+
         private void Awake()
         {
             PracticeManager = GetComponent<PracticeManager>();
@@ -216,9 +218,11 @@ namespace YARG.Gameplay
             else
             {
 #if UNITY_EDITOR
-                // Show debug info
-                _debugText.gameObject.SetActive(true);
+                _isShowDebugText = true;
 #endif
+                // Show debug info
+                _debugText.gameObject.SetActive(_isShowDebugText);
+
                 Destroy(PracticeManager);
             }
         }
@@ -258,14 +262,22 @@ namespace YARG.Gameplay
             // Update input time
             InputTime = GetRelativeInputTime(InputManager.CurrentUpdateTime);
 
-#if UNITY_EDITOR
-            byte buttonMask = ((FiveFretPlayer) _players[0]).Engine.State.ButtonMask;
-            int noteIndex = ((FiveFretPlayer) _players[0]).Engine.State.NoteIndex;
-            _debugText.text = $"Note index: {noteIndex}\nButtons: {buttonMask}\n"
-                + $"Input time: {InputTime:0.000000}\nSong time: {SongTime:0.000000}\nTime difference: {InputTime - SongTime:0.000000}\n"
-                + $"Speed adjustment: {_syncSpeedAdjustment:0.00}\nSpeed multiplier: {_syncSpeedMultiplier}\n"
-                + $"Sync start delta: {_syncStartDelta:0.000000}";
-#endif
+            if (Keyboard.current.ctrlKey.isPressed && Keyboard.current.tabKey.wasPressedThisFrame)
+            {
+                _isShowDebugText = !_isShowDebugText;
+
+                _debugText.gameObject.SetActive(_isShowDebugText);
+            }
+
+            if (_isShowDebugText)
+            {
+                byte buttonMask = ((FiveFretPlayer) _players[0]).Engine.State.ButtonMask;
+                int noteIndex = ((FiveFretPlayer) _players[0]).Engine.State.NoteIndex;
+                _debugText.text = $"Note index: {noteIndex}\nButtons: {buttonMask}\n"
+                    + $"Input time: {InputTime:0.000000}\nSong time: {SongTime:0.000000}\nTime difference: {InputTime - SongTime:0.000000}\n"
+                    + $"Speed adjustment: {_syncSpeedAdjustment:0.00}\nSpeed multiplier: {_syncSpeedMultiplier}\n"
+                    + $"Sync start delta: {_syncStartDelta:0.000000}";
+            }
 
             int totalScore = 0;
             int totalCombo = 0;
@@ -560,9 +572,7 @@ namespace YARG.Gameplay
                 }
             }
 
-#if UNITY_EDITOR
             _debugText.gameObject.SetActive(false);
-#endif
 
             _pauseStartTime = InputTime;
             GlobalVariables.AudioManager.Pause();
@@ -575,9 +585,7 @@ namespace YARG.Gameplay
             Paused = false;
             _pauseMenu.gameObject.SetActive(false);
 
-#if UNITY_EDITOR
-            _debugText.gameObject.SetActive(true);
-#endif
+            _debugText.gameObject.SetActive(_isShowDebugText);
 
             if (inputCompensation)
                 SetInputBase(_pauseStartTime);
