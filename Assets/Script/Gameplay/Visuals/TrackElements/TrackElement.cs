@@ -83,7 +83,7 @@ namespace YARG.Gameplay.Visuals
 
             float z =
                 BasePlayer.STRIKE_LINE_POS                     // Shift origin to the strike line
-                + (float) (ElementTime - GameManager.SongTime) // Get time of note relative to now
+                + (float) (ElementTime - GameManager.InputTime) // Get time of note relative to now
                 * Player.NoteSpeed;                            // Adjust speed (units/s)
 
             var cacheTransform = transform;

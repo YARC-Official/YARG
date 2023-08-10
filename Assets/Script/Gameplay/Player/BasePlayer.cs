@@ -119,9 +119,9 @@ namespace YARG.Gameplay.Player
             }
 
             UpdateInputs(inputTime);
-            UpdateVisuals(songTime);
-            UpdateNotes(songTime);
-            UpdateBeatlines(songTime);
+            UpdateVisuals(inputTime);
+            UpdateNotes(inputTime);
+            UpdateBeatlines(inputTime);
         }
 
         public abstract void SetPracticeSection(uint start, uint end);
