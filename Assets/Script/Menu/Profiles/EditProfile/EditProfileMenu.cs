@@ -1,4 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Game;
@@ -112,13 +112,41 @@ namespace YARG.Menu.Profiles
                 _bindsNavGroup.AddNavigatable(header);
 
                 // Create the actual bindings
-                foreach (var control in binding.Controls)
+                // wish this could be de-duplicated a bit but that just puts us into a mess of generics lol
+                switch (binding)
                 {
-                    // Create bind view
-                    var bindView = Instantiate(_bindViewPrefab, _bindsList);
-                    bindView.GetComponent<BindView>().Init(this, binding, control.InputControl);
+                    case ButtonBinding button:
+                        foreach (var control in button.Bindings)
+                        {
+                            // Create bind view
+                            var bindView = Instantiate(_bindViewPrefab, _bindsList);
+                            bindView.GetComponent<BindView>().Init(this, binding, control.Control);
 
-                    _bindsNavGroup.AddNavigatable(bindView);
+                            _bindsNavGroup.AddNavigatable(bindView);
+                        }
+                        break;
+
+                    case AxisBinding axis:
+                        foreach (var control in axis.Bindings)
+                        {
+                            // Create bind view
+                            var bindView = Instantiate(_bindViewPrefab, _bindsList);
+                            bindView.GetComponent<BindView>().Init(this, binding, control.Control);
+
+                            _bindsNavGroup.AddNavigatable(bindView);
+                        }
+                        break;
+
+                    case IntegerBinding integer:
+                        foreach (var control in integer.Bindings)
+                        {
+                            // Create bind view
+                            var bindView = Instantiate(_bindViewPrefab, _bindsList);
+                            bindView.GetComponent<BindView>().Init(this, binding, control.Control);
+
+                            _bindsNavGroup.AddNavigatable(bindView);
+                        }
+                        break;
                 }
             }
         }

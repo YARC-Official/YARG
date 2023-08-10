@@ -32,7 +32,7 @@ namespace YARG.Input
         public override void ProcessInputEvent(InputEventPtr eventPtr)
         {
             float max = 0f;
-            foreach (var binding in Bindings)
+            foreach (var binding in _bindings)
             {
                 var value = binding.UpdateState(eventPtr);
                 if (value > max)

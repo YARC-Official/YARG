@@ -12,11 +12,6 @@ namespace YARG.Input
 {
     public delegate void GameInputProcessed(ref GameInput input);
 
-    public interface ISingleBinding
-    {
-        public InputControl InputControl { get; }
-    }
-
     public class ActuationSettings
     {
         public float ButtonPressThreshold = 0.5f;
@@ -38,16 +33,6 @@ namespace YARG.Input
         /// Fired when an input event has been processed by this binding.
         /// </summary>
         public event GameInputProcessed InputProcessed;
-
-        /// <summary>
-        /// The controls bound to this binding.
-        /// </summary>
-        public abstract IEnumerable<ISingleBinding> Controls { get; }
-
-        /// <summary>
-        /// The type used for this binding.
-        /// </summary>
-        public abstract Type ControlType { get; }
 
         /// <summary>
         /// The name for this binding.
@@ -149,10 +134,10 @@ namespace YARG.Input
         where TState : struct
         where TParams : new()
     {
-        protected class SingleBinding : ISingleBinding
+        public class SingleBinding
         {
-            public InputControl<TState> Control;
-            public TState State;
+            public InputControl<TState> Control { get; }
+            public TState State { get; private set; }
             public TParams Parameters = new();
 
             public InputControl InputControl => Control;
@@ -175,10 +160,8 @@ namespace YARG.Input
 
         private List<SerializedInputControl> _unresolvedBindings = new();
 
-        protected List<SingleBinding> Bindings = new();
-        public override IEnumerable<ISingleBinding> Controls => Bindings;
-
-        public override Type ControlType => typeof(TState);
+        protected List<SingleBinding> _bindings = new();
+        public IReadOnlyList<SingleBinding> Bindings => _bindings;
 
         public ControlBinding(string name, int action) : base(name, action)
         {
@@ -186,7 +169,7 @@ namespace YARG.Input
 
         public override List<SerializedInputControl> Serialize()
         {
-            return new(Bindings.Select((binding) => SerializeControl(binding))
+            return new(_bindings.Select((binding) => SerializeControl(binding))
                 .Concat(_unresolvedBindings));
         }
 
@@ -260,17 +243,17 @@ namespace YARG.Input
                 return false;
 
             var binding = new SingleBinding(control);
-            Bindings.Add(binding);
+            _bindings.Add(binding);
             OnControlAdded(settings, binding);
             return true;
         }
 
         public bool RemoveControl(InputControl<TState> control)
         {
-            if (!TryFindBinding(control, out var binding))
+            if (!TryGetBinding(control, out var binding))
                 return false;
 
-            bool removed = Bindings.Remove(binding);
+            bool removed = _bindings.Remove(binding);
             if (removed)
                 OnControlRemoved(binding);
 
@@ -279,12 +262,36 @@ namespace YARG.Input
 
         public bool ContainsControl(InputControl<TState> control)
         {
-            return TryFindBinding(control, out _);
+            return TryGetBinding(control, out _);
         }
 
-        private bool TryFindBinding(InputControl<TState> control, out SingleBinding foundBinding)
+        public bool AddBinding(ActuationSettings settings, SingleBinding binding)
         {
-            foreach (var binding in Bindings)
+            if (ContainsBinding(binding))
+                return false;
+
+            _bindings.Add(binding);
+            OnControlAdded(settings, binding);
+            return true;
+        }
+
+        public bool RemoveBinding(SingleBinding binding)
+        {
+            bool removed = _bindings.Remove(binding);
+            if (removed)
+                OnControlRemoved(binding);
+
+            return removed;
+        }
+
+        public bool ContainsBinding(SingleBinding binding)
+        {
+            return _bindings.Contains(binding);
+        }
+
+        public bool TryGetBinding(InputControl<TState> control, out SingleBinding foundBinding)
+        {
+            foreach (var binding in _bindings)
             {
                 if (binding.Control == control)
                 {
@@ -313,7 +320,7 @@ namespace YARG.Input
 
                 _unresolvedBindings.RemoveAt(i);
                 i--;
-                Bindings.Add(deserialized);
+                _bindings.Add(deserialized);
                 controlsModified = true;
             }
 
@@ -325,9 +332,9 @@ namespace YARG.Input
         {
             // Search by index, can't modify a collection while enumerating it
             bool controlsModified = false;
-            for (int i = 0; i < Bindings.Count; i++)
+            for (int i = 0; i < _bindings.Count; i++)
             {
-                var binding = Bindings[i];
+                var binding = _bindings[i];
                 if (binding.InputControl.device != device)
                     continue;
 
@@ -335,7 +342,7 @@ namespace YARG.Input
                 if (serialized is null)
                     continue;
 
-                Bindings.RemoveAt(i);
+                _bindings.RemoveAt(i);
                 i--;
                 _unresolvedBindings.Add(serialized);
                 controlsModified = true;
