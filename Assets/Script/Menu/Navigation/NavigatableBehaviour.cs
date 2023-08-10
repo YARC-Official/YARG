@@ -17,7 +17,7 @@ namespace YARG.Menu.Navigation
 
         public NavigationGroup NavigationGroup { get; set; }
 
-        private bool _selected;
+        private bool _selected = false;
         public bool Selected
         {
             get => _selected;
@@ -41,7 +41,9 @@ namespace YARG.Menu.Navigation
 
         protected virtual void Awake()
         {
-            _selectedVisual.SetActive(false);
+            // We use _selected here to avoid the selected visual not showing up when the navigation group has
+            // initialized, enabled, and set this as selected before this has awoken
+            _selectedVisual.SetActive(_selected);
         }
 
         protected virtual void OnSelectionChanged(bool selected)

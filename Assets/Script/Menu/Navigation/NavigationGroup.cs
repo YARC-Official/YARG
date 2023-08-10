@@ -44,11 +44,6 @@ namespace YARG.Menu.Navigation
                     _navigatables.Add(navigatable);
                 }
             }
-
-            if (_selectFirst)
-            {
-                SelectFirst();
-            }
         }
 
         private void OnEnable()
@@ -56,6 +51,11 @@ namespace YARG.Menu.Navigation
             if (_defaultGroup)
             {
                 CurrentNavigationGroup = this;
+            }
+
+            if (_selectFirst && SelectedIndex < 0)
+            {
+                SelectFirst();
             }
         }
 
@@ -98,7 +98,7 @@ namespace YARG.Menu.Navigation
         public void SelectNext(NavigationContext context)
         {
             int selected = SelectedIndex;
-            if (selected == -1) return;
+            if (selected < 0) return;
 
             selected++;
             if (selected >= _navigatables.Count)
@@ -116,7 +116,7 @@ namespace YARG.Menu.Navigation
         public void SelectPrevious(NavigationContext context)
         {
             int selected = SelectedIndex;
-            if (selected == -1) return;
+            if (selected < 0) return;
 
             selected--;
             if (selected < 0)
