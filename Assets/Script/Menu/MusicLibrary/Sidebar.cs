@@ -52,6 +52,7 @@ namespace YARG.Menu.MusicLibrary
 
         private readonly List<DifficultyRing> _difficultyRings = new();
         private CancellationTokenSource _cancellationToken;
+        private ViewType _currentView;
 
         public void Init()
         {
@@ -75,6 +76,17 @@ namespace YARG.Menu.MusicLibrary
 
         public async UniTask UpdateSidebar()
         {
+            if (MusicLibraryMenu.Instance.ViewList.Count <= 0)
+            {
+                return;
+            }
+
+            var viewType = MusicLibraryMenu.Instance.CurrentSelection;
+            if (_currentView != null && _currentView == viewType)
+                return;
+
+            _currentView = viewType;
+
             // Cancel album art
             if (_cancellationToken != null)
             {
@@ -82,13 +94,6 @@ namespace YARG.Menu.MusicLibrary
                 _cancellationToken.Dispose();
                 _cancellationToken = null;
             }
-
-            if (MusicLibraryMenu.Instance.ViewList.Count <= 0)
-            {
-                return;
-            }
-
-            var viewType = MusicLibraryMenu.Instance.ViewList[MusicLibraryMenu.Instance.SelectedIndex];
 
             if (viewType is CategoryViewType categoryViewType)
             {
@@ -234,15 +239,7 @@ namespace YARG.Menu.MusicLibrary
         public async UniTask LoadAlbumCover()
         {
             // Dispose of the old texture (prevent memory leaks)
-            if (_albumCover.texture != null)
-            {
-                // This might seem weird, but we are destroying the *texture*, not the UI image.
-                Destroy(_albumCover.texture);
-            }
-
-            // Hide album art until loaded
-            _albumCover.texture = null;
-            _albumCover.color = Color.clear;
+            
 
             _cancellationToken = new();
 
@@ -270,22 +267,38 @@ namespace YARG.Menu.MusicLibrary
                 "album.png", "album.jpg", "album.jpeg",
             };
 
+            Texture2D texture = null;
             // Load album art from one of the paths
             foreach (string path in possiblePaths)
             {
                 string fullPath = Path.Combine(directory, path);
                 if (File.Exists(fullPath))
                 {
-                    var texture = await TextureLoader.Load(fullPath, _cancellationToken.Token);
-                    if (texture != null)
-                    {
-                        // Set album cover
-                        _albumCover.texture = texture;
-                        _albumCover.color = Color.white;
-                        _albumCover.uvRect = new Rect(0f, 0f, 1f, 1f);
-                    }
+                    texture = await TextureLoader.Load(fullPath, _cancellationToken.Token);
                     break;
                 }
+            }
+
+            if (_albumCover.texture != null)
+            {
+                // This might seem weird, but we are destroying the *texture*, not the UI image.
+                Destroy(_albumCover.texture);
+            }
+
+            // Hide album art until loaded
+            
+
+            if (texture != null)
+            {
+                // Set album cover
+                _albumCover.texture = texture;
+                _albumCover.color = Color.white;
+                _albumCover.uvRect = new Rect(0f, 0f, 1f, 1f);
+            }
+            else
+            {
+                _albumCover.texture = null;
+                _albumCover.color = Color.clear;
             }
         }
 
@@ -293,25 +306,25 @@ namespace YARG.Menu.MusicLibrary
         {
             XboxImageSettings settings = null;
             await Task.Run(() => settings = XboxImageTextureGenerator.GetTexture(file, _cancellationToken.Token));
-            if (settings != null)
+            if (settings == null)
+                return;
+
+            bool isDXT1 = ((settings.bitsPerPixel == 0x04) && (settings.format == 0x08));
+            var texture = new Texture2D(settings.width,
+                                        settings.height,
+                                        isDXT1 ? UnityEngine.Experimental.Rendering.GraphicsFormat.RGBA_DXT1_SRGB : UnityEngine.Experimental.Rendering.GraphicsFormat.RGBA_DXT5_SRGB,
+                                        UnityEngine.Experimental.Rendering.TextureCreationFlags.None);
+            unsafe
             {
-                bool isDXT1 = ((settings.bitsPerPixel == 0x04) && (settings.format == 0x08));
-                var texture = new Texture2D(settings.width,
-                                            settings.height,
-                                            isDXT1 ? UnityEngine.Experimental.Rendering.GraphicsFormat.RGBA_DXT1_SRGB : UnityEngine.Experimental.Rendering.GraphicsFormat.RGBA_DXT5_SRGB,
-                                            UnityEngine.Experimental.Rendering.TextureCreationFlags.None);
-                unsafe
+                fixed (byte* data = file)
                 {
-                    fixed (byte* data = file)
-                    {
-                        texture.LoadRawTextureData((IntPtr) (data + 32), file.Length - 32);
-                    }
+                    texture.LoadRawTextureData((IntPtr) (data + 32), file.Length - 32);
                 }
-                texture.Apply();
-                _albumCover.texture = texture;
-                _albumCover.color = Color.white;
-                _albumCover.uvRect = new Rect(0f, 0f, 1f, -1f);
             }
+            texture.Apply();
+            _albumCover.texture = texture;
+            _albumCover.color = Color.white;
+            _albumCover.uvRect = new Rect(0f, 0f, 1f, -1f);
         }
 
         public void PrimaryButtonClick()
