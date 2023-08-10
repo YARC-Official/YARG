@@ -121,6 +121,10 @@ namespace YARG.Gameplay.Player
                 {
                     _fretArray.PlayHitAnimation(note.Fret - 1);
                 }
+                else
+                {
+                    _fretArray.PlayOpenHitAnimation();
+                }
             }
         }
 
