@@ -129,7 +129,7 @@ namespace YARG.Gameplay
         /// The current input update time, accounting for song speed, <b>and for</b> calibration.
         /// </summary>
         // Remember that calibration is already accounted for by the input offset time
-        public double InputTime => GetRelativeInputTime(InputManager.CurrentUpdateTime);
+        public double InputTime { get; private set; }
 
         /// <summary>
         /// The current input update time, accounting for song speed, but <b>not</b> for calibration.
@@ -254,6 +254,9 @@ namespace YARG.Gameplay
                 // Sync if needed
                 SyncAudio();
             }
+
+            // Update input time
+            InputTime = GetRelativeInputTime(InputManager.CurrentUpdateTime);
 
 #if UNITY_EDITOR
             byte buttonMask = ((FiveFretPlayer) _players[0]).Engine.State.ButtonMask;
