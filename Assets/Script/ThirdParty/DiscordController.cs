@@ -239,7 +239,7 @@ namespace YARG.ThirdParty
         {
             var sourceIconName = SongSources.GetSource(Play.Instance.Song.Source);
 
-            _currentSmallImage = sourceIconName.GetIconURL();
+            _currentSmallImage = sourceIconName.IconURL;
             _currentSmallText = sourceIconName.GetDisplayName();
         }
 
