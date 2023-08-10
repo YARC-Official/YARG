@@ -82,10 +82,14 @@ namespace YARG
 
         private async UniTask ScanSongFolders(bool fast)
         {
+            var directories = SettingsManager.Settings.SongFolders;
+            if (!string.IsNullOrEmpty(PathHelper.SetlistPath))
+                directories.Add(PathHelper.SetlistPath);
+
 #if UNITY_EDITOR
-            CacheHandler handler = new(PathHelper.PersistentDataPath, PathHelper.PersistentDataPath, true, SettingsManager.Settings.SongFolders.ToArray());
+            CacheHandler handler = new(PathHelper.PersistentDataPath, PathHelper.PersistentDataPath, true, directories.ToArray());
 #else
-            CacheHandler handler = new(PathHelper.PersistentDataPath, PathHelper.ExecutablePath, true, SettingsManager.Settings.SongFolders.ToArray());
+            CacheHandler handler = new(PathHelper.PersistentDataPath, PathHelper.ExecutablePath, true, directories.ToArray());
 #endif
             SongCache cache = null;
             var task = Task.Run(() => cache = handler.RunScan(fast));
