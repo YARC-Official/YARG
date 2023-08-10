@@ -10,6 +10,7 @@ using UnityEngine.UI;
 using YARG.Audio;
 using YARG.Core.Input;
 using YARG.Core.Song;
+using YARG.Gameplay;
 using YARG.Menu.Navigation;
 using YARG.Player;
 using YARG.Settings;
@@ -66,7 +67,7 @@ namespace YARG.Menu.MusicLibrary
         private CancellationTokenSource _previewCanceller = new();
 
         public IReadOnlyList<ViewType> ViewList => _viewList;
-        public ViewType CurrentSelection => _selectedIndex < _viewList?.Count ? _viewList[_selectedIndex] : null;
+        public ViewType CurrentSelection => 0 <= _selectedIndex && _selectedIndex < _viewList?.Count ? _viewList[_selectedIndex] : null;
 
         private SongMetadata _currentSong;
 
@@ -361,8 +362,6 @@ namespace YARG.Menu.MusicLibrary
 
             if (!string.IsNullOrEmpty(_searchField.text))
             {
-                _currentSong = null;
-
                 // Create the category
                 int count = 0;
                 foreach (var section in _sortedSongs)
@@ -384,15 +383,20 @@ namespace YARG.Menu.MusicLibrary
                     _viewList.Insert(0, categoryView);
                 }
             }
-            else
+            else if (GlobalVariables.Instance.Container.Count > 0)
             {
                 AddSongsCount();
                 AddAllRecommendedSongs();
                 AddRecommendSongsHeader();
                 AddRandomSongHeader();
+                ClearIfNoSongs();
             }
-
-            ClearIfNoSongs();
+            else
+            {
+                _viewList.Clear();
+                UpdateSongViews();
+                return;
+            }
 
             SetSelectedIndex();
             // These are both called by the above:
@@ -485,10 +489,14 @@ namespace YARG.Menu.MusicLibrary
         {
             if (_currentSong != null)
             {
-                int index = _viewList.FindIndex((song) => song is SongViewType songView &&
-                    songView.SongEntry == _currentSong);
-                SelectedIndex = Math.Max(1, index);
-                return;
+                int index = GetIndexOfSelectedSong();
+                if (index >= 0)
+                {
+                    SelectedIndex = Mathf.Max(1, index);
+                    return;
+                }
+                else
+                    _currentSong = null;
             }
 
             if (!string.IsNullOrEmpty(_searchField.text))
@@ -498,6 +506,21 @@ namespace YARG.Menu.MusicLibrary
             }
 
             SelectedIndex = 2;
+        }
+
+        private int GetIndexOfSelectedSong()
+        {
+            var selectedSong = _currentSong;
+
+            // Get the first index after the recommended songs
+            int startOfSongs = _viewList.FindIndex(i => i is SortHeaderViewType || i is CategoryViewType);
+            if (startOfSongs < 0)
+                return -1;
+
+            int songIndex = _viewList.FindIndex(startOfSongs,
+                song => song is SongViewType songType && songType.SongEntry == selectedSong);
+
+            return songIndex;
         }
 
         private void FillRecommendedSongs()
