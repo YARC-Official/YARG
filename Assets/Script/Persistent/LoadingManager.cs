@@ -92,13 +92,16 @@ namespace YARG
             CacheHandler handler = new(PathHelper.PersistentDataPath, PathHelper.ExecutablePath, true, directories.ToArray());
 #endif
             SongCache cache = null;
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             var task = Task.Run(() => cache = handler.RunScan(fast));
             while (!task.IsCompleted)
             {
                 UpdateSongUi(handler);
                 await UniTask.NextFrame();
             }
+            stopwatch.Stop();
 
+            Debug.Log($"Scan time: {stopwatch.Elapsed.TotalSeconds}s");
             foreach (var err in handler.errorList)
                 Debug.LogError(err);
 
