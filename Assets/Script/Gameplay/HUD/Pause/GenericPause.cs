@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using YARG.Core.Input;
 using YARG.Menu.Navigation;
 
 namespace YARG.Gameplay.HUD
@@ -17,6 +18,7 @@ namespace YARG.Gameplay.HUD
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 NavigationScheme.Entry.NavigateSelect,
+                new NavigationScheme.Entry(MenuAction.Red, "Back", Resume),
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown,
             }, false));

@@ -101,7 +101,8 @@ namespace YARG.Gameplay.HUD
 
         public void Restart()
         {
-            // TODO
+            GlobalVariables.AudioManager.UnloadSong();
+            GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
         }
     }
 }
