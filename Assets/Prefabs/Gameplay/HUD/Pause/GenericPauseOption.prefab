@@ -222,7 +222,6 @@ GameObject:
   m_Component:
   - component: {fileID: 6846856529861592900}
   - component: {fileID: 5535251001142144674}
-  - component: {fileID: 3827459620065406563}
   m_Layer: 5
   m_Name: GenericPauseOption
   m_TagString: Untagged
@@ -264,20 +263,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 415519b8353a4d0589628d2259ed63a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _selectOnHover: 1
+  _selectedVisual: {fileID: 1060606578262376693}
   _onClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &3827459620065406563
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6846856529861592903}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f5028cf3ef3a42b2ba95c87cda9b514c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _selectionVisuals:
-  - {fileID: 1060606578262376693}

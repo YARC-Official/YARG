@@ -4,15 +4,10 @@ using UnityEngine.UI;
 
 namespace YARG.Menu.Navigation
 {
-    public sealed class NavigatableButton : NavigatableBehaviour, IPointerEnterHandler, INavigationConfirmable
+    public sealed class NavigatableButton : NavigatableBehaviour
     {
         [SerializeField]
         private Button.ButtonClickedEvent _onClick = new();
-
-        public void OnPointerEnter(PointerEventData eventData)
-        {
-            Selected = true;
-        }
 
         public override void OnPointerDown(PointerEventData eventData)
         {
@@ -20,7 +15,7 @@ namespace YARG.Menu.Navigation
             Confirm();
         }
 
-        public void Confirm()
+        public override void Confirm()
         {
             _onClick.Invoke();
         }

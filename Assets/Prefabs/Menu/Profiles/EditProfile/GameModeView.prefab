@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 2323934208288017734}
   - component: {fileID: 4644452374150428231}
   - component: {fileID: 5663837866214161010}
-  - component: {fileID: 5901722899140313057}
   m_Layer: 5
   m_Name: GameModeView
   m_TagString: Untagged
@@ -94,21 +93,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f22b1c354bc743bc8022858f1137a820, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _selectOnHover: 0
+  _selectedVisual: {fileID: 3252246694410732907}
   _gameModeName: {fileID: 7228980182753087092}
---- !u!114 &5901722899140313057
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1863348019200065187}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f5028cf3ef3a42b2ba95c87cda9b514c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _selectionVisuals:
-  - {fileID: 3252246694410732907}
 --- !u!1 &3252246694410732907
 GameObject:
   m_ObjectHideFlags: 0

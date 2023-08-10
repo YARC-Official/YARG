@@ -1,14 +1,21 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
 namespace YARG.Menu.Navigation
 {
-    public abstract class NavigatableBehaviour : MonoBehaviour, IPointerDownHandler
+    public abstract class NavigatableBehaviour : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
     {
-        public NavigationGroup NavigationGroup { get; set; }
+        [SerializeField]
+        private bool _selectOnHover = false;
+
+        [Space]
+        [SerializeField]
+        private GameObject _selectedVisual;
 
         public event Action<bool> SelectionChanged;
+
+        public NavigationGroup NavigationGroup { get; set; }
 
         private bool _selected;
         public bool Selected
@@ -27,18 +34,38 @@ namespace YARG.Menu.Navigation
                 _selected = value;
 
                 // Call events
-                SelectionChanged?.Invoke(value);
                 OnSelectionChanged(value);
+                SelectionChanged?.Invoke(value);
             }
         }
 
+        protected virtual void Awake()
+        {
+            _selectedVisual.SetActive(false);
+        }
+
         protected virtual void OnSelectionChanged(bool selected)
+        {
+            _selectedVisual.SetActive(selected);
+        }
+
+        public virtual void OnPointerEnter(PointerEventData eventData)
+        {
+            if (_selectOnHover)
+                Selected = true;
+        }
+
+        public virtual void OnPointerExit(PointerEventData eventData)
         {
         }
 
         public virtual void OnPointerDown(PointerEventData eventData)
         {
             Selected = true;
+        }
+
+        public virtual void Confirm()
+        {
         }
     }
 }

@@ -18,6 +18,22 @@ namespace YARG.Menu.Navigation
         [SerializeField]
         private bool _selectFirst;
 
+        public int SelectedIndex
+        {
+            get
+            {
+                for (int i = 0; i < _navigatables.Count; i++)
+                {
+                    if (_navigatables[i].Selected)
+                    {
+                        return i;
+                    }
+                }
+
+                return -1;
+            }
+        }
+
         private void Awake()
         {
             if (_addAllChildrenOnAwake)
@@ -79,22 +95,9 @@ namespace YARG.Menu.Navigation
             _navigatables[0].Selected = true;
         }
 
-        public int CurrentSelectedIndex()
-        {
-            for (int i = 0; i < _navigatables.Count; i++)
-            {
-                if (_navigatables[i].Selected)
-                {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-
         public void SelectNext(NavigationContext context)
         {
-            int selected = CurrentSelectedIndex();
+            int selected = SelectedIndex;
             if (selected == -1) return;
 
             selected++;
@@ -112,7 +115,7 @@ namespace YARG.Menu.Navigation
 
         public void SelectPrevious(NavigationContext context)
         {
-            int selected = CurrentSelectedIndex();
+            int selected = SelectedIndex;
             if (selected == -1) return;
 
             selected--;
@@ -130,11 +133,7 @@ namespace YARG.Menu.Navigation
 
         public void ConfirmSelection()
         {
-            var nav = _navigatables[CurrentSelectedIndex()];
-            if (nav is INavigationConfirmable confirmable)
-            {
-                confirmable.Confirm();
-            }
+            _navigatables[SelectedIndex].Confirm();
         }
     }
 }

@@ -47,7 +47,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1103512947960669714}
   - component: {fileID: 6198895186799813956}
-  - component: {fileID: 6415387404162001723}
   - component: {fileID: 2323934208288017734}
   - component: {fileID: 4644452374150428231}
   m_Layer: 5
@@ -96,6 +95,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f619620d1b3cdae4db3800695ce98341, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _selectOnHover: 0
+  _selectedVisual: {fileID: 3252246694410732907}
   _profileName: {fileID: 4097472151370784344}
   _profilePicture: {fileID: 3837991091834801202}
   _connectGroup: {fileID: 3655587951731118034}
@@ -103,20 +104,6 @@ MonoBehaviour:
   _profileGenericSprite: {fileID: 21300000, guid: 6c06aca89bc095245ba69514188d3fce,
     type: 3}
   _profileBotSprite: {fileID: 21300000, guid: 2a0312c2e46460a4dbce351a4b20985f, type: 3}
---- !u!114 &6415387404162001723
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1863348019200065187}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f5028cf3ef3a42b2ba95c87cda9b514c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _selectionVisuals:
-  - {fileID: 3252246694410732907}
 --- !u!222 &2323934208288017734
 CanvasRenderer:
   m_ObjectHideFlags: 0
