@@ -1,5 +1,6 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Helpers.Extensions;
@@ -30,7 +31,11 @@ namespace YARG.Menu.Profiles
         [SerializeField]
         private GameObject _bindHeaderPrefab;
         [SerializeField]
-        private GameObject _bindViewPrefab;
+        private GameObject _buttonViewPrefab;
+        [SerializeField]
+        private GameObject _axisViewPrefab;
+        [SerializeField]
+        private GameObject _integerViewPrefab;
 
         [Space]
         [SerializeField]
@@ -112,42 +117,35 @@ namespace YARG.Menu.Profiles
                 _bindsNavGroup.AddNavigatable(header);
 
                 // Create the actual bindings
-                // wish this could be de-duplicated a bit but that just puts us into a mess of generics lol
                 switch (binding)
                 {
                     case ButtonBinding button:
-                        foreach (var control in button.Bindings)
-                        {
-                            // Create bind view
-                            var bindView = Instantiate(_bindViewPrefab, _bindsList);
-                            bindView.GetComponent<BindView>().Init(this, binding, control.Control);
-
-                            _bindsNavGroup.AddNavigatable(bindView);
-                        }
+                        RefreshBinding<ButtonBindView, float, ButtonBindingParameters>(button, _buttonViewPrefab);
                         break;
 
                     case AxisBinding axis:
-                        foreach (var control in axis.Bindings)
-                        {
-                            // Create bind view
-                            var bindView = Instantiate(_bindViewPrefab, _bindsList);
-                            bindView.GetComponent<BindView>().Init(this, binding, control.Control);
-
-                            _bindsNavGroup.AddNavigatable(bindView);
-                        }
+                        RefreshBinding<AxisBindView, float, AxisBindingParameters>(axis, _axisViewPrefab);
                         break;
 
                     case IntegerBinding integer:
-                        foreach (var control in integer.Bindings)
-                        {
-                            // Create bind view
-                            var bindView = Instantiate(_bindViewPrefab, _bindsList);
-                            bindView.GetComponent<BindView>().Init(this, binding, control.Control);
-
-                            _bindsNavGroup.AddNavigatable(bindView);
-                        }
+                        RefreshBinding<IntegerBindView, int, IntegerBindingParameters>(integer, _integerViewPrefab);
                         break;
                 }
+            }
+        }
+
+        private void RefreshBinding<TView, TState, TParams>(ControlBinding<TState, TParams> binding, GameObject prefab)
+            where TView : BindView<TState, TParams>
+            where TState : struct
+            where TParams : new()
+        {
+            foreach (var control in binding.Bindings)
+            {
+                // Create bind view
+                var bindView = Instantiate(prefab, _bindsList);
+                bindView.GetComponent<TView>().Init(this, binding, control);
+
+                _bindsNavGroup.AddNavigatable(bindView);
             }
         }
 
