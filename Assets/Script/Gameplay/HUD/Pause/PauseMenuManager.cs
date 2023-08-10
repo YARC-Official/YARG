@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
+using YARG.Song;
 
 namespace YARG.Gameplay.HUD
 {
@@ -22,11 +25,35 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private GameManager _gameManager;
 
+        [Space]
+        [SerializeField]
+        private TextMeshProUGUI _albumText;
+        [SerializeField]
+        private TextMeshProUGUI _songText;
+        [SerializeField]
+        private TextMeshProUGUI _artistText;
+        [SerializeField]
+        private TextMeshProUGUI _sourceText;
+        [SerializeField]
+        private Image _sourceIcon;
+
         private void Awake()
         {
             // Convert to dictionary with "Menu" as key
             var children = GetComponentsInChildren<PauseMenuObject>(true);
             _menus = children.ToDictionary(i => i.Menu, i => i);
+        }
+
+        private async void Start()
+        {
+            // Set text info
+            _albumText.text = _gameManager.Song.Album;
+            _songText.text = _gameManager.Song.Name;
+            _artistText.text = _gameManager.Song.Artist;
+            _sourceText.text = SongSources.SourceToGameName(_gameManager.Song.Source);
+
+            // Set source icon
+            _sourceIcon.sprite = await SongSources.SourceToIcon(_gameManager.Song.Source);
         }
 
         public PauseMenuObject PushMenu(Menu menu)
