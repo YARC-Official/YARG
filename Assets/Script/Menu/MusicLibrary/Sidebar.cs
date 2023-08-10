@@ -291,7 +291,7 @@ namespace YARG.Menu.MusicLibrary
 
         private async UniTask LoadRbConCover(byte[] file)
         {
-            XboxImageSettings? settings = null;
+            XboxImageSettings settings = null;
             await Task.Run(() => settings = XboxImageTextureGenerator.GetTexture(file, _cancellationToken.Token));
             if (settings != null)
             {

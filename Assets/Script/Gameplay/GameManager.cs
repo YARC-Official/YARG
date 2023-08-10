@@ -405,7 +405,7 @@ namespace YARG.Gameplay
                 try
                 {
                     if (Song.IniData != null)
-                        _chart = SongChart.FromFile(ParseSettings.Default, Song.IniData.chartFile.FullName);
+                        LoadIniChart();
                     else
                         LoadCONChart();
                 }
@@ -445,10 +445,11 @@ namespace YARG.Gameplay
             _chart = SongChart.FromFile(ParseSettings.Default, notesFile);
         }
 
+#nullable enable
         private void LoadCONChart()
         {
             Debug.Log($"Loading CON chart file");
-            var rbData = Song.RBData;
+            var rbData = Song.RBData!;
             byte[]? chartFile = rbData.LoadMidiFile();
             if (chartFile == null)
                 throw new Exception("Base midi file not present");
