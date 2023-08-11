@@ -17,7 +17,7 @@ namespace YARG.Menu
         [Space]
         public UnityEvent<float> ValueChanged;
 
-        public bool NotifyOnChange { get; set; }
+        public bool NotifyOnChange { get; set; } = true;
 
         private float _value = 0f;
         public float Value
@@ -37,6 +37,9 @@ namespace YARG.Menu
             get => _slider.maxValue;
             set => _slider.maxValue = value;
         }
+
+        [SerializeField]
+        private string _formatString = "N2";
 
         // TMP_InputField.SetTextWithoutNotify still notifies when in editor
         private bool _isSettingValue;
@@ -68,7 +71,7 @@ namespace YARG.Menu
 
             _slider.SetValueWithoutNotify(value);
             _value = _slider.value;
-            _inputField.SetTextWithoutNotify(_value.ToString("N2"));
+            _inputField.SetTextWithoutNotify(_value.ToString(_formatString));
 
             if (NotifyOnChange) ValueChanged.Invoke(_value);
 

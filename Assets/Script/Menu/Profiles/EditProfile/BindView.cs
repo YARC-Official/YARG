@@ -5,20 +5,20 @@ using YARG.Menu.Navigation;
 
 namespace YARG.Menu.Profiles
 {
-    public abstract class BindView<TState, TBinding> : NavigatableBehaviour
+    public abstract class BindView<TState, TBinding, TSingle> : NavigatableBehaviour
         where TState : struct
-        where TBinding : SingleBinding<TState>
+        where TBinding : ControlBinding<TState, TSingle>
+        where TSingle : SingleBinding<TState>
     {
         [Space]
         [SerializeField]
         private TextMeshProUGUI _bindText;
 
         protected EditProfileMenu _editProfileMenu;
-        protected ControlBinding<TState, TBinding> _binding;
-        protected TBinding _singleBinding;
+        protected TBinding _binding;
+        protected TSingle _singleBinding;
 
-        public void Init(EditProfileMenu editProfileMenu, ControlBinding<TState, TBinding> binding,
-            TBinding singleBinding)
+        public virtual void Init(EditProfileMenu editProfileMenu, TBinding binding, TSingle singleBinding)
         {
             _editProfileMenu = editProfileMenu;
             _binding = binding;
