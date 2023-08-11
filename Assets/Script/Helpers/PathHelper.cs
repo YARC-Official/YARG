@@ -28,6 +28,16 @@ namespace YARG.Helpers
         public static string StreamingAssetsPath { get; private set; }
 
         /// <summary>
+        /// The location of the song cache.
+        /// </summary>
+        public static string SongCachePath { get; private set; }
+
+        /// <summary>
+        /// The file to write the bad songs list to.
+        /// </summary>
+        public static string BadSongsPath { get; private set; }
+
+        /// <summary>
         /// YARC Launcher path.
         /// </summary>
         public static string LauncherPath { get; private set; }
@@ -65,6 +75,14 @@ namespace YARG.Helpers
             ApplicationDataPath = SanitizePath(Application.dataPath);
             ExecutablePath = Directory.GetParent(ApplicationDataPath)?.FullName;
             StreamingAssetsPath = SanitizePath(Application.streamingAssetsPath);
+
+            // Store song scanning paths
+            SongCachePath = Path.Combine(PersistentDataPath, "songcache.bin");
+#if UNITY_EDITOR
+            BadSongsPath = Path.Combine(PersistentDataPath, "badsongs.txt");
+#else
+            BadSongsPath = Path.Combine(ExecutablePath, "badsongs.txt");
+#endif
 
             // Get the launcher path
             var localAppdata = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);

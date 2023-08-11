@@ -89,11 +89,7 @@ namespace YARG
             if (!string.IsNullOrEmpty(setlistPath) && !directories.Contains(setlistPath))
                 directories.Add(setlistPath);
 
-#if UNITY_EDITOR
-            CacheHandler handler = new(PathHelper.PersistentDataPath, PathHelper.PersistentDataPath, true, directories.ToArray());
-#else
-            CacheHandler handler = new(PathHelper.PersistentDataPath, PathHelper.ExecutablePath, true, directories.ToArray());
-#endif
+            CacheHandler handler = new(PathHelper.SongCachePath, PathHelper.BadSongsPath, true, directories.ToArray());
 
             SongCache cache = null;
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
