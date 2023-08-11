@@ -13,6 +13,11 @@ namespace YARG.Helpers
         public static string PersistentDataPath { get; private set; }
 
         /// <summary>
+        /// The root level of the persistent data path.
+        /// </summary>
+        public static string RealPersistentDataPath { get; private set; }
+
+        /// <summary>
         /// The data folder in YARG's installation.
         /// </summary>
         public static string ApplicationDataPath { get; private set; }
@@ -71,7 +76,12 @@ namespace YARG.Helpers
         public static void Init()
         {
             // Save this data as Application.* is main thread only (why Unity)
-            PersistentDataPath = SanitizePath(Application.persistentDataPath, true);
+            RealPersistentDataPath = SanitizePath(Application.persistentDataPath);
+#if UNITY_EDITOR || YARG_TEST_BUILD
+            PersistentDataPath = SanitizePath(Path.Combine(Application.persistentDataPath, "dev"));
+#else
+            PersistentDataPath = RealPersistentDataPath;
+#endif
             ApplicationDataPath = SanitizePath(Application.dataPath);
             ExecutablePath = Directory.GetParent(ApplicationDataPath)?.FullName;
             StreamingAssetsPath = SanitizePath(Application.streamingAssetsPath);
@@ -210,7 +220,7 @@ namespace YARG.Helpers
             }
         }
 
-        private static string SanitizePath(string path, bool useDev = false)
+        private static string SanitizePath(string path)
         {
             // this is to handle a strange edge case in path naming in windows.
             // modern windows can handle / or \ in path names with seemingly one exception,
@@ -220,12 +230,7 @@ namespace YARG.Helpers
             // c:/users/joe blow/appdata <- "Please choose an app to open joe"
             // so let's just set them all to \ on windows to be sure.
             path = path.Replace("/", Path.DirectorySeparatorChar.ToString());
-#if UNITY_EDITOR || YARG_TEST_BUILD
-            if (useDev)
-            {
-                path = Path.Combine(path, "dev");
-            }
-#endif
+
             return path;
         }
 
