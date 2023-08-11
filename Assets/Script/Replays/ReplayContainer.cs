@@ -8,6 +8,7 @@ using YARG.Core.Engine.Guitar;
 using YARG.Core.Replays;
 using YARG.Core.Replays.IO;
 using YARG.Core.Song;
+using YARG.Core.Utility;
 using YARG.Gameplay.Player;
 using YARG.Helpers;
 using YARG.Song;
@@ -156,7 +157,7 @@ namespace YARG.Replays
         public static void WriteReplayCache()
         {
             using var stream = File.Open(_replayCacheFile, FileMode.Create);
-            using var writer = new BinaryWriter(stream);
+            using var writer = new NullStringBinaryWriter(stream);
 
             writer.Write(CACHE_VERSION);
             foreach (var entry in _replays)
