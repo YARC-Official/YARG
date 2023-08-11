@@ -11,13 +11,12 @@ using YARG.Core.Song;
 using YARG.Core.Utility;
 using YARG.Gameplay.Player;
 using YARG.Helpers;
-using YARG.Song;
 
 namespace YARG.Replays
 {
     public static class ReplayContainer
     {
-        private const int CACHE_VERSION = 23_07_11_1;
+        private const int CACHE_VERSION = 23_08_11_1;
 
         public static string ReplayDirectory { get; private set; }
 
