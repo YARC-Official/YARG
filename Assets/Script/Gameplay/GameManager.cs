@@ -242,6 +242,9 @@ namespace YARG.Gameplay
                 return;
             }
 
+            // Update input time
+            InputTime = GetRelativeInputTime(InputManager.CurrentUpdateTime);
+
             // Calculate song time
             if (RealSongTime < 0.0)
             {
@@ -261,9 +264,6 @@ namespace YARG.Gameplay
                 // Sync if needed
                 SyncAudio();
             }
-
-            // Update input time
-            InputTime = GetRelativeInputTime(InputManager.CurrentUpdateTime);
 
             if (Keyboard.current.ctrlKey.isPressed && Keyboard.current.tabKey.wasPressedThisFrame)
             {
@@ -496,6 +496,9 @@ namespace YARG.Gameplay
         {
             InputTimeBase = inputBase;
             InputTimeOffset = InputManager.CurrentUpdateTime;
+
+            // Update input time
+            InputTime = GetRelativeInputTime(InputManager.CurrentUpdateTime);
         }
 
         public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
