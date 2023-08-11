@@ -2,7 +2,7 @@ using YARG.Input;
 
 namespace YARG.Menu.Profiles
 {
-    public class AxisBindView : BindView<float, AxisBindingParameters>
+    public class AxisBindView : BindView<float, SingleAxisBinding>
     {
     }
 }

@@ -2,14 +2,33 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
+using YARG.Input.Serialization;
 
 namespace YARG.Input
 {
-    public class AxisBindingParameters
+    public class SingleAxisBinding : SingleBinding<float>
     {
+        public SingleAxisBinding(InputControl<float> control) : base(control)
+        {
+        }
+
+        public SingleAxisBinding(InputControl<float> control, ActuationSettings settings)
+            : base(control)
+        {
+        }
+
+        public SingleAxisBinding(InputControl<float> control, SerializedInputControl serialized)
+            : base(control, serialized)
+        {
+        }
+
+        public override SerializedInputControl Serialize()
+        {
+            return base.Serialize();
+        }
     }
 
-    public class AxisBinding : ControlBinding<float, AxisBindingParameters>
+    public class AxisBinding : ControlBinding<float, SingleAxisBinding>
     {
         private float _currentValue;
 
@@ -50,6 +69,16 @@ namespace YARG.Input
 
             _currentValue = state;
             FireInputEvent(time, state);
+        }
+
+        protected override SingleAxisBinding OnControlAdded(ActuationSettings settings, InputControl<float> control)
+        {
+            return new(control, settings);
+        }
+
+        protected override SingleAxisBinding DeserializeControl(InputControl<float> control, SerializedInputControl serialized)
+        {
+            return new(control, serialized);
         }
     }
 }

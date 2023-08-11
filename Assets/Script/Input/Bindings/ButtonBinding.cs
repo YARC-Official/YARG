@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
@@ -6,12 +7,7 @@ using YARG.Input.Serialization;
 
 namespace YARG.Input
 {
-    public class ButtonBindingParameters
-    {
-        public float PressPoint;
-    }
-
-    public class ButtonBinding : ControlBinding<float, ButtonBindingParameters>
+    public class SingleButtonBinding : SingleBinding<float>
     {
         public const long DEBOUNCE_TIME_MAX = 25;
         public const long DEBOUNCE_ACTIVE_THRESHOLD = 1;
@@ -22,38 +18,117 @@ namespace YARG.Input
         /// <summary>
         /// The debounce time threshold, in milliseconds. Use 0 or less to disable debounce.
         /// </summary>
-        public long DebounceLength
+        public long DebounceThreshold
         {
             get => _debounceThreshold;
-            set
-            {
-                // Limit debounce amount to 0-25 ms
-                // Any larger and input registration will be very bad, the max will limit to 40 inputs per second
-                // If someone needs a larger amount their controller is just busted lol
-                if (value > DEBOUNCE_TIME_MAX)
-                {
-                    value = DEBOUNCE_TIME_MAX;
-                }
-                else if (value < 0)
-                {
-                    value = 0;
-                }
-
-                _debounceThreshold = value;
-            }
+            // Limit debounce amount to 0-25 ms
+            // Any larger and input registration will be very bad, the max will limit to 40 inputs per second
+            // If someone needs a larger amount their controller is just busted lol
+            set => _debounceThreshold = Math.Clamp(value, 0, DEBOUNCE_TIME_MAX);
         }
 
-        public bool DebounceEnabled => DebounceLength >= DEBOUNCE_ACTIVE_THRESHOLD;
+        public bool DebounceEnabled => DebounceThreshold >= DEBOUNCE_ACTIVE_THRESHOLD;
 
-        // TODO: maybe rework this? not sure how else to go about it though lol
-        /// <summary>
-        /// A binding whose debouncing timer should be overridden by a state change on this control,
-        /// and whose state changes should also override the debouncing timer on this control.
-        /// </summary>
-        public ButtonBinding DebounceOverrideBinding { get; set; } = null;
+        public float PressPoint;
 
+        private float _postDebounceValue;
+
+        public SingleButtonBinding(InputControl<float> control) : base(control)
+        {
+        }
+
+        public SingleButtonBinding(InputControl<float> control, ActuationSettings settings)
+            : base(control)
+        {
+            float pressPoint = settings.ButtonPressThreshold;
+            if (control is ButtonControl button)
+            {
+                pressPoint = button.pressPointOrDefault;
+            }
+
+            PressPoint = pressPoint;
+        }
+
+        public SingleButtonBinding(InputControl<float> control, SerializedInputControl serialized)
+            : base(control, serialized)
+        {
+            if (!serialized.Parameters.TryGetValue(nameof(PressPoint), out string pressPointText) ||
+                !float.TryParse(pressPointText, out float pressPoint))
+                pressPoint = InputSystem.settings.defaultButtonPressPoint;
+
+            PressPoint = pressPoint;
+
+            if (!serialized.Parameters.TryGetValue(nameof(DebounceThreshold), out string debounceText) ||
+                !long.TryParse(debounceText, out long debounceThreshold))
+                debounceThreshold = 0;
+
+            DebounceThreshold = debounceThreshold;
+        }
+
+        public override SerializedInputControl Serialize()
+        {
+            var serialized = base.Serialize();
+            if (serialized is null)
+                return null;
+
+            serialized.Parameters.Add(nameof(PressPoint), PressPoint.ToString());
+            serialized.Parameters.Add(nameof(DebounceThreshold), DebounceThreshold.ToString());
+
+            return serialized;
+        }
+
+        public override float UpdateState(InputEventPtr eventPtr)
+        {
+            // Ignore if no state change occured
+            if (!Control.HasValueChangeInEvent(eventPtr))
+                return State;
+
+            // Read new state
+            float current = Control.ReadValueFromEvent(eventPtr);
+
+            // Check debounce
+            if (_debounceTimer.IsRunning && _debounceTimer.ElapsedMilliseconds < DebounceThreshold)
+            {
+                // Save for when debounce ends
+                _postDebounceValue = current;
+                return State;
+            }
+
+            // Stop debounce and process this event normally
+            _debounceTimer.Reset();
+            _postDebounceValue = State = current;
+
+            // Start debounce again if enabled
+            if (DebounceEnabled)
+                _debounceTimer.Start();
+
+            return current;
+        }
+
+        public bool UpdateDebounce(out float postDebounce)
+        {
+            postDebounce = -1;
+
+            // Ignore if debounce is disabled
+            if (!DebounceEnabled)
+                return false;
+
+            // Check time elapsed
+            if (_debounceTimer.ElapsedMilliseconds >= DebounceThreshold)
+            {
+                // Stop timer and process post-debounce value
+                _debounceTimer.Reset();
+                postDebounce = State = _postDebounceValue;
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    public class ButtonBinding : ControlBinding<float, SingleButtonBinding>
+    {
         private bool _currentValue;
-        private bool _postDebounceValue;
 
         public ButtonBinding(string name, int action) : base(name, action)
         {
@@ -77,17 +152,7 @@ namespace YARG.Input
             foreach (var binding in _bindings)
             {
                 var value = binding.UpdateState(eventPtr);
-                state |= value >= binding.Parameters.PressPoint;
-            }
-
-            // Track real state here for debouncing
-            _postDebounceValue = state;
-
-            // Skip the rest if debouncing
-            if (_debounceTimer.IsRunning)
-            {
-                UpdateDebounce();
-                return;
+                state |= value >= binding.PressPoint;
             }
 
             ProcessNextState(eventPtr.time, state);
@@ -100,16 +165,6 @@ namespace YARG.Input
                 return;
 
             _currentValue = state;
-
-            // Start debounce
-            if (DebounceEnabled)
-            {
-                _debounceTimer.Start();
-            }
-
-            // Override debounce for a corresponding control, if requested
-            DebounceOverrideBinding?.OverrideDebounce();
-
             FireInputEvent(time, state);
         }
 
@@ -120,74 +175,29 @@ namespace YARG.Input
 
         private void UpdateDebounce()
         {
-            // Ignore if not a button, or threshold is below the minimum
-            if (!DebounceEnabled)
+            bool anyFinished = false;
+            bool state = false;
+            foreach (var binding in _bindings)
             {
-                if (_debounceTimer.IsRunning)
-                {
-                    _debounceTimer.Reset();
-                }
+                if (!binding.UpdateDebounce(out float postDebounce))
+                    continue;
 
-                return;
+                anyFinished = true;
+                state |= postDebounce >= binding.PressPoint;
             }
 
-            // Check time elapsed
-            if (_debounceTimer.ElapsedMilliseconds >= DebounceLength)
-            {
-                OverrideDebounce();
-                return;
-            }
+            if (anyFinished)
+                ProcessNextState(InputManager.CurrentInputTime, state);
         }
 
-        private void OverrideDebounce()
+        protected override SingleButtonBinding OnControlAdded(ActuationSettings settings, InputControl<float> control)
         {
-            if (DebounceEnabled && _debounceTimer.IsRunning)
-            {
-                // Stop timer and process post-debounce value
-                _debounceTimer.Reset();
-                ProcessNextState(InputManager.CurrentInputTime, _postDebounceValue);
-            }
+            return new(control, settings);
         }
 
-        protected override void OnControlAdded(ActuationSettings settings, SingleBinding binding)
+        protected override SingleButtonBinding DeserializeControl(InputControl<float> control, SerializedInputControl serialized)
         {
-            base.OnControlAdded(settings, binding);
-
-            float pressPoint = settings.ButtonPressThreshold;
-            if (binding.Control is ButtonControl button)
-            {
-                pressPoint = button.pressPointOrDefault;
-            }
-
-            binding.Parameters.PressPoint = pressPoint;
-        }
-
-        private const string PRESS_POINT_NAME = nameof(ButtonBindingParameters.PressPoint);
-
-        protected override SerializedInputControl SerializeControl(SingleBinding binding)
-        {
-            var serialized = base.SerializeControl(binding);
-            if (serialized is null)
-                return null;
-
-            serialized.Parameters.Add(PRESS_POINT_NAME, binding.Parameters.PressPoint.ToString());
-
-            return serialized;
-        }
-
-        protected override SingleBinding DeserializeControl(InputDevice device, SerializedInputControl serialized)
-        {
-            var binding = base.DeserializeControl(device, serialized);
-            if (binding is null)
-                return null;
-
-            if (!serialized.Parameters.TryGetValue(PRESS_POINT_NAME, out string pressPointText) ||
-                !float.TryParse(pressPointText, out float pressPoint))
-                pressPoint = InputSystem.settings.defaultButtonPressPoint;
-
-            binding.Parameters.PressPoint = pressPoint;
-
-            return binding;
+            return new(control, serialized);
         }
     }
 }

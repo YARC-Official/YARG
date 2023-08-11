@@ -127,41 +127,53 @@ namespace YARG.Input
         }
     }
 
+    public abstract class SingleBinding<TState>
+        where TState : struct
+    {
+        public InputControl<TState> Control { get; }
+        public TState State { get; protected set; }
+
+        public SingleBinding(InputControl<TState> control)
+        {
+            Control = control;
+        }
+
+        public SingleBinding(InputControl<TState> control, SerializedInputControl serialized)
+            : this(control)
+        {
+        }
+
+        public virtual TState UpdateState(InputEventPtr eventPtr)
+        {
+            if (Control.HasValueChangeInEvent(eventPtr))
+            {
+                State = Control.ReadValueFromEvent(eventPtr);
+            }
+
+            return State;
+        }
+
+        public virtual SerializedInputControl Serialize()
+        {
+            return new SerializedInputControl()
+            {
+                Device = Control.device.Serialize(),
+                ControlPath = Control.path,
+            };
+        }
+    }
+
     /// <summary>
     /// A binding to one or more controls.
     /// </summary>
-    public abstract class ControlBinding<TState, TParams> : ControlBinding
+    public abstract class ControlBinding<TState, TBinding> : ControlBinding
         where TState : struct
-        where TParams : new()
+        where TBinding : SingleBinding<TState>
     {
-        public class SingleBinding
-        {
-            public InputControl<TState> Control { get; }
-            public TState State { get; private set; }
-            public TParams Parameters = new();
-
-            public InputControl InputControl => Control;
-
-            public SingleBinding(InputControl<TState> control)
-            {
-                Control = control;
-            }
-
-            public TState UpdateState(InputEventPtr eventPtr)
-            {
-                if (Control.HasValueChangeInEvent(eventPtr))
-                {
-                    State = Control.ReadValueFromEvent(eventPtr);
-                }
-
-                return State;
-            }
-        }
-
         private List<SerializedInputControl> _unresolvedBindings = new();
 
-        protected List<SingleBinding> _bindings = new();
-        public IReadOnlyList<SingleBinding> Bindings => _bindings;
+        protected List<TBinding> _bindings = new();
+        public IReadOnlyList<TBinding> Bindings => _bindings;
 
         public ControlBinding(string name, int action) : base(name, action)
         {
@@ -242,9 +254,9 @@ namespace YARG.Input
             if (ContainsControl(control))
                 return false;
 
-            var binding = new SingleBinding(control);
+            var binding = OnControlAdded(settings, control);
             _bindings.Add(binding);
-            OnControlAdded(settings, binding);
+            FireBindingsChanged();
             return true;
         }
 
@@ -253,11 +265,7 @@ namespace YARG.Input
             if (!TryGetBinding(control, out var binding))
                 return false;
 
-            bool removed = _bindings.Remove(binding);
-            if (removed)
-                OnControlRemoved(binding);
-
-            return removed;
+            return RemoveBinding(binding);
         }
 
         public bool ContainsControl(InputControl<TState> control)
@@ -265,31 +273,24 @@ namespace YARG.Input
             return TryGetBinding(control, out _);
         }
 
-        public bool AddBinding(ActuationSettings settings, SingleBinding binding)
-        {
-            if (ContainsBinding(binding))
-                return false;
-
-            _bindings.Add(binding);
-            OnControlAdded(settings, binding);
-            return true;
-        }
-
-        public bool RemoveBinding(SingleBinding binding)
+        public bool RemoveBinding(TBinding binding)
         {
             bool removed = _bindings.Remove(binding);
             if (removed)
+            {
                 OnControlRemoved(binding);
+                FireBindingsChanged();
+            }
 
             return removed;
         }
 
-        public bool ContainsBinding(SingleBinding binding)
+        public bool ContainsBinding(TBinding binding)
         {
             return _bindings.Contains(binding);
         }
 
-        public bool TryGetBinding(InputControl<TState> control, out SingleBinding foundBinding)
+        public bool TryGetBinding(InputControl<TState> control, out TBinding foundBinding)
         {
             foreach (var binding in _bindings)
             {
@@ -335,7 +336,7 @@ namespace YARG.Input
             for (int i = 0; i < _bindings.Count; i++)
             {
                 var binding = _bindings[i];
-                if (binding.InputControl.device != device)
+                if (binding.Control.device != device)
                     continue;
 
                 var serialized = SerializeControl(binding);
@@ -352,26 +353,18 @@ namespace YARG.Input
                 FireBindingsChanged();
         }
 
-        protected virtual void OnControlAdded(ActuationSettings settings, SingleBinding binding)
+        protected abstract TBinding OnControlAdded(ActuationSettings settings, InputControl<TState> binding);
+
+        protected virtual void OnControlRemoved(TBinding binding)
         {
-            FireBindingsChanged();
         }
 
-        protected virtual void OnControlRemoved(SingleBinding binding)
+        protected virtual SerializedInputControl SerializeControl(TBinding binding)
         {
-            FireBindingsChanged();
+            return binding.Serialize();
         }
 
-        protected virtual SerializedInputControl SerializeControl(SingleBinding binding)
-        {
-            return new SerializedInputControl()
-            {
-                Device = binding.Control.device.Serialize(),
-                ControlPath = binding.Control.path,
-            };
-        }
-
-        protected virtual SingleBinding DeserializeControl(InputDevice device, SerializedInputControl serialized)
+        private TBinding DeserializeControl(InputDevice device, SerializedInputControl serialized)
         {
             var control = InputControlPath.TryFindControl(device, serialized.ControlPath);
             if (control == null)
@@ -386,7 +379,9 @@ namespace YARG.Input
                 return null;
             }
 
-            return new SingleBinding(tControl);
+            return DeserializeControl(tControl, serialized);
         }
+
+        protected abstract TBinding DeserializeControl(InputControl<TState> control, SerializedInputControl serialized);
     }
 }

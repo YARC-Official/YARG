@@ -2,7 +2,7 @@ using YARG.Input;
 
 namespace YARG.Menu.Profiles
 {
-    public class IntegerBindView : BindView<int, IntegerBindingParameters>
+    public class IntegerBindView : BindView<int, SingleIntegerBinding>
     {
     }
 }

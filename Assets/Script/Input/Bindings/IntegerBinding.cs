@@ -1,14 +1,33 @@
 using System;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
+using YARG.Input.Serialization;
 
 namespace YARG.Input
 {
-    public class IntegerBindingParameters
+    public class SingleIntegerBinding : SingleBinding<int>
     {
+        public SingleIntegerBinding(InputControl<int> control) : base(control)
+        {
+        }
+
+        public SingleIntegerBinding(InputControl<int> control, ActuationSettings settings)
+            : base(control)
+        {
+        }
+
+        public SingleIntegerBinding(InputControl<int> control, SerializedInputControl serialized)
+            : base(control, serialized)
+        {
+        }
+
+        public override SerializedInputControl Serialize()
+        {
+            return base.Serialize();
+        }
     }
 
-    public class IntegerBinding : ControlBinding<int, IntegerBindingParameters>
+    public class IntegerBinding : ControlBinding<int, SingleIntegerBinding>
     {
         private int _currentValue;
 
@@ -22,8 +41,8 @@ namespace YARG.Input
                 return false;
 
             // The buffer that ReadValue reads from is not updated until after all events have been processed
-            float previousValue = control.ReadValue();
-            float value = control.ReadValueFromEvent(eventPtr);
+            int previousValue = control.ReadValue();
+            int value = control.ReadValueFromEvent(eventPtr);
 
             return Math.Abs(value - previousValue) >= settings.IntegerDeltaThreshold;
         }
@@ -49,6 +68,16 @@ namespace YARG.Input
 
             _currentValue = state;
             FireInputEvent(time, state);
+        }
+
+        protected override SingleIntegerBinding OnControlAdded(ActuationSettings settings, InputControl<int> control)
+        {
+            return new(control, settings);
+        }
+
+        protected override SingleIntegerBinding DeserializeControl(InputControl<int> control, SerializedInputControl serialized)
+        {
+            return new(control, serialized);
         }
     }
 }

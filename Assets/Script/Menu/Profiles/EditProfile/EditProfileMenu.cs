@@ -120,24 +120,24 @@ namespace YARG.Menu.Profiles
                 switch (binding)
                 {
                     case ButtonBinding button:
-                        RefreshBinding<ButtonBindView, float, ButtonBindingParameters>(button, _buttonViewPrefab);
+                        RefreshBinding<ButtonBindView, float, SingleButtonBinding>(button, _buttonViewPrefab);
                         break;
 
                     case AxisBinding axis:
-                        RefreshBinding<AxisBindView, float, AxisBindingParameters>(axis, _axisViewPrefab);
+                        RefreshBinding<AxisBindView, float, SingleAxisBinding>(axis, _axisViewPrefab);
                         break;
 
                     case IntegerBinding integer:
-                        RefreshBinding<IntegerBindView, int, IntegerBindingParameters>(integer, _integerViewPrefab);
+                        RefreshBinding<IntegerBindView, int, SingleIntegerBinding>(integer, _integerViewPrefab);
                         break;
                 }
             }
         }
 
-        private void RefreshBinding<TView, TState, TParams>(ControlBinding<TState, TParams> binding, GameObject prefab)
-            where TView : BindView<TState, TParams>
+        private void RefreshBinding<TView, TState, TBinding>(ControlBinding<TState, TBinding> binding, GameObject prefab)
+            where TView : BindView<TState, TBinding>
             where TState : struct
-            where TParams : new()
+            where TBinding : SingleBinding<TState>
         {
             foreach (var control in binding.Bindings)
             {
