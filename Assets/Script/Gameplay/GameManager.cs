@@ -322,7 +322,6 @@ namespace YARG.Gameplay
             {
                 if (_syncSpeedMultiplier == 0)
                 {
-                    Debug.Log("Starting audio resync.");
                     _syncStartDelta = delta;
                 }
 
@@ -333,7 +332,6 @@ namespace YARG.Gameplay
                 {
                     _syncSpeedAdjustment = adjustment;
                     GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
-                    Debug.Log($"Adjusted speed to {ActualSongSpeed:0.00} for audio syncing.\nInput: {inputTime}, audio: {audioTime}, delta: {delta}");
                 }
             }
 
@@ -347,7 +345,6 @@ namespace YARG.Gameplay
                 _syncSpeedMultiplier = 0;
                 _syncSpeedAdjustment = 0f;
                 GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
-                Debug.Log($"Audio synced.\nInput: {inputTime}, audio: {audioTime}, delta: {delta}");
             }
         }
 
