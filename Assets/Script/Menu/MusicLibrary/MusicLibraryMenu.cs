@@ -545,12 +545,6 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            if (SelectedIndex > 2)
-            {
-                SelectedIndex = 2;
-                return;
-            }
-
             MenuManager.Instance.PopMenu();
         }
 
