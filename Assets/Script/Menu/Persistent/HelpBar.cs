@@ -50,14 +50,13 @@ namespace YARG.Menu.Persistent
                 button.gameObject.SetActive(false);
             }
 
-            gameObject.SetActive(false);
-
             _infoText.text = null;
         }
 
         public void Reset()
         {
             ResetHelpBar();
+            gameObject.SetActive(false);
         }
 
         public void SetInfoFromScheme(NavigationScheme scheme)
