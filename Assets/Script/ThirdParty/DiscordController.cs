@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using Discord;
 using UnityEngine;
+using YARG.Core.Song;
 using YARG.PlayMode;
 using YARG.Song;
 
@@ -172,7 +173,7 @@ namespace YARG.ThirdParty
             );
         }
 
-        private void OnSongStart(SongEntry song)
+        private void OnSongStart(SongMetadata song)
         {
             _songName = song.Name;
             if (Play.speed != 1f)
@@ -200,7 +201,7 @@ namespace YARG.ThirdParty
             );
         }
 
-        private void OnSongEnd(SongEntry song)
+        private void OnSongEnd(SongMetadata song)
         {
             SetDefaultActivity();
         }
@@ -238,7 +239,7 @@ namespace YARG.ThirdParty
         {
             var sourceIconName = SongSources.GetSource(Play.Instance.Song.Source);
 
-            _currentSmallImage = sourceIconName.GetIconURL();
+            _currentSmallImage = sourceIconName.IconURL;
             _currentSmallText = sourceIconName.GetDisplayName();
         }
 

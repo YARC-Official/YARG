@@ -1,8 +1,12 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using YARG.Core.Song.Cache;
+using YARG.Helpers;
+using YARG.Settings;
 using YARG.Song;
 
 namespace YARG
@@ -74,32 +78,34 @@ namespace YARG
         public void QueueSongRefresh(bool fast)
         {
             Queue(async () => await ScanSongFolders(fast), "Loading songs...");
-            QueueSongSort();
-        }
-
-        public void QueueSongFolderRefresh(string path)
-        {
-            // Refreshes 1 folder (called when clicking "Refresh" on a folder in settings)
-            Queue(async () => await ScanSongFolder(path, false), "Loading songs from folder...");
-            QueueSongSort();
-        }
-
-        public void QueueSongSort()
-        {
-            Queue(SongSorting.GenerateSortCache, "Sorting songs...");
         }
 
         private async UniTask ScanSongFolders(bool fast)
         {
-            var errors = await SongContainer.ScanAllFolders(fast, UpdateSongUi);
+            var directories = SettingsManager.Settings.SongFolders;
+            if (!string.IsNullOrEmpty(PathHelper.SetlistPath))
+                directories.Add(PathHelper.SetlistPath);
 
-            // Pass all errored caches in at once so it can run in parallel
-            await SongContainer.ScanFolders(errors, false, UpdateSongUi);
-        }
+#if UNITY_EDITOR
+            CacheHandler handler = new(PathHelper.PersistentDataPath, PathHelper.PersistentDataPath, true, directories.ToArray());
+#else
+            CacheHandler handler = new(PathHelper.PersistentDataPath, PathHelper.ExecutablePath, true, directories.ToArray());
+#endif
+            SongCache cache = null;
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            var task = Task.Run(() => cache = handler.RunScan(fast));
+            while (!task.IsCompleted)
+            {
+                UpdateSongUi(handler);
+                await UniTask.NextFrame();
+            }
+            stopwatch.Stop();
 
-        private async UniTask ScanSongFolder(string path, bool fast)
-        {
-            await SongContainer.ScanSingleFolder(path, fast, UpdateSongUi);
+            Debug.Log($"Scan time: {stopwatch.Elapsed.TotalSeconds}s");
+            foreach (var err in handler.errorList)
+                Debug.LogError(err);
+
+            GlobalVariables.Instance.SetSongList(cache);
         }
 
         private void SetLoadingText(string phrase, string sub = null)
@@ -113,13 +119,38 @@ namespace YARG
             subPhrase.text = sub;
         }
 
-        private void UpdateSongUi(SongScanner scanner)
+        private void UpdateSongUi(CacheHandler cache)
         {
-            string subText = $"Folders Scanned: {scanner.TotalFoldersScanned}" +
-                $"\nSongs Scanned: {scanner.TotalSongsScanned}" +
-                $"\nErrors: {scanner.TotalErrorsEncountered}";
+            string phrase = string.Empty;
+            string subText = null;
+            switch (cache.Progress)
+            {
+                case ScanProgress.LoadingCache:
+                    phrase = "Loading song cache...";
+                    break;
+                case ScanProgress.LoadingSongs:
+                    phrase = "Loading songs...";
+                    break;
+                case ScanProgress.Sorting:
+                    phrase = "Sorting songs...";
+                    break;
+                case ScanProgress.WritingCache:
+                    phrase = "Writing song cache...";
+                    break;
+                case ScanProgress.WritingBadSongs:
+                    phrase = "Writing bad songs...";
+                    break;
+            }
 
-            SetSubText(subText);
+            switch (cache.Progress)
+            {
+                case ScanProgress.LoadingCache:
+                case ScanProgress.LoadingSongs:
+                    subText = $"Folders Scanned: {cache.NumScannedDirectories}\n" +
+                              $"Songs Scanned: {cache.Count}\n" +
+                              $"Errors: {cache.BadSongCount}"; break;
+            }
+            SetLoadingText(phrase, subText);
         }
 
 #if UNITY_EDITOR

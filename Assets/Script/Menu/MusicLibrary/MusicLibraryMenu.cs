@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -9,6 +9,8 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using YARG.Audio;
 using YARG.Core.Input;
+using YARG.Core.Song;
+using YARG.Gameplay;
 using YARG.Menu.Navigation;
 using YARG.Player;
 using YARG.Settings;
@@ -51,23 +53,23 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private GameObject _noPlayerWarning;
 
-        private SongSorting.Sort _sort = SongSorting.Sort.Song;
+        private static SongAttribute _sort = SongAttribute.Name;
         private string _nextSortCriteria = "Order by artist";
-        private string _nextFilter = "Search artist";
 
         private List<ViewType> _viewList;
         private List<SongView> _songViewObjects;
 
-        private SortedSongList _sortedSongs;
-        private List<SongEntry> _recommendedSongs;
+        private SongSearching _searchBar = new();
+        private SortedDictionary<string, List<SongMetadata>> _sortedSongs;
+        private List<SongMetadata> _recommendedSongs;
 
         private PreviewContext _previewContext;
         private CancellationTokenSource _previewCanceller = new();
 
         public IReadOnlyList<ViewType> ViewList => _viewList;
-        public ViewType CurrentSelection => _selectedIndex < _viewList?.Count ? _viewList[_selectedIndex] : null;
+        public ViewType CurrentSelection => 0 <= _selectedIndex && _selectedIndex < _viewList?.Count ? _viewList[_selectedIndex] : null;
 
-        private SongEntry _currentSong;
+        private SongMetadata _currentSong;
 
         private int _selectedIndex;
 
@@ -216,8 +218,7 @@ namespace YARG.Menu.MusicLibrary
                 new NavigationScheme.Entry(MenuAction.Green, "Confirm", Confirm),
                 new NavigationScheme.Entry(MenuAction.Red, "Back", Back),
                 new NavigationScheme.Entry(MenuAction.Yellow, _nextSortCriteria, ChangeSongOrder),
-                new NavigationScheme.Entry(MenuAction.Blue, _nextFilter, ChangeFilter),
-                new NavigationScheme.Entry(MenuAction.Orange, "(Hold) Section", () => { })
+                new NavigationScheme.Entry(MenuAction.Blue, "(Hold) Section", () => { })
             }, false);
         }
 
@@ -263,8 +264,32 @@ namespace YARG.Menu.MusicLibrary
 
         public void NextSort()
         {
-            _sort = SongSorting.GetNextSortCriteria(_sort);
-            _nextSortCriteria = GetNextSortCriteriaButtonName();
+            var next = (int) _sort + 1;
+            if (next >= Enum.GetNames(typeof(SongAttribute)).Length)
+            {
+                next = 1;
+            }
+            _sort = (SongAttribute) next;
+
+            SetNextSortCriteria();
+        }
+
+        private void SetNextSortCriteria()
+        {
+            _nextSortCriteria = _sort switch
+            {
+                SongAttribute.Name => "Order by Artist",
+                SongAttribute.Artist => "Order by Album",
+                SongAttribute.Album => "Order by \"Artist - Album\"",
+                SongAttribute.Artist_Album => "Order by Genre",
+                SongAttribute.Genre => "Order by Year",
+                SongAttribute.Year => "Order by Charter",
+                SongAttribute.Charter => "Order by Playlist",
+                SongAttribute.Playlist => "Order by Source",
+                SongAttribute.Source => "Order by Duration",
+                SongAttribute.SongLength => "Order by Song",
+                _ => "Order by Song"
+            };
         }
 
         private void UpdateNavigationScheme()
@@ -280,42 +305,7 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            UpdateFilter();
-            UpdateFilterButtonName();
             UpdateNavigationScheme();
-        }
-
-        private void UpdateFilter()
-        {
-            if (CurrentSelection is not SongViewType view)
-            {
-                return;
-            }
-
-            var text = _searchField.text;
-
-            if (string.IsNullOrEmpty(text) || text.StartsWith("source:"))
-            {
-                var artist = view.SongEntry.Artist;
-                _searchField.text = $"artist:{artist}";
-                return;
-            }
-
-            if (text.StartsWith("artist:"))
-            {
-                var source = view.SongEntry.Source;
-                _searchField.text = $"source:{source}";
-            }
-        }
-
-        private void UpdateFilterButtonName()
-        {
-            _nextFilter = _nextFilter switch
-            {
-                "Search artist" => "Search source",
-                "Search source" => "Search artist",
-                _ => "Search artist"
-            };
         }
 
         private void UpdateScroll()
@@ -366,22 +356,23 @@ namespace YARG.Menu.MusicLibrary
         {
             SetRecommendedSongs();
 
-            _sortedSongs = SongSearching.Search(_searchField.text, _sort);
+            _sortedSongs = _searchBar.Search(_searchField.text, _sort);
 
             AddSongs();
 
             if (!string.IsNullOrEmpty(_searchField.text))
             {
-                _currentSong = null;
-
                 // Create the category
-                int count = _sortedSongs.SongCount();
+                int count = 0;
+                foreach (var section in _sortedSongs)
+                    count += section.Value.Count;
+
                 var categoryView = new CategoryViewType(
                     "SEARCH RESULTS",
                     $"<#00B6F5><b>{count}</b> <#006488>{(count == 1 ? "SONG" : "SONGS")}"
                 );
 
-                if (_sortedSongs.SectionNames.Count == 1)
+                if (_sortedSongs.Count == 1)
                 {
                     // If there is only one header, just replace it
                     _viewList[0] = categoryView;
@@ -392,15 +383,20 @@ namespace YARG.Menu.MusicLibrary
                     _viewList.Insert(0, categoryView);
                 }
             }
-            else
+            else if (GlobalVariables.Instance.Container.Count > 0)
             {
                 AddSongsCount();
                 AddAllRecommendedSongs();
                 AddRecommendSongsHeader();
                 AddRandomSongHeader();
+                ClearIfNoSongs();
             }
-
-            ClearIfNoSongs();
+            else
+            {
+                _viewList.Clear();
+                UpdateSongViews();
+                return;
+            }
 
             SetSelectedIndex();
             // These are both called by the above:
@@ -412,15 +408,13 @@ namespace YARG.Menu.MusicLibrary
         {
             _viewList = new();
 
-            foreach (var section in _sortedSongs.SectionNames)
+            foreach (var section in _sortedSongs)
             {
-                var songs = _sortedSongs.SongsInSection(section);
-
                 // Create header
-                _viewList.Add(new SortHeaderViewType(section, songs.Count));
+                _viewList.Add(new SortHeaderViewType(section.Key, section.Value.Count));
 
                 // Add all of the songs
-                foreach (var song in songs)
+                foreach (var song in section.Value)
                 {
                     _viewList.Add(new SongViewType(song));
                 }
@@ -436,7 +430,7 @@ namespace YARG.Menu.MusicLibrary
 
             _recommendedSongs = new();
 
-            if (SongContainer.Songs.Count > 0)
+            if (GlobalVariables.Instance.Container.Songs.Count > 0)
             {
                 FillRecommendedSongs();
             }
@@ -449,7 +443,7 @@ namespace YARG.Menu.MusicLibrary
             _viewList.Insert(0, new CategoryViewType(
                 "ALL SONGS",
                 $"<#00B6F5><b>{count}</b> <#006488>{(count == 1 ? "SONG" : "SONGS")}",
-                SongContainer.Songs
+                GlobalVariables.Instance.Container.Songs
             ));
         }
 
@@ -495,10 +489,14 @@ namespace YARG.Menu.MusicLibrary
         {
             if (_currentSong != null)
             {
-                int index = _viewList.FindIndex((song) => song is SongViewType songView &&
-                    songView.SongEntry == _currentSong);
-                SelectedIndex = Math.Max(1, index);
-                return;
+                int index = GetIndexOfSelectedSong();
+                if (index >= 0)
+                {
+                    SelectedIndex = Mathf.Max(1, index);
+                    return;
+                }
+                else
+                    _currentSong = null;
             }
 
             if (!string.IsNullOrEmpty(_searchField.text))
@@ -508,6 +506,21 @@ namespace YARG.Menu.MusicLibrary
             }
 
             SelectedIndex = 2;
+        }
+
+        private int GetIndexOfSelectedSong()
+        {
+            var selectedSong = _currentSong;
+
+            // Get the first index after the recommended songs
+            int startOfSongs = _viewList.FindIndex(i => i is SortHeaderViewType || i is CategoryViewType);
+            if (startOfSongs < 0)
+                return -1;
+
+            int songIndex = _viewList.FindIndex(startOfSongs,
+                song => song is SongViewType songType && songType.SongEntry == selectedSong);
+
+            return songIndex;
         }
 
         private void FillRecommendedSongs()
@@ -528,14 +541,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 ClearSearchBox();
                 UpdateSearch();
-                ResetSearchButton();
                 UpdateNavigationScheme();
-                return;
-            }
-
-            if (SelectedIndex > 2)
-            {
-                SelectedIndex = 2;
                 return;
             }
 
@@ -548,17 +554,12 @@ namespace YARG.Menu.MusicLibrary
             _searchField.ActivateInputField();
         }
 
-        private void ResetSearchButton()
-        {
-            _nextFilter = "Search artist";
-        }
-
         private void SelectRandomSong()
         {
             int skip = GetSkip();
 
             // Select random between all of the songs
-            SelectedIndex = Random.Range(skip, SongContainer.Songs.Count);
+            SelectedIndex = Random.Range(skip, GlobalVariables.Instance.Container.Songs.Count);
         }
 
         public void SelectPreviousSection()
@@ -586,12 +587,7 @@ namespace YARG.Menu.MusicLibrary
         private int GetSkip()
         {
             // Get how many non-song things there are
-            return Mathf.Max(1, _viewList.Count - SongContainer.Songs.Count);
-        }
-
-        private string GetNextSortCriteriaButtonName()
-        {
-            return SongSorting.GetNextSortButtonName(_sort);
+            return Mathf.Max(1, _viewList.Count - GlobalVariables.Instance.Container.Songs.Count);
         }
     }
 }

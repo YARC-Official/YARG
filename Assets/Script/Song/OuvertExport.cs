@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 
@@ -28,7 +28,7 @@ namespace YARG.Song
 
             // public bool lyrics;
             [JsonProperty("songlength")]
-            public int songLength;
+            public ulong songLength;
         }
 
         public static void ExportOuvertSongsTo(string path)
@@ -36,7 +36,7 @@ namespace YARG.Song
             var songs = new List<SongData>();
 
             // Convert SongInfo to SongData
-            foreach (var song in SongContainer.Songs)
+            foreach (var song in GlobalVariables.Instance.Container.Songs)
             {
                 songs.Add(new SongData
                 {
@@ -45,8 +45,8 @@ namespace YARG.Song
                     album = song.Album,
                     genre = song.Genre,
                     charter = song.Charter,
-                    year = song.Year,
-                    songLength = (int) (song.SongLength * 1000f)
+                    year = song.UnmodifiedYear,
+                    songLength = song.SongLength
                 });
             }
 

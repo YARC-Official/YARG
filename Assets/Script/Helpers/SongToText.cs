@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using YARG.Core.Song;
 using YARG.PlayMode;
 using YARG.Song;
 
@@ -54,7 +55,7 @@ namespace YARG.Helpers
 
         private static readonly Regex StyleRegex = new(@"^<[^>\s]*>", RegexOptions.Compiled);
 
-        private static readonly Dictionary<string, Func<SongEntry, string>> Keywords = new()
+        private static readonly Dictionary<string, Func<SongMetadata, string>> Keywords = new()
         {
             {
                 "song", x => x.Name
@@ -87,7 +88,7 @@ namespace YARG.Helpers
             }
         };
 
-        private static readonly Dictionary<string, Func<SongEntry, bool>> Conditions = new()
+        private static readonly Dictionary<string, Func<SongMetadata, bool>> Conditions = new()
         {
             {
                 "song", x => !string.IsNullOrEmpty(x.Name)
@@ -109,7 +110,7 @@ namespace YARG.Helpers
             }
         };
 
-        public static Line[] ToStyled(string format, SongEntry song)
+        public static Line[] ToStyled(string format, SongMetadata song)
         {
             var formatLines = Regex.Split(format, @"\r?\n|\r");
             var outputLines = new Line[formatLines.Length];

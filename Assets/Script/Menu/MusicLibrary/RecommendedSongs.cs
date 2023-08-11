@@ -1,6 +1,7 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using YARG.Core.Song;
 using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
@@ -9,9 +10,9 @@ namespace YARG.Menu.MusicLibrary
     {
         private const int TRIES = 10;
 
-        private static readonly List<SongEntry> _recommendedSongs = new();
+        private static readonly List<SongMetadata> _recommendedSongs = new();
 
-        public static List<SongEntry> GetRecommendedSongs()
+        public static List<SongMetadata> GetRecommendedSongs()
         {
             _recommendedSongs.Clear();
 
@@ -28,8 +29,8 @@ namespace YARG.Menu.MusicLibrary
             _recommendedSongs.Sort((x, y) =>
             {
                 // This is technically YARG songs last because of the reverse below
-                if (x.Source.ToLowerInvariant() == "yarg") return -1;
-                if (y.Source.ToLowerInvariant() == "yarg") return 1;
+                if (x.Source.SortStr == "yarg") return -1;
+                if (y.Source.SortStr == "yarg") return 1;
                 return 0;
             });
 
@@ -54,7 +55,7 @@ namespace YARG.Menu.MusicLibrary
             AddSongsFromTopPlayedArtists(mostPlayed);
         }
 
-        private static void AddMostPlayedSongs(List<SongEntry> mostPlayed)
+        private static void AddMostPlayedSongs(List<SongMetadata> mostPlayed)
         {
             // Add two random top ten most played songs (ten tries each)
             for (int i = 0; i < 2; i++)
@@ -74,7 +75,7 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
-        private static void AddSongsFromTopPlayedArtists(List<SongEntry> mostPlayed)
+        private static void AddSongsFromTopPlayedArtists(List<SongMetadata> mostPlayed)
         {
             // Pick 1 or 2...
             int choices = 2;
@@ -119,9 +120,9 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
-        private static List<SongEntry> GetAllSongsFromArtist(string artist)
+        private static List<SongMetadata> GetAllSongsFromArtist(string artist)
         {
-            return SongContainer.Songs
+            return GlobalVariables.Instance.Container.Songs
                 .Where(i => RemoveDiacriticsAndArticle(i.Artist) == RemoveDiacriticsAndArticle(artist))
                 .ToList();
         }
@@ -136,8 +137,8 @@ namespace YARG.Menu.MusicLibrary
             // Try to add a YARG setlist song (we love bias!)
             if (Random.value <= 0.6f)
             {
-                var yargSongs = SongContainer.Songs
-                    .Where(i => i.Source.ToLowerInvariant() == "yarg").ToList();
+                var yargSongs = GlobalVariables.Instance.Container.Songs
+                    .Where(i => i.Source.SortStr == "yarg").ToList();
 
                 // Skip if the user has no YARG songs :(
                 if (yargSongs.Count <= 0)
@@ -164,7 +165,7 @@ namespace YARG.Menu.MusicLibrary
             // Add a completely random song (ten tries)
             for (int t = 0; t < TRIES; t++)
             {
-                var song = ((IList<SongEntry>) SongContainer.Songs).Pick();
+                var song = ((IList<SongMetadata>) GlobalVariables.Instance.Container.Songs).Pick();
 
                 if (_recommendedSongs.Contains(song))
                 {

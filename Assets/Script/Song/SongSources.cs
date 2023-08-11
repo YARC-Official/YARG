@@ -44,11 +44,14 @@ namespace YARG.Song
 
         public class ParsedSource
         {
+            private const string RAW_ICON_URL =
+                "https://raw.githubusercontent.com/YARC-Official/OpenSource/master/";
+
             private readonly string _icon;
             private readonly Dictionary<string, string> _names;
 
             public SourceType Type { get; private set; }
-            public bool IsFromBase { get; private set; }
+            public string IconURL { get; private set; }
 
             private bool _isLoadingIcon;
             private Sprite _iconCache;
@@ -58,7 +61,7 @@ namespace YARG.Song
                 _icon = icon;
                 _names = names;
                 Type = type;
-                IsFromBase = isFromBase;
+                IconURL = isFromBase ? RAW_ICON_URL + $"base/icons/{_icon}.png" : RAW_ICON_URL + $"extra/icons/{_icon}.png";
             }
 
             public string GetDisplayName()
@@ -116,16 +119,6 @@ namespace YARG.Song
 
                 return _iconCache;
             }
-
-            public string GetIconURL()
-            {
-                if (IsFromBase)
-                {
-                    return RAW_ICON_URL + $"base/icons/{_icon}.png";
-                }
-
-                return RAW_ICON_URL + $"extra/icons/{_icon}.png";
-            }
         }
 
         public static string SourcesFolder => Path.Combine(PathHelper.StreamingAssetsPath, "sources");
@@ -134,9 +127,6 @@ namespace YARG.Song
 
         private const string SOURCE_COMMIT_URL =
             "https://api.github.com/repos/YARC-Official/OpenSource/commits?per_page=1";
-
-        private const string RAW_ICON_URL =
-            "https://raw.githubusercontent.com/YARC-Official/OpenSource/master/";
 
         public const string SOURCE_ZIP_URL =
             "https://github.com/YARC-Official/OpenSource/archive/refs/heads/master.zip";

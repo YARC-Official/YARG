@@ -1,7 +1,8 @@
-using System.IO;
+﻿using System.IO;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using UnityEngine;
+using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.PlayMode;
 using YARG.Song;
@@ -51,7 +52,7 @@ namespace YARG
             BlankSongFile();
         }
 
-        void OnSongStart(SongEntry song)
+        void OnSongStart(SongMetadata song)
         {
             // Open the text file for appending
             using var writer = new StreamWriter(TextFilePath, false);
@@ -75,7 +76,7 @@ namespace YARG
             jsonWriter.Write(json);
         }
 
-        void OnSongEnd(SongEntry song)
+        void OnSongEnd(SongMetadata song)
         {
             BlankSongFile();
         }

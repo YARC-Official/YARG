@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using YARG.Core.Song;
 using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
@@ -15,16 +16,16 @@ namespace YARG.Menu.MusicLibrary
         private string _primary;
         private string _side;
 
-        public IEnumerable<SongEntry> SongsUnderCategory { get; private set; }
+        public IEnumerable<SongMetadata> SongsUnderCategory { get; private set; }
 
-        public CategoryViewType(string primary, string side, IEnumerable<SongEntry> songsUnderCategory = null)
+        public CategoryViewType(string primary, string side, IEnumerable<SongMetadata> songsUnderCategory = null)
         {
             _primary = primary;
             _side = side;
 
             if (songsUnderCategory == null)
             {
-                SongsUnderCategory = Enumerable.Empty<SongEntry>();
+                SongsUnderCategory = Enumerable.Empty<SongMetadata>();
             }
             else
             {
@@ -32,7 +33,7 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
-        public int CountOf<T>(Func<SongEntry, T> selector)
+        public int CountOf<T>(Func<SongMetadata, T> selector)
         {
             return SongsUnderCategory.Select(selector).Distinct().Count();
         }
