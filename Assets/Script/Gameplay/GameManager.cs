@@ -404,10 +404,7 @@ namespace YARG.Gameplay
                 
                 try
                 {
-                    if (Song.IniData != null)
-                        LoadIniChart();
-                    else
-                        LoadCONChart();
+                    _chart = Song.LoadChart();
                 }
                 catch (Exception ex)
                 {
@@ -436,47 +433,6 @@ namespace YARG.Gameplay
                 return;
 
             _chartLoaded?.Invoke(_chart);
-        }
-
-        private void LoadIniChart()
-        {
-            string notesFile = Song.IniData.chartFile.FullName;
-            Debug.Log($"Loading chart file {notesFile}");
-            _chart = SongChart.FromFile(ParseSettings.Default, notesFile);
-        }
-
-#nullable enable
-        private void LoadCONChart()
-        {
-            Debug.Log($"Loading CON chart file");
-            var rbData = Song.RBData!;
-            byte[]? chartFile = rbData.LoadMidiFile();
-            if (chartFile == null)
-                throw new Exception("Base midi file not present");
-
-            using MemoryStream chartStream = new(chartFile);
-            _chart = SongChart.FromMidi(ParseSettings.Default, MidiFile.Read(chartStream));
-
-            var shared = rbData.SharedMetadata;
-            if (shared.UpdateMidi != null)
-            {
-                chartFile = shared.LoadMidiUpdateFile();
-                if (chartFile == null)
-                    throw new Exception("Scanned update midi file not present");
-
-                using MemoryStream updateStream = new(chartFile);
-                _chart.Append(SongChart.FromMidi(ParseSettings.Default, MidiFile.Read(updateStream)));
-            }
-
-            if (shared.Upgrade != null)
-            {
-                chartFile = shared.Upgrade.LoadUpgradeMidi();
-                if (chartFile == null)
-                    throw new Exception("Scanned upgrade midi file not present");
-
-                using MemoryStream upgradeStream = new(chartFile);
-                _chart.Append(SongChart.FromMidi(ParseSettings.Default, MidiFile.Read(upgradeStream)));
-            }
         }
 
         private async UniTask LoadAudio()
