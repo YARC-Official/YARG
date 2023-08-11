@@ -102,6 +102,12 @@ namespace YARG.Gameplay.HUD
             }
         }
 
+        public void ResetStats()
+        {
+            _bestPercentHit = 0f;
+            bestPercentText.text = "0%";
+        }
+
         public void SetSections(Section[] sections)
         {
             _sections = sections;
@@ -109,6 +115,8 @@ namespace YARG.Gameplay.HUD
 
             _percentHit = 0f;
             _bestPercentHit = 0f;
+
+            bestPercentText.text = "0%";
         }
     }
 }
