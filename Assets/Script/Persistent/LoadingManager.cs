@@ -83,14 +83,18 @@ namespace YARG
         private async UniTask ScanSongFolders(bool fast)
         {
             var directories = SettingsManager.Settings.SongFolders;
-            if (!string.IsNullOrEmpty(PathHelper.SetlistPath))
-                directories.Add(PathHelper.SetlistPath);
+
+            // Handle official setlist invisibly if it is installed
+            string setlistPath = PathHelper.SetlistPath;
+            if (!string.IsNullOrEmpty(setlistPath) && !directories.Contains(setlistPath))
+                directories.Add(setlistPath);
 
 #if UNITY_EDITOR
             CacheHandler handler = new(PathHelper.PersistentDataPath, PathHelper.PersistentDataPath, true, directories.ToArray());
 #else
             CacheHandler handler = new(PathHelper.PersistentDataPath, PathHelper.ExecutablePath, true, directories.ToArray());
 #endif
+
             SongCache cache = null;
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             var task = Task.Run(() => cache = handler.RunScan(fast));
@@ -104,6 +108,10 @@ namespace YARG
             Debug.Log($"Scan time: {stopwatch.Elapsed.TotalSeconds}s");
             foreach (var err in handler.errorList)
                 Debug.LogError(err);
+
+            // Remove official setlist path so it doesn't show up in the list of folders
+            if (!string.IsNullOrEmpty(setlistPath))
+                directories.Remove(setlistPath);
 
             GlobalVariables.Instance.SetSongList(cache);
         }
