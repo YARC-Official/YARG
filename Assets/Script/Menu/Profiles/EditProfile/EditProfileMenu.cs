@@ -135,6 +135,9 @@ namespace YARG.Menu.Profiles
                         break;
                 }
             }
+
+            LayoutRebuilder.MarkLayoutForRebuild(_gameModeList as RectTransform);
+            LayoutRebuilder.MarkLayoutForRebuild(_bindsList as RectTransform);
         }
 
         private void RefreshBinding<TView, TState, TBinding, TSingle>(TBinding binding, GameObject prefab)

@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace YARG.Menu
 {
@@ -33,6 +34,13 @@ namespace YARG.Menu
                 // Flip the arrow graphic
                 float arrowScale = value ? -1f : 1f;
                 _arrow.transform.localScale = _arrow.transform.localScale.WithY(arrowScale);
+
+                // Trigger layout rebuild
+                if (transform is RectTransform rect)
+                {
+                    rect.ForceUpdateRectTransforms();
+                    LayoutRebuilder.MarkLayoutForRebuild(rect);
+                }
             }
         }
 
