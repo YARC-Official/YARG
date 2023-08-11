@@ -117,6 +117,7 @@ namespace YARG.Gameplay.HUD
             _bestPercentHit = 0f;
 
             bestPercentText.text = "0%";
+            sectionText.text = $"{_sections[_currentSectionIndex].Name}";
         }
     }
 }
