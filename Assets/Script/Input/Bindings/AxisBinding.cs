@@ -2,12 +2,19 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
+using UnityEngine.InputSystem.Processors;
 using YARG.Input.Serialization;
 
 namespace YARG.Input
 {
     public class SingleAxisBinding : SingleBinding<float>
     {
+        public float Minimum;
+        public float Maximum;
+        public float ZeroPoint;
+
+        public float RawState { get; private set; }
+
         public SingleAxisBinding(InputControl<float> control) : base(control)
         {
         }
@@ -20,11 +27,45 @@ namespace YARG.Input
         public SingleAxisBinding(InputControl<float> control, SerializedInputControl serialized)
             : base(control, serialized)
         {
+            if (!serialized.Parameters.TryGetValue(nameof(Minimum), out string minText) ||
+                !float.TryParse(minText, out float min))
+                min = 0f;
+
+            Minimum = min;
+
+            if (!serialized.Parameters.TryGetValue(nameof(Maximum), out string maxText) ||
+                !float.TryParse(maxText, out float max))
+                max = 0;
+
+            Maximum = max;
+
+            if (!serialized.Parameters.TryGetValue(nameof(ZeroPoint), out string zeroPointText) ||
+                !float.TryParse(zeroPointText, out float zeroPoint))
+                zeroPoint = 0;
+
+            ZeroPoint = zeroPoint;
         }
 
         public override SerializedInputControl Serialize()
         {
-            return base.Serialize();
+            var serialized = base.Serialize();
+            if (serialized is null)
+                return null;
+
+            serialized.Parameters.Add(nameof(Minimum), Minimum.ToString());
+            serialized.Parameters.Add(nameof(Maximum), Maximum.ToString());
+            serialized.Parameters.Add(nameof(ZeroPoint), ZeroPoint.ToString());
+
+            return serialized;
+        }
+
+        public override float UpdateState(InputEventPtr eventPtr)
+        {
+            if (!Control.HasValueChangeInEvent(eventPtr))
+                return State;
+
+            RawState = Control.ReadValueFromEvent(eventPtr);
+            return State = NormalizeProcessor.Normalize(RawState, Minimum, Maximum, ZeroPoint);
         }
     }
 
