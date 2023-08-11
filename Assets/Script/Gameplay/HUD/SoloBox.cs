@@ -87,6 +87,16 @@ namespace YARG.Gameplay.HUD
             _currentCoroutine = StartCoroutine(HideCoroutine(soloBonus, endCallback));
         }
 
+        public void ForceEndSolo()
+        {
+            StopCurrentCoroutine();
+            _soloEnded = true;
+
+            _soloBox.gameObject.SetActive(false);
+            _currentCoroutine = null;
+            _solo = null;
+        }
+
         private IEnumerator HideCoroutine(int soloBonus, Action endCallback)
         {
             _soloEnded = true;

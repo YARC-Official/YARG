@@ -258,6 +258,8 @@ namespace YARG.Gameplay.Player
             IsFc = true;
             ComboMeter.SetFullCombo(true);
 
+            TrackView.ForceEndSolo();
+
             NoteIndex = 0;
             BeatlineIndex = 0;
             NotesHit = 0;
