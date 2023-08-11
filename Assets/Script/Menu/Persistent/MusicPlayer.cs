@@ -37,7 +37,7 @@ namespace YARG.Menu.Persistent
             await UniTask.WaitUntil(() => !LoadingManager.Instance.gameObject.activeSelf);
 
             // Disable if there are no songs to play
-            if (GlobalVariables.Instance.Container.Songs.Count <= 0)
+            if (GlobalVariables.Instance.SongContainer.Songs.Count <= 0)
             {
                 gameObject.SetActive(false);
                 return;
@@ -65,7 +65,7 @@ namespace YARG.Menu.Persistent
 
         private async UniTask NextSong()
         {
-            var song = GlobalVariables.Instance.Container.Songs[Random.Range(0, GlobalVariables.Instance.Container.Songs.Count)];
+            var song = GlobalVariables.Instance.SongContainer.Songs[Random.Range(0, GlobalVariables.Instance.SongContainer.Songs.Count)];
             await UniTask.RunOnThreadPool(() => IAudioManager.LoadAudio(GlobalVariables.AudioManager, song, 1f, SongStem.Crowd));
 
             // Set song title text

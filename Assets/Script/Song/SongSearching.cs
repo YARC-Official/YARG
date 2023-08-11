@@ -194,7 +194,7 @@ namespace YARG.Song
         {
             if (arg.attribute == SongAttribute.Unspecified)
             {
-                var results = GlobalVariables.Instance.Container.Songs.Select(i => new
+                var results = GlobalVariables.Instance.SongContainer.Songs.Select(i => new
                 {
                     score = Search(arg.argument, i),
                     songInfo = i
@@ -325,7 +325,7 @@ namespace YARG.Song
                 if (arg.Length == 0)
                 {
                     SortedDictionary<string, List<SongMetadata>> titleMap = new();
-                    foreach (var element in GlobalVariables.Instance.Container.Titles)
+                    foreach (var element in GlobalVariables.Instance.SongContainer.Titles)
                         titleMap.Add(element.Key, new(element.Value));
                     return titleMap;
                 }
@@ -336,7 +336,7 @@ namespace YARG.Song
 
                 char character = arg[i];
                 string key = char.IsDigit(character) ? "0-9" : char.ToUpper(character).ToString();
-                var search = GlobalVariables.Instance.Container.Titles[key];
+                var search = GlobalVariables.Instance.SongContainer.Titles[key];
 
                 List<SongMetadata> result = new(search.Count);
                 foreach (var element in search)
@@ -349,7 +349,7 @@ namespace YARG.Song
             if (sort == SongAttribute.Year)
             {
                 List<SongMetadata> entries = new();
-                foreach (var element in GlobalVariables.Instance.Container.Years)
+                foreach (var element in GlobalVariables.Instance.SongContainer.Years)
                     foreach (var entry in element.Value)
                         if (entry.Year.Contains(arg))
                             entries.Add(entry);
@@ -358,13 +358,13 @@ namespace YARG.Song
 
             var elements = sort switch
             {
-                SongAttribute.Artist => GlobalVariables.Instance.Container.Artists,
-                SongAttribute.Album => GlobalVariables.Instance.Container.Albums,
-                SongAttribute.Source => GlobalVariables.Instance.Container.Sources,
-                SongAttribute.Genre => GlobalVariables.Instance.Container.Genres,
-                SongAttribute.Charter => GlobalVariables.Instance.Container.Charters,
-                SongAttribute.Playlist => GlobalVariables.Instance.Container.Playlists,
-                SongAttribute.Instrument => GlobalVariables.Instance.Container.Instruments,
+                SongAttribute.Artist => GlobalVariables.Instance.SongContainer.Artists,
+                SongAttribute.Album => GlobalVariables.Instance.SongContainer.Albums,
+                SongAttribute.Source => GlobalVariables.Instance.SongContainer.Sources,
+                SongAttribute.Genre => GlobalVariables.Instance.SongContainer.Genres,
+                SongAttribute.Charter => GlobalVariables.Instance.SongContainer.Charters,
+                SongAttribute.Playlist => GlobalVariables.Instance.SongContainer.Playlists,
+                SongAttribute.Instrument => GlobalVariables.Instance.SongContainer.Instruments,
                 _ => throw new Exception("stoopid"),
             };
 

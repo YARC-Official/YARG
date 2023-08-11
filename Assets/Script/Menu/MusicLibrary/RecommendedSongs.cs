@@ -122,7 +122,7 @@ namespace YARG.Menu.MusicLibrary
 
         private static List<SongMetadata> GetAllSongsFromArtist(string artist)
         {
-            return GlobalVariables.Instance.Container.Songs
+            return GlobalVariables.Instance.SongContainer.Songs
                 .Where(i => RemoveDiacriticsAndArticle(i.Artist) == RemoveDiacriticsAndArticle(artist))
                 .ToList();
         }
@@ -137,7 +137,7 @@ namespace YARG.Menu.MusicLibrary
             // Try to add a YARG setlist song (we love bias!)
             if (Random.value <= 0.6f)
             {
-                var yargSongs = GlobalVariables.Instance.Container.Songs
+                var yargSongs = GlobalVariables.Instance.SongContainer.Songs
                     .Where(i => i.Source.SortStr == "yarg").ToList();
 
                 // Skip if the user has no YARG songs :(
@@ -165,7 +165,7 @@ namespace YARG.Menu.MusicLibrary
             // Add a completely random song (ten tries)
             for (int t = 0; t < TRIES; t++)
             {
-                var song = ((IList<SongMetadata>) GlobalVariables.Instance.Container.Songs).Pick();
+                var song = ((IList<SongMetadata>) GlobalVariables.Instance.SongContainer.Songs).Pick();
 
                 if (_recommendedSongs.Contains(song))
                 {

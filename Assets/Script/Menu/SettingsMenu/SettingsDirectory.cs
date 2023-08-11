@@ -40,7 +40,7 @@ namespace YARG.Menu.Settings
                 pathText.text = SongFolders[_index];
 
                 int songCount = 0;
-                foreach (var song in GlobalVariables.Instance.Container.Songs)
+                foreach (var song in GlobalVariables.Instance.SongContainer.Songs)
                     if (song.Directory.StartsWith(SongFolders[_index]))
                         ++songCount;
 

@@ -40,7 +40,7 @@ namespace YARG
 
         public SceneIndex CurrentScene { get; private set; } = SceneIndex.Persistent;
 
-        public SongContainer Container { get; private set; }
+        public SongContainer SongContainer { get; private set; }
         public SongSorting SortedSongs { get; private set; }
 
         public SongMetadata CurrentSong;
@@ -117,8 +117,8 @@ namespace YARG
 
         public void SetSongList(SongCache cache)
         {
-            Container = new(cache);
-            SortedSongs = new(Container);
+            SongContainer = new(cache);
+            SortedSongs = new(SongContainer);
         }
     }
 }
