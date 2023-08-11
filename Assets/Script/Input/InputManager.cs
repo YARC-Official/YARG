@@ -82,6 +82,12 @@ namespace YARG.Input
         private static void OnAfterUpdate()
         {
             CurrentUpdateTime = CurrentInputTime;
+
+            foreach (var player in PlayerContainer.Players)
+            {
+                var profileBinds = player.Bindings;
+                profileBinds.UpdateBindingsForFrame();
+            }
         }
 
         private static void OnEvent(InputEventPtr eventPtr)

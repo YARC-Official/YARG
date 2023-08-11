@@ -132,6 +132,14 @@ namespace YARG.Input
             }
         }
 
+        public void UpdateBindingsForFrame()
+        {
+            foreach (var binding in _bindings)
+            {
+                binding.UpdateForFrame();
+            }
+        }
+
         public void ProcessInputEvent(InputEventPtr eventPtr)
         {
             foreach (var binding in _bindings)

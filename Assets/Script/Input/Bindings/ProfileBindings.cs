@@ -271,6 +271,16 @@ namespace YARG.Input
             MenuBindings.OnDeviceRemoved(device);
         }
 
+        public void UpdateBindingsForFrame()
+        {
+            foreach (var bindings in _bindsByGameMode.Values)
+            {
+                bindings.UpdateBindingsForFrame();
+            }
+
+            MenuBindings.UpdateBindingsForFrame();
+        }
+
         public void ProcessInputEvent(InputEventPtr eventPtr)
         {
             var device = InputSystem.GetDeviceById(eventPtr.deviceId);
