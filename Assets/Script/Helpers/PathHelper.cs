@@ -89,7 +89,7 @@ namespace YARG.Helpers
                     return null;
 
                 string setlistPath = Path.Join(downloadLocation.ToString(), "Setlists", "official");
-                if (!Directory.Exists(SetlistPath))
+                if (!Directory.Exists(setlistPath))
                     return null;
 
                 return setlistPath;
