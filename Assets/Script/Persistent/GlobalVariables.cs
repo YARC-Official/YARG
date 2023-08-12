@@ -27,7 +27,7 @@ namespace YARG
     [DefaultExecutionOrder(-5000)]
     public class GlobalVariables : MonoSingleton<GlobalVariables>
     {
-        public static readonly YargVersion CurrentVersion = YargVersion.Parse("v0.11.0");
+        public static readonly YargVersion CurrentVersion = YargVersion.Parse("v0.12.0-a3");
 
         public List<YargPlayer> Players { get; private set; }
 

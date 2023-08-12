@@ -1,3 +1,6 @@
+using System;
+using UnityEngine;
+
 namespace YARG
 {
     public readonly struct YargVersion
@@ -5,28 +8,30 @@ namespace YARG
         public readonly int Major;
         public readonly int Minor;
         public readonly int Revision;
-        public readonly bool Beta;
+        public readonly string PrereleaseText;
+
+        public readonly bool IsPrerelease => !string.IsNullOrEmpty(PrereleaseText);
 
         public readonly int VersionBits;
 
-        public YargVersion(int major, int minor, int revision, bool beta = false)
+        public YargVersion(int major, int minor, int revision, string prerelease = null)
         {
             Major = major;
             Minor = minor;
             Revision = revision;
-            Beta = beta;
+            PrereleaseText = prerelease;
 
             VersionBits = (byte) Major << 24;
             VersionBits |= (byte) Minor << 16;
             VersionBits |= (byte) Revision << 8;
-            VersionBits |= (byte) (Beta ? 1 : 0);
+            VersionBits |= (byte) (IsPrerelease ? 1 : 0);
         }
 
         public override string ToString()
         {
-            if (Beta)
+            if (IsPrerelease)
             {
-                return $"v{Major}.{Minor}.{Revision}b";
+                return $"v{Major}.{Minor}.{Revision}-{PrereleaseText}";
             }
             else
             {
@@ -34,27 +39,40 @@ namespace YARG
             }
         }
 
-        public static YargVersion Parse(string major)
+        public static YargVersion Parse(string text)
         {
             try
             {
-                string[] split = major[1..].Split('.');
+                // Remove starting 'v'
+                if (text.StartsWith('v'))
+                    text = text[1..];
 
-                bool beta = false;
-                if (split[2].EndsWith("b"))
+                // Split out each of the numbers
+                var parts = text.Split('.');
+                string major = parts[0];
+                string minor = parts[1];
+                string revision = parts[2];
+
+                // Check for prerelease info
+                string prerelease = null;
+                if (revision.Contains('-'))
                 {
-                    split[2] = split[2][..^1];
-                    beta = true;
+                    var revisionSplit = revision.Split('-', 2);
+                    revision = revisionSplit[0];
+                    prerelease = revisionSplit[1];
                 }
 
-                int majorNum = int.Parse(split[0]);
-                int minorNum = int.Parse(split[1]);
-                int revisionNum = int.Parse(split[2]);
+                // Parse the version numbers
+                int majorNum = int.Parse(major);
+                int minorNum = int.Parse(minor);
+                int revisionNum = int.Parse(revision);
 
-                return new YargVersion(majorNum, minorNum, revisionNum, beta);
+                return new YargVersion(majorNum, minorNum, revisionNum, prerelease);
             }
-            catch
+            catch (Exception ex)
             {
+                Debug.LogError("Failed to parse version string!");
+                Debug.LogException(ex);
                 return new YargVersion(0, 0, 0);
             }
         }
@@ -72,7 +90,7 @@ namespace YARG
         public static bool operator ==(YargVersion a, YargVersion b)
         {
             return a.Major == b.Major && a.Minor == b.Minor &&
-                a.Revision == b.Revision && a.Beta == b.Beta;
+                a.Revision == b.Revision && a.PrereleaseText == b.PrereleaseText;
         }
 
         public static bool operator !=(YargVersion a, YargVersion b)
@@ -108,7 +126,7 @@ namespace YARG
 
             if (a.Revision != b.Revision) return false;
 
-            if (!a.Beta && b.Beta)
+            if (!a.IsPrerelease && b.IsPrerelease)
             {
                 return true;
             }

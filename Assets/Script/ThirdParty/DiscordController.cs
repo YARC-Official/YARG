@@ -100,7 +100,7 @@ namespace YARG.ThirdParty
         private void Start()
         {
             // if it's a Nightly build, use the Nightly logo, otherwise use the Stable logo
-            if (GlobalVariables.CurrentVersion.Beta)
+            if (GlobalVariables.CurrentVersion.IsPrerelease)
             {
                 _defaultDetails = _nightlyDetails;
             }

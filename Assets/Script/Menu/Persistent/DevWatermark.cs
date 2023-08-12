@@ -10,8 +10,7 @@ namespace YARG.Menu.Persistent
 
         void Start()
         {
-            // check if GlobalVariables.CurrentVersion ends with "b"
-            if (GlobalVariables.CurrentVersion.Beta)
+            if (GlobalVariables.CurrentVersion.IsPrerelease)
             {
                 watermarkText.text = $"<b>YARG {GlobalVariables.CurrentVersion}</b>  Developer Build";
                 watermarkText.gameObject.SetActive(true);
