@@ -726,10 +726,10 @@ RectTransform:
   m_Father: {fileID: 787126831}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 557.2875, y: -43}
-  m_SizeDelta: {x: 1114.575, y: 40}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &531716088
 MonoBehaviour:
@@ -751,7 +751,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: <b>Yarg v1.22.33b</b> Development Build
+  m_text: <b>YARG v1.22.33b</b> Development Build
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ae170e91fd29a90479e906ddffb1d8ee, type: 2}
   m_sharedMaterial: {fileID: -5480317595949376055, guid: ae170e91fd29a90479e906ddffb1d8ee,
@@ -761,7 +761,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 2533359615
   m_fontColor: {r: 1, g: 1, b: 1, a: 0.5882353}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -1790,7 +1790,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &787126831
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1807,10 +1807,10 @@ RectTransform:
   m_Father: {fileID: 651382555}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 1337.7125, y: -43}
-  m_SizeDelta: {x: 1114.575, y: 86}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &787126833
 MonoBehaviour:
@@ -5562,18 +5562,6 @@ MonoBehaviour:
   _buttonPrefab: {fileID: 4008179247140915981, guid: 30b9c551da7693c43aaff6985673055d,
     type: 3}
   <MusicPlayer>k__BackingField: {fileID: 674775830}
-  _menuActionColors:
-  - {r: 0.09019608, g: 0.8862745, b: 0.5372549, a: 1}
-  - {r: 0.9529412, g: 0.16862746, b: 0.21568628, a: 1}
-  - {r: 1, g: 0.73333335, b: 0.050980393, a: 1}
-  - {r: 0.21568628, g: 0.5176471, b: 0.9764706, a: 1}
-  - {r: 1, g: 0.5176471, b: 0.07450981, a: 1}
-  - {r: 1, g: 1, b: 1, a: 1}
-  - {r: 1, g: 1, b: 1, a: 1}
-  - {r: 1, g: 1, b: 1, a: 1}
-  - {r: 1, g: 1, b: 1, a: 1}
-  - {r: 1, g: 1, b: 1, a: 1}
-  - {r: 1, g: 1, b: 1, a: 1}
 --- !u!224 &6394462513451335040
 RectTransform:
   m_ObjectHideFlags: 0

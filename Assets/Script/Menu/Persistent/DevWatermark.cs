@@ -12,7 +12,7 @@ namespace YARG.Menu.Persistent
         {
             if (GlobalVariables.CurrentVersion.IsPrerelease)
             {
-                watermarkText.text = $"<b>YARG {GlobalVariables.CurrentVersion}</b>  Developer Build";
+                watermarkText.text = $"<b>YARG {GlobalVariables.CurrentVersion}</b>  Development Build";
                 watermarkText.gameObject.SetActive(true);
             }
             else
