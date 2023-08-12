@@ -1,67 +1,60 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI; // Import the UI namespace
+using UnityEngine.UI;
 
-namespace YARG
+// Import the UI namespace
+namespace YARG.Menu
 {
     [ExecuteInEditMode]
     public class BadgeMenu : MonoBehaviour
     {
-        [Space(20)]
-        
-        [SerializeField]
-        private RawImage BadgeImgComponent;
-
-        [SerializeField]
-        private TextMeshProUGUI BadgeTextComponent;
 
         [Space(20)]
 
         [SerializeField]
-        private Color BadgeColor;
+        private RawImage badgeImgComponent;
 
         [SerializeField]
-        private string BadgeText;
+        private TextMeshProUGUI badgeTextComponent;
+
+        [Space(20)]
+
+        [SerializeField]
+        private Color badgeColor;
+
+        [SerializeField]
+        private string badgeText;
 
         // This method is called whenever an inspector variable is changed in the Editor
         private void OnValidate()
         {
-            // Update the color in the Editor
-            if (BadgeImgComponent != null)
-            {
-                Graphic badgeGraphic = BadgeImgComponent.GetComponent<Graphic>();
-                badgeGraphic.color = BadgeColor;
-            }
-
-            if (BadgeTextComponent != null)
-            {
-                BadgeTextComponent.color = BadgeColor;
-                BadgeTextComponent.text = BadgeText;
-
-            }
+            UpdateElements();
         }
 
         // Start is called before the first frame update
         void Start()
         {
-            // Set the color of the RawImage's Graphic component
-            if (BadgeImgComponent != null)
-            {
-                Graphic badgeGraphic = BadgeImgComponent.GetComponent<Graphic>();
-                badgeGraphic.color = BadgeColor;
-            }
-
-            // Set the color of the text
-            if (BadgeTextComponent != null)
-            {
-                BadgeTextComponent.color = BadgeColor;
-                BadgeTextComponent.text = BadgeText;
-            }
+            UpdateElements();
 
             // disable script
             enabled = false;
+        }
+
+        private void UpdateElements()
+        {
+            // Set the color of the RawImage's Graphic component
+            if (badgeImgComponent != null)
+            {
+                var badgeGraphic = badgeImgComponent.GetComponent<Graphic>();
+                badgeGraphic.color = badgeColor;
+            }
+
+            // Set the color of the text
+            if (badgeTextComponent != null)
+            {
+                badgeTextComponent.color = badgeColor;
+                badgeTextComponent.text = badgeText;
+            }
         }
     }
 }
