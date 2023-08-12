@@ -34,27 +34,7 @@ namespace YARG.Audio.BASS
 
         private bool _isInitialized;
 
-        public event Action SongEnd
-        {
-            add
-            {
-                if (_mixer is null)
-                {
-                    throw new InvalidOperationException("No song is currently loaded!");
-                }
-
-                _mixer.SongEnd += value;
-            }
-            remove
-            {
-                if (_mixer is null)
-                {
-                    throw new InvalidOperationException("No song is currently loaded!");
-                }
-
-                _mixer.SongEnd -= value;
-            }
-        }
+        public event Action SongEnd;
 
         private double[] _stemVolumes;
         private ISampleChannel[] _sfxSamples;
@@ -266,6 +246,9 @@ namespace YARG.Audio.BASS
             AudioLengthD = _mixer.LeadChannel.LengthD;
             AudioLengthF = (float) AudioLengthD;
 
+            // Listen for song end
+            _mixer.SongEnd += OnSongEnd;
+
             IsAudioLoaded = true;
         }
 
@@ -331,6 +314,9 @@ namespace YARG.Audio.BASS
             AudioLengthD = mixer.LeadChannel.LengthD;
             AudioLengthF = (float) AudioLengthD;
 
+            // Listen for song end
+            _mixer.SongEnd += OnSongEnd;
+
             IsAudioLoaded = true;
             _mixer = mixer;
         }
@@ -369,6 +355,9 @@ namespace YARG.Audio.BASS
             AudioLengthD = _mixer.LeadChannel.LengthD;
             AudioLengthF = (float) AudioLengthD;
 
+            // Listen for song end
+            _mixer.SongEnd += OnSongEnd;
+
             IsAudioLoaded = true;
         }
 
@@ -378,8 +367,12 @@ namespace YARG.Audio.BASS
             IsAudioLoaded = false;
 
             // Free mixer (and all channels in it)
-            _mixer?.Dispose();
-            _mixer = null;
+            if (_mixer is not null)
+            {
+                _mixer.SongEnd -= OnSongEnd;
+                _mixer.Dispose();
+                _mixer = null;
+            }
         }
 
         public void Play() => Play(false);
@@ -527,6 +520,11 @@ namespace YARG.Audio.BASS
 
         public void SetPosition(double position, bool desyncCompensation = true)
             => _mixer?.SetPosition(position, desyncCompensation);
+
+        private void OnSongEnd()
+        {
+            SongEnd?.Invoke();
+        }
 
         private void OnDestroy()
         {
