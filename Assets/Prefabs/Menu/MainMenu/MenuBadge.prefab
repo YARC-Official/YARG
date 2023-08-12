@@ -67,7 +67,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: NEW
+  m_text: New
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 110af301974e95f4488ba4fade508431, type: 2}
   m_sharedMaterial: {fileID: -4644935410258654028, guid: 110af301974e95f4488ba4fade508431,
@@ -101,7 +101,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 16
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 8192
   m_textAlignment: 65535
@@ -287,7 +287,7 @@ RectTransform:
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0.5}
@@ -342,9 +342,6 @@ GameObject:
   - component: {fileID: 8708184733134376298}
   - component: {fileID: 8708184733134376297}
   - component: {fileID: 452124167599542816}
-  - component: {fileID: 8947925650443576158}
-  - component: {fileID: 1300767423824717202}
-  - component: {fileID: 1781996627438884094}
   m_Layer: 5
   m_Name: MenuBadge
   m_TagString: Untagged
@@ -388,69 +385,12 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8708184733134376309}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6ae6b679a0f3cee49997da882be73bac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  BadgeImgComponent: {fileID: 3062794258422823457}
-  BadgeTextComponent: {fileID: 9145376115701667473}
-  BadgeColor: {r: 1, g: 0.92941177, b: 0.2901961, a: 1}
-  BadgeText: NEW
---- !u!114 &8947925650443576158
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8708184733134376309}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 415519b8353a4d0589628d2259ed63a3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _selectOnHover: 1
-  _selectedVisual: {fileID: 0}
-  _onClick:
-    m_PersistentCalls:
-      m_Calls: []
---- !u!114 &1300767423824717202
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8708184733134376309}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Padding:
-    m_Left: 0
-    m_Right: 0
-    m_Top: 0
-    m_Bottom: 0
-  m_ChildAlignment: 3
-  m_Spacing: 0
-  m_ChildForceExpandWidth: 1
-  m_ChildForceExpandHeight: 1
-  m_ChildControlWidth: 1
-  m_ChildControlHeight: 1
-  m_ChildScaleWidth: 0
-  m_ChildScaleHeight: 0
-  m_ReverseArrangement: 0
---- !u!114 &1781996627438884094
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8708184733134376309}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_HorizontalFit: 2
-  m_VerticalFit: 0
+  badgeImgComponent: {fileID: 3062794258422823457}
+  badgeTextComponent: {fileID: 9145376115701667473}
+  badgeColor: {r: 1, g: 0.92941177, b: 0.2901961, a: 1}
+  badgeText: New

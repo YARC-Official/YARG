@@ -2,23 +2,17 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-// Import the UI namespace
-namespace YARG.Menu
+namespace YARG.Menu.Main
 {
-    [ExecuteInEditMode]
-    public class BadgeMenu : MonoBehaviour
+    public class Badge : MonoBehaviour
     {
-
-        [Space(20)]
-
         [SerializeField]
         private RawImage badgeImgComponent;
 
         [SerializeField]
         private TextMeshProUGUI badgeTextComponent;
 
-        [Space(20)]
-
+        [Space]
         [SerializeField]
         private Color badgeColor;
 
