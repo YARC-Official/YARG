@@ -72,7 +72,7 @@ namespace YARG.Gameplay.HUD
             _percentHit = (float)notesHit / totalNotes;
 
             notesHitTotalText.text = $"{notesHit}/{totalNotes}";
-            percentHitText.text = $"{_percentHit * 100f:0}%";
+            percentHitText.text = $"{Mathf.FloorToInt(_percentHit * 100)}%";
 
             while(_currentSectionIndex < _sections.Length && _gameManager.SongTime >= _sections[_currentSectionIndex].TimeEnd)
             {
@@ -91,7 +91,7 @@ namespace YARG.Gameplay.HUD
             {
                 _bestPercentHit = _percentHit;
 
-                bestPercentText.text = $"{_bestPercentHit * 100f:0}%";
+                bestPercentText.text = $"{Mathf.FloorToInt(_percentHit * 100)}%";
             }
 
             _currentSectionIndex = 0;
