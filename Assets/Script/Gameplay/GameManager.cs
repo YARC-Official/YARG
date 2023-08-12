@@ -401,7 +401,7 @@ namespace YARG.Gameplay
             await UniTask.RunOnThreadPool(() =>
             {
                 // Load chart
-                
+
                 try
                 {
                     _chart = Song.LoadChart();
@@ -661,6 +661,11 @@ namespace YARG.Gameplay
             {
                 // Pause
                 case MenuAction.Start:
+                    if (IsPractice && !PracticeManager.HasSelectedSection)
+                    {
+                        return;
+                    }
+
                     SetPaused(!Paused);
                     break;
             }

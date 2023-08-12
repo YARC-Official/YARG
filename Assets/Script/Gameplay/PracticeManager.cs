@@ -30,6 +30,8 @@ namespace YARG.Gameplay
 
         private uint _lastTick;
 
+        public bool HasSelectedSection { get; private set; }
+
         private void Awake()
         {
             _gameManager = FindObjectOfType<GameManager>();
@@ -126,6 +128,7 @@ namespace YARG.Gameplay
             _gameManager.Resume(inputCompensation: false);
 
             _practiceHud.SetSections(GetSectionsInPractice(tickStart, tickEnd));
+            HasSelectedSection = true;
         }
 
         public void ResetPractice()
