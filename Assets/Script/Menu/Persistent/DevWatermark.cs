@@ -10,13 +10,19 @@ namespace YARG.Menu.Persistent
 
         void Start()
         {
-            if (GlobalVariables.CurrentVersion.IsPrerelease)
+            if (GlobalVariables.CurrentVersion.IsPrerelease && GlobalVariables.CurrentVersion.PrereleaseText.Contains("dev"))
             {
-                watermarkText.text = $"<b>YARG {GlobalVariables.CurrentVersion}</b>  Developer Build";
+                watermarkText.text = $"<b>YARG {GlobalVariables.CurrentVersion}</b>  Development Build";
+                watermarkText.gameObject.SetActive(true);
+            }
+            else if (GlobalVariables.CurrentVersion.IsPrerelease)
+            {
+                watermarkText.text = $"<b>YARG {GlobalVariables.CurrentVersion}</b>  Pre-Release";
                 watermarkText.gameObject.SetActive(true);
             }
             else
             {
+                watermarkText.text = "";
                 gameObject.SetActive(false);
             }
 
