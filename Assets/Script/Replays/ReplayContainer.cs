@@ -18,11 +18,14 @@ namespace YARG.Replays
     {
         private const int CACHE_VERSION = 23_08_11_1;
 
+        // Arbitrary limit to prevent the game from crashing if someone tries to load a replay with a ridiculous number of players
+        private const int PLAYER_LIMIT = 128;
+
         public static string ReplayDirectory { get; private set; }
 
         private static string _replayCacheFile;
 
-        private static List<ReplayEntry> _replays;
+        private static List<ReplayEntry>               _replays;
         private static Dictionary<string, ReplayEntry> _replayFileMap;
 
         private static FileSystemWatcher _watcher;
@@ -116,40 +119,59 @@ namespace YARG.Replays
             using var stream = File.OpenRead(_replayCacheFile);
             using var reader = new BinaryReader(stream);
 
-            int version = reader.ReadInt32();
-            if (version != CACHE_VERSION)
+            // If reading the cache fails, clear it and start over
+
+            try
             {
-                Debug.LogWarning($"Replay cache version mismatch: {version} != {CACHE_VERSION}");
-                return;
-            }
-
-            while (stream.Position < stream.Length)
-            {
-                var replay = new ReplayEntry
+                int version = reader.ReadInt32();
+                if (version != CACHE_VERSION)
                 {
-                    SongName = reader.ReadString(),
-                    ArtistName = reader.ReadString(),
-                    CharterName = reader.ReadString(),
-                    BandScore = reader.ReadInt32(),
-                    Date = DateTime.FromBinary(reader.ReadInt64()),
-                    SongChecksum = new(reader),
-                    PlayerCount = reader.ReadInt32()
-                };
-
-                replay.PlayerNames = new string[replay.PlayerCount];
-
-                for (int i = 0; i < replay.PlayerNames.Length; i++)
-                {
-                    replay.PlayerNames[i] = reader.ReadString();
+                    Debug.LogWarning($"Replay cache version mismatch: {version} != {CACHE_VERSION}");
+                    return;
                 }
 
-                replay.GameVersion = reader.ReadInt32();
-                replay.ReplayFile = reader.ReadString();
-
-                if (File.Exists(Path.Combine(ReplayDirectory, replay.ReplayFile)))
+                while (stream.Position < stream.Length)
                 {
-                    AddReplay(replay);
+                    var replay = new ReplayEntry
+                    {
+                        SongName = reader.ReadString(),
+                        ArtistName = reader.ReadString(),
+                        CharterName = reader.ReadString(),
+                        BandScore = reader.ReadInt32(),
+                        Date = DateTime.FromBinary(reader.ReadInt64()),
+                        SongChecksum = new(reader),
+                        PlayerCount = reader.ReadInt32()
+                    };
+
+                    // Check player count for a limit before allocating a potentially huge array of strings
+                    if (replay.PlayerCount > PLAYER_LIMIT)
+                    {
+                        Debug.LogWarning("Replay cache contains a replay with an extremely high player count." +
+                            " The replay cache is corrupted as this is not supported.");
+
+                        throw new Exception($"Replay cache corrupted. Player count too high ({replay.PlayerCount})");
+                    }
+
+                    replay.PlayerNames = new string[replay.PlayerCount];
+
+                    for (int i = 0; i < replay.PlayerNames.Length; i++)
+                    {
+                        replay.PlayerNames[i] = reader.ReadString();
+                    }
+
+                    replay.GameVersion = reader.ReadInt32();
+                    replay.ReplayFile = reader.ReadString();
+
+                    if (File.Exists(Path.Combine(ReplayDirectory, replay.ReplayFile)))
+                    {
+                        AddReplay(replay);
+                    }
                 }
+            } catch (Exception e)
+            {
+                _replays.Clear();
+                _replayFileMap.Clear();
+                Debug.LogError("Failed to load replay cache: " + e);
             }
         }
 
@@ -183,14 +205,14 @@ namespace YARG.Replays
             var directory = new DirectoryInfo(ReplayDirectory);
             foreach (var file in directory.GetFiles("*.replay"))
             {
-                if(_replayFileMap.ContainsKey(file.Name))
+                if (_replayFileMap.ContainsKey(file.Name))
                 {
                     continue;
                 }
 
                 var result = ReplayIO.ReadReplay(file.FullName, out var replay);
 
-                if(result != ReplayReadResult.Valid)
+                if (result != ReplayReadResult.Valid)
                 {
                     continue;
                 }
@@ -218,7 +240,7 @@ namespace YARG.Replays
         private static void OnReplayCreated(object sender, FileSystemEventArgs e)
         {
             Debug.Log("Replay Created: " + e.Name);
-            if(_replayFileMap.ContainsKey(e.Name))
+            if (_replayFileMap.ContainsKey(e.Name))
             {
                 return;
             }
@@ -264,7 +286,7 @@ namespace YARG.Replays
         private static void OnReplayDeleted(object sender, FileSystemEventArgs e)
         {
             Debug.Log("Replay Deleted: " + e.Name);
-            if(_replayFileMap.TryGetValue(e.Name, out var value))
+            if (_replayFileMap.TryGetValue(e.Name, out var value))
             {
                 RemoveReplay(value);
                 WriteReplayCache();
