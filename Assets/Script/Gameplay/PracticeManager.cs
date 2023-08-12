@@ -96,6 +96,11 @@ namespace YARG.Gameplay
 
                 // Reset
                 case MenuAction.Select:
+                    if (_gameManager.Paused)
+                    {
+                        return;
+                    }
+
                     ResetPractice();
                     break;
             }
