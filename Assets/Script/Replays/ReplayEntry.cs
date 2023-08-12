@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using YARG.Core.Song;
+using YARG.Helpers;
 
 namespace YARG.Replays
 {
@@ -9,14 +10,14 @@ namespace YARG.Replays
         // Remove invalid characters from the replay name
         private static readonly Regex ReplayNameRegex = new("[<>:\"/\\|?*]", RegexOptions.Compiled);
 
-        public string   SongName;
-        public string   ArtistName;
-        public string   CharterName;
-        public int      BandScore;
-        public DateTime Date;
-        public HashWrapper   SongChecksum;
-        public int      PlayerCount;
-        public string[] PlayerNames;
+        public string      SongName;
+        public string      ArtistName;
+        public string      CharterName;
+        public int         BandScore;
+        public DateTime    Date;
+        public HashWrapper SongChecksum;
+        public int         PlayerCount;
+        public string[]    PlayerNames;
 
         public int GameVersion;
 
@@ -24,9 +25,9 @@ namespace YARG.Replays
 
         public string GetReplayName()
         {
-            var song = ReplayNameRegex.Replace(SongName, "");
-            var artist = ReplayNameRegex.Replace(ArtistName, "");
-            var charter = ReplayNameRegex.Replace(CharterName, "");
+            var song = ReplayNameRegex.Replace(RichTextUtils.StripRichTextTags(SongName), "");
+            var artist = ReplayNameRegex.Replace(RichTextUtils.StripRichTextTags(ArtistName), "");
+            var charter = ReplayNameRegex.Replace(RichTextUtils.StripRichTextTags(CharterName), "");
 
             return $"{artist}-{song}-{charter}-{Date:yy-MM-dd-HH-mm-ss}.replay";
         }
