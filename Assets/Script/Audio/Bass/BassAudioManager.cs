@@ -314,11 +314,12 @@ namespace YARG.Audio.BASS
             AudioLengthD = mixer.LeadChannel.LengthD;
             AudioLengthF = (float) AudioLengthD;
 
+            _mixer = mixer;
+
             // Listen for song end
             _mixer.SongEnd += OnSongEnd;
 
             IsAudioLoaded = true;
-            _mixer = mixer;
         }
 
         public void LoadCustomAudioFile(string audioPath, float speed)
