@@ -355,10 +355,20 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnNoteMissed(int index, TNote note)
         {
+            if (IsFc)
+            {
+                ComboMeter.SetFullCombo(false);
+                IsFc = false;
+            }
         }
 
         protected virtual void OnOverstrum()
         {
+            if (IsFc)
+            {
+                ComboMeter.SetFullCombo(false);
+                IsFc = false;
+            }
         }
 
         protected virtual void OnSoloStart(SoloSection solo)

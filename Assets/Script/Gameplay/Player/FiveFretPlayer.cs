@@ -137,23 +137,11 @@ namespace YARG.Gameplay.Player
                 // TODO: It is possible that this should be moved to BasePlayer
                 (NotePool.GetByKey(note) as FiveFretNoteElement)?.MissNote();
             }
-
-            if (IsFc)
-            {
-                ComboMeter.SetFullCombo(false);
-                IsFc = false;
-            }
         }
 
         protected override void OnOverstrum()
         {
             base.OnOverstrum();
-
-            if (IsFc)
-            {
-                ComboMeter.SetFullCombo(false);
-                IsFc = false;
-            }
         }
 
         protected override bool InterceptInput(ref GameInput input)
