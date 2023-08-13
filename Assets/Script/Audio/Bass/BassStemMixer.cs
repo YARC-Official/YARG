@@ -32,12 +32,10 @@ namespace YARG.Audio.BASS
             }
             remove
             {
-                if (LeadChannel is null)
+                if (LeadChannel is not null)
                 {
-                    throw new InvalidOperationException("No song is currently loaded!");
+                    LeadChannel.ChannelEnd -= value;
                 }
-
-                LeadChannel.ChannelEnd -= value;
             }
         }
 

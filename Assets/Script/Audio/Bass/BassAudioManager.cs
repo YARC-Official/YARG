@@ -339,7 +339,7 @@ namespace YARG.Audio.BASS
                 throw new Exception($"Failed to load stem {audioPath}: {Bass.LastError}");
             }
 
-            if (_mixer.GetChannels(SongStem.Song) != null)
+            if (_mixer.GetChannels(SongStem.Song).Length > 0)
             {
                 Debug.LogError($"Stem already loaded! {audioPath}");
                 return;
