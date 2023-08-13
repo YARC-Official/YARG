@@ -55,6 +55,11 @@ namespace YARG.Gameplay.Visuals
             _frets[index].SetPressed(pressed);
         }
 
+        public void SetSustained(int index, bool sustained)
+        {
+            _frets[index].SetSustained(sustained);
+        }
+
         public void PlayHitAnimation(int index)
         {
             _frets[index].PlayHitAnimation();

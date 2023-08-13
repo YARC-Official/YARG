@@ -45,6 +45,17 @@ namespace YARG.Gameplay.Player
             engine.OnSoloStart += OnSoloStart;
             engine.OnSoloEnd += OnSoloEnd;
 
+            engine.OnSustainStart += (parent) =>
+            {
+                foreach (var note in parent.ChordEnumerator())
+                {
+                    if (note.Fret != 0)
+                    {
+                        _fretArray.SetSustained(note.Fret - 1, true);
+                    }
+                }
+            };
+
             engine.OnSustainEnd += (parent, timeEnded) =>
             {
                 foreach (var note in parent.ChordEnumerator())
@@ -55,6 +66,11 @@ namespace YARG.Gameplay.Player
                     }
 
                     (NotePool.GetByKey(note) as FiveFretNoteElement)?.SustainEnd();
+
+                    if (note.Fret != 0)
+                    {
+                        _fretArray.SetSustained(note.Fret - 1, false);
+                    }
                 }
             };
 

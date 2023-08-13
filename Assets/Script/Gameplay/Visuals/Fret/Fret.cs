@@ -58,5 +58,17 @@ namespace YARG.Gameplay.Visuals
             _animation.Stop();
             _animation.Rewind();
         }
+
+        public void SetSustained(bool sustained)
+        {
+            if (sustained)
+            {
+                _sustainParticles.Play();
+            }
+            else
+            {
+                _sustainParticles.Stop();
+            }
+        }
     }
 }
