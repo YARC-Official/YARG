@@ -438,7 +438,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void AddSongsCount()
         {
-            var count = _viewList.Count;
+            var count = GlobalVariables.Instance.SongContainer.Count;
 
             _viewList.Insert(0, new CategoryViewType(
                 "ALL SONGS",
