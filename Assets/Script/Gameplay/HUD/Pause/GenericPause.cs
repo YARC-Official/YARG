@@ -39,6 +39,18 @@ namespace YARG.Gameplay.HUD
             _pauseMenuManager.Restart();
         }
 
+        public void RestartInPractice()
+        {
+            GlobalVariables.Instance.IsPractice = true;
+            _pauseMenuManager.Restart();
+        }
+
+        public void RestartInQuickPlay()
+        {
+            GlobalVariables.Instance.IsPractice = false;
+            _pauseMenuManager.Restart();
+        }
+
         public void SelectSections()
         {
             _pauseMenuManager.OpenMenu(PauseMenuManager.Menu.SelectSections);
