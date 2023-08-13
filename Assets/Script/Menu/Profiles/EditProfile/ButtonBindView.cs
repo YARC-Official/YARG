@@ -17,7 +17,7 @@ namespace YARG.Menu.Profiles
 
         public void OnDebounceValueChanged(float value)
         {
-            _singleBinding.DebounceThreshold = (long) value;
+            SingleBinding.DebounceThreshold = (long) value;
         }
     }
 }

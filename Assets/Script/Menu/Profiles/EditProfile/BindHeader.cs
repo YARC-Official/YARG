@@ -3,12 +3,11 @@ using UnityEngine.Localization.Components;
 using UnityEngine.UI;
 using YARG.Core.Input;
 using YARG.Input;
-using YARG.Menu.Navigation;
 using YARG.Player;
 
 namespace YARG.Menu.Profiles
 {
-    public class BindHeader : NavigatableBehaviour
+    public class BindHeader : MonoBehaviour
     {
         [Space]
         [SerializeField]
@@ -47,9 +46,6 @@ namespace YARG.Menu.Profiles
 
         public async void AddNewBind()
         {
-            // Select item to prevent confusion
-            Selected = true;
-
             await _editProfileMenu.ShowControlDialog(_player, _binding);
         }
     }

@@ -5,7 +5,7 @@ using YARG.Menu.Navigation;
 
 namespace YARG.Menu.Profiles
 {
-    public abstract class BindView<TState, TBinding, TSingle> : NavigatableBehaviour
+    public abstract class BindView<TState, TBinding, TSingle> : MonoBehaviour
         where TState : struct
         where TBinding : ControlBinding<TState, TSingle>
         where TSingle : SingleBinding<TState>
@@ -14,15 +14,15 @@ namespace YARG.Menu.Profiles
         [SerializeField]
         private TextMeshProUGUI _bindText;
 
-        protected EditProfileMenu _editProfileMenu;
-        protected TBinding _binding;
-        protected TSingle _singleBinding;
+        protected EditProfileMenu EditProfileMenu;
+        protected TBinding Binding;
+        protected TSingle SingleBinding;
 
         public virtual void Init(EditProfileMenu editProfileMenu, TBinding binding, TSingle singleBinding)
         {
-            _editProfileMenu = editProfileMenu;
-            _binding = binding;
-            _singleBinding = singleBinding;
+            EditProfileMenu = editProfileMenu;
+            Binding = binding;
+            SingleBinding = singleBinding;
 
             var control = singleBinding.Control;
             _bindText.text = $"<font-weight=400>{control.device.displayName}</font-weight> - " +
@@ -31,7 +31,7 @@ namespace YARG.Menu.Profiles
 
         public void DeleteBinding()
         {
-            _binding.RemoveBinding(_singleBinding);
+            Binding.RemoveBinding(SingleBinding);
         }
     }
 }

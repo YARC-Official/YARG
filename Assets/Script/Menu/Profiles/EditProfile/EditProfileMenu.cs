@@ -16,8 +16,6 @@ namespace YARG.Menu.Profiles
 
         [SerializeField]
         private NavigationGroup _gameModeNavGroup;
-        [SerializeField]
-        private NavigationGroup _bindsNavGroup;
 
         [Space]
         [SerializeField]
@@ -105,7 +103,6 @@ namespace YARG.Menu.Profiles
         {
             // Remove old ones
             _bindsList.DestroyChildren();
-            _bindsNavGroup.ClearNavigatables();
 
             // Create the list of bindings
             foreach (var binding in collection)
@@ -113,8 +110,6 @@ namespace YARG.Menu.Profiles
                 // Create header
                 var header = Instantiate(_bindHeaderPrefab, _bindsList);
                 header.GetComponent<BindHeader>().Init(this, _currentPlayer, binding);
-
-                _bindsNavGroup.AddNavigatable(header);
 
                 // Create the actual bindings
                 switch (binding)
@@ -151,8 +146,6 @@ namespace YARG.Menu.Profiles
                 // Create bind view
                 var bindView = Instantiate(prefab, _bindsList);
                 bindView.GetComponent<TView>().Init(this, binding, control);
-
-                _bindsNavGroup.AddNavigatable(bindView);
             }
         }
 
