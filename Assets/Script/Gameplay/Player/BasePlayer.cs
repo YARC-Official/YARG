@@ -223,7 +223,7 @@ namespace YARG.Gameplay.Player
 
         public override void SetPracticeSection(uint start, uint end)
         {
-            var practiceNotes = OriginalNoteTrack.Notes.Where(n => n.Tick >= start && n.TickEnd < end).ToList();
+            var practiceNotes = OriginalNoteTrack.Notes.Where(n => n.Tick >= start && n.Tick < end).ToList();
 
             Debug.Log($"Practice notes: {practiceNotes.Count}");
 
@@ -239,7 +239,7 @@ namespace YARG.Gameplay.Player
             NotesHit = 0;
             TotalNotes = Notes.Count;
 
-            Beatlines = SyncTrack.Beatlines.Where(b => b.Tick >= start && b.TickEnd <= end).ToList();
+            Beatlines = SyncTrack.Beatlines.Where(b => b.Tick >= start && b.Tick <= end).ToList();
             BeatlineIndex = 0;
 
             Engine = CreateEngine();
