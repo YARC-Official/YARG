@@ -49,6 +49,11 @@ namespace YARG.Gameplay.Player
             {
                 foreach (var note in parent.ChordEnumerator())
                 {
+                    if (parent.IsDisjoint && parent != note)
+                    {
+                        continue;
+                    }
+
                     if (note.Fret != 0)
                     {
                         _fretArray.SetSustained(note.Fret - 1, true);
