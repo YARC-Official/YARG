@@ -101,6 +101,16 @@ namespace YARG.Gameplay.Player
             HitWindowDisplay.SetHitWindowInfo(_engineParams, NoteSpeed);
         }
 
+        public override void ResetPracticeSection()
+        {
+            base.ResetPracticeSection();
+
+            for(int i = 0; i < _fretArray.Frets.Count; i++)
+            {
+                _fretArray.SetSustained(i, false);
+            }
+        }
+
         public override void UpdateWithTimes(double inputTime, double songTime)
         {
             base.UpdateWithTimes(inputTime, songTime);
