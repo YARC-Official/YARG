@@ -83,11 +83,6 @@ namespace YARG.Gameplay.HUD
             // ... and push it onto the stack
             _openMenus.Push(menu);
 
-            foreach(var i in _openMenus)
-            {
-                Debug.Log(i);
-            }
-
             return newMenu;
         }
 
