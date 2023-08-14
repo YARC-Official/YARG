@@ -56,7 +56,7 @@ namespace YARG.Song
                     string key = node.Key;
                     if (key.Length > 0 && char.IsLower(key[0]))
                     {
-                        key = new(char.ToUpper(key[0]), 1);
+                        key = new(char.ToUpperInvariant(key[0]), 1);
                         if (node.Key.Length > 1)
                             key += node.Key.Str[1..];
                     }
