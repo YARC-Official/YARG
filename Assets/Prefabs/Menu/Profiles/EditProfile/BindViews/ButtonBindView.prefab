@@ -654,7 +654,7 @@ PrefabInstance:
     - target: {fileID: 214539867303924729, guid: dbdf67b69820732439f61d5a3cd2b4fd,
         type: 3}
       propertyPath: m_text
-      value: "0.00\u200B"
+      value: "0\u200B"
       objectReference: {fileID: 0}
     - target: {fileID: 667886790134293990, guid: dbdf67b69820732439f61d5a3cd2b4fd,
         type: 3}
@@ -671,6 +671,11 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.x
       value: -25
       objectReference: {fileID: 0}
+    - target: {fileID: 2049237136677322072, guid: dbdf67b69820732439f61d5a3cd2b4fd,
+        type: 3}
+      propertyPath: m_text
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2246671960123840172, guid: dbdf67b69820732439f61d5a3cd2b4fd,
         type: 3}
       propertyPath: m_Name
@@ -679,7 +684,7 @@ PrefabInstance:
     - target: {fileID: 2626603837451609450, guid: dbdf67b69820732439f61d5a3cd2b4fd,
         type: 3}
       propertyPath: m_Text
-      value: 0.00
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3252069457828798820, guid: dbdf67b69820732439f61d5a3cd2b4fd,
         type: 3}
@@ -803,6 +808,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd,
         type: 3}
+      propertyPath: _formatString
+      value: G
+      objectReference: {fileID: 0}
+    - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd,
+        type: 3}
       propertyPath: _decimalPlaces
       value: 2
       objectReference: {fileID: 0}
@@ -810,6 +820,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Value
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8407739211729596281, guid: dbdf67b69820732439f61d5a3cd2b4fd,
+        type: 3}
+      propertyPath: m_MaxValue
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 8407739211729596281, guid: dbdf67b69820732439f61d5a3cd2b4fd,
+        type: 3}
+      propertyPath: m_WholeNumbers
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9166383696846773885, guid: dbdf67b69820732439f61d5a3cd2b4fd,
         type: 3}
