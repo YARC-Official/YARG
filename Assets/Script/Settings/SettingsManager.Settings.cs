@@ -87,6 +87,7 @@ namespace YARG.Settings
             public SliderSetting TrackCamRot { get; } = new(24.12f, 0f, 180f, CameraPosChange);
             public SliderSetting TrackFadePosition { get; } = new(3f, 0f, 3f, v => FadeChange(true, v));
             public SliderSetting TrackFadeSize { get; } = new(1.75f, 0f, 5f, v => FadeChange(false, v));
+            public SliderSetting TrackCurveFactor { get; } = new(0.5f, -3f, 3f, CurveFactorChange);
 
             public ToggleSetting DisableTextNotifications { get; } = new(false);
 
@@ -312,6 +313,13 @@ namespace YARG.Settings
                 Shader.SetGlobalVector("_FadeZeroPosition", new Vector4(0f, 0f, position, 0f));
                 Shader.SetGlobalVector("_FadeFullPosition", new Vector4(0f, 0f, position - size, 0f));
                 // ReSharper restore Unity.PreferAddressByIdToGraphicsParams
+            }
+
+            private static void CurveFactorChange(float value)
+            {
+                // ReSharper disable Unity.PreferAddressByIdToGraphicsParams
+                Shader.SetGlobalFloat("_CurveFactor", value);
+                // ReSharper disable Unity.PreferAddressByIdToGraphicsParams
             }
         }
     }

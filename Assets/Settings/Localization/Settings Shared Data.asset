@@ -339,6 +339,10 @@ MonoBehaviour:
     m_Key: InfiniteFrontEnd
     m_Metadata:
       m_Items: []
+  - m_Id: 51442059882913792
+    m_Key: TrackCurveFactor
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

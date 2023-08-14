@@ -112,6 +112,7 @@ namespace YARG.Settings
                     "TrackCamRot",
                     "TrackFadePosition",
                     "TrackFadeSize",
+                    "TrackCurveFactor",
                 }, new()
                 {
                     new DropdownPreset("Default", new()
@@ -122,6 +123,7 @@ namespace YARG.Settings
                         { "TrackCamRot", 24.12f },
                         { "TrackFadePosition", 3f },
                         { "TrackFadeSize", 1.25f },
+                        { "TrackCurveFactor", 0.5f },
                     }),
                     new DropdownPreset("High FOV", new()
                     {
@@ -131,6 +133,7 @@ namespace YARG.Settings
                         { "TrackCamRot", 24.12f },
                         { "TrackFadePosition", 3f },
                         { "TrackFadeSize", 1.25f },
+                        { "TrackCurveFactor", 0.5f },
                     }),
                     new DropdownPreset("The Band 1", new()
                     {
@@ -140,6 +143,7 @@ namespace YARG.Settings
                         { "TrackCamRot", 26f },
                         { "TrackFadePosition", 3f },
                         { "TrackFadeSize", 1.25f },
+                        { "TrackCurveFactor", 0.5f },
                     }),
                     new DropdownPreset("The Band 2", new()
                     {
@@ -149,6 +153,7 @@ namespace YARG.Settings
                         { "TrackCamRot", 24.12f },
                         { "TrackFadePosition", 3f },
                         { "TrackFadeSize", 1.25f },
+                        { "TrackCurveFactor", 0.5f },
                     }),
                     new DropdownPreset("The Band 3", new()
                     {
@@ -158,6 +163,7 @@ namespace YARG.Settings
                         { "TrackCamRot", 23.65f },
                         { "TrackFadePosition", 3f },
                         { "TrackFadeSize", 1.25f },
+                        { "TrackCurveFactor", 0.5f },
                     }),
                     new DropdownPreset("The Band 4", new()
                     {
@@ -167,6 +173,7 @@ namespace YARG.Settings
                         { "TrackCamRot", 19.43f },
                         { "TrackFadePosition", 3f },
                         { "TrackFadeSize", 1.25f },
+                        { "TrackCurveFactor", 0.5f },
                     }),
                     new DropdownPreset("Hero 2", new()
                     {
@@ -176,6 +183,7 @@ namespace YARG.Settings
                         { "TrackCamRot", 12.40f },
                         { "TrackFadePosition", 3f },
                         { "TrackFadeSize", 1.5f },
+                        { "TrackCurveFactor", 0.5f },
                     }),
                     new DropdownPreset("Hero 3", new()
                     {
@@ -185,6 +193,7 @@ namespace YARG.Settings
                         { "TrackCamRot", 15.21f },
                         { "TrackFadePosition", 3f },
                         { "TrackFadeSize", 1.5f },
+                        { "TrackCurveFactor", 0.5f },
                     }),
                     new DropdownPreset("Hero Traveling the World", new()
                     {
@@ -194,6 +203,7 @@ namespace YARG.Settings
                         { "TrackCamRot", 16.62f },
                         { "TrackFadePosition", 3f },
                         { "TrackFadeSize", 1.5f },
+                        { "TrackCurveFactor", 0.5f },
                     }),
                     new DropdownPreset("Hero Live", new()
                     {
@@ -203,6 +213,7 @@ namespace YARG.Settings
                         { "TrackCamRot", 21.31f },
                         { "TrackFadePosition", 3f },
                         { "TrackFadeSize", 1.25f },
+                        { "TrackCurveFactor", 0.5f },
                     }),
                     new DropdownPreset("Clone", new()
                     {
@@ -212,6 +223,7 @@ namespace YARG.Settings
                         { "TrackCamRot", 17.09f },
                         { "TrackFadePosition", 3f },
                         { "TrackFadeSize", 1.5f },
+                        { "TrackCurveFactor", 0.5f },
                     })
                 }),
                 "TrackCamFOV",
@@ -220,6 +232,7 @@ namespace YARG.Settings
                 "TrackCamRot",
                 "TrackFadePosition",
                 "TrackFadeSize",
+                "TrackCurveFactor",
                 new HeaderMetadata("Other"),
                 "DisableTextNotifications",
                 "LyricBackground"

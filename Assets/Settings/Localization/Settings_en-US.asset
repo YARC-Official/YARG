@@ -344,6 +344,10 @@ MonoBehaviour:
     m_Localized: Infinite Front End
     m_Metadata:
       m_Items: []
+  - m_Id: 51442059882913792
+    m_Localized: Curve Factor
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
