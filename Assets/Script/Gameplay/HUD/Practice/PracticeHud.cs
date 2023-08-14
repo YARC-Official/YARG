@@ -69,7 +69,14 @@ namespace YARG.Gameplay.HUD
                 totalNotes += player.TotalNotes;
             }
 
-            _percentHit = (float)notesHit / totalNotes;
+            if(totalNotes == 0)
+            {
+                _percentHit = 0f;
+            }
+            else
+            {
+                _percentHit = (float)notesHit / totalNotes;
+            }
 
             notesHitTotalText.text = $"{notesHit}/{totalNotes}";
             percentHitText.text = $"{Mathf.FloorToInt(_percentHit * 100)}%";
