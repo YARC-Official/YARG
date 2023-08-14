@@ -139,11 +139,11 @@ MonoBehaviour:
     type: 3}
   _bindHeaderPrefab: {fileID: 1426678564427857758, guid: d03ff859a75fb154e9155e4eef90fbe1,
     type: 3}
-  _buttonViewPrefab: {fileID: 1426678564427857758, guid: e2c39e683d115a44fb09b6270da4f3ff,
+  _buttonViewPrefab: {fileID: 1426678564427857758, guid: de3185df8a569dc469035ef221298a7f,
     type: 3}
-  _axisViewPrefab: {fileID: 1426678564427857758, guid: 0730e4158b431784584a8954612e89a2,
+  _axisViewPrefab: {fileID: 1426678564427857758, guid: eec09ef5ae1d4704bbc8afc17f85bcc5,
     type: 3}
-  _integerViewPrefab: {fileID: 1426678564427857758, guid: c4faff9ec9f96fc47aeddfa9eae0c403,
+  _integerViewPrefab: {fileID: 1426678564427857758, guid: bd8a5b20101e12a4e86f94799fbdf6e5,
     type: 3}
   _controlDialog: {fileID: 3606480044161179184}
 --- !u!1 &3543220600999407231
