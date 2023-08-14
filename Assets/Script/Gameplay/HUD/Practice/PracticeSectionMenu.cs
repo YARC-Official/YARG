@@ -115,7 +115,7 @@ namespace YARG.Gameplay.HUD
             _finalTick = chart.GetLastTick();
             _finalChartTime = chart.SyncTrack.TickToTime(_finalTick);
 
-            _pauseMenuManager.PushMenu(PauseMenuManager.Menu.SelectSections);
+            //_pauseMenuManager.PushMenu(PauseMenuManager.Menu.SelectSections);
         }
 
         private void Initialize()

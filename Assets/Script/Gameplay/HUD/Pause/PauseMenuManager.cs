@@ -83,6 +83,11 @@ namespace YARG.Gameplay.HUD
             // ... and push it onto the stack
             _openMenus.Push(menu);
 
+            foreach(var i in _openMenus)
+            {
+                Debug.Log(i);
+            }
+
             return newMenu;
         }
 
@@ -108,6 +113,19 @@ namespace YARG.Gameplay.HUD
                 throw new InvalidOperationException($"Failed to open menu {menu}.");
             }
 
+            // Clear all menus if resuming
+            if (resume)
+            {
+                while (_openMenus.Count > 0)
+                {
+                    var popped = _openMenus.Pop();
+                    if (_menus.TryGetValue(popped, out var poppedMenu))
+                    {
+                        poppedMenu.gameObject.SetActive(false);
+                    }
+                }
+            }
+
             // Resume if nothing left
             if (_openMenus.Count <= 0 && resume)
             {
@@ -128,6 +146,13 @@ namespace YARG.Gameplay.HUD
 
         public void Restart()
         {
+            if (_gameManager.IsPractice)
+            {
+                _gameManager.PracticeManager.ResetPractice();
+                PopMenu();
+                return;
+            }
+
             GlobalVariables.AudioManager.UnloadSong();
             GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
         }

@@ -23,14 +23,21 @@ namespace YARG.Gameplay
 
         private SongChart _chart;
 
+        public double TimeStart { get; private set; }
+        public double TimeEnd   { get; private set; }
+
+        private uint   _sectionStartTick;
+        private uint   _sectionEndTick;
+        private double _sectionStartTime;
+        private double _sectionEndTime;
+
         private uint _tickStart;
         private uint _tickEnd;
-        private double _timeStart;
-        private double _timeEnd;
 
         private uint _lastTick;
 
-        public bool HasSelectedSection { get; private set; }
+        public bool HasSelectedSection    { get; private set; }
+        public bool HasUpdatedAbPositions { get; private set; }
 
         private void Awake()
         {
@@ -63,12 +70,10 @@ namespace YARG.Gameplay
 
         private void Update()
         {
-            if (_gameManager.Paused)
-                return;
+            if (_gameManager.Paused) return;
 
-            double endPoint = _timeEnd + (SECTION_RESTART_DELAY * _gameManager.SelectedSongSpeed);
-            if (_gameManager.SongTime >= endPoint)
-                ResetPractice();
+            double endPoint = TimeEnd + (SECTION_RESTART_DELAY * _gameManager.SelectedSongSpeed);
+            if (_gameManager.SongTime >= endPoint) ResetPractice();
         }
 
         private void OnChartLoaded(SongChart chart)
@@ -114,6 +119,12 @@ namespace YARG.Gameplay
 
         public void SetPracticeSection(Section start, Section end)
         {
+            _sectionStartTick = start.Tick;
+            _sectionStartTime = start.Time;
+
+            _sectionEndTick = end.TickEnd;
+            _sectionEndTime = end.TimeEnd;
+
             SetPracticeSection(start.Tick, end.TickEnd, start.Time, end.TimeEnd);
         }
 
@@ -121,8 +132,8 @@ namespace YARG.Gameplay
         {
             _tickStart = tickStart;
             _tickEnd = tickEnd;
-            _timeStart = timeStart;
-            _timeEnd = timeEnd;
+            TimeStart = timeStart;
+            TimeEnd = timeEnd;
 
             foreach (var player in _gameManager.Players)
             {
@@ -132,20 +143,62 @@ namespace YARG.Gameplay
             _gameManager.SetSongTime(timeStart);
             _gameManager.Resume(inputCompensation: false);
 
-            _practiceHud.SetSections(GetSectionsInPractice(tickStart, tickEnd));
+            _practiceHud.SetSections(GetSectionsInPractice(_sectionStartTick, _sectionEndTick));
             HasSelectedSection = true;
+        }
+
+        public void SetAPosition(double time)
+        {
+            // We do this because we want to snap to the exact time of a tick, not in between 2 ticks.
+            uint tick = _chart.SyncTrack.TimeToTick(time);
+            double startTime = _chart.SyncTrack.TickToTime(tick);
+
+            _tickStart = tick;
+            TimeStart = startTime;
+
+            HasUpdatedAbPositions = true;
+        }
+
+        public void SetBPosition(double time)
+        {
+            // We do this because we want to snap to the exact time of a tick, not in between 2 ticks.
+            uint tick = _chart.SyncTrack.TimeToTick(time);
+            double endTime = _chart.SyncTrack.TickToTime(tick);
+
+            _tickEnd = tick;
+            TimeEnd = endTime;
+
+            HasUpdatedAbPositions = true;
+        }
+
+        public void ResetAbPositions()
+        {
+            _tickStart = _sectionStartTick;
+            TimeStart = _sectionStartTime;
+
+            _tickEnd = _sectionEndTick;
+            TimeEnd = _sectionEndTime;
+
+            HasUpdatedAbPositions = true;
         }
 
         public void ResetPractice()
         {
+            _practiceHud.ResetPractice();
+
+            if (HasUpdatedAbPositions)
+            {
+                SetPracticeSection(_tickStart, _tickEnd, TimeStart, TimeEnd);
+                HasUpdatedAbPositions = false;
+                return;
+            }
+
             foreach (var player in _gameManager.Players)
             {
                 player.ResetPracticeSection();
             }
 
-            _gameManager.SetSongTime(_timeStart);
-
-            _practiceHud.ResetPractice();
+            _gameManager.SetSongTime(TimeStart);
         }
 
         private Section[] GetSectionsInPractice(uint start, uint end)
