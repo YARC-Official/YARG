@@ -160,10 +160,10 @@ namespace YARG.Menu.DifficultySelect
 
             if (_playerIndex >= PlayerContainer.Players.Count)
             {
-                Play.speed = float.Parse(_speedInput.text, CultureInfo.InvariantCulture);
-                if (Play.speed <= 0f)
+                GlobalVariables.Instance.SongSpeed = float.Parse(_speedInput.text, CultureInfo.InvariantCulture);
+                if (GlobalVariables.Instance.SongSpeed <= 0f)
                 {
-                    Play.speed = 1f;
+                    GlobalVariables.Instance.SongSpeed = 1f;
                 }
 
                 // Play song
