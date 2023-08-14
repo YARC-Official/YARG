@@ -6,7 +6,6 @@ using YARG.Helpers;
 using YARG.Menu.Settings;
 using YARG.PlayMode;
 using YARG.Settings.Types;
-using YARG.Menu;
 using YARG.Menu.Persistent;
 using YARG.Song;
 using YARG.Venue;
