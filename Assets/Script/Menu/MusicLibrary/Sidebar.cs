@@ -257,6 +257,11 @@ namespace YARG.Menu.MusicLibrary
                 var file = songEntry.RBData.LoadImgFile();
                 if (file != null)
                     await LoadRbConCover(file);
+                else
+                {
+                    _albumCover.texture = null;
+                    _albumCover.color = Color.clear;
+                }
             }
         }
 
