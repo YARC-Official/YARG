@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace YARG.Helpers
+namespace YARG.Helpers.UI
 {
     /// <summary>
     /// Thanks Unity...

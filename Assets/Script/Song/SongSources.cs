@@ -102,7 +102,7 @@ namespace YARG.Song
                         return null;
                     }
 
-                    var texture = await TextureLoader.LoadWithMips(imagePath);
+                    var texture = await TextureHelper.LoadWithMips(imagePath);
                     texture.mipMapBias = -0.5f;
 
                     if (texture == null)

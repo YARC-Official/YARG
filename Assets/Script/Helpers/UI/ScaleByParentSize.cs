@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace YARG.Helpers
+namespace YARG.Helpers.UI
 {
     /// <summary>
     /// Resizes a RectTransform to fit a specified aspect ratio.

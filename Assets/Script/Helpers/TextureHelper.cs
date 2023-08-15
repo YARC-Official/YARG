@@ -6,7 +6,7 @@ using UnityEngine.Networking;
 
 namespace YARG.Helpers
 {
-    public static class TextureLoader
+    public static class TextureHelper
     {
         public static async UniTask<Texture2D> Load(string path, CancellationToken cancellationToken = default)
         {

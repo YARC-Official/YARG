@@ -279,7 +279,7 @@ namespace YARG.Menu.MusicLibrary
                 string fullPath = Path.Combine(directory, path);
                 if (File.Exists(fullPath))
                 {
-                    texture = await TextureLoader.Load(fullPath, _cancellationToken.Token);
+                    texture = await TextureHelper.Load(fullPath, _cancellationToken.Token);
                     break;
                 }
             }
