@@ -54,7 +54,7 @@ Material:
     - _SpriteIndex: 10
     - _SpriteNum: 0
     m_Colors:
-    - _GhostingColor: {r: 0.9764706, g: 0.67058825, b: 0.19215687, a: 0}
+    - _GhostingColor: {r: 0.83599997, g: 0.390945, b: 0.073048525, a: 0}
     - _MultiplierColor: {r: 0, g: 0.49657398, b: 0.6886792, a: 1}
   m_BuildTextureStacks: []
 --- !u!114 &5244806678584741943
