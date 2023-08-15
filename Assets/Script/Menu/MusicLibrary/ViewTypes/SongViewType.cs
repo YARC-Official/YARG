@@ -1,8 +1,6 @@
 ﻿using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core.Song;
-using YARG.Data;
-using YARG.Menu.Navigation;
 using YARG.Player;
 using YARG.Song;
 
@@ -12,9 +10,9 @@ namespace YARG.Menu.MusicLibrary
     {
         public override BackgroundType Background => BackgroundType.Normal;
 
-        public override string PrimaryText => SongEntry.Name;
-        public override string SecondaryText => SongEntry.Artist;
-        public override bool UseAsMadeFamousBy => !SongEntry.IsMaster;
+        public override string PrimaryText => SongMetadata.Name;
+        public override string SecondaryText => SongMetadata.Artist;
+        public override bool UseAsMadeFamousBy => !SongMetadata.IsMaster;
 
         public override string SideText =>
             // TODO: Disable scores for now
@@ -32,23 +30,23 @@ namespace YARG.Menu.MusicLibrary
             // }
             string.Empty;
 
-        public SongMetadata SongEntry { get; private set; }
+        public SongMetadata SongMetadata { get; private set; }
 
-        public SongViewType(SongMetadata songEntry)
+        public SongViewType(SongMetadata songMetadata)
         {
-            SongEntry = songEntry;
+            SongMetadata = songMetadata;
         }
 
         public override async UniTask<Sprite> GetIcon()
         {
-            return await SongSources.SourceToIcon(SongEntry.Source);
+            return await SongSources.SourceToIcon(SongMetadata.Source);
         }
 
         public override void SecondaryTextClick()
         {
             base.SecondaryTextClick();
 
-            MusicLibraryMenu.Instance.SetSearchInput($"artist:{SongEntry.Artist}");
+            MusicLibraryMenu.Instance.SetSearchInput($"artist:{SongMetadata.Artist}");
         }
 
         public override void PrimaryButtonClick()
@@ -57,7 +55,7 @@ namespace YARG.Menu.MusicLibrary
 
             if (PlayerContainer.Players.Count <= 0) return;
 
-            GlobalVariables.Instance.CurrentSong = SongEntry;
+            GlobalVariables.Instance.CurrentSong = SongMetadata;
             MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
         }
 
@@ -65,7 +63,7 @@ namespace YARG.Menu.MusicLibrary
         {
             base.IconClick();
 
-            MusicLibraryMenu.Instance.SetSearchInput($"source:{SongEntry.Source}");
+            MusicLibraryMenu.Instance.SetSearchInput($"source:{SongMetadata.Source}");
         }
     }
 }

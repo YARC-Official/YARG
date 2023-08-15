@@ -101,12 +101,12 @@ namespace YARG.Menu.MusicLibrary
                     return;
                 }
 
-                if (song.SongEntry == _currentSong)
+                if (song.SongMetadata == _currentSong)
                 {
                     return;
                 }
 
-                _currentSong = song.SongEntry;
+                _currentSong = song.SongMetadata;
 
                 if (!_previewCanceller.IsCancellationRequested)
                 {
@@ -338,7 +338,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 _previewCanceller = new();
                 float previewVolume = SettingsManager.Settings.PreviewVolume.Data;
-                _previewContext.PlayPreview(song.SongEntry, previewVolume, _previewCanceller.Token).Forget();
+                _previewContext.PlayPreview(song.SongMetadata, previewVolume, _previewCanceller.Token).Forget();
             }
         }
 
@@ -518,7 +518,7 @@ namespace YARG.Menu.MusicLibrary
                 return -1;
 
             int songIndex = _viewList.FindIndex(startOfSongs,
-                song => song is SongViewType songType && songType.SongEntry == selectedSong);
+                song => song is SongViewType songType && songType.SongMetadata == selectedSong);
 
             return songIndex;
         }
