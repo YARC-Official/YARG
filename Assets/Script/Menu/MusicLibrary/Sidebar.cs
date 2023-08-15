@@ -233,7 +233,7 @@ namespace YARG.Menu.MusicLibrary
 
             _difficultyRings[7].SetInfo("trueDrums", "TrueDrums", new PartValues(-1));
             _difficultyRings[8].SetInfo("realKeys", "ProKeys", parts.GetValues(Instrument.ProKeys));
-            _difficultyRings[9].SetInfo("band", "Band", new PartValues(parts.BandDifficulty));
+            _difficultyRings[9].SetInfo("band", "Band", parts.GetValues(Instrument.Band));
         }
 
         public async UniTask LoadAlbumCover()
