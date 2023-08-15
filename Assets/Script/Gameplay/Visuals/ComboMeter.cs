@@ -5,7 +5,7 @@ namespace YARG.Gameplay.Visuals
 {
     public class ComboMeter : MonoBehaviour
     {
-        private static readonly int _spriteNum = Shader.PropertyToID("SpriteNum");
+        private static readonly int _spriteIndexProperty = Shader.PropertyToID("_SpriteIndex");
 
         [SerializeField]
         private TextMeshPro _multiplierText;
@@ -35,7 +35,7 @@ namespace YARG.Gameplay.Visuals
                 index = 10;
             }
 
-            _comboMesh.material.SetFloat(_spriteNum, index);
+            _comboMesh.material.SetFloat(_spriteIndexProperty, index);
         }
 
         public void SetFullCombo(bool isFc)
