@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Threading;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Helpers.Extensions;
 using YARG.Song;
 
 namespace YARG.Gameplay.HUD
@@ -36,6 +39,8 @@ namespace YARG.Gameplay.HUD
         private TextMeshProUGUI _sourceText;
         [SerializeField]
         private Image _sourceIcon;
+        [SerializeField]
+        private RawImage _albumCover;
 
         private void Awake()
         {
@@ -54,6 +59,18 @@ namespace YARG.Gameplay.HUD
 
             // Set source icon
             _sourceIcon.sprite = await SongSources.SourceToIcon(_gameManager.Song.Source);
+
+            // Set album cover
+            await _gameManager.Song.SetRawImageToAlbumCover(_albumCover, CancellationToken.None);
+        }
+
+        private void OnDestroy()
+        {
+            if (_albumCover.texture != null)
+            {
+                // Make sure to free the texture. *This is NOT destroying the raw image*.
+                Destroy(_albumCover.texture);
+            }
         }
 
         public PauseMenuObject PushMenu(Menu menu)
