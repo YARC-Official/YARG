@@ -54,7 +54,7 @@ Material:
     - _SpriteIndex: 10
     - _SpriteNum: 0
     m_Colors:
-    - _MultiplierColor: {r: 0.21176466, g: 0.572549, b: 0.8431373, a: 1}
+    - _MultiplierColor: {r: 0, g: 0.49657398, b: 0.6886792, a: 1}
   m_BuildTextureStacks: []
 --- !u!114 &5244806678584741943
 MonoBehaviour:
