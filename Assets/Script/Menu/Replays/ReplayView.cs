@@ -30,15 +30,17 @@ namespace YARG.Menu.Replays
         {
             _button = GetComponent<Button>();
 
-            _button.onClick.AddListener(() =>
-            {
-                GlobalVariables.Instance.IsReplay = true;
-                GlobalVariables.Instance.CurrentReplay = _replay;
+            _button.onClick.AddListener(Confirm);
+        }
 
-                GlobalVariables.AudioManager.UnloadSong();
+        public void Confirm()
+        {
+            GlobalVariables.Instance.IsReplay = true;
+            GlobalVariables.Instance.CurrentReplay = _replay;
 
-                GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
-            });
+            GlobalVariables.AudioManager.UnloadSong();
+
+            GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
         }
 
         public void ShowAsReplay(bool selected, ReplayEntry replay)

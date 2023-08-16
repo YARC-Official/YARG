@@ -53,6 +53,9 @@ namespace YARG.Menu.Replays
 
         private readonly List<ReplayView> _replayViews = new();
 
+        public ReplayView CurrentReplay => _selectedIndex >= 0 && _selectedIndex < _replayViews.Count
+            ? _replayViews[_selectedIndex] : null;
+
         private float _scrollTimer;
 
         private void Awake()
@@ -75,16 +78,11 @@ namespace YARG.Menu.Replays
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
-                new NavigationScheme.Entry(MenuAction.Green, "Select", () =>
-                {
-
-                })
+                new NavigationScheme.Entry(MenuAction.Green, "Select", () => CurrentReplay?.Confirm()),
+                new NavigationScheme.Entry(MenuAction.Red, "Back", () => MenuManager.Instance.PopMenu()),
+                new NavigationScheme.Entry(MenuAction.Up, "Up", () => SelectedIndex--),
+                new NavigationScheme.Entry(MenuAction.Down, "Down", () => SelectedIndex++),
             }, true));
-        }
-
-        private void OnDisable()
-        {
-            Navigator.Instance.PopScheme();
         }
 
         private void UpdateReplayViews()
