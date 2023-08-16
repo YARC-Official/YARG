@@ -29,7 +29,7 @@ namespace YARG.Gameplay
         {
             public readonly Info Info;
 
-            public double LastTime;
+            public uint LastTick;
 
             public State(Info info)
             {
@@ -41,9 +41,6 @@ namespace YARG.Gameplay
 
         private int _currentTimeSigIndex;
         private int _nextTimeSigIndex = 1;
-
-        private int _currentTempoIndex;
-        private int _nextTempoIndex = 1;
 
         private readonly Dictionary<Action, State> _states = new();
 
@@ -66,14 +63,11 @@ namespace YARG.Gameplay
         {
             foreach (var (_, state) in _states)
             {
-                state.LastTime = 0;
+                state.LastTick = 0;
             }
 
             _currentTimeSigIndex = 0;
             _nextTimeSigIndex = 1;
-
-            _currentTempoIndex = 0;
-            _nextTempoIndex = 1;
         }
 
         private void Update()
@@ -83,6 +77,9 @@ namespace YARG.Gameplay
 
             var sync = _gameManager.Chart.SyncTrack;
 
+            // Skip until in the chart
+            if (_gameManager.SongTime < 0) return;
+
             // Update the time signature indices
             var timeSigs = sync.TimeSignatures;
             while (_nextTimeSigIndex < timeSigs.Count && timeSigs[_nextTimeSigIndex].Time < _gameManager.InputTime)
@@ -91,32 +88,20 @@ namespace YARG.Gameplay
                 _nextTimeSigIndex++;
             }
 
-            // Get the time signature (important for beat length)
+            // Get the time signature
             var currentTimeSig = timeSigs[_currentTimeSigIndex];
-
-            // Update the tempo indices
-            var tempos = sync.Tempos;
-            while (_nextTempoIndex < tempos.Count && tempos[_nextTempoIndex].Time < _gameManager.InputTime)
-            {
-                _currentTempoIndex++;
-                _nextTempoIndex++;
-            }
-
-            // Get the seconds per measure
-            var currentTempo = tempos[_currentTempoIndex];
-            float secondsPerWhole = currentTempo.SecondsPerBeat * (4f / currentTimeSig.Denominator) * 4f;
 
             // Update per action now
             foreach (var (action, state) in _states)
             {
-                // Get seconds per specified note
-                float secondsPerNote = secondsPerWhole * state.Info.Note;
+                uint ticksPerMeasure = sync.Resolution * (4 / currentTimeSig.Denominator) * currentTimeSig.Numerator;
+                uint ticksPerNote = (uint) (ticksPerMeasure * state.Info.Note);
 
                 // Call action
-                if (state.LastTime + secondsPerNote <= _gameManager.SongTime + state.Info.Offset)
+                if (sync.TickToTime(state.LastTick + ticksPerNote) <= _gameManager.SongTime + state.Info.Offset)
                 {
                     action();
-                    state.LastTime = _gameManager.SongTime;
+                    state.LastTick += ticksPerNote;
                 }
             }
         }
