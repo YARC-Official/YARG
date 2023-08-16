@@ -80,7 +80,7 @@ Material:
     m_Ints: []
     m_Floats:
     - Fill: 0.5
-    - Pulse: 1
+    - Pulse: 0
     - _AlphaClip: 0
     - _AlphaToMask: 0
     - _Blend: 0

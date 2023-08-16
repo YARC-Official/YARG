@@ -161,6 +161,9 @@ namespace YARG.Gameplay
             if (seekTime < 0) seekTime = 0;
             GlobalVariables.AudioManager.SetPosition(seekTime);
 
+            // Reset beat events
+            BeatEventManager.ResetTimers();
+
 #if UNITY_EDITOR
             Debug.Log($"Set song time to {time}.\nSeek time: {seekTime}, input time: {InputTime} " +
                $"(base: {InputTimeBase}, offset: {InputTimeOffset}, absolute: {InputManager.CurrentUpdateTime})");

@@ -111,6 +111,11 @@ namespace YARG.Gameplay.Player
             IsInitialized = true;
         }
 
+        protected virtual void FinishDestruction()
+        {
+
+        }
+
         public virtual void UpdateWithTimes(double inputTime, double songTime)
         {
             if (GameManager.Paused)
@@ -183,6 +188,8 @@ namespace YARG.Gameplay.Player
             {
                 UnsubscribeFromInputEvents();
             }
+
+            FinishDestruction();
         }
 
         protected void AddReplayInput(GameInput input)
@@ -230,7 +237,19 @@ namespace YARG.Gameplay.Player
 
         protected abstract InstrumentDifficulty<TNote> GetNotes(SongChart chart);
         protected abstract TEngine CreateEngine();
-        protected abstract void FinishInitialization();
+
+        protected virtual void FinishInitialization()
+        {
+            GameManager.BeatEventManager.Subscribe(StarpowerBar.PulseBar,
+                new BeatEventManager.Info(1f / 4f, 0f));
+        }
+
+        protected override void FinishDestruction()
+        {
+            base.FinishDestruction();
+
+            GameManager.BeatEventManager.Unsubscribe(StarpowerBar.PulseBar);
+        }
 
         public override void SetPracticeSection(uint start, uint end)
         {

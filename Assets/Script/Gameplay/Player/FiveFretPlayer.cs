@@ -96,6 +96,8 @@ namespace YARG.Gameplay.Player
 
         protected override void FinishInitialization()
         {
+            base.FinishInitialization();
+
             StarScoreThresholds = new int[StarMultiplierThresholds.Length];
             for (int i = 0; i < StarMultiplierThresholds.Length; i++)
             {

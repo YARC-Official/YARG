@@ -26,6 +26,7 @@ namespace YARG.Gameplay
     public partial class GameManager : MonoBehaviour
     {
         [Header("References")]
+
         [SerializeField]
         private TrackViewManager _trackViewManager;
 
@@ -51,8 +52,6 @@ namespace YARG.Gameplay
         [SerializeField]
         private GameObject _proGuitarPrefab;
 
-        private SongChart _chart;
-
         private double _pauseStartTime;
 
         private IReadOnlyList<YargPlayer> _yargPlayers;
@@ -74,7 +73,7 @@ namespace YARG.Gameplay
                 _chartLoaded += value;
 
                 // Invoke now if already loaded, this event is only fired once
-                var chart = _chart;
+                var chart = Chart;
                 if (chart != null)
                     value?.Invoke(chart);
             }
@@ -82,8 +81,10 @@ namespace YARG.Gameplay
         }
 
         public PracticeManager PracticeManager { get; private set; }
+        public BeatEventManager BeatEventManager { get; private set; }
 
         public SongMetadata Song { get; private set; }
+        public SongChart Chart { get; private set; }
 
         private float _syncSpeedAdjustment = 0f;
         private int _syncSpeedMultiplier = 0;
@@ -114,7 +115,10 @@ namespace YARG.Gameplay
 
         private void Awake()
         {
+            // Set references
             PracticeManager = GetComponent<PracticeManager>();
+            BeatEventManager = GetComponent<BeatEventManager>();
+
             _yargPlayers = PlayerContainer.Players;
 
             Song = GlobalVariables.Instance.CurrentSong;
@@ -290,7 +294,7 @@ namespace YARG.Gameplay
 
                 try
                 {
-                    _chart = Song.LoadChart();
+                    Chart = Song.LoadChart();
                 }
                 catch (Exception ex)
                 {
@@ -301,24 +305,24 @@ namespace YARG.Gameplay
                 }
 
                 // Ensure sync track is present
-                var syncTrack = _chart.SyncTrack;
+                var syncTrack = Chart.SyncTrack;
                 if (syncTrack.Beatlines is null or { Count: < 1 })
                 {
-                    _chart.SyncTrack.GenerateBeatlines(_chart.GetLastTick());
+                    Chart.SyncTrack.GenerateBeatlines(Chart.GetLastTick());
                 }
 
                 // Set length of the final section
-                if (_chart.Sections.Count > 0) {
-                    uint lastTick = _chart.GetLastTick();
-                    _chart.Sections[^1].TickLength = lastTick;
-                    _chart.Sections[^1].TimeLength = _chart.SyncTrack.TickToTime(lastTick);
+                if (Chart.Sections.Count > 0) {
+                    uint lastTick = Chart.GetLastTick();
+                    Chart.Sections[^1].TickLength = lastTick;
+                    Chart.Sections[^1].TimeLength = Chart.SyncTrack.TickToTime(lastTick);
                 }
             });
 
             if (_loadFailure)
                 return;
 
-            _chartLoaded?.Invoke(_chart);
+            _chartLoaded?.Invoke(Chart);
         }
 
         private async UniTask LoadAudio()
@@ -368,7 +372,7 @@ namespace YARG.Gameplay
                 // Setup player
                 var basePlayer = playerObject.GetComponent<BasePlayer>();
                 var trackView = _trackViewManager.CreateTrackView(basePlayer);
-                basePlayer.Initialize(index, player, _chart, trackView);
+                basePlayer.Initialize(index, player, Chart, trackView);
                 _players.Add(basePlayer);
             }
         }
