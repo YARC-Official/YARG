@@ -9,16 +9,30 @@ namespace YARG.Gameplay
         private const double SONG_START_DELAY = 2;
 
         /// <summary>
-        /// The time into the song <b>without</b> accounting for calibration.<br/>
-        /// This is updated every frame.
+        /// The time into the song, accounting for song speed and calibration.<br/>
+        /// This is updated every frame while the game is not paused.
+        /// </summary>
+        public double SongTime => RealSongTime + AudioCalibration;
+
+        /// <summary>
+        /// The time into the song, accounting for song speed but <b>not</b> calibration.<br/>
+        /// This is updated every frame while the game is not paused.
         /// </summary>
         public double RealSongTime { get; private set; }
 
         /// <summary>
-        /// The time into the song <b>accounting</b> for calibration.<br/>
-        /// This is updated every frame.
+        /// The current input time, accounting for song speed and calibration.<br/>
+        /// This is updated every frame while the game is not paused.
         /// </summary>
-        public double SongTime => RealSongTime + AudioCalibration;
+        public double InputTime => RealInputTime + AudioCalibration;
+
+        /// <summary>
+        /// The current input time, accounting for song speed but <b>not</b> calibration.<br/>
+        /// This is updated every frame while the game is not paused.
+        /// </summary>
+        // Uses the selected song speed and not the actual song speed,
+        // audio is synced to the inputs and not vice versa
+        public double RealInputTime { get; private set; }
 
         /// <summary>
         /// The input time that is considered to be 0.
@@ -31,19 +45,6 @@ namespace YARG.Gameplay
         /// </summary>
         public static double InputTimeBase { get; private set; }
 
-        /// <summary>
-        /// The current input update time, accounting for song speed, <b>and for</b> calibration.
-        /// </summary>
-        // Remember that calibration is already accounted for by the input offset time
-        public double InputTime { get; private set; }
-
-        /// <summary>
-        /// The current input update time, accounting for song speed, but <b>not</b> for calibration.
-        /// </summary>
-        // Uses the selected song speed and not the actual song speed,
-        // audio is synced to the inputs and not vice versa
-        public double RealInputTime => InputTime - AudioCalibration;
-
         public double GetRelativeInputTime(double timeFromInputSystem)
         {
             return InputTimeBase + ((timeFromInputSystem - InputTimeOffset) * SelectedSongSpeed);
@@ -55,13 +56,13 @@ namespace YARG.Gameplay
             InputTimeOffset = InputManager.CurrentUpdateTime;
 
             // Update input time
-            InputTime = GetRelativeInputTime(InputManager.CurrentUpdateTime);
+            RealInputTime = GetRelativeInputTime(InputManager.CurrentUpdateTime);
         }
 
         private void UpdateTimes()
         {
             // Update input time
-            InputTime = GetRelativeInputTime(InputManager.CurrentUpdateTime);
+            RealInputTime = GetRelativeInputTime(InputManager.CurrentUpdateTime);
 
             // Calculate song time
             if (RealSongTime < 0.0)

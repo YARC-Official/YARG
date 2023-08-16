@@ -428,7 +428,7 @@ namespace YARG.Gameplay
 
             _debugText.gameObject.SetActive(false);
 
-            _pauseStartTime = InputTime;
+            _pauseStartTime = RealInputTime;
             GlobalVariables.AudioManager.Pause();
         }
 
