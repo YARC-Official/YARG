@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -68,8 +69,37 @@ namespace YARG.Menu.Persistent
             fpsText.text = $"<b>FPS:</b> {fps}";
 
 #if UNITY_EDITOR
+            static string MemoryUsage(long bytes)
+            {
+                const float unitFactor = 1024f;
+                const float unitThreshold = 1.1f * unitFactor;
+
+                // Bytes
+                if (bytes < unitThreshold)
+                    return $"{bytes:N0} B";
+
+                // Kilobytes
+                float kilobytes = bytes / unitFactor;
+                if (kilobytes < unitThreshold)
+                    return $"{kilobytes:N0} KB";
+
+                // Megabytes
+                float megaBytes = kilobytes / unitFactor;
+                if (megaBytes < unitThreshold)
+                    return $"{megaBytes:N1} MB";
+
+                // Gigabytes
+                float gigaBytes = megaBytes / unitFactor;
+                return $"{gigaBytes:N2} GB";
+            }
+
+            // Get memory usage
+            long managedMemory = GC.GetTotalMemory(false);
+            long nativeMemory = Profiler.GetTotalAllocatedMemoryLong();
+            long totalMemory = managedMemory + nativeMemory;
+
             // Display the memory usage
-            fpsText.text += $"   •   <b>Memory:</b> {Profiler.GetTotalAllocatedMemoryLong() / 1024 / 1024} MB";
+            fpsText.text += $"   •   <b>Memory:</b> {MemoryUsage(totalMemory)}  (managed: {MemoryUsage(managedMemory)}, native: {MemoryUsage(nativeMemory)})";
 #endif
 
             // reset the update time
