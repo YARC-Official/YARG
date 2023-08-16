@@ -1,28 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using Cysharp.Threading.Tasks;
-using Melanchall.DryWetMidi.Core;
-using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using YARG.Audio;
-using YARG.Core;
-using YARG.Core.Chart;
-using YARG.Core.Game;
-using YARG.Core.Input;
-using YARG.Core.Replays;
-using YARG.Core.Replays.IO;
-using YARG.Core.Song;
-using YARG.Gameplay.HUD;
-using YARG.Gameplay.Player;
 using YARG.Input;
-using YARG.Menu.Navigation;
-using YARG.Menu.Persistent;
-using YARG.Player;
-using YARG.Replays;
-using YARG.Settings;
-using YARG.Song;
 
 namespace YARG.Gameplay
 {
