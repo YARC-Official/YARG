@@ -48,15 +48,17 @@ namespace YARG.Gameplay.HUD
             });
         }
 
-        public void ForceEndSolo()
-        {
-            _textNotifications.gameObject.SetActive(true);
-            _soloBox.ForceEndSolo();
-        }
-
         public void UpdateNoteStreak(int streak)
         {
             _textNotifications.UpdateNoteStreak(streak);
+        }
+
+        public void ForceReset()
+        {
+            _textNotifications.gameObject.SetActive(true);
+
+            _soloBox.ForceReset();
+            _textNotifications.ForceReset();
         }
     }
 }

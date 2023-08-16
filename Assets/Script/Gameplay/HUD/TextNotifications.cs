@@ -91,5 +91,10 @@ namespace YARG.Gameplay.HUD
             // We could make this more complex if we wanted to
             _nextStreakCount += 100;
         }
+
+        public void ForceReset()
+        {
+            _notificationQueue.Clear();
+        }
     }
 }

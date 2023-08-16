@@ -129,8 +129,19 @@ namespace YARG.Gameplay.Player
         public abstract void ResetPracticeSection();
 
         protected abstract void UpdateInputs(double inputTime);
-        protected abstract void UpdateVisuals(double songTime);
+
         protected abstract void UpdateNotes(double songTime);
+
+        protected abstract void UpdateVisuals(double songTime);
+
+        protected virtual void ResetVisuals()
+        {
+            ComboMeter.SetFullCombo(IsFc);
+            TrackView.ForceReset();
+
+            NotePool.ReturnAllObjects();
+            BeatlinePool.ReturnAllObjects();
+        }
 
         private void UpdateBeatlines(double songTime)
         {
@@ -249,6 +260,7 @@ namespace YARG.Gameplay.Player
         public override void ResetPracticeSection()
         {
             Engine.Reset(true);
+
             if (NoteTrack.Notes.Count > 0)
             {
                 NoteTrack.Notes[0].OverridePreviousNote();
@@ -256,17 +268,13 @@ namespace YARG.Gameplay.Player
             }
 
             IsFc = true;
-            ComboMeter.SetFullCombo(true);
-
-            TrackView.ForceEndSolo();
 
             NoteIndex = 0;
             BeatlineIndex = 0;
             NotesHit = 0;
             TotalNotes = Notes.Count;
 
-            NotePool.ReturnAllObjects();
-            BeatlinePool.ReturnAllObjects();
+            ResetVisuals();
         }
 
         protected override void UpdateInputs(double inputTime)
