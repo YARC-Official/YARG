@@ -13,7 +13,8 @@ namespace YARG.Gameplay.HUD
         private int _streak;
         private int _nextStreakCount;
 
-        private readonly Queue<string> _notificationQueue = new();
+        private string _nextNotification;
+        private bool   _notificationPending;
 
         private readonly PerformanceTextScaler _scaler = new(2f);
         private Coroutine _coroutine;
@@ -53,14 +54,15 @@ namespace YARG.Gameplay.HUD
             // Queue the note streak notification
             if (_streak >= _nextStreakCount)
             {
-                _notificationQueue.Enqueue($"{_nextStreakCount}-NOTE STREAK");
+                _nextNotification = $"{_nextStreakCount}-NOTE STREAK";
+                _notificationPending = true;
                 NextNoteStreakNotification();
             }
         }
 
         private void Update()
         {
-            if (_coroutine == null && _notificationQueue.Count > 0)
+            if (_coroutine == null && _notificationPending)
             {
                 _coroutine = StartCoroutine(ShowNextNotification());
             }
@@ -68,8 +70,7 @@ namespace YARG.Gameplay.HUD
 
         private IEnumerator ShowNextNotification()
         {
-            string notification = _notificationQueue.Dequeue();
-            _text.text = notification;
+            _text.text = _nextNotification;
 
             _scaler.ResetAnimationTime();
 
@@ -84,17 +85,33 @@ namespace YARG.Gameplay.HUD
 
             _text.text = string.Empty;
             _coroutine = null;
+            _notificationPending = false;
         }
 
         private void NextNoteStreakNotification()
         {
-            // We could make this more complex if we wanted to
-            _nextStreakCount += 100;
+            switch (_nextStreakCount)
+            {
+                case 0:
+                    _nextStreakCount = 50;
+                    break;
+                case 50:
+                    _nextStreakCount = 100;
+                    break;
+                case 100:
+                    _nextStreakCount = 250;
+                    break;
+                case >= 250:
+                    _nextStreakCount += 250;
+                    break;
+            }
         }
 
         public void ForceReset()
         {
-            _notificationQueue.Clear();
+            _notificationPending = false;
+            _nextStreakCount = 0;
+            _streak = 0;
         }
     }
 }
