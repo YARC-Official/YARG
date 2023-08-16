@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Cysharp.Threading.Tasks;
@@ -528,8 +528,10 @@ namespace YARG.Gameplay
             if (seekTime < 0) seekTime = 0;
             GlobalVariables.AudioManager.SetPosition(seekTime);
 
-            //Debug.Log($"Set song time to {time}.\nSeek time: {seekTime}, input time: {InputTime} " +
-            //    $"(base: {InputTimeBase}, offset: {InputTimeOffset}, absolute: {InputManager.CurrentUpdateTime})");
+#if UNITY_EDITOR
+            Debug.Log($"Set song time to {time}.\nSeek time: {seekTime}, input time: {InputTime} " +
+               $"(base: {InputTimeBase}, offset: {InputTimeOffset}, absolute: {InputManager.CurrentUpdateTime})");
+#endif
         }
 
         private async UniTask SetSongSpeedTask(float speed)
@@ -550,8 +552,10 @@ namespace YARG.Gameplay
             // Adjust input offset, otherwise input time will desync
             SetInputBase(InputTime);
 
-            //Debug.Log($"Set song speed to {speed:0.00}.\n"
-            //    + $"Input time: {InputTime:0.000000}, song time: {SongTime:0.000000}");
+#if UNITY_EDITOR
+            Debug.Log($"Set song speed to {speed:0.00}.\n"
+               + $"Input time: {InputTime:0.000000}, song time: {SongTime:0.000000}");
+#endif
         }
 
         public void SetSongSpeed(float speed)
