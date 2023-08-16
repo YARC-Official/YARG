@@ -1114,6 +1114,7 @@ GameObject:
   - component: {fileID: 318454372}
   - component: {fileID: 318454371}
   - component: {fileID: 318454374}
+  - component: {fileID: 318454375}
   - component: {fileID: 318454373}
   m_Layer: 0
   m_Name: Game Manager
@@ -1137,12 +1138,12 @@ MonoBehaviour:
   _trackViewManager: {fileID: 1330928978}
   _pauseMenu: {fileID: 1323155442}
   _debugText: {fileID: 2085296271}
-  fiveFretGuitarPrefab: {fileID: 7381119128095886790, guid: 0f7a37c9e4abcad4da73b7603d4b7596,
+  _fiveFretGuitarPrefab: {fileID: 7381119128095886790, guid: 0f7a37c9e4abcad4da73b7603d4b7596,
     type: 3}
-  sixFretGuitarPrefab: {fileID: 0}
-  fourLaneDrumsPrefab: {fileID: 0}
-  fiveLaneDrumsPrefab: {fileID: 0}
-  proGuitarPrefab: {fileID: 0}
+  _sixFretGuitarPrefab: {fileID: 0}
+  _fourLaneDrumsPrefab: {fileID: 0}
+  _fiveLaneDrumsPrefab: {fileID: 0}
+  _proGuitarPrefab: {fileID: 0}
 --- !u!4 &318454372
 Transform:
   m_ObjectHideFlags: 0
@@ -1186,6 +1187,18 @@ MonoBehaviour:
   _pauseMenu: {fileID: 1323155442}
   _practiceHud: {fileID: 1316571463}
   _scoreDisplayObject: {fileID: 310620824}
+--- !u!114 &318454375
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 318454370}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3e2924007c5402abc038da7e0d3bb39, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &417693871
 GameObject:
   m_ObjectHideFlags: 0

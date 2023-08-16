@@ -37,28 +37,26 @@ namespace YARG.Gameplay
 
         [Header("Instrument Prefabs")]
         [SerializeField]
-        private GameObject fiveFretGuitarPrefab;
+        private GameObject _fiveFretGuitarPrefab;
 
         [SerializeField]
-        private GameObject sixFretGuitarPrefab;
+        private GameObject _sixFretGuitarPrefab;
 
         [SerializeField]
-        private GameObject fourLaneDrumsPrefab;
+        private GameObject _fourLaneDrumsPrefab;
 
         [SerializeField]
-        private GameObject fiveLaneDrumsPrefab;
+        private GameObject _fiveLaneDrumsPrefab;
 
         [SerializeField]
-        private GameObject proGuitarPrefab;
+        private GameObject _proGuitarPrefab;
 
         private SongChart _chart;
 
         private double _pauseStartTime;
 
-        private List<BasePlayer> _players;
-        private List<Beatline>   _beats;
-
         private IReadOnlyList<YargPlayer> _yargPlayers;
+        private List<BasePlayer> _players;
 
         private bool _loadFailure;
         private string _loadFailureMessage;
@@ -305,9 +303,9 @@ namespace YARG.Gameplay
                 // Ensure sync track is present
                 var syncTrack = _chart.SyncTrack;
                 if (syncTrack.Beatlines is null or { Count: < 1 })
+                {
                     _chart.SyncTrack.GenerateBeatlines(_chart.GetLastTick());
-
-                _beats = _chart.SyncTrack.Beatlines;
+                }
 
                 // Set length of the final section
                 if (_chart.Sections.Count > 0) {
@@ -352,11 +350,11 @@ namespace YARG.Gameplay
                 index++;
                 var prefab = player.Profile.GameMode switch
                 {
-                    GameMode.FiveFretGuitar => fiveFretGuitarPrefab,
-                    GameMode.SixFretGuitar  => sixFretGuitarPrefab,
-                    GameMode.FourLaneDrums  => fourLaneDrumsPrefab,
-                    GameMode.FiveLaneDrums  => fiveLaneDrumsPrefab,
-                    GameMode.ProGuitar      => proGuitarPrefab,
+                    GameMode.FiveFretGuitar => _fiveFretGuitarPrefab,
+                    GameMode.SixFretGuitar  => _sixFretGuitarPrefab,
+                    GameMode.FourLaneDrums  => _fourLaneDrumsPrefab,
+                    GameMode.FiveLaneDrums  => _fiveLaneDrumsPrefab,
+                    GameMode.ProGuitar      => _proGuitarPrefab,
 
                     _ => null
                 };
