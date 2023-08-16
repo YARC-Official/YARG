@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 
@@ -46,7 +47,7 @@ namespace YARG.Song
                     genre = song.Genre,
                     charter = song.Charter,
                     year = song.UnmodifiedYear,
-                    songLength = song.SongLength
+                    songLength = song.SongLengthMilliseconds
                 });
             }
 
