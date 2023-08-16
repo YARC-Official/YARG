@@ -43,9 +43,6 @@ namespace YARG.Gameplay
         {
             _gameManager = FindObjectOfType<GameManager>();
 
-            enabled = false;
-            _gameManager.ChartLoaded += OnChartLoaded;
-
             Navigator.Instance.NavigationEvent += OnNavigationEvent;
         }
 
@@ -55,6 +52,9 @@ namespace YARG.Gameplay
             {
                 _practiceHud.gameObject.SetActive(true);
                 _scoreDisplayObject.SetActive(false);
+
+                enabled = false;
+                _gameManager.ChartLoaded += OnChartLoaded;
             }
             else
             {
