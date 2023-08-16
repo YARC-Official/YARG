@@ -71,18 +71,19 @@ namespace YARG.Gameplay.HUD
         public void SetAPosition()
         {
             _gameManager.PracticeManager.SetAPosition(_gameManager.InputTime);
-            aPositionText.text = TimeSpan.FromSeconds(_gameManager.PracticeManager.TimeStart).ToString(@"hh\:mm\:ss");
+            UpdatePositionText();
         }
 
         public void SetBPosition()
         {
             _gameManager.PracticeManager.SetBPosition(_gameManager.InputTime);
-            bPositionText.text = TimeSpan.FromSeconds(_gameManager.PracticeManager.TimeEnd).ToString(@"hh\:mm\:ss");
+            UpdatePositionText();
         }
 
         public void ResetAbPositions()
         {
             _gameManager.PracticeManager.ResetAbPositions();
+            UpdatePositionText();
         }
 
         public void SelectSections()
@@ -93,6 +94,12 @@ namespace YARG.Gameplay.HUD
         public void BackToLibrary()
         {
             _pauseMenuManager.Quit();
+        }
+
+        private void UpdatePositionText()
+        {
+            aPositionText.text = TimeSpan.FromSeconds(_gameManager.PracticeManager.TimeStart).ToString(@"hh\:mm\:ss");
+            bPositionText.text = TimeSpan.FromSeconds(_gameManager.PracticeManager.TimeEnd).ToString(@"hh\:mm\:ss");
         }
     }
 }
