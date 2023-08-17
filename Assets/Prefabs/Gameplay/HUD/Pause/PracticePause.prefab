@@ -274,8 +274,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 869265b312608c04ebc880d340a622e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  aPositionText: {fileID: 3314195479118918642}
-  bPositionText: {fileID: 8585662672339082885}
+  _aPositionText: {fileID: 3314195479118918642}
+  _bPositionText: {fileID: 8585662672339082885}
 --- !u!114 &1393302618078186337
 MonoBehaviour:
   m_ObjectHideFlags: 0

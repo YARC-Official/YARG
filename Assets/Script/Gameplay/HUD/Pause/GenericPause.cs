@@ -5,11 +5,11 @@ namespace YARG.Gameplay.HUD
 {
     public class GenericPause : GameplayBehaviour
     {
-        protected PauseMenuManager _pauseMenuManager { get; private set; }
+        protected PauseMenuManager PauseMenuManager { get; private set; }
 
         protected override void GameplayAwake()
         {
-            _pauseMenuManager = FindObjectOfType<PauseMenuManager>();
+            PauseMenuManager = FindObjectOfType<PauseMenuManager>();
         }
 
         protected virtual void OnEnable()
@@ -30,23 +30,23 @@ namespace YARG.Gameplay.HUD
 
         public virtual void Resume()
         {
-            _pauseMenuManager.PopMenu();
+            PauseMenuManager.PopMenu();
         }
 
         public virtual void Restart()
         {
-            _pauseMenuManager.Restart();
+            PauseMenuManager.Restart();
         }
 
         public void TogglePractice()
         {
             GlobalVariables.Instance.IsPractice = !GlobalVariables.Instance.IsPractice;
-            _pauseMenuManager.Restart();
+            PauseMenuManager.Restart();
         }
 
         public void BackToLibrary()
         {
-            _pauseMenuManager.Quit();
+            PauseMenuManager.Quit();
         }
     }
 }

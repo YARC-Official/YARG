@@ -7,17 +7,18 @@ namespace YARG.Gameplay.HUD
     public class PracticePause : GenericPause
     {
         [SerializeField]
-        private TextMeshProUGUI aPositionText;
+        private TextMeshProUGUI _aPositionText;
 
         [SerializeField]
-        private TextMeshProUGUI bPositionText;
+        private TextMeshProUGUI _bPositionText;
 
         protected override void GameplayAwake()
         {
+            base.GameplayAwake();
+
             if (!GameManager.IsPractice)
             {
                 Destroy(gameObject);
-                return;
             }
         }
 
@@ -48,13 +49,13 @@ namespace YARG.Gameplay.HUD
 
         public void SelectSections()
         {
-            _pauseMenuManager.OpenMenu(PauseMenuManager.Menu.SelectSections);
+            PauseMenuManager.OpenMenu(PauseMenuManager.Menu.SelectSections);
         }
 
         private void UpdatePositionText()
         {
-            aPositionText.text = TimeSpan.FromSeconds(GameManager.PracticeManager.TimeStart).ToString(@"hh\:mm\:ss");
-            bPositionText.text = TimeSpan.FromSeconds(GameManager.PracticeManager.TimeEnd).ToString(@"hh\:mm\:ss");
+            _aPositionText.text = TimeSpan.FromSeconds(GameManager.PracticeManager.TimeStart).ToString(@"hh\:mm\:ss");
+            _bPositionText.text = TimeSpan.FromSeconds(GameManager.PracticeManager.TimeEnd).ToString(@"hh\:mm\:ss");
         }
     }
 }
