@@ -89,8 +89,11 @@ namespace YARG.Gameplay
             // Update per action now
             foreach (var (action, state) in _states)
             {
-                uint ticksPerMeasure = _sync.Resolution * (4 / currentTimeSig.Denominator) * currentTimeSig.Numerator;
-                uint ticksPerNote = (uint) (ticksPerMeasure * state.Info.Note);
+                // Get the ticks per whole note so we can use it to get the ticks per note.
+                // DO NOT use measures here, as a "quarter note" represents a quarter of
+                // a whole and NOT a quarter of a measure.
+                uint ticksPerWholeNote = (uint) (_sync.Resolution * ((double) 4 / currentTimeSig.Denominator) * 4);
+                uint ticksPerNote = (uint) (ticksPerWholeNote * state.Info.Note);
 
                 // Call action
                 if (_sync.TickToTime(state.LastTick + ticksPerNote) <= GameManager.SongTime + state.Info.Offset)
