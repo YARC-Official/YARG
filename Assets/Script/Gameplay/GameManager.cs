@@ -450,7 +450,7 @@ namespace YARG.Gameplay
             if (inputCompensation)
                 SetInputBase(_pauseStartTime);
 
-            if (RealSongTime >= 0)
+            if (RealSongTime >= SongOffset)
                 GlobalVariables.AudioManager.Play();
         }
 

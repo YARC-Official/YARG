@@ -56,14 +56,24 @@ namespace YARG.Gameplay
         /// </remarks>
         public double AudioCalibration => -SettingsManager.Settings.AudioCalibration.Data / 1000.0;
 
+        /// <summary>
+        /// The song offset, in seconds.
+        /// </summary>
+        /// <remarks>
+        /// Be aware that this value is negated!
+        /// Positive offsets in the .ini or .chart will result in a negative number here.
+        /// </remarks>
+        public double SongOffset => -Song.SongOffset;
+
         private float _syncSpeedAdjustment = 0f;
         private int _syncSpeedMultiplier = 0;
         private double _syncStartDelta;
 
         private void InitializeTime()
         {
-            // Set start time
-            SetSongTime(0);
+            // Initialize times
+            InitializeSongTime(SongOffset);
+            GlobalVariables.AudioManager.SetPosition(0);
         }
 
         public double GetRelativeInputTime(double timeFromInputSystem)
@@ -86,21 +96,21 @@ namespace YARG.Gameplay
             RealInputTime = GetRelativeInputTime(InputManager.CurrentUpdateTime);
 
             // Calculate song time
-            if (RealSongTime < 0.0)
+            if (RealSongTime < SongOffset)
             {
                 // Drive song time using input time until it's time to start the audio
                 RealSongTime = RealInputTime;
-                if (RealSongTime >= 0.0)
+                if (RealSongTime >= SongOffset)
                 {
                     // Start audio
                     GlobalVariables.AudioManager.Play();
                     // Seek to calculated time to keep everything in sync
-                    GlobalVariables.AudioManager.SetPosition(RealSongTime);
+                    GlobalVariables.AudioManager.SetPosition(RealSongTime - SongOffset);
                 }
             }
             else
             {
-                RealSongTime = GlobalVariables.AudioManager.CurrentPositionD;
+                RealSongTime = GlobalVariables.AudioManager.CurrentPositionD + SongOffset;
                 // Sync if needed
                 SyncAudio();
             }
@@ -162,7 +172,7 @@ namespace YARG.Gameplay
             }
         }
 
-        public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
+        private void InitializeSongTime(double time, double delayTime = SONG_START_DELAY)
         {
             // Account for song speed
             delayTime *= SelectedSongSpeed;
@@ -180,17 +190,25 @@ namespace YARG.Gameplay
             // Set audio/song time
             RealSongTime = seekTime;
 
+#if UNITY_EDITOR
+            Debug.Log($"Set song time to {time:0.000000} (delay: {delayTime:0.000000}).\n" +
+                $"Seek time: {seekTime:0.000000}, song time: {SongTime:0.000000}, input time: {InputTime:0.000000} " +
+                $"(base: {InputTimeBase:0.000000}, offset: {InputTimeOffset:0.000000}, absolute: {InputManager.CurrentUpdateTime:0.000000})");
+#endif
+        }
+
+        public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
+        {
+            // Set input/song time
+            InitializeSongTime(time, delayTime);
+
             // Audio seeking; cannot go negative
+            double seekTime = RealSongTime;
             if (seekTime < 0) seekTime = 0;
             GlobalVariables.AudioManager.SetPosition(seekTime);
 
             // Reset beat events
             BeatEventManager.ResetTimers();
-
-#if UNITY_EDITOR
-            Debug.Log($"Set song time to {time}.\nSeek time: {seekTime}, input time: {InputTime} " +
-               $"(base: {InputTimeBase}, offset: {InputTimeOffset}, absolute: {InputManager.CurrentUpdateTime})");
-#endif
         }
     }
 }
