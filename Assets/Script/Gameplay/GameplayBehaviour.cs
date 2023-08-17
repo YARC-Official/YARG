@@ -31,7 +31,8 @@ namespace YARG.Gameplay
             // Disable until the song starts
             // (disable before registering, so that if it's already loaded
             // we're not stuck as disabled from it immediately executing the method)
-            enabled = false;
+            enabled = GameManager.IsSongStarted;
+
             GameManager.ChartLoaded += _OnChartLoaded;
             GameManager.SongStarted += _OnSongStarted;
 

@@ -56,7 +56,8 @@ namespace YARG.Gameplay
         private IReadOnlyList<YargPlayer> _yargPlayers;
         private List<BasePlayer> _players;
 
-        private bool _loaded;
+        public bool IsSongStarted { get; private set; } = false;
+
         private bool _loadFailure;
         private string _loadFailureMessage;
 
@@ -86,7 +87,7 @@ namespace YARG.Gameplay
                 _songStarted += value;
 
                 // Invoke now if already loaded, this event is only fired once
-                if (_loaded)
+                if (IsSongStarted)
                     value?.Invoke();
             }
             remove => _songStarted -= value;
@@ -193,7 +194,7 @@ namespace YARG.Gameplay
 
             // Loaded, enable updates
             enabled = true;
-            _loaded = true;
+            IsSongStarted = true;
             _songStarted?.Invoke();
         }
 
