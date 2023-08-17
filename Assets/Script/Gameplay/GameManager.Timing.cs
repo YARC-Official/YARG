@@ -56,6 +56,16 @@ namespace YARG.Gameplay
         /// </remarks>
         public double AudioCalibration => -SettingsManager.Settings.AudioCalibration.Data / 1000.0;
 
+        private float _syncSpeedAdjustment = 0f;
+        private int _syncSpeedMultiplier = 0;
+        private double _syncStartDelta;
+
+        private void InitializeTime()
+        {
+            // Set start time
+            SetSongTime(0);
+        }
+
         public double GetRelativeInputTime(double timeFromInputSystem)
         {
             return InputTimeBase + ((timeFromInputSystem - InputTimeOffset) * SelectedSongSpeed);

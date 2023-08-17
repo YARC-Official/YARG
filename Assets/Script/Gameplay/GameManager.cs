@@ -59,8 +59,6 @@ namespace YARG.Gameplay
         private bool _loadFailure;
         private string _loadFailureMessage;
 
-        private UniTask _syncAudio = UniTask.CompletedTask;
-
         // All access to chart data must be done through this event,
         // since things are loaded asynchronously
         // Players are initialized by hand and don't go through this event
@@ -85,16 +83,10 @@ namespace YARG.Gameplay
         public SongMetadata Song { get; private set; }
         public SongChart Chart { get; private set; }
 
-        private float _syncSpeedAdjustment = 0f;
-        private int _syncSpeedMultiplier = 0;
-        private double _syncStartDelta;
-
         public float SelectedSongSpeed { get; private set; }
         public float ActualSongSpeed => SelectedSongSpeed + _syncSpeedAdjustment;
 
         public double SongLength { get; private set; }
-
-        public double SongStartDelay => SONG_START_DELAY * SelectedSongSpeed;
 
         public bool IsReplay   { get; private set; }
         public bool IsPractice { get; private set; }
@@ -162,8 +154,8 @@ namespace YARG.Gameplay
             // Spawn players
             CreatePlayers();
 
-            // Set start time
-            SetSongTime(0);
+            // Initialize time stuff
+            InitializeTime();
 
             // Loaded, enable updates
             enabled = true;
