@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
+using YARG.Core.Chart;
 
 namespace YARG.Gameplay
 {
-    public class BeatEventManager : MonoBehaviour
+    public class BeatEventManager : GameplayBehaviour
     {
         public readonly struct Info
         {
@@ -37,17 +37,12 @@ namespace YARG.Gameplay
             }
         }
 
-        private GameManager _gameManager;
+        private SyncTrack _sync;
 
         private int _currentTimeSigIndex;
         private int _nextTimeSigIndex = 1;
 
         private readonly Dictionary<Action, State> _states = new();
-
-        private void Awake()
-        {
-            _gameManager = GetComponent<GameManager>();
-        }
 
         public void Subscribe(Action action, Info info)
         {
@@ -70,19 +65,19 @@ namespace YARG.Gameplay
             _nextTimeSigIndex = 1;
         }
 
+        protected override void OnChartLoaded(SongChart chart)
+        {
+            _sync = GameManager.Chart.SyncTrack;
+        }
+
         private void Update()
         {
-            // Skip while loading
-            if (_gameManager.Chart is null) return;
-
-            var sync = _gameManager.Chart.SyncTrack;
-
             // Skip until in the chart
-            if (_gameManager.SongTime < 0) return;
+            if (GameManager.SongTime < 0) return;
 
             // Update the time signature indices
-            var timeSigs = sync.TimeSignatures;
-            while (_nextTimeSigIndex < timeSigs.Count && timeSigs[_nextTimeSigIndex].Time < _gameManager.InputTime)
+            var timeSigs = _sync.TimeSignatures;
+            while (_nextTimeSigIndex < timeSigs.Count && timeSigs[_nextTimeSigIndex].Time < GameManager.InputTime)
             {
                 _currentTimeSigIndex++;
                 _nextTimeSigIndex++;
@@ -94,11 +89,11 @@ namespace YARG.Gameplay
             // Update per action now
             foreach (var (action, state) in _states)
             {
-                uint ticksPerMeasure = sync.Resolution * (4 / currentTimeSig.Denominator) * currentTimeSig.Numerator;
+                uint ticksPerMeasure = _sync.Resolution * (4 / currentTimeSig.Denominator) * currentTimeSig.Numerator;
                 uint ticksPerNote = (uint) (ticksPerMeasure * state.Info.Note);
 
                 // Call action
-                if (sync.TickToTime(state.LastTick + ticksPerNote) <= _gameManager.SongTime + state.Info.Offset)
+                if (_sync.TickToTime(state.LastTick + ticksPerNote) <= GameManager.SongTime + state.Info.Offset)
                 {
                     action();
                     state.LastTick += ticksPerNote;

@@ -4,21 +4,18 @@ using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
 {
-    public class HideCursor : MonoBehaviour
+    public class HideCursor : GameplayBehaviour
     {
-        [SerializeField]
-        private GameManager _gameManager;
-
         private float _cursorHideTimer;
 
-        private void Start()
-        {
-            Cursor.visible = false;
-        }
-
-        private void OnDestroy()
+        protected override void GameplayDestroy()
         {
             Cursor.visible = true;
+        }
+
+        protected override void OnSongStarted()
+        {
+            Cursor.visible = false;
         }
 
         private void Update()
@@ -26,7 +23,7 @@ namespace YARG.Gameplay.HUD
             float showCursorSetting = SettingsManager.Settings.ShowCursorTimer.Data;
 
             // Always show if paused, or if settings say so
-            if (_gameManager.Paused || Mathf.Approximately(showCursorSetting, 0f))
+            if (GameManager.Paused || Mathf.Approximately(showCursorSetting, 0f))
             {
                 Cursor.visible = true;
                 return;

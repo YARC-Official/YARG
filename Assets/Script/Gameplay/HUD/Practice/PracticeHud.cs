@@ -6,7 +6,7 @@ using YARG.Core.Chart;
 
 namespace YARG.Gameplay.HUD
 {
-    public class PracticeHud : MonoBehaviour
+    public class PracticeHud : GameplayBehaviour
     {
         [Header("References")]
         [SerializeField]
@@ -34,19 +34,15 @@ namespace YARG.Gameplay.HUD
 
         private int _currentSectionIndex;
 
-        private GameManager _gameManager;
-
-        private void Awake()
+        protected override void GameplayAwake()
         {
-            _gameManager = FindObjectOfType<GameManager>();
-
             _sections = Array.Empty<Section>();
             _currentSectionIndex = 0;
         }
 
         private void Start()
         {
-            if (!_gameManager.IsPractice)
+            if (!GameManager.IsPractice)
             {
                 Destroy(gameObject);
             }
@@ -54,16 +50,16 @@ namespace YARG.Gameplay.HUD
 
         private void Update()
         {
-            if (_gameManager.Players is null)
+            if (GameManager.Players is null)
             {
                 return;
             }
 
-            speedPercentText.text = $"{_gameManager.SelectedSongSpeed * 100f:0}%";
+            speedPercentText.text = $"{GameManager.SelectedSongSpeed * 100f:0}%";
 
             int notesHit = 0;
             int totalNotes = 0;
-            foreach (var player in _gameManager.Players)
+            foreach (var player in GameManager.Players)
             {
                 notesHit += player.NotesHit;
                 totalNotes += player.TotalNotes;
@@ -81,7 +77,7 @@ namespace YARG.Gameplay.HUD
             notesHitTotalText.text = $"{notesHit}/{totalNotes}";
             percentHitText.text = $"{Mathf.FloorToInt(_percentHit * 100)}%";
 
-            while(_currentSectionIndex < _sections.Length && _gameManager.SongTime >= _sections[_currentSectionIndex].TimeEnd)
+            while(_currentSectionIndex < _sections.Length && GameManager.SongTime >= _sections[_currentSectionIndex].TimeEnd)
             {
                 _currentSectionIndex++;
 

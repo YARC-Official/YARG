@@ -4,7 +4,7 @@ using YARG.Settings;
 
 namespace YARG.Gameplay.Visuals
 {
-    public abstract class TrackElement<TPlayer> : MonoBehaviour, IPoolable
+    public abstract class TrackElement<TPlayer> : GameplayBehaviour, IPoolable
         where TPlayer : BasePlayer
     {
         // TODO: We should probably move these somewhere else
@@ -13,7 +13,6 @@ namespace YARG.Gameplay.Visuals
 
         protected const float REMOVE_POINT = -4f;
 
-        protected GameManager GameManager { get; private set;  }
         protected TPlayer Player { get; private set; }
         public Pool ParentPool { get; set; }
 
@@ -34,9 +33,8 @@ namespace YARG.Gameplay.Visuals
 
         protected bool Initialized { get; private set; }
 
-        private void Awake()
+        protected override void GameplayAwake()
         {
-            GameManager = FindObjectOfType<GameManager>();
             Player = GetComponentInParent<TPlayer>();
 
             // Hide everything at the start

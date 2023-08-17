@@ -7,7 +7,7 @@ using YARG.Menu.Navigation;
 
 namespace YARG.Gameplay
 {
-    public class PracticeManager : MonoBehaviour
+    public class PracticeManager : GameplayBehaviour
     {
         private const double SECTION_RESTART_DELAY = 2;
 
@@ -18,8 +18,6 @@ namespace YARG.Gameplay
         private PracticeHud _practiceHud;
         [SerializeField]
         private GameObject _scoreDisplayObject;
-
-        private GameManager _gameManager;
 
         private SongChart _chart;
 
@@ -39,22 +37,17 @@ namespace YARG.Gameplay
         public bool HasSelectedSection    { get; private set; }
         public bool HasUpdatedAbPositions { get; private set; }
 
-        private void Awake()
+        protected override void GameplayAwake()
         {
-            _gameManager = FindObjectOfType<GameManager>();
-
             Navigator.Instance.NavigationEvent += OnNavigationEvent;
         }
 
         private void Start()
         {
-            if (_gameManager.IsPractice)
+            if (GameManager.IsPractice)
             {
                 _practiceHud.gameObject.SetActive(true);
                 _scoreDisplayObject.SetActive(false);
-
-                enabled = false;
-                _gameManager.ChartLoaded += OnChartLoaded;
             }
             else
             {
@@ -62,25 +55,21 @@ namespace YARG.Gameplay
             }
         }
 
-        private void OnDestroy()
+        protected override void GameplayDestroy()
         {
-            _gameManager.ChartLoaded -= OnChartLoaded;
             Navigator.Instance.NavigationEvent -= OnNavigationEvent;
         }
 
         private void Update()
         {
-            if (_gameManager.Paused) return;
+            if (GameManager.Paused) return;
 
-            double endPoint = TimeEnd + (SECTION_RESTART_DELAY * _gameManager.SelectedSongSpeed);
-            if (_gameManager.SongTime >= endPoint) ResetPractice();
+            double endPoint = TimeEnd + (SECTION_RESTART_DELAY * GameManager.SelectedSongSpeed);
+            if (GameManager.SongTime >= endPoint) ResetPractice();
         }
 
-        private void OnChartLoaded(SongChart chart)
+        protected override void OnChartLoaded(SongChart chart)
         {
-            _gameManager.ChartLoaded -= OnChartLoaded;
-            enabled = true;
-
             _chart = chart;
             _lastTick = chart.GetLastTick();
         }
@@ -91,17 +80,17 @@ namespace YARG.Gameplay
             {
                 // Song speed
                 case MenuAction.Left:
-                    _gameManager.AdjustSongSpeed(-0.05f);
+                    GameManager.AdjustSongSpeed(-0.05f);
                     _practiceHud.ResetStats();
                     break;
                 case MenuAction.Right:
-                    _gameManager.AdjustSongSpeed(0.05f);
+                    GameManager.AdjustSongSpeed(0.05f);
                     _practiceHud.ResetStats();
                     break;
 
                 // Reset
                 case MenuAction.Select:
-                    if (_gameManager.Paused)
+                    if (GameManager.Paused)
                     {
                         return;
                     }
@@ -113,7 +102,7 @@ namespace YARG.Gameplay
 
         public void DisplayPracticeMenu()
         {
-            _gameManager.Pause(showMenu: false);
+            GameManager.Pause(showMenu: false);
             _pauseMenu.PushMenu(PauseMenuManager.Menu.SelectSections);
         }
 
@@ -135,13 +124,13 @@ namespace YARG.Gameplay
             TimeStart = timeStart;
             TimeEnd = timeEnd;
 
-            foreach (var player in _gameManager.Players)
+            foreach (var player in GameManager.Players)
             {
                 player.SetPracticeSection(tickStart, tickEnd);
             }
 
-            _gameManager.SetSongTime(timeStart);
-            _gameManager.Resume(inputCompensation: false);
+            GameManager.SetSongTime(timeStart);
+            GameManager.Resume(inputCompensation: false);
 
             _practiceHud.SetSections(GetSectionsInPractice(_sectionStartTick, _sectionEndTick));
             HasSelectedSection = true;
@@ -193,12 +182,12 @@ namespace YARG.Gameplay
                 return;
             }
 
-            foreach (var player in _gameManager.Players)
+            foreach (var player in GameManager.Players)
             {
                 player.ResetPracticeSection();
             }
 
-            _gameManager.SetSongTime(TimeStart);
+            GameManager.SetSongTime(TimeStart);
         }
 
         private Section[] GetSectionsInPractice(uint start, uint end)

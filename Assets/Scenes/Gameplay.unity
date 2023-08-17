@@ -1171,7 +1171,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77fa4d8f39844ad5b9a74e1ebad7564d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _gameManager: {fileID: 318454371}
 --- !u!114 &318454374
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3027,7 +3026,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a5c23225dc861948b6ec713e8c7050e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _gameManager: {fileID: 318454371}
   _albumText: {fileID: 653890501}
   _songText: {fileID: 672646200}
   _artistText: {fileID: 1886693832}

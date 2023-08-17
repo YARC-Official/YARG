@@ -11,7 +11,7 @@ using YARG.Song;
 
 namespace YARG.Gameplay.HUD
 {
-    public class PauseMenuManager : MonoBehaviour
+    public class PauseMenuManager : GameplayBehaviour
     {
         public enum Menu
         {
@@ -24,9 +24,6 @@ namespace YARG.Gameplay.HUD
         private Dictionary<Menu, PauseMenuObject> _menus;
 
         private readonly Stack<Menu> _openMenus = new();
-
-        [SerializeField]
-        private GameManager _gameManager;
 
         [Space]
         [SerializeField]
@@ -42,7 +39,7 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private RawImage _albumCover;
 
-        private void Awake()
+        protected override void GameplayAwake()
         {
             // Convert to dictionary with "Menu" as key
             var children = GetComponentsInChildren<PauseMenuObject>(true);
@@ -52,19 +49,19 @@ namespace YARG.Gameplay.HUD
         private async void Start()
         {
             // Set text info
-            _albumText.text = _gameManager.Song.Album;
-            _songText.text = _gameManager.Song.Name;
-            _artistText.text = _gameManager.Song.Artist;
-            _sourceText.text = SongSources.SourceToGameName(_gameManager.Song.Source);
+            _albumText.text = GameManager.Song.Album;
+            _songText.text = GameManager.Song.Name;
+            _artistText.text = GameManager.Song.Artist;
+            _sourceText.text = SongSources.SourceToGameName(GameManager.Song.Source);
 
             // Set source icon
-            _sourceIcon.sprite = await SongSources.SourceToIcon(_gameManager.Song.Source);
+            _sourceIcon.sprite = await SongSources.SourceToIcon(GameManager.Song.Source);
 
             // Set album cover
-            await _gameManager.Song.SetRawImageToAlbumCover(_albumCover, CancellationToken.None);
+            await GameManager.Song.SetRawImageToAlbumCover(_albumCover, CancellationToken.None);
         }
 
-        private void OnDestroy()
+        protected override void GameplayDestroy()
         {
             if (_albumCover.texture != null)
             {
@@ -141,7 +138,7 @@ namespace YARG.Gameplay.HUD
             // Resume if nothing left
             if (_openMenus.Count <= 0 && resume)
             {
-                _gameManager.Resume();
+                GameManager.Resume();
             }
         }
 
@@ -153,15 +150,15 @@ namespace YARG.Gameplay.HUD
 
         public void Quit()
         {
-            _gameManager.QuitSong();
+            GameManager.QuitSong();
         }
 
         public void Restart()
         {
-            if (_gameManager.IsPractice && GlobalVariables.Instance.IsPractice)
+            if (GameManager.IsPractice && GlobalVariables.Instance.IsPractice)
             {
                 PopMenu();
-                _gameManager.PracticeManager.ResetPractice();
+                GameManager.PracticeManager.ResetPractice();
                 return;
             }
 

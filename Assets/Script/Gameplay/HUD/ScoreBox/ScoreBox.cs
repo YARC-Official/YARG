@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace YARG.Gameplay.HUD
 {
-    public class ScoreBox : MonoBehaviour
+    public class ScoreBox : GameplayBehaviour
     {
         private const string SCORE_PREFIX = "<mspace=0.538em>";
 
@@ -14,15 +14,12 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private TextMeshProUGUI songProgressBar;
 
-        private GameManager _gameManager;
         private StarDisplay _starDisplay;
 
         private int _bandScore;
 
-        private void Awake()
+        protected override void GameplayAwake()
         {
-            _gameManager = FindObjectOfType<GameManager>();
-
             _starDisplay = GetComponentInChildren<StarDisplay>();
         }
 
@@ -35,14 +32,14 @@ namespace YARG.Gameplay.HUD
         // Update is called once per frame
         private void Update()
         {
-            if (_gameManager.Paused)
+            if (GameManager.Paused)
             {
                 return;
             }
 
-            if (_gameManager.BandScore != _bandScore)
+            if (GameManager.BandScore != _bandScore)
             {
-                _bandScore = _gameManager.BandScore;
+                _bandScore = GameManager.BandScore;
                 scoreText.text = SCORE_PREFIX + _bandScore.ToString("N0");
 
                 UpdateStars();
@@ -53,7 +50,7 @@ namespace YARG.Gameplay.HUD
         {
             double totalStarCount = 0;
 
-            foreach (var player in _gameManager.Players)
+            foreach (var player in GameManager.Players)
             {
                 if (player.StarScoreThresholds[0] == 0)
                 {

@@ -10,7 +10,7 @@ using YARG.Player;
 
 namespace YARG.Gameplay.Player
 {
-    public abstract class BasePlayer : MonoBehaviour
+    public abstract class BasePlayer : GameplayBehaviour
     {
         public const float STRIKE_LINE_POS = -2f;
         public const float SPAWN_OFFSET    = 5f;
@@ -40,7 +40,6 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         protected Pool BeatlinePool;
 
-        protected GameManager GameManager { get; private set; }
         protected TrackView   TrackView   { get; private set; }
 
         protected SyncTrack SyncTrack { get; private set; }
@@ -82,9 +81,8 @@ namespace YARG.Gameplay.Player
 
         protected int BeatlineIndex;
 
-        protected virtual void Awake()
+        protected override void GameplayAwake()
         {
-            GameManager = FindObjectOfType<GameManager>();
             _replayInputs = new List<GameInput>();
 
             IsFc = true;
@@ -182,7 +180,7 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private void OnDestroy()
+        protected override void GameplayDestroy()
         {
             if (!GameManager.IsReplay)
             {

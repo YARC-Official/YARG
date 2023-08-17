@@ -8,7 +8,7 @@ using YARG.Core.Chart;
 
 namespace YARG.Gameplay.HUD
 {
-    public class StarDisplay : MonoBehaviour
+    public class StarDisplay : GameplayBehaviour
     {
         [SerializeField]
         private GameObject[] starObjects;
@@ -22,8 +22,6 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private RawImage goldMeterLine;
 
-        private GameManager _gameManager;
-
         private Animator _goldMeterParentAnimator;
 
         private IEnumerator<Beatline> _measures;
@@ -34,10 +32,8 @@ namespace YARG.Gameplay.HUD
 
         private float _goldMeterHeight;
 
-        private void Awake()
+        protected override void GameplayAwake()
         {
-            _gameManager = FindObjectOfType<GameManager>();
-
             _goldMeterParentAnimator = goldMeterParent.GetComponent<Animator>();
             _goldMeterHeight = GetComponent<RectTransform>().rect.height;
         }
@@ -45,14 +41,11 @@ namespace YARG.Gameplay.HUD
         private void Start()
         {
             enabled = false;
-            _gameManager.ChartLoaded += OnChartLoaded;
+            GameManager.ChartLoaded += OnChartLoaded;
         }
 
-        private void OnChartLoaded(SongChart chart)
+        protected override void OnChartLoaded(SongChart chart)
         {
-            _gameManager.ChartLoaded -= OnChartLoaded;
-            enabled = true;
-
             _measures = chart.SyncTrack.Beatlines.Where(b => b.Type == BeatlineType.Measure).GetEnumerator();
             _measures.MoveNext();
         }
@@ -65,7 +58,7 @@ namespace YARG.Gameplay.HUD
             }
 
             var lastMeasure = _measures.Current;
-            while(_measures.Current?.Time < _gameManager.SongTime)
+            while(_measures.Current?.Time < GameManager.SongTime)
             {
                 _measures.MoveNext();
             }
@@ -124,7 +117,7 @@ namespace YARG.Gameplay.HUD
                     _currentStar = topStar;
 
                     GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarGain);
-                    Debug.Log($"Gained star at {_gameManager.BandScore} ({stars})");
+                    Debug.Log($"Gained star at {GameManager.BandScore} ({stars})");
                 }
 
                 if (_currentStar < 5)

@@ -8,12 +8,11 @@ using YARG.Menu.Navigation;
 
 namespace YARG.Gameplay.HUD
 {
-    public class PracticeSectionMenu : MonoBehaviour
+    public class PracticeSectionMenu : GameplayBehaviour
     {
         private const int SECTION_VIEW_EXTRA = 10;
         private const float SCROLL_TIME = 1f / 60f;
 
-        private GameManager _gameManager;
         private PauseMenuManager _pauseMenuManager;
 
         private bool _navigationPushed = false;
@@ -65,18 +64,17 @@ namespace YARG.Gameplay.HUD
         private uint _finalTick;
         private double _finalChartTime;
 
-        private void Awake()
+        protected override void GameplayAwake()
         {
-            _gameManager = FindObjectOfType<GameManager>();
             _pauseMenuManager = FindObjectOfType<PauseMenuManager>();
 
-            if (!_gameManager.IsPractice)
+            if (!GameManager.IsPractice)
             {
                 Destroy(gameObject);
                 return;
             }
 
-            _gameManager.ChartLoaded += OnChartLoaded;
+            GameManager.ChartLoaded += OnChartLoaded;
 
             // Create all of the section views
             for (int i = 0; i < SECTION_VIEW_EXTRA * 2 + 1; i++)
@@ -107,10 +105,8 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        private void OnChartLoaded(SongChart chart)
+        protected override void OnChartLoaded(SongChart chart)
         {
-            _gameManager.ChartLoaded -= OnChartLoaded;
-
             _sections = chart.Sections;
             _finalTick = chart.GetLastTick();
             _finalChartTime = chart.SyncTrack.TickToTime(_finalTick);
@@ -163,7 +159,7 @@ namespace YARG.Gameplay.HUD
                 int first = FirstSelectedIndex.Value;
                 int last = LastSelectedIndex.Value;
 
-                _gameManager.PracticeManager.SetPracticeSection(_sections[first], _sections[last]);
+                GameManager.PracticeManager.SetPracticeSection(_sections[first], _sections[last]);
 
                 // Hide menu
                 _pauseMenuManager.PopMenu();
