@@ -228,8 +228,10 @@ namespace YARG.Gameplay
             {
                 byte buttonMask = ((FiveFretPlayer) _players[0]).Engine.State.ButtonMask;
                 int noteIndex = ((FiveFretPlayer) _players[0]).Engine.State.NoteIndex;
+                var ticksPerEight = ((FiveFretPlayer) _players[0]).Engine.State.TicksEveryEightMeasures;
                 double starPower = ((FiveFretPlayer) _players[0]).Engine.EngineStats.StarPowerAmount;
                 _debugText.text = $"Note index: {noteIndex}\nButtons: {buttonMask}\nStar Power: {starPower:0.0000}\n"
+                    + $"TicksPerEight: {ticksPerEight}\n"
                     + $"Input time: {InputTime:0.000000}\nSong time: {SongTime:0.000000}\nTime difference: {InputTime - SongTime:0.000000}\n"
                     + $"Speed adjustment: {_syncSpeedAdjustment:0.00}\nSpeed multiplier: {_syncSpeedMultiplier}\n"
                     + $"Sync start delta: {_syncStartDelta:0.000000}";
