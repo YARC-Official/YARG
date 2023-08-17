@@ -167,7 +167,7 @@ namespace YARG.Audio
         private unsafe void CalculatePitchAndAmplitude(IntPtr buffer, int byteLength)
         {
             int sampleCount = byteLength / sizeof(short);
-            float* floatBuffer = stackalloc float[sampleCount];
+            Span<float> floatBuffer = stackalloc float[sampleCount];
 
             // Convert 16 bit buffer to floats
             // If this isn't 16 bit god knows what device they're using.
@@ -177,14 +177,12 @@ namespace YARG.Audio
                 floatBuffer[i] = shortBufferSpan[i] / 32768f;
             }
 
-            var bufferSpan = new ReadOnlySpan<float>(floatBuffer, sampleCount);
-
             // Calculate the root mean square
             float sum = 0f;
             int count = 0;
             for (int i = 0; i < sampleCount; i += 4, count++)
             {
-                sum += bufferSpan[i] * bufferSpan[i];
+                sum += floatBuffer[i] * floatBuffer[i];
             }
 
             sum = Mathf.Sqrt(sum / count);
@@ -203,7 +201,7 @@ namespace YARG.Audio
             }
 
             // Process the pitch buffer
-            var pitchOutput = _pitchDetector.ProcessBuffer(bufferSpan);
+            var pitchOutput = _pitchDetector.ProcessBuffer(floatBuffer);
             if (pitchOutput != null)
             {
                 Pitch = pitchOutput.Value;

@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Runtime.CompilerServices;
 using ManagedBass;
 using ManagedBass.DirectX8;
 using ManagedBass.Fx;
@@ -138,11 +139,11 @@ namespace YARG.Audio.BASS
 
         public static unsafe bool ApplyGain(float gain, IntPtr buffer, int length)
         {
-            var bufferPtr = (float*) buffer;
+            var sampleBuffer = new Span<float>((void*) buffer, length / sizeof(float));
 
-            for (int i = 0; i < length / sizeof(float); i++)
+            foreach (ref float sample in sampleBuffer)
             {
-                bufferPtr![i] *= gain;
+                sample *= gain;
             }
 
             return true;
