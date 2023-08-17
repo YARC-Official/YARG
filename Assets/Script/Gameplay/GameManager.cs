@@ -19,7 +19,6 @@ using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Player;
 using YARG.Replays;
-using YARG.Settings;
 
 namespace YARG.Gameplay
 {
@@ -96,8 +95,6 @@ namespace YARG.Gameplay
         public double SongLength { get; private set; }
 
         public double SongStartDelay => SONG_START_DELAY * SelectedSongSpeed;
-
-        public double AudioCalibration => -SettingsManager.Settings.AudioCalibration.Data / 1000.0;
 
         public bool IsReplay   { get; private set; }
         public bool IsPractice { get; private set; }

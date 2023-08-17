@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using YARG.Input;
+using YARG.Settings;
 
 namespace YARG.Gameplay
 {
@@ -39,11 +40,21 @@ namespace YARG.Gameplay
         /// Applied before song speed is factored in.
         /// </summary>
         public static double InputTimeOffset { get; private set; }
+
         /// <summary>
         /// The base time added on to relative time to get the real current input time.
         /// Applied after song speed is.
         /// </summary>
         public static double InputTimeBase { get; private set; }
+
+        /// <summary>
+        /// The audio calibration, in seconds.
+        /// </summary>
+        /// <remarks>
+        /// Be aware that this value is negated!
+        /// Positive calibration settings will result in a negative number here.
+        /// </remarks>
+        public double AudioCalibration => -SettingsManager.Settings.AudioCalibration.Data / 1000.0;
 
         public double GetRelativeInputTime(double timeFromInputSystem)
         {
@@ -143,17 +154,18 @@ namespace YARG.Gameplay
 
         public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
         {
-            // Account for song speed and calibration
+            // Account for song speed
             delayTime *= SelectedSongSpeed;
-            time -= AudioCalibration;
 
             // Seek time
             // Doesn't account for audio calibration for better audio syncing
             // since seeking is slightly delayed
             double seekTime = time - delayTime;
 
-            // Set input offsets
-            SetInputBase(seekTime);
+            // Set input offsets, factoring out audio calibration
+            // Doing audio calibration here seems to work the best,
+            // consistently starts out synced within ~50 ms (within 5 ms a majority of the time)
+            SetInputBase(seekTime + AudioCalibration);
 
             // Set audio/song time
             RealSongTime = seekTime;
