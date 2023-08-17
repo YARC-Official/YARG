@@ -56,6 +56,7 @@ namespace YARG.Gameplay
         private IReadOnlyList<YargPlayer> _yargPlayers;
         private List<BasePlayer> _players;
 
+        private bool _loaded;
         private bool _loadFailure;
         private string _loadFailureMessage;
 
@@ -75,6 +76,20 @@ namespace YARG.Gameplay
                     value?.Invoke(chart);
             }
             remove => _chartLoaded -= value;
+        }
+
+        private event Action _songStarted;
+        public event Action SongStarted
+        {
+            add
+            {
+                _songStarted += value;
+
+                // Invoke now if already loaded, this event is only fired once
+                if (_loaded)
+                    value?.Invoke();
+            }
+            remove => _songStarted -= value;
         }
 
         public PracticeManager PracticeManager { get; private set; }
@@ -157,9 +172,6 @@ namespace YARG.Gameplay
             // Initialize time stuff
             InitializeTime();
 
-            // Loaded, enable updates
-            enabled = true;
-
             // Listen for menu inputs
             Navigator.Instance.NavigationEvent += OnNavigationEvent;
 
@@ -178,6 +190,11 @@ namespace YARG.Gameplay
 
                 Destroy(PracticeManager);
             }
+
+            // Loaded, enable updates
+            enabled = true;
+            _loaded = true;
+            _songStarted?.Invoke();
         }
 
         private void Update()
