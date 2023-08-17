@@ -108,11 +108,14 @@ namespace YARG.Audio
 
         private static void LoadRBCONAudio(IAudioManager manager, SongMetadata song, float speed, params SongStem[] ignoreStems)
         {
-            var file = song.RBData.LoadMoggFile();
-            if (file == Array.Empty<byte>())
+            var mogg = song.RBData.LoadMoggFile();
+            if (mogg is null)
                 throw new Exception("Mogg file not present");
 
-            switch (BitConverter.ToInt32(file))
+            if (mogg.Length < sizeof(int))
+                throw new Exception($"Couldn't get MOGG version! Expected at least {sizeof(int)} bytes, got {mogg.Length}");
+
+            switch (BitConverter.ToInt32(mogg))
             {
                 case 0x0A:
                 case 0xF0:
@@ -176,7 +179,7 @@ namespace YARG.Audio
             if (rbmetadata.CrowdIndices != Array.Empty<int>() && !ignoreStems.Contains(SongStem.Crowd))
                 stemMaps.Add(new(SongStem.Crowd, rbmetadata.CrowdIndices, rbmetadata.CrowdStemValues));
 
-            manager.LoadMogg(file, stemMaps, speed);
+            manager.LoadMogg(mogg, stemMaps, speed);
         }
     }
 }

@@ -257,13 +257,24 @@ namespace YARG.Audio.BASS
             Debug.Log("Loading mogg song");
             UnloadSong();
 
+            // Verify data
+            if (moggArray is null)
+                throw new ArgumentNullException(nameof(moggArray));
+
+            const int minSize = sizeof(int) * 2;
+            if (moggArray.Length < minSize)
+                throw new Exception($"Couldn't get MOGG start index! Expected at least {minSize} bytes, got {moggArray.Length}");
+
+            // Get start index
+            int start = BitConverter.ToInt32(moggArray, sizeof(int));
+            if (start > moggArray.Length)
+                throw new Exception($"MOGG start index is out of bounds! Expected at least {start + 1} bytes, got {moggArray.Length}");
+
             // Initialize stream
             // Last flag is new BASS_SAMPLE_NOREORDER flag, which is not in the BassFlags enum,
             // as it was made as part of an update to fix <= 8 channel oggs.
             // https://www.un4seen.com/forum/?topic=20148.msg140872#msg140872
             const BassFlags flags = BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile | (BassFlags) 64;
-
-            int start = BitConverter.ToInt32(moggArray, 4);
             int moggStreamHandle = Bass.CreateStream(moggArray, start, moggArray.Length - start, flags);
             if (moggStreamHandle == 0)
             {
