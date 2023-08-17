@@ -57,11 +57,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 42c428a700c27424ba31e04d9c20432c
-    m_Address: SettingIcons
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2741494e5a3b68c43986f18396a91a9c
     m_Address: SettingPreviews/TrackPreview
     m_ReadOnly: 0

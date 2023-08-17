@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 42c428a700c27424ba31e04d9c20432c
+guid: 0a16c58d433eacb44a1354456c1c8abd
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -105,13 +105,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Display
+      name: SettingIcons_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 96
-        width: 32
-        height: 32
+        y: 64
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -119,41 +119,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 1d333693950e5714a823fa1d0cecb574
-      internalID: 406836518
+      spriteID: 74d38f44394dbd54385648133809d2fe
+      internalID: 948285804
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Sound
-      rect:
-        serializedVersion: 2
-        x: 32
-        y: 96
-        width: 32
-        height: 32
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 582e698c97769e947a8f7e3c643c3609
-      internalID: -592588107
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Generic
+      name: SettingIcons_1
       rect:
         serializedVersion: 2
         x: 64
-        y: 96
-        width: 32
-        height: 32
+        y: 64
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -161,20 +140,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 96e498f663e2add40b21ce06372dc48e
-      internalID: -1596070472
+      spriteID: 1a7b4e31aa7accb4a98f5b071fec9ab9
+      internalID: -1793394884
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Network
+      name: SettingIcons_2
       rect:
         serializedVersion: 2
-        x: 96
-        y: 96
-        width: 32
-        height: 32
+        x: 128
+        y: 64
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -182,20 +161,41 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: a27fc5366685aa24295fcd4a7cc5ec43
-      internalID: 986923113
+      spriteID: ebdd298f79dec4749a62a582bb050800
+      internalID: -2102064641
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Music
+      name: SettingIcons_3
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 64
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 99ecf0e4d65cd514fa02083303098f71
+      internalID: -812806453
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SettingIcons_4
       rect:
         serializedVersion: 2
         x: 0
-        y: 64
-        width: 32
-        height: 32
+        y: 0
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -203,20 +203,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 5a2102260f635f2429b627818a992414
-      internalID: -1679845717
+      spriteID: 8af4f2971ce03f94b91321db31e9b880
+      internalID: -1055201595
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Gameplay
+      name: SettingIcons_5
       rect:
         serializedVersion: 2
-        x: 32
-        y: 64
-        width: 32
-        height: 32
+        x: 64
+        y: 0
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -224,8 +224,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: c6eb3c78e9787414789342623a1fe16e
-      internalID: -1901904646
+      spriteID: e62d996c40a794c4aa54d1bdf2a67f30
+      internalID: 1937860847
       vertices: []
       indices: 
       edges: []
@@ -241,12 +241,12 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Display: 406836518
-      Gameplay: -1901904646
-      Generic: -1596070472
-      Music: -1679845717
-      Network: 986923113
-      Sound: -592588107
+      SettingIcons_0: 948285804
+      SettingIcons_1: -1793394884
+      SettingIcons_2: -2102064641
+      SettingIcons_3: -812806453
+      SettingIcons_4: -1055201595
+      SettingIcons_5: 1937860847
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0
