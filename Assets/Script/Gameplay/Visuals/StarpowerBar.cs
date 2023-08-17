@@ -10,14 +10,23 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private MeshRenderer _starpowerBar;
 
-        public void SetStarpower(double starpowerAmount)
+        private double _starpowerAmount;
+        private bool _starpowerActive;
+
+        public void SetStarpower(double starpowerAmount, bool starpowerActive)
         {
+            _starpowerAmount = starpowerAmount;
+            _starpowerActive = starpowerActive;
+
             _starpowerBar.material.SetFloat(_fill, (float) starpowerAmount);
         }
 
-        public void PulseBar()
+        public void PulseBarIfAble()
         {
-            _starpowerBar.material.SetFloat(_pulse, 1f);
+            if (_starpowerAmount >= 0.5 || _starpowerActive)
+            {
+                _starpowerBar.material.SetFloat(_pulse, 1f);
+            }
         }
 
         private void Update()

@@ -238,7 +238,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void FinishInitialization()
         {
-            GameManager.BeatEventManager.Subscribe(StarpowerBar.PulseBar,
+            GameManager.BeatEventManager.Subscribe(StarpowerBar.PulseBarIfAble,
                 new BeatEventManager.Info(1f / 4f, 0f));
         }
 
@@ -246,7 +246,7 @@ namespace YARG.Gameplay.Player
         {
             base.FinishDestruction();
 
-            GameManager.BeatEventManager.Unsubscribe(StarpowerBar.PulseBar);
+            GameManager.BeatEventManager.Unsubscribe(StarpowerBar.PulseBarIfAble);
         }
 
         public override void SetPracticeSection(uint start, uint end)
@@ -330,7 +330,7 @@ namespace YARG.Gameplay.Player
             TrackMaterial.StarpowerMode = stats.IsStarPowerActive;
 
             ComboMeter.SetCombo(stats.ScoreMultiplier, maxMultiplier, stats.Combo);
-            StarpowerBar.SetStarpower(stats.StarPowerAmount);
+            StarpowerBar.SetStarpower(stats.StarPowerAmount, stats.IsStarPowerActive);
             SunburstEffects.SetSunburstEffects(groove, stats.IsStarPowerActive);
 
             TrackView.UpdateNoteStreak(stats.Combo);
