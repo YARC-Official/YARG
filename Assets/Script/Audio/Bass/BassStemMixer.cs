@@ -179,8 +179,8 @@ namespace YARG.Audio.BASS
 
             if (playing)
             {
-                // Account for update period when resuming
-                Bass.ChannelUpdate(_mixerHandle, Bass.UpdatePeriod);
+                // Account for buffer when resuming
+                Bass.ChannelUpdate(_mixerHandle, BassHelpers.PLAYBACK_BUFFER_LENGTH);
                 Play();
             }
 
