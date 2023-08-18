@@ -6,7 +6,7 @@ namespace YARG.Input
 {
     public partial class BindingCollection
     {
-        public static BindingCollection CreateMenuBindings() => new()
+        public static BindingCollection CreateMenuBindings() => new(null)
         {
             new ButtonBinding("menu_Start",  (int) MenuAction.Start),
             new ButtonBinding("menu_Select", (int) MenuAction.Select),
@@ -23,7 +23,7 @@ namespace YARG.Input
             new ButtonBinding("menu_Right", (int) MenuAction.Right),
         };
 
-        public static BindingCollection CreateFiveFretGuitarBindings() => new()
+        public static BindingCollection CreateFiveFretGuitarBindings() => new(GameMode.FiveFretGuitar)
         {
             new ButtonBinding("fiveFret_Green",  (int) GuitarAction.GreenFret),
             new ButtonBinding("fiveFret_Red",    (int) GuitarAction.RedFret),
@@ -39,7 +39,7 @@ namespace YARG.Input
             new AxisBinding("guitar_Whammy", (int) GuitarAction.Whammy),
         };
 
-        public static BindingCollection CreateSixFretGuitarBindings() => new()
+        public static BindingCollection CreateSixFretGuitarBindings() => new(GameMode.SixFretGuitar)
         {
             new ButtonBinding("sixFret_Black1", (int) GuitarAction.Black1Fret),
             new ButtonBinding("sixFret_Black2", (int) GuitarAction.Black2Fret),
@@ -56,7 +56,7 @@ namespace YARG.Input
             new AxisBinding("guitar_Whammy", (int) GuitarAction.Whammy),
         };
 
-        public static BindingCollection CreateFourLaneDrumsBindings() => new()
+        public static BindingCollection CreateFourLaneDrumsBindings() => new(GameMode.FourLaneDrums)
         {
             new ButtonBinding("drums_RedPad",    (int) DrumsAction.RedDrum),
             new ButtonBinding("drums_YellowPad", (int) DrumsAction.YellowDrum),
@@ -70,7 +70,7 @@ namespace YARG.Input
             new ButtonBinding("drums_Kick", (int) DrumsAction.Kick),
         };
 
-        public static BindingCollection CreateFiveLaneDrumsBindings() => new()
+        public static BindingCollection CreateFiveLaneDrumsBindings() => new(GameMode.FiveLaneDrums)
         {
             new ButtonBinding("drums_RedPad",       (int) DrumsAction.RedDrum),
             new ButtonBinding("drums_YellowCymbal", (int) DrumsAction.YellowCymbal),
@@ -81,7 +81,7 @@ namespace YARG.Input
             new ButtonBinding("drums_Kick", (int) DrumsAction.Kick),
         };
 
-        public static BindingCollection CreateProGuitarBindings() => new()
+        public static BindingCollection CreateProGuitarBindings() => new(GameMode.ProGuitar)
         {
             new IntegerBinding("proGuitar_String1_Fret", (int) ProGuitarAction.String1_Fret),
             new IntegerBinding("proGuitar_String2_Fret", (int) ProGuitarAction.String2_Fret),
@@ -102,7 +102,7 @@ namespace YARG.Input
             new AxisBinding("guitar_Whammy", (int) ProGuitarAction.Whammy),
         };
 
-        public static BindingCollection CreateProKeysBindings() => new()
+        public static BindingCollection CreateProKeysBindings() => new(GameMode.ProKeys)
         {
             // new ButtonBinding("proKeys_Key1",  (int) ProKeysAction.Key1),
             // new ButtonBinding("proKeys_Key2",  (int) ProKeysAction.Key2),
@@ -139,7 +139,7 @@ namespace YARG.Input
             // new AxisBinding("proKeys_TouchEffects", (int) ProKeysAction.TouchEffects),
         };
 
-        public static BindingCollection CreateVocalsBindings() => new()
+        public static BindingCollection CreateVocalsBindings() => new(GameMode.Vocals)
         {
             // Only needed if we want to over-do it and run audio devices
             // through the Unity input system (which actually wouldn't be that hard lol)

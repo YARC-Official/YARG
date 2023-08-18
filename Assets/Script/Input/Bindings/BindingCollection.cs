@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
+using YARG.Core;
 using YARG.Input.Serialization;
 
 namespace YARG.Input
@@ -39,6 +40,16 @@ namespace YARG.Input
                 foreach (var binding in _bindings)
                     binding.InputProcessed -= value;
             }
+        }
+
+        public GameMode? Mode { get; }
+
+        public bool IsMenu => Mode == null;
+        public bool IsGameplay => Mode != null;
+
+        public BindingCollection(GameMode? mode)
+        {
+            Mode = mode;
         }
 
         public Dictionary<string, List<SerializedInputControl>> Serialize()
