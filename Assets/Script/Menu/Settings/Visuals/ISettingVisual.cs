@@ -1,4 +1,4 @@
-namespace YARG.Settings.Visuals
+namespace YARG.Menu.Settings.Visuals
 {
     public interface ISettingVisual
     {

@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
-using UnityEngine.Localization;
 using YARG.Helpers;
 using YARG.Settings.Types;
 
-namespace YARG.Settings.Visuals
+namespace YARG.Menu.Settings.Visuals
 {
     public class DropdownSettingVisual : AbstractSettingVisual<DropdownSetting>
     {

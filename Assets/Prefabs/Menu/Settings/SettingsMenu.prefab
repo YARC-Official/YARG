@@ -352,6 +352,7 @@ MonoBehaviour:
   _headerTabs: {fileID: 4370287729844152072}
   _previewRawImage: {fileID: 5009541612180770756}
   _settingsContainer: {fileID: 1478574532061841603}
+  _settingsNavGroup: {fileID: 6042803048968392444}
   _previewContainer: {fileID: 0}
   _buttonPrefab: {fileID: 5753369685943773599, guid: f9aab3ec5e7b95c4ea962a25da13a2f5,
     type: 3}
@@ -701,6 +702,21 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &6042803048968392444
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2339037803258940696}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7792aa537b804208a803f971074a1a45, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _defaultGroup: 1
+  _addAllChildrenOnAwake: 0
+  _selectFirst: 0
 --- !u!224 &3981048879495514687 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 2778161148834292163, guid: 81863a63e0d96cf459c263ee0ea6f98e,

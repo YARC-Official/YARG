@@ -4,51 +4,51 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Settings.Types;
 
-namespace YARG.Settings.Visuals
+namespace YARG.Menu.Settings.Visuals
 {
     public class SliderSettingVisual : AbstractSettingVisual<SliderSetting>
     {
         [SerializeField]
-        private Slider slider;
+        private Slider _slider;
 
         [SerializeField]
-        private TMP_InputField inputField;
+        private TMP_InputField _inputField;
 
         // Unity sucks -_-
-        private bool ignoreCallback = false;
+        private bool _ignoreCallback = false;
 
         protected override void OnSettingInit()
         {
-            ignoreCallback = true;
+            _ignoreCallback = true;
 
-            slider.minValue = Setting.Min;
-            slider.maxValue = Setting.Max;
+            _slider.minValue = Setting.Min;
+            _slider.maxValue = Setting.Max;
 
-            ignoreCallback = false;
+            _ignoreCallback = false;
 
             RefreshVisual();
         }
 
         public override void RefreshVisual()
         {
-            slider.SetValueWithoutNotify(Setting.Data);
-            inputField.text = Setting.Data.ToString("N2", CultureInfo.InvariantCulture);
+            _slider.SetValueWithoutNotify(Setting.Data);
+            _inputField.text = Setting.Data.ToString("N2", CultureInfo.InvariantCulture);
         }
 
         public void OnSliderChange()
         {
-            if (ignoreCallback)
+            if (_ignoreCallback)
             {
                 return;
             }
 
-            Setting.Data = slider.value;
+            Setting.Data = _slider.value;
             RefreshVisual();
         }
 
         public void OnTextChange()
         {
-            string text = inputField.text;
+            string text = _inputField.text;
 
             try
             {

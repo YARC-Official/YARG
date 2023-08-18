@@ -17,7 +17,7 @@ namespace YARG.Settings.Types
             }
         }
 
-        public override string AddressableName => "Setting/Number";
+        public override string AddressableName => "Setting/Int";
 
         public int Min { get; private set; }
         public int Max { get; private set; }

@@ -3,12 +3,12 @@ using TMPro;
 using UnityEngine;
 using YARG.Settings.Types;
 
-namespace YARG.Settings.Visuals
+namespace YARG.Menu.Settings.Visuals
 {
     public class IntSettingVisual : AbstractSettingVisual<IntSetting>
     {
         [SerializeField]
-        private TMP_InputField inputField;
+        private TMP_InputField _inputField;
 
         protected override void OnSettingInit()
         {
@@ -17,14 +17,14 @@ namespace YARG.Settings.Visuals
 
         public override void RefreshVisual()
         {
-            inputField.text = Setting.Data.ToString(CultureInfo.InvariantCulture);
+            _inputField.text = Setting.Data.ToString(CultureInfo.InvariantCulture);
         }
 
         public void OnTextFieldChange()
         {
             try
             {
-                int value = int.Parse(inputField.text, CultureInfo.InvariantCulture);
+                int value = int.Parse(_inputField.text, CultureInfo.InvariantCulture);
                 value = Mathf.Clamp(value, Setting.Min, Setting.Max);
 
                 Setting.Data = value;

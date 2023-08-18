@@ -4,15 +4,15 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Settings.Types;
 
-namespace YARG.Settings.Visuals
+namespace YARG.Menu.Settings.Visuals
 {
     public class VolumeSettingVisual : AbstractSettingVisual<VolumeSetting>
     {
         [SerializeField]
-        private Slider slider;
+        private Slider _slider;
 
         [SerializeField]
-        private TMP_InputField inputField;
+        private TMP_InputField _inputField;
 
         protected override void OnSettingInit()
         {
@@ -21,19 +21,19 @@ namespace YARG.Settings.Visuals
 
         public override void RefreshVisual()
         {
-            slider.SetValueWithoutNotify(Setting.Data);
-            inputField.text = (Setting.Data * 100f).ToString("N1", CultureInfo.InvariantCulture) + "%";
+            _slider.SetValueWithoutNotify(Setting.Data);
+            _inputField.text = (Setting.Data * 100f).ToString("N1", CultureInfo.InvariantCulture) + "%";
         }
 
         public void OnSliderChange()
         {
-            Setting.Data = slider.value;
+            Setting.Data = _slider.value;
             RefreshVisual();
         }
 
         public void OnTextChange()
         {
-            string text = inputField.text;
+            string text = _inputField.text;
             if (text.EndsWith("%"))
             {
                 text = text[..^1];
@@ -43,7 +43,7 @@ namespace YARG.Settings.Visuals
             {
                 float number = float.Parse(text, CultureInfo.InvariantCulture) / 100f;
 
-                slider.value = number;
+                _slider.value = number;
             }
             catch
             {

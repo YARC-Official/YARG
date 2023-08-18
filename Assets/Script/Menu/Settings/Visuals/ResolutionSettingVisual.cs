@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using YARG.Settings.Types;
 
-namespace YARG.Settings.Visuals
+namespace YARG.Menu.Settings.Visuals
 {
     public class ResolutionSettingVisual : AbstractSettingVisual<ResolutionSetting>
     {

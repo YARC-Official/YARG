@@ -2,12 +2,12 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Settings.Types;
 
-namespace YARG.Settings.Visuals
+namespace YARG.Menu.Settings.Visuals
 {
     public class ToggleSettingVisual : AbstractSettingVisual<ToggleSetting>
     {
         [SerializeField]
-        private Toggle toggle;
+        private Toggle _toggle;
 
         protected override void OnSettingInit()
         {
@@ -16,12 +16,12 @@ namespace YARG.Settings.Visuals
 
         public override void RefreshVisual()
         {
-            toggle.isOn = Setting.Data;
+            _toggle.isOn = Setting.Data;
         }
 
         public void OnToggleChange()
         {
-            Setting.Data = toggle.isOn;
+            Setting.Data = _toggle.isOn;
             RefreshVisual();
         }
     }

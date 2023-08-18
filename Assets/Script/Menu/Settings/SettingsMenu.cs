@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -11,10 +10,10 @@ using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Navigation;
+using YARG.Menu.Settings.Visuals;
 using YARG.Settings;
 using YARG.Settings.Metadata;
 using YARG.Settings.Types;
-using YARG.Settings.Visuals;
 
 namespace YARG.Menu.Settings
 {
@@ -27,6 +26,8 @@ namespace YARG.Menu.Settings
         private RawImage _previewRawImage;
         [SerializeField]
         private Transform _settingsContainer;
+        [SerializeField]
+        private NavigationGroup _settingsNavGroup;
         [SerializeField]
         private Transform _previewContainer;
 
@@ -137,6 +138,7 @@ namespace YARG.Menu.Settings
         {
             _settingVisuals.Clear();
             _settingDropdowns.Clear();
+            _settingsNavGroup.ClearNavigatables();
 
             // Destroy all previous settings
             _settingsContainer.DestroyChildren();
@@ -176,6 +178,7 @@ namespace YARG.Menu.Settings
                         var visual = go.GetComponent<ISettingVisual>();
                         visual.SetSetting(field.FieldName);
                         _settingVisuals.Add(visual);
+                        _settingsNavGroup.AddNavigatable(go);
                     }
                     else if (settingMetadata is PresetDropdownMetadata dropdown)
                     {

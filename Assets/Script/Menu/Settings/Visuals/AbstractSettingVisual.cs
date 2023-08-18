@@ -1,15 +1,15 @@
 using UnityEngine;
-using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
 using YARG.Helpers;
+using YARG.Settings;
 using YARG.Settings.Types;
 
-namespace YARG.Settings.Visuals
+namespace YARG.Menu.Settings.Visuals
 {
     public abstract class AbstractSettingVisual<T> : MonoBehaviour, ISettingVisual where T : ISettingType
     {
         [SerializeField]
-        private LocalizeStringEvent settingText;
+        private LocalizeStringEvent _settingLabel;
 
         public string SettingName { get; private set; }
 
@@ -19,7 +19,7 @@ namespace YARG.Settings.Visuals
         {
             SettingName = name;
 
-            settingText.StringReference = LocaleHelper.StringReference("Settings", name);
+            _settingLabel.StringReference = LocaleHelper.StringReference("Settings", name);
 
             Setting = (T) SettingsManager.GetSettingByName(name);
 
