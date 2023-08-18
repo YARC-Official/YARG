@@ -152,16 +152,16 @@ namespace YARG.Menu.Settings
                 // Once we've found the tab, add the settings
                 foreach (var settingMetadata in tab.Settings)
                 {
-                    if (settingMetadata is ButtonRowMetadata buttonRow)
+                    if (settingMetadata is HeaderMetadata header)
+                    {
+                        // Spawn in the header
+                        SpawnHeader(_settingsContainer, $"Header.{header.HeaderName}");
+                    }
+                    else if (settingMetadata is ButtonRowMetadata buttonRow)
                     {
                         // Spawn the button
                         var go = Instantiate(_buttonPrefab, _settingsContainer);
                         go.GetComponent<SettingsButton>().SetInfo(buttonRow.Buttons);
-                    }
-                    else if (settingMetadata is HeaderMetadata header)
-                    {
-                        // Spawn in the header
-                        SpawnHeader(_settingsContainer, $"Header.{header.HeaderName}");
                     }
                     else if (settingMetadata is FieldMetadata field)
                     {
@@ -192,6 +192,16 @@ namespace YARG.Menu.Settings
                 // Then we're good!
                 break;
             }
+        }
+
+        private void SpawnHeader(Transform container, string localizationKey)
+        {
+            // Spawn the header
+            var go = Instantiate(_headerPrefab, container);
+
+            // Set header text
+            go.GetComponentInChildren<LocalizeStringEvent>().StringReference =
+                LocaleHelper.StringReference("Settings", localizationKey);
         }
 
         public void UpdateSongFolderManager()
@@ -235,16 +245,6 @@ namespace YARG.Menu.Settings
                 var go = Instantiate(_directoryPrefab, _settingsContainer);
                 go.GetComponent<SettingsDirectory>().SetIndex(i);
             }
-        }
-
-        private void SpawnHeader(Transform container, string localizationKey)
-        {
-            // Spawn the header
-            var go = Instantiate(_headerPrefab, container);
-
-            // Set header text
-            go.GetComponentInChildren<LocalizeStringEvent>().StringReference =
-                LocaleHelper.StringReference("Settings", localizationKey);
         }
 
         private async UniTask UpdatePreview(SettingsManager.Tab tabInfo)
