@@ -82,7 +82,12 @@ namespace YARG.Audio.BASS
             }
 
             // Mixer processing threads (for some reason this attribute is undocumented in ManagedBass?)
-            Bass.ChannelSetAttribute(mixer, (ChannelAttribute) 86017, 2);
+            if (!Bass.ChannelSetAttribute(mixer, (ChannelAttribute) 86017, 2))
+            {
+                Debug.LogError($"Failed to set mixer processing threads: {Bass.LastError}");
+                Bass.StreamFree(mixer);
+                return false;
+            }
 
             _mixerHandle = mixer;
 
@@ -180,7 +185,8 @@ namespace YARG.Audio.BASS
             if (playing)
             {
                 // Account for buffer when resuming
-                Bass.ChannelUpdate(_mixerHandle, BassHelpers.PLAYBACK_BUFFER_LENGTH);
+                if (!Bass.ChannelUpdate(_mixerHandle, BassHelpers.PLAYBACK_BUFFER_LENGTH))
+                    Debug.LogError($"Failed to set update channel: {Bass.LastError}");
                 Play();
             }
 

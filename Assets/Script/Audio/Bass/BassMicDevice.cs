@@ -29,20 +29,27 @@ namespace YARG.Audio
 
         private int _cleanRecordHandle;
         private int _processedRecordHandle;
+        private int _applyGainHandle;
         private int _monitorPlaybackHandle;
 
         private bool _initialized;
         private bool _disposed;
-
-        private RecordProcedure _cleanRecordProcedure;
-        private RecordProcedure _processedRecordProcedure;
-        private DSPProcedure _monitoringGainProcedure;
 
         private PitchTracker _pitchDetector;
 
         private readonly ReverbParameters _monitoringReverbParameters = new()
         {
             fDryMix = 0.3f, fWetMix = 1f, fRoomSize = 0.4f, fDamp = 0.7f
+        };
+
+        private readonly PeakEQParameters _lowEqParameters = new()
+        {
+            fBandwidth = 2.5f, fCenter = 20f, fGain = -10f
+        };
+
+        private readonly PeakEQParameters _highEqParameters = new()
+        {
+            fBandwidth = 2.5f, fCenter = 10_000f, fGain = -10f
         };
 
         public BassMicDevice(int deviceId, DeviceInfo info)
@@ -55,73 +62,81 @@ namespace YARG.Audio
         {
             if (_initialized || _disposed) return 0;
 
-            // Callback function to process any samples received from recording device
-            _cleanRecordProcedure += ProcessCleanRecordData;
-            _processedRecordProcedure += ProcessRecordData;
-
             // Must initialise device before recording
-            Bass.RecordInit(_deviceId);
-            Bass.RecordGetInfo(out var info);
+            if (!Bass.RecordInit(_deviceId) || !Bass.RecordGetInfo(out var info))
+            {
+                Debug.LogError($"Failed to initialize recording device: {Bass.LastError}");
+                return (int) Bass.LastError;
+            }
 
             const BassFlags flags = BassFlags.Default;
 
             // We want to start recording immediately because of device context switching and device numbers.
-            // If we initialize the device but don't record immediately, the device number might change and we'll be recording from the wrong device.
+            // If we initialize the device but don't record immediately, the device number might change
+            // and we'll be recording from the wrong device.
             _cleanRecordHandle = Bass.RecordStart(44100, info.Channels, flags, RECORD_PERIOD_MILLIS,
-                _cleanRecordProcedure, IntPtr.Zero);
+                ProcessCleanRecordData, IntPtr.Zero);
             _processedRecordHandle = Bass.RecordStart(44100, info.Channels, flags, RECORD_PERIOD_MILLIS,
-                _processedRecordProcedure, IntPtr.Zero);
+                ProcessRecordData, IntPtr.Zero);
             if (_cleanRecordHandle == 0 || _processedRecordHandle == 0)
             {
-                // If we failed to start recording, we need to return the error code.
-                _initialized = false;
                 Debug.LogError($"Failed to start recording: {Bass.LastError}");
+                Dispose();
                 return (int) Bass.LastError;
             }
 
-            int lowEqHandle = Bass.ChannelSetFX(_processedRecordHandle, EffectType.PeakEQ, 0);
-            int highEqHandle = Bass.ChannelSetFX(_processedRecordHandle, EffectType.PeakEQ, 0);
-            Bass.FXSetParameters(lowEqHandle, new PeakEQParameters
+            // Add EQ
+            int lowEqHandle = BassHelpers.AddEqToChannel(_processedRecordHandle, _lowEqParameters);
+            int highEqHandle = BassHelpers.AddEqToChannel(_processedRecordHandle, _highEqParameters);
+            if (lowEqHandle == 0 || highEqHandle == 0)
             {
-                fBandwidth = 2.5f, fCenter = 20f, fGain = -10f
-            });
-            Bass.FXSetParameters(highEqHandle, new PeakEQParameters
-            {
-                fBandwidth = 2.5f, fCenter = 10_000f, fGain = -10f
-            });
+                Debug.LogError($"Failed to add EQ to recording stream!");
+                Dispose();
+                return (int) Bass.LastError;
+            }
 
+            // Set up monitoring stream
             _monitorPlaybackHandle = Bass.CreateStream(44100, info.Channels, flags, StreamProcedureType.Push);
             if (_monitorPlaybackHandle == 0)
             {
-                _initialized = false;
                 Debug.LogError($"Failed to create monitor stream: {Bass.LastError}");
+                Dispose();
                 return (int) Bass.LastError;
             }
 
             // Add reverb to the monitor playback
-            int reverbHandle = Bass.ChannelSetFX(_monitorPlaybackHandle, EffectType.Freeverb, 1);
+            int reverbHandle = BassHelpers.FXAddParameters(_monitorPlaybackHandle, EffectType.Freeverb,
+                _monitoringReverbParameters, 1);
             if (reverbHandle == 0)
             {
-                _initialized = false;
-                Debug.LogError($"Failed to add reverb to monitor stream: {Bass.LastError}");
+                Debug.LogError($"Failed to add reverb to monitor stream!");
+                Dispose();
                 return (int) Bass.LastError;
             }
 
-            Bass.FXSetParameters(reverbHandle, _monitoringReverbParameters);
+            // Apply gain to the playback
+            _applyGainHandle = Bass.ChannelSetDSP(_monitorPlaybackHandle, ApplyGain);
+            if (_applyGainHandle == 0)
+            {
+                Debug.LogError($"Failed to add gain to monitor stream: {Bass.LastError}");
+                Dispose();
+                return (int) Bass.LastError;
+            }
 
-            _monitoringGainProcedure = (_, _, buffer, length, _) => BassHelpers.ApplyGain(1.3f, buffer, length);
-
-            Bass.ChannelSetDSP(_monitorPlaybackHandle, _monitoringGainProcedure);
-            Bass.ChannelPlay(_monitorPlaybackHandle);
+            // Start monitoring
+            if (!Bass.ChannelPlay(_monitorPlaybackHandle))
+            {
+                Debug.LogError($"Failed to start monitor stream: {Bass.LastError}");
+                Dispose();
+                return (int) Bass.LastError;
+            }
 
             IsMonitoring = true;
-
             SetMonitoringLevel(SettingsManager.Settings.VocalMonitoring.Data);
 
             _pitchDetector = new PitchTracker();
 
             _initialized = true;
-
             return 0;
         }
 
@@ -162,6 +177,11 @@ namespace YARG.Audio
 
             CalculatePitchAndAmplitude(buffer, length);
             return true;
+        }
+
+        private void ApplyGain(int handle, int channel, IntPtr buffer, int length, IntPtr user)
+        {
+            BassHelpers.ApplyGain(1.3f, buffer, length);
         }
 
         private unsafe void CalculatePitchAndAmplitude(IntPtr buffer, int byteLength)

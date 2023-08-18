@@ -1,5 +1,6 @@
 using System;
 using ManagedBass;
+using UnityEngine;
 
 namespace YARG.Audio.BASS
 {
@@ -53,9 +54,8 @@ namespace YARG.Audio.BASS
             int channel = Bass.SampleGetChannel(_sfxHandle);
 
             double volume = _manager.GetVolumeSetting(SongStem.Sfx) * AudioHelpers.SfxVolume[(int) Sample];
-            Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, volume);
-
-            Bass.ChannelPlay(channel);
+            if (!Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, volume) || !Bass.ChannelPlay(channel))
+                Debug.LogError($"Failed to play sample channel: {Bass.LastError}");
         }
 
         public void Dispose()

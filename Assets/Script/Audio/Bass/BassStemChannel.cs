@@ -28,7 +28,7 @@ namespace YARG.Audio.BASS
                 if (Stream != 0)
                 {
                     if (!Bass.StreamFree(Stream))
-                        Debug.LogWarning($"Failed to free channel stream (THIS WILL LEAK MEMORY!): {Bass.LastError}");
+                        Debug.LogError($"Failed to free channel stream (THIS WILL LEAK MEMORY!): {Bass.LastError}");
                     Stream = 0;
                 }
             }
@@ -308,16 +308,22 @@ namespace YARG.Audio.BASS
             Volume = newVolume;
             _lastStemVolume = volumeSetting;
 
-            Bass.ChannelSetAttribute(_streamHandles.Stream, ChannelAttribute.Volume, newBassVol);
+            if (!Bass.ChannelSetAttribute(_streamHandles.Stream, ChannelAttribute.Volume, newBassVol))
+                Debug.LogError($"Failed to set stream volume: {Bass.LastError}");
 
+            bool reverbSuccess;
             if (_isReverbing)
             {
-                Bass.ChannelSlideAttribute(_reverbHandles.Stream, ChannelAttribute.Volume, (float) (newBassVol * 0.7), 1);
+                reverbSuccess = Bass.ChannelSlideAttribute(_reverbHandles.Stream, ChannelAttribute.Volume,
+                    (float) (newBassVol * 0.7), 1);
             }
             else
             {
-                Bass.ChannelSlideAttribute(_reverbHandles.Stream, ChannelAttribute.Volume, 0, 1);
+                reverbSuccess = Bass.ChannelSlideAttribute(_reverbHandles.Stream, ChannelAttribute.Volume, 0, 1);
             }
+
+            if (!reverbSuccess)
+                Debug.LogError($"Failed to set reverb volume: {Bass.LastError}");
         }
 
         public void SetReverb(bool reverb)
@@ -335,8 +341,11 @@ namespace YARG.Audio.BASS
                 _reverbHandles.ReverbFX = BassHelpers.AddReverbToChannel(_reverbHandles.Stream);
 
                 double volumeSetting = _manager.GetVolumeSetting(Stem);
-                Bass.ChannelSlideAttribute(_reverbHandles.Stream, ChannelAttribute.Volume,
-                    (float) (volumeSetting * Volume * 0.7f), BassHelpers.REVERB_SLIDE_IN_MILLISECONDS);
+                if (!Bass.ChannelSlideAttribute(_reverbHandles.Stream, ChannelAttribute.Volume,
+                    (float) (volumeSetting * Volume * 0.7f), BassHelpers.REVERB_SLIDE_IN_MILLISECONDS))
+                {
+                    Debug.LogError($"Failed to set reverb volume: {Bass.LastError}");
+                }
             }
             else
             {
@@ -354,21 +363,27 @@ namespace YARG.Audio.BASS
                 _reverbHandles.HighEQ = 0;
                 _reverbHandles.ReverbFX = 0;
 
-                Bass.ChannelSlideAttribute(_reverbHandles.Stream, ChannelAttribute.Volume, 0,
-                    BassHelpers.REVERB_SLIDE_OUT_MILLISECONDS);
+                if (!Bass.ChannelSlideAttribute(_reverbHandles.Stream, ChannelAttribute.Volume, 0,
+                    BassHelpers.REVERB_SLIDE_OUT_MILLISECONDS))
+                {
+                    Debug.LogError($"Failed to set reverb volume: {Bass.LastError}");
+                }
             }
         }
 
         public void SetSpeed(float speed)
         {
-            speed = (float)Math.Round(Math.Clamp(speed, 0.05, 50), 2);
+            speed = (float) Math.Round(Math.Clamp(speed, 0.05, 50), 2);
 
             // Gets relative speed from 100% (so 1.05f = 5% increase)
             float percentageSpeed = speed * 100;
             float relativeSpeed = percentageSpeed - 100;
 
-            Bass.ChannelSetAttribute(_streamHandles.Stream, ChannelAttribute.Tempo, relativeSpeed);
-            Bass.ChannelSetAttribute(_reverbHandles.Stream, ChannelAttribute.Tempo, relativeSpeed);
+            if (!Bass.ChannelSetAttribute(_streamHandles.Stream, ChannelAttribute.Tempo, relativeSpeed) ||
+                !Bass.ChannelSetAttribute(_reverbHandles.Stream, ChannelAttribute.Tempo, relativeSpeed))
+            {
+                Debug.LogError($"Failed to set channel speed: {Bass.LastError}");
+            }
         }
 
         public void SetWhammyPitch(float percent)
@@ -402,8 +417,10 @@ namespace YARG.Audio.BASS
                 // The desync is caused by the FFT window
                 // BASS_FX does not account for it automatically so we must do it ourselves
                 // (thanks Matt/Oscar for the info!)
-                double sampleRate = Bass.ChannelGetAttribute(_streamHandles.Stream, ChannelAttribute.Frequency);
-                desync += _pitchParams.FFTSize / sampleRate;
+                if (Bass.ChannelGetAttribute(_streamHandles.Stream, ChannelAttribute.Frequency, out float sampleRate))
+                    desync += _pitchParams.FFTSize / sampleRate;
+                else
+                    Debug.LogError($"Failed to get sample rate: {Bass.LastError}");
             }
 
             return desync;
@@ -411,10 +428,24 @@ namespace YARG.Audio.BASS
 
         public double GetPosition(bool desyncCompensation = true)
         {
-            double position = Bass.ChannelBytes2Seconds(_streamHandles.Stream, Bass.ChannelGetPosition(_streamHandles.Stream));
+            long position = Bass.ChannelGetPosition(_streamHandles.Stream);
+            if (position < 0)
+            {
+                Debug.LogError($"Failed to get channel position in bytes: {Bass.LastError}");
+                return -1;
+            }
+
+            double seconds = Bass.ChannelBytes2Seconds(_streamHandles.Stream, position);
+            if (seconds < 0)
+            {
+                Debug.LogError($"Failed to get channel position in seconds: {Bass.LastError}");
+                return -1;
+            }
+
             if (desyncCompensation)
-                position -= GetDesyncOffset();
-            return position;
+                seconds -= GetDesyncOffset();
+
+            return seconds;
         }
 
         public void SetPosition(double position, bool desyncCompensation = true)
@@ -422,13 +453,20 @@ namespace YARG.Audio.BASS
             if (desyncCompensation)
                 position += GetDesyncOffset();
 
-            if (IsMixed)
+            long bytes = Bass.ChannelSeconds2Bytes(_streamHandles.Stream, position);
+            if (bytes < 0)
             {
-                BassMix.ChannelSetPosition(_streamHandles.Stream, Bass.ChannelSeconds2Bytes(_streamHandles.Stream, position));
+                Debug.LogError($"Failed to get byte position at {position}!");
+                return;
             }
-            else
+
+            bool success = IsMixed
+                ? BassMix.ChannelSetPosition(_streamHandles.Stream, bytes)
+                : Bass.ChannelSetPosition(_streamHandles.Stream, bytes);
+            if (!success)
             {
-                Bass.ChannelSetPosition(_streamHandles.Stream, Bass.ChannelSeconds2Bytes(_streamHandles.Stream, position));
+                Debug.LogError($"Failed to seek to position {position}!");
+                return;
             }
 
             if (_sourceIsSplit && !BassMix.SplitStreamReset(_sourceHandle))
@@ -437,7 +475,21 @@ namespace YARG.Audio.BASS
 
         public double GetLengthInSeconds()
         {
-            return BassHelpers.GetChannelLengthInSeconds(_streamHandles.Stream);
+            long length = Bass.ChannelGetLength(_streamHandles.Stream);
+            if (length < 0)
+            {
+                Debug.LogError($"Failed to get channel length in bytes: {Bass.LastError}");
+                return -1;
+            }
+
+            double seconds = Bass.ChannelBytes2Seconds(_streamHandles.Stream, length);
+            if (seconds < 0)
+            {
+                Debug.LogError($"Failed to get channel length in seconds: {Bass.LastError}");
+                return -1;
+            }
+
+            return seconds;
         }
 
         public void Dispose()
@@ -461,7 +513,8 @@ namespace YARG.Audio.BASS
 
                 if (_sourceHandle != 0)
                 {
-                    Bass.StreamFree(_sourceHandle);
+                    if (!Bass.StreamFree(_sourceHandle))
+                        Debug.LogError($"Failed to free file stream (THIS WILL LEAK MEMORY!): {Bass.LastError}");
                     _sourceHandle = 0;
                 }
 

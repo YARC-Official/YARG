@@ -17,7 +17,10 @@ namespace YARG.Audio.BASS
     {
         public AudioOptions Options { get; set; } = new();
 
-        public IList<string> SupportedFormats { get; private set; }
+        public IList<string> SupportedFormats { get; private set; } = new[]
+        {
+            ".ogg", ".mogg", ".wav", ".mp3", ".aiff", ".opus",
+        };
 
         public bool IsAudioLoaded { get; private set; }
         public bool IsPlaying { get; private set; }
@@ -32,30 +35,16 @@ namespace YARG.Audio.BASS
         public float CurrentPositionF => (float) GetPosition();
         public float AudioLengthF { get; private set; }
 
-        private bool _isInitialized;
+        private bool _isInitialized = false;
 
         public event Action SongEnd;
 
-        private double[] _stemVolumes;
-        private ISampleChannel[] _sfxSamples;
+        private double[] _stemVolumes = new double[AudioHelpers.SupportedStems.Count];
+        private ISampleChannel[] _sfxSamples = new ISampleChannel[AudioHelpers.SfxPaths.Count];
 
-        private int _opusHandle;
+        private int _opusHandle = 0;
 
-        private IStemMixer _mixer;
-
-        private void Awake()
-        {
-            SupportedFormats = new[]
-            {
-                ".ogg", ".mogg", ".wav", ".mp3", ".aiff", ".opus",
-            };
-
-            _stemVolumes = new double[AudioHelpers.SupportedStems.Count];
-
-            _sfxSamples = new ISampleChannel[AudioHelpers.SfxPaths.Count];
-
-            _opusHandle = 0;
-        }
+        private IStemMixer _mixer = null;
 
         public void Initialize()
         {
@@ -70,6 +59,9 @@ namespace YARG.Audio.BASS
             string opusLibDirectory = Path.Combine(bassPath, "bassopus");
 
             _opusHandle = Bass.PluginLoad(opusLibDirectory);
+            if (_opusHandle == 0)
+                Debug.LogError($"Failed to load .opus plugin: {Bass.LastError}");
+
             Bass.Configure(Configuration.IncludeDefaultDevice, true);
 
             Bass.UpdatePeriod = 5;
@@ -94,10 +86,11 @@ namespace YARG.Audio.BASS
 
             if (!Bass.Init(-1, 44100, DeviceInitFlags.Default | DeviceInitFlags.Latency, IntPtr.Zero))
             {
-                if (Bass.LastError == Errors.Already)
+                var error = Bass.LastError;
+                if (error == Errors.Already)
                     Debug.LogError("BASS is already initialized! An error has occurred somewhere and Unity must be restarted.");
                 else
-                    Debug.LogError($"Failed to initialize BASS: {Bass.LastError}");
+                    Debug.LogError($"Failed to initialize BASS: {error}");
                 return;
             }
 

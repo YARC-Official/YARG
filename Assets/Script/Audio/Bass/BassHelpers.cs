@@ -51,18 +51,19 @@ namespace YARG.Audio.BASS
             fDryMix = 0.5f, fWetMix = 1.5f, fRoomSize = 0.75f, fDamp = 0.5f, fWidth = 1.0f, lMode = 0
         };
 
-        public static int FXAddParameters(int streamHandle, EffectType type, IEffectParameter parameters)
+        public static int FXAddParameters(int streamHandle, EffectType type, IEffectParameter parameters,
+            int priority = 0)
         {
-            int fxHandle = Bass.ChannelSetFX(streamHandle, type, 0);
+            int fxHandle = Bass.ChannelSetFX(streamHandle, type, priority);
             if (fxHandle == 0)
             {
-                Debug.LogError($"Failed to create effects handle: {Bass.LastError}");
+                Debug.LogError($"Failed to create effects handle for {type}: {Bass.LastError}");
                 return 0;
             }
 
             if (!Bass.FXSetParameters(fxHandle, parameters))
             {
-                Debug.LogError($"Failed to apply effects parameters: {Bass.LastError}");
+                Debug.LogError($"Failed to apply effects parameters for {type}: {Bass.LastError}");
                 Bass.ChannelRemoveFX(streamHandle, fxHandle);
                 return 0;
             }
@@ -70,10 +71,10 @@ namespace YARG.Audio.BASS
             return fxHandle;
         }
 
-        public static int FXAddParameters<T>(int streamHandle, EffectType type, T parameters)
+        public static int FXAddParameters<T>(int streamHandle, EffectType type, T parameters, int priority = 0)
             where T : unmanaged, IEffectParameter
         {
-            int fxHandle = Bass.ChannelSetFX(streamHandle, type, 0);
+            int fxHandle = Bass.ChannelSetFX(streamHandle, type, priority);
             if (fxHandle == 0)
             {
                 Debug.LogError($"Failed to create effects handle: {Bass.LastError}");
@@ -93,7 +94,7 @@ namespace YARG.Audio.BASS
         public static unsafe bool FXSetParameters<T>(int Handle, T Parameters)
             where T : unmanaged, IEffectParameter
         {
-            return Bass.FXSetParameters(Handle, (IntPtr)(void*)&Parameters);
+            return Bass.FXSetParameters(Handle, (IntPtr) (void*) &Parameters);
         }
 
         public static int AddCompressorToChannel(int handle)
@@ -116,25 +117,6 @@ namespace YARG.Audio.BASS
         public static int AddEqToChannel(int handle, IEffectParameter eqParams)
         {
             return FXAddParameters(handle, EffectType.PeakEQ, eqParams);
-        }
-
-        public static double GetChannelLengthInSeconds(int channel)
-        {
-            long length = Bass.ChannelGetLength(channel);
-
-            if (length == -1)
-            {
-                return (double) Bass.LastError;
-            }
-
-            double seconds = Bass.ChannelBytes2Seconds(channel, length);
-
-            if (seconds < 0)
-            {
-                return (double) Bass.LastError;
-            }
-
-            return seconds;
         }
 
         public static unsafe bool ApplyGain(float gain, IntPtr buffer, int length)
