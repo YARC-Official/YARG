@@ -225,6 +225,26 @@ namespace YARG.Input
             return _unresolvedDevices.FindIndex((dev) => dev.MatchesDevice(device));
         }
 
+        public void ClearBindingsForDevice(InputDevice device)
+        {
+            foreach (var bindings in _bindsByGameMode.Values)
+            {
+                bindings.ClearBindingsForDevice(device);
+            }
+
+            MenuBindings.ClearBindingsForDevice(device);
+        }
+
+        public void ClearAllBindings()
+        {
+            foreach (var bindings in _bindsByGameMode.Values)
+            {
+                bindings.ClearAllBindings();
+            }
+
+            MenuBindings.ClearAllBindings();
+        }
+
         public bool SetDefaultBinds(InputDevice device)
         {
             if (!ContainsDevice(device))

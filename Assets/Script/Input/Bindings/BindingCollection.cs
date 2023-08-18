@@ -133,6 +133,22 @@ namespace YARG.Input
             return false;
         }
 
+        public void ClearBindingsForDevice(InputDevice device)
+        {
+            foreach (var binding in _bindings)
+            {
+                binding.ClearBindingsForDevice(device);
+            }
+        }
+
+        public void ClearAllBindings()
+        {
+            foreach (var binding in _bindings)
+            {
+                binding.ClearAllBindings();
+            }
+        }
+
         public void OnDeviceAdded(InputDevice device)
         {
             foreach (var binding in _bindings)
