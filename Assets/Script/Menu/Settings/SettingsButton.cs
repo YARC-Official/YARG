@@ -28,7 +28,7 @@ namespace YARG.Menu.Settings
                     LocaleHelper.StringReference("Settings", buttonName);
 
                 var capture = buttonName;
-                button.GetComponent<Button>().onClick.AddListener(() => SettingsManager.InvokeButton(capture));
+                button.GetComponentInChildren<Button>().onClick.AddListener(() => SettingsManager.InvokeButton(capture));
             }
 
             // Remove the template
