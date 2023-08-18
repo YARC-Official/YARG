@@ -2750,6 +2750,31 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5009541610750596757, guid: fb698a9ab78f72e4486acac10d0286d2,
+        type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5009541610750596757, guid: fb698a9ab78f72e4486acac10d0286d2,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5009541611042883547, guid: fb698a9ab78f72e4486acac10d0286d2,
+        type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5009541611042883547, guid: fb698a9ab78f72e4486acac10d0286d2,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5009541611042883547, guid: fb698a9ab78f72e4486acac10d0286d2,
+        type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5009541612151403793, guid: fb698a9ab78f72e4486acac10d0286d2,
         type: 3}
       propertyPath: _previewContainer

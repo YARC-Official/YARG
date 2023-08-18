@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
 
 namespace YARG.Menu
@@ -9,7 +10,7 @@ namespace YARG.Menu
     public class HeaderTabs : MonoBehaviour
     {
         [Serializable]
-        private struct TabInfo
+        public struct TabInfo
         {
             public Sprite Icon;
             public string Id;
@@ -18,19 +19,55 @@ namespace YARG.Menu
             public string DisplayName;
         }
 
-        public string SelectedTabId { get; set; }
-
-        [SerializeField]
-        private List<TabInfo> _tabs;
-
         [SerializeField]
         private GameObject _tabPrefab;
+        [SerializeField]
+        private List<TabInfo> _tabs;
+        public List<TabInfo> Tabs
+        {
+            get => _tabs;
+            set
+            {
+                _tabs = value;
+                RefreshTabs();
+            }
+        }
 
-        private List<GameObject> _tabsObjects = new();
+        private string _selectedTabId;
+        public string SelectedTabId
+        {
+            get => _selectedTabId;
+            set
+            {
+                _selectedTabId = value;
+                TabChanged?.Invoke(value);
+            }
+        }
+
+        public event Action<string> TabChanged;
+
+        private NavigationGroup _navigationGroup;
+
+        private void Awake()
+        {
+            _navigationGroup = GetComponent<NavigationGroup>();
+            _navigationGroup.SelectionChanged += OnSelectionChanged;
+        }
 
         private void Start()
         {
-            var navGroup = GetComponent<NavigationGroup>();
+            RefreshTabs();
+        }
+
+        private void OnSelectionChanged(NavigatableBehaviour obj)
+        {
+            TabChanged?.Invoke(SelectedTabId);
+        }
+
+        public void RefreshTabs()
+        {
+            transform.DestroyChildren();
+            _navigationGroup.ClearNavigatables();
 
             foreach (var tabInfo in _tabs)
             {
@@ -39,11 +76,15 @@ namespace YARG.Menu
                 var tabComponent = tab.GetComponent<HeaderTab>();
                 tabComponent.Init(this, tabInfo.Id, tabInfo.DisplayName, tabInfo.Icon);
 
-                _tabsObjects.Add(tab);
-                navGroup.AddNavigatable(tabComponent);
+                _navigationGroup.AddNavigatable(tabComponent);
             }
 
-            navGroup.SelectFirst();
+            _navigationGroup.SelectFirst();
+        }
+
+        private void OnDestroy()
+        {
+            _navigationGroup.SelectionChanged -= OnSelectionChanged;
         }
     }
 }

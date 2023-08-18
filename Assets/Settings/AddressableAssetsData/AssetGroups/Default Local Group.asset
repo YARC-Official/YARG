@@ -17,28 +17,13 @@ MonoBehaviour:
     m_SerializedData: []
   m_GUID: 1fc303ae4b596034592a9c3d3864493f
   m_SerializeEntries:
-  - m_GUID: 5b03c2f1f2df12f4f9b6cdfb655a3f3b
-    m_Address: Tracks/Drums
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 2a3c8615b3f54e64db089dedc04d5445
-    m_Address: Tracks/FiveFret
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 3994a880487709b47a6e0ebef8611ab9
-    m_Address: Tracks/RealGuitar
+  - m_GUID: 0a16c58d433eacb44a1354456c1c8abd
+    m_Address: TabIcons
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2a5ac1eaaf5a81a4cb7b233e3f8bc54f
     m_Address: Setting/Toggle
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 31b157bc18aca20488bd44fee8a7eb00
-    m_Address: Tracks/GHDrums
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

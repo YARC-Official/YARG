@@ -3,7 +3,6 @@ using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
 using UnityEngine.UI;
 using YARG.Core.Input;
@@ -22,38 +21,29 @@ namespace YARG.Menu.Settings
     public class SettingsMenu : MonoSingleton<SettingsMenu>
     {
         [SerializeField]
-        private GameObject _fullContainer;
+        private HeaderTabs _headerTabs;
 
+        [Space]
+        [SerializeField]
+        private GameObject _fullContainer;
         [SerializeField]
         private GameObject _halfContainer;
-
         [SerializeField]
         private Transform _previewContainer;
 
         [Space]
         [SerializeField]
-        private Transform _tabsContainer;
-
-        [SerializeField]
         private Transform _settingsContainer;
-
-        [Space]
         [SerializeField]
         private Transform _halfSettingsContainer;
 
         [Space]
         [SerializeField]
-        private GameObject _tabPrefab;
-
-        [SerializeField]
         private GameObject _buttonPrefab;
-
         [SerializeField]
         private GameObject _headerPrefab;
-
         [SerializeField]
         private GameObject _directoryPrefab;
-
         [SerializeField]
         private GameObject _dropdownPrefab;
 
@@ -77,10 +67,10 @@ namespace YARG.Menu.Settings
             }
         }
 
-        public bool UpdateSongLibraryOnExit { get; set; } = false;
+        public bool UpdateSongLibraryOnExit { get; set; }
 
         // Workaround to avoid errors when deactivating menu during startup
-        private bool _ready = false;
+        private bool _ready;
 
         protected override void SingletonAwake()
         {
@@ -90,12 +80,40 @@ namespace YARG.Menu.Settings
             _ready = true;
         }
 
+        private void Start()
+        {
+            var tabs = new List<HeaderTabs.TabInfo>();
+
+            foreach (var tab in SettingsManager.SettingsTabs)
+            {
+                // Skip tabs that aren't shown in game, if we are in game
+                if (!tab.ShowInPlayMode && GlobalVariables.Instance.CurrentScene == SceneIndex.Gameplay)
+                {
+                    continue;
+                }
+
+                // Load the tab sprite
+                var sprite = Addressables.LoadAssetAsync<Sprite>($"TabIcons[{tab.Icon}]").WaitForCompletion();
+
+                tabs.Add(new HeaderTabs.TabInfo
+                {
+                    Icon = sprite,
+                    Id = tab.Name,
+                    DisplayName = LocaleHelper.LocalizeString("Settings", $"Tab.{tab.Name}")
+                });
+            }
+
+            _headerTabs.Tabs = tabs;
+        }
+
         private void OnEnable()
         {
             if (!_ready)
             {
                 return;
             }
+
+            _headerTabs.TabChanged += OnTabChanged;
 
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
@@ -104,34 +122,11 @@ namespace YARG.Menu.Settings
             }, true));
 
             ReturnToFirstTab();
-            UpdateTabs();
         }
 
-        private async UniTask OnDisable()
+        private void OnTabChanged(string tab)
         {
-            if (!_ready)
-            {
-                return;
-            }
-
-            Navigator.Instance.PopScheme();
-
-            DestroyPreview();
-
-            // Save on close
-            SettingsManager.SaveSettings();
-
-            if (UpdateSongLibraryOnExit)
-            {
-                UpdateSongLibraryOnExit = false;
-
-                // Do a song refresh if requested
-                LoadingManager.Instance.QueueSongRefresh(true);
-                await LoadingManager.Instance.StartLoad();
-
-                // Then refresh song select
-                MusicLibraryMenu.RefreshFlag = true;
-            }
+            CurrentTab = tab;
         }
 
         public void UpdateSettingsForTab()
@@ -151,8 +146,6 @@ namespace YARG.Menu.Settings
                 {
                     _fullContainer.gameObject.SetActive(true);
                     _halfContainer.gameObject.SetActive(false);
-
-                    UpdateTabs();
                 }
 
                 UpdateSettings(_settingsContainer);
@@ -169,25 +162,6 @@ namespace YARG.Menu.Settings
             }
 
             UpdatePreview(tabInfo);
-        }
-
-        private void UpdateTabs()
-        {
-            // Destroy all previous tabs
-            _tabsContainer.DestroyChildren();
-
-            // Then, create new tabs!
-            foreach (var tab in SettingsManager.SettingsTabs)
-            {
-                // Skip tabs that aren't shown in game, if we are in game
-                if (!tab.ShowInPlayMode && GlobalVariables.Instance.CurrentScene == SceneIndex.Gameplay)
-                {
-                    continue;
-                }
-
-                var go = Instantiate(_tabPrefab, _tabsContainer);
-                go.GetComponent<SettingsTab>().SetTab(tab.Name, tab.Icon);
-            }
         }
 
         private void UpdateSettings(Transform container)
@@ -362,7 +336,6 @@ namespace YARG.Menu.Settings
             _fullContainer.gameObject.SetActive(true);
             _halfContainer.gameObject.SetActive(false);
 
-            UpdateTabs();
             UpdateSettings(_settingsContainer);
         }
 
@@ -407,6 +380,33 @@ namespace YARG.Menu.Settings
                 {
                     dropdown.ForceUpdateValue();
                 }
+            }
+        }
+
+        private async UniTask OnDisable()
+        {
+            if (!_ready)
+            {
+                return;
+            }
+
+            Navigator.Instance.PopScheme();
+            DestroyPreview();
+            _headerTabs.TabChanged -= OnTabChanged;
+
+            // Save on close
+            SettingsManager.SaveSettings();
+
+            if (UpdateSongLibraryOnExit)
+            {
+                UpdateSongLibraryOnExit = false;
+
+                // Do a song refresh if requested
+                LoadingManager.Instance.QueueSongRefresh(true);
+                await LoadingManager.Instance.StartLoad();
+
+                // Then refresh song select
+                MusicLibraryMenu.RefreshFlag = true;
             }
         }
     }

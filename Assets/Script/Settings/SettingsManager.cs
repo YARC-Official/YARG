@@ -237,7 +237,7 @@ namespace YARG.Settings
                 "DisableTextNotifications",
                 "LyricBackground"
             },
-            new(name: "Engine", icon: "Gameplay")
+            new(name: "Engine", icon: "Engine")
             {
                 "NoKicks",
                 "AntiGhosting",

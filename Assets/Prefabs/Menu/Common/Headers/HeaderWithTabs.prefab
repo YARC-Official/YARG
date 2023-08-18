@@ -51,9 +51,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e198e729a591458fbdaef6827418428d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _tabs: []
   _tabPrefab: {fileID: 635151122057594234, guid: c2d210b99c1144848a42fc65328ed730,
     type: 3}
+  _tabs: []
 --- !u!114 &66808721394126638
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -75,7 +75,7 @@ MonoBehaviour:
   m_Spacing: 0
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 1
-  m_ChildControlWidth: 0
+  m_ChildControlWidth: 1
   m_ChildControlHeight: 1
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 1

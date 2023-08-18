@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace YARG.Menu.Navigation
@@ -18,21 +19,20 @@ namespace YARG.Menu.Navigation
         [SerializeField]
         private bool _selectFirst;
 
-        public int SelectedIndex
+        private NavigatableBehaviour _selectedBehaviour;
+        public NavigatableBehaviour SelectedBehaviour
         {
-            get
+            get => _selectedBehaviour;
+            set
             {
-                for (int i = 0; i < _navigatables.Count; i++)
-                {
-                    if (_navigatables[i].Selected)
-                    {
-                        return i;
-                    }
-                }
-
-                return -1;
+                _selectedBehaviour = value;
+                SelectionChanged?.Invoke(value);
             }
         }
+
+        public int SelectedIndex => _navigatables.IndexOf(SelectedBehaviour);
+
+        public event Action<NavigatableBehaviour> SelectionChanged;
 
         private void Awake()
         {

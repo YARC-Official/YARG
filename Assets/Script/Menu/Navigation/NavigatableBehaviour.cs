@@ -13,8 +13,6 @@ namespace YARG.Menu.Navigation
         [SerializeField]
         private GameObject _selectedVisual;
 
-        public event Action<bool> SelectionChanged;
-
         public NavigationGroup NavigationGroup { get; set; }
 
         private bool _selected = false;
@@ -28,14 +26,17 @@ namespace YARG.Menu.Navigation
                 if (value)
                 {
                     NavigationGroup.DeselectAll();
-                    NavigationGroup.CurrentNavigationGroup = NavigationGroup;
                 }
 
                 _selected = value;
-
-                // Call events
                 OnSelectionChanged(value);
-                SelectionChanged?.Invoke(value);
+
+                // Make sure these happen after, because they call events that rely on the above.
+                if (value)
+                {
+                    NavigationGroup.SelectedBehaviour = this;
+                    NavigationGroup.CurrentNavigationGroup = NavigationGroup;
+                }
             }
         }
 
