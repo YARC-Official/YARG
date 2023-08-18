@@ -14,6 +14,8 @@ namespace YARG.Input
 
     public class ActuationSettings
     {
+        public static readonly ActuationSettings Default = new();
+
         public float ButtonPressThreshold = 0.5f;
         public float AxisDeltaThreshold = 0.05f;
         public int IntegerDeltaThreshold = 1;
@@ -67,6 +69,7 @@ namespace YARG.Input
         public abstract bool IsControlCompatible(InputControl control);
         public abstract bool IsControlActuated(ActuationSettings settings, InputControl control, InputEventPtr eventPtr);
 
+        public bool AddControl(InputControl control) => AddControl(ActuationSettings.Default, control);
         public abstract bool AddControl(ActuationSettings settings, InputControl control);
         public abstract bool RemoveControl(InputControl control);
         public abstract bool ContainsControl(InputControl control);

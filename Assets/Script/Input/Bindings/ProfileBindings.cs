@@ -194,8 +194,14 @@ namespace YARG.Input
             if (index >= 0)
                 _unresolvedDevices.RemoveAt(index);
 
+            // Add device to bindings
             _devices.Add(device);
             NotifyDeviceAdded(device);
+
+            // Assign default binds if this device isn't serialized
+            if (index < 0)
+                SetDefaultBinds(device);
+
             return true;
         }
 
@@ -217,6 +223,19 @@ namespace YARG.Input
         private int FindSerializedIndex(InputDevice device)
         {
             return _unresolvedDevices.FindIndex((dev) => dev.MatchesDevice(device));
+        }
+
+        public bool SetDefaultBinds(InputDevice device)
+        {
+            if (!ContainsDevice(device))
+                return false;
+
+            foreach (var bindings in _bindsByGameMode.Values)
+                bindings.SetDefaultBindings(device);
+
+            MenuBindings.SetDefaultBindings(device);
+
+            return true;
         }
 
         public void OnDeviceAdded(InputDevice device)

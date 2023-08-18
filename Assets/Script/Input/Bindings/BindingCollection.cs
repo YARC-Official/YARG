@@ -105,6 +105,12 @@ namespace YARG.Input
             return null;
         }
 
+        public ControlBinding TryGetBindingByAction<TAction>(TAction action)
+            where TAction : unmanaged, Enum
+        {
+            return TryGetBindingByAction(action.Convert());
+        }
+
         public ControlBinding TryGetBindingByAction(int action)
         {
             foreach (var binding in _bindings)
