@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -22,20 +23,12 @@ namespace YARG.Menu.Settings
     {
         [SerializeField]
         private HeaderTabs _headerTabs;
-
-        [Space]
         [SerializeField]
-        private GameObject _fullContainer;
-        [SerializeField]
-        private GameObject _halfContainer;
-        [SerializeField]
-        private Transform _previewContainer;
-
-        [Space]
+        private RawImage _previewRawImage;
         [SerializeField]
         private Transform _settingsContainer;
         [SerializeField]
-        private Transform _halfSettingsContainer;
+        private Transform _previewContainer;
 
         [Space]
         [SerializeField]
@@ -46,10 +39,6 @@ namespace YARG.Menu.Settings
         private GameObject _directoryPrefab;
         [SerializeField]
         private GameObject _dropdownPrefab;
-
-        [Space]
-        [SerializeField]
-        private RawImage _previewRawImage;
 
         private string _currentTab;
 
@@ -140,37 +129,17 @@ namespace YARG.Menu.Settings
 
             var tabInfo = SettingsManager.GetTabByName(CurrentTab);
 
-            if (string.IsNullOrEmpty(tabInfo.PreviewPath))
-            {
-                if (!_fullContainer.activeSelf)
-                {
-                    _fullContainer.gameObject.SetActive(true);
-                    _halfContainer.gameObject.SetActive(false);
-                }
-
-                UpdateSettings(_settingsContainer);
-            }
-            else
-            {
-                if (!_halfContainer.activeSelf)
-                {
-                    _halfContainer.gameObject.SetActive(true);
-                    _fullContainer.gameObject.SetActive(false);
-                }
-
-                UpdateSettings(_halfSettingsContainer);
-            }
-
-            UpdatePreview(tabInfo);
+            UpdateSettings();
+            UpdatePreview(tabInfo).Forget();
         }
 
-        private void UpdateSettings(Transform container)
+        private void UpdateSettings()
         {
             _settingVisuals.Clear();
             _settingDropdowns.Clear();
 
             // Destroy all previous settings
-            container.DestroyChildren();
+            _settingsContainer.DestroyChildren();
 
             foreach (var tab in SettingsManager.SettingsTabs)
             {
@@ -186,13 +155,13 @@ namespace YARG.Menu.Settings
                     if (settingMetadata is ButtonRowMetadata buttonRow)
                     {
                         // Spawn the button
-                        var go = Instantiate(_buttonPrefab, container);
+                        var go = Instantiate(_buttonPrefab, _settingsContainer);
                         go.GetComponent<SettingsButton>().SetInfo(buttonRow.Buttons);
                     }
                     else if (settingMetadata is HeaderMetadata header)
                     {
                         // Spawn in the header
-                        SpawnHeader(container, $"Header.{header.HeaderName}");
+                        SpawnHeader(_settingsContainer, $"Header.{header.HeaderName}");
                     }
                     else if (settingMetadata is FieldMetadata field)
                     {
@@ -201,7 +170,7 @@ namespace YARG.Menu.Settings
                         // Spawn the setting
                         var settingPrefab = Addressables.LoadAssetAsync<GameObject>(setting.AddressableName)
                             .WaitForCompletion();
-                        var go = Instantiate(settingPrefab, container);
+                        var go = Instantiate(settingPrefab, _settingsContainer);
 
                         // Set the setting, and cache the object
                         var visual = go.GetComponent<ISettingVisual>();
@@ -211,7 +180,7 @@ namespace YARG.Menu.Settings
                     else if (settingMetadata is PresetDropdownMetadata dropdown)
                     {
                         // Spawn the dropdown
-                        var go = Instantiate(_dropdownPrefab, container);
+                        var go = Instantiate(_dropdownPrefab, _settingsContainer);
 
                         // Set the setting, and cache the object
                         var settingsDropdown = go.GetComponent<SettingsPresetDropdown>();
@@ -278,12 +247,15 @@ namespace YARG.Menu.Settings
                 LocaleHelper.StringReference("Settings", localizationKey);
         }
 
-        private void UpdatePreview(SettingsManager.Tab tabInfo)
+        private async UniTask UpdatePreview(SettingsManager.Tab tabInfo)
         {
             DestroyPreview();
 
             if (string.IsNullOrEmpty(tabInfo.PreviewPath))
             {
+                _previewRawImage.gameObject.SetActive(false);
+                _previewRawImage.texture = null;
+                _previewRawImage.color = Color.black;
                 return;
             }
 
@@ -295,9 +267,14 @@ namespace YARG.Menu.Settings
             // Set render texture
             CameraPreviewTexture.SetAllPreviews();
 
+            // Enable and wait for layouts to rebuild
+            _previewRawImage.gameObject.SetActive(true);
+            await UniTask.WaitForEndOfFrame(this);
+
             // Size raw image
             _previewRawImage.texture = CameraPreviewTexture.PreviewTexture;
-            var rect = _previewRawImage.rectTransform.ToViewportSpaceCentered(v: false);
+            _previewRawImage.color = Color.white;
+            var rect = _previewRawImage.rectTransform.ToViewportSpaceCentered(v: false, scale: 0.7f);
             rect.y = 0f;
             _previewRawImage.uvRect = rect;
         }
@@ -324,19 +301,6 @@ namespace YARG.Menu.Settings
                 CurrentTab = tab.Name;
                 break;
             }
-        }
-
-        public void ForceShowCurrentTabInFull()
-        {
-            if (_fullContainer.activeSelf)
-            {
-                return;
-            }
-
-            _fullContainer.gameObject.SetActive(true);
-            _halfContainer.gameObject.SetActive(false);
-
-            UpdateSettings(_settingsContainer);
         }
 
         public void UpdateSpecificSetting(string settingName)

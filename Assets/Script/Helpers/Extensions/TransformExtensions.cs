@@ -33,12 +33,15 @@ namespace YARG.Helpers.Extensions
         /// <param name="transform">The <see cref="RectTransform"/> to convert to viewport space.</param>
         /// <param name="h">Center horizontally.</param>
         /// <param name="v">Center vertically.</param>
+        /// <param name="scale">The scale multiplier for the render texture.</param>
         /// <returns>
         /// A <see cref="Rect"/> representing the viewport space of the specified <see cref="RectTransform"/>, centered on it.
         /// </returns>
-        public static Rect ToViewportSpaceCentered(this RectTransform transform, bool h = true, bool v = true)
+        public static Rect ToViewportSpaceCentered(this RectTransform transform, bool h = true, bool v = true, float scale = 1f)
         {
             var rect = transform.ToViewportSpace();
+            rect.width /= scale;
+            rect.height /= scale;
 
             if (h)
             {
