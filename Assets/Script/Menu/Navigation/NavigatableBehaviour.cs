@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -7,7 +6,7 @@ namespace YARG.Menu.Navigation
     public abstract class NavigatableBehaviour : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
     {
         [SerializeField]
-        private bool _selectOnHover = false;
+        private bool _selectOnHover;
 
         [Space]
         [SerializeField]
@@ -15,36 +14,33 @@ namespace YARG.Menu.Navigation
 
         public NavigationGroup NavigationGroup { get; set; }
 
-        private bool _selected = false;
-        public bool Selected
-        {
-            get => _selected;
-            set
-            {
-                if (_selected == value) return;
-
-                if (value)
-                {
-                    NavigationGroup.DeselectAll();
-                }
-
-                _selected = value;
-                OnSelectionChanged(value);
-
-                // Make sure these happen after, because they call events that rely on the above.
-                if (value)
-                {
-                    NavigationGroup.SelectedBehaviour = this;
-                    NavigationGroup.CurrentNavigationGroup = NavigationGroup;
-                }
-            }
-        }
+        public bool Selected { get; private set; }
 
         protected virtual void Awake()
         {
             // We use _selected here to avoid the selected visual not showing up when the navigation group has
             // initialized, enabled, and set this as selected before this has awoken
-            _selectedVisual.SetActive(_selected);
+            _selectedVisual.SetActive(Selected);
+        }
+
+        public void SetSelected(bool selected, SelectionOrigin selectionOrigin)
+        {
+            if (Selected == selected) return;
+
+            if (selected)
+            {
+                NavigationGroup.DeselectAll();
+            }
+
+            Selected = selected;
+            OnSelectionChanged(selected);
+
+            // Make sure these happen after, because they call events that rely on the above.
+            if (selected)
+            {
+                NavigationGroup.SetSelected(this, selectionOrigin);
+                NavigationGroup.SetAsCurrent();
+            }
         }
 
         protected virtual void OnSelectionChanged(bool selected)
@@ -55,7 +51,9 @@ namespace YARG.Menu.Navigation
         public virtual void OnPointerEnter(PointerEventData eventData)
         {
             if (_selectOnHover)
-                Selected = true;
+            {
+                SetSelected(true, SelectionOrigin.Mouse);
+            }
         }
 
         public virtual void OnPointerExit(PointerEventData eventData)
@@ -64,7 +62,7 @@ namespace YARG.Menu.Navigation
 
         public virtual void OnPointerDown(PointerEventData eventData)
         {
-            Selected = true;
+            SetSelected(true, SelectionOrigin.Mouse);
         }
 
         public virtual void Confirm()

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using YARG.Core.Input;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
 
@@ -44,6 +45,15 @@ namespace YARG.Menu
             }
         }
 
+        public NavigationScheme.Entry NavigateNextTab => new(MenuAction.Right, "Next Tab", (ctx) =>
+        {
+            _navigationGroup.SelectNext(ctx);
+        });
+        public NavigationScheme.Entry NavigatePreviousTab => new(MenuAction.Left, "Previous Tab", (ctx) =>
+        {
+            _navigationGroup.SelectPrevious(ctx);
+        });
+
         public event Action<string> TabChanged;
 
         private NavigationGroup _navigationGroup;
@@ -59,7 +69,7 @@ namespace YARG.Menu
             RefreshTabs();
         }
 
-        private void OnSelectionChanged(NavigatableBehaviour obj)
+        private void OnSelectionChanged(NavigatableBehaviour nav, SelectionOrigin selectionOrigin)
         {
             TabChanged?.Invoke(SelectedTabId);
         }

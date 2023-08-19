@@ -84,8 +84,8 @@ namespace YARG.Menu.Profiles
 
         public async UniTask Connect(bool resolveDevices)
         {
-            // Select item to prevent confusion
-            Selected = true;
+            // Select item to prevent confusion (it has to be through the mouse in this case)
+            SetSelected(true, SelectionOrigin.Mouse);
 
             if (PlayerContainer.IsProfileTaken(_profile))
             {
@@ -121,8 +121,8 @@ namespace YARG.Menu.Profiles
 
         public void Disconnect()
         {
-            // Select item to prevent confusion
-            Selected = true;
+            // Select item to prevent confusion (it has to be through the mouse in this case)
+            SetSelected(true, SelectionOrigin.Mouse);
 
             var player = PlayerContainer.GetPlayerFromProfile(_profile);
             if (player is null)

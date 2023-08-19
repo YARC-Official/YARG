@@ -93,6 +93,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _defaultGroup: 0
+  _canBeCurrent: 0
   _addAllChildrenOnAwake: 0
   _selectFirst: 0
 --- !u!1001 &7556426219405514428

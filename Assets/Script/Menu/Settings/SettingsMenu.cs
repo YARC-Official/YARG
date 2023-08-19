@@ -108,7 +108,12 @@ namespace YARG.Menu.Settings
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
-                new NavigationScheme.Entry(MenuAction.Red, "Back", () => { gameObject.SetActive(false); })
+                NavigationScheme.Entry.NavigateSelect,
+                new NavigationScheme.Entry(MenuAction.Red, "Back", () => { gameObject.SetActive(false); }),
+                NavigationScheme.Entry.NavigateUp,
+                NavigationScheme.Entry.NavigateDown,
+                _headerTabs.NavigateNextTab,
+                _headerTabs.NavigatePreviousTab
             }, true));
 
             ReturnToFirstTab();
@@ -195,6 +200,9 @@ namespace YARG.Menu.Settings
                 // Then we're good!
                 break;
             }
+
+            // Make the settings nav group the main one
+            _settingsNavGroup.SelectFirst();
         }
 
         private void SpawnHeader(Transform container, string localizationKey)

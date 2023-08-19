@@ -6,33 +6,27 @@ namespace YARG.Menu.Navigation
 {
     public sealed class NavigationGroup : MonoBehaviour
     {
-        public static NavigationGroup CurrentNavigationGroup;
+        public static NavigationGroup CurrentNavigationGroup { get; private set;  }
 
         private readonly List<NavigatableBehaviour> _navigatables = new();
 
         [SerializeField]
         private bool _defaultGroup;
+        [SerializeField]
+        private bool _canBeCurrent = true;
 
+        [Space]
         [SerializeField]
         private bool _addAllChildrenOnAwake;
-
         [SerializeField]
         private bool _selectFirst;
 
-        private NavigatableBehaviour _selectedBehaviour;
-        public NavigatableBehaviour SelectedBehaviour
-        {
-            get => _selectedBehaviour;
-            set
-            {
-                _selectedBehaviour = value;
-                SelectionChanged?.Invoke(value);
-            }
-        }
+        public NavigatableBehaviour SelectedBehaviour { get; private set; }
 
         public int SelectedIndex => _navigatables.IndexOf(SelectedBehaviour);
 
-        public event Action<NavigatableBehaviour> SelectionChanged;
+        public delegate void SelectionAction(NavigatableBehaviour selected, SelectionOrigin selectionOrigin);
+        public event SelectionAction SelectionChanged;
 
         private void Awake()
         {
@@ -84,15 +78,21 @@ namespace YARG.Menu.Navigation
         {
             foreach (var navigatable in _navigatables)
             {
-                navigatable.Selected = false;
+                navigatable.SetSelected(false, SelectionOrigin.Programmatically);
             }
+        }
+
+        public void SetSelected(NavigatableBehaviour navigatableBehaviour, SelectionOrigin selectionOrigin)
+        {
+            SelectedBehaviour = navigatableBehaviour;
+            SelectionChanged?.Invoke(navigatableBehaviour, selectionOrigin);
         }
 
         public void SelectFirst()
         {
             if (_navigatables.Count < 1) return;
 
-            _navigatables[0].Selected = true;
+            _navigatables[0].SetSelected(true, SelectionOrigin.Programmatically);
         }
 
         public void SelectNext(NavigationContext context)
@@ -110,7 +110,7 @@ namespace YARG.Menu.Navigation
                 selected = 0;
             }
 
-            _navigatables[selected].Selected = true;
+            _navigatables[selected].SetSelected(true, SelectionOrigin.Navigation);
         }
 
         public void SelectPrevious(NavigationContext context)
@@ -128,12 +128,20 @@ namespace YARG.Menu.Navigation
                 selected = _navigatables.Count - 1;
             }
 
-            _navigatables[selected].Selected = true;
+            _navigatables[selected].SetSelected(true, SelectionOrigin.Navigation);
         }
 
         public void ConfirmSelection()
         {
             _navigatables[SelectedIndex].Confirm();
+        }
+
+        public void SetAsCurrent()
+        {
+            if (_canBeCurrent)
+            {
+                CurrentNavigationGroup = this;
+            }
         }
     }
 }
