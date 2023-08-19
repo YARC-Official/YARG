@@ -24,7 +24,7 @@ namespace YARG.Settings.Types
             set => Data = (T) value;
         }
 
-        public Type DataType => GetType().BaseType?.GetGenericArguments()[0];
+        public Type DataType => typeof(T);
 
         public abstract string AddressableName { get; }
 

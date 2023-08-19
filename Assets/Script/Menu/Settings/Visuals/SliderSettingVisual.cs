@@ -1,7 +1,4 @@
-using System.Globalization;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using YARG.Settings.Types;
 
 namespace YARG.Menu.Settings.Visuals
@@ -12,7 +9,7 @@ namespace YARG.Menu.Settings.Visuals
         private ValueSlider _slider;
 
         // Unity sucks -_-
-        private bool _ignoreCallback = false;
+        private bool _ignoreCallback;
 
         protected override void OnSettingInit()
         {
