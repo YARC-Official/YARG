@@ -30,6 +30,8 @@ namespace YARG.Menu.Settings
         private NavigationGroup _settingsNavGroup;
         [SerializeField]
         private Transform _previewContainer;
+        [SerializeField]
+        private ScrollRect _scrollRect;
 
         [Space]
         [SerializeField]
@@ -203,6 +205,9 @@ namespace YARG.Menu.Settings
 
             // Make the settings nav group the main one
             _settingsNavGroup.SelectFirst();
+
+            // Reset scroll rect
+            _scrollRect.verticalNormalizedPosition = 1f;
         }
 
         private void SpawnHeader(Transform container, string localizationKey)
