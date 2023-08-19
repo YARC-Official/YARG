@@ -6,7 +6,7 @@ using YARG.Settings.Types;
 
 namespace YARG.Menu.Settings.Visuals
 {
-    public class SliderSettingVisual : AbstractSettingVisual<SliderSetting>
+    public class SliderSettingVisual : BaseSettingVisual<SliderSetting>
     {
         [SerializeField]
         private Slider _slider;

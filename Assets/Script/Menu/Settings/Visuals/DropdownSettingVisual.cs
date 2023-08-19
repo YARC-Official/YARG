@@ -5,7 +5,7 @@ using YARG.Settings.Types;
 
 namespace YARG.Menu.Settings.Visuals
 {
-    public class DropdownSettingVisual : AbstractSettingVisual<DropdownSetting>
+    public class DropdownSettingVisual : BaseSettingVisual<DropdownSetting>
     {
         [SerializeField]
         private TMP_Dropdown _dropdown;

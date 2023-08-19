@@ -6,7 +6,7 @@ using YARG.Settings.Types;
 
 namespace YARG.Menu.Settings.Visuals
 {
-    public class VolumeSettingVisual : AbstractSettingVisual<VolumeSetting>
+    public class VolumeSettingVisual : BaseSettingVisual<VolumeSetting>
     {
         [SerializeField]
         private Slider _slider;

@@ -4,7 +4,7 @@ using YARG.Settings.Types;
 
 namespace YARG.Menu.Settings.Visuals
 {
-    public class ToggleSettingVisual : AbstractSettingVisual<ToggleSetting>
+    public class ToggleSettingVisual : BaseSettingVisual<ToggleSetting>
     {
         [SerializeField]
         private Toggle _toggle;

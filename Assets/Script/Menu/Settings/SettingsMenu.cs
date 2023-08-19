@@ -45,7 +45,7 @@ namespace YARG.Menu.Settings
 
         private string _currentTab;
 
-        private readonly List<ISettingVisual> _settingVisuals = new();
+        private readonly List<BaseSettingVisual> _settingVisuals = new();
         private readonly List<SettingsPresetDropdown> _settingDropdowns = new();
 
         public string CurrentTab
@@ -182,8 +182,8 @@ namespace YARG.Menu.Settings
                         var go = Instantiate(settingPrefab, _settingsContainer);
 
                         // Set the setting, and cache the object
-                        var visual = go.GetComponent<ISettingVisual>();
-                        visual.SetSetting(field.FieldName);
+                        var visual = go.GetComponent<BaseSettingVisual>();
+                        visual.AssignSetting(field.FieldName);
                         _settingVisuals.Add(visual);
                         _settingsNavGroup.AddNavigatable(go);
                     }

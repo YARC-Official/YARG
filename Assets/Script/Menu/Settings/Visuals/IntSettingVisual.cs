@@ -5,7 +5,7 @@ using YARG.Settings.Types;
 
 namespace YARG.Menu.Settings.Visuals
 {
-    public class IntSettingVisual : AbstractSettingVisual<IntSetting>
+    public class IntSettingVisual : BaseSettingVisual<IntSetting>
     {
         [SerializeField]
         private TMP_InputField _inputField;
