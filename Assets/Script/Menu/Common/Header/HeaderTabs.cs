@@ -76,6 +76,9 @@ namespace YARG.Menu
 
         public void RefreshTabs()
         {
+            // Skip if not initialized yet
+            if (_navigationGroup == null) return;
+
             transform.DestroyChildren();
             _navigationGroup.ClearNavigatables();
 

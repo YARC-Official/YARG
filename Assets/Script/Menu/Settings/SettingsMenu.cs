@@ -105,6 +105,7 @@ namespace YARG.Menu.Settings
                 return;
             }
 
+            _headerTabs.RefreshTabs();
             _headerTabs.TabChanged += OnTabChanged;
 
             // Set navigation scheme
