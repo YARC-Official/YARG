@@ -1,6 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
 using YARG.Helpers;
+using YARG.Menu.Navigation;
 using YARG.Settings.Types;
 
 namespace YARG.Menu.Settings.Visuals
@@ -26,6 +27,14 @@ namespace YARG.Menu.Settings.Visuals
 
             // Select the right option
             _dropdown.SetValueWithoutNotify(Setting.IndexOfOption(Setting.Data));
+        }
+
+        public override NavigationScheme GetNavigationScheme()
+        {
+            return new NavigationScheme(new()
+            {
+                NavigateFinish
+            }, true);
         }
 
         public void OnDropdownChange()

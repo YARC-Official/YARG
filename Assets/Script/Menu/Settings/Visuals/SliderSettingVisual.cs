@@ -1,4 +1,5 @@
 using UnityEngine;
+using YARG.Menu.Navigation;
 using YARG.Settings.Types;
 
 namespace YARG.Menu.Settings.Visuals
@@ -24,6 +25,14 @@ namespace YARG.Menu.Settings.Visuals
         public override void RefreshVisual()
         {
             _slider.SetValueWithoutNotify(Setting.Data);
+        }
+
+        public override NavigationScheme GetNavigationScheme()
+        {
+            return new NavigationScheme(new()
+            {
+                NavigateFinish
+            }, true);
         }
 
         public void OnValueChange()

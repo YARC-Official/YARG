@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.Localization.Components;
+using YARG.Core.Input;
 using YARG.Helpers;
+using YARG.Menu.Navigation;
 using YARG.Settings;
 using YARG.Settings.Types;
 
@@ -8,6 +10,11 @@ namespace YARG.Menu.Settings.Visuals
 {
     public abstract class BaseSettingVisual : MonoBehaviour
     {
+        protected static readonly NavigationScheme.Entry NavigateFinish = new(MenuAction.Red, "Finish", () =>
+        {
+            Navigator.Instance.PopScheme();
+        });
+
         [SerializeField]
         private LocalizeStringEvent _settingLabel;
 
@@ -28,6 +35,8 @@ namespace YARG.Menu.Settings.Visuals
         protected abstract void OnSettingInit();
 
         public abstract void RefreshVisual();
+
+        public abstract NavigationScheme GetNavigationScheme();
     }
 
     public abstract class BaseSettingVisual<T> : BaseSettingVisual where T : ISettingType

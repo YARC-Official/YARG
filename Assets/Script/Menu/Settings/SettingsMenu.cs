@@ -112,7 +112,10 @@ namespace YARG.Menu.Settings
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 NavigationScheme.Entry.NavigateSelect,
-                new NavigationScheme.Entry(MenuAction.Red, "Back", () => { gameObject.SetActive(false); }),
+                new NavigationScheme.Entry(MenuAction.Red, "Back", () =>
+                {
+                    gameObject.SetActive(false);
+                }),
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown,
                 _headerTabs.NavigateNextTab,

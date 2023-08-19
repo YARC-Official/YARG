@@ -57,10 +57,14 @@ namespace YARG.Menu.Navigation
 
         public bool AllowsMusicPlayer { get; private set; }
 
-        public NavigationScheme(List<Entry> entries, bool allowsMusicPlayer)
+        public Action PopCallback;
+
+        public NavigationScheme(List<Entry> entries, bool allowsMusicPlayer, Action popCallback = null)
         {
             _entries = entries;
+
             AllowsMusicPlayer = allowsMusicPlayer;
+            PopCallback = popCallback;
         }
 
         public void InvokeFuncs(NavigationContext context)

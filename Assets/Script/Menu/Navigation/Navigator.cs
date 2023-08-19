@@ -150,13 +150,20 @@ namespace YARG.Menu.Navigation
 
         public void PopScheme()
         {
-            _schemeStack.Pop();
+            var scheme = _schemeStack.Pop();
+            scheme.PopCallback?.Invoke();
             UpdateHelpBar().Forget();
         }
 
         public void PopAllSchemes()
         {
-            _schemeStack.Clear();
+            // Pop all one by one so we can call each callback (instead of clearing)
+            while (_schemeStack.Count >= 1)
+            {
+                var scheme = _schemeStack.Pop();
+                scheme.PopCallback?.Invoke();
+            }
+
             UpdateHelpBar().Forget();
         }
 

@@ -1,6 +1,7 @@
 using System.Globalization;
 using TMPro;
 using UnityEngine;
+using YARG.Menu.Navigation;
 using YARG.Settings.Types;
 
 namespace YARG.Menu.Settings.Visuals
@@ -18,6 +19,14 @@ namespace YARG.Menu.Settings.Visuals
         public override void RefreshVisual()
         {
             _inputField.text = Setting.Data.ToString(CultureInfo.InvariantCulture);
+        }
+
+        public override NavigationScheme GetNavigationScheme()
+        {
+            return new NavigationScheme(new()
+            {
+                NavigateFinish
+            }, true);
         }
 
         public void OnTextFieldChange()
