@@ -145,6 +145,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3252069457828798820}
+  - component: {fileID: 7831812744852097216}
   m_Layer: 5
   m_Name: SmallButton
   m_TagString: Untagged
@@ -174,6 +175,21 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 150, y: 64}
   m_Pivot: {x: 0.5, y: 1.0000005}
+--- !u!114 &7831812744852097216
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4441713907549617493}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6738045cff16e840b711505d125696f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _text: {fileID: 5240628994194081110}
+  _button: {fileID: 1245898288579793007}
+  _background: {fileID: 1071800837622904608}
 --- !u!1 &8637973974686150122
 GameObject:
   m_ObjectHideFlags: 0
