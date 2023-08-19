@@ -27,6 +27,41 @@ PrefabInstance:
       propertyPath: m_CharacterValidation
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 4722467204755374586, guid: 8f25b12de267d7544aa2ff7993247fcd,
+        type: 3}
+      propertyPath: m_OnEndEdit.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4722467204755374586, guid: 8f25b12de267d7544aa2ff7993247fcd,
+        type: 3}
+      propertyPath: m_OnEndEdit.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4722467204755374586, guid: 8f25b12de267d7544aa2ff7993247fcd,
+        type: 3}
+      propertyPath: m_OnEndEdit.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 6031140662612394087}
+    - target: {fileID: 4722467204755374586, guid: 8f25b12de267d7544aa2ff7993247fcd,
+        type: 3}
+      propertyPath: m_OnEndEdit.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4722467204755374586, guid: 8f25b12de267d7544aa2ff7993247fcd,
+        type: 3}
+      propertyPath: m_OnEndEdit.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OnTextFieldChange
+      objectReference: {fileID: 0}
+    - target: {fileID: 4722467204755374586, guid: 8f25b12de267d7544aa2ff7993247fcd,
+        type: 3}
+      propertyPath: m_OnEndEdit.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: YARG.Menu.Settings.Visuals.IntSettingVisual, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 4722467204755374586, guid: 8f25b12de267d7544aa2ff7993247fcd,
+        type: 3}
+      propertyPath: m_OnEndEdit.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     - target: {fileID: 7665614177142481491, guid: 8f25b12de267d7544aa2ff7993247fcd,
         type: 3}
       propertyPath: m_Pivot.x

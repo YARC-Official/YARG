@@ -117,6 +117,41 @@ PrefabInstance:
       propertyPath: m_Name
       value: Toggle
       objectReference: {fileID: 0}
+    - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848,
+        type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848,
+        type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848,
+        type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 3656213138063558147}
+    - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848,
+        type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848,
+        type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OnToggleChange
+      objectReference: {fileID: 0}
+    - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848,
+        type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: YARG.Menu.Settings.Visuals.ToggleSettingVisual, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848,
+        type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: aed667cd79204fe4aad4f297b650e848, type: 3}
 --- !u!114 &8583250461814537171 stripped

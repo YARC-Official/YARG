@@ -142,6 +142,41 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd,
+        type: 3}
+      propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd,
+        type: 3}
+      propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd,
+        type: 3}
+      propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 47240310059758664}
+    - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd,
+        type: 3}
+      propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd,
+        type: 3}
+      propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OnValueChange
+      objectReference: {fileID: 0}
+    - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd,
+        type: 3}
+      propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: YARG.Menu.Settings.Visuals.SliderSettingVisual, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd,
+        type: 3}
+      propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     - target: {fileID: 9166383696846773885, guid: dbdf67b69820732439f61d5a3cd2b4fd,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -149,28 +184,16 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
---- !u!114 &3152088541704312772 stripped
+--- !u!114 &3850765515308648615 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8407739211729596281, guid: dbdf67b69820732439f61d5a3cd2b4fd,
+  m_CorrespondingSourceObject: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd,
     type: 3}
   m_PrefabInstance: {fileID: 6850042723318020285}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &8891143424282303959 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2626603837451609450, guid: dbdf67b69820732439f61d5a3cd2b4fd,
-    type: 3}
-  m_PrefabInstance: {fileID: 6850042723318020285}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2da0c512f12947e489f739169773d7ca, type: 3}
+  m_Script: {fileID: 11500000, guid: 072645a5edc8e254eafd4e571631b9c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1001 &8095148824242519626
@@ -329,5 +352,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _settingLabel: {fileID: 1727629268779748808}
-  _slider: {fileID: 3152088541704312772}
-  _inputField: {fileID: 8891143424282303959}
+  _slider: {fileID: 3850765515308648615}

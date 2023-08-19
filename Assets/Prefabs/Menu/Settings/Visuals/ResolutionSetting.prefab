@@ -117,6 +117,21 @@ PrefabInstance:
       propertyPath: m_Name
       value: ResolutionSetting
       objectReference: {fileID: 0}
+    - target: {fileID: 6853562808553770875, guid: 87dae5d50dddcb543920ce79cdc31e7a,
+        type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 504023121827756403}
+    - target: {fileID: 6853562808553770875, guid: 87dae5d50dddcb543920ce79cdc31e7a,
+        type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OnDropdownChange
+      objectReference: {fileID: 0}
+    - target: {fileID: 6853562808553770875, guid: 87dae5d50dddcb543920ce79cdc31e7a,
+        type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: YARG.Menu.Settings.Visuals.ResolutionSettingVisual, Assembly-CSharp
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 5008256315614093034, guid: 87dae5d50dddcb543920ce79cdc31e7a, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 87dae5d50dddcb543920ce79cdc31e7a, type: 3}

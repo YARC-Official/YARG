@@ -9,10 +9,7 @@ namespace YARG.Menu.Settings.Visuals
     public class SliderSettingVisual : BaseSettingVisual<SliderSetting>
     {
         [SerializeField]
-        private Slider _slider;
-
-        [SerializeField]
-        private TMP_InputField _inputField;
+        private ValueSlider _slider;
 
         // Unity sucks -_-
         private bool _ignoreCallback = false;
@@ -20,10 +17,8 @@ namespace YARG.Menu.Settings.Visuals
         protected override void OnSettingInit()
         {
             _ignoreCallback = true;
-
-            _slider.minValue = Setting.Min;
-            _slider.maxValue = Setting.Max;
-
+            _slider.MinimumValue = Setting.Min;
+            _slider.MaximumValue = Setting.Max;
             _ignoreCallback = false;
 
             RefreshVisual();
@@ -32,32 +27,13 @@ namespace YARG.Menu.Settings.Visuals
         public override void RefreshVisual()
         {
             _slider.SetValueWithoutNotify(Setting.Data);
-            _inputField.text = Setting.Data.ToString("N2", CultureInfo.InvariantCulture);
         }
 
-        public void OnSliderChange()
+        public void OnValueChange()
         {
-            if (_ignoreCallback)
-            {
-                return;
-            }
+            if (_ignoreCallback) return;
 
-            Setting.Data = _slider.value;
-            RefreshVisual();
-        }
-
-        public void OnTextChange()
-        {
-            string text = _inputField.text;
-
-            try
-            {
-                Setting.Data = float.Parse(text, CultureInfo.InvariantCulture);
-            }
-            catch
-            {
-            }
-
+            Setting.Data = _slider.Value;
             RefreshVisual();
         }
     }
