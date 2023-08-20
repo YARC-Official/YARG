@@ -176,9 +176,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 53693768667619351
-    m_Localized: 'Cursor Show Time
-
-      (0 = Always Show)'
+    m_Localized: Cursor Show Time
     m_Metadata:
       m_Items: []
   - m_Id: 53693768667619352
@@ -258,7 +256,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 53693768667619373
-    m_Localized: Ajusts the song's bass guitar track volume. Only does something
+    m_Localized: Adjusts the song's bass guitar track volume. Only does something
       if the song is multi-track.
     m_Metadata:
       m_Items: []
@@ -344,6 +342,194 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 53694051174965248
     m_Localized: Scan Songs
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619342
+    m_Localized: Upon ghosting (or fretting a note that is not present) the player
+      will drop their combo (guitar only).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850240
+    m_Localized: If on, HOPOs and taps can be fretted before they enter to hit window
+      (guitar only).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850241
+    m_Localized: Removes all kick notes (drums only).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850242
+    m_Localized: Disables custom backgrounds in songs and shows the ones in your
+      venue folder instead.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850243
+    m_Localized: Slightly bounces the track when the kick pedal is pressed (drums
+      only).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850244
+    m_Localized: How long the cursor will be shown for before hiding. Set to "0"
+      for no hiding (playmode).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850245
+    m_Localized: If enabled, cymbal models will be used in the second and fourth
+      lanes instead of the standard note model (five-lane drums only).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850246
+    m_Localized: Disables post-processing bloom (the glowly effect). May increase
+      performance.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850247
+    m_Localized: Disables text notification on the track such as "100-Note Streak"
+      and "Full Combo."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850248
+    m_Localized: The framerate cap. <color=white>YOU DO NOT NEED TO PLAY YARG ON
+      1000FPS.</color> VSync recommended.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850249
+    m_Localized: Enables the framerate counter on the top-left of your screen.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850250
+    m_Localized: Changes the fullscreen mode.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850251
+    m_Localized: If enabled, the game will disable anti-aliasing, and use lower quality
+      models and textures. This will significantly increase performance.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850252
+    m_Localized: Choose the background for the lyric display that shows when no one
+      is playing vocals.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850253
+    m_Localized: Choose the resolution of your screen. "Highest" is recommended.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850254
+    m_Localized: If enabled, a box will be shown on your track that represents the
+      "window" in which notes can be hit.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850255
+    m_Localized: The track camera's field of view.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850256
+    m_Localized: The track camera's rotational pitch (up and down).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850257
+    m_Localized: The track camera's Y position (up and down).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850258
+    m_Localized: The track camera's Z position (forward and backwards).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850259
+    m_Localized: The track's curve factor.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850260
+    m_Localized: The track's fade position. Lower values are closer to the frets.
+      This also controls the track length.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850261
+    m_Localized: The track's fade size. A fade size of "0" will remove the fade.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850262
+    m_Localized: Enables VSync. VSync caps the framerate at your monitor's maximum
+      framerate, and prevents tearing.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850263
+    m_Localized: Adjusts the song's crowd track volume. Only does something if the
+      song is multi-track.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850264
+    m_Localized: Adjusts the song's drum track volume. Only does something if the
+      song is multi-track.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850265
+    m_Localized: Adjusts the song's guitar track volume. Only does something if the
+      song is multi-track.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850266
+    m_Localized: Adjusts the song's keys track volume. Only does something if the
+      song is multi-track.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850267
+    m_Localized: Adjusts the song's volume as a whole.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850268
+    m_Localized: Adjusts your microphone's sensitivity in decibels. Lower values
+      are more sensitive.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850269
+    m_Localized: Adjusts the volume of the music that plays in the main menu. Set
+      to "0" to disable.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850270
+    m_Localized: Mutes a specific stem when you miss on that instrument. Only does
+      something if the song is multi-track.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850271
+    m_Localized: The preview volume while in the music library.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850272
+    m_Localized: Adjusts the song's rhythm guitar track volume. Only does something
+      if the song is multi-track. In some song formats, this may also be the bass
+      guitar.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850273
+    m_Localized: Adjusts the game's sound effect volume, such as when gaining a star,
+      or activating starpower.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850274
+    m_Localized: Adjusts the song's backing track volume. These are all of the instruments
+      that are not included in the multi-track.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850275
+    m_Localized: Disables pitch correction when playing songs at a fast or slow speed
+      which may lead to some... interesting results.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850276
+    m_Localized: If enabled, it will add reverb to stems where the player has starpower
+      enabled.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850277
+    m_Localized: Adjusts the feedback you hear when singing.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850278
+    m_Localized: Adjusts the song's vocal track volume. Only does something if the
+      song is multi-track.
     m_Metadata:
       m_Items: []
   references:
