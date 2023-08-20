@@ -4,6 +4,7 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Input;
 using YARG.Helpers.Extensions;
+using YARG.Menu.Data;
 using YARG.Menu.Navigation;
 
 namespace YARG.Menu.Persistent
@@ -84,7 +85,7 @@ namespace YARG.Menu.Persistent
                 }
 
                 // Skip actions without icons
-                if (!GlobalVariables.Instance.MenuIcons.HasIcon(entry.Action))
+                if (!MenuData.NavigationIcons.HasIcon(entry.Action))
                 {
                     continue;
                 }

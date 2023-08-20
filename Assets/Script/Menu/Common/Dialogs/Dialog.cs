@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using YARG.Helpers.Extensions;
+using YARG.Menu.Data;
 
 namespace YARG.Menu.Dialogs
 {
@@ -53,7 +54,7 @@ namespace YARG.Menu.Dialogs
         public virtual void ClearDialog()
         {
             Title.text = null;
-            Title.color = ColoredButton.BrightTextColor;
+            Title.color = MenuData.Colors.BrightText;
 
             ClearButtons();
         }

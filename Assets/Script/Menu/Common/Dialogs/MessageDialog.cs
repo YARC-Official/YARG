@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using YARG.Menu.Data;
 
 namespace YARG.Menu.Dialogs
 {
@@ -14,7 +15,7 @@ namespace YARG.Menu.Dialogs
             base.ClearDialog();
 
             Message.text = null;
-            Message.color = ColoredButton.BrightTextColor;
+            Message.color = MenuData.Colors.BrightText;
         }
     }
 }

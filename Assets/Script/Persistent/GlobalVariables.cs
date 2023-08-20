@@ -35,8 +35,6 @@ namespace YARG
 
         [field: SerializeField]
         public SettingsMenu SettingsMenu { get; private set; }
-        [field: SerializeField]
-        public MenuIconsObject MenuIcons { get; private set; }
 
         public SceneIndex CurrentScene { get; private set; } = SceneIndex.Persistent;
 

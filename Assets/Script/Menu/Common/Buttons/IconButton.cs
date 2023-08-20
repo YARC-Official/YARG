@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Menu.Data;
 
 namespace YARG.Menu
 {
@@ -42,7 +43,8 @@ namespace YARG.Menu
         /// </summary>
         public void SetBackgroundAndIconColor(Color background)
         {
-            SetBackgroundAndIconColor(background, ColoredButton.BrightTextColor, ColoredButton.DarkTextColor);
+            _background.color = background;
+            _icon.color = MenuData.Colors.GetBestTextColor(background);
         }
 
         /// <summary>
@@ -58,7 +60,7 @@ namespace YARG.Menu
         public void SetBackgroundAndIconColor(Color background, Color brightColor, Color darkColor)
         {
             _background.color = background;
-            _icon.color = ColoredButton.GetBestTextColor(background, brightColor, darkColor);
+            _icon.color = MenuColors.GetBestTextColor(background, brightColor, darkColor);
         }
 
         public void SetIconWithoutCopyOrColor(Image icon)

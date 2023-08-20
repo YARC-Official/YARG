@@ -3,6 +3,7 @@ using UnityEngine.Localization.Components;
 using UnityEngine.UI;
 using YARG.Core.Input;
 using YARG.Input;
+using YARG.Menu.Data;
 using YARG.Player;
 
 namespace YARG.Menu.Profiles
@@ -27,7 +28,7 @@ namespace YARG.Menu.Profiles
 
             _bindingNameText.StringReference = _binding.Name;
 
-            var icons = GlobalVariables.Instance.MenuIcons;
+            var icons = MenuData.NavigationIcons;
 
             if (editProfileMenu.SelectingMenuBinds && icons.HasIcon((MenuAction) binding.Action))
             {

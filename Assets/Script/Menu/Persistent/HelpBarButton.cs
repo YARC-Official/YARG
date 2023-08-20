@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Menu.Data;
 using YARG.Menu.Navigation;
 
 namespace YARG.Menu.Persistent
@@ -22,7 +23,7 @@ namespace YARG.Menu.Persistent
             _text.text = entry.DisplayName;
 
             // Set the icon
-            var icons = GlobalVariables.Instance.MenuIcons;
+            var icons = MenuData.NavigationIcons;
             _buttonImage.sprite = icons.GetIcon(entry.Action);
             _buttonImage.color = icons.GetColor(entry.Action);
         }

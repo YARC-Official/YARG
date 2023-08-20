@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Input;
 
-namespace YARG
+namespace YARG.Menu.Data
 {
-    [CreateAssetMenu(fileName = "MenuIcons", menuName = "YARG/Menu Icons", order = 1)]
-    public class MenuIconsObject : ScriptableObject
+    [CreateAssetMenu(fileName = "NavigationIcons", menuName = "YARG/Navigation Icons")]
+    public class NavigationIcons : ScriptableObject
     {
         [Serializable]
-        private struct MenuIcon
+        private struct NavigationIcon
         {
             public MenuAction Action;
             public Sprite Sprite;
@@ -17,9 +17,9 @@ namespace YARG
         }
 
         [SerializeField]
-        private List<MenuIcon> _menuIcons;
+        private List<NavigationIcon> _menuIcons;
 
-        private MenuIcon? GetIconByAction(MenuAction action)
+        private NavigationIcon? GetIconByAction(MenuAction action)
         {
             int index = _menuIcons.FindIndex(i => i.Action == action);
             return index == -1 ? null : _menuIcons[index];
