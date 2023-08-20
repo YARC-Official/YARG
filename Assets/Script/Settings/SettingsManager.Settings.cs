@@ -26,7 +26,6 @@ namespace YARG.Settings
 
             public ToggleSetting DisablePerSongBackgrounds { get; } = new(false);
 
-            public SliderSetting PressThreshold { get; } = new(0.75f, 0f, 1f);
             public SliderSetting ShowCursorTimer { get; } = new(2f, 0f, 5f);
 
             public ToggleSetting VSync { get; } = new(true, VSyncCallback);

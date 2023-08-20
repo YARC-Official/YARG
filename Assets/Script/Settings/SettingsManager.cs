@@ -57,11 +57,9 @@ namespace YARG.Settings
                 new ButtonRowMetadata("OpenCalibrator"),
                 "AudioCalibration",
                 new HeaderMetadata("Other"),
-                "ShowHitWindow",
                 "UseCymbalModelsInFiveLane",
                 "KickBounce",
                 "ShowCursorTimer",
-                "PressThreshold",
                 "AmIAwesome"
             },
             new(name: "Sound", icon: "Sound", showInPlayMode: true)
@@ -234,6 +232,7 @@ namespace YARG.Settings
                 "TrackFadeSize",
                 "TrackCurveFactor",
                 new HeaderMetadata("Other"),
+                "ShowHitWindow",
                 "DisableTextNotifications",
                 "LyricBackground"
             },

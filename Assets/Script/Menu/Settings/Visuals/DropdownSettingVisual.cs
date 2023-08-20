@@ -23,7 +23,7 @@ namespace YARG.Menu.Settings.Visuals
             _dropdown.options.Clear();
             foreach (var name in Setting.PossibleValues)
             {
-                _dropdown.options.Add(new(LocaleHelper.LocalizeString("Settings", $"{SettingName}.{name}")));
+                _dropdown.options.Add(new(LocaleHelper.LocalizeString("Settings", $"Dropdown.{Tab}.{SettingName}.{name}")));
             }
 
             // Select the right option

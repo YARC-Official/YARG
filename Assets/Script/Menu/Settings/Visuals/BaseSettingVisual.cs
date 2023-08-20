@@ -19,11 +19,14 @@ namespace YARG.Menu.Settings.Visuals
         private LocalizeStringEvent _settingLabel;
 
         public string SettingName { get; private set; }
+        public string Tab { get; private set; }
 
-        public void AssignSetting(string name)
+        public void AssignSetting(string tab, string name)
         {
+            Tab = tab;
             SettingName = name;
-            _settingLabel.StringReference = LocaleHelper.StringReference("Settings", name);
+
+            _settingLabel.StringReference = LocaleHelper.StringReference("Settings", $"Setting.{tab}.{name}");
 
             AssignSettingToVariable(name);
 

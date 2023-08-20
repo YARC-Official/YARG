@@ -35,6 +35,12 @@ namespace YARG.Menu.Settings
 
         [Space]
         [SerializeField]
+        private LocalizeStringEvent _settingName;
+        [SerializeField]
+        private LocalizeStringEvent _settingDescription;
+
+        [Space]
+        [SerializeField]
         private GameObject _buttonPrefab;
         [SerializeField]
         private GameObject _headerPrefab;
@@ -108,6 +114,8 @@ namespace YARG.Menu.Settings
             _headerTabs.RefreshTabs();
             _headerTabs.TabChanged += OnTabChanged;
 
+            _settingsNavGroup.SelectionChanged += OnSelectionChanged;
+
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
@@ -128,6 +136,17 @@ namespace YARG.Menu.Settings
         private void OnTabChanged(string tab)
         {
             CurrentTab = tab;
+        }
+
+        private void OnSelectionChanged(NavigatableBehaviour selected, SelectionOrigin selectionOrigin)
+        {
+            var settingNav = selected.GetComponent<BaseSettingNavigatable>();
+
+            _settingName.StringReference = LocaleHelper.StringReference(
+                "Settings", $"Setting.{CurrentTab}.{settingNav.SettingName}");
+
+            _settingDescription.StringReference = LocaleHelper.StringReference(
+                "Settings", $"Setting.{CurrentTab}.{settingNav.SettingName}.Description");
         }
 
         public void UpdateSettingsForTab()
@@ -174,7 +193,7 @@ namespace YARG.Menu.Settings
                     {
                         // Spawn the button
                         var go = Instantiate(_buttonPrefab, _settingsContainer);
-                        go.GetComponent<SettingsButton>().SetInfo(buttonRow.Buttons);
+                        go.GetComponent<SettingsButton>().SetInfo(tab.Name, buttonRow.Buttons);
                     }
                     else if (settingMetadata is FieldMetadata field)
                     {
@@ -187,7 +206,7 @@ namespace YARG.Menu.Settings
 
                         // Set the setting, and cache the object
                         var visual = go.GetComponent<BaseSettingVisual>();
-                        visual.AssignSetting(field.FieldName);
+                        visual.AssignSetting(tab.Name, field.FieldName);
                         _settingVisuals.Add(visual);
                         _settingsNavGroup.AddNavigatable(go);
                     }
@@ -198,7 +217,7 @@ namespace YARG.Menu.Settings
 
                         // Set the setting, and cache the object
                         var settingsDropdown = go.GetComponent<SettingsPresetDropdown>();
-                        settingsDropdown.SetInfo(dropdown);
+                        settingsDropdown.SetInfo(tab.Name, dropdown);
                         _settingDropdowns.Add(settingsDropdown);
                     }
                 }
@@ -241,7 +260,7 @@ namespace YARG.Menu.Settings
                 {
                     LoadingManager.Instance.QueueSongRefresh(false);
                     await LoadingManager.Instance.StartLoad();
-                }, "RefreshCache");
+                }, "Button.SongManager.RefreshCache");
             }
 
             // Spawn header
@@ -256,7 +275,7 @@ namespace YARG.Menu.Settings
 
                     // Refresh everything
                     UpdateSongFolderManager();
-                }, "AddFolder");
+                }, "Button.SongManager.AddFolder");
             }
 
             // Create all of the directories
@@ -377,6 +396,8 @@ namespace YARG.Menu.Settings
             Navigator.Instance.PopScheme();
             DestroyPreview();
             _headerTabs.TabChanged -= OnTabChanged;
+
+            _settingsNavGroup.SelectionChanged -= OnSelectionChanged;
 
             // Save on close
             SettingsManager.SaveSettings();

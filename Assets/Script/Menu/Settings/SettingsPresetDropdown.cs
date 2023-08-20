@@ -22,14 +22,14 @@ namespace YARG.Menu.Settings
 
         public IReadOnlyList<string> ModifiedSettings { get; private set; }
 
-        public void SetInfo(PresetDropdownMetadata metadata)
+        public void SetInfo(string tab, PresetDropdownMetadata metadata)
         {
             _presets = metadata.DefaultPresets;
             ModifiedSettings = metadata.ModifiedSettings;
 
             // Set dropdown name
             _dropdownName.StringReference =
-                LocaleHelper.StringReference("Settings", $"Dropdown.{metadata.DropdownName}");
+                LocaleHelper.StringReference("Settings", $"Presets.{tab}.{metadata.DropdownName}");
 
             // Set dropdown options
             _dropdown.options.Clear();

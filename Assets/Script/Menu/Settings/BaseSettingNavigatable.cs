@@ -13,6 +13,8 @@ namespace YARG.Menu.Settings
         private BaseSettingVisual _baseSettingVisual;
         private bool _focused;
 
+        public string SettingName => _baseSettingVisual.SettingName;
+
         protected override void Awake()
         {
             base.Awake();

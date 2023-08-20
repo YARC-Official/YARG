@@ -18,106 +18,6 @@ MonoBehaviour:
   m_Metadata:
     m_Items: []
   m_TableData:
-  - m_Id: 10570792762204160
-    m_Localized: Audio Calibration (ms)
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10637195569651712
-    m_Localized: Enable VSync
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10637227156955136
-    m_Localized: FPS Cap
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10637270228262912
-    m_Localized: Low Quality Mode
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10637304978071552
-    m_Localized: Disable Bloom
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10637330240364544
-    m_Localized: High FOV Camera
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10637368563720192
-    m_Localized: Show Hit Window
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10637402030071808
-    m_Localized: Use Cymbal Models In Five Lane
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10638637965631488
-    m_Localized: No Kicks
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10638647188905984
-    m_Localized: Anti-Ghosting
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10638707146481664
-    m_Localized: Master Music Volume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10638756366639104
-    m_Localized: Guitar Volume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10638786381078528
-    m_Localized: Rhythm Volume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10638787589038080
-    m_Localized: Bass Volume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10638788159463424
-    m_Localized: Keys Volume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10638788599865344
-    m_Localized: Drums Volume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10638841787834368
-    m_Localized: Vocals Volume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10638858523107328
-    m_Localized: Backing Track Volume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10638899434348544
-    m_Localized: Crowd Volume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10638910104657920
-    m_Localized: SFX Volume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10638924633726976
-    m_Localized: Vocal Monitoring Volume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10638943449374720
-    m_Localized: Mute On Miss
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10638955231174656
-    m_Localized: Use Starpower SFX
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10638965775654912
-    m_Localized: Chipmunk Speed
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10639285771689984
-    m_Localized: Awesomeness Detection
-    m_Metadata:
-      m_Items: []
   - m_Id: 10936636654608384
     m_Localized: General
     m_Metadata:
@@ -132,18 +32,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 10936772512309248
     m_Localized: Sound
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12039401434898432
-    m_Localized: Open Song Folder Manager
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12041203517612032
-    m_Localized: Export Songs List (For Ouvert Bot)
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12041263110283264
-    m_Localized: Copy Current Song Text File Path
     m_Metadata:
       m_Items: []
   - m_Id: 12472066134892544
@@ -170,30 +58,6 @@ MonoBehaviour:
     m_Localized: Camera
     m_Metadata:
       m_Items: []
-  - m_Id: 13037094139453440
-    m_Localized: Camera Rotation
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12836661710151680
-    m_Localized: Camera FOV
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12849290851770368
-    m_Localized: Camera Y Position
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12852418619760640
-    m_Localized: Camera Z Position
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13045026696585216
-    m_Localized: Add Folder
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13051785226084352
-    m_Localized: Scan Songs
-    m_Metadata:
-      m_Items: []
   - m_Id: 13084450683740160
     m_Localized: Song Folders
     m_Metadata:
@@ -202,150 +66,284 @@ MonoBehaviour:
     m_Localized: Song Upgrades
     m_Metadata:
       m_Items: []
-  - m_Id: 13085251397345280
-    m_Localized: Add Upgrade Folder
-    m_Metadata:
-      m_Items: []
   - m_Id: 13088551106633728
     m_Localized: Cache
-    m_Metadata:
-      m_Items: []
-  - m_Id: 15356265326043136
-    m_Localized: Reset Camera Settings
-    m_Metadata:
-      m_Items: []
-  - m_Id: 16296015277178880
-    m_Localized: Enable FPS Counter
-    m_Metadata:
-      m_Items: []
-  - m_Id: 19713037425598464
-    m_Localized: Copy Current Song Json File Path
-    m_Metadata:
-      m_Items: []
-  - m_Id: 17867012767817728
-    m_Localized: Preview Volume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 20387720246714368
-    m_Localized: Music Player Volume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 21043134349041664
-    m_Localized: Open Backgrounds/Venue Folder
     m_Metadata:
       m_Items: []
   - m_Id: 21443095007977472
     m_Localized: Venues/Backgrounds
     m_Metadata:
       m_Items: []
-  - m_Id: 21443167489744896
-    m_Localized: Disable Per Song Backgrounds
-    m_Metadata:
-      m_Items: []
-  - m_Id: 21446097060093952
-    m_Localized: Disable Text Notifications
-    m_Metadata:
-      m_Items: []
   - m_Id: 22854215132372992
     m_Localized: Calibration
-    m_Metadata:
-      m_Items: []
-  - m_Id: 22854246069559296
-    m_Localized: Open Calibrator
-    m_Metadata:
-      m_Items: []
-  - m_Id: 23598515176726528
-    m_Localized: Camera Presets
     m_Metadata:
       m_Items: []
   - m_Id: 25027136172974080
     m_Localized: Input
     m_Metadata:
       m_Items: []
-  - m_Id: 25027162441900032
-    m_Localized: Microphone Sensitivity (Db)
+  - m_Id: 53693768659230720
+    m_Localized: Copy Current Song Json File Path
     m_Metadata:
       m_Items: []
-  - m_Id: 25071377905475584
-    m_Localized: Fullscreen Mode
+  - m_Id: 53693768667619328
+    m_Localized: Copy Current Song Text File Path
     m_Metadata:
       m_Items: []
-  - m_Id: 25071429197619200
-    m_Localized: Resolution
+  - m_Id: 53693768667619329
+    m_Localized: Export Songs List (For Ouvert Bot)
     m_Metadata:
       m_Items: []
-  - m_Id: 25071457018437632
+  - m_Id: 53693768667619330
+    m_Localized: Open Calibrator
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619331
+    m_Localized: Open Song Folder Manager
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619332
+    m_Localized: Open Backgrounds/Venue Folder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619333
     m_Localized: Fullscreen
     m_Metadata:
       m_Items: []
-  - m_Id: 25071572395352064
+  - m_Id: 53693768667619334
     m_Localized: Borderless Fullscreen
     m_Metadata:
       m_Items: []
-  - m_Id: 25071721024708608
+  - m_Id: 53693768667619335
     m_Localized: Maximized Window
     m_Metadata:
       m_Items: []
-  - m_Id: 25071794185953280
+  - m_Id: 53693768667619336
     m_Localized: Windowed
     m_Metadata:
       m_Items: []
-  - m_Id: 25775451793645568
-    m_Localized: Fade Position
+  - m_Id: 53693768667619337
+    m_Localized: None
     m_Metadata:
       m_Items: []
-  - m_Id: 25775459376947200
-    m_Localized: Fade Size
+  - m_Id: 53693768667619338
+    m_Localized: Normal
     m_Metadata:
       m_Items: []
-  - m_Id: 26591864540614656
+  - m_Id: 53693768667619339
+    m_Localized: Transparent
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619340
+    m_Localized: Camera Presets
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619341
+    m_Localized: Anti-Ghosting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619343
+    m_Localized: Infinite Front End
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619344
+    m_Localized: No Kicks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619345
+    m_Localized: Awesomeness Detection
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619346
+    m_Localized: Are you awesome?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619347
+    m_Localized: Audio Calibration (ms)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619348
+    m_Localized: Audio calibration in milliseconds. Use the calibrator to automatically
+      calibrate.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619349
+    m_Localized: Disable Per Song Backgrounds
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619350
     m_Localized: Drum Kick Bounce
     m_Metadata:
       m_Items: []
-  - m_Id: 31231598726078464
+  - m_Id: 53693768667619351
     m_Localized: 'Cursor Show Time
 
       (0 = Always Show)'
     m_Metadata:
       m_Items: []
-  - m_Id: 31586592042115072
-    m_Localized: Input Press Threshold
+  - m_Id: 53693768667619352
+    m_Localized: Use Cymbal Models In Five Lane
     m_Metadata:
       m_Items: []
-  - m_Id: 32040511641870336
-    m_Localized: Normal
+  - m_Id: 53693768667619353
+    m_Localized: Disable Bloom
     m_Metadata:
       m_Items: []
-  - m_Id: 32040561948352512
-    m_Localized: Transparent
+  - m_Id: 53693768667619354
+    m_Localized: Disable Text Notifications
     m_Metadata:
       m_Items: []
-  - m_Id: 32040568017510400
-    m_Localized: None
+  - m_Id: 53693768667619355
+    m_Localized: FPS Cap
     m_Metadata:
       m_Items: []
-  - m_Id: 32040983111000064
+  - m_Id: 53693768667619356
+    m_Localized: Enable FPS Counter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619357
+    m_Localized: Fullscreen Mode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619358
+    m_Localized: Low Quality Mode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619359
     m_Localized: Lyric Background
     m_Metadata:
       m_Items: []
-  - m_Id: 36054625388216320
+  - m_Id: 53693768667619360
+    m_Localized: Resolution
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619361
+    m_Localized: Show Hit Window
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619362
+    m_Localized: Camera FOV
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619363
+    m_Localized: Camera Rotation
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619364
+    m_Localized: Camera Y Position
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619365
+    m_Localized: Camera Z Position
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619366
+    m_Localized: Curve Factor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619367
+    m_Localized: Fade Position
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619368
+    m_Localized: Fade Size
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619369
+    m_Localized: Enable VSync
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619372
+    m_Localized: Bass Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619373
+    m_Localized: Ajusts the song's bass guitar track volume. Only does something
+      if the song is multi-track.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619374
+    m_Localized: Crowd Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619375
+    m_Localized: Drums Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619376
+    m_Localized: Guitar Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619377
+    m_Localized: Keys Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619378
+    m_Localized: Master Music Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619379
+    m_Localized: Microphone Sensitivity (Db)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619380
+    m_Localized: Music Player Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619381
+    m_Localized: Mute On Miss
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619382
+    m_Localized: Preview Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619383
+    m_Localized: Rhythm Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619384
+    m_Localized: SFX Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619385
+    m_Localized: Backing Track Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619386
+    m_Localized: Chipmunk Speed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619387
+    m_Localized: Use Starpower SFX
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619388
     m_Localized: Use Whammy FX
     m_Metadata:
       m_Items: []
-  - m_Id: 36056030748491776
+  - m_Id: 53693768667619389
+    m_Localized: Vocal Monitoring Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619390
+    m_Localized: Vocals Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619391
     m_Localized: Whammy Oversample Factor
     m_Metadata:
       m_Items: []
-  - m_Id: 36111086550138880
+  - m_Id: 53693768667619392
     m_Localized: Whammy Pitch Shift Amount (semitones)
     m_Metadata:
       m_Items: []
-  - m_Id: 49647502809153536
-    m_Localized: Infinite Front End
+  - m_Id: 53694051170770944
+    m_Localized: Add Folder
     m_Metadata:
       m_Items: []
-  - m_Id: 51442059882913792
-    m_Localized: Curve Factor
+  - m_Id: 53694051174965248
+    m_Localized: Scan Songs
     m_Metadata:
       m_Items: []
   references:
