@@ -25,10 +25,7 @@ namespace YARG.Menu.Settings.Visuals
         {
             return new NavigationScheme(new()
             {
-                new NavigationScheme.Entry(MenuAction.Green, "Toggle", () =>
-                {
-                    _toggle.isOn = !_toggle.isOn;
-                }),
+                NavigateFinish,
                 new NavigationScheme.Entry(MenuAction.Down, "On", () =>
                 {
                     _toggle.isOn = true;
@@ -36,8 +33,7 @@ namespace YARG.Menu.Settings.Visuals
                 new NavigationScheme.Entry(MenuAction.Up, "Off", () =>
                 {
                     _toggle.isOn = false;
-                }),
-                NavigateFinish
+                })
             }, true);
         }
 

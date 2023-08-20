@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 using YARG.Menu.Navigation;
 using YARG.Menu.Settings.Visuals;
 
@@ -6,6 +7,9 @@ namespace YARG.Menu.Settings
 {
     public class BaseSettingNavigatable : NavigatableBehaviour
     {
+        [SerializeField]
+        private GameObject _activeBackground;
+
         private BaseSettingVisual _baseSettingVisual;
         private bool _focused;
 
@@ -22,10 +26,13 @@ namespace YARG.Menu.Settings
             scheme.PopCallback = () =>
             {
                 _focused = false;
+                _activeBackground.SetActive(false);
             };
 
             Navigator.Instance.PushScheme(scheme);
+
             _focused = true;
+            _activeBackground.SetActive(true);
         }
 
         private void OnDisable()

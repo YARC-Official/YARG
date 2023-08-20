@@ -1,4 +1,5 @@
 using UnityEngine;
+using YARG.Core.Input;
 using YARG.Menu.Navigation;
 using YARG.Settings.Types;
 
@@ -31,7 +32,21 @@ namespace YARG.Menu.Settings.Visuals
         {
             return new NavigationScheme(new()
             {
-                NavigateFinish
+                NavigateFinish,
+                new NavigationScheme.Entry(MenuAction.Up, "Increase", () =>
+                {
+                    var range = Setting.Max - Setting.Min;
+                    Setting.Data += range / 30f;
+
+                    RefreshVisual();
+                }),
+                new NavigationScheme.Entry(MenuAction.Down, "Decrease", () =>
+                {
+                    var range = Setting.Max - Setting.Min;
+                    Setting.Data -= range / 30f;
+
+                    RefreshVisual();
+                })
             }, true);
         }
 

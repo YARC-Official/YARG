@@ -1,6 +1,7 @@
 using System.Globalization;
 using TMPro;
 using UnityEngine;
+using YARG.Core.Input;
 using YARG.Menu.Navigation;
 using YARG.Settings.Types;
 
@@ -25,7 +26,17 @@ namespace YARG.Menu.Settings.Visuals
         {
             return new NavigationScheme(new()
             {
-                NavigateFinish
+                NavigateFinish,
+                new NavigationScheme.Entry(MenuAction.Up, "Increase", () =>
+                {
+                    Setting.Data++;
+                    RefreshVisual();
+                }),
+                new NavigationScheme.Entry(MenuAction.Down, "Decrease", () =>
+                {
+                    Setting.Data--;
+                    RefreshVisual();
+                })
             }, true);
         }
 
