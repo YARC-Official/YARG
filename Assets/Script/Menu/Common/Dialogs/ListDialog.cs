@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 using YARG.Helpers.Extensions;
 
 namespace YARG.Menu.Dialogs
@@ -8,6 +9,18 @@ namespace YARG.Menu.Dialogs
         [Space]
         [SerializeField]
         private Transform _listContainer;
+        [SerializeField]
+        private ColoredButton _listButtonPrefab;
+
+        public ColoredButton AddListButton(string text, UnityAction handler)
+        {
+            var button = AddListEntry(_listButtonPrefab);
+
+            button.Text.text = text;
+            button.OnClick.AddListener(handler);
+
+            return button;
+        }
 
         public T AddListEntry<T>(T prefab)
             where T : Object
@@ -18,6 +31,13 @@ namespace YARG.Menu.Dialogs
         public void ClearList()
         {
             _listContainer.DestroyChildren();
+        }
+
+        public override void ClearDialog()
+        {
+            base.ClearDialog();
+
+            ClearList();
         }
     }
 }

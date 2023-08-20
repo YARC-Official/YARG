@@ -8,15 +8,18 @@ namespace YARG.Menu.Dialogs
     public abstract class Dialog : MonoBehaviour
     {
         [SerializeField]
-        private TextMeshProUGUI _title;
-
-        [Space]
-        [SerializeField]
         private Transform _dialogButtonContainer;
         [SerializeField]
         private ColoredButton _dialogButtonPrefab;
 
-        public TextMeshProUGUI Title => _title;
+        [field: Space]
+        [field: SerializeField]
+        public TextMeshProUGUI Title { get; private set; }
+
+        protected void Initialize(string title)
+        {
+            Title.text = title;
+        }
 
         public ColoredButton AddDialogButton(string text, UnityAction action)
         {
@@ -47,9 +50,22 @@ namespace YARG.Menu.Dialogs
             return button;
         }
 
+        public virtual void ClearDialog()
+        {
+            Title.text = null;
+            Title.color = ColoredButton.BrightTextColor;
+
+            ClearButtons();
+        }
+
         public void ClearButtons()
         {
             _dialogButtonContainer.DestroyChildren();
+        }
+
+        public void Close()
+        {
+            gameObject.SetActive(false);
         }
     }
 }

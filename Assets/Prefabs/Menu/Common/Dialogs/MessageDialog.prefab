@@ -211,6 +211,41 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6933285833458149409, guid: 5c1aa998cb33a0f4dbd8e30a9620a283,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933285833458149409, guid: 5c1aa998cb33a0f4dbd8e30a9620a283,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933285833458149409, guid: 5c1aa998cb33a0f4dbd8e30a9620a283,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 5569820376419873017}
+    - target: {fileID: 6933285833458149409, guid: 5c1aa998cb33a0f4dbd8e30a9620a283,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933285833458149409, guid: 5c1aa998cb33a0f4dbd8e30a9620a283,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: Close
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933285833458149409, guid: 5c1aa998cb33a0f4dbd8e30a9620a283,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: YARG.Menu.Dialogs.Dialog, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933285833458149409, guid: 5c1aa998cb33a0f4dbd8e30a9620a283,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5c1aa998cb33a0f4dbd8e30a9620a283, type: 3}
 --- !u!224 &912002927761227443 stripped
@@ -237,11 +272,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1546476c3ea1d9a48ad7f13aa3c57d40, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _title: {fileID: 5322543842657492242}
   _dialogButtonContainer: {fileID: 912002927761227443}
   _dialogButtonPrefab: {fileID: 7647390644060677083, guid: 23b94837fb849574ebf1ad7d180706e3,
     type: 3}
-  _message: {fileID: 8264858998966735158}
+  <Title>k__BackingField: {fileID: 5322543842657492242}
+  <Message>k__BackingField: {fileID: 8264858998966735158}
 --- !u!114 &5322543842657492242 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4919672518943997676, guid: 5c1aa998cb33a0f4dbd8e30a9620a283,
