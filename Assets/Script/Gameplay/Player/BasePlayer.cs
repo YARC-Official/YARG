@@ -418,22 +418,23 @@ namespace YARG.Gameplay.Player
 
         protected void OnGameInput(ref GameInput input)
         {
-            if (GameManager.Paused)
-            {
-                return;
-            }
-
-            if (InterceptInput(ref input))
-            {
-                return;
-            }
+            // Ignore while paused
+            if (GameManager.Paused) return;
 
             double adjustedTime = GameManager.GetRelativeInputTime(input.Time);
             input = new(adjustedTime, input.Action, input.Integer);
-            Engine.QueueInput(input);
-            AddReplayInput(input);
+
+            // Allow the input to be explicitly ignored before processing it
+            if (InterceptInput(ref input)) return;
+            OnInputProcessed(ref input);
         }
 
         protected abstract bool InterceptInput(ref GameInput input);
+
+        protected virtual void OnInputProcessed(ref GameInput input)
+        {
+            Engine.QueueInput(input);
+            AddReplayInput(input);
+        }
     }
 }
