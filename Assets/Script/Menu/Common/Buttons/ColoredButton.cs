@@ -61,7 +61,17 @@ namespace YARG.Menu
         }
 
         /// <summary>
-        /// Determines the best text color to use with the given background color.
+        /// Determines the best text color to use with the given background color,
+        /// using default bright/dark text colors.
+        /// </summary>
+        public static Color GetBestTextColor(Color background)
+        {
+            return GetBestTextColor(background, BrightTextColor, DarkTextColor);
+        }
+
+        /// <summary>
+        /// Determines the best text color to use with the given background color,
+        /// using the given bright/dark text colors.
         /// </summary>
         /// <param name="brightColor">
         /// The color to use to make the text bright on dark backgrounds.

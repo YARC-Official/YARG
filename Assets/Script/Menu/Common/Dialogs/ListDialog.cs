@@ -15,7 +15,7 @@ namespace YARG.Menu.Dialogs
             return Instantiate(prefab, _listContainer.transform);
         }
 
-        public void Clear()
+        public void ClearList()
         {
             _listContainer.DestroyChildren();
         }
