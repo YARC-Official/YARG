@@ -294,7 +294,7 @@ namespace YARG.Menu.Settings
             // Size raw image
             _previewRawImage.texture = CameraPreviewTexture.PreviewTexture;
             _previewRawImage.color = Color.white;
-            var rect = _previewRawImage.rectTransform.ToViewportSpaceCentered(v: false, scale: 0.7f);
+            var rect = _previewRawImage.rectTransform.ToViewportSpaceCentered(v: false, scale: 0.9f);
             rect.y = 0f;
             _previewRawImage.uvRect = rect;
         }
