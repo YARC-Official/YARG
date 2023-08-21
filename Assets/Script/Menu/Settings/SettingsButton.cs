@@ -40,7 +40,7 @@ namespace YARG.Menu.Settings
             _buttonTemplate.GetComponentInChildren<LocalizeStringEvent>().StringReference =
                 LocaleHelper.StringReference("Settings", localizationKey);
 
-            _buttonTemplate.GetComponent<Button>().onClick.AddListener(() => action?.Invoke());
+            _buttonTemplate.GetComponentInChildren<Button>().onClick.AddListener(() => action?.Invoke());
         }
     }
 }
