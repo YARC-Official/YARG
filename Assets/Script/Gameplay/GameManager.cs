@@ -336,6 +336,9 @@ namespace YARG.Gameplay
 
         private async UniTask LoadAudio()
         {
+            bool isYargSong = Song.Source.Str.ToLowerInvariant() == "yarg";
+            GlobalVariables.AudioManager.Options.UseMinimumStemVolume = isYargSong;
+
             await UniTask.RunOnThreadPool(() =>
             {
                 try

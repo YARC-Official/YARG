@@ -7,9 +7,13 @@ namespace YARG.Audio
         public const int WHAMMY_FFT_DEFAULT = 2048;
         public const int WHAMMY_OVERSAMPLE_DEFAULT = 8;
 
+        public const double MINIMUM_STEM_VOLUME = 0.15;
+
         public bool UseStarpowerFx { get; set; }
         public bool UseWhammyFx { get; set; }
         public bool IsChipmunkSpeedup { get; set; }
+
+        public bool UseMinimumStemVolume { get; set; }
 
         /// <summary>
         /// The number of semitones to bend the pitch by. Must be at least 1;
