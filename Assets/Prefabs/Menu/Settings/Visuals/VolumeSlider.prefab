@@ -135,12 +135,12 @@ PrefabInstance:
     - target: {fileID: 6220864095491448155, guid: e6294c1f11109454c8de55ca2da3b0b3,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: -150
+      value: -175
       objectReference: {fileID: 0}
     - target: {fileID: 6220864095491448155, guid: e6294c1f11109454c8de55ca2da3b0b3,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -50
+      value: -62.5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e6294c1f11109454c8de55ca2da3b0b3, type: 3}
