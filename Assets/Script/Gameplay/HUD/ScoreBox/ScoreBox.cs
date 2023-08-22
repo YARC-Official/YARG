@@ -1,6 +1,7 @@
 using System;
 using TMPro;
 using UnityEngine;
+using YARG.Menu;
 
 namespace YARG.Gameplay.HUD
 {
@@ -9,27 +10,19 @@ namespace YARG.Gameplay.HUD
         private const string SCORE_PREFIX = "<mspace=0.538em>";
 
         [SerializeField]
-        private TextMeshProUGUI scoreText;
-
+        private TextMeshProUGUI _scoreText;
         [SerializeField]
-        private TextMeshProUGUI songProgressBar;
-
+        private ProgressBarFadedEdge _songProgressBar;
+        [SerializeField]
         private StarDisplay _starDisplay;
 
         private int _bandScore;
 
-        protected override void GameplayAwake()
-        {
-            _starDisplay = GetComponentInChildren<StarDisplay>();
-        }
-
-        // Start is called before the first frame update
         private void Start()
         {
-            scoreText.text = SCORE_PREFIX + "0";
+            _scoreText.text = SCORE_PREFIX + "0";
         }
 
-        // Update is called once per frame
         private void Update()
         {
             if (GameManager.Paused)
@@ -40,10 +33,12 @@ namespace YARG.Gameplay.HUD
             if (GameManager.BandScore != _bandScore)
             {
                 _bandScore = GameManager.BandScore;
-                scoreText.text = SCORE_PREFIX + _bandScore.ToString("N0");
+                _scoreText.text = SCORE_PREFIX + _bandScore.ToString("N0");
 
                 UpdateStars();
             }
+
+            _songProgressBar.SetProgress((float) (GameManager.SongTime / GameManager.SongLength));
         }
 
         private void UpdateStars()

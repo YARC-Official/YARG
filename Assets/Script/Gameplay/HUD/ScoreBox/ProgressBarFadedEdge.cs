@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace YARG.Menu
+namespace YARG.Gameplay.HUD
 {
     [ExecuteInEditMode]
     public class ProgressBarFadedEdge : MonoBehaviour
