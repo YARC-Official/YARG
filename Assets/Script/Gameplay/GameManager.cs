@@ -154,7 +154,9 @@ namespace YARG.Gameplay
 
             // Load song
             if (IsReplay)
+            {
                 LoadingManager.Instance.Queue(LoadReplay, "Loading replay...");
+            }
             LoadingManager.Instance.Queue(LoadChart, "Loading chart...");
             LoadingManager.Instance.Queue(LoadAudio, "Loading audio...");
             await LoadingManager.Instance.StartLoad();

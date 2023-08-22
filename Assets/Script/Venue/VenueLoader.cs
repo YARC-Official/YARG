@@ -70,10 +70,10 @@ namespace YARG.Venue
 
             foreach (var name in fileNames)
             {
-                var file_base = Path.Combine(directory, name);
+                var fileBase = Path.Combine(directory, name);
                 foreach (var ext in videoExtensions)
                 {
-                    var path = file_base + ext;
+                    var path = fileBase + ext;
                     if (File.Exists(path))
                     {
                         return new(VenueType.Video, path);
@@ -88,10 +88,10 @@ namespace YARG.Venue
 
             foreach (var name in fileNames)
             {
-                var file_base = Path.Combine(directory, name);
+                var fileBase = Path.Combine(directory, name);
                 foreach (var ext in imageExtensions)
                 {
-                    var path = file_base + ext;
+                    var path = fileBase + ext;
 
                     if (File.Exists(path))
                     {
@@ -106,13 +106,13 @@ namespace YARG.Venue
 
         private static TypePathPair? GetVenuePathFromGlobal()
         {
-            string[] VALID_EXTENSIONS =
+            string[] validExtensions =
             {
                 "*.yarground", "*.mp4", "*.mov", "*.webm", "*.png", "*.jpg", "*.jpeg"
             };
 
             List<string> filePaths = new();
-            foreach (string ext in VALID_EXTENSIONS)
+            foreach (string ext in validExtensions)
             {
                 foreach (var file in Directory.EnumerateFiles(VenueFolder, ext, PathHelper.SafeSearchOptions))
                 {
