@@ -1,10 +1,16 @@
 ﻿using UnityEngine;
+using UnityEngine.Video;
 using YARG.Venue;
 
 namespace YARG.Gameplay
 {
     public class BackgroundManager : GameplayBehaviour
     {
+        [SerializeField]
+        private VideoPlayer _videoPlayer;
+
+        private bool _videoStarted;
+
         private void Start()
         {
             LoadBackground();
@@ -51,14 +57,24 @@ namespace YARG.Gameplay
                     bgInstance.GetComponent<BundleBackgroundManager>().Bundle = bundle;
                     break;
                 case VenueType.Video:
-                    // GameUI.Instance.videoPlayer.url = path;
-                    // GameUI.Instance.videoPlayer.enabled = true;
-                    // GameUI.Instance.videoPlayer.Prepare();
+                    _videoPlayer.url = path;
+                    _videoPlayer.enabled = true;
+                    _videoPlayer.Prepare();
                     break;
                 case VenueType.Image:
                     // var png = ImageHelper.LoadTextureFromFile(path);
                     // GameUI.Instance.background.texture = png;
                     break;
+            }
+        }
+
+        private void Update()
+        {
+            // Start playing the video at 0 seconds
+            if (!_videoStarted && GameManager.SongTime >= 0.0)
+            {
+                _videoStarted = true;
+                _videoPlayer.Play();
             }
         }
     }
