@@ -72,19 +72,15 @@ namespace YARG.Replays
             }
         }
 
-        public static ReplayReadResult LoadReplayFile(ReplayEntry entry, out Replay replay)
+        public static ReplayReadResult LoadReplayFile(ReplayEntry entry, out ReplayFile replayFile)
         {
-            return ReplayIO.ReadReplay(Path.Combine(ReplayDirectory, entry.ReplayFile), out replay);
+            return ReplayIO.ReadReplay(Path.Combine(ReplayDirectory, entry.ReplayFile), out replayFile);
         }
 
         public static Replay CreateNewReplay(SongMetadata song, IList<BasePlayer> players)
         {
             var replay = new Replay
             {
-                Header = new ReplayHeader
-                {
-                    GameVersion = GlobalVariables.CurrentVersion.VersionBits,
-                },
                 SongName = song.Name,
                 ArtistName = song.Artist,
                 CharterName = song.Charter,
@@ -107,6 +103,28 @@ namespace YARG.Replays
             replay.BandScore = bandScore;
 
             return replay;
+        }
+
+        public static ReplayEntry CreateEntryFromReplayFile(ReplayFile replayFile)
+        {
+            var replay = replayFile.Replay;
+
+            var entry = new ReplayEntry
+            {
+                SongName = replay.SongName,
+                ArtistName = replay.ArtistName,
+                CharterName = replay.CharterName,
+                BandScore = replay.BandScore,
+                Date = replay.Date,
+                SongChecksum = replay.SongChecksum,
+                PlayerCount = replay.PlayerCount,
+                PlayerNames = replay.PlayerNames,
+                EngineVersion = replayFile.Header.EngineVersion
+            };
+
+            entry.ReplayFile = entry.GetReplayName();
+
+            return entry;
         }
 
         public static void LoadReplayCache()
@@ -159,7 +177,7 @@ namespace YARG.Replays
                         replay.PlayerNames[i] = reader.ReadString();
                     }
 
-                    replay.GameVersion = reader.ReadInt32();
+                    replay.EngineVersion = reader.ReadInt32();
                     replay.ReplayFile = reader.ReadString();
 
                     if (File.Exists(Path.Combine(ReplayDirectory, replay.ReplayFile)))
@@ -167,7 +185,8 @@ namespace YARG.Replays
                         AddReplay(replay);
                     }
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 _replays.Clear();
                 _replayFileMap.Clear();
@@ -195,7 +214,7 @@ namespace YARG.Replays
                     writer.Write(entry.PlayerNames[i]);
                 }
 
-                writer.Write(entry.GameVersion);
+                writer.Write(entry.EngineVersion);
                 writer.Write(entry.ReplayFile);
             }
         }
@@ -210,26 +229,15 @@ namespace YARG.Replays
                     continue;
                 }
 
-                var result = ReplayIO.ReadReplay(file.FullName, out var replay);
+                var result = ReplayIO.ReadReplay(file.FullName, out var replayFile);
 
                 if (result != ReplayReadResult.Valid)
                 {
                     continue;
                 }
 
-                var entry = new ReplayEntry
-                {
-                    SongName = replay.SongName,
-                    ArtistName = replay.ArtistName,
-                    CharterName = replay.CharterName,
-                    BandScore = replay.BandScore,
-                    Date = replay.Date,
-                    SongChecksum = replay.SongChecksum,
-                    PlayerCount = replay.PlayerCount,
-                    PlayerNames = replay.PlayerNames,
-                    GameVersion = replay.Header.GameVersion,
-                    ReplayFile = file.Name,
-                };
+                var entry = CreateEntryFromReplayFile(replayFile);
+                entry.ReplayFile = file.Name;
 
                 AddReplay(entry);
             }
@@ -245,7 +253,8 @@ namespace YARG.Replays
                 return;
             }
 
-            var result = ReplayIO.ReadReplay(e.FullPath, out var replay);
+            var result = ReplayIO.ReadReplay(e.FullPath, out var replayFile);
+            var replay = replayFile.Replay;
 
             switch (result)
             {
@@ -275,7 +284,7 @@ namespace YARG.Replays
                 SongChecksum = replay.SongChecksum,
                 PlayerCount = replay.PlayerCount,
                 PlayerNames = replay.PlayerNames,
-                GameVersion = replay.Header.GameVersion,
+                EngineVersion = replayFile.Header.EngineVersion,
                 ReplayFile = e.Name,
             };
 
@@ -297,11 +306,13 @@ namespace YARG.Replays
         {
             ReplayFrame frame = null;
             playerScore = 0;
-            switch (player.Player.Profile.Instrument.ToGameMode())
+
+            var gameMode = player.Player.Profile.Instrument.ToGameMode();
+            switch (gameMode)
             {
                 case GameMode.FiveFretGuitar:
                     var fivePlayer = (FiveFretPlayer) player;
-                    var fiveFrame = new ReplayFrame<GuitarStats>
+                    var fiveFrame = new ReplayFrame
                     {
                         Stats = new GuitarStats(fivePlayer.Engine.EngineStats),
                     };
@@ -317,11 +328,12 @@ namespace YARG.Replays
                     break;
                 case GameMode.ProGuitar:
                     break;
+                case GameMode.ProKeys:
+                    break;
                 case GameMode.Vocals:
                     break;
                 default:
-                    frame = new ReplayFrame<GuitarStats>();
-                    break;
+                    throw new ArgumentOutOfRangeException(nameof(gameMode), "Invalid Instrument GameMode");
             }
 
             frame!.PlayerId = id;

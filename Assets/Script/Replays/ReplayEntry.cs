@@ -19,7 +19,7 @@ namespace YARG.Replays
         public int         PlayerCount;
         public string[]    PlayerNames;
 
-        public int GameVersion;
+        public int EngineVersion;
 
         public string ReplayFile;
 

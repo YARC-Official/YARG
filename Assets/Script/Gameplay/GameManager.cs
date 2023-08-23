@@ -254,12 +254,12 @@ namespace YARG.Gameplay
 
         private async UniTask LoadReplay()
         {
-            Replay replay = null;
+            ReplayFile replayFile = null;
             ReplayReadResult result;
             try
             {
                 result = await UniTask.RunOnThreadPool(() => ReplayContainer.LoadReplayFile(
-                GlobalVariables.Instance.CurrentReplay, out replay));
+                GlobalVariables.Instance.CurrentReplay, out replayFile));
             }
             catch (Exception ex)
             {
@@ -277,7 +277,7 @@ namespace YARG.Gameplay
                 return;
             }
 
-            Replay = replay;
+            Replay = replayFile.Replay;
 
             var players = new List<YargPlayer>();
             foreach (var frame in Replay.Frames)
@@ -479,18 +479,7 @@ namespace YARG.Gameplay
             if (!IsReplay)
             {
                 var replay = ReplayContainer.CreateNewReplay(Song, _players);
-                var entry = new ReplayEntry
-                {
-                    SongName = replay.SongName,
-                    ArtistName = replay.ArtistName,
-                    CharterName = replay.CharterName,
-                    BandScore = replay.BandScore,
-                    Date = replay.Date,
-                    SongChecksum = replay.SongChecksum,
-                    PlayerCount = replay.PlayerCount,
-                    PlayerNames = replay.PlayerNames,
-                    GameVersion = replay.Header.GameVersion,
-                };
+                var entry = ReplayContainer.CreateEntryFromReplayFile(new ReplayFile(replay));
 
                 entry.ReplayFile = entry.GetReplayName();
 
