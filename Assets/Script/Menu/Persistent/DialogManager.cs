@@ -14,6 +14,8 @@ namespace YARG.Menu.Persistent
         [SerializeField]
         private MessageDialog _messagePrefab;
         [SerializeField]
+        private OneTimeMessageDialog _oneTimeMessagePrefab;
+        [SerializeField]
         private ListDialog _listPrefab;
 
         private Dialog _currentDialog;
@@ -21,6 +23,7 @@ namespace YARG.Menu.Persistent
         public bool IsDialogShowing => _currentDialog != null;
 
         // <inheritdoc> doesn't respect type parameters correctly
+
         /// <summary>
         /// Displays and returns a message dialog.
         /// </summary>
@@ -31,6 +34,23 @@ namespace YARG.Menu.Persistent
 
             dialog.Title.text = title;
             dialog.Message.text = message;
+
+            return dialog;
+        }
+
+        /// <summary>
+        /// Displays and returns a one time message dialog. If the "dont show again" toggle is checked,
+        /// <paramref name="dontShowAgainAction"/> will be invoked.
+        /// </summary>
+        /// <inheritdoc cref="ShowDialog{MessageDialog}(MessageDialog)"/>
+        public OneTimeMessageDialog ShowOneTimeMessage(string title, string message, Action dontShowAgainAction)
+        {
+            var dialog = ShowDialog(_oneTimeMessagePrefab);
+
+            dialog.Title.text = title;
+            dialog.Message.text = message;
+
+            dialog.DontShowAgainAction = dontShowAgainAction;
 
             return dialog;
         }
@@ -79,9 +99,9 @@ namespace YARG.Menu.Persistent
         /// </remarks>
         public void ClearDialog()
         {
-            if (_currentDialog == null)
-                return;
+            if (_currentDialog == null) return;
 
+            _currentDialog.Close();
             Destroy(_currentDialog.gameObject);
             _currentDialog = null;
         }

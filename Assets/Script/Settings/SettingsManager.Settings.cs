@@ -18,9 +18,8 @@ namespace YARG.Settings
         {
             public static bool IsLoading = true;
 
-#pragma warning disable format
-
             public List<string> SongFolders = new();
+            public bool ShowAntiPiracyDialog = true;
 
             public IntSetting AudioCalibration { get; } = new(120);
 
@@ -95,8 +94,6 @@ namespace YARG.Settings
             }, "Normal");
 
             public ToggleSetting AmIAwesome { get; } = new(false);
-
-#pragma warning restore format
 
             public void OpenSongFolderManager()
             {

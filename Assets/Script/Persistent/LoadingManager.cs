@@ -57,11 +57,6 @@ namespace YARG
             }
 
             gameObject.SetActive(false);
-
-#if UNITY_EDITOR
-            // Test Play stuff
-            // StartTestPlayMode();
-#endif
         }
 
         public void Queue(Func<UniTask> func, string title = "Loading...", string sub = null)

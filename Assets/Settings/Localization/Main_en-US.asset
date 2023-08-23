@@ -66,6 +66,22 @@ MonoBehaviour:
     m_Localized: Menu
     m_Metadata:
       m_Items: []
+  - m_Id: 54807782156001280
+    m_Localized: YARG Anti-Piracy Statement
+    m_Metadata:
+      m_Items: []
+  - m_Id: 54807782185361408
+    m_Localized: "<b>YARG stands firmly against all forms of piracy.</b> We neither
+      support nor endorse piracy, as it is a violation of copyright law with serious
+      legal consequences. Our platform's importable content\u2014designed for creators
+      to share their work and for educational purposes\u2014does not justify or excuse
+      piracy.\n\nYARG itself <b>does not</b> use any ripped/pirated assets or music
+      and never will. By using YARG, users agree not to promote or endorse piracy
+      in any way through our platform. Upholding these principles ensures a community
+      that respects copyright, creativity, and legal standards.\n\nYARG stands for
+      \"Yet Another Rhythm Game\" and NOT for pirates."
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

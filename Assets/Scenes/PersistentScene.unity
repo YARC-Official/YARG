@@ -221,6 +221,8 @@ MonoBehaviour:
   _dialogContainer: {fileID: 168781094}
   _messagePrefab: {fileID: 5569820376419873017, guid: bb2052d9134d6de48bb6671a51b88fad,
     type: 3}
+  _oneTimeMessagePrefab: {fileID: 5878393473600114087, guid: d7832c3dff3a7ef4d9f6657d0be696ec,
+    type: 3}
   _listPrefab: {fileID: 6104937224666551306, guid: 85932d0ee89038a4f9371483105be7a0,
     type: 3}
 --- !u!224 &340418942 stripped

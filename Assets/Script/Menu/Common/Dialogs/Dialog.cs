@@ -17,11 +17,6 @@ namespace YARG.Menu.Dialogs
         [field: SerializeField]
         public TextMeshProUGUI Title { get; private set; }
 
-        protected void Initialize(string title)
-        {
-            Title.text = title;
-        }
-
         public ColoredButton AddDialogButton(string text, UnityAction action)
         {
             var button = Instantiate(_dialogButtonPrefab, _dialogButtonContainer);
@@ -66,7 +61,12 @@ namespace YARG.Menu.Dialogs
 
         public void Close()
         {
+            OnBeforeClose();
             gameObject.SetActive(false);
+        }
+
+        protected virtual void OnBeforeClose()
+        {
         }
     }
 }

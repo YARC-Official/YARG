@@ -1,19 +1,45 @@
 using TMPro;
 using UnityEngine;
+using YARG.Helpers;
+using YARG.Menu.Data;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Settings;
 using YARG.Menu.Navigation;
+using YARG.Menu.Persistent;
+using YARG.Settings;
 
 namespace YARG.Menu.Main
 {
     public class MainMenu : MonoBehaviour
     {
+        private static bool _antiPiracyDialogShown;
+
         [SerializeField]
         private TextMeshProUGUI _versionText;
 
         private void Start()
         {
             _versionText.text = GlobalVariables.CurrentVersion.ToString();
+
+            // Show the anti-piracy dialog if it hasn't been shown already
+            // Also only show it once per game launch
+            if (!_antiPiracyDialogShown && SettingsManager.Settings.ShowAntiPiracyDialog)
+            {
+                var dialog = DialogManager.Instance.ShowOneTimeMessage(
+                    LocaleHelper.LocalizeString("Dialogs.AntiPiracy.Title"),
+                    LocaleHelper.LocalizeString("Dialogs.AntiPiracy"),
+                    () =>
+                    {
+                        SettingsManager.Settings.ShowAntiPiracyDialog = false;
+                        SettingsManager.SaveSettings();
+                    });
+
+                dialog.ClearButtons();
+                dialog.AddDialogButton("I Understand", MenuData.Colors.ConfirmButton,
+                    DialogManager.Instance.ClearDialog);
+
+                _antiPiracyDialogShown = true;
+            }
         }
 
         private void OnEnable()

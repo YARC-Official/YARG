@@ -35,6 +35,14 @@ MonoBehaviour:
     m_Key: Credits.Header.specialThanks
     m_Metadata:
       m_Items: []
+  - m_Id: 54807782185361408
+    m_Key: Dialogs.AntiPiracy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 54807782156001280
+    m_Key: Dialogs.AntiPiracy.Title
+    m_Metadata:
+      m_Items: []
   - m_Id: 45803154252881920
     m_Key: GameMode.FiveFretGuitar
     m_Metadata:
