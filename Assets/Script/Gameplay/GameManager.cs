@@ -128,7 +128,7 @@ namespace YARG.Gameplay
 
             Song = GlobalVariables.Instance.CurrentSong;
             IsReplay = GlobalVariables.Instance.IsReplay;
-            IsPractice = GlobalVariables.Instance.IsPractice;
+            IsPractice = GlobalVariables.Instance.IsPractice && !IsReplay;
             SelectedSongSpeed = GlobalVariables.Instance.SongSpeed;
 
             Navigator.Instance.PopAllSchemes();
