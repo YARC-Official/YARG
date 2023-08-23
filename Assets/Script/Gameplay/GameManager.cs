@@ -259,7 +259,7 @@ namespace YARG.Gameplay
             try
             {
                 result = await UniTask.RunOnThreadPool(() => ReplayContainer.LoadReplayFile(
-                GlobalVariables.Instance.CurrentReplay, out replayFile));
+                    GlobalVariables.Instance.CurrentReplay, out replayFile));
             }
             catch (Exception ex)
             {

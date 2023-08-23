@@ -79,8 +79,6 @@ namespace YARG.Menu.Replays
         {
             _canvasGroup.alpha = 0f;
             _button.interactable = false;
-
-            _replay = null;
         }
     }
 }
