@@ -1,5 +1,8 @@
-﻿using UnityEngine;
+﻿using Cysharp.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.Video;
+using YARG.Helpers;
 using YARG.Venue;
 
 namespace YARG.Gameplay
@@ -8,15 +11,12 @@ namespace YARG.Gameplay
     {
         [SerializeField]
         private VideoPlayer _videoPlayer;
+        [SerializeField]
+        private RawImage _backgroundImage;
 
-        private bool _videoStarted;
+        private bool _videoShouldBeStarted;
 
-        private void Start()
-        {
-            LoadBackground();
-        }
-
-        private void LoadBackground()
+        private async UniTask Start()
         {
             var typePathPair = VenueLoader.GetVenuePath(GameManager.Song);
             if (typePathPair == null)
@@ -27,6 +27,9 @@ namespace YARG.Gameplay
             var type = typePathPair.Value.Type;
             var path = typePathPair.Value.Path;
 
+            // Set to false (unless we do wanna start the video)
+            _videoShouldBeStarted = false;
+
             switch (type)
             {
                 case VenueType.Yarground:
@@ -34,7 +37,7 @@ namespace YARG.Gameplay
 
                     // KEEP THIS PATH LOWERCASE
                     // Breaks things for other platforms, because Unity
-                    var bg = bundle.LoadAsset<GameObject>(BundleBackgroundManager.BACKGROUND_PREFAB_PATH
+                    var bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(BundleBackgroundManager.BACKGROUND_PREFAB_PATH
                         .ToLowerInvariant());
 
 #if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
@@ -60,10 +63,12 @@ namespace YARG.Gameplay
                     _videoPlayer.url = path;
                     _videoPlayer.enabled = true;
                     _videoPlayer.Prepare();
+
+                    _videoShouldBeStarted = true;
                     break;
                 case VenueType.Image:
-                    // var png = ImageHelper.LoadTextureFromFile(path);
-                    // GameUI.Instance.background.texture = png;
+                    _backgroundImage.gameObject.SetActive(true);
+                    _backgroundImage.texture = await TextureHelper.Load(path);
                     break;
             }
         }
@@ -71,9 +76,9 @@ namespace YARG.Gameplay
         private void Update()
         {
             // Start playing the video at 0 seconds
-            if (!_videoStarted && GameManager.SongTime >= 0.0)
+            if (_videoShouldBeStarted && GameManager.SongTime >= 0.0)
             {
-                _videoStarted = true;
+                _videoShouldBeStarted = false;
                 _videoPlayer.Play();
             }
         }
