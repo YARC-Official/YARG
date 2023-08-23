@@ -53,8 +53,12 @@ namespace YARG.Menu.Replays
 
         private readonly List<ReplayView> _replayViews = new();
 
+        /// <summary>
+        /// The <see cref="ReplayView"/> that is currently being selected.
+        /// </summary>
+        // The selected replay view is always at index `REPLAY_VIEW_EXTRA`
         public ReplayView CurrentReplay => _selectedIndex >= 0 && _selectedIndex < _replayViews.Count
-            ? _replayViews[_selectedIndex] : null;
+            ? _replayViews[REPLAY_VIEW_EXTRA] : null;
 
         private float _scrollTimer;
 
