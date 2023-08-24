@@ -922,9 +922,11 @@ MonoBehaviour:
     type: 3}
   _headerPrefab: {fileID: 5753369685943773599, guid: eda8fcec479d4324eb4bd1d7624e1edc,
     type: 3}
-  _directoryPrefab: {fileID: 5753369685943773599, guid: 37057a242aeaf274982e4ac288d2c898,
-    type: 3}
   _dropdownPrefab: {fileID: 1999843519985412308, guid: cbaa114fdcf159241b4f9851747410c0,
+    type: 3}
+  _songManagerHeader: {fileID: 1958580528560083960, guid: ea75ee401f6919541ada372e1094bf19,
+    type: 3}
+  _songManagerDirectoryPrefab: {fileID: 5753369685943773599, guid: 37057a242aeaf274982e4ac288d2c898,
     type: 3}
 --- !u!1 &5009541612180770754
 GameObject:

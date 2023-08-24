@@ -95,11 +95,6 @@ namespace YARG.Settings
 
             public ToggleSetting AmIAwesome { get; } = new(false);
 
-            public void OpenSongFolderManager()
-            {
-                SettingsMenu.Instance.CurrentTab = SONG_FOLDER_MANAGER_TAB;
-            }
-
             public void OpenVenueFolder()
             {
                 FileExplorerHelper.OpenFolder(VenueLoader.VenueFolder);
@@ -124,6 +119,12 @@ namespace YARG.Settings
             {
                 GlobalVariables.Instance.LoadScene(SceneIndex.Calibration);
                 SettingsMenu.Instance.gameObject.SetActive(false);
+            }
+
+            public async void RefreshCache()
+            {
+                LoadingManager.Instance.QueueSongRefresh(false);
+                await LoadingManager.Instance.StartLoad();
             }
 
             private static void VSyncCallback(bool value)

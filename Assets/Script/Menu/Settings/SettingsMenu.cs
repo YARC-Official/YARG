@@ -45,9 +45,13 @@ namespace YARG.Menu.Settings
         [SerializeField]
         private GameObject _headerPrefab;
         [SerializeField]
-        private GameObject _directoryPrefab;
-        [SerializeField]
         private GameObject _dropdownPrefab;
+
+        [Space]
+        [SerializeField]
+        private GameObject _songManagerHeader;
+        [SerializeField]
+        private GameObject _songManagerDirectoryPrefab;
 
         private string _currentTab;
 
@@ -151,13 +155,6 @@ namespace YARG.Menu.Settings
 
         public void UpdateSettingsForTab()
         {
-            if (CurrentTab == SettingsManager.SONG_FOLDER_MANAGER_TAB)
-            {
-                UpdateSongFolderManager();
-
-                return;
-            }
-
             var tabInfo = SettingsManager.GetTabByName(CurrentTab);
 
             UpdateSettings();
@@ -187,7 +184,11 @@ namespace YARG.Menu.Settings
                     if (settingMetadata is HeaderMetadata header)
                     {
                         // Spawn in the header
-                        SpawnHeader(_settingsContainer, $"Header.{header.HeaderName}");
+                        var go = Instantiate(_headerPrefab, _settingsContainer);
+
+                        // Set header text
+                        go.GetComponentInChildren<LocalizeStringEvent>().StringReference =
+                            LocaleHelper.StringReference("Settings", $"Header.{header.HeaderName}");
                     }
                     else if (settingMetadata is ButtonRowMetadata buttonRow)
                     {
@@ -226,64 +227,25 @@ namespace YARG.Menu.Settings
                 break;
             }
 
+            // If its the song manager, put in some extra stuff
+            if (CurrentTab == "SongManager")
+            {
+                // Spawn in the special header
+                Instantiate(_songManagerHeader, _settingsContainer);
+
+                // Create all of the directories
+                for (int i = 0; i < SettingsManager.Settings.SongFolders.Count; i++)
+                {
+                    var go = Instantiate(_songManagerDirectoryPrefab, _settingsContainer);
+                    go.GetComponent<SettingsDirectory>().SetIndex(i);
+                }
+            }
+
             // Make the settings nav group the main one
             _settingsNavGroup.SelectFirst();
 
             // Reset scroll rect
             _scrollRect.verticalNormalizedPosition = 1f;
-        }
-
-        private void SpawnHeader(Transform container, string localizationKey)
-        {
-            // Spawn the header
-            var go = Instantiate(_headerPrefab, container);
-
-            // Set header text
-            go.GetComponentInChildren<LocalizeStringEvent>().StringReference =
-                LocaleHelper.StringReference("Settings", localizationKey);
-        }
-
-        public void UpdateSongFolderManager()
-        {
-            UpdateSongLibraryOnExit = true;
-
-            // Destroy all previous settings
-            _settingsContainer.DestroyChildren();
-
-            // Spawn header
-            SpawnHeader(_settingsContainer, "Header.Cache");
-
-            // Spawn refresh all button
-            {
-                var go = Instantiate(_buttonPrefab, _settingsContainer);
-                go.GetComponent<SettingsButton>().SetCustomCallback(async () =>
-                {
-                    LoadingManager.Instance.QueueSongRefresh(false);
-                    await LoadingManager.Instance.StartLoad();
-                }, "Button.SongManager.RefreshCache");
-            }
-
-            // Spawn header
-            SpawnHeader(_settingsContainer, "Header.SongFolders");
-
-            // Spawn add folder button
-            {
-                var go = Instantiate(_buttonPrefab, _settingsContainer);
-                go.GetComponent<SettingsButton>().SetCustomCallback(() =>
-                {
-                    SettingsManager.Settings.SongFolders.Add(string.Empty);
-
-                    // Refresh everything
-                    UpdateSongFolderManager();
-                }, "Button.SongManager.AddFolder");
-            }
-
-            // Create all of the directories
-            for (int i = 0; i < SettingsManager.Settings.SongFolders.Count; i++)
-            {
-                var go = Instantiate(_directoryPrefab, _settingsContainer);
-                go.GetComponent<SettingsDirectory>().SetIndex(i);
-            }
         }
 
         private async UniTask UpdatePreview(SettingsManager.Tab tabInfo)
@@ -346,12 +308,6 @@ namespace YARG.Menu.Settings
         {
             // If the settings menu is not open, ignore
             if (!gameObject.activeSelf)
-            {
-                return;
-            }
-
-            // Nothing in the song folder manager we can update
-            if (CurrentTab == SettingsManager.SONG_FOLDER_MANAGER_TAB)
             {
                 return;
             }

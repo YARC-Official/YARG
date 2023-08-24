@@ -61,7 +61,7 @@ namespace YARG.Menu.Settings
             SongFolders.RemoveAt(_index);
 
             // Refresh
-            SettingsMenu.Instance.UpdateSongFolderManager();
+            SettingsMenu.Instance.UpdateSettingsForTab();
         }
 
         public void Browse()

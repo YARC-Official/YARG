@@ -31,10 +31,6 @@ MonoBehaviour:
     m_Key: Button.General.OpenCalibrator
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619331
-    m_Key: Button.General.OpenSongFolderManager
-    m_Metadata:
-      m_Items: []
   - m_Id: 53693768667619332
     m_Key: Button.General.OpenVenueFolder
     m_Metadata:
@@ -493,6 +489,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 10936704807854080
     m_Key: Tab.Graphics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 55070184168611840
+    m_Key: Tab.SongManager
     m_Metadata:
       m_Items: []
   - m_Id: 10936772512309248

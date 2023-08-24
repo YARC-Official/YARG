@@ -38,8 +38,6 @@ namespace YARG.Settings
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
 
-        public const string SONG_FOLDER_MANAGER_TAB = "_SongFolderManager";
-
         public static SettingContainer Settings { get; private set; }
 
         public static readonly List<Tab> SettingsTabs = new()
@@ -47,7 +45,6 @@ namespace YARG.Settings
             new(name: "General")
             {
                 new HeaderMetadata("FileManagement"),
-                new ButtonRowMetadata("OpenSongFolderManager"),
                 new ButtonRowMetadata("ExportOuvertSongs"),
                 new ButtonRowMetadata("CopyCurrentSongTextFilePath", "CopyCurrentSongJsonFilePath"),
                 new HeaderMetadata("Venues"),
@@ -61,6 +58,11 @@ namespace YARG.Settings
                 "KickBounce",
                 "ShowCursorTimer",
                 "AmIAwesome"
+            },
+            new(name: "SongManager", icon: "Songs")
+            {
+                new HeaderMetadata("Cache"),
+                new ButtonRowMetadata("RefreshCache")
             },
             new(name: "Sound", icon: "Sound", showInPlayMode: true)
             {
