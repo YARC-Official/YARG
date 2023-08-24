@@ -1,12 +1,18 @@
-﻿using YARG.Core.Chart;
+﻿using UnityEngine;
+using YARG.Core.Chart;
 using YARG.Core.Engine.Drums;
 using YARG.Core.Input;
+using YARG.Gameplay.Visuals;
 
 namespace YARG.Gameplay.Player
 {
     public class DrumsPlayer : BasePlayer<DrumsEngine, DrumNote>
     {
         private DrumsEngineParameters _engineParams;
+
+        [Header("Drums Specific")]
+        [SerializeField]
+        private FretArray _fretArray;
 
         public override float[] StarMultiplierThresholds { get; }  =
         {
@@ -41,9 +47,23 @@ namespace YARG.Gameplay.Player
             return null;
         }
 
+        protected override void FinishInitialization()
+        {
+            base.FinishInitialization();
+
+            // StarScoreThresholds = new int[StarMultiplierThresholds.Length];
+            // for (int i = 0; i < StarMultiplierThresholds.Length; i++)
+            // {
+            //     StarScoreThresholds[i] = Mathf.FloorToInt(Engine.BaseScore * StarMultiplierThresholds[i]);
+            // }
+
+            _fretArray.Initialize(Player.ColorProfile.FourLaneDrums, Player.Profile.LeftyFlip);
+            HitWindowDisplay.SetHitWindowInfo(_engineParams, NoteSpeed);
+        }
+
         protected override void InitializeSpawnedNote(IPoolable poolable, DrumNote note)
         {
-
+            ((DrumsNoteElement) poolable).NoteRef = note;
         }
 
         protected override bool InterceptInput(ref GameInput input)

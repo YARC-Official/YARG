@@ -42,9 +42,7 @@ namespace YARG.Gameplay.Visuals
                 // Deal with non-open notes
 
                 // Set the position
-                transform.localPosition = new Vector3(
-                    BasePlayer.TRACK_WIDTH / 5f * NoteRef.Fret - BasePlayer.TRACK_WIDTH / 2f - 1f / 5f,
-                    0f, 0f) * LeftyFlipMultiplier;
+                transform.localPosition = new Vector3(GetElementX(NoteRef.Fret, 5), 0f, 0f) * LeftyFlipMultiplier;
 
                 // Get which note model to use
                 NoteGroup = NoteRef.Type switch

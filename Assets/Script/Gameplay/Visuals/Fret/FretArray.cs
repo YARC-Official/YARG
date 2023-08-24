@@ -22,7 +22,7 @@ namespace YARG.Gameplay.Visuals
 
         public IReadOnlyList<Fret> Frets => _frets;
 
-        public void Initialize(ColorProfile colorProfile, bool leftyFlip)
+        public void Initialize(ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip)
         {
             _frets.Clear();
             for (int i = 0; i < _fretCount; i++)
@@ -42,11 +42,10 @@ namespace YARG.Gameplay.Visuals
                 _frets.Add(fretComp);
 
                 // Color
-                var colors = colorProfile.FiveFretGuitar;
                 fretComp.Initialize(
-                    colors.GetFretColor(i + 1),
-                    colors.GetFretInnerColor(i + 1),
-                    colors.GetNoteParticleColor(i + 1));
+                    fretColorProvider.GetFretColor(i + 1),
+                    fretColorProvider.GetFretInnerColor(i + 1),
+                    fretColorProvider.GetParticleColor(i + 1));
             }
         }
 

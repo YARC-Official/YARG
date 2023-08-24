@@ -28,7 +28,7 @@ namespace YARG.Settings.Preview
 
         private void Start()
         {
-            _fretArray.Initialize(ColorProfile.Default, false);
+            _fretArray.Initialize(ColorProfile.Default.FiveFretGuitar, false);
         }
 
         private void Update()

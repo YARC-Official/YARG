@@ -1214,7 +1214,8 @@ MonoBehaviour:
   _fiveFretGuitarPrefab: {fileID: 7381119128095886790, guid: 0f7a37c9e4abcad4da73b7603d4b7596,
     type: 3}
   _sixFretGuitarPrefab: {fileID: 0}
-  _fourLaneDrumsPrefab: {fileID: 0}
+  _fourLaneDrumsPrefab: {fileID: 7508612376246159914, guid: 14dfc37fcbd6e0c4ba41507437a52fea,
+    type: 3}
   _fiveLaneDrumsPrefab: {fileID: 0}
   _proGuitarPrefab: {fileID: 0}
 --- !u!4 &318454372

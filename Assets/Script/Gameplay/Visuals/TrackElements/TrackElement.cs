@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Runtime.CompilerServices;
+using UnityEngine;
 using YARG.Gameplay.Player;
 using YARG.Settings;
 
@@ -102,6 +103,12 @@ namespace YARG.Gameplay.Visuals
 
             Initialized = false;
             gameObject.SetActive(false);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected static float GetElementX(int index, int subdivisions)
+        {
+            return BasePlayer.TRACK_WIDTH / subdivisions * index - BasePlayer.TRACK_WIDTH / 2f - 1f / subdivisions;
         }
     }
 }
