@@ -8,144 +8,144 @@ namespace YARG.Input
     {
         public static BindingCollection CreateMenuBindings() => new(null)
         {
-            new ButtonBinding("menu_Start",  (int) MenuAction.Start),
-            new ButtonBinding("menu_Select", (int) MenuAction.Select),
+            new ButtonBinding("Menu.Start",  (int) MenuAction.Start),
+            new ButtonBinding("Menu.Select", (int) MenuAction.Select),
 
-            new ButtonBinding("menu_Green",  (int) MenuAction.Green),
-            new ButtonBinding("menu_Red",    (int) MenuAction.Red),
-            new ButtonBinding("menu_Yellow", (int) MenuAction.Yellow),
-            new ButtonBinding("menu_Blue",   (int) MenuAction.Blue),
-            new ButtonBinding("menu_Orange", (int) MenuAction.Orange),
+            new ButtonBinding("Menu.Green",  (int) MenuAction.Green),
+            new ButtonBinding("Menu.Red",    (int) MenuAction.Red),
+            new ButtonBinding("Menu.Yellow", (int) MenuAction.Yellow),
+            new ButtonBinding("Menu.Blue",   (int) MenuAction.Blue),
+            new ButtonBinding("Menu.Orange", (int) MenuAction.Orange),
 
-            new ButtonBinding("menu_Up",    (int) MenuAction.Up),
-            new ButtonBinding("menu_Down",  (int) MenuAction.Down),
-            new ButtonBinding("menu_Left",  (int) MenuAction.Left),
-            new ButtonBinding("menu_Right", (int) MenuAction.Right),
+            new ButtonBinding("Menu.Up",    (int) MenuAction.Up),
+            new ButtonBinding("Menu.Down",  (int) MenuAction.Down),
+            new ButtonBinding("Menu.Left",  (int) MenuAction.Left),
+            new ButtonBinding("Menu.Right", (int) MenuAction.Right),
         };
 
         public static BindingCollection CreateFiveFretGuitarBindings() => new(GameMode.FiveFretGuitar)
         {
-            new ButtonBinding("fiveFret_Green",  (int) GuitarAction.GreenFret),
-            new ButtonBinding("fiveFret_Red",    (int) GuitarAction.RedFret),
-            new ButtonBinding("fiveFret_Yellow", (int) GuitarAction.YellowFret),
-            new ButtonBinding("fiveFret_Blue",   (int) GuitarAction.BlueFret),
-            new ButtonBinding("fiveFret_Orange", (int) GuitarAction.OrangeFret),
+            new ButtonBinding("FiveFret.Green",  (int) GuitarAction.GreenFret),
+            new ButtonBinding("FiveFret.Red",    (int) GuitarAction.RedFret),
+            new ButtonBinding("FiveFret.Yellow", (int) GuitarAction.YellowFret),
+            new ButtonBinding("FiveFret.Blue",   (int) GuitarAction.BlueFret),
+            new ButtonBinding("FiveFret.Orange", (int) GuitarAction.OrangeFret),
 
-            new ButtonBinding("guitar_StrumUp",   (int) GuitarAction.StrumUp),
-            new ButtonBinding("guitar_StrumDown", (int) GuitarAction.StrumDown),
+            new ButtonBinding("Guitar.StrumUp",   (int) GuitarAction.StrumUp),
+            new ButtonBinding("Guitar.StrumDown", (int) GuitarAction.StrumDown),
 
-            new ButtonBinding("guitar_StarPower", (int) GuitarAction.StarPower),
+            new ButtonBinding("Guitar.StarPower", (int) GuitarAction.StarPower),
 
-            new AxisBinding("guitar_Whammy", (int) GuitarAction.Whammy),
+            new AxisBinding("Guitar.Whammy", (int) GuitarAction.Whammy),
         };
 
         public static BindingCollection CreateSixFretGuitarBindings() => new(GameMode.SixFretGuitar)
         {
-            new ButtonBinding("sixFret_Black1", (int) GuitarAction.Black1Fret),
-            new ButtonBinding("sixFret_Black2", (int) GuitarAction.Black2Fret),
-            new ButtonBinding("sixFret_Black3", (int) GuitarAction.Black3Fret),
-            new ButtonBinding("sixFret_White1", (int) GuitarAction.White1Fret),
-            new ButtonBinding("sixFret_White2", (int) GuitarAction.White2Fret),
-            new ButtonBinding("sixFret_White3", (int) GuitarAction.White3Fret),
+            new ButtonBinding("SixFret.Black1", (int) GuitarAction.Black1Fret),
+            new ButtonBinding("SixFret.Black2", (int) GuitarAction.Black2Fret),
+            new ButtonBinding("SixFret.Black3", (int) GuitarAction.Black3Fret),
+            new ButtonBinding("SixFret.White1", (int) GuitarAction.White1Fret),
+            new ButtonBinding("SixFret.White2", (int) GuitarAction.White2Fret),
+            new ButtonBinding("SixFret.White3", (int) GuitarAction.White3Fret),
 
-            new ButtonBinding("guitar_StrumUp",   (int) GuitarAction.StrumUp),
-            new ButtonBinding("guitar_StrumDown", (int) GuitarAction.StrumDown),
+            new ButtonBinding("Guitar.StrumUp",   (int) GuitarAction.StrumUp),
+            new ButtonBinding("Guitar.StrumDown", (int) GuitarAction.StrumDown),
 
-            new ButtonBinding("guitar_StarPower", (int) GuitarAction.StarPower),
+            new ButtonBinding("Guitar.StarPower", (int) GuitarAction.StarPower),
 
-            new AxisBinding("guitar_Whammy", (int) GuitarAction.Whammy),
+            new AxisBinding("Guitar.Whammy", (int) GuitarAction.Whammy),
         };
 
         public static BindingCollection CreateFourLaneDrumsBindings() => new(GameMode.FourLaneDrums)
         {
-            new ButtonBinding("drums_RedPad",    (int) DrumsAction.RedDrum),
-            new ButtonBinding("drums_YellowPad", (int) DrumsAction.YellowDrum),
-            new ButtonBinding("drums_BluePad",   (int) DrumsAction.BlueDrum),
-            new ButtonBinding("drums_GreenPad",  (int) DrumsAction.GreenDrum),
+            new ButtonBinding("Drums.RedPad",    (int) DrumsAction.RedDrum),
+            new ButtonBinding("Drums.YellowPad", (int) DrumsAction.YellowDrum),
+            new ButtonBinding("Drums.BluePad",   (int) DrumsAction.BlueDrum),
+            new ButtonBinding("Drums.GreenPad",  (int) DrumsAction.GreenDrum),
 
-            new ButtonBinding("drums_YellowCymbal", (int) DrumsAction.YellowCymbal),
-            new ButtonBinding("drums_BlueCymbal",   (int) DrumsAction.BlueCymbal),
-            new ButtonBinding("drums_GreenCymbal",  (int) DrumsAction.GreenCymbal),
+            new ButtonBinding("Drums.YellowCymbal", (int) DrumsAction.YellowCymbal),
+            new ButtonBinding("Drums.BlueCymbal",   (int) DrumsAction.BlueCymbal),
+            new ButtonBinding("Drums.GreenCymbal",  (int) DrumsAction.GreenCymbal),
 
-            new ButtonBinding("drums_Kick", (int) DrumsAction.Kick),
+            new ButtonBinding("Drums.Kick", (int) DrumsAction.Kick),
         };
 
         public static BindingCollection CreateFiveLaneDrumsBindings() => new(GameMode.FiveLaneDrums)
         {
-            new ButtonBinding("drums_RedPad",       (int) DrumsAction.RedDrum),
-            new ButtonBinding("drums_YellowCymbal", (int) DrumsAction.YellowCymbal),
-            new ButtonBinding("drums_BluePad",      (int) DrumsAction.BlueDrum),
-            new ButtonBinding("drums_OrangeCymbal", (int) DrumsAction.OrangeCymbal),
-            new ButtonBinding("drums_GreenPad",     (int) DrumsAction.GreenDrum),
+            new ButtonBinding("Drums.RedPad",       (int) DrumsAction.RedDrum),
+            new ButtonBinding("Drums.YellowCymbal", (int) DrumsAction.YellowCymbal),
+            new ButtonBinding("Drums.BluePad",      (int) DrumsAction.BlueDrum),
+            new ButtonBinding("Drums.OrangeCymbal", (int) DrumsAction.OrangeCymbal),
+            new ButtonBinding("Drums.GreenPad",     (int) DrumsAction.GreenDrum),
 
-            new ButtonBinding("drums_Kick", (int) DrumsAction.Kick),
+            new ButtonBinding("Drums.Kick", (int) DrumsAction.Kick),
         };
 
         public static BindingCollection CreateProGuitarBindings() => new(GameMode.ProGuitar)
         {
-            new IntegerBinding("proGuitar_String1_Fret", (int) ProGuitarAction.String1_Fret),
-            new IntegerBinding("proGuitar_String2_Fret", (int) ProGuitarAction.String2_Fret),
-            new IntegerBinding("proGuitar_String3_Fret", (int) ProGuitarAction.String3_Fret),
-            new IntegerBinding("proGuitar_String4_Fret", (int) ProGuitarAction.String4_Fret),
-            new IntegerBinding("proGuitar_String5_Fret", (int) ProGuitarAction.String5_Fret),
-            new IntegerBinding("proGuitar_String6_Fret", (int) ProGuitarAction.String6_Fret),
+            new IntegerBinding("ProGuitar.String1_Fret", (int) ProGuitarAction.String1_Fret),
+            new IntegerBinding("ProGuitar.String2_Fret", (int) ProGuitarAction.String2_Fret),
+            new IntegerBinding("ProGuitar.String3_Fret", (int) ProGuitarAction.String3_Fret),
+            new IntegerBinding("ProGuitar.String4_Fret", (int) ProGuitarAction.String4_Fret),
+            new IntegerBinding("ProGuitar.String5_Fret", (int) ProGuitarAction.String5_Fret),
+            new IntegerBinding("ProGuitar.String6_Fret", (int) ProGuitarAction.String6_Fret),
 
-            new ButtonBinding("proGuitar_String1_Strum", (int) ProGuitarAction.String1_Strum),
-            new ButtonBinding("proGuitar_String2_Strum", (int) ProGuitarAction.String2_Strum),
-            new ButtonBinding("proGuitar_String3_Strum", (int) ProGuitarAction.String3_Strum),
-            new ButtonBinding("proGuitar_String4_Strum", (int) ProGuitarAction.String4_Strum),
-            new ButtonBinding("proGuitar_String5_Strum", (int) ProGuitarAction.String5_Strum),
-            new ButtonBinding("proGuitar_String6_Strum", (int) ProGuitarAction.String6_Strum),
+            new ButtonBinding("ProGuitar.String1_Strum", (int) ProGuitarAction.String1_Strum),
+            new ButtonBinding("ProGuitar.String2_Strum", (int) ProGuitarAction.String2_Strum),
+            new ButtonBinding("ProGuitar.String3_Strum", (int) ProGuitarAction.String3_Strum),
+            new ButtonBinding("ProGuitar.String4_Strum", (int) ProGuitarAction.String4_Strum),
+            new ButtonBinding("ProGuitar.String5_Strum", (int) ProGuitarAction.String5_Strum),
+            new ButtonBinding("ProGuitar.String6_Strum", (int) ProGuitarAction.String6_Strum),
 
-            new ButtonBinding("guitar_StarPower", (int) ProGuitarAction.StarPower),
+            new ButtonBinding("Guitar.StarPower", (int) ProGuitarAction.StarPower),
 
-            new AxisBinding("guitar_Whammy", (int) ProGuitarAction.Whammy),
+            new AxisBinding("Guitar.Whammy", (int) ProGuitarAction.Whammy),
         };
 
         public static BindingCollection CreateProKeysBindings() => new(GameMode.ProKeys)
         {
-            // new ButtonBinding("proKeys_Key1",  (int) ProKeysAction.Key1),
-            // new ButtonBinding("proKeys_Key2",  (int) ProKeysAction.Key2),
-            // new ButtonBinding("proKeys_Key3",  (int) ProKeysAction.Key3),
-            // new ButtonBinding("proKeys_Key4",  (int) ProKeysAction.Key4),
-            // new ButtonBinding("proKeys_Key5",  (int) ProKeysAction.Key5),
+            // new ButtonBinding("ProKeys.Key1",  (int) ProKeysAction.Key1),
+            // new ButtonBinding("ProKeys.Key2",  (int) ProKeysAction.Key2),
+            // new ButtonBinding("ProKeys.Key3",  (int) ProKeysAction.Key3),
+            // new ButtonBinding("ProKeys.Key4",  (int) ProKeysAction.Key4),
+            // new ButtonBinding("ProKeys.Key5",  (int) ProKeysAction.Key5),
 
-            // new ButtonBinding("proKeys_Key6",  (int) ProKeysAction.Key6),
-            // new ButtonBinding("proKeys_Key7",  (int) ProKeysAction.Key7),
-            // new ButtonBinding("proKeys_Key8",  (int) ProKeysAction.Key8),
-            // new ButtonBinding("proKeys_Key9",  (int) ProKeysAction.Key9),
-            // new ButtonBinding("proKeys_Key10", (int) ProKeysAction.Key10),
-            // new ButtonBinding("proKeys_Key11", (int) ProKeysAction.Key11),
-            // new ButtonBinding("proKeys_Key12", (int) ProKeysAction.Key12),
+            // new ButtonBinding("ProKeys.Key6",  (int) ProKeysAction.Key6),
+            // new ButtonBinding("ProKeys.Key7",  (int) ProKeysAction.Key7),
+            // new ButtonBinding("ProKeys.Key8",  (int) ProKeysAction.Key8),
+            // new ButtonBinding("ProKeys.Key9",  (int) ProKeysAction.Key9),
+            // new ButtonBinding("ProKeys.Key10", (int) ProKeysAction.Key10),
+            // new ButtonBinding("ProKeys.Key11", (int) ProKeysAction.Key11),
+            // new ButtonBinding("ProKeys.Key12", (int) ProKeysAction.Key12),
 
-            // new ButtonBinding("proKeys_Key13", (int) ProKeysAction.Key13),
-            // new ButtonBinding("proKeys_Key14", (int) ProKeysAction.Key14),
-            // new ButtonBinding("proKeys_Key15", (int) ProKeysAction.Key15),
-            // new ButtonBinding("proKeys_Key16", (int) ProKeysAction.Key16),
-            // new ButtonBinding("proKeys_Key17", (int) ProKeysAction.Key17),
+            // new ButtonBinding("ProKeys.Key13", (int) ProKeysAction.Key13),
+            // new ButtonBinding("ProKeys.Key14", (int) ProKeysAction.Key14),
+            // new ButtonBinding("ProKeys.Key15", (int) ProKeysAction.Key15),
+            // new ButtonBinding("ProKeys.Key16", (int) ProKeysAction.Key16),
+            // new ButtonBinding("ProKeys.Key17", (int) ProKeysAction.Key17),
 
-            // new ButtonBinding("proKeys_Key18", (int) ProKeysAction.Key18),
-            // new ButtonBinding("proKeys_Key19", (int) ProKeysAction.Key19),
-            // new ButtonBinding("proKeys_Key20", (int) ProKeysAction.Key20),
-            // new ButtonBinding("proKeys_Key21", (int) ProKeysAction.Key21),
-            // new ButtonBinding("proKeys_Key22", (int) ProKeysAction.Key22),
-            // new ButtonBinding("proKeys_Key23", (int) ProKeysAction.Key23),
-            // new ButtonBinding("proKeys_Key24", (int) ProKeysAction.Key24),
+            // new ButtonBinding("ProKeys.Key18", (int) ProKeysAction.Key18),
+            // new ButtonBinding("ProKeys.Key19", (int) ProKeysAction.Key19),
+            // new ButtonBinding("ProKeys.Key20", (int) ProKeysAction.Key20),
+            // new ButtonBinding("ProKeys.Key21", (int) ProKeysAction.Key21),
+            // new ButtonBinding("ProKeys.Key22", (int) ProKeysAction.Key22),
+            // new ButtonBinding("ProKeys.Key23", (int) ProKeysAction.Key23),
+            // new ButtonBinding("ProKeys.Key24", (int) ProKeysAction.Key24),
 
-            // new ButtonBinding("proKeys_Key25", (int) ProKeysAction.Key25),
+            // new ButtonBinding("ProKeys.Key25", (int) ProKeysAction.Key25),
 
-            // new ButtonBinding("proKeys_StarPower", (int) ProKeysAction.StarPower),
+            // new ButtonBinding("ProKeys.StarPower", (int) ProKeysAction.StarPower),
 
-            // new AxisBinding("proKeys_TouchEffects", (int) ProKeysAction.TouchEffects),
+            // new AxisBinding("ProKeys.TouchEffects", (int) ProKeysAction.TouchEffects),
         };
 
         public static BindingCollection CreateVocalsBindings() => new(GameMode.Vocals)
         {
             // Only needed if we want to over-do it and run audio devices
             // through the Unity input system (which actually wouldn't be that hard lol)
-            // new AxisBinding("vocals_Pitch", (int) VocalsAction.Pitch),
+            // new AxisBinding("Vocals.Pitch", (int) VocalsAction.Pitch),
 
-            new ButtonBinding("vocals_StarPower", (int) VocalsAction.StarPower),
+            new ButtonBinding("Vocals.StarPower", (int) VocalsAction.StarPower),
         };
 
         public static BindingCollection CreateGameplayBindings(GameMode mode)

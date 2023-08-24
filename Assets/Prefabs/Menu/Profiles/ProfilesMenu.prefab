@@ -2518,6 +2518,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _defaultGroup: 1
+  _canBeCurrent: 1
   _addAllChildrenOnAwake: 0
   _selectFirst: 0
 --- !u!1 &1709403987837879535 stripped
@@ -3713,7 +3714,7 @@ PrefabInstance:
     - target: {fileID: 4622602834413321867, guid: 5f7c905be0699a94b8dc56fc6105c02d,
         type: 3}
       propertyPath: m_Interactable
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4622602834413321867, guid: 5f7c905be0699a94b8dc56fc6105c02d,
         type: 3}
