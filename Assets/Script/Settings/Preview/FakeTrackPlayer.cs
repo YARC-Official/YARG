@@ -5,7 +5,7 @@ using YARG.Gameplay;
 using YARG.Gameplay.Player;
 using YARG.Gameplay.Visuals;
 
-namespace YARG.Settings
+namespace YARG.Settings.Preview
 {
     public class FakeTrackPlayer : MonoBehaviour
     {
@@ -20,6 +20,8 @@ namespace YARG.Settings
         private FretArray _fretArray;
         [SerializeField]
         private KeyedPool _notePool;
+        [SerializeField]
+        private GameObject _hitWindow;
 
         public double PreviewTime { get; private set; }
         private double _nextSpawnTime;
@@ -56,6 +58,9 @@ namespace YARG.Settings
             }
 
             _trackMaterial.SetTrackScroll(PreviewTime, NOTE_SPEED);
+
+            // Show/hide hit window
+            _hitWindow.gameObject.SetActive(SettingsManager.Settings.ShowHitWindow.Data);
         }
     }
 }

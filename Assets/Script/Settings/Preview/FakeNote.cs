@@ -6,7 +6,7 @@ using YARG.Gameplay.Player;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers.Extensions;
 
-namespace YARG.Settings
+namespace YARG.Settings.Preview
 {
     public class FakeNote : MonoBehaviour, IPoolable
     {

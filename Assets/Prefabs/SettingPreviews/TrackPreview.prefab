@@ -309,6 +309,12 @@ PrefabInstance:
     m_RemovedComponents:
     - {fileID: 4421194086860702606, guid: 0f7a37c9e4abcad4da73b7603d4b7596, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 0f7a37c9e4abcad4da73b7603d4b7596, type: 3}
+--- !u!1 &632404397162212954 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1828904089721583242, guid: 0f7a37c9e4abcad4da73b7603d4b7596,
+    type: 3}
+  m_PrefabInstance: {fileID: 1272076570556799184}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1223668558132516053 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 97965337960451077, guid: 0f7a37c9e4abcad4da73b7603d4b7596,
@@ -390,3 +396,4 @@ MonoBehaviour:
   _trackMaterial: {fileID: 5950891971083158839}
   _fretArray: {fileID: 2238655681509252365}
   _notePool: {fileID: 6730988211634240432}
+  _hitWindow: {fileID: 632404397162212954}
