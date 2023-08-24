@@ -226,12 +226,12 @@ namespace YARG.Gameplay
                 _debugText.gameObject.SetActive(_isShowDebugText);
             }
 
-            if (_isShowDebugText)
+            if (_isShowDebugText && _players[0] is FiveFretPlayer p)
             {
-                byte buttonMask = ((FiveFretPlayer) _players[0]).Engine.State.ButtonMask;
-                int noteIndex = ((FiveFretPlayer) _players[0]).Engine.State.NoteIndex;
-                var ticksPerEight = ((FiveFretPlayer) _players[0]).Engine.State.TicksEveryEightMeasures;
-                double starPower = ((FiveFretPlayer) _players[0]).Engine.EngineStats.StarPowerAmount;
+                byte buttonMask = p.Engine.State.ButtonMask;
+                int noteIndex = p.Engine.State.NoteIndex;
+                var ticksPerEight = p.Engine.State.TicksEveryEightMeasures;
+                double starPower = p.Engine.EngineStats.StarPowerAmount;
                 _debugText.text = $"Note index: {noteIndex}\nButtons: {buttonMask}\nStar Power: {starPower:0.0000}\n"
                     + $"TicksPerEight: {ticksPerEight}\n"
                     + $"Input time: {InputTime:0.000000}\nSong time: {SongTime:0.000000}\nTime difference: {InputTime - SongTime:0.000000}\n"
