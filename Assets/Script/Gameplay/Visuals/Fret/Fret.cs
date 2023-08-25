@@ -46,13 +46,20 @@ namespace YARG.Gameplay.Visuals
             _innerMaterial.SetFloat(_fade, pressed ? 1f : 0f);
         }
 
-        public void PlayHitAnimation(bool particles)
+        public void PlayHitAnimation()
         {
             StopAnimation();
             _animation.Play("FretsGuitar");
+        }
 
-            if (!particles) return;
+        public void PlayDrumAnimation()
+        {
+            StopAnimation();
+            _animation.Play("FretsDrums");
+        }
 
+        public void PlayHitParticles()
+        {
             _hitParticles.Play();
         }
 

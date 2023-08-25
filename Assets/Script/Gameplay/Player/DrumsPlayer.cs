@@ -98,5 +98,35 @@ namespace YARG.Gameplay.Player
         {
             return false;
         }
+
+        protected override void OnInputProcessed(ref GameInput input)
+        {
+            base.OnInputProcessed(ref input);
+
+            if (!input.Button) return;
+
+            var action = input.GetAction<DrumsAction>();
+            int fret = action switch
+            {
+                DrumsAction.Kick                         => 0,
+                DrumsAction.Drum1                        => 1,
+                DrumsAction.Drum2 or DrumsAction.Cymbal1 => 2,
+                DrumsAction.Drum3 or DrumsAction.Cymbal2 => 3,
+                DrumsAction.Drum4 or DrumsAction.Cymbal3 => 4,
+                _                                        => -1
+            };
+
+            // Skip if no animation
+            if (fret == -1) return;
+
+            if (fret == 0)
+            {
+                _fretArray.PlayOpenHitAnimation();
+            }
+            else
+            {
+                _fretArray.PlayDrumAnimation(fret - 1);
+            }
+        }
     }
 }

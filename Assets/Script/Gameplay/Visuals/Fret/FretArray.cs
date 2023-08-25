@@ -61,15 +61,26 @@ namespace YARG.Gameplay.Visuals
 
         public void PlayHitAnimation(int index)
         {
-            _frets[index].PlayHitAnimation(true);
+            _frets[index].PlayHitAnimation();
+            _frets[index].PlayHitParticles();
         }
 
         public void PlayOpenHitAnimation()
         {
             foreach (var fret in _frets)
             {
-                fret.PlayHitAnimation(false);
+                fret.PlayHitAnimation();
             }
+        }
+
+        public void PlayDrumAnimation(int index)
+        {
+            _frets[index].PlayDrumAnimation();
+        }
+
+        public void PlayDrumHitParticles(int index)
+        {
+            _frets[index].PlayHitParticles();
         }
     }
 }
