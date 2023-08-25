@@ -67,6 +67,33 @@ namespace YARG.Gameplay.Player
             ((DrumsNoteElement) poolable).NoteRef = note;
         }
 
+        protected override void OnNoteHit(int index, DrumNote note)
+        {
+            base.OnNoteHit(index, note);
+
+            // Remember that drums treat each note separately
+
+            (NotePool.GetByKey(note) as DrumsNoteElement)?.HitNote();
+
+            if (note.Pad != 0)
+            {
+                _fretArray.PlayHitAnimation(note.Pad - 1);
+            }
+            else
+            {
+                _fretArray.PlayOpenHitAnimation();
+            }
+        }
+
+        protected override void OnNoteMissed(int index, DrumNote note)
+        {
+            base.OnNoteMissed(index, note);
+
+            // Remember that drums treat each note separately
+
+            (NotePool.GetByKey(note) as DrumsNoteElement)?.MissNote();
+        }
+
         protected override bool InterceptInput(ref GameInput input)
         {
             return false;

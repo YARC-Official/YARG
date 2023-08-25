@@ -147,7 +147,6 @@ namespace YARG.Gameplay.Player
 
             foreach (var note in chordParent.ChordEnumerator())
             {
-                // TODO: It is possible that this should be moved to BasePlayer
                 (NotePool.GetByKey(note) as FiveFretNoteElement)?.HitNote();
 
                 if (note.Fret != 0)
@@ -167,7 +166,6 @@ namespace YARG.Gameplay.Player
 
             foreach (var note in chordParent.ChordEnumerator())
             {
-                // TODO: It is possible that this should be moved to BasePlayer
                 (NotePool.GetByKey(note) as FiveFretNoteElement)?.MissNote();
             }
         }
