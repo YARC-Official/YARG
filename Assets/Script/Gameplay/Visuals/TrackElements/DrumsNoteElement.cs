@@ -77,7 +77,10 @@ namespace YARG.Gameplay.Visuals
 
             // Set the note color
             NoteGroup.ColoredMaterial.color = color.ToUnityColor();
-            NoteGroup.ColoredMaterial.SetColor(_emissionColor, color.ToUnityColor() * 8f);
+
+            // Set emission
+            float emissionMultiplier = NoteRef.Pad == (int) FourLaneDrumPad.Kick ? 8f : 2.5f;
+            NoteGroup.ColoredMaterial.SetColor(_emissionColor, color.ToUnityColor() * emissionMultiplier);
         }
 
         protected override void HideElement()
