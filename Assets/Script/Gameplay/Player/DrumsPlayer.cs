@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Engine.Drums;
+using YARG.Core.Engine.Drums.Engines;
 using YARG.Core.Input;
 using YARG.Gameplay.Visuals;
 
@@ -21,11 +22,6 @@ namespace YARG.Gameplay.Player
 
         public override int[] StarScoreThresholds { get; protected set; }
 
-        protected override void UpdateVisuals(double songTime)
-        {
-            throw new System.NotImplementedException();
-        }
-
         protected override InstrumentDifficulty<DrumNote> GetNotes(SongChart chart)
         {
             var track = chart.GetDrumsTrack(Player.Profile.Instrument).Clone();
@@ -35,30 +31,35 @@ namespace YARG.Gameplay.Player
         protected override DrumsEngine CreateEngine()
         {
             _engineParams = new DrumsEngineParameters(0.15, 1);
-            // var engine = new YargFiveFretEngine(NoteTrack, SyncTrack, _engineParams);
+            var engine = new YargDrumsEngine(NoteTrack, SyncTrack, _engineParams);
 
-            // engine.OnNoteHit += OnNoteHit;
-            // engine.OnNoteMissed += OnNoteMissed;
-            // engine.OnOverstrum += OnOverstrum;
-            //
-            // engine.OnSoloStart += OnSoloStart;
-            // engine.OnSoloEnd += OnSoloEnd;
+            engine.OnNoteHit += OnNoteHit;
+            engine.OnNoteMissed += OnNoteMissed;
+            engine.OnOverhit += OnOverstrum;
 
-            return null;
+            engine.OnSoloStart += OnSoloStart;
+            engine.OnSoloEnd += OnSoloEnd;
+
+            return engine;
         }
 
         protected override void FinishInitialization()
         {
             base.FinishInitialization();
 
-            // StarScoreThresholds = new int[StarMultiplierThresholds.Length];
-            // for (int i = 0; i < StarMultiplierThresholds.Length; i++)
-            // {
-            //     StarScoreThresholds[i] = Mathf.FloorToInt(Engine.BaseScore * StarMultiplierThresholds[i]);
-            // }
+            StarScoreThresholds = new int[StarMultiplierThresholds.Length];
+            for (int i = 0; i < StarMultiplierThresholds.Length; i++)
+            {
+                StarScoreThresholds[i] = Mathf.FloorToInt(Engine.BaseScore * StarMultiplierThresholds[i]);
+            }
 
             _fretArray.Initialize(Player.ColorProfile.FourLaneDrums, Player.Profile.LeftyFlip);
             HitWindowDisplay.SetHitWindowInfo(_engineParams, NoteSpeed);
+        }
+
+        protected override void UpdateVisuals(double songTime)
+        {
+            UpdateBaseVisuals(Engine.EngineStats, songTime);
         }
 
         protected override void InitializeSpawnedNote(IPoolable poolable, DrumNote note)
