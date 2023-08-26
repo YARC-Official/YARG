@@ -226,17 +226,37 @@ namespace YARG.Gameplay
                 _debugText.gameObject.SetActive(_isShowDebugText);
             }
 
-            if (_isShowDebugText && _players[0] is FiveFretPlayer p)
+            if (_isShowDebugText)
             {
-                byte buttonMask = p.Engine.State.ButtonMask;
-                int noteIndex = p.Engine.State.NoteIndex;
-                var ticksPerEight = p.Engine.State.TicksEveryEightMeasures;
-                double starPower = p.Engine.EngineStats.StarPowerAmount;
-                _debugText.text = $"Note index: {noteIndex}\nButtons: {buttonMask}\nStar Power: {starPower:0.0000}\n"
-                    + $"TicksPerEight: {ticksPerEight}\n"
-                    + $"Input time: {InputTime:0.000000}\nSong time: {SongTime:0.000000}\nTime difference: {InputTime - SongTime:0.000000}\n"
-                    + $"Speed adjustment: {_syncSpeedAdjustment:0.00}\nSpeed multiplier: {_syncSpeedMultiplier}\n"
-                    + $"Sync start delta: {_syncStartDelta:0.000000}";
+                if (_players[0] is FiveFretPlayer fiveFretPlayer)
+                {
+                    byte buttonMask = fiveFretPlayer.Engine.State.ButtonMask;
+                    int noteIndex = fiveFretPlayer.Engine.State.NoteIndex;
+                    var ticksPerEight = fiveFretPlayer.Engine.State.TicksEveryEightMeasures;
+                    double starPower = fiveFretPlayer.Engine.EngineStats.StarPowerAmount;
+
+                    _debugText.text =
+                        $"Note index: {noteIndex}\n" +
+                        $"Buttons: {buttonMask}\n" +
+                        $"Star Power: {starPower:0.0000}\n" +
+                        $"TicksPerEight: {ticksPerEight}\n";
+
+                }
+                else if (_players[0] is DrumsPlayer drumsPlayer)
+                {
+                    int noteIndex = drumsPlayer.Engine.State.NoteIndex;
+
+                    _debugText.text =
+                        $"Note index: {noteIndex}\n";
+                }
+
+                _debugText.text +=
+                    $"Input time: {InputTime:0.000000}\n" +
+                    $"Song time: {SongTime:0.000000}\n" +
+                    $"Time difference: {InputTime - SongTime:0.000000}\n" +
+                    $"Speed adjustment: {_syncSpeedAdjustment:0.00}\n" +
+                    $"Speed multiplier: {_syncSpeedMultiplier}\n" +
+                    $"Sync start delta: {_syncStartDelta:0.000000}";
             }
 
             int totalScore = 0;

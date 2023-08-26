@@ -77,7 +77,16 @@ namespace YARG.Gameplay.Player
 
             if (note.Pad != 0)
             {
-                _fretArray.PlayHitAnimation(note.Pad - 1);
+                int fret = (FourLaneDrumPad) note.Pad switch
+                {
+                    FourLaneDrumPad.RedDrum                                    => 0,
+                    FourLaneDrumPad.YellowDrum or FourLaneDrumPad.YellowCymbal => 1,
+                    FourLaneDrumPad.BlueDrum or FourLaneDrumPad.BlueCymbal     => 2,
+                    FourLaneDrumPad.GreenDrum or FourLaneDrumPad.GreenCymbal   => 3,
+                    _                                                          => -1
+                };
+
+                _fretArray.PlayHitAnimation(fret);
             }
             else
             {

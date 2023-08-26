@@ -131,21 +131,6 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2501665274994779726, guid: 5800c42510b55c549be95ec3ecd75e1c,
-        type: 3}
-      propertyPath: _ringMesh
-      value: 
-      objectReference: {fileID: 8697479185713912627}
-    - target: {fileID: 2501665274994779726, guid: 5800c42510b55c549be95ec3ecd75e1c,
-        type: 3}
-      propertyPath: _fcRingMaterial
-      value: 
-      objectReference: {fileID: 2100000, guid: 2ec3da37cdae15d498102fa513ce900a, type: 2}
-    - target: {fileID: 2501665274994779726, guid: 5800c42510b55c549be95ec3ecd75e1c,
-        type: 3}
-      propertyPath: _noFcRingMaterial
-      value: 
-      objectReference: {fileID: 2100000, guid: ce3039f4da289c046b33066e508567f0, type: 2}
     - target: {fileID: 3161527738386327264, guid: 5800c42510b55c549be95ec3ecd75e1c,
         type: 3}
       propertyPath: _prefab
@@ -277,9 +262,3 @@ MonoBehaviour:
   NotePool: {fileID: 5534384060604769120}
   BeatlinePool: {fileID: 155632028176750329}
   _fretArray: {fileID: 1060069523843335645}
---- !u!23 &8697479185713912627 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 2278174339011780275, guid: 5800c42510b55c549be95ec3ecd75e1c,
-    type: 3}
-  m_PrefabInstance: {fileID: 7434902305530561920}
-  m_PrefabAsset: {fileID: 0}

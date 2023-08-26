@@ -1556,9 +1556,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _multiplierText: {fileID: 24723221875665680}
   _comboMesh: {fileID: 5158185222957906181}
-  _ringMesh: {fileID: 0}
-  _fcRingMaterial: {fileID: 0}
-  _noFcRingMaterial: {fileID: 0}
+  _ringMesh: {fileID: 2278174339011780275}
+  _fcRingMaterial: {fileID: 2100000, guid: 2ec3da37cdae15d498102fa513ce900a, type: 2}
+  _noFcRingMaterial: {fileID: 2100000, guid: ce3039f4da289c046b33066e508567f0, type: 2}
 --- !u!1 &4375285852884754376
 GameObject:
   m_ObjectHideFlags: 0
@@ -2732,6 +2732,12 @@ PrefabInstance:
 --- !u!4 &1141275069845792220 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: f95da8a9c79d3854ea44468f7f7ecc58,
+    type: 3}
+  m_PrefabInstance: {fileID: 602399178233446967}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &2278174339011780275 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -7511558181221131132, guid: f95da8a9c79d3854ea44468f7f7ecc58,
     type: 3}
   m_PrefabInstance: {fileID: 602399178233446967}
   m_PrefabAsset: {fileID: 0}
