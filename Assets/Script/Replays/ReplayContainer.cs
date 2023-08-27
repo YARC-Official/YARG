@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
-using YARG.Core;
+using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Replays;
 using YARG.Core.Replays.IO;
@@ -304,38 +304,23 @@ namespace YARG.Replays
 
         private static ReplayFrame CreateReplayFrame(int id, BasePlayer player, out int playerScore)
         {
-            ReplayFrame frame = null;
-            playerScore = 0;
-
-            var gameMode = player.Player.Profile.Instrument.ToGameMode();
-            switch (gameMode)
+            // Create the replay frame with the stats
+            var frame = player switch
             {
-                case GameMode.FiveFretGuitar:
-                    var fivePlayer = (FiveFretPlayer) player;
-                    var fiveFrame = new ReplayFrame
-                    {
-                        Stats = new GuitarStats(fivePlayer.Engine.EngineStats),
-                    };
+                FiveFretPlayer fiveFretPlayer => new ReplayFrame
+                {
+                    Stats = new GuitarStats(fiveFretPlayer.Engine.EngineStats),
+                },
+                DrumsPlayer drumsPlayer => new ReplayFrame
+                {
+                    Stats = new DrumsStats(drumsPlayer.Engine.EngineStats),
+                },
+                _ => throw new ArgumentOutOfRangeException(player.GetType().ToString(), "Invalid instrument player.")
+            };
 
-                    playerScore = fiveFrame.Stats.Score;
-                    frame = fiveFrame;
-                    break;
-                case GameMode.SixFretGuitar:
-                    break;
-                case GameMode.FourLaneDrums:
-                    break;
-                case GameMode.FiveLaneDrums:
-                    break;
-                case GameMode.ProGuitar:
-                    break;
-                case GameMode.ProKeys:
-                    break;
-                case GameMode.Vocals:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(gameMode), "Invalid Instrument GameMode");
-            }
+            playerScore = frame.Stats.Score;
 
+            // Insert other frame information
             frame!.PlayerId = id;
             frame.PlayerName = player.Player.Profile.Name;
             frame.Instrument = player.Player.Profile.Instrument;
