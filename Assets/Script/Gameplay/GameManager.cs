@@ -11,7 +11,6 @@ using YARG.Core.Chart;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Replays;
-using YARG.Core.Replays.IO;
 using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;

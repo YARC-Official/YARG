@@ -6,7 +6,6 @@ using UnityEngine;
 using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Replays;
-using YARG.Core.Replays.IO;
 using YARG.Core.Song;
 using YARG.Core.Utility;
 using YARG.Gameplay.Player;
