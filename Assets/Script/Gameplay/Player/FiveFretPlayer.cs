@@ -11,7 +11,7 @@ namespace YARG.Gameplay.Player
 {
     public sealed class FiveFretPlayer : BasePlayer<GuitarEngine, GuitarNote>
     {
-        private GuitarEngineParameters _engineParams;
+        public GuitarEngineParameters EngineParams { get; private set; }
 
         [Header("Five Fret Specific")]
         [SerializeField]
@@ -32,9 +32,9 @@ namespace YARG.Gameplay.Player
 
         protected override GuitarEngine CreateEngine()
         {
-            _engineParams = new GuitarEngineParameters(0.15, 1, 0.08, 0.06, 0.025,
+            EngineParams = new GuitarEngineParameters(0.15, 1, 0.08, 0.06, 0.025,
                 SettingsManager.Settings.InfiniteFrontEnd.Data, SettingsManager.Settings.AntiGhosting.Data);
-            var engine = new YargFiveFretEngine(NoteTrack, SyncTrack, _engineParams);
+            var engine = new YargFiveFretEngine(NoteTrack, SyncTrack, EngineParams);
 
             Debug.Log("Note count: " + NoteTrack.Notes.Count);
 
@@ -105,7 +105,7 @@ namespace YARG.Gameplay.Player
             }
 
             _fretArray.Initialize(Player.ColorProfile.FiveFretGuitar, Player.Profile.LeftyFlip);
-            HitWindowDisplay.SetHitWindowInfo(_engineParams, NoteSpeed);
+            HitWindowDisplay.SetHitWindowInfo(EngineParams, NoteSpeed);
         }
 
         public override void ResetPracticeSection()

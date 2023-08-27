@@ -9,7 +9,7 @@ namespace YARG.Gameplay.Player
 {
     public class DrumsPlayer : BasePlayer<DrumsEngine, DrumNote>
     {
-        private DrumsEngineParameters _engineParams;
+        public DrumsEngineParameters EngineParams { get; private set; }
 
         [Header("Drums Specific")]
         [SerializeField]
@@ -30,8 +30,8 @@ namespace YARG.Gameplay.Player
 
         protected override DrumsEngine CreateEngine()
         {
-            _engineParams = new DrumsEngineParameters(0.15, 1);
-            var engine = new YargDrumsEngine(NoteTrack, SyncTrack, _engineParams);
+            EngineParams = new DrumsEngineParameters(0.15, 1);
+            var engine = new YargDrumsEngine(NoteTrack, SyncTrack, EngineParams);
 
             engine.OnNoteHit += OnNoteHit;
             engine.OnNoteMissed += OnNoteMissed;
@@ -54,7 +54,7 @@ namespace YARG.Gameplay.Player
             }
 
             _fretArray.Initialize(Player.ColorProfile.FourLaneDrums, Player.Profile.LeftyFlip);
-            HitWindowDisplay.SetHitWindowInfo(_engineParams, NoteSpeed);
+            HitWindowDisplay.SetHitWindowInfo(EngineParams, NoteSpeed);
         }
 
         protected override void UpdateVisuals(double songTime)

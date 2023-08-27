@@ -309,10 +309,12 @@ namespace YARG.Replays
                 FiveFretPlayer fiveFretPlayer => new ReplayFrame
                 {
                     Stats = new GuitarStats(fiveFretPlayer.Engine.EngineStats),
+                    EngineParameters = fiveFretPlayer.EngineParams
                 },
                 DrumsPlayer drumsPlayer => new ReplayFrame
                 {
                     Stats = new DrumsStats(drumsPlayer.Engine.EngineStats),
+                    EngineParameters = drumsPlayer.EngineParams
                 },
                 _ => throw new ArgumentOutOfRangeException(player.GetType().ToString(), "Invalid instrument player.")
             };
