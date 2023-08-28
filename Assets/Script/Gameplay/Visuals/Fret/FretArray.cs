@@ -73,14 +73,14 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        public void PlayDrumAnimation(int index)
+        public void PlayDrumAnimation(int index, bool particles)
         {
             _frets[index].PlayDrumAnimation();
-        }
 
-        public void PlayDrumHitParticles(int index)
-        {
-            _frets[index].PlayHitParticles();
+            if (particles)
+            {
+                _frets[index].PlayHitParticles();
+            }
         }
     }
 }

@@ -4,6 +4,7 @@ using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Drums.Engines;
 using YARG.Core.Input;
 using YARG.Gameplay.Visuals;
+using YARG.Helpers.Extensions;
 
 namespace YARG.Gameplay.Player
 {
@@ -14,6 +15,8 @@ namespace YARG.Gameplay.Player
         [Header("Drums Specific")]
         [SerializeField]
         private FretArray _fretArray;
+        [SerializeField]
+        private KickFret _kickFret;
 
         public override float[] StarMultiplierThresholds { get; }  =
         {
@@ -40,8 +43,11 @@ namespace YARG.Gameplay.Player
             engine.OnSoloStart += OnSoloStart;
             engine.OnSoloEnd += OnSoloEnd;
 
-            engine.OnPadHit += (action) =>
+            engine.OnPadHit += (action, wasNoteHit) =>
             {
+                // Skip if a note was hit, because we have different logic for that below
+                if (wasNoteHit) return;
+
                 int fret = action switch
                 {
                     DrumsAction.Kick                         => 0,
@@ -55,13 +61,13 @@ namespace YARG.Gameplay.Player
                 // Skip if no animation
                 if (fret == -1) return;
 
-                if (fret == 0)
+                if (fret != 0)
                 {
-                    _fretArray.PlayOpenHitAnimation();
+                    _fretArray.PlayDrumAnimation(fret - 1, false);
                 }
                 else
                 {
-                    _fretArray.PlayDrumAnimation(fret - 1);
+                    _kickFret.PlayHitAnimation(false);
                 }
             };
 
@@ -79,6 +85,7 @@ namespace YARG.Gameplay.Player
             }
 
             _fretArray.Initialize(Player.ColorProfile.FourLaneDrums, Player.Profile.LeftyFlip);
+            _kickFret.Initialize(Player.ColorProfile.FourLaneDrums.KickParticles.ToUnityColor());
             HitWindowDisplay.SetHitWindowInfo(EngineParams, NoteSpeed);
         }
 
@@ -111,11 +118,11 @@ namespace YARG.Gameplay.Player
                     _                                                          => -1
                 };
 
-                _fretArray.PlayHitAnimation(fret);
+                _fretArray.PlayDrumAnimation(fret, true);
             }
             else
             {
-                _fretArray.PlayOpenHitAnimation();
+                _kickFret.PlayHitAnimation(true);
             }
         }
 
