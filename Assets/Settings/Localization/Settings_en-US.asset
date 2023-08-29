@@ -566,6 +566,15 @@ MonoBehaviour:
       10 seconds into the song.
     m_Metadata:
       m_Items: []
+  - m_Id: 56971512511848448
+    m_Localized: Graphical Progress On Score Box
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56971512511848449
+    m_Localized: Enables and disables the graphical blue outline on the score box
+      that displays the song's progress.
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

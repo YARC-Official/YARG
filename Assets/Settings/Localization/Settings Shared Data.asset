@@ -259,6 +259,14 @@ MonoBehaviour:
     m_Key: Setting.Graphics.FullscreenMode.Description
     m_Metadata:
       m_Items: []
+  - m_Id: 56971512511848448
+    m_Key: Setting.Graphics.GraphicalProgressOnScoreBox
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56971512511848449
+    m_Key: Setting.Graphics.GraphicalProgressOnScoreBox.Description
+    m_Metadata:
+      m_Items: []
   - m_Id: 53693768667619358
     m_Key: Setting.Graphics.LowQuality
     m_Metadata:

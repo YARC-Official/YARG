@@ -237,6 +237,7 @@ namespace YARG.Settings
                 "ShowHitWindow",
                 "DisableTextNotifications",
                 "SongTimeOnScoreBox",
+                "GraphicalProgressOnScoreBox",
                 "LyricBackground"
             },
             new(name: "Engine", icon: "Engine")

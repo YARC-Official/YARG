@@ -142,6 +142,8 @@ namespace YARG.Settings
                 "CountUpOnly", "CountDownOnly", "TotalOnly"
             }, "CountUp");
 
+            public ToggleSetting GraphicalProgressOnScoreBox { get; } = new(true);
+
             public DropdownSetting LyricBackground { get; } = new(new()
             {
                 "Normal", "Transparent", "None",

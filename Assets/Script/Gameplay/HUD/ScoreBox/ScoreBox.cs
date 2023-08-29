@@ -36,6 +36,8 @@ namespace YARG.Gameplay.HUD
         {
             _scoreText.text = SCORE_PREFIX + "0";
             _songTimer.text = string.Empty;
+
+            _songProgressBar.SetProgress(0f);
         }
 
         protected override void OnSongStarted()
@@ -64,7 +66,11 @@ namespace YARG.Gameplay.HUD
             // Update song progress
 
             double time = Math.Max(0f, GameManager.SongTime);
-            _songProgressBar.SetProgress((float) (time / GameManager.SongLength));
+
+            if (SettingsManager.Settings.GraphicalProgressOnScoreBox.Data)
+            {
+                _songProgressBar.SetProgress((float) (time / GameManager.SongLength));
+            }
 
             // Skip if the song length has not been established yet, or if disabled
             if (_songLengthTime == null) return;
