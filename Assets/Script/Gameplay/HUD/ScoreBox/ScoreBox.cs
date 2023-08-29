@@ -1,6 +1,7 @@
 using System;
 using TMPro;
 using UnityEngine;
+using YARG.Core.Chart;
 using YARG.Menu;
 
 namespace YARG.Gameplay.HUD
@@ -9,18 +10,38 @@ namespace YARG.Gameplay.HUD
     {
         private const string SCORE_PREFIX = "<mspace=0.538em>";
 
+        private const string TIME_FORMAT       = "m\\:ss";
+        private const string TIME_FORMAT_HOURS = "h\\:mm\\:ss";
+
         [SerializeField]
         private TextMeshProUGUI _scoreText;
         [SerializeField]
-        private ProgressBarFadedEdge _songProgressBar;
-        [SerializeField]
         private StarDisplay _starDisplay;
 
+        [Space]
+        [SerializeField]
+        private ProgressBarFadedEdge _songProgressBar;
+        [SerializeField]
+        private TextMeshProUGUI _songTimer;
+
         private int _bandScore;
+
+        private bool _songHasHours;
+        private string _songLengthTime;
+
+        private string TimeFormat => _songHasHours ? TIME_FORMAT_HOURS : TIME_FORMAT;
 
         private void Start()
         {
             _scoreText.text = SCORE_PREFIX + "0";
+            _songTimer.text = string.Empty;
+        }
+
+        protected override void OnSongStarted()
+        {
+            var timeSpan = TimeSpan.FromSeconds(GameManager.SongLength);
+            _songHasHours = timeSpan.TotalHours >= 1.0;
+            _songLengthTime = timeSpan.ToString(TimeFormat);
         }
 
         private void Update()
@@ -30,6 +51,8 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
+            // Update score
+
             if (GameManager.BandScore != _bandScore)
             {
                 _bandScore = GameManager.BandScore;
@@ -38,7 +61,17 @@ namespace YARG.Gameplay.HUD
                 UpdateStars();
             }
 
-            _songProgressBar.SetProgress((float) (GameManager.SongTime / GameManager.SongLength));
+            // Update song progress
+
+            // Skip if the song length has not been established yet
+            if (_songLengthTime == null) return;
+
+            double time = Math.Max(0f, GameManager.SongTime);
+
+            _songProgressBar.SetProgress((float) (time / GameManager.SongLength));
+
+            string currentTime = TimeSpan.FromSeconds(time).ToString(TimeFormat);
+            _songTimer.text = $"{currentTime} / {_songLengthTime}";
         }
 
         private void UpdateStars()
