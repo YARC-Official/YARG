@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Menu;
+using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
 {
@@ -52,7 +53,6 @@ namespace YARG.Gameplay.HUD
             }
 
             // Update score
-
             if (GameManager.BandScore != _bandScore)
             {
                 _bandScore = GameManager.BandScore;
@@ -63,15 +63,24 @@ namespace YARG.Gameplay.HUD
 
             // Update song progress
 
-            // Skip if the song length has not been established yet
-            if (_songLengthTime == null) return;
-
             double time = Math.Max(0f, GameManager.SongTime);
-
             _songProgressBar.SetProgress((float) (time / GameManager.SongLength));
 
-            string currentTime = TimeSpan.FromSeconds(time).ToString(TimeFormat);
-            _songTimer.text = $"{currentTime} / {_songLengthTime}";
+            // Skip if the song length has not been established yet, or if disabled
+            if (_songLengthTime == null) return;
+
+            string countUp = TimeSpan.FromSeconds(time).ToString(TimeFormat);
+            string countDown = TimeSpan.FromSeconds(GameManager.SongLength - time).ToString(TimeFormat);
+
+            _songTimer.text = SettingsManager.Settings.SongTimeOnScoreBox.Data switch
+            {
+                "CountUpAndTotal"   => $"{countUp} / {_songLengthTime}",
+                "CountDownAndTotal" => $"{countDown} / {_songLengthTime}",
+                "CountUpOnly"       => countUp,
+                "CountDownOnly"     => countDown,
+                "TotalOnly"         => _songLengthTime,
+                _                   => string.Empty
+            };
         }
 
         private void UpdateStars()

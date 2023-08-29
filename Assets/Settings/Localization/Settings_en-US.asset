@@ -532,6 +532,40 @@ MonoBehaviour:
       song is multi-track.
     m_Metadata:
       m_Items: []
+  - m_Id: 56963656047779840
+    m_Localized: Remaining and Total<pos=50%>(4:20 / 5:30)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56963656236523520
+    m_Localized: Remaining Only<pos=50%>(4:20)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56963656236523521
+    m_Localized: Time and Total<pos=50%>(1:10 / 5:30)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56963656236523522
+    m_Localized: Time Only<pos=50%>(1:10)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56963656236523523
+    m_Localized: None
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56963656240717824
+    m_Localized: Total Only<pos=50%>(5:30)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56963656240717825
+    m_Localized: Song Time On Score Box
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56963656240717826
+    m_Localized: Change the song time displayed above the score box. In the examples
+      provided, the song is 5 minutes and 30 seconds long, and you are 1 minute and
+      10 seconds into the song.
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

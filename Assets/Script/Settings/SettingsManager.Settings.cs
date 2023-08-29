@@ -135,6 +135,13 @@ namespace YARG.Settings
             public ToggleSetting ShowHitWindow            { get; } = new(false);
             public ToggleSetting DisableTextNotifications { get; } = new(false);
 
+            public DropdownSetting SongTimeOnScoreBox { get; } = new(new()
+            {
+                "None",
+                "CountUpAndTotal", "CountDownAndTotal",
+                "CountUpOnly", "CountDownOnly", "TotalOnly"
+            }, "CountUp");
+
             public DropdownSetting LyricBackground { get; } = new(new()
             {
                 "Normal", "Transparent", "None",

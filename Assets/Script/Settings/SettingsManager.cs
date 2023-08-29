@@ -236,6 +236,7 @@ namespace YARG.Settings
                 new HeaderMetadata("Other"),
                 "ShowHitWindow",
                 "DisableTextNotifications",
+                "SongTimeOnScoreBox",
                 "LyricBackground"
             },
             new(name: "Engine", icon: "Engine")

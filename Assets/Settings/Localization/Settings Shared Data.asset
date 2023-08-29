@@ -71,6 +71,30 @@ MonoBehaviour:
     m_Key: Dropdown.Graphics.LyricBackground.Transparent
     m_Metadata:
       m_Items: []
+  - m_Id: 56963656047779840
+    m_Key: Dropdown.Graphics.SongTimeOnScoreBox.CountDownAndTotal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56963656236523520
+    m_Key: Dropdown.Graphics.SongTimeOnScoreBox.CountDownOnly
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56963656236523521
+    m_Key: Dropdown.Graphics.SongTimeOnScoreBox.CountUpAndTotal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56963656236523522
+    m_Key: Dropdown.Graphics.SongTimeOnScoreBox.CountUpOnly
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56963656236523523
+    m_Key: Dropdown.Graphics.SongTimeOnScoreBox.None
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56963656240717824
+    m_Key: Dropdown.Graphics.SongTimeOnScoreBox.TotalOnly
+    m_Metadata:
+      m_Items: []
   - m_Id: 13088551106633728
     m_Key: Header.Cache
     m_Metadata:
@@ -265,6 +289,14 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 53704501379850254
     m_Key: Setting.Graphics.ShowHitWindow.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56963656240717825
+    m_Key: Setting.Graphics.SongTimeOnScoreBox
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56963656240717826
+    m_Key: Setting.Graphics.SongTimeOnScoreBox.Description
     m_Metadata:
       m_Items: []
   - m_Id: 53693768667619362
