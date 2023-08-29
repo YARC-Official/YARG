@@ -326,6 +326,7 @@ namespace YARG.Replays
             frame.PlayerName = player.Player.Profile.Name;
             frame.Instrument = player.Player.Profile.Instrument;
             frame.Difficulty = player.Player.Profile.Difficulty;
+            frame.Modifiers = player.Player.Profile.Modifiers;
             frame.Inputs = player.ReplayInputs.ToArray();
             frame.InputCount = player.ReplayInputs.Count;
 
