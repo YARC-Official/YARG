@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
 {
@@ -62,6 +63,9 @@ namespace YARG.Gameplay.HUD
 
         private void Update()
         {
+            // Never update this if text notifications are disabled
+            if (SettingsManager.Settings.DisableTextNotifications.Data) return;
+
             if (_coroutine == null && _notificationPending)
             {
                 _coroutine = StartCoroutine(ShowNextNotification());
