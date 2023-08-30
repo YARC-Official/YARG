@@ -8,6 +8,7 @@ using YARG.Core.Song;
 using YARG.Core.Song.Cache;
 using YARG.Helpers;
 using YARG.Input;
+using YARG.Integration;
 using YARG.Menu.Settings;
 using YARG.Player;
 using YARG.Replays;
@@ -88,7 +89,11 @@ namespace YARG
         private void LoadSceneAdditive(SceneIndex scene)
         {
             var asyncOp = SceneManager.LoadSceneAsync((int) scene, LoadSceneMode.Additive);
+
             CurrentScene = scene;
+
+            GameStateFetcher.SetSceneIndex(scene);
+
             asyncOp.completed += _ =>
             {
                 // When complete, set the newly loaded scene to the active one

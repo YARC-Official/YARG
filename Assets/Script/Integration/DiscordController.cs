@@ -5,25 +5,12 @@ using YARG.Core.Song;
 using YARG.PlayMode;
 using YARG.Song;
 
-namespace YARG.ThirdParty
+namespace YARG.Integration
 {
+    // TODO: Fix this
+
     public class DiscordController : MonoSingleton<DiscordController>
     {
-        /*
-        TODO:
-        Determine if discord is installed at all on windows, linux and mac. Don't bother running otherwise (doubt anyone would install it DURING gameplay lol)
-        Reconnect if discord is closed and reopened/opened during game (and not memory leak the game into a crash)
-
-        Unsure if possible:
-        If Yarg crashes the discord presences will stay
-
-        Impossible at the moment:
-        Display Album art with little icon overlay - Currently only possible with the api's art assets or a url, NOT with a local image file
-        Progress bar
-        Pausing the timer (instead of blanking it)
-        Other specalized things that only very popular apps can do (like spotify and fortnite)
-        */
-
         private Discord.Discord _discord;
 
         public Activity CurrentActivity

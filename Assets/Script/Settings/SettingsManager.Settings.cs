@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using YARG.Audio;
 using YARG.Helpers;
+using YARG.Integration;
 using YARG.Menu.Settings;
 using YARG.PlayMode;
 using YARG.Settings.Types;
@@ -34,12 +35,12 @@ namespace YARG.Settings
 
             public void CopyCurrentSongTextFilePath()
             {
-                GUIUtility.systemCopyBuffer = TwitchController.Instance.TextFilePath;
+                GUIUtility.systemCopyBuffer = CurrentSongController.TextFilePath;
             }
 
             public void CopyCurrentSongJsonFilePath()
             {
-                GUIUtility.systemCopyBuffer = TwitchController.Instance.JsonFilePath;
+                GUIUtility.systemCopyBuffer = CurrentSongController.JsonFilePath;
             }
 
             public void OpenVenueFolder()

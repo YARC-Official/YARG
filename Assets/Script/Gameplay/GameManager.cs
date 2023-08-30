@@ -14,6 +14,7 @@ using YARG.Core.Replays;
 using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
+using YARG.Integration;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Player;
@@ -131,12 +132,12 @@ namespace YARG.Gameplay
             SelectedSongSpeed = GlobalVariables.Instance.SongSpeed;
 
             Navigator.Instance.PopAllSchemes();
+            GameStateFetcher.SetSongMetadata(Song);
 
             if (Song is null)
             {
-                Debug.Assert(false, "Null song set when loading gameplay!");
+                Debug.LogError("Null song set when loading gameplay!");
                 GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
-                return;
             }
         }
 
@@ -484,9 +485,15 @@ namespace YARG.Gameplay
         public void SetPaused(bool paused)
         {
             if (paused)
+            {
                 Pause();
+            }
             else
+            {
                 Resume();
+            }
+
+            GameStateFetcher.SetPaused(paused);
         }
 
         private void EndSong()
