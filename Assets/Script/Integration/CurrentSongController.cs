@@ -1,6 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Newtonsoft.Json;
 using UnityEngine;
+using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Song;
 
@@ -8,6 +10,26 @@ namespace YARG.Integration
 {
     public class CurrentSongController : MonoBehaviour
     {
+        // TODO: We may wanna explicitly specify the json output by putting it in a new class
+        private class SortStringConverter : JsonConverter<SortString>
+        {
+            public static readonly SortStringConverter Default = new();
+
+            public override void WriteJson(JsonWriter writer, SortString value, JsonSerializer serializer)
+            {
+                writer.WriteValue(value.Str);
+            }
+
+            public override SortString ReadJson(JsonReader reader, Type objectType, SortString existingValue,
+                bool hasExistingValue, JsonSerializer serializer)
+            {
+                // We aren't reading from currentSong.json
+                throw new InvalidOperationException();
+            }
+
+            public override bool CanRead => false;
+        }
+
         // Creates .TXT file with current song information
         public static string TextFilePath => Path.Combine(PathHelper.PersistentDataPath, "currentSong.txt");
 
@@ -70,7 +92,7 @@ namespace YARG.Integration
             str = RichTextUtils.StripRichTextTags(str);
 
             // Convert to JSON
-            string json = JsonConvert.SerializeObject(song);
+            string json = JsonConvert.SerializeObject(song, SortStringConverter.Default);
 
             // Open the text file for appending
             using var writer = new StreamWriter(TextFilePath, false);
