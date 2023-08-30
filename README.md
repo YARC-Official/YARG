@@ -19,21 +19,24 @@
   <a href="https://reddit.com/r/yarg">
     <img src="Images/Socials/Reddit.png" height="48px" width="48px" alt="Discord">
   </a>
-
+  
   <br/>
   <br/>
   
-  <img src="Images/README_Gif.gif" width="80%" alt="README gif">
+  <img src="Images/Image.png" width="90%" alt="README gif">
+
+  <br/>
+  <br/>
 </div>
 
 # 👉 Disclaimer
 
 > [!IMPORTANT]
-> We **DO NOT** encourage, advocate, or promote **PIRATING** of songs, or of anything else. This game's intended use is for you, the player, to play songs that you already own. This means, ripping songs of a game **YOU OWN** for **YOURSELF** for **PERSONAL USE**, or downloading creative commons/public domain songs off of the internet.
+> **YARG stands firmly against all forms of piracy.** We neither support nor endorse piracy, as it is a violation of copyright law with serious legal consequences. Our platform's importable content—designed for creators to share their work and for educational purposes—does not justify or excuse piracy.
 >
-> **YARG** has nothing to do with pirates. It stands for "Yet Another Rhythm Game."
+> YARG itself **does not** use any ripped/pirated assets or music and never will. By using YARG, users agree not to promote or endorse piracy in any way through our platform. Upholding these principles ensures a community that respects copyright, creativity, and legal standards.
 >
-> YARG **DOES NOT** use any ripped assets, and we will not accept any pull requests that include assets that we don't have the rights to use.
+> YARG stands for "Yet Another Rhythm Game" and NOT for pirates.
 
 # 📃 Table of Contents
 
