@@ -103,14 +103,9 @@ namespace YARG.Menu.MusicLibrary
                 _albumCover.color = Color.clear;
                 _album.text = string.Empty;
 
-                int sourceCount = categoryViewType.CountOf(i => i.Source);
-                _source.text = $"{sourceCount} sources";
-
-                int charterCount = categoryViewType.CountOf(i => i.Charter);
-                _charter.text = $"{charterCount} charters";
-
-                int genreCount = categoryViewType.CountOf(i => i.Genre);
-                _genre.text = $"{genreCount} genres";
+                _source.text = categoryViewType.SourceCountText;
+                _charter.text = categoryViewType.CharterCountText;
+                _genre.text = categoryViewType.GenreCountText;
 
                 _year.text = string.Empty;
                 _length.text = string.Empty;
