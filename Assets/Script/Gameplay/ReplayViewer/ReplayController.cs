@@ -83,12 +83,13 @@ namespace YARG.Gameplay.ReplayViewer
         private void SetReplayTime(double time)
         {
             Debug.Log("Set replay time to " + time);
-            GameManager.SetSongTime(time);
 
             foreach(var player in GameManager.Players)
             {
                 player.SetReplayTime(time);
             }
+
+            GameManager.SetSongTime(time);
         }
 
         public void OnTimeSliderChanged(float value)
@@ -108,7 +109,7 @@ namespace YARG.Gameplay.ReplayViewer
         {
             if (GameManager.Paused)
             {
-                GameManager.Resume(false);
+                GameManager.Resume();
             }
             else
             {
