@@ -252,7 +252,7 @@ namespace YARG.Menu.MusicLibrary
                 songView.UpdateView();
             }
 
-            _sidebar.UpdateSidebar().Forget();
+            _sidebar.UpdateSidebar();
         }
 
         private void ChangeSongOrder()

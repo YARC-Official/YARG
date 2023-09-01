@@ -1,3 +1,4 @@
+﻿using Cysharp.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,7 +59,7 @@ namespace YARG.Gameplay.HUD
             _sourceIcon.sprite = await SongSources.SourceToIcon(GameManager.Song.Source);
 
             // Set album cover
-            await GameManager.Song.SetRawImageToAlbumCover(_albumCover, CancellationToken.None);
+            GameManager.Song.SetRawImageToAlbumCover(_albumCover, CancellationToken.None).Forget();
         }
 
         protected override void GameplayDestroy()

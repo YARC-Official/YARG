@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -16,38 +17,23 @@ namespace YARG.Helpers.Extensions
             RawImage rawImage, CancellationToken cancellationToken)
         {
             if (songMetadata.IniData != null)
-            {
-                if (await LoadSongIniCover(songMetadata.Directory, rawImage, cancellationToken))
-                {
-                    return;
-                }
-            }
+                await LoadSongIniCover(songMetadata.Directory, rawImage, cancellationToken);
             else
             {
                 byte[] file = null;
+                await UniTask.RunOnThreadPool(() => file = songMetadata.RBData.LoadImgFile());
 
-                try
+                if (file != null)
+                    await LoadRbConCover(file, rawImage, cancellationToken);
+                else
                 {
-                    await UniTask.RunOnThreadPool(
-                        () => file = songMetadata.RBData?.LoadImgFile(),
-                        cancellationToken: cancellationToken
-                    );
-
-                    if (file != null)
-                    {
-                        if (await LoadRbConCover(file, rawImage, cancellationToken)) return;
-                    }
-                }
-                catch (OperationCanceledException)
-                {
+                    rawImage.texture = null;
+                    rawImage.color = Color.clear;
                 }
             }
-
-            rawImage.texture = null;
-            rawImage.color = Color.clear;
         }
 
-        private static async UniTask<bool> LoadSongIniCover(string directory,
+        private static async UniTask LoadSongIniCover(string directory,
             RawImage rawImage, CancellationToken cancellationToken)
         {
             string[] possiblePaths =
@@ -68,34 +54,35 @@ namespace YARG.Helpers.Extensions
                 }
             }
 
-            if (texture == null) return false;
-
-            // Set album cover
-            rawImage.texture = texture;
-            rawImage.color = Color.white;
-            rawImage.uvRect = new Rect(0f, 0f, 1f, 1f);
-            return true;
+            if (texture != null)
+            {
+                // Set album cover
+                rawImage.texture = texture;
+                rawImage.color = Color.white;
+                rawImage.uvRect = new Rect(0f, 0f, 1f, 1f);
+            }
+            else
+            {
+                rawImage.texture = null;
+                rawImage.color = Color.clear;
+            }
         }
 
-        private static async UniTask<bool> LoadRbConCover(byte[] file,
+        private static async UniTask LoadRbConCover(byte[] file,
             RawImage rawImage, CancellationToken cancellationToken)
         {
             XboxImageSettings settings = null;
 
             // The overload with cancellation support requires an async function.
             // ReSharper disable once MethodSupportsCancellation
-            await UniTask.RunOnThreadPool(() =>
-            {
-                return settings = XboxImageTextureGenerator.GetTexture(file, cancellationToken);
-            });
+            await UniTask.RunOnThreadPool(() => settings = XboxImageTextureGenerator.GetTexture(file, cancellationToken));
 
-            if (settings == null) return false;
+            if (settings == null)
+                return;
 
             // Choose the right format
             bool isDXT1 = settings.bitsPerPixel == 0x04 && settings.format == 0x08;
-            var format = isDXT1
-                ? GraphicsFormat.RGBA_DXT1_SRGB
-                : GraphicsFormat.RGBA_DXT5_SRGB;
+            var format = isDXT1 ? GraphicsFormat.RGBA_DXT1_SRGB : GraphicsFormat.RGBA_DXT5_SRGB;
 
             // Load the texture
             var texture = new Texture2D(settings.width, settings.height, format, TextureCreationFlags.None);
@@ -112,8 +99,6 @@ namespace YARG.Helpers.Extensions
             rawImage.texture = texture;
             rawImage.color = Color.white;
             rawImage.uvRect = new Rect(0f, 0f, 1f, -1f);
-
-            return true;
         }
     }
 }
