@@ -71,16 +71,25 @@ namespace YARG.Gameplay.Visuals
             var colors = Player.Player.ColorProfile.FourLaneDrums;
 
             // Get which note color to use
-            var color = NoteRef.IsStarPower
-                ? colors.GetNoteStarPowerColor(NoteRef.Pad)
-                : colors.GetNoteColor(NoteRef.Pad);
+            Color color;
+            if (NoteRef.IsStarPowerActivator)
+            {
+                color = colors.ActivationNote.ToUnityColor();
+            }
+            else
+            {
+                color = (NoteRef.IsStarPower
+                    ? colors.GetNoteStarPowerColor(NoteRef.Pad)
+                    : colors.GetNoteColor(NoteRef.Pad))
+                    .ToUnityColor();
+            }
 
             // Set the note color
-            NoteGroup.ColoredMaterial.color = color.ToUnityColor();
+            NoteGroup.ColoredMaterial.color = color;
 
             // Set emission
             float emissionMultiplier = NoteRef.Pad == (int) FourLaneDrumPad.Kick ? 8f : 2.5f;
-            NoteGroup.ColoredMaterial.SetColor(_emissionColor, color.ToUnityColor() * emissionMultiplier);
+            NoteGroup.ColoredMaterial.SetColor(_emissionColor, color * emissionMultiplier);
         }
 
         protected override void HideElement()

@@ -8,7 +8,6 @@ using UnityEngine.InputSystem;
 using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Chart;
-using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Replays;
 using YARG.Core.Song;
