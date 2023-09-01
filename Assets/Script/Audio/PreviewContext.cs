@@ -91,7 +91,7 @@ namespace YARG.Audio
                 if (!usesPreviewFile)
                 {
                     // Set preview start and end times
-                    PreviewStartTime = TimeSpan.FromMilliseconds(song.PreviewStart).TotalSeconds;
+                    PreviewStartTime = song.PreviewStartInSeconds;
                     if (PreviewStartTime <= 0.0 || PreviewStartTime >= audioLength)
                     {
                         if (20 <= audioLength)
@@ -100,7 +100,7 @@ namespace YARG.Audio
                             PreviewStartTime = audioLength / 2;
                     }
 
-                    PreviewEndTime = TimeSpan.FromMilliseconds(song.PreviewEnd).TotalSeconds;
+                    PreviewEndTime = song.PreviewEndInSeconds;
                     if (PreviewEndTime <= 0.0 || PreviewEndTime + 1 >= audioLength)
                     {
                         PreviewEndTime = PreviewStartTime + DEFAULT_PREVIEW_DURATION;
