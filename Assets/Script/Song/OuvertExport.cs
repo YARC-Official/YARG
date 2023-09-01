@@ -47,7 +47,7 @@ namespace YARG.Song
                     genre = song.Genre,
                     charter = song.Charter,
                     year = song.UnmodifiedYear,
-                    songLength = song.SongLengthMilliseconds
+                    songLength = song.SongLength
                 });
             }
 
