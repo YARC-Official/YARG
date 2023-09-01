@@ -78,6 +78,20 @@ namespace YARG.Gameplay
             remove => _chartLoaded -= value;
         }
 
+        private event Action _songLoaded;
+        public event Action SongLoaded
+        {
+            add
+            {
+                _songLoaded += value;
+
+                // Invoke now if already loaded, this event is only fired once
+                if (GlobalVariables.AudioManager.IsAudioLoaded)
+                    value?.Invoke();
+            }
+            remove => _songLoaded -= value;
+        }
+
         private event Action _songStarted;
         public event Action SongStarted
         {
@@ -369,6 +383,11 @@ namespace YARG.Gameplay
                     Debug.LogException(ex, this);
                 }
             });
+
+            if (_loadFailure)
+                return;
+
+            _songLoaded?.Invoke();
         }
 
         private void CreatePlayers()

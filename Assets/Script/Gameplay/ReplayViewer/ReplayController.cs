@@ -1,36 +1,119 @@
 ﻿using System;
+using TMPro;
 using UnityEngine;
-using YARG.Core.Chart;
+using UnityEngine.UI;
 using YARG.Core.Replays;
 
 namespace YARG.Gameplay.ReplayViewer
 {
-    public class ReplayController : MonoBehaviour
+    public class ReplayController : GameplayBehaviour
     {
-        private GameManager _gameManager;
-        private Replay      _replay;
+        private const float SLIDER_COOLDOWN = 0.5f;
 
-        private void Awake()
-        {
-            _gameManager = FindObjectOfType<GameManager>();
-        }
+        [SerializeField]
+        private Slider _timeSlider;
 
-        private void Start()
+        [SerializeField]
+        private TMP_InputField _speedInput;
+
+        [SerializeField]
+        private TMP_InputField _timeInput;
+
+        [SerializeField]
+        private TextMeshProUGUI _songLength;
+
+        private Replay _replay;
+
+        private float _sliderValue;
+        private float _sliderTimeInactive;
+        private bool  _sliderChanged;
+
+        protected override void OnSongLoaded()
         {
-            if (!_gameManager.IsReplay)
+            if (!GameManager.IsReplay)
             {
                 gameObject.SetActive(false);
                 return;
             }
 
-            _gameManager.ChartLoaded += OnChartLoaded;
+            _songLength.text = TimeSpan.FromSeconds(GameManager.SongLength).ToString("g");
+
+            _replay = GameManager.Replay;
         }
 
-        private void OnChartLoaded(SongChart chart)
+        private void Update()
         {
-            _replay = _gameManager.Replay;
+            if (!GameManager.Paused)
+            {
+                UpdateReplayUI(true);
+            }
 
-            _gameManager.ChartLoaded -= OnChartLoaded;
+            if (_sliderChanged)
+            {
+                _sliderTimeInactive += Time.deltaTime;
+                if(_sliderTimeInactive >= SLIDER_COOLDOWN)
+                {
+                    _sliderChanged = false;
+                    _sliderTimeInactive = 0f;
+                    SetReplayTime(_timeSlider.value * GameManager.SongLength);
+                }
+            }
+        }
+
+        private void UpdateReplayUI(bool updateSlider)
+        {
+            _timeInput.text = TimeSpan.FromSeconds(GameManager.InputTime).ToString("g");
+
+            if (updateSlider)
+            {
+                double value;
+                if (_sliderChanged)
+                {
+                    value = _sliderValue * GameManager.SongLength;
+                }
+                else
+                {
+                    value = GameManager.InputTime / GameManager.SongLength;
+                }
+
+                _timeSlider.SetValueWithoutNotify((float)value);
+            }
+        }
+
+        private void SetReplayTime(double time)
+        {
+            Debug.Log("Set replay time to " + time);
+            GameManager.SetSongTime(time);
+
+            foreach(var player in GameManager.Players)
+            {
+                player.SetReplayTime(time);
+            }
+        }
+
+        public void OnTimeSliderChanged(float value)
+        {
+            if (!GameManager.Paused)
+            {
+                GameManager.Pause(false);
+            }
+
+            _sliderTimeInactive = 0f;
+            _sliderChanged = true;
+
+            UpdateReplayUI(false);
+        }
+
+        public void TogglePause()
+        {
+            if (GameManager.Paused)
+            {
+                GameManager.Resume(false);
+            }
+            else
+            {
+                GameManager.Pause(false);
+            }
         }
     }
 }
