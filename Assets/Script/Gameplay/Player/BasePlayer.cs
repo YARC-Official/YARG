@@ -131,6 +131,8 @@ namespace YARG.Gameplay.Player
 
         public abstract void ResetPracticeSection();
 
+        public abstract void SetReplayTime(double time);
+
         protected abstract void UpdateInputs(double inputTime);
 
         protected abstract void UpdateNotes(double songTime);
@@ -292,6 +294,20 @@ namespace YARG.Gameplay.Player
             TotalNotes = Notes.Count;
 
             ResetVisuals();
+        }
+
+        public override void SetReplayTime(double time)
+        {
+            ResetVisuals();
+
+            IsFc = true;
+
+            NoteIndex = 0;
+            BeatlineIndex = 0;
+            NotesHit = 0;
+            TotalNotes = Notes.Count;
+
+            _replayInputIndex = Engine.ProcessUpToTime(time, ReplayInputs);
         }
 
         protected override void UpdateInputs(double inputTime)
