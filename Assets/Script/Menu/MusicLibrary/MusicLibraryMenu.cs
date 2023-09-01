@@ -369,7 +369,8 @@ namespace YARG.Menu.MusicLibrary
 
                 var categoryView = new CategoryViewType(
                     "SEARCH RESULTS",
-                    $"<#00B6F5><b>{count}</b> <#006488>{(count == 1 ? "SONG" : "SONGS")}"
+                    $"<#00B6F5><b>{count}</b> <#006488>{(count == 1 ? "SONG" : "SONGS")}",
+                    _sortedSongs
                 );
 
                 if (_sortedSongs.Count == 1)
