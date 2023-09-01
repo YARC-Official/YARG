@@ -134,6 +134,19 @@ namespace YARG.Gameplay
             Navigator.Instance.PopAllSchemes();
             GameStateFetcher.SetSongMetadata(Song);
 
+            // Change Debug Text Layout if more than 1 player
+            if (_yargPlayers.Count > 1)
+            {
+                _debugText.alignment = TextAlignmentOptions.TopLeft;
+                _debugText.fontSize = 25;
+                _debugText.font = Resources.Load<TMP_FontAsset>("Fonts & Materials/Barlow SDF");
+                _debugText.rectTransform.anchorMin = Vector2.up;
+                _debugText.rectTransform.anchorMax = Vector2.up;
+                _debugText.rectTransform.pivot = Vector2.up;
+                _debugText.rectTransform.anchoredPosition = new Vector2(25, -60);
+            }
+
+            // If no song, go back to menu
             if (Song is null)
             {
                 Debug.LogError("Null song set when loading gameplay!");
@@ -236,10 +249,11 @@ namespace YARG.Gameplay
                     double starPower = fiveFretPlayer.Engine.EngineStats.StarPowerAmount;
 
                     _debugText.text =
-                        $"Note index: {noteIndex}\n" +
-                        $"Buttons: {buttonMask}\n" +
-                        $"Star Power: {starPower:0.0000}\n" +
-                        $"TicksPerEight: {ticksPerEight}\n";
+                        $"<b>Player:</b> {fiveFretPlayer.Player.Profile.Name}\n" +
+                        $"<b>Note index:</b> {noteIndex}\n" +
+                        $"<b>Buttons:</b> {buttonMask}\n" +
+                        $"<b>Star Power:</b> {starPower:0.0000}\n" +
+                        $"<b>TicksPerEight:</b> {ticksPerEight}\n";
 
                 }
                 else if (_players[0] is DrumsPlayer drumsPlayer)
@@ -247,16 +261,16 @@ namespace YARG.Gameplay
                     int noteIndex = drumsPlayer.Engine.State.NoteIndex;
 
                     _debugText.text =
-                        $"Note index: {noteIndex}\n";
+                        $"<b>Note index:</b> {noteIndex}\n";
                 }
 
                 _debugText.text +=
-                    $"Input time: {InputTime:0.000000}\n" +
-                    $"Song time: {SongTime:0.000000}\n" +
-                    $"Time difference: {InputTime - SongTime:0.000000}\n" +
-                    $"Speed adjustment: {_syncSpeedAdjustment:0.00}\n" +
-                    $"Speed multiplier: {_syncSpeedMultiplier}\n" +
-                    $"Sync start delta: {_syncStartDelta:0.000000}";
+                    $"<b>Input time:</b> {InputTime:0.000000}\n" +
+                    $"<b>Song time:</b> {SongTime:0.000000}\n" +
+                    $"<b>Time difference:</b> {InputTime - SongTime:0.000000}\n" +
+                    $"<b>Speed adjustment:</b> {_syncSpeedAdjustment:0.00}\n" +
+                    $"<b>Speed multiplier:</b> {_syncSpeedMultiplier}\n" +
+                    $"<b>Sync start delta:</b> {_syncStartDelta:0.000000}";
             }
 
             int totalScore = 0;
