@@ -318,7 +318,7 @@ namespace YARG.Gameplay
                 var yargPlayer = new YargPlayer(frame.PlayerInfo.Profile, null, false);
                 yargPlayer.ColorProfile = Replay.ColorProfiles[frame.PlayerInfo.ColorProfileId];
 
-                players.Add(new YargPlayer(frame.PlayerInfo.Profile, null, false));
+                players.Add(yargPlayer);
             }
 
             _yargPlayers = players;
