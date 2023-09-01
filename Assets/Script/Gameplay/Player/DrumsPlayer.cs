@@ -89,6 +89,14 @@ namespace YARG.Gameplay.Player
             HitWindowDisplay.SetHitWindowInfo(EngineParams, NoteSpeed);
         }
 
+        public override void UpdateWithTimes(double inputTime, double songTime)
+        {
+            base.UpdateWithTimes(inputTime, songTime);
+
+            Score = Engine.EngineStats.Score;
+            Combo = Engine.EngineStats.Combo;
+        }
+
         protected override void UpdateVisuals(double songTime)
         {
             UpdateBaseVisuals(Engine.EngineStats, songTime);
