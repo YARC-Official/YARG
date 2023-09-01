@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Guitar;
+using YARG.Core.Game;
 using YARG.Core.Replays;
 using YARG.Core.Song;
 using YARG.Core.Utility;
@@ -91,13 +92,30 @@ namespace YARG.Replays
             };
 
             int bandScore = 0;
+            var colorProfiles = new List<ColorProfile>();
 
             for (int i = 0; i < players.Count; i++)
             {
                 replay.PlayerNames[i] = players[i].Player.Profile.Name;
                 replay.Frames[i] = CreateReplayFrame(i, players[i], out int score);
                 bandScore += score;
+
+                // Insert color profile into the list if it doesn't exist, otherwise use the index of the existing one
+                // (saves space in the replay file by only writing once)
+                var playerColors = players[i].Player.ColorProfile;
+                if (!colorProfiles.Contains(playerColors))
+                {
+                    colorProfiles.Add(playerColors);
+                    replay.Frames[i].PlayerInfo.ColorProfileId = colorProfiles.Count - 1;
+                }
+                else
+                {
+                    replay.Frames[i].PlayerInfo.ColorProfileId = colorProfiles.IndexOf(playerColors);
+                }
             }
+
+            replay.ColorProfileCount = colorProfiles.Count;
+            replay.ColorProfiles = colorProfiles.ToArray();
 
             replay.BandScore = bandScore;
 
@@ -322,11 +340,13 @@ namespace YARG.Replays
             playerScore = frame.Stats.Score;
 
             // Insert other frame information
-            frame!.PlayerId = id;
-            frame.PlayerName = player.Player.Profile.Name;
-            frame.Instrument = player.Player.Profile.Instrument;
-            frame.Difficulty = player.Player.Profile.Difficulty;
-            frame.Modifiers = player.Player.Profile.Modifiers;
+
+            frame!.PlayerInfo = new ReplayPlayerInfo
+            {
+                PlayerId = id,
+                Profile = player.Player.Profile,
+            };
+
             frame.Inputs = player.ReplayInputs.ToArray();
             frame.InputCount = player.ReplayInputs.Count;
 

@@ -302,16 +302,7 @@ namespace YARG.Gameplay
             var players = new List<YargPlayer>();
             foreach (var frame in Replay.Frames)
             {
-                var profile = new YargProfile
-                {
-                    Name = frame.PlayerName,
-                    GameMode = frame.Instrument.ToGameMode(),
-                    Instrument = frame.Instrument,
-                    Difficulty = frame.Difficulty,
-                    NoteSpeed = 7,
-                };
-
-                players.Add(new YargPlayer(profile, null, false));
+                players.Add(new YargPlayer(frame.PlayerInfo.Profile, null, false));
             }
 
             _yargPlayers = players;
