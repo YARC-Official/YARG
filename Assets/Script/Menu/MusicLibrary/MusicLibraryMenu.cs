@@ -60,6 +60,7 @@ namespace YARG.Menu.MusicLibrary
         private List<SongView> _songViewObjects;
 
         private SongSearching _searchBar = new();
+        private string _currentSearch = string.Empty;
         private SortedDictionary<string, List<SongMetadata>> _sortedSongs;
         private List<SongMetadata> _recommendedSongs;
 
@@ -354,13 +355,17 @@ namespace YARG.Menu.MusicLibrary
 
         public void UpdateSearch()
         {
+            if (!RefreshFlag && _currentSearch == _searchField.text)
+                return;
+
             SetRecommendedSongs();
 
-            _sortedSongs = _searchBar.Search(_searchField.text, _sort);
+            _currentSearch = _searchField.text;
+            _sortedSongs = _searchBar.Search(_currentSearch, _sort);
 
             AddSongs();
 
-            if (!string.IsNullOrEmpty(_searchField.text))
+            if (!string.IsNullOrEmpty(_currentSearch))
             {
                 // Create the category
                 int count = 0;
