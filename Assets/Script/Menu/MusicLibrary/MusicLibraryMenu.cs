@@ -154,7 +154,7 @@ namespace YARG.Menu.MusicLibrary
                 _recommendedSongs = null;
 
                 // Get songs
-                UpdateSearch();
+                UpdateSearch(true);
                 RefreshFlag = false;
             }
 
@@ -259,7 +259,7 @@ namespace YARG.Menu.MusicLibrary
         {
             NextSort();
 
-            UpdateSearch();
+            UpdateSearch(true);
             UpdateNavigationScheme();
         }
 
@@ -353,9 +353,9 @@ namespace YARG.Menu.MusicLibrary
             _scrollbar.SetValueWithoutNotify((float) SelectedIndex / _viewList.Count);
         }
 
-        public void UpdateSearch()
+        public void UpdateSearch(bool force)
         {
-            if (!RefreshFlag && _currentSearch == _searchField.text)
+            if (!force && _currentSearch == _searchField.text)
                 return;
 
             SetRecommendedSongs();
@@ -546,7 +546,7 @@ namespace YARG.Menu.MusicLibrary
             if (searchBoxHasContent)
             {
                 ClearSearchBox();
-                UpdateSearch();
+                UpdateSearch(true);
                 UpdateNavigationScheme();
                 return;
             }
