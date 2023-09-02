@@ -44,6 +44,11 @@ namespace YARG.Gameplay.HUD
             PauseMenuManager.Restart();
         }
 
+        public void SaveReplay()
+        {
+            GameManager.SaveReplay(GameManager.InputTime);
+        }
+
         public void BackToLibrary()
         {
             PauseMenuManager.Quit();

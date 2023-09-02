@@ -77,7 +77,7 @@ namespace YARG.Replays
             return ReplayIO.ReadReplay(Path.Combine(ReplayDirectory, entry.ReplayFile), out replayFile);
         }
 
-        public static Replay CreateNewReplay(SongMetadata song, IList<BasePlayer> players)
+        public static Replay CreateNewReplay(SongMetadata song, IList<BasePlayer> players, double replayLength)
         {
             var replay = new Replay
             {
@@ -85,6 +85,7 @@ namespace YARG.Replays
                 ArtistName = song.Artist,
                 CharterName = song.Charter,
                 SongChecksum = song.Hash,
+                ReplayLength = replayLength,
                 Date = DateTime.Now,
                 PlayerCount = players.Count,
                 PlayerNames = new string[players.Count],

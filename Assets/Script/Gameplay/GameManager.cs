@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -13,6 +14,7 @@ using YARG.Core.Replays;
 using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
+using YARG.Gameplay.ReplayViewer;
 using YARG.Integration;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
@@ -27,6 +29,9 @@ namespace YARG.Gameplay
 
         [SerializeField]
         private TrackViewManager _trackViewManager;
+
+        [SerializeField]
+        private ReplayController _replayController;
 
         [SerializeField]
         private PauseMenuManager _pauseMenu;
@@ -130,6 +135,7 @@ namespace YARG.Gameplay
         public IReadOnlyList<BasePlayer> Players => _players;
 
         private bool _isShowDebugText;
+        private bool _isReplaySaved;
 
         private void Awake()
         {
@@ -169,7 +175,9 @@ namespace YARG.Gameplay
             if (IsReplay)
             {
                 LoadingManager.Instance.Queue(LoadReplay, "Loading replay...");
+                _replayController.gameObject.SetActive(true);
             }
+
             LoadingManager.Instance.Queue(LoadChart, "Loading chart...");
             LoadingManager.Instance.Queue(LoadAudio, "Loading audio...");
             await LoadingManager.Instance.StartLoad();
@@ -485,6 +493,8 @@ namespace YARG.Gameplay
             Paused = false;
             _pauseMenu.gameObject.SetActive(false);
 
+            _isReplaySaved = false;
+
             _debugText.gameObject.SetActive(_isShowDebugText);
 
             if (inputCompensation)
@@ -513,17 +523,13 @@ namespace YARG.Gameplay
             if (IsPractice)
             {
                 PracticeManager.ResetPractice();
+                return;
             }
+
             if (!IsReplay)
             {
-                var replay = ReplayContainer.CreateNewReplay(Song, _players);
-                var entry = ReplayContainer.CreateEntryFromReplayFile(new ReplayFile(replay));
-
-                entry.ReplayFile = entry.GetReplayName();
-
-                ReplayIO.WriteReplay(Path.Combine(ReplayContainer.ReplayDirectory, entry.ReplayFile), replay);
-
-                Debug.Log("Wrote replay");
+                _isReplaySaved = false;
+                SaveReplay(Song.SongLengthInSeconds);
             }
 
             QuitSong();
@@ -535,6 +541,26 @@ namespace YARG.Gameplay
 
             GlobalVariables.Instance.IsReplay = false;
             GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+        }
+
+        public void SaveReplay(double length)
+        {
+            bool realPlayerActive = _players.Any(player => !player.Player.Profile.IsBot);
+
+            if (_isReplaySaved || !realPlayerActive)
+            {
+                return;
+            }
+
+            var replay = ReplayContainer.CreateNewReplay(Song, _players, length);
+            var entry = ReplayContainer.CreateEntryFromReplayFile(new ReplayFile(replay));
+
+            entry.ReplayFile = entry.GetReplayName();
+
+            ReplayIO.WriteReplay(Path.Combine(ReplayContainer.ReplayDirectory, entry.ReplayFile), replay);
+
+            Debug.Log("Wrote replay");
+            _isReplaySaved = true;
         }
 
         private void OnAudioEnd()

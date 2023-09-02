@@ -32,7 +32,7 @@ namespace YARG.Gameplay.ReplayViewer
         {
             if (!GameManager.IsReplay)
             {
-                gameObject.SetActive(false);
+                Destroy(gameObject);
                 return;
             }
 
