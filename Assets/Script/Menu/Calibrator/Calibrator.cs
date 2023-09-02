@@ -1,9 +1,17 @@
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using TMPro;
 using UnityEngine;
+using YARG.Core.Input;
+using YARG.Input;
+using YARG.Player;
+using YARG.Settings;
 
-namespace YARG
+namespace YARG.Menu.Calibrator
 {
+    // TODO: Redo this
+
     public class Calibrator : MonoBehaviour
     {
         private const float SECONDS_PER_BEAT = 1f / 80f * 60f;
@@ -28,41 +36,37 @@ namespace YARG
         private TextMeshProUGUI _audioCalibrateText;
 
         private State _state = State.Starting;
-        private List<float> _calibrationTimes = new();
+        private readonly List<float> _calibrationTimes = new();
 
-        // TODO: Make this work again lol
+        private YargPlayer _player;
 
-        /*
         private void Start()
         {
             UpdateForState();
 
-            foreach (var player in PlayerManager.players)
-            {
-                if (player.inputStrategy == null)
-                {
-                    continue;
-                }
-
-                player.inputStrategy.GenericCalibrationEvent += OnGenericCalibrationEvent;
-            }
+            InputManager.MenuInput += OnMenuInput;
         }
 
         private void OnDestroy()
         {
-            foreach (var player in PlayerManager.players)
-            {
-                if (player.inputStrategy == null)
-                {
-                    continue;
-                }
-
-                player.inputStrategy.GenericCalibrationEvent -= OnGenericCalibrationEvent;
-            }
+            InputManager.MenuInput -= OnMenuInput;
         }
 
-        private void OnGenericCalibrationEvent(InputStrategy inputStrategy)
+        private void OnMenuInput(YargPlayer player, ref GameInput input)
         {
+            // Only detect button downs
+            if (!input.Button) return;
+
+            // Only allow inputs from one player at a time
+            if (_player is null)
+            {
+                _player = player;
+            }
+            else if (_player != player)
+            {
+                return;
+            }
+
             switch (_state)
             {
                 case State.AudioWaiting:
@@ -71,15 +75,24 @@ namespace YARG
                     break;
                 case State.Audio:
                     _audioCalibrateText.color = Color.green;
-                    _audioCalibrateText.text = "STRUMMED";
+                    _audioCalibrateText.text = "Detected";
 
                     _calibrationTimes.Add(GlobalVariables.AudioManager.CurrentPositionF);
+                    break;
+                case State.Starting:
+                case State.AudioDone:
+                    if (input.GetAction<MenuAction>() == MenuAction.Red)
+                    {
+                        BackButton();
+                    }
                     break;
             }
         }
 
         private void Update()
         {
+            Debug.Log($"playing: {GlobalVariables.AudioManager.IsPlaying}");
+
             switch (_state)
             {
                 case State.Audio:
@@ -106,8 +119,12 @@ namespace YARG
                     break;
                 case State.AudioWaiting:
                     _audioCalibrateContainer.SetActive(true);
+                    _player = null;
+
                     _audioCalibrateText.color = Color.white;
-                    _audioCalibrateText.text = "Strum/hit on each tick you hear. Strum/hit when you are ready.";
+                    _audioCalibrateText.text =
+                        "Press any button on each tick you hear.\n" +
+                        "Press any button when you are ready.";
                     break;
                 case State.Audio:
                     _audioCalibrateContainer.SetActive(true);
@@ -140,7 +157,9 @@ namespace YARG
             if (_calibrationTimes.Count <= 8)
             {
                 _audioCalibrateText.color = Color.red;
-                _audioCalibrateText.text = "There isn't enough data to get an accurate result.";
+                _audioCalibrateText.text =
+                    "There isn't enough data to get an accurate result.\n" +
+                    "Press back to exit.";
                 return;
             }
 
@@ -193,7 +212,9 @@ namespace YARG
 
             // Set text
             _audioCalibrateText.color = Color.green;
-            _audioCalibrateText.text = $"Calibration set to {calibration}ms!\nYou can now exit the calibrator.";
+            _audioCalibrateText.text =
+                $"Calibration set to {calibration}ms!\n" +
+                "Press back to exit.";
         }
 
         private IEnumerator AudioCalibrateCoroutine()
@@ -201,20 +222,23 @@ namespace YARG
             _audioCalibrateText.color = Color.white;
             _audioCalibrateText.text = "1";
 
-            yield return new WaitUntil(() => GlobalVariables.AudioManager.CurrentPositionF >= SECONDS_PER_BEAT * 1f);
+            yield return new WaitUntil(() =>
+                GlobalVariables.AudioManager.CurrentPositionF >= SECONDS_PER_BEAT * 1f);
             _audioCalibrateText.color = Color.white;
             _audioCalibrateText.text = "2";
 
-            yield return new WaitUntil(() => GlobalVariables.AudioManager.CurrentPositionF >= SECONDS_PER_BEAT * 2f);
+            yield return new WaitUntil(() =>
+                GlobalVariables.AudioManager.CurrentPositionF >= SECONDS_PER_BEAT * 2f);
             _audioCalibrateText.color = Color.white;
             _audioCalibrateText.text = "3";
 
-            yield return new WaitUntil(() => GlobalVariables.AudioManager.CurrentPositionF >= SECONDS_PER_BEAT * 3f);
+            yield return new WaitUntil(() =>
+                GlobalVariables.AudioManager.CurrentPositionF >= SECONDS_PER_BEAT * 3f);
             _audioCalibrateText.color = Color.white;
             _audioCalibrateText.text = "4";
 
             yield return new WaitUntil(() =>
-                GlobalVariables.AudioManager.CurrentPositionF >= GlobalVariables.AudioManager.AudioLengthF);
+                !GlobalVariables.AudioManager.IsPlaying);
             _state = State.AudioDone;
             UpdateForState();
         }
@@ -237,8 +261,5 @@ namespace YARG
                 UpdateForState();
             }
         }
-
-
-        */
     }
 }

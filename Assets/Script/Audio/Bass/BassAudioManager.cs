@@ -529,6 +529,7 @@ namespace YARG.Audio.BASS
         private void OnSongEnd()
         {
             SongEnd?.Invoke();
+            IsPlaying = false;
         }
 
         private void OnDestroy()
