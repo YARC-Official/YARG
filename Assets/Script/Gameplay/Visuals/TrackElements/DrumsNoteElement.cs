@@ -72,7 +72,7 @@ namespace YARG.Gameplay.Visuals
 
             // Get which note color to use
             Color color;
-            if (NoteRef.IsStarPowerActivator)
+            if (NoteRef.IsStarPowerActivator && Player.Engine.EngineStats.StarPowerAmount >= 0.5)
             {
                 color = colors.ActivationNote.ToUnityColor();
             }
