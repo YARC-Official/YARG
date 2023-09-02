@@ -60,6 +60,7 @@ namespace YARG.Menu.MusicLibrary
         private List<SongView> _songViewObjects;
 
         private SongSearching _searchBar = new();
+        private string _currentSearch = string.Empty;
         private SortedDictionary<string, List<SongMetadata>> _sortedSongs;
         private List<SongMetadata> _recommendedSongs;
 
@@ -153,7 +154,7 @@ namespace YARG.Menu.MusicLibrary
                 _recommendedSongs = null;
 
                 // Get songs
-                UpdateSearch();
+                UpdateSearch(true);
                 RefreshFlag = false;
             }
 
@@ -251,14 +252,14 @@ namespace YARG.Menu.MusicLibrary
                 songView.UpdateView();
             }
 
-            _sidebar.UpdateSidebar().Forget();
+            _sidebar.UpdateSidebar();
         }
 
         private void ChangeSongOrder()
         {
             NextSort();
 
-            UpdateSearch();
+            UpdateSearch(true);
             UpdateNavigationScheme();
         }
 
@@ -352,15 +353,19 @@ namespace YARG.Menu.MusicLibrary
             _scrollbar.SetValueWithoutNotify((float) SelectedIndex / _viewList.Count);
         }
 
-        public void UpdateSearch()
+        public void UpdateSearch(bool force)
         {
+            if (!force && _currentSearch == _searchField.text)
+                return;
+
             SetRecommendedSongs();
 
-            _sortedSongs = _searchBar.Search(_searchField.text, _sort);
+            _currentSearch = _searchField.text;
+            _sortedSongs = _searchBar.Search(_currentSearch, _sort);
 
             AddSongs();
 
-            if (!string.IsNullOrEmpty(_searchField.text))
+            if (!string.IsNullOrEmpty(_currentSearch))
             {
                 // Create the category
                 int count = 0;
@@ -369,7 +374,8 @@ namespace YARG.Menu.MusicLibrary
 
                 var categoryView = new CategoryViewType(
                     "SEARCH RESULTS",
-                    $"<#00B6F5><b>{count}</b> <#006488>{(count == 1 ? "SONG" : "SONGS")}"
+                    $"<#00B6F5><b>{count}</b> <#006488>{(count == 1 ? "SONG" : "SONGS")}",
+                    _sortedSongs
                 );
 
                 if (_sortedSongs.Count == 1)
@@ -540,7 +546,7 @@ namespace YARG.Menu.MusicLibrary
             if (searchBoxHasContent)
             {
                 ClearSearchBox();
-                UpdateSearch();
+                UpdateSearch(true);
                 UpdateNavigationScheme();
                 return;
             }

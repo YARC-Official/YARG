@@ -75,7 +75,7 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
-        public async UniTask UpdateSidebar()
+        public void UpdateSidebar()
         {
             if (MusicLibraryMenu.Instance.ViewList.Count <= 0)
             {
@@ -103,14 +103,9 @@ namespace YARG.Menu.MusicLibrary
                 _albumCover.color = Color.clear;
                 _album.text = string.Empty;
 
-                int sourceCount = categoryViewType.CountOf(i => i.Source);
-                _source.text = $"{sourceCount} sources";
-
-                int charterCount = categoryViewType.CountOf(i => i.Charter);
-                _charter.text = $"{charterCount} charters";
-
-                int genreCount = categoryViewType.CountOf(i => i.Genre);
-                _genre.text = $"{genreCount} genres";
+                _source.text = categoryViewType.SourceCountText;
+                _charter.text = categoryViewType.CharterCountText;
+                _genre.text = categoryViewType.GenreCountText;
 
                 _year.text = string.Empty;
                 _length.text = string.Empty;
@@ -153,8 +148,9 @@ namespace YARG.Menu.MusicLibrary
 
             UpdateDifficulties(songEntry.Parts);
 
+            _cancellationToken = new();
             // Finally, update album cover
-            await LoadAlbumCover();
+            LoadAlbumCover();
         }
 
         private void UpdateDifficulties(AvailableParts parts)
@@ -237,25 +233,24 @@ namespace YARG.Menu.MusicLibrary
             _difficultyRings[9].SetInfo("band", "Band", parts.GetValues(Instrument.Band));
         }
 
-        public async UniTask LoadAlbumCover()
+        public async void LoadAlbumCover()
         {
-            _cancellationToken = new();
-
             var viewType = MusicLibraryMenu.Instance.ViewList[MusicLibraryMenu.Instance.SelectedIndex];
             if (viewType is not SongViewType songViewType)
             {
                 return;
             }
 
-            // Dispose of the old texture (prevent memory leaks)
-            // This might seem where, but we're *destroying the texture*, not the raw image component
-            if (_albumCover.texture != null)
-            {
-                Destroy(_albumCover.texture);
-            }
+            var originalTexture = _albumCover.texture;
 
             // Load the new one
             await songViewType.SongMetadata.SetRawImageToAlbumCover(_albumCover, _cancellationToken.Token);
+
+            // Dispose of the old texture (prevent memory leaks)
+            if (originalTexture != null)
+            {
+                Destroy(originalTexture);
+            }
         }
 
         public void PrimaryButtonClick()
