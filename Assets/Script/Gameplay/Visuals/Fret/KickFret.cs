@@ -4,7 +4,7 @@ namespace YARG.Gameplay.Visuals
 {
     public class KickFret : MonoBehaviour
     {
-        private const float SECONDS_PER_FRAME = 1f / 45f;
+        private const float SECONDS_PER_FRAME = 1f / 50f;
 
         [SerializeField]
         private Animation _animation;
