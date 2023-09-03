@@ -13,6 +13,7 @@ using YARG.Core.Utility;
 using YARG.Helpers;
 using YARG.Input;
 using YARG.Integration;
+using YARG.Menu.ScoreScreen;
 using YARG.Menu.Settings;
 using YARG.Player;
 using YARG.Replays;
@@ -50,6 +51,8 @@ namespace YARG
 
         public SongMetadata CurrentSong;
         public ReplayEntry  CurrentReplay;
+
+        public ScoreScreenStats ScoreScreenStats;
 
         [Space]
         public float SongSpeed = 1f;

@@ -41,21 +41,21 @@ namespace YARG.Menu.ScoreScreen
 
         private void CreateScoreCards()
         {
-            foreach (var player in PlayerContainer.Players)
+            foreach (var score in GlobalVariables.Instance.ScoreScreenStats.PlayerScores)
             {
-                switch (player.Profile.Instrument.ToGameMode())
+                switch (score.Player.Profile.Instrument.ToGameMode())
                 {
                     case GameMode.FiveFretGuitar:
                     {
                         var card = Instantiate(_guitarCardPrefab, _cardContainer);
-                        card.Initialize(player, new GuitarStats());
+                        card.Initialize(score.Player, score.Stats as GuitarStats);
                         card.SetCardContents();
                         break;
                     }
                     case GameMode.FourLaneDrums:
                     {
                         var card = Instantiate(_drumsCardPrefab, _cardContainer);
-                        card.Initialize(player, new DrumsStats());
+                        card.Initialize(score.Player, score.Stats as DrumsStats);
                         card.SetCardContents();
                         break;
                     }

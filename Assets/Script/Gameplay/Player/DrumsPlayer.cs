@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using YARG.Core.Chart;
+using YARG.Core.Engine;
 using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Drums.Engines;
 using YARG.Core.Input;
@@ -17,6 +18,8 @@ namespace YARG.Gameplay.Player
         private FretArray _fretArray;
         [SerializeField]
         private KickFret _kickFret;
+
+        public override BaseStats Stats => Engine?.EngineStats;
 
         public override float[] StarMultiplierThresholds { get; }  =
         {

@@ -63,6 +63,8 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        public abstract BaseStats Stats { get; }
+
         public abstract float[] StarMultiplierThresholds { get; }
 
         public abstract int[] StarScoreThresholds { get; protected set; }

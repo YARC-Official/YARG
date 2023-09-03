@@ -18,6 +18,7 @@ using YARG.Gameplay.ReplayViewer;
 using YARG.Integration;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
+using YARG.Menu.ScoreScreen;
 using YARG.Player;
 using YARG.Replays;
 
@@ -533,6 +534,15 @@ namespace YARG.Gameplay
             }
 
             GlobalVariables.AudioManager.UnloadSong();
+
+            GlobalVariables.Instance.ScoreScreenStats = new ScoreScreenStats
+            {
+                PlayerScores = _players.Select(player => new PlayerScoreCard
+                {
+                    Player = player.Player,
+                    Stats = player.Stats
+                }).ToArray()
+            };
 
             GlobalVariables.Instance.IsReplay = false;
             GlobalVariables.Instance.LoadScene(SceneIndex.Score);

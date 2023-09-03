@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using YARG.Audio;
 using YARG.Core.Chart;
+using YARG.Core.Engine;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Guitar.Engines;
 using YARG.Core.Input;
@@ -16,6 +17,8 @@ namespace YARG.Gameplay.Player
         [Header("Five Fret Specific")]
         [SerializeField]
         private FretArray _fretArray;
+
+        public override BaseStats Stats => Engine?.EngineStats;
 
         public override float[] StarMultiplierThresholds { get; } =
         {
