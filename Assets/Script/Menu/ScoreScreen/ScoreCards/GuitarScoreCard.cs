@@ -2,9 +2,9 @@
 using UnityEngine;
 using YARG.Core.Engine.Guitar;
 
-namespace YARG.Menu.StatsScreen
+namespace YARG.Menu.ScoreScreen
 {
-    public class GuitarStatsCard : StatsCard<GuitarStats>
+    public class GuitarScoreCard : ScoreCard<GuitarStats>
     {
         [SerializeField]
         private TextMeshProUGUI _overstrums;
