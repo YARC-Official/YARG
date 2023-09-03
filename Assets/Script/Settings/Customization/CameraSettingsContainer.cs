@@ -16,7 +16,7 @@ namespace YARG.Settings.Customization
         {
             Content.Clear();
 
-            PathHelper.SafeEnumerateFiles("*.json", true, (path) =>
+            PathHelper.SafeEnumerateFiles(ContentDirectory, "*.json", true, (path) =>
             {
                 var camera = JsonConvert.DeserializeObject<CameraPreset>(File.ReadAllText(path));
 

@@ -17,7 +17,7 @@ namespace YARG.Settings.Customization
         {
             Content.Clear();
 
-            PathHelper.SafeEnumerateFiles("*.json", true, (path) =>
+            PathHelper.SafeEnumerateFiles(ContentDirectory, "*.json", true, (path) =>
             {
                 var colors = JsonConvert.DeserializeObject<ColorProfile>(File.ReadAllText(path),
                     new JsonColorConverter());
