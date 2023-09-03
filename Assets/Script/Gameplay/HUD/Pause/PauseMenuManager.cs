@@ -151,7 +151,7 @@ namespace YARG.Gameplay.HUD
 
         public void Quit()
         {
-            GameManager.QuitSong();
+            GameManager.ForceQuitSong();
         }
 
         public void Restart()

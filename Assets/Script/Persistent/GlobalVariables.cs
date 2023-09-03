@@ -27,7 +27,8 @@ namespace YARG
         Persistent,
         Menu,
         Gameplay,
-        Calibration
+        Calibration,
+        Score
     }
 
     [DefaultExecutionOrder(-5000)]

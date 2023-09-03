@@ -706,7 +706,7 @@ MonoBehaviour:
   _notesHit: {fileID: 6177436150762148499}
   _maxStreak: {fileID: 6669027642699322304}
   _notesMissed: {fileID: 687220980320161962}
-  _overhits: {fileID: 1108860966800092313}
+  _overhits: {fileID: 2974647992237571564}
 --- !u!114 &7674939555971226258 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2885240813424434787, guid: 1b5d8949b9f2d7345a0fed53e687c843,
@@ -867,9 +867,9 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7ceadb1ec3f67f64e8ca8ca3a866cd96, type: 3}
---- !u!114 &1108860966800092313 stripped
+--- !u!114 &2974647992237571564 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4947336598239539785, guid: 7ceadb1ec3f67f64e8ca8ca3a866cd96,
+  m_CorrespondingSourceObject: {fileID: 7098550245714764604, guid: 7ceadb1ec3f67f64e8ca8ca3a866cd96,
     type: 3}
   m_PrefabInstance: {fileID: 5461475741024722640}
   m_PrefabAsset: {fileID: 0}

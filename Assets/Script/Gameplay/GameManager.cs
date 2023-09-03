@@ -532,10 +532,13 @@ namespace YARG.Gameplay
                 SaveReplay(Song.SongLengthInSeconds);
             }
 
-            QuitSong();
+            GlobalVariables.AudioManager.UnloadSong();
+
+            GlobalVariables.Instance.IsReplay = false;
+            GlobalVariables.Instance.LoadScene(SceneIndex.Score);
         }
 
-        public void QuitSong()
+        public void ForceQuitSong()
         {
             GlobalVariables.AudioManager.UnloadSong();
 

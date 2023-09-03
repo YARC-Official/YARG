@@ -260,9 +260,9 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7ceadb1ec3f67f64e8ca8ca3a866cd96, type: 3}
---- !u!114 &5995886403474407660 stripped
+--- !u!114 &8439410697110262169 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4947336598239539785, guid: 7ceadb1ec3f67f64e8ca8ca3a866cd96,
+  m_CorrespondingSourceObject: {fileID: 7098550245714764604, guid: 7ceadb1ec3f67f64e8ca8ca3a866cd96,
     type: 3}
   m_PrefabInstance: {fileID: 1701747707501392549}
   m_PrefabAsset: {fileID: 0}
@@ -980,7 +980,7 @@ MonoBehaviour:
   _notesMissed: {fileID: 687220980320161962}
   _overstrums: {fileID: 2974647992237571564}
   _hoposStrummed: {fileID: 8423102256330560459}
-  _ghostInputs: {fileID: 5995886403474407660}
+  _ghostInputs: {fileID: 8439410697110262169}
 --- !u!114 &7674939555971226258 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2885240813424434787, guid: 1b5d8949b9f2d7345a0fed53e687c843,
