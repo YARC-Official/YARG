@@ -129,7 +129,7 @@ namespace YARG.Settings
             public SliderSetting TrackCamYPos      { get; } = new(2.66f, 0f, 4f,    CameraPosChange);
             public SliderSetting TrackCamZPos      { get; } = new(1.14f, 0f, 12f,   CameraPosChange);
             public SliderSetting TrackCamRot       { get; } = new(24.12f, 0f, 180f, CameraPosChange);
-            public SliderSetting TrackFadePosition { get; } = new(3f, 0f, 6f,       v => FadeChange(true, v));
+            public SliderSetting TrackFadePosition { get; } = new(3f, 0f, 32f,      v => FadeChange(true, v));
             public SliderSetting TrackFadeSize     { get; } = new(1.75f, 0f, 5f,    v => FadeChange(false, v));
             public SliderSetting TrackCurveFactor  { get; } = new(0.5f, -3f, 3f,    CurveFactorChange);
 
