@@ -2,13 +2,13 @@ using System.Collections.Generic;
 
 namespace YARG.Settings.Customization
 {
-    public partial class CameraSettings
+    public partial class CameraPreset
     {
         // TODO: Move to dedicated file
-        public static readonly List<CameraSettings> Defaults = new()
+        public static readonly List<CameraPreset> Defaults = new()
         {
             Default,
-            new CameraSettings("High FOV")
+            new CameraPreset("High FOV")
             {
                 FieldOfView = 60f,
                 PositionY = 2.66f,
@@ -17,7 +17,7 @@ namespace YARG.Settings.Customization
                 FadeStart = 3f,
                 FadeLength = 1.25f,
             },
-            new CameraSettings("The Band 1")
+            new CameraPreset("The Band 1")
             {
                 FieldOfView = 47.84f,
                 PositionY = 2.43f,
@@ -26,7 +26,7 @@ namespace YARG.Settings.Customization
                 FadeStart = 3f,
                 FadeLength = 1.25f,
             },
-            new CameraSettings("The Band 2")
+            new CameraPreset("The Band 2")
             {
                 FieldOfView = 44.97f,
                 PositionY = 2.66f,
@@ -35,7 +35,7 @@ namespace YARG.Settings.Customization
                 FadeStart = 3f,
                 FadeLength = 1.25f,
             },
-            new CameraSettings("The Band 3")
+            new CameraPreset("The Band 3")
             {
                 FieldOfView = 57.29f,
                 PositionY = 2.22f,
@@ -44,7 +44,7 @@ namespace YARG.Settings.Customization
                 FadeStart = 3f,
                 FadeLength = 1.25f,
             },
-            new CameraSettings("The Band 4")
+            new CameraPreset("The Band 4")
             {
                 FieldOfView = 62.16f,
                 PositionY = 2.56f,
@@ -53,7 +53,7 @@ namespace YARG.Settings.Customization
                 FadeStart = 3f,
                 FadeLength = 1.25f,
             },
-            new CameraSettings("Hero 2")
+            new CameraPreset("Hero 2")
             {
                 FieldOfView = 58.15f,
                 PositionY = 1.82f,
@@ -62,7 +62,7 @@ namespace YARG.Settings.Customization
                 FadeStart = 3f,
                 FadeLength = 1.5f,
             },
-            new CameraSettings("Hero 3")
+            new CameraPreset("Hero 3")
             {
                 FieldOfView = 52.71f,
                 PositionY = 2.17f,
@@ -71,7 +71,7 @@ namespace YARG.Settings.Customization
                 FadeStart = 3f,
                 FadeLength = 1.5f,
             },
-            new CameraSettings("Hero Traveling the World")
+            new CameraPreset("Hero Traveling the World")
             {
                 FieldOfView = 53.85f,
                 PositionY = 1.97f,
@@ -80,7 +80,7 @@ namespace YARG.Settings.Customization
                 FadeStart = 3f,
                 FadeLength = 1.5f,
             },
-            new CameraSettings("Hero Live")
+            new CameraPreset("Hero Live")
             {
                 FieldOfView = 62.16f,
                 PositionY = 2.40f,
@@ -89,7 +89,7 @@ namespace YARG.Settings.Customization
                 FadeStart = 3f,
                 FadeLength = 1.25f,
             },
-            new CameraSettings("Clone")
+            new CameraPreset("Clone")
             {
                 FieldOfView = 55f,
                 PositionY = 2.07f,

@@ -1,8 +1,8 @@
 namespace YARG.Settings.Customization
 {
-    public partial class CameraSettings
+    public partial class CameraPreset
     {
-        public static CameraSettings Default => new("Default");
+        public static CameraPreset Default => new("Default");
 
         public string Name;
 
@@ -15,7 +15,7 @@ namespace YARG.Settings.Customization
         public float FadeStart = 3f;
         public float FadeLength = 1.25f;
 
-        public CameraSettings(string name)
+        public CameraPreset(string name)
         {
             Name = name;
         }

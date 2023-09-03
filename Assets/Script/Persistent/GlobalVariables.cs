@@ -1,11 +1,15 @@
 ﻿using System.Collections.Generic;
+using System.IO;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using YARG.Audio;
 using YARG.Audio.BASS;
 using YARG.Core;
+using YARG.Core.Game;
 using YARG.Core.Song;
 using YARG.Core.Song.Cache;
+using YARG.Core.Utility;
 using YARG.Helpers;
 using YARG.Input;
 using YARG.Integration;
@@ -13,6 +17,7 @@ using YARG.Menu.Settings;
 using YARG.Player;
 using YARG.Replays;
 using YARG.Settings;
+using YARG.Settings.Customization;
 using YARG.Song;
 
 namespace YARG
@@ -40,15 +45,15 @@ namespace YARG
         public SceneIndex CurrentScene { get; private set; } = SceneIndex.Persistent;
 
         public SongContainer SongContainer { get; private set; }
-        public SongSorting SortedSongs { get; private set; }
+        public SongSorting   SortedSongs   { get; private set; }
 
         public SongMetadata CurrentSong;
-        public ReplayEntry CurrentReplay;
+        public ReplayEntry  CurrentReplay;
 
         [Space]
         public float SongSpeed = 1f;
-        public bool  IsReplay;
-        public bool  IsPractice;
+        public bool IsReplay;
+        public bool IsPractice;
 
         protected override void SingletonAwake()
         {
@@ -76,6 +81,7 @@ namespace YARG
         private void Start()
         {
             SettingsManager.LoadSettings();
+            CustomContentManager.LoadContent();
             InputManager.Initialize();
 
             LoadScene(SceneIndex.Menu);
