@@ -6,6 +6,7 @@ namespace YARG.Menu.ScoreScreen
 {
     public class GuitarScoreCard : ScoreCard<GuitarStats>
     {
+        [Space]
         [SerializeField]
         private TextMeshProUGUI _overstrums;
 

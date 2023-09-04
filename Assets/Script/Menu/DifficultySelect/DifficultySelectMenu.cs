@@ -221,7 +221,7 @@ namespace YARG.Menu.DifficultySelect
 
                     if (i < _instruments.Length)
                     {
-                        var sprite = Addressables.LoadAssetAsync<Sprite>($"FontSprites[{_instruments[i].ToResourceName()}]")
+                        var sprite = Addressables.LoadAssetAsync<Sprite>($"InstrumentIcons[{_instruments[i].ToResourceName()}]")
                             .WaitForCompletion();
                         _options[i].SetImage(sprite);
                     }

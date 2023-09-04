@@ -6,6 +6,7 @@ namespace YARG.Menu.ScoreScreen
 {
     public class DrumsScoreCard : ScoreCard<DrumsStats>
     {
+        [Space]
         [SerializeField]
         private TextMeshProUGUI _overhits;
 

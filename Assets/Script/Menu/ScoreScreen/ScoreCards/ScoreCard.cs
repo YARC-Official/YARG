@@ -1,5 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.UI;
 using YARG.Core.Engine;
 using YARG.Data;
 using YARG.Player;
@@ -32,6 +34,12 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private TextMeshProUGUI _notesMissed;
 
+        [SerializeField]
+        private TextMeshProUGUI _starpowerPhrases;
+
+        [SerializeField]
+        private Image _instrumentIcon;
+
         protected YargPlayer Player;
         protected T Stats;
 
@@ -56,7 +64,7 @@ namespace YARG.Menu.ScoreScreen
             }
             else
             {
-                _accuracyPercent.text = $"{Stats.NotesHit / totalNotes}%";
+                _accuracyPercent.text = $"{Mathf.FloorToInt((float) Stats.NotesHit / totalNotes * 100f)}%";
             }
 
             _score.text = Stats.Score.ToString();
@@ -64,6 +72,11 @@ namespace YARG.Menu.ScoreScreen
             _notesHit.text = $"{Stats.NotesHit} / {totalNotes}";
             _maxStreak.text = Stats.MaxCombo.ToString();
             _notesMissed.text = Stats.NotesMissed.ToString();
+            _starpowerPhrases.text = $"{Stats.PhrasesHit} / {Stats.PhrasesHit + Stats.PhrasesMissed}";
+
+            _instrumentIcon.sprite = Addressables
+                .LoadAssetAsync<Sprite>($"InstrumentIcons[{Player.Profile.Instrument.ToResourceName()}]")
+                .WaitForCompletion();
         }
     }
 }

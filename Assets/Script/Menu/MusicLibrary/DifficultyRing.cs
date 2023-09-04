@@ -30,7 +30,7 @@ namespace YARG.Menu.MusicLibrary
         public void SetInfo(string assetName, string filter, PartValues values)
         {
             // Set instrument icon
-            var icon = Addressables.LoadAssetAsync<Sprite>($"FontSprites[{assetName}]").WaitForCompletion();
+            var icon = Addressables.LoadAssetAsync<Sprite>($"InstrumentIcons[{assetName}]").WaitForCompletion();
             instrumentIcon.sprite = icon;
 
             if (values.subTracks == 0)
