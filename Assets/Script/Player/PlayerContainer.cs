@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using UnityEngine;
-using YARG.Core;
 using UnityEngine.InputSystem;
 using YARG.Core.Game;
 using YARG.Helpers;
 using YARG.Input;
 using YARG.Input.Serialization;
+using YARG.Settings.Customization;
 
 namespace YARG.Player
 {
@@ -21,15 +21,15 @@ namespace YARG.Player
     public static class PlayerContainer
     {
         private static string ProfilesDirectory => Path.Combine(PathHelper.PersistentDataPath, "profiles");
-        private static string ProfilesPath => Path.Combine(ProfilesDirectory, "profiles.json");
-        private static string BindingsPath => Path.Combine(ProfilesDirectory, "bindings.json");
+        private static string ProfilesPath      => Path.Combine(ProfilesDirectory, "profiles.json");
+        private static string BindingsPath      => Path.Combine(ProfilesDirectory, "bindings.json");
 
         private static readonly List<YargProfile> _profiles = new();
-        private static readonly List<YargPlayer> _players = new();
+        private static readonly List<YargPlayer>  _players  = new();
 
-        private static readonly Dictionary<Guid, YargProfile> _profilesById = new();
+        private static readonly Dictionary<Guid, YargProfile>       _profilesById     = new();
         private static readonly Dictionary<YargProfile, YargPlayer> _playersByProfile = new();
-        private static readonly Dictionary<Guid, ProfileBindings> _bindings = new();
+        private static readonly Dictionary<Guid, ProfileBindings>   _bindings         = new();
 
         /// <summary>
         /// A list of all of the profiles (taken or not).
@@ -52,8 +52,7 @@ namespace YARG.Player
 
         public static bool AddProfile(YargProfile profile)
         {
-            if (_profiles.Contains(profile))
-                return false;
+            if (_profiles.Contains(profile)) return false;
 
             _profiles.Add(profile);
             return true;
@@ -61,12 +60,10 @@ namespace YARG.Player
 
         public static bool RemoveProfile(YargProfile profile)
         {
-            if (!_profiles.Contains(profile))
-                return false;
+            if (!_profiles.Contains(profile)) return false;
 
             // A profile that is taken can't be removed
-            if (_playersByProfile.ContainsKey(profile))
-                return false;
+            if (_playersByProfile.ContainsKey(profile)) return false;
 
             _profiles.Remove(profile);
             return true;
@@ -79,11 +76,9 @@ namespace YARG.Player
 
         public static YargPlayer CreatePlayerFromProfile(YargProfile profile, bool resolveDevices)
         {
-            if (!_profiles.Contains(profile))
-                return null;
+            if (!_profiles.Contains(profile)) return null;
 
-            if (IsProfileTaken(profile))
-                return null;
+            if (IsProfileTaken(profile)) return null;
 
             var bindings = GetBindingsForProfile(profile);
             var player = new YargPlayer(profile, bindings, resolveDevices);
@@ -96,8 +91,7 @@ namespace YARG.Player
 
         public static bool DisposePlayer(YargPlayer player)
         {
-            if (!_players.Contains(player))
-                return false;
+            if (!_players.Contains(player)) return false;
 
             _players.Remove(player);
             _playersByProfile.Remove(player.Profile);
@@ -109,11 +103,9 @@ namespace YARG.Player
 
         public static bool SwapPlayerToProfile(YargPlayer player, YargProfile newProfile)
         {
-            if (!_players.Contains(player))
-                return false;
+            if (!_players.Contains(player)) return false;
 
-            if (IsProfileTaken(newProfile))
-                return false;
+            if (IsProfileTaken(newProfile)) return false;
 
             _playersByProfile.Remove(player.Profile);
             _playersByProfile.Add(newProfile, player);
@@ -126,8 +118,7 @@ namespace YARG.Player
 
         public static YargPlayer GetPlayerFromProfile(YargProfile profile)
         {
-            if (!_playersByProfile.TryGetValue(profile, out var player))
-                return null;
+            if (!_playersByProfile.TryGetValue(profile, out var player)) return null;
 
             return player;
         }
@@ -148,8 +139,7 @@ namespace YARG.Player
         {
             foreach (var player in _players)
             {
-                if (player.Bindings.ContainsDevice(device))
-                    return true;
+                if (player.Bindings.ContainsDevice(device)) return true;
             }
 
             return false;
@@ -180,14 +170,21 @@ namespace YARG.Player
             _players.Clear();
 
             string profilesPath = ProfilesPath;
-            if (!File.Exists(profilesPath))
-                return 0;
+            if (!File.Exists(profilesPath)) return 0;
 
             string profilesJson = File.ReadAllText(profilesPath);
             List<YargProfile> profiles;
             try
             {
                 profiles = JsonConvert.DeserializeObject<List<YargProfile>>(profilesJson);
+
+                foreach (var profile in profiles)
+                {
+                    var colorProfile =
+                        CustomContentManager.ColorProfiles.GetColorProfileOrDefault(profile.ColorProfile);
+
+                    profile.ColorProfile = colorProfile.Name;
+                }
             }
             catch (Exception ex)
             {
@@ -229,8 +226,7 @@ namespace YARG.Player
             _bindings.Clear();
 
             string bindingsPath = BindingsPath;
-            if (!File.Exists(bindingsPath))
-                return 0;
+            if (!File.Exists(bindingsPath)) return 0;
 
             string bindingsJson = File.ReadAllText(bindingsPath);
             Dictionary<Guid, SerializedProfileBindings> bindings;
@@ -255,7 +251,8 @@ namespace YARG.Player
             {
                 if (!_profilesById.TryGetValue(id, out var profile))
                 {
-                    Debug.LogWarning($"Bindings exist for profile ID {id}, but the corresponding profile was not found! Bindings will be discarded.");
+                    Debug.LogWarning(
+                        $"Bindings exist for profile ID {id}, but the corresponding profile was not found! Bindings will be discarded.");
                     continue;
                 }
 

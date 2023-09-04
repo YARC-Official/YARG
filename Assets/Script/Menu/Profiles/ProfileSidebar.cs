@@ -7,6 +7,7 @@ using YARG.Core;
 using YARG.Core.Game;
 using YARG.Helpers;
 using YARG.Player;
+using YARG.Settings.Customization;
 
 namespace YARG.Menu.Profiles
 {
@@ -32,6 +33,8 @@ namespace YARG.Menu.Profiles
         private TMP_InputField _highwayLengthField;
         [SerializeField]
         private Toggle _leftyFlipToggle;
+        [SerializeField]
+        private TMP_Dropdown _colorProfileDropdown;
 
         [Space]
         [SerializeField]
@@ -52,7 +55,8 @@ namespace YARG.Menu.Profiles
         private ProfileView _profileView;
         private YargProfile _profile;
 
-        private readonly List<GameMode> _gameModesByIndex = new();
+        private readonly List<GameMode>     _gameModesByIndex     = new();
+        private readonly List<ColorProfile> _colorProfilesByIndex = new();
 
         private void Awake()
         {
@@ -63,7 +67,7 @@ namespace YARG.Menu.Profiles
                 // Skip vocals. It can be assigned to a profile separately.
                 if (gameMode == GameMode.Vocals)
                 {
-                    return;
+                    continue;
                 }
 
                 _gameModesByIndex.Add(gameMode);
@@ -71,6 +75,15 @@ namespace YARG.Menu.Profiles
                 // Create the dropdown option
                 string name = LocaleHelper.LocalizeString($"GameMode.{gameMode}");
                 _gameModeDropdown.options.Add(new TMP_Dropdown.OptionData(name));
+            }
+
+            _colorProfileDropdown.options.Clear();
+            foreach ((string name, var colors) in CustomContentManager.ColorProfiles.Content)
+            {
+                _colorProfilesByIndex.Add(colors);
+
+                // Create the dropdown option
+                _colorProfileDropdown.options.Add(new TMP_Dropdown.OptionData(name));
             }
         }
 
@@ -87,6 +100,10 @@ namespace YARG.Menu.Profiles
             _noteSpeedField.text = profile.NoteSpeed.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
             _highwayLengthField.text = profile.HighwayLength.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
             _leftyFlipToggle.isOn = profile.LeftyFlip;
+
+            var colorProfile = CustomContentManager.ColorProfiles.GetColorProfileOrDefault(profile.ColorProfile);
+
+            _colorProfileDropdown.value = _colorProfilesByIndex.IndexOf(colorProfile);
 
             // Show the proper name container (hide the editing version)
             _nameContainer.SetActive(true);
@@ -190,6 +207,11 @@ namespace YARG.Menu.Profiles
         public void ChangeLeftyFlip()
         {
             _profile.LeftyFlip = _leftyFlipToggle.isOn;
+        }
+
+        public void ChangeColorProfile()
+        {
+            _profile.ColorProfile = _colorProfilesByIndex[_colorProfileDropdown.value].Name;
         }
     }
 }
