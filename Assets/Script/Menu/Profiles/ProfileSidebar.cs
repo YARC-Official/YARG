@@ -29,6 +29,8 @@ namespace YARG.Menu.Profiles
         [SerializeField]
         private TMP_InputField _noteSpeedField;
         [SerializeField]
+        private TMP_InputField _highwayLengthField;
+        [SerializeField]
         private Toggle _leftyFlipToggle;
 
         [Space]
@@ -83,6 +85,7 @@ namespace YARG.Menu.Profiles
             _profileName.text = _profile.Name;
             _gameModeDropdown.value = _gameModesByIndex.IndexOf(profile.GameMode);
             _noteSpeedField.text = profile.NoteSpeed.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
+            _highwayLengthField.text = profile.HighwayLength.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
             _leftyFlipToggle.isOn = profile.LeftyFlip;
 
             // Show the proper name container (hide the editing version)
@@ -171,6 +174,17 @@ namespace YARG.Menu.Profiles
 
             // Always format it after
             _noteSpeedField.text = _profile.NoteSpeed.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
+        }
+
+        public void ChangeHighwayLength()
+        {
+            if (float.TryParse(_highwayLengthField.text, out var speed))
+            {
+                _profile.HighwayLength = Mathf.Clamp(speed, 0f, 3f);
+            }
+
+            // Always format it after
+            _highwayLengthField.text = _profile.HighwayLength.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
         }
 
         public void ChangeLeftyFlip()
