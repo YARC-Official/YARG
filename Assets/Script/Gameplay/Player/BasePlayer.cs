@@ -12,12 +12,13 @@ namespace YARG.Gameplay.Player
 {
     public abstract class BasePlayer : GameplayBehaviour
     {
-        public const float STRIKE_LINE_POS = -2f;
-        public const float SPAWN_OFFSET    = 5f;
+        public const float STRIKE_LINE_POS       = -2f;
+        public const float DEFAULT_ZERO_FADE_POS = 3f;
+        public const float NOTE_SPAWN_OFFSET     = 5f;
 
         public const float TRACK_WIDTH = 2f;
 
-        public double SpawnTimeOffset => (SPAWN_OFFSET + -STRIKE_LINE_POS) / NoteSpeed;
+        public double SpawnTimeOffset => (ZeroFadePosition + 2 + -STRIKE_LINE_POS) / NoteSpeed;
 
         [field: Header("Visuals")]
         [field: SerializeField]
@@ -40,7 +41,7 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         protected Pool BeatlinePool;
 
-        protected TrackView   TrackView   { get; private set; }
+        protected TrackView TrackView { get; private set; }
 
         protected SyncTrack SyncTrack { get; private set; }
 
@@ -68,6 +69,8 @@ namespace YARG.Gameplay.Player
         public abstract float[] StarMultiplierThresholds { get; }
 
         public abstract int[] StarScoreThresholds { get; protected set; }
+
+        public float ZeroFadePosition { get; private set; }
 
         public int Score { get; protected set; }
         public int Combo { get; protected set; }
@@ -108,12 +111,14 @@ namespace YARG.Gameplay.Player
             Beatlines = SyncTrack.Beatlines;
             BeatlineIndex = 0;
 
+            Debug.Log($"{DEFAULT_ZERO_FADE_POS} * {Player.Profile.HighwayLength}");
+            ZeroFadePosition = DEFAULT_ZERO_FADE_POS * Player.Profile.HighwayLength;
+
             IsInitialized = true;
         }
 
         protected virtual void FinishDestruction()
         {
-
         }
 
         public virtual void UpdateWithTimes(double inputTime, double songTime)
