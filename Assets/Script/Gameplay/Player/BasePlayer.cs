@@ -231,6 +231,8 @@ namespace YARG.Gameplay.Player
             base.Initialize(index, player, chart, trackView);
 
             OriginalNoteTrack = GetNotes(chart);
+            player.Profile.ApplyModifiers(OriginalNoteTrack);
+
             NoteTrack = OriginalNoteTrack;
 
             Notes = NoteTrack.Notes;
