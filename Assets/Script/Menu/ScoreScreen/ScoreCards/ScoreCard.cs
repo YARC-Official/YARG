@@ -74,18 +74,6 @@ namespace YARG.Menu.ScoreScreen
                 _accuracyPercent.text = $"{Mathf.FloorToInt((float) Stats.NotesHit / totalNotes * 100f)}%";
             }
 
-            _score.text = Stats.Score.ToString();
-
-            _notesHit.text = $"{Stats.NotesHit} / {totalNotes}";
-            _maxStreak.text = Stats.MaxCombo.ToString();
-            _notesMissed.text = Stats.NotesMissed.ToString();
-            _starpowerPhrases.text = $"{Stats.PhrasesHit} / {Stats.PhrasesHit + Stats.PhrasesMissed}";
-
-            // Set background icon
-            _instrumentIcon.sprite = Addressables
-                .LoadAssetAsync<Sprite>($"InstrumentIcons[{Player.Profile.Instrument.ToResourceName()}]")
-                .WaitForCompletion();
-
             // Set background and foreground colors
             if (Player.Profile.IsBot)
             {
@@ -99,6 +87,25 @@ namespace YARG.Menu.ScoreScreen
             {
                 _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Blue);
             }
+
+            _score.text = Stats.Score.ToString();
+
+            _notesHit.text = $"{WrapWithColor(Stats.NotesHit)} / {totalNotes}";
+            _maxStreak.text = WrapWithColor(Stats.MaxCombo);
+            _notesMissed.text = WrapWithColor(Stats.NotesMissed);
+            _starpowerPhrases.text = $"{WrapWithColor(Stats.PhrasesHit)} / {Stats.PhrasesHit + Stats.PhrasesMissed}";
+
+            // Set background icon
+            _instrumentIcon.sprite = Addressables
+                .LoadAssetAsync<Sprite>($"InstrumentIcons[{Player.Profile.Instrument.ToResourceName()}]")
+                .WaitForCompletion();
+        }
+
+        protected string WrapWithColor(object s)
+        {
+            return
+                $"<font-weight=700><color=#{ColorUtility.ToHtmlStringRGB(_colorizer.CurrentColor)}>" +
+                $"{s}</color></font-weight>";
         }
     }
 }

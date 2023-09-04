@@ -14,7 +14,7 @@ namespace YARG.Menu.ScoreScreen
         {
             base.SetCardContents();
 
-            _overhits.text = Stats.Overhits.ToString();
+            _overhits.text = WrapWithColor(Stats.Overhits);
         }
     }
 }
