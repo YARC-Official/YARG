@@ -40,8 +40,15 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private Image _instrumentIcon;
 
+        private ScoreCardColorizer _colorizer;
+
         protected YargPlayer Player;
         protected T Stats;
+
+        private void Awake()
+        {
+            _colorizer = GetComponent<ScoreCardColorizer>();
+        }
 
         public void Initialize(YargPlayer player, T stats)
         {
@@ -74,9 +81,24 @@ namespace YARG.Menu.ScoreScreen
             _notesMissed.text = Stats.NotesMissed.ToString();
             _starpowerPhrases.text = $"{Stats.PhrasesHit} / {Stats.PhrasesHit + Stats.PhrasesMissed}";
 
+            // Set background icon
             _instrumentIcon.sprite = Addressables
                 .LoadAssetAsync<Sprite>($"InstrumentIcons[{Player.Profile.Instrument.ToResourceName()}]")
                 .WaitForCompletion();
+
+            // Set background and foreground colors
+            if (Player.Profile.IsBot)
+            {
+                _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Gray);
+            }
+            else if (Stats.MaxCombo == totalNotes)
+            {
+                _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Gold);
+            }
+            else
+            {
+                _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Blue);
+            }
         }
     }
 }

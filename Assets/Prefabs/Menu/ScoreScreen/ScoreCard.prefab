@@ -1073,6 +1073,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2885240813551093152}
   - component: {fileID: 2885240813551093157}
+  - component: {fileID: 139459874872009117}
   m_Layer: 5
   m_Name: ScoreCard
   m_TagString: Untagged
@@ -1129,6 +1130,31 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 1
   m_ReverseArrangement: 0
+--- !u!114 &139459874872009117
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2885240813551093153}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d00fbcaa8da64e639d61bb5e8ace29b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _coloredImages:
+  - {fileID: 912852301950886670}
+  - {fileID: 7768229543108252824}
+  - {fileID: 2187843614222030936}
+  _background: {fileID: 1584860862528283953}
+  _blueBackground: {fileID: 21300000, guid: c77d6abd01d63a44db8ee0db6dad65d4, type: 3}
+  _goldBackground: {fileID: 21300000, guid: 4378f7a0a29d499428d2ab64d5b3c37a, type: 3}
+  _redBackground: {fileID: 21300000, guid: 57fbe767878904744aba1b19607ad366, type: 3}
+  _grayBackground: {fileID: 21300000, guid: 2f109c1df18dde64b88109ebc1fde8c4, type: 3}
+  _blueColor: {r: 0.18039216, g: 0.8509804, b: 1, a: 1}
+  _goldColor: {r: 1, g: 0.88235295, b: 0.45490196, a: 1}
+  _redColor: {r: 0.9372549, g: 0.14117648, b: 0.1882353, a: 1}
+  _grayColor: {r: 0.5529412, g: 0.5921569, b: 0.6, a: 1}
 --- !u!1 &2885240813714138368
 GameObject:
   m_ObjectHideFlags: 0
