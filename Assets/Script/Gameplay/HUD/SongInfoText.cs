@@ -7,7 +7,7 @@ using YARG.PlayMode;
 
 namespace YARG.Gameplay.HUD
 {
-    public class SongInfoText : MonoBehaviour
+    public class SongInfoText : GameplayBehaviour
     {
         [SerializeField]
         private CanvasGroup _canvasGroup;
@@ -20,17 +20,19 @@ namespace YARG.Gameplay.HUD
             // Start fading out
             StartCoroutine(FadeCoroutine());
 
-            var lines = SongToText.ToStyled(SongToText.FORMAT_LONG, Play.Instance.Song);
+            var lines = SongToText.ToStyled(SongToText.FORMAT_LONG, GameManager.Song);
 
             string finalText = "";
             foreach (var line in lines)
             {
                 finalText += line.Style switch
                 {
-                    SongToText.Style.Header => $"<size=100%><font-weight=800>{line.Text}</font-weight></size>",
+                    SongToText.Style.Header => 
+                        $"<size=100%><font-weight=800>{line.Text}</font-weight></size>",
                     SongToText.Style.SubHeader =>
                         $"<size=90%><alpha=#90><i><font-weight=600>{line.Text}</font-weight></i></size>",
-                    _ => $"<size=80%><alpha=#66><i><font-weight=600>{line.Text}</font-weight></i></size>"
+                    _ => 
+                        $"<size=80%><alpha=#66><i><font-weight=600>{line.Text}</font-weight></i></size>"
                 } + "\n";
             }
 

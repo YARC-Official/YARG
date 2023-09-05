@@ -100,17 +100,10 @@ namespace YARG.Integration
 #if UNITY_EDITOR
             _defaultDetails = _devDetails;
 #endif
-
-            // Listen to the changing of songs
-            Play.OnSongStart += OnSongStart;
-            Play.OnSongEnd += OnSongEnd;
-
-            // Listen to instrument selection
-            // DifficultySelect.OnInstrumentSelection += OnInstrumentSelection;
-
-            // Listen to pausing
-            Play.OnPauseToggle += OnPauseToggle;
-
+            
+            // Listen to the changing of states
+            GameStateFetcher.GameStateChange += OnGameStateChange;
+            
             // Create the Discord instance
             try
             {
@@ -132,102 +125,9 @@ namespace YARG.Integration
             SetDefaultActivity();
         }
 
-        protected override void SingletonDestroy()
+        private void OnGameStateChange(GameStateFetcher.State state)
         {
-            Play.OnSongStart -= OnSongStart;
-            Play.OnSongEnd -= OnSongEnd;
-            // DifficultySelect.OnInstrumentSelection -= OnInstrumentSelection;
-            Play.OnPauseToggle -= OnPauseToggle;
-        }
 
-        private void OnPauseToggle(bool pause)
-        {
-            SetActivity(
-                // State data
-                pause ? "pause1" : _currentSmallImage,
-                pause ? "Paused" : _currentSmallText,
-
-                // Song data
-                _songName,
-                "by " + _artistName,
-
-                // Time data
-                pause ? 0 : DateTimeOffset.Now.ToUnixTimeMilliseconds(),
-                pause
-                    ? 0
-                    : DateTimeOffset.Now.AddSeconds((Play.Instance.SongLength - Play.Instance.SongTime) / Play.speed)
-                        .ToUnixTimeMilliseconds()
-            );
-        }
-
-        private void OnSongStart(SongMetadata song)
-        {
-            _songName = song.Name;
-            if (Play.speed != 1f)
-            {
-                _songName += $" ({Play.speed * 100f}%)";
-            }
-
-            _artistName = song.Artist;
-
-            // TODO: FIX
-            // if more then 1 player is playing, set the source icon
-            // if (PlayerManager.players.Count > 1)
-            // {
-            //     SetSourceIcon();
-            // }
-
-            SetActivity(
-                _currentSmallImage,
-                _currentSmallText,
-                _songName,
-                "by " + _artistName,
-                DateTimeOffset.Now.ToUnixTimeMilliseconds(),
-                DateTimeOffset.Now.AddSeconds((Play.Instance.SongLength - Play.Instance.SongTime) / Play.speed)
-                    .ToUnixTimeMilliseconds()
-            );
-        }
-
-        private void OnSongEnd(SongMetadata song)
-        {
-            SetDefaultActivity();
-        }
-
-        // TODO: FIX
-//         private void OnInstrumentSelection(PlayerManager.Player playerInfo)
-//         {
-//             // ToLowerInvariant() because the DISCORD API DOESN'T HAVE UPPERCASE ARTWORK NAMES (WHY)
-//             _currentSmallImage = playerInfo.chosenInstrument.ToLowerInvariant();
-//
-// #pragma warning disable format
-//
-//             _currentSmallText = playerInfo.chosenInstrument switch
-//             {
-//                 "vocals"     => "Belting one out",
-//                 "harmVocals" => "Belting one out, with friends!",
-//                 "drums"      => "Working the skins",
-//                 "realDrums"  => "Really working the skins",
-//                 "ghDrums"    => "Working the skins +1",
-//                 "guitar"     => "Making it talk",
-//                 "guitarCoop" => "GTR_COOP_PLACEHOLDER",
-//                 "rhythm"     => "RHYTHM_PLACEHOLDER",
-//                 "realGuitar" => "Really making it talk",
-//                 "bass"       => "In the groove",
-//                 "realBass"   => "Really in the groove",
-//                 "keys"       => "Tickling the ivory",
-//                 "realKeys"   => "Really tickling the ivory",
-//                 _            => ""
-//             };
-//
-// #pragma warning restore format
-//         }
-
-        private void SetSourceIcon()
-        {
-            var sourceIconName = SongSources.GetSource(Play.Instance.Song.Source);
-
-            _currentSmallImage = sourceIconName.IconURL;
-            _currentSmallText = sourceIconName.GetDisplayName();
         }
 
         private void Update()
@@ -248,6 +148,10 @@ namespace YARG.Integration
 
                 TryDispose();
             }
+        }
+
+        private void OnDestroy() {
+            GameStateFetcher.GameStateChange -= OnGameStateChange;
         }
 
         private void TryDispose()

@@ -75,12 +75,12 @@ namespace YARG.Helpers
             {
                 "speed_percent", _ =>
                 {
-                    if (Play.speed == 1f)
+                    if (GlobalVariables.Instance.SongSpeed == 1f)
                     {
                         return string.Empty;
                     }
 
-                    return Play.speed.ToString("P0", new NumberFormatInfo
+                    return GlobalVariables.Instance.SongSpeed.ToString("P0", new NumberFormatInfo
                     {
                         PercentPositivePattern = 1, PercentNegativePattern = 1
                     });
@@ -106,7 +106,7 @@ namespace YARG.Helpers
                 "charter", x => !string.IsNullOrEmpty(x.Charter)
             },
             {
-                "changed_speed", _ => Play.speed == 1f
+                "changed_speed", _ => GlobalVariables.Instance.SongSpeed == 1f
             }
         };
 
