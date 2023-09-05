@@ -156,7 +156,7 @@ namespace YARG.Gameplay.Visuals
         private void Start()
         {
             float fadePos = _player.ZeroFadePosition;
-            float fadeSize = SettingsManager.Settings.TrackFadeSize.Data;
+            float fadeSize = _player.FadeSize;
 
             // Set all fade values
             _material.SetVector(_fadeZeroPosition, new Vector4(0f, 0f, fadePos, 0f));

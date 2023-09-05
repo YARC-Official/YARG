@@ -47,7 +47,7 @@ namespace YARG.Gameplay.Visuals
         {
             // Get fade info
             float fadePos = Player.ZeroFadePosition;
-            float fadeSize = SettingsManager.Settings.TrackFadeSize.Data;
+            float fadeSize = Player.FadeSize;
 
             // Set all fade values
             var meshRenderers = GetComponentsInChildren<MeshRenderer>(true);

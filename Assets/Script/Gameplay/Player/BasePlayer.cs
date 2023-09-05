@@ -7,6 +7,7 @@ using YARG.Core.Input;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Player;
+using YARG.Settings;
 
 namespace YARG.Gameplay.Player
 {
@@ -71,6 +72,7 @@ namespace YARG.Gameplay.Player
         public abstract int[] StarScoreThresholds { get; protected set; }
 
         public float ZeroFadePosition { get; private set; }
+        public float FadeSize         { get; private set; }
 
         public int Score { get; protected set; }
         public int Combo { get; protected set; }
@@ -113,6 +115,12 @@ namespace YARG.Gameplay.Player
 
             Debug.Log($"{DEFAULT_ZERO_FADE_POS} * {Player.Profile.HighwayLength}");
             ZeroFadePosition = DEFAULT_ZERO_FADE_POS * Player.Profile.HighwayLength;
+            FadeSize = SettingsManager.Settings.TrackFadeSize.Data;
+
+            if (player.Profile.HighwayLength > 1)
+            {
+                FadeSize *= player.Profile.HighwayLength;
+            }
 
             IsInitialized = true;
         }
