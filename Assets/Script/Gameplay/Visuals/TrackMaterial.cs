@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using YARG.Gameplay.Player;
+using YARG.Settings;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -18,6 +20,9 @@ namespace YARG.Gameplay.Visuals
         private static readonly int _layer4ColorProperty = Shader.PropertyToID("_Layer_4_Color");
 
         private static readonly int _soloStateProperty = Shader.PropertyToID("_Solo_State");
+
+        private static readonly int _fadeZeroPosition = Shader.PropertyToID("_FadeZeroPosition");
+        private static readonly int _fadeFullPosition = Shader.PropertyToID("_FadeFullPosition");
 
         public struct Preset
         {
@@ -94,8 +99,12 @@ namespace YARG.Gameplay.Visuals
         private Material _material;
         private readonly List<Material> _trimMaterials = new();
 
+        private BasePlayer _player;
+
         private void Awake()
         {
+            _player = GetComponentInParent<BasePlayer>();
+
             // Get materials
             _material = _trackMesh.material;
             foreach (var trim in _trackTrims)
@@ -142,6 +151,22 @@ namespace YARG.Gameplay.Visuals
                     Color = FromHex("2C499E", 1f)
                 }
             };
+        }
+
+        private void Start()
+        {
+            float fadePos = _player.ZeroFadePosition;
+            float fadeSize = SettingsManager.Settings.TrackFadeSize.Data;
+
+            // Set all fade values
+            _material.SetVector(_fadeZeroPosition, new Vector4(0f, 0f, fadePos, 0f));
+            _material.SetVector(_fadeFullPosition, new Vector4(0f, 0f, fadePos - fadeSize, 0f));
+
+            foreach (var trimMat in _trimMaterials)
+            {
+                trimMat.SetVector(_fadeZeroPosition, new Vector4(0f, 0f, fadePos, 0f));
+                trimMat.SetVector(_fadeFullPosition, new Vector4(0f, 0f, fadePos - fadeSize, 0f));
+            }
         }
 
         private void Update()

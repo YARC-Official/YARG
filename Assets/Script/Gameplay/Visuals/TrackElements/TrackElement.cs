@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using YARG.Gameplay.Player;
 using YARG.Settings;
@@ -40,14 +41,16 @@ namespace YARG.Gameplay.Visuals
 
             // Hide everything at the start
             HideElement();
+        }
 
+        private void Start()
+        {
             // Get fade info
-            // TODO: Make this per player. This is why we don't use global shader values
-            float fadePos = SettingsManager.Settings.TrackFadePosition.Data;
+            float fadePos = Player.ZeroFadePosition;
             float fadeSize = SettingsManager.Settings.TrackFadeSize.Data;
 
             // Set all fade values
-            var meshRenderers = GetComponentsInChildren<MeshRenderer>();
+            var meshRenderers = GetComponentsInChildren<MeshRenderer>(true);
             foreach (var meshRenderer in meshRenderers)
             {
                 foreach (var material in meshRenderer.materials)

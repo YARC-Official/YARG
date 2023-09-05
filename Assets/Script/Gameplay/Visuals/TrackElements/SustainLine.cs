@@ -1,5 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using YARG.Gameplay.Player;
+using YARG.Settings;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -10,6 +12,8 @@ namespace YARG.Gameplay.Visuals
         private static readonly int _secondaryAmplitude = Shader.PropertyToID("_SecondaryAmplitude");
         private static readonly int _tertiaryAmplitude  = Shader.PropertyToID("_TertiaryAmplitude");
         private static readonly int _forwardOffset      = Shader.PropertyToID("_ForwardOffset");
+        private static readonly int _fadeZeroPosition   = Shader.PropertyToID("_FadeZeroPosition");
+        private static readonly int _fadeFullPosition   = Shader.PropertyToID("_FadeFullPosition");
 
         [SerializeField]
         private LineRenderer _lineRenderer;
@@ -18,9 +22,22 @@ namespace YARG.Gameplay.Visuals
 
         private Material _material;
 
+        private BasePlayer _player;
+
         private void Awake()
         {
+            _player = GetComponentInParent<BasePlayer>();
             _material = _lineRenderer.material;
+        }
+
+        private void Start()
+        {
+            float fadePos = _player.ZeroFadePosition;
+            float fadeSize = SettingsManager.Settings.TrackFadeSize.Data;
+
+            // Set all fade values
+            _material.SetVector(_fadeZeroPosition, new Vector4(0f, 0f, fadePos, 0f));
+            _material.SetVector(_fadeFullPosition, new Vector4(0f, 0f, fadePos - fadeSize, 0f));
         }
 
         public void Initialize(float len)
