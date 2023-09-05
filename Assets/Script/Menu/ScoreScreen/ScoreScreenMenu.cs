@@ -1,11 +1,15 @@
 ﻿using System;
+using Cysharp.Threading.Tasks;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Input;
 using YARG.Menu.Navigation;
 using YARG.Player;
+using YARG.Song;
 
 namespace YARG.Menu.ScoreScreen
 {
@@ -13,6 +17,12 @@ namespace YARG.Menu.ScoreScreen
     {
         [SerializeField]
         private Transform _cardContainer;
+        [SerializeField]
+        private Image _sourceIcon;
+        [SerializeField]
+        private TextMeshProUGUI _songTitle;
+        [SerializeField]
+        private TextMeshProUGUI _artistName;
 
         [Space]
         [SerializeField]
@@ -20,7 +30,7 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private DrumsScoreCard _drumsCardPrefab;
 
-        private void OnEnable()
+        private async UniTask OnEnable()
         {
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
@@ -31,7 +41,16 @@ namespace YARG.Menu.ScoreScreen
                 })
             }, true));
 
+            // Set text
+            var song = GlobalVariables.Instance.CurrentSong;
+            _songTitle.text = song.Name;
+            _artistName.text = song.Artist;
+
+            // Put the scores in!
             CreateScoreCards();
+
+            // Set the icon. This is async, so we have to do it last so everything loads in.
+            _sourceIcon.sprite = await SongSources.SourceToIcon(song.Source);
         }
 
         private void OnDisable()
