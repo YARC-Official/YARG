@@ -27,7 +27,7 @@ namespace YARG.Menu
         [SerializeField]
         private Image[] _starImages;
 
-        public void SetStars(int n, StarType type = StarType.Standard)
+        public void SetStars(int n, StarType type)
         {
             n = Mathf.Clamp(n, 0, _starImages.Length);
 
@@ -46,13 +46,23 @@ namespace YARG.Menu
                 if (i < n)
                 {
                     star.sprite = s;
-                    star.gameObject.SetActive(true);
                 }
                 else
                 {
                     star.sprite = _emptyStar;
-                    star.gameObject.SetActive(false);
                 }
+            }
+        }
+
+        public void SetStars(int n)
+        {
+            if (n <= 5)
+            {
+                SetStars(n, StarType.Standard);
+            }
+            else
+            {
+                SetStars(5, StarType.Gold);
             }
         }
     }

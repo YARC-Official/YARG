@@ -26,6 +26,9 @@ namespace YARG.Menu.ScoreScreen
         private TextMeshProUGUI _score;
 
         [SerializeField]
+        private StarView _starView;
+
+        [SerializeField]
         private TextMeshProUGUI _notesHit;
 
         [SerializeField]
@@ -89,6 +92,7 @@ namespace YARG.Menu.ScoreScreen
             }
 
             _score.text = Stats.Score.ToString();
+            _starView.SetStars(Stats.Stars);
 
             _notesHit.text = $"{WrapWithColor(Stats.NotesHit)} / {totalNotes}";
             _maxStreak.text = WrapWithColor(Stats.MaxCombo);

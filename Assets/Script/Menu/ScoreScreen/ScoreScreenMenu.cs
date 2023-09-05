@@ -1,5 +1,4 @@
-﻿using System;
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,7 +7,6 @@ using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Input;
 using YARG.Menu.Navigation;
-using YARG.Player;
 using YARG.Song;
 
 namespace YARG.Menu.ScoreScreen
