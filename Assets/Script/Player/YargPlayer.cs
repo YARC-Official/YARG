@@ -17,8 +17,23 @@ namespace YARG.Player
         public bool InputsEnabled { get; private set; } = false;
         public ProfileBindings Bindings { get; private set; }
 
-        public ColorProfile ColorProfile = ColorProfile.Default;
+        // This is done so that we can override the color profile for the player for replays
+        public ColorProfile ColorProfile
+        {
+            get
+            {
+                if (_isOverrideColorProfile)
+                {
+                    return _colorProfile;
+                }
+                return CustomContentManager.ColorProfiles.GetColorProfileOrDefault(Profile.ColorProfile);
+            }
+        }
+
         public CameraPreset CameraPreset = CameraPreset.Default;
+
+        private bool _isOverrideColorProfile;
+        private ColorProfile _colorProfile;
 
         public YargPlayer(YargProfile profile, ProfileBindings bindings, bool resolveDevices)
         {
@@ -69,6 +84,17 @@ namespace YARG.Player
             InputManager.UnregisterPlayer(this);
 
             InputsEnabled = false;
+        }
+
+        public void OverrideColorProfile(ColorProfile profile)
+        {
+            _isOverrideColorProfile = true;
+            _colorProfile = profile;
+        }
+
+        public void ResetColorProfile()
+        {
+            _isOverrideColorProfile = false;
         }
 
         private void OnMenuInput(ref GameInput input)
