@@ -337,13 +337,6 @@ namespace YARG.Settings
                     position = Settings.TrackFadePosition.Data;
                     size = value;
                 }
-
-                // Yes, it's inefficient, but it only gets updated when the setting does.
-
-                // ReSharper disable Unity.PreferAddressByIdToGraphicsParams
-                Shader.SetGlobalVector("_FadeZeroPosition", new Vector4(0f, 0f, position, 0f));
-                Shader.SetGlobalVector("_FadeFullPosition", new Vector4(0f, 0f, position - size, 0f));
-                // ReSharper restore Unity.PreferAddressByIdToGraphicsParams
             }
 
             private static void CurveFactorChange(float value)
