@@ -7,7 +7,7 @@ namespace YARG.Gameplay
 {
     public partial class GameManager
     {
-        private const double SONG_START_DELAY = 2;
+        public const double SONG_START_DELAY = 2;
 
         /// <summary>
         /// The time into the song, accounting for song speed and calibration.<br/>

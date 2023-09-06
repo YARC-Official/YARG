@@ -1,8 +1,8 @@
 ﻿using System;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using YARG.Core.Replays;
+using YARG.Menu;
 
 namespace YARG.Gameplay.ReplayViewer
 {
@@ -11,7 +11,7 @@ namespace YARG.Gameplay.ReplayViewer
         private const float SLIDER_COOLDOWN = 0.5f;
 
         [SerializeField]
-        private Slider _timeSlider;
+        private DragSlider _timeSlider;
 
         [SerializeField]
         private TMP_InputField _speedInput;
@@ -20,13 +20,23 @@ namespace YARG.Gameplay.ReplayViewer
         private TMP_InputField _timeInput;
 
         [SerializeField]
-        private TextMeshProUGUI _songLength;
+        private TextMeshProUGUI _songLengthText;
 
         private Replay _replay;
 
         private float _sliderValue;
         private float _sliderTimeInactive;
         private bool  _sliderChanged;
+
+        protected override void GameplayAwake()
+        {
+            _timeSlider.OnSliderDrag.AddListener(OnTimeSliderDragged);
+        }
+
+        protected override void GameplayDestroy()
+        {
+            _timeSlider.OnSliderDrag.RemoveAllListeners();
+        }
 
         protected override void OnSongLoaded()
         {
@@ -36,7 +46,7 @@ namespace YARG.Gameplay.ReplayViewer
                 return;
             }
 
-            _songLength.text = TimeSpan.FromSeconds(GameManager.SongLength).ToString("g");
+            _songLengthText.text = TimeSpan.FromSeconds(GameManager.SongLength + GameManager.SONG_START_DELAY).ToString("g");
 
             _replay = GameManager.Replay;
         }
@@ -45,13 +55,13 @@ namespace YARG.Gameplay.ReplayViewer
         {
             if (!GameManager.Paused)
             {
-                UpdateReplayUI(true);
+                UpdateReplayUI(true, false);
             }
 
             if (_sliderChanged)
             {
                 _sliderTimeInactive += Time.deltaTime;
-                if(_sliderTimeInactive >= SLIDER_COOLDOWN)
+                if (_sliderTimeInactive >= SLIDER_COOLDOWN)
                 {
                     _sliderChanged = false;
                     _sliderTimeInactive = 0f;
@@ -60,9 +70,16 @@ namespace YARG.Gameplay.ReplayViewer
             }
         }
 
-        private void UpdateReplayUI(bool updateSlider)
+        private void UpdateReplayUI(bool updateSlider, bool isDragging, double time = 0)
         {
-            _timeInput.text = TimeSpan.FromSeconds(GameManager.InputTime).ToString("g");
+            if (isDragging)
+            {
+                _timeInput.text = TimeSpan.FromSeconds(time).ToString("g");
+            }
+            else
+            {
+                _timeInput.text = TimeSpan.FromSeconds(GameManager.InputTime + GameManager.SONG_START_DELAY).ToString("g");
+            }
 
             if (updateSlider)
             {
@@ -76,7 +93,7 @@ namespace YARG.Gameplay.ReplayViewer
                     value = GameManager.InputTime / GameManager.SongLength;
                 }
 
-                _timeSlider.SetValueWithoutNotify((float)value);
+                _timeSlider.SetValueWithoutNotify((float) value);
             }
         }
 
@@ -84,13 +101,18 @@ namespace YARG.Gameplay.ReplayViewer
         {
             Debug.Log("Set replay time to " + time);
 
-            foreach(var player in GameManager.Players)
+            foreach (var player in GameManager.Players)
             {
                 player.SetReplayTime(time);
             }
 
             GameManager.SetSongTime(time);
-            GameManager.OverridePauseTime(time);
+            GameManager.OverridePauseTime(GameManager.RealInputTime);
+        }
+
+        public void OnTimeSliderDragged(float value)
+        {
+            UpdateReplayUI(false, true, (value * GameManager.SongLength));
         }
 
         public void OnTimeSliderChanged(float value)
@@ -103,7 +125,7 @@ namespace YARG.Gameplay.ReplayViewer
             _sliderTimeInactive = 0f;
             _sliderChanged = true;
 
-            UpdateReplayUI(false);
+            UpdateReplayUI(false, false);
         }
 
         public void TogglePause()
