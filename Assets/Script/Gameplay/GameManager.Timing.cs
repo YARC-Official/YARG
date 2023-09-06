@@ -5,7 +5,7 @@ using YARG.Settings;
 
 namespace YARG.Gameplay
 {
-    public partial class GameManager : MonoBehaviour
+    public partial class GameManager
     {
         private const double SONG_START_DELAY = 2;
 
@@ -46,6 +46,8 @@ namespace YARG.Gameplay
         /// Applied after song speed is.
         /// </summary>
         public static double InputTimeBase { get; private set; }
+
+        public double PauseStartTime { get; private set; }
 
         /// <summary>
         /// The audio calibration, in seconds.

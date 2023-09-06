@@ -27,7 +27,6 @@ namespace YARG.Gameplay
     public partial class GameManager : MonoBehaviour
     {
         [Header("References")]
-
         [SerializeField]
         private TrackViewManager _trackViewManager;
 
@@ -56,20 +55,19 @@ namespace YARG.Gameplay
         [SerializeField]
         private GameObject _proGuitarPrefab;
 
-        private double _pauseStartTime;
-
         private IReadOnlyList<YargPlayer> _yargPlayers;
-        private List<BasePlayer> _players;
+        private List<BasePlayer>          _players;
 
         public bool IsSongStarted { get; private set; } = false;
 
-        private bool _loadFailure;
+        private bool   _loadFailure;
         private string _loadFailureMessage;
 
         // All access to chart data must be done through this event,
         // since things are loaded asynchronously
         // Players are initialized by hand and don't go through this event
         private event Action<SongChart> _chartLoaded;
+
         public event Action<SongChart> ChartLoaded
         {
             add
@@ -78,13 +76,13 @@ namespace YARG.Gameplay
 
                 // Invoke now if already loaded, this event is only fired once
                 var chart = Chart;
-                if (chart != null)
-                    value?.Invoke(chart);
+                if (chart != null) value?.Invoke(chart);
             }
             remove => _chartLoaded -= value;
         }
 
         private event Action _songLoaded;
+
         public event Action SongLoaded
         {
             add
@@ -92,13 +90,13 @@ namespace YARG.Gameplay
                 _songLoaded += value;
 
                 // Invoke now if already loaded, this event is only fired once
-                if (GlobalVariables.AudioManager.IsAudioLoaded)
-                    value?.Invoke();
+                if (GlobalVariables.AudioManager.IsAudioLoaded) value?.Invoke();
             }
             remove => _songLoaded -= value;
         }
 
         private event Action _songStarted;
+
         public event Action SongStarted
         {
             add
@@ -106,20 +104,19 @@ namespace YARG.Gameplay
                 _songStarted += value;
 
                 // Invoke now if already loaded, this event is only fired once
-                if (IsSongStarted)
-                    value?.Invoke();
+                if (IsSongStarted) value?.Invoke();
             }
             remove => _songStarted -= value;
         }
 
-        public PracticeManager PracticeManager { get; private set; }
+        public PracticeManager  PracticeManager  { get; private set; }
         public BeatEventManager BeatEventManager { get; private set; }
 
-        public SongMetadata Song { get; private set; }
-        public SongChart Chart { get; private set; }
+        public SongMetadata Song  { get; private set; }
+        public SongChart    Chart { get; private set; }
 
         public float SelectedSongSpeed { get; private set; }
-        public float ActualSongSpeed => SelectedSongSpeed + _syncSpeedAdjustment;
+        public float ActualSongSpeed   => SelectedSongSpeed + _syncSpeedAdjustment;
 
         public double SongLength { get; private set; }
 
@@ -234,20 +231,6 @@ namespace YARG.Gameplay
                 SetPaused(!Paused);
             }
 
-            if (Paused)
-            {
-                return;
-            }
-
-            UpdateTimes();
-
-            if (Keyboard.current.ctrlKey.isPressed && Keyboard.current.tabKey.wasPressedThisFrame)
-            {
-                _isShowDebugText = !_isShowDebugText;
-
-                _debugText.gameObject.SetActive(_isShowDebugText);
-            }
-
             if (_isShowDebugText)
             {
                 if (_players[0] is FiveFretPlayer fiveFretPlayer)
@@ -262,7 +245,6 @@ namespace YARG.Gameplay
                         $"Buttons: {buttonMask}\n" +
                         $"Star Power: {starPower:0.0000}\n" +
                         $"TicksPerEight: {ticksPerEight}\n";
-
                 }
                 else if (_players[0] is DrumsPlayer drumsPlayer)
                 {
@@ -274,11 +256,28 @@ namespace YARG.Gameplay
 
                 _debugText.text +=
                     $"Input time: {InputTime:0.000000}\n" +
+                    $"Input Base: {InputTimeBase:0.000000}\n" +
+                    $"Input Offset: {InputTimeOffset:0.000000}\n" +
+                    $"Pause Time: {PauseStartTime:0.000000}\n" +
                     $"Song time: {SongTime:0.000000}\n" +
                     $"Time difference: {InputTime - SongTime:0.000000}\n" +
                     $"Speed adjustment: {_syncSpeedAdjustment:0.00}\n" +
                     $"Speed multiplier: {_syncSpeedMultiplier}\n" +
                     $"Sync start delta: {_syncStartDelta:0.000000}";
+            }
+
+            if (Paused)
+            {
+                return;
+            }
+
+            UpdateTimes();
+
+            if (Keyboard.current.ctrlKey.isPressed && Keyboard.current.tabKey.wasPressedThisFrame)
+            {
+                _isShowDebugText = !_isShowDebugText;
+
+                _debugText.gameObject.SetActive(_isShowDebugText);
             }
 
             int totalScore = 0;
@@ -311,7 +310,8 @@ namespace YARG.Gameplay
                 return;
             }
 
-            Song = GlobalVariables.Instance.SongContainer.SongsByHash[GlobalVariables.Instance.CurrentReplay.SongChecksum][0];
+            Song = GlobalVariables.Instance.SongContainer.SongsByHash[
+                GlobalVariables.Instance.CurrentReplay.SongChecksum][0];
             if (Song is null || result != ReplayReadResult.Valid)
             {
                 _loadFailure = true;
@@ -359,15 +359,15 @@ namespace YARG.Gameplay
                 }
 
                 // Set length of the final section
-                if (Chart.Sections.Count > 0) {
+                if (Chart.Sections.Count > 0)
+                {
                     uint lastTick = Chart.GetLastTick();
                     Chart.Sections[^1].TickLength = lastTick;
                     Chart.Sections[^1].TimeLength = Chart.SyncTrack.TickToTime(lastTick);
                 }
             });
 
-            if (_loadFailure)
-                return;
+            if (_loadFailure) return;
 
             _chartLoaded?.Invoke(Chart);
         }
@@ -393,8 +393,7 @@ namespace YARG.Gameplay
                 }
             });
 
-            if (_loadFailure)
-                return;
+            if (_loadFailure) return;
 
             _songLoaded?.Invoke();
         }
@@ -452,7 +451,7 @@ namespace YARG.Gameplay
 
 #if UNITY_EDITOR
             Debug.Log($"Set song speed to {speed:0.00}.\n"
-               + $"Input time: {InputTime:0.000000}, song time: {SongTime:0.000000}");
+                + $"Input time: {InputTime:0.000000}, song time: {SongTime:0.000000}");
 #endif
         }
 
@@ -481,9 +480,12 @@ namespace YARG.Gameplay
                 }
             }
 
-            _debugText.gameObject.SetActive(false);
+            if (!IsReplay)
+            {
+                _debugText.gameObject.SetActive(false);
+            }
 
-            _pauseStartTime = RealInputTime;
+            PauseStartTime = RealInputTime;
             GlobalVariables.AudioManager.Pause();
         }
 
@@ -498,11 +500,9 @@ namespace YARG.Gameplay
 
             _debugText.gameObject.SetActive(_isShowDebugText);
 
-            if (inputCompensation)
-                SetInputBase(_pauseStartTime);
+            if (inputCompensation) SetInputBase(PauseStartTime);
 
-            if (RealSongTime >= SongOffset)
-                GlobalVariables.AudioManager.Play();
+            if (RealSongTime >= SongOffset) GlobalVariables.AudioManager.Play();
         }
 
         public void SetPaused(bool paused)
@@ -517,6 +517,16 @@ namespace YARG.Gameplay
             }
 
             GameStateFetcher.SetPaused(paused);
+        }
+
+        public void OverridePauseTime(double pauseTime)
+        {
+            if (!Paused)
+            {
+                return;
+            }
+
+            PauseStartTime = pauseTime;
         }
 
         private void EndSong()

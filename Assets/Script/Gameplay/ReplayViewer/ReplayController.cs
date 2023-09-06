@@ -90,6 +90,7 @@ namespace YARG.Gameplay.ReplayViewer
             }
 
             GameManager.SetSongTime(time);
+            GameManager.OverridePauseTime(time);
         }
 
         public void OnTimeSliderChanged(float value)
@@ -107,13 +108,13 @@ namespace YARG.Gameplay.ReplayViewer
 
         public void TogglePause()
         {
-            if (GameManager.Paused)
+            if (!GameManager.Paused)
             {
-                GameManager.Resume();
+                GameManager.Pause(false);
             }
             else
             {
-                GameManager.Pause(false);
+                GameManager.Resume();
             }
         }
     }
