@@ -12,5 +12,8 @@ namespace YARG.Menu.ScoreScreen
     public struct ScoreScreenStats
     {
         public PlayerScoreCard[] PlayerScores;
+
+        public int BandStars;
+        public int BandScore;
     }
 }

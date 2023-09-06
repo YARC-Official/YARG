@@ -541,7 +541,8 @@ namespace YARG.Gameplay
                 {
                     Player = player.Player,
                     Stats = player.Stats
-                }).ToArray()
+                }).ToArray(),
+                BandScore = BandScore
             };
 
             GlobalVariables.Instance.IsReplay = false;

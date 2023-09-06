@@ -91,7 +91,7 @@ namespace YARG.Menu.ScoreScreen
                 _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Blue);
             }
 
-            _score.text = Stats.Score.ToString();
+            _score.text = Stats.Score.ToString("N0");
             _starView.SetStars(Stats.Stars);
 
             _notesHit.text = $"{WrapWithColor(Stats.NotesHit)} / {totalNotes}";

@@ -21,6 +21,10 @@ namespace YARG.Menu.ScoreScreen
         private TextMeshProUGUI _songTitle;
         [SerializeField]
         private TextMeshProUGUI _artistName;
+        [SerializeField]
+        private StarView _bandStarView;
+        [SerializeField]
+        private TextMeshProUGUI _bandScore;
 
         [Space]
         [SerializeField]
@@ -39,13 +43,20 @@ namespace YARG.Menu.ScoreScreen
                 })
             }, true));
 
+            var scoreScreenStats = GlobalVariables.Instance.ScoreScreenStats;
+
             // Set text
             var song = GlobalVariables.Instance.CurrentSong;
             _songTitle.text = song.Name;
             _artistName.text = song.Artist;
 
+            // Set the band score and stars
+            // TODO: Band stars
+            _bandStarView.SetStars(scoreScreenStats.BandStars);
+            _bandScore.text = scoreScreenStats.BandScore.ToString("N0");
+
             // Put the scores in!
-            CreateScoreCards();
+            CreateScoreCards(scoreScreenStats);
 
             // Set the icon. This is async, so we have to do it last so everything loads in.
             _sourceIcon.sprite = await SongSources.SourceToIcon(song.Source);
@@ -56,9 +67,9 @@ namespace YARG.Menu.ScoreScreen
             Navigator.Instance.PopScheme();
         }
 
-        private void CreateScoreCards()
+        private void CreateScoreCards(ScoreScreenStats scoreScreenStats)
         {
-            foreach (var score in GlobalVariables.Instance.ScoreScreenStats.PlayerScores)
+            foreach (var score in scoreScreenStats.PlayerScores)
             {
                 switch (score.Player.Profile.Instrument.ToGameMode())
                 {
