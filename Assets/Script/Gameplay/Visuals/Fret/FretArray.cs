@@ -82,5 +82,13 @@ namespace YARG.Gameplay.Visuals
                 _frets[index].PlayHitParticles();
             }
         }
+
+        public void ResetAll()
+        {
+            foreach (var fret in _frets)
+            {
+                fret.SetSustained(false);
+            }
+        }
     }
 }

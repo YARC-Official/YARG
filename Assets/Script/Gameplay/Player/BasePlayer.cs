@@ -129,7 +129,7 @@ namespace YARG.Gameplay.Player
         {
         }
 
-        public virtual void UpdateWithTimes(double inputTime, double songTime)
+        public virtual void UpdateWithTimes(double inputTime)
         {
             if (GameManager.Paused)
             {
@@ -137,6 +137,11 @@ namespace YARG.Gameplay.Player
             }
 
             UpdateInputs(inputTime);
+            UpdateVisualsWithTimes(inputTime);
+        }
+
+        protected virtual void UpdateVisualsWithTimes(double inputTime)
+        {
             UpdateVisuals(inputTime);
             UpdateNotes(inputTime);
             UpdateBeatlines(inputTime);
@@ -325,6 +330,7 @@ namespace YARG.Gameplay.Player
             TotalNotes = Notes.Count;
 
             _replayInputIndex = Engine.ProcessUpToTime(time, ReplayInputs);
+            UpdateVisualsWithTimes(time);
         }
 
         protected override void UpdateInputs(double inputTime)
@@ -381,13 +387,19 @@ namespace YARG.Gameplay.Player
                     break;
                 }
 
-                SpawnNote(note);
-                foreach (var child in note.ChildNotes)
+                NoteIndex++;
+
+                // Don't spawn hit or missed notes
+                if (note.WasHit || note.WasMissed)
+                {
+                    continue;
+                }
+
+                // Spawn all of the notes and child notes
+                foreach (var child in note.ChordEnumerator())
                 {
                     SpawnNote(child);
                 }
-
-                NoteIndex++;
             }
         }
 

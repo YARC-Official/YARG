@@ -92,9 +92,9 @@ namespace YARG.Gameplay.Player
             HitWindowDisplay.SetHitWindowInfo(EngineParams, NoteSpeed);
         }
 
-        public override void UpdateWithTimes(double inputTime, double songTime)
+        public override void UpdateWithTimes(double inputTime)
         {
-            base.UpdateWithTimes(inputTime, songTime);
+            base.UpdateWithTimes(inputTime);
 
             Score = Engine.EngineStats.Score;
             Combo = Engine.EngineStats.Combo;
@@ -103,6 +103,13 @@ namespace YARG.Gameplay.Player
         protected override void UpdateVisuals(double songTime)
         {
             UpdateBaseVisuals(Engine.EngineStats, songTime);
+        }
+
+        protected override void ResetVisuals()
+        {
+            base.ResetVisuals();
+
+            _fretArray.ResetAll();
         }
 
         protected override void InitializeSpawnedNote(IPoolable poolable, DrumNote note)

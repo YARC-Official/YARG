@@ -121,9 +121,9 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        public override void UpdateWithTimes(double inputTime, double songTime)
+        public override void UpdateWithTimes(double inputTime)
         {
-            base.UpdateWithTimes(inputTime, songTime);
+            base.UpdateWithTimes(inputTime);
 
             Score = Engine.EngineStats.Score;
             Combo = Engine.EngineStats.Combo;
@@ -137,6 +137,13 @@ namespace YARG.Gameplay.Player
             {
                 _fretArray.SetPressed((int) fret, Engine.IsFretHeld(fret));
             }
+        }
+
+        protected override void ResetVisuals()
+        {
+            base.ResetVisuals();
+
+            _fretArray.ResetAll();
         }
 
         protected override void InitializeSpawnedNote(IPoolable poolable, GuitarNote note)

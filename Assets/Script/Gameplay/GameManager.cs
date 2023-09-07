@@ -284,7 +284,7 @@ namespace YARG.Gameplay
             int totalCombo = 0;
             foreach (var player in _players)
             {
-                player.UpdateWithTimes(InputTime, SongTime);
+                player.UpdateWithTimes(InputTime);
 
                 totalScore += player.Score;
                 totalCombo += player.Combo;
