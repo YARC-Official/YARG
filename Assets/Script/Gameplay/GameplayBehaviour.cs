@@ -42,13 +42,13 @@ namespace YARG.Gameplay
 
         private void OnDestroy()
         {
+            GameplayDestroy();
+
             if (GameManager == null) return;
 
             GameManager.ChartLoaded -= _OnChartLoaded;
             GameManager.SongLoaded -= _OnSongLoaded;
             GameManager.SongStarted -= _OnSongStarted;
-
-            GameplayDestroy();
         }
 
         private void _OnChartLoaded(SongChart chart)

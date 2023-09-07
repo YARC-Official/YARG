@@ -595,7 +595,6 @@ namespace YARG.Gameplay
                 return;
             }
 
-            GlobalVariables.AudioManager.SongEnd -= OnAudioEnd;
             EndSong();
         }
 
