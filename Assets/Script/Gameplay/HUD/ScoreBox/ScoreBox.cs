@@ -49,11 +49,6 @@ namespace YARG.Gameplay.HUD
 
         private void Update()
         {
-            if (GameManager.Paused)
-            {
-                return;
-            }
-
             // Update score
             if (GameManager.BandScore != _bandScore)
             {

@@ -4,7 +4,7 @@ using UnityEngine;
 using YARG.Core.Replays;
 using YARG.Menu;
 
-namespace YARG.Gameplay.ReplayViewer
+namespace YARG.Gameplay.HUD
 {
     public class ReplayController : GameplayBehaviour
     {
@@ -106,7 +106,7 @@ namespace YARG.Gameplay.ReplayViewer
                 player.SetReplayTime(time);
             }
 
-            GameManager.SetSongTime(time);
+            GameManager.SetSongTime(time, 0);
             GameManager.OverridePauseTime(GameManager.RealInputTime);
         }
 

@@ -14,7 +14,6 @@ using YARG.Core.Replays;
 using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
-using YARG.Gameplay.ReplayViewer;
 using YARG.Integration;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
