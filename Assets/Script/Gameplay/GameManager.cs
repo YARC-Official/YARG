@@ -23,6 +23,7 @@ using YARG.Replays;
 
 namespace YARG.Gameplay
 {
+    [DefaultExecutionOrder(-1)]
     public partial class GameManager : MonoBehaviour
     {
         [Header("References")]

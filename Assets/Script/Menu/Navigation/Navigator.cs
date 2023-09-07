@@ -45,6 +45,7 @@ namespace YARG.Menu.Navigation
         }
     }
 
+    [DefaultExecutionOrder(-10)]
     public class Navigator : MonoSingleton<Navigator>
     {
         private const float INPUT_REPEAT_TIME = 0.035f;

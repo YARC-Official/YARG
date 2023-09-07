@@ -113,7 +113,6 @@ namespace YARG.Gameplay.Player
             Beatlines = SyncTrack.Beatlines;
             BeatlineIndex = 0;
 
-            Debug.Log($"{DEFAULT_ZERO_FADE_POS} * {Player.Profile.HighwayLength}");
             ZeroFadePosition = DEFAULT_ZERO_FADE_POS * Player.Profile.HighwayLength;
             FadeSize = SettingsManager.Settings.TrackFadeSize.Data;
 
