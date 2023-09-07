@@ -36,7 +36,7 @@ namespace YARG.Gameplay.Player
 
         protected override DrumsEngine CreateEngine()
         {
-            EngineParams = new DrumsEngineParameters(0.15, 1);
+            EngineParams = new DrumsEngineParameters(0.15, 1, StarMultiplierThresholds);
             var engine = new YargDrumsEngine(NoteTrack, SyncTrack, EngineParams);
 
             engine.OnNoteHit += OnNoteHit;

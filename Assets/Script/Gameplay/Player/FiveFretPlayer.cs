@@ -35,7 +35,7 @@ namespace YARG.Gameplay.Player
 
         protected override GuitarEngine CreateEngine()
         {
-            EngineParams = new GuitarEngineParameters(0.15, 1, 0.08, 0.06, 0.025,
+            EngineParams = new GuitarEngineParameters(0.15, 1, StarMultiplierThresholds, 0.08, 0.06, 0.025,
                 SettingsManager.Settings.InfiniteFrontEnd.Data, SettingsManager.Settings.AntiGhosting.Data);
             var engine = new YargFiveFretEngine(NoteTrack, SyncTrack, EngineParams);
 
