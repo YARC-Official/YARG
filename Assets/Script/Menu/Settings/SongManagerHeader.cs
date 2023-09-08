@@ -10,5 +10,11 @@ namespace YARG.Menu.Settings
             SettingsManager.Settings.SongFolders.Add(string.Empty);
             SettingsMenu.Instance.UpdateSettingsForTab();
         }
+
+        public async void RefreshSongs()
+        {
+            LoadingManager.Instance.QueueSongRefresh(false);
+            await LoadingManager.Instance.StartLoad();
+        }
     }
 }

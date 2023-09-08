@@ -67,16 +67,6 @@ namespace YARG.Settings
 
             #endregion
 
-            #region Song Manager
-
-            public async void RefreshCache()
-            {
-                LoadingManager.Instance.QueueSongRefresh(false);
-                await LoadingManager.Instance.StartLoad();
-            }
-
-            #endregion
-
             #region Sound
 
             public VolumeSetting MasterMusicVolume { get; } = new(0.75f, v => VolumeCallback(SongStem.Master, v));

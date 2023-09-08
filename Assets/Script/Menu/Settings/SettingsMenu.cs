@@ -88,12 +88,6 @@ namespace YARG.Menu.Settings
 
             foreach (var tab in SettingsManager.SettingsTabs)
             {
-                // Skip tabs that aren't shown in game, if we are in game
-                if (!tab.ShowInPlayMode && GlobalVariables.Instance.CurrentScene == SceneIndex.Gameplay)
-                {
-                    continue;
-                }
-
                 // Load the tab sprite
                 var sprite = Addressables.LoadAssetAsync<Sprite>($"TabIcons[{tab.Icon}]").WaitForCompletion();
 
@@ -170,76 +164,9 @@ namespace YARG.Menu.Settings
             // Destroy all previous settings
             _settingsContainer.DestroyChildren();
 
-            foreach (var tab in SettingsManager.SettingsTabs)
-            {
-                // Look for the tab
-                if (tab.Name != CurrentTab)
-                {
-                    continue;
-                }
-
-                // Once we've found the tab, add the settings
-                foreach (var settingMetadata in tab.Settings)
-                {
-                    if (settingMetadata is HeaderMetadata header)
-                    {
-                        // Spawn in the header
-                        var go = Instantiate(_headerPrefab, _settingsContainer);
-
-                        // Set header text
-                        go.GetComponentInChildren<LocalizeStringEvent>().StringReference =
-                            LocaleHelper.StringReference("Settings", $"Header.{header.HeaderName}");
-                    }
-                    else if (settingMetadata is ButtonRowMetadata buttonRow)
-                    {
-                        // Spawn the button
-                        var go = Instantiate(_buttonPrefab, _settingsContainer);
-                        go.GetComponent<SettingsButton>().SetInfo(tab.Name, buttonRow.Buttons);
-                    }
-                    else if (settingMetadata is FieldMetadata field)
-                    {
-                        var setting = SettingsManager.GetSettingByName(field.FieldName);
-
-                        // Spawn the setting
-                        var settingPrefab = Addressables.LoadAssetAsync<GameObject>(setting.AddressableName)
-                            .WaitForCompletion();
-                        var go = Instantiate(settingPrefab, _settingsContainer);
-
-                        // Set the setting, and cache the object
-                        var visual = go.GetComponent<BaseSettingVisual>();
-                        visual.AssignSetting(tab.Name, field.FieldName);
-                        _settingVisuals.Add(visual);
-                        _settingsNavGroup.AddNavigatable(go);
-                    }
-                    else if (settingMetadata is PresetDropdownMetadata dropdown)
-                    {
-                        // Spawn the dropdown
-                        var go = Instantiate(_dropdownPrefab, _settingsContainer);
-
-                        // Set the setting, and cache the object
-                        var settingsDropdown = go.GetComponent<SettingsPresetDropdown>();
-                        settingsDropdown.SetInfo(tab.Name, dropdown);
-                        _settingDropdowns.Add(settingsDropdown);
-                    }
-                }
-
-                // Then we're good!
-                break;
-            }
-
-            // If its the song manager, put in some extra stuff
-            if (CurrentTab == "SongManager")
-            {
-                // Spawn in the special header
-                Instantiate(_songManagerHeader, _settingsContainer);
-
-                // Create all of the directories
-                for (int i = 0; i < SettingsManager.Settings.SongFolders.Count; i++)
-                {
-                    var go = Instantiate(_songManagerDirectoryPrefab, _settingsContainer);
-                    go.GetComponent<SettingsDirectory>().SetIndex(i);
-                }
-            }
+            // Build the settings tab
+            SettingsManager.GetTabByName(CurrentTab)
+                .BuildSettingTab(_settingsContainer, _settingsNavGroup);
 
             // Make the settings nav group the main one
             _settingsNavGroup.SelectFirst();
@@ -248,36 +175,36 @@ namespace YARG.Menu.Settings
             _scrollRect.verticalNormalizedPosition = 1f;
         }
 
-        private async UniTask UpdatePreview(SettingsManager.Tab tabInfo)
+        private async UniTask UpdatePreview(Tab tabInfo)
         {
-            DestroyPreview();
-
-            if (string.IsNullOrEmpty(tabInfo.PreviewPath))
-            {
-                _previewRawImage.gameObject.SetActive(false);
-                _previewRawImage.texture = null;
-                _previewRawImage.color = Color.black;
-                return;
-            }
-
-            // Spawn prefab
-            _previewContainer.gameObject.SetActive(true);
-            var previewPrefab = Addressables.LoadAssetAsync<GameObject>(tabInfo.PreviewPath).WaitForCompletion();
-            Instantiate(previewPrefab, _previewContainer);
-
-            // Set render texture
-            CameraPreviewTexture.SetAllPreviews();
-
-            // Enable and wait for layouts to rebuild
-            _previewRawImage.gameObject.SetActive(true);
-            await UniTask.WaitForEndOfFrame(this);
-
-            // Size raw image
-            _previewRawImage.texture = CameraPreviewTexture.PreviewTexture;
-            _previewRawImage.color = Color.white;
-            var rect = _previewRawImage.rectTransform.ToViewportSpaceCentered(v: false, scale: 0.9f);
-            rect.y = 0f;
-            _previewRawImage.uvRect = rect;
+            // DestroyPreview();
+            //
+            // if (string.IsNullOrEmpty(tabInfo.PreviewPath))
+            // {
+            //     _previewRawImage.gameObject.SetActive(false);
+            //     _previewRawImage.texture = null;
+            //     _previewRawImage.color = Color.black;
+            //     return;
+            // }
+            //
+            // // Spawn prefab
+            // _previewContainer.gameObject.SetActive(true);
+            // var previewPrefab = Addressables.LoadAssetAsync<GameObject>(tabInfo.PreviewPath).WaitForCompletion();
+            // Instantiate(previewPrefab, _previewContainer);
+            //
+            // // Set render texture
+            // CameraPreviewTexture.SetAllPreviews();
+            //
+            // // Enable and wait for layouts to rebuild
+            // _previewRawImage.gameObject.SetActive(true);
+            // await UniTask.WaitForEndOfFrame(this);
+            //
+            // // Size raw image
+            // _previewRawImage.texture = CameraPreviewTexture.PreviewTexture;
+            // _previewRawImage.color = Color.white;
+            // var rect = _previewRawImage.rectTransform.ToViewportSpaceCentered(v: false, scale: 0.9f);
+            // rect.y = 0f;
+            // _previewRawImage.uvRect = rect;
         }
 
         private void DestroyPreview()
@@ -290,18 +217,7 @@ namespace YARG.Menu.Settings
 
         public void ReturnToFirstTab()
         {
-            // Select the first tab
-            foreach (var tab in SettingsManager.SettingsTabs)
-            {
-                // Skip tabs that aren't shown in game, if we are in game
-                if (!tab.ShowInPlayMode && GlobalVariables.Instance.CurrentScene == SceneIndex.Gameplay)
-                {
-                    continue;
-                }
-
-                CurrentTab = tab.Name;
-                break;
-            }
+            CurrentTab = SettingsManager.SettingsTabs[0].Name;
         }
 
         public void UpdateSpecificSetting(string settingName)

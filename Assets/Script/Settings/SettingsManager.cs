@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,36 +12,11 @@ namespace YARG.Settings
 {
     public static partial class SettingsManager
     {
-        public class Tab : IEnumerable<AbstractMetadata>
-        {
-            public string Name { get; }
-            public string Icon { get; }
-            public string PreviewPath { get; }
-            public bool ShowInPlayMode { get; }
-
-            private List<AbstractMetadata> _settings = new();
-            public IReadOnlyList<AbstractMetadata> Settings => _settings;
-
-            public Tab(string name, string icon = "Generic", string previewPath = null, bool showInPlayMode = false)
-            {
-                Name = name;
-                Icon = icon;
-                PreviewPath = previewPath;
-                ShowInPlayMode = showInPlayMode;
-            }
-
-            // For collection initializer support
-            public void Add(AbstractMetadata setting) => _settings.Add(setting);
-            public List<AbstractMetadata>.Enumerator GetEnumerator() => _settings.GetEnumerator();
-            IEnumerator<AbstractMetadata> IEnumerable<AbstractMetadata>.GetEnumerator() => GetEnumerator();
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        }
-
         public static SettingContainer Settings { get; private set; }
 
         public static readonly List<Tab> SettingsTabs = new()
         {
-            new(name: "General")
+            new MetadataTab("General")
             {
                 new HeaderMetadata("FileManagement"),
                 new ButtonRowMetadata("ExportOuvertSongs"),
@@ -59,12 +33,8 @@ namespace YARG.Settings
                 "ShowCursorTimer",
                 "AmIAwesome"
             },
-            new(name: "SongManager", icon: "Songs")
-            {
-                new HeaderMetadata("Cache"),
-                new ButtonRowMetadata("RefreshCache")
-            },
-            new(name: "Sound", icon: "Sound", showInPlayMode: true)
+            new SongManagerTab("SongManager", icon: "Songs"),
+            new MetadataTab("Sound", icon: "Sound")
             {
                 new HeaderMetadata("Volume"),
                 "MasterMusicVolume",
@@ -92,7 +62,7 @@ namespace YARG.Settings
                 // "ReverbInStarpower",
                 "UseChipmunkSpeed",
             },
-            new(name: "Graphics", icon: "Display", previewPath: "SettingPreviews/TrackPreview", showInPlayMode: true)
+            new MetadataTab("Graphics", icon: "Display")
             {
                 new HeaderMetadata("Display"),
                 "VSync",
@@ -240,12 +210,16 @@ namespace YARG.Settings
                 "GraphicalProgressOnScoreBox",
                 "LyricBackground"
             },
-            new(name: "Engine", icon: "Engine")
+            new MetadataTab("Engine", icon: "Engine")
             {
                 "NoKicks",
                 "AntiGhosting",
                 "InfiniteFrontEnd"
             },
+            new MetadataTab("Presets", icon: "Generic")
+            {
+
+            }
         };
 
         private static string SettingsFile => Path.Combine(PathHelper.PersistentDataPath, "settings.json");
