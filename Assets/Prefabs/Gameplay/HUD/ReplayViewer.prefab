@@ -186,7 +186,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 7369758456641772501}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 5703792185782102541}
+        m_TargetAssemblyTypeName: YARG.Gameplay.HUD.ReplayController, Assembly-CSharp
+        m_MethodName: AdjustSpeed
+        m_Mode: 4
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0.05
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &7369758456643653890
 GameObject:
   m_ObjectHideFlags: 0
@@ -308,7 +320,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 7369758456643653901}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 5703792185782102541}
+        m_TargetAssemblyTypeName: YARG.Gameplay.HUD.ReplayController, Assembly-CSharp
+        m_MethodName: AdjustSpeed
+        m_Mode: 4
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: -0.05
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &7369758456709148174
 GameObject:
   m_ObjectHideFlags: 0
@@ -656,6 +680,7 @@ MonoBehaviour:
   _speedInput: {fileID: 7369758457936002212}
   _timeInput: {fileID: 7369758458533905351}
   _songLengthText: {fileID: 7369758457261813798}
+  _hudAnimationTime: 0.25
 --- !u!1 &7369758457181372199
 GameObject:
   m_ObjectHideFlags: 0

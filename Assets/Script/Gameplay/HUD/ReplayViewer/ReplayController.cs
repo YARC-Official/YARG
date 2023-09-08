@@ -1,8 +1,11 @@
 ﻿using System;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using YARG.Core.Input;
 using YARG.Core.Replays;
 using YARG.Menu;
+using YARG.Menu.Navigation;
 
 namespace YARG.Gameplay.HUD
 {
@@ -22,15 +25,29 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private TextMeshProUGUI _songLengthText;
 
+        [SerializeField]
+        private float _hudAnimationTime;
+
+        private RectTransform _rectTransform;
+
         private Replay _replay;
 
         private float _sliderValue;
         private float _sliderTimeInactive;
-        private bool  _sliderChanged;
+        private float _hudHiddenY;
+
+        private bool _sliderChanged;
+        private bool _hudVisible;
 
         protected override void GameplayAwake()
         {
+            _rectTransform = GetComponent<RectTransform>();
+            _hudHiddenY = transform.position.y;
+
             _timeSlider.OnSliderDrag.AddListener(OnTimeSliderDragged);
+
+            // Listen for menu inputs
+            Navigator.Instance.NavigationEvent += OnNavigationEvent;
         }
 
         protected override void GameplayDestroy()
@@ -40,20 +57,15 @@ namespace YARG.Gameplay.HUD
 
         protected override void OnSongLoaded()
         {
-            if (!GameManager.IsReplay)
-            {
-                Destroy(gameObject);
-                return;
-            }
-
-            _songLengthText.text = TimeSpan.FromSeconds(GameManager.SongLength + GameManager.SONG_START_DELAY).ToString("g");
+            _songLengthText.text = TimeSpan.FromSeconds(GameManager.SongLength + GameManager.SONG_START_DELAY)
+                .ToString("g");
 
             _replay = GameManager.Replay;
         }
 
         private void Update()
         {
-            if (!GameManager.Paused)
+            if (!GameManager.Paused && _hudVisible)
             {
                 UpdateReplayUI(true, false);
             }
@@ -78,7 +90,8 @@ namespace YARG.Gameplay.HUD
             }
             else
             {
-                _timeInput.text = TimeSpan.FromSeconds(GameManager.InputTime + GameManager.SONG_START_DELAY).ToString("g");
+                _timeInput.text = TimeSpan.FromSeconds(GameManager.InputTime + GameManager.SONG_START_DELAY)
+                    .ToString("g");
             }
 
             if (updateSlider)
@@ -137,6 +150,37 @@ namespace YARG.Gameplay.HUD
             else
             {
                 GameManager.Resume();
+            }
+        }
+
+        public void AdjustSpeed(float adjustment)
+        {
+            GameManager.SetSongSpeed(GameManager.SelectedSongSpeed + adjustment);
+
+            _speedInput.text = $"{GameManager.SelectedSongSpeed * 100f:0}%";
+        }
+
+        public void ToggleHUD()
+        {
+            if (_hudVisible)
+            {
+                // Hide hud
+                _rectTransform.DOMoveY(_hudHiddenY, _hudAnimationTime);
+            }
+            else
+            {
+                // Show hud
+                _rectTransform.DOMoveY(0f, _hudAnimationTime).SetEase(Ease.InOutQuint);
+            }
+
+            _hudVisible = !_hudVisible;
+        }
+
+        private void OnNavigationEvent(NavigationContext context)
+        {
+            if (context.Action == MenuAction.Select)
+            {
+                ToggleHUD();
             }
         }
     }

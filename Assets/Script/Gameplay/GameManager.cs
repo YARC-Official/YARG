@@ -595,6 +595,12 @@ namespace YARG.Gameplay
                 return;
             }
 
+            if (IsReplay)
+            {
+                Pause(false);
+                return;
+            }
+
             EndSong();
         }
 

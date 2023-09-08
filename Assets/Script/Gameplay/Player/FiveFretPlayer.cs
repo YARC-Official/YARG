@@ -84,14 +84,20 @@ namespace YARG.Gameplay.Player
 
             engine.OnStarPowerPhraseHit += _ =>
             {
-                GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarPowerAward);
+                if (!GameManager.Paused)
+                {
+                    GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarPowerAward);
+                }
             };
 
             engine.OnStarPowerStatus += (status) =>
             {
-                GlobalVariables.AudioManager.PlaySoundEffect(status
-                    ? SfxSample.StarPowerDeploy
-                    : SfxSample.StarPowerRelease);
+                if (!GameManager.Paused)
+                {
+                    GlobalVariables.AudioManager.PlaySoundEffect(status
+                        ? SfxSample.StarPowerDeploy
+                        : SfxSample.StarPowerRelease);
+                }
             };
 
             return engine;
@@ -154,6 +160,8 @@ namespace YARG.Gameplay.Player
         protected override void OnNoteHit(int index, GuitarNote chordParent)
         {
             base.OnNoteHit(index, chordParent);
+
+            if (GameManager.Paused) return;
 
             foreach (var note in chordParent.ChordEnumerator())
             {

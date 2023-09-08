@@ -8,6 +8,17 @@ namespace YARG.Gameplay.HUD
     {
         private float _cursorHideTimer;
 
+        protected override void GameplayAwake()
+        {
+            float showCursorSetting = SettingsManager.Settings.ShowCursorTimer.Data;
+
+            if (Mathf.Approximately(showCursorSetting, 0f))
+            {
+                Cursor.visible = true;
+                Destroy(this);
+            }
+        }
+
         protected override void GameplayDestroy()
         {
             Cursor.visible = true;
@@ -23,7 +34,7 @@ namespace YARG.Gameplay.HUD
             float showCursorSetting = SettingsManager.Settings.ShowCursorTimer.Data;
 
             // Always show if paused, or if settings say so
-            if (GameManager.Paused || Mathf.Approximately(showCursorSetting, 0f))
+            if (GameManager.Paused || GameManager.IsReplay)
             {
                 Cursor.visible = true;
                 return;
