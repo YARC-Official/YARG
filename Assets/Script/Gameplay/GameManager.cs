@@ -125,8 +125,9 @@ namespace YARG.Gameplay
 
         public bool Paused { get; private set; }
 
-        public int BandScore { get; private set; }
-        public int BandCombo { get; private set; }
+        public int    BandScore { get; private set; }
+        public int    BandCombo { get; private set; }
+        public double BandStars { get; private set; }
 
         public Replay Replay { get; private set; }
 
@@ -280,6 +281,8 @@ namespace YARG.Gameplay
                 _debugText.gameObject.SetActive(_isShowDebugText);
             }
 
+            // Set total score and combos
+
             int totalScore = 0;
             int totalCombo = 0;
             foreach (var player in _players)
@@ -291,6 +294,40 @@ namespace YARG.Gameplay
             }
 
             BandScore = totalScore;
+            BandCombo = totalCombo;
+
+            // Get the band stars
+
+            double totalStars = 0f;
+            foreach (var player in _players)
+            {
+                var thresh = player.StarScoreThresholds;
+                for (int i = 0; i < thresh.Length; i++)
+                {
+                    // Skip until we reach the progressing threshold
+                    if (player.Score > thresh[i])
+                    {
+                        if (i == thresh.Length - 1)
+                        {
+                            totalStars += 6f;
+                        }
+
+                        continue;
+                    }
+
+                    // Otherwise, get the progress.
+                    // There is at least this amount of stars.
+                    totalStars += i;
+
+                    // Then, we just gotta get the progress into the next star.
+                    int bound = i != 0 ? thresh[i - 1] : 0;
+                    totalStars += (double) (player.Score - bound) / (thresh[i] - bound);
+
+                    break;
+                }
+            }
+
+            BandStars = totalStars / _players.Count;
         }
 
         private async UniTask LoadReplay()
@@ -552,7 +589,8 @@ namespace YARG.Gameplay
                     Player = player.Player,
                     Stats = player.Stats
                 }).ToArray(),
-                BandScore = BandScore
+                BandScore = BandScore,
+                BandStars = (int) BandStars
             };
 
             GlobalVariables.Instance.IsReplay = false;

@@ -51,7 +51,6 @@ namespace YARG.Menu.ScoreScreen
             _artistName.text = song.Artist;
 
             // Set the band score and stars
-            // TODO: Band stars
             _bandStarView.SetStars(scoreScreenStats.BandStars);
             _bandScore.text = scoreScreenStats.BandScore.ToString("N0");
 

@@ -134,7 +134,8 @@ namespace YARG.Gameplay.HUD
                 }
 
                 goldMeterLine.rectTransform.anchoredPosition = new Vector2(0, (float) (starProgress * _goldMeterHeight));
-            } else if (stars >= 6)
+            }
+            else if (stars >= 6)
             {
                 foreach(var star in starObjects)
                 {
