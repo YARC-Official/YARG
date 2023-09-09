@@ -18,6 +18,9 @@ namespace YARG.Settings.Metadata
         private static readonly GameObject _presetDropdown = Addressables
             .LoadAssetAsync<GameObject>("SettingTab/PresetDropdown")
             .WaitForCompletion();
+        private static readonly GameObject _presetDefaultText = Addressables
+            .LoadAssetAsync<GameObject>("SettingTab/PresetDefaultText")
+            .WaitForCompletion();
 
         // We essentially need to create sub-tabs for each preset
         private static readonly Dictionary<CustomContent, MetadataTab> _presetTabs = new()
@@ -64,7 +67,7 @@ namespace YARG.Settings.Metadata
 
             if (SelectedPreset is null || SelectedPreset.DefaultPreset)
             {
-                // TODO: Add info text or something
+                Object.Instantiate(_presetDefaultText, settingContainer);
             }
             else
             {
