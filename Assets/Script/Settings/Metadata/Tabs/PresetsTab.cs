@@ -44,6 +44,7 @@ namespace YARG.Settings.Metadata
         public PresetsTab(string name, string icon = "Generic") : base(name, icon)
         {
             SelectedContent = _presetTabs.Keys.First();
+            SelectedPreset = SelectedContent.DefaultBasePresets[0];
         }
 
         public override void BuildSettingTab(Transform settingContainer, NavigationGroup navGroup)
@@ -61,8 +62,15 @@ namespace YARG.Settings.Metadata
                 return;
             }
 
-            // Create the settings
-            tab.BuildSettingTab(settingContainer, navGroup);
+            if (SelectedPreset is null || SelectedPreset.DefaultPreset)
+            {
+                // TODO: Add info text or something
+            }
+            else
+            {
+                // Create the settings
+                tab.BuildSettingTab(settingContainer, navGroup);
+            }
         }
     }
 }

@@ -7,7 +7,7 @@ namespace YARG.Settings.Customization
         public static readonly List<CameraPreset> Defaults = new()
         {
             Default,
-            new CameraPreset("High FOV")
+            new CameraPreset("High FOV", true)
             {
                 FieldOfView = 60f,
                 PositionY   = 2.66f,
@@ -17,7 +17,7 @@ namespace YARG.Settings.Customization
                 FadeLength  = 1.25f,
                 CurveFactor = 0.5f,
             },
-            new CameraPreset("The Band 1")
+            new CameraPreset("The Band 1", true)
             {
                 FieldOfView = 47.84f,
                 PositionY   = 2.43f,
@@ -27,7 +27,7 @@ namespace YARG.Settings.Customization
                 FadeLength  = 1.25f,
                 CurveFactor = 0.5f,
             },
-            new CameraPreset("The Band 2")
+            new CameraPreset("The Band 2", true)
             {
                 FieldOfView = 44.97f,
                 PositionY   = 2.66f,
@@ -37,7 +37,7 @@ namespace YARG.Settings.Customization
                 FadeLength  = 1.25f,
                 CurveFactor = 0.5f,
             },
-            new CameraPreset("The Band 3")
+            new CameraPreset("The Band 3", true)
             {
                 FieldOfView = 57.29f,
                 PositionY   = 2.22f,
@@ -47,7 +47,7 @@ namespace YARG.Settings.Customization
                 FadeLength  = 1.25f,
                 CurveFactor = 0.5f,
             },
-            new CameraPreset("The Band 4")
+            new CameraPreset("The Band 4", true)
             {
                 FieldOfView = 62.16f,
                 PositionY   = 2.56f,
@@ -57,7 +57,7 @@ namespace YARG.Settings.Customization
                 FadeLength  = 1.25f,
                 CurveFactor = 0.5f,
             },
-            new CameraPreset("Hero 2")
+            new CameraPreset("Hero 2", true)
             {
                 FieldOfView = 58.15f,
                 PositionY   = 1.82f,
@@ -67,7 +67,7 @@ namespace YARG.Settings.Customization
                 FadeLength  = 1.5f,
                 CurveFactor = 0.5f,
             },
-            new CameraPreset("Hero 3")
+            new CameraPreset("Hero 3", true)
             {
                 FieldOfView = 52.71f,
                 PositionY   = 2.17f,
@@ -77,7 +77,7 @@ namespace YARG.Settings.Customization
                 FadeLength  = 1.5f,
                 CurveFactor = 0.5f,
             },
-            new CameraPreset("Hero Traveling the World")
+            new CameraPreset("Hero Traveling the World", true)
             {
                 FieldOfView  = 53.85f,
                 PositionY    = 1.97f,
@@ -87,7 +87,7 @@ namespace YARG.Settings.Customization
                 FadeLength   = 1.5f,
                 CurveFactor  = 0.5f,
             },
-            new CameraPreset("Hero Live")
+            new CameraPreset("Hero Live", true)
             {
                 FieldOfView = 62.16f,
                 PositionY   = 2.40f,
@@ -97,7 +97,7 @@ namespace YARG.Settings.Customization
                 FadeLength  = 1.25f,
                 CurveFactor = 0.5f,
             },
-            new CameraPreset("Clone")
+            new CameraPreset("Clone", true)
             {
                 FieldOfView = 55f,
                 PositionY   = 2.07f,
