@@ -8,5 +8,7 @@
         {
             Name = name;
         }
+
+        public abstract BasePreset CopyWithNewName(string name);
     }
 }

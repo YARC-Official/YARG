@@ -49,5 +49,16 @@ namespace YARG.Menu.Settings
 
             SettingsMenu.Instance.Refresh();
         }
+
+        public void CopyPreset()
+        {
+            var preset = _presetsByIndex[_dropdown.value];
+
+            var copy = preset.CopyWithNewName($"Copy of {preset.Name}");
+            _tab.SelectedContent.AddPreset(copy);
+            _tab.SelectedPreset = copy;
+
+            SettingsMenu.Instance.Refresh();
+        }
     }
 }

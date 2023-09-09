@@ -18,5 +18,19 @@ namespace YARG.Settings.Customization
         public CameraPreset(string name) : base(name)
         {
         }
+
+        public override BasePreset CopyWithNewName(string name)
+        {
+            return new CameraPreset(name)
+            {
+                FieldOfView = FieldOfView,
+                PositionY = PositionY,
+                PositionZ = PositionZ,
+                Rotation = Rotation,
+                FadeStart = FadeStart,
+                FadeLength = FadeLength,
+                CurveFactor = CurveFactor,
+            };
+        }
     }
 }
