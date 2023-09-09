@@ -8,9 +8,9 @@ using YARG.Helpers;
 
 namespace YARG.Settings.Customization
 {
+    // TODO: COLOR PROFILE
     // public class ColorProfileContainer : CustomContent<ColorProfile>
     // {
-    //     // TODO: LOL
     //     public override IEnumerable<ColorProfile> DefaultPresets => null;
     //     public override IEnumerable<string> DefaultPresetNames => DefaultPresets.Select(i => i.Name);
     //

@@ -180,8 +180,9 @@ namespace YARG.Player
 
                 foreach (var profile in profiles)
                 {
-                    var colorProfile =
-                        CustomContentManager.ColorProfiles.GetColorProfileOrDefault(profile.ColorProfile);
+                    var colorProfile = ColorProfile.Default;
+                    // TODO: COLOR PROFILE
+                        // CustomContentManager.ColorProfiles.GetColorProfileOrDefault(profile.ColorProfile);
 
                     profile.ColorProfile = colorProfile.Name;
                 }

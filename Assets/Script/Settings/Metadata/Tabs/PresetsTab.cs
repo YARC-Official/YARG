@@ -38,32 +38,30 @@ namespace YARG.Settings.Metadata
             }
         };
 
-        private CustomContent _selectedContent;
+        public CustomContent SelectedContent;
+        public BasePreset SelectedPreset;
 
         public PresetsTab(string name, string icon = "Generic") : base(name, icon)
         {
-            _selectedContent = _presetTabs.Keys.First();
+            SelectedContent = _presetTabs.Keys.First();
         }
 
         public override void BuildSettingTab(Transform settingContainer, NavigationGroup navGroup)
         {
             // Create the preset type dropdown
             var typeDropdown = Object.Instantiate(_presetTypeDropdown, settingContainer);
-            typeDropdown.GetComponent<PresetTypeDropdown>().Initialize(_presetTabs.Keys.ToArray(), _selectedContent, t =>
-            {
-                _selectedContent = t;
-                Refresh();
-            });
+            typeDropdown.GetComponent<PresetTypeDropdown>().Initialize(this, _presetTabs.Keys.ToArray());
 
             // Create the preset dropdown
             var dropdown = Object.Instantiate(_presetDropdown, settingContainer);
-            dropdown.GetComponent<PresetDropdown>().Initialize(_selectedContent);
+            dropdown.GetComponent<PresetDropdown>().Initialize(this);
 
-            if (!_presetTabs.TryGetValue(_selectedContent, out var tab))
+            if (!_presetTabs.TryGetValue(SelectedContent, out var tab))
             {
                 return;
             }
 
+            // Create the settings
             tab.BuildSettingTab(settingContainer, navGroup);
         }
     }

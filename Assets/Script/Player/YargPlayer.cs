@@ -26,7 +26,9 @@ namespace YARG.Player
                 {
                     return _colorProfile;
                 }
-                return CustomContentManager.ColorProfiles.GetColorProfileOrDefault(Profile.ColorProfile);
+                // TODO: COLOR PROFILE
+                // return CustomContentManager.ColorProfiles.GetColorProfileOrDefault(Profile.ColorProfile);
+                return ColorProfile.Default;
             }
         }
 

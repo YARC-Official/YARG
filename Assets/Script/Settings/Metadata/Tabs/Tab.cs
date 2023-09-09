@@ -21,6 +21,6 @@ namespace YARG.Settings.Metadata
         {
         }
 
-        protected void Refresh() => SettingsMenu.Instance.UpdateSettingsForTab();
+        protected void Refresh() => SettingsMenu.Instance.Refresh();
     }
 }

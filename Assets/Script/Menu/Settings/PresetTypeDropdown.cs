@@ -2,6 +2,7 @@
 using TMPro;
 using UnityEngine;
 using YARG.Settings.Customization;
+using YARG.Settings.Metadata;
 
 namespace YARG.Menu.Settings
 {
@@ -11,12 +12,12 @@ namespace YARG.Menu.Settings
         private TMP_Dropdown _dropdown;
 
         private CustomContent[] _presetTypes;
-        private Action<CustomContent> _action;
+        private PresetsTab _tab;
 
-        public void Initialize(CustomContent[] presetTypes, CustomContent selected, Action<CustomContent> action)
+        public void Initialize(PresetsTab tab, CustomContent[] presetTypes)
         {
+            _tab = tab;
             _presetTypes = presetTypes;
-            _action = action;
 
             // Add the options (in order)
             _dropdown.options.Clear();
@@ -26,13 +27,13 @@ namespace YARG.Menu.Settings
             }
 
             // Set index
-            _dropdown.SetValueWithoutNotify(Array.IndexOf(presetTypes, selected));
+            _dropdown.SetValueWithoutNotify(Array.IndexOf(presetTypes, tab.SelectedContent));
         }
 
         public void OnDropdownChange()
         {
-            var type = _presetTypes[_dropdown.value];
-            _action?.Invoke(type);
+            _tab.SelectedContent = _presetTypes[_dropdown.value];
+            SettingsMenu.Instance.Refresh();
         }
     }
 }

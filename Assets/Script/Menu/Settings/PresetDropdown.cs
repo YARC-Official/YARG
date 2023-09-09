@@ -1,6 +1,8 @@
-﻿using TMPro;
+﻿using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using YARG.Settings.Customization;
+using YARG.Settings.Metadata;
 
 namespace YARG.Menu.Settings
 {
@@ -9,35 +11,43 @@ namespace YARG.Menu.Settings
         [SerializeField]
         private TMP_Dropdown _dropdown;
 
-        private CustomContent _contentContainer;
+        private readonly List<BasePreset> _presetsByIndex = new();
 
-        private int _customPresetsStart;
+        private PresetsTab _tab;
 
-        public void Initialize(CustomContent contentContainer)
+        public void Initialize(PresetsTab tab)
         {
-            _contentContainer = contentContainer;
+            _tab = tab;
 
             _dropdown.options.Clear();
+            _presetsByIndex.Clear();
 
             // Add the defaults
-            foreach (var name in _contentContainer.DefaultPresetNames)
+            foreach (var preset in _tab.SelectedContent.DefaultBasePresets)
             {
-                _dropdown.options.Add(new($"<color=#1CCFFF>{name}</color>"));
+                _dropdown.options.Add(new($"<color=#1CCFFF>{preset.Name}</color>"));
+                _presetsByIndex.Add(preset);
             }
 
             // Add the customs
-            _customPresetsStart = _dropdown.options.Count;
-            foreach (var name in _contentContainer.CustomPresetNames)
+            foreach (var preset in _tab.SelectedContent.CustomBasePresets)
             {
-                _dropdown.options.Add(new(name));
+                _dropdown.options.Add(new(preset.Name));
+                _presetsByIndex.Add(preset);
             }
 
             // Set index
-            _dropdown.SetValueWithoutNotify(0);
+            _dropdown.SetValueWithoutNotify(_presetsByIndex.IndexOf(_tab.SelectedPreset));
         }
 
         public void OnDropdownChange()
         {
+            var preset = _presetsByIndex[_dropdown.value];
+
+            _tab.SelectedContent.SetSettingsFromPreset(preset);
+            _tab.SelectedPreset = preset;
+
+            SettingsMenu.Instance.Refresh();
         }
     }
 }

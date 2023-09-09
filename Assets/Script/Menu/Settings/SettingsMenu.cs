@@ -59,7 +59,7 @@ namespace YARG.Menu.Settings
             {
                 _currentTab = value;
 
-                UpdateSettingsForTab();
+                Refresh();
             }
         }
 
@@ -141,7 +141,7 @@ namespace YARG.Menu.Settings
                 "Settings", $"Setting.{CurrentTab}.{settingNav.SettingName}.Description");
         }
 
-        public void UpdateSettingsForTab()
+        public void Refresh()
         {
             var tabInfo = SettingsManager.GetTabByName(CurrentTab);
 
