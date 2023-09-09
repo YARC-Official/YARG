@@ -12,16 +12,6 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private TextMeshProUGUI _bPositionText;
 
-        protected override void GameplayAwake()
-        {
-            base.GameplayAwake();
-
-            if (!GameManager.IsPractice)
-            {
-                Destroy(gameObject);
-            }
-        }
-
         protected override void OnEnable()
         {
             base.OnEnable();
