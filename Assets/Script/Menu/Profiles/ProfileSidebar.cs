@@ -77,14 +77,14 @@ namespace YARG.Menu.Profiles
                 _gameModeDropdown.options.Add(new TMP_Dropdown.OptionData(name));
             }
 
-            _colorProfileDropdown.options.Clear();
-            foreach ((string name, var colors) in CustomContentManager.ColorProfiles.Content)
-            {
-                _colorProfilesByIndex.Add(colors);
-
-                // Create the dropdown option
-                _colorProfileDropdown.options.Add(new TMP_Dropdown.OptionData(name));
-            }
+            // _colorProfileDropdown.options.Clear();
+            // foreach ((string name, var colors) in CustomContentManager.ColorProfiles.Content)
+            // {
+            //     _colorProfilesByIndex.Add(colors);
+            //
+            //     // Create the dropdown option
+            //     _colorProfileDropdown.options.Add(new TMP_Dropdown.OptionData(name));
+            // }
         }
 
         public void UpdateSidebar(YargProfile profile, ProfileView profileView)
@@ -101,9 +101,8 @@ namespace YARG.Menu.Profiles
             _highwayLengthField.text = profile.HighwayLength.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
             _leftyFlipToggle.isOn = profile.LeftyFlip;
 
-            var colorProfile = CustomContentManager.ColorProfiles.GetColorProfileOrDefault(profile.ColorProfile);
-
-            _colorProfileDropdown.value = _colorProfilesByIndex.IndexOf(colorProfile);
+            // var colorProfile = CustomContentManager.ColorProfiles.GetColorProfileOrDefault(profile.ColorProfile);
+            // _colorProfileDropdown.value = _colorProfilesByIndex.IndexOf(colorProfile);
 
             // Show the proper name container (hide the editing version)
             _nameContainer.SetActive(true);

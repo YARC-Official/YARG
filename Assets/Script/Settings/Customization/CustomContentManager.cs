@@ -8,18 +8,18 @@ namespace YARG.Settings.Customization
         private const string CUSTOM_DIRECTORY = "custom";
         private static string CustomizationDirectory => Path.Combine(PathHelper.PersistentDataPath, CUSTOM_DIRECTORY);
 
-        public static readonly ColorProfileContainer   ColorProfiles;
+        // public static readonly ColorProfileContainer   ColorProfiles;
         public static readonly CameraSettingsContainer CameraSettings;
 
         static CustomContentManager()
         {
-            ColorProfiles = new ColorProfileContainer(Path.Combine(CustomizationDirectory, "colors"));
+            // ColorProfiles = new ColorProfileContainer(Path.Combine(CustomizationDirectory, "colors"));
             CameraSettings = new CameraSettingsContainer(Path.Combine(CustomizationDirectory, "cameras"));
         }
 
         public static void LoadContent()
         {
-            ColorProfiles.LoadFiles();
+            // ColorProfiles.LoadFiles();
             CameraSettings.LoadFiles();
         }
     }

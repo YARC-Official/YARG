@@ -1,10 +1,8 @@
 namespace YARG.Settings.Customization
 {
-    public partial class CameraPreset
+    public partial class CameraPreset : BasePreset
     {
         public static CameraPreset Default => new("Default");
-
-        public string Name;
 
         public float FieldOfView = 55f;
 
@@ -17,9 +15,8 @@ namespace YARG.Settings.Customization
 
         public float CurveFactor = 0.5f;
 
-        public CameraPreset(string name)
+        public CameraPreset(string name) : base(name)
         {
-            Name = name;
         }
     }
 }
