@@ -216,10 +216,7 @@ namespace YARG.Settings
                 "AntiGhosting",
                 "InfiniteFrontEnd"
             },
-            new MetadataTab("Presets", icon: "Generic")
-            {
-
-            }
+            new PresetsTab("Presets", icon: "Generic")
         };
 
         private static string SettingsFile => Path.Combine(PathHelper.PersistentDataPath, "settings.json");

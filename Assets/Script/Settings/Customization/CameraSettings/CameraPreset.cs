@@ -15,6 +15,8 @@ namespace YARG.Settings.Customization
         public float FadeStart = 3f;
         public float FadeLength = 1.25f;
 
+        public float CurveFactor = 0.5f;
+
         public CameraPreset(string name)
         {
             Name = name;

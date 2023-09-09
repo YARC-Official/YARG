@@ -30,7 +30,6 @@ namespace YARG.Settings.Metadata
         public override void BuildSettingTab(Transform container, NavigationGroup navGroup)
         {
             _settingVisuals.Clear();
-            navGroup.ClearNavigatables();
 
             // Once we've found the tab, add the settings
             foreach (var settingMetadata in _settings)

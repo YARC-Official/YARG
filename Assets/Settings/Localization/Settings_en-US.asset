@@ -219,34 +219,6 @@ MonoBehaviour:
     m_Localized: Show Hit Window
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619362
-    m_Localized: Camera FOV
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53693768667619363
-    m_Localized: Camera Rotation
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53693768667619364
-    m_Localized: Camera Y Position
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53693768667619365
-    m_Localized: Camera Z Position
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53693768667619366
-    m_Localized: Curve Factor
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53693768667619367
-    m_Localized: Fade Position
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53693768667619368
-    m_Localized: Fade Size
-    m_Metadata:
-      m_Items: []
   - m_Id: 53693768667619369
     m_Localized: Enable VSync
     m_Metadata:
@@ -420,35 +392,6 @@ MonoBehaviour:
       "window" in which notes can be hit.
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850255
-    m_Localized: The track camera's field of view.
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53704501379850256
-    m_Localized: The track camera's rotational pitch (up and down).
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53704501379850257
-    m_Localized: The track camera's Y position (up and down).
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53704501379850258
-    m_Localized: The track camera's Z position (forward and backwards).
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53704501379850259
-    m_Localized: The track's curve factor.
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53704501379850260
-    m_Localized: The track's fade position. Lower values are closer to the frets.
-      This also controls the track length.
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53704501379850261
-    m_Localized: The track's fade size. A fade size of "0" will remove the fade.
-    m_Metadata:
-      m_Items: []
   - m_Id: 53704501379850262
     m_Localized: Enables VSync. VSync caps the framerate at your monitor's maximum
       framerate, and prevents tearing.
@@ -573,6 +516,63 @@ MonoBehaviour:
   - m_Id: 56971512511848449
     m_Localized: Enables and disables the graphical blue outline on the score box
       that displays the song's progress.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506674827264
+    m_Localized: Curve Factor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021568
+    m_Localized: The track's curve factor.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021569
+    m_Localized: Fade Size
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021570
+    m_Localized: The track's fade size. A fade size of "0" will remove the fade.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021571
+    m_Localized: Fade Position
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021572
+    m_Localized: The track's fade position. Lower values are closer to the frets.
+      This also controls the track length.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021573
+    m_Localized: Camera FOV
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021574
+    m_Localized: The track camera's field of view.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021575
+    m_Localized: Camera Y Position
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021576
+    m_Localized: The track camera's Y position (up and down).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021577
+    m_Localized: Camera Z Position
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021578
+    m_Localized: The track camera's Z position (forward and backwards).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021579
+    m_Localized: Camera Rotation
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021580
+    m_Localized: The track camera's rotational pitch (up and down).
     m_Metadata:
       m_Items: []
   references:

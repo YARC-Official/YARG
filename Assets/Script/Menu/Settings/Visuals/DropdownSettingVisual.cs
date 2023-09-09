@@ -19,7 +19,7 @@ namespace YARG.Menu.Settings.Visuals
 
         public override void RefreshVisual()
         {
-            // Add the options (in order), and get enum indices
+            // Add the options (in order)
             _dropdown.options.Clear();
             foreach (var name in Setting.PossibleValues)
             {

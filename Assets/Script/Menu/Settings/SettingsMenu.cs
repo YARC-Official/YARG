@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -10,10 +9,8 @@ using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Navigation;
-using YARG.Menu.Settings.Visuals;
 using YARG.Settings;
 using YARG.Settings.Metadata;
-using YARG.Settings.Types;
 
 namespace YARG.Menu.Settings
 {
@@ -54,9 +51,6 @@ namespace YARG.Menu.Settings
         private GameObject _songManagerDirectoryPrefab;
 
         private string _currentTab;
-
-        private readonly List<BaseSettingVisual> _settingVisuals = new();
-        private readonly List<SettingsPresetDropdown> _settingDropdowns = new();
 
         public string CurrentTab
         {
@@ -157,8 +151,6 @@ namespace YARG.Menu.Settings
 
         private void UpdateSettings()
         {
-            _settingVisuals.Clear();
-            _settingDropdowns.Clear();
             _settingsNavGroup.ClearNavigatables();
 
             // Destroy all previous settings
@@ -218,44 +210,6 @@ namespace YARG.Menu.Settings
         public void ReturnToFirstTab()
         {
             CurrentTab = SettingsManager.SettingsTabs[0].Name;
-        }
-
-        public void UpdateSpecificSetting(string settingName)
-        {
-            // If the settings menu is not open, ignore
-            if (!gameObject.activeSelf)
-            {
-                return;
-            }
-
-            // Refresh all of the settings with that name
-            foreach (var settingVisual in _settingVisuals)
-            {
-                if (settingVisual.SettingName != settingName)
-                {
-                    continue;
-                }
-
-                settingVisual.RefreshVisual();
-            }
-        }
-
-        public void UpdatePresetDropdowns(ISettingType withSetting)
-        {
-            // If the settings menu is not open, ignore
-            if (!gameObject.activeSelf)
-            {
-                return;
-            }
-
-            // Refresh all of the settings with that name
-            foreach (var dropdown in _settingDropdowns)
-            {
-                if (dropdown.ModifiedSettings.Select(SettingsManager.GetSettingByName).Contains(withSetting))
-                {
-                    dropdown.ForceUpdateValue();
-                }
-            }
         }
 
         private async UniTask OnDisable()

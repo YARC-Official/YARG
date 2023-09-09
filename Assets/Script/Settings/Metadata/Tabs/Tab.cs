@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using YARG.Menu.Navigation;
+using YARG.Menu.Settings;
 
 namespace YARG.Settings.Metadata
 {
@@ -19,5 +20,7 @@ namespace YARG.Settings.Metadata
         public virtual void BuildPreview(Transform uiContainer, Transform worldContainer)
         {
         }
+
+        protected void Refresh() => SettingsMenu.Instance.UpdateSettingsForTab();
     }
 }

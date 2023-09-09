@@ -39,16 +39,16 @@ namespace YARG.PlayMode
 
         private void UpdatePosition()
         {
-            // FOV
-            GetComponent<Camera>().fieldOfView = SettingsManager.Settings.TrackCamFOV.Data;
-
-            // Position
-            float y = SettingsManager.Settings.TrackCamYPos.Data;
-            float z = SettingsManager.Settings.TrackCamZPos.Data - 6f;
-            transform.localPosition = new Vector3(0f, y, z);
-
-            // Rotation
-            transform.localRotation = Quaternion.Euler(SettingsManager.Settings.TrackCamRot.Data, 0f, 0f);
+            // // FOV
+            // GetComponent<Camera>().fieldOfView = SettingsManager.Settings.TrackCamFOV.Data;
+            //
+            // // Position
+            // float y = SettingsManager.Settings.TrackCamYPos.Data;
+            // float z = SettingsManager.Settings.TrackCamZPos.Data - 6f;
+            // transform.localPosition = new Vector3(0f, y, z);
+            //
+            // // Rotation
+            // transform.localRotation = Quaternion.Euler(SettingsManager.Settings.TrackCamRot.Data, 0f, 0f);
         }
 
         public static void UpdateAllAntiAliasing()
