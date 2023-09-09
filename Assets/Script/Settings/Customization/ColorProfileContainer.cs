@@ -42,6 +42,7 @@ namespace YARG.Settings.Customization
 
         public override void SaveItem(ColorProfile item)
         {
+            Debug.Log($"Saving color profile {item.Name}");
             var json = JsonConvert.SerializeObject(item, Formatting.Indented, new JsonColorConverter());
 
             File.WriteAllText(Path.Combine(ContentDirectory, $"{item.Name.ToLower().Replace(" ", "")}.json"), json);
