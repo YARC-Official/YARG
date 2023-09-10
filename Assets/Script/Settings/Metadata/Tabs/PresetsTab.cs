@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using YARG.Menu.Navigation;
@@ -27,7 +28,7 @@ namespace YARG.Settings.Metadata
         {
             {
                 CustomContentManager.CameraSettings,
-                new MetadataTab("Presets")
+                new TrackPreviewTab("Presets")
                 {
                     new HeaderMetadata("PresetSettings"),
                     "CameraPreset_FieldOfView",
@@ -74,6 +75,26 @@ namespace YARG.Settings.Metadata
                 // Create the settings
                 tab.BuildSettingTab(settingContainer, navGroup);
             }
+        }
+
+        public override async UniTask BuildPreviewWorld(Transform worldContainer)
+        {
+            if (!_presetTabs.TryGetValue(SelectedContent, out var tab))
+            {
+                return;
+            }
+
+            await tab.BuildPreviewWorld(worldContainer);
+        }
+
+        public override async UniTask BuildPreviewUI(Transform uiContainer)
+        {
+            if (!_presetTabs.TryGetValue(SelectedContent, out var tab))
+            {
+                return;
+            }
+
+            await tab.BuildPreviewUI(uiContainer);
         }
     }
 }

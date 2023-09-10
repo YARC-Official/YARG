@@ -15,6 +15,8 @@ namespace YARG.Settings.Preview
         private double SpawnTimeOffset => (BasePlayer.NOTE_SPAWN_OFFSET + -BasePlayer.STRIKE_LINE_POS) / NOTE_SPEED;
 
         [SerializeField]
+        private CameraPositioner _cameraPositioner;
+        [SerializeField]
         private TrackMaterial _trackMaterial;
         [SerializeField]
         private FretArray _fretArray;
@@ -29,10 +31,21 @@ namespace YARG.Settings.Preview
         private void Start()
         {
             _fretArray.Initialize(ColorProfile.Default.FiveFretGuitar, false);
+            _hitWindow.gameObject.SetActive(SettingsManager.Settings.ShowHitWindow.Data);
         }
 
         private void Update()
         {
+            // Update settings stuff every frame
+            var s = SettingsManager.Settings;
+            _trackMaterial.Initialize(3f, s.CameraPreset_FadeLength.Data);
+            _cameraPositioner.Initialize(
+                s.CameraPreset_FieldOfView.Data,
+                s.CameraPreset_PositionY.Data,
+                s.CameraPreset_PositionZ.Data,
+                s.CameraPreset_Rotation.Data);
+
+            // Update the preview notes
             PreviewTime += Time.deltaTime;
 
             // Queue the notes
@@ -58,9 +71,6 @@ namespace YARG.Settings.Preview
             }
 
             _trackMaterial.SetTrackScroll(PreviewTime, NOTE_SPEED);
-
-            // Show/hide hit window
-            _hitWindow.gameObject.SetActive(SettingsManager.Settings.ShowHitWindow.Data);
         }
     }
 }

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using UnityEngine;
 using YARG.Audio;
+using YARG.Gameplay.Visuals;
 using YARG.Helpers;
 using YARG.Integration;
 using YARG.Menu.Settings;
-using YARG.PlayMode;
 using YARG.Settings.Types;
 using YARG.Menu.Persistent;
 using YARG.Song;
@@ -256,7 +256,6 @@ namespace YARG.Settings
             private static void LowQualityCallback(bool value)
             {
                 GraphicsManager.Instance.LowQuality = value;
-                CameraPositioner.UpdateAllAntiAliasing();
             }
 
             private static void DisableBloomCallback(bool value)

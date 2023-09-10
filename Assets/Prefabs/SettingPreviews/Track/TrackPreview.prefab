@@ -211,6 +211,11 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 8
       objectReference: {fileID: 0}
+    - target: {fileID: 7144112585718853808, guid: 0f7a37c9e4abcad4da73b7603d4b7596,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7184186216042691302, guid: 0f7a37c9e4abcad4da73b7603d4b7596,
         type: 3}
       propertyPath: m_Layer
@@ -345,6 +350,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d28e186375864caea5493965bbe56975, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &4128644041590084882 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2948926500384017858, guid: 0f7a37c9e4abcad4da73b7603d4b7596,
+    type: 3}
+  m_PrefabInstance: {fileID: 1272076570556799184}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1223668558132516053}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 031a2b07fd65f864d9c4ded2d545c9e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &5950891971083158839 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4842075834887986663, guid: 0f7a37c9e4abcad4da73b7603d4b7596,
@@ -393,6 +410,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a7a5933fc49456cb82dd1c7cf942807, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _cameraPositioner: {fileID: 4128644041590084882}
   _trackMaterial: {fileID: 5950891971083158839}
   _fretArray: {fileID: 2238655681509252365}
   _notePool: {fileID: 6730988211634240432}

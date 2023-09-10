@@ -3,7 +3,6 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using YARG.Helpers;
-using YARG.PlayMode;
 
 namespace YARG.Gameplay.HUD
 {

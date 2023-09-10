@@ -20,15 +20,15 @@ namespace YARG.Menu.Settings
         [SerializeField]
         private HeaderTabs _headerTabs;
         [SerializeField]
-        private RawImage _previewRawImage;
-        [SerializeField]
         private Transform _settingsContainer;
         [SerializeField]
         private NavigationGroup _settingsNavGroup;
         [SerializeField]
-        private Transform _previewContainer;
-        [SerializeField]
         private ScrollRect _scrollRect;
+        [SerializeField]
+        private Transform _previewContainerWorld;
+        [SerializeField]
+        private Transform _previewContainerUI;
 
         [Space]
         [SerializeField]
@@ -169,42 +169,25 @@ namespace YARG.Menu.Settings
 
         private async UniTask UpdatePreview(Tab tabInfo)
         {
-            // DestroyPreview();
-            //
-            // if (string.IsNullOrEmpty(tabInfo.PreviewPath))
-            // {
-            //     _previewRawImage.gameObject.SetActive(false);
-            //     _previewRawImage.texture = null;
-            //     _previewRawImage.color = Color.black;
-            //     return;
-            // }
-            //
-            // // Spawn prefab
-            // _previewContainer.gameObject.SetActive(true);
-            // var previewPrefab = Addressables.LoadAssetAsync<GameObject>(tabInfo.PreviewPath).WaitForCompletion();
-            // Instantiate(previewPrefab, _previewContainer);
-            //
-            // // Set render texture
-            // CameraPreviewTexture.SetAllPreviews();
-            //
-            // // Enable and wait for layouts to rebuild
-            // _previewRawImage.gameObject.SetActive(true);
-            // await UniTask.WaitForEndOfFrame(this);
-            //
-            // // Size raw image
-            // _previewRawImage.texture = CameraPreviewTexture.PreviewTexture;
-            // _previewRawImage.color = Color.white;
-            // var rect = _previewRawImage.rectTransform.ToViewportSpaceCentered(v: false, scale: 0.9f);
-            // rect.y = 0f;
-            // _previewRawImage.uvRect = rect;
+            DestroyPreview();
+
+            // Spawn world preview
+            _previewContainerWorld.gameObject.SetActive(true);
+            await tabInfo.BuildPreviewWorld(_previewContainerWorld);
+
+            // Set render texture(s)
+            CameraPreviewTexture.SetAllPreviews();
+
+            // Spawn UI preview
+            await tabInfo.BuildPreviewUI(_previewContainerUI);
         }
 
         private void DestroyPreview()
         {
-            if (_previewContainer == null) return;
+            _previewContainerWorld.DestroyChildren();
+            _previewContainerWorld.gameObject.SetActive(false);
 
-            _previewContainer.DestroyChildren();
-            _previewContainer.gameObject.SetActive(false);
+            _previewContainerUI.DestroyChildren();
         }
 
         public void ReturnToFirstTab()

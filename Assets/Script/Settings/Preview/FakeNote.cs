@@ -18,6 +18,8 @@ namespace YARG.Settings.Preview
         [SerializeField]
         private NoteGroup _noteGroup;
 
+        private Material[] _materials;
+
         public void EnableFromPool()
         {
             // Set the position
@@ -25,18 +27,26 @@ namespace YARG.Settings.Preview
                 BasePlayer.TRACK_WIDTH / 5f * NoteRef.Fret - BasePlayer.TRACK_WIDTH / 2f - 1f / 5f,
                 0f, 0f);
 
-            // Set color
+            // Set color and materials
             _noteGroup.ColoredMaterial.color = ColorProfile.Default.
                 FiveFretGuitar.GetNoteColor(NoteRef.Fret).ToUnityColor();
+            _materials = _noteGroup.GetAllMaterials();
 
             // Force update position
             Update();
+
 
             gameObject.SetActive(true);
         }
 
         protected void Update()
         {
+            // Update fade for settings
+            foreach (var material in _materials)
+            {
+                material.SetFade(3f, SettingsManager.Settings.CameraPreset_FadeLength.Data);
+            }
+
             float z =
                 BasePlayer.STRIKE_LINE_POS                             // Shift origin to the strike line
                 + (float) (NoteRef.Time - FakeTrackPlayer.PreviewTime) // Get time of note relative to now

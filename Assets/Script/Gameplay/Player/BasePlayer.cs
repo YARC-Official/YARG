@@ -26,6 +26,8 @@ namespace YARG.Gameplay.Player
         public Camera TrackCamera { get; private set; }
 
         [SerializeField]
+        protected CameraPositioner CameraPositioner;
+        [SerializeField]
         protected TrackMaterial TrackMaterial;
         [SerializeField]
         protected ComboMeter ComboMeter;
@@ -263,6 +265,9 @@ namespace YARG.Gameplay.Player
         {
             GameManager.BeatEventManager.Subscribe(StarpowerBar.PulseBarIfAble,
                 new BeatEventManager.Info(1f / 4f, 0f));
+
+            TrackMaterial.Initialize(ZeroFadePosition, FadeSize);
+            CameraPositioner.Initialize(Player.CameraPreset);
         }
 
         protected override void FinishDestruction()
