@@ -19,5 +19,10 @@ namespace YARG.Menu.Navigation
         {
             _onClick.Invoke();
         }
+
+        public void RemoveOnClickListeners()
+        {
+            _onClick.RemoveAllListeners();
+        }
     }
 }

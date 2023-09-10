@@ -507,7 +507,11 @@ namespace YARG.Gameplay
 
             if (showMenu)
             {
-                if (GlobalVariables.Instance.IsPractice)
+                if (GlobalVariables.Instance.IsReplay)
+                {
+                    _pauseMenu.PushMenu(PauseMenuManager.Menu.ReplayPause);
+                }
+                else if (GlobalVariables.Instance.IsPractice)
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.PracticePause);
                 }
