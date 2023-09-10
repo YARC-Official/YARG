@@ -9,7 +9,7 @@ namespace YARG.Gameplay.HUD
     public class ReplayPause  : GenericPause
     {
         [SerializeField]
-        private GameObject saveColorObject;
+        private GameObject _saveColorObject;
 
         public void SaveColorProfile()
         {
@@ -22,7 +22,7 @@ namespace YARG.Gameplay.HUD
             // if ColorProfile is Default, destroy the saveColorObject and return
             if (colorProfile.Name == ColorProfile.Default.Name)
             {
-                Destroy(saveColorObject);
+                Destroy(_saveColorObject);
                 return;
             }
 
@@ -33,11 +33,10 @@ namespace YARG.Gameplay.HUD
             CustomContentManager.ColorProfiles.LoadFiles();
 
             // get Name object then set text to Saved!
-            saveColorObject.GetComponentInChildren<TextMeshProUGUI>().text = "Saved!";
+            _saveColorObject.GetComponentInChildren<TextMeshProUGUI>().text = "Saved!";
 
             // remove the onclick listeners to prevent spamming
-            saveColorObject.GetComponentInChildren<NavigatableButton>().RemoveOnClickListeners();
-
+            _saveColorObject.GetComponentInChildren<NavigatableButton>().RemoveOnClickListeners();
         }
     }
 }

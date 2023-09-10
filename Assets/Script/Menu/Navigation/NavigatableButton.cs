@@ -22,7 +22,7 @@ namespace YARG.Menu.Navigation
 
         public void RemoveOnClickListeners()
         {
-            _onClick = new Button.ButtonClickedEvent();
+            _onClick.RemoveAllListeners();
         }
     }
 }
