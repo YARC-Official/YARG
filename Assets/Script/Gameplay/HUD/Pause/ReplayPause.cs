@@ -1,4 +1,4 @@
-﻿using TMPro;
+using TMPro;
 using UnityEngine;
 using YARG.Core.Game;
 using YARG.Menu.Navigation;
