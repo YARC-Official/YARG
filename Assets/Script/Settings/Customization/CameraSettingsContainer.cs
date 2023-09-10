@@ -45,7 +45,6 @@ namespace YARG.Settings.Customization
             s.CameraPreset_PositionY.Data   = p.PositionY;
             s.CameraPreset_PositionZ.Data   = p.PositionZ;
             s.CameraPreset_Rotation.Data    = p.Rotation;
-            s.CameraPreset_FadeStart.Data   = p.FadeStart;
             s.CameraPreset_FadeLength.Data  = p.FadeLength;
             s.CameraPreset_CurveFactor.Data = p.CurveFactor;
         }
@@ -62,7 +61,6 @@ namespace YARG.Settings.Customization
             p.PositionY   = s.CameraPreset_PositionY.Data;
             p.PositionZ   = s.CameraPreset_PositionZ.Data;
             p.Rotation    = s.CameraPreset_Rotation.Data;
-            p.FadeStart   = s.CameraPreset_FadeStart.Data;
             p.FadeLength  = s.CameraPreset_FadeLength.Data;
             p.CurveFactor = s.CameraPreset_CurveFactor.Data;
         }

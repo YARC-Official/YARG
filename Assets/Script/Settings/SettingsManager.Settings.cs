@@ -161,8 +161,6 @@ namespace YARG.Settings
             [JsonIgnore]
             public SliderSetting CameraPreset_Rotation     { get; } = new(24.12f, 0f, 180f);
             [JsonIgnore]
-            public SliderSetting CameraPreset_FadeStart    { get; } = new(3f, 0f, 32f);
-            [JsonIgnore]
             public SliderSetting CameraPreset_FadeLength   { get; } = new(1.75f, 0f, 5f);
             [JsonIgnore]
             public SliderSetting CameraPreset_CurveFactor  { get; } = new(0.5f, -3f, 3f);

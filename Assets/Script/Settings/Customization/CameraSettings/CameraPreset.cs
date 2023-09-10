@@ -10,7 +10,6 @@ namespace YARG.Settings.Customization
         public float PositionZ = 1.14f;
         public float Rotation = 24.12f;
 
-        public float FadeStart = 3f;
         public float FadeLength = 1.25f;
 
         public float CurveFactor = 0.5f;
@@ -27,7 +26,6 @@ namespace YARG.Settings.Customization
                 PositionY = PositionY,
                 PositionZ = PositionZ,
                 Rotation = Rotation,
-                FadeStart = FadeStart,
                 FadeLength = FadeLength,
                 CurveFactor = CurveFactor,
             };
