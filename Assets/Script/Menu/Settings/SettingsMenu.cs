@@ -10,6 +10,7 @@ using YARG.Helpers.Extensions;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Navigation;
 using YARG.Settings;
+using YARG.Settings.Customization;
 using YARG.Settings.Metadata;
 
 namespace YARG.Menu.Settings
@@ -210,6 +211,7 @@ namespace YARG.Menu.Settings
 
             // Save on close
             SettingsManager.SaveSettings();
+            CustomContentManager.SaveAll();
 
             if (UpdateSongLibraryOnExit)
             {

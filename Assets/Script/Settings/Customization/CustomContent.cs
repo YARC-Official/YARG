@@ -32,7 +32,11 @@ namespace YARG.Settings.Customization
         protected static string CreateFileNameForPreset(BasePreset preset)
         {
             // Limit the file name to 20 characters
-            string fileName = preset.Name[..20];
+            string fileName = preset.Name;
+            if (fileName.Length > 20)
+            {
+                fileName = fileName[..20];
+            }
 
             // Remove symbols
             fileName = _fileNameSanitize.Replace(fileName, "_");
@@ -110,10 +114,10 @@ namespace YARG.Settings.Customization
 
         private void SavePresetFile(T preset)
         {
-            var camera = JsonConvert.SerializeObject(preset);
+            var text = JsonConvert.SerializeObject(preset);
             var path = CreateFileNameForPreset(preset);
 
-            File.WriteAllText(path, camera);
+            File.WriteAllText(Path.Join(ContentDirectory, path), text);
         }
 
         private void DeletePresetFile(T preset)
