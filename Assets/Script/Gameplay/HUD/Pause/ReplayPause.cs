@@ -1,5 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
+using YARG.Core.Game;
+using YARG.Menu.Navigation;
 using YARG.Settings.Customization;
 
 namespace YARG.Gameplay.HUD
@@ -9,16 +11,6 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private GameObject saveColorObject;
 
-        protected override void GameplayAwake()
-        {
-            base.GameplayAwake();
-
-            if (!GameManager.IsReplay)
-            {
-                Destroy(gameObject);
-            }
-        }
-
         public void SaveColorProfile()
         {
             // Get the 1st player
@@ -26,6 +18,13 @@ namespace YARG.Gameplay.HUD
 
             // get the color profile
             var colorProfile = thisPlayer.Player.ColorProfile;
+
+            // if ColorProfile is Default, destroy the saveColorObject and return
+            if (colorProfile.Name == ColorProfile.Default.Name)
+            {
+                Destroy(saveColorObject);
+                return;
+            }
 
             // save the color profile
             CustomContentManager.ColorProfiles.SaveItem(colorProfile);
@@ -37,7 +36,7 @@ namespace YARG.Gameplay.HUD
             saveColorObject.GetComponentInChildren<TextMeshProUGUI>().text = "Saved!";
 
             // remove the onclick listeners to prevent spamming
-            //saveColorObject.GetComponentInChildren<NavigatableButton>().RemoveOnClickListeners();
+            saveColorObject.GetComponentInChildren<NavigatableButton>().RemoveOnClickListeners();
 
         }
     }
