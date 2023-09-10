@@ -24,11 +24,6 @@ namespace YARG.Gameplay.HUD
             // get player info
             _thisPlayer = GameManager.Players[0];
             _colorProfile = _thisPlayer.Player.ColorProfile;
-        }
-
-        protected override void OnEnable()
-        {
-            base.OnEnable();
 
             // if ColorProfile is Default, remove the Save button
             if (_colorProfile.Name == ColorProfile.Default.Name)
