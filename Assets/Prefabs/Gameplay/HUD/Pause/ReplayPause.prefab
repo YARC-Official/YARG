@@ -88,7 +88,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed173f42c34c3e7438c9c9f3ca189aff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _saveColorObject: {fileID: 0}
+  _separatorObject: {fileID: 803479573766041212}
+  _saveColorObject: {fileID: 4125288223277449906}
 --- !u!114 &6566148801981695775
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -373,7 +374,7 @@ GameObject:
   - component: {fileID: 7366512903133691309}
   - component: {fileID: 7366512903133691310}
   m_Layer: 5
-  m_Name: Image
+  m_Name: Line
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -397,7 +398,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -150, y: 5}
+  m_SizeDelta: {x: -150, y: 2}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7366512903133691309
 CanvasRenderer:
@@ -420,14 +421,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.49803922}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.050980393}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 2800000, guid: fecf9fecf4644b643a35395dfd7635cf, type: 3}
+  m_Texture: {fileID: 0}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -1111,6 +1112,12 @@ PrefabInstance:
 --- !u!224 &4125288223277449905 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6846856529861592900, guid: 0e2af23c2e7465444a3fb84a06d425ae,
+    type: 3}
+  m_PrefabInstance: {fileID: 7366512902502139381}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &4125288223277449906 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6846856529861592903, guid: 0e2af23c2e7465444a3fb84a06d425ae,
     type: 3}
   m_PrefabInstance: {fileID: 7366512902502139381}
   m_PrefabAsset: {fileID: 0}

@@ -5635,11 +5635,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1323155441}
     m_Modifications:
-    - target: {fileID: 3713800924060606499, guid: 749cd1b57259f554c8745dc595e57c7e,
-        type: 3}
-      propertyPath: _saveColorObject
-      value: 
-      objectReference: {fileID: 7366512902715410880}
     - target: {fileID: 3713800924060606500, guid: 749cd1b57259f554c8745dc595e57c7e,
         type: 3}
       propertyPath: m_Pivot.x
@@ -5757,12 +5752,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 749cd1b57259f554c8745dc595e57c7e, type: 3}
---- !u!1 &7366512902715410880 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4125288223277449906, guid: 749cd1b57259f554c8745dc595e57c7e,
-    type: 3}
-  m_PrefabInstance: {fileID: 7366512902715410879}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &8918172422495171880
 PrefabInstance:
   m_ObjectHideFlags: 0
