@@ -35,7 +35,6 @@ namespace YARG.Settings.Metadata
                     "CameraPreset_PositionY",
                     "CameraPreset_PositionZ",
                     "CameraPreset_Rotation",
-                    "CameraPreset_FadeStart",
                     "CameraPreset_FadeLength",
                     "CameraPreset_CurveFactor"
                 }
@@ -48,11 +47,18 @@ namespace YARG.Settings.Metadata
         public PresetsTab(string name, string icon = "Generic") : base(name, icon)
         {
             SelectedContent = _presetTabs.Keys.First();
+            ResetSelectedPreset();
+        }
+
+        public void ResetSelectedPreset()
+        {
             SelectedPreset = SelectedContent.DefaultBasePresets[0];
         }
 
         public override void BuildSettingTab(Transform settingContainer, NavigationGroup navGroup)
         {
+            SelectedContent.SetSettingsFromPreset(SelectedPreset);
+
             // Create the preset type dropdown
             var typeDropdown = Object.Instantiate(_presetTypeDropdown, settingContainer);
             typeDropdown.GetComponent<PresetTypeDropdown>().Initialize(this, _presetTabs.Keys.ToArray());

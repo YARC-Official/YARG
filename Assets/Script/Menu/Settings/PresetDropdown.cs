@@ -44,7 +44,6 @@ namespace YARG.Menu.Settings
         {
             var preset = _presetsByIndex[_dropdown.value];
 
-            _tab.SelectedContent.SetSettingsFromPreset(preset);
             _tab.SelectedPreset = preset;
 
             SettingsMenu.Instance.Refresh();
@@ -57,6 +56,18 @@ namespace YARG.Menu.Settings
             var copy = preset.CopyWithNewName($"Copy of {preset.Name}");
             _tab.SelectedContent.AddPreset(copy);
             _tab.SelectedPreset = copy;
+
+            SettingsMenu.Instance.Refresh();
+        }
+
+        public void DeletePreset()
+        {
+            var preset = _presetsByIndex[_dropdown.value];
+
+            if (preset.DefaultPreset) return;
+
+            _tab.SelectedContent.DeletePreset(preset);
+            _tab.ResetSelectedPreset();
 
             SettingsMenu.Instance.Refresh();
         }

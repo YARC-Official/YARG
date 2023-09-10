@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using Newtonsoft.Json;
-using YARG.Helpers;
 
 namespace YARG.Settings.Customization
 {
@@ -12,25 +9,6 @@ namespace YARG.Settings.Customization
 
         public CameraSettingsContainer(string contentDirectory) : base(contentDirectory)
         {
-        }
-
-        public override void LoadFiles()
-        {
-            Content.Clear();
-
-            PathHelper.SafeEnumerateFiles(ContentDirectory, "*.json", true, (path) =>
-            {
-                var camera = JsonConvert.DeserializeObject<CameraPreset>(File.ReadAllText(path));
-
-                Content.Add(camera);
-
-                return true;
-            });
-        }
-
-        public override void SaveItem(CameraPreset item)
-        {
-            throw new System.NotImplementedException();
         }
 
         public override void SetSettingsFromPreset(BasePreset preset)
