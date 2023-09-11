@@ -209,7 +209,7 @@ namespace YARG.Menu.Profiles
 
         public void ChangeColorProfile()
         {
-            _profile.ColorProfile = _colorProfilesByIndex[_colorProfileDropdown.value].Name;
+            // _profile.ColorProfile = _colorProfilesByIndex[_colorProfileDropdown.value].Name;
         }
     }
 }
