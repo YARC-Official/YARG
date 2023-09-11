@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -61,7 +63,8 @@ namespace YARG.Menu.Profiles
 
         private readonly List<GameMode> _gameModesByIndex = new();
 
-        private List<BasePreset> _cameraPresetsByIndex;
+        private List<Guid> _colorProfilesByIndex;
+        private List<Guid> _cameraPresetsByIndex;
 
         private void Awake()
         {
@@ -81,9 +84,19 @@ namespace YARG.Menu.Profiles
                 string name = LocaleHelper.LocalizeString($"GameMode.{gameMode}");
                 _gameModeDropdown.options.Add(new(name));
             }
+        }
+
+        private void OnEnable()
+        {
+            // These things can change, so do it every time it's enabled.
 
             // Setup preset dropdowns
-            _cameraPresetsByIndex = CustomContentManager.CameraSettings.AddOptionsToDropdown(_cameraPresetDropdown);
+            _colorProfilesByIndex =
+                CustomContentManager.ColorProfiles.AddOptionsToDropdown(_colorProfileDropdown)
+                    .Select(i => i.Id).ToList();
+            _cameraPresetsByIndex =
+                CustomContentManager.CameraSettings.AddOptionsToDropdown(_cameraPresetDropdown)
+                    .Select(i => i.Id).ToList();
         }
 
         public void UpdateSidebar(YargProfile profile, ProfileView profileView)
@@ -100,8 +113,9 @@ namespace YARG.Menu.Profiles
             _highwayLengthField.text = profile.HighwayLength.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
             _leftyFlipToggle.isOn = profile.LeftyFlip;
 
-            // var colorProfile = CustomContentManager.ColorProfiles.GetColorProfileOrDefault(profile.ColorProfile);
-            // _colorProfileDropdown.value = _cameraPresetsByIndex.IndexOf(profile);
+            // Update preset dropdowns
+            _colorProfileDropdown.value = _colorProfilesByIndex.IndexOf(profile.ColorProfile);
+            _cameraPresetDropdown.value = _cameraPresetsByIndex.IndexOf(profile.CameraPreset);
 
             // Show the proper name container (hide the editing version)
             _nameContainer.SetActive(true);
@@ -209,7 +223,12 @@ namespace YARG.Menu.Profiles
 
         public void ChangeColorProfile()
         {
-            // _profile.ColorProfile = _colorProfilesByIndex[_colorProfileDropdown.value].Name;
+            _profile.ColorProfile = _colorProfilesByIndex[_colorProfileDropdown.value];
+        }
+
+        public void ChangeCameraPreset()
+        {
+            _profile.CameraPreset = _cameraPresetsByIndex[_cameraPresetDropdown.value];
         }
     }
 }
