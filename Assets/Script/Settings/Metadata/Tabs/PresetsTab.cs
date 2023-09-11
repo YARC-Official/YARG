@@ -3,6 +3,7 @@ using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using YARG.Core.Game;
 using YARG.Menu.Navigation;
 using YARG.Menu.Settings;
 using YARG.Settings.Customization;

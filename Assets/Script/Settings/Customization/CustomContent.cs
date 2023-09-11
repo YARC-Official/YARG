@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using TMPro;
 using UnityEngine;
+using YARG.Core.Game;
 using YARG.Helpers;
 
 namespace YARG.Settings.Customization
@@ -172,6 +173,21 @@ namespace YARG.Settings.Customization
             {
                 SavePresetFile(preset);
             }
+        }
+
+        public T GetPresetById(Guid guid)
+        {
+            foreach (var preset in DefaultPresets)
+            {
+                if (preset.Id == guid) return preset;
+            }
+
+            foreach (var preset in CustomPresets)
+            {
+                if (preset.Id == guid) return preset;
+            }
+
+            return null;
         }
     }
 }

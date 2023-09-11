@@ -1854,6 +1854,7 @@ MonoBehaviour:
   _highwayLengthField: {fileID: 2016696336961956848}
   _leftyFlipToggle: {fileID: 506496582370905451}
   _colorProfileDropdown: {fileID: 5317595837428790396}
+  _cameraPresetDropdown: {fileID: 4901702434264564515}
   _nameContainer: {fileID: 2901502984568389593}
   _editNameContainer: {fileID: 1767616266085646112}
   _profileMenu: {fileID: 5881746760155002837}
@@ -2817,6 +2818,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
+--- !u!114 &4901702434264564515 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4622602834413321867, guid: 5f7c905be0699a94b8dc56fc6105c02d,
+    type: 3}
+  m_PrefabInstance: {fileID: 297396650524720552}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b743370ac3e4ec2a1668f5455a8ef8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &7944679421454852091 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7665614177142481491, guid: 5f7c905be0699a94b8dc56fc6105c02d,

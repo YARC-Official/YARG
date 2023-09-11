@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using YARG.Core.Game;
 using YARG.Settings.Customization;
 using YARG.Settings.Metadata;
 
