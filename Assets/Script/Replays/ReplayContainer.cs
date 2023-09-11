@@ -353,5 +353,10 @@ namespace YARG.Replays
 
             return frame;
         }
+
+        public static void OpenReplayDirectory()
+        {
+            System.Diagnostics.Process.Start(ReplayDirectory);
+        }
     }
 }

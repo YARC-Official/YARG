@@ -22,5 +22,10 @@ namespace YARG.Settings.Customization
             ColorProfiles.LoadFiles();
             CameraSettings.LoadFiles();
         }
+
+        public static void OpenCustomizationDirectory()
+        {
+            System.Diagnostics.Process.Start(CustomizationDirectory);
+        }
     }
 }
