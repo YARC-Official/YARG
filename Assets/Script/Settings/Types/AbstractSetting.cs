@@ -14,7 +14,7 @@ namespace YARG.Settings.Types
             {
                 _onChange?.Invoke(value);
 
-                // SettingsMenu.Instance.UpdatePresetDropdowns(this);
+                SettingsMenu.Instance.OnSettingChanged();
             }
         }
 

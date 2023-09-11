@@ -27,5 +27,9 @@ namespace YARG.Settings.Metadata
         {
             return UniTask.CompletedTask;
         }
+
+        public virtual void OnSettingChanged()
+        {
+        }
     }
 }

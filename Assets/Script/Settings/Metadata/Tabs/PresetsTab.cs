@@ -102,5 +102,10 @@ namespace YARG.Settings.Metadata
 
             await tab.BuildPreviewUI(uiContainer);
         }
+
+        public override void OnSettingChanged()
+        {
+            SelectedContent.SetPresetFromSettings(SelectedPreset);
+        }
     }
 }

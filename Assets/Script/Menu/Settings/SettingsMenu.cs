@@ -37,23 +37,8 @@ namespace YARG.Menu.Settings
         [SerializeField]
         private LocalizeStringEvent _settingDescription;
 
-        [Space]
-        [SerializeField]
-        private GameObject _buttonPrefab;
-        [SerializeField]
-        private GameObject _headerPrefab;
-        [SerializeField]
-        private GameObject _dropdownPrefab;
-
-        [Space]
-        [SerializeField]
-        private GameObject _songManagerHeader;
-        [SerializeField]
-        private GameObject _songManagerDirectoryPrefab;
-
-        private string _currentTab;
-
-        public string CurrentTab
+        private Tab _currentTab;
+        public Tab CurrentTab
         {
             get => _currentTab;
             set
@@ -128,7 +113,7 @@ namespace YARG.Menu.Settings
 
         private void OnTabChanged(string tab)
         {
-            CurrentTab = tab;
+            CurrentTab = SettingsManager.GetTabByName(tab);
         }
 
         private void OnSelectionChanged(NavigatableBehaviour selected, SelectionOrigin selectionOrigin)
@@ -144,10 +129,8 @@ namespace YARG.Menu.Settings
 
         public void Refresh()
         {
-            var tabInfo = SettingsManager.GetTabByName(CurrentTab);
-
             UpdateSettings();
-            UpdatePreview(tabInfo).Forget();
+            UpdatePreview(CurrentTab).Forget();
         }
 
         private void UpdateSettings()
@@ -158,8 +141,7 @@ namespace YARG.Menu.Settings
             _settingsContainer.DestroyChildren();
 
             // Build the settings tab
-            SettingsManager.GetTabByName(CurrentTab)
-                .BuildSettingTab(_settingsContainer, _settingsNavGroup);
+            CurrentTab.BuildSettingTab(_settingsContainer, _settingsNavGroup);
 
             // Make the settings nav group the main one
             _settingsNavGroup.SelectFirst();
@@ -193,7 +175,14 @@ namespace YARG.Menu.Settings
 
         public void ReturnToFirstTab()
         {
-            CurrentTab = SettingsManager.SettingsTabs[0].Name;
+            CurrentTab = SettingsManager.SettingsTabs[0];
+        }
+
+        public void OnSettingChanged()
+        {
+            if (!_ready || !gameObject.activeSelf) return;
+
+            CurrentTab?.OnSettingChanged();
         }
 
         private async UniTask OnDisable()
