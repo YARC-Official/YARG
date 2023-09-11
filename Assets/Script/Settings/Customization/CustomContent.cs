@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
+using TMPro;
 using UnityEngine;
 using YARG.Helpers;
 
@@ -28,6 +29,35 @@ namespace YARG.Settings.Customization
 
         public abstract void SetSettingsFromPreset(BasePreset preset);
         public abstract void SetPresetFromSettings(BasePreset preset);
+
+        /// <summary>
+        /// Adds all of the presets to the specified dropdown.
+        /// </summary>
+        /// <returns>
+        /// A list containing all of the base presets in order as shown in the dropdown.
+        /// </returns>
+        public List<BasePreset> AddOptionsToDropdown(TMP_Dropdown dropdown)
+        {
+            var list = new List<BasePreset>();
+
+            dropdown.options.Clear();
+
+            // Add defaults
+            foreach (var preset in DefaultBasePresets)
+            {
+                dropdown.options.Add(new($"<color=#1CCFFF>{preset.Name}</color>"));
+                list.Add(preset);
+            }
+
+            // Add customs
+            foreach (var preset in CustomBasePresets)
+            {
+                dropdown.options.Add(new(preset.Name));
+                list.Add(preset);
+            }
+
+            return list;
+        }
 
         protected static string CreateFileNameForPreset(BasePreset preset)
         {

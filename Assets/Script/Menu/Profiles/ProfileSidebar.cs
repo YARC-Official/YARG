@@ -25,6 +25,8 @@ namespace YARG.Menu.Profiles
         private Image _profilePicture;
         [SerializeField]
         private Button _editProfileButton;
+
+        [Space]
         [SerializeField]
         private TMP_Dropdown _gameModeDropdown;
         [SerializeField]
@@ -35,6 +37,8 @@ namespace YARG.Menu.Profiles
         private Toggle _leftyFlipToggle;
         [SerializeField]
         private TMP_Dropdown _colorProfileDropdown;
+        [SerializeField]
+        private TMP_Dropdown _cameraPresetDropdown;
 
         [Space]
         [SerializeField]
@@ -55,8 +59,9 @@ namespace YARG.Menu.Profiles
         private ProfileView _profileView;
         private YargProfile _profile;
 
-        private readonly List<GameMode>     _gameModesByIndex     = new();
-        private readonly List<ColorProfile> _colorProfilesByIndex = new();
+        private readonly List<GameMode> _gameModesByIndex = new();
+
+        private List<BasePreset> _cameraPresetsByIndex;
 
         private void Awake()
         {
@@ -74,17 +79,11 @@ namespace YARG.Menu.Profiles
 
                 // Create the dropdown option
                 string name = LocaleHelper.LocalizeString($"GameMode.{gameMode}");
-                _gameModeDropdown.options.Add(new TMP_Dropdown.OptionData(name));
+                _gameModeDropdown.options.Add(new(name));
             }
 
-            // _colorProfileDropdown.options.Clear();
-            // foreach ((string name, var colors) in CustomContentManager.ColorProfiles.Content)
-            // {
-            //     _colorProfilesByIndex.Add(colors);
-            //
-            //     // Create the dropdown option
-            //     _colorProfileDropdown.options.Add(new TMP_Dropdown.OptionData(name));
-            // }
+            // Setup preset dropdowns
+            _cameraPresetsByIndex = CustomContentManager.CameraSettings.AddOptionsToDropdown(_cameraPresetDropdown);
         }
 
         public void UpdateSidebar(YargProfile profile, ProfileView profileView)
@@ -102,7 +101,7 @@ namespace YARG.Menu.Profiles
             _leftyFlipToggle.isOn = profile.LeftyFlip;
 
             // var colorProfile = CustomContentManager.ColorProfiles.GetColorProfileOrDefault(profile.ColorProfile);
-            // _colorProfileDropdown.value = _colorProfilesByIndex.IndexOf(colorProfile);
+            // _colorProfileDropdown.value = _cameraPresetsByIndex.IndexOf(profile);
 
             // Show the proper name container (hide the editing version)
             _nameContainer.SetActive(true);

@@ -11,7 +11,7 @@ namespace YARG.Menu.Settings
         [SerializeField]
         private TMP_Dropdown _dropdown;
 
-        private readonly List<BasePreset> _presetsByIndex = new();
+        private List<BasePreset> _presetsByIndex;
 
         private PresetsTab _tab;
 
@@ -20,21 +20,9 @@ namespace YARG.Menu.Settings
             _tab = tab;
 
             _dropdown.options.Clear();
-            _presetsByIndex.Clear();
 
             // Add the defaults
-            foreach (var preset in _tab.SelectedContent.DefaultBasePresets)
-            {
-                _dropdown.options.Add(new($"<color=#1CCFFF>{preset.Name}</color>"));
-                _presetsByIndex.Add(preset);
-            }
-
-            // Add the customs
-            foreach (var preset in _tab.SelectedContent.CustomBasePresets)
-            {
-                _dropdown.options.Add(new(preset.Name));
-                _presetsByIndex.Add(preset);
-            }
+            _presetsByIndex = _tab.SelectedContent.AddOptionsToDropdown(_dropdown);
 
             // Set index
             _dropdown.SetValueWithoutNotify(_presetsByIndex.IndexOf(_tab.SelectedPreset));
