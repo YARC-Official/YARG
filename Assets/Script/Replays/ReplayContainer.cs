@@ -356,7 +356,7 @@ namespace YARG.Replays
 
         public static void OpenReplayDirectory()
         {
-            System.Diagnostics.Process.Start(ReplayDirectory);
+            FileExplorerHelper.OpenFolder(ReplayDirectory);
         }
     }
 }
