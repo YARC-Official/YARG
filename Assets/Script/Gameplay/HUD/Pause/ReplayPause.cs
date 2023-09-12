@@ -26,20 +26,20 @@ namespace YARG.Gameplay.HUD
             _colorProfile = _thisPlayer.Player.ColorProfile;
 
             // if ColorProfile is Default, remove the Save button
-            if (_colorProfile.Name == ColorProfile.Default.Name)
-            {
-                _separatorObject.SetActive(false);
-                _saveColorObject.SetActive(false);
-            }
+            // if (_colorProfile.Name == ColorProfile.Default.Name)
+            // {
+            //     _separatorObject.SetActive(false);
+            //     _saveColorObject.SetActive(false);
+            // }
         }
 
         public void SaveColorProfile()
         {
-            // save the color profile
-            CustomContentManager.ColorProfiles.SaveItem(_colorProfile);
-
-            // refresh the color profile
-            CustomContentManager.ColorProfiles.LoadFiles();
+            // // save the color profile
+            // CustomContentManager.ColorProfiles.SaveItem(_colorProfile);
+            //
+            // // refresh the color profile
+            // CustomContentManager.ColorProfiles.LoadFiles();
 
             // get Name object then set text to Saved!
             _saveColorObject.GetComponentInChildren<TextMeshProUGUI>().text = "Saved!";
