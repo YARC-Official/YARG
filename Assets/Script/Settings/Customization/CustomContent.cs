@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using TMPro;
@@ -97,6 +99,12 @@ namespace YARG.Settings.Customization
         {
             if (preset is T t)
             {
+                // Skip if the user already has the preset
+                if (HasPresetId(preset.Id))
+                {
+                    return;
+                }
+
                 Content.Add(t);
             }
             else
@@ -188,6 +196,11 @@ namespace YARG.Settings.Customization
             }
 
             return null;
+        }
+
+        public bool HasPresetId(Guid guid)
+        {
+            return GetPresetById(guid) is not null;
         }
     }
 }
