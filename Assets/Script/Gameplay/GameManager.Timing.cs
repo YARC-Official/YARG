@@ -167,11 +167,16 @@ namespace YARG.Gameplay
                 (delta > 0.0 && _syncStartDelta < 0.0) ||
                 (delta < 0.0 && _syncStartDelta > 0.0))
             {
-                _syncStartDelta = 0;
-                _syncSpeedMultiplier = 0;
-                _syncSpeedAdjustment = 0f;
-                GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
+                ResetSync();
             }
+        }
+
+        private void ResetSync()
+        {
+            _syncStartDelta = 0;
+            _syncSpeedMultiplier = 0;
+            _syncSpeedAdjustment = 0f;
+            GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
         }
 
         private void InitializeSongTime(double time, double delayTime = SONG_START_DELAY)
@@ -203,6 +208,9 @@ namespace YARG.Gameplay
         {
             // Set input/song time
             InitializeSongTime(time, delayTime);
+
+            // Reset syncing before seeking to prevent speed adjustments from causing issues
+            ResetSync();
 
             // Audio seeking; cannot go negative
             double seekTime = RealSongTime;
