@@ -20,12 +20,12 @@ namespace YARG.Settings.Customization
             }
 
             var s = SettingsManager.Settings;
-            s.CameraPreset_FieldOfView.Data = p.FieldOfView;
-            s.CameraPreset_PositionY.Data   = p.PositionY;
-            s.CameraPreset_PositionZ.Data   = p.PositionZ;
-            s.CameraPreset_Rotation.Data    = p.Rotation;
-            s.CameraPreset_FadeLength.Data  = p.FadeLength;
-            s.CameraPreset_CurveFactor.Data = p.CurveFactor;
+            s.CameraPreset_FieldOfView.SetSettingNoEvents(p.FieldOfView);
+            s.CameraPreset_PositionY.SetSettingNoEvents(p.PositionY);
+            s.CameraPreset_PositionZ.SetSettingNoEvents(p.PositionZ);
+            s.CameraPreset_Rotation.SetSettingNoEvents(p.Rotation);
+            s.CameraPreset_FadeLength.SetSettingNoEvents(p.FadeLength);
+            s.CameraPreset_CurveFactor.SetSettingNoEvents(p.CurveFactor);
         }
 
         public override void SetPresetFromSettings(BasePreset preset)
