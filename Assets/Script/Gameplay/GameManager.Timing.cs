@@ -67,9 +67,15 @@ namespace YARG.Gameplay
         /// </remarks>
         public double SongOffset => -Song.SongOffset;
 
+        // Audio syncing
         private float _syncSpeedAdjustment = 0f;
         private int _syncSpeedMultiplier = 0;
         private double _syncStartDelta;
+
+        // Seek debugging
+        private bool _seeked;
+        private double _previousRealSongTime = double.NaN;
+        private double _previousInputTime = double.NaN;
 
         private void InitializeTime()
         {
@@ -116,6 +122,25 @@ namespace YARG.Gameplay
                 // Sync if needed
                 SyncAudio();
             }
+
+            // Check for unexpected backwards time jumps
+            bool newSeeked = _seeked;
+
+            if (_previousRealSongTime >= RealSongTime)
+            {
+                Debug.Assert(_seeked, $"Unexpected audio seek backwards! Went from {_previousRealSongTime} to {RealSongTime}");
+                newSeeked = false;
+            }
+            _previousRealSongTime = RealSongTime;
+
+            if (_previousInputTime >= InputTime)
+            {
+                Debug.Assert(_seeked, $"Unexpected input seek backwards! Went from {_previousInputTime} to {InputTime}");
+                newSeeked = false;
+            }
+            _previousInputTime = InputTime;
+
+            _seeked = newSeeked;
         }
 
         private void SyncAudio()
@@ -213,6 +238,7 @@ namespace YARG.Gameplay
             ResetSync();
 
             // Audio seeking; cannot go negative
+            _seeked = true;
             double seekTime = RealSongTime;
             if (seekTime < 0) seekTime = 0;
             GlobalVariables.AudioManager.SetPosition(seekTime);
