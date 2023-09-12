@@ -434,7 +434,9 @@ namespace YARG.Audio.BASS
 
         public double GetPosition(bool desyncCompensation = true)
         {
-            long position = Bass.ChannelGetPosition(_streamHandles.Stream);
+            long position = IsMixed
+                ? BassMix.ChannelGetPosition(_streamHandles.Stream)
+                : Bass.ChannelGetPosition(_streamHandles.Stream);
             if (position < 0)
             {
                 Debug.LogError($"Failed to get channel position in bytes: {Bass.LastError}");
