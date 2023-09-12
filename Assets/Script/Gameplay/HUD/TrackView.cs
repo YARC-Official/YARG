@@ -1,11 +1,14 @@
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Engine;
+using YARG.Core.Game;
 
 namespace YARG.Gameplay.HUD
 {
     public class TrackView : MonoBehaviour
     {
+        private static readonly int _curveFactor = Shader.PropertyToID("_CurveFactor");
+
         [field: SerializeField]
         public RawImage TrackImage { get; private set; }
 
@@ -21,6 +24,12 @@ namespace YARG.Gameplay.HUD
         private void Start()
         {
             _aspectRatioFitter.aspectRatio = (float) Screen.width / Screen.height;
+        }
+
+        public void Initialize(RenderTexture rt, CameraPreset cameraPreset)
+        {
+            TrackImage.texture = rt;
+            TrackImage.material.SetFloat(_curveFactor, cameraPreset.CurveFactor);
         }
 
         public void UpdateSizing(int trackCount)

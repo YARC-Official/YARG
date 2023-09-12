@@ -462,7 +462,7 @@ namespace YARG.Gameplay
 
                 // Setup player
                 var basePlayer = playerObject.GetComponent<BasePlayer>();
-                var trackView = _trackViewManager.CreateTrackView(basePlayer);
+                var trackView = _trackViewManager.CreateTrackView(basePlayer, player);
                 basePlayer.Initialize(index, player, Chart, trackView);
                 _players.Add(basePlayer);
             }

@@ -121,10 +121,10 @@ namespace YARG.Menu.Settings
             var settingNav = selected.GetComponent<BaseSettingNavigatable>();
 
             _settingName.StringReference = LocaleHelper.StringReference(
-                "Settings", $"Setting.{CurrentTab}.{settingNav.SettingName}");
+                "Settings", $"Setting.{CurrentTab.Name}.{settingNav.SettingName}");
 
             _settingDescription.StringReference = LocaleHelper.StringReference(
-                "Settings", $"Setting.{CurrentTab}.{settingNav.SettingName}.Description");
+                "Settings", $"Setting.{CurrentTab.Name}.{settingNav.SettingName}.Description");
         }
 
         public void Refresh()

@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using YARG.Gameplay.Player;
+using YARG.Player;
 
 namespace YARG.Gameplay.HUD
 {
@@ -12,7 +14,7 @@ namespace YARG.Gameplay.HUD
 
         private readonly List<TrackView> _trackViews = new();
 
-        public TrackView CreateTrackView(BasePlayer player)
+        public TrackView CreateTrackView(BasePlayer basePlayer, YargPlayer player)
         {
             // Create a track view
             var trackView = Instantiate(_trackViewPrefab, transform).GetComponent<TrackView>();
@@ -25,9 +27,11 @@ namespace YARG.Gameplay.HUD
             descriptor.mipCount = 0;
             var renderTexture = new RenderTexture(descriptor);
 
-            // Set render target
-            player.TrackCamera.targetTexture = renderTexture;
-            trackView.TrackImage.texture = renderTexture;
+            // Make the camera render on to the texture instead of the screen
+            basePlayer.TrackCamera.targetTexture = renderTexture;
+
+            // Setup track view to show the correct track
+            trackView.Initialize(renderTexture, player.CameraPreset);
 
             _trackViews.Add(trackView);
             UpdateAllSizing();
