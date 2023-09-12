@@ -180,10 +180,8 @@ namespace YARG.Player
 
                 foreach (var profile in profiles)
                 {
-                    var colorProfile =
-                        CustomContentManager.ColorProfiles.GetColorProfileOrDefault(profile.ColorProfile);
-
-                    profile.ColorProfile = colorProfile.Name;
+                    var colorProfile = CustomContentManager.ColorProfiles.GetContentOrDefault(profile.ColorProfile);
+                    profile.ColorProfile = colorProfile.Id;
                 }
             }
             catch (Exception ex)

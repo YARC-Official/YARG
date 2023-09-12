@@ -78,12 +78,12 @@ namespace YARG.Menu.Profiles
             }
 
             _colorProfileDropdown.options.Clear();
-            foreach ((string name, var colors) in CustomContentManager.ColorProfiles.Content)
+            foreach (var (_, colors) in CustomContentManager.ColorProfiles.Content)
             {
                 _colorProfilesByIndex.Add(colors);
 
                 // Create the dropdown option
-                _colorProfileDropdown.options.Add(new TMP_Dropdown.OptionData(name));
+                _colorProfileDropdown.options.Add(new TMP_Dropdown.OptionData(colors.Name));
             }
         }
 
@@ -101,7 +101,7 @@ namespace YARG.Menu.Profiles
             _highwayLengthField.text = profile.HighwayLength.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
             _leftyFlipToggle.isOn = profile.LeftyFlip;
 
-            var colorProfile = CustomContentManager.ColorProfiles.GetColorProfileOrDefault(profile.ColorProfile);
+            var colorProfile = CustomContentManager.ColorProfiles.GetContentOrDefault(profile.ColorProfile);
 
             _colorProfileDropdown.value = _colorProfilesByIndex.IndexOf(colorProfile);
 
@@ -211,7 +211,7 @@ namespace YARG.Menu.Profiles
 
         public void ChangeColorProfile()
         {
-            _profile.ColorProfile = _colorProfilesByIndex[_colorProfileDropdown.value].Name;
+            _profile.ColorProfile = _colorProfilesByIndex[_colorProfileDropdown.value].Id;
         }
     }
 }

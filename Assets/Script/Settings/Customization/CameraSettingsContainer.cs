@@ -1,13 +1,14 @@
 ﻿using System.IO;
 using Newtonsoft.Json;
 using YARG.Core.Game;
-using YARG.Core.Utility;
 using YARG.Helpers;
 
 namespace YARG.Settings.Customization
 {
     public class CameraSettingsContainer : CustomContent<CameraPreset>
     {
+        public override CameraPreset Default => CameraPreset.Default;
+
         public CameraSettingsContainer(string contentDirectory) : base(contentDirectory)
         {
         }
@@ -20,7 +21,7 @@ namespace YARG.Settings.Customization
             {
                 var camera = JsonConvert.DeserializeObject<CameraPreset>(File.ReadAllText(path));
 
-                Content.Add(camera.Name, camera);
+                Content.Add(camera.Id, camera);
 
                 return true;
             });

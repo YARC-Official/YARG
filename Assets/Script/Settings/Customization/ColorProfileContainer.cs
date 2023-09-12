@@ -9,32 +9,24 @@ namespace YARG.Settings.Customization
 {
     public class ColorProfileContainer : CustomContent<ColorProfile>
     {
+        public override ColorProfile Default => ColorProfile.Default;
+
         public ColorProfileContainer(string contentDirectory) : base(contentDirectory)
         {
-            Content.Add(ColorProfile.Default.Name, ColorProfile.Default);
-        }
-
-        public ColorProfile GetColorProfileOrDefault(string name)
-        {
-            if (Content.TryGetValue(name, out var profile))
-            {
-                return profile;
-            }
-
-            return ColorProfile.Default;
+            Content.Add(Default.Id, Default);
         }
 
         public override void LoadFiles()
         {
             Content.Clear();
-            Content.Add(ColorProfile.Default.Name, ColorProfile.Default);
+            Content.Add(Default.Id, Default);
 
             PathHelper.SafeEnumerateFiles(ContentDirectory, "*.json", true, (path) =>
             {
                 var colors = JsonConvert.DeserializeObject<ColorProfile>(File.ReadAllText(path),
                     new JsonColorConverter());
 
-                Content.TryAdd(colors.Name, colors);
+                Content.TryAdd(colors.Id, colors);
 
                 return true;
             });

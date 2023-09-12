@@ -1,21 +1,22 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace YARG.Settings.Customization
 {
     public abstract class CustomContent<T>
     {
-
         public readonly string ContentDirectory;
+        public readonly Dictionary<Guid, T> Content;
 
-        public readonly Dictionary<string, T> Content;
+        public abstract T Default { get; }
 
         protected CustomContent(string contentDirectory)
         {
             Directory.CreateDirectory(contentDirectory);
 
             ContentDirectory = contentDirectory;
-            Content = new Dictionary<string, T>();
+            Content = new();
         }
 
         public abstract void LoadFiles();
@@ -29,5 +30,15 @@ namespace YARG.Settings.Customization
         }
 
         public abstract void SaveItem(T item);
+
+        public T GetContentOrDefault(Guid id)
+        {
+            if (Content.TryGetValue(id, out var content))
+            {
+                return content;
+            }
+
+            return Default;
+        }
     }
 }
