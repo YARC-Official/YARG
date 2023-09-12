@@ -163,6 +163,7 @@ namespace YARG.Gameplay
         {
             Navigator.Instance.NavigationEvent -= OnNavigationEvent;
             GlobalVariables.AudioManager.SongEnd -= OnAudioEnd;
+            UninitializeTime();
         }
 
         private async UniTask Start()
@@ -592,6 +593,7 @@ namespace YARG.Gameplay
                 SaveReplay(Song.SongLengthInSeconds);
             }
 
+            UninitializeTime();
             GlobalVariables.AudioManager.UnloadSong();
 
             GlobalVariables.Instance.ScoreScreenStats = new ScoreScreenStats
