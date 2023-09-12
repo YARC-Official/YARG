@@ -5,18 +5,6 @@ namespace YARG.Settings.Types
 {
     public class IntSetting : AbstractSetting<int>
     {
-        private int _data;
-
-        public override int Data
-        {
-            get => _data;
-            set
-            {
-                _data = Mathf.Clamp(value, Min, Max);
-                base.Data = value;
-            }
-        }
-
         public override string AddressableName => "Setting/Int";
 
         public int Min { get; private set; }
@@ -28,7 +16,12 @@ namespace YARG.Settings.Types
             Min = min;
             Max = max;
 
-            _data = value;
+            DataField = value;
+        }
+
+        protected override void SetDataField(int value)
+        {
+            DataField = Mathf.Clamp(value, Min, Max);
         }
 
         public override bool IsSettingDataEqual(object obj)

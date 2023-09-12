@@ -7,16 +7,16 @@ namespace YARG.Helpers
     {
         public static RenderTexture PreviewTexture { get; private set; }
 
-        private static List<CameraPreviewTexture> previews = new();
+        private static readonly List<CameraPreviewTexture> _previews = new();
 
         private void Awake()
         {
-            previews.Add(this);
+            _previews.Add(this);
         }
 
         private void OnDestroy()
         {
-            previews.Remove(this);
+            _previews.Remove(this);
         }
 
         private void UpdateRenderTexture()
@@ -39,7 +39,7 @@ namespace YARG.Helpers
             descriptor.mipCount = 0;
             PreviewTexture = new RenderTexture(descriptor);
 
-            foreach (var script in previews)
+            foreach (var script in _previews)
             {
                 script.UpdateRenderTexture();
             }

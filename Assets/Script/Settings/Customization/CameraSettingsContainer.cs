@@ -1,35 +1,47 @@
-﻿using System.IO;
-using Newtonsoft.Json;
+﻿using System;
+using System.Collections.Generic;
 using YARG.Core.Game;
-using YARG.Helpers;
 
 namespace YARG.Settings.Customization
 {
     public class CameraSettingsContainer : CustomContent<CameraPreset>
     {
-        public override CameraPreset Default => CameraPreset.Default;
+        public override IReadOnlyList<CameraPreset> DefaultPresets => CameraPreset.Defaults;
 
         public CameraSettingsContainer(string contentDirectory) : base(contentDirectory)
         {
         }
 
-        public override void LoadFiles()
+        public override void SetSettingsFromPreset(BasePreset preset)
         {
-            Content.Clear();
-
-            PathHelper.SafeEnumerateFiles(ContentDirectory, "*.json", true, (path) =>
+            if (preset is not CameraPreset p)
             {
-                var camera = JsonConvert.DeserializeObject<CameraPreset>(File.ReadAllText(path));
+                throw new InvalidOperationException("Invalid preset type!");
+            }
 
-                Content.Add(camera.Id, camera);
-
-                return true;
-            });
+            var s = SettingsManager.Settings;
+            s.CameraPreset_FieldOfView.SetSettingNoEvents(p.FieldOfView);
+            s.CameraPreset_PositionY.SetSettingNoEvents(p.PositionY);
+            s.CameraPreset_PositionZ.SetSettingNoEvents(p.PositionZ);
+            s.CameraPreset_Rotation.SetSettingNoEvents(p.Rotation);
+            s.CameraPreset_FadeLength.SetSettingNoEvents(p.FadeLength);
+            s.CameraPreset_CurveFactor.SetSettingNoEvents(p.CurveFactor);
         }
 
-        public override void SaveItem(CameraPreset item)
+        public override void SetPresetFromSettings(BasePreset preset)
         {
-            throw new System.NotImplementedException();
+            if (preset is not CameraPreset p)
+            {
+                throw new InvalidOperationException("Invalid preset type!");
+            }
+
+            var s = SettingsManager.Settings;
+            p.FieldOfView = s.CameraPreset_FieldOfView.Data;
+            p.PositionY   = s.CameraPreset_PositionY.Data;
+            p.PositionZ   = s.CameraPreset_PositionZ.Data;
+            p.Rotation    = s.CameraPreset_Rotation.Data;
+            p.FadeLength  = s.CameraPreset_FadeLength.Data;
+            p.CurveFactor = s.CameraPreset_CurveFactor.Data;
         }
     }
 }

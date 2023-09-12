@@ -3,7 +3,6 @@ using System.IO;
 using UnityEngine;
 using YARG.Gameplay;
 using YARG.Menu;
-using YARG.PlayMode;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif

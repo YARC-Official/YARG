@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using UnityEngine;
 using YARG.Audio;
+using YARG.Gameplay.Visuals;
 using YARG.Helpers;
 using YARG.Integration;
 using YARG.Menu.Settings;
-using YARG.PlayMode;
 using YARG.Settings.Types;
 using YARG.Menu.Persistent;
 using YARG.Song;
@@ -115,14 +116,6 @@ namespace YARG.Settings
             public ToggleSetting LowQuality   { get; } = new(false, LowQualityCallback);
             public ToggleSetting DisableBloom { get; } = new(false, DisableBloomCallback);
 
-            public SliderSetting TrackCamFOV       { get; } = new(55f, 40f, 150f,   CameraPosChange);
-            public SliderSetting TrackCamYPos      { get; } = new(2.66f, 0f, 4f,    CameraPosChange);
-            public SliderSetting TrackCamZPos      { get; } = new(1.14f, 0f, 12f,   CameraPosChange);
-            public SliderSetting TrackCamRot       { get; } = new(24.12f, 0f, 180f, CameraPosChange);
-            public SliderSetting TrackFadePosition { get; } = new(3f, 0f, 32f,      v => FadeChange(true, v));
-            public SliderSetting TrackFadeSize     { get; } = new(1.75f, 0f, 5f,    v => FadeChange(false, v));
-            public SliderSetting TrackCurveFactor  { get; } = new(0.5f, -3f, 3f,    CurveFactorChange);
-
             public ToggleSetting ShowHitWindow            { get; } = new(false);
             public ToggleSetting DisableTextNotifications { get; } = new(false);
 
@@ -147,6 +140,32 @@ namespace YARG.Settings
             public ToggleSetting NoKicks          { get; } = new(false);
             public ToggleSetting AntiGhosting     { get; } = new(true);
             public ToggleSetting InfiniteFrontEnd { get; } = new(false);
+
+            #endregion
+
+            #region Preset Fields
+
+            // This is kind of a hack for preset fields. All of these values are not saved in the settings.json,
+            // and are solely used by the "Presets" tab. This makes it 10x easier to bind setting visuals without
+            // the need of overcomplicating it. Sure, this is kinda hacky, but it works just fine.
+
+            // All names should be: <PresetClass>_<PresetField>
+            // ReSharper disable InconsistentNaming
+
+            [JsonIgnore]
+            public SliderSetting CameraPreset_FieldOfView  { get; } = new(55f, 40f, 150f);
+            [JsonIgnore]
+            public SliderSetting CameraPreset_PositionY    { get; } = new(2.66f, 0f, 4f);
+            [JsonIgnore]
+            public SliderSetting CameraPreset_PositionZ    { get; } = new(1.14f, 0f, 12f);
+            [JsonIgnore]
+            public SliderSetting CameraPreset_Rotation     { get; } = new(24.12f, 0f, 180f);
+            [JsonIgnore]
+            public SliderSetting CameraPreset_FadeLength   { get; } = new(1.75f, 0f, 5f);
+            [JsonIgnore]
+            public SliderSetting CameraPreset_CurveFactor  { get; } = new(0.5f, -3f, 3f);
+
+            // ReSharper restore InconsistentNaming
 
             #endregion
 
@@ -235,7 +254,6 @@ namespace YARG.Settings
             private static void LowQualityCallback(bool value)
             {
                 GraphicsManager.Instance.LowQuality = value;
-                CameraPositioner.UpdateAllAntiAliasing();
             }
 
             private static void DisableBloomCallback(bool value)
@@ -300,40 +318,6 @@ namespace YARG.Settings
             private static void UseChipmunkSpeedChange(bool value)
             {
                 GlobalVariables.AudioManager.Options.IsChipmunkSpeedup = value;
-            }
-
-            private static void CameraPosChange(float value)
-            {
-                CameraPositioner.UpdateAllPosition();
-            }
-
-            private static void FadeChange(bool isPosition, float value)
-            {
-                if (IsLoading)
-                {
-                    return;
-                }
-
-                float position;
-                float size;
-
-                if (isPosition)
-                {
-                    position = value;
-                    size = Settings.TrackFadeSize.Data;
-                }
-                else
-                {
-                    position = Settings.TrackFadePosition.Data;
-                    size = value;
-                }
-            }
-
-            private static void CurveFactorChange(float value)
-            {
-                // ReSharper disable Unity.PreferAddressByIdToGraphicsParams
-                Shader.SetGlobalFloat("_CurveFactor", value);
-                // ReSharper disable Unity.PreferAddressByIdToGraphicsParams
             }
 
             #endregion

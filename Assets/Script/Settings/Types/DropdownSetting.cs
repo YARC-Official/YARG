@@ -5,18 +5,6 @@ namespace YARG.Settings.Types
 {
     public class DropdownSetting : AbstractSetting<string>
     {
-        private string _data;
-
-        public override string Data
-        {
-            get => _data;
-            set
-            {
-                _data = value;
-                base.Data = value;
-            }
-        }
-
         public override string AddressableName => "Setting/Dropdown";
 
         private readonly List<string> _possibleValues;
@@ -26,7 +14,7 @@ namespace YARG.Settings.Types
             base(onChange)
         {
             _possibleValues = possibleValues;
-            _data = value;
+            DataField = value;
         }
 
         public int IndexOfOption(string option)

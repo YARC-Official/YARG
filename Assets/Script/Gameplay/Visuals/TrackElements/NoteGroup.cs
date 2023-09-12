@@ -33,6 +33,8 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
+        public Material[] GetAllMaterials() => _meshRenderer.materials;
+
         public void SetActive(bool a) => gameObject.SetActive(a);
     }
 }

@@ -17,10 +17,16 @@ namespace YARG.Settings.Customization
             CameraSettings = new CameraSettingsContainer(Path.Combine(CustomizationDirectory, "cameras"));
         }
 
-        public static void LoadContent()
+        public static void LoadAll()
         {
             ColorProfiles.LoadFiles();
             CameraSettings.LoadFiles();
+        }
+
+        public static void SaveAll()
+        {
+            ColorProfiles.SaveAll();
+            CameraSettings.SaveAll();
         }
     }
 }

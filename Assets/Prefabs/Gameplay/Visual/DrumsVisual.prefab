@@ -293,6 +293,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42974416b948ada45a2fd1534af7341c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &2787801384921991726 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5747337796167780418, guid: 5800c42510b55c549be95ec3ecd75e1c,
+    type: 3}
+  m_PrefabInstance: {fileID: 7598390404892836460}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 031a2b07fd65f864d9c4ded2d545c9e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &4397569968834985693 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6085956593584340145, guid: 5800c42510b55c549be95ec3ecd75e1c,
@@ -372,6 +384,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <TrackCamera>k__BackingField: {fileID: 5042276788195936079}
+  CameraPositioner: {fileID: 2787801384921991726}
   TrackMaterial: {fileID: 5579522060939319819}
   ComboMeter: {fileID: 5459863034583426082}
   StarpowerBar: {fileID: 4397569968834985693}

@@ -230,6 +230,27 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: Customization
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 0
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 171cb75d04f00b14fb9c0d3d2d177f71
+      internalID: 1860848380
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -242,6 +263,7 @@ TextureImporter:
     secondaryTextures: []
     nameFileIdTable:
       Credits: 1937860847
+      Customization: 1860848380
       Display: -2102064641
       Engine: -1055201595
       Generic: 948285804

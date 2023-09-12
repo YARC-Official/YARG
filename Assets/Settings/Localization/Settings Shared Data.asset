@@ -127,6 +127,10 @@ MonoBehaviour:
     m_Key: Header.Other
     m_Metadata:
       m_Items: []
+  - m_Id: 62024422937452544
+    m_Key: Header.PresetSettings
+    m_Metadata:
+      m_Items: []
   - m_Id: 13084450683740160
     m_Key: Header.SongFolders
     m_Metadata:
@@ -145,6 +149,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 53693768667619340
     m_Key: Presets.Graphics.CameraPresets
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62024422966812672
+    m_Key: PresetType.CameraSettingsContainer
     m_Metadata:
       m_Items: []
   - m_Id: 53693768667619341
@@ -307,68 +315,68 @@ MonoBehaviour:
     m_Key: Setting.Graphics.SongTimeOnScoreBox.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619362
-    m_Key: Setting.Graphics.TrackCamFOV
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53704501379850255
-    m_Key: Setting.Graphics.TrackCamFOV.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53693768667619363
-    m_Key: Setting.Graphics.TrackCamRot
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53704501379850256
-    m_Key: Setting.Graphics.TrackCamRot.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53693768667619364
-    m_Key: Setting.Graphics.TrackCamYPos
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53704501379850257
-    m_Key: Setting.Graphics.TrackCamYPos.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53693768667619365
-    m_Key: Setting.Graphics.TrackCamZPos
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53704501379850258
-    m_Key: Setting.Graphics.TrackCamZPos.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53693768667619366
-    m_Key: Setting.Graphics.TrackCurveFactor
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53704501379850259
-    m_Key: Setting.Graphics.TrackCurveFactor.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53693768667619367
-    m_Key: Setting.Graphics.TrackFadePosition
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53704501379850260
-    m_Key: Setting.Graphics.TrackFadePosition.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53693768667619368
-    m_Key: Setting.Graphics.TrackFadeSize
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53704501379850261
-    m_Key: Setting.Graphics.TrackFadeSize.Description
-    m_Metadata:
-      m_Items: []
   - m_Id: 53693768667619369
     m_Key: Setting.Graphics.VSync
     m_Metadata:
       m_Items: []
   - m_Id: 53704501379850262
     m_Key: Setting.Graphics.VSync.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506674827264
+    m_Key: Setting.Presets.CameraPreset_CurveFactor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021568
+    m_Key: Setting.Presets.CameraPreset_CurveFactor.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021569
+    m_Key: Setting.Presets.CameraPreset_FadeLength
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021570
+    m_Key: Setting.Presets.CameraPreset_FadeLength.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021571
+    m_Key: Setting.Presets.CameraPreset_FadeStart
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021572
+    m_Key: Setting.Presets.CameraPreset_FadeStart.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021573
+    m_Key: Setting.Presets.CameraPreset_FieldOfView
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021574
+    m_Key: Setting.Presets.CameraPreset_FieldOfView.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021575
+    m_Key: Setting.Presets.CameraPreset_PositionY
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021576
+    m_Key: Setting.Presets.CameraPreset_PositionY.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021577
+    m_Key: Setting.Presets.CameraPreset_PositionZ
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021578
+    m_Key: Setting.Presets.CameraPreset_PositionZ.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021579
+    m_Key: Setting.Presets.CameraPreset_Rotation
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021580
+    m_Key: Setting.Presets.CameraPreset_Rotation.Description
     m_Metadata:
       m_Items: []
   - m_Id: 53693768667619372
@@ -529,6 +537,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 10936704807854080
     m_Key: Tab.Graphics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62024422971006976
+    m_Key: Tab.Presets
     m_Metadata:
       m_Items: []
   - m_Id: 55070184168611840

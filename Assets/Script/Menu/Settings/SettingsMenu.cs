@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -10,10 +9,9 @@ using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Navigation;
-using YARG.Menu.Settings.Visuals;
 using YARG.Settings;
+using YARG.Settings.Customization;
 using YARG.Settings.Metadata;
-using YARG.Settings.Types;
 
 namespace YARG.Menu.Settings
 {
@@ -23,15 +21,15 @@ namespace YARG.Menu.Settings
         [SerializeField]
         private HeaderTabs _headerTabs;
         [SerializeField]
-        private RawImage _previewRawImage;
-        [SerializeField]
         private Transform _settingsContainer;
         [SerializeField]
         private NavigationGroup _settingsNavGroup;
         [SerializeField]
-        private Transform _previewContainer;
-        [SerializeField]
         private ScrollRect _scrollRect;
+        [SerializeField]
+        private Transform _previewContainerWorld;
+        [SerializeField]
+        private Transform _previewContainerUI;
 
         [Space]
         [SerializeField]
@@ -39,33 +37,15 @@ namespace YARG.Menu.Settings
         [SerializeField]
         private LocalizeStringEvent _settingDescription;
 
-        [Space]
-        [SerializeField]
-        private GameObject _buttonPrefab;
-        [SerializeField]
-        private GameObject _headerPrefab;
-        [SerializeField]
-        private GameObject _dropdownPrefab;
-
-        [Space]
-        [SerializeField]
-        private GameObject _songManagerHeader;
-        [SerializeField]
-        private GameObject _songManagerDirectoryPrefab;
-
-        private string _currentTab;
-
-        private readonly List<BaseSettingVisual> _settingVisuals = new();
-        private readonly List<SettingsPresetDropdown> _settingDropdowns = new();
-
-        public string CurrentTab
+        private Tab _currentTab;
+        public Tab CurrentTab
         {
             get => _currentTab;
             set
             {
                 _currentTab = value;
 
-                UpdateSettingsForTab();
+                Refresh();
             }
         }
 
@@ -133,7 +113,7 @@ namespace YARG.Menu.Settings
 
         private void OnTabChanged(string tab)
         {
-            CurrentTab = tab;
+            CurrentTab = SettingsManager.GetTabByName(tab);
         }
 
         private void OnSelectionChanged(NavigatableBehaviour selected, SelectionOrigin selectionOrigin)
@@ -141,32 +121,27 @@ namespace YARG.Menu.Settings
             var settingNav = selected.GetComponent<BaseSettingNavigatable>();
 
             _settingName.StringReference = LocaleHelper.StringReference(
-                "Settings", $"Setting.{CurrentTab}.{settingNav.SettingName}");
+                "Settings", $"Setting.{CurrentTab.Name}.{settingNav.SettingName}");
 
             _settingDescription.StringReference = LocaleHelper.StringReference(
-                "Settings", $"Setting.{CurrentTab}.{settingNav.SettingName}.Description");
+                "Settings", $"Setting.{CurrentTab.Name}.{settingNav.SettingName}.Description");
         }
 
-        public void UpdateSettingsForTab()
+        public void Refresh()
         {
-            var tabInfo = SettingsManager.GetTabByName(CurrentTab);
-
             UpdateSettings();
-            UpdatePreview(tabInfo).Forget();
+            UpdatePreview(CurrentTab).Forget();
         }
 
         private void UpdateSettings()
         {
-            _settingVisuals.Clear();
-            _settingDropdowns.Clear();
             _settingsNavGroup.ClearNavigatables();
 
             // Destroy all previous settings
             _settingsContainer.DestroyChildren();
 
             // Build the settings tab
-            SettingsManager.GetTabByName(CurrentTab)
-                .BuildSettingTab(_settingsContainer, _settingsNavGroup);
+            CurrentTab.BuildSettingTab(_settingsContainer, _settingsNavGroup);
 
             // Make the settings nav group the main one
             _settingsNavGroup.SelectFirst();
@@ -177,85 +152,37 @@ namespace YARG.Menu.Settings
 
         private async UniTask UpdatePreview(Tab tabInfo)
         {
-            // DestroyPreview();
-            //
-            // if (string.IsNullOrEmpty(tabInfo.PreviewPath))
-            // {
-            //     _previewRawImage.gameObject.SetActive(false);
-            //     _previewRawImage.texture = null;
-            //     _previewRawImage.color = Color.black;
-            //     return;
-            // }
-            //
-            // // Spawn prefab
-            // _previewContainer.gameObject.SetActive(true);
-            // var previewPrefab = Addressables.LoadAssetAsync<GameObject>(tabInfo.PreviewPath).WaitForCompletion();
-            // Instantiate(previewPrefab, _previewContainer);
-            //
-            // // Set render texture
-            // CameraPreviewTexture.SetAllPreviews();
-            //
-            // // Enable and wait for layouts to rebuild
-            // _previewRawImage.gameObject.SetActive(true);
-            // await UniTask.WaitForEndOfFrame(this);
-            //
-            // // Size raw image
-            // _previewRawImage.texture = CameraPreviewTexture.PreviewTexture;
-            // _previewRawImage.color = Color.white;
-            // var rect = _previewRawImage.rectTransform.ToViewportSpaceCentered(v: false, scale: 0.9f);
-            // rect.y = 0f;
-            // _previewRawImage.uvRect = rect;
+            DestroyPreview();
+
+            // Spawn world preview
+            _previewContainerWorld.gameObject.SetActive(true);
+            await tabInfo.BuildPreviewWorld(_previewContainerWorld);
+
+            // Set render texture(s)
+            CameraPreviewTexture.SetAllPreviews();
+
+            // Spawn UI preview
+            await tabInfo.BuildPreviewUI(_previewContainerUI);
         }
 
         private void DestroyPreview()
         {
-            if (_previewContainer == null) return;
+            _previewContainerWorld.DestroyChildren();
+            _previewContainerWorld.gameObject.SetActive(false);
 
-            _previewContainer.DestroyChildren();
-            _previewContainer.gameObject.SetActive(false);
+            _previewContainerUI.DestroyChildren();
         }
 
         public void ReturnToFirstTab()
         {
-            CurrentTab = SettingsManager.SettingsTabs[0].Name;
+            CurrentTab = SettingsManager.SettingsTabs[0];
         }
 
-        public void UpdateSpecificSetting(string settingName)
+        public void OnSettingChanged()
         {
-            // If the settings menu is not open, ignore
-            if (!gameObject.activeSelf)
-            {
-                return;
-            }
+            if (!_ready || !gameObject.activeSelf) return;
 
-            // Refresh all of the settings with that name
-            foreach (var settingVisual in _settingVisuals)
-            {
-                if (settingVisual.SettingName != settingName)
-                {
-                    continue;
-                }
-
-                settingVisual.RefreshVisual();
-            }
-        }
-
-        public void UpdatePresetDropdowns(ISettingType withSetting)
-        {
-            // If the settings menu is not open, ignore
-            if (!gameObject.activeSelf)
-            {
-                return;
-            }
-
-            // Refresh all of the settings with that name
-            foreach (var dropdown in _settingDropdowns)
-            {
-                if (dropdown.ModifiedSettings.Select(SettingsManager.GetSettingByName).Contains(withSetting))
-                {
-                    dropdown.ForceUpdateValue();
-                }
-            }
+            CurrentTab?.OnSettingChanged();
         }
 
         private async UniTask OnDisable()
@@ -273,6 +200,7 @@ namespace YARG.Menu.Settings
 
             // Save on close
             SettingsManager.SaveSettings();
+            CustomContentManager.SaveAll();
 
             if (UpdateSongLibraryOnExit)
             {

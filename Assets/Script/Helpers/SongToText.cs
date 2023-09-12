@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using YARG.Core.Song;
-using YARG.PlayMode;
 using YARG.Song;
 
 namespace YARG.Helpers

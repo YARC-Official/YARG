@@ -26,11 +26,15 @@ namespace YARG.Player
                 {
                     return _colorProfile;
                 }
-                return CustomContentManager.ColorProfiles.GetContentOrDefault(Profile.ColorProfile);
+
+                return CustomContentManager.ColorProfiles.GetPresetById(Profile.ColorProfile)
+                    ?? ColorProfile.Default;
             }
         }
 
-        public CameraPreset CameraPreset = CameraPreset.Default;
+        public CameraPreset CameraPreset =>
+            CustomContentManager.CameraSettings.GetPresetById(Profile.CameraPreset)
+            ?? CameraPreset.Default;
 
         private bool _isOverrideColorProfile;
         private ColorProfile _colorProfile;

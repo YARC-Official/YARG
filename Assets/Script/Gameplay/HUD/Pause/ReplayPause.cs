@@ -25,8 +25,8 @@ namespace YARG.Gameplay.HUD
             _thisPlayer = GameManager.Players[0];
             _colorProfile = _thisPlayer.Player.ColorProfile;
 
-            // if ColorProfile is Default, remove the Save button
-            if (_colorProfile.Name == ColorProfile.Default.Name)
+            // If the user already has the color profile, remove the Save button
+            if (CustomContentManager.ColorProfiles.HasPresetId(_colorProfile.Id))
             {
                 _separatorObject.SetActive(false);
                 _saveColorObject.SetActive(false);
@@ -36,10 +36,8 @@ namespace YARG.Gameplay.HUD
         public void SaveColorProfile()
         {
             // save the color profile
-            CustomContentManager.ColorProfiles.SaveItem(_colorProfile);
-
-            // refresh the color profile
-            CustomContentManager.ColorProfiles.LoadFiles();
+            CustomContentManager.ColorProfiles.AddPreset(_colorProfile);
+            CustomContentManager.ColorProfiles.SaveAll();
 
             // get Name object then set text to Saved!
             _saveColorObject.GetComponentInChildren<TextMeshProUGUI>().text = "Saved!";

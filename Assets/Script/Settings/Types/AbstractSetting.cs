@@ -7,14 +7,18 @@ namespace YARG.Settings.Types
     [JsonConverter(typeof(AbstractSettingConverter))]
     public abstract class AbstractSetting<T> : ISettingType
     {
-        public virtual T Data
+        protected T DataField;
+
+        public T Data
         {
-            get => default;
+            get => DataField;
             set
             {
+                SetDataField(value);
+
                 _onChange?.Invoke(value);
 
-                SettingsMenu.Instance.UpdatePresetDropdowns(this);
+                SettingsMenu.Instance.OnSettingChanged();
             }
         }
 
@@ -34,6 +38,13 @@ namespace YARG.Settings.Types
         {
             _onChange = onChange;
         }
+
+        protected virtual void SetDataField(T value)
+        {
+            DataField = value;
+        }
+
+        public void SetSettingNoEvents(T value) => SetDataField(value);
 
         public void ForceInvokeCallback()
         {

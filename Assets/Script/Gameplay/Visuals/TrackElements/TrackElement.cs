@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using YARG.Gameplay.Player;
+using YARG.Helpers.Extensions;
 using YARG.Settings;
 
 namespace YARG.Gameplay.Visuals
@@ -9,10 +10,6 @@ namespace YARG.Gameplay.Visuals
     public abstract class TrackElement<TPlayer> : GameplayBehaviour, IPoolable
         where TPlayer : BasePlayer
     {
-        // TODO: We should probably move these somewhere else
-        private static readonly int _fadeZeroPosition = Shader.PropertyToID("_FadeZeroPosition");
-        private static readonly int _fadeFullPosition = Shader.PropertyToID("_FadeFullPosition");
-
         protected const float REMOVE_POINT = -4f;
 
         protected TPlayer Player { get; private set; }
@@ -55,8 +52,7 @@ namespace YARG.Gameplay.Visuals
             {
                 foreach (var material in meshRenderer.materials)
                 {
-                    material.SetVector(_fadeZeroPosition, new Vector4(0f, 0f, fadePos, 0f));
-                    material.SetVector(_fadeFullPosition, new Vector4(0f, 0f, fadePos - fadeSize, 0f));
+                    material.SetFade(fadePos, fadeSize);
                 }
             }
         }
@@ -84,9 +80,9 @@ namespace YARG.Gameplay.Visuals
             // TODO: Take calibration into consideration
 
             float z =
-                BasePlayer.STRIKE_LINE_POS                     // Shift origin to the strike line
+                BasePlayer.STRIKE_LINE_POS                      // Shift origin to the strike line
                 + (float) (ElementTime - GameManager.InputTime) // Get time of note relative to now
-                * Player.NoteSpeed;                            // Adjust speed (units/s)
+                * Player.NoteSpeed;                             // Adjust speed (units/s)
 
             var cacheTransform = transform;
             cacheTransform.localPosition = cacheTransform.localPosition.WithZ(z);

@@ -97,6 +97,26 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8e15c2bf1d9201a4091b3e5a15b27ef0
+    m_Address: SettingTab/PresetTypeDropdown
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fb3d9a9c08e15ed468a4df6f649ae408
+    m_Address: SettingTab/PresetDropdown
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f23563e8cc229334d89632b2afc117d9
+    m_Address: SettingTab/PresetDefaultText
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5727b73630affea44b7d1b897fa3e7c0
+    m_Address: SettingPreviews/TrackPreviewUI
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: e05274e5aee7ff54bb550557e8a635f2, type: 2}
   m_SchemaSet:

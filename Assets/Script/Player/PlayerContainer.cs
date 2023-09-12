@@ -177,12 +177,6 @@ namespace YARG.Player
             try
             {
                 profiles = JsonConvert.DeserializeObject<List<YargProfile>>(profilesJson);
-
-                foreach (var profile in profiles)
-                {
-                    var colorProfile = CustomContentManager.ColorProfiles.GetContentOrDefault(profile.ColorProfile);
-                    profile.ColorProfile = colorProfile.Id;
-                }
             }
             catch (Exception ex)
             {

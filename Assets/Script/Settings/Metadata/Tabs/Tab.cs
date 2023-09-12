@@ -1,5 +1,7 @@
-﻿using UnityEngine;
+﻿using Cysharp.Threading.Tasks;
+using UnityEngine;
 using YARG.Menu.Navigation;
+using YARG.Menu.Settings;
 
 namespace YARG.Settings.Metadata
 {
@@ -16,7 +18,17 @@ namespace YARG.Settings.Metadata
 
         public abstract void BuildSettingTab(Transform settingContainer, NavigationGroup navGroup);
 
-        public virtual void BuildPreview(Transform uiContainer, Transform worldContainer)
+        public virtual UniTask BuildPreviewWorld(Transform worldContainer)
+        {
+            return UniTask.CompletedTask;
+        }
+
+        public virtual UniTask BuildPreviewUI(Transform uiContainer)
+        {
+            return UniTask.CompletedTask;
+        }
+
+        public virtual void OnSettingChanged()
         {
         }
     }

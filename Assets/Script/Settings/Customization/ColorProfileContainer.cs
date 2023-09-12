@@ -1,43 +1,36 @@
-﻿using System.IO;
-using Newtonsoft.Json;
-using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
 using YARG.Core.Game;
-using YARG.Core.Utility;
-using YARG.Helpers;
 
 namespace YARG.Settings.Customization
 {
     public class ColorProfileContainer : CustomContent<ColorProfile>
     {
-        public override ColorProfile Default => ColorProfile.Default;
+        private static readonly List<ColorProfile> _defaultProfiles = new() { ColorProfile.Default };
+        public override IReadOnlyList<ColorProfile> DefaultPresets => _defaultProfiles;
 
         public ColorProfileContainer(string contentDirectory) : base(contentDirectory)
         {
-            Content.Add(Default.Id, Default);
         }
 
-        public override void LoadFiles()
+        public override void SetSettingsFromPreset(BasePreset preset)
         {
-            Content.Clear();
-            Content.Add(Default.Id, Default);
-
-            PathHelper.SafeEnumerateFiles(ContentDirectory, "*.json", true, (path) =>
+            if (preset is not ColorProfile p)
             {
-                var colors = JsonConvert.DeserializeObject<ColorProfile>(File.ReadAllText(path),
-                    new JsonColorConverter());
+                throw new InvalidOperationException("Invalid preset type!");
+            }
 
-                Content.TryAdd(colors.Id, colors);
-
-                return true;
-            });
+            throw new NotImplementedException();
         }
 
-        public override void SaveItem(ColorProfile item)
+        public override void SetPresetFromSettings(BasePreset preset)
         {
-            Debug.Log($"Saving color profile {item.Name}");
-            var json = JsonConvert.SerializeObject(item, Formatting.Indented, new JsonColorConverter());
+            if (preset is not ColorProfile p)
+            {
+                throw new InvalidOperationException("Invalid preset type!");
+            }
 
-            File.WriteAllText(Path.Combine(ContentDirectory, $"{item.Name.ToLower().Replace(" ", "")}.json"), json);
+            throw new NotImplementedException();
         }
     }
 }

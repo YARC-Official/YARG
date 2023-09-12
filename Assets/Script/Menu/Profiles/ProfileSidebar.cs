@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -25,6 +27,8 @@ namespace YARG.Menu.Profiles
         private Image _profilePicture;
         [SerializeField]
         private Button _editProfileButton;
+
+        [Space]
         [SerializeField]
         private TMP_Dropdown _gameModeDropdown;
         [SerializeField]
@@ -35,6 +39,8 @@ namespace YARG.Menu.Profiles
         private Toggle _leftyFlipToggle;
         [SerializeField]
         private TMP_Dropdown _colorProfileDropdown;
+        [SerializeField]
+        private TMP_Dropdown _cameraPresetDropdown;
 
         [Space]
         [SerializeField]
@@ -55,8 +61,10 @@ namespace YARG.Menu.Profiles
         private ProfileView _profileView;
         private YargProfile _profile;
 
-        private readonly List<GameMode>     _gameModesByIndex     = new();
-        private readonly List<ColorProfile> _colorProfilesByIndex = new();
+        private readonly List<GameMode> _gameModesByIndex = new();
+
+        private List<Guid> _colorProfilesByIndex;
+        private List<Guid> _cameraPresetsByIndex;
 
         private void Awake()
         {
@@ -74,17 +82,21 @@ namespace YARG.Menu.Profiles
 
                 // Create the dropdown option
                 string name = LocaleHelper.LocalizeString($"GameMode.{gameMode}");
-                _gameModeDropdown.options.Add(new TMP_Dropdown.OptionData(name));
+                _gameModeDropdown.options.Add(new(name));
             }
+        }
 
-            _colorProfileDropdown.options.Clear();
-            foreach (var (_, colors) in CustomContentManager.ColorProfiles.Content)
-            {
-                _colorProfilesByIndex.Add(colors);
+        private void OnEnable()
+        {
+            // These things can change, so do it every time it's enabled.
 
-                // Create the dropdown option
-                _colorProfileDropdown.options.Add(new TMP_Dropdown.OptionData(colors.Name));
-            }
+            // Setup preset dropdowns
+            _colorProfilesByIndex =
+                CustomContentManager.ColorProfiles.AddOptionsToDropdown(_colorProfileDropdown)
+                    .Select(i => i.Id).ToList();
+            _cameraPresetsByIndex =
+                CustomContentManager.CameraSettings.AddOptionsToDropdown(_cameraPresetDropdown)
+                    .Select(i => i.Id).ToList();
         }
 
         public void UpdateSidebar(YargProfile profile, ProfileView profileView)
@@ -101,9 +113,9 @@ namespace YARG.Menu.Profiles
             _highwayLengthField.text = profile.HighwayLength.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
             _leftyFlipToggle.isOn = profile.LeftyFlip;
 
-            var colorProfile = CustomContentManager.ColorProfiles.GetContentOrDefault(profile.ColorProfile);
-
-            _colorProfileDropdown.value = _colorProfilesByIndex.IndexOf(colorProfile);
+            // Update preset dropdowns
+            _colorProfileDropdown.value = _colorProfilesByIndex.IndexOf(profile.ColorProfile);
+            _cameraPresetDropdown.value = _cameraPresetsByIndex.IndexOf(profile.CameraPreset);
 
             // Show the proper name container (hide the editing version)
             _nameContainer.SetActive(true);
@@ -211,7 +223,12 @@ namespace YARG.Menu.Profiles
 
         public void ChangeColorProfile()
         {
-            _profile.ColorProfile = _colorProfilesByIndex[_colorProfileDropdown.value].Id;
+            _profile.ColorProfile = _colorProfilesByIndex[_colorProfileDropdown.value];
+        }
+
+        public void ChangeCameraPreset()
+        {
+            _profile.CameraPreset = _cameraPresetsByIndex[_cameraPresetDropdown.value];
         }
     }
 }

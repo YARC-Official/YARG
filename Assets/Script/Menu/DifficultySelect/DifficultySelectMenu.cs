@@ -11,7 +11,6 @@ using YARG.Data;
 using YARG.Gameplay;
 using YARG.Menu.Navigation;
 using YARG.Player;
-using YARG.PlayMode;
 
 namespace YARG.Menu.DifficultySelect
 {
