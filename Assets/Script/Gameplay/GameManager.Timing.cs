@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using UnityEngine;
 using YARG.Input;
 using YARG.Settings;
@@ -67,15 +68,39 @@ namespace YARG.Gameplay
         /// </remarks>
         public double SongOffset => -Song.SongOffset;
 
+        // Audio syncing
+        private volatile bool _runSync;
+        private volatile bool _seeking;
+        private Thread _syncThread;
+        private EventWaitHandle _finishedSyncing = new(true, EventResetMode.ManualReset);
+
         private float _syncSpeedAdjustment = 0f;
         private int _syncSpeedMultiplier = 0;
         private double _syncStartDelta;
+
+        // Seek debugging
+        private bool _seeked;
+        private double _previousRealSongTime = double.NaN;
+        private double _previousInputTime = double.NaN;
 
         private void InitializeTime()
         {
             // Initialize times
             InitializeSongTime(SongOffset);
             GlobalVariables.AudioManager.SetPosition(0);
+
+            // Start sync thread
+            _runSync = true;
+            _syncThread = new Thread(SyncThread) { IsBackground = true };
+            _syncThread.Start();
+        }
+
+        private void UninitializeTime()
+        {
+            // Stop sync thread
+            _runSync = false;
+            _syncThread?.Join();
+            _syncThread = null;
         }
 
         public double GetRelativeInputTime(double timeFromInputSystem)
@@ -113,65 +138,98 @@ namespace YARG.Gameplay
             else
             {
                 RealSongTime = GlobalVariables.AudioManager.CurrentPositionD + SongOffset;
-                // Sync if needed
-                SyncAudio();
             }
+
+            // Check for unexpected backwards time jumps
+            bool newSeeked = _seeked;
+
+            // Only check for greater-than here
+            // BASS's update rate is too coarse for equals to never happen
+            if (_previousRealSongTime > RealSongTime)
+            {
+                Debug.Assert(_seeked, $"Unexpected audio seek backwards! Went from {_previousRealSongTime} to {RealSongTime}");
+                newSeeked = false;
+            }
+            _previousRealSongTime = RealSongTime;
+
+            // *Do* check for equals here, as input time not updating is a more serious issue
+            if (_previousInputTime >= InputTime)
+            {
+                Debug.Assert(_seeked, $"Unexpected input seek backwards! Went from {_previousInputTime} to {InputTime}");
+                newSeeked = false;
+            }
+            _previousInputTime = InputTime;
+
+            _seeking = _seeked = newSeeked;
         }
 
-        private void SyncAudio()
+        private void SyncThread()
         {
             const double INITIAL_SYNC_THRESH = 0.015;
             const double ADJUST_SYNC_THRESH = 0.005;
             const float SPEED_ADJUSTMENT = 0.05f;
 
-            double inputTime = InputTime;
-            double audioTime = SongTime;
-
-            // Account for song speed
-            double initialThreshold = INITIAL_SYNC_THRESH * SelectedSongSpeed;
-            double adjustThreshold = ADJUST_SYNC_THRESH * SelectedSongSpeed;
-
-            // Check the difference between input and audio times
-            double delta = inputTime - audioTime;
-            double deltaAbs = Math.Abs(delta);
-            // Don't sync if below the initial sync threshold, and we haven't adjusted the speed
-            if (_syncSpeedMultiplier == 0 && deltaAbs < initialThreshold)
-                return;
-
-            // We're now syncing, determine how much to adjust the song speed by
-            int speedMultiplier = (int)Math.Round(delta / initialThreshold);
-            if (speedMultiplier == 0)
-                speedMultiplier = delta > 0 ? 1 : -1;
-
-            // Only change speed when the multiplier changes
-            if (_syncSpeedMultiplier != speedMultiplier)
+            for (; _runSync; _finishedSyncing.Set(), Thread.Sleep(5))
             {
-                if (_syncSpeedMultiplier == 0)
+                if (Paused || _seeking)
+                    continue;
+
+                _finishedSyncing.Reset();
+
+                double inputTime = GetRelativeInputTime(InputManager.CurrentInputTime);
+                double audioTime = GlobalVariables.AudioManager.CurrentPositionD;
+
+                // Account for song speed
+                double initialThreshold = INITIAL_SYNC_THRESH * SelectedSongSpeed;
+                double adjustThreshold = ADJUST_SYNC_THRESH * SelectedSongSpeed;
+
+                // Check the difference between input and audio times
+                double delta = inputTime - audioTime;
+                double deltaAbs = Math.Abs(delta);
+                // Don't sync if below the initial sync threshold, and we haven't adjusted the speed
+                if (_syncSpeedMultiplier == 0 && deltaAbs < initialThreshold)
+                    continue;
+
+                // We're now syncing, determine how much to adjust the song speed by
+                int speedMultiplier = (int)Math.Round(delta / initialThreshold);
+                if (speedMultiplier == 0)
+                    speedMultiplier = delta > 0 ? 1 : -1;
+
+                // Only change speed when the multiplier changes
+                if (_syncSpeedMultiplier != speedMultiplier)
                 {
-                    _syncStartDelta = delta;
+                    if (_syncSpeedMultiplier == 0)
+                    {
+                        _syncStartDelta = delta;
+                    }
+
+                    _syncSpeedMultiplier = speedMultiplier;
+
+                    float adjustment = SPEED_ADJUSTMENT * speedMultiplier;
+                    if (!Mathf.Approximately(adjustment, _syncSpeedAdjustment))
+                    {
+                        _syncSpeedAdjustment = adjustment;
+                        GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
+                    }
                 }
 
-                _syncSpeedMultiplier = speedMultiplier;
-
-                float adjustment = SPEED_ADJUSTMENT * speedMultiplier;
-                if (!Mathf.Approximately(adjustment, _syncSpeedAdjustment))
+                // No change in speed, check if we're below the threshold
+                if (deltaAbs < adjustThreshold ||
+                    // Also check if we overshot and passed 0
+                    (delta > 0.0 && _syncStartDelta < 0.0) ||
+                    (delta < 0.0 && _syncStartDelta > 0.0))
                 {
-                    _syncSpeedAdjustment = adjustment;
-                    GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
+                    ResetSync();
                 }
             }
+        }
 
-            // No change in speed, check if we're below the threshold
-            if (deltaAbs < adjustThreshold ||
-                // Also check if we overshot and passed 0
-                (delta > 0.0 && _syncStartDelta < 0.0) ||
-                (delta < 0.0 && _syncStartDelta > 0.0))
-            {
-                _syncStartDelta = 0;
-                _syncSpeedMultiplier = 0;
-                _syncSpeedAdjustment = 0f;
-                GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
-            }
+        private void ResetSync()
+        {
+            _syncStartDelta = 0;
+            _syncSpeedMultiplier = 0;
+            _syncSpeedAdjustment = 0f;
+            GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
         }
 
         private void InitializeSongTime(double time, double delayTime = SONG_START_DELAY)
@@ -201,8 +259,14 @@ namespace YARG.Gameplay
 
         public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
         {
+            _seeking = true;
+            _finishedSyncing.WaitOne();
+
             // Set input/song time
             InitializeSongTime(time, delayTime);
+
+            // Reset syncing before seeking to prevent speed adjustments from causing issues
+            ResetSync();
 
             // Audio seeking; cannot go negative
             double seekTime = RealSongTime;
@@ -211,6 +275,8 @@ namespace YARG.Gameplay
 
             // Reset beat events
             BeatEventManager.ResetTimers();
+
+            _seeked = true;
         }
     }
 }

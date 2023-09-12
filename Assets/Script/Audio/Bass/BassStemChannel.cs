@@ -434,6 +434,12 @@ namespace YARG.Audio.BASS
 
         public double GetPosition(bool desyncCompensation = true)
         {
+            // BassMix.ChannelGetPosition is very wonky when seeking
+            // compared to Bass.ChannelGetPosition
+            // We'll just have to make do with the less granular time reporting
+            // long position = IsMixed
+            //     ? BassMix.ChannelGetPosition(_streamHandles.Stream)
+            //     : Bass.ChannelGetPosition(_streamHandles.Stream);
             long position = Bass.ChannelGetPosition(_streamHandles.Stream);
             if (position < 0)
             {

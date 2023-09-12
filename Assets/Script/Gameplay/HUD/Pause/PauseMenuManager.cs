@@ -20,6 +20,7 @@ namespace YARG.Gameplay.HUD
             QuickPlayPause,
             PracticePause,
             SelectSections,
+            ReplayPause,
         }
 
         private Dictionary<Menu, PauseMenuObject> _menus;

@@ -163,6 +163,7 @@ namespace YARG.Gameplay
         {
             Navigator.Instance.NavigationEvent -= OnNavigationEvent;
             GlobalVariables.AudioManager.SongEnd -= OnAudioEnd;
+            UninitializeTime();
         }
 
         private async UniTask Start()
@@ -214,6 +215,12 @@ namespace YARG.Gameplay
                 Destroy(PracticeManager);
             }
 
+#if UNITY_EDITOR
+            // Log constant values
+            Debug.Log($"Audio calibration: {AudioCalibration}, song offset: {SongOffset}");
+#endif
+
+
             // Loaded, enable updates
             enabled = true;
             IsSongStarted = true;
@@ -234,6 +241,8 @@ namespace YARG.Gameplay
 
             if (_isShowDebugText)
             {
+                _debugText.text = null;
+
                 if (_players[0] is FiveFretPlayer fiveFretPlayer)
                 {
                     byte buttonMask = fiveFretPlayer.Engine.State.ButtonMask;
@@ -241,7 +250,7 @@ namespace YARG.Gameplay
                     var ticksPerEight = fiveFretPlayer.Engine.State.TicksEveryEightMeasures;
                     double starPower = fiveFretPlayer.Engine.EngineStats.StarPowerAmount;
 
-                    _debugText.text =
+                    _debugText.text +=
                         $"Note index: {noteIndex}\n" +
                         $"Buttons: {buttonMask}\n" +
                         $"Star Power: {starPower:0.0000}\n" +
@@ -251,20 +260,20 @@ namespace YARG.Gameplay
                 {
                     int noteIndex = drumsPlayer.Engine.State.NoteIndex;
 
-                    _debugText.text =
+                    _debugText.text +=
                         $"Note index: {noteIndex}\n";
                 }
 
                 _debugText.text +=
-                    $"Input time: {InputTime:0.000000}\n" +
-                    $"Input Base: {InputTimeBase:0.000000}\n" +
-                    $"Input Offset: {InputTimeOffset:0.000000}\n" +
-                    $"Pause Time: {PauseStartTime:0.000000}\n" +
                     $"Song time: {SongTime:0.000000}\n" +
+                    $"Input time: {InputTime:0.000000}\n" +
+                    $"Pause time: {PauseStartTime:0.000000}\n" +
                     $"Time difference: {InputTime - SongTime:0.000000}\n" +
+                    $"Sync start delta: {_syncStartDelta:0.000000}\n" +
                     $"Speed adjustment: {_syncSpeedAdjustment:0.00}\n" +
                     $"Speed multiplier: {_syncSpeedMultiplier}\n" +
-                    $"Sync start delta: {_syncStartDelta:0.000000}";
+                    $"Input base: {InputTimeBase:0.000000}\n" +
+                    $"Input offset: {InputTimeOffset:0.000000}\n";
             }
 
             if (Paused)
@@ -507,7 +516,11 @@ namespace YARG.Gameplay
 
             if (showMenu)
             {
-                if (GlobalVariables.Instance.IsPractice)
+                if (GlobalVariables.Instance.IsReplay)
+                {
+                    _pauseMenu.PushMenu(PauseMenuManager.Menu.ReplayPause);
+                }
+                else if (GlobalVariables.Instance.IsPractice)
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.PracticePause);
                 }
@@ -580,6 +593,7 @@ namespace YARG.Gameplay
                 SaveReplay(Song.SongLengthInSeconds);
             }
 
+            UninitializeTime();
             GlobalVariables.AudioManager.UnloadSong();
 
             GlobalVariables.Instance.ScoreScreenStats = new ScoreScreenStats
