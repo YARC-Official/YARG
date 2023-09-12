@@ -41,6 +41,12 @@ namespace YARG.Gameplay.HUD
 
         protected override void GameplayAwake()
         {
+            if (!GameManager.IsReplay)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
             _rectTransform = GetComponent<RectTransform>();
             _hudHiddenY = transform.position.y;
 
