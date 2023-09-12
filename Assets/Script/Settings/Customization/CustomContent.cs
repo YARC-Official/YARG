@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using TMPro;
 using UnityEngine;
 using YARG.Core.Game;
+using YARG.Core.Utility;
 using YARG.Helpers;
 
 namespace YARG.Settings.Customization
@@ -15,6 +16,15 @@ namespace YARG.Settings.Customization
     public abstract class CustomContent
     {
         private static readonly Regex _fileNameSanitize = new("([^a-zA-Z0-9 ])", RegexOptions.Compiled);
+
+        protected static readonly JsonSerializerSettings JsonSettings = new()
+        {
+            Formatting = Formatting.Indented,
+            Converters = new List<JsonConverter>()
+            {
+                new JsonColorConverter()
+            }
+        };
 
         protected readonly string ContentDirectory;
 
@@ -134,7 +144,7 @@ namespace YARG.Settings.Customization
 
             PathHelper.SafeEnumerateFiles(ContentDirectory, "*.json", true, (path) =>
             {
-                var preset = JsonConvert.DeserializeObject<T>(File.ReadAllText(path));
+                var preset = JsonConvert.DeserializeObject<T>(File.ReadAllText(path), JsonSettings);
 
                 // See if file already exists
                 if (guids.Contains(preset.Id))
@@ -153,7 +163,7 @@ namespace YARG.Settings.Customization
 
         private void SavePresetFile(T preset)
         {
-            var text = JsonConvert.SerializeObject(preset);
+            var text = JsonConvert.SerializeObject(preset, JsonSettings);
             var path = CreateFileNameForPreset(preset);
 
             File.WriteAllText(Path.Join(ContentDirectory, path), text);
@@ -163,7 +173,7 @@ namespace YARG.Settings.Customization
         {
             PathHelper.SafeEnumerateFiles(ContentDirectory, "*.json", true, (path) =>
             {
-                var file = JsonConvert.DeserializeObject<T>(File.ReadAllText(path));
+                var file = JsonConvert.DeserializeObject<T>(File.ReadAllText(path), JsonSettings);
 
                 if (file.Id == preset.Id)
                 {
