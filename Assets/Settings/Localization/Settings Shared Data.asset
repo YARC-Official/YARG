@@ -127,6 +127,10 @@ MonoBehaviour:
     m_Key: Header.Other
     m_Metadata:
       m_Items: []
+  - m_Id: 62024422937452544
+    m_Key: Header.PresetSettings
+    m_Metadata:
+      m_Items: []
   - m_Id: 13084450683740160
     m_Key: Header.SongFolders
     m_Metadata:
@@ -145,6 +149,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 53693768667619340
     m_Key: Presets.Graphics.CameraPresets
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62024422966812672
+    m_Key: PresetType.CameraSettingsContainer
     m_Metadata:
       m_Items: []
   - m_Id: 53693768667619341
@@ -529,6 +537,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 10936704807854080
     m_Key: Tab.Graphics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62024422971006976
+    m_Key: Tab.Presets
     m_Metadata:
       m_Items: []
   - m_Id: 55070184168611840

@@ -1,6 +1,7 @@
 ﻿using System;
 using TMPro;
 using UnityEngine;
+using YARG.Helpers;
 using YARG.Settings.Customization;
 using YARG.Settings.Metadata;
 
@@ -23,7 +24,8 @@ namespace YARG.Menu.Settings
             _dropdown.options.Clear();
             foreach (var type in presetTypes)
             {
-                _dropdown.options.Add(new(type.GetType().Name));
+                var name = LocaleHelper.LocalizeString("Settings", $"PresetType.{type.GetType().Name}");
+                _dropdown.options.Add(new(name));
             }
 
             // Set index

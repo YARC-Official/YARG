@@ -575,6 +575,18 @@ MonoBehaviour:
     m_Localized: The track camera's rotational pitch (up and down).
     m_Metadata:
       m_Items: []
+  - m_Id: 62024422937452544
+    m_Localized: Preset Settings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62024422966812672
+    m_Localized: Camera Presets
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62024422971006976
+    m_Localized: Customization
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
