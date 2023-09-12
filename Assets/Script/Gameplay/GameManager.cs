@@ -207,15 +207,18 @@ namespace YARG.Gameplay
             {
 #if UNITY_EDITOR
                 _isShowDebugText = true;
-
-                // Log constant values
-                Debug.Log($"Audio calibration: {AudioCalibration}, song offset: {SongOffset}");
 #endif
                 // Show debug info
                 _debugText.gameObject.SetActive(_isShowDebugText);
 
                 Destroy(PracticeManager);
             }
+
+#if UNITY_EDITOR
+            // Log constant values
+            Debug.Log($"Audio calibration: {AudioCalibration}, song offset: {SongOffset}");
+#endif
+
 
             // Loaded, enable updates
             enabled = true;
