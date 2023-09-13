@@ -2,6 +2,7 @@
 using System.Linq;
 using UnityEngine;
 using YARG.Core.Song;
+using YARG.Helpers.Extensions;
 using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary

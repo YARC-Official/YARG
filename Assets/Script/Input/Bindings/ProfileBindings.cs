@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using YARG.Core;
+using YARG.Core.Extensions;
 using YARG.Core.Game;
 using YARG.Input.Serialization;
 

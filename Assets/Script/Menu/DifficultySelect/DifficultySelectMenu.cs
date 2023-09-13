@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 using YARG.Core;
+using YARG.Core.Extensions;
 using YARG.Core.Input;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;

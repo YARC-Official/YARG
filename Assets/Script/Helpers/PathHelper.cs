@@ -229,50 +229,9 @@ namespace YARG.Helpers
             // c:/users/joe blow\appdata <- okay!
             // c:/users/joe blow/appdata <- "Please choose an app to open joe"
             // so let's just set them all to \ on windows to be sure.
-            path = path.Replace("/", Path.DirectorySeparatorChar.ToString());
+            path = path.Replace('/', Path.DirectorySeparatorChar);
 
             return path;
-        }
-
-        /// <summary>
-        /// Checks if the path <paramref name="a"/> is equal to the path <paramref name="b"/>.<br/>
-        /// Platform specific case sensitivity is taken into account.
-        /// </summary>
-        public static bool PathsEqual(string a, string b)
-        {
-#if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX
-			// Linux is case sensitive
-			return Path.GetFullPath(a).Equals(Path.GetFullPath(b), StringComparison.Ordinal);
-
-#else
-
-            // Windows and OSX are not case sensitive
-            return Path.GetFullPath(a).Equals(Path.GetFullPath(b), StringComparison.OrdinalIgnoreCase);
-
-#endif
-        }
-
-        /// <summary>
-        /// Checks if the <paramref name="subPath"/> is in the <paramref name="parentPath"/>.<br/>
-        /// Platform specific case sensitivity is taken into account.
-        /// </summary>
-        public static bool IsSubPath(string parentPath, string subPath)
-        {
-            if (PathsEqual(parentPath, subPath))
-            {
-                return true;
-            }
-
-#if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX
-			// Linux is case sensitive
-			return subPath.StartsWith(parentPath + Path.PathSeparator, StringComparison.Ordinal);
-
-#else
-
-            // Windows and OSX are not case sensitive
-            return subPath.StartsWith(parentPath + Path.PathSeparator, StringComparison.OrdinalIgnoreCase);
-
-#endif
         }
     }
 }

@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
+using YARG.Core.Extensions;
 using YARG.Core.Game;
 using YARG.Helpers;
 using YARG.Player;

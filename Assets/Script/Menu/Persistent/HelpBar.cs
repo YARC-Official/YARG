@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using YARG.Core;
+using YARG.Core.Extensions;
 using YARG.Core.Input;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Data;

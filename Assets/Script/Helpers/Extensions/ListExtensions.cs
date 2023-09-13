@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 
-namespace UnityEngine
+namespace YARG.Helpers.Extensions
 {
     public static class ListExtensions
     {
@@ -16,25 +17,9 @@ namespace UnityEngine
             }
         }
 
-        public static void Shuffle<T>(this IList<T> list, System.Random random)
-        {
-            int n = list.Count;
-            while (n > 1)
-            {
-                n--;
-                int k = random.Next(0, n + 1);
-                (list[k], list[n]) = (list[n], list[k]);
-            }
-        }
-
         public static T Pick<T>(this IList<T> list)
         {
             return list[Random.Range(0, list.Count)];
-        }
-
-        public static T Pick<T>(this IList<T> list, System.Random random)
-        {
-            return list[random.Next(0, list.Count)];
         }
     }
 }

@@ -48,7 +48,7 @@ namespace Editor
                 // Delete the random folders
                 foreach (var folder in Directory.GetDirectories(repoDir))
                 {
-                    if (PathHelper.PathsEqual(Path.GetFileName(folder), "base"))
+                    if (string.Equals(Path.GetFileName(folder), "base", StringComparison.OrdinalIgnoreCase))
                     {
                         continue;
                     }
