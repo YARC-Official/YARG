@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
@@ -23,6 +24,12 @@ namespace YARG.Menu.Navigation
         public void RemoveOnClickListeners()
         {
             _onClick.RemoveAllListeners();
+        }
+
+        public void SetOnClickEvent(UnityAction a)
+        {
+            _onClick.RemoveAllListeners();
+            _onClick.AddListener(a);
         }
     }
 }
