@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using YARG.Core;
@@ -36,6 +37,9 @@ namespace YARG.Menu.DifficultySelect
         private int _playerIndex;
         private State _menuState;
 
+        private readonly List<Instrument> _possibleInstruments = new();
+        private readonly List<Difficulty> _possibleDifficulties = new();
+
         private YargPlayer CurrentPlayer => PlayerContainer.Players[_playerIndex];
 
         private void OnEnable()
@@ -51,10 +55,10 @@ namespace YARG.Menu.DifficultySelect
                 new NavigationScheme.Entry(MenuAction.Red, "Back", () => MenuManager.Instance.PopMenu())
             }, false));
 
-            _playerIndex = 0;
-            _menuState = State.Main;
-
-            UpdateForPlayer();
+            // Set the player index and load the next player.
+            // This will essentially just load the player at index 0.
+            _playerIndex = -1;
+            NextPlayer();
         }
 
         private void UpdateForPlayer()
@@ -105,18 +109,13 @@ namespace YARG.Menu.DifficultySelect
 
         private void CreateInstrumentMenu()
         {
-            var profile = CurrentPlayer.Profile;
-            var songParts = GlobalVariables.Instance.CurrentSong.Parts;
-
-            var possibleInstruments = profile.GameMode.PossibleInstruments();
-
-            foreach (var instrument in possibleInstruments)
+            foreach (var instrument in _possibleInstruments)
             {
-                if (!songParts.HasInstrument(instrument)) continue;
-
                 CreateItem(instrument.ToLocalizedName(), () =>
                 {
-                    profile.Instrument = instrument;
+                    CurrentPlayer.Profile.Instrument = instrument;
+                    UpdatePossibleDifficulties();
+
                     _menuState = State.Main;
                     UpdateForPlayer();
                 });
@@ -135,6 +134,7 @@ namespace YARG.Menu.DifficultySelect
                 CreateItem(difficulty.ToLocalizedName(), () =>
                 {
                     profile.Difficulty = difficulty;
+
                     _menuState = State.Main;
                     UpdateForPlayer();
                 });
@@ -146,6 +146,28 @@ namespace YARG.Menu.DifficultySelect
             _playerIndex++;
             _menuState = State.Main;
 
+            var profile = CurrentPlayer.Profile;
+            var songParts = GlobalVariables.Instance.CurrentSong.Parts;
+
+            // Get the possible instruments for this song and player
+            _possibleInstruments.Clear();
+            var allowedInstruments = profile.GameMode.PossibleInstruments();
+            foreach (var instrument in allowedInstruments)
+            {
+                if (!songParts.HasInstrument(instrument)) continue;
+
+                _possibleInstruments.Add(instrument);
+            }
+
+            // Set the instrument to a valid one
+            if (!_possibleInstruments.Contains(profile.Instrument))
+            {
+                profile.Instrument = _possibleInstruments[0];
+            }
+
+            // Update the possible difficulties as well
+            UpdatePossibleDifficulties();
+
             // When the user(s) have selected all of their difficulties, move on
             if (_playerIndex >= PlayerContainer.Players.Count)
             {
@@ -154,6 +176,28 @@ namespace YARG.Menu.DifficultySelect
             else
             {
                 UpdateForPlayer();
+            }
+        }
+
+        private void UpdatePossibleDifficulties()
+        {
+            _possibleDifficulties.Clear();
+
+            var profile = CurrentPlayer.Profile;
+            var songParts = GlobalVariables.Instance.CurrentSong.Parts;
+
+            // Get the possible difficulties for the player's instrument in the song
+            foreach (var difficulty in EnumExtensions<Difficulty>.Values)
+            {
+                if (!songParts.HasPart(profile.Instrument, (int) difficulty)) continue;
+
+                _possibleDifficulties.Add(difficulty);
+            }
+
+            // Set the difficulty to a valid one
+            if (!_possibleDifficulties.Contains(profile.Difficulty))
+            {
+                profile.Difficulty = _possibleDifficulties[0];
             }
         }
 
