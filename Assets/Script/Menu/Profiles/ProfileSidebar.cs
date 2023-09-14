@@ -82,8 +82,7 @@ namespace YARG.Menu.Profiles
                 _gameModesByIndex.Add(gameMode);
 
                 // Create the dropdown option
-                string name = LocaleHelper.LocalizeString($"GameMode.{gameMode}");
-                _gameModeDropdown.options.Add(new(name));
+                _gameModeDropdown.options.Add(new(gameMode.ToLocalizedName()));
             }
         }
 

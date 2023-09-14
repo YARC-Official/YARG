@@ -1,6 +1,6 @@
 ﻿using UnityEngine.Localization;
 using UnityEngine.Localization.Settings;
-using UnityEngine.Localization.Tables;
+using YARG.Core;
 
 namespace YARG.Helpers
 {
@@ -29,5 +29,24 @@ namespace YARG.Helpers
         {
             return StringReference("Main", key);
         }
+
+        #region Enum to Localized Extensions
+
+        public static string ToLocalizedName(this Instrument instrument)
+        {
+            return LocalizeString($"Instrument.{instrument}");
+        }
+
+        public static string ToLocalizedName(this Difficulty difficulty)
+        {
+            return LocalizeString($"Difficulty.{difficulty}");
+        }
+
+        public static string ToLocalizedName(this GameMode gameMode)
+        {
+            return LocalizeString($"GameMode.{gameMode}");
+        }
+
+        #endregion
     }
 }

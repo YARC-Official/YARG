@@ -82,6 +82,110 @@ MonoBehaviour:
       \"Yet Another Rhythm Game\" and NOT for pirates."
     m_Metadata:
       m_Items: []
+  - m_Id: 62731776045735936
+    m_Localized: Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707456
+    m_Localized: Bass
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707457
+    m_Localized: Rhythm Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707458
+    m_Localized: Co-op Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707459
+    m_Localized: Keys
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707460
+    m_Localized: Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707461
+    m_Localized: Bass
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707462
+    m_Localized: Rhythm Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707463
+    m_Localized: Co-op Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707464
+    m_Localized: Drums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707465
+    m_Localized: Pro Drums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707466
+    m_Localized: Drums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707467
+    m_Localized: True Drums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707468
+    m_Localized: Pro Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707469
+    m_Localized: Pro Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707470
+    m_Localized: Pro Bass
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707471
+    m_Localized: Pro Bass
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707472
+    m_Localized: Pro Keys
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707473
+    m_Localized: Vocals
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707474
+    m_Localized: Harmony
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707475
+    m_Localized: DJ
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707476
+    m_Localized: Easy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707478
+    m_Localized: Hard
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707479
+    m_Localized: Expert
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707480
+    m_Localized: Expert+
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62732022071025664
+    m_Localized: Medium
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

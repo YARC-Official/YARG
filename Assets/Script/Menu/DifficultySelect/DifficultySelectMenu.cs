@@ -4,6 +4,8 @@ using UnityEngine.Events;
 using YARG.Core;
 using YARG.Core.Extensions;
 using YARG.Core.Input;
+using YARG.Data;
+using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
 using YARG.Player;
@@ -80,13 +82,13 @@ namespace YARG.Menu.DifficultySelect
         {
             var player = CurrentPlayer;
 
-            CreateItem("Instrument", player.Profile.Instrument.ToString(), () =>
+            CreateItem("Instrument", player.Profile.Instrument.ToLocalizedName(), () =>
             {
                 _menuState = State.Instrument;
                 UpdateForPlayer();
             });
 
-            CreateItem("Difficulty", player.Profile.Difficulty.ToString(), () =>
+            CreateItem("Difficulty", player.Profile.Difficulty.ToLocalizedName(), () =>
             {
                 _menuState = State.Difficulty;
                 UpdateForPlayer();
@@ -112,7 +114,7 @@ namespace YARG.Menu.DifficultySelect
             {
                 if (!songParts.HasInstrument(instrument)) continue;
 
-                CreateItem(instrument.ToString(), () =>
+                CreateItem(instrument.ToLocalizedName(), () =>
                 {
                     profile.Instrument = instrument;
                     _menuState = State.Main;
@@ -130,7 +132,7 @@ namespace YARG.Menu.DifficultySelect
             {
                 if (!songParts.HasPart(profile.Instrument, (int) difficulty)) continue;
 
-                CreateItem(difficulty.ToString(), () =>
+                CreateItem(difficulty.ToLocalizedName(), () =>
                 {
                     profile.Difficulty = difficulty;
                     _menuState = State.Main;

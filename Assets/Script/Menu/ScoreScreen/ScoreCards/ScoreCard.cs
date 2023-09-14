@@ -4,6 +4,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
 using YARG.Core.Engine;
 using YARG.Data;
+using YARG.Helpers;
 using YARG.Player;
 
 namespace YARG.Menu.ScoreScreen

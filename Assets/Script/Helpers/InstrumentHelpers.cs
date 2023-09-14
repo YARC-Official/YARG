@@ -1,37 +1,10 @@
 using System;
 using YARG.Core;
 
-namespace YARG.Data
+namespace YARG.Helpers
 {
     public static class InstrumentHelper
     {
-#pragma warning disable format
-
-        public static string ToLocalizedName(this Instrument instrument)
-        {
-            return instrument switch
-            {
-                Instrument.FiveFretGuitar     => "Guitar",
-                Instrument.FiveFretBass       => "Bass",
-                Instrument.FiveFretRhythm     => "Rhythm Guitar",
-                Instrument.FiveFretCoopGuitar => "Co-op Guitar",
-                Instrument.Keys               => "Keys",
-
-                Instrument.FourLaneDrums => "Drums",
-                Instrument.ProDrums      => "Pro Drums",
-                Instrument.FiveLaneDrums => "5-lane Drums",
-
-                Instrument.ProGuitar_17Fret => "Pro Guitar",
-                Instrument.ProBass_17Fret   => "Pro Bass",
-                Instrument.ProKeys          => "Pro Keys",
-
-                Instrument.Vocals  => "Vocals",
-                Instrument.Harmony => "Harmony",
-
-                _ => null,
-            };
-        }
-
         public static string ToResourceName(this Instrument instrument)
         {
             return instrument switch
@@ -81,7 +54,5 @@ namespace YARG.Data
                 _ => throw new NotImplementedException($"Unhandled instrument resource name {name}!"),
             };
         }
-
-#pragma warning restore format
     }
 }
