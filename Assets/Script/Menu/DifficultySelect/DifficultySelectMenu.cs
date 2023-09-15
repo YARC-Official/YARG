@@ -5,7 +5,6 @@ using UnityEngine.Events;
 using YARG.Core;
 using YARG.Core.Extensions;
 using YARG.Core.Input;
-using YARG.Data;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
@@ -52,13 +51,30 @@ namespace YARG.Menu.DifficultySelect
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown,
                 NavigationScheme.Entry.NavigateSelect,
-                new NavigationScheme.Entry(MenuAction.Red, "Back", () => MenuManager.Instance.PopMenu())
+                new NavigationScheme.Entry(MenuAction.Red, "Back", () =>
+                {
+                    if (_menuState == State.Main)
+                    {
+                        if (_playerIndex == 0)
+                        {
+                            MenuManager.Instance.PopMenu();
+                        }
+                        else
+                        {
+                            ChangePlayer(-1);
+                        }
+                    }
+                    else
+                    {
+                        _menuState = State.Main;
+                        UpdateForPlayer();
+                    }
+                })
             }, false));
 
-            // Set the player index and load the next player.
-            // This will essentially just load the player at index 0.
-            _playerIndex = -1;
-            NextPlayer();
+            // ChangePlayer(0) will update for the current player
+            _playerIndex = 0;
+            ChangePlayer(0);
         }
 
         private void UpdateForPlayer()
@@ -104,7 +120,7 @@ namespace YARG.Menu.DifficultySelect
             //     UpdateForPlayer();
             // });
 
-            CreateItem("Ready", NextPlayer);
+            CreateItem("Ready", () => ChangePlayer(1));
         }
 
         private void CreateInstrumentMenu()
@@ -141,10 +157,17 @@ namespace YARG.Menu.DifficultySelect
             }
         }
 
-        private void NextPlayer()
+        private void ChangePlayer(int add)
         {
-            _playerIndex++;
+            _playerIndex += add;
             _menuState = State.Main;
+
+            // When the user(s) have selected all of their difficulties, move on
+            if (_playerIndex >= PlayerContainer.Players.Count)
+            {
+                GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+                return;
+            }
 
             var profile = CurrentPlayer.Profile;
             var songParts = GlobalVariables.Instance.CurrentSong.Parts;
@@ -168,15 +191,7 @@ namespace YARG.Menu.DifficultySelect
             // Update the possible difficulties as well
             UpdatePossibleDifficulties();
 
-            // When the user(s) have selected all of their difficulties, move on
-            if (_playerIndex >= PlayerContainer.Players.Count)
-            {
-                GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
-            }
-            else
-            {
-                UpdateForPlayer();
-            }
+            UpdateForPlayer();
         }
 
         private void UpdatePossibleDifficulties()
