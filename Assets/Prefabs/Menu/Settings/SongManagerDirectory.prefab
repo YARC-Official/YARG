@@ -67,7 +67,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 125 SONGS
+  m_text: 999999 SONGS
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 19b7115073766a24aa48ceca884dcbf5, type: 2}
   m_sharedMaterial: {fileID: 4249517445589659644, guid: 19b7115073766a24aa48ceca884dcbf5,
@@ -213,9 +213,9 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.000061035156, y: 0}
-  m_SizeDelta: {x: -700, y: 0}
-  m_Pivot: {x: -0.000000055879354, y: 0.49999964}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: -400, y: 0}
+  m_Pivot: {x: 0, y: 0.5}
 --- !u!222 &5753369685925887168
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -521,8 +521,8 @@ RectTransform:
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 700, y: 0}
-  m_Pivot: {x: 0.99999994, y: 0.49999985}
+  m_SizeDelta: {x: 400, y: 0}
+  m_Pivot: {x: 0.99999994, y: 0.5}
 --- !u!1001 &3387851229658334010
 PrefabInstance:
   m_ObjectHideFlags: 0
