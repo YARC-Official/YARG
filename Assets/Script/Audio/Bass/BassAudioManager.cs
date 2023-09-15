@@ -9,6 +9,11 @@ using ManagedBass.Fx;
 using ManagedBass.Mix;
 using UnityEngine;
 using YARG.Song;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 using DeviceType = ManagedBass.DeviceType;
 
 namespace YARG.Audio.BASS
@@ -127,6 +132,20 @@ namespace YARG.Audio.BASS
 
             Bass.Free();
         }
+
+#if UNITY_EDITOR
+        // For respecting the editor's mute button
+        private bool previousMute = false;
+        private void Update()
+        {
+            bool muted = EditorUtility.audioMasterMute;
+            if (muted == previousMute)
+                return;
+
+            UpdateVolumeSetting(SongStem.Master, muted ? 0 : Settings.SettingsManager.Settings.MasterMusicVolume.Data);
+            previousMute = muted;
+        }
+#endif
 
         public IList<IMicDevice> GetAllInputDevices()
         {
@@ -472,6 +491,10 @@ namespace YARG.Audio.BASS
             switch (stem)
             {
                 case SongStem.Master:
+#if UNITY_EDITOR
+                    if (EditorUtility.audioMasterMute)
+                        volume = 0;
+#endif
                     MasterVolume = volume;
                     Bass.GlobalStreamVolume = (int) (10_000 * MasterVolume);
                     Bass.GlobalSampleVolume = (int) (10_000 * MasterVolume);
