@@ -1,9 +1,9 @@
 using System;
 using YARG.Core;
 
-namespace YARG.Helpers
+namespace YARG.Helpers.Extensions
 {
-    public static class InstrumentHelper
+    public static class InstrumentExtensions
     {
         public static string ToResourceName(this Instrument instrument)
         {

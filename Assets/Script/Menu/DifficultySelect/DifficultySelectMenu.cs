@@ -28,6 +28,8 @@ namespace YARG.Menu.DifficultySelect
         private Transform _container;
         [SerializeField]
         private NavigationGroup _navGroup;
+        [SerializeField]
+        private TextMeshProUGUI _text;
 
         [Space]
         [SerializeField]
@@ -79,9 +81,15 @@ namespace YARG.Menu.DifficultySelect
 
         private void UpdateForPlayer()
         {
+            // Set player text
+            var profile = CurrentPlayer.Profile;
+            _text.text = $"<sprite name=\"{profile.GameMode.ToResourceName()}\"> {profile.Name}";
+
+            // Reset content
             _navGroup.ClearNavigatables();
             _container.DestroyChildren();
 
+            // Create the menu
             switch (_menuState)
             {
                 case State.Main:
