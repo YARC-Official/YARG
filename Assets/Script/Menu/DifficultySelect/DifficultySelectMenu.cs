@@ -157,7 +157,7 @@ namespace YARG.Menu.DifficultySelect
 
             foreach (var difficulty in EnumExtensions<Difficulty>.Values)
             {
-                if (!songParts.HasPart(profile.Instrument, (int) difficulty)) continue;
+                if (!songParts.HasDifficulty(profile.Instrument, difficulty)) continue;
 
                 CreateItem(difficulty.ToLocalizedName(), () =>
                 {
@@ -216,7 +216,7 @@ namespace YARG.Menu.DifficultySelect
             // Get the possible difficulties for the player's instrument in the song
             foreach (var difficulty in EnumExtensions<Difficulty>.Values)
             {
-                if (!songParts.HasPart(profile.Instrument, (int) difficulty)) continue;
+                if (!songParts.HasDifficulty(profile.Instrument, difficulty)) continue;
 
                 _possibleDifficulties.Add(difficulty);
             }
