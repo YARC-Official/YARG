@@ -225,6 +225,8 @@ MonoBehaviour:
     type: 3}
   _listPrefab: {fileID: 6104937224666551306, guid: 85932d0ee89038a4f9371483105be7a0,
     type: 3}
+  _renameDialog: {fileID: 6875389962297087115, guid: c2acd5def9b51644bb085fb5583b855c,
+    type: 3}
 --- !u!224 &340418942 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5009541612151404014, guid: fb698a9ab78f72e4486acac10d0286d2,

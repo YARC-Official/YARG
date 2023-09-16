@@ -2,6 +2,7 @@
 using TMPro;
 using UnityEngine;
 using YARG.Core.Game;
+using YARG.Menu.Persistent;
 using YARG.Settings.Customization;
 using YARG.Settings.Metadata;
 
@@ -36,6 +37,20 @@ namespace YARG.Menu.Settings
             _tab.SelectedPreset = preset;
 
             SettingsMenu.Instance.Refresh();
+        }
+
+        public void RenamePreset()
+        {
+            var preset = _presetsByIndex[_dropdown.value];
+
+            if (preset.DefaultPreset) return;
+
+            DialogManager.Instance.ShowRenameDialog("Rename Preset", value =>
+            {
+                _tab.SelectedContent.RenamePreset(preset, value);
+
+                SettingsMenu.Instance.Refresh();
+            });
         }
 
         public void CopyPreset()

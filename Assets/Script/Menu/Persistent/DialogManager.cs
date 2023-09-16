@@ -17,6 +17,8 @@ namespace YARG.Menu.Persistent
         private OneTimeMessageDialog _oneTimeMessagePrefab;
         [SerializeField]
         private ListDialog _listPrefab;
+        [SerializeField]
+        private RenameDialog _renameDialog;
 
         private Dialog _currentDialog;
 
@@ -69,6 +71,25 @@ namespace YARG.Menu.Persistent
         }
 
         /// <summary>
+        /// Displays and returns a rename dialog.
+        /// </summary>
+        /// <inheritdoc cref="ShowDialog{ListDialog}(ListDialog)"/>
+        public RenameDialog ShowRenameDialog(string title, Action<string> renameAction)
+        {
+            var dialog = ShowDialog(_renameDialog);
+
+            dialog.Title.text = title;
+
+            dialog.RenameAction = renameAction;
+
+            dialog.ClearButtons();
+            dialog.AddDialogButton("Cancel", MenuData.Colors.CancelButton, ClearDialog);
+            dialog.AddDialogButton("Confirm", MenuData.Colors.ConfirmButton, SubmitAndClearDialog);
+
+            return dialog;
+        }
+
+        /// <summary>
         /// Displays and returns a <typeparamref name="TDialog"/>.
         /// </summary>
         /// <remarks>
@@ -104,6 +125,15 @@ namespace YARG.Menu.Persistent
             _currentDialog.Close();
             Destroy(_currentDialog.gameObject);
             _currentDialog = null;
+        }
+
+        /// <summary>
+        /// Submits then clears the dialog using <see cref="ClearDialog"/>
+        /// </summary>
+        public void SubmitAndClearDialog()
+        {
+            _currentDialog.Submit();
+            ClearDialog();
         }
     }
 }

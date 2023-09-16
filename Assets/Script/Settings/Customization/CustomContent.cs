@@ -37,6 +37,7 @@ namespace YARG.Settings.Customization
 
         public abstract void AddPreset(BasePreset preset);
         public abstract void DeletePreset(BasePreset preset);
+        public abstract void RenamePreset(BasePreset preset, string name);
 
         public abstract void SetSettingsFromPreset(BasePreset preset);
         public abstract void SetPresetFromSettings(BasePreset preset);
@@ -127,6 +128,19 @@ namespace YARG.Settings.Customization
             {
                 Content.Remove(t);
                 DeletePresetFile(t);
+            }
+            else
+            {
+                throw new InvalidOperationException("Attempted to add invalid preset type.");
+            }
+        }
+
+        public override void RenamePreset(BasePreset preset, string name)
+        {
+            if (preset is T t)
+            {
+                DeletePresetFile(t);
+                t.Name = name;
             }
             else
             {

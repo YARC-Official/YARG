@@ -59,6 +59,10 @@ namespace YARG.Menu.Dialogs
             _dialogButtonContainer.DestroyChildren();
         }
 
+        public virtual void Submit()
+        {
+        }
+
         public void Close()
         {
             OnBeforeClose();
