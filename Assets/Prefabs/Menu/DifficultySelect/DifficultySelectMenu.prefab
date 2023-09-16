@@ -136,6 +136,8 @@ MonoBehaviour:
   _text: {fileID: 3858300356024520695}
   _difficultyItemPrefab: {fileID: 7078011472145303745, guid: 4442d264050ba2d48a3625616ee2f9d4,
     type: 3}
+  _difficultyReadyPrefab: {fileID: 3092605043918072569, guid: aaad0bd4bf6af2c4a958ed68b782cf2a,
+    type: 3}
 --- !u!1 &2177612344681018170
 GameObject:
   m_ObjectHideFlags: 0

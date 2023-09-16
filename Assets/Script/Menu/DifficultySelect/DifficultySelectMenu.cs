@@ -34,6 +34,8 @@ namespace YARG.Menu.DifficultySelect
         [Space]
         [SerializeField]
         private DifficultyItem _difficultyItemPrefab;
+        [SerializeField]
+        private DifficultyItem _difficultyReadyPrefab;
 
         private int _playerIndex;
         private State _menuState;
@@ -128,7 +130,9 @@ namespace YARG.Menu.DifficultySelect
             //     UpdateForPlayer();
             // });
 
-            CreateItem("Ready", () => ChangePlayer(1));
+            var readyButton = Instantiate(_difficultyReadyPrefab, _container);
+            readyButton.Initialize("Ready", () => ChangePlayer(1));
+            _navGroup.AddNavigatable(readyButton.Button);
         }
 
         private void CreateInstrumentMenu()
