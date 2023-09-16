@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -14,7 +15,18 @@ namespace YARG.Menu.Navigation
 
         public NavigationGroup NavigationGroup { get; set; }
 
-        public bool Selected { get; private set; }
+        private bool _selected;
+        public bool Selected
+        {
+            get => _selected;
+            private set
+            {
+                _selected = value;
+                SelectionStateChanged?.Invoke(value);
+            }
+        }
+
+        public event Action<bool> SelectionStateChanged;
 
         protected virtual void Awake()
         {
