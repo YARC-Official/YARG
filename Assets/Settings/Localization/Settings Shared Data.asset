@@ -147,10 +147,6 @@ MonoBehaviour:
     m_Key: Header.Volume
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619340
-    m_Key: Presets.Graphics.CameraPresets
-    m_Metadata:
-      m_Items: []
   - m_Id: 62024422966812672
     m_Key: PresetType.CameraSettingsContainer
     m_Metadata:

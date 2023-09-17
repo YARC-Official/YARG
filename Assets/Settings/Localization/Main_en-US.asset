@@ -186,6 +186,30 @@ MonoBehaviour:
     m_Localized: Medium
     m_Metadata:
       m_Items: []
+  - m_Id: 63848767770976256
+    m_Localized: None
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63848767796142080
+    m_Localized: All Strums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63848767796142081
+    m_Localized: All HOPOs
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63848767796142082
+    m_Localized: All Taps
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63848767796142083
+    m_Localized: HOPOs To Taps
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63848767796142084
+    m_Localized: Note Shuffle
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

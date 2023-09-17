@@ -134,10 +134,6 @@ MonoBehaviour:
     m_Localized: Transparent
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619340
-    m_Localized: Camera Presets
-    m_Metadata:
-      m_Items: []
   - m_Id: 53693768667619341
     m_Localized: Anti-Ghosting
     m_Metadata:
@@ -164,7 +160,8 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 53693768667619348
     m_Localized: Audio calibration in milliseconds. Use the calibrator to automatically
-      calibrate.
+      calibrate. Higher values make the audio play earlier, while lower ones make
+      the audio play later.
     m_Metadata:
       m_Items: []
   - m_Id: 53693768667619349

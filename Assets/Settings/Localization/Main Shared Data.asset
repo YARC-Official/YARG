@@ -175,6 +175,30 @@ MonoBehaviour:
     m_Key: Instrument.Vocals
     m_Metadata:
       m_Items: []
+  - m_Id: 63848767796142081
+    m_Key: Modifier.AllHopos
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63848767796142080
+    m_Key: Modifier.AllStrums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63848767796142082
+    m_Key: Modifier.AllTaps
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63848767796142083
+    m_Key: Modifier.HoposToTaps
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63848767770976256
+    m_Key: Modifier.None
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63848767796142084
+    m_Key: Modifier.NoteShuffle
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
