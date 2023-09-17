@@ -220,7 +220,6 @@ namespace YARG.Gameplay
             Debug.Log($"Audio calibration: {AudioCalibration}, song offset: {SongOffset}");
 #endif
 
-
             // Loaded, enable updates
             enabled = true;
             IsSongStarted = true;
@@ -452,6 +451,10 @@ namespace YARG.Gameplay
             foreach (var player in _yargPlayers)
             {
                 index++;
+
+                // Skip if the player is sitting out
+                if (player.SittingOut) continue;
+
                 var prefab = player.Profile.GameMode switch
                 {
                     GameMode.FiveFretGuitar => _fiveFretGuitarPrefab,
@@ -462,10 +465,9 @@ namespace YARG.Gameplay
 
                     _ => null
                 };
-                if (prefab == null)
-                {
-                    continue;
-                }
+
+                // Skip if there's no prefab for the game mode
+                if (prefab == null) continue;
 
                 var playerObject = Instantiate(prefab, new Vector3(index * 25f, 100f, 0f), prefab.transform.rotation);
 

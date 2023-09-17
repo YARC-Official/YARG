@@ -112,27 +112,42 @@ namespace YARG.Menu.DifficultySelect
         {
             var player = CurrentPlayer;
 
-            CreateItem("Instrument", player.Profile.Instrument.ToLocalizedName(), () =>
+            // Only show all these options if there are instruments available
+            if (_possibleInstruments.Count > 0)
             {
-                _menuState = State.Instrument;
-                UpdateForPlayer();
-            });
+                CreateItem("Instrument", player.Profile.Instrument.ToLocalizedName(), () =>
+                {
+                    _menuState = State.Instrument;
+                    UpdateForPlayer();
+                });
 
-            CreateItem("Difficulty", player.Profile.Difficulty.ToLocalizedName(), () =>
-            {
-                _menuState = State.Difficulty;
-                UpdateForPlayer();
-            });
+                CreateItem("Difficulty", player.Profile.Difficulty.ToLocalizedName(), () =>
+                {
+                    _menuState = State.Difficulty;
+                    UpdateForPlayer();
+                });
 
-            // CreateItem("Modifiers", player.Profile.Modifiers.ToString(), () =>
-            // {
-            //     _menuState = State.Modifiers;
-            //     UpdateForPlayer();
-            // });
+                // CreateItem("Modifiers", player.Profile.Modifiers.ToString(), () =>
+                // {
+                //     _menuState = State.Modifiers;
+                //     UpdateForPlayer();
+                // });
 
-            var readyButton = Instantiate(_difficultyReadyPrefab, _container);
-            readyButton.Initialize("Ready", () => ChangePlayer(1));
-            _navGroup.AddNavigatable(readyButton.Button);
+                // Ready button
+                var readyButton = Instantiate(_difficultyReadyPrefab, _container);
+                readyButton.Initialize("Ready", () => ChangePlayer(1));
+                _navGroup.AddNavigatable(readyButton.Button);
+            }
+
+            // Only show if there is more than one play, only if there is instruments available
+            if (_possibleInstruments.Count <= 0 || PlayerContainer.Players.Count != 1) {
+                // Sit out button
+                CreateItem("Sit Out", () =>
+                {
+                    player.SittingOut = true;
+                    ChangePlayer(1);
+                });
+            }
         }
 
         private void CreateInstrumentMenu()
@@ -195,10 +210,13 @@ namespace YARG.Menu.DifficultySelect
             }
 
             // Set the instrument to a valid one
-            if (!_possibleInstruments.Contains(profile.Instrument))
+            if (!_possibleInstruments.Contains(profile.Instrument) && _possibleInstruments.Count > 0)
             {
                 profile.Instrument = _possibleInstruments[0];
             }
+
+            // Don't sit out by default
+            CurrentPlayer.SittingOut = false;
 
             // Update the possible difficulties as well
             UpdatePossibleDifficulties();
@@ -222,7 +240,7 @@ namespace YARG.Menu.DifficultySelect
             }
 
             // Set the difficulty to a valid one
-            if (!_possibleDifficulties.Contains(profile.Difficulty))
+            if (!_possibleDifficulties.Contains(profile.Difficulty) && _possibleDifficulties.Count > 0)
             {
                 profile.Difficulty = _possibleDifficulties[0];
             }

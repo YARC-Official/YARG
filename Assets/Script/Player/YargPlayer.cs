@@ -12,7 +12,11 @@ namespace YARG.Player
 
         public YargProfile Profile { get; private set; }
 
-        // public MicInput MicInput;
+        /// <summary>
+        /// Whether or not the player is sitting out. This is not needed in <see cref="Profile"/> as
+        /// players that are sitting out are not included in replays.
+        /// </summary>
+        public bool SittingOut;
 
         public bool InputsEnabled { get; private set; } = false;
         public ProfileBindings Bindings { get; private set; }
