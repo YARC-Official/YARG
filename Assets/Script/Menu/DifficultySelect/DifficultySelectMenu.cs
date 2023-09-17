@@ -136,7 +136,26 @@ namespace YARG.Menu.DifficultySelect
                     UpdateForPlayer();
                 });
 
-                CreateItem("Modifiers", player.Profile.Modifiers.ToString(), () =>
+                // Create modifiers body text
+                string modifierText = "";
+                if (player.Profile.Modifiers == Modifier.None)
+                {
+                    // If there are no modifiers, then just say "none"
+                    modifierText = Modifier.None.ToLocalizedName();
+                }
+                else
+                {
+                    // Combine all modifiers
+                    foreach (var modifier in _possibleModifiers)
+                    {
+                        if (!player.Profile.IsModifierActive(modifier)) continue;
+
+                        modifierText += modifier.ToLocalizedName() + "\n";
+                    }
+                    modifierText = modifierText.Trim();
+                }
+
+                CreateItem("Modifiers", modifierText, () =>
                 {
                     _menuState = State.Modifiers;
                     UpdateForPlayer();
