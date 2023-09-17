@@ -283,6 +283,15 @@ namespace YARG.Menu.DifficultySelect
             _possibleModifiers.Clear();
             _possibleModifiers.AddRange(profile.GameMode.PossibleModifiers());
 
+            // Make sure current modifiers are valid, and remove the invalid ones
+            foreach (var modifier in EnumExtensions<Modifier>.Values)
+            {
+                if (profile.IsModifierActive(modifier) && !_possibleModifiers.Contains(modifier))
+                {
+                    profile.RemoveModifiers(modifier);
+                }
+            }
+
             // Don't sit out by default
             CurrentPlayer.SittingOut = false;
 
