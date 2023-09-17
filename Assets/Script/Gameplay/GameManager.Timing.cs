@@ -177,7 +177,7 @@ namespace YARG.Gameplay
                 _finishedSyncing.Reset();
 
                 double inputTime = GetRelativeInputTime(InputManager.CurrentInputTime);
-                double audioTime = GlobalVariables.AudioManager.CurrentPositionD;
+                double audioTime = GlobalVariables.AudioManager.CurrentPositionD + AudioCalibration;
 
                 // Account for song speed
                 double initialThreshold = INITIAL_SYNC_THRESH * SelectedSongSpeed;
@@ -236,19 +236,28 @@ namespace YARG.Gameplay
         {
             // Account for song speed
             delayTime *= SelectedSongSpeed;
+            // Additionally delay by audio calibration to keep delays consistent relative to when the audio starts
+            delayTime -= AudioCalibration;
 
             // Seek time
             // Doesn't account for audio calibration for better audio syncing
             // since seeking is slightly delayed
             double seekTime = time - delayTime;
 
-            // Set input offsets, factoring out audio calibration
-            // Doing audio calibration here seems to work the best,
-            // consistently starts out synced within ~50 ms (within 5 ms a majority of the time)
-            SetInputBase(seekTime + AudioCalibration);
+            // Set input offsets
+            SetInputBase(seekTime);
 
-            // Set audio/song time
-            RealSongTime = seekTime;
+            // Set audio/song time, factoring in audio calibration
+            RealSongTime = seekTime - AudioCalibration;
+
+            // Previously audio calibration was handled on input time, as it consistently started out synced
+            // within 50 ms (within 5 ms a majority of the time)
+            // But it makes more sense to apply it to audio instead, and the small initial desync it
+            // may cause *really* isn't that big of a deal, as it's also usually within 50 ms,
+            // and the sync code handles it quickly anyways
+            //
+            // SetInputBase(seekTime + AudioCalibration);
+            // RealSongTime = seekTime;
 
 #if UNITY_EDITOR
             Debug.Log($"Set song time to {time:0.000000} (delay: {delayTime:0.000000}).\n" +
