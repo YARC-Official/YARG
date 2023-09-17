@@ -1,6 +1,7 @@
 ﻿using UnityEngine.Localization;
 using UnityEngine.Localization.Settings;
 using YARG.Core;
+using YARG.Core.Game;
 
 namespace YARG.Helpers
 {
@@ -45,6 +46,11 @@ namespace YARG.Helpers
         public static string ToLocalizedName(this GameMode gameMode)
         {
             return LocalizeString($"GameMode.{gameMode}");
+        }
+
+        public static string ToLocalizedName(this Modifier modifier)
+        {
+            return LocalizeString($"Modifier.{modifier}");
         }
 
         #endregion

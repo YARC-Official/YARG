@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using YARG.Core;
 using YARG.Core.Extensions;
+using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
@@ -36,12 +37,17 @@ namespace YARG.Menu.DifficultySelect
         private DifficultyItem _difficultyItemPrefab;
         [SerializeField]
         private DifficultyItem _difficultyReadyPrefab;
+        [SerializeField]
+        private ModifierItem _modifierItemPrefab;
 
         private int _playerIndex;
         private State _menuState;
 
-        private readonly List<Instrument> _possibleInstruments = new();
+        private readonly List<Instrument> _possibleInstruments  = new();
         private readonly List<Difficulty> _possibleDifficulties = new();
+        private readonly List<Modifier>   _possibleModifiers    = new();
+
+        private readonly List<ModifierItem> _modifierItems = new();
 
         private YargPlayer CurrentPlayer => PlayerContainer.Players[_playerIndex];
 
@@ -103,6 +109,9 @@ namespace YARG.Menu.DifficultySelect
                 case State.Difficulty:
                     CreateDifficultyMenu();
                     break;
+                case State.Modifiers:
+                    CreateModifierMenu();
+                    break;
             }
 
             _navGroup.SelectFirst();
@@ -127,11 +136,11 @@ namespace YARG.Menu.DifficultySelect
                     UpdateForPlayer();
                 });
 
-                // CreateItem("Modifiers", player.Profile.Modifiers.ToString(), () =>
-                // {
-                //     _menuState = State.Modifiers;
-                //     UpdateForPlayer();
-                // });
+                CreateItem("Modifiers", player.Profile.Modifiers.ToString(), () =>
+                {
+                    _menuState = State.Modifiers;
+                    UpdateForPlayer();
+                });
 
                 // Ready button
                 var readyButton = Instantiate(_difficultyReadyPrefab, _container);
@@ -179,6 +188,47 @@ namespace YARG.Menu.DifficultySelect
             }
         }
 
+        private void CreateModifierMenu()
+        {
+            var profile = CurrentPlayer.Profile;
+
+            _modifierItems.Clear();
+            foreach (var modifier in _possibleModifiers)
+            {
+                var btn = Instantiate(_modifierItemPrefab, _container);
+                btn.Initialize(modifier.ToLocalizedName(), profile.IsModifierActive(modifier), active =>
+                {
+                    // Enable/disable the modifier
+                    if (active)
+                    {
+                        profile.AddModifiers(modifier);
+                    }
+                    else
+                    {
+                        profile.RemoveModifiers(modifier);
+                    }
+
+                    UpdateModifierMenu();
+                });
+
+                _navGroup.AddNavigatable(btn);
+                _modifierItems.Add(btn);
+            }
+        }
+
+        private void UpdateModifierMenu()
+        {
+            var profile = CurrentPlayer.Profile;
+
+            for (int i = 0; i < _modifierItems.Count; i++)
+            {
+                var item = _modifierItems[i];
+                var modifier = _possibleModifiers[i];
+
+                item.Active = profile.IsModifierActive(modifier);
+            }
+        }
+
         private void ChangePlayer(int add)
         {
             _playerIndex += add;
@@ -209,6 +259,10 @@ namespace YARG.Menu.DifficultySelect
             {
                 profile.Instrument = _possibleInstruments[0];
             }
+
+            // Get the possible modifiers
+            _possibleModifiers.Clear();
+            _possibleModifiers.AddRange(profile.GameMode.PossibleModifiers());
 
             // Don't sit out by default
             CurrentPlayer.SittingOut = false;
