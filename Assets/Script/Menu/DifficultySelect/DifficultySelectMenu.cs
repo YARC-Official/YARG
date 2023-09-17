@@ -167,16 +167,11 @@ namespace YARG.Menu.DifficultySelect
 
         private void CreateDifficultyMenu()
         {
-            var profile = CurrentPlayer.Profile;
-            var songParts = GlobalVariables.Instance.CurrentSong.Parts;
-
-            foreach (var difficulty in EnumExtensions<Difficulty>.Values)
+            foreach (var difficulty in _possibleDifficulties)
             {
-                if (!songParts.HasDifficulty(profile.Instrument, difficulty)) continue;
-
                 CreateItem(difficulty.ToLocalizedName(), () =>
                 {
-                    profile.Difficulty = difficulty;
+                    CurrentPlayer.Profile.Difficulty = difficulty;
 
                     _menuState = State.Main;
                     UpdateForPlayer();
@@ -237,6 +232,14 @@ namespace YARG.Menu.DifficultySelect
                 if (!songParts.HasDifficulty(profile.Instrument, difficulty)) continue;
 
                 _possibleDifficulties.Add(difficulty);
+            }
+
+            // TODO: Remove Expert+
+            // This is temporary until we replace expert+ with a modifier
+            if (profile.Instrument is Instrument.ProDrums or Instrument.FourLaneDrums or Instrument.FiveLaneDrums &&
+                _possibleDifficulties.Contains(Difficulty.Expert))
+            {
+                _possibleDifficulties.Add(Difficulty.ExpertPlus);
             }
 
             // Set the difficulty to a valid one
