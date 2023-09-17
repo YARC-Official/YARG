@@ -82,7 +82,7 @@ namespace YARG.Settings
             },
             new MetadataTab("Engine", icon: "Engine")
             {
-                "NoKicks",
+                // "NoKicks",
                 "AntiGhosting",
                 "InfiniteFrontEnd"
             },
