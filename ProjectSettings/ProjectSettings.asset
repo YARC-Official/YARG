@@ -156,7 +156,7 @@ PlayerSettings:
   androidSupportedAspectRatio: 1
   androidMaxAspectRatio: 2.1
   applicationIdentifier:
-    Standalone: com.UnityTechnologies.com.unity.template-starter-kit
+    Standalone: in.yarg.game
   buildNumber:
     Standalone: 0
     iPhone: 0
