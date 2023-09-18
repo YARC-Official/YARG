@@ -36,7 +36,9 @@ namespace YARG.Menu.DifficultySelect
         [SerializeField]
         private DifficultyItem _difficultyItemPrefab;
         [SerializeField]
-        private DifficultyItem _difficultyReadyPrefab;
+        private DifficultyItem _difficultyGreenPrefab;
+        [SerializeField]
+        private DifficultyItem _difficultyRedPrefab;
         [SerializeField]
         private ModifierItem _modifierItemPrefab;
 
@@ -162,15 +164,13 @@ namespace YARG.Menu.DifficultySelect
                 });
 
                 // Ready button
-                var readyButton = Instantiate(_difficultyReadyPrefab, _container);
-                readyButton.Initialize("Ready", () => ChangePlayer(1));
-                _navGroup.AddNavigatable(readyButton.Button);
+                CreateItem("Ready", _difficultyGreenPrefab, () => ChangePlayer(1));
             }
 
             // Only show if there is more than one play, only if there is instruments available
             if (_possibleInstruments.Count <= 0 || PlayerContainer.Players.Count != 1) {
                 // Sit out button
-                CreateItem("Sit Out", () =>
+                CreateItem("Sit Out", _difficultyRedPrefab, () =>
                 {
                     player.SittingOut = true;
                     ChangePlayer(1);
@@ -336,18 +336,35 @@ namespace YARG.Menu.DifficultySelect
             Navigator.Instance.PopScheme();
         }
 
+        private void CreateItem(string header, string body, DifficultyItem difficultyItem, UnityAction a)
+        {
+            var btn = Instantiate(difficultyItem, _container);
+
+            if (header is null)
+            {
+                btn.Initialize(body, a);
+            }
+            else
+            {
+                btn.Initialize(header, body, a);
+            }
+
+            _navGroup.AddNavigatable(btn.Button);
+        }
+
+        private void CreateItem(string body, DifficultyItem difficultyItem, UnityAction a)
+        {
+            CreateItem(null, body, difficultyItem, a);
+        }
+
         private void CreateItem(string header, string body, UnityAction a)
         {
-            var btn = Instantiate(_difficultyItemPrefab, _container);
-            btn.Initialize(header, body, a);
-            _navGroup.AddNavigatable(btn.Button);
+            CreateItem(header, body, _difficultyItemPrefab, a);
         }
 
         private void CreateItem(string body, UnityAction a)
         {
-            var btn = Instantiate(_difficultyItemPrefab, _container);
-            btn.Initialize(body, a);
-            _navGroup.AddNavigatable(btn.Button);
+            CreateItem(null, body, a);
         }
     }
 }
