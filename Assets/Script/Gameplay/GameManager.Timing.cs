@@ -153,7 +153,7 @@ namespace YARG.Gameplay
             _previousRealSongTime = RealSongTime;
 
             // *Do* check for equals here, as input time not updating is a more serious issue
-            if (_previousInputTime >= InputTime)
+            if (_previousInputTime > InputTime)
             {
                 Debug.Assert(_seeked, $"Unexpected input seek backwards! Went from {_previousInputTime} to {InputTime}");
                 newSeeked = false;
