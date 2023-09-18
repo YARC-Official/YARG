@@ -37,5 +37,11 @@ namespace YARG.Menu.Settings
             _tab.SelectedContent = _presetTypes[_dropdown.value];
             SettingsMenu.Instance.Refresh();
         }
+
+        public void OpenPresetFolder()
+        {
+            var customContent = _presetTypes[_dropdown.value];
+            FileExplorerHelper.OpenFolder(customContent.ContentDirectory);
+        }
     }
 }

@@ -24,7 +24,7 @@ namespace YARG.Settings.Customization
             }
         };
 
-        protected readonly string ContentDirectory;
+        public readonly string ContentDirectory;
 
         public abstract IReadOnlyList<BasePreset> DefaultBasePresets { get; }
         public abstract IReadOnlyList<BasePreset> CustomBasePresets { get; }
