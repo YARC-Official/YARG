@@ -233,6 +233,13 @@ namespace YARG.Menu.DifficultySelect
                 _navGroup.AddNavigatable(btn);
                 _modifierItems.Add(btn);
             }
+
+            // Create done button
+            CreateItem("Done", _difficultyGreenPrefab, () =>
+            {
+                _menuState = State.Main;
+                UpdateForPlayer();
+            });
         }
 
         private void UpdateModifierMenu()
