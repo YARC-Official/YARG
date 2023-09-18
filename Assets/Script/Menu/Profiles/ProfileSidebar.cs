@@ -18,6 +18,12 @@ namespace YARG.Menu.Profiles
     {
         private const string NUMBER_FORMAT = "0.0###";
 
+        private static readonly GameMode[] _gameModes =
+        {
+            GameMode.FiveFretGuitar,
+            GameMode.FourLaneDrums
+        };
+
         [SerializeField]
         private GameObject _contents;
         [SerializeField]
@@ -71,14 +77,8 @@ namespace YARG.Menu.Profiles
         {
             // Setup dropdown items
             _gameModeDropdown.options.Clear();
-            foreach (var gameMode in EnumExtensions<GameMode>.Values)
+            foreach (var gameMode in _gameModes)
             {
-                // Skip vocals. It can be assigned to a profile separately.
-                if (gameMode == GameMode.Vocals)
-                {
-                    continue;
-                }
-
                 _gameModesByIndex.Add(gameMode);
 
                 // Create the dropdown option
