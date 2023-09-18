@@ -83,6 +83,7 @@ namespace YARG.Menu.Replays
             {
                 new NavigationScheme.Entry(MenuAction.Green, "Select", () => CurrentReplay?.Confirm()),
                 new NavigationScheme.Entry(MenuAction.Red, "Back", () => MenuManager.Instance.PopMenu()),
+                new NavigationScheme.Entry(MenuAction.Select, "Open Folder", () => ReplayContainer.OpenReplayDirectory()),
                 new NavigationScheme.Entry(MenuAction.Up, "Up", () => SelectedIndex--),
                 new NavigationScheme.Entry(MenuAction.Down, "Down", () => SelectedIndex++),
             }, true));
