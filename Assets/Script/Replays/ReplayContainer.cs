@@ -54,6 +54,12 @@ namespace YARG.Replays
             _watcher.Deleted += OnReplayDeleted;
         }
 
+        public static void Deinit()
+        {
+            _watcher?.Dispose();
+            WriteReplayCache();
+        }
+
         public static void AddReplay(ReplayEntry replay)
         {
             if (!_replays.Contains(replay) && !_replayFileMap.ContainsKey(replay.ReplayFile))

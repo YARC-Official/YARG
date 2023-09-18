@@ -83,17 +83,21 @@ namespace YARG
             Shader.SetGlobalFloat("_IsFading", 1f);
         }
 
+        protected override void SingletonDestroy()
+        {
+            SettingsManager.SaveSettings();
+            PlayerContainer.SaveProfiles();
+            CustomContentManager.SaveAll();
+            ReplayContainer.Deinit();
+            InputManager.Destroy();
+        }
+
         private void Start()
         {
             SettingsManager.LoadSettings();
             InputManager.Initialize();
 
             LoadScene(SceneIndex.Menu);
-        }
-
-        private void OnApplicationQuit()
-        {
-            PlayerContainer.SaveProfiles();
         }
 
         private void LoadSceneAdditive(SceneIndex scene)
