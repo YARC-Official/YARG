@@ -19,8 +19,6 @@ namespace YARG.Settings.Customization
             {
                 throw new InvalidOperationException("Invalid preset type!");
             }
-
-            throw new NotImplementedException();
         }
 
         public override void SetPresetFromSettings(BasePreset preset)
@@ -29,8 +27,6 @@ namespace YARG.Settings.Customization
             {
                 throw new InvalidOperationException("Invalid preset type!");
             }
-
-            throw new NotImplementedException();
         }
     }
 }

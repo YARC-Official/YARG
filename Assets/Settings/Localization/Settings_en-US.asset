@@ -90,8 +90,8 @@ MonoBehaviour:
     m_Localized: Copy Current Song Text File Path
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619329
-    m_Localized: Export Songs List (For Ouvert Bot)
+  - m_Id: 64541856412065793
+    m_Localized: Export Songs List (Plain Text)
     m_Metadata:
       m_Items: []
   - m_Id: 53693768667619330
@@ -584,8 +584,18 @@ MonoBehaviour:
     m_Localized: Customization
     m_Metadata:
       m_Items: []
-  - m_Id: 64298541386682368
-    m_Localized: Export Songs List (Plain Text)
+  - m_Id: 64541856412065792
+    m_Localized: Export Songs List (For Ouvert Bot)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64541529466068992
+    m_Localized: Color profiles do not support editing yet. You can edit the preset
+      file manually by opening the folder and opening this preset with your text
+      editor of choice.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64543436070838272
+    m_Localized: Color Profiles
     m_Metadata:
       m_Items: []
   references:

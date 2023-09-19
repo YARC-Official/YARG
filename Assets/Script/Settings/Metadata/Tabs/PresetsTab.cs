@@ -39,10 +39,27 @@ namespace YARG.Settings.Metadata
                     "CameraPreset_FadeLength",
                     "CameraPreset_CurveFactor"
                 }
+            },
+            {
+                CustomContentManager.ColorProfiles,
+                new TrackPreviewTab("Presets")
+                {
+                    new TextMetadata("ColorProfileSupport")
+                }
             }
         };
 
-        public CustomContent SelectedContent;
+        private CustomContent _selectedContent;
+        public CustomContent SelectedContent
+        {
+            get => _selectedContent;
+            set
+            {
+                _selectedContent = value;
+                ResetSelectedPreset();
+            }
+        }
+
         public BasePreset SelectedPreset;
 
         public PresetsTab(string name, string icon = "Generic") : base(name, icon)

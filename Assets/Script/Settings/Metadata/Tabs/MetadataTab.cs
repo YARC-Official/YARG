@@ -19,6 +19,9 @@ namespace YARG.Settings.Metadata
         private static readonly GameObject _buttonPrefab = Addressables
             .LoadAssetAsync<GameObject>("SettingTab/Button")
             .WaitForCompletion();
+        private static readonly GameObject _textPrefab = Addressables
+            .LoadAssetAsync<GameObject>("SettingTab/Text")
+            .WaitForCompletion();
 
         private Dictionary<string, BaseSettingVisual> _settingVisuals = new();
         private readonly List<AbstractMetadata> _settings = new();
@@ -52,6 +55,17 @@ namespace YARG.Settings.Metadata
                         // Spawn the button
                         var go = Object.Instantiate(_buttonPrefab, container);
                         go.GetComponent<SettingsButton>().SetInfo(Name, buttonRow.Buttons);
+
+                        break;
+                    }
+                    case TextMetadata text:
+                    {
+                        // Spawn in the header
+                        var go = Object.Instantiate(_textPrefab, container);
+
+                        // Set header text
+                        go.GetComponentInChildren<LocalizeStringEvent>().StringReference =
+                            LocaleHelper.StringReference("Settings", $"Text.{text.TextName}");
 
                         break;
                     }

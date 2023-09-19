@@ -23,11 +23,11 @@ MonoBehaviour:
     m_Key: Button.General.CopyCurrentSongTextFilePath
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619329
+  - m_Id: 64541856412065792
     m_Key: Button.General.ExportSongsOuvert
     m_Metadata:
       m_Items: []
-  - m_Id: 64298541386682368
+  - m_Id: 64541856412065793
     m_Key: Button.General.ExportSongsText
     m_Metadata:
       m_Items: []
@@ -153,6 +153,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 62024422966812672
     m_Key: PresetType.CameraSettingsContainer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64543436070838272
+    m_Key: PresetType.ColorProfileContainer
     m_Metadata:
       m_Items: []
   - m_Id: 53693768667619341
@@ -549,6 +553,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 10936772512309248
     m_Key: Tab.Sound
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64541529466068992
+    m_Key: Text.ColorProfileSupport
     m_Metadata:
       m_Items: []
   m_Metadata:
