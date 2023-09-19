@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
@@ -62,18 +62,18 @@ namespace YARG.Song
             {
                 songs.Add(new OuvertSongData
                 {
-                    songName = song.Name,
-                    artistName = song.Artist,
-                    album = song.Album,
-                    genre = song.Genre,
-                    charter = song.Charter,
-                    year = song.UnmodifiedYear,
+                    songName = RichTextUtils.StripRichTextTags(song.Artist),
+                    artistName = RichTextUtils.StripRichTextTags(song.Name),
+                    album = RichTextUtils.StripRichTextTags(song.Album),
+                    genre = RichTextUtils.StripRichTextTags(song.Genre),
+                    charter = RichTextUtils.StripRichTextTags(song.Charter),
+                    year = RichTextUtils.StripRichTextTags(song.UnmodifiedYear),
                     songLength = song.SongLength
                 });
             }
 
             // Create file
-            var json = JsonConvert.SerializeObject(songs);
+            var json = JsonConvert.SerializeObject(songs, Formatting.Indented);
             File.WriteAllText(path, json);
         }
     }
