@@ -197,7 +197,7 @@ Some libraries/assets are **packaged** with the source code have licenses that m
 | [DtxCS](https://github.com/maxton/DtxCS) | Licenseless
 | [Moonscraper](https://github.com/FireFox2000000/Moonscraper-Chart-Editor) | [BSD 3-Clause License](https://github.com/FireFox2000000/Moonscraper-Chart-Editor/blob/master/LICENSE)
 
-Please note that other libraries are **not** packaged within the source code, and are to be install by NuGet.
+Please note that other libraries are **not** packaged within the source code, and are to be installed by NuGet.
 
 BASS is the audio library for YARG. [It has it's own license for release](https://www.un4seen.com/). BASS is free for non-commercial use, ensure you have the correct license if you intend to distribute YARG (and therefore BASS) commercially.
 
