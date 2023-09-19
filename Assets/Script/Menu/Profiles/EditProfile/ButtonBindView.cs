@@ -19,12 +19,15 @@ namespace YARG.Menu.Profiles
 
         [Space]
         [SerializeField]
+        private ValueSlider _pressPointSlider;
+        [SerializeField]
         private ValueSlider _debounceSlider;
 
         public override void Init(EditProfileMenu editProfileMenu, ButtonBinding binding, SingleButtonBinding singleBinding)
         {
             base.Init(editProfileMenu, binding, singleBinding);
 
+            _pressPointSlider.SetValueWithoutNotify(singleBinding.PressPoint);
             _debounceSlider.SetValueWithoutNotify(singleBinding.DebounceThreshold);
 
             singleBinding.StateChanged += OnStateChanged;
@@ -41,6 +44,11 @@ namespace YARG.Menu.Profiles
             _valueSlider.value = state;
 
             _pressedIndicator.color = SingleBinding.IsPressed ? _pressedColor : _releasedColor;
+        }
+
+        public void OnPressPointChanged(float value)
+        {
+            SingleBinding.PressPoint = value;
         }
 
         public void OnDebounceValueChanged(float value)
