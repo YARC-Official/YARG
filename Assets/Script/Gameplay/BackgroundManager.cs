@@ -1,4 +1,5 @@
-﻿using Cysharp.Threading.Tasks;
+﻿using System.Diagnostics.CodeAnalysis;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
@@ -16,6 +17,8 @@ namespace YARG.Gameplay
 
         private bool _videoShouldBeStarted;
 
+        // "The Unity message 'Start' has an incorrect signature."
+        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTask is a compatible return type.")]
         private async UniTask Start()
         {
             var typePathPair = VenueLoader.GetVenuePath(GameManager.Song);

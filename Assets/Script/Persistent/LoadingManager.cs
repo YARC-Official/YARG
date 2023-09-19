@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using TMPro;
@@ -28,6 +29,8 @@ namespace YARG
 
         private readonly Queue<QueuedTask> _loadQueue = new();
 
+        // "The Unity message 'Start' has an incorrect signature."
+        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTask is a compatible return type.")]
         private async UniTask Start()
         {
             Queue(async () => await SongSources.LoadSources(SetSubText), "Loading song sources...");

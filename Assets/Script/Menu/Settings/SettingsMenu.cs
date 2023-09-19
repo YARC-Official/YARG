@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -185,6 +186,8 @@ namespace YARG.Menu.Settings
             CurrentTab?.OnSettingChanged();
         }
 
+        // "The Unity message 'OnDisable' has an incorrect signature."
+        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTask is a compatible return type.")]
         private async UniTask OnDisable()
         {
             if (!_ready)

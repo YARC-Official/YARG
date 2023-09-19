@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using Cysharp.Threading.Tasks;
@@ -166,6 +167,8 @@ namespace YARG.Gameplay
             UninitializeTime();
         }
 
+        // "The Unity message 'Start' has an incorrect signature."
+        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTask is a compatible return type.")]
         private async UniTask Start()
         {
             // Disable until everything's loaded
