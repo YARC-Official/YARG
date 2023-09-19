@@ -126,13 +126,13 @@ namespace YARG.Menu.DifficultySelect
             // Only show all these options if there are instruments available
             if (_possibleInstruments.Count > 0)
             {
-                CreateItem("Instrument", player.Profile.Instrument.ToLocalizedName(), () =>
+                CreateItem("Instrument", player.Profile.CurrentInstrument.ToLocalizedName(), () =>
                 {
                     _menuState = State.Instrument;
                     UpdateForPlayer();
                 });
 
-                CreateItem("Difficulty", player.Profile.Difficulty.ToLocalizedName(), () =>
+                CreateItem("Difficulty", player.Profile.CurrentDifficulty.ToLocalizedName(), () =>
                 {
                     _menuState = State.Difficulty;
                     UpdateForPlayer();
@@ -140,7 +140,7 @@ namespace YARG.Menu.DifficultySelect
 
                 // Create modifiers body text
                 string modifierText = "";
-                if (player.Profile.Modifiers == Modifier.None)
+                if (player.Profile.CurrentModifiers == Modifier.None)
                 {
                     // If there are no modifiers, then just say "none"
                     modifierText = Modifier.None.ToLocalizedName();
@@ -184,7 +184,7 @@ namespace YARG.Menu.DifficultySelect
             {
                 CreateItem(instrument.ToLocalizedName(), () =>
                 {
-                    CurrentPlayer.Profile.Instrument = instrument;
+                    CurrentPlayer.Profile.CurrentInstrument = instrument;
                     UpdatePossibleDifficulties();
 
                     _menuState = State.Main;
@@ -199,7 +199,7 @@ namespace YARG.Menu.DifficultySelect
             {
                 CreateItem(difficulty.ToLocalizedName(), () =>
                 {
-                    CurrentPlayer.Profile.Difficulty = difficulty;
+                    CurrentPlayer.Profile.CurrentDifficulty = difficulty;
 
                     _menuState = State.Main;
                     UpdateForPlayer();
@@ -281,9 +281,9 @@ namespace YARG.Menu.DifficultySelect
             }
 
             // Set the instrument to a valid one
-            if (!_possibleInstruments.Contains(profile.Instrument) && _possibleInstruments.Count > 0)
+            if (!_possibleInstruments.Contains(profile.CurrentInstrument) && _possibleInstruments.Count > 0)
             {
-                profile.Instrument = _possibleInstruments[0];
+                profile.CurrentInstrument = _possibleInstruments[0];
             }
 
             // Get the possible modifiers
@@ -318,23 +318,23 @@ namespace YARG.Menu.DifficultySelect
             // Get the possible difficulties for the player's instrument in the song
             foreach (var difficulty in EnumExtensions<Difficulty>.Values)
             {
-                if (!songParts.HasDifficulty(profile.Instrument, difficulty)) continue;
+                if (!songParts.HasDifficulty(profile.CurrentInstrument, difficulty)) continue;
 
                 _possibleDifficulties.Add(difficulty);
             }
 
             // TODO: Remove Expert+
             // This is temporary until we replace expert+ with a modifier
-            if (profile.Instrument is Instrument.ProDrums or Instrument.FourLaneDrums or Instrument.FiveLaneDrums &&
+            if (profile.CurrentInstrument is Instrument.ProDrums or Instrument.FourLaneDrums or Instrument.FiveLaneDrums &&
                 _possibleDifficulties.Contains(Difficulty.Expert))
             {
                 _possibleDifficulties.Add(Difficulty.ExpertPlus);
             }
 
             // Set the difficulty to a valid one
-            if (!_possibleDifficulties.Contains(profile.Difficulty) && _possibleDifficulties.Count > 0)
+            if (!_possibleDifficulties.Contains(profile.CurrentDifficulty) && _possibleDifficulties.Count > 0)
             {
-                profile.Difficulty = _possibleDifficulties[0];
+                profile.CurrentDifficulty = _possibleDifficulties[0];
             }
         }
 

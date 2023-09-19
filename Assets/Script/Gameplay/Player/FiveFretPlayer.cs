@@ -29,8 +29,8 @@ namespace YARG.Gameplay.Player
 
         protected override InstrumentDifficulty<GuitarNote> GetNotes(SongChart chart)
         {
-            var track = chart.GetFiveFretTrack(Player.Profile.Instrument).Clone();
-            return track.Difficulties[Player.Profile.Difficulty];
+            var track = chart.GetFiveFretTrack(Player.Profile.CurrentInstrument).Clone();
+            return track.Difficulties[Player.Profile.CurrentDifficulty];
         }
 
         protected override GuitarEngine CreateEngine()

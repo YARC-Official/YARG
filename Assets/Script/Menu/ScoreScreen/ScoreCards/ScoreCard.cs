@@ -65,8 +65,8 @@ namespace YARG.Menu.ScoreScreen
         {
             _playerName.text = Player.Profile.Name;
 
-            _instrument.text = Player.Profile.Instrument.ToLocalizedName();
-            _difficulty.text = Player.Profile.Difficulty.ToDisplayName();
+            _instrument.text = Player.Profile.CurrentInstrument.ToLocalizedName();
+            _difficulty.text = Player.Profile.CurrentDifficulty.ToDisplayName();
 
             // Set percent
             var totalNotes = Stats.NotesHit + Stats.NotesMissed;
@@ -103,7 +103,7 @@ namespace YARG.Menu.ScoreScreen
 
             // Set background icon
             _instrumentIcon.sprite = Addressables
-                .LoadAssetAsync<Sprite>($"InstrumentIcons[{Player.Profile.Instrument.ToResourceName()}]")
+                .LoadAssetAsync<Sprite>($"InstrumentIcons[{Player.Profile.CurrentInstrument.ToResourceName()}]")
                 .WaitForCompletion();
         }
 

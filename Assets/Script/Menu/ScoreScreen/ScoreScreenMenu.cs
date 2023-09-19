@@ -70,7 +70,7 @@ namespace YARG.Menu.ScoreScreen
         {
             foreach (var score in scoreScreenStats.PlayerScores)
             {
-                switch (score.Player.Profile.Instrument.ToGameMode())
+                switch (score.Player.Profile.CurrentInstrument.ToGameMode())
                 {
                     case GameMode.FiveFretGuitar:
                     {
