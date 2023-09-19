@@ -17,7 +17,8 @@ namespace YARG.Gameplay
     {
         protected GameManager GameManager { get; private set; }
 
-        private void Awake()
+        // Protected to warn when hidden by an inheriting class
+        protected void Awake()
         {
             // Retrieve the game manager
             GameManager = FindObjectOfType<GameManager>();
@@ -40,7 +41,8 @@ namespace YARG.Gameplay
             GameplayAwake();
         }
 
-        private void OnDestroy()
+        // Protected to warn when hidden by an inheriting class
+        protected void OnDestroy()
         {
             GameplayDestroy();
 
