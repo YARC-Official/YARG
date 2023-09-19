@@ -29,9 +29,25 @@ namespace YARG.Input
 
         public bool DebounceEnabled => DebounceThreshold >= DEBOUNCE_ACTIVE_THRESHOLD;
 
-        public float PressPoint;
+        private float _pressPoint;
+        public float PressPoint
+        {
+            get => _pressPoint;
+            set
+            {
+                bool pressed = IsPressed;
+                _pressPoint = value;
+
+                // This state change won't be propogated to the main binding, however calibration settings
+                // should never be changed outside of the binding menu, so that should be fine
+                if (pressed != IsPressed)
+                    InvokeStateChanged(State);
+            }
+        }
 
         private float _postDebounceValue;
+
+        public bool IsPressed => State >= PressPoint;
 
         public SingleButtonBinding(InputControl<float> control) : base(control)
         {
@@ -102,6 +118,7 @@ namespace YARG.Input
             if (DebounceEnabled)
                 _debounceTimer.Start();
 
+            InvokeStateChanged(State);
             return current;
         }
 
@@ -119,6 +136,7 @@ namespace YARG.Input
                 // Stop timer and process post-debounce value
                 _debounceTimer.Reset();
                 postDebounce = State = _postDebounceValue;
+                InvokeStateChanged(State);
                 return true;
             }
 
@@ -151,8 +169,8 @@ namespace YARG.Input
             bool state = false;
             foreach (var binding in _bindings)
             {
-                var value = binding.UpdateState(eventPtr);
-                state |= value >= binding.PressPoint;
+                binding.UpdateState(eventPtr);
+                state |= binding.IsPressed;
             }
 
             ProcessNextState(eventPtr.time, state);
@@ -183,7 +201,7 @@ namespace YARG.Input
                     continue;
 
                 anyFinished = true;
-                state |= postDebounce >= binding.PressPoint;
+                state |= binding.IsPressed;
             }
 
             if (anyFinished)

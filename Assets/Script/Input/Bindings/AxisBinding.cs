@@ -9,9 +9,49 @@ namespace YARG.Input
 {
     public class SingleAxisBinding : SingleBinding<float>
     {
-        public float Minimum;
-        public float Maximum;
-        public float ZeroPoint;
+        private float _minimum;
+        private float _maximum;
+        private float _zeroPoint;
+
+        public float Minimum
+        {
+            get => _minimum;
+            set
+            {
+                _minimum = value;
+
+                // This state change won't be propogated to the main binding, however calibration settings
+                // should never be changed outside of the binding menu, so that should be fine
+                State = NormalizeProcessor.Normalize(RawState, Minimum, Maximum, ZeroPoint);
+                InvokeStateChanged(State);
+            }
+        }
+
+        public float Maximum
+        {
+            get => _maximum;
+            set
+            {
+                _maximum = value;
+
+                // (see above)
+                State = NormalizeProcessor.Normalize(RawState, Minimum, Maximum, ZeroPoint);
+                InvokeStateChanged(State);
+            }
+        }
+
+        public float ZeroPoint
+        {
+            get => _zeroPoint;
+            set
+            {
+                _zeroPoint = value;
+
+                // (see above)
+                State = NormalizeProcessor.Normalize(RawState, Minimum, Maximum, ZeroPoint);
+                InvokeStateChanged(State);
+            }
+        }
 
         public float RawState { get; private set; }
 
@@ -65,7 +105,9 @@ namespace YARG.Input
                 return State;
 
             RawState = Control.ReadValueFromEvent(eventPtr);
-            return State = NormalizeProcessor.Normalize(RawState, Minimum, Maximum, ZeroPoint);
+            State = NormalizeProcessor.Normalize(RawState, Minimum, Maximum, ZeroPoint);
+            InvokeStateChanged(State);
+            return State;
         }
     }
 
