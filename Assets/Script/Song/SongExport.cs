@@ -1,13 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
+using YARG.Core.Song;
+using YARG.Helpers;
 
 namespace YARG.Song
 {
-    public static class OuvertExport
+    public static class SongExport
     {
-        private class SongData
+        private class OuvertSongData
         {
             [JsonProperty("Name")]
             public string songName;
@@ -32,14 +34,33 @@ namespace YARG.Song
             public ulong songLength;
         }
 
-        public static void ExportOuvertSongsTo(string path)
+        public static void ExportText(string path)
         {
-            var songs = new List<SongData>();
+            // TODO: Allow customizing sorting, as well as which metadata is written and in what order
 
-            // Convert SongInfo to SongData
+            using var output = new StreamWriter(path);
+            foreach (var (category, songs) in GlobalVariables.Instance.SortedSongs.GetSongList(SongAttribute.Artist))
+            {
+                output.WriteLine(category);
+                output.WriteLine("--------------------");
+                foreach (var song in songs)
+                {
+                    string artist = RichTextUtils.StripRichTextTags(song.Artist);
+                    string name = RichTextUtils.StripRichTextTags(song.Name);
+                    output.WriteLine($"{artist} - {name}");
+                }
+            }
+            output.Flush();
+        }
+
+        public static void ExportOuvert(string path)
+        {
+            var songs = new List<OuvertSongData>();
+
+            // Convert SongInfo to OuvertSongData
             foreach (var song in GlobalVariables.Instance.SongContainer.Songs)
             {
-                songs.Add(new SongData
+                songs.Add(new OuvertSongData
                 {
                     songName = song.Name,
                     artistName = song.Artist,

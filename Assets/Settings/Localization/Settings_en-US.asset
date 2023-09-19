@@ -584,6 +584,10 @@ MonoBehaviour:
     m_Localized: Customization
     m_Metadata:
       m_Items: []
+  - m_Id: 64298541386682368
+    m_Localized: Export Songs List (Plain Text)
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

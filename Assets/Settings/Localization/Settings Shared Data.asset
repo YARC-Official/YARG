@@ -24,7 +24,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 53693768667619329
-    m_Key: Button.General.ExportOuvertSongs
+    m_Key: Button.General.ExportSongsOuvert
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64298541386682368
+    m_Key: Button.General.ExportSongsText
     m_Metadata:
       m_Items: []
   - m_Id: 53693768667619330

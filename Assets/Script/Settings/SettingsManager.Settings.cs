@@ -29,9 +29,14 @@ namespace YARG.Settings
 
             #region General
 
-            public void ExportOuvertSongs()
+            public void ExportSongsOuvert()
             {
-                FileExplorerHelper.OpenSaveFile(null, "songs", "json", OuvertExport.ExportOuvertSongsTo);
+                FileExplorerHelper.OpenSaveFile(null, "songs", "json", SongExport.ExportOuvert);
+            }
+
+            public void ExportSongsText()
+            {
+                FileExplorerHelper.OpenSaveFile(null, "songs", "txt", SongExport.ExportText);
             }
 
             public void CopyCurrentSongTextFilePath()

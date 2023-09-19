@@ -19,7 +19,7 @@ namespace YARG.Settings
             new MetadataTab("General")
             {
                 new HeaderMetadata("FileManagement"),
-                new ButtonRowMetadata("ExportOuvertSongs"),
+                new ButtonRowMetadata("ExportSongsOuvert", "ExportSongsText"),
                 new ButtonRowMetadata("CopyCurrentSongTextFilePath", "CopyCurrentSongJsonFilePath"),
                 new HeaderMetadata("Venues"),
                 new ButtonRowMetadata("OpenVenueFolder"),
