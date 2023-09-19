@@ -19,9 +19,9 @@ namespace YARG.Menu.MusicLibrary
 
         public virtual string SideText => string.Empty;
 
-        public virtual async UniTask<Sprite> GetIcon()
+        public virtual UniTask<Sprite> GetIcon()
         {
-            return null;
+            return UniTask.FromResult<Sprite>(null);
         }
 
         public virtual void SecondaryTextClick()
