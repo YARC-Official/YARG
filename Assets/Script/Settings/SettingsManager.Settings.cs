@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using UnityEngine;
 using YARG.Audio;
+using YARG.Core.Game;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers;
 using YARG.Integration;
@@ -169,6 +170,9 @@ namespace YARG.Settings
             public SliderSetting CameraPreset_FadeLength   { get; } = new(1.75f, 0f, 5f);
             [JsonIgnore]
             public SliderSetting CameraPreset_CurveFactor  { get; } = new(0.5f, -3f, 3f);
+
+            [JsonIgnore]
+            public ColorProfile ColorProfile_Ref = ColorProfile.Default;
 
             // ReSharper restore InconsistentNaming
 

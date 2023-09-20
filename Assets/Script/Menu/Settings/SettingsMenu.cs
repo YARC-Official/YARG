@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -49,6 +50,8 @@ namespace YARG.Menu.Settings
                 Refresh();
             }
         }
+
+        public event Action SettingChanged;
 
         public bool UpdateSongLibraryOnExit { get; set; }
 
@@ -184,6 +187,7 @@ namespace YARG.Menu.Settings
             if (!_ready || !gameObject.activeSelf) return;
 
             CurrentTab?.OnSettingChanged();
+            SettingChanged?.Invoke();
         }
 
         // "The Unity message 'OnDisable' has an incorrect signature."

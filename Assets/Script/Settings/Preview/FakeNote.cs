@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 using YARG.Core.Chart;
-using YARG.Core.Game;
 using YARG.Gameplay;
 using YARG.Gameplay.Player;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers.Extensions;
+using YARG.Menu.Settings;
 
 namespace YARG.Settings.Preview
 {
@@ -28,25 +28,33 @@ namespace YARG.Settings.Preview
                 0f, 0f);
 
             // Set color and materials
-            _noteGroup.ColoredMaterial.color = ColorProfile.Default.
-                FiveFretGuitar.GetNoteColor(NoteRef.Fret).ToUnityColor();
             _materials = _noteGroup.GetAllMaterials();
 
-            // Force update position
+            // Force update position and other properties
+            OnSettingChanged();
             Update();
 
-
             gameObject.SetActive(true);
+            SettingsMenu.Instance.SettingChanged += OnSettingChanged;
+        }
+
+        private void OnSettingChanged()
+        {
+            var s = SettingsManager.Settings;
+
+            // Update fade
+            foreach (var material in _materials)
+            {
+                material.SetFade(3f, s.CameraPreset_FadeLength.Data);
+            }
+
+            // Update color
+            _noteGroup.ColoredMaterial.color = s.ColorProfile_Ref.FiveFretGuitar
+                .GetNoteColor(NoteRef.Fret).ToUnityColor();
         }
 
         protected void Update()
         {
-            // Update fade for settings
-            foreach (var material in _materials)
-            {
-                material.SetFade(3f, SettingsManager.Settings.CameraPreset_FadeLength.Data);
-            }
-
             float z =
                 BasePlayer.STRIKE_LINE_POS                             // Shift origin to the strike line
                 + (float) (NoteRef.Time - FakeTrackPlayer.PreviewTime) // Get time of note relative to now
@@ -63,6 +71,7 @@ namespace YARG.Settings.Preview
 
         public void DisableIntoPool()
         {
+            SettingsMenu.Instance.SettingChanged -= OnSettingChanged;
             gameObject.SetActive(false);
         }
     }

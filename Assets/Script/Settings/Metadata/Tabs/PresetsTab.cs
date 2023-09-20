@@ -44,6 +44,7 @@ namespace YARG.Settings.Metadata
                 CustomContentManager.ColorProfiles,
                 new TrackPreviewTab("Presets")
                 {
+                    // TODO: Make a proper UI for this
                     new TextMetadata("ColorProfileSupport")
                 }
             }

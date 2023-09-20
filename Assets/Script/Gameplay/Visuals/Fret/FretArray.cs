@@ -40,9 +40,16 @@ namespace YARG.Gameplay.Visuals
                 // Add
                 var fretComp = fret.GetComponent<Fret>();
                 _frets.Add(fretComp);
+            }
 
-                // Color
-                fretComp.Initialize(
+            InitializeColor(fretColorProvider);
+        }
+
+        public void InitializeColor(ColorProfile.IFretColorProvider fretColorProvider)
+        {
+            for (int i = 0; i < _frets.Count; i++)
+            {
+                _frets[i].Initialize(
                     fretColorProvider.GetFretColor(i + 1),
                     fretColorProvider.GetFretInnerColor(i + 1),
                     fretColorProvider.GetParticleColor(i + 1));

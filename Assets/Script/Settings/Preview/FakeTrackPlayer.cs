@@ -4,6 +4,8 @@ using YARG.Core.Game;
 using YARG.Gameplay;
 using YARG.Gameplay.Player;
 using YARG.Gameplay.Visuals;
+using YARG.Menu.Settings;
+using Random = UnityEngine.Random;
 
 namespace YARG.Settings.Preview
 {
@@ -32,12 +34,18 @@ namespace YARG.Settings.Preview
         {
             _fretArray.Initialize(ColorProfile.Default.FiveFretGuitar, false);
             _hitWindow.gameObject.SetActive(SettingsManager.Settings.ShowHitWindow.Data);
+
+            SettingsMenu.Instance.SettingChanged += OnSettingChanged;
+
+            // Force update it as well to make sure it's right before any settings are changed
+            OnSettingChanged();
         }
 
-        private void Update()
+        private void OnSettingChanged()
         {
-            // Update settings stuff every frame
             var s = SettingsManager.Settings;
+
+            // Update camera presets
             _trackMaterial.Initialize(3f, s.CameraPreset_FadeLength.Data);
             _cameraPositioner.Initialize(
                 s.CameraPreset_FieldOfView.Data,
@@ -45,6 +53,12 @@ namespace YARG.Settings.Preview
                 s.CameraPreset_PositionZ.Data,
                 s.CameraPreset_Rotation.Data);
 
+            // Update color profiles
+            _fretArray.InitializeColor(s.ColorProfile_Ref.FiveFretGuitar);
+        }
+
+        private void Update()
+        {
             // Update the preview notes
             PreviewTime += Time.deltaTime;
 
@@ -71,6 +85,11 @@ namespace YARG.Settings.Preview
             }
 
             _trackMaterial.SetTrackScroll(PreviewTime, NOTE_SPEED);
+        }
+
+        private void OnDestroy()
+        {
+            SettingsMenu.Instance.SettingChanged -= OnSettingChanged;
         }
     }
 }

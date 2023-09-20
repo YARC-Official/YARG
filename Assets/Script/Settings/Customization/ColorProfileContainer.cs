@@ -19,14 +19,13 @@ namespace YARG.Settings.Customization
             {
                 throw new InvalidOperationException("Invalid preset type!");
             }
+
+            SettingsManager.Settings.ColorProfile_Ref = p;
         }
 
         public override void SetPresetFromSettings(BasePreset preset)
         {
-            if (preset is not ColorProfile p)
-            {
-                throw new InvalidOperationException("Invalid preset type!");
-            }
+            // This is not needed since color profile is a reference type
         }
     }
 }
