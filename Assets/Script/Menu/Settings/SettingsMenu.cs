@@ -117,7 +117,9 @@ namespace YARG.Menu.Settings
 
         private void OnTabChanged(string tab)
         {
+            CurrentTab?.OnTabExit();
             CurrentTab = SettingsManager.GetTabByName(tab);
+            CurrentTab.OnTabEnter();
         }
 
         private void OnSelectionChanged(NavigatableBehaviour selected, SelectionOrigin selectionOrigin)
@@ -198,6 +200,10 @@ namespace YARG.Menu.Settings
             {
                 return;
             }
+
+            // Set the current tab back to null to avoid calling OnTabExit twice
+            CurrentTab?.OnTabExit();
+            _currentTab = null;
 
             Navigator.Instance.PopScheme();
             DestroyPreview();

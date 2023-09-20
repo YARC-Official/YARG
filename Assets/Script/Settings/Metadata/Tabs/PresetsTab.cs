@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -61,7 +63,14 @@ namespace YARG.Settings.Metadata
             }
         }
 
-        public BasePreset SelectedPreset;
+        private Guid _selectedPresetId;
+        public BasePreset SelectedPreset
+        {
+            get => SelectedContent.GetBasePresetById(_selectedPresetId);
+            set => _selectedPresetId = value.Id;
+        }
+
+        private FileSystemWatcher _watcher;
 
         public PresetsTab(string name, string icon = "Generic") : base(name, icon)
         {
@@ -74,9 +83,65 @@ namespace YARG.Settings.Metadata
             SelectedPreset = SelectedContent.DefaultBasePresets[0];
         }
 
+        public override void OnTabEnter()
+        {
+            _watcher = new FileSystemWatcher(CustomContentManager.CustomizationDirectory, "*.json")
+            {
+                EnableRaisingEvents = true,
+                IncludeSubdirectories = true
+            };
+
+            // This is async, so we must queue an action for the main thread
+            _watcher.Changed += (_, args) =>
+            {
+                Debug.Log("Preset change detected!");
+
+                // Queue the reload on the main thread
+                UnityMainThreadCallback.QueueEvent(() =>
+                {
+                    OnPresetChanged(args.FullPath);
+                });
+            };
+        }
+
+        private static void OnPresetChanged(string path)
+        {
+            // Find which custom content container uses the directory of the preset
+            foreach (var content in CustomContentManager.CustomContentContainers)
+            {
+                if (content.ContentDirectory != Directory.GetParent(path)?.FullName) continue;
+
+                // Reload it
+                content.ReloadPresetAtPath(path);
+
+                // If the settings menu is open, and in the preset tab, also reload that
+                if (SettingsMenu.Instance.gameObject.activeSelf &&
+                    SettingsMenu.Instance.CurrentTab is PresetsTab)
+                {
+                    SettingsMenu.Instance.Refresh();
+                }
+
+                break;
+            }
+        }
+
+        public override void OnTabExit()
+        {
+            _watcher?.Dispose();
+            _watcher = null;
+        }
+
         public override void BuildSettingTab(Transform settingContainer, NavigationGroup navGroup)
         {
-            SelectedContent.SetSettingsFromPreset(SelectedPreset);
+            // Try to get the preset, and if unsuccessful, load the default one instead
+            var preset = SelectedPreset;
+            if (preset is null)
+            {
+                ResetSelectedPreset();
+                preset = SelectedPreset;
+            }
+
+            SelectedContent.SetSettingsFromPreset(preset);
 
             // Create the preset type dropdown
             var typeDropdown = Object.Instantiate(_presetTypeDropdown, settingContainer);
@@ -91,7 +156,7 @@ namespace YARG.Settings.Metadata
                 return;
             }
 
-            if (SelectedPreset is null || SelectedPreset.DefaultPreset)
+            if (preset is null || preset.DefaultPreset)
             {
                 Object.Instantiate(_presetDefaultText, settingContainer);
             }

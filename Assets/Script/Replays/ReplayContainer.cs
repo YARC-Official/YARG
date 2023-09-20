@@ -44,7 +44,8 @@ namespace YARG.Replays
 
             _watcher = new FileSystemWatcher(ReplayDirectory, "*.replay")
             {
-                EnableRaisingEvents = true, IncludeSubdirectories = true,
+                EnableRaisingEvents = true,
+                IncludeSubdirectories = true
             };
 
             LoadReplayCache();

@@ -18,7 +18,7 @@ namespace YARG.Settings.Customization
         protected static readonly JsonSerializerSettings JsonSettings = new()
         {
             Formatting = Formatting.Indented,
-            Converters = new List<JsonConverter>()
+            Converters = new List<JsonConverter>
             {
                 new JsonColorConverter()
             }
@@ -39,8 +39,15 @@ namespace YARG.Settings.Customization
         public abstract void DeletePreset(BasePreset preset);
         public abstract void RenamePreset(BasePreset preset, string name);
 
+        public abstract void ReloadPresetAtPath(string path);
+
         public abstract void SetSettingsFromPreset(BasePreset preset);
         public abstract void SetPresetFromSettings(BasePreset preset);
+
+        public abstract void SaveAll();
+
+        public abstract BasePreset GetBasePresetById(Guid guid);
+        public abstract bool HasPresetId(Guid guid);
 
         /// <summary>
         /// Adds all of the presets to the specified dropdown.
@@ -148,25 +155,41 @@ namespace YARG.Settings.Customization
             }
         }
 
+        public override void ReloadPresetAtPath(string path)
+        {
+            var preset = LoadFile(path);
+
+            var loadedPreset = GetPresetById(preset.Id);
+
+            if (loadedPreset is null)
+            {
+                // Just add the preset if it doesn't exist
+                Content.Add(preset);
+            }
+            else
+            {
+                // Otherwise, reload it by removing it and re-adding it
+                int index = Content.IndexOf(loadedPreset);
+                Content.RemoveAt(index);
+                Content.Insert(index, preset);
+            }
+        }
+
         public void LoadFiles()
         {
-            var guids = new HashSet<Guid>();
-
             Content.Clear();
 
             PathHelper.SafeEnumerateFiles(ContentDirectory, "*.json", true, (path) =>
             {
-                var preset = JsonConvert.DeserializeObject<T>(File.ReadAllText(path), JsonSettings);
+                var preset = LoadFile(path);
 
                 // See if file already exists
-                if (guids.Contains(preset.Id))
+                if (HasPresetId(preset.Id))
                 {
                     Debug.LogWarning($"Duplicate preset `{path}` found!");
-                    return true;
                 }
 
                 // Otherwise, add the preset
-                guids.Add(preset.Id);
                 Content.Add(preset);
 
                 return true;
@@ -176,9 +199,9 @@ namespace YARG.Settings.Customization
         private void SavePresetFile(T preset)
         {
             var text = JsonConvert.SerializeObject(preset, JsonSettings);
-            var path = CreateFileNameForPreset(preset);
+            var path = Path.Join(ContentDirectory, CreateFileNameForPreset(preset));
 
-            File.WriteAllText(Path.Join(ContentDirectory, path), text);
+            File.WriteAllText(path, text);
         }
 
         private void DeletePresetFile(T preset)
@@ -197,7 +220,7 @@ namespace YARG.Settings.Customization
             });
         }
 
-        public void SaveAll()
+        public override void SaveAll()
         {
             foreach (var preset in CustomPresets)
             {
@@ -220,9 +243,19 @@ namespace YARG.Settings.Customization
             return null;
         }
 
-        public bool HasPresetId(Guid guid)
+        public override BasePreset GetBasePresetById(Guid guid)
+        {
+            return GetPresetById(guid);
+        }
+
+        public override bool HasPresetId(Guid guid)
         {
             return GetPresetById(guid) is not null;
+        }
+
+        private static T LoadFile(string path)
+        {
+            return JsonConvert.DeserializeObject<T>(File.ReadAllText(path), JsonSettings);
         }
     }
 }

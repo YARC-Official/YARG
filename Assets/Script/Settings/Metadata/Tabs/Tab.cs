@@ -18,6 +18,14 @@ namespace YARG.Settings.Metadata
 
         public abstract void BuildSettingTab(Transform settingContainer, NavigationGroup navGroup);
 
+        public virtual void OnTabEnter()
+        {
+        }
+
+        public virtual void OnTabExit()
+        {
+        }
+
         public virtual UniTask BuildPreviewWorld(Transform worldContainer)
         {
             return UniTask.CompletedTask;
