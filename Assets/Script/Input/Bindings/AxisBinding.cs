@@ -2,7 +2,6 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
-using UnityEngine.InputSystem.Processors;
 using YARG.Input.Serialization;
 
 namespace YARG.Input
@@ -137,7 +136,30 @@ namespace YARG.Input
 
         private float CalculateState(float rawValue)
         {
-            return NormalizeProcessor.Normalize(rawValue * _invertSign, Minimum, Maximum, ZeroPoint);
+            float max;
+            float min;
+            float @base;
+
+            if (rawValue > ZeroPoint)
+            {
+                max = Maximum;
+                min = ZeroPoint;
+                @base = 0;
+            }
+            else
+            {
+                max = ZeroPoint;
+                min = Minimum;
+                @base = -1;
+            }
+
+            rawValue *= _invertSign;
+            float percentage = (rawValue - min) / (max - min);
+            float value = @base + percentage;
+            if (float.IsNaN(value))
+                value = 0;
+
+            return value;
         }
     }
 
