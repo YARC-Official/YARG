@@ -286,13 +286,17 @@ namespace YARG.Menu.DifficultySelect
                 profile.CurrentInstrument = _possibleInstruments[0];
             }
 
-            // Get the possible modifiers
+            // Get the possible modifiers (split the enum into multiple) and
+            // make sure current modifiers are valid, and remove the invalid ones
             _possibleModifiers.Clear();
-            _possibleModifiers.AddRange(profile.GameMode.PossibleModifiers());
-
-            // Make sure current modifiers are valid, and remove the invalid ones
+            var possible = profile.GameMode.PossibleModifiers();
             foreach (var modifier in EnumExtensions<Modifier>.Values)
             {
+                // Skip if the modifier is not a possible one
+                if ((possible & modifier) == 0) continue;
+
+                _possibleModifiers.Add(modifier);
+
                 if (profile.IsModifierActive(modifier) && !_possibleModifiers.Contains(modifier))
                 {
                     profile.RemoveModifiers(modifier);
