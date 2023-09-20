@@ -7,11 +7,11 @@ namespace YARG.Menu.Profiles
     public class ButtonBindView : BindView<float, ButtonBinding, SingleButtonBinding>
     {
         [SerializeField]
-        private Slider _rawValueSlider;
+        private AxisDisplay _rawValueDisplay;
         [SerializeField]
         private Image _rawPressedIndicator;
         [SerializeField]
-        private Slider _calibratedValueSlider;
+        private AxisDisplay _calibratedValueDisplay;
         [SerializeField]
         private Image _calibratedPressedIndicator;
 
@@ -33,9 +33,10 @@ namespace YARG.Menu.Profiles
         {
             base.Init(editProfileMenu, binding, singleBinding);
 
-            _invertToggle.SetIsOnWithoutNotify(singleBinding.Inverted);
-            _pressPointSlider.SetValueWithoutNotify(singleBinding.PressPoint);
-            _debounceSlider.SetValueWithoutNotify(singleBinding.DebounceThreshold);
+            // Set with notify for propogation to other components
+            _invertToggle.isOn = singleBinding.Inverted;
+            _pressPointSlider.Value = singleBinding.PressPoint;
+            _debounceSlider.Value = singleBinding.DebounceThreshold;
 
             singleBinding.StateChanged += OnStateChanged;
             OnStateChanged(singleBinding.State);
@@ -48,8 +49,8 @@ namespace YARG.Menu.Profiles
 
         private void OnStateChanged(float state)
         {
-            _rawValueSlider.value = SingleBinding.RawState;
-            _calibratedValueSlider.value = state;
+            _rawValueDisplay.Value = SingleBinding.RawState;
+            _calibratedValueDisplay.Value = state;
 
             _rawPressedIndicator.color = SingleBinding.IsPressedRaw ? _pressedColor : _releasedColor;
             _calibratedPressedIndicator.color = SingleBinding.IsPressed ? _pressedColor : _releasedColor;
@@ -63,6 +64,8 @@ namespace YARG.Menu.Profiles
         public void OnPressPointChanged(float value)
         {
             SingleBinding.PressPoint = value;
+            _rawValueDisplay.PressPoint = value;
+            _calibratedValueDisplay.PressPoint = value;
         }
 
         public void OnDebounceValueChanged(float value)

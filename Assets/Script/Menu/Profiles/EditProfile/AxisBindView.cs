@@ -7,9 +7,9 @@ namespace YARG.Menu.Profiles
     public class AxisBindView : BindView<float, AxisBinding, SingleAxisBinding>
     {
         [SerializeField]
-        private Slider _rawValueSlider;
+        private AxisDisplay _rawValueDisplay;
         [SerializeField]
-        private Slider _calibratedValueSlider;
+        private AxisDisplay _calibratedValueDisplay;
 
         [Space]
         [SerializeField]
@@ -27,9 +27,8 @@ namespace YARG.Menu.Profiles
         {
             base.Init(editProfileMenu, binding, singleBinding);
 
-            _invertToggle.SetIsOnWithoutNotify(singleBinding.Inverted);
-
-            // Set with notify so that value corrections will occur
+            // Set with notify for value corrections and propogation to other components
+            _invertToggle.isOn = singleBinding.Inverted;
             _maxValueSlider.Value = singleBinding.Maximum;
             _minValueSlider.Value = singleBinding.Minimum;
             _upperDeadzoneSlider.Value = singleBinding.UpperDeadzone;
@@ -51,13 +50,15 @@ namespace YARG.Menu.Profiles
 
         private void OnStateChanged(float state)
         {
-            _rawValueSlider.value = SingleBinding.RawState;
-            _calibratedValueSlider.value = state;
+            _rawValueDisplay.Value = SingleBinding.RawState;
+            _calibratedValueDisplay.Value = state;
         }
 
         public void OnMaxValueChanged(float value)
         {
             SingleBinding.Maximum = value;
+            _rawValueDisplay.Maximum = value;
+            _calibratedValueDisplay.Maximum = value;
 
             if (value < SingleBinding.Minimum)
                 _minValueSlider.Value = value;
@@ -72,6 +73,8 @@ namespace YARG.Menu.Profiles
         public void OnMinValueChanged(float value)
         {
             SingleBinding.Minimum = value;
+            _rawValueDisplay.Minimum = value;
+            _calibratedValueDisplay.Minimum = value;
 
             if (value > SingleBinding.Maximum)
                 _maxValueSlider.Value = value;
@@ -86,6 +89,8 @@ namespace YARG.Menu.Profiles
         public void OnUpperDeadzoneChanged(float value)
         {
             SingleBinding.UpperDeadzone = value;
+            _rawValueDisplay.UpperDeadzone = value;
+            _calibratedValueDisplay.UpperDeadzone = value;
 
             if (value > SingleBinding.Maximum)
                 _maxValueSlider.Value = value;
@@ -100,6 +105,8 @@ namespace YARG.Menu.Profiles
         public void OnLowerDeadzoneChanged(float value)
         {
             SingleBinding.LowerDeadzone = value;
+            _rawValueDisplay.LowerDeadzone = value;
+            _calibratedValueDisplay.LowerDeadzone = value;
 
             if (value < SingleBinding.Minimum)
                 _minValueSlider.Value = value;
