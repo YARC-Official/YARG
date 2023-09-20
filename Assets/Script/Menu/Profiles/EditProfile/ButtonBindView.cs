@@ -7,9 +7,13 @@ namespace YARG.Menu.Profiles
     public class ButtonBindView : BindView<float, ButtonBinding, SingleButtonBinding>
     {
         [SerializeField]
-        private Slider _valueSlider;
+        private Slider _rawValueSlider;
         [SerializeField]
-        private Image _pressedIndicator;
+        private Image _rawPressedIndicator;
+        [SerializeField]
+        private Slider _calibratedValueSlider;
+        [SerializeField]
+        private Image _calibratedPressedIndicator;
 
         [Space]
         [SerializeField]
@@ -19,6 +23,8 @@ namespace YARG.Menu.Profiles
 
         [Space]
         [SerializeField]
+        private Toggle _invertToggle;
+        [SerializeField]
         private ValueSlider _pressPointSlider;
         [SerializeField]
         private ValueSlider _debounceSlider;
@@ -27,6 +33,7 @@ namespace YARG.Menu.Profiles
         {
             base.Init(editProfileMenu, binding, singleBinding);
 
+            _invertToggle.SetIsOnWithoutNotify(singleBinding.Inverted);
             _pressPointSlider.SetValueWithoutNotify(singleBinding.PressPoint);
             _debounceSlider.SetValueWithoutNotify(singleBinding.DebounceThreshold);
 
@@ -41,9 +48,16 @@ namespace YARG.Menu.Profiles
 
         private void OnStateChanged(float state)
         {
-            _valueSlider.value = state;
+            _rawValueSlider.value = SingleBinding.RawState;
+            _calibratedValueSlider.value = state;
 
-            _pressedIndicator.color = SingleBinding.IsPressed ? _pressedColor : _releasedColor;
+            _rawPressedIndicator.color = SingleBinding.IsPressedRaw ? _pressedColor : _releasedColor;
+            _calibratedPressedIndicator.color = SingleBinding.IsPressed ? _pressedColor : _releasedColor;
+        }
+
+        public void OnInvertChanged(bool value)
+        {
+            SingleBinding.Inverted = value;
         }
 
         public void OnPressPointChanged(float value)

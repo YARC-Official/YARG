@@ -13,6 +13,8 @@ namespace YARG.Menu.Profiles
 
         [Space]
         [SerializeField]
+        private Toggle _invertToggle;
+        [SerializeField]
         private ValueSlider _maxValueSlider;
         [SerializeField]
         private ValueSlider _minValueSlider;
@@ -22,6 +24,8 @@ namespace YARG.Menu.Profiles
         public override void Init(EditProfileMenu editProfileMenu, AxisBinding binding, SingleAxisBinding singleBinding)
         {
             base.Init(editProfileMenu, binding, singleBinding);
+
+            _invertToggle.SetIsOnWithoutNotify(singleBinding.Inverted);
 
             // Set with notify so that value corrections will occur
             _maxValueSlider.Value = singleBinding.Maximum;
@@ -35,6 +39,11 @@ namespace YARG.Menu.Profiles
         private void OnDestroy()
         {
             SingleBinding.StateChanged -= OnStateChanged;
+        }
+
+        public void OnInvertChanged(bool value)
+        {
+            SingleBinding.Inverted = value;
         }
 
         private void OnStateChanged(float state)

@@ -41,13 +41,37 @@ namespace YARG.Input
                 // This state change won't be propogated to the main binding, however calibration settings
                 // should never be changed outside of the binding menu, so that should be fine
                 if (pressed != IsPressed)
+                {
+                    State = CalculateState(RawState);
                     InvokeStateChanged(State);
+                }
+            }
+        }
+
+        private float _invertSign = 1;
+        public bool Inverted
+        {
+            get => float.IsNegative(_invertSign);
+            set
+            {
+                bool inverted = Inverted;
+                _invertSign = value ? -1 : 1;
+
+                // (see above)
+                if (inverted != Inverted)
+                {
+                    State = CalculateState(RawState);
+                    InvokeStateChanged(State);
+                }
             }
         }
 
         private float _postDebounceValue;
 
+        public float RawState { get; private set; }
+
         public bool IsPressed => State >= PressPoint;
+        public bool IsPressedRaw => RawState >= PressPoint;
 
         public SingleButtonBinding(InputControl<float> control) : base(control)
         {
@@ -68,6 +92,12 @@ namespace YARG.Input
         public SingleButtonBinding(InputControl<float> control, SerializedInputControl serialized)
             : base(control, serialized)
         {
+            if (!serialized.Parameters.TryGetValue(nameof(Inverted), out string invertedText) ||
+                !bool.TryParse(invertedText, out bool inverted))
+                inverted = false;
+
+            Inverted = inverted;
+
             if (!serialized.Parameters.TryGetValue(nameof(PressPoint), out string pressPointText) ||
                 !float.TryParse(pressPointText, out float pressPoint))
                 pressPoint = InputSystem.settings.defaultButtonPressPoint;
@@ -87,6 +117,7 @@ namespace YARG.Input
             if (serialized is null)
                 return null;
 
+            serialized.Parameters.Add(nameof(Inverted), Inverted.ToString().ToLower());
             serialized.Parameters.Add(nameof(PressPoint), PressPoint.ToString());
             serialized.Parameters.Add(nameof(DebounceThreshold), DebounceThreshold.ToString());
 
@@ -100,32 +131,35 @@ namespace YARG.Input
                 return State;
 
             // Read new state
-            float current = Control.ReadValueFromEvent(eventPtr);
+            RawState = Control.ReadValueFromEvent(eventPtr);
+            _postDebounceValue = CalculateState(RawState);
 
             // Check debounce
             if (_debounceTimer.IsRunning && _debounceTimer.ElapsedMilliseconds < DebounceThreshold)
             {
-                // Save for when debounce ends
-                _postDebounceValue = current;
+                // Wait for when debounce ends
                 return State;
             }
 
             // Stop debounce and process this event normally
             _debounceTimer.Reset();
-            _postDebounceValue = State = current;
+            State = _postDebounceValue;
 
             // Start debounce again if enabled
             if (DebounceEnabled)
                 _debounceTimer.Start();
 
             InvokeStateChanged(State);
-            return current;
+            return State;
         }
 
-        public bool UpdateDebounce(out float postDebounce)
+        private float CalculateState(float rawValue)
         {
-            postDebounce = -1;
+            return RawState * _invertSign;
+        }
 
+        public bool UpdateDebounce()
+        {
             // Ignore if debounce is disabled
             if (!DebounceEnabled)
                 return false;
@@ -135,7 +169,7 @@ namespace YARG.Input
             {
                 // Stop timer and process post-debounce value
                 _debounceTimer.Reset();
-                postDebounce = State = _postDebounceValue;
+                State = _postDebounceValue;
                 InvokeStateChanged(State);
                 return true;
             }
@@ -197,7 +231,7 @@ namespace YARG.Input
             bool state = false;
             foreach (var binding in _bindings)
             {
-                if (!binding.UpdateDebounce(out float postDebounce))
+                if (!binding.UpdateDebounce())
                     continue;
 
                 anyFinished = true;

@@ -9,9 +9,27 @@ namespace YARG.Input
 {
     public class SingleAxisBinding : SingleBinding<float>
     {
+        private float _invertSign = 1;
         private float _minimum;
         private float _maximum;
         private float _zeroPoint;
+
+        public bool Inverted
+        {
+            get => float.IsNegative(_invertSign);
+            set
+            {
+                bool inverted = Inverted;
+                _invertSign = value ? -1 : 1;
+
+                // (see above)
+                if (inverted != Inverted)
+                {
+                    State = CalculateState(RawState);
+                    InvokeStateChanged(State);
+                }
+            }
+        }
 
         public float Minimum
         {
@@ -22,7 +40,7 @@ namespace YARG.Input
 
                 // This state change won't be propogated to the main binding, however calibration settings
                 // should never be changed outside of the binding menu, so that should be fine
-                State = NormalizeProcessor.Normalize(RawState, Minimum, Maximum, ZeroPoint);
+                State = CalculateState(RawState);
                 InvokeStateChanged(State);
             }
         }
@@ -35,7 +53,7 @@ namespace YARG.Input
                 _maximum = value;
 
                 // (see above)
-                State = NormalizeProcessor.Normalize(RawState, Minimum, Maximum, ZeroPoint);
+                State = CalculateState(RawState);
                 InvokeStateChanged(State);
             }
         }
@@ -48,7 +66,7 @@ namespace YARG.Input
                 _zeroPoint = value;
 
                 // (see above)
-                State = NormalizeProcessor.Normalize(RawState, Minimum, Maximum, ZeroPoint);
+                State = CalculateState(RawState);
                 InvokeStateChanged(State);
             }
         }
@@ -67,6 +85,12 @@ namespace YARG.Input
         public SingleAxisBinding(InputControl<float> control, SerializedInputControl serialized)
             : base(control, serialized)
         {
+            if (!serialized.Parameters.TryGetValue(nameof(Inverted), out string invertedText) ||
+                !bool.TryParse(invertedText, out bool inverted))
+                inverted = false;
+
+            Inverted = inverted;
+
             if (!serialized.Parameters.TryGetValue(nameof(Minimum), out string minText) ||
                 !float.TryParse(minText, out float min))
                 min = 0f;
@@ -92,6 +116,7 @@ namespace YARG.Input
             if (serialized is null)
                 return null;
 
+            serialized.Parameters.Add(nameof(Inverted), Inverted.ToString().ToLower());
             serialized.Parameters.Add(nameof(Minimum), Minimum.ToString());
             serialized.Parameters.Add(nameof(Maximum), Maximum.ToString());
             serialized.Parameters.Add(nameof(ZeroPoint), ZeroPoint.ToString());
@@ -105,9 +130,14 @@ namespace YARG.Input
                 return State;
 
             RawState = Control.ReadValueFromEvent(eventPtr);
-            State = NormalizeProcessor.Normalize(RawState, Minimum, Maximum, ZeroPoint);
+            State = CalculateState(RawState);
             InvokeStateChanged(State);
             return State;
+        }
+
+        private float CalculateState(float rawValue)
+        {
+            return NormalizeProcessor.Normalize(rawValue * _invertSign, Minimum, Maximum, ZeroPoint);
         }
     }
 
