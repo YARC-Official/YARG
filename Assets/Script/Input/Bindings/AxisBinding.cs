@@ -11,7 +11,9 @@ namespace YARG.Input
         private float _invertSign = 1;
         private float _minimum;
         private float _maximum;
-        private float _zeroPoint;
+
+        private float _lowerDeadzone;
+        private float _upperDeadzone;
 
         public bool Inverted
         {
@@ -21,7 +23,8 @@ namespace YARG.Input
                 bool inverted = Inverted;
                 _invertSign = value ? -1 : 1;
 
-                // (see above)
+                // This state change won't be propogated to the main binding, however calibration settings
+                // should never be changed outside of the binding menu, so that should be fine
                 if (inverted != Inverted)
                 {
                     State = CalculateState(RawState);
@@ -37,8 +40,7 @@ namespace YARG.Input
             {
                 _minimum = value;
 
-                // This state change won't be propogated to the main binding, however calibration settings
-                // should never be changed outside of the binding menu, so that should be fine
+                // (see above)
                 State = CalculateState(RawState);
                 InvokeStateChanged(State);
             }
@@ -57,12 +59,25 @@ namespace YARG.Input
             }
         }
 
-        public float ZeroPoint
+        public float LowerDeadzone
         {
-            get => _zeroPoint;
+            get => _lowerDeadzone;
             set
             {
-                _zeroPoint = value;
+                _lowerDeadzone = value;
+
+                // (see above)
+                State = CalculateState(RawState);
+                InvokeStateChanged(State);
+            }
+        }
+
+        public float UpperDeadzone
+        {
+            get => _upperDeadzone;
+            set
+            {
+                _upperDeadzone = value;
 
                 // (see above)
                 State = CalculateState(RawState);
@@ -102,11 +117,17 @@ namespace YARG.Input
 
             Maximum = max;
 
-            if (!serialized.Parameters.TryGetValue(nameof(ZeroPoint), out string zeroPointText) ||
-                !float.TryParse(zeroPointText, out float zeroPoint))
-                zeroPoint = 0;
+            if (!serialized.Parameters.TryGetValue(nameof(LowerDeadzone), out string lowerText) ||
+                !float.TryParse(lowerText, out float lower))
+                lower = 0f;
 
-            ZeroPoint = zeroPoint;
+            LowerDeadzone = lower;
+
+            if (!serialized.Parameters.TryGetValue(nameof(UpperDeadzone), out string upperText) ||
+                !float.TryParse(upperText, out float upper))
+                upper = 0f;
+
+            UpperDeadzone = upper;
         }
 
         public override SerializedInputControl Serialize()
@@ -118,7 +139,8 @@ namespace YARG.Input
             serialized.Parameters.Add(nameof(Inverted), Inverted.ToString().ToLower());
             serialized.Parameters.Add(nameof(Minimum), Minimum.ToString());
             serialized.Parameters.Add(nameof(Maximum), Maximum.ToString());
-            serialized.Parameters.Add(nameof(ZeroPoint), ZeroPoint.ToString());
+            serialized.Parameters.Add(nameof(LowerDeadzone), LowerDeadzone.ToString());
+            serialized.Parameters.Add(nameof(UpperDeadzone), UpperDeadzone.ToString());
 
             return serialized;
         }
@@ -140,25 +162,29 @@ namespace YARG.Input
             float min;
             float @base;
 
-            if (rawValue > ZeroPoint)
+            if (rawValue > UpperDeadzone)
             {
                 max = Maximum;
-                min = ZeroPoint;
+                min = UpperDeadzone;
                 @base = 0;
             }
-            else
+            else if (rawValue < LowerDeadzone)
             {
-                max = ZeroPoint;
+                max = LowerDeadzone;
                 min = Minimum;
                 @base = -1;
             }
+            else
+            {
+                return 0;
+            }
 
-            rawValue *= _invertSign;
             float percentage = (rawValue - min) / (max - min);
             float value = @base + percentage;
             if (float.IsNaN(value))
                 value = 0;
 
+            value *= _invertSign;
             return value;
         }
     }

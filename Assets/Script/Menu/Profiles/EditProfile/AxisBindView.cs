@@ -19,7 +19,9 @@ namespace YARG.Menu.Profiles
         [SerializeField]
         private ValueSlider _minValueSlider;
         [SerializeField]
-        private ValueSlider _zeroPointSlider;
+        private ValueSlider _upperDeadzoneSlider;
+        [SerializeField]
+        private ValueSlider _lowerDeadzoneSlider;
 
         public override void Init(EditProfileMenu editProfileMenu, AxisBinding binding, SingleAxisBinding singleBinding)
         {
@@ -30,7 +32,8 @@ namespace YARG.Menu.Profiles
             // Set with notify so that value corrections will occur
             _maxValueSlider.Value = singleBinding.Maximum;
             _minValueSlider.Value = singleBinding.Minimum;
-            _zeroPointSlider.Value = singleBinding.ZeroPoint;
+            _upperDeadzoneSlider.Value = singleBinding.UpperDeadzone;
+            _lowerDeadzoneSlider.Value = singleBinding.LowerDeadzone;
 
             singleBinding.StateChanged += OnStateChanged;
             OnStateChanged(singleBinding.State);
@@ -59,8 +62,11 @@ namespace YARG.Menu.Profiles
             if (value < SingleBinding.Minimum)
                 _minValueSlider.Value = value;
 
-            if (value < SingleBinding.ZeroPoint)
-                _zeroPointSlider.Value = value;
+            if (value < SingleBinding.UpperDeadzone)
+                _upperDeadzoneSlider.Value = value;
+
+            if (value < SingleBinding.LowerDeadzone)
+                _lowerDeadzoneSlider.Value = value;
         }
 
         public void OnMinValueChanged(float value)
@@ -70,19 +76,39 @@ namespace YARG.Menu.Profiles
             if (value > SingleBinding.Maximum)
                 _maxValueSlider.Value = value;
 
-            if (value > SingleBinding.ZeroPoint)
-                _zeroPointSlider.Value = value;
+            if (value > SingleBinding.LowerDeadzone)
+                _lowerDeadzoneSlider.Value = value;
+
+            if (value > SingleBinding.UpperDeadzone)
+                _upperDeadzoneSlider.Value = value;
         }
 
-        public void OnZeroPointChanged(float value)
+        public void OnUpperDeadzoneChanged(float value)
         {
-            SingleBinding.ZeroPoint = value;
+            SingleBinding.UpperDeadzone = value;
 
             if (value > SingleBinding.Maximum)
                 _maxValueSlider.Value = value;
 
             if (value < SingleBinding.Minimum)
                 _minValueSlider.Value = value;
+
+            if (value < SingleBinding.LowerDeadzone)
+                _lowerDeadzoneSlider.Value = value;
+        }
+
+        public void OnLowerDeadzoneChanged(float value)
+        {
+            SingleBinding.LowerDeadzone = value;
+
+            if (value < SingleBinding.Minimum)
+                _minValueSlider.Value = value;
+
+            if (value > SingleBinding.Maximum)
+                _maxValueSlider.Value = value;
+
+            if (value > SingleBinding.UpperDeadzone)
+                _upperDeadzoneSlider.Value = value;
         }
     }
 }
