@@ -30,8 +30,7 @@ namespace YARG.Gameplay.Visuals
         private SustainLine _sustainLine;
 
         // Make sure the remove it later if it has a sustain
-        protected override float RemovePointOffset =>
-            (float) NoteRef.TimeLength * Player.NoteSpeed;
+        protected override float RemovePointOffset => (float) NoteRef.TimeLength * Player.NoteSpeed;
 
         protected override void InitializeElement()
         {
@@ -66,8 +65,8 @@ namespace YARG.Gameplay.Visuals
                 NoteGroup = NoteRef.Type switch
                 {
                     GuitarNoteType.Strum => _openGroup,
-                    GuitarNoteType.Hopo  => _openHopoGroup,
-                    _                    => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
+                    GuitarNoteType.Hopo or GuitarNoteType.Tap => _openHopoGroup,
+                    _ => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
                 };
 
                 _sustainLine = _openSustainLine;
@@ -134,8 +133,8 @@ namespace YARG.Gameplay.Visuals
             NoteGroup.ColoredMaterial.SetColor(_emissionColor, color.ToUnityColor() * 8f);
 
             // TODO: Temporary
-            // Change color for open HOPOs
-            if (NoteRef.Fret == 0 && NoteRef.Type == GuitarNoteType.Hopo)
+            // Change color for open HOPOs/Taps
+            if (NoteRef.Fret == 0 && NoteRef.Type is GuitarNoteType.Hopo or GuitarNoteType.Tap)
             {
                 NoteGroup.ColoredMaterial.color += new Color(3f, 3f, 3f, 0f);
             }
