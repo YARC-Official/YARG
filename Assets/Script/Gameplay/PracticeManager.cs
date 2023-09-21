@@ -108,6 +108,11 @@ namespace YARG.Gameplay
 
         public void SetPracticeSection(Section start, Section end)
         {
+            if(start.Time > end.Time)
+            {
+                (start, end) = (end, start);
+            }
+
             _sectionStartTick = start.Tick;
             _sectionStartTime = start.Time;
 
@@ -119,6 +124,12 @@ namespace YARG.Gameplay
 
         public void SetPracticeSection(uint tickStart, uint tickEnd, double timeStart, double timeEnd)
         {
+            if (timeStart > timeEnd)
+            {
+                (timeStart, timeEnd) = (timeEnd, timeStart);
+                (tickStart, tickEnd) = (tickEnd, tickStart);
+            }
+
             _tickStart = tickStart;
             _tickEnd = tickEnd;
             TimeStart = timeStart;
@@ -145,6 +156,12 @@ namespace YARG.Gameplay
             _tickStart = tick;
             TimeStart = startTime;
 
+            if(TimeStart > TimeEnd)
+            {
+                TimeStart = TimeEnd;
+                _tickStart = _tickEnd;
+            }
+
             HasUpdatedAbPositions = true;
         }
 
@@ -156,6 +173,12 @@ namespace YARG.Gameplay
 
             _tickEnd = tick;
             TimeEnd = endTime;
+
+            if(TimeEnd < TimeStart)
+            {
+                TimeEnd = TimeStart;
+                _tickEnd = _tickStart;
+            }
 
             HasUpdatedAbPositions = true;
         }
