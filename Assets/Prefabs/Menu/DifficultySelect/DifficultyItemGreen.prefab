@@ -7,10 +7,15 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 70200645977546920, guid: 4442d264050ba2d48a3625616ee2f9d4,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2176243544762969456, guid: 4442d264050ba2d48a3625616ee2f9d4,
         type: 3}
       propertyPath: m_Name
-      value: DifficultyReady
+      value: DifficultyItemGreen
       objectReference: {fileID: 0}
     - target: {fileID: 3516380366716677501, guid: 4442d264050ba2d48a3625616ee2f9d4,
         type: 3}

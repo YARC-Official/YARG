@@ -15,33 +15,24 @@ namespace YARG.Menu.MusicLibrary
         [Space]
         [SerializeField]
         private GameObject _normalBackground;
-
         [SerializeField]
         private GameObject _selectedBackground;
-
         [SerializeField]
         private GameObject _categoryBackground;
-
-        [SerializeField]
-        private GameObject _selectedCategoryBackground;
 
         [Space]
         [SerializeField]
         private GameObject _secondaryTextContiner;
-
         [SerializeField]
         private GameObject _asMadeFamousByTextContainer;
 
         [Space]
         [SerializeField]
         private TextMeshProUGUI _primaryText;
-
         [SerializeField]
         private TextMeshProUGUI[] _secondaryText;
-
         [SerializeField]
         private TextMeshProUGUI _sideText;
-
         [SerializeField]
         private Image _icon;
 
@@ -140,7 +131,6 @@ namespace YARG.Menu.MusicLibrary
             _normalBackground.SetActive(false);
             _selectedBackground.SetActive(false);
             _categoryBackground.SetActive(false);
-            _selectedCategoryBackground.SetActive(false);
 
             switch (type)
             {
@@ -158,7 +148,7 @@ namespace YARG.Menu.MusicLibrary
                 case ViewType.BackgroundType.Category:
                     if (selected)
                     {
-                        _selectedCategoryBackground.SetActive(true);
+                        _selectedBackground.SetActive(true);
                     }
                     else
                     {
