@@ -8,9 +8,9 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using YARG.Audio;
+using YARG.Core.Extensions;
 using YARG.Core.Input;
 using YARG.Core.Song;
-using YARG.Gameplay;
 using YARG.Menu.Navigation;
 using YARG.Player;
 using YARG.Settings;
@@ -26,12 +26,11 @@ namespace YARG.Menu.MusicLibrary
         Practice
     }
 
+    // TODO: Eventually make this NOT a singleton
     public class MusicLibraryMenu : MonoSingleton<MusicLibraryMenu>
     {
         private const int SONG_VIEW_EXTRA = 15;
         private const float SCROLL_TIME = 1f / 60f;
-
-        public static bool RefreshFlag = true;
 
         [HideInInspector]
         public MusicLibraryMode LibraryMode;
@@ -68,7 +67,9 @@ namespace YARG.Menu.MusicLibrary
         private CancellationTokenSource _previewCanceller = new();
 
         public IReadOnlyList<ViewType> ViewList => _viewList;
-        public ViewType CurrentSelection => 0 <= _selectedIndex && _selectedIndex < _viewList?.Count ? _viewList[_selectedIndex] : null;
+        public ViewType CurrentSelection => (0 <= _selectedIndex && _selectedIndex < _viewList?.Count)
+            ? _viewList[_selectedIndex]
+            : null;
 
         private SongMetadata _currentSong;
 
@@ -116,13 +117,11 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
-        private float _scrollTimer = 0f;
-        private bool _searchBoxShouldBeEnabled = false;
+        private float _scrollTimer;
+        private bool _searchBoxShouldBeEnabled;
 
         protected override void SingletonAwake()
         {
-            RefreshFlag = true;
-
             // Create all of the song views
             _songViewObjects = new();
             for (int i = 0; i < SONG_VIEW_EXTRA * 2 + 1; i++)
@@ -148,15 +147,11 @@ namespace YARG.Menu.MusicLibrary
             var navigationScheme = GetNavigationScheme();
             Navigator.Instance.PushScheme(navigationScheme);
 
-            if (RefreshFlag)
-            {
-                _viewList = null;
-                _recommendedSongs = null;
+            _viewList = null;
+            _recommendedSongs = null;
 
-                // Get songs
-                UpdateSearch(true);
-                RefreshFlag = false;
-            }
+            // Get songs
+            UpdateSearch(true);
 
             // Set proper text
             _subHeader.text = LibraryMode switch
@@ -266,7 +261,7 @@ namespace YARG.Menu.MusicLibrary
         public void NextSort()
         {
             var next = (int) _sort + 1;
-            if (next >= Enum.GetNames(typeof(SongAttribute)).Length)
+            if (next >= EnumExtensions<SongAttribute>.Count)
             {
                 next = 1;
             }

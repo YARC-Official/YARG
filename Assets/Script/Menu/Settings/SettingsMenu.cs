@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -9,7 +8,6 @@ using UnityEngine.UI;
 using YARG.Core.Input;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
-using YARG.Menu.MusicLibrary;
 using YARG.Menu.Navigation;
 using YARG.Settings;
 using YARG.Settings.Customization;
@@ -52,8 +50,6 @@ namespace YARG.Menu.Settings
         }
 
         public event Action SettingChanged;
-
-        public bool UpdateSongLibraryOnExit { get; set; }
 
         // Workaround to avoid errors when deactivating menu during startup
         private bool _ready;
@@ -192,9 +188,7 @@ namespace YARG.Menu.Settings
             SettingChanged?.Invoke();
         }
 
-        // "The Unity message 'OnDisable' has an incorrect signature."
-        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTask is a compatible return type.")]
-        private async UniTask OnDisable()
+        private void OnDisable()
         {
             if (!_ready)
             {
@@ -214,18 +208,6 @@ namespace YARG.Menu.Settings
             // Save on close
             SettingsManager.SaveSettings();
             CustomContentManager.SaveAll();
-
-            if (UpdateSongLibraryOnExit)
-            {
-                UpdateSongLibraryOnExit = false;
-
-                // Do a song refresh if requested
-                LoadingManager.Instance.QueueSongRefresh(true);
-                await LoadingManager.Instance.StartLoad();
-
-                // Then refresh song select
-                MusicLibraryMenu.RefreshFlag = true;
-            }
         }
     }
 }
