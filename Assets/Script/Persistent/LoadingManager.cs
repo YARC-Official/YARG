@@ -100,8 +100,6 @@ namespace YARG
             stopwatch.Stop();
 
             Debug.Log($"Scan time: {stopwatch.Elapsed.TotalSeconds}s");
-            foreach (var err in handler.errorList)
-                Debug.LogError(err);
 
             // Remove official setlist path so it doesn't show up in the list of folders
             if (!string.IsNullOrEmpty(setlistPath))
