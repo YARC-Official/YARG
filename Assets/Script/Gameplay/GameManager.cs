@@ -112,6 +112,7 @@ namespace YARG.Gameplay
 
         public PracticeManager  PracticeManager  { get; private set; }
         public BeatEventManager BeatEventManager { get; private set; }
+        public BackgroundManager BackgroundManager { get; private set; }
 
         public SongMetadata Song  { get; private set; }
         public SongChart    Chart { get; private set; }
@@ -142,6 +143,7 @@ namespace YARG.Gameplay
             // Set references
             PracticeManager = GetComponent<PracticeManager>();
             BeatEventManager = GetComponent<BeatEventManager>();
+            BackgroundManager = GetComponent<BackgroundManager>();
 
             _yargPlayers = PlayerContainer.Players;
 
@@ -165,6 +167,9 @@ namespace YARG.Gameplay
             Navigator.Instance.NavigationEvent -= OnNavigationEvent;
             GlobalVariables.AudioManager.SongEnd -= OnAudioEnd;
             UninitializeTime();
+
+            // Reset the time scale back, as it would be 0 at this point (because of pausing)
+            Time.timeScale = 1f;
         }
 
         // "The Unity message 'Start' has an incorrect signature."
@@ -542,6 +547,10 @@ namespace YARG.Gameplay
 
             PauseStartTime = RealInputTime;
             GlobalVariables.AudioManager.Pause();
+
+            // Pause the background/venue
+            Time.timeScale = 0f;
+            BackgroundManager.SetPaused(true);
         }
 
         public void Resume(bool inputCompensation = true)
@@ -551,13 +560,23 @@ namespace YARG.Gameplay
             Paused = false;
             _pauseMenu.gameObject.SetActive(false);
 
+            // Unpause the background/venue
+            Time.timeScale = 1f;
+            BackgroundManager.SetPaused(false);
+
             _isReplaySaved = false;
 
             _debugText.gameObject.SetActive(_isShowDebugText);
 
-            if (inputCompensation) SetInputBase(PauseStartTime);
+            if (inputCompensation)
+            {
+                SetInputBase(PauseStartTime);
+            }
 
-            if (RealSongTime >= SongOffset) GlobalVariables.AudioManager.Play();
+            if (RealSongTime >= SongOffset)
+            {
+                GlobalVariables.AudioManager.Play();
+            }
         }
 
         public void SetPaused(bool paused)

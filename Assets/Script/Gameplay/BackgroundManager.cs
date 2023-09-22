@@ -40,8 +40,8 @@ namespace YARG.Gameplay
 
                     // KEEP THIS PATH LOWERCASE
                     // Breaks things for other platforms, because Unity
-                    var bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(BundleBackgroundManager.BACKGROUND_PREFAB_PATH
-                        .ToLowerInvariant());
+                    var bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(
+                        BundleBackgroundManager.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
 
 #if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
                     // Fix for non-Windows machines
@@ -84,6 +84,24 @@ namespace YARG.Gameplay
                 _videoShouldBeStarted = false;
                 _videoPlayer.Play();
             }
+        }
+
+        public void SetPaused(bool paused)
+        {
+            // Pause/unpause video
+            if (_videoPlayer.enabled)
+            {
+                if (paused)
+                {
+                    _videoPlayer.Pause();
+                }
+                else
+                {
+                    _videoPlayer.Play();
+                }
+            }
+
+            // The venue is dealt with in the GameManager via Time.timeScale
         }
     }
 }

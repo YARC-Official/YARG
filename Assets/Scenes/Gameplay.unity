@@ -1210,6 +1210,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _trackViewManager: {fileID: 1330928978}
   _replayController: {fileID: 922548498}
+  _backgroundManager: {fileID: 318454376}
   _pauseMenu: {fileID: 1323155442}
   _debugText: {fileID: 2085296271}
   _fiveFretGuitarPrefab: {fileID: 7381119128095886790, guid: 0f7a37c9e4abcad4da73b7603d4b7596,
