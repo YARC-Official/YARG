@@ -2,16 +2,88 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
-using UnityEngine.InputSystem.Processors;
 using YARG.Input.Serialization;
 
 namespace YARG.Input
 {
     public class SingleAxisBinding : SingleBinding<float>
     {
-        public float Minimum;
-        public float Maximum;
-        public float ZeroPoint;
+        private float _invertSign = 1;
+        private float _minimum;
+        private float _maximum;
+
+        private float _lowerDeadzone;
+        private float _upperDeadzone;
+
+        public bool Inverted
+        {
+            get => float.IsNegative(_invertSign);
+            set
+            {
+                bool inverted = Inverted;
+                _invertSign = value ? -1 : 1;
+
+                // This state change won't be propogated to the main binding, however calibration settings
+                // should never be changed outside of the binding menu, so that should be fine
+                if (inverted != Inverted)
+                {
+                    State = CalculateState(RawState);
+                    InvokeStateChanged(State);
+                }
+            }
+        }
+
+        public float Minimum
+        {
+            get => _minimum;
+            set
+            {
+                _minimum = value;
+
+                // (see above)
+                State = CalculateState(RawState);
+                InvokeStateChanged(State);
+            }
+        }
+
+        public float Maximum
+        {
+            get => _maximum;
+            set
+            {
+                _maximum = value;
+
+                // (see above)
+                State = CalculateState(RawState);
+                InvokeStateChanged(State);
+            }
+        }
+
+        public float LowerDeadzone
+        {
+            get => _lowerDeadzone;
+            set
+            {
+                _lowerDeadzone = value;
+
+                // (see above)
+                State = CalculateState(RawState);
+                InvokeStateChanged(State);
+            }
+        }
+
+        public float UpperDeadzone
+        {
+            get => _upperDeadzone;
+            set
+            {
+                _upperDeadzone = value;
+
+                // (see above)
+                State = CalculateState(RawState);
+                InvokeStateChanged(State);
+            }
+        }
 
         public float RawState { get; private set; }
 
@@ -27,6 +99,12 @@ namespace YARG.Input
         public SingleAxisBinding(InputControl<float> control, SerializedInputControl serialized)
             : base(control, serialized)
         {
+            if (!serialized.Parameters.TryGetValue(nameof(Inverted), out string invertedText) ||
+                !bool.TryParse(invertedText, out bool inverted))
+                inverted = false;
+
+            Inverted = inverted;
+
             if (!serialized.Parameters.TryGetValue(nameof(Minimum), out string minText) ||
                 !float.TryParse(minText, out float min))
                 min = 0f;
@@ -39,11 +117,17 @@ namespace YARG.Input
 
             Maximum = max;
 
-            if (!serialized.Parameters.TryGetValue(nameof(ZeroPoint), out string zeroPointText) ||
-                !float.TryParse(zeroPointText, out float zeroPoint))
-                zeroPoint = 0;
+            if (!serialized.Parameters.TryGetValue(nameof(LowerDeadzone), out string lowerText) ||
+                !float.TryParse(lowerText, out float lower))
+                lower = 0f;
 
-            ZeroPoint = zeroPoint;
+            LowerDeadzone = lower;
+
+            if (!serialized.Parameters.TryGetValue(nameof(UpperDeadzone), out string upperText) ||
+                !float.TryParse(upperText, out float upper))
+                upper = 0f;
+
+            UpperDeadzone = upper;
         }
 
         public override SerializedInputControl Serialize()
@@ -52,9 +136,11 @@ namespace YARG.Input
             if (serialized is null)
                 return null;
 
+            serialized.Parameters.Add(nameof(Inverted), Inverted.ToString().ToLower());
             serialized.Parameters.Add(nameof(Minimum), Minimum.ToString());
             serialized.Parameters.Add(nameof(Maximum), Maximum.ToString());
-            serialized.Parameters.Add(nameof(ZeroPoint), ZeroPoint.ToString());
+            serialized.Parameters.Add(nameof(LowerDeadzone), LowerDeadzone.ToString());
+            serialized.Parameters.Add(nameof(UpperDeadzone), UpperDeadzone.ToString());
 
             return serialized;
         }
@@ -65,7 +151,41 @@ namespace YARG.Input
                 return State;
 
             RawState = Control.ReadValueFromEvent(eventPtr);
-            return State = NormalizeProcessor.Normalize(RawState, Minimum, Maximum, ZeroPoint);
+            State = CalculateState(RawState);
+            InvokeStateChanged(State);
+            return State;
+        }
+
+        private float CalculateState(float rawValue)
+        {
+            float max;
+            float min;
+            float @base;
+
+            if (rawValue > UpperDeadzone)
+            {
+                max = Maximum;
+                min = UpperDeadzone;
+                @base = 0;
+            }
+            else if (rawValue < LowerDeadzone)
+            {
+                max = LowerDeadzone;
+                min = Minimum;
+                @base = -1;
+            }
+            else
+            {
+                return 0;
+            }
+
+            float percentage = (rawValue - min) / (max - min);
+            float value = @base + percentage;
+            if (float.IsNaN(value))
+                value = 0;
+
+            value *= _invertSign;
+            return value;
         }
     }
 

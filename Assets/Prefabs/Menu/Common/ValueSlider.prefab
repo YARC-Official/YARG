@@ -56,8 +56,7 @@ MonoBehaviour:
   ValueChanged:
     m_PersistentCalls:
       m_Calls: []
-  _stepSize: 0.1
-  _decimalPlaces: 1
+  _formatString: N2
 --- !u!1001 &873252692336582067
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -188,7 +187,7 @@ PrefabInstance:
     - target: {fileID: 5761802240589336641, guid: abd40d758b3e1a74486df5d631e4a775,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: NaN
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8298977265691902926, guid: abd40d758b3e1a74486df5d631e4a775,
         type: 3}
@@ -290,7 +289,7 @@ PrefabInstance:
     - target: {fileID: 4722467204755374586, guid: 8f25b12de267d7544aa2ff7993247fcd,
         type: 3}
       propertyPath: m_Text
-      value: 0.0
+      value: 0.00
       objectReference: {fileID: 0}
     - target: {fileID: 4722467204755374586, guid: 8f25b12de267d7544aa2ff7993247fcd,
         type: 3}
@@ -340,7 +339,7 @@ PrefabInstance:
     - target: {fileID: 7421987709479303017, guid: 8f25b12de267d7544aa2ff7993247fcd,
         type: 3}
       propertyPath: m_text
-      value: "0.0\u200B"
+      value: "0.00\u200B"
       objectReference: {fileID: 0}
     - target: {fileID: 7665614177142481491, guid: 8f25b12de267d7544aa2ff7993247fcd,
         type: 3}

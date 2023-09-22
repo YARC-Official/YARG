@@ -139,6 +139,8 @@ namespace YARG.Input
         public InputControl<TState> Control { get; }
         public TState State { get; protected set; }
 
+        public event Action<TState> StateChanged;
+
         public SingleBinding(InputControl<TState> control)
         {
             Control = control;
@@ -154,9 +156,15 @@ namespace YARG.Input
             if (Control.HasValueChangeInEvent(eventPtr))
             {
                 State = Control.ReadValueFromEvent(eventPtr);
+                InvokeStateChanged(State);
             }
 
             return State;
+        }
+
+        protected void InvokeStateChanged(TState state)
+        {
+            StateChanged?.Invoke(state);
         }
 
         public virtual SerializedInputControl Serialize()
