@@ -66,7 +66,7 @@ namespace YARG.Gameplay
         /// Be aware that this value is negated!
         /// Positive offsets in the .ini or .chart will result in a negative number here.
         /// </remarks>
-        public double SongOffset => -Song.SongOffset;
+        public double SongOffset => -Song.SongOffsetSeconds;
 
         // Audio syncing
         private volatile bool _runSync;

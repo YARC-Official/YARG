@@ -136,7 +136,7 @@ namespace YARG.Menu.MusicLibrary
                 RichTextUtils.StripRichTextTagsExclude(songEntry.LoadingPhrase, RichTextUtils.GOOD_TAGS));
 
             // Format and show length
-            var time = TimeSpan.FromMilliseconds(songEntry.SongLength);
+            var time = TimeSpan.FromMilliseconds(songEntry.SongLengthMilliseconds);
             if (time.Hours > 0)
             {
                 _length.text = time.ToString(@"h\:mm\:ss");

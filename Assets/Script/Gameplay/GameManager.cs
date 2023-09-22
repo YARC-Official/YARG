@@ -595,7 +595,7 @@ namespace YARG.Gameplay
             if (!IsReplay)
             {
                 _isReplaySaved = false;
-                SaveReplay(Song.SongLengthInSeconds);
+                SaveReplay(Song.SongLengthSeconds);
             }
 
             UninitializeTime();

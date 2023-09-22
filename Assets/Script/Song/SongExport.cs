@@ -68,7 +68,7 @@ namespace YARG.Song
                     genre = RichTextUtils.StripRichTextTags(song.Genre),
                     charter = RichTextUtils.StripRichTextTags(song.Charter),
                     year = RichTextUtils.StripRichTextTags(song.UnmodifiedYear),
-                    songLength = song.SongLength
+                    songLength = song.SongLengthMilliseconds
                 });
             }
 
