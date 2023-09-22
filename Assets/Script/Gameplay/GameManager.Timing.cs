@@ -177,7 +177,7 @@ namespace YARG.Gameplay
                 _finishedSyncing.Reset();
 
                 double inputTime = GetRelativeInputTime(InputManager.CurrentInputTime);
-                double audioTime = GlobalVariables.AudioManager.CurrentPositionD + AudioCalibration;
+                double audioTime = GlobalVariables.AudioManager.CurrentPositionD + AudioCalibration + SongOffset;
 
                 // Account for song speed
                 double initialThreshold = INITIAL_SYNC_THRESH * SelectedSongSpeed;
