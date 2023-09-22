@@ -67,7 +67,7 @@ namespace YARG.Settings.Preview
             {
                 // Create a fake note. Ticks do not matter.
                 var note = new GuitarNote(
-                    Random.Range(1, 6),
+                    Random.Range(0, 6),
                     GuitarNoteType.Strum,
                     GuitarNoteFlags.None,
                     NoteFlags.None,

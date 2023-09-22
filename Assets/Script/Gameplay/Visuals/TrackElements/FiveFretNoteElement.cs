@@ -8,8 +8,6 @@ namespace YARG.Gameplay.Visuals
 {
     public sealed class FiveFretNoteElement : NoteElement<GuitarNote, FiveFretPlayer>
     {
-        private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
-
         [SerializeField]
         private NoteGroup _strumGroup;
         [SerializeField]
@@ -129,8 +127,7 @@ namespace YARG.Gameplay.Visuals
                 : colors.GetNoteColor(NoteRef.Fret);
 
             // Set the note color
-            NoteGroup.ColoredMaterial.color = color.ToUnityColor();
-            NoteGroup.ColoredMaterial.SetColor(_emissionColor, color.ToUnityColor() * 8f);
+            NoteGroup.SetColorWithEmission(color.ToUnityColor());
 
             // TODO: Temporary
             // Change color for open HOPOs/Taps

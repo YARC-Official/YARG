@@ -4,6 +4,8 @@ namespace YARG.Gameplay.Visuals
 {
     public class NoteGroup : MonoBehaviour
     {
+        private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
+
         private static readonly int _randomFloat = Shader.PropertyToID("_RandomFloat");
         private static readonly int _randomVector = Shader.PropertyToID("_RandomVector");
 
@@ -31,6 +33,12 @@ namespace YARG.Gameplay.Visuals
             {
                 ColoredMaterial.SetVector(_randomVector, new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f)));
             }
+        }
+
+        public void SetColorWithEmission(Color c)
+        {
+            ColoredMaterial.color = c;
+            ColoredMaterial.SetColor(_emissionColor, c * 8f);
         }
 
         public Material[] GetAllMaterials() => _meshRenderer.materials;

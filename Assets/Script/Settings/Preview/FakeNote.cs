@@ -15,20 +15,41 @@ namespace YARG.Settings.Preview
         public GuitarNote NoteRef { get; set; }
         public FakeTrackPlayer FakeTrackPlayer { get; set; }
 
+        private NoteGroup _currentNoteGroup;
+
         [SerializeField]
         private NoteGroup _noteGroup;
+        [SerializeField]
+        private NoteGroup _openGroup;
 
         private Material[] _materials;
 
         public void EnableFromPool()
         {
-            // Set the position
-            transform.localPosition = new Vector3(
-                BasePlayer.TRACK_WIDTH / 5f * NoteRef.Fret - BasePlayer.TRACK_WIDTH / 2f - 1f / 5f,
-                0f, 0f);
+            _noteGroup.SetActive(false);
+            _openGroup.SetActive(false);
 
-            // Set color and materials
-            _materials = _noteGroup.GetAllMaterials();
+            if (NoteRef.Fret != 0)
+            {
+                _currentNoteGroup = _noteGroup;
+
+                // Set the position
+                transform.localPosition = new Vector3(
+                    BasePlayer.TRACK_WIDTH / 5f * NoteRef.Fret - BasePlayer.TRACK_WIDTH / 2f - 1f / 5f,
+                    0f, 0f);
+            }
+            else
+            {
+                _currentNoteGroup = _openGroup;
+
+                // Set the position
+                transform.localPosition = Vector3.zero;
+            }
+
+            _currentNoteGroup.SetActive(true);
+
+            // Set materials
+            _materials = _currentNoteGroup.GetAllMaterials();
 
             // Force update position and other properties
             OnSettingChanged();
@@ -49,8 +70,8 @@ namespace YARG.Settings.Preview
             }
 
             // Update color
-            _noteGroup.ColoredMaterial.color = s.ColorProfile_Ref.FiveFretGuitar
-                .GetNoteColor(NoteRef.Fret).ToUnityColor();
+            _currentNoteGroup.SetColorWithEmission(s.ColorProfile_Ref.FiveFretGuitar
+                .GetNoteColor(NoteRef.Fret).ToUnityColor());
         }
 
         protected void Update()
