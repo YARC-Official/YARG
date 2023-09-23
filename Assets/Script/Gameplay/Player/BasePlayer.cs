@@ -248,18 +248,24 @@ namespace YARG.Gameplay.Player
             player.Profile.ApplyModifiers(OriginalNoteTrack);
 
             NoteTrack = OriginalNoteTrack;
-
             Notes = NoteTrack.Notes;
-            NoteIndex = 0;
-            TotalNotes = Notes.Count;
 
             Engine = CreateEngine();
+
+            ResetNoteCounters();
 
             FinishInitialization();
         }
 
         protected abstract InstrumentDifficulty<TNote> GetNotes(SongChart chart);
         protected abstract TEngine CreateEngine();
+
+        protected void ResetNoteCounters()
+        {
+            NoteIndex = 0;
+            NotesHit = 0;
+            TotalNotes = Notes.Sum(i => Engine.GetNumberOfNotes(i));
+        }
 
         protected virtual void FinishInitialization()
         {
@@ -289,11 +295,9 @@ namespace YARG.Gameplay.Player
             var textEvents = OriginalNoteTrack.TextEvents;
 
             NoteTrack = new InstrumentDifficulty<TNote>(instrument, difficulty, practiceNotes, phrases, textEvents);
-
             Notes = NoteTrack.Notes;
-            NoteIndex = 0;
-            NotesHit = 0;
-            TotalNotes = Notes.Count;
+
+            ResetNoteCounters();
 
             Beatlines = SyncTrack.Beatlines.Where(b => b.Tick >= start && b.Tick <= end).ToList();
             BeatlineIndex = 0;
@@ -314,10 +318,8 @@ namespace YARG.Gameplay.Player
 
             IsFc = true;
 
-            NoteIndex = 0;
             BeatlineIndex = 0;
-            NotesHit = 0;
-            TotalNotes = Notes.Count;
+            ResetNoteCounters();
 
             ResetVisuals();
         }
@@ -328,10 +330,8 @@ namespace YARG.Gameplay.Player
 
             IsFc = true;
 
-            NoteIndex = 0;
             BeatlineIndex = 0;
-            NotesHit = 0;
-            TotalNotes = Notes.Count;
+            ResetNoteCounters();
 
             _replayInputIndex = Engine.ProcessUpToTime(time, ReplayInputs);
             UpdateVisualsWithTimes(time);
