@@ -137,7 +137,7 @@ MonoBehaviour:
   _dialogButtonPrefab: {fileID: 7647390644060677083, guid: 23b94837fb849574ebf1ad7d180706e3,
     type: 3}
   <Title>k__BackingField: {fileID: 6146691243032049817}
-  _listContainer: {fileID: 7139963704225791495}
+  _listContainer: {fileID: 4660462854195854587}
   _listButtonPrefab: {fileID: 2512344560859997856, guid: 05da164799c08df4ab411ad19bf36897,
     type: 3}
 --- !u!114 &6146691243032049817 stripped
@@ -332,9 +332,9 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
---- !u!224 &7139963704225791495 stripped
+--- !u!224 &4660462854195854587 stripped
 RectTransform:
-  m_CorrespondingSourceObject: {fileID: 2778161148834292163, guid: 81863a63e0d96cf459c263ee0ea6f98e,
+  m_CorrespondingSourceObject: {fileID: 375337769934742335, guid: 81863a63e0d96cf459c263ee0ea6f98e,
     type: 3}
   m_PrefabInstance: {fileID: 5014826288737705924}
   m_PrefabAsset: {fileID: 0}
