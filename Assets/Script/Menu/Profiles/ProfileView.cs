@@ -1,9 +1,11 @@
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using YARG.Core.Game;
 using YARG.Menu.Navigation;
+using YARG.Menu.Persistent;
 using YARG.Player;
 
 namespace YARG.Menu.Profiles
@@ -77,9 +79,67 @@ namespace YARG.Menu.Profiles
             }
         }
 
-        public async void ConnectButtonAction()
+        public async UniTask<bool> PromptAddDevice()
         {
-            await Connect(true);
+            var dialog = DialogManager.Instance.ShowList("Add Device");
+            var player = PlayerContainer.GetPlayerFromProfile(_profile);
+
+            bool devicesAvailable = false;
+            bool selectedDevice = false;
+            foreach (var device in InputSystem.devices)
+            {
+                if (PlayerContainer.IsDeviceTaken(device))
+                    continue;
+
+                devicesAvailable = true;
+                dialog.AddListButton(device.displayName, () =>
+                {
+                    player.Bindings.AddDevice(device);
+                    selectedDevice = true;
+                    DialogManager.Instance.ClearDialog();
+                });
+            }
+
+            if (devicesAvailable)
+                await dialog.WaitUntilClosed();
+            else
+                DialogManager.Instance.ClearDialog();
+
+            return selectedDevice;
+        }
+
+        public async UniTask<bool> PromptRemoveDevice()
+        {
+            var dialog = DialogManager.Instance.ShowList("Remove Device");
+            var player = PlayerContainer.GetPlayerFromProfile(_profile);
+
+            bool devicesAvailable = false;
+            bool selectedDevice = false;
+            foreach (var device in InputSystem.devices)
+            {
+                if (!player.Bindings.ContainsDevice(device))
+                    continue;
+
+                devicesAvailable = true;
+                dialog.AddListButton(device.displayName, () =>
+                {
+                    player.Bindings.RemoveDevice(device);
+                    selectedDevice = true;
+                    DialogManager.Instance.ClearDialog();
+                });
+            }
+
+            if (devicesAvailable)
+                await dialog.WaitUntilClosed();
+            else
+                DialogManager.Instance.ClearDialog();
+
+            return selectedDevice;
+        }
+
+        public void ConnectButtonAction()
+        {
+            Connect(true).Forget();
         }
 
         public async UniTask Connect(bool resolveDevices)
@@ -104,16 +164,12 @@ namespace YARG.Menu.Profiles
             if (!_profile.IsBot && player.Bindings.Empty)
             {
                 // Prompt the user to select a device
-                var device = await _profileMenu.ShowDeviceDialog();
-                if (device is null)
+                if (!await PromptAddDevice())
                 {
                     // Don't leak player when cancelling
                     PlayerContainer.DisposePlayer(player);
                     return;
                 }
-
-                // Then, add the device to the bindings
-                player.Bindings.AddDevice(device);
             }
 
             Reinitialize();

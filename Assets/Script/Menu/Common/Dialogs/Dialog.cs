@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -71,6 +72,11 @@ namespace YARG.Menu.Dialogs
 
         protected virtual void OnBeforeClose()
         {
+        }
+
+        public UniTask WaitUntilClosed()
+        {
+            return UniTask.WaitUntil(() => this == null || !gameObject.activeSelf);
         }
     }
 }
