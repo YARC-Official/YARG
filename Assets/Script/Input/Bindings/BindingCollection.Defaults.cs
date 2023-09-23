@@ -744,6 +744,11 @@ namespace YARG.Input
             if (binding is null)
                 throw new Exception($"Tried to auto-assign control {control} to action {action}, but no binding exists for it!");
 
+            // Ignore if the control is already added, otherwise removing a device without
+            // clearing any bindings to it will throw below
+            if (binding.ContainsControl(control))
+                return;
+
             bool added = binding.AddControl(control);
             if (!added)
                 throw new Exception($"Could not auto-assign control {control} (type {control.GetType()}) to action {action}!");
