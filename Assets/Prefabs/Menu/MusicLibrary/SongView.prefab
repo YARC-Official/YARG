@@ -37,8 +37,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 50, y: 0}
-  m_SizeDelta: {x: -100, y: 0}
+  m_AnchoredPosition: {x: 47.5, y: 0}
+  m_SizeDelta: {x: -95, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2142160155163030004
 CanvasRenderer:
@@ -78,8 +78,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 2163336241
-  m_fontColor: {r: 0.19215687, g: 0.89411765, b: 0.94509804, a: 0.5019608}
+    rgba: 4294042673
+  m_fontColor: {r: 0.19215687, g: 0.89411765, b: 0.94509804, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -96,8 +96,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 35
-  m_fontSizeBase: 35
+  m_fontSize: 25
+  m_fontSizeBase: 25
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -294,8 +294,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 2163336241
-  m_fontColor: {r: 0.19215687, g: 0.89411765, b: 0.94509804, a: 0.5019608}
+    rgba: 4294042673
+  m_fontColor: {r: 0.19215687, g: 0.89411765, b: 0.94509804, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -312,8 +312,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 35
-  m_fontSizeBase: 35
+  m_fontSize: 24
+  m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -788,7 +788,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 2163336241
-  m_fontColor: {r: 0.19215687, g: 0.89411765, b: 0.94509804, a: 0.5019608}
+  m_fontColor: {r: 0.19215687, g: 0.89411765, b: 0.94509804, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -805,8 +805,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 35
-  m_fontSizeBase: 35
+  m_fontSize: 25
+  m_fontSizeBase: 25
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -1285,8 +1285,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294826752
-  m_fontColor: {r: 0, g: 0.85882354, b: 0.99215686, a: 1}
+    rgba: 4294042673
+  m_fontColor: {r: 0.19215687, g: 0.89411765, b: 0.94509804, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -1463,8 +1463,7 @@ MonoBehaviour:
   _normalBackground: {fileID: 4505452236614856762}
   _selectedBackground: {fileID: 8586479606034422330}
   _categoryBackground: {fileID: 4807421719434892723}
-  _selectedCategoryBackground: {fileID: 0}
-  _secondaryTextContiner: {fileID: 4454172983210282838}
+  _secondaryTextContainer: {fileID: 4454172983210282838}
   _asMadeFamousByTextContainer: {fileID: 4077849129334942994}
   _primaryText: {fileID: 6846856528720448031}
   _secondaryText:

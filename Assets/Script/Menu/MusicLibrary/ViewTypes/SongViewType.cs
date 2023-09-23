@@ -9,32 +9,39 @@ namespace YARG.Menu.MusicLibrary
     public class SongViewType : ViewType
     {
         public override BackgroundType Background => BackgroundType.Normal;
-
-        public override string PrimaryText => SongMetadata.Name;
-        public override string SecondaryText => SongMetadata.Artist;
         public override bool UseAsMadeFamousBy => !SongMetadata.IsMaster;
 
-        public override string SideText =>
-            // TODO: Disable scores for now
-            // get
-            // {
-            //     var score = ScoreManager.GetScore(SongEntry);
-            //     if (score == null || score.highestPercent.Count <= 0)
-            //     {
-            //         return string.Empty;
-            //     }
-            //
-            //     var (instrument, highest) = score.GetHighestPercent();
-            //     return $"<sprite name=\"{instrument}\"> <b>{highest.difficulty.ToChar()}</b> " +
-            //         $"{Mathf.Floor(highest.percent * 100f):N0}%";
-            // }
-            string.Empty;
+        // public override string SideText =>
+        //     // TODO: Disable scores for now
+        //     // get
+        //     // {
+        //     //     var score = ScoreManager.GetScore(SongEntry);
+        //     //     if (score == null || score.highestPercent.Count <= 0)
+        //     //     {
+        //     //         return string.Empty;
+        //     //     }
+        //     //
+        //     //     var (instrument, highest) = score.GetHighestPercent();
+        //     //     return $"<sprite name=\"{instrument}\"> <b>{highest.difficulty.ToChar()}</b> " +
+        //     //         $"{Mathf.Floor(highest.percent * 100f):N0}%";
+        //     // }
+        //     string.Empty;
 
         public SongMetadata SongMetadata { get; private set; }
 
         public SongViewType(SongMetadata songMetadata)
         {
             SongMetadata = songMetadata;
+        }
+
+        public override string GetPrimaryText(bool selected)
+        {
+            return FormatAs(SongMetadata.Name, TextType.Primary, selected);
+        }
+
+        public override string GetSecondaryText(bool selected)
+        {
+            return FormatAs(SongMetadata.Artist, TextType.Secondary, selected);
         }
 
         public override async UniTask<Sprite> GetIcon()

@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using YARG.Core.Song;
-using YARG.Song;
+using YARG.Helpers;
+using YARG.Helpers.Extensions;
+using YARG.Menu.Data;
 
 namespace YARG.Menu.MusicLibrary
 {
@@ -10,27 +12,27 @@ namespace YARG.Menu.MusicLibrary
     {
         public override BackgroundType Background => BackgroundType.Category;
 
-        public override string PrimaryText { get; }
-        public override string SideText { get; }
-
         public readonly string SourceCountText;
         public readonly string CharterCountText;
         public readonly string GenreCountText;
 
-        public CategoryViewType(string primary, string side, IEnumerable<SongMetadata> songsUnderCategory)
+        private readonly string _primary;
+        private readonly int _songCount;
+
+        public CategoryViewType(string primary, int songCount, IEnumerable<SongMetadata> songsUnderCategory)
         {
-            PrimaryText = $"<color=white>{primary}</color>";
-            SideText = side;
+            _primary = primary;
+            _songCount = songCount;
 
             SourceCountText = $"{CountOf(songsUnderCategory, i => i.Source)} sources";
             CharterCountText = $"{CountOf(songsUnderCategory, i => i.Charter)} charters";
             GenreCountText = $"{CountOf(songsUnderCategory, i => i.Genre)} genres";
         }
 
-        public CategoryViewType(string primary, string side, SortedDictionary<string, List<SongMetadata>> songsUnderCategory)
+        public CategoryViewType(string primary, int songCount, SortedDictionary<string, List<SongMetadata>> songsUnderCategory)
         {
-            PrimaryText = $"<color=white>{primary}</color>";
-            SideText = side;
+            _primary = primary;
+            _songCount = songCount;
 
             int sources = 0;
             int charters = 0;
@@ -46,6 +48,26 @@ namespace YARG.Menu.MusicLibrary
             SourceCountText = $"{sources} sources";
             CharterCountText = $"{charters} charters";
             GenreCountText = $"{genres} genres";
+        }
+
+        public override string GetPrimaryText(bool selected)
+        {
+            return FormatAs(_primary, TextType.Bright, selected);
+        }
+
+        public override string GetSideText(bool selected)
+        {
+            var count = RichTextUtils.FormatString(
+                _songCount.ToString("N0"),
+                MenuData.Colors.PrimaryText,
+                500);
+
+            var songs = RichTextUtils.FormatString(
+                _songCount == 1 ? "SONG" : "SONGS",
+                MenuData.Colors.PrimaryText.WithAlpha(0.5f),
+                500);
+
+            return $"{count} {songs}";
         }
 
         private int CountOf(IEnumerable<SongMetadata> songs, Func<SongMetadata, SortString> selector)

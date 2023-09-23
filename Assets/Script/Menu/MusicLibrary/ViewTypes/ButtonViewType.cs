@@ -9,17 +9,20 @@ namespace YARG.Menu.MusicLibrary
     {
         public override BackgroundType Background => BackgroundType.Category;
 
-        public override string PrimaryText => $"<color=white>{_primary}</color>";
-
-        private string _primary;
-        private string _iconPath;
-        private Action _buttonAction;
+        private readonly string _primary;
+        private readonly string _iconPath;
+        private readonly Action _buttonAction;
 
         public ButtonViewType(string primary, string iconPath, Action buttonAction)
         {
             _primary = primary;
             _iconPath = iconPath;
             _buttonAction = buttonAction;
+        }
+
+        public override string GetPrimaryText(bool selected)
+        {
+            return FormatAs(_primary, TextType.Bright, selected);
         }
 
         public override async UniTask<Sprite> GetIcon()

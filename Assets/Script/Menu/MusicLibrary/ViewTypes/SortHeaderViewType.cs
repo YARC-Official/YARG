@@ -1,17 +1,15 @@
 ﻿using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using YARG.Helpers;
+using YARG.Helpers.Extensions;
+using YARG.Menu.Data;
 
 namespace YARG.Menu.MusicLibrary
 {
     public class SortHeaderViewType : ViewType
     {
         public override BackgroundType Background => BackgroundType.Category;
-
-        public override string PrimaryText => $"<#00B6F5><b>{_primary}</b><#006488>";
-
-        public override string SideText =>
-            $"<#00B6F5><b>{_songCount}</b> <#006488>{(_songCount == 1 ? "SONG" : "SONGS")}";
 
         private readonly string _primary;
         private readonly int _songCount;
@@ -20,6 +18,26 @@ namespace YARG.Menu.MusicLibrary
         {
             _primary = primary;
             _songCount = songCount;
+        }
+
+        public override string GetPrimaryText(bool selected)
+        {
+            return FormatAs(_primary, TextType.Bright, selected);
+        }
+
+        public override string GetSideText(bool selected)
+        {
+            var count = RichTextUtils.FormatString(
+                _songCount.ToString("N0"),
+                MenuData.Colors.PrimaryText,
+                500);
+
+            var songs = RichTextUtils.FormatString(
+                _songCount == 1 ? "SONG" : "SONGS",
+                MenuData.Colors.PrimaryText.WithAlpha(0.5f),
+                500);
+
+            return $"{count} {songs}";
         }
 
         public override async UniTask<Sprite> GetIcon()

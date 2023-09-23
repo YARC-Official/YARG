@@ -1,5 +1,9 @@
+using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using YARG.Helpers;
+using YARG.Helpers.Extensions;
+using YARG.Menu.Data;
 
 namespace YARG.Menu.MusicLibrary
 {
@@ -11,13 +15,27 @@ namespace YARG.Menu.MusicLibrary
             Category
         }
 
-        public abstract BackgroundType Background { get; }
+        protected enum TextType
+        {
+            Bright,
+            Primary,
+            Secondary
+        }
 
-        public abstract string PrimaryText { get; }
-        public virtual string SecondaryText => string.Empty;
+        public abstract BackgroundType Background { get; }
         public virtual bool UseAsMadeFamousBy => false;
 
-        public virtual string SideText => string.Empty;
+        public abstract string GetPrimaryText(bool selected);
+
+        public virtual string GetSecondaryText(bool selected)
+        {
+            return string.Empty;
+        }
+
+        public virtual string GetSideText(bool selected)
+        {
+            return string.Empty;
+        }
 
         public virtual UniTask<Sprite> GetIcon()
         {
@@ -34,6 +52,30 @@ namespace YARG.Menu.MusicLibrary
 
         public virtual void IconClick()
         {
+        }
+
+        protected static string FormatAs(string str, TextType type, bool selected)
+        {
+            if (!selected)
+            {
+                return type switch
+                {
+                    TextType.Bright    => RichTextUtils.FormatString(str, MenuData.Colors.BrightText, 500),
+                    TextType.Primary   => RichTextUtils.FormatString(str, MenuData.Colors.PrimaryText),
+                    TextType.Secondary => RichTextUtils.FormatString(str, MenuData.Colors.PrimaryText.WithAlpha(0.5f)),
+                    _                  => throw new Exception("Unreachable.")
+                };
+            }
+            else
+            {
+                return type switch
+                {
+                    TextType.Bright    => RichTextUtils.FormatString(str, MenuData.Colors.BrightText,  500),
+                    TextType.Primary   => RichTextUtils.FormatString(str, MenuData.Colors.BrightText,  700),
+                    TextType.Secondary => RichTextUtils.FormatString(str, MenuData.Colors.PrimaryText, 500),
+                    _                  => throw new Exception("Unreachable.")
+                };
+            }
         }
     }
 }

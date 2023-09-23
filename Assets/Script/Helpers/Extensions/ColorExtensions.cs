@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Runtime.CompilerServices;
+using UnityEngine;
 
 namespace YARG.Helpers.Extensions
 {
@@ -7,6 +8,12 @@ namespace YARG.Helpers.Extensions
         public static Color ToUnityColor(this System.Drawing.Color color)
         {
             return new Color(color.R / 255f, color.G / 255f, color.B / 255f, color.A / 255f);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Color WithAlpha(this Color col, float alpha)
+        {
+            return new Color(col.r, col.g, col.b, alpha);
         }
 
         #region Brightness values - https://stackoverflow.com/a/56678483 https://poynton.ca/GammaFAQ.html

@@ -369,8 +369,7 @@ namespace YARG.Menu.MusicLibrary
 
                 var categoryView = new CategoryViewType(
                     "SEARCH RESULTS",
-                    $"<#00B6F5><b>{count}</b> <#006488>{(count == 1 ? "SONG" : "SONGS")}",
-                    _sortedSongs
+                    count, _sortedSongs
                 );
 
                 if (_sortedSongs.Count == 1)
@@ -443,8 +442,7 @@ namespace YARG.Menu.MusicLibrary
 
             _viewList.Insert(0, new CategoryViewType(
                 "ALL SONGS",
-                $"<#00B6F5><b>{count}</b> <#006488>{(count == 1 ? "SONG" : "SONGS")}",
-                GlobalVariables.Instance.SongContainer.Songs
+                count, GlobalVariables.Instance.SongContainer.Songs
             ));
         }
 
@@ -460,8 +458,7 @@ namespace YARG.Menu.MusicLibrary
         {
             _viewList.Insert(0, new CategoryViewType(
                 _recommendedSongs.Count == 1 ? "RECOMMENDED SONG" : "RECOMMENDED SONGS",
-                $"<#00B6F5><b>{_recommendedSongs.Count}</b> <#006488>{(_recommendedSongs.Count == 1 ? "SONG" : "SONGS")}",
-                _recommendedSongs
+                _recommendedSongs.Count, _recommendedSongs
             ));
         }
 

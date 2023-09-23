@@ -9,6 +9,7 @@ namespace YARG.Menu.Data
         [Header("Text")]
         public Color BrightText;
         public Color DarkText;
+        public Color PrimaryText;
 
         [Header("Button")]
         public Color BrightButton;

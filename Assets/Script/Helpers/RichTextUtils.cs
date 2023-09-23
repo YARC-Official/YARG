@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using UnityEngine;
 
 namespace YARG.Helpers
 {
@@ -66,6 +67,12 @@ namespace YARG.Helpers
             RegexCache.Add((ulong) tags, regex);
 
             return regex.Replace(text, "");
+        }
+
+        public static string FormatString(string text, Color c, int fontWeight = 400)
+        {
+            string hexColor = "#" + ColorUtility.ToHtmlStringRGBA(c);
+            return $"<color={hexColor}><font-weight={fontWeight}>{text}</font-weight></color>";
         }
     }
 

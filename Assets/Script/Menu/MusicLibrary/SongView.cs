@@ -3,7 +3,10 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
+using YARG.Helpers.Extensions;
+using YARG.Menu.Data;
 
 namespace YARG.Menu.MusicLibrary
 {
@@ -22,7 +25,7 @@ namespace YARG.Menu.MusicLibrary
 
         [Space]
         [SerializeField]
-        private GameObject _secondaryTextContiner;
+        private GameObject _secondaryTextContainer;
         [SerializeField]
         private GameObject _asMadeFamousByTextContainer;
 
@@ -59,30 +62,14 @@ namespace YARG.Menu.MusicLibrary
 
             var viewType = MusicLibraryMenu.Instance.ViewList[realIndex];
 
-            _sideText.text = viewType.SideText;
+            // Set text
+            _primaryText.text = viewType.GetPrimaryText(selected);
+            _sideText.text = viewType.GetSideText(selected);
 
-            // Change font styles if selected
-            if (selected)
+            // Set secondary text (there is multiple)
+            foreach (var text in _secondaryText)
             {
-                _primaryText.color = Color.white;
-                _primaryText.text = $"<b>{viewType.PrimaryText}</b>";
-
-                foreach (var text in _secondaryText)
-                {
-                    text.color = new Color(0.192f, 0.894f, 0.945f, 1.0f);
-                    text.text = $"<font-weight=500>{viewType.SecondaryText}</font-weight>";
-                }
-            }
-            else
-            {
-                _primaryText.color = new Color(0.192f, 0.894f, 0.945f, 1.0f);
-                _primaryText.text = viewType.PrimaryText;
-
-                foreach (var text in _secondaryText)
-                {
-                    text.color = new Color(0.192f, 0.894f, 0.945f, 0.3f);
-                    text.text = viewType.SecondaryText;
-                }
+                text.text = viewType.GetSecondaryText(selected);
             }
 
             // Set icon
@@ -95,7 +82,7 @@ namespace YARG.Menu.MusicLibrary
             SetIcon(viewType, _cancellationTokenSource.Token).Forget();
 
             // Set secondary text type
-            _secondaryTextContiner.SetActive(!viewType.UseAsMadeFamousBy);
+            _secondaryTextContainer.SetActive(!viewType.UseAsMadeFamousBy);
             _asMadeFamousByTextContainer.SetActive(viewType.UseAsMadeFamousBy);
 
             SetBackground(viewType.Background, selected);

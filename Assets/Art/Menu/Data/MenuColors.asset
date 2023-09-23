@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   BrightText: {r: 1, g: 1, b: 1, a: 1}
   DarkText: {r: 0, g: 0.22745098, b: 0.2784314, a: 1}
+  PrimaryText: {r: 0.18039216, g: 0.8509804, b: 1, a: 1}
   BrightButton: {r: 0.18039216, g: 0.8509804, b: 1, a: 1}
   DarkButton: {r: 0.15294118, g: 0.21176471, b: 0.2784314, a: 1}
   ConfirmButton: {r: 0.09019608, g: 0.8862745, b: 0.5372549, a: 1}
