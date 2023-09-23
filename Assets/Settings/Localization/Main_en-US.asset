@@ -210,6 +210,14 @@ MonoBehaviour:
     m_Localized: Note Shuffle
     m_Metadata:
       m_Items: []
+  - m_Id: 66002229908594688
+    m_Localized: No Kicks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66002229933760512
+    m_Localized: Taps to HOPOs
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

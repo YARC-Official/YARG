@@ -191,12 +191,20 @@ MonoBehaviour:
     m_Key: Modifier.HoposToTaps
     m_Metadata:
       m_Items: []
+  - m_Id: 66002229908594688
+    m_Key: Modifier.NoKicks
+    m_Metadata:
+      m_Items: []
   - m_Id: 63848767770976256
     m_Key: Modifier.None
     m_Metadata:
       m_Items: []
   - m_Id: 63848767796142084
     m_Key: Modifier.NoteShuffle
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66002229933760512
+    m_Key: Modifier.TapsToHopos
     m_Metadata:
       m_Items: []
   m_Metadata:

@@ -220,7 +220,7 @@ namespace YARG.Menu.DifficultySelect
                     // Enable/disable the modifier
                     if (active)
                     {
-                        profile.AddModifiers(modifier);
+                        profile.AddSingleModifier(modifier);
                     }
                     else
                     {
