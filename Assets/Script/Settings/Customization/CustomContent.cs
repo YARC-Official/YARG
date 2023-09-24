@@ -13,7 +13,7 @@ namespace YARG.Settings.Customization
 {
     public abstract class CustomContent
     {
-        private static readonly Regex _fileNameSanitize = new("([^a-zA-Z0-9 ])", RegexOptions.Compiled);
+        private static readonly Regex _fileNameSanitize = new("([^a-zA-Z0-9])", RegexOptions.Compiled);
 
         protected static readonly JsonSerializerSettings JsonSettings = new()
         {
