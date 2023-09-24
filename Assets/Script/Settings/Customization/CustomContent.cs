@@ -78,7 +78,7 @@ namespace YARG.Settings.Customization
             return list;
         }
 
-        protected static string CreateFileNameForPreset(BasePreset preset)
+        protected static string GetFileNameForPreset(BasePreset preset)
         {
             // Limit the file name to 20 characters
             string fileName = preset.Name;
@@ -179,14 +179,25 @@ namespace YARG.Settings.Customization
         {
             Content.Clear();
 
+            var renameList = new List<(string From, string To)>();
+
             PathHelper.SafeEnumerateFiles(ContentDirectory, "*.json", true, (path) =>
             {
                 var preset = LoadFile(path);
 
-                // See if file already exists
+                // If the path is incorrect, rename it
+                var correctPath = GetFileNameForPreset(preset);
+                if (Path.GetFileName(path) != correctPath)
+                {
+                    // We must do this after since we are in the middle of enumerating it
+                    renameList.Add((path, Path.Join(ContentDirectory, correctPath)));
+                }
+
+                // See if preset already exists
                 if (HasPresetId(preset.Id))
                 {
                     Debug.LogWarning($"Duplicate preset `{path}` found!");
+                    return true;
                 }
 
                 // Otherwise, add the preset
@@ -194,12 +205,37 @@ namespace YARG.Settings.Customization
 
                 return true;
             });
+
+            // Rename all files
+            foreach (var (from, to) in renameList)
+            {
+                try
+                {
+                    if (!File.Exists(to))
+                    {
+                        // If the file doesn't exist, just rename it
+                        File.Move(from, to);
+                        Debug.Log($"Renamed preset file from `{from}` to its correct form.");
+                    }
+                    else
+                    {
+                        // If it does, delete the original file (since it's probably a duplicate)
+                        File.Delete(from);
+                        Debug.Log($"Deleted duplicate preset file `{from}`.");
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"Failed to move file `{from}`.");
+                    Debug.LogException(e);
+                }
+            }
         }
 
         private void SavePresetFile(T preset)
         {
             var text = JsonConvert.SerializeObject(preset, JsonSettings);
-            var path = Path.Join(ContentDirectory, CreateFileNameForPreset(preset));
+            var path = Path.Join(ContentDirectory, GetFileNameForPreset(preset));
 
             File.WriteAllText(path, text);
         }
