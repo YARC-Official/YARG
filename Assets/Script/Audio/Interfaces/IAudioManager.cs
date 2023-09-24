@@ -37,7 +37,7 @@ namespace YARG.Audio
         public void LoadSfx();
 
         public void LoadSong(IDictionary<SongStem, string> stems, float speed);
-        public void LoadMogg(byte[] moggArray, List<MoggStemMap> stemMaps, float speed);
+        public void LoadMogg(Stream stream, List<MoggStemMap> stemMaps, float speed);
         public void LoadCustomAudioFile(string audioPath, float speed);
         public void UnloadSong();
 
@@ -108,14 +108,14 @@ namespace YARG.Audio
 
         private static void LoadRBCONAudio(IAudioManager manager, SongMetadata song, float speed, params SongStem[] ignoreStems)
         {
-            var mogg = song.RBData.LoadMoggFile();
+            var mogg = song.RBData.GetMoggStream();
             if (mogg is null)
                 throw new Exception("Mogg file not present");
 
             if (mogg.Length < sizeof(int))
                 throw new Exception($"Couldn't get MOGG version! Expected at least {sizeof(int)} bytes, got {mogg.Length}");
 
-            switch (BitConverter.ToInt32(mogg))
+            switch (mogg.ReadInt32LE())
             {
                 case 0x0A:
                 case 0xF0:
