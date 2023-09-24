@@ -78,7 +78,9 @@ namespace YARG.Gameplay.HUD
 
             if (_sliderChanged)
             {
-                _sliderTimeInactive += Time.deltaTime;
+                // Make sure to use unscaled delta time in case the game is paused
+                _sliderTimeInactive += Time.unscaledDeltaTime;
+
                 if (_sliderTimeInactive >= SLIDER_COOLDOWN)
                 {
                     _sliderChanged = false;
