@@ -170,13 +170,18 @@ namespace YARG.Gameplay.HUD
         {
             if (_hudVisible)
             {
-                // Hide hud
-                _rectTransform.DOMoveY(_hudHiddenY, _hudAnimationTime);
+                // Hide hud (make sure to use unscaled time)
+                _rectTransform
+                    .DOMoveY(_hudHiddenY, _hudAnimationTime)
+                    .SetUpdate(true);
             }
             else
             {
-                // Show hud
-                _rectTransform.DOMoveY(0f, _hudAnimationTime).SetEase(Ease.InOutQuint);
+                // Show hud (make sure to use unscaled time)
+                _rectTransform
+                    .DOMoveY(0f, _hudAnimationTime)
+                    .SetEase(Ease.InOutQuint)
+                    .SetUpdate(true);
             }
 
             _hudVisible = !_hudVisible;
