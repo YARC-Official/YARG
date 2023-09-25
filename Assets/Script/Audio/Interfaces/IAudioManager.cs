@@ -108,22 +108,6 @@ namespace YARG.Audio
 
         private static void LoadRBCONAudio(IAudioManager manager, SongMetadata song, float speed, params SongStem[] ignoreStems)
         {
-            var mogg = song.RBData.GetMoggStream();
-            if (mogg is null)
-                throw new Exception("Mogg file not present");
-
-            if (mogg.Length < sizeof(int))
-                throw new Exception($"Couldn't get MOGG version! Expected at least {sizeof(int)} bytes, got {mogg.Length}");
-
-            switch (mogg.ReadInt32LE())
-            {
-                case 0x0A:
-                case 0xF0:
-                    break;
-                default:
-                    throw new Exception("Original unencrypted mogg replaced by an encrypted mogg");
-            }
-
             var rbmetadata = song.RBData.SharedMetadata;
 
             List<MoggStemMap> stemMaps = new();
@@ -179,7 +163,7 @@ namespace YARG.Audio
             if (rbmetadata.CrowdIndices != Array.Empty<int>() && !ignoreStems.Contains(SongStem.Crowd))
                 stemMaps.Add(new(SongStem.Crowd, rbmetadata.CrowdIndices, rbmetadata.CrowdStemValues));
 
-            manager.LoadMogg(mogg, stemMaps, speed);
+            manager.LoadMogg(song.RBData.GetMoggStream(), stemMaps, speed);
         }
     }
 }
