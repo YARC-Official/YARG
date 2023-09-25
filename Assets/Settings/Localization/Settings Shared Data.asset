@@ -63,16 +63,24 @@ MonoBehaviour:
     m_Key: Dropdown.Graphics.FullscreenMode.Windowed
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619337
-    m_Key: Dropdown.Graphics.LyricBackground.None
+  - m_Id: 66739072220389376
+    m_Key: Dropdown.Graphics.LyricDisplay.Compatibility
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619338
-    m_Key: Dropdown.Graphics.LyricBackground.Normal
+  - m_Id: 66739072241360896
+    m_Key: Dropdown.Graphics.LyricDisplay.NoBackground
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619339
-    m_Key: Dropdown.Graphics.LyricBackground.Transparent
+  - m_Id: 66739072241360897
+    m_Key: Dropdown.Graphics.LyricDisplay.NoLyricDisplay
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66739072241360898
+    m_Key: Dropdown.Graphics.LyricDisplay.Normal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66739072241360899
+    m_Key: Dropdown.Graphics.LyricDisplay.Transparent
     m_Metadata:
       m_Items: []
   - m_Id: 56963656047779840
@@ -287,12 +295,12 @@ MonoBehaviour:
     m_Key: Setting.Graphics.LowQuality.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619359
-    m_Key: Setting.Graphics.LyricBackground
+  - m_Id: 66739072245555200
+    m_Key: Setting.Graphics.LyricDisplay
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850252
-    m_Key: Setting.Graphics.LyricBackground.Description
+  - m_Id: 66739072245555201
+    m_Key: Setting.Graphics.LyricDisplay.Description
     m_Metadata:
       m_Items: []
   - m_Id: 53693768667619360

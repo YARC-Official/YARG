@@ -122,18 +122,6 @@ MonoBehaviour:
     m_Localized: Windowed
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619337
-    m_Localized: None
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53693768667619338
-    m_Localized: Normal
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53693768667619339
-    m_Localized: Transparent
-    m_Metadata:
-      m_Items: []
   - m_Id: 53693768667619341
     m_Localized: Anti-Ghosting
     m_Metadata:
@@ -202,10 +190,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 53693768667619358
     m_Localized: Low Quality Mode
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53693768667619359
-    m_Localized: Lyric Background
     m_Metadata:
       m_Items: []
   - m_Id: 53693768667619360
@@ -373,11 +357,6 @@ MonoBehaviour:
   - m_Id: 53704501379850251
     m_Localized: If enabled, the game will disable anti-aliasing, and use lower quality
       models and textures. This will significantly increase performance.
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53704501379850252
-    m_Localized: Choose the background for the lyric display that shows when no one
-      is playing vocals.
     m_Metadata:
       m_Items: []
   - m_Id: 53704501379850253
@@ -596,6 +575,34 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 64543436070838272
     m_Localized: Color Profiles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66739072220389376
+    m_Localized: Compatibility Mode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66739072241360896
+    m_Localized: No Background
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66739072241360897
+    m_Localized: Hide Lyric Display
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66739072241360898
+    m_Localized: Normal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66739072241360899
+    m_Localized: Translucent Background
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66739072245555200
+    m_Localized: Lyric Display
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66739072245555201
+    m_Localized: Choose how the lyric bar in game should be displayed.
     m_Metadata:
       m_Items: []
   references:

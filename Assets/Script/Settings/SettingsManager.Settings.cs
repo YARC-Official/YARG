@@ -134,9 +134,10 @@ namespace YARG.Settings
 
             public ToggleSetting GraphicalProgressOnScoreBox { get; } = new(true);
 
-            public DropdownSetting LyricBackground { get; } = new(new()
+            public DropdownSetting LyricDisplay { get; } = new(new()
             {
-                "Normal", "Transparent", "None",
+                "Normal", "Transparent", "NoBackground",
+                "NoLyricDisplay"
             }, "Normal");
 
             #endregion

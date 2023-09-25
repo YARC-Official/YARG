@@ -76,9 +76,9 @@ namespace YARG.Settings
                 new HeaderMetadata("Other"),
                 "ShowHitWindow",
                 "DisableTextNotifications",
+                "LyricDisplay",
                 "SongTimeOnScoreBox",
-                "GraphicalProgressOnScoreBox",
-                "LyricBackground"
+                "GraphicalProgressOnScoreBox"
             },
             new MetadataTab("Engine", icon: "Engine")
             {
