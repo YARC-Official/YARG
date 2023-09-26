@@ -27,7 +27,7 @@ namespace YARG.Gameplay.HUD
         {
             var lyricSetting = SettingsManager.Settings.LyricDisplay.Data;
 
-            if (lyricSetting == "NoLyricDisplay")
+            if (GameManager.IsPractice || lyricSetting == "NoLyricDisplay")
             {
                 gameObject.SetActive(false);
                 return;
