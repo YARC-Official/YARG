@@ -1,18 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using YARG.Gameplay.Player;
+using YARG.Helpers.Extensions;
 using YARG.Player;
 
 namespace YARG.Gameplay.HUD
 {
-    public class TrackViewManager : MonoBehaviour
+    public class TrackViewManager : GameplayBehaviour
     {
         [Header("Prefabs")]
         [SerializeField]
         private GameObject _trackViewPrefab;
 
+        [Header("References")]
+        [SerializeField]
+        private RawImage _vocalImage;
+
         private readonly List<TrackView> _trackViews = new();
+
+        private void Start()
+        {
+            // Get the aspect ration of the vocal image
+            var rect = _vocalImage.rectTransform.ToScreenSpace();
+            float ratio = rect.width / rect.height;
+
+            // Apply the vocal track texture
+            var rt = GameManager.VocalTrackManager.InitializeRenderTexture(ratio);
+            _vocalImage.texture = rt;
+        }
 
         public TrackView CreateTrackView(BasePlayer basePlayer, YargPlayer player)
         {
@@ -22,8 +39,7 @@ namespace YARG.Gameplay.HUD
             // Set up render texture
             var descriptor = new RenderTextureDescriptor(
                 Screen.width, Screen.height,
-                RenderTextureFormat.ARGBHalf
-            );
+                RenderTextureFormat.ARGBHalf);
             descriptor.mipCount = 0;
             var renderTexture = new RenderTexture(descriptor);
 

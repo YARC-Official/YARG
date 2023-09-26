@@ -37,6 +37,9 @@ namespace YARG.Gameplay
         [SerializeField]
         private PauseMenuManager _pauseMenu;
 
+        [field: SerializeField]
+        public VocalTrackManager VocalTrackManager { get; private set; }
+
         [SerializeField]
         private TextMeshProUGUI _debugText;
 
