@@ -34,8 +34,8 @@
         }
 
         protected abstract void InitializeElement();
-        protected abstract void HideElement();
         protected abstract void UpdateElement();
+        protected abstract void HideElement();
 
         protected abstract bool UpdateElementPosition();
 

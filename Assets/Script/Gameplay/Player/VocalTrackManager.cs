@@ -23,7 +23,7 @@ namespace YARG.Gameplay.Player
 
         private void Start()
         {
-            Assert.AreNotEqual(_notePools.Length, 3,
+            Assert.AreEqual(_notePools.Length, 3,
                 "Note pools must be of length three (one for each harmony part).");
         }
 
@@ -52,34 +52,34 @@ namespace YARG.Gameplay.Player
             _noteIndices = new int[_vocalsTrack.Parts.Count];
         }
 
-        // private void Update()
-        // {
-        //     // For each harmony...
-        //     for (int i = 0; i < _vocalsTrack.Parts.Count; i++)
-        //     {
-        //         // Get the information for this harmony part
-        //         var phrases = _vocalsTrack.Parts[i].NotePhrases;
-        //         int index = _phraseIndices[i];
-        //
-        //         // Spawn the notes in the phrase.
-        //         // We don't need to do a time check as
-        //         // that is handled in SpawnNotesInPhrase.
-        //         while (index < phrases.Count)
-        //         {
-        //             var phrase = phrases[index];
-        //
-        //             if (SpawnNotesInPhrase(phrase, i))
-        //             {
-        //                 _phraseIndices[index]++;
-        //                 _noteIndices[index] = 0;
-        //             }
-        //             else
-        //             {
-        //                 break;
-        //             }
-        //         }
-        //     }
-        // }
+        private void Update()
+        {
+            // For each harmony...
+            for (int i = 0; i < _vocalsTrack.Parts.Count; i++)
+            {
+                // Get the information for this harmony part
+                var phrases = _vocalsTrack.Parts[i].NotePhrases;
+                int index = _phraseIndices[i];
+
+                // Spawn the notes in the phrase.
+                // We don't need to do a time check as
+                // that is handled in SpawnNotesInPhrase.
+                while (index < phrases.Count)
+                {
+                    var phrase = phrases[index];
+
+                    if (SpawnNotesInPhrase(phrase, i))
+                    {
+                        _phraseIndices[i]++;
+                        _noteIndices[i] = 0;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+        }
 
         private bool SpawnNotesInPhrase(VocalsPhrase phrase, int harmonyIndex)
         {

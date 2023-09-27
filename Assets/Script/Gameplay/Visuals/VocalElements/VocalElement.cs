@@ -12,15 +12,15 @@ namespace YARG.Gameplay.Visuals
         {
             // TODO: Take video calibration into consideration
 
-            float z =
+            float x =
                 SING_LINE_POS                                   // Shift origin to the sing line
                 + (float) (ElementTime - GameManager.InputTime) // Get time of note relative to now
                 * VocalTrackManager.NOTE_SPEED;                 // Adjust speed (units/s)
 
             var cacheTransform = transform;
-            cacheTransform.localPosition = cacheTransform.localPosition.WithZ(z);
+            cacheTransform.localPosition = cacheTransform.localPosition.WithX(x);
 
-            if (z < REMOVE_POINT - RemovePointOffset)
+            if (x < REMOVE_POINT - RemovePointOffset)
             {
                 ParentPool.Return(this);
                 return false;

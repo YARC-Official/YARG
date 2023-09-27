@@ -11,17 +11,14 @@ namespace YARG.Gameplay.Visuals
 
         protected override void InitializeElement()
         {
-            throw new System.NotImplementedException();
-        }
-
-        protected override void HideElement()
-        {
-            throw new System.NotImplementedException();
         }
 
         protected override void UpdateElement()
         {
-            throw new System.NotImplementedException();
+        }
+
+        protected override void HideElement()
+        {
         }
     }
 }
