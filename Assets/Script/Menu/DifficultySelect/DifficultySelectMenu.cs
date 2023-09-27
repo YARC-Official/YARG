@@ -6,6 +6,7 @@ using YARG.Core;
 using YARG.Core.Extensions;
 using YARG.Core.Game;
 using YARG.Core.Input;
+using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
@@ -275,7 +276,7 @@ namespace YARG.Menu.DifficultySelect
             var allowedInstruments = profile.GameMode.PossibleInstruments();
             foreach (var instrument in allowedInstruments)
             {
-                if (!songParts.HasInstrument(instrument)) continue;
+                if (!HasPlayableInstrument(songParts, instrument)) continue;
 
                 _possibleInstruments.Add(instrument);
             }
@@ -322,7 +323,10 @@ namespace YARG.Menu.DifficultySelect
             // Get the possible difficulties for the player's instrument in the song
             foreach (var difficulty in EnumExtensions<Difficulty>.Values)
             {
-                if (!songParts.HasDifficulty(profile.CurrentInstrument, difficulty)) continue;
+                if (!HasPlayableDifficulty(songParts, profile.CurrentInstrument, difficulty))
+                {
+                    continue;
+                }
 
                 _possibleDifficulties.Add(difficulty);
             }
@@ -376,6 +380,44 @@ namespace YARG.Menu.DifficultySelect
         private void CreateItem(string body, UnityAction a)
         {
             CreateItem(null, body, a);
+        }
+
+        private static bool HasPlayableInstrument(AvailableParts parts, Instrument instrument)
+        {
+            bool has = parts.HasInstrument(instrument);
+
+            // Allow 5 -> 4-lane conversions to be played on 4-lane
+            if (!has && instrument is Instrument.FourLaneDrums or Instrument.ProDrums)
+            {
+                has = parts.HasInstrument(Instrument.FiveLaneDrums);
+            }
+
+            // Allow 4 -> 5-lane conversions to be played on 5-lane
+            if (!has && instrument == Instrument.FiveLaneDrums)
+            {
+                has = parts.HasInstrument(Instrument.ProDrums);
+            }
+
+            return has;
+        }
+
+        private static bool HasPlayableDifficulty(AvailableParts parts, Instrument instrument, Difficulty difficulty)
+        {
+            bool has = parts.HasDifficulty(instrument, difficulty);
+
+            // Allow 5 -> 4-lane conversions to be played on 4-lane
+            if (!has && instrument is Instrument.FourLaneDrums or Instrument.ProDrums)
+            {
+                has = parts.HasDifficulty(Instrument.FiveLaneDrums, difficulty);
+            }
+
+            // Allow 4 -> 5-lane conversions to be played on 5-lane
+            if (!has && instrument == Instrument.FiveLaneDrums)
+            {
+                has = parts.HasDifficulty(Instrument.ProDrums, difficulty);
+            }
+
+            return has;
         }
     }
 }
