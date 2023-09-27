@@ -1,10 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
-using YARG.Input;
 
 namespace YARG.Menu.Persistent
 {
@@ -26,19 +27,14 @@ namespace YARG.Menu.Persistent
         [Header("Colors")]
         [SerializeField]
         private Color generalColor;
-
         [SerializeField]
         private Color successColor;
-
         [SerializeField]
         private Color warningColor;
-
         [SerializeField]
         private Color informationColor;
-
         [SerializeField]
         private Color errorColor;
-
         [SerializeField]
         private Color messageColor;
 
@@ -46,16 +42,12 @@ namespace YARG.Menu.Persistent
         [Header("Icons")]
         [SerializeField]
         private Sprite iconGeneral;
-
         [SerializeField]
         private Sprite iconSuccess;
-
         [SerializeField]
         private Sprite iconWarning;
-
         [SerializeField]
         private Sprite iconInformation;
-
         [SerializeField]
         private Sprite iconError;
 
@@ -63,26 +55,22 @@ namespace YARG.Menu.Persistent
         [Header("UI Elements")]
         [SerializeField]
         private TMP_Text messageTypeText;
-
         [SerializeField]
         private Image messageTypeIcon;
-
         [SerializeField]
         private TMP_Text messageBody;
-
         [SerializeField]
         private GameObject toastFab;
-
         [SerializeField]
         private Animator toastAnimator;
-
         [SerializeField]
         private Image messageBackground;
 
-        private static Queue<Toast> toastQueue = new Queue<Toast>();
-        private Coroutine queueChecker;
+        private int animationState = Animator.StringToHash("ToastAnimation");
 
-        public enum ToastType
+        private static Queue<Toast> toastQueue = new();
+
+        private enum ToastType
         {
             General,
             Information,
@@ -91,7 +79,7 @@ namespace YARG.Menu.Persistent
             Error,
         }
 
-        public struct Toast
+        private struct Toast
         {
             //this is so we can pass 2 things into the queue
             public ToastType type;
@@ -109,133 +97,90 @@ namespace YARG.Menu.Persistent
             toastFab.SetActive(false);
         }
 
+        // "The Unity message 'Update' has an incorrect signature."
+        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTask is a compatible return type.")]
+        private async UniTask Update()
+        {
+            if (toastQueue.Count < 1)
+            {
+                toastFab.SetActive(false);
+                return;
+            }
+
+            var toast = toastQueue.Dequeue();
+            ShowToast(toast.type, toast.text);
+            await UniTask.WaitUntil(() => toastAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Idle"));
+        }
+
         /// <summary>
         /// Adds a general message toast to the toast queue.
         /// </summary>
         /// <param name="text">Text of the toast.</param>
         public static void ToastMessage(string text)
-        {
-            toastQueue.Enqueue(new Toast(ToastType.General, text));
-            if (Instance.queueChecker == null)
-            {
-                Instance.queueChecker = Instance.StartCoroutine(Instance.CheckQueue());
-            }
-        }
+            => AddToast(ToastType.General, text);
 
         /// <summary>
         /// Adds an information message toast to the toast queue.
         /// </summary>
         /// <param name="text">Text of the toast.</param>
         public static void ToastInformation(string text)
-        {
-            toastQueue.Enqueue(new Toast(ToastType.Information, text));
-            if (Instance.queueChecker == null)
-            {
-                Instance.queueChecker = Instance.StartCoroutine(Instance.CheckQueue());
-            }
-        }
+            => AddToast(ToastType.Information, text);
 
         /// <summary>
         /// Adds a success message toast to the toast queue.
         /// </summary>
         /// <param name="text">Text of the toast.</param>
         public static void ToastSuccess(string text)
-        {
-            toastQueue.Enqueue(new Toast(ToastType.Success, text));
-            if (Instance.queueChecker == null)
-            {
-                Instance.queueChecker = Instance.StartCoroutine(Instance.CheckQueue());
-            }
-        }
+            => AddToast(ToastType.Success, text);
 
         /// <summary>
         /// Adds a warning message toast to the toast queue.
         /// </summary>
         /// <param name="text">Text of the toast.</param>
         public static void ToastWarning(string text)
-        {
-            toastQueue.Enqueue(new Toast(ToastType.Warning, text));
-            if (Instance.queueChecker == null)
-            {
-                Instance.queueChecker = Instance.StartCoroutine(Instance.CheckQueue());
-            }
-        }
+            => AddToast(ToastType.Warning, text);
 
         /// <summary>
         /// Adds an error message toast to the toast queue.
         /// </summary>
         /// <param name="text">Text of the toast.</param>
         public static void ToastError(string text)
+            => AddToast(ToastType.Error, text);
+
+        private static void AddToast(ToastType type, string text)
         {
-            toastQueue.Enqueue(new Toast(ToastType.Error, text));
-            if (Instance.queueChecker == null)
-            {
-                Instance.queueChecker = Instance.StartCoroutine(Instance.CheckQueue());
-            }
+            toastQueue.Enqueue(new Toast(type, text));
         }
 
         private void ShowToast(ToastType type, string body)
         {
-            toastFab.SetActive(true);
-            switch (type)
+            // Get properties for this message type
+            var (text, color, sprite) = type switch
             {
-                case ToastType.General:
-                    messageTypeText.text = "General";
-                    messageTypeText.color = generalColor;
-                    messageTypeIcon.sprite = iconGeneral;
-                    break;
+                ToastType.General     => ("General",     generalColor,     iconGeneral),
+                ToastType.Information => ("Information", informationColor, iconInformation),
+                ToastType.Success     => ("Success",     successColor,     iconSuccess),
+                ToastType.Warning     => ("Warning",     warningColor,     iconWarning),
+                ToastType.Error       => ("Error",       errorColor,       iconError),
 
-                case ToastType.Success:
-                    messageTypeText.text = "Success";
-                    messageTypeText.color = successColor;
-                    messageTypeIcon.sprite = iconSuccess;
-                    break;
+                _ => throw new ArgumentException($"Invalid toast type {type}!")
+            };
 
-                case ToastType.Warning:
-                    messageTypeText.text = "Warning";
-                    messageTypeText.color = warningColor;
-                    messageTypeIcon.sprite = iconWarning;
-                    break;
+            // Background
+            messageBackground.color = color;
 
-                case ToastType.Information:
-                    messageTypeText.text = "Information";
-                    messageTypeText.color = informationColor;
-                    messageTypeIcon.sprite = iconInformation;
-                    break;
+            // Header
+            messageTypeText.text = text;
+            messageTypeText.color = color;
+            messageTypeIcon.sprite = sprite;
 
-                case ToastType.Error:
-                    messageTypeText.text = "Error";
-                    messageTypeText.color = errorColor;
-                    messageTypeIcon.sprite = iconError;
-                    break;
-
-                default:
-                    messageTypeText.text = "Unknown";
-                    messageTypeText.color = generalColor;
-                    messageTypeIcon.sprite = iconGeneral;
-                    break;
-            }
-
-            messageBody.color = new Color(0xFF, 0xFF, 0xFF, 0xFF); //set text color to white
+            // Message
+            messageBody.color = Color.white;
             messageBody.text = body;
-            messageBackground.color = messageTypeText.color;
-            toastAnimator.Play("ToastAnimation");
-        }
 
-        private IEnumerator CheckQueue()
-        {
-            do
-            {
-                Toast thing = toastQueue.Dequeue();
-                ShowToast(thing.type, thing.text);
-                do
-                {
-                    yield return null;
-                } while (!toastAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Idle"));
-            } while (toastQueue.Count > 0);
-
-            toastFab.SetActive(false);
-            queueChecker = null;
+            // Show toast
+            toastFab.SetActive(true);
+            toastAnimator.Play(animationState);
         }
     }
 }
