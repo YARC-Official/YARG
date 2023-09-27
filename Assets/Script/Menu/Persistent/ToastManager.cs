@@ -1,8 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -97,10 +94,18 @@ namespace YARG.Menu.Persistent
             toastFab.SetActive(false);
         }
 
-        // "The Unity message 'Update' has an incorrect signature."
-        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTask is a compatible return type.")]
-        private async UniTask Update()
+        private void Update()
         {
+            // Wait until loading is finished, to prevent toasts from not being seen due to startup/loading lag
+            if (LoadingManager.Instance.IsLoading)
+                return;
+
+            // Wait for animator to finish before doing anything else
+            // Checking the queue before the animator state will always end up force-disabling the toast fab
+            var animatorState = toastAnimator.GetCurrentAnimatorStateInfo(0);
+            if (toastFab.activeSelf && !animatorState.IsTag("Idle"))
+                return;
+
             if (toastQueue.Count < 1)
             {
                 toastFab.SetActive(false);
@@ -109,7 +114,6 @@ namespace YARG.Menu.Persistent
 
             var toast = toastQueue.Dequeue();
             ShowToast(toast.type, toast.text);
-            await UniTask.WaitUntil(() => toastAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Idle"));
         }
 
         /// <summary>
