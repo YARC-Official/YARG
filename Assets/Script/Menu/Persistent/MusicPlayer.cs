@@ -1,4 +1,5 @@
-﻿using Cysharp.Threading.Tasks;
+﻿using System.Diagnostics.CodeAnalysis;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -28,6 +29,8 @@ namespace YARG.Menu.Persistent
 
         private bool _wasPaused;
 
+        // "The Unity message 'OnEnable' has an incorrect signature."
+        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTask is a compatible return type.")]
         private async UniTask OnEnable()
         {
             _songText.text = string.Empty;
