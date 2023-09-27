@@ -41,11 +41,13 @@ namespace YARG.Menu.Persistent
                 return;
             }
 
+            GlobalVariables.AudioManager.SongEnd += OnSongEnd;
             await NextSong();
         }
 
         private void OnDisable()
         {
+            GlobalVariables.AudioManager.SongEnd -= OnSongEnd;
             Stop();
         }
 
@@ -59,6 +61,11 @@ namespace YARG.Menu.Persistent
             _artistText.text = song.Artist;
 
             Play();
+        }
+
+        private void OnSongEnd()
+        {
+            NextSong().Forget();
         }
 
         private void Play()
