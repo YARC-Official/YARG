@@ -7,7 +7,6 @@ using YARG.Core.Input;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Player;
-using YARG.Settings;
 
 namespace YARG.Gameplay.Player
 {

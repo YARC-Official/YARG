@@ -1,0 +1,32 @@
+﻿using UnityEngine;
+using YARG.Gameplay.Player;
+
+namespace YARG.Gameplay.Visuals
+{
+    public abstract class VocalElement : BaseElement
+    {
+        private const float SING_LINE_POS = -5f;
+        private const float REMOVE_POINT = -15f;
+
+        protected override bool UpdateElementPosition()
+        {
+            // TODO: Take video calibration into consideration
+
+            float z =
+                SING_LINE_POS                                   // Shift origin to the sing line
+                + (float) (ElementTime - GameManager.InputTime) // Get time of note relative to now
+                * VocalTrackManager.NOTE_SPEED;                 // Adjust speed (units/s)
+
+            var cacheTransform = transform;
+            cacheTransform.localPosition = cacheTransform.localPosition.WithZ(z);
+
+            if (z < REMOVE_POINT - RemovePointOffset)
+            {
+                ParentPool.Return(this);
+                return false;
+            }
+
+            return true;
+        }
+    }
+}

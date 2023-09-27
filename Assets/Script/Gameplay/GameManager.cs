@@ -489,6 +489,9 @@ namespace YARG.Gameplay
                 basePlayer.Initialize(index, player, Chart, trackView);
                 _players.Add(basePlayer);
             }
+
+            // Initialize the vocals track
+            VocalTrackManager.Initialize(Chart.Vocals);
         }
 
         private async UniTask SetSongSpeedTask(float speed)

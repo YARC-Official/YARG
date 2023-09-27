@@ -1,0 +1,108 @@
+﻿using UnityEngine;
+using UnityEngine.Assertions;
+using YARG.Core.Chart;
+using YARG.Gameplay.Visuals;
+
+namespace YARG.Gameplay.Player
+{
+    public class VocalTrackManager : GameplayBehaviour
+    {
+        // TODO: This is temporary
+        public const float NOTE_SPEED = 5f;
+
+        private const float SPAWN_TIME_OFFSET = 5f;
+
+        [SerializeField]
+        private Camera _trackCamera;
+        [SerializeField]
+        private Pool[] _notePools;
+
+        private VocalsTrack _vocalsTrack;
+        private int[] _phraseIndices;
+        private int[] _noteIndices;
+
+        private void Start()
+        {
+            Assert.AreNotEqual(_notePools.Length, 3,
+                "Note pools must be of length three (one for each harmony part).");
+        }
+
+        public RenderTexture InitializeRenderTexture(float vocalImageAspectRatio)
+        {
+            // Set the vocal track render texture to a constant aspect ratio
+            // to make it easier to work with and size.
+            int height = (int) (Screen.width / vocalImageAspectRatio);
+
+            // Create a render texture for the vocals
+            var descriptor = new RenderTextureDescriptor(
+                Screen.width, height, RenderTextureFormat.ARGBHalf);
+            descriptor.mipCount = 0;
+            var renderTexture = new RenderTexture(descriptor);
+
+            // Apply the render texture
+            _trackCamera.targetTexture = renderTexture;
+
+            return renderTexture;
+        }
+
+        public void Initialize(VocalsTrack vocalsTrack)
+        {
+            _vocalsTrack = vocalsTrack;
+            _phraseIndices = new int[_vocalsTrack.Parts.Count];
+            _noteIndices = new int[_vocalsTrack.Parts.Count];
+        }
+
+        // private void Update()
+        // {
+        //     // For each harmony...
+        //     for (int i = 0; i < _vocalsTrack.Parts.Count; i++)
+        //     {
+        //         // Get the information for this harmony part
+        //         var phrases = _vocalsTrack.Parts[i].NotePhrases;
+        //         int index = _phraseIndices[i];
+        //
+        //         // Spawn the notes in the phrase.
+        //         // We don't need to do a time check as
+        //         // that is handled in SpawnNotesInPhrase.
+        //         while (index < phrases.Count)
+        //         {
+        //             var phrase = phrases[index];
+        //
+        //             if (SpawnNotesInPhrase(phrase, i))
+        //             {
+        //                 _phraseIndices[index]++;
+        //                 _noteIndices[index] = 0;
+        //             }
+        //             else
+        //             {
+        //                 break;
+        //             }
+        //         }
+        //     }
+        // }
+
+        private bool SpawnNotesInPhrase(VocalsPhrase phrase, int harmonyIndex)
+        {
+            int index = _noteIndices[harmonyIndex];
+            var pool = _notePools[harmonyIndex];
+
+            while (index < phrase.Notes.Count && phrase.Notes[index].Time <= GameManager.SongTime + SPAWN_TIME_OFFSET)
+            {
+                // Skip this frame if the pool is full
+                if (!pool.CanSpawnAmount(1))
+                {
+                    return false;
+                }
+
+                _noteIndices[harmonyIndex]++;
+
+                // Spawn the vocal note
+                var poolable = pool.TakeWithoutEnabling();
+                ((VocalNoteElement) poolable).NoteRef = phrase.Notes[index];
+                poolable.EnableFromPool();
+            }
+
+            return index >= phrase.Notes.Count;
+        }
+    }
+}
