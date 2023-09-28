@@ -7,6 +7,16 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3109241836332754528, guid: 8ad9b0a5a07d4c34b83af2d7327f1516,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3301155746753502004, guid: 8ad9b0a5a07d4c34b83af2d7327f1516,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.6
+      objectReference: {fileID: 0}
     - target: {fileID: 4243257583752685854, guid: 8ad9b0a5a07d4c34b83af2d7327f1516,
         type: 3}
       propertyPath: m_RootOrder
@@ -65,7 +75,7 @@ PrefabInstance:
     - target: {fileID: 4243257583752685855, guid: 8ad9b0a5a07d4c34b83af2d7327f1516,
         type: 3}
       propertyPath: m_Name
-      value: BaseVocalNote
+      value: Harm3VocalNote
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8ad9b0a5a07d4c34b83af2d7327f1516, type: 3}
