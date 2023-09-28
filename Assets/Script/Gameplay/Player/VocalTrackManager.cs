@@ -70,7 +70,7 @@ namespace YARG.Gameplay.Player
 
                     if (SpawnNotesInPhrase(phrase, i))
                     {
-                        _phraseIndices[i]++;
+                        index++;
                         _noteIndices[i] = 0;
                     }
                     else
@@ -78,13 +78,16 @@ namespace YARG.Gameplay.Player
                         break;
                     }
                 }
+
+                // Make sure to update the value
+                _phraseIndices[i] = index;
             }
         }
 
         private bool SpawnNotesInPhrase(VocalsPhrase phrase, int harmonyIndex)
         {
-            int index = _noteIndices[harmonyIndex];
             var pool = _notePools[harmonyIndex];
+            int index = _noteIndices[harmonyIndex];
 
             while (index < phrase.Notes.Count && phrase.Notes[index].Time <= GameManager.SongTime + SPAWN_TIME_OFFSET)
             {
@@ -94,13 +97,16 @@ namespace YARG.Gameplay.Player
                     return false;
                 }
 
-                _noteIndices[harmonyIndex]++;
-
                 // Spawn the vocal note
                 var poolable = pool.TakeWithoutEnabling();
                 ((VocalNoteElement) poolable).NoteRef = phrase.Notes[index];
                 poolable.EnableFromPool();
+
+                index++;
             }
+
+            // Make sure to update the value
+            _noteIndices[harmonyIndex] = index;
 
             return index >= phrase.Notes.Count;
         }
