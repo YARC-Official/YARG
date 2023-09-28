@@ -491,7 +491,7 @@ namespace YARG.Gameplay
             }
 
             // Initialize the vocals track
-            VocalTrackManager.Initialize(Chart.Vocals);
+            VocalTrackManager.Initialize(Chart.Harmony);
         }
 
         private async UniTask SetSongSpeedTask(float speed)

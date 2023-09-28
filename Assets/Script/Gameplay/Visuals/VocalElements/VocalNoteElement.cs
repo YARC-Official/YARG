@@ -1,5 +1,7 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using YARG.Core.Chart;
+using YARG.Gameplay.Player;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -24,10 +26,30 @@ namespace YARG.Gameplay.Visuals
         {
             var color = _colors[NoteRef.HarmonyPart];
 
+            // Create points
+            var points = new List<Vector3>();
+            foreach (var note in NoteRef.ChordEnumerator())
+            {
+                // TODO: Make this actually good
+                var z = (note.Pitch - 56f) / 16f;
+
+                points.Add(new Vector3(
+                    (float) (note.Time - NoteRef.Time) * VocalTrackManager.NOTE_SPEED,
+                    0f, z));
+                points.Add(new Vector3(
+                    (float) (note.TimeEnd - NoteRef.Time) * VocalTrackManager.NOTE_SPEED,
+                    0f, z));
+            }
+
+            // Set line info
             foreach (var line in _lineRenderers)
             {
                 // Set colors
                 line.material.color = color;
+
+                // Set points
+                line.positionCount = points.Count;
+                line.SetPositions(points.ToArray());
             }
         }
 
