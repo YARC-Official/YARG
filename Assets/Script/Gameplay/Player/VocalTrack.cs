@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Assertions;
+using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Gameplay.Visuals;
 
@@ -12,6 +13,9 @@ namespace YARG.Gameplay.Player
 
         private const float SPAWN_TIME_OFFSET = 5f;
 
+        private const float TRACK_TOP = 0.95f;
+        private const float TRACK_BOTTOM = -0.57f;
+
         [SerializeField]
         private Camera _trackCamera;
         [SerializeField]
@@ -20,6 +24,10 @@ namespace YARG.Gameplay.Player
         private VocalsTrack _vocalsTrack;
         private int[] _phraseIndices;
         private int[] _noteIndices;
+
+        // Set a starting range (these are basically just random numbers)
+        private float _viewRangeMin = 55f;
+        private float _viewRangeMax = 75f;
 
         private void Start()
         {
@@ -113,12 +121,12 @@ namespace YARG.Gameplay.Player
 
         public float GetPosForTime(double time)
         {
-            return (float) time * SPAWN_TIME_OFFSET;
+            return (float) time * NOTE_SPEED;
         }
 
         public float GetPosForPitch(float pitch)
         {
-            return (pitch - 56f) / 16f;
+            return YargMath.Lerp(TRACK_BOTTOM, TRACK_TOP, _viewRangeMin, _viewRangeMax, pitch);
         }
     }
 }
