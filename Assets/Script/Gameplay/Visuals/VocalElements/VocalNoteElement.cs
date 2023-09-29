@@ -18,6 +18,8 @@ namespace YARG.Gameplay.Visuals
 
         protected override double ElementTime => NoteRef.Time;
 
+        protected override float RemovePointOffset => VocalTrack.GetPosForTime(NoteRef.TotalTimeLength);
+
         [SerializeField]
         private LineRenderer[] _lineRenderers;
 

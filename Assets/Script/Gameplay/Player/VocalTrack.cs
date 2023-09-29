@@ -176,7 +176,7 @@ namespace YARG.Gameplay.Player
                 {
                     // If the note time is less than the range start,
                     // skip until we're in the range.
-                    if (note.TimeEnd < noteRangeStart) continue;
+                    if (note.TotalTimeEnd < noteRangeStart) continue;
 
                     // If the note time is more than the range end,
                     // we're done.
