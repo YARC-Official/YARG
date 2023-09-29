@@ -5,7 +5,7 @@ using YARG.Gameplay.Visuals;
 
 namespace YARG.Gameplay.Player
 {
-    public class VocalTrackManager : GameplayBehaviour
+    public class VocalTrack : GameplayBehaviour
     {
         // TODO: This is temporary
         public const float NOTE_SPEED = 5f;
@@ -109,6 +109,16 @@ namespace YARG.Gameplay.Player
             _noteIndices[harmonyIndex] = index;
 
             return index >= phrase.Notes.Count;
+        }
+
+        public float GetPosForTime(double time)
+        {
+            return (float) time * SPAWN_TIME_OFFSET;
+        }
+
+        public float GetPosForPitch(float pitch)
+        {
+            return (pitch - 56f) / 16f;
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
-using YARG.Gameplay.Player;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -30,15 +29,10 @@ namespace YARG.Gameplay.Visuals
             var points = new List<Vector3>();
             foreach (var note in NoteRef.ChordEnumerator())
             {
-                // TODO: Make this actually good
-                var z = (note.Pitch - 56f) / 16f;
+                var z = VocalTrack.GetPosForPitch(note.Pitch);
 
-                points.Add(new Vector3(
-                    (float) (note.Time - NoteRef.Time) * VocalTrackManager.NOTE_SPEED,
-                    0f, z));
-                points.Add(new Vector3(
-                    (float) (note.TimeEnd - NoteRef.Time) * VocalTrackManager.NOTE_SPEED,
-                    0f, z));
+                points.Add(new Vector3(VocalTrack.GetPosForTime(note.Time - NoteRef.Time),    0f, z));
+                points.Add(new Vector3(VocalTrack.GetPosForTime(note.TimeEnd - NoteRef.Time), 0f, z));
             }
 
             // Set line info

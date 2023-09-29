@@ -39,7 +39,7 @@ namespace YARG.Gameplay
         private PauseMenuManager _pauseMenu;
 
         [field: SerializeField]
-        public VocalTrackManager VocalTrackManager { get; private set; }
+        public VocalTrack VocalTrack { get; private set; }
 
         [SerializeField]
         private TextMeshProUGUI _debugText;
@@ -491,7 +491,7 @@ namespace YARG.Gameplay
             }
 
             // Initialize the vocals track
-            VocalTrackManager.Initialize(Chart.Harmony);
+            VocalTrack.Initialize(Chart.Harmony);
         }
 
         private async UniTask SetSongSpeedTask(float speed)

@@ -1287,7 +1287,7 @@ MonoBehaviour:
   _trackViewManager: {fileID: 1330928978}
   _replayController: {fileID: 922548498}
   _pauseMenu: {fileID: 1323155442}
-  <VocalTrackManager>k__BackingField: {fileID: 1312797156}
+  <VocalTrack>k__BackingField: {fileID: 1312797156}
   _debugText: {fileID: 2085296271}
   _fiveFretGuitarPrefab: {fileID: 7381119128095886790, guid: 0f7a37c9e4abcad4da73b7603d4b7596,
     type: 3}

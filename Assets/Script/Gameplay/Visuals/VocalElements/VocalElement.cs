@@ -8,6 +8,13 @@ namespace YARG.Gameplay.Visuals
         private const float SING_LINE_POS = -5f;
         private const float REMOVE_POINT = -15f;
 
+        protected VocalTrack VocalTrack { get; private set; }
+
+        protected override void GameplayAwake()
+        {
+            VocalTrack = GetComponentInParent<VocalTrack>();
+        }
+
         protected override bool UpdateElementPosition()
         {
             // TODO: Take video calibration into consideration
@@ -15,7 +22,7 @@ namespace YARG.Gameplay.Visuals
             float x =
                 SING_LINE_POS                                   // Shift origin to the sing line
                 + (float) (ElementTime - GameManager.InputTime) // Get time of note relative to now
-                * VocalTrackManager.NOTE_SPEED;                 // Adjust speed (units/s)
+                * VocalTrack.NOTE_SPEED;                 // Adjust speed (units/s)
 
             var cacheTransform = transform;
             cacheTransform.localPosition = cacheTransform.localPosition.WithX(x);

@@ -27,7 +27,7 @@ namespace YARG.Gameplay.HUD
             float ratio = rect.width / rect.height;
 
             // Apply the vocal track texture
-            var rt = GameManager.VocalTrackManager.InitializeRenderTexture(ratio);
+            var rt = GameManager.VocalTrack.InitializeRenderTexture(ratio);
             _vocalImage.texture = rt;
         }
 
