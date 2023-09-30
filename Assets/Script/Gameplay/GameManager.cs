@@ -459,6 +459,8 @@ namespace YARG.Gameplay
         {
             _players = new List<BasePlayer>();
 
+            bool vocalTrackInitialized = false;
+
             int index = -1;
             foreach (var player in _yargPlayers)
             {
@@ -467,31 +469,45 @@ namespace YARG.Gameplay
                 // Skip if the player is sitting out
                 if (player.SittingOut) continue;
 
-                var prefab = player.Profile.GameMode switch
+                if (player.Profile.GameMode != GameMode.Vocals)
                 {
-                    GameMode.FiveFretGuitar => _fiveFretGuitarPrefab,
-                    GameMode.SixFretGuitar  => _sixFretGuitarPrefab,
-                    GameMode.FourLaneDrums  => _fourLaneDrumsPrefab,
-                    GameMode.FiveLaneDrums  => _fiveLaneDrumsPrefab,
-                    GameMode.ProGuitar      => _proGuitarPrefab,
+                    var prefab = player.Profile.GameMode switch
+                    {
+                        GameMode.FiveFretGuitar => _fiveFretGuitarPrefab,
+                        GameMode.SixFretGuitar  => _sixFretGuitarPrefab,
+                        GameMode.FourLaneDrums  => _fourLaneDrumsPrefab,
+                        GameMode.FiveLaneDrums  => _fiveLaneDrumsPrefab,
+                        GameMode.ProGuitar      => _proGuitarPrefab,
 
-                    _ => null
-                };
+                        _ => null
+                    };
 
-                // Skip if there's no prefab for the game mode
-                if (prefab == null) continue;
+                    // Skip if there's no prefab for the game mode
+                    if (prefab == null) continue;
 
-                var playerObject = Instantiate(prefab, new Vector3(index * 25f, 100f, 0f), prefab.transform.rotation);
+                    var playerObject = Instantiate(prefab, new Vector3(index * 25f, 100f, 0f), prefab.transform.rotation);
 
-                // Setup player
-                var basePlayer = playerObject.GetComponent<TrackPlayer>();
-                var trackView = _trackViewManager.CreateTrackView(basePlayer, player);
-                basePlayer.Initialize(index, player, Chart, trackView);
-                _players.Add(basePlayer);
+                    // Setup player
+                    var basePlayer = playerObject.GetComponent<TrackPlayer>();
+                    var trackView = _trackViewManager.CreateTrackView(basePlayer, player);
+                    basePlayer.Initialize(index, player, Chart, trackView);
+                    _players.Add(basePlayer);
+                }
+                else
+                {
+                    // Initialize the vocal track if it hasn't been already
+                    if (!vocalTrackInitialized)
+                    {
+                        VocalTrack.Initialize(Chart.Harmony);
+                        vocalTrackInitialized = true;
+                    }
+
+                    // Create the player on the vocal track
+                    var vocalsPlayer = VocalTrack.CreatePlayer();
+                    vocalsPlayer.Initialize(index, player, Chart);
+                    _players.Add(vocalsPlayer);
+                }
             }
-
-            // Initialize the vocals track
-            VocalTrack.Initialize(Chart.Harmony);
         }
 
         private async UniTask SetSongSpeedTask(float speed)

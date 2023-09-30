@@ -34,7 +34,13 @@ namespace YARG.Gameplay.Player
         private const float TRACK_BOTTOM = -0.53f;
 
         [SerializeField]
+        private GameObject _vocalPlayerPrefab;
+
+        [Space]
+        [SerializeField]
         private Camera _trackCamera;
+        [SerializeField]
+        private Transform _playerContainer;
         [SerializeField]
         private Pool[] _notePools;
         [SerializeField]
@@ -80,6 +86,13 @@ namespace YARG.Gameplay.Player
             _vocalsTrack = vocalsTrack;
             _phraseIndices = new int[_vocalsTrack.Parts.Count];
             _noteIndices = new int[_vocalsTrack.Parts.Count];
+        }
+
+        public VocalsPlayer CreatePlayer()
+        {
+            var playerObj = Instantiate(_vocalPlayerPrefab, _playerContainer);
+            var player = playerObj.GetComponent<VocalsPlayer>();
+            return player;
         }
 
         private void Update()

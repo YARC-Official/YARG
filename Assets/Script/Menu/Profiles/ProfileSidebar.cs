@@ -22,7 +22,8 @@ namespace YARG.Menu.Profiles
         private static readonly GameMode[] _gameModes =
         {
             GameMode.FiveFretGuitar,
-            GameMode.FourLaneDrums
+            GameMode.FourLaneDrums,
+            GameMode.Vocals
         };
 
         [SerializeField]

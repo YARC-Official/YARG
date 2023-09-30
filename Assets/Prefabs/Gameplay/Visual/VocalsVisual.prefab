@@ -9853,7 +9853,7 @@ GameObject:
   - component: {fileID: 9222097514682650238}
   - component: {fileID: 9222097514682650239}
   m_Layer: 0
-  m_Name: NeedleModel
+  m_Name: Needle Model
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9947,9 +9947,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9222097515094736833}
-  - component: {fileID: 3930951948316195037}
+  - component: {fileID: 6598301681565966518}
   m_Layer: 0
-  m_Name: VocalNeedle
+  m_Name: VocalsVisual
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9974,7 +9974,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3930951948316195037
+--- !u!114 &6598301681565966518
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -9983,21 +9983,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 9222097515094736838}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8b003251e2efd4341ae262dea0f8e696, type: 3}
+  m_Script: {fileID: 11500000, guid: 6b73610cef194d83a0972b1a0ffd7a95, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  meshRenderer: {fileID: 9222097514682650238}
-  nonActiveParticles: {fileID: 4507814507384936493}
-  activeParticles: {fileID: 7086846618021614551}
-  needleLight: {fileID: 1193120453222617670}
-  needleTextures:
-  - {fileID: 2800000, guid: 8b68a573841c0df43b615b07a9fa8a80, type: 3}
-  - {fileID: 2800000, guid: 6c4556492c4d6da49ac6ae4204f6d10a, type: 3}
-  - {fileID: 2800000, guid: 029be4c7f0bed9f4ea00ee2c26be53f2, type: 3}
-  - {fileID: 2800000, guid: 00be5b45e060bcc4ea7a4233ed157d47, type: 3}
-  - {fileID: 2800000, guid: 5c946b527f23cbe438e258cadbf6542e, type: 3}
-  - {fileID: 2800000, guid: 60f34417203db20409cbad721139466b, type: 3}
-  - {fileID: 2800000, guid: c75f7ae331c92ba4a96938e48ae7391c, type: 3}
 --- !u!1 &9222097515348364642
 GameObject:
   m_ObjectHideFlags: 0

@@ -91,6 +91,10 @@ MonoBehaviour:
     m_Key: GameMode.SixFretGuitar
     m_Metadata:
       m_Items: []
+  - m_Id: 68554780478660608
+    m_Key: GameMode.Vocals
+    m_Metadata:
+      m_Items: []
   - m_Id: 62731776066707475
     m_Key: Instrument.Dj
     m_Metadata:
