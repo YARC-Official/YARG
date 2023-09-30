@@ -27,9 +27,8 @@ namespace YARG.Audio
         public bool VoiceDetected { get; }
 
         /// <summary>
-        /// Initialize the microphone device with the given device number.
+        /// Initialize the microphone.
         /// </summary>
-        /// <param name="device">The device number to associate with this Microphone Device.</param>
         /// <returns>0 if successful, otherwise an error code.</returns>
         public int Initialize();
 

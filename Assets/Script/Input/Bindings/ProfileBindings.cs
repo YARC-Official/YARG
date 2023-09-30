@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
+using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Extensions;
 using YARG.Core.Game;
@@ -15,6 +16,8 @@ namespace YARG.Input
     public class ProfileBindings : IDisposable
     {
         public YargProfile Profile { get; }
+
+        public IMicDevice Microphone { get; private set; }
 
         private readonly List<SerializedInputDevice> _unresolvedDevices = new();
         private readonly List<InputDevice> _devices = new();
@@ -321,6 +324,34 @@ namespace YARG.Input
             MenuBindings.UpdateBindingsForFrame();
         }
 
+        // TODO: This is temporary. Make this automatically connect
+        public bool AddMicrophone(IMicDevice microphone)
+        {
+            if (Microphone is not null)
+            {
+                return false;
+            }
+
+            if (microphone.Initialize() != 0)
+            {
+                return false;
+            }
+
+            Microphone = microphone;
+            return true;
+        }
+
+        public void RemoveMicrophone()
+        {
+            if (Microphone is null)
+            {
+                return;
+            }
+
+            Microphone.Dispose();
+            Microphone = null;
+        }
+
         public void ProcessInputEvent(InputEventPtr eventPtr)
         {
             var device = InputSystem.GetDeviceById(eventPtr.deviceId);
@@ -343,6 +374,8 @@ namespace YARG.Input
             {
                 OnDeviceRemoved(device);
             }
+
+            RemoveMicrophone();
         }
     }
 }

@@ -264,6 +264,10 @@ namespace YARG.Audio
                     _monitorPlaybackHandle = 0;
                 }
 
+                // Free the recording device
+                Bass.CurrentRecordingDevice = _deviceId;
+                Bass.RecordFree();
+
                 _disposed = true;
             }
         }
