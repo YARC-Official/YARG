@@ -6,7 +6,7 @@ using YARG.Helpers.Extensions;
 namespace YARG.Gameplay.Visuals
 {
     public abstract class TrackElement<TPlayer> : BaseElement
-        where TPlayer : BasePlayer
+        where TPlayer : TrackPlayer
     {
         private const float REMOVE_POINT = -4f;
 
@@ -47,7 +47,7 @@ namespace YARG.Gameplay.Visuals
             // TODO: Take video calibration into consideration
 
             float z =
-                BasePlayer.STRIKE_LINE_POS                      // Shift origin to the strike line
+                TrackPlayer.STRIKE_LINE_POS                      // Shift origin to the strike line
                 + (float) (ElementTime - GameManager.InputTime) // Get time of note relative to now
                 * Player.NoteSpeed;                             // Adjust speed (units/s)
 
@@ -66,7 +66,7 @@ namespace YARG.Gameplay.Visuals
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected static float GetElementX(int index, int subdivisions)
         {
-            return BasePlayer.TRACK_WIDTH / subdivisions * index - BasePlayer.TRACK_WIDTH / 2f - 1f / subdivisions;
+            return TrackPlayer.TRACK_WIDTH / subdivisions * index - TrackPlayer.TRACK_WIDTH / 2f - 1f / subdivisions;
         }
     }
 }

@@ -10,7 +10,7 @@ using YARG.Settings;
 
 namespace YARG.Gameplay.Player
 {
-    public sealed class FiveFretPlayer : BasePlayer<GuitarEngine, GuitarNote>
+    public sealed class FiveFretPlayer : TrackPlayer<GuitarEngine, GuitarNote>
     {
         public GuitarEngineParameters EngineParams { get; private set; }
 
@@ -186,11 +186,6 @@ namespace YARG.Gameplay.Player
             {
                 (NotePool.GetByKey(note) as FiveFretNoteElement)?.MissNote();
             }
-        }
-
-        protected override void OnOverstrum()
-        {
-            base.OnOverstrum();
         }
 
         protected override bool InterceptInput(ref GameInput input)

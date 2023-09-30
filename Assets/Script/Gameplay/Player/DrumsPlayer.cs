@@ -9,7 +9,7 @@ using YARG.Helpers.Extensions;
 
 namespace YARG.Gameplay.Player
 {
-    public class DrumsPlayer : BasePlayer<DrumsEngine, DrumNote>
+    public class DrumsPlayer : TrackPlayer<DrumsEngine, DrumNote>
     {
         public DrumsEngineParameters EngineParams { get; private set; }
 

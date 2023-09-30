@@ -12,7 +12,7 @@ namespace YARG.Gameplay.Visuals
 
     public abstract class NoteElement<TNote, TPlayer> : TrackElement<TPlayer>
         where TNote : Note<TNote>
-        where TPlayer : BasePlayer
+        where TPlayer : TrackPlayer
     {
         public TNote NoteRef { get; set; }
 

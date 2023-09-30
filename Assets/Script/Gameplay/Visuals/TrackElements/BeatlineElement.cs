@@ -5,7 +5,7 @@ using YARG.Gameplay.Player;
 
 namespace YARG.Gameplay.Visuals
 {
-    public class BeatlineElement : TrackElement<BasePlayer>
+    public class BeatlineElement : TrackElement<TrackPlayer>
     {
         private const float WEAK_BEAT_SCALE   = 0.04f;
         private const float STRONG_BEAT_SCALE = 0.08f;

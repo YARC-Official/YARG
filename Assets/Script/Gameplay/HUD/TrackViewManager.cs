@@ -31,7 +31,7 @@ namespace YARG.Gameplay.HUD
             _vocalImage.texture = rt;
         }
 
-        public TrackView CreateTrackView(BasePlayer basePlayer, YargPlayer player)
+        public TrackView CreateTrackView(TrackPlayer trackPlayer, YargPlayer player)
         {
             // Create a track view
             var trackView = Instantiate(_trackViewPrefab, transform).GetComponent<TrackView>();
@@ -44,7 +44,7 @@ namespace YARG.Gameplay.HUD
             var renderTexture = new RenderTexture(descriptor);
 
             // Make the camera render on to the texture instead of the screen
-            basePlayer.TrackCamera.targetTexture = renderTexture;
+            trackPlayer.TrackCamera.targetTexture = renderTexture;
 
             // Setup track view to show the correct track
             trackView.Initialize(renderTexture, player.CameraPreset);

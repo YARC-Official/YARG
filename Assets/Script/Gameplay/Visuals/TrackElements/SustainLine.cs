@@ -21,11 +21,11 @@ namespace YARG.Gameplay.Visuals
 
         private Material _material;
 
-        private BasePlayer _player;
+        private TrackPlayer _player;
 
         private void Awake()
         {
-            _player = GetComponentInParent<BasePlayer>();
+            _player = GetComponentInParent<TrackPlayer>();
             _material = _lineRenderer.material;
         }
 
@@ -86,7 +86,7 @@ namespace YARG.Gameplay.Visuals
         {
             // Get the new line start position. Said position should be at
             // the strike line and relative to the note itself.
-            float newStart = -transform.parent.localPosition.z + BasePlayer.STRIKE_LINE_POS;
+            float newStart = -transform.parent.localPosition.z + TrackPlayer.STRIKE_LINE_POS;
 
             // Apply to line renderer
             _lineRenderer.SetPosition(1, new(0f, 0f, newStart));
