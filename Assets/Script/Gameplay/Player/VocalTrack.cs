@@ -37,6 +37,8 @@ namespace YARG.Gameplay.Player
         private Camera _trackCamera;
         [SerializeField]
         private Pool[] _notePools;
+        [SerializeField]
+        private Pool _phraseLinePool;
 
         public bool IsRangeChanging { get; private set; }
 
@@ -123,6 +125,12 @@ namespace YARG.Gameplay.Player
 
                     if (SpawnNotesInPhrase(phrase, i))
                     {
+                        // Spawn the phrase end line
+                        var poolable = _phraseLinePool.TakeWithoutEnabling();
+                        ((PhraseLineElement) poolable).PhraseRef = phrase;
+                        poolable.EnableFromPool();
+
+                        // Next phrase!
                         index++;
                         _noteIndices[i] = 0;
                     }
