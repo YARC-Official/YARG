@@ -349,35 +349,9 @@ namespace YARG.Gameplay.Player
             GameManager.BeatEventManager.Unsubscribe(StarpowerBar.PulseBarIfAble);
         }
 
-        protected override void SubscribeToInputEvents()
-        {
-            Player.Bindings.SubscribeToGameplayInputs(Player.Profile.GameMode, OnGameInput);
-        }
-
-        protected override void UnsubscribeFromInputEvents()
-        {
-            Player.Bindings.UnsubscribeFromGameplayInputs(Player.Profile.GameMode, OnGameInput);
-        }
-
-        protected void OnGameInput(ref GameInput input)
-        {
-            // Ignore while paused
-            if (GameManager.Paused) return;
-
-            double adjustedTime = GameManager.GetRelativeInputTime(input.Time);
-            input = new(adjustedTime, input.Action, input.Integer);
-
-            // Allow the input to be explicitly ignored before processing it
-            if (InterceptInput(ref input)) return;
-            OnInputProcessed(ref input);
-        }
-
-        protected abstract bool InterceptInput(ref GameInput input);
-
-        protected virtual void OnInputProcessed(ref GameInput input)
+        protected override void OnInputProcessed(ref GameInput input)
         {
             Engine.QueueInput(input);
-            AddReplayInput(input);
         }
     }
 }

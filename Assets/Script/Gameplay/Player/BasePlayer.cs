@@ -119,12 +119,33 @@ namespace YARG.Gameplay.Player
             FinishDestruction();
         }
 
-        protected void AddReplayInput(GameInput input)
+        private void SubscribeToInputEvents()
         {
+            Player.Bindings.SubscribeToGameplayInputs(Player.Profile.GameMode, OnGameInput);
+        }
+
+        private void UnsubscribeFromInputEvents()
+        {
+            Player.Bindings.UnsubscribeFromGameplayInputs(Player.Profile.GameMode, OnGameInput);
+        }
+
+        private void OnGameInput(ref GameInput input)
+        {
+            // Ignore while paused
+            if (GameManager.Paused) return;
+
+            double adjustedTime = GameManager.GetRelativeInputTime(input.Time);
+            input = new(adjustedTime, input.Action, input.Integer);
+
+            // Allow the input to be explicitly ignored before processing it
+            if (InterceptInput(ref input)) return;
+
+            OnInputProcessed(ref input);
             _replayInputs.Add(input);
         }
 
-        protected abstract void SubscribeToInputEvents();
-        protected abstract void UnsubscribeFromInputEvents();
+        protected abstract bool InterceptInput(ref GameInput input);
+
+        protected abstract void OnInputProcessed(ref GameInput input);
     }
 }
