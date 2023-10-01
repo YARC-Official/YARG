@@ -1,12 +1,12 @@
 using UnityEngine;
-using YARG.Core.Engine;
+using YARG.Core.Engine.Track;
 using YARG.Settings;
 
 namespace YARG.Gameplay.Visuals
 {
     public class HitWindowDisplay : MonoBehaviour
     {
-        public void SetHitWindowInfo(BaseEngineParameters param, float noteSpeed)
+        public void SetHitWindowInfo(TrackEngineParameters param, float noteSpeed)
         {
             if (!SettingsManager.Settings.ShowHitWindow.Data)
             {
