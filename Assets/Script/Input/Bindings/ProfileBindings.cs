@@ -343,12 +343,7 @@ namespace YARG.Input
 
         public void RemoveMicrophone()
         {
-            if (Microphone is null)
-            {
-                return;
-            }
-
-            Microphone.Dispose();
+            Microphone?.Dispose();
             Microphone = null;
         }
 

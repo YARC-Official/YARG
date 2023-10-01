@@ -88,8 +88,10 @@ namespace YARG
             SettingsManager.SaveSettings();
             PlayerContainer.SaveProfiles();
             CustomContentManager.SaveAll();
-            ReplayContainer.Deinit();
+
+            ReplayContainer.Destroy();
             InputManager.Destroy();
+            PlayerContainer.Destroy();
         }
 
         private void Start()

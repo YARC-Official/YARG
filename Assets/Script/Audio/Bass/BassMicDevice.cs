@@ -69,14 +69,14 @@ namespace YARG.Audio
                 return (int) Bass.LastError;
             }
 
-            const BassFlags flags = BassFlags.Default;
+            const BassFlags FLAGS = BassFlags.Default;
 
             // We want to start recording immediately because of device context switching and device numbers.
             // If we initialize the device but don't record immediately, the device number might change
             // and we'll be recording from the wrong device.
-            _cleanRecordHandle = Bass.RecordStart(44100, info.Channels, flags, RECORD_PERIOD_MILLIS,
+            _cleanRecordHandle = Bass.RecordStart(44100, info.Channels, FLAGS, RECORD_PERIOD_MILLIS,
                 ProcessCleanRecordData, IntPtr.Zero);
-            _processedRecordHandle = Bass.RecordStart(44100, info.Channels, flags, RECORD_PERIOD_MILLIS,
+            _processedRecordHandle = Bass.RecordStart(44100, info.Channels, FLAGS, RECORD_PERIOD_MILLIS,
                 ProcessRecordData, IntPtr.Zero);
             if (_cleanRecordHandle == 0 || _processedRecordHandle == 0)
             {
@@ -96,7 +96,7 @@ namespace YARG.Audio
             }
 
             // Set up monitoring stream
-            _monitorPlaybackHandle = Bass.CreateStream(44100, info.Channels, flags, StreamProcedureType.Push);
+            _monitorPlaybackHandle = Bass.CreateStream(44100, info.Channels, FLAGS, StreamProcedureType.Push);
             if (_monitorPlaybackHandle == 0)
             {
                 Debug.LogError($"Failed to create monitor stream: {Bass.LastError}");
@@ -265,8 +265,11 @@ namespace YARG.Audio
                 }
 
                 // Free the recording device
-                Bass.CurrentRecordingDevice = _deviceId;
-                Bass.RecordFree();
+                if (_initialized)
+                {
+                    Bass.CurrentRecordingDevice = _deviceId;
+                    Bass.RecordFree();
+                }
 
                 _disposed = true;
             }

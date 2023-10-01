@@ -55,7 +55,7 @@ namespace YARG.Replays
             _watcher.Deleted += OnReplayDeleted;
         }
 
-        public static void Deinit()
+        public static void Destroy()
         {
             _watcher?.Dispose();
             WriteReplayCache();
