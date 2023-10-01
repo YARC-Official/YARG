@@ -162,8 +162,9 @@ namespace YARG.Gameplay.Player
         {
             var pool = _notePools[harmonyIndex];
             int index = _noteIndices[harmonyIndex];
+            var notes = phrase.PhraseParentNote.ChildNotes;
 
-            while (index < phrase.Notes.Count && phrase.Notes[index].Time <= GameManager.SongTime + SPAWN_TIME_OFFSET)
+            while (index < notes.Count && notes[index].Time <= GameManager.SongTime + SPAWN_TIME_OFFSET)
             {
                 // Skip this frame if the pool is full
                 if (!pool.CanSpawnAmount(1))
@@ -173,7 +174,7 @@ namespace YARG.Gameplay.Player
 
                 // Spawn the vocal note
                 var poolable = pool.TakeWithoutEnabling();
-                ((VocalNoteElement) poolable).NoteRef = phrase.Notes[index];
+                ((VocalNoteElement) poolable).NoteRef = notes[index];
                 poolable.EnableFromPool();
 
                 index++;
@@ -182,7 +183,7 @@ namespace YARG.Gameplay.Player
             // Make sure to update the value
             _noteIndices[harmonyIndex] = index;
 
-            return index >= phrase.Notes.Count;
+            return index >= notes.Count;
         }
 
         private void CalculateAndChangeRange(double noteRangeStart, double noteRangeEnd, float changeTime)
@@ -193,7 +194,7 @@ namespace YARG.Gameplay.Player
             _targetRange = new Range(float.MaxValue, float.MinValue);
             foreach (var part in _vocalsTrack.Parts)
             {
-                foreach (var note in part.NotePhrases.SelectMany(i => i.Notes))
+                foreach (var note in part.NotePhrases.SelectMany(i => i.PhraseParentNote.ChildNotes))
                 {
                     // If the note time is less than the range start,
                     // skip until we're in the range.
