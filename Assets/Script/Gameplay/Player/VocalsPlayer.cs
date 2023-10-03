@@ -38,11 +38,7 @@ namespace YARG.Gameplay.Player
 
             Engine = CreateEngine();
 
-            StarScoreThresholds = new int[StarMultiplierThresholds.Length];
-            for (int i = 0; i < StarMultiplierThresholds.Length; i++)
-            {
-                StarScoreThresholds[i] = Mathf.FloorToInt(Engine.BaseScore * StarMultiplierThresholds[i]);
-            }
+            StarScoreThresholds = PopulateStarScoreThresholds(StarMultiplierThresholds, Engine.BaseScore);
         }
 
         protected VocalsEngine CreateEngine()

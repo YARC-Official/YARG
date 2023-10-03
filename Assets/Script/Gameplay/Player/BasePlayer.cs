@@ -147,5 +147,17 @@ namespace YARG.Gameplay.Player
         protected abstract bool InterceptInput(ref GameInput input);
 
         protected abstract void OnInputProcessed(ref GameInput input);
+
+        protected static int[] PopulateStarScoreThresholds(float[] multiplierThresh, int baseScore)
+        {
+            var starScoreThresh = new int[multiplierThresh.Length];
+
+            for (int i = 0; i < multiplierThresh.Length; i++)
+            {
+                starScoreThresh[i] = Mathf.FloorToInt(baseScore * multiplierThresh[i]);
+            }
+
+            return starScoreThresh;
+        }
     }
 }
