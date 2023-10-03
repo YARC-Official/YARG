@@ -3,8 +3,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core.Song;
-using YARG.Settings;
-using YARG.Song;
+using YARG.Helpers.Extensions;
 
 namespace YARG.Audio
 {
@@ -78,7 +77,7 @@ namespace YARG.Audio
                 }
 
                 // Load the song
-                bool usesPreviewFile = await IAudioManager.LoadPreviewAudio(_manager, song, 1f);
+                bool usesPreviewFile = await song.LoadPreviewAudio(_manager, 1f);
 
                 // Check if cancelled
                 if (cancelToken.IsCancellationRequested)

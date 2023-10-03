@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -21,6 +21,7 @@ using YARG.Menu.Persistent;
 using YARG.Menu.ScoreScreen;
 using YARG.Player;
 using YARG.Replays;
+using YARG.Helpers.Extensions;
 
 namespace YARG.Gameplay
 {
@@ -434,7 +435,7 @@ namespace YARG.Gameplay
             {
                 try
                 {
-                    IAudioManager.LoadAudio(GlobalVariables.AudioManager, Song, SelectedSongSpeed);
+                    Song.LoadAudio(GlobalVariables.AudioManager, SelectedSongSpeed);
                     SongLength = GlobalVariables.AudioManager.AudioLengthD;
                     GlobalVariables.AudioManager.SongEnd += OnAudioEnd;
                 }
