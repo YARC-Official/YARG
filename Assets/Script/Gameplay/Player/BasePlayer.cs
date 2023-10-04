@@ -452,7 +452,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnSoloEnd(SoloSection solo)
         {
-            TrackView.EndSolo(0);
+            TrackView.EndSolo(solo.SoloBonus);
         }
 
         protected override void SubscribeToInputEvents()
