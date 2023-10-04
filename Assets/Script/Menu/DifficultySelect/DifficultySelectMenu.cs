@@ -397,6 +397,13 @@ namespace YARG.Menu.DifficultySelect
 
         private static bool HasPlayableDifficulty(AvailableParts parts, Instrument instrument, Difficulty difficulty)
         {
+            // For vocals, insert special difficulties
+            if (instrument is Instrument.Vocals or Instrument.Harmony)
+            {
+                return difficulty is not (Difficulty.Beginner or Difficulty.ExpertPlus);
+            }
+
+            // Otherwise, we can do this
             return parts.HasDifficulty(instrument, difficulty) || instrument switch
             {
                 // Allow 5 -> 4-lane conversions to be played on 4-lane
