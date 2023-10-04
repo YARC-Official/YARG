@@ -1,4 +1,5 @@
-﻿using Cysharp.Threading.Tasks;
+﻿using System.Diagnostics.CodeAnalysis;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,29 +13,26 @@ namespace YARG.Menu.Persistent
     {
         [SerializeField]
         private Image _playPauseButton;
-
         [SerializeField]
         private TextMeshProUGUI _songText;
-
         [SerializeField]
         private TextMeshProUGUI _artistText;
 
         [Space]
         [SerializeField]
         private Sprite _playSprite;
-
         [SerializeField]
         private Sprite _pauseSprite;
 
-        private bool _wasPaused;
-
+        // "The Unity message 'OnEnable' has an incorrect signature."
+        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTask is a compatible return type.")]
         private async UniTask OnEnable()
         {
             _songText.text = string.Empty;
             _artistText.text = string.Empty;
 
             // Wait until the loading is done
-            await UniTask.WaitUntil(() => !LoadingManager.Instance.gameObject.activeSelf);
+            await UniTask.WaitUntil(() => !LoadingManager.Instance.IsLoading);
 
             // Disable if there are no songs to play
             if (GlobalVariables.Instance.SongContainer.Songs.Count <= 0)
@@ -43,12 +41,57 @@ namespace YARG.Menu.Persistent
                 return;
             }
 
+            GlobalVariables.AudioManager.SongEnd += OnSongEnd;
             await NextSong();
         }
 
         private void OnDisable()
         {
+            GlobalVariables.AudioManager.SongEnd -= OnSongEnd;
+            Stop();
+        }
+
+        private async UniTask NextSong()
+        {
+            var song = GlobalVariables.Instance.SongContainer.Songs[Random.Range(0, GlobalVariables.Instance.SongContainer.Songs.Count)];
+            await UniTask.RunOnThreadPool(() => IAudioManager.LoadAudio(GlobalVariables.AudioManager, song, 1f, SongStem.Crowd));
+
+            // Set song title text
+            _songText.text = song.Name;
+            _artistText.text = song.Artist;
+
+            Play();
+        }
+
+        private void OnSongEnd()
+        {
+            NextSong().Forget();
+        }
+
+        private void Play()
+        {
+            GlobalVariables.AudioManager.Play();
+            UpdateVolume();
+            UpdatePlayOrPauseSprite();
+        }
+
+        private void Pause()
+        {
+            GlobalVariables.AudioManager.Pause();
+            UpdatePlayOrPauseSprite();
+        }
+
+        private void Stop()
+        {
             GlobalVariables.AudioManager.UnloadSong();
+        }
+
+        public void UpdateVolume()
+        {
+            if (GlobalVariables.AudioManager.IsPlaying && gameObject.activeSelf)
+            {
+                GlobalVariables.AudioManager.SetAllStemsVolume(SettingsManager.Settings.MusicPlayerVolume.Data);
+            }
         }
 
         private void UpdatePlayOrPauseSprite()
@@ -63,35 +106,6 @@ namespace YARG.Menu.Persistent
             }
         }
 
-        private async UniTask NextSong()
-        {
-            var song = GlobalVariables.Instance.SongContainer.Songs[Random.Range(0, GlobalVariables.Instance.SongContainer.Songs.Count)];
-            await UniTask.RunOnThreadPool(() => IAudioManager.LoadAudio(GlobalVariables.AudioManager, song, 1f, SongStem.Crowd));
-
-            // Set song title text
-            _songText.text = song.Name;
-            _artistText.text = song.Artist;
-
-            if (!_wasPaused)
-            {
-                Play();
-            }
-        }
-
-        private void Play()
-        {
-            GlobalVariables.AudioManager.Play();
-            UpdateVolume();
-        }
-
-        public void UpdateVolume()
-        {
-            if (GlobalVariables.AudioManager.IsPlaying && gameObject.activeSelf)
-            {
-                GlobalVariables.AudioManager.SetAllStemsVolume(SettingsManager.Settings.MusicPlayerVolume.Data);
-            }
-        }
-
         public void PlayOrPauseClick()
         {
             if (!GlobalVariables.AudioManager.IsAudioLoaded)
@@ -101,23 +115,17 @@ namespace YARG.Menu.Persistent
 
             if (GlobalVariables.AudioManager.IsPlaying)
             {
-                _wasPaused = true;
-                GlobalVariables.AudioManager.Pause();
+                Pause();
             }
             else
             {
-                _wasPaused = false;
                 Play();
             }
-
-            UpdatePlayOrPauseSprite();
         }
 
-        public async void SkipClick()
+        public void SkipClick()
         {
-            _wasPaused = false;
-            await NextSong();
-            UpdatePlayOrPauseSprite();
+            NextSong().Forget();
         }
     }
 }

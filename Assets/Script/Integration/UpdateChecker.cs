@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -21,6 +22,8 @@ namespace YARG
 
         public YargVersion LatestVersion { get; private set; }
 
+        // "The Unity message 'Start' has an incorrect signature."
+        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTask is a compatible return type.")]
         private async UniTask Start()
         {
             enabled = false;

@@ -27,6 +27,8 @@ namespace YARG
         [SerializeField]
         private TextMeshProUGUI subPhrase;
 
+        public bool IsLoading { get; private set; }
+
         private readonly Queue<QueuedTask> _loadQueue = new();
 
         // "The Unity message 'Start' has an incorrect signature."
@@ -51,6 +53,7 @@ namespace YARG
             }
 
             gameObject.SetActive(true);
+            IsLoading = true;
 
             while (_loadQueue.Count > 0)
             {
@@ -60,6 +63,7 @@ namespace YARG
             }
 
             gameObject.SetActive(false);
+            IsLoading = false;
         }
 
         public void Queue(Func<UniTask> func, string title = "Loading...", string sub = null)
