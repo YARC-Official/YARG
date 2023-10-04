@@ -23,6 +23,8 @@ namespace YARG.Audio
         public bool IsMonitoring { get; set; }
         public bool IsRecordingOutput { get; set; }
 
+        public MicOutputFrame? LastOutputFrame { get; private set; }
+
         private readonly ConcurrentQueue<MicOutputFrame> _frameQueue = new();
 
         private int _deviceId;
@@ -242,6 +244,9 @@ namespace YARG.Audio
             // Skip pitch detection if not speaking
             if (amplitude < SettingsManager.Settings.MicrophoneSensitivity.Data)
             {
+                // Send a false mic output frame with no pitch
+                LastOutputFrame = new MicOutputFrame(
+                    InputManager.CurrentInputTime, 0f, amplitude);
                 return;
             }
 
@@ -253,7 +258,9 @@ namespace YARG.Audio
             }
 
             // Queue a MicOutput frame
-            var frame = new MicOutputFrame(InputManager.CurrentInputTime, pitchOutput.Value, amplitude);
+            var frame = new MicOutputFrame(
+                InputManager.CurrentInputTime, pitchOutput.Value, amplitude);
+            LastOutputFrame = frame;
             _frameQueue.Enqueue(frame);
         }
 

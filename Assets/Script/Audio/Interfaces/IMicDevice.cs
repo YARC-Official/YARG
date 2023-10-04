@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 using YARG.Settings;
 
 namespace YARG.Audio
@@ -25,6 +26,11 @@ namespace YARG.Audio
         /// </summary>
         public bool VoiceDetected => Volume > SettingsManager.Settings.MicrophoneSensitivity.Data;
 
+        /// <summary>
+        /// Gets the pitch as a MIDI note.
+        /// </summary>
+        public float PitchAsMidiNote => 12f * Mathf.Log(Pitch / 440f, 2f) + 69f;
+
         public MicOutputFrame(double time, float pitch, float volume)
         {
             Time = time;
@@ -42,6 +48,8 @@ namespace YARG.Audio
 
         public bool IsMonitoring { get; set; }
         public bool IsRecordingOutput { get; set; }
+
+        public MicOutputFrame? LastOutputFrame { get; }
 
         /// <summary>
         /// Initialize the microphone.

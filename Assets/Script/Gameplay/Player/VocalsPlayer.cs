@@ -1,4 +1,5 @@
-﻿using YARG.Core.Chart;
+﻿using UnityEngine;
+using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Engine.Vocals;
 using YARG.Core.Engine.Vocals.Engines;
@@ -15,6 +16,9 @@ namespace YARG.Gameplay.Player
 
         public override BaseEngine BaseEngine => Engine;
         public override BaseStats Stats => Engine.EngineStats;
+
+        [SerializeField]
+        private GameObject _needleVisualContainer;
 
         public override float[] StarMultiplierThresholds { get; } =
         {
@@ -79,6 +83,23 @@ namespace YARG.Gameplay.Player
 
         protected override void UpdateVisuals(double time)
         {
+            if (_inputContext.Device.LastOutputFrame == null) return;
+            var micFrame = _inputContext.Device.LastOutputFrame.Value;
+
+            if (!micFrame.VoiceDetected)
+            {
+                // Hide the needle if there's no singing
+                _needleVisualContainer.SetActive(false);
+            }
+            else
+            {
+                _needleVisualContainer.SetActive(true);
+
+                // Set the position of the needle
+                var z = GameManager.VocalTrack.GetPosForPitch(micFrame.PitchAsMidiNote);
+                var lerp = Mathf.Lerp(transform.localPosition.z, z, Time.deltaTime * 12f);
+                transform.localPosition = new Vector3(0f, 0f, lerp);
+            }
         }
 
         public override void SetPracticeSection(uint start, uint end)

@@ -237,7 +237,8 @@ namespace YARG.Gameplay.Player
 
         public float GetPosForPitch(float pitch)
         {
-            return YargMath.Lerp(TRACK_BOTTOM, TRACK_TOP, _viewRange.Min, _viewRange.Max, pitch);
+            var lerp = YargMath.Lerp(TRACK_BOTTOM, TRACK_TOP, _viewRange.Min, _viewRange.Max, pitch);
+            return Mathf.Clamp(lerp, TRACK_BOTTOM, TRACK_TOP);
         }
     }
 }

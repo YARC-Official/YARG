@@ -1,5 +1,4 @@
-﻿using UnityEngine;
-using YARG.Audio;
+﻿using YARG.Audio;
 using YARG.Core.Engine;
 using YARG.Core.Input;
 
@@ -31,11 +30,10 @@ namespace YARG.Input
         {
             while (Device.DequeueOutputFrame(out var frame))
             {
-                // Convert pitch (Hz) into midi note
-                float note = 12f * Mathf.Log(frame.Pitch / 440f, 2f) + 69f;
+                // frame.VoiceDetected will ALWAYS be true here, as it wouldn't be queued otherwise
 
                 // Create the GameInput
-                var gameInput = GameInput.Create(frame.Time, VocalsAction.Pitch, note);
+                var gameInput = GameInput.Create(frame.Time, VocalsAction.Pitch, frame.PitchAsMidiNote);
 
                 // Queue it up!
                 engine.QueueInput(gameInput);
