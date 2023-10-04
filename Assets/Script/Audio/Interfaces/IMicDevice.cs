@@ -1,7 +1,38 @@
 ﻿using System;
+using YARG.Settings;
 
 namespace YARG.Audio
 {
+    public readonly struct MicOutputFrame
+    {
+        /// <summary>
+        /// The time of the input.
+        /// </summary>
+        public readonly double Time;
+
+        /// <summary>
+        /// Pitch (in hertz) of the microphone.
+        /// </summary>
+        public readonly float Pitch;
+
+        /// <summary>
+        /// Volume (in dB) of the microphone.
+        /// </summary>
+        public readonly float Volume;
+
+        /// <summary>
+        /// Whether or not the microphone should be considered detected.
+        /// </summary>
+        public bool VoiceDetected => Volume > SettingsManager.Settings.MicrophoneSensitivity.Data;
+
+        public MicOutputFrame(double time, float pitch, float volume)
+        {
+            Time = time;
+            Pitch = pitch;
+            Volume = volume;
+        }
+    }
+
     public interface IMicDevice : IDisposable
     {
         public float PitchUpdatesPerSecond { get; }
@@ -10,27 +41,26 @@ namespace YARG.Audio
         public bool IsDefault { get; }
 
         public bool IsMonitoring { get; set; }
-
-        /// <summary>
-        /// The current pitch of this Microphone Device.
-        /// </summary>
-        public float Pitch { get; }
-
-        /// <summary>
-        /// The current amplitude of this Microphone Device.
-        /// </summary>
-        public float Amplitude { get; }
-
-        /// <summary>
-        /// Whether or not a voice/singing is detected.
-        /// </summary>
-        public bool VoiceDetected { get; }
+        public bool IsRecordingOutput { get; set; }
 
         /// <summary>
         /// Initialize the microphone.
         /// </summary>
         /// <returns>0 if successful, otherwise an error code.</returns>
         public int Initialize();
+
+        /// <summary>
+        /// Dequeues an output frame from the microphone.
+        /// </summary>
+        /// <returns>
+        /// Whether the dequeue was successful.
+        /// </returns>
+        public bool DequeueOutputFrame(out MicOutputFrame frame);
+
+        /// <summary>
+        /// Clears the output queue.
+        /// </summary>
+        public void ClearOutputQueue();
 
         /// <summary>
         /// Set the monitoring level of this Microphone Device.

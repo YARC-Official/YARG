@@ -11,10 +11,6 @@ namespace YARG.Gameplay.Player
     {
         protected SyncTrack SyncTrack { get; private set; }
 
-        private List<GameInput> _replayInputs;
-
-        public IReadOnlyList<GameInput> ReplayInputs => _replayInputs.AsReadOnly();
-
         public YargPlayer Player { get; private set; }
 
         public float NoteSpeed
@@ -30,6 +26,7 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        public abstract BaseEngine BaseEngine { get; }
         public abstract BaseStats Stats { get; }
 
         public abstract float[] StarMultiplierThresholds { get; }
@@ -45,6 +42,11 @@ namespace YARG.Gameplay.Player
         protected bool IsFc;
 
         protected bool IsInitialized { get; private set; }
+
+        private List<GameInput> _replayInputs;
+        public IReadOnlyList<GameInput> ReplayInputs => _replayInputs.AsReadOnly();
+
+        private int _replayInputIndex;
 
         protected override void GameplayAwake()
         {
@@ -97,13 +99,19 @@ namespace YARG.Gameplay.Player
             UpdateVisuals(inputTime);
         }
 
-        protected abstract void UpdateInputs(double time);
-
         protected abstract void UpdateVisuals(double time);
 
         public abstract void SetPracticeSection(uint start, uint end);
 
-        public abstract void SetReplayTime(double time);
+        public virtual void SetReplayTime(double time)
+        {
+            ResetVisuals();
+
+            IsFc = true;
+
+            _replayInputIndex = BaseEngine.ProcessUpToTime(time, ReplayInputs);
+            UpdateVisualsWithTimes(time);
+        }
 
         protected virtual void FinishDestruction()
         {
@@ -117,6 +125,32 @@ namespace YARG.Gameplay.Player
             }
 
             FinishDestruction();
+        }
+
+        protected virtual void UpdateInputs(double time)
+        {
+            if (Player.Profile.IsBot)
+            {
+                BaseEngine.UpdateBot(time);
+                return;
+            }
+
+            if (GameManager.IsReplay)
+            {
+                while (_replayInputIndex < ReplayInputs.Count && time >= ReplayInputs[_replayInputIndex].Time)
+                {
+                    BaseEngine.QueueInput(ReplayInputs[_replayInputIndex++]);
+                }
+            }
+
+            if (BaseEngine.IsInputQueued)
+            {
+                BaseEngine.UpdateEngine();
+            }
+            else
+            {
+                BaseEngine.UpdateEngine(time);
+            }
         }
 
         private void SubscribeToInputEvents()
@@ -140,13 +174,11 @@ namespace YARG.Gameplay.Player
             // Allow the input to be explicitly ignored before processing it
             if (InterceptInput(ref input)) return;
 
-            OnInputProcessed(ref input);
+            BaseEngine.QueueInput(input);
             _replayInputs.Add(input);
         }
 
         protected abstract bool InterceptInput(ref GameInput input);
-
-        protected abstract void OnInputProcessed(ref GameInput input);
 
         protected static int[] PopulateStarScoreThresholds(float[] multiplierThresh, int baseScore)
         {

@@ -1,9 +1,9 @@
-﻿using UnityEngine;
-using YARG.Core.Chart;
+﻿using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Engine.Vocals;
 using YARG.Core.Engine.Vocals.Engines;
 using YARG.Core.Input;
+using YARG.Input;
 using YARG.Player;
 
 namespace YARG.Gameplay.Player
@@ -13,7 +13,8 @@ namespace YARG.Gameplay.Player
         public VocalsEngineParameters EngineParams { get; private set; }
         public VocalsEngine Engine { get; private set; }
 
-        public override BaseStats Stats { get; }
+        public override BaseEngine BaseEngine => Engine;
+        public override BaseStats Stats => Engine.EngineStats;
 
         public override float[] StarMultiplierThresholds { get; } =
         {
@@ -23,6 +24,8 @@ namespace YARG.Gameplay.Player
         public override int[] StarScoreThresholds { get; protected set; }
 
         protected InstrumentDifficulty<VocalNote> NoteTrack { get; private set; }
+
+        private MicInputContext _inputContext;
 
         public new void Initialize(int index, YargPlayer player, SongChart chart)
         {
@@ -36,9 +39,18 @@ namespace YARG.Gameplay.Player
             var track = multiTrack.Parts[0];
             NoteTrack = track.CloneAsInstrumentDifficulty();
 
+            // Create and start an input context for the mic
+            _inputContext = new MicInputContext(player.Bindings.Microphone);
+            _inputContext.Start();
+
             Engine = CreateEngine();
 
             StarScoreThresholds = PopulateStarScoreThresholds(StarMultiplierThresholds, Engine.BaseScore);
+        }
+
+        protected override void FinishDestruction()
+        {
+            _inputContext.Stop();
         }
 
         protected VocalsEngine CreateEngine()
@@ -60,6 +72,9 @@ namespace YARG.Gameplay.Player
 
         protected override void UpdateInputs(double time)
         {
+            _inputContext.PushInputsToEngine(Engine);
+
+            base.UpdateInputs(time);
         }
 
         protected override void UpdateVisuals(double time)
@@ -70,17 +85,9 @@ namespace YARG.Gameplay.Player
         {
         }
 
-        public override void SetReplayTime(double time)
-        {
-        }
-
         protected override bool InterceptInput(ref GameInput input)
         {
             return false;
-        }
-
-        protected override void OnInputProcessed(ref GameInput input)
-        {
         }
     }
 }

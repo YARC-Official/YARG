@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using ManagedBass;
 using ManagedBass.Fx;
 using UnityEngine;
 using YARG.Audio.BASS;
 using YARG.Audio.PitchDetection;
+using YARG.Input;
 using YARG.Settings;
 
 namespace YARG.Audio
@@ -19,10 +21,9 @@ namespace YARG.Audio
         public bool IsDefault => _deviceInfo.IsDefault;
 
         public bool IsMonitoring { get; set; }
+        public bool IsRecordingOutput { get; set; }
 
-        public float Pitch { get; private set; }
-        public float Amplitude { get; private set; }
-        public bool VoiceDetected => Amplitude > SettingsManager.Settings.MicrophoneSensitivity.Data;
+        private readonly ConcurrentQueue<MicOutputFrame> _frameQueue = new();
 
         private int _deviceId;
         private DeviceInfo _deviceInfo;
@@ -61,6 +62,8 @@ namespace YARG.Audio
         public int Initialize()
         {
             if (_initialized || _disposed) return 0;
+
+            _frameQueue.Clear();
 
             // Must initialise device before recording
             if (!Bass.RecordInit(_deviceId) || !Bass.RecordGetInfo(out var info))
@@ -140,6 +143,28 @@ namespace YARG.Audio
             return 0;
         }
 
+        public bool DequeueOutputFrame(out MicOutputFrame frame)
+        {
+            frame = new MicOutputFrame();
+
+            if (_frameQueue.IsEmpty)
+            {
+                return false;
+            }
+
+            if (_frameQueue.TryDequeue(out frame))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public void ClearOutputQueue()
+        {
+            _frameQueue.Clear();
+        }
+
         public void SetMonitoringLevel(float volume)
         {
             if (_monitorPlaybackHandle == 0) return;
@@ -170,7 +195,7 @@ namespace YARG.Audio
         private bool ProcessRecordData(int handle, IntPtr buffer, int length, IntPtr user)
         {
             // Wait for initialization to complete before processing data
-            if (!_initialized)
+            if (!_initialized || !IsRecordingOutput)
             {
                 return true;
             }
@@ -208,24 +233,28 @@ namespace YARG.Audio
             sum = Mathf.Sqrt(sum / count);
 
             // Convert to decibels to get the amplitude
-            Amplitude = 20f * Mathf.Log10(sum * 180f);
-            if (Amplitude < -160f)
+            float amplitude = 20f * Mathf.Log10(sum * 180f);
+            if (amplitude < -160f)
             {
-                Amplitude = -160f;
+                amplitude = -160f;
             }
 
             // Skip pitch detection if not speaking
-            if (!VoiceDetected)
+            if (amplitude < SettingsManager.Settings.MicrophoneSensitivity.Data)
             {
                 return;
             }
 
             // Process the pitch buffer
             var pitchOutput = _pitchDetector.ProcessBuffer(floatBuffer);
-            if (pitchOutput != null)
+            if (pitchOutput == null)
             {
-                Pitch = pitchOutput.Value;
+                return;
             }
+
+            // Queue a MicOutput frame
+            var frame = new MicOutputFrame(InputManager.CurrentInputTime, pitchOutput.Value, amplitude);
+            _frameQueue.Enqueue(frame);
         }
 
         public void Dispose()

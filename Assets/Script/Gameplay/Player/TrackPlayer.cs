@@ -3,7 +3,6 @@ using System.Linq;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
-using YARG.Core.Input;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Player;
@@ -120,9 +119,8 @@ namespace YARG.Gameplay.Player
         where TEngine : BaseEngine
         where TNote : Note<TNote>
     {
-        private int _replayInputIndex;
-
         public TEngine Engine { get; private set; }
+        public override BaseEngine BaseEngine => Engine;
 
         protected List<TNote> Notes { get; private set; }
 
@@ -186,32 +184,6 @@ namespace YARG.Gameplay.Player
             ResetNoteCounters();
 
             ResetVisuals();
-        }
-
-        protected override void UpdateInputs(double inputTime)
-        {
-            if (Player.Profile.IsBot)
-            {
-                Engine.UpdateBot(inputTime);
-                return;
-            }
-
-            if (GameManager.IsReplay)
-            {
-                while (_replayInputIndex < ReplayInputs.Count && inputTime >= ReplayInputs[_replayInputIndex].Time)
-                {
-                    Engine.QueueInput(ReplayInputs[_replayInputIndex++]);
-                }
-            }
-
-            if (Engine.IsInputQueued)
-            {
-                Engine.UpdateEngine();
-            }
-            else
-            {
-                Engine.UpdateEngine(inputTime);
-            }
         }
 
         protected void UpdateBaseVisuals(BaseStats stats, double songTime)
@@ -283,15 +255,10 @@ namespace YARG.Gameplay.Player
 
         public override void SetReplayTime(double time)
         {
-            ResetVisuals();
-
-            IsFc = true;
-
             BeatlineIndex = 0;
             ResetNoteCounters();
 
-            _replayInputIndex = Engine.ProcessUpToTime(time, ReplayInputs);
-            UpdateVisualsWithTimes(time);
+            base.SetReplayTime(time);
         }
 
         protected void SpawnNote(TNote note)
@@ -347,11 +314,6 @@ namespace YARG.Gameplay.Player
             base.FinishDestruction();
 
             GameManager.BeatEventManager.Unsubscribe(StarpowerBar.PulseBarIfAble);
-        }
-
-        protected override void OnInputProcessed(ref GameInput input)
-        {
-            Engine.QueueInput(input);
         }
     }
 }
