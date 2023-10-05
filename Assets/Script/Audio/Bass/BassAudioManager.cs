@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
 using UnityEngine;
-using YARG.Song;
+using YARG.Assets.Script.Audio.Bass;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -264,30 +263,52 @@ namespace YARG.Audio.BASS
             IsAudioLoaded = true;
         }
 
-        public void LoadMogg(byte[] moggArray, List<MoggStemMap> stemMaps, float speed)
+        public void LoadMogg(Stream stream, List<MoggStemMap> stemMaps, float speed)
         {
             Debug.Log("Loading mogg song");
             UnloadSong();
 
             // Verify data
-            if (moggArray is null)
-                throw new ArgumentNullException(nameof(moggArray));
+            if (stream is null)
+                throw new ArgumentNullException(nameof(stream));
+
+            var usesYARGEncryption = stream.ReadInt32LE() switch
+            {
+                0xF0 => true,
+                0x0A => false,
+                _ => throw new Exception("Original unencrypted mogg replaced by an encrypted mogg"),
+            };
 
             const int minSize = sizeof(int) * 2;
-            if (moggArray.Length < minSize)
-                throw new Exception($"Couldn't get MOGG start index! Expected at least {minSize} bytes, got {moggArray.Length}");
+            if (stream.Length < minSize)
+                throw new Exception($"Couldn't get MOGG start index! Expected at least {minSize} bytes, got {stream.Length}");
 
             // Get start index
-            int start = BitConverter.ToInt32(moggArray, sizeof(int));
-            if (start > moggArray.Length)
-                throw new Exception($"MOGG start index is out of bounds! Expected at least {start + 1} bytes, got {moggArray.Length}");
+            int start = stream.ReadInt32LE();
+            if (start > stream.Length)
+                throw new Exception($"MOGG start index is out of bounds! Expected at least {start + 1} bytes, got {stream.Length}");
 
             // Initialize stream
             // Last flag is new BASS_SAMPLE_NOREORDER flag, which is not in the BassFlags enum,
             // as it was made as part of an update to fix <= 8 channel oggs.
             // https://www.un4seen.com/forum/?topic=20148.msg140872#msg140872
             const BassFlags flags = BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile | (BassFlags) 64;
-            int moggStreamHandle = Bass.CreateStream(moggArray, start, moggArray.Length - start, flags);
+
+            // We can solely use the first branch once official setlist songs
+            // switch to a drastically faster decryption algorithm.
+            //
+            // Trying to use a stream with the current algorithm results in a
+            // *substantial* hit to seek performance (which causes hangs)
+            int moggStreamHandle;
+            if (!usesYARGEncryption)
+                moggStreamHandle = Bass.CreateStream(StreamSystem.NoBuffer, flags, new BassMoggProcedures(stream, start));
+            else
+            {
+                stream.Seek(start, SeekOrigin.Begin);
+                byte[] bytes = stream.ReadBytes((int) stream.Length - start);
+                moggStreamHandle = Bass.CreateStream(bytes, 0, bytes.LongLength, flags);
+            }
+
             if (moggStreamHandle == 0)
             {
                 throw new Exception($"Failed to load mogg file or position: {Bass.LastError}");

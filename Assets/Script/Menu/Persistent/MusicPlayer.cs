@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Audio;
 using YARG.Settings;
-using YARG.Song;
+using YARG.Helpers.Extensions;
 
 namespace YARG.Menu.Persistent
 {
@@ -54,7 +54,7 @@ namespace YARG.Menu.Persistent
         private async UniTask NextSong()
         {
             var song = GlobalVariables.Instance.SongContainer.Songs[Random.Range(0, GlobalVariables.Instance.SongContainer.Songs.Count)];
-            await UniTask.RunOnThreadPool(() => IAudioManager.LoadAudio(GlobalVariables.AudioManager, song, 1f, SongStem.Crowd));
+            await UniTask.RunOnThreadPool(() => song.LoadAudio(GlobalVariables.AudioManager, 1f, SongStem.Crowd));
 
             // Set song title text
             _songText.text = song.Name;
