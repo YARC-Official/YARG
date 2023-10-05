@@ -59,7 +59,7 @@ namespace YARG.Gameplay.Player
 
         protected VocalsEngine CreateEngine()
         {
-            EngineParams = new VocalsEngineParameters(1.0, 0.9, StarMultiplierThresholds);
+            EngineParams = new VocalsEngineParameters(1.0, 0.9, 0.06, StarMultiplierThresholds);
 
             var engine = new YargVocalsEngine(NoteTrack, SyncTrack, EngineParams);
 
@@ -100,6 +100,14 @@ namespace YARG.Gameplay.Player
                 var lerp = Mathf.Lerp(transform.localPosition.z, z, Time.deltaTime * 12f);
                 transform.localPosition = new Vector3(0f, 0f, lerp);
             }
+        }
+
+        public override void UpdateWithTimes(double inputTime)
+        {
+            base.UpdateWithTimes(inputTime);
+
+            Score = Engine.EngineStats.Score;
+            Combo = Engine.EngineStats.Combo;
         }
 
         public override void SetPracticeSection(uint start, uint end)
