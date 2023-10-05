@@ -44,7 +44,7 @@ namespace YARG.Gameplay.Player
             NoteTrack = track.CloneAsInstrumentDifficulty();
 
             // Create and start an input context for the mic
-            _inputContext = new MicInputContext(player.Bindings.Microphone);
+            _inputContext = new MicInputContext(player.Bindings.Microphone, GameManager);
             _inputContext.Start();
 
             Engine = CreateEngine();

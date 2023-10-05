@@ -1,6 +1,7 @@
 ﻿using YARG.Audio;
 using YARG.Core.Engine;
 using YARG.Core.Input;
+using YARG.Gameplay;
 
 namespace YARG.Input
 {
@@ -8,9 +9,13 @@ namespace YARG.Input
     {
         public readonly IMicDevice Device;
 
-        public MicInputContext(IMicDevice device)
+        private readonly GameManager _gameManager;
+
+        public MicInputContext(IMicDevice device, GameManager gameManager)
         {
             Device = device;
+
+            _gameManager = gameManager;
         }
 
         /// <summary>
@@ -33,7 +38,8 @@ namespace YARG.Input
                 // frame.VoiceDetected will ALWAYS be true here, as it wouldn't be queued otherwise
 
                 // Create the GameInput
-                var gameInput = GameInput.Create(frame.Time, VocalsAction.Pitch, frame.PitchAsMidiNote);
+                double time = _gameManager.GetRelativeInputTime(frame.Time);
+                var gameInput = GameInput.Create(time, VocalsAction.Pitch, frame.PitchAsMidiNote);
 
                 // Queue it up!
                 engine.QueueInput(gameInput);
