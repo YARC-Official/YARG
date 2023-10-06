@@ -50,8 +50,11 @@ namespace YARG.Gameplay.Player
             NoteTrack = track.CloneAsInstrumentDifficulty();
 
             // Create and start an input context for the mic
-            _inputContext = new MicInputContext(player.Bindings.Microphone, GameManager);
-            _inputContext.Start();
+            if (!GameManager.IsReplay)
+            {
+                _inputContext = new MicInputContext(player.Bindings.Microphone, GameManager);
+                _inputContext.Start();
+            }
 
             Engine = CreateEngine();
 
@@ -60,7 +63,7 @@ namespace YARG.Gameplay.Player
 
         protected override void FinishDestruction()
         {
-            _inputContext.Stop();
+            _inputContext?.Stop();
         }
 
         protected VocalsEngine CreateEngine()
@@ -99,7 +102,15 @@ namespace YARG.Gameplay.Player
 
         protected override void UpdateInputs(double time)
         {
-            _inputContext.PushInputsToEngine(Engine);
+            // Push all inputs from mic
+            if (_inputContext is not null)
+            {
+                foreach (var input in _inputContext.GetInputsFromMic())
+                {
+                    var i = input;
+                    OnGameInput(ref i);
+                }
+            }
 
             base.UpdateInputs(time);
         }
@@ -118,10 +129,7 @@ namespace YARG.Gameplay.Player
 
         protected override void UpdateVisuals(double time)
         {
-            if (_inputContext.Device.LastOutputFrame == null) return;
-            var micFrame = _inputContext.Device.LastOutputFrame.Value;
-
-            if (!micFrame.VoiceDetected)
+            if (Engine.State.PitchSangThisUpdate == null)
             {
                 // Hide the needle if there's no singing
                 _needleVisualContainer.SetActive(false);
@@ -131,7 +139,7 @@ namespace YARG.Gameplay.Player
                 _needleVisualContainer.SetActive(true);
 
                 // Get the pitch, and move to the correct octave
-                float pitch = micFrame.PitchAsMidiNote;
+                float pitch = Engine.State.PitchSangThisUpdate.Value;
                 if (_lastTargetNote is not null)
                 {
                     int micOctave = (int) (pitch / 12) - 1;

@@ -1,4 +1,5 @@
-﻿using YARG.Audio;
+﻿using System.Collections.Generic;
+using YARG.Audio;
 using YARG.Core.Engine;
 using YARG.Core.Input;
 using YARG.Gameplay;
@@ -7,6 +8,8 @@ namespace YARG.Input
 {
     public class MicInputContext
     {
+        public delegate void OnGameInput(ref GameInput input);
+
         public readonly IMicDevice Device;
 
         private readonly GameManager _gameManager;
@@ -31,18 +34,15 @@ namespace YARG.Input
         /// Gets the mic's input, converts it to an engine compatible format,
         /// then pushes the inputs to the <paramref name="engine"/>.
         /// </summary>
-        public void PushInputsToEngine(BaseEngine engine)
+        public IEnumerable<GameInput> GetInputsFromMic()
         {
             while (Device.DequeueOutputFrame(out var frame))
             {
                 // frame.VoiceDetected will ALWAYS be true here, as it wouldn't be queued otherwise
 
-                // Create the GameInput
-                double time = _gameManager.GetRelativeInputTime(frame.Time);
-                var gameInput = GameInput.Create(time, VocalsAction.Pitch, frame.PitchAsMidiNote);
-
                 // Queue it up!
-                engine.QueueInput(gameInput);
+                var gameInput = GameInput.Create(frame.Time, VocalsAction.Pitch, frame.PitchAsMidiNote);
+                yield return gameInput;
             }
         }
 

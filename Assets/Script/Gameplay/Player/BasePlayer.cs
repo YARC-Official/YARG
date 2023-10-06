@@ -163,7 +163,7 @@ namespace YARG.Gameplay.Player
             Player.Bindings.UnsubscribeFromGameplayInputs(Player.Profile.GameMode, OnGameInput);
         }
 
-        private void OnGameInput(ref GameInput input)
+        protected void OnGameInput(ref GameInput input)
         {
             // Ignore while paused
             if (GameManager.Paused) return;
