@@ -96,10 +96,15 @@ namespace YARG.Gameplay
                 uint ticksPerNote = (uint) (ticksPerWholeNote * state.Info.Note);
 
                 // Call action
-                if (_sync.TickToTime(state.LastTick + ticksPerNote) <= GameManager.SongTime + state.Info.Offset)
+                bool actionDone = false;
+                while (_sync.TickToTime(state.LastTick + ticksPerNote) <= GameManager.SongTime + state.Info.Offset)
                 {
-                    action();
                     state.LastTick += ticksPerNote;
+                    if (!actionDone)
+                    {
+                        action();
+                        actionDone = true;
+                    }
                 }
             }
         }
