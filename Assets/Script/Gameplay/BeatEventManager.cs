@@ -46,22 +46,7 @@ namespace YARG.Gameplay
 
         public void Subscribe(Action action, Info info)
         {
-            var thing = new State(info);
-            var timeSigs = _sync.TimeSignatures;
-            var currentTimeSig = timeSigs[_currentTimeSigIndex];
-
-            //I just lifted this part from Update()
-            while (_nextTimeSigIndex < timeSigs.Count && timeSigs[_nextTimeSigIndex].Time < GameManager.InputTime)
-            {
-                _currentTimeSigIndex++;
-                _nextTimeSigIndex++;
-            }           
-            uint ticksPerWholeNote = (uint) (_sync.Resolution * ((double) 4 / currentTimeSig.Denominator) * 4);
-            uint ticksPerNote = (uint) (ticksPerWholeNote * thing.Info.Note);
-
-            //calculates and adds the number of missed ticks 
-            thing.LastTick =  (uint)(GameManager.SongTime / _sync.TickToTime(ticksPerNote + (uint)thing.Info.Offset) )* ticksPerNote;
-            _states.Add(action, thing);
+            _states.Add(new State(info), state);
         }
 
         public void Unsubscribe(Action action)
@@ -111,10 +96,13 @@ namespace YARG.Gameplay
                 uint ticksPerNote = (uint) (ticksPerWholeNote * state.Info.Note);
 
                 // Call action
-                if (_sync.TickToTime(state.LastTick + ticksPerNote) <= GameManager.SongTime + state.Info.Offset)
+                bool actionDone = false;
+                while (_sync.TickToTime(state.LastTick + ticksPerNote) <= GameManager.SongTime + state.Info.Offset)
                 {
-                    action();
                     state.LastTick += ticksPerNote;
+                    if (actionDone) continue;
+                    action();
+                    actionDone = true;
                 }
             }
         }
