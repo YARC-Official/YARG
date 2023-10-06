@@ -100,9 +100,11 @@ namespace YARG.Gameplay
                 while (_sync.TickToTime(state.LastTick + ticksPerNote) <= GameManager.SongTime + state.Info.Offset)
                 {
                     state.LastTick += ticksPerNote;
-                    if (actionDone) continue;
-                    action();
-                    actionDone = true;
+                    if (!actionDone)
+                    {
+                        action();
+                        actionDone = true;
+                    }
                 }
             }
         }
