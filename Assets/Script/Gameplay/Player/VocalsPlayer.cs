@@ -4,6 +4,7 @@ using YARG.Core.Engine;
 using YARG.Core.Engine.Vocals;
 using YARG.Core.Engine.Vocals.Engines;
 using YARG.Core.Input;
+using YARG.Helpers;
 using YARG.Input;
 using YARG.Player;
 
@@ -19,6 +20,8 @@ namespace YARG.Gameplay.Player
 
         [SerializeField]
         private GameObject _needleVisualContainer;
+        [SerializeField]
+        private ParticleGroup _hittingParticleGroup;
 
         public override float[] StarMultiplierThresholds { get; } =
         {
@@ -30,6 +33,9 @@ namespace YARG.Gameplay.Player
         protected InstrumentDifficulty<VocalNote> NoteTrack { get; private set; }
 
         private MicInputContext _inputContext;
+
+        private bool _isHittingNote;
+        private VocalNote _lastTargetNote;
 
         public new void Initialize(int index, YargPlayer player, SongChart chart)
         {
@@ -63,11 +69,28 @@ namespace YARG.Gameplay.Player
 
             var engine = new YargVocalsEngine(NoteTrack, SyncTrack, EngineParams);
 
+            engine.OnSingTick += (hitting) =>
+            {
+                if (_isHittingNote == hitting) return;
+
+                _isHittingNote = hitting;
+                OnHitStateChanged();
+            };
+
+            engine.OnTargetNoteChanged += (note) =>
+            {
+                _lastTargetNote = note;
+            };
+
             return engine;
         }
 
         protected override void ResetVisuals()
         {
+            _isHittingNote = false;
+            _lastTargetNote = null;
+
+            OnHitStateChanged();
         }
 
         public override void ResetPracticeSection()
@@ -79,6 +102,18 @@ namespace YARG.Gameplay.Player
             _inputContext.PushInputsToEngine(Engine);
 
             base.UpdateInputs(time);
+        }
+
+        private void OnHitStateChanged()
+        {
+            if (_isHittingNote)
+            {
+                _hittingParticleGroup.Play();
+            }
+            else
+            {
+                _hittingParticleGroup.Stop();
+            }
         }
 
         protected override void UpdateVisuals(double time)
@@ -95,8 +130,23 @@ namespace YARG.Gameplay.Player
             {
                 _needleVisualContainer.SetActive(true);
 
+                // Get the pitch, and move to the correct octave
+                float pitch = micFrame.PitchAsMidiNote;
+                if (_lastTargetNote is not null)
+                {
+                    int micOctave = (int) (pitch / 12) - 1;
+                    int octaveDifference = _lastTargetNote.Octave - micOctave;
+                    pitch += octaveDifference * 12f;
+                }
+                else
+                {
+                    // Hard code a value of one octave up to
+                    // make the needle sit more in the middle
+                    pitch += 12f;
+                }
+
                 // Set the position of the needle
-                var z = GameManager.VocalTrack.GetPosForPitch(micFrame.PitchAsMidiNote);
+                var z = GameManager.VocalTrack.GetPosForPitch(pitch);
                 var lerp = Mathf.Lerp(transform.localPosition.z, z, Time.deltaTime * 12f);
                 transform.localPosition = new Vector3(0f, 0f, lerp);
             }

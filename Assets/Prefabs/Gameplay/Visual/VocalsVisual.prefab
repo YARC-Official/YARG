@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4925718127535564767}
   m_Layer: 0
-  m_Name: Container
+  m_Name: Needle Container
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10018,7 +10018,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b73610cef194d83a0972b1a0ffd7a95, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _needleVisualContainer: {fileID: 320710991569956767}
+  _needleVisualContainer: {fileID: 9222097514682650237}
+  _hittingParticleGroup: {fileID: 7086846618021614551}
 --- !u!1 &9222097515348364642
 GameObject:
   m_ObjectHideFlags: 0
