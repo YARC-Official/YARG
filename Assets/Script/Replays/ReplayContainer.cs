@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Guitar;
+using YARG.Core.Engine.Vocals;
 using YARG.Core.Game;
 using YARG.Core.Replays;
 using YARG.Core.Song;
@@ -341,6 +342,11 @@ namespace YARG.Replays
                 {
                     Stats = new DrumsStats(drumsPlayer.Engine.EngineStats),
                     EngineParameters = drumsPlayer.EngineParams
+                },
+                VocalsPlayer vocalsPlayer => new ReplayFrame
+                {
+                    Stats = new VocalsStats(vocalsPlayer.Engine.EngineStats),
+                    EngineParameters = vocalsPlayer.EngineParams
                 },
                 _ => throw new ArgumentOutOfRangeException(player.GetType().ToString(), "Invalid instrument player.")
             };

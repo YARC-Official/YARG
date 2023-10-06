@@ -498,7 +498,8 @@ namespace YARG.Gameplay
                     // Initialize the vocal track if it hasn't been already
                     if (!vocalTrackInitialized)
                     {
-                        VocalTrack.Initialize(Chart.Harmony);
+                        var chart = player.Profile.GameMode == GameMode.Vocals ? Chart.Vocals : Chart.Harmony;
+                        VocalTrack.Initialize(chart);
                         vocalTrackInitialized = true;
                     }
 
