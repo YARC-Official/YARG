@@ -38,6 +38,9 @@ namespace YARG.Gameplay
         [SerializeField]
         private PauseMenuManager _pauseMenu;
 
+        [SerializeField]
+        private GameObject _lyricBar;
+
         [field: SerializeField]
         public VocalTrack VocalTrack { get; private set; }
 
@@ -495,11 +498,12 @@ namespace YARG.Gameplay
                 }
                 else
                 {
-                    // Initialize the vocal track if it hasn't been already
+                    // Initialize the vocal track if it hasn't been already, and hide lyric bar
                     if (!vocalTrackInitialized)
                     {
                         var chart = player.Profile.GameMode == GameMode.Vocals ? Chart.Vocals : Chart.Harmony;
                         VocalTrack.Initialize(chart);
+                        _lyricBar.SetActive(false);
                         vocalTrackInitialized = true;
                     }
 
