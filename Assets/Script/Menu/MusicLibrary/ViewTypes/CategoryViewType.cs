@@ -29,7 +29,7 @@ namespace YARG.Menu.MusicLibrary
             GenreCountText = $"{CountOf(songsUnderCategory, i => i.Genre)} genres";
         }
 
-        public CategoryViewType(string primary, int songCount, SortedDictionary<string, List<SongMetadata>> songsUnderCategory)
+        public CategoryViewType(string primary, int songCount, IReadOnlyDictionary<string, List<SongMetadata>> songsUnderCategory)
         {
             _primary = primary;
             _songCount = songCount;

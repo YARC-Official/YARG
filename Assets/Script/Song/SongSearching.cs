@@ -1,22 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Text;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core.Song;
-using YARG.Data;
 
 namespace YARG.Song
 {
     public class SongSearching
     {
-        private static readonly List<(string, string)> SearchLeniency = new()
-        {
-            ("Æ", "AE") // Tool - Ænema
-        };
-
         private class FilterNode : IEquatable<FilterNode>
         {
             public readonly SongAttribute attribute;
@@ -60,13 +52,13 @@ namespace YARG.Song
 
         private List<(FilterNode, SortedDictionary<string, List<SongMetadata>>)> filters = new();
 
-        public SortedDictionary<string, List<SongMetadata>> Search(string value, SongAttribute sort)
+        public IReadOnlyDictionary<string, List<SongMetadata>> Search(string value, SongAttribute sort)
         {
             var currentFilters = GetFilters(value.Split(';'));
             if (currentFilters.Count == 0)
             {
                 filters.Clear();
-                return GlobalVariables.Instance.SortedSongs.GetSongList(sort);
+                return GlobalVariables.Instance.SongContainer.GetSortedSongList(sort);
             }
 
             int currFilterIndex = 0;
@@ -321,41 +313,15 @@ namespace YARG.Song
         private static SortedDictionary<string, List<SongMetadata>> SearchByFilter(SongAttribute sort, string arg)
         {
             if (sort == SongAttribute.Name)
-            {
-                if (arg.Length == 0)
-                {
-                    SortedDictionary<string, List<SongMetadata>> titleMap = new();
-                    foreach (var element in GlobalVariables.Instance.SongContainer.Titles)
-                        titleMap.Add(element.Key, new(element.Value));
-                    return titleMap;
-                }
+                return SearchByName(arg);
 
-                int i = 0;
-                while (i + 1 < arg.Length && !char.IsLetterOrDigit(arg[i]))
-                    ++i;
+            if (sort == SongAttribute.Year)
+                return SearchByYear(arg);
 
-                char character = arg[i];
-                string key = char.IsDigit(character) ? "0-9" : char.ToUpper(character).ToString();
-                var search = GlobalVariables.Instance.SongContainer.Titles[key];
-
-                List<SongMetadata> result = new(search.Count);
-                foreach (var element in search)
-                    if (element.Name.SortStr.Contains(arg))
-                        result.Add(element);
-                return new() { { key, result } };
-            }
+            if (sort == SongAttribute.Instrument)
+                return SearchByInstrument(arg);
 
             SortedDictionary<string, List<SongMetadata>> map = new();
-            if (sort == SongAttribute.Year)
-            {
-                List<SongMetadata> entries = new();
-                foreach (var element in GlobalVariables.Instance.SongContainer.Years)
-                    foreach (var entry in element.Value)
-                        if (entry.Year.Contains(arg))
-                            entries.Add(entry);
-                return new() { { arg, entries } };
-            }
-
             var elements = sort switch
             {
                 SongAttribute.Artist => GlobalVariables.Instance.SongContainer.Artists,
@@ -364,7 +330,6 @@ namespace YARG.Song
                 SongAttribute.Genre => GlobalVariables.Instance.SongContainer.Genres,
                 SongAttribute.Charter => GlobalVariables.Instance.SongContainer.Charters,
                 SongAttribute.Playlist => GlobalVariables.Instance.SongContainer.Playlists,
-                SongAttribute.Instrument => GlobalVariables.Instance.SongContainer.Instruments,
                 _ => throw new Exception("stoopid"),
             };
 
@@ -383,6 +348,50 @@ namespace YARG.Song
                 if (key.Contains(arg))
                     map.Add(element.Key, new(element.Value));
             }
+            return map;
+        }
+
+        private static SortedDictionary<string, List<SongMetadata>> SearchByName(string arg)
+        {
+            if (arg.Length == 0)
+            {
+                SortedDictionary<string, List<SongMetadata>> titleMap = new();
+                foreach (var element in GlobalVariables.Instance.SongContainer.Titles)
+                    titleMap.Add(element.Key, new(element.Value));
+                return titleMap;
+            }
+
+            int i = 0;
+            while (i + 1 < arg.Length && !char.IsLetterOrDigit(arg[i]))
+                ++i;
+
+            char character = arg[i];
+            string key = char.IsDigit(character) ? "0-9" : char.ToUpper(character).ToString();
+            var search = GlobalVariables.Instance.SongContainer.Titles[key];
+
+            List<SongMetadata> result = new(search.Count);
+            foreach (var element in search)
+                if (element.Name.SortStr.Contains(arg))
+                    result.Add(element);
+            return new() { { key, result } };
+        }
+
+        private static SortedDictionary<string, List<SongMetadata>> SearchByYear(string arg)
+        {
+            List<SongMetadata> entries = new();
+            foreach (var element in GlobalVariables.Instance.SongContainer.Years)
+                foreach (var entry in element.Value)
+                    if (entry.Year.Contains(arg))
+                        entries.Add(entry);
+            return new() { { arg, entries } };
+        }
+
+        private static SortedDictionary<string, List<SongMetadata>> SearchByInstrument(string arg)
+        {
+            SortedDictionary<string, List<SongMetadata>> map = new();
+            foreach (var element in GlobalVariables.Instance.SongContainer.Instruments)
+                if (element.Key.Contains(arg, StringComparison.OrdinalIgnoreCase))
+                    map.Add(element.Key, new(element.Value));
             return map;
         }
     }

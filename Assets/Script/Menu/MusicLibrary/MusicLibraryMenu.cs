@@ -60,7 +60,7 @@ namespace YARG.Menu.MusicLibrary
 
         private SongSearching _searchBar = new();
         private string _currentSearch = string.Empty;
-        private SortedDictionary<string, List<SongMetadata>> _sortedSongs;
+        private IReadOnlyDictionary<string, List<SongMetadata>> _sortedSongs;
         private List<SongMetadata> _recommendedSongs;
 
         private PreviewContext _previewContext;
