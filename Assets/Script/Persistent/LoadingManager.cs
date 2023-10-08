@@ -91,14 +91,11 @@ namespace YARG
             if (!string.IsNullOrEmpty(setlistPath) && !directories.Contains(setlistPath))
                 directories.Add(setlistPath);
 
-            CacheHandler handler = new(PathHelper.SongCachePath, PathHelper.BadSongsPath, true, directories.ToArray());
-
-            SongCache cache = null;
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            var task = Task.Run(() => cache = handler.RunScan(fast));
+            var task = Task.Run(() => CacheHandler.RunScan(fast, PathHelper.SongCachePath, PathHelper.BadSongsPath, true, directories));
             while (!task.IsCompleted)
             {
-                UpdateSongUi(handler);
+                UpdateSongUi();
                 await UniTask.NextFrame();
             }
             stopwatch.Stop();
@@ -109,7 +106,7 @@ namespace YARG
             if (!string.IsNullOrEmpty(setlistPath))
                 directories.Remove(setlistPath);
 
-            GlobalVariables.Instance.SongContainer = new SongContainer(cache);
+            GlobalVariables.Instance.SongContainer = new SongContainer(task.Result);
         }
 
         private void SetLoadingText(string phrase, string sub = null)
@@ -123,36 +120,38 @@ namespace YARG
             subPhrase.text = sub;
         }
 
-        private void UpdateSongUi(CacheHandler cache)
+        private void UpdateSongUi()
         {
+            var tracker = CacheHandler.Progress;
+
             string phrase = string.Empty;
             string subText = null;
-            switch (cache.Progress)
+            switch (tracker.Stage)
             {
-                case ScanProgress.LoadingCache:
+                case ScanStage.LoadingCache:
                     phrase = "Loading song cache...";
                     break;
-                case ScanProgress.LoadingSongs:
+                case ScanStage.LoadingSongs:
                     phrase = "Loading songs...";
                     break;
-                case ScanProgress.Sorting:
+                case ScanStage.Sorting:
                     phrase = "Sorting songs...";
                     break;
-                case ScanProgress.WritingCache:
+                case ScanStage.WritingCache:
                     phrase = "Writing song cache...";
                     break;
-                case ScanProgress.WritingBadSongs:
+                case ScanStage.WritingBadSongs:
                     phrase = "Writing bad songs...";
                     break;
             }
 
-            switch (cache.Progress)
+            switch (tracker.Stage)
             {
-                case ScanProgress.LoadingCache:
-                case ScanProgress.LoadingSongs:
-                    subText = $"Folders Scanned: {cache.NumScannedDirectories}\n" +
-                              $"Songs Scanned: {cache.Count}\n" +
-                              $"Errors: {cache.BadSongCount}"; break;
+                case ScanStage.LoadingCache:
+                case ScanStage.LoadingSongs:
+                    subText = $"Folders Scanned: {tracker.NumScannedDirectories}\n" +
+                              $"Songs Scanned: {tracker.Count}\n" +
+                              $"Errors: {tracker.BadSongCount}"; break;
             }
             SetLoadingText(phrase, subText);
         }
