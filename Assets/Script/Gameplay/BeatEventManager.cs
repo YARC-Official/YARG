@@ -48,7 +48,7 @@ namespace YARG.Gameplay
 
         public void Subscribe(Action action, Info info)
         {
-            _addStates.Add(action, new State(info));
+            _addStates.Add((action, new State(info)));
         }
 
         public void Unsubscribe(Action action)
