@@ -74,7 +74,7 @@ namespace YARG.Gameplay.HUD
             if (_vocalPhrases is null) return;
 
             // Go to the next phrase if it has started
-            if (_vocalPhrases[_currentPhraseIndex + 1].Time <= GameManager.SongTime)
+            if (_currentPhraseIndex + 1 < _vocalPhrases.Count && _vocalPhrases[_currentPhraseIndex + 1].Time <= GameManager.SongTime)
             {
                 _currentPhraseIndex++;
                 _currentLyricIndex = -1;
