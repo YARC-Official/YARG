@@ -12,18 +12,11 @@ namespace YARG.Audio
 {
     public class BassMicDevice : IMicDevice
     {
-        // How often to record samples from the microphone in milliseconds (calls the callback function every n millis)
-        private const int RECORD_PERIOD_MILLIS = 50;
-
-        public float PitchUpdatesPerSecond => 1000f / RECORD_PERIOD_MILLIS;
-
         public string DisplayName => _deviceInfo.Name;
         public bool IsDefault => _deviceInfo.IsDefault;
 
         public bool IsMonitoring { get; set; }
         public bool IsRecordingOutput { get; set; }
-
-        public MicOutputFrame? LastOutputFrame { get; private set; }
 
         private readonly ConcurrentQueue<MicOutputFrame> _frameQueue = new();
 
@@ -79,9 +72,9 @@ namespace YARG.Audio
             // We want to start recording immediately because of device context switching and device numbers.
             // If we initialize the device but don't record immediately, the device number might change
             // and we'll be recording from the wrong device.
-            _cleanRecordHandle = Bass.RecordStart(44100, info.Channels, FLAGS, RECORD_PERIOD_MILLIS,
+            _cleanRecordHandle = Bass.RecordStart(44100, info.Channels, FLAGS, IMicDevice.RECORD_PERIOD_MS,
                 ProcessCleanRecordData, IntPtr.Zero);
-            _processedRecordHandle = Bass.RecordStart(44100, info.Channels, FLAGS, RECORD_PERIOD_MILLIS,
+            _processedRecordHandle = Bass.RecordStart(44100, info.Channels, FLAGS, IMicDevice.RECORD_PERIOD_MS,
                 ProcessRecordData, IntPtr.Zero);
             if (_cleanRecordHandle == 0 || _processedRecordHandle == 0)
             {
@@ -244,9 +237,6 @@ namespace YARG.Audio
             // Skip pitch detection if not speaking
             if (amplitude < SettingsManager.Settings.MicrophoneSensitivity.Data)
             {
-                // Send a false mic output frame with no pitch
-                LastOutputFrame = new MicOutputFrame(
-                    InputManager.CurrentInputTime, 0f, amplitude);
                 return;
             }
 
@@ -260,7 +250,6 @@ namespace YARG.Audio
             // Queue a MicOutput frame
             var frame = new MicOutputFrame(
                 InputManager.CurrentInputTime, pitchOutput.Value, amplitude);
-            LastOutputFrame = frame;
             _frameQueue.Enqueue(frame);
         }
 

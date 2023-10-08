@@ -509,7 +509,8 @@ namespace YARG.Gameplay
 
                     // Create the player on the vocal track
                     var vocalsPlayer = VocalTrack.CreatePlayer();
-                    vocalsPlayer.Initialize(index, player, Chart);
+                    var playerHud = _trackViewManager.CreateVocalsPlayerHUD();
+                    vocalsPlayer.Initialize(index, player, Chart, playerHud);
                     _players.Add(vocalsPlayer);
                 }
             }

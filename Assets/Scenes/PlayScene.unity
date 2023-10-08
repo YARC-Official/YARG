@@ -1259,15 +1259,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f9d6d58525b4d22961cb5f7264164de, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fiveFretGuitarPrefab: {fileID: 2999289846860309454, guid: 2a3c8615b3f54e64db089dedc04d5445,
-    type: 3}
-  sixFretGuitarPrefab: {fileID: 0}
-  fourLaneDrumsPrefab: {fileID: 2999289846860309454, guid: 5b03c2f1f2df12f4f9b6cdfb655a3f3b,
-    type: 3}
-  fiveLaneDrumsPrefab: {fileID: 2999289846860309454, guid: 31b157bc18aca20488bd44fee8a7eb00,
-    type: 3}
-  proGuitarPrefab: {fileID: 8431480376043174353, guid: 3994a880487709b47a6e0ebef8611ab9,
-    type: 3}
+  _trackViewManager: {fileID: 0}
+  _replayController: {fileID: 0}
+  _pauseMenu: {fileID: 0}
+  _lyricBar: {fileID: 0}
+  <VocalTrack>k__BackingField: {fileID: 0}
+  _debugText: {fileID: 0}
+  _fiveFretGuitarPrefab: {fileID: 0}
+  _sixFretGuitarPrefab: {fileID: 0}
+  _fourLaneDrumsPrefab: {fileID: 0}
+  _fiveLaneDrumsPrefab: {fileID: 0}
+  _proGuitarPrefab: {fileID: 0}
 --- !u!1 &334520971
 GameObject:
   m_ObjectHideFlags: 0
@@ -2618,7 +2620,7 @@ PrefabInstance:
     - target: {fileID: 227366190812778480, guid: 039fee0ec42345d4f88c0625255415d4,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 2.5158997
+      value: -187.3
       objectReference: {fileID: 0}
     - target: {fileID: 1682100932476655723, guid: 039fee0ec42345d4f88c0625255415d4,
         type: 3}
@@ -2758,7 +2760,7 @@ PrefabInstance:
     - target: {fileID: 2517693471320601084, guid: 039fee0ec42345d4f88c0625255415d4,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -2.5158997
+      value: 187.3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 039fee0ec42345d4f88c0625255415d4, type: 3}

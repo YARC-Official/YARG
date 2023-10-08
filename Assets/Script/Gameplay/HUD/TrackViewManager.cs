@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Gameplay.Player;
@@ -13,10 +12,14 @@ namespace YARG.Gameplay.HUD
         [Header("Prefabs")]
         [SerializeField]
         private GameObject _trackViewPrefab;
+        [SerializeField]
+        private GameObject _vocalHudPrefab;
 
         [Header("References")]
         [SerializeField]
         private RawImage _vocalImage;
+        [SerializeField]
+        private Transform _vocalHudParent;
 
         private readonly List<TrackView> _trackViews = new();
 
@@ -53,6 +56,12 @@ namespace YARG.Gameplay.HUD
             UpdateAllSizing();
 
             return trackView;
+        }
+
+        public VocalsPlayerHUD CreateVocalsPlayerHUD()
+        {
+            var go = Instantiate(_vocalHudPrefab, _vocalHudParent);
+            return go.GetComponent<VocalsPlayerHUD>();
         }
 
         private void UpdateAllSizing()

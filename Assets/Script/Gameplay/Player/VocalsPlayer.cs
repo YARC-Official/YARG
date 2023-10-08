@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
+using YARG.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Engine.Vocals;
 using YARG.Core.Engine.Vocals.Engines;
 using YARG.Core.Input;
+using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Input;
 using YARG.Player;
@@ -34,14 +36,17 @@ namespace YARG.Gameplay.Player
 
         private MicInputContext _inputContext;
 
-        private bool _isHittingNote;
         private VocalNote _lastTargetNote;
 
-        public new void Initialize(int index, YargPlayer player, SongChart chart)
+        private VocalsPlayerHUD _hud;
+
+        public void Initialize(int index, YargPlayer player, SongChart chart, VocalsPlayerHUD hud)
         {
             if (IsInitialized) return;
 
             base.Initialize(index, player, chart);
+
+            _hud = hud;
 
             // TODO: Selectable harmony part
             // Get the notes from the specific harmony or solo part
@@ -68,17 +73,10 @@ namespace YARG.Gameplay.Player
 
         protected VocalsEngine CreateEngine()
         {
-            EngineParams = new VocalsEngineParameters(1.0, 0.9, 0.06, StarMultiplierThresholds);
+            EngineParams = new VocalsEngineParameters(1.0, 0.9,
+                IMicDevice.UPDATES_PER_SECOND, StarMultiplierThresholds);
 
             var engine = new YargVocalsEngine(NoteTrack, SyncTrack, EngineParams);
-
-            engine.OnSingTick += (hitting) =>
-            {
-                if (_isHittingNote == hitting) return;
-
-                _isHittingNote = hitting;
-                OnHitStateChanged();
-            };
 
             engine.OnTargetNoteChanged += (note) =>
             {
@@ -90,10 +88,7 @@ namespace YARG.Gameplay.Player
 
         protected override void ResetVisuals()
         {
-            _isHittingNote = false;
             _lastTargetNote = null;
-
-            OnHitStateChanged();
         }
 
         public override void ResetPracticeSection()
@@ -103,7 +98,7 @@ namespace YARG.Gameplay.Player
         protected override void UpdateInputs(double time)
         {
             // Push all inputs from mic
-            if (_inputContext is not null)
+            if (!GameManager.IsReplay && _inputContext is not null)
             {
                 foreach (var input in _inputContext.GetInputsFromMic())
                 {
@@ -115,36 +110,62 @@ namespace YARG.Gameplay.Player
             base.UpdateInputs(time);
         }
 
-        private void OnHitStateChanged()
+        /// <summary>
+        /// Calculate if the engine considers this point in time as singing.
+        /// </summary>
+        private double GetTimeThreshold(double lastTime)
         {
-            if (_isHittingNote)
-            {
-                _hittingParticleGroup.Play();
-            }
-            else
-            {
-                _hittingParticleGroup.Stop();
-            }
+            // Add an arbitrary value to prevent it from hiding too fast
+            return lastTime + 1f / IMicDevice.UPDATES_PER_SECOND + 0.05;
         }
 
         protected override void UpdateVisuals(double time)
         {
-            if (Engine.State.PitchSangThisUpdate == null)
+            if (GameManager.SongTime >= GetTimeThreshold(Engine.State.VisualLastSingTime))
             {
                 // Hide the needle if there's no singing
-                _needleVisualContainer.SetActive(false);
+                if (_needleVisualContainer.activeSelf)
+                {
+                    _needleVisualContainer.SetActive(false);
+                    _hittingParticleGroup.Stop();
+                }
             }
             else
             {
-                _needleVisualContainer.SetActive(true);
+                float lerpRate = 30f;
+
+                // Show needle
+                if (!_needleVisualContainer.activeSelf)
+                {
+                    _needleVisualContainer.SetActive(true);
+
+                    // Lerp 10 times faster if we've just started showing the needle
+                    lerpRate *= 10f;
+                }
 
                 // Get the pitch, and move to the correct octave
-                float pitch = Engine.State.PitchSangThisUpdate.Value;
+                float pitch = Engine.State.PitchSang;
                 if (_lastTargetNote is not null)
                 {
-                    int micOctave = (int) (pitch / 12) - 1;
-                    int octaveDifference = _lastTargetNote.Octave - micOctave;
-                    pitch += octaveDifference * 12f;
+                    float micNote = pitch % 12f;
+
+                    // TODO: THIS DOES NOT WORK
+
+                    // Since the hit detection rolls over to the next/last octave,
+                    // we must check the neighbouring octaves as well to see if it's
+                    // closer, and use that instead.
+                    float closestDist = float.PositiveInfinity;
+                    for (int i = -1; i <= 1; i++)
+                    {
+                        float note = micNote + (_lastTargetNote.Octave + i) * 12f;
+                        float dist = Mathf.Abs(_lastTargetNote.Pitch - note);
+
+                        if (dist < closestDist)
+                        {
+                            closestDist = dist;
+                            pitch = note;
+                        }
+                    }
                 }
                 else
                 {
@@ -155,8 +176,18 @@ namespace YARG.Gameplay.Player
 
                 // Set the position of the needle
                 var z = GameManager.VocalTrack.GetPosForPitch(pitch);
-                var lerp = Mathf.Lerp(transform.localPosition.z, z, Time.deltaTime * 12f);
+                var lerp = Mathf.Lerp(transform.localPosition.z, z, Time.deltaTime * lerpRate);
                 transform.localPosition = new Vector3(0f, 0f, lerp);
+
+                // Show particles if hitting, stop them if not.
+                if (GameManager.SongTime < GetTimeThreshold(Engine.State.VisualLastHitTime))
+                {
+                    _hittingParticleGroup.Play();
+                }
+                else
+                {
+                    _hittingParticleGroup.Stop();
+                }
             }
         }
 

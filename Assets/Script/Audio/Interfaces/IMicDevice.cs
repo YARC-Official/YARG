@@ -41,15 +41,14 @@ namespace YARG.Audio
 
     public interface IMicDevice : IDisposable
     {
-        public float PitchUpdatesPerSecond { get; }
+        public const int RECORD_PERIOD_MS = 50;
+        public const float UPDATES_PER_SECOND = 1000f / RECORD_PERIOD_MS;
 
         public string DisplayName { get; }
         public bool IsDefault { get; }
 
         public bool IsMonitoring { get; set; }
         public bool IsRecordingOutput { get; set; }
-
-        public MicOutputFrame? LastOutputFrame { get; }
 
         /// <summary>
         /// Initialize the microphone.
