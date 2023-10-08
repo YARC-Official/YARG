@@ -1,4 +1,5 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Text;
 using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
@@ -20,8 +21,8 @@ namespace YARG.Gameplay.HUD
         private TextMeshProUGUI _lyricText;
 
         private List<VocalsPhrase> _vocalPhrases;
-        private int _currentPhraseIndex = -1;
-        private int _currentLyricIndex = -1;
+        private int _currentPhraseIndex = 0;
+        private int _currentLyricIndex = 0;
 
         protected override void GameplayAwake()
         {
@@ -70,43 +71,56 @@ namespace YARG.Gameplay.HUD
 
         private void Update()
         {
-            // Wait until the chart loads
-            if (_vocalPhrases is null) return;
-
-            // Go to the next phrase if it has started
-            if (_currentPhraseIndex + 1 < _vocalPhrases.Count && _vocalPhrases[_currentPhraseIndex + 1].Time <= GameManager.SongTime)
+            const double PHRASE_DISTANCE_THRESHOLD = 1.0;
+            // If the current phrase ended AND
+            while (_currentPhraseIndex < _vocalPhrases.Count && _vocalPhrases[_currentPhraseIndex].TimeEnd <= GameManager.SongTime &&
+                 // Was the last phrase
+                (_currentPhraseIndex + 1 == _vocalPhrases.Count ||
+                 // OR if the next phrase is one second or more away (leading to an empty bar)
+                 _vocalPhrases[_currentPhraseIndex + 1].Time - _vocalPhrases[_currentPhraseIndex].TimeEnd >= PHRASE_DISTANCE_THRESHOLD ||
+                 // OR if the next phrase should be started
+                 _vocalPhrases[_currentPhraseIndex + 1].Time <= GameManager.SongTime))
             {
                 _currentPhraseIndex++;
-                _currentLyricIndex = -1;
+                _currentLyricIndex = 0;
+                _lyricText.text = null;
             }
 
-            // Skip if there hasn't been any vocals yet, or the song is done
-            if (_currentPhraseIndex == -1 || _currentPhraseIndex >= _vocalPhrases.Count) return;
+            if (_currentPhraseIndex == _vocalPhrases.Count || GameManager.SongTime < _vocalPhrases[_currentPhraseIndex].Time)
+                return;
 
             var lyrics = _vocalPhrases[_currentPhraseIndex].Lyrics;
 
-            // Check for next lyric
-            if (_currentLyricIndex + 1 < lyrics.Count &&
-                lyrics[_currentLyricIndex + 1].Time <= GameManager.SongTime)
+            // Check following lyrics
+            int currIndex = _currentLyricIndex;
+            while(currIndex < lyrics.Count && lyrics[currIndex].Time <= GameManager.SongTime)
+                currIndex++;
+
+            // No update necessary
+            if (_lyricText.text != null && _currentLyricIndex == currIndex)
+                return;
+
+            // Construct lyrics to be displayed
+            // Start highlight
+            StringBuilder output = new("<color=#5CB9FF>");
+            int i = 0;
+            while (i < currIndex)
             {
-                _currentLyricIndex++;
+                var lyric = lyrics[i++];
+                output.Append(GetDisplayTextWithSpace(lyric.Text));
             }
 
-            // Get what should be displayed and show it
-            string output = "<color=#5CB9FF>";
-            for (int i = 0; i < lyrics.Count; i++)
-            {
-                // End highlight here
-                if (i == _currentLyricIndex + 1)
-                {
-                    output += "</color>";
-                }
+            // End highlight
+            output.Append("</color>");
 
-                var lyric = lyrics[i];
-                output += GetDisplayTextWithSpace(lyric.Text);
+            while (i < lyrics.Count)
+            {
+                var lyric = lyrics[i++];
+                output.Append(GetDisplayTextWithSpace(lyric.Text));
             }
 
-            _lyricText.text = output;
+            _currentLyricIndex = currIndex;
+            _lyricText.text = output.ToString();
         }
 
         private string GetDisplayTextWithSpace(string lyricText)
