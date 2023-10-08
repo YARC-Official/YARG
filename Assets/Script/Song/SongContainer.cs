@@ -1,66 +1,89 @@
 ﻿using System.Collections.Generic;
 using YARG.Core.Song.Cache;
 using YARG.Core.Song;
+using System;
 
 namespace YARG.Song
 {
     public class SongContainer
     {
-        private Dictionary<HashWrapper, List<SongMetadata>> _entries;
-        private List<SongMetadata> _songs;
+        private readonly SongCache _songCache = new();
+        private readonly List<SongMetadata> _songs = new();
 
-        public SortedDictionary<string, List<SongMetadata>> Titles { get; private set; }
-        public SortedDictionary<string, List<SongMetadata>> Years { get; private set; }
-        public SortedDictionary<string, List<SongMetadata>> ArtistAlbums { get; private set; }
-        public SortedDictionary<string, List<SongMetadata>> SongLengths { get; private set; }
-        public SortedDictionary<SortString, List<SongMetadata>> Instruments { get; private set; }
-        public SortedDictionary<SortString, List<SongMetadata>> Artists { get; private set; }
-        public SortedDictionary<SortString, List<SongMetadata>> Albums { get; private set; }
-        public SortedDictionary<SortString, List<SongMetadata>> Genres { get; private set; }
-        public SortedDictionary<SortString, List<SongMetadata>> Charters { get; private set; }
-        public SortedDictionary<SortString, List<SongMetadata>> Playlists { get; private set; }
-        public SortedDictionary<SortString, List<SongMetadata>> Sources { get; private set; }
+        private readonly SortedDictionary<string, List<SongMetadata>> _sortArtists = new();
+        private readonly SortedDictionary<string, List<SongMetadata>> _sortAlbums = new();
+        private readonly SortedDictionary<string, List<SongMetadata>> _sortGenres = new();
+        private readonly SortedDictionary<string, List<SongMetadata>> _sortCharters = new();
+        private readonly SortedDictionary<string, List<SongMetadata>> _sortPlaylists = new();
+        private readonly SortedDictionary<string, List<SongMetadata>> _sortSources = new();
+
+        public IReadOnlyDictionary<string, List<SongMetadata>> Titles => _songCache.Titles;
+        public IReadOnlyDictionary<string, List<SongMetadata>> Years => _songCache.Years;
+        public IReadOnlyDictionary<string, List<SongMetadata>> ArtistAlbums => _songCache.ArtistAlbums;
+        public IReadOnlyDictionary<string, List<SongMetadata>> SongLengths => _songCache.SongLengths;
+        public IReadOnlyDictionary<string, List<SongMetadata>> Instruments => _songCache.Instruments;
+        public IReadOnlyDictionary<SortString, List<SongMetadata>> Artists => _songCache.Artists;
+        public IReadOnlyDictionary<SortString, List<SongMetadata>> Albums => _songCache.Albums;
+        public IReadOnlyDictionary<SortString, List<SongMetadata>> Genres => _songCache.Genres;
+        public IReadOnlyDictionary<SortString, List<SongMetadata>> Charters => _songCache.Charters;
+        public IReadOnlyDictionary<SortString, List<SongMetadata>> Playlists => _songCache.Playlists;
+        public IReadOnlyDictionary<SortString, List<SongMetadata>> Sources => _songCache.Sources;
 
         public int Count => _songs.Count;
-        public IReadOnlyDictionary<HashWrapper, List<SongMetadata>> SongsByHash => _entries;
+        public IReadOnlyDictionary<HashWrapper, List<SongMetadata>> SongsByHash => _songCache.Entries;
         public IReadOnlyList<SongMetadata> Songs => _songs;
 
-        public SongContainer()
-        {
-            _entries = new();
-            _songs = new();
-            Titles = new();
-            Years = new();
-            ArtistAlbums = new();
-            SongLengths = new();
-            Instruments = new();
-            Artists = new();
-            Albums = new();
-            Genres = new();
-            Charters = new();
-            Playlists = new();
-            Sources = new();
-        }
+        public SongContainer() { }
 
         public SongContainer(SongCache cache)
         {
-            _entries = cache.entries;
-            _songs = new();
-            foreach (var node in _entries)
+            _songCache = cache;
+            foreach (var node in cache.Entries)
                 _songs.AddRange(node.Value);
             _songs.TrimExcess();
 
-            Titles = cache.titles.Elements;
-            Years = cache.years.Elements;
-            ArtistAlbums = cache.artistAlbums.Elements;
-            SongLengths = cache.songLengths.Elements;
-            Instruments = cache.instruments.Elements;
-            Artists = cache.artists.Elements;
-            Albums = cache.albums.Elements;
-            Genres = cache.genres.Elements;
-            Charters = cache.charters.Elements;
-            Playlists = cache.playlists.Elements;
-            Sources = cache.sources.Elements;
+            _sortArtists = Convert(cache.Artists);
+            _sortAlbums = Convert(cache.Albums);
+            _sortGenres = Convert(cache.Genres);
+            _sortCharters = Convert(cache.Charters);
+            _sortPlaylists = Convert(cache.Playlists);
+            _sortSources = Convert(cache.Sources);
+
+            static SortedDictionary<string, List<SongMetadata>> Convert(SortedDictionary<SortString, List<SongMetadata>> list)
+            {
+                SortedDictionary<string, List<SongMetadata>> map = new();
+                foreach (var node in list)
+                {
+                    string key = node.Key;
+                    if (key.Length > 0 && char.IsLower(key[0]))
+                    {
+                        key = char.ToUpperInvariant(key[0]).ToString();
+                        if (node.Key.Length > 1)
+                            key += node.Key.Str[1..];
+                    }
+                    map.Add(key, node.Value);
+                }
+                return map;
+            }
+        }
+
+        public IReadOnlyDictionary<string, List<SongMetadata>> GetSortedSongList(SongAttribute sort)
+        {
+            return sort switch
+            {
+                SongAttribute.Name => Titles,
+                SongAttribute.Artist => _sortArtists,
+                SongAttribute.Album => _sortAlbums,
+                SongAttribute.Genre => _sortGenres,
+                SongAttribute.Year => Years,
+                SongAttribute.Charter => _sortCharters,
+                SongAttribute.Playlist => _sortPlaylists,
+                SongAttribute.Source => _sortSources,
+                SongAttribute.Artist_Album => ArtistAlbums,
+                SongAttribute.SongLength => SongLengths,
+                SongAttribute.Instrument => Instruments,
+                _ => throw new Exception("stoopid"),
+            };
         }
     }
 }

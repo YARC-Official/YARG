@@ -109,7 +109,7 @@ namespace YARG
             if (!string.IsNullOrEmpty(setlistPath))
                 directories.Remove(setlistPath);
 
-            GlobalVariables.Instance.SetSongList(cache);
+            GlobalVariables.Instance.SongContainer = new SongContainer(cache);
         }
 
         private void SetLoadingText(string phrase, string sub = null)
