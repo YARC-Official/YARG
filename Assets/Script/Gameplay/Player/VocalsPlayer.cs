@@ -73,7 +73,7 @@ namespace YARG.Gameplay.Player
 
         protected VocalsEngine CreateEngine()
         {
-            EngineParams = new VocalsEngineParameters(1.0, 0.9,
+            EngineParams = new VocalsEngineParameters(1.0, 0.7,
                 IMicDevice.UPDATES_PER_SECOND, StarMultiplierThresholds);
 
             var engine = new YargVocalsEngine(NoteTrack, SyncTrack, EngineParams);
@@ -125,7 +125,7 @@ namespace YARG.Gameplay.Player
             float fill = 0f;
             if (Engine.State.PhraseTicksTotal != null)
             {
-                fill = (float) Engine.State.PhraseTicksHit / Engine.State.PhraseTicksTotal.Value;
+                fill = (float) (Engine.State.PhraseTicksHit / Engine.State.PhraseTicksTotal.Value);
                 fill /= (float) EngineParams.PhraseHitPercent;
             }
 
