@@ -1,15 +1,16 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.UI;
 using YARG.Audio;
 using YARG.Core.Song;
-using YARG.Serialization;
 
 namespace YARG.Helpers.Extensions
 {
@@ -22,16 +23,15 @@ namespace YARG.Helpers.Extensions
                 await LoadSongIniCover(songMetadata.Directory, rawImage, cancellationToken);
             else
             {
-                byte[] file = null;
-                await UniTask.RunOnThreadPool(() => file = songMetadata.RBData.LoadImgFile());
-
-                if (file != null)
-                    await LoadRbConCover(file, rawImage, cancellationToken);
-                else
+                byte[] file = await UniTask.RunOnThreadPool(songMetadata.RBData!.LoadImgFile);
+                if (file == null)
                 {
                     rawImage.texture = null;
                     rawImage.color = Color.clear;
+                    return;
                 }
+
+                LoadRBConCover(file, rawImage, cancellationToken);
             }
         }
 
@@ -70,24 +70,26 @@ namespace YARG.Helpers.Extensions
             }
         }
 
-        private static async UniTask LoadRbConCover(byte[] file,
-            RawImage rawImage, CancellationToken cancellationToken)
+        private static void LoadRBConCover(byte[] file,
+            RawImage rawImage, CancellationToken token)
         {
-            XboxImageSettings settings = null;
+            for (int i = 32; i < file.Length; i += 2)
+            {
+                if (token.IsCancellationRequested)
+                    return;
 
-            // The overload with cancellation support requires an async function.
-            // ReSharper disable once MethodSupportsCancellation
-            await UniTask.RunOnThreadPool(() => settings = XboxImageTextureGenerator.GetTexture(file, cancellationToken));
+                (file[i + 1], file[i]) = (file[i], file[i + 1]);
+            }
 
-            if (settings == null)
-                return;
+            byte bitsPerPixel = file[1];
+            int format = BinaryPrimitives.ReadInt32LittleEndian(new(file, 2, 4));
+            int width = BinaryPrimitives.ReadInt16LittleEndian(new(file, 7, 2));
+            int height = BinaryPrimitives.ReadInt16LittleEndian(new(file, 9, 2));
 
-            // Choose the right format
-            bool isDXT1 = settings.bitsPerPixel == 0x04 && settings.format == 0x08;
-            var format = isDXT1 ? GraphicsFormat.RGBA_DXT1_SRGB : GraphicsFormat.RGBA_DXT5_SRGB;
+            bool isDXT1 = bitsPerPixel == 0x04 && format == 0x08;
+            var gfxFormat = isDXT1 ? GraphicsFormat.RGBA_DXT1_SRGB : GraphicsFormat.RGBA_DXT5_SRGB;
 
-            // Load the texture
-            var texture = new Texture2D(settings.width, settings.height, format, TextureCreationFlags.None);
+            var texture = new Texture2D(width, height, gfxFormat, TextureCreationFlags.None);
             unsafe
             {
                 fixed (byte* data = file)
@@ -97,7 +99,6 @@ namespace YARG.Helpers.Extensions
             }
             texture.Apply();
 
-            // Set it
             rawImage.texture = texture;
             rawImage.color = Color.white;
             rawImage.uvRect = new Rect(0f, 0f, 1f, -1f);
