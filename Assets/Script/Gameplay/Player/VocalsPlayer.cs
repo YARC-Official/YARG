@@ -121,6 +121,17 @@ namespace YARG.Gameplay.Player
 
         protected override void UpdateVisuals(double time)
         {
+            // Get combo meter fill
+            float fill = 0f;
+            if (Engine.State.PhraseTicksTotal != null)
+            {
+                fill = (float) Engine.State.PhraseTicksHit / Engine.State.PhraseTicksTotal.Value;
+                fill /= (float) EngineParams.PhraseHitPercent;
+            }
+
+            // Update HUD
+            _hud.UpdateInfo(fill);
+
             if (GameManager.SongTime >= GetTimeThreshold(Engine.State.VisualLastSingTime))
             {
                 // Hide the needle if there's no singing
