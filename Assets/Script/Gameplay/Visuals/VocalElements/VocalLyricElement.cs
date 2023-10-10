@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 using YARG.Core.Chart;
@@ -10,11 +11,14 @@ namespace YARG.Gameplay.Visuals
         private static readonly Regex _lyricDiacriticRegex = new(@"\+|#|\^|\*|\%|\$|\/|", RegexOptions.Compiled);
 
         public TextEvent LyricRef { get; set; }
+        public double MinimumTime { get; set; }
 
-        protected override double ElementTime => LyricRef.Time;
+        public override double ElementTime => Math.Max(LyricRef.Time, MinimumTime);
 
         [SerializeField]
         private TextMeshPro _lyricText;
+
+        public float Width => _lyricText.GetPreferredValues().x;
 
         protected override void InitializeElement()
         {

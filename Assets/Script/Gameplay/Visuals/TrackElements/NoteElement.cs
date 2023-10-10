@@ -20,7 +20,7 @@ namespace YARG.Gameplay.Visuals
 
         protected NoteGroup NoteGroup;
 
-        protected override double ElementTime => NoteRef.Time;
+        public override double ElementTime => NoteRef.Time;
 
         protected override void InitializeElement()
         {

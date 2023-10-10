@@ -6,7 +6,7 @@ namespace YARG.Gameplay.Visuals
     {
         public VocalsPhrase PhraseRef;
 
-        protected override double ElementTime => PhraseRef.TimeEnd;
+        public override double ElementTime => PhraseRef.TimeEnd;
 
         protected override void InitializeElement()
         {

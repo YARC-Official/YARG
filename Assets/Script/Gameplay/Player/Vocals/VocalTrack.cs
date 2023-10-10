@@ -44,7 +44,7 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         private Pool[] _notePools;
         [SerializeField]
-        private Pool _lyricPoolBottom;
+        private VocalLyricContainer _lyricContainer;
         [SerializeField]
         private Pool _phraseLinePool;
 
@@ -195,23 +195,15 @@ namespace YARG.Gameplay.Player
 
         private bool SpawnLyricsInPhrase(VocalsPhrase phrase, int harmonyIndex)
         {
-            // TODO: Choose correct lyric pool
-            var pool = _lyricPoolBottom;
             int index = _lyricIndices[harmonyIndex];
             var lyrics = phrase.Lyrics;
 
             while (index < lyrics.Count && lyrics[index].Time <= GameManager.SongTime + SPAWN_TIME_OFFSET)
             {
-                // Skip this frame if the pool is full
-                if (!pool.CanSpawnAmount(1))
+                if (!_lyricContainer.TrySpawnLyric(lyrics[index]))
                 {
                     return false;
                 }
-
-                // Spawn the vocal lyric
-                var note = pool.TakeWithoutEnabling();
-                ((VocalLyricElement) note).LyricRef = lyrics[index];
-                note.EnableFromPool();
 
                 index++;
             }

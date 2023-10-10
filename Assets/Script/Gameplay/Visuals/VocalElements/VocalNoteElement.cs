@@ -16,7 +16,7 @@ namespace YARG.Gameplay.Visuals
 
         public VocalNote NoteRef { get; set; }
 
-        protected override double ElementTime => NoteRef.Time;
+        public override double ElementTime => NoteRef.Time;
 
         protected override float RemovePointOffset => VocalTrack.GetPosForTime(NoteRef.TotalTimeLength);
 

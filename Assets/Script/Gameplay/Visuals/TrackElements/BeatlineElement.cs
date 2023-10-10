@@ -20,7 +20,7 @@ namespace YARG.Gameplay.Visuals
 
         public Beatline BeatlineRef;
 
-        protected override double ElementTime => BeatlineRef.Time;
+        public override double ElementTime => BeatlineRef.Time;
 
         protected override void InitializeElement()
         {

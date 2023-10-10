@@ -7,7 +7,7 @@
         /// <summary>
         /// The time at which the element resides.
         /// </summary>
-        protected abstract double ElementTime { get; }
+        public abstract double ElementTime { get; }
         /// <summary>
         /// How many move units the element should be kept for past the default remove point.
         /// Should be positive.

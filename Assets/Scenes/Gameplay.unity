@@ -2722,6 +2722,7 @@ GameObject:
   m_Component:
   - component: {fileID: 675569665}
   - component: {fileID: 675569666}
+  - component: {fileID: 675569667}
   m_Layer: 0
   m_Name: Lyric Pool Bottom
   m_TagString: Untagged
@@ -2759,6 +2760,19 @@ MonoBehaviour:
   _prefab: {fileID: 6881370188666117159, guid: 7ab2ab9f7824404489df93fe38b98a65, type: 3}
   _prewarmAmount: 10
   _objectCap: 100
+--- !u!114 &675569667
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 675569664}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7da1b78330294974b67ca4fe7805f19b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _pool: {fileID: 675569666}
 --- !u!1 &776478532
 GameObject:
   m_ObjectHideFlags: 0
@@ -4291,7 +4305,7 @@ MonoBehaviour:
   - {fileID: 923813868}
   - {fileID: 554547770}
   - {fileID: 1856380133}
-  _lyricPoolBottom: {fileID: 675569666}
+  _lyricContainer: {fileID: 675569667}
   _phraseLinePool: {fileID: 560844721}
 --- !u!1 &1316571460
 GameObject:
