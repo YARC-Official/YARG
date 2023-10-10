@@ -44,6 +44,8 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         private Pool[] _notePools;
         [SerializeField]
+        private Pool _lyricPoolBottom;
+        [SerializeField]
         private Pool _phraseLinePool;
 
         public bool IsRangeChanging { get; private set; }
@@ -51,6 +53,7 @@ namespace YARG.Gameplay.Player
         private VocalsTrack _vocalsTrack;
         private int[] _phraseIndices;
         private int[] _noteIndices;
+        private int[] _lyricIndices;
 
         private Range _viewRange = Range.Default;
         private Range _targetRange;
@@ -86,6 +89,7 @@ namespace YARG.Gameplay.Player
             _vocalsTrack = vocalsTrack;
             _phraseIndices = new int[_vocalsTrack.Parts.Count];
             _noteIndices = new int[_vocalsTrack.Parts.Count];
+            _lyricIndices = new int[_vocalsTrack.Parts.Count];
         }
 
         public VocalsPlayer CreatePlayer()
@@ -136,7 +140,9 @@ namespace YARG.Gameplay.Player
                 {
                     var phrase = phrases[index];
 
-                    if (SpawnNotesInPhrase(phrase, i))
+                    var notesSpawned = SpawnNotesInPhrase(phrase, i);
+                    var lyricsSpawned = SpawnLyricsInPhrase(phrase, i);
+                    if (notesSpawned && lyricsSpawned)
                     {
                         // Spawn the phrase end line
                         var poolable = _phraseLinePool.TakeWithoutEnabling();
@@ -146,6 +152,7 @@ namespace YARG.Gameplay.Player
                         // Next phrase!
                         index++;
                         _noteIndices[i] = 0;
+                        _lyricIndices[i] = 0;
                     }
                     else
                     {
@@ -173,9 +180,9 @@ namespace YARG.Gameplay.Player
                 }
 
                 // Spawn the vocal note
-                var poolable = pool.TakeWithoutEnabling();
-                ((VocalNoteElement) poolable).NoteRef = notes[index];
-                poolable.EnableFromPool();
+                var note = pool.TakeWithoutEnabling();
+                ((VocalNoteElement) note).NoteRef = notes[index];
+                note.EnableFromPool();
 
                 index++;
             }
@@ -184,6 +191,35 @@ namespace YARG.Gameplay.Player
             _noteIndices[harmonyIndex] = index;
 
             return index >= notes.Count;
+        }
+
+        private bool SpawnLyricsInPhrase(VocalsPhrase phrase, int harmonyIndex)
+        {
+            // TODO: Choose correct lyric pool
+            var pool = _lyricPoolBottom;
+            int index = _lyricIndices[harmonyIndex];
+            var lyrics = phrase.Lyrics;
+
+            while (index < lyrics.Count && lyrics[index].Time <= GameManager.SongTime + SPAWN_TIME_OFFSET)
+            {
+                // Skip this frame if the pool is full
+                if (!pool.CanSpawnAmount(1))
+                {
+                    return false;
+                }
+
+                // Spawn the vocal lyric
+                var note = pool.TakeWithoutEnabling();
+                ((VocalLyricElement) note).LyricRef = lyrics[index];
+                note.EnableFromPool();
+
+                index++;
+            }
+
+            // Make sure to update the value
+            _lyricIndices[harmonyIndex] = index;
+
+            return index >= lyrics.Count;
         }
 
         private void CalculateAndChangeRange(double noteRangeStart, double noteRangeEnd, float changeTime)
