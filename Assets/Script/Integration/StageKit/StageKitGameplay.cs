@@ -8,26 +8,25 @@ using Random = UnityEngine.Random;
 
 namespace YARG
 {
-    public class StageKitGameplay :  GameplayBehaviour
+    public class StageKitGameplay : GameplayBehaviour
     {
         private VenueTrack _venue;
         private SyncTrack _sync;
         private List<VocalsPhrase> _vocals;
         private InstrumentDifficulty<DrumNote> _drums;
         public bool largeVenue = Random.Range(0,1) == 0; //this should be read from the venue itself but for now, randomize it.
-        public GameManager gameManger;
+        private bool _onPause = false;
         private int _eventIndex;
         private int _lightingIndex;
         private int _syncIndex;
         private int _vocalsIndex;
         private int _drumIndex;
-        private bool _onPause = false;
+        public GameManager gameManger;
         private StageKitLightingController _controller;
         public event Action<BeatlineType> HandleBeatline;
         public event Action<int> HandleDrums;
         public event Action<LightingType> HandleLighting;
         public event Action<double> HandleVocals;
-
         public static StageKitGameplay Instance { get; private set; }
 
         protected override void OnChartLoaded(SongChart chart)

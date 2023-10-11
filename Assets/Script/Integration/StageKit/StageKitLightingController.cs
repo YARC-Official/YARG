@@ -5,10 +5,9 @@ using PlasticBand.Haptics;
 using UnityEngine.InputSystem;
 using Cysharp.Threading.Tasks;
 
-
 /*
  Software Layout:
-    This controller is in the persistent scene. It is responsible for keeping track of the current state of the stage kits, and sending commands to the stage kit.
+    This controller is in the persistent scene. It is responsible for keeping track of the current state of the stage kits, and sending commands to them.
     Each scene has its own loader (StagekitMenu, StagekitScore, StagekitGameplay) , which is responsible for loading the lighting cues for that scene. The loader is responsible for setting the CurrentLightingCue variable in this controller.
     Cues are made up of set of primitives that either follow the beat, triggered by an event, or timed.
     Some cues have multiple patterns. These patterns are not random, the same song in the same venue will have the same patterns for the cues each time. I do not know how that decided.
@@ -28,8 +27,8 @@ using Cysharp.Threading.Tasks;
 
  Bugs and notes:
     During official light shows (For example, using the stage kit with RB2, on a xbox 360) the lights will sometimes behave in unexpected, song specific, one-off ways.
-    It is hard to say if this is a bug or complex intended behavior. Since there are known bugs with the stage kit as is, I am going to assume these are also bugs since the programming required to make these bespoke song effects is not trivial and doesn't seem to make sense.
-    So stage shows will be slightly different than the official ones, but hopefully more consistent and predictable with what was intended (and even better!).
+    It is hard to say if this is a bug or complex intended behavior. Since there are known bugs with the stage kit as is, I am going to assume these are also bugs since the programming required to make these bespoke song effects is not trivial and doesn't seem to make sense. (such as random one led flashes)
+    So stage shows will be slightly different than the official ones, but hopefully more consistent and predictable with what was intended. Sometimes just straight up better as entire cues are missing from the official shows.
     Sometimes pause doesn't work for fast strobe?? I legit don't know why this happens. It seems to be a bug with the stage kit itself.
 
   Not implemented because these things don't exist YARG:
@@ -158,8 +157,18 @@ namespace YARG
 
         public enum FogState
         {
-            Off = 0,
-            On = 1,
+            Off,
+            On,
+        }
+
+        private enum CommandType
+        {
+         LedBlue,
+         LedGreen,
+         LedYellow,
+         LedRed,
+         FogMachine,
+         StrobeSpeed,
         }
 
         public static StageKitLightingController Instance { get; private set; }
@@ -234,10 +243,10 @@ namespace YARG
 
                 switch (curCommand.Item1)
                 {
-                    case 0:
-                    case 1:
-                    case 2:
-                    case 3:
+                    case (int)CommandType.LedBlue:
+                    case (int)CommandType.LedGreen:
+                    case (int)CommandType.LedYellow:
+                    case (int)CommandType.LedRed:
                         if (_currentLedState[curCommand.Item1] == _previousLedState[curCommand.Item1])
                         {
                             await UniTask.Yield();
@@ -245,19 +254,19 @@ namespace YARG
 
                         var iToStageKitLedColor = curCommand.Item1 switch
                         {
-                            0 => StageKitLedColor.Blue,
-                            1 => StageKitLedColor.Green,
-                            2 => StageKitLedColor.Yellow,
-                            3 => StageKitLedColor.Red,
-                            _ => StageKitLedColor.All
+                            (int)CommandType.LedBlue   => StageKitLedColor.Blue,
+                            (int)CommandType.LedGreen  => StageKitLedColor.Green,
+                            (int)CommandType.LedYellow => StageKitLedColor.Yellow,
+                            (int)CommandType.LedRed    => StageKitLedColor.Red,
+                            _                                  => StageKitLedColor.All
                         };
                         StageKits.ForEach(kit => kit.SetLeds(iToStageKitLedColor, (StageKitLed)curCommand.Item2)); //This is where the magic happens
                         _previousLedState[curCommand.Item1] = _currentLedState[curCommand.Item1];
                         break;
-                    case 4:
+                    case (int)CommandType.FogMachine:
                         StageKits.ForEach(kit => kit.SetFogMachine(curCommand.Item2 == 1));
                         break;
-                    case 5:
+                    case (int)CommandType.StrobeSpeed:
                         StageKits.ForEach(kit => kit.SetStrobeSpeed((StageKitStrobeSpeed)curCommand.Item2));
                         break;
                     default:

@@ -419,7 +419,6 @@ namespace YARG {
     {
         private bool _blueOn = true;
         bool enableBlueLedVocals = false;
-        double nextVocalPhraseEnd = 0;
 
         private StageKitLightingCues _curCue = StageKitLightingController.Instance.CurrentLightingCue;
 		public SilhouetteSpot()
