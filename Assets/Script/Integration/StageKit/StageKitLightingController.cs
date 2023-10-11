@@ -185,10 +185,10 @@ namespace YARG
 
         // Stuff for the actual command sending to the unit
         private bool _isSendingCommands;
-        private readonly Queue<(int, byte)> _commandQueue = new();
-        private byte[] _currentLedState = { 0x00, 0x00, 0x00, 0x00 };             //blue, green, yellow, red
+        private readonly Queue<(int command, byte data)> _commandQueue = new();
+        private byte[] _currentLedState = { 0x00, 0x00, 0x00, 0x00 };  //blue, green, yellow, red
         private byte[] _previousLedState = { 0x00, 0x00, 0x00, 0x00 }; //this is only for the SendCommands() command to limit swamping the kit.
-        private readonly float _sendDelay = 0.001f;                              //necessary to prevent the stage kit from getting overwhelmed and dropping commands. In seconds. 0.001 is the minimum. Preliminary testing indicated that 7ms was needed to prevent dropped commands, but it seems that most songs are slow enough to allow 1ms.
+        private const float SEND_DELAY = 0.001f;                       //necessary to prevent the stage kit from getting overwhelmed and dropping commands. In seconds. 0.001 is the minimum. Preliminary testing indicated that 7ms was needed to prevent dropped commands, but it seems that most songs are slow enough to allow 1ms.
 
         private void OnDeviceChange(InputDevice device, InputDeviceChange change) // Listen for new stage kits being added or removed at any time.
         {
@@ -221,9 +221,9 @@ namespace YARG
         }
 
         //The actual queueing and sending of commands
-        private void EnqueueCommand(int color, byte ledByte)
+        private void EnqueueCommand(int command, byte data)
         {
-            _commandQueue.Enqueue((color, ledByte));
+            _commandQueue.Enqueue((command, data));
 
             if (_isSendingCommands)
             {
@@ -237,50 +237,56 @@ namespace YARG
         {
             _isSendingCommands = true;
             var things = CurrentLightingCue;
+
             while (_commandQueue.Count > 0)
             {
                 var curCommand = _commandQueue.Dequeue();
 
-                switch (curCommand.Item1)
+                switch (curCommand.command)
                 {
                     case (int)CommandType.LedBlue:
                     case (int)CommandType.LedGreen:
                     case (int)CommandType.LedYellow:
                     case (int)CommandType.LedRed:
-                        if (_currentLedState[curCommand.Item1] == _previousLedState[curCommand.Item1])
+
+                        if (_currentLedState[curCommand.command] == _previousLedState[curCommand.command]) //if the led color is already in the state we want, don't send the command.
                         {
                             await UniTask.Yield();
                         }
 
-                        var iToStageKitLedColor = curCommand.Item1 switch
+                        var iToStageKitLedColor = curCommand.command switch
                         {
                             (int)CommandType.LedBlue   => StageKitLedColor.Blue,
                             (int)CommandType.LedGreen  => StageKitLedColor.Green,
                             (int)CommandType.LedYellow => StageKitLedColor.Yellow,
                             (int)CommandType.LedRed    => StageKitLedColor.Red,
-                            _                                  => StageKitLedColor.All
+                            _                          => StageKitLedColor.All
                         };
-                        StageKits.ForEach(kit => kit.SetLeds(iToStageKitLedColor, (StageKitLed)curCommand.Item2)); //This is where the magic happens
-                        _previousLedState[curCommand.Item1] = _currentLedState[curCommand.Item1];
+
+                        StageKits.ForEach(kit => kit.SetLeds(iToStageKitLedColor, (StageKitLed)curCommand.data)); //This is where the magic happens
+                        _previousLedState[curCommand.command] = _currentLedState[curCommand.command];
                         break;
+
                     case (int)CommandType.FogMachine:
-                        StageKits.ForEach(kit => kit.SetFogMachine(curCommand.Item2 == 1));
+                        StageKits.ForEach(kit => kit.SetFogMachine(curCommand.data == 1));
                         break;
+
                     case (int)CommandType.StrobeSpeed:
-                        StageKits.ForEach(kit => kit.SetStrobeSpeed((StageKitStrobeSpeed)curCommand.Item2));
+                        StageKits.ForEach(kit => kit.SetStrobeSpeed((StageKitStrobeSpeed)curCommand.data));
                         break;
+
                     default:
-                        Debug.Log("Unknown command: " + curCommand.Item1);
+                        Debug.Log("Unknown Stagekit command: " + curCommand.command);
                         break;
                 }
 
-                if (things != CurrentLightingCue && _commandQueue.Count > (0.05f / _sendDelay) ) //If there is more 1/20th of a second in commands left in the queue when the cue changes, clear it. Really fast songs can build up a queue in the thousands while in BRE or Frenzy. 1/20th of a second is said to be the blink of an eye.
+                if (things != CurrentLightingCue && _commandQueue.Count > 0.05f / SEND_DELAY) //If there is more 1/20th of a second in commands left in the queue when the cue changes, clear it. Really fast songs can build up a queue in the thousands while in BRE or Frenzy. 1/20th of a second is said to be the blink of an eye.
                 {
                     _commandQueue.Clear();
                     things = CurrentLightingCue;
                 }
 
-                await UniTask.Delay(TimeSpan.FromSeconds(_sendDelay));
+                await UniTask.Delay(TimeSpan.FromSeconds(SEND_DELAY));
             }
 
             _isSendingCommands = false;
@@ -298,7 +304,7 @@ namespace YARG
             {
                 return;
             }
-            EnqueueCommand(4, (byte)fogState  );
+            EnqueueCommand(4, (byte)fogState);
 
             currentFogState = fogState;
         }
@@ -325,7 +331,7 @@ namespace YARG
                     break;
 
                 case StrobeSpeed.Fast:
-                    CurrentLightingCue?.Dispose(true);
+                    CurrentLightingCue?.Dispose(true); //Having fast strobe dispose of the current cue but not slow might be a bug in the official code I'm attempting to replicating here.
                     EnqueueCommand(5, (byte)StageKitStrobeSpeed.Fast);
                     break;
 
