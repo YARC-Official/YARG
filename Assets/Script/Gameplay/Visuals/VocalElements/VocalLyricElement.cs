@@ -10,19 +10,31 @@ namespace YARG.Gameplay.Visuals
     {
         private static readonly Regex _lyricDiacriticRegex = new(@"\+|#|\^|\*|\%|\$|\/|", RegexOptions.Compiled);
 
-        public TextEvent LyricRef { get; set; }
-        public double MinimumTime { get; set; }
+        private TextEvent _lyricRef;
+        private double _lyricLength;
 
-        public override double ElementTime => Math.Max(LyricRef.Time, MinimumTime);
+        private double _minimumTime;
+        private bool _isStarpower;
+
+        public override double ElementTime => Math.Max(_lyricRef.Time, _minimumTime);
 
         [SerializeField]
         private TextMeshPro _lyricText;
 
         public float Width => _lyricText.GetPreferredValues().x;
 
+        public void Initialize(TextEvent lyric, double minTime, double lyricLength, bool isStarpower)
+        {
+            _lyricRef = lyric;
+            _lyricLength = lyricLength;
+
+            _minimumTime = minTime;
+            _isStarpower = isStarpower;
+        }
+
         protected override void InitializeElement()
         {
-            _lyricText.text = GetLyricText(LyricRef.Text);
+            _lyricText.text = GetLyricText(_lyricRef.Text);
 
             // Disable automatically if the text is just nothing
             if (string.IsNullOrEmpty(_lyricText.text))
@@ -33,6 +45,18 @@ namespace YARG.Gameplay.Visuals
 
         protected override void UpdateElement()
         {
+            if (GameManager.SongTime < _lyricRef.Time)
+            {
+                _lyricText.color = _isStarpower ? Color.yellow : Color.white;
+            }
+            else if (GameManager.SongTime > _lyricRef.Time && GameManager.SongTime < _lyricRef.Time + _lyricLength)
+            {
+                _lyricText.color = new Color(0.0549f, 0.6431f, 0.9765f);
+            }
+            else
+            {
+                _lyricText.color = new Color(0.349f, 0.349f, 0.349f);
+            }
         }
 
         protected override void HideElement()

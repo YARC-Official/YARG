@@ -13,7 +13,7 @@ namespace YARG.Gameplay.Player
 
         private double _lastLyricEdgeTime = double.NegativeInfinity;
 
-        public bool TrySpawnLyric(TextEvent lyric)
+        public bool TrySpawnLyric(TextEvent lyric, VocalNote probableNotePair)
         {
             // Skip this frame if the pool is full
             if (!_pool.CanSpawnAmount(1))
@@ -21,10 +21,13 @@ namespace YARG.Gameplay.Player
                 return false;
             }
 
+            // Get the length and starpower
+            double length = probableNotePair?.TotalTimeLength ?? 0;
+            bool isStarpower = probableNotePair?.IsStarPower ?? false;
+
             // Spawn the vocal lyric
             var obj = (VocalLyricElement) _pool.TakeWithoutEnabling();
-            obj.LyricRef = lyric;
-            obj.MinimumTime = _lastLyricEdgeTime;
+            obj.Initialize(lyric, _lastLyricEdgeTime, length, isStarpower);
             obj.EnableFromPool();
 
             // Set the edge time

@@ -197,10 +197,22 @@ namespace YARG.Gameplay.Player
         {
             int index = _lyricIndices[harmonyIndex];
             var lyrics = phrase.Lyrics;
+            var notes = phrase.PhraseParentNote.ChildNotes;
 
             while (index < lyrics.Count && lyrics[index].Time <= GameManager.SongTime + SPAWN_TIME_OFFSET)
             {
-                if (!_lyricContainer.TrySpawnLyric(lyrics[index]))
+                var lyric = lyrics[index];
+
+                // Get the probable note pair (for length and starpower)
+                VocalNote probableNote = null;
+                foreach (var note in notes)
+                {
+                    if (note.Tick != lyric.Tick) continue;
+
+                    probableNote = note;
+                }
+
+                if (!_lyricContainer.TrySpawnLyric(lyric, probableNote))
                 {
                     return false;
                 }
