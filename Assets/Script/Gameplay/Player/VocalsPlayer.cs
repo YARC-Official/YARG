@@ -83,6 +83,11 @@ namespace YARG.Gameplay.Player
                 _lastTargetNote = note;
             };
 
+            engine.OnPhraseHit += (percent) =>
+            {
+                _hud.ShowPhraseHit(percent);
+            };
+
             return engine;
         }
 
