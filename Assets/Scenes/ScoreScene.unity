@@ -1420,6 +1420,7 @@ GameObject:
   - component: {fileID: 1731608351534815122}
   - component: {fileID: 1731608351534815121}
   - component: {fileID: 1731608351534815136}
+  - component: {fileID: 1731608351534815137}
   m_Layer: 5
   m_Name: Score Screen
   m_TagString: Untagged
@@ -1449,3 +1450,15 @@ MonoBehaviour:
     type: 3}
   _drumsCardPrefab: {fileID: 8960343160157875094, guid: 2ab07d8b9969ef4418e8da74642a371f,
     type: 3}
+--- !u!114 &1731608351534815137
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1731608351534815135}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c544de295e7a331478e3f14f616f38c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
