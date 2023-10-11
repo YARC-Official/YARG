@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using YARG.Core.Song;
-using YARG.Helpers;
+using YARG.Core.Utility;
 
 namespace YARG.Song
 {

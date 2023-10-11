@@ -3,6 +3,7 @@ using System.IO;
 using Newtonsoft.Json;
 using UnityEngine;
 using YARG.Core.Song;
+using YARG.Core.Utility;
 using YARG.Helpers;
 using YARG.Song;
 
