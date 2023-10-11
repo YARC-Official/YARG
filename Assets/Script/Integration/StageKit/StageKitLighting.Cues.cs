@@ -1,10 +1,5 @@
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using Cysharp.Threading.Tasks;
-using UnityEngine;
 using YARG.Core.Chart;
-using YARG.Gameplay;
 
 namespace YARG {
     internal class BigRockEnding : StageKitLightingCues
@@ -123,7 +118,7 @@ namespace YARG {
             List<(int, byte)> patternList1;
             CurrentCueType = LightingType.Harmony;
             Start();
-            if (StageKitGameplay.Instance.largeVenue)
+            if (StageKitGameplay.Instance.LargeVenue)
             {
                 patternList1 = new List<(int, byte)>
                 {
@@ -192,7 +187,7 @@ namespace YARG {
             List<(int, byte)> patternList1;
             CurrentCueType = LightingType.Sweep;
             Start();
-            if  (StageKitGameplay.Instance.largeVenue)
+            if  (StageKitGameplay.Instance.LargeVenue)
             {
                 patternList1 = new List<(int, byte)>
                 {
@@ -251,7 +246,7 @@ namespace YARG {
             List<(int, byte)> patternList2;
             List<(int, byte)> patternList1;
             Start();
-            if  (StageKitGameplay.Instance.largeVenue)//red off blue yellow
+            if  (StageKitGameplay.Instance.LargeVenue)//red off blue yellow
             {
                 patternList1 = new List<(int, byte)>
                 {
@@ -312,7 +307,7 @@ namespace YARG {
             List<(int, byte)> patternList1;
             Start();
             //1 yellow@2 clockwise and 1 blue@0 counter clock.
-            if  (StageKitGameplay.Instance.largeVenue)
+            if  (StageKitGameplay.Instance.LargeVenue)
             {
                 patternList1 = new List<(int, byte)>
                 {
@@ -418,7 +413,7 @@ namespace YARG {
 	internal class SilhouetteSpot : StageKitLightingCues
     {
         private bool _blueOn = true;
-        bool enableBlueLedVocals = false;
+        private bool _enableBlueLedVocals = false;
 
         private StageKitLightingCues _curCue = StageKitLightingController.Instance.CurrentLightingCue;
 		public SilhouetteSpot()
@@ -433,7 +428,7 @@ namespace YARG {
 				StageKitLightingController.Instance.SetLed(BLUE,ONE|THREE|FIVE|SEVEN);
 				StageKitLightingController.Instance.SetLed(GREEN,ALL);
 
-                enableBlueLedVocals = true;
+                _enableBlueLedVocals = true;
 			}
             else if (_curCue?.CurrentCueType ==  LightingType.Stomp)
             {
@@ -454,7 +449,7 @@ namespace YARG {
 
         protected override void HandleVocalEvent(double eventName)
         {
-            if (!enableBlueLedVocals) return;
+            if (!_enableBlueLedVocals) return;
 
             if (_blueOn) {
                 StageKitLightingController.Instance.SetLed(BLUE,NONE);
@@ -463,14 +458,14 @@ namespace YARG {
                 StageKitLightingController.Instance.SetLed(BLUE,ONE|THREE|FIVE|SEVEN);
                 _blueOn = true;
             }
-            enableBlueLedVocals = false;
+            _enableBlueLedVocals = false;
         }
 
 		protected override void HandleBeatlineEvent(BeatlineType eventName)
         {
             if (eventName != BeatlineType.Measure || _curCue?.CurrentCueType !=  LightingType.Dischord) return;
             if (_curCue?.CurrentCueType !=  LightingType.Dischord) return;
-            enableBlueLedVocals = true;
+            _enableBlueLedVocals = true;
         }
 	}
 	internal class Silhouettes: StageKitLightingCues
@@ -571,7 +566,7 @@ namespace YARG {
         {
             CurrentCueType = LightingType.Stomp;
 			Start();
-            if  (StageKitGameplay.Instance.largeVenue)
+            if  (StageKitGameplay.Instance.LargeVenue)
             {
                 StageKitLightingController.Instance.SetLed(BLUE, ALL);
             }
@@ -594,7 +589,7 @@ namespace YARG {
                 StageKitLightingController.Instance.SetLed(BLUE, NONE);
                 StageKitLightingController.Instance.SetLed(YELLOW, NONE);
             } else {
-				if (StageKitGameplay.Instance.largeVenue) {
+				if (StageKitGameplay.Instance.LargeVenue) {
                     StageKitLightingController.Instance.SetLed(BLUE, ALL);
 				} else {
                     StageKitLightingController.Instance.SetLed(BLUE, NONE);
@@ -671,7 +666,7 @@ namespace YARG {
 
         protected override void HandleBeatlineEvent(BeatlineType eventName)
         {
-            if ( StageKitGameplay.Instance.largeVenue || eventName != BeatlineType.Measure) return;
+            if ( StageKitGameplay.Instance.LargeVenue || eventName != BeatlineType.Measure) return;
             if (_greenIsSpinning)
             {
                 CuePrimitives.Remove(_greenPattern);
@@ -697,7 +692,7 @@ namespace YARG {
             StageKitLightingController.Instance.SetLed(RED, NONE);
             StageKitLightingController.Instance.SetLed(YELLOW, NONE);
             StageKitLightingController.Instance.SetLed(BLUE, NONE);
-            if  (StageKitGameplay.Instance.largeVenue)
+            if  (StageKitGameplay.Instance.LargeVenue)
             {
                 patternList1 = new List<(int, byte)>
                 {
@@ -748,7 +743,7 @@ namespace YARG {
             Start();
             CurrentCueType = LightingType.Score;
             StageKitLightingController.Instance.SetLed(GREEN, NONE);
-            if  (StageKitGameplay.Instance.largeVenue)
+            if  (StageKitGameplay.Instance.LargeVenue)
             {
                 patternList1 = new List<(int, byte)>
                 {

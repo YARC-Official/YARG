@@ -10,28 +10,29 @@ namespace YARG
 {
     public class StageKitGameplay : GameplayBehaviour
     {
-        private VenueTrack _venue;
-        private SyncTrack _sync;
-        private List<VocalsPhrase> _vocals;
-        private InstrumentDifficulty<DrumNote> _drums;
-        public bool largeVenue = Random.Range(0,1) == 0; //this should be read from the venue itself but for now, randomize it.
-        private bool _onPause = false;
-        private int _eventIndex;
-        private int _lightingIndex;
-        private int _syncIndex;
-        private int _vocalsIndex;
-        private int _drumIndex;
-        public GameManager gameManger;
-        private StageKitLightingController _controller;
+        public bool LargeVenue = Random.Range(0,1) == 0; //this should be read from the venue itself but for now, randomize it.
+        public GameManager GameManger;
         public event Action<BeatlineType> HandleBeatline;
         public event Action<int> HandleDrums;
         public event Action<LightingType> HandleLighting;
         public event Action<double> HandleVocals;
         public static StageKitGameplay Instance { get; private set; }
 
+        private VenueTrack _venue;
+        private SyncTrack _sync;
+        private List<VocalsPhrase> _vocals;
+        private InstrumentDifficulty<DrumNote> _drums;
+        private bool _onPause = false;
+        private int _eventIndex;
+        private int _lightingIndex;
+        private int _syncIndex;
+        private int _vocalsIndex;
+        private int _drumIndex;
+        private StageKitLightingController _controller;
+
         protected override void OnChartLoaded(SongChart chart)
         {
-            gameManger = GameManager;
+            GameManger = GameManager;
             Instance = this;
             _controller = StageKitLightingController.Instance;
             _venue = chart.VenueTrack;
@@ -57,16 +58,16 @@ namespace YARG
             //Is there a OnPause/OnResume event? that would simplify this.
             if (GameManager.Paused && _onPause == false)
             {
-                _controller.previousFogState = _controller.currentFogState;
-                _controller.previousStrobeState = _controller.currentStrobeState;
+                _controller.PreviousFogState = _controller.CurrentFogState;
+                _controller.PreviousStrobeState = _controller.CurrentStrobeState;
                 _controller.SetFogMachine(StageKitLightingController.FogState.Off);
                 _controller.SetStrobeSpeed(StageKitLightingController.StrobeSpeed.Off);
                 _onPause = true;
             }
             else if (_onPause)
             {
-                _controller.SetFogMachine(_controller.previousFogState);
-                _controller.SetStrobeSpeed(_controller.previousStrobeState);
+                _controller.SetFogMachine(_controller.PreviousFogState);
+                _controller.SetStrobeSpeed(_controller.PreviousStrobeState);
                 _onPause = false;
             }
 

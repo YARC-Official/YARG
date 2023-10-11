@@ -10,24 +10,24 @@ namespace YARG {
     {
 		private readonly bool _continuous;
 		private int _patternIndex = 0;
-        private readonly List<(int, byte)> _patternList;
+        private readonly List<(int color, byte data)> _patternList;
 
 		public BeatPattern(List<(int, byte)> patternList, bool continuous = true, float timesPerBeat = 1.0f)
         {
             Start();
 			_continuous = continuous;
 			_patternList = patternList;
-            StageKitGameplay.Instance.gameManger.BeatEventManager.Subscribe(OnBeat, new BeatEventManager.Info(1.0f / (timesPerBeat * _patternList.Count), 0f));
+            StageKitGameplay.Instance.GameManger.BeatEventManager.Subscribe(OnBeat, new BeatEventManager.Info(1.0f / (timesPerBeat * _patternList.Count), 0f));
 		}
 
         protected override void OnBeat()
         {
-            StageKitLightingController.Instance.SetLed(_patternList[_patternIndex].Item1, _patternList[_patternIndex].Item2);
+            StageKitLightingController.Instance.SetLed(_patternList[_patternIndex].color, _patternList[_patternIndex].data);
             _patternIndex++;
 
             if (!_continuous && _patternIndex == _patternList.Count) //some beat patterns are not continuous (single fire), so we need to unsubscribe from the event manager
             {
-                StageKitGameplay.Instance.gameManger.BeatEventManager.Unsubscribe(OnBeat);
+                StageKitGameplay.Instance.GameManger.BeatEventManager.Unsubscribe(OnBeat);
                 Dispose();
             }
 
@@ -41,7 +41,7 @@ namespace YARG {
     {
 		private readonly ListenTypes _listenType;
 		private int _patternIndex;
-		private readonly List<(int, byte)> _patternList;
+		private readonly List<(int color, byte data)> _patternList;
 		private readonly bool _flash;
 		private readonly bool _inverse;
 
@@ -54,7 +54,7 @@ namespace YARG {
 			_inverse = inverse;
 
             if (!_inverse) return;
-            StageKitLightingController.Instance.SetLed(_patternList[_patternIndex].Item1, _patternList[_patternIndex].Item2);
+            StageKitLightingController.Instance.SetLed(_patternList[_patternIndex].color, _patternList[_patternIndex].data);
             _patternIndex++;
             if (_patternIndex >= _patternList.Count)
             {
@@ -99,11 +99,11 @@ namespace YARG {
 
             if (_inverse)
             {
-                StageKitLightingController.Instance.SetLed(_patternList[_patternIndex].Item1, NONE);
+                StageKitLightingController.Instance.SetLed(_patternList[_patternIndex].color, NONE);
             }
             else
             {
-                StageKitLightingController.Instance.SetLed(_patternList[_patternIndex].Item1, _patternList[_patternIndex].Item2);
+                StageKitLightingController.Instance.SetLed(_patternList[_patternIndex].color, _patternList[_patternIndex].data);
             }
 
             if (_flash)
@@ -124,11 +124,11 @@ namespace YARG {
             await UniTask.Delay(200);// I wonder if this should be beat based instead of time based. like 1/2 a beat or something.
             if (_inverse)
             {
-                StageKitLightingController.Instance.SetLed(_patternList[_patternIndex].Item1, _patternList[_patternIndex].Item2);
+                StageKitLightingController.Instance.SetLed(_patternList[_patternIndex].color, _patternList[_patternIndex].data);
             }
             else
             {
-                StageKitLightingController.Instance.SetLed(_patternList[_patternIndex].Item1, NONE);
+                StageKitLightingController.Instance.SetLed(_patternList[_patternIndex].color, NONE);
             }
         }
 	}
@@ -136,9 +136,9 @@ namespace YARG {
     {
 		private readonly float _seconds;
 		private int _patternIndex;
-		private readonly List<(int, byte)> _patternList;
+		private readonly List<(int color, byte data)> _patternList;
 
-        public TimedPattern(List<(int, byte)> patternList,  float seconds)
+        public TimedPattern(List<(int, byte)> patternList, float seconds)
         {
 			_seconds = seconds;
 			_patternList = patternList;
@@ -150,7 +150,7 @@ namespace YARG {
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-				StageKitLightingController.Instance.SetLed(_patternList[_patternIndex].Item1, _patternList[_patternIndex].Item2);
+				StageKitLightingController.Instance.SetLed(_patternList[_patternIndex].color, _patternList[_patternIndex].data);
 				await UniTask.Delay(TimeSpan.FromSeconds(_seconds / _patternList.Count), cancellationToken: cancellationToken);
 				_patternIndex++;
 				if (_patternIndex >= _patternList.Count)

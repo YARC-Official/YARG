@@ -69,7 +69,7 @@ namespace YARG
         public void Dispose()
         {
             CancellationTokenSource?.Cancel();
-            StageKitGameplay.Instance.gameManger.BeatEventManager.Unsubscribe(OnBeat);
+            StageKitGameplay.Instance.GameManger.BeatEventManager.Unsubscribe(OnBeat);
             StageKitGameplay.Instance.HandleBeatline -= HandleBeatlineEvent;
             StageKitGameplay.Instance.HandleDrums -= HandleDrumEvent;
             StageKitGameplay.Instance.HandleLighting -= HandleLightingEvent;
@@ -86,7 +86,7 @@ namespace YARG
 	    protected const int YELLOW = 2;
 	    protected const int RED = 3;
 
-        protected List<StageKitLighting> CuePrimitives = new List<StageKitLighting>();
+        protected List<StageKitLighting> CuePrimitives = new();
 
         public void Dispose(bool turnOffLeds = false)
         {

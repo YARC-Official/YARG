@@ -39,108 +39,106 @@ using Cysharp.Threading.Tasks;
     Menu lighting
 
 
-NR = No visible response from Stage Kit
-VR = Response changes based on venue size
-RE = Response is the same regardless of venue size
+ The individual effects for the stage kit:
+
+    NR = No visible response from Stage Kit
+    VR = Response changes based on venue size
+    RE = Response is the same regardless of venue size
+
+    Keyframed calls:
+
+	    NR	verse						Doesn't seem to do anything.
+	    NR	chorus						Doesn't seem to do anything.
+
+	    RE	loop_cool                   2 blue LEDs 180 degrees apart rotating counter clockwise, 1 green led starting at 90 degrees rotating clockwise. To the beat.
+	    RE	loop_warm                   2 red LEDs 180 degrees apart rotating clockwise, 1 yellow led starting at 90 counter rotating counterclockwise. To the beat.
+	    RE	manual_cool					2 blue LEDs 180 degrees apart rotating counter clockwise, 1 green led starting at 90 degrees rotating clockwise. To the beat. Does not turn off strobe on initial call, turns it off on [next]
+	    RE	manual_warm					2 red LEDs 180 degrees apart rotating clockwise, 1 yellow led starting at 90 counter rotating counterclockwise. To the beat. Does not turn off strobe on initial call, turns it off on [next]
+
+	    VR	dischord					1 yellow led clock circles on major and minor beat.
+									    Red ring on drum red fret
+	                                    Blue follows [next], pattern is 6|2 ,off, 6|2|0|4. Turns off on initial call then on with next. (not 100% sure on this one)
+
+	                                    Small venue:
+									    1 Green led @ 0, counter-clockwise circles to beat.
+
+									    Large Venue:
+									    On Major beat toggles between: 1 Green led@0 counter clock circles to beat | all green leds on.
+
+	    VR	stomp						Initial call turns on leds. Responds to the [next], toggling lights on or off.
+
+									    Small Venue:
+									    Red, Green, Yellow
+
+									    Large Venue:
+									    All colors
 
 
+	    VR	Empty (i.e. [lighting ()])	Small Venue:
+		    Default lighting.			All red on, all blue on, changing on [next]. Yellow ring on, half beat flash on drum red fret
+		                                Green, off
 
+									    Large Venue:
+                                        All blue on,  all red on. changing on [next].
 
-This file is for the individual effects for the stage kit:
-Keyframed calls:
+    Automatic calls:
 
-	NR	verse						Doesn't seem to do anything.
-	NR	chorus						Doesn't seem to do anything.
+	    RE	harmony             blue @4 clockwise on beat and green @4 clockwise on beat
 
-	RE	loop_cool                   2 blue LEDs 180 degrees apart rotating counter clockwise, 1 green led starting at 90 degrees rotating clockwise. To the beat.
-	RE	loop_warm                   2 red LEDs 180 degrees apart rotating clockwise, 1 yellow led starting at 90 counter rotating counterclockwise. To the beat.
-	RE	manual_cool					2 blue LEDs 180 degrees apart rotating counter clockwise, 1 green led starting at 90 degrees rotating clockwise. To the beat. Does not turn off strobe on initial call, turns it off on [next]
-	RE	manual_warm					2 red LEDs 180 degrees apart rotating clockwise, 1 yellow led starting at 90 counter rotating counterclockwise. To the beat. Does not turn off strobe on initial call, turns it off on [next]
+	    VR	frenzy				sequence of alternating patterns. I think each color is half a beat.
+								    Large venue: all red, off, all blue, all yellow
+								    Small venue: half red, other half red, 4 green , 2 side blue, other 6 blue
 
-	VR	dischord					1 yellow led clock circles on major and minor beat.
-									Red ring on drum red fret
-	                                Blue follows [next], pattern is 6|2 ,off, 6|2|0|4. Turns off on initial call then on with next. (not 100% sure on this one)
+	    RE	silhouettes			Turn on a green ring (doesn't seem to turn it off)
 
-	                                Small venue:
-									1 Green led @ 0, counter-clockwise circles to beat.
+	    NR	silhouettes_spot	Responses change depending on the cue before it.
+	                            For Dischord, It turns on both blue and green rings, with the blue toggling on and off depending on the vocal note end after each major beat.
+	                            Does nothing with Stomp
+	                            Turns off all lights for everything else.
 
-									Large Venue:
-									On Major beat toggles between: 1 Green led@0 counter clock circles to beat | all green leds on.
+	    VR	searchlights     	On beat.
+	                            Small venue pattern:
+						    	    1 yellow and 1 red rotate together. Counter clock
 
-	VR	stomp						Initial call turns on leds. Responds to the [next], toggling lights on or off.
+							    Large venue patterns:
+								    1 yellow@2 clockwise and 1 blue@0 counter clock.
 
-									Small Venue:
-									Red, Green, Yellow
+								    There are other patterns for both cues that change which leds start. I don't know how they are chosen yet.
 
-									Large Venue:
-									All colors
+	    RE	sweep               On beat.
+	                            small venue:
+		                            Yellow@ 6 and 2, counter-clock
+		                            Blue@0, clock
 
+		                        Large venue:
+		                            Red @6 and 2, counter-clock
 
-	VR	Empty (i.e. [lighting ()])	Small Venue:
-		Default lighting.			All red on, all blue on, changing on [next]. Yellow ring on, half beat flash on drum red fret
-		                            Green, off
+	    RE	strobe_slow			Strobe light that blinks every 16th note/120 ticks.
+	    RE	strobe_fast			Strobe light that blinks every 32nd note/60 ticks.
+	                            The strobe_off call is exceedingly rare, the strobe is typically turned off by other cues starting.
 
-									Large Venue:
-                                    All blue on,  all red on. changing on [next].
+	    NR	blackout_fast		Turns off strobe. Turns of all LEDs
+	    NR	blackout_slow       Turns off strobe. Turns of all LEDs
+	    ??	blackout_spot       (untested, rare) Turns off strobe. Turns of all LEDs
+	    RE	flare_slow          All LEDS on.
+	    RE	flare_fast			All 8 blue LEDS turn on. Turns on greens after cool.
+	    RE	bre                 All Red, Green, Yellow, Blue leds turn on in sequence. Two times a beat.
+	    NR	bonusfx             Doesn't seem to do anything.
+	    NR	bonusfx_optional    Doesn't seem to do anything.
 
-Automatic calls:
+	    RE	FogOn				Turns the fog machine on. No other cue interacts with the fog machine!
+	    RE	FogOff				Turns the fog machine off. No other cue interacts with the fog machine!
 
-	RE	harmony             blue @4 clockwise on beat and green @4 clockwise on beat
+	    RE	intro               Doesn't seem to do anything.
 
-	VR	frenzy				sequence of alternating patterns. I think each color is half a beat.
-								Large venue: all red, off, all blue, all yellow
-								Small venue: half red, other half red, 4 green , 2 side blue, other 6 blue
+    Extra calls:
+        VR	Score card  		small venue
+		                        2 yellow at 180 to each other clock 2 second starting on 6 and 2, 1 blue@0 counter clock 1 second
 
-	RE	silhouettes			Turn on a green ring (doesn't seem to turn it off)
+		                        large venue
+		                        2 yellow at 180 to each other clock 2 second, 2 red at 180 counter clock 1 second
 
-	NR	silhouettes_spot	Responses change depending on the cue before it.
-	                        For Dischord, It turns on both blue and green rings, with the blue toggling on and off depending on the vocal note end after each major beat.
-	                        Does nothing with Stomp
-	                        Turns off all lights for everything else.
-
-	VR	searchlights     	On beat.
-	                        Small venue pattern:
-						    	1 yellow and 1 red rotate together. Counter clock
-
-							Large venue patterns:
-								1 yellow@2 clockwise and 1 blue@0 counter clock.
-
-								There are other patterns for both cues that change which leds start. I don't know how they are chosen yet.
-
-	RE	sweep               On beat.
-	                        small venue:
-		                        Yellow@ 6 and 2, counter-clock
-		                        Blue@0, clock
-
-		                    Large venue:
-		                        Red @6 and 2, counter-clock
-
-	RE	strobe_slow			Strobe light that blinks every 16th note/120 ticks.
-	RE	strobe_fast			Strobe light that blinks every 32nd note/60 ticks.
-	                        The strobe_off call is exceedingly rare, the strobe is typically turned off by other cues starting.
-
-	NR	blackout_fast		Turns off strobe. Turns of all LEDs
-	NR	blackout_slow       Turns off strobe. Turns of all LEDs
-	??	blackout_spot       (untested, rare) Turns off strobe. Turns of all LEDs
-	RE	flare_slow          All LEDS on.
-	RE	flare_fast			All 8 blue LEDS turn on. Turns on greens after cool.
-	RE	bre                 All Red, Green, Yellow, Blue leds turn on in sequence. Two times a beat.
-	NR	bonusfx             Doesn't seem to do anything.
-	NR	bonusfx_optional    Doesn't seem to do anything.
-
-	RE	FogOn				Turns the fog machine on. No other cue interacts with the fog machine!
-	RE	FogOff				Turns the fog machine off. No other cue interacts with the fog machine!
-
-	RE	intro               Doesn't seem to do anything.
-
-Extra calls:
-    VR	Score card  		small venue
-		                    2 yellow at 180 to each other clock 2 second starting on 6 and 2, 1 blue@0 counter clock 1 second
-
-		                    large venue
-		                    2 yellow at 180 to each other clock 2 second, 2 red at 180 counter clock 1 second
-
-	RE Menu lighting        1 blue@0 rotates counter clock every two seconds. Made by me. Not in the original game.
+	    RE Menu lighting        1 blue@0 rotates counter clock every two seconds. Made by me. Not in the original game.
  */
 namespace YARG
 {
@@ -173,11 +171,11 @@ namespace YARG
 
         public static StageKitLightingController Instance { get; private set; }
 
-        public FogState currentFogState = FogState.Off;
-        public FogState previousFogState = FogState.Off;
+        public FogState CurrentFogState = FogState.Off;
+        public FogState PreviousFogState = FogState.Off;
 
-        public StrobeSpeed currentStrobeState = StrobeSpeed.Off;
-        public StrobeSpeed previousStrobeState = StrobeSpeed.Off;
+        public StrobeSpeed CurrentStrobeState = StrobeSpeed.Off;
+        public StrobeSpeed PreviousStrobeState = StrobeSpeed.Off;
 
         public List<IStageKitHaptics> StageKits = new();
 
@@ -300,18 +298,18 @@ namespace YARG
 
         public void SetFogMachine(FogState fogState)
         {
-            if (currentFogState == fogState)
+            if (CurrentFogState == fogState)
             {
                 return;
             }
             EnqueueCommand(4, (byte)fogState);
 
-            currentFogState = fogState;
+            CurrentFogState = fogState;
         }
 
         public void SetStrobeSpeed(StrobeSpeed strobeSpeed)
         {
-            if (currentStrobeState == strobeSpeed)
+            if (CurrentStrobeState == strobeSpeed)
             {
                 return;
             }
@@ -343,7 +341,7 @@ namespace YARG
                     Debug.LogWarning("Unknown strobe speed.");
                     break;
             }
-            currentStrobeState = strobeSpeed;
+            CurrentStrobeState = strobeSpeed;
         }
     }
 }
