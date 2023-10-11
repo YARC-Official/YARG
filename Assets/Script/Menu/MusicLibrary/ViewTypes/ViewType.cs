@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Helpers;
@@ -60,9 +60,9 @@ namespace YARG.Menu.MusicLibrary
             {
                 return type switch
                 {
-                    TextType.Bright    => RichTextUtils.FormatString(str, MenuData.Colors.BrightText, 500),
-                    TextType.Primary   => RichTextUtils.FormatString(str, MenuData.Colors.PrimaryText),
-                    TextType.Secondary => RichTextUtils.FormatString(str, MenuData.Colors.PrimaryText.WithAlpha(0.5f)),
+                    TextType.Bright    => TextColorer.FormatString(str, MenuData.Colors.BrightText, 500),
+                    TextType.Primary   => TextColorer.FormatString(str, MenuData.Colors.PrimaryText),
+                    TextType.Secondary => TextColorer.FormatString(str, MenuData.Colors.PrimaryText.WithAlpha(0.5f)),
                     _                  => throw new Exception("Unreachable.")
                 };
             }
@@ -70,9 +70,9 @@ namespace YARG.Menu.MusicLibrary
             {
                 return type switch
                 {
-                    TextType.Bright    => RichTextUtils.FormatString(str, MenuData.Colors.BrightText,  500),
-                    TextType.Primary   => RichTextUtils.FormatString(str, MenuData.Colors.BrightText,  700),
-                    TextType.Secondary => RichTextUtils.FormatString(str, MenuData.Colors.PrimaryText, 500),
+                    TextType.Bright    => TextColorer.FormatString(str, MenuData.Colors.BrightText,  500),
+                    TextType.Primary   => TextColorer.FormatString(str, MenuData.Colors.BrightText,  700),
+                    TextType.Secondary => TextColorer.FormatString(str, MenuData.Colors.PrimaryText, 500),
                     _                  => throw new Exception("Unreachable.")
                 };
             }
