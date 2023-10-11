@@ -135,7 +135,7 @@ namespace YARG.Gameplay.Player
             }
 
             // Update HUD
-            _hud.UpdateInfo(fill, Engine.EngineStats.ScoreMultiplier);
+            _hud.UpdateInfo(fill, Engine.EngineStats.ScoreMultiplier, (float) Engine.EngineStats.StarPowerAmount);
 
             if (GameManager.SongTime >= GetTimeThreshold(Engine.State.VisualLastSingTime))
             {

@@ -67,10 +67,10 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: 12b585cf4bd93564a8626f6816ac34a0, type: 3}
-  m_Type: 0
+  m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
-  m_FillMethod: 4
+  m_FillMethod: 0
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
@@ -564,6 +564,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _comboMeterFill: {fileID: 3517124486690461051}
+  _starPowerFill: {fileID: 2645155200500214333}
   _multiplierText: {fileID: 7522242773574872378}
   _performanceText: {fileID: 5195889013095187048}
 --- !u!114 &1764426022282786346

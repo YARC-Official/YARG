@@ -10,6 +10,10 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private Image _comboMeterFill;
         [SerializeField]
+        private Image _starPowerFill;
+
+        [Space]
+        [SerializeField]
         private TextMeshProUGUI _multiplierText;
         [SerializeField]
         private TextMeshProUGUI _performanceText;
@@ -38,11 +42,13 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        public void UpdateInfo(float phrasePercent, int multiplier)
+        public void UpdateInfo(float phrasePercent, int multiplier, float starPowerPercent)
         {
             _comboMeterFillTarget = phrasePercent;
 
             _multiplierText.text = multiplier != 1 ? $"{multiplier}<sub>x</sub>" : string.Empty;
+
+            _starPowerFill.fillAmount = starPowerPercent;
         }
 
         public void ShowPhraseHit(double hitPercent)
