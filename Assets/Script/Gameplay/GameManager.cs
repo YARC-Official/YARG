@@ -488,8 +488,11 @@ namespace YARG.Gameplay
             }
         }
 
-        private async UniTask SetSongSpeedTask(float speed)
+        public void SetSongSpeed(float speed)
         {
+            _pauseSync = true;
+            _finishedSyncing.WaitOne();
+
             // 10% - 4995%, we reserve 5% so that audio syncing can still function
             speed = Math.Clamp(speed, 10 / 100f, 4995 / 100f);
 
@@ -499,22 +502,15 @@ namespace YARG.Gameplay
             // Set based on the actual song speed, so as to not break resyncing
             GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
 
-            // Wait until next frame to apply input offset,
-            // seems to help avoid sudden jumps in speed
-            await UniTask.NextFrame();
-
             // Adjust input offset, otherwise input time will desync
             SetInputBase(InputTime);
+
+            _pauseSync = false;
 
 #if UNITY_EDITOR
             Debug.Log($"Set song speed to {speed:0.00}.\n"
                 + $"Input time: {InputTime:0.000000}, song time: {SongTime:0.000000}");
 #endif
-        }
-
-        public void SetSongSpeed(float speed)
-        {
-            SetSongSpeedTask(speed).Forget();
         }
 
         public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(SelectedSongSpeed + deltaSpeed);

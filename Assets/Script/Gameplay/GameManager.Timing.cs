@@ -68,7 +68,7 @@ namespace YARG.Gameplay
 
         // Audio syncing
         private volatile bool _runSync;
-        private volatile bool _seeking;
+        private volatile bool _pauseSync;
         private Thread _syncThread;
         private EventWaitHandle _finishedSyncing = new(true, EventResetMode.ManualReset);
 
@@ -148,14 +148,12 @@ namespace YARG.Gameplay
             }
 
             // Check for unexpected backwards time jumps
-            bool newSeeked = _seeked;
 
             // Only check for greater-than here
             // BASS's update rate is too coarse for equals to never happen
             if (_previousRealSongTime > RealSongTime)
             {
                 Debug.Assert(_seeked, $"Unexpected audio seek backwards! Went from {_previousRealSongTime} to {RealSongTime}");
-                newSeeked = false;
             }
             _previousRealSongTime = RealSongTime;
 
@@ -163,11 +161,10 @@ namespace YARG.Gameplay
             if (_previousInputTime > InputTime)
             {
                 Debug.Assert(_seeked, $"Unexpected input seek backwards! Went from {_previousInputTime} to {InputTime}");
-                newSeeked = false;
             }
             _previousInputTime = InputTime;
 
-            _seeking = _seeked = newSeeked;
+            _seeked = false;
         }
 
         private void SyncThread()
@@ -178,7 +175,7 @@ namespace YARG.Gameplay
 
             for (; _runSync; _finishedSyncing.Set(), Thread.Sleep(5))
             {
-                if (Paused || _seeking)
+                if (Paused || _pauseSync)
                     continue;
 
                 _finishedSyncing.Reset();
@@ -274,7 +271,7 @@ namespace YARG.Gameplay
 
         public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
         {
-            _seeking = true;
+            _pauseSync = true;
             _finishedSyncing.WaitOne();
 
             // Set input/song time
@@ -291,6 +288,7 @@ namespace YARG.Gameplay
             // Reset beat events
             BeatEventManager.ResetTimers();
 
+            _pauseSync = false;
             _seeked = true;
         }
     }
