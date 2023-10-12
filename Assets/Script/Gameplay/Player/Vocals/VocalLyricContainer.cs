@@ -13,7 +13,7 @@ namespace YARG.Gameplay.Player
 
         private double _lastLyricEdgeTime = double.NegativeInfinity;
 
-        public bool TrySpawnLyric(TextEvent lyric, VocalNote probableNotePair)
+        public bool TrySpawnLyric(TextEvent lyric, VocalNote probableNotePair, bool isStarpower)
         {
             // Skip this frame if the pool is full
             if (!_pool.CanSpawnAmount(1))
@@ -21,9 +21,8 @@ namespace YARG.Gameplay.Player
                 return false;
             }
 
-            // Get the length and starpower
+            // Get the length and starpower (starpower is a phrase property)
             double length = probableNotePair?.TotalTimeLength ?? 0;
-            bool isStarpower = probableNotePair?.IsStarPower ?? false;
 
             // Spawn the vocal lyric
             var obj = (VocalLyricElement) _pool.TakeWithoutEnabling();
