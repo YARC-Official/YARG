@@ -197,7 +197,8 @@ namespace YARG.Song
             }
 
             // If up to date, finish
-            if (newestVersion == currentVersion)
+            var repoDir = Path.Combine(SourcesFolder, SOURCE_REPO_FOLDER);
+            if (newestVersion == currentVersion && Directory.Exists(repoDir))
             {
                 return;
             }
@@ -214,7 +215,6 @@ namespace YARG.Song
                 }
 
                 // Delete the old folder
-                var repoDir = Path.Combine(SourcesFolder, SOURCE_REPO_FOLDER);
                 if (Directory.Exists(repoDir))
                 {
                     Directory.Delete(repoDir, true);
