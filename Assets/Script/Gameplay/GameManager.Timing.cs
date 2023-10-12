@@ -26,15 +26,13 @@ namespace YARG.Gameplay
         /// The current input time, accounting for song speed and calibration.<br/>
         /// This is updated every frame while the game is not paused.
         /// </summary>
-        public double InputTime { get; private set; }
+        public double InputTime => RealInputTime;
 
         /// <summary>
         /// The current input time, accounting for song speed but <b>not</b> calibration.<br/>
         /// This is updated every frame while the game is not paused.
         /// </summary>
-        // Uses the selected song speed and not the actual song speed,
-        // audio is synced to the inputs and not vice versa
-        public double RealInputTime => InputTime - AudioCalibration;
+        public double RealInputTime { get; private set; }
 
         /// <summary>
         /// The input time that is considered to be 0.
@@ -70,7 +68,7 @@ namespace YARG.Gameplay
 
         // Audio syncing
         private volatile bool _runSync;
-        private volatile bool _seeking;
+        private volatile bool _pauseSync;
         private Thread _syncThread;
         private EventWaitHandle _finishedSyncing = new(true, EventResetMode.ManualReset);
 
@@ -110,23 +108,32 @@ namespace YARG.Gameplay
 
         private void SetInputBase(double inputBase)
         {
+            double previousBase = InputTimeBase;
+            double previousOffset = InputTimeOffset;
+            double previousTime = InputTime;
+
             InputTimeBase = inputBase;
             InputTimeOffset = InputManager.CurrentUpdateTime;
 
             // Update input time
-            InputTime = GetRelativeInputTime(InputManager.CurrentUpdateTime);
+            RealInputTime = GetRelativeInputTime(InputManager.CurrentUpdateTime);
+
+#if UNITY_EDITOR
+            Debug.Log($"Set input time base. New base: {InputTimeBase:0.000000}, new offset: {InputTimeOffset:0.000000}, new input time: {InputTime:0.000000}\n"
+                + $"Old base: {previousBase:0.000000}, old offset: {previousOffset:0.000000}, old input time: {previousTime:0.000000}");
+#endif
         }
 
         private void UpdateTimes()
         {
             // Update input time
-            InputTime = GetRelativeInputTime(InputManager.CurrentUpdateTime);
+            RealInputTime = GetRelativeInputTime(InputManager.CurrentUpdateTime);
 
             // Calculate song time
             if (RealSongTime < SongOffset)
             {
                 // Drive song time using input time until it's time to start the audio
-                RealSongTime = RealInputTime;
+                RealSongTime = RealInputTime - AudioCalibration;
                 if (RealSongTime >= SongOffset)
                 {
                     // Start audio
@@ -141,14 +148,12 @@ namespace YARG.Gameplay
             }
 
             // Check for unexpected backwards time jumps
-            bool newSeeked = _seeked;
 
             // Only check for greater-than here
             // BASS's update rate is too coarse for equals to never happen
             if (_previousRealSongTime > RealSongTime)
             {
                 Debug.Assert(_seeked, $"Unexpected audio seek backwards! Went from {_previousRealSongTime} to {RealSongTime}");
-                newSeeked = false;
             }
             _previousRealSongTime = RealSongTime;
 
@@ -156,11 +161,10 @@ namespace YARG.Gameplay
             if (_previousInputTime > InputTime)
             {
                 Debug.Assert(_seeked, $"Unexpected input seek backwards! Went from {_previousInputTime} to {InputTime}");
-                newSeeked = false;
             }
             _previousInputTime = InputTime;
 
-            _seeking = _seeked = newSeeked;
+            _seeked = false;
         }
 
         private void SyncThread()
@@ -171,7 +175,7 @@ namespace YARG.Gameplay
 
             for (; _runSync; _finishedSyncing.Set(), Thread.Sleep(5))
             {
-                if (Paused || _seeking)
+                if (Paused || _pauseSync)
                     continue;
 
                 _finishedSyncing.Reset();
@@ -261,14 +265,13 @@ namespace YARG.Gameplay
 
 #if UNITY_EDITOR
             Debug.Log($"Set song time to {time:0.000000} (delay: {delayTime:0.000000}).\n" +
-                $"Seek time: {seekTime:0.000000}, song time: {SongTime:0.000000}, input time: {InputTime:0.000000} " +
-                $"(base: {InputTimeBase:0.000000}, offset: {InputTimeOffset:0.000000}, absolute: {InputManager.CurrentUpdateTime:0.000000})");
+                $"Seek time: {seekTime:0.000000}, song time: {SongTime:0.000000}");
 #endif
         }
 
         public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
         {
-            _seeking = true;
+            _pauseSync = true;
             _finishedSyncing.WaitOne();
 
             // Set input/song time
@@ -285,6 +288,7 @@ namespace YARG.Gameplay
             // Reset beat events
             BeatEventManager.ResetTimers();
 
+            _pauseSync = false;
             _seeked = true;
         }
     }

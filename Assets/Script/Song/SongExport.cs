@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using YARG.Core.Song;
-using YARG.Helpers;
+using YARG.Core.Utility;
 
 namespace YARG.Song
 {
@@ -39,7 +39,7 @@ namespace YARG.Song
             // TODO: Allow customizing sorting, as well as which metadata is written and in what order
 
             using var output = new StreamWriter(path);
-            foreach (var (category, songs) in GlobalVariables.Instance.SortedSongs.GetSongList(SongAttribute.Artist))
+            foreach (var (category, songs) in GlobalVariables.Instance.SongContainer.GetSortedSongList(SongAttribute.Artist))
             {
                 output.WriteLine(category);
                 output.WriteLine("--------------------");

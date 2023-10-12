@@ -29,7 +29,7 @@ namespace YARG.Menu.MusicLibrary
             GenreCountText = $"{CountOf(songsUnderCategory, i => i.Genre)} genres";
         }
 
-        public CategoryViewType(string primary, int songCount, SortedDictionary<string, List<SongMetadata>> songsUnderCategory)
+        public CategoryViewType(string primary, int songCount, IReadOnlyDictionary<string, List<SongMetadata>> songsUnderCategory)
         {
             _primary = primary;
             _songCount = songCount;
@@ -57,12 +57,12 @@ namespace YARG.Menu.MusicLibrary
 
         public override string GetSideText(bool selected)
         {
-            var count = RichTextUtils.FormatString(
+            var count = TextColorer.FormatString(
                 _songCount.ToString("N0"),
                 MenuData.Colors.PrimaryText,
                 500);
 
-            var songs = RichTextUtils.FormatString(
+            var songs = TextColorer.FormatString(
                 _songCount == 1 ? "SONG" : "SONGS",
                 MenuData.Colors.PrimaryText.WithAlpha(0.5f),
                 500);

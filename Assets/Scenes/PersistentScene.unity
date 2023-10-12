@@ -1228,7 +1228,6 @@ GameObject:
   m_Component:
   - component: {fileID: 788257160}
   - component: {fileID: 788257161}
-  - component: {fileID: 788257168}
   - component: {fileID: 788257166}
   - component: {fileID: 788257165}
   - component: {fileID: 788257164}
@@ -1350,18 +1349,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _navigationIcons: {fileID: 11400000, guid: a5527a10e86be16408e824bfff6a124d, type: 2}
   _colors: {fileID: 11400000, guid: 8d1613cfd8baba7469ae5fb576fc2691, type: 2}
---- !u!114 &788257168
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 788257159}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 40b17f6f9aee439e9c40f940a8a892c3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1156818521
 GameObject:
   m_ObjectHideFlags: 0

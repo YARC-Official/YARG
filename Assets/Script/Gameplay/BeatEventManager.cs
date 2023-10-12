@@ -43,15 +43,17 @@ namespace YARG.Gameplay
         private int _nextTimeSigIndex = 1;
 
         private readonly Dictionary<Action, State> _states = new();
+        private readonly List<Action> _removeStates = new();
+        private readonly List<(Action, State)> _addStates = new();
 
         public void Subscribe(Action action, Info info)
         {
-            _states.Add(action, new State(info));
+            _addStates.Add((action, new State(info)));
         }
 
         public void Unsubscribe(Action action)
         {
-            _states.Remove(action);
+            _removeStates.Remove(action);
         }
 
         public void ResetTimers()
@@ -86,6 +88,19 @@ namespace YARG.Gameplay
             // Get the time signature
             var currentTimeSig = timeSigs[_currentTimeSigIndex];
 
+            // Add and remove states from the _state list outside the main loop to prevent enumeration errors. (aka removing things from the list while it loops)
+            foreach (var (action, state) in _addStates)
+            {
+                _states.Add(action, state);
+            }
+            _addStates.Clear();
+
+            foreach (var action in _removeStates)
+            {
+                _states.Remove(action);
+            }
+            _removeStates.Clear();
+            
             // Update per action now
             foreach (var (action, state) in _states)
             {
@@ -96,10 +111,15 @@ namespace YARG.Gameplay
                 uint ticksPerNote = (uint) (ticksPerWholeNote * state.Info.Note);
 
                 // Call action
-                if (_sync.TickToTime(state.LastTick + ticksPerNote) <= GameManager.SongTime + state.Info.Offset)
+                bool actionDone = false;
+                while (_sync.TickToTime(state.LastTick + ticksPerNote) <= GameManager.SongTime + state.Info.Offset)
                 {
-                    action();
                     state.LastTick += ticksPerNote;
+                    if (!actionDone)
+                    {
+                        action();
+                        actionDone = true;
+                    }
                 }
             }
         }

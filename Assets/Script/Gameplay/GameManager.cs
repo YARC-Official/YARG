@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -22,6 +22,7 @@ using YARG.Menu.Persistent;
 using YARG.Menu.ScoreScreen;
 using YARG.Player;
 using YARG.Replays;
+using YARG.Helpers.Extensions;
 
 namespace YARG.Gameplay
 {
@@ -441,7 +442,7 @@ namespace YARG.Gameplay
             {
                 try
                 {
-                    IAudioManager.LoadAudio(GlobalVariables.AudioManager, Song, SelectedSongSpeed);
+                    Song.LoadAudio(GlobalVariables.AudioManager, SelectedSongSpeed);
                     SongLength = GlobalVariables.AudioManager.AudioLengthD;
                     GlobalVariables.AudioManager.SongEnd += OnAudioEnd;
                 }
@@ -516,8 +517,11 @@ namespace YARG.Gameplay
             }
         }
 
-        private async UniTask SetSongSpeedTask(float speed)
+        public void SetSongSpeed(float speed)
         {
+            _pauseSync = true;
+            _finishedSyncing.WaitOne();
+
             // 10% - 4995%, we reserve 5% so that audio syncing can still function
             speed = Math.Clamp(speed, 10 / 100f, 4995 / 100f);
 
@@ -527,22 +531,15 @@ namespace YARG.Gameplay
             // Set based on the actual song speed, so as to not break resyncing
             GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
 
-            // Wait until next frame to apply input offset,
-            // seems to help avoid sudden jumps in speed
-            await UniTask.NextFrame();
-
             // Adjust input offset, otherwise input time will desync
             SetInputBase(InputTime);
+
+            _pauseSync = false;
 
 #if UNITY_EDITOR
             Debug.Log($"Set song speed to {speed:0.00}.\n"
                 + $"Input time: {InputTime:0.000000}, song time: {SongTime:0.000000}");
 #endif
-        }
-
-        public void SetSongSpeed(float speed)
-        {
-            SetSongSpeedTask(speed).Forget();
         }
 
         public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(SelectedSongSpeed + deltaSpeed);
@@ -580,6 +577,10 @@ namespace YARG.Gameplay
             // Pause the background/venue
             Time.timeScale = 0f;
             BackgroundManager.SetPaused(true);
+
+#if UNITY_EDITOR
+            Debug.Log($"Paused at song time {SongTime:0.000000} (real: {RealSongTime:0.000000}), input time {InputTime:0.000000} (real: {RealInputTime:0.000000}).");
+#endif
         }
 
         public void Resume(bool inputCompensation = true)
@@ -606,6 +607,10 @@ namespace YARG.Gameplay
             {
                 GlobalVariables.AudioManager.Play();
             }
+
+#if UNITY_EDITOR
+            Debug.Log($"Resumed at song time {SongTime:0.000000} (real: {RealSongTime:0.000000}), input time {InputTime:0.000000} (real: {RealInputTime:0.000000}).");
+#endif
         }
 
         public void SetPaused(bool paused)
