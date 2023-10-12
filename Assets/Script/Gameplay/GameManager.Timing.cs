@@ -26,15 +26,13 @@ namespace YARG.Gameplay
         /// The current input time, accounting for song speed and calibration.<br/>
         /// This is updated every frame while the game is not paused.
         /// </summary>
-        public double InputTime { get; private set; }
+        public double InputTime => RealInputTime;
 
         /// <summary>
         /// The current input time, accounting for song speed but <b>not</b> calibration.<br/>
         /// This is updated every frame while the game is not paused.
         /// </summary>
-        // Uses the selected song speed and not the actual song speed,
-        // audio is synced to the inputs and not vice versa
-        public double RealInputTime => InputTime - AudioCalibration;
+        public double RealInputTime { get; private set; }
 
         /// <summary>
         /// The input time that is considered to be 0.
@@ -114,11 +112,11 @@ namespace YARG.Gameplay
             double previousOffset = InputTimeOffset;
             double previousTime = InputTime;
 
-            InputTimeBase = inputBase - AudioCalibration;
+            InputTimeBase = inputBase;
             InputTimeOffset = InputManager.CurrentUpdateTime;
 
             // Update input time
-            InputTime = GetRelativeInputTime(InputManager.CurrentUpdateTime);
+            RealInputTime = GetRelativeInputTime(InputManager.CurrentUpdateTime);
 
 #if UNITY_EDITOR
             Debug.Log($"Set input time base. New base: {InputTimeBase:0.000000}, new offset: {InputTimeOffset:0.000000}, new input time: {InputTime:0.000000}\n"
@@ -129,13 +127,13 @@ namespace YARG.Gameplay
         private void UpdateTimes()
         {
             // Update input time
-            InputTime = GetRelativeInputTime(InputManager.CurrentUpdateTime);
+            RealInputTime = GetRelativeInputTime(InputManager.CurrentUpdateTime);
 
             // Calculate song time
             if (RealSongTime < SongOffset)
             {
                 // Drive song time using input time until it's time to start the audio
-                RealSongTime = RealInputTime;
+                RealSongTime = RealInputTime - AudioCalibration;
                 if (RealSongTime >= SongOffset)
                 {
                     // Start audio
