@@ -110,11 +110,20 @@ namespace YARG.Gameplay
 
         private void SetInputBase(double inputBase)
         {
-            InputTimeBase = inputBase;
+            double previousBase = InputTimeBase;
+            double previousOffset = InputTimeOffset;
+            double previousTime = InputTime;
+
+            InputTimeBase = inputBase - AudioCalibration;
             InputTimeOffset = InputManager.CurrentUpdateTime;
 
             // Update input time
             InputTime = GetRelativeInputTime(InputManager.CurrentUpdateTime);
+
+#if UNITY_EDITOR
+            Debug.Log($"Set input time base. New base: {InputTimeBase:0.000000}, new offset: {InputTimeOffset:0.000000}, new input time: {InputTime:0.000000}\n"
+                + $"Old base: {previousBase:0.000000}, old offset: {previousOffset:0.000000}, old input time: {previousTime:0.000000}");
+#endif
         }
 
         private void UpdateTimes()
@@ -261,8 +270,7 @@ namespace YARG.Gameplay
 
 #if UNITY_EDITOR
             Debug.Log($"Set song time to {time:0.000000} (delay: {delayTime:0.000000}).\n" +
-                $"Seek time: {seekTime:0.000000}, song time: {SongTime:0.000000}, input time: {InputTime:0.000000} " +
-                $"(base: {InputTimeBase:0.000000}, offset: {InputTimeOffset:0.000000}, absolute: {InputManager.CurrentUpdateTime:0.000000})");
+                $"Seek time: {seekTime:0.000000}, song time: {SongTime:0.000000}");
 #endif
         }
 

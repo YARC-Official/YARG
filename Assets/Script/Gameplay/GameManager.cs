@@ -552,6 +552,10 @@ namespace YARG.Gameplay
             // Pause the background/venue
             Time.timeScale = 0f;
             BackgroundManager.SetPaused(true);
+
+#if UNITY_EDITOR
+            Debug.Log($"Paused at song time {SongTime:0.000000} (real: {RealSongTime:0.000000}), input time {InputTime:0.000000} (real: {RealInputTime:0.000000}).");
+#endif
         }
 
         public void Resume(bool inputCompensation = true)
@@ -578,6 +582,10 @@ namespace YARG.Gameplay
             {
                 GlobalVariables.AudioManager.Play();
             }
+
+#if UNITY_EDITOR
+            Debug.Log($"Resumed at song time {SongTime:0.000000} (real: {RealSongTime:0.000000}), input time {InputTime:0.000000} (real: {RealInputTime:0.000000}).");
+#endif
         }
 
         public void SetPaused(bool paused)
