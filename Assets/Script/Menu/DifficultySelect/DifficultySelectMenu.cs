@@ -382,8 +382,24 @@ namespace YARG.Menu.DifficultySelect
             CreateItem(null, body, a);
         }
 
-        private static bool HasPlayableInstrument(AvailableParts parts, Instrument instrument)
+        private bool HasPlayableInstrument(AvailableParts parts, Instrument instrument)
         {
+            // For vocals, all players *must* select the same gamemode (solo/harmony)
+            if (instrument is Instrument.Vocals or Instrument.Harmony)
+            {
+                // Loop through all of the players up to the current one
+                // to see what has already been selected.
+                for (int i = 0; i < _playerIndex; i++)
+                {
+                    var player = PlayerContainer.Players[i];
+                    var playerInstrument = player.Profile.CurrentInstrument;
+                    if (playerInstrument is Instrument.Vocals or Instrument.Harmony)
+                    {
+                        return playerInstrument == instrument;
+                    }
+                }
+            }
+
             return parts.HasInstrument(instrument) || instrument switch
             {
                 // Allow 5 -> 4-lane conversions to be played on 4-lane
@@ -395,7 +411,7 @@ namespace YARG.Menu.DifficultySelect
             };
         }
 
-        private static bool HasPlayableDifficulty(AvailableParts parts, Instrument instrument, Difficulty difficulty)
+        private bool HasPlayableDifficulty(AvailableParts parts, Instrument instrument, Difficulty difficulty)
         {
             // For vocals, insert special difficulties
             if (instrument is Instrument.Vocals or Instrument.Harmony)
