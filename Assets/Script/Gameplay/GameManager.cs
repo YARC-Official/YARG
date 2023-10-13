@@ -168,6 +168,9 @@ namespace YARG.Gameplay
                 Debug.LogError("Null song set when loading gameplay!");
                 GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
             }
+
+            // Hide vocals track (will be shown when players are initialized
+            VocalTrack.gameObject.SetActive(false);
         }
 
         private void OnDestroy()
@@ -502,6 +505,9 @@ namespace YARG.Gameplay
                     // Initialize the vocal track if it hasn't been already, and hide lyric bar
                     if (!vocalTrackInitialized)
                     {
+                        VocalTrack.gameObject.SetActive(true);
+                        _trackViewManager.CreateVocalTrackView();
+
                         // Since all players have to select the same vocals
                         // type (solo/harmony) this works no problem.
                         var chart = player.Profile.CurrentInstrument == Instrument.Vocals

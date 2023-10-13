@@ -23,17 +23,6 @@ namespace YARG.Gameplay.HUD
 
         private readonly List<TrackView> _trackViews = new();
 
-        private void Start()
-        {
-            // Get the aspect ration of the vocal image
-            var rect = _vocalImage.rectTransform.ToScreenSpace();
-            float ratio = rect.width / rect.height;
-
-            // Apply the vocal track texture
-            var rt = GameManager.VocalTrack.InitializeRenderTexture(ratio);
-            _vocalImage.texture = rt;
-        }
-
         public TrackView CreateTrackView(TrackPlayer trackPlayer, YargPlayer player)
         {
             // Create a track view
@@ -56,6 +45,19 @@ namespace YARG.Gameplay.HUD
             UpdateAllSizing();
 
             return trackView;
+        }
+
+        public void CreateVocalTrackView()
+        {
+            _vocalImage.gameObject.SetActive(true);
+
+            // Get the aspect ration of the vocal image
+            var rect = _vocalImage.rectTransform.ToScreenSpace();
+            float ratio = rect.width / rect.height;
+
+            // Apply the vocal track texture
+            var rt = GameManager.VocalTrack.InitializeRenderTexture(ratio);
+            _vocalImage.texture = rt;
         }
 
         public VocalsPlayerHUD CreateVocalsPlayerHUD()
