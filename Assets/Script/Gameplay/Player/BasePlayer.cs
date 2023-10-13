@@ -38,6 +38,8 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         protected HitWindowDisplay HitWindowDisplay;
 
+        protected BaseInputViewer InputViewer;
+
         [Header("Pools")]
         [SerializeField]
         protected KeyedPool NotePool;
@@ -94,6 +96,8 @@ namespace YARG.Gameplay.Player
         {
             _replayInputs = new List<GameInput>();
 
+            InputViewer = FindObjectOfType<BaseInputViewer>();
+
             IsFc = true;
         }
 
@@ -122,6 +126,9 @@ namespace YARG.Gameplay.Player
             {
                 FadeSize *= player.Profile.HighwayLength;
             }
+
+            InputViewer.SetColors(player.ColorProfile);
+            InputViewer.ResetButtons();
 
             IsInitialized = true;
         }
@@ -484,6 +491,7 @@ namespace YARG.Gameplay.Player
         {
             Engine.QueueInput(input);
             AddReplayInput(input);
+            InputViewer.OnInput(input);
         }
     }
 }
