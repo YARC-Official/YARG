@@ -354,9 +354,12 @@ namespace YARG.Gameplay.Player
 
             if (GameManager.IsReplay)
             {
-                while (_replayInputIndex < ReplayInputs.Count && inputTime >= ReplayInputs[_replayInputIndex].Time)
+                var input = ReplayInputs[_replayInputIndex];
+
+                while (_replayInputIndex < ReplayInputs.Count && inputTime >= input.Time)
                 {
-                    Engine.QueueInput(ReplayInputs[_replayInputIndex++]);
+                    Engine.QueueInput(input);
+                    InputViewer.OnInput(input);
                 }
             }
 
