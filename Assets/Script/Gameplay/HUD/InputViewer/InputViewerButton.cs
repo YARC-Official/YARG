@@ -52,8 +52,11 @@ namespace YARG.Gameplay.HUD
 
         public void UpdatePressState(bool pressed, double time)
         {
+            // We don't want to display negative times at the start of the song because to the user it makes no sense
+            // Add on the start delay so it offsets back to 0
+            time += GameManager.SONG_START_DELAY;
+
             _inputTime = time;
-            _holdTime = 0;
 
             _isPressed = pressed;
 
@@ -95,7 +98,7 @@ namespace YARG.Gameplay.HUD
         {
             if (_isPressed)
             {
-                _holdTime = _gameManager.InputTime - _inputTime;
+                _holdTime = _gameManager.InputTime - _inputTime + GameManager.SONG_START_DELAY;
 
                 WriteDoubleToBuffer(_holdTimeBuffer, _holdTime);
                 _holdTimeText.SetCharArray(_holdTimeBuffer, 0, _holdTimeBuffer.Length);
@@ -165,6 +168,12 @@ namespace YARG.Gameplay.HUD
             for (int i = 0; i < buffer.Length; i++)
             {
                 buffer[i] = '\0';
+            }
+
+            if (num == 0)
+            {
+                buffer[0] = '0';
+                return;
             }
 
             int index = buffer.Length - 1;
