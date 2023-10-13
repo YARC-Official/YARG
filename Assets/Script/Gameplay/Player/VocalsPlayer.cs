@@ -48,10 +48,9 @@ namespace YARG.Gameplay.Player
 
             _hud = hud;
 
-            // TODO: Selectable harmony part
             // Get the notes from the specific harmony or solo part
             var multiTrack = chart.GetVocalsTrack(Player.Profile.CurrentInstrument);
-            var track = multiTrack.Parts[0];
+            var track = multiTrack.Parts[Player.Profile.HarmonyIndex];
             NoteTrack = track.CloneAsInstrumentDifficulty();
 
             // Create and start an input context for the mic

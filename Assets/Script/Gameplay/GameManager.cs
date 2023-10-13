@@ -502,8 +502,13 @@ namespace YARG.Gameplay
                     // Initialize the vocal track if it hasn't been already, and hide lyric bar
                     if (!vocalTrackInitialized)
                     {
-                        var chart = player.Profile.GameMode == GameMode.Vocals ? Chart.Vocals : Chart.Harmony;
+                        // Since all players have to select the same vocals
+                        // type (solo/harmony) this works no problem.
+                        var chart = player.Profile.CurrentInstrument == Instrument.Vocals
+                                ? Chart.Vocals
+                                : Chart.Harmony;
                         VocalTrack.Initialize(chart);
+
                         _lyricBar.SetActive(false);
                         vocalTrackInitialized = true;
                     }
