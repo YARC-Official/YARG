@@ -212,7 +212,7 @@ namespace YARG.Gameplay.Player
                     probableNote = note;
                 }
 
-                if (!_lyricContainer.TrySpawnLyric(lyric, probableNote, phrase.IsStarPower))
+                if (!_lyricContainer.TrySpawnLyric(lyric, probableNote, phrase.IsStarPower, harmonyIndex))
                 {
                     return false;
                 }
