@@ -74,21 +74,24 @@ namespace YARG.Gameplay.Player
 
         protected VocalsEngine CreateEngine()
         {
+            // Hit window is in semitones (total width).
             double hitWindow = Player.Profile.CurrentDifficulty switch
             {
                 Difficulty.Easy   => 2.0,
                 Difficulty.Medium => 1.5,
                 Difficulty.Hard   => 1.0,
-                Difficulty.Expert => 1.0,
+                Difficulty.Expert => 0.9,
                 _ => throw new InvalidOperationException("Unreachable")
             };
 
+            // These percentages may seem low, but accounting for delay,
+            // plosives not being detected, etc., it's pretty good.
             double hitPercent = Player.Profile.CurrentDifficulty switch
             {
-                Difficulty.Easy   => 0.45,
-                Difficulty.Medium => 0.55,
-                Difficulty.Hard   => 0.65,
-                Difficulty.Expert => 0.80,
+                Difficulty.Easy   => 0.40,
+                Difficulty.Medium => 0.45,
+                Difficulty.Hard   => 0.50,
+                Difficulty.Expert => 0.60,
                 _ => throw new InvalidOperationException("Unreachable")
             };
 
