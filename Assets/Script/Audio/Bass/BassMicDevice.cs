@@ -170,6 +170,19 @@ namespace YARG.Audio
             }
         }
 
+        public SerializedMic Serialize()
+        {
+            return new SerializedMic
+            {
+                DisplayName = DisplayName
+            };
+        }
+
+        public bool IsSerializedMatch(SerializedMic mic)
+        {
+            return mic.DisplayName == DisplayName;
+        }
+
         private bool ProcessCleanRecordData(int handle, IntPtr buffer, int length, IntPtr user)
         {
             // Wait for initialization to complete before processing data

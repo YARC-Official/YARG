@@ -74,5 +74,15 @@ namespace YARG.Audio
         /// </summary>
         /// <param name="volume">The volume to set to.</param>
         public void SetMonitoringLevel(float volume);
+
+        /// <summary>
+        /// Converts this microphone into its serialized form.
+        /// </summary>
+        public SerializedMic Serialize();
+
+        /// <summary>
+        /// Checks if the <see cref="SerializedMic"/> corresponds with this mic device.
+        /// </summary>
+        public bool IsSerializedMatch(SerializedMic mic);
     }
 }

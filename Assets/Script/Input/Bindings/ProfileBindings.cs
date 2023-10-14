@@ -17,6 +17,7 @@ namespace YARG.Input
     {
         public YargProfile Profile { get; }
 
+        private SerializedMic _unresolvedMic;
         public IMicDevice Microphone { get; private set; }
 
         private readonly List<SerializedInputDevice> _unresolvedDevices = new();
@@ -25,7 +26,7 @@ namespace YARG.Input
         private readonly Dictionary<GameMode, BindingCollection> _bindsByGameMode = new();
         public readonly BindingCollection MenuBindings;
 
-        public bool Empty => _devices.Count < 1;
+        public bool Empty => _devices.Count < 1 && Microphone is null;
 
         public BindingCollection this[GameMode mode] => _bindsByGameMode[mode];
 
@@ -117,6 +118,8 @@ namespace YARG.Input
                 }
             }
 
+            _unresolvedMic = bindings.Microphone;
+
             MenuBindings.Deserialize(bindings.MenuBindings);
         }
 
@@ -141,6 +144,8 @@ namespace YARG.Input
 
             serialized.MenuBindings = MenuBindings.Serialize();
 
+            serialized.Microphone = _unresolvedMic;
+
             return serialized;
         }
 
@@ -154,6 +159,17 @@ namespace YARG.Input
             foreach (var device in InputSystem.devices)
             {
                 OnDeviceAdded(device);
+            }
+
+            if (_unresolvedMic is not null)
+            {
+                foreach (var mic in GlobalVariables.AudioManager.GetAllInputDevices())
+                {
+                    if (!mic.IsSerializedMatch(_unresolvedMic)) continue;
+
+                    AddMicrophone(mic);
+                    return;
+                }
             }
         }
 
@@ -324,7 +340,6 @@ namespace YARG.Input
             MenuBindings.UpdateBindingsForFrame();
         }
 
-        // TODO: This is temporary. Make this automatically connect
         public bool AddMicrophone(IMicDevice microphone)
         {
             if (Microphone is not null)
@@ -338,6 +353,8 @@ namespace YARG.Input
             }
 
             Microphone = microphone;
+            _unresolvedMic = microphone.Serialize();
+
             return true;
         }
 
