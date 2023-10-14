@@ -1,5 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using YARG.Audio;
+using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Engine.Vocals;
@@ -72,7 +74,25 @@ namespace YARG.Gameplay.Player
 
         protected VocalsEngine CreateEngine()
         {
-            EngineParams = new VocalsEngineParameters(1.0, 0.7,
+            double hitWindow = Player.Profile.CurrentDifficulty switch
+            {
+                Difficulty.Easy   => 2.0,
+                Difficulty.Medium => 1.5,
+                Difficulty.Hard   => 1.0,
+                Difficulty.Expert => 1.0,
+                _ => throw new InvalidOperationException("Unreachable")
+            };
+
+            double hitPercent = Player.Profile.CurrentDifficulty switch
+            {
+                Difficulty.Easy   => 0.45,
+                Difficulty.Medium => 0.55,
+                Difficulty.Hard   => 0.65,
+                Difficulty.Expert => 0.80,
+                _ => throw new InvalidOperationException("Unreachable")
+            };
+
+            EngineParams = new VocalsEngineParameters(hitWindow, hitPercent,
                 IMicDevice.UPDATES_PER_SECOND, StarMultiplierThresholds);
 
             var engine = new YargVocalsEngine(NoteTrack, SyncTrack, EngineParams);
@@ -162,19 +182,15 @@ namespace YARG.Gameplay.Player
                 float pitch = Engine.State.PitchSang;
                 if (_lastTargetNote is not null)
                 {
-                    float micNote = pitch % 12f;
+                    float octavePitch = pitch % 12f;
 
-                    // TODO: THIS DOES NOT WORK
-
-                    // Since the hit detection rolls over to the next/last octave,
-                    // we must check the neighbouring octaves as well to see if it's
-                    // closer, and use that instead.
+                    // Because the octave wraps around, we need to try
+                    // to surrounding octaves to see which value is the closest
                     float closestDist = float.PositiveInfinity;
                     for (int i = -1; i <= 1; i++)
                     {
-                        float note = micNote + (_lastTargetNote.Octave + i) * 12f;
+                        float note = octavePitch + (_lastTargetNote.Octave + i) * 12f;
                         float dist = Mathf.Abs(_lastTargetNote.Pitch - note);
-
                         if (dist < closestDist)
                         {
                             closestDist = dist;
