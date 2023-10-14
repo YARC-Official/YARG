@@ -6,6 +6,8 @@ namespace YARG.Gameplay.Visuals
 {
     public class VocalNoteElement : VocalElement
     {
+        private const float NOTE_POINT_PADDING = 1f / 15f;
+
         // TODO: Temporary until color profiles for vocals
         private static readonly Color[] _colors =
         {
@@ -48,6 +50,13 @@ namespace YARG.Gameplay.Visuals
 
                 _points.Add(new Vector3(VocalTrack.GetPosForTime(note.Time - NoteRef.Time),    0f, z));
                 _points.Add(new Vector3(VocalTrack.GetPosForTime(note.TimeEnd - NoteRef.Time), 0f, z));
+            }
+
+            // Add padding on the note (start and end)
+            if (_points.Count >= 2)
+            {
+                _points[0] = _points[0].AddX(NOTE_POINT_PADDING);
+                _points[^1] = _points[^1].AddX(-NOTE_POINT_PADDING);
             }
 
             // Set line info
