@@ -153,6 +153,11 @@ namespace YARG.Song
                     attribute = SongAttribute.Genre;
                     argument = argument[6..].ToLower();
                 }
+                else if (argument.StartsWith("playlist:"))
+                {
+                    attribute = SongAttribute.Playlist;
+                    argument = argument[9..].ToLower();
+                }
                 else if (argument.StartsWith("name:"))
                 {
                     attribute = SongAttribute.Name;
