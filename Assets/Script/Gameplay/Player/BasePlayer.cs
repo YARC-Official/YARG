@@ -501,7 +501,7 @@ namespace YARG.Gameplay.Player
             // Ignore while paused
             if (GameManager.Paused) return;
 
-            double adjustedTime = GameManager.GetRelativeInputTime(input.Time);
+            double adjustedTime = GameManager.GetCalibratedRelativeInputTime(input.Time);
             // Apply input offset
             adjustedTime += InputCalibration;
             input = new(adjustedTime, input.Action, input.Integer);
