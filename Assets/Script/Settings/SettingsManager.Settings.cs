@@ -64,6 +64,7 @@ namespace YARG.Settings
             }
 
             public IntSetting    AudioCalibration          { get; } = new(120);
+            public IntSetting    VideoCalibration          { get; } = new(0);
 
             public ToggleSetting UseCymbalModelsInFiveLane { get; } = new(true);
             public ToggleSetting KickBounce                { get; } = new(true);

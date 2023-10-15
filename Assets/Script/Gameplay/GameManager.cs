@@ -638,12 +638,15 @@ namespace YARG.Gameplay
             GameStateFetcher.SetPaused(paused);
         }
 
-        public void OverridePauseTime(double pauseTime)
+        public void OverridePauseTime(double pauseTime = -1)
         {
             if (!Paused)
             {
                 return;
             }
+
+            if (pauseTime < 0)
+                pauseTime = RealInputTime;
 
             PauseStartTime = pauseTime;
         }

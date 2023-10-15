@@ -14,24 +14,38 @@ namespace YARG.Gameplay
         /// The time into the song, accounting for song speed and calibration.<br/>
         /// This is updated every frame while the game is not paused.
         /// </summary>
+        /// <remarks>
+        /// This value should be used for all interactions that are relative to the audio.
+        /// </remarks>
         public double SongTime => RealSongTime + AudioCalibration;
 
         /// <summary>
         /// The time into the song, accounting for song speed but <b>not</b> calibration.<br/>
         /// This is updated every frame while the game is not paused.
         /// </summary>
+        /// <remarks>
+        /// This value probably doesn't have any practical use outside of GameManager. It is used
+        /// only for keeping track of the actual audio playback time.
+        /// </remarks>
         public double RealSongTime { get; private set; }
 
         /// <summary>
-        /// The current input time, accounting for song speed and calibration.<br/>
+        /// The current input time, accounting for song speed and video calibration.<br/>
         /// This is updated every frame while the game is not paused.
         /// </summary>
-        public double InputTime => RealInputTime;
+        /// <remarks>
+        /// This value should be used for all interactions with inputs, engines, and replays.
+        /// </remarks>
+        public double InputTime => RealInputTime + VideoCalibration;
 
         /// <summary>
-        /// The current input time, accounting for song speed but <b>not</b> calibration.<br/>
+        /// The current input time, accounting for song speed but <b>not</b> video calibration.<br/>
         /// This is updated every frame while the game is not paused.
         /// </summary>
+        /// <remarks>
+        /// This value should be used for all visual interactions, as video calibration should not delay visuals.
+        /// It should also be used for setting position, otherwise the actual set position will be offset incorrectly.
+        /// </remarks>
         public double RealInputTime { get; private set; }
 
         /// <summary>
@@ -54,8 +68,18 @@ namespace YARG.Gameplay
         /// <remarks>
         /// Be aware that this value is negated!
         /// Positive calibration settings will result in a negative number here.
+        /// This value also takes video calibration into account, otherwise things will not sync up visually.
         /// </remarks>
-        public double AudioCalibration => -SettingsManager.Settings.AudioCalibration.Data / 1000.0;
+        public double AudioCalibration => (-SettingsManager.Settings.AudioCalibration.Data / 1000.0) - VideoCalibration;
+
+        /// <summary>
+        /// The video calibration, in seconds.
+        /// </summary>
+        /// <remarks>
+        /// Be aware that this value is negated!
+        /// Positive calibration settings will result in a negative number here.
+        /// </remarks>
+        public double VideoCalibration => -SettingsManager.Settings.VideoCalibration.Data / 1000.0;
 
         /// <summary>
         /// The song offset, in seconds.
@@ -104,6 +128,11 @@ namespace YARG.Gameplay
         public double GetRelativeInputTime(double timeFromInputSystem)
         {
             return InputTimeBase + ((timeFromInputSystem - InputTimeOffset) * SelectedSongSpeed);
+        }
+
+        public double GetCalibratedRelativeInputTime(double timeFromInputSystem)
+        {
+            return GetRelativeInputTime(timeFromInputSystem) + VideoCalibration;
         }
 
         private void SetInputBase(double inputBase)

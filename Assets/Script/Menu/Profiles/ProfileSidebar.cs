@@ -45,6 +45,8 @@ namespace YARG.Menu.Profiles
         [SerializeField]
         private TMP_InputField _highwayLengthField;
         [SerializeField]
+        private TMP_InputField _inputCalibrationField;
+        [SerializeField]
         private Toggle _leftyFlipToggle;
         [SerializeField]
         private TMP_Dropdown _colorProfileDropdown;
@@ -113,6 +115,7 @@ namespace YARG.Menu.Profiles
             _gameModeDropdown.value = _gameModesByIndex.IndexOf(profile.GameMode);
             _noteSpeedField.text = profile.NoteSpeed.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
             _highwayLengthField.text = profile.HighwayLength.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
+            _inputCalibrationField.text = _profile.InputCalibrationMilliseconds.ToString();
             _leftyFlipToggle.isOn = profile.LeftyFlip;
 
             // Update preset dropdowns
@@ -197,6 +200,17 @@ namespace YARG.Menu.Profiles
 
             // Always format it after
             _highwayLengthField.text = _profile.HighwayLength.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
+        }
+
+        public void ChangeInputCalibration()
+        {
+            if (long.TryParse(_inputCalibrationField.text, out long calibration))
+            {
+                _profile.InputCalibrationMilliseconds = calibration;
+            }
+
+            // Always format it after
+            _inputCalibrationField.text = _profile.InputCalibrationMilliseconds.ToString();
         }
 
         public void ChangeLeftyFlip()

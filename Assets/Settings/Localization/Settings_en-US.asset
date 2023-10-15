@@ -605,6 +605,16 @@ MonoBehaviour:
     m_Localized: Choose how the lyric bar in game should be displayed.
     m_Metadata:
       m_Items: []
+  - m_Id: 73744741668081664
+    m_Localized: Video Calibration (ms)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73745068840570880
+    m_Localized: Video calibration in milliseconds. Use the calibrator to automatically
+      calibrate. This accounts for delays between the game's processing and the actual
+      frame being displayed.
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
