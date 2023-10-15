@@ -15,6 +15,7 @@ using YARG.Core.Replays;
 using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
+using YARG.Gameplay.Visuals;
 using YARG.Integration;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
@@ -37,6 +38,12 @@ namespace YARG.Gameplay
 
         [SerializeField]
         private PauseMenuManager _pauseMenu;
+
+        [SerializeField]
+        private GameObject _lyricBar;
+
+        [field: SerializeField]
+        public VocalTrack VocalTrack { get; private set; }
 
         [SerializeField]
         private TextMeshProUGUI _debugText;
@@ -161,6 +168,9 @@ namespace YARG.Gameplay
                 Debug.LogError("Null song set when loading gameplay!");
                 GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
             }
+
+            // Hide vocals track (will be shown when players are initialized
+            VocalTrack.gameObject.SetActive(false);
         }
 
         private void OnDestroy()
@@ -456,6 +466,8 @@ namespace YARG.Gameplay
         {
             _players = new List<BasePlayer>();
 
+            bool vocalTrackInitialized = false;
+
             int index = -1;
             foreach (var player in _yargPlayers)
             {
@@ -464,27 +476,55 @@ namespace YARG.Gameplay
                 // Skip if the player is sitting out
                 if (player.SittingOut) continue;
 
-                var prefab = player.Profile.GameMode switch
+                if (player.Profile.GameMode != GameMode.Vocals)
                 {
-                    GameMode.FiveFretGuitar => _fiveFretGuitarPrefab,
-                    GameMode.SixFretGuitar  => _sixFretGuitarPrefab,
-                    GameMode.FourLaneDrums  => _fourLaneDrumsPrefab,
-                    GameMode.FiveLaneDrums  => _fiveLaneDrumsPrefab,
-                    GameMode.ProGuitar      => _proGuitarPrefab,
+                    var prefab = player.Profile.GameMode switch
+                    {
+                        GameMode.FiveFretGuitar => _fiveFretGuitarPrefab,
+                        GameMode.SixFretGuitar  => _sixFretGuitarPrefab,
+                        GameMode.FourLaneDrums  => _fourLaneDrumsPrefab,
+                        GameMode.FiveLaneDrums  => _fiveLaneDrumsPrefab,
+                        GameMode.ProGuitar      => _proGuitarPrefab,
 
-                    _ => null
-                };
+                        _ => null
+                    };
 
-                // Skip if there's no prefab for the game mode
-                if (prefab == null) continue;
+                    // Skip if there's no prefab for the game mode
+                    if (prefab == null) continue;
 
-                var playerObject = Instantiate(prefab, new Vector3(index * 25f, 100f, 0f), prefab.transform.rotation);
+                    var playerObject = Instantiate(prefab, new Vector3(index * 25f, 100f, 0f), prefab.transform.rotation);
 
-                // Setup player
-                var basePlayer = playerObject.GetComponent<BasePlayer>();
-                var trackView = _trackViewManager.CreateTrackView(basePlayer, player);
-                basePlayer.Initialize(index, player, Chart, trackView);
-                _players.Add(basePlayer);
+                    // Setup player
+                    var basePlayer = playerObject.GetComponent<TrackPlayer>();
+                    var trackView = _trackViewManager.CreateTrackView(basePlayer, player);
+                    basePlayer.Initialize(index, player, Chart, trackView);
+                    _players.Add(basePlayer);
+                }
+                else
+                {
+                    // Initialize the vocal track if it hasn't been already, and hide lyric bar
+                    if (!vocalTrackInitialized)
+                    {
+                        VocalTrack.gameObject.SetActive(true);
+                        _trackViewManager.CreateVocalTrackView();
+
+                        // Since all players have to select the same vocals
+                        // type (solo/harmony) this works no problem.
+                        var chart = player.Profile.CurrentInstrument == Instrument.Vocals
+                                ? Chart.Vocals
+                                : Chart.Harmony;
+                        VocalTrack.Initialize(chart);
+
+                        _lyricBar.SetActive(false);
+                        vocalTrackInitialized = true;
+                    }
+
+                    // Create the player on the vocal track
+                    var vocalsPlayer = VocalTrack.CreatePlayer();
+                    var playerHud = _trackViewManager.CreateVocalsPlayerHUD();
+                    vocalsPlayer.Initialize(index, player, Chart, playerHud);
+                    _players.Add(vocalsPlayer);
+                }
             }
         }
 

@@ -262,5 +262,13 @@ namespace YARG.Player
 
             return _bindings.Count;
         }
+
+        public static void Destroy()
+        {
+            foreach (var player in Players)
+            {
+                DisposePlayer(player);
+            }
+        }
     }
 }

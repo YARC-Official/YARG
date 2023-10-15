@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
+using YARG.Audio;
 using YARG.Core;
 
 namespace YARG.Input.Serialization
@@ -9,6 +10,7 @@ namespace YARG.Input.Serialization
     public class SerializedProfileBindings
     {
         public List<SerializedInputDevice> Devices = new();
+        public SerializedMic Microphone;
 
         public Dictionary<GameMode, BindingCollection> Bindings = new();
         public BindingCollection MenuBindings = new();

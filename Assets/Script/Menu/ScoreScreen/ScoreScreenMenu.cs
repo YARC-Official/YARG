@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Guitar;
+using YARG.Core.Engine.Vocals;
 using YARG.Core.Input;
 using YARG.Menu.Navigation;
 using YARG.Song;
@@ -32,6 +33,8 @@ namespace YARG.Menu.ScoreScreen
         private GuitarScoreCard _guitarCardPrefab;
         [SerializeField]
         private DrumsScoreCard _drumsCardPrefab;
+        [SerializeField]
+        private VocalsScoreCard _vocalsCardPrefab;
 
         // "The Unity message 'OnEnable' has an incorrect signature."
         [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTask is a compatible return type.")]
@@ -86,6 +89,13 @@ namespace YARG.Menu.ScoreScreen
                     {
                         var card = Instantiate(_drumsCardPrefab, _cardContainer);
                         card.Initialize(score.Player, score.Stats as DrumsStats);
+                        card.SetCardContents();
+                        break;
+                    }
+                    case GameMode.Vocals:
+                    {
+                        var card = Instantiate(_vocalsCardPrefab, _cardContainer);
+                        card.Initialize(score.Player, score.Stats as VocalsStats);
                         card.SetCardContents();
                         break;
                     }

@@ -1,6 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Core.Engine;
 using YARG.Data;
@@ -13,6 +14,9 @@ namespace YARG.Menu.ScoreScreen
     public abstract class ScoreCard<T> : MonoBehaviour where T : BaseStats
     {
         [SerializeField]
+        protected TextMeshProUGUI AccuracyPercent;
+
+        [SerializeField]
         private TextMeshProUGUI _playerName;
 
         [SerializeField]
@@ -20,9 +24,6 @@ namespace YARG.Menu.ScoreScreen
 
         [SerializeField]
         private TextMeshProUGUI _difficulty;
-
-        [SerializeField]
-        private TextMeshProUGUI _accuracyPercent;
 
         [SerializeField]
         private TextMeshProUGUI _score;
@@ -72,11 +73,11 @@ namespace YARG.Menu.ScoreScreen
             var totalNotes = Stats.NotesHit + Stats.NotesMissed;
             if (totalNotes == 0)
             {
-                _accuracyPercent.text = "0%";
+                AccuracyPercent.text = "0%";
             }
             else
             {
-                _accuracyPercent.text = $"{Mathf.FloorToInt((float) Stats.NotesHit / totalNotes * 100f)}%";
+                AccuracyPercent.text = $"{Mathf.FloorToInt((float) Stats.NotesHit / totalNotes * 100f)}%";
             }
 
             // Set background and foreground colors

@@ -35,7 +35,7 @@ namespace YARG.Settings.Preview
 
                 // Set the position
                 transform.localPosition = new Vector3(
-                    BasePlayer.TRACK_WIDTH / 5f * NoteRef.Fret - BasePlayer.TRACK_WIDTH / 2f - 1f / 5f,
+                    TrackPlayer.TRACK_WIDTH / 5f * NoteRef.Fret - TrackPlayer.TRACK_WIDTH / 2f - 1f / 5f,
                     0f, 0f);
             }
             else
@@ -77,7 +77,7 @@ namespace YARG.Settings.Preview
         protected void Update()
         {
             float z =
-                BasePlayer.STRIKE_LINE_POS                             // Shift origin to the strike line
+                TrackPlayer.STRIKE_LINE_POS                            // Shift origin to the strike line
                 + (float) (NoteRef.Time - FakeTrackPlayer.PreviewTime) // Get time of note relative to now
                 * FakeTrackPlayer.NOTE_SPEED;                          // Adjust speed (units/s)
 

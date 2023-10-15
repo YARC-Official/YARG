@@ -21,7 +21,8 @@ namespace YARG.Menu.DifficultySelect
             Main,
             Instrument,
             Difficulty,
-            Modifiers
+            Modifiers,
+            Harmony
         }
 
         [SerializeField]
@@ -49,6 +50,8 @@ namespace YARG.Menu.DifficultySelect
         private readonly List<Instrument> _possibleInstruments  = new();
         private readonly List<Difficulty> _possibleDifficulties = new();
         private readonly List<Modifier>   _possibleModifiers    = new();
+
+        private int _maxHarmonyIndex = 3;
 
         private readonly List<ModifierItem> _modifierItems = new();
 
@@ -115,6 +118,9 @@ namespace YARG.Menu.DifficultySelect
                 case State.Modifiers:
                     CreateModifierMenu();
                     break;
+                case State.Harmony:
+                    CreateHarmonyMenu();
+                    break;
             }
 
             _navGroup.SelectFirst();
@@ -138,6 +144,16 @@ namespace YARG.Menu.DifficultySelect
                     _menuState = State.Difficulty;
                     UpdateForPlayer();
                 });
+
+                // Harmony players must pick their harmony index
+                if (player.Profile.CurrentInstrument == Instrument.Harmony)
+                {
+                    CreateItem("Harmony", (player.Profile.HarmonyIndex + 1).ToString(), () =>
+                    {
+                        _menuState = State.Harmony;
+                        UpdateForPlayer();
+                    });
+                }
 
                 // Create modifiers body text
                 string modifierText = "";
@@ -243,6 +259,21 @@ namespace YARG.Menu.DifficultySelect
             });
         }
 
+        private void CreateHarmonyMenu()
+        {
+            for (int i = 0; i < _maxHarmonyIndex; i++)
+            {
+                int capture = i;
+                CreateItem((i + 1).ToString(), () =>
+                {
+                    CurrentPlayer.Profile.HarmonyIndex = (byte) capture;
+
+                    _menuState = State.Main;
+                    UpdateForPlayer();
+                });
+            }
+        }
+
         private void UpdateModifierMenu()
         {
             var profile = CurrentPlayer.Profile;
@@ -287,6 +318,15 @@ namespace YARG.Menu.DifficultySelect
                 profile.CurrentInstrument = _possibleInstruments[0];
             }
 
+            // Get the possible harmonies for this song
+            _maxHarmonyIndex = songParts.VocalsCount;
+
+            // Set the harmony index to a valid one
+            if (profile.HarmonyIndex >= _maxHarmonyIndex)
+            {
+                profile.HarmonyIndex = 0;
+            }
+
             // Get the possible modifiers (split the enum into multiple) and
             // make sure current modifiers are valid, and remove the invalid ones
             _possibleModifiers.Clear();
@@ -294,7 +334,16 @@ namespace YARG.Menu.DifficultySelect
             foreach (var modifier in EnumExtensions<Modifier>.Values)
             {
                 // Skip if the modifier is not a possible one
-                if ((possible & modifier) == 0) continue;
+                if ((possible & modifier) == 0)
+                {
+                    // Also try to remove it if the player has it for some reason
+                    if (profile.IsModifierActive(modifier))
+                    {
+                        profile.RemoveModifiers(modifier);
+                    }
+
+                    continue;
+                }
 
                 _possibleModifiers.Add(modifier);
 
@@ -382,8 +431,24 @@ namespace YARG.Menu.DifficultySelect
             CreateItem(null, body, a);
         }
 
-        private static bool HasPlayableInstrument(AvailableParts parts, Instrument instrument)
+        private bool HasPlayableInstrument(AvailableParts parts, Instrument instrument)
         {
+            // For vocals, all players *must* select the same gamemode (solo/harmony)
+            if (instrument is Instrument.Vocals or Instrument.Harmony)
+            {
+                // Loop through all of the players up to the current one
+                // to see what has already been selected.
+                for (int i = 0; i < _playerIndex; i++)
+                {
+                    var player = PlayerContainer.Players[i];
+                    var playerInstrument = player.Profile.CurrentInstrument;
+                    if (playerInstrument is Instrument.Vocals or Instrument.Harmony)
+                    {
+                        return playerInstrument == instrument;
+                    }
+                }
+            }
+
             return parts.HasInstrument(instrument) || instrument switch
             {
                 // Allow 5 -> 4-lane conversions to be played on 4-lane
@@ -395,8 +460,15 @@ namespace YARG.Menu.DifficultySelect
             };
         }
 
-        private static bool HasPlayableDifficulty(AvailableParts parts, Instrument instrument, Difficulty difficulty)
+        private bool HasPlayableDifficulty(AvailableParts parts, Instrument instrument, Difficulty difficulty)
         {
+            // For vocals, insert special difficulties
+            if (instrument is Instrument.Vocals or Instrument.Harmony)
+            {
+                return difficulty is not (Difficulty.Beginner or Difficulty.ExpertPlus);
+            }
+
+            // Otherwise, we can do this
             return parts.HasDifficulty(instrument, difficulty) || instrument switch
             {
                 // Allow 5 -> 4-lane conversions to be played on 4-lane

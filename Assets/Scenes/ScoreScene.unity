@@ -1449,3 +1449,5 @@ MonoBehaviour:
     type: 3}
   _drumsCardPrefab: {fileID: 8960343160157875094, guid: 2ab07d8b9969ef4418e8da74642a371f,
     type: 3}
+  _vocalsCardPrefab: {fileID: 8427776599031895052, guid: d037b5975b78e3a4481a5c9d3d7f8c35,
+    type: 3}

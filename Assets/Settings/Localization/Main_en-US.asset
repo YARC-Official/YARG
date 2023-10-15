@@ -218,6 +218,10 @@ MonoBehaviour:
     m_Localized: Taps to HOPOs
     m_Metadata:
       m_Items: []
+  - m_Id: 68554780478660608
+    m_Localized: Vocals
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

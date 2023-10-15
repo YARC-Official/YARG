@@ -1249,10 +1249,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a73ee55907ec4243bc075e23c7bcebbd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  AccuracyPercent: {fileID: 7674939556346006151}
   _playerName: {fileID: 7674939555648136362}
   _instrument: {fileID: 7674939555338052806}
   _difficulty: {fileID: 7674939556132660770}
-  _accuracyPercent: {fileID: 7674939556346006151}
   _score: {fileID: 7674939555971226258}
   _starView: {fileID: 1834059107583459115}
   _notesHit: {fileID: 6177436150762148499}
