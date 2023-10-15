@@ -2028,7 +2028,10 @@ MonoBehaviour:
   _profileName: {fileID: 6729394837757853421}
   _nameInput: {fileID: 6699835779865796626}
   _profilePicture: {fileID: 4386756987044224992}
-  _editProfileButton: {fileID: 6762046227833716996}
+  _profileActionButtons:
+  - {fileID: 6762046227833716996}
+  - {fileID: 5195353766297190381}
+  - {fileID: 8310750777457472825}
   _gameModeDropdown: {fileID: 3079297505774109153}
   _noteSpeedField: {fileID: 130507743044141034}
   _highwayLengthField: {fileID: 2016696336961956848}
@@ -5017,6 +5020,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+--- !u!114 &5195353766297190381 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3,
+    type: 3}
+  m_PrefabInstance: {fileID: 6436711893266689922}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &8390875347821334246 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3,
@@ -5853,6 +5868,18 @@ RectTransform:
     type: 3}
   m_PrefabInstance: {fileID: 7070623002525148502}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8310750777457472825 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3,
+    type: 3}
+  m_PrefabInstance: {fileID: 7070623002525148502}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &7221450939392582673
 PrefabInstance:
   m_ObjectHideFlags: 0

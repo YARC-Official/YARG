@@ -7,7 +7,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
-using YARG.Core.Extensions;
 using YARG.Core.Game;
 using YARG.Helpers;
 using YARG.Player;
@@ -35,7 +34,7 @@ namespace YARG.Menu.Profiles
         [SerializeField]
         private Image _profilePicture;
         [SerializeField]
-        private Button _editProfileButton;
+        private Button[] _profileActionButtons;
 
         [Space]
         [SerializeField]
@@ -130,7 +129,11 @@ namespace YARG.Menu.Profiles
             _profilePicture.sprite = profile.IsBot ? _profileBotSprite : _profileGenericSprite;
 
             // Enable/disable the edit profile button
-            _editProfileButton.interactable = !_profile.IsBot && PlayerContainer.IsProfileTaken(_profile);
+            bool interactable = !_profile.IsBot && PlayerContainer.IsProfileTaken(_profile);
+            foreach (var button in _profileActionButtons)
+            {
+                button.interactable = interactable;
+            }
         }
 
         public void HideContents()
