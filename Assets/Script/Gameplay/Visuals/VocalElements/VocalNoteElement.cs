@@ -8,14 +8,6 @@ namespace YARG.Gameplay.Visuals
     {
         private const float NOTE_POINT_PADDING = 1f / 15f;
 
-        // TODO: Temporary until color profiles for vocals
-        private static readonly Color[] _colors =
-        {
-            new(0f, 0.800f, 1f, 1f),
-            new(1f, 0.522f, 0f, 1f),
-            new(1f, 0.859f, 0f, 1f)
-        };
-
         public VocalNote NoteRef { get; set; }
 
         public override double ElementTime => NoteRef.Time;
@@ -29,7 +21,7 @@ namespace YARG.Gameplay.Visuals
 
         protected override void InitializeElement()
         {
-            var color = _colors[NoteRef.HarmonyPart];
+            var color = VocalTrack.Colors[NoteRef.HarmonyPart];
 
             // Set line color
             foreach (var line in _lineRenderers)

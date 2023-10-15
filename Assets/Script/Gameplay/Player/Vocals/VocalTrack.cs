@@ -28,6 +28,14 @@ namespace YARG.Gameplay.Player
         // TODO: This is temporary
         public const float NOTE_SPEED = 5f;
 
+        // TODO: Temporary until color profiles for vocals
+        public readonly Color[] Colors =
+        {
+            new(0f, 0.800f, 1f, 1f),
+            new(1f, 0.522f, 0f, 1f),
+            new(1f, 0.859f, 0f, 1f)
+        };
+
         private const float SPAWN_TIME_OFFSET = 5f;
 
         private const float TRACK_TOP = 0.90f;
@@ -43,6 +51,8 @@ namespace YARG.Gameplay.Player
         private Transform _playerContainer;
         [SerializeField]
         private Pool[] _notePools;
+        [SerializeField]
+        private Pool _talkiePool;
         [SerializeField]
         private VocalLyricContainer _lyricContainer;
         [SerializeField]
@@ -173,16 +183,34 @@ namespace YARG.Gameplay.Player
 
             while (index < notes.Count && notes[index].Time <= GameManager.SongTime + SPAWN_TIME_OFFSET)
             {
-                // Skip this frame if the pool is full
-                if (!pool.CanSpawnAmount(1))
-                {
-                    return false;
-                }
+                var note = notes[index];
 
-                // Spawn the vocal note
-                var note = pool.TakeWithoutEnabling();
-                ((VocalNoteElement) note).NoteRef = notes[index];
-                note.EnableFromPool();
+                if (note.IsNonPitched)
+                {
+                    // Skip this frame if the pool is full
+                    if (!_talkiePool.CanSpawnAmount(1))
+                    {
+                        return false;
+                    }
+
+                    // Spawn the vocal note
+                    var noteObj = _talkiePool.TakeWithoutEnabling();
+                    ((VocalTalkieElement) noteObj).NoteRef = note;
+                    noteObj.EnableFromPool();
+                }
+                else
+                {
+                    // Skip this frame if the pool is full
+                    if (!pool.CanSpawnAmount(1))
+                    {
+                        return false;
+                    }
+
+                    // Spawn the vocal note
+                    var noteObj = pool.TakeWithoutEnabling();
+                    ((VocalNoteElement) noteObj).NoteRef = note;
+                    noteObj.EnableFromPool();
+                }
 
                 index++;
             }

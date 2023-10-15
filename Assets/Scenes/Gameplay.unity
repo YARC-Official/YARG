@@ -2122,7 +2122,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _prefab: {fileID: 1605303386712953916, guid: 484e94cd403f66e409388c00e567aa52, type: 3}
-  _prewarmAmount: 10
+  _prewarmAmount: 5
   _objectCap: 100
 --- !u!1 &560844719
 GameObject:
@@ -2169,7 +2169,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _prefab: {fileID: 6881370188666117159, guid: a9c1cfdca10258b408dd0912482ffc7d, type: 3}
-  _prewarmAmount: 5
+  _prewarmAmount: 3
   _objectCap: 50
 --- !u!1 &626807277
 GameObject:
@@ -2758,7 +2758,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _prefab: {fileID: 6881370188666117159, guid: 7ab2ab9f7824404489df93fe38b98a65, type: 3}
-  _prewarmAmount: 10
+  _prewarmAmount: 5
   _objectCap: 100
 --- !u!114 &675569667
 MonoBehaviour:
@@ -2804,6 +2804,7 @@ Transform:
   - {fileID: 923813867}
   - {fileID: 554547769}
   - {fileID: 1856380132}
+  - {fileID: 1245254824}
   m_Father: {fileID: 1312797155}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -3590,7 +3591,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _prefab: {fileID: 1605303386712953916, guid: 35e7c7becbe53914d94fea58139c29bf, type: 3}
-  _prewarmAmount: 10
+  _prewarmAmount: 5
   _objectCap: 100
 --- !u!1 &970019644
 GameObject:
@@ -4023,6 +4024,53 @@ RectTransform:
   m_AnchoredPosition: {x: 125, y: -46}
   m_SizeDelta: {x: 250, y: 28}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1245254823
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1245254824}
+  - component: {fileID: 1245254825}
+  m_Layer: 0
+  m_Name: Talkies
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1245254824
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1245254823}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 776478533}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1245254825
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1245254823}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _prefab: {fileID: 8889699353020473416, guid: ff183fed5c04f464db8fc3fa2c023237, type: 3}
+  _prewarmAmount: 5
+  _objectCap: 100
 --- !u!1001 &1279855062
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4305,6 +4353,7 @@ MonoBehaviour:
   - {fileID: 923813868}
   - {fileID: 554547770}
   - {fileID: 1856380133}
+  _talkiePool: {fileID: 1245254825}
   _lyricContainer: {fileID: 675569667}
   _phraseLinePool: {fileID: 560844721}
 --- !u!1 &1316571460
@@ -6054,7 +6103,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _prefab: {fileID: 1605303386712953916, guid: 542b4130e613240418a458416e91c402, type: 3}
-  _prewarmAmount: 10
+  _prewarmAmount: 5
   _objectCap: 100
 --- !u!224 &1861343602 stripped
 RectTransform:

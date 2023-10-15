@@ -183,7 +183,7 @@ namespace YARG.Gameplay.Player
 
                 // Get the pitch, and move to the correct octave
                 float pitch = Engine.State.PitchSang;
-                if (_lastTargetNote is not null)
+                if (_lastTargetNote is not null && !_lastTargetNote.IsNonPitched)
                 {
                     float octavePitch = pitch % 12f;
 
