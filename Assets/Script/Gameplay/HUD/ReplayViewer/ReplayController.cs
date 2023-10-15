@@ -128,7 +128,7 @@ namespace YARG.Gameplay.HUD
             }
 
             GameManager.SetSongTime(time, 0);
-            GameManager.OverridePauseTime(GameManager.RealInputTime);
+            GameManager.OverridePauseTime();
         }
 
         public void OnTimeSliderDragged(float value)

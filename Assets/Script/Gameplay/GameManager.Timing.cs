@@ -14,24 +14,38 @@ namespace YARG.Gameplay
         /// The time into the song, accounting for song speed and calibration.<br/>
         /// This is updated every frame while the game is not paused.
         /// </summary>
+        /// <remarks>
+        /// This value should be used for all interactions that are relative to the audio.
+        /// </remarks>
         public double SongTime => RealSongTime + AudioCalibration;
 
         /// <summary>
         /// The time into the song, accounting for song speed but <b>not</b> calibration.<br/>
         /// This is updated every frame while the game is not paused.
         /// </summary>
+        /// <remarks>
+        /// This value probably doesn't have any practical use outside of GameManager. It is used
+        /// only for keeping track of the actual audio playback time.
+        /// </remarks>
         public double RealSongTime { get; private set; }
 
         /// <summary>
-        /// The current input time, accounting for song speed and calibration.<br/>
+        /// The current input time, accounting for song speed and video calibration.<br/>
         /// This is updated every frame while the game is not paused.
         /// </summary>
+        /// <remarks>
+        /// This value should be used for all interactions with inputs, engines, and replays.
+        /// </remarks>
         public double InputTime => RealInputTime;
 
         /// <summary>
-        /// The current input time, accounting for song speed but <b>not</b> calibration.<br/>
+        /// The current input time, accounting for song speed but <b>not</b> video calibration.<br/>
         /// This is updated every frame while the game is not paused.
         /// </summary>
+        /// <remarks>
+        /// This value should be used for all visual interactions, as video calibration should not delay visuals.
+        /// It should also be used for setting position, otherwise the actual set position will be offset incorrectly.
+        /// </remarks>
         public double RealInputTime { get; private set; }
 
         /// <summary>

@@ -77,12 +77,12 @@ namespace YARG.Gameplay.Visuals
             // Skip if not initialized
             if (!Initialized) return;
 
-            // TODO: Take calibration into consideration
-
+            // Calibration is not taken into consideration here, as that is instead handled in more
+            // critical areas such as the game manager and players
             float z =
-                BasePlayer.STRIKE_LINE_POS                      // Shift origin to the strike line
-                + (float) (ElementTime - GameManager.InputTime) // Get time of note relative to now
-                * Player.NoteSpeed;                             // Adjust speed (units/s)
+                BasePlayer.STRIKE_LINE_POS                          // Shift origin to the strike line
+                + (float) (ElementTime - GameManager.RealInputTime) // Get time of note relative to now
+                * Player.NoteSpeed;                                 // Adjust speed (units/s)
 
             var cacheTransform = transform;
             cacheTransform.localPosition = cacheTransform.localPosition.WithZ(z);
