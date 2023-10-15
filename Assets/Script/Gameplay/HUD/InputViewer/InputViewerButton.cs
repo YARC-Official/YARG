@@ -33,6 +33,7 @@ namespace YARG.Gameplay.HUD
 
         private double _inputTime;
         private double _holdTime;
+        private double _holdStartTime;
 
         private int _pressCount;
 
@@ -57,6 +58,10 @@ namespace YARG.Gameplay.HUD
             time += GameManager.SONG_START_DELAY;
 
             _inputTime = time;
+
+            // Use the game manager's time instead of the input's time, as video calibration
+            // affects the player's input time independently of the game manager's input time
+            _holdStartTime = _gameManager.InputTime + GameManager.SONG_START_DELAY;
 
             _isPressed = pressed;
 
@@ -88,6 +93,7 @@ namespace YARG.Gameplay.HUD
         {
             _inputTime = 0;
             _holdTime = 0;
+            _holdStartTime = 0;
             _pressCount = 0;
             _isPressed = false;
 
@@ -98,7 +104,7 @@ namespace YARG.Gameplay.HUD
         {
             if (_isPressed)
             {
-                _holdTime = _gameManager.InputTime - _inputTime + GameManager.SONG_START_DELAY;
+                _holdTime = _gameManager.InputTime - _holdStartTime + GameManager.SONG_START_DELAY;
 
                 WriteDoubleToBuffer(_holdTimeBuffer, _holdTime);
                 _holdTimeText.SetCharArray(_holdTimeBuffer, 0, _holdTimeBuffer.Length);
