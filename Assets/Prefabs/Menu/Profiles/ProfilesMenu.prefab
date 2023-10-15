@@ -249,7 +249,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 230, y: 0}
+  m_SizeDelta: {x: 240, y: 0}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!222 &5543246495474219794
 CanvasRenderer:
@@ -279,7 +279,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: VIDEO CALIBRATION
+  m_text: INPUT CALIBRATION
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 69b34e9e884c55947b52d9bbbd4258d7, type: 2}
   m_sharedMaterial: {fileID: 4264900350419322127, guid: 69b34e9e884c55947b52d9bbbd4258d7,
@@ -2032,7 +2032,7 @@ MonoBehaviour:
   _gameModeDropdown: {fileID: 3079297505774109153}
   _noteSpeedField: {fileID: 130507743044141034}
   _highwayLengthField: {fileID: 2016696336961956848}
-  _videoCalibrationField: {fileID: 9092729631521478473}
+  _inputCalibrationField: {fileID: 9092729631521478473}
   _leftyFlipToggle: {fileID: 506496582370905451}
   _colorProfileDropdown: {fileID: 5317595837428790396}
   _cameraPresetDropdown: {fileID: 4901702434264564515}
@@ -2872,7 +2872,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8983409997777132036}
   m_Layer: 5
-  m_Name: Video Calibration
+  m_Name: Input Calibration
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4077,7 +4077,7 @@ PrefabInstance:
     - target: {fileID: 4722467204755374586, guid: 8f25b12de267d7544aa2ff7993247fcd,
         type: 3}
       propertyPath: m_OnEndEdit.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: ChangeVideoCalibration
+      value: ChangeInputCalibration
       objectReference: {fileID: 0}
     - target: {fileID: 4722467204755374586, guid: 8f25b12de267d7544aa2ff7993247fcd,
         type: 3}
@@ -4152,7 +4152,7 @@ PrefabInstance:
     - target: {fileID: 7665614177142481491, guid: 8f25b12de267d7544aa2ff7993247fcd,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: -230
+      value: -240
       objectReference: {fileID: 0}
     - target: {fileID: 7665614177142481491, guid: 8f25b12de267d7544aa2ff7993247fcd,
         type: 3}

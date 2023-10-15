@@ -347,7 +347,7 @@ namespace YARG.Gameplay.Player
         protected override void UpdateInputs(double inputTime)
         {
             // Apply video offset
-            inputTime -= Player.Profile.VideoCalibrationSeconds;
+            inputTime -= Player.Profile.InputCalibrationSeconds;
 
             if (Player.Profile.IsBot)
             {
@@ -493,7 +493,7 @@ namespace YARG.Gameplay.Player
 
             double adjustedTime = GameManager.GetRelativeInputTime(input.Time);
             // Apply video offset
-            adjustedTime -= Player.Profile.VideoCalibrationSeconds;
+            adjustedTime -= Player.Profile.InputCalibrationSeconds;
             input = new(adjustedTime, input.Action, input.Integer);
 
             // Allow the input to be explicitly ignored before processing it
