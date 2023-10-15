@@ -69,6 +69,15 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        /// <summary>
+        /// The player's input calibration, in seconds.
+        /// </summary>
+        /// <remarks>
+        /// Be aware that this value is negated!
+        /// Positive calibration settings will result in a negative number here.
+        /// </remarks>
+        public double InputCalibration => -Player.Profile.InputCalibrationSeconds;
+
         public abstract BaseStats Stats { get; }
 
         public abstract float[] StarMultiplierThresholds { get; }
@@ -346,8 +355,9 @@ namespace YARG.Gameplay.Player
 
         protected override void UpdateInputs(double inputTime)
         {
-            // Apply video offset
-            inputTime -= Player.Profile.InputCalibrationSeconds;
+            // Apply input offset
+            // Video offset is already accounted for
+            inputTime += InputCalibration;
 
             if (Player.Profile.IsBot)
             {
@@ -492,8 +502,8 @@ namespace YARG.Gameplay.Player
             if (GameManager.Paused) return;
 
             double adjustedTime = GameManager.GetRelativeInputTime(input.Time);
-            // Apply video offset
-            adjustedTime -= Player.Profile.InputCalibrationSeconds;
+            // Apply input offset
+            adjustedTime += InputCalibration;
             input = new(adjustedTime, input.Action, input.Integer);
 
             // Allow the input to be explicitly ignored before processing it
