@@ -3,6 +3,7 @@ using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Input;
+using YARG.Gameplay.HUD;
 using YARG.Player;
 
 namespace YARG.Gameplay.Player
@@ -26,8 +27,6 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        public abstract BaseEngine BaseEngine { get; }
-
         /// <summary>
         /// The player's input calibration, in seconds.
         /// </summary>
@@ -36,6 +35,10 @@ namespace YARG.Gameplay.Player
         /// Positive calibration settings will result in a negative number here.
         /// </remarks>
         public double InputCalibration => -Player.Profile.InputCalibrationSeconds;
+
+        protected BaseInputViewer InputViewer { get; private set; }
+
+        public abstract BaseEngine BaseEngine { get; }
 
         public abstract BaseStats Stats { get; }
 
@@ -80,13 +83,19 @@ namespace YARG.Gameplay.Player
             if (IsInitialized) return;
 
             Player = player;
-            
+
             SyncTrack = chart.SyncTrack;
-            
+
             if (GameManager.IsReplay)
             {
                 _replayInputs = new List<GameInput>(GameManager.Replay.Frames[index].Inputs);
                 Debug.Log("Initialized replay inputs with " + _replayInputs.Count + " inputs");
+            }
+
+            if (InputViewer != null)
+            {
+                InputViewer.SetColors(player.ColorProfile);
+                InputViewer.ResetButtons();
             }
 
             IsInitialized = true;
@@ -143,7 +152,7 @@ namespace YARG.Gameplay.Player
         {
             // Apply input offset
             // Video offset is already accounted for
-            inputTime += InputCalibration;
+            time += InputCalibration;
 
             if (Player.Profile.IsBot)
             {
@@ -158,14 +167,18 @@ namespace YARG.Gameplay.Player
                     var input = ReplayInputs[_replayInputIndex];
 
                     // Current input does not meet the time requirement
-                    if (inputTime < input.Time)
+                    if (time < input.Time)
                     {
                         break;
                     }
-                    
+
                     BaseEngine.QueueInput(input);
-                    InputViewer.OnInput(input);
-                    
+
+                    if (InputViewer != null)
+                    {
+                        InputViewer.OnInput(input);
+                    }
+
                     _replayInputIndex++;
                 }
             }
@@ -205,6 +218,11 @@ namespace YARG.Gameplay.Player
 
             BaseEngine.QueueInput(input);
             _replayInputs.Add(input);
+
+            if (InputViewer != null)
+            {
+                InputViewer.OnInput(input);
+            }
         }
 
         protected abstract bool InterceptInput(ref GameInput input);
@@ -212,12 +230,12 @@ namespace YARG.Gameplay.Player
         protected static int[] PopulateStarScoreThresholds(float[] multiplierThresh, int baseScore)
         {
             var starScoreThresh = new int[multiplierThresh.Length];
-            
+
             for (int i = 0; i < multiplierThresh.Length; i++)
             {
                 starScoreThresh[i] = Mathf.FloorToInt(baseScore * multiplierThresh[i]);
             }
-            
+
             return starScoreThresh;
         }
     }
