@@ -11,9 +11,9 @@ namespace YARG.Gameplay.Visuals
         // TODO: Temporary until color profiles for vocals
         private static readonly Color[] _colors =
         {
-            new(0.008f, 0.710f, 0.937f, 1f),
-            new(0.667f, 0.286f, 0.012f, 1f),
-            new(0.886f, 0.561f, 0.090f, 1f)
+            new(0f, 0.800f, 1f, 1f),
+            new(1f, 0.522f, 0f, 1f),
+            new(1f, 0.859f, 0f, 1f)
         };
 
         public VocalNote NoteRef { get; set; }
