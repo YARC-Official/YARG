@@ -39,10 +39,20 @@ namespace YARG.Gameplay.Player
         private const float SPAWN_TIME_OFFSET = 5f;
 
         private const float TRACK_TOP = 0.90f;
+        private const float TRACK_TOP_HARMONY = 0.53f;
+
         private const float TRACK_BOTTOM = -0.53f;
+
+        private float _currentTrackTop = TRACK_TOP;
 
         [SerializeField]
         private GameObject _vocalPlayerPrefab;
+
+        [Space]
+        [SerializeField]
+        private MeshRenderer _trackRenderer;
+        [SerializeField]
+        private Material _harmonyTrackMaterial;
 
         [Space]
         [SerializeField]
@@ -100,6 +110,13 @@ namespace YARG.Gameplay.Player
             _phraseIndices = new int[_vocalsTrack.Parts.Count];
             _noteIndices = new int[_vocalsTrack.Parts.Count];
             _lyricIndices = new int[_vocalsTrack.Parts.Count];
+
+            // Set the track material to harmony (if it's harmony)
+            if (vocalsTrack.Instrument == Instrument.Harmony)
+            {
+                _trackRenderer.material = _harmonyTrackMaterial;
+                _currentTrackTop = TRACK_TOP_HARMONY;
+            }
         }
 
         public VocalsPlayer CreatePlayer()
@@ -305,8 +322,8 @@ namespace YARG.Gameplay.Player
 
         public float GetPosForPitch(float pitch)
         {
-            var lerp = YargMath.Lerp(TRACK_BOTTOM, TRACK_TOP, _viewRange.Min, _viewRange.Max, pitch);
-            return Mathf.Clamp(lerp, TRACK_BOTTOM, TRACK_TOP);
+            var lerp = YargMath.Lerp(TRACK_BOTTOM, _currentTrackTop, _viewRange.Min, _viewRange.Max, pitch);
+            return Mathf.Clamp(lerp, TRACK_BOTTOM, _currentTrackTop);
         }
     }
 }

@@ -16,6 +16,8 @@ namespace YARG.Gameplay.Visuals
         private double _minimumTime;
         private bool _isStarpower;
 
+        private int _harmonyIndex;
+
         public override double ElementTime => Math.Max(_lyricRef.Time, _minimumTime);
 
         [SerializeField]
@@ -23,13 +25,16 @@ namespace YARG.Gameplay.Visuals
 
         public float Width => _lyricText.GetPreferredValues().x;
 
-        public void Initialize(TextEvent lyric, double minTime, double lyricLength, bool isStarpower)
+        public void Initialize(TextEvent lyric, double minTime, double lyricLength,
+            bool isStarpower, int harmonyIndex)
         {
             _lyricRef = lyric;
             _lyricLength = lyricLength;
 
             _minimumTime = minTime;
             _isStarpower = isStarpower;
+
+            _harmonyIndex = harmonyIndex;
         }
 
         protected override void InitializeElement()
@@ -63,10 +68,16 @@ namespace YARG.Gameplay.Visuals
         {
         }
 
-        private static string GetLyricText(string lyricText)
+        private string GetLyricText(string lyricText)
         {
             // Get rid of extra spaces
             lyricText = lyricText.Trim();
+
+            // If '$', hide the lyric if not on HARM1
+            if (lyricText.StartsWith('$') && _harmonyIndex != 0)
+            {
+                return string.Empty;
+            }
 
             // Special replacements
             lyricText = lyricText.Replace('=', '-');
