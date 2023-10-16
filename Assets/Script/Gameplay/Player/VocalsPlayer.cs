@@ -56,7 +56,7 @@ namespace YARG.Gameplay.Player
             NoteTrack = track.CloneAsInstrumentDifficulty();
 
             // Create and start an input context for the mic
-            if (!GameManager.IsReplay)
+            if (!GameManager.IsReplay && player.Bindings.Microphone is not null)
             {
                 _inputContext = new MicInputContext(player.Bindings.Microphone, GameManager);
                 _inputContext.Start();

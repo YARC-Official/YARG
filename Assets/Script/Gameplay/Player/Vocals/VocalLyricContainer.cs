@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.Serialization;
 using YARG.Core.Chart;
 using YARG.Gameplay.Visuals;
 
