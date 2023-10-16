@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -16,19 +16,23 @@ using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
 using YARG.Gameplay.Visuals;
+using YARG.Helpers.Extensions;
 using YARG.Integration;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Menu.ScoreScreen;
+using YARG.Playback;
 using YARG.Player;
 using YARG.Replays;
-using YARG.Helpers.Extensions;
+using YARG.Settings;
 
 namespace YARG.Gameplay
 {
     [DefaultExecutionOrder(-1)]
     public partial class GameManager : MonoBehaviour
     {
+        public const double SONG_START_DELAY = SongRunner.SONG_START_DELAY;
+
         [Header("References")]
         [SerializeField]
         private TrackViewManager _trackViewManager;
@@ -125,6 +129,8 @@ namespace YARG.Gameplay
             remove => _songStarted -= value;
         }
 
+        private SongRunner _songRunner;
+
         public PracticeManager  PracticeManager  { get; private set; }
         public BeatEventManager BeatEventManager { get; private set; }
         public BackgroundManager BackgroundManager { get; private set; }
@@ -132,15 +138,30 @@ namespace YARG.Gameplay
         public SongMetadata Song  { get; private set; }
         public SongChart    Chart { get; private set; }
 
-        public float SelectedSongSpeed { get; private set; }
-        public float ActualSongSpeed   => SelectedSongSpeed + _syncSpeedAdjustment;
+        // For clarity, try to avoid using these properties inside GameManager itself
+        // These are just to expose properties from the song runner to the outside
+        /// <inheritdoc cref="SongRunner.SongTime"/>
+        public double SongTime => _songRunner.SongTime;
+
+        /// <inheritdoc cref="SongRunner.RealSongTime"/>
+        public double RealSongTime => _songRunner.RealSongTime;
+
+        /// <inheritdoc cref="SongRunner.InputTime"/>
+        public double InputTime => _songRunner.InputTime;
+
+        /// <inheritdoc cref="SongRunner.RealInputTime"/>
+        public double RealInputTime => _songRunner.RealInputTime;
+
+        /// <inheritdoc cref="SongRunner.SelectedSongSpeed"/>
+        public float SelectedSongSpeed => _songRunner.SelectedSongSpeed;
+
+        /// <inheritdoc cref="SongRunner.Paused"/>
+        public bool Paused => _songRunner.Paused;
 
         public double SongLength { get; private set; }
 
         public bool IsReplay   { get; private set; }
         public bool IsPractice { get; private set; }
-
-        public bool Paused { get; private set; }
 
         public int    BandScore { get; private set; }
         public int    BandCombo { get; private set; }
@@ -165,7 +186,6 @@ namespace YARG.Gameplay
             Song = GlobalVariables.Instance.CurrentSong;
             IsReplay = GlobalVariables.Instance.IsReplay;
             IsPractice = GlobalVariables.Instance.IsPractice && !IsReplay;
-            SelectedSongSpeed = GlobalVariables.Instance.SongSpeed;
 
             Navigator.Instance.PopAllSchemes();
             GameStateFetcher.SetSongMetadata(Song);
@@ -184,7 +204,7 @@ namespace YARG.Gameplay
         {
             Navigator.Instance.NavigationEvent -= OnNavigationEvent;
             GlobalVariables.AudioManager.SongEnd -= OnAudioEnd;
-            UninitializeTime();
+            _songRunner.Dispose();
 
             // Reset the time scale back, as it would be 0 at this point (because of pausing)
             Time.timeScale = 1f;
@@ -226,8 +246,12 @@ namespace YARG.Gameplay
             // Spawn players
             CreatePlayers();
 
-            // Initialize time stuff
-            InitializeTime();
+            // Initialize song runner
+            float songSpeed = GlobalVariables.Instance.SongSpeed;
+            double videoCalibration = -SettingsManager.Settings.VideoCalibration.Data / 1000.0;
+            double audioCalibration = (-SettingsManager.Settings.AudioCalibration.Data / 1000.0) - videoCalibration;
+            double songOffset = -Song.SongOffsetSeconds;
+            _songRunner = new SongRunner(songSpeed, videoCalibration, audioCalibration, songOffset);
 
             // Listen for menu inputs
             Navigator.Instance.NavigationEvent += OnNavigationEvent;
@@ -250,7 +274,7 @@ namespace YARG.Gameplay
 
 #if UNITY_EDITOR
             // Log constant values
-            Debug.Log($"Audio calibration: {AudioCalibration}, song offset: {SongOffset}");
+            Debug.Log($"Audio calibration: {audioCalibration}, video calibration: {videoCalibration}, song offset: {songOffset}");
 #endif
 
             // Loaded, enable updates
@@ -269,7 +293,7 @@ namespace YARG.Gameplay
                     return;
                 }
 
-                SetPaused(!Paused);
+                SetPaused(!_songRunner.Paused);
             }
 
             // Toggle debug text
@@ -281,17 +305,17 @@ namespace YARG.Gameplay
             }
 
             // Skip the rest if paused
-            if (Paused) return;
+            if (_songRunner.Paused) return;
 
             // Update timing info
-            UpdateTimes();
+            _songRunner.Update();
 
             // Update players
             int totalScore = 0;
             int totalCombo = 0;
             foreach (var player in _players)
             {
-                player.UpdateWithTimes(InputTime);
+                player.UpdateWithTimes(_songRunner.InputTime);
 
                 totalScore += player.Score;
                 totalCombo += player.Combo;
@@ -361,15 +385,15 @@ namespace YARG.Gameplay
                 }
 
                 _debugText.text +=
-                    $"Song time: {SongTime:0.000000}\n" +
-                    $"Input time: {InputTime:0.000000}\n" +
-                    $"Pause time: {PauseStartTime:0.000000}\n" +
-                    $"Time difference: {InputTime - SongTime:0.000000}\n" +
-                    $"Sync start delta: {_syncStartDelta:0.000000}\n" +
-                    $"Speed adjustment: {_syncSpeedAdjustment:0.00}\n" +
-                    $"Speed multiplier: {_syncSpeedMultiplier}\n" +
-                    $"Input base: {InputTimeBase:0.000000}\n" +
-                    $"Input offset: {InputTimeOffset:0.000000}\n";
+                    $"Song time: {_songRunner.SongTime:0.000000}\n" +
+                    $"Input time: {_songRunner.InputTime:0.000000}\n" +
+                    $"Pause time: {_songRunner.PauseStartTime:0.000000}\n" +
+                    $"Time difference: {_songRunner.SyncInputTime - _songRunner.SyncSongTime:0.000000}\n" +
+                    $"Sync start delta: {_songRunner.SyncStartDelta:0.000000}\n" +
+                    $"Speed adjustment: {_songRunner.SyncSpeedAdjustment:0.00}\n" +
+                    $"Speed multiplier: {_songRunner.SyncSpeedMultiplier}\n" +
+                    $"Input base: {_songRunner.InputTimeBase:0.000000}\n" +
+                    $"Input offset: {_songRunner.InputTimeOffset:0.000000}\n";
             }
         }
 
@@ -469,7 +493,7 @@ namespace YARG.Gameplay
             {
                 try
                 {
-                    Song.LoadAudio(GlobalVariables.AudioManager, SelectedSongSpeed);
+                    Song.LoadAudio(GlobalVariables.AudioManager, GlobalVariables.Instance.SongSpeed);
                     SongLength = GlobalVariables.AudioManager.AudioLengthD;
                     GlobalVariables.AudioManager.SongEnd += OnAudioEnd;
                 }
@@ -554,38 +578,15 @@ namespace YARG.Gameplay
             }
         }
 
-        public void SetSongSpeed(float speed)
-        {
-            _pauseSync = true;
-            _finishedSyncing.WaitOne();
+        public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
+            => _songRunner.SetSongTime(time, delayTime);
 
-            // 10% - 4995%, we reserve 5% so that audio syncing can still function
-            speed = Math.Clamp(speed, 10 / 100f, 4995 / 100f);
-
-            // Set speed; save old for input offset compensation
-            SelectedSongSpeed = speed;
-
-            // Set based on the actual song speed, so as to not break resyncing
-            GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
-
-            // Adjust input offset, otherwise input time will desync
-            SetInputBase(InputTime);
-
-            _pauseSync = false;
-
-#if UNITY_EDITOR
-            Debug.Log($"Set song speed to {speed:0.00}.\n"
-                + $"Input time: {InputTime:0.000000}, song time: {SongTime:0.000000}");
-#endif
-        }
-
-        public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(SelectedSongSpeed + deltaSpeed);
+        public void SetSongSpeed(float speed) => _songRunner.SetSongSpeed(speed);
+        public void AdjustSongSpeed(float deltaSpeed) => _songRunner.SetSongSpeed(deltaSpeed);
 
         public void Pause(bool showMenu = true)
         {
-            if (Paused) return;
-
-            Paused = true;
+            if (_songRunner.Paused) return;
 
             if (showMenu)
             {
@@ -608,23 +609,17 @@ namespace YARG.Gameplay
                 _debugText.gameObject.SetActive(false);
             }
 
-            PauseStartTime = RealInputTime;
-            GlobalVariables.AudioManager.Pause();
+            _songRunner.Pause();
 
             // Pause the background/venue
             Time.timeScale = 0f;
             BackgroundManager.SetPaused(true);
-
-#if UNITY_EDITOR
-            Debug.Log($"Paused at song time {SongTime:0.000000} (real: {RealSongTime:0.000000}), input time {InputTime:0.000000} (real: {RealInputTime:0.000000}).");
-#endif
         }
 
         public void Resume(bool inputCompensation = true)
         {
-            if (!Paused) return;
+            if (!_songRunner.Paused) return;
 
-            Paused = false;
             _pauseMenu.gameObject.SetActive(false);
 
             // Unpause the background/venue
@@ -635,47 +630,22 @@ namespace YARG.Gameplay
 
             _debugText.gameObject.SetActive(_isShowDebugText);
 
-            if (inputCompensation)
-            {
-                SetInputBase(PauseStartTime);
-            }
-
-            if (RealSongTime >= SongOffset)
-            {
-                GlobalVariables.AudioManager.Play();
-            }
-
-#if UNITY_EDITOR
-            Debug.Log($"Resumed at song time {SongTime:0.000000} (real: {RealSongTime:0.000000}), input time {InputTime:0.000000} (real: {RealInputTime:0.000000}).");
-#endif
+            _songRunner.Resume(inputCompensation);
         }
 
         public void SetPaused(bool paused)
         {
-            if (paused)
-            {
-                Pause();
-            }
-            else
-            {
-                Resume();
-            }
-
+            _songRunner.SetPaused(paused);
             GameStateFetcher.SetPaused(paused);
         }
 
-        public void OverridePauseTime(double pauseTime = -1)
-        {
-            if (!Paused)
-            {
-                return;
-            }
+        public void OverridePauseTime(double pauseTime = -1) => _songRunner.OverridePauseTime(pauseTime);
 
-            if (pauseTime < 0)
-                pauseTime = RealInputTime;
+        public double GetRelativeInputTime(double timeFromInputSystem)
+            => _songRunner.GetRelativeInputTime(timeFromInputSystem);
 
-            PauseStartTime = pauseTime;
-        }
+        public double GetCalibratedRelativeInputTime(double timeFromInputSystem)
+            => _songRunner.GetRelativeInputTime(timeFromInputSystem);
 
         private void EndSong()
         {
@@ -691,7 +661,6 @@ namespace YARG.Gameplay
                 SaveReplay(Song.SongLengthSeconds);
             }
 
-            UninitializeTime();
             GlobalVariables.AudioManager.UnloadSong();
 
             GlobalVariables.Instance.ScoreScreenStats = new ScoreScreenStats
@@ -765,7 +734,7 @@ namespace YARG.Gameplay
                         return;
                     }
 
-                    SetPaused(!Paused);
+                    SetPaused(!_songRunner.Paused);
                     break;
             }
         }
