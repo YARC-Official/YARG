@@ -9,18 +9,29 @@ namespace YARG.Playback
         public readonly struct Info
         {
             /// <summary>
-            /// Quarter notes would be <c>1f / 4f</c>, whole notes <c>1f</c>, etc.
+            /// The number of beats for the rate at which this event should occur at.
+            /// This value is relative to the current time signature's denominator.
             /// </summary>
-            public readonly float Note;
+            /// <remarks>
+            /// 1 = every beat, 2 = every 2 beats, 0.5 = every beat and every half-beat, etc.
+            /// A time signature of x/4 will make events occur relative to 1/4th steps,
+            /// x/8 will make events occur relative to 1/8th steps, etc.
+            /// </remarks>
+            public readonly float BeatRate;
 
             /// <summary>
             /// The offset of the event in seconds.
+            /// This is a constant offset for every firing of the event,
+            /// where positive values delay the event, and negative values make it early.
             /// </summary>
-            public readonly float Offset;
+            /// <remarks>
+            /// 0.05 = 50 ms late, -0.025 = 25 ms early.
+            /// </remarks>
+            public readonly double Offset;
 
-            public Info(float note, float offset)
+            public Info(float rate, double offset = 0)
             {
-                Note = note;
+                BeatRate = rate;
                 Offset = offset;
             }
         }
@@ -104,17 +115,15 @@ namespace YARG.Playback
             // Update per action now
             foreach (var (action, state) in _states)
             {
-                // Get the ticks per whole note so we can use it to get the ticks per note.
-                // DO NOT use measures here, as a "quarter note" represents a quarter of
-                // a whole and NOT a quarter of a measure.
-                uint ticksPerWholeNote = (uint) (_sync.Resolution * (4.0 / currentTimeSig.Denominator) * 4.0);
-                uint ticksPerNote = (uint) (ticksPerWholeNote * state.Info.Note);
+                // Get the ticks per denominator beat so we can use it to determine when to call the action.
+                uint ticksPerBeat = (uint) (_sync.Resolution * (4.0 / currentTimeSig.Denominator));
+                uint ticksPerEvent = (uint) (ticksPerBeat * state.Info.BeatRate);
 
                 // Call action
                 bool actionDone = false;
-                while (_sync.TickToTime(state.LastTick + ticksPerNote) <= songTime + state.Info.Offset)
+                while (_sync.TickToTime(state.LastTick + ticksPerEvent) <= songTime + state.Info.Offset)
                 {
-                    state.LastTick += ticksPerNote;
+                    state.LastTick += ticksPerEvent;
                     if (!actionDone)
                     {
                         action();
