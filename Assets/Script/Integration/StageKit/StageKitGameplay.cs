@@ -317,7 +317,7 @@ namespace YARG.Integration.StageKit
             foreach (var primitive in _controller.CurrentLightingCue.CuePrimitives)
             {
                 //When a BeatPattern primitive is created, it subscribes its OnBeat to the BeatEventManager.
-                GameManager.BeatEventManager.Unsubscribe(primitive.OnBeat);
+                GameManager.BeatEventHandler.Unsubscribe(primitive.OnBeat);
 
                 primitive.CancellationTokenSource?.Cancel();
             }

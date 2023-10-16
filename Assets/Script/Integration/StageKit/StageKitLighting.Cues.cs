@@ -693,7 +693,7 @@ namespace YARG.Integration.StageKit
             if (StageKitLightingController.Instance.LargeVenue || eventName != BeatlineType.Measure) return;
             if (_greenIsSpinning)
             {
-                _gameManager.BeatEventManager.Unsubscribe(_greenPattern.OnBeat);
+                _gameManager.BeatEventHandler.Unsubscribe(_greenPattern.OnBeat);
                 StageKitLightingController.Instance.CurrentLightingCue.CuePrimitives.Remove(_greenPattern);
 
                 StageKitLightingController.Instance.SetLed(GREEN, ALL);

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -131,8 +131,9 @@ namespace YARG.Gameplay
 
         private SongRunner _songRunner;
 
+        public BeatEventHandler BeatEventHandler { get; private set; }
+
         public PracticeManager  PracticeManager  { get; private set; }
-        public BeatEventManager BeatEventManager { get; private set; }
         public BackgroundManager BackgroundManager { get; private set; }
 
         public SongMetadata Song  { get; private set; }
@@ -178,7 +179,6 @@ namespace YARG.Gameplay
         {
             // Set references
             PracticeManager = GetComponent<PracticeManager>();
-            BeatEventManager = GetComponent<BeatEventManager>();
             BackgroundManager = GetComponent<BackgroundManager>();
 
             _yargPlayers = PlayerContainer.Players;
@@ -307,8 +307,9 @@ namespace YARG.Gameplay
             // Skip the rest if paused
             if (_songRunner.Paused) return;
 
-            // Update timing info
+            // Update handlers
             _songRunner.Update();
+            BeatEventHandler.Update(_songRunner.SongTime);
 
             // Update players
             int totalScore = 0;
@@ -481,6 +482,7 @@ namespace YARG.Gameplay
             if (_loadState != LoadFailureState.None)
                 return;
 
+            BeatEventHandler = new(Chart.SyncTrack);
             _chartLoaded?.Invoke(Chart);
         }
 

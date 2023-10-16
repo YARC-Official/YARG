@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using YARG.Core.Chart;
 
-namespace YARG.Gameplay
+namespace YARG.Playback
 {
-    public class BeatEventManager : GameplayBehaviour
+    public class BeatEventHandler
     {
         public readonly struct Info
         {
@@ -28,7 +28,6 @@ namespace YARG.Gameplay
         private class State
         {
             public readonly Info Info;
-
             public uint LastTick;
 
             public State(Info info)
@@ -39,12 +38,17 @@ namespace YARG.Gameplay
 
         private SyncTrack _sync;
 
-        private int _currentTimeSigIndex;
+        private int _currentTimeSigIndex = 0;
         private int _nextTimeSigIndex = 1;
 
         private readonly Dictionary<Action, State> _states = new();
         private readonly List<Action> _removeStates = new();
         private readonly List<(Action, State)> _addStates = new();
+
+        public BeatEventHandler(SyncTrack sync)
+        {
+            _sync = sync;
+        }
 
         public void Subscribe(Action action, Info info)
         {
@@ -58,7 +62,7 @@ namespace YARG.Gameplay
 
         public void ResetTimers()
         {
-            foreach (var (_, state) in _states)
+            foreach (var state in _states.Values)
             {
                 state.LastTick = 0;
             }
@@ -67,19 +71,14 @@ namespace YARG.Gameplay
             _nextTimeSigIndex = 1;
         }
 
-        protected override void OnChartLoaded(SongChart chart)
-        {
-            _sync = GameManager.Chart.SyncTrack;
-        }
-
-        private void Update()
+        public void Update(double songTime)
         {
             // Skip until in the chart
-            if (GameManager.SongTime < 0) return;
+            if (songTime < 0) return;
 
             // Update the time signature indices
             var timeSigs = _sync.TimeSignatures;
-            while (_nextTimeSigIndex < timeSigs.Count && timeSigs[_nextTimeSigIndex].Time < GameManager.SongTime)
+            while (_nextTimeSigIndex < timeSigs.Count && timeSigs[_nextTimeSigIndex].Time < songTime)
             {
                 _currentTimeSigIndex++;
                 _nextTimeSigIndex++;
@@ -88,7 +87,8 @@ namespace YARG.Gameplay
             // Get the time signature
             var currentTimeSig = timeSigs[_currentTimeSigIndex];
 
-            // Add and remove states from the _state list outside the main loop to prevent enumeration errors. (aka removing things from the list while it loops)
+            // Add and remove states from the _state list outside the main loop to prevent enumeration errors.
+            // (aka removing things from the list while it loops)
             foreach (var (action, state) in _addStates)
             {
                 _states.Add(action, state);
@@ -107,12 +107,12 @@ namespace YARG.Gameplay
                 // Get the ticks per whole note so we can use it to get the ticks per note.
                 // DO NOT use measures here, as a "quarter note" represents a quarter of
                 // a whole and NOT a quarter of a measure.
-                uint ticksPerWholeNote = (uint) (_sync.Resolution * ((double) 4 / currentTimeSig.Denominator) * 4);
+                uint ticksPerWholeNote = (uint) (_sync.Resolution * (4.0 / currentTimeSig.Denominator) * 4.0);
                 uint ticksPerNote = (uint) (ticksPerWholeNote * state.Info.Note);
 
                 // Call action
                 bool actionDone = false;
-                while (_sync.TickToTime(state.LastTick + ticksPerNote) <= GameManager.SongTime + state.Info.Offset)
+                while (_sync.TickToTime(state.LastTick + ticksPerNote) <= songTime + state.Info.Offset)
                 {
                     state.LastTick += ticksPerNote;
                     if (!actionDone)

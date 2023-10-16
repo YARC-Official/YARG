@@ -154,8 +154,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void FinishInitialization()
         {
-            GameManager.BeatEventManager.Subscribe(StarpowerBar.PulseBarIfAble,
-                new BeatEventManager.Info(1f / 4f, 0f));
+            GameManager.BeatEventHandler.Subscribe(StarpowerBar.PulseBarIfAble, new(1f / 4f, 0f));
 
             TrackMaterial.Initialize(ZeroFadePosition, FadeSize);
             CameraPositioner.Initialize(Player.CameraPreset);
@@ -318,7 +317,7 @@ namespace YARG.Gameplay.Player
         {
             base.FinishDestruction();
 
-            GameManager.BeatEventManager.Unsubscribe(StarpowerBar.PulseBarIfAble);
+            GameManager.BeatEventHandler.Unsubscribe(StarpowerBar.PulseBarIfAble);
         }
     }
 }

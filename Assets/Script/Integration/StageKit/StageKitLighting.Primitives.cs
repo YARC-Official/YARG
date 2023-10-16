@@ -21,8 +21,8 @@ namespace YARG.Integration.StageKit
             _gameManager = Object.FindObjectOfType<GameManager>();
             _continuous = continuous;
             _patternList = patternList;
-            _gameManager.BeatEventManager.Subscribe(OnBeat,
-                new BeatEventManager.Info(1.0f / (timesPerBeat * _patternList.Length), 0f));
+            _gameManager.BeatEventHandler.Subscribe(OnBeat,
+                new(1.0f / (timesPerBeat * _patternList.Length), 0f));
         }
 
         public override void OnBeat()
@@ -35,7 +35,7 @@ namespace YARG.Integration.StageKit
             //they've run once otherwise they pile up.
             if (!_continuous && _patternIndex == _patternList.Length)
             {
-                _gameManager.BeatEventManager.Unsubscribe(OnBeat);
+                _gameManager.BeatEventHandler.Unsubscribe(OnBeat);
                 StageKitLightingController.Instance.CurrentLightingCue.CuePrimitives.Remove(this);
             }
 
