@@ -49,8 +49,8 @@ namespace YARG.Playback
 
         private SyncTrack _sync;
 
-        private int _currentTimeSigIndex = 0;
-        private int _nextTimeSigIndex = 1;
+        private int _tempoIndex = 0;
+        private int _timeSigIndex = 0;
 
         private readonly Dictionary<Action, State> _states = new();
         private readonly List<Action> _removeStates = new();
@@ -78,8 +78,8 @@ namespace YARG.Playback
                 state.LastTick = 0;
             }
 
-            _currentTimeSigIndex = 0;
-            _nextTimeSigIndex = 1;
+            _tempoIndex = 0;
+            _timeSigIndex = 0;
         }
 
         public void Update(double songTime)
@@ -87,16 +87,17 @@ namespace YARG.Playback
             // Skip until in the chart
             if (songTime < 0) return;
 
-            // Update the time signature indices
+            // Update the current sync track info
+            var tempos = _sync.Tempos;
             var timeSigs = _sync.TimeSignatures;
-            while (_nextTimeSigIndex < timeSigs.Count && timeSigs[_nextTimeSigIndex].Time < songTime)
-            {
-                _currentTimeSigIndex++;
-                _nextTimeSigIndex++;
-            }
 
-            // Get the time signature
-            var currentTimeSig = timeSigs[_currentTimeSigIndex];
+            while (_tempoIndex + 1 < tempos.Count && tempos[_tempoIndex + 1].Time < songTime)
+                _tempoIndex++;
+            while (_timeSigIndex + 1 < timeSigs.Count && timeSigs[_timeSigIndex + 1].Time < songTime)
+                _timeSigIndex++;
+
+            var currentTempo = tempos[_tempoIndex];
+            var currentTimeSig = timeSigs[_timeSigIndex];
 
             // Add and remove states from the _state list outside the main loop to prevent enumeration errors.
             // (aka removing things from the list while it loops)
@@ -121,7 +122,7 @@ namespace YARG.Playback
 
                 // Call action
                 bool actionDone = false;
-                while (_sync.TickToTime(state.LastTick + ticksPerEvent) <= songTime + state.Info.Offset)
+                while (_sync.TickToTime(state.LastTick + ticksPerEvent, currentTempo) <= songTime + state.Info.Offset)
                 {
                     state.LastTick += ticksPerEvent;
                     if (!actionDone)
