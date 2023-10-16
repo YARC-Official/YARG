@@ -247,6 +247,7 @@ namespace YARG.Gameplay
 
         private void Update()
         {
+            // Pause/unpause
             if (Keyboard.current.escapeKey.wasPressedThisFrame)
             {
                 if (IsPractice && !PracticeManager.HasSelectedSection)
@@ -257,6 +258,69 @@ namespace YARG.Gameplay
                 SetPaused(!Paused);
             }
 
+            // Toggle debug text
+            if (Keyboard.current.ctrlKey.isPressed && Keyboard.current.tabKey.wasPressedThisFrame)
+            {
+                _isShowDebugText = !_isShowDebugText;
+
+                _debugText.gameObject.SetActive(_isShowDebugText);
+            }
+
+            // Skip the rest if paused
+            if (Paused) return;
+
+            // Update timing info
+            UpdateTimes();
+
+            // Update players
+            int totalScore = 0;
+            int totalCombo = 0;
+            foreach (var player in _players)
+            {
+                player.UpdateWithTimes(InputTime);
+
+                totalScore += player.Score;
+                totalCombo += player.Combo;
+            }
+
+            BandScore = totalScore;
+            BandCombo = totalCombo;
+
+            // Get the band stars
+            double totalStars = 0f;
+            foreach (var player in _players)
+            {
+                var thresh = player.StarScoreThresholds;
+                for (int i = 0; i < thresh.Length; i++)
+                {
+                    // Skip until we reach the progressing threshold
+                    if (player.Score > thresh[i])
+                    {
+                        if (i == thresh.Length - 1)
+                        {
+                            totalStars += 6f;
+                        }
+
+                        continue;
+                    }
+
+                    // Otherwise, get the progress.
+                    // There is at least this amount of stars.
+                    totalStars += i;
+
+                    // Then, we just gotta get the progress into the next star.
+                    int bound = i != 0 ? thresh[i - 1] : 0;
+                    totalStars += (double) (player.Score - bound) / (thresh[i] - bound);
+
+                    break;
+                }
+            }
+
+            BandStars = totalStars / _players.Count;
+
+            // Debug text
+            // Note: this must come last in the update sequence!
+            // Any updates happening after this will not reflect until the next frame
             if (_isShowDebugText)
             {
                 _debugText.text = null;
@@ -293,68 +357,6 @@ namespace YARG.Gameplay
                     $"Input base: {InputTimeBase:0.000000}\n" +
                     $"Input offset: {InputTimeOffset:0.000000}\n";
             }
-
-            if (Paused)
-            {
-                return;
-            }
-
-            UpdateTimes();
-
-            if (Keyboard.current.ctrlKey.isPressed && Keyboard.current.tabKey.wasPressedThisFrame)
-            {
-                _isShowDebugText = !_isShowDebugText;
-
-                _debugText.gameObject.SetActive(_isShowDebugText);
-            }
-
-            // Set total score and combos
-
-            int totalScore = 0;
-            int totalCombo = 0;
-            foreach (var player in _players)
-            {
-                player.UpdateWithTimes(InputTime);
-
-                totalScore += player.Score;
-                totalCombo += player.Combo;
-            }
-
-            BandScore = totalScore;
-            BandCombo = totalCombo;
-
-            // Get the band stars
-
-            double totalStars = 0f;
-            foreach (var player in _players)
-            {
-                var thresh = player.StarScoreThresholds;
-                for (int i = 0; i < thresh.Length; i++)
-                {
-                    // Skip until we reach the progressing threshold
-                    if (player.Score > thresh[i])
-                    {
-                        if (i == thresh.Length - 1)
-                        {
-                            totalStars += 6f;
-                        }
-
-                        continue;
-                    }
-
-                    // Otherwise, get the progress.
-                    // There is at least this amount of stars.
-                    totalStars += i;
-
-                    // Then, we just gotta get the progress into the next star.
-                    int bound = i != 0 ? thresh[i - 1] : 0;
-                    totalStars += (double) (player.Score - bound) / (thresh[i] - bound);
-
-                    break;
-                }
-            }
-
-            BandStars = totalStars / _players.Count;
         }
 
         private async UniTask LoadReplay()
