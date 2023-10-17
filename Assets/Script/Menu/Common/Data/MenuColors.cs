@@ -48,20 +48,22 @@ namespace YARG.Menu.Data
             static float GetLightness(Color color)
             {
                 // These values work a lot better for this scenario
-                return color.GetLightness(0.45f, 0.40f, 0.15f);
+                return color.GetLightness(0.30f, 0.40f, 0.15f);
             }
 
             // Threshold above which a color is considered to be bright,
             // and below which it is considered dark
-            const float lightnessThreshold = 0.5f;
+            const float LIGHTNESS_THRESHOLD = 0.58f;
 
             // Use the lightness difference between the text colors as the threshold range
             float brightLightness = GetLightness(brightColor);
             float darkLightness = GetLightness(darkColor);
-            float threshold = Mathf.Lerp(darkLightness, brightLightness, lightnessThreshold);
+            float threshold = Mathf.Lerp(darkLightness, brightLightness, LIGHTNESS_THRESHOLD);
+
 
             // Determine if the background color's lightness
             float lightness = GetLightness(background);
+            Debug.Log($"{lightness} < {threshold} | {background}");
             return lightness < threshold ? brightColor : darkColor;
         }
     }
