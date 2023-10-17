@@ -60,10 +60,8 @@ namespace YARG.Menu.Data
             float darkLightness = GetLightness(darkColor);
             float threshold = Mathf.Lerp(darkLightness, brightLightness, LIGHTNESS_THRESHOLD);
 
-
             // Determine if the background color's lightness
             float lightness = GetLightness(background);
-            Debug.Log($"{lightness} < {threshold} | {background}");
             return lightness < threshold ? brightColor : darkColor;
         }
     }
