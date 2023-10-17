@@ -32,7 +32,7 @@ namespace YARG.Menu.Navigation
             {
                 Action = action;
                 DisplayName = displayName;
-                _handler = (ctx) => handler?.Invoke();
+                _handler = _ => handler?.Invoke();
             }
 
             public Entry(MenuAction action, string displayName, Action<NavigationContext> handler)
