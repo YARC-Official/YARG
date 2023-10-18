@@ -9,7 +9,9 @@ namespace YARG
     //grandparent of cues
     public abstract class StageKitLighting
     {
-		protected const byte NONE  = 0b00000000;
+        public CancellationTokenSource CancellationTokenSource;
+
+        protected const byte NONE  = 0b00000000;
 		protected const byte ZERO  = 0b00000001;
 		protected const byte ONE   = 0b00000010;
 		protected const byte TWO   = 0b00000100;
@@ -29,77 +31,41 @@ namespace YARG
             RedFretDrums = 8,
         }
 
-        protected CancellationTokenSource CancellationTokenSource;
-
-        protected virtual void HandleLightingEvent(LightingType eventName)
+        public virtual void HandleLightingEvent(LightingType eventName)
         {
 
         }
 
-        protected virtual void HandleBeatlineEvent(BeatlineType eventName)
+        public virtual void HandleBeatlineEvent(BeatlineType eventName)
         {
 
         }
 
-        protected virtual void HandleDrumEvent(int eventName)
+        public virtual void HandleDrumEvent(int eventName)
         {
 
         }
 
-        protected virtual void HandleVocalEvent(double eventName)
+        public virtual void HandleVocalEvent(double eventName)
         {
 
         }
 
-        protected virtual void OnBeat()
+        public virtual void OnBeat()
         {
 
-		}
-
-
-        protected void Start()
-        {
-            CancellationTokenSource = new CancellationTokenSource();
-            StageKitGameplay.Instance.HandleBeatline += HandleBeatlineEvent;
-            StageKitGameplay.Instance.HandleDrums += HandleDrumEvent;
-            StageKitGameplay.Instance.HandleLighting += HandleLightingEvent;
-            StageKitGameplay.Instance.HandleVocals += HandleVocalEvent;
         }
-
-        public void Dispose()
-        {
-            CancellationTokenSource?.Cancel();
-            StageKitGameplay.Instance.GameManger.BeatEventManager.Unsubscribe(OnBeat);
-            StageKitGameplay.Instance.HandleBeatline -= HandleBeatlineEvent;
-            StageKitGameplay.Instance.HandleDrums -= HandleDrumEvent;
-            StageKitGameplay.Instance.HandleLighting -= HandleLightingEvent;
-            StageKitGameplay.Instance.HandleVocals -= HandleVocalEvent;
-        }
-
 	}
-	public abstract class StageKitLightingCues : StageKitLighting //This is the parent class of all lighting cues. (not primitives)
+	public abstract class StageKitLightingCue : StageKitLighting //This is the parent class of all lighting cues. (not primitives)
     {
-        public LightingType CurrentCueType;
+        public bool LargeVenue;
+        public StageKitLightingCue PreviousLightingCue;
 
 	    protected const int BLUE = 0;
 	    protected const int GREEN = 1;
 	    protected const int YELLOW = 2;
 	    protected const int RED = 3;
 
-        protected List<StageKitLighting> CuePrimitives = new();
-
-        public void Dispose(bool turnOffLeds = false)
-        {
-		    base.Dispose();
-            CancellationTokenSource?.Cancel();
-
-            CuePrimitives.ForEach(cue => cue?.Dispose());
-
-            if (!turnOffLeds) return;
-            StageKitLightingController.Instance.SetLed(RED, NONE);
-            StageKitLightingController.Instance.SetLed(GREEN, NONE);
-            StageKitLightingController.Instance.SetLed(BLUE, NONE);
-            StageKitLightingController.Instance.SetLed(YELLOW, NONE);
-        }
+        public List<StageKitLighting> CuePrimitives = new();
     }
 }

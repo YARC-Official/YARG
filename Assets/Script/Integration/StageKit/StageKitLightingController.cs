@@ -22,7 +22,7 @@ using Cysharp.Threading.Tasks;
       /|\
      5 4 3
     xbox button
-    as well as the fog machine and strobe light. The fog machine has 2 settings, on and off. The strobe light has 5 settings, off, slow, medium, fast, fastest. Only slow and fast are used in offical songs.
+    as well as the fog machine and strobe light. The fog machine has 2 settings, on and off. The strobe light has 5 settings, off, slow, medium, fast, fastest. Only slow and fast are used in official songs.
     For details on how to send commands to the kit, see the IStageKitHaptics interface and Nate's fantastic work at https://github.com/TheNathannator/PlasticBand/blob/main/Docs/Other/Stage%20Kit/Xbox%20360.md
 
  Bugs and notes:
@@ -142,7 +142,7 @@ using Cysharp.Threading.Tasks;
  */
 namespace YARG
 {
-    public class StageKitLightingController : MonoBehaviour
+    public class StageKitLightingController : MonoSingleton<StageKitLightingController>
     {
         public enum StrobeSpeed
         {
@@ -169,7 +169,24 @@ namespace YARG
          StrobeSpeed,
         }
 
-        public static StageKitLightingController Instance { get; private set; }
+        public enum LedColor
+        {
+            Blue,
+            Green,
+            Yellow,
+            Red,
+        }
+
+        public const byte NONE  = 0b00000000;
+        public const byte ZERO  = 0b00000001;
+        public const byte ONE   = 0b00000010;
+        public const byte TWO   = 0b00000100;
+        public const byte THREE = 0b00001000;
+        public const byte FOUR  = 0b00010000;
+        public const byte FIVE  = 0b00100000;
+        public const byte SIX   = 0b01000000;
+        public const byte SEVEN = 0b10000000;
+        public const byte ALL   = 0b11111111;
 
         public FogState CurrentFogState = FogState.Off;
         public FogState PreviousFogState = FogState.Off;
@@ -179,7 +196,12 @@ namespace YARG
 
         public List<IStageKitHaptics> StageKits = new();
 
-        public StageKitLightingCues CurrentLightingCue = null;
+        public StageKitLightingCue CurrentLightingCue = null;
+        public StageKitLightingCue PreviousLightingCue = null;
+
+        public List<StageKitLighting> CuePrimitives = new();
+
+        public bool LargeVenue; //Doesn't get set until the chart is loaded.
 
         // Stuff for the actual command sending to the unit
         private bool _isSendingCommands;
@@ -202,8 +224,6 @@ namespace YARG
 
         private void Start()
         {
-            Instance = this;
-
             foreach (var device in InputSystem.devices) //build a list of all the stage kits connected
             {
                 if (device is IStageKitHaptics haptics) StageKits.Add(haptics);
@@ -214,9 +234,9 @@ namespace YARG
         }
         private void OnApplicationQuit()
         {
-            StageKits.ForEach(kit => kit.ResetHaptics()); //turn off everything when the game closes
             InputSystem.onDeviceChange -= OnDeviceChange;
         }
+
 
         //The actual queueing and sending of commands
         private void EnqueueCommand(int command, byte data)
@@ -274,7 +294,7 @@ namespace YARG
                         break;
 
                     default:
-                        Debug.Log("Unknown Stagekit command: " + curCommand.command);
+                        Debug.LogWarning("Unknown Stagekit command: " + curCommand.command);
                         break;
                 }
 
@@ -302,7 +322,7 @@ namespace YARG
             {
                 return;
             }
-            EnqueueCommand(4, (byte)fogState);
+            EnqueueCommand((int)CommandType.FogMachine, (byte)fogState);
 
             CurrentFogState = fogState;
         }
@@ -317,24 +337,23 @@ namespace YARG
             switch (strobeSpeed)
             {
                 case StrobeSpeed.Off:
-                    EnqueueCommand(5, (byte)StageKitStrobeSpeed.Off);
+                    EnqueueCommand((int)CommandType.StrobeSpeed, (byte)StageKitStrobeSpeed.Off);
                     break;
 
                 case StrobeSpeed.Slow:
-                    EnqueueCommand(5, (byte)StageKitStrobeSpeed.Slow);
+                    EnqueueCommand((int)CommandType.StrobeSpeed, (byte)StageKitStrobeSpeed.Slow);
                     break;
 
                 case StrobeSpeed.Medium:
-                    EnqueueCommand(5, (byte)StageKitStrobeSpeed.Medium);
+                    EnqueueCommand((int)CommandType.StrobeSpeed, (byte)StageKitStrobeSpeed.Medium);
                     break;
 
                 case StrobeSpeed.Fast:
-                    CurrentLightingCue?.Dispose(true); //Having fast strobe dispose of the current cue but not slow might be a bug in the official code I'm attempting to replicating here.
-                    EnqueueCommand(5, (byte)StageKitStrobeSpeed.Fast);
+                    EnqueueCommand((int)CommandType.StrobeSpeed, (byte)StageKitStrobeSpeed.Fast);
                     break;
 
                 case StrobeSpeed.Fastest:
-                    EnqueueCommand(5, (byte)StageKitStrobeSpeed.Fastest);
+                    EnqueueCommand((int)CommandType.StrobeSpeed, (byte)StageKitStrobeSpeed.Fastest);
                     break;
 
                 default:
@@ -342,6 +361,14 @@ namespace YARG
                     break;
             }
             CurrentStrobeState = strobeSpeed;
+        }
+
+        public void AllLedsOff() //just a helper function
+        {
+            Instance.SetLed((int)LedColor.Red, NONE);
+            Instance.SetLed((int)LedColor.Green, NONE);
+            Instance.SetLed((int)LedColor.Blue, NONE);
+            Instance.SetLed((int)LedColor.Yellow, NONE);
         }
     }
 }

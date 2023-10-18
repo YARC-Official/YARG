@@ -4,6 +4,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using YARG.Core.Chart;
 using YARG.Gameplay;
+using Object = UnityEngine.Object;
 
 namespace YARG {
 	internal class BeatPattern : StageKitLighting
@@ -11,24 +12,25 @@ namespace YARG {
 		private readonly bool _continuous;
 		private int _patternIndex = 0;
         private readonly List<(int color, byte data)> _patternList;
+        private GameManager _gameManager;
 
 		public BeatPattern(List<(int, byte)> patternList, bool continuous = true, float timesPerBeat = 1.0f)
         {
-            Start();
+            _gameManager = Object.FindObjectOfType<GameManager>();
 			_continuous = continuous;
 			_patternList = patternList;
-            StageKitGameplay.Instance.GameManger.BeatEventManager.Subscribe(OnBeat, new BeatEventManager.Info(1.0f / (timesPerBeat * _patternList.Count), 0f));
+            _gameManager.BeatEventManager.Subscribe(OnBeat, new BeatEventManager.Info(1.0f / (timesPerBeat * _patternList.Count), 0f));
 		}
 
-        protected override void OnBeat()
+        public override void OnBeat()
         {
             StageKitLightingController.Instance.SetLed(_patternList[_patternIndex].color, _patternList[_patternIndex].data);
             _patternIndex++;
 
-            if (!_continuous && _patternIndex == _patternList.Count) //some beat patterns are not continuous (single fire), so we need to unsubscribe from the event manager
+            if (!_continuous && _patternIndex == _patternList.Count) //some beat patterns are not continuous (single fire), so we need to kill them after they've run once otherwise they pile up.
             {
-                StageKitGameplay.Instance.GameManger.BeatEventManager.Unsubscribe(OnBeat);
-                Dispose();
+                _gameManager.BeatEventManager.Unsubscribe(OnBeat);
+                StageKitLightingController.Instance.CurrentLightingCue.CuePrimitives.Remove(this);
             }
 
             if (_patternIndex >= _patternList.Count)
@@ -47,7 +49,6 @@ namespace YARG {
 
 		public ListenPattern(List<(int, byte)> patternList, ListenTypes listenType, bool flash = false, bool inverse = false)
         {
-			Start();
 			_flash = flash;
 			_patternList = patternList;
 			_listenType = listenType;
@@ -56,6 +57,7 @@ namespace YARG {
             if (!_inverse) return;
             StageKitLightingController.Instance.SetLed(_patternList[_patternIndex].color, _patternList[_patternIndex].data);
             _patternIndex++;
+
             if (_patternIndex >= _patternList.Count)
             {
                 _patternIndex = 0;
@@ -63,8 +65,7 @@ namespace YARG {
 
         }
 
-
-        protected override void HandleBeatlineEvent(BeatlineType eventName)
+        public override void HandleBeatlineEvent(BeatlineType eventName)
         {
             if (((_listenType & ListenTypes.MajorBeat) == 0 || eventName != BeatlineType.Measure) && ((_listenType & ListenTypes.MinorBeat) == 0 || eventName != BeatlineType.Strong))
             {
@@ -74,7 +75,7 @@ namespace YARG {
             ProcessEvent();
         }
 
-        protected override void HandleDrumEvent(int eventName)
+        public override void HandleDrumEvent(int eventName)
         {
             if ((_listenType & ListenTypes.RedFretDrums) == 0 || eventName != (int) FourLaneDrumPad.RedDrum)
             {
@@ -84,17 +85,20 @@ namespace YARG {
             ProcessEvent();
         }
 
-        protected override void HandleLightingEvent(LightingType eventName) {
+        public override void HandleLightingEvent(LightingType eventName) {
+
 			if ((_listenType & ListenTypes.Next) == 0 || eventName != LightingType.Keyframe_Next)
             {
                 return;
             }
+
             ProcessEvent();
 
 		}
 
         private void ProcessEvent()
         {
+
             StageKitLightingController.Instance.SetStrobeSpeed(StageKitLightingController.StrobeSpeed.Off); //This might be a bug in the official  stagekit code i'm trying to replicate here, but instead of turning off the strobe as soon as cue changes, if the cue listens for something, it only turns off the strobe on the first event of it.
 
             if (_inverse)
@@ -121,7 +125,7 @@ namespace YARG {
 
         private async UniTaskVoid OnFlash()
         {
-            await UniTask.Delay(200);// I wonder if this should be beat based instead of time based. like 1/2 a beat or something.
+            await UniTask.Delay(200);// I wonder if this should be beat based instead of time based. like 1/2 a beat or something. But a really fast song would be bad looking.
             if (_inverse)
             {
                 StageKitLightingController.Instance.SetLed(_patternList[_patternIndex].color, _patternList[_patternIndex].data);
@@ -140,9 +144,9 @@ namespace YARG {
 
         public TimedPattern(List<(int, byte)> patternList, float seconds)
         {
-			_seconds = seconds;
+            CancellationTokenSource = new CancellationTokenSource(); //only for timed events
+            _seconds = seconds;
 			_patternList = patternList;
-			Start();
             TimedCircleCoroutine(CancellationTokenSource.Token).Forget();
         }
 

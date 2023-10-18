@@ -15,7 +15,25 @@ namespace YARG
 
         private void OnDestroy()
         {
-            _controller.CurrentLightingCue.Dispose(true);
+            KillCue();
+        }
+
+        private void OnApplicationQuit()
+        {
+            KillCue();
+        }
+
+        private void KillCue() //The only cue used on the score screen is timed, no need to have all the action and token stuff here.
+        {
+            foreach (var primitive in _controller.CurrentLightingCue.CuePrimitives)
+            {
+                primitive.CancellationTokenSource.Cancel();
+            }
+
+            _controller.CuePrimitives.Clear();
+            _controller.PreviousLightingCue = _controller.CurrentLightingCue;
+            _controller.CurrentLightingCue = null;
+            _controller.StageKits.ForEach(kit => kit.ResetHaptics());
         }
     }
 }
