@@ -53,7 +53,7 @@ namespace YARG.Gameplay
 
         public void Unsubscribe(Action action)
         {
-            _removeStates.Remove(action);
+            _removeStates.Add(action);
         }
 
         public void ResetTimers()
