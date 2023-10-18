@@ -95,7 +95,7 @@ namespace YARG.Gameplay.Player
                 _ => throw new InvalidOperationException("Unreachable")
             };
 
-            EngineParams = new VocalsEngineParameters(hitWindow, hitPercent,
+            EngineParams = new VocalsEngineParameters(hitWindow, hitPercent, true,
                 IMicDevice.UPDATES_PER_SECOND, StarMultiplierThresholds);
 
             var engine = new YargVocalsEngine(NoteTrack, SyncTrack, EngineParams);
@@ -159,7 +159,7 @@ namespace YARG.Gameplay.Player
             // Update HUD
             _hud.UpdateInfo(fill, Engine.EngineStats.ScoreMultiplier, (float) Engine.EngineStats.StarPowerAmount);
 
-            if (GameManager.SongTime >= GetTimeThreshold(Engine.State.VisualLastSingTime))
+            if (GameManager.SongTime >= GetTimeThreshold(Engine.State.LastSingTime))
             {
                 // Hide the needle if there's no singing
                 if (_needleVisualContainer.activeSelf)
@@ -214,7 +214,7 @@ namespace YARG.Gameplay.Player
                 transform.localPosition = new Vector3(0f, 0f, lerp);
 
                 // Show particles if hitting, stop them if not.
-                if (GameManager.SongTime < GetTimeThreshold(Engine.State.VisualLastHitTime))
+                if (GameManager.SongTime < GetTimeThreshold(Engine.State.LastHitTime))
                 {
                     _hittingParticleGroup.Play();
                 }
