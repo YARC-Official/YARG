@@ -101,7 +101,6 @@ namespace YARG.Menu.Profiles
                 });
             }
 
-            // TODO: Make this not show taken mics
             // Add available microphones
             foreach (var microphone in GlobalVariables.AudioManager.GetAllInputDevices())
             {
