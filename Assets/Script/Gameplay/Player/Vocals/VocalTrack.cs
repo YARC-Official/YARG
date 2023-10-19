@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.InputSystem;
@@ -25,6 +26,8 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        private static readonly int _alphaMultiplier = Shader.PropertyToID("AlphaMultiplier");
+
         // TODO: This is temporary
         public const float NOTE_SPEED = 5f;
 
@@ -43,8 +46,6 @@ namespace YARG.Gameplay.Player
 
         private const float TRACK_BOTTOM = -0.53f;
 
-        private float _currentTrackTop = TRACK_TOP;
-
         [SerializeField]
         private GameObject _vocalPlayerPrefab;
 
@@ -53,6 +54,12 @@ namespace YARG.Gameplay.Player
         private MeshRenderer _trackRenderer;
         [SerializeField]
         private Material _harmonyTrackMaterial;
+
+        [Space]
+        [SerializeField]
+        private MeshRenderer _soloStarpowerOverlay;
+        [SerializeField]
+        private MeshRenderer _harmonyStarpowerOverlay;
 
         [Space]
         [SerializeField]
@@ -67,6 +74,12 @@ namespace YARG.Gameplay.Player
         private VocalLyricContainer _lyricContainer;
         [SerializeField]
         private Pool _phraseLinePool;
+
+        private readonly List<VocalsPlayer> _vocalPlayers = new();
+        private bool _currentStarpowerState;
+
+        private float _currentTrackTop = TRACK_TOP;
+        private Material _starpowerMaterial;
 
         public bool IsRangeChanging { get; private set; }
 
@@ -111,18 +124,36 @@ namespace YARG.Gameplay.Player
             _noteIndices = new int[_vocalsTrack.Parts.Count];
             _lyricIndices = new int[_vocalsTrack.Parts.Count];
 
-            // Set the track material to harmony (if it's harmony)
             if (vocalsTrack.Instrument == Instrument.Harmony)
             {
+                // Set the track material to harmony, if it's harmony (it's solo by default)
                 _trackRenderer.material = _harmonyTrackMaterial;
                 _currentTrackTop = TRACK_TOP_HARMONY;
+
+                // Show the correct starpower overlay
+                _soloStarpowerOverlay.gameObject.SetActive(false);
+                _harmonyStarpowerOverlay.gameObject.SetActive(true);
+                _starpowerMaterial = _harmonyStarpowerOverlay.material;
             }
+            else
+            {
+                // Show the correct starpower overlay
+                _harmonyStarpowerOverlay.gameObject.SetActive(false);
+                _soloStarpowerOverlay.gameObject.SetActive(true);
+                _starpowerMaterial = _soloStarpowerOverlay.material;
+            }
+
+            // Hide overlay
+            _starpowerMaterial.SetFloat(_alphaMultiplier, 0f);
         }
 
         public VocalsPlayer CreatePlayer()
         {
             var playerObj = Instantiate(_vocalPlayerPrefab, _playerContainer);
             var player = playerObj.GetComponent<VocalsPlayer>();
+
+            _vocalPlayers.Add(player);
+
             return player;
         }
 
@@ -189,6 +220,21 @@ namespace YARG.Gameplay.Player
 
                 // Make sure to update the value
                 _phraseIndices[i] = index;
+            }
+
+
+            // Fade on/off the starpower overlay
+            bool starpowerActive = _vocalPlayers.Any(player => player.Engine.EngineStats.IsStarPowerActive);
+            float currentStarpower = _starpowerMaterial.GetFloat(_alphaMultiplier);
+            if (starpowerActive)
+            {
+                _starpowerMaterial.SetFloat(_alphaMultiplier,
+                    Mathf.Lerp(currentStarpower, 1f, Time.deltaTime * 2f));
+            }
+            else
+            {
+                _starpowerMaterial.SetFloat(_alphaMultiplier,
+                    Mathf.Lerp(currentStarpower, 0f, Time.deltaTime * 4f));
             }
         }
 
