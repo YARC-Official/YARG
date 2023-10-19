@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -243,15 +243,15 @@ namespace YARG.Gameplay
                 return;
             }
 
-            // Spawn players
-            CreatePlayers();
-
             // Initialize song runner
             float songSpeed = GlobalVariables.Instance.SongSpeed;
             double videoCalibration = -SettingsManager.Settings.VideoCalibration.Data / 1000.0;
             double audioCalibration = (-SettingsManager.Settings.AudioCalibration.Data / 1000.0) - videoCalibration;
             double songOffset = -Song.SongOffsetSeconds;
             _songRunner = new SongRunner(songSpeed, videoCalibration, audioCalibration, songOffset);
+
+            // Spawn players
+            CreatePlayers();
 
             // Listen for menu inputs
             Navigator.Instance.NavigationEvent += OnNavigationEvent;
