@@ -37,8 +37,8 @@ namespace YARG.Menu.ScoreScreen
         private VocalsScoreCard _vocalsCardPrefab;
 
         // "The Unity message 'OnEnable' has an incorrect signature."
-        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTask is a compatible return type.")]
-        private async UniTask OnEnable()
+        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
+        private async UniTaskVoid OnEnable()
         {
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
