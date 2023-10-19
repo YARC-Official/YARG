@@ -30,7 +30,7 @@ namespace YARG.Menu.Profiles
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 new NavigationScheme.Entry(MenuAction.Red, "Back", () => MenuManager.Instance.PopMenu()),
-            }, false));
+            }, true));
         }
 
         private void OnDisable()
