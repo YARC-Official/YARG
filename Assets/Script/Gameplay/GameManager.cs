@@ -637,7 +637,15 @@ namespace YARG.Gameplay
 
         public void SetPaused(bool paused)
         {
-            _songRunner.SetPaused(paused);
+            if (paused)
+            {
+                Pause();
+            }
+            else
+            {
+                Resume();
+            }
+
             GameStateFetcher.SetPaused(paused);
         }
 
