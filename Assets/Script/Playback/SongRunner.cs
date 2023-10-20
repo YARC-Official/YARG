@@ -240,7 +240,7 @@ namespace YARG.Playback
 
             for (; _runSync; _finishedSyncing.Set(), Thread.Sleep(5))
             {
-                if (Paused || _pauseSync)
+                if (!GlobalVariables.AudioManager.IsPlaying || _pauseSync)
                     continue;
 
                 _finishedSyncing.Reset();
