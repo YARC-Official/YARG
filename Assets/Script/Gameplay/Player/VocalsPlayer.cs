@@ -83,10 +83,10 @@ namespace YARG.Gameplay.Player
             // Hit window is in semitones (total width).
             double hitWindow = Player.Profile.CurrentDifficulty switch
             {
-                Difficulty.Easy   => 2.0,
-                Difficulty.Medium => 1.5,
-                Difficulty.Hard   => 1.0,
-                Difficulty.Expert => 0.9,
+                Difficulty.Easy   => 3.5,
+                Difficulty.Medium => 3.0,
+                Difficulty.Hard   => 2.5,
+                Difficulty.Expert => 2.0,
                 _ => throw new InvalidOperationException("Unreachable")
             };
 
@@ -94,10 +94,10 @@ namespace YARG.Gameplay.Player
             // plosives not being detected, etc., it's pretty good.
             double hitPercent = Player.Profile.CurrentDifficulty switch
             {
-                Difficulty.Easy   => 0.40,
-                Difficulty.Medium => 0.45,
-                Difficulty.Hard   => 0.50,
-                Difficulty.Expert => 0.60,
+                Difficulty.Easy   => 0.325,
+                Difficulty.Medium => 0.400,
+                Difficulty.Hard   => 0.450,
+                Difficulty.Expert => 0.575,
                 _ => throw new InvalidOperationException("Unreachable")
             };
 
