@@ -84,6 +84,20 @@ namespace YARG.Playback
 
         public void Update(double songTime)
         {
+            // Add and remove states from the _state list outside the main loop to prevent enumeration errors.
+            // (aka removing things from the list while it loops)
+            foreach (var (action, state) in _addStates)
+            {
+                _states.Add(action, state);
+            }
+            _addStates.Clear();
+
+            foreach (var action in _removeStates)
+            {
+                _states.Remove(action);
+            }
+            _removeStates.Clear();
+
             // Skip until in the chart
             if (songTime < 0) return;
 
@@ -98,20 +112,6 @@ namespace YARG.Playback
 
             var currentTempo = tempos[_tempoIndex];
             var currentTimeSig = timeSigs[_timeSigIndex];
-
-            // Add and remove states from the _state list outside the main loop to prevent enumeration errors.
-            // (aka removing things from the list while it loops)
-            foreach (var (action, state) in _addStates)
-            {
-                _states.Add(action, state);
-            }
-            _addStates.Clear();
-
-            foreach (var action in _removeStates)
-            {
-                _states.Remove(action);
-            }
-            _removeStates.Clear();
 
             // Update per action now
             foreach (var (action, state) in _states)
