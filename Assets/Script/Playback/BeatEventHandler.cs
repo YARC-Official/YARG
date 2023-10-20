@@ -105,31 +105,56 @@ namespace YARG.Playback
             var tempos = _sync.Tempos;
             var timeSigs = _sync.TimeSignatures;
 
+            int previousTempoIndex = _tempoIndex;
+            int previousTimeSigIndex = _timeSigIndex;
+
             while (_tempoIndex + 1 < tempos.Count && tempos[_tempoIndex + 1].Time < songTime)
                 _tempoIndex++;
             while (_timeSigIndex + 1 < timeSigs.Count && timeSigs[_timeSigIndex + 1].Time < songTime)
                 _timeSigIndex++;
 
-            var currentTempo = tempos[_tempoIndex];
-            var currentTimeSig = timeSigs[_timeSigIndex];
+            var finalTempo = tempos[_tempoIndex];
+            var finalTimeSig = timeSigs[_timeSigIndex];
 
             // Update per action now
             foreach (var (action, state) in _states)
             {
-                // Get the ticks per denominator beat so we can use it to determine when to call the action.
-                uint ticksPerBeat = (uint) (_sync.Resolution * (4.0 / currentTimeSig.Denominator));
-                uint ticksPerEvent = (uint) (ticksPerBeat * state.Info.BeatRate);
+                double endTime = songTime - state.Info.Offset;
+                uint endTick = _sync.TimeToTick(endTime, finalTempo);
 
-                // Call action
                 bool actionDone = false;
-                while (_sync.TickToTime(state.LastTick + ticksPerEvent, currentTempo) <= songTime - state.Info.Offset)
+
+                // We need to process tempo map info individually for each event, or else
+                // it's possible for a later tempo/time signature to be used too early
+                int currentTempoIndex = previousTempoIndex;
+                int currentTimeSigIndex = previousTimeSigIndex;
+                while (true)
                 {
-                    state.LastTick += ticksPerEvent;
+                    var currentTempo = tempos[currentTempoIndex];
+                    var currentTimeSig = timeSigs[currentTimeSigIndex];
+
+                    // Get the ticks per denominator beat so we can use it to determine when to call the action.
+                    uint ticksPerBeat = (uint) (_sync.Resolution * (4.0 / currentTimeSig.Denominator));
+                    uint ticksPerEvent = (uint) (ticksPerBeat * state.Info.BeatRate);
+
+                    // Progress event tick
+                    uint currentTick = state.LastTick + ticksPerEvent;
+                    if (currentTick > endTick)
+                        break;
+                    state.LastTick = currentTick;
+
+                    // Call action
                     if (!actionDone)
                     {
                         action();
                         actionDone = true;
                     }
+
+                    // Progress tempo map info
+                    while (currentTempoIndex + 1 < _tempoIndex && tempos[currentTempoIndex + 1].Tick < currentTick)
+                        currentTempoIndex++;
+                    while (currentTimeSigIndex + 1 < _timeSigIndex && timeSigs[currentTimeSigIndex + 1].Tick < currentTick)
+                        currentTimeSigIndex++;
                 }
             }
         }
