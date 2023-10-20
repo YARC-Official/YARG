@@ -161,10 +161,9 @@ namespace YARG.Audio.BASS
 
             for (int deviceIndex = 0; Bass.RecordGetDeviceInfo(deviceIndex, out var info); deviceIndex++)
             {
-                if (!info.IsEnabled)
-                {
-                    continue;
-                }
+                if (!info.IsEnabled) continue;
+
+                if (info.IsInitialized) continue;
 
                 //Debug.Log($"Device {deviceIndex}: Name: {info.Name}. Type: {info.Type}. IsLoopback: {info.IsLoopback}.");
 

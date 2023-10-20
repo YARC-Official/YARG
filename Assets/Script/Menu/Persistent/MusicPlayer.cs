@@ -25,8 +25,8 @@ namespace YARG.Menu.Persistent
         private Sprite _pauseSprite;
 
         // "The Unity message 'OnEnable' has an incorrect signature."
-        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTask is a compatible return type.")]
-        private async UniTask OnEnable()
+        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
+        private async UniTaskVoid OnEnable()
         {
             _songText.text = string.Empty;
             _artistText.text = string.Empty;

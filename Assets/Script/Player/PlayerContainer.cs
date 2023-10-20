@@ -262,5 +262,14 @@ namespace YARG.Player
 
             return _bindings.Count;
         }
+
+        public static void Destroy()
+        {
+            // Can't `foreach` when modifying a collection, so this will do instead
+            while (_players.Count > 0)
+            {
+                DisposePlayer(_players[0]);
+            }
+        }
     }
 }

@@ -14,7 +14,7 @@ namespace YARG.Settings.Preview
         public const float NOTE_SPEED = 6f;
         private const double SPAWN_FREQ = 0.2;
 
-        private double SpawnTimeOffset => (BasePlayer.NOTE_SPAWN_OFFSET + -BasePlayer.STRIKE_LINE_POS) / NOTE_SPEED;
+        private double SpawnTimeOffset => (TrackPlayer.NOTE_SPAWN_OFFSET + -TrackPlayer.STRIKE_LINE_POS) / NOTE_SPEED;
 
         [SerializeField]
         private CameraPositioner _cameraPositioner;

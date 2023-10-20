@@ -86,10 +86,11 @@ namespace YARG.Menu.Profiles
 
             bool devicesAvailable = false;
             bool selectedDevice = false;
+
+            // Add available devices
             foreach (var device in InputSystem.devices)
             {
-                if (PlayerContainer.IsDeviceTaken(device))
-                    continue;
+                if (PlayerContainer.IsDeviceTaken(device)) continue;
 
                 devicesAvailable = true;
                 dialog.AddListButton(device.displayName, () =>
@@ -100,10 +101,26 @@ namespace YARG.Menu.Profiles
                 });
             }
 
+            // Add available microphones
+            foreach (var microphone in GlobalVariables.AudioManager.GetAllInputDevices())
+            {
+                devicesAvailable = true;
+                dialog.AddListButton(microphone.DisplayName, () =>
+                {
+                    player.Bindings.AddMicrophone(microphone);
+                    selectedDevice = true;
+                    DialogManager.Instance.ClearDialog();
+                });
+            }
+
             if (devicesAvailable)
+            {
                 await dialog.WaitUntilClosed();
+            }
             else
+            {
                 DialogManager.Instance.ClearDialog();
+            }
 
             return selectedDevice;
         }
@@ -115,10 +132,11 @@ namespace YARG.Menu.Profiles
 
             bool devicesAvailable = false;
             bool selectedDevice = false;
+
+            // Add available devices
             foreach (var device in InputSystem.devices)
             {
-                if (!player.Bindings.ContainsDevice(device))
-                    continue;
+                if (!player.Bindings.ContainsDevice(device)) continue;
 
                 devicesAvailable = true;
                 dialog.AddListButton(device.displayName, () =>
@@ -129,10 +147,27 @@ namespace YARG.Menu.Profiles
                 });
             }
 
+            // Add the microphone (there should be only one or zero)
+            var mic = player.Bindings.Microphone;
+            if (mic is not null)
+            {
+                devicesAvailable = true;
+                dialog.AddListButton(mic.DisplayName, () =>
+                {
+                    player.Bindings.RemoveMicrophone();
+                    selectedDevice = true;
+                    DialogManager.Instance.ClearDialog();
+                });
+            }
+
             if (devicesAvailable)
+            {
                 await dialog.WaitUntilClosed();
+            }
             else
+            {
                 DialogManager.Instance.ClearDialog();
+            }
 
             return selectedDevice;
         }

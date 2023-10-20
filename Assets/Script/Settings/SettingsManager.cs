@@ -27,6 +27,7 @@ namespace YARG.Settings
                 new HeaderMetadata("Calibration"),
                 new ButtonRowMetadata("OpenCalibrator"),
                 "AudioCalibration",
+                "VideoCalibration",
                 new HeaderMetadata("Other"),
                 "UseCymbalModelsInFiveLane",
                 "KickBounce",

@@ -1,19 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
-using System.Threading.Tasks;
-using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Song;
-using YARG.Helpers;
+using YARG.Core.Utility;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Persistent;
-using YARG.Serialization;
 using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary

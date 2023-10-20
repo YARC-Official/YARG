@@ -53,7 +53,7 @@ namespace YARG.Gameplay
 
         public void Unsubscribe(Action action)
         {
-            _removeStates.Remove(action);
+            _removeStates.Add(action);
         }
 
         public void ResetTimers()
@@ -79,7 +79,7 @@ namespace YARG.Gameplay
 
             // Update the time signature indices
             var timeSigs = _sync.TimeSignatures;
-            while (_nextTimeSigIndex < timeSigs.Count && timeSigs[_nextTimeSigIndex].Time < GameManager.InputTime)
+            while (_nextTimeSigIndex < timeSigs.Count && timeSigs[_nextTimeSigIndex].Time < GameManager.SongTime)
             {
                 _currentTimeSigIndex++;
                 _nextTimeSigIndex++;
@@ -100,7 +100,7 @@ namespace YARG.Gameplay
                 _states.Remove(action);
             }
             _removeStates.Clear();
-            
+
             // Update per action now
             foreach (var (action, state) in _states)
             {

@@ -10,6 +10,7 @@ using YARG.Integration;
 using YARG.Menu.Settings;
 using YARG.Settings.Types;
 using YARG.Menu.Persistent;
+using YARG.Player;
 using YARG.Song;
 using YARG.Venue;
 
@@ -64,6 +65,7 @@ namespace YARG.Settings
             }
 
             public IntSetting    AudioCalibration          { get; } = new(120);
+            public IntSetting    VideoCalibration          { get; } = new(0);
 
             public ToggleSetting UseCymbalModelsInFiveLane { get; } = new(true);
             public ToggleSetting KickBounce                { get; } = new(true);
@@ -294,10 +296,10 @@ namespace YARG.Settings
 
             private static void VocalMonitoringCallback(float volume)
             {
-                // foreach (var player in PlayerManager.players)
-                // {
-                //     // player.inputStrategy?.MicDevice?.SetMonitoringLevel(volume);
-                // }
+                foreach (var player in PlayerContainer.Players)
+                {
+                    player.Bindings.Microphone?.SetMonitoringLevel(volume);
+                }
             }
 
             private static void MusicPlayerVolumeCallback(float volume)

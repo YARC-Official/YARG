@@ -9,7 +9,7 @@ using YARG.Helpers.Extensions;
 
 namespace YARG.Gameplay.Player
 {
-    public class DrumsPlayer : BasePlayer<DrumsEngine, DrumNote>
+    public class DrumsPlayer : TrackPlayer<DrumsEngine, DrumNote>
     {
         public DrumsEngineParameters EngineParams { get; private set; }
 
@@ -81,11 +81,7 @@ namespace YARG.Gameplay.Player
         {
             base.FinishInitialization();
 
-            StarScoreThresholds = new int[StarMultiplierThresholds.Length];
-            for (int i = 0; i < StarMultiplierThresholds.Length; i++)
-            {
-                StarScoreThresholds[i] = Mathf.FloorToInt(Engine.BaseScore * StarMultiplierThresholds[i]);
-            }
+            StarScoreThresholds = PopulateStarScoreThresholds(StarMultiplierThresholds, Engine.BaseScore);
 
             _fretArray.Initialize(Player.ColorProfile.FourLaneDrums, Player.Profile.LeftyFlip);
             _kickFret.Initialize(Player.ColorProfile.FourLaneDrums.KickParticles.ToUnityColor());

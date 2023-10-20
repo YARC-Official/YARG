@@ -10,7 +10,7 @@ using YARG.Settings;
 
 namespace YARG.Gameplay.Player
 {
-    public sealed class FiveFretPlayer : BasePlayer<GuitarEngine, GuitarNote>
+    public sealed class FiveFretPlayer : TrackPlayer<GuitarEngine, GuitarNote>
     {
         public GuitarEngineParameters EngineParams { get; private set; }
 
@@ -107,11 +107,7 @@ namespace YARG.Gameplay.Player
         {
             base.FinishInitialization();
 
-            StarScoreThresholds = new int[StarMultiplierThresholds.Length];
-            for (int i = 0; i < StarMultiplierThresholds.Length; i++)
-            {
-                StarScoreThresholds[i] = Mathf.FloorToInt(Engine.BaseScore * StarMultiplierThresholds[i]);
-            }
+            StarScoreThresholds = PopulateStarScoreThresholds(StarMultiplierThresholds, Engine.BaseScore);
 
             _fretArray.Initialize(Player.ColorProfile.FiveFretGuitar, Player.Profile.LeftyFlip);
             HitWindowDisplay.SetHitWindowInfo(EngineParams, NoteSpeed);
@@ -186,11 +182,6 @@ namespace YARG.Gameplay.Player
             {
                 (NotePool.GetByKey(note) as FiveFretNoteElement)?.MissNote();
             }
-        }
-
-        protected override void OnOverstrum()
-        {
-            base.OnOverstrum();
         }
 
         protected override bool InterceptInput(ref GameInput input)

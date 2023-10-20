@@ -1,4 +1,5 @@
 using System;
+using YARG.Audio;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Input;

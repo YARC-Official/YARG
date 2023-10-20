@@ -23,8 +23,8 @@ namespace YARG
         public YargVersion LatestVersion { get; private set; }
 
         // "The Unity message 'Start' has an incorrect signature."
-        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTask is a compatible return type.")]
-        private async UniTask Start()
+        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
+        private async UniTaskVoid Start()
         {
             enabled = false;
             await CheckForUpdates();

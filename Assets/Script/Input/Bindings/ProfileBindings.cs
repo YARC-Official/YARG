@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
+using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Extensions;
 using YARG.Core.Game;
@@ -16,13 +17,16 @@ namespace YARG.Input
     {
         public YargProfile Profile { get; }
 
+        private SerializedMic _unresolvedMic;
+        public IMicDevice Microphone { get; private set; }
+
         private readonly List<SerializedInputDevice> _unresolvedDevices = new();
         private readonly List<InputDevice> _devices = new();
 
         private readonly Dictionary<GameMode, BindingCollection> _bindsByGameMode = new();
         public readonly BindingCollection MenuBindings;
 
-        public bool Empty => _devices.Count < 1;
+        public bool Empty => _devices.Count < 1 && Microphone is null;
 
         public BindingCollection this[GameMode mode] => _bindsByGameMode[mode];
 
@@ -114,6 +118,8 @@ namespace YARG.Input
                 }
             }
 
+            _unresolvedMic = bindings.Microphone;
+
             MenuBindings.Deserialize(bindings.MenuBindings);
         }
 
@@ -138,6 +144,8 @@ namespace YARG.Input
 
             serialized.MenuBindings = MenuBindings.Serialize();
 
+            serialized.Microphone = _unresolvedMic;
+
             return serialized;
         }
 
@@ -151,6 +159,17 @@ namespace YARG.Input
             foreach (var device in InputSystem.devices)
             {
                 OnDeviceAdded(device);
+            }
+
+            if (_unresolvedMic is not null)
+            {
+                foreach (var mic in GlobalVariables.AudioManager.GetAllInputDevices())
+                {
+                    if (!mic.IsSerializedMatch(_unresolvedMic)) continue;
+
+                    AddMicrophone(mic);
+                    return;
+                }
             }
         }
 
@@ -321,6 +340,30 @@ namespace YARG.Input
             MenuBindings.UpdateBindingsForFrame();
         }
 
+        public bool AddMicrophone(IMicDevice microphone)
+        {
+            if (Microphone is not null)
+            {
+                return false;
+            }
+
+            if (microphone.Initialize() != 0)
+            {
+                return false;
+            }
+
+            Microphone = microphone;
+            _unresolvedMic = microphone.Serialize();
+
+            return true;
+        }
+
+        public void RemoveMicrophone()
+        {
+            Microphone?.Dispose();
+            Microphone = null;
+        }
+
         public void ProcessInputEvent(InputEventPtr eventPtr)
         {
             var device = InputSystem.GetDeviceById(eventPtr.deviceId);
@@ -343,6 +386,8 @@ namespace YARG.Input
             {
                 OnDeviceRemoved(device);
             }
+
+            RemoveMicrophone();
         }
     }
 }

@@ -239,6 +239,14 @@ MonoBehaviour:
     m_Key: Setting.General.UseCymbalModelsInFiveLane.Description
     m_Metadata:
       m_Items: []
+  - m_Id: 73744741668081664
+    m_Key: Setting.General.VideoCalibration
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73745068840570880
+    m_Key: Setting.General.VideoCalibration.Description
+    m_Metadata:
+      m_Items: []
   - m_Id: 53693768667619353
     m_Key: Setting.Graphics.DisableBloom
     m_Metadata:

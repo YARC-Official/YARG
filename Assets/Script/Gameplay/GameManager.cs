@@ -15,6 +15,7 @@ using YARG.Core.Replays;
 using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
+using YARG.Gameplay.Visuals;
 using YARG.Integration;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
@@ -37,6 +38,12 @@ namespace YARG.Gameplay
 
         [SerializeField]
         private PauseMenuManager _pauseMenu;
+
+        [SerializeField]
+        private GameObject _lyricBar;
+
+        [field: SerializeField]
+        public VocalTrack VocalTrack { get; private set; }
 
         [SerializeField]
         private TextMeshProUGUI _debugText;
@@ -161,6 +168,9 @@ namespace YARG.Gameplay
                 Debug.LogError("Null song set when loading gameplay!");
                 GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
             }
+
+            // Hide vocals track (will be shown when players are initialized
+            VocalTrack.gameObject.SetActive(false);
         }
 
         private void OnDestroy()
@@ -174,8 +184,8 @@ namespace YARG.Gameplay
         }
 
         // "The Unity message 'Start' has an incorrect signature."
-        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTask is a compatible return type.")]
-        private async UniTask Start()
+        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
+        private async UniTaskVoid Start()
         {
             // Disable until everything's loaded
             enabled = false;
@@ -237,6 +247,7 @@ namespace YARG.Gameplay
 
         private void Update()
         {
+            // Pause/unpause
             if (Keyboard.current.escapeKey.wasPressedThisFrame)
             {
                 if (IsPractice && !PracticeManager.HasSelectedSection)
@@ -247,6 +258,69 @@ namespace YARG.Gameplay
                 SetPaused(!Paused);
             }
 
+            // Toggle debug text
+            if (Keyboard.current.ctrlKey.isPressed && Keyboard.current.tabKey.wasPressedThisFrame)
+            {
+                _isShowDebugText = !_isShowDebugText;
+
+                _debugText.gameObject.SetActive(_isShowDebugText);
+            }
+
+            // Skip the rest if paused
+            if (Paused) return;
+
+            // Update timing info
+            UpdateTimes();
+
+            // Update players
+            int totalScore = 0;
+            int totalCombo = 0;
+            foreach (var player in _players)
+            {
+                player.UpdateWithTimes(InputTime);
+
+                totalScore += player.Score;
+                totalCombo += player.Combo;
+            }
+
+            BandScore = totalScore;
+            BandCombo = totalCombo;
+
+            // Get the band stars
+            double totalStars = 0f;
+            foreach (var player in _players)
+            {
+                var thresh = player.StarScoreThresholds;
+                for (int i = 0; i < thresh.Length; i++)
+                {
+                    // Skip until we reach the progressing threshold
+                    if (player.Score > thresh[i])
+                    {
+                        if (i == thresh.Length - 1)
+                        {
+                            totalStars += 6f;
+                        }
+
+                        continue;
+                    }
+
+                    // Otherwise, get the progress.
+                    // There is at least this amount of stars.
+                    totalStars += i;
+
+                    // Then, we just gotta get the progress into the next star.
+                    int bound = i != 0 ? thresh[i - 1] : 0;
+                    totalStars += (double) (player.Score - bound) / (thresh[i] - bound);
+
+                    break;
+                }
+            }
+
+            BandStars = totalStars / _players.Count;
+
+            // Debug text
+            // Note: this must come last in the update sequence!
+            // Any updates happening after this will not reflect until the next frame
             if (_isShowDebugText)
             {
                 _debugText.text = null;
@@ -283,68 +357,6 @@ namespace YARG.Gameplay
                     $"Input base: {InputTimeBase:0.000000}\n" +
                     $"Input offset: {InputTimeOffset:0.000000}\n";
             }
-
-            if (Paused)
-            {
-                return;
-            }
-
-            UpdateTimes();
-
-            if (Keyboard.current.ctrlKey.isPressed && Keyboard.current.tabKey.wasPressedThisFrame)
-            {
-                _isShowDebugText = !_isShowDebugText;
-
-                _debugText.gameObject.SetActive(_isShowDebugText);
-            }
-
-            // Set total score and combos
-
-            int totalScore = 0;
-            int totalCombo = 0;
-            foreach (var player in _players)
-            {
-                player.UpdateWithTimes(InputTime);
-
-                totalScore += player.Score;
-                totalCombo += player.Combo;
-            }
-
-            BandScore = totalScore;
-            BandCombo = totalCombo;
-
-            // Get the band stars
-
-            double totalStars = 0f;
-            foreach (var player in _players)
-            {
-                var thresh = player.StarScoreThresholds;
-                for (int i = 0; i < thresh.Length; i++)
-                {
-                    // Skip until we reach the progressing threshold
-                    if (player.Score > thresh[i])
-                    {
-                        if (i == thresh.Length - 1)
-                        {
-                            totalStars += 6f;
-                        }
-
-                        continue;
-                    }
-
-                    // Otherwise, get the progress.
-                    // There is at least this amount of stars.
-                    totalStars += i;
-
-                    // Then, we just gotta get the progress into the next star.
-                    int bound = i != 0 ? thresh[i - 1] : 0;
-                    totalStars += (double) (player.Score - bound) / (thresh[i] - bound);
-
-                    break;
-                }
-            }
-
-            BandStars = totalStars / _players.Count;
         }
 
         private async UniTask LoadReplay()
@@ -456,6 +468,8 @@ namespace YARG.Gameplay
         {
             _players = new List<BasePlayer>();
 
+            bool vocalTrackInitialized = false;
+
             int index = -1;
             foreach (var player in _yargPlayers)
             {
@@ -464,32 +478,63 @@ namespace YARG.Gameplay
                 // Skip if the player is sitting out
                 if (player.SittingOut) continue;
 
-                var prefab = player.Profile.GameMode switch
+                if (player.Profile.GameMode != GameMode.Vocals)
                 {
-                    GameMode.FiveFretGuitar => _fiveFretGuitarPrefab,
-                    GameMode.SixFretGuitar  => _sixFretGuitarPrefab,
-                    GameMode.FourLaneDrums  => _fourLaneDrumsPrefab,
-                    GameMode.FiveLaneDrums  => _fiveLaneDrumsPrefab,
-                    GameMode.ProGuitar      => _proGuitarPrefab,
+                    var prefab = player.Profile.GameMode switch
+                    {
+                        GameMode.FiveFretGuitar => _fiveFretGuitarPrefab,
+                        GameMode.SixFretGuitar  => _sixFretGuitarPrefab,
+                        GameMode.FourLaneDrums  => _fourLaneDrumsPrefab,
+                        GameMode.FiveLaneDrums  => _fiveLaneDrumsPrefab,
+                        GameMode.ProGuitar      => _proGuitarPrefab,
 
-                    _ => null
-                };
+                        _ => null
+                    };
 
-                // Skip if there's no prefab for the game mode
-                if (prefab == null) continue;
+                    // Skip if there's no prefab for the game mode
+                    if (prefab == null) continue;
 
-                var playerObject = Instantiate(prefab, new Vector3(index * 25f, 100f, 0f), prefab.transform.rotation);
+                    var playerObject = Instantiate(prefab, new Vector3(index * 25f, 100f, 0f), prefab.transform.rotation);
 
-                // Setup player
-                var basePlayer = playerObject.GetComponent<BasePlayer>();
-                var trackView = _trackViewManager.CreateTrackView(basePlayer, player);
-                basePlayer.Initialize(index, player, Chart, trackView);
-                _players.Add(basePlayer);
+                    // Setup player
+                    var basePlayer = playerObject.GetComponent<TrackPlayer>();
+                    var trackView = _trackViewManager.CreateTrackView(basePlayer, player);
+                    basePlayer.Initialize(index, player, Chart, trackView);
+                    _players.Add(basePlayer);
+                }
+                else
+                {
+                    // Initialize the vocal track if it hasn't been already, and hide lyric bar
+                    if (!vocalTrackInitialized)
+                    {
+                        VocalTrack.gameObject.SetActive(true);
+                        _trackViewManager.CreateVocalTrackView();
+
+                        // Since all players have to select the same vocals
+                        // type (solo/harmony) this works no problem.
+                        var chart = player.Profile.CurrentInstrument == Instrument.Vocals
+                                ? Chart.Vocals
+                                : Chart.Harmony;
+                        VocalTrack.Initialize(chart);
+
+                        _lyricBar.SetActive(false);
+                        vocalTrackInitialized = true;
+                    }
+
+                    // Create the player on the vocal track
+                    var vocalsPlayer = VocalTrack.CreatePlayer();
+                    var playerHud = _trackViewManager.CreateVocalsPlayerHUD();
+                    vocalsPlayer.Initialize(index, player, Chart, playerHud);
+                    _players.Add(vocalsPlayer);
+                }
             }
         }
 
-        private async UniTask SetSongSpeedTask(float speed)
+        public void SetSongSpeed(float speed)
         {
+            _pauseSync = true;
+            _finishedSyncing.WaitOne();
+
             // 10% - 4995%, we reserve 5% so that audio syncing can still function
             speed = Math.Clamp(speed, 10 / 100f, 4995 / 100f);
 
@@ -499,22 +544,15 @@ namespace YARG.Gameplay
             // Set based on the actual song speed, so as to not break resyncing
             GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
 
-            // Wait until next frame to apply input offset,
-            // seems to help avoid sudden jumps in speed
-            await UniTask.NextFrame();
-
             // Adjust input offset, otherwise input time will desync
             SetInputBase(InputTime);
+
+            _pauseSync = false;
 
 #if UNITY_EDITOR
             Debug.Log($"Set song speed to {speed:0.00}.\n"
                 + $"Input time: {InputTime:0.000000}, song time: {SongTime:0.000000}");
 #endif
-        }
-
-        public void SetSongSpeed(float speed)
-        {
-            SetSongSpeedTask(speed).Forget();
         }
 
         public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(SelectedSongSpeed + deltaSpeed);
@@ -552,6 +590,10 @@ namespace YARG.Gameplay
             // Pause the background/venue
             Time.timeScale = 0f;
             BackgroundManager.SetPaused(true);
+
+#if UNITY_EDITOR
+            Debug.Log($"Paused at song time {SongTime:0.000000} (real: {RealSongTime:0.000000}), input time {InputTime:0.000000} (real: {RealInputTime:0.000000}).");
+#endif
         }
 
         public void Resume(bool inputCompensation = true)
@@ -578,6 +620,10 @@ namespace YARG.Gameplay
             {
                 GlobalVariables.AudioManager.Play();
             }
+
+#if UNITY_EDITOR
+            Debug.Log($"Resumed at song time {SongTime:0.000000} (real: {RealSongTime:0.000000}), input time {InputTime:0.000000} (real: {RealInputTime:0.000000}).");
+#endif
         }
 
         public void SetPaused(bool paused)
@@ -594,12 +640,15 @@ namespace YARG.Gameplay
             GameStateFetcher.SetPaused(paused);
         }
 
-        public void OverridePauseTime(double pauseTime)
+        public void OverridePauseTime(double pauseTime = -1)
         {
             if (!Paused)
             {
                 return;
             }
+
+            if (pauseTime < 0)
+                pauseTime = RealInputTime;
 
             PauseStartTime = pauseTime;
         }

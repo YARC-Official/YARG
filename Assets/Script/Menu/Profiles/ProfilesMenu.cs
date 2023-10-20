@@ -1,6 +1,7 @@
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Game;
+using YARG.Core.Input;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
 using YARG.Player;
@@ -26,7 +27,10 @@ namespace YARG.Menu.Profiles
         {
             RefreshList();
 
-            Navigator.Instance.PushScheme(NavigationScheme.EmptyWithMusicPlayer);
+            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            {
+                new NavigationScheme.Entry(MenuAction.Red, "Back", () => MenuManager.Instance.PopMenu()),
+            }, true));
         }
 
         private void OnDisable()

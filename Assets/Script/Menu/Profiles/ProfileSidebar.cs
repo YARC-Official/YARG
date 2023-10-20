@@ -7,7 +7,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
-using YARG.Core.Extensions;
 using YARG.Core.Game;
 using YARG.Helpers;
 using YARG.Player;
@@ -22,7 +21,8 @@ namespace YARG.Menu.Profiles
         private static readonly GameMode[] _gameModes =
         {
             GameMode.FiveFretGuitar,
-            GameMode.FourLaneDrums
+            GameMode.FourLaneDrums,
+            GameMode.Vocals
         };
 
         [SerializeField]
@@ -34,7 +34,7 @@ namespace YARG.Menu.Profiles
         [SerializeField]
         private Image _profilePicture;
         [SerializeField]
-        private Button _editProfileButton;
+        private Button[] _profileActionButtons;
 
         [Space]
         [SerializeField]
@@ -43,6 +43,8 @@ namespace YARG.Menu.Profiles
         private TMP_InputField _noteSpeedField;
         [SerializeField]
         private TMP_InputField _highwayLengthField;
+        [SerializeField]
+        private TMP_InputField _inputCalibrationField;
         [SerializeField]
         private Toggle _leftyFlipToggle;
         [SerializeField]
@@ -112,6 +114,7 @@ namespace YARG.Menu.Profiles
             _gameModeDropdown.value = _gameModesByIndex.IndexOf(profile.GameMode);
             _noteSpeedField.text = profile.NoteSpeed.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
             _highwayLengthField.text = profile.HighwayLength.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
+            _inputCalibrationField.text = _profile.InputCalibrationMilliseconds.ToString();
             _leftyFlipToggle.isOn = profile.LeftyFlip;
 
             // Update preset dropdowns
@@ -126,7 +129,11 @@ namespace YARG.Menu.Profiles
             _profilePicture.sprite = profile.IsBot ? _profileBotSprite : _profileGenericSprite;
 
             // Enable/disable the edit profile button
-            _editProfileButton.interactable = !_profile.IsBot && PlayerContainer.IsProfileTaken(_profile);
+            bool interactable = !_profile.IsBot && PlayerContainer.IsProfileTaken(_profile);
+            foreach (var button in _profileActionButtons)
+            {
+                button.interactable = interactable;
+            }
         }
 
         public void HideContents()
@@ -196,6 +203,17 @@ namespace YARG.Menu.Profiles
 
             // Always format it after
             _highwayLengthField.text = _profile.HighwayLength.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
+        }
+
+        public void ChangeInputCalibration()
+        {
+            if (long.TryParse(_inputCalibrationField.text, out long calibration))
+            {
+                _profile.InputCalibrationMilliseconds = calibration;
+            }
+
+            // Always format it after
+            _inputCalibrationField.text = _profile.InputCalibrationMilliseconds.ToString();
         }
 
         public void ChangeLeftyFlip()

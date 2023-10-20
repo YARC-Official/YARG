@@ -131,7 +131,7 @@ namespace YARG.Gameplay.HUD
             // If this is a connector, just return nothing
             if (lyricText == "+")
             {
-                return "";
+                return string.Empty;
             }
 
             // Special replacements
