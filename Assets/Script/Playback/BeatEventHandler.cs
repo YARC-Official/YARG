@@ -122,7 +122,7 @@ namespace YARG.Playback
 
                 // Call action
                 bool actionDone = false;
-                while (_sync.TickToTime(state.LastTick + ticksPerEvent, currentTempo) <= songTime + state.Info.Offset)
+                while (_sync.TickToTime(state.LastTick + ticksPerEvent, currentTempo) <= songTime - state.Info.Offset)
                 {
                     state.LastTick += ticksPerEvent;
                     if (!actionDone)
