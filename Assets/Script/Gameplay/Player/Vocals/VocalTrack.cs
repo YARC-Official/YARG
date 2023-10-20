@@ -83,7 +83,9 @@ namespace YARG.Gameplay.Player
 
         public bool IsRangeChanging { get; private set; }
 
+        private VocalsTrack _originalVocalsTrack;
         private VocalsTrack _vocalsTrack;
+
         private int[] _phraseIndices;
         private int[] _noteIndices;
         private int[] _lyricIndices;
@@ -119,7 +121,9 @@ namespace YARG.Gameplay.Player
 
         public void Initialize(VocalsTrack vocalsTrack)
         {
-            _vocalsTrack = vocalsTrack;
+            _originalVocalsTrack = vocalsTrack;
+            _vocalsTrack = _originalVocalsTrack.Clone();
+
             _phraseIndices = new int[_vocalsTrack.Parts.Count];
             _noteIndices = new int[_vocalsTrack.Parts.Count];
             _lyricIndices = new int[_vocalsTrack.Parts.Count];
@@ -370,6 +374,45 @@ namespace YARG.Gameplay.Player
         {
             var lerp = YargMath.Lerp(TRACK_BOTTOM, _currentTrackTop, _viewRange.Min, _viewRange.Max, pitch);
             return Mathf.Clamp(lerp, TRACK_BOTTOM, _currentTrackTop);
+        }
+
+        public void ResetPracticeSection()
+        {
+            // Skip if no vocals
+            if (!gameObject.activeSelf) return;
+
+            // Reset indices
+            for (int i = 0; i < _noteIndices.Length; i++)
+            {
+                _phraseIndices[i] = 0;
+                _noteIndices[i] = 0;
+                _lyricIndices[i] = 0;
+            }
+
+            // Return everything
+            foreach (var pool in _notePools)
+            {
+                pool.ReturnAllObjects();
+            }
+            _lyricContainer.ResetVisuals();
+            _talkiePool.ReturnAllObjects();
+        }
+
+        public void SetPracticeSection(uint start, uint end)
+        {
+            // Skip if no vocals
+            if (!gameObject.activeSelf) return;
+
+            _vocalsTrack = _originalVocalsTrack.Clone();
+
+            // Remove all notes not in the section
+            foreach (var part in _vocalsTrack.Parts)
+            {
+                part.NotePhrases.RemoveAll(n => n.Tick < start || n.Tick >= end);
+                part.TextEvents.RemoveAll(n => n.Tick < start || n.Tick >= end);
+            }
+
+            ResetPracticeSection();
         }
     }
 }

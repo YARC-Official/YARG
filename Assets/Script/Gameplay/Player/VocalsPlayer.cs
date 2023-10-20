@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using UnityEngine;
 using YARG.Audio;
 using YARG.Core;
@@ -34,7 +35,8 @@ namespace YARG.Gameplay.Player
 
         public override int[] StarScoreThresholds { get; protected set; }
 
-        protected InstrumentDifficulty<VocalNote> NoteTrack { get; private set; }
+        private InstrumentDifficulty<VocalNote> NoteTrack { get; set; }
+        private InstrumentDifficulty<VocalNote> OriginalNoteTrack { get; set; }
 
         private MicInputContext _inputContext;
 
@@ -53,7 +55,11 @@ namespace YARG.Gameplay.Player
             // Get the notes from the specific harmony or solo part
             var multiTrack = chart.GetVocalsTrack(Player.Profile.CurrentInstrument);
             var track = multiTrack.Parts[Player.Profile.HarmonyIndex];
-            NoteTrack = track.CloneAsInstrumentDifficulty();
+
+            OriginalNoteTrack = track.CloneAsInstrumentDifficulty();
+            player.Profile.ApplyModifiers(OriginalNoteTrack);
+
+            NoteTrack = OriginalNoteTrack;
 
             // Create and start an input context for the mic
             if (!GameManager.IsReplay && player.Bindings.Microphone is not null)
@@ -120,6 +126,17 @@ namespace YARG.Gameplay.Player
 
         public override void ResetPracticeSection()
         {
+            Engine.Reset(true);
+
+            if (NoteTrack.Notes.Count > 0)
+            {
+                NoteTrack.Notes[0].OverridePreviousNote();
+                NoteTrack.Notes[^1].OverrideNextNote();
+            }
+
+            IsFc = true;
+
+            ResetVisuals();
         }
 
         protected override void UpdateInputs(double time)
@@ -235,10 +252,24 @@ namespace YARG.Gameplay.Player
 
         public override void SetPracticeSection(uint start, uint end)
         {
+            var practiceNotes = OriginalNoteTrack.Notes.Where(n => n.Tick >= start && n.Tick < end).ToList();
+
+            NoteTrack = new InstrumentDifficulty<VocalNote>(
+                OriginalNoteTrack.Instrument,
+                OriginalNoteTrack.Difficulty,
+                practiceNotes,
+                OriginalNoteTrack.Phrases,
+                OriginalNoteTrack.TextEvents);
+
+            Engine = CreateEngine();
+            ResetPracticeSection();
         }
 
         protected override bool InterceptInput(ref GameInput input)
         {
+            // Ignore SP in practice mode
+            if (input.GetAction<VocalsAction>() == VocalsAction.StarPower && GameManager.IsPractice) return true;
+
             return false;
         }
     }
