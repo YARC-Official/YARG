@@ -170,7 +170,12 @@ namespace YARG.Playback
             Dispose(false);
         }
 
-        public void Dispose() => Dispose(true);
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
         private void Dispose(bool disposing)
         {
             // Stop sync thread
