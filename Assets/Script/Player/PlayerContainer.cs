@@ -265,9 +265,10 @@ namespace YARG.Player
 
         public static void Destroy()
         {
-            foreach (var player in Players)
+            // Can't `foreach` when modifying a collection, so this will do instead
+            while (_players.Count > 0)
             {
-                DisposePlayer(player);
+                DisposePlayer(_players[0]);
             }
         }
     }
