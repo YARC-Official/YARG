@@ -147,13 +147,32 @@ namespace YARG.Playback
         private double _previousInputTime = double.NaN;
         #endregion
 
-        public SongRunner(float songSpeed = 1f, double audioCalibration = 0, double videoCalibration = 0,
+        /// <summary>
+        /// Creates a new song runner with the given speed and calibration values.
+        /// </summary>
+        /// <param name="songSpeed">
+        /// The percentage song speed, where 1f == 100%.
+        /// </param>
+        /// <param name="audioCalibration">
+        /// The audio calibration, in milliseconds.<br/>
+        /// This value is negated and normalized to seconds for more intuitive usage in other code.
+        /// <paramref name="videoCalibration"/> is also applied to keep things visually synced.
+        /// </param>
+        /// <param name="videoCalibration">
+        /// The video calibration, in milliseconds.<br/>
+        /// This value is negated and normalized to seconds for more intuitive usage in other code.
+        /// </param>
+        /// <param name="songOffset">
+        /// The song offset, in seconds.<br/>
+        /// This value is negated for more intuitive usage in other code.
+        /// </param>
+        public SongRunner(float songSpeed = 1f, int audioCalibration = 0, int videoCalibration = 0,
             double songOffset = 0)
         {
             SelectedSongSpeed = songSpeed;
-            AudioCalibration = audioCalibration;
-            VideoCalibration = videoCalibration;
-            SongOffset = songOffset;
+            VideoCalibration = -videoCalibration / 1000.0;
+            AudioCalibration = (-audioCalibration / 1000.0) - VideoCalibration;
+            SongOffset = -songOffset;
 
             // Initialize times
             InitializeSongTime(SongOffset);

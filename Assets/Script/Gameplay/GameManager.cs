@@ -244,11 +244,11 @@ namespace YARG.Gameplay
             }
 
             // Initialize song runner
-            float songSpeed = GlobalVariables.Instance.SongSpeed;
-            double videoCalibration = -SettingsManager.Settings.VideoCalibration.Data / 1000.0;
-            double audioCalibration = (-SettingsManager.Settings.AudioCalibration.Data / 1000.0) - videoCalibration;
-            double songOffset = -Song.SongOffsetSeconds;
-            _songRunner = new SongRunner(songSpeed, videoCalibration, audioCalibration, songOffset);
+            _songRunner = new SongRunner(
+                GlobalVariables.Instance.SongSpeed,
+                SettingsManager.Settings.AudioCalibration.Data,
+                SettingsManager.Settings.VideoCalibration.Data,
+                Song.SongOffsetSeconds);
 
             // Spawn players
             CreatePlayers();
@@ -274,7 +274,7 @@ namespace YARG.Gameplay
 
 #if UNITY_EDITOR
             // Log constant values
-            Debug.Log($"Audio calibration: {audioCalibration}, video calibration: {videoCalibration}, song offset: {songOffset}");
+            Debug.Log($"Audio calibration: {_songRunner.AudioCalibration}, video calibration: {_songRunner.VideoCalibration}, song offset: {_songRunner.SongOffset}");
 #endif
 
             // Loaded, enable updates
