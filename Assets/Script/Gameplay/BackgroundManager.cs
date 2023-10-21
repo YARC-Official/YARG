@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
@@ -21,14 +21,14 @@ namespace YARG.Gameplay
         [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
         private async UniTaskVoid Start()
         {
-            var typePathPair = VenueLoader.GetVenuePath(GameManager.Song);
-            if (typePathPair == null)
+            var venueInfo = VenueLoader.GetVenue(GameManager.Song);
+            if (!venueInfo.HasValue)
             {
                 return;
             }
 
-            var type = typePathPair.Value.Type;
-            var path = typePathPair.Value.Path;
+            var type = venueInfo.Value.Type;
+            var path = venueInfo.Value.Path;
 
             // Set to false (unless we do wanna start the video)
             _videoShouldBeStarted = false;
