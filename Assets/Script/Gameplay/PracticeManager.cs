@@ -139,6 +139,7 @@ namespace YARG.Gameplay
             {
                 player.SetPracticeSection(tickStart, tickEnd);
             }
+            GameManager.VocalTrack.SetPracticeSection(tickStart, tickEnd);
 
             GameManager.SetSongTime(timeStart);
             GameManager.Resume(inputCompensation: false);
@@ -209,6 +210,7 @@ namespace YARG.Gameplay
             {
                 player.ResetPracticeSection();
             }
+            GameManager.VocalTrack.ResetPracticeSection();
 
             GameManager.SetSongTime(TimeStart);
         }

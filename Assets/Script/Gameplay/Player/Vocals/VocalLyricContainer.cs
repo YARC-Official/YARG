@@ -57,5 +57,16 @@ namespace YARG.Gameplay.Player
 
             return true;
         }
+
+        public void ResetVisuals()
+        {
+            _lastLyricEdgeTime[0] = double.NegativeInfinity;
+            _lastLyricEdgeTime[1] = double.NegativeInfinity;
+
+            foreach (var pool in _pools)
+            {
+                pool.ReturnAllObjects();
+            }
+        }
     }
 }
