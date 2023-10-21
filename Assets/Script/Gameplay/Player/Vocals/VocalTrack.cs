@@ -2,7 +2,6 @@
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.InputSystem;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Gameplay.Visuals;
@@ -14,7 +13,9 @@ namespace YARG.Gameplay.Player
         private struct Range
         {
             // These are basically just random numbers
-            public static readonly Range Default = new(55f, 75f);
+            // public static readonly Range Default = new(55f, 75f);
+            // TODO: Make the default range very large until proper range shifting is implemented
+            public static readonly Range Default = new(40f, 75f);
 
             public float Min;
             public float Max;
@@ -163,10 +164,6 @@ namespace YARG.Gameplay.Player
 
         private void Update()
         {
-            if (Keyboard.current.rKey.wasPressedThisFrame)
-            {
-                CalculateAndChangeRange(GameManager.SongTime, GameManager.SongTime + 10.0, 1f);
-            }
 
             // Update the range
             if (IsRangeChanging)
