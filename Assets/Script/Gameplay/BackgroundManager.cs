@@ -23,6 +23,9 @@ namespace YARG.Gameplay
         [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
         private async UniTaskVoid Start()
         {
+            // We don't need to update unless we're using a video
+            enabled = false;
+
             var venueInfo = VenueLoader.GetVenue(GameManager.Song);
             if (!venueInfo.HasValue)
             {
@@ -72,6 +75,7 @@ namespace YARG.Gameplay
                     _videoPlayer.Prepare();
 
                     _videoShouldBeStarted = true;
+                    enabled = true;
                     break;
                 case VenueType.Image:
                     _backgroundImage.gameObject.SetActive(true);
