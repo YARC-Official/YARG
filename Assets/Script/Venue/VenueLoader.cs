@@ -37,7 +37,8 @@ namespace YARG.Venue
 
     public static class VenueLoader
     {
-        public static string VenueFolder => Path.Combine(PathHelper.PersistentDataPath, "venue");
+        private static string _venueFolder = null;
+        public static string VenueFolder => _venueFolder ??= Path.Combine(PathHelper.PersistentDataPath, "venue");
 
         static VenueLoader()
         {
