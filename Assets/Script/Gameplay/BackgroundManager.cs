@@ -15,6 +15,8 @@ namespace YARG.Gameplay
         [SerializeField]
         private RawImage _backgroundImage;
 
+        private VenueInfo _venueInfo;
+
         private bool _videoShouldBeStarted;
 
         // "The Unity message 'Start' has an incorrect signature."
@@ -27,8 +29,10 @@ namespace YARG.Gameplay
                 return;
             }
 
-            var type = venueInfo.Value.Type;
-            var path = venueInfo.Value.Path;
+            _venueInfo = venueInfo.Value;
+
+            var type = _venueInfo.Type;
+            var path = _venueInfo.Path;
 
             // Set to false (unless we do wanna start the video)
             _videoShouldBeStarted = false;
