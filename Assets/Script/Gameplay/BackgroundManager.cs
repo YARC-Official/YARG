@@ -1,3 +1,4 @@
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -17,7 +18,14 @@ namespace YARG.Gameplay
 
         private VenueInfo _venueInfo;
 
-        private bool _videoShouldBeStarted;
+        private bool _videoStarted = false;
+
+        // These values are relative to the video, not to song time!
+        // A negative start time will delay when the video starts, a positive one will set the video position
+        // to that value when starting playback at the start of a song.
+        private double _videoStartTime;
+        // End time cannot be negative; a negative value means it is not set.
+        private double _videoEndTime;
 
         // "The Unity message 'Start' has an incorrect signature."
         [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
@@ -36,9 +44,6 @@ namespace YARG.Gameplay
 
             var type = _venueInfo.Type;
             var path = _venueInfo.Path;
-
-            // Set to false (unless we do wanna start the video)
-            _videoShouldBeStarted = false;
 
             switch (type)
             {
@@ -72,9 +77,9 @@ namespace YARG.Gameplay
                 case VenueType.Video:
                     _videoPlayer.url = path;
                     _videoPlayer.enabled = true;
+                    _videoPlayer.prepareCompleted += OnVideoPrepared;
                     _videoPlayer.Prepare();
 
-                    _videoShouldBeStarted = true;
                     enabled = true;
                     break;
                 case VenueType.Image:
@@ -86,11 +91,69 @@ namespace YARG.Gameplay
 
         private void Update()
         {
-            // Start playing the video at 0 seconds
-            if (_videoShouldBeStarted && GameManager.SongTime >= 0.0)
+            // Start video
+            if (!_videoStarted)
             {
-                _videoShouldBeStarted = false;
+                // Don't start playing the video until the start of the song
+                if (GameManager.SongTime < 0.0)
+                    return;
+
+                // Delay until the start time is reached
+                if (_venueInfo.Source == VenueSource.Song &&
+                    _videoStartTime < 0 && GameManager.SongTime < -_videoStartTime)
+                    return;
+
+                _videoStarted = true;
                 _videoPlayer.Play();
+
+                // Disable after starting the video if it's not from the song folder
+                // or if video end time is not specified
+                if (_venueInfo.Source != VenueSource.Song || _videoEndTime <= 0)
+                {
+                    enabled = false;
+                    return;
+                }
+            }
+
+            // End video when reaching the specified end time
+            if (GameManager.SongTime - _videoStartTime >= _videoEndTime)
+            {
+                _videoPlayer.Stop();
+                _videoPlayer.enabled = false;
+                enabled = false;
+            }
+        }
+
+        // Some video player properties don't work correctly until
+        // it's finished preparing, such as the length
+        private void OnVideoPrepared(VideoPlayer player)
+        {
+            if (_venueInfo.Source == VenueSource.Song)
+            {
+                _videoStartTime = GameManager.Song.VideoStartTimeSeconds;
+                _videoEndTime = GameManager.Song.VideoEndTimeSeconds;
+
+                player.time = _videoStartTime;
+
+                // Determine whether or not to loop the video
+                double frameTime = 1 / player.frameRate;
+                if (Math.Abs(_videoStartTime) < frameTime && _videoEndTime < 0)
+                {
+                    // Only loop the video if it's not around the same length as the song
+                    double lengthRatio = (player.length - _videoStartTime) / GameManager.SongLength;
+                    player.isLooping = lengthRatio < 0.85;
+                }
+                else
+                {
+                    // Never loop the video if start/end times are specified
+                    player.isLooping = false;
+                }
+            }
+            else
+            {
+                _videoStartTime = 0;
+                _videoEndTime = -1;
+                player.isLooping = true;
             }
         }
 
