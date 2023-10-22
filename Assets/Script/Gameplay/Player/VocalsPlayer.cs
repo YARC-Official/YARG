@@ -214,13 +214,13 @@ namespace YARG.Gameplay.Player
                     // Show particles if hitting
                     _hittingParticleGroup.Play();
 
-                    float z;
+                    float pitch;
                     float targetRotation = 0f;
 
                     if (!_lastTargetNote.IsNonPitched)
                     {
                         // If the player is hitting, just set the needle position to the note
-                        z = GameManager.VocalTrack.GetPosForPitch(lastNotePitch);
+                        pitch = lastNotePitch;
 
                         // Rotate the needle a little bit depending on how off it is (unless it's non-pitched)
                         // Get how off the player is
@@ -235,10 +235,11 @@ namespace YARG.Gameplay.Player
                     else
                     {
                         // If the note is non-pitched, just use the singing position
-                        z = Engine.State.PitchSang;
+                        pitch = Engine.State.PitchSang + 12f;
                     }
 
                     // Transform!
+                    float z = GameManager.VocalTrack.GetPosForPitch(pitch);
                     var lerp = Mathf.Lerp(transformCache.localPosition.z, z, Time.deltaTime * lerpRate);
                     transformCache.localPosition = new Vector3(0f, 0f, lerp);
                     _needleTransform.rotation = Quaternion.Lerp(_needleTransform.rotation,
