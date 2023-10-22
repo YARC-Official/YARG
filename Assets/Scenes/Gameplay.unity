@@ -1265,6 +1265,7 @@ GameObject:
   - component: {fileID: 318454375}
   - component: {fileID: 318454376}
   - component: {fileID: 318454373}
+  - component: {fileID: 318454377}
   m_Layer: 0
   m_Name: Game Manager
   m_TagString: Untagged
@@ -1365,6 +1366,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _videoPlayer: {fileID: 218824352}
   _backgroundImage: {fileID: 1773048783}
+--- !u!114 &318454377
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 318454370}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff8084e0e7e64cf4d965e697cc8deee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &396166999
 PrefabInstance:
   m_ObjectHideFlags: 0
