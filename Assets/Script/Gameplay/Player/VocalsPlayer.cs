@@ -26,6 +26,8 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         private GameObject _needleVisualContainer;
         [SerializeField]
+        private Transform _needleTransform;
+        [SerializeField]
         private ParticleGroup _hittingParticleGroup;
 
         public override float[] StarMultiplierThresholds { get; } =
@@ -165,6 +167,12 @@ namespace YARG.Gameplay.Player
 
         protected override void UpdateVisuals(double time)
         {
+            const float NEEDLE_POS_LERP = 30f;
+            const float NEEDLE_POS_SNAP_MULTIPLIER = 10f;
+
+            const float NEEDLE_ROT_LERP = 25f;
+            const float NEEDLE_ROT_MAX = 12f;
+
             // Get combo meter fill
             float fill = 0f;
             if (Engine.State.PhraseTicksTotal != null)
@@ -187,59 +195,127 @@ namespace YARG.Gameplay.Player
             }
             else
             {
-                float lerpRate = 30f;
+                float lerpRate = NEEDLE_POS_LERP;
 
                 // Show needle
                 if (!_needleVisualContainer.activeSelf)
                 {
                     _needleVisualContainer.SetActive(true);
 
-                    // Lerp 10 times faster if we've just started showing the needle
-                    lerpRate *= 10f;
+                    // Lerp X times faster if we've just started showing the needle
+                    lerpRate *= NEEDLE_POS_SNAP_MULTIPLIER;
                 }
 
-                // Get the pitch, and move to the correct octave
-                float pitch = Engine.State.PitchSang;
-                if (_lastTargetNote is not null && !_lastTargetNote.IsNonPitched)
-                {
-                    float octavePitch = pitch % 12f;
+                var transformCache = transform;
+                float lastNotePitch = _lastTargetNote?.PitchAtSongTime(GameManager.SongTime) ?? -1f;
 
-                    // Because the octave wraps around, we need to try
-                    // to surrounding octaves to see which value is the closest
-                    float closestDist = float.PositiveInfinity;
-                    for (int i = -1; i <= 1; i++)
-                    {
-                        float note = octavePitch + (_lastTargetNote.Octave + i) * 12f;
-                        float dist = Mathf.Abs(_lastTargetNote.Pitch - note);
-                        if (dist < closestDist)
-                        {
-                            closestDist = dist;
-                            pitch = note;
-                        }
-                    }
-                }
-                else
+                if (_lastTargetNote is not null && GameManager.SongTime < GetTimeThreshold(Engine.State.LastHitTime))
                 {
-                    // Hard code a value of one octave up to
-                    // make the needle sit more in the middle
-                    pitch += 12f;
-                }
-
-                // Set the position of the needle
-                var z = GameManager.VocalTrack.GetPosForPitch(pitch);
-                var lerp = Mathf.Lerp(transform.localPosition.z, z, Time.deltaTime * lerpRate);
-                transform.localPosition = new Vector3(0f, 0f, lerp);
-
-                // Show particles if hitting, stop them if not.
-                if (GameManager.SongTime < GetTimeThreshold(Engine.State.LastHitTime))
-                {
+                    // Show particles if hitting
                     _hittingParticleGroup.Play();
+
+                    float z;
+                    float targetRotation = 0f;
+
+                    if (!_lastTargetNote.IsNonPitched)
+                    {
+                        // If the player is hitting, just set the needle position to the note
+                        z = GameManager.VocalTrack.GetPosForPitch(lastNotePitch);
+
+                        // Rotate the needle a little bit depending on how off it is (unless it's non-pitched)
+                        // Get how off the player is
+                        (float pitchDist, _) = GetPitchDistanceIgnoringOctave(lastNotePitch, Engine.State.PitchSang);
+
+                        // Determine how off that is compared to the hit window
+                        float distPercent = Mathf.Clamp(pitchDist / (float) EngineParams.HitWindow, -1f, 1f);
+
+                        // Use that to get the target rotation
+                        targetRotation = distPercent * NEEDLE_ROT_MAX;
+                    }
+                    else
+                    {
+                        // If the note is non-pitched, just use the singing position
+                        z = Engine.State.PitchSang;
+                    }
+
+                    // Transform!
+                    var lerp = Mathf.Lerp(transformCache.localPosition.z, z, Time.deltaTime * lerpRate);
+                    transformCache.localPosition = new Vector3(0f, 0f, lerp);
+                    _needleTransform.rotation = Quaternion.Lerp(_needleTransform.rotation,
+                        Quaternion.Euler(0f, targetRotation, 0f), Time.deltaTime * NEEDLE_ROT_LERP);
                 }
                 else
                 {
+                    // Stop particles if not hitting
                     _hittingParticleGroup.Stop();
+
+                    // Since the player is not hitting the note here, we need to offset it correctly.
+                    // Get the pitch, and move to the correct octave.
+                    float pitch = Engine.State.PitchSang;
+                    if (_lastTargetNote is not null && !_lastTargetNote.IsNonPitched)
+                    {
+                        (_, int octaveShift) = GetPitchDistanceIgnoringOctave(lastNotePitch, pitch);
+
+                        int lastNoteOctave = (int) (lastNotePitch / 12f);
+
+                        // Set the pitch's octave to the target one
+                        pitch = Engine.State.PitchSang % 12f;
+                        pitch += 12f * (lastNoteOctave + octaveShift);
+                    }
+                    else
+                    {
+                        // Hard code a value of one octave up to
+                        // make the needle sit more in the middle
+                        pitch += 12f;
+                    }
+
+                    // Set the position of the needle
+                    var z = GameManager.VocalTrack.GetPosForPitch(pitch);
+                    var lerp = Mathf.Lerp(transformCache.localPosition.z, z, Time.deltaTime * lerpRate);
+                    transformCache.localPosition = new Vector3(0f, 0f, lerp);
+
+                    // Lerp the rotation to none
+                    _needleTransform.rotation = Quaternion.Lerp(_needleTransform.rotation,
+                        Quaternion.identity, Time.deltaTime * NEEDLE_ROT_LERP);
                 }
             }
+        }
+
+        /// <returns>
+        /// The first value in the pair (<c>Distance</c>) is the distance between <paramref name="target"/> and '
+        /// <paramref name="other"/> ignoring the octave.<br/>
+        /// The second value in the pair (<c>OctaveShift</c>) is how much the <paramref name="target"/> octave
+        /// had to be shifted in order for the closest distance to be found.
+        /// </returns>
+        /// <param name="target">The target note (as MIDI pitch).</param>
+        /// <param name="other">The other note (as MIDI pitch).</param>
+        private static (float Distance, int OctaveShift) GetPitchDistanceIgnoringOctave(float target, float other)
+        {
+            // Normalize the parameters
+            target %= 12f;
+            other %= 12f;
+
+            // Start off with the current octave
+            float closest = other - target;
+            int octaveShift = 0;
+
+            // Upper octave
+            float upperDist = (other + 12f) - target;
+            if (Mathf.Abs(upperDist) < Mathf.Abs(closest))
+            {
+                closest = upperDist;
+                octaveShift = 1;
+            }
+
+            // Lower octave
+            float lowerDist = (other - 12f) - target;
+            if (Mathf.Abs(lowerDist) < Mathf.Abs(closest))
+            {
+                closest = lowerDist;
+                octaveShift = -1;
+            }
+
+            return (closest, octaveShift);
         }
 
         public override void UpdateWithTimes(double inputTime)

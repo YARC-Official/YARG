@@ -15,7 +15,7 @@ namespace YARG.Gameplay.Player
             // These are basically just random numbers
             // public static readonly Range Default = new(55f, 75f);
             // TODO: Make the default range very large until proper range shifting is implemented
-            public static readonly Range Default = new(40f, 75f);
+            public static readonly Range Default = new(40f, 87f);
 
             public float Min;
             public float Max;
