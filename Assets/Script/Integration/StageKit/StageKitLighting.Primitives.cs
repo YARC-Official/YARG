@@ -17,7 +17,7 @@ namespace YARG.Integration.StageKit
 
 		public BeatPattern(List<(int, byte)> patternList, bool continuous = true, float timesPerBeat = 1.0f)
         {
-            _gameManager = Object.FindObjectOfType<GameManager>();
+            _gameManager = Object.FindObjectOfType<GameManager>(); //Brought to you by Hacky Hack and the Hacktones
 			_continuous = continuous;
 			_patternList = patternList;
             _gameManager.BeatEventManager.Subscribe(OnBeat, new BeatEventManager.Info(1.0f / (timesPerBeat * _patternList.Count), 0f));

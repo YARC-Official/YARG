@@ -373,7 +373,7 @@ namespace YARG.Integration.StageKit
             StageKitLightingController.Instance.SetLed(YELLOW,NONE);
             StageKitLightingController.Instance.SetLed(RED,NONE);
 
-            if (PreviousLightingCue is ManualCool or LoopCool)
+            if (StageKitLightingController.Instance.PreviousLightingCue is ManualCool or LoopCool)
             {
                 StageKitLightingController.Instance.SetLed(GREEN, ALL);
             }
@@ -401,8 +401,10 @@ namespace YARG.Integration.StageKit
 
 		public SilhouetteSpot()
         {
-            if (PreviousLightingCue is Dischord)
+            Debug.Log("SilhouetteSpot");
+            if (StageKitLightingController.Instance.PreviousLightingCue is Dischord)
             {
+                Debug.Log("previous Dischord");
 				StageKitLightingController.Instance.SetLed(RED,NONE);
 				StageKitLightingController.Instance.SetLed(YELLOW,NONE);
 				StageKitLightingController.Instance.SetLed(BLUE,ONE|THREE|FIVE|SEVEN);
@@ -410,16 +412,19 @@ namespace YARG.Integration.StageKit
 
                 _enableBlueLedVocals = true;
 			}
-            else if (PreviousLightingCue is Stomp)
+            else if (StageKitLightingController.Instance.PreviousLightingCue is Stomp)
             {
+                Debug.Log("previous Stomp");
                 //do nothing (for the chop suey ending at least)
 			}
-            else if (PreviousLightingCue is Intro)
+            else if (StageKitLightingController.Instance.PreviousLightingCue is Intro)
             {
+                Debug.Log("previous Intro");
                 CuePrimitives.Add(new ListenPattern(new List<(int, byte)>{(BLUE, ALL)}, ListenTypes.RedFretDrums,true));
             }
             else
             {
+                Debug.Log("previous other");
                 StageKitLightingController.Instance.SetLed(RED, NONE);
                 StageKitLightingController.Instance.SetLed(GREEN, NONE);
                 StageKitLightingController.Instance.SetLed(BLUE, NONE);
@@ -443,8 +448,8 @@ namespace YARG.Integration.StageKit
 
         public override void HandleBeatlineEvent(BeatlineType eventName)
         {
-            if (eventName != BeatlineType.Measure || PreviousLightingCue is not Dischord) return;
-            if (PreviousLightingCue is not Dischord) return;
+            if (eventName != BeatlineType.Measure || StageKitLightingController.Instance.PreviousLightingCue is not Dischord) return;
+            if (StageKitLightingController.Instance.PreviousLightingCue is not Dischord) return;
             _enableBlueLedVocals = true;
         }
 	}

@@ -56,7 +56,6 @@ namespace YARG.Integration.StageKit
         StageKitLightingCue : StageKitLighting //This is the parent class of all lighting cues. (not primitives)
     {
         public bool LargeVenue;
-        public StageKitLightingCue PreviousLightingCue;
 
         protected const int BLUE = 0;
         protected const int GREEN = 1;

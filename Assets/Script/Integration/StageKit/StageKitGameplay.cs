@@ -30,9 +30,7 @@ namespace YARG.Integration.StageKit
         protected override void OnChartLoaded(SongChart chart)
         {
             _controller = StageKitLightingController.Instance;
-            _controller.LargeVenue =
-                Random.Range(0, 1) ==
-                0; //this should be read from the venue itself eventually but for now, randomize it.
+            _controller.LargeVenue = Random.Range(0, 1) == 1; //Should be read from the venue itself eventually but for now, randomize it.
             _venue = chart.VenueTrack;
             _sync = chart.SyncTrack;
             _vocals = chart.Vocals.Parts[0].NotePhrases;
@@ -68,16 +66,15 @@ namespace YARG.Integration.StageKit
             }
 
             //how we get the current event for each track
-            // Dischord listens to the red pad
-            if (_drumIndex < _drums.Notes.Count - 1 && _drums.Notes[_drumIndex].Time <= GameManager.SongTime)
+            //Dischord listens to the red pad
+            if (_drumIndex < _drums.Notes.Count  && _drums.Notes[_drumIndex].Time <= GameManager.SongTime)
             {
                 HandleDrums?.Invoke(_drums.Notes[_drumIndex].Pad);
                 _drumIndex++;
             }
 
             //SilhouetteSpot is the only cue that uses vocals, listening to the end of the phrase.
-            if (_vocalsIndex < _vocals.Count - 1 &&
-                _vocals[_vocalsIndex].PhraseParentNote.ChildNotes[^1].TotalTimeEnd <= GameManager.SongTime)
+            if (_vocalsIndex < _vocals.Count  && _vocals[_vocalsIndex].PhraseParentNote.ChildNotes[^1].TotalTimeEnd <= GameManager.SongTime)
             {
                 if (_vocals[_vocalsIndex].PhraseParentNote.Type == VocalNoteType.Lyric)
                 {
@@ -88,16 +85,15 @@ namespace YARG.Integration.StageKit
             }
 
             //"Major" and "Minor" are now "Measure" and "Strong", respectively. I've never encountered "Weak" in any official chart and don't know what that used to be called, if anything.
-            // Any beat timed cue primitive listens to these.
-            if (_syncIndex < _sync.Beatlines.Count - 1 && _sync.Beatlines[_syncIndex].Time <= GameManager.SongTime)
+            //Any beat timed cue primitive listens to these.
+            if (_syncIndex < _sync.Beatlines.Count  && _sync.Beatlines[_syncIndex].Time <= GameManager.SongTime)
             {
                 HandleBeatline?.Invoke(_sync.Beatlines[_syncIndex].Type);
                 _syncIndex++;
             }
 
             //The lighting cues from the venue track are handled here.
-            if (_lightingIndex < _venue.Lighting.Count - 1 &&
-                _venue.Lighting[_lightingIndex].Time <= GameManager.SongTime)
+            if (_lightingIndex < _venue.Lighting.Count && _venue.Lighting[_lightingIndex].Time <= GameManager.SongTime)
             {
                 if (_venue.Lighting[_lightingIndex].Type == LightingType.Keyframe_Next)
                 {
@@ -112,7 +108,7 @@ namespace YARG.Integration.StageKit
             }
 
             //For "fogOn", "fogOff", and "BonusFx" events
-            if (_eventIndex >= _venue.Stage.Count - 1 || !(_venue.Stage[_eventIndex].Time <= GameManager.SongTime))
+            if (_eventIndex >= _venue.Stage.Count  || !(_venue.Stage[_eventIndex].Time <= GameManager.SongTime))
             {
                 return;
             }
@@ -249,11 +245,11 @@ namespace YARG.Integration.StageKit
                     break;
 
                 //Ignored cues
-                case LightingType.Keyframe_Next: //these are handled in the cues classes via their primitive calls
+                case LightingType.Keyframe_Next: //these are handled in the cue classes via their primitive calls
                 case LightingType.Keyframe_Previous: //no cue listens to this.
                 case LightingType.Keyframe_First: //no cue listens to this.
-                case LightingType.Menu: // handled in StageKitMenu.cs, shouldn't ever be called here in gameplay.
-                case LightingType.Score: // handled in StageKitScore.cs, shouldn't ever be called here in gameplay.
+                case LightingType.Menu: // handled in StageKitMenu, shouldn't ever be called here in gameplay.
+                case LightingType.Score: // handled in StageKitScore, shouldn't ever be called here in gameplay.
 
                 //In-game lighting calls we currently ignore but might do something with in an extended "funky fresh" mode.
                 case LightingType.Verse:
@@ -283,7 +279,6 @@ namespace YARG.Integration.StageKit
         {
             _controller.CurrentLightingCue = cue;
             _controller.CurrentLightingCue.LargeVenue = _controller.LargeVenue;
-            _controller.CurrentLightingCue.PreviousLightingCue = _controller.PreviousLightingCue;
 
             HandleBeatline += _controller.CurrentLightingCue.HandleBeatlineEvent;
             HandleDrums += _controller.CurrentLightingCue.HandleDrumEvent;
