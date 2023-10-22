@@ -249,6 +249,12 @@ namespace YARG.Gameplay.Player
             {
                 var note = notes[index];
 
+                // TODO: Implement vocal percussion. This is temporary.
+                if (note.IsPercussion)
+                {
+                    return true;
+                }
+
                 if (note.IsNonPitched)
                 {
                     // Skip this frame if the pool is full
