@@ -655,7 +655,7 @@ namespace YARG.Gameplay
             => _songRunner.GetRelativeInputTime(timeFromInputSystem);
 
         public double GetCalibratedRelativeInputTime(double timeFromInputSystem)
-            => _songRunner.GetRelativeInputTime(timeFromInputSystem);
+            => _songRunner.GetCalibratedRelativeInputTime(timeFromInputSystem);
 
         private void EndSong()
         {
