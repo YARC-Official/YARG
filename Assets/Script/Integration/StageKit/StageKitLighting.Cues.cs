@@ -117,7 +117,7 @@ namespace YARG.Integration.StageKit
             List<(int, byte)> patternList2;
             List<(int, byte)> patternList1;
 
-            if (LargeVenue)
+            if (StageKitLightingController.Instance.LargeVenue)
             {
                 patternList1 = new List<(int, byte)>
                 {
@@ -185,7 +185,7 @@ namespace YARG.Integration.StageKit
         {
             List<(int, byte)> patternList1;
 
-            if  (LargeVenue)
+            if  (StageKitLightingController.Instance.LargeVenue)
             {
                 patternList1 = new List<(int, byte)>
                 {
@@ -239,8 +239,10 @@ namespace YARG.Integration.StageKit
             List<(int, byte)> patternList3;
             List<(int, byte)> patternList2;
             List<(int, byte)> patternList1;
-            if  (LargeVenue)//red off blue yellow
+
+            if  (StageKitLightingController.Instance.LargeVenue)
             {
+                //red off blue yellow
                 patternList1 = new List<(int, byte)>
                 {
                     (RED, ALL), (RED, NONE), (RED, NONE), (RED, NONE),
@@ -284,7 +286,8 @@ namespace YARG.Integration.StageKit
                 };
                 StageKitLightingController.Instance.SetLed(YELLOW, NONE);
             }
-            CuePrimitives.Add( new BeatPattern(patternList1,true, 4.0f)); //4 times a beats to control on and off because of the 2 different patterns on one color
+            //4 times a beats to control on and off because of the 2 different patterns on one color
+            CuePrimitives.Add( new BeatPattern(patternList1,true, 4.0f));
             CuePrimitives.Add( new BeatPattern(patternList2,true, 4.0f));
             CuePrimitives.Add(new BeatPattern(patternList3,true, 4.0f));
         }
@@ -298,7 +301,7 @@ namespace YARG.Integration.StageKit
             List<(int, byte)> patternList2;
             List<(int, byte)> patternList1;
             //1 yellow@2 clockwise and 1 blue@0 counter clock.
-            if  (LargeVenue)
+            if  (StageKitLightingController.Instance.LargeVenue)
             {
                 patternList1 = new List<(int, byte)>
                 {
@@ -401,10 +404,8 @@ namespace YARG.Integration.StageKit
 
 		public SilhouetteSpot()
         {
-            Debug.Log("SilhouetteSpot");
             if (StageKitLightingController.Instance.PreviousLightingCue is Dischord)
             {
-                Debug.Log("previous Dischord");
 				StageKitLightingController.Instance.SetLed(RED,NONE);
 				StageKitLightingController.Instance.SetLed(YELLOW,NONE);
 				StageKitLightingController.Instance.SetLed(BLUE,ONE|THREE|FIVE|SEVEN);
@@ -414,17 +415,14 @@ namespace YARG.Integration.StageKit
 			}
             else if (StageKitLightingController.Instance.PreviousLightingCue is Stomp)
             {
-                Debug.Log("previous Stomp");
                 //do nothing (for the chop suey ending at least)
 			}
             else if (StageKitLightingController.Instance.PreviousLightingCue is Intro)
             {
-                Debug.Log("previous Intro");
                 CuePrimitives.Add(new ListenPattern(new List<(int, byte)>{(BLUE, ALL)}, ListenTypes.RedFretDrums,true));
             }
             else
             {
-                Debug.Log("previous other");
                 StageKitLightingController.Instance.SetLed(RED, NONE);
                 StageKitLightingController.Instance.SetLed(GREEN, NONE);
                 StageKitLightingController.Instance.SetLed(BLUE, NONE);
@@ -541,7 +539,7 @@ namespace YARG.Integration.StageKit
 
 		public Stomp()
         {
-            if  (LargeVenue)
+            if  (StageKitLightingController.Instance.LargeVenue)
             {
                 StageKitLightingController.Instance.SetLed(BLUE, ALL);
             }
@@ -564,7 +562,7 @@ namespace YARG.Integration.StageKit
                 StageKitLightingController.Instance.SetLed(BLUE, NONE);
                 StageKitLightingController.Instance.SetLed(YELLOW, NONE);
             } else {
-				if (LargeVenue) {
+				if (StageKitLightingController.Instance.LargeVenue) {
                     StageKitLightingController.Instance.SetLed(BLUE, ALL);
 				} else {
                     StageKitLightingController.Instance.SetLed(BLUE, NONE);
@@ -638,7 +636,7 @@ namespace YARG.Integration.StageKit
 
         public override void HandleBeatlineEvent(BeatlineType eventName)
         {
-            if (LargeVenue || eventName != BeatlineType.Measure) return;
+            if (StageKitLightingController.Instance.LargeVenue || eventName != BeatlineType.Measure) return;
             if (_greenIsSpinning)
             {
                 _gameManager.BeatEventManager.Unsubscribe(_greenPattern.OnBeat);
@@ -663,7 +661,7 @@ namespace YARG.Integration.StageKit
             StageKitLightingController.Instance.SetLed(RED, NONE);
             StageKitLightingController.Instance.SetLed(YELLOW, NONE);
             StageKitLightingController.Instance.SetLed(BLUE, NONE);
-            if  (LargeVenue)
+            if  (StageKitLightingController.Instance.LargeVenue)
             {
                 patternList1 = new List<(int, byte)>
                 {
@@ -710,7 +708,7 @@ namespace YARG.Integration.StageKit
         {
             List<(int, byte)> patternList1;
             StageKitLightingController.Instance.SetLed(GREEN, NONE);
-            if  (LargeVenue)
+            if  (StageKitLightingController.Instance.LargeVenue)
             {
                 patternList1 = new List<(int, byte)>
                 {

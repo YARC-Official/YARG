@@ -4,17 +4,13 @@ using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Gameplay;
 using System;
+using PlasticBand.Haptics;
 using Random = UnityEngine.Random;
 
 namespace YARG.Integration.StageKit
 {
     public class StageKitGameplay : GameplayBehaviour
     {
-        public event Action<BeatlineType> HandleBeatline;
-        public event Action<int> HandleDrums;
-        public event Action<LightingType> HandleLighting;
-        public event Action<double> HandleVocals;
-
         private VenueTrack _venue;
         private SyncTrack _sync;
         private List<VocalsPhrase> _vocals;
@@ -30,7 +26,8 @@ namespace YARG.Integration.StageKit
         protected override void OnChartLoaded(SongChart chart)
         {
             _controller = StageKitLightingController.Instance;
-            _controller.LargeVenue = Random.Range(0, 1) == 1; //Should be read from the venue itself eventually but for now, randomize it.
+            //Should be read from the venue itself eventually but for now, randomize it.
+            _controller.LargeVenue = Random.Range(0, 1) == 1;
             _venue = chart.VenueTrack;
             _sync = chart.SyncTrack;
             _vocals = chart.Vocals.Parts[0].NotePhrases;
@@ -48,6 +45,11 @@ namespace YARG.Integration.StageKit
 
         private void Update()
         {
+            if (StageKitLightingController.Instance.StageKits.Count == 0)
+            {
+                return;
+            }
+
             //On Pause, turn off the fog and strobe so people don't die, but leave the leds on, looks nice.
             //Is there a OnPause/OnResume event? that would simplify this.
             if (GameManager.Paused && _onPause == false)
@@ -55,7 +57,7 @@ namespace YARG.Integration.StageKit
                 _controller.PreviousFogState = _controller.CurrentFogState;
                 _controller.PreviousStrobeState = _controller.CurrentStrobeState;
                 _controller.SetFogMachine(StageKitLightingController.FogState.Off);
-                _controller.SetStrobeSpeed(StageKitLightingController.StrobeSpeed.Off);
+                _controller.SetStrobeSpeed(StageKitStrobeSpeed.Off);
                 _onPause = true;
             }
             else if (_onPause)
@@ -65,39 +67,62 @@ namespace YARG.Integration.StageKit
                 _onPause = false;
             }
 
-            //how we get the current event for each track
-            //Dischord listens to the red pad
-            if (_drumIndex < _drums.Notes.Count  && _drums.Notes[_drumIndex].Time <= GameManager.SongTime)
+            if (_controller.CurrentLightingCue != null)
             {
-                HandleDrums?.Invoke(_drums.Notes[_drumIndex].Pad);
-                _drumIndex++;
-            }
-
-            //SilhouetteSpot is the only cue that uses vocals, listening to the end of the phrase.
-            if (_vocalsIndex < _vocals.Count  && _vocals[_vocalsIndex].PhraseParentNote.ChildNotes[^1].TotalTimeEnd <= GameManager.SongTime)
-            {
-                if (_vocals[_vocalsIndex].PhraseParentNote.Type == VocalNoteType.Lyric)
+                //how we get the current event for each track
+                //Dischord listens to the red pad
+                if (_drumIndex < _drums.Notes.Count  && _drums.Notes[_drumIndex].Time <= GameManager.SongTime)
                 {
-                    HandleVocals?.Invoke(_vocals[_vocalsIndex].PhraseParentNote.ChildNotes[^1].TotalTimeEnd);
+                    _controller.CurrentLightingCue.HandleDrumEvent(_drums.Notes[_drumIndex].Pad);
+
+                    foreach (var primitive in _controller.CurrentLightingCue.CuePrimitives) {
+                        primitive.HandleDrumEvent(_drums.Notes[_drumIndex].Pad);
+                    }
+
+                    _drumIndex++;
                 }
 
-                _vocalsIndex++;
-            }
+                //SilhouetteSpot is the only cue that uses vocals, listening to the end of the phrase.
+                if (_vocalsIndex < _vocals.Count  && _vocals[_vocalsIndex].PhraseParentNote.ChildNotes[^1].TotalTimeEnd <= GameManager.SongTime)
+                {
+                    if (_vocals[_vocalsIndex].PhraseParentNote.Type == VocalNoteType.Lyric)
+                    {
+                        _controller.CurrentLightingCue.HandleVocalEvent( _vocals[_vocalsIndex].PhraseParentNote.ChildNotes[^1].TotalTimeEnd);
 
-            //"Major" and "Minor" are now "Measure" and "Strong", respectively. I've never encountered "Weak" in any official chart and don't know what that used to be called, if anything.
-            //Any beat timed cue primitive listens to these.
-            if (_syncIndex < _sync.Beatlines.Count  && _sync.Beatlines[_syncIndex].Time <= GameManager.SongTime)
-            {
-                HandleBeatline?.Invoke(_sync.Beatlines[_syncIndex].Type);
-                _syncIndex++;
+                        foreach (var primitive in _controller.CurrentLightingCue.CuePrimitives) {
+                            primitive.HandleVocalEvent(_vocals[_vocalsIndex].PhraseParentNote.ChildNotes[^1].TotalTimeEnd);
+                        }
+                    }
+
+                    _vocalsIndex++;
+                }
+
+                //"Major" and "Minor" are now "Measure" and "Strong", respectively. I've never encountered "Weak" in any
+                //official chart and don't know what that used to be called, if anything.
+                //Any beat timed cue primitive listens to these.
+                if (_syncIndex < _sync.Beatlines.Count  && _sync.Beatlines[_syncIndex].Time <= GameManager.SongTime)
+                {
+                    _controller.CurrentLightingCue.HandleBeatlineEvent( _sync.Beatlines[_syncIndex].Type);
+
+                    foreach (var primitive in _controller.CurrentLightingCue.CuePrimitives) {
+                        primitive.HandleBeatlineEvent(_sync.Beatlines[_syncIndex].Type);
+                    }
+
+                    _syncIndex++;
+                }
             }
 
             //The lighting cues from the venue track are handled here.
             if (_lightingIndex < _venue.Lighting.Count && _venue.Lighting[_lightingIndex].Time <= GameManager.SongTime)
             {
-                if (_venue.Lighting[_lightingIndex].Type == LightingType.Keyframe_Next)
+                if (_venue.Lighting[_lightingIndex].Type == LightingType.Keyframe_Next && _controller.CurrentLightingCue != null)
                 {
-                    HandleLighting?.Invoke(_venue.Lighting[_lightingIndex].Type);
+                    _controller.CurrentLightingCue.HandleLightingEvent(_venue.Lighting[_lightingIndex].Type);
+
+                    foreach (var primitive in _controller.CurrentLightingCue.CuePrimitives)
+                    {
+                        primitive.HandleLightingEvent(_venue.Lighting[_lightingIndex].Type);
+                    }
                 }
                 else
                 {
@@ -149,12 +174,12 @@ namespace YARG.Integration.StageKit
                     break;
 
                 case LightingType.Dischord:
-                    _controller.SetStrobeSpeed(StageKitLightingController.StrobeSpeed.Off);
+                    _controller.SetStrobeSpeed(StageKitStrobeSpeed.Off);
                     ChangeCues(new Dischord());
                     break;
 
                 case LightingType.Stomp:
-                    _controller.SetStrobeSpeed(StageKitLightingController.StrobeSpeed.Off);
+                    _controller.SetStrobeSpeed(StageKitStrobeSpeed.Off);
                     ChangeCues(new Stomp());
                     break;
 
@@ -164,12 +189,12 @@ namespace YARG.Integration.StageKit
 
                 //continuous cues
                 case LightingType.Warm_Automatic:
-                    _controller.SetStrobeSpeed(StageKitLightingController.StrobeSpeed.Off);
+                    _controller.SetStrobeSpeed(StageKitStrobeSpeed.Off);
                     ChangeCues(new LoopWarm());
                     break;
 
                 case LightingType.Cool_Automatic:
-                    _controller.SetStrobeSpeed(StageKitLightingController.StrobeSpeed.Off);
+                    _controller.SetStrobeSpeed(StageKitStrobeSpeed.Off);
                     ChangeCues(new LoopCool());
                     break;
 
@@ -178,7 +203,7 @@ namespace YARG.Integration.StageKit
                     break;
 
                 case LightingType.Searchlights:
-                    _controller.SetStrobeSpeed(StageKitLightingController.StrobeSpeed.Off);
+                    _controller.SetStrobeSpeed(StageKitStrobeSpeed.Off);
                     ChangeCues(new SearchLight());
                     break;
 
@@ -215,7 +240,7 @@ namespace YARG.Integration.StageKit
                 case LightingType.Blackout_Slow:
                 case LightingType.Blackout_Fast:
                     ChangeCues(new Blackout());
-                    _controller.SetStrobeSpeed(StageKitLightingController.StrobeSpeed.Off);
+                    _controller.SetStrobeSpeed(StageKitStrobeSpeed.Off);
                     break;
 
                 case LightingType.Intro:
@@ -224,34 +249,42 @@ namespace YARG.Integration.StageKit
 
                 //strobe calls
                 case LightingType.Strobe_Slow:
-                    _controller.SetStrobeSpeed(StageKitLightingController.StrobeSpeed.Slow);
+                    _controller.SetStrobeSpeed(StageKitStrobeSpeed.Slow);
                     break;
 
                 case LightingType.Strobe_Medium:
-                    _controller.SetStrobeSpeed(StageKitLightingController.StrobeSpeed.Medium);
+                    _controller.SetStrobeSpeed(StageKitStrobeSpeed.Medium);
                     break;
 
                 case LightingType.Strobe_Fast:
-                    KillCue(); //This might be a bug in the official code that i'm trying to replicate here, as slow doesn't seem to do it.
-                    _controller.SetStrobeSpeed(StageKitLightingController.StrobeSpeed.Fast);
+                    //This might be a bug in the official code that i'm trying to replicate here, as slow
+                    //doesn't seem to do it.
+                    KillCue();
+                    _controller.SetStrobeSpeed(StageKitStrobeSpeed.Fast);
                     break;
 
                 case LightingType.Strobe_Fastest:
-                    _controller.SetStrobeSpeed(StageKitLightingController.StrobeSpeed.Fastest);
+                    _controller.SetStrobeSpeed(StageKitStrobeSpeed.Fastest);
                     break;
 
                 case LightingType.Strobe_Off:
-                    _controller.SetStrobeSpeed(StageKitLightingController.StrobeSpeed.Off);
+                    _controller.SetStrobeSpeed(StageKitStrobeSpeed.Off);
                     break;
 
                 //Ignored cues
-                case LightingType.Keyframe_Next: //these are handled in the cue classes via their primitive calls
-                case LightingType.Keyframe_Previous: //no cue listens to this.
-                case LightingType.Keyframe_First: //no cue listens to this.
-                case LightingType.Menu: // handled in StageKitMenu, shouldn't ever be called here in gameplay.
-                case LightingType.Score: // handled in StageKitScore, shouldn't ever be called here in gameplay.
+                //these are handled in the cue classes via their primitive calls
+                case LightingType.Keyframe_Next:
+                //no cue listens to this.
+                case LightingType.Keyframe_Previous:
+                //no cue listens to this.
+                case LightingType.Keyframe_First:
+                // handled in StageKitMenu, shouldn't ever be called here in gameplay.
+                case LightingType.Menu:
+                // handled in StageKitScore, shouldn't ever be called here in gameplay.
+                case LightingType.Score:
 
-                //In-game lighting calls we currently ignore but might do something with in an extended "funky fresh" mode.
+                //In-game lighting calls we currently ignore but might do something with in an
+                //extended "funky fresh" mode.
                 case LightingType.Verse:
                 case LightingType.Chorus:
                     break;
@@ -272,38 +305,7 @@ namespace YARG.Integration.StageKit
         private void ChangeCues(StageKitLightingCue cue)
         {
             KillCue();
-            SetupCue(cue);
-        }
-
-        private void SetupCue(StageKitLightingCue cue)
-        {
             _controller.CurrentLightingCue = cue;
-            _controller.CurrentLightingCue.LargeVenue = _controller.LargeVenue;
-
-            HandleBeatline += _controller.CurrentLightingCue.HandleBeatlineEvent;
-            HandleDrums += _controller.CurrentLightingCue.HandleDrumEvent;
-            HandleLighting += _controller.CurrentLightingCue.HandleLightingEvent;
-            HandleVocals += _controller.CurrentLightingCue.HandleVocalEvent;
-
-            foreach (var primitive in _controller.CurrentLightingCue.CuePrimitives)
-            {
-                HandleBeatline += primitive.HandleBeatlineEvent;
-                HandleDrums += primitive.HandleDrumEvent;
-                HandleLighting += primitive.HandleLightingEvent;
-                HandleVocals += primitive.HandleVocalEvent;
-            }
-        }
-
-        private void KillPrimitive(StageKitLighting primitive)
-        {
-            GameManager.BeatEventManager.Unsubscribe(primitive.OnBeat);
-
-            HandleBeatline -= primitive.HandleBeatlineEvent;
-            HandleDrums -= primitive.HandleDrumEvent;
-            HandleLighting -= primitive.HandleLightingEvent;
-            HandleVocals -= primitive.HandleVocalEvent;
-
-            primitive.CancellationTokenSource?.Cancel();
         }
 
         private void KillCue()
@@ -313,14 +315,12 @@ namespace YARG.Integration.StageKit
                 return;
             }
 
-            HandleBeatline -= _controller.CurrentLightingCue.HandleBeatlineEvent;
-            HandleDrums -= _controller.CurrentLightingCue.HandleDrumEvent;
-            HandleLighting -= _controller.CurrentLightingCue.HandleLightingEvent;
-            HandleVocals -= _controller.CurrentLightingCue.HandleVocalEvent;
-
             foreach (var primitive in _controller.CurrentLightingCue.CuePrimitives)
             {
-                KillPrimitive(primitive);
+                //When a BeatPattern primitive is created, it subscribes its OnBeat to the BeatEventManager.
+                GameManager.BeatEventManager.Unsubscribe(primitive.OnBeat);
+
+                primitive.CancellationTokenSource?.Cancel();
             }
 
             _controller.CurrentLightingCue.CuePrimitives.Clear();

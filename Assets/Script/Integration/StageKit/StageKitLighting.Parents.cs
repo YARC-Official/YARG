@@ -52,10 +52,10 @@ namespace YARG.Integration.StageKit
         }
     }
 
-    public abstract class
-        StageKitLightingCue : StageKitLighting //This is the parent class of all lighting cues. (not primitives)
+    //This is the parent class of all lighting cues. (not primitives)
+    public abstract class StageKitLightingCue : StageKitLighting
     {
-        public bool LargeVenue;
+        //public bool LargeVenue;
 
         protected const int BLUE = 0;
         protected const int GREEN = 1;

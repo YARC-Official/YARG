@@ -997,6 +997,7 @@ GameObject:
   m_Component:
   - component: {fileID: 728815264}
   - component: {fileID: 728815265}
+  - component: {fileID: 728815266}
   m_Layer: 0
   m_Name: Integrations
   m_TagString: Untagged
@@ -1031,6 +1032,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43233795acd9ae84690111f3010c5413, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &728815266
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 728815263}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d1faa5ee2902ba40bafec9aea861ebd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CurrentFogState: 0
+  PreviousFogState: 0
+  CurrentStrobeState: 0
+  PreviousStrobeState: 0
+  LargeVenue: 0
 --- !u!1 &782876828
 GameObject:
   m_ObjectHideFlags: 0
@@ -1233,7 +1251,6 @@ GameObject:
   - component: {fileID: 788257164}
   - component: {fileID: 788257162}
   - component: {fileID: 788257167}
-  - component: {fileID: 788257168}
   m_Layer: 0
   m_Name: Global Variables
   m_TagString: Untagged
@@ -1350,23 +1367,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _navigationIcons: {fileID: 11400000, guid: a5527a10e86be16408e824bfff6a124d, type: 2}
   _colors: {fileID: 11400000, guid: 8d1613cfd8baba7469ae5fb576fc2691, type: 2}
---- !u!114 &788257168
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 788257159}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1d1faa5ee2902ba40bafec9aea861ebd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  CurrentFogState: 0
-  PreviousFogState: 0
-  CurrentStrobeState: 0
-  PreviousStrobeState: 0
-  LargeVenue: 0
 --- !u!1 &1156818521
 GameObject:
   m_ObjectHideFlags: 0

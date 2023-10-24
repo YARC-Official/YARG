@@ -23,7 +23,8 @@ namespace YARG.Integration.StageKit
             KillCue();
         }
 
-        private void KillCue() //The only cue used on the score screen is timed, no need to have all the action and token stuff here.
+        //The only cue used on the score screen is timed, no need to have all the action and token stuff here.
+        private void KillCue()
         {
             foreach (var primitive in _controller.CurrentLightingCue.CuePrimitives)
             {

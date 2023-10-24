@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using PlasticBand.Haptics;
 using YARG.Core.Chart;
 using YARG.Gameplay;
 using Object = UnityEngine.Object;
@@ -17,7 +18,8 @@ namespace YARG.Integration.StageKit
 
 		public BeatPattern(List<(int, byte)> patternList, bool continuous = true, float timesPerBeat = 1.0f)
         {
-            _gameManager = Object.FindObjectOfType<GameManager>(); //Brought to you by Hacky Hack and the Hacktones
+            //Brought to you by Hacky Hack and the Hacktones
+            _gameManager = Object.FindObjectOfType<GameManager>();
 			_continuous = continuous;
 			_patternList = patternList;
             _gameManager.BeatEventManager.Subscribe(OnBeat, new BeatEventManager.Info(1.0f / (timesPerBeat * _patternList.Count), 0f));
@@ -28,7 +30,9 @@ namespace YARG.Integration.StageKit
             StageKitLightingController.Instance.SetLed(_patternList[_patternIndex].color, _patternList[_patternIndex].data);
             _patternIndex++;
 
-            if (!_continuous && _patternIndex == _patternList.Count) //some beat patterns are not continuous (single fire), so we need to kill them after they've run once otherwise they pile up.
+            //some beat patterns are not continuous (single fire), so we need to kill them after
+            //they've run once otherwise they pile up.
+            if (!_continuous && _patternIndex == _patternList.Count)
             {
                 _gameManager.BeatEventManager.Unsubscribe(OnBeat);
                 StageKitLightingController.Instance.CurrentLightingCue.CuePrimitives.Remove(this);
@@ -99,8 +103,8 @@ namespace YARG.Integration.StageKit
 
         private void ProcessEvent()
         {
-
-            StageKitLightingController.Instance.SetStrobeSpeed(StageKitLightingController.StrobeSpeed.Off); //This might be a bug in the official  stagekit code i'm trying to replicate here, but instead of turning off the strobe as soon as cue changes, if the cue listens for something, it only turns off the strobe on the first event of it.
+            //This might be a bug in the official  stagekit code i'm trying to replicate here, but instead of turning off the strobe as soon as cue changes, if the cue listens for something, it only turns off the strobe on the first event of it.
+            StageKitLightingController.Instance.SetStrobeSpeed(StageKitStrobeSpeed.Off);
 
             if (_inverse)
             {
@@ -126,7 +130,9 @@ namespace YARG.Integration.StageKit
 
         private async UniTaskVoid OnFlash()
         {
-            await UniTask.Delay(200);// I wonder if this should be beat based instead of time based. like 1/2 a beat or something. But a really fast song would be bad looking.
+            // I wonder if this should be beat based instead of time based. like 1/2 a beat or something.
+            // But a really fast song would be bad looking.
+            await UniTask.Delay(200);
             if (_inverse)
             {
                 StageKitLightingController.Instance.SetLed(_patternList[_patternIndex].color, _patternList[_patternIndex].data);
@@ -145,7 +151,8 @@ namespace YARG.Integration.StageKit
 
         public TimedPattern(List<(int, byte)> patternList, float seconds)
         {
-            CancellationTokenSource = new CancellationTokenSource(); //only for timed events
+            //Token only for timed events
+            CancellationTokenSource = new CancellationTokenSource();
             _seconds = seconds;
 			_patternList = patternList;
             TimedCircleCoroutine(CancellationTokenSource.Token).Forget();

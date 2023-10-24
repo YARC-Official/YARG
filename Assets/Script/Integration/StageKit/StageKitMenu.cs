@@ -10,7 +10,8 @@ namespace YARG.Integration.StageKit
         {
             _controller = StageKitLightingController.Instance;
             _controller.StageKits.ForEach(kit => kit.ResetHaptics());
-            _controller.CurrentLightingCue = new MenuLighting(); //turn on the menu lighting cue, custom made for YARG!
+            //turn on the menu lighting cue, custom made for YARG!
+            _controller.CurrentLightingCue = new MenuLighting();
         }
 
         private void OnDestroy()
@@ -23,7 +24,8 @@ namespace YARG.Integration.StageKit
             KillCue();
         }
 
-        private void KillCue() //The only cue used on the menu screen is timed, no need to have all the action and token stuff here.
+        //The only cue used on the menu screen is timed, no need to have all the action and token stuff here.
+        private void KillCue()
         {
             foreach (var primitive in _controller.CurrentLightingCue.CuePrimitives)
             {
