@@ -15,6 +15,7 @@ namespace YARG.Gameplay.Visuals
 
         private double _minimumTime;
         private bool _isStarpower;
+        private bool _isTalkie;
 
         private int _harmonyIndex;
 
@@ -26,13 +27,14 @@ namespace YARG.Gameplay.Visuals
         public float Width => _lyricText.GetPreferredValues().x;
 
         public void Initialize(TextEvent lyric, double minTime, double lyricLength,
-            bool isStarpower, int harmonyIndex)
+            bool isStarpower, bool isTalkie, int harmonyIndex)
         {
             _lyricRef = lyric;
             _lyricLength = lyricLength;
 
             _minimumTime = minTime;
             _isStarpower = isStarpower;
+            _isTalkie = isTalkie;
 
             _harmonyIndex = harmonyIndex;
         }
@@ -40,6 +42,9 @@ namespace YARG.Gameplay.Visuals
         protected override void InitializeElement()
         {
             _lyricText.text = GetLyricText(_lyricRef.Text);
+
+            // If it's a talkie, italicize it
+            _lyricText.fontStyle = _isTalkie ? FontStyles.Italic : FontStyles.Normal;
 
             // Disable automatically if the text is just nothing
             if (string.IsNullOrEmpty(_lyricText.text))

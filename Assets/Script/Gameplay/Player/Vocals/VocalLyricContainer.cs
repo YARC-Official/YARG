@@ -38,12 +38,13 @@ namespace YARG.Gameplay.Player
                 return false;
             }
 
-            // Get the length and starpower (starpower is a phrase property)
+            // Get the info from the probably note pair, IF it exists
             double length = probableNotePair?.TotalTimeLength ?? 0;
+            bool isTalkie = probableNotePair?.IsNonPitched ?? true;
 
             // Spawn the vocal lyric
             var obj = (VocalLyricElement) _pools[i].TakeWithoutEnabling();
-            obj.Initialize(lyric, _lastLyricEdgeTime[i], length, isStarpower, harmIndex);
+            obj.Initialize(lyric, _lastLyricEdgeTime[i], length, isStarpower, isTalkie, harmIndex);
             obj.EnableFromPool();
 
             // Set the edge time
