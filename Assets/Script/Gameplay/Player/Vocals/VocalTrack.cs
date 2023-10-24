@@ -96,6 +96,8 @@ namespace YARG.Gameplay.Player
         private Range _changeSpeed;
         private float _changeTimer;
 
+        public bool HarmonyShowing => _vocalsTrack.Instrument == Instrument.Harmony;
+
         private void Start()
         {
             Assert.AreEqual(_notePools.Length, 3,

@@ -15,16 +15,33 @@ namespace YARG.Gameplay.Visuals
         protected override float RemovePointOffset => VocalTrack.GetPosForTime(NoteRef.TotalTimeLength);
 
         [SerializeField]
-        private MeshRenderer _quad;
+        private MeshRenderer _soloTalkie;
+        [SerializeField]
+        private MeshRenderer _harmonyTalkie;
 
         protected override void InitializeElement()
         {
+            // Get and show the correct mesh (solo vs harmony)
+            MeshRenderer mesh;
+            if (GameManager.VocalTrack.HarmonyShowing)
+            {
+                mesh = _harmonyTalkie;
+                _harmonyTalkie.gameObject.SetActive(true);
+                _soloTalkie.gameObject.SetActive(false);
+            }
+            else
+            {
+                mesh = _soloTalkie;
+                _soloTalkie.gameObject.SetActive(true);
+                _harmonyTalkie.gameObject.SetActive(false);
+            }
+
             // Set the color
             var color = VocalTrack.Colors[NoteRef.HarmonyPart];
-            _quad.material.color = color.WithAlpha(ALPHA_VALUE);
+            mesh.material.color = color.WithAlpha(ALPHA_VALUE);
 
             // Update the size of the talkie
-            var transform = _quad.transform;
+            var transform = mesh.transform;
             float length = VocalTrack.GetPosForTime(NoteRef.TotalTimeEnd) - VocalTrack.GetPosForTime(NoteRef.Time);
             transform.localScale = transform.localScale.WithX(length);
             transform.localPosition = transform.localPosition.WithX(length / 2f);
