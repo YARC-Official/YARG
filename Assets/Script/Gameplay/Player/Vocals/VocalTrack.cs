@@ -4,11 +4,10 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using YARG.Core;
 using YARG.Core.Chart;
-using YARG.Gameplay.Visuals;
 
 namespace YARG.Gameplay.Player
 {
-    public class VocalTrack : GameplayBehaviour
+    public partial class VocalTrack : GameplayBehaviour
     {
         private struct Range
         {
@@ -87,10 +86,6 @@ namespace YARG.Gameplay.Player
         private VocalsTrack _originalVocalsTrack;
         private VocalsTrack _vocalsTrack;
 
-        private int[] _phraseIndices;
-        private int[] _noteIndices;
-        private int[] _lyricIndices;
-
         private Range _viewRange = Range.Default;
         private Range _targetRange;
         private Range _changeSpeed;
@@ -127,9 +122,18 @@ namespace YARG.Gameplay.Player
             _originalVocalsTrack = vocalsTrack;
             _vocalsTrack = _originalVocalsTrack.Clone();
 
-            _phraseIndices = new int[_vocalsTrack.Parts.Count];
-            _noteIndices = new int[_vocalsTrack.Parts.Count];
-            _lyricIndices = new int[_vocalsTrack.Parts.Count];
+            // Create trackers and indices
+            var parts = _vocalsTrack.Parts;
+            _phraseMarkerIndices = new int[parts.Count];
+            _noteTrackers = new PhraseNoteTracker[parts.Count];
+            _lyricTrackers = new PhraseNoteTracker[parts.Count];
+
+            // Create PhraseNoteTrackers
+            for (int i = 0; i < parts.Count; i++)
+            {
+                _noteTrackers[i] = new PhraseNoteTracker(parts[i]);
+                _lyricTrackers[i] = new PhraseNoteTracker(parts[i]);
+            }
 
             if (vocalsTrack.Instrument == Instrument.Harmony)
             {
@@ -166,7 +170,6 @@ namespace YARG.Gameplay.Player
 
         private void Update()
         {
-
             // Update the range
             if (IsRangeChanging)
             {
@@ -187,44 +190,8 @@ namespace YARG.Gameplay.Player
                 }
             }
 
-            // For each harmony...
-            for (int i = 0; i < _vocalsTrack.Parts.Count; i++)
-            {
-                // Get the information for this harmony part
-                var phrases = _vocalsTrack.Parts[i].NotePhrases;
-                int index = _phraseIndices[i];
-
-                // Spawn the notes in the phrase.
-                // We don't need to do a time check as
-                // that is handled in SpawnNotesInPhrase.
-                while (index < phrases.Count)
-                {
-                    var phrase = phrases[index];
-
-                    var notesSpawned = SpawnNotesInPhrase(phrase, i);
-                    var lyricsSpawned = SpawnLyricsInPhrase(phrase, i);
-                    if (notesSpawned && lyricsSpawned)
-                    {
-                        // Spawn the phrase end line
-                        var poolable = _phraseLinePool.TakeWithoutEnabling();
-                        ((PhraseLineElement) poolable).PhraseRef = phrase;
-                        poolable.EnableFromPool();
-
-                        // Next phrase!
-                        index++;
-                        _noteIndices[i] = 0;
-                        _lyricIndices[i] = 0;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-
-                // Make sure to update the value
-                _phraseIndices[i] = index;
-            }
-
+            // Try to spawn lyrics and notes
+            UpdateSpawning();
 
             // Fade on/off the starpower overlay
             bool starpowerActive = _vocalPlayers.Any(player => player.Engine.EngineStats.IsStarPowerActive);
@@ -239,91 +206,6 @@ namespace YARG.Gameplay.Player
                 _starpowerMaterial.SetFloat(_alphaMultiplier,
                     Mathf.Lerp(currentStarpower, 0f, Time.deltaTime * 4f));
             }
-        }
-
-        private bool SpawnNotesInPhrase(VocalsPhrase phrase, int harmonyIndex)
-        {
-            var pool = _notePools[harmonyIndex];
-            int index = _noteIndices[harmonyIndex];
-            var notes = phrase.PhraseParentNote.ChildNotes;
-
-            while (index < notes.Count && notes[index].Time <= GameManager.SongTime + SPAWN_TIME_OFFSET)
-            {
-                var note = notes[index];
-
-                // TODO: Implement vocal percussion. This is temporary.
-                if (note.IsPercussion)
-                {
-                    return true;
-                }
-
-                if (note.IsNonPitched)
-                {
-                    // Skip this frame if the pool is full
-                    if (!_talkiePool.CanSpawnAmount(1))
-                    {
-                        return false;
-                    }
-
-                    // Spawn the vocal note
-                    var noteObj = _talkiePool.TakeWithoutEnabling();
-                    ((VocalTalkieElement) noteObj).NoteRef = note;
-                    noteObj.EnableFromPool();
-                }
-                else
-                {
-                    // Skip this frame if the pool is full
-                    if (!pool.CanSpawnAmount(1))
-                    {
-                        return false;
-                    }
-
-                    // Spawn the vocal note
-                    var noteObj = pool.TakeWithoutEnabling();
-                    ((VocalNoteElement) noteObj).NoteRef = note;
-                    noteObj.EnableFromPool();
-                }
-
-                index++;
-            }
-
-            // Make sure to update the value
-            _noteIndices[harmonyIndex] = index;
-
-            return index >= notes.Count;
-        }
-
-        private bool SpawnLyricsInPhrase(VocalsPhrase phrase, int harmonyIndex)
-        {
-            int index = _lyricIndices[harmonyIndex];
-            var lyrics = phrase.Lyrics;
-            var notes = phrase.PhraseParentNote.ChildNotes;
-
-            while (index < lyrics.Count && lyrics[index].Time <= GameManager.SongTime + SPAWN_TIME_OFFSET)
-            {
-                var lyric = lyrics[index];
-
-                // Get the probable note pair (for length and starpower)
-                VocalNote probableNote = null;
-                foreach (var note in notes)
-                {
-                    if (note.Tick != lyric.Tick) continue;
-
-                    probableNote = note;
-                }
-
-                if (!_lyricContainer.TrySpawnLyric(lyric, probableNote, phrase.IsStarPower, harmonyIndex))
-                {
-                    return false;
-                }
-
-                index++;
-            }
-
-            // Make sure to update the value
-            _lyricIndices[harmonyIndex] = index;
-
-            return index >= lyrics.Count;
         }
 
         private void CalculateAndChangeRange(double noteRangeStart, double noteRangeEnd, float changeTime)
@@ -387,11 +269,11 @@ namespace YARG.Gameplay.Player
             if (!gameObject.activeSelf) return;
 
             // Reset indices
-            for (int i = 0; i < _noteIndices.Length; i++)
+            for (int i = 0; i < _noteTrackers.Length; i++)
             {
-                _phraseIndices[i] = 0;
-                _noteIndices[i] = 0;
-                _lyricIndices[i] = 0;
+                _phraseMarkerIndices[i] = 0;
+                _noteTrackers[i].Reset();
+                _lyricTrackers[i].Reset();
             }
 
             // Return everything
@@ -411,10 +293,14 @@ namespace YARG.Gameplay.Player
             _vocalsTrack = _originalVocalsTrack.Clone();
 
             // Remove all notes not in the section
-            foreach (var part in _vocalsTrack.Parts)
+            for (int i = 0; i < _vocalsTrack.Parts.Count; i++)
             {
+                var part = _vocalsTrack.Parts[i];
                 part.NotePhrases.RemoveAll(n => n.Tick < start || n.Tick >= end);
                 part.TextEvents.RemoveAll(n => n.Tick < start || n.Tick >= end);
+
+                _noteTrackers[i] = new PhraseNoteTracker(part);
+                _lyricTrackers[i] = new PhraseNoteTracker(part);
             }
 
             ResetPracticeSection();
