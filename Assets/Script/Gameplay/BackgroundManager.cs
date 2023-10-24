@@ -128,6 +128,13 @@ namespace YARG.Gameplay
         // it's finished preparing, such as the length
         private void OnVideoPrepared(VideoPlayer player)
         {
+            // Start time is considered set if it is greater than 25 ms in either direction
+            // End time is only set if it is greater than 0
+            // Video will only loop if its length is less than 85% of the song's length
+            const double startTimeThreshold = 0.025;
+            const double endTimeThreshold = 0;
+            const double dontLoopThreshold = 0.85;
+
             if (_venueInfo.Source == VenueSource.Song)
             {
                 _videoStartTime = GameManager.Song.VideoStartTimeSeconds;
@@ -136,12 +143,11 @@ namespace YARG.Gameplay
                 player.time = _videoStartTime;
 
                 // Determine whether or not to loop the video
-                double frameTime = 1 / player.frameRate;
-                if (Math.Abs(_videoStartTime) < frameTime && _videoEndTime < 0)
+                if (Math.Abs(_videoStartTime) <= startTimeThreshold && _videoEndTime <= endTimeThreshold)
                 {
                     // Only loop the video if it's not around the same length as the song
-                    double lengthRatio = (player.length - _videoStartTime) / GameManager.SongLength;
-                    player.isLooping = lengthRatio < 0.85;
+                    double lengthRatio = player.length / GameManager.SongLength;
+                    player.isLooping = lengthRatio < dontLoopThreshold;
                 }
                 else
                 {
