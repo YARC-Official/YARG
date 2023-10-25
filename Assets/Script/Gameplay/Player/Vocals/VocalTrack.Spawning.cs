@@ -14,15 +14,18 @@ namespace YARG.Gameplay.Player
             private int _noteOrLyricIndex;
 
             public VocalsPhrase CurrentPhrase => _vocalsPart.NotePhrases[_phraseIndex];
+            private bool CurrentPhraseInBounds => _phraseIndex < _vocalsPart.NotePhrases.Count;
 
             public VocalNote CurrentNote =>
                 CurrentPhrase.PhraseParentNote.ChildNotes[_noteOrLyricIndex];
             public bool CurrentNoteInBounds =>
+                CurrentPhraseInBounds &&
                 _noteOrLyricIndex < CurrentPhrase.PhraseParentNote.ChildNotes.Count;
 
             public TextEvent CurrentLyric =>
                 CurrentPhrase.Lyrics[_noteOrLyricIndex];
             public bool CurrentLyricInBounds =>
+                CurrentPhraseInBounds &&
                 _noteOrLyricIndex < CurrentPhrase.Lyrics.Count;
 
             public PhraseNoteTracker(VocalsPart vocalsPart)
