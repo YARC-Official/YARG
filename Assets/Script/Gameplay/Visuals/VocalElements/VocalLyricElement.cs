@@ -49,7 +49,7 @@ namespace YARG.Gameplay.Visuals
             // Disable automatically if the text is just nothing
             if (string.IsNullOrEmpty(_lyricText.text))
             {
-                DisableIntoPool();
+                ParentPool.Return(this);
             }
         }
 
