@@ -211,6 +211,54 @@ MonoBehaviour:
     m_Key: Modifier.TapsToHopos
     m_Metadata:
       m_Items: []
+  - m_Id: 77970180245151744
+    m_Key: SongAttribute.Album
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706176
+    m_Key: SongAttribute.Artist
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706177
+    m_Key: SongAttribute.Artist_Album
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706178
+    m_Key: SongAttribute.Charter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706179
+    m_Key: SongAttribute.Genre
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706180
+    m_Key: SongAttribute.Instrument
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706181
+    m_Key: SongAttribute.Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706182
+    m_Key: SongAttribute.Playlist
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706183
+    m_Key: SongAttribute.SongLength
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706184
+    m_Key: SongAttribute.Source
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706185
+    m_Key: SongAttribute.Unspecified
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706186
+    m_Key: SongAttribute.Year
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

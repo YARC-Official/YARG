@@ -34,9 +34,10 @@ namespace YARG.Menu.MusicLibrary
 
         public static MusicLibraryMode LibraryMode;
 
-        private static int _savedIndex;
+        public static SongAttribute Sort { get; private set; } = SongAttribute.Name;
+
         private static string _currentSearch = string.Empty;
-        private static SongAttribute _sort = SongAttribute.Name;
+        private static int _savedIndex;
 
         [SerializeField]
         private GameObject _songViewPrefab;
@@ -54,8 +55,8 @@ namespace YARG.Menu.MusicLibrary
         private Scrollbar _scrollbar;
         [SerializeField]
         private GameObject _noPlayerWarning;
-
-        private string _nextSortCriteria = "Order by artist";
+        [SerializeField]
+        private PopupMenu _popupMenu;
 
         private List<ViewType> _viewList;
         private List<SongView> _songViewObjects;
@@ -144,8 +145,14 @@ namespace YARG.Menu.MusicLibrary
             _previewContext = new(GlobalVariables.AudioManager);
 
             // Set navigation scheme
-            var navigationScheme = GetNavigationScheme();
-            Navigator.Instance.PushScheme(navigationScheme);
+            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            {
+                new NavigationScheme.Entry(MenuAction.Up, "Up", ScrollUp),
+                new NavigationScheme.Entry(MenuAction.Down, "Down", ScrollDown),
+                new NavigationScheme.Entry(MenuAction.Green, "Confirm", Confirm),
+                new NavigationScheme.Entry(MenuAction.Red, "Back", Back),
+                new NavigationScheme.Entry(MenuAction.Orange, "More Options", ShowPopupMenu),
+            }, false));
 
             // Restore search
             _searchField.text = _currentSearch;
@@ -213,17 +220,9 @@ namespace YARG.Menu.MusicLibrary
             _searchField.text = query;
         }
 
-        private NavigationScheme GetNavigationScheme()
+        private void ShowPopupMenu()
         {
-            return new NavigationScheme(new()
-            {
-                new NavigationScheme.Entry(MenuAction.Up, "Up", ScrollUp),
-                new NavigationScheme.Entry(MenuAction.Down, "Down", ScrollDown),
-                new NavigationScheme.Entry(MenuAction.Green, "Confirm", Confirm),
-                new NavigationScheme.Entry(MenuAction.Red, "Back", Back),
-                new NavigationScheme.Entry(MenuAction.Yellow, _nextSortCriteria, ChangeSongOrder),
-                new NavigationScheme.Entry(MenuAction.Blue, "(Hold) Section", () => { })
-            }, false);
+            _popupMenu.gameObject.SetActive(true);
         }
 
         private void ScrollUp()
@@ -258,62 +257,11 @@ namespace YARG.Menu.MusicLibrary
             _sidebar.UpdateSidebar();
         }
 
-        private void ChangeSongOrder()
-        {
-            NextSort();
-
-            UpdateSearch(true);
-            UpdateNavigationScheme();
-        }
-
-        public void NextSort()
-        {
-            var next = (int) _sort + 1;
-            if (next >= EnumExtensions<SongAttribute>.Count)
-            {
-                next = 1;
-            }
-            _sort = (SongAttribute) next;
-
-            SetNextSortCriteria();
-        }
-
-        private void SetNextSortCriteria()
-        {
-            _nextSortCriteria = _sort switch
-            {
-                SongAttribute.Name => "Order by Artist",
-                SongAttribute.Artist => "Order by Album",
-                SongAttribute.Album => "Order by \"Artist - Album\"",
-                SongAttribute.Artist_Album => "Order by Genre",
-                SongAttribute.Genre => "Order by Year",
-                SongAttribute.Year => "Order by Charter",
-                SongAttribute.Charter => "Order by Playlist",
-                SongAttribute.Playlist => "Order by Source",
-                SongAttribute.Source => "Order by Duration",
-                SongAttribute.SongLength => "Order by Song",
-                _ => "Order by Song"
-            };
-        }
-
-        private void UpdateNavigationScheme()
-        {
-            Navigator.Instance.PopScheme();
-            Navigator.Instance.PushScheme(GetNavigationScheme());
-        }
-
-        private void ChangeFilter()
-        {
-            if (CurrentSelection is not SongViewType)
-            {
-                return;
-            }
-
-            UpdateNavigationScheme();
-        }
-
         private void UpdateScroll()
         {
+            // Don't scroll if the popup is open
+            if (_popupMenu.gameObject.activeSelf) return;
+
             if (_scrollTimer > 0f)
             {
                 _scrollTimer -= Time.deltaTime;
@@ -364,7 +312,7 @@ namespace YARG.Menu.MusicLibrary
             SetRecommendedSongs();
 
             _currentSearch = _searchField.text;
-            _sortedSongs = _searchContext.Search(_currentSearch, _sort);
+            _sortedSongs = _searchContext.Search(_currentSearch, Sort);
 
             AddSongs();
 
@@ -547,7 +495,6 @@ namespace YARG.Menu.MusicLibrary
             {
                 ClearSearchBox();
                 UpdateSearch(true);
-                UpdateNavigationScheme();
                 return;
             }
 
@@ -594,6 +541,12 @@ namespace YARG.Menu.MusicLibrary
         {
             // Get how many non-song things there are
             return Mathf.Max(1, _viewList.Count - GlobalVariables.Instance.SongContainer.Songs.Count);
+        }
+
+        public void ChangeSort(SongAttribute sort)
+        {
+            Sort = sort;
+            UpdateSearch(true);
         }
     }
 }

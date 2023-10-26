@@ -2,6 +2,7 @@
 using UnityEngine.Localization.Settings;
 using YARG.Core;
 using YARG.Core.Game;
+using YARG.Core.Song;
 
 namespace YARG.Helpers
 {
@@ -51,6 +52,11 @@ namespace YARG.Helpers
         public static string ToLocalizedName(this Modifier modifier)
         {
             return LocalizeString($"Modifier.{modifier}");
+        }
+
+        public static string ToLocalizedName(this SongAttribute songAttribute)
+        {
+            return LocalizeString($"SongAttribute.{songAttribute}");
         }
 
         #endregion

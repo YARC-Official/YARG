@@ -222,6 +222,54 @@ MonoBehaviour:
     m_Localized: Vocals
     m_Metadata:
       m_Items: []
+  - m_Id: 77970180245151744
+    m_Localized: Album
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706176
+    m_Localized: Artist
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706177
+    m_Localized: '"Artist - Album"'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706178
+    m_Localized: Charter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706179
+    m_Localized: Genre
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706180
+    m_Localized: Instrument
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706181
+    m_Localized: Song
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706182
+    m_Localized: Playlist
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706183
+    m_Localized: Duration
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706184
+    m_Localized: Source
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706185
+    m_Localized: None
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706186
+    m_Localized: Year
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
