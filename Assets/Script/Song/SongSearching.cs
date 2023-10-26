@@ -13,6 +13,7 @@ namespace YARG.Song
         {
             public readonly SongAttribute attribute;
             public readonly string argument;
+
             public FilterNode(SongAttribute attribute, string argument)
             {
                 this.attribute = attribute;

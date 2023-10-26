@@ -34,6 +34,9 @@ namespace YARG.Menu.MusicLibrary
 
         public static MusicLibraryMode LibraryMode;
 
+        private static string _currentSearch = string.Empty;
+        private static SongAttribute _sort = SongAttribute.Name;
+
         [SerializeField]
         private GameObject _songViewPrefab;
 
@@ -51,14 +54,12 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private GameObject _noPlayerWarning;
 
-        private static SongAttribute _sort = SongAttribute.Name;
         private string _nextSortCriteria = "Order by artist";
 
         private List<ViewType> _viewList;
         private List<SongView> _songViewObjects;
 
-        private SongSearching _searchBar = new();
-        private string _currentSearch = string.Empty;
+        private readonly SongSearching _searchContext = new();
         private IReadOnlyDictionary<string, List<SongMetadata>> _sortedSongs;
         private List<SongMetadata> _recommendedSongs;
 
@@ -145,6 +146,9 @@ namespace YARG.Menu.MusicLibrary
             // Set navigation scheme
             var navigationScheme = GetNavigationScheme();
             Navigator.Instance.PushScheme(navigationScheme);
+
+            // Update the search bar to the persistent value
+            _searchField.text = _currentSearch;
 
             _viewList = null;
             _recommendedSongs = null;
@@ -355,7 +359,7 @@ namespace YARG.Menu.MusicLibrary
             SetRecommendedSongs();
 
             _currentSearch = _searchField.text;
-            _sortedSongs = _searchBar.Search(_currentSearch, _sort);
+            _sortedSongs = _searchContext.Search(_currentSearch, _sort);
 
             AddSongs();
 
@@ -492,8 +496,8 @@ namespace YARG.Menu.MusicLibrary
                     SelectedIndex = Mathf.Max(1, index);
                     return;
                 }
-                else
-                    _currentSong = null;
+
+                _currentSong = null;
             }
 
             if (!string.IsNullOrEmpty(_searchField.text))
@@ -510,7 +514,7 @@ namespace YARG.Menu.MusicLibrary
             var selectedSong = _currentSong;
 
             // Get the first index after the recommended songs
-            int startOfSongs = _viewList.FindIndex(i => i is SortHeaderViewType || i is CategoryViewType);
+            int startOfSongs = _viewList.FindIndex(i => i is SortHeaderViewType or CategoryViewType);
             if (startOfSongs < 0)
                 return -1;
 
