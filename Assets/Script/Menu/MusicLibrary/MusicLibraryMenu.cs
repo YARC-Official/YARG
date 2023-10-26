@@ -32,8 +32,7 @@ namespace YARG.Menu.MusicLibrary
         private const int SONG_VIEW_EXTRA = 15;
         private const float SCROLL_TIME = 1f / 60f;
 
-        [HideInInspector]
-        public MusicLibraryMode LibraryMode;
+        public static MusicLibraryMode LibraryMode;
 
         [SerializeField]
         private GameObject _songViewPrefab;

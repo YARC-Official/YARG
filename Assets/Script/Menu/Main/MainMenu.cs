@@ -62,8 +62,7 @@ namespace YARG.Menu.Main
         {
             var menu = MenuManager.Instance.PushMenu(MenuManager.Menu.MusicLibrary, false);
 
-            var musicLibraryMenu = menu.GetComponent<MusicLibraryMenu>();
-            musicLibraryMenu.LibraryMode = MusicLibraryMode.QuickPlay;
+            MusicLibraryMenu.LibraryMode = MusicLibraryMode.QuickPlay;
 
             menu.gameObject.SetActive(true);
         }
@@ -72,8 +71,7 @@ namespace YARG.Menu.Main
         {
             var menu = MenuManager.Instance.PushMenu(MenuManager.Menu.MusicLibrary, false);
 
-            var musicLibraryMenu = menu.GetComponent<MusicLibraryMenu>();
-            musicLibraryMenu.LibraryMode = MusicLibraryMode.Practice;
+            MusicLibraryMenu.LibraryMode = MusicLibraryMode.Practice;
 
             menu.gameObject.SetActive(true);
         }

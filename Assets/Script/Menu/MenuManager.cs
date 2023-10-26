@@ -19,6 +19,8 @@ namespace YARG.Menu
             Replays,
         }
 
+        private static bool _firstLaunch = true;
+
         private Dictionary<Menu, MenuObject> _menus;
 
         private readonly Stack<Menu> _openMenus = new();
@@ -32,7 +34,16 @@ namespace YARG.Menu
 
         private void Start()
         {
-            PushMenu(Menu.MainMenu);
+            if (_firstLaunch)
+            {
+                PushMenu(Menu.MainMenu);
+                _firstLaunch = false;
+            }
+            else
+            {
+                PushMenu(Menu.MainMenu);
+                PushMenu(Menu.MusicLibrary);
+            }
         }
 
         public MenuObject PushMenu(Menu menu, bool setActiveImmediate = true)
