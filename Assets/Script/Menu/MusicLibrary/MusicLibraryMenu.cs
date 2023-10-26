@@ -34,6 +34,7 @@ namespace YARG.Menu.MusicLibrary
 
         public static MusicLibraryMode LibraryMode;
 
+        private static int _savedIndex;
         private static string _currentSearch = string.Empty;
         private static SongAttribute _sort = SongAttribute.Name;
 
@@ -80,7 +81,6 @@ namespace YARG.Menu.MusicLibrary
             get => _selectedIndex;
             private set
             {
-
                 // Properly wrap the value
                 if (value < 0)
                 {
@@ -147,7 +147,7 @@ namespace YARG.Menu.MusicLibrary
             var navigationScheme = GetNavigationScheme();
             Navigator.Instance.PushScheme(navigationScheme);
 
-            // Update the search bar to the persistent value
+            // Restore search
             _searchField.text = _currentSearch;
 
             _viewList = null;
@@ -155,6 +155,9 @@ namespace YARG.Menu.MusicLibrary
 
             // Get songs
             UpdateSearch(true);
+
+            // Restore index
+            SelectedIndex = _savedIndex;
 
             // Set proper text
             _subHeader.text = LibraryMode switch
@@ -175,6 +178,8 @@ namespace YARG.Menu.MusicLibrary
 
         private void OnDisable()
         {
+            _savedIndex = _selectedIndex;
+
             Navigator.Instance.PopScheme();
 
             if (!_previewCanceller.IsCancellationRequested)
