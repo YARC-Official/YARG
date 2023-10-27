@@ -94,11 +94,17 @@ namespace YARG.Menu.MusicLibrary
                 _menuState = State.SortSelect;
                 UpdateForState();
             });
+            
+            CreateItem("Back To Top", () =>
+            {
+                _musicLibrary.SelectedIndex = 0;
+                gameObject.SetActive(false);
+            });
         }
 
         private void CreateSortSelect()
         {
-            SetHeader("Order By...");
+            SetHeader("Sort By...");
 
             foreach (var sort in EnumExtensions<SongAttribute>.Values)
             {

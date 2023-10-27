@@ -79,7 +79,7 @@ namespace YARG.Menu.MusicLibrary
         public int SelectedIndex
         {
             get => _selectedIndex;
-            private set
+            set
             {
                 // Properly wrap the value
                 if (value < 0)
