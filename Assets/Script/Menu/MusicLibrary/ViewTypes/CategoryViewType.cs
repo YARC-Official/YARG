@@ -19,7 +19,7 @@ namespace YARG.Menu.MusicLibrary
         private readonly string _primary;
         private readonly int _songCount;
 
-        public CategoryViewType(string primary, int songCount, IEnumerable<SongMetadata> songsUnderCategory)
+        public CategoryViewType(string primary, int songCount, IReadOnlyList<SongMetadata> songsUnderCategory)
         {
             _primary = primary;
             _songCount = songCount;

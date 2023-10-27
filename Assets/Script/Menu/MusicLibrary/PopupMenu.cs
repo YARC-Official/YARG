@@ -15,7 +15,8 @@ namespace YARG.Menu.MusicLibrary
         private enum State
         {
             Main,
-            SortSelect
+            SortSelect,
+            GoToSection
         }
 
         [SerializeField]
@@ -80,6 +81,9 @@ namespace YARG.Menu.MusicLibrary
                 case State.SortSelect:
                     CreateSortSelect();
                     break;
+                case State.GoToSection:
+                    CreateGoToSection();
+                    break;
             }
 
             _navGroup.SelectFirst();
@@ -94,7 +98,19 @@ namespace YARG.Menu.MusicLibrary
                 _menuState = State.SortSelect;
                 UpdateForState();
             });
-            
+
+            CreateItem("Go To Section...", () =>
+            {
+                _menuState = State.GoToSection;
+                UpdateForState();
+            });
+
+            CreateItem("Random Song", () =>
+            {
+                _musicLibrary.SelectRandomSong();
+                gameObject.SetActive(false);
+            });
+
             CreateItem("Back To Top", () =>
             {
                 _musicLibrary.SelectedIndex = 0;
@@ -116,6 +132,20 @@ namespace YARG.Menu.MusicLibrary
                 CreateItem(sort.ToLocalizedName(), () =>
                 {
                     _musicLibrary.ChangeSort(sort);
+                    gameObject.SetActive(false);
+                });
+            }
+        }
+
+        private void CreateGoToSection()
+        {
+            SetHeader("Sort By...");
+
+            foreach (var (header, index) in _musicLibrary.GetSections())
+            {
+                CreateItem(((SortHeaderViewType) header).HeaderText, () =>
+                {
+                    _musicLibrary.SelectedIndex = index;
                     gameObject.SetActive(false);
                 });
             }

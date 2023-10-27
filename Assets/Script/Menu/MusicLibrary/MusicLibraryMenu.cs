@@ -529,7 +529,7 @@ namespace YARG.Menu.MusicLibrary
             _searchField.text = "";
         }
 
-        private void SelectRandomSong()
+        public void SelectRandomSong()
         {
             int skip = GetSkip();
 
@@ -557,6 +557,11 @@ namespace YARG.Menu.MusicLibrary
             {
                 SelectedIndex = _viewList.FindIndex(i => i is SortHeaderViewType);
             }
+        }
+
+        public (ViewType, int)[] GetSections()
+        {
+            return _viewList.Select((v, i) => (v, i)).Where(i => i.v is SortHeaderViewType).ToArray();
         }
 
         private int GetSkip()

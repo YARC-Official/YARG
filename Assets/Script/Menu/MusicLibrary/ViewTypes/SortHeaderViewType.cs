@@ -11,18 +11,18 @@ namespace YARG.Menu.MusicLibrary
     {
         public override BackgroundType Background => BackgroundType.Category;
 
-        private readonly string _primary;
+        public readonly string HeaderText;
         private readonly int _songCount;
 
-        public SortHeaderViewType(string primary, int songCount)
+        public SortHeaderViewType(string headerText, int songCount)
         {
-            _primary = primary;
+            HeaderText = headerText;
             _songCount = songCount;
         }
 
         public override string GetPrimaryText(bool selected)
         {
-            return FormatAs(_primary, TextType.Bright, selected);
+            return FormatAs(HeaderText, TextType.Bright, selected);
         }
 
         public override string GetSideText(bool selected)
