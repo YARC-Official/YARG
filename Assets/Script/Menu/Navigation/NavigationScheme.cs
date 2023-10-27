@@ -50,6 +50,7 @@ namespace YARG.Menu.Navigation
             }
         }
 
+        public static readonly NavigationScheme Empty = new(new(), false);
         public static readonly NavigationScheme EmptyWithMusicPlayer = new(new(), true);
 
         private readonly List<Entry> _entries;

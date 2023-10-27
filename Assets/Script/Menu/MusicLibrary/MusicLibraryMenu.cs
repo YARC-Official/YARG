@@ -118,7 +118,9 @@ namespace YARG.Menu.MusicLibrary
         }
 
         private float _scrollTimer;
-        private bool _searchBoxShouldBeEnabled;
+
+        private bool _searchNavPushed;
+        private bool _wasSearchFieldFocused;
 
         protected override void SingletonAwake()
         {
@@ -178,8 +180,6 @@ namespace YARG.Menu.MusicLibrary
 
             // Show no player warning
             _noPlayerWarning.SetActive(PlayerContainer.Players.Count <= 0);
-
-            _searchBoxShouldBeEnabled = true;
         }
 
         private void OnDisable()
@@ -187,6 +187,13 @@ namespace YARG.Menu.MusicLibrary
             _savedIndex = _selectedIndex;
 
             Navigator.Instance.PopScheme();
+
+            // Make sure to also pop the search nav if that was pushed
+            if (_searchNavPushed)
+            {
+                Navigator.Instance.PopScheme();
+                _searchNavPushed = false;
+            }
 
             if (!_previewCanceller.IsCancellationRequested)
             {
@@ -205,13 +212,30 @@ namespace YARG.Menu.MusicLibrary
                 ClearSearchBox();
             }
 
-            if (_searchBoxShouldBeEnabled)
-            {
-                _searchField.ActivateInputField();
-                _searchBoxShouldBeEnabled = false;
-            }
-
             StartPreview();
+
+            // Update the search bar pushing the empty navigation scheme.
+            // We can't use the "OnSelect" event because for some reason it isn't called
+            // if the user reselected the input field after pressing enter.
+            if (_wasSearchFieldFocused != _searchField.isFocused)
+            {
+                _wasSearchFieldFocused = _searchField.isFocused;
+
+                if (_wasSearchFieldFocused)
+                {
+                    if (_searchNavPushed) return;
+
+                    _searchNavPushed = true;
+                    Navigator.Instance.PushScheme(NavigationScheme.Empty);
+                }
+                else
+                {
+                    if (!_searchNavPushed) return;
+
+                    _searchNavPushed = false;
+                    Navigator.Instance.PopScheme();
+                }
+            }
         }
 
         public void SetSearchInput(string query)
@@ -503,7 +527,6 @@ namespace YARG.Menu.MusicLibrary
         private void ClearSearchBox()
         {
             _searchField.text = "";
-            _searchField.ActivateInputField();
         }
 
         private void SelectRandomSong()
