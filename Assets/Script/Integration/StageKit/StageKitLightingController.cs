@@ -168,7 +168,6 @@ namespace YARG.Integration.StageKit
 {
     public class StageKitLightingController : MonoSingleton<StageKitLightingController>
     {
-
         public enum FogState
         {
             Off,
@@ -206,7 +205,6 @@ namespace YARG.Integration.StageKit
 
         public FogState CurrentFogState = FogState.Off;
         public FogState PreviousFogState = FogState.Off;
-
 
         public StageKitStrobeSpeed CurrentStrobeState = StageKitStrobeSpeed.Off;
         public StageKitStrobeSpeed PreviousStrobeState = StageKitStrobeSpeed.Off;
@@ -254,6 +252,7 @@ namespace YARG.Integration.StageKit
             {
                 if (device is IStageKitHaptics haptics) StageKits.Add(haptics);
             }
+
             //then listen to see if any more are added or removed
             InputSystem.onDeviceChange += OnDeviceChange;
             //StageKits remember its last state which is neat but not needed on startup
@@ -358,6 +357,7 @@ namespace YARG.Integration.StageKit
 
             CurrentFogState = fogState;
         }
+
         public void SetStrobeSpeed(StageKitStrobeSpeed strobeSpeed)
         {
             if (CurrentStrobeState == strobeSpeed)

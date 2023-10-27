@@ -3,7 +3,6 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Gameplay;
-using System;
 using PlasticBand.Haptics;
 using Random = UnityEngine.Random;
 
