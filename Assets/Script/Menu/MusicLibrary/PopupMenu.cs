@@ -139,7 +139,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void CreateGoToSection()
         {
-            SetHeader("Sort By...");
+            SetHeader("Go To...");
 
             foreach (var (header, index) in _musicLibrary.GetSections())
             {
