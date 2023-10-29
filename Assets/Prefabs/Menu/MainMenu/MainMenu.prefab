@@ -195,19 +195,17 @@ MonoBehaviour:
 
     <b>THIS BUILD IS
     INCOMPLETE!</b> Some things such as the settings menu don''t function properly
-    and are known. Practice mode also breaks frequently with regards to audio seeking
-    (restarting the section repeatedly should fix it eventually)
+    and are known.
 
 
-    <b>If you
-    find any bugs related to the new engine or practice mode, please let us know
-    on Discord or GitHub. Please state the bug report is for the new engine.</b>
+    <b>If you find any bugs related to the new engine or practice
+    mode, please let us know on Discord or GitHub. Please state the bug report is
+    for the new engine.</b>
 
 
-    <b>Replays
-    are currently in preview.</b> Replays do not produce 1:1 results to what was
-    actually played and can be inconsistent. This is known and we are working on
-    fixing this for the future.
+    <b>Replays are currently in preview.</b> Replays
+    do not produce 1:1 results to what was actually played and can be inconsistent.
+    This is known and we are working on fixing this for the future.
 
 
     Have fun!'
