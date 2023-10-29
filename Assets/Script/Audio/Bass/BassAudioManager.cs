@@ -150,29 +150,30 @@ namespace YARG.Audio.BASS
         {
             var mics = new List<IMicDevice>();
 
-            var typeWhitelist = new List<DeviceType>
-            {
-                DeviceType.Headset,
-                DeviceType.Digital,
-                DeviceType.Line,
-                DeviceType.Headphones,
-                DeviceType.Microphone,
-            };
+            // Ignored for now since it causes issues on Linux, BASS must not report device info correctly there
+            // TODO: allow configuring this at runtime?
+            // Also put into a static variable instead of instantiating every time
+            // var typeWhitelist = new List<DeviceType>()
+            // {
+            //     DeviceType.Headset,
+            //     DeviceType.Digital,
+            //     DeviceType.Line,
+            //     DeviceType.Headphones,
+            //     DeviceType.Microphone,
+            // };
 
             for (int deviceIndex = 0; Bass.RecordGetDeviceInfo(deviceIndex, out var info); deviceIndex++)
             {
-                if (!info.IsEnabled) continue;
+                // Ignore disabled/claimed devices
+                if (!info.IsEnabled || info.IsInitialized) continue;
 
-                if (info.IsInitialized) continue;
-
-                //Debug.Log($"Device {deviceIndex}: Name: {info.Name}. Type: {info.Type}. IsLoopback: {info.IsLoopback}.");
+                // Ignore loopback devices, they're potentially confusing and can cause feedback loops
+                if (info.IsLoopback) continue;
 
                 // Check if type is in whitelist
                 // The "Default" device is also excluded here since we want the user to explicitly pick which microphone to use
-                if (!typeWhitelist.Contains(info.Type) || info.Name == "Default")
-                {
-                    continue;
-                }
+                // if (!typeWhitelist.Contains(info.Type) || info.Name == "Default") continue;
+                if (info.Name == "Default") continue;
 
                 mics.Add(new BassMicDevice(deviceIndex, info));
             }
