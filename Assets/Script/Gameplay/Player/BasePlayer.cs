@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using YARG.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Input;
@@ -222,6 +223,24 @@ namespace YARG.Gameplay.Player
             if (InputViewer != null)
             {
                 InputViewer.OnInput(input);
+            }
+        }
+
+        protected virtual void OnStarPowerPhraseHit()
+        {
+            if (!GameManager.Paused)
+            {
+                GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarPowerAward);
+            }
+        }
+
+        protected virtual void OnStarPowerStatus(bool status)
+        {
+            if (!GameManager.Paused)
+            {
+                GlobalVariables.AudioManager.PlaySoundEffect(status
+                    ? SfxSample.StarPowerDeploy
+                    : SfxSample.StarPowerRelease);
             }
         }
 

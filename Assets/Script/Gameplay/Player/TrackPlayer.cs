@@ -309,6 +309,11 @@ namespace YARG.Gameplay.Player
             TrackView.EndSolo(solo.SoloBonus);
         }
 
+        protected virtual void OnStarPowerPhraseHit(TNote note)
+        {
+            OnStarPowerPhraseHit();
+        }
+
         protected override void FinishDestruction()
         {
             base.FinishDestruction();

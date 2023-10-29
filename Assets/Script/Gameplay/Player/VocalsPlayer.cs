@@ -108,6 +108,9 @@ namespace YARG.Gameplay.Player
 
             var engine = new YargVocalsEngine(NoteTrack, SyncTrack, EngineParams);
 
+            engine.OnStarPowerPhraseHit += _ => OnStarPowerPhraseHit();
+            engine.OnStarPowerStatus += OnStarPowerStatus;
+
             engine.OnTargetNoteChanged += (note) =>
             {
                 _lastTargetNote = note;

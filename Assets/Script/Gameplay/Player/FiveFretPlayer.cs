@@ -48,6 +48,9 @@ namespace YARG.Gameplay.Player
             engine.OnSoloStart += OnSoloStart;
             engine.OnSoloEnd += OnSoloEnd;
 
+            engine.OnStarPowerPhraseHit += OnStarPowerPhraseHit;
+            engine.OnStarPowerStatus += OnStarPowerStatus;
+
             engine.OnSustainStart += (parent) =>
             {
                 foreach (var note in parent.ChordEnumerator())
@@ -79,24 +82,6 @@ namespace YARG.Gameplay.Player
                     {
                         _fretArray.SetSustained(note.Fret - 1, false);
                     }
-                }
-            };
-
-            engine.OnStarPowerPhraseHit += _ =>
-            {
-                if (!GameManager.Paused)
-                {
-                    GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarPowerAward);
-                }
-            };
-
-            engine.OnStarPowerStatus += (status) =>
-            {
-                if (!GameManager.Paused)
-                {
-                    GlobalVariables.AudioManager.PlaySoundEffect(status
-                        ? SfxSample.StarPowerDeploy
-                        : SfxSample.StarPowerRelease);
                 }
             };
 

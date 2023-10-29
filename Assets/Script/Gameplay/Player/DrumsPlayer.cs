@@ -46,6 +46,9 @@ namespace YARG.Gameplay.Player
             engine.OnSoloStart += OnSoloStart;
             engine.OnSoloEnd += OnSoloEnd;
 
+            engine.OnStarPowerPhraseHit += OnStarPowerPhraseHit;
+            engine.OnStarPowerStatus += OnStarPowerStatus;
+
             engine.OnPadHit += (action, wasNoteHit) =>
             {
                 // Skip if a note was hit, because we have different logic for that below
