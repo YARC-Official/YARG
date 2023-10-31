@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using LiteDB;
 using UnityEngine;
+using YARG.Core.Replays;
 using YARG.Helpers;
 
 namespace YARG.Scores
@@ -36,35 +37,21 @@ namespace YARG.Scores
         private static void InitDatabase()
         {
             _scoreCollection = _db.GetCollection<ScoreEntry>("scores");
-            _scoreCollection.EnsureIndex(i => i.SongChecksum, true);
+
+            // These things are commonly queried so they should be indexed
+            _scoreCollection.EnsureIndex(i => i.Date);
+            _scoreCollection.EnsureIndex(i => i.BandScore);
         }
 
-        public static void RecordScore(string songChecksum)
+        public static void RecordScore(ScoreEntry scoreEntry)
         {
             // If the score collection does not exist, that means the database errored
             if (_scoreCollection is null) return;
 
-            // Create a score entry
-            var newEntry = new ScoreEntry
-            {
-                SongChecksum = songChecksum,
-                LastPlayed = DateTime.Now,
-                FirstPlayed = DateTime.Now,
-                TimesPlayed = 1
-            };
-
-            // Get the old entry to update the values (if it exists)
-            var oldEntry = _scoreCollection.FindById(songChecksum);
-            if (oldEntry is not null)
-            {
-                newEntry.FirstPlayed = oldEntry.FirstPlayed;
-                newEntry.TimesPlayed += oldEntry.TimesPlayed;
-
-                _scoreCollection.Delete(songChecksum);
-            }
-
             // Insert the entry
-            _scoreCollection.Insert(newEntry);
+            _scoreCollection.Insert(scoreEntry);
+
+            // TODO: High score cache
         }
 
         public static void Destroy()

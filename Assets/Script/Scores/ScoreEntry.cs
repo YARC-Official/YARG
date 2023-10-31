@@ -1,18 +1,17 @@
 ﻿using System;
-using LiteDB;
 
 namespace YARG.Scores
 {
     public class ScoreEntry
     {
-        [BsonId]
         public string SongChecksum { get; set; }
+        public DateTime Date { get; set; }
 
-        public DateTime LastPlayed { get; set; }
-        public DateTime FirstPlayed { get; set; }
-        public int TimesPlayed { get; set; }
+        public string ReplayFileName { get; set; }
+        public string ReplayChecksum { get; set; }
 
-        [BsonIgnore]
-        public string ReplayFileName => $"{SongChecksum}.replay";
+        public ScoreInfo[] PlayerScores { get; set; }
+        public int         BandScore    { get; set; }
+        public StarAmount  BandStars    { get; set; }
     }
 }
