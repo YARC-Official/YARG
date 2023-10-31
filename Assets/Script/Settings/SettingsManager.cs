@@ -32,7 +32,9 @@ namespace YARG.Settings
                 "UseCymbalModelsInFiveLane",
                 "KickBounce",
                 "ShowCursorTimer",
-                "AmIAwesome"
+                "AmIAwesome",
+                new HeaderMetadata("Debug"),
+                "InputDeviceLogging"
             },
             new SongManagerTab("SongManager", icon: "Songs"),
             new MetadataTab("Sound", icon: "Sound")

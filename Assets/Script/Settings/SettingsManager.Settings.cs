@@ -13,6 +13,7 @@ using YARG.Menu.Persistent;
 using YARG.Player;
 using YARG.Song;
 using YARG.Venue;
+using UnityEngine.InputSystem;
 
 namespace YARG.Settings
 {
@@ -73,6 +74,8 @@ namespace YARG.Settings
             public SliderSetting ShowCursorTimer           { get; } = new(2f, 0f, 5f);
 
             public ToggleSetting AmIAwesome                { get; } = new(false);
+
+            public ToggleSetting InputDeviceLogging        { get; } = new(false, InputDeviceLoggingCallback);
 
             #endregion
 
@@ -330,6 +333,17 @@ namespace YARG.Settings
             private static void UseChipmunkSpeedChange(bool value)
             {
                 GlobalVariables.AudioManager.Options.IsChipmunkSpeedup = value;
+            }
+
+            private static void InputDeviceLoggingCallback(bool value)
+            {
+                if (!value)
+                    return;
+
+                foreach (var device in InputSystem.devices)
+                {
+                    Debug.Log($"Description for device {device.displayName}:\n{device.description.ToJson()}\n");
+                }
             }
 
             #endregion

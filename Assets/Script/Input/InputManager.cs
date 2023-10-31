@@ -6,6 +6,7 @@ using UnityEngine.InputSystem.Utilities;
 using YARG.Core.Input;
 using YARG.Menu.Persistent;
 using YARG.Player;
+using YARG.Settings;
 
 namespace YARG.Input
 {
@@ -116,6 +117,8 @@ namespace YARG.Input
                 // case InputDeviceChange.Enabled: // Devices are enabled/disabled when gaining/losing window focus
                 // case InputDeviceChange.Reconnected: // Fired alongside Added, not needed
                     ToastManager.ToastMessage($"Device added: {device.displayName}");
+                    if (SettingsManager.Settings.InputDeviceLogging.Data)
+                        Debug.Log($"Device added: {device.displayName}\nDescription:\n{device.description.ToJson()}\n");
                     DeviceAdded?.Invoke(device);
                     break;
 
