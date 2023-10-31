@@ -170,24 +170,46 @@ namespace YARG.Input
             if (Mode != GameMode.ProGuitar)
                 return false;
 
-            AddBinding(ProGuitarAction.String1_Fret, guitar.fret1);
-            AddBinding(ProGuitarAction.String2_Fret, guitar.fret2);
-            AddBinding(ProGuitarAction.String3_Fret, guitar.fret3);
-            AddBinding(ProGuitarAction.String4_Fret, guitar.fret4);
-            AddBinding(ProGuitarAction.String5_Fret, guitar.fret5);
-            AddBinding(ProGuitarAction.String6_Fret, guitar.fret6);
+            switch (Mode)
+            {
+                case GameMode.FiveFretGuitar:
+                    AddBinding(GuitarAction.GreenFret, guitar.greenFret);
+                    AddBinding(GuitarAction.RedFret, guitar.redFret);
+                    AddBinding(GuitarAction.YellowFret, guitar.yellowFret);
+                    AddBinding(GuitarAction.BlueFret, guitar.blueFret);
+                    AddBinding(GuitarAction.OrangeFret, guitar.orangeFret);
 
-            AddBinding(ProGuitarAction.String1_Strum, guitar.velocity1);
-            AddBinding(ProGuitarAction.String2_Strum, guitar.velocity2);
-            AddBinding(ProGuitarAction.String3_Strum, guitar.velocity3);
-            AddBinding(ProGuitarAction.String4_Strum, guitar.velocity4);
-            AddBinding(ProGuitarAction.String5_Strum, guitar.velocity5);
-            AddBinding(ProGuitarAction.String6_Strum, guitar.velocity6);
+                    // TODO: This could probably be handled better
+                    AddBinding(GuitarAction.StrumDown, guitar.strum1);
 
-            AddBinding(GuitarAction.StarPower, guitar.selectButton);
-            AddBinding(GuitarAction.StarPower, guitar.tilt);
+                    AddBinding(GuitarAction.StarPower, guitar.selectButton);
+                    AddBinding(GuitarAction.StarPower, guitar.tilt);
+                    AddBinding(GuitarAction.StarPower, guitar.digitalPedal);
+                    break;
 
-            AddBinding(ProGuitarAction.Whammy, guitar.whammy);
+                case GameMode.ProGuitar:
+                    AddBinding(ProGuitarAction.String1_Fret, guitar.fret1);
+                    AddBinding(ProGuitarAction.String2_Fret, guitar.fret2);
+                    AddBinding(ProGuitarAction.String3_Fret, guitar.fret3);
+                    AddBinding(ProGuitarAction.String4_Fret, guitar.fret4);
+                    AddBinding(ProGuitarAction.String5_Fret, guitar.fret5);
+                    AddBinding(ProGuitarAction.String6_Fret, guitar.fret6);
+
+                    AddBinding(ProGuitarAction.String1_Strum, guitar.strum1);
+                    AddBinding(ProGuitarAction.String2_Strum, guitar.strum2);
+                    AddBinding(ProGuitarAction.String3_Strum, guitar.strum3);
+                    AddBinding(ProGuitarAction.String4_Strum, guitar.strum4);
+                    AddBinding(ProGuitarAction.String5_Strum, guitar.strum5);
+                    AddBinding(ProGuitarAction.String6_Strum, guitar.strum6);
+
+                    AddBinding(ProGuitarAction.StarPower, guitar.selectButton);
+                    AddBinding(ProGuitarAction.StarPower, guitar.tilt);
+                    AddBinding(ProGuitarAction.StarPower, guitar.digitalPedal);
+                    break;
+
+                default:
+                    return false;
+            }
 
             return true;
         }
@@ -318,6 +340,11 @@ namespace YARG.Input
             AddBinding(MenuAction.Start, drums.startButton);
             AddBinding(MenuAction.Select, drums.selectButton);
 
+            AddBinding(MenuAction.Green, drums.buttonSouth); // A, cross
+            AddBinding(MenuAction.Red, drums.buttonEast); // B, circle
+            AddBinding(MenuAction.Blue, drums.buttonWest); // X, square, 1
+            AddBinding(MenuAction.Yellow, drums.buttonNorth); // Y, triangle, 2
+
             AddBinding(MenuAction.Red, drums.redPad);
             AddBinding(MenuAction.Up, drums.yellowPad);
             AddBinding(MenuAction.Down, drums.bluePad);
@@ -345,6 +372,11 @@ namespace YARG.Input
             AddBinding(MenuAction.Start, drums.startButton);
             AddBinding(MenuAction.Select, drums.selectButton);
 
+            AddBinding(MenuAction.Green, drums.buttonSouth); // A, cross
+            AddBinding(MenuAction.Red, drums.buttonEast); // B, circle
+            AddBinding(MenuAction.Blue, drums.buttonWest); // X, square
+            AddBinding(MenuAction.Yellow, drums.buttonNorth); // Y, triangle
+
             AddBinding(MenuAction.Green, drums.greenPad);
             AddBinding(MenuAction.Red, drums.redPad);
             AddBinding(MenuAction.Blue, drums.bluePad);
@@ -370,10 +402,10 @@ namespace YARG.Input
             AddBinding(MenuAction.Start, guitar.startButton);
             AddBinding(MenuAction.Select, guitar.selectButton);
 
-            AddBinding(MenuAction.Green, guitar.buttonSouth);
-            AddBinding(MenuAction.Red, guitar.buttonEast);
-            AddBinding(MenuAction.Yellow, guitar.buttonNorth);
-            AddBinding(MenuAction.Blue, guitar.buttonWest);
+            AddBinding(MenuAction.Green, guitar.buttonSouth); // A, cross
+            AddBinding(MenuAction.Red, guitar.buttonEast); // B, circle
+            AddBinding(MenuAction.Blue, guitar.buttonWest); // X, square, 1
+            AddBinding(MenuAction.Yellow, guitar.buttonNorth); // Y, triangle, 2
 
             AddBinding(MenuAction.Green, guitar.greenFret);
             AddBinding(MenuAction.Red, guitar.redFret);
@@ -397,10 +429,10 @@ namespace YARG.Input
             AddBinding(MenuAction.Start, keyboard.startButton);
             AddBinding(MenuAction.Select, keyboard.selectButton);
 
-            AddBinding(MenuAction.Green, keyboard.buttonSouth);
-            AddBinding(MenuAction.Red, keyboard.buttonEast);
-            AddBinding(MenuAction.Yellow, keyboard.buttonNorth);
-            AddBinding(MenuAction.Blue, keyboard.buttonWest);
+            AddBinding(MenuAction.Green, keyboard.buttonSouth); // A, cross
+            AddBinding(MenuAction.Red, keyboard.buttonEast); // B, circle
+            AddBinding(MenuAction.Blue, keyboard.buttonWest); // X, square, 1
+            AddBinding(MenuAction.Yellow, keyboard.buttonNorth); // Y, triangle, 2
             AddBinding(MenuAction.Orange, keyboard.overdrive);
 
             AddBinding(MenuAction.Up, keyboard.dpad.up);
