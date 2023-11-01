@@ -69,7 +69,14 @@ namespace YARG.Gameplay
 
         public bool IsSongStarted { get; private set; } = false;
 
-        private bool   _loadFailure;
+        private enum LoadFailureState
+        {
+            None,
+            Rescan,
+            Error
+        }
+
+        private LoadFailureState _loadState;
         private string _loadFailureMessage;
 
         // All access to chart data must be done through this event,
@@ -201,7 +208,14 @@ namespace YARG.Gameplay
             LoadingManager.Instance.Queue(LoadAudio, "Loading audio...");
             await LoadingManager.Instance.StartLoad();
 
-            if (_loadFailure)
+            if (_loadState == LoadFailureState.Rescan)
+            {
+                ToastManager.ToastWarning("Chart requires a rescan!");
+                GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                return;
+            }
+
+            if (_loadState == LoadFailureState.Error)
             {
                 Debug.LogError(_loadFailureMessage);
                 ToastManager.ToastError(_loadFailureMessage);
@@ -370,7 +384,7 @@ namespace YARG.Gameplay
             }
             catch (Exception ex)
             {
-                _loadFailure = true;
+                _loadState = LoadFailureState.Error;
                 _loadFailureMessage = "Failed to load replay!";
                 Debug.LogException(ex, this);
                 return;
@@ -378,9 +392,10 @@ namespace YARG.Gameplay
 
             Song = GlobalVariables.Instance.SongContainer.SongsByHash[
                 GlobalVariables.Instance.CurrentReplay.SongChecksum][0];
+
             if (Song is null || result != ReplayReadResult.Valid)
             {
-                _loadFailure = true;
+                _loadState = LoadFailureState.Error;
                 _loadFailureMessage = "Failed to load replay!";
                 return;
             }
@@ -411,9 +426,15 @@ namespace YARG.Gameplay
                 }
                 catch (Exception ex)
                 {
-                    _loadFailure = true;
+                    _loadState = LoadFailureState.Error;
                     _loadFailureMessage = "Failed to load chart!";
                     Debug.LogException(ex, this);
+                    return;
+                }
+
+                if (Chart is null)
+                {
+                    _loadState = LoadFailureState.Rescan;
                     return;
                 }
 
@@ -433,7 +454,8 @@ namespace YARG.Gameplay
                 }
             });
 
-            if (_loadFailure) return;
+            if (_loadState != LoadFailureState.None)
+                return;
 
             _chartLoaded?.Invoke(Chart);
         }
@@ -453,13 +475,14 @@ namespace YARG.Gameplay
                 }
                 catch (Exception ex)
                 {
-                    _loadFailure = true;
+                    _loadState = LoadFailureState.Error;
                     _loadFailureMessage = "Failed to load audio!";
                     Debug.LogException(ex, this);
                 }
             });
 
-            if (_loadFailure) return;
+            if (_loadState != LoadFailureState.None)
+                return;
 
             _songLoaded?.Invoke();
         }
