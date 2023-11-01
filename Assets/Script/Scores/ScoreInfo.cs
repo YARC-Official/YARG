@@ -1,5 +1,4 @@
-﻿using LiteDB;
-using YARG.Core;
+﻿using YARG.Core;
 
 namespace YARG.Scores
 {

@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
-using LiteDB;
+using SQLite;
 using UnityEngine;
 using YARG.Core.Song;
 using YARG.Helpers;
@@ -13,8 +13,7 @@ namespace YARG.Scores
         public static string ScoreDirectory { get; private set; }
         private static string _scoreDatabaseFile;
 
-        private static LiteDatabase _db;
-        private static ILiteCollection<ScoreEntry> _scoreCollection;
+        private static SQLiteConnection _db;
 
         public static void Init()
         {
@@ -24,7 +23,7 @@ namespace YARG.Scores
             Directory.CreateDirectory(ScoreDirectory);
             try
             {
-                _db = new LiteDatabase(_scoreDatabaseFile);
+                _db = new SQLiteConnection(_scoreDatabaseFile);
                 InitDatabase();
             }
             catch (Exception e)
@@ -36,31 +35,18 @@ namespace YARG.Scores
 
         private static void InitDatabase()
         {
-            _scoreCollection = _db.GetCollection<ScoreEntry>("scores");
-
-            // These things are commonly queried so they should be indexed
-            _scoreCollection.EnsureIndex(i => i.SongChecksum);
-            _scoreCollection.EnsureIndex(i => i.Date);
-            _scoreCollection.EnsureIndex(i => i.BandScore);
+            _db.CreateTable<ScoreEntry>();
         }
 
         public static void RecordScore(ScoreEntry scoreEntry)
         {
-            // If the score collection does not exist, that means the database errored
-            if (_scoreCollection is null) return;
-
             // Insert the entry
-            _scoreCollection.Insert(scoreEntry);
-
-            // TODO: High score cache
+            _db.Insert(scoreEntry);
         }
 
         public static ScoreInfo? GetHighScore(HashWrapper songChecksum)
         {
-            // If the score collection does not exist, that means the database errored
-            if (_scoreCollection is null) return null;
-
-            var allTimePlays = _scoreCollection.Find(Query.EQ("SongChecksum", songChecksum.ToString()));
+            var allTimePlays = _db.Table<ScoreEntry>().Where(i => i.SongChecksum == songChecksum.ToString());
 
             var scores = allTimePlays
                 .SelectMany(i => i.PlayerScores)
