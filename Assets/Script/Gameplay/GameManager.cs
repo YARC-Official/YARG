@@ -23,6 +23,7 @@ using YARG.Menu.ScoreScreen;
 using YARG.Player;
 using YARG.Replays;
 using YARG.Helpers.Extensions;
+using YARG.Scores;
 
 namespace YARG.Gameplay
 {
@@ -670,6 +671,7 @@ namespace YARG.Gameplay
             UninitializeTime();
             GlobalVariables.AudioManager.UnloadSong();
 
+            // Pass the score info to the stats screen
             GlobalVariables.Instance.ScoreScreenStats = new ScoreScreenStats
             {
                 PlayerScores = _players.Select(player => new PlayerScoreCard
@@ -680,6 +682,30 @@ namespace YARG.Gameplay
                 BandScore = BandScore,
                 BandStars = (int) BandStars
             };
+
+            // Record the score into the database
+            ScoreContainer.RecordScore(new ScoreEntry
+            {
+                SongChecksum = Song.Hash.ToString(),
+                Date = DateTime.Now,
+
+                PlayerScores = _players.Select(player => new ScoreInfo
+                {
+                    PlayerName = player.Player.Profile.Name,
+
+                    Instrument = player.Player.Profile.CurrentInstrument,
+                    Difficulty = player.Player.Profile.CurrentDifficulty,
+
+                    Score = player.Score,
+                    Stars = StarAmountHelper.GetStarsFromInt(player.Stats.Stars),
+
+                    Percent = (float) player.Stats.NotesHit / (player.Stats.NotesHit + player.Stats.NotesMissed),
+                    IsFc = player.IsFc
+                }).ToArray(),
+
+                BandScore = BandScore,
+                BandStars = StarAmountHelper.GetStarsFromInt((int) BandStars)
+            });
 
             GlobalVariables.Instance.IsReplay = false;
             GlobalVariables.Instance.LoadScene(SceneIndex.Score);

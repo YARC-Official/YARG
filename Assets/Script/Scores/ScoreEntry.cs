@@ -4,6 +4,7 @@ namespace YARG.Scores
 {
     public class ScoreEntry
     {
+        // TODO: Store as binary instead
         public string SongChecksum { get; set; }
         public DateTime Date { get; set; }
 

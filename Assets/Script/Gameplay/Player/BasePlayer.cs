@@ -53,7 +53,7 @@ namespace YARG.Gameplay.Player
         public int NotesHit   { get; protected set; }
         public int TotalNotes { get; protected set; }
 
-        protected bool IsFc;
+        public bool IsFc { get; protected set; }
 
         protected bool IsInitialized { get; private set; }
 

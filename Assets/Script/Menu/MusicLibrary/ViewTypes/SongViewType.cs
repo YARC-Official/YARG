@@ -1,7 +1,10 @@
 ﻿using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core.Song;
+using YARG.Data;
+using YARG.Helpers.Extensions;
 using YARG.Player;
+using YARG.Scores;
 using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
@@ -10,22 +13,6 @@ namespace YARG.Menu.MusicLibrary
     {
         public override BackgroundType Background => BackgroundType.Normal;
         public override bool UseAsMadeFamousBy => !SongMetadata.IsMaster;
-
-        // public override string SideText =>
-        //     // TODO: Disable scores for now
-        //     // get
-        //     // {
-        //     //     var score = ScoreManager.GetScore(SongEntry);
-        //     //     if (score == null || score.highestPercent.Count <= 0)
-        //     //     {
-        //     //         return string.Empty;
-        //     //     }
-        //     //
-        //     //     var (instrument, highest) = score.GetHighestPercent();
-        //     //     return $"<sprite name=\"{instrument}\"> <b>{highest.difficulty.ToChar()}</b> " +
-        //     //         $"{Mathf.Floor(highest.percent * 100f):N0}%";
-        //     // }
-        //     string.Empty;
 
         public SongMetadata SongMetadata { get; private set; }
 
@@ -42,6 +29,20 @@ namespace YARG.Menu.MusicLibrary
         public override string GetSecondaryText(bool selected)
         {
             return FormatAs(SongMetadata.Artist, TextType.Secondary, selected);
+        }
+
+        public override string GetSideText(bool selected)
+        {
+            var score = ScoreContainer.GetHighScore(SongMetadata.Hash);
+
+            // Never played!
+            if (score == null) return string.Empty;
+
+            var instrument = score.Value.Instrument.ToResourceName();
+            var difficultyChar = score.Value.Difficulty.ToChar();
+            var percent = Mathf.Floor(score.Value.Percent * 100f);
+
+            return $"<sprite name=\"{instrument}\"> <b>{difficultyChar}</b> {percent:N0}%";
         }
 
         public override async UniTask<Sprite> GetIcon()
