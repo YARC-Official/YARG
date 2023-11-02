@@ -28,9 +28,22 @@ namespace YARG.Gameplay.Player
                 CurrentPhraseInBounds &&
                 _noteOrLyricIndex < CurrentPhrase.Lyrics.Count;
 
-            public PhraseNoteTracker(VocalsPart vocalsPart)
+            public PhraseNoteTracker(VocalsPart vocalsPart, bool forLyrics)
             {
                 _vocalsPart = vocalsPart;
+
+                // If the first phrase in the song has no notes/lyrics, skip it
+                if (CurrentPhraseInBounds)
+                {
+                    if (forLyrics && !CurrentLyricInBounds)
+                    {
+                        NextLyric();
+                    }
+                    else if (!forLyrics && !CurrentNoteInBounds)
+                    {
+                        NextNote();
+                    }
+                }
             }
 
             public void Reset()
@@ -45,8 +58,12 @@ namespace YARG.Gameplay.Player
 
                 if (CurrentNoteInBounds) return;
 
-                _phraseIndex++;
-                _noteOrLyricIndex = 0;
+                // Make sure to skip all of the empty phrases
+                do
+                {
+                    _phraseIndex++;
+                    _noteOrLyricIndex = 0;
+                } while (CurrentPhraseInBounds && !CurrentNoteInBounds);
             }
 
             public void NextLyric()
@@ -55,8 +72,12 @@ namespace YARG.Gameplay.Player
 
                 if (CurrentLyricInBounds) return;
 
-                _phraseIndex++;
-                _noteOrLyricIndex = 0;
+                // Make sure to skip all of the empty phrases
+                do
+                {
+                    _phraseIndex++;
+                    _noteOrLyricIndex = 0;
+                } while (CurrentPhraseInBounds && !CurrentLyricInBounds);
             }
 
             public VocalNote GetProbableNoteAtLyric()
@@ -95,7 +116,8 @@ namespace YARG.Gameplay.Player
                 // TODO: Implement vocal percussion. This is temporary.
                 if (note.IsPercussion)
                 {
-                    return;
+                    tracker.NextNote();
+                    continue;
                 }
 
                 if (note.IsNonPitched)
@@ -139,6 +161,7 @@ namespace YARG.Gameplay.Player
                     tracker.CurrentPhrase.IsStarPower,
                     harmonyIndex))
                 {
+                    tracker.NextLyric();
                     return;
                 }
 

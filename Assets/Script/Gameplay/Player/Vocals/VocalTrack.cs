@@ -131,8 +131,8 @@ namespace YARG.Gameplay.Player
             // Create PhraseNoteTrackers
             for (int i = 0; i < parts.Count; i++)
             {
-                _noteTrackers[i] = new PhraseNoteTracker(parts[i]);
-                _lyricTrackers[i] = new PhraseNoteTracker(parts[i]);
+                _noteTrackers[i] = new PhraseNoteTracker(parts[i], false);
+                _lyricTrackers[i] = new PhraseNoteTracker(parts[i], true);
             }
 
             if (vocalsTrack.Instrument == Instrument.Harmony)
@@ -299,8 +299,8 @@ namespace YARG.Gameplay.Player
                 part.NotePhrases.RemoveAll(n => n.Tick < start || n.Tick >= end);
                 part.TextEvents.RemoveAll(n => n.Tick < start || n.Tick >= end);
 
-                _noteTrackers[i] = new PhraseNoteTracker(part);
-                _lyricTrackers[i] = new PhraseNoteTracker(part);
+                _noteTrackers[i] = new PhraseNoteTracker(part, false);
+                _lyricTrackers[i] = new PhraseNoteTracker(part, true);
             }
 
             ResetPracticeSection();
