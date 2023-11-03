@@ -36,11 +36,11 @@ namespace YARG.Menu.MusicLibrary
             var score = ScoreContainer.GetHighScore(SongMetadata.Hash);
 
             // Never played!
-            if (score == null) return string.Empty;
+            if (score is null) return string.Empty;
 
-            var instrument = score.Value.Instrument.ToResourceName();
-            var difficultyChar = score.Value.Difficulty.ToChar();
-            var percent = Mathf.Floor(score.Value.Percent * 100f);
+            var instrument = score.Instrument.ToResourceName();
+            var difficultyChar = score.Difficulty.ToChar();
+            var percent = Mathf.Floor(score.Percent * 100f);
 
             return $"<sprite name=\"{instrument}\"> <b>{difficultyChar}</b> {percent:N0}%";
         }

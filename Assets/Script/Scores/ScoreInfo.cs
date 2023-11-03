@@ -1,6 +1,4 @@
-﻿using YARG.Core;
-
-namespace YARG.Scores
+﻿namespace YARG.Scores
 {
     // TODO: Move to YARG.Core
 
@@ -22,33 +20,12 @@ namespace YARG.Scores
     public static class StarAmountHelper {
         public static StarAmount GetStarsFromInt(int stars)
         {
-            // TODO: Deal with brutal and silver stars
-
-            if (stars is >= 0 and <= 5)
+            return stars switch
             {
-                return (StarAmount) stars;
-            }
-
-            if (stars == 6)
-            {
-                return StarAmount.StarGold;
-            }
-
-            return StarAmount.None;
+                >= 0 and <= 5 => (StarAmount) stars,
+                6             => StarAmount.StarGold,
+                _             => StarAmount.None
+            };
         }
-    }
-
-    public struct ScoreInfo
-    {
-        public string PlayerName { get; set; }
-
-        public Instrument Instrument { get; set; }
-        public Difficulty Difficulty { get; set; }
-
-        public int Score { get; set; }
-        public StarAmount Stars { get; set; }
-
-        public float Percent { get; set; }
-        public bool IsFc { get; set; }
     }
 }

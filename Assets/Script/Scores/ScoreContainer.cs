@@ -1,6 +1,6 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using SQLite;
 using UnityEngine;
 using YARG.Core.Song;
@@ -35,37 +35,41 @@ namespace YARG.Scores
 
         private static void InitDatabase()
         {
-            _db.CreateTable<ScoreEntry>();
+            _db.CreateTable<GameRecord>();
+            _db.CreateTable<PlayerScoreRecord>();
         }
 
-        public static void RecordScore(ScoreEntry scoreEntry)
+        public static void RecordScore(GameRecord gameRecord, List<PlayerScoreRecord> playerEntries)
         {
-            // Insert the entry
-            _db.Insert(scoreEntry);
-        }
-
-        public static ScoreInfo? GetHighScore(HashWrapper songChecksum)
-        {
-            var allTimePlays = _db.Table<ScoreEntry>().Where(i => i.SongChecksum == songChecksum.ToString());
-
-            var scores = allTimePlays
-                .SelectMany(i => i.PlayerScores)
-                .ToArray();
-
-            // No scores, return null
-            if (scores.Length == 0) return null;
-
-            var highScore = scores[0];
-            for (int i = 1; i < scores.Length; i++)
+            try
             {
-                var score = scores[i];
-                if (score.Score > highScore.Score)
-                {
-                    highScore = score;
-                }
-            }
+                int rowsAdded = 0;
+                rowsAdded += _db.Insert(gameRecord);
 
-            return highScore;
+                // Assign the proper score entry IDs and checksums
+                foreach (var playerEntry in playerEntries)
+                {
+                    playerEntry.GameRecordId = gameRecord.Id;
+                    playerEntry.SongChecksum = gameRecord.SongChecksum;
+                }
+
+                rowsAdded += _db.InsertAll(playerEntries);
+
+                Debug.Log($"Successfully added {rowsAdded} rows into score database.");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("Failed to add score into database. See error below for more details.");
+                Debug.LogException(e);
+            }
+        }
+
+        public static PlayerScoreRecord GetHighScore(HashWrapper songChecksum)
+        {
+            var query = "SELECT * FROM PlayerScores " +
+                $"WHERE SongChecksum = '{songChecksum}' " +
+                $"AND Score = (SELECT MAX(Score) FROM PlayerScores)";
+            return _db.FindWithQuery<PlayerScoreRecord>(query);
         }
 
         public static void Destroy()

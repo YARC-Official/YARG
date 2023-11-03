@@ -683,29 +683,37 @@ namespace YARG.Gameplay
                 BandStars = (int) BandStars
             };
 
-            // Record the score into the database
-            ScoreContainer.RecordScore(new ScoreEntry
+            // Get all of the individual player score entries
+            var playerEntries = new List<PlayerScoreRecord>();
+            foreach (var player in _players)
             {
-                SongChecksum = Song.Hash.ToString(),
-                Date = DateTime.Now,
+                var profile = player.Player.Profile;
 
-                PlayerScores = _players.Select(player => new ScoreInfo
+                playerEntries.Add(new PlayerScoreRecord
                 {
-                    PlayerName = player.Player.Profile.Name,
+                    PlayerName = profile.Name,
 
-                    Instrument = player.Player.Profile.CurrentInstrument,
-                    Difficulty = player.Player.Profile.CurrentDifficulty,
+                    Instrument = profile.CurrentInstrument,
+                    Difficulty = profile.CurrentDifficulty,
 
                     Score = player.Score,
                     Stars = StarAmountHelper.GetStarsFromInt(player.Stats.Stars),
 
                     Percent = (float) player.Stats.NotesHit / (player.Stats.NotesHit + player.Stats.NotesMissed),
+
                     IsFc = player.IsFc
-                }).ToArray(),
+                });
+            }
+
+            // Record the score into the database
+            ScoreContainer.RecordScore(new GameRecord
+            {
+                SongChecksum = Song.Hash.ToString(),
+                Date = DateTime.Now,
 
                 BandScore = BandScore,
                 BandStars = StarAmountHelper.GetStarsFromInt((int) BandStars)
-            });
+            }, playerEntries);
 
             GlobalVariables.Instance.IsReplay = false;
             GlobalVariables.Instance.LoadScene(SceneIndex.Score);
