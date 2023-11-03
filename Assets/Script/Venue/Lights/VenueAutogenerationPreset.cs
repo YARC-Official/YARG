@@ -43,14 +43,14 @@ namespace YARG.Venue
         {
             try
             {
-                JObject o = JObject.Parse(File.ReadAllText(path));
-                string cameraPacing = (string)o.SelectToken("camera_pacing");
+                var o = JObject.Parse(File.ReadAllText(path));
+                var cameraPacing = (string)o.SelectToken("camera_pacing");
                 CameraPacing = StringToCameraPacing(cameraPacing);
-                bool defaultSectionRead = false;
+                var defaultSectionRead = false;
 
                 foreach (var sectionPreset in (JObject)o.SelectToken("section_presets"))
                 {
-                    AutogenerationSectionPreset value = JObjectToSectionPreset((JObject)sectionPreset.Value);
+                    var value = JObjectToSectionPreset((JObject)sectionPreset.Value);
                     value.SectionName = sectionPreset.Key;
                     if (sectionPreset.Key.ToLower().Trim() == "default")
                     {
@@ -80,20 +80,20 @@ namespace YARG.Venue
 
         public SongChart GenerateLightingEvents(SongChart chart)
         {
-            uint lastTick = chart.GetLastTick();
-            uint resolution = chart.Resolution;
-            LightingType latestLighting = LightingType.Intro;
-            PostProcessingType latestPostProc = PostProcessingType.Default;
-            bool latestBonusFxState = false;
+            var lastTick = chart.GetLastTick();
+            var resolution = chart.Resolution;
+            var latestLighting = LightingType.Intro;
+            var latestPostProc = PostProcessingType.Default;
+            var latestBonusFxState = false;
             // Add initial state
             chart.VenueTrack.Lighting.Add(new LightingEvent(latestLighting, 0, 0));
             chart.VenueTrack.PostProcessing.Add(new PostProcessingEvent(latestPostProc, 0, 0));
-            foreach (Section section in chart.Sections)
+            foreach (var section in chart.Sections)
             {
                 // Find which section preset to use...
-                AutogenerationSectionPreset sectionPreset = DefaultSectionPreset;
-                bool matched = false;
-                foreach (AutogenerationSectionPreset preset in SectionPresets)
+                var sectionPreset = DefaultSectionPreset;
+                var matched = false;
+                foreach (var preset in SectionPresets)
                 {
                     var nameToMatch = section.Name.ToLower().Trim().Replace("-","").Replace(" ","_");
                     foreach (string practiceSecion in preset.PracticeSections)
@@ -123,8 +123,8 @@ namespace YARG.Venue
                 }
                 latestBonusFxState = sectionPreset.BonusFxAtStart;
                 // Actually generate lighting
-                LightingType currentLighting = latestLighting;
-                foreach (LightingType lighting in sectionPreset.AllowedLightPresets)
+                var currentLighting = latestLighting;
+                foreach (var lighting in sectionPreset.AllowedLightPresets)
                 {
                     if (lighting != latestLighting)
                     {
@@ -160,8 +160,8 @@ namespace YARG.Venue
                     }
                 }
                 // Generate post-procs
-                PostProcessingType currentPostProc = latestPostProc;
-                foreach (PostProcessingType postProc in sectionPreset.AllowedPostProcs)
+                var currentPostProc = latestPostProc;
+                foreach (var postProc in sectionPreset.AllowedPostProcs)
                 {
                     if (postProc != latestPostProc)
                     {
@@ -255,7 +255,7 @@ namespace YARG.Venue
                 switch (parameter.Key.ToLower().Trim())
                 {
                     case "practice_sections":
-                        List<string> practiceSections = new List<string>();
+                        var practiceSections = new List<string>();
                         foreach (string section in (JArray)parameter.Value)
                         {
                             practiceSections.Add(section);
@@ -263,7 +263,7 @@ namespace YARG.Venue
                         sectionPreset.PracticeSections = practiceSections;
                         break;
                     case "allowed_lightpresets":
-                        List<LightingType> allowedLightPresets = new List<LightingType>();
+                        var allowedLightPresets = new List<LightingType>();
                         foreach (string key in (JArray)parameter.Value)
                         {
                             var keyTrim = key.Trim();
@@ -279,7 +279,7 @@ namespace YARG.Venue
                         sectionPreset.AllowedLightPresets = allowedLightPresets;
                         break;
                     case "allowed_postprocs":
-                        List<PostProcessingType> allowedPostProcs = new List<PostProcessingType>();
+                        var allowedPostProcs = new List<PostProcessingType>();
                         foreach (string key in (JArray)parameter.Value)
                         {
                             var keyTrim = key.Trim();

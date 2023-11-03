@@ -137,7 +137,7 @@ namespace YARG.Gameplay.HUD
             // Special replacements
             lyricText = lyricText.Replace('=', '-');
             lyricText = lyricText.Replace('_', ' ');
-            lyricText = lyricText.Replace('§', '‿');
+            lyricText = lyricText.Replace('§', ' ');
 
             // Remove all other diacritics
             lyricText = _lyricDiacriticRegex.Replace(lyricText, "");
