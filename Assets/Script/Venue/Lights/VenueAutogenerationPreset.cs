@@ -5,6 +5,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using YARG.Core;
 using YARG.Core.Chart;
 using UnityEngine;
 
@@ -47,7 +48,8 @@ namespace YARG.Venue
                 CameraPacing = StringToCameraPacing(cameraPacing);
                 bool defaultSectionRead = false;
 
-                foreach (var sectionPreset in (JObject)o.SelectToken("section_presets")) {
+                foreach (var sectionPreset in (JObject)o.SelectToken("section_presets"))
+                {
                     AutogenerationSectionPreset value = JObjectToSectionPreset((JObject)sectionPreset.Value);
                     value.SectionName = sectionPreset.Key;
                     if (sectionPreset.Key.ToLower().Trim() == "default")
@@ -76,7 +78,8 @@ namespace YARG.Venue
             }
         }
 
-        public SongChart GenerateLightingEvents(SongChart chart) {
+        public SongChart GenerateLightingEvents(SongChart chart)
+        {
             uint lastTick = chart.GetLastTick();
             uint resolution = chart.Resolution;
             LightingType latestLighting = LightingType.Intro;
@@ -182,15 +185,56 @@ namespace YARG.Venue
             }
             // Reorder lighting track (Next keyframes and blend-in events might be unordered)
             chart.VenueTrack.Lighting.Sort((x,y) => x.Tick.CompareTo(y.Tick));
-            // TODO: Generate performer spotlight events (basically copying solo data for guitar/bass/keys/drums info their respective performer spotlight info)
+            // Generate performer spotlight events (basically copying solo data for guitar/bass/keys/drums info their respective performer spotlight info)
+            AddSoloAsSpotlight(ref chart, chart.FiveFretGuitar, Performer.Guitar);
+            AddSoloAsSpotlight(ref chart, chart.FiveFretBass, Performer.Bass);
+            AddSoloAsSpotlight(ref chart, chart.Keys, Performer.Keyboard);
+            AddSoloAsSpotlightDrums(ref chart);
             return chart;
         }
 
-        public void GenerateCameraCutEvents(ref SongChart chart) {
+        public void GenerateCameraCutEvents(SongChart chart)
+        {
             // TODO: camera cut generator function
         }
 
-        private bool LightingIsManual(LightingType lighting) {
+        private void AddSoloAsSpotlight(ref SongChart chart, InstrumentTrack<GuitarNote> track, Performer performer)
+        {
+            if (track.Difficulties.ContainsKey(Difficulty.Expert))
+            {
+                AddSoloAsSpotlight(ref chart, track.Difficulties[Difficulty.Expert].Phrases, performer);
+            }
+        }
+
+        private void AddSoloAsSpotlightDrums(ref SongChart chart)
+        {
+            if (chart.ProDrums.Difficulties.ContainsKey(Difficulty.Expert))
+            {
+                AddSoloAsSpotlight(ref chart, chart.ProDrums.Difficulties[Difficulty.Expert].Phrases, Performer.Drums);
+            }
+            else if (chart.FourLaneDrums.Difficulties.ContainsKey(Difficulty.Expert))
+            {
+                AddSoloAsSpotlight(ref chart, chart.FourLaneDrums.Difficulties[Difficulty.Expert].Phrases, Performer.Drums);
+            }
+            else if (chart.FiveLaneDrums.Difficulties.ContainsKey(Difficulty.Expert))
+            {
+                AddSoloAsSpotlight(ref chart, chart.FiveLaneDrums.Difficulties[Difficulty.Expert].Phrases, Performer.Drums);
+            }
+        }
+
+        private void AddSoloAsSpotlight(ref SongChart chart, List<Phrase> phrases, Performer performer)
+        {
+            foreach (var phrase in phrases)
+            {
+                if (phrase.Type == PhraseType.Solo)
+                {
+                    chart.VenueTrack.Performer.Add(new PerformerEvent(PerformerEventType.Spotlight, performer, phrase.Time, phrase.TimeLength, phrase.Tick, phrase.TickLength));
+                }
+            }
+        }
+
+        private bool LightingIsManual(LightingType lighting)
+        {
             return lighting == LightingType.Default ||
                    lighting == LightingType.Dischord ||
                    lighting == LightingType.Chorus ||
@@ -200,7 +244,8 @@ namespace YARG.Venue
                    lighting == LightingType.Warm_Manual;
         }
 
-        private AutogenerationSectionPreset JObjectToSectionPreset(JObject o) {
+        private AutogenerationSectionPreset JObjectToSectionPreset(JObject o)
+        {
             AutogenerationSectionPreset sectionPreset = new AutogenerationSectionPreset();
             foreach (var parameter in o)
             {
@@ -208,14 +253,16 @@ namespace YARG.Venue
                 {
                     case "practice_sections":
                         List<string> practiceSections = new List<string>();
-                        foreach (string section in (JArray)parameter.Value) {
+                        foreach (string section in (JArray)parameter.Value)
+                        {
                             practiceSections.Add(section);
                         }
                         sectionPreset.PracticeSections = practiceSections;
                         break;
                     case "allowed_lightpresets":
                         List<LightingType> allowedLightPresets = new List<LightingType>();
-                        foreach (string key in (JArray)parameter.Value) {
+                        foreach (string key in (JArray)parameter.Value)
+                        {
                             var keyTrim = key.Trim();
                             if (VENUE_LIGHTING_CONVERSION_LOOKUP.TryGetValue(keyTrim, out var eventData))
                             {
@@ -230,7 +277,8 @@ namespace YARG.Venue
                         break;
                     case "allowed_postprocs":
                         List<PostProcessingType> allowedPostProcs = new List<PostProcessingType>();
-                        foreach (string key in (JArray)parameter.Value) {
+                        foreach (string key in (JArray)parameter.Value)
+                        {
                             var keyTrim = key.Trim();
                             if (VENUE_TEXT_CONVERSION_LOOKUP.TryGetValue(keyTrim, out var eventData) && eventData.type == 1)
                             {
@@ -271,7 +319,8 @@ namespace YARG.Venue
         
         private CameraPacing StringToCameraPacing(string cameraPacing)
         {
-            switch (cameraPacing.ToLower().Trim()) {
+            switch (cameraPacing.ToLower().Trim())
+            {
                 case "minimal": 
                     return CameraPacing.Minimal;
                 case "slow":
