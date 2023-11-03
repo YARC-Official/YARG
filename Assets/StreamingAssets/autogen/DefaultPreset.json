@@ -1,0 +1,126 @@
+{
+    "camera_pacing": "medium",
+
+    "section_presets": {
+        "default": {
+            "allowed_lightpresets": ["loop_warm", "loop_cool"],
+            "allowed_postprocs": ["ProFilm_a.pp"],
+            "lightpreset_blendin": 2
+        },
+   
+        "intro": {
+            "practice_sections": ["*intro*"],
+            "allowed_lightpresets": ["silhouettes_spot", "loop_warm"],
+            "allowed_postprocs": ["ProFilm_a.pp"],
+            "lightpreset_blendin": 4
+        },
+   
+        "preverse": {
+            "practice_sections": ["*preverse*"],
+            "allowed_lightpresets": ["manual_warm"],
+            "allowed_postprocs": ["ProFilm_a.pp"],
+            "lightpreset_blendin": 2,
+            "keyframe_rate": 4
+        },
+   
+        "verse1": {
+            "practice_sections": ["*verse_1*"],
+            "allowed_lightpresets": ["manual_cool"],
+            "allowed_postprocs": ["ProFilm_a.pp"],
+            "lightpreset_blendin": 2,
+            "keyframe_rate": 2
+        },
+   
+        "verse2": {
+            "practice_sections": ["*verse_2*"],
+            "allowed_lightpresets": ["manual_cool"],
+            "allowed_postprocs": ["ProFilm_a.pp"],
+            "lightpreset_blendin": 2,
+            "postproc_blendin": 2,
+            "keyframe_rate": 2
+        },
+   
+        "verse3": {
+            "practice_sections": ["*verse*"],
+            "allowed_lightpresets": ["manual_cool"],
+            "allowed_postprocs": ["ProFilm_a.pp"],
+            "keyframe_rate": 2,
+            "lightpreset_blendin": 2
+        },  
+   
+        "bridge": {
+            "practice_sections": ["*bridge*"],
+            "allowed_lightpresets": ["dischord"],
+            "allowed_postprocs": ["ProFilm_a.pp"],
+            "keyframe_rate": 2,
+            "lightpreset_blendin": 2
+        },
+   
+        "solo": {
+            "practice_sections": ["*solo*"],
+            "allowed_lightpresets": ["searchlights"],
+            "allowed_postprocs": ["ProFilm_a.pp"],
+            "lightpreset_blendin": 1
+        },
+   
+        "prechorus": {
+            "practice_sections": ["*prechorus*"],
+            "allowed_lightpresets": ["verse"],
+            "allowed_postprocs": ["ProFilm_a.pp"],
+            "lightpreset_blendin": 2,
+            "keyframe_rate": 2
+        },    
+   
+        "chorus1": {
+            "practice_sections": ["*chorus_1*"],
+            "allowed_lightpresets": ["chorus"],
+            "allowed_postprocs": ["ProFilm_a.pp"],
+            "keyframe_rate": 1,
+            "dircut_at_start": "directed_all",
+            "lightpreset_blendin": 1,
+            "bonusfx_at_start": true
+        },
+   
+        "chorus2": {
+            "practice_sections": ["*chorus_2*"],
+            "allowed_lightpresets": ["chorus"],
+            "allowed_postprocs": ["ProFilm_a.pp"],
+            "keyframe_rate": 1,
+            "lightpreset_blendin": 1,
+            "bonusfx_at_start": true
+        },
+   
+        "chorus3": {
+            "practice_sections": ["*chorus*"],
+            "allowed_lightpresets": ["chorus"],
+            "allowed_postprocs": ["ProFilm_a.pp"],
+            "keyframe_rate": 1,
+            "dircut_at_start": "directed_all_cam",
+            "lightpreset_blendin": 1,
+            "bonusfx_at_start": true
+        },
+   
+        "postchorus": {
+            "practice_sections": ["*postchorus*"],
+            "allowed_lightpresets": ["manual_warm"],
+            "allowed_postprocs": ["ProFilm_a.pp"],
+            "keyframe_rate": 2,
+            "lightpreset_blendin": 2
+        },
+   
+        "main_riff": {
+            "practice_sections": ["*main_riff*"],
+            "allowed_lightpresets": ["manual_warm"],
+            "allowed_postprocs": ["ProFilm_a.pp"],
+            "keyframe_rate": 2,
+            "lightpreset_blendin": 2
+        },
+   
+        "outro": {
+            "practice_sections": ["*outro*"],
+            "allowed_lightpresets": ["searchlights"],
+            "allowed_postprocs": ["ProFilm_a.pp"],
+            "lightpreset_blendin": 2
+        }
+    }
+}

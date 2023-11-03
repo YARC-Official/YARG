@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Newtonsoft.Json;
 using UnityEngine;
 using YARG.Audio;
@@ -27,6 +28,8 @@ namespace YARG.Settings
 
             public List<string> SongFolders = new();
             public bool ShowAntiPiracyDialog = true;
+
+            public string VenueAutogenPreset = Path.Combine(PathHelper.StreamingAssetsPath, "autogen", "DefaultPreset.json"); // TODO: make selectable later
 
             #endregion
 

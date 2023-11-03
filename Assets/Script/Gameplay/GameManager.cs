@@ -22,7 +22,9 @@ using YARG.Menu.Persistent;
 using YARG.Menu.ScoreScreen;
 using YARG.Player;
 using YARG.Replays;
+using YARG.Settings;
 using YARG.Helpers.Extensions;
+using YARG.Venue;
 
 namespace YARG.Gameplay
 {
@@ -430,6 +432,22 @@ namespace YARG.Gameplay
                     uint lastTick = Chart.GetLastTick();
                     Chart.Sections[^1].TickLength = lastTick;
                     Chart.Sections[^1].TimeLength = Chart.SyncTrack.TickToTime(lastTick);
+                }
+
+                // Autogenerate venue stuff
+                if (File.Exists(SettingsManager.Settings.VenueAutogenPreset))
+                {
+                    VenueAutogenerationPreset autogenerationPreset = new VenueAutogenerationPreset(SettingsManager.Settings.VenueAutogenPreset);
+                    if (Chart.VenueTrack.Lighting.Count == 0)
+                    {
+                        YargTrace.DebugInfo("Auto-generating venue lighting...");
+                        Chart = autogenerationPreset.GenerateLightingEvents(Chart);
+                    }
+                    // TODO: add when characters and camera events are present ingame
+                    /*if (Chart.VenueTrack.Camera.Count == 0)
+                    {
+                        Chart = autogenerationPreset.GenerateCameraCutEvents(Chart);
+                    }*/
                 }
             });
 
