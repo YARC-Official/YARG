@@ -79,6 +79,7 @@ namespace YARG
 
             Players = new List<YargPlayer>();
 
+            // Set alpha fading (on the tracks) to on
             Shader.SetGlobalFloat("_IsFading", 1f);
         }
 
