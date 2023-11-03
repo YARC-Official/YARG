@@ -190,6 +190,9 @@ namespace YARG.Venue
             AddSoloAsSpotlight(ref chart, chart.FiveFretBass, Performer.Bass);
             AddSoloAsSpotlight(ref chart, chart.Keys, Performer.Keyboard);
             AddSoloAsSpotlightDrums(ref chart);
+            // TODO: Add singalong events based on HARM2 phrases if any (add to the first two that are available in this order: guitar/bass/keys/drums)
+            // Reorder performer track (spotlight and singalong events will be out of order)
+            chart.VenueTrack.Performer.Sort((x,y) => x.Tick.CompareTo(y.Tick));
             return chart;
         }
 
@@ -200,7 +203,7 @@ namespace YARG.Venue
 
         private void AddSoloAsSpotlight(ref SongChart chart, InstrumentTrack<GuitarNote> track, Performer performer)
         {
-            if (track.Difficulties.ContainsKey(Difficulty.Expert))
+            if (track.Difficulties[Difficulty.Expert].IsOccupied())
             {
                 AddSoloAsSpotlight(ref chart, track.Difficulties[Difficulty.Expert].Phrases, performer);
             }
@@ -208,15 +211,15 @@ namespace YARG.Venue
 
         private void AddSoloAsSpotlightDrums(ref SongChart chart)
         {
-            if (chart.ProDrums.Difficulties.ContainsKey(Difficulty.Expert))
+            if (chart.ProDrums.Difficulties[Difficulty.Expert].IsOccupied())
             {
                 AddSoloAsSpotlight(ref chart, chart.ProDrums.Difficulties[Difficulty.Expert].Phrases, Performer.Drums);
             }
-            else if (chart.FourLaneDrums.Difficulties.ContainsKey(Difficulty.Expert))
+            else if (chart.FourLaneDrums.Difficulties[Difficulty.Expert].IsOccupied())
             {
                 AddSoloAsSpotlight(ref chart, chart.FourLaneDrums.Difficulties[Difficulty.Expert].Phrases, Performer.Drums);
             }
-            else if (chart.FiveLaneDrums.Difficulties.ContainsKey(Difficulty.Expert))
+            else if (chart.FiveLaneDrums.Difficulties[Difficulty.Expert].IsOccupied())
             {
                 AddSoloAsSpotlight(ref chart, chart.FiveLaneDrums.Difficulties[Difficulty.Expert].Phrases, Performer.Drums);
             }
