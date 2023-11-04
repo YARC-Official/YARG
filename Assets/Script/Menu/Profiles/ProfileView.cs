@@ -65,8 +65,32 @@ namespace YARG.Menu.Profiles
             }
         }
 
-        public void RemoveProfile()
+        public async void RemoveProfile()
         {
+            bool remove = false;
+
+            // Confirm that the user wants to delete the profile first, UNLESS it's a bot
+            if (!_profile.IsBot)
+            {
+                var dialog = DialogManager.Instance.ShowConfirmDeleteDialog(
+                    "Deleting this profile is permanent and you will lose all stats and binds. Play history will " +
+                    "remain and can be accessed in the <b>History</b> tab.", () =>
+                    {
+                        remove = true;
+                    }, _profile.Name);
+
+                // Wait...
+                await dialog.WaitUntilClosed();
+            }
+            else
+            {
+                remove = true;
+            }
+
+            if (!remove) return;
+
+            // Then remove
+
             if (Selected)
             {
                 _profileSidebar.HideContents();

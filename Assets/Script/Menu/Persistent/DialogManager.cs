@@ -19,6 +19,8 @@ namespace YARG.Menu.Persistent
         private ListDialog _listPrefab;
         [SerializeField]
         private RenameDialog _renameDialog;
+        [SerializeField]
+        private ConfirmDeleteDialog _confirmDeleteDialog;
 
         private Dialog _currentDialog;
 
@@ -85,6 +87,25 @@ namespace YARG.Menu.Persistent
             dialog.ClearButtons();
             dialog.AddDialogButton("Cancel", MenuData.Colors.CancelButton, ClearDialog);
             dialog.AddDialogButton("Confirm", MenuData.Colors.ConfirmButton, SubmitAndClearDialog);
+
+            return dialog;
+        }
+
+        /// <summary>
+        /// Displays and returns a confirm delete dialog.
+        /// </summary>
+        /// <inheritdoc cref="ShowDialog{ListDialog}(ListDialog)"/>
+        public ConfirmDeleteDialog ShowConfirmDeleteDialog(string additionalMessageText,
+            Action deleteAction, string confirmText)
+        {
+            var dialog = ShowDialog(_confirmDeleteDialog);
+
+            dialog.InitializeWithConfirmText(confirmText, additionalMessageText);
+            dialog.DeleteAction = deleteAction;
+
+            dialog.ClearButtons();
+            dialog.AddDialogButton("Cancel", MenuData.Colors.ConfirmButton, ClearDialog);
+            dialog.AddDialogButton("Delete", MenuData.Colors.CancelButton, () => _currentDialog.Submit());
 
             return dialog;
         }
