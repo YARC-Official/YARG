@@ -28,7 +28,7 @@ namespace YARG.Scores
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to create LiteDB connection.");
+                Debug.LogError("Failed to create LiteDB connection. See error below for more details.");
                 Debug.LogException(e);
             }
         }
@@ -66,10 +66,21 @@ namespace YARG.Scores
 
         public static PlayerScoreRecord GetHighScore(HashWrapper songChecksum)
         {
-            var query = "SELECT * FROM PlayerScores " +
-                $"WHERE SongChecksum = '{songChecksum}' " +
-                $"AND Score = (SELECT MAX(Score) FROM PlayerScores)";
-            return _db.FindWithQuery<PlayerScoreRecord>(query);
+            try
+            {
+                var query =
+                    $"SELECT * FROM PlayerScores " +
+                    $"WHERE SongChecksum = '{songChecksum}' " +
+                    $"AND Score = (SELECT MAX(Score) FROM PlayerScores)";
+                return _db.FindWithQuery<PlayerScoreRecord>(query);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("Failed to load high score from database. See error below for more details.");
+                Debug.LogException(e);
+            }
+
+            return null;
         }
 
         public static void Destroy()
