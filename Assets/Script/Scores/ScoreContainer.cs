@@ -95,8 +95,7 @@ namespace YARG.Scores
             try
             {
                 var query =
-                    $"SELECT * FROM PlayerScores WHERE SongChecksum = '{songChecksum}' " +
-                    $"AND Score = (SELECT MAX(Score) FROM PlayerScores)";
+                    $"SELECT * FROM PlayerScores WHERE SongChecksum = '{songChecksum}' ORDER BY Score DESC LIMIT 1";
                 return _db.FindWithQuery<PlayerScoreRecord>(query);
             }
             catch (Exception e)
