@@ -1,4 +1,5 @@
-﻿using SQLite;
+﻿using System;
+using SQLite;
 using YARG.Core;
 
 namespace YARG.Scores
@@ -17,15 +18,22 @@ namespace YARG.Scores
         [Indexed]
         public string SongChecksum { get; set; }
 
+        [Indexed]
+        public Guid   PlayerId   { get; set; }
         public string PlayerName { get; set; }
 
+        [Indexed]
         public Instrument Instrument { get; set; }
         public Difficulty Difficulty { get; set; }
 
         public int        Score { get; set; }
         public StarAmount Stars { get; set; }
 
-        public float Percent { get; set; }
-        public bool  IsFc    { get; set; }
+        public int  NotesHit    { get; set; }
+        public int  NotesMissed { get; set; }
+        public bool IsFc        { get; set; }
+
+        [Ignore]
+        public float Percent => (float) NotesHit / (NotesHit + NotesMissed);
     }
 }

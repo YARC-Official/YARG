@@ -7,7 +7,6 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Input;
@@ -15,7 +14,6 @@ using YARG.Core.Replays;
 using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
-using YARG.Gameplay.Visuals;
 using YARG.Integration;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
@@ -691,6 +689,7 @@ namespace YARG.Gameplay
 
                 playerEntries.Add(new PlayerScoreRecord
                 {
+                    PlayerId = profile.Id,
                     PlayerName = profile.Name,
 
                     Instrument = profile.CurrentInstrument,
@@ -699,8 +698,8 @@ namespace YARG.Gameplay
                     Score = player.Score,
                     Stars = StarAmountHelper.GetStarsFromInt(player.Stats.Stars),
 
-                    Percent = (float) player.Stats.NotesHit / (player.Stats.NotesHit + player.Stats.NotesMissed),
-
+                    NotesHit = player.Stats.NotesHit,
+                    NotesMissed = player.Stats.NotesMissed,
                     IsFc = player.IsFc
                 });
             }
@@ -708,11 +707,17 @@ namespace YARG.Gameplay
             // Record the score into the database
             ScoreContainer.RecordScore(new GameRecord
             {
-                SongChecksum = Song.Hash.ToString(),
                 Date = DateTime.Now,
 
+                SongChecksum = Song.Hash.ToString(),
+                SongName = Song.Name,
+                SongArtist = Song.Artist,
+                SongCharter = Song.Charter,
+
                 BandScore = BandScore,
-                BandStars = StarAmountHelper.GetStarsFromInt((int) BandStars)
+                BandStars = StarAmountHelper.GetStarsFromInt((int) BandStars),
+
+                SongSpeed = SelectedSongSpeed
             }, playerEntries);
 
             GlobalVariables.Instance.IsReplay = false;

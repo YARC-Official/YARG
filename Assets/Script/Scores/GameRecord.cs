@@ -13,13 +13,22 @@ namespace YARG.Scores
         public int Id { get; set; }
 
         [Indexed]
-        public string   SongChecksum { get; set; }
-        public DateTime Date         { get; set; }
+        public DateTime Date { get; set; }
+
+        [Indexed]
+        public string SongChecksum { get; set; }
+
+        // Keep this information in case the user doesn't have the song
+        public string SongName    { get; set; }
+        public string SongArtist  { get; set; }
+        public string SongCharter { get; set; }
 
         public string ReplayFileName { get; set; }
         public string ReplayChecksum { get; set; }
 
         public int        BandScore { get; set; }
         public StarAmount BandStars { get; set; }
+
+        public float SongSpeed { get; set; }
     }
 }
