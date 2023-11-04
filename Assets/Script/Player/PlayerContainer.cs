@@ -55,6 +55,7 @@ namespace YARG.Player
             if (_profiles.Contains(profile)) return false;
 
             _profiles.Add(profile);
+            _profilesById.Add(profile.Id, profile);
             return true;
         }
 
@@ -66,7 +67,13 @@ namespace YARG.Player
             if (_playersByProfile.ContainsKey(profile)) return false;
 
             _profiles.Remove(profile);
+            _profilesById.Remove(profile.Id);
             return true;
+        }
+
+        public static YargProfile GetProfileById(Guid id)
+        {
+            return _profilesById.GetValueOrDefault(id);
         }
 
         public static bool IsProfileTaken(YargProfile profile)
@@ -164,6 +171,7 @@ namespace YARG.Player
         public static int LoadProfiles()
         {
             _profiles.Clear();
+            _profilesById.Clear();
 
             // Players must be disposed
             _players.ForEach(i => i.Dispose());
@@ -192,6 +200,7 @@ namespace YARG.Player
             }
 
             _profiles.AddRange(profiles);
+
             // Store profiles by ID
             foreach (var profile in _profiles)
             {

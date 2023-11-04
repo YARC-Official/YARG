@@ -20,7 +20,6 @@ namespace YARG.Scores
 
         [Indexed]
         public Guid   PlayerId   { get; set; }
-        public string PlayerName { get; set; }
 
         [Indexed]
         public Instrument Instrument { get; set; }

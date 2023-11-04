@@ -690,7 +690,6 @@ namespace YARG.Gameplay
                 playerEntries.Add(new PlayerScoreRecord
                 {
                     PlayerId = profile.Id,
-                    PlayerName = profile.Name,
 
                     Instrument = profile.CurrentInstrument,
                     Difficulty = profile.CurrentDifficulty,

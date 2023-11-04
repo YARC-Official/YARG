@@ -10,6 +10,7 @@ using YARG.Core;
 using YARG.Core.Game;
 using YARG.Helpers;
 using YARG.Player;
+using YARG.Scores;
 using YARG.Settings.Customization;
 
 namespace YARG.Menu.Profiles
@@ -153,7 +154,11 @@ namespace YARG.Menu.Profiles
             }
             else
             {
+                // Set the name. Make sure to record the name change in the scores.
                 _profile.Name = _nameInput.text;
+                ScoreContainer.RecordPlayerInfo(_profile.Id, _profile.Name);
+
+                // Update the UI
                 _profileName.text = _profile.Name;
                 _profileView.Init(_profileMenu, _profile, this);
             }
