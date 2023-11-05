@@ -16,7 +16,7 @@ namespace YARG.Menu
             Credits,
             Profiles,
             EditProfile,
-            Replays,
+            History,
         }
 
         private static bool _firstLaunch = true;

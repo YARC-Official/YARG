@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Replays;
 
-namespace YARG.Menu.Replays
+namespace YARG.Menu.History
 {
     public class ReplayView : MonoBehaviour
     {

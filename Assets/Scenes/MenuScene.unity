@@ -888,7 +888,7 @@ PrefabInstance:
     - target: {fileID: 1731608351740115684, guid: a5d7d0750393697439cd8555f7fbe416,
         type: 3}
       propertyPath: m_Name
-      value: ReplaysMenu
+      value: HistoryMenu
       objectReference: {fileID: 0}
     - target: {fileID: 1731608351740115684, guid: a5d7d0750393697439cd8555f7fbe416,
         type: 3}

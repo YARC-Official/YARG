@@ -83,7 +83,7 @@ namespace YARG.Menu.Main
 
         public void Replays()
         {
-            MenuManager.Instance.PushMenu(MenuManager.Menu.Replays);
+            MenuManager.Instance.PushMenu(MenuManager.Menu.History);
         }
 
         public void Settings()

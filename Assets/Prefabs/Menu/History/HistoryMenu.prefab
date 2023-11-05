@@ -325,7 +325,7 @@ GameObject:
   - component: {fileID: 4004993937793846201}
   - component: {fileID: 2297200881685797724}
   m_Layer: 5
-  m_Name: ReplaysMenu
+  m_Name: HistoryMenu
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

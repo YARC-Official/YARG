@@ -6,9 +6,9 @@ using YARG.Core.Input;
 using YARG.Menu.Navigation;
 using YARG.Replays;
 
-namespace YARG.Menu.Replays
+namespace YARG.Menu.History
 {
-    public class ReplaysMenu : MonoBehaviour
+    public class HistoryMenu : MonoBehaviour
     {
         private const int REPLAY_VIEW_EXTRA = 5;
         private const float SCROLL_TIME = 1f / 60f;
