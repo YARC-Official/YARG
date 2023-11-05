@@ -1,0 +1,126 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace YARG.Menu.ListMenu
+{
+    public class ViewObject<TViewType> : MonoBehaviour
+        where TViewType : BaseViewType
+    {
+        [SerializeField]
+        private CanvasGroup _canvasGroup;
+
+        [Space]
+        [SerializeField]
+        private GameObject _normalBackground;
+        [SerializeField]
+        private GameObject _selectedBackground;
+        [SerializeField]
+        private GameObject _categoryBackground;
+
+        [Space]
+        [SerializeField]
+        private Image _icon;
+        [SerializeField]
+        private List<TextMeshProUGUI> _primaryText;
+        [SerializeField]
+        private List<TextMeshProUGUI> _secondaryText;
+
+        private TViewType _viewType;
+
+        private CancellationTokenSource _iconCancellationToken;
+
+        public virtual void Show(bool selected, TViewType viewType)
+        {
+            _viewType = viewType;
+
+            // Set background
+            _canvasGroup.alpha = 1f;
+            SetBackground(selected, viewType.Background);
+
+            // Set text
+            _primaryText.ForEach(i => i.text = viewType.GetPrimaryText(selected));
+            _secondaryText.ForEach(i => i.text = viewType.GetSecondaryText(selected));
+
+            // Set icon
+            if (_iconCancellationToken is { IsCancellationRequested: false })
+            {
+                _iconCancellationToken.Cancel();
+            }
+            _iconCancellationToken = new CancellationTokenSource();
+            SetIcon(viewType, _iconCancellationToken.Token).Forget();
+        }
+
+        public virtual void Hide()
+        {
+            _canvasGroup.alpha = 0f;
+        }
+
+        private void SetBackground(bool selected, BaseViewType.BackgroundType type)
+        {
+            _normalBackground.SetActive(false);
+            _selectedBackground.SetActive(false);
+            _categoryBackground.SetActive(false);
+
+            switch (type)
+            {
+                case BaseViewType.BackgroundType.Normal:
+                    if (selected)
+                    {
+                        _selectedBackground.SetActive(true);
+                    }
+                    else
+                    {
+                        _normalBackground.SetActive(true);
+                    }
+
+                    break;
+                case BaseViewType.BackgroundType.Category:
+                    if (selected)
+                    {
+                        _selectedBackground.SetActive(true);
+                    }
+                    else
+                    {
+                        _categoryBackground.SetActive(true);
+                    }
+
+                    break;
+            }
+        }
+
+        private async UniTask SetIcon(TViewType type, CancellationToken token)
+        {
+            _icon.gameObject.SetActive(false);
+
+            try
+            {
+                var icon = await type.GetIcon();
+
+                token.ThrowIfCancellationRequested();
+
+                if (icon == null)
+                {
+                    _icon.gameObject.SetActive(false);
+                }
+                else
+                {
+                    _icon.gameObject.SetActive(true);
+                    _icon.sprite = icon;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+
+        public void IconClick()
+        {
+            _viewType.IconClick();
+        }
+    }
+}
