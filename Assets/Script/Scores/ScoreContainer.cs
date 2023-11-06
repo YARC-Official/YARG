@@ -107,6 +107,21 @@ namespace YARG.Scores
             return null;
         }
 
+        public static List<GameRecord> GetAllGameRecords()
+        {
+            try
+            {
+                return _db.Query<GameRecord>("SELECT * FROM GameRecords ORDER BY Date DESC");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("Failed to load all GameRecords from database. See error below for more details.");
+                Debug.LogException(e);
+            }
+
+            return null;
+        }
+
         public static void Destroy()
         {
             _db.Dispose();

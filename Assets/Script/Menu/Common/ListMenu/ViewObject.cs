@@ -30,13 +30,13 @@ namespace YARG.Menu.ListMenu
         [SerializeField]
         private List<TextMeshProUGUI> _secondaryText;
 
-        private TViewType _viewType;
+        protected TViewType ViewType;
 
         private CancellationTokenSource _iconCancellationToken;
 
         public virtual void Show(bool selected, TViewType viewType)
         {
-            _viewType = viewType;
+            ViewType = viewType;
 
             // Set background
             _canvasGroup.alpha = 1f;
@@ -120,7 +120,7 @@ namespace YARG.Menu.ListMenu
 
         public void IconClick()
         {
-            _viewType.IconClick();
+            ViewType.IconClick();
         }
     }
 }

@@ -15,11 +15,15 @@ namespace YARG.Menu.ListMenu
 
         [SerializeField]
         private TViewObject _viewObjectPrefab;
+
+        [Space]
+        [SerializeField]
+        private Transform _viewObjectParent;
         [SerializeField]
         private Scrollbar _scrollbar;
 
         private List<TViewType> _viewList;
-        private List<TViewObject> _viewObjects;
+        private readonly List<TViewObject> _viewObjects = new();
 
         private int _selectedIndex;
         public int SelectedIndex
@@ -38,6 +42,21 @@ namespace YARG.Menu.ListMenu
         protected virtual bool CanScroll => true;
         private float _scrollTimer;
 
+        protected virtual void Awake()
+        {
+            // Create all of the replay views
+            for (int i = 0; i < ExtraListViewPadding * 2 + 1; i++)
+            {
+                var gameObject = Instantiate(_viewObjectPrefab, _viewObjectParent);
+
+                // Add
+                var view = gameObject.GetComponent<TViewObject>();
+                _viewObjects.Add(view);
+            }
+
+            RequestViewListUpdate();
+        }
+
         protected virtual void OnSelectedIndexChanged()
         {
             UpdateScrollbar();
@@ -53,6 +72,14 @@ namespace YARG.Menu.ListMenu
         {
             _scrollbar.SetValueWithoutNotify((float) SelectedIndex / _viewList.Count);
         }
+
+        protected void RequestViewListUpdate()
+        {
+            _viewList = CreateViewList();
+            UpdateViewsObjects();
+        }
+
+        protected abstract List<TViewType> CreateViewList();
 
         private void UpdateViewsObjects()
         {
