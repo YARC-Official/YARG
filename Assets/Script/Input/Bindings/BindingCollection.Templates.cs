@@ -58,6 +58,7 @@ namespace YARG.Input
 
         public static BindingCollection CreateFourLaneDrumsBindings() => new(GameMode.FourLaneDrums)
         {
+            // TODO: Velocity support
             new ButtonBinding("Drums.RedPad",    (int) DrumsAction.RedDrum),
             new ButtonBinding("Drums.YellowPad", (int) DrumsAction.YellowDrum),
             new ButtonBinding("Drums.BluePad",   (int) DrumsAction.BlueDrum),
@@ -72,6 +73,7 @@ namespace YARG.Input
 
         public static BindingCollection CreateFiveLaneDrumsBindings() => new(GameMode.FiveLaneDrums)
         {
+            // TODO: Velocity support
             new ButtonBinding("Drums.RedPad",       (int) DrumsAction.RedDrum),
             new ButtonBinding("Drums.YellowCymbal", (int) DrumsAction.YellowCymbal),
             new ButtonBinding("Drums.BluePad",      (int) DrumsAction.BlueDrum),
@@ -98,8 +100,6 @@ namespace YARG.Input
             new ButtonBinding("ProGuitar.String6_Strum", (int) ProGuitarAction.String6_Strum),
 
             new ButtonBinding("Guitar.StarPower", (int) ProGuitarAction.StarPower),
-
-            new AxisBinding("Guitar.Whammy", (int) ProGuitarAction.Whammy),
         };
 
         public static BindingCollection CreateProKeysBindings() => new(GameMode.ProKeys)

@@ -119,6 +119,10 @@ MonoBehaviour:
     m_Key: Header.Camera
     m_Metadata:
       m_Items: []
+  - m_Id: 79799527068782592
+    m_Key: Header.Debug
+    m_Metadata:
+      m_Items: []
   - m_Id: 12472135823253504
     m_Key: Header.Display
     m_Metadata:
@@ -213,6 +217,14 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 53704501379850242
     m_Key: Setting.General.DisablePerSongBackgrounds.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 79799556705734656
+    m_Key: Setting.General.InputDeviceLogging
+    m_Metadata:
+      m_Items: []
+  - m_Id: 79799583608000512
+    m_Key: Setting.General.InputDeviceLogging.Description
     m_Metadata:
       m_Items: []
   - m_Id: 53693768667619350

@@ -12,12 +12,16 @@ namespace YARG.Audio
 {
     public class BassMicDevice : IMicDevice
     {
+        // This is as low as we can go with BASS
+        private const int CLEAN_RECORD_PERIOD_MS = 5;
+
         public string DisplayName => _deviceInfo.Name;
         public bool IsDefault => _deviceInfo.IsDefault;
 
         public bool IsMonitoring { get; set; }
         public bool IsRecordingOutput { get; set; }
 
+        private float? _lastPitchOutput;
         private readonly ConcurrentQueue<MicOutputFrame> _frameQueue = new();
 
         private int _deviceId;
@@ -72,7 +76,7 @@ namespace YARG.Audio
             // We want to start recording immediately because of device context switching and device numbers.
             // If we initialize the device but don't record immediately, the device number might change
             // and we'll be recording from the wrong device.
-            _cleanRecordHandle = Bass.RecordStart(44100, info.Channels, FLAGS, IMicDevice.RECORD_PERIOD_MS,
+            _cleanRecordHandle = Bass.RecordStart(44100, info.Channels, FLAGS, CLEAN_RECORD_PERIOD_MS,
                 ProcessCleanRecordData, IntPtr.Zero);
             _processedRecordHandle = Bass.RecordStart(44100, info.Channels, FLAGS, IMicDevice.RECORD_PERIOD_MS,
                 ProcessRecordData, IntPtr.Zero);
@@ -250,19 +254,23 @@ namespace YARG.Audio
             // Skip pitch detection if not speaking
             if (amplitude < SettingsManager.Settings.MicrophoneSensitivity.Data)
             {
+                _lastPitchOutput = null;
                 return;
             }
 
             // Process the pitch buffer
             var pitchOutput = _pitchDetector.ProcessBuffer(floatBuffer);
-            if (pitchOutput == null)
+            if (pitchOutput != null)
             {
-                return;
+                _lastPitchOutput = pitchOutput;
             }
+
+            // We cannot push a frame if there was no pitch
+            if (_lastPitchOutput == null) return;
 
             // Queue a MicOutput frame
             var frame = new MicOutputFrame(
-                InputManager.CurrentInputTime, pitchOutput.Value, amplitude);
+                InputManager.CurrentInputTime, _lastPitchOutput.Value, amplitude);
             _frameQueue.Enqueue(frame);
         }
 

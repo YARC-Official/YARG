@@ -493,7 +493,8 @@ namespace YARG.Gameplay
                     // Skip if there's no prefab for the game mode
                     if (prefab == null) continue;
 
-                    var playerObject = Instantiate(prefab, new Vector3(index * 25f, 100f, 0f), prefab.transform.rotation);
+                    var playerObject = Instantiate(prefab,
+                        new Vector3(index * 100f, 100f, 0f), prefab.transform.rotation);
 
                     // Setup player
                     var basePlayer = playerObject.GetComponent<TrackPlayer>();

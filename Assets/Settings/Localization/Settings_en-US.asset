@@ -615,6 +615,22 @@ MonoBehaviour:
       frame being displayed.
     m_Metadata:
       m_Items: []
+  - m_Id: 79799527068782592
+    m_Localized: Debug
+    m_Metadata:
+      m_Items: []
+  - m_Id: 79799556705734656
+    m_Localized: Input Device Logging
+    m_Metadata:
+      m_Items: []
+  - m_Id: 79799583608000512
+    m_Localized: 'Prints information about connected input devices to the game''s
+      log.
+
+      Do not enable this unless you are having issues with specific devices,
+      as it can print a very large amount of text for some devices!'
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

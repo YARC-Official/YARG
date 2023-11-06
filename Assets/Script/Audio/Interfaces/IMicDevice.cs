@@ -41,7 +41,7 @@ namespace YARG.Audio
 
     public interface IMicDevice : IDisposable
     {
-        public const int RECORD_PERIOD_MS = 30;
+        public const int RECORD_PERIOD_MS = 40;
         public const float UPDATES_PER_SECOND = 1000f / RECORD_PERIOD_MS;
 
         public string DisplayName { get; }
