@@ -709,7 +709,7 @@ namespace YARG.Gameplay
             {
                 Date = DateTime.Now,
 
-                SongChecksum = Song.Hash.ToString(),
+                SongChecksum = Song.Hash.HashBytes,
                 SongName = Song.Name,
                 SongArtist = Song.Artist,
                 SongCharter = Song.Charter,

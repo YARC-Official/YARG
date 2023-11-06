@@ -15,8 +15,6 @@ namespace YARG.Scores
 
         [Indexed]
         public int    GameRecordId { get; set; }
-        [Indexed]
-        public string SongChecksum { get; set; }
 
         [Indexed]
         public Guid   PlayerId   { get; set; }

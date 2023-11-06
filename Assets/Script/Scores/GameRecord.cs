@@ -16,7 +16,7 @@ namespace YARG.Scores
         public DateTime Date { get; set; }
 
         [Indexed]
-        public string SongChecksum { get; set; }
+        public byte[] SongChecksum { get; set; }
 
         // Keep this information in case the user doesn't have the song
         public string SongName    { get; set; }

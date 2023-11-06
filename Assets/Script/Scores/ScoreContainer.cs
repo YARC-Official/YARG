@@ -52,7 +52,6 @@ namespace YARG.Scores
                 foreach (var playerEntry in playerEntries)
                 {
                     playerEntry.GameRecordId = gameRecord.Id;
-                    playerEntry.SongChecksum = gameRecord.SongChecksum;
 
                     // Record the player's info in the "Players" table
                     string name = PlayerContainer.GetProfileById(playerEntry.PlayerId).Name;
@@ -95,7 +94,8 @@ namespace YARG.Scores
             try
             {
                 var query =
-                    $"SELECT * FROM PlayerScores WHERE SongChecksum = '{songChecksum}' ORDER BY Score DESC LIMIT 1";
+                    $"SELECT * FROM PlayerScores INNER JOIN GameRecords ON PlayerScores.Id = GameRecords.Id WHERE " +
+                    $"GameRecords.SongChecksum = x'{songChecksum.ToString()}' ORDER BY Score DESC LIMIT 1";
                 return _db.FindWithQuery<PlayerScoreRecord>(query);
             }
             catch (Exception e)
