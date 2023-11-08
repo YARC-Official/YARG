@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Scores;
 
 namespace YARG.Menu
 {
@@ -26,6 +27,27 @@ namespace YARG.Menu
         [Space]
         [SerializeField]
         private Image[] _starImages;
+
+        public void SetStars(StarAmount stars)
+        {
+            if (stars == StarAmount.None)
+            {
+                SetStars(0);
+            }
+            else if (stars is >= StarAmount.Star1 and <= StarAmount.Star5)
+            {
+                SetStars((int) stars);
+            }
+            else
+            {
+                SetStars(5, stars switch
+                {
+                    StarAmount.StarBrutal => StarType.Brutal,
+                    StarAmount.StarGold => StarType.Gold,
+                    _ => throw new Exception("Unreachable.")
+                });
+            }
+        }
 
         public void SetStars(int n, StarType type)
         {

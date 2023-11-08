@@ -2,36 +2,38 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core.Song;
-using YARG.Scores;
+using YARG.Replays;
 using YARG.Song;
 
 namespace YARG.Menu.History
 {
-    public class GameRecordViewType : ViewType
+    public class ReplayViewType : ViewType
     {
         public override BackgroundType Background => BackgroundType.Normal;
 
         public override bool UseFullContainer => true;
 
-        private readonly GameRecord _gameRecord;
+        private readonly ReplayEntry _replayEntry;
         private readonly SongMetadata _songMetadata;
 
-        public GameRecordViewType(GameRecord gameRecord)
+        public ReplayViewType(ReplayEntry replayEntry)
         {
-            _gameRecord = gameRecord;
+            _replayEntry = replayEntry;
 
             var songsByHash = GlobalVariables.Instance.SongContainer.SongsByHash;
-            _songMetadata = songsByHash.GetValueOrDefault(new HashWrapper(gameRecord.SongChecksum))[0];
+            _songMetadata = songsByHash.GetValueOrDefault(replayEntry.SongChecksum)[0];
         }
 
         public override string GetPrimaryText(bool selected)
         {
-            return FormatAs(_gameRecord.SongName, TextType.Primary, selected);
+            return FormatAs(_replayEntry.SongName, TextType.Primary, selected);
         }
 
         public override string GetSecondaryText(bool selected)
         {
-            return FormatAs(_gameRecord.SongArtist, TextType.Secondary, selected);
+            if (_songMetadata is null) return string.Empty;
+
+            return _songMetadata.Artist;
         }
 
         public override async UniTask<Sprite> GetIcon()
@@ -46,8 +48,8 @@ namespace YARG.Menu.History
         {
             return new GameInfo
             {
-                BandScore = _gameRecord.BandScore,
-                BandStars = _gameRecord.BandStars
+                BandScore = _replayEntry.BandScore,
+                // BandStars = _replayEntry.BandStars
             };
         }
     }
