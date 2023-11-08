@@ -1,37 +1,40 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
-using YARG.Core;
 using YARG.Core.Song;
-using YARG.Data;
-using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
 {
+    // TODO: This should probably be redone, but I'm waiting until we refactor how the icons work
     public class DifficultyRing : MonoBehaviour
     {
+        [FormerlySerializedAs("instrumentIcon")]
         [SerializeField]
-        private Image instrumentIcon;
+        private Image _instrumentIcon;
 
+        [FormerlySerializedAs("ringSprite")]
         [SerializeField]
-        private Image ringSprite;
+        private Image _ringSprite;
 
+        [FormerlySerializedAs("ringSprites")]
         [SerializeField]
-        private Sprite[] ringSprites;
+        private Sprite[] _ringSprites;
 
         private Button _searchButton;
+        private MusicLibraryMenu _musicLibraryMenu;
 
         private void Awake()
         {
             _searchButton = GetComponent<Button>();
+            _musicLibraryMenu = GetComponentInParent<MusicLibraryMenu>();
         }
 
         public void SetInfo(string assetName, string filter, PartValues values)
         {
             // Set instrument icon
             var icon = Addressables.LoadAssetAsync<Sprite>($"InstrumentIcons[{assetName}]").WaitForCompletion();
-            instrumentIcon.sprite = icon;
+            _instrumentIcon.sprite = icon;
 
             if (values.subTracks == 0)
             {
@@ -48,12 +51,12 @@ namespace YARG.Menu.MusicLibrary
 
             // Set ring sprite
             int index = values.intensity + 1;
-            ringSprite.sprite = ringSprites[index];
+            _ringSprite.sprite = _ringSprites[index];
 
             // Set instrument opacity
-            Color color = instrumentIcon.color;
+            Color color = _instrumentIcon.color;
             color.a = values.intensity > -1 ? 1f : 0.2f;
-            instrumentIcon.color = color;
+            _instrumentIcon.color = color;
 
             // Set search filter by instrument
             _searchButton.onClick.RemoveAllListeners();
@@ -65,7 +68,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void SearchFilter(string instrument)
         {
-            MusicLibraryMenu.Instance.SetSearchInput($"instrument:{instrument}");
+            _musicLibraryMenu.SetSearchInput($"instrument:{instrument}");
         }
 
         private void OnDestroy()

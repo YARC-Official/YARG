@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -25,6 +26,8 @@ namespace YARG.Menu.ListMenu
         private List<TViewType> _viewList;
         private readonly List<TViewObject> _viewObjects = new();
 
+        public IReadOnlyList<TViewType> ViewList => _viewList;
+
         private int _selectedIndex;
         public int SelectedIndex
         {
@@ -33,11 +36,20 @@ namespace YARG.Menu.ListMenu
             {
                 // Properly wrap the value. If the value is less than zero,
                 // wrap the to the end. If more than the end, wrap to zero.
-                _selectedIndex = value < 0 ? _viewList.Count - 1 : value % _viewList.Count;
+                if (_viewList.Count == 0)
+                {
+                    _selectedIndex = 0;
+                }
+                else
+                {
+                    _selectedIndex = value < 0 ? _viewList.Count - 1 : value % _viewList.Count;
+                }
 
                 OnSelectedIndexChanged();
             }
         }
+
+        public TViewType CurrentSelection => _viewList?.Count == 0 ? null : _viewList?[_selectedIndex];
 
         protected virtual bool CanScroll => true;
         private float _scrollTimer;
@@ -61,6 +73,27 @@ namespace YARG.Menu.ListMenu
         {
             UpdateScrollbar();
             UpdateViewsObjects();
+        }
+
+        /// <summary>
+        /// Sets the <see cref="SelectedIndex"/> to the first match (via the <paramref name="predicate"/>).
+        /// If nothing is found, the index remains unchanged.
+        /// </summary>
+        /// <returns>
+        /// Whether or not the index was set.
+        /// </returns>
+        protected bool SetIndexTo(Func<TViewType, bool> predicate)
+        {
+            for (int i = 0; i < _viewList.Count; i++)
+            {
+                if (predicate(_viewList[i]))
+                {
+                    SelectedIndex = i;
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public void OnScrollBarChange()
