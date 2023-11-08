@@ -17,7 +17,7 @@
             "CREATE TABLE IF NOT EXISTS " + GAME_HISTORY_TABLE + @" (
                 id INTEGER PRIMARY KEY NOT NULL,
                 date INTEGER NOT NULL,
-                song_checksum TEXT NOT NULL,
+                song_checksum BLOB NOT NULL,
                 song_name TEXT NOT NULL,
                 song_artist TEXT NOT NULL,
                 song_charter TEXT NOT NULL,
