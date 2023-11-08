@@ -95,37 +95,33 @@ namespace YARG.Menu.Navigation
             _navigatables[0].SetSelected(true, SelectionOrigin.Programmatically);
         }
 
-        public void SelectNext(NavigationContext context)
+        public void SelectNext()
         {
             int selected = SelectedIndex;
             if (selected < 0) return;
 
             selected++;
+
+            // DON'T loop the value
             if (selected >= _navigatables.Count)
             {
-                // Stop at group bounds on repeated inputs
-                if (context.IsRepeat)
-                    return;
-
-                selected = 0;
+                return;
             }
 
             _navigatables[selected].SetSelected(true, SelectionOrigin.Navigation);
         }
 
-        public void SelectPrevious(NavigationContext context)
+        public void SelectPrevious()
         {
             int selected = SelectedIndex;
             if (selected < 0) return;
 
             selected--;
+
+            // DON'T loop the value
             if (selected < 0)
             {
-                // Stop at group bounds on repeated inputs
-                if (context.IsRepeat)
-                    return;
-
-                selected = _navigatables.Count - 1;
+                return;
             }
 
             _navigatables[selected].SetSelected(true, SelectionOrigin.Navigation);
