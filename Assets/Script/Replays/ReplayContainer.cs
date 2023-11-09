@@ -64,25 +64,25 @@ namespace YARG.Replays
 
         public static void AddReplay(ReplayEntry replay)
         {
-            if (!_replays.Contains(replay) && !_replayFileMap.ContainsKey(replay.ReplayFile))
+            if (!_replays.Contains(replay) && !_replayFileMap.ContainsKey(replay.ReplayPath))
             {
                 _replays.Add(replay);
-                _replayFileMap.Add(replay.ReplayFile, replay);
+                _replayFileMap.Add(replay.ReplayPath, replay);
             }
         }
 
         public static void RemoveReplay(ReplayEntry replay)
         {
-            if (_replays.Contains(replay) && _replayFileMap.ContainsKey(replay.ReplayFile))
+            if (_replays.Contains(replay) && _replayFileMap.ContainsKey(replay.ReplayPath))
             {
                 _replays.Remove(replay);
-                _replayFileMap.Remove(replay.ReplayFile);
+                _replayFileMap.Remove(replay.ReplayPath);
             }
         }
 
         public static ReplayReadResult LoadReplayFile(ReplayEntry entry, out ReplayFile replayFile)
         {
-            return ReplayIO.ReadReplay(Path.Combine(ReplayDirectory, entry.ReplayFile), out replayFile);
+            return ReplayIO.ReadReplay(entry.ReplayPath, out replayFile);
         }
 
         public static Replay CreateNewReplay(SongMetadata song, IList<BasePlayer> players, double replayLength)
@@ -148,7 +148,7 @@ namespace YARG.Replays
                 EngineVersion = replayFile.Header.EngineVersion
             };
 
-            entry.ReplayFile = entry.GetReplayName();
+            entry.ReplayPath = Path.Combine(ReplayDirectory, entry.GetReplayName());
 
             return entry;
         }
@@ -204,9 +204,9 @@ namespace YARG.Replays
                     }
 
                     replay.EngineVersion = reader.ReadInt32();
-                    replay.ReplayFile = reader.ReadString();
+                    replay.ReplayPath = reader.ReadString();
 
-                    if (File.Exists(Path.Combine(ReplayDirectory, replay.ReplayFile)))
+                    if (File.Exists(replay.ReplayPath))
                     {
                         AddReplay(replay);
                     }
@@ -241,7 +241,7 @@ namespace YARG.Replays
                 }
 
                 writer.Write(entry.EngineVersion);
-                writer.Write(entry.ReplayFile);
+                writer.Write(entry.ReplayPath);
             }
         }
 
@@ -263,7 +263,7 @@ namespace YARG.Replays
                 }
 
                 var entry = CreateEntryFromReplayFile(replayFile);
-                entry.ReplayFile = file.Name;
+                entry.ReplayPath = file.FullName;
 
                 AddReplay(entry);
             }
@@ -311,7 +311,7 @@ namespace YARG.Replays
                 PlayerCount = replay.PlayerCount,
                 PlayerNames = replay.PlayerNames,
                 EngineVersion = replayFile.Header.EngineVersion,
-                ReplayFile = e.Name,
+                ReplayPath = e.FullPath,
             };
 
             AddReplay(entry);

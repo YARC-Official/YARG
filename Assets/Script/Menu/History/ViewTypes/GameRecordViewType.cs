@@ -1,7 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using YARG.Core.Replays;
 using YARG.Core.Song;
+using YARG.Menu.Persistent;
+using YARG.Replays;
 using YARG.Scores;
 using YARG.Song;
 
@@ -32,6 +36,49 @@ namespace YARG.Menu.History
         public override string GetSecondaryText(bool selected)
         {
             return FormatAs(_gameRecord.SongArtist, TextType.Secondary, selected);
+        }
+
+        public override void ViewClick()
+        {
+            if (_songMetadata is null) return;
+
+            // Get the replay path
+            var path = Path.Combine(ScoreContainer.ScoreReplayDirectory, _gameRecord.ReplayFileName);
+            if (!File.Exists(path))
+            {
+                DialogManager.Instance.ShowMessage("Cannot Play Replay",
+                    "The replay for this song does not exist. It has probably been deleted.");
+                return;
+            }
+
+            // Read
+            var result = ReplayIO.ReadReplay(path, out var replayFile);
+            if (result != ReplayReadResult.Valid || replayFile == null)
+            {
+                DialogManager.Instance.ShowMessage("Cannot Play Replay",
+                    "The replay for this song is most likely corrupted.");
+                return;
+            }
+
+            // Create a replay entry
+            var replayEntry = ReplayContainer.CreateEntryFromReplayFile(replayFile);
+            replayEntry.ReplayPath = path;
+
+            // Compare hashes
+            var databaseHash = new HashWrapper(_gameRecord.ReplayChecksum);
+            if (!replayFile.Header.ReplayChecksum.Equals(databaseHash))
+            {
+                DialogManager.Instance.ShowMessage("Cannot Play Replay",
+                    "The replay's hash does not match the hash present in the database. Was the database modified?");
+                return;
+            }
+
+            // We're good!
+            GlobalVariables.Instance.IsReplay = true;
+            GlobalVariables.Instance.CurrentReplay = replayEntry;
+
+            GlobalVariables.AudioManager.UnloadSong();
+            GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
         }
 
         public override async UniTask<Sprite> GetIcon()

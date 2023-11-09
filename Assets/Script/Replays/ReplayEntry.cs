@@ -21,7 +21,7 @@ namespace YARG.Replays
 
         public int EngineVersion;
 
-        public string ReplayFile;
+        public string ReplayPath;
 
         public string GetReplayName()
         {

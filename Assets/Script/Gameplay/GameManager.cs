@@ -753,10 +753,10 @@ namespace YARG.Gameplay
             var replay = ReplayContainer.CreateNewReplay(Song, _players, length);
             var entry = ReplayContainer.CreateEntryFromReplayFile(new ReplayFile(replay));
 
-            entry.ReplayFile = entry.GetReplayName();
+            var name = entry.GetReplayName();
+            entry.ReplayPath = Path.Combine(ScoreContainer.ScoreReplayDirectory, name);
 
-            var path = Path.Combine(ScoreContainer.ScoreReplayDirectory, entry.ReplayFile);
-            var hash = ReplayIO.WriteReplay(path, replay);
+            var hash = ReplayIO.WriteReplay(entry.ReplayPath, replay);
 
             Debug.Log("Wrote replay");
             _isReplaySaved = true;
@@ -767,7 +767,7 @@ namespace YARG.Gameplay
                 return null;
             }
 
-            return (entry.ReplayFile, hash.Value);
+            return (name, hash.Value);
         }
 
         private void OnAudioEnd()
