@@ -26,7 +26,7 @@ namespace YARG.Menu.History
             ("Time.MoreThanYear",    DateTime.MinValue           ),
         };
 
-        protected override int ExtraListViewPadding => 5;
+        protected override int ExtraListViewPadding => 10;
 
         [SerializeField]
         private HeaderTabs _headerTabs;

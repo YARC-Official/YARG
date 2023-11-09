@@ -63,9 +63,9 @@ namespace YARG.Menu.History
         {
             base.Hide();
 
-            // Make sure that the selection doesn't "drift"
-            _fullContainer.SetActive(true);
-            _categoryContainer.SetActive(false);
+            // Use the smaller container to make the "drifts" smaller
+            _fullContainer.SetActive(false);
+            _categoryContainer.SetActive(true);
 
             _button.interactable = false;
         }

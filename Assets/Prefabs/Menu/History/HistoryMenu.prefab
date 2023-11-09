@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 3419717912101233406}
   - component: {fileID: 5901163551273714760}
   - component: {fileID: 8569649329610169560}
+  - component: {fileID: 619021696685137995}
   m_Layer: 5
   m_Name: Container
   m_TagString: Untagged
@@ -112,6 +113,20 @@ MonoBehaviour:
   m_FlexibleWidth: 1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &619021696685137995
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1266457973194073577}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea764c8f49ba4dfaba672be77de25f68, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SelectedView: {fileID: 0}
+  _innerViewContainer: {fileID: 7242423078743798783}
 --- !u!1 &1328902297093170595
 GameObject:
   m_ObjectHideFlags: 0
@@ -284,6 +299,7 @@ MonoBehaviour:
     type: 3}
   _viewObjectParent: {fileID: 7242423078743798783}
   _scrollbar: {fileID: 5397532863659418013}
+  _viewAligner: {fileID: 619021696685137995}
   _headerTabs: {fileID: 4155919010694207238}
 --- !u!1 &3868076950096473284
 GameObject:
@@ -483,6 +499,11 @@ PrefabInstance:
     - target: {fileID: 2344074607621135072, guid: 39d10333b1c21384fa99cee4bf5e6ddc,
         type: 3}
       propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2344074607621135072, guid: 39d10333b1c21384fa99cee4bf5e6ddc,
+        type: 3}
+      propertyPath: m_AnchorMin.y
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4776131744917434963, guid: 39d10333b1c21384fa99cee4bf5e6ddc,

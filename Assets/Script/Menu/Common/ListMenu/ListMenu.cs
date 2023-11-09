@@ -22,6 +22,8 @@ namespace YARG.Menu.ListMenu
         private Transform _viewObjectParent;
         [SerializeField]
         private Scrollbar _scrollbar;
+        [SerializeField]
+        private ViewAligner _viewAligner;
 
         private List<TViewType> _viewList;
         private readonly List<TViewObject> _viewObjects = new();
@@ -64,6 +66,13 @@ namespace YARG.Menu.ListMenu
                 // Add
                 var view = gameObject.GetComponent<TViewObject>();
                 _viewObjects.Add(view);
+
+                // If the middle one...
+                if (i == ExtraListViewPadding && _viewAligner != null)
+                {
+                    // Provide it to the view aligner
+                    _viewAligner.SelectedView = gameObject.GetComponent<RectTransform>();
+                }
             }
 
             RequestViewListUpdate();
@@ -73,6 +82,11 @@ namespace YARG.Menu.ListMenu
         {
             UpdateScrollbar();
             UpdateViewsObjects();
+
+            if (_viewAligner != null)
+            {
+                _viewAligner.RequestAlignView();
+            }
         }
 
         /// <summary>
