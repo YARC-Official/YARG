@@ -44,6 +44,17 @@ namespace YARG.Menu.History
             return await SongSources.SourceToIcon(_songMetadata.Source);
         }
 
+        public override void ViewClick()
+        {
+            if (_songMetadata is null) return;
+
+            GlobalVariables.Instance.IsReplay = true;
+            GlobalVariables.Instance.CurrentReplay = _replayEntry;
+
+            GlobalVariables.AudioManager.UnloadSong();
+            GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
+        }
+
         public override GameInfo? GetGameInfo()
         {
             return new GameInfo
