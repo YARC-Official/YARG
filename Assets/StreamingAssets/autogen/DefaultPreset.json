@@ -1,126 +1,198 @@
 {
-    "camera_pacing": "medium",
-
-    "section_presets": {
-        "default": {
-            "allowed_lightpresets": ["loop_warm", "loop_cool"],
-            "allowed_postprocs": ["ProFilm_a.pp"],
-            "lightpreset_blendin": 2
+    "CameraPacing": "medium",
+    "DefaultSectionPreset": {
+        "SectionName": "default",
+        "PracticeSections": [],
+        "AllowedLightPresets": ["loop_warm", "loop_cool"],
+        "AllowedPostProcs": ["ProFilm_a.pp"],
+        "KeyframeRate": 2,
+        "LightPresetBlendIn": 2,
+        "PostProcBlendIn": 0,
+        "BonusFxAtStart": false,
+        "CameraPacingOverride": null
         },
-   
-        "intro": {
-            "practice_sections": ["*intro*"],
-            "allowed_lightpresets": ["silhouettes_spot", "loop_warm"],
-            "allowed_postprocs": ["ProFilm_a.pp"],
-            "lightpreset_blendin": 4
+    "SectionPresets": [
+        {
+            "SectionName": "intro",
+            "PracticeSections": [
+            "*intro*"
+            ],
+            "AllowedLightPresets": ["silhouettes_spot", "loop_warm"],
+            "AllowedPostProcs": ["ProFilm_a.pp"],
+            "KeyframeRate": 2,
+            "LightPresetBlendIn": 4,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": false,
+            "CameraPacingOverride": null
         },
-   
-        "preverse": {
-            "practice_sections": ["*preverse*"],
-            "allowed_lightpresets": ["manual_warm"],
-            "allowed_postprocs": ["ProFilm_a.pp"],
-            "lightpreset_blendin": 2,
-            "keyframe_rate": 4
+        {
+            "SectionName": "preverse",
+            "PracticeSections": [
+            "*preverse*"
+            ],
+            "AllowedLightPresets": ["manual_warm"],
+            "AllowedPostProcs": ["ProFilm_a.pp"],
+            "KeyframeRate": 4,
+            "LightPresetBlendIn": 2,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": false,
+            "CameraPacingOverride": null
         },
-   
-        "verse1": {
-            "practice_sections": ["*verse_1*"],
-            "allowed_lightpresets": ["manual_cool"],
-            "allowed_postprocs": ["ProFilm_a.pp"],
-            "lightpreset_blendin": 2,
-            "keyframe_rate": 2
+        {
+            "SectionName": "verse1",
+            "PracticeSections": [
+            "*verse_1*"
+            ],
+            "AllowedLightPresets": ["verse"],
+            "AllowedPostProcs": ["ProFilm_a.pp"],
+            "KeyframeRate": 2,
+            "LightPresetBlendIn": 2,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": false,
+            "CameraPacingOverride": null
         },
-   
-        "verse2": {
-            "practice_sections": ["*verse_2*"],
-            "allowed_lightpresets": ["manual_cool"],
-            "allowed_postprocs": ["ProFilm_a.pp"],
-            "lightpreset_blendin": 2,
-            "postproc_blendin": 2,
-            "keyframe_rate": 2
+        {
+            "SectionName": "verse2",
+            "PracticeSections": [
+            "*verse_2*"
+            ],
+            "AllowedLightPresets": ["verse"],
+            "AllowedPostProcs": ["ProFilm_a.pp"],
+            "KeyframeRate": 2,
+            "LightPresetBlendIn": 2,
+            "PostProcBlendIn": 2,
+            "BonusFxAtStart": false,
+            "CameraPacingOverride": null
         },
-   
-        "verse3": {
-            "practice_sections": ["*verse*"],
-            "allowed_lightpresets": ["manual_cool"],
-            "allowed_postprocs": ["ProFilm_a.pp"],
-            "keyframe_rate": 2,
-            "lightpreset_blendin": 2
-        },  
-   
-        "bridge": {
-            "practice_sections": ["*bridge*"],
-            "allowed_lightpresets": ["dischord"],
-            "allowed_postprocs": ["ProFilm_a.pp"],
-            "keyframe_rate": 2,
-            "lightpreset_blendin": 2
+        {
+            "SectionName": "verse3",
+            "PracticeSections": [
+            "*verse*"
+            ],
+            "AllowedLightPresets": ["verse"],
+            "AllowedPostProcs": ["ProFilm_a.pp"],
+            "KeyframeRate": 2,
+            "LightPresetBlendIn": 2,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": false,
+            "CameraPacingOverride": null
         },
-   
-        "solo": {
-            "practice_sections": ["*solo*"],
-            "allowed_lightpresets": ["searchlights"],
-            "allowed_postprocs": ["ProFilm_a.pp"],
-            "lightpreset_blendin": 1
+        {
+            "SectionName": "bridge",
+            "PracticeSections": [
+            "*bridge*"
+            ],
+            "AllowedLightPresets": ["dischord"],
+            "AllowedPostProcs": ["ProFilm_a.pp"],
+            "KeyframeRate": 2,
+            "LightPresetBlendIn": 2,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": false,
+            "CameraPacingOverride": null
         },
-   
-        "prechorus": {
-            "practice_sections": ["*prechorus*"],
-            "allowed_lightpresets": ["verse"],
-            "allowed_postprocs": ["ProFilm_a.pp"],
-            "lightpreset_blendin": 2,
-            "keyframe_rate": 2
-        },    
-   
-        "chorus1": {
-            "practice_sections": ["*chorus_1*"],
-            "allowed_lightpresets": ["chorus"],
-            "allowed_postprocs": ["ProFilm_a.pp"],
-            "keyframe_rate": 1,
-            "dircut_at_start": "directed_all",
-            "lightpreset_blendin": 1,
-            "bonusfx_at_start": true
+        {
+            "SectionName": "solo",
+            "PracticeSections": [
+            "*solo*"
+            ],
+            "AllowedLightPresets": ["searchlights"],
+            "AllowedPostProcs": ["ProFilm_a.pp"],
+            "KeyframeRate": 2,
+            "LightPresetBlendIn": 1,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": false,
+            "CameraPacingOverride": null
         },
-   
-        "chorus2": {
-            "practice_sections": ["*chorus_2*"],
-            "allowed_lightpresets": ["chorus"],
-            "allowed_postprocs": ["ProFilm_a.pp"],
-            "keyframe_rate": 1,
-            "lightpreset_blendin": 1,
-            "bonusfx_at_start": true
+        {
+            "SectionName": "prechorus",
+            "PracticeSections": [
+            "*prechorus*"
+            ],
+            "AllowedLightPresets": ["manual_cool"],
+            "AllowedPostProcs": ["ProFilm_a.pp"],
+            "KeyframeRate": 2,
+            "LightPresetBlendIn": 2,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": false,
+            "CameraPacingOverride": null
         },
-   
-        "chorus3": {
-            "practice_sections": ["*chorus*"],
-            "allowed_lightpresets": ["chorus"],
-            "allowed_postprocs": ["ProFilm_a.pp"],
-            "keyframe_rate": 1,
-            "dircut_at_start": "directed_all_cam",
-            "lightpreset_blendin": 1,
-            "bonusfx_at_start": true
+        {
+            "SectionName": "chorus1",
+            "PracticeSections": [
+            "*chorus_1*"
+            ],
+            "AllowedLightPresets": ["chorus"],
+            "AllowedPostProcs": ["ProFilm_a.pp"],
+            "KeyframeRate": 1,
+            "LightPresetBlendIn": 1,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": true,
+            "CameraPacingOverride": null
         },
-   
-        "postchorus": {
-            "practice_sections": ["*postchorus*"],
-            "allowed_lightpresets": ["manual_warm"],
-            "allowed_postprocs": ["ProFilm_a.pp"],
-            "keyframe_rate": 2,
-            "lightpreset_blendin": 2
+        {
+            "SectionName": "chorus2",
+            "PracticeSections": [
+            "*chorus_2*"
+            ],
+            "AllowedLightPresets": ["chorus"],
+            "AllowedPostProcs": ["ProFilm_a.pp"],
+            "KeyframeRate": 1,
+            "LightPresetBlendIn": 1,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": true,
+            "CameraPacingOverride": null
         },
-   
-        "main_riff": {
-            "practice_sections": ["*main_riff*"],
-            "allowed_lightpresets": ["manual_warm"],
-            "allowed_postprocs": ["ProFilm_a.pp"],
-            "keyframe_rate": 2,
-            "lightpreset_blendin": 2
+        {
+            "SectionName": "chorus3",
+            "PracticeSections": [
+            "*chorus*"
+            ],
+            "AllowedLightPresets": ["chorus"],
+            "AllowedPostProcs": ["ProFilm_a.pp"],
+            "KeyframeRate": 1,
+            "LightPresetBlendIn": 1,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": true,
+            "CameraPacingOverride": null
         },
-   
-        "outro": {
-            "practice_sections": ["*outro*"],
-            "allowed_lightpresets": ["searchlights"],
-            "allowed_postprocs": ["ProFilm_a.pp"],
-            "lightpreset_blendin": 2
+        {
+            "SectionName": "postchorus",
+            "PracticeSections": [
+            "*postchorus*"
+            ],
+            "AllowedLightPresets": ["manual_warm"],
+            "AllowedPostProcs": ["ProFilm_a.pp"],
+            "KeyframeRate": 2,
+            "LightPresetBlendIn": 2,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": false,
+            "CameraPacingOverride": null
+        },
+        {
+            "SectionName": "main_riff",
+            "PracticeSections": [
+            "*main_riff*"
+            ],
+            "AllowedLightPresets": ["manual_warm"],
+            "AllowedPostProcs": ["ProFilm_a.pp"],
+            "KeyframeRate": 2,
+            "LightPresetBlendIn": 2,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": false,
+            "CameraPacingOverride": null
+        },
+        {
+            "SectionName": "outro",
+            "PracticeSections": [
+            "*outro*"
+            ],
+            "AllowedLightPresets": ["searchlights"],
+            "AllowedPostProcs": ["ProFilm_a.pp"],
+            "KeyframeRate": 2,
+            "LightPresetBlendIn": 2,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": false,
+            "CameraPacingOverride": null
         }
-    }
+    ]
 }

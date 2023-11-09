@@ -4,12 +4,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using YARG.Core;
 using YARG.Core.Chart;
 using UnityEngine;
-
-//using MoonVenueEvent = MoonscraperChartEditor.Song.VenueEvent;
 
 namespace YARG.Venue
 {
@@ -18,6 +15,45 @@ namespace YARG.Venue
     /// </summary>
     public class VenueAutogenerationPreset
     {
+
+        private class VenueAutogenerationFile
+        {
+            public string CameraPacing;
+            public AutogenerationSectionFile DefaultSectionPreset;
+            public List<AutogenerationSectionFile> SectionPresets;
+        }
+
+        private class AutogenerationSectionFile
+        {
+            public string SectionName; // probably useless
+
+            public List<string> PracticeSections; // i.e. "*verse*" which applies to "Verse 1", "Verse 2", etc.
+            public List<string> AllowedLightPresets;
+            public List<string> AllowedPostProcs;
+
+            public uint KeyframeRate;
+            public uint LightPresetBlendIn;
+            public uint PostProcBlendIn;
+
+            // public DirectedCameraCutType DirectedCutAtStart; // TODO: add when we have characters / directed camera cuts
+            public bool BonusFxAtStart;
+
+            public string CameraPacingOverride;
+
+            public AutogenerationSectionFile()
+            {
+                // Default values
+                SectionName = "";
+                PracticeSections = new List<string>();
+                AllowedLightPresets = new List<string>();
+                AllowedPostProcs = new List<string>();
+                KeyframeRate = 2;
+                LightPresetBlendIn = 0;
+                PostProcBlendIn = 0;
+                BonusFxAtStart = false;
+                CameraPacingOverride = null;
+            }
+        }
 
         private class AutogenerationSectionPreset
         {
@@ -90,32 +126,19 @@ namespace YARG.Venue
         {
             try
             {
-                var o = JObject.Parse(File.ReadAllText(path));
-                var cameraPacing = (string)o.SelectToken("camera_pacing");
-                CameraPacing = StringToCameraPacing(cameraPacing);
-                var defaultSectionRead = false;
-
-                foreach (var sectionPreset in (JObject)o.SelectToken("section_presets"))
+                var json = JsonConvert.DeserializeObject<VenueAutogenerationFile>(File.ReadAllText(path));
+                CameraPacing = StringToCameraPacing(json.CameraPacing);
+                if (json.DefaultSectionPreset is not null)
                 {
-                    var value = JObjectToSectionPreset((JObject)sectionPreset.Value);
-                    value.SectionName = sectionPreset.Key;
-                    if (sectionPreset.Key.ToLower().Trim() == "default")
-                    {
-                        DefaultSectionPreset = value;
-                        if (defaultSectionRead)
-                        {
-                            Debug.LogWarning("Multiple default sections found in preset: " + path);
-                        }
-                        defaultSectionRead = true;
-                    }
-                    else
-                    {
-                        SectionPresets.Add(value);
-                    }
+                    DefaultSectionPreset = PresetFileToPresetSection(json.DefaultSectionPreset);
                 }
-                if (!defaultSectionRead)
+                else
                 {
-                    Debug.LogWarning("Missing default section in preset: " + path);
+                    Debug.LogWarning("Default auto-generation preset not found in file: " + path);
+                }
+                foreach (AutogenerationSectionFile preset in json.SectionPresets)
+                {
+                    SectionPresets.Add(PresetFileToPresetSection(preset));
                 }
             }
             catch (Exception ex)
@@ -123,6 +146,56 @@ namespace YARG.Venue
                 Debug.LogError($"Error while loading auto-gen preset {path}");
                 Debug.LogException(ex);
             }
+        }
+
+        private AutogenerationSectionPreset PresetFileToPresetSection(AutogenerationSectionFile file)
+        {
+            var preset = new AutogenerationSectionPreset();
+
+            // Fill in standard values
+            preset.SectionName = file.SectionName;
+            preset.PracticeSections = file.PracticeSections;
+            preset.KeyframeRate = file.KeyframeRate;
+            preset.LightPresetBlendIn = file.LightPresetBlendIn;
+            preset.PostProcBlendIn = file.PostProcBlendIn;
+            // preset.DirectedCutAtStart = file.DirectedCutAtStart; // TODO: add when we have characters / directed camera cuts
+            preset.BonusFxAtStart = file.BonusFxAtStart;
+            if (file.CameraPacingOverride is not null)
+            {
+                preset.CameraPacingOverride = StringToCameraPacing(file.CameraPacingOverride);
+            }
+
+            // Fill in light presets, converting their string values to their ingame values
+            var allowedLightPresets = new List<LightingType>();
+            foreach (string str in file.AllowedLightPresets)
+            {
+                if (VenueLookup.VENUE_LIGHTING_CONVERSION_LOOKUP.TryGetValue(str.Trim(), out var eventData))
+                {
+                    allowedLightPresets.Add(VenueLookup.LightingLookup[eventData]);
+                }
+                else
+                {
+                    Debug.LogWarning("Invalid light preset: " + str);
+                }
+            }
+            preset.AllowedLightPresets = allowedLightPresets;
+
+            // Fill in post-procs, converting their string values to their ingame values
+            var allowedPostProcs = new List<PostProcessingType>();
+            foreach (string str in file.AllowedPostProcs)
+            {
+                if (VenueLookup.VENUE_TEXT_CONVERSION_LOOKUP.TryGetValue(str.Trim(), out var eventData) && eventData.type == VenueLookup.Type.PostProcessing)
+                {
+                    allowedPostProcs.Add(VenueLookup.PostProcessLookup[eventData.text]);
+                }
+                else
+                {
+                    Debug.LogWarning("Invalid post-proc: " + str);
+                }
+            }
+            preset.AllowedPostProcs = allowedPostProcs;
+
+            return preset;
         }
 
         public SongChart GenerateLightingEvents(SongChart chart)
@@ -307,79 +380,6 @@ namespace YARG.Venue
                 LightingType.Stomp or
                 LightingType.Verse or
                 LightingType.Warm_Manual;
-        }
-
-        private AutogenerationSectionPreset JObjectToSectionPreset(JObject o)
-        {
-            AutogenerationSectionPreset sectionPreset = new AutogenerationSectionPreset();
-            foreach (var parameter in o)
-            {
-                switch (parameter.Key.ToLower().Trim())
-                {
-                    case "practice_sections":
-                        var practiceSections = new List<string>();
-                        foreach (string section in (JArray)parameter.Value)
-                        {
-                            practiceSections.Add(section);
-                        }
-                        sectionPreset.PracticeSections = practiceSections;
-                        break;
-                    case "allowed_lightpresets":
-                        var allowedLightPresets = new List<LightingType>();
-                        foreach (string key in (JArray)parameter.Value)
-                        {
-                            var keyTrim = key.Trim();
-                            if (VenueLookup.VENUE_LIGHTING_CONVERSION_LOOKUP.TryGetValue(keyTrim, out var eventData))
-                            {
-                                allowedLightPresets.Add(VenueLookup.LightingLookup[eventData]);
-                            }
-                            else
-                            {
-                                Debug.LogWarning("Invalid light preset: " + key);
-                            }
-                        }
-                        sectionPreset.AllowedLightPresets = allowedLightPresets;
-                        break;
-                    case "allowed_postprocs":
-                        var allowedPostProcs = new List<PostProcessingType>();
-                        foreach (string key in (JArray)parameter.Value)
-                        {
-                            var keyTrim = key.Trim();
-                            if (VenueLookup.VENUE_TEXT_CONVERSION_LOOKUP.TryGetValue(keyTrim, out var eventData) && eventData.type == VenueLookup.Type.PostProcessing)
-                            {
-                                allowedPostProcs.Add(VenueLookup.PostProcessLookup[eventData.text]);
-                            }
-                            else
-                            {
-                                Debug.LogWarning("Invalid post-proc: " + key);
-                            }
-                        }
-                        sectionPreset.AllowedPostProcs = allowedPostProcs;
-                        break;
-                    case "keyframe_rate":
-                        sectionPreset.KeyframeRate = (uint)parameter.Value;
-                        break;
-                    case "lightpreset_blendin":
-                        sectionPreset.LightPresetBlendIn = (uint)parameter.Value;
-                        break;
-                    case "postproc_blendin":
-                        sectionPreset.PostProcBlendIn = (uint)parameter.Value;
-                        break;
-                    case "dircut_at_start":
-                        // TODO: add when we have characters / directed camera cuts
-                        break;
-                    case "bonusfx_at_start":
-                        sectionPreset.BonusFxAtStart = (bool)parameter.Value;
-                        break;
-                    case "camera_pacing":
-                        sectionPreset.CameraPacingOverride = StringToCameraPacing((string)parameter.Value);
-                        break;
-                    default:
-                        Debug.LogWarning("Unknown section preset parameter: " + parameter.Key);
-                        break;
-                }
-            }
-            return sectionPreset;
         }
         
         private CameraPacingPreset StringToCameraPacing(string cameraPacing)
