@@ -696,14 +696,14 @@ namespace YARG.Gameplay
 
         public void SaveReplay(double length)
         {
-            bool realPlayerActive = _players.Any(player => !player.Player.Profile.IsBot);
+            var realPlayers = _players.Where(player => !player.Player.Profile.IsBot).ToList();
 
-            if (_isReplaySaved || !realPlayerActive)
+            if (_isReplaySaved || realPlayers.Count == 0)
             {
                 return;
             }
 
-            var replay = ReplayContainer.CreateNewReplay(Song, _players, length);
+            var replay = ReplayContainer.CreateNewReplay(Song, realPlayers, length);
             var entry = ReplayContainer.CreateEntryFromReplayFile(new ReplayFile(replay));
 
             entry.ReplayFile = entry.GetReplayName();
