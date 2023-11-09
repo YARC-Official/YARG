@@ -18,6 +18,47 @@ namespace YARG.Venue
     /// </summary>
     public class VenueAutogenerationPreset
     {
+
+        private class AutogenerationSectionPreset
+        {
+            public string SectionName; // probably useless
+            public List<string> PracticeSections; // i.e. "*verse*" which applies to "Verse 1", "Verse 2", etc.
+            public List<LightingType> AllowedLightPresets;
+            public List<PostProcessingType> AllowedPostProcs;
+            public uint KeyframeRate;
+            public uint LightPresetBlendIn;
+            public uint PostProcBlendIn;
+            // public DirectedCameraCutType DirectedCutAtStart; // TODO: add when we have characters / directed camera cuts
+            public bool BonusFxAtStart;
+            public CameraPacingPreset? CameraPacingOverride;
+
+            public AutogenerationSectionPreset()
+            {
+                // Default values
+                SectionName = "";
+                PracticeSections = new List<string>();
+                AllowedLightPresets = new List<LightingType>();
+                AllowedPostProcs = new List<PostProcessingType>();
+                KeyframeRate = 2;
+                LightPresetBlendIn = 0;
+                PostProcBlendIn = 0;
+                BonusFxAtStart = false;
+                CameraPacingOverride = null;
+            }
+        }
+
+        /// <summary>
+        /// Possible camera pacing values.
+        /// </summary>
+        private enum CameraPacingPreset
+        {
+            Minimal,
+            Slow,
+            Medium,
+            Fast,
+            Crazy
+        }
+
         private CameraPacingPreset CameraPacing;
         private AutogenerationSectionPreset DefaultSectionPreset;
         private List<AutogenerationSectionPreset> SectionPresets;
@@ -339,46 +380,6 @@ namespace YARG.Venue
                     Debug.LogWarning("Invalid camera pacing in auto-gen preset: " + cameraPacing);
                     return CameraPacingPreset.Medium;
             }
-        }
-
-        private class AutogenerationSectionPreset
-        {
-            public string SectionName; // probably useless
-            public List<string> PracticeSections; // i.e. "*verse*" which applies to "Verse 1", "Verse 2", etc.
-            public List<LightingType> AllowedLightPresets;
-            public List<PostProcessingType> AllowedPostProcs;
-            public uint KeyframeRate;
-            public uint LightPresetBlendIn;
-            public uint PostProcBlendIn;
-            // public DirectedCameraCutType DirectedCutAtStart; // TODO: add when we have characters / directed camera cuts
-            public bool BonusFxAtStart;
-            public CameraPacingPreset? CameraPacingOverride;
-
-            public AutogenerationSectionPreset()
-            {
-                // Default values
-                SectionName = "";
-                PracticeSections = new List<string>();
-                AllowedLightPresets = new List<LightingType>();
-                AllowedPostProcs = new List<PostProcessingType>();
-                KeyframeRate = 2;
-                LightPresetBlendIn = 0;
-                PostProcBlendIn = 0;
-                BonusFxAtStart = false;
-                CameraPacingOverride = null;
-            }
-        }
-
-        /// <summary>
-        /// Possible camera pacing values.
-        /// </summary>
-        private enum CameraPacingPreset
-        {
-            Minimal,
-            Slow,
-            Medium,
-            Fast,
-            Crazy
         }
     }
 }
