@@ -21,15 +21,20 @@ namespace YARG.Venue
 
         private class AutogenerationSectionPreset
         {
+            
             public string SectionName; // probably useless
+
             public List<string> PracticeSections; // i.e. "*verse*" which applies to "Verse 1", "Verse 2", etc.
             public List<LightingType> AllowedLightPresets;
             public List<PostProcessingType> AllowedPostProcs;
+
             public uint KeyframeRate;
             public uint LightPresetBlendIn;
             public uint PostProcBlendIn;
+
             // public DirectedCameraCutType DirectedCutAtStart; // TODO: add when we have characters / directed camera cuts
             public bool BonusFxAtStart;
+
             public CameraPacingPreset? CameraPacingOverride;
 
             public AutogenerationSectionPreset()
@@ -70,6 +75,7 @@ namespace YARG.Venue
             DefaultSectionPreset.AllowedLightPresets.Add(LightingType.Default);
             DefaultSectionPreset.AllowedPostProcs.Add(PostProcessingType.Default);
             SectionPresets = new List<AutogenerationSectionPreset>();
+
             if (File.Exists(path))
             {
                 ReadPresetFromFile(path);
@@ -126,9 +132,11 @@ namespace YARG.Venue
             var latestLighting = LightingType.Intro;
             var latestPostProc = PostProcessingType.Default;
             var latestBonusFxState = false;
+
             // Add initial state
             chart.VenueTrack.Lighting.Add(new LightingEvent(latestLighting, 0, 0));
             chart.VenueTrack.PostProcessing.Add(new PostProcessingEvent(latestPostProc, 0, 0));
+
             foreach (var section in chart.Sections)
             {
                 // Find which section preset to use...
@@ -136,9 +144,11 @@ namespace YARG.Venue
                 var matched = false;
                 foreach (var preset in SectionPresets)
                 {
+                    // Rename section names such as "Pre-Chorus 2" to "prechorus_2" for proper matching
                     var nameToMatch = section.Name.ToLower().Trim().Replace("-","").Replace(" ","_");
                     foreach (string practiceSecion in preset.PracticeSections)
                     {
+                        // Transform "*something*" match string into appropriate regex
                         var regexString = "^" + Regex.Escape(practiceSecion).Replace("\\*", ".*") + "$"; 
                         if (Regex.IsMatch(nameToMatch, regexString))
                         {
@@ -153,17 +163,20 @@ namespace YARG.Venue
                         break;
                     }
                 }
+
                 if (!matched)
                 {
                     Debug.Log("No match found for section " + section.Name + "; using default autogen section");
                 }
+
                 // BonusFx at start
                 if (sectionPreset.BonusFxAtStart && !latestBonusFxState) // Avoid multiple BonusFx in a row
                 {
                     chart.VenueTrack.Stage.Add(new StageEffectEvent(StageEffect.BonusFx, VenueEventFlags.None, section.Time, section.Tick));
                 }
                 latestBonusFxState = sectionPreset.BonusFxAtStart;
-                // Actually generate lighting
+
+                // Actually generate lighting events
                 var currentLighting = latestLighting;
                 foreach (var lighting in sectionPreset.AllowedLightPresets)
                 {
@@ -188,8 +201,10 @@ namespace YARG.Venue
                 }
                 else if (LightingIsManual(currentLighting))
                 {
+                    // Add next keyframe if staying on the same (manual) lighting
                     chart.VenueTrack.Lighting.Add(new LightingEvent(LightingType.Keyframe_Next, section.Time, section.Tick));
                 }
+
                 // Generate next keyframes
                 if (LightingIsManual(currentLighting))
                 {
@@ -200,7 +215,8 @@ namespace YARG.Venue
                         nextTick += (resolution * sectionPreset.KeyframeRate);
                     }
                 }
-                // Generate post-procs
+
+                // Generate post-proc events
                 var currentPostProc = latestPostProc;
                 foreach (var postProc in sectionPreset.AllowedPostProcs)
                 {
@@ -224,14 +240,18 @@ namespace YARG.Venue
                     latestPostProc = currentPostProc;
                 }
             }
+
             // Reorder lighting track (Next keyframes and blend-in events might be unordered)
             chart.VenueTrack.Lighting.Sort((x,y) => x.Tick.CompareTo(y.Tick));
+
             // Generate performer spotlight events (basically copying solo data for guitar/bass/keys/drums info their respective performer spotlight info)
             AddSoloAsSpotlight(ref chart, chart.FiveFretGuitar, Performer.Guitar);
             AddSoloAsSpotlight(ref chart, chart.FiveFretBass, Performer.Bass);
             AddSoloAsSpotlight(ref chart, chart.Keys, Performer.Keyboard);
             AddSoloAsSpotlightDrums(ref chart);
+
             // TODO: Add singalong events based on HARM2 phrases if any (add to the first two that are available in this order: guitar/bass/keys/drums)
+            
             // Reorder performer track (spotlight and singalong events will be out of order)
             chart.VenueTrack.Performer.Sort((x,y) => x.Tick.CompareTo(y.Tick));
             return chart;
