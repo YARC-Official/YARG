@@ -18,13 +18,13 @@ namespace YARG.Venue
     /// </summary>
     public class VenueAutogenerationPreset
     {
-        public CameraPacing CameraPacing;
-        public AutogenerationSectionPreset DefaultSectionPreset;
-        public List<AutogenerationSectionPreset> SectionPresets;
+        private CameraPacingPreset CameraPacing;
+        private AutogenerationSectionPreset DefaultSectionPreset;
+        private List<AutogenerationSectionPreset> SectionPresets;
         
         public VenueAutogenerationPreset(string path)
         {
-            CameraPacing = CameraPacing.Medium;
+            CameraPacing = CameraPacingPreset.Medium;
             DefaultSectionPreset = new AutogenerationSectionPreset();
             DefaultSectionPreset.AllowedLightPresets.Add(LightingType.Default);
             DefaultSectionPreset.AllowedPostProcs.Add(PostProcessingType.Default);
@@ -238,13 +238,14 @@ namespace YARG.Venue
 
         private bool LightingIsManual(LightingType lighting)
         {
-            return lighting == LightingType.Default ||
-                   lighting == LightingType.Dischord ||
-                   lighting == LightingType.Chorus ||
-                   lighting == LightingType.Cool_Manual ||
-                   lighting == LightingType.Stomp ||
-                   lighting == LightingType.Verse ||
-                   lighting == LightingType.Warm_Manual;
+            return lighting is
+                LightingType.Default or
+                LightingType.Dischord or
+                LightingType.Chorus or
+                LightingType.Cool_Manual or
+                LightingType.Stomp or
+                LightingType.Verse or
+                LightingType.Warm_Manual;
         }
 
         private AutogenerationSectionPreset JObjectToSectionPreset(JObject o)
@@ -320,64 +321,64 @@ namespace YARG.Venue
             return sectionPreset;
         }
         
-        private CameraPacing StringToCameraPacing(string cameraPacing)
+        private CameraPacingPreset StringToCameraPacing(string cameraPacing)
         {
             switch (cameraPacing.ToLower().Trim())
             {
                 case "minimal": 
-                    return CameraPacing.Minimal;
+                    return CameraPacingPreset.Minimal;
                 case "slow":
-                    return CameraPacing.Slow;
+                    return CameraPacingPreset.Slow;
                 case "medium":
-                    return CameraPacing.Medium;
+                    return CameraPacingPreset.Medium;
                 case "fast":
-                    return CameraPacing.Fast;
+                    return CameraPacingPreset.Fast;
                 case "crazy":
-                    return CameraPacing.Crazy;
+                    return CameraPacingPreset.Crazy;
                 default:
                     Debug.LogWarning("Invalid camera pacing in auto-gen preset: " + cameraPacing);
-                    return CameraPacing.Medium;
+                    return CameraPacingPreset.Medium;
             }
         }
-    }
 
-    public class AutogenerationSectionPreset
-    {
-        public string SectionName; // probably useless
-        public List<string> PracticeSections; // i.e. "*verse*" which applies to "Verse 1", "Verse 2", etc.
-        public List<LightingType> AllowedLightPresets;
-        public List<PostProcessingType> AllowedPostProcs;
-        public uint KeyframeRate;
-        public uint LightPresetBlendIn;
-        public uint PostProcBlendIn;
-        // public DirectedCameraCutType DirectedCutAtStart; // TODO: add when we have characters / directed camera cuts
-        public bool BonusFxAtStart;
-        public CameraPacing? CameraPacingOverride;
-
-        public AutogenerationSectionPreset()
+        private class AutogenerationSectionPreset
         {
-            // Default values
-            SectionName = "";
-            PracticeSections = new List<string>();
-            AllowedLightPresets = new List<LightingType>();
-            AllowedPostProcs = new List<PostProcessingType>();
-            KeyframeRate = 2;
-            LightPresetBlendIn = 0;
-            PostProcBlendIn = 0;
-            BonusFxAtStart = false;
-            CameraPacingOverride = null;
-        }
-    }
+            public string SectionName; // probably useless
+            public List<string> PracticeSections; // i.e. "*verse*" which applies to "Verse 1", "Verse 2", etc.
+            public List<LightingType> AllowedLightPresets;
+            public List<PostProcessingType> AllowedPostProcs;
+            public uint KeyframeRate;
+            public uint LightPresetBlendIn;
+            public uint PostProcBlendIn;
+            // public DirectedCameraCutType DirectedCutAtStart; // TODO: add when we have characters / directed camera cuts
+            public bool BonusFxAtStart;
+            public CameraPacingPreset? CameraPacingOverride;
 
-    /// <summary>
-    /// Possible camera pacing values.
-    /// </summary>
-    public enum CameraPacing
-    {
-        Minimal,
-        Slow,
-        Medium,
-        Fast,
-        Crazy
+            public AutogenerationSectionPreset()
+            {
+                // Default values
+                SectionName = "";
+                PracticeSections = new List<string>();
+                AllowedLightPresets = new List<LightingType>();
+                AllowedPostProcs = new List<PostProcessingType>();
+                KeyframeRate = 2;
+                LightPresetBlendIn = 0;
+                PostProcBlendIn = 0;
+                BonusFxAtStart = false;
+                CameraPacingOverride = null;
+            }
+        }
+
+        /// <summary>
+        /// Possible camera pacing values.
+        /// </summary>
+        private enum CameraPacingPreset
+        {
+            Minimal,
+            Slow,
+            Medium,
+            Fast,
+            Crazy
+        }
     }
 }
