@@ -661,14 +661,10 @@ namespace YARG.Gameplay
                 return;
             }
 
-            if (!IsReplay)
-            {
-                _isReplaySaved = false;
-                SaveReplay(Song.SongLengthSeconds);
-            }
-
             UninitializeTime();
             GlobalVariables.AudioManager.UnloadSong();
+
+            if (IsReplay) return;
 
             // Pass the score info to the stats screen
             GlobalVariables.Instance.ScoreScreenStats = new ScoreScreenStats
@@ -682,11 +678,17 @@ namespace YARG.Gameplay
                 BandStars = (int) BandStars
             };
 
+            _isReplaySaved = false;
+            var replayInfo = SaveReplay(Song.SongLengthSeconds);
+
             // Get all of the individual player score entries
             var playerEntries = new List<PlayerScoreRecord>();
             foreach (var player in _players)
             {
                 var profile = player.Player.Profile;
+
+                // Skip bots
+                if (player.Player.Profile.IsBot) continue;
 
                 playerEntries.Add(new PlayerScoreRecord
                 {
@@ -704,22 +706,29 @@ namespace YARG.Gameplay
                 });
             }
 
-            // Record the score into the database
-            ScoreContainer.RecordScore(new GameRecord
+            // Record the score into the database (if there's at least 1 non-bot player)
+            if (playerEntries.Count > 0)
             {
-                Date = DateTime.Now,
+                ScoreContainer.RecordScore(new GameRecord
+                {
+                    Date = DateTime.Now,
 
-                SongChecksum = Song.Hash.HashBytes,
-                SongName = Song.Name,
-                SongArtist = Song.Artist,
-                SongCharter = Song.Charter,
+                    SongChecksum = Song.Hash.HashBytes,
+                    SongName = Song.Name,
+                    SongArtist = Song.Artist,
+                    SongCharter = Song.Charter,
 
-                BandScore = BandScore,
-                BandStars = StarAmountHelper.GetStarsFromInt((int) BandStars),
+                    ReplayFileName = replayInfo?.Name,
+                    ReplayChecksum = replayInfo?.Hash.HashBytes,
 
-                SongSpeed = SelectedSongSpeed
-            }, playerEntries);
+                    BandScore = BandScore,
+                    BandStars = StarAmountHelper.GetStarsFromInt((int) BandStars),
 
+                    SongSpeed = SelectedSongSpeed
+                }, playerEntries);
+            }
+
+            // Go to the score screen
             GlobalVariables.Instance.IsReplay = false;
             GlobalVariables.Instance.LoadScene(SceneIndex.Score);
         }
@@ -732,13 +741,13 @@ namespace YARG.Gameplay
             GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
         }
 
-        public void SaveReplay(double length)
+        public (string Name, HashWrapper Hash)? SaveReplay(double length)
         {
             bool realPlayerActive = _players.Any(player => !player.Player.Profile.IsBot);
 
             if (_isReplaySaved || !realPlayerActive)
             {
-                return;
+                return null;
             }
 
             var replay = ReplayContainer.CreateNewReplay(Song, _players, length);
@@ -746,10 +755,19 @@ namespace YARG.Gameplay
 
             entry.ReplayFile = entry.GetReplayName();
 
-            ReplayIO.WriteReplay(Path.Combine(ReplayContainer.ReplayDirectory, entry.ReplayFile), replay);
+            var path = Path.Combine(ScoreContainer.ScoreReplayDirectory, entry.ReplayFile);
+            var hash = ReplayIO.WriteReplay(path, replay);
 
             Debug.Log("Wrote replay");
             _isReplaySaved = true;
+
+            // If the hash could not be retrieved, return null
+            if (hash == null)
+            {
+                return null;
+            }
+
+            return (entry.ReplayFile, hash.Value);
         }
 
         private void OnAudioEnd()

@@ -24,7 +24,7 @@ namespace YARG.Scores
         public string SongCharter { get; set; }
 
         public string ReplayFileName { get; set; }
-        public string ReplayChecksum { get; set; }
+        public byte[] ReplayChecksum { get; set; }
 
         public int        BandScore { get; set; }
         public StarAmount BandStars { get; set; }

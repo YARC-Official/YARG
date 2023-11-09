@@ -38,7 +38,7 @@ namespace YARG.Replays
             _replays = new List<ReplayEntry>();
             _replayFileMap = new Dictionary<string, ReplayEntry>();
 
-            ReplayDirectory = Path.Combine(PathHelper.PersistentDataPath, "replays");
+            ReplayDirectory = Path.Combine(PathHelper.PersistentDataPath, "importedReplays");
             _replayCacheFile = Path.Combine(ReplayDirectory, "cache.bin");
 
             Directory.CreateDirectory(ReplayDirectory);

@@ -12,6 +12,8 @@ namespace YARG.Scores
     public static class ScoreContainer
     {
         public static string ScoreDirectory { get; private set; }
+        public static string ScoreReplayDirectory { get; private set; }
+
         private static string _scoreDatabaseFile;
 
         private static SQLiteConnection _db;
@@ -19,9 +21,14 @@ namespace YARG.Scores
         public static void Init()
         {
             ScoreDirectory = Path.Combine(PathHelper.PersistentDataPath, "scores");
+            ScoreReplayDirectory = Path.Combine(ScoreDirectory, "replays");
+
             _scoreDatabaseFile = Path.Combine(ScoreDirectory, "scores.db");
 
+            // Ensure the directories exist
             Directory.CreateDirectory(ScoreDirectory);
+            Directory.CreateDirectory(ScoreReplayDirectory);
+
             try
             {
                 _db = new SQLiteConnection(_scoreDatabaseFile);
