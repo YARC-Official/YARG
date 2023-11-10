@@ -584,7 +584,7 @@ namespace YARG.Gameplay
             => _songRunner.SetSongTime(time, delayTime);
 
         public void SetSongSpeed(float speed) => _songRunner.SetSongSpeed(speed);
-        public void AdjustSongSpeed(float deltaSpeed) => _songRunner.SetSongSpeed(deltaSpeed);
+        public void AdjustSongSpeed(float deltaSpeed) => _songRunner.AdjustSongSpeed(deltaSpeed);
 
         public void Pause(bool showMenu = true)
         {
