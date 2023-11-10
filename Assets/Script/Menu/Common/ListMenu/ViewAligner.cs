@@ -12,17 +12,8 @@ namespace YARG.Menu.ListMenu
         [SerializeField]
         private RectTransform _innerViewContainer;
 
-        private bool _request = false;
-
         public void RequestAlignView()
         {
-            StartCoroutine(Coroutine());
-        }
-
-        private IEnumerator Coroutine()
-        {
-            yield return new WaitForEndOfFrame();
-
             var currentAnchorPos = _innerViewContainer.anchoredPosition;
 
             var outerRect = GetComponent<RectTransform>().ToScreenSpace().center.y;

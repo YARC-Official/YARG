@@ -85,6 +85,8 @@ namespace YARG.Menu.ListMenu
 
             if (_viewAligner != null)
             {
+                // Make sure to update the canvases since we *just* changed the view objects
+                Canvas.ForceUpdateCanvases();
                 _viewAligner.RequestAlignView();
             }
         }
