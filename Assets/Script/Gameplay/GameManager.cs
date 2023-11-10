@@ -619,6 +619,7 @@ namespace YARG.Gameplay
             // Pause the background/venue
             Time.timeScale = 0f;
             BackgroundManager.SetPaused(true);
+            GameStateFetcher.SetPaused(true);
         }
 
         public void Resume(bool inputCompensation = true)
@@ -630,6 +631,7 @@ namespace YARG.Gameplay
             // Unpause the background/venue
             Time.timeScale = 1f;
             BackgroundManager.SetPaused(false);
+            GameStateFetcher.SetPaused(false);
 
             _isReplaySaved = false;
 
@@ -640,6 +642,7 @@ namespace YARG.Gameplay
 
         public void SetPaused(bool paused)
         {
+            // Does not delegate out to _songRunner.SetPaused since we need extra logic
             if (paused)
             {
                 Pause();
@@ -648,8 +651,6 @@ namespace YARG.Gameplay
             {
                 Resume();
             }
-
-            GameStateFetcher.SetPaused(paused);
         }
 
         public void OverridePauseTime(double pauseTime = -1) => _songRunner.OverridePauseTime(pauseTime);
