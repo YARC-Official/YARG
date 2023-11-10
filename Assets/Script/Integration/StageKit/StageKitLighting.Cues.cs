@@ -42,10 +42,10 @@ namespace YARG.Integration.StageKit
             StageKitLightingController.Instance.SetLed(GREEN, ALL);
             StageKitLightingController.Instance.SetLed(YELLOW, ALL);
 
-            CuePrimitives.Add(new BeatPattern(PatternList1, true, 8.0f));
-            CuePrimitives.Add(new BeatPattern(PatternList2, true, 8.0f));
-            CuePrimitives.Add(new BeatPattern(PatternList3, true, 8.0f));
-            CuePrimitives.Add(new BeatPattern(PatternList4, true, 8.0f));
+            CuePrimitives.Add(new BeatPattern(PatternList1, 0.5f));
+            CuePrimitives.Add(new BeatPattern(PatternList2, 0.5f));
+            CuePrimitives.Add(new BeatPattern(PatternList3, 0.5f));
+            CuePrimitives.Add(new BeatPattern(PatternList4, 0.5f));
         }
     }
 
@@ -76,8 +76,8 @@ namespace YARG.Integration.StageKit
             StageKitLightingController.Instance.SetLed(GREEN, NONE);
             StageKitLightingController.Instance.SetLed(BLUE, NONE);
 
-            CuePrimitives.Add(new BeatPattern(PatternList1));
-            CuePrimitives.Add(new BeatPattern(PatternList2, true, 0.5f));
+            CuePrimitives.Add(new BeatPattern(PatternList1, 4f));
+            CuePrimitives.Add(new BeatPattern(PatternList2, 8f));
         }
     }
 
@@ -108,8 +108,8 @@ namespace YARG.Integration.StageKit
             StageKitLightingController.Instance.SetLed(YELLOW, NONE);
             StageKitLightingController.Instance.SetLed(RED, NONE);
 
-            CuePrimitives.Add(new BeatPattern(PatternList1));
-            CuePrimitives.Add(new BeatPattern(PatternList2, true, 0.5f));
+            CuePrimitives.Add(new BeatPattern(PatternList1, 4f));
+            CuePrimitives.Add(new BeatPattern(PatternList2, 8f));
         }
     }
 
@@ -169,15 +169,15 @@ namespace YARG.Integration.StageKit
             {
                 StageKitLightingController.Instance.SetLed(BLUE, NONE);
                 StageKitLightingController.Instance.SetLed(GREEN, NONE);
-                CuePrimitives.Add(new BeatPattern(LargePatternList1));
-                CuePrimitives.Add(new BeatPattern(LargePatternList2));
+                CuePrimitives.Add(new BeatPattern(LargePatternList1, 4f));
+                CuePrimitives.Add(new BeatPattern(LargePatternList2, 4f));
             }
             else
             {
                 StageKitLightingController.Instance.SetLed(RED, NONE);
                 StageKitLightingController.Instance.SetLed(YELLOW, NONE);
-                CuePrimitives.Add(new BeatPattern(SmallPatternList1));
-                CuePrimitives.Add(new BeatPattern(SmallPatternList2));
+                CuePrimitives.Add(new BeatPattern(SmallPatternList1, 4f));
+                CuePrimitives.Add(new BeatPattern(SmallPatternList2, 4f));
             }
         }
     }
@@ -231,14 +231,14 @@ namespace YARG.Integration.StageKit
                 StageKitLightingController.Instance.SetLed(YELLOW, NONE);
                 StageKitLightingController.Instance.SetLed(BLUE, NONE);
                 StageKitLightingController.Instance.SetLed(GREEN, NONE);
-                CuePrimitives.Add(new BeatPattern(LargePatternList1));
+                CuePrimitives.Add(new BeatPattern(LargePatternList1, 4f));
             }
             else
             {
                 StageKitLightingController.Instance.SetLed(RED, NONE);
-                CuePrimitives.Add(new BeatPattern(SmallPatternList1));
-                CuePrimitives.Add(new BeatPattern(SmallPatternList2));
-                CuePrimitives.Add(new BeatPattern(SmallPatternList3, true, 2.0f));
+                CuePrimitives.Add(new BeatPattern(SmallPatternList1, 4f));
+                CuePrimitives.Add(new BeatPattern(SmallPatternList2, 4f));
+                CuePrimitives.Add(new BeatPattern(SmallPatternList3, 2f));
             }
         }
     }
@@ -302,17 +302,17 @@ namespace YARG.Integration.StageKit
             {
                 StageKitLightingController.Instance.SetLed(GREEN, NONE);
                 //4 times a beats to control on and off because of the 2 different patterns on one color
-                CuePrimitives.Add(new BeatPattern(LargePatternList1, true, 4.0f));
-                CuePrimitives.Add(new BeatPattern(LargePatternList2, true, 4.0f));
-                CuePrimitives.Add(new BeatPattern(LargePatternList3, true, 4.0f));
+                CuePrimitives.Add(new BeatPattern(LargePatternList1, 1f));
+                CuePrimitives.Add(new BeatPattern(LargePatternList2, 1f));
+                CuePrimitives.Add(new BeatPattern(LargePatternList3, 1f));
             }
             else
             {
                 StageKitLightingController.Instance.SetLed(YELLOW, NONE);
                 //4 times a beats to control on and off because of the 2 different patterns on one color
-                CuePrimitives.Add(new BeatPattern(SmallPatternList1, true, 4.0f));
-                CuePrimitives.Add(new BeatPattern(SmallPatternList2, true, 4.0f));
-                CuePrimitives.Add(new BeatPattern(SmallPatternList3, true, 4.0f));
+                CuePrimitives.Add(new BeatPattern(SmallPatternList1, 1f));
+                CuePrimitives.Add(new BeatPattern(SmallPatternList2, 1f));
+                CuePrimitives.Add(new BeatPattern(SmallPatternList3, 1f));
             }
         }
     }
@@ -373,14 +373,14 @@ namespace YARG.Integration.StageKit
             if (StageKitLightingController.Instance.LargeVenue)
             {
                 StageKitLightingController.Instance.SetLed(RED, NONE);
-                CuePrimitives.Add(new BeatPattern(LargePatternList1, true, 2.0f));
-                CuePrimitives.Add(new BeatPattern(LargePatternList2, true, 2.0f));
+                CuePrimitives.Add(new BeatPattern(LargePatternList1, 2f));
+                CuePrimitives.Add(new BeatPattern(LargePatternList2, 2f));
             }
             else
             {
                 StageKitLightingController.Instance.SetLed(BLUE, NONE);
-                CuePrimitives.Add(new BeatPattern(SmallPatternList1, true, 2.0f));
-                CuePrimitives.Add(new BeatPattern(SmallPatternList2, true, 2.0f));
+                CuePrimitives.Add(new BeatPattern(SmallPatternList1, 2f));
+                CuePrimitives.Add(new BeatPattern(SmallPatternList2, 2f));
             }
 
             StageKitLightingController.Instance.SetLed(GREEN, NONE);
@@ -538,8 +538,8 @@ namespace YARG.Integration.StageKit
         {
             StageKitLightingController.Instance.SetLed(GREEN, NONE);
             StageKitLightingController.Instance.SetLed(BLUE, NONE);
-            CuePrimitives.Add(new BeatPattern(PatternList1));
-            CuePrimitives.Add(new BeatPattern(PatternList2, true, 0.5f));
+            CuePrimitives.Add(new BeatPattern(PatternList1, 4f));
+            CuePrimitives.Add(new BeatPattern(PatternList2, 8f));
             // I thought it listens to the next but it doesn't seem to. I'll save this for funky fresh mode
             //new ListenPattern(new List<(int, byte)>(), StageKitLightingPrimitives.ListenTypes.Next);
         }
@@ -571,8 +571,8 @@ namespace YARG.Integration.StageKit
         {
             StageKitLightingController.Instance.SetLed(YELLOW, NONE);
             StageKitLightingController.Instance.SetLed(RED, NONE);
-            CuePrimitives.Add(new BeatPattern(PatternList1));
-            CuePrimitives.Add(new BeatPattern(PatternList2));
+            CuePrimitives.Add(new BeatPattern(PatternList1, 4f));
+            CuePrimitives.Add(new BeatPattern(PatternList2, 4f));
             //new ListenPattern(new List<(int, byte)>(), StageKitLightingPrimitives.ListenTypes.Next);
         }
     }
@@ -664,7 +664,7 @@ namespace YARG.Integration.StageKit
         {
             StageKitLightingController.Instance.SetLed(RED, NONE);
             CuePrimitives.Add(new ListenPattern(PatternList1, ListenTypes.MajorBeat | ListenTypes.MinorBeat));
-            _greenPattern = new BeatPattern(PatternList2, true, 2.0f);
+            _greenPattern = new BeatPattern(PatternList2, 2f);
             CuePrimitives.Add(_greenPattern);
             _greenIsSpinning = true;
             CuePrimitives.Add(new ListenPattern(new (int, byte)[] { (RED, ALL) }, ListenTypes.RedFretDrums, true));
@@ -678,12 +678,12 @@ namespace YARG.Integration.StageKit
             if (_blueOnTwo)
             {
                 CuePrimitives.Add(new BeatPattern(new (int, byte)[] { (BLUE, NONE), (BLUE, ZERO | TWO | FOUR | SIX) },
-                    false));
+                    4f, false));
                 _blueOnTwo = false;
             }
             else
             {
-                CuePrimitives.Add(new BeatPattern(new (int, byte)[] { (BLUE, NONE), (BLUE, TWO | SIX) }, false));
+                CuePrimitives.Add(new BeatPattern(new (int, byte)[] { (BLUE, NONE), (BLUE, TWO | SIX) }, 4f, false));
                 _blueOnTwo = true;
             }
         }
@@ -693,14 +693,14 @@ namespace YARG.Integration.StageKit
             if (StageKitLightingController.Instance.LargeVenue || eventName != BeatlineType.Measure) return;
             if (_greenIsSpinning)
             {
-                _gameManager.BeatEventManager.Unsubscribe(_greenPattern.OnBeat);
+                _gameManager.BeatEventHandler.Unsubscribe(_greenPattern.OnBeat);
                 StageKitLightingController.Instance.CurrentLightingCue.CuePrimitives.Remove(_greenPattern);
 
                 StageKitLightingController.Instance.SetLed(GREEN, ALL);
             }
             else
             {
-                _greenPattern = new BeatPattern(PatternList2, true, 2.0f);
+                _greenPattern = new BeatPattern(PatternList2, 2f);
                 CuePrimitives.Add(_greenPattern);
             }
 

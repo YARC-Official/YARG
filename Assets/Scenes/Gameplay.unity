@@ -1262,7 +1262,6 @@ GameObject:
   - component: {fileID: 318454372}
   - component: {fileID: 318454371}
   - component: {fileID: 318454374}
-  - component: {fileID: 318454375}
   - component: {fileID: 318454376}
   - component: {fileID: 318454373}
   - component: {fileID: 318454377}
@@ -1340,18 +1339,6 @@ MonoBehaviour:
   _pauseMenu: {fileID: 1323155442}
   _practiceHud: {fileID: 1316571463}
   _scoreDisplayObject: {fileID: 310620824}
---- !u!114 &318454375
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 318454370}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f3e2924007c5402abc038da7e0d3bb39, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &318454376
 MonoBehaviour:
   m_ObjectHideFlags: 0

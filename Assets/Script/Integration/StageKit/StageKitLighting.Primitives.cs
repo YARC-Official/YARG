@@ -15,14 +15,14 @@ namespace YARG.Integration.StageKit
         private readonly (int color, byte data)[] _patternList;
         private GameManager _gameManager;
 
-        public BeatPattern((int, byte)[] patternList, bool continuous = true, float timesPerBeat = 1.0f)
+        public BeatPattern((int, byte)[] patternList, float beatsPerCycle, bool continuous = true)
         {
             //Brought to you by Hacky Hack and the Hacktones
             _gameManager = Object.FindObjectOfType<GameManager>();
             _continuous = continuous;
             _patternList = patternList;
-            _gameManager.BeatEventManager.Subscribe(OnBeat,
-                new BeatEventManager.Info(1.0f / (timesPerBeat * _patternList.Length), 0f));
+
+            _gameManager.BeatEventHandler.Subscribe(OnBeat, new(beatsPerCycle / _patternList.Length));
         }
 
         public override void OnBeat()
@@ -35,7 +35,7 @@ namespace YARG.Integration.StageKit
             //they've run once otherwise they pile up.
             if (!_continuous && _patternIndex == _patternList.Length)
             {
-                _gameManager.BeatEventManager.Unsubscribe(OnBeat);
+                _gameManager.BeatEventHandler.Unsubscribe(OnBeat);
                 StageKitLightingController.Instance.CurrentLightingCue.CuePrimitives.Remove(this);
             }
 
