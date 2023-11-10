@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using YARG.Core.Input;
 using YARG.Helpers;
 using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
+using YARG.Menu.Persistent;
 using YARG.Replays;
 using YARG.Scores;
 
@@ -28,6 +30,12 @@ namespace YARG.Menu.History
 
         protected override int ExtraListViewPadding => 10;
 
+        [SerializeField]
+        private GameObject _exportReplayButton;
+        [SerializeField]
+        private GameObject _importReplayButton;
+
+        [Space]
         [SerializeField]
         private HeaderTabs _headerTabs;
 
@@ -110,11 +118,49 @@ namespace YARG.Menu.History
         {
             RequestViewListUpdate();
             SelectedIndex = 0;
+
+            // Show the correct button
+            _exportReplayButton.SetActive(tabId == HISTORY_TAB);
+            _importReplayButton.SetActive(tabId == IMPORTED_REPLAYS_TAB);
         }
 
         private void Back()
         {
             MenuManager.Instance.PopMenu();
+        }
+
+        public void ExportReplayButton()
+        {
+            if (CurrentSelection is not GameRecordViewType gameRecordViewType) return;
+
+            var name = gameRecordViewType.GameRecord.ReplayFileName;
+            var startPath = Path.Combine(ScoreContainer.ScoreReplayDirectory, name);
+
+            // Check to see if the replay exists
+            if (!File.Exists(startPath))
+            {
+                DialogManager.Instance.ShowMessage("Cannot Export Replay",
+                    "The replay for this song does not exist. It has probably been deleted.");
+                return;
+            }
+
+            // Ask the user for an ending location
+            FileExplorerHelper.OpenSaveFile(null, Path.GetFileNameWithoutExtension(name), "replay", path => {
+                // Delete the file if it already exists
+                if (File.Exists(path)) File.Delete(path);
+
+                // Move the file
+                File.Copy(startPath, path);
+            });
+        }
+
+        public void ImportReplayButton()
+        {
+            // Ask the user for the replay location
+            FileExplorerHelper.OpenChooseFile(null, "replay", path =>
+            {
+                // TODO
+            });
         }
 
         private void OnDisable()

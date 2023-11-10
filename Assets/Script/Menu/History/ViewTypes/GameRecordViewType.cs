@@ -17,12 +17,12 @@ namespace YARG.Menu.History
 
         public override bool UseFullContainer => true;
 
-        private readonly GameRecord _gameRecord;
+        public readonly GameRecord GameRecord;
         private readonly SongMetadata _songMetadata;
 
         public GameRecordViewType(GameRecord gameRecord)
         {
-            _gameRecord = gameRecord;
+            GameRecord = gameRecord;
 
             var songsByHash = GlobalVariables.Instance.SongContainer.SongsByHash;
             _songMetadata = songsByHash.GetValueOrDefault(new HashWrapper(gameRecord.SongChecksum))[0];
@@ -30,12 +30,12 @@ namespace YARG.Menu.History
 
         public override string GetPrimaryText(bool selected)
         {
-            return FormatAs(_gameRecord.SongName, TextType.Primary, selected);
+            return FormatAs(GameRecord.SongName, TextType.Primary, selected);
         }
 
         public override string GetSecondaryText(bool selected)
         {
-            return FormatAs(_gameRecord.SongArtist, TextType.Secondary, selected);
+            return FormatAs(GameRecord.SongArtist, TextType.Secondary, selected);
         }
 
         public override void ViewClick()
@@ -43,7 +43,7 @@ namespace YARG.Menu.History
             if (_songMetadata is null) return;
 
             // Get the replay path
-            var path = Path.Combine(ScoreContainer.ScoreReplayDirectory, _gameRecord.ReplayFileName);
+            var path = Path.Combine(ScoreContainer.ScoreReplayDirectory, GameRecord.ReplayFileName);
             if (!File.Exists(path))
             {
                 DialogManager.Instance.ShowMessage("Cannot Play Replay",
@@ -65,7 +65,7 @@ namespace YARG.Menu.History
             replayEntry.ReplayPath = path;
 
             // Compare hashes
-            var databaseHash = new HashWrapper(_gameRecord.ReplayChecksum);
+            var databaseHash = new HashWrapper(GameRecord.ReplayChecksum);
             if (!replayFile.Header.ReplayChecksum.Equals(databaseHash))
             {
                 DialogManager.Instance.ShowMessage("Cannot Play Replay",
@@ -93,8 +93,8 @@ namespace YARG.Menu.History
         {
             return new GameInfo
             {
-                BandScore = _gameRecord.BandScore,
-                BandStars = _gameRecord.BandStars
+                BandScore = GameRecord.BandScore,
+                BandStars = GameRecord.BandStars
             };
         }
     }
