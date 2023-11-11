@@ -7,7 +7,6 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Input;
@@ -24,6 +23,7 @@ using YARG.Menu.ScoreScreen;
 using YARG.Playback;
 using YARG.Player;
 using YARG.Replays;
+using YARG.Scores;
 using YARG.Settings;
 
 namespace YARG.Gameplay
@@ -668,15 +668,12 @@ namespace YARG.Gameplay
                 PracticeManager.ResetPractice();
                 return;
             }
-
-            if (!IsReplay)
-            {
-                _isReplaySaved = false;
-                SaveReplay(Song.SongLengthSeconds);
-            }
-
+            
             GlobalVariables.AudioManager.UnloadSong();
 
+            if (IsReplay) return;
+
+            // Pass the score info to the stats screen
             GlobalVariables.Instance.ScoreScreenStats = new ScoreScreenStats
             {
                 PlayerScores = _players.Select(player => new PlayerScoreCard
@@ -688,6 +685,57 @@ namespace YARG.Gameplay
                 BandStars = (int) BandStars
             };
 
+            _isReplaySaved = false;
+            var replayInfo = SaveReplay(Song.SongLengthSeconds);
+
+            // Get all of the individual player score entries
+            var playerEntries = new List<PlayerScoreRecord>();
+            foreach (var player in _players)
+            {
+                var profile = player.Player.Profile;
+
+                // Skip bots
+                if (player.Player.Profile.IsBot) continue;
+
+                playerEntries.Add(new PlayerScoreRecord
+                {
+                    PlayerId = profile.Id,
+
+                    Instrument = profile.CurrentInstrument,
+                    Difficulty = profile.CurrentDifficulty,
+
+                    Score = player.Score,
+                    Stars = StarAmountHelper.GetStarsFromInt(player.Stats.Stars),
+
+                    NotesHit = player.Stats.NotesHit,
+                    NotesMissed = player.Stats.NotesMissed,
+                    IsFc = player.IsFc
+                });
+            }
+
+            // Record the score into the database (if there's at least 1 non-bot player)
+            if (playerEntries.Count > 0)
+            {
+                ScoreContainer.RecordScore(new GameRecord
+                {
+                    Date = DateTime.Now,
+
+                    SongChecksum = Song.Hash.HashBytes,
+                    SongName = Song.Name,
+                    SongArtist = Song.Artist,
+                    SongCharter = Song.Charter,
+
+                    ReplayFileName = replayInfo?.Name,
+                    ReplayChecksum = replayInfo?.Hash.HashBytes,
+
+                    BandScore = BandScore,
+                    BandStars = StarAmountHelper.GetStarsFromInt((int) BandStars),
+
+                    SongSpeed = SelectedSongSpeed
+                }, playerEntries);
+            }
+
+            // Go to the score screen
             GlobalVariables.Instance.IsReplay = false;
             GlobalVariables.Instance.LoadScene(SceneIndex.Score);
         }
@@ -700,24 +748,33 @@ namespace YARG.Gameplay
             GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
         }
 
-        public void SaveReplay(double length)
+        public (string Name, HashWrapper Hash)? SaveReplay(double length)
         {
             var realPlayers = _players.Where(player => !player.Player.Profile.IsBot).ToList();
 
             if (_isReplaySaved || realPlayers.Count == 0)
             {
-                return;
+                return null;
             }
 
             var replay = ReplayContainer.CreateNewReplay(Song, realPlayers, length);
             var entry = ReplayContainer.CreateEntryFromReplayFile(new ReplayFile(replay));
 
-            entry.ReplayFile = entry.GetReplayName();
+            var name = entry.GetReplayName();
+            entry.ReplayPath = Path.Combine(ScoreContainer.ScoreReplayDirectory, name);
 
-            ReplayIO.WriteReplay(Path.Combine(ReplayContainer.ReplayDirectory, entry.ReplayFile), replay);
+            var hash = ReplayIO.WriteReplay(entry.ReplayPath, replay);
 
             Debug.Log("Wrote replay");
             _isReplaySaved = true;
+
+            // If the hash could not be retrieved, return null
+            if (hash == null)
+            {
+                return null;
+            }
+
+            return (name, hash.Value);
         }
 
         private void OnAudioEnd()

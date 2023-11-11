@@ -109,7 +109,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 64
+        y: 192
         width: 64
         height: 64
       alignment: 0
@@ -130,7 +130,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 64
-        y: 64
+        y: 192
         width: 64
         height: 64
       alignment: 0
@@ -151,7 +151,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 128
-        y: 64
+        y: 192
         width: 64
         height: 64
       alignment: 0
@@ -172,7 +172,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 192
-        y: 64
+        y: 192
         width: 64
         height: 64
       alignment: 0
@@ -193,7 +193,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
+        y: 128
         width: 64
         height: 64
       alignment: 0
@@ -214,7 +214,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 64
-        y: 0
+        y: 128
         width: 64
         height: 64
       alignment: 0
@@ -235,7 +235,28 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 128
-        y: 0
+        y: 128
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 171cb75d04f00b14fb9c0d3d2d177f71
+      internalID: 1860848380
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: History
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 128
         width: 64
         height: 64
       alignment: 0
@@ -245,8 +266,29 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 171cb75d04f00b14fb9c0d3d2d177f71
-      internalID: 1860848380
+      spriteID: efea3a2301674554c8ff52b21ed9699f
+      internalID: -1967022677
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Import
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 64
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 68f9807d08c5ce54eb3484f5cd7c8ed0
+      internalID: -345837708
       vertices: []
       indices: 
       edges: []
@@ -267,6 +309,8 @@ TextureImporter:
       Display: -2102064641
       Engine: -1055201595
       Generic: 948285804
+      History: -1967022677
+      Import: -345837708
       Songs: -1793394884
       Sound: -812806453
   spritePackingTag: 

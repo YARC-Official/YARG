@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Chart;
@@ -18,67 +19,60 @@ namespace YARG.Menu.MusicLibrary
     {
         [SerializeField]
         private Transform _difficultyRingsTopContainer;
-
         [SerializeField]
         private Transform _difficultyRingsBottomContainer;
 
         [SerializeField]
         private TextMeshProUGUI _album;
-
         [SerializeField]
         private TextMeshProUGUI _source;
-
         [SerializeField]
         private TextMeshProUGUI _charter;
-
         [SerializeField]
         private TextMeshProUGUI _genre;
-
         [SerializeField]
         private TextMeshProUGUI _year;
-
         [SerializeField]
         private TextMeshProUGUI _length;
-
         [SerializeField]
         private RawImage _albumCover;
 
+        [FormerlySerializedAs("difficultyRingPrefab")]
         [Space]
         [SerializeField]
-        private GameObject difficultyRingPrefab;
+        private GameObject _difficultyRingPrefab;
 
         private readonly List<DifficultyRing> _difficultyRings = new();
         private CancellationTokenSource _cancellationToken;
         private ViewType _currentView;
 
-        public void Init()
+        private MusicLibraryMenu _musicLibraryMenu;
+
+        public void Initialize(MusicLibraryMenu musicLibraryMenu)
         {
-            // Spawn 10 difficulty rings
-            // for (int i = 0; i < 10; i++) {
-            // 	var go = Instantiate(difficultyRingPrefab, _difficultyRingsContainer);
-            // 	difficultyRings.Add(go.GetComponent<DifficultyRing>());
-            // }
+            _musicLibraryMenu = musicLibraryMenu;
+
             for (int i = 0; i < 5; ++i)
             {
-                var go = Instantiate(difficultyRingPrefab, _difficultyRingsTopContainer);
+                var go = Instantiate(_difficultyRingPrefab, _difficultyRingsTopContainer);
                 _difficultyRings.Add(go.GetComponent<DifficultyRing>());
             }
 
             for (int i = 0; i < 5; ++i)
             {
-                var go = Instantiate(difficultyRingPrefab, _difficultyRingsBottomContainer);
+                var go = Instantiate(_difficultyRingPrefab, _difficultyRingsBottomContainer);
                 _difficultyRings.Add(go.GetComponent<DifficultyRing>());
             }
         }
 
         public void UpdateSidebar()
         {
-            if (MusicLibraryMenu.Instance.ViewList.Count <= 0)
+            if (_musicLibraryMenu.ViewList.Count <= 0)
             {
                 return;
             }
 
-            var viewType = MusicLibraryMenu.Instance.CurrentSelection;
+            var viewType = _musicLibraryMenu.CurrentSelection;
             if (_currentView != null && _currentView == viewType)
                 return;
 
@@ -231,11 +225,9 @@ namespace YARG.Menu.MusicLibrary
 
         public async void LoadAlbumCover()
         {
-            var viewType = MusicLibraryMenu.Instance.ViewList[MusicLibraryMenu.Instance.SelectedIndex];
-            if (viewType is not SongViewType songViewType)
-            {
-                return;
-            }
+            var viewType = _musicLibraryMenu.CurrentSelection;
+
+            if (viewType is not SongViewType songViewType) return;
 
             var originalTexture = _albumCover.texture;
 
@@ -251,13 +243,13 @@ namespace YARG.Menu.MusicLibrary
 
         public void PrimaryButtonClick()
         {
-            var viewType = MusicLibraryMenu.Instance.ViewList[MusicLibraryMenu.Instance.SelectedIndex];
-            viewType.PrimaryButtonClick();
+            _musicLibraryMenu.CurrentSelection.PrimaryButtonClick();
         }
 
         public void SearchFilter(string type)
         {
-            var viewType = MusicLibraryMenu.Instance.ViewList[MusicLibraryMenu.Instance.SelectedIndex];
+            var viewType = _musicLibraryMenu.CurrentSelection;
+
             if (viewType is not SongViewType songViewType)
             {
                 return;
@@ -274,7 +266,8 @@ namespace YARG.Menu.MusicLibrary
                 "genre"   => songEntry.Genre,
                 _         => throw new Exception("Unreachable")
             };
-            MusicLibraryMenu.Instance.SetSearchInput($"{type}:{value}");
+
+            _musicLibraryMenu.SetSearchInput($"{type}:{value}");
         }
     }
 }

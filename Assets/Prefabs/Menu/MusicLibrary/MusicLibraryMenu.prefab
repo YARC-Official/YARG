@@ -925,13 +925,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06c7227a8e2dd1f46a66eea1291d775b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _songViewPrefab: {fileID: 6846856529861592903, guid: 2ac99c03b5c92274d8dc4785c6cbf879,
+  _viewObjectPrefab: {fileID: 6622513572522471069, guid: 2ac99c03b5c92274d8dc4785c6cbf879,
     type: 3}
+  _viewObjectParent: {fileID: 4030813026311060847}
+  _scrollbar: {fileID: 4671384087136440526}
   _searchField: {fileID: 4030813025972567531}
   _subHeader: {fileID: 2557806454790739688}
-  _songListContent: {fileID: 4030813026311060847}
   _sidebar: {fileID: 5958352451011471034}
-  _scrollbar: {fileID: 4671384087136440526}
   _noPlayerWarning: {fileID: 3731235360306283306}
   _popupMenu: {fileID: 6261760643625431320}
 --- !u!1 &4030813025972567529
@@ -3821,7 +3821,7 @@ MonoBehaviour:
   _year: {fileID: 5958352450657585489}
   _length: {fileID: 5958352451919470019}
   _albumCover: {fileID: 5958352450542003448}
-  difficultyRingPrefab: {fileID: 397774209812536635, guid: 53438a07c6e5ec5409d5bde8514761ca,
+  _difficultyRingPrefab: {fileID: 397774209812536635, guid: 53438a07c6e5ec5409d5bde8514761ca,
     type: 3}
 --- !u!114 &5958352451011471035
 MonoBehaviour:

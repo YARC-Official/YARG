@@ -129,6 +129,9 @@ resharper_max_initializer_elements_on_line = 1
 resharper_outdent_statement_labels = true
 resharper_wrap_array_initializer_style = chop_always
 
+# ReSharper inspection severities
+resharper_arrange_attributes_highlighting = none
+
 [{*.har,*.jsb2,*.jsb3,*.json,.babelrc,.eslintrc,.stylelintrc,bowerrc,jest.config}]
 indent_style = tab
 tab_width = 4

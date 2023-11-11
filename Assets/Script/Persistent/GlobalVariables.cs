@@ -17,6 +17,7 @@ using YARG.Menu.ScoreScreen;
 using YARG.Menu.Settings;
 using YARG.Player;
 using YARG.Replays;
+using YARG.Scores;
 using YARG.Settings;
 using YARG.Settings.Customization;
 using YARG.Song;
@@ -66,6 +67,7 @@ namespace YARG
 
             PathHelper.Init();
             ReplayContainer.Init();
+            ScoreContainer.Init();
             CustomContentManager.Init();
 
             int profileCount = PlayerContainer.LoadProfiles();
@@ -90,6 +92,7 @@ namespace YARG
             CustomContentManager.SaveAll();
 
             ReplayContainer.Destroy();
+            ScoreContainer.Destroy();
             InputManager.Destroy();
             PlayerContainer.Destroy();
         }

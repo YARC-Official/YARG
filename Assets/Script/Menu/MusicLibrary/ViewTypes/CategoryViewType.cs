@@ -29,7 +29,8 @@ namespace YARG.Menu.MusicLibrary
             GenreCountText = $"{CountOf(songsUnderCategory, i => i.Genre)} genres";
         }
 
-        public CategoryViewType(string primary, int songCount, IReadOnlyDictionary<string, List<SongMetadata>> songsUnderCategory)
+        public CategoryViewType(string primary, int songCount,
+            IReadOnlyDictionary<string, List<SongMetadata>> songsUnderCategory)
         {
             _primary = primary;
             _songCount = songCount;
@@ -70,7 +71,7 @@ namespace YARG.Menu.MusicLibrary
             return $"{count} {songs}";
         }
 
-        private int CountOf(IEnumerable<SongMetadata> songs, Func<SongMetadata, SortString> selector)
+        private static int CountOf(IEnumerable<SongMetadata> songs, Func<SongMetadata, SortString> selector)
         {
             return songs.Select(selector).Distinct().Count();
         }

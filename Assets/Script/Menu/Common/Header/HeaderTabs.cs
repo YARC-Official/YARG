@@ -45,13 +45,13 @@ namespace YARG.Menu
             }
         }
 
-        public NavigationScheme.Entry NavigateNextTab => new(MenuAction.Right, "Next Tab", (ctx) =>
+        public NavigationScheme.Entry NavigateNextTab => new(MenuAction.Right, "Next Tab", () =>
         {
-            _navigationGroup.SelectNext(ctx);
+            _navigationGroup.SelectNext();
         });
-        public NavigationScheme.Entry NavigatePreviousTab => new(MenuAction.Left, "Previous Tab", (ctx) =>
+        public NavigationScheme.Entry NavigatePreviousTab => new(MenuAction.Left, "Previous Tab", () =>
         {
-            _navigationGroup.SelectPrevious(ctx);
+            _navigationGroup.SelectPrevious();
         });
 
         public event Action<string> TabChanged;

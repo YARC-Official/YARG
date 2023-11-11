@@ -71,8 +71,8 @@ MonoBehaviour:
 
     Done reading? Hit the Close button!'
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 371b385e4458fd048a9d80ad57e52d5e, type: 2}
-  m_sharedMaterial: {fileID: 8841979465003942708, guid: 371b385e4458fd048a9d80ad57e52d5e,
+  m_fontAsset: {fileID: 11400000, guid: ae170e91fd29a90479e906ddffb1d8ee, type: 2}
+  m_sharedMaterial: {fileID: -5480317595949376055, guid: ae170e91fd29a90479e906ddffb1d8ee,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}

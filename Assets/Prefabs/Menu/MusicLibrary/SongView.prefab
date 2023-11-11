@@ -1463,14 +1463,15 @@ MonoBehaviour:
   _normalBackground: {fileID: 4505452236614856762}
   _selectedBackground: {fileID: 8586479606034422330}
   _categoryBackground: {fileID: 4807421719434892723}
-  _secondaryTextContainer: {fileID: 4454172983210282838}
-  _asMadeFamousByTextContainer: {fileID: 4077849129334942994}
-  _primaryText: {fileID: 6846856528720448031}
+  _icon: {fileID: 91003172277932724}
+  _primaryText:
+  - {fileID: 6846856528720448031}
   _secondaryText:
   - {fileID: 7006697502306556741}
   - {fileID: 4112440239128382420}
   _sideText: {fileID: 1200385484507932754}
-  _icon: {fileID: 91003172277932724}
+  _secondaryTextContainer: {fileID: 4454172983210282838}
+  _asMadeFamousByTextContainer: {fileID: 4077849129334942994}
 --- !u!225 &215129106566158253
 CanvasGroup:
   m_ObjectHideFlags: 0

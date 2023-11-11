@@ -6,10 +6,10 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 using YARG.Audio;
 using YARG.Core.Input;
 using YARG.Core.Song;
+using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
 using YARG.Player;
 using YARG.Settings;
@@ -25,12 +25,8 @@ namespace YARG.Menu.MusicLibrary
         Practice
     }
 
-    // TODO: Eventually make this NOT a singleton
-    public class MusicLibraryMenu : MonoSingleton<MusicLibraryMenu>
+    public class MusicLibraryMenu : ListMenu<ViewType, SongView>
     {
-        private const int SONG_VIEW_EXTRA = 15;
-        private const float SCROLL_TIME = 1f / 60f;
-
         public static MusicLibraryMode LibraryMode;
 
         public static SongAttribute Sort { get; private set; } = SongAttribute.Name;
@@ -38,27 +34,20 @@ namespace YARG.Menu.MusicLibrary
         private static string _currentSearch = string.Empty;
         private static int _savedIndex;
 
-        [SerializeField]
-        private GameObject _songViewPrefab;
-
         [Space]
         [SerializeField]
         private TMP_InputField _searchField;
         [SerializeField]
         private TextMeshProUGUI _subHeader;
         [SerializeField]
-        private Transform _songListContent;
-        [SerializeField]
         private Sidebar _sidebar;
-        [SerializeField]
-        private Scrollbar _scrollbar;
         [SerializeField]
         private GameObject _noPlayerWarning;
         [SerializeField]
         private PopupMenu _popupMenu;
 
-        private List<ViewType> _viewList;
-        private List<SongView> _songViewObjects;
+        protected override int ExtraListViewPadding => 15;
+        protected override bool CanScroll => !_popupMenu.gameObject.activeSelf;
 
         private readonly SongSearching _searchContext = new();
         private IReadOnlyDictionary<string, List<SongMetadata>> _sortedSongs;
@@ -67,77 +56,17 @@ namespace YARG.Menu.MusicLibrary
         private PreviewContext _previewContext;
         private CancellationTokenSource _previewCanceller = new();
 
-        public IReadOnlyList<ViewType> ViewList => _viewList;
-        public ViewType CurrentSelection => (0 <= _selectedIndex && _selectedIndex < _viewList?.Count)
-            ? _viewList[_selectedIndex]
-            : null;
-
         private SongMetadata _currentSong;
-
-        private int _selectedIndex;
-
-        public int SelectedIndex
-        {
-            get => _selectedIndex;
-            set
-            {
-                // Properly wrap the value
-                if (value < 0)
-                {
-                    _selectedIndex = _viewList.Count - 1;
-                }
-                else if (value >= _viewList.Count)
-                {
-                    _selectedIndex = 0;
-                }
-                else
-                {
-                    _selectedIndex = value;
-                }
-
-                UpdateScrollbar();
-                UpdateSongViews();
-
-                if (CurrentSelection is not SongViewType song)
-                {
-                    return;
-                }
-
-                if (song.SongMetadata == _currentSong)
-                {
-                    return;
-                }
-
-                _currentSong = song.SongMetadata;
-
-                if (!_previewCanceller.IsCancellationRequested)
-                {
-                    _previewCanceller.Cancel();
-                }
-            }
-        }
-
-        private float _scrollTimer;
 
         private bool _searchNavPushed;
         private bool _wasSearchFieldFocused;
 
-        protected override void SingletonAwake()
+        protected override void Awake()
         {
-            // Create all of the song views
-            _songViewObjects = new();
-            for (int i = 0; i < SONG_VIEW_EXTRA * 2 + 1; i++)
-            {
-                var gameObject = Instantiate(_songViewPrefab, _songListContent);
-
-                // Init and add
-                var songView = gameObject.GetComponent<SongView>();
-                songView.Init(i - SONG_VIEW_EXTRA);
-                _songViewObjects.Add(songView);
-            }
+            base.Awake();
 
             // Initialize sidebar
-            _sidebar.Init();
+            _sidebar.Initialize(this);
         }
 
         private void OnEnable()
@@ -148,17 +77,21 @@ namespace YARG.Menu.MusicLibrary
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
-                new NavigationScheme.Entry(MenuAction.Up, "Up", ScrollUp),
-                new NavigationScheme.Entry(MenuAction.Down, "Down", ScrollDown),
-                new NavigationScheme.Entry(MenuAction.Green, "Confirm", Confirm),
+                new NavigationScheme.Entry(MenuAction.Up, "Up",
+                    () => SelectedIndex++),
+                new NavigationScheme.Entry(MenuAction.Down, "Down",
+                    () => SelectedIndex--),
+                new NavigationScheme.Entry(MenuAction.Green, "Confirm",
+                    () => CurrentSelection?.PrimaryButtonClick()),
+
                 new NavigationScheme.Entry(MenuAction.Red, "Back", Back),
-                new NavigationScheme.Entry(MenuAction.Orange, "More Options", ShowPopupMenu),
+                new NavigationScheme.Entry(MenuAction.Orange, "More Options",
+                    () => _popupMenu.gameObject.SetActive(true)),
             }, false));
 
             // Restore search
             _searchField.text = _currentSearch;
 
-            _viewList = null;
             _recommendedSongs = null;
 
             // Get songs
@@ -182,34 +115,133 @@ namespace YARG.Menu.MusicLibrary
             _noPlayerWarning.SetActive(PlayerContainer.Players.Count <= 0);
         }
 
-        private void OnDisable()
+        protected override void OnSelectedIndexChanged()
         {
-            _savedIndex = _selectedIndex;
+            base.OnSelectedIndexChanged();
 
-            Navigator.Instance.PopScheme();
+            _sidebar.UpdateSidebar();
 
-            // Make sure to also pop the search nav if that was pushed
-            if (_searchNavPushed)
+            if (CurrentSelection is SongViewType song)
             {
-                Navigator.Instance.PopScheme();
-                _searchNavPushed = false;
-            }
+                if (song.SongMetadata == _currentSong)
+                {
+                    return;
+                }
 
-            if (!_previewCanceller.IsCancellationRequested)
+                _currentSong = song.SongMetadata;
+
+                // Make sure to cancel the preview
+                if (!_previewCanceller.IsCancellationRequested)
+                {
+                    _previewCanceller.Cancel();
+                }
+            }
+            else
             {
-                _previewCanceller.Cancel();
+                _currentSong = null;
             }
-
-            _previewContext = null;
         }
 
-        private void Update()
+        protected override List<ViewType> CreateViewList()
         {
-            UpdateScroll();
+            var list = new List<ViewType>();
+
+            // Return if there are no songs (or they haven't loaded yet)
+            if (_sortedSongs is null || GlobalVariables.Instance.SongContainer.Songs.Count <= 0) return list;
+
+            // Get the number of songs
+            int count = _sortedSongs.Sum(section => section.Value.Count);
+
+            // Return if there are no songs that match the search criteria
+            if (count == 0) return list;
+
+            SetRecommendedSongs();
+
+            // Foreach section in the sorted songs...
+            foreach (var section in _sortedSongs)
+            {
+                // Create header
+                list.Add(new SortHeaderViewType(section.Key, section.Value.Count));
+
+                // Add all of the songs
+                list.AddRange(section.Value.Select(song => new SongViewType(this, song)));
+            }
+
+            if (!string.IsNullOrEmpty(_currentSearch))
+            {
+                // If the current search is NOT empty...
+
+                // Create the category
+                var categoryView = new CategoryViewType("SEARCH RESULTS", count, _sortedSongs);
+
+                if (_sortedSongs.Count == 1)
+                {
+                    // If there is only one header, just replace it
+                    list[0] = categoryView;
+                }
+                else
+                {
+                    // Otherwise add to the very top
+                    list.Insert(0, categoryView);
+                }
+            }
+            else
+            {
+                var songContainer = GlobalVariables.Instance.SongContainer;
+
+                // Add "ALL SONGS" header right above the songs
+                list.Insert(0,
+                    new CategoryViewType("ALL SONGS", songContainer.Count, songContainer.Songs));
+
+                // Add the recommended songs right above the "ALL SONGS" header
+                list.InsertRange(0, _recommendedSongs.Select(i => new SongViewType(this, i)));
+                list.Insert(0, new CategoryViewType(
+                    _recommendedSongs.Count == 1 ? "RECOMMENDED SONG" : "RECOMMENDED SONGS",
+                    _recommendedSongs.Count, _recommendedSongs
+                ));
+
+                // Add the buttons
+                list.Insert(0, new ButtonViewType("RANDOM SONG", "Icon/Random", SelectRandomSong));
+            }
+
+            return list;
+        }
+
+        private void SetRecommendedSongs()
+        {
+            if (_recommendedSongs != null) return;
+
+            if (GlobalVariables.Instance.SongContainer.Songs.Count > 0)
+            {
+                _recommendedSongs = RecommendedSongs.GetRecommendedSongs();
+            }
+            else
+            {
+                _recommendedSongs = new();
+            }
+        }
+
+        private void UpdateSearch(bool force)
+        {
+            if (!force && _currentSearch == _searchField.text) return;
+
+            SetRecommendedSongs();
+
+            _currentSearch = _searchField.text;
+            _sortedSongs = _searchContext.Search(_currentSearch, Sort);
+
+            RequestViewListUpdate();
+
+            SetIndexTo(i => i is SongViewType);
+        }
+
+        protected override void Update()
+        {
+            base.Update();
 
             if (Keyboard.current.escapeKey.wasPressedThisFrame)
             {
-                ClearSearchBox();
+                _searchField.text = string.Empty;
             }
 
             StartPreview();
@@ -238,276 +270,41 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
+        private void StartPreview()
+        {
+            if (_previewContext.IsPlaying || CurrentSelection is not SongViewType song) return;
+
+            _previewCanceller = new();
+            float previewVolume = SettingsManager.Settings.PreviewVolume.Data;
+            _previewContext.PlayPreview(song.SongMetadata, previewVolume, _previewCanceller.Token).Forget();
+        }
+
+        private void OnDisable()
+        {
+            // Save index
+            _savedIndex = SelectedIndex;
+
+            Navigator.Instance.PopScheme();
+
+            // Make sure to also pop the search nav if that was pushed
+            if (_searchNavPushed)
+            {
+                Navigator.Instance.PopScheme();
+                _searchNavPushed = false;
+            }
+
+            // Cancel the preview
+            if (!_previewCanceller.IsCancellationRequested)
+            {
+                _previewCanceller.Cancel();
+            }
+
+            _previewContext = null;
+        }
+
         public void SetSearchInput(string query)
         {
             _searchField.text = query;
-        }
-
-        private void ShowPopupMenu()
-        {
-            _popupMenu.gameObject.SetActive(true);
-        }
-
-        private void ScrollUp()
-        {
-            if (Navigator.Instance.IsHeld(MenuAction.Orange))
-            {
-                SelectPreviousSection();
-                return;
-            }
-
-            SelectedIndex--;
-        }
-
-        private void ScrollDown()
-        {
-            if (Navigator.Instance.IsHeld(MenuAction.Orange))
-            {
-                SelectNextSection();
-                return;
-            }
-
-            SelectedIndex++;
-        }
-
-        private void UpdateSongViews()
-        {
-            foreach (var songView in _songViewObjects)
-            {
-                songView.UpdateView();
-            }
-
-            _sidebar.UpdateSidebar();
-        }
-
-        private void UpdateScroll()
-        {
-            // Don't scroll if the popup is open
-            if (_popupMenu.gameObject.activeSelf) return;
-
-            if (_scrollTimer > 0f)
-            {
-                _scrollTimer -= Time.deltaTime;
-                return;
-            }
-
-            var delta = Mouse.current.scroll.ReadValue().y * Time.deltaTime;
-
-            if (delta > 0f)
-            {
-                SelectedIndex--;
-                _scrollTimer = SCROLL_TIME;
-                return;
-            }
-
-            if (delta < 0f)
-            {
-                SelectedIndex++;
-                _scrollTimer = SCROLL_TIME;
-            }
-        }
-
-        private void StartPreview()
-        {
-            if (!_previewContext.IsPlaying && CurrentSelection is SongViewType song)
-            {
-                _previewCanceller = new();
-                float previewVolume = SettingsManager.Settings.PreviewVolume.Data;
-                _previewContext.PlayPreview(song.SongMetadata, previewVolume, _previewCanceller.Token).Forget();
-            }
-        }
-
-        public void OnScrollBarChange()
-        {
-            SelectedIndex = Mathf.FloorToInt(_scrollbar.value * (_viewList.Count - 1));
-        }
-
-        private void UpdateScrollbar()
-        {
-            _scrollbar.SetValueWithoutNotify((float) SelectedIndex / _viewList.Count);
-        }
-
-        public void UpdateSearch(bool force)
-        {
-            if (!force && _currentSearch == _searchField.text)
-                return;
-
-            SetRecommendedSongs();
-
-            _currentSearch = _searchField.text;
-            _sortedSongs = _searchContext.Search(_currentSearch, Sort);
-
-            AddSongs();
-
-            if (!string.IsNullOrEmpty(_currentSearch))
-            {
-                // Create the category
-                int count = 0;
-                foreach (var section in _sortedSongs)
-                    count += section.Value.Count;
-
-                var categoryView = new CategoryViewType(
-                    "SEARCH RESULTS",
-                    count, _sortedSongs
-                );
-
-                if (_sortedSongs.Count == 1)
-                {
-                    // If there is only one header, just replace it
-                    _viewList[0] = categoryView;
-                }
-                else
-                {
-                    // Otherwise add to top
-                    _viewList.Insert(0, categoryView);
-                }
-            }
-            else if (GlobalVariables.Instance.SongContainer.Count > 0)
-            {
-                AddSongsCount();
-                AddAllRecommendedSongs();
-                AddRecommendSongsHeader();
-                AddRandomSongHeader();
-                ClearIfNoSongs();
-            }
-            else
-            {
-                _viewList.Clear();
-                UpdateSongViews();
-                return;
-            }
-
-            SetSelectedIndex();
-            // These are both called by the above:
-            // UpdateSongViews();
-            // UpdateScrollbar();
-        }
-
-        private void AddSongs()
-        {
-            _viewList = new();
-
-            foreach (var section in _sortedSongs)
-            {
-                // Create header
-                _viewList.Add(new SortHeaderViewType(section.Key, section.Value.Count));
-
-                // Add all of the songs
-                foreach (var song in section.Value)
-                {
-                    _viewList.Add(new SongViewType(song));
-                }
-            }
-        }
-
-        private void SetRecommendedSongs()
-        {
-            if (_recommendedSongs != null)
-            {
-                return;
-            }
-
-            _recommendedSongs = new();
-
-            if (GlobalVariables.Instance.SongContainer.Songs.Count > 0)
-            {
-                FillRecommendedSongs();
-            }
-        }
-
-        private void AddSongsCount()
-        {
-            var count = GlobalVariables.Instance.SongContainer.Count;
-
-            _viewList.Insert(0, new CategoryViewType(
-                "ALL SONGS",
-                count, GlobalVariables.Instance.SongContainer.Songs
-            ));
-        }
-
-        private void AddAllRecommendedSongs()
-        {
-            foreach (var song in _recommendedSongs)
-            {
-                _viewList.Insert(0, new SongViewType(song));
-            }
-        }
-
-        private void AddRecommendSongsHeader()
-        {
-            _viewList.Insert(0, new CategoryViewType(
-                _recommendedSongs.Count == 1 ? "RECOMMENDED SONG" : "RECOMMENDED SONGS",
-                _recommendedSongs.Count, _recommendedSongs
-            ));
-        }
-
-        private void AddRandomSongHeader()
-        {
-            _viewList.Insert(0, new ButtonViewType(
-                "RANDOM SONG",
-                "Icon/Random",
-                SelectRandomSong
-            ));
-        }
-
-        private void ClearIfNoSongs()
-        {
-            // Count songs
-            int songCount = _viewList.OfType<SongViewType>().Count();
-
-            // If there are no songs, remove the headers
-            if (songCount <= 0)
-            {
-                _viewList.Clear();
-            }
-        }
-
-        private void SetSelectedIndex()
-        {
-            if (_currentSong != null)
-            {
-                int index = GetIndexOfSelectedSong();
-                if (index >= 0)
-                {
-                    SelectedIndex = Mathf.Max(1, index);
-                    return;
-                }
-
-                _currentSong = null;
-            }
-
-            if (!string.IsNullOrEmpty(_searchField.text))
-            {
-                SelectedIndex = 1;
-                return;
-            }
-
-            SelectedIndex = 2;
-        }
-
-        private int GetIndexOfSelectedSong()
-        {
-            var selectedSong = _currentSong;
-
-            // Get the first index after the recommended songs
-            int startOfSongs = _viewList.FindIndex(i => i is SortHeaderViewType or CategoryViewType);
-            if (startOfSongs < 0)
-                return -1;
-
-            int songIndex = _viewList.FindIndex(startOfSongs,
-                song => song is SongViewType songType && songType.SongMetadata == selectedSong);
-
-            return songIndex;
-        }
-
-        private void FillRecommendedSongs()
-        {
-            _recommendedSongs = RecommendedSongs.GetRecommendedSongs();
-        }
-
-        private void Confirm()
-        {
-            CurrentSelection?.PrimaryButtonClick();
         }
 
         private void Back()
@@ -516,7 +313,7 @@ namespace YARG.Menu.MusicLibrary
 
             if (searchBoxHasContent)
             {
-                ClearSearchBox();
+                _searchField.text = string.Empty;
                 UpdateSearch(true);
                 return;
             }
@@ -524,56 +321,25 @@ namespace YARG.Menu.MusicLibrary
             MenuManager.Instance.PopMenu();
         }
 
-        private void ClearSearchBox()
-        {
-            _searchField.text = "";
-        }
-
         public void SelectRandomSong()
         {
-            int skip = GetSkip();
+            if (!ViewList.Any(i => i is SongViewType)) return;
 
-            // Select random between all of the songs
-            SelectedIndex = Random.Range(skip, GlobalVariables.Instance.SongContainer.Songs.Count);
-        }
-
-        public void SelectPreviousSection()
-        {
-            SelectedIndex = _viewList.FindLastIndex(SelectedIndex - 1, i => i is SortHeaderViewType);
-
-            // Wrap back around
-            if (SelectedIndex == _viewList.Count - 1)
+            do
             {
-                SelectedIndex = _viewList.FindLastIndex(i => i is SortHeaderViewType);
-            }
-        }
-
-        public void SelectNextSection()
-        {
-            SelectedIndex = _viewList.FindIndex(SelectedIndex + 1, i => i is SortHeaderViewType);
-
-            // Wrap back around to recommended
-            if (SelectedIndex == _viewList.Count - 1)
-            {
-                SelectedIndex = _viewList.FindIndex(i => i is SortHeaderViewType);
-            }
-        }
-
-        public (ViewType, int)[] GetSections()
-        {
-            return _viewList.Select((v, i) => (v, i)).Where(i => i.v is SortHeaderViewType).ToArray();
-        }
-
-        private int GetSkip()
-        {
-            // Get how many non-song things there are
-            return Mathf.Max(1, _viewList.Count - GlobalVariables.Instance.SongContainer.Songs.Count);
+                SelectedIndex = Random.Range(0, ViewList.Count);
+            } while (CurrentSelection is not SongViewType);
         }
 
         public void ChangeSort(SongAttribute sort)
         {
             Sort = sort;
             UpdateSearch(true);
+        }
+
+        public IEnumerable<(ViewType, int)> GetSections()
+        {
+            return ViewList.Select((v, i) => (v, i)).Where(i => i.v is SortHeaderViewType);
         }
     }
 }

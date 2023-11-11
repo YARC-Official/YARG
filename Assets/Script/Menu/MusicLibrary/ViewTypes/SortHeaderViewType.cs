@@ -44,10 +44,5 @@ namespace YARG.Menu.MusicLibrary
         {
             return await Addressables.LoadAssetAsync<Sprite>("Icon/ChevronDown").ToUniTask();
         }
-
-        public override void PrimaryButtonClick()
-        {
-            MusicLibraryMenu.Instance.SelectNextSection();
-        }
     }
 }

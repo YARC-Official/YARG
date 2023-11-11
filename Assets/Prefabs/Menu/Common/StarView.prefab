@@ -287,6 +287,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4099137989180180775}
   - component: {fileID: 2470621721023489253}
+  - component: {fileID: 3220874986088491211}
   m_Layer: 5
   m_Name: StarView
   m_TagString: Untagged
@@ -337,6 +338,26 @@ MonoBehaviour:
   - {fileID: 6828230745819142294}
   - {fileID: 7084489133450873947}
   - {fileID: 1562006806897587291}
+--- !u!114 &3220874986088491211
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6897579188400701165}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: -1
+  m_PreferredWidth: 245
+  m_PreferredHeight: -1
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &7755540406220416102
 GameObject:
   m_ObjectHideFlags: 0
