@@ -1,5 +1,5 @@
-﻿using YARG.Menu.ListMenu;
-using YARG.Scores;
+﻿using YARG.Core.Game;
+using YARG.Menu.ListMenu;
 
 namespace YARG.Menu.History
 {

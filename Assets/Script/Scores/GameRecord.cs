@@ -1,5 +1,6 @@
 ﻿using System;
 using SQLite;
+using YARG.Core.Game;
 
 namespace YARG.Scores
 {

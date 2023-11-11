@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.UI;
-using YARG.Scores;
+using YARG.Core.Game;
 
 namespace YARG.Menu
 {
