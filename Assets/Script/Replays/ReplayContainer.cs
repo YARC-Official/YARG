@@ -364,6 +364,8 @@ namespace YARG.Replays
             frame.Inputs = player.ReplayInputs.ToArray();
             frame.InputCount = player.ReplayInputs.Count;
 
+            frame.EventLog = player.BaseEngine.EventLogger;
+
             return frame;
         }
     }
