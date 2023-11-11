@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using YARG.Core.Input;
+using YARG.Core.Replays;
 using YARG.Helpers;
 using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
@@ -159,7 +160,52 @@ namespace YARG.Menu.History
             // Ask the user for the replay location
             FileExplorerHelper.OpenChooseFile(null, "replay", path =>
             {
-                // TODO
+                // We need to check if the replay is valid before importing it
+                ReplayFile replayFile;
+                try
+                {
+                    var result = ReplayIO.ReadReplay(path, out replayFile);
+
+                    if (result != ReplayReadResult.Valid)
+                    {
+                        throw new Exception($"Replay read result is {result}.");
+                    }
+
+                    if (replayFile is null)
+                    {
+                        throw new Exception("Replay file is null.");
+                    }
+                }
+                catch (Exception e)
+                {
+                    DialogManager.Instance.ShowMessage("Cannot Import Replay",
+                        "The selected replay is most likely corrupted, or is not a valid replay file.");
+
+                    Debug.LogWarning("Failed to import replay. See error below for more details.");
+                    Debug.LogException(e);
+
+                    return;
+                }
+
+                // Get the destination path and see if the replay already exists
+                var name = Path.GetFileName(path);
+                var dest = Path.Combine(ReplayContainer.ReplayDirectory, name);
+                if (File.Exists(dest))
+                {
+                    DialogManager.Instance.ShowMessage("Cannot Import Replay",
+                        "A replay with the same name already exists in the imported replays folder.");
+                    return;
+                }
+
+                // If it's all good, copy it in!
+                File.Copy(path, dest);
+
+                // Add it to the replay container...
+                var entry = ReplayContainer.CreateEntryFromReplayFile(replayFile);
+                ReplayContainer.AddReplay(entry);
+
+                // then refresh list (to show the replay)
+                RequestViewListUpdate();
             });
         }
 

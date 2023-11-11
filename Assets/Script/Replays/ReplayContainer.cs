@@ -366,10 +366,5 @@ namespace YARG.Replays
 
             return frame;
         }
-
-        public static void OpenReplayDirectory()
-        {
-            FileExplorerHelper.OpenFolder(ReplayDirectory);
-        }
     }
 }
