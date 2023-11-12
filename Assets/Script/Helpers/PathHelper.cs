@@ -77,10 +77,11 @@ namespace YARG.Helpers
         {
             // Save this data as Application.* is main thread only (why Unity)
             RealPersistentDataPath = SanitizePath(Application.persistentDataPath);
+
 #if UNITY_EDITOR || YARG_TEST_BUILD
             PersistentDataPath = SanitizePath(Path.Combine(Application.persistentDataPath, "dev"));
 #else
-            PersistentDataPath = RealPersistentDataPath;
+            PersistentDataPath = SanitizePath(Path.Combine(Application.persistentDataPath, "release"));
 #endif
             ApplicationDataPath = SanitizePath(Application.dataPath);
             ExecutablePath = Directory.GetParent(ApplicationDataPath)?.FullName;
@@ -88,6 +89,7 @@ namespace YARG.Helpers
 
             // Store song scanning paths
             SongCachePath = Path.Combine(PersistentDataPath, "songcache.bin");
+
 #if UNITY_EDITOR
             BadSongsPath = Path.Combine(PersistentDataPath, "badsongs.txt");
 #else
