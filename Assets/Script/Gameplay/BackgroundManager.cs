@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -19,6 +19,8 @@ namespace YARG.Gameplay
         private VenueInfo _venueInfo;
 
         private bool _videoStarted = false;
+        private bool _videoSeeking = false;
+        private bool _compensateInputOnSeek = false;
 
         // These values are relative to the video, not to song time!
         // A negative start time will delay when the video starts, a positive one will set the video position
@@ -78,6 +80,7 @@ namespace YARG.Gameplay
                     _videoPlayer.url = path;
                     _videoPlayer.enabled = true;
                     _videoPlayer.prepareCompleted += OnVideoPrepared;
+                    _videoPlayer.seekCompleted += OnVideoSeeked;
                     _videoPlayer.Prepare();
 
                     enabled = true;
@@ -91,6 +94,9 @@ namespace YARG.Gameplay
 
         private void Update()
         {
+            if (_videoSeeking)
+                return;
+
             // Start video
             if (!_videoStarted)
             {
@@ -143,6 +149,7 @@ namespace YARG.Gameplay
                     _videoEndTime = double.NaN;
 
                 player.time = _videoStartTime;
+                player.playbackSpeed = GameManager.SelectedSongSpeed;
 
                 // Determine whether or not to loop the video
                 if (Math.Abs(_videoStartTime) <= startTimeThreshold && _videoEndTime <= endTimeThreshold)
@@ -165,10 +172,71 @@ namespace YARG.Gameplay
             }
         }
 
+        public void SetTime(double songTime)
+        {
+            switch (_venueInfo.Type)
+            {
+                case VenueType.Video:
+                    // Don't seek videos that aren't from the song
+                    if (_venueInfo.Source != VenueSource.Song)
+                        return;
+
+                    double videoTime = songTime + _videoStartTime;
+                    if (videoTime < 0f) // Seeking before video start
+                    {
+                        enabled = true;
+                        _videoPlayer.enabled = true;
+                        _videoStarted = false;
+                        _videoPlayer.Stop();
+                    }
+                    else if (videoTime >= _videoPlayer.length) // Seeking after video end
+                    {
+                        enabled = false;
+                        _videoPlayer.enabled = false;
+                        _videoPlayer.Stop();
+                    }
+                    else
+                    {
+                        enabled = false; // Temp disable
+                        _videoPlayer.enabled = true;
+
+                        // Hack to ensure the video stays synced to the audio
+                        _videoSeeking = true; // Signaling flag; must come first
+                        _compensateInputOnSeek = GameManager.PendingPauses < 1;
+                        GameManager.Pause(showMenu: false);
+
+                        _videoPlayer.time = videoTime;
+                    }
+                    break;
+            }
+        }
+
+        private void OnVideoSeeked(VideoPlayer player)
+        {
+            if (!_videoSeeking)
+                return;
+
+            GameManager.Resume(inputCompensation: _compensateInputOnSeek);
+            player.Play();
+
+            enabled = double.IsNaN(_videoEndTime);
+            _videoSeeking = false;
+        }
+
+        public void SetSpeed(float speed)
+        {
+            switch (_venueInfo.Type)
+            {
+                case VenueType.Video:
+                    _videoPlayer.playbackSpeed = speed;
+                    break;
+            }
+        }
+
         public void SetPaused(bool paused)
         {
             // Pause/unpause video
-            if (_videoPlayer.enabled)
+            if (_videoPlayer.enabled && !_videoSeeking)
             {
                 if (paused)
                 {

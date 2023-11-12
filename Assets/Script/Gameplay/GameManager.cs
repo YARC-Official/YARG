@@ -586,11 +586,24 @@ namespace YARG.Gameplay
         public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
         {
             _songRunner.SetSongTime(time, delayTime);
+
             BeatEventHandler.ResetTimers();
+            BackgroundManager.SetTime(_songRunner.SongTime);
         }
 
-        public void SetSongSpeed(float speed) => _songRunner.SetSongSpeed(speed);
-        public void AdjustSongSpeed(float deltaSpeed) => _songRunner.AdjustSongSpeed(deltaSpeed);
+        public void SetSongSpeed(float speed)
+        {
+            _songRunner.SetSongSpeed(speed);
+
+            BackgroundManager.SetSpeed(_songRunner.SelectedSongSpeed);
+        }
+
+        public void AdjustSongSpeed(float deltaSpeed)
+        {
+            _songRunner.AdjustSongSpeed(deltaSpeed);
+
+            BackgroundManager.SetSpeed(_songRunner.SelectedSongSpeed);
+        }
 
         public void Pause(bool showMenu = true)
         {
