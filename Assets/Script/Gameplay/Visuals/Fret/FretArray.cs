@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using YARG.Core.Game;
 
 namespace YARG.Gameplay.Visuals
@@ -9,8 +10,9 @@ namespace YARG.Gameplay.Visuals
         private const float WIDTH_NUMERATOR   = 2f;
         private const float WIDTH_DENOMINATOR = 5f;
 
-        [SerializeField]
-        private int _fretCount;
+        [FormerlySerializedAs("_fretCount")]
+        public int FretCount;
+
         [SerializeField]
         private float _trackWidth = 2f;
 
@@ -25,16 +27,16 @@ namespace YARG.Gameplay.Visuals
         public void Initialize(ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip)
         {
             _frets.Clear();
-            for (int i = 0; i < _fretCount; i++)
+            for (int i = 0; i < FretCount; i++)
             {
                 var fret = Instantiate(_fretPrefab, transform);
 
                 // Position
-                float x = _trackWidth / _fretCount * i - _trackWidth / 2f + 1f / _fretCount;
+                float x = _trackWidth / FretCount * i - _trackWidth / 2f + 1f / FretCount;
                 fret.transform.localPosition = new(leftyFlip ? -x : x, 0f, 0f);
 
                 // Scale
-                float scale = (_trackWidth / WIDTH_NUMERATOR) / (_fretCount / WIDTH_DENOMINATOR);
+                float scale = (_trackWidth / WIDTH_NUMERATOR) / (FretCount / WIDTH_DENOMINATOR);
                 fret.transform.localScale = new(scale, 1f, 1f);
 
                 // Add

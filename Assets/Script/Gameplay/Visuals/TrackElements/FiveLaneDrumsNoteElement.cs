@@ -2,10 +2,11 @@
 using YARG.Core.Chart;
 using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
+using YARG.Settings;
 
 namespace YARG.Gameplay.Visuals
 {
-    public sealed class DrumsNoteElement : NoteElement<DrumNote, DrumsPlayer>
+    public sealed class FiveLaneDrumsNoteElement : NoteElement<DrumNote, DrumsPlayer>
     {
         private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
 
@@ -24,19 +25,24 @@ namespace YARG.Gameplay.Visuals
             {
                 // Deal with non-kick notes
 
-                // Shift cymbals into their correct lanes
-                int lane = NoteRef.Pad;
-                bool isCymbal = lane >= (int) FourLaneDrumPad.YellowCymbal;
-                if (isCymbal)
-                {
-                    lane -= 3;
-                }
-
                 // Set the position
-                transform.localPosition = new Vector3(GetElementX(lane, 4), 0f, 0f) * LeftyFlipMultiplier;
+                int lane = NoteRef.Pad - 1;
+                transform.localPosition = new Vector3(GetElementX(lane, 5), 0f, 0f) * LeftyFlipMultiplier;
 
                 // Get which note model to use
-                NoteGroup = isCymbal ? _cymbalGroup : _normalGroup;
+                if (SettingsManager.Settings.UseCymbalModelsInFiveLane.Data)
+                {
+                    NoteGroup = (FiveLaneDrumPad) NoteRef.Pad switch
+                    {
+                        FiveLaneDrumPad.Yellow => _cymbalGroup,
+                        FiveLaneDrumPad.Orange => _cymbalGroup,
+                        _ => _normalGroup
+                    };
+                }
+                else
+                {
+                    NoteGroup = _normalGroup;
+                }
             }
             else
             {
@@ -68,7 +74,7 @@ namespace YARG.Gameplay.Visuals
 
         private void UpdateColor()
         {
-            var colors = Player.Player.ColorProfile.FourLaneDrums;
+            var colors = Player.Player.ColorProfile.FiveLaneDrums;
 
             // Get which note color to use
             Color color;
@@ -88,7 +94,7 @@ namespace YARG.Gameplay.Visuals
             NoteGroup.ColoredMaterial.color = color;
 
             // Set emission
-            float emissionMultiplier = NoteRef.Pad == (int) FourLaneDrumPad.Kick ? 8f : 2.5f;
+            float emissionMultiplier = NoteRef.Pad == (int) FiveLaneDrumPad.Kick ? 8f : 2.5f;
             NoteGroup.ColoredMaterial.SetColor(_emissionColor, color * emissionMultiplier);
         }
 

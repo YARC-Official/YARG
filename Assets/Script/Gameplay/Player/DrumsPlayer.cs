@@ -1,11 +1,16 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
+using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Drums.Engines;
+using YARG.Core.Game;
 using YARG.Core.Input;
+using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers.Extensions;
+using YARG.Player;
 
 namespace YARG.Gameplay.Player
 {
@@ -13,7 +18,10 @@ namespace YARG.Gameplay.Player
     {
         public DrumsEngineParameters EngineParams { get; private set; }
 
+
         [Header("Drums Specific")]
+        [SerializeField]
+        private bool _fiveLaneMode;
         [SerializeField]
         private FretArray _fretArray;
         [SerializeField]
@@ -28,6 +36,14 @@ namespace YARG.Gameplay.Player
 
         public override int[] StarScoreThresholds { get; protected set; }
 
+        public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView)
+        {
+            // Before we do anything, see if we're in five lane mode or not
+            _fiveLaneMode = player.Profile.CurrentInstrument == Instrument.FiveLaneDrums;
+
+            base.Initialize(index, player, chart, trackView);
+        }
+
         protected override InstrumentDifficulty<DrumNote> GetNotes(SongChart chart)
         {
             var track = chart.GetDrumsTrack(Player.Profile.CurrentInstrument).Clone();
@@ -36,7 +52,15 @@ namespace YARG.Gameplay.Player
 
         protected override DrumsEngine CreateEngine()
         {
-            EngineParams = new DrumsEngineParameters(0.15, 1, StarMultiplierThresholds);
+            var mode = Player.Profile.CurrentInstrument switch
+            {
+                Instrument.ProDrums      => DrumsEngineParameters.DrumMode.ProFourLane,
+                Instrument.FourLaneDrums => DrumsEngineParameters.DrumMode.NonProFourLane,
+                Instrument.FiveLaneDrums => DrumsEngineParameters.DrumMode.FiveLane,
+                _ => throw new Exception("Unreachable.")
+            };
+
+            EngineParams = new DrumsEngineParameters(0.15, 1, StarMultiplierThresholds, mode);
             var engine = new YargDrumsEngine(NoteTrack, SyncTrack, EngineParams);
 
             engine.OnNoteHit += OnNoteHit;
@@ -54,15 +78,33 @@ namespace YARG.Gameplay.Player
                 // Skip if a note was hit, because we have different logic for that below
                 if (wasNoteHit) return;
 
-                int fret = action switch
+                // Choose the correct fret
+                int fret;
+                if (!_fiveLaneMode)
                 {
-                    DrumsAction.Kick                         => 0,
-                    DrumsAction.Drum1                        => 1,
-                    DrumsAction.Drum2 or DrumsAction.Cymbal1 => 2,
-                    DrumsAction.Drum3 or DrumsAction.Cymbal2 => 3,
-                    DrumsAction.Drum4 or DrumsAction.Cymbal3 => 4,
-                    _                                        => -1
-                };
+                    fret = action switch
+                    {
+                        DrumsAction.Kick                                   => 0,
+                        DrumsAction.RedDrum                                => 1,
+                        DrumsAction.YellowDrum or DrumsAction.YellowCymbal => 2,
+                        DrumsAction.BlueDrum   or DrumsAction.BlueCymbal   => 3,
+                        DrumsAction.GreenDrum  or DrumsAction.GreenCymbal  => 4,
+                        _                                                  => -1
+                    };
+                }
+                else
+                {
+                    fret = action switch
+                    {
+                        DrumsAction.Kick         => 0,
+                        DrumsAction.RedDrum      => 1,
+                        DrumsAction.YellowCymbal => 2,
+                        DrumsAction.BlueDrum     => 3,
+                        DrumsAction.OrangeCymbal => 4,
+                        DrumsAction.GreenDrum    => 5,
+                        _                        => -1
+                    };
+                }
 
                 // Skip if no animation
                 if (fret == -1) return;
@@ -86,9 +128,17 @@ namespace YARG.Gameplay.Player
 
             StarScoreThresholds = PopulateStarScoreThresholds(StarMultiplierThresholds, Engine.BaseScore);
 
-            _fretArray.Initialize(Player.ColorProfile.FourLaneDrums, Player.Profile.LeftyFlip);
-            _kickFret.Initialize(Player.ColorProfile.FourLaneDrums.KickParticles.ToUnityColor());
+            // Get the proper info for four/five lane
+            ColorProfile.IFretColorProvider colors = !_fiveLaneMode
+                ? Player.ColorProfile.FourLaneDrums
+                : Player.ColorProfile.FiveLaneDrums;
+            _fretArray.FretCount = !_fiveLaneMode ? 4 : 5;
+
+            _fretArray.Initialize(colors, Player.Profile.LeftyFlip);
             HitWindowDisplay.SetHitWindowInfo(EngineParams, NoteSpeed);
+
+            // Particle 0 is always kick fret
+            _kickFret.Initialize(colors.GetParticleColor(0).ToUnityColor());
         }
 
         public override void UpdateWithTimes(double inputTime)
@@ -113,7 +163,7 @@ namespace YARG.Gameplay.Player
 
         protected override void InitializeSpawnedNote(IPoolable poolable, DrumNote note)
         {
-            ((DrumsNoteElement) poolable).NoteRef = note;
+            ((FourLaneDrumsNoteElement) poolable).NoteRef = note;
         }
 
         protected override void OnNoteHit(int index, DrumNote note)
@@ -122,18 +172,35 @@ namespace YARG.Gameplay.Player
 
             // Remember that drums treat each note separately
 
-            (NotePool.GetByKey(note) as DrumsNoteElement)?.HitNote();
+            (NotePool.GetByKey(note) as FourLaneDrumsNoteElement)?.HitNote();
 
-            if (note.Pad != 0)
+            // Four and five lane drums have the same kick value
+            if (note.Pad != (int) FourLaneDrumPad.Kick)
             {
-                int fret = (FourLaneDrumPad) note.Pad switch
+                int fret;
+                if (!_fiveLaneMode)
                 {
-                    FourLaneDrumPad.RedDrum                                    => 0,
-                    FourLaneDrumPad.YellowDrum or FourLaneDrumPad.YellowCymbal => 1,
-                    FourLaneDrumPad.BlueDrum or FourLaneDrumPad.BlueCymbal     => 2,
-                    FourLaneDrumPad.GreenDrum or FourLaneDrumPad.GreenCymbal   => 3,
-                    _                                                          => -1
-                };
+                    fret = (FourLaneDrumPad) note.Pad switch
+                    {
+                        FourLaneDrumPad.RedDrum                                    => 0,
+                        FourLaneDrumPad.YellowDrum or FourLaneDrumPad.YellowCymbal => 1,
+                        FourLaneDrumPad.BlueDrum   or FourLaneDrumPad.BlueCymbal   => 2,
+                        FourLaneDrumPad.GreenDrum  or FourLaneDrumPad.GreenCymbal  => 3,
+                        _                                                          => -1
+                    };
+                }
+                else
+                {
+                    fret = (FiveLaneDrumPad) note.Pad switch
+                    {
+                        FiveLaneDrumPad.Red    => 0,
+                        FiveLaneDrumPad.Yellow => 1,
+                        FiveLaneDrumPad.Blue   => 2,
+                        FiveLaneDrumPad.Orange => 3,
+                        FiveLaneDrumPad.Green  => 4,
+                        _                      => -1
+                    };
+                }
 
                 _fretArray.PlayDrumAnimation(fret, true);
             }
@@ -149,7 +216,7 @@ namespace YARG.Gameplay.Player
 
             // Remember that drums treat each note separately
 
-            (NotePool.GetByKey(note) as DrumsNoteElement)?.MissNote();
+            (NotePool.GetByKey(note) as FourLaneDrumsNoteElement)?.MissNote();
         }
 
         protected override bool InterceptInput(ref GameInput input)

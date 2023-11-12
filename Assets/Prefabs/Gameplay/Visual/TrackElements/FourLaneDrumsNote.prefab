@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 861361446070616035}
   - component: {fileID: 8238159628955943703}
   m_Layer: 6
-  m_Name: DrumsNote
+  m_Name: FourLaneDrumsNote
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

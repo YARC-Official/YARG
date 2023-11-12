@@ -24,14 +24,12 @@ using YARG.Playback;
 using YARG.Player;
 using YARG.Replays;
 using YARG.Scores;
-using YARG.Helpers.Extensions;
 using YARG.Settings;
-using YARG.Venue;
 
 namespace YARG.Gameplay
 {
     [DefaultExecutionOrder(-1)]
-    public partial class GameManager : MonoBehaviour
+    public class GameManager : MonoBehaviour
     {
         public const double SONG_START_DELAY = SongRunner.SONG_START_DELAY;
 
@@ -57,16 +55,12 @@ namespace YARG.Gameplay
         [Header("Instrument Prefabs")]
         [SerializeField]
         private GameObject _fiveFretGuitarPrefab;
-
         [SerializeField]
         private GameObject _sixFretGuitarPrefab;
-
         [SerializeField]
         private GameObject _fourLaneDrumsPrefab;
-
         [SerializeField]
         private GameObject _fiveLaneDrumsPrefab;
-
         [SerializeField]
         private GameObject _proGuitarPrefab;
 
