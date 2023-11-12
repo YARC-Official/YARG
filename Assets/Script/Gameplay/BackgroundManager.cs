@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -108,7 +108,7 @@ namespace YARG.Gameplay
 
                 // Disable after starting the video if it's not from the song folder
                 // or if video end time is not specified
-                if (_venueInfo.Source != VenueSource.Song || _videoEndTime <= 0)
+                if (_venueInfo.Source != VenueSource.Song || double.IsNaN(_videoEndTime))
                 {
                     enabled = false;
                     return;
@@ -139,6 +139,8 @@ namespace YARG.Gameplay
             {
                 _videoStartTime = GameManager.Song.VideoStartTimeSeconds;
                 _videoEndTime = GameManager.Song.VideoEndTimeSeconds;
+                if (_videoEndTime <= 0)
+                    _videoEndTime = double.NaN;
 
                 player.time = _videoStartTime;
 
@@ -158,7 +160,7 @@ namespace YARG.Gameplay
             else
             {
                 _videoStartTime = 0;
-                _videoEndTime = -1;
+                _videoEndTime = double.NaN;
                 player.isLooping = true;
             }
         }
