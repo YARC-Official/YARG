@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,23 +16,36 @@ namespace YARG.Gameplay
         [SerializeField]
         private RawImage _backgroundImage;
 
-        private bool _videoShouldBeStarted;
+        private VenueInfo _venueInfo;
+
+        private bool _videoStarted = false;
+        private bool _videoSeeking = false;
+        private bool _compensateInputOnSeek = false;
+
+        // These values are relative to the video, not to song time!
+        // A negative start time will delay when the video starts, a positive one will set the video position
+        // to that value when starting playback at the start of a song.
+        private double _videoStartTime;
+        // End time cannot be negative; a negative value means it is not set.
+        private double _videoEndTime;
 
         // "The Unity message 'Start' has an incorrect signature."
         [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
         private async UniTaskVoid Start()
         {
-            var typePathPair = VenueLoader.GetVenuePath(GameManager.Song);
-            if (typePathPair == null)
+            // We don't need to update unless we're using a video
+            enabled = false;
+
+            var venueInfo = VenueLoader.GetVenue(GameManager.Song);
+            if (!venueInfo.HasValue)
             {
                 return;
             }
 
-            var type = typePathPair.Value.Type;
-            var path = typePathPair.Value.Path;
+            _venueInfo = venueInfo.Value;
 
-            // Set to false (unless we do wanna start the video)
-            _videoShouldBeStarted = false;
+            var type = _venueInfo.Type;
+            var path = _venueInfo.Path;
 
             switch (type)
             {
@@ -65,9 +79,11 @@ namespace YARG.Gameplay
                 case VenueType.Video:
                     _videoPlayer.url = path;
                     _videoPlayer.enabled = true;
+                    _videoPlayer.prepareCompleted += OnVideoPrepared;
+                    _videoPlayer.seekCompleted += OnVideoSeeked;
                     _videoPlayer.Prepare();
 
-                    _videoShouldBeStarted = true;
+                    enabled = true;
                     break;
                 case VenueType.Image:
                     _backgroundImage.gameObject.SetActive(true);
@@ -78,18 +94,149 @@ namespace YARG.Gameplay
 
         private void Update()
         {
-            // Start playing the video at 0 seconds
-            if (_videoShouldBeStarted && GameManager.SongTime >= 0.0)
+            if (_videoSeeking)
+                return;
+
+            // Start video
+            if (!_videoStarted)
             {
-                _videoShouldBeStarted = false;
+                // Don't start playing the video until the start of the song
+                if (GameManager.SongTime < 0.0)
+                    return;
+
+                // Delay until the start time is reached
+                if (_venueInfo.Source == VenueSource.Song &&
+                    _videoStartTime < 0 && GameManager.SongTime < -_videoStartTime)
+                    return;
+
+                _videoStarted = true;
                 _videoPlayer.Play();
+
+                // Disable after starting the video if it's not from the song folder
+                // or if video end time is not specified
+                if (_venueInfo.Source != VenueSource.Song || double.IsNaN(_videoEndTime))
+                {
+                    enabled = false;
+                    return;
+                }
+            }
+
+            // End video when reaching the specified end time
+            if (GameManager.SongTime - _videoStartTime >= _videoEndTime)
+            {
+                _videoPlayer.Stop();
+                _videoPlayer.enabled = false;
+                enabled = false;
+            }
+        }
+
+        // Some video player properties don't work correctly until
+        // it's finished preparing, such as the length
+        private void OnVideoPrepared(VideoPlayer player)
+        {
+            // Start time is considered set if it is greater than 25 ms in either direction
+            // End time is only set if it is greater than 0
+            // Video will only loop if its length is less than 85% of the song's length
+            const double startTimeThreshold = 0.025;
+            const double endTimeThreshold = 0;
+            const double dontLoopThreshold = 0.85;
+
+            if (_venueInfo.Source == VenueSource.Song)
+            {
+                _videoStartTime = GameManager.Song.VideoStartTimeSeconds;
+                _videoEndTime = GameManager.Song.VideoEndTimeSeconds;
+                if (_videoEndTime <= 0)
+                    _videoEndTime = double.NaN;
+
+                player.time = _videoStartTime;
+                player.playbackSpeed = GameManager.SelectedSongSpeed;
+
+                // Determine whether or not to loop the video
+                if (Math.Abs(_videoStartTime) <= startTimeThreshold && _videoEndTime <= endTimeThreshold)
+                {
+                    // Only loop the video if it's not around the same length as the song
+                    double lengthRatio = player.length / GameManager.SongLength;
+                    player.isLooping = lengthRatio < dontLoopThreshold;
+                }
+                else
+                {
+                    // Never loop the video if start/end times are specified
+                    player.isLooping = false;
+                }
+            }
+            else
+            {
+                _videoStartTime = 0;
+                _videoEndTime = double.NaN;
+                player.isLooping = true;
+            }
+        }
+
+        public void SetTime(double songTime)
+        {
+            switch (_venueInfo.Type)
+            {
+                case VenueType.Video:
+                    // Don't seek videos that aren't from the song
+                    if (_venueInfo.Source != VenueSource.Song)
+                        return;
+
+                    double videoTime = songTime + _videoStartTime;
+                    if (videoTime < 0f) // Seeking before video start
+                    {
+                        enabled = true;
+                        _videoPlayer.enabled = true;
+                        _videoStarted = false;
+                        _videoPlayer.Stop();
+                    }
+                    else if (videoTime >= _videoPlayer.length) // Seeking after video end
+                    {
+                        enabled = false;
+                        _videoPlayer.enabled = false;
+                        _videoPlayer.Stop();
+                    }
+                    else
+                    {
+                        enabled = false; // Temp disable
+                        _videoPlayer.enabled = true;
+
+                        // Hack to ensure the video stays synced to the audio
+                        _videoSeeking = true; // Signaling flag; must come first
+                        _compensateInputOnSeek = GameManager.PendingPauses < 1;
+                        GameManager.Pause(showMenu: false);
+
+                        _videoPlayer.time = videoTime;
+                    }
+                    break;
+            }
+        }
+
+        private void OnVideoSeeked(VideoPlayer player)
+        {
+            if (!_videoSeeking)
+                return;
+
+            GameManager.Resume(inputCompensation: _compensateInputOnSeek);
+            player.Play();
+
+            enabled = double.IsNaN(_videoEndTime);
+            _videoSeeking = false;
+        }
+
+        public void SetSpeed(float speed)
+        {
+            switch (_venueInfo.Type)
+            {
+                case VenueType.Video:
+                    _videoPlayer.playbackSpeed = speed;
+                    break;
             }
         }
 
         public void SetPaused(bool paused)
         {
             // Pause/unpause video
-            if (_videoPlayer.enabled)
+            if (_videoPlayer.enabled && !_videoSeeking)
             {
                 if (paused)
                 {

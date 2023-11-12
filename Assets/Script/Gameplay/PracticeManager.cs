@@ -142,7 +142,6 @@ namespace YARG.Gameplay
             GameManager.VocalTrack.SetPracticeSection(tickStart, tickEnd);
 
             GameManager.SetSongTime(timeStart);
-            GameManager.Resume(inputCompensation: false);
 
             _practiceHud.SetSections(GetSectionsInPractice(_sectionStartTick, _sectionEndTick));
             HasSelectedSection = true;
@@ -202,6 +201,7 @@ namespace YARG.Gameplay
             if (HasUpdatedAbPositions)
             {
                 SetPracticeSection(_tickStart, _tickEnd, TimeStart, TimeEnd);
+                GameManager.Resume(inputCompensation: false);
                 HasUpdatedAbPositions = false;
                 return;
             }

@@ -160,9 +160,10 @@ namespace YARG.Gameplay.HUD
                 int last = LastSelectedIndex.Value;
 
                 GameManager.PracticeManager.SetPracticeSection(_sections[first], _sections[last]);
+                GameManager.Resume(inputCompensation: false);
 
                 // Hide menu
-                _pauseMenuManager.PopMenu();
+                _pauseMenuManager.PopMenu(resume: false);
             }
         }
 
