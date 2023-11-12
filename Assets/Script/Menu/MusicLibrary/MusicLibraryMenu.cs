@@ -78,9 +78,9 @@ namespace YARG.Menu.MusicLibrary
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 new NavigationScheme.Entry(MenuAction.Up, "Up",
-                    () => SelectedIndex++),
-                new NavigationScheme.Entry(MenuAction.Down, "Down",
                     () => SelectedIndex--),
+                new NavigationScheme.Entry(MenuAction.Down, "Down",
+                    () => SelectedIndex++),
                 new NavigationScheme.Entry(MenuAction.Green, "Confirm",
                     () => CurrentSelection?.PrimaryButtonClick()),
 
