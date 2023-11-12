@@ -17,7 +17,12 @@ namespace YARG.Replays
 {
     public static class ReplayContainer
     {
-        private const int CACHE_VERSION = 23_08_11_1;
+        /// <summary>
+        /// The date revision of the cache format, relative to UTC.
+        /// Format is YY_MM_DD_RR: Y = year, M = month, D = day, R = revision (reset across dates, only increment
+        /// if multiple cache version changes happen in a single day).
+        /// </summary>
+        private const int CACHE_VERSION = 23_11_12_01;
 
         // Arbitrary limit to prevent the game from crashing if someone tries to load a replay with a ridiculous number of players
         private const int PLAYER_LIMIT = 128;
@@ -101,13 +106,17 @@ namespace YARG.Replays
             };
 
             int bandScore = 0;
+            double bandStars = 0;
             var colorProfiles = new List<ColorProfile>();
 
+            // Loop through all of the players
             for (int i = 0; i < players.Count; i++)
             {
                 replay.PlayerNames[i] = players[i].Player.Profile.Name;
-                replay.Frames[i] = CreateReplayFrame(i, players[i], out int score);
-                bandScore += score;
+                replay.Frames[i] = CreateReplayFrame(i, players[i]);
+
+                bandScore += players[i].Score;
+                bandStars += players[i].GetStarsPercent();
 
                 // Insert color profile into the list if it doesn't exist, otherwise use the index of the existing one
                 // (saves space in the replay file by only writing once)
@@ -127,6 +136,7 @@ namespace YARG.Replays
             replay.ColorProfiles = colorProfiles.ToArray();
 
             replay.BandScore = bandScore;
+            replay.BandStars = StarAmountHelper.GetStarsFromInt((int) bandStars);
 
             return replay;
         }
@@ -141,6 +151,7 @@ namespace YARG.Replays
                 ArtistName = replay.ArtistName,
                 CharterName = replay.CharterName,
                 BandScore = replay.BandScore,
+                BandStars = replay.BandStars,
                 Date = replay.Date,
                 SongChecksum = replay.SongChecksum,
                 PlayerCount = replay.PlayerCount,
@@ -182,6 +193,7 @@ namespace YARG.Replays
                         ArtistName = reader.ReadString(),
                         CharterName = reader.ReadString(),
                         BandScore = reader.ReadInt32(),
+                        BandStars = (StarAmount) reader.ReadByte(),
                         Date = DateTime.FromBinary(reader.ReadInt64()),
                         SongChecksum = new(reader),
                         PlayerCount = reader.ReadInt32()
@@ -232,8 +244,10 @@ namespace YARG.Replays
                 writer.Write(entry.ArtistName);
                 writer.Write(entry.CharterName);
                 writer.Write(entry.BandScore);
+                writer.Write((byte) entry.BandStars);
                 writer.Write(entry.Date.ToBinary());
                 entry.SongChecksum.Serialize(writer);
+
                 writer.Write(entry.PlayerCount);
                 for (int i = 0; i < entry.PlayerCount; i++)
                 {
@@ -328,7 +342,7 @@ namespace YARG.Replays
             }
         }
 
-        private static ReplayFrame CreateReplayFrame(int id, BasePlayer player, out int playerScore)
+        private static ReplayFrame CreateReplayFrame(int id, BasePlayer player)
         {
             // Create the replay frame with the stats
             var frame = player switch
@@ -350,8 +364,6 @@ namespace YARG.Replays
                 },
                 _ => throw new ArgumentOutOfRangeException(player.GetType().ToString(), "Invalid instrument player.")
             };
-
-            playerScore = frame.Stats.Score;
 
             // Insert other frame information
 

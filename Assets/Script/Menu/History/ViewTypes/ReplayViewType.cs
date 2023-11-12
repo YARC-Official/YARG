@@ -60,7 +60,7 @@ namespace YARG.Menu.History
             return new GameInfo
             {
                 BandScore = _replayEntry.BandScore,
-                // BandStars = _replayEntry.BandStars
+                BandStars = _replayEntry.BandStars
             };
         }
     }

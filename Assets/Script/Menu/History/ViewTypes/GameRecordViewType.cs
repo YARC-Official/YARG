@@ -56,7 +56,7 @@ namespace YARG.Menu.History
             if (result != ReplayReadResult.Valid || replayFile == null)
             {
                 DialogManager.Instance.ShowMessage("Cannot Play Replay",
-                    "The replay for this song is most likely corrupted.");
+                    "The replay for this song is most likely corrupted, or out of date.");
                 return;
             }
 

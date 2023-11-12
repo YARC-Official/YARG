@@ -329,36 +329,7 @@ namespace YARG.Gameplay
             BandCombo = totalCombo;
 
             // Get the band stars
-            double totalStars = 0f;
-            foreach (var player in _players)
-            {
-                var thresh = player.StarScoreThresholds;
-                for (int i = 0; i < thresh.Length; i++)
-                {
-                    // Skip until we reach the progressing threshold
-                    if (player.Score > thresh[i])
-                    {
-                        if (i == thresh.Length - 1)
-                        {
-                            totalStars += 6f;
-                        }
-
-                        continue;
-                    }
-
-                    // Otherwise, get the progress.
-                    // There is at least this amount of stars.
-                    totalStars += i;
-
-                    // Then, we just gotta get the progress into the next star.
-                    int bound = i != 0 ? thresh[i - 1] : 0;
-                    totalStars += (double) (player.Score - bound) / (thresh[i] - bound);
-
-                    break;
-                }
-            }
-
-            BandStars = totalStars / _players.Count;
+            BandStars = _players.Sum(player => player.GetStarsPercent()) / _players.Count;
 
             // Debug text
             // Note: this must come last in the update sequence!
