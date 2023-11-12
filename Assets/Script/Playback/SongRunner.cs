@@ -117,7 +117,17 @@ namespace YARG.Playback
         /// <summary>
         /// Whether or not the song is currently paused.
         /// </summary>
-        public bool Paused { get; private set; }
+        public bool Paused => PendingPauses > 0;
+
+        /// <summary>
+        /// The number of pauses which are currently active.
+        /// </summary>
+        /// <remarks>
+        /// The song runner keeps track of the number of pending pauses to prevent pausing in one place
+        /// being overridden by resuming in another. For correct behavior, every call to <see cref="Pause"/>
+        /// must be matched with a future call to <see cref="Resume"/>.
+        /// </remarks>
+        public int PendingPauses { get; private set; }
 
         /// <summary>
         /// The input time at which the song was paused.
@@ -423,10 +433,17 @@ namespace YARG.Playback
 
         public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(SelectedSongSpeed + deltaSpeed);
 
+        /// <summary>
+        /// Pauses the song.
+        /// </summary>
+        /// <remarks>
+        /// The song runner keeps track of the number of pending pauses to prevent pausing in one place
+        /// being overridden by resuming in another. For correct behavior, every call to <see cref="Pause"/>
+        /// must be matched with a future call to <see cref="Resume"/>.
+        /// </remarks>
         public void Pause()
         {
-            if (Paused) return;
-            Paused = true;
+            if (PendingPauses++ > 0) return;
 
             PauseStartTime = RealInputTime;
             GlobalVariables.AudioManager.Pause();
@@ -436,11 +453,17 @@ namespace YARG.Playback
 #endif
         }
 
+        /// <summary>
+        /// Resumes the song.
+        /// </summary>
+        /// <remarks>
+        /// The song runner keeps track of the number of pending pauses to prevent pausing in one place
+        /// being overridden by resuming in another. For correct behavior, every call to <see cref="Resume"/>
+        /// must be matched with a previous call to <see cref="Pause"/>.
+        /// </remarks>
         public void Resume(bool inputCompensation = true)
         {
-            if (!Paused) return;
-
-            Paused = false;
+            if (PendingPauses < 1 || --PendingPauses > 0) return;
 
             if (inputCompensation)
             {
