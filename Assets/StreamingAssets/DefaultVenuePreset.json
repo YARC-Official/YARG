@@ -1,0 +1,244 @@
+{
+    "CameraPacing": "medium",
+    "DefaultSectionPreset": {
+        "AllowedLightPresets": [
+            "loop_warm",
+            "loop_cool"
+        ],
+        "AllowedPostProcs": [
+            "ProFilm_a.pp"
+        ],
+        "KeyframeRate": 2,
+        "LightPresetBlendIn": 2,
+        "PostProcBlendIn": 0,
+        "BonusFxAtStart": false,
+        "CameraPacingOverride": null
+    },
+    "SectionPresets": [
+        {
+            "SectionRegexes": [
+                ".*(intro).*"
+            ],
+            "AllowedLightPresets": [
+                "silhouettes_spot",
+                "loop_warm"
+            ],
+            "AllowedPostProcs": [
+                "ProFilm_a.pp"
+            ],
+            "KeyframeRate": 2,
+            "LightPresetBlendIn": 4,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": false,
+            "CameraPacingOverride": null
+        },
+        {
+            "SectionRegexes": [
+                ".*(preverse).*"
+            ],
+            "AllowedLightPresets": [
+                "manual_warm"
+            ],
+            "AllowedPostProcs": [
+                "ProFilm_a.pp"
+            ],
+            "KeyframeRate": 4,
+            "LightPresetBlendIn": 2,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": false,
+            "CameraPacingOverride": null
+        },
+        {
+            "SectionRegexes": [
+                ".*(verse_1).*"
+            ],
+            "AllowedLightPresets": [
+                "verse"
+            ],
+            "AllowedPostProcs": [
+                "ProFilm_a.pp"
+            ],
+            "KeyframeRate": 2,
+            "LightPresetBlendIn": 2,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": false,
+            "CameraPacingOverride": null
+        },
+        {
+            "SectionRegexes": [
+                ".*(verse_2).*"
+            ],
+            "AllowedLightPresets": [
+                "verse"
+            ],
+            "AllowedPostProcs": [
+                "ProFilm_a.pp"
+            ],
+            "KeyframeRate": 2,
+            "LightPresetBlendIn": 2,
+            "PostProcBlendIn": 2,
+            "BonusFxAtStart": false,
+            "CameraPacingOverride": null
+        },
+        {
+            "SectionRegexes": [
+                ".*(verse).*"
+            ],
+            "AllowedLightPresets": [
+                "verse"
+            ],
+            "AllowedPostProcs": [
+                "ProFilm_a.pp"
+            ],
+            "KeyframeRate": 2,
+            "LightPresetBlendIn": 2,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": false,
+            "CameraPacingOverride": null
+        },
+        {
+            "SectionRegexes": [
+                ".*(bridge).*"
+            ],
+            "AllowedLightPresets": [
+                "dischord"
+            ],
+            "AllowedPostProcs": [
+                "ProFilm_a.pp"
+            ],
+            "KeyframeRate": 2,
+            "LightPresetBlendIn": 2,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": false,
+            "CameraPacingOverride": null
+        },
+        {
+            "SectionRegexes": [
+                ".*(solo).*"
+            ],
+            "AllowedLightPresets": [
+                "searchlights"
+            ],
+            "AllowedPostProcs": [
+                "ProFilm_a.pp"
+            ],
+            "KeyframeRate": 2,
+            "LightPresetBlendIn": 1,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": false,
+            "CameraPacingOverride": null
+        },
+        {
+            "SectionRegexes": [
+                ".*(prechorus).*"
+            ],
+            "AllowedLightPresets": [
+                "manual_cool"
+            ],
+            "AllowedPostProcs": [
+                "ProFilm_a.pp"
+            ],
+            "KeyframeRate": 2,
+            "LightPresetBlendIn": 2,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": false,
+            "CameraPacingOverride": null
+        },
+        {
+            "SectionRegexes": [
+                ".*(chorus_1).*"
+            ],
+            "AllowedLightPresets": [
+                "chorus"
+            ],
+            "AllowedPostProcs": [
+                "ProFilm_a.pp"
+            ],
+            "KeyframeRate": 1,
+            "LightPresetBlendIn": 1,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": true,
+            "CameraPacingOverride": null
+        },
+        {
+            "SectionRegexes": [
+                ".*(chorus_2).*"
+            ],
+            "AllowedLightPresets": [
+                "chorus"
+            ],
+            "AllowedPostProcs": [
+                "ProFilm_a.pp"
+            ],
+            "KeyframeRate": 1,
+            "LightPresetBlendIn": 1,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": true,
+            "CameraPacingOverride": null
+        },
+        {
+            "SectionRegexes": [
+                ".*(chorus).*"
+            ],
+            "AllowedLightPresets": [
+                "chorus"
+            ],
+            "AllowedPostProcs": [
+                "ProFilm_a.pp"
+            ],
+            "KeyframeRate": 1,
+            "LightPresetBlendIn": 1,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": true,
+            "CameraPacingOverride": null
+        },
+        {
+            "SectionRegexes": [
+                ".*(postchorus).*"
+            ],
+            "AllowedLightPresets": [
+                "manual_warm"
+            ],
+            "AllowedPostProcs": [
+                "ProFilm_a.pp"
+            ],
+            "KeyframeRate": 2,
+            "LightPresetBlendIn": 2,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": false,
+            "CameraPacingOverride": null
+        },
+        {
+            "SectionRegexes": [
+                ".*(main_riff).*"
+            ],
+            "AllowedLightPresets": [
+                "manual_warm"
+            ],
+            "AllowedPostProcs": [
+                "ProFilm_a.pp"
+            ],
+            "KeyframeRate": 2,
+            "LightPresetBlendIn": 2,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": false,
+            "CameraPacingOverride": null
+        },
+        {
+            "SectionRegexes": [
+                ".*(outro).*"
+            ],
+            "AllowedLightPresets": [
+                "searchlights"
+            ],
+            "AllowedPostProcs": [
+                "ProFilm_a.pp"
+            ],
+            "KeyframeRate": 2,
+            "LightPresetBlendIn": 2,
+            "PostProcBlendIn": 0,
+            "BonusFxAtStart": false,
+            "CameraPacingOverride": null
+        }
+    ]
+}

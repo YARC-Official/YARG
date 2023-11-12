@@ -24,7 +24,9 @@ using YARG.Playback;
 using YARG.Player;
 using YARG.Replays;
 using YARG.Scores;
+using YARG.Helpers.Extensions;
 using YARG.Settings;
+using YARG.Venue;
 
 namespace YARG.Gameplay
 {
@@ -451,10 +453,26 @@ namespace YARG.Gameplay
                     Chart.Sections[^1].TickLength = lastTick;
                     Chart.Sections[^1].TimeLength = Chart.SyncTrack.TickToTime(lastTick);
                 }
+
+                // Autogenerate venue stuff
+                if (File.Exists(VenueAutoGenerationPreset.DefaultPath))
+                {
+                    var preset = new VenueAutoGenerationPreset(VenueAutoGenerationPreset.DefaultPath);
+                    if (Chart.VenueTrack.Lighting.Count == 0)
+                    {
+                        YargTrace.DebugInfo("Auto-generating venue lighting...");
+                        Chart = preset.GenerateLightingEvents(Chart);
+                    }
+
+                    // TODO: add when characters and camera events are present in game
+                    // if (Chart.VenueTrack.Camera.Count == 0)
+                    // {
+                    //     Chart = autoGenerationPreset.GenerateCameraCutEvents(Chart);
+                    // }
+                }
             });
 
-            if (_loadState != LoadFailureState.None)
-                return;
+            if (_loadState != LoadFailureState.None) return;
 
             BeatEventHandler = new(Chart.SyncTrack);
             _chartLoaded?.Invoke(Chart);
