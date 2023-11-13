@@ -36,7 +36,7 @@ namespace YARG
     [DefaultExecutionOrder(-5000)]
     public class GlobalVariables : MonoSingleton<GlobalVariables>
     {
-        public static readonly YargVersion CurrentVersion = YargVersion.Parse("v0.12.0-a7");
+        public const string CURRENT_VERSION = "v0.12.0";
 
         public List<YargPlayer> Players { get; private set; }
 
@@ -61,7 +61,7 @@ namespace YARG
 
         protected override void SingletonAwake()
         {
-            Debug.Log($"YARG {CurrentVersion}");
+            Debug.Log($"YARG {CURRENT_VERSION}");
 
             YargTrace.AddListener(new YargUnityTraceListener());
 

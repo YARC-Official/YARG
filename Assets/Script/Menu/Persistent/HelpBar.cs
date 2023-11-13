@@ -106,7 +106,7 @@ namespace YARG.Menu.Persistent
         {
             if (str == string.Empty && !MusicPlayer.gameObject.activeInHierarchy)
             {
-                _infoText.text = GlobalVariables.CurrentVersion.ToString();
+                _infoText.text = GlobalVariables.CURRENT_VERSION.ToString();
             }
             else
             {

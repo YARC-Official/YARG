@@ -6,22 +6,19 @@ namespace YARG.Menu.Persistent
     public class DevWatermark : MonoBehaviour
     {
         [SerializeField]
-        private TextMeshProUGUI watermarkText;
+        private TextMeshProUGUI _watermarkText;
 
-        void Start()
+        private void Start()
         {
-            if (GlobalVariables.CurrentVersion.IsPrerelease)
-            {
-                watermarkText.text = $"<b>YARG {GlobalVariables.CurrentVersion}</b>  Development Build";
-                watermarkText.gameObject.SetActive(true);
-            }
-            else
-            {
-                gameObject.SetActive(false);
-            }
-
-            // disable script
-            enabled = false;
+#if UNITY_EDITOR
+            _watermarkText.text = $"<b>YARG {GlobalVariables.CURRENT_VERSION}</b> Unity Editor";
+#elif YARG_TEST_BUILD
+            _watermarkText.text = $"<b>YARG {GlobalVariables.CURRENT_VERSION}</b> Development Build";
+#elif YARG_NIGHTLY_BUILD
+            _watermarkText.text = $"<b>YARG {GlobalVariables.CURRENT_VERSION}</b> Nightly Build";
+#else
+            gameObject.SetActive(false);
+#endif
         }
     }
 }

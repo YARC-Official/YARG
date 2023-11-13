@@ -85,24 +85,18 @@ namespace YARG.Integration
 
         private void Start()
         {
-            // if it's a Nightly build, use the Nightly logo, otherwise use the Stable logo
-            if (GlobalVariables.CurrentVersion.IsPrerelease)
-            {
-                _defaultDetails = _nightlyDetails;
-            }
-            else
-            {
-                _defaultDetails = _stableDetails;
-            }
-
-            // if it's running in the editor, use the Dev logo
+            // Get the correct details to display
 #if UNITY_EDITOR
             _defaultDetails = _devDetails;
+#elif YARG_NIGHTLY_BUILD
+            _defaultDetails = _nightlyDetails;
+#else
+            _defaultDetails = _stableDetails;
 #endif
-            
+
             // Listen to the changing of states
             GameStateFetcher.GameStateChange += OnGameStateChange;
-            
+
             // Create the Discord instance
             try
             {

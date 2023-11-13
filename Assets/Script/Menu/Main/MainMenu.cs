@@ -19,7 +19,7 @@ namespace YARG.Menu.Main
 
         private void Start()
         {
-            _versionText.text = GlobalVariables.CurrentVersion.ToString();
+            _versionText.text = GlobalVariables.CURRENT_VERSION.ToString();
 
             // Show the anti-piracy dialog if it hasn't been shown already
             // Also only show it once per game launch
