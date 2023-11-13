@@ -47,7 +47,7 @@ namespace YARG.Audio
             var stems = new Dictionary<SongStem, string>();
             foreach (var file in new DirectoryInfo(folder).EnumerateFiles())
             {
-                if (!GameManager.AudioManager.SupportedFormats.Contains(file.Extension.ToLowerInvariant()))
+                if (!GlobalVariables.AudioManager.SupportedFormats.Contains(file.Extension.ToLowerInvariant()))
                 {
                     continue;
                 }

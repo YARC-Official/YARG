@@ -1,13 +1,20 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using Newtonsoft.Json;
 using UnityEngine;
 using YARG.Audio;
-using YARG.PlayMode;
-using YARG.Serialization;
+using YARG.Core.Game;
+using YARG.Gameplay.Visuals;
+using YARG.Helpers;
+using YARG.Integration;
+using YARG.Menu.Settings;
 using YARG.Settings.Types;
-using YARG.UI;
-using YARG.Util;
+using YARG.Menu.Persistent;
+using YARG.Player;
+using YARG.Song;
 using YARG.Venue;
+using UnityEngine.InputSystem;
 
 namespace YARG.Settings
 {
@@ -15,21 +22,94 @@ namespace YARG.Settings
     {
         public class SettingContainer
         {
+            #region Hidden Settings
+
             public static bool IsLoading = true;
 
-#pragma warning disable format
-
             public List<string> SongFolders = new();
+            public bool ShowAntiPiracyDialog = true;
 
-            public IntSetting AudioCalibration { get; } = new(120);
+            #endregion
+
+            #region General
+
+            public void ExportSongsOuvert()
+            {
+                FileExplorerHelper.OpenSaveFile(null, "songs", "json", SongExport.ExportOuvert);
+            }
+
+            public void ExportSongsText()
+            {
+                FileExplorerHelper.OpenSaveFile(null, "songs", "txt", SongExport.ExportText);
+            }
+
+            public void CopyCurrentSongTextFilePath()
+            {
+                GUIUtility.systemCopyBuffer = CurrentSongController.TextFilePath;
+            }
+
+            public void CopyCurrentSongJsonFilePath()
+            {
+                GUIUtility.systemCopyBuffer = CurrentSongController.JsonFilePath;
+            }
+
+            public void OpenVenueFolder()
+            {
+                FileExplorerHelper.OpenFolder(VenueLoader.VenueFolder);
+            }
 
             public ToggleSetting DisablePerSongBackgrounds { get; } = new(false);
 
-            public SliderSetting PressThreshold { get; } = new(0.75f, 0f, 1f);
-            public SliderSetting ShowCursorTimer { get; } = new(2f, 0f, 5f);
+            public void OpenCalibrator()
+            {
+                GlobalVariables.Instance.LoadScene(SceneIndex.Calibration);
+                SettingsMenu.Instance.gameObject.SetActive(false);
+            }
 
-            public ToggleSetting VSync { get; } = new(true, VSyncCallback);
-            public IntSetting FpsCap { get; } = new(60, 1, onChange: FpsCapCallback);
+            public IntSetting    AudioCalibration          { get; } = new(120);
+            public IntSetting    VideoCalibration          { get; } = new(0);
+
+            public ToggleSetting UseCymbalModelsInFiveLane { get; } = new(true);
+            public ToggleSetting KickBounce                { get; } = new(true);
+
+            public SliderSetting ShowCursorTimer           { get; } = new(2f, 0f, 5f);
+
+            public ToggleSetting AmIAwesome                { get; } = new(false);
+
+            public ToggleSetting InputDeviceLogging        { get; } = new(false, InputDeviceLoggingCallback);
+
+            #endregion
+
+            #region Sound
+
+            public VolumeSetting MasterMusicVolume { get; } = new(0.75f, v => VolumeCallback(SongStem.Master, v));
+            public VolumeSetting GuitarVolume      { get; } = new(1f,    v => VolumeCallback(SongStem.Guitar, v));
+            public VolumeSetting RhythmVolume      { get; } = new(1f,    v => VolumeCallback(SongStem.Rhythm, v));
+            public VolumeSetting BassVolume        { get; } = new(1f,    v => VolumeCallback(SongStem.Bass, v));
+            public VolumeSetting KeysVolume        { get; } = new(1f,    v => VolumeCallback(SongStem.Keys, v));
+            public VolumeSetting DrumsVolume       { get; } = new(1f,    DrumVolumeCallback);
+            public VolumeSetting VocalsVolume      { get; } = new(1f,    VocalVolumeCallback);
+            public VolumeSetting SongVolume        { get; } = new(1f,    v => VolumeCallback(SongStem.Song, v));
+            public VolumeSetting CrowdVolume       { get; } = new(0.5f,  v => VolumeCallback(SongStem.Crowd, v));
+            public VolumeSetting SfxVolume         { get; } = new(0.8f,  v => VolumeCallback(SongStem.Sfx, v));
+            public VolumeSetting PreviewVolume     { get; } = new(0.25f);
+            public VolumeSetting MusicPlayerVolume { get; } = new(0.15f, MusicPlayerVolumeCallback);
+            public VolumeSetting VocalMonitoring   { get; } = new(0.7f,  VocalMonitoringCallback);
+
+            public SliderSetting MicrophoneSensitivity  { get; } = new(2f, -50f, 50f);
+            public ToggleSetting MuteOnMiss             { get; } = new(true);
+            public ToggleSetting UseStarpowerFx         { get; } = new(true, UseStarpowerFxChange);
+         // public ToggleSetting UseWhammyFx            { get; } = new(true, UseWhammyFxChange);
+         // public SliderSetting WhammyPitchShiftAmount { get; } = new(1, 1, 12, WhammyPitchShiftAmountChange);
+         // public IntSetting    WhammyOversampleFactor { get; } = new(8, 4, 32, WhammyOversampleFactorChange);
+            public ToggleSetting UseChipmunkSpeed       { get; } = new(false, UseChipmunkSpeedChange);
+
+            #endregion
+
+            #region Graphics
+
+            public ToggleSetting VSync   { get; } = new(true, VSyncCallback);
+            public IntSetting    FpsCap  { get; } = new(60, 1, onChange: FpsCapCallback);
 
             public DropdownSetting FullscreenMode { get; } = new(new()
             {
@@ -43,89 +123,69 @@ namespace YARG.Settings
             }, "FullScreenWindow", FullscreenModeCallback);
 
             public ResolutionSetting Resolution { get; } = new(ResolutionCallback);
-            public ToggleSetting FpsStats { get; } = new(false, FpsCounterCallback);
+            public ToggleSetting     FpsStats   { get; } = new(false, FpsCounterCallback);
 
-            public ToggleSetting LowQuality { get; } = new(false, LowQualityCallback);
+            public ToggleSetting LowQuality   { get; } = new(false, LowQualityCallback);
             public ToggleSetting DisableBloom { get; } = new(false, DisableBloomCallback);
 
-            public ToggleSetting ShowHitWindow { get; } = new(false);
-            public ToggleSetting UseCymbalModelsInFiveLane { get; } = new(true);
-
-            public ToggleSetting NoKicks { get; } = new(false);
-            public ToggleSetting KickBounce { get; } = new(true);
-            public ToggleSetting AntiGhosting { get; } = new(true);
-
-            public VolumeSetting MasterMusicVolume { get; } = new(0.75f, v => VolumeCallback(SongStem.Master, v));
-            public VolumeSetting GuitarVolume { get; } = new(1f, v => VolumeCallback(SongStem.Guitar, v));
-            public VolumeSetting RhythmVolume { get; } = new(1f, v => VolumeCallback(SongStem.Rhythm, v));
-            public VolumeSetting BassVolume { get; } = new(1f, v => VolumeCallback(SongStem.Bass, v));
-            public VolumeSetting KeysVolume { get; } = new(1f, v => VolumeCallback(SongStem.Keys, v));
-            public VolumeSetting DrumsVolume { get; } = new(1f, DrumVolumeCallback);
-            public VolumeSetting VocalsVolume { get; } = new(1f, VocalVolumeCallback);
-            public VolumeSetting SongVolume { get; } = new(1f, v => VolumeCallback(SongStem.Song, v));
-            public VolumeSetting CrowdVolume { get; } = new(0.5f, v => VolumeCallback(SongStem.Crowd, v));
-            public VolumeSetting SfxVolume { get; } = new(0.8f, v => VolumeCallback(SongStem.Sfx, v));
-            public VolumeSetting PreviewVolume { get; } = new(0.25f);
-            public VolumeSetting MusicPlayerVolume { get; } = new(0.15f, MusicPlayerVolumeCallback);
-            public VolumeSetting VocalMonitoring { get; } = new(0.7f, VocalMonitoringCallback);
-
-            public SliderSetting MicrophoneSensitivity { get; } = new(2f, -50f, 50f);
-
-            public ToggleSetting MuteOnMiss { get; } = new(true);
-            public ToggleSetting UseStarpowerFx { get; } = new(true, UseStarpowerFxChange);
-            // public ToggleSetting UseWhammyFx { get; } = new(true, UseWhammyFxChange);
-            // public SliderSetting WhammyPitchShiftAmount { get; } = new(1, 1, 12, WhammyPitchShiftAmountChange);
-            // public IntSetting WhammyOversampleFactor { get; } = new(8, 4, 32, WhammyOversampleFactorChange);
-            public ToggleSetting UseChipmunkSpeed { get; } = new(false, UseChipmunkSpeedChange);
-
-            public SliderSetting TrackCamFOV { get; } = new(55f, 40f, 150f, CameraPosChange);
-            public SliderSetting TrackCamYPos { get; } = new(2.66f, 0f, 4f, CameraPosChange);
-            public SliderSetting TrackCamZPos { get; } = new(1.14f, 0f, 12f, CameraPosChange);
-            public SliderSetting TrackCamRot { get; } = new(24.12f, 0f, 180f, CameraPosChange);
-            public SliderSetting TrackFadePosition { get; } = new(3f, 0f, 3f, v => FadeChange(true, v));
-            public SliderSetting TrackFadeSize { get; } = new(1.75f, 0f, 5f, v => FadeChange(false, v));
-
+            public ToggleSetting ShowHitWindow            { get; } = new(false);
             public ToggleSetting DisableTextNotifications { get; } = new(false);
 
-            public DropdownSetting LyricBackground { get; } = new(new()
+            public DropdownSetting SongTimeOnScoreBox { get; } = new(new()
             {
-                "Normal", "Transparent", "None",
+                "None",
+                "CountUpAndTotal", "CountDownAndTotal",
+                "CountUpOnly", "CountDownOnly", "TotalOnly"
+            }, "CountUp");
+
+            public ToggleSetting GraphicalProgressOnScoreBox { get; } = new(true);
+
+            public DropdownSetting LyricDisplay { get; } = new(new()
+            {
+                "Normal", "Transparent", "NoBackground",
+                "NoLyricDisplay"
             }, "Normal");
 
-            public ToggleSetting AmIAwesome { get; } = new(false);
+            #endregion
 
-#pragma warning restore format
+            #region Engine
 
-            public void OpenSongFolderManager()
-            {
-                SettingsMenu.Instance.CurrentTab = "_SongFolderManager";
-            }
+            public ToggleSetting NoKicks          { get; } = new(false);
+            public ToggleSetting AntiGhosting     { get; } = new(true);
+            public ToggleSetting InfiniteFrontEnd { get; } = new(false);
 
-            public void OpenVenueFolder()
-            {
-                FileExplorerHelper.OpenFolder(VenueLoader.VenueFolder);
-            }
+            #endregion
 
-            public void ExportOuvertSongs()
-            {
-                FileExplorerHelper.OpenSaveFile(null, "songs", "json", OuvertExport.ExportOuvertSongsTo);
-            }
+            #region Preset Fields
 
-            public void CopyCurrentSongTextFilePath()
-            {
-                GUIUtility.systemCopyBuffer = TwitchController.Instance.TextFilePath;
-            }
+            // This is kind of a hack for preset fields. All of these values are not saved in the settings.json,
+            // and are solely used by the "Presets" tab. This makes it 10x easier to bind setting visuals without
+            // the need of overcomplicating it. Sure, this is kinda hacky, but it works just fine.
 
-            public void CopyCurrentSongJsonFilePath()
-            {
-                GUIUtility.systemCopyBuffer = TwitchController.Instance.JsonFilePath;
-            }
+            // All names should be: <PresetClass>_<PresetField>
+            // ReSharper disable InconsistentNaming
 
-            public void OpenCalibrator()
-            {
-                GameManager.Instance.LoadScene(SceneIndex.CALIBRATION);
-                SettingsMenu.Instance.gameObject.SetActive(false);
-            }
+            [JsonIgnore]
+            public SliderSetting CameraPreset_FieldOfView  { get; } = new(55f, 40f, 150f);
+            [JsonIgnore]
+            public SliderSetting CameraPreset_PositionY    { get; } = new(2.66f, 0f, 4f);
+            [JsonIgnore]
+            public SliderSetting CameraPreset_PositionZ    { get; } = new(1.14f, 0f, 12f);
+            [JsonIgnore]
+            public SliderSetting CameraPreset_Rotation     { get; } = new(24.12f, 0f, 180f);
+            [JsonIgnore]
+            public SliderSetting CameraPreset_FadeLength   { get; } = new(1.75f, 0f, 5f);
+            [JsonIgnore]
+            public SliderSetting CameraPreset_CurveFactor  { get; } = new(0.5f, -3f, 3f);
+
+            [JsonIgnore]
+            public ColorProfile ColorProfile_Ref = ColorProfile.Default;
+
+            // ReSharper restore InconsistentNaming
+
+            #endregion
+
+            #region Callbacks
 
             private static void VSyncCallback(bool value)
             {
@@ -210,7 +270,6 @@ namespace YARG.Settings
             private static void LowQualityCallback(bool value)
             {
                 GraphicsManager.Instance.LowQuality = value;
-                CameraPositioner.UpdateAllAntiAliasing();
             }
 
             private static void DisableBloomCallback(bool value)
@@ -220,30 +279,30 @@ namespace YARG.Settings
 
             private static void VolumeCallback(SongStem stem, float volume)
             {
-                GameManager.AudioManager.UpdateVolumeSetting(stem, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(stem, volume);
             }
 
             private static void DrumVolumeCallback(float volume)
             {
-                GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums, volume);
-                GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums1, volume);
-                GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums2, volume);
-                GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums3, volume);
-                GameManager.AudioManager.UpdateVolumeSetting(SongStem.Drums4, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Drums, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Drums1, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Drums2, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Drums3, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Drums4, volume);
             }
 
             private static void VocalVolumeCallback(float volume)
             {
-                GameManager.AudioManager.UpdateVolumeSetting(SongStem.Vocals, volume);
-                GameManager.AudioManager.UpdateVolumeSetting(SongStem.Vocals1, volume);
-                GameManager.AudioManager.UpdateVolumeSetting(SongStem.Vocals2, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Vocals, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Vocals1, volume);
+                GlobalVariables.AudioManager.UpdateVolumeSetting(SongStem.Vocals2, volume);
             }
 
             private static void VocalMonitoringCallback(float volume)
             {
-                foreach (var player in PlayerManager.players)
+                foreach (var player in PlayerContainer.Players)
                 {
-                    player.inputStrategy?.MicDevice?.SetMonitoringLevel(volume);
+                    player.Bindings.Microphone?.SetMonitoringLevel(volume);
                 }
             }
 
@@ -254,7 +313,7 @@ namespace YARG.Settings
 
             private static void UseStarpowerFxChange(bool value)
             {
-                GameManager.AudioManager.Options.UseStarpowerFx = value;
+                GlobalVariables.AudioManager.Options.UseStarpowerFx = value;
             }
 
             // private static void UseWhammyFxChange(bool value)
@@ -264,52 +323,31 @@ namespace YARG.Settings
 
             private static void WhammyPitchShiftAmountChange(float value)
             {
-                GameManager.AudioManager.Options.WhammyPitchShiftAmount = value;
+                GlobalVariables.AudioManager.Options.WhammyPitchShiftAmount = value;
             }
 
             private static void WhammyOversampleFactorChange(int value)
             {
-                GameManager.AudioManager.Options.WhammyOversampleFactor = value;
+                GlobalVariables.AudioManager.Options.WhammyOversampleFactor = value;
             }
 
             private static void UseChipmunkSpeedChange(bool value)
             {
-                GameManager.AudioManager.Options.IsChipmunkSpeedup = value;
+                GlobalVariables.AudioManager.Options.IsChipmunkSpeedup = value;
             }
 
-            private static void CameraPosChange(float value)
+            private static void InputDeviceLoggingCallback(bool value)
             {
-                CameraPositioner.UpdateAllPosition();
-            }
-
-            private static void FadeChange(bool isPosition, float value)
-            {
-                if (IsLoading)
-                {
+                if (!value)
                     return;
-                }
 
-                float position;
-                float size;
-
-                if (isPosition)
+                foreach (var device in InputSystem.devices)
                 {
-                    position = value;
-                    size = Settings.TrackFadeSize.Data;
+                    Debug.Log($"Description for device {device.displayName}:\n{device.description.ToJson()}\n");
                 }
-                else
-                {
-                    position = Settings.TrackFadePosition.Data;
-                    size = value;
-                }
-
-                // Yes, it's inefficient, but it only gets updated when the setting does.
-
-                // ReSharper disable Unity.PreferAddressByIdToGraphicsParams
-                Shader.SetGlobalVector("_FadeZeroPosition", new Vector4(0f, 0f, position, 0f));
-                Shader.SetGlobalVector("_FadeFullPosition", new Vector4(0f, 0f, position - size, 0f));
-                // ReSharper restore Unity.PreferAddressByIdToGraphicsParams
             }
+
+            #endregion
         }
     }
 }

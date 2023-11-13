@@ -59,8 +59,8 @@ MonoBehaviour:
         m_DefaultTableReference:
           m_TableCollectionName: 
         m_UseFallback: 0
-        m_MissingTranslationState: 1
-        m_NoTranslationFoundMessage: No translation found for '{key}' in {table.TableCollectionName}
+        m_MissingTranslationState: 2
+        m_NoTranslationFoundMessage: 
         m_SmartFormat:
           rid: 1224712499296993286
     - rid: 1224712499296993286

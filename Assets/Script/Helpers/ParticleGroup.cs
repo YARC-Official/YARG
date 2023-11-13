@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace YARG.Util
+namespace YARG.Helpers
 {
     public class ParticleGroup : MonoBehaviour
     {

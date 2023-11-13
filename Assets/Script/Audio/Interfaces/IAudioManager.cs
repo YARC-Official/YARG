@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using YARG.Core.Song;
 
 namespace YARG.Audio
 {
@@ -34,7 +37,7 @@ namespace YARG.Audio
         public void LoadSfx();
 
         public void LoadSong(IDictionary<SongStem, string> stems, float speed);
-        public void LoadMogg(byte[] moggArray, List<(SongStem, int[], float[])> stemMaps, float speed);
+        public void LoadMogg(Stream stream, List<MoggStemMap> stemMaps, float speed);
         public void LoadCustomAudioFile(string audioPath, float speed);
         public void UnloadSong();
 
@@ -55,6 +58,7 @@ namespace YARG.Audio
 
         public void ApplyReverb(SongStem stem, bool reverb);
 
+        public void SetSpeed(float speed);
         public void SetWhammyPitch(SongStem stem, float percent);
 
         public double GetPosition(bool desyncCompensation = true);

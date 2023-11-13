@@ -1,69 +1,80 @@
-using System.Threading;
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using UnityEngine;
+using YARG.Core.Song;
 using YARG.Data;
+using YARG.Helpers.Extensions;
+using YARG.Player;
+using YARG.Scores;
 using YARG.Song;
 
-namespace YARG.UI.MusicLibrary.ViewTypes
+namespace YARG.Menu.MusicLibrary
 {
     public class SongViewType : ViewType
     {
         public override BackgroundType Background => BackgroundType.Normal;
+        public override bool UseAsMadeFamousBy => !SongMetadata.IsMaster;
 
-        public override string PrimaryText => SongEntry.Name;
-        public override string SecondaryText => SongEntry.Artist;
-        public override bool UseAsMadeFamousBy => !SongEntry.IsMaster;
+        private readonly MusicLibraryMenu _musicLibraryMenu;
+        public readonly SongMetadata SongMetadata;
 
-        public override string SideText
+        public SongViewType(MusicLibraryMenu musicLibraryMenu, SongMetadata songMetadata)
         {
-            get
-            {
-                // Song score
-                var score = ScoreManager.GetScore(SongEntry);
-                if (score == null || score.highestPercent.Count <= 0)
-                {
-                    return string.Empty;
-                }
-                else
-                {
-                    var (instrument, highest) = score.GetHighestPercent();
-                    return
-                        $"<sprite name=\"{instrument}\"> <b>{highest.difficulty.ToChar()}</b> {Mathf.Floor(highest.percent * 100f):N0}%";
-                }
-            }
+            _musicLibraryMenu = musicLibraryMenu;
+
+            SongMetadata = songMetadata;
         }
 
-        public SongEntry SongEntry { get; private set; }
-
-        public SongViewType(SongEntry songEntry)
+        public override string GetPrimaryText(bool selected)
         {
-            SongEntry = songEntry;
+            return FormatAs(SongMetadata.Name, TextType.Primary, selected);
+        }
+
+        public override string GetSecondaryText(bool selected)
+        {
+            return FormatAs(SongMetadata.Artist, TextType.Secondary, selected);
+        }
+
+        public override string GetSideText(bool selected)
+        {
+            var score = ScoreContainer.GetHighScore(SongMetadata.Hash);
+
+            // Never played!
+            if (score is null) return string.Empty;
+
+            var instrument = score.Instrument.ToResourceName();
+            var difficultyChar = score.Difficulty.ToChar();
+            var percent = Mathf.Floor(score.Percent * 100f);
+
+            return $"<sprite name=\"{instrument}\"> <b>{difficultyChar}</b> {percent:N0}%";
         }
 
         public override async UniTask<Sprite> GetIcon()
         {
-            return await SongSources.SourceToIcon(SongEntry.Source);
+            return await SongSources.SourceToIcon(SongMetadata.Source);
         }
 
         public override void SecondaryTextClick()
         {
             base.SecondaryTextClick();
 
-            SongSelection.Instance.SetSearchInput($"artist:{SongEntry.Artist}");
+           _musicLibraryMenu.SetSearchInput($"artist:{SongMetadata.Artist}");
         }
 
         public override void PrimaryButtonClick()
         {
             base.PrimaryButtonClick();
 
-            MainMenu.Instance.ShowPreSong();
+            if (PlayerContainer.Players.Count <= 0) return;
+
+            GlobalVariables.Instance.CurrentSong = SongMetadata;
+            MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
         }
 
         public override void IconClick()
         {
             base.IconClick();
 
-            SongSelection.Instance.SetSearchInput($"source:{SongEntry.Source}");
+           _musicLibraryMenu.SetSearchInput($"source:{SongMetadata.Source}");
         }
     }
 }

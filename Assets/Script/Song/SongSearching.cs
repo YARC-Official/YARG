@@ -1,253 +1,301 @@
-using System;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Globalization;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
-using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.UI;
-using YARG.Audio;
-using YARG.Data;
-using YARG.Input;
-using YARG.Song;
-using YARG.UI.MusicLibrary.ViewTypes;
-using Random = UnityEngine.Random;
+using YARG.Core.Song;
 
 namespace YARG.Song
 {
-    public static class SongSearching
+    public class SongSearching
     {
-        private static readonly List<(string, string)> SearchLeniency = new()
+        private class FilterNode : IEquatable<FilterNode>
         {
-            ("Æ", "AE") // Tool - Ænema
-        };
+            public readonly SongAttribute attribute;
+            public readonly string argument;
 
-        // TODO: Make search query separate. This gets rid of the need of a tuple in SearchSongs
-        public static SortedSongList Search(string value, SongSorting.Sort sort)
-        {
-            var songsOut = new List<SongEntry>(SongContainer.Songs);
-            bool searching = false;
-
-            if (!string.IsNullOrEmpty(value))
+            public FilterNode(SongAttribute attribute, string argument)
             {
-                var split = value.Split(';');
-                foreach (var arg in split)
-                {
-                    var (isSearching, songsEnumerable) = SearchSongs(arg);
-                    var songs = songsEnumerable.ToList();
-
-                    if (isSearching)
-                    {
-                        searching = true;
-                        songsOut.Clear();
-                        songsOut.AddRange(songs);
-                    }
-                    else
-                    {
-                        foreach (var song in songsOut.ToArray())
-                        {
-                            if (songs.Contains(song))
-                            {
-                                continue;
-                            }
-
-                            songsOut.Remove(song);
-                        }
-                    }
-                }
+                this.attribute = attribute;
+                this.argument = argument;
             }
 
-            SortedSongList sortedSongs;
-            if (searching)
+            public override bool Equals(object o)
             {
-                sortedSongs = new SortedSongList();
-                foreach (var song in songsOut)
-                {
-                    sortedSongs.AddSongToSection("Search Results", song);
-                }
-            }
-            else
-            {
-                sortedSongs = new SortedSongList(SongSorting.GetSortCache(sort));
-                sortedSongs.Intersect(songsOut);
+                return o is FilterNode node && Equals(node);
             }
 
-            return sortedSongs;
+            public bool Equals(FilterNode other)
+            {
+                return attribute == other.attribute && argument == other.argument;
+            }
+
+            public override int GetHashCode()
+            {
+                return attribute.GetHashCode() ^ argument.GetHashCode();
+            }
+
+            public static bool operator ==(FilterNode left, FilterNode right)
+            {
+                return left.Equals(right);
+            }
+
+            public static bool operator !=(FilterNode left, FilterNode right)
+            {
+                return !left.Equals(right);
+            }
+
+            public bool StartsWith(FilterNode other)
+            {
+                return attribute == other.attribute && argument.StartsWith(other.argument);
+            }
         }
 
-        private static (bool isSearching, IEnumerable<SongEntry>) SearchSongs(string arg)
+        private List<(FilterNode, SortedDictionary<string, List<SongMetadata>>)> filters = new();
+
+        public IReadOnlyDictionary<string, List<SongMetadata>> Search(string value, SongAttribute sort)
         {
-            if (arg.StartsWith("artist:"))
+            var currentFilters = GetFilters(value.Split(';'));
+            if (currentFilters.Count == 0)
             {
-                var artist = arg[7..];
-                return (false, SearchByArtist(artist));
+                filters.Clear();
+                return GlobalVariables.Instance.SongContainer.GetSortedSongList(sort);
             }
 
-            if (arg.StartsWith("source:"))
+            int currFilterIndex = 0;
+            int prevFilterIndex = 0;
+            while (currFilterIndex < currentFilters.Count && prevFilterIndex < filters.Count && currentFilters[currFilterIndex].StartsWith(filters[prevFilterIndex].Item1))
             {
-                var source = arg[7..];
-                return (false, SearchBySource(source));
-            }
-
-            if (arg.StartsWith("album:"))
-            {
-                var album = arg[6..];
-                return (false, SearchByAlbum(album));
-            }
-
-            if (arg.StartsWith("charter:"))
-            {
-                var charter = arg[8..];
-                return (false, SearchByCharter(charter));
-            }
-
-            if (arg.StartsWith("year:"))
-            {
-                var year = arg[5..];
-                return (false, SearchByYear(year));
-            }
-
-            if (arg.StartsWith("genre:"))
-            {
-                var genre = arg[6..];
-                return (false, SearchByGenre(genre));
-            }
-
-            if (arg.StartsWith("instrument:"))
-            {
-                var instrument = arg[11..];
-
-                if (!string.IsNullOrEmpty(instrument) && instrument.Length > 1 && instrument.StartsWith("-"))
+                do
                 {
-                    return (false, SearchByMissingInstrument(instrument.Substring(1)));
+                    ++prevFilterIndex;
+                } while (prevFilterIndex < filters.Count && currentFilters[currFilterIndex].StartsWith(filters[prevFilterIndex].Item1));
+                if (currentFilters[currFilterIndex] != filters[prevFilterIndex - 1].Item1)
+                    break;
+                ++currFilterIndex;
+            }
+
+            if (currFilterIndex == 0 && (prevFilterIndex == 0 || currentFilters[0].attribute != SongAttribute.Unspecified))
+            {
+                (FilterNode, SortedDictionary<string, List<SongMetadata>>) newNode = new(currentFilters[0], SearchSongs(currentFilters[0]));
+                if (prevFilterIndex < filters.Count)
+                    filters[prevFilterIndex] = newNode;
+                else
+                    filters.Add(newNode);
+
+                ++prevFilterIndex;
+                ++currFilterIndex;
+            }
+
+            while (currFilterIndex < currentFilters.Count)
+            {
+                var filter = currentFilters[currFilterIndex];
+                var searchList = SearchSongs(filter, Clone(filters[prevFilterIndex - 1].Item2));
+
+                if (prevFilterIndex < filters.Count)
+                    filters[prevFilterIndex] = new(filter, searchList);
+                else
+                    filters.Add(new(filter, searchList));
+
+                ++currFilterIndex;
+                ++prevFilterIndex;
+            }
+
+            if (prevFilterIndex < filters.Count)
+                filters.RemoveRange(prevFilterIndex, filters.Count - prevFilterIndex);
+            return filters[prevFilterIndex - 1].Item2;
+        }
+
+        private static SortedDictionary<string, List<SongMetadata>> Clone(SortedDictionary<string, List<SongMetadata>> original)
+        {
+            SortedDictionary<string, List<SongMetadata>> clone = new();
+            foreach (var node in original)
+                clone.Add(node.Key, new(node.Value));
+            return clone;
+        }
+
+        private static List<FilterNode> GetFilters(string[] split)
+        {
+            List<FilterNode> nodes = new();
+            foreach (string arg in split)
+            {
+                SongAttribute attribute;
+                string argument = arg.Trim();
+                if (argument == string.Empty)
+                    continue;
+
+                if (argument.StartsWith("artist:"))
+                {
+                    attribute = SongAttribute.Artist;
+                    argument = RemoveDiacriticsAndArticle(argument[7..]);
+                }
+                else if (argument.StartsWith("source:"))
+                {
+                    attribute = SongAttribute.Source;
+                    argument = argument[7..].ToLower();
+                }
+                else if (argument.StartsWith("album:"))
+                {
+                    attribute = SongAttribute.Album;
+                    argument = SortString.RemoveDiacritics(argument[6..]);
+                }
+                else if (argument.StartsWith("charter:"))
+                {
+                    attribute = SongAttribute.Charter;
+                    argument = argument[8..].ToLower();
+                }
+                else if (argument.StartsWith("year:"))
+                {
+                    attribute = SongAttribute.Year;
+                    argument = argument[5..].ToLower();
+                }
+                else if (argument.StartsWith("genre:"))
+                {
+                    attribute = SongAttribute.Genre;
+                    argument = argument[6..].ToLower();
+                }
+                else if (argument.StartsWith("playlist:"))
+                {
+                    attribute = SongAttribute.Playlist;
+                    argument = argument[9..].ToLower();
+                }
+                else if (argument.StartsWith("name:"))
+                {
+                    attribute = SongAttribute.Name;
+                    argument = RemoveDiacriticsAndArticle(argument[5..]);
+                }
+                else if (argument.StartsWith("title:"))
+                {
+                    attribute = SongAttribute.Name;
+                    argument = RemoveDiacriticsAndArticle(argument[6..]);
+                }
+                else if (argument.StartsWith("instrument:"))
+                {
+                    attribute = SongAttribute.Instrument;
+                    argument = RemoveDiacriticsAndArticle(argument[11..]);
+                }
+                else
+                {
+                    attribute = SongAttribute.Unspecified;
+                    argument = SortString.RemoveDiacritics(argument);
                 }
 
-                return (false, SearchByInstrument(instrument));
+                argument = argument!.Trim();
+                nodes.Add(new(attribute, argument));
+                if (attribute == SongAttribute.Unspecified)
+                    break;
             }
+            return nodes;
+        }
 
-            return (true, SongContainer.Songs
-                .Select(i => new
+        private static SortedDictionary<string, List<SongMetadata>> SearchSongs(FilterNode arg)
+        {
+            if (arg.attribute == SongAttribute.Unspecified)
+            {
+                var results = GlobalVariables.Instance.SongContainer.Songs.Select(i => new
                 {
-                    score = Search(arg, i), songInfo = i
+                    score = Search(arg.argument, i),
+                    songInfo = i
                 })
                 .Where(i => i.score >= 0)
                 .OrderBy(i => i.score)
-                .Select(i => i.songInfo));
-        }
-
-        private static IEnumerable<SongEntry> SearchByArtist(string artist)
-        {
-            return SongContainer.Songs
-                .Where(i => RemoveDiacriticsAndArticle(i.Artist) == RemoveDiacriticsAndArticle(artist));
-        }
-
-        private static IEnumerable<SongEntry> SearchBySource(string source)
-        {
-            return SongContainer.Songs
-                .Where(i => i.Source?.ToLower() == source.ToLower());
-        }
-
-        private static IEnumerable<SongEntry> SearchByAlbum(string album)
-        {
-            return SongContainer.Songs
-                .Where(i => RemoveDiacritics(i.Album) == RemoveDiacritics(album));
-        }
-
-        private static IEnumerable<SongEntry> SearchByCharter(string charter)
-        {
-            return SongContainer.Songs
-                .Where(i => i.Charter?.ToLower() == charter.ToLower());
-        }
-
-        private static IEnumerable<SongEntry> SearchByYear(string year)
-        {
-            return SongContainer.Songs
-                .Where(i => i.Year?.ToLower() == year.ToLower());
-        }
-
-        private static IEnumerable<SongEntry> SearchByGenre(string genre)
-        {
-            return SongContainer.Songs
-                .Where(i => i.Genre?.ToLower() == genre.ToLower());
-        }
-
-        private static IEnumerable<SongEntry> SearchByInstrument(string instrument)
-        {
-            return instrument switch
-            {
-                "band"       => SongContainer.Songs.Where(i => i.BandDifficulty >= 0),
-                "vocals"     => SongContainer.Songs.Where(i => i.HasInstrument(InstrumentHelper.FromStringName(instrument))),
-                "harmVocals" => SongContainer.Songs.Where(i => i.VocalParts >= 2),
-                _ => SongContainer.Songs.Where(i =>
-                    i.HasInstrument(InstrumentHelper.FromStringName(instrument))),
-            };
-        }
-
-        private static IEnumerable<SongEntry> SearchByMissingInstrument(string instrument)
-        {
-            return instrument switch
-            {
-                "band"   => SongContainer.Songs.Where(i => i.BandDifficulty < 0),
-                "vocals" => SongContainer.Songs.Where(i => i.VocalParts <= 0),
-                // string s when s.StartsWith("-") => SongContainer.Songs.Where(SongIsMissing(instrument)),
-                _ => SongContainer.Songs.Where(SongIsMissing(instrument)),
-            };
-        }
-
-        private static Func<SongEntry, bool> SongIsMissing(string instrument)
-        {
-            return s => !s.HasInstrument(InstrumentHelper.FromStringName(instrument));
-        }
-
-        public static string RemoveDiacritics(string text)
-        {
-            if (text == null)
-            {
-                return null;
+                .Select(i => i.songInfo).ToList();
+                return new() { { "Search Results", results } };
             }
 
-            foreach (var c in SearchLeniency)
-            {
-                text = text.Replace(c.Item1, c.Item2);
-            }
+            return SearchByFilter(arg.attribute, arg.argument);
+        }
 
-            var normalizedString = text.ToLowerInvariant().Normalize(NormalizationForm.FormD);
-            var stringBuilder = new StringBuilder(capacity: normalizedString.Length);
-
-            foreach (char c in normalizedString)
+        private static SortedDictionary<string, List<SongMetadata>> SearchSongs(FilterNode arg, SortedDictionary<string, List<SongMetadata>> searchList)
+        {
+            if (arg.attribute == SongAttribute.Unspecified)
             {
-                var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
-                if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+                List<SongMetadata> entriesToSearch = new();
+                foreach (var entry in searchList)
+                    entriesToSearch.AddRange(entry.Value);
+
+                var results = entriesToSearch.Select(i => new
                 {
-                    stringBuilder.Append(c);
+                    score = Search(arg.argument, i),
+                    songInfo = i
+                })
+                .Where(i => i.score >= 0)
+                .OrderBy(i => i.score)
+                .Select(i => i.songInfo).ToList();
+                searchList = new() { { "Search Results", results } };
+            }
+            else
+            {
+                Predicate<SongMetadata> match = arg.attribute switch
+                {
+                    SongAttribute.Name => entry => !RemoveArticle(entry.Name.SortStr).Contains(arg.argument),
+                    SongAttribute.Artist => entry => !RemoveArticle(entry.Artist.SortStr).Contains(arg.argument),
+                    SongAttribute.Album => entry => !entry.Album.SortStr.Contains(arg.argument),
+                    SongAttribute.Genre => entry => !entry.Genre.SortStr.Contains(arg.argument),
+                    SongAttribute.Year => entry => !entry.Year.Contains(arg.argument) && !entry.UnmodifiedYear.Contains(arg.argument),
+                    SongAttribute.Charter => entry => !entry.Charter.SortStr.Contains(arg.argument),
+                    SongAttribute.Playlist => entry => !entry.Playlist.SortStr.Contains(arg.argument),
+                    SongAttribute.Source => entry => !entry.Source.SortStr.Contains(arg.argument),
+                    _ => throw new Exception("HOW")
+                };
+
+                List<string> removals = new();
+                foreach (var entry in searchList)
+                {
+                    entry.Value.RemoveAll(match);
+                    if (entry.Value.Count == 0)
+                        removals.Add(entry.Key);
+                }
+
+                foreach (var entry in removals)
+                    searchList.Remove(entry);
+            }
+            return searchList;
+        }
+
+        private static readonly string[] Articles =
+        {
+            "The ", // The beatles, The day that never comes
+            "El ",  // El final, El sol no regresa
+            "La ",  // La quinta estacion, La bamba, La muralla verde
+            "Le ",  // Le temps de la rentrée
+            "Les ", // Les Rita Mitsouko, Les Wampas
+            "Los ", // Los fabulosos cadillacs, Los enanitos verdes,
+        };
+
+        public static string RemoveArticle(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                return name;
+            }
+
+            foreach (var article in Articles)
+            {
+                if (name.StartsWith(article, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return name[article.Length..];
                 }
             }
 
-            return stringBuilder
-                .ToString()
-                .Normalize(NormalizationForm.FormC);
+            return name;
         }
 
         public static string RemoveDiacriticsAndArticle(string text)
         {
-            var textWithoutDiacritics = RemoveDiacritics(text);
-            return SongSorting.RemoveArticle(textWithoutDiacritics);
+            var textWithoutDiacritics = SortString.RemoveDiacritics(text);
+            return RemoveArticle(textWithoutDiacritics);
         }
 
-        private static int Search(string input, SongEntry songInfo)
+        private static int Search(string input, SongMetadata songInfo)
         {
-            string normalizedInput = RemoveDiacritics(input);
-
             // Get name index
-            string name = songInfo.NameNoParenthesis;
-            int nameIndex = RemoveDiacritics(name).IndexOf(normalizedInput, StringComparison.Ordinal);
+            string name = songInfo.Name.SortStr;
+            int nameIndex = name.IndexOf(input, StringComparison.Ordinal);
 
             // Get artist index
-            string artist = songInfo.Artist;
-            int artistIndex = RemoveDiacritics(artist).IndexOf(normalizedInput, StringComparison.Ordinal);
+            string artist = songInfo.Artist.SortStr;
+            int artistIndex = artist.IndexOf(input, StringComparison.Ordinal);
 
             // Return the best search
             if (nameIndex == -1 && artistIndex == -1)
@@ -266,6 +314,91 @@ namespace YARG.Song
             }
 
             return Mathf.Min(nameIndex, artistIndex);
+        }
+
+        private static SortedDictionary<string, List<SongMetadata>> SearchByFilter(SongAttribute sort, string arg)
+        {
+            if (sort == SongAttribute.Name)
+                return SearchByName(arg);
+
+            if (sort == SongAttribute.Year)
+                return SearchByYear(arg);
+
+            if (sort == SongAttribute.Instrument)
+                return SearchByInstrument(arg);
+
+            SortedDictionary<string, List<SongMetadata>> map = new();
+            var elements = sort switch
+            {
+                SongAttribute.Artist => GlobalVariables.Instance.SongContainer.Artists,
+                SongAttribute.Album => GlobalVariables.Instance.SongContainer.Albums,
+                SongAttribute.Source => GlobalVariables.Instance.SongContainer.Sources,
+                SongAttribute.Genre => GlobalVariables.Instance.SongContainer.Genres,
+                SongAttribute.Charter => GlobalVariables.Instance.SongContainer.Charters,
+                SongAttribute.Playlist => GlobalVariables.Instance.SongContainer.Playlists,
+                _ => throw new Exception("stoopid"),
+            };
+
+            foreach (var element in elements)
+            {
+                if (arg.Length == 0)
+                {
+                    map.Add(element.Key, new(element.Value));
+                    continue;
+                }
+
+                string key = element.Key.SortStr;
+                if (sort == SongAttribute.Artist)
+                    key = RemoveArticle(key);
+
+                if (key.Contains(arg))
+                    map.Add(element.Key, new(element.Value));
+            }
+            return map;
+        }
+
+        private static SortedDictionary<string, List<SongMetadata>> SearchByName(string arg)
+        {
+            if (arg.Length == 0)
+            {
+                SortedDictionary<string, List<SongMetadata>> titleMap = new();
+                foreach (var element in GlobalVariables.Instance.SongContainer.Titles)
+                    titleMap.Add(element.Key, new(element.Value));
+                return titleMap;
+            }
+
+            int i = 0;
+            while (i + 1 < arg.Length && !char.IsLetterOrDigit(arg[i]))
+                ++i;
+
+            char character = arg[i];
+            string key = char.IsDigit(character) ? "0-9" : char.ToUpper(character).ToString();
+            var search = GlobalVariables.Instance.SongContainer.Titles[key];
+
+            List<SongMetadata> result = new(search.Count);
+            foreach (var element in search)
+                if (element.Name.SortStr.Contains(arg))
+                    result.Add(element);
+            return new() { { key, result } };
+        }
+
+        private static SortedDictionary<string, List<SongMetadata>> SearchByYear(string arg)
+        {
+            List<SongMetadata> entries = new();
+            foreach (var element in GlobalVariables.Instance.SongContainer.Years)
+                foreach (var entry in element.Value)
+                    if (entry.Year.Contains(arg))
+                        entries.Add(entry);
+            return new() { { arg, entries } };
+        }
+
+        private static SortedDictionary<string, List<SongMetadata>> SearchByInstrument(string arg)
+        {
+            SortedDictionary<string, List<SongMetadata>> map = new();
+            foreach (var element in GlobalVariables.Instance.SongContainer.Instruments)
+                if (element.Key.Contains(arg, StringComparison.OrdinalIgnoreCase))
+                    map.Add(element.Key, new(element.Value));
+            return map;
         }
     }
 }

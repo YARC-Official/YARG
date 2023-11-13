@@ -1,39 +1,19 @@
-using System.Threading;
-using Cysharp.Threading.Tasks;
-using UnityEngine;
+﻿using YARG.Menu.ListMenu;
 
-namespace YARG.UI.MusicLibrary.ViewTypes
+namespace YARG.Menu.MusicLibrary
 {
-    public abstract class ViewType
+    public abstract class ViewType : BaseViewType
     {
-        public enum BackgroundType
-        {
-            Normal,
-            Category
-        }
-
-        public abstract BackgroundType Background { get; }
-
-        public abstract string PrimaryText { get; }
-        public virtual string SecondaryText => string.Empty;
         public virtual bool UseAsMadeFamousBy => false;
 
-        public virtual string SideText => string.Empty;
-
-        public virtual async UniTask<Sprite> GetIcon()
-        {
-            return null;
-        }
+        public override string GetSecondaryText(bool selected) => string.Empty;
+        public virtual string GetSideText(bool selected) => string.Empty;
 
         public virtual void SecondaryTextClick()
         {
         }
 
         public virtual void PrimaryButtonClick()
-        {
-        }
-
-        public virtual void IconClick()
         {
         }
     }

@@ -15,96 +15,96 @@ MonoBehaviour:
   m_TableCollectionName: Settings
   m_TableCollectionNameGuidString: 0c40e690d26fdff4a92f0b3813ac68a4
   m_Entries:
-  - m_Id: 13045026696585216
-    m_Key: AddFolder
+  - m_Id: 53693768659230720
+    m_Key: Button.General.CopyCurrentSongJsonFilePath
     m_Metadata:
       m_Items: []
-  - m_Id: 13085251397345280
-    m_Key: AddUpgradeFolder
+  - m_Id: 53693768667619328
+    m_Key: Button.General.CopyCurrentSongTextFilePath
     m_Metadata:
       m_Items: []
-  - m_Id: 10639285771689984
-    m_Key: AmIAwesome
+  - m_Id: 64541856412065792
+    m_Key: Button.General.ExportSongsOuvert
     m_Metadata:
       m_Items: []
-  - m_Id: 10638647188905984
-    m_Key: AntiGhosting
+  - m_Id: 64541856412065793
+    m_Key: Button.General.ExportSongsText
     m_Metadata:
       m_Items: []
-  - m_Id: 10570792762204160
-    m_Key: AudioCalibration
+  - m_Id: 53693768667619330
+    m_Key: Button.General.OpenCalibrator
     m_Metadata:
       m_Items: []
-  - m_Id: 10638787589038080
-    m_Key: BassVolume
+  - m_Id: 53693768667619332
+    m_Key: Button.General.OpenVenueFolder
     m_Metadata:
       m_Items: []
-  - m_Id: 19713037425598464
-    m_Key: CopyCurrentSongJsonFilePath
+  - m_Id: 53694051170770944
+    m_Key: Button.SongManager.AddFolder
     m_Metadata:
       m_Items: []
-  - m_Id: 12041263110283264
-    m_Key: CopyCurrentSongTextFilePath
+  - m_Id: 53694051174965248
+    m_Key: Button.SongManager.RefreshCache
     m_Metadata:
       m_Items: []
-  - m_Id: 10638899434348544
-    m_Key: CrowdVolume
+  - m_Id: 53693768667619333
+    m_Key: Dropdown.Graphics.FullscreenMode.ExclusiveFullScreen
     m_Metadata:
       m_Items: []
-  - m_Id: 10637304978071552
-    m_Key: DisableBloom
+  - m_Id: 53693768667619334
+    m_Key: Dropdown.Graphics.FullscreenMode.FullScreenWindow
     m_Metadata:
       m_Items: []
-  - m_Id: 21443167489744896
-    m_Key: DisablePerSongBackgrounds
+  - m_Id: 53693768667619335
+    m_Key: Dropdown.Graphics.FullscreenMode.MaximizedWindow
     m_Metadata:
       m_Items: []
-  - m_Id: 21446097060093952
-    m_Key: DisableTextNotifications
+  - m_Id: 53693768667619336
+    m_Key: Dropdown.Graphics.FullscreenMode.Windowed
     m_Metadata:
       m_Items: []
-  - m_Id: 23598515176726528
-    m_Key: Dropdown.CameraPresets
+  - m_Id: 66739072220389376
+    m_Key: Dropdown.Graphics.LyricDisplay.Compatibility
     m_Metadata:
       m_Items: []
-  - m_Id: 10638788599865344
-    m_Key: DrumsVolume
+  - m_Id: 66739072241360896
+    m_Key: Dropdown.Graphics.LyricDisplay.NoBackground
     m_Metadata:
       m_Items: []
-  - m_Id: 12041203517612032
-    m_Key: ExportOuvertSongs
+  - m_Id: 66739072241360897
+    m_Key: Dropdown.Graphics.LyricDisplay.NoLyricDisplay
     m_Metadata:
       m_Items: []
-  - m_Id: 10637227156955136
-    m_Key: FpsCap
+  - m_Id: 66739072241360898
+    m_Key: Dropdown.Graphics.LyricDisplay.Normal
     m_Metadata:
       m_Items: []
-  - m_Id: 16296015277178880
-    m_Key: FpsStats
+  - m_Id: 66739072241360899
+    m_Key: Dropdown.Graphics.LyricDisplay.Transparent
     m_Metadata:
       m_Items: []
-  - m_Id: 25071377905475584
-    m_Key: FullscreenMode
+  - m_Id: 56963656047779840
+    m_Key: Dropdown.Graphics.SongTimeOnScoreBox.CountDownAndTotal
     m_Metadata:
       m_Items: []
-  - m_Id: 25071457018437632
-    m_Key: FullscreenMode.ExclusiveFullScreen
+  - m_Id: 56963656236523520
+    m_Key: Dropdown.Graphics.SongTimeOnScoreBox.CountDownOnly
     m_Metadata:
       m_Items: []
-  - m_Id: 25071572395352064
-    m_Key: FullscreenMode.FullScreenWindow
+  - m_Id: 56963656236523521
+    m_Key: Dropdown.Graphics.SongTimeOnScoreBox.CountUpAndTotal
     m_Metadata:
       m_Items: []
-  - m_Id: 25071721024708608
-    m_Key: FullscreenMode.MaximizedWindow
+  - m_Id: 56963656236523522
+    m_Key: Dropdown.Graphics.SongTimeOnScoreBox.CountUpOnly
     m_Metadata:
       m_Items: []
-  - m_Id: 25071794185953280
-    m_Key: FullscreenMode.Windowed
+  - m_Id: 56963656236523523
+    m_Key: Dropdown.Graphics.SongTimeOnScoreBox.None
     m_Metadata:
       m_Items: []
-  - m_Id: 10638756366639104
-    m_Key: GuitarVolume
+  - m_Id: 56963656240717824
+    m_Key: Dropdown.Graphics.SongTimeOnScoreBox.TotalOnly
     m_Metadata:
       m_Items: []
   - m_Id: 13088551106633728
@@ -117,6 +117,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 12836607712681984
     m_Key: Header.Camera
+    m_Metadata:
+      m_Items: []
+  - m_Id: 79799527068782592
+    m_Key: Header.Debug
     m_Metadata:
       m_Items: []
   - m_Id: 12472135823253504
@@ -139,6 +143,10 @@ MonoBehaviour:
     m_Key: Header.Other
     m_Metadata:
       m_Items: []
+  - m_Id: 62024422937452544
+    m_Key: Header.PresetSettings
+    m_Metadata:
+      m_Items: []
   - m_Id: 13084450683740160
     m_Key: Header.SongFolders
     m_Metadata:
@@ -155,108 +163,400 @@ MonoBehaviour:
     m_Key: Header.Volume
     m_Metadata:
       m_Items: []
-  - m_Id: 10637330240364544
-    m_Key: HighFovCamera
+  - m_Id: 62024422966812672
+    m_Key: PresetType.CameraSettingsContainer
     m_Metadata:
       m_Items: []
-  - m_Id: 10638788159463424
-    m_Key: KeysVolume
+  - m_Id: 64543436070838272
+    m_Key: PresetType.ColorProfileContainer
     m_Metadata:
       m_Items: []
-  - m_Id: 26591864540614656
-    m_Key: KickBounce
+  - m_Id: 53693768667619341
+    m_Key: Setting.Engine.AntiGhosting
     m_Metadata:
       m_Items: []
-  - m_Id: 10637270228262912
-    m_Key: LowQuality
+  - m_Id: 53693768667619342
+    m_Key: Setting.Engine.AntiGhosting.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 32040983111000064
-    m_Key: LyricBackground
+  - m_Id: 53693768667619343
+    m_Key: Setting.Engine.InfiniteFrontEnd
     m_Metadata:
       m_Items: []
-  - m_Id: 32040568017510400
-    m_Key: LyricBackground.None
+  - m_Id: 53704501379850240
+    m_Key: Setting.Engine.InfiniteFrontEnd.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 32040511641870336
-    m_Key: LyricBackground.Normal
+  - m_Id: 53693768667619344
+    m_Key: Setting.Engine.NoKicks
     m_Metadata:
       m_Items: []
-  - m_Id: 32040561948352512
-    m_Key: LyricBackground.Transparent
+  - m_Id: 53704501379850241
+    m_Key: Setting.Engine.NoKicks.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 10638707146481664
-    m_Key: MasterMusicVolume
+  - m_Id: 53693768667619345
+    m_Key: Setting.General.AmIAwesome
     m_Metadata:
       m_Items: []
-  - m_Id: 25027162441900032
-    m_Key: MicrophoneSensitivity
+  - m_Id: 53693768667619346
+    m_Key: Setting.General.AmIAwesome.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 20387720246714368
-    m_Key: MusicPlayerVolume
+  - m_Id: 53693768667619347
+    m_Key: Setting.General.AudioCalibration
     m_Metadata:
       m_Items: []
-  - m_Id: 10638943449374720
-    m_Key: MuteOnMiss
+  - m_Id: 53693768667619348
+    m_Key: Setting.General.AudioCalibration.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 10638637965631488
-    m_Key: NoKicks
+  - m_Id: 53693768667619349
+    m_Key: Setting.General.DisablePerSongBackgrounds
     m_Metadata:
       m_Items: []
-  - m_Id: 22854246069559296
-    m_Key: OpenCalibrator
+  - m_Id: 53704501379850242
+    m_Key: Setting.General.DisablePerSongBackgrounds.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 12039401434898432
-    m_Key: OpenSongFolderManager
+  - m_Id: 79799556705734656
+    m_Key: Setting.General.InputDeviceLogging
     m_Metadata:
       m_Items: []
-  - m_Id: 21043134349041664
-    m_Key: OpenVenueFolder
+  - m_Id: 79799583608000512
+    m_Key: Setting.General.InputDeviceLogging.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 31586592042115072
-    m_Key: PressThreshold
+  - m_Id: 53693768667619350
+    m_Key: Setting.General.KickBounce
     m_Metadata:
       m_Items: []
-  - m_Id: 17867012767817728
-    m_Key: PreviewVolume
+  - m_Id: 53704501379850243
+    m_Key: Setting.General.KickBounce.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 13051785226084352
-    m_Key: RefreshAllCaches
+  - m_Id: 53693768667619351
+    m_Key: Setting.General.ShowCursorTimer
     m_Metadata:
       m_Items: []
-  - m_Id: 15356265326043136
-    m_Key: ResetCameraSettings
+  - m_Id: 53704501379850244
+    m_Key: Setting.General.ShowCursorTimer.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 25071429197619200
-    m_Key: Resolution
+  - m_Id: 53693768667619352
+    m_Key: Setting.General.UseCymbalModelsInFiveLane
     m_Metadata:
       m_Items: []
-  - m_Id: 10638786381078528
-    m_Key: RhythmVolume
+  - m_Id: 53704501379850245
+    m_Key: Setting.General.UseCymbalModelsInFiveLane.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 10638910104657920
-    m_Key: SfxVolume
+  - m_Id: 73744741668081664
+    m_Key: Setting.General.VideoCalibration
     m_Metadata:
       m_Items: []
-  - m_Id: 31231598726078464
-    m_Key: ShowCursorTimer
+  - m_Id: 73745068840570880
+    m_Key: Setting.General.VideoCalibration.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 10637368563720192
-    m_Key: ShowHitWindow
+  - m_Id: 53693768667619353
+    m_Key: Setting.Graphics.DisableBloom
     m_Metadata:
       m_Items: []
-  - m_Id: 10638858523107328
-    m_Key: SongVolume
+  - m_Id: 53704501379850246
+    m_Key: Setting.Graphics.DisableBloom.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619354
+    m_Key: Setting.Graphics.DisableTextNotifications
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850247
+    m_Key: Setting.Graphics.DisableTextNotifications.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619355
+    m_Key: Setting.Graphics.FpsCap
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850248
+    m_Key: Setting.Graphics.FpsCap.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619356
+    m_Key: Setting.Graphics.FpsStats
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850249
+    m_Key: Setting.Graphics.FpsStats.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619357
+    m_Key: Setting.Graphics.FullscreenMode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850250
+    m_Key: Setting.Graphics.FullscreenMode.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56971512511848448
+    m_Key: Setting.Graphics.GraphicalProgressOnScoreBox
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56971512511848449
+    m_Key: Setting.Graphics.GraphicalProgressOnScoreBox.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619358
+    m_Key: Setting.Graphics.LowQuality
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850251
+    m_Key: Setting.Graphics.LowQuality.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66739072245555200
+    m_Key: Setting.Graphics.LyricDisplay
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66739072245555201
+    m_Key: Setting.Graphics.LyricDisplay.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619360
+    m_Key: Setting.Graphics.Resolution
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850253
+    m_Key: Setting.Graphics.Resolution.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619361
+    m_Key: Setting.Graphics.ShowHitWindow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850254
+    m_Key: Setting.Graphics.ShowHitWindow.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56963656240717825
+    m_Key: Setting.Graphics.SongTimeOnScoreBox
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56963656240717826
+    m_Key: Setting.Graphics.SongTimeOnScoreBox.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619369
+    m_Key: Setting.Graphics.VSync
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850262
+    m_Key: Setting.Graphics.VSync.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506674827264
+    m_Key: Setting.Presets.CameraPreset_CurveFactor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021568
+    m_Key: Setting.Presets.CameraPreset_CurveFactor.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021569
+    m_Key: Setting.Presets.CameraPreset_FadeLength
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021570
+    m_Key: Setting.Presets.CameraPreset_FadeLength.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021571
+    m_Key: Setting.Presets.CameraPreset_FadeStart
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021572
+    m_Key: Setting.Presets.CameraPreset_FadeStart.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021573
+    m_Key: Setting.Presets.CameraPreset_FieldOfView
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021574
+    m_Key: Setting.Presets.CameraPreset_FieldOfView.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021575
+    m_Key: Setting.Presets.CameraPreset_PositionY
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021576
+    m_Key: Setting.Presets.CameraPreset_PositionY.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021577
+    m_Key: Setting.Presets.CameraPreset_PositionZ
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021578
+    m_Key: Setting.Presets.CameraPreset_PositionZ.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021579
+    m_Key: Setting.Presets.CameraPreset_Rotation
+    m_Metadata:
+      m_Items: []
+  - m_Id: 60873506679021580
+    m_Key: Setting.Presets.CameraPreset_Rotation.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619372
+    m_Key: Setting.Sound.BassVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619373
+    m_Key: Setting.Sound.BassVolume.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619374
+    m_Key: Setting.Sound.CrowdVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850263
+    m_Key: Setting.Sound.CrowdVolume.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619375
+    m_Key: Setting.Sound.DrumsVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850264
+    m_Key: Setting.Sound.DrumsVolume.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619376
+    m_Key: Setting.Sound.GuitarVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850265
+    m_Key: Setting.Sound.GuitarVolume.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619377
+    m_Key: Setting.Sound.KeysVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850266
+    m_Key: Setting.Sound.KeysVolume.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619378
+    m_Key: Setting.Sound.MasterMusicVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850267
+    m_Key: Setting.Sound.MasterMusicVolume.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619379
+    m_Key: Setting.Sound.MicrophoneSensitivity
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850268
+    m_Key: Setting.Sound.MicrophoneSensitivity.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619380
+    m_Key: Setting.Sound.MusicPlayerVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850269
+    m_Key: Setting.Sound.MusicPlayerVolume.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619381
+    m_Key: Setting.Sound.MuteOnMiss
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850270
+    m_Key: Setting.Sound.MuteOnMiss.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619382
+    m_Key: Setting.Sound.PreviewVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850271
+    m_Key: Setting.Sound.PreviewVolume.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619383
+    m_Key: Setting.Sound.RhythmVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850272
+    m_Key: Setting.Sound.RhythmVolume.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619384
+    m_Key: Setting.Sound.SfxVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850273
+    m_Key: Setting.Sound.SfxVolume.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619385
+    m_Key: Setting.Sound.SongVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850274
+    m_Key: Setting.Sound.SongVolume.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619386
+    m_Key: Setting.Sound.UseChipmunkSpeed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850275
+    m_Key: Setting.Sound.UseChipmunkSpeed.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619387
+    m_Key: Setting.Sound.UseStarpowerFx
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850276
+    m_Key: Setting.Sound.UseStarpowerFx.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619388
+    m_Key: Setting.Sound.UseWhammyFx
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619389
+    m_Key: Setting.Sound.VocalMonitoring
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850277
+    m_Key: Setting.Sound.VocalMonitoring.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619390
+    m_Key: Setting.Sound.VocalsVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53704501379850278
+    m_Key: Setting.Sound.VocalsVolume.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619391
+    m_Key: Setting.Sound.WhammyOversampleFactor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53693768667619392
+    m_Key: Setting.Sound.WhammyPitchShiftAmount
     m_Metadata:
       m_Items: []
   - m_Id: 10936750303469568
@@ -271,68 +571,20 @@ MonoBehaviour:
     m_Key: Tab.Graphics
     m_Metadata:
       m_Items: []
+  - m_Id: 62024422971006976
+    m_Key: Tab.Presets
+    m_Metadata:
+      m_Items: []
+  - m_Id: 55070184168611840
+    m_Key: Tab.SongManager
+    m_Metadata:
+      m_Items: []
   - m_Id: 10936772512309248
     m_Key: Tab.Sound
     m_Metadata:
       m_Items: []
-  - m_Id: 12836661710151680
-    m_Key: TrackCamFOV
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13037094139453440
-    m_Key: TrackCamRot
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12849290851770368
-    m_Key: TrackCamYPos
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12852418619760640
-    m_Key: TrackCamZPos
-    m_Metadata:
-      m_Items: []
-  - m_Id: 25775451793645568
-    m_Key: TrackFadePosition
-    m_Metadata:
-      m_Items: []
-  - m_Id: 25775459376947200
-    m_Key: TrackFadeSize
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10638965775654912
-    m_Key: UseChipmunkSpeed
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10637402030071808
-    m_Key: UseCymbalModelsInFiveLane
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10638955231174656
-    m_Key: UseStarpowerFx
-    m_Metadata:
-      m_Items: []
-  - m_Id: 36054625388216320
-    m_Key: UseWhammyFx
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10638924633726976
-    m_Key: VocalMonitoring
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10638841787834368
-    m_Key: VocalsVolume
-    m_Metadata:
-      m_Items: []
-  - m_Id: 10637195569651712
-    m_Key: VSync
-    m_Metadata:
-      m_Items: []
-  - m_Id: 36056030748491776
-    m_Key: WhammyOversampleFactor
-    m_Metadata:
-      m_Items: []
-  - m_Id: 36111086550138880
-    m_Key: WhammyPitchShiftAmount
+  - m_Id: 64541529466068992
+    m_Key: Text.ColorProfileSupport
     m_Metadata:
       m_Items: []
   m_Metadata:

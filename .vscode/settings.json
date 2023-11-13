@@ -10,5 +10,6 @@
         "Obj/":true,
         "temp/":true,
         "Temp/":true
-    }
+    },
+    "dotnet.defaultSolution": "YARG.sln",
 }

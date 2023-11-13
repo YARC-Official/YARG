@@ -5,8 +5,8 @@ using System.Net;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
+using YARG.Helpers;
 using YARG.Song;
-using YARG.Util;
 
 namespace Editor
 {
@@ -48,7 +48,7 @@ namespace Editor
                 // Delete the random folders
                 foreach (var folder in Directory.GetDirectories(repoDir))
                 {
-                    if (PathHelper.PathsEqual(Path.GetFileName(folder), "base"))
+                    if (string.Equals(Path.GetFileName(folder), "base", StringComparison.OrdinalIgnoreCase))
                     {
                         continue;
                     }
@@ -57,7 +57,7 @@ namespace Editor
                 }
 
                 // Delete the random files
-                foreach (var file in Directory.GetFiles(repoDir))
+                foreach (var file in Directory.EnumerateFiles(repoDir))
                 {
                     File.Delete(file);
                 }

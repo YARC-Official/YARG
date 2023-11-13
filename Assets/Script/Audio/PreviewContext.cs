@@ -2,13 +2,15 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-using YARG.Settings;
-using YARG.Song;
+using YARG.Core.Song;
+using YARG.Helpers.Extensions;
 
 namespace YARG.Audio
 {
     public class PreviewContext
     {
+        private const double DEFAULT_PREVIEW_DURATION = 30.0;
+
         public double PreviewStartTime { get; private set; }
         public double PreviewEndTime { get; private set; }
 
@@ -46,7 +48,7 @@ namespace YARG.Audio
             }
         }
 
-        public async UniTask PlayPreview(SongEntry song, float volume, CancellationToken cancelToken)
+        public async UniTask PlayPreview(SongMetadata song, float volume, CancellationToken cancelToken)
         {
             // Skip if preview shouldn't be played
             if (song == null || Mathf.Approximately(volume, 0f))
@@ -57,8 +59,7 @@ namespace YARG.Audio
             // Previews must be cancelled before attempting to start a new one
             if (IsPlaying)
             {
-                Debug.LogError(
-                    $"Attempted to play a new preview without cancelling the previous! Song: {song.Artist} - {song.Name}");
+                Debug.LogError($"Attempted to play a new preview without cancelling the previous! Song: {song.Artist} - {song.Name}");
                 return;
             }
 
@@ -89,7 +90,7 @@ namespace YARG.Audio
                 if (!usesPreviewFile)
                 {
                     // Set preview start and end times
-                    PreviewStartTime = song.PreviewStartTimeSpan.TotalSeconds;
+                    PreviewStartTime = song.PreviewStartSeconds;
                     if (PreviewStartTime <= 0.0 || PreviewStartTime >= audioLength)
                     {
                         if (20 <= audioLength)
@@ -98,10 +99,10 @@ namespace YARG.Audio
                             PreviewStartTime = audioLength / 2;
                     }
 
-                    PreviewEndTime = song.PreviewEndTimeSpan.TotalSeconds;
+                    PreviewEndTime = song.PreviewEndSeconds;
                     if (PreviewEndTime <= 0.0 || PreviewEndTime + 1 >= audioLength)
                     {
-                        PreviewEndTime = PreviewStartTime + Constants.PREVIEW_DURATION;
+                        PreviewEndTime = PreviewStartTime + DEFAULT_PREVIEW_DURATION;
                         if (PreviewEndTime + 1 > audioLength)
                             PreviewEndTime = audioLength - 1;
                     }

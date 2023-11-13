@@ -1,28 +1,21 @@
 using System;
+using YARG.Core;
 
 namespace YARG.Data
 {
-    public enum Difficulty
-    {
-        EASY = 0,
-        MEDIUM,
-        HARD,
-        EXPERT,
-        EXPERT_PLUS // Drums double bass only
-    }
-
     public static class DifficultyExtensions
     {
         public static char ToChar(this Difficulty diff)
         {
             return diff switch
             {
-                Difficulty.EASY        => 'E',
-                Difficulty.MEDIUM      => 'M',
-                Difficulty.HARD        => 'H',
-                Difficulty.EXPERT      => 'X',
-                Difficulty.EXPERT_PLUS => 'P',
-                _                      => '?'
+                Difficulty.Easy       => 'E',
+                Difficulty.Medium     => 'M',
+                Difficulty.Hard       => 'H',
+                Difficulty.Expert     => 'X',
+                Difficulty.ExpertPlus => 'P',
+
+                _ => '?'
             };
         }
 
@@ -30,25 +23,27 @@ namespace YARG.Data
         {
             return diff switch
             {
-                'E' => Difficulty.EASY,
-                'M' => Difficulty.MEDIUM,
-                'H' => Difficulty.HARD,
-                'X' => Difficulty.EXPERT,
-                'P' => Difficulty.EXPERT_PLUS,
-                _   => throw new System.Exception("Unknown difficulty.")
+                'E' => Difficulty.Easy,
+                'M' => Difficulty.Medium,
+                'H' => Difficulty.Hard,
+                'X' => Difficulty.Expert,
+                'P' => Difficulty.ExpertPlus,
+
+                _ => throw new Exception("Unknown difficulty.")
             };
         }
 
-        public static string ToStringName(this Difficulty difficulty)
+        public static string ToDisplayName(this Difficulty difficulty)
         {
             return difficulty switch
             {
-                Difficulty.EASY        => "Easy",
-                Difficulty.MEDIUM      => "Medium",
-                Difficulty.HARD        => "Hard",
-                Difficulty.EXPERT      => "Expert",
-                Difficulty.EXPERT_PLUS => "Expert+",
-                _                      => "Unknown"
+                Difficulty.Easy       => "Easy",
+                Difficulty.Medium     => "Medium",
+                Difficulty.Hard       => "Hard",
+                Difficulty.Expert     => "Expert",
+                Difficulty.ExpertPlus => "Expert+",
+    
+                _ => "Unknown"
             };
         }
     }

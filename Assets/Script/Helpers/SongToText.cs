@@ -4,10 +4,10 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
-using YARG.PlayMode;
+using YARG.Core.Song;
 using YARG.Song;
 
-namespace YARG.Util
+namespace YARG.Helpers
 {
     public static class SongToText
     {
@@ -54,7 +54,7 @@ namespace YARG.Util
 
         private static readonly Regex StyleRegex = new(@"^<[^>\s]*>", RegexOptions.Compiled);
 
-        private static readonly Dictionary<string, Func<SongEntry, string>> Keywords = new()
+        private static readonly Dictionary<string, Func<SongMetadata, string>> Keywords = new()
         {
             {
                 "song", x => x.Name
@@ -74,12 +74,12 @@ namespace YARG.Util
             {
                 "speed_percent", _ =>
                 {
-                    if (Play.speed == 1f)
+                    if (GlobalVariables.Instance.SongSpeed == 1f)
                     {
                         return string.Empty;
                     }
 
-                    return Play.speed.ToString("P0", new NumberFormatInfo
+                    return GlobalVariables.Instance.SongSpeed.ToString("P0", new NumberFormatInfo
                     {
                         PercentPositivePattern = 1, PercentNegativePattern = 1
                     });
@@ -87,7 +87,7 @@ namespace YARG.Util
             }
         };
 
-        private static readonly Dictionary<string, Func<SongEntry, bool>> Conditions = new()
+        private static readonly Dictionary<string, Func<SongMetadata, bool>> Conditions = new()
         {
             {
                 "song", x => !string.IsNullOrEmpty(x.Name)
@@ -105,11 +105,11 @@ namespace YARG.Util
                 "charter", x => !string.IsNullOrEmpty(x.Charter)
             },
             {
-                "changed_speed", _ => Play.speed == 1f
+                "changed_speed", _ => GlobalVariables.Instance.SongSpeed == 1f
             }
         };
 
-        public static Line[] ToStyled(string format, SongEntry song)
+        public static Line[] ToStyled(string format, SongMetadata song)
         {
             var formatLines = Regex.Split(format, @"\r?\n|\r");
             var outputLines = new Line[formatLines.Length];

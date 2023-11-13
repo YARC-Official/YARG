@@ -5,23 +5,11 @@ namespace YARG.Settings.Types
 {
     public class ResolutionSetting : AbstractSetting<Resolution?>
     {
-        private Resolution? _data;
-
-        public override Resolution? Data
-        {
-            get => _data;
-            set
-            {
-                _data = value;
-                base.Data = value;
-            }
-        }
-
         public override string AddressableName => "Setting/Resolution";
 
         public ResolutionSetting(Action<Resolution?> onChange = null) : base(onChange)
         {
-            _data = null;
+            DataField = null;
         }
 
         public override bool IsSettingDataEqual(object obj)

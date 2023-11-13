@@ -117,12 +117,20 @@ indent_style = space
 indent_size = 4
 
 # Microsoft .NET properties
+csharp_new_line_before_members_in_object_initializers = false
 csharp_style_var_elsewhere = true:suggestion
 csharp_style_var_for_built_in_types = false:none
 csharp_style_var_when_type_is_apparent = true:suggestion
 
 # ReSharper properties
+resharper_braces_for_ifelse = not_required_for_both
+resharper_csharp_blank_lines_around_field = 0
+resharper_max_initializer_elements_on_line = 1
 resharper_outdent_statement_labels = true
+resharper_wrap_array_initializer_style = chop_always
+
+# ReSharper inspection severities
+resharper_arrange_attributes_highlighting = none
 
 [{*.har,*.jsb2,*.jsb3,*.json,.babelrc,.eslintrc,.stylelintrc,bowerrc,jest.config}]
 indent_style = tab

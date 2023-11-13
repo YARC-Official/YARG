@@ -1,110 +1,89 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Cysharp.Threading.Tasks;
-using UnityEngine;
-using YARG.Settings;
-using YARG.Util;
+﻿using System.Collections.Generic;
+using YARG.Core.Song.Cache;
+using YARG.Core.Song;
+using System;
 
 namespace YARG.Song
 {
-    public static class SongContainer
+    public class SongContainer
     {
-        private static readonly List<SongEntry> _songs;
-        private static readonly Dictionary<string, SongEntry> _songsByHash;
+        private readonly SongCache _songCache = new();
+        private readonly List<SongMetadata> _songs = new();
 
-        public static IReadOnlyList<SongEntry> Songs => _songs;
-        public static IReadOnlyDictionary<string, SongEntry> SongsByHash => _songsByHash;
+        private readonly SortedDictionary<string, List<SongMetadata>> _sortArtists = new();
+        private readonly SortedDictionary<string, List<SongMetadata>> _sortAlbums = new();
+        private readonly SortedDictionary<string, List<SongMetadata>> _sortGenres = new();
+        private readonly SortedDictionary<string, List<SongMetadata>> _sortCharters = new();
+        private readonly SortedDictionary<string, List<SongMetadata>> _sortPlaylists = new();
+        private readonly SortedDictionary<string, List<SongMetadata>> _sortSources = new();
 
-        static SongContainer()
+        public IReadOnlyDictionary<string, List<SongMetadata>> Titles => _songCache.Titles;
+        public IReadOnlyDictionary<string, List<SongMetadata>> Years => _songCache.Years;
+        public IReadOnlyDictionary<string, List<SongMetadata>> ArtistAlbums => _songCache.ArtistAlbums;
+        public IReadOnlyDictionary<string, List<SongMetadata>> SongLengths => _songCache.SongLengths;
+        public IReadOnlyDictionary<string, List<SongMetadata>> Instruments => _songCache.Instruments;
+        public IReadOnlyDictionary<SortString, List<SongMetadata>> Artists => _songCache.Artists;
+        public IReadOnlyDictionary<SortString, List<SongMetadata>> Albums => _songCache.Albums;
+        public IReadOnlyDictionary<SortString, List<SongMetadata>> Genres => _songCache.Genres;
+        public IReadOnlyDictionary<SortString, List<SongMetadata>> Charters => _songCache.Charters;
+        public IReadOnlyDictionary<SortString, List<SongMetadata>> Playlists => _songCache.Playlists;
+        public IReadOnlyDictionary<SortString, List<SongMetadata>> Sources => _songCache.Sources;
+
+        public int Count => _songs.Count;
+        public IReadOnlyDictionary<HashWrapper, List<SongMetadata>> SongsByHash => _songCache.Entries;
+        public IReadOnlyList<SongMetadata> Songs => _songs;
+
+        public SongContainer() { }
+
+        public SongContainer(SongCache cache)
         {
-            _songs = new List<SongEntry>();
-            _songsByHash = new Dictionary<string, SongEntry>();
-        }
+            _songCache = cache;
+            foreach (var node in cache.Entries)
+                _songs.AddRange(node.Value);
+            _songs.TrimExcess();
 
-        public static void AddSongs(ICollection<SongEntry> songs)
-        {
-            _songs.AddRange(songs);
+            _sortArtists = Convert(cache.Artists);
+            _sortAlbums = Convert(cache.Albums);
+            _sortGenres = Convert(cache.Genres);
+            _sortCharters = Convert(cache.Charters);
+            _sortPlaylists = Convert(cache.Playlists);
+            _sortSources = Convert(cache.Sources);
 
-            foreach (var songEntry in songs)
+            static SortedDictionary<string, List<SongMetadata>> Convert(SortedDictionary<SortString, List<SongMetadata>> list)
             {
-                if (_songsByHash.ContainsKey(songEntry.Checksum)) continue;
-
-                _songsByHash.Add(songEntry.Checksum, songEntry);
-            }
-
-            TrySelectedSongReset();
-        }
-
-        public static async UniTask<List<CacheFolder>> ScanAllFolders(bool fast, Action<SongScanner> updateUi = null)
-        {
-            _songs.Clear();
-            _songsByHash.Clear();
-
-            // Add setlists as portable folder if installed
-            IEnumerable<string> portableFolders = null;
-            if (!string.IsNullOrEmpty(PathHelper.SetlistPath))
-            {
-                portableFolders = new[]
+                SortedDictionary<string, List<SongMetadata>> map = new();
+                foreach (var node in list)
                 {
-                    PathHelper.SetlistPath
-                };
+                    string key = node.Key;
+                    if (key.Length > 0 && char.IsLower(key[0]))
+                    {
+                        key = char.ToUpperInvariant(key[0]).ToString();
+                        if (node.Key.Length > 1)
+                            key += node.Key.Str[1..];
+                    }
+                    map.Add(key, node.Value);
+                }
+                return map;
             }
-
-            var scanner = new SongScanner(SettingsManager.Settings.SongFolders, portableFolders);
-            var output = await scanner.StartScan(fast, updateUi);
-
-            AddSongs(output.SongEntries);
-            return output.ErroredCaches;
         }
 
-        public static async UniTask ScanFolders(ICollection<CacheFolder> folders, bool fast,
-            Action<SongScanner> updateUi = null)
+        public IReadOnlyDictionary<string, List<SongMetadata>> GetSortedSongList(SongAttribute sort)
         {
-            var songsToRemove = _songs.Where(song => folders.Any(i => i.Folder == song.CacheRoot)).ToList();
-
-            _songs.RemoveAll(x => songsToRemove.Contains(x));
-            foreach (var song in songsToRemove)
+            return sort switch
             {
-                _songsByHash.Remove(song.Checksum);
-            }
-
-            var scanner = new SongScanner(folders);
-            var songs = await scanner.StartScan(fast, updateUi);
-
-            AddSongs(songs.SongEntries);
-        }
-
-        public static async UniTask ScanSingleFolder(string path, bool fast, Action<SongScanner> updateUi = null)
-        {
-            var songsToRemove = _songs.Where(song => song.CacheRoot == path).ToList();
-
-            _songs.RemoveAll(x => songsToRemove.Contains(x));
-            foreach (var song in songsToRemove)
-            {
-                _songsByHash.Remove(song.Checksum);
-            }
-
-            var scanner = new SongScanner(new[]
-            {
-                path
-            });
-            var songs = await scanner.StartScan(fast, updateUi);
-
-            AddSongs(songs.SongEntries);
-        }
-
-        private static void TrySelectedSongReset()
-        {
-            if (GameManager.Instance.SelectedSong == null)
-            {
-                return;
-            }
-
-            if (!_songsByHash.ContainsKey(GameManager.Instance.SelectedSong.Checksum))
-            {
-                GameManager.Instance.SelectedSong = null;
-            }
+                SongAttribute.Name => Titles,
+                SongAttribute.Artist => _sortArtists,
+                SongAttribute.Album => _sortAlbums,
+                SongAttribute.Genre => _sortGenres,
+                SongAttribute.Year => Years,
+                SongAttribute.Charter => _sortCharters,
+                SongAttribute.Playlist => _sortPlaylists,
+                SongAttribute.Source => _sortSources,
+                SongAttribute.Artist_Album => ArtistAlbums,
+                SongAttribute.SongLength => SongLengths,
+                SongAttribute.Instrument => Instruments,
+                _ => throw new Exception("stoopid"),
+            };
         }
     }
 }

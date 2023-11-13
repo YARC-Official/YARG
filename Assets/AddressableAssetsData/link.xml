@@ -8,9 +8,9 @@
     <type fullname="YARG.Pools.NoteComponent" preserve="all" />
     <type fullname="YARG.Pools.NotePool" preserve="all" />
     <type fullname="YARG.Pools.Pool" preserve="all" />
-    <type fullname="YARG.Util.FadeLight" preserve="all" />
-    <type fullname="YARG.Util.ParticleGroup" preserve="all" />
-    <type fullname="YARG.Util.WaveyLight" preserve="all" />
+    <type fullname="YARG.Helpers.FadeLight" preserve="all" />
+    <type fullname="YARG.Helpers.ParticleGroup" preserve="all" />
+    <type fullname="YARG.Helpers.WaveyLight" preserve="all" />
     <type fullname="YARG.Pools.Pool/KVP" preserve="nothing" serialized="true" />
   </assembly>
   <assembly fullname="Unity.Addressables, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" preserve="all">

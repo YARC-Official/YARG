@@ -1,17 +1,14 @@
 ﻿using System;
 using ManagedBass;
 using ManagedBass.Mix;
-using UnityEngine;
 
 namespace YARG.Audio.BASS
 {
     public class BassMoggStemMixer : BassStemMixer
     {
-        private int _moggSourceHandle;
-
-        public BassMoggStemMixer(IAudioManager manager, int moggStreamHandle) : base(manager)
+        public BassMoggStemMixer(IAudioManager manager, int moggStreamHandle)
+            : base(manager, moggStreamHandle, true)
         {
-            _moggSourceHandle = moggStreamHandle;
         }
 
         public override int AddChannel(IStemChannel channel)
@@ -32,12 +29,8 @@ namespace YARG.Audio.BASS
 
             float[,] channelPanVol =
             {
-                {
-                    moggChannel.left
-                },
-                {
-                    moggChannel.right
-                }
+                { moggChannel.left },
+                { moggChannel.right }
             };
 
             if (!BassMix.ChannelSetMatrix(moggChannel.StreamHandle, channelPanVol) ||
@@ -59,20 +52,6 @@ namespace YARG.Audio.BASS
             }
 
             return 0;
-        }
-
-        protected override void ReleaseUnmanagedResources()
-        {
-            base.ReleaseUnmanagedResources();
-            if (_moggSourceHandle != 0)
-            {
-                if (!Bass.StreamFree(_moggSourceHandle))
-                {
-                    Debug.LogError("Failed to free mixer stream. THIS WILL LEAK MEMORY!");
-                }
-
-                _moggSourceHandle = 0;
-            }
         }
     }
 }

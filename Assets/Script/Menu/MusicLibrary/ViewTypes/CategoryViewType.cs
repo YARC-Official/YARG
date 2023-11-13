@@ -1,40 +1,79 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using YARG.Song;
+using YARG.Core.Song;
+using YARG.Helpers;
+using YARG.Helpers.Extensions;
+using YARG.Menu.Data;
 
-namespace YARG.UI.MusicLibrary.ViewTypes
+namespace YARG.Menu.MusicLibrary
 {
     public class CategoryViewType : ViewType
     {
         public override BackgroundType Background => BackgroundType.Category;
 
-        public override string PrimaryText => $"<color=white>{_primary}</color>";
-        public override string SideText => _side;
+        public readonly string SourceCountText;
+        public readonly string CharterCountText;
+        public readonly string GenreCountText;
 
-        private string _primary;
-        private string _side;
+        private readonly string _primary;
+        private readonly int _songCount;
 
-        public IEnumerable<SongEntry> SongsUnderCategory { get; private set; }
-
-        public CategoryViewType(string primary, string side, IEnumerable<SongEntry> songsUnderCategory = null)
+        public CategoryViewType(string primary, int songCount, IReadOnlyList<SongMetadata> songsUnderCategory)
         {
             _primary = primary;
-            _side = side;
+            _songCount = songCount;
 
-            if (songsUnderCategory == null)
-            {
-                SongsUnderCategory = Enumerable.Empty<SongEntry>();
-            }
-            else
-            {
-                SongsUnderCategory = songsUnderCategory;
-            }
+            SourceCountText = $"{CountOf(songsUnderCategory, i => i.Source)} sources";
+            CharterCountText = $"{CountOf(songsUnderCategory, i => i.Charter)} charters";
+            GenreCountText = $"{CountOf(songsUnderCategory, i => i.Genre)} genres";
         }
 
-        public int CountOf<T>(Func<SongEntry, T> selector)
+        public CategoryViewType(string primary, int songCount,
+            IReadOnlyDictionary<string, List<SongMetadata>> songsUnderCategory)
         {
-            return SongsUnderCategory.Select(selector).Distinct().Count();
+            _primary = primary;
+            _songCount = songCount;
+
+            int sources = 0;
+            int charters = 0;
+            int genres = 0;
+
+            foreach (var n in songsUnderCategory)
+            {
+                sources += CountOf(n.Value, i => i.Source);
+                charters += CountOf(n.Value, i => i.Charter);
+                genres += CountOf(n.Value, i => i.Genre);
+            }
+
+            SourceCountText = $"{sources} sources";
+            CharterCountText = $"{charters} charters";
+            GenreCountText = $"{genres} genres";
+        }
+
+        public override string GetPrimaryText(bool selected)
+        {
+            return FormatAs(_primary, TextType.Bright, selected);
+        }
+
+        public override string GetSideText(bool selected)
+        {
+            var count = TextColorer.FormatString(
+                _songCount.ToString("N0"),
+                MenuData.Colors.PrimaryText,
+                500);
+
+            var songs = TextColorer.FormatString(
+                _songCount == 1 ? "SONG" : "SONGS",
+                MenuData.Colors.PrimaryText.WithAlpha(0.5f),
+                500);
+
+            return $"{count} {songs}";
+        }
+
+        private static int CountOf(IEnumerable<SongMetadata> songs, Func<SongMetadata, SortString> selector)
+        {
+            return songs.Select(selector).Distinct().Count();
         }
     }
 }

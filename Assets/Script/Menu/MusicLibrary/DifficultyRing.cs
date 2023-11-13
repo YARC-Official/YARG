@@ -1,94 +1,74 @@
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
-using YARG.Data;
-using YARG.Song;
+using YARG.Core.Song;
 
-namespace YARG.UI.MusicLibrary
+namespace YARG.Menu.MusicLibrary
 {
+    // TODO: This should probably be redone, but I'm waiting until we refactor how the icons work
     public class DifficultyRing : MonoBehaviour
     {
+        [FormerlySerializedAs("instrumentIcon")]
         [SerializeField]
-        private Image instrumentIcon;
+        private Image _instrumentIcon;
 
+        [FormerlySerializedAs("ringSprite")]
         [SerializeField]
-        private Image ringSprite;
+        private Image _ringSprite;
 
+        [FormerlySerializedAs("ringSprites")]
         [SerializeField]
-        private Sprite[] ringSprites;
+        private Sprite[] _ringSprites;
 
         private Button _searchButton;
+        private MusicLibraryMenu _musicLibraryMenu;
 
         private void Awake()
         {
             _searchButton = GetComponent<Button>();
+            _musicLibraryMenu = GetComponentInParent<MusicLibraryMenu>();
         }
 
-        public void SetInfo(SongEntry songEntry, Instrument instrument)
-        {
-            bool show = songEntry.HasInstrument(instrument);
-
-            SetInfo(show, instrument, songEntry.PartDifficulties.GetValueOrDefault(instrument, -1));
-
-            _searchButton.onClick.RemoveAllListeners();
-            if (show)
-            {
-                _searchButton.onClick.AddListener(() => SearchFilter(instrument.ToStringName()));
-            }
-        }
-
-        public void SetInfo(bool hasInstrument, Instrument instrument, int difficulty)
-        {
-            SetInfo(hasInstrument, instrument.ToStringName(), difficulty);
-        }
-
-        public void SetInfo(bool hasInstrument, string instrumentName, int difficulty)
+        public void SetInfo(string assetName, string filter, PartValues values)
         {
             // Set instrument icon
-            var icon = Addressables.LoadAssetAsync<Sprite>($"FontSprites[{instrumentName}]").WaitForCompletion();
-            instrumentIcon.sprite = icon;
+            var icon = Addressables.LoadAssetAsync<Sprite>($"InstrumentIcons[{assetName}]").WaitForCompletion();
+            _instrumentIcon.sprite = icon;
 
-            // Acceptable difficulty range is -1 to 6
-            if (difficulty < -1)
+            if (values.subTracks == 0)
             {
-                difficulty = 0; // Clamp values below -1 to 0 since this is a specifically-set value
+                values.intensity = -1;
             }
-            else if (difficulty > 6)
+            else if (values.intensity < 0)
             {
-                difficulty = 6;
+                values.intensity = 0;
             }
-
-            if (!hasInstrument)
+            else if (values.intensity > 6)
             {
-                difficulty = -1;
+                values.intensity = 6;
             }
 
             // Set ring sprite
-            int index = difficulty + 1;
-            ringSprite.sprite = ringSprites[index];
+            int index = values.intensity + 1;
+            _ringSprite.sprite = _ringSprites[index];
 
             // Set instrument opacity
-            Color color = instrumentIcon.color;
-            color.a = 1f;
-            if (difficulty == -1)
-            {
-                color.a = 0.2f;
-            }
-
-            instrumentIcon.color = color;
+            Color color = _instrumentIcon.color;
+            color.a = values.intensity > -1 ? 1f : 0.2f;
+            _instrumentIcon.color = color;
 
             // Set search filter by instrument
             _searchButton.onClick.RemoveAllListeners();
-            if (hasInstrument)
+            if (values.subTracks > 0)
             {
-                _searchButton.onClick.AddListener(() => SearchFilter(instrumentName));
+                _searchButton.onClick.AddListener(() => SearchFilter(filter));
             }
         }
 
         private void SearchFilter(string instrument)
         {
-            SongSelection.Instance.SetSearchInput($"instrument:{instrument}");
+            _musicLibraryMenu.SetSearchInput($"instrument:{instrument}");
         }
 
         private void OnDestroy()

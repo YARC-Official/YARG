@@ -18,18 +18,6 @@ MonoBehaviour:
   m_Metadata:
     m_Items: []
   m_TableData:
-  - m_Id: 1947714576384
-    m_Localized: Enter folder path...
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4590235148288
-    m_Localized: Enter text...
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12501665570816
-    m_Localized: Enter number...
-    m_Metadata:
-      m_Items: []
   - m_Id: 25388931303727104
     m_Localized: A Game Started By
     m_Metadata:
@@ -48,6 +36,266 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 25519120012664832
     m_Localized: Lead Charter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45803154252881920
+    m_Localized: Five Fret Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45803259555078144
+    m_Localized: Six Fret Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45803309349855232
+    m_Localized: Standard Drums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45803377607958528
+    m_Localized: 5-Lane Drums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45803425460772864
+    m_Localized: Pro Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45803463461167104
+    m_Localized: Pro Keys
+    m_Metadata:
+      m_Items: []
+  - m_Id: 46059775260483584
+    m_Localized: Menu
+    m_Metadata:
+      m_Items: []
+  - m_Id: 54807782156001280
+    m_Localized: YARG Anti-Piracy Statement
+    m_Metadata:
+      m_Items: []
+  - m_Id: 54807782185361408
+    m_Localized: "<b>YARG stands firmly against all forms of piracy.</b> We neither
+      support nor endorse piracy, as it is a violation of copyright law with serious
+      legal consequences. Our platform's importable content\u2014designed for creators
+      to share their work and for educational purposes\u2014does not justify or excuse
+      piracy.\n\nYARG itself <b>does not</b> use any ripped/pirated assets or music
+      and never will. By using YARG, users agree not to promote or endorse piracy
+      in any way through our platform. Upholding these principles ensures a community
+      that respects copyright, creativity, and legal standards.\n\nYARG stands for
+      \"Yet Another Rhythm Game\" and NOT for pirates."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776045735936
+    m_Localized: Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707456
+    m_Localized: Bass
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707457
+    m_Localized: Rhythm Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707458
+    m_Localized: Co-op Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707459
+    m_Localized: Keys
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707460
+    m_Localized: Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707461
+    m_Localized: Bass
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707462
+    m_Localized: Rhythm Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707463
+    m_Localized: Co-op Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707464
+    m_Localized: Drums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707465
+    m_Localized: Pro Drums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707466
+    m_Localized: Drums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707467
+    m_Localized: True Drums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707468
+    m_Localized: Pro Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707469
+    m_Localized: Pro Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707470
+    m_Localized: Pro Bass
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707471
+    m_Localized: Pro Bass
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707472
+    m_Localized: Pro Keys
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707473
+    m_Localized: Vocals
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707474
+    m_Localized: Harmony
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707475
+    m_Localized: DJ
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707476
+    m_Localized: Easy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707478
+    m_Localized: Hard
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707479
+    m_Localized: Expert
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707480
+    m_Localized: Expert+
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62732022071025664
+    m_Localized: Medium
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63848767770976256
+    m_Localized: None
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63848767796142080
+    m_Localized: All Strums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63848767796142081
+    m_Localized: All HOPOs
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63848767796142082
+    m_Localized: All Taps
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63848767796142083
+    m_Localized: HOPOs To Taps
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63848767796142084
+    m_Localized: Note Shuffle
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66002229908594688
+    m_Localized: No Kicks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66002229933760512
+    m_Localized: Taps to HOPOs
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68554780478660608
+    m_Localized: Vocals
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180245151744
+    m_Localized: Album
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706176
+    m_Localized: Artist
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706177
+    m_Localized: '"Artist - Album"'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706178
+    m_Localized: Charter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706179
+    m_Localized: Genre
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706180
+    m_Localized: Instrument
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706181
+    m_Localized: Song
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706182
+    m_Localized: Playlist
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706183
+    m_Localized: Duration
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706184
+    m_Localized: Source
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706185
+    m_Localized: None
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706186
+    m_Localized: Year
+    m_Metadata:
+      m_Items: []
+  - m_Id: 82700299824128000
+    m_Localized: Today
+    m_Metadata:
+      m_Items: []
+  - m_Id: 82700299853488128
+    m_Localized: Yesterday
+    m_Metadata:
+      m_Items: []
+  - m_Id: 82700299853488129
+    m_Localized: This Week
+    m_Metadata:
+      m_Items: []
+  - m_Id: 82700299853488130
+    m_Localized: This Month
+    m_Metadata:
+      m_Items: []
+  - m_Id: 82700299853488131
+    m_Localized: Last 3 Months
+    m_Metadata:
+      m_Items: []
+  - m_Id: 82700299853488132
+    m_Localized: This Year
+    m_Metadata:
+      m_Items: []
+  - m_Id: 82700299853488133
+    m_Localized: More Than A Year
     m_Metadata:
       m_Items: []
   references:

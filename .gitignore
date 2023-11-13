@@ -88,7 +88,8 @@ crashlytics-build.properties
 # Auto-gen
 Assets/YargInput.cs
 /[Aa]ssets/[Pp]ackages/
-/[Aa]ssets/[Ss]treamingAssets/sources/*
+/[Aa]ssets/[Ss]treamingAssets/sources/
+/[Aa]ssets/[Ss]treamingAssets/sources~/
 
 # Rider #
 .idea/
@@ -99,3 +100,5 @@ Packages/com.thenathannator.plasticband/
 Assets/Nyx
 Assets/Settings/TestPlayInfo.asset
 Assets/Settings/TestPlayInfo.asset.meta
+Assets/Plugins/YARG.Core/
+Assets/Plugins/YARG.Core.meta

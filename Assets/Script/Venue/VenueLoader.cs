@@ -1,12 +1,19 @@
-using System.IO;
+﻿using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
+using YARG.Helpers;
 using YARG.Settings;
 using YARG.Song;
-using YARG.Util;
+using YARG.Core.Song;
 
 namespace YARG.Venue
 {
+    public enum VenueSource
+    {
+        Global,
+        Song,
+    }
+
     public enum VenueType
     {
         Yarground,
@@ -14,21 +21,24 @@ namespace YARG.Venue
         Image
     }
 
+    public readonly struct VenueInfo
+    {
+        public readonly VenueSource Source;
+        public readonly VenueType Type;
+        public readonly string Path;
+
+        public VenueInfo(VenueSource source, VenueType type, string path)
+        {
+            Source = source;
+            Type = type;
+            Path = path;
+        }
+    }
+
     public static class VenueLoader
     {
-        public readonly struct TypePathPair
-        {
-            public readonly VenueType Type;
-            public readonly string Path;
-
-            public TypePathPair(VenueType type, string path)
-            {
-                Type = type;
-                Path = path;
-            }
-        }
-
-        public static string VenueFolder => Path.Combine(PathHelper.PersistentDataPath, "venue");
+        private static string _venueFolder = null;
+        public static string VenueFolder => _venueFolder ??= Path.Combine(PathHelper.PersistentDataPath, "venue");
 
         static VenueLoader()
         {
@@ -38,8 +48,10 @@ namespace YARG.Venue
             }
         }
 
-        public static TypePathPair? GetVenuePath(SongEntry song)
+        public static VenueInfo? GetVenue(SongMetadata song)
         {
+            const VenueSource songSource = VenueSource.Song;
+
             // If local backgrounds are disabled, skip right to global
             if (SettingsManager.Settings.DisablePerSongBackgrounds.Data)
             {
@@ -47,11 +59,11 @@ namespace YARG.Venue
             }
 
             // Try a local yarground first
-
-            string backgroundPath = Path.Combine(song.Location, "bg.yarground");
+            string directory = song.Directory;
+            string backgroundPath = Path.Combine(directory, "bg.yarground");
             if (File.Exists(backgroundPath))
             {
-                return new(VenueType.Yarground, backgroundPath);
+                return new(songSource, VenueType.Yarground, backgroundPath);
             }
 
             // Then, a local picture or video
@@ -68,13 +80,13 @@ namespace YARG.Venue
 
             foreach (var name in fileNames)
             {
+                var fileBase = Path.Combine(directory, name);
                 foreach (var ext in videoExtensions)
                 {
-                    var path = Path.Combine(song.Location, name + ext);
-
+                    var path = fileBase + ext;
                     if (File.Exists(path))
                     {
-                        return new(VenueType.Video, path);
+                        return new(songSource, VenueType.Video, path);
                     }
                 }
             }
@@ -86,13 +98,14 @@ namespace YARG.Venue
 
             foreach (var name in fileNames)
             {
+                var fileBase = Path.Combine(directory, name);
                 foreach (var ext in imageExtensions)
                 {
-                    var path = Path.Combine(song.Location, name + ext);
+                    var path = fileBase + ext;
 
                     if (File.Exists(path))
                     {
-                        return new(VenueType.Image, path);
+                        return new(songSource, VenueType.Image, path);
                     }
                 }
             }
@@ -101,17 +114,18 @@ namespace YARG.Venue
             return GetVenuePathFromGlobal();
         }
 
-        private static TypePathPair? GetVenuePathFromGlobal()
+        private static VenueInfo? GetVenuePathFromGlobal()
         {
-            string[] VALID_EXTENSIONS =
+            const VenueSource globalSource = VenueSource.Global;
+            string[] validExtensions =
             {
                 "*.yarground", "*.mp4", "*.mov", "*.webm", "*.png", "*.jpg", "*.jpeg"
             };
 
             List<string> filePaths = new();
-            foreach (string ext in VALID_EXTENSIONS)
+            foreach (string ext in validExtensions)
             {
-                foreach (var file in Directory.GetFiles(VenueFolder, ext))
+                foreach (var file in Directory.EnumerateFiles(VenueFolder, ext, PathHelper.SafeSearchOptions))
                 {
                     filePaths.Add(file);
                 }
@@ -128,9 +142,9 @@ namespace YARG.Venue
 
             return extension switch
             {
-                ".yarground"                => new(VenueType.Yarground, path),
-                ".mp4" or ".mov" or ".webm" => new(VenueType.Video, path),
-                ".png" or ".jpg" or ".jpeg" => new(VenueType.Image, path),
+                ".yarground"                => new(globalSource, VenueType.Yarground, path),
+                ".mp4" or ".mov" or ".webm" => new(globalSource, VenueType.Video, path),
+                ".png" or ".jpg" or ".jpeg" => new(globalSource, VenueType.Image, path),
                 _                           => null,
             };
         }

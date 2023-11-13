@@ -9,7 +9,7 @@ using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
-using YARG.Util;
+using YARG.Helpers;
 
 namespace YARG.Song
 {
@@ -44,11 +44,14 @@ namespace YARG.Song
 
         public class ParsedSource
         {
+            private const string RAW_ICON_URL =
+                "https://raw.githubusercontent.com/YARC-Official/OpenSource/master/";
+
             private readonly string _icon;
             private readonly Dictionary<string, string> _names;
 
             public SourceType Type { get; private set; }
-            public bool IsFromBase { get; private set; }
+            public string IconURL { get; private set; }
 
             private bool _isLoadingIcon;
             private Sprite _iconCache;
@@ -58,7 +61,7 @@ namespace YARG.Song
                 _icon = icon;
                 _names = names;
                 Type = type;
-                IsFromBase = isFromBase;
+                IconURL = isFromBase ? RAW_ICON_URL + $"base/icons/{_icon}.png" : RAW_ICON_URL + $"extra/icons/{_icon}.png";
             }
 
             public string GetDisplayName()
@@ -99,7 +102,7 @@ namespace YARG.Song
                         return null;
                     }
 
-                    var texture = await TextureLoader.LoadWithMips(imagePath);
+                    var texture = await TextureHelper.LoadWithMips(imagePath);
                     texture.mipMapBias = -0.5f;
 
                     if (texture == null)
@@ -116,26 +119,20 @@ namespace YARG.Song
 
                 return _iconCache;
             }
-
-            public string GetIconURL()
-            {
-                if (IsFromBase)
-                {
-                    return RAW_ICON_URL + $"base/icons/{_icon}.png";
-                }
-
-                return RAW_ICON_URL + $"extra/icons/{_icon}.png";
-            }
         }
 
+#if UNITY_EDITOR
+        // The editor does not track the contents of folders that end in ~,
+        // so use this to prevent Unity from stalling due to importing freshly-downloaded sources
+        public static string SourcesFolder => Path.Combine(PathHelper.StreamingAssetsPath, "sources~");
+#else
         public static string SourcesFolder => Path.Combine(PathHelper.StreamingAssetsPath, "sources");
+#endif
 
         public const string SOURCE_REPO_FOLDER = "OpenSource-master";
 
         private const string SOURCE_COMMIT_URL =
             "https://api.github.com/repos/YARC-Official/OpenSource/commits?per_page=1";
-
-        private const string RAW_ICON_URL = "https://raw.githubusercontent.com/YARC-Official/OpenSource/master/";
 
         public const string SOURCE_ZIP_URL =
             "https://github.com/YARC-Official/OpenSource/archive/refs/heads/master.zip";
@@ -162,14 +159,16 @@ namespace YARG.Song
 
             // Look for the current version
             updateText("Checking version...");
+            string sourceVersionPath = Path.Combine(SourcesFolder, "version.txt");
             string currentVersion = null;
             try
             {
-                currentVersion = await File.ReadAllTextAsync(Path.Combine(SourcesFolder, "version.txt"));
+                if (File.Exists(sourceVersionPath))
+                    currentVersion = await File.ReadAllTextAsync(sourceVersionPath);
             }
             catch (Exception e)
             {
-                Debug.LogWarning("Failed to get current song source version. Skipping.");
+                Debug.LogWarning("Failed to get current song source version.");
                 Debug.LogException(e);
             }
 
@@ -204,7 +203,8 @@ namespace YARG.Song
             }
 
             // If up to date, finish
-            if (newestVersion == currentVersion)
+            var repoDir = Path.Combine(SourcesFolder, SOURCE_REPO_FOLDER);
+            if (newestVersion == currentVersion && Directory.Exists(repoDir))
             {
                 return;
             }
@@ -221,7 +221,6 @@ namespace YARG.Song
                 }
 
                 // Delete the old folder
-                var repoDir = Path.Combine(SourcesFolder, SOURCE_REPO_FOLDER);
                 if (Directory.Exists(repoDir))
                 {
                     Directory.Delete(repoDir, true);
@@ -245,7 +244,7 @@ namespace YARG.Song
                 }
 
                 // Delete the random files
-                foreach (var file in Directory.GetFiles(repoDir))
+                foreach (var file in Directory.EnumerateFiles(repoDir))
                 {
                     File.Delete(file);
                 }

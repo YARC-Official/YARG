@@ -15,16 +15,8 @@ MonoBehaviour:
   m_TableCollectionName: Main
   m_TableCollectionNameGuidString: 56b585007d526c847adec3eb05f44424
   m_Entries:
-  - m_Id: 1947714576384
-    m_Key: enterFolderPath
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4590235148288
-    m_Key: enterText
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12501665570816
-    m_Key: enterNumber
+  - m_Id: 25389008676052992
+    m_Key: Credits.Header.contributors
     m_Metadata:
       m_Items: []
   - m_Id: 25388931303727104
@@ -35,16 +27,264 @@ MonoBehaviour:
     m_Key: Credits.Header.leadArtist
     m_Metadata:
       m_Items: []
-  - m_Id: 25389008676052992
-    m_Key: Credits.Header.contributors
+  - m_Id: 25519120012664832
+    m_Key: Credits.Header.leadCharter
     m_Metadata:
       m_Items: []
   - m_Id: 25509635210731520
     m_Key: Credits.Header.specialThanks
     m_Metadata:
       m_Items: []
-  - m_Id: 25519120012664832
-    m_Key: Credits.Header.leadCharter
+  - m_Id: 54807782185361408
+    m_Key: Dialogs.AntiPiracy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 54807782156001280
+    m_Key: Dialogs.AntiPiracy.Title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707476
+    m_Key: Difficulty.Easy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707479
+    m_Key: Difficulty.Expert
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707480
+    m_Key: Difficulty.ExpertPlus
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707478
+    m_Key: Difficulty.Hard
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62732022071025664
+    m_Key: Difficulty.Medium
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45803154252881920
+    m_Key: GameMode.FiveFretGuitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45803377607958528
+    m_Key: GameMode.FiveLaneDrums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45803309349855232
+    m_Key: GameMode.FourLaneDrums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 46059775260483584
+    m_Key: GameMode.Menu
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45803425460772864
+    m_Key: GameMode.ProGuitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45803463461167104
+    m_Key: GameMode.ProKeys
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45803259555078144
+    m_Key: GameMode.SixFretGuitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68554780478660608
+    m_Key: GameMode.Vocals
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707475
+    m_Key: Instrument.Dj
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707456
+    m_Key: Instrument.FiveFretBass
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707458
+    m_Key: Instrument.FiveFretCoopGuitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776045735936
+    m_Key: Instrument.FiveFretGuitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707457
+    m_Key: Instrument.FiveFretRhythm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707466
+    m_Key: Instrument.FiveLaneDrums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707464
+    m_Key: Instrument.FourLaneDrums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707474
+    m_Key: Instrument.Harmony
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707459
+    m_Key: Instrument.Keys
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707470
+    m_Key: Instrument.ProBass_17Fret
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707471
+    m_Key: Instrument.ProBass_22Fret
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707465
+    m_Key: Instrument.ProDrums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707468
+    m_Key: Instrument.ProGuitar_17Fret
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707469
+    m_Key: Instrument.ProGuitar_22Fret
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707472
+    m_Key: Instrument.ProKeys
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707461
+    m_Key: Instrument.SixFretBass
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707463
+    m_Key: Instrument.SixFretCoopGuitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707460
+    m_Key: Instrument.SixFretGuitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707462
+    m_Key: Instrument.SixFretRhythm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707467
+    m_Key: Instrument.TrueDrums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 62731776066707473
+    m_Key: Instrument.Vocals
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63848767796142081
+    m_Key: Modifier.AllHopos
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63848767796142080
+    m_Key: Modifier.AllStrums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63848767796142082
+    m_Key: Modifier.AllTaps
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63848767796142083
+    m_Key: Modifier.HoposToTaps
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66002229908594688
+    m_Key: Modifier.NoKicks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63848767770976256
+    m_Key: Modifier.None
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63848767796142084
+    m_Key: Modifier.NoteShuffle
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66002229933760512
+    m_Key: Modifier.TapsToHopos
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180245151744
+    m_Key: SongAttribute.Album
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706176
+    m_Key: SongAttribute.Artist
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706177
+    m_Key: SongAttribute.Artist_Album
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706178
+    m_Key: SongAttribute.Charter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706179
+    m_Key: SongAttribute.Genre
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706180
+    m_Key: SongAttribute.Instrument
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706181
+    m_Key: SongAttribute.Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706182
+    m_Key: SongAttribute.Playlist
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706183
+    m_Key: SongAttribute.SongLength
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706184
+    m_Key: SongAttribute.Source
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706185
+    m_Key: SongAttribute.Unspecified
+    m_Metadata:
+      m_Items: []
+  - m_Id: 77970180278706186
+    m_Key: SongAttribute.Year
+    m_Metadata:
+      m_Items: []
+  - m_Id: 82700299824128000
+    m_Key: Time.Today
+    m_Metadata:
+      m_Items: []
+  - m_Id: 82700299853488128
+    m_Key: Time.Yesterday
+    m_Metadata:
+      m_Items: []
+  - m_Id: 82700299853488129
+    m_Key: Time.ThisWeek
+    m_Metadata:
+      m_Items: []
+  - m_Id: 82700299853488130
+    m_Key: Time.ThisMonth
+    m_Metadata:
+      m_Items: []
+  - m_Id: 82700299853488131
+    m_Key: Time.LastThreeMonths
+    m_Metadata:
+      m_Items: []
+  - m_Id: 82700299853488132
+    m_Key: Time.ThisYear
+    m_Metadata:
+      m_Items: []
+  - m_Id: 82700299853488133
+    m_Key: Time.MoreThanYear
     m_Metadata:
       m_Items: []
   m_Metadata:

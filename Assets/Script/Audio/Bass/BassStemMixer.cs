@@ -32,12 +32,10 @@ namespace YARG.Audio.BASS
             }
             remove
             {
-                if (LeadChannel is null)
+                if (LeadChannel is not null)
                 {
-                    throw new InvalidOperationException("No song is currently loaded!");
+                    LeadChannel.ChannelEnd -= value;
                 }
-
-                LeadChannel.ChannelEnd -= value;
             }
         }
 
@@ -45,6 +43,8 @@ namespace YARG.Audio.BASS
         protected readonly Dictionary<SongStem, List<IStemChannel>> _channels;
 
         protected int _mixerHandle;
+        protected int _sourceStream;
+        protected bool _sourceIsSplit;
 
         private bool _disposed;
 
@@ -55,6 +55,12 @@ namespace YARG.Audio.BASS
 
             StemsLoaded = 0;
             IsPlaying = false;
+        }
+
+        public BassStemMixer(IAudioManager manager, int sourceStream, bool isSplit) : this(manager)
+        {
+            _sourceStream = sourceStream;
+            _sourceIsSplit = isSplit;
         }
 
         ~BassStemMixer()
@@ -76,7 +82,12 @@ namespace YARG.Audio.BASS
             }
 
             // Mixer processing threads (for some reason this attribute is undocumented in ManagedBass?)
-            Bass.ChannelSetAttribute(mixer, (ChannelAttribute) 86017, 2);
+            if (!Bass.ChannelSetAttribute(mixer, (ChannelAttribute) 86017, 2))
+            {
+                Debug.LogError($"Failed to set mixer processing threads: {Bass.LastError}");
+                Bass.StreamFree(mixer);
+                return false;
+            }
 
             _mixerHandle = mixer;
 
@@ -103,8 +114,12 @@ namespace YARG.Audio.BASS
         public void FadeIn(float maxVolume)
         {
             foreach (var stem in Channels.Values)
-                for (int i = 0; i < stem.Count; i++)
-                    stem[i].FadeIn(maxVolume);
+            {
+                foreach (var channel in stem)
+                {
+                    channel.FadeIn(maxVolume);
+                }
+            }
         }
 
         public UniTask FadeOut(CancellationToken token = default)
@@ -113,7 +128,7 @@ namespace YARG.Audio.BASS
             foreach (var stem in Channels.Values)
                 stemChannels.AddRange(stem);
 
-            var fadeOuts = Enumerable.Select(stemChannels, channel => channel.FadeOut()).ToList();
+            var fadeOuts = stemChannels.Select((channel) => channel.FadeOut()).ToArray();
             return UniTask.WhenAll(fadeOuts).AttachExternalCancellation(token);
         }
 
@@ -152,16 +167,53 @@ namespace YARG.Audio.BASS
                 return;
             }
 
+            bool playing = IsPlaying;
+            if (playing)
+            {
+                // Pause when seeking to avoid desyncing individual stems
+                Pause();
+            }
+
             foreach (var stem in Channels.Values)
-                for (int i = 0; i < stem.Count; i++)
-                    stem[i].SetPosition(position, desyncCompensation);
+            {
+                foreach (var channel in stem)
+                {
+                    channel.SetPosition(position, desyncCompensation);
+                }
+            }
+
+            if (playing)
+            {
+                // Account for buffer when resuming
+                if (!Bass.ChannelUpdate(_mixerHandle, BassHelpers.PLAYBACK_BUFFER_LENGTH))
+                    Debug.LogError($"Failed to set update channel: {Bass.LastError}");
+                Play();
+            }
+
+            if (_sourceStream != 0 && _sourceIsSplit && !BassMix.SplitStreamReset(_sourceStream))
+                Debug.LogError($"Failed to reset stream: {Bass.LastError}");
         }
 
         public void SetPlayVolume(bool fadeIn)
         {
-            foreach (var channel in Channels.Values)
-                for (int i = 0; i < channel.Count; i++)
-                    channel[i].SetVolume(fadeIn ? 0 : channel[i].Volume);
+            foreach (var stem in Channels.Values)
+            {
+                foreach (var channel in stem)
+                {
+                    channel.SetVolume(fadeIn ? 0 : channel.Volume);
+                }
+            }
+        }
+
+        public void SetSpeed(float speed)
+        {
+            foreach (var stem in Channels.Values)
+            {
+                foreach (var channel in stem)
+                {
+                    channel.SetSpeed(speed);
+                }
+            }
         }
 
         public virtual int AddChannel(IStemChannel channel)
@@ -268,8 +320,12 @@ namespace YARG.Audio.BASS
         {
             // Free managed resources here
             foreach (var stem in Channels.Values)
-                for (int i = 0; i < stem.Count; i++)
-                    stem[i].Dispose();
+            {
+                foreach (var channel in stem)
+                {
+                    channel.Dispose();
+                }
+            }
 
             _channels.Clear();
         }
@@ -281,10 +337,20 @@ namespace YARG.Audio.BASS
             {
                 if (!Bass.StreamFree(_mixerHandle))
                 {
-                    Debug.LogError("Failed to free mixer stream. THIS WILL LEAK MEMORY!");
+                    Debug.LogError($"Failed to free mixer stream (THIS WILL LEAK MEMORY!): {Bass.LastError}");
                 }
 
                 _mixerHandle = 0;
+            }
+
+            if (_sourceStream != 0)
+            {
+                if (!Bass.StreamFree(_sourceStream))
+                {
+                    Debug.LogError($"Failed to free mixer source stream (THIS WILL LEAK MEMORY!): {Bass.LastError}");
+                }
+
+                _sourceStream = 0;
             }
         }
     }

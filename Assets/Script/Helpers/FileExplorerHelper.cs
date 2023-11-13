@@ -2,69 +2,85 @@
 using SFB;
 
 #if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
-using System.Diagnostics;
-
+    using System.Diagnostics;
 #else
-using UnityEngine;
-
+    using UnityEngine;
 #endif
 
-namespace YARG.Util
+using Debug = UnityEngine.Debug;
+
+namespace YARG.Helpers
 {
     public static class FileExplorerHelper
     {
         public static void OpenChooseFolder(string startingDir, Action<string> callback)
         {
-            StandaloneFileBrowser.OpenFolderPanelAsync("Choose Folder", startingDir, false, i =>
+            StandaloneFileBrowser.OpenFolderPanelAsync("Choose Folder", startingDir, false, (files) =>
             {
-                if (i is not { Length: > 0 })
-                {
+                if (files is not { Length: > 0 })
                     return;
-                }
 
-                callback(i[0]);
+                string path = files[0];
+                try
+                {
+                    callback(path);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"Error when handling folder {path}!");
+                    Debug.LogException(ex);
+                }
             });
         }
 
         public static void OpenChooseFile(string startingDir, string extension, Action<string> callback)
         {
-            StandaloneFileBrowser.OpenFilePanelAsync("Choose File", startingDir, extension, false, i =>
+            StandaloneFileBrowser.OpenFilePanelAsync("Choose File", startingDir, extension, false, (files) =>
             {
-                if (i is not { Length: > 0 })
-                {
+                if (files is not { Length: > 0 })
                     return;
-                }
 
-                callback(i[0]);
+                string path = files[0];
+                try
+                {
+                    callback(path);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"Error when handling file {path}!");
+                    Debug.LogException(ex);
+                }
             });
         }
 
         public static void OpenSaveFile(string startingDir, string defaultName, string extension,
             Action<string> callback)
         {
-            StandaloneFileBrowser.SaveFilePanelAsync("Save File", startingDir, defaultName, extension, i =>
+            StandaloneFileBrowser.SaveFilePanelAsync("Save File", startingDir, defaultName, extension, (path) =>
             {
-                if (string.IsNullOrEmpty(i))
-                {
+                if (string.IsNullOrEmpty(path))
                     return;
-                }
 
-                callback(i);
+                try
+                {
+                    callback(path);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"Error when saving file {path}!");
+                    Debug.LogException(ex);
+                }
             });
         }
 
         public static void OpenFolder(string folderPath)
         {
 #if UNITY_STANDALONE_WIN
-
             Process.Start("explorer.exe", folderPath);
-
 #elif UNITY_STANDALONE_OSX
 			Process.Start("open", $"\"{folderPath}\"");
-
 #else
 			GUIUtility.systemCopyBuffer = folderPath;
-
 #endif
         }
     }

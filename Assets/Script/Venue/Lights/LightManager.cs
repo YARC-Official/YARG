@@ -1,11 +1,9 @@
 using System;
 using UnityEngine;
-using YARG.PlayMode;
 
 namespace YARG.Venue
 {
-    [DefaultExecutionOrder(-100)]
-    public class LightManager : MonoBehaviour
+    public class LightManager : MonoSingleton<LightManager>
     {
         public enum LightAnimation
         {
@@ -46,8 +44,6 @@ namespace YARG.Venue
             public Color? Color;
         }
 
-        public static LightManager Instance { get; private set; }
-
         public LightAnimation Animation { get; private set; }
         public int AnimationFrame { get; private set; }
 
@@ -58,21 +54,22 @@ namespace YARG.Venue
 
         private void Start()
         {
-            Instance = this;
-
             MainLightState = new();
 
-            VenueManager.OnEventReceive += VenueEvent;
+            // TODO: FIX
+            // VenueManager.OnEventReceive += VenueEvent;
         }
 
-        private void OnDestroy()
+        protected override void SingletonDestroy()
         {
-            VenueManager.OnEventReceive -= VenueEvent;
+            // TODO: FIX
+            // VenueManager.OnEventReceive -= VenueEvent;
         }
 
         private void Update()
         {
-            _32NoteUpdate += 1f / Play.Instance.CurrentBeatsPerSecond * Time.deltaTime;
+            // TODO: FIX
+            // _32NoteUpdate += 1f / Play.Instance.CurrentBeatsPerSecond * Time.deltaTime;
 
             bool thirtySecondNote = false;
             if (_32NoteUpdate >= 1f / 32f)

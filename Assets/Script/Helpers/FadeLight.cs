@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace YARG.Util
+namespace YARG.Helpers
 {
     [RequireComponent(typeof(Light))]
     public class FadeLight : MonoBehaviour
