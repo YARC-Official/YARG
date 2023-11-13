@@ -33,6 +33,8 @@ namespace YARG.Menu.DifficultySelect
         private NavigationGroup _navGroup;
         [SerializeField]
         private TextMeshProUGUI _text;
+        [SerializeField]
+        private TMP_InputField _speedInput;
 
         [Space]
         [SerializeField]
@@ -87,6 +89,8 @@ namespace YARG.Menu.DifficultySelect
                     }
                 })
             }, false));
+
+            _speedInput.text = "100";
 
             // ChangePlayer(0) will update for the current player
             _playerIndex = 0;
@@ -295,6 +299,12 @@ namespace YARG.Menu.DifficultySelect
             // When the user(s) have selected all of their difficulties, move on
             if (_playerIndex >= PlayerContainer.Players.Count)
             {
+                // This will always work (as it's set up in the input field)
+                // The max speed that the game can keep up with is 4995%
+                float speed = float.Parse(_speedInput.text) / 100f;
+                speed = Mathf.Clamp(speed, 0.1f, 49.95f);
+                GlobalVariables.Instance.SongSpeed = speed;
+
                 GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
                 return;
             }
