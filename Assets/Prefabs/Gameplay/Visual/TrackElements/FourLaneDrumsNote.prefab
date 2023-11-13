@@ -47,9 +47,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0d648ca2d6d42c2b120eb101535ec1f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _normalGroup: {fileID: 2641069394929508872}
-  _cymbalGroup: {fileID: 8558247613093047361}
-  _kickGroup: {fileID: 1641863617526108289}
+  NormalGroup: {fileID: 2641069394929508872}
+  CymbalGroup: {fileID: 8558247613093047361}
+  KickGroup: {fileID: 1641863617526108289}
 --- !u!1 &1397812567785855241
 GameObject:
   m_ObjectHideFlags: 0

@@ -23,6 +23,7 @@ namespace YARG.Menu.Profiles
         {
             GameMode.FiveFretGuitar,
             GameMode.FourLaneDrums,
+            GameMode.FiveLaneDrums,
             GameMode.Vocals
         };
 

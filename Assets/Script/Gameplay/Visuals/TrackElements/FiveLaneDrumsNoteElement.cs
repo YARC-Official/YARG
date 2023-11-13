@@ -1,21 +1,13 @@
 ﻿using UnityEngine;
 using YARG.Core.Chart;
-using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
 using YARG.Settings;
 
 namespace YARG.Gameplay.Visuals
 {
-    public sealed class FiveLaneDrumsNoteElement : NoteElement<DrumNote, DrumsPlayer>
+    public sealed class FiveLaneDrumsNoteElement : DrumsNoteElement
     {
         private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
-
-        [SerializeField]
-        private NoteGroup _normalGroup;
-        [SerializeField]
-        private NoteGroup _cymbalGroup;
-        [SerializeField]
-        private NoteGroup _kickGroup;
 
         protected override void InitializeElement()
         {
@@ -26,29 +18,28 @@ namespace YARG.Gameplay.Visuals
                 // Deal with non-kick notes
 
                 // Set the position
-                int lane = NoteRef.Pad - 1;
-                transform.localPosition = new Vector3(GetElementX(lane, 5), 0f, 0f) * LeftyFlipMultiplier;
+                transform.localPosition = new Vector3(GetElementX(NoteRef.Pad, 5), 0f, 0f) * LeftyFlipMultiplier;
 
                 // Get which note model to use
                 if (SettingsManager.Settings.UseCymbalModelsInFiveLane.Data)
                 {
                     NoteGroup = (FiveLaneDrumPad) NoteRef.Pad switch
                     {
-                        FiveLaneDrumPad.Yellow => _cymbalGroup,
-                        FiveLaneDrumPad.Orange => _cymbalGroup,
-                        _ => _normalGroup
+                        FiveLaneDrumPad.Yellow => CymbalGroup,
+                        FiveLaneDrumPad.Orange => CymbalGroup,
+                        _ => NormalGroup
                     };
                 }
                 else
                 {
-                    NoteGroup = _normalGroup;
+                    NoteGroup = NormalGroup;
                 }
             }
             else
             {
                 // Deal with kick notes
                 transform.localPosition = Vector3.zero;
-                NoteGroup = _kickGroup;
+                NoteGroup = KickGroup;
             }
 
             // Show and set material properties
@@ -59,20 +50,7 @@ namespace YARG.Gameplay.Visuals
             UpdateColor();
         }
 
-        public override void HitNote()
-        {
-            base.HitNote();
-
-            ParentPool.Return(this);
-        }
-
-        protected override void UpdateElement()
-        {
-            // Color should be updated every frame in case of starpower state changes
-            UpdateColor();
-        }
-
-        private void UpdateColor()
+        protected override void UpdateColor()
         {
             var colors = Player.Player.ColorProfile.FiveLaneDrums;
 
@@ -96,13 +74,6 @@ namespace YARG.Gameplay.Visuals
             // Set emission
             float emissionMultiplier = NoteRef.Pad == (int) FiveLaneDrumPad.Kick ? 8f : 2.5f;
             NoteGroup.ColoredMaterial.SetColor(_emissionColor, color * emissionMultiplier);
-        }
-
-        protected override void HideElement()
-        {
-            _normalGroup.SetActive(false);
-            _cymbalGroup.SetActive(false);
-            _kickGroup.SetActive(false);
         }
     }
 }

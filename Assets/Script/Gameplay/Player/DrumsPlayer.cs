@@ -138,7 +138,10 @@ namespace YARG.Gameplay.Player
             HitWindowDisplay.SetHitWindowInfo(EngineParams, NoteSpeed);
 
             // Particle 0 is always kick fret
-            _kickFret.Initialize(colors.GetParticleColor(0).ToUnityColor());
+            _kickFret.Initialize(
+                colors.GetParticleColor(0).ToUnityColor(),
+                colors.GetFretColor(0).ToUnityColor(),
+                colors.GetFretInnerColor(0).ToUnityColor());
         }
 
         public override void UpdateWithTimes(double inputTime)
@@ -163,7 +166,7 @@ namespace YARG.Gameplay.Player
 
         protected override void InitializeSpawnedNote(IPoolable poolable, DrumNote note)
         {
-            ((FourLaneDrumsNoteElement) poolable).NoteRef = note;
+            ((DrumsNoteElement) poolable).NoteRef = note;
         }
 
         protected override void OnNoteHit(int index, DrumNote note)
@@ -172,7 +175,7 @@ namespace YARG.Gameplay.Player
 
             // Remember that drums treat each note separately
 
-            (NotePool.GetByKey(note) as FourLaneDrumsNoteElement)?.HitNote();
+            (NotePool.GetByKey(note) as DrumsNoteElement)?.HitNote();
 
             // Four and five lane drums have the same kick value
             if (note.Pad != (int) FourLaneDrumPad.Kick)
@@ -216,7 +219,7 @@ namespace YARG.Gameplay.Player
 
             // Remember that drums treat each note separately
 
-            (NotePool.GetByKey(note) as FourLaneDrumsNoteElement)?.MissNote();
+            (NotePool.GetByKey(note) as DrumsNoteElement)?.MissNote();
         }
 
         protected override bool InterceptInput(ref GameInput input)

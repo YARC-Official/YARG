@@ -6,35 +6,45 @@ namespace YARG.Gameplay.Visuals
     {
         private const float SECONDS_PER_FRAME = 1f / 50f;
 
+        private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
+
         [SerializeField]
         private Animation _animation;
         [SerializeField]
         private MeshRenderer _kickFlashMesh;
+        [SerializeField]
+        private MeshRenderer _fretMesh;
 
         [Space]
         [SerializeField]
         private Texture2D[] _textures;
 
-        private Material _material;
+        private Material _flashMaterial;
         private int _currentSprite;
         private float _updateTimer;
 
         private void Awake()
         {
-            _material = _kickFlashMesh.material;
+            _flashMaterial = _kickFlashMesh.material;
 
             _currentSprite = _textures.Length - 1;
             UpdateTexture();
         }
 
-        public void Initialize(Color c)
+        public void Initialize(Color flash, Color fret, Color fretEmission)
         {
-            _material.color = c;
+            _flashMaterial.color = flash;
+
+            // The fret mesh's material does not need to be cached
+            // because init is not called often.
+            var fretMat = _fretMesh.material;
+            fretMat.color = fret;
+            fretMat.SetColor(_emissionColor, fretEmission);
         }
 
         private void UpdateTexture()
         {
-            _material.mainTexture = _textures[_currentSprite];
+            _flashMaterial.mainTexture = _textures[_currentSprite];
         }
 
         private void Update()
