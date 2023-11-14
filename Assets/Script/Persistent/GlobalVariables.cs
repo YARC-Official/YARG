@@ -1,15 +1,10 @@
 ﻿using System.Collections.Generic;
-using System.IO;
-using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using YARG.Audio;
 using YARG.Audio.BASS;
 using YARG.Core;
-using YARG.Core.Game;
 using YARG.Core.Song;
-using YARG.Core.Song.Cache;
-using YARG.Core.Utility;
 using YARG.Helpers;
 using YARG.Input;
 using YARG.Integration;

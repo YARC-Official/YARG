@@ -1,5 +1,4 @@
 ﻿using System;
-using UnityEngine;
 using YARG.Core.Song;
 
 namespace YARG.Integration

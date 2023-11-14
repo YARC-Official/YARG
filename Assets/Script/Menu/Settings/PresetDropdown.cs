@@ -3,7 +3,6 @@ using TMPro;
 using UnityEngine;
 using YARG.Core.Game;
 using YARG.Menu.Persistent;
-using YARG.Settings.Customization;
 using YARG.Settings.Metadata;
 
 namespace YARG.Menu.Settings

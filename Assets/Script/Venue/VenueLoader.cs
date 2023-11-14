@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using YARG.Helpers;
 using YARG.Settings;
-using YARG.Song;
 using YARG.Core.Song;
 
 namespace YARG.Venue

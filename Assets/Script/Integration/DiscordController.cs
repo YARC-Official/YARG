@@ -1,8 +1,6 @@
 ﻿using System;
 using Discord;
 using UnityEngine;
-using YARG.Core.Song;
-using YARG.Song;
 
 namespace YARG.Integration
 {

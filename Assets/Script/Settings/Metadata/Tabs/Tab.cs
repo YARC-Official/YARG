@@ -1,7 +1,6 @@
 ﻿using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Menu.Navigation;
-using YARG.Menu.Settings;
 
 namespace YARG.Settings.Metadata
 {

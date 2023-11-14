@@ -10,7 +10,6 @@ using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.Utilities;
 using YARG.Helpers.Extensions;
 using YARG.Input;
-using YARG.Menu.Navigation;
 using YARG.Player;
 
 namespace YARG.Menu.Profiles

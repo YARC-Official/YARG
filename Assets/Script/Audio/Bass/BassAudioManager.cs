@@ -13,8 +13,6 @@ using YARG.Assets.Script.Audio.Bass;
 using UnityEditor;
 #endif
 
-using DeviceType = ManagedBass.DeviceType;
-
 namespace YARG.Audio.BASS
 {
     public class BassAudioManager : MonoBehaviour, IAudioManager

@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using YARG.Menu.Navigation;
 using YARG.Menu.Settings.Visuals;
 

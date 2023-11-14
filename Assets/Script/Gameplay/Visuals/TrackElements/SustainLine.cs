@@ -1,8 +1,6 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
-using YARG.Settings;
 
 namespace YARG.Gameplay.Visuals
 {

@@ -1,7 +1,6 @@
 ﻿using System;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Serialization;
 using YARG.Core.Chart;
 
 namespace YARG.Gameplay.HUD

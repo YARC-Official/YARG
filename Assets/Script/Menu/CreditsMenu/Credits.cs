@@ -3,7 +3,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
 using UnityEngine.UI;
 using YARG.Core.Input;

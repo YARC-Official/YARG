@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using YARG.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Engine.Guitar;

@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-
 namespace YARG.Settings.Metadata
 {
     public class ButtonRowMetadata : AbstractMetadata

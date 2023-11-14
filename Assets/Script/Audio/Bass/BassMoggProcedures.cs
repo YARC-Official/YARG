@@ -1,10 +1,6 @@
 ﻿using ManagedBass;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace YARG.Assets.Script.Audio.Bass
 {

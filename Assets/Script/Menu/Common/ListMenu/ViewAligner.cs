@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
 using YARG.Helpers.Extensions;
 
 namespace YARG.Menu.ListMenu

@@ -1,8 +1,6 @@
 using System;
 using TMPro;
 using UnityEngine;
-using YARG.Core.Chart;
-using YARG.Menu;
 using YARG.Settings;
 
 namespace YARG.Gameplay.HUD

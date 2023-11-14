@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
-using YARG.Settings;
-using YARG.Settings.Customization;
 
 namespace YARG.Gameplay.Visuals
 {

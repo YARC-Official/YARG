@@ -8,7 +8,6 @@ using YARG.Core.Game;
 using YARG.Helpers;
 using YARG.Input;
 using YARG.Input.Serialization;
-using YARG.Settings.Customization;
 
 namespace YARG.Player
 {

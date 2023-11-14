@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.Assertions;
-using YARG.Menu.Navigation;
 
 namespace YARG.Menu
 {

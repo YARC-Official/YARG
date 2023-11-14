@@ -1,7 +1,6 @@
 ﻿using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Core.Engine;
 using YARG.Data;

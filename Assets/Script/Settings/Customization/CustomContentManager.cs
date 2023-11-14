@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 using YARG.Helpers;
-using YARG.Menu.Settings;
-using YARG.Settings.Metadata;
 
 namespace YARG.Settings.Customization
 {

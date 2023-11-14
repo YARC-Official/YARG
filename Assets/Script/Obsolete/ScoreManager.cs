@@ -9,7 +9,6 @@ using UnityEngine;
 using YARG.Core.Song;
 using YARG.Data;
 using YARG.Helpers;
-using YARG.Song;
 
 namespace YARG
 {

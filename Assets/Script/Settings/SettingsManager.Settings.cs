@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using Newtonsoft.Json;
 using UnityEngine;
 using YARG.Audio;
 using YARG.Core.Game;
-using YARG.Gameplay.Visuals;
 using YARG.Helpers;
 using YARG.Integration;
 using YARG.Menu.Settings;

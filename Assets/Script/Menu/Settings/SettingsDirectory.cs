@@ -1,12 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using Cysharp.Threading.Tasks;
-using SFB;
 using TMPro;
 using UnityEngine;
 using YARG.Helpers;
 using YARG.Settings;
-using YARG.Song;
 
 namespace YARG.Menu.Settings
 {
