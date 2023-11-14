@@ -19,7 +19,7 @@ namespace YARG.Scores
         [Indexed]
         public byte[] SongChecksum { get; set; }
 
-        public string GameVersion { get; set; }
+        public int EngineVersion { get; set; }
 
         // Keep this information in case the user doesn't have the song
         public string SongName    { get; set; }
