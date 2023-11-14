@@ -1,6 +1,10 @@
 ﻿using System.Runtime.InteropServices;
 using ManagedBass;
 
+#if !(UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
+using System;
+#endif
+
 namespace YARG.Audio.BASS
 {
     /// <summary>
