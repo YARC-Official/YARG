@@ -7,7 +7,6 @@ using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
 using UnityEngine;
-using YARG.Assets.Script.Audio.Bass;
 
 #if UNITY_EDITOR
 using UnityEditor;

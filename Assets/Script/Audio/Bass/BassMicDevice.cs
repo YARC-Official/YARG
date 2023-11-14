@@ -3,12 +3,11 @@ using System.Collections.Concurrent;
 using ManagedBass;
 using ManagedBass.Fx;
 using UnityEngine;
-using YARG.Audio.BASS;
 using YARG.Audio.PitchDetection;
 using YARG.Input;
 using YARG.Settings;
 
-namespace YARG.Audio
+namespace YARG.Audio.BASS
 {
     public class BassMicDevice : IMicDevice
     {

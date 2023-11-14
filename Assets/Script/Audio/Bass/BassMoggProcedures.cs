@@ -1,8 +1,8 @@
-﻿using ManagedBass;
-using System;
+﻿using System;
 using System.IO;
+using ManagedBass;
 
-namespace YARG.Assets.Script.Audio.Bass
+namespace YARG.Audio.BASS
 {
     public class BassMoggProcedures : FileProcedures
     {
@@ -33,7 +33,7 @@ namespace YARG.Assets.Script.Audio.Bass
                     }
                 }
             };
-            
+
             Seek = (long Offset, IntPtr User) =>
             {
                 try
