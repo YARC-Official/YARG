@@ -55,8 +55,7 @@ namespace YARG.Scores
                 int rowsAdded = 0;
 
                 // Add the game record
-                // TODO: Keep track of engine versions
-                gameRecord.EngineVersion = 0;
+                gameRecord.GameVersion = GlobalVariables.CURRENT_VERSION;
                 rowsAdded += _db.Insert(gameRecord);
 
                 // Assign the proper score entry IDs and checksums
