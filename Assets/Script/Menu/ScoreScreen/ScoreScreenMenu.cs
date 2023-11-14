@@ -86,6 +86,7 @@ namespace YARG.Menu.ScoreScreen
                         break;
                     }
                     case GameMode.FourLaneDrums:
+                    case GameMode.FiveLaneDrums:
                     {
                         var card = Instantiate(_drumsCardPrefab, _cardContainer);
                         card.Initialize(score.Player, score.Stats as DrumsStats);
