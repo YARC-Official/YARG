@@ -6,14 +6,26 @@
       "scopes": [
         "jp.keijiro"
       ]
+    },
+    {
+      "name": "package.openupm.com",
+      "url": "https://package.openupm.com",
+      "scopes": [
+        "com.coffee.softmask-for-ugui",
+        "com.cysharp.unitask",
+        "com.github-glitchenzo.nugetforunity",
+        "com.marijnzwemmer.unity-toolbar-extender",
+        "com.openupm",
+        "com.starasgames.tmpro-dynamic-data-cleaner"
+      ]
     }
   ],
   "dependencies": {
-    "com.coffee.softmask-for-ugui": "https://github.com/mob-sakai/SoftMaskForUGUI.git",
-    "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
-    "com.github-glitchenzo.nugetforunity": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity#v3.1.3",
-    "com.marijnzwemmer.unity-toolbar-extender": "https://github.com/marijnz/unity-toolbar-extender.git",
-    "com.starasgames.tmpro-dynamic-data-cleaner": "https://github.com/STARasGAMES/tmpro-dynamic-data-cleaner.git#upm",
+    "com.coffee.softmask-for-ugui": "1.0.2",
+    "com.cysharp.unitask": "2.5.0",
+    "com.github-glitchenzo.nugetforunity": "3.1.3",
+    "com.marijnzwemmer.unity-toolbar-extender": "1.4.2",
+    "com.starasgames.tmpro-dynamic-data-cleaner": "1.0.0",
     "com.thenathannator.hidrogen": "https://github.com/TheNathannator/HIDrogen.git?path=/Packages/com.thenathannator.hidrogen#v0.2.0",
     "com.thenathannator.plasticband": "https://github.com/TheNathannator/PlasticBand-Unity.git?path=/Packages/com.thenathannator.plasticband#v0.4.1",
     "com.unity.2d.sprite": "1.0.0",
