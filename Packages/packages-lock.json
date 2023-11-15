@@ -1,39 +1,39 @@
 {
   "dependencies": {
     "com.coffee.softmask-for-ugui": {
-      "version": "https://github.com/mob-sakai/SoftMaskForUGUI.git",
+      "version": "1.0.2",
       "depth": 0,
-      "source": "git",
+      "source": "registry",
       "dependencies": {},
-      "hash": "b870d64b5704a764fd03aaccb11f2dbe652b1756"
+      "url": "https://package.openupm.com"
     },
     "com.cysharp.unitask": {
-      "version": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
+      "version": "2.5.0",
       "depth": 0,
-      "source": "git",
+      "source": "registry",
       "dependencies": {},
-      "hash": "305695ad5d194dda0d6b00777c2459202a1ef4ea"
+      "url": "https://package.openupm.com"
     },
     "com.github-glitchenzo.nugetforunity": {
-      "version": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity#v3.1.3",
+      "version": "3.1.3",
       "depth": 0,
-      "source": "git",
+      "source": "registry",
       "dependencies": {},
-      "hash": "f9fb82dbaa73fd209d6565775b57ee6268645ea2"
+      "url": "https://package.openupm.com"
     },
     "com.marijnzwemmer.unity-toolbar-extender": {
-      "version": "https://github.com/marijnz/unity-toolbar-extender.git",
+      "version": "1.4.2",
       "depth": 0,
-      "source": "git",
+      "source": "registry",
       "dependencies": {},
-      "hash": "dbd76ed996483d219c39d240f785b1790aa039ed"
+      "url": "https://package.openupm.com"
     },
     "com.starasgames.tmpro-dynamic-data-cleaner": {
-      "version": "https://github.com/STARasGAMES/tmpro-dynamic-data-cleaner.git#upm",
+      "version": "1.0.0",
       "depth": 0,
-      "source": "git",
+      "source": "registry",
       "dependencies": {},
-      "hash": "3a3607621431b0173bea325a53fb34e8d574f995"
+      "url": "https://package.openupm.com"
     },
     "com.thenathannator.hidrogen": {
       "version": "https://github.com/TheNathannator/HIDrogen.git?path=/Packages/com.thenathannator.hidrogen#v0.2.0",
@@ -45,13 +45,13 @@
       "hash": "73285a031b0a978420ad08c64f0205e07d8dcec5"
     },
     "com.thenathannator.plasticband": {
-      "version": "https://github.com/TheNathannator/PlasticBand-Unity.git?path=/Packages/com.thenathannator.plasticband#v0.4.1",
+      "version": "https://github.com/TheNathannator/PlasticBand-Unity.git?path=/Packages/com.thenathannator.plasticband#v0.4.2",
       "depth": 0,
       "source": "git",
       "dependencies": {
         "com.unity.inputsystem": "1.4.4"
       },
-      "hash": "43fb11bb8800dcc8b99e312a11a5cd264ce2ddd6"
+      "hash": "26f72592e8cc026fd2d4459611672ff6f60f3b72"
     },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
@@ -108,7 +108,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.rider": {
-      "version": "3.0.18",
+      "version": "3.0.26",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -117,7 +117,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.visualstudio": {
-      "version": "2.0.21",
+      "version": "2.0.22",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -126,7 +126,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.inputsystem": {
-      "version": "1.5.0",
+      "version": "1.7.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {
