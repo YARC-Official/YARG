@@ -191,7 +191,6 @@ namespace YARG.Settings
             {
                 // Find which section preset to use...
                 var sectionPreset = _defaultSectionPreset;
-                bool matched = false;
                 foreach (var preset in _sectionPresets)
                 {
                     // Rename section names such as "Pre-Chorus 2" to "prechorus_2" for proper matching
@@ -202,6 +201,7 @@ namespace YARG.Settings
                         .Replace(" ","_");
 
                     // See if any of the regexes match
+                    bool matched = false;
                     foreach (string regex in preset.SectionRegexes)
                     {
                         if (!Regex.IsMatch(nameToMatch, $"^{regex}$")) continue;
@@ -209,17 +209,10 @@ namespace YARG.Settings
                         sectionPreset = preset;
                         matched = true;
 
-                        Debug.Log($"Section `{section.Name}` matched regex section `{regex}`.");
-
                         break;
                     }
 
                     if (matched) break;
-                }
-
-                if (!matched)
-                {
-                    Debug.Log($"No match found for section `{section.Name}`.");
                 }
 
                 // BonusFx at start, avoid multiple BonusFx in a row
