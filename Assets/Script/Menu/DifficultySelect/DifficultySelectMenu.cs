@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -90,7 +92,7 @@ namespace YARG.Menu.DifficultySelect
                 })
             }, false));
 
-            _speedInput.text = "100";
+            _speedInput.text = "100%";
 
             // ChangePlayer(0) will update for the current player
             _playerIndex = 0;
@@ -301,7 +303,7 @@ namespace YARG.Menu.DifficultySelect
             {
                 // This will always work (as it's set up in the input field)
                 // The max speed that the game can keep up with is 4995%
-                float speed = float.Parse(_speedInput.text) / 100f;
+                float speed = float.Parse(_speedInput.text.TrimEnd('%')) / 100f;
                 speed = Mathf.Clamp(speed, 0.1f, 49.95f);
                 GlobalVariables.Instance.SongSpeed = speed;
 
@@ -488,6 +490,14 @@ namespace YARG.Menu.DifficultySelect
                 Instrument.FiveLaneDrums => parts.HasDifficulty(Instrument.ProDrums, difficulty),
                 _ => false
             };
+        }
+
+        public void SongSpeedEndEdit(string text)
+        {
+            if (!int.TryParse(text.TrimEnd('%'), NumberStyles.Number, null, out int speed))
+                speed = 100;
+            speed = Math.Clamp(speed, 10, 4995);
+            _speedInput.SetTextWithoutNotify($"{speed}%");
         }
     }
 }
