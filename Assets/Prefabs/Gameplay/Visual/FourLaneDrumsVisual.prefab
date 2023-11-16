@@ -316,6 +316,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 031a2b07fd65f864d9c4ded2d545c9e5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!4 &4218340060847917785 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6050702919009568949, guid: 5800c42510b55c549be95ec3ecd75e1c,
+    type: 3}
+  m_PrefabInstance: {fileID: 7598390404892836460}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &4397569968834985693 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6085956593584340145, guid: 5800c42510b55c549be95ec3ecd75e1c,
@@ -401,6 +407,7 @@ MonoBehaviour:
   StarpowerBar: {fileID: 4397569968834985693}
   SunburstEffects: {fileID: 1900302462358772031}
   HitWindowDisplay: {fileID: 7686426392671820263}
+  _hudLocation: {fileID: 4218340060847917785}
   NotePool: {fileID: 4797150999688012940}
   BeatlinePool: {fileID: 897369785276829973}
   _fiveLaneMode: 0

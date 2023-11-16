@@ -44,7 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d28e186375864caea5493965bbe56975, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _fretCount: 5
+  FretCount: 5
   _trackWidth: 2
   _fretPrefab: {fileID: 3269232338164336537, guid: 397b1ea7bf093d24ab47c16be25edc6d,
     type: 3}
@@ -187,6 +187,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea87a16152be49368ceaf2f1c0e720cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!4 &3807369616701639989 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6050702919009568949, guid: 5800c42510b55c549be95ec3ecd75e1c,
+    type: 3}
+  m_PrefabInstance: {fileID: 7434902305530561920}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &4842075834887986663 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2602119680426612839, guid: 5800c42510b55c549be95ec3ecd75e1c,
@@ -272,6 +278,7 @@ MonoBehaviour:
   StarpowerBar: {fileID: 3700759359327549745}
   SunburstEffects: {fileID: 1442216845985701587}
   HitWindowDisplay: {fileID: 7275388750557486603}
+  _hudLocation: {fileID: 3807369616701639989}
   NotePool: {fileID: 5534384060604769120}
   BeatlinePool: {fileID: 155632028176750329}
   _fretArray: {fileID: 1060069523843335645}

@@ -533,10 +533,10 @@ namespace YARG.Gameplay
                         new Vector3(index * 100f, 100f, 0f), prefab.transform.rotation);
 
                     // Setup player
-                    var basePlayer = playerObject.GetComponent<TrackPlayer>();
-                    var trackView = _trackViewManager.CreateTrackView(basePlayer, player);
-                    basePlayer.Initialize(index, player, Chart, trackView);
-                    _players.Add(basePlayer);
+                    var trackPlayer = playerObject.GetComponent<TrackPlayer>();
+                    var trackView = _trackViewManager.CreateTrackView(trackPlayer, player);
+                    trackPlayer.Initialize(index, player, Chart, trackView);
+                    _players.Add(trackPlayer);
                 }
                 else
                 {
@@ -564,6 +564,9 @@ namespace YARG.Gameplay
                     _players.Add(vocalsPlayer);
                 }
             }
+
+            // Make sure to set up all of the HUD positions
+            _trackViewManager.SetAllHUDPositions();
         }
 
         public void SetSongTime(double time, double delayTime = SONG_START_DELAY)

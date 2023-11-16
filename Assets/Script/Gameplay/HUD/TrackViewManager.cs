@@ -39,7 +39,7 @@ namespace YARG.Gameplay.HUD
             trackPlayer.TrackCamera.targetTexture = renderTexture;
 
             // Setup track view to show the correct track
-            trackView.Initialize(renderTexture, player.CameraPreset);
+            trackView.Initialize(renderTexture, player.CameraPreset, trackPlayer);
 
             _trackViews.Add(trackView);
             UpdateAllSizing();
@@ -68,10 +68,16 @@ namespace YARG.Gameplay.HUD
 
         private void UpdateAllSizing()
         {
-            foreach (var trackView in _trackViews)
-            {
-                trackView.UpdateSizing(_trackViews.Count);
-            }
+            int count = _trackViews.Count;
+            _trackViews.ForEach(i => i.UpdateSizing(count));
+        }
+
+        public void SetAllHUDPositions()
+        {
+            // The positions of the track view have probably not updated yet at this point
+            Canvas.ForceUpdateCanvases();
+
+            _trackViews.ForEach(i => i.UpdateHUDPosition());
         }
     }
 }

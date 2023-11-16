@@ -38,6 +38,9 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         protected HitWindowDisplay HitWindowDisplay;
 
+        [SerializeField]
+        private Transform _hudLocation;
+
         [Header("Pools")]
         [SerializeField]
         protected KeyedPool NotePool;
@@ -46,6 +49,8 @@ namespace YARG.Gameplay.Player
 
         public float ZeroFadePosition { get; private set; }
         public float FadeSize         { get; private set; }
+
+        public Vector2 HUDViewportPosition => TrackCamera.WorldToViewportPoint(_hudLocation.position);
 
         protected List<Beatline> Beatlines;
         protected int BeatlineIndex;
@@ -61,13 +66,17 @@ namespace YARG.Gameplay.Player
             Beatlines = SyncTrack.Beatlines;
             BeatlineIndex = 0;
 
+            // Set fade information and highway length
             ZeroFadePosition = DEFAULT_ZERO_FADE_POS * Player.Profile.HighwayLength;
             FadeSize = Player.CameraPreset.FadeLength;
-
             if (player.Profile.HighwayLength > 1)
             {
                 FadeSize *= player.Profile.HighwayLength;
             }
+
+            // Move the HUD location based on the highway length
+            var change = ZeroFadePosition - DEFAULT_ZERO_FADE_POS;
+            _hudLocation.position = _hudLocation.position.AddZ(change);
         }
 
         protected override void ResetVisuals()
