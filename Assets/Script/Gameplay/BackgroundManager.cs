@@ -236,7 +236,7 @@ namespace YARG.Gameplay
         public void SetPaused(bool paused)
         {
             // Pause/unpause video
-            if (_videoPlayer.enabled && !_videoSeeking)
+            if (_videoPlayer.enabled && _videoStarted && !_videoSeeking)
             {
                 if (paused)
                 {
