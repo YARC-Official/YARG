@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using YARG.Core.Audio;
 
 namespace YARG.Audio
 {

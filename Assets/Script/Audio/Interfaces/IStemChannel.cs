@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using Cysharp.Threading.Tasks;
+using YARG.Core.Audio;
 
 namespace YARG.Audio
 {

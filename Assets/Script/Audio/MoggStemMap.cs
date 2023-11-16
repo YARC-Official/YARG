@@ -1,3 +1,5 @@
+﻿using YARG.Core.Audio;
+
 namespace YARG.Audio
 {
     public readonly struct MoggStemMap

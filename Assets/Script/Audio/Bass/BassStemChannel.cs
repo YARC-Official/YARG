@@ -1,9 +1,11 @@
-using System;
+﻿using System;
+using System.IO;
 using Cysharp.Threading.Tasks;
 using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
 using UnityEngine;
+using YARG.Core.Audio;
 
 namespace YARG.Audio.BASS
 {
@@ -71,7 +73,7 @@ namespace YARG.Audio.BASS
             remove { _channelEnd -= value; }
         }
 
-        private readonly string _path;
+        private readonly Stream _stream;
         private readonly IAudioManager _manager;
 
         private double _lastStemVolume;
@@ -88,10 +90,10 @@ namespace YARG.Audio.BASS
 		private PitchShiftParametersStruct _pitchParams = new(1, 0, AudioOptions.WHAMMY_FFT_DEFAULT,
             AudioOptions.WHAMMY_OVERSAMPLE_DEFAULT);
 
-        public BassStemChannel(IAudioManager manager, string path, SongStem stem)
+        public BassStemChannel(IAudioManager manager, Stream stream, SongStem stem)
         {
             _manager = manager;
-            _path = path;
+            _stream = stream;
             Stem = stem;
 
             Volume = 1;
@@ -177,11 +179,11 @@ namespace YARG.Audio.BASS
 
             if (_sourceHandle == 0)
             {
-                if (string.IsNullOrEmpty(_path))
+                if (_stream == null)
                     // Channel was not set up correctly for some reason
                     return false;
 
-                _sourceHandle = Bass.CreateStream(_path, 0, 0, streamFlags);
+                _sourceHandle = Bass.CreateStream(StreamSystem.NoBuffer, streamFlags, new BassMoggProcedures(_stream, 0));
                 if (_sourceHandle == 0)
                 {
                     Debug.LogError($"Failed to create file stream: {Bass.LastError}");

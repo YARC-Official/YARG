@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using TMPro;
@@ -128,8 +128,8 @@ namespace YARG.Menu.Calibrator
                     _audioCalibrateContainer.SetActive(true);
                     _calibrationTimes.Clear();
 
-                    GlobalVariables.AudioManager.LoadCustomAudioFile(
-                        Path.Combine(Application.streamingAssetsPath, "calibration_music.ogg"), 1f);
+                    var file = Path.Combine(Application.streamingAssetsPath, "calibration_music.ogg");
+                    GlobalVariables.AudioManager.LoadCustomAudioFile(file, 1f);
                     GlobalVariables.AudioManager.Play();
                     StartCoroutine(AudioCalibrateCoroutine());
                     break;

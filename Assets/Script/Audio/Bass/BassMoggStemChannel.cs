@@ -1,4 +1,6 @@
-﻿namespace YARG.Audio.BASS
+﻿using YARG.Core.Audio;
+
+namespace YARG.Audio.BASS
 {
     public class BassMoggStemChannel : BassStemChannel
     {

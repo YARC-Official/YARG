@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -13,6 +13,7 @@ using YARG.Player;
 using YARG.Song;
 using YARG.Venue;
 using UnityEngine.InputSystem;
+using YARG.Core.Audio;
 
 namespace YARG.Settings
 {
