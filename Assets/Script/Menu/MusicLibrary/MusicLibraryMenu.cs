@@ -232,7 +232,11 @@ namespace YARG.Menu.MusicLibrary
 
             RequestViewListUpdate();
 
-            SetIndexTo(i => i is SongViewType);
+            if (!SetIndexTo(i => i is SongViewType view && view.SongMetadata == _currentSong))
+            {
+                // Reason: Gotta take "Random Song" header into account
+                SelectedIndex = string.IsNullOrEmpty(_currentSearch) ? 2 : 1;
+            }
         }
 
         protected override void Update()
