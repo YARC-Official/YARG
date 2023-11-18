@@ -143,6 +143,12 @@ namespace YARG.Gameplay
         /// <inheritdoc cref="SongRunner.RealSongTime"/>
         public double RealSongTime => _songRunner.RealSongTime;
 
+        /// <inheritdoc cref="SongRunner.VisualTime"/>
+        public double VisualTime => _songRunner.VisualTime;
+
+        /// <inheritdoc cref="SongRunner.RealVisualTime"/>
+        public double RealVisualTime => _songRunner.RealVisualTime;
+
         /// <inheritdoc cref="SongRunner.InputTime"/>
         public double InputTime => _songRunner.InputTime;
 
@@ -357,9 +363,10 @@ namespace YARG.Gameplay
 
                 _debugText.text +=
                     $"Song time: {_songRunner.SongTime:0.000000}\n" +
+                    $"Visual time: {_songRunner.VisualTime:0.000000}\n" +
                     $"Input time: {_songRunner.InputTime:0.000000}\n" +
                     $"Pause time: {_songRunner.PauseStartTime:0.000000}\n" +
-                    $"Time difference: {_songRunner.SyncInputTime - _songRunner.SyncSongTime:0.000000}\n" +
+                    $"Sync difference: {_songRunner.SyncVisualTime - _songRunner.SyncSongTime:0.000000}\n" +
                     $"Sync start delta: {_songRunner.SyncStartDelta:0.000000}\n" +
                     $"Speed adjustment: {_songRunner.SyncSpeedAdjustment:0.00}\n" +
                     $"Speed multiplier: {_songRunner.SyncSpeedMultiplier}\n" +

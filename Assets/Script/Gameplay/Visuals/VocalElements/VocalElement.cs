@@ -18,9 +18,9 @@ namespace YARG.Gameplay.Visuals
         protected override bool UpdateElementPosition()
         {
             float x =
-                SING_LINE_POS                                       // Shift origin to the sing line
-                + (float) (ElementTime - GameManager.RealInputTime) // Get time of note relative to now
-                * VocalTrack.NOTE_SPEED;                            // Adjust speed (units/s)
+                SING_LINE_POS                                        // Shift origin to the sing line
+                + (float) (ElementTime - GameManager.RealVisualTime) // Get time of note relative to now
+                * VocalTrack.NOTE_SPEED;                             // Adjust speed (units/s)
 
             var cacheTransform = transform;
             cacheTransform.localPosition = cacheTransform.localPosition.WithX(x);

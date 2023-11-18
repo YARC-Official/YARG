@@ -26,8 +26,25 @@ namespace YARG.Input
 
         public static event MenuInputEvent MenuInput;
 
-        // Current input time as of when the input system finished updating
-        public static double CurrentUpdateTime { get; private set; }
+        private static double _beforeUpdateTime;
+        private static double _afterUpdateTime;
+        private static double _latestInputTime;
+
+        /// <summary>
+        /// The current time as of when the input system finished updating.
+        /// </summary>
+        /// <seealso cref="InputSystem.onAfterUpdate"/>
+        public static double GameUpdateTime => _afterUpdateTime;
+
+        /// <summary>
+        /// The time to be used for gameplay input updates.
+        /// </summary>
+        /// <remarks>
+        /// This time is the later time between the time marked in <see cref="InputSystem.onBeforeUpdate"/>
+        /// and the time of the most recent input event, such that any input events that happen after an
+        /// update starts are factored into input updates.
+        /// </remarks>
+        public static double InputUpdateTime { get; private set; }
 
         // Input events are timestamped directly in the constructor, so we can use them to get the current time
         public static double CurrentInputTime => new InputEvent(StateEvent.Type, 0, InputDevice.InvalidDeviceId).time;
@@ -45,7 +62,9 @@ namespace YARG.Input
             // In order to unsubscribe from it you *must* keep track of the IDisposable returned at the end
             _onEventListener = InputSystem.onEvent.Call(OnEvent);
 
+            InputSystem.onBeforeUpdate += OnBeforeUpdate;
             InputSystem.onAfterUpdate += OnAfterUpdate;
+
             InputSystem.onDeviceChange += OnDeviceChange;
 
             // Notify of all current devices
@@ -61,7 +80,9 @@ namespace YARG.Input
             _onEventListener?.Dispose();
             _onEventListener = null;
 
+            InputSystem.onBeforeUpdate -= OnBeforeUpdate;
             InputSystem.onAfterUpdate -= OnAfterUpdate;
+
             InputSystem.onDeviceChange -= OnDeviceChange;
         }
 
@@ -80,15 +101,23 @@ namespace YARG.Input
             MenuInput?.Invoke(player, ref input);
         }
 
-        private static void OnAfterUpdate()
+        private static void OnBeforeUpdate()
         {
-            CurrentUpdateTime = CurrentInputTime;
-
+            // Update bindings first, so that any inputs generated there
+            // (e.g. button debounce) occur before the update time
             foreach (var player in PlayerContainer.Players)
             {
                 var profileBinds = player.Bindings;
                 profileBinds.UpdateBindingsForFrame();
             }
+
+            _beforeUpdateTime = CurrentInputTime;
+        }
+
+        private static void OnAfterUpdate()
+        {
+            _afterUpdateTime = CurrentInputTime;
+            InputUpdateTime = Math.Max(_beforeUpdateTime, _latestInputTime);
         }
 
         private static void OnEvent(InputEventPtr eventPtr)
@@ -96,6 +125,10 @@ namespace YARG.Input
             // Only take state events
             if (!eventPtr.IsA<StateEvent>() && !eventPtr.IsA<DeltaStateEvent>())
                 return;
+
+            // Keep track of the latest input event
+            if (eventPtr.time > _latestInputTime)
+                _latestInputTime = eventPtr.time;
 
             var device = InputSystem.GetDeviceById(eventPtr.deviceId);
             foreach (var player in PlayerContainer.Players)

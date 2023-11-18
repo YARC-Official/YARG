@@ -98,7 +98,7 @@ namespace YARG.Gameplay.HUD
             }
             else
             {
-                _timeInput.text = TimeSpan.FromSeconds(GameManager.InputTime + GameManager.SONG_START_DELAY)
+                _timeInput.text = TimeSpan.FromSeconds(GameManager.VisualTime + GameManager.SONG_START_DELAY)
                     .ToString("g");
             }
 
@@ -111,7 +111,7 @@ namespace YARG.Gameplay.HUD
                 }
                 else
                 {
-                    value = GameManager.InputTime / GameManager.SongLength;
+                    value = GameManager.VisualTime / GameManager.SongLength;
                 }
 
                 _timeSlider.SetValueWithoutNotify((float) value);
