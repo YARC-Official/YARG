@@ -259,8 +259,9 @@ namespace YARG.Gameplay.Player
 
         public float GetPosForPitch(float pitch)
         {
-            var lerp = YargMath.Lerp(TRACK_BOTTOM, _currentTrackTop, _viewRange.Min, _viewRange.Max, pitch);
-            return Mathf.Clamp(lerp, TRACK_BOTTOM, _currentTrackTop);
+            float rangePercent = Mathf.InverseLerp(_viewRange.Min, _viewRange.Max, pitch);
+            var trackPosition = Mathf.Lerp(TRACK_BOTTOM, _currentTrackTop, rangePercent);
+            return Mathf.Clamp(trackPosition, TRACK_BOTTOM, _currentTrackTop);
         }
 
         public void ResetPracticeSection()
