@@ -46,8 +46,10 @@ namespace YARG.Input
         /// </remarks>
         public static double InputUpdateTime { get; private set; }
 
-        // Input events are timestamped directly in the constructor, so we can use them to get the current time
-        public static double CurrentInputTime => new InputEvent(StateEvent.Type, 0, InputDevice.InvalidDeviceId).time;
+        /// <summary>
+        /// The instantaneous current time of the input system.
+        /// </summary>
+        public static double CurrentInputTime => InputState.currentTime;
 
         private static IDisposable _onEventListener;
 
