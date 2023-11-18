@@ -91,8 +91,6 @@ namespace YARG.Menu.Calibrator
 
         private void Update()
         {
-            Debug.Log($"playing: {GlobalVariables.AudioManager.IsPlaying}");
-
             switch (_state)
             {
                 case State.Audio:
