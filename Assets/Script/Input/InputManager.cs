@@ -120,10 +120,15 @@ namespace YARG.Input
         {
             _afterUpdateTime = CurrentInputTime;
             InputUpdateTime = Math.Max(_beforeUpdateTime, _latestInputTime);
+
+            if (_afterUpdateTime < _latestInputTime)
+                Debug.LogError($"The last input event for this update is in the future! After-update time: {_afterUpdateTime}, last input time: {_latestInputTime}");
         }
 
         private static void OnEvent(InputEventPtr eventPtr)
         {
+            double currentTime = CurrentInputTime;
+
             // Only take state events
             if (!eventPtr.IsA<StateEvent>() && !eventPtr.IsA<DeltaStateEvent>())
                 return;
@@ -133,6 +138,42 @@ namespace YARG.Input
                 _latestInputTime = eventPtr.time;
 
             var device = InputSystem.GetDeviceById(eventPtr.deviceId);
+            if (device is null)
+            {
+                Debug.LogWarning($"No device found for event '{eventPtr}'!");
+                return;
+            }
+
+            // TODO: Store these events for manual handling later
+            // This would be quite a rare edge-case, but the input system very much allows this
+            if (eventPtr.time > currentTime)
+                Debug.LogError($"An input event is in the future!\nCurrent time: {currentTime}, event time: {eventPtr.time}, device: {device}");
+
+// Leaving these for posterity
+#if false
+            // This check is handled by the engine
+            // It can still happen on rare occasions despite the fixes we've made to prevent it,
+            // but in the cases I've seen it happen, it never reaches the engine
+            if (eventPtr.time < InputUpdateTime)
+                Debug.LogError($"An input event caused time to go backwards!\nInput update time: {InputUpdateTime}, event time: {eventPtr.time}, current time: {currentTime}, device: {device}");
+
+            // This check happens much too often for it to be of any use
+            if (eventPtr.time < _afterUpdateTime)
+                Debug.LogWarning($"An input event was missed in the previous update!\nPrevious update time: {_afterUpdateTime}, event time: {eventPtr.time}, current time: {currentTime}, device: {device}");
+
+            // The engine also has this check
+            // I've only seen this happen when:
+            // - starting the game
+            // - re-focusing the window
+            // - transitioning to the score screen
+            if (_previousEventTimes.TryGetValue(device, out double previousTime))
+            {
+                if (eventPtr.time < previousTime)
+                    Debug.LogWarning($"An input event is out of order!\nPrevious event time: {previousTime}, incoming event time: {eventPtr.time}, current time: {currentTime}, device: {device}");
+            }
+            _previousEventTimes[device] = eventPtr.time;
+#endif
+
             foreach (var player in PlayerContainer.Players)
             {
                 var profileBinds = player.Bindings;
