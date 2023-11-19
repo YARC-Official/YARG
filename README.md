@@ -6,10 +6,10 @@
 <div align="center">
   <img src="Images/Logo_Dark.png#gh-light-mode-only" width="60%" alt="YARG">
   <img src="Images/Logo_White.png#gh-dark-mode-only" width="60%" alt="YARG">
-  
+
   <br/>
   <br/>
-  
+
   <a href="https://twitter.com/YARGGame">
     <img src="Images/Socials/Twitter.png" width="48px" height="48px" alt="Twitter">
   </a>
@@ -19,10 +19,10 @@
   <a href="https://reddit.com/r/yarg">
     <img src="Images/Socials/Reddit.png" height="48px" width="48px" alt="Discord">
   </a>
-  
+
   <br/>
   <br/>
-  
+
   <img src="Images/Image.png" width="90%" alt="README gif">
 
   <br/>
@@ -43,12 +43,9 @@
 - [👉 Disclaimer](#-disclaimer)
 - [📃 Table of Contents](#-table-of-contents)
 - [📥 Downloading and Playing](#-downloading-and-playing)
-  - [Windows](#windows)
-  - [Mac](#mac)
+  - [YARC Launcher (All Platforms)](#yarg-launcher-all-platforms)
   - [Linux](#linux)
-  - [In-Game Setup](#in-game-setup)
 - [🔨 Building](#-building)
-    - [⚠️ If you wish to contribute, use the `dev` branch. Your PR will NOT be merged if it's on `master`. ⚠️](#️-if-you-wish-to-contribute-use-the-dev-branch-your-pr-will-not-be-merged-if-its-on-master-️)
   - [Setup Instructions](#setup-instructions)
   - [Unity YAML Merge Tool](#unity-yaml-merge-tool)
 - [✍️ Contributing](#️-contributing)
@@ -61,9 +58,9 @@
 
 **It is recommended you download YARG via the [YARC Launcher](https://github.com/YARC-Official/YARC-Launcher/releases/).** Downloading the portable option is not recommended as some features may not work.
 
-## YARC Launcher
+## YARC Launcher (All Platforms)
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > If you are on Linux, there are some additional things you need to do in order for controllers to work. See the Linux section for more info.
 
 1. Go to the YARC Launcher releases page, [here](https://github.com/YARC-Official/YARC-Launcher/releases/).
@@ -76,63 +73,31 @@
 8. Finally, press "Play Stable"!
 9. Additionally, if you want some songs, install "YARG Setlist" which is also on the left in the YARC Launcher.
 
-## Windows
-
-1. Go to [the latest release](https://github.com/YARC-Official/YARG/releases/latest) and click on the "Assets" dropdown, then click on `YARG_vX.X.X-Windows-x64.zip` to download.
-2. Extract the contents of the zip file by right clicking it and pressing "Extract All..."
-3. Choose where you want to extract it to, then click "Extract".
-4. Open the extracted folder and double-click `YARG.exe` (if you don't have file extensions on, it is called just `YARG`)
-5. You may get a "Windows protected your PC" warning. This is because not many people have run YARG before, so Windows does not know if it is harmful or not. Click on "More info" and then "Run anyway" to run it anyways. If you don't trust me, please feel free to scan the folder with an anti-virus, and remember that false positives can still happen.
-
-## Mac
-
-1. Go to the [the latest release](https://github.com/YARC-Official/YARG/releases/latest) and click on the "Assets" dropdown, then click on `YARG_vX.X.X-MacOS-Universal.dmg` to download.
-2. Open the downloaded .dmg and drag the YARG app to your Apps folder.
-3. Double-click the YARG app to run it.
-
 ## Linux
 
-1. Go to [the latest release](https://github.com/YARC-Official/YARG/releases/latest) and click on the "Assets" dropdown, then click on `YARG_vX.X.X-Linux-x86_64.zip` to download.
-2. Extract the zip to the location of your choosing.
-3. Inside the folder you extracted the game to, open a terminal and run `chmod +x ./YARG.x86_64` to give the game executable permission.
-4. You can now double-click the `YARG.x86_64` file or use `./YARG.x86_64` in a terminal to run the game, however there are some dependencies that will be needed for HID devices (such as PS3 and Wii instruments).
-5. Next, install `hidapi` and `libudev`:
+There are some dependencies that will be needed in order for HID devices (such as PS3 and Wii instruments) to work.
+
+1. Install `hidapi` and `libudev`:
    - (Package names may differ depending on package repositories.)
    - On apt-based distros (such as Ubuntu or Debian), use `sudo apt install libhidapi-hidraw0 libudev1`.
    - On pacman-based distros (such as Arch Linux), use `pacman -S hidapi systemd-libs`.
    - On Fedora, use `dnf install hidapi systemd-libs`.
-6. Finally, create a new udev rules file called `69-hid.rules` inside of `/etc/udev/rules.d/` or `/usr/lib/udev/rules.d/`, with the following contents:
+2. Finally, create a new udev rules file called `69-hid.rules` inside of `/etc/udev/rules.d/` or `/usr/lib/udev/rules.d/`, with the following contents:
   ```
   KERNEL=="hidraw*", TAG+="uaccess"
   ```
   - Without this file, YARG will not be able to access HID devices without special permissions such as being run with `sudo`, which is not recommended.
   - The file name may differ if desired, but it must come before `73-seat-late.rules`!
-7. Reboot your system to apply the new udev rule, then you should be all good to go!
-
-## In-Game Setup
-
-- Set up your song folders:
-  1. From the main menu, click on "SETTINGS", then click on "Open Song Folder Manager"
-  2. Next, click on "Add Folder." A new entry should pop-up.
-  3. Click on the folder icon to open a folder picker, then choose the folder your songs are stored in.
-  4. Repeat the previous two steps for each of your song folders.
-  5. Now, click on "Refresh All Caches" to make YARG scan that folder for songs. Doing this may take a while depending on the amount of songs you have. If you ever add more songs, **be sure** to come back here and click on "Refresh All Caches".
-- Set up your controllers:
-  1. From the main menu, click on "ADD/EDIT PLAYERS".
-  2. Click "Add Player" and select the controller you wish to use for that player (or select "Create a BOT" to create a bot player).
-  3. Enter in a name for this player, and select what type of instrument you will be playing from the dropdown below it (i.e. "Five Fret", "Microphone", etc.).
-  4. Depending on the instrument type, you may have to bind some controls. To do this, click on each mapping and press the control you want to map to it.
-- Finally, click on "QUICKPLAY" to enter the song list.
-
-Have fun!
+3. Reboot your system to apply the new udev rule, then you should be all good to go!
 
 # 🔨 Building
 
-### ⚠️ If you wish to contribute, use the `dev` branch. Your PR will NOT be merged if it's on `master`. ⚠️
+> [!IMPORTANT]
+> ### ⚠️ If you wish to contribute, use the `dev` branch. Your PR will NOT be merged if it's on `master`. ⚠️
 
 ## Setup Instructions
 
-> **Warning**
+> [!WARNING]
 >
 > If you would like to build the game yourself, please follow these instructions.
 >
@@ -153,7 +118,7 @@ Have fun!
    - You will need the SDK specifically, not the runtime!
 5. Open the project in Unity (select "Open" and select YARG's repo's folder).
 6. Load in **without** entering safe mode. Click "Ignore".
-7. Click on `YARG` on the top menu bar, then click on `Rebuild YARG.Core`.
+7. Click on `YARG` on the top menu bar, then click on `Rebuild YARG.Core (Debug)`.
 8. (You may need to) click on `NuGet` on the top menu bar, then click on `Restore Packages`.
 9. You're ready to go!
 
@@ -182,7 +147,7 @@ Resolving conflicts:
 
 # ✍️ Contributing
 
-If you want to contribute, please feel free! Please join [our Discord](https://discord.gg/sqpu4R552r) if you want your PR/Art merged.
+If you want to contribute, please feel free! It's recommended you join [our Discord](https://discord.gg/sqpu4R552r) so we can provide feedback quickly.
 
 # 🛡️ License
 
@@ -198,35 +163,26 @@ Some libraries/assets are **packaged** with the source code have licenses that m
 | [Unity Standalone File Browser](https://github.com/gkngkc/UnityStandaloneFileBrowser) | [MIT](https://github.com/gkngkc/UnityStandaloneFileBrowser/blob/master/LICENSE.txt)
 | [Discord GameSDK](https://discord.com/developers/docs/game-sdk/sdk-starter-guide) | Licenseless
 | [Lucide](https://lucide.dev/) | [ISC](https://lucide.dev/license)
-| [DtxCS](https://github.com/maxton/DtxCS) | Licenseless
-| [Moonscraper](https://github.com/FireFox2000000/Moonscraper-Chart-Editor) | [BSD 3-Clause License](https://github.com/FireFox2000000/Moonscraper-Chart-Editor/blob/master/LICENSE)
+| [Unbounded](https://fonts.google.com/specimen/Unbounded), [Barlow](https://fonts.google.com/specimen/Barlow), and [Red Hat Display](https://fonts.google.com/specimen/Red+Hat+Display) | [Open Font License](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL)
+| [PolyHaven](https://polyhaven.com/) | [CC0](https://creativecommons.org/publicdomain/zero/1.0/)
+| [BASS](https://www.un4seen.com/) | [Proprietary](https://www.un4seen.com/) (free for non-commercial use)
 
-Please note that other libraries are **not** packaged within the source code, and are to be installed by NuGet.
-
-BASS is the audio library for YARG. [It has it's own license for release](https://www.un4seen.com/). BASS is free for non-commercial use, ensure you have the correct license if you intend to distribute YARG (and therefore BASS) commercially.
+Please note that other libraries are **not** directly packaged within the source code, and are to be installed by NuGet, Unity's packaged manager, or via a Git submodule.
 
 # 📦 External Assets and Libraries
 
+These are assets that are installed by NuGet, Unity's packaged manager, or via a Git submodule. These have varying licenses, but can all be downloaded/accessed by the links given.
+
 | Link | Type | Use |
 | --- | --- | --- |
-| [Unbounded](https://fonts.google.com/specimen/Unbounded) | Font | Combo/Multipier Meter
-| [Barlow](https://fonts.google.com/specimen/Barlow) | Font | UI Font
-| [Material Symbols](https://fonts.google.com/icons) | Icons | UI Icons
-| [Lucide](https://lucide.dev/) | Icons | UI Icons
-| [PolyHaven](https://polyhaven.com/) | Assets | Textures and Models
+| [YARG.Core](https://github.com/YARC-Official/YARG.Core) | Library | Provides most of YARG's backend (engine, replays, etc.)
 | [PlasticBand](https://github.com/TheNathannator/PlasticBand) | Reference | Controller Support Info
+| [GuitarGame_ChartFormats](https://github.com/TheNathannator/GuitarGame_ChartFormats) | Reference | File Format Documentation
 | [PlasticBand-Unity](https://github.com/TheNathannator/PlasticBand-Unity) | Library | GH/RB Controller Support
 | [HIDrogen](https://github.com/TheNathannator/HIDrogen) | Library | Linux HID Controller Support
-| [GuitarGame_ChartFormats](https://github.com/TheNathannator/GuitarGame_ChartFormats) | Reference | File Format Documentation
-| [NuGet for Unity](https://github.com/GlitchEnzo/NuGetForUnity) | Library | NuGet Packages in Unity
-| [EliteAsian's Unity Extensions](https://github.com/EliteAsian123/EliteAsians-Unity-Extensions) | Library | Utility
-| [Unity Standalone File Browser](https://github.com/gkngkc/UnityStandaloneFileBrowser) | Library | "Browse" Button
 | [EasySharpIni](https://www.nuget.org/packages/EasySharpIni/) | Library | Parsing `song.ini` Files
 | [DryWetMidi](https://www.nuget.org/packages/Melanchall.DryWetMidi) | Library | Parsing `.mid` Files
 | [Minis](https://github.com/keijiro/Minis/tree/master) | Library | MIDI Input for Unity
-| [Discord GameSDK](https://discord.com/developers/docs/game-sdk/sdk-starter-guide) | Library | Discord Rich Presence
-| [DtxCS](https://github.com/maxton/DtxCS) | Library | Parsing `.dta` Files
-| [Moonscraper](https://github.com/FireFox2000000/Moonscraper-Chart-Editor) | Library | Parsing `.chart` Files
 | [DOTween](https://github.com/Demigiant/dotween) | Library | Animation Utility
 | [UniTask](https://github.com/Cysharp/UniTask) | Library | Async Library
 | [unity-toolbar-extender](https://github.com/marijnz/unity-toolbar-extender/) | Library | Unity Editor Utility
