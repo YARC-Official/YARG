@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using YARG.Core.Audio;
 
 namespace YARG.Audio
 {

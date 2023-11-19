@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using YARG.Core.Audio;
 
 namespace YARG.Audio
 {
@@ -34,9 +35,14 @@ namespace YARG.Audio
 
         public void LoadSfx();
 
-        public void LoadSong(IDictionary<SongStem, string> stems, float speed);
+        public void LoadSong(IDictionary<SongStem, Stream> stems, float speed);
         public void LoadMogg(Stream stream, List<MoggStemMap> stemMaps, float speed);
-        public void LoadCustomAudioFile(string audioPath, float speed);
+        public void LoadCustomAudioFile(Stream stream, float speed);
+        public void LoadCustomAudioFile(string file, float speed)
+        {
+            LoadCustomAudioFile(new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read, 1), speed);
+        }
+
         public void UnloadSong();
 
         public void Play();

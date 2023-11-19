@@ -7,6 +7,7 @@ using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
 using UnityEngine;
+using YARG.Core.Audio;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -221,7 +222,7 @@ namespace YARG.Audio.BASS
             Debug.Log("Finished loading SFX");
         }
 
-        public void LoadSong(IDictionary<SongStem, string> stems, float speed)
+        public void LoadSong(IDictionary<SongStem, Stream> stems, float speed)
         {
             Debug.Log("Loading song");
             UnloadSong();
@@ -363,7 +364,7 @@ namespace YARG.Audio.BASS
             IsAudioLoaded = true;
         }
 
-        public void LoadCustomAudioFile(string audioPath, float speed)
+        public void LoadCustomAudioFile(Stream audiostream, float speed)
         {
             Debug.Log("Loading custom audio file");
             UnloadSong();
@@ -374,15 +375,15 @@ namespace YARG.Audio.BASS
                 throw new Exception($"Failed to create mixer: {Bass.LastError}");
             }
 
-            var stemChannel = new BassStemChannel(this, audioPath, SongStem.Song);
+            var stemChannel = new BassStemChannel(this, audiostream, SongStem.Song);
             if (stemChannel.Load(speed) != 0)
             {
-                throw new Exception($"Failed to load stem {audioPath}: {Bass.LastError}");
+                throw new Exception($"Failed to load custom file: {Bass.LastError}");
             }
 
             if (_mixer.GetChannels(SongStem.Song).Length > 0)
             {
-                Debug.LogError($"Stem already loaded! {audioPath}");
+                Debug.LogError($"Custom File already loaded!");
                 return;
             }
 

@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using ManagedBass;
 using UnityEngine;
+using YARG.Core.Audio;
 
 namespace YARG.Audio.BASS
 {

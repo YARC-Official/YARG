@@ -4,6 +4,7 @@ using UnityEngine;
 using YARG.Helpers;
 using YARG.Settings;
 using YARG.Core.Song;
+using YARG.Core.Venue;
 
 namespace YARG.Venue
 {
@@ -13,24 +14,17 @@ namespace YARG.Venue
         Song,
     }
 
-    public enum VenueType
-    {
-        Yarground,
-        Video,
-        Image
-    }
-
     public readonly struct VenueInfo
     {
         public readonly VenueSource Source;
-        public readonly VenueType Type;
-        public readonly string Path;
+        public readonly BackgroundType Type;
+        public readonly Stream Stream;
 
-        public VenueInfo(VenueSource source, VenueType type, string path)
+        public VenueInfo(VenueSource source, BackgroundType type, Stream stream)
         {
             Source = source;
             Type = type;
-            Path = path;
+            Stream = stream;
         }
     }
 
@@ -57,57 +51,74 @@ namespace YARG.Venue
                 return GetVenuePathFromGlobal();
             }
 
-            // Try a local yarground first
-            string directory = song.Directory;
-            string backgroundPath = Path.Combine(directory, "bg.yarground");
-            if (File.Exists(backgroundPath))
+            if (song.IniData != null)
             {
-                return new(songSource, VenueType.Yarground, backgroundPath);
+                var stream = song.IniData.GetBackgroundStream(
+                    BackgroundType.Yarground |
+                    BackgroundType.Video |
+                    BackgroundType.Image);
+
+                if (stream.Item2 != null)
+                    return new VenueInfo(songSource, stream.Item1, stream.Item2);
             }
-
-            // Then, a local picture or video
-
-            string[] fileNames =
+            else if (song.RBData is SongMetadata.RBUnpackedCONMetadata)
             {
-                "bg", "background", "video"
-            };
-
-            string[] videoExtensions =
-            {
-                ".mp4", ".mov", ".webm",
-            };
-
-            foreach (var name in fileNames)
-            {
-                var fileBase = Path.Combine(directory, name);
-                foreach (var ext in videoExtensions)
+                // Try a local yarground first
+                string directory = song.Directory;
+                string backgroundPath = Path.Combine(directory, "bg.yarground");
+                if (File.Exists(backgroundPath))
                 {
-                    var path = fileBase + ext;
-                    if (File.Exists(path))
+                    var stream = File.OpenRead(backgroundPath);
+                    return new(songSource, BackgroundType.Yarground, stream);
+                }
+
+                // Then, a local picture or video
+
+                string[] fileNames =
+                {
+                    "bg", "background", "video"
+                };
+
+                string[] videoExtensions =
+                {
+                    ".mp4", ".mov", ".webm",
+                };
+
+                foreach (var name in fileNames)
+                {
+                    var fileBase = Path.Combine(directory, name);
+                    foreach (var ext in videoExtensions)
                     {
-                        return new(songSource, VenueType.Video, path);
+                        backgroundPath = fileBase + ext;
+                        if (File.Exists(backgroundPath))
+                        {
+                            var stream = File.OpenRead(backgroundPath);
+                            return new(songSource, BackgroundType.Video, stream);
+                        }
+                    }
+                }
+
+                string[] imageExtensions =
+                {
+                    ".png", ".jpg", ".jpeg",
+                };
+
+                foreach (var name in fileNames)
+                {
+                    var fileBase = Path.Combine(directory, name);
+                    foreach (var ext in imageExtensions)
+                    {
+                        backgroundPath = fileBase + ext;
+
+                        if (File.Exists(backgroundPath))
+                        {
+                            var stream = File.OpenRead(backgroundPath);
+                            return new(songSource, BackgroundType.Image, stream);
+                        }
                     }
                 }
             }
-
-            string[] imageExtensions =
-            {
-                ".png", ".jpg", ".jpeg",
-            };
-
-            foreach (var name in fileNames)
-            {
-                var fileBase = Path.Combine(directory, name);
-                foreach (var ext in imageExtensions)
-                {
-                    var path = fileBase + ext;
-
-                    if (File.Exists(path))
-                    {
-                        return new(songSource, VenueType.Image, path);
-                    }
-                }
-            }
+            
 
             // If all of this fails, we can load a global venue
             return GetVenuePathFromGlobal();
@@ -138,12 +149,13 @@ namespace YARG.Venue
             var path = filePaths[Random.Range(0, filePaths.Count)];
 
             var extension = Path.GetExtension(path);
+            var stream = File.OpenRead(path);
 
             return extension switch
             {
-                ".yarground"                => new(globalSource, VenueType.Yarground, path),
-                ".mp4" or ".mov" or ".webm" => new(globalSource, VenueType.Video, path),
-                ".png" or ".jpg" or ".jpeg" => new(globalSource, VenueType.Image, path),
+                ".yarground"                => new(globalSource, BackgroundType.Yarground, stream),
+                ".mp4" or ".mov" or ".webm" => new(globalSource, BackgroundType.Video, stream),
+                ".png" or ".jpg" or ".jpeg" => new(globalSource, BackgroundType.Image, stream),
                 _                           => null,
             };
         }

@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.UI;
 using YARG.Audio;
+using YARG.Core.Audio;
 using YARG.Core.Song;
 
 namespace YARG.Helpers.Extensions
@@ -19,63 +20,40 @@ namespace YARG.Helpers.Extensions
             RawImage rawImage, CancellationToken cancellationToken)
         {
             if (songMetadata.IniData != null)
-                await LoadSongIniCover(songMetadata.Directory, rawImage, cancellationToken);
+                rawImage.texture = await LoadSongIniCover(songMetadata.IniData, rawImage, cancellationToken);
             else
-            {
-                byte[] file = await UniTask.RunOnThreadPool(songMetadata.RBData!.LoadImgFile);
-                if (file == null)
-                {
-                    rawImage.texture = null;
-                    rawImage.color = Color.clear;
-                    return;
-                }
+                rawImage.texture = await LoadRBConCover(songMetadata.RBData!, rawImage, cancellationToken);
 
-                LoadRBConCover(file, rawImage, cancellationToken);
-            }
+            rawImage.color = rawImage.texture != null ? Color.white : Color.clear;
         }
 
-        private static async UniTask LoadSongIniCover(string directory,
+        private static async UniTask<Texture2D> LoadSongIniCover(SongMetadata.IIniMetadata iniData,
             RawImage rawImage, CancellationToken cancellationToken)
         {
-            string[] possiblePaths =
-            {
-                "album.png", "album.jpg", "album.jpeg",
-            };
+            var file = await UniTask.RunOnThreadPool(iniData.GetUnprocessedAlbumArt);
+            if (file == null || cancellationToken.IsCancellationRequested)
+                return null;
 
-            // Load album art from one of the paths
-            Texture2D texture = null;
-            foreach (string path in possiblePaths)
-            {
-                string fullPath = Path.Combine(directory, path);
+            // Width & height get overwritten
+            var texture = new Texture2D(2, 2);
+            if (!texture.LoadImage(file))
+                return null;
 
-                if (File.Exists(fullPath))
-                {
-                    texture = await TextureHelper.Load(fullPath, cancellationToken);
-                    break;
-                }
-            }
-
-            if (texture != null)
-            {
-                // Set album cover
-                rawImage.texture = texture;
-                rawImage.color = Color.white;
-                rawImage.uvRect = new Rect(0f, 0f, 1f, 1f);
-            }
-            else
-            {
-                rawImage.texture = null;
-                rawImage.color = Color.clear;
-            }
+            rawImage.uvRect = new Rect(0f, 0f, 1f, 1f);
+            return texture;
         }
 
-        private static void LoadRBConCover(byte[] file,
+        private static async UniTask<Texture2D> LoadRBConCover(SongMetadata.IRBCONMetadata RBData,
             RawImage rawImage, CancellationToken token)
         {
+            var file = await UniTask.RunOnThreadPool(RBData.LoadImgFile);
+            if (file == null)
+                return null;
+
             for (int i = 32; i < file.Length; i += 2)
             {
                 if (token.IsCancellationRequested)
-                    return;
+                    return null;
 
                 (file[i + 1], file[i]) = (file[i], file[i + 1]);
             }
@@ -98,16 +76,15 @@ namespace YARG.Helpers.Extensions
             }
             texture.Apply();
 
-            rawImage.texture = texture;
-            rawImage.color = Color.white;
             rawImage.uvRect = new Rect(0f, 0f, 1f, -1f);
+            return texture;
         }
 
         public static void LoadAudio(this SongMetadata song, IAudioManager manager, float speed, params SongStem[] ignoreStems)
         {
             if (song.IniData != null)
             {
-                LoadIniAudio(manager, song.Directory, speed, ignoreStems);
+                LoadIniAudio(song.IniData, manager, speed, ignoreStems);
             }
             else
             {
@@ -119,29 +96,22 @@ namespace YARG.Helpers.Extensions
         {
             if (song.IniData != null)
             {
-                string directory = song.Directory;
-                string previewBase = Path.Combine(directory, "preview");
-                foreach (var ext in manager.SupportedFormats)
+                var preview = song.IniData.GetPreviewAudioStream();
+                if (preview != null)
                 {
-                    string previewFile = previewBase + ext;
-                    if (File.Exists(previewFile))
-                    {
-                        await UniTask.RunOnThreadPool(() => manager.LoadCustomAudioFile(previewFile, 1));
-                        return true;
-                    }
+                    await UniTask.RunOnThreadPool(() => manager.LoadCustomAudioFile(preview, 1));
+                    return true;
                 }
-                await UniTask.RunOnThreadPool(() => LoadIniAudio(manager, directory, speed, SongStem.Crowd));
+                await UniTask.RunOnThreadPool(() => LoadIniAudio(song.IniData, manager, speed, SongStem.Crowd));
             }
             else
                 await UniTask.RunOnThreadPool(() => LoadRBCONAudio(song.RBData, manager, speed, SongStem.Crowd));
             return false;
         }
 
-        private static void LoadIniAudio(IAudioManager manager, string directory, float speed, params SongStem[] ignoreStems)
+        private static void LoadIniAudio(SongMetadata.IIniMetadata iniData, IAudioManager manager, float speed, params SongStem[] ignoreStems)
         {
-            var stems = AudioHelpers.GetSupportedStems(directory);
-            foreach (var stem in ignoreStems)
-                stems.Remove(stem);
+            var stems = iniData.GetAudioStreams();
             manager.LoadSong(stems, speed);
         }
 

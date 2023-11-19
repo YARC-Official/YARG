@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Audio;
+using YARG.Core.Audio;
 using YARG.Core.Chart;
 
 namespace YARG.Gameplay.HUD

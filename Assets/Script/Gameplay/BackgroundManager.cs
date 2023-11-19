@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
+using YARG.Core.Venue;
 using YARG.Helpers;
 using YARG.Venue;
 
 namespace YARG.Gameplay
 {
-    public class BackgroundManager : GameplayBehaviour
+    public class BackgroundManager : GameplayBehaviour, IDisposable
     {
+        private string VIDEO_PATH;
         [SerializeField]
         private VideoPlayer _videoPlayer;
         [SerializeField]
@@ -45,12 +48,12 @@ namespace YARG.Gameplay
             _venueInfo = venueInfo.Value;
 
             var type = _venueInfo.Type;
-            var path = _venueInfo.Path;
+            using var stream = _venueInfo.Stream;
 
             switch (type)
             {
-                case VenueType.Yarground:
-                    var bundle = AssetBundle.LoadFromFile(path);
+                case BackgroundType.Yarground:
+                    var bundle = AssetBundle.LoadFromStream(stream);
 
                     // KEEP THIS PATH LOWERCASE
                     // Breaks things for other platforms, because Unity
@@ -76,18 +79,33 @@ namespace YARG.Gameplay
 
                     bgInstance.GetComponent<BundleBackgroundManager>().Bundle = bundle;
                     break;
-                case VenueType.Video:
-                    _videoPlayer.url = path;
+                case BackgroundType.Video:
+                    if (stream is FileStream fs)
+                        _videoPlayer.url = fs.Name;
+                    else
+                    {
+                        // UNFORTUNATELY, Videoplayer can't use streams, so video files
+                        // MUST BE FULLY DECRYPTED
+                        VIDEO_PATH = Application.persistentDataPath + "/video.mp4";
+                        using var tmp = File.OpenWrite(VIDEO_PATH);
+                        File.SetAttributes(VIDEO_PATH, File.GetAttributes(VIDEO_PATH) | FileAttributes.Temporary);
+                        stream.CopyTo(tmp);
+                        _videoPlayer.url = VIDEO_PATH;
+                    }
+
                     _videoPlayer.enabled = true;
                     _videoPlayer.prepareCompleted += OnVideoPrepared;
                     _videoPlayer.seekCompleted += OnVideoSeeked;
                     _videoPlayer.Prepare();
-
                     enabled = true;
                     break;
-                case VenueType.Image:
-                    _backgroundImage.gameObject.SetActive(true);
-                    _backgroundImage.texture = await TextureHelper.Load(path);
+                case BackgroundType.Image:
+                    var texture = new Texture2D(2, 2);
+                    if (texture.LoadImage(stream.ReadBytes((int)stream.Length)))
+                    {
+                        _backgroundImage.gameObject.SetActive(true);
+                        _backgroundImage.texture = texture;
+                    }
                     break;
             }
         }
@@ -111,6 +129,11 @@ namespace YARG.Gameplay
 
                 _videoStarted = true;
                 _videoPlayer.Play();
+                if (VIDEO_PATH != null)
+                {
+                    File.Delete(VIDEO_PATH);
+                    VIDEO_PATH = null;
+                }
 
                 // Disable after starting the video if it's not from the song folder
                 // or if video end time is not specified
@@ -176,7 +199,7 @@ namespace YARG.Gameplay
         {
             switch (_venueInfo.Type)
             {
-                case VenueType.Video:
+                case BackgroundType.Video:
                     // Don't seek videos that aren't from the song
                     if (_venueInfo.Source != VenueSource.Song)
                         return;
@@ -227,7 +250,7 @@ namespace YARG.Gameplay
         {
             switch (_venueInfo.Type)
             {
-                case VenueType.Video:
+                case BackgroundType.Video:
                     _videoPlayer.playbackSpeed = speed;
                     break;
             }
@@ -249,6 +272,20 @@ namespace YARG.Gameplay
             }
 
             // The venue is dealt with in the GameManager via Time.timeScale
+        }
+
+        public void Dispose()
+        {
+            if (VIDEO_PATH != null)
+            {
+                File.Delete(VIDEO_PATH);
+                VIDEO_PATH = null;
+            }
+        }
+
+        ~BackgroundManager()
+        {
+            Dispose();
         }
     }
 }
