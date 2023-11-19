@@ -8,6 +8,7 @@ using ManagedBass.Fx;
 using ManagedBass.Mix;
 using UnityEngine;
 using YARG.Core.Audio;
+using YARG.Core.Extensions;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -277,9 +278,9 @@ namespace YARG.Audio.BASS
                 _ => throw new Exception("Original unencrypted mogg replaced by an encrypted mogg"),
             };
 
-            const int minSize = sizeof(int) * 2;
-            if (stream.Length < minSize)
-                throw new Exception($"Couldn't get MOGG start index! Expected at least {minSize} bytes, got {stream.Length}");
+            const int MIN_SIZE = sizeof(int) * 2;
+            if (stream.Length < MIN_SIZE)
+                throw new Exception($"Couldn't get MOGG start index! Expected at least {MIN_SIZE} bytes, got {stream.Length}");
 
             // Get start index
             int start = stream.ReadInt32LE();
