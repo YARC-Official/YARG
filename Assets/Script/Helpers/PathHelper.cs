@@ -77,27 +77,33 @@ namespace YARG.Helpers
         {
             // Save this data as Application.* is main thread only (why Unity)
             RealPersistentDataPath = SanitizePath(Application.persistentDataPath);
-
 #if UNITY_EDITOR || YARG_TEST_BUILD
             PersistentDataPath = SanitizePath(Path.Combine(Application.persistentDataPath, "dev"));
 #else
             PersistentDataPath = SanitizePath(Path.Combine(Application.persistentDataPath, "release"));
 #endif
+
+            // Get other paths that are only allowed on the main thread
             ApplicationDataPath = SanitizePath(Application.dataPath);
             ExecutablePath = Directory.GetParent(ApplicationDataPath)?.FullName;
             StreamingAssetsPath = SanitizePath(Application.streamingAssetsPath);
 
-            // Store song scanning paths
+            // Get song scanning paths
             SongCachePath = Path.Combine(PersistentDataPath, "songcache.bin");
-
 #if UNITY_EDITOR
             BadSongsPath = Path.Combine(PersistentDataPath, "badsongs.txt");
 #else
             BadSongsPath = Path.Combine(ExecutablePath, "badsongs.txt");
 #endif
 
-            // Get the launcher path
+            // Get the launcher paths
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+            // Thanks Apple
+            var localAppdata = Path.Combine(Environment.GetEnvironmentVariable("HOME"),
+                "Library", "Application Support");
+#else
             var localAppdata = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+#endif
             LauncherPath = Path.Join(localAppdata, "YARC", "Launcher");
 
             // Get official setlist path
@@ -109,24 +115,25 @@ namespace YARG.Helpers
             // Use the launcher settings to find the setlist path
             string settingsPath = Path.Join(LauncherPath, "settings.json");
             if (!File.Exists(settingsPath))
+            {
+                Debug.LogWarning("Failed to find launcher settings file. Game is most likely running without the launcher.");
                 return null;
+            }
 
             try
             {
                 var settingsFile = File.ReadAllText(settingsPath);
                 var json = JObject.Parse(settingsFile);
-                if (!json.TryGetValue("download_location", out var downloadLocation))
-                    return null;
+                if (!json.TryGetValue("download_location", out var downloadLocation)) return null;
 
                 string setlistPath = Path.Join(downloadLocation.ToString(), "Setlists", "official");
-                if (!Directory.Exists(setlistPath))
-                    return null;
+                if (!Directory.Exists(setlistPath)) return null;
 
                 return setlistPath;
             }
             catch (Exception e)
             {
-                Debug.LogWarning("Failed to load setlist path. Is it installed?");
+                Debug.LogWarning("Failed to load setlist path.");
                 Debug.LogException(e);
                 return null;
             }
