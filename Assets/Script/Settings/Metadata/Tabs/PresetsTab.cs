@@ -22,6 +22,9 @@ namespace YARG.Settings.Metadata
         private static readonly GameObject _presetDropdown = Addressables
             .LoadAssetAsync<GameObject>("SettingTab/PresetDropdown")
             .WaitForCompletion();
+        private static readonly GameObject _presetActions = Addressables
+            .LoadAssetAsync<GameObject>("SettingTab/PresetActions")
+            .WaitForCompletion();
         private static readonly GameObject _presetDefaultText = Addressables
             .LoadAssetAsync<GameObject>("SettingTab/PresetDefaultText")
             .WaitForCompletion();
@@ -150,6 +153,10 @@ namespace YARG.Settings.Metadata
             // Create the preset dropdown
             var dropdown = Object.Instantiate(_presetDropdown, settingContainer);
             dropdown.GetComponent<PresetDropdown>().Initialize(this);
+
+            // Create the preset actions
+            var actions = Object.Instantiate(_presetActions, settingContainer);
+            actions.GetComponent<PresetActions>().Initialize(this);
 
             if (!_presetTabs.TryGetValue(SelectedContent, out var tab))
             {
