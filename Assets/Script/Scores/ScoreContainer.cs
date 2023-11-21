@@ -104,7 +104,7 @@ namespace YARG.Scores
             try
             {
                 var query =
-                    $"SELECT * FROM PlayerScores INNER JOIN GameRecords ON PlayerScores.Id = GameRecords.Id WHERE " +
+                    $"SELECT * FROM PlayerScores INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id WHERE " +
                     $"GameRecords.SongChecksum = x'{songChecksum.ToString()}' ORDER BY Score DESC LIMIT 1";
                 return _db.FindWithQuery<PlayerScoreRecord>(query);
             }
