@@ -112,6 +112,8 @@ namespace YARG.Settings.Customization
         public IReadOnlyList<T> CustomPresets => Content;
         public override IReadOnlyList<BasePreset> CustomBasePresets => CustomPresets;
 
+        public abstract string PresetTypeStringName { get; }
+
         protected CustomContent(string contentDirectory) : base(contentDirectory)
         {
         }
@@ -239,7 +241,9 @@ namespace YARG.Settings.Customization
 
         private string SavePresetFile(T preset)
         {
+            preset.Type = PresetTypeStringName;
             var text = JsonConvert.SerializeObject(preset, JsonSettings);
+
             var path = Path.Join(ContentDirectory, GetFileNameForPreset(preset));
 
             File.WriteAllText(path, text);
@@ -334,6 +338,13 @@ namespace YARG.Settings.Customization
                 var presetEntry = zip.GetEntry("preset.json");
                 using var reader = new StreamReader(presetEntry!.Open());
                 var preset = JsonConvert.DeserializeObject<T>(reader.ReadToEnd(), JsonSettings);
+
+                if (preset.Type != PresetTypeStringName)
+                {
+                    DialogManager.Instance.ShowMessage("Cannot Import Preset",
+                        "Wrong preset type! Are you selecting the right preset type?");
+                    return null;
+                }
 
                 if (HasPresetId(preset.Id))
                 {

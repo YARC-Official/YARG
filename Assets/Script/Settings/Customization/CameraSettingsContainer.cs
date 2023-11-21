@@ -8,6 +8,8 @@ namespace YARG.Settings.Customization
     {
         public override IReadOnlyList<CameraPreset> DefaultPresets => CameraPreset.Defaults;
 
+        public override string PresetTypeStringName => "CameraPreset";
+
         public CameraSettingsContainer(string contentDirectory) : base(contentDirectory)
         {
         }
