@@ -116,9 +116,14 @@ namespace YARG.Gameplay.Player
                 _lastTargetNote = note;
             };
 
-            engine.OnPhraseHit += (percent) =>
+            engine.OnPhraseHit += (percent, fullPoints) =>
             {
                 _hud.ShowPhraseHit(percent);
+
+                if (!fullPoints)
+                {
+                    IsFc = false;
+                }
             };
 
             return engine;
