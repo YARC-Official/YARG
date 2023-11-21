@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using TMPro;
@@ -8,6 +9,7 @@ using UnityEngine;
 using YARG.Core.Game;
 using YARG.Core.Utility;
 using YARG.Helpers;
+using YARG.Menu.Persistent;
 
 namespace YARG.Settings.Customization
 {
@@ -48,6 +50,9 @@ namespace YARG.Settings.Customization
 
         public abstract BasePreset GetBasePresetById(Guid guid);
         public abstract bool HasPresetId(Guid guid);
+
+        public abstract void ExportPreset(BasePreset preset, string path);
+        public abstract BasePreset ImportPreset(string path);
 
         /// <summary>
         /// Adds all of the presets to the specified dropdown.
@@ -232,12 +237,13 @@ namespace YARG.Settings.Customization
             }
         }
 
-        private void SavePresetFile(T preset)
+        private string SavePresetFile(T preset)
         {
             var text = JsonConvert.SerializeObject(preset, JsonSettings);
             var path = Path.Join(ContentDirectory, GetFileNameForPreset(preset));
 
             File.WriteAllText(path, text);
+            return path;
         }
 
         private void DeletePresetFile(T preset)
@@ -287,6 +293,78 @@ namespace YARG.Settings.Customization
         public override bool HasPresetId(Guid guid)
         {
             return GetPresetById(guid) is not null;
+        }
+
+        public override void ExportPreset(BasePreset preset, string path)
+        {
+            // Skip default presets, and presets that haven't been added
+            if (!HasPresetId(preset.Id)) return;
+
+            try
+            {
+                // Make sure the preset is saved, and get it's path
+                string presetPath = SavePresetFile((T) preset);
+
+                // Create a zip file
+                using var zip = ZipFile.Open(path, ZipArchiveMode.Create);
+
+                // Add files to zip
+                zip.CreateEntryFromFile(presetPath, "preset.json");
+                AddAdditionalFilesToExport(zip);
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("Failed to export preset. See error below for more details.");
+                Debug.LogException(e);
+            }
+        }
+
+        protected virtual void AddAdditionalFilesToExport(ZipArchive archive)
+        {
+        }
+
+        public override BasePreset ImportPreset(string path)
+        {
+            try
+            {
+                // Open zip file
+                using var zip = ZipFile.Open(path, ZipArchiveMode.Read);
+
+                // Get the preset entry, and read it
+                var presetEntry = zip.GetEntry("preset.json");
+                using var reader = new StreamReader(presetEntry!.Open());
+                var preset = JsonConvert.DeserializeObject<T>(reader.ReadToEnd(), JsonSettings);
+
+                if (HasPresetId(preset.Id))
+                {
+                    DialogManager.Instance.ShowMessage("Cannot Import Preset",
+                        "A preset with the same ID has already been imported!");
+                    return null;
+                }
+
+                // Save additional files and modify preset
+                SaveAdditionalFilesFromExport(zip, preset);
+
+                // Save the preset
+                AddPreset(preset);
+                SavePresetFile(preset);
+
+                return preset;
+            }
+            catch (Exception e)
+            {
+                DialogManager.Instance.ShowMessage("Cannot Import Preset",
+                    "The selected preset is most likely corrupted, or is not a valid preset file.");
+
+                Debug.LogWarning("Failed to import preset. See error below for more details.");
+                Debug.LogException(e);
+
+                return null;
+            }
+        }
+
+        protected virtual void SaveAdditionalFilesFromExport(ZipArchive archive, T preset)
+        {
         }
 
         private static T LoadFile(string path)

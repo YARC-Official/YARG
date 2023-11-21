@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.IO;
+using UnityEngine;
+using YARG.Helpers;
 using YARG.Menu.Persistent;
 using YARG.Settings.Metadata;
 
@@ -48,6 +50,34 @@ namespace YARG.Menu.Settings
             _tab.ResetSelectedPreset();
 
             SettingsMenu.Instance.Refresh();
+        }
+
+        public void ImportPreset()
+        {
+            FileExplorerHelper.OpenChooseFile(null, "preset", path =>
+            {
+                var preset = _tab.SelectedContent.ImportPreset(path);
+                if (preset is null) return;
+
+                _tab.SelectedPreset = preset;
+
+                SettingsMenu.Instance.Refresh();
+            });
+        }
+
+        public void ExportPreset()
+        {
+            var preset = _tab.SelectedPreset;
+
+            if (preset.DefaultPreset) return;
+
+            // Ask the user for an ending location
+            FileExplorerHelper.OpenSaveFile(null, preset.Name, "preset", path => {
+                // Delete the file if it already exists
+                if (File.Exists(path)) File.Delete(path);
+
+                _tab.SelectedContent.ExportPreset(preset, path);
+            });
         }
     }
 }

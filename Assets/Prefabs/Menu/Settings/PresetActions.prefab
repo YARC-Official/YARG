@@ -523,6 +523,41 @@ PrefabInstance:
       propertyPath: m_Color.r
       value: 0.18039216
       objectReference: {fileID: 0}
+    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 7226021369532217110}
+    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: ImportPreset
+      objectReference: {fileID: 0}
+    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: YARG.Menu.Settings.PresetActions, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3,
         type: 3}
       propertyPath: m_Pivot.x
@@ -713,6 +748,41 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Color.r
       value: 0.18039216
+      objectReference: {fileID: 0}
+    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 7226021369532217110}
+    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: ExportPreset
+      objectReference: {fileID: 0}
+    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: YARG.Menu.Settings.PresetActions, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3,
         type: 3}
