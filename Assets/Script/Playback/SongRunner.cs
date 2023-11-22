@@ -382,10 +382,12 @@ namespace YARG.Playback
 
             SetInputBase(inputBase);
 
-            if (Math.Abs(VisualTime - previousVisualTime) >= 0.001)
-                Debug.Assert(false, $"Unexpected visual time change! Went from {previousVisualTime} to {VisualTime}");
-            if (Math.Abs(InputTime - previousInputTime) >= 0.001)
-                Debug.Assert(false, $"Unexpected input time change! Went from {previousInputTime} to {InputTime}");
+            // Speeds above 200% or so can cause inaccuracies greater than 1 ms
+            double threshold = Math.Max(0.001 * SelectedSongSpeed, 0.0005);
+            if (Math.Abs(VisualTime - previousVisualTime) > threshold)
+                Debug.Assert(false, $"Unexpected visual time change! Went from {previousVisualTime} to {VisualTime}, threshold {threshold}");
+            if (Math.Abs(InputTime - previousInputTime) > threshold)
+                Debug.Assert(false, $"Unexpected input time change! Went from {previousInputTime} to {InputTime}, threshold {threshold}");
         }
 
         private void InitializeSongTime(double time, double delayTime = SONG_START_DELAY)
@@ -456,7 +458,9 @@ namespace YARG.Playback
             GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
 
             // Adjust input offset, otherwise input time will desync
-            SetInputBaseChecked(VisualTime);
+            // TODO: Pressing and holding left or right in practice will
+            // cause time to progress much slower than it should
+            SetInputBaseChecked(RealInputTime);
 
             _pauseSync = false;
 
