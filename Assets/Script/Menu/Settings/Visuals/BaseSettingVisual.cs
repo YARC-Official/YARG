@@ -18,22 +18,36 @@ namespace YARG.Menu.Settings.Visuals
         [SerializeField]
         private LocalizeStringEvent _settingLabel;
 
-        public string SettingName { get; private set; }
+        public string UnlocalizedName { get; private set; }
         public string Tab { get; private set; }
 
-        public void AssignSetting(string tab, string name)
+        public void AssignSetting(string tab, string settingName)
         {
             Tab = tab;
-            SettingName = name;
+            UnlocalizedName = settingName;
 
-            _settingLabel.StringReference = LocaleHelper.StringReference("Settings", $"Setting.{tab}.{name}");
+            _settingLabel.StringReference = LocaleHelper.StringReference(
+                "Settings", $"Setting.{tab}.{settingName}");
 
-            AssignSettingToVariable(name);
+            AssignSettingFromVariable(SettingsManager.GetSettingByName(settingName));
 
             OnSettingInit();
         }
 
-        protected abstract void AssignSettingToVariable(string name);
+        public void AssignSetting(string tab, string unlocalizedName, ISettingType reference)
+        {
+            Tab = tab;
+            UnlocalizedName = unlocalizedName;
+
+            _settingLabel.StringReference = LocaleHelper.StringReference(
+                "Settings", $"Setting.{tab}.{unlocalizedName}");
+
+            AssignSettingFromVariable(reference);
+
+            OnSettingInit();
+        }
+
+        protected abstract void AssignSettingFromVariable(ISettingType reference);
 
         protected abstract void OnSettingInit();
 
@@ -46,9 +60,9 @@ namespace YARG.Menu.Settings.Visuals
     {
         protected T Setting { get; private set; }
 
-        protected sealed override void AssignSettingToVariable(string name)
+        protected sealed override void AssignSettingFromVariable(ISettingType reference)
         {
-            Setting = (T) SettingsManager.GetSettingByName(name);
+            Setting = (T) reference;
         }
     }
 }
