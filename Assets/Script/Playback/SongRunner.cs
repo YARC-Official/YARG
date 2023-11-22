@@ -363,7 +363,7 @@ namespace YARG.Playback
             double previousVisualTime = VisualTime;
 
             InputTimeBase = inputBase;
-            InputTimeOffset = InputManager.GameUpdateTime;
+            InputTimeOffset = InputManager.InputUpdateTime;
 
             // Update input/visual time
             RealInputTime = GetRelativeInputTime(InputManager.InputUpdateTime);
@@ -480,6 +480,8 @@ namespace YARG.Playback
         {
             if (PendingPauses++ > 0) return;
 
+            // Visual time is used for pause time since it's closer to when
+            // the song runner is actually being updated; the asserts in Update get hit otherwise
             PauseStartTime = RealVisualTime;
             GlobalVariables.AudioManager.Pause();
 
@@ -534,6 +536,8 @@ namespace YARG.Playback
                 return;
             }
 
+            // Visual time is used for pause time since it's closer to when
+            // the song runner is actually being updated; the asserts in Update get hit otherwise
             if (pauseTime < 0)
                 pauseTime = RealVisualTime;
 
