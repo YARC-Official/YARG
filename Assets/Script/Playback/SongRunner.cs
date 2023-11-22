@@ -370,8 +370,8 @@ namespace YARG.Playback
             RealVisualTime = GetRelativeInputTime(InputManager.GameUpdateTime);
 
 #if UNITY_EDITOR
-            Debug.Log($"Set input time base. New base: {InputTimeBase:0.000000}, new offset: {InputTimeOffset:0.000000}, new input time: {InputTime:0.000000}, new visual time: {VisualTime:0.000000}\n"
-                + $"Old base: {previousBase:0.000000}, old offset: {previousOffset:0.000000}, old input time: {previousInputTime:0.000000}, old input time: {previousVisualTime:0.000000}");
+            Debug.Log($"Set input time base.\nNew base: {InputTimeBase:0.000000}, new offset: {InputTimeOffset:0.000000}, new visual time: {VisualTime:0.000000}, new input time: {InputTime:0.000000}\n"
+                + $"Old base: {previousBase:0.000000}, old offset: {previousOffset:0.000000}, old visual time: {previousVisualTime:0.000000}, old input time: {previousInputTime:0.000000}");
 #endif
         }
 
@@ -404,7 +404,7 @@ namespace YARG.Playback
 
 #if UNITY_EDITOR
             Debug.Log($"Set song time to {time:0.000000} (delay: {delayTime:0.000000}).\n" +
-                $"Seek time: {seekTime:0.000000}, song time: {SongTime:0.000000}");
+                $"Seek time: {seekTime:0.000000}, resulting song time: {SongTime:0.000000}");
 #endif
         }
 
@@ -449,7 +449,7 @@ namespace YARG.Playback
 
 #if UNITY_EDITOR
             Debug.Log($"Set song speed to {speed:0.00}.\n"
-                + $"Input time: {VisualTime:0.000000}, song time: {SongTime:0.000000}");
+                + $"Song time: {SongTime:0.000000}, visual time: {VisualTime:0.000000}, input time: {InputTime:0.000000}");
 #endif
         }
 
@@ -471,7 +471,7 @@ namespace YARG.Playback
             GlobalVariables.AudioManager.Pause();
 
 #if UNITY_EDITOR
-            Debug.Log($"Paused at song time {SongTime:0.000000} (real: {RealSongTime:0.000000}), input time {VisualTime:0.000000} (real: {RealVisualTime:0.000000}).");
+            Debug.Log($"Paused at song time {SongTime:0.000000} (real: {RealSongTime:0.000000}), visual time {VisualTime:0.000000} (real: {RealVisualTime:0.000000}), input time {InputTime:0.000000} (real: {RealInputTime:0.000000}).");
 #endif
         }
 
@@ -498,7 +498,7 @@ namespace YARG.Playback
             }
 
 #if UNITY_EDITOR
-            Debug.Log($"Resumed at song time {SongTime:0.000000} (real: {RealSongTime:0.000000}), input time {VisualTime:0.000000} (real: {RealVisualTime:0.000000}).");
+            Debug.Log($"Resumed at song time {SongTime:0.000000} (real: {RealSongTime:0.000000}), visual time {VisualTime:0.000000} (real: {RealVisualTime:0.000000}), input time {InputTime:0.000000} (real: {RealInputTime:0.000000}).");
 #endif
         }
 
