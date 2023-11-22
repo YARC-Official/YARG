@@ -105,14 +105,6 @@ namespace YARG.Input
 
         private static void OnBeforeUpdate()
         {
-            // Update bindings first, so that any inputs generated there
-            // (e.g. button debounce) occur before the update time
-            foreach (var player in PlayerContainer.Players)
-            {
-                var profileBinds = player.Bindings;
-                profileBinds.UpdateBindingsForFrame();
-            }
-
             _beforeUpdateTime = CurrentInputTime;
         }
 
@@ -123,6 +115,13 @@ namespace YARG.Input
 
             if (_afterUpdateTime < _latestInputTime)
                 Debug.LogError($"The last input event for this update is in the future! After-update time: {_afterUpdateTime}, last input time: {_latestInputTime}");
+
+            // Update bindings using the input update time
+            foreach (var player in PlayerContainer.Players)
+            {
+                var profileBinds = player.Bindings;
+                profileBinds.UpdateBindingsForFrame(InputUpdateTime);
+            }
         }
 
         private static void OnEvent(InputEventPtr eventPtr)

@@ -166,11 +166,11 @@ namespace YARG.Input
             }
         }
 
-        public void UpdateBindingsForFrame()
+        public void UpdateBindingsForFrame(double updateTime)
         {
             foreach (var binding in _bindings)
             {
-                binding.UpdateForFrame();
+                binding.UpdateForFrame(updateTime);
             }
         }
 

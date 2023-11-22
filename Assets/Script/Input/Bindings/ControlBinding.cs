@@ -87,7 +87,7 @@ namespace YARG.Input
             Enabled = false;
         }
 
-        public virtual void UpdateForFrame() { }
+        public virtual void UpdateForFrame(double updateTime) { }
         public abstract void ProcessInputEvent(InputEventPtr eventPtr);
 
         public abstract void OnDeviceAdded(InputDevice device);

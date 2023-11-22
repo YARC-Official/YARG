@@ -330,14 +330,14 @@ namespace YARG.Input
             MenuBindings.OnDeviceRemoved(device);
         }
 
-        public void UpdateBindingsForFrame()
+        public void UpdateBindingsForFrame(double updateTime)
         {
             foreach (var bindings in _bindsByGameMode.Values)
             {
-                bindings.UpdateBindingsForFrame();
+                bindings.UpdateBindingsForFrame(updateTime);
             }
 
-            MenuBindings.UpdateBindingsForFrame();
+            MenuBindings.UpdateBindingsForFrame(updateTime);
         }
 
         public bool AddMicrophone(IMicDevice microphone)

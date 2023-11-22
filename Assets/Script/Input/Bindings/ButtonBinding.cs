@@ -220,12 +220,12 @@ namespace YARG.Input
             FireInputEvent(time, state);
         }
 
-        public override void UpdateForFrame()
+        public override void UpdateForFrame(double updateTime)
         {
-            UpdateDebounce();
+            UpdateDebounce(updateTime);
         }
 
-        private void UpdateDebounce()
+        private void UpdateDebounce(double updateTime)
         {
             bool anyFinished = false;
             bool state = false;
@@ -239,7 +239,7 @@ namespace YARG.Input
             }
 
             if (anyFinished)
-                ProcessNextState(InputManager.CurrentInputTime, state);
+                ProcessNextState(updateTime, state);
         }
 
         protected override SingleButtonBinding OnControlAdded(ActuationSettings settings, InputControl<float> control)
