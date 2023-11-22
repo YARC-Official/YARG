@@ -375,6 +375,19 @@ namespace YARG.Playback
 #endif
         }
 
+        private void SetInputBaseChecked(double inputBase)
+        {
+            double previousVisualTime = VisualTime;
+            double previousInputTime = InputTime;
+
+            SetInputBase(inputBase);
+
+            if (Math.Abs(VisualTime - previousVisualTime) >= 0.001)
+                Debug.Assert(false, $"Unexpected visual time change! Went from {previousVisualTime} to {VisualTime}");
+            if (Math.Abs(InputTime - previousInputTime) >= 0.001)
+                Debug.Assert(false, $"Unexpected input time change! Went from {previousInputTime} to {InputTime}");
+        }
+
         private void InitializeSongTime(double time, double delayTime = SONG_START_DELAY)
         {
             // Account for song speed
@@ -443,7 +456,7 @@ namespace YARG.Playback
             GlobalVariables.AudioManager.SetSpeed(ActualSongSpeed);
 
             // Adjust input offset, otherwise input time will desync
-            SetInputBase(VisualTime);
+            SetInputBaseChecked(VisualTime);
 
             _pauseSync = false;
 
@@ -489,7 +502,7 @@ namespace YARG.Playback
 
             if (inputCompensation)
             {
-                SetInputBase(PauseStartTime);
+                SetInputBaseChecked(PauseStartTime);
             }
 
             if (RealSongTime >= SongOffset)
