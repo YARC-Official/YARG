@@ -8,7 +8,7 @@ using YARG.Menu.Settings;
 
 namespace YARG.Settings.Metadata
 {
-    public class TrackPreviewTab : MetadataTab
+    public class TrackPreviewBuilder : IPreviewBuilder
     {
         // Prefabs needed for this tab type
         private static readonly GameObject _trackPreview = Addressables
@@ -18,20 +18,15 @@ namespace YARG.Settings.Metadata
             .LoadAssetAsync<GameObject>("SettingPreviews/TrackPreviewUI")
             .WaitForCompletion();
 
-        public TrackPreviewTab(string name, string icon = "Generic") : base(name, icon)
+        public UniTask BuildPreviewWorld(Transform worldContainer)
         {
-        }
-
-        public override UniTask BuildPreviewWorld(Transform container)
-        {
-            Object.Instantiate(_trackPreview, container);
-
+            Object.Instantiate(_trackPreview, worldContainer);
             return UniTask.CompletedTask;
         }
 
-        public override async UniTask BuildPreviewUI(Transform container)
+        public async UniTask BuildPreviewUI(Transform uiContainer)
         {
-            var go = Object.Instantiate(_trackPreviewUI, container);
+            var go = Object.Instantiate(_trackPreviewUI, uiContainer);
 
             // Enable and wait for layouts to rebuild
             await UniTask.WaitForEndOfFrame(SettingsMenu.Instance);

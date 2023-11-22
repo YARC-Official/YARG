@@ -34,7 +34,7 @@ namespace YARG.Settings.Metadata
         {
             {
                 CustomContentManager.CameraSettings,
-                new TrackPreviewTab("Presets")
+                new MetadataTab("Presets", previewBuilder: new TrackPreviewBuilder())
                 {
                     new HeaderMetadata("PresetSettings"),
                     "CameraPreset_FieldOfView",
@@ -47,7 +47,7 @@ namespace YARG.Settings.Metadata
             },
             {
                 CustomContentManager.ColorProfiles,
-                new TrackPreviewTab("Presets")
+                new MetadataTab("Presets", previewBuilder: new TrackPreviewBuilder())
                 {
                     // TODO: Make a proper UI for this
                     new TextMetadata("ColorProfileSupport")
