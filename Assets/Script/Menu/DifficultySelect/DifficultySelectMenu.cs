@@ -9,9 +9,11 @@ using YARG.Core.Extensions;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Song;
+using YARG.Core.Utility;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
+using YARG.Menu.Persistent;
 using YARG.Player;
 
 namespace YARG.Menu.DifficultySelect
@@ -37,6 +39,8 @@ namespace YARG.Menu.DifficultySelect
         private TextMeshProUGUI _text;
         [SerializeField]
         private TMP_InputField _speedInput;
+        [SerializeField]
+        private TextMeshProUGUI _loadingPhrase;
 
         [Space]
         [SerializeField]
@@ -97,6 +101,8 @@ namespace YARG.Menu.DifficultySelect
             // ChangePlayer(0) will update for the current player
             _playerIndex = 0;
             ChangePlayer(0);
+
+            SetInfoText(RichTextUtils.StripRichTextTagsExclude(GlobalVariables.Instance.CurrentSong.LoadingPhrase, RichTextUtils.GOOD_TAGS));
         }
 
         private void UpdateForPlayer()
@@ -498,6 +504,11 @@ namespace YARG.Menu.DifficultySelect
                 speed = 100;
             speed = Math.Clamp(speed, 10, 4995);
             _speedInput.SetTextWithoutNotify($"{speed}%");
+        }
+
+        public void SetInfoText(string str)
+        {
+                _loadingPhrase.text = str;
         }
     }
 }

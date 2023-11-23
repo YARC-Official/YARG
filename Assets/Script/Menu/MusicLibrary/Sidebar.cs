@@ -99,7 +99,6 @@ namespace YARG.Menu.MusicLibrary
 
                 _year.text = string.Empty;
                 _length.text = string.Empty;
-                HelpBar.Instance.SetInfoText(string.Empty);
 
                 // Hide all difficulty rings
                 foreach (var difficultyRing in _difficultyRings)
@@ -122,8 +121,6 @@ namespace YARG.Menu.MusicLibrary
             _charter.text = songEntry.Charter;
             _genre.text = songEntry.Genre;
             _year.text = songEntry.Year;
-            HelpBar.Instance.SetInfoText(
-                RichTextUtils.StripRichTextTagsExclude(songEntry.LoadingPhrase, RichTextUtils.GOOD_TAGS));
 
             // Format and show length
             var time = TimeSpan.FromMilliseconds(songEntry.SongLengthMilliseconds);
