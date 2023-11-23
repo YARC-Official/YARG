@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using YARG.Helpers.Extensions;
+using YARG.Themes;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -44,5 +46,20 @@ namespace YARG.Gameplay.Visuals
         public Material[] GetAllMaterials() => _meshRenderer.materials;
 
         public void SetActive(bool a) => gameObject.SetActive(a);
+
+        public void SetModelFromTheme(GameObject model)
+        {
+            // Copy the model
+            var copy = Instantiate(model, transform);
+            copy.transform.localPosition = Vector3.zero;
+
+            // Set new information
+            var themeNote = copy.GetComponent<ThemeNote>();
+            _meshRenderer = themeNote.ColoredMaterialRenderer;
+            _coloredMaterialIndex = themeNote.ColoredMaterialIndex;
+
+            // Clean up
+            Destroy(themeNote);
+        }
     }
 }

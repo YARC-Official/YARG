@@ -1,12 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
+using YARG.Themes;
 
 namespace YARG.Gameplay.Visuals
 {
-    public sealed class FiveFretNoteElement : NoteElement<GuitarNote, FiveFretPlayer>
+    public sealed class FiveFretNoteElement : NoteElement<GuitarNote, FiveFretPlayer>, IThemePrefabCreator
     {
         [SerializeField]
         private NoteGroup _strumGroup;
@@ -157,6 +159,15 @@ namespace YARG.Gameplay.Visuals
             _tapGroup.SetActive(false);
             _openGroup.SetActive(false);
             _openHopoGroup.SetActive(false);
+        }
+
+        public void SetModels(Dictionary<ThemeNoteType, GameObject> models)
+        {
+            _strumGroup.SetModelFromTheme(models[ThemeNoteType.Normal]);
+            _hopoGroup.SetModelFromTheme(models[ThemeNoteType.HOPO]);
+            _tapGroup.SetModelFromTheme(models[ThemeNoteType.Tap]);
+            _openGroup.SetModelFromTheme(models[ThemeNoteType.Open]);
+            _openHopoGroup.SetModelFromTheme(models[ThemeNoteType.OpenHOPO]);
         }
     }
 }

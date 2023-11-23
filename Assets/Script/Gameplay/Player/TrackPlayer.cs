@@ -6,6 +6,7 @@ using YARG.Core.Engine;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Player;
+using YARG.Themes;
 
 namespace YARG.Gameplay.Player
 {
@@ -144,6 +145,13 @@ namespace YARG.Gameplay.Player
             if (IsInitialized) return;
 
             base.Initialize(index, player, chart, trackView);
+
+            // Set up the theme
+            var themePrefab = ThemeManager.Instance.CreateNotePrefabFromTheme(
+                ThemePreset.Default,
+                player.Profile.GameMode,
+                NotePool.Prefab);
+            NotePool.SetPrefabAndReset(themePrefab);
 
             OriginalNoteTrack = GetNotes(chart);
             player.Profile.ApplyModifiers(OriginalNoteTrack);
