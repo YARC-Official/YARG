@@ -31,14 +31,14 @@ namespace YARG.Editor
             Menu.SetChecked(FORCE_KILL_ON_EXIT, ThreadPoolKillerState.instance.Enabled);
         }
 
-        [MenuItem(FORCE_KILL, false)]
+        [MenuItem(FORCE_KILL, false, 100)]
         private static void ForceKillThreadPool()
         {
             Debug.Log($"Forcing script reload to kill active thread pool threads...");
             EditorUtility.RequestScriptReload();
         }
 
-        [MenuItem(FORCE_KILL_ON_EXIT, false)]
+        [MenuItem(FORCE_KILL_ON_EXIT, false, 100)]
         private static void SetEnabled()
         {
             Menu.SetChecked(FORCE_KILL_ON_EXIT, ThreadPoolKillerState.instance.Toggle());

@@ -77,6 +77,7 @@ namespace YARG
             Players = new List<YargPlayer>();
 
             // Set alpha fading (on the tracks) to on
+            // (this is mostly for the editor, but just in case)
             Shader.SetGlobalFloat("_IsFading", 1f);
         }
 
@@ -90,6 +91,11 @@ namespace YARG
             ScoreContainer.Destroy();
             InputManager.Destroy();
             PlayerContainer.Destroy();
+
+#if UNITY_EDITOR
+            // Set alpha fading (on the tracks) to off
+            Shader.SetGlobalFloat("_IsFading", 0f);
+#endif
         }
 
         private void Start()

@@ -49,10 +49,10 @@ namespace Editor
             BuildYARGCoreDLL(force: true, debug: false);
         }
 
-        [MenuItem("YARG/Rebuild YARG.Core (Debug)", false)]
+        [MenuItem("YARG/Rebuild YARG.Core (Debug)", false, 0)]
         public static void BuildDebug() => BuildYARGCoreDLL(force: true);
 
-        [MenuItem("YARG/Rebuild YARG.Core (Release)", false)]
+        [MenuItem("YARG/Rebuild YARG.Core (Release)", false, 0)]
         public static void BuildRelease() => BuildYARGCoreDLL(force: true, debug: false);
 
         // Undocumented post-process hooks called by IDE packages
