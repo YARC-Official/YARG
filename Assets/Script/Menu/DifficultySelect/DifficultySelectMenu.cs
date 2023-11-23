@@ -102,7 +102,7 @@ namespace YARG.Menu.DifficultySelect
             _playerIndex = 0;
             ChangePlayer(0);
 
-            SetInfoText(RichTextUtils.StripRichTextTagsExclude(GlobalVariables.Instance.CurrentSong.LoadingPhrase, RichTextUtils.GOOD_TAGS));
+            _loadingPhrase.text = StripRichTextTags(GlobalVariables.Instance.CurrentSong.LoadingPhrase, RichTextUtils.BAD_TAGS);
         }
 
         private void UpdateForPlayer()
@@ -504,11 +504,6 @@ namespace YARG.Menu.DifficultySelect
                 speed = 100;
             speed = Math.Clamp(speed, 10, 4995);
             _speedInput.SetTextWithoutNotify($"{speed}%");
-        }
-
-        public void SetInfoText(string str)
-        {
-                _loadingPhrase.text = str;
         }
     }
 }
