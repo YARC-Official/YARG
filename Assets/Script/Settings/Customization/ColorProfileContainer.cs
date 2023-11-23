@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using YARG.Core.Game;
 
 namespace YARG.Settings.Customization
@@ -13,21 +12,6 @@ namespace YARG.Settings.Customization
 
         public ColorProfileContainer(string contentDirectory) : base(contentDirectory)
         {
-        }
-
-        public override void SetSettingsFromPreset(BasePreset preset)
-        {
-            if (preset is not ColorProfile p)
-            {
-                throw new InvalidOperationException("Invalid preset type!");
-            }
-
-            SettingsManager.Settings.ColorProfile_Ref = p;
-        }
-
-        public override void SetPresetFromSettings(BasePreset preset)
-        {
-            // This is not needed since color profile is a reference type
         }
     }
 }

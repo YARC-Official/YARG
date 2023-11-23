@@ -1,6 +1,9 @@
 ﻿using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using YARG.Menu.Navigation;
+using YARG.Menu.Settings.Visuals;
+using YARG.Settings.Types;
 
 namespace YARG.Settings.Metadata
 {
@@ -50,6 +53,17 @@ namespace YARG.Settings.Metadata
 
         public virtual void OnSettingChanged()
         {
+        }
+
+        protected static BaseSettingVisual SpawnSettingVisual(ISettingType setting, Transform container)
+        {
+            // Spawn the setting
+            var settingPrefab = Addressables.LoadAssetAsync<GameObject>(setting.AddressableName)
+                .WaitForCompletion();
+            var go = Object.Instantiate(settingPrefab, container);
+
+            // Set the setting, and cache the object
+            return go.GetComponent<BaseSettingVisual>();
         }
     }
 }

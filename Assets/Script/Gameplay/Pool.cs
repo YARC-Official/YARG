@@ -23,7 +23,10 @@ namespace YARG.Gameplay
 
         private readonly Stack<IPoolable> _pooled = new();
         private readonly List<IPoolable> _spawnedObjects = new();
+
         private int TotalCount => _pooled.Count + _spawnedObjects.Count;
+
+        public IReadOnlyList<IPoolable> AllSpawned => _spawnedObjects;
 
         protected virtual void Awake()
         {

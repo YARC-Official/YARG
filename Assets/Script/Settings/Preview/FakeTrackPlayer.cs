@@ -5,6 +5,8 @@ using YARG.Gameplay;
 using YARG.Gameplay.Player;
 using YARG.Gameplay.Visuals;
 using YARG.Menu.Settings;
+using YARG.Settings.Customization;
+using YARG.Settings.Metadata;
 using Random = UnityEngine.Random;
 
 namespace YARG.Settings.Preview
@@ -43,18 +45,21 @@ namespace YARG.Settings.Preview
 
         private void OnSettingChanged()
         {
-            var s = SettingsManager.Settings;
+            var cameraPreset = PresetsTab.GetLastSelectedPreset(CustomContentManager.CameraSettings);
+            var colorProfile = PresetsTab.GetLastSelectedPreset(CustomContentManager.ColorProfiles);
 
             // Update camera presets
-            _trackMaterial.Initialize(3f, s.CameraPreset_FadeLength.Data);
-            _cameraPositioner.Initialize(
-                s.CameraPreset_FieldOfView.Data,
-                s.CameraPreset_PositionY.Data,
-                s.CameraPreset_PositionZ.Data,
-                s.CameraPreset_Rotation.Data);
+            _trackMaterial.Initialize(3f, cameraPreset.FadeLength);
+            _cameraPositioner.Initialize(cameraPreset);
 
             // Update color profiles
-            _fretArray.InitializeColor(s.ColorProfile_Ref.FiveFretGuitar);
+            _fretArray.InitializeColor(colorProfile.FiveFretGuitar);
+
+            // Update all of the notes
+            foreach (var note in _notePool.AllSpawned)
+            {
+                ((FakeNote) note).OnSettingChanged();
+            }
         }
 
         private void Update()

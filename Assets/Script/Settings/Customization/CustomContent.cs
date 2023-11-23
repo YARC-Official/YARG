@@ -43,9 +43,6 @@ namespace YARG.Settings.Customization
 
         public abstract void ReloadPresetAtPath(string path);
 
-        public abstract void SetSettingsFromPreset(BasePreset preset);
-        public abstract void SetPresetFromSettings(BasePreset preset);
-
         public abstract void SaveAll();
 
         public abstract BasePreset GetBasePresetById(Guid guid);

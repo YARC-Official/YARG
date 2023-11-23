@@ -4,7 +4,8 @@ using YARG.Gameplay;
 using YARG.Gameplay.Player;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers.Extensions;
-using YARG.Menu.Settings;
+using YARG.Settings.Customization;
+using YARG.Settings.Metadata;
 
 namespace YARG.Settings.Preview
 {
@@ -56,21 +57,21 @@ namespace YARG.Settings.Preview
             Update();
 
             gameObject.SetActive(true);
-            SettingsMenu.Instance.SettingChanged += OnSettingChanged;
         }
 
-        private void OnSettingChanged()
+        public void OnSettingChanged()
         {
-            var s = SettingsManager.Settings;
+            var cameraPreset = PresetsTab.GetLastSelectedPreset(CustomContentManager.CameraSettings);
+            var colorProfile = PresetsTab.GetLastSelectedPreset(CustomContentManager.ColorProfiles);
 
             // Update fade
             foreach (var material in _materials)
             {
-                material.SetFade(3f, s.CameraPreset_FadeLength.Data);
+                material.SetFade(3f, cameraPreset.FadeLength);
             }
 
             // Update color
-            _currentNoteGroup.SetColorWithEmission(s.ColorProfile_Ref.FiveFretGuitar
+            _currentNoteGroup.SetColorWithEmission(colorProfile.FiveFretGuitar
                 .GetNoteColor(NoteRef.Fret).ToUnityColor());
         }
 
@@ -92,7 +93,6 @@ namespace YARG.Settings.Preview
 
         public void DisableIntoPool()
         {
-            SettingsMenu.Instance.SettingChanged -= OnSettingChanged;
             gameObject.SetActive(false);
         }
     }

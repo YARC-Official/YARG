@@ -494,63 +494,6 @@ MonoBehaviour:
       that displays the song's progress.
     m_Metadata:
       m_Items: []
-  - m_Id: 60873506674827264
-    m_Localized: Curve Factor
-    m_Metadata:
-      m_Items: []
-  - m_Id: 60873506679021568
-    m_Localized: The track's curve factor.
-    m_Metadata:
-      m_Items: []
-  - m_Id: 60873506679021569
-    m_Localized: Fade Size
-    m_Metadata:
-      m_Items: []
-  - m_Id: 60873506679021570
-    m_Localized: The track's fade size. A fade size of "0" will remove the fade.
-    m_Metadata:
-      m_Items: []
-  - m_Id: 60873506679021571
-    m_Localized: Fade Position
-    m_Metadata:
-      m_Items: []
-  - m_Id: 60873506679021572
-    m_Localized: The track's fade position. Lower values are closer to the frets.
-      This also controls the track length.
-    m_Metadata:
-      m_Items: []
-  - m_Id: 60873506679021573
-    m_Localized: Camera FOV
-    m_Metadata:
-      m_Items: []
-  - m_Id: 60873506679021574
-    m_Localized: The track camera's field of view.
-    m_Metadata:
-      m_Items: []
-  - m_Id: 60873506679021575
-    m_Localized: Camera Y Position
-    m_Metadata:
-      m_Items: []
-  - m_Id: 60873506679021576
-    m_Localized: The track camera's Y position (up and down).
-    m_Metadata:
-      m_Items: []
-  - m_Id: 60873506679021577
-    m_Localized: Camera Z Position
-    m_Metadata:
-      m_Items: []
-  - m_Id: 60873506679021578
-    m_Localized: The track camera's Z position (forward and backwards).
-    m_Metadata:
-      m_Items: []
-  - m_Id: 60873506679021579
-    m_Localized: Camera Rotation
-    m_Metadata:
-      m_Items: []
-  - m_Id: 60873506679021580
-    m_Localized: The track camera's rotational pitch (up and down).
-    m_Metadata:
-      m_Items: []
   - m_Id: 62024422937452544
     m_Localized: Preset Settings
     m_Metadata:
@@ -624,11 +567,66 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 79799583608000512
-    m_Localized: 'Prints information about connected input devices to the game''s
-      log.
-
-      Do not enable this unless you are having issues with specific devices,
-      as it can print a very large amount of text for some devices!'
+    m_Localized: Prints information about connected input devices to the game's log.
+      Do not enable this unless you are having issues with specific devices, as it
+      can print a very large amount of text for some devices!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 87818437364408320
+    m_Localized: Curve Factor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 87818437393768448
+    m_Localized: The track's curve factor.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 87818437393768449
+    m_Localized: Fade Size
+    m_Metadata:
+      m_Items: []
+  - m_Id: 87818437393768450
+    m_Localized: The track's fade size. A fade size of "0" will remove the fade.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 87818437393768451
+    m_Localized: Fade Position
+    m_Metadata:
+      m_Items: []
+  - m_Id: 87818437393768452
+    m_Localized: The track's fade position. Lower values are closer to the frets.
+      This also controls the track length.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 87818437393768453
+    m_Localized: Camera FOV
+    m_Metadata:
+      m_Items: []
+  - m_Id: 87818437393768454
+    m_Localized: The track camera's field of view.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 87818437393768455
+    m_Localized: Camera Y Position
+    m_Metadata:
+      m_Items: []
+  - m_Id: 87818437393768456
+    m_Localized: The track camera's Y position (up and down).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 87818437393768457
+    m_Localized: Camera Z Position
+    m_Metadata:
+      m_Items: []
+  - m_Id: 87818437393768458
+    m_Localized: The track camera's Z position (forward and backwards).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 87818437393768459
+    m_Localized: Camera Rotation
+    m_Metadata:
+      m_Items: []
+  - m_Id: 87818437393768460
+    m_Localized: The track camera's rotational pitch (up and down).
     m_Metadata:
       m_Items: []
   references:

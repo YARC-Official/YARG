@@ -355,60 +355,60 @@ MonoBehaviour:
     m_Key: Setting.Graphics.VSync.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 60873506674827264
-    m_Key: Setting.Presets.CameraPreset_CurveFactor
+  - m_Id: 87818437364408320
+    m_Key: Setting.Presets.CameraPreset.CurveFactor
     m_Metadata:
       m_Items: []
-  - m_Id: 60873506679021568
-    m_Key: Setting.Presets.CameraPreset_CurveFactor.Description
+  - m_Id: 87818437393768448
+    m_Key: Setting.Presets.CameraPreset.CurveFactor.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 60873506679021569
-    m_Key: Setting.Presets.CameraPreset_FadeLength
+  - m_Id: 87818437393768449
+    m_Key: Setting.Presets.CameraPreset.FadeLength
     m_Metadata:
       m_Items: []
-  - m_Id: 60873506679021570
-    m_Key: Setting.Presets.CameraPreset_FadeLength.Description
+  - m_Id: 87818437393768450
+    m_Key: Setting.Presets.CameraPreset.FadeLength.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 60873506679021571
-    m_Key: Setting.Presets.CameraPreset_FadeStart
+  - m_Id: 87818437393768451
+    m_Key: Setting.Presets.CameraPreset.FadeStart
     m_Metadata:
       m_Items: []
-  - m_Id: 60873506679021572
-    m_Key: Setting.Presets.CameraPreset_FadeStart.Description
+  - m_Id: 87818437393768452
+    m_Key: Setting.Presets.CameraPreset.FadeStart.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 60873506679021573
-    m_Key: Setting.Presets.CameraPreset_FieldOfView
+  - m_Id: 87818437393768453
+    m_Key: Setting.Presets.CameraPreset.FieldOfView
     m_Metadata:
       m_Items: []
-  - m_Id: 60873506679021574
-    m_Key: Setting.Presets.CameraPreset_FieldOfView.Description
+  - m_Id: 87818437393768454
+    m_Key: Setting.Presets.CameraPreset.FieldOfView.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 60873506679021575
-    m_Key: Setting.Presets.CameraPreset_PositionY
+  - m_Id: 87818437393768455
+    m_Key: Setting.Presets.CameraPreset.PositionY
     m_Metadata:
       m_Items: []
-  - m_Id: 60873506679021576
-    m_Key: Setting.Presets.CameraPreset_PositionY.Description
+  - m_Id: 87818437393768456
+    m_Key: Setting.Presets.CameraPreset.PositionY.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 60873506679021577
-    m_Key: Setting.Presets.CameraPreset_PositionZ
+  - m_Id: 87818437393768457
+    m_Key: Setting.Presets.CameraPreset.PositionZ
     m_Metadata:
       m_Items: []
-  - m_Id: 60873506679021578
-    m_Key: Setting.Presets.CameraPreset_PositionZ.Description
+  - m_Id: 87818437393768458
+    m_Key: Setting.Presets.CameraPreset.PositionZ.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 60873506679021579
-    m_Key: Setting.Presets.CameraPreset_Rotation
+  - m_Id: 87818437393768459
+    m_Key: Setting.Presets.CameraPreset.Rotation
     m_Metadata:
       m_Items: []
-  - m_Id: 60873506679021580
-    m_Key: Setting.Presets.CameraPreset_Rotation.Description
+  - m_Id: 87818437393768460
+    m_Key: Setting.Presets.CameraPreset.Rotation.Description
     m_Metadata:
       m_Items: []
   - m_Id: 53693768667619372

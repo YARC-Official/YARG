@@ -30,30 +30,21 @@ namespace YARG.Settings.Metadata
             .WaitForCompletion();
 
         // We essentially need to create sub-tabs for each preset
-        private static readonly Dictionary<CustomContent, MetadataTab> _presetTabs = new()
+        private static readonly List<PresetSubTab> _presetTabs = new()
         {
-            {
+            new PresetSubTab<CameraPreset>(
                 CustomContentManager.CameraSettings,
-                new MetadataTab("Presets", previewBuilder: new TrackPreviewBuilder())
-                {
-                    new HeaderMetadata("PresetSettings"),
-                    "CameraPreset_FieldOfView",
-                    "CameraPreset_PositionY",
-                    "CameraPreset_PositionZ",
-                    "CameraPreset_Rotation",
-                    "CameraPreset_FadeLength",
-                    "CameraPreset_CurveFactor"
-                }
-            },
-            {
+                new TrackPreviewBuilder()),
+
+            new PresetSubTab<ColorProfile>(
                 CustomContentManager.ColorProfiles,
-                new MetadataTab("Presets", previewBuilder: new TrackPreviewBuilder())
-                {
-                    // TODO: Make a proper UI for this
-                    new TextMetadata("ColorProfileSupport")
-                }
-            }
+                new TrackPreviewBuilder()),
         };
+
+        private static readonly Dictionary<Type, BasePreset> _lastSelectedPresetOfType = new();
+
+        private PresetSubTab CurrentSubTab => _presetTabs
+            .FirstOrDefault(i => i.CustomContent == SelectedContent);
 
         private CustomContent _selectedContent;
         public CustomContent SelectedContent
@@ -70,20 +61,25 @@ namespace YARG.Settings.Metadata
         public BasePreset SelectedPreset
         {
             get => SelectedContent.GetBasePresetById(_selectedPresetId);
-            set => _selectedPresetId = value.Id;
+            set
+            {
+                _selectedPresetId = value.Id;
+                _lastSelectedPresetOfType[value.GetType()] = value;
+            }
         }
 
         private FileSystemWatcher _watcher;
 
         public PresetsTab(string name, string icon = "Generic") : base(name, icon)
         {
-            SelectedContent = _presetTabs.Keys.First();
+            SelectedContent = _presetTabs.First().CustomContent;
             ResetSelectedPreset();
         }
 
         public void ResetSelectedPreset()
         {
-            SelectedPreset = SelectedContent.DefaultBasePresets[0];
+            // Get the preferred preset
+            SelectedPreset = GetLastSelectedBasePreset(SelectedContent);
         }
 
         public override void OnTabEnter()
@@ -144,11 +140,10 @@ namespace YARG.Settings.Metadata
                 preset = SelectedPreset;
             }
 
-            SelectedContent.SetSettingsFromPreset(preset);
-
             // Create the preset type dropdown
             var typeDropdown = Object.Instantiate(_presetTypeDropdown, settingContainer);
-            typeDropdown.GetComponent<PresetTypeDropdown>().Initialize(this, _presetTabs.Keys.ToArray());
+            typeDropdown.GetComponent<PresetTypeDropdown>().Initialize(this,
+                _presetTabs.Select(i => i.CustomContent).ToArray());
 
             // Create the preset dropdown
             var dropdown = Object.Instantiate(_presetDropdown, settingContainer);
@@ -158,10 +153,9 @@ namespace YARG.Settings.Metadata
             var actions = Object.Instantiate(_presetActions, settingContainer);
             actions.GetComponent<PresetActions>().Initialize(this);
 
-            if (!_presetTabs.TryGetValue(SelectedContent, out var tab))
-            {
-                return;
-            }
+            // Get the tab for the selected custom content type
+            var tab = CurrentSubTab;
+            if (tab is null) return;
 
             if (preset is null || preset.DefaultPreset)
             {
@@ -170,33 +164,57 @@ namespace YARG.Settings.Metadata
             else
             {
                 // Create the settings
+                tab.SetPresetReference(SelectedPreset);
                 tab.BuildSettingTab(settingContainer, navGroup);
             }
         }
 
         public override async UniTask BuildPreviewWorld(Transform worldContainer)
         {
-            if (!_presetTabs.TryGetValue(SelectedContent, out var tab))
-            {
-                return;
-            }
+            var tab = CurrentSubTab;
+            if (tab is null) return;
 
             await tab.BuildPreviewWorld(worldContainer);
         }
 
         public override async UniTask BuildPreviewUI(Transform uiContainer)
         {
-            if (!_presetTabs.TryGetValue(SelectedContent, out var tab))
-            {
-                return;
-            }
+            var tab = CurrentSubTab;
+            if (tab is null) return;
 
             await tab.BuildPreviewUI(uiContainer);
         }
 
         public override void OnSettingChanged()
         {
-            SelectedContent.SetPresetFromSettings(SelectedPreset);
+            CurrentSubTab?.OnSettingChanged();
+        }
+
+        private static BasePreset GetLastSelectedBasePreset(CustomContent customContent)
+        {
+            // We need to get the type of the preset, so without reflection, this is the easiest way
+            var defaultPreset = customContent.DefaultBasePresets[0];
+            var lastPreset = _lastSelectedPresetOfType.GetValueOrDefault(defaultPreset.GetType());
+
+            if (lastPreset is null)
+            {
+                return defaultPreset;
+            }
+
+            if (!customContent.HasPresetId(lastPreset.Id))
+            {
+                // Prevent an unadded preset from becoming the last selected one
+                _lastSelectedPresetOfType.Remove(defaultPreset.GetType());
+
+                return defaultPreset;
+            }
+
+            return lastPreset;
+        }
+
+        public static T GetLastSelectedPreset<T>(CustomContent<T> customContent) where T : BasePreset
+        {
+            return (T) GetLastSelectedBasePreset(customContent);
         }
     }
 }

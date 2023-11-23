@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using YARG.Settings.Customization;
+using YARG.Settings.Metadata;
 
 namespace YARG.Settings.Preview
 {
@@ -18,7 +20,8 @@ namespace YARG.Settings.Preview
 
         private void Update()
         {
-            _material.SetFloat(_curveFactor, SettingsManager.Settings.CameraPreset_CurveFactor.Data);
+            var preset = PresetsTab.GetLastSelectedPreset(CustomContentManager.CameraSettings);
+            _material.SetFloat(_curveFactor, preset.CurveFactor);
         }
     }
 }

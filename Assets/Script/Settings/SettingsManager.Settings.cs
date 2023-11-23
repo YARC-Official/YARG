@@ -155,35 +155,6 @@ namespace YARG.Settings
 
             #endregion
 
-            #region Preset Fields
-
-            // This is kind of a hack for preset fields. All of these values are not saved in the settings.json,
-            // and are solely used by the "Presets" tab. This makes it 10x easier to bind setting visuals without
-            // the need of overcomplicating it. Sure, this is kinda hacky, but it works just fine.
-
-            // All names should be: <PresetClass>_<PresetField>
-            // ReSharper disable InconsistentNaming
-
-            [JsonIgnore]
-            public SliderSetting CameraPreset_FieldOfView  { get; } = new(55f, 40f, 150f);
-            [JsonIgnore]
-            public SliderSetting CameraPreset_PositionY    { get; } = new(2.66f, 0f, 4f);
-            [JsonIgnore]
-            public SliderSetting CameraPreset_PositionZ    { get; } = new(1.14f, 0f, 12f);
-            [JsonIgnore]
-            public SliderSetting CameraPreset_Rotation     { get; } = new(24.12f, 0f, 180f);
-            [JsonIgnore]
-            public SliderSetting CameraPreset_FadeLength   { get; } = new(1.75f, 0f, 5f);
-            [JsonIgnore]
-            public SliderSetting CameraPreset_CurveFactor  { get; } = new(0.5f, -3f, 3f);
-
-            [JsonIgnore]
-            public ColorProfile ColorProfile_Ref = ColorProfile.Default;
-
-            // ReSharper restore InconsistentNaming
-
-            #endregion
-
             #region Callbacks
 
             private static void VSyncCallback(bool value)

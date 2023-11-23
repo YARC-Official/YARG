@@ -74,16 +74,10 @@ namespace YARG.Settings.Metadata
                     {
                         var setting = SettingsManager.GetSettingByName(field.FieldName);
 
-                        // Spawn the setting
-                        var settingPrefab = Addressables.LoadAssetAsync<GameObject>(setting.AddressableName)
-                            .WaitForCompletion();
-                        var go = Object.Instantiate(settingPrefab, container);
-
-                        // Set the setting, and cache the object
-                        var visual = go.GetComponent<BaseSettingVisual>();
+                        var visual = SpawnSettingVisual(setting, container);
                         visual.AssignSetting(Name, field.FieldName);
                         _settingVisuals.Add(field.FieldName, visual);
-                        navGroup.AddNavigatable(go);
+                        navGroup.AddNavigatable(visual.gameObject);
 
                         break;
                     }

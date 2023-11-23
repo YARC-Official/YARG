@@ -29,20 +29,17 @@ namespace YARG.Gameplay.Visuals
 
         public void Initialize(CameraPreset preset)
         {
-            Initialize(preset.FieldOfView, preset.PositionY, preset.PositionZ, preset.Rotation);
-        }
-
-        public void Initialize(float fov, float y, float z, float rot)
-        {
             // FOV
-            GetComponent<Camera>().fieldOfView = fov;
+            GetComponent<Camera>().fieldOfView = preset.FieldOfView;
 
             // Position
-            z -= 6f;
-            transform.localPosition = new Vector3(0f, y, z);
+            transform.localPosition = new Vector3(
+                0f,
+                preset.PositionY,
+                preset.PositionZ - 6f);
 
             // Rotation
-            transform.localRotation = Quaternion.Euler(rot, 0f, 0f);
+            transform.localRotation = Quaternion.Euler(preset.Rotation, 0f, 0f);
         }
     }
 }
