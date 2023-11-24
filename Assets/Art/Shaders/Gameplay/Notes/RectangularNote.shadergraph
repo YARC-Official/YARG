@@ -1184,10 +1184,10 @@
     "m_Guid": {
         "m_GuidSerialized": "5704858e-c94e-4e98-9593-fd805270d64b"
     },
-    "m_Name": "Random Float",
+    "m_Name": "_RandomFloat",
     "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "Random Float",
-    "m_DefaultReferenceName": "_Random_Float",
+    "m_RefNameGeneratedByDisplayName": "_RandomFloat",
+    "m_DefaultReferenceName": "_RandomFloat",
     "m_OverrideReferenceName": "_RandomFloat",
     "m_GeneratePropertyBlock": true,
     "m_UseCustomSlotLabel": false,
@@ -1899,13 +1899,13 @@
             "m_Id": "ebd8b534f224496fbcab1db7a9de55c1"
         },
         {
+            "m_Id": "19af2db97cff41c1946893ecc566edb3"
+        },
+        {
             "m_Id": "10522a07968a42cb8df9c4a842f2b288"
         },
         {
             "m_Id": "608d6e4ceb8f43c2b7506132690e842c"
-        },
-        {
-            "m_Id": "19af2db97cff41c1946893ecc566edb3"
         }
     ]
 }
@@ -2879,7 +2879,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "5f92a67f53904d629b0d957b1425a42d",
     "m_Id": 0,
-    "m_DisplayName": "Random Float",
+    "m_DisplayName": "_RandomFloat",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -2940,10 +2940,10 @@
     "m_Guid": {
         "m_GuidSerialized": "8f2c34fa-5321-4f8c-8cf0-68824419852c"
     },
-    "m_Name": "Random Vector",
+    "m_Name": "_RandomVector",
     "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "Random Vector",
-    "m_DefaultReferenceName": "_Random_Vector",
+    "m_RefNameGeneratedByDisplayName": "_RandomVector",
+    "m_DefaultReferenceName": "_RandomVector",
     "m_OverrideReferenceName": "_RandomVector",
     "m_GeneratePropertyBlock": true,
     "m_UseCustomSlotLabel": false,
@@ -5385,7 +5385,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector2MaterialSlot",
     "m_ObjectId": "cfea5252ce8148a0baca5634e619575b",
     "m_Id": 0,
-    "m_DisplayName": "Random Vector",
+    "m_DisplayName": "_RandomVector",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
