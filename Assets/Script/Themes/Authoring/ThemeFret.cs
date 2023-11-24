@@ -7,24 +7,9 @@ namespace YARG.Themes
     // Changing the serialized fields in this file will result in older themes
     // not working properly. Only change if you need to.
 
-    public enum ThemeNoteType
+    public class ThemeFret : MonoBehaviour
     {
-        Normal,
-
-        HOPO,
-        Tap,
-        Open,
-        OpenHOPO,
-
-        Cymbal,
-        Kick,
-    }
-
-    public class ThemeNote : MonoBehaviour
-    {
-        [field: Space]
-        [field: SerializeField]
-        public ThemeNoteType NoteType { get; private set; }
+        private const float FRET_SIZE = 2f / 5f;
 
         [field: Space]
         [field: SerializeField]
@@ -32,13 +17,13 @@ namespace YARG.Themes
 
         [field: SerializeField]
         public int ColoredMaterialIndex { get; private set; }
+        [field: SerializeField]
+        public int ColoredInnerMaterialIndex { get; private set; }
 
         private void OnDrawGizmos()
         {
             Gizmos.color = Color.green;
-            Gizmos.DrawLine(
-                transform.position.AddX(-0.4f),
-                transform.position.AddX(0.4f));
+            Gizmos.DrawWireCube(transform.position, new Vector3(FRET_SIZE, 0f, FRET_SIZE));
         }
     }
 }

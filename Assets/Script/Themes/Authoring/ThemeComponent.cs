@@ -5,7 +5,8 @@ using YARG.Core;
 
 namespace YARG.Themes
 {
-    // WARNING: DO NOT CHANGE THIS!
+    // WARNING: Changing this could break themes or venues!
+    //
     // Changing the serialized fields in this file will result in older themes
     // not working properly. Only change if you need to.
 
