@@ -49,13 +49,14 @@ namespace YARG.Gameplay.Visuals
         public void PlayHitAnimation()
         {
             StopAnimation();
-            _themeFret.Animation.Play("FretsGuitar");
+            _themeFret.Animation.Play("FretGuitarHit");
+            // _themeFret.Animation.
         }
 
         public void PlayDrumAnimation()
         {
             StopAnimation();
-            _themeFret.Animation.Play("FretsDrums");
+            _themeFret.Animation.Play("FretDrumHit");
         }
 
         public void PlayHitParticles()

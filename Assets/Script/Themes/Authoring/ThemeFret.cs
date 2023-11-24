@@ -35,6 +35,9 @@ namespace YARG.Themes
         public EffectGroup SustainEffect { get; private set; }
 
         [field: Space]
+        [field: Header("Animator must have animations with specific animation names!\n" +
+            "FretGuitarHit : Hit animation for guitar\n" +
+            "FretDrumHit : Hit animation for drums\n")]
         [field: SerializeField]
         public Animation Animation { get; private set; }
 
