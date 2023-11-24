@@ -165,14 +165,14 @@ namespace YARG.Gameplay.Player
         private void SetupTheme(GameMode gameMode)
         {
             var themePrefab = ThemeManager.Instance.CreateNotePrefabFromTheme(
-                ThemePreset.Defaults[0], gameMode, NotePool.Prefab);
+                ThemePreset.Defaults[1], gameMode, NotePool.Prefab);
             NotePool.SetPrefabAndReset(themePrefab);
         }
 
         protected GameObject SetupFretTheme(GameMode gameMode)
         {
             var themePrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(
-                ThemePreset.Defaults[0], gameMode);
+                ThemePreset.Defaults[1], gameMode);
             return themePrefab;
         }
 
