@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using YARG.Helpers.Extensions;
 using YARG.Themes;
 
 namespace YARG.Gameplay.Visuals
