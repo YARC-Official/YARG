@@ -11,7 +11,11 @@ namespace YARG.Themes
 
         public static readonly List<ThemePreset> Defaults = new()
         {
-            Default
+            Default,
+            new ThemePreset("Circular", true)
+            {
+                AssetBundleThemePath = "Themes/Circular"
+            }
         };
     }
 }

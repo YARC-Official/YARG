@@ -148,7 +148,7 @@ namespace YARG.Gameplay.Player
 
             // Set up the theme
             var themePrefab = ThemeManager.Instance.CreateNotePrefabFromTheme(
-                ThemePreset.Default,
+                ThemePreset.Defaults[1],
                 player.Profile.GameMode,
                 NotePool.Prefab);
             NotePool.SetPrefabAndReset(themePrefab);
