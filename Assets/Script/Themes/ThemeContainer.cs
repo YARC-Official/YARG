@@ -11,7 +11,8 @@ namespace YARG.Themes
         private readonly GameObject _prefab;
         private readonly bool _builtIn;
 
-        private readonly Dictionary<GameMode, GameObject> _gameModeNoteCache = new();
+        public readonly Dictionary<GameMode, GameObject> NoteCache = new();
+        public readonly Dictionary<GameMode, GameObject> FretCache = new();
 
         public ThemeContainer(GameObject themePrefab, bool builtIn)
         {
@@ -24,25 +25,23 @@ namespace YARG.Themes
             return _prefab.GetComponent<ThemeComponent>();
         }
 
-        public GameObject GetCachedNotePrefab(GameMode gameMode)
-        {
-            return _gameModeNoteCache.GetValueOrDefault(gameMode);
-        }
-
-        public void SetCachedNotePrefab(GameMode gameMode, GameObject prefab)
-        {
-            _gameModeNoteCache[gameMode] = prefab;
-        }
-
         public void Dispose()
         {
             // Destroyed the pre-created prefabs
-            foreach (var (_, notePrefab) in _gameModeNoteCache)
+
+            foreach (var (_, notePrefab) in NoteCache)
             {
                 Object.Destroy(notePrefab);
             }
 
+            foreach (var (_, fretPrefab) in FretCache)
+            {
+                Object.Destroy(fretPrefab);
+            }
+
             if (_builtIn) return;
+
+            // TODO: Deal with asset bundle unloading
         }
     }
 }

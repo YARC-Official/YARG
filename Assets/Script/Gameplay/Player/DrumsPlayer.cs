@@ -134,7 +134,10 @@ namespace YARG.Gameplay.Player
                 : Player.ColorProfile.FiveLaneDrums;
             _fretArray.FretCount = !_fiveLaneMode ? 4 : 5;
 
-            _fretArray.Initialize(colors, Player.Profile.LeftyFlip);
+            _fretArray.Initialize(
+                SetupFretTheme(Player.Profile.GameMode),
+                colors,
+                Player.Profile.LeftyFlip);
             HitWindowDisplay.SetHitWindowInfo(EngineParams, NoteSpeed);
 
             // Particle 0 is always kick fret

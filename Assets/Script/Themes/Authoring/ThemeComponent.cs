@@ -19,7 +19,15 @@ namespace YARG.Themes
         [SerializeField]
         private GameObject _fiveLaneNotes;
 
-        public Dictionary<ThemeNoteType, GameObject> GetModelsForGameMode(GameMode gameMode)
+        [Space]
+        [SerializeField]
+        private GameObject _fiveFretFret;
+        [SerializeField]
+        private GameObject _fourLaneFret;
+        [SerializeField]
+        private GameObject _fiveLaneFret;
+
+        public Dictionary<ThemeNoteType, GameObject> GetNoteModelsForGameMode(GameMode gameMode)
         {
             var parent = gameMode switch
             {
@@ -41,6 +49,17 @@ namespace YARG.Themes
             }
 
             return dict;
+        }
+
+        public GameObject GetFretModelForGameMode(GameMode gameMode)
+        {
+            return gameMode switch
+            {
+                GameMode.FiveFretGuitar => _fiveFretFret,
+                GameMode.FourLaneDrums  => _fourLaneFret,
+                GameMode.FiveLaneDrums  => _fiveLaneFret,
+                _  => throw new Exception("Unreachable.")
+            };
         }
     }
 }

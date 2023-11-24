@@ -12,32 +12,33 @@ namespace YARG.Gameplay.Visuals
 
         [FormerlySerializedAs("_fretCount")]
         public int FretCount;
-
         [SerializeField]
         private float _trackWidth = 2f;
 
-        [Space]
-        [SerializeField]
         private GameObject _fretPrefab;
 
         private readonly List<Fret> _frets = new();
 
         public IReadOnlyList<Fret> Frets => _frets;
 
-        public void Initialize(ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip)
+        public void Initialize(GameObject fretPrefab, ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip)
         {
+            _fretPrefab = fretPrefab;
+
             _frets.Clear();
             for (int i = 0; i < FretCount; i++)
             {
+                // Spawn
                 var fret = Instantiate(_fretPrefab, transform);
+                fret.SetActive(true);
 
                 // Position
                 float x = _trackWidth / FretCount * i - _trackWidth / 2f + 1f / FretCount;
-                fret.transform.localPosition = new(leftyFlip ? -x : x, 0f, 0f);
+                fret.transform.localPosition = new Vector3(leftyFlip ? -x : x, 0f, 0f);
 
                 // Scale
                 float scale = (_trackWidth / WIDTH_NUMERATOR) / (FretCount / WIDTH_DENOMINATOR);
-                fret.transform.localScale = new(scale, 1f, 1f);
+                fret.transform.localScale = new Vector3(scale, 1f, 1f);
 
                 // Add
                 var fretComp = fret.GetComponent<Fret>();

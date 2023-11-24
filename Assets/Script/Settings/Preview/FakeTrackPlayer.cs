@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Game;
 using YARG.Gameplay;
@@ -7,6 +8,7 @@ using YARG.Gameplay.Visuals;
 using YARG.Menu.Settings;
 using YARG.Settings.Customization;
 using YARG.Settings.Metadata;
+using YARG.Themes;
 using Random = UnityEngine.Random;
 
 namespace YARG.Settings.Preview
@@ -34,7 +36,10 @@ namespace YARG.Settings.Preview
 
         private void Start()
         {
-            _fretArray.Initialize(ColorProfile.Default.FiveFretGuitar, false);
+            // TODO: Redo
+            var fret = ThemeManager.Instance.CreateFretPrefabFromTheme(ThemePreset.Default, GameMode.FiveFretGuitar);
+
+            _fretArray.Initialize(fret, ColorProfile.Default.FiveFretGuitar, false);
             _hitWindow.gameObject.SetActive(SettingsManager.Settings.ShowHitWindow.Data);
 
             SettingsMenu.Instance.SettingChanged += OnSettingChanged;

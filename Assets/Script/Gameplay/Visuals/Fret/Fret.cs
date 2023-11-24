@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using YARG.Helpers.Extensions;
-using YARG.Helpers;
+using YARG.Helpers.Authoring;
+using YARG.Themes;
 using Color = System.Drawing.Color;
 
 namespace YARG.Gameplay.Visuals
@@ -9,36 +10,44 @@ namespace YARG.Gameplay.Visuals
     {
         private static readonly int _fade = Shader.PropertyToID("Fade");
 
-        [SerializeField]
-        private ParticleGroup _hitParticles;
-        [SerializeField]
-        private ParticleGroup _sustainParticles;
+        // If we want info to be copied over when we copy the prefab,
+        // we must make them SerializeFields.
 
-        [Space]
+        [SerializeField]
+        private EffectGroup _hitParticles;
+        [SerializeField]
+        private EffectGroup _sustainParticles;
+
         [SerializeField]
         private Animation _animation;
 
-        [Space]
         [SerializeField]
-        private MeshRenderer _fretMesh;
+        private MeshRenderer _meshRenderer;
         [SerializeField]
         private int _topIndex;
         [SerializeField]
         private int _innerIndex;
 
+        private Material _topMaterial;
         private Material _innerMaterial;
 
         public void Initialize(Color top, Color inner, Color particles)
         {
-            var topMaterial = _fretMesh.materials[_topIndex];
-            topMaterial.color = top.ToUnityColor();
-            topMaterial.SetColor("_EmissionColor", top.ToUnityColor() * 11.5f);
+            // Get materials
+            var materials = _meshRenderer.materials;
+            _topMaterial = materials[_topIndex];
+            _innerMaterial = materials[_innerIndex];
 
-            _innerMaterial = _fretMesh.materials[_innerIndex];
+            // Set the top material color
+            _topMaterial.color = top.ToUnityColor();
+            _topMaterial.SetColor("_EmissionColor", top.ToUnityColor() * 11.5f);
+
+            // Set the inner material color
             _innerMaterial.color = inner.ToUnityColor();
 
-            _hitParticles.Colorize(particles.ToUnityColor());
-            _sustainParticles.Colorize(particles.ToUnityColor());
+            // Set the particle colors
+            _hitParticles.SetColor(particles.ToUnityColor());
+            _sustainParticles.SetColor(particles.ToUnityColor());
         }
 
         public void SetPressed(bool pressed)
@@ -79,6 +88,22 @@ namespace YARG.Gameplay.Visuals
             {
                 _sustainParticles.Stop();
             }
+        }
+
+        public static void CreateFromThemeFret(ThemeFret themeFret)
+        {
+            var fretComp = themeFret.gameObject.AddComponent<Fret>();
+
+            fretComp._hitParticles = themeFret.HitEffect;
+            fretComp._sustainParticles = themeFret.SustainEffect;
+
+            fretComp._animation = themeFret.Animation;
+
+            fretComp._meshRenderer = themeFret.ColoredMaterialRenderer;
+            fretComp._topIndex = themeFret.ColoredMaterialIndex;
+            fretComp._innerIndex = themeFret.ColoredInnerMaterialIndex;
+
+            Destroy(themeFret);
         }
     }
 }

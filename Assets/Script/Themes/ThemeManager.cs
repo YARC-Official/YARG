@@ -28,7 +28,7 @@ namespace YARG.Themes
             }
 
             // Try to get and return a cached version
-            var cached = container.GetCachedNotePrefab(gameMode);
+            var cached = container.NoteCache.GetValueOrDefault(gameMode);
             if (cached != null) return cached;
             // ...otherwise we'll have to create it
 
@@ -37,11 +37,38 @@ namespace YARG.Themes
             var prefabCreator = gameObject.GetComponent<IThemePrefabCreator>();
 
             // Set the models
-            prefabCreator.SetModels(container.GetThemeComponent().GetModelsForGameMode(gameMode));
+            prefabCreator.SetModels(container.GetThemeComponent().GetNoteModelsForGameMode(gameMode));
 
             // Disable and return
             gameObject.SetActive(false);
-            container.SetCachedNotePrefab(gameMode, gameObject);
+            container.NoteCache[gameMode] = gameObject;
+            return gameObject;
+        }
+
+        public GameObject CreateFretPrefabFromTheme(ThemePreset preset, GameMode gameMode)
+        {
+            var container = _themeContainers.GetValueOrDefault(preset);
+            if (container is null)
+            {
+                Debug.LogWarning($"Could not find theme with ID `{preset.Id}`!");
+                return null;
+            }
+
+            // Try to get and return a cached version
+            var cached = container.FretCache.GetValueOrDefault(gameMode);
+            if (cached != null) return cached;
+            // ...otherwise we'll have to create it
+
+            // Duplicate the prefab
+            var themeFret = container.GetThemeComponent().GetFretModelForGameMode(gameMode);
+            var gameObject = Instantiate(themeFret, transform);
+
+            // Set info
+            Fret.CreateFromThemeFret(gameObject.GetComponent<ThemeFret>());
+
+            // Disable and return
+            gameObject.SetActive(false);
+            container.FretCache[gameMode] = gameObject;
             return gameObject;
         }
     }

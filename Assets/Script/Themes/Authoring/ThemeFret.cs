@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using YARG.Helpers.Authoring;
 
 namespace YARG.Themes
 {
@@ -19,6 +20,16 @@ namespace YARG.Themes
         public int ColoredMaterialIndex { get; private set; }
         [field: SerializeField]
         public int ColoredInnerMaterialIndex { get; private set; }
+
+        [field: Space]
+        [field: SerializeField]
+        public EffectGroup HitEffect { get; private set; }
+        [field: SerializeField]
+        public EffectGroup SustainEffect { get; private set; }
+
+        [field: Space]
+        [field: SerializeField]
+        public Animation Animation { get; private set; }
 
         private void OnDrawGizmos()
         {
