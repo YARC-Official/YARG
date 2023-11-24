@@ -1060,10 +1060,10 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
     "m_ObjectId": "0397e713febc442da3bfa27adc62c3bd",
     "m_Id": -1761259065,
-    "m_DisplayName": "EndFadePosition",
+    "m_DisplayName": "PositionFullyVisible",
     "m_SlotType": 0,
     "m_Hidden": false,
-    "m_ShaderOutputName": "_EndFadePosition",
+    "m_ShaderOutputName": "_PositionFullyVisible",
     "m_StageCapability": 3,
     "m_Value": {
         "x": 0.0,
@@ -1521,10 +1521,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": 869.0,
-            "y": 332.0000305175781,
+            "x": 931.0,
+            "y": 200.0,
             "width": 168.0,
-            "height": 33.999969482421878
+            "height": 34.0
         }
     },
     "m_Slots": [
@@ -5413,10 +5413,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": 1071.0,
-            "y": 349.9999694824219,
+            "x": 968.0,
+            "y": 147.0,
             "width": 131.0,
-            "height": 34.00006103515625
+            "height": 34.0
         }
     },
     "m_Slots": [
@@ -5441,10 +5441,10 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
     "m_ObjectId": "d36c25ff15cb4007ac35dd7df78712d9",
     "m_Id": 882649026,
-    "m_DisplayName": "StartFadePosition",
+    "m_DisplayName": "PositionNoVisible",
     "m_SlotType": 0,
     "m_Hidden": false,
-    "m_ShaderOutputName": "_StartFadePosition",
+    "m_ShaderOutputName": "_PositionNoVisible",
     "m_StageCapability": 3,
     "m_Value": {
         "x": 0.0,
