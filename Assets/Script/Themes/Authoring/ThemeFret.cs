@@ -1,4 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using YARG.Helpers.Authoring;
 
 namespace YARG.Themes
@@ -10,16 +13,20 @@ namespace YARG.Themes
 
     public class ThemeFret : MonoBehaviour
     {
+        [Serializable]
+        public struct MeshMaterialIndex
+        {
+            public MeshRenderer Mesh;
+            public int MaterialIndex;
+        }
+
         private const float FRET_SIZE = 2f / 5f;
 
-        [field: Space]
-        [field: SerializeField]
-        public MeshRenderer ColoredMaterialRenderer { get; private set; }
-
-        [field: SerializeField]
-        public int ColoredMaterialIndex { get; private set; }
-        [field: SerializeField]
-        public int ColoredInnerMaterialIndex { get; private set; }
+        [Space]
+        [SerializeField]
+        private MeshMaterialIndex[] _coloredMaterials;
+        [SerializeField]
+        private MeshMaterialIndex[] _innerMaterials;
 
         [field: Space]
         [field: SerializeField]
@@ -35,6 +42,16 @@ namespace YARG.Themes
         {
             Gizmos.color = Color.green;
             Gizmos.DrawWireCube(transform.position, new Vector3(FRET_SIZE, 0f, FRET_SIZE));
+        }
+
+        public IEnumerable<Material> GetColoredMaterials()
+        {
+            return _coloredMaterials.Select(i => i.Mesh.materials[i.MaterialIndex]);
+        }
+
+        public IEnumerable<Material> GetInnerColoredMaterials()
+        {
+            return _innerMaterials.Select(i => i.Mesh.materials[i.MaterialIndex]);
         }
     }
 }

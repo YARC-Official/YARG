@@ -29951,9 +29951,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f46efdc257804dceb9be77f1f9b48614, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <ColoredMaterialRenderer>k__BackingField: {fileID: 252546078603985274}
-  <ColoredMaterialIndex>k__BackingField: 1
-  <ColoredInnerMaterialIndex>k__BackingField: 2
+  _coloredMaterials:
+  - Mesh: {fileID: 252546078603985274}
+    MaterialIndex: 1
+  _innerMaterials:
+  - Mesh: {fileID: 252546078603985274}
+    MaterialIndex: 2
   <HitEffect>k__BackingField: {fileID: 6701171400068306350}
   <SustainEffect>k__BackingField: {fileID: 2367169891264280576}
   <Animation>k__BackingField: {fileID: 910077105972504298}

@@ -1,6 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using YARG.Helpers.Extensions;
-using YARG.Helpers.Authoring;
 using YARG.Themes;
 using Color = System.Drawing.Color;
 
@@ -9,101 +9,82 @@ namespace YARG.Gameplay.Visuals
     public class Fret : MonoBehaviour
     {
         private static readonly int _fade = Shader.PropertyToID("Fade");
+        private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
 
         // If we want info to be copied over when we copy the prefab,
         // we must make them SerializeFields.
 
         [SerializeField]
-        private EffectGroup _hitParticles;
-        [SerializeField]
-        private EffectGroup _sustainParticles;
+        private ThemeFret _themeFret;
 
-        [SerializeField]
-        private Animation _animation;
-
-        [SerializeField]
-        private MeshRenderer _meshRenderer;
-        [SerializeField]
-        private int _topIndex;
-        [SerializeField]
-        private int _innerIndex;
-
-        private Material _topMaterial;
-        private Material _innerMaterial;
+        private readonly List<Material> _innerMaterials = new();
 
         public void Initialize(Color top, Color inner, Color particles)
         {
-            // Get materials
-            var materials = _meshRenderer.materials;
-            _topMaterial = materials[_topIndex];
-            _innerMaterial = materials[_innerIndex];
-
             // Set the top material color
-            _topMaterial.color = top.ToUnityColor();
-            _topMaterial.SetColor("_EmissionColor", top.ToUnityColor() * 11.5f);
+            foreach (var material in _themeFret.GetColoredMaterials())
+            {
+                material.color = top.ToUnityColor();
+                material.SetColor(_emissionColor, top.ToUnityColor() * 11.5f);
+            }
 
             // Set the inner material color
-            _innerMaterial.color = inner.ToUnityColor();
+            foreach (var material in _themeFret.GetInnerColoredMaterials())
+            {
+                material.color = inner.ToUnityColor();
+                _innerMaterials.Add(material);
+            }
 
             // Set the particle colors
-            _hitParticles.SetColor(particles.ToUnityColor());
-            _sustainParticles.SetColor(particles.ToUnityColor());
+            _themeFret.HitEffect.SetColor(particles.ToUnityColor());
+            _themeFret.SustainEffect.SetColor(particles.ToUnityColor());
         }
 
         public void SetPressed(bool pressed)
         {
-            _innerMaterial.SetFloat(_fade, pressed ? 1f : 0f);
+            float value = pressed ? 1f : 0f;
+            _innerMaterials.ForEach(i => i.SetFloat(_fade, value));
         }
 
         public void PlayHitAnimation()
         {
             StopAnimation();
-            _animation.Play("FretsGuitar");
+            _themeFret.Animation.Play("FretsGuitar");
         }
 
         public void PlayDrumAnimation()
         {
             StopAnimation();
-            _animation.Play("FretsDrums");
+            _themeFret.Animation.Play("FretsDrums");
         }
 
         public void PlayHitParticles()
         {
-            _hitParticles.Play();
+            _themeFret.HitEffect.Play();
         }
 
         public void StopAnimation()
         {
-            _animation.Stop();
-            _animation.Rewind();
+            _themeFret.Animation.Stop();
+            _themeFret.Animation.Rewind();
         }
 
         public void SetSustained(bool sustained)
         {
             if (sustained)
             {
-                _sustainParticles.Play();
+                _themeFret.SustainEffect.Play();
             }
             else
             {
-                _sustainParticles.Stop();
+                _themeFret.SustainEffect.Stop();
             }
         }
 
         public static void CreateFromThemeFret(ThemeFret themeFret)
         {
             var fretComp = themeFret.gameObject.AddComponent<Fret>();
-
-            fretComp._hitParticles = themeFret.HitEffect;
-            fretComp._sustainParticles = themeFret.SustainEffect;
-
-            fretComp._animation = themeFret.Animation;
-
-            fretComp._meshRenderer = themeFret.ColoredMaterialRenderer;
-            fretComp._topIndex = themeFret.ColoredMaterialIndex;
-            fretComp._innerIndex = themeFret.ColoredInnerMaterialIndex;
-
-            Destroy(themeFret);
+            fretComp._themeFret = themeFret;
         }
     }
 }
