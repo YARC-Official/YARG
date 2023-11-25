@@ -49,6 +49,7 @@ namespace YARG.Gameplay.Visuals
             // Set the particle colors
             _themeFret.HitEffect.SetColor(particles.ToUnityColor());
             _themeFret.SustainEffect.SetColor(particles.ToUnityColor());
+            _themeFret.PressedEffect.SetColor(particles.ToUnityColor());
 
             // See if certain parameters exist
             _hasPressedParam = _themeFret.Animator.HasParameter(_pressed);
@@ -62,6 +63,15 @@ namespace YARG.Gameplay.Visuals
             if (_hasPressedParam)
             {
                 _themeFret.Animator.SetBool(_pressed, pressed);
+            }
+
+            if (pressed)
+            {
+                _themeFret.PressedEffect.Play();
+            }
+            else
+            {
+                _themeFret.PressedEffect.Stop();
             }
         }
 

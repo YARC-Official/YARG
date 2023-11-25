@@ -9916,7 +9916,7 @@ GameObject:
   - component: {fileID: 155803174232394697}
   - component: {fileID: 8881922573788954401}
   m_Layer: 6
-  m_Name: Hit Particles
+  m_Name: Hit Effects
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9987,7 +9987,7 @@ Transform:
   m_Children:
   - {fileID: 3780683828698714266}
   m_Father: {fileID: 1756929875304873499}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &223115557659606238
 Animator:
@@ -14871,6 +14871,7 @@ Transform:
   m_Children:
   - {fileID: 155803174232394697}
   - {fileID: 7747270839096973214}
+  - {fileID: 6748671466021364741}
   - {fileID: 332046463806806563}
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -14895,6 +14896,7 @@ MonoBehaviour:
     MaterialIndex: 2
   <HitEffect>k__BackingField: {fileID: 8881922573788954401}
   <SustainEffect>k__BackingField: {fileID: 532649743095698063}
+  <PressedEffect>k__BackingField: {fileID: 1700671582235811851}
   <Animator>k__BackingField: {fileID: 223115557659606238}
 --- !u!1 &2772134146674360899
 GameObject:
@@ -19783,6 +19785,50 @@ ParticleSystemRenderer:
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
   m_MaskInteraction: 0
+--- !u!1 &3611622445092449340
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6748671466021364741}
+  - component: {fileID: 1700671582235811851}
+  m_Layer: 6
+  m_Name: Pressed Effects
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6748671466021364741
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3611622445092449340}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1756929875304873499}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1700671582235811851
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3611622445092449340}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: faddd484b7894e0788b12f145d49f469, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &4046581941892319598
 GameObject:
   m_ObjectHideFlags: 0
@@ -34764,7 +34810,7 @@ GameObject:
   - component: {fileID: 7747270839096973214}
   - component: {fileID: 532649743095698063}
   m_Layer: 6
-  m_Name: Sustain Particles
+  m_Name: Sustain Effects
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

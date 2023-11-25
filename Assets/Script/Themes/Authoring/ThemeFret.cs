@@ -33,6 +33,8 @@ namespace YARG.Themes
         public EffectGroup HitEffect { get; private set; }
         [field: SerializeField]
         public EffectGroup SustainEffect { get; private set; }
+        [field: SerializeField]
+        public EffectGroup PressedEffect { get; private set; }
 
         [field: Space]
         [field: SerializeField]
