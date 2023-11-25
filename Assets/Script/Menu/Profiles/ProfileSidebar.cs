@@ -50,6 +50,8 @@ namespace YARG.Menu.Profiles
         [SerializeField]
         private Toggle _leftyFlipToggle;
         [SerializeField]
+        private TMP_Dropdown _themeDropdown;
+        [SerializeField]
         private TMP_Dropdown _colorProfileDropdown;
         [SerializeField]
         private TMP_Dropdown _cameraPresetDropdown;
@@ -77,6 +79,7 @@ namespace YARG.Menu.Profiles
 
         private List<Guid> _colorProfilesByIndex;
         private List<Guid> _cameraPresetsByIndex;
+        private List<Guid> _themesByIndex;
 
         private void Awake()
         {
@@ -96,6 +99,9 @@ namespace YARG.Menu.Profiles
             // These things can change, so do it every time it's enabled.
 
             // Setup preset dropdowns
+            _themesByIndex =
+                CustomContentManager.ThemePresets.AddOptionsToDropdown(_themeDropdown)
+                    .Select(i => i.Id).ToList();
             _colorProfilesByIndex =
                 CustomContentManager.ColorProfiles.AddOptionsToDropdown(_colorProfileDropdown)
                     .Select(i => i.Id).ToList();
@@ -120,6 +126,7 @@ namespace YARG.Menu.Profiles
             _leftyFlipToggle.isOn = profile.LeftyFlip;
 
             // Update preset dropdowns
+            _themeDropdown.value = _themesByIndex.IndexOf(profile.ThemePreset);
             _colorProfileDropdown.value = _colorProfilesByIndex.IndexOf(profile.ColorProfile);
             _cameraPresetDropdown.value = _cameraPresetsByIndex.IndexOf(profile.CameraPreset);
 
@@ -225,6 +232,11 @@ namespace YARG.Menu.Profiles
         public void ChangeLeftyFlip()
         {
             _profile.LeftyFlip = _leftyFlipToggle.isOn;
+        }
+
+        public void ChangeTheme()
+        {
+            _profile.ThemePreset = _themesByIndex[_themeDropdown.value];
         }
 
         public void ChangeColorProfile()

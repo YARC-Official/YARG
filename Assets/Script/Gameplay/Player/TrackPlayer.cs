@@ -7,6 +7,7 @@ using YARG.Core.Engine;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Player;
+using YARG.Settings.Customization;
 using YARG.Themes;
 
 namespace YARG.Gameplay.Player
@@ -165,14 +166,14 @@ namespace YARG.Gameplay.Player
         private void SetupTheme(GameMode gameMode)
         {
             var themePrefab = ThemeManager.Instance.CreateNotePrefabFromTheme(
-                ThemePreset.Defaults[1], gameMode, NotePool.Prefab);
+                Player.ThemePreset, gameMode, NotePool.Prefab);
             NotePool.SetPrefabAndReset(themePrefab);
         }
 
         protected GameObject SetupFretTheme(GameMode gameMode)
         {
             var themePrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(
-                ThemePreset.Defaults[1], gameMode);
+                Player.ThemePreset, gameMode);
             return themePrefab;
         }
 
