@@ -18,6 +18,7 @@ namespace YARG.Gameplay.Visuals
         private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
 
         private static readonly int _hit = Animator.StringToHash("Hit");
+        private static readonly int _pressed = Animator.StringToHash("Pressed");
 
         // If we want info to be copied over when we copy the prefab,
         // we must make them SerializeFields.
@@ -26,6 +27,8 @@ namespace YARG.Gameplay.Visuals
         private ThemeFret _themeFret;
 
         private readonly List<Material> _innerMaterials = new();
+
+        private bool _hasPressedParam;
 
         public void Initialize(Color top, Color inner, Color particles)
         {
@@ -46,12 +49,20 @@ namespace YARG.Gameplay.Visuals
             // Set the particle colors
             _themeFret.HitEffect.SetColor(particles.ToUnityColor());
             _themeFret.SustainEffect.SetColor(particles.ToUnityColor());
+
+            // See if certain parameters exist
+            _hasPressedParam = _themeFret.Animator.HasParameter(_pressed);
         }
 
         public void SetPressed(bool pressed)
         {
             float value = pressed ? 1f : 0f;
             _innerMaterials.ForEach(i => i.SetFloat(_fade, value));
+
+            if (_hasPressedParam)
+            {
+                _themeFret.Animator.SetBool(_pressed, pressed);
+            }
         }
 
         public void PlayHitAnimation()
