@@ -114,6 +114,7 @@ namespace YARG.Menu.Profiles
             // Add available devices
             foreach (var device in InputSystem.devices)
             {
+                if (!device.enabled) continue;
                 if (PlayerContainer.IsDeviceTaken(device)) continue;
 
                 devicesAvailable = true;

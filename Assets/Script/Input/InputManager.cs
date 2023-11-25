@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
@@ -50,6 +51,8 @@ namespace YARG.Input
         /// The instantaneous current time of the input system.
         /// </summary>
         public static double CurrentInputTime => InputState.currentTime;
+
+        private static List<InputDevice> _ignoredDevices = new();
 
         private static IDisposable _onEventListener;
 
@@ -189,18 +192,38 @@ namespace YARG.Input
             switch (change)
             {
                 case InputDeviceChange.Added:
-                // case InputDeviceChange.Enabled: // Devices are enabled/disabled when gaining/losing window focus
-                // case InputDeviceChange.Reconnected: // Fired alongside Added, not needed
+                    // Ignore if the device was disabled before being added
+                    // Necessary for VariantDevice devices in PlasticBand
+                    if (!device.enabled)
+                    {
+                        _ignoredDevices.Add(device);
+                        return;
+                    }
+
                     ToastManager.ToastMessage($"Device added: {device.displayName}");
                     if (SettingsManager.Settings.InputDeviceLogging.Data)
                         Debug.Log($"Device added: {device.displayName}\nDescription:\n{device.description.ToJson()}\n");
+
+                    goto case InputDeviceChange.Enabled;
+
+                // case InputDeviceChange.Reconnected: // Fired alongside Added, not needed
+                case InputDeviceChange.Enabled: // Note: devices are enabled/disabled when gaining/losing window focus
                     DeviceAdded?.Invoke(device);
                     break;
 
                 case InputDeviceChange.Removed:
-                // case InputDeviceChange.Disabled: // Devices are enabled/disabled when gaining/losing window focus
-                // case InputDeviceChange.Disconnected: // Fired alongside Removed, not needed
+                    // Don't toast for ignored devices
+                    if (_ignoredDevices.Contains(device))
+                    {
+                        _ignoredDevices.Remove(device);
+                        return;
+                    }
+
                     ToastManager.ToastMessage($"Device removed: {device.displayName}");
+                    goto case InputDeviceChange.Disabled;
+
+                // case InputDeviceChange.Disconnected: // Fired alongside Removed, not needed
+                case InputDeviceChange.Disabled: // Note: devices are enabled/disabled when gaining/losing window focus
                     DeviceRemoved?.Invoke(device);
                     break;
             }
