@@ -54,7 +54,9 @@ MonoBehaviour:
     MaterialIndex: 0
   - Mesh: {fileID: 7447694746407091800}
     MaterialIndex: 3
-  _innerMaterials: []
+  _innerMaterials:
+  - Mesh: {fileID: 7447694746407091800}
+    MaterialIndex: 2
   <HitEffect>k__BackingField: {fileID: 6195869259369717143}
   <SustainEffect>k__BackingField: {fileID: 7823597507356382606}
   <Animation>k__BackingField: {fileID: 5577458778790817629}
@@ -1011,7 +1013,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: dbd13bcf0e5187844aa7c63701afa7c2,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 11.565874
+      value: 9.806735
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: dbd13bcf0e5187844aa7c63701afa7c2,
         type: 3}
@@ -1031,7 +1033,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: dbd13bcf0e5187844aa7c63701afa7c2,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.054
+      value: 0.0458
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: dbd13bcf0e5187844aa7c63701afa7c2,
         type: 3}
@@ -1117,7 +1119,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 23fc124df29b2e8438b7f5854593e9fe,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 11.565878
+      value: 9.806739
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 23fc124df29b2e8438b7f5854593e9fe,
         type: 3}
@@ -1137,7 +1139,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 23fc124df29b2e8438b7f5854593e9fe,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.0539999
+      value: 0.045799904
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 23fc124df29b2e8438b7f5854593e9fe,
         type: 3}
