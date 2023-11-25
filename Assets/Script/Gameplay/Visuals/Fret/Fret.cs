@@ -8,8 +8,16 @@ namespace YARG.Gameplay.Visuals
 {
     public class Fret : MonoBehaviour
     {
+        public enum AnimationLayer
+        {
+            Guitar = 0,
+            Drums = 1
+        }
+
         private static readonly int _fade = Shader.PropertyToID("Fade");
         private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
+
+        private static readonly int _hit = Animator.StringToHash("Hit");
 
         // If we want info to be copied over when we copy the prefab,
         // we must make them SerializeFields.
@@ -48,26 +56,12 @@ namespace YARG.Gameplay.Visuals
 
         public void PlayHitAnimation()
         {
-            StopAnimation();
-            _themeFret.Animation.Play("FretGuitarHit");
-            // _themeFret.Animation.
-        }
-
-        public void PlayDrumAnimation()
-        {
-            StopAnimation();
-            _themeFret.Animation.Play("FretDrumHit");
+            _themeFret.Animator.SetTrigger(_hit);
         }
 
         public void PlayHitParticles()
         {
             _themeFret.HitEffect.Play();
-        }
-
-        public void StopAnimation()
-        {
-            _themeFret.Animation.Stop();
-            _themeFret.Animation.Rewind();
         }
 
         public void SetSustained(bool sustained)

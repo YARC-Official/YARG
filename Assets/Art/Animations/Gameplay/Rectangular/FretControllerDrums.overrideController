@@ -1,0 +1,13 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: FretControllerDrums
+  m_Controller: {fileID: 9100000, guid: f3f5da2746107b14e9a3bd4ecf4022c4, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: fe5b1a14bc1d43740bbd4307aa42aa7f, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 6df90356a22e0034f86a77116da2eaea, type: 2}

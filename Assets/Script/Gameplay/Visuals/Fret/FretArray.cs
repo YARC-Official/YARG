@@ -85,7 +85,7 @@ namespace YARG.Gameplay.Visuals
 
         public void PlayDrumAnimation(int index, bool particles)
         {
-            _frets[index].PlayDrumAnimation();
+            _frets[index].PlayHitAnimation();
 
             if (particles)
             {
