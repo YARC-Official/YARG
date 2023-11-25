@@ -61,8 +61,8 @@ namespace YARG.Song
             {
                 songs.Add(new OuvertSongData
                 {
-                    songName = RichTextUtils.StripRichTextTags(song.Artist),
-                    artistName = RichTextUtils.StripRichTextTags(song.Name),
+                    songName = RichTextUtils.StripRichTextTags(song.Name),
+                    artistName = RichTextUtils.StripRichTextTags(song.Artist),
                     album = RichTextUtils.StripRichTextTags(song.Album),
                     genre = RichTextUtils.StripRichTextTags(song.Genre),
                     charter = RichTextUtils.StripRichTextTags(song.Charter),
