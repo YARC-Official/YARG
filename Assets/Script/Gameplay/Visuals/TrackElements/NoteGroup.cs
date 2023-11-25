@@ -16,6 +16,10 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private int _coloredMaterialIndex;
 
+        [Space]
+        [SerializeField]
+        private bool _addExtraGlow;
+
         public Material ColoredMaterial { get; private set; }
 
         private void Awake()
@@ -40,6 +44,11 @@ namespace YARG.Gameplay.Visuals
         {
             ColoredMaterial.color = c;
             ColoredMaterial.SetColor(_emissionColor, c * 8f);
+
+            if (_addExtraGlow)
+            {
+                ColoredMaterial.color += new Color(3f, 3f, 3f);
+            }
         }
 
         public Material[] GetAllMaterials() => _meshRenderer.materials;
@@ -56,6 +65,7 @@ namespace YARG.Gameplay.Visuals
             var themeNote = copy.GetComponent<ThemeNote>();
             _meshRenderer = themeNote.ColoredMaterialRenderer;
             _coloredMaterialIndex = themeNote.ColoredMaterialIndex;
+            _addExtraGlow = themeNote.AddExtraGlow;
 
             // Clean up
             Destroy(themeNote);

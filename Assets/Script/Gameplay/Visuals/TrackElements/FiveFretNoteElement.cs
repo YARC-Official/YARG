@@ -131,13 +131,6 @@ namespace YARG.Gameplay.Visuals
             // Set the note color
             NoteGroup.SetColorWithEmission(color.ToUnityColor());
 
-            // TODO: Temporary
-            // Change color for open HOPOs/Taps
-            if (NoteRef.Fret == 0 && NoteRef.Type is GuitarNoteType.Hopo or GuitarNoteType.Tap)
-            {
-                NoteGroup.ColoredMaterial.color += new Color(3f, 3f, 3f, 0f);
-            }
-
             // The rest of this method is for sustain only
             if (!NoteRef.IsSustain) return;
 

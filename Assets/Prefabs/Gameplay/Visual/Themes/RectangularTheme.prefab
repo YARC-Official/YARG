@@ -103,6 +103,7 @@ MonoBehaviour:
   <NoteType>k__BackingField: 0
   <ColoredMaterialRenderer>k__BackingField: {fileID: 6977338687778924151}
   <ColoredMaterialIndex>k__BackingField: 2
+  <AddExtraGlow>k__BackingField: 0
 --- !u!1 &1992220777862178797
 GameObject:
   m_ObjectHideFlags: 0
@@ -151,6 +152,7 @@ MonoBehaviour:
   <NoteType>k__BackingField: 6
   <ColoredMaterialRenderer>k__BackingField: {fileID: 6609712528136307184}
   <ColoredMaterialIndex>k__BackingField: 1
+  <AddExtraGlow>k__BackingField: 0
 --- !u!1 &2441294939907508184
 GameObject:
   m_ObjectHideFlags: 0
@@ -199,6 +201,7 @@ MonoBehaviour:
   <NoteType>k__BackingField: 1
   <ColoredMaterialRenderer>k__BackingField: {fileID: 4925145713318218075}
   <ColoredMaterialIndex>k__BackingField: 1
+  <AddExtraGlow>k__BackingField: 0
 --- !u!1 &2519982101321810702
 GameObject:
   m_ObjectHideFlags: 0
@@ -247,6 +250,7 @@ MonoBehaviour:
   <NoteType>k__BackingField: 3
   <ColoredMaterialRenderer>k__BackingField: {fileID: 2145925856028161406}
   <ColoredMaterialIndex>k__BackingField: 1
+  <AddExtraGlow>k__BackingField: 0
 --- !u!1 &2987043081255175766
 GameObject:
   m_ObjectHideFlags: 0
@@ -295,6 +299,7 @@ MonoBehaviour:
   <NoteType>k__BackingField: 2
   <ColoredMaterialRenderer>k__BackingField: {fileID: 7277221261481040779}
   <ColoredMaterialIndex>k__BackingField: 2
+  <AddExtraGlow>k__BackingField: 0
 --- !u!1 &3007197943067896178
 GameObject:
   m_ObjectHideFlags: 0
@@ -343,6 +348,7 @@ MonoBehaviour:
   <NoteType>k__BackingField: 5
   <ColoredMaterialRenderer>k__BackingField: {fileID: 4347093017751595792}
   <ColoredMaterialIndex>k__BackingField: 0
+  <AddExtraGlow>k__BackingField: 0
 --- !u!1 &3503407201778625847
 GameObject:
   m_ObjectHideFlags: 0
@@ -391,6 +397,7 @@ MonoBehaviour:
   <NoteType>k__BackingField: 0
   <ColoredMaterialRenderer>k__BackingField: {fileID: 1318713102797358265}
   <ColoredMaterialIndex>k__BackingField: 2
+  <AddExtraGlow>k__BackingField: 0
 --- !u!1 &5103552119702715995
 GameObject:
   m_ObjectHideFlags: 0
@@ -439,6 +446,7 @@ MonoBehaviour:
   <NoteType>k__BackingField: 4
   <ColoredMaterialRenderer>k__BackingField: {fileID: 8001540958738398021}
   <ColoredMaterialIndex>k__BackingField: 1
+  <AddExtraGlow>k__BackingField: 1
 --- !u!1 &5220489739260093962
 GameObject:
   m_ObjectHideFlags: 0
@@ -487,6 +495,7 @@ MonoBehaviour:
   <NoteType>k__BackingField: 0
   <ColoredMaterialRenderer>k__BackingField: {fileID: 2749091820767030175}
   <ColoredMaterialIndex>k__BackingField: 2
+  <AddExtraGlow>k__BackingField: 0
 --- !u!1 &6012213803221084217
 GameObject:
   m_ObjectHideFlags: 0
@@ -639,6 +648,7 @@ MonoBehaviour:
   <NoteType>k__BackingField: 6
   <ColoredMaterialRenderer>k__BackingField: {fileID: 2964235534312366910}
   <ColoredMaterialIndex>k__BackingField: 1
+  <AddExtraGlow>k__BackingField: 0
 --- !u!1 &6655418641702356211
 GameObject:
   m_ObjectHideFlags: 0
@@ -687,6 +697,7 @@ MonoBehaviour:
   <NoteType>k__BackingField: 5
   <ColoredMaterialRenderer>k__BackingField: {fileID: 5677495503683504606}
   <ColoredMaterialIndex>k__BackingField: 0
+  <AddExtraGlow>k__BackingField: 0
 --- !u!1001 &91488781832811038
 PrefabInstance:
   m_ObjectHideFlags: 0

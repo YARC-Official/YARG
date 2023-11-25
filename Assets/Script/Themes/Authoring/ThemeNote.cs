@@ -33,6 +33,10 @@ namespace YARG.Themes
         [field: SerializeField]
         public int ColoredMaterialIndex { get; private set; }
 
+        [field: Space]
+        [field: SerializeField]
+        public bool AddExtraGlow { get; private set; }
+
         private void OnDrawGizmos()
         {
             Gizmos.color = Color.green;
