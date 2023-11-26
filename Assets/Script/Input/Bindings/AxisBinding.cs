@@ -211,7 +211,7 @@ namespace YARG.Input
             foreach (var binding in _bindings)
             {
                 var value = binding.State;
-                if (value > max)
+                if (Math.Abs(value) > Math.Abs(max))
                     max = value;
             }
 
