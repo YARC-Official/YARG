@@ -8,6 +8,8 @@ namespace YARG.Input
 {
     public partial class BindingCollection
     {
+        private static ActuationSettings _tiltSettings = new() { ButtonPressThreshold = 1f };
+
         #region Public API
         public bool SetDefaultBindings(InputDevice device)
         {
@@ -89,7 +91,7 @@ namespace YARG.Input
             AddBinding(GuitarAction.StrumDown, guitar.strumDown);
 
             AddBinding(GuitarAction.StarPower, guitar.selectButton);
-            AddBinding(GuitarAction.StarPower, guitar.tilt);
+            AddBinding(GuitarAction.StarPower, guitar.tilt, _tiltSettings);
 
             AddBinding(GuitarAction.Whammy, guitar.whammy);
 
@@ -121,7 +123,7 @@ namespace YARG.Input
             AddBinding(GuitarAction.StrumDown, guitar.strumDown);
 
             AddBinding(GuitarAction.StarPower, guitar.selectButton);
-            AddBinding(GuitarAction.StarPower, guitar.tilt);
+            AddBinding(GuitarAction.StarPower, guitar.tilt, _tiltSettings);
 
             AddBinding(GuitarAction.Whammy, guitar.whammy);
 
@@ -183,7 +185,7 @@ namespace YARG.Input
                     AddBinding(GuitarAction.StrumDown, guitar.strum1);
 
                     AddBinding(GuitarAction.StarPower, guitar.selectButton);
-                    AddBinding(GuitarAction.StarPower, guitar.tilt);
+                    AddBinding(GuitarAction.StarPower, guitar.tilt, _tiltSettings);
                     AddBinding(GuitarAction.StarPower, guitar.digitalPedal);
                     break;
 
@@ -203,7 +205,7 @@ namespace YARG.Input
                     AddBinding(ProGuitarAction.String6_Strum, guitar.strum6);
 
                     AddBinding(ProGuitarAction.StarPower, guitar.selectButton);
-                    AddBinding(ProGuitarAction.StarPower, guitar.tilt);
+                    AddBinding(ProGuitarAction.StarPower, guitar.tilt, _tiltSettings);
                     AddBinding(ProGuitarAction.StarPower, guitar.digitalPedal);
                     break;
 
@@ -772,6 +774,12 @@ namespace YARG.Input
         private void AddBinding<TAction>(TAction action, InputControl control)
             where TAction : unmanaged, Enum
         {
+            AddBinding(action, control, ActuationSettings.Default);
+        }
+
+        private void AddBinding<TAction>(TAction action, InputControl control, ActuationSettings settings)
+            where TAction : unmanaged, Enum
+        {
             var binding = TryGetBindingByAction(action);
             if (binding is null)
                 throw new Exception($"Tried to auto-assign control {control} to action {action}, but no binding exists for it!");
@@ -781,7 +789,7 @@ namespace YARG.Input
             if (binding.ContainsControl(control))
                 return;
 
-            bool added = binding.AddControl(control);
+            bool added = binding.AddControl(settings, control);
             if (!added)
                 throw new Exception($"Could not auto-assign control {control} (type {control.GetType()}) to action {action}!");
         }
