@@ -113,12 +113,11 @@ namespace YARG.Menu.Profiles
             try
             {
                 // Listen until we cancel or an input is grabbed
-                using (var listener = InputSystem.onEvent.Call(Listen))
-                {
-                    await UniTask.WaitUntil(() => _state != State.Waiting, cancellationToken: token);
-                    _waitingContainer.SetActive(false);
-                    _controlChooseContainer.SetActive(true);
-                }
+                InputState.onChange += Listen;
+                await UniTask.WaitUntil(() => _state != State.Waiting, cancellationToken: token);
+                _waitingContainer.SetActive(false);
+                _controlChooseContainer.SetActive(true);
+                InputState.onChange -= Listen;
 
                 // Get the actuated control
                 if (_possibleControls.Count > 1)
@@ -148,6 +147,8 @@ namespace YARG.Menu.Profiles
             }
             finally
             {
+                InputState.onChange -= Listen;
+
                 // Close dialog
                 gameObject.SetActive(false);
             }
@@ -176,29 +177,23 @@ namespace YARG.Menu.Profiles
             gameObject.SetActive(false);
         }
 
-        private void Listen(InputEventPtr eventPtr)
+        private void Listen(InputDevice device, InputEventPtr _)
         {
-            // Only take state events
-            if (!eventPtr.IsA<StateEvent>() && !eventPtr.IsA<DeltaStateEvent>())
-                return;
-
-            // Ignore unbound devices
-            var device = InputSystem.GetDeviceById(eventPtr.deviceId);
+            // Ignore controls for devices not added to the player's bindings
             if (!_player.Bindings.ContainsDevice(device))
                 return;
 
-            var flags = InputManager.DEFAULT_CONTROL_ENUMERATION_FLAGS;
-            var activeControls = eventPtr.EnumerateControls(flags, device)
-                .Where((control) => ControlAllowed(control) &&
-                    _binding.IsControlActuated(_bindSettings, control, eventPtr));
-
-            // Add all controls
-            foreach (var control in activeControls)
+            // The eventPtr is not used here, as it is not guaranteed to be valid,
+            // and even if it were, it would no longer be useful for determining which controls changed
+            // since the state from that event has already been written to the device buffers by this time
+            foreach (var control in device.allControls)
             {
+                // Ignore disallowed and inactive controls
+                if (!ControlAllowed(control) || !_binding.IsControlActuated(_bindSettings, control))
+                    continue;
+
                 if (!_possibleControls.Contains(control))
-                {
                     _possibleControls.Add(control);
-                }
 
                 // Reset timer
                 _bindGroupingTimer = GROUP_TIME_THRESHOLD;

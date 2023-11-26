@@ -35,14 +35,10 @@ namespace YARG.Input
         {
         }
 
-        public override bool IsControlActuated(ActuationSettings settings, InputControl<int> control, InputEventPtr eventPtr)
+        public override bool IsControlActuated(ActuationSettings settings, InputControl<int> control)
         {
-            if (!control.HasValueChangeInEvent(eventPtr))
-                return false;
-
-            // The buffer that ReadValue reads from is not updated until after all events have been processed
-            int previousValue = control.ReadValue();
-            int value = control.ReadValueFromEvent(eventPtr);
+            float previousValue = control.ReadValueFromPreviousFrame();
+            float value = control.ReadValue();
 
             return Math.Abs(value - previousValue) >= settings.IntegerDeltaThreshold;
         }

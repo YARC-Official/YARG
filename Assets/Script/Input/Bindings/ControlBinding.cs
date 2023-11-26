@@ -67,7 +67,7 @@ namespace YARG.Input
         public abstract void Deserialize(List<SerializedInputControl> serialized);
 
         public abstract bool IsControlCompatible(InputControl control);
-        public abstract bool IsControlActuated(ActuationSettings settings, InputControl control, InputEventPtr eventPtr);
+        public abstract bool IsControlActuated(ActuationSettings settings, InputControl control);
 
         public bool AddControl(InputControl control) => AddControl(ActuationSettings.Default, control);
         public abstract bool AddControl(ActuationSettings settings, InputControl control);
@@ -235,12 +235,12 @@ namespace YARG.Input
             return false;
         }
 
-        public override bool IsControlActuated(ActuationSettings settings, InputControl control, InputEventPtr eventPtr)
+        public override bool IsControlActuated(ActuationSettings settings, InputControl control)
         {
-            return IsControlCompatible(control, out var tControl) && IsControlActuated(settings, tControl, eventPtr);
+            return IsControlCompatible(control, out var tControl) && IsControlActuated(settings, tControl);
         }
 
-        public abstract bool IsControlActuated(ActuationSettings settings, InputControl<TState> control, InputEventPtr eventPtr);
+        public abstract bool IsControlActuated(ActuationSettings settings, InputControl<TState> control);
 
         public override bool AddControl(ActuationSettings settings, InputControl control)
         {
