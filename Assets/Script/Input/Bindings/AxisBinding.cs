@@ -145,15 +145,11 @@ namespace YARG.Input
             return serialized;
         }
 
-        public override float UpdateState(InputEventPtr eventPtr)
+        public override void UpdateState()
         {
-            if (!Control.HasValueChangeInEvent(eventPtr))
-                return State;
-
-            RawState = Control.ReadValueFromEvent(eventPtr);
+            RawState = Control.value;
             State = CalculateState(RawState);
             InvokeStateChanged(State);
-            return State;
         }
 
         private float CalculateState(float rawValue)
@@ -209,30 +205,25 @@ namespace YARG.Input
             return Math.Abs(value - previousValue) >= settings.AxisDeltaThreshold;
         }
 
-        public override void ProcessInputEvent(InputEventPtr eventPtr)
+        protected override void OnStateChanged(SingleAxisBinding _, double time)
         {
             float max = 0f;
             foreach (var binding in _bindings)
             {
-                var value = binding.UpdateState(eventPtr);
+                var value = binding.State;
                 if (value > max)
                     max = value;
             }
 
-            ProcessNextState(eventPtr.time, max);
-        }
-
-        private void ProcessNextState(double time, float state)
-        {
             // Ignore if state is unchanged
-            if (Mathf.Approximately(_currentValue, state))
+            if (Mathf.Approximately(_currentValue, max))
                 return;
 
-            _currentValue = state;
-            FireInputEvent(time, state);
+            _currentValue = max;
+            FireInputEvent(time, max);
         }
 
-        protected override SingleAxisBinding OnControlAdded(ActuationSettings settings, InputControl<float> control)
+        protected override SingleAxisBinding CreateBinding(ActuationSettings settings, InputControl<float> control)
         {
             return new(control, settings);
         }

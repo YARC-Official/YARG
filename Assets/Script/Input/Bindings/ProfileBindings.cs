@@ -364,22 +364,6 @@ namespace YARG.Input
             Microphone = null;
         }
 
-        public void ProcessInputEvent(InputEventPtr eventPtr)
-        {
-            var device = InputSystem.GetDeviceById(eventPtr.deviceId);
-            if (!ContainsDevice(device))
-            {
-                throw new InvalidOperationException($"Device {device} is not paired to profile {Profile.Name}!");
-            }
-
-            foreach (var bindings in _bindsByGameMode.Values)
-            {
-                bindings.ProcessInputEvent(eventPtr);
-            }
-
-            MenuBindings.ProcessInputEvent(eventPtr);
-        }
-
         public void Dispose()
         {
             foreach (var device in InputSystem.devices)

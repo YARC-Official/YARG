@@ -174,14 +174,6 @@ namespace YARG.Input
             }
         }
 
-        public void ProcessInputEvent(InputEventPtr eventPtr)
-        {
-            foreach (var binding in _bindings)
-            {
-                binding.ProcessInputEvent(eventPtr);
-            }
-        }
-
         // For collection initializer support
         private void Add(ControlBinding binding)
         {

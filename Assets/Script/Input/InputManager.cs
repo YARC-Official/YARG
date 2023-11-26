@@ -127,11 +127,12 @@ namespace YARG.Input
             }
         }
 
+        // For input time handling/debugging
         private static void OnEvent(InputEventPtr eventPtr)
         {
             double currentTime = CurrentInputTime;
 
-            // Only take state events
+            // Only check state events
             if (!eventPtr.IsA<StateEvent>() && !eventPtr.IsA<DeltaStateEvent>())
                 return;
 
@@ -175,16 +176,6 @@ namespace YARG.Input
             }
             _previousEventTimes[device] = eventPtr.time;
 #endif
-
-            foreach (var player in PlayerContainer.Players)
-            {
-                var profileBinds = player.Bindings;
-                if (!profileBinds.ContainsDevice(device))
-                    continue;
-
-                profileBinds.ProcessInputEvent(eventPtr);
-                break;
-            }
         }
 
         private static void OnDeviceChange(InputDevice device, InputDeviceChange change)

@@ -88,7 +88,6 @@ namespace YARG.Input
         }
 
         public virtual void UpdateForFrame(double updateTime) { }
-        public abstract void ProcessInputEvent(InputEventPtr eventPtr);
 
         public abstract void OnDeviceAdded(InputDevice device);
         public abstract void OnDeviceRemoved(InputDevice device);
@@ -151,15 +150,10 @@ namespace YARG.Input
         {
         }
 
-        public virtual TState UpdateState(InputEventPtr eventPtr)
+        public virtual void UpdateState()
         {
-            if (Control.HasValueChangeInEvent(eventPtr))
-            {
-                State = Control.ReadValueFromEvent(eventPtr);
-                InvokeStateChanged(State);
-            }
-
-            return State;
+            State = Control.value;
+            InvokeStateChanged(State);
         }
 
         protected void InvokeStateChanged(TState state)
@@ -180,7 +174,7 @@ namespace YARG.Input
     /// <summary>
     /// A binding to one or more controls.
     /// </summary>
-    public abstract class ControlBinding<TState, TBinding> : ControlBinding
+    public abstract class ControlBinding<TState, TBinding> : ControlBinding, IInputStateChangeMonitor
         where TState : struct
         where TBinding : SingleBinding<TState>
     {
@@ -268,8 +262,8 @@ namespace YARG.Input
             if (ContainsControl(control))
                 return false;
 
-            var binding = OnControlAdded(settings, control);
-            _bindings.Add(binding);
+            var binding = CreateBinding(settings, control);
+            AddBinding(binding);
             FireBindingsChanged();
             return true;
         }
@@ -289,14 +283,7 @@ namespace YARG.Input
 
         public bool RemoveBinding(TBinding binding)
         {
-            bool removed = _bindings.Remove(binding);
-            if (removed)
-            {
-                OnControlRemoved(binding);
-                FireBindingsChanged();
-            }
-
-            return removed;
+            return RemoveBindings((b) => b == binding);
         }
 
         public bool ContainsBinding(TBinding binding)
@@ -321,25 +308,65 @@ namespace YARG.Input
 
         public override void ClearBindingsForDevice(InputDevice device)
         {
-            for (int i = 0; i < _bindings.Count; i++)
-            {
-                var binding = _bindings[i];
-                if (binding.Control.device == device)
-                    _bindings.RemoveAt(i);
-            }
+            RemoveBindings((binding) => binding.Control.device == device);
 
             for (int i = 0; i < _unresolvedBindings.Count; i++)
             {
                 var binding = _unresolvedBindings[i];
                 if (binding.Device.MatchesDevice(device))
+                {
                     _unresolvedBindings.RemoveAt(i);
+                    i--;
+                }
             }
         }
 
         public override void ClearAllBindings()
         {
+            for (int i = 0; i < _bindings.Count; i++)
+            {
+                var binding = _bindings[i];
+                InputState.RemoveChangeMonitor(binding.Control, this, i);
+            }
+
             _bindings.Clear();
             _unresolvedBindings.Clear();
+        }
+
+        private void AddBinding(TBinding binding)
+        {
+            _bindings.Add(binding);
+            InputState.AddChangeMonitor(binding.Control, this, _bindings.Count - 1);
+        }
+
+        private bool RemoveBindings(Func<TBinding, bool> selector)
+        {
+            bool removed = false;
+            int monitorIndex = 0;
+            for (int i = 0; i < _bindings.Count; i++, monitorIndex++)
+            {
+                var binding = _bindings[i];
+
+                // Always remove change monitor, as we need to update the monitor indexes
+                InputState.RemoveChangeMonitor(binding.Control, this, monitorIndex);
+
+                if (selector(binding))
+                {
+                    removed = true;
+                    _bindings.RemoveAt(i);
+                    i--;
+                }
+                else
+                {
+                    // Re-add change monitor with the updated list index
+                    InputState.AddChangeMonitor(binding.Control, this, i);
+                }
+            }
+
+            if (removed)
+                FireBindingsChanged();
+
+            return removed;
         }
 
         public override void OnDeviceAdded(InputDevice device)
@@ -358,7 +385,7 @@ namespace YARG.Input
 
                 _unresolvedBindings.RemoveAt(i);
                 i--;
-                _bindings.Add(deserialized);
+                AddBinding(deserialized);
                 controlsModified = true;
             }
 
@@ -368,33 +395,51 @@ namespace YARG.Input
 
         public override void OnDeviceRemoved(InputDevice device)
         {
-            // Search by index, can't modify a collection while enumerating it
-            bool controlsModified = false;
-            for (int i = 0; i < _bindings.Count; i++)
+            RemoveBindings((binding) =>
             {
-                var binding = _bindings[i];
                 if (binding.Control.device != device)
-                    continue;
+                    return false;
 
                 var serialized = SerializeControl(binding);
                 if (serialized is null)
-                    continue;
+                    return false;
 
-                _bindings.RemoveAt(i);
-                i--;
                 _unresolvedBindings.Add(serialized);
-                controlsModified = true;
+                return true;
+            });
+        }
+
+        protected abstract TBinding CreateBinding(ActuationSettings settings, InputControl<TState> binding);
+
+        void IInputStateChangeMonitor.NotifyControlStateChanged(InputControl control, double time, InputEventPtr eventPtr,
+            long monitorIndex)
+        {
+            if (!eventPtr.valid)
+            {
+                Debug.LogError($"Invalid eventPtr received for control {control}!");
+                return;
             }
 
-            if (controlsModified)
-                FireBindingsChanged();
+            if (monitorIndex >= _bindings.Count)
+            {
+                Debug.LogError($"Invalid state monitor index {monitorIndex}!");
+                return;
+            }
+
+            var binding = _bindings[(int) monitorIndex];
+            if (binding.Control != control)
+            {
+                Debug.LogError($"State monitor index {monitorIndex} does not match binding! Expected {binding.Control}, got {control}");
+                return;
+            }
+
+            binding.UpdateState();
+            OnStateChanged(binding, eventPtr.time);
         }
 
-        protected abstract TBinding OnControlAdded(ActuationSettings settings, InputControl<TState> binding);
+        void IInputStateChangeMonitor.NotifyTimerExpired(InputControl control, double time, long monitorIndex, int timerIndex) { }
 
-        protected virtual void OnControlRemoved(TBinding binding)
-        {
-        }
+        protected abstract void OnStateChanged(TBinding binding, double time);
 
         protected virtual SerializedInputControl SerializeControl(TBinding binding)
         {
