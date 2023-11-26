@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using YARG.Core.Chart;
 using YARG.Themes;
 
 namespace YARG.Gameplay.Visuals
@@ -54,6 +55,10 @@ namespace YARG.Gameplay.Visuals
 
         public void SetActive(bool a) => gameObject.SetActive(a);
 
+        /// <summary>
+        /// This method is only called <b>once</b> when the note prefab is being created
+        /// for this theme.
+        /// </summary>
         public void SetModelFromTheme(GameObject model)
         {
             // Copy the model

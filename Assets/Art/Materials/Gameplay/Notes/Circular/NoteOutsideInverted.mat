@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: TapNoteOutside
+  m_Name: NoteOutsideInverted
   m_Shader: {fileID: -6465566751694194690, guid: 0c474304b74472f4a8b212da29713486,
     type: 3}
   m_ValidKeywords: []
