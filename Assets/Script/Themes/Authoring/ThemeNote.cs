@@ -25,6 +25,8 @@ namespace YARG.Themes
         [field: Space]
         [field: SerializeField]
         public ThemeNoteType NoteType { get; private set; }
+        [field: SerializeField]
+        public bool StarpowerVariant { get; private set; }
 
         [field: Space]
         [field: SerializeField]

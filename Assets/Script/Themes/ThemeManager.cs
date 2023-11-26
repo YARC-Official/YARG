@@ -37,7 +37,10 @@ namespace YARG.Themes
             var prefabCreator = gameObject.GetComponent<IThemePrefabCreator>();
 
             // Set the models
-            prefabCreator.SetModels(container.GetThemeComponent().GetNoteModelsForGameMode(gameMode));
+            var themeComp = container.GetThemeComponent();
+            prefabCreator.SetThemeModels(
+                themeComp.GetNoteModelsForGameMode(gameMode, false),
+                themeComp.GetNoteModelsForGameMode(gameMode, true));
 
             // Disable and return
             gameObject.SetActive(false);

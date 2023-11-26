@@ -12,6 +12,8 @@ namespace YARG.Gameplay.Visuals
         {
             base.InitializeElement();
 
+            var noteGroups = NoteRef.IsStarPower ? StarpowerNoteGroups : NoteGroups;
+
             if (NoteRef.Pad != 0)
             {
                 // Deal with non-kick notes
@@ -28,13 +30,13 @@ namespace YARG.Gameplay.Visuals
                 transform.localPosition = new Vector3(GetElementX(lane, 4), 0f, 0f) * LeftyFlipMultiplier;
 
                 // Get which note model to use
-                NoteGroup = isCymbal ? CymbalGroup : NormalGroup;
+                NoteGroup = isCymbal ? noteGroups[(int) NoteType.Cymbal] : noteGroups[(int) NoteType.Normal];
             }
             else
             {
                 // Deal with kick notes
                 transform.localPosition = Vector3.zero;
-                NoteGroup = KickGroup;
+                NoteGroup = noteGroups[(int) NoteType.Kick];
             }
 
             // Show and set material properties

@@ -6,6 +6,19 @@ namespace YARG.Gameplay.Visuals
 {
     public interface IThemePrefabCreator
     {
-        public void SetModels(Dictionary<ThemeNoteType, GameObject> models);
+        /// <summary>
+        /// Called once during the creation of the <b>first</b> themed note prefab.
+        /// </summary>
+        /// <param name="models">
+        /// A dictionary of <see cref="ThemeNoteType"/> <see cref="GameObject"/> pairs.
+        /// </param>
+        /// <param name="starpowerModels">
+        /// Same as the <paramref name="models"/> parameter but for starpower variants.
+        /// The key for a specific <see cref="ThemeNoteType"/> may not be present if the theme
+        /// doesn't specify a starpower variant.
+        /// </param>
+        public void SetThemeModels(
+            Dictionary<ThemeNoteType, GameObject> models,
+            Dictionary<ThemeNoteType, GameObject> starpowerModels);
     }
 }

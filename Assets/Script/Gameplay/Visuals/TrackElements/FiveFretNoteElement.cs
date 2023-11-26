@@ -8,18 +8,18 @@ using YARG.Themes;
 
 namespace YARG.Gameplay.Visuals
 {
-    public sealed class FiveFretNoteElement : NoteElement<GuitarNote, FiveFretPlayer>, IThemePrefabCreator
+    public sealed class FiveFretNoteElement : NoteElement<GuitarNote, FiveFretPlayer>
     {
-        [SerializeField]
-        private NoteGroup _strumGroup;
-        [SerializeField]
-        private NoteGroup _hopoGroup;
-        [SerializeField]
-        private NoteGroup _tapGroup;
-        [SerializeField]
-        private NoteGroup _openGroup;
-        [SerializeField]
-        private NoteGroup _openHopoGroup;
+        private enum NoteType
+        {
+            Strum    = 0,
+            HOPO     = 1,
+            Tap      = 2,
+            Open     = 3,
+            OpenHOPO = 4,
+
+            Count
+        }
 
         [Space]
         [SerializeField]
@@ -32,9 +32,24 @@ namespace YARG.Gameplay.Visuals
         // Make sure the remove it later if it has a sustain
         protected override float RemovePointOffset => (float) NoteRef.TimeLength * Player.NoteSpeed;
 
+        public override void SetThemeModels(
+            Dictionary<ThemeNoteType, GameObject> models,
+            Dictionary<ThemeNoteType, GameObject> starpowerModels)
+        {
+            CreateNoteGroupArrays((int) NoteType.Count);
+
+            AssignNoteGroup(models, starpowerModels, (int) NoteType.Strum,    ThemeNoteType.Normal);
+            AssignNoteGroup(models, starpowerModels, (int) NoteType.HOPO,     ThemeNoteType.HOPO);
+            AssignNoteGroup(models, starpowerModels, (int) NoteType.Tap,      ThemeNoteType.Tap);
+            AssignNoteGroup(models, starpowerModels, (int) NoteType.Open,     ThemeNoteType.Open);
+            AssignNoteGroup(models, starpowerModels, (int) NoteType.OpenHOPO, ThemeNoteType.OpenHOPO);
+        }
+
         protected override void InitializeElement()
         {
             base.InitializeElement();
+
+            var noteGroups = NoteRef.IsStarPower ? StarpowerNoteGroups : NoteGroups;
 
             if (NoteRef.Fret != 0)
             {
@@ -46,10 +61,10 @@ namespace YARG.Gameplay.Visuals
                 // Get which note model to use
                 NoteGroup = NoteRef.Type switch
                 {
-                    GuitarNoteType.Strum => _strumGroup,
-                    GuitarNoteType.Hopo  => _hopoGroup,
-                    GuitarNoteType.Tap   => _tapGroup,
-                    _                    => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
+                    GuitarNoteType.Strum => noteGroups[(int) NoteType.Strum],
+                    GuitarNoteType.Hopo  => noteGroups[(int) NoteType.HOPO],
+                    GuitarNoteType.Tap   => noteGroups[(int) NoteType.Tap],
+                    _ => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
                 };
 
                 _sustainLine = _normalSustainLine;
@@ -64,8 +79,9 @@ namespace YARG.Gameplay.Visuals
                 // Get which note model to use
                 NoteGroup = NoteRef.Type switch
                 {
-                    GuitarNoteType.Strum => _openGroup,
-                    GuitarNoteType.Hopo or GuitarNoteType.Tap => _openHopoGroup,
+                    GuitarNoteType.Strum => noteGroups[(int) NoteType.Open],
+                    GuitarNoteType.Hopo or
+                    GuitarNoteType.Tap   => noteGroups[(int) NoteType.OpenHOPO],
                     _ => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
                 };
 
@@ -143,24 +159,6 @@ namespace YARG.Gameplay.Visuals
 
             _normalSustainLine.gameObject.SetActive(false);
             _openSustainLine.gameObject.SetActive(false);
-        }
-
-        private void HideNotes()
-        {
-            _strumGroup.SetActive(false);
-            _hopoGroup.SetActive(false);
-            _tapGroup.SetActive(false);
-            _openGroup.SetActive(false);
-            _openHopoGroup.SetActive(false);
-        }
-
-        public void SetModels(Dictionary<ThemeNoteType, GameObject> models)
-        {
-            _strumGroup.SetModelFromTheme(models[ThemeNoteType.Normal]);
-            _hopoGroup.SetModelFromTheme(models[ThemeNoteType.HOPO]);
-            _tapGroup.SetModelFromTheme(models[ThemeNoteType.Tap]);
-            _openGroup.SetModelFromTheme(models[ThemeNoteType.Open]);
-            _openHopoGroup.SetModelFromTheme(models[ThemeNoteType.OpenHOPO]);
         }
     }
 }

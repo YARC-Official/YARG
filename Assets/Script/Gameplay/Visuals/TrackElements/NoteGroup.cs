@@ -12,7 +12,6 @@ namespace YARG.Gameplay.Visuals
 
         [SerializeField]
         private MeshRenderer _meshRenderer;
-
         [SerializeField]
         private int _coloredMaterialIndex;
 

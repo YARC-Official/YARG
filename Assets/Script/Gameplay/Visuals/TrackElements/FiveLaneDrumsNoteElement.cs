@@ -13,6 +13,8 @@ namespace YARG.Gameplay.Visuals
         {
             base.InitializeElement();
 
+            var noteGroups = NoteRef.IsStarPower ? StarpowerNoteGroups : NoteGroups;
+
             if (NoteRef.Pad != 0)
             {
                 // Deal with non-kick notes
@@ -25,21 +27,21 @@ namespace YARG.Gameplay.Visuals
                 {
                     NoteGroup = (FiveLaneDrumPad) NoteRef.Pad switch
                     {
-                        FiveLaneDrumPad.Yellow => CymbalGroup,
-                        FiveLaneDrumPad.Orange => CymbalGroup,
-                        _ => NormalGroup
+                        FiveLaneDrumPad.Yellow => noteGroups[(int) NoteType.Cymbal],
+                        FiveLaneDrumPad.Orange => noteGroups[(int) NoteType.Cymbal],
+                        _                      => noteGroups[(int) NoteType.Normal]
                     };
                 }
                 else
                 {
-                    NoteGroup = NormalGroup;
+                    NoteGroup = noteGroups[(int) NoteType.Normal];
                 }
             }
             else
             {
                 // Deal with kick notes
                 transform.localPosition = Vector3.zero;
-                NoteGroup = KickGroup;
+                NoteGroup = noteGroups[(int) NoteType.Kick];
             }
 
             // Show and set material properties

@@ -8,12 +8,25 @@ namespace YARG.Gameplay.Visuals
 {
     public abstract class DrumsNoteElement : NoteElement<DrumNote, DrumsPlayer>, IThemePrefabCreator
     {
-        [SerializeField]
-        protected NoteGroup NormalGroup;
-        [SerializeField]
-        protected NoteGroup CymbalGroup;
-        [SerializeField]
-        protected NoteGroup KickGroup;
+        protected enum NoteType
+        {
+            Normal = 0,
+            Cymbal = 1,
+            Kick   = 2,
+
+            Count
+        }
+
+        public override void SetThemeModels(
+            Dictionary<ThemeNoteType, GameObject> models,
+            Dictionary<ThemeNoteType, GameObject> starpowerModels)
+        {
+            CreateNoteGroupArrays((int) NoteType.Count);
+
+            AssignNoteGroup(models, starpowerModels, (int) NoteType.Normal, ThemeNoteType.Normal);
+            AssignNoteGroup(models, starpowerModels, (int) NoteType.Cymbal, ThemeNoteType.Cymbal);
+            AssignNoteGroup(models, starpowerModels, (int) NoteType.Kick,   ThemeNoteType.Kick);
+        }
 
         public override void HitNote()
         {
@@ -32,16 +45,7 @@ namespace YARG.Gameplay.Visuals
 
         protected override void HideElement()
         {
-            NormalGroup.SetActive(false);
-            CymbalGroup.SetActive(false);
-            KickGroup.SetActive(false);
-        }
-
-        public void SetModels(Dictionary<ThemeNoteType, GameObject> models)
-        {
-            NormalGroup.SetModelFromTheme(models[ThemeNoteType.Normal]);
-            CymbalGroup.SetModelFromTheme(models[ThemeNoteType.Cymbal]);
-            KickGroup.SetModelFromTheme(models[ThemeNoteType.Kick]);
+            HideNotes();
         }
     }
 }

@@ -27,7 +27,7 @@ namespace YARG.Themes
         [SerializeField]
         private GameObject _fiveLaneFret;
 
-        public Dictionary<ThemeNoteType, GameObject> GetNoteModelsForGameMode(GameMode gameMode)
+        public Dictionary<ThemeNoteType, GameObject> GetNoteModelsForGameMode(GameMode gameMode, bool starpower)
         {
             var parent = gameMode switch
             {
@@ -45,6 +45,9 @@ namespace YARG.Themes
             var themeNotes = parent.GetComponentsInChildren<ThemeNote>();
             foreach (var themeNote in themeNotes)
             {
+                // Make sure we choose the correct variant
+                if (themeNote.StarpowerVariant != starpower) continue;
+
                 dict.Add(themeNote.NoteType, themeNote.gameObject);
             }
 
