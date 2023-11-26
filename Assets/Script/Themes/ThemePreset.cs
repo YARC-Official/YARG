@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using YARG.Core;
 using YARG.Core.Game;
 
 namespace YARG.Themes
@@ -8,6 +10,8 @@ namespace YARG.Themes
     public partial class ThemePreset : BasePreset
     {
         public string AssetBundleThemePath;
+
+        public List<GameMode> SupportedGameModes = new();
 
         public ThemePreset(string name, bool defaultPreset)
             : base(name, defaultPreset)
@@ -32,7 +36,10 @@ namespace YARG.Themes
 
         public override BasePreset CopyWithNewName(string name)
         {
-            return new ThemePreset(name, false);
+            return new ThemePreset(name, false)
+            {
+                SupportedGameModes = new List<GameMode>(SupportedGameModes)
+            };
         }
     }
 }

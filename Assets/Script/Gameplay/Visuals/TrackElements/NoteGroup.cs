@@ -24,6 +24,9 @@ namespace YARG.Gameplay.Visuals
 
         private void Awake()
         {
+            // Skip if it's trying to create a theme
+            if (_meshRenderer == null) return;
+
             ColoredMaterial = _meshRenderer.materials[_coloredMaterialIndex];
         }
 

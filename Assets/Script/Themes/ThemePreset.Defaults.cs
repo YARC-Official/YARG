@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using YARG.Core;
 
 namespace YARG.Themes
 {
@@ -6,15 +7,27 @@ namespace YARG.Themes
     {
         public static ThemePreset Default = new ThemePreset("Rectangular", true)
         {
-            AssetBundleThemePath = "Themes/Rectangular"
+            AssetBundleThemePath = "Themes/Rectangular",
+            SupportedGameModes =
+            {
+                GameMode.FiveFretGuitar,
+                GameMode.SixFretGuitar,
+                GameMode.FourLaneDrums,
+                GameMode.FiveLaneDrums,
+                GameMode.ProKeys
+            }
         };
 
         public static readonly List<ThemePreset> Defaults = new()
         {
             Default,
-            new ThemePreset("Circular", true)
+            new ThemePreset("Circular (Beta)", true)
             {
-                AssetBundleThemePath = "Themes/Circular"
+                AssetBundleThemePath = "Themes/Circular",
+                SupportedGameModes =
+                {
+                    GameMode.FiveFretGuitar
+                }
             }
         };
     }

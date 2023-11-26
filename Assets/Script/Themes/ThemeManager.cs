@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using YARG.Core;
 using YARG.Gameplay.Visuals;
@@ -20,12 +21,9 @@ namespace YARG.Themes
 
         public GameObject CreateNotePrefabFromTheme(ThemePreset preset, GameMode gameMode, GameObject noModelPrefab)
         {
-            var container = _themeContainers.GetValueOrDefault(preset);
-            if (container is null)
-            {
-                Debug.LogWarning($"Could not find theme with ID `{preset.Id}`!");
-                return null;
-            }
+            // Get the theme container
+            var container = GetThemeContainer(preset, gameMode);
+            if (container is null) return null;
 
             // Try to get and return a cached version
             var cached = container.NoteCache.GetValueOrDefault(gameMode);
@@ -50,12 +48,9 @@ namespace YARG.Themes
 
         public GameObject CreateFretPrefabFromTheme(ThemePreset preset, GameMode gameMode)
         {
-            var container = _themeContainers.GetValueOrDefault(preset);
-            if (container is null)
-            {
-                Debug.LogWarning($"Could not find theme with ID `{preset.Id}`!");
-                return null;
-            }
+            // Get the theme container
+            var container = GetThemeContainer(preset, gameMode);
+            if (container is null) return null;
 
             // Try to get and return a cached version
             var cached = container.FretCache.GetValueOrDefault(gameMode);
@@ -73,6 +68,26 @@ namespace YARG.Themes
             gameObject.SetActive(false);
             container.FretCache[gameMode] = gameObject;
             return gameObject;
+        }
+
+        private ThemeContainer GetThemeContainer(ThemePreset preset, GameMode mode)
+        {
+            // Check if the theme supports the game mode
+            if (!preset.SupportedGameModes.Contains(mode))
+            {
+                Debug.Log($"Theme `{preset.Name}` does not support `{mode}`. Falling back to the default theme.");
+                preset = ThemePreset.Default;
+            }
+
+            // Get the theme container
+            var container = _themeContainers.GetValueOrDefault(preset);
+            if (container is null)
+            {
+                Debug.LogWarning($"Could not find theme with ID `{preset.Id}`!");
+                return null;
+            }
+
+            return container;
         }
     }
 }
