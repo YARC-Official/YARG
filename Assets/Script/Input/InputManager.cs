@@ -54,6 +54,13 @@ namespace YARG.Input
 
         private static List<InputDevice> _ignoredDevices = new();
 
+        // We do this song and dance of tracking focus changes manually rather than setting
+        // InputSettings.backgroundBehavior to IgnoreFocus, so that input is still (largely) disabled when unfocused
+        // but devices are not removed only to be re-added when coming back into focus
+        private static bool _gameFocused;
+        private static bool _focusChanged;
+        private static List<InputDevice> _backgroundDisabledDevices = new();
+
         private static IDisposable _onEventListener;
 
         public static void Initialize()
@@ -70,6 +77,8 @@ namespace YARG.Input
             InputSystem.onBeforeUpdate += OnBeforeUpdate;
             InputSystem.onAfterUpdate += OnAfterUpdate;
 
+            _gameFocused = Application.isFocused;
+            Application.focusChanged += OnFocusChange;
             InputSystem.onDeviceChange += OnDeviceChange;
 
             // Notify of all current devices
@@ -125,6 +134,18 @@ namespace YARG.Input
                 var profileBinds = player.Bindings;
                 profileBinds.UpdateBindingsForFrame(InputUpdateTime);
             }
+
+            // Remove any devices that happened to be actually disabled
+            // right as the game focus changed
+            if (_focusChanged && _gameFocused)
+            {
+                foreach (var device in _backgroundDisabledDevices)
+                {
+                    DeviceRemoved?.Invoke(device);
+                }
+            }
+
+            _focusChanged = false;
         }
 
         // For input time handling/debugging
@@ -178,6 +199,12 @@ namespace YARG.Input
 #endif
         }
 
+        private static void OnFocusChange(bool focused)
+        {
+            _gameFocused = focused;
+            _focusChanged = true;
+        }
+
         private static void OnDeviceChange(InputDevice device, InputDeviceChange change)
         {
             switch (change)
@@ -195,10 +222,22 @@ namespace YARG.Input
                     if (SettingsManager.Settings.InputDeviceLogging.Data)
                         Debug.Log($"Device added: {device.displayName}\nDescription:\n{device.description.ToJson()}\n");
 
-                    goto case InputDeviceChange.Enabled;
+                    DeviceAdded?.Invoke(device);
+                    break;
 
                 // case InputDeviceChange.Reconnected: // Fired alongside Added, not needed
-                case InputDeviceChange.Enabled: // Note: devices are enabled/disabled when gaining/losing window focus
+                case InputDeviceChange.Enabled:
+                    // Devices are enabled when gaining window focus,
+                    // but we don't want to add devices when this happens
+                    if (_focusChanged || Application.isFocused != _gameFocused)
+                    {
+                        _focusChanged = true;
+                        // Keep track of which devices were re-enabled, so any devices that actually get
+                        // disabled can be removed after coming back into focus in OnAfterUpdate
+                        _backgroundDisabledDevices.Remove(device);
+                        return;
+                    }
+
                     DeviceAdded?.Invoke(device);
                     break;
 
@@ -211,10 +250,22 @@ namespace YARG.Input
                     }
 
                     ToastManager.ToastMessage($"Device removed: {device.displayName}");
-                    goto case InputDeviceChange.Disabled;
+                    DeviceRemoved?.Invoke(device);
+                    break;
 
                 // case InputDeviceChange.Disconnected: // Fired alongside Removed, not needed
-                case InputDeviceChange.Disabled: // Note: devices are enabled/disabled when gaining/losing window focus
+                case InputDeviceChange.Disabled:
+                    // Devices are disabled when losing window focus,
+                    // but we don't want to remove devices when this happens
+                    if (_focusChanged || Application.isFocused != _gameFocused)
+                    {
+                        _focusChanged = true;
+                        // Keep track of disabled devices so any devices that actually get
+                        // disabled can be removed after coming back into focus in OnAfterUpdate
+                        _backgroundDisabledDevices.Add(device);
+                        return;
+                    }
+
                     DeviceRemoved?.Invoke(device);
                     break;
             }
