@@ -186,8 +186,14 @@ namespace YARG.Input
 
         public override bool IsControlActuated(ActuationSettings settings, InputControl<float> control)
         {
+            float previousValue = control.ReadValueFromPreviousFrame();
             float value = control.ReadValue();
-            return value >= settings.ButtonPressThreshold;
+            bool actuated = Math.Abs(value - previousValue) >= settings.AxisDeltaThreshold;
+
+            if (control is ButtonControl button)
+                return actuated && value >= button.pressPointOrDefault;
+            else
+                return actuated;
         }
 
         protected override void OnStateChanged(SingleButtonBinding _, double time)
