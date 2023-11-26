@@ -69,9 +69,12 @@ namespace YARG.Input
         private float _postDebounceValue;
 
         public float RawState { get; private set; }
+        public float PreviousState { get; private set; }
 
         public bool IsPressed => State >= PressPoint;
         public bool IsPressedRaw => RawState >= PressPoint;
+
+        public bool WasPreviouslyPressed => PreviousState >= PressPoint;
 
         public SingleButtonBinding(InputControl<float> control) : base(control)
         {
@@ -126,6 +129,8 @@ namespace YARG.Input
 
         public override void UpdateState()
         {
+            PreviousState = State;
+
             // Read new state
             RawState = Control.value;
             _postDebounceValue = CalculateState(RawState);
@@ -173,7 +178,7 @@ namespace YARG.Input
 
     public class ButtonBinding : ControlBinding<float, SingleButtonBinding>
     {
-        private bool _currentValue;
+        protected bool _currentValue;
 
         public ButtonBinding(string name, int action) : base(name, action)
         {
