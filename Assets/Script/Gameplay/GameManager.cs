@@ -295,6 +295,12 @@ namespace YARG.Gameplay
             // Get the band stars
             BandStars = _players.Sum(player => player.GetStarsPercent()) / _players.Count;
 
+            // Update other gameplay behaviors
+            foreach (var behavior in _gameplayBehaviours)
+            {
+                behavior.GameplayUpdate();
+            }
+
             // Debug text
             // Note: this must come last in the update sequence!
             // Any updates happening after this will not reflect until the next frame

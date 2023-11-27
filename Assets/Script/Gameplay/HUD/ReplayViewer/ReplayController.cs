@@ -69,7 +69,7 @@ namespace YARG.Gameplay.HUD
             _replay = GameManager.Replay;
         }
 
-        private void Update()
+        private new void Update()
         {
             if (!GameManager.Paused && _hudVisible)
             {

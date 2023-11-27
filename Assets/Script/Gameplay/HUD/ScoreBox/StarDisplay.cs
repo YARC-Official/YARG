@@ -44,7 +44,7 @@ namespace YARG.Gameplay.HUD
             _measures.MoveNext();
         }
 
-        private void Update()
+        protected override void GameplayUpdate()
         {
             if (_isGoldAchieved || _measures.Current is null)
             {

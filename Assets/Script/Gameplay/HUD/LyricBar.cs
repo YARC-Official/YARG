@@ -69,7 +69,7 @@ namespace YARG.Gameplay.HUD
             _vocalPhrases = vocalsPart.NotePhrases;
         }
 
-        private void Update()
+        protected override void GameplayUpdate()
         {
             const double PHRASE_DISTANCE_THRESHOLD = 1.0;
             // If the current phrase ended AND

@@ -29,7 +29,7 @@ namespace YARG.Gameplay.HUD
             Cursor.visible = false;
         }
 
-        private void Update()
+        private new void Update()
         {
             float showCursorSetting = SettingsManager.Settings.ShowCursorTimer.Data;
 

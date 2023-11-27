@@ -44,7 +44,7 @@ namespace YARG.Gameplay.HUD
             _currentSectionIndex = 0;
         }
 
-        private void Update()
+        protected override void GameplayUpdate()
         {
             if (GameManager.Players is null)
             {

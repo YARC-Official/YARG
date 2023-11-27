@@ -168,7 +168,7 @@ namespace YARG.Gameplay.Player
             return player;
         }
 
-        private void Update()
+        protected override void GameplayUpdate()
         {
             // Update the range
             if (IsRangeChanging)

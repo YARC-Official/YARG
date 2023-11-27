@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -123,7 +123,7 @@ namespace YARG.Gameplay
             }
         }
 
-        private void Update()
+        protected override void GameplayUpdate()
         {
             if (_videoSeeking)
                 return;

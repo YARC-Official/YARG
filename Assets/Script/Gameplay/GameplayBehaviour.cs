@@ -26,6 +26,7 @@ namespace YARG.Gameplay
         {
             UniTask GameplayLoad();
             UniTask GameplayStart();
+            void GameplayUpdate();
         }
 
         public abstract class GameplayBehaviourImpl : MonoBehaviour, IGameplayBehaviour
@@ -66,6 +67,11 @@ namespace YARG.Gameplay
             // "The Unity message 'Start' is empty."
             [SuppressMessage("Performance", "UNT0001", Justification = "Deliberately empty for usage detection.")]
             protected void Start() { }
+
+            // Protected to warn when hidden by an inheriting class
+            // "The Unity message 'Start' is empty."
+            [SuppressMessage("Performance", "UNT0001", Justification = "Deliberately empty for usage detection.")]
+            protected void Update() { }
 #endif
 
             // Protected to warn when hidden by an inheriting class
@@ -78,24 +84,22 @@ namespace YARG.Gameplay
                 GameManager._gameplayBehaviours.Remove(this);
             }
 
-            protected virtual void GameplayAwake()
-            {
-            }
+            protected virtual void GameplayAwake() { }
+            protected virtual void GameplayDestroy() { }
 
-            protected virtual void GameplayDestroy()
-            {
-            }
-
-            // Private interface thunks for GameManager initialization
-            UniTask IGameplayBehaviour.GameplayLoad()
-            {
-                return GameplayLoadAsync();
-            }
+            // Private interface thunks
+            UniTask IGameplayBehaviour.GameplayLoad() => GameplayLoadAsync();
 
             UniTask IGameplayBehaviour.GameplayStart()
             {
                 enabled = true;
                 return GameplayStartAsync();
+            }
+
+            void IGameplayBehaviour.GameplayUpdate()
+            {
+                if (!enabled) return;
+                GameplayUpdate();
             }
 
             // Default async implementations which call the synchronous versions
@@ -111,13 +115,9 @@ namespace YARG.Gameplay
                 return UniTask.CompletedTask;
             }
 
-            protected virtual void GameplayLoad()
-            {
-            }
-
-            protected virtual void GameplayStart()
-            {
-            }
+            protected virtual void GameplayLoad() { }
+            protected virtual void GameplayStart() { }
+            protected virtual void GameplayUpdate() { }
         }
     }
 }

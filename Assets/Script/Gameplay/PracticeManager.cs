@@ -55,10 +55,8 @@ namespace YARG.Gameplay
             Navigator.Instance.NavigationEvent -= OnNavigationEvent;
         }
 
-        private void Update()
+        protected override void GameplayUpdate()
         {
-            if (GameManager.Paused) return;
-
             double endPoint = TimeEnd + (SECTION_RESTART_DELAY * GameManager.SelectedSongSpeed);
             if (GameManager.SongTime >= endPoint) ResetPractice();
         }

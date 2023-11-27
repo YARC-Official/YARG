@@ -45,7 +45,7 @@ namespace YARG.Gameplay.HUD
             _songLengthTime = timeSpan.ToString(TimeFormat);
         }
 
-        private void Update()
+        protected override void GameplayUpdate()
         {
             // Update score
             if (GameManager.BandScore != _bandScore)

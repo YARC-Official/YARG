@@ -176,7 +176,7 @@ namespace YARG.Gameplay.HUD
             HoveredIndex++;
         }
 
-        private void Update()
+        private new void Update()
         {
             if (_scrollTimer > 0f)
             {
