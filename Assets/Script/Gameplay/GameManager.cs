@@ -29,7 +29,7 @@ using YARG.Settings;
 namespace YARG.Gameplay
 {
     [DefaultExecutionOrder(-1)]
-    public class GameManager : MonoBehaviour
+    public partial class GameManager : MonoBehaviour
     {
         public const double SONG_START_DELAY = SongRunner.SONG_START_DELAY;
 
@@ -67,6 +67,9 @@ namespace YARG.Gameplay
         private IReadOnlyList<YargPlayer> _yargPlayers;
         private List<BasePlayer>          _players;
 
+        // Populated by the GameplayBehaviours themselves as they initialize
+        private List<IGameplayBehaviour> _gameplayBehaviours = new();
+
         public bool IsSongStarted { get; private set; } = false;
 
         private enum LoadFailureState
@@ -78,52 +81,6 @@ namespace YARG.Gameplay
 
         private LoadFailureState _loadState;
         private string _loadFailureMessage;
-
-        // All access to chart data must be done through this event,
-        // since things are loaded asynchronously
-        // Players are initialized by hand and don't go through this event
-        private event Action<SongChart> _chartLoaded;
-
-        public event Action<SongChart> ChartLoaded
-        {
-            add
-            {
-                _chartLoaded += value;
-
-                // Invoke now if already loaded, this event is only fired once
-                var chart = Chart;
-                if (chart != null) value?.Invoke(chart);
-            }
-            remove => _chartLoaded -= value;
-        }
-
-        private event Action _songLoaded;
-
-        public event Action SongLoaded
-        {
-            add
-            {
-                _songLoaded += value;
-
-                // Invoke now if already loaded, this event is only fired once
-                if (GlobalVariables.AudioManager.IsAudioLoaded) value?.Invoke();
-            }
-            remove => _songLoaded -= value;
-        }
-
-        private event Action _songStarted;
-
-        public event Action SongStarted
-        {
-            add
-            {
-                _songStarted += value;
-
-                // Invoke now if already loaded, this event is only fired once
-                if (IsSongStarted) value?.Invoke();
-            }
-            remove => _songStarted -= value;
-        }
 
         private SongRunner _songRunner;
 
@@ -256,8 +213,10 @@ namespace YARG.Gameplay
                 SettingsManager.Settings.VideoCalibration.Data,
                 Song.SongOffsetSeconds);
 
-            // Spawn players
-            CreatePlayers();
+            // Spawn players and initialize GameplayBehaviours
+            LoadingManager.Instance.Queue(CreatePlayers, "Creating tracks...");
+            LoadingManager.Instance.Queue(InitializeBehaviours, "Initializing everything else...");
+            await LoadingManager.Instance.StartLoad();
 
             // Listen for menu inputs
             Navigator.Instance.NavigationEvent += OnNavigationEvent;
@@ -283,10 +242,12 @@ namespace YARG.Gameplay
             Debug.Log($"Audio calibration: {_songRunner.AudioCalibration}, video calibration: {_songRunner.VideoCalibration}, song offset: {_songRunner.SongOffset}");
 #endif
 
+            // Notify everything that the song's starting
+            LoadingManager.Instance.Queue(FireSongStarted, "Starting song...");
+            await LoadingManager.Instance.StartLoad();
+
             // Loaded, enable updates
             enabled = true;
-            IsSongStarted = true;
-            _songStarted?.Invoke();
         }
 
         private void Update()
@@ -477,15 +438,19 @@ namespace YARG.Gameplay
             if (_loadState != LoadFailureState.None) return;
 
             BeatEventHandler = new(Chart.SyncTrack);
-            _chartLoaded?.Invoke(Chart);
+
+            foreach (var behaviour in _gameplayBehaviours)
+            {
+                await behaviour.OnChartLoaded(Chart);
+            }
         }
 
-        private async UniTask LoadAudio()
+        private UniTask LoadAudio()
         {
             bool isYargSong = Song.Source.Str.ToLowerInvariant() == "yarg";
             GlobalVariables.AudioManager.Options.UseMinimumStemVolume = isYargSong;
 
-            await UniTask.RunOnThreadPool(() =>
+            return UniTask.RunOnThreadPool(() =>
             {
                 try
                 {
@@ -500,14 +465,9 @@ namespace YARG.Gameplay
                     Debug.LogException(ex, this);
                 }
             });
-
-            if (_loadState != LoadFailureState.None)
-                return;
-
-            _songLoaded?.Invoke();
         }
 
-        private void CreatePlayers()
+        private async UniTask CreatePlayers()
         {
             _players = new List<BasePlayer>();
 
@@ -571,10 +531,31 @@ namespace YARG.Gameplay
                     vocalsPlayer.Initialize(index, player, Chart, playerHud);
                     _players.Add(vocalsPlayer);
                 }
+
+                // Wait for the next frame to ensure minimal frame delays
+                await UniTask.NextFrame();
             }
 
             // Make sure to set up all of the HUD positions
             _trackViewManager.SetAllHUDPositions();
+        }
+
+        private async UniTask InitializeBehaviours()
+        {
+            foreach (var behaviour in _gameplayBehaviours)
+            {
+                await behaviour.OnSongLoaded();
+            }
+        }
+
+        private async UniTask FireSongStarted()
+        {
+            IsSongStarted = true;
+
+            foreach (var behaviour in _gameplayBehaviours)
+            {
+                await behaviour.OnSongStarted();
+            }
         }
 
         public void SetSongTime(double time, double delayTime = SONG_START_DELAY)

@@ -74,8 +74,6 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            GameManager.ChartLoaded += OnChartLoaded;
-
             // Create all of the section views
             for (int i = 0; i < SECTION_VIEW_EXTRA * 2 + 1; i++)
             {
