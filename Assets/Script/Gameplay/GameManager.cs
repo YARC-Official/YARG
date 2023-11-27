@@ -276,24 +276,24 @@ namespace YARG.Gameplay
             _songRunner.Update();
             BeatEventHandler.Update(_songRunner.SongTime);
 
-            // Update players
+            // Update players first, so that score is up-to-date before everything else updates
             int totalScore = 0;
             int totalCombo = 0;
+            double totalStarsPercent = 0;
             foreach (var player in _players)
             {
-                player.UpdateWithTimes(_songRunner.InputTime);
+                player.PlayerUpdate();
 
                 totalScore += player.Score;
                 totalCombo += player.Combo;
+                totalStarsPercent += player.GetStarsPercent();
             }
 
             BandScore = totalScore;
             BandCombo = totalCombo;
+            BandStars = totalStarsPercent / _players.Count;
 
-            // Get the band stars
-            BandStars = _players.Sum(player => player.GetStarsPercent()) / _players.Count;
-
-            // Update other gameplay behaviors
+            // Update gameplay behaviors (including players)
             foreach (var behavior in _gameplayBehaviours)
             {
                 behavior.GameplayUpdate();
@@ -552,6 +552,11 @@ namespace YARG.Gameplay
             foreach (var behaviour in _gameplayBehaviours)
             {
                 await behaviour.GameplayStart();
+            }
+
+            foreach (var player in _players)
+            {
+                player.PlayerStart();
             }
         }
 

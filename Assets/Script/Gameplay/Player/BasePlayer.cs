@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using YARG.Audio;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
@@ -10,8 +9,11 @@ using YARG.Player;
 
 namespace YARG.Gameplay.Player
 {
-    public abstract class BasePlayer : GameplayBehaviour
+    // Does not use GameplayBehaviour, as players are handled specially in GameManager
+    public abstract class BasePlayer : MonoBehaviour
     {
+        protected GameManager GameManager { get; private set; }
+
         protected SyncTrack SyncTrack { get; private set; }
 
         public YargPlayer Player { get; private set; }
@@ -50,35 +52,37 @@ namespace YARG.Gameplay.Player
 
         public HitWindowSettings HitWindow { get; protected set; }
 
-        public int Score { get; protected set; }
-        public int Combo { get; protected set; }
+        public int Score => Stats.Score;
+        public int Combo => Stats.Score;
 
         public int NotesHit   { get; protected set; }
         public int TotalNotes { get; protected set; }
 
-        public bool IsFc { get; protected set; }
+        public bool IsFc { get; protected set; } = true;
 
         protected bool IsInitialized { get; private set; }
 
-        private List<GameInput> _replayInputs;
-        public IReadOnlyList<GameInput> ReplayInputs => _replayInputs.AsReadOnly();
+        private List<GameInput> _replayInputs = new();
+        public IReadOnlyList<GameInput> ReplayInputs => _replayInputs;
 
         private int _replayInputIndex;
 
-        protected override void GameplayAwake()
+        private void Awake()
         {
-            _replayInputs = new List<GameInput>();
-
             InputViewer = FindObjectOfType<BaseInputViewer>();
-
-            IsFc = true;
-        }
-
-        protected override void GameplayStart()
-        {
-            if (!GameManager.IsReplay)
+            GameManager = FindObjectOfType<GameManager>();
+            if (GameManager == null)
             {
-                SubscribeToInputEvents();
+                Debug.LogWarning($"Player object {gameObject.name} was instantiated outside of the gameplay scene!");
+                Destroy(gameObject);
+                return;
+            }
+
+            // Ensure proper initialization if the song already started
+            // (dunno why that would happen with the players, but just in case)
+            if (GameManager.IsSongStarted)
+            {
+                PlayerStart();
             }
         }
 
@@ -105,23 +109,33 @@ namespace YARG.Gameplay.Player
             IsInitialized = true;
         }
 
-        protected abstract void ResetVisuals();
-        public abstract void ResetPracticeSection();
-
-        public virtual void UpdateWithTimes(double inputTime)
+        protected virtual void OnDestroy()
         {
-            UpdateInputs(inputTime);
-            UpdateVisualsWithTimes(inputTime);
+            if (!GameManager.IsReplay)
+            {
+                UnsubscribeFromInputEvents();
+            }
         }
 
-        protected virtual void UpdateVisualsWithTimes(double inputTime)
+        public void PlayerStart()
         {
-            UpdateVisuals(inputTime);
+            if (!GameManager.IsReplay)
+            {
+                SubscribeToInputEvents();
+            }
+        }
+
+        public void PlayerUpdate()
+        {
+            UpdateInputs(GameManager.InputTime);
+            UpdateVisuals(GameManager.VisualTime);
         }
 
         protected abstract void UpdateVisuals(double time);
+        protected abstract void ResetVisuals();
 
         public abstract void SetPracticeSection(uint start, uint end);
+        public abstract void ResetPracticeSection();
 
         public virtual void SetReplayTime(double time)
         {
@@ -129,22 +143,8 @@ namespace YARG.Gameplay.Player
 
             IsFc = true;
 
-            _replayInputIndex = BaseEngine.ProcessUpToTime(time, ReplayInputs);
-            UpdateVisualsWithTimes(time);
-        }
-
-        protected virtual void FinishDestruction()
-        {
-        }
-
-        protected override void GameplayDestroy()
-        {
-            if (!GameManager.IsReplay)
-            {
-                UnsubscribeFromInputEvents();
-            }
-
-            FinishDestruction();
+            _replayInputIndex = BaseEngine.ProcessUpToTime(time, _replayInputs);
+            UpdateVisuals(time);
         }
 
         protected virtual void UpdateInputs(double time)
@@ -161,9 +161,9 @@ namespace YARG.Gameplay.Player
 
             if (GameManager.IsReplay)
             {
-                while (_replayInputIndex < ReplayInputs.Count)
+                while (_replayInputIndex < _replayInputs.Count)
                 {
-                    var input = ReplayInputs[_replayInputIndex];
+                    var input = _replayInputs[_replayInputIndex];
 
                     // Current input does not meet the time requirement
                     if (time < input.Time)
@@ -224,6 +224,8 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        protected abstract bool InterceptInput(ref GameInput input);
+
         protected virtual void OnStarPowerPhraseHit()
         {
             if (!GameManager.Paused)
@@ -241,8 +243,6 @@ namespace YARG.Gameplay.Player
                     : SfxSample.StarPowerRelease);
             }
         }
-
-        protected abstract bool InterceptInput(ref GameInput input);
 
         protected static int[] PopulateStarScoreThresholds(float[] multiplierThresh, int baseScore)
         {
