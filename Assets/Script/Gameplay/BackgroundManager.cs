@@ -1,26 +1,24 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
-using YARG.Core.Extensions;
 using YARG.Core.Venue;
-using YARG.Helpers;
 using YARG.Venue;
 
 namespace YARG.Gameplay
 {
     public class BackgroundManager : GameplayBehaviour, IDisposable
     {
-        private string VIDEO_PATH;
         [SerializeField]
         private VideoPlayer _videoPlayer;
         [SerializeField]
         private RawImage _backgroundImage;
 
         private VenueInfo _venueInfo;
+
+        private string _tempVideoPath;
 
         private bool _videoStarted = false;
         private bool _videoSeeking = false;
@@ -33,9 +31,7 @@ namespace YARG.Gameplay
         // End time cannot be negative; a negative value means it is not set.
         private double _videoEndTime;
 
-        // "The Unity message 'Start' has an incorrect signature."
-        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
-        private async UniTaskVoid Start()
+        protected override async UniTask OnSongLoadedAsync()
         {
             // We don't need to update unless we're using a video
             enabled = false;
@@ -54,7 +50,7 @@ namespace YARG.Gameplay
             switch (type)
             {
                 case BackgroundType.Yarground:
-                    var bundle = AssetBundle.LoadFromStream(stream);
+                    var bundle = await AssetBundle.LoadFromStreamAsync(stream);
 
                     // KEEP THIS PATH LOWERCASE
                     // Breaks things for other platforms, because Unity
@@ -87,11 +83,11 @@ namespace YARG.Gameplay
                     {
                         // UNFORTUNATELY, Videoplayer can't use streams, so video files
                         // MUST BE FULLY DECRYPTED
-                        VIDEO_PATH = Application.persistentDataPath + "/video.mp4";
-                        using var tmp = File.OpenWrite(VIDEO_PATH);
-                        File.SetAttributes(VIDEO_PATH, File.GetAttributes(VIDEO_PATH) | FileAttributes.Temporary);
-                        stream.CopyTo(tmp);
-                        _videoPlayer.url = VIDEO_PATH;
+                        _tempVideoPath = Application.persistentDataPath + "/video.mp4";
+                        using var tmp = File.OpenWrite(_tempVideoPath);
+                        File.SetAttributes(_tempVideoPath, File.GetAttributes(_tempVideoPath) | FileAttributes.Temporary);
+                        await stream.CopyToAsync(tmp);
+                        _videoPlayer.url = _tempVideoPath;
                     }
 
                     _videoPlayer.enabled = true;
@@ -102,13 +98,20 @@ namespace YARG.Gameplay
                     break;
                 case BackgroundType.Image:
                     var texture = new Texture2D(2, 2);
-                    if (texture.LoadImage(stream.ReadBytes((int)stream.Length)))
+                    var buffer = new byte[stream.Length];
+                    await stream.ReadAsync(buffer);
+                    if (texture.LoadImage(buffer))
                     {
                         _backgroundImage.gameObject.SetActive(true);
                         _backgroundImage.texture = texture;
                     }
                     break;
             }
+        }
+
+        protected override void OnSongStarted()
+        {
+            enabled = _videoPlayer.enabled;
         }
 
         private void Update()
@@ -130,10 +133,10 @@ namespace YARG.Gameplay
 
                 _videoStarted = true;
                 _videoPlayer.Play();
-                if (VIDEO_PATH != null)
+                if (_tempVideoPath != null)
                 {
-                    File.Delete(VIDEO_PATH);
-                    VIDEO_PATH = null;
+                    File.Delete(_tempVideoPath);
+                    _tempVideoPath = null;
                 }
 
                 // Disable after starting the video if it's not from the song folder
@@ -277,10 +280,10 @@ namespace YARG.Gameplay
 
         public void Dispose()
         {
-            if (VIDEO_PATH != null)
+            if (_tempVideoPath != null)
             {
-                File.Delete(VIDEO_PATH);
-                VIDEO_PATH = null;
+                File.Delete(_tempVideoPath);
+                _tempVideoPath = null;
             }
         }
 
