@@ -379,12 +379,14 @@ namespace YARG.Input
                 if (!binding.Device.MatchesDevice(device))
                     continue;
 
+                // Remove regardless of if deserialization fails, no point keeping broken bindings around
+                _unresolvedBindings.RemoveAt(i);
+                i--;
+
                 var deserialized = DeserializeControl(device, binding);
                 if (deserialized is null)
                     continue;
 
-                _unresolvedBindings.RemoveAt(i);
-                i--;
                 AddBinding(deserialized);
                 controlsModified = true;
             }
