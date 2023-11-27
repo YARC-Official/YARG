@@ -243,7 +243,8 @@ namespace YARG.Gameplay
 #endif
 
             // Notify everything that the song's starting
-            LoadingManager.Instance.Queue(FireSongStarted, "Starting song...");
+            IsSongStarted = true;
+            LoadingManager.Instance.Queue(StartBehaviors, "Starting song...");
             await LoadingManager.Instance.StartLoad();
 
             // Loaded, enable updates
@@ -438,11 +439,6 @@ namespace YARG.Gameplay
             if (_loadState != LoadFailureState.None) return;
 
             BeatEventHandler = new(Chart.SyncTrack);
-
-            foreach (var behaviour in _gameplayBehaviours)
-            {
-                await behaviour.OnChartLoaded(Chart);
-            }
         }
 
         private UniTask LoadAudio()
@@ -544,17 +540,15 @@ namespace YARG.Gameplay
         {
             foreach (var behaviour in _gameplayBehaviours)
             {
-                await behaviour.OnSongLoaded();
+                await behaviour.GameplayLoad();
             }
         }
 
-        private async UniTask FireSongStarted()
+        private async UniTask StartBehaviors()
         {
-            IsSongStarted = true;
-
             foreach (var behaviour in _gameplayBehaviours)
             {
-                await behaviour.OnSongStarted();
+                await behaviour.GameplayStart();
             }
         }
 

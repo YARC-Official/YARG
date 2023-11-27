@@ -30,7 +30,7 @@ namespace YARG.Gameplay.HUD
 
         private string TimeFormat => _songHasHours ? TIME_FORMAT_HOURS : TIME_FORMAT;
 
-        private void Start()
+        protected override void GameplayAwake()
         {
             _scoreText.text = SCORE_PREFIX + "0";
             _songTimer.text = string.Empty;
@@ -38,7 +38,7 @@ namespace YARG.Gameplay.HUD
             _songProgressBar.SetProgress(0f);
         }
 
-        protected override void OnSongStarted()
+        protected override void GameplayStart()
         {
             var timeSpan = TimeSpan.FromSeconds(GameManager.SongLength);
             _songHasHours = timeSpan.TotalHours >= 1.0;

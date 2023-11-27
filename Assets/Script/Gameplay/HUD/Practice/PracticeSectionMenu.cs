@@ -103,8 +103,9 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        protected override void OnChartLoaded(SongChart chart)
+        protected override void GameplayLoad()
         {
+            var chart = GameManager.Chart;
             _sections = chart.Sections;
             _finalTick = chart.GetLastTick();
             _finalChartTime = chart.SyncTrack.TickToTime(_finalTick);

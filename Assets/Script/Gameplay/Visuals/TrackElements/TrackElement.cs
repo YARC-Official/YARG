@@ -25,7 +25,7 @@ namespace YARG.Gameplay.Visuals
             base.GameplayAwake();
         }
 
-        private void Start()
+        protected override void GameplayStart()
         {
             // Get fade info
             float fadePos = Player.ZeroFadePosition;

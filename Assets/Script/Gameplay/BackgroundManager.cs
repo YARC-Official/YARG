@@ -31,7 +31,7 @@ namespace YARG.Gameplay
         // End time cannot be negative; a negative value means it is not set.
         private double _videoEndTime;
 
-        protected override async UniTask OnSongLoadedAsync()
+        protected override async UniTask GameplayLoadAsync()
         {
             // We don't need to update unless we're using a video
             enabled = false;
@@ -109,7 +109,7 @@ namespace YARG.Gameplay
             }
         }
 
-        protected override void OnSongStarted()
+        protected override void GameplayStart()
         {
             enabled = _videoPlayer.enabled;
         }

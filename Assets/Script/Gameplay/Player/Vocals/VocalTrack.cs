@@ -93,7 +93,7 @@ namespace YARG.Gameplay.Player
 
         public bool HarmonyShowing => _vocalsTrack.Instrument == Instrument.Harmony;
 
-        private void Start()
+        protected override void GameplayAwake()
         {
             Assert.AreEqual(_notePools.Length, 3,
                 "Note pools must be of length three (one for each harmony part).");

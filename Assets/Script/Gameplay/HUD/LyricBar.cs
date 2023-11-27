@@ -55,9 +55,9 @@ namespace YARG.Gameplay.HUD
             _lyricText.text = string.Empty;
         }
 
-        protected override void OnChartLoaded(SongChart chart)
+        protected override void GameplayLoad()
         {
-            var vocalsPart = chart.Vocals.Parts[0];
+            var vocalsPart = GameManager.Chart.Vocals.Parts[0];
 
             // If not vocals, hide the lyric bar
             if (vocalsPart.NotePhrases.Count <= 0)

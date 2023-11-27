@@ -38,9 +38,9 @@ namespace YARG.Gameplay.HUD
             _goldMeterHeight = GetComponent<RectTransform>().rect.height;
         }
 
-        protected override void OnChartLoaded(SongChart chart)
+        protected override void GameplayLoad()
         {
-            _measures = chart.SyncTrack.Beatlines.Where(b => b.Type == BeatlineType.Measure).GetEnumerator();
+            _measures = GameManager.Chart.SyncTrack.Beatlines.Where(b => b.Type == BeatlineType.Measure).GetEnumerator();
             _measures.MoveNext();
         }
 

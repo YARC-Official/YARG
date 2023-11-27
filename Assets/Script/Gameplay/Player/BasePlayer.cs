@@ -74,7 +74,7 @@ namespace YARG.Gameplay.Player
             IsFc = true;
         }
 
-        protected void Start()
+        protected override void GameplayStart()
         {
             if (!GameManager.IsReplay)
             {

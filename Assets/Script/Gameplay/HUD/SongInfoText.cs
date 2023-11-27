@@ -14,7 +14,7 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private TextMeshProUGUI _text;
 
-        private void Start()
+        protected override void GameplayStart()
         {
             // Start fading out
             StartCoroutine(FadeCoroutine());

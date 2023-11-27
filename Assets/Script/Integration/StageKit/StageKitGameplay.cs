@@ -22,9 +22,17 @@ namespace YARG.Integration.StageKit
         private int _drumIndex;
         private StageKitLightingController _controller;
 
-        protected override void OnChartLoaded(SongChart chart)
+        protected override void GameplayAwake()
         {
             _controller = StageKitLightingController.Instance;
+            _controller.CurrentLightingCue = null;
+            _controller.StageKits.ForEach(kit => kit.ResetHaptics());
+        }
+
+        protected override void GameplayLoad()
+        {
+            var chart = GameManager.Chart;
+
             //Should be read from the venue itself eventually but for now, randomize it.
             _controller.LargeVenue = Random.Range(0, 1) == 1;
             _venue = chart.VenueTrack;
@@ -37,9 +45,6 @@ namespace YARG.Integration.StageKit
             _lightingIndex = 0;
             _eventIndex = 0;
             _drumIndex = 0;
-
-            _controller.CurrentLightingCue = null;
-            StageKitLightingController.Instance.StageKits.ForEach(kit => kit.ResetHaptics());
         }
 
         private void Update()

@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-using YARG.Core.Chart;
 
 namespace YARG.Gameplay
 {
@@ -25,9 +24,8 @@ namespace YARG.Gameplay
         // Private interface for initialization from GameManager
         private interface IGameplayBehaviour
         {
-            UniTask OnChartLoaded(SongChart chart);
-            UniTask OnSongLoaded();
-            UniTask OnSongStarted();
+            UniTask GameplayLoad();
+            UniTask GameplayStart();
         }
 
         public abstract class GameplayBehaviourImpl : MonoBehaviour, IGameplayBehaviour
@@ -58,11 +56,17 @@ namespace YARG.Gameplay
                 // Ensure initialization occurs even if the song manager has already started
                 if (GameManager.IsSongStarted)
                 {
-                    await OnChartLoadedAsync(GameManager.Chart);
-                    await OnSongLoadedAsync();
-                    await OnSongStartedAsync();
+                    await GameplayLoadAsync();
+                    await GameplayStartAsync();
                 }
             }
+
+#if UNITY_EDITOR // Only used for detecting incorrect usages
+            // Protected to warn when hidden by an inheriting class
+            // "The Unity message 'Start' is empty."
+            [SuppressMessage("Performance", "UNT0001", Justification = "Deliberately empty for usage detection.")]
+            protected void Start() { }
+#endif
 
             // Protected to warn when hidden by an inheriting class
             protected void OnDestroy()
@@ -83,50 +87,35 @@ namespace YARG.Gameplay
             }
 
             // Private interface thunks for GameManager initialization
-            UniTask IGameplayBehaviour.OnChartLoaded(SongChart chart)
+            UniTask IGameplayBehaviour.GameplayLoad()
             {
-                return OnChartLoadedAsync(chart);
+                return GameplayLoadAsync();
             }
 
-            UniTask IGameplayBehaviour.OnSongLoaded()
-            {
-                return OnSongLoadedAsync();
-            }
-
-            UniTask IGameplayBehaviour.OnSongStarted()
+            UniTask IGameplayBehaviour.GameplayStart()
             {
                 enabled = true;
-                return OnSongStartedAsync();
+                return GameplayStartAsync();
             }
 
             // Default async implementations which call the synchronous versions
-            protected virtual UniTask OnChartLoadedAsync(SongChart chart)
+            protected virtual UniTask GameplayLoadAsync()
             {
-                OnChartLoaded(chart);
+                GameplayLoad();
                 return UniTask.CompletedTask;
             }
 
-            protected virtual UniTask OnSongLoadedAsync()
+            protected virtual UniTask GameplayStartAsync()
             {
-                OnSongLoaded();
+                GameplayStart();
                 return UniTask.CompletedTask;
             }
 
-            protected virtual UniTask OnSongStartedAsync()
-            {
-                OnSongStarted();
-                return UniTask.CompletedTask;
-            }
-
-            protected virtual void OnChartLoaded(SongChart chart)
+            protected virtual void GameplayLoad()
             {
             }
 
-            protected virtual void OnSongLoaded()
-            {
-            }
-
-            protected virtual void OnSongStarted()
+            protected virtual void GameplayStart()
             {
             }
         }

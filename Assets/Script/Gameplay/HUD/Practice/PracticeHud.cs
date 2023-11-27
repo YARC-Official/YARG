@@ -35,16 +35,13 @@ namespace YARG.Gameplay.HUD
 
         protected override void GameplayAwake()
         {
-            _sections = Array.Empty<Section>();
-            _currentSectionIndex = 0;
-        }
-
-        private void Start()
-        {
             if (!GameManager.IsPractice)
             {
                 Destroy(gameObject);
             }
+
+            _sections = Array.Empty<Section>();
+            _currentSectionIndex = 0;
         }
 
         private void Update()
