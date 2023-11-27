@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using YARG.Core;
+using YARG.Core.Game;
 
 namespace YARG.Themes
 {
@@ -15,7 +16,9 @@ namespace YARG.Themes
                 GameMode.FourLaneDrums,
                 GameMode.FiveLaneDrums,
                 GameMode.ProKeys
-            }
+            },
+            PreferredColorProfile = ColorProfile.Default.Id,
+            PreferredCameraPreset = CameraPreset.Default.Id
         };
 
         public static readonly List<ThemePreset> Defaults = new()
@@ -27,7 +30,9 @@ namespace YARG.Themes
                 SupportedGameModes =
                 {
                     GameMode.FiveFretGuitar
-                }
+                },
+                PreferredColorProfile = ColorProfile.CircularDefault.Id,
+                PreferredCameraPreset = CameraPreset.CircularDefault.Id,
             }
         };
     }

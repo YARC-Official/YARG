@@ -13,6 +13,9 @@ namespace YARG.Themes
 
         public List<GameMode> SupportedGameModes = new();
 
+        public Guid PreferredColorProfile = Guid.Empty;
+        public Guid PreferredCameraPreset = Guid.Empty;
+
         public ThemePreset(string name, bool defaultPreset)
             : base(name, defaultPreset)
         {
