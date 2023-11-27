@@ -24,6 +24,8 @@ namespace YARG.Gameplay
         // Private interface for interaction from GameManager
         private interface IGameplayBehaviour
         {
+            bool Exists { get; }
+
             UniTask GameplayLoad();
             UniTask GameplayStart();
             void GameplayUpdate();
@@ -85,13 +87,16 @@ namespace YARG.Gameplay
 
                 if (GameManager == null) return;
 
-                GameManager._gameplayBehaviours.Remove(this);
+                // Handled by GameManager to make enumeration simpler
+                // GameManager._gameplayBehaviours.Remove(this);
             }
 
             protected virtual void GameplayAwake() { }
             protected virtual void GameplayDestroy() { }
 
             // Private interface thunks
+            bool IGameplayBehaviour.Exists => this != null;
+
             UniTask IGameplayBehaviour.GameplayLoad() => GameplayLoadAsync();
 
             UniTask IGameplayBehaviour.GameplayStart()

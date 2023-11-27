@@ -293,10 +293,21 @@ namespace YARG.Gameplay
             BandCombo = totalCombo;
             BandStars = totalStarsPercent / _players.Count;
 
-            // Update gameplay behaviors (including players)
-            foreach (var behavior in _gameplayBehaviours)
+            // Update gameplay behaviours (including players)
+            // Manual indexing to prevent enumeration errors if behaviours are added/removed in an update
+            for (int i = 0; i < _gameplayBehaviours.Count; i++)
             {
-                behavior.GameplayUpdate();
+                var behaviour = _gameplayBehaviours[i];
+
+                // Check if the behaviour was removed
+                if (!behaviour.Exists)
+                {
+                    _gameplayBehaviours.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+
+                behaviour.GameplayUpdate();
             }
 
             // Debug text
@@ -541,16 +552,36 @@ namespace YARG.Gameplay
 
         private async UniTask InitializeBehaviours()
         {
-            foreach (var behaviour in _gameplayBehaviours)
+            for (int i = 0; i < _gameplayBehaviours.Count; i++)
             {
+                var behaviour = _gameplayBehaviours[i];
+
+                // Check if the behaviour removed itself in GameplayAwake
+                if (!behaviour.Exists)
+                {
+                    _gameplayBehaviours.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+
                 await behaviour.GameplayLoad();
             }
         }
 
         private async UniTask StartBehaviors()
         {
-            foreach (var behaviour in _gameplayBehaviours)
+            for (int i = 0; i < _gameplayBehaviours.Count; i++)
             {
+                var behaviour = _gameplayBehaviours[i];
+
+                // Check if the behaviour removed itself in GameplayLoad
+                if (!behaviour.Exists)
+                {
+                    _gameplayBehaviours.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+
                 await behaviour.GameplayStart();
             }
 
