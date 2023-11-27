@@ -51,8 +51,6 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            speedPercentText.text = $"{GameManager.SelectedSongSpeed * 100f:0}%";
-
             int notesHit = 0;
             int totalNotes = 0;
             foreach (var player in GameManager.Players)
@@ -82,6 +80,11 @@ namespace YARG.Gameplay.HUD
                     sectionText.text = $"{_sections[_currentSectionIndex].Name}";
                 }
             }
+        }
+
+        protected override void SetSpeed(float speed)
+        {
+            speedPercentText.text = $"{GameManager.SelectedSongSpeed * 100f:0}%";
         }
 
         public void ResetPractice()

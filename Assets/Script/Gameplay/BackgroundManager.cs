@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -208,7 +208,7 @@ namespace YARG.Gameplay
             }
         }
 
-        public void SetTime(double songTime)
+        protected override void SeekToTime(double songTime)
         {
             switch (_venueInfo.Type)
             {
@@ -259,7 +259,7 @@ namespace YARG.Gameplay
             _videoSeeking = false;
         }
 
-        public void SetSpeed(float speed)
+        protected override void SetSpeed(float speed)
         {
             switch (_venueInfo.Type)
             {
@@ -269,7 +269,7 @@ namespace YARG.Gameplay
             }
         }
 
-        public void SetPaused(bool paused)
+        protected override void SetPaused(bool paused)
         {
             // Pause/unpause video
             if (_videoPlayer.enabled && _videoStarted && !_videoSeeking)

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -87,7 +87,6 @@ namespace YARG.Gameplay
         public BeatEventHandler BeatEventHandler { get; private set; }
 
         public PracticeManager  PracticeManager  { get; private set; }
-        public BackgroundManager BackgroundManager { get; private set; }
 
         public SongMetadata Song  { get; private set; }
         public SongChart    Chart { get; private set; }
@@ -141,7 +140,6 @@ namespace YARG.Gameplay
         {
             // Set references
             PracticeManager = GetComponent<PracticeManager>();
-            BackgroundManager = GetComponent<BackgroundManager>();
 
             _yargPlayers = PlayerContainer.Players;
 
@@ -560,24 +558,25 @@ namespace YARG.Gameplay
         public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
         {
             _songRunner.SetSongTime(time, delayTime);
-
             BeatEventHandler.ResetTimers();
-            BackgroundManager.SetTime(_songRunner.SongTime);
+
+            foreach (var behaviour in _gameplayBehaviours)
+            {
+                behaviour.SeekToTime(_songRunner.SongTime);
+            }
         }
 
         public void SetSongSpeed(float speed)
         {
             _songRunner.SetSongSpeed(speed);
 
-            BackgroundManager.SetSpeed(_songRunner.SelectedSongSpeed);
+            foreach (var behaviour in _gameplayBehaviours)
+            {
+                behaviour.SeekToTime(_songRunner.SelectedSongSpeed);
+            }
         }
 
-        public void AdjustSongSpeed(float deltaSpeed)
-        {
-            _songRunner.AdjustSongSpeed(deltaSpeed);
-
-            BackgroundManager.SetSpeed(_songRunner.SelectedSongSpeed);
-        }
+        public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(_songRunner.SelectedSongSpeed + deltaSpeed);
 
         public void Pause(bool showMenu = true)
         {
@@ -607,8 +606,12 @@ namespace YARG.Gameplay
 
             // Pause the background/venue
             Time.timeScale = 0f;
-            BackgroundManager.SetPaused(true);
+
             GameStateFetcher.SetPaused(true);
+            foreach (var behaviour in _gameplayBehaviours)
+            {
+                behaviour.SetPaused(true);
+            }
         }
 
         public void Resume(bool inputCompensation = true)
@@ -616,16 +619,19 @@ namespace YARG.Gameplay
             _songRunner.Resume(inputCompensation);
             if (_songRunner.PendingPauses > 1) return;
 
+            _isReplaySaved = false;
+
             _pauseMenu.gameObject.SetActive(false);
+            _debugText.gameObject.SetActive(_isShowDebugText);
 
             // Unpause the background/venue
             Time.timeScale = 1f;
-            BackgroundManager.SetPaused(false);
+
             GameStateFetcher.SetPaused(false);
-
-            _isReplaySaved = false;
-
-            _debugText.gameObject.SetActive(_isShowDebugText);
+            foreach (var behaviour in _gameplayBehaviours)
+            {
+                behaviour.SetPaused(false);
+            }
         }
 
         public void SetPaused(bool paused)

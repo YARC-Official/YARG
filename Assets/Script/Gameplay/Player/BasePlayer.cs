@@ -110,11 +110,6 @@ namespace YARG.Gameplay.Player
 
         public virtual void UpdateWithTimes(double inputTime)
         {
-            if (GameManager.Paused)
-            {
-                return;
-            }
-
             UpdateInputs(inputTime);
             UpdateVisualsWithTimes(inputTime);
         }

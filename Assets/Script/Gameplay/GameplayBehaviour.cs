@@ -9,7 +9,7 @@ namespace YARG.Gameplay
     /// </summary>
     /// <remarks>
     /// This class provides guarantees regarding using <see cref="GameManager"/>, such as disabling updates
-    /// until it's finished loading, and also provides hooks for initialization as it loads.
+    /// until it's finished loading, and also provides hooks for various events.
     /// <br/>
     /// When inheriting, do *NOT* use <c>Awake()</c> or <c>OnDestroy()</c>!
     /// Override the <see cref="GameplayAwake"/> and <see cref="GameplayDestroy"/> methods instead.
@@ -21,12 +21,16 @@ namespace YARG.Gameplay
 
     public partial class GameManager
     {
-        // Private interface for initialization from GameManager
+        // Private interface for interaction from GameManager
         private interface IGameplayBehaviour
         {
             UniTask GameplayLoad();
             UniTask GameplayStart();
             void GameplayUpdate();
+
+            void SetPaused(bool paused);
+            void SetSpeed(float speed);
+            void SeekToTime(double songTime);
         }
 
         public abstract class GameplayBehaviourImpl : MonoBehaviour, IGameplayBehaviour
@@ -102,6 +106,10 @@ namespace YARG.Gameplay
                 GameplayUpdate();
             }
 
+            void IGameplayBehaviour.SetPaused(bool paused) => SetPaused(paused);
+            void IGameplayBehaviour.SetSpeed(float speed) => SetSpeed(speed);
+            void IGameplayBehaviour.SeekToTime(double songTime) => SeekToTime(songTime);
+
             // Default async implementations which call the synchronous versions
             protected virtual UniTask GameplayLoadAsync()
             {
@@ -118,6 +126,10 @@ namespace YARG.Gameplay
             protected virtual void GameplayLoad() { }
             protected virtual void GameplayStart() { }
             protected virtual void GameplayUpdate() { }
+
+            protected virtual void SetPaused(bool paused) { }
+            protected virtual void SetSpeed(float speed) { }
+            protected virtual void SeekToTime(double songTime) { }
         }
     }
 }
