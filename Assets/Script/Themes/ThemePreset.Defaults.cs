@@ -5,7 +5,7 @@ namespace YARG.Themes
 {
     public partial class ThemePreset
     {
-        public static ThemePreset Default = new ThemePreset("Rectangular", true)
+        public static ThemePreset Default = new("Rectangular", true)
         {
             AssetBundleThemePath = "Themes/Rectangular",
             SupportedGameModes =
