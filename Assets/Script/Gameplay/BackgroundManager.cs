@@ -9,7 +9,7 @@ using YARG.Venue;
 
 namespace YARG.Gameplay
 {
-    public class BackgroundManager : GameplayBehaviour, IDisposable
+    public class BackgroundManager : GameplayBehaviour
     {
         [SerializeField]
         private VideoPlayer _videoPlayer;
@@ -112,6 +112,15 @@ namespace YARG.Gameplay
         protected override void GameplayStart()
         {
             enabled = _videoPlayer.enabled;
+        }
+
+        protected override void GameplayDestroy()
+        {
+            if (_tempVideoPath != null)
+            {
+                File.Delete(_tempVideoPath);
+                _tempVideoPath = null;
+            }
         }
 
         private void Update()
@@ -276,20 +285,6 @@ namespace YARG.Gameplay
             }
 
             // The venue is dealt with in the GameManager via Time.timeScale
-        }
-
-        public void Dispose()
-        {
-            if (_tempVideoPath != null)
-            {
-                File.Delete(_tempVideoPath);
-                _tempVideoPath = null;
-            }
-        }
-
-        ~BackgroundManager()
-        {
-            Dispose();
         }
     }
 }
