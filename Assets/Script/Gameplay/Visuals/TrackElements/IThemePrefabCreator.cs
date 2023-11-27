@@ -12,13 +12,13 @@ namespace YARG.Gameplay.Visuals
         /// <param name="models">
         /// A dictionary of <see cref="ThemeNoteType"/> <see cref="GameObject"/> pairs.
         /// </param>
-        /// <param name="starpowerModels">
+        /// <param name="starPowerModels">
         /// Same as the <paramref name="models"/> parameter but for starpower variants.
         /// The key for a specific <see cref="ThemeNoteType"/> may not be present if the theme
-        /// doesn't specify a starpower variant.
+        /// doesn't specify a star power variant.
         /// </param>
         public void SetThemeModels(
             Dictionary<ThemeNoteType, GameObject> models,
-            Dictionary<ThemeNoteType, GameObject> starpowerModels);
+            Dictionary<ThemeNoteType, GameObject> starPowerModels);
     }
 }

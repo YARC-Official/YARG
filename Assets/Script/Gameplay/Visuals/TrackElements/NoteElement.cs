@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Gameplay.Player;
@@ -31,17 +32,48 @@ namespace YARG.Gameplay.Visuals
         protected NoteGroup[] NoteGroups;
         [HideInInspector]
         [SerializeField]
-        protected NoteGroup[] StarpowerNoteGroups;
+        protected NoteGroup[] StarPowerNoteGroups;
 
         protected NoteGroup NoteGroup;
 
         public override double ElementTime => NoteRef.Time;
 
-        public abstract void SetThemeModels(ThemeDict models, ThemeDict starpowerModels);
+        private bool _lastStarPowerState;
+
+        public abstract void SetThemeModels(ThemeDict models, ThemeDict starPowerModels);
 
         protected override void InitializeElement()
         {
             SustainState = SustainState.Waiting;
+            _lastStarPowerState = NoteRef.IsStarPower;
+        }
+
+        protected override void UpdateElement()
+        {
+            if (_lastStarPowerState != NoteRef.IsStarPower)
+            {
+                OnStarPowerStateChanged();
+                _lastStarPowerState = NoteRef.IsStarPower;
+            }
+        }
+
+        protected virtual void OnStarPowerStateChanged()
+        {
+            // If we still have star power, skip
+            if (NoteRef.IsStarPower) return;
+
+            // If we did have star power, and the user lost it, then swap the model out
+            int index = Array.IndexOf(StarPowerNoteGroups, NoteGroup);
+            if (index != -1 && NoteGroup != NoteGroups[index])
+            {
+                // Disable the old note group
+                NoteGroup.SetActive(false);
+
+                // Enable the new one
+                NoteGroup = NoteGroups[index];
+                NoteGroup.SetActive(true);
+                NoteGroup.InitializeRandomness();
+            }
         }
 
         public virtual void HitNote()
@@ -68,7 +100,7 @@ namespace YARG.Gameplay.Visuals
                 note.SetActive(false);
             }
 
-            foreach (var note in StarpowerNoteGroups)
+            foreach (var note in StarPowerNoteGroups)
             {
                 if (note == null) return;
 
@@ -93,7 +125,7 @@ namespace YARG.Gameplay.Visuals
         protected void CreateNoteGroupArrays(int len)
         {
             NoteGroups = new NoteGroup[len];
-            StarpowerNoteGroups = new NoteGroup[len];
+            StarPowerNoteGroups = new NoteGroup[len];
         }
 
         protected void AssignNoteGroup(ThemeDict models, ThemeDict starpowerModels,
@@ -104,11 +136,11 @@ namespace YARG.Gameplay.Visuals
 
             if (starpowerModels.TryGetValue(noteType, out var starpowerModel))
             {
-                StarpowerNoteGroups[index] = CreateNoteGroupFromTheme(starpowerModel);
+                StarPowerNoteGroups[index] = CreateNoteGroupFromTheme(starpowerModel);
             }
             else
             {
-                StarpowerNoteGroups[index] = normalNote;
+                StarPowerNoteGroups[index] = normalNote;
             }
         }
     }

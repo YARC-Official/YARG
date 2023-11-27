@@ -12,7 +12,7 @@ namespace YARG.Gameplay.Visuals
         {
             base.InitializeElement();
 
-            var noteGroups = NoteRef.IsStarPower ? StarpowerNoteGroups : NoteGroups;
+            var noteGroups = NoteRef.IsStarPower ? StarPowerNoteGroups : NoteGroups;
 
             if (NoteRef.Pad != 0)
             {

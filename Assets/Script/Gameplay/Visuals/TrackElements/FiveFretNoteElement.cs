@@ -49,7 +49,7 @@ namespace YARG.Gameplay.Visuals
         {
             base.InitializeElement();
 
-            var noteGroups = NoteRef.IsStarPower ? StarpowerNoteGroups : NoteGroups;
+            var noteGroups = NoteRef.IsStarPower ? StarPowerNoteGroups : NoteGroups;
 
             if (NoteRef.Fret != 0)
             {
@@ -121,11 +121,16 @@ namespace YARG.Gameplay.Visuals
 
         protected override void UpdateElement()
         {
-            // Color should be updated every frame in case of starpower state changes
-            UpdateColor();
+            base.UpdateElement();
 
-            // Update sustain line
             UpdateSustain();
+        }
+
+        protected override void OnStarPowerStateChanged()
+        {
+            base.OnStarPowerStateChanged();
+
+            UpdateColor();
         }
 
         private void UpdateSustain()

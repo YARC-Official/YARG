@@ -35,9 +35,10 @@ namespace YARG.Gameplay.Visuals
             ParentPool.Return(this);
         }
 
-        protected override void UpdateElement()
+        protected override void OnStarPowerStateChanged()
         {
-            // Color should be updated every frame in case of starpower state changes
+            base.OnStarPowerStateChanged();
+
             UpdateColor();
         }
 
