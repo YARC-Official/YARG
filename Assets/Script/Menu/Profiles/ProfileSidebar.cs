@@ -9,6 +9,8 @@ using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Helpers;
+using YARG.Menu.Data;
+using YARG.Menu.Persistent;
 using YARG.Player;
 using YARG.Scores;
 using YARG.Settings.Customization;
@@ -126,9 +128,12 @@ namespace YARG.Menu.Profiles
             _leftyFlipToggle.isOn = profile.LeftyFlip;
 
             // Update preset dropdowns
-            _themeDropdown.value = _themesByIndex.IndexOf(profile.ThemePreset);
-            _colorProfileDropdown.value = _colorProfilesByIndex.IndexOf(profile.ColorProfile);
-            _cameraPresetDropdown.value = _cameraPresetsByIndex.IndexOf(profile.CameraPreset);
+            _themeDropdown.SetValueWithoutNotify(
+                _themesByIndex.IndexOf(profile.ThemePreset));
+            _colorProfileDropdown.SetValueWithoutNotify(
+                _colorProfilesByIndex.IndexOf(profile.ColorProfile));
+            _cameraPresetDropdown.SetValueWithoutNotify(
+                _cameraPresetsByIndex.IndexOf(profile.CameraPreset));
 
             // Show the proper name container (hide the editing version)
             _nameContainer.SetActive(true);
@@ -236,7 +241,57 @@ namespace YARG.Menu.Profiles
 
         public void ChangeTheme()
         {
-            _profile.ThemePreset = _themesByIndex[_themeDropdown.value];
+            var themeGuid = _themesByIndex[_themeDropdown.value];
+
+            // Skip if there are no changes
+            if (themeGuid == _profile.ThemePreset) return;
+
+            _profile.ThemePreset = themeGuid;
+
+            var themePreset = CustomContentManager.ThemePresets.GetPresetById(themeGuid);
+
+            bool hasPresets = false;
+            var presets = string.Empty;
+
+            // Check camera presets
+            if (CustomContentManager.CameraSettings
+                .TryGetPresetById(themePreset.PreferredCameraPreset, out var cameraPreset))
+            {
+                hasPresets = true;
+                presets += $"<color=yellow>Camera Preset: {cameraPreset.Name}</color>\n";
+            }
+
+            // Check color profiles
+            if (CustomContentManager.ColorProfiles
+                .TryGetPresetById(themePreset.PreferredColorProfile, out var colorProfile))
+            {
+                hasPresets = true;
+                presets += $"<color=yellow>Color Profile: {colorProfile.Name}</color>\n";
+            }
+
+            // Skip if there are no preferred presets
+            if (!hasPresets) return;
+
+            // Ask user if they'd like to apply the preferred presets
+            var dialog = DialogManager.Instance.ShowMessage("Apply Recommended Presets?",
+                "This theme has recommended presets. These presets will make the theme look as intended. " +
+                "Would you like to apply them?\n\n" + presets.Trim());
+            dialog.ClearButtons();
+
+            // Add buttons
+
+            dialog.AddDialogButton("Cancel", MenuData.Colors.CancelButton,
+                () => DialogManager.Instance.ClearDialog());
+
+            dialog.AddDialogButton("Apply", MenuData.Colors.ConfirmButton, () =>
+            {
+                _profile.CameraPreset = cameraPreset?.Id ?? CameraPreset.Default.Id;
+                _profile.ColorProfile = colorProfile?.Id ?? ColorProfile.Default.Id;
+
+                UpdateSidebar(_profile, _profileView);
+
+                DialogManager.Instance.SubmitAndClearDialog();
+            });
         }
 
         public void ChangeColorProfile()

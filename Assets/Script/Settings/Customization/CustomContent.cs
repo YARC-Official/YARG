@@ -273,6 +273,9 @@ namespace YARG.Settings.Customization
 
         public T GetPresetById(Guid guid)
         {
+            // Skip early if empty
+            if (guid == Guid.Empty) return null;
+
             foreach (var preset in DefaultPresets)
             {
                 if (preset.Id == guid) return preset;
@@ -284,6 +287,12 @@ namespace YARG.Settings.Customization
             }
 
             return null;
+        }
+
+        public bool TryGetPresetById(Guid guid, out T preset)
+        {
+            preset = GetPresetById(guid);
+            return preset is not null;
         }
 
         public override BasePreset GetBasePresetById(Guid guid)
