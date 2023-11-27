@@ -52,7 +52,7 @@ namespace YARG.Input
         /// </summary>
         public static double CurrentInputTime => InputState.currentTime;
 
-        private static List<InputDevice> _ignoredDevices = new();
+        private static List<InputDevice> _disabledDevices = new();
 
         // We do this song and dance of tracking focus changes manually rather than setting
         // InputSettings.backgroundBehavior to IgnoreFocus, so that input is still (largely) disabled when unfocused
@@ -85,6 +85,12 @@ namespace YARG.Input
             ToastManager.ToastInformation("Devices found: " + (Microphone.devices.Length + InputSystem.devices.Count));
             foreach (var device in InputSystem.devices)
             {
+                if (!device.enabled)
+                {
+                    _disabledDevices.Add(device);
+                    continue;
+                }
+
                 DeviceAdded?.Invoke(device);
             }
         }
@@ -214,7 +220,7 @@ namespace YARG.Input
                     // Necessary for VariantDevice devices in PlasticBand
                     if (!device.enabled)
                     {
-                        _ignoredDevices.Add(device);
+                        _disabledDevices.Add(device);
                         return;
                     }
 
@@ -238,14 +244,19 @@ namespace YARG.Input
                         return;
                     }
 
+                    if (!_disabledDevices.Contains(device))
+                        return;
+
+                    ToastManager.ToastMessage($"Device added: {device.displayName}");
+                    _disabledDevices.Remove(device);
                     DeviceAdded?.Invoke(device);
                     break;
 
                 case InputDeviceChange.Removed:
-                    // Don't toast for ignored devices
-                    if (_ignoredDevices.Contains(device))
+                    // Don't toast for disabled devices
+                    if (_disabledDevices.Contains(device))
                     {
-                        _ignoredDevices.Remove(device);
+                        _disabledDevices.Remove(device);
                         return;
                     }
 
@@ -266,6 +277,11 @@ namespace YARG.Input
                         return;
                     }
 
+                    if (_disabledDevices.Contains(device))
+                        return;
+
+                    ToastManager.ToastMessage($"Device removed: {device.displayName}");
+                    _disabledDevices.Add(device);
                     DeviceRemoved?.Invoke(device);
                     break;
             }
