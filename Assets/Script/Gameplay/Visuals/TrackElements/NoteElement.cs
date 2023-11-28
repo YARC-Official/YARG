@@ -108,35 +108,21 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        protected NoteGroup CreateNoteGroupFromTheme(GameObject themeModel)
-        {
-            var noteObj = new GameObject("Note Group");
-            var noteTransform = noteObj.transform;
-
-            noteTransform.parent = transform;
-            noteTransform.localPosition = Vector3.zero;
-
-            var noteGroup = noteObj.AddComponent<NoteGroup>();
-            noteGroup.SetModelFromTheme(themeModel);
-
-            return noteGroup;
-        }
-
         protected void CreateNoteGroupArrays(int len)
         {
             NoteGroups = new NoteGroup[len];
             StarPowerNoteGroups = new NoteGroup[len];
         }
 
-        protected void AssignNoteGroup(ThemeDict models, ThemeDict starpowerModels,
+        protected void AssignNoteGroup(ThemeDict models, ThemeDict starPowerModels,
             int index, ThemeNoteType noteType)
         {
-            var normalNote = CreateNoteGroupFromTheme(models[noteType]);
+            var normalNote = NoteGroup.CreateNoteGroupFromTheme(transform, models[noteType]);
             NoteGroups[index] = normalNote;
 
-            if (starpowerModels.TryGetValue(noteType, out var starpowerModel))
+            if (starPowerModels.TryGetValue(noteType, out var starPowerModel))
             {
-                StarPowerNoteGroups[index] = CreateNoteGroupFromTheme(starpowerModel);
+                StarPowerNoteGroups[index] = NoteGroup.CreateNoteGroupFromTheme(transform, starPowerModel);
             }
             else
             {

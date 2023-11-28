@@ -4,8 +4,8 @@ namespace YARG.Themes
 {
     // WARNING: Changing this could break themes or venues!
     //
-    // Changing the serialized fields in this file will result in older themes
-    // not working properly. Only change if you need to.
+    // Changing the serialized fields (or the enum) in this file will result
+    // in older themes not working properly. Only change if you need to.
 
     public enum ThemeNoteType
     {
@@ -17,7 +17,7 @@ namespace YARG.Themes
         OpenHOPO,
 
         Cymbal,
-        Kick,
+        Kick
     }
 
     public class ThemeNote : MonoBehaviour

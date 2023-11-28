@@ -20,14 +20,19 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private bool _addExtraGlow;
 
-        public Material ColoredMaterial { get; private set; }
+        private Material _coloredMaterial;
 
-        private void Awake()
+        public Material ColoredMaterial
         {
-            // Skip if it's trying to create a theme
-            if (_meshRenderer == null) return;
+            get {
+                if (_coloredMaterial != null)
+                {
+                    return _coloredMaterial;
+                }
 
-            ColoredMaterial = _meshRenderer.materials[_coloredMaterialIndex];
+                _coloredMaterial = _meshRenderer.materials[_coloredMaterialIndex];
+                return _coloredMaterial;
+            }
         }
 
         public void InitializeRandomness()
@@ -62,7 +67,21 @@ namespace YARG.Gameplay.Visuals
         /// This method is only called <b>once</b> when the note prefab is being created
         /// for this theme.
         /// </summary>
-        public void SetModelFromTheme(GameObject model)
+        public static NoteGroup CreateNoteGroupFromTheme(Transform parent, GameObject themeModel)
+        {
+            var noteObj = new GameObject("Note Group");
+            var noteTransform = noteObj.transform;
+
+            noteTransform.parent = parent;
+            noteTransform.localPosition = Vector3.zero;
+
+            var noteGroup = noteObj.AddComponent<NoteGroup>();
+            noteGroup.SetModelFromTheme(themeModel);
+
+            return noteGroup;
+        }
+
+        private void SetModelFromTheme(GameObject model)
         {
             // Copy the model
             var copy = Instantiate(model, transform);
