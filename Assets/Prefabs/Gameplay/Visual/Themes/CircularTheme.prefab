@@ -653,7 +653,7 @@ MonoBehaviour:
   m_LensFlareData: {fileID: 11400000, guid: fb667052661286846b6fd1b5aaf86866, type: 2}
   intensity: 1
   maxAttenuationDistance: 100
-  maxAttenuationScale: 12.5
+  maxAttenuationScale: 100
   distanceAttenuationCurve:
     serializedVersion: 2
     m_Curve:
@@ -684,20 +684,20 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 0
       value: 1
-      inSlope: -2.0512533
-      outSlope: -2.0512533
+      inSlope: 0
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
-      outWeight: 0.054166667
+      outWeight: 0
     - serializedVersion: 3
       time: 1
-      value: -0.0023498535
-      inSlope: -0.2042526
-      outSlope: -0.2042526
+      value: 0
+      inSlope: 0
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0.20833331
+      inWeight: 0
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
@@ -731,7 +731,7 @@ MonoBehaviour:
   occlusionRadius: 0.1
   sampleCount: 32
   occlusionOffset: 0.05
-  scale: 3
+  scale: 1
   allowOffScreen: 0
 --- !u!114 &6030789148560020116
 MonoBehaviour:
@@ -745,6 +745,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 636ebdd2c2274e348a75d39ad5f95a5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _scaleConstant: 4.25
 --- !u!1 &6269854297387791962
 GameObject:
   m_ObjectHideFlags: 0
@@ -832,7 +833,7 @@ MonoBehaviour:
   m_LensFlareData: {fileID: 11400000, guid: fb667052661286846b6fd1b5aaf86866, type: 2}
   intensity: 1
   maxAttenuationDistance: 100
-  maxAttenuationScale: 12.5
+  maxAttenuationScale: 100
   distanceAttenuationCurve:
     serializedVersion: 2
     m_Curve:
@@ -863,20 +864,20 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 0
       value: 1
-      inSlope: -2.0512533
-      outSlope: -2.0512533
+      inSlope: 0
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
-      outWeight: 0.054166667
+      outWeight: 0
     - serializedVersion: 3
       time: 1
-      value: -0.0023498535
-      inSlope: -0.2042526
-      outSlope: -0.2042526
+      value: 0
+      inSlope: 0
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0.20833331
+      inWeight: 0
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
@@ -910,7 +911,7 @@ MonoBehaviour:
   occlusionRadius: 0.1
   sampleCount: 32
   occlusionOffset: 0.05
-  scale: 3
+  scale: 1
   allowOffScreen: 0
 --- !u!114 &3659958324202200764
 MonoBehaviour:
@@ -924,6 +925,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 636ebdd2c2274e348a75d39ad5f95a5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _scaleConstant: 4.25
 --- !u!1 &8764092072349519144
 GameObject:
   m_ObjectHideFlags: 0

@@ -45,6 +45,7 @@ namespace YARG.Gameplay.Visuals
             var noteFlares = GetComponentsInChildren<NoteFlare>(true);
             foreach (var noteFlare in noteFlares)
             {
+                noteFlare.TrackPlayer = Player;
                 noteFlare.SetFade(fadePos, fadeSize);
             }
         }

@@ -18,9 +18,9 @@ MonoBehaviour:
     positionOffset: {x: 0, y: -0.002}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
-    m_LocalIntensity: 3.25
+    m_LocalIntensity: 9.75
     lensFlareTexture: {fileID: 0}
-    uniformScale: 1.15
+    uniformScale: 1.2
     sizeXY: {x: 0.83, y: 0.39}
     allowMultipleElement: 0
     m_Count: 125
@@ -189,7 +189,7 @@ MonoBehaviour:
     translationScale: {x: 1, y: 1}
     m_LocalIntensity: 0.06
     lensFlareTexture: {fileID: 0}
-    uniformScale: 0.4
+    uniformScale: 1.2
     sizeXY: {x: 0.58, y: 0.49}
     allowMultipleElement: 0
     m_Count: 5

@@ -1,12 +1,17 @@
-using System;
 using UnityEngine;
 using UnityEngine.Rendering;
+using YARG.Gameplay.Player;
 
 namespace YARG.Gameplay.Visuals
 {
     [RequireComponent(typeof(LensFlareComponentSRP))]
     public class NoteFlare : MonoBehaviour
     {
+        public TrackPlayer TrackPlayer { get; set; }
+
+        [SerializeField]
+        private float _scaleConstant = 4.25f;
+
         private LensFlareComponentSRP _flare;
 
         private float _fadeFullPosition;
@@ -32,6 +37,8 @@ namespace YARG.Gameplay.Visuals
 
         private void Update()
         {
+            // Update flare intensity based on fade
+
             var pos = transform.position.z;
             float intensity = 1f;
 
@@ -45,6 +52,11 @@ namespace YARG.Gameplay.Visuals
             }
 
             _flare.intensity = intensity;
+
+            // Update flare scale based on distance from camera
+
+            _flare.scale = _scaleConstant /
+                Vector3.Distance(transform.position, TrackPlayer.TrackCamera.transform.position);
         }
     }
 }
