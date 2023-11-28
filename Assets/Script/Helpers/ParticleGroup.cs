@@ -74,34 +74,7 @@ namespace YARG.Helpers
             }
         }
 
-        public void SetStartSpeed(float speed)
-        {
-            foreach (var particle in particles)
-            {
-                var main = particle.main;
-                main.startSpeed = speed;
-            }
-        }
-
-        public void SetStartLifetime(float lifetime)
-        {
-            foreach (var particle in particles)
-            {
-                var main = particle.main;
-                main.startLifetime = lifetime;
-            }
-        }
-
-        public void SetEmissionRate(float rate)
-        {
-            foreach (var particle in particles)
-            {
-                var e = particle.emission;
-                e.rateOverTime = rate;
-            }
-        }
-
-        public void Play(float speed = 4.0f)
+        public void Play()
         {
             foreach (var particle in particles)
             {

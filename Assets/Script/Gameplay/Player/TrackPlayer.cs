@@ -1,11 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Player;
+using YARG.Settings.Customization;
+using YARG.Themes;
 
 namespace YARG.Gameplay.Player
 {
@@ -145,6 +148,8 @@ namespace YARG.Gameplay.Player
 
             base.Initialize(index, player, chart, trackView);
 
+            SetupTheme(player.Profile.GameMode);
+
             OriginalNoteTrack = GetNotes(chart);
             player.Profile.ApplyModifiers(OriginalNoteTrack);
 
@@ -156,6 +161,20 @@ namespace YARG.Gameplay.Player
             ResetNoteCounters();
 
             FinishInitialization();
+        }
+
+        private void SetupTheme(GameMode gameMode)
+        {
+            var themePrefab = ThemeManager.Instance.CreateNotePrefabFromTheme(
+                Player.ThemePreset, gameMode, NotePool.Prefab);
+            NotePool.SetPrefabAndReset(themePrefab);
+        }
+
+        protected GameObject SetupFretTheme(GameMode gameMode)
+        {
+            var themePrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(
+                Player.ThemePreset, gameMode);
+            return themePrefab;
         }
 
         protected abstract InstrumentDifficulty<TNote> GetNotes(SongChart chart);

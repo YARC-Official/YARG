@@ -1,23 +1,25 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
+using YARG.Themes;
 
 namespace YARG.Gameplay.Visuals
 {
     public sealed class FiveFretNoteElement : NoteElement<GuitarNote, FiveFretPlayer>
     {
-        [SerializeField]
-        private NoteGroup _strumGroup;
-        [SerializeField]
-        private NoteGroup _hopoGroup;
-        [SerializeField]
-        private NoteGroup _tapGroup;
-        [SerializeField]
-        private NoteGroup _openGroup;
-        [SerializeField]
-        private NoteGroup _openHopoGroup;
+        private enum NoteType
+        {
+            Strum    = 0,
+            HOPO     = 1,
+            Tap      = 2,
+            Open     = 3,
+            OpenHOPO = 4,
+
+            Count
+        }
 
         [Space]
         [SerializeField]
@@ -30,9 +32,24 @@ namespace YARG.Gameplay.Visuals
         // Make sure the remove it later if it has a sustain
         protected override float RemovePointOffset => (float) NoteRef.TimeLength * Player.NoteSpeed;
 
+        public override void SetThemeModels(
+            Dictionary<ThemeNoteType, GameObject> models,
+            Dictionary<ThemeNoteType, GameObject> starPowerModels)
+        {
+            CreateNoteGroupArrays((int) NoteType.Count);
+
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.Strum,    ThemeNoteType.Normal);
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.HOPO,     ThemeNoteType.HOPO);
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.Tap,      ThemeNoteType.Tap);
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.Open,     ThemeNoteType.Open);
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.OpenHOPO, ThemeNoteType.OpenHOPO);
+        }
+
         protected override void InitializeElement()
         {
             base.InitializeElement();
+
+            var noteGroups = NoteRef.IsStarPower ? StarPowerNoteGroups : NoteGroups;
 
             if (NoteRef.Fret != 0)
             {
@@ -44,10 +61,10 @@ namespace YARG.Gameplay.Visuals
                 // Get which note model to use
                 NoteGroup = NoteRef.Type switch
                 {
-                    GuitarNoteType.Strum => _strumGroup,
-                    GuitarNoteType.Hopo  => _hopoGroup,
-                    GuitarNoteType.Tap   => _tapGroup,
-                    _                    => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
+                    GuitarNoteType.Strum => noteGroups[(int) NoteType.Strum],
+                    GuitarNoteType.Hopo  => noteGroups[(int) NoteType.HOPO],
+                    GuitarNoteType.Tap   => noteGroups[(int) NoteType.Tap],
+                    _ => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
                 };
 
                 _sustainLine = _normalSustainLine;
@@ -62,8 +79,9 @@ namespace YARG.Gameplay.Visuals
                 // Get which note model to use
                 NoteGroup = NoteRef.Type switch
                 {
-                    GuitarNoteType.Strum => _openGroup,
-                    GuitarNoteType.Hopo or GuitarNoteType.Tap => _openHopoGroup,
+                    GuitarNoteType.Strum => noteGroups[(int) NoteType.Open],
+                    GuitarNoteType.Hopo or
+                    GuitarNoteType.Tap   => noteGroups[(int) NoteType.OpenHOPO],
                     _ => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
                 };
 
@@ -72,7 +90,7 @@ namespace YARG.Gameplay.Visuals
 
             // Show and set material properties
             NoteGroup.SetActive(true);
-            NoteGroup.InitializeRandomness();
+            NoteGroup.Initialize();
 
             // Set line length
             if (NoteRef.IsSustain)
@@ -103,11 +121,16 @@ namespace YARG.Gameplay.Visuals
 
         protected override void UpdateElement()
         {
-            // Color should be updated every frame in case of starpower state changes
-            UpdateColor();
+            base.UpdateElement();
 
-            // Update sustain line
             UpdateSustain();
+        }
+
+        protected override void OnStarPowerStateChanged()
+        {
+            base.OnStarPowerStateChanged();
+
+            UpdateColor();
         }
 
         private void UpdateSustain()
@@ -122,19 +145,13 @@ namespace YARG.Gameplay.Visuals
             var colors = Player.Player.ColorProfile.FiveFretGuitar;
 
             // Get which note color to use
+            var colorNoStarPower = colors.GetNoteColor(NoteRef.Fret);
             var color = NoteRef.IsStarPower
                 ? colors.GetNoteStarPowerColor(NoteRef.Fret)
-                : colors.GetNoteColor(NoteRef.Fret);
+                : colorNoStarPower;
 
             // Set the note color
-            NoteGroup.SetColorWithEmission(color.ToUnityColor());
-
-            // TODO: Temporary
-            // Change color for open HOPOs/Taps
-            if (NoteRef.Fret == 0 && NoteRef.Type is GuitarNoteType.Hopo or GuitarNoteType.Tap)
-            {
-                NoteGroup.ColoredMaterial.color += new Color(3f, 3f, 3f, 0f);
-            }
+            NoteGroup.SetColorWithEmission(color.ToUnityColor(), colorNoStarPower.ToUnityColor());
 
             // The rest of this method is for sustain only
             if (!NoteRef.IsSustain) return;
@@ -148,15 +165,6 @@ namespace YARG.Gameplay.Visuals
 
             _normalSustainLine.gameObject.SetActive(false);
             _openSustainLine.gameObject.SetActive(false);
-        }
-
-        private void HideNotes()
-        {
-            _strumGroup.SetActive(false);
-            _hopoGroup.SetActive(false);
-            _tapGroup.SetActive(false);
-            _openGroup.SetActive(false);
-            _openHopoGroup.SetActive(false);
         }
     }
 }

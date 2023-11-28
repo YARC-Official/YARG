@@ -5,8 +5,7 @@ namespace YARG.Settings.Customization
 {
     public class ColorProfileContainer : CustomContent<ColorProfile>
     {
-        private static readonly List<ColorProfile> _defaultProfiles = new() { ColorProfile.Default };
-        public override IReadOnlyList<ColorProfile> DefaultPresets => _defaultProfiles;
+        public override IReadOnlyList<ColorProfile> DefaultPresets => ColorProfile.Defaults;
 
         public override string PresetTypeStringName => "ColorProfile";
 

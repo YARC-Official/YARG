@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Serialization;
+using YARG.Helpers.Extensions;
 
 namespace YARG.Gameplay
 {
@@ -14,8 +16,11 @@ namespace YARG.Gameplay
 
     public class Pool : MonoBehaviour
     {
-        [SerializeField]
-        private GameObject _prefab;
+        // TODO: Reserialize everything and remove this
+        [field: FormerlySerializedAs("_prefab")]
+        [field: SerializeField]
+        public GameObject Prefab { get; private set; }
+
         [SerializeField]
         private int _prewarmAmount = 15;
         [SerializeField]
@@ -36,6 +41,21 @@ namespace YARG.Gameplay
             }
         }
 
+        public void SetPrefabAndReset(GameObject newPrefab)
+        {
+            Prefab = newPrefab;
+
+            transform.DestroyChildren();
+            _pooled.Clear();
+            _spawnedObjects.Clear();
+
+            // Re-prewarm
+            for (int i = 0; i < _prewarmAmount; i++)
+            {
+                _pooled.Push(CreateNew());
+            }
+        }
+
         private IPoolable CreateNew()
         {
             if (TotalCount + 1 > _objectCap)
@@ -43,7 +63,7 @@ namespace YARG.Gameplay
                 return null;
             }
 
-            var gameObject = Instantiate(_prefab, transform);
+            var gameObject = Instantiate(Prefab, transform);
             gameObject.SetActive(false);
 
             var poolable = gameObject.GetComponent<IPoolable>();

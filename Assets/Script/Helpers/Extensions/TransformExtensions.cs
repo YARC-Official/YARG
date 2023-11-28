@@ -67,5 +67,17 @@ namespace YARG.Helpers.Extensions
                 Object.Destroy(t.gameObject);
             }
         }
+
+        /// <summary>
+        /// Changes the layer of this transform and all of its children.
+        /// </summary>
+        public static void SetLayerRecursive(this Transform transform, int layer)
+        {
+            var children = transform.GetComponentsInChildren<Transform>(includeInactive: true);
+            foreach (var child in children)
+            {
+                child.gameObject.layer = layer;
+            }
+        }
     }
 }
