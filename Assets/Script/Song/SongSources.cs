@@ -25,6 +25,7 @@ namespace YARG.Song
         }
 
         [Serializable]
+        // This is a serialized class; naming conventions are JSON's, not C#'s
         [SuppressMessage("ReSharper", "All")]
         public class SourceIndex
         {
@@ -33,6 +34,7 @@ namespace YARG.Song
         }
 
         [Serializable]
+        // This is a serialized class; naming conventions are JSON's, not C#'s
         [SuppressMessage("ReSharper", "All")]
         public class Source
         {
@@ -61,7 +63,9 @@ namespace YARG.Song
                 _icon = icon;
                 _names = names;
                 Type = type;
-                IconURL = isFromBase ? RAW_ICON_URL + $"base/icons/{_icon}.png" : RAW_ICON_URL + $"extra/icons/{_icon}.png";
+                IconURL = isFromBase
+                    ? RAW_ICON_URL + $"base/icons/{_icon}.png"
+                    : RAW_ICON_URL + $"extra/icons/{_icon}.png";
             }
 
             public string GetDisplayName()
@@ -142,7 +146,7 @@ namespace YARG.Song
             "base", "extra"
         };
 
-        private static Dictionary<string, ParsedSource> _sources = new();
+        private static readonly Dictionary<string, ParsedSource> _sources = new();
 
         public static async UniTask LoadSources(Action<string> updateText)
         {
@@ -262,7 +266,7 @@ namespace YARG.Song
             }
         }
 
-        public static void ReadSources()
+        private static void ReadSources()
         {
             foreach (var index in SourceTypes)
             {
@@ -292,8 +296,26 @@ namespace YARG.Song
                 {
                     Debug.LogError($"Failed to read song source index.json for `{index}`!");
                     Debug.LogException(e);
+
+                    // If we failed when fetching "base", something went wrong.
+                    if (index == "base")
+                    {
+                        Debug.LogError("Skipping and creating a backup source.");
+                        CreateBackupSource();
+                        return;
+                    }
                 }
             }
+        }
+
+        private static void CreateBackupSource()
+        {
+            // If this method is called, the "custom" icon will likely not exist,
+            // however, the icon loader deals with this.
+            _sources.Add("$DEFAULT$", new ParsedSource("custom", new()
+            {
+                { "en-US", "Unknown" }
+            }, SourceType.Custom, true));
         }
 
         public static ParsedSource GetSource(string id)
