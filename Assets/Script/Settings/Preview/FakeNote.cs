@@ -32,7 +32,7 @@ namespace YARG.Settings.Preview
         [SerializeField]
         private List<NoteTypePair> _noteGroups;
 
-        private Material[] _materials;
+        private readonly List<Material> _materials = new();
 
         public void EnableFromPool()
         {
@@ -60,9 +60,18 @@ namespace YARG.Settings.Preview
             }
 
             _currentNoteGroup.SetActive(true);
+            _currentNoteGroup.Initialize();
 
-            // Set materials
-            _materials = _currentNoteGroup.GetAllMaterials();
+            // Get all materials
+            _materials.Clear();
+            var meshRenderers = GetComponentsInChildren<MeshRenderer>(true);
+            foreach (var meshRenderer in meshRenderers)
+            {
+                foreach (var material in meshRenderer.materials)
+                {
+                    _materials.Add(material);
+                }
+            }
 
             // Force update position and other properties
             OnSettingChanged();
@@ -84,8 +93,8 @@ namespace YARG.Settings.Preview
 
             // Update color
             // TODO: Make `GetNoteColor` generic
-            _currentNoteGroup.SetColorWithEmission(colorProfile.FiveFretGuitar
-                .GetNoteColor(NoteRef.Fret).ToUnityColor());
+            var color = colorProfile.FiveFretGuitar.GetNoteColor(NoteRef.Fret).ToUnityColor();
+            _currentNoteGroup.SetColorWithEmission(color, color);
         }
 
         protected void Update()

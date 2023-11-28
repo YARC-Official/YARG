@@ -46,11 +46,17 @@ namespace YARG.Themes
             Gizmos.DrawWireCube(transform.position, new Vector3(FRET_SIZE, 0f, FRET_SIZE));
         }
 
+        /// <summary>
+        /// Warning! This can be slow. Cache values if needed repeatedly.
+        /// </summary>
         public IEnumerable<Material> GetColoredMaterials()
         {
             return _coloredMaterials.Select(i => i.Mesh.materials[i.MaterialIndex]);
         }
 
+        /// <summary>
+        /// Warning! This can be slow. Cache values if needed repeatedly.
+        /// </summary>
         public IEnumerable<Material> GetInnerColoredMaterials()
         {
             return _innerMaterials.Select(i => i.Mesh.materials[i.MaterialIndex]);

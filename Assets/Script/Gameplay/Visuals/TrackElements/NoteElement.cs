@@ -72,7 +72,7 @@ namespace YARG.Gameplay.Visuals
                 // Enable the new one
                 NoteGroup = NoteGroups[index];
                 NoteGroup.SetActive(true);
-                NoteGroup.InitializeRandomness();
+                NoteGroup.Initialize();
             }
         }
 

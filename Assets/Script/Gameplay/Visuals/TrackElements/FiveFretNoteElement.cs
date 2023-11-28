@@ -34,15 +34,15 @@ namespace YARG.Gameplay.Visuals
 
         public override void SetThemeModels(
             Dictionary<ThemeNoteType, GameObject> models,
-            Dictionary<ThemeNoteType, GameObject> starpowerModels)
+            Dictionary<ThemeNoteType, GameObject> starPowerModels)
         {
             CreateNoteGroupArrays((int) NoteType.Count);
 
-            AssignNoteGroup(models, starpowerModels, (int) NoteType.Strum,    ThemeNoteType.Normal);
-            AssignNoteGroup(models, starpowerModels, (int) NoteType.HOPO,     ThemeNoteType.HOPO);
-            AssignNoteGroup(models, starpowerModels, (int) NoteType.Tap,      ThemeNoteType.Tap);
-            AssignNoteGroup(models, starpowerModels, (int) NoteType.Open,     ThemeNoteType.Open);
-            AssignNoteGroup(models, starpowerModels, (int) NoteType.OpenHOPO, ThemeNoteType.OpenHOPO);
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.Strum,    ThemeNoteType.Normal);
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.HOPO,     ThemeNoteType.HOPO);
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.Tap,      ThemeNoteType.Tap);
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.Open,     ThemeNoteType.Open);
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.OpenHOPO, ThemeNoteType.OpenHOPO);
         }
 
         protected override void InitializeElement()
@@ -90,7 +90,7 @@ namespace YARG.Gameplay.Visuals
 
             // Show and set material properties
             NoteGroup.SetActive(true);
-            NoteGroup.InitializeRandomness();
+            NoteGroup.Initialize();
 
             // Set line length
             if (NoteRef.IsSustain)
@@ -145,12 +145,13 @@ namespace YARG.Gameplay.Visuals
             var colors = Player.Player.ColorProfile.FiveFretGuitar;
 
             // Get which note color to use
+            var colorNoStarPower = colors.GetNoteColor(NoteRef.Fret);
             var color = NoteRef.IsStarPower
                 ? colors.GetNoteStarPowerColor(NoteRef.Fret)
-                : colors.GetNoteColor(NoteRef.Fret);
+                : colorNoStarPower;
 
             // Set the note color
-            NoteGroup.SetColorWithEmission(color.ToUnityColor());
+            NoteGroup.SetColorWithEmission(color.ToUnityColor(), colorNoStarPower.ToUnityColor());
 
             // The rest of this method is for sustain only
             if (!NoteRef.IsSustain) return;

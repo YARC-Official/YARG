@@ -1,5 +1,5 @@
-﻿using UnityEngine;
-using YARG.Core.Chart;
+﻿using System.Linq;
+using UnityEngine;
 using YARG.Themes;
 
 namespace YARG.Gameplay.Visuals
@@ -16,45 +16,71 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private ThemeNote _themeNote;
 
-        private Material _coloredMaterial;
-        public Material ColoredMaterial
+        private Material[] _coloredMaterialCache;
+        private Material[] _coloredMaterialNoStarPowerCache;
+        private Material[] _allColoredCache;
+
+        public void Initialize()
         {
-            get {
-                if (_coloredMaterial != null)
+            _coloredMaterialCache =
+                _themeNote.GetColoredMaterials().ToArray();
+            _coloredMaterialNoStarPowerCache =
+                _themeNote.GetColoredMaterialsNoStarPower().ToArray();
+
+            _allColoredCache = _coloredMaterialCache
+                .Concat(_coloredMaterialNoStarPowerCache)
+                .ToArray();
+
+            // Set random values
+            var randomFloat = Random.Range(-1f, 1f);
+            var randomVector = new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f));
+            foreach (var material in _allColoredCache)
+            {
+                if (material.HasFloat(_randomFloat))
                 {
-                    return _coloredMaterial;
+                    material.SetFloat(_randomFloat, randomFloat);
                 }
 
-                _coloredMaterial = _themeNote.ColoredMaterialRenderer.materials[_themeNote.ColoredMaterialIndex];
-                return _coloredMaterial;
+                if (material.HasVector(_randomVector))
+                {
+                    material.SetVector(_randomVector, randomVector);
+                }
             }
         }
 
-        public void InitializeRandomness()
+        // TODO: Move `emissionMultiplier` into the ThemeNote
+        public void SetColorWithEmission(Color color, Color colorNoStarPower,
+            float emissionMultiplier = 8f)
         {
-            if (ColoredMaterial.HasFloat(_randomFloat))
-            {
-                ColoredMaterial.SetFloat(_randomFloat, Random.Range(-1f, 1f));
-            }
+            // Deal with color (with star power)
 
-            if (ColoredMaterial.HasVector(_randomVector))
-            {
-                ColoredMaterial.SetVector(_randomVector, new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f)));
-            }
-        }
-
-        public void SetColorWithEmission(Color c)
-        {
-            ColoredMaterial.color = c;
-            ColoredMaterial.SetColor(_emissionColor, c * 8f);
-
+            var realColor = color;
             if (_themeNote.AddExtraGlow)
             {
-                ColoredMaterial.color += new Color(3f, 3f, 3f);
+                realColor += new Color(3f, 3f, 3f);
+            }
+
+            foreach (var material in _coloredMaterialCache)
+            {
+                material.color = realColor;
+                material.SetColor(_emissionColor, realColor * emissionMultiplier);
+            }
+
+            // Deal with color (no star power)
+            if (_coloredMaterialNoStarPowerCache.Length == 0) return;
+
+            var realColorNoStarPower = colorNoStarPower;
+            if (_themeNote.AddExtraGlow)
+            {
+                realColorNoStarPower += new Color(3f, 3f, 3f);
+            }
+
+            foreach (var material in _coloredMaterialNoStarPowerCache)
+            {
+                material.color = realColorNoStarPower;
+                material.SetColor(_emissionColor, realColorNoStarPower * emissionMultiplier);
             }
         }
-
-        public Material[] GetAllMaterials() => _themeNote.ColoredMaterialRenderer.materials;
 
         public void SetActive(bool a) => gameObject.SetActive(a);
 

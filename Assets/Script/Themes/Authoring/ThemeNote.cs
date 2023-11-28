@@ -1,4 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 namespace YARG.Themes
 {
@@ -22,18 +25,24 @@ namespace YARG.Themes
 
     public class ThemeNote : MonoBehaviour
     {
+        [Serializable]
+        public struct MeshMaterialIndex
+        {
+            public MeshRenderer Mesh;
+            public int MaterialIndex;
+        }
+
         [field: Space]
         [field: SerializeField]
         public ThemeNoteType NoteType { get; private set; }
         [field: SerializeField]
         public bool StarPowerVariant { get; private set; }
 
-        [field: Space]
-        [field: SerializeField]
-        public MeshRenderer ColoredMaterialRenderer { get; private set; }
-
-        [field: SerializeField]
-        public int ColoredMaterialIndex { get; private set; }
+        [Space]
+        [SerializeField]
+        private MeshMaterialIndex[] _coloredMaterials;
+        [SerializeField]
+        private MeshMaterialIndex[] _coloredMaterialsNoStarPower;
 
         [field: Space]
         [field: SerializeField]
@@ -45,6 +54,22 @@ namespace YARG.Themes
             Gizmos.DrawLine(
                 transform.position.AddX(-0.4f),
                 transform.position.AddX(0.4f));
+        }
+
+        /// <summary>
+        /// Warning! This can be slow. Cache values if needed repeatedly.
+        /// </summary>
+        public IEnumerable<Material> GetColoredMaterials()
+        {
+            return _coloredMaterials.Select(i => i.Mesh.materials[i.MaterialIndex]);
+        }
+
+        /// <summary>
+        /// Warning! This can be slow. Cache values if needed repeatedly.
+        /// </summary>
+        public IEnumerable<Material> GetColoredMaterialsNoStarPower()
+        {
+            return _coloredMaterialsNoStarPower.Select(i => i.Mesh.materials[i.MaterialIndex]);
         }
     }
 }
