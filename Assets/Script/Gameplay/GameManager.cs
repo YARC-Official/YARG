@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -243,6 +243,9 @@ namespace YARG.Gameplay
             IsSongStarted = true;
             LoadingManager.Instance.Queue(StartBehaviors, "Starting song...");
             await LoadingManager.Instance.StartLoad();
+
+            // Re-seek song runner to ensure the song doesn't start early
+            _songRunner.Start();
 
             // Loaded, enable updates
             enabled = true;
