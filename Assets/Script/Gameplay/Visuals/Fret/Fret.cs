@@ -8,12 +8,6 @@ namespace YARG.Gameplay.Visuals
 {
     public class Fret : MonoBehaviour
     {
-        public enum AnimationLayer
-        {
-            Guitar = 0,
-            Drums = 1
-        }
-
         private static readonly int _fade = Shader.PropertyToID("Fade");
         private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
 

@@ -70,7 +70,7 @@ namespace YARG.Themes
             return gameObject;
         }
 
-        private ThemeContainer GetThemeContainer(ThemePreset preset, GameMode mode)
+        public ThemeContainer GetThemeContainer(ThemePreset preset, GameMode mode)
         {
             // Check if the theme supports the game mode
             if (!preset.SupportedGameModes.Contains(mode))

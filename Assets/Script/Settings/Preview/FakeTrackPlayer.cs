@@ -1,10 +1,12 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Game;
 using YARG.Gameplay;
 using YARG.Gameplay.Player;
 using YARG.Gameplay.Visuals;
+using YARG.Helpers.Extensions;
 using YARG.Menu.Settings;
 using YARG.Settings.Customization;
 using YARG.Settings.Metadata;
@@ -15,6 +17,26 @@ namespace YARG.Settings.Preview
 {
     public class FakeTrackPlayer : MonoBehaviour
     {
+        public struct Info
+        {
+            public delegate ColorProfile.IFretColorProvider FretColorProviderFunc(ColorProfile c);
+
+            public int FretCount;
+            public FretColorProviderFunc FretColorProviderGetter;
+        }
+
+        private static readonly Dictionary<GameMode, Info> _gameModeInfos = new()
+        {
+            {
+                GameMode.FiveFretGuitar,
+                new Info
+                {
+                    FretCount = 5,
+                    FretColorProviderGetter = (colorProfile) => colorProfile.FiveFretGuitar
+                }
+            }
+        };
+
         public const float NOTE_SPEED = 6f;
         private const double SPAWN_FREQ = 0.2;
 
@@ -34,12 +56,21 @@ namespace YARG.Settings.Preview
         public double PreviewTime { get; private set; }
         private double _nextSpawnTime;
 
+        // TODO: Make game mode selectable
+        private GameMode _selectedGameMode = GameMode.FiveFretGuitar;
+
         private void Start()
         {
-            // TODO: Redo
-            var fret = ThemeManager.Instance.CreateFretPrefabFromTheme(ThemePreset.Default, GameMode.FiveFretGuitar);
+            var info = _gameModeInfos[_selectedGameMode];
 
-            _fretArray.Initialize(fret, ColorProfile.Default.FiveFretGuitar, false);
+            // Create frets and put then on the right layer
+            var fret = ThemeManager.Instance.CreateFretPrefabFromTheme(
+                ThemePreset.Default, _selectedGameMode);
+            _fretArray.FretCount = info.FretCount;
+            _fretArray.Initialize(fret, info.FretColorProviderGetter(ColorProfile.Default), false);
+            _fretArray.transform.SetLayerRecursive(LayerMask.NameToLayer("Settings Preview"));
+
+            // Show hit window if enabled
             _hitWindow.gameObject.SetActive(SettingsManager.Settings.ShowHitWindow.Data);
 
             SettingsMenu.Instance.SettingChanged += OnSettingChanged;
