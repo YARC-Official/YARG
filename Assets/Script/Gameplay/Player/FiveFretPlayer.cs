@@ -34,7 +34,7 @@ namespace YARG.Gameplay.Player
 
         protected override GuitarEngine CreateEngine()
         {
-            HitWindow = new HitWindowSettings(0.15, 0.03, 1, true);
+            HitWindow = new HitWindowSettings(0.15, 0.04, 1, true);
             EngineParams = new GuitarEngineParameters(HitWindow, StarMultiplierThresholds, 0.08, 0.06, 0.025,
                 SettingsManager.Settings.InfiniteFrontEnd.Data, SettingsManager.Settings.AntiGhosting.Data);
             var engine = new YargFiveFretEngine(NoteTrack, SyncTrack, EngineParams);
