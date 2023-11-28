@@ -34,7 +34,8 @@ namespace YARG.Gameplay.Player
 
         protected override GuitarEngine CreateEngine()
         {
-            EngineParams = new GuitarEngineParameters(0.15, 1, StarMultiplierThresholds, 0.08, 0.06, 0.025,
+            HitWindow = new HitWindowSettings(0.15, 0.03, 1, true);
+            EngineParams = new GuitarEngineParameters(HitWindow, StarMultiplierThresholds, 0.08, 0.06, 0.025,
                 SettingsManager.Settings.InfiniteFrontEnd.Data, SettingsManager.Settings.AntiGhosting.Data);
             var engine = new YargFiveFretEngine(NoteTrack, SyncTrack, EngineParams);
 
@@ -94,14 +95,13 @@ namespace YARG.Gameplay.Player
             StarScoreThresholds = PopulateStarScoreThresholds(StarMultiplierThresholds, Engine.BaseScore);
 
             _fretArray.Initialize(Player.ColorProfile.FiveFretGuitar, Player.Profile.LeftyFlip);
-            HitWindowDisplay.SetHitWindowInfo(EngineParams, NoteSpeed);
         }
 
         public override void ResetPracticeSection()
         {
             base.ResetPracticeSection();
 
-            for(int i = 0; i < _fretArray.Frets.Count; i++)
+            for (int i = 0; i < _fretArray.Frets.Count; i++)
             {
                 _fretArray.SetSustained(i, false);
             }

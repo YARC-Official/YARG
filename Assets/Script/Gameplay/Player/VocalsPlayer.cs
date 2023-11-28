@@ -18,7 +18,7 @@ namespace YARG.Gameplay.Player
     public class VocalsPlayer : BasePlayer
     {
         public VocalsEngineParameters EngineParams { get; private set; }
-        public VocalsEngine Engine { get; private set; }
+        public VocalsEngine           Engine       { get; private set; }
 
         public override BaseEngine BaseEngine => Engine;
         public override BaseStats Stats => Engine.EngineStats;
@@ -83,7 +83,7 @@ namespace YARG.Gameplay.Player
         protected VocalsEngine CreateEngine()
         {
             // Hit window is in semitones (total width).
-            double hitWindow = Player.Profile.CurrentDifficulty switch
+            double windowSize = Player.Profile.CurrentDifficulty switch
             {
                 Difficulty.Easy   => 3.5,
                 Difficulty.Medium => 3.0,
@@ -103,7 +103,8 @@ namespace YARG.Gameplay.Player
                 _ => throw new InvalidOperationException("Unreachable")
             };
 
-            EngineParams = new VocalsEngineParameters(hitWindow, hitPercent, true,
+            HitWindow = new HitWindowSettings(windowSize, 0.03, 1, false);
+            EngineParams = new VocalsEngineParameters(HitWindow, hitPercent, true,
                 IMicDevice.UPDATES_PER_SECOND, StarMultiplierThresholds);
 
             var engine = new YargVocalsEngine(NoteTrack, SyncTrack, EngineParams);
@@ -235,7 +236,7 @@ namespace YARG.Gameplay.Player
                         (float pitchDist, _) = GetPitchDistanceIgnoringOctave(lastNotePitch, Engine.State.PitchSang);
 
                         // Determine how off that is compared to the hit window
-                        float distPercent = Mathf.Clamp(pitchDist / (float) EngineParams.HitWindow, -1f, 1f);
+                        float distPercent = Mathf.Clamp(pitchDist / (float) EngineParams.HitWindow.MaxWindow, -1f, 1f);
 
                         // Use that to get the target rotation
                         targetRotation = distPercent * NEEDLE_ROT_MAX;

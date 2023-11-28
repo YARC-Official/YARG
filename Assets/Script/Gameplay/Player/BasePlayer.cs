@@ -48,6 +48,8 @@ namespace YARG.Gameplay.Player
 
         public abstract int[] StarScoreThresholds { get; protected set; }
 
+        public HitWindowSettings HitWindow { get; protected set; }
+
         public int Score { get; protected set; }
         public int Combo { get; protected set; }
 
@@ -187,11 +189,11 @@ namespace YARG.Gameplay.Player
 
             if (BaseEngine.IsInputQueued)
             {
-                BaseEngine.UpdateEngine();
+                BaseEngine.UpdateEngineInputs();
             }
             else
             {
-                BaseEngine.UpdateEngine(time);
+                BaseEngine.UpdateEngineToTime(time);
             }
         }
 

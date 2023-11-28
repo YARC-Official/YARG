@@ -1,27 +1,64 @@
+using System;
 using UnityEngine;
-using YARG.Core.Engine;
+using YARG.Gameplay.Player;
 using YARG.Settings;
 
 namespace YARG.Gameplay.Visuals
 {
     public class HitWindowDisplay : MonoBehaviour
     {
-        public void SetHitWindowInfo(BaseEngineParameters param, float noteSpeed)
+        private Transform  _transformCache;
+        private BasePlayer _player;
+
+        private double _hitWindowSize;
+
+        private void Awake()
         {
+            _player = GetComponentInParent<BasePlayer>();
+
+            _transformCache = transform;
             if (!SettingsManager.Settings.ShowHitWindow.Data)
             {
-                Destroy(gameObject);
+                gameObject.SetActive(false);
+            }
+        }
+
+        private void Start()
+        {
+            SetHitWindowSize();
+        }
+
+        private void SetHitWindowSize()
+        {
+            var hitWindow = _player.HitWindow;
+
+            var window = _player.BaseEngine.CalculateHitWindow();
+
+            var totalWindow = -window.FrontEnd + window.BackEnd;
+            if (Math.Abs(totalWindow - _hitWindowSize) < double.Epsilon)
+            {
                 return;
             }
 
-            // Offsetting is done based on half of the size
-            float baseOffset = (float) (-param.FrontEnd - param.BackEnd) / 2f;
+            _hitWindowSize = totalWindow;
 
-            var transformCache = transform;
-            transformCache.localScale = transformCache.localScale
-                .WithY((float) param.HitWindow * noteSpeed);
-            transformCache.localPosition = transformCache.localPosition
-                .AddZ(baseOffset);
+            // Offsetting is done based on half of the size
+            float baseOffset = (float) totalWindow / 2f;
+
+            _transformCache.localScale = _transformCache.localScale
+                .WithY((float) totalWindow * _player.NoteSpeed);
+            _transformCache.localPosition = _transformCache.localPosition
+                .WithZ(baseOffset);
+        }
+
+        private void Update()
+        {
+            if (!_player.HitWindow.IsDynamic)
+            {
+                return;
+            }
+
+            SetHitWindowSize();
         }
     }
 }

@@ -18,7 +18,6 @@ namespace YARG.Gameplay.Player
     {
         public DrumsEngineParameters EngineParams { get; private set; }
 
-
         [Header("Drums Specific")]
         [SerializeField]
         private bool _fiveLaneMode;
@@ -29,7 +28,7 @@ namespace YARG.Gameplay.Player
 
         public override BaseStats Stats => Engine?.EngineStats;
 
-        public override float[] StarMultiplierThresholds { get; }  =
+        public override float[] StarMultiplierThresholds { get; } =
         {
             0.21f, 0.46f, 0.77f, 1.85f, 3.08f, 4.29f
         };
@@ -57,10 +56,11 @@ namespace YARG.Gameplay.Player
                 Instrument.ProDrums      => DrumsEngineParameters.DrumMode.ProFourLane,
                 Instrument.FourLaneDrums => DrumsEngineParameters.DrumMode.NonProFourLane,
                 Instrument.FiveLaneDrums => DrumsEngineParameters.DrumMode.FiveLane,
-                _ => throw new Exception("Unreachable.")
+                _                        => throw new Exception("Unreachable.")
             };
 
-            EngineParams = new DrumsEngineParameters(0.15, 1, StarMultiplierThresholds, mode);
+            HitWindow = new HitWindowSettings(0.15, 0.03, 1, false);
+            EngineParams = new DrumsEngineParameters(HitWindow, StarMultiplierThresholds, mode);
             var engine = new YargDrumsEngine(NoteTrack, SyncTrack, EngineParams);
 
             engine.OnNoteHit += OnNoteHit;
@@ -87,8 +87,8 @@ namespace YARG.Gameplay.Player
                         DrumsAction.Kick                                   => 0,
                         DrumsAction.RedDrum                                => 1,
                         DrumsAction.YellowDrum or DrumsAction.YellowCymbal => 2,
-                        DrumsAction.BlueDrum   or DrumsAction.BlueCymbal   => 3,
-                        DrumsAction.GreenDrum  or DrumsAction.GreenCymbal  => 4,
+                        DrumsAction.BlueDrum or DrumsAction.BlueCymbal     => 3,
+                        DrumsAction.GreenDrum or DrumsAction.GreenCymbal   => 4,
                         _                                                  => -1
                     };
                 }
@@ -135,7 +135,6 @@ namespace YARG.Gameplay.Player
             _fretArray.FretCount = !_fiveLaneMode ? 4 : 5;
 
             _fretArray.Initialize(colors, Player.Profile.LeftyFlip);
-            HitWindowDisplay.SetHitWindowInfo(EngineParams, NoteSpeed);
 
             // Particle 0 is always kick fret
             _kickFret.Initialize(
@@ -187,8 +186,8 @@ namespace YARG.Gameplay.Player
                     {
                         FourLaneDrumPad.RedDrum                                    => 0,
                         FourLaneDrumPad.YellowDrum or FourLaneDrumPad.YellowCymbal => 1,
-                        FourLaneDrumPad.BlueDrum   or FourLaneDrumPad.BlueCymbal   => 2,
-                        FourLaneDrumPad.GreenDrum  or FourLaneDrumPad.GreenCymbal  => 3,
+                        FourLaneDrumPad.BlueDrum or FourLaneDrumPad.BlueCymbal     => 2,
+                        FourLaneDrumPad.GreenDrum or FourLaneDrumPad.GreenCymbal   => 3,
                         _                                                          => -1
                     };
                 }
