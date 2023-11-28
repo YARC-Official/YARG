@@ -11,17 +11,12 @@ namespace YARG.Gameplay.Visuals
         private static readonly int _randomFloat = Shader.PropertyToID("_RandomFloat");
         private static readonly int _randomVector = Shader.PropertyToID("_RandomVector");
 
+        // If we want info to be copied over when we copy the prefab,
+        // we must make them SerializeFields.
         [SerializeField]
-        private MeshRenderer _meshRenderer;
-        [SerializeField]
-        private int _coloredMaterialIndex;
-
-        [Space]
-        [SerializeField]
-        private bool _addExtraGlow;
+        private ThemeNote _themeNote;
 
         private Material _coloredMaterial;
-
         public Material ColoredMaterial
         {
             get {
@@ -30,7 +25,7 @@ namespace YARG.Gameplay.Visuals
                     return _coloredMaterial;
                 }
 
-                _coloredMaterial = _meshRenderer.materials[_coloredMaterialIndex];
+                _coloredMaterial = _themeNote.ColoredMaterialRenderer.materials[_themeNote.ColoredMaterialIndex];
                 return _coloredMaterial;
             }
         }
@@ -53,13 +48,13 @@ namespace YARG.Gameplay.Visuals
             ColoredMaterial.color = c;
             ColoredMaterial.SetColor(_emissionColor, c * 8f);
 
-            if (_addExtraGlow)
+            if (_themeNote.AddExtraGlow)
             {
                 ColoredMaterial.color += new Color(3f, 3f, 3f);
             }
         }
 
-        public Material[] GetAllMaterials() => _meshRenderer.materials;
+        public Material[] GetAllMaterials() => _themeNote.ColoredMaterialRenderer.materials;
 
         public void SetActive(bool a) => gameObject.SetActive(a);
 
@@ -89,12 +84,7 @@ namespace YARG.Gameplay.Visuals
 
             // Set new information
             var themeNote = copy.GetComponent<ThemeNote>();
-            _meshRenderer = themeNote.ColoredMaterialRenderer;
-            _coloredMaterialIndex = themeNote.ColoredMaterialIndex;
-            _addExtraGlow = themeNote.AddExtraGlow;
-
-            // Clean up
-            Destroy(themeNote);
+            _themeNote = themeNote;
         }
     }
 }

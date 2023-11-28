@@ -46,7 +46,7 @@ namespace YARG.Themes
             foreach (var themeNote in themeNotes)
             {
                 // Make sure we choose the correct variant
-                if (themeNote.StarpowerVariant != starpower) continue;
+                if (themeNote.StarPowerVariant != starpower) continue;
 
                 dict.Add(themeNote.NoteType, themeNote.gameObject);
             }

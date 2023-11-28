@@ -163,7 +163,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <NoteType>k__BackingField: 1
-  <StarpowerVariant>k__BackingField: 0
+  <StarPowerVariant>k__BackingField: 0
   <ColoredMaterialRenderer>k__BackingField: {fileID: 8921059844659044834}
   <ColoredMaterialIndex>k__BackingField: 3
   <AddExtraGlow>k__BackingField: 0
@@ -213,7 +213,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <NoteType>k__BackingField: 3
-  <StarpowerVariant>k__BackingField: 0
+  <StarPowerVariant>k__BackingField: 0
   <ColoredMaterialRenderer>k__BackingField: {fileID: 8828809160717108217}
   <ColoredMaterialIndex>k__BackingField: 2
   <AddExtraGlow>k__BackingField: 0
@@ -264,7 +264,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <NoteType>k__BackingField: 1
-  <StarpowerVariant>k__BackingField: 1
+  <StarPowerVariant>k__BackingField: 1
   <ColoredMaterialRenderer>k__BackingField: {fileID: 6116173041337568739}
   <ColoredMaterialIndex>k__BackingField: 2
   <AddExtraGlow>k__BackingField: 0
@@ -315,7 +315,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <NoteType>k__BackingField: 2
-  <StarpowerVariant>k__BackingField: 0
+  <StarPowerVariant>k__BackingField: 0
   <ColoredMaterialRenderer>k__BackingField: {fileID: 3551458241680003252}
   <ColoredMaterialIndex>k__BackingField: 3
   <AddExtraGlow>k__BackingField: 0
@@ -365,7 +365,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <NoteType>k__BackingField: 0
-  <StarpowerVariant>k__BackingField: 1
+  <StarPowerVariant>k__BackingField: 1
   <ColoredMaterialRenderer>k__BackingField: {fileID: 5728318787407867927}
   <ColoredMaterialIndex>k__BackingField: 2
   <AddExtraGlow>k__BackingField: 0
@@ -447,7 +447,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <NoteType>k__BackingField: 4
-  <StarpowerVariant>k__BackingField: 0
+  <StarPowerVariant>k__BackingField: 0
   <ColoredMaterialRenderer>k__BackingField: {fileID: 6360782882246089364}
   <ColoredMaterialIndex>k__BackingField: 2
   <AddExtraGlow>k__BackingField: 0
@@ -497,7 +497,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <NoteType>k__BackingField: 0
-  <StarpowerVariant>k__BackingField: 0
+  <StarPowerVariant>k__BackingField: 0
   <ColoredMaterialRenderer>k__BackingField: {fileID: 1232487097722920347}
   <ColoredMaterialIndex>k__BackingField: 3
   <AddExtraGlow>k__BackingField: 0
@@ -579,7 +579,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <NoteType>k__BackingField: 2
-  <StarpowerVariant>k__BackingField: 1
+  <StarPowerVariant>k__BackingField: 1
   <ColoredMaterialRenderer>k__BackingField: {fileID: 8595582023915302323}
   <ColoredMaterialIndex>k__BackingField: 2
   <AddExtraGlow>k__BackingField: 0

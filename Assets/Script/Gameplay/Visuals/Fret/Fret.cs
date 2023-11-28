@@ -16,7 +16,6 @@ namespace YARG.Gameplay.Visuals
 
         // If we want info to be copied over when we copy the prefab,
         // we must make them SerializeFields.
-
         [SerializeField]
         private ThemeFret _themeFret;
 
