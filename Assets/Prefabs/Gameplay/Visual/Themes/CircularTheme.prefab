@@ -271,8 +271,10 @@ MonoBehaviour:
   <StarPowerVariant>k__BackingField: 1
   _coloredMaterials:
   - Mesh: {fileID: 6116173041337568739}
+    MaterialIndex: 0
+  _coloredMaterialsNoStarPower:
+  - Mesh: {fileID: 6116173041337568739}
     MaterialIndex: 2
-  _coloredMaterialsNoStarPower: []
   <AddExtraGlow>k__BackingField: 0
 --- !u!1 &2987043081255175766
 GameObject:
@@ -376,8 +378,10 @@ MonoBehaviour:
   <StarPowerVariant>k__BackingField: 1
   _coloredMaterials:
   - Mesh: {fileID: 5728318787407867927}
+    MaterialIndex: 0
+  _coloredMaterialsNoStarPower:
+  - Mesh: {fileID: 5728318787407867927}
     MaterialIndex: 2
-  _coloredMaterialsNoStarPower: []
   <AddExtraGlow>k__BackingField: 0
 --- !u!1 &3940831482264449139
 GameObject:
@@ -596,8 +600,10 @@ MonoBehaviour:
   <StarPowerVariant>k__BackingField: 1
   _coloredMaterials:
   - Mesh: {fileID: 8595582023915302323}
+    MaterialIndex: 0
+  _coloredMaterialsNoStarPower:
+  - Mesh: {fileID: 8595582023915302323}
     MaterialIndex: 2
-  _coloredMaterialsNoStarPower: []
   <AddExtraGlow>k__BackingField: 0
 --- !u!1 &6174293910319127578
 GameObject:
@@ -1369,7 +1375,7 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: c535f6f0b43b6f442818005dc36233c7, type: 2}
+      objectReference: {fileID: 2100000, guid: 923b4b4d6544a9b4dbacbabb2541c683, type: 2}
     - target: {fileID: -7511558181221131132, guid: 50e67af97f805a64dbe4893367a999c4,
         type: 3}
       propertyPath: m_Materials.Array.data[1]
@@ -1621,7 +1627,7 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: c535f6f0b43b6f442818005dc36233c7, type: 2}
+      objectReference: {fileID: 2100000, guid: 923b4b4d6544a9b4dbacbabb2541c683, type: 2}
     - target: {fileID: -7511558181221131132, guid: 50e67af97f805a64dbe4893367a999c4,
         type: 3}
       propertyPath: m_Materials.Array.data[1]
@@ -1762,7 +1768,7 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: c535f6f0b43b6f442818005dc36233c7, type: 2}
+      objectReference: {fileID: 2100000, guid: 923b4b4d6544a9b4dbacbabb2541c683, type: 2}
     - target: {fileID: -7511558181221131132, guid: 50e67af97f805a64dbe4893367a999c4,
         type: 3}
       propertyPath: m_Materials.Array.data[1]
