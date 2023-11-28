@@ -39,6 +39,8 @@ namespace YARG.Gameplay
         {
             protected GameManager GameManager { get; private set; }
 
+            private bool _enabled;
+
             // Protected to warn when hidden by an inheriting class
             // "The Unity message 'Awake' has an incorrect signature."
             [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
@@ -68,6 +70,20 @@ namespace YARG.Gameplay
                 }
             }
 
+            // Protected to warn when hidden by an inheriting class
+            protected void OnEnable()
+            {
+                _enabled = enabled;
+                GameplayEnable();
+            }
+
+            // Protected to warn when hidden by an inheriting class
+            protected void OnDisable()
+            {
+                _enabled = false;
+                GameplayDisable();
+            }
+
 #if UNITY_EDITOR // Only used for detecting incorrect usages
             // Protected to warn when hidden by an inheriting class
             // "The Unity message 'Start' is empty."
@@ -94,6 +110,9 @@ namespace YARG.Gameplay
             protected virtual void GameplayAwake() { }
             protected virtual void GameplayDestroy() { }
 
+            protected virtual void GameplayEnable() { }
+            protected virtual void GameplayDisable() { }
+
             // Private interface thunks
             bool IGameplayBehaviour.Exists => this != null;
 
@@ -107,7 +126,7 @@ namespace YARG.Gameplay
 
             void IGameplayBehaviour.GameplayUpdate()
             {
-                if (!enabled) return;
+                if (!_enabled) return;
                 GameplayUpdate();
             }
 

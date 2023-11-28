@@ -86,15 +86,7 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        private void OnEnable()
-        {
-            // Wait until the chart has been loaded
-            if (_sections is null) return;
-
-            Initialize();
-        }
-
-        private void OnDisable()
+        protected override void GameplayDisable()
         {
             if (_navigationPushed)
             {
@@ -113,7 +105,7 @@ namespace YARG.Gameplay.HUD
             //_pauseMenuManager.PushMenu(PauseMenuManager.Menu.SelectSections);
         }
 
-        private void Initialize()
+        protected override void GameplayStart()
         {
             FirstSelectedIndex = null;
             LastSelectedIndex = null;
