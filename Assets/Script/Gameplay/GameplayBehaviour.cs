@@ -24,7 +24,7 @@ namespace YARG.Gameplay
         // Private interface for interaction from GameManager
         private interface IGameplayBehaviour
         {
-            bool Exists { get; }
+            Object UnityObject { get; } 
 
             UniTask GameplayLoad();
             UniTask GameplayStart();
@@ -116,7 +116,7 @@ namespace YARG.Gameplay
             protected virtual void GameplayDisable() { }
 
             // Private interface thunks
-            bool IGameplayBehaviour.Exists => this != null;
+            Object IGameplayBehaviour.UnityObject => this;
 
             UniTask IGameplayBehaviour.GameplayLoad() => GameplayLoadAsync();
 

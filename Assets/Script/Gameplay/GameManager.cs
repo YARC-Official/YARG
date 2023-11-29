@@ -215,6 +215,14 @@ namespace YARG.Gameplay
             LoadingManager.Instance.Queue(InitializeBehaviours, "Initializing everything else...");
             await LoadingManager.Instance.StartLoad();
 
+            if (_loadState != LoadFailureState.None)
+            {
+                Debug.LogError(_loadFailureMessage);
+                ToastManager.ToastError(_loadFailureMessage);
+                GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                return;
+            }
+
             // Listen for menu inputs
             Navigator.Instance.NavigationEvent += OnNavigationEvent;
 
@@ -246,6 +254,14 @@ namespace YARG.Gameplay
             // initialization can take quite some time
             LoadingManager.Instance.Queue(UniTask.NextFrame, "Delaying a frame", "to ensure proper initialization");
             await LoadingManager.Instance.StartLoad();
+
+            if (_loadState != LoadFailureState.None)
+            {
+                Debug.LogError(_loadFailureMessage);
+                ToastManager.ToastError(_loadFailureMessage);
+                GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                return;
+            }
 
             // Start the song runner
             _songRunner.Start();
@@ -306,7 +322,7 @@ namespace YARG.Gameplay
                 var behaviour = _gameplayBehaviours[i];
 
                 // Check if the behaviour was removed
-                if (!behaviour.Exists)
+                if (behaviour.UnityObject == null)
                 {
                     _gameplayBehaviours.RemoveAt(i);
                     i--;
@@ -563,14 +579,29 @@ namespace YARG.Gameplay
                 var behaviour = _gameplayBehaviours[i];
 
                 // Check if the behaviour removed itself in GameplayAwake
-                if (!behaviour.Exists)
+                if (behaviour.UnityObject == null)
                 {
                     _gameplayBehaviours.RemoveAt(i);
                     i--;
                     continue;
                 }
 
-                await behaviour.GameplayLoad();
+                try
+                {
+                    await behaviour.GameplayLoad();
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"Exception while loading data for {behaviour}!");
+                    Debug.LogException(ex, behaviour.UnityObject);
+
+#if !UNITY_EDITOR
+                    // Fail song load in standalone builds
+                    _loadState = LoadFailureState.Error;
+                    _loadFailureMessage = "Failed to initialize the scene!";
+                    return;
+#endif
+                }
             }
         }
 
@@ -581,19 +612,49 @@ namespace YARG.Gameplay
                 var behaviour = _gameplayBehaviours[i];
 
                 // Check if the behaviour removed itself in GameplayLoad
-                if (!behaviour.Exists)
+                if (behaviour.UnityObject == null)
                 {
                     _gameplayBehaviours.RemoveAt(i);
                     i--;
                     continue;
                 }
 
-                await behaviour.GameplayStart();
+                try
+                {
+                    await behaviour.GameplayStart();
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"Exception while starting {behaviour}!");
+                    Debug.LogException(ex, behaviour.UnityObject);
+
+#if !UNITY_EDITOR
+                    // Fail song load in standalone builds
+                    _loadState = LoadFailureState.Error;
+                    _loadFailureMessage = "Failed to initialize the scene!";
+                    return;
+#endif
+                }
             }
 
             foreach (var player in _players)
             {
-                player.PlayerStart();
+                try
+                {
+                    player.PlayerStart();
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"Exception while starting {player}!");
+                    Debug.LogException(ex, player);
+
+#if !UNITY_EDITOR
+                    // Fail song load in standalone builds
+                    _loadState = LoadFailureState.Error;
+                    _loadFailureMessage = "Failed to initialize the scene!";
+                    return;
+#endif
+                }
             }
         }
 
