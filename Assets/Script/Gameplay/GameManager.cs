@@ -165,7 +165,7 @@ namespace YARG.Gameplay
         {
             Navigator.Instance.NavigationEvent -= OnNavigationEvent;
             GlobalVariables.AudioManager.SongEnd -= OnAudioEnd;
-            _songRunner.Dispose();
+            _songRunner?.Dispose();
 
             // Reset the time scale back, as it would be 0 at this point (because of pausing)
             Time.timeScale = 1f;
