@@ -635,7 +635,8 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 89979174414761984
     m_Localized: The timing window adjusts in size depending on how close together
-      the notes are. The faster the notes are, the smaller the window becomes.
+      the notes are. The faster the notes are, the smaller the window becomes (guitar
+      only).
     m_Metadata:
       m_Items: []
   references:
