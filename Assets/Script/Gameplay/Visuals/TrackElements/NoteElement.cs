@@ -79,16 +79,23 @@ namespace YARG.Gameplay.Visuals
         public virtual void HitNote()
         {
             SustainState = SustainState.Hitting;
+            OnNoteStateChanged();
         }
 
         public virtual void MissNote()
         {
             SustainState = SustainState.Missed;
+            OnNoteStateChanged();
         }
 
         public virtual void SustainEnd()
         {
             SustainState = SustainState.Missed;
+            OnNoteStateChanged();
+        }
+
+        protected virtual void OnNoteStateChanged()
+        {
         }
 
         protected virtual void HideNotes()

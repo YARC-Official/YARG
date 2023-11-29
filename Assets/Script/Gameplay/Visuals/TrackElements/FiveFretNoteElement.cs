@@ -126,6 +126,13 @@ namespace YARG.Gameplay.Visuals
             UpdateSustain();
         }
 
+        protected override void OnNoteStateChanged()
+        {
+            base.OnNoteStateChanged();
+
+            UpdateColor();
+        }
+
         protected override void OnStarPowerStateChanged()
         {
             base.OnStarPowerStateChanged();
