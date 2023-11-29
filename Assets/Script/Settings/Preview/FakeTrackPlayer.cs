@@ -1,18 +1,80 @@
-﻿using UnityEngine;
-using YARG.Core.Chart;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
+using YARG.Core;
 using YARG.Core.Game;
 using YARG.Gameplay;
 using YARG.Gameplay.Player;
 using YARG.Gameplay.Visuals;
+using YARG.Helpers.Extensions;
 using YARG.Menu.Settings;
 using YARG.Settings.Customization;
 using YARG.Settings.Metadata;
+using YARG.Themes;
 using Random = UnityEngine.Random;
 
 namespace YARG.Settings.Preview
 {
     public class FakeTrackPlayer : MonoBehaviour
     {
+        public struct Info
+        {
+            public delegate ColorProfile.IFretColorProvider FretColorProviderFunc(ColorProfile c);
+            public delegate FakeNoteData CreateFakeNoteFunc(double time);
+
+            public int FretCount;
+            public FretColorProviderFunc FretColorProviderGetter;
+            public CreateFakeNoteFunc CreateFakeNote;
+        }
+
+        private static readonly Dictionary<GameMode, Info> _gameModeInfos = new()
+        {
+            {
+                GameMode.FiveFretGuitar,
+                new Info
+                {
+                    FretCount = 5,
+                    FretColorProviderGetter = (colorProfile) => colorProfile.FiveFretGuitar,
+                    CreateFakeNote = (time) =>
+                    {
+                        int fret = Random.Range(0, 6);
+
+                        // If the selected note is an open, return here
+                        if (fret == 0)
+                        {
+                            return new FakeNoteData
+                            {
+                                Time = time,
+
+                                Fret = fret,
+                                CenterNote = true,
+                                NoteType = ThemeNoteType.Open
+                            };
+                        }
+
+                        // Otherwise, select a note type
+                        var noteType = Random.Range(0, 3) switch
+                        {
+                            0 => ThemeNoteType.Normal,
+                            1 => ThemeNoteType.HOPO,
+                            2 => ThemeNoteType.Tap,
+                            _ => throw new Exception("Unreachable.")
+                        };
+
+                        // Create
+                        return new FakeNoteData
+                        {
+                            Time = time,
+
+                            Fret = fret,
+                            CenterNote = false,
+                            NoteType = noteType
+                        };
+                    }
+                }
+            }
+        };
+
         public const float NOTE_SPEED = 6f;
         private const double SPAWN_FREQ = 0.2;
 
@@ -32,9 +94,30 @@ namespace YARG.Settings.Preview
         public double PreviewTime { get; private set; }
         private double _nextSpawnTime;
 
+        // TODO: Make game mode selectable
+        public Info CurrentGameModeInfo { get; private set; }
+        private GameMode _selectedGameMode = GameMode.FiveFretGuitar;
+
         private void Start()
         {
-            _fretArray.Initialize(ColorProfile.Default.FiveFretGuitar, false);
+            CurrentGameModeInfo = _gameModeInfos[_selectedGameMode];
+            var theme = ThemePreset.Default;
+
+            // Create frets and put then on the right layer
+            var fret = ThemeManager.Instance.CreateFretPrefabFromTheme(theme, _selectedGameMode);
+            _fretArray.FretCount = CurrentGameModeInfo.FretCount;
+            _fretArray.Initialize(fret,
+                CurrentGameModeInfo.FretColorProviderGetter(ColorProfile.Default), false);
+            _fretArray.transform.SetLayerRecursive(LayerMask.NameToLayer("Settings Preview"));
+
+            // Create the note prefab (this has to be specially done, because
+            // TrackElements need references to the GameManager)
+            var prefab = FakeNote.CreateFakeNoteFromTheme(theme, _selectedGameMode);
+            prefab.transform.parent = transform;
+            prefab.SetActive(false);
+            _notePool.SetPrefabAndReset(prefab);
+
+            // Show hit window if enabled
             _hitWindow.gameObject.SetActive(SettingsManager.Settings.ShowHitWindow.Data);
 
             SettingsMenu.Instance.SettingChanged += OnSettingChanged;
@@ -70,14 +153,7 @@ namespace YARG.Settings.Preview
             // Queue the notes
             if (_nextSpawnTime <= PreviewTime)
             {
-                // Create a fake note. Ticks do not matter.
-                var note = new GuitarNote(
-                    Random.Range(0, 6),
-                    GuitarNoteType.Strum,
-                    GuitarNoteFlags.None,
-                    NoteFlags.None,
-                    PreviewTime + SpawnTimeOffset,
-                    0, 0, 0);
+                var note = CurrentGameModeInfo.CreateFakeNote(PreviewTime + SpawnTimeOffset);
 
                 // Create note every N seconds
                 _nextSpawnTime = PreviewTime + SPAWN_FREQ;

@@ -31,7 +31,7 @@ namespace YARG.Gameplay.Visuals
             float fadePos = Player.ZeroFadePosition;
             float fadeSize = Player.FadeSize;
 
-            // Set all fade values
+            // Set all fade values for meshes
             var meshRenderers = GetComponentsInChildren<MeshRenderer>(true);
             foreach (var meshRenderer in meshRenderers)
             {
@@ -39,6 +39,14 @@ namespace YARG.Gameplay.Visuals
                 {
                     material.SetFade(fadePos, fadeSize);
                 }
+            }
+
+            // Set all fade values for note flares
+            var noteFlares = GetComponentsInChildren<NoteFlare>(true);
+            foreach (var noteFlare in noteFlares)
+            {
+                noteFlare.TrackPlayer = Player;
+                noteFlare.SetFade(fadePos, fadeSize);
             }
         }
 

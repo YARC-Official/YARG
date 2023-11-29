@@ -3,6 +3,7 @@ using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Input;
 using YARG.Settings.Customization;
+using YARG.Themes;
 
 namespace YARG.Player
 {
@@ -20,6 +21,10 @@ namespace YARG.Player
 
         public bool InputsEnabled { get; private set; } = false;
         public ProfileBindings Bindings { get; private set; }
+
+        public ThemePreset ThemePreset =>
+            CustomContentManager.ThemePresets.GetPresetById(Profile.ThemePreset)
+            ?? ThemePreset.Default;
 
         // This is done so that we can override the color profile for the player for replays
         public ColorProfile ColorProfile

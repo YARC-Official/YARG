@@ -151,7 +151,7 @@ If you want to contribute, please feel free! It's recommended you join [our Disc
 
 # 🛡️ License
 
-YARC Launcher is licensed under the YARG License - see the [`LICENSE`](../master/LICENSE) file for details. Essentially, you can do whatever you want with any of the code, *except* for YARG (and related) logos. You DO NOT have permission to redistribute any YARG branding.
+YARG is licensed under the [GNU Lesser General Public License v3.0](https://www.gnu.org/licenses/lgpl-3.0.en.html) (or later) - see the [`LICENSE`](LICENSE) file for details.
 
 # 🧰 External Licenses
 
