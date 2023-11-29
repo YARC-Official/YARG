@@ -94,7 +94,10 @@ namespace YARG.Gameplay.Player
 
             StarScoreThresholds = PopulateStarScoreThresholds(StarMultiplierThresholds, Engine.BaseScore);
 
-            _fretArray.Initialize(Player.ColorProfile.FiveFretGuitar, Player.Profile.LeftyFlip);
+            _fretArray.Initialize(
+                SetupFretTheme(Player.Profile.GameMode),
+                Player.ColorProfile.FiveFretGuitar,
+                Player.Profile.LeftyFlip);
         }
 
         public override void ResetPracticeSection()

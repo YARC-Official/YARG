@@ -12,6 +12,8 @@ namespace YARG.Gameplay.Visuals
         {
             base.InitializeElement();
 
+            var noteGroups = NoteRef.IsStarPower ? StarPowerNoteGroups : NoteGroups;
+
             if (NoteRef.Pad != 0)
             {
                 // Deal with non-kick notes
@@ -28,18 +30,18 @@ namespace YARG.Gameplay.Visuals
                 transform.localPosition = new Vector3(GetElementX(lane, 4), 0f, 0f) * LeftyFlipMultiplier;
 
                 // Get which note model to use
-                NoteGroup = isCymbal ? CymbalGroup : NormalGroup;
+                NoteGroup = isCymbal ? noteGroups[(int) NoteType.Cymbal] : noteGroups[(int) NoteType.Normal];
             }
             else
             {
                 // Deal with kick notes
                 transform.localPosition = Vector3.zero;
-                NoteGroup = KickGroup;
+                NoteGroup = noteGroups[(int) NoteType.Kick];
             }
 
             // Show and set material properties
             NoteGroup.SetActive(true);
-            NoteGroup.InitializeRandomness();
+            NoteGroup.Initialize();
 
             // Set note color
             UpdateColor();
@@ -49,26 +51,22 @@ namespace YARG.Gameplay.Visuals
         {
             var colors = Player.Player.ColorProfile.FourLaneDrums;
 
-            // Get which note color to use
-            Color color;
+            // Get colors
+            var colorNoStarPower = colors.GetNoteColor(NoteRef.Pad);
+            var color = colorNoStarPower;
             if (NoteRef.IsStarPowerActivator && Player.Engine.EngineStats.StarPowerAmount >= 0.5)
             {
-                color = colors.ActivationNote.ToUnityColor();
+                color = colors.ActivationNote;
             }
-            else
+            else if (NoteRef.IsStarPower)
             {
-                color = (NoteRef.IsStarPower
-                    ? colors.GetNoteStarPowerColor(NoteRef.Pad)
-                    : colors.GetNoteColor(NoteRef.Pad))
-                    .ToUnityColor();
+                color = colors.GetNoteStarPowerColor(NoteRef.Pad);
             }
 
             // Set the note color
-            NoteGroup.ColoredMaterial.color = color;
-
-            // Set emission
-            float emissionMultiplier = NoteRef.Pad == (int) FourLaneDrumPad.Kick ? 8f : 2.5f;
-            NoteGroup.ColoredMaterial.SetColor(_emissionColor, color * emissionMultiplier);
+            float emissionMultiplier = NoteRef.Pad == (int) FiveLaneDrumPad.Kick ? 8f : 2.5f;
+            NoteGroup.SetColorWithEmission(color.ToUnityColor(), colorNoStarPower.ToUnityColor(),
+                emissionMultiplier);
         }
     }
 }
