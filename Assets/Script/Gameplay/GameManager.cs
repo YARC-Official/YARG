@@ -242,9 +242,12 @@ namespace YARG.Gameplay
             // Notify everything that the song's starting
             IsSongStarted = true;
             LoadingManager.Instance.Queue(StartBehaviors, "Starting song...");
+            // Wait a frame to make sure the input manager's time is up to date,
+            // initialization can take quite some time
+            LoadingManager.Instance.Queue(UniTask.NextFrame, "Delaying a frame", "to ensure proper initialization");
             await LoadingManager.Instance.StartLoad();
 
-            // Re-seek song runner to ensure the song doesn't start early
+            // Start the song runner
             _songRunner.Start();
 
             // Loaded, enable updates
