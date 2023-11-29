@@ -30,8 +30,6 @@ namespace YARG.Gameplay.Visuals
 
         private void SetHitWindowSize()
         {
-            var hitWindow = _player.HitWindow;
-
             var window = _player.BaseEngine.CalculateHitWindow();
 
             var totalWindow = -window.FrontEnd + window.BackEnd;
@@ -43,7 +41,7 @@ namespace YARG.Gameplay.Visuals
             _hitWindowSize = totalWindow;
 
             // Offsetting is done based on half of the size
-            float baseOffset = (float) totalWindow / 2f;
+            float baseOffset = (float) (-window.FrontEnd - window.BackEnd) / 2f;
 
             _transformCache.localScale = _transformCache.localScale
                 .WithY((float) totalWindow * _player.NoteSpeed);
