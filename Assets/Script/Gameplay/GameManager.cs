@@ -70,7 +70,8 @@ namespace YARG.Gameplay
         // Populated by the GameplayBehaviours themselves as they initialize
         private List<IGameplayBehaviour> _gameplayBehaviours = new();
 
-        public bool IsSongStarted { get; private set; } = false;
+        private bool _behavioursLoaded = false;
+        private bool _behavioursStarted = false;
 
         private enum LoadFailureState
         {
@@ -248,7 +249,6 @@ namespace YARG.Gameplay
 #endif
 
             // Notify everything that the song's starting
-            IsSongStarted = true;
             LoadingManager.Instance.Queue(StartBehaviors, "Starting song...");
             // Wait a frame to make sure the input manager's time is up to date,
             // initialization can take quite some time
@@ -603,6 +603,8 @@ namespace YARG.Gameplay
 #endif
                 }
             }
+
+            _behavioursLoaded = true;
         }
 
         private async UniTask StartBehaviors()
@@ -636,6 +638,8 @@ namespace YARG.Gameplay
 #endif
                 }
             }
+
+            _behavioursStarted = true;
 
             foreach (var player in _players)
             {

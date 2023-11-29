@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
@@ -76,13 +76,6 @@ namespace YARG.Gameplay.Player
                 Debug.LogWarning($"Player object {gameObject.name} was instantiated outside of the gameplay scene!");
                 Destroy(gameObject);
                 return;
-            }
-
-            // Ensure proper initialization if the song already started
-            // (dunno why that would happen with the players, but just in case)
-            if (GameManager.IsSongStarted)
-            {
-                PlayerStart();
             }
         }
 

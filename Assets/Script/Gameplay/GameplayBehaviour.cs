@@ -62,14 +62,13 @@ namespace YARG.Gameplay
                 GameplayAwake();
 
                 // Disable until the song starts
-                enabled = GameManager.IsSongStarted;
+                enabled = GameManager._behavioursStarted;
 
-                // Ensure initialization occurs even if the song manager has already started
-                if (GameManager.IsSongStarted)
-                {
+                // Ensure initialization occurs if the game manager has already run things
+                if (GameManager._behavioursLoaded)
                     await GameplayLoadAsync();
+                if (GameManager._behavioursStarted)
                     await GameplayStartAsync();
-                }
             }
 
             // Protected to warn when hidden by an inheriting class
