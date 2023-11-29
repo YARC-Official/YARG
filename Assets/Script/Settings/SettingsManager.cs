@@ -87,7 +87,8 @@ namespace YARG.Settings
             {
                 // "NoKicks",
                 "AntiGhosting",
-                "InfiniteFrontEnd"
+                "InfiniteFrontEnd",
+                "DynamicWindow"
             },
             new PresetsTab("Presets", icon: "Customization")
         };

@@ -25,8 +25,8 @@ namespace YARG.Settings
 
             public static bool IsLoading = true;
 
-            public List<string> SongFolders = new();
-            public bool ShowAntiPiracyDialog = true;
+            public List<string> SongFolders          = new();
+            public bool         ShowAntiPiracyDialog = true;
 
             #endregion
 
@@ -65,50 +65,52 @@ namespace YARG.Settings
                 SettingsMenu.Instance.gameObject.SetActive(false);
             }
 
-            public IntSetting    AudioCalibration          { get; } = new(120);
-            public IntSetting    VideoCalibration          { get; } = new(0);
+            public IntSetting AudioCalibration { get; } = new(120);
+            public IntSetting VideoCalibration { get; } = new(0);
 
             public ToggleSetting UseCymbalModelsInFiveLane { get; } = new(true);
             public ToggleSetting KickBounce                { get; } = new(true);
 
-            public SliderSetting ShowCursorTimer           { get; } = new(2f, 0f, 5f);
+            public SliderSetting ShowCursorTimer { get; } = new(2f, 0f, 5f);
 
-            public ToggleSetting AmIAwesome                { get; } = new(false);
+            public ToggleSetting AmIAwesome { get; } = new(false);
 
-            public ToggleSetting InputDeviceLogging        { get; } = new(false, InputDeviceLoggingCallback);
+            public ToggleSetting InputDeviceLogging { get; } = new(false, InputDeviceLoggingCallback);
 
             #endregion
 
             #region Sound
 
             public VolumeSetting MasterMusicVolume { get; } = new(0.75f, v => VolumeCallback(SongStem.Master, v));
-            public VolumeSetting GuitarVolume      { get; } = new(1f,    v => VolumeCallback(SongStem.Guitar, v));
-            public VolumeSetting RhythmVolume      { get; } = new(1f,    v => VolumeCallback(SongStem.Rhythm, v));
-            public VolumeSetting BassVolume        { get; } = new(1f,    v => VolumeCallback(SongStem.Bass, v));
-            public VolumeSetting KeysVolume        { get; } = new(1f,    v => VolumeCallback(SongStem.Keys, v));
-            public VolumeSetting DrumsVolume       { get; } = new(1f,    DrumVolumeCallback);
-            public VolumeSetting VocalsVolume      { get; } = new(1f,    VocalVolumeCallback);
-            public VolumeSetting SongVolume        { get; } = new(1f,    v => VolumeCallback(SongStem.Song, v));
-            public VolumeSetting CrowdVolume       { get; } = new(0.5f,  v => VolumeCallback(SongStem.Crowd, v));
-            public VolumeSetting SfxVolume         { get; } = new(0.8f,  v => VolumeCallback(SongStem.Sfx, v));
+            public VolumeSetting GuitarVolume      { get; } = new(1f, v => VolumeCallback(SongStem.Guitar, v));
+            public VolumeSetting RhythmVolume      { get; } = new(1f, v => VolumeCallback(SongStem.Rhythm, v));
+            public VolumeSetting BassVolume        { get; } = new(1f, v => VolumeCallback(SongStem.Bass, v));
+            public VolumeSetting KeysVolume        { get; } = new(1f, v => VolumeCallback(SongStem.Keys, v));
+            public VolumeSetting DrumsVolume       { get; } = new(1f, DrumVolumeCallback);
+            public VolumeSetting VocalsVolume      { get; } = new(1f, VocalVolumeCallback);
+            public VolumeSetting SongVolume        { get; } = new(1f, v => VolumeCallback(SongStem.Song, v));
+            public VolumeSetting CrowdVolume       { get; } = new(0.5f, v => VolumeCallback(SongStem.Crowd, v));
+            public VolumeSetting SfxVolume         { get; } = new(0.8f, v => VolumeCallback(SongStem.Sfx, v));
             public VolumeSetting PreviewVolume     { get; } = new(0.25f);
             public VolumeSetting MusicPlayerVolume { get; } = new(0.15f, MusicPlayerVolumeCallback);
-            public VolumeSetting VocalMonitoring   { get; } = new(0.7f,  VocalMonitoringCallback);
+            public VolumeSetting VocalMonitoring   { get; } = new(0.7f, VocalMonitoringCallback);
 
-            public SliderSetting MicrophoneSensitivity  { get; } = new(2f, -50f, 50f);
-            public ToggleSetting MuteOnMiss             { get; } = new(true);
-            public ToggleSetting UseStarpowerFx         { get; } = new(true, UseStarpowerFxChange);
-         // public ToggleSetting UseWhammyFx            { get; } = new(true, UseWhammyFxChange);
-         // public SliderSetting WhammyPitchShiftAmount { get; } = new(1, 1, 12, WhammyPitchShiftAmountChange);
-         // public IntSetting    WhammyOversampleFactor { get; } = new(8, 4, 32, WhammyOversampleFactorChange);
-            public ToggleSetting UseChipmunkSpeed       { get; } = new(false, UseChipmunkSpeedChange);
+            public SliderSetting MicrophoneSensitivity { get; } = new(2f, -50f, 50f);
+            public ToggleSetting MuteOnMiss            { get; } = new(true);
+
+            public ToggleSetting UseStarpowerFx { get; } = new(true, UseStarpowerFxChange);
+
+            // public ToggleSetting UseWhammyFx            { get; } = new(true, UseWhammyFxChange);
+            // public SliderSetting WhammyPitchShiftAmount { get; } = new(1, 1, 12, WhammyPitchShiftAmountChange);
+            // public IntSetting    WhammyOversampleFactor { get; } = new(8, 4, 32, WhammyOversampleFactorChange);
+            public ToggleSetting UseChipmunkSpeed { get; } = new(false, UseChipmunkSpeedChange);
 
             #endregion
 
             #region Graphics
 
-            public ToggleSetting VSync   { get; } = new(true, VSyncCallback);
-            public IntSetting    FpsCap  { get; } = new(60, 1, onChange: FpsCapCallback);
+            public ToggleSetting VSync  { get; } = new(true, VSyncCallback);
+            public IntSetting    FpsCap { get; } = new(60, 1, onChange: FpsCapCallback);
 
             public DropdownSetting FullscreenMode { get; } = new(new()
             {
@@ -152,6 +154,7 @@ namespace YARG.Settings
             public ToggleSetting NoKicks          { get; } = new(false);
             public ToggleSetting AntiGhosting     { get; } = new(true);
             public ToggleSetting InfiniteFrontEnd { get; } = new(false);
+            public ToggleSetting DynamicWindow    { get; } = new(false);
 
             #endregion
 
@@ -308,8 +311,7 @@ namespace YARG.Settings
 
             private static void InputDeviceLoggingCallback(bool value)
             {
-                if (!value)
-                    return;
+                if (!value) return;
 
                 foreach (var device in InputSystem.devices)
                 {

@@ -587,6 +587,14 @@ MonoBehaviour:
     m_Key: Text.ColorProfileSupport
     m_Metadata:
       m_Items: []
+  - m_Id: 89978814350540800
+    m_Key: Setting.Engine.DynamicWindow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 89979174414761984
+    m_Key: Setting.Engine.DynamicWindow.Description
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
