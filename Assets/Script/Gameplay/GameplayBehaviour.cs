@@ -57,10 +57,12 @@ namespace YARG.Gameplay
 
                 GameManager._gameplayBehaviours.Add(this);
 
+                // Call Awake first to ensure everything is initialized,
+                // otherwise setting `enabled` will call GameplayDisable first
+                GameplayAwake();
+
                 // Disable until the song starts
                 enabled = GameManager.IsSongStarted;
-
-                GameplayAwake();
 
                 // Ensure initialization occurs even if the song manager has already started
                 if (GameManager.IsSongStarted)
