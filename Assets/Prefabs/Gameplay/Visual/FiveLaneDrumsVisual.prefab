@@ -13,6 +13,12 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 861361446070616044, guid: 071d88dd5de7b7c4990c37721d2a7bcd,
         type: 3}
+    - target: {fileID: 4797150999688012940, guid: 14dfc37fcbd6e0c4ba41507437a52fea,
+        type: 3}
+      propertyPath: <Prefab>k__BackingField
+      value: 
+      objectReference: {fileID: 861361446070616044, guid: 071d88dd5de7b7c4990c37721d2a7bcd,
+        type: 3}
     - target: {fileID: 5494856007075818134, guid: 14dfc37fcbd6e0c4ba41507437a52fea,
         type: 3}
       propertyPath: _fiveLaneMode

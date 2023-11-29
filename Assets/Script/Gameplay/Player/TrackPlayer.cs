@@ -7,7 +7,6 @@ using YARG.Core.Engine;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Player;
-using YARG.Settings.Customization;
 using YARG.Themes;
 
 namespace YARG.Gameplay.Player
@@ -39,7 +38,7 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         protected SunburstEffects SunburstEffects;
         [SerializeField]
-        protected HitWindowDisplay HitWindowDisplay;
+        protected IndicatorStripes IndicatorStripes;
 
         [SerializeField]
         private Transform _hudLocation;
@@ -68,6 +67,8 @@ namespace YARG.Gameplay.Player
 
             Beatlines = SyncTrack.Beatlines;
             BeatlineIndex = 0;
+
+            IndicatorStripes.Initialize();
 
             // Set fade information and highway length
             ZeroFadePosition = DEFAULT_ZERO_FADE_POS * Player.Profile.HighwayLength;
