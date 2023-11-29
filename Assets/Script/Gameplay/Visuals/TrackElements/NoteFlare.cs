@@ -51,12 +51,18 @@ namespace YARG.Gameplay.Visuals
                 intensity = 1f - (pos - _fadeFullPosition) / _fadeSize;
             }
 
-            _flare.intensity = intensity;
+            // We use "EaseInOutCubic" as the track fade also uses that
+            _flare.intensity = EaseInOutCubic(Mathf.Clamp01(intensity));
 
             // Update flare scale based on distance from camera
 
             _flare.scale = _scaleConstant /
                 Vector3.Distance(transform.position, TrackPlayer.TrackCamera.transform.position);
+        }
+
+        private static float EaseInOutCubic(float x)
+        {
+            return x < 0.5f ? 4f * x * x * x : 1f - Mathf.Pow(-2f * x + 2f, 3f) / 2f;
         }
     }
 }
