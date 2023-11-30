@@ -46,6 +46,7 @@ namespace YARG.Menu.Settings.Visuals
             }
             catch
             {
+                // Ignore error
             }
 
             RefreshVisual();
