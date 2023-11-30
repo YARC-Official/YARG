@@ -12,6 +12,8 @@ namespace YARG.Gameplay.Visuals
 
         private double _hitWindowSize;
 
+        private double _lastNoteSpeed;
+
         private void Awake()
         {
             _player = GetComponentInParent<BasePlayer>();
@@ -38,12 +40,13 @@ namespace YARG.Gameplay.Visuals
             var window = _player.BaseEngine.CalculateHitWindow();
 
             var totalWindow = -window.FrontEnd + window.BackEnd;
-            if (Math.Abs(totalWindow - _hitWindowSize) < double.Epsilon)
+            if (Math.Abs(totalWindow - _hitWindowSize) < double.Epsilon && Math.Abs(_player.NoteSpeed - _lastNoteSpeed) < double.Epsilon)
             {
                 return;
             }
 
             _hitWindowSize = totalWindow;
+            _lastNoteSpeed = _player.NoteSpeed;
 
             // Offsetting is done based on half of the size
             float baseOffset = (float) (-window.FrontEnd - window.BackEnd) / 2f;
