@@ -1,27 +1,68 @@
+using System;
 using UnityEngine;
-using YARG.Core.Engine;
+using YARG.Gameplay.Player;
 using YARG.Settings;
 
 namespace YARG.Gameplay.Visuals
 {
     public class HitWindowDisplay : MonoBehaviour
     {
-        public void SetHitWindowInfo(BaseEngineParameters param, float noteSpeed)
+        private Transform  _transformCache;
+        private BasePlayer _player;
+
+        private double _hitWindowSize;
+
+        private void Awake()
         {
+            _player = GetComponentInParent<BasePlayer>();
+
+            _transformCache = transform;
             if (!SettingsManager.Settings.ShowHitWindow.Data)
             {
-                Destroy(gameObject);
+                gameObject.SetActive(false);
+            }
+        }
+
+        private void Start()
+        {
+            if(_player is null)
+            {
                 return;
             }
 
-            // Offsetting is done based on half of the size
-            float baseOffset = (float) (-param.FrontEnd - param.BackEnd) / 2f;
+            SetHitWindowSize();
+        }
 
-            var transformCache = transform;
-            transformCache.localScale = transformCache.localScale
-                .WithY((float) param.HitWindow * noteSpeed);
-            transformCache.localPosition = transformCache.localPosition
-                .AddZ(baseOffset);
+        public void SetHitWindowSize()
+        {
+            var window = _player.BaseEngine.CalculateHitWindow();
+
+            var totalWindow = -window.FrontEnd + window.BackEnd;
+            if (Math.Abs(totalWindow - _hitWindowSize) < double.Epsilon)
+            {
+                return;
+            }
+
+            _hitWindowSize = totalWindow;
+
+            // Offsetting is done based on half of the size
+            float baseOffset = (float) (-window.FrontEnd - window.BackEnd) / 2f;
+
+            _transformCache.localScale = _transformCache.localScale
+                .WithY((float) totalWindow * _player.NoteSpeed);
+            _transformCache.localPosition = _transformCache.localPosition
+                .WithZ(baseOffset);
+        }
+
+        private void Update()
+        {
+            // Player could be null if the hit window display is being used in customisation menu
+            if (_player is null || !_player.HitWindow.IsDynamic)
+            {
+                return;
+            }
+
+            SetHitWindowSize();
         }
     }
 }
