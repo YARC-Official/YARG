@@ -15,9 +15,6 @@ namespace YARG.Menu.Persistent
         [SerializeField]
         private Transform _buttonContainer;
 
-        [SerializeField]
-        private TextMeshProUGUI _infoText;
-
         [Space]
         [SerializeField]
         private GameObject _buttonPrefab;
@@ -50,8 +47,6 @@ namespace YARG.Menu.Persistent
             {
                 button.gameObject.SetActive(false);
             }
-
-            _infoText.text = null;
         }
 
         public void Reset()
@@ -98,20 +93,6 @@ namespace YARG.Menu.Persistent
             }
 
             gameObject.SetActive(true);
-
-            SetInfoText(string.Empty);
-        }
-
-        public void SetInfoText(string str)
-        {
-            if (str == string.Empty && !MusicPlayer.gameObject.activeInHierarchy)
-            {
-                _infoText.text = GlobalVariables.CURRENT_VERSION.ToString();
-            }
-            else
-            {
-                _infoText.text = str;
-            }
         }
     }
 }
