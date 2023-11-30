@@ -69,9 +69,12 @@ namespace YARG.Input
         private float _postDebounceValue;
 
         public float RawState { get; private set; }
+        public float PreviousState { get; private set; }
 
         public bool IsPressed => State >= PressPoint;
         public bool IsPressedRaw => RawState >= PressPoint;
+
+        public bool WasPreviouslyPressed => PreviousState >= PressPoint;
 
         public SingleButtonBinding(InputControl<float> control) : base(control)
         {
@@ -124,22 +127,18 @@ namespace YARG.Input
             return serialized;
         }
 
-        public override float UpdateState(InputEventPtr eventPtr)
+        public override void UpdateState()
         {
-            // Ignore if no state change occured
-            if (!Control.HasValueChangeInEvent(eventPtr))
-                return State;
+            PreviousState = State;
 
             // Read new state
-            RawState = Control.ReadValueFromEvent(eventPtr);
+            RawState = Control.value;
             _postDebounceValue = CalculateState(RawState);
 
             // Check debounce
             if (_debounceTimer.IsRunning && _debounceTimer.ElapsedMilliseconds < DebounceThreshold)
-            {
                 // Wait for when debounce ends
-                return State;
-            }
+                return;
 
             // Stop debounce and process this event normally
             _debounceTimer.Reset();
@@ -150,12 +149,11 @@ namespace YARG.Input
                 _debounceTimer.Start();
 
             InvokeStateChanged(State);
-            return State;
         }
 
         private float CalculateState(float rawValue)
         {
-            return RawState * _invertSign;
+            return rawValue * _invertSign;
         }
 
         public bool UpdateDebounce()
@@ -180,34 +178,33 @@ namespace YARG.Input
 
     public class ButtonBinding : ControlBinding<float, SingleButtonBinding>
     {
-        private bool _currentValue;
+        protected bool _currentValue;
 
         public ButtonBinding(string name, int action) : base(name, action)
         {
         }
 
-        public override bool IsControlActuated(ActuationSettings settings, InputControl<float> control,
-            InputEventPtr eventPtr)
+        public override bool IsControlActuated(ActuationSettings settings, InputControl<float> control)
         {
-            if (!control.HasValueChangeInEvent(eventPtr))
-                return false;
+            float previousValue = control.ReadValueFromPreviousFrame();
+            float value = control.ReadValue();
+            bool actuated = Math.Abs(value - previousValue) >= settings.AxisDeltaThreshold;
 
-            float pressPoint = settings.ButtonPressThreshold;
-            float value = control.ReadValueFromEvent(eventPtr);
-
-            return value >= pressPoint;
+            if (control is ButtonControl button)
+                return actuated && value >= button.pressPointOrDefault;
+            else
+                return actuated;
         }
 
-        public override void ProcessInputEvent(InputEventPtr eventPtr)
+        protected override void OnStateChanged(SingleButtonBinding _, double time)
         {
             bool state = false;
             foreach (var binding in _bindings)
             {
-                binding.UpdateState(eventPtr);
                 state |= binding.IsPressed;
             }
 
-            ProcessNextState(eventPtr.time, state);
+            ProcessNextState(time, state);
         }
 
         private void ProcessNextState(double time, bool state)
@@ -242,7 +239,7 @@ namespace YARG.Input
                 ProcessNextState(updateTime, state);
         }
 
-        protected override SingleButtonBinding OnControlAdded(ActuationSettings settings, InputControl<float> control)
+        protected override SingleButtonBinding CreateBinding(ActuationSettings settings, InputControl<float> control)
         {
             return new(control, settings);
         }

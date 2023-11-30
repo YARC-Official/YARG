@@ -35,42 +35,33 @@ namespace YARG.Input
         {
         }
 
-        public override bool IsControlActuated(ActuationSettings settings, InputControl<int> control, InputEventPtr eventPtr)
+        public override bool IsControlActuated(ActuationSettings settings, InputControl<int> control)
         {
-            if (!control.HasValueChangeInEvent(eventPtr))
-                return false;
-
-            // The buffer that ReadValue reads from is not updated until after all events have been processed
-            int previousValue = control.ReadValue();
-            int value = control.ReadValueFromEvent(eventPtr);
+            float previousValue = control.ReadValueFromPreviousFrame();
+            float value = control.ReadValue();
 
             return Math.Abs(value - previousValue) >= settings.IntegerDeltaThreshold;
         }
 
-        public override void ProcessInputEvent(InputEventPtr eventPtr)
+        protected override void OnStateChanged(SingleIntegerBinding _, double time)
         {
             int max = 0;
             foreach (var binding in _bindings)
             {
-                var value = binding.UpdateState(eventPtr);
+                var value = binding.State;
                 if (value > max)
                     max = value;
             }
 
-            ProcessNextState(eventPtr.time, max);
-        }
-
-        private void ProcessNextState(double time, int state)
-        {
             // Ignore if state is unchanged
-            if (_currentValue == state)
+            if (_currentValue == max)
                 return;
 
-            _currentValue = state;
-            FireInputEvent(time, state);
+            _currentValue = max;
+            FireInputEvent(time, max);
         }
 
-        protected override SingleIntegerBinding OnControlAdded(ActuationSettings settings, InputControl<int> control)
+        protected override SingleIntegerBinding CreateBinding(ActuationSettings settings, InputControl<int> control)
         {
             return new(control, settings);
         }

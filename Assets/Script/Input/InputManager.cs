@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
@@ -51,6 +52,15 @@ namespace YARG.Input
         /// </summary>
         public static double CurrentInputTime => InputState.currentTime;
 
+        private static List<InputDevice> _disabledDevices = new();
+
+        // We do this song and dance of tracking focus changes manually rather than setting
+        // InputSettings.backgroundBehavior to IgnoreFocus, so that input is still (largely) disabled when unfocused
+        // but devices are not removed only to be re-added when coming back into focus
+        private static bool _gameFocused;
+        private static bool _focusChanged;
+        private static List<InputDevice> _backgroundDisabledDevices = new();
+
         private static IDisposable _onEventListener;
 
         public static void Initialize()
@@ -67,12 +77,20 @@ namespace YARG.Input
             InputSystem.onBeforeUpdate += OnBeforeUpdate;
             InputSystem.onAfterUpdate += OnAfterUpdate;
 
+            _gameFocused = Application.isFocused;
+            Application.focusChanged += OnFocusChange;
             InputSystem.onDeviceChange += OnDeviceChange;
 
             // Notify of all current devices
             ToastManager.ToastInformation("Devices found: " + (Microphone.devices.Length + InputSystem.devices.Count));
             foreach (var device in InputSystem.devices)
             {
+                if (!device.enabled)
+                {
+                    _disabledDevices.Add(device);
+                    continue;
+                }
+
                 DeviceAdded?.Invoke(device);
             }
         }
@@ -122,13 +140,26 @@ namespace YARG.Input
                 var profileBinds = player.Bindings;
                 profileBinds.UpdateBindingsForFrame(InputUpdateTime);
             }
+
+            // Remove any devices that happened to be actually disabled
+            // right as the game focus changed
+            if (_focusChanged && _gameFocused)
+            {
+                foreach (var device in _backgroundDisabledDevices)
+                {
+                    DeviceRemoved?.Invoke(device);
+                }
+            }
+
+            _focusChanged = false;
         }
 
+        // For input time handling/debugging
         private static void OnEvent(InputEventPtr eventPtr)
         {
             double currentTime = CurrentInputTime;
 
-            // Only take state events
+            // Only check state events
             if (!eventPtr.IsA<StateEvent>() && !eventPtr.IsA<DeltaStateEvent>())
                 return;
 
@@ -172,16 +203,12 @@ namespace YARG.Input
             }
             _previousEventTimes[device] = eventPtr.time;
 #endif
+        }
 
-            foreach (var player in PlayerContainer.Players)
-            {
-                var profileBinds = player.Bindings;
-                if (!profileBinds.ContainsDevice(device))
-                    continue;
-
-                profileBinds.ProcessInputEvent(eventPtr);
-                break;
-            }
+        private static void OnFocusChange(bool focused)
+        {
+            _gameFocused = focused;
+            _focusChanged = true;
         }
 
         private static void OnDeviceChange(InputDevice device, InputDeviceChange change)
@@ -189,18 +216,72 @@ namespace YARG.Input
             switch (change)
             {
                 case InputDeviceChange.Added:
-                // case InputDeviceChange.Enabled: // Devices are enabled/disabled when gaining/losing window focus
-                // case InputDeviceChange.Reconnected: // Fired alongside Added, not needed
+                    // Ignore if the device was disabled before being added
+                    // Necessary for VariantDevice devices in PlasticBand
+                    if (!device.enabled)
+                    {
+                        _disabledDevices.Add(device);
+                        return;
+                    }
+
                     ToastManager.ToastMessage($"Device added: {device.displayName}");
                     if (SettingsManager.Settings.InputDeviceLogging.Data)
                         Debug.Log($"Device added: {device.displayName}\nDescription:\n{device.description.ToJson()}\n");
+
+                    DeviceAdded?.Invoke(device);
+                    break;
+
+                // case InputDeviceChange.Reconnected: // Fired alongside Added, not needed
+                case InputDeviceChange.Enabled:
+                    // Devices are enabled when gaining window focus,
+                    // but we don't want to add devices when this happens
+                    if (_focusChanged || Application.isFocused != _gameFocused)
+                    {
+                        _focusChanged = true;
+                        // Keep track of which devices were re-enabled, so any devices that actually get
+                        // disabled can be removed after coming back into focus in OnAfterUpdate
+                        _backgroundDisabledDevices.Remove(device);
+                        return;
+                    }
+
+                    if (!_disabledDevices.Contains(device))
+                        return;
+
+                    ToastManager.ToastMessage($"Device added: {device.displayName}");
+                    _disabledDevices.Remove(device);
                     DeviceAdded?.Invoke(device);
                     break;
 
                 case InputDeviceChange.Removed:
-                // case InputDeviceChange.Disabled: // Devices are enabled/disabled when gaining/losing window focus
-                // case InputDeviceChange.Disconnected: // Fired alongside Removed, not needed
+                    // Don't toast for disabled devices
+                    if (_disabledDevices.Contains(device))
+                    {
+                        _disabledDevices.Remove(device);
+                        return;
+                    }
+
                     ToastManager.ToastMessage($"Device removed: {device.displayName}");
+                    DeviceRemoved?.Invoke(device);
+                    break;
+
+                // case InputDeviceChange.Disconnected: // Fired alongside Removed, not needed
+                case InputDeviceChange.Disabled:
+                    // Devices are disabled when losing window focus,
+                    // but we don't want to remove devices when this happens
+                    if (_focusChanged || Application.isFocused != _gameFocused)
+                    {
+                        _focusChanged = true;
+                        // Keep track of disabled devices so any devices that actually get
+                        // disabled can be removed after coming back into focus in OnAfterUpdate
+                        _backgroundDisabledDevices.Add(device);
+                        return;
+                    }
+
+                    if (_disabledDevices.Contains(device))
+                        return;
+
+                    ToastManager.ToastMessage($"Device removed: {device.displayName}");
+                    _disabledDevices.Add(device);
                     DeviceRemoved?.Invoke(device);
                     break;
             }

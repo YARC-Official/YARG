@@ -34,7 +34,7 @@ namespace YARG.Input
             new ButtonBinding("Guitar.StrumUp",   (int) GuitarAction.StrumUp),
             new ButtonBinding("Guitar.StrumDown", (int) GuitarAction.StrumDown),
 
-            new ButtonBinding("Guitar.StarPower", (int) GuitarAction.StarPower),
+            new IndividualButtonBinding("Guitar.StarPower", (int) GuitarAction.StarPower),
 
             new AxisBinding("Guitar.Whammy", (int) GuitarAction.Whammy),
         };
@@ -51,7 +51,7 @@ namespace YARG.Input
             new ButtonBinding("Guitar.StrumUp",   (int) GuitarAction.StrumUp),
             new ButtonBinding("Guitar.StrumDown", (int) GuitarAction.StrumDown),
 
-            new ButtonBinding("Guitar.StarPower", (int) GuitarAction.StarPower),
+            new IndividualButtonBinding("Guitar.StarPower", (int) GuitarAction.StarPower),
 
             new AxisBinding("Guitar.Whammy", (int) GuitarAction.Whammy),
         };
@@ -59,28 +59,28 @@ namespace YARG.Input
         public static BindingCollection CreateFourLaneDrumsBindings() => new(GameMode.FourLaneDrums)
         {
             // TODO: Velocity support
-            new ButtonBinding("Drums.RedPad",    (int) DrumsAction.RedDrum),
-            new ButtonBinding("Drums.YellowPad", (int) DrumsAction.YellowDrum),
-            new ButtonBinding("Drums.BluePad",   (int) DrumsAction.BlueDrum),
-            new ButtonBinding("Drums.GreenPad",  (int) DrumsAction.GreenDrum),
+            new IndividualButtonBinding("Drums.RedPad",    (int) DrumsAction.RedDrum),
+            new IndividualButtonBinding("Drums.YellowPad", (int) DrumsAction.YellowDrum),
+            new IndividualButtonBinding("Drums.BluePad",   (int) DrumsAction.BlueDrum),
+            new IndividualButtonBinding("Drums.GreenPad",  (int) DrumsAction.GreenDrum),
 
-            new ButtonBinding("Drums.YellowCymbal", (int) DrumsAction.YellowCymbal),
-            new ButtonBinding("Drums.BlueCymbal",   (int) DrumsAction.BlueCymbal),
-            new ButtonBinding("Drums.GreenCymbal",  (int) DrumsAction.GreenCymbal),
+            new IndividualButtonBinding("Drums.YellowCymbal", (int) DrumsAction.YellowCymbal),
+            new IndividualButtonBinding("Drums.BlueCymbal",   (int) DrumsAction.BlueCymbal),
+            new IndividualButtonBinding("Drums.GreenCymbal",  (int) DrumsAction.GreenCymbal),
 
-            new ButtonBinding("Drums.Kick", (int) DrumsAction.Kick),
+            new IndividualButtonBinding("Drums.Kick", (int) DrumsAction.Kick),
         };
 
         public static BindingCollection CreateFiveLaneDrumsBindings() => new(GameMode.FiveLaneDrums)
         {
             // TODO: Velocity support
-            new ButtonBinding("Drums.RedPad",       (int) DrumsAction.RedDrum),
-            new ButtonBinding("Drums.YellowCymbal", (int) DrumsAction.YellowCymbal),
-            new ButtonBinding("Drums.BluePad",      (int) DrumsAction.BlueDrum),
-            new ButtonBinding("Drums.OrangeCymbal", (int) DrumsAction.OrangeCymbal),
-            new ButtonBinding("Drums.GreenPad",     (int) DrumsAction.GreenDrum),
+            new IndividualButtonBinding("Drums.RedPad",       (int) DrumsAction.RedDrum),
+            new IndividualButtonBinding("Drums.YellowCymbal", (int) DrumsAction.YellowCymbal),
+            new IndividualButtonBinding("Drums.BluePad",      (int) DrumsAction.BlueDrum),
+            new IndividualButtonBinding("Drums.OrangeCymbal", (int) DrumsAction.OrangeCymbal),
+            new IndividualButtonBinding("Drums.GreenPad",     (int) DrumsAction.GreenDrum),
 
-            new ButtonBinding("Drums.Kick", (int) DrumsAction.Kick),
+            new IndividualButtonBinding("Drums.Kick", (int) DrumsAction.Kick),
         };
 
         public static BindingCollection CreateProGuitarBindings() => new(GameMode.ProGuitar)
@@ -99,7 +99,7 @@ namespace YARG.Input
             new ButtonBinding("ProGuitar.String5_Strum", (int) ProGuitarAction.String5_Strum),
             new ButtonBinding("ProGuitar.String6_Strum", (int) ProGuitarAction.String6_Strum),
 
-            new ButtonBinding("Guitar.StarPower", (int) ProGuitarAction.StarPower),
+            new IndividualButtonBinding("Guitar.StarPower", (int) ProGuitarAction.StarPower),
         };
 
         public static BindingCollection CreateProKeysBindings() => new(GameMode.ProKeys)
@@ -134,7 +134,7 @@ namespace YARG.Input
 
             // new ButtonBinding("ProKeys.Key25", (int) ProKeysAction.Key25),
 
-            // new ButtonBinding("ProKeys.StarPower", (int) ProKeysAction.StarPower),
+            // new IndividualButtonBinding("ProKeys.StarPower", (int) ProKeysAction.StarPower),
 
             // new AxisBinding("ProKeys.TouchEffects", (int) ProKeysAction.TouchEffects),
         };
@@ -145,7 +145,7 @@ namespace YARG.Input
             // through the Unity input system (which actually wouldn't be that hard lol)
             // new AxisBinding("Vocals.Pitch", (int) VocalsAction.Pitch),
 
-            new ButtonBinding("Vocals.StarPower", (int) VocalsAction.StarPower),
+            new IndividualButtonBinding("Vocals.StarPower", (int) VocalsAction.StarPower),
         };
 
         public static BindingCollection CreateGameplayBindings(GameMode mode)
