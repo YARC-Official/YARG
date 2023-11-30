@@ -20,7 +20,7 @@ namespace YARG.Gameplay.Player
         {
             get
             {
-                if (GameManager.IsPractice && GameManager.SelectedSongSpeed < 1)
+                if (GameManager.SelectedSongSpeed < 1)
                 {
                     return Player.Profile.NoteSpeed;
                 }
