@@ -10,6 +10,15 @@ namespace YARG.Helpers.Extensions
             return new Color(color.R / 255f, color.G / 255f, color.B / 255f, color.A / 255f);
         }
 
+        public static System.Drawing.Color ToSystemColor(this Color color)
+        {
+            return System.Drawing.Color.FromArgb(
+                (int) (color.a * 255),
+                (int) (color.r * 255),
+                (int) (color.g * 255),
+                (int) (color.b * 255));
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Color WithAlpha(this Color col, float alpha)
         {

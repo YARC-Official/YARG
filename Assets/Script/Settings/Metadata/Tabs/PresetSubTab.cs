@@ -47,6 +47,8 @@ namespace YARG.Settings.Metadata
 
         private readonly Dictionary<string, ISettingType> _settingFields = new();
 
+        private string _subSection;
+
         public PresetSubTab(CustomContent<T> customContent, IPreviewBuilder previewBuilder = null)
             : base("Presets", "Generic", previewBuilder)
         {

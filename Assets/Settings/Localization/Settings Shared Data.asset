@@ -107,6 +107,18 @@ MonoBehaviour:
     m_Key: Dropdown.Graphics.SongTimeOnScoreBox.TotalOnly
     m_Metadata:
       m_Items: []
+  - m_Id: 90695957755584512
+    m_Key: Dropdown.Presets.ColorProfile.Instrument.FiveFretGuitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957784944640
+    m_Key: Dropdown.Presets.ColorProfile.Instrument.FiveLaneDrums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957784944641
+    m_Key: Dropdown.Presets.ColorProfile.Instrument.FourLaneDrums
+    m_Metadata:
+      m_Items: []
   - m_Id: 13088551106633728
     m_Key: Header.Cache
     m_Metadata:
@@ -177,6 +189,14 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 53693768667619342
     m_Key: Setting.Engine.AntiGhosting.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957784944642
+    m_Key: Setting.Engine.DynamicWindow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957784944643
+    m_Key: Setting.Engine.DynamicWindow.Description
     m_Metadata:
       m_Items: []
   - m_Id: 53693768667619343
@@ -411,6 +431,230 @@ MonoBehaviour:
     m_Key: Setting.Presets.CameraPreset.Rotation.Description
     m_Metadata:
       m_Items: []
+  - m_Id: 90695957784944644
+    m_Key: Setting.Presets.ColorProfile.ActivationNote
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957784944645
+    m_Key: Setting.Presets.ColorProfile.BlueCymbal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957784944646
+    m_Key: Setting.Presets.ColorProfile.BlueCymbalStarpower
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957784944647
+    m_Key: Setting.Presets.ColorProfile.BlueDrum
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957784944648
+    m_Key: Setting.Presets.ColorProfile.BlueDrumStarpower
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957784944649
+    m_Key: Setting.Presets.ColorProfile.BlueFret
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138944
+    m_Key: Setting.Presets.ColorProfile.BlueFretInner
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138945
+    m_Key: Setting.Presets.ColorProfile.BlueNote
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138946
+    m_Key: Setting.Presets.ColorProfile.BlueNoteStarPower
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138947
+    m_Key: Setting.Presets.ColorProfile.BlueParticles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138948
+    m_Key: Setting.Presets.ColorProfile.BlueStarpower
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138949
+    m_Key: Setting.Presets.ColorProfile.GreenCymbal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138950
+    m_Key: Setting.Presets.ColorProfile.GreenCymbalStarpower
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138951
+    m_Key: Setting.Presets.ColorProfile.GreenDrum
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138952
+    m_Key: Setting.Presets.ColorProfile.GreenDrumStarpower
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138953
+    m_Key: Setting.Presets.ColorProfile.GreenFret
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138954
+    m_Key: Setting.Presets.ColorProfile.GreenFretInner
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138955
+    m_Key: Setting.Presets.ColorProfile.GreenNote
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138956
+    m_Key: Setting.Presets.ColorProfile.GreenNoteStarPower
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138957
+    m_Key: Setting.Presets.ColorProfile.GreenParticles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138958
+    m_Key: Setting.Presets.ColorProfile.GreenStarpower
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138959
+    m_Key: Setting.Presets.ColorProfile.Instrument
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138960
+    m_Key: Setting.Presets.ColorProfile.KickFret
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138961
+    m_Key: Setting.Presets.ColorProfile.KickFretInner
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138962
+    m_Key: Setting.Presets.ColorProfile.KickNote
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138963
+    m_Key: Setting.Presets.ColorProfile.KickParticles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138964
+    m_Key: Setting.Presets.ColorProfile.KickStarpower
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138965
+    m_Key: Setting.Presets.ColorProfile.OpenFret
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138966
+    m_Key: Setting.Presets.ColorProfile.OpenFretInner
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138967
+    m_Key: Setting.Presets.ColorProfile.OpenNote
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138968
+    m_Key: Setting.Presets.ColorProfile.OpenNoteStarPower
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138969
+    m_Key: Setting.Presets.ColorProfile.OpenParticles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138970
+    m_Key: Setting.Presets.ColorProfile.OrangeFret
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138971
+    m_Key: Setting.Presets.ColorProfile.OrangeFretInner
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138972
+    m_Key: Setting.Presets.ColorProfile.OrangeNote
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138973
+    m_Key: Setting.Presets.ColorProfile.OrangeNoteStarPower
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138974
+    m_Key: Setting.Presets.ColorProfile.OrangeParticles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138975
+    m_Key: Setting.Presets.ColorProfile.OrangeStarpower
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138976
+    m_Key: Setting.Presets.ColorProfile.RedDrum
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138977
+    m_Key: Setting.Presets.ColorProfile.RedDrumStarpower
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138978
+    m_Key: Setting.Presets.ColorProfile.RedFret
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138979
+    m_Key: Setting.Presets.ColorProfile.RedFretInner
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138980
+    m_Key: Setting.Presets.ColorProfile.RedNote
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138981
+    m_Key: Setting.Presets.ColorProfile.RedNoteStarPower
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138982
+    m_Key: Setting.Presets.ColorProfile.RedParticles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138983
+    m_Key: Setting.Presets.ColorProfile.RedStarpower
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138984
+    m_Key: Setting.Presets.ColorProfile.YellowCymbal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138985
+    m_Key: Setting.Presets.ColorProfile.YellowCymbalStarpower
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138986
+    m_Key: Setting.Presets.ColorProfile.YellowDrum
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138987
+    m_Key: Setting.Presets.ColorProfile.YellowDrumStarpower
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138988
+    m_Key: Setting.Presets.ColorProfile.YellowFret
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138989
+    m_Key: Setting.Presets.ColorProfile.YellowFretInner
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138990
+    m_Key: Setting.Presets.ColorProfile.YellowNote
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138991
+    m_Key: Setting.Presets.ColorProfile.YellowNoteStarPower
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138992
+    m_Key: Setting.Presets.ColorProfile.YellowParticles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138993
+    m_Key: Setting.Presets.ColorProfile.YellowStarpower
+    m_Metadata:
+      m_Items: []
   - m_Id: 53693768667619372
     m_Key: Setting.Sound.BassVolume
     m_Metadata:
@@ -581,18 +825,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 10936772512309248
     m_Key: Tab.Sound
-    m_Metadata:
-      m_Items: []
-  - m_Id: 64541529466068992
-    m_Key: Text.ColorProfileSupport
-    m_Metadata:
-      m_Items: []
-  - m_Id: 89978814350540800
-    m_Key: Setting.Engine.DynamicWindow
-    m_Metadata:
-      m_Items: []
-  - m_Id: 89979174414761984
-    m_Key: Setting.Engine.DynamicWindow.Description
     m_Metadata:
       m_Items: []
   m_Metadata:

@@ -510,12 +510,6 @@ MonoBehaviour:
     m_Localized: Export Songs List (For Ouvert Bot)
     m_Metadata:
       m_Items: []
-  - m_Id: 64541529466068992
-    m_Localized: Color profiles do not support editing yet. You can edit the preset
-      file manually by opening the folder and opening this preset with your text
-      editor of choice.
-    m_Metadata:
-      m_Items: []
   - m_Id: 64543436070838272
     m_Localized: Color Profiles
     m_Metadata:
@@ -629,14 +623,250 @@ MonoBehaviour:
     m_Localized: The track camera's rotational pitch (up and down).
     m_Metadata:
       m_Items: []
-  - m_Id: 89978814350540800
+  - m_Id: 90695957755584512
+    m_Localized: Five Fret Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957784944640
+    m_Localized: Five Lane Drums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957784944641
+    m_Localized: Four Lane Drums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957784944642
     m_Localized: Dynamic Hit Window
     m_Metadata:
       m_Items: []
-  - m_Id: 89979174414761984
+  - m_Id: 90695957784944643
     m_Localized: The timing window adjusts in size depending on how close together
       the notes are. The faster the notes are, the smaller the window becomes (guitar
       only).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957784944644
+    m_Localized: Activation Note
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957784944645
+    m_Localized: Blue Cymbal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957784944646
+    m_Localized: Blue Cymbal Star Power
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957784944647
+    m_Localized: Blue Drum
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957784944648
+    m_Localized: Blue Drum Star Power
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957784944649
+    m_Localized: Blue Fret
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138944
+    m_Localized: Blue Fret Inner
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138945
+    m_Localized: Blue Note
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138946
+    m_Localized: Blue Note Star Power
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138947
+    m_Localized: Blue Particles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138948
+    m_Localized: Blue Star Power
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138949
+    m_Localized: Green Cymbal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138950
+    m_Localized: Green Cymbal Star Power
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138951
+    m_Localized: Green Drum
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138952
+    m_Localized: Green Drum Star Power
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138953
+    m_Localized: Green Fret
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138954
+    m_Localized: Green Fret Inner
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138955
+    m_Localized: Green Note
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138956
+    m_Localized: Green Note Star Power
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138957
+    m_Localized: Green Particles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138958
+    m_Localized: Green Star Power
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138959
+    m_Localized: Instrument
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138960
+    m_Localized: Kick Fret
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138961
+    m_Localized: Kick Fret Inner
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138962
+    m_Localized: Kick Note
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138963
+    m_Localized: Kick Particles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138964
+    m_Localized: Kick Star Power
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138965
+    m_Localized: Open Fret
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138966
+    m_Localized: Open Fret Inner
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138967
+    m_Localized: Open Note
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138968
+    m_Localized: Open Note Star Power
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138969
+    m_Localized: Open Particles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138970
+    m_Localized: Orange Fret
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138971
+    m_Localized: Orange Fret Inner
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138972
+    m_Localized: Orange Note
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138973
+    m_Localized: Orange Note Star Power
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138974
+    m_Localized: Orange Particles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138975
+    m_Localized: Orange Star Power
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138976
+    m_Localized: Red Drum
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138977
+    m_Localized: Red Drum Star Power
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138978
+    m_Localized: Red Fret
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138979
+    m_Localized: Red Fret Inner
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138980
+    m_Localized: Red Note
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138981
+    m_Localized: Red Note Star Power
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138982
+    m_Localized: Red Particles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138983
+    m_Localized: Red Star Power
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138984
+    m_Localized: Yellow Cymbal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138985
+    m_Localized: Yellow Cymbal Star Power
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138986
+    m_Localized: Yellow Drum
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138987
+    m_Localized: Yellow Drum Star Power
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138988
+    m_Localized: Yellow Fret
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138989
+    m_Localized: Yellow Fret Inner
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138990
+    m_Localized: Yellow Note
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138991
+    m_Localized: Yellow Note Star Power
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138992
+    m_Localized: Yellow Particles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 90695957789138993
+    m_Localized: Yellow Star Power
     m_Metadata:
       m_Items: []
   references:
