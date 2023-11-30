@@ -39,6 +39,8 @@ namespace YARG.Gameplay.Player
         protected SunburstEffects SunburstEffects;
         [SerializeField]
         protected IndicatorStripes IndicatorStripes;
+        [SerializeField]
+        protected HitWindowDisplay HitWindowDisplay;
 
         [SerializeField]
         private Transform _hudLocation;
@@ -90,6 +92,8 @@ namespace YARG.Gameplay.Player
 
             NotePool.ReturnAllObjects();
             BeatlinePool.ReturnAllObjects();
+
+            HitWindowDisplay.SetHitWindowSize();
         }
 
         protected override void UpdateVisualsWithTimes(double time)

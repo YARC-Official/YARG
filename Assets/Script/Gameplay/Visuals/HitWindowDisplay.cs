@@ -25,10 +25,15 @@ namespace YARG.Gameplay.Visuals
 
         private void Start()
         {
+            if(_player is null)
+            {
+                return;
+            }
+
             SetHitWindowSize();
         }
 
-        private void SetHitWindowSize()
+        public void SetHitWindowSize()
         {
             var window = _player.BaseEngine.CalculateHitWindow();
 
@@ -51,7 +56,8 @@ namespace YARG.Gameplay.Visuals
 
         private void Update()
         {
-            if (!_player.HitWindow.IsDynamic)
+            // Player could be null if the hit window display is being used in customisation menu
+            if (_player is null || !_player.HitWindow.IsDynamic)
             {
                 return;
             }
