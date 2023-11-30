@@ -49,9 +49,12 @@ namespace YARG.Menu.Settings.Visuals
 
         protected abstract void AssignSettingFromVariable(ISettingType reference);
 
-        protected abstract void OnSettingInit();
+        protected virtual void OnSettingInit()
+        {
+            RefreshVisual();
+        }
 
-        public abstract void RefreshVisual();
+        protected abstract void RefreshVisual();
 
         public abstract NavigationScheme GetNavigationScheme();
     }

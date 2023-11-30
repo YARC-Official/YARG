@@ -13,12 +13,7 @@ namespace YARG.Menu.Settings.Visuals
 
         private readonly List<Resolution> _resolutionCache = new();
 
-        protected override void OnSettingInit()
-        {
-            RefreshVisual();
-        }
-
-        public override void RefreshVisual()
+        protected override void RefreshVisual()
         {
             // Get the possible resolutions
             _resolutionCache.Clear();

@@ -11,12 +11,7 @@ namespace YARG.Menu.Settings.Visuals
         [SerializeField]
         private Toggle _toggle;
 
-        protected override void OnSettingInit()
-        {
-            RefreshVisual();
-        }
-
-        public override void RefreshVisual()
+        protected override void RefreshVisual()
         {
             _toggle.isOn = Setting.Data;
         }

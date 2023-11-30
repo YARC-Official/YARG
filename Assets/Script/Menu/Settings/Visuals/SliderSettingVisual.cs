@@ -20,10 +20,10 @@ namespace YARG.Menu.Settings.Visuals
             _slider.MaximumValue = Setting.Max;
             _ignoreCallback = false;
 
-            RefreshVisual();
+            base.OnSettingInit();
         }
 
-        public override void RefreshVisual()
+        protected override void RefreshVisual()
         {
             _slider.SetValueWithoutNotify(Setting.Data);
         }

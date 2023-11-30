@@ -12,12 +12,7 @@ namespace YARG.Menu.Settings.Visuals
         [SerializeField]
         private TMP_InputField _inputField;
 
-        protected override void OnSettingInit()
-        {
-            RefreshVisual();
-        }
-
-        public override void RefreshVisual()
+        protected override void RefreshVisual()
         {
             _inputField.text = Setting.Data.ToString(CultureInfo.InvariantCulture);
         }
