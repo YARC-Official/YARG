@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
 using UnityEngine;
-using YARG.Audio;
-using YARG.Core.Game;
 using YARG.Helpers;
 using YARG.Integration;
 using YARG.Menu.Settings;
@@ -167,15 +164,12 @@ namespace YARG.Settings
 
             private static void FpsCounterCallback(bool value)
             {
-                // disable script
-                FpsCounter.Instance.enabled = value;
-                FpsCounter.Instance.SetVisible(value);
-
-                // enable script if in editor
 #if UNITY_EDITOR
-                FpsCounter.Instance.enabled = true;
-                FpsCounter.Instance.SetVisible(true);
+                // Force in editor
+                value = true;
 #endif
+
+                StatsManager.Instance.SetShowing(StatsManager.Stat.FPS, value);
             }
 
             private static void FpsCapCallback(int value)

@@ -9,7 +9,6 @@ using YARG.Helpers;
 using YARG.Input;
 using YARG.Integration;
 using YARG.Menu.ScoreScreen;
-using YARG.Menu.Settings;
 using YARG.Player;
 using YARG.Replays;
 using YARG.Scores;
@@ -37,13 +36,10 @@ namespace YARG
 
         public static IAudioManager AudioManager { get; private set; }
 
-        [field: SerializeField]
-        public SettingsMenu SettingsMenu { get; private set; }
-
         public SceneIndex CurrentScene { get; private set; } = SceneIndex.Persistent;
-
         public SongContainer SongContainer { get; set; }
 
+        [HideInInspector]
         public SongMetadata CurrentSong;
         public ReplayEntry  CurrentReplay;
 
@@ -51,7 +47,10 @@ namespace YARG
 
         [Space]
         public float SongSpeed = 1f;
+
+        [HideInInspector]
         public bool IsReplay;
+        [HideInInspector]
         public bool IsPractice;
 
         protected override void SingletonAwake()
