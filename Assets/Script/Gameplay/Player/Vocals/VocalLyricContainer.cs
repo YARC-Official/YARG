@@ -15,18 +15,12 @@ namespace YARG.Gameplay.Player
         private readonly double[] _lastLyricEdgeTime =
         {
             double.NegativeInfinity, double.NegativeInfinity, double.NegativeInfinity
-        };
-
-        private string _lastSecondHarmonyLyric;
+        };j
 
         public bool TrySpawnLyric(TextEvent lyric, VocalNote probableNotePair, bool isStarpower, int harmIndex)
         {
-            // Index should be 0 or 1
-            int i = harmIndex;
-            if (i > 1) i = 1;
-
             // Skip this frame if the pool is full
-            if (!_pools[i].CanSpawnAmount(1))
+            if (!_pools[harmIndex].CanSpawnAmount(1))
             {
                 return false;
             }
