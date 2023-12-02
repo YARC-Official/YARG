@@ -21,6 +21,8 @@ namespace YARG.Menu.Persistent
         private RenameDialog _renameDialog;
         [SerializeField]
         private ConfirmDeleteDialog _confirmDeleteDialog;
+        [SerializeField]
+        private ColorPickerDialog _colorPickerDialog;
 
         private Dialog _currentDialog;
 
@@ -106,6 +108,25 @@ namespace YARG.Menu.Persistent
             dialog.ClearButtons();
             dialog.AddDialogButton("Cancel", MenuData.Colors.ConfirmButton, ClearDialog);
             dialog.AddDialogButton("Delete", MenuData.Colors.CancelButton, () => _currentDialog.Submit());
+
+            return dialog;
+        }
+
+        /// <summary>
+        /// Displays and returns a confirm delete dialog.
+        /// </summary>
+        /// <inheritdoc cref="ShowDialog{ListDialog}(ListDialog)"/>
+        public ColorPickerDialog ShowColorPickerDialog(Color initialColor, Action<Color> colorPickAction)
+        {
+            var dialog = ShowDialog(_colorPickerDialog);
+
+            dialog.Title.text = "Color Picker";
+            dialog.Initialize(initialColor);
+            dialog.ColorPickAction = colorPickAction;
+
+            dialog.ClearButtons();
+            dialog.AddDialogButton("Cancel", MenuData.Colors.CancelButton, ClearDialog);
+            dialog.AddDialogButton("Apply", MenuData.Colors.ConfirmButton, () => _currentDialog.Submit());
 
             return dialog;
         }

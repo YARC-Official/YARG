@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Menu.Navigation;
+using YARG.Menu.Persistent;
 using YARG.Settings.Types;
 
 namespace YARG.Menu.Settings.Visuals
@@ -71,6 +72,15 @@ namespace YARG.Menu.Settings.Visuals
             }
 
             RefreshVisual();
+        }
+
+        public void OpenColorPicker()
+        {
+            DialogManager.Instance.ShowColorPickerDialog(Setting.Data, color =>
+            {
+                Setting.Data = color;
+                RefreshVisual();
+            });
         }
     }
 }

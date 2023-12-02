@@ -229,6 +229,8 @@ MonoBehaviour:
     type: 3}
   _confirmDeleteDialog: {fileID: 2644037509781810562, guid: ebcec8920f1142d438ac08c589bd13e8,
     type: 3}
+  _colorPickerDialog: {fileID: 6710161102796530923, guid: 5b1c5ee7b42f2b04bad86eaac460548a,
+    type: 3}
 --- !u!1 &292612708
 GameObject:
   m_ObjectHideFlags: 0
@@ -2747,7 +2749,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0.0000017881393}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 1.0000001}
 --- !u!114 &1931647622
