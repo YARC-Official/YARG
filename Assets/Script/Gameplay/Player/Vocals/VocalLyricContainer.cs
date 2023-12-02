@@ -15,7 +15,7 @@ namespace YARG.Gameplay.Player
         private readonly double[] _lastLyricEdgeTime =
         {
             double.NegativeInfinity, double.NegativeInfinity, double.NegativeInfinity
-        };j
+        };
 
         public bool TrySpawnLyric(TextEvent lyric, VocalNote probableNotePair, bool isStarpower, int harmIndex)
         {
