@@ -2,6 +2,7 @@
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.Serialization;
 using YARG.Core;
 using YARG.Core.Chart;
 
@@ -53,7 +54,9 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         private MeshRenderer _trackRenderer;
         [SerializeField]
-        private Material _harmonyTrackMaterial;
+        private Material _twoLaneHarmonyTrackMaterial;
+        [SerializeField]
+        private Material _threeLaneHarmonyTrackMaterial;
 
         [Space]
         [SerializeField]
@@ -138,7 +141,7 @@ namespace YARG.Gameplay.Player
             if (vocalsTrack.Instrument == Instrument.Harmony)
             {
                 // Set the track material to harmony, if it's harmony (it's solo by default)
-                _trackRenderer.material = _harmonyTrackMaterial;
+                _trackRenderer.material = _threeLaneHarmonyTrackMaterial;
                 _currentTrackTop = TRACK_TOP_HARMONY;
 
                 // Show the correct starpower overlay

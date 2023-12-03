@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Gameplay.Visuals;
 
@@ -8,32 +8,19 @@ namespace YARG.Gameplay.Player
     {
         private const float LYRIC_SPACING = 0.25f;
 
-        [Header("Index 0 should be bottom, 1 should be top.")]
+        [Header("Index 0 should be bottom, 2 should be top.")]
         [SerializeField]
         private Pool[] _pools;
 
         private readonly double[] _lastLyricEdgeTime =
         {
-            double.NegativeInfinity, double.NegativeInfinity
+            double.NegativeInfinity, double.NegativeInfinity, double.NegativeInfinity
         };
-
-        private string _lastSecondHarmonyLyric;
 
         public bool TrySpawnLyric(TextEvent lyric, VocalNote probableNotePair, bool isStarpower, int harmIndex)
         {
-            // Index should be 0 or 1
-            int i = harmIndex;
-            if (i > 1) i = 1;
-
-            // Never show HARM3's lyrics unless they're different from HARM2's lyric
-            if (harmIndex == 2 && _lastSecondHarmonyLyric == lyric.Text)
-            {
-                _lastSecondHarmonyLyric = null;
-                return true;
-            }
-
             // Skip this frame if the pool is full
-            if (!_pools[i].CanSpawnAmount(1))
+            if (!_pools[harmIndex].CanSpawnAmount(1))
             {
                 return false;
             }
@@ -43,18 +30,12 @@ namespace YARG.Gameplay.Player
             bool isTalkie = probableNotePair?.IsNonPitched ?? true;
 
             // Spawn the vocal lyric
-            var obj = (VocalLyricElement) _pools[i].TakeWithoutEnabling();
-            obj.Initialize(lyric, _lastLyricEdgeTime[i], length, isStarpower, isTalkie, harmIndex);
+            var obj = (VocalLyricElement) _pools[harmIndex].TakeWithoutEnabling();
+            obj.Initialize(lyric, _lastLyricEdgeTime[harmIndex], length, isStarpower, isTalkie, harmIndex);
             obj.EnableFromPool();
 
             // Set the edge time
-            _lastLyricEdgeTime[i] = obj.ElementTime + (obj.Width + LYRIC_SPACING) / VocalTrack.NOTE_SPEED;
-
-            // Prevent duplicates on HARM3
-            if (harmIndex == 1)
-            {
-                _lastSecondHarmonyLyric = lyric.Text;
-            }
+            _lastLyricEdgeTime[harmIndex] = obj.ElementTime + (obj.Width + LYRIC_SPACING) / VocalTrack.NOTE_SPEED;
 
             return true;
         }
@@ -63,6 +44,7 @@ namespace YARG.Gameplay.Player
         {
             _lastLyricEdgeTime[0] = double.NegativeInfinity;
             _lastLyricEdgeTime[1] = double.NegativeInfinity;
+            _lastLyricEdgeTime[2] = double.NegativeInfinity;
 
             foreach (var pool in _pools)
             {
