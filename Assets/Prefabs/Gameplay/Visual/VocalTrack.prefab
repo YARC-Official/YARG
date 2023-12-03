@@ -125,7 +125,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2713326851215708342}
   m_LocalRotation: {x: 0.70710677, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -4, y: 0.001, z: -0.07}
+  m_LocalPosition: {x: -4, y: 0.001, z: -0.08}
   m_LocalScale: {x: 8, y: 1.27, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -240,7 +240,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _prefab: {fileID: 1605303386712953916, guid: 35e7c7becbe53914d94fea58139c29bf, type: 3}
+  <Prefab>k__BackingField: {fileID: 1605303386712953916, guid: 35e7c7becbe53914d94fea58139c29bf,
+    type: 3}
   _prewarmAmount: 5
   _objectCap: 100
 --- !u!1 &5801866609468311102
@@ -287,7 +288,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _prefab: {fileID: 1605303386712953916, guid: 484e94cd403f66e409388c00e567aa52, type: 3}
+  <Prefab>k__BackingField: {fileID: 1605303386712953916, guid: 484e94cd403f66e409388c00e567aa52,
+    type: 3}
   _prewarmAmount: 5
   _objectCap: 100
 --- !u!1 &5801866609474630569
@@ -334,7 +336,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _prefab: {fileID: 6881370188666117159, guid: a9c1cfdca10258b408dd0912482ffc7d, type: 3}
+  <Prefab>k__BackingField: {fileID: 6881370188666117159, guid: a9c1cfdca10258b408dd0912482ffc7d,
+    type: 3}
   _prewarmAmount: 3
   _objectCap: 50
 --- !u!1 &5801866609487356709
@@ -479,7 +482,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _prefab: {fileID: 6881370188666117159, guid: 7ab2ab9f7824404489df93fe38b98a65, type: 3}
+  <Prefab>k__BackingField: {fileID: 6881370188666117159, guid: 7ab2ab9f7824404489df93fe38b98a65,
+    type: 3}
   _prewarmAmount: 5
   _objectCap: 100
 --- !u!1 &5801866609623212866
@@ -651,7 +655,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5801866610196252503}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 1.045}
+  m_LocalPosition: {x: 0, y: 0, z: 1.039}
   m_LocalScale: {x: 1, y: 1, z: 0.85}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -670,7 +674,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _prefab: {fileID: 6881370188666117159, guid: 7ab2ab9f7824404489df93fe38b98a65, type: 3}
+  <Prefab>k__BackingField: {fileID: 6881370188666117159, guid: 7ab2ab9f7824404489df93fe38b98a65,
+    type: 3}
   _prewarmAmount: 5
   _objectCap: 100
 --- !u!1 &5801866610394737327
@@ -768,7 +773,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _prefab: {fileID: 1605303386712953916, guid: 542b4130e613240418a458416e91c402, type: 3}
+  <Prefab>k__BackingField: {fileID: 1605303386712953916, guid: 542b4130e613240418a458416e91c402,
+    type: 3}
   _prewarmAmount: 5
   _objectCap: 100
 --- !u!1 &5801866610949471564
@@ -846,7 +852,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _prefab: {fileID: 8889699353020473416, guid: ff183fed5c04f464db8fc3fa2c023237, type: 3}
+  <Prefab>k__BackingField: {fileID: 8889699353020473416, guid: ff183fed5c04f464db8fc3fa2c023237,
+    type: 3}
   _prewarmAmount: 5
   _objectCap: 100
 --- !u!1 &5801866611232935399
@@ -905,7 +912,9 @@ MonoBehaviour:
   _vocalPlayerPrefab: {fileID: 9222097515094736838, guid: 5a7016f19e8745444809c16b7ca55fe6,
     type: 3}
   _trackRenderer: {fileID: 5801866609487356704}
-  _harmonyTrackMaterial: {fileID: 2100000, guid: 8e5cd21f01ba40b46bfb7e2810e30eec,
+  _twoLaneHarmonyTrackMaterial: {fileID: 2100000, guid: 35faea874c1feb44d97848d8b000b3b4,
+    type: 2}
+  _threeLaneHarmonyTrackMaterial: {fileID: 2100000, guid: 8e5cd21f01ba40b46bfb7e2810e30eec,
     type: 2}
   _soloStarpowerOverlay: {fileID: 1455779198085257863}
   _harmonyStarpowerOverlay: {fileID: 668675497782990623}
@@ -1026,7 +1035,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8925929798197523389}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.743}
+  m_LocalPosition: {x: 0, y: 0, z: 0.737}
   m_LocalScale: {x: 1, y: 1, z: 0.85}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1045,6 +1054,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _prefab: {fileID: 6881370188666117159, guid: 7ab2ab9f7824404489df93fe38b98a65, type: 3}
+  <Prefab>k__BackingField: {fileID: 6881370188666117159, guid: 7ab2ab9f7824404489df93fe38b98a65,
+    type: 3}
   _prewarmAmount: 5
   _objectCap: 100
