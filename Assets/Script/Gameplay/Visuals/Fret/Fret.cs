@@ -13,6 +13,7 @@ namespace YARG.Gameplay.Visuals
 
         private static readonly int _hit = Animator.StringToHash("Hit");
         private static readonly int _pressed = Animator.StringToHash("Pressed");
+        private static readonly int _sustain = Animator.StringToHash("Sustain");
 
         // If we want info to be copied over when we copy the prefab,
         // we must make them SerializeFields.
@@ -22,6 +23,7 @@ namespace YARG.Gameplay.Visuals
         private readonly List<Material> _innerMaterials = new();
 
         private bool _hasPressedParam;
+        private bool _hasSustainParam;
 
         public void Initialize(Color top, Color inner, Color particles)
         {
@@ -46,6 +48,7 @@ namespace YARG.Gameplay.Visuals
 
             // See if certain parameters exist
             _hasPressedParam = _themeFret.Animator.HasParameter(_pressed);
+            _hasSustainParam = _themeFret.Animator.HasParameter(_sustain);
         }
 
         public void SetPressed(bool pressed)
@@ -87,6 +90,11 @@ namespace YARG.Gameplay.Visuals
             else
             {
                 _themeFret.SustainEffect.Stop();
+            }
+
+            if (_hasSustainParam)
+            {
+                _themeFret.Animator.SetBool(_sustain, sustained);
             }
         }
 
