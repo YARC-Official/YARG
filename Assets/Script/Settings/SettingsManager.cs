@@ -21,18 +21,22 @@ namespace YARG.Settings
                 new HeaderMetadata("FileManagement"),
                 new ButtonRowMetadata("ExportSongsOuvert", "ExportSongsText"),
                 new ButtonRowMetadata("CopyCurrentSongTextFilePath", "CopyCurrentSongJsonFilePath"),
+
                 new HeaderMetadata("Venues"),
                 new ButtonRowMetadata("OpenVenueFolder"),
                 "DisablePerSongBackgrounds",
+
                 new HeaderMetadata("Calibration"),
                 new ButtonRowMetadata("OpenCalibrator"),
                 "AudioCalibration",
                 "VideoCalibration",
+
                 new HeaderMetadata("Other"),
                 "UseCymbalModelsInFiveLane",
                 "KickBounce",
                 "ShowCursorTimer",
                 "AmIAwesome",
+
                 new HeaderMetadata("Debug"),
                 "InputDeviceLogging"
             },
@@ -53,8 +57,10 @@ namespace YARG.Settings
                 "PreviewVolume",
                 "MusicPlayerVolume",
                 "VocalMonitoring",
+
                 new HeaderMetadata("Input"),
                 "MicrophoneSensitivity",
+
                 new HeaderMetadata("Other"),
                 "MuteOnMiss",
                 "UseStarpowerFx",
@@ -65,7 +71,7 @@ namespace YARG.Settings
                 // "ReverbInStarpower",
                 "UseChipmunkSpeed",
             },
-            new MetadataTab("Graphics", icon: "Display")
+            new MetadataTab("Graphics", icon: "Display", new TrackPreviewBuilder())
             {
                 new HeaderMetadata("Display"),
                 "VSync",
@@ -73,9 +79,11 @@ namespace YARG.Settings
                 "FullscreenMode",
                 "Resolution",
                 "FpsStats",
+
                 new HeaderMetadata("Graphics"),
                 "LowQuality",
                 "DisableBloom",
+
                 new HeaderMetadata("Other"),
                 "ShowHitWindow",
                 "DisableTextNotifications",
