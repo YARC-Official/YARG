@@ -345,14 +345,14 @@ namespace YARG.Gameplay
                 {
                     byte buttonMask = fiveFretPlayer.Engine.State.ButtonMask;
                     int noteIndex = fiveFretPlayer.Engine.State.NoteIndex;
-                    var ticksPerEight = fiveFretPlayer.Engine.State.TicksEveryEightMeasures;
+                    var ticksPerMeasure = fiveFretPlayer.Engine.State.TicksEveryMeasure;
                     double starPower = fiveFretPlayer.Engine.EngineStats.StarPowerAmount;
 
                     _debugText.text +=
                         $"Note index: {noteIndex}\n" +
                         $"Buttons: {buttonMask}\n" +
                         $"Star Power: {starPower:0.0000}\n" +
-                        $"TicksPerEight: {ticksPerEight}\n";
+                        $"TicksPerMeasure: {ticksPerMeasure}\n";
                 }
                 else if (_players[0] is DrumsPlayer drumsPlayer)
                 {
