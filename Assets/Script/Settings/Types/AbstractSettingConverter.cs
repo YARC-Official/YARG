@@ -11,12 +11,22 @@ namespace YARG.Settings.Types
         {
             if (existingValue == null)
             {
-                Debug.LogWarning($"No existing setting value was provided!");
+                Debug.LogWarning("No existing setting value was provided!");
                 return null;
             }
 
-            var value = serializer.Deserialize(reader, existingValue.ValueType);
-            existingValue.ValueAsObject = value;
+            // Make sure the whole settings file doesn't get reset if it fails to read
+            try
+            {
+                var value = serializer.Deserialize(reader, existingValue.ValueType);
+                existingValue.ValueAsObject = value;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("Failed to read setting value. See error below for more details.");
+                Debug.LogException(e);
+                return existingValue;
+            }
 
             return existingValue;
         }
