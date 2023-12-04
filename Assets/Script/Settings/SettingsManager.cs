@@ -19,84 +19,87 @@ namespace YARG.Settings
             new MetadataTab("General")
             {
                 new HeaderMetadata("FileManagement"),
-                new ButtonRowMetadata("ExportSongsOuvert", "ExportSongsText"),
-                new ButtonRowMetadata("CopyCurrentSongTextFilePath", "CopyCurrentSongJsonFilePath"),
+                new ButtonRowMetadata(
+                    nameof(Settings.ExportSongsOuvert),
+                    nameof(Settings.ExportSongsText)),
+                new ButtonRowMetadata(
+                    nameof(Settings.CopyCurrentSongTextFilePath), 
+                    nameof(Settings.CopyCurrentSongJsonFilePath)),
 
                 new HeaderMetadata("Venues"),
-                new ButtonRowMetadata("OpenVenueFolder"),
-                "DisablePerSongBackgrounds",
+                new ButtonRowMetadata(nameof(Settings.OpenVenueFolder)),
+                nameof(Settings.DisablePerSongBackgrounds),
 
                 new HeaderMetadata("Calibration"),
-                new ButtonRowMetadata("OpenCalibrator"),
-                "AudioCalibration",
-                "VideoCalibration",
+                new ButtonRowMetadata(nameof(Settings.OpenCalibrator)),
+                nameof(Settings.AudioCalibration),
+                nameof(Settings.VideoCalibration),
 
                 new HeaderMetadata("Other"),
-                "UseCymbalModelsInFiveLane",
-                "KickBounce",
-                "ShowCursorTimer",
-                "AmIAwesome",
+                nameof(Settings.UseCymbalModelsInFiveLane),
+                nameof(Settings.KickBounce),
+                nameof(Settings.ShowCursorTimer),
+                nameof(Settings.AmIAwesome),
 
                 new HeaderMetadata("Debug"),
-                "InputDeviceLogging"
+                nameof(Settings.InputDeviceLogging)
             },
             new SongManagerTab("SongManager", icon: "Songs"),
             new MetadataTab("Sound", icon: "Sound")
             {
                 new HeaderMetadata("Volume"),
-                "MasterMusicVolume",
-                "GuitarVolume",
-                "RhythmVolume",
-                "BassVolume",
-                "KeysVolume",
-                "DrumsVolume",
-                "VocalsVolume",
-                "SongVolume",
-                "CrowdVolume",
-                "SfxVolume",
-                "PreviewVolume",
-                "MusicPlayerVolume",
-                "VocalMonitoring",
+                nameof(Settings.MasterMusicVolume),
+                nameof(Settings.GuitarVolume),
+                nameof(Settings.RhythmVolume),
+                nameof(Settings.BassVolume),
+                nameof(Settings.KeysVolume),
+                nameof(Settings.DrumsVolume),
+                nameof(Settings.VocalsVolume),
+                nameof(Settings.SongVolume),
+                nameof(Settings.CrowdVolume),
+                nameof(Settings.SfxVolume),
+                nameof(Settings.PreviewVolume),
+                nameof(Settings.MusicPlayerVolume),
+                nameof(Settings.VocalMonitoring),
 
                 new HeaderMetadata("Input"),
-                "MicrophoneSensitivity",
+                nameof(Settings.MicrophoneSensitivity),
 
                 new HeaderMetadata("Other"),
-                "MuteOnMiss",
-                "UseStarpowerFx",
-                // "UseWhammyFx",
-                // "WhammyPitchShiftAmount",
-                // "WhammyOversampleFactor",
-                // "ClapsInStarpower",
-                // "ReverbInStarpower",
-                "UseChipmunkSpeed",
+                nameof(Settings.MuteOnMiss),
+                nameof(Settings.UseStarpowerFx),
+                // nameof(Settings.UseWhammyFx),
+                // nameof(Settings.WhammyPitchShiftAmount),
+                // nameof(Settings.WhammyOversampleFactor),
+                // nameof(Settings.ClapsInStarpower),
+                // nameof(Settings.ReverbInStarpower),
+                nameof(Settings.UseChipmunkSpeed),
             },
             new MetadataTab("Graphics", icon: "Display", new TrackPreviewBuilder())
             {
                 new HeaderMetadata("Display"),
-                "VSync",
-                "FpsCap",
-                "FullscreenMode",
-                "Resolution",
-                "FpsStats",
+                nameof(Settings.VSync),
+                nameof(Settings.FpsCap),
+                nameof(Settings.FullscreenMode),
+                nameof(Settings.Resolution),
+                nameof(Settings.FpsStats),
 
                 new HeaderMetadata("Graphics"),
-                "LowQuality",
-                "DisableBloom",
+                nameof(Settings.LowQuality),
+                nameof(Settings.DisableBloom),
 
                 new HeaderMetadata("Other"),
-                "ShowHitWindow",
-                "DisableTextNotifications",
-                "LyricDisplay",
-                "SongTimeOnScoreBox",
-                "GraphicalProgressOnScoreBox"
+                nameof(Settings.ShowHitWindow),
+                nameof(Settings.DisableTextNotifications),
+                nameof(Settings.LyricDisplay),
+                nameof(Settings.SongTimeOnScoreBox),
+                nameof(Settings.GraphicalProgressOnScoreBox)
             },
             new MetadataTab("Engine", icon: "Engine")
             {
-                // "NoKicks",
-                "AntiGhosting",
-                "InfiniteFrontEnd",
-                "DynamicWindow"
+                nameof(Settings.AntiGhosting),
+                nameof(Settings.InfiniteFrontEnd),
+                nameof(Settings.DynamicWindow)
             },
             new PresetsTab("Presets", icon: "Customization")
         };
