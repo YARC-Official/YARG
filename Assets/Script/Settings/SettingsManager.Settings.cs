@@ -62,7 +62,7 @@ namespace YARG.Settings
                 SettingsMenu.Instance.gameObject.SetActive(false);
             }
 
-            public IntSetting AudioCalibration { get; } = new(120);
+            public IntSetting AudioCalibration { get; } = new(0);
             public IntSetting VideoCalibration { get; } = new(0);
 
             public ToggleSetting UseCymbalModelsInFiveLane { get; } = new(true);
