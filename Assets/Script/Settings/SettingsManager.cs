@@ -23,7 +23,7 @@ namespace YARG.Settings
                     nameof(Settings.ExportSongsOuvert),
                     nameof(Settings.ExportSongsText)),
                 new ButtonRowMetadata(
-                    nameof(Settings.CopyCurrentSongTextFilePath), 
+                    nameof(Settings.CopyCurrentSongTextFilePath),
                     nameof(Settings.CopyCurrentSongJsonFilePath)),
 
                 new HeaderMetadata("Venues"),
@@ -41,8 +41,9 @@ namespace YARG.Settings
                 nameof(Settings.ShowCursorTimer),
                 nameof(Settings.AmIAwesome),
 
-                new HeaderMetadata("Debug"),
-                nameof(Settings.InputDeviceLogging)
+                new HeaderMetadata("Advanced"),
+                nameof(Settings.InputDeviceLogging),
+                nameof(Settings.ShowAdvancedMusicLibraryOptions)
             },
             new SongManagerTab("SongManager", icon: "Songs"),
             new MetadataTab("Sound", icon: "Sound")

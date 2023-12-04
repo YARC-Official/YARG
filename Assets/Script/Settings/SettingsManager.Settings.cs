@@ -72,7 +72,8 @@ namespace YARG.Settings
 
             public ToggleSetting AmIAwesome { get; } = new(false);
 
-            public ToggleSetting InputDeviceLogging { get; } = new(false, InputDeviceLoggingCallback);
+            public ToggleSetting InputDeviceLogging              { get; } = new(false, InputDeviceLoggingCallback);
+            public ToggleSetting ShowAdvancedMusicLibraryOptions { get; } = new(false);
 
             #endregion
 

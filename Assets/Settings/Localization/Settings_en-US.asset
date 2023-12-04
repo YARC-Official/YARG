@@ -518,10 +518,6 @@ MonoBehaviour:
     m_Localized: Compatibility Mode
     m_Metadata:
       m_Items: []
-  - m_Id: 66739072241360896
-    m_Localized: No Background
-    m_Metadata:
-      m_Items: []
   - m_Id: 66739072241360897
     m_Localized: Disabled
     m_Metadata:
@@ -867,6 +863,23 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 90695957789138993
     m_Localized: Yellow Star Power
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92111997345587200
+    m_Localized: Hide Lyric Display
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92111997366558720
+    m_Localized: Advanced
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92111997370753024
+    m_Localized: Show Advanced Music Library Options
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92112677250654208
+    m_Localized: Adds advanced settings to the "More Options" menu in the Music Library
+      such as "View Song Folder" and "Copy Song Checksum".
     m_Metadata:
       m_Items: []
   references:

@@ -71,8 +71,8 @@ MonoBehaviour:
     m_Key: Dropdown.Graphics.LyricDisplay.Disabled
     m_Metadata:
       m_Items: []
-  - m_Id: 66739072241360896
-    m_Key: Dropdown.Graphics.LyricDisplay.NoBackground
+  - m_Id: 92111997345587200
+    m_Key: Dropdown.Graphics.LyricDisplay.NoLyricDisplay
     m_Metadata:
       m_Items: []
   - m_Id: 66739072241360898
@@ -117,6 +117,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 90695957784944641
     m_Key: Dropdown.Presets.ColorProfile.Instrument.FourLaneDrums
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92111997366558720
+    m_Key: Header.Advanced
     m_Metadata:
       m_Items: []
   - m_Id: 13088551106633728
@@ -253,6 +257,14 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 53704501379850243
     m_Key: Setting.General.KickBounce.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92111997370753024
+    m_Key: Setting.General.ShowAdvancedMusicLibraryOptions
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92112677250654208
+    m_Key: Setting.General.ShowAdvancedMusicLibraryOptions.Description
     m_Metadata:
       m_Items: []
   - m_Id: 53693768667619351

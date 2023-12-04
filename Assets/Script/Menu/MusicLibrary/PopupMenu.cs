@@ -7,6 +7,7 @@ using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
+using YARG.Settings;
 
 namespace YARG.Menu.MusicLibrary
 {
@@ -114,6 +115,27 @@ namespace YARG.Menu.MusicLibrary
             CreateItem("Back To Top", () =>
             {
                 _musicLibrary.SelectedIndex = 0;
+                gameObject.SetActive(false);
+            });
+
+            // Everything below here is an advanced setting
+            if (!SettingsManager.Settings.ShowAdvancedMusicLibraryOptions.Value) return;
+
+            CreateItem("View Song Folder", () =>
+            {
+                if (_musicLibrary.CurrentSelection is not SongViewType songViewType) return;
+
+                FileExplorerHelper.OpenFolder(songViewType.SongMetadata.Directory);
+
+                gameObject.SetActive(false);
+            });
+
+            CreateItem("Copy Song Checksum", () =>
+            {
+                if (_musicLibrary.CurrentSelection is not SongViewType songViewType) return;
+
+                GUIUtility.systemCopyBuffer = songViewType.SongMetadata.Hash.ToString();
+
                 gameObject.SetActive(false);
             });
         }
