@@ -14,7 +14,7 @@ namespace YARG.Settings.Types
             base(onChange)
         {
             _possibleValues = possibleValues;
-            DataField = value;
+            _value = value;
         }
 
         public int IndexOfOption(string option)
@@ -22,14 +22,14 @@ namespace YARG.Settings.Types
             return _possibleValues.IndexOf(option);
         }
 
-        public override bool IsSettingDataEqual(object obj)
+        public override bool ValueEquals(object obj)
         {
             if (obj is not string other)
             {
                 return false;
             }
 
-            return other == Data;
+            return other == Value;
         }
     }
 }

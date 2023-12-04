@@ -16,7 +16,7 @@ namespace YARG.Gameplay.Visuals
         {
             // Set anti-aliasing
             var info = GetComponent<UniversalAdditionalCameraData>();
-            if (SettingsManager.Settings.LowQuality.Data)
+            if (SettingsManager.Settings.LowQuality.Value)
             {
                 info.antialiasing = AntialiasingMode.None;
             }

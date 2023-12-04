@@ -279,7 +279,7 @@ namespace YARG.Menu.MusicLibrary
             if (_previewContext.IsPlaying || CurrentSelection is not SongViewType song) return;
 
             _previewCanceller = new();
-            float previewVolume = SettingsManager.Settings.PreviewVolume.Data;
+            float previewVolume = SettingsManager.Settings.PreviewVolume.Value;
             _previewContext.PlayPreview(song.SongMetadata, previewVolume, _previewCanceller.Token).Forget();
         }
 

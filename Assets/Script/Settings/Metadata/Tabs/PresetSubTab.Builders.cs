@@ -30,7 +30,7 @@ namespace YARG.Settings.Metadata
 
         private void UpdateForCamera(CameraPreset cameraPreset)
         {
-            float Get(string name) => ((SliderSetting) _settingFields[name]).Data;
+            float Get(string name) => ((SliderSetting) _settingFields[name]).Value;
 
             cameraPreset.FieldOfView = Get("FieldOfView");
             cameraPreset.PositionY   = Get("PositionY");
@@ -94,7 +94,7 @@ namespace YARG.Settings.Metadata
                 var setting = _settingFields[field.Name];
 
                 // Set value
-                var color = ((Color) setting.DataAsObject).ToSystemColor();
+                var color = ((Color) setting.ValueAsObject).ToSystemColor();
                 field.SetValue(instrumentProfile, color);
             }
         }

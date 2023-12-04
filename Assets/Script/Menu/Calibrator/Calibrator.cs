@@ -206,7 +206,7 @@ namespace YARG.Menu.Calibrator
 
             // Set calibration
             int calibration = Mathf.RoundToInt(median * 1000f);
-            SettingsManager.Settings.AudioCalibration.Data = calibration;
+            SettingsManager.Settings.AudioCalibration.Value = calibration;
 
             // Set text
             _audioCalibrateText.color = Color.green;

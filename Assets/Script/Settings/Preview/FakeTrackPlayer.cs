@@ -118,7 +118,7 @@ namespace YARG.Settings.Preview
             _notePool.SetPrefabAndReset(prefab);
 
             // Show hit window if enabled
-            _hitWindow.gameObject.SetActive(SettingsManager.Settings.ShowHitWindow.Data);
+            _hitWindow.gameObject.SetActive(SettingsManager.Settings.ShowHitWindow.Value);
 
             SettingsMenu.Instance.SettingChanged += OnSettingChanged;
 

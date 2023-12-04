@@ -225,7 +225,7 @@ namespace YARG.Input
                     }
 
                     ToastManager.ToastMessage($"Device added: {device.displayName}");
-                    if (SettingsManager.Settings.InputDeviceLogging.Data)
+                    if (SettingsManager.Settings.InputDeviceLogging.Value)
                         Debug.Log($"Device added: {device.displayName}\nDescription:\n{device.description.ToJson()}\n");
 
                     DeviceAdded?.Invoke(device);

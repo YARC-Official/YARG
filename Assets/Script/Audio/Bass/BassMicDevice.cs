@@ -133,7 +133,7 @@ namespace YARG.Audio.BASS
             }
 
             IsMonitoring = true;
-            SetMonitoringLevel(SettingsManager.Settings.VocalMonitoring.Data);
+            SetMonitoringLevel(SettingsManager.Settings.VocalMonitoring.Value);
 
             _pitchDetector = new PitchTracker();
 
@@ -251,7 +251,7 @@ namespace YARG.Audio.BASS
             }
 
             // Skip pitch detection if not speaking
-            if (amplitude < SettingsManager.Settings.MicrophoneSensitivity.Data)
+            if (amplitude < SettingsManager.Settings.MicrophoneSensitivity.Value)
             {
                 _lastPitchOutput = null;
                 return;

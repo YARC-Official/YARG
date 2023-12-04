@@ -23,7 +23,7 @@ namespace YARG.Menu.Settings.Visuals
             }
 
             // Select the right option
-            _dropdown.SetValueWithoutNotify(Setting.IndexOfOption(Setting.Data));
+            _dropdown.SetValueWithoutNotify(Setting.IndexOfOption(Setting.Value));
         }
 
         public override NavigationScheme GetNavigationScheme()
@@ -56,7 +56,7 @@ namespace YARG.Menu.Settings.Visuals
 
         public void OnDropdownChange()
         {
-            Setting.Data = Setting.PossibleValues[_dropdown.value];
+            Setting.Value = Setting.PossibleValues[_dropdown.value];
             RefreshVisual();
         }
     }

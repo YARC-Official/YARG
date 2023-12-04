@@ -196,12 +196,12 @@ namespace YARG.Settings
         {
             var settingInfo = GetSettingByName(name);
 
-            if (settingInfo.DataType != value.GetType())
+            if (settingInfo.ValueType != value.GetType())
             {
-                throw new Exception($"The setting `{name}` is of type {settingInfo.DataType}, not {value.GetType()}.");
+                throw new Exception($"The setting `{name}` is of type {settingInfo.ValueType}, not {value.GetType()}.");
             }
 
-            settingInfo.DataAsObject = value;
+            settingInfo.ValueAsObject = value;
         }
     }
 }

@@ -252,8 +252,8 @@ namespace YARG.Gameplay
             // Initialize song runner
             _songRunner = new SongRunner(
                 GlobalVariables.Instance.SongSpeed,
-                SettingsManager.Settings.AudioCalibration.Data,
-                SettingsManager.Settings.VideoCalibration.Data,
+                SettingsManager.Settings.AudioCalibration.Value,
+                SettingsManager.Settings.VideoCalibration.Value,
                 Song.SongOffsetSeconds);
 
             // Spawn players

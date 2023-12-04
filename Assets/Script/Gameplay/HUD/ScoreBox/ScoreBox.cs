@@ -60,7 +60,7 @@ namespace YARG.Gameplay.HUD
 
             double time = Math.Max(0f, GameManager.SongTime);
 
-            if (SettingsManager.Settings.GraphicalProgressOnScoreBox.Data)
+            if (SettingsManager.Settings.GraphicalProgressOnScoreBox.Value)
             {
                 _songProgressBar.SetProgress((float) (time / GameManager.SongLength));
             }
@@ -71,7 +71,7 @@ namespace YARG.Gameplay.HUD
             string countUp = TimeSpan.FromSeconds(time).ToString(TimeFormat);
             string countDown = TimeSpan.FromSeconds(GameManager.SongLength - time).ToString(TimeFormat);
 
-            _songTimer.text = SettingsManager.Settings.SongTimeOnScoreBox.Data switch
+            _songTimer.text = SettingsManager.Settings.SongTimeOnScoreBox.Value switch
             {
                 "CountUpAndTotal"   => $"{countUp} / {_songLengthTime}",
                 "CountDownAndTotal" => $"{countDown} / {_songLengthTime}",

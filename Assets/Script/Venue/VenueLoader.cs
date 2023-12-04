@@ -46,7 +46,7 @@ namespace YARG.Venue
             const VenueSource songSource = VenueSource.Song;
 
             // If local backgrounds are disabled, skip right to global
-            if (SettingsManager.Settings.DisablePerSongBackgrounds.Data)
+            if (SettingsManager.Settings.DisablePerSongBackgrounds.Value)
             {
                 return GetVenuePathFromGlobal();
             }

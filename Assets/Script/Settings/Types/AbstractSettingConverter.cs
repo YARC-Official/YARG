@@ -15,15 +15,15 @@ namespace YARG.Settings.Types
                 return null;
             }
 
-            var value = serializer.Deserialize(reader, existingValue.DataType);
-            existingValue.DataAsObject = value;
+            var value = serializer.Deserialize(reader, existingValue.ValueType);
+            existingValue.ValueAsObject = value;
 
             return existingValue;
         }
 
         public override void WriteJson(JsonWriter writer, ISettingType value, JsonSerializer serializer)
         {
-            serializer.Serialize(writer, value.DataAsObject, value.DataType);
+            serializer.Serialize(writer, value.ValueAsObject, value.ValueType);
         }
     }
 }

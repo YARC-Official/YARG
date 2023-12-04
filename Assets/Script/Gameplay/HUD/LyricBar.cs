@@ -26,7 +26,7 @@ namespace YARG.Gameplay.HUD
 
         protected override void GameplayAwake()
         {
-            var lyricSetting = SettingsManager.Settings.LyricDisplay.Data;
+            var lyricSetting = SettingsManager.Settings.LyricDisplay.Value;
 
             if (GameManager.IsPractice || lyricSetting == "NoLyricDisplay")
             {

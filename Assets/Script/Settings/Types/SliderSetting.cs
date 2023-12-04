@@ -16,22 +16,22 @@ namespace YARG.Settings.Types
             Min = min;
             Max = max;
 
-            DataField = value;
+            _value = value;
         }
 
-        protected override void SetDataField(float value)
+        protected override void SetValue(float value)
         {
-            DataField = Mathf.Clamp(value, Min, Max);
+            _value = Mathf.Clamp(value, Min, Max);
         }
 
-        public override bool IsSettingDataEqual(object obj)
+        public override bool ValueEquals(object obj)
         {
             if (obj is not float other)
             {
                 return false;
             }
 
-            return Mathf.Approximately(other, Data);
+            return Mathf.Approximately(other, Value);
         }
     }
 }

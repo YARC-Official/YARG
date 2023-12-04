@@ -228,7 +228,7 @@ namespace YARG.Settings
                 var fullscreenMode = FullScreenMode.FullScreenWindow;
                 if (Settings != null)
                 {
-                    fullscreenMode = Enum.Parse<FullScreenMode>(Settings.FullscreenMode.Data);
+                    fullscreenMode = Enum.Parse<FullScreenMode>(Settings.FullscreenMode.Value);
                 }
 
                 Screen.SetResolution(resolution.width, resolution.height, fullscreenMode, resolution.refreshRate);

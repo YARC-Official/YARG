@@ -24,7 +24,7 @@ namespace YARG.Audio
         /// <summary>
         /// Whether or not the microphone should be considered detected.
         /// </summary>
-        public bool VoiceDetected => Volume > SettingsManager.Settings.MicrophoneSensitivity.Data;
+        public bool VoiceDetected => Volume > SettingsManager.Settings.MicrophoneSensitivity.Value;
 
         /// <summary>
         /// Gets the pitch as a MIDI note.
