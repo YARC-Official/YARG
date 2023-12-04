@@ -11,14 +11,6 @@ namespace YARG.Settings.Types
             _value = value;
         }
 
-        public override bool ValueEquals(object obj)
-        {
-            if (obj is not bool other)
-            {
-                return false;
-            }
-
-            return other == Value;
-        }
+        public override bool ValueEquals(bool value) => value == Value;
     }
 }

@@ -22,13 +22,13 @@ namespace YARG.Settings.Types
             }
         }
 
-        public object ValueAsObject
+        object ISettingType.ValueAsObject
         {
             get => Value;
             set => Value = (T) value;
         }
 
-        public Type ValueType => typeof(T);
+        Type ISettingType.ValueType => typeof(T);
 
         public abstract string AddressableName { get; }
 
@@ -51,6 +51,11 @@ namespace YARG.Settings.Types
             _onChange?.Invoke(Value);
         }
 
-        public abstract bool ValueEquals(object obj);
+        public abstract bool ValueEquals(T value);
+
+        protected virtual bool ValueEquals(object obj)
+            => obj is T value && ValueEquals(value);
+
+        bool ISettingType.ValueEquals(object obj) => ValueEquals(obj);
     }
 }

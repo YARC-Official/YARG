@@ -12,31 +12,26 @@ namespace YARG.Settings.Types
             _value = null;
         }
 
-        public override bool ValueEquals(object obj)
+        public override bool ValueEquals(Resolution? value)
         {
-            // Check if the null states are the same
-            if (Value.HasValue != (obj != null))
+            if (Value.HasValue && value.HasValue)
             {
-                return false;
+                var v1 = Value.Value;
+                var v2 = value.Value;
+                return v1.height == v2.height &&
+                    v1.width == v2.width &&
+                    v1.refreshRate == v2.refreshRate;
             }
 
-            // Check if one of them is null, they are both null do to the above statement.
-            // The "obj == null" is mostly to suppress a warning.
-            if (!Value.HasValue || obj == null)
-            {
-                return true;
-            }
+            return value.HasValue == Value.HasValue;
+        }
 
-            // Check their types
-            if (obj.GetType() != ValueType)
-            {
-                return false;
-            }
+        protected override bool ValueEquals(object obj)
+        {
+            if (obj is Resolution res)
+                return ValueEquals(res);
 
-            var a = ((Resolution?) obj).Value;
-            return a.height == Value.Value.height &&
-                a.width == Value.Value.width &&
-                a.refreshRate == Value.Value.refreshRate;
+            return obj is null && !Value.HasValue;
         }
     }
 }

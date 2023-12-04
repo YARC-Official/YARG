@@ -24,14 +24,6 @@ namespace YARG.Settings.Types
             _value = Mathf.Clamp(value, Min, Max);
         }
 
-        public override bool ValueEquals(object obj)
-        {
-            if (obj is not int other)
-            {
-                return false;
-            }
-
-            return other == Value;
-        }
+        public override bool ValueEquals(int value) => value == Value;
     }
 }

@@ -24,14 +24,7 @@ namespace YARG.Settings.Types
             _value = Mathf.Clamp(value, Min, Max);
         }
 
-        public override bool ValueEquals(object obj)
-        {
-            if (obj is not float other)
-            {
-                return false;
-            }
-
-            return Mathf.Approximately(other, Value);
-        }
+        public override bool ValueEquals(float value)
+            => Mathf.Approximately(value, Value);
     }
 }

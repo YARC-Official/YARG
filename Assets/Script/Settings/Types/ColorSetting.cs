@@ -26,14 +26,6 @@ namespace YARG.Settings.Types
             _value = value;
         }
 
-        public override bool ValueEquals(object obj)
-        {
-            if (obj is not Color color)
-            {
-                return false;
-            }
-
-            return color == Value;
-        }
+        public override bool ValueEquals(Color value) => value == Value;
     }
 }

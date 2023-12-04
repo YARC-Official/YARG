@@ -22,14 +22,6 @@ namespace YARG.Settings.Types
             return _possibleValues.IndexOf(option);
         }
 
-        public override bool ValueEquals(object obj)
-        {
-            if (obj is not string other)
-            {
-                return false;
-            }
-
-            return other == Value;
-        }
+        public override bool ValueEquals(string value) => value == Value;
     }
 }
