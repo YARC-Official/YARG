@@ -23,7 +23,7 @@ namespace YARG.Gameplay.Visuals
                 transform.localPosition = new Vector3(GetElementX(NoteRef.Pad, 5), 0f, 0f) * LeftyFlipMultiplier;
 
                 // Get which note model to use
-                if (SettingsManager.Settings.UseCymbalModelsInFiveLane.Data)
+                if (SettingsManager.Settings.UseCymbalModelsInFiveLane.Value)
                 {
                     NoteGroup = (FiveLaneDrumPad) NoteRef.Pad switch
                     {

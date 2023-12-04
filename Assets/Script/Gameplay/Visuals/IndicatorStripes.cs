@@ -20,17 +20,17 @@ namespace YARG.Gameplay.Visuals
 
         public void Initialize()
         {
-            if (!SettingsManager.Settings.AntiGhosting.Data)
+            if (!SettingsManager.Settings.AntiGhosting.Value)
             {
                 SpawnStripe(new Color(1f, 0.5f, 0f));
             }
 
-            if (SettingsManager.Settings.InfiniteFrontEnd.Data)
+            if (SettingsManager.Settings.InfiniteFrontEnd.Value)
             {
                 SpawnStripe(new Color(0.3f, 0.75f, 0.3f));
             }
 
-            if (SettingsManager.Settings.DynamicWindow.Data)
+            if (SettingsManager.Settings.DynamicWindow.Value)
             {
                 SpawnStripe(new Color(0.25f, 0.65f, 0.9f));
             }

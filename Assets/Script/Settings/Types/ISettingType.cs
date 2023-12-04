@@ -4,12 +4,12 @@ namespace YARG.Settings.Types
 {
     public interface ISettingType
     {
-        public object DataAsObject { get; set; }
-        public Type DataType { get; }
+        public object ValueAsObject { get; set; }
+        public Type ValueType { get; }
 
         public string AddressableName { get; }
 
         public void ForceInvokeCallback();
-        public bool IsSettingDataEqual(object obj);
+        public bool ValueEquals(object obj);
     }
 }

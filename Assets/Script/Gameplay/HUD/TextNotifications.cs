@@ -63,7 +63,7 @@ namespace YARG.Gameplay.HUD
         private void Update()
         {
             // Never update this if text notifications are disabled
-            if (SettingsManager.Settings.DisableTextNotifications.Data) return;
+            if (SettingsManager.Settings.DisableTextNotifications.Value) return;
 
             if (_coroutine == null && _notificationPending)
             {

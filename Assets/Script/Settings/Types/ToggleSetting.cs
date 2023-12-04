@@ -8,17 +8,9 @@ namespace YARG.Settings.Types
 
         public ToggleSetting(bool value, Action<bool> onChange = null) : base(onChange)
         {
-            DataField = value;
+            _value = value;
         }
 
-        public override bool IsSettingDataEqual(object obj)
-        {
-            if (obj is not bool other)
-            {
-                return false;
-            }
-
-            return other == Data;
-        }
+        public override bool ValueEquals(bool value) => value == Value;
     }
 }

@@ -67,12 +67,12 @@ MonoBehaviour:
     m_Key: Dropdown.Graphics.LyricDisplay.Compatibility
     m_Metadata:
       m_Items: []
-  - m_Id: 66739072241360896
-    m_Key: Dropdown.Graphics.LyricDisplay.NoBackground
+  - m_Id: 66739072241360897
+    m_Key: Dropdown.Graphics.LyricDisplay.Disabled
     m_Metadata:
       m_Items: []
-  - m_Id: 66739072241360897
-    m_Key: Dropdown.Graphics.LyricDisplay.NoLyricDisplay
+  - m_Id: 66739072241360896
+    m_Key: Dropdown.Graphics.LyricDisplay.NoBackground
     m_Metadata:
       m_Items: []
   - m_Id: 66739072241360898

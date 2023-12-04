@@ -26,7 +26,7 @@ namespace YARG.Gameplay.Visuals
 
         private void Start()
         {
-            if (!SettingsManager.Settings.AntiGhosting.Data)
+            if (!SettingsManager.Settings.AntiGhosting.Value)
             {
                 var ghostColor = _comboMesh.material.GetColor(GhostingColorProperty);
                 _comboMesh.material.SetColor(MultiplierColorProperty, ghostColor);

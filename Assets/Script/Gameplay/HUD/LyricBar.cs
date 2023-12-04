@@ -8,6 +8,14 @@ using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
 {
+    public enum LyricDisplayMode
+    {
+        Disabled,
+        Normal,
+        Transparent,
+        NoBackground,
+    }
+
     public class LyricBar : GameplayBehaviour
     {
         private static readonly Regex _lyricDiacriticRegex = new(@"#|\^|\*|\%|\$|\/|", RegexOptions.Compiled);
@@ -26,9 +34,9 @@ namespace YARG.Gameplay.HUD
 
         protected override void GameplayAwake()
         {
-            var lyricSetting = SettingsManager.Settings.LyricDisplay.Data;
+            var lyricSetting = SettingsManager.Settings.LyricDisplay.Value;
 
-            if (GameManager.IsPractice || lyricSetting == "NoLyricDisplay")
+            if (GameManager.IsPractice || lyricSetting == LyricDisplayMode.Disabled)
             {
                 gameObject.SetActive(false);
                 return;
@@ -37,15 +45,15 @@ namespace YARG.Gameplay.HUD
             // Set the lyric background
             switch (lyricSetting)
             {
-                case "Normal":
+                case LyricDisplayMode.Normal:
                     _normalBackground.SetActive(true);
                     _transparentBackground.SetActive(false);
                     break;
-                case "Transparent":
+                case LyricDisplayMode.Transparent:
                     _normalBackground.SetActive(false);
                     _transparentBackground.SetActive(true);
                     break;
-                case "NoBackground":
+                case LyricDisplayMode.NoBackground:
                     _normalBackground.SetActive(false);
                     _transparentBackground.SetActive(false);
                     break;

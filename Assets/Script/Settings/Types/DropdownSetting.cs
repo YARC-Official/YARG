@@ -1,35 +1,38 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace YARG.Settings.Types
 {
-    public class DropdownSetting : AbstractSetting<string>
+    // Best we can do to escape the generics in DropdownSettingVisual
+    public interface IDropdownSetting : ISettingType
+    {
+        IEnumerable PossibleValues { get; }
+        int CurrentIndex { get; }
+
+        object GetAtIndex(int index);
+    }
+
+    public class DropdownSetting<T> : AbstractSetting<T>, IDropdownSetting
     {
         public override string AddressableName => "Setting/Dropdown";
 
-        private readonly List<string> _possibleValues;
-        public IReadOnlyList<string> PossibleValues => _possibleValues;
+        private readonly List<T> _possibleValues;
+        public IReadOnlyList<T> PossibleValues => _possibleValues;
 
-        public DropdownSetting(List<string> possibleValues, string value, Action<string> onChange = null) :
+        IEnumerable IDropdownSetting.PossibleValues => PossibleValues;
+
+        public int CurrentIndex => _possibleValues.IndexOf(Value);
+
+        public DropdownSetting(List<T> possibleValues, T value, Action<T> onChange = null) :
             base(onChange)
         {
             _possibleValues = possibleValues;
-            DataField = value;
+            _value = value;
         }
 
-        public int IndexOfOption(string option)
-        {
-            return _possibleValues.IndexOf(option);
-        }
+        public override bool ValueEquals(T value) => Value.Equals(value);
 
-        public override bool IsSettingDataEqual(object obj)
-        {
-            if (obj is not string other)
-            {
-                return false;
-            }
-
-            return other == Data;
-        }
+        object IDropdownSetting.GetAtIndex(int index) => _possibleValues[index];
     }
 }

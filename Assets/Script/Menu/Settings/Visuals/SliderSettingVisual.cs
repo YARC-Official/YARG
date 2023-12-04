@@ -25,7 +25,7 @@ namespace YARG.Menu.Settings.Visuals
 
         protected override void RefreshVisual()
         {
-            _slider.SetValueWithoutNotify(Setting.Data);
+            _slider.SetValueWithoutNotify(Setting.Value);
         }
 
         public override NavigationScheme GetNavigationScheme()
@@ -36,14 +36,14 @@ namespace YARG.Menu.Settings.Visuals
                 new NavigationScheme.Entry(MenuAction.Up, "Increase", () =>
                 {
                     var range = Setting.Max - Setting.Min;
-                    Setting.Data += range / 30f;
+                    Setting.Value += range / 30f;
 
                     RefreshVisual();
                 }),
                 new NavigationScheme.Entry(MenuAction.Down, "Decrease", () =>
                 {
                     var range = Setting.Max - Setting.Min;
-                    Setting.Data -= range / 30f;
+                    Setting.Value -= range / 30f;
 
                     RefreshVisual();
                 })
@@ -54,7 +54,7 @@ namespace YARG.Menu.Settings.Visuals
         {
             if (_ignoreCallback) return;
 
-            Setting.Data = _slider.Value;
+            Setting.Value = _slider.Value;
             RefreshVisual();
         }
     }

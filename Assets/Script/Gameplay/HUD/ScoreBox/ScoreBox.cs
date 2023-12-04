@@ -5,6 +5,16 @@ using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
 {
+    public enum SongProgressMode
+    {
+        None,
+        CountUpAndTotal,
+        CountDownAndTotal,
+        CountUpOnly,
+        CountDownOnly,
+        TotalOnly,
+    }
+
     public class ScoreBox : GameplayBehaviour
     {
         private const string SCORE_PREFIX = "<mspace=0.538em>";
@@ -60,7 +70,7 @@ namespace YARG.Gameplay.HUD
 
             double time = Math.Max(0f, GameManager.SongTime);
 
-            if (SettingsManager.Settings.GraphicalProgressOnScoreBox.Data)
+            if (SettingsManager.Settings.GraphicalProgressOnScoreBox.Value)
             {
                 _songProgressBar.SetProgress((float) (time / GameManager.SongLength));
             }
@@ -71,14 +81,15 @@ namespace YARG.Gameplay.HUD
             string countUp = TimeSpan.FromSeconds(time).ToString(TimeFormat);
             string countDown = TimeSpan.FromSeconds(GameManager.SongLength - time).ToString(TimeFormat);
 
-            _songTimer.text = SettingsManager.Settings.SongTimeOnScoreBox.Data switch
+            _songTimer.text = SettingsManager.Settings.SongTimeOnScoreBox.Value switch
             {
-                "CountUpAndTotal"   => $"{countUp} / {_songLengthTime}",
-                "CountDownAndTotal" => $"{countDown} / {_songLengthTime}",
-                "CountUpOnly"       => countUp,
-                "CountDownOnly"     => countDown,
-                "TotalOnly"         => _songLengthTime,
-                _                   => string.Empty
+                SongProgressMode.CountUpAndTotal   => $"{countUp} / {_songLengthTime}",
+                SongProgressMode.CountDownAndTotal => $"{countDown} / {_songLengthTime}",
+                SongProgressMode.CountUpOnly       => countUp,
+                SongProgressMode.CountDownOnly     => countDown,
+                SongProgressMode.TotalOnly         => _songLengthTime,
+
+                _ => string.Empty
             };
         }
     }

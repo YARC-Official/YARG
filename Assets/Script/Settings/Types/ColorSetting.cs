@@ -13,27 +13,19 @@ namespace YARG.Settings.Types
         {
             AllowTransparency = allowTransparency;
 
-            DataField = value;
+            _value = value;
         }
 
-        protected override void SetDataField(Color value)
+        protected override void SetValue(Color value)
         {
             if (!AllowTransparency)
             {
                 value.a = 1f;
             }
 
-            DataField = value;
+            _value = value;
         }
 
-        public override bool IsSettingDataEqual(object obj)
-        {
-            if (obj is not Color color)
-            {
-                return false;
-            }
-
-            return color == Data;
-        }
+        public override bool ValueEquals(Color value) => value == Value;
     }
 }

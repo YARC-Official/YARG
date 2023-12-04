@@ -10,7 +10,7 @@ namespace YARG.Gameplay.HUD
 
         protected override void GameplayAwake()
         {
-            float showCursorSetting = SettingsManager.Settings.ShowCursorTimer.Data;
+            float showCursorSetting = SettingsManager.Settings.ShowCursorTimer.Value;
 
             if (Mathf.Approximately(showCursorSetting, 0f))
             {
@@ -31,7 +31,7 @@ namespace YARG.Gameplay.HUD
 
         private void Update()
         {
-            float showCursorSetting = SettingsManager.Settings.ShowCursorTimer.Data;
+            float showCursorSetting = SettingsManager.Settings.ShowCursorTimer.Value;
 
             // Always show if paused, or if settings say so
             if (GameManager.Paused || GameManager.IsReplay)

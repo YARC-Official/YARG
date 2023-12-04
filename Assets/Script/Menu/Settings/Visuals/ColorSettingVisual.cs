@@ -20,13 +20,13 @@ namespace YARG.Menu.Settings.Visuals
 
         protected override void RefreshVisual()
         {
-            _colorRectangle.color = Setting.Data;
-            _inputField.text = ColorUtility.ToHtmlStringRGB(Setting.Data);
+            _colorRectangle.color = Setting.Value;
+            _inputField.text = ColorUtility.ToHtmlStringRGB(Setting.Value);
 
             if (Setting.AllowTransparency)
             {
                 _opacityField.gameObject.SetActive(true);
-                _opacityField.text = (Setting.Data.a * 100f)
+                _opacityField.text = (Setting.Value.a * 100f)
                     .ToString("N0", CultureInfo.InvariantCulture);
             }
             else
@@ -48,8 +48,8 @@ namespace YARG.Menu.Settings.Visuals
             // Unity needs a hashtag here, but doesn't put it in when converting to string
             if (ColorUtility.TryParseHtmlString("#" + _inputField.text, out var color))
             {
-                color.a = Setting.Data.a;
-                Setting.Data = color;
+                color.a = Setting.Value.a;
+                Setting.Value = color;
             }
 
             RefreshVisual();
@@ -62,9 +62,9 @@ namespace YARG.Menu.Settings.Visuals
                 float value = float.Parse(_opacityField.text, CultureInfo.InvariantCulture) / 100f;
                 value = Mathf.Clamp01(value);
 
-                var c = Setting.Data;
+                var c = Setting.Value;
                 c.a = value;
-                Setting.Data = c;
+                Setting.Value = c;
             }
             catch
             {
@@ -76,9 +76,9 @@ namespace YARG.Menu.Settings.Visuals
 
         public void OpenColorPicker()
         {
-            DialogManager.Instance.ShowColorPickerDialog(Setting.Data, color =>
+            DialogManager.Instance.ShowColorPickerDialog(Setting.Value, color =>
             {
-                Setting.Data = color;
+                Setting.Value = color;
                 RefreshVisual();
             });
         }

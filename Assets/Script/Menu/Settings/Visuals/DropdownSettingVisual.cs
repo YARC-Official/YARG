@@ -7,7 +7,7 @@ using YARG.Settings.Types;
 
 namespace YARG.Menu.Settings.Visuals
 {
-    public class DropdownSettingVisual : BaseSettingVisual<DropdownSetting>
+    public class DropdownSettingVisual : BaseSettingVisual<IDropdownSetting>
     {
         [SerializeField]
         private TMP_Dropdown _dropdown;
@@ -16,14 +16,14 @@ namespace YARG.Menu.Settings.Visuals
         {
             // Add the options (in order)
             _dropdown.options.Clear();
-            foreach (var name in Setting.PossibleValues)
+            foreach (var value in Setting.PossibleValues)
             {
                 _dropdown.options.Add(new(LocaleHelper.LocalizeString(
-                    "Settings", $"Dropdown.{Tab}.{UnlocalizedName}.{name}")));
+                    "Settings", $"Dropdown.{Tab}.{UnlocalizedName}.{value}")));
             }
 
             // Select the right option
-            _dropdown.SetValueWithoutNotify(Setting.IndexOfOption(Setting.Data));
+            _dropdown.SetValueWithoutNotify(Setting.CurrentIndex);
         }
 
         public override NavigationScheme GetNavigationScheme()
@@ -56,7 +56,7 @@ namespace YARG.Menu.Settings.Visuals
 
         public void OnDropdownChange()
         {
-            Setting.Data = Setting.PossibleValues[_dropdown.value];
+            Setting.ValueAsObject = Setting.GetAtIndex(_dropdown.value);
             RefreshVisual();
         }
     }

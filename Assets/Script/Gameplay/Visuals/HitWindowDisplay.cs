@@ -19,7 +19,7 @@ namespace YARG.Gameplay.Visuals
             _player = GetComponentInParent<BasePlayer>();
 
             _transformCache = transform;
-            if (!SettingsManager.Settings.ShowHitWindow.Data)
+            if (!SettingsManager.Settings.ShowHitWindow.Value)
             {
                 gameObject.SetActive(false);
             }

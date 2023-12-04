@@ -31,13 +31,13 @@ namespace YARG.Menu.Settings.Visuals
             }
 
             // Select the right option
-            if (Setting.Data == null)
+            if (Setting.Value == null)
             {
                 _dropdown.SetValueWithoutNotify(0);
             }
             else
             {
-                _dropdown.SetValueWithoutNotify(_resolutionCache.IndexOf(Setting.Data.Value) + 1);
+                _dropdown.SetValueWithoutNotify(_resolutionCache.IndexOf(Setting.Value.Value) + 1);
             }
         }
 
@@ -53,11 +53,11 @@ namespace YARG.Menu.Settings.Visuals
         {
             if (_dropdown.value == 0)
             {
-                Setting.Data = null;
+                Setting.Value = null;
             }
             else
             {
-                Setting.Data = _resolutionCache[_dropdown.value - 1];
+                Setting.Value = _resolutionCache[_dropdown.value - 1];
             }
 
             RefreshVisual();

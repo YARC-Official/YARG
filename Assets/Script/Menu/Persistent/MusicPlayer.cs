@@ -91,7 +91,7 @@ namespace YARG.Menu.Persistent
         {
             if (GlobalVariables.AudioManager.IsPlaying && gameObject.activeSelf)
             {
-                GlobalVariables.AudioManager.SetAllStemsVolume(SettingsManager.Settings.MusicPlayerVolume.Data);
+                GlobalVariables.AudioManager.SetAllStemsVolume(SettingsManager.Settings.MusicPlayerVolume.Value);
             }
         }
 

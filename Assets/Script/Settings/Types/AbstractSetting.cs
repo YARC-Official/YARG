@@ -7,14 +7,14 @@ namespace YARG.Settings.Types
     [JsonConverter(typeof(AbstractSettingConverter))]
     public abstract class AbstractSetting<T> : ISettingType
     {
-        protected T DataField;
+        protected T _value;
 
-        public T Data
+        public T Value
         {
-            get => DataField;
+            get => _value;
             set
             {
-                SetDataField(value);
+                SetValue(value);
 
                 _onChange?.Invoke(value);
 
@@ -22,13 +22,13 @@ namespace YARG.Settings.Types
             }
         }
 
-        public object DataAsObject
+        object ISettingType.ValueAsObject
         {
-            get => Data;
-            set => Data = (T) value;
+            get => Value;
+            set => Value = (T) value;
         }
 
-        public Type DataType => typeof(T);
+        Type ISettingType.ValueType => typeof(T);
 
         public abstract string AddressableName { get; }
 
@@ -39,18 +39,23 @@ namespace YARG.Settings.Types
             _onChange = onChange;
         }
 
-        protected virtual void SetDataField(T value)
+        protected virtual void SetValue(T value)
         {
-            DataField = value;
+            _value = value;
         }
 
-        public void SetSettingNoEvents(T value) => SetDataField(value);
+        public void SetValueWithoutNotify(T value) => SetValue(value);
 
         public void ForceInvokeCallback()
         {
-            _onChange?.Invoke(Data);
+            _onChange?.Invoke(Value);
         }
 
-        public abstract bool IsSettingDataEqual(object obj);
+        public abstract bool ValueEquals(T value);
+
+        protected virtual bool ValueEquals(object obj)
+            => obj is T value && ValueEquals(value);
+
+        bool ISettingType.ValueEquals(object obj) => ValueEquals(obj);
     }
 }

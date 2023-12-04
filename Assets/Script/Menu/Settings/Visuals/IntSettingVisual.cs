@@ -14,7 +14,7 @@ namespace YARG.Menu.Settings.Visuals
 
         protected override void RefreshVisual()
         {
-            _inputField.text = Setting.Data.ToString(CultureInfo.InvariantCulture);
+            _inputField.text = Setting.Value.ToString(CultureInfo.InvariantCulture);
         }
 
         public override NavigationScheme GetNavigationScheme()
@@ -24,12 +24,12 @@ namespace YARG.Menu.Settings.Visuals
                 NavigateFinish,
                 new NavigationScheme.Entry(MenuAction.Up, "Increase", () =>
                 {
-                    Setting.Data++;
+                    Setting.Value++;
                     RefreshVisual();
                 }),
                 new NavigationScheme.Entry(MenuAction.Down, "Decrease", () =>
                 {
-                    Setting.Data--;
+                    Setting.Value--;
                     RefreshVisual();
                 })
             }, true);
@@ -42,7 +42,7 @@ namespace YARG.Menu.Settings.Visuals
                 int value = int.Parse(_inputField.text, CultureInfo.InvariantCulture);
                 value = Mathf.Clamp(value, Setting.Min, Setting.Max);
 
-                Setting.Data = value;
+                Setting.Value = value;
             }
             catch
             {

@@ -140,7 +140,7 @@ namespace YARG.Audio.BASS
             if (muted == previousMute)
                 return;
 
-            UpdateVolumeSetting(SongStem.Master, muted ? 0 : Settings.SettingsManager.Settings.MasterMusicVolume.Data);
+            UpdateVolumeSetting(SongStem.Master, muted ? 0 : Settings.SettingsManager.Settings.MasterMusicVolume.Value);
             previousMute = muted;
         }
 #endif

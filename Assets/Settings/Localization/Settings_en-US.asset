@@ -523,7 +523,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 66739072241360897
-    m_Localized: Hide Lyric Display
+    m_Localized: Disabled
     m_Metadata:
       m_Items: []
   - m_Id: 66739072241360898

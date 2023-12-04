@@ -13,7 +13,7 @@ namespace YARG.Menu.Settings.Visuals
 
         protected override void RefreshVisual()
         {
-            _toggle.isOn = Setting.Data;
+            _toggle.isOn = Setting.Value;
         }
 
         public override NavigationScheme GetNavigationScheme()
@@ -34,7 +34,7 @@ namespace YARG.Menu.Settings.Visuals
 
         public void OnToggleChange()
         {
-            Setting.Data = _toggle.isOn;
+            Setting.Value = _toggle.isOn;
             RefreshVisual();
         }
     }
