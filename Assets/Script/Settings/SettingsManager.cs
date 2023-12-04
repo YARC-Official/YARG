@@ -37,7 +37,7 @@ namespace YARG.Settings
 
                 new HeaderMetadata("Other"),
                 nameof(Settings.UseCymbalModelsInFiveLane),
-                nameof(Settings.KickBounce),
+                nameof(Settings.KickBounceMultiplier),
                 nameof(Settings.ShowCursorTimer),
                 nameof(Settings.AmIAwesome),
 

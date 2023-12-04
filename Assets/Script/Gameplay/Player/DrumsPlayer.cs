@@ -212,6 +212,7 @@ namespace YARG.Gameplay.Player
             else
             {
                 _kickFret.PlayHitAnimation(true);
+                CameraPositioner.Bounce();
             }
         }
 

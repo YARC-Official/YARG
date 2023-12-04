@@ -66,7 +66,7 @@ namespace YARG.Settings
             public IntSetting VideoCalibration { get; } = new(0);
 
             public ToggleSetting UseCymbalModelsInFiveLane { get; } = new(true);
-            public ToggleSetting KickBounce                { get; } = new(true);
+            public SliderSetting KickBounceMultiplier      { get; } = new(1f, 0f, 2f);
 
             public SliderSetting ShowCursorTimer { get; } = new(2f, 0f, 5f);
 

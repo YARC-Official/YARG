@@ -71,8 +71,8 @@ MonoBehaviour:
     m_Key: Dropdown.Graphics.LyricDisplay.Disabled
     m_Metadata:
       m_Items: []
-  - m_Id: 92111997345587200
-    m_Key: Dropdown.Graphics.LyricDisplay.NoLyricDisplay
+  - m_Id: 92132627034005504
+    m_Key: Dropdown.Graphics.LyricDisplay.NoBackground
     m_Metadata:
       m_Items: []
   - m_Id: 66739072241360898
@@ -251,12 +251,12 @@ MonoBehaviour:
     m_Key: Setting.General.InputDeviceLogging.Description
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619350
-    m_Key: Setting.General.KickBounce
+  - m_Id: 92131506068512768
+    m_Key: Setting.General.KickBounceMultiplier
     m_Metadata:
       m_Items: []
-  - m_Id: 53704501379850243
-    m_Key: Setting.General.KickBounce.Description
+  - m_Id: 92131506068512769
+    m_Key: Setting.General.KickBounceMultiplier.Description
     m_Metadata:
       m_Items: []
   - m_Id: 92111997370753024

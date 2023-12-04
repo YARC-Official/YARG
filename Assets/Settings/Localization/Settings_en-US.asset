@@ -156,10 +156,6 @@ MonoBehaviour:
     m_Localized: Disable Per Song Backgrounds
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619350
-    m_Localized: Drum Kick Bounce
-    m_Metadata:
-      m_Items: []
   - m_Id: 53693768667619351
     m_Localized: Cursor Show Time
     m_Metadata:
@@ -314,11 +310,6 @@ MonoBehaviour:
   - m_Id: 53704501379850242
     m_Localized: Disables custom backgrounds in songs and shows the ones in your
       venue folder instead.
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53704501379850243
-    m_Localized: Slightly bounces the track when the kick pedal is pressed (drums
-      only).
     m_Metadata:
       m_Items: []
   - m_Id: 53704501379850244
@@ -865,10 +856,6 @@ MonoBehaviour:
     m_Localized: Yellow Star Power
     m_Metadata:
       m_Items: []
-  - m_Id: 92111997345587200
-    m_Localized: Hide Lyric Display
-    m_Metadata:
-      m_Items: []
   - m_Id: 92111997366558720
     m_Localized: Advanced
     m_Metadata:
@@ -880,6 +867,19 @@ MonoBehaviour:
   - m_Id: 92112677250654208
     m_Localized: Adds advanced settings to the "More Options" menu in the Music Library
       such as "View Song Folder" and "Copy Song Checksum".
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92131506068512768
+    m_Localized: Drum Kick Bounce Multiplier
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92131506068512769
+    m_Localized: Controls the amount the track should bounce when you hit a kick
+      note (drums only). Set to zero if you want to disable.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92132627034005504
+    m_Localized: No Background
     m_Metadata:
       m_Items: []
   references:
