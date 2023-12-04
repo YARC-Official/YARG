@@ -5,6 +5,16 @@ using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
 {
+    public enum SongProgressMode
+    {
+        None,
+        CountUpAndTotal,
+        CountDownAndTotal,
+        CountUpOnly,
+        CountDownOnly,
+        TotalOnly,
+    }
+
     public class ScoreBox : GameplayBehaviour
     {
         private const string SCORE_PREFIX = "<mspace=0.538em>";
@@ -73,12 +83,13 @@ namespace YARG.Gameplay.HUD
 
             _songTimer.text = SettingsManager.Settings.SongTimeOnScoreBox.Value switch
             {
-                "CountUpAndTotal"   => $"{countUp} / {_songLengthTime}",
-                "CountDownAndTotal" => $"{countDown} / {_songLengthTime}",
-                "CountUpOnly"       => countUp,
-                "CountDownOnly"     => countDown,
-                "TotalOnly"         => _songLengthTime,
-                _                   => string.Empty
+                SongProgressMode.CountUpAndTotal   => $"{countUp} / {_songLengthTime}",
+                SongProgressMode.CountDownAndTotal => $"{countDown} / {_songLengthTime}",
+                SongProgressMode.CountUpOnly       => countUp,
+                SongProgressMode.CountDownOnly     => countDown,
+                SongProgressMode.TotalOnly         => _songLengthTime,
+
+                _ => string.Empty
             };
         }
     }

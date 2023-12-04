@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using YARG.Core;
 using YARG.Core.Game;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
@@ -46,15 +47,15 @@ namespace YARG.Settings.Metadata
             // Set sub-section
             if (string.IsNullOrEmpty(_subSection))
             {
-                _subSection = "FiveFretGuitar";
+                _subSection = nameof(Instrument.FiveFretGuitar);
             }
 
             // Create instrument dropdown
-            var dropdown = CreateField(container, COLOR_PROFILE, "Instrument", new DropdownSetting(new()
+            var dropdown = CreateField(container, COLOR_PROFILE, "Instrument", new DropdownSetting<string>(new()
             {
-                "FiveFretGuitar",
-                "FourLaneDrums",
-                "FiveLaneDrums"
+                nameof(Instrument.FiveFretGuitar),
+                nameof(Instrument.FourLaneDrums),
+                nameof(Instrument.FiveLaneDrums)
             }, _subSection, (value) =>
             {
                 _subSection = value;
@@ -103,9 +104,9 @@ namespace YARG.Settings.Metadata
         {
             return _subSection switch
             {
-                "FiveFretGuitar" => c.FiveFretGuitar,
-                "FourLaneDrums"  => c.FourLaneDrums,
-                "FiveLaneDrums"  => c.FiveLaneDrums,
+                nameof(Instrument.FiveFretGuitar) => c.FiveFretGuitar,
+                nameof(Instrument.FourLaneDrums)  => c.FourLaneDrums,
+                nameof(Instrument.FiveLaneDrums)  => c.FiveLaneDrums,
                 _                => throw new Exception("Unreachable.")
             };
         }

@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using YARG.Helpers;
-using YARG.Integration;
-using YARG.Menu.Settings;
-using YARG.Settings.Types;
-using YARG.Menu.Persistent;
-using YARG.Player;
-using YARG.Song;
-using YARG.Venue;
 using UnityEngine.InputSystem;
 using YARG.Core.Audio;
+using YARG.Gameplay.HUD;
+using YARG.Helpers;
+using YARG.Integration;
+using YARG.Menu.Persistent;
+using YARG.Menu.Settings;
+using YARG.Player;
+using YARG.Settings.Types;
+using YARG.Song;
+using YARG.Venue;
 
 namespace YARG.Settings
 {
@@ -109,16 +109,16 @@ namespace YARG.Settings
             public ToggleSetting VSync  { get; } = new(true, VSyncCallback);
             public IntSetting    FpsCap { get; } = new(60, 1, onChange: FpsCapCallback);
 
-            public DropdownSetting FullscreenMode { get; } = new(new()
+            public DropdownSetting<FullScreenMode> FullscreenMode { get; } = new(new()
             {
 #if UNITY_STANDALONE_WIN
-                "ExclusiveFullScreen",
+                FullScreenMode.ExclusiveFullScreen,
 #elif UNITY_STANDALONE_OSX
-                "MaximizedWindow",
+                FullScreenMode.MaximizedWindow,
 #endif
-                "FullScreenWindow",
-                "Windowed",
-            }, "FullScreenWindow", FullscreenModeCallback);
+                FullScreenMode.FullScreenWindow,
+                FullScreenMode.Windowed,
+            }, FullScreenMode.FullScreenWindow, FullscreenModeCallback);
 
             public ResolutionSetting Resolution { get; } = new(ResolutionCallback);
             public ToggleSetting     FpsStats   { get; } = new(false, FpsCounterCallback);
@@ -129,20 +129,25 @@ namespace YARG.Settings
             public ToggleSetting ShowHitWindow            { get; } = new(false);
             public ToggleSetting DisableTextNotifications { get; } = new(false);
 
-            public DropdownSetting SongTimeOnScoreBox { get; } = new(new()
+            public DropdownSetting<SongProgressMode> SongTimeOnScoreBox { get; } = new(new()
             {
-                "None",
-                "CountUpAndTotal", "CountDownAndTotal",
-                "CountUpOnly", "CountDownOnly", "TotalOnly"
-            }, "CountUp");
+                SongProgressMode.None,
+                SongProgressMode.CountUpAndTotal,
+                SongProgressMode.CountDownAndTotal,
+                SongProgressMode.CountUpOnly,
+                SongProgressMode.CountDownOnly,
+                SongProgressMode.TotalOnly
+            }, SongProgressMode.CountUpOnly);
 
             public ToggleSetting GraphicalProgressOnScoreBox { get; } = new(true);
 
-            public DropdownSetting LyricDisplay { get; } = new(new()
+            public DropdownSetting<LyricDisplayMode> LyricDisplay { get; } = new(new()
             {
-                "Normal", "Transparent", "NoBackground",
-                "NoLyricDisplay"
-            }, "Normal");
+                LyricDisplayMode.Normal,
+                LyricDisplayMode.Transparent,
+                LyricDisplayMode.NoBackground,
+                LyricDisplayMode.Disabled
+            }, LyricDisplayMode.Normal);
 
             #endregion
 
@@ -177,7 +182,7 @@ namespace YARG.Settings
                 Application.targetFrameRate = value;
             }
 
-            private static void FullscreenModeCallback(string value)
+            private static void FullscreenModeCallback(FullScreenMode value)
             {
                 // Unity saves this information automatically
                 if (IsLoading)
@@ -185,7 +190,7 @@ namespace YARG.Settings
                     return;
                 }
 
-                Screen.fullScreenMode = Enum.Parse<FullScreenMode>(value);
+                Screen.fullScreenMode = value;
             }
 
             private static void ResolutionCallback(Resolution? value)
@@ -228,7 +233,7 @@ namespace YARG.Settings
                 var fullscreenMode = FullScreenMode.FullScreenWindow;
                 if (Settings != null)
                 {
-                    fullscreenMode = Enum.Parse<FullScreenMode>(Settings.FullscreenMode.Value);
+                    fullscreenMode = Settings.FullscreenMode.Value;
                 }
 
                 Screen.SetResolution(resolution.width, resolution.height, fullscreenMode, resolution.refreshRate);
