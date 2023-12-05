@@ -477,7 +477,7 @@ MonoBehaviour:
   - Mesh: {fileID: 8001540958738398021}
     MaterialIndex: 1
     EmissionMultiplier: 8
-    EmissionAddition: 3
+    EmissionAddition: 1
   _coloredMaterialsNoStarPower: []
 --- !u!1 &5220489739260093962
 GameObject:
