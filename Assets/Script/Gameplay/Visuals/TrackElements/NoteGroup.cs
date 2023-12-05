@@ -6,6 +6,24 @@ namespace YARG.Gameplay.Visuals
 {
     public class NoteGroup : MonoBehaviour
     {
+        private struct MaterialInfo
+        {
+            public Material MaterialCache;
+
+            public float EmissionMultiplier;
+            public float EmissionAddition;
+
+            public static MaterialInfo From(ThemeNote.MeshMaterialIndex a)
+            {
+                return new MaterialInfo
+                {
+                    MaterialCache      = a.Mesh.materials[a.MaterialIndex],
+                    EmissionMultiplier = a.EmissionMultiplier,
+                    EmissionAddition   = a.EmissionAddition,
+                };
+            }
+        }
+
         private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
 
         private static readonly int _randomFloat = Shader.PropertyToID("_RandomFloat");
@@ -16,26 +34,27 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private ThemeNote _themeNote;
 
-        private Material[] _coloredMaterialCache;
-        private Material[] _coloredMaterialNoStarPowerCache;
-        private Material[] _allColoredCache;
+        private MaterialInfo[] _coloredMaterialCache;
+        private MaterialInfo[] _coloredMaterialNoStarPowerCache;
+        private MaterialInfo[] _allColoredCache;
 
         public void Initialize()
         {
-            _coloredMaterialCache =
-                _themeNote.GetColoredMaterials().ToArray();
-            _coloredMaterialNoStarPowerCache =
-                _themeNote.GetColoredMaterialsNoStarPower().ToArray();
+            _coloredMaterialCache = _themeNote.ColoredMaterials
+                .Select(MaterialInfo.From).ToArray();
+            _coloredMaterialNoStarPowerCache = _themeNote.ColoredMaterialsNoStarPower
+                .Select(MaterialInfo.From).ToArray();
 
-            _allColoredCache = _coloredMaterialCache
-                .Concat(_coloredMaterialNoStarPowerCache)
+            _allColoredCache = _coloredMaterialCache.Concat(_coloredMaterialNoStarPowerCache)
                 .ToArray();
 
             // Set random values
             var randomFloat = Random.Range(-1f, 1f);
             var randomVector = new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f));
-            foreach (var material in _allColoredCache)
+            foreach (var info in _allColoredCache)
             {
+                var material = info.MaterialCache;
+
                 if (material.HasFloat(_randomFloat))
                 {
                     material.SetFloat(_randomFloat, randomFloat);
@@ -48,37 +67,29 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        // TODO: Move `emissionMultiplier` into the ThemeNote
-        public void SetColorWithEmission(Color color, Color colorNoStarPower,
-            float emissionMultiplier = 8f)
+        public void SetColorWithEmission(Color color, Color colorNoStarPower)
         {
             // Deal with color (with star power)
 
-            var realColor = color;
-            if (_themeNote.AddExtraGlow)
+            foreach (var info in _coloredMaterialCache)
             {
-                realColor += new Color(3f, 3f, 3f);
-            }
+                float a = info.EmissionAddition;
+                var realColor = color + new Color(a, a, a);
 
-            foreach (var material in _coloredMaterialCache)
-            {
-                material.color = realColor;
-                material.SetColor(_emissionColor, realColor * emissionMultiplier);
+                info.MaterialCache.color = realColor;
+                info.MaterialCache.SetColor(_emissionColor, realColor * info.EmissionMultiplier);
             }
 
             // Deal with color (no star power)
             if (_coloredMaterialNoStarPowerCache.Length == 0) return;
 
-            var realColorNoStarPower = colorNoStarPower;
-            if (_themeNote.AddExtraGlow)
+            foreach (var info in _coloredMaterialNoStarPowerCache)
             {
-                realColorNoStarPower += new Color(3f, 3f, 3f);
-            }
+                float a = info.EmissionAddition;
+                var realColor = color + new Color(a, a, a);
 
-            foreach (var material in _coloredMaterialNoStarPowerCache)
-            {
-                material.color = realColorNoStarPower;
-                material.SetColor(_emissionColor, realColorNoStarPower * emissionMultiplier);
+                info.MaterialCache.color = realColor;
+                info.MaterialCache.SetColor(_emissionColor, realColor * info.EmissionMultiplier);
             }
         }
 

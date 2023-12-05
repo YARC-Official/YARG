@@ -69,9 +69,7 @@ namespace YARG.Gameplay.Visuals
             }
 
             // Set the note color
-            float emissionMultiplier = NoteRef.Pad == (int) FiveLaneDrumPad.Kick ? 8f : 2.5f;
-            NoteGroup.SetColorWithEmission(color.ToUnityColor(), colorNoStarPower.ToUnityColor(),
-                emissionMultiplier);
+            NoteGroup.SetColorWithEmission(color.ToUnityColor(), colorNoStarPower.ToUnityColor());
         }
     }
 }

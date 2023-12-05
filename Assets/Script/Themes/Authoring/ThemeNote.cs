@@ -30,6 +30,10 @@ namespace YARG.Themes
         {
             public MeshRenderer Mesh;
             public int MaterialIndex;
+
+            [Space]
+            public float EmissionMultiplier;
+            public float EmissionAddition;
         }
 
         [field: Space]
@@ -44,9 +48,8 @@ namespace YARG.Themes
         [SerializeField]
         private MeshMaterialIndex[] _coloredMaterialsNoStarPower;
 
-        [field: Space]
-        [field: SerializeField]
-        public bool AddExtraGlow { get; private set; }
+        public IEnumerable<MeshMaterialIndex> ColoredMaterials => _coloredMaterials;
+        public IEnumerable<MeshMaterialIndex> ColoredMaterialsNoStarPower => _coloredMaterialsNoStarPower;
 
         private void OnDrawGizmos()
         {
@@ -54,22 +57,6 @@ namespace YARG.Themes
             Gizmos.DrawLine(
                 transform.position.AddX(-0.4f),
                 transform.position.AddX(0.4f));
-        }
-
-        /// <summary>
-        /// Warning! This can be slow. Cache values if needed repeatedly.
-        /// </summary>
-        public IEnumerable<Material> GetColoredMaterials()
-        {
-            return _coloredMaterials.Select(i => i.Mesh.materials[i.MaterialIndex]);
-        }
-
-        /// <summary>
-        /// Warning! This can be slow. Cache values if needed repeatedly.
-        /// </summary>
-        public IEnumerable<Material> GetColoredMaterialsNoStarPower()
-        {
-            return _coloredMaterialsNoStarPower.Select(i => i.Mesh.materials[i.MaterialIndex]);
         }
     }
 }

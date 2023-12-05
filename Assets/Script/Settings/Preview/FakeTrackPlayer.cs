@@ -39,7 +39,7 @@ namespace YARG.Settings.Preview
                     {
                         int fret = Random.Range(0, 6);
 
-                        // If the selected note is an open, return here
+                        // Open notes have different models
                         if (fret == 0)
                         {
                             return new FakeNoteData
@@ -52,7 +52,7 @@ namespace YARG.Settings.Preview
                             };
                         }
 
-                        // Otherwise, select a note type
+                        // Otherwise, select a random note type
                         var noteType = Random.Range(0, 3) switch
                         {
                             0 => ThemeNoteType.Normal,
@@ -61,7 +61,6 @@ namespace YARG.Settings.Preview
                             _ => throw new Exception("Unreachable.")
                         };
 
-                        // Create
                         return new FakeNoteData
                         {
                             Time = time,
