@@ -6,8 +6,6 @@ namespace YARG.Gameplay.Visuals
 {
     public sealed class FourLaneDrumsNoteElement : DrumsNoteElement
     {
-        private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
-
         protected override void InitializeElement()
         {
             base.InitializeElement();
