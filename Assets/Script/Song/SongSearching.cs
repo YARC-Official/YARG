@@ -71,7 +71,9 @@ namespace YARG.Song
                 } while (prevFilterIndex < filters.Count && currentFilters[currFilterIndex].StartsWith(filters[prevFilterIndex].Item1));
 
                 if (currentFilters[currFilterIndex] != filters[prevFilterIndex - 1].Item1)
+                {
                     break;
+                }
                 ++currFilterIndex;
             }
 
@@ -79,9 +81,13 @@ namespace YARG.Song
             {
                 (FilterNode, SortedDictionary<string, List<SongMetadata>>) newNode = new(currentFilters[0], SearchSongs(currentFilters[0]));
                 if (prevFilterIndex < filters.Count)
+                {
                     filters[prevFilterIndex] = newNode;
+                }
                 else
+                {
                     filters.Add(newNode);
+                }
 
                 ++prevFilterIndex;
                 ++currFilterIndex;
@@ -93,16 +99,22 @@ namespace YARG.Song
                 var searchList = SearchSongs(filter, filters[prevFilterIndex - 1].Item2);
 
                 if (prevFilterIndex < filters.Count)
+                {
                     filters[prevFilterIndex] = new(filter, searchList);
+                }
                 else
+                {
                     filters.Add(new(filter, searchList));
+                }
 
                 ++currFilterIndex;
                 ++prevFilterIndex;
             }
 
             if (prevFilterIndex < filters.Count)
+            {
                 filters.RemoveRange(prevFilterIndex, filters.Count - prevFilterIndex);
+            }
             return filters[prevFilterIndex - 1].Item2;
         }
 
@@ -114,7 +126,9 @@ namespace YARG.Song
                 SongAttribute attribute;
                 string argument = arg.Trim();
                 if (argument == string.Empty)
+                {
                     continue;
+                }
 
                 if (argument.StartsWith("artist:"))
                 {
@@ -175,7 +189,9 @@ namespace YARG.Song
                 argument = argument!.Trim();
                 nodes.Add(new(attribute, argument));
                 if (attribute == SongAttribute.Unspecified)
+                {
                     break;
+                }
             }
             return nodes;
         }
@@ -209,12 +225,16 @@ namespace YARG.Song
                 if (NameIndex >= 0)
                 {
                     if (IsNameLessThan(other))
+                    {
                         return -1;
+                    }
                 }
                 // We're guaranteed by the "Where() linq" calls before reaching this point
                 // that this.ArtistIndex is defined if this.NameIndex isn't
                 else if (IsArtistLessThan(other))
+                {
                     return -1;
+                }
                 return 1;
             }
 
@@ -260,7 +280,6 @@ namespace YARG.Song
             {
                 return UnspecifiedSearch(GlobalVariables.Instance.SongContainer.Songs, arg.argument);
             }
-
             return SearchByFilter(arg.attribute, arg.argument);
         }
 
@@ -270,8 +289,9 @@ namespace YARG.Song
             {
                 List<SongMetadata> entriesToSearch = new();
                 foreach (var entry in searchList)
+                {
                     entriesToSearch.AddRange(entry.Value);
-
+                }
                 return UnspecifiedSearch(entriesToSearch, arg.argument);
             }
 
@@ -293,7 +313,9 @@ namespace YARG.Song
             {
                 var entries = node.Value.FindAll(match);
                 if (entries.Count > 0)
+                {
                     result.Add(node.Key, entries);
+                }
             }
             return result;
         }
@@ -346,13 +368,19 @@ namespace YARG.Song
         private static SortedDictionary<string, List<SongMetadata>> SearchByFilter(SongAttribute sort, string arg)
         {
             if (sort == SongAttribute.Name)
+            {
                 return SearchByName(arg);
+            }
 
             if (sort == SongAttribute.Year)
+            {
                 return SearchByYear(arg);
+            }
 
             if (sort == SongAttribute.Instrument)
+            {
                 return SearchByInstrument(arg);
+            }
 
             SortedDictionary<string, List<SongMetadata>> map = new();
             var elements = sort switch
@@ -376,10 +404,14 @@ namespace YARG.Song
 
                 string key = element.Key.SortStr;
                 if (sort == SongAttribute.Artist)
+                {
                     key = RemoveArticle(key);
+                }
 
                 if (key.Contains(arg))
+                {
                     map.Add(element.Key, new(element.Value));
+                }
             }
             return map;
         }
@@ -390,13 +422,17 @@ namespace YARG.Song
             {
                 SortedDictionary<string, List<SongMetadata>> titleMap = new();
                 foreach (var element in GlobalVariables.Instance.SongContainer.Titles)
+                {
                     titleMap.Add(element.Key, new(element.Value));
+                }
                 return titleMap;
             }
 
             int i = 0;
             while (i + 1 < arg.Length && !char.IsLetterOrDigit(arg[i]))
+            {
                 ++i;
+            }
 
             char character = arg[i];
             string key = char.IsDigit(character) ? "0-9" : char.ToUpper(character).ToString();
@@ -404,8 +440,12 @@ namespace YARG.Song
 
             List<SongMetadata> result = new(search.Count);
             foreach (var element in search)
+            {
                 if (element.Name.SortStr.Contains(arg))
+                {
                     result.Add(element);
+                }
+            }
             return new() { { key, result } };
         }
 
@@ -413,9 +453,15 @@ namespace YARG.Song
         {
             List<SongMetadata> entries = new();
             foreach (var element in GlobalVariables.Instance.SongContainer.Years)
+            {
                 foreach (var entry in element.Value)
+                {
                     if (entry.Year.Contains(arg))
+                    {
                         entries.Add(entry);
+                    }
+                }
+            }
             return new() { { arg, entries } };
         }
 
@@ -423,8 +469,12 @@ namespace YARG.Song
         {
             SortedDictionary<string, List<SongMetadata>> map = new();
             foreach (var element in GlobalVariables.Instance.SongContainer.Instruments)
+            {
                 if (element.Key.Contains(arg, StringComparison.OrdinalIgnoreCase))
+                {
                     map.Add(element.Key, new(element.Value));
+                }
+            }
             return map;
         }
     }
