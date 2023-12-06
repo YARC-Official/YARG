@@ -78,6 +78,9 @@ namespace YARG.Settings.Metadata
                 case ColorProfile colorProfile:
                     BuildForColor(settingContainer, navGroup, colorProfile);
                     break;
+                case EnginePreset enginePreset:
+                    BuildForEngine(settingContainer, navGroup, enginePreset);
+                    break;
                 default:
                     Debug.LogWarning($"Setting tab not configured for preset type `{typeof(T).Name}`!");
                     break;
@@ -93,6 +96,9 @@ namespace YARG.Settings.Metadata
                     break;
                 case ColorProfile colorProfile:
                     UpdateForColor(colorProfile);
+                    break;
+                case EnginePreset enginePreset:
+                    UpdateForEngine(enginePreset);
                     break;
                 default:
                     Debug.LogWarning($"Setting change not configured for preset type `{typeof(T).Name}`!");

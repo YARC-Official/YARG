@@ -39,6 +39,10 @@ namespace YARG.Settings.Metadata
             new PresetSubTab<ColorProfile>(
                 CustomContentManager.ColorProfiles,
                 new TrackPreviewBuilder()),
+
+            new PresetSubTab<EnginePreset>(
+                CustomContentManager.EnginePresets,
+                new TrackPreviewBuilder()),
         };
 
         private static readonly Dictionary<Type, BasePreset> _lastSelectedPresetOfType = new();

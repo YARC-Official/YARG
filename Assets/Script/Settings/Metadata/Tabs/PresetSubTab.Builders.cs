@@ -5,6 +5,7 @@ using YARG.Core.Game;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
 using YARG.Menu.Settings;
+using YARG.Settings.Customization;
 using YARG.Settings.Types;
 
 using SystemColor = System.Drawing.Color;
@@ -16,6 +17,7 @@ namespace YARG.Settings.Metadata
     {
         private const string CAMERA_PRESET = nameof(CameraPreset);
         private const string COLOR_PROFILE = nameof(ColorProfile);
+        private const string ENGINE_PRESET = nameof(EnginePreset);
 
         private void BuildForCamera(Transform container,
             NavigationGroup navGroup, CameraPreset cameraPreset)
@@ -112,6 +114,36 @@ namespace YARG.Settings.Metadata
                 nameof(Instrument.FiveLaneDrums)  => c.FiveLaneDrums,
                 _                => throw new Exception("Unreachable.")
             };
+        }
+
+        private void BuildForEngine(Transform container,
+            NavigationGroup navGroup, EnginePreset enginePreset)
+        {
+            // Set sub-section
+            if (string.IsNullOrEmpty(_subSection))
+            {
+                _subSection = nameof(EnginePreset.FiveFretGuitarPreset);
+            }
+
+            // Create game mode dropdown
+            var dropdown = CreateField(container, ENGINE_PRESET, "GameMode", new DropdownSetting<string>(new()
+            {
+                nameof(EnginePreset.FiveFretGuitarPreset),
+                nameof(EnginePreset.DrumsPreset)
+            }, _subSection, (value) =>
+            {
+                _subSection = value;
+                SettingsMenu.Instance.Refresh();
+            }));
+            navGroup.AddNavigatable(dropdown.gameObject);
+
+            // Header
+            SpawnHeader(container, "PresetSettings");
+        }
+
+        private void UpdateForEngine(EnginePreset enginePreset)
+        {
+
         }
     }
 }

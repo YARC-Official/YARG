@@ -882,6 +882,22 @@ MonoBehaviour:
     m_Localized: No Background
     m_Metadata:
       m_Items: []
+  - m_Id: 92846839934869504
+    m_Localized: Drums (4 and 5 lane)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92846839955841024
+    m_Localized: Five Fret Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92846839955841025
+    m_Localized: Engine Presets
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92846839960035328
+    m_Localized: Game Mode
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
