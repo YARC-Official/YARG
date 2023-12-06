@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
+using System.Threading.Tasks;
 using YARG.Core.Song;
 
 namespace YARG.Song
@@ -69,6 +69,7 @@ namespace YARG.Song
                 {
                     ++prevFilterIndex;
                 } while (prevFilterIndex < filters.Count && currentFilters[currFilterIndex].StartsWith(filters[prevFilterIndex].Item1));
+
                 if (currentFilters[currFilterIndex] != filters[prevFilterIndex - 1].Item1)
                     break;
                 ++currFilterIndex;
@@ -89,7 +90,7 @@ namespace YARG.Song
             while (currFilterIndex < currentFilters.Count)
             {
                 var filter = currentFilters[currFilterIndex];
-                var searchList = SearchSongs(filter, Clone(filters[prevFilterIndex - 1].Item2));
+                var searchList = SearchSongs(filter, filters[prevFilterIndex - 1].Item2);
 
                 if (prevFilterIndex < filters.Count)
                     filters[prevFilterIndex] = new(filter, searchList);
@@ -103,14 +104,6 @@ namespace YARG.Song
             if (prevFilterIndex < filters.Count)
                 filters.RemoveRange(prevFilterIndex, filters.Count - prevFilterIndex);
             return filters[prevFilterIndex - 1].Item2;
-        }
-
-        private static SortedDictionary<string, List<SongMetadata>> Clone(SortedDictionary<string, List<SongMetadata>> original)
-        {
-            SortedDictionary<string, List<SongMetadata>> clone = new();
-            foreach (var node in original)
-                clone.Add(node.Key, new(node.Value));
-            return clone;
         }
 
         private static List<FilterNode> GetFilters(string[] split)
@@ -187,19 +180,85 @@ namespace YARG.Song
             return nodes;
         }
 
+        private class SearchNode : IComparable<SearchNode>
+        {
+            public readonly int NameIndex;
+            public readonly string leftOverName;
+            public readonly int ArtistIndex;
+            public readonly string leftoverArtist;
+            public readonly SongMetadata Song;
+
+            public SearchNode(SongMetadata song, string argument)
+            {
+                Song = song;
+                NameIndex = song.Name.SortStr.IndexOf(argument, StringComparison.Ordinal);
+                if (NameIndex >= 0)
+                {
+                    leftOverName = song.Name.SortStr[NameIndex..];
+                }
+
+                ArtistIndex = song.Artist.SortStr.IndexOf(argument, StringComparison.Ordinal);
+                if (ArtistIndex >= 0)
+                {
+                    leftoverArtist = song.Artist.SortStr[ArtistIndex..];
+                }
+            }
+
+            public int CompareTo(SearchNode other)
+            {
+                if (NameIndex >= 0)
+                {
+                    if (IsNameLessThan(other))
+                        return -1;
+                }
+                // We're guaranteed by the "Where() linq" calls before reaching this point
+                // that this.ArtistIndex is defined if this.NameIndex isn't
+                else if (IsArtistLessThan(other))
+                    return -1;
+                return 1;
+            }
+
+            private bool IsNameLessThan(SearchNode other)
+            {
+                if (other.NameIndex < 0)
+                {
+                    if (other.ArtistIndex < 0 || NameIndex <= other.ArtistIndex)
+                    {
+                        return true;
+                    }
+                }
+                else if (NameIndex < other.NameIndex ||
+                    (NameIndex == other.NameIndex && leftOverName.CompareTo(other.leftOverName) < 0))
+                {
+                    return true;
+                }
+                return false;
+            }
+
+            private bool IsArtistLessThan(SearchNode other)
+            {
+                if (other.ArtistIndex < 0)
+                {
+                    // Artist < name instead of <= to preserve consistent behavior
+                    if (other.NameIndex < 0 || ArtistIndex < other.NameIndex)
+                    {
+                        return true;
+                    }
+                }
+                else if (ArtistIndex < other.ArtistIndex ||
+                    (ArtistIndex == other.ArtistIndex && leftoverArtist.CompareTo(other.leftoverArtist) < 0))
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
+
         private static SortedDictionary<string, List<SongMetadata>> SearchSongs(FilterNode arg)
         {
             if (arg.attribute == SongAttribute.Unspecified)
             {
-                var results = GlobalVariables.Instance.SongContainer.Songs.Select(i => new
-                {
-                    score = Search(arg.argument, i),
-                    songInfo = i
-                })
-                .Where(i => i.score >= 0)
-                .OrderBy(i => i.score)
-                .Select(i => i.songInfo).ToList();
-                return new() { { "Search Results", results } };
+                return UnspecifiedSearch(GlobalVariables.Instance.SongContainer.Songs, arg.argument);
             }
 
             return SearchByFilter(arg.attribute, arg.argument);
@@ -213,43 +272,41 @@ namespace YARG.Song
                 foreach (var entry in searchList)
                     entriesToSearch.AddRange(entry.Value);
 
-                var results = entriesToSearch.Select(i => new
-                {
-                    score = Search(arg.argument, i),
-                    songInfo = i
-                })
-                .Where(i => i.score >= 0)
-                .OrderBy(i => i.score)
-                .Select(i => i.songInfo).ToList();
-                searchList = new() { { "Search Results", results } };
+                return UnspecifiedSearch(entriesToSearch, arg.argument);
             }
-            else
+
+            Predicate<SongMetadata> match = arg.attribute switch
             {
-                Predicate<SongMetadata> match = arg.attribute switch
-                {
-                    SongAttribute.Name => entry => !RemoveArticle(entry.Name.SortStr).Contains(arg.argument),
-                    SongAttribute.Artist => entry => !RemoveArticle(entry.Artist.SortStr).Contains(arg.argument),
-                    SongAttribute.Album => entry => !entry.Album.SortStr.Contains(arg.argument),
-                    SongAttribute.Genre => entry => !entry.Genre.SortStr.Contains(arg.argument),
-                    SongAttribute.Year => entry => !entry.Year.Contains(arg.argument) && !entry.UnmodifiedYear.Contains(arg.argument),
-                    SongAttribute.Charter => entry => !entry.Charter.SortStr.Contains(arg.argument),
-                    SongAttribute.Playlist => entry => !entry.Playlist.SortStr.Contains(arg.argument),
-                    SongAttribute.Source => entry => !entry.Source.SortStr.Contains(arg.argument),
-                    _ => throw new Exception("HOW")
-                };
+                SongAttribute.Name => entry => RemoveArticle(entry.Name.SortStr).Contains(arg.argument),
+                SongAttribute.Artist => entry => RemoveArticle(entry.Artist.SortStr).Contains(arg.argument),
+                SongAttribute.Album => entry => entry.Album.SortStr.Contains(arg.argument),
+                SongAttribute.Genre => entry => entry.Genre.SortStr.Contains(arg.argument),
+                SongAttribute.Year => entry => entry.Year.Contains(arg.argument) || entry.UnmodifiedYear.Contains(arg.argument),
+                SongAttribute.Charter => entry => entry.Charter.SortStr.Contains(arg.argument),
+                SongAttribute.Playlist => entry => entry.Playlist.SortStr.Contains(arg.argument),
+                SongAttribute.Source => entry => entry.Source.SortStr.Contains(arg.argument),
+                _ => throw new Exception("Unhandled seacrh filter")
+            };
 
-                List<string> removals = new();
-                foreach (var entry in searchList)
-                {
-                    entry.Value.RemoveAll(match);
-                    if (entry.Value.Count == 0)
-                        removals.Add(entry.Key);
-                }
-
-                foreach (var entry in removals)
-                    searchList.Remove(entry);
+            SortedDictionary<string, List<SongMetadata>> result = new();
+            foreach (var node in searchList)
+            {
+                var entries = node.Value.FindAll(match);
+                if (entries.Count > 0)
+                    result.Add(node.Key, entries);
             }
-            return searchList;
+            return result;
+        }
+
+        private static SortedDictionary<string, List<SongMetadata>> UnspecifiedSearch(IReadOnlyList<SongMetadata> songs, string argument)
+        {
+            var nodes = new SearchNode[songs.Count];
+            Parallel.For(0, songs.Count, i => nodes[i] = new SearchNode(songs[i], argument));
+            var results = nodes
+                .Where(node => node.NameIndex != -1 || node.ArtistIndex != -1)
+                .OrderBy(i => i)
+                .Select(i => i.Song).ToList();
+            return new() { { "Search Results", results } };
         }
 
         private static readonly string[] Articles =
@@ -284,35 +341,6 @@ namespace YARG.Song
         {
             var textWithoutDiacritics = SortString.RemoveDiacritics(text);
             return RemoveArticle(textWithoutDiacritics);
-        }
-
-        private static int Search(string input, SongMetadata songInfo)
-        {
-            // Get name index
-            string name = songInfo.Name.SortStr;
-            int nameIndex = name.IndexOf(input, StringComparison.Ordinal);
-
-            // Get artist index
-            string artist = songInfo.Artist.SortStr;
-            int artistIndex = artist.IndexOf(input, StringComparison.Ordinal);
-
-            // Return the best search
-            if (nameIndex == -1 && artistIndex == -1)
-            {
-                return -1;
-            }
-
-            if (nameIndex == -1)
-            {
-                return artistIndex;
-            }
-
-            if (artistIndex == -1)
-            {
-                return nameIndex;
-            }
-
-            return Mathf.Min(nameIndex, artistIndex);
         }
 
         private static SortedDictionary<string, List<SongMetadata>> SearchByFilter(SongAttribute sort, string arg)
