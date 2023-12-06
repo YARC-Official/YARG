@@ -5,12 +5,10 @@ namespace YARG.Settings.Customization
 {
     public class CameraSettingsContainer : CustomContent<CameraPreset>
     {
-        public override IReadOnlyList<CameraPreset> DefaultPresets => CameraPreset.Defaults;
+        protected override string ContentDirectory => "cameras";
 
         public override string PresetTypeStringName => "CameraPreset";
 
-        public CameraSettingsContainer(string contentDirectory) : base(contentDirectory)
-        {
-        }
+        public override IReadOnlyList<CameraPreset> DefaultPresets => CameraPreset.Defaults;
     }
 }

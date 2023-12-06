@@ -19,9 +19,9 @@ namespace YARG.Settings.Customization
 
         static CustomContentManager()
         {
-            CameraSettings = new CameraSettingsContainer(Path.Combine(CustomizationDirectory, "cameras"));
-            ColorProfiles = new ColorProfileContainer(Path.Combine(CustomizationDirectory, "colors"));
-            ThemePresets = new ThemePresetContainer(Path.Combine(CustomizationDirectory, "themes"));
+            CameraSettings = new CameraSettingsContainer();
+            ColorProfiles = new ColorProfileContainer();
+            ThemePresets = new ThemePresetContainer();
 
             _customContentContainers = new()
             {
@@ -33,9 +33,9 @@ namespace YARG.Settings.Customization
 
         public static void Init()
         {
-            ColorProfiles.LoadFiles();
-            CameraSettings.LoadFiles();
-            ThemePresets.LoadFiles();
+            ColorProfiles.Initialize();
+            CameraSettings.Initialize();
+            ThemePresets.Initialize();
         }
 
         public static void SaveAll()
