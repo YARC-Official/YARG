@@ -199,30 +199,6 @@ MonoBehaviour:
     m_Key: PresetType.EnginePresetContainer
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619341
-    m_Key: Setting.Engine.AntiGhosting
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53693768667619342
-    m_Key: Setting.Engine.AntiGhosting.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 90695957784944642
-    m_Key: Setting.Engine.DynamicWindow
-    m_Metadata:
-      m_Items: []
-  - m_Id: 90695957784944643
-    m_Key: Setting.Engine.DynamicWindow.Description
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53693768667619343
-    m_Key: Setting.Engine.InfiniteFrontEnd
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53704501379850240
-    m_Key: Setting.Engine.InfiniteFrontEnd.Description
-    m_Metadata:
-      m_Items: []
   - m_Id: 53693768667619344
     m_Key: Setting.Engine.NoKicks
     m_Metadata:
@@ -679,8 +655,44 @@ MonoBehaviour:
     m_Key: Setting.Presets.ColorProfile.YellowStarpower
     m_Metadata:
       m_Items: []
+  - m_Id: 92874700712435712
+    m_Key: Setting.Presets.EnginePreset.AntiGhosting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92874700725018624
+    m_Key: Setting.Presets.EnginePreset.AntiGhosting.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92874700725018625
+    m_Key: Setting.Presets.EnginePreset.DynamicWindow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92874700725018626
+    m_Key: Setting.Presets.EnginePreset.DynamicWindow.Description
+    m_Metadata:
+      m_Items: []
   - m_Id: 92846839960035328
     m_Key: Setting.Presets.EnginePreset.GameMode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92875663112265728
+    m_Key: Setting.Presets.EnginePreset.HopoLeniency
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92874700725018627
+    m_Key: Setting.Presets.EnginePreset.InfiniteFrontEnd
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92874700725018628
+    m_Key: Setting.Presets.EnginePreset.InfiniteFrontEnd.Description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92875663112265729
+    m_Key: Setting.Presets.EnginePreset.StrumLeniency
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92875663112265730
+    m_Key: Setting.Presets.EnginePreset.StrumLeniencySmall
     m_Metadata:
       m_Items: []
   - m_Id: 53693768667619372

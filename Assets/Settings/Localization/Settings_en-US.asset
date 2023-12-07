@@ -122,14 +122,6 @@ MonoBehaviour:
     m_Localized: Windowed
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619341
-    m_Localized: Anti-Ghosting
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53693768667619343
-    m_Localized: Infinite Front End
-    m_Metadata:
-      m_Items: []
   - m_Id: 53693768667619344
     m_Localized: No Kicks
     m_Metadata:
@@ -291,16 +283,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 53694051174965248
     m_Localized: Scan Songs
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53693768667619342
-    m_Localized: Upon ghosting (or fretting a note that is not present) the player
-      will drop their combo (guitar only).
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53704501379850240
-    m_Localized: If on, HOPOs and taps can be fretted before they enter to hit window
-      (guitar only).
     m_Metadata:
       m_Items: []
   - m_Id: 53704501379850241
@@ -622,16 +604,6 @@ MonoBehaviour:
     m_Localized: Four Lane Drums
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957784944642
-    m_Localized: Dynamic Hit Window
-    m_Metadata:
-      m_Items: []
-  - m_Id: 90695957784944643
-    m_Localized: The timing window adjusts in size depending on how close together
-      the notes are. The faster the notes are, the smaller the window becomes (guitar
-      only).
-    m_Metadata:
-      m_Items: []
   - m_Id: 90695957784944644
     m_Localized: Activation Note
     m_Metadata:
@@ -896,6 +868,46 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 92846839960035328
     m_Localized: Game Mode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92874700712435712
+    m_Localized: Anti-Ghosting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92874700725018624
+    m_Localized: Upon ghosting (or fretting a note that is not present) the player
+      will drop their combo (guitar only).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92874700725018625
+    m_Localized: Dynamic Hit Window
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92874700725018626
+    m_Localized: The timing window adjusts in size depending on how close together
+      the notes are. The faster the notes are, the smaller the window becomes (guitar
+      only).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92874700725018627
+    m_Localized: Infinite Front End
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92874700725018628
+    m_Localized: If on, HOPOs and taps can be fretted before they enter to hit window
+      (guitar only).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92875663112265728
+    m_Localized: HOPO Leniency
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92875663112265729
+    m_Localized: Strum Leniency
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92875663112265730
+    m_Localized: Strum Leniency (Small)
     m_Metadata:
       m_Items: []
   references:

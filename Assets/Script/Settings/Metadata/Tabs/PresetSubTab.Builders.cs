@@ -119,6 +119,8 @@ namespace YARG.Settings.Metadata
         private void BuildForEngine(Transform container,
             NavigationGroup navGroup, EnginePreset enginePreset)
         {
+            const DurationSetting.Unit PREFERRED_UNIT = DurationSetting.Unit.Milliseconds;
+
             // Set sub-section
             if (string.IsNullOrEmpty(_subSection))
             {
@@ -139,11 +141,41 @@ namespace YARG.Settings.Metadata
 
             // Header
             SpawnHeader(container, "PresetSettings");
+
+            // Spawn in the correct settings
+            switch (_subSection)
+            {
+                case nameof(EnginePreset.FiveFretGuitarPreset):
+                {
+                    var preset = enginePreset.FiveFretGuitar;
+                    CreateFields(container, navGroup, ENGINE_PRESET, new()
+                    {
+                        (nameof(preset.AntiGhosting),       new ToggleSetting(preset.AntiGhosting)),
+                        (nameof(preset.InfiniteFrontEnd),   new ToggleSetting(preset.InfiniteFrontEnd)),
+                        (nameof(preset.HopoLeniency),       new DurationSetting(preset.HopoLeniency, PREFERRED_UNIT)),
+                        (nameof(preset.StrumLeniency),      new DurationSetting(preset.StrumLeniency, PREFERRED_UNIT)),
+                        (nameof(preset.StrumLeniencySmall), new DurationSetting(preset.StrumLeniencySmall, PREFERRED_UNIT)),
+                    });
+                    break;
+                }
+                case nameof(EnginePreset.DrumsPreset):
+                    break;
+                default:
+                    throw new Exception("Unreachable.");
+            }
         }
 
         private void UpdateForEngine(EnginePreset enginePreset)
         {
-
+            switch (_subSection)
+            {
+                case nameof(EnginePreset.FiveFretGuitarPreset):
+                    break;
+                case nameof(EnginePreset.DrumsPreset):
+                    break;
+                default:
+                    throw new Exception("Unreachable.");
+            }
         }
     }
 }
