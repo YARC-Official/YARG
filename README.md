@@ -127,6 +127,9 @@ There are some dependencies that will be needed in order for HID devices (such a
    - You will need the SDK specifically, not the runtime!
 6. Open the project in Unity (select "Open" and select YARG's repo's folder).
 7. Load in **without** entering safe mode. Click "Ignore".
+
+   ![](Images/Contributing/unityignore.png)
+   
 8. Ensure all dependencies have been built/restored:
   - Both of these steps should be performed automatically when Unity starts up, but they can be performend manually if needed.
   - Click on `YARG` on the top menu bar, then click on `Rebuild YARG.Core (Debug)`.
