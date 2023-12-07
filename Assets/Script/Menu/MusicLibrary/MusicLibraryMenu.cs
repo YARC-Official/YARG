@@ -227,16 +227,17 @@ namespace YARG.Menu.MusicLibrary
 
             SetRecommendedSongs();
 
-            _currentSearch = _searchField.text;
-            _sortedSongs = _searchContext.Search(_currentSearch, Sort);
+            _sortedSongs = _searchContext.Search(_searchField.text, Sort);
 
             RequestViewListUpdate();
 
-            if (!SetIndexTo(i => i is SongViewType view && view.SongMetadata == _currentSong))
+            if (_searchField.text.Length > _currentSearch.Length ||
+                !SetIndexTo(i => i is SongViewType view && view.SongMetadata == _currentSong))
             {
                 // Reason: Gotta take "Random Song" header into account
-                SelectedIndex = string.IsNullOrEmpty(_currentSearch) ? 2 : 1;
+                SelectedIndex = string.IsNullOrEmpty(_searchField.text) ? 2 : 1;
             }
+            _currentSearch = _searchField.text;
         }
 
         protected override void Update()
