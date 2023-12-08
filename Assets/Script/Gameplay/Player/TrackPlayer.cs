@@ -93,7 +93,7 @@ namespace YARG.Gameplay.Player
             NotePool.ReturnAllObjects();
             BeatlinePool.ReturnAllObjects();
 
-            HitWindowDisplay.SetHitWindowSize();
+            HitWindowDisplay.SetHitWindow();
         }
 
         protected override void UpdateVisualsWithTimes(double time)

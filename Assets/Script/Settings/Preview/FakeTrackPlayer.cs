@@ -88,7 +88,9 @@ namespace YARG.Settings.Preview
         [SerializeField]
         private KeyedPool _notePool;
         [SerializeField]
-        private GameObject _hitWindow;
+        private FakeHitWindowDisplay _hitWindow;
+
+        public bool ForceShowHitWindow { get; set; }
 
         public double PreviewTime { get; private set; }
         private double _nextSpawnTime;
@@ -117,7 +119,8 @@ namespace YARG.Settings.Preview
             _notePool.SetPrefabAndReset(prefab);
 
             // Show hit window if enabled
-            _hitWindow.gameObject.SetActive(SettingsManager.Settings.ShowHitWindow.Value);
+            _hitWindow.gameObject.SetActive(SettingsManager.Settings.ShowHitWindow.Value || ForceShowHitWindow);
+            _hitWindow.NoteSpeed = NOTE_SPEED;
 
             SettingsMenu.Instance.SettingChanged += OnSettingChanged;
 
@@ -129,6 +132,7 @@ namespace YARG.Settings.Preview
         {
             var cameraPreset = PresetsTab.GetLastSelectedPreset(CustomContentManager.CameraSettings);
             var colorProfile = PresetsTab.GetLastSelectedPreset(CustomContentManager.ColorProfiles);
+            var enginePreset = PresetsTab.GetLastSelectedPreset(CustomContentManager.EnginePresets);
 
             // Update camera presets
             _trackMaterial.Initialize(3f, cameraPreset.FadeLength);
@@ -136,6 +140,9 @@ namespace YARG.Settings.Preview
 
             // Update color profiles
             _fretArray.InitializeColor(colorProfile.FiveFretGuitar);
+
+            // Update hit window
+            _hitWindow.HitWindow = enginePreset.FiveFretGuitar.HitWindow.Create();
 
             // Update all of the notes
             foreach (var note in _notePool.AllSpawned)

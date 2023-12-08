@@ -42,7 +42,7 @@ namespace YARG.Settings.Metadata
 
             new PresetSubTab<EnginePreset>(
                 CustomContentManager.EnginePresets,
-                new TrackPreviewBuilder()),
+                new TrackPreviewBuilder(true)),
         };
 
         private static readonly Dictionary<Type, BasePreset> _lastSelectedPresetOfType = new();
