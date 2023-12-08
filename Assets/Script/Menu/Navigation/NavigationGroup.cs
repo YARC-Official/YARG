@@ -87,11 +87,16 @@ namespace YARG.Menu.Navigation
             SelectionChanged?.Invoke(navigatableBehaviour, selectionOrigin);
         }
 
+        public void SelectAt(int index)
+        {
+            if (index >= _navigatables.Count) return;
+
+            _navigatables[index].SetSelected(true, SelectionOrigin.Programmatically);
+        }
+
         public void SelectFirst()
         {
-            if (_navigatables.Count < 1) return;
-
-            _navigatables[0].SetSelected(true, SelectionOrigin.Programmatically);
+            SelectAt(0);
         }
 
         public void SelectNext()

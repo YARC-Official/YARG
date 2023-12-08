@@ -181,7 +181,7 @@ namespace YARG.Settings.Metadata
                                 // We must update the dynamic hit window bool here.
                                 preset.HitWindow.IsDynamic = value;
 
-                                SettingsMenu.Instance.Refresh();
+                                SettingsMenu.Instance.RefreshAndKeepPosition();
                             })
                         ),
                         (

@@ -131,11 +131,23 @@ namespace YARG.Menu.Settings
 
         public void Refresh()
         {
-            UpdateSettings();
+            UpdateSettings(true);
             UpdatePreview(CurrentTab).Forget();
         }
 
-        private void UpdateSettings()
+        public void RefreshAndKeepPosition()
+        {
+            // Everything gets recreated, so we must cache the index before hand
+            int beforeIndex = _settingsNavGroup.SelectedIndex;
+
+            UpdateSettings(false);
+            UpdatePreview(CurrentTab).Forget();
+
+            // Restore selection
+            _settingsNavGroup.SelectAt(beforeIndex);
+        }
+
+        private void UpdateSettings(bool resetScroll)
         {
             _settingsNavGroup.ClearNavigatables();
 
@@ -145,11 +157,14 @@ namespace YARG.Menu.Settings
             // Build the settings tab
             CurrentTab.BuildSettingTab(_settingsContainer, _settingsNavGroup);
 
-            // Make the settings nav group the main one
-            _settingsNavGroup.SelectFirst();
+            if (resetScroll)
+            {
+                // Make the settings nav group the main one
+                _settingsNavGroup.SelectFirst();
 
-            // Reset scroll rect
-            _scrollRect.verticalNormalizedPosition = 1f;
+                // Reset scroll rect
+                _scrollRect.verticalNormalizedPosition = 1f;
+            }
         }
 
         private async UniTask UpdatePreview(Tab tabInfo)

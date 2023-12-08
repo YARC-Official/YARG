@@ -8,7 +8,7 @@ namespace YARG.Menu.Settings
         public void AddNewFolder()
         {
             SettingsManager.Settings.SongFolders.Add(string.Empty);
-            SettingsMenu.Instance.Refresh();
+            SettingsMenu.Instance.RefreshAndKeepPosition();
         }
 
         public async void RefreshSongs()
