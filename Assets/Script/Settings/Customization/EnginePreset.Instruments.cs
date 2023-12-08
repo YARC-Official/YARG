@@ -1,9 +1,14 @@
-﻿namespace YARG.Settings.Customization
+﻿using YARG.Core.Engine;
+using YARG.Core.Engine.Guitar;
+
+namespace YARG.Settings.Customization
 {
     // TODO: Move to YARG.Core
 
     public partial class EnginePreset
     {
+        private const double DEFAULT_WHAMMY_BUFFER = 0.25;
+
         /// <summary>
         /// A preset for a hit window. This should
         /// be used within each engine preset class.
@@ -16,6 +21,11 @@
             public bool IsDynamic;
 
             public double FrontToBackRatio;
+
+            public HitWindowSettings Create()
+            {
+                return new HitWindowSettings(MaxWindow, MinWindow, FrontToBackRatio, IsDynamic);
+            }
         }
 
         /// <summary>
@@ -50,6 +60,20 @@
                     StrumLeniencySmall = StrumLeniencySmall,
                     HitWindow = HitWindow,
                 };
+            }
+
+            public GuitarEngineParameters Create(float[] starMultiplierThresholds)
+            {
+                var hitWindow = HitWindow.Create();
+                return new GuitarEngineParameters(
+                    hitWindow,
+                    starMultiplierThresholds,
+                    HopoLeniency,
+                    StrumLeniency,
+                    StrumLeniencySmall,
+                    DEFAULT_WHAMMY_BUFFER,
+                    InfiniteFrontEnd,
+                    AntiGhosting);
             }
         }
 

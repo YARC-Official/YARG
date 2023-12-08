@@ -5,7 +5,6 @@ using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Guitar.Engines;
 using YARG.Core.Input;
 using YARG.Gameplay.Visuals;
-using YARG.Settings;
 
 namespace YARG.Gameplay.Player
 {
@@ -34,9 +33,20 @@ namespace YARG.Gameplay.Player
 
         protected override GuitarEngine CreateEngine()
         {
-            HitWindow = new HitWindowSettings(0.15, 0.04, 1, SettingsManager.Settings.DynamicWindow.Value);
-            EngineParams = new GuitarEngineParameters(HitWindow, StarMultiplierThresholds, 0.08, 0.06, 0.025, 0.25,
-                SettingsManager.Settings.InfiniteFrontEnd.Value, SettingsManager.Settings.AntiGhosting.Value);
+            if (!GameManager.IsReplay)
+            {
+                // Create the engine params from the engine preset
+                EngineParams = Player.EnginePreset.FiveFretGuitar.Create(StarMultiplierThresholds);
+            }
+            else
+            {
+                // Otherwise, get from the replay
+                EngineParams = (GuitarEngineParameters) Player.EngineParameterOverride;
+            }
+
+            // The hit window can just be taken from the params
+            HitWindow = EngineParams.HitWindow;
+
             var engine = new YargFiveFretEngine(NoteTrack, SyncTrack, EngineParams);
 
             Debug.Log("Note count: " + NoteTrack.Notes.Count);
