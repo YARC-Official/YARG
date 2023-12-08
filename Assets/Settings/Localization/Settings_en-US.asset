@@ -879,16 +879,6 @@ MonoBehaviour:
       will drop their combo (guitar only).
     m_Metadata:
       m_Items: []
-  - m_Id: 92874700725018625
-    m_Localized: Dynamic Hit Window
-    m_Metadata:
-      m_Items: []
-  - m_Id: 92874700725018626
-    m_Localized: The timing window adjusts in size depending on how close together
-      the notes are. The faster the notes are, the smaller the window becomes (guitar
-      only).
-    m_Metadata:
-      m_Items: []
   - m_Id: 92874700725018627
     m_Localized: Infinite Front End
     m_Metadata:
@@ -907,7 +897,46 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 92875663112265730
-    m_Localized: Strum Leniency (Small)
+    m_Localized: Strum Leniency (No Notes)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 93261075366404096
+    m_Localized: Hit Window Ratio
+    m_Metadata:
+      m_Items: []
+  - m_Id: 93261075383181312
+    m_Localized: Hit Window
+    m_Metadata:
+      m_Items: []
+  - m_Id: 93261075383181313
+    m_Localized: The amount of time a hopo is allowed to take a strum input. Strum
+      after this time and it will overstrum.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 93261075383181314
+    m_Localized: Dynamic Hit Window
+    m_Metadata:
+      m_Items: []
+  - m_Id: 93261075387375616
+    m_Localized: The timing window adjusts in size depending on how close together
+      the notes are. The faster the notes are, the smaller the window becomes (guitar
+      only).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 93261075387375617
+    m_Localized: The amount of time a strum can be inputted before fretting the correct
+      note. Fretting after this time will overstrum.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 93261075387375618
+    m_Localized: The amount of time a note can be strummed before it enters the hit
+      window and it still receive the strum. Strumming earlier than this will cause
+      an overstrum.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 93261605039890432
+    m_Localized: The hit window's front to back ratio. 0 will bring the hit window
+      fully backwards, 1 will keep it in the center, and 2 will move it to the front.
     m_Metadata:
       m_Items: []
   references:

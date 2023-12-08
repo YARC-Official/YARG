@@ -3,6 +3,7 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Helpers.Extensions;
+using YARG.Menu;
 using YARG.Menu.Navigation;
 using YARG.Menu.Settings;
 using YARG.Settings.Customization;
@@ -19,8 +20,10 @@ namespace YARG.Settings.Metadata
         private const string COLOR_PROFILE = nameof(ColorProfile);
         private const string ENGINE_PRESET = nameof(EnginePreset);
 
-        private void BuildForCamera(Transform container,
-            NavigationGroup navGroup, CameraPreset cameraPreset)
+        private const DurationInputField.Unit ENGINE_UNIT = DurationInputField.Unit.Milliseconds;
+
+        private void BuildForCamera(Transform container, NavigationGroup navGroup,
+            CameraPreset cameraPreset)
         {
             SpawnHeader(container, "PresetSettings");
             CreateFields(container, navGroup, CAMERA_PRESET, new()
@@ -46,8 +49,8 @@ namespace YARG.Settings.Metadata
             cameraPreset.CurveFactor = Get(nameof(cameraPreset.CurveFactor));
         }
 
-        private void BuildForColor(Transform container,
-            NavigationGroup navGroup, ColorProfile colorProfile)
+        private void BuildForColor(Transform container, NavigationGroup navGroup,
+            ColorProfile colorProfile)
         {
             // Set sub-section
             if (string.IsNullOrEmpty(_subSection))
@@ -116,11 +119,9 @@ namespace YARG.Settings.Metadata
             };
         }
 
-        private void BuildForEngine(Transform container,
-            NavigationGroup navGroup, EnginePreset enginePreset)
+        private void BuildForEngine(Transform container, NavigationGroup navGroup,
+            EnginePreset enginePreset)
         {
-            const DurationSetting.Unit PREFERRED_UNIT = DurationSetting.Unit.Milliseconds;
-
             // Set sub-section
             if (string.IsNullOrEmpty(_subSection))
             {
@@ -148,13 +149,49 @@ namespace YARG.Settings.Metadata
                 case nameof(EnginePreset.FiveFretGuitarPreset):
                 {
                     var preset = enginePreset.FiveFretGuitar;
+
                     CreateFields(container, navGroup, ENGINE_PRESET, new()
                     {
-                        (nameof(preset.AntiGhosting),       new ToggleSetting(preset.AntiGhosting)),
-                        (nameof(preset.InfiniteFrontEnd),   new ToggleSetting(preset.InfiniteFrontEnd)),
-                        (nameof(preset.HopoLeniency),       new DurationSetting(preset.HopoLeniency, PREFERRED_UNIT)),
-                        (nameof(preset.StrumLeniency),      new DurationSetting(preset.StrumLeniency, PREFERRED_UNIT)),
-                        (nameof(preset.StrumLeniencySmall), new DurationSetting(preset.StrumLeniencySmall, PREFERRED_UNIT)),
+                        (
+                            nameof(preset.AntiGhosting),
+                            new ToggleSetting(preset.AntiGhosting)
+                        ),
+                        (
+                            nameof(preset.InfiniteFrontEnd),
+                            new ToggleSetting(preset.InfiniteFrontEnd)
+                        ),
+                        (
+                            nameof(preset.HopoLeniency),
+                            new DurationSetting(preset.HopoLeniency, ENGINE_UNIT)
+                        ),
+                        (
+                            nameof(preset.StrumLeniency),
+                            new DurationSetting(preset.StrumLeniency, ENGINE_UNIT)
+                        ),
+                        (
+                            nameof(preset.StrumLeniencySmall),
+                            new DurationSetting(preset.StrumLeniencySmall, ENGINE_UNIT)
+                        ),
+                        (
+                            nameof(preset.HitWindow.IsDynamic),
+                            // The settings menu has to be refreshed so the hit window setting below updates
+                            new ToggleSetting(preset.HitWindow.IsDynamic, (value) =>
+                            {
+                                // If this gets called, it refreshes before it can update.
+                                // We must update the dynamic hit window bool here.
+                                preset.HitWindow.IsDynamic = value;
+
+                                SettingsMenu.Instance.Refresh();
+                            })
+                        ),
+                        (
+                            nameof(preset.HitWindow),
+                            new HitWindowSetting(preset.HitWindow)
+                        ),
+                        (
+                            nameof(preset.HitWindow.FrontToBackRatio),
+                            new SliderSetting((float) preset.HitWindow.FrontToBackRatio, 0f, 2f)
+                        )
                     });
                     break;
                 }
@@ -167,10 +204,32 @@ namespace YARG.Settings.Metadata
 
         private void UpdateForEngine(EnginePreset enginePreset)
         {
+            double GetDouble(string name) => ((AbstractSetting<double>) _settingFields[name]).Value;
+            bool   GetBool(string name)   => ((AbstractSetting<bool>)   _settingFields[name]).Value;
+
             switch (_subSection)
             {
                 case nameof(EnginePreset.FiveFretGuitarPreset):
+                {
+                    var preset = enginePreset.FiveFretGuitar;
+
+                    preset.AntiGhosting       = GetBool(nameof(preset.AntiGhosting));
+                    preset.InfiniteFrontEnd   = GetBool(nameof(preset.InfiniteFrontEnd));
+                    preset.HopoLeniency       = GetDouble(nameof(preset.HopoLeniency));
+                    preset.StrumLeniency      = GetDouble(nameof(preset.StrumLeniency));
+                    preset.StrumLeniencySmall = GetDouble(nameof(preset.StrumLeniencySmall));
+
+                    // Get the value of the hit window first, so the other stuff can be overridden
+                    preset.HitWindow = ((HitWindowSetting) _settingFields[nameof(preset.HitWindow)]).Value;
+
+                    // Override the other settings after
+                    preset.HitWindow.IsDynamic =
+                        GetBool(nameof(preset.HitWindow.IsDynamic));
+                    preset.HitWindow.FrontToBackRatio =
+                        ((SliderSetting) _settingFields[nameof(preset.HitWindow.FrontToBackRatio)]).Value;
+
                     break;
+                }
                 case nameof(EnginePreset.DrumsPreset):
                     break;
                 default:

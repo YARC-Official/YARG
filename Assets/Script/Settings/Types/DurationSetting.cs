@@ -1,17 +1,10 @@
 ﻿using System;
+using Unit = YARG.Menu.DurationInputField.Unit;
 
 namespace YARG.Settings.Types
 {
     public class DurationSetting : AbstractSetting<double>
     {
-        public enum Unit
-        {
-            Milliseconds,
-            Seconds,
-            Minutes,
-            Hours
-        }
-
         public override string AddressableName => "Setting/Duration";
 
         public Unit PreferredUnit { get; private set; }

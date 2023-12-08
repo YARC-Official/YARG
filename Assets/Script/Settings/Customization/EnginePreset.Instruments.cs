@@ -8,25 +8,14 @@
         /// A preset for a hit window. This should
         /// be used within each engine preset class.
         /// </summary>
-        public class HitWindowPreset
+        public struct HitWindowPreset
         {
             public double MaxWindow;
             public double MinWindow;
 
             public bool IsDynamic;
 
-            public double FrontToBackRatio = 1.0;
-
-            public HitWindowPreset Copy()
-            {
-                return new HitWindowPreset
-                {
-                    MaxWindow = MaxWindow,
-                    MinWindow = MinWindow,
-                    IsDynamic = IsDynamic,
-                    FrontToBackRatio = FrontToBackRatio,
-                };
-            }
+            public double FrontToBackRatio;
         }
 
         /// <summary>
@@ -45,7 +34,9 @@
             public HitWindowPreset HitWindow = new()
             {
                 MaxWindow = 0.15,
-                MinWindow = 0.04
+                MinWindow = 0.15,
+                IsDynamic = false,
+                FrontToBackRatio = 1.0
             };
 
             public FiveFretGuitarPreset Copy()
@@ -57,7 +48,7 @@
                     HopoLeniency = HopoLeniency,
                     StrumLeniency = StrumLeniency,
                     StrumLeniencySmall = StrumLeniencySmall,
-                    HitWindow = HitWindow.Copy(),
+                    HitWindow = HitWindow,
                 };
             }
         }
@@ -71,14 +62,16 @@
             public HitWindowPreset HitWindow = new()
             {
                 MaxWindow = 0.15,
-                MinWindow = 0.04
+                MinWindow = 0.15,
+                IsDynamic = false,
+                FrontToBackRatio = 1.0
             };
 
             public DrumsPreset Copy()
             {
                 return new DrumsPreset
                 {
-                    HitWindow = HitWindow.Copy()
+                    HitWindow = HitWindow
                 };
             }
         }
