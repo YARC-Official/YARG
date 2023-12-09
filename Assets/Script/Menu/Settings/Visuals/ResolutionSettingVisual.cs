@@ -21,6 +21,7 @@ namespace YARG.Menu.Settings.Visuals
             {
                 _resolutionCache.Add(resolution);
             }
+            _resolutionCache.Reverse();
 
             // Add the options (in order)
             _dropdown.options.Clear();
