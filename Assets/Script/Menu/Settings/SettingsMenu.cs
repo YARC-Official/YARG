@@ -129,10 +129,18 @@ namespace YARG.Menu.Settings
                 "Settings", $"Setting.{CurrentTab.Name}.{settingNav.UnlocalizedName}.Description");
         }
 
+        public void RefreshPreview(bool waitForResolution = false)
+        {
+            // Prevent errors if this gets called when the settings aren't opened
+            if (!_ready || !gameObject.activeSelf) return;
+
+            UpdatePreview(CurrentTab, waitForResolution).Forget();
+        }
+
         public void Refresh()
         {
             UpdateSettings(true);
-            UpdatePreview(CurrentTab).Forget();
+            RefreshPreview();
         }
 
         public void RefreshAndKeepPosition()
@@ -141,7 +149,7 @@ namespace YARG.Menu.Settings
             int beforeIndex = _settingsNavGroup.SelectedIndex;
 
             UpdateSettings(false);
-            UpdatePreview(CurrentTab).Forget();
+            RefreshPreview();
 
             // Restore selection
             _settingsNavGroup.SelectAt(beforeIndex);
@@ -167,8 +175,15 @@ namespace YARG.Menu.Settings
             }
         }
 
-        private async UniTask UpdatePreview(Tab tabInfo)
+        private async UniTask UpdatePreview(Tab tabInfo, bool waitForResolution)
         {
+            // When Unity changes resolution, it takes two frames to apply it correctly.
+            if (waitForResolution)
+            {
+                await UniTask.WaitForEndOfFrame(this);
+                await UniTask.WaitForEndOfFrame(this);
+            }
+
             DestroyPreview();
 
             // Spawn world preview
