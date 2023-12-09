@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -7,10 +7,11 @@ namespace YARG.Settings.Types
     // Best we can do to escape the generics in DropdownSettingVisual
     public interface IDropdownSetting : ISettingType
     {
-        IEnumerable PossibleValues { get; }
+        int Count { get; }
         int CurrentIndex { get; }
 
-        object GetAtIndex(int index);
+        void SelectIndex(int index);
+        string IndexToString(int index);
     }
 
     public class DropdownSetting<T> : AbstractSetting<T>, IDropdownSetting
@@ -20,7 +21,7 @@ namespace YARG.Settings.Types
         private readonly List<T> _possibleValues;
         public IReadOnlyList<T> PossibleValues => _possibleValues;
 
-        IEnumerable IDropdownSetting.PossibleValues => PossibleValues;
+        int IDropdownSetting.Count => _possibleValues.Count;
 
         public int CurrentIndex => _possibleValues.IndexOf(Value);
 
@@ -33,6 +34,12 @@ namespace YARG.Settings.Types
 
         public override bool ValueEquals(T value) => Value.Equals(value);
 
-        object IDropdownSetting.GetAtIndex(int index) => _possibleValues[index];
+        void IDropdownSetting.SelectIndex(int index) => Value = _possibleValues[index];
+        string IDropdownSetting.IndexToString(int index) => ValueToString(_possibleValues[index]);
+
+        public string ValueToString(T value)
+        {
+            return value.ToString();
+        }
     }
 }
