@@ -60,7 +60,7 @@ namespace YARG.Settings.Metadata
 
             // Create instrument dropdown
             var dropdown = CreateField(container, COLOR_PROFILE, "Instrument",
-                new DropdownSetting<string>(_subSection, RefreshForColor)
+                new DropdownSetting<string>(_subSection, RefreshForSubSection)
                 {
                     nameof(Instrument.FiveFretGuitar),
                     nameof(Instrument.FourLaneDrums),
@@ -86,12 +86,6 @@ namespace YARG.Settings.Metadata
                 var visual = CreateField(container, COLOR_PROFILE, field.Name, new ColorSetting(color, true));
                 navGroup.AddNavigatable(visual.gameObject);
             }
-        }
-
-        private void RefreshForColor(string subSection)
-        {
-            _subSection = subSection;
-            SettingsMenu.Instance.Refresh();
         }
 
         private void UpdateForColor(ColorProfile colorProfile)
@@ -133,15 +127,13 @@ namespace YARG.Settings.Metadata
             }
 
             // Create game mode dropdown
-            var dropdown = CreateField(container, ENGINE_PRESET, "GameMode", new DropdownSetting<string>(new()
-            {
-                nameof(EnginePreset.FiveFretGuitarPreset),
-                nameof(EnginePreset.DrumsPreset)
-            }, _subSection, (value) =>
-            {
-                _subSection = value;
-                SettingsMenu.Instance.Refresh();
-            }));
+            var dropdown = CreateField(container, ENGINE_PRESET, "GameMode",
+                new DropdownSetting<string>(_subSection, RefreshForSubSection)
+                {
+                    nameof(EnginePreset.FiveFretGuitarPreset),
+                    nameof(EnginePreset.DrumsPreset)
+                }
+            );
             navGroup.AddNavigatable(dropdown.gameObject);
 
             // Header
@@ -239,6 +231,12 @@ namespace YARG.Settings.Metadata
                 default:
                     throw new Exception("Unreachable.");
             }
+        }
+
+        private void RefreshForSubSection(string subSection)
+        {
+            _subSection = subSection;
+            SettingsMenu.Instance.Refresh();
         }
     }
 }
