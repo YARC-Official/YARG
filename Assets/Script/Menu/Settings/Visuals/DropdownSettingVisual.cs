@@ -18,8 +18,12 @@ namespace YARG.Menu.Settings.Visuals
             _dropdown.options.Clear();
             for (int i = 0; i < Setting.Count; i++)
             {
-                _dropdown.options.Add(new(LocaleHelper.LocalizeString(
-                    "Settings", $"Dropdown.{Tab}.{UnlocalizedName}.{Setting.IndexToString(i)}")));
+                string valueString = Setting.IndexToString(i);
+                if (Setting.Localizable)
+                    valueString = LocaleHelper.LocalizeString("Settings",
+                        $"Dropdown.{Tab}.{UnlocalizedName}.{valueString}");
+
+                _dropdown.options.Add(new(valueString));
             }
 
             // Select the right option

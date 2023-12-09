@@ -5,7 +5,7 @@ namespace YARG.Settings.Types
 {
     public class ResolutionSetting : DropdownSetting<Resolution?>
     {
-        public ResolutionSetting(Action<Resolution?> onChange = null) : base(null, onChange)
+        public ResolutionSetting(Action<Resolution?> onChange = null) : base(null, onChange, localizable: false)
         {
         }
 

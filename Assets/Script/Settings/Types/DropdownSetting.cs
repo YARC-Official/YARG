@@ -7,6 +7,8 @@ namespace YARG.Settings.Types
     // Best we can do to escape the generics in DropdownSettingVisual
     public interface IDropdownSetting : ISettingType
     {
+        bool Localizable { get; }
+
         int Count { get; }
         int CurrentIndex { get; }
 
@@ -18,6 +20,8 @@ namespace YARG.Settings.Types
     {
         public override string AddressableName => "Setting/Dropdown";
 
+        public bool Localizable { get; } = true;
+
         protected readonly List<T> _possibleValues = new();
         public IReadOnlyList<T> PossibleValues => _possibleValues;
 
@@ -25,10 +29,11 @@ namespace YARG.Settings.Types
 
         public int CurrentIndex => _possibleValues.IndexOf(Value);
 
-        public DropdownSetting(T value, Action<T> onChange = null) :
-            base(onChange)
+        public DropdownSetting(T value, Action<T> onChange = null, bool localizable = true)
+            : base(onChange)
         {
             _value = value;
+            Localizable = localizable;
             UpdateValues();
         }
 
