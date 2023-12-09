@@ -1,5 +1,5 @@
 ﻿using System;
-using HitWindowPreset = YARG.Settings.Customization.EnginePreset.HitWindowPreset;
+using HitWindowPreset = YARG.Core.Game.EnginePreset.HitWindowPreset;
 
 namespace YARG.Settings.Types
 {

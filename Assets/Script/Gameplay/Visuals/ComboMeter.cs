@@ -1,7 +1,6 @@
 ﻿using TMPro;
 using UnityEngine;
-using YARG.Settings;
-using YARG.Settings.Customization;
+using YARG.Core.Game;
 
 namespace YARG.Gameplay.Visuals
 {
