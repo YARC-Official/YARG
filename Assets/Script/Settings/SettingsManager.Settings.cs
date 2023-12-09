@@ -152,15 +152,6 @@ namespace YARG.Settings
 
             #endregion
 
-            #region Engine
-
-            public ToggleSetting NoKicks          { get; } = new(false);
-            public ToggleSetting AntiGhosting     { get; } = new(true);
-            public ToggleSetting InfiniteFrontEnd { get; } = new(false);
-            public ToggleSetting DynamicWindow    { get; } = new(false);
-
-            #endregion
-
             #region Callbacks
 
             private static void VSyncCallback(bool value)

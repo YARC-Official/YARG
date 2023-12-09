@@ -70,7 +70,9 @@ namespace YARG.Gameplay.Player
             Beatlines = SyncTrack.Beatlines;
             BeatlineIndex = 0;
 
-            IndicatorStripes.Initialize();
+            var preset = player.EnginePreset;
+            IndicatorStripes.Initialize(preset);
+            ComboMeter.Initialize(preset);
 
             // Set fade information and highway length
             ZeroFadePosition = DEFAULT_ZERO_FADE_POS * Player.Profile.HighwayLength;
@@ -93,7 +95,7 @@ namespace YARG.Gameplay.Player
             NotePool.ReturnAllObjects();
             BeatlinePool.ReturnAllObjects();
 
-            HitWindowDisplay.SetHitWindow();
+            HitWindowDisplay.SetHitWindowSize();
         }
 
         protected override void UpdateVisualsWithTimes(double time)

@@ -96,12 +96,6 @@ namespace YARG.Settings
                 nameof(Settings.SongTimeOnScoreBox),
                 nameof(Settings.GraphicalProgressOnScoreBox)
             },
-            new MetadataTab("Engine", icon: "Engine")
-            {
-                nameof(Settings.AntiGhosting),
-                nameof(Settings.InfiniteFrontEnd),
-                nameof(Settings.DynamicWindow)
-            },
             new PresetsTab("Presets", icon: "Customization")
         };
 

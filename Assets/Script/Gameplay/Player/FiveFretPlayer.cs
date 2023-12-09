@@ -104,6 +104,7 @@ namespace YARG.Gameplay.Player
 
             StarScoreThresholds = PopulateStarScoreThresholds(StarMultiplierThresholds, Engine.BaseScore);
 
+            IndicatorStripes.Initialize(Player.EnginePreset.FiveFretGuitar);
             _fretArray.Initialize(
                 SetupFretTheme(Player.Profile.GameMode),
                 Player.ColorProfile.FiveFretGuitar,
