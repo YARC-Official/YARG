@@ -14,21 +14,20 @@ namespace YARG.Settings.Types
         string IndexToString(int index);
     }
 
-    public class DropdownSetting<T> : AbstractSetting<T>, IDropdownSetting
+    public class DropdownSetting<T> : AbstractSetting<T>, IDropdownSetting, IEnumerable<T>
     {
         public override string AddressableName => "Setting/Dropdown";
 
-        private readonly List<T> _possibleValues;
+        private readonly List<T> _possibleValues = new();
         public IReadOnlyList<T> PossibleValues => _possibleValues;
 
         int IDropdownSetting.Count => _possibleValues.Count;
 
         public int CurrentIndex => _possibleValues.IndexOf(Value);
 
-        public DropdownSetting(List<T> possibleValues, T value, Action<T> onChange = null) :
+        public DropdownSetting(T value, Action<T> onChange = null) :
             base(onChange)
         {
-            _possibleValues = possibleValues;
             _value = value;
         }
 
@@ -41,5 +40,11 @@ namespace YARG.Settings.Types
         {
             return value.ToString();
         }
+
+        // For collection initializer support
+        public void Add(T setting) => _possibleValues.Add(setting);
+        private List<T>.Enumerator GetEnumerator() => _possibleValues.GetEnumerator();
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }
