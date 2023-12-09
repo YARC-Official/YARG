@@ -59,16 +59,14 @@ namespace YARG.Settings.Metadata
             }
 
             // Create instrument dropdown
-            var dropdown = CreateField(container, COLOR_PROFILE, "Instrument", new DropdownSetting<string>(new()
-            {
-                nameof(Instrument.FiveFretGuitar),
-                nameof(Instrument.FourLaneDrums),
-                nameof(Instrument.FiveLaneDrums)
-            }, _subSection, (value) =>
-            {
-                _subSection = value;
-                SettingsMenu.Instance.Refresh();
-            }));
+            var dropdown = CreateField(container, COLOR_PROFILE, "Instrument",
+                new DropdownSetting<string>(_subSection, RefreshForColor)
+                {
+                    nameof(Instrument.FiveFretGuitar),
+                    nameof(Instrument.FourLaneDrums),
+                    nameof(Instrument.FiveLaneDrums),
+                }
+            );
             navGroup.AddNavigatable(dropdown.gameObject);
 
             // Header
@@ -88,6 +86,12 @@ namespace YARG.Settings.Metadata
                 var visual = CreateField(container, COLOR_PROFILE, field.Name, new ColorSetting(color, true));
                 navGroup.AddNavigatable(visual.gameObject);
             }
+        }
+
+        private void RefreshForColor(string subSection)
+        {
+            _subSection = subSection;
+            SettingsMenu.Instance.Refresh();
         }
 
         private void UpdateForColor(ColorProfile colorProfile)

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core.Audio;
@@ -110,7 +110,8 @@ namespace YARG.Settings
             public ToggleSetting VSync  { get; } = new(true, VSyncCallback);
             public IntSetting    FpsCap { get; } = new(60, 1, onChange: FpsCapCallback);
 
-            public DropdownSetting<FullScreenMode> FullscreenMode { get; } = new(new()
+            public DropdownSetting<FullScreenMode> FullscreenMode { get; }
+                = new(FullScreenMode.FullScreenWindow, FullscreenModeCallback)
             {
 #if UNITY_STANDALONE_WIN
                 FullScreenMode.ExclusiveFullScreen,
@@ -119,7 +120,7 @@ namespace YARG.Settings
 #endif
                 FullScreenMode.FullScreenWindow,
                 FullScreenMode.Windowed,
-            }, FullScreenMode.FullScreenWindow, FullscreenModeCallback);
+            };
 
             public ResolutionSetting Resolution { get; } = new(ResolutionCallback);
             public ToggleSetting     FpsStats   { get; } = new(false, FpsCounterCallback);
@@ -130,7 +131,7 @@ namespace YARG.Settings
             public ToggleSetting ShowHitWindow            { get; } = new(false);
             public ToggleSetting DisableTextNotifications { get; } = new(false);
 
-            public DropdownSetting<SongProgressMode> SongTimeOnScoreBox { get; } = new(new()
+            public DropdownSetting<SongProgressMode> SongTimeOnScoreBox { get; } = new(SongProgressMode.CountUpOnly)
             {
                 SongProgressMode.None,
                 SongProgressMode.CountUpAndTotal,
@@ -138,17 +139,17 @@ namespace YARG.Settings
                 SongProgressMode.CountUpOnly,
                 SongProgressMode.CountDownOnly,
                 SongProgressMode.TotalOnly
-            }, SongProgressMode.CountUpOnly);
+            };
 
             public ToggleSetting GraphicalProgressOnScoreBox { get; } = new(true);
 
-            public DropdownSetting<LyricDisplayMode> LyricDisplay { get; } = new(new()
+            public DropdownSetting<LyricDisplayMode> LyricDisplay { get; } = new(LyricDisplayMode.Normal)
             {
                 LyricDisplayMode.Normal,
                 LyricDisplayMode.Transparent,
                 LyricDisplayMode.NoBackground,
                 LyricDisplayMode.Disabled
-            }, LyricDisplayMode.Normal);
+            };
 
             #endregion
 

@@ -43,9 +43,9 @@
 - [👉 Disclaimer](#-disclaimer)
 - [📃 Table of Contents](#-table-of-contents)
 - [📥 Downloading and Playing](#-downloading-and-playing)
-  - [YARC Launcher (All Platforms)](#yarg-launcher-all-platforms)
+  - [YARC Launcher (All Platforms)](#yarc-launcher-all-platforms)
   - [Linux](#linux)
-- [🔨 Building](#-building)
+- [🔨 Building/Contributing](#-buildingcontributing)
   - [Setup Instructions](#setup-instructions)
   - [Unity YAML Merge Tool](#unity-yaml-merge-tool)
 - [✍️ Contributing](#️-contributing)
@@ -90,7 +90,7 @@ There are some dependencies that will be needed in order for HID devices (such a
   - The file name may differ if desired, but it must come before `73-seat-late.rules`!
 3. Reboot your system to apply the new udev rule, then you should be all good to go!
 
-# 🔨 Building
+# 🔨 Building/Contributing
 
 > [!IMPORTANT]
 > ### ⚠️ If you wish to contribute, use the `dev` branch. Your PR will NOT be merged if it's on `master`. ⚠️
@@ -103,23 +103,37 @@ There are some dependencies that will be needed in order for HID devices (such a
 >
 > If you don't follow these instructions, it is possible that **YOU WILL NOT BE ABLE TO RUN THE GAME**.
 
-1. Make sure you have the latest version of [Blender](https://www.blender.org/) installed. This is for loading models, even if you don't plan on editing them.
-2. Clone the repository. If you are not familiar with git, I recommend using [GitHub Desktop](https://desktop.github.com/). If, however, you want to use the command line version:
+1. If you are planning to contribute, first make a fork of the project.
+   - Be sure to *uncheck* the option to only include the `master` branch! You will not be able to set things up correctly otherwise, as the `dev` branch will not be included in your fork.
+
+   ![](Images/Contributing/Include_All_Branches.png)
+
+2. Make sure you have the latest version of [Blender](https://www.blender.org/) installed. This is for loading models, even if you don't plan on editing them.
+3. Clone the repository. If you are not familiar with git, [GitHub Desktop](https://desktop.github.com/) or [Visual Studio Code](https://code.visualstudio.com/) plus the [GitLens extension](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens) are both good GUI options. If, however, you want to use the command-line:
    1. Download [Git](https://git-scm.com/downloads). Be sure it is added to system path.
    2. Open the command prompt in the directory you want to store the repository.
-   3. Type in `git clone --recursive https://github.com/YARC-Official/YARG.git`.
-   4. Because YARG contains submodules, you may need to do `git submodule update` when things get updated.
-3. Install Unity Hub and Unity `2021.3.21f1` (LTS).
+   3. Clone the project repository:
+   4. Type in `git clone -b dev --recursive <repository url>.git`, replacing `<repository url>` with either:
+      - your fork's URL if you made one, or
+      - the main repository's URL (`https://github.com/YARC-Official/YARG`) if you just want to build the game.
+      - A complete example using the main repository's URL is `git clone -b dev --recursive https://github.com/YARC-Official/YARG.git`.
+   5. Because YARG contains submodules, you may need to do `git submodule update` when things get updated.
+4. Install Unity Hub and Unity `2021.3.21f1` (LTS).
    1. Download and install [Unity Hub](https://unity.com/download).
    2. Sign-in/create an account with a personal license (free).
    3. In Unity Hub, click on "Install Editor" and select `2021.3.21f1` (LTS). It may be favourable to unselect Visual Studio if you are not using it.
    4. Click "Install"
-4. Install the [.NET SDK](https://dotnet.microsoft.com/en-us/download/visual-studio-sdks). This is required to develop and build the submodules.
+5. Install the [.NET SDK](https://dotnet.microsoft.com/en-us/download/visual-studio-sdks). This is required to develop and build the submodules.
    - You will need the SDK specifically, not the runtime!
-5. Open the project in Unity (select "Open" and select YARG's repo's folder).
-6. Load in **without** entering safe mode. Click "Ignore".
-7. Click on `YARG` on the top menu bar, then click on `Rebuild YARG.Core (Debug)`.
-8. (You may need to) click on `NuGet` on the top menu bar, then click on `Restore Packages`.
+6. Open the project in Unity (select "Open" and select YARG's repo's folder).
+7. Load in **without** entering safe mode. Click "Ignore".
+
+   ![](Images/Contributing/unityignore.png)
+   
+8. Ensure all dependencies have been built/restored:
+  - Both of these steps should be performed automatically when Unity starts up, but they can be performend manually if needed.
+  - Click on `YARG` on the top menu bar, then click on `Rebuild YARG.Core (Debug)`.
+  - Click on `NuGet` on the top menu bar, then click on `Restore Packages`.
 9. You're ready to go!
 
 ## Unity YAML Merge Tool
