@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using UnityEngine;
 
 namespace YARG.Settings.Types
@@ -13,11 +14,17 @@ namespace YARG.Settings.Types
         {
             _possibleValues.Clear();
 
-            _possibleValues.Add(null);
+            // Add all of the resolutions
             foreach (var resolution in Screen.resolutions)
             {
                 _possibleValues.Add(resolution);
             }
+
+            // Reverse so it's listed as highest to lowest
+            _possibleValues.Reverse();
+
+            // Insert the "Highest" option
+            _possibleValues.Insert(0, null);
         }
 
         public override bool ValueEquals(Resolution? value)
