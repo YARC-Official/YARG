@@ -189,10 +189,39 @@ namespace YARG.Settings.Metadata
                             new SliderSetting((float) preset.HitWindow.FrontToBackRatio, 0f, 2f)
                         )
                     });
+
                     break;
                 }
                 case nameof(EnginePreset.DrumsPreset):
+                {
+                    var preset = enginePreset.Drums;
+
+                    CreateFields(container, navGroup, ENGINE_PRESET, new()
+                    {
+                        (
+                            nameof(preset.HitWindow.IsDynamic),
+                            // The settings menu has to be refreshed so the hit window setting below updates
+                            new ToggleSetting(preset.HitWindow.IsDynamic, (value) =>
+                            {
+                                // If this gets called, it refreshes before it can update.
+                                // We must update the dynamic hit window bool here.
+                                preset.HitWindow.IsDynamic = value;
+
+                                SettingsMenu.Instance.RefreshAndKeepPosition();
+                            })
+                        ),
+                        (
+                            nameof(preset.HitWindow),
+                            new HitWindowSetting(preset.HitWindow)
+                        ),
+                        (
+                            nameof(preset.HitWindow.FrontToBackRatio),
+                            new SliderSetting((float) preset.HitWindow.FrontToBackRatio, 0f, 2f)
+                        )
+                    });
+
                     break;
+                }
                 default:
                     throw new Exception("Unreachable.");
             }
@@ -227,7 +256,20 @@ namespace YARG.Settings.Metadata
                     break;
                 }
                 case nameof(EnginePreset.DrumsPreset):
+                {
+                    var preset = enginePreset.Drums;
+
+                    // Get the value of the hit window first, so the other stuff can be overridden
+                    preset.HitWindow = ((HitWindowSetting) _settingFields[nameof(preset.HitWindow)]).Value;
+
+                    // Override the other settings after
+                    preset.HitWindow.IsDynamic =
+                        GetBool(nameof(preset.HitWindow.IsDynamic));
+                    preset.HitWindow.FrontToBackRatio =
+                        ((SliderSetting) _settingFields[nameof(preset.HitWindow.FrontToBackRatio)]).Value;
+
                     break;
+                }
                 default:
                     throw new Exception("Unreachable.");
             }

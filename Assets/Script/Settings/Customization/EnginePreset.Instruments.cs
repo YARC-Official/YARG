@@ -1,4 +1,5 @@
 ﻿using YARG.Core.Engine;
+using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Guitar;
 
 namespace YARG.Settings.Customization
@@ -97,6 +98,15 @@ namespace YARG.Settings.Customization
                 {
                     HitWindow = HitWindow
                 };
+            }
+
+            public DrumsEngineParameters Create(float[] starMultiplierThresholds, DrumsEngineParameters.DrumMode mode)
+            {
+                var hitWindow = HitWindow.Create();
+                return new DrumsEngineParameters(
+                    hitWindow,
+                    starMultiplierThresholds,
+                    mode);
             }
         }
     }
