@@ -197,14 +197,9 @@ namespace YARG.Playback
             AudioCalibration = (-audioCalibration / 1000.0) - VideoCalibration;
             SongOffset = -songOffset;
 
-            // Initialize times
+            // Initialize times so that they're correct for initial usage
             InitializeSongTime(SongOffset);
             GlobalVariables.AudioManager.SetPosition(0);
-
-            // Start sync thread
-            _runSync = true;
-            _syncThread = new Thread(SyncThread) { IsBackground = true };
-            _syncThread.Start();
         }
 
         ~SongRunner()
@@ -229,6 +224,18 @@ namespace YARG.Playback
                 _syncThread?.Join();
                 _syncThread = null;
             }
+        }
+
+        public void Start()
+        {
+            // Re-initialize times to prevent the song from starting too early
+            InitializeSongTime(SongOffset);
+            GlobalVariables.AudioManager.SetPosition(0);
+
+            // Start sync thread
+            _runSync = true;
+            _syncThread = new Thread(SyncThread) { IsBackground = true };
+            _syncThread.Start();
         }
 
         public void Update()

@@ -35,26 +35,21 @@ namespace YARG.Gameplay.HUD
 
         protected override void GameplayAwake()
         {
-            _sections = Array.Empty<Section>();
-            _currentSectionIndex = 0;
-        }
-
-        private void Start()
-        {
             if (!GameManager.IsPractice)
             {
                 Destroy(gameObject);
             }
+
+            _sections = Array.Empty<Section>();
+            _currentSectionIndex = 0;
         }
 
-        private void Update()
+        protected override void GameplayUpdate()
         {
             if (GameManager.Players is null)
             {
                 return;
             }
-
-            speedPercentText.text = $"{GameManager.SelectedSongSpeed * 100f:0}%";
 
             int notesHit = 0;
             int totalNotes = 0;
@@ -85,6 +80,11 @@ namespace YARG.Gameplay.HUD
                     sectionText.text = $"{_sections[_currentSectionIndex].Name}";
                 }
             }
+        }
+
+        protected override void SetSpeed(float speed)
+        {
+            speedPercentText.text = $"{GameManager.SelectedSongSpeed * 100f:0}%";
         }
 
         public void ResetPractice()

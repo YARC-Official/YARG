@@ -75,8 +75,9 @@ namespace YARG.Gameplay.Player
             StarScoreThresholds = PopulateStarScoreThresholds(StarMultiplierThresholds, Engine.BaseScore);
         }
 
-        protected override void FinishDestruction()
+        protected override void OnDestroy()
         {
+            base.OnDestroy();
             _inputContext?.Stop();
         }
 
@@ -326,14 +327,6 @@ namespace YARG.Gameplay.Player
             }
 
             return (closest, octaveShift);
-        }
-
-        public override void UpdateWithTimes(double inputTime)
-        {
-            base.UpdateWithTimes(inputTime);
-
-            Score = Engine.EngineStats.Score;
-            Combo = Engine.EngineStats.Combo;
         }
 
         public override void SetPracticeSection(uint start, uint end)

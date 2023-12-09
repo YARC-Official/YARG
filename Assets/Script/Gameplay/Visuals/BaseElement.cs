@@ -39,7 +39,7 @@
 
         protected abstract bool UpdateElementPosition();
 
-        protected void Update()
+        protected override void GameplayUpdate()
         {
             // Skip if not initialized
             if (!Initialized) return;

@@ -12,7 +12,7 @@ namespace YARG.Gameplay.HUD
             PauseMenuManager = FindObjectOfType<PauseMenuManager>();
         }
 
-        protected virtual void OnEnable()
+        protected override void GameplayEnable()
         {
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
@@ -23,7 +23,7 @@ namespace YARG.Gameplay.HUD
             }, false));
         }
 
-        private void OnDisable()
+        protected override void GameplayDisable()
         {
             Navigator.Instance.PopScheme();
         }

@@ -47,19 +47,21 @@ namespace YARG.Gameplay.HUD
             _menus = children.ToDictionary(i => i.Menu, i => i);
         }
 
-        private async void Start()
+        protected override async UniTask GameplayLoadAsync()
         {
+            var song = GameManager.Song;
+
             // Set text info
-            _albumText.text = GameManager.Song.Album;
-            _songText.text = GameManager.Song.Name;
-            _artistText.text = GameManager.Song.Artist;
-            _sourceText.text = SongSources.SourceToGameName(GameManager.Song.Source);
+            _albumText.text = song.Album;
+            _songText.text = song.Name;
+            _artistText.text = song.Artist;
+            _sourceText.text = SongSources.SourceToGameName(song.Source);
 
             // Set source icon
-            _sourceIcon.sprite = await SongSources.SourceToIcon(GameManager.Song.Source);
+            _sourceIcon.sprite = await SongSources.SourceToIcon(song.Source);
 
             // Set album cover
-            GameManager.Song.SetRawImageToAlbumCover(_albumCover, CancellationToken.None).Forget();
+            await song.SetRawImageToAlbumCover(_albumCover, CancellationToken.None);
         }
 
         protected override void GameplayDestroy()

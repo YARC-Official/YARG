@@ -10,21 +10,30 @@ namespace YARG.Integration.StageKit
 {
     public class StageKitGameplay : GameplayBehaviour
     {
+        private StageKitLightingController _controller;
+
         private VenueTrack _venue;
         private SyncTrack _sync;
         private List<VocalsPhrase> _vocals;
         private InstrumentDifficulty<DrumNote> _drums;
-        private bool _onPause = false;
+
         private int _eventIndex;
         private int _lightingIndex;
         private int _syncIndex;
         private int _vocalsIndex;
         private int _drumIndex;
-        private StageKitLightingController _controller;
 
-        protected override void OnChartLoaded(SongChart chart)
+        protected override void GameplayAwake()
         {
             _controller = StageKitLightingController.Instance;
+            _controller.CurrentLightingCue = null;
+            _controller.StageKits.ForEach(kit => kit.ResetHaptics());
+        }
+
+        protected override void GameplayLoad()
+        {
+            var chart = GameManager.Chart;
+
             //Should be read from the venue itself eventually but for now, randomize it.
             _controller.LargeVenue = Random.Range(0, 1) == 1;
             _venue = chart.VenueTrack;
@@ -37,33 +46,30 @@ namespace YARG.Integration.StageKit
             _lightingIndex = 0;
             _eventIndex = 0;
             _drumIndex = 0;
-
-            _controller.CurrentLightingCue = null;
-            StageKitLightingController.Instance.StageKits.ForEach(kit => kit.ResetHaptics());
         }
 
-        private void Update()
+        protected override void SetPaused(bool paused)
         {
-            if (StageKitLightingController.Instance.StageKits.Count == 0)
-            {
-                return;
-            }
-
-            //On Pause, turn off the fog and strobe so people don't die, but leave the leds on, looks nice.
-            //Is there a OnPause/OnResume event? that would simplify this.
-            if (GameManager.Paused && _onPause == false)
+            // On Pause, turn off the fog and strobe so people don't die, but leave the leds on, looks nice.
+            if (paused)
             {
                 _controller.PreviousFogState = _controller.CurrentFogState;
                 _controller.PreviousStrobeState = _controller.CurrentStrobeState;
                 _controller.SetFogMachine(StageKitLightingController.FogState.Off);
                 _controller.SetStrobeSpeed(StageKitStrobeSpeed.Off);
-                _onPause = true;
             }
-            else if (_onPause)
+            else
             {
                 _controller.SetFogMachine(_controller.PreviousFogState);
                 _controller.SetStrobeSpeed(_controller.PreviousStrobeState);
-                _onPause = false;
+            }
+        }
+
+        protected override void GameplayUpdate()
+        {
+            if (StageKitLightingController.Instance.StageKits.Count == 0)
+            {
+                return;
             }
 
             if (_controller.CurrentLightingCue != null)

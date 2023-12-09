@@ -110,17 +110,9 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        public override void UpdateWithTimes(double inputTime)
+        protected override void UpdateVisuals(double time)
         {
-            base.UpdateWithTimes(inputTime);
-
-            Score = Engine.EngineStats.Score;
-            Combo = Engine.EngineStats.Combo;
-        }
-
-        protected override void UpdateVisuals(double songTime)
-        {
-            UpdateBaseVisuals(Engine.EngineStats, songTime);
+            base.UpdateVisuals(time);
 
             for (var fret = GuitarAction.GreenFret; fret <= GuitarAction.OrangeFret; fret++)
             {

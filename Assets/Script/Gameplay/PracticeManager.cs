@@ -32,17 +32,10 @@ namespace YARG.Gameplay
         private uint _tickStart;
         private uint _tickEnd;
 
-        private uint _lastTick;
-
         public bool HasSelectedSection    { get; private set; }
         public bool HasUpdatedAbPositions { get; private set; }
 
         protected override void GameplayAwake()
-        {
-            Navigator.Instance.NavigationEvent += OnNavigationEvent;
-        }
-
-        private void Start()
         {
             if (GameManager.IsPractice)
             {
@@ -53,6 +46,8 @@ namespace YARG.Gameplay
             {
                 Destroy(this);
             }
+
+            Navigator.Instance.NavigationEvent += OnNavigationEvent;
         }
 
         protected override void GameplayDestroy()
@@ -60,18 +55,10 @@ namespace YARG.Gameplay
             Navigator.Instance.NavigationEvent -= OnNavigationEvent;
         }
 
-        private void Update()
+        protected override void GameplayUpdate()
         {
-            if (GameManager.Paused) return;
-
             double endPoint = TimeEnd + (SECTION_RESTART_DELAY * GameManager.SelectedSongSpeed);
             if (GameManager.SongTime >= endPoint) ResetPractice();
-        }
-
-        protected override void OnChartLoaded(SongChart chart)
-        {
-            _chart = chart;
-            _lastTick = chart.GetLastTick();
         }
 
         private void OnNavigationEvent(NavigationContext ctx)
@@ -150,8 +137,8 @@ namespace YARG.Gameplay
         public void SetAPosition(double time)
         {
             // We do this because we want to snap to the exact time of a tick, not in between 2 ticks.
-            uint tick = _chart.SyncTrack.TimeToTick(time);
-            double startTime = _chart.SyncTrack.TickToTime(tick);
+            uint tick = GameManager.Chart.SyncTrack.TimeToTick(time);
+            double startTime = GameManager.Chart.SyncTrack.TickToTime(tick);
 
             _tickStart = tick;
             TimeStart = startTime;
@@ -168,8 +155,8 @@ namespace YARG.Gameplay
         public void SetBPosition(double time)
         {
             // We do this because we want to snap to the exact time of a tick, not in between 2 ticks.
-            uint tick = _chart.SyncTrack.TimeToTick(time);
-            double endTime = _chart.SyncTrack.TickToTime(tick);
+            uint tick = GameManager.Chart.SyncTrack.TimeToTick(time);
+            double endTime = GameManager.Chart.SyncTrack.TickToTime(tick);
 
             _tickEnd = tick;
             TimeEnd = endTime;
@@ -217,7 +204,7 @@ namespace YARG.Gameplay
 
         private Section[] GetSectionsInPractice(uint start, uint end)
         {
-            return _chart.Sections.Where(s => s.Tick >= start && s.TickEnd <= end).ToArray();
+            return GameManager.Chart.Sections.Where(s => s.Tick >= start && s.TickEnd <= end).ToArray();
         }
     }
 }

@@ -1,98 +1,160 @@
+using System.Diagnostics.CodeAnalysis;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
-using YARG.Core.Chart;
 
 namespace YARG.Gameplay
 {
     /// <summary>
-    /// A <see cref="MonoBehaviour"/> that interacts with the <see cref="Gameplay.GameManager"/>.
+    /// A <see cref="MonoBehaviour"/> that interacts with the <see cref="GameManager"/>.
     /// </summary>
     /// <remarks>
-    /// This class guarantees that no updates will occur until the song has started, and
-    /// ensures correct handling of the chart load and song start events.
+    /// This class provides guarantees regarding using <see cref="GameManager"/>, such as disabling updates
+    /// until it's finished loading, and also provides hooks for various events.
     /// <br/>
     /// When inheriting, do *NOT* use <c>Awake()</c> or <c>OnDestroy()</c>!
     /// Override the <see cref="GameplayAwake"/> and <see cref="GameplayDestroy"/> methods instead.
     /// </remarks>
-    public abstract class GameplayBehaviour : MonoBehaviour
+    public abstract class GameplayBehaviour : GameManager.GameplayBehaviourImpl
     {
-        protected GameManager GameManager { get; private set; }
+        // Empty class for exposing outside of GameManager
+    }
 
-        // Protected to warn when hidden by an inheriting class
-        protected void Awake()
+    public partial class GameManager
+    {
+        // Private interface for interaction from GameManager
+        private interface IGameplayBehaviour
         {
-            // Retrieve the game manager
-            GameManager = FindObjectOfType<GameManager>();
-            if (GameManager == null)
+            Object UnityObject { get; } 
+
+            UniTask GameplayLoad();
+            UniTask GameplayStart();
+            void GameplayUpdate();
+
+            void SetPaused(bool paused);
+            void SetSpeed(float speed);
+            void SeekToTime(double songTime);
+        }
+
+        public abstract class GameplayBehaviourImpl : MonoBehaviour, IGameplayBehaviour
+        {
+            protected GameManager GameManager { get; private set; }
+
+            private bool _enabled;
+
+            // Protected to warn when hidden by an inheriting class
+            // "The Unity message 'Awake' has an incorrect signature."
+            [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
+            protected async UniTaskVoid Awake()
             {
-                Debug.LogWarning($"Gameplay object {gameObject.name} was instantiated outside of the gameplay scene!");
-                Destroy(gameObject);
-                return;
+                // Retrieve the game manager
+                GameManager = FindObjectOfType<GameManager>();
+                if (GameManager == null)
+                {
+                    Debug.LogWarning($"Gameplay object {gameObject.name} was instantiated outside of the gameplay scene!");
+                    Destroy(gameObject);
+                    return;
+                }
+
+                GameManager._gameplayBehaviours.Add(this);
+
+                // Call Awake first to ensure everything is initialized,
+                // otherwise setting `enabled` will call GameplayDisable first
+                GameplayAwake();
+
+                // Disable until the song starts
+                enabled = GameManager._behavioursStarted;
+
+                // Ensure initialization occurs if the game manager has already run things
+                if (GameManager._behavioursLoaded)
+                    await GameplayLoadAsync();
+                if (GameManager._behavioursStarted)
+                    await GameplayStartAsync();
             }
 
-            // Disable until the song starts
-            // (disable before registering, so that if it's already loaded
-            // we're not stuck as disabled from it immediately executing the method)
-            enabled = GameManager.IsSongStarted;
+            // Protected to warn when hidden by an inheriting class
+            protected void OnEnable()
+            {
+                _enabled = enabled;
+                GameplayEnable();
+            }
 
-            GameManager.ChartLoaded += _OnChartLoaded;
-            GameManager.SongLoaded += _OnSongLoaded;
-            GameManager.SongStarted += _OnSongStarted;
+            // Protected to warn when hidden by an inheriting class
+            protected void OnDisable()
+            {
+                _enabled = false;
+                GameplayDisable();
+            }
 
-            GameplayAwake();
-        }
+#if UNITY_EDITOR // Only used for detecting incorrect usages
+            // Protected to warn when hidden by an inheriting class
+            // "The Unity message 'Start' is empty."
+            [SuppressMessage("Performance", "UNT0001", Justification = "Deliberately empty for usage detection.")]
+            protected void Start() { }
 
-        // Protected to warn when hidden by an inheriting class
-        protected void OnDestroy()
-        {
-            GameplayDestroy();
+            // Protected to warn when hidden by an inheriting class
+            // "The Unity message 'Start' is empty."
+            [SuppressMessage("Performance", "UNT0001", Justification = "Deliberately empty for usage detection.")]
+            protected void Update() { }
+#endif
 
-            if (GameManager == null) return;
+            // Protected to warn when hidden by an inheriting class
+            protected void OnDestroy()
+            {
+                GameplayDestroy();
 
-            GameManager.ChartLoaded -= _OnChartLoaded;
-            GameManager.SongLoaded -= _OnSongLoaded;
-            GameManager.SongStarted -= _OnSongStarted;
-        }
+                if (GameManager == null) return;
 
-        private void _OnChartLoaded(SongChart chart)
-        {
-            GameManager.ChartLoaded -= _OnChartLoaded;
+                // Handled by GameManager to make enumeration simpler
+                // GameManager._gameplayBehaviours.Remove(this);
+            }
 
-            OnChartLoaded(chart);
-        }
+            protected virtual void GameplayAwake() { }
+            protected virtual void GameplayDestroy() { }
 
-        private void _OnSongLoaded()
-        {
-            GameManager.SongLoaded -= _OnSongLoaded;
+            protected virtual void GameplayEnable() { }
+            protected virtual void GameplayDisable() { }
 
-            OnSongLoaded();
-        }
+            // Private interface thunks
+            Object IGameplayBehaviour.UnityObject => this;
 
-        private void _OnSongStarted()
-        {
-            GameManager.SongStarted -= _OnSongStarted;
-            enabled = true;
+            UniTask IGameplayBehaviour.GameplayLoad() => GameplayLoadAsync();
 
-            OnSongStarted();
-        }
+            UniTask IGameplayBehaviour.GameplayStart()
+            {
+                enabled = true;
+                return GameplayStartAsync();
+            }
 
-        protected virtual void GameplayAwake()
-        {
-        }
+            void IGameplayBehaviour.GameplayUpdate()
+            {
+                if (!_enabled) return;
+                GameplayUpdate();
+            }
 
-        protected virtual void GameplayDestroy()
-        {
-        }
+            void IGameplayBehaviour.SetPaused(bool paused) => SetPaused(paused);
+            void IGameplayBehaviour.SetSpeed(float speed) => SetSpeed(speed);
+            void IGameplayBehaviour.SeekToTime(double songTime) => SeekToTime(songTime);
 
-        protected virtual void OnChartLoaded(SongChart chart)
-        {
-        }
+            // Default async implementations which call the synchronous versions
+            protected virtual UniTask GameplayLoadAsync()
+            {
+                GameplayLoad();
+                return UniTask.CompletedTask;
+            }
 
-        protected virtual void OnSongLoaded()
-        {
-        }
+            protected virtual UniTask GameplayStartAsync()
+            {
+                GameplayStart();
+                return UniTask.CompletedTask;
+            }
 
-        protected virtual void OnSongStarted()
-        {
+            protected virtual void GameplayLoad() { }
+            protected virtual void GameplayStart() { }
+            protected virtual void GameplayUpdate() { }
+
+            protected virtual void SetPaused(bool paused) { }
+            protected virtual void SetSpeed(float speed) { }
+            protected virtual void SeekToTime(double songTime) { }
         }
     }
 }

@@ -12,9 +12,9 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private TextMeshProUGUI _bPositionText;
 
-        protected override void OnEnable()
+        protected override void GameplayEnable()
         {
-            base.OnEnable();
+            base.GameplayEnable();
 
             UpdatePositionText();
         }

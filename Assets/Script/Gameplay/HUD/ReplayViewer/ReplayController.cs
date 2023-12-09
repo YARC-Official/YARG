@@ -61,7 +61,7 @@ namespace YARG.Gameplay.HUD
             _timeSlider.OnSliderDrag.RemoveAllListeners();
         }
 
-        protected override void OnSongLoaded()
+        protected override void GameplayLoad()
         {
             _songLengthText.text = TimeSpan.FromSeconds(GameManager.SongLength + GameManager.SONG_START_DELAY)
                 .ToString("g");
@@ -69,7 +69,7 @@ namespace YARG.Gameplay.HUD
             _replay = GameManager.Replay;
         }
 
-        private void Update()
+        private new void Update()
         {
             if (!GameManager.Paused && _hudVisible)
             {

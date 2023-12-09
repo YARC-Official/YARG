@@ -85,6 +85,12 @@ namespace YARG.Gameplay.Player
             _hudLocation.position = _hudLocation.position.AddZ(change);
         }
 
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+            GameManager.BeatEventHandler.Unsubscribe(StarpowerBar.PulseBarIfAble);
+        }
+
         protected override void ResetVisuals()
         {
             ComboMeter.SetFullCombo(IsFc);
@@ -96,11 +102,11 @@ namespace YARG.Gameplay.Player
             HitWindowDisplay.SetHitWindowSize();
         }
 
-        protected override void UpdateVisualsWithTimes(double time)
+        protected override void UpdateVisuals(double time)
         {
-            base.UpdateVisualsWithTimes(time);
             UpdateNotes(time);
             UpdateBeatlines(time);
+            UpdateTrackVisuals(time);
         }
 
         protected abstract void UpdateNotes(double time);
@@ -129,6 +135,22 @@ namespace YARG.Gameplay.Player
 
                 BeatlineIndex++;
             }
+        }
+
+        private void UpdateTrackVisuals(double time)
+        {
+            int maxMultiplier = Stats.IsStarPowerActive ? 8 : 4;
+            bool groove = Stats.ScoreMultiplier == maxMultiplier;
+
+            TrackMaterial.SetTrackScroll(time, NoteSpeed);
+            TrackMaterial.GrooveMode = groove;
+            TrackMaterial.StarpowerMode = Stats.IsStarPowerActive;
+
+            ComboMeter.SetCombo(Stats.ScoreMultiplier, maxMultiplier, Stats.Combo);
+            StarpowerBar.SetStarpower(Stats.StarPowerAmount, Stats.IsStarPowerActive);
+            SunburstEffects.SetSunburstEffects(groove, Stats.IsStarPowerActive);
+
+            TrackView.UpdateNoteStreak(Stats.Combo);
         }
     }
 
@@ -216,22 +238,6 @@ namespace YARG.Gameplay.Player
             ResetNoteCounters();
 
             ResetVisuals();
-        }
-
-        protected void UpdateBaseVisuals(BaseStats stats, double songTime)
-        {
-            int maxMultiplier = stats.IsStarPowerActive ? 8 : 4;
-            bool groove = stats.ScoreMultiplier == maxMultiplier;
-
-            TrackMaterial.SetTrackScroll(songTime, NoteSpeed);
-            TrackMaterial.GrooveMode = groove;
-            TrackMaterial.StarpowerMode = stats.IsStarPowerActive;
-
-            ComboMeter.SetCombo(stats.ScoreMultiplier, maxMultiplier, stats.Combo);
-            StarpowerBar.SetStarpower(stats.StarPowerAmount, stats.IsStarPowerActive);
-            SunburstEffects.SetSunburstEffects(groove, stats.IsStarPowerActive);
-
-            TrackView.UpdateNoteStreak(stats.Combo);
         }
 
         protected override void UpdateNotes(double songTime)
@@ -344,13 +350,6 @@ namespace YARG.Gameplay.Player
         protected virtual void OnStarPowerPhraseHit(TNote note)
         {
             OnStarPowerPhraseHit();
-        }
-
-        protected override void FinishDestruction()
-        {
-            base.FinishDestruction();
-
-            GameManager.BeatEventHandler.Unsubscribe(StarpowerBar.PulseBarIfAble);
         }
     }
 }
