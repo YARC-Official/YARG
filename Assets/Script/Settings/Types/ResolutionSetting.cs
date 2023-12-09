@@ -3,13 +3,21 @@ using UnityEngine;
 
 namespace YARG.Settings.Types
 {
-    public class ResolutionSetting : AbstractSetting<Resolution?>
+    public class ResolutionSetting : DropdownSetting<Resolution?>
     {
-        public override string AddressableName => "Setting/Resolution";
-
-        public ResolutionSetting(Action<Resolution?> onChange = null) : base(onChange)
+        public ResolutionSetting(Action<Resolution?> onChange = null) : base(null, onChange)
         {
-            _value = null;
+        }
+
+        public override void UpdateValues()
+        {
+            _possibleValues.Clear();
+
+            _possibleValues.Add(null);
+            foreach (var resolution in Screen.resolutions)
+            {
+                _possibleValues.Add(resolution);
+            }
         }
 
         public override bool ValueEquals(Resolution? value)
@@ -33,5 +41,7 @@ namespace YARG.Settings.Types
 
             return obj is null && !Value.HasValue;
         }
+
+        public override string ValueToString(Resolution? value) => value?.ToString() ?? "<i>Highest</i>";
     }
 }

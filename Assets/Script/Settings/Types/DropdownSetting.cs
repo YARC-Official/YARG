@@ -18,7 +18,7 @@ namespace YARG.Settings.Types
     {
         public override string AddressableName => "Setting/Dropdown";
 
-        private readonly List<T> _possibleValues = new();
+        protected readonly List<T> _possibleValues = new();
         public IReadOnlyList<T> PossibleValues => _possibleValues;
 
         int IDropdownSetting.Count => _possibleValues.Count;
@@ -29,6 +29,7 @@ namespace YARG.Settings.Types
             base(onChange)
         {
             _value = value;
+            UpdateValues();
         }
 
         public override bool ValueEquals(T value) => Value.Equals(value);
@@ -36,10 +37,9 @@ namespace YARG.Settings.Types
         void IDropdownSetting.SelectIndex(int index) => Value = _possibleValues[index];
         string IDropdownSetting.IndexToString(int index) => ValueToString(_possibleValues[index]);
 
-        public string ValueToString(T value)
-        {
-            return value.ToString();
-        }
+        public virtual void UpdateValues() { }
+
+        public virtual string ValueToString(T value) => value.ToString();
 
         // For collection initializer support
         public void Add(T setting) => _possibleValues.Add(setting);
