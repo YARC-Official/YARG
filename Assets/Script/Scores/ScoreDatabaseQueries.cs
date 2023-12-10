@@ -1,5 +1,7 @@
 ﻿namespace YARG.Scores
 {
+    // Currently, this is unused
+
     public static class ScoreDatabaseQueries
     {
         private const string PLAYER_GAME_HISTORY = "player_game_history";

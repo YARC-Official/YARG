@@ -716,6 +716,8 @@ namespace YARG.Gameplay
                     Instrument = profile.CurrentInstrument,
                     Difficulty = profile.CurrentDifficulty,
 
+                    EnginePresetId = profile.EnginePreset,
+
                     Score = player.Score,
                     Stars = StarAmountHelper.GetStarsFromInt(player.Stats.Stars),
 
