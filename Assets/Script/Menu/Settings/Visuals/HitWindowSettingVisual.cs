@@ -70,7 +70,8 @@ namespace YARG.Menu.Settings.Visuals
             }
             else
             {
-                // Again, we should use max here, like above
+                // We should use both here though to prevent the minimum from being higher than the max
+                window.MinWindow = _constantField.Duration;
                 window.MaxWindow = _constantField.Duration;
             }
 
