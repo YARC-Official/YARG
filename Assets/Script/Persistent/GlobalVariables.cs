@@ -62,7 +62,7 @@ namespace YARG
             PathHelper.Init();
             ReplayContainer.Init();
             ScoreContainer.Init();
-            CustomContentManager.Init();
+            CustomContentManager.Initialize();
 
             int profileCount = PlayerContainer.LoadProfiles();
             Debug.Log($"Loaded {profileCount} profiles");

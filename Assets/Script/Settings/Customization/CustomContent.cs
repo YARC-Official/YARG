@@ -26,15 +26,16 @@ namespace YARG.Settings.Customization
             }
         };
 
-        public readonly string ContentDirectory;
+        protected abstract string ContentDirectory { get; }
+        public string FullContentDirectory =>
+            Path.Combine(CustomContentManager.CustomizationDirectory, ContentDirectory);
 
         public abstract IReadOnlyList<BasePreset> DefaultBasePresets { get; }
         public abstract IReadOnlyList<BasePreset> CustomBasePresets { get; }
 
-        protected CustomContent(string contentDirectory)
+        public virtual void Initialize()
         {
-            Directory.CreateDirectory(contentDirectory);
-            ContentDirectory = contentDirectory;
+            Directory.CreateDirectory(FullContentDirectory);
         }
 
         public abstract void AddPreset(BasePreset preset);
@@ -101,7 +102,7 @@ namespace YARG.Settings.Customization
 
     public abstract class CustomContent<T> : CustomContent where T : BasePreset
     {
-        protected readonly List<T> Content = new();
+        public abstract string PresetTypeStringName { get; }
 
         public abstract IReadOnlyList<T> DefaultPresets { get; }
         public override IReadOnlyList<BasePreset> DefaultBasePresets => DefaultPresets;
@@ -109,10 +110,12 @@ namespace YARG.Settings.Customization
         public IReadOnlyList<T> CustomPresets => Content;
         public override IReadOnlyList<BasePreset> CustomBasePresets => CustomPresets;
 
-        public abstract string PresetTypeStringName { get; }
+        protected readonly List<T> Content = new();
 
-        protected CustomContent(string contentDirectory) : base(contentDirectory)
+        public override void Initialize()
         {
+            base.Initialize();
+            LoadFiles();
         }
 
         public override void AddPreset(BasePreset preset)
@@ -179,13 +182,13 @@ namespace YARG.Settings.Customization
             }
         }
 
-        public void LoadFiles()
+        private void LoadFiles()
         {
             Content.Clear();
 
             var renameList = new List<(string From, string To)>();
 
-            PathHelper.SafeEnumerateFiles(ContentDirectory, "*.json", true, (path) =>
+            PathHelper.SafeEnumerateFiles(FullContentDirectory, "*.json", true, (path) =>
             {
                 var preset = LoadFile(path);
 
@@ -194,7 +197,7 @@ namespace YARG.Settings.Customization
                 if (Path.GetFileName(path) != correctPath)
                 {
                     // We must do this after since we are in the middle of enumerating it
-                    renameList.Add((path, Path.Join(ContentDirectory, correctPath)));
+                    renameList.Add((path, Path.Join(FullContentDirectory, correctPath)));
                 }
 
                 // See if preset already exists
@@ -241,7 +244,7 @@ namespace YARG.Settings.Customization
             preset.Type = PresetTypeStringName;
             var text = JsonConvert.SerializeObject(preset, JsonSettings);
 
-            var path = Path.Join(ContentDirectory, GetFileNameForPreset(preset));
+            var path = Path.Join(FullContentDirectory, GetFileNameForPreset(preset));
 
             File.WriteAllText(path, text);
             return path;
@@ -249,7 +252,7 @@ namespace YARG.Settings.Customization
 
         private void DeletePresetFile(T preset)
         {
-            PathHelper.SafeEnumerateFiles(ContentDirectory, "*.json", true, (path) =>
+            PathHelper.SafeEnumerateFiles(FullContentDirectory, "*.json", true, (path) =>
             {
                 var file = JsonConvert.DeserializeObject<T>(File.ReadAllText(path), JsonSettings);
 

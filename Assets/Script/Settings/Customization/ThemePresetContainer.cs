@@ -5,12 +5,10 @@ namespace YARG.Settings.Customization
 {
     public class ThemePresetContainer : CustomContent<ThemePreset>
     {
-        public override IReadOnlyList<ThemePreset> DefaultPresets => ThemePreset.Defaults;
+        protected override string ContentDirectory => "themes";
 
         public override string PresetTypeStringName => "ThemePreset";
 
-        public ThemePresetContainer(string contentDirectory) : base(contentDirectory)
-        {
-        }
+        public override IReadOnlyList<ThemePreset> DefaultPresets => ThemePreset.Defaults;
     }
 }

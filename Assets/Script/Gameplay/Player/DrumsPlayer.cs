@@ -59,8 +59,20 @@ namespace YARG.Gameplay.Player
                 _                        => throw new Exception("Unreachable.")
             };
 
-            HitWindow = new HitWindowSettings(0.15, 0.03, 1, false);
-            EngineParams = new DrumsEngineParameters(HitWindow, StarMultiplierThresholds, mode);
+            if (!GameManager.IsReplay)
+            {
+                // Create the engine params from the engine preset
+                EngineParams = Player.EnginePreset.Drums.Create(StarMultiplierThresholds, mode);
+            }
+            else
+            {
+                // Otherwise, get from the replay
+                EngineParams = (DrumsEngineParameters) Player.EngineParameterOverride;
+            }
+
+            // The hit window can just be taken from the params
+            HitWindow = EngineParams.HitWindow;
+
             var engine = new YargDrumsEngine(NoteTrack, SyncTrack, EngineParams);
 
             engine.OnNoteHit += OnNoteHit;

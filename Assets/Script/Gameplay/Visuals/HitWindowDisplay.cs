@@ -10,7 +10,7 @@ namespace YARG.Gameplay.Visuals
         private Transform  _transformCache;
         private BasePlayer _player;
 
-        private double _hitWindowSize;
+        private double _lastTotalWindow;
 
         private double _lastNoteSpeed;
 
@@ -27,10 +27,7 @@ namespace YARG.Gameplay.Visuals
 
         private void Start()
         {
-            if(_player is null)
-            {
-                return;
-            }
+            if (_player is null) return;
 
             SetHitWindowSize();
         }
@@ -40,16 +37,19 @@ namespace YARG.Gameplay.Visuals
             var window = _player.BaseEngine.CalculateHitWindow();
 
             var totalWindow = -window.FrontEnd + window.BackEnd;
-            if (Math.Abs(totalWindow - _hitWindowSize) < double.Epsilon && Math.Abs(_player.NoteSpeed - _lastNoteSpeed) < double.Epsilon)
+
+            // Only update the hit window if it changed
+            if (Math.Abs(totalWindow - _lastTotalWindow) < double.Epsilon
+                && Math.Abs(_player.NoteSpeed - _lastNoteSpeed) < double.Epsilon)
             {
                 return;
             }
 
-            _hitWindowSize = totalWindow;
+            _lastTotalWindow = totalWindow;
             _lastNoteSpeed = _player.NoteSpeed;
 
             // Offsetting is done based on half of the size
-            float baseOffset = (float) (-window.FrontEnd - window.BackEnd) / 2f;
+            float baseOffset = ((float) (-window.FrontEnd - window.BackEnd) / 2f) * _player.NoteSpeed;
 
             _transformCache.localScale = _transformCache.localScale
                 .WithY((float) totalWindow * _player.NoteSpeed);

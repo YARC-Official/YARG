@@ -128,7 +128,7 @@ namespace YARG.Settings
             public ToggleSetting LowQuality   { get; } = new(false, LowQualityCallback);
             public ToggleSetting DisableBloom { get; } = new(false, DisableBloomCallback);
 
-            public ToggleSetting ShowHitWindow            { get; } = new(false);
+            public ToggleSetting ShowHitWindow            { get; } = new(false, ShowHitWindowCallback);
             public ToggleSetting DisableTextNotifications { get; } = new(false);
 
             public DropdownSetting<SongProgressMode> SongTimeOnScoreBox { get; } = new(SongProgressMode.CountUpOnly)
@@ -150,15 +150,6 @@ namespace YARG.Settings
                 LyricDisplayMode.NoBackground,
                 LyricDisplayMode.Disabled
             };
-
-            #endregion
-
-            #region Engine
-
-            public ToggleSetting NoKicks          { get; } = new(false);
-            public ToggleSetting AntiGhosting     { get; } = new(true);
-            public ToggleSetting InfiniteFrontEnd { get; } = new(false);
-            public ToggleSetting DynamicWindow    { get; } = new(false);
 
             #endregion
 
@@ -239,6 +230,9 @@ namespace YARG.Settings
                 }
 
                 Screen.SetResolution(resolution.width, resolution.height, fullscreenMode, resolution.refreshRate);
+
+                // Make sure to refresh the preview since it'll look stretched if we don't
+                SettingsMenu.Instance.RefreshPreview(true);
             }
 
             private static void LowQualityCallback(bool value)
@@ -249,6 +243,11 @@ namespace YARG.Settings
             private static void DisableBloomCallback(bool value)
             {
                 GraphicsManager.Instance.BloomEnabled = !value;
+            }
+
+            private static void ShowHitWindowCallback(bool value)
+            {
+                SettingsMenu.Instance.RefreshPreview();
             }
 
             private static void VolumeCallback(SongStem stem, float volume)

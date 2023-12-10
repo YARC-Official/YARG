@@ -41,7 +41,7 @@ namespace YARG.Menu.Settings
         public void OpenPresetFolder()
         {
             var customContent = _presetTypes[_dropdown.value];
-            FileExplorerHelper.OpenFolder(customContent.ContentDirectory);
+            FileExplorerHelper.OpenFolder(customContent.FullContentDirectory);
         }
     }
 }

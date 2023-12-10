@@ -3,8 +3,10 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Helpers.Extensions;
+using YARG.Menu;
 using YARG.Menu.Navigation;
 using YARG.Menu.Settings;
+using YARG.Settings.Customization;
 using YARG.Settings.Types;
 
 using SystemColor = System.Drawing.Color;
@@ -16,9 +18,12 @@ namespace YARG.Settings.Metadata
     {
         private const string CAMERA_PRESET = nameof(CameraPreset);
         private const string COLOR_PROFILE = nameof(ColorProfile);
+        private const string ENGINE_PRESET = nameof(EnginePreset);
 
-        private void BuildForCamera(Transform container,
-            NavigationGroup navGroup, CameraPreset cameraPreset)
+        private const DurationInputField.Unit ENGINE_UNIT = DurationInputField.Unit.Milliseconds;
+
+        private void BuildForCamera(Transform container, NavigationGroup navGroup,
+            CameraPreset cameraPreset)
         {
             SpawnHeader(container, "PresetSettings");
             CreateFields(container, navGroup, CAMERA_PRESET, new()
@@ -44,8 +49,8 @@ namespace YARG.Settings.Metadata
             cameraPreset.CurveFactor = Get(nameof(cameraPreset.CurveFactor));
         }
 
-        private void BuildForColor(Transform container,
-            NavigationGroup navGroup, ColorProfile colorProfile)
+        private void BuildForColor(Transform container, NavigationGroup navGroup,
+            ColorProfile colorProfile)
         {
             // Set sub-section
             if (string.IsNullOrEmpty(_subSection))
@@ -55,7 +60,7 @@ namespace YARG.Settings.Metadata
 
             // Create instrument dropdown
             var dropdown = CreateField(container, COLOR_PROFILE, "Instrument",
-                new DropdownSetting<string>(_subSection, RefreshForColor)
+                new DropdownSetting<string>(_subSection, RefreshForSubSection)
                 {
                     nameof(Instrument.FiveFretGuitar),
                     nameof(Instrument.FourLaneDrums),
@@ -81,12 +86,6 @@ namespace YARG.Settings.Metadata
                 var visual = CreateField(container, COLOR_PROFILE, field.Name, new ColorSetting(color, true));
                 navGroup.AddNavigatable(visual.gameObject);
             }
-        }
-
-        private void RefreshForColor(string subSection)
-        {
-            _subSection = subSection;
-            SettingsMenu.Instance.Refresh();
         }
 
         private void UpdateForColor(ColorProfile colorProfile)
@@ -116,6 +115,170 @@ namespace YARG.Settings.Metadata
                 nameof(Instrument.FiveLaneDrums)  => c.FiveLaneDrums,
                 _                => throw new Exception("Unreachable.")
             };
+        }
+
+        private void BuildForEngine(Transform container, NavigationGroup navGroup,
+            EnginePreset enginePreset)
+        {
+            // Set sub-section
+            if (string.IsNullOrEmpty(_subSection))
+            {
+                _subSection = nameof(EnginePreset.FiveFretGuitarPreset);
+            }
+
+            // Create game mode dropdown
+            var dropdown = CreateField(container, ENGINE_PRESET, "GameMode",
+                new DropdownSetting<string>(_subSection, RefreshForSubSection)
+                {
+                    nameof(EnginePreset.FiveFretGuitarPreset),
+                    nameof(EnginePreset.DrumsPreset)
+                }
+            );
+            navGroup.AddNavigatable(dropdown.gameObject);
+
+            // Header
+            SpawnHeader(container, "PresetSettings");
+
+            // Spawn in the correct settings
+            switch (_subSection)
+            {
+                case nameof(EnginePreset.FiveFretGuitarPreset):
+                {
+                    var preset = enginePreset.FiveFretGuitar;
+
+                    CreateFields(container, navGroup, ENGINE_PRESET, new()
+                    {
+                        (
+                            nameof(preset.AntiGhosting),
+                            new ToggleSetting(preset.AntiGhosting)
+                        ),
+                        (
+                            nameof(preset.InfiniteFrontEnd),
+                            new ToggleSetting(preset.InfiniteFrontEnd)
+                        ),
+                        (
+                            nameof(preset.HopoLeniency),
+                            new DurationSetting(preset.HopoLeniency, ENGINE_UNIT)
+                        ),
+                        (
+                            nameof(preset.StrumLeniency),
+                            new DurationSetting(preset.StrumLeniency, ENGINE_UNIT)
+                        ),
+                        (
+                            nameof(preset.StrumLeniencySmall),
+                            new DurationSetting(preset.StrumLeniencySmall, ENGINE_UNIT)
+                        ),
+                        (
+                            nameof(preset.HitWindow.IsDynamic),
+                            // The settings menu has to be refreshed so the hit window setting below updates
+                            new ToggleSetting(preset.HitWindow.IsDynamic, (value) =>
+                            {
+                                // If this gets called, it refreshes before it can update.
+                                // We must update the dynamic hit window bool here.
+                                preset.HitWindow.IsDynamic = value;
+
+                                SettingsMenu.Instance.RefreshAndKeepPosition();
+                            })
+                        ),
+                        (
+                            nameof(preset.HitWindow),
+                            new HitWindowSetting(preset.HitWindow)
+                        ),
+                        (
+                            nameof(preset.HitWindow.FrontToBackRatio),
+                            new SliderSetting((float) preset.HitWindow.FrontToBackRatio, 0f, 2f)
+                        )
+                    });
+
+                    break;
+                }
+                case nameof(EnginePreset.DrumsPreset):
+                {
+                    var preset = enginePreset.Drums;
+
+                    CreateFields(container, navGroup, ENGINE_PRESET, new()
+                    {
+                        (
+                            nameof(preset.HitWindow.IsDynamic),
+                            // The settings menu has to be refreshed so the hit window setting below updates
+                            new ToggleSetting(preset.HitWindow.IsDynamic, (value) =>
+                            {
+                                // If this gets called, it refreshes before it can update.
+                                // We must update the dynamic hit window bool here.
+                                preset.HitWindow.IsDynamic = value;
+
+                                SettingsMenu.Instance.RefreshAndKeepPosition();
+                            })
+                        ),
+                        (
+                            nameof(preset.HitWindow),
+                            new HitWindowSetting(preset.HitWindow)
+                        ),
+                        (
+                            nameof(preset.HitWindow.FrontToBackRatio),
+                            new SliderSetting((float) preset.HitWindow.FrontToBackRatio, 0f, 2f)
+                        )
+                    });
+
+                    break;
+                }
+                default:
+                    throw new Exception("Unreachable.");
+            }
+        }
+
+        private void UpdateForEngine(EnginePreset enginePreset)
+        {
+            double GetDouble(string name) => ((AbstractSetting<double>) _settingFields[name]).Value;
+            bool   GetBool(string name)   => ((AbstractSetting<bool>)   _settingFields[name]).Value;
+
+            switch (_subSection)
+            {
+                case nameof(EnginePreset.FiveFretGuitarPreset):
+                {
+                    var preset = enginePreset.FiveFretGuitar;
+
+                    preset.AntiGhosting       = GetBool(nameof(preset.AntiGhosting));
+                    preset.InfiniteFrontEnd   = GetBool(nameof(preset.InfiniteFrontEnd));
+                    preset.HopoLeniency       = GetDouble(nameof(preset.HopoLeniency));
+                    preset.StrumLeniency      = GetDouble(nameof(preset.StrumLeniency));
+                    preset.StrumLeniencySmall = GetDouble(nameof(preset.StrumLeniencySmall));
+
+                    // Get the value of the hit window first, so the other stuff can be overridden
+                    preset.HitWindow = ((HitWindowSetting) _settingFields[nameof(preset.HitWindow)]).Value;
+
+                    // Override the other settings after
+                    preset.HitWindow.IsDynamic =
+                        GetBool(nameof(preset.HitWindow.IsDynamic));
+                    preset.HitWindow.FrontToBackRatio =
+                        ((SliderSetting) _settingFields[nameof(preset.HitWindow.FrontToBackRatio)]).Value;
+
+                    break;
+                }
+                case nameof(EnginePreset.DrumsPreset):
+                {
+                    var preset = enginePreset.Drums;
+
+                    // Get the value of the hit window first, so the other stuff can be overridden
+                    preset.HitWindow = ((HitWindowSetting) _settingFields[nameof(preset.HitWindow)]).Value;
+
+                    // Override the other settings after
+                    preset.HitWindow.IsDynamic =
+                        GetBool(nameof(preset.HitWindow.IsDynamic));
+                    preset.HitWindow.FrontToBackRatio =
+                        ((SliderSetting) _settingFields[nameof(preset.HitWindow.FrontToBackRatio)]).Value;
+
+                    break;
+                }
+                default:
+                    throw new Exception("Unreachable.");
+            }
+        }
+
+        private void RefreshForSubSection(string subSection)
+        {
+            _subSection = subSection;
+            SettingsMenu.Instance.Refresh();
         }
     }
 }

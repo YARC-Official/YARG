@@ -3373,11 +3373,11 @@
     "m_Guid": {
         "m_GuidSerialized": "dcd3bd0f-1de7-4dd1-922a-aa271922545b"
     },
-    "m_Name": "Ghosting Color",
+    "m_Name": "Custom Preset Color",
     "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "Ghosting Color",
-    "m_DefaultReferenceName": "_Ghosting_Color",
-    "m_OverrideReferenceName": "_GhostingColor",
+    "m_RefNameGeneratedByDisplayName": "Custom Preset Color",
+    "m_DefaultReferenceName": "_Custom_Preset_Color",
+    "m_OverrideReferenceName": "_CustomPresetColor",
     "m_GeneratePropertyBlock": true,
     "m_UseCustomSlotLabel": false,
     "m_CustomSlotLabel": "",

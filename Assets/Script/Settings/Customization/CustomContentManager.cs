@@ -13,29 +13,33 @@ namespace YARG.Settings.Customization
         public static readonly ColorProfileContainer   ColorProfiles;
         public static readonly CameraSettingsContainer CameraSettings;
         public static readonly ThemePresetContainer    ThemePresets;
+        public static readonly EnginePresetContainer   EnginePresets;
 
         private static readonly List<CustomContent> _customContentContainers;
         public static IReadOnlyList<CustomContent> CustomContentContainers => _customContentContainers;
 
         static CustomContentManager()
         {
-            CameraSettings = new CameraSettingsContainer(Path.Combine(CustomizationDirectory, "cameras"));
-            ColorProfiles = new ColorProfileContainer(Path.Combine(CustomizationDirectory, "colors"));
-            ThemePresets = new ThemePresetContainer(Path.Combine(CustomizationDirectory, "themes"));
+            CameraSettings = new CameraSettingsContainer();
+            ColorProfiles = new ColorProfileContainer();
+            ThemePresets = new ThemePresetContainer();
+            EnginePresets = new EnginePresetContainer();
 
             _customContentContainers = new()
             {
                 CameraSettings,
                 ColorProfiles,
-                ThemePresets
+                ThemePresets,
+                EnginePresets
             };
         }
 
-        public static void Init()
+        public static void Initialize()
         {
-            ColorProfiles.LoadFiles();
-            CameraSettings.LoadFiles();
-            ThemePresets.LoadFiles();
+            foreach (var content in CustomContentContainers)
+            {
+                content.Initialize();
+            }
         }
 
         public static void SaveAll()

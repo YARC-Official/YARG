@@ -15,14 +15,16 @@ namespace YARG.Scores
         public int Id { get; set; }
 
         [Indexed]
-        public int    GameRecordId { get; set; }
+        public int GameRecordId { get; set; }
 
         [Indexed]
-        public Guid   PlayerId   { get; set; }
+        public Guid PlayerId { get; set; }
 
         [Indexed]
         public Instrument Instrument { get; set; }
         public Difficulty Difficulty { get; set; }
+
+        public Guid EnginePresetId { get; set; }
 
         public int        Score { get; set; }
         public StarAmount Stars { get; set; }

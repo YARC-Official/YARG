@@ -129,13 +129,33 @@ namespace YARG.Menu.Settings
                 "Settings", $"Setting.{CurrentTab.Name}.{settingNav.UnlocalizedName}.Description");
         }
 
-        public void Refresh()
+        public void RefreshPreview(bool waitForResolution = false)
         {
-            UpdateSettings();
-            UpdatePreview(CurrentTab).Forget();
+            // Prevent errors if this gets called when the settings aren't opened
+            if (!_ready || !gameObject.activeSelf) return;
+
+            UpdatePreview(CurrentTab, waitForResolution).Forget();
         }
 
-        private void UpdateSettings()
+        public void Refresh()
+        {
+            UpdateSettings(true);
+            RefreshPreview();
+        }
+
+        public void RefreshAndKeepPosition()
+        {
+            // Everything gets recreated, so we must cache the index before hand
+            int beforeIndex = _settingsNavGroup.SelectedIndex;
+
+            UpdateSettings(false);
+            RefreshPreview();
+
+            // Restore selection
+            _settingsNavGroup.SelectAt(beforeIndex);
+        }
+
+        private void UpdateSettings(bool resetScroll)
         {
             _settingsNavGroup.ClearNavigatables();
 
@@ -145,15 +165,25 @@ namespace YARG.Menu.Settings
             // Build the settings tab
             CurrentTab.BuildSettingTab(_settingsContainer, _settingsNavGroup);
 
-            // Make the settings nav group the main one
-            _settingsNavGroup.SelectFirst();
+            if (resetScroll)
+            {
+                // Make the settings nav group the main one
+                _settingsNavGroup.SelectFirst();
 
-            // Reset scroll rect
-            _scrollRect.verticalNormalizedPosition = 1f;
+                // Reset scroll rect
+                _scrollRect.verticalNormalizedPosition = 1f;
+            }
         }
 
-        private async UniTask UpdatePreview(Tab tabInfo)
+        private async UniTask UpdatePreview(Tab tabInfo, bool waitForResolution)
         {
+            // When Unity changes resolution, it takes two frames to apply it correctly.
+            if (waitForResolution)
+            {
+                await UniTask.WaitForEndOfFrame(this);
+                await UniTask.WaitForEndOfFrame(this);
+            }
+
             DestroyPreview();
 
             // Spawn world preview
