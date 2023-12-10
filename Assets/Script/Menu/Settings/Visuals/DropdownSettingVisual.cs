@@ -16,10 +16,14 @@ namespace YARG.Menu.Settings.Visuals
         {
             // Add the options (in order)
             _dropdown.options.Clear();
-            foreach (var value in Setting.PossibleValues)
+            for (int i = 0; i < Setting.Count; i++)
             {
-                _dropdown.options.Add(new(LocaleHelper.LocalizeString(
-                    "Settings", $"Dropdown.{Tab}.{UnlocalizedName}.{value}")));
+                string valueString = Setting.IndexToString(i);
+                if (Setting.Localizable)
+                    valueString = LocaleHelper.LocalizeString("Settings",
+                        $"Dropdown.{Tab}.{UnlocalizedName}.{valueString}");
+
+                _dropdown.options.Add(new(valueString));
             }
 
             // Select the right option
@@ -56,7 +60,7 @@ namespace YARG.Menu.Settings.Visuals
 
         public void OnDropdownChange()
         {
-            Setting.ValueAsObject = Setting.GetAtIndex(_dropdown.value);
+            Setting.SelectIndex(_dropdown.value);
             RefreshVisual();
         }
     }

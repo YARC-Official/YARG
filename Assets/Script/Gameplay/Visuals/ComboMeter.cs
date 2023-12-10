@@ -1,14 +1,14 @@
 ﻿using TMPro;
 using UnityEngine;
-using YARG.Settings;
+using YARG.Core.Game;
 
 namespace YARG.Gameplay.Visuals
 {
     public class ComboMeter : MonoBehaviour
     {
-        private static readonly int SpriteIndexProperty = Shader.PropertyToID("_SpriteIndex");
-        private static readonly int MultiplierColorProperty = Shader.PropertyToID("_MultiplierColor");
-        private static readonly int GhostingColorProperty = Shader.PropertyToID("_GhostingColor");
+        private static readonly int _spriteIndexProperty = Shader.PropertyToID("_SpriteIndex");
+        private static readonly int _multiplierColorProperty = Shader.PropertyToID("_MultiplierColor");
+        private static readonly int _customPresetColorProperty = Shader.PropertyToID("_CustomPresetColor");
 
         [SerializeField]
         private TextMeshPro _multiplierText;
@@ -24,13 +24,13 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private Material _noFcRingMaterial;
 
-        private void Start()
+        public void Initialize(EnginePreset preset)
         {
-            if (!SettingsManager.Settings.AntiGhosting.Value)
-            {
-                var ghostColor = _comboMesh.material.GetColor(GhostingColorProperty);
-                _comboMesh.material.SetColor(MultiplierColorProperty, ghostColor);
-            }
+            // Skip if the preset is a default one
+            if (EnginePreset.Defaults.Contains(preset)) return;
+
+            var color = _comboMesh.material.GetColor(_customPresetColorProperty);
+            _comboMesh.material.SetColor(_multiplierColorProperty, color);
         }
 
         public void SetCombo(int multiplier, int maxMultiplier, int combo)
@@ -47,7 +47,7 @@ namespace YARG.Gameplay.Visuals
                 index = 10;
             }
 
-            _comboMesh.material.SetFloat(SpriteIndexProperty, index);
+            _comboMesh.material.SetFloat(_spriteIndexProperty, index);
         }
 
         public void SetFullCombo(bool isFc)

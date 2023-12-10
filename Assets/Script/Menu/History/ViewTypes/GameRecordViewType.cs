@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core.Replays;
@@ -25,7 +26,7 @@ namespace YARG.Menu.History
             GameRecord = gameRecord;
 
             var songsByHash = GlobalVariables.Instance.SongContainer.SongsByHash;
-            _songMetadata = songsByHash.GetValueOrDefault(new HashWrapper(gameRecord.SongChecksum))[0];
+            _songMetadata = songsByHash.GetValueOrDefault(new HashWrapper(gameRecord.SongChecksum))?.FirstOrDefault();
         }
 
         public override string GetPrimaryText(bool selected)

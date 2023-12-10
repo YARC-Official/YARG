@@ -17,6 +17,8 @@ using YARG.Settings.Customization;
 
 namespace YARG.Menu.Profiles
 {
+    // This will be cleaned up when we add the new profile overview screen
+
     public class ProfileSidebar : MonoBehaviour
     {
         private const string NUMBER_FORMAT = "0.0###";
@@ -52,6 +54,8 @@ namespace YARG.Menu.Profiles
         [SerializeField]
         private Toggle _leftyFlipToggle;
         [SerializeField]
+        private TMP_Dropdown _engineDropdown;
+        [SerializeField]
         private TMP_Dropdown _themeDropdown;
         [SerializeField]
         private TMP_Dropdown _colorProfileDropdown;
@@ -79,6 +83,7 @@ namespace YARG.Menu.Profiles
 
         private readonly List<GameMode> _gameModesByIndex = new();
 
+        private List<Guid> _enginePresetsByIndex;
         private List<Guid> _colorProfilesByIndex;
         private List<Guid> _cameraPresetsByIndex;
         private List<Guid> _themesByIndex;
@@ -101,6 +106,9 @@ namespace YARG.Menu.Profiles
             // These things can change, so do it every time it's enabled.
 
             // Setup preset dropdowns
+            _enginePresetsByIndex =
+                CustomContentManager.EnginePresets.AddOptionsToDropdown(_engineDropdown)
+                    .Select(i => i.Id).ToList();
             _themesByIndex =
                 CustomContentManager.ThemePresets.AddOptionsToDropdown(_themeDropdown)
                     .Select(i => i.Id).ToList();
@@ -128,6 +136,8 @@ namespace YARG.Menu.Profiles
             _leftyFlipToggle.isOn = profile.LeftyFlip;
 
             // Update preset dropdowns
+            _engineDropdown.SetValueWithoutNotify(
+                _enginePresetsByIndex.IndexOf(profile.EnginePreset));
             _themeDropdown.SetValueWithoutNotify(
                 _themesByIndex.IndexOf(profile.ThemePreset));
             _colorProfileDropdown.SetValueWithoutNotify(
@@ -237,6 +247,11 @@ namespace YARG.Menu.Profiles
         public void ChangeLeftyFlip()
         {
             _profile.LeftyFlip = _leftyFlipToggle.isOn;
+        }
+
+        public void ChangeEngine()
+        {
+            _profile.EnginePreset = _enginePresetsByIndex[_engineDropdown.value];
         }
 
         public void ChangeTheme()

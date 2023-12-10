@@ -1,4 +1,5 @@
 using System;
+using YARG.Core.Engine;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Input;
@@ -22,6 +23,10 @@ namespace YARG.Player
         public bool InputsEnabled { get; private set; } = false;
         public ProfileBindings Bindings { get; private set; }
 
+        public EnginePreset EnginePreset =>
+            CustomContentManager.EnginePresets.GetPresetById(Profile.EnginePreset)
+            ?? EnginePreset.Default;
+
         public ThemePreset ThemePreset =>
             CustomContentManager.ThemePresets.GetPresetById(Profile.ThemePreset)
             ?? ThemePreset.Default;
@@ -44,6 +49,12 @@ namespace YARG.Player
         public CameraPreset CameraPreset =>
             CustomContentManager.CameraSettings.GetPresetById(Profile.CameraPreset)
             ?? CameraPreset.Default;
+
+        /// <summary>
+        /// Overrides the engine parameters in the gameplay player.
+        /// This is only used when loading replays.
+        /// </summary>
+        public BaseEngineParameters EngineParameterOverride { get; set; }
 
         private bool _isOverrideColorProfile;
         private ColorProfile _colorProfile;

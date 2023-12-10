@@ -86,7 +86,7 @@ namespace YARG.Gameplay.Visuals
             foreach (var info in _coloredMaterialNoStarPowerCache)
             {
                 float a = info.EmissionAddition;
-                var realColor = color + new Color(a, a, a);
+                var realColor = colorNoStarPower + new Color(a, a, a);
 
                 info.MaterialCache.color = realColor;
                 info.MaterialCache.SetColor(_emissionColor, realColor * info.EmissionMultiplier);

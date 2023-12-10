@@ -57,11 +57,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 50bc11bb4189f904eae746fae05d6517
-    m_Address: Setting/Resolution
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e6294c1f11109454c8de55ca2da3b0b3
     m_Address: Setting/Slider
     m_ReadOnly: 0
@@ -139,6 +134,16 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 16fbd5db4fef5e94dba79d7c7cbacd1e
     m_Address: Setting/Color
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 669a0ce6995500140adc6dd538718b5d
+    m_Address: Setting/Duration
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 62da6cf9663532040b8d2089bf5715ec
+    m_Address: Setting/HitWindow
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

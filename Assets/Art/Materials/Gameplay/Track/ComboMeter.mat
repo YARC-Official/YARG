@@ -54,6 +54,7 @@ Material:
     - _SpriteIndex: 10
     - _SpriteNum: 0
     m_Colors:
+    - _CustomPresetColor: {r: 1, g: 0.19998045, b: 0.18400002, a: 1}
     - _GhostingColor: {r: 0.83599997, g: 0.390945, b: 0.073048525, a: 0}
     - _MultiplierColor: {r: 0, g: 0.49657398, b: 0.6886792, a: 1}
   m_BuildTextureStacks: []

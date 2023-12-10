@@ -5,12 +5,10 @@ namespace YARG.Settings.Customization
 {
     public class ColorProfileContainer : CustomContent<ColorProfile>
     {
-        public override IReadOnlyList<ColorProfile> DefaultPresets => ColorProfile.Defaults;
+        protected override string ContentDirectory => "colors";
 
         public override string PresetTypeStringName => "ColorProfile";
 
-        public ColorProfileContainer(string contentDirectory) : base(contentDirectory)
-        {
-        }
+        public override IReadOnlyList<ColorProfile> DefaultPresets => ColorProfile.Defaults;
     }
 }

@@ -130,7 +130,7 @@ There are some dependencies that will be needed in order for HID devices (such a
 
    ![](Images/Contributing/unityignore.png)
    
-9. Ensure all dependencies have been built/restored:
+8. Ensure all dependencies have been built/restored:
   - Both of these steps should be performed automatically when Unity starts up, but they can be performend manually if needed.
   - Click on `YARG` on the top menu bar, then click on `Rebuild YARG.Core (Debug)`.
   - Click on `NuGet` on the top menu bar, then click on `Restore Packages`.

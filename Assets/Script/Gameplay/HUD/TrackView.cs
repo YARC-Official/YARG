@@ -34,7 +34,11 @@ namespace YARG.Gameplay.HUD
         public void Initialize(RenderTexture rt, CameraPreset cameraPreset, TrackPlayer trackPlayer)
         {
             TrackImage.texture = rt;
-            TrackImage.material.SetFloat(_curveFactor, cameraPreset.CurveFactor);
+
+            // Clone the material since RawImages don't use instanced materials
+            var newMaterial = new Material(TrackImage.material);
+            newMaterial.SetFloat(_curveFactor, cameraPreset.CurveFactor);
+            TrackImage.material = newMaterial;
 
             _trackPlayer = trackPlayer;
         }

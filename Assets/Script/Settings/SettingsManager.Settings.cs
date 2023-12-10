@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core.Audio;
@@ -110,7 +110,8 @@ namespace YARG.Settings
             public ToggleSetting VSync  { get; } = new(true, VSyncCallback);
             public IntSetting    FpsCap { get; } = new(60, 1, onChange: FpsCapCallback);
 
-            public DropdownSetting<FullScreenMode> FullscreenMode { get; } = new(new()
+            public DropdownSetting<FullScreenMode> FullscreenMode { get; }
+                = new(FullScreenMode.FullScreenWindow, FullscreenModeCallback)
             {
 #if UNITY_STANDALONE_WIN
                 FullScreenMode.ExclusiveFullScreen,
@@ -119,7 +120,7 @@ namespace YARG.Settings
 #endif
                 FullScreenMode.FullScreenWindow,
                 FullScreenMode.Windowed,
-            }, FullScreenMode.FullScreenWindow, FullscreenModeCallback);
+            };
 
             public ResolutionSetting Resolution { get; } = new(ResolutionCallback);
             public ToggleSetting     FpsStats   { get; } = new(false, FpsCounterCallback);
@@ -127,10 +128,10 @@ namespace YARG.Settings
             public ToggleSetting LowQuality   { get; } = new(false, LowQualityCallback);
             public ToggleSetting DisableBloom { get; } = new(false, DisableBloomCallback);
 
-            public ToggleSetting ShowHitWindow            { get; } = new(false);
+            public ToggleSetting ShowHitWindow            { get; } = new(false, ShowHitWindowCallback);
             public ToggleSetting DisableTextNotifications { get; } = new(false);
 
-            public DropdownSetting<SongProgressMode> SongTimeOnScoreBox { get; } = new(new()
+            public DropdownSetting<SongProgressMode> SongTimeOnScoreBox { get; } = new(SongProgressMode.CountUpOnly)
             {
                 SongProgressMode.None,
                 SongProgressMode.CountUpAndTotal,
@@ -138,26 +139,17 @@ namespace YARG.Settings
                 SongProgressMode.CountUpOnly,
                 SongProgressMode.CountDownOnly,
                 SongProgressMode.TotalOnly
-            }, SongProgressMode.CountUpOnly);
+            };
 
             public ToggleSetting GraphicalProgressOnScoreBox { get; } = new(true);
 
-            public DropdownSetting<LyricDisplayMode> LyricDisplay { get; } = new(new()
+            public DropdownSetting<LyricDisplayMode> LyricDisplay { get; } = new(LyricDisplayMode.Normal)
             {
                 LyricDisplayMode.Normal,
                 LyricDisplayMode.Transparent,
                 LyricDisplayMode.NoBackground,
                 LyricDisplayMode.Disabled
-            }, LyricDisplayMode.Normal);
-
-            #endregion
-
-            #region Engine
-
-            public ToggleSetting NoKicks          { get; } = new(false);
-            public ToggleSetting AntiGhosting     { get; } = new(true);
-            public ToggleSetting InfiniteFrontEnd { get; } = new(false);
-            public ToggleSetting DynamicWindow    { get; } = new(false);
+            };
 
             #endregion
 
@@ -238,6 +230,9 @@ namespace YARG.Settings
                 }
 
                 Screen.SetResolution(resolution.width, resolution.height, fullscreenMode, resolution.refreshRate);
+
+                // Make sure to refresh the preview since it'll look stretched if we don't
+                SettingsMenu.Instance.RefreshPreview(true);
             }
 
             private static void LowQualityCallback(bool value)
@@ -248,6 +243,11 @@ namespace YARG.Settings
             private static void DisableBloomCallback(bool value)
             {
                 GraphicsManager.Instance.BloomEnabled = !value;
+            }
+
+            private static void ShowHitWindowCallback(bool value)
+            {
+                SettingsMenu.Instance.RefreshPreview();
             }
 
             private static void VolumeCallback(SongStem stem, float volume)

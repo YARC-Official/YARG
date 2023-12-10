@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using YARG.Settings;
+using YARG.Core.Game;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -17,22 +17,44 @@ namespace YARG.Gameplay.Visuals
         private Transform _rightContainer;
 
         private int _stripeCount;
+        private bool _isCustomPreset;
 
-        public void Initialize()
+        public void Initialize(EnginePreset enginePreset)
         {
-            if (!SettingsManager.Settings.AntiGhosting.Value)
+            _isCustomPreset = false;
+
+            if (enginePreset == EnginePreset.Default)
+            {
+                // Don't spawn any stripes in if it's the default
+            }
+            else if (enginePreset == EnginePreset.Casual)
+            {
+                SpawnStripe(new Color(0.9f, 0.3f, 0.9f));
+            }
+            else if (enginePreset == EnginePreset.Precision)
+            {
+                SpawnStripe(new Color(1.0f, 0.9f, 0.0f));
+            }
+            else
+            {
+                // Otherwise, it must be a custom preset
+                SpawnStripe(new Color(1.0f, 0.25f, 0.25f));
+                _isCustomPreset = true;
+            }
+        }
+
+        public void Initialize(EnginePreset.FiveFretGuitarPreset guitarPreset)
+        {
+            if (!_isCustomPreset) return;
+
+            if (!guitarPreset.AntiGhosting)
             {
                 SpawnStripe(new Color(1f, 0.5f, 0f));
             }
 
-            if (SettingsManager.Settings.InfiniteFrontEnd.Value)
+            if (guitarPreset.InfiniteFrontEnd)
             {
                 SpawnStripe(new Color(0.3f, 0.75f, 0.3f));
-            }
-
-            if (SettingsManager.Settings.DynamicWindow.Value)
-            {
-                SpawnStripe(new Color(0.25f, 0.65f, 0.9f));
             }
         }
 

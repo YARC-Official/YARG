@@ -39,6 +39,10 @@ namespace YARG.Settings.Metadata
             new PresetSubTab<ColorProfile>(
                 CustomContentManager.ColorProfiles,
                 new TrackPreviewBuilder()),
+
+            new PresetSubTab<EnginePreset>(
+                CustomContentManager.EnginePresets,
+                new TrackPreviewBuilder(true)),
         };
 
         private static readonly Dictionary<Type, BasePreset> _lastSelectedPresetOfType = new();
@@ -108,7 +112,7 @@ namespace YARG.Settings.Metadata
             // Find which custom content container uses the directory of the preset
             foreach (var content in CustomContentManager.CustomContentContainers)
             {
-                if (content.ContentDirectory != Directory.GetParent(path)?.FullName) continue;
+                if (content.FullContentDirectory != Directory.GetParent(path)?.FullName) continue;
 
                 // Reload it
                 content.ReloadPresetAtPath(path);

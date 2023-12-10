@@ -13,7 +13,7 @@ namespace YARG.Menu.Settings.Visuals
 
         protected override void RefreshVisual()
         {
-            _toggle.isOn = Setting.Value;
+            _toggle.SetIsOnWithoutNotify(Setting.Value);
         }
 
         public override NavigationScheme GetNavigationScheme()

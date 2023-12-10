@@ -122,14 +122,6 @@ MonoBehaviour:
     m_Localized: Windowed
     m_Metadata:
       m_Items: []
-  - m_Id: 53693768667619341
-    m_Localized: Anti-Ghosting
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53693768667619343
-    m_Localized: Infinite Front End
-    m_Metadata:
-      m_Items: []
   - m_Id: 53693768667619344
     m_Localized: No Kicks
     m_Metadata:
@@ -291,16 +283,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 53694051174965248
     m_Localized: Scan Songs
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53693768667619342
-    m_Localized: Upon ghosting (or fretting a note that is not present) the player
-      will drop their combo (guitar only).
-    m_Metadata:
-      m_Items: []
-  - m_Id: 53704501379850240
-    m_Localized: If on, HOPOs and taps can be fretted before they enter to hit window
-      (guitar only).
     m_Metadata:
       m_Items: []
   - m_Id: 53704501379850241
@@ -622,16 +604,6 @@ MonoBehaviour:
     m_Localized: Four Lane Drums
     m_Metadata:
       m_Items: []
-  - m_Id: 90695957784944642
-    m_Localized: Dynamic Hit Window
-    m_Metadata:
-      m_Items: []
-  - m_Id: 90695957784944643
-    m_Localized: The timing window adjusts in size depending on how close together
-      the notes are. The faster the notes are, the smaller the window becomes (guitar
-      only).
-    m_Metadata:
-      m_Items: []
   - m_Id: 90695957784944644
     m_Localized: Activation Note
     m_Metadata:
@@ -880,6 +852,91 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 92132627034005504
     m_Localized: No Background
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92846839934869504
+    m_Localized: Drums (4 and 5 lane)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92846839955841024
+    m_Localized: Five Fret Guitar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92846839955841025
+    m_Localized: Engine Presets
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92846839960035328
+    m_Localized: Game Mode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92874700712435712
+    m_Localized: Anti-Ghosting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92874700725018624
+    m_Localized: Upon ghosting (or fretting a note that is not present) the player
+      will drop their combo (guitar only).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92874700725018627
+    m_Localized: Infinite Front End
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92874700725018628
+    m_Localized: If on, HOPOs and taps can be fretted before they enter to hit window
+      (guitar only).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92875663112265728
+    m_Localized: HOPO Leniency
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92875663112265729
+    m_Localized: Strum Leniency
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92875663112265730
+    m_Localized: Strum Leniency (No Notes)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 93261075366404096
+    m_Localized: Hit Window Ratio
+    m_Metadata:
+      m_Items: []
+  - m_Id: 93261075383181312
+    m_Localized: Hit Window
+    m_Metadata:
+      m_Items: []
+  - m_Id: 93261075383181313
+    m_Localized: The amount of time a hopo is allowed to take a strum input. Strum
+      after this time and it will overstrum.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 93261075383181314
+    m_Localized: Dynamic Hit Window
+    m_Metadata:
+      m_Items: []
+  - m_Id: 93261075387375616
+    m_Localized: The timing window adjusts in size depending on how close together
+      the notes are. The faster the notes are, the smaller the window becomes (guitar
+      only).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 93261075387375617
+    m_Localized: The amount of time a strum can be inputted before fretting the correct
+      note. Fretting after this time will overstrum.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 93261075387375618
+    m_Localized: The amount of time a note can be strummed before it enters the hit
+      window and it still receive the strum. Strumming earlier than this will cause
+      an overstrum.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 93261605039890432
+    m_Localized: The hit window's front to back ratio. 0 will bring the hit window
+      fully backwards, 1 will keep it in the center, and 2 will move it to the front.
     m_Metadata:
       m_Items: []
   references:

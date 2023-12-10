@@ -15,7 +15,10 @@ namespace YARG.Settings.Preview
         private void Start()
         {
             var rawImage = GetComponent<RawImage>();
-            _material = rawImage.material;
+
+            // Make sure to clone since RawImages don't use instanced materials
+            _material = new Material(rawImage.material);
+            rawImage.material = _material;
         }
 
         private void Update()

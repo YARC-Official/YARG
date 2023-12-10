@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Settings;
+using YARG.Settings.Preview;
 
 namespace YARG.Settings.Metadata
 {
@@ -18,9 +19,20 @@ namespace YARG.Settings.Metadata
             .LoadAssetAsync<GameObject>("SettingPreviews/TrackPreviewUI")
             .WaitForCompletion();
 
+        private readonly bool _forceShowHitWindow;
+
+        public TrackPreviewBuilder(bool forceShowHitWindow = false)
+        {
+            _forceShowHitWindow = forceShowHitWindow;
+        }
+
         public UniTask BuildPreviewWorld(Transform worldContainer)
         {
-            Object.Instantiate(_trackPreview, worldContainer);
+            var trackObj = Object.Instantiate(_trackPreview, worldContainer);
+            var trackPreview = trackObj.GetComponentInChildren<FakeTrackPlayer>();
+
+            trackPreview.ForceShowHitWindow = _forceShowHitWindow;
+
             return UniTask.CompletedTask;
         }
 
