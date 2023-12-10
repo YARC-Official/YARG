@@ -24,14 +24,15 @@ namespace YARG.Settings.Preview
                 lerp = Mathf.Sin(Time.time * 2f) / 2f + 0.5f;
             }
 
-            var totalWindow = Mathf.Lerp((float) HitWindow.MinWindow, (float) HitWindow.MaxWindow, lerp);
+            var totalWindow = Mathf.Lerp((float) HitWindow.MinWindow, (float) HitWindow.MaxWindow, lerp)
+                * NoteSpeed;
 
             // Offsetting is done based on half of the size
             float baseOffset = (float) (-HitWindow.GetFrontEnd(totalWindow)
                 - HitWindow.GetBackEnd(totalWindow)) / 2f;
 
             _transformCache.localScale = _transformCache.localScale
-                .WithY(totalWindow * NoteSpeed);
+                .WithY(totalWindow);
             _transformCache.localPosition = _transformCache.localPosition
                 .WithZ(baseOffset);
         }
