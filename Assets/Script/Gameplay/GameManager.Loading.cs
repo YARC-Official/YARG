@@ -5,6 +5,7 @@ using System.IO;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core;
+using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Replays;
 using YARG.Gameplay.Player;
@@ -332,6 +333,20 @@ namespace YARG.Gameplay
                     var playerHud = _trackViewManager.CreateVocalsPlayerHUD();
                     vocalsPlayer.Initialize(index, player, Chart, playerHud);
                     _players.Add(vocalsPlayer);
+                }
+
+                // Add (or increase total of) the stem state
+                var stem = player.Profile.CurrentInstrument.ToSongStem();
+                if (_stemStates.TryGetValue(stem, out var state))
+                {
+                    state.Total++;
+                }
+                else
+                {
+                    _stemStates.Add(stem, new StemState
+                    {
+                        Total = 1
+                    });
                 }
             }
 
