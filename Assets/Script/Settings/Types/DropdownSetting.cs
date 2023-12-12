@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace YARG.Settings.Types
 {
@@ -16,6 +17,7 @@ namespace YARG.Settings.Types
         string IndexToString(int index);
     }
 
+    [JsonObject]
     public class DropdownSetting<T> : AbstractSetting<T>, IDropdownSetting, IEnumerable<T>
     {
         public override string AddressableName => "Setting/Dropdown";
