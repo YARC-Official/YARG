@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Input;
 
-namespace YARG.Menu.Profiles
+namespace YARG.Menu.ProfileInfo
 {
     public class ButtonBindView : BindView<float, ButtonBinding, SingleButtonBinding>
     {

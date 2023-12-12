@@ -14,8 +14,8 @@ namespace YARG.Menu
             MusicLibrary,
             DifficultySelect,
             Credits,
-            Profiles,
-            EditProfile,
+            ProfileList,
+            ProfileInfo,
             History,
         }
 

@@ -10,6 +10,8 @@ namespace YARG.Gameplay.Player
 {
     public sealed class FiveFretPlayer : TrackPlayer<GuitarEngine, GuitarNote>
     {
+        private const double SUSTAIN_END_MUTE_THRESHOLD = 0.1;
+
         public GuitarEngineParameters EngineParams { get; private set; }
 
         [Header("Five Fret Specific")]
@@ -92,6 +94,14 @@ namespace YARG.Gameplay.Player
                     {
                         _fretArray.SetSustained(note.Fret - 1, false);
                     }
+                }
+
+                // Mute the stem if you let go of the sustain too early.
+                // Add a small threshold to prevent the stem from muting
+                // if you let go a little bit too early.
+                if (!parent.IsDisjoint && parent.TimeEnd - timeEnded > SUSTAIN_END_MUTE_THRESHOLD)
+                {
+                    ShouldMuteStem = true;
                 }
             };
 

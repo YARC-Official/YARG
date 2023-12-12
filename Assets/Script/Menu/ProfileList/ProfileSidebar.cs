@@ -11,11 +11,12 @@ using YARG.Core.Game;
 using YARG.Helpers;
 using YARG.Menu.Data;
 using YARG.Menu.Persistent;
+using YARG.Menu.ProfileInfo;
 using YARG.Player;
 using YARG.Scores;
 using YARG.Settings.Customization;
 
-namespace YARG.Menu.Profiles
+namespace YARG.Menu.ProfileList
 {
     // This will be cleaned up when we add the new profile overview screen
 
@@ -70,7 +71,7 @@ namespace YARG.Menu.Profiles
 
         [Space]
         [SerializeField]
-        private ProfilesMenu _profileMenu;
+        private ProfileListMenu _profileListMenu;
 
         [Space]
         [SerializeField]
@@ -183,7 +184,7 @@ namespace YARG.Menu.Profiles
 
                 // Update the UI
                 _profileName.text = _profile.Name;
-                _profileView.Init(_profileMenu, _profile, this);
+                _profileView.Init(_profileListMenu, _profile, this);
             }
         }
 
@@ -193,7 +194,7 @@ namespace YARG.Menu.Profiles
             if (!PlayerContainer.IsProfileTaken(_profile)) return;
 
             EditProfileMenu.CurrentProfile = _profile;
-            MenuManager.Instance.PushMenu(MenuManager.Menu.EditProfile);
+            MenuManager.Instance.PushMenu(MenuManager.Menu.ProfileInfo);
         }
 
         public void AddDevice()

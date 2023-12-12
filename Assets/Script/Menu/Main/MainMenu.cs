@@ -78,7 +78,7 @@ namespace YARG.Menu.Main
 
         public void Profiles()
         {
-            MenuManager.Instance.PushMenu(MenuManager.Menu.Profiles);
+            MenuManager.Instance.PushMenu(MenuManager.Menu.ProfileList);
         }
 
         public void Replays()

@@ -8,7 +8,7 @@ using YARG.Input;
 using YARG.Menu.Navigation;
 using YARG.Player;
 
-namespace YARG.Menu.Profiles
+namespace YARG.Menu.ProfileInfo
 {
     public class EditProfileMenu : MonoBehaviour
     {
