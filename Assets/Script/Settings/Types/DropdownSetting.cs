@@ -17,6 +17,7 @@ namespace YARG.Settings.Types
         string IndexToString(int index);
     }
 
+    // This attribute makes it not use IEnumerable to serialize
     [JsonObject]
     public class DropdownSetting<T> : AbstractSetting<T>, IDropdownSetting, IEnumerable<T>
     {

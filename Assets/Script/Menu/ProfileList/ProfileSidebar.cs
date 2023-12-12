@@ -193,8 +193,10 @@ namespace YARG.Menu.ProfileList
             // Only allow profile editing if it's taken
             if (!PlayerContainer.IsProfileTaken(_profile)) return;
 
-            EditProfileMenu.CurrentProfile = _profile;
-            MenuManager.Instance.PushMenu(MenuManager.Menu.ProfileInfo);
+            var menu = MenuManager.Instance.PushMenu(MenuManager.Menu.ProfileInfo, false);
+
+            menu.GetComponent<ProfileInfoMenu>().CurrentProfile = _profile;
+            menu.gameObject.SetActive(true);
         }
 
         public void AddDevice()
