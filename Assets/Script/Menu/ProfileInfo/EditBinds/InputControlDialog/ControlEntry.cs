@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace YARG.Menu.Profiles
+namespace YARG.Menu.ProfileInfo
 {
     public class ControlEntry : MonoBehaviour
     {

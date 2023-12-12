@@ -1,18 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
-using UnityEngine.InputSystem.Utilities;
 using YARG.Helpers.Extensions;
 using YARG.Input;
 using YARG.Player;
 
-namespace YARG.Menu.Profiles
+namespace YARG.Menu.ProfileInfo
 {
     // TODO: Clean this up when we get real UI
     public class InputControlDialogMenu : MonoBehaviour

@@ -2,7 +2,7 @@ using TMPro;
 using UnityEngine;
 using YARG.Input;
 
-namespace YARG.Menu.Profiles
+namespace YARG.Menu.ProfileInfo
 {
     public class IntegerBindView : BindView<int, IntegerBinding, SingleIntegerBinding>
     {

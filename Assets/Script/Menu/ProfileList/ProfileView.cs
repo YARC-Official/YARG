@@ -8,7 +8,7 @@ using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Player;
 
-namespace YARG.Menu.Profiles
+namespace YARG.Menu.ProfileList
 {
     public class ProfileView : NavigatableBehaviour
     {
@@ -30,13 +30,13 @@ namespace YARG.Menu.Profiles
         [SerializeField]
         private Sprite _profileBotSprite;
 
-        private ProfilesMenu _profileMenu;
+        private ProfileListMenu _profileListMenu;
         private ProfileSidebar _profileSidebar;
         private YargProfile _profile;
 
-        public void Init(ProfilesMenu menu, YargProfile profile, ProfileSidebar sidebar)
+        public void Init(ProfileListMenu menu, YargProfile profile, ProfileSidebar sidebar)
         {
-            _profileMenu = menu;
+            _profileListMenu = menu;
             _profile = profile;
             _profileSidebar = sidebar;
 
@@ -51,7 +51,7 @@ namespace YARG.Menu.Profiles
 
         private void Reinitialize()
         {
-            Init(_profileMenu, _profile, _profileSidebar);
+            Init(_profileListMenu, _profile, _profileSidebar);
             _profileSidebar.UpdateSidebar(_profile, this);
         }
 

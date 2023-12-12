@@ -6,7 +6,7 @@ using YARG.Input;
 using YARG.Menu.Data;
 using YARG.Player;
 
-namespace YARG.Menu.Profiles
+namespace YARG.Menu.ProfileInfo
 {
     public class BindHeader : MonoBehaviour
     {

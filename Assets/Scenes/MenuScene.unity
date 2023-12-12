@@ -1743,7 +1743,7 @@ PrefabInstance:
     - target: {fileID: 1731608351740115684, guid: 77ea2d83e16963e4c80f1c9f9708620b,
         type: 3}
       propertyPath: m_Name
-      value: EditProfile
+      value: ProfileInfo
       objectReference: {fileID: 0}
     - target: {fileID: 1731608351740115684, guid: 77ea2d83e16963e4c80f1c9f9708620b,
         type: 3}
@@ -2602,7 +2602,7 @@ PrefabInstance:
     - target: {fileID: 1731608351740115684, guid: 6814ad1b861f1fa4a93d6c5db38dee86,
         type: 3}
       propertyPath: m_Name
-      value: ProfilesMenu
+      value: ProfileList
       objectReference: {fileID: 0}
     - target: {fileID: 1731608351740115684, guid: 6814ad1b861f1fa4a93d6c5db38dee86,
         type: 3}

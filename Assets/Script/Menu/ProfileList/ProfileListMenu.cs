@@ -6,9 +6,9 @@ using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
 using YARG.Player;
 
-namespace YARG.Menu.Profiles
+namespace YARG.Menu.ProfileList
 {
-    public class ProfilesMenu : MonoBehaviour
+    public class ProfileListMenu : MonoBehaviour
     {
         [SerializeField]
         private NavigationGroup _navigationGroup;

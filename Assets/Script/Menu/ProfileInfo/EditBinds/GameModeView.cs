@@ -4,7 +4,7 @@ using YARG.Core;
 using YARG.Helpers;
 using YARG.Menu.Navigation;
 
-namespace YARG.Menu.Profiles
+namespace YARG.Menu.ProfileInfo
 {
     public class GameModeView : NavigatableBehaviour
     {
