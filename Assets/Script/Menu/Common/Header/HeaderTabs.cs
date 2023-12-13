@@ -64,7 +64,6 @@ namespace YARG.Menu
             _navigationGroup.SelectionChanged += OnSelectionChanged;
         }
 
-
         private void Start()
         {
             RefreshTabs();
@@ -98,6 +97,8 @@ namespace YARG.Menu
 
         public void SelectFirstTab()
         {
+            if (_navigationGroup == null) return;
+
             _navigationGroup.SelectFirst();
         }
 
