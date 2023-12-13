@@ -175,7 +175,7 @@ namespace YARG.Gameplay.Player
                         break;
                     }
 
-                    BaseEngine.QueueInput(input);
+                    BaseEngine.QueueInput(ref input);
 
                     if (InputViewer != null)
                     {
@@ -219,7 +219,7 @@ namespace YARG.Gameplay.Player
             // Allow the input to be explicitly ignored before processing it
             if (InterceptInput(ref input)) return;
 
-            BaseEngine.QueueInput(input);
+            BaseEngine.QueueInput(ref input);
             _replayInputs.Add(input);
 
             if (InputViewer != null)
