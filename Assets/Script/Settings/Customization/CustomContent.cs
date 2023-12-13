@@ -129,6 +129,7 @@ namespace YARG.Settings.Customization
                 }
 
                 Content.Add(t);
+                SavePresetFile(t);
             }
             else
             {
