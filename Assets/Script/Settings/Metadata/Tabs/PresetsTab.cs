@@ -121,9 +121,12 @@ namespace YARG.Settings.Metadata
                 if (SettingsMenu.Instance.gameObject.activeSelf &&
                     SettingsMenu.Instance.CurrentTab is PresetsTab)
                 {
-                    // Reload the selected preset, otherwise the _lastSelectedPresetOfType
-                    // will be pointing to the old reference (before the change)
-                    SelectedPreset = SelectedPreset;
+                    if (File.Exists(path))
+                    {
+                        // Reload the selected preset, otherwise the _lastSelectedPresetOfType
+                        // will be pointing to the old reference (before the change)
+                        SelectedPreset = SelectedPreset;
+                    }
 
                     SettingsMenu.Instance.Refresh();
                 }

@@ -164,21 +164,29 @@ namespace YARG.Settings.Customization
 
         public override void ReloadPresetAtPath(string path)
         {
-            var preset = LoadFile(path);
-
-            var loadedPreset = GetPresetById(preset.Id);
-
-            if (loadedPreset is null)
+            if (File.Exists(path))
             {
-                // Just add the preset if it doesn't exist
-                Content.Add(preset);
+                var preset = LoadFile(path);
+
+                var loadedPreset = GetPresetById(preset.Id);
+
+                if (loadedPreset is null)
+                {
+                    // Just add the preset if it doesn't exist
+                    Content.Add(preset);
+                }
+                else
+                {
+                    // Otherwise, reload it by removing it and re-adding it
+                    int index = Content.IndexOf(loadedPreset);
+                    Content.RemoveAt(index);
+                    Content.Insert(index, preset);
+                }
             }
             else
             {
-                // Otherwise, reload it by removing it and re-adding it
-                int index = Content.IndexOf(loadedPreset);
-                Content.RemoveAt(index);
-                Content.Insert(index, preset);
+                // If the file was deleted, remove all of the presets with the path
+                Content.RemoveAll(i => i.Path == path);
             }
         }
 
@@ -197,7 +205,11 @@ namespace YARG.Settings.Customization
                 if (Path.GetFileName(path) != correctPath)
                 {
                     // We must do this after since we are in the middle of enumerating it
-                    renameList.Add((path, Path.Join(FullContentDirectory, correctPath)));
+                    var correctFullPath = Path.Join(FullContentDirectory, correctPath);
+                    renameList.Add((path, correctFullPath));
+
+                    // Make sure to update this
+                    preset.Path = correctFullPath;
                 }
 
                 // See if preset already exists
@@ -389,7 +401,10 @@ namespace YARG.Settings.Customization
 
         private static T LoadFile(string path)
         {
-            return JsonConvert.DeserializeObject<T>(File.ReadAllText(path), JsonSettings);
+            var preset = JsonConvert.DeserializeObject<T>(File.ReadAllText(path), JsonSettings);
+            preset.Path = path;
+
+            return preset;
         }
     }
 }
