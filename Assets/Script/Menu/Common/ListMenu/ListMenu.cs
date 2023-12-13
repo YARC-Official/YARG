@@ -36,8 +36,6 @@ namespace YARG.Menu.ListMenu
             get => _selectedIndex;
             set
             {
-                // Properly wrap the value. If the value is less than zero,
-                // wrap the to the end. If more than the end, wrap to zero.
                 if (_viewList.Count == 0)
                 {
                     _selectedIndex = 0;

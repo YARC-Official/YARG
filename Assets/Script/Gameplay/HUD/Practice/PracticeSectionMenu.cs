@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 using YARG.Core.Chart;
 using YARG.Core.Input;
 using YARG.Menu.Navigation;
@@ -22,8 +21,6 @@ namespace YARG.Gameplay.HUD
 
         [SerializeField]
         private Transform _sectionContainer;
-        [SerializeField]
-        private Scrollbar _scrollbar;
 
         [Space]
         [SerializeField]
@@ -37,24 +34,11 @@ namespace YARG.Gameplay.HUD
             get => _hoveredIndex;
             private set
             {
-                // Properly wrap the value
-                if (value < 0)
-                {
-                    _hoveredIndex = _sections.Count - 1;
-                }
-                else if (value >= _sections.Count)
-                {
-                    _hoveredIndex = 0;
-                }
-                else
-                {
-                    _hoveredIndex = value;
-                }
+                _hoveredIndex = Mathf.Clamp(value, 0, _sections.Count - 1);
 
                 UpdateSectionViews();
             }
         }
-
 
         public int? FirstSelectedIndex { get; private set; }
         public int? LastSelectedIndex  { get; private set; }
@@ -181,20 +165,18 @@ namespace YARG.Gameplay.HUD
         {
             if (_scrollTimer > 0f)
             {
-                _scrollTimer -= Time.deltaTime;
+                _scrollTimer -= Time.unscaledDeltaTime;
                 return;
             }
 
-            var delta = Mouse.current.scroll.ReadValue().y * Time.deltaTime;
+            var delta = Mouse.current.scroll.ReadValue().y * Time.unscaledDeltaTime;
 
             if (delta > 0f)
             {
                 HoveredIndex--;
                 _scrollTimer = SCROLL_TIME;
-                return;
             }
-
-            if (delta < 0f)
+            else if (delta < 0f)
             {
                 HoveredIndex++;
                 _scrollTimer = SCROLL_TIME;
