@@ -14,21 +14,23 @@ namespace YARG.Gameplay.HUD
         private const float SLIDER_COOLDOWN = 0.5f;
 
         [SerializeField]
-        private DragSlider _timeSlider;
+        private RectTransform _container;
+        [SerializeField]
+        private RectTransform _showHudButtonArrow;
 
+        [Space]
+        [SerializeField]
+        private DragSlider _timeSlider;
         [SerializeField]
         private TMP_InputField _speedInput;
-
         [SerializeField]
         private TMP_InputField _timeInput;
-
         [SerializeField]
         private TextMeshProUGUI _songLengthText;
 
+        [Space]
         [SerializeField]
         private float _hudAnimationTime;
-
-        private RectTransform _rectTransform;
 
         private Replay _replay;
 
@@ -47,8 +49,9 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            _rectTransform = GetComponent<RectTransform>();
-            _hudHiddenY = transform.position.y;
+            // Get the hidden position based on the container, and then move to that position
+            _hudHiddenY = -_container.sizeDelta.y;
+            _container.position = _container.position.WithY(_hudHiddenY);
 
             _timeSlider.OnSliderDrag.AddListener(OnTimeSliderDragged);
 
@@ -173,17 +176,22 @@ namespace YARG.Gameplay.HUD
             if (_hudVisible)
             {
                 // Hide hud (make sure to use unscaled time)
-                _rectTransform
+                _container
                     .DOMoveY(_hudHiddenY, _hudAnimationTime)
+                    .SetEase(Ease.OutQuint)
                     .SetUpdate(true);
+
+                _showHudButtonArrow.rotation = Quaternion.Euler(0f, 0f, 180f);
             }
             else
             {
                 // Show hud (make sure to use unscaled time)
-                _rectTransform
+                _container
                     .DOMoveY(0f, _hudAnimationTime)
-                    .SetEase(Ease.InOutQuint)
+                    .SetEase(Ease.OutQuint)
                     .SetUpdate(true);
+
+                _showHudButtonArrow.rotation = Quaternion.Euler(0f, 0f, 0f);
             }
 
             _hudVisible = !_hudVisible;

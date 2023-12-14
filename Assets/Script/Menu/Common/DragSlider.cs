@@ -6,7 +6,6 @@ namespace YARG.Menu
 {
     public class DragSlider : Slider
     {
-
         public UnityEvent<float> OnSliderDrag;
 
         public override void OnDrag(PointerEventData eventData)
