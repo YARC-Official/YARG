@@ -4,14 +4,13 @@ using TMPro;
 using UnityEngine;
 using YARG.Core.Input;
 using YARG.Core.Replays;
-using YARG.Menu;
 using YARG.Menu.Navigation;
 
 namespace YARG.Gameplay.HUD
 {
     public class ReplayController : GameplayBehaviour
     {
-        private const float SLIDER_COOLDOWN = 0.5f;
+        private const string TIME_FORMATTING = @"h\:mm\:ss\:fff";
 
         [SerializeField]
         private RectTransform _container;
@@ -20,9 +19,9 @@ namespace YARG.Gameplay.HUD
 
         [Space]
         [SerializeField]
-        private DragSlider _timeSlider;
+        private GameObject _playButton;
         [SerializeField]
-        private TMP_InputField _speedInput;
+        private GameObject _pauseButton;
         [SerializeField]
         private TMP_InputField _timeInput;
         [SerializeField]
@@ -34,11 +33,7 @@ namespace YARG.Gameplay.HUD
 
         private Replay _replay;
 
-        private float _sliderValue;
-        private float _sliderTimeInactive;
         private float _hudHiddenY;
-
-        private bool _sliderChanged;
         private bool _hudVisible;
 
         protected override void GameplayAwake()
@@ -53,21 +48,19 @@ namespace YARG.Gameplay.HUD
             _hudHiddenY = -_container.sizeDelta.y;
             _container.position = _container.position.WithY(_hudHiddenY);
 
-            _timeSlider.OnSliderDrag.AddListener(OnTimeSliderDragged);
-
             // Listen for menu inputs
             Navigator.Instance.NavigationEvent += OnNavigationEvent;
         }
 
         protected override void GameplayDestroy()
         {
-            _timeSlider.OnSliderDrag.RemoveAllListeners();
         }
 
         protected override void OnSongLoaded()
         {
-            _songLengthText.text = TimeSpan.FromSeconds(GameManager.SongLength + GameManager.SONG_START_DELAY)
-                .ToString("g");
+            _songLengthText.text = " / " + TimeSpan
+                .FromSeconds(GameManager.SongLength + GameManager.SONG_START_DELAY)
+                .ToString(TIME_FORMATTING);
 
             _replay = GameManager.Replay;
         }
@@ -76,99 +69,10 @@ namespace YARG.Gameplay.HUD
         {
             if (!GameManager.Paused && _hudVisible)
             {
-                UpdateReplayUI(true, false);
+                _timeInput.text = TimeSpan
+                    .FromSeconds(GameManager.VisualTime + GameManager.SONG_START_DELAY)
+                    .ToString(TIME_FORMATTING);
             }
-
-            if (_sliderChanged)
-            {
-                // Make sure to use unscaled delta time in case the game is paused
-                _sliderTimeInactive += Time.unscaledDeltaTime;
-
-                if (_sliderTimeInactive >= SLIDER_COOLDOWN)
-                {
-                    _sliderChanged = false;
-                    _sliderTimeInactive = 0f;
-                    SetReplayTime(_timeSlider.value * GameManager.SongLength);
-                }
-            }
-        }
-
-        private void UpdateReplayUI(bool updateSlider, bool isDragging, double time = 0)
-        {
-            if (isDragging)
-            {
-                _timeInput.text = TimeSpan.FromSeconds(time).ToString("g");
-            }
-            else
-            {
-                _timeInput.text = TimeSpan.FromSeconds(GameManager.VisualTime + GameManager.SONG_START_DELAY)
-                    .ToString("g");
-            }
-
-            if (updateSlider)
-            {
-                double value;
-                if (_sliderChanged)
-                {
-                    value = _sliderValue * GameManager.SongLength;
-                }
-                else
-                {
-                    value = GameManager.VisualTime / GameManager.SongLength;
-                }
-
-                _timeSlider.SetValueWithoutNotify((float) value);
-            }
-        }
-
-        private void SetReplayTime(double time)
-        {
-            Debug.Log("Set replay time to " + time);
-
-            foreach (var player in GameManager.Players)
-            {
-                player.SetReplayTime(time);
-            }
-
-            GameManager.SetSongTime(time, 0);
-            GameManager.OverridePauseTime();
-        }
-
-        public void OnTimeSliderDragged(float value)
-        {
-            UpdateReplayUI(false, true, (value * GameManager.SongLength));
-        }
-
-        public void OnTimeSliderChanged(float value)
-        {
-            if (!GameManager.Paused)
-            {
-                GameManager.Pause(false);
-            }
-
-            _sliderTimeInactive = 0f;
-            _sliderChanged = true;
-
-            UpdateReplayUI(false, false);
-        }
-
-        public void TogglePause()
-        {
-            if (!GameManager.Paused)
-            {
-                GameManager.Pause(false);
-            }
-            else
-            {
-                GameManager.Resume();
-            }
-        }
-
-        public void AdjustSpeed(float adjustment)
-        {
-            GameManager.SetSongSpeed(GameManager.SelectedSongSpeed + adjustment);
-
-            _speedInput.text = $"{GameManager.SelectedSongSpeed * 100f:0}%";
         }
 
         public void ToggleHUD()
@@ -195,6 +99,37 @@ namespace YARG.Gameplay.HUD
             }
 
             _hudVisible = !_hudVisible;
+        }
+
+        public void TogglePause()
+        {
+            if (!GameManager.Paused)
+            {
+                GameManager.Pause(false);
+
+                _playButton.gameObject.SetActive(true);
+                _pauseButton.gameObject.SetActive(false);
+            }
+            else
+            {
+                GameManager.Resume();
+
+                _playButton.gameObject.SetActive(false);
+                _pauseButton.gameObject.SetActive(true);
+            }
+        }
+
+        private void SetReplayTime(double time)
+        {
+            Debug.Log("Set replay time to " + time);
+
+            foreach (var player in GameManager.Players)
+            {
+                player.SetReplayTime(time);
+            }
+
+            GameManager.SetSongTime(time, 0);
+            GameManager.OverridePauseTime();
         }
 
         private void OnNavigationEvent(NavigationContext context)
