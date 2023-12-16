@@ -177,8 +177,18 @@ namespace YARG.Gameplay.HUD
                 speed = 100;
             }
 
+            SetSpeed(speed / 100f);
+        }
+
+        public void AdjustSpeed(float increment)
+        {
+            SetSpeed(GameManager.SelectedSongSpeed + increment);
+        }
+
+        private void SetSpeed(float speed)
+        {
             // Make sure to reset the replay time to prevent inconsistencies
-            GameManager.SetSongSpeed(speed / 100f);
+            GameManager.SetSongSpeed(speed);
             SetReplayTime(GameManager.VisualTime);
 
             _speedInput.text = $"{GameManager.SelectedSongSpeed * 100f:0}%";
