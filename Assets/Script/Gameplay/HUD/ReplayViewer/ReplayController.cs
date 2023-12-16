@@ -3,6 +3,7 @@ using System.Globalization;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using YARG.Core.Input;
 using YARG.Core.Replays;
 using YARG.Menu.Navigation;
@@ -29,6 +30,8 @@ namespace YARG.Gameplay.HUD
         private TMP_InputField _speedInput;
         [SerializeField]
         private TextMeshProUGUI _songLengthText;
+        [SerializeField]
+        private Slider _timelineSlider;
 
         [Space]
         [SerializeField]
@@ -74,15 +77,17 @@ namespace YARG.Gameplay.HUD
 
             if (!GameManager.Paused)
             {
-                UpdateTimeInputText();
+                UpdateTimeControls();
             }
         }
 
-        private void UpdateTimeInputText()
+        private void UpdateTimeControls()
         {
             _timeInput.text = TimeSpan
                 .FromSeconds(GameManager.VisualTime + GameManager.SONG_START_DELAY)
                 .ToString(TIME_FORMATTING);
+
+            _timelineSlider.value = Mathf.Clamp01((float) (GameManager.SongTime / GameManager.SongLength));
         }
 
         public void ToggleHUD()
@@ -129,7 +134,7 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        public void OnTimeInputClicked()
+        public void ForcePause()
         {
             // Force pause
             if (!GameManager.Paused)
@@ -149,7 +154,17 @@ namespace YARG.Gameplay.HUD
                 SetReplayTime(newTime - GameManager.SONG_START_DELAY);
             }
 
-            UpdateTimeInputText();
+            UpdateTimeControls();
+        }
+
+        public void OnTimelineSliderPointerUp()
+        {
+            SetReplayTime(GameManager.SongLength * _timelineSlider.value);
+
+            // Once user lets go, play again.
+            // The replay is guaranteed to be paused at this point, as the
+            // pointer down even should call ForcePause.
+            TogglePause();
         }
 
         public void OnSpeedInputEndEdit()
