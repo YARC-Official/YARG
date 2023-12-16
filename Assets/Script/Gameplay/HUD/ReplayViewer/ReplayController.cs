@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -10,7 +11,7 @@ namespace YARG.Gameplay.HUD
 {
     public class ReplayController : GameplayBehaviour
     {
-        private const string TIME_FORMATTING = @"h\:mm\:ss\:fff";
+        private const string TIME_FORMATTING = @"h\:mm\:ss\.fff";
 
         [SerializeField]
         private RectTransform _container;
@@ -67,12 +68,19 @@ namespace YARG.Gameplay.HUD
 
         private void Update()
         {
-            if (!GameManager.Paused && _hudVisible)
+            if (!_hudVisible) return;
+
+            if (!GameManager.Paused)
             {
-                _timeInput.text = TimeSpan
-                    .FromSeconds(GameManager.VisualTime + GameManager.SONG_START_DELAY)
-                    .ToString(TIME_FORMATTING);
+                UpdateTimeInputText();
             }
+        }
+
+        private void UpdateTimeInputText()
+        {
+            _timeInput.text = TimeSpan
+                .FromSeconds(GameManager.VisualTime + GameManager.SONG_START_DELAY)
+                .ToString(TIME_FORMATTING);
         }
 
         public void ToggleHUD()
@@ -117,6 +125,29 @@ namespace YARG.Gameplay.HUD
                 _playButton.gameObject.SetActive(false);
                 _pauseButton.gameObject.SetActive(true);
             }
+        }
+
+        public void OnTimeInputClicked()
+        {
+            // Force pause
+            if (!GameManager.Paused)
+            {
+                TogglePause();
+            }
+        }
+
+        public void OnTimeInputEndEdit()
+        {
+            if (TimeSpan.TryParse(_timeInput.text, out var timeSpan))
+            {
+                // Prevent the audio from going out of bounds
+                var newTime = Math.Clamp(timeSpan.TotalSeconds, 0, GameManager.SongLength);
+
+                // Make sure to correct for the start delay
+                SetReplayTime(newTime - GameManager.SONG_START_DELAY);
+            }
+
+            UpdateTimeInputText();
         }
 
         private void SetReplayTime(double time)
