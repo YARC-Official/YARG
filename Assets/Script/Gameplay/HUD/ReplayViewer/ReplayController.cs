@@ -26,6 +26,8 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private TMP_InputField _timeInput;
         [SerializeField]
+        private TMP_InputField _speedInput;
+        [SerializeField]
         private TextMeshProUGUI _songLengthText;
 
         [Space]
@@ -148,6 +150,20 @@ namespace YARG.Gameplay.HUD
             }
 
             UpdateTimeInputText();
+        }
+
+        public void OnSpeedInputEndEdit()
+        {
+            if (!int.TryParse(_speedInput.text.TrimEnd('%'), NumberStyles.Number, null, out int speed))
+            {
+                speed = 100;
+            }
+
+            // Make sure to reset the replay time to prevent inconsistencies
+            GameManager.SetSongSpeed(speed / 100f);
+            SetReplayTime(GameManager.VisualTime);
+
+            _speedInput.text = $"{GameManager.SelectedSongSpeed * 100f:0}%";
         }
 
         private void SetReplayTime(double time)
