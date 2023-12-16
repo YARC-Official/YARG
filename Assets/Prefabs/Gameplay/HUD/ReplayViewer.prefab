@@ -1308,7 +1308,7 @@ MonoBehaviour:
         m_Calls:
         - m_Target: {fileID: 5703792185782102541}
           m_TargetAssemblyTypeName: YARG.Gameplay.HUD.ReplayController, Assembly-CSharp
-          m_MethodName: ForcePause
+          m_MethodName: OnTimelineSliderPointerDown
           m_Mode: 1
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
@@ -1316,7 +1316,7 @@ MonoBehaviour:
             m_IntArgument: 0
             m_FloatArgument: 0
             m_StringArgument: 
-            m_BoolArgument: 0
+            m_BoolArgument: 1
           m_CallState: 2
 --- !u!114 &9122203824592036572 stripped
 MonoBehaviour:
@@ -1584,15 +1584,15 @@ MonoBehaviour:
         m_Calls:
         - m_Target: {fileID: 5703792185782102541}
           m_TargetAssemblyTypeName: YARG.Gameplay.HUD.ReplayController, Assembly-CSharp
-          m_MethodName: ForcePause
-          m_Mode: 1
+          m_MethodName: SetPaused
+          m_Mode: 6
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
             m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
             m_IntArgument: 0
             m_FloatArgument: 0
             m_StringArgument: 
-            m_BoolArgument: 0
+            m_BoolArgument: 1
           m_CallState: 2
 --- !u!114 &5485872602135839116 stripped
 MonoBehaviour:

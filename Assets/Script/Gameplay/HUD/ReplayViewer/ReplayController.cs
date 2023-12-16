@@ -42,6 +42,8 @@ namespace YARG.Gameplay.HUD
         private float _hudHiddenY;
         private bool _hudVisible;
 
+        private bool _sliderPauseState;
+
         protected override void GameplayAwake()
         {
             if (!GameManager.IsReplay)
@@ -116,9 +118,12 @@ namespace YARG.Gameplay.HUD
             _hudVisible = !_hudVisible;
         }
 
-        public void TogglePause()
+        public void SetPaused(bool paused)
         {
-            if (!GameManager.Paused)
+            // Skip if that's already the pause state
+            if (paused == GameManager.Paused) return;
+
+            if (paused)
             {
                 GameManager.Pause(false);
 
@@ -134,13 +139,9 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        public void ForcePause()
+        public void TogglePause()
         {
-            // Force pause
-            if (!GameManager.Paused)
-            {
-                TogglePause();
-            }
+            SetPaused(!GameManager.Paused);
         }
 
         public void OnTimeInputEndEdit()
@@ -157,14 +158,16 @@ namespace YARG.Gameplay.HUD
             UpdateTimeControls();
         }
 
+        public void OnTimelineSliderPointerDown()
+        {
+            _sliderPauseState = GameManager.Paused;
+            SetPaused(true);
+        }
+
         public void OnTimelineSliderPointerUp()
         {
             SetReplayTime(GameManager.SongLength * _timelineSlider.value);
-
-            // Once user lets go, play again.
-            // The replay is guaranteed to be paused at this point, as the
-            // pointer down even should call ForcePause.
-            TogglePause();
+            SetPaused(_sliderPauseState);
         }
 
         public void OnSpeedInputEndEdit()
