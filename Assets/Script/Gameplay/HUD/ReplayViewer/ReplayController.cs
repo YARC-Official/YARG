@@ -198,13 +198,14 @@ namespace YARG.Gameplay.HUD
         {
             Debug.Log("Set replay time to " + time);
 
+            // Do this before we do it for the players so the notes don't get destroyed early
+            GameManager.SetSongTime(time, 0);
+            GameManager.OverridePauseTime();
+
             foreach (var player in GameManager.Players)
             {
                 player.SetReplayTime(time);
             }
-
-            GameManager.SetSongTime(time, 0);
-            GameManager.OverridePauseTime();
         }
 
         private void OnNavigationEvent(NavigationContext context)
