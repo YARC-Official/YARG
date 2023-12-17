@@ -50,7 +50,7 @@ namespace YARG.Menu.Navigation
             // Make sure these happen after, because they call events that rely on the above.
             if (selected)
             {
-                NavigationGroup.SetSelected(this, selectionOrigin);
+                NavigationGroup.SetSelectedFromNavigatable(this, selectionOrigin);
                 NavigationGroup.SetAsCurrent();
             }
         }
