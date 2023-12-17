@@ -129,11 +129,11 @@ namespace YARG.Gameplay.Player
 
         public virtual void SetReplayTime(double time)
         {
-            ResetVisuals();
+            _replayInputIndex = BaseEngine.ProcessUpToTime(time, ReplayInputs);
 
             IsFc = true;
 
-            _replayInputIndex = BaseEngine.ProcessUpToTime(time, ReplayInputs);
+            ResetVisuals();
             UpdateVisualsWithTimes(time);
         }
 

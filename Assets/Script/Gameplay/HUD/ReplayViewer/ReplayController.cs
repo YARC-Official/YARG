@@ -1,17 +1,18 @@
 ﻿using System;
+using System.Globalization;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using YARG.Core.Input;
 using YARG.Core.Replays;
-using YARG.Menu;
 using YARG.Menu.Navigation;
 
 namespace YARG.Gameplay.HUD
 {
     public class ReplayController : GameplayBehaviour
     {
-        private const float SLIDER_COOLDOWN = 0.5f;
+        private const string TIME_FORMATTING = @"h\:mm\:ss\.fff";
 
         [SerializeField]
         private RectTransform _container;
@@ -20,13 +21,17 @@ namespace YARG.Gameplay.HUD
 
         [Space]
         [SerializeField]
-        private DragSlider _timeSlider;
+        private GameObject _playButton;
         [SerializeField]
-        private TMP_InputField _speedInput;
+        private GameObject _pauseButton;
         [SerializeField]
         private TMP_InputField _timeInput;
         [SerializeField]
+        private TMP_InputField _speedInput;
+        [SerializeField]
         private TextMeshProUGUI _songLengthText;
+        [SerializeField]
+        private Slider _timelineSlider;
 
         [Space]
         [SerializeField]
@@ -34,12 +39,10 @@ namespace YARG.Gameplay.HUD
 
         private Replay _replay;
 
-        private float _sliderValue;
-        private float _sliderTimeInactive;
         private float _hudHiddenY;
-
-        private bool _sliderChanged;
         private bool _hudVisible;
+
+        private bool _sliderPauseState;
 
         protected override void GameplayAwake()
         {
@@ -53,122 +56,40 @@ namespace YARG.Gameplay.HUD
             _hudHiddenY = -_container.sizeDelta.y;
             _container.position = _container.position.WithY(_hudHiddenY);
 
-            _timeSlider.OnSliderDrag.AddListener(OnTimeSliderDragged);
-
             // Listen for menu inputs
             Navigator.Instance.NavigationEvent += OnNavigationEvent;
         }
 
         protected override void GameplayDestroy()
         {
-            _timeSlider.OnSliderDrag.RemoveAllListeners();
         }
 
         protected override void OnSongLoaded()
         {
-            _songLengthText.text = TimeSpan.FromSeconds(GameManager.SongLength + GameManager.SONG_START_DELAY)
-                .ToString("g");
+            _songLengthText.text = " / " + TimeSpan
+                .FromSeconds(GameManager.SongLength + GameManager.SONG_START_DELAY)
+                .ToString(TIME_FORMATTING);
 
             _replay = GameManager.Replay;
         }
 
         private void Update()
         {
-            if (!GameManager.Paused && _hudVisible)
-            {
-                UpdateReplayUI(true, false);
-            }
+            if (!_hudVisible) return;
 
-            if (_sliderChanged)
-            {
-                // Make sure to use unscaled delta time in case the game is paused
-                _sliderTimeInactive += Time.unscaledDeltaTime;
-
-                if (_sliderTimeInactive >= SLIDER_COOLDOWN)
-                {
-                    _sliderChanged = false;
-                    _sliderTimeInactive = 0f;
-                    SetReplayTime(_timeSlider.value * GameManager.SongLength);
-                }
-            }
-        }
-
-        private void UpdateReplayUI(bool updateSlider, bool isDragging, double time = 0)
-        {
-            if (isDragging)
-            {
-                _timeInput.text = TimeSpan.FromSeconds(time).ToString("g");
-            }
-            else
-            {
-                _timeInput.text = TimeSpan.FromSeconds(GameManager.VisualTime + GameManager.SONG_START_DELAY)
-                    .ToString("g");
-            }
-
-            if (updateSlider)
-            {
-                double value;
-                if (_sliderChanged)
-                {
-                    value = _sliderValue * GameManager.SongLength;
-                }
-                else
-                {
-                    value = GameManager.VisualTime / GameManager.SongLength;
-                }
-
-                _timeSlider.SetValueWithoutNotify((float) value);
-            }
-        }
-
-        private void SetReplayTime(double time)
-        {
-            Debug.Log("Set replay time to " + time);
-
-            foreach (var player in GameManager.Players)
-            {
-                player.SetReplayTime(time);
-            }
-
-            GameManager.SetSongTime(time, 0);
-            GameManager.OverridePauseTime();
-        }
-
-        public void OnTimeSliderDragged(float value)
-        {
-            UpdateReplayUI(false, true, (value * GameManager.SongLength));
-        }
-
-        public void OnTimeSliderChanged(float value)
-        {
             if (!GameManager.Paused)
             {
-                GameManager.Pause(false);
-            }
-
-            _sliderTimeInactive = 0f;
-            _sliderChanged = true;
-
-            UpdateReplayUI(false, false);
-        }
-
-        public void TogglePause()
-        {
-            if (!GameManager.Paused)
-            {
-                GameManager.Pause(false);
-            }
-            else
-            {
-                GameManager.Resume();
+                UpdateTimeControls();
             }
         }
 
-        public void AdjustSpeed(float adjustment)
+        private void UpdateTimeControls()
         {
-            GameManager.SetSongSpeed(GameManager.SelectedSongSpeed + adjustment);
+            _timeInput.text = TimeSpan
+                .FromSeconds(GameManager.VisualTime + GameManager.SONG_START_DELAY)
+                .ToString(TIME_FORMATTING);
 
-            _speedInput.text = $"{GameManager.SelectedSongSpeed * 100f:0}%";
+            _timelineSlider.value = Mathf.Clamp01((float) (GameManager.SongTime / GameManager.SongLength));
         }
 
         public void ToggleHUD()
@@ -195,6 +116,96 @@ namespace YARG.Gameplay.HUD
             }
 
             _hudVisible = !_hudVisible;
+        }
+
+        public void SetPaused(bool paused)
+        {
+            // Skip if that's already the pause state
+            if (paused == GameManager.Paused) return;
+
+            if (paused)
+            {
+                GameManager.Pause(false);
+
+                _playButton.gameObject.SetActive(true);
+                _pauseButton.gameObject.SetActive(false);
+            }
+            else
+            {
+                GameManager.Resume();
+
+                _playButton.gameObject.SetActive(false);
+                _pauseButton.gameObject.SetActive(true);
+            }
+        }
+
+        public void TogglePause()
+        {
+            SetPaused(!GameManager.Paused);
+        }
+
+        public void OnTimeInputEndEdit()
+        {
+            if (TimeSpan.TryParse(_timeInput.text, out var timeSpan))
+            {
+                // Prevent the audio from going out of bounds
+                var newTime = Math.Clamp(timeSpan.TotalSeconds, 0, GameManager.SongLength);
+
+                // Make sure to correct for the start delay
+                SetReplayTime(newTime - GameManager.SONG_START_DELAY);
+            }
+
+            UpdateTimeControls();
+        }
+
+        public void OnTimelineSliderPointerDown()
+        {
+            _sliderPauseState = GameManager.Paused;
+            SetPaused(true);
+        }
+
+        public void OnTimelineSliderPointerUp()
+        {
+            SetReplayTime(GameManager.SongLength * _timelineSlider.value);
+            SetPaused(_sliderPauseState);
+        }
+
+        public void OnSpeedInputEndEdit()
+        {
+            if (!int.TryParse(_speedInput.text.TrimEnd('%'), NumberStyles.Number, null, out int speed))
+            {
+                speed = 100;
+            }
+
+            SetSpeed(speed / 100f);
+        }
+
+        public void AdjustSpeed(float increment)
+        {
+            SetSpeed(GameManager.SelectedSongSpeed + increment);
+        }
+
+        private void SetSpeed(float speed)
+        {
+            // Make sure to reset the replay time to prevent inconsistencies
+            GameManager.SetSongSpeed(speed);
+            SetReplayTime(GameManager.VisualTime);
+
+            _speedInput.text = $"{GameManager.SelectedSongSpeed * 100f:0}%";
+        }
+
+        private void SetReplayTime(double time)
+        {
+            Debug.Log("Set replay time to " + time);
+
+            // Do this before we do it for the players so the notes don't get destroyed early
+            GameManager.SetSongTime(time, 0);
+            GameManager.OverridePauseTime();
+
+            foreach (var player in GameManager.Players)
+            {
+                player.SetReplayTime(time);
+            }
         }
 
         private void OnNavigationEvent(NavigationContext context)
