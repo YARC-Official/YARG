@@ -15,6 +15,7 @@ namespace YARG.Menu.Settings
         {
             LoadingManager.Instance.QueueSongRefresh(false);
             await LoadingManager.Instance.StartLoad();
+            SettingsMenu.Instance.RefreshAndKeepPosition();
         }
     }
 }
