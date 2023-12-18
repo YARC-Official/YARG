@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace YARG.Menu.Navigation
@@ -81,10 +82,15 @@ namespace YARG.Menu.Navigation
             }
         }
 
-        public void SetSelected(NavigatableBehaviour navigatableBehaviour, SelectionOrigin selectionOrigin)
+        public void SetSelectedFromNavigatable(NavigatableBehaviour navigatableBehaviour, SelectionOrigin selectionOrigin)
         {
             SelectedBehaviour = navigatableBehaviour;
             SelectionChanged?.Invoke(navigatableBehaviour, selectionOrigin);
+        }
+
+        public void SelectLast()
+        {
+            _navigatables[^1].SetSelected(true, SelectionOrigin.Programmatically);
         }
 
         public void SelectAt(int index)
