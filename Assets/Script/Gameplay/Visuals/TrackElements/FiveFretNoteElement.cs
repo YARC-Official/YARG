@@ -4,6 +4,7 @@ using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
+using YARG.Settings;
 using YARG.Themes;
 
 namespace YARG.Gameplay.Visuals
@@ -149,11 +150,12 @@ namespace YARG.Gameplay.Visuals
 
         private void UpdateColor()
         {
+            var starPowerColoredNotesEnabled = SettingsManager.Settings.StarPowerColoredNotes.Value;
             var colors = Player.Player.ColorProfile.FiveFretGuitar;
 
             // Get which note color to use
             var colorNoStarPower = colors.GetNoteColor(NoteRef.Fret);
-            var color = NoteRef.IsStarPower
+            var color = NoteRef.IsStarPower && starPowerColoredNotesEnabled
                 ? colors.GetNoteStarPowerColor(NoteRef.Fret)
                 : colorNoStarPower;
 

@@ -891,6 +891,14 @@ MonoBehaviour:
     m_Key: Tab.Sound
     m_Metadata:
       m_Items: []
+  - m_Id: 97125615973838848
+    m_Key: Setting.Graphics.StarPowerColoredNotes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 97125816407044096
+    m_Key: Setting.Graphics.StarPowerColoredNotes.Description
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

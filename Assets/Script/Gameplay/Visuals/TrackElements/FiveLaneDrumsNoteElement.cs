@@ -52,16 +52,17 @@ namespace YARG.Gameplay.Visuals
 
         protected override void UpdateColor()
         {
+            var starPowerColoredNotesEnabled = SettingsManager.Settings.StarPowerColoredNotes.Value;
             var colors = Player.Player.ColorProfile.FiveLaneDrums;
 
             // Get colors
             var colorNoStarPower = colors.GetNoteColor(NoteRef.Pad);
             var color = colorNoStarPower;
-            if (NoteRef.IsStarPowerActivator && Player.Engine.EngineStats.StarPowerAmount >= 0.5)
+            if (NoteRef.IsStarPowerActivator && Player.Engine.EngineStats.StarPowerAmount >= 0.5 && starPowerColoredNotesEnabled)
             {
                 color = colors.ActivationNote;
             }
-            else if (NoteRef.IsStarPower)
+            else if (NoteRef.IsStarPower && starPowerColoredNotesEnabled)
             {
                 color = colors.GetNoteStarPowerColor(NoteRef.Pad);
             }

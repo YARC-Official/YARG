@@ -939,6 +939,15 @@ MonoBehaviour:
       fully backwards, 1 will keep it in the center, and 2 will move it to the front.
     m_Metadata:
       m_Items: []
+  - m_Id: 97125615973838848
+    m_Localized: StarPower Colored Notes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 97125816407044096
+    m_Localized: Enables and disables StarPower notes and activation notes showing
+      up in a different color.
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

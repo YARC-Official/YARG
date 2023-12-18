@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core.Audio;
 using YARG.Gameplay.HUD;
+using YARG.Gameplay.Visuals;
 using YARG.Helpers;
 using YARG.Integration;
 using YARG.Menu.Persistent;
@@ -150,6 +151,8 @@ namespace YARG.Settings
                 LyricDisplayMode.NoBackground,
                 LyricDisplayMode.Disabled
             };
+
+            public ToggleSetting StarPowerColoredNotes { get; } = new(true);
 
             #endregion
 

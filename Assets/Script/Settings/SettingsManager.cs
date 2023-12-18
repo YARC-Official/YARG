@@ -93,6 +93,7 @@ namespace YARG.Settings
                 nameof(Settings.ShowHitWindow),
                 nameof(Settings.DisableTextNotifications),
                 nameof(Settings.LyricDisplay),
+                nameof(Settings.StarPowerColoredNotes),
                 nameof(Settings.SongTimeOnScoreBox),
                 nameof(Settings.GraphicalProgressOnScoreBox)
             },
