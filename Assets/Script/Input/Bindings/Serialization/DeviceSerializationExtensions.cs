@@ -9,7 +9,7 @@ namespace YARG.Input.Serialization
 {
     public static class DeviceSerializationExtensions
     {
-        private static readonly Regex _xinputUserIndexRegex = new(@"\""userIndex\"":\d,");
+        private static readonly Regex _xinputUserIndexRegex = new(@"\\""userIndex\\"":\s*\d,");
         private static readonly SHA1 _hashAlgorithm = SHA1.Create();
 
         private static readonly Dictionary<InputDevice, string> _hashCache = new();
