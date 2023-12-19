@@ -294,7 +294,7 @@ namespace YARG.Replays
             }
 
             var result = ReplayIO.ReadReplay(e.FullPath, out var replayFile);
-            var replay = replayFile.Replay;
+            var replay = replayFile?.Replay;
 
             switch (result)
             {

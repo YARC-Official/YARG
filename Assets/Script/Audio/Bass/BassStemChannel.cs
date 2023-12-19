@@ -146,12 +146,12 @@ namespace YARG.Audio.BASS
                 {
                     float semitoneShift = speed switch
                     {
-                        > 1 => speed / 9 - 1 / 9,
-                        < 1 => speed / 3 - 1 / 3,
-                        _     => 0
+                        > 1f => speed / 9f - 1f / 9f,
+                        < 1f => speed / 3f - 1f / 3f,
+                        _    => 0f
                     };
 
-                    semitoneShift = Math.Clamp(semitoneShift, -60, 60);
+                    semitoneShift = Math.Clamp(semitoneShift, -60f, 60f);
 
                     if (!Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Pitch, semitoneShift) ||
                         !Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Pitch, semitoneShift))
