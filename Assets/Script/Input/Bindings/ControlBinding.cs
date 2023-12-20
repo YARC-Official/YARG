@@ -166,7 +166,12 @@ namespace YARG.Input
             return new SerializedInputControl()
             {
                 Device = Control.device.Serialize(),
-                ControlPath = Control.path,
+
+                // InputControl.path uses the device name,
+                // which is not guaranteed to be stable across different runs of the game
+                // (e.g. XInputGuitarHeroGuitar1 in one session could be just XInputGuitarHeroGuitar in another)
+                // Swap that out for the device layout instead, indicated by <angle brackets>
+                ControlPath = Control.path.Replace(Control.device.name, $"<{Control.device.layout}>"),
             };
         }
     }
@@ -453,8 +458,23 @@ namespace YARG.Input
             var control = InputControlPath.TryFindControl(device, serialized.ControlPath);
             if (control == null)
             {
-                Debug.LogWarning($"Could not find control {serialized.ControlPath} on device {device}!");
-                return null;
+                // Fallback for older bindings which incorrectly serialized using device.name instead of device.layout
+                var elements = InputControlPath.Parse(serialized.ControlPath).ToArray();
+                if (elements.Length > 0)
+                {
+                    string name = elements[0].name;
+                    if (!string.IsNullOrEmpty(name))
+                    {
+                        string newPath = serialized.ControlPath.Replace(name, $"<{device.layout}>");
+                        control = InputControlPath.TryFindControl(device, newPath);
+                    }
+                }
+
+                if (control == null)
+                {
+                    Debug.LogWarning($"Could not find control {serialized.ControlPath} on device {device}!");
+                    return null;
+                }
             }
 
             if (control is not InputControl<TState> tControl)
