@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.LowLevel;
 using YARG.Core;
 using YARG.Core.Extensions;
 using YARG.Input.Serialization;
@@ -53,27 +52,35 @@ namespace YARG.Input
             Mode = mode;
         }
 
-        public Dictionary<string, List<SerializedInputControl>> Serialize()
+#nullable enable
+        public SerializedBindingCollection? Serialize()
         {
-            return _bindings.ToDictionary((binding) => binding.Key, (binding) => binding.Serialize());
-        }
-
-        public void Deserialize(Dictionary<string, List<SerializedInputControl>> serialized)
-        {
-            if (serialized is null)
+            var serialized = new SerializedBindingCollection();
+            foreach (var binding in _bindings)
             {
-                Debug.LogWarning($"Encountered invalid bindings list!");
-                return;
+                var serializedBind = binding.Serialize();
+                if (serializedBind is null)
+                    continue;
+
+                serialized.Bindings.Add(binding.Key, serializedBind);
             }
 
-            foreach (var (key, bindings) in serialized)
+            if (serialized.Bindings.Count < 1)
+                return null;
+
+            return serialized;
+        }
+
+        public void Deserialize(SerializedBindingCollection? serialized)
+        {
+            if (serialized is null || serialized.Bindings is null)
+                return;
+
+            foreach (var (key, bindings) in serialized.Bindings)
             {
                 var binding = TryGetBindingByKey(key);
                 if (binding is null)
-                {
-                    Debug.LogWarning($"Encountered invalid binding key {key}!");
                     continue;
-                }
 
                 binding.Deserialize(bindings);
             }
@@ -95,7 +102,7 @@ namespace YARG.Input
             }
         }
 
-        public ControlBinding TryGetBindingByKey(string key)
+        public ControlBinding? TryGetBindingByKey(string key)
         {
             foreach (var binding in _bindings)
             {
@@ -106,13 +113,13 @@ namespace YARG.Input
             return null;
         }
 
-        public ControlBinding TryGetBindingByAction<TAction>(TAction action)
+        public ControlBinding? TryGetBindingByAction<TAction>(TAction action)
             where TAction : unmanaged, Enum
         {
             return TryGetBindingByAction(action.Convert());
         }
 
-        public ControlBinding TryGetBindingByAction(int action)
+        public ControlBinding? TryGetBindingByAction(int action)
         {
             foreach (var binding in _bindings)
             {
@@ -122,6 +129,7 @@ namespace YARG.Input
 
             return null;
         }
+#nullable disable
 
         public bool ContainsControl(InputControl control)
         {
