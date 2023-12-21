@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using YARG.Audio;
 using YARG.Core;
+
+#nullable enable
 
 namespace YARG.Input.Serialization
 {
@@ -18,10 +21,13 @@ namespace YARG.Input.Serialization
     public class SerializedProfileBindingsV0
     {
         public List<SerializedInputDeviceV0> Devices = new();
-        public SerializedMicV0 Microphone;
+        public SerializedMicV0? Microphone;
 
         public Dictionary<GameMode, SerializedBindingCollectionV0> Bindings = new();
-        public SerializedBindingCollectionV0 MenuBindings = new();
+        public SerializedBindingCollectionV0? MenuBindings;
+
+        [JsonConstructor]
+        public SerializedProfileBindingsV0() { }
 
         public SerializedProfileBindingsV0(SerializedProfileBindings serialized)
         {
@@ -35,7 +41,8 @@ namespace YARG.Input.Serialization
                 Bindings[gameMode] = BindingSerialization.Serialize(bindings);
             }
 
-            MenuBindings = BindingSerialization.Serialize(serialized.MenuMappings);
+            if (serialized.MenuMappings is not null)
+                MenuBindings = BindingSerialization.Serialize(serialized.MenuMappings);
         }
 
         public SerializedProfileBindings Deserialize()
@@ -52,7 +59,8 @@ namespace YARG.Input.Serialization
                 converted.ModeMappings[gameMode] = bindings.Deserialize();
             }
 
-            converted.MenuMappings = MenuBindings.Deserialize();
+            if (MenuBindings is not null)
+                converted.MenuMappings = MenuBindings.Deserialize();
 
             return converted;
         }
@@ -63,17 +71,20 @@ namespace YARG.Input.Serialization
         public string Layout;
         public string Hash;
 
+        [JsonConstructor]
+        public SerializedInputDeviceV0()
+        {
+            Layout = string.Empty;
+            Hash = string.Empty;
+        }
+
         public SerializedInputDeviceV0(SerializedInputDevice serialized)
         {
             Layout = serialized.Layout;
             Hash = serialized.Hash;
         }
 
-        public SerializedInputDevice Deserialize() => new()
-        {
-            Layout = Layout,
-            Hash = Hash,
-        };
+        public SerializedInputDevice Deserialize() => new(Layout, Hash);
     }
 
     public class SerializedInputControlV0
@@ -82,6 +93,13 @@ namespace YARG.Input.Serialization
         public string ControlPath;
         public Dictionary<string, string> Parameters = new();
 
+        [JsonConstructor]
+        public SerializedInputControlV0()
+        {
+            Device = new();
+            ControlPath = string.Empty;
+        }
+
         public SerializedInputControlV0(SerializedInputControl serialized)
         {
             Device = new SerializedInputDeviceV0(serialized.Device);
@@ -89,10 +107,8 @@ namespace YARG.Input.Serialization
             Parameters = serialized.Parameters;
         }
 
-        public SerializedInputControl Deserialize() => new()
+        public SerializedInputControl Deserialize() => new(Device.Deserialize(), ControlPath)
         {
-            Device = Device.Deserialize(),
-            ControlPath = ControlPath,
             Parameters = Parameters,
         };
     }
@@ -100,6 +116,12 @@ namespace YARG.Input.Serialization
     public class SerializedMicV0
     {
         public string DisplayName;
+
+        [JsonConstructor]
+        public SerializedMicV0()
+        {
+            DisplayName = string.Empty;
+        }
 
         public SerializedMicV0(SerializedMic serialized)
         {
@@ -119,7 +141,7 @@ namespace YARG.Input.Serialization
             return Serialize(serialized);
         }
 
-        private static SerializedBindings DeserializeBindingsV0(JObject obj)
+        private static SerializedBindings? DeserializeBindingsV0(JObject obj)
         {
             var serialized = obj.ToObject<SerializedBindingsV0>();
             if (serialized is null)

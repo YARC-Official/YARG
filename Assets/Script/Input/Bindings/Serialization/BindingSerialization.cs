@@ -11,6 +11,8 @@ using UnityEngine.InputSystem;
 using YARG.Audio;
 using YARG.Core;
 
+#nullable enable
+
 namespace YARG.Input.Serialization
 {
     // These classes are what the bindings will use for serialization/deserialization.
@@ -33,10 +35,10 @@ namespace YARG.Input.Serialization
     public class SerializedProfileBindings
     {
         public List<SerializedInputDevice> Devices = new();
-        public SerializedMic Microphone;
+        public SerializedMic? Microphone;
 
         public Dictionary<GameMode, SerializedBindingCollection> ModeMappings = new();
-        public SerializedBindingCollection MenuMappings = new();
+        public SerializedBindingCollection? MenuMappings;
     }
 
     public class SerializedBindingCollection
@@ -54,6 +56,18 @@ namespace YARG.Input.Serialization
         public string Layout;
         public string Hash;
 
+        public SerializedInputDevice(string layout, string hash)
+        {
+            Layout = layout;
+            Hash = hash;
+        }
+
+        public SerializedInputDevice(InputDevice device)
+        {
+            Layout = device.layout;
+            Hash = device.GetHash();
+        }
+
         public bool MatchesDevice(InputDevice device)
         {
             return Layout == device.layout && Hash == device.GetHash();
@@ -65,6 +79,12 @@ namespace YARG.Input.Serialization
         public SerializedInputDevice Device;
         public string ControlPath;
         public Dictionary<string, string> Parameters = new();
+
+        public SerializedInputControl(SerializedInputDevice device, string path)
+        {
+            Device = device;
+            ControlPath = path;
+        }
     }
 
     public static partial class BindingSerialization
@@ -76,11 +96,7 @@ namespace YARG.Input.Serialization
 
         public static SerializedInputDevice Serialize(this InputDevice device)
         {
-            return new()
-            {
-                Layout = device.layout,
-                Hash = device.GetHash(),
-            };
+            return new(device);
         }
 
         public static string GetHash(this InputDevice device)
@@ -121,7 +137,7 @@ namespace YARG.Input.Serialization
             }
         }
 
-        public static SerializedBindings DeserializeBindings(string bindingsPath)
+        public static SerializedBindings? DeserializeBindings(string bindingsPath)
         {
             try
             {

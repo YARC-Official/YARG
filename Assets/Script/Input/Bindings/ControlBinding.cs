@@ -63,8 +63,11 @@ namespace YARG.Input
             Action = action;
         }
 
-        public abstract SerializedControlBinding Serialize();
+#nullable enable
+        public abstract SerializedControlBinding? Serialize();
         public abstract void Deserialize(SerializedControlBinding serialized);
+
+#nullable disable
 
         public abstract bool IsControlCompatible(InputControl control);
         public abstract bool IsControlActuated(ActuationSettings settings, InputControl control);
@@ -163,16 +166,12 @@ namespace YARG.Input
 
         public virtual SerializedInputControl Serialize()
         {
-            return new SerializedInputControl()
-            {
-                Device = Control.device.Serialize(),
-
-                // InputControl.path uses the device name,
-                // which is not guaranteed to be stable across different runs of the game
-                // (e.g. XInputGuitarHeroGuitar1 in one session could be just XInputGuitarHeroGuitar in another)
-                // Swap that out for the device layout instead, indicated by <angle brackets>
-                ControlPath = Control.path.Replace(Control.device.name, $"<{Control.device.layout}>"),
-            };
+            // InputControl.path uses the device name,
+            // which is not guaranteed to be stable across different runs of the game
+            // (e.g. XInputGuitarHeroGuitar1 in one session could be just XInputGuitarHeroGuitar in another)
+            // Swap that out for the device layout instead, indicated by <angle brackets>
+            string path = Control.path.Replace(Control.device.name, $"<{Control.device.layout}>");
+            return new(Control.device.Serialize(), path);
         }
     }
 
@@ -192,22 +191,31 @@ namespace YARG.Input
         {
         }
 
-        public override SerializedControlBinding Serialize()
+#nullable enable
+        public override SerializedControlBinding? Serialize()
         {
-            return new()
+            var serialized = new SerializedControlBinding();
+            foreach (var binding in _bindings)
             {
-                Controls = _bindings.Select((binding) => SerializeControl(binding))
-                    .Concat(_unresolvedBindings).ToList(),
-            };
+                var serializedBind = SerializeControl(binding);
+                if (serializedBind is null)
+                    continue;
+
+                serialized.Controls.Add(serializedBind);
+            }
+
+            serialized.Controls.AddRange(_unresolvedBindings);
+
+            if (serialized.Controls.Count < 1)
+                return null;
+
+            return serialized;
         }
 
-        public override void Deserialize(SerializedControlBinding serialized)
+        public override void Deserialize(SerializedControlBinding? serialized)
         {
             if (serialized is null || serialized.Controls is null)
-            {
-                Debug.LogWarning($"Encountered invalid controls list for binding {Key}!");
                 return;
-            }
 
             foreach (var binding in serialized.Controls)
             {
@@ -225,6 +233,7 @@ namespace YARG.Input
                 _unresolvedBindings.Add(binding);
             }
         }
+#nullable disable
 
         public override bool IsControlCompatible(InputControl control)
         {
@@ -377,6 +386,7 @@ namespace YARG.Input
             return removed;
         }
 
+#nullable enable
         public override void OnDeviceAdded(InputDevice device)
         {
             // Search by index, can't modify a collection while enumerating it
@@ -418,6 +428,7 @@ namespace YARG.Input
                 return true;
             });
         }
+#nullable disable
 
         protected abstract TBinding CreateBinding(ActuationSettings settings, InputControl<TState> binding);
 
@@ -451,12 +462,13 @@ namespace YARG.Input
 
         protected abstract void OnStateChanged(TBinding binding, double time);
 
-        protected virtual SerializedInputControl SerializeControl(TBinding binding)
+#nullable enable
+        protected virtual SerializedInputControl? SerializeControl(TBinding binding)
         {
             return binding.Serialize();
         }
 
-        private TBinding DeserializeControl(InputDevice device, SerializedInputControl serialized)
+        private TBinding? DeserializeControl(InputDevice device, SerializedInputControl serialized)
         {
             var control = InputControlPath.TryFindControl(device, serialized.ControlPath);
             if (control == null)

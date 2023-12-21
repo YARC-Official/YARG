@@ -52,30 +52,35 @@ namespace YARG.Input
             Mode = mode;
         }
 
-        public SerializedBindingCollection Serialize()
+#nullable enable
+        public SerializedBindingCollection? Serialize()
         {
-            return new()
+            var serialized = new SerializedBindingCollection();
+            foreach (var binding in _bindings)
             {
-                Bindings = _bindings.ToDictionary((binding) => binding.Key, (binding) => binding.Serialize()),
-            };
+                var serializedBind = binding.Serialize();
+                if (serializedBind is null)
+                    continue;
+
+                serialized.Bindings.Add(binding.Key, serializedBind);
+            }
+
+            if (serialized.Bindings.Count < 1)
+                return null;
+
+            return serialized;
         }
 
-        public void Deserialize(SerializedBindingCollection serialized)
+        public void Deserialize(SerializedBindingCollection? serialized)
         {
             if (serialized is null || serialized.Bindings is null)
-            {
-                Debug.LogWarning($"Encountered invalid bindings list!");
                 return;
-            }
 
             foreach (var (key, bindings) in serialized.Bindings)
             {
                 var binding = TryGetBindingByKey(key);
                 if (binding is null)
-                {
-                    Debug.LogWarning($"Encountered invalid binding key {key}!");
                     continue;
-                }
 
                 binding.Deserialize(bindings);
             }
@@ -97,7 +102,7 @@ namespace YARG.Input
             }
         }
 
-        public ControlBinding TryGetBindingByKey(string key)
+        public ControlBinding? TryGetBindingByKey(string key)
         {
             foreach (var binding in _bindings)
             {
@@ -108,13 +113,13 @@ namespace YARG.Input
             return null;
         }
 
-        public ControlBinding TryGetBindingByAction<TAction>(TAction action)
+        public ControlBinding? TryGetBindingByAction<TAction>(TAction action)
             where TAction : unmanaged, Enum
         {
             return TryGetBindingByAction(action.Convert());
         }
 
-        public ControlBinding TryGetBindingByAction(int action)
+        public ControlBinding? TryGetBindingByAction(int action)
         {
             foreach (var binding in _bindings)
             {
@@ -124,6 +129,7 @@ namespace YARG.Input
 
             return null;
         }
+#nullable disable
 
         public bool ContainsControl(InputControl control)
         {
