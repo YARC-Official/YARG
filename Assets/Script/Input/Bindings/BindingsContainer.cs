@@ -53,6 +53,10 @@ namespace YARG.Input.Bindings
                     continue;
                 }
 
+                // Don't load bindings for bots
+                if (profile.IsBot)
+                    continue;
+
                 var deserialized = ProfileBindings.Deserialize(profile, serialized);
                 _bindings.Add(id, deserialized);
             }
@@ -65,6 +69,10 @@ namespace YARG.Input.Bindings
             var serialized = new SerializedBindings();
             foreach (var (id, binds) in _bindings)
             {
+                var profile = PlayerContainer.GetProfileById(id);
+                if (profile is null || profile.IsBot) // Don't save bindings for bots
+                    continue;
+
                 serialized.Profiles[id] = binds.Serialize();
             }
 
