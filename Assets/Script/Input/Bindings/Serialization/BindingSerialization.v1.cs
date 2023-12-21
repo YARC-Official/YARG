@@ -202,6 +202,7 @@ namespace YARG.Input.Serialization
         // For conditional serialization
         public bool ShouldSerializeDeviceIndex() => DeviceIndex >= 0;
         public bool ShouldSerializeDevice() => !ShouldSerializeDeviceIndex();
+        public bool ShouldSerializeParameters() => Parameters.Count > 0;
     }
 
     public static partial class BindingSerialization
