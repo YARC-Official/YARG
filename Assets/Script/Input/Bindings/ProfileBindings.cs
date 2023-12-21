@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.LowLevel;
 using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Extensions;
@@ -12,7 +10,6 @@ using YARG.Input.Serialization;
 
 namespace YARG.Input
 {
-    [JsonConverter(typeof(ProfileBindingsConverter))]
     public class ProfileBindings : IDisposable
     {
         public YargProfile Profile { get; }
