@@ -1,23 +1,45 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Audio;
 using YARG.Core;
 
 namespace YARG.Input.Serialization
 {
-    using BindingCollection = Dictionary<string, List<SerializedInputControl>>;
+    // These classes are what the bindings will use for serialization/deserialization.
+    // They are *not* what will get written to the bindings file in the end, however,
+    // since bindings are versioned. These are used to separate the written format and actual loaded format,
+    // and to make adding things easier, since each layer of the serialization has its own type.
+
+    public class SerializedBindings
+    {
+        public Dictionary<Guid, SerializedProfileBindings> Profiles = new();
+    }
 
     public class SerializedProfileBindings
     {
         public List<SerializedInputDevice> Devices = new();
         public SerializedMic Microphone;
 
-        public Dictionary<GameMode, BindingCollection> Bindings = new();
-        public BindingCollection MenuBindings = new();
+        public Dictionary<GameMode, SerializedBindingCollection> Bindings = new();
+        public SerializedBindingCollection MenuBindings = new();
+    }
+
+    public class SerializedBindingCollection
+    {
+        public Dictionary<string, SerializedControlBinding> Bindings = new();
+    }
+
+    public class SerializedControlBinding
+    {
+        public List<SerializedInputControl> Controls = new();
     }
 
     public class SerializedInputDevice
@@ -38,7 +60,7 @@ namespace YARG.Input.Serialization
         public Dictionary<string, string> Parameters = new();
     }
 
-    public static class BindingSerialization
+    public static partial class BindingSerialization
     {
         private static readonly SHA1 _hashAlgorithm = SHA1.Create();
         private static readonly Regex _xinputUserIndexRegex = new(@"\\""userIndex\\"":\s*\d,");
@@ -75,6 +97,40 @@ namespace YARG.Input.Serialization
             _hashCache.Add(device, hash);
 
             return hash;
+        }
+
+        public static void SerializeBindings(SerializedBindings bindings, string bindingsPath)
+        {
+            try
+            {
+                var serialized = SerializeBindingsV0(bindings);
+                string bindingsJson = JsonConvert.SerializeObject(serialized, Formatting.Indented);
+                File.WriteAllText(bindingsPath, bindingsJson);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error while saving bindings!");
+                Debug.LogException(ex);
+            }
+        }
+
+        public static SerializedBindings DeserializeBindings(string bindingsPath)
+        {
+            try
+            {
+                if (!File.Exists(bindingsPath))
+                    return null;
+
+                string bindingsJson = File.ReadAllText(bindingsPath);
+                var jObject = JObject.Parse(bindingsJson);
+                return DeserializeBindingsV0(jObject);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error while loading bindings!");
+                Debug.LogException(ex);
+                return null;
+            }
         }
     }
 }

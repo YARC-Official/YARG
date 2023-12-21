@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.LowLevel;
 using YARG.Core;
 using YARG.Core.Extensions;
 using YARG.Input.Serialization;
@@ -53,20 +52,23 @@ namespace YARG.Input
             Mode = mode;
         }
 
-        public Dictionary<string, List<SerializedInputControl>> Serialize()
+        public SerializedBindingCollection Serialize()
         {
-            return _bindings.ToDictionary((binding) => binding.Key, (binding) => binding.Serialize());
+            return new()
+            {
+                Bindings = _bindings.ToDictionary((binding) => binding.Key, (binding) => binding.Serialize()),
+            };
         }
 
-        public void Deserialize(Dictionary<string, List<SerializedInputControl>> serialized)
+        public void Deserialize(SerializedBindingCollection serialized)
         {
-            if (serialized is null)
+            if (serialized is null || serialized.Bindings is null)
             {
                 Debug.LogWarning($"Encountered invalid bindings list!");
                 return;
             }
 
-            foreach (var (key, bindings) in serialized)
+            foreach (var (key, bindings) in serialized.Bindings)
             {
                 var binding = TryGetBindingByKey(key);
                 if (binding is null)

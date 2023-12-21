@@ -63,8 +63,8 @@ namespace YARG.Input
             Action = action;
         }
 
-        public abstract List<SerializedInputControl> Serialize();
-        public abstract void Deserialize(List<SerializedInputControl> serialized);
+        public abstract SerializedControlBinding Serialize();
+        public abstract void Deserialize(SerializedControlBinding serialized);
 
         public abstract bool IsControlCompatible(InputControl control);
         public abstract bool IsControlActuated(ActuationSettings settings, InputControl control);
@@ -192,21 +192,24 @@ namespace YARG.Input
         {
         }
 
-        public override List<SerializedInputControl> Serialize()
+        public override SerializedControlBinding Serialize()
         {
-            return new(_bindings.Select((binding) => SerializeControl(binding))
-                .Concat(_unresolvedBindings));
+            return new()
+            {
+                Controls = _bindings.Select((binding) => SerializeControl(binding))
+                    .Concat(_unresolvedBindings).ToList(),
+            };
         }
 
-        public override void Deserialize(List<SerializedInputControl> serialized)
+        public override void Deserialize(SerializedControlBinding serialized)
         {
-            if (serialized is null)
+            if (serialized is null || serialized.Controls is null)
             {
                 Debug.LogWarning($"Encountered invalid controls list for binding {Key}!");
                 return;
             }
 
-            foreach (var binding in serialized)
+            foreach (var binding in serialized.Controls)
             {
                 if (binding is null || string.IsNullOrEmpty(binding.ControlPath) || binding.Device is null ||
                     string.IsNullOrEmpty(binding.Device.Layout) || string.IsNullOrEmpty(binding.Device.Hash))

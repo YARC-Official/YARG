@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Newtonsoft.Json;
 using UnityEngine;
 using YARG.Core.Game;
+using YARG.Input.Serialization;
 using YARG.Player;
 
 namespace YARG.Input.Bindings
@@ -34,28 +34,17 @@ namespace YARG.Input.Bindings
             _bindings.Clear();
 
             string bindingsPath = BindingsPath;
-            if (!File.Exists(bindingsPath)) return 0;
-
-            string bindingsJson = File.ReadAllText(bindingsPath);
-            Dictionary<Guid, SerializedProfileBindings> bindings;
-            try
-            {
-                bindings = JsonConvert.DeserializeObject<Dictionary<Guid, SerializedProfileBindings>>(bindingsJson);
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"Error while loading bindings!");
-                Debug.LogException(ex);
+            if (!File.Exists(bindingsPath))
                 return 0;
-            }
 
+            var bindings = BindingSerialization.DeserializeBindings(bindingsPath);
             if (bindings is null)
             {
                 Debug.LogWarning($"Failed to load bindings!");
                 return 0;
             }
 
-            foreach (var (id, serialized) in bindings)
+            foreach (var (id, serialized) in bindings.Profiles)
             {
                 var profile = PlayerContainer.GetProfileById(id);
                 if (profile is null)
@@ -73,9 +62,13 @@ namespace YARG.Input.Bindings
 
         public static int SaveBindings()
         {
-            string bindingsJson = JsonConvert.SerializeObject(_bindings, Formatting.Indented);
-            File.WriteAllText(BindingsPath, bindingsJson);
+            var serialized = new SerializedBindings();
+            foreach (var (id, binds) in _bindings)
+            {
+                serialized.Profiles[id] = binds.Serialize();
+            }
 
+            BindingSerialization.SerializeBindings(serialized, BindingsPath);
             return _bindings.Count;
         }
     }
