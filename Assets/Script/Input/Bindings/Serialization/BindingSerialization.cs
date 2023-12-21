@@ -28,8 +28,8 @@ namespace YARG.Input.Serialization
         public List<SerializedInputDevice> Devices = new();
         public SerializedMic Microphone;
 
-        public Dictionary<GameMode, SerializedBindingCollection> Bindings = new();
-        public SerializedBindingCollection MenuBindings = new();
+        public Dictionary<GameMode, SerializedBindingCollection> ModeMappings = new();
+        public SerializedBindingCollection MenuMappings = new();
     }
 
     public class SerializedBindingCollection

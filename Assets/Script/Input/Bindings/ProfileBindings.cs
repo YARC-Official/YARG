@@ -99,14 +99,14 @@ namespace YARG.Input
                 }
             }
 
-            if (bindings.Bindings is null)
+            if (bindings.ModeMappings is null)
             {
                 Debug.LogWarning($"Encountered invalid bindings list for profile {profile.Name}!");
                 // Continue to next part of the bindings, salvage as much as possible
             }
             else
             {
-                foreach (var (mode, serializedBinds) in bindings.Bindings)
+                foreach (var (mode, serializedBinds) in bindings.ModeMappings)
                 {
                     if (!_bindsByGameMode.TryGetValue(mode, out var modeBindings))
                     {
@@ -120,7 +120,7 @@ namespace YARG.Input
 
             _unresolvedMic = bindings.Microphone;
 
-            MenuBindings.Deserialize(bindings.MenuBindings);
+            MenuBindings.Deserialize(bindings.MenuMappings);
         }
 
         public SerializedProfileBindings Serialize()
@@ -139,10 +139,10 @@ namespace YARG.Input
 
             foreach (var (mode, bindings) in _bindsByGameMode)
             {
-                serialized.Bindings.Add(mode, bindings.Serialize());
+                serialized.ModeMappings.Add(mode, bindings.Serialize());
             }
 
-            serialized.MenuBindings = MenuBindings.Serialize();
+            serialized.MenuMappings = MenuBindings.Serialize();
 
             serialized.Microphone = _unresolvedMic;
 

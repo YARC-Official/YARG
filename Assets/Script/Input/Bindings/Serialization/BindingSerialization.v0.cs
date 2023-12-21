@@ -30,12 +30,12 @@ namespace YARG.Input.Serialization
             if (serialized.Microphone is not null)
                 Microphone = new SerializedMicV0(serialized.Microphone);
 
-            foreach (var (gameMode, bindings) in serialized.Bindings)
+            foreach (var (gameMode, bindings) in serialized.ModeMappings)
             {
                 Bindings[gameMode] = BindingSerialization.Serialize(bindings);
             }
 
-            MenuBindings = BindingSerialization.Serialize(serialized.MenuBindings);
+            MenuBindings = BindingSerialization.Serialize(serialized.MenuMappings);
         }
 
         public SerializedProfileBindings Deserialize()
@@ -49,10 +49,10 @@ namespace YARG.Input.Serialization
 
             foreach (var (gameMode, bindings) in Bindings)
             {
-                converted.Bindings[gameMode] = bindings.Deserialize();
+                converted.ModeMappings[gameMode] = bindings.Deserialize();
             }
 
-            converted.MenuBindings = MenuBindings.Deserialize();
+            converted.MenuMappings = MenuBindings.Deserialize();
 
             return converted;
         }
