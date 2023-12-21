@@ -17,6 +17,13 @@ namespace YARG.Input.Serialization
     // They are *not* what will get written to the bindings file in the end, however,
     // since bindings are versioned. These are used to separate the written format and actual loaded format,
     // and to make adding things easier, since each layer of the serialization has its own type.
+    //
+    // When making changes to the bindings format, create a copy of the current `BindingsVersion.vX.cs` file
+    // and make your changes to that. **Do not modify the existing version files!**
+    // Next, make changes to the classes below, if needed, e.g. new data needs to be stored/loaded.
+    // Finally, update SerializeBindings/DeserializeBindings here to reflect the new version:
+    // - Make SerializeBindings serialize to the new version of the format.
+    // - Add a new case branch to DeserializeBindings for the new version.
 
     public class SerializedBindings
     {
@@ -103,7 +110,7 @@ namespace YARG.Input.Serialization
         {
             try
             {
-                var serialized = SerializeBindingsV0(bindings);
+                var serialized = SerializeBindingsV1(bindings);
                 string bindingsJson = JsonConvert.SerializeObject(serialized, Formatting.Indented);
                 File.WriteAllText(bindingsPath, bindingsJson);
             }
@@ -123,7 +130,22 @@ namespace YARG.Input.Serialization
 
                 string bindingsJson = File.ReadAllText(bindingsPath);
                 var jObject = JObject.Parse(bindingsJson);
-                return DeserializeBindingsV0(jObject);
+
+                int version = jObject["Version"] switch
+                {
+                    null => 0,
+                    { Type: JTokenType.Integer } versionToken => (int) versionToken,
+                    {} unhandled => throw new InvalidDataException($"Invalid bindings version! Expected JSON type {JTokenType.Integer}, got {unhandled.Type}")
+                };
+
+                var bindings = version switch
+                {
+                    0 => DeserializeBindingsV0(jObject),
+                    1 => DeserializeBindingsV1(jObject),
+                    _ => throw new NotImplementedException($"Unhandled bindings version {version}!")
+                };
+
+                return bindings;
             }
             catch (Exception ex)
             {
