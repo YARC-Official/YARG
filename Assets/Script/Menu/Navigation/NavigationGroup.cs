@@ -121,14 +121,13 @@ namespace YARG.Menu.Navigation
             SelectAt(selected - 1, SelectionOrigin.Navigation);
         }
 
-
         public void SelectAt(int index, SelectionOrigin selectionOrigin = SelectionOrigin.Programmatically)
         {
+            if (index == SelectedIndex || _navigatables.Count < 1)
+                return;
+
             if (index >= _navigatables.Count)
                 throw new ArgumentOutOfRangeException(nameof(index), index, $"Index must be less than the count of navigatables ({_navigatables.Count})!");
-
-            if (index == SelectedIndex)
-                return;
 
             if (SelectedBehaviour != null)
                 SelectedBehaviour.SetSelected(false, selectionOrigin);
