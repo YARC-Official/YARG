@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -20,6 +20,8 @@ namespace YARG.Menu.Navigation
         private bool _addAllChildrenOnAwake;
         [SerializeField]
         private bool _selectFirst;
+
+        public int Count => _navigatables.Count;
 
         public int SelectedIndex { get; private set; }
 
@@ -120,7 +122,10 @@ namespace YARG.Menu.Navigation
 
         public void SelectAt(int index, SelectionOrigin selectionOrigin = SelectionOrigin.Programmatically)
         {
-            if (index == SelectedIndex || index >= _navigatables.Count || index < 0)
+            if (index >= _navigatables.Count || index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), index, $"Index must be less than the count of navigatables ({_navigatables.Count})!");
+
+            if (index == SelectedIndex)
                 return;
 
             if (SelectedBehaviour != null)
