@@ -39,11 +39,6 @@ namespace YARG.Menu.Navigation
         {
             if (Selected == selected) return;
 
-            if (selected)
-            {
-                NavigationGroup.DeselectAll();
-            }
-
             Selected = selected;
             OnSelectionChanged(selected);
 

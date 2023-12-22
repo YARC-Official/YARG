@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace YARG.Menu.Navigation
@@ -21,9 +21,20 @@ namespace YARG.Menu.Navigation
         [SerializeField]
         private bool _selectFirst;
 
-        public NavigatableBehaviour SelectedBehaviour { get; private set; }
+        public int SelectedIndex { get; private set; }
 
-        public int SelectedIndex => _navigatables.IndexOf(SelectedBehaviour);
+        public NavigatableBehaviour SelectedBehaviour
+        {
+            get
+            {
+                if (_navigatables.Count < 1 || SelectedIndex < 0)
+                    return null;
+
+                // Ensure selected index stays within bounds
+                SelectedIndex = Math.Clamp(SelectedIndex, 0, _navigatables.Count - 1);
+                return _navigatables[SelectedIndex];
+            }
+        }
 
         public delegate void SelectionAction(NavigatableBehaviour selected, SelectionOrigin selectionOrigin);
         public event SelectionAction SelectionChanged;
@@ -66,6 +77,9 @@ namespace YARG.Menu.Navigation
 
         public void RemoveNavigatable(NavigatableBehaviour n)
         {
+            if (SelectedBehaviour == n)
+                DeselectCurrent();
+
             _navigatables.Remove(n);
         }
 
@@ -80,24 +94,44 @@ namespace YARG.Menu.Navigation
             {
                 navigatable.SetSelected(false, SelectionOrigin.Programmatically);
             }
+
+            SelectedIndex = -1;
+            SelectionChanged?.Invoke(null, SelectionOrigin.Programmatically);
         }
 
+        // Called from NavigatableBehaviours when they get selected
         public void SetSelectedFromNavigatable(NavigatableBehaviour navigatableBehaviour, SelectionOrigin selectionOrigin)
         {
-            SelectedBehaviour = navigatableBehaviour;
-            SelectionChanged?.Invoke(navigatableBehaviour, selectionOrigin);
+            int index = _navigatables.IndexOf(navigatableBehaviour);
+            if (index < 0)
+                throw new InvalidOperationException("The navigation item being selected is not present in the list!");
+
+            if (index == SelectedIndex)
+                return;
+
+            if (SelectedBehaviour != null)
+                SelectedBehaviour.SetSelected(false, selectionOrigin);
+
+            SelectedIndex = index;
+            SelectionChanged?.Invoke(SelectedBehaviour, selectionOrigin);
         }
 
         public void SelectLast()
         {
-            _navigatables[^1].SetSelected(true, SelectionOrigin.Programmatically);
+            SelectAt(_navigatables.Count - 1);
         }
 
-        public void SelectAt(int index)
+        public void SelectAt(int index, SelectionOrigin selectionOrigin = SelectionOrigin.Programmatically)
         {
-            if (index >= _navigatables.Count) return;
+            if (index == SelectedIndex || index >= _navigatables.Count || index < 0)
+                return;
 
-            _navigatables[index].SetSelected(true, SelectionOrigin.Programmatically);
+            if (SelectedBehaviour != null)
+                SelectedBehaviour.SetSelected(false, selectionOrigin);
+
+            SelectedIndex = index;
+            SelectedBehaviour.SetSelected(true, selectionOrigin);
+            SelectionChanged?.Invoke(SelectedBehaviour, selectionOrigin);
         }
 
         public void SelectFirst()
@@ -110,15 +144,7 @@ namespace YARG.Menu.Navigation
             int selected = SelectedIndex;
             if (selected < 0) return;
 
-            selected++;
-
-            // DON'T loop the value
-            if (selected >= _navigatables.Count)
-            {
-                return;
-            }
-
-            _navigatables[selected].SetSelected(true, SelectionOrigin.Navigation);
+            SelectAt(selected + 1, SelectionOrigin.Navigation);
         }
 
         public void SelectPrevious()
@@ -126,20 +152,13 @@ namespace YARG.Menu.Navigation
             int selected = SelectedIndex;
             if (selected < 0) return;
 
-            selected--;
-
-            // DON'T loop the value
-            if (selected < 0)
-            {
-                return;
-            }
-
-            _navigatables[selected].SetSelected(true, SelectionOrigin.Navigation);
+            SelectAt(selected - 1, SelectionOrigin.Navigation);
         }
 
         public void ConfirmSelection()
         {
-            _navigatables[SelectedIndex].Confirm();
+            if (SelectedBehaviour != null)
+                SelectedBehaviour.Confirm();
         }
 
         public void SetAsCurrent()
