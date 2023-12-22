@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -106,7 +106,8 @@ namespace YARG.Menu.Navigation
         public void SelectNext()
         {
             int selected = SelectedIndex;
-            if (selected < 0) return;
+            if (selected < 0 || selected >= _navigatables.Count - 1)
+                return;
 
             SelectAt(selected + 1, SelectionOrigin.Navigation);
         }
@@ -114,7 +115,8 @@ namespace YARG.Menu.Navigation
         public void SelectPrevious()
         {
             int selected = SelectedIndex;
-            if (selected < 0) return;
+            if (selected <= 0)
+                return;
 
             SelectAt(selected - 1, SelectionOrigin.Navigation);
         }
@@ -122,7 +124,7 @@ namespace YARG.Menu.Navigation
 
         public void SelectAt(int index, SelectionOrigin selectionOrigin = SelectionOrigin.Programmatically)
         {
-            if (index >= _navigatables.Count || index < 0)
+            if (index >= _navigatables.Count)
                 throw new ArgumentOutOfRangeException(nameof(index), index, $"Index must be less than the count of navigatables ({_navigatables.Count})!");
 
             if (index == SelectedIndex)
@@ -132,16 +134,26 @@ namespace YARG.Menu.Navigation
                 SelectedBehaviour.SetSelected(false, selectionOrigin);
 
             SelectedIndex = index;
-            SelectedBehaviour.SetSelected(true, selectionOrigin);
+            if (SelectedBehaviour != null)
+                SelectedBehaviour.SetSelected(true, selectionOrigin);
+
             SelectionChanged?.Invoke(SelectedBehaviour, selectionOrigin);
         }
 
         // Called from NavigatableBehaviours when they get selected
         public void SetSelectedFromNavigatable(NavigatableBehaviour navigatableBehaviour, SelectionOrigin selectionOrigin)
         {
-            int index = _navigatables.IndexOf(navigatableBehaviour);
-            if (index < 0)
-                throw new InvalidOperationException("The navigation item being selected is not present in the list!");
+            int index;
+            if (navigatableBehaviour != null)
+            {
+                index = _navigatables.IndexOf(navigatableBehaviour);
+                if (index < 0)
+                    throw new ArgumentException("The navigation item being selected is not present in the list!");
+            }
+            else
+            {
+                index = -1;
+            }
 
             if (index == SelectedIndex)
                 return;
