@@ -8,6 +8,8 @@ namespace YARG.Helpers
 {
     public static class LocaleHelper
     {
+        public static readonly LocalizedString EmptyString = new();
+
         public static string LocalizeString(string table, string key)
         {
             return LocalizationSettings.StringDatabase.GetLocalizedString(table, key);
