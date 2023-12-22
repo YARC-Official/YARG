@@ -2,7 +2,6 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
-using YARG.Core.Game;
 using YARG.Helpers.Extensions;
 using YARG.Input;
 using YARG.Menu.Navigation;
@@ -10,12 +9,16 @@ using YARG.Player;
 
 namespace YARG.Menu.ProfileInfo
 {
-    public class EditProfileMenu : MonoBehaviour
+    public class EditBindsTab : MonoBehaviour
     {
-        public static YargProfile CurrentProfile { get; set; }
+        [SerializeField]
+        private ProfileInfoMenu _profileInfoMenu;
 
+        [Space]
         [SerializeField]
         private NavigationGroup _gameModeNavGroup;
+        [SerializeField]
+        private InputControlDialogMenu _controlDialog;
 
         [Space]
         [SerializeField]
@@ -35,10 +38,6 @@ namespace YARG.Menu.ProfileInfo
         [SerializeField]
         private GameObject _integerViewPrefab;
 
-        [Space]
-        [SerializeField]
-        private InputControlDialogMenu _controlDialog;
-
         private YargPlayer _currentPlayer;
 
         public GameMode SelectedGameMode { get; private set; }
@@ -46,21 +45,17 @@ namespace YARG.Menu.ProfileInfo
 
         private void OnEnable()
         {
-            _currentPlayer = PlayerContainer.GetPlayerFromProfile(CurrentProfile);
+            _currentPlayer = PlayerContainer.GetPlayerFromProfile(_profileInfoMenu.CurrentProfile);
             _currentPlayer.DisableInputs();
             _currentPlayer.Bindings.BindingsChanged += RefreshBindings;
 
             RefreshGameModes();
-
-            Navigator.Instance.PushScheme(NavigationScheme.EmptyWithMusicPlayer);
         }
 
         private void OnDisable()
         {
             _currentPlayer.Bindings.BindingsChanged -= RefreshBindings;
             _currentPlayer.EnableInputs();
-
-            Navigator.Instance.PopScheme();
         }
 
         private void RefreshGameModes()

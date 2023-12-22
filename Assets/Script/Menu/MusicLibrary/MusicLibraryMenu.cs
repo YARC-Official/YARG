@@ -167,7 +167,7 @@ namespace YARG.Menu.MusicLibrary
                 list.AddRange(section.Value.Select(song => new SongViewType(this, song)));
             }
 
-            if (!string.IsNullOrEmpty(_currentSearch))
+            if (!string.IsNullOrEmpty(_searchField.text))
             {
                 // If the current search is NOT empty...
 

@@ -132,6 +132,21 @@ namespace YARG.Scores
             return null;
         }
 
+        public static List<PlayerScoreRecord> GetAllPlayerScores(Guid id)
+        {
+            try
+            {
+                return _db.Query<PlayerScoreRecord>($"SELECT * FROM PlayerScores WHERE PlayerId = '{id}'");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("Failed to load all PlayerScoreRecords from database. See error below for more details.");
+                Debug.LogException(e);
+            }
+
+            return null;
+        }
+
         public static void Destroy()
         {
             _db.Dispose();

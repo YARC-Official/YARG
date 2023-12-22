@@ -95,6 +95,13 @@ namespace YARG.Menu
             _navigationGroup.SelectFirst();
         }
 
+        public void SelectFirstTab()
+        {
+            if (_navigationGroup == null) return;
+
+            _navigationGroup.SelectFirst();
+        }
+
         private void OnDestroy()
         {
             _navigationGroup.SelectionChanged -= OnSelectionChanged;

@@ -9,9 +9,9 @@ namespace YARG.Menu.ProfileInfo
         [SerializeField]
         private TMP_InputField _valueText;
 
-        public override void Init(EditProfileMenu editProfileMenu, IntegerBinding binding, SingleIntegerBinding singleBinding)
+        public override void Init(EditBindsTab editBindsTab, IntegerBinding binding, SingleIntegerBinding singleBinding)
         {
-            base.Init(editProfileMenu, binding, singleBinding);
+            base.Init(editBindsTab, binding, singleBinding);
 
             singleBinding.StateChanged += OnStateChanged;
             OnStateChanged(singleBinding.State);

@@ -12,14 +12,14 @@ namespace YARG.Menu.ProfileInfo
         [SerializeField]
         private LocalizeStringEvent _gameModeName;
 
-        private EditProfileMenu _editProfileMenu;
+        private EditBindsTab _editBindsTab;
 
         private GameMode _gameMode;
         private bool _isMenu;
 
-        public void Init(GameMode gameMode, EditProfileMenu editProfileMenu)
+        public void Init(GameMode gameMode, EditBindsTab editBindsTab)
         {
-            _editProfileMenu = editProfileMenu;
+            _editBindsTab = editBindsTab;
 
             _gameMode = gameMode;
             _isMenu = false;
@@ -27,9 +27,9 @@ namespace YARG.Menu.ProfileInfo
             _gameModeName.StringReference = LocaleHelper.StringReference($"GameMode.{gameMode}");
         }
 
-        public void InitAsMenu(EditProfileMenu editProfileMenu)
+        public void InitAsMenu(EditBindsTab editBindsTab)
         {
-            _editProfileMenu = editProfileMenu;
+            _editBindsTab = editBindsTab;
 
             _isMenu = true;
 
@@ -42,11 +42,11 @@ namespace YARG.Menu.ProfileInfo
 
             if (_isMenu)
             {
-                _editProfileMenu.RefreshMenuBindings();
+                _editBindsTab.RefreshMenuBindings();
             }
             else
             {
-                _editProfileMenu.RefreshBindings(_gameMode);
+                _editBindsTab.RefreshBindings(_gameMode);
             }
         }
     }

@@ -16,13 +16,13 @@ namespace YARG.Menu.ProfileInfo
         [SerializeField]
         private Image _bindingIcon;
 
-        private EditProfileMenu _editProfileMenu;
+        private EditBindsTab _editBindsTab;
         private YargPlayer _player;
         private ControlBinding _binding;
 
-        public void Init(EditProfileMenu editProfileMenu, YargPlayer player, ControlBinding binding)
+        public void Init(EditBindsTab editBindsTab, YargPlayer player, ControlBinding binding)
         {
-            _editProfileMenu = editProfileMenu;
+            _editBindsTab = editBindsTab;
             _player = player;
             _binding = binding;
 
@@ -30,7 +30,7 @@ namespace YARG.Menu.ProfileInfo
 
             var icons = MenuData.NavigationIcons;
 
-            if (editProfileMenu.SelectingMenuBinds && icons.HasIcon((MenuAction) binding.Action))
+            if (editBindsTab.SelectingMenuBinds && icons.HasIcon((MenuAction) binding.Action))
             {
                 // Show icons for menu actions
                 _bindingIcon.gameObject.SetActive(true);
@@ -47,7 +47,7 @@ namespace YARG.Menu.ProfileInfo
 
         public async void AddNewBind()
         {
-            await _editProfileMenu.ShowControlDialog(_player, _binding);
+            await _editBindsTab.ShowControlDialog(_player, _binding);
         }
     }
 }

@@ -1,0 +1,4 @@
+# Commits that should be ignored by git blame
+
+# Update all formatting and change folder structure (#502)
+4e5df179c426132d11b7fc44f39e610f59b01ad8

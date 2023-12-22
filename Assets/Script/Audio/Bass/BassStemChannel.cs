@@ -144,17 +144,10 @@ namespace YARG.Audio.BASS
                 // Have to handle pitch separately for some reason
                 if (_manager.Options.IsChipmunkSpeedup)
                 {
-                    float semitoneShift = speed switch
-                    {
-                        > 1 => speed / 9 - 1 / 9,
-                        < 1 => speed / 3 - 1 / 3,
-                        _     => 0
-                    };
-
-                    semitoneShift = Math.Clamp(semitoneShift, -60, 60);
-
-                    if (!Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Pitch, semitoneShift) ||
-                        !Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Pitch, semitoneShift))
+                    double accurateSemitoneShift = 12 * Math.Log(speed, 2);
+                    float finalSemitoneShift = (float) Math.Clamp(accurateSemitoneShift, -60, 60);
+                    if (!Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Pitch, finalSemitoneShift) ||
+                        !Bass.ChannelSetAttribute(ReverbStreamHandle, ChannelAttribute.Pitch, finalSemitoneShift))
                         Debug.LogError($"Failed to set channel pitch: {Bass.LastError}");
                 }
             }

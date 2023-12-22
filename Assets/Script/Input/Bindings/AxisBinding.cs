@@ -1,13 +1,20 @@
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.LowLevel;
 using YARG.Input.Serialization;
 
 namespace YARG.Input
 {
     public class SingleAxisBinding : SingleBinding<float>
     {
+        private const bool INVERT_DEFAULT = false;
+
+        private const float MINIMUM_DEFAULT = -1f;
+        private const float MAXIMUM_DEFAULT = 1f;
+
+        private const float UPPER_DEADZONE_DEFAULT = 0f;
+        private const float LOWER_DEADZONE_DEFAULT = 0f;
+
         private float _invertSign = 1;
         private float _minimum;
         private float _maximum;
@@ -101,31 +108,31 @@ namespace YARG.Input
         {
             if (!serialized.Parameters.TryGetValue(nameof(Inverted), out string invertedText) ||
                 !bool.TryParse(invertedText, out bool inverted))
-                inverted = false;
+                inverted = INVERT_DEFAULT;
 
             Inverted = inverted;
 
             if (!serialized.Parameters.TryGetValue(nameof(Minimum), out string minText) ||
                 !float.TryParse(minText, out float min))
-                min = 0f;
+                min = MINIMUM_DEFAULT;
 
             Minimum = min;
 
             if (!serialized.Parameters.TryGetValue(nameof(Maximum), out string maxText) ||
                 !float.TryParse(maxText, out float max))
-                max = 0;
+                max = MAXIMUM_DEFAULT;
 
             Maximum = max;
 
             if (!serialized.Parameters.TryGetValue(nameof(LowerDeadzone), out string lowerText) ||
                 !float.TryParse(lowerText, out float lower))
-                lower = 0f;
+                lower = UPPER_DEADZONE_DEFAULT;
 
             LowerDeadzone = lower;
 
             if (!serialized.Parameters.TryGetValue(nameof(UpperDeadzone), out string upperText) ||
                 !float.TryParse(upperText, out float upper))
-                upper = 0f;
+                upper = LOWER_DEADZONE_DEFAULT;
 
             UpperDeadzone = upper;
         }
@@ -136,11 +143,16 @@ namespace YARG.Input
             if (serialized is null)
                 return null;
 
-            serialized.Parameters.Add(nameof(Inverted), Inverted.ToString().ToLower());
-            serialized.Parameters.Add(nameof(Minimum), Minimum.ToString());
-            serialized.Parameters.Add(nameof(Maximum), Maximum.ToString());
-            serialized.Parameters.Add(nameof(LowerDeadzone), LowerDeadzone.ToString());
-            serialized.Parameters.Add(nameof(UpperDeadzone), UpperDeadzone.ToString());
+            if (Inverted != INVERT_DEFAULT)
+                serialized.Parameters.Add(nameof(Inverted), Inverted.ToString().ToLower());
+            if (!Mathf.Approximately(Minimum, MINIMUM_DEFAULT))
+                serialized.Parameters.Add(nameof(Minimum), Minimum.ToString());
+            if (!Mathf.Approximately(Maximum, MAXIMUM_DEFAULT))
+                serialized.Parameters.Add(nameof(Maximum), Maximum.ToString());
+            if (!Mathf.Approximately(LowerDeadzone, UPPER_DEADZONE_DEFAULT))
+                serialized.Parameters.Add(nameof(LowerDeadzone), LowerDeadzone.ToString());
+            if (!Mathf.Approximately(UpperDeadzone, LOWER_DEADZONE_DEFAULT))
+                serialized.Parameters.Add(nameof(UpperDeadzone), UpperDeadzone.ToString());
 
             return serialized;
         }

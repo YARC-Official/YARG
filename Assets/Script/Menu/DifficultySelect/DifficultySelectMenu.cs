@@ -53,6 +53,7 @@ namespace YARG.Menu.DifficultySelect
         private ModifierItem _modifierItemPrefab;
 
         private int _playerIndex;
+        private State _lastMenuState;
         private State _menuState;
 
         private readonly List<Instrument> _possibleInstruments  = new();
@@ -136,7 +137,7 @@ namespace YARG.Menu.DifficultySelect
                     break;
             }
 
-            _navGroup.SelectFirst();
+            _lastMenuState = _menuState;
         }
 
         private void CreateMainMenu()
@@ -146,13 +147,13 @@ namespace YARG.Menu.DifficultySelect
             // Only show all these options if there are instruments available
             if (_possibleInstruments.Count > 0)
             {
-                CreateItem("Instrument", player.Profile.CurrentInstrument.ToLocalizedName(), () =>
+                CreateItem("Instrument", player.Profile.CurrentInstrument.ToLocalizedName(), _lastMenuState == State.Instrument, () =>
                 {
                     _menuState = State.Instrument;
                     UpdateForPlayer();
                 });
 
-                CreateItem("Difficulty", player.Profile.CurrentDifficulty.ToLocalizedName(), () =>
+                CreateItem("Difficulty", player.Profile.CurrentDifficulty.ToLocalizedName(), _lastMenuState == State.Difficulty, () =>
                 {
                     _menuState = State.Difficulty;
                     UpdateForPlayer();
@@ -161,7 +162,7 @@ namespace YARG.Menu.DifficultySelect
                 // Harmony players must pick their harmony index
                 if (player.Profile.CurrentInstrument == Instrument.Harmony)
                 {
-                    CreateItem("Harmony", (player.Profile.HarmonyIndex + 1).ToString(), () =>
+                    CreateItem("Harmony", (player.Profile.HarmonyIndex + 1).ToString(), _lastMenuState == State.Harmony, () =>
                     {
                         _menuState = State.Harmony;
                         UpdateForPlayer();
@@ -187,20 +188,21 @@ namespace YARG.Menu.DifficultySelect
                     modifierText = modifierText.Trim();
                 }
 
-                CreateItem("Modifiers", modifierText, () =>
+                CreateItem("Modifiers", modifierText, _lastMenuState == State.Modifiers, () =>
                 {
                     _menuState = State.Modifiers;
                     UpdateForPlayer();
                 });
 
                 // Ready button
-                CreateItem("Ready", _difficultyGreenPrefab, () => ChangePlayer(1));
+                CreateItem("Ready", _lastMenuState == State.Main, _difficultyGreenPrefab, () => ChangePlayer(1));
             }
 
             // Only show if there is more than one play, only if there is instruments available
-            if (_possibleInstruments.Count <= 0 || PlayerContainer.Players.Count != 1) {
+            if (_possibleInstruments.Count <= 0 || PlayerContainer.Players.Count != 1)
+            {
                 // Sit out button
-                CreateItem("Sit Out", _difficultyRedPrefab, () =>
+                CreateItem("Sit Out", _possibleInstruments.Count <= 0, _difficultyRedPrefab, () =>
                 {
                     player.SittingOut = true;
                     ChangePlayer(1);
@@ -212,7 +214,8 @@ namespace YARG.Menu.DifficultySelect
         {
             foreach (var instrument in _possibleInstruments)
             {
-                CreateItem(instrument.ToLocalizedName(), () =>
+                bool selected = CurrentPlayer.Profile.CurrentInstrument == instrument;
+                CreateItem(instrument.ToLocalizedName(), selected, () =>
                 {
                     CurrentPlayer.Profile.CurrentInstrument = instrument;
                     UpdatePossibleDifficulties();
@@ -227,7 +230,8 @@ namespace YARG.Menu.DifficultySelect
         {
             foreach (var difficulty in _possibleDifficulties)
             {
-                CreateItem(difficulty.ToLocalizedName(), () =>
+                bool selected = CurrentPlayer.Profile.CurrentDifficulty == difficulty;
+                CreateItem(difficulty.ToLocalizedName(), selected, () =>
                 {
                     CurrentPlayer.Profile.CurrentDifficulty = difficulty;
 
@@ -277,7 +281,8 @@ namespace YARG.Menu.DifficultySelect
             for (int i = 0; i < _maxHarmonyIndex; i++)
             {
                 int capture = i;
-                CreateItem((i + 1).ToString(), () =>
+                bool selected = CurrentPlayer.Profile.HarmonyIndex == i;
+                CreateItem((i + 1).ToString(), selected, () =>
                 {
                     CurrentPlayer.Profile.HarmonyIndex = (byte) capture;
 
@@ -419,7 +424,7 @@ namespace YARG.Menu.DifficultySelect
             Navigator.Instance.PopScheme();
         }
 
-        private void CreateItem(string header, string body, DifficultyItem difficultyItem, UnityAction a)
+        private void CreateItem(string header, string body, bool selected, DifficultyItem difficultyItem, UnityAction a)
         {
             var btn = Instantiate(difficultyItem, _container);
 
@@ -433,21 +438,26 @@ namespace YARG.Menu.DifficultySelect
             }
 
             _navGroup.AddNavigatable(btn.Button);
+
+            if (selected)
+            {
+                _navGroup.SelectLast();
+            }
         }
 
-        private void CreateItem(string body, DifficultyItem difficultyItem, UnityAction a)
+        private void CreateItem(string body, bool selected, DifficultyItem difficultyItem, UnityAction a)
         {
-            CreateItem(null, body, difficultyItem, a);
+            CreateItem(null, body, selected, difficultyItem, a);
         }
 
-        private void CreateItem(string header, string body, UnityAction a)
+        private void CreateItem(string header, string body, bool selected, UnityAction a)
         {
-            CreateItem(header, body, _difficultyItemPrefab, a);
+            CreateItem(header, body, selected, _difficultyItemPrefab, a);
         }
 
-        private void CreateItem(string body, UnityAction a)
+        private void CreateItem(string body, bool selected, UnityAction a)
         {
-            CreateItem(null, body, a);
+            CreateItem(null, body, selected, a);
         }
 
         private bool HasPlayableInstrument(AvailableParts parts, Instrument instrument)

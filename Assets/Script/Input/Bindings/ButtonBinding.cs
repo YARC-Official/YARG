@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
@@ -9,27 +10,33 @@ namespace YARG.Input
 {
     public class SingleButtonBinding : SingleBinding<float>
     {
+        private const bool INVERT_DEFAULT = false;
+        private const long DEBOUNCE_DEFAULT = 0;
+
         public const long DEBOUNCE_TIME_MAX = 25;
         public const long DEBOUNCE_ACTIVE_THRESHOLD = 1;
 
-        private Stopwatch _debounceTimer = new();
+        private float _invertSign = 1;
+        private float _pressPoint;
         private long _debounceThreshold = 0;
 
-        /// <summary>
-        /// The debounce time threshold, in milliseconds. Use 0 or less to disable debounce.
-        /// </summary>
-        public long DebounceThreshold
+        public bool Inverted
         {
-            get => _debounceThreshold;
-            // Limit debounce amount to 0-25 ms
-            // Any larger and input registration will be very bad, the max will limit to 40 inputs per second
-            // If someone needs a larger amount their controller is just busted lol
-            set => _debounceThreshold = Math.Clamp(value, 0, DEBOUNCE_TIME_MAX);
+            get => float.IsNegative(_invertSign);
+            set
+            {
+                bool inverted = Inverted;
+                _invertSign = value ? -1 : 1;
+
+                // (see above)
+                if (inverted != Inverted)
+                {
+                    State = CalculateState(RawState);
+                    InvokeStateChanged(State);
+                }
+            }
         }
 
-        public bool DebounceEnabled => DebounceThreshold >= DEBOUNCE_ACTIVE_THRESHOLD;
-
-        private float _pressPoint;
         public float PressPoint
         {
             get => _pressPoint;
@@ -48,24 +55,21 @@ namespace YARG.Input
             }
         }
 
-        private float _invertSign = 1;
-        public bool Inverted
+        /// <summary>
+        /// The debounce time threshold, in milliseconds. Use 0 or less to disable debounce.
+        /// </summary>
+        public long DebounceThreshold
         {
-            get => float.IsNegative(_invertSign);
-            set
-            {
-                bool inverted = Inverted;
-                _invertSign = value ? -1 : 1;
-
-                // (see above)
-                if (inverted != Inverted)
-                {
-                    State = CalculateState(RawState);
-                    InvokeStateChanged(State);
-                }
-            }
+            get => _debounceThreshold;
+            // Limit debounce amount to 0-25 ms
+            // Any larger and input registration will be very bad, the max will limit to 40 inputs per second
+            // If someone needs a larger amount their controller is just busted lol
+            set => _debounceThreshold = Math.Clamp(value, 0, DEBOUNCE_TIME_MAX);
         }
 
+        public bool DebounceEnabled => DebounceThreshold >= DEBOUNCE_ACTIVE_THRESHOLD;
+
+        private Stopwatch _debounceTimer = new();
         private float _postDebounceValue;
 
         public float RawState { get; private set; }
@@ -97,7 +101,7 @@ namespace YARG.Input
         {
             if (!serialized.Parameters.TryGetValue(nameof(Inverted), out string invertedText) ||
                 !bool.TryParse(invertedText, out bool inverted))
-                inverted = false;
+                inverted = INVERT_DEFAULT;
 
             Inverted = inverted;
 
@@ -109,7 +113,7 @@ namespace YARG.Input
 
             if (!serialized.Parameters.TryGetValue(nameof(DebounceThreshold), out string debounceText) ||
                 !long.TryParse(debounceText, out long debounceThreshold))
-                debounceThreshold = 0;
+                debounceThreshold = DEBOUNCE_DEFAULT;
 
             DebounceThreshold = debounceThreshold;
         }
@@ -120,9 +124,12 @@ namespace YARG.Input
             if (serialized is null)
                 return null;
 
-            serialized.Parameters.Add(nameof(Inverted), Inverted.ToString().ToLower());
-            serialized.Parameters.Add(nameof(PressPoint), PressPoint.ToString());
-            serialized.Parameters.Add(nameof(DebounceThreshold), DebounceThreshold.ToString());
+            if (Inverted != INVERT_DEFAULT)
+                serialized.Parameters.Add(nameof(Inverted), Inverted.ToString().ToLower());
+            if (!Mathf.Approximately(PressPoint, InputSystem.settings.defaultButtonPressPoint))
+                serialized.Parameters.Add(nameof(PressPoint), PressPoint.ToString());
+            if (DebounceThreshold != DEBOUNCE_DEFAULT)
+                serialized.Parameters.Add(nameof(DebounceThreshold), DebounceThreshold.ToString());
 
             return serialized;
         }
