@@ -23,7 +23,7 @@ namespace YARG.Menu.Navigation
 
         public int Count => _navigatables.Count;
 
-        public int SelectedIndex { get; private set; }
+        public int SelectedIndex { get; private set; } = -1;
 
         public NavigatableBehaviour SelectedBehaviour
         {
@@ -47,8 +47,7 @@ namespace YARG.Menu.Navigation
             {
                 foreach (var navigatable in GetComponentsInChildren<NavigatableBehaviour>())
                 {
-                    navigatable.NavigationGroup = this;
-                    _navigatables.Add(navigatable);
+                    AddNavigatable(navigatable);
                 }
             }
         }
@@ -68,6 +67,9 @@ namespace YARG.Menu.Navigation
 
         public void AddNavigatable(NavigatableBehaviour navigatable)
         {
+            if (_navigatables.Contains(navigatable))
+                throw new InvalidOperationException($"Navigation group {this} already contains navigatable {navigatable}!");
+
             _navigatables.Add(navigatable);
             navigatable.NavigationGroup = this;
         }
@@ -90,6 +92,7 @@ namespace YARG.Menu.Navigation
 
         public void ClearNavigatables()
         {
+            DeselectAll();
             _navigatables.Clear();
         }
 
