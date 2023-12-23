@@ -10,6 +10,7 @@ using YARG.Core.Game;
 using YARG.Core.Utility;
 using YARG.Helpers;
 using YARG.Menu.Persistent;
+using YARG.Settings.Metadata;
 
 namespace YARG.Settings.Customization
 {
@@ -156,6 +157,7 @@ namespace YARG.Settings.Customization
             {
                 DeletePresetFile(t);
                 t.Name = name;
+                SavePresetFile(t);
             }
             else
             {
@@ -272,6 +274,10 @@ namespace YARG.Settings.Customization
                 if (file.Id == preset.Id)
                 {
                     File.Delete(path);
+
+                    // Prevent the preset from being removed in-game as well
+                    PresetsTab.IgnorePathUpdate(path);
+
                     return false;
                 }
 
