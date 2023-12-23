@@ -327,6 +327,14 @@ MonoBehaviour:
     m_Key: Setting.Graphics.GraphicalProgressOnScoreBox.Description
     m_Metadata:
       m_Items: []
+  - m_Id: 98954526460338176
+    m_Key: Setting.Graphics.KeepSongInfoVisible
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98954526485504000
+    m_Key: Setting.Graphics.KeepSongInfoVisible.Description
+    m_Metadata:
+      m_Items: []
   - m_Id: 53693768667619358
     m_Key: Setting.Graphics.LowQuality
     m_Metadata:

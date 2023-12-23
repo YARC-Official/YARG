@@ -94,7 +94,8 @@ namespace YARG.Settings
                 nameof(Settings.DisableTextNotifications),
                 nameof(Settings.LyricDisplay),
                 nameof(Settings.SongTimeOnScoreBox),
-                nameof(Settings.GraphicalProgressOnScoreBox)
+                nameof(Settings.GraphicalProgressOnScoreBox),
+                nameof(Settings.KeepSongInfoVisible)
             },
             new PresetsTab("Presets", icon: "Customization")
         };

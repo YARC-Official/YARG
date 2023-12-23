@@ -151,6 +151,8 @@ namespace YARG.Settings
                 LyricDisplayMode.Disabled
             };
 
+            public ToggleSetting KeepSongInfoVisible { get; } = new(false);
+
             #endregion
 
             #region Callbacks

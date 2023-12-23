@@ -939,6 +939,15 @@ MonoBehaviour:
       fully backwards, 1 will keep it in the center, and 2 will move it to the front.
     m_Metadata:
       m_Items: []
+  - m_Id: 98954526460338176
+    m_Localized: Keep Song Info Visible
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98954526485504000
+    m_Localized: If enabled, it keeps the song info visible throughout the entire
+      song. Otherwise, it will fade out after 10 seconds.
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
