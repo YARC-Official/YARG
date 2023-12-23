@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.LowLevel;
 using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Extensions;
@@ -12,7 +10,6 @@ using YARG.Input.Serialization;
 
 namespace YARG.Input
 {
-    [JsonConverter(typeof(ProfileBindingsConverter))]
     public class ProfileBindings : IDisposable
     {
         public YargProfile Profile { get; }
@@ -70,21 +67,14 @@ namespace YARG.Input
             MenuBindings = BindingCollection.CreateMenuBindings();
         }
 
-        public ProfileBindings(YargProfile profile, SerializedProfileBindings bindings)
+#nullable enable
+        public ProfileBindings(YargProfile profile, SerializedProfileBindings? bindings)
             : this(profile)
         {
             if (bindings is null)
-            {
-                Debug.LogWarning($"Encountered invalid bindings for profile {profile.Name}!");
                 return;
-            }
 
-            if (bindings.Devices is null)
-            {
-                Debug.LogWarning($"Encountered invalid device list for profile {profile.Name}!");
-                // Continue to next part of the bindings, salvage as much as possible
-            }
-            else
+            if (bindings.Devices is not null)
             {
                 foreach (var device in bindings.Devices)
                 {
@@ -99,14 +89,11 @@ namespace YARG.Input
                 }
             }
 
-            if (bindings.Bindings is null)
+            _unresolvedMic = bindings.Microphone;
+
+            if (bindings.ModeMappings is not null)
             {
-                Debug.LogWarning($"Encountered invalid bindings list for profile {profile.Name}!");
-                // Continue to next part of the bindings, salvage as much as possible
-            }
-            else
-            {
-                foreach (var (mode, serializedBinds) in bindings.Bindings)
+                foreach (var (mode, serializedBinds) in bindings.ModeMappings)
                 {
                     if (!_bindsByGameMode.TryGetValue(mode, out var modeBindings))
                     {
@@ -118,9 +105,7 @@ namespace YARG.Input
                 }
             }
 
-            _unresolvedMic = bindings.Microphone;
-
-            MenuBindings.Deserialize(bindings.MenuBindings);
+            MenuBindings.Deserialize(bindings.MenuMappings);
         }
 
         public SerializedProfileBindings Serialize()
@@ -137,22 +122,27 @@ namespace YARG.Input
                 serialized.Devices.Add(device);
             }
 
+            serialized.Microphone = _unresolvedMic;
+
             foreach (var (mode, bindings) in _bindsByGameMode)
             {
-                serialized.Bindings.Add(mode, bindings.Serialize());
+                var serializedBinds = bindings.Serialize();
+                if (serializedBinds is null)
+                    continue;
+
+                serialized.ModeMappings.Add(mode, serializedBinds);
             }
 
-            serialized.MenuBindings = MenuBindings.Serialize();
-
-            serialized.Microphone = _unresolvedMic;
+            serialized.MenuMappings = MenuBindings.Serialize();
 
             return serialized;
         }
 
-        public static ProfileBindings Deserialize(YargProfile profile, SerializedProfileBindings serialized)
+        public static ProfileBindings Deserialize(YargProfile profile, SerializedProfileBindings? serialized)
         {
             return new(profile, serialized);
         }
+#nullable disable
 
         public void ResolveDevices()
         {

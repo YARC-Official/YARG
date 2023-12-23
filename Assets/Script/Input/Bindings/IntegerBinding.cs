@@ -1,6 +1,5 @@
 using System;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.LowLevel;
 using YARG.Input.Serialization;
 
 namespace YARG.Input

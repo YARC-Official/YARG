@@ -271,7 +271,7 @@ namespace YARG.Audio.BASS
             if (stream is null)
                 throw new ArgumentNullException(nameof(stream));
 
-            var usesYARGEncryption = stream.ReadInt32LE() switch
+            var usesYARGEncryption = stream.Read<int>(Core.IO.Endianness.Little) switch
             {
                 0xF0 => true,
                 0x0A => false,
@@ -283,7 +283,7 @@ namespace YARG.Audio.BASS
                 throw new Exception($"Couldn't get MOGG start index! Expected at least {MIN_SIZE} bytes, got {stream.Length}");
 
             // Get start index
-            int start = stream.ReadInt32LE();
+            int start = stream.Read<int>(Core.IO.Endianness.Little);
             if (start > stream.Length)
                 throw new Exception($"MOGG start index is out of bounds! Expected at least {start + 1} bytes, got {stream.Length}");
 
