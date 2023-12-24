@@ -1,9 +1,7 @@
 using System;
-using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
-using UnityEngine.InputSystem.LowLevel;
 using YARG.Input.Serialization;
 
 namespace YARG.Input
@@ -13,12 +11,10 @@ namespace YARG.Input
         private const bool INVERT_DEFAULT = false;
         private const long DEBOUNCE_DEFAULT = 0;
 
-        public const long DEBOUNCE_TIME_MAX = 25;
-        public const long DEBOUNCE_ACTIVE_THRESHOLD = 1;
+        private DebounceTimer _debounceTimer = new();
 
         private float _invertSign = 1;
         private float _pressPoint;
-        private long _debounceThreshold = 0;
 
         public bool Inverted
         {
@@ -60,17 +56,9 @@ namespace YARG.Input
         /// </summary>
         public long DebounceThreshold
         {
-            get => _debounceThreshold;
-            // Limit debounce amount to 0-25 ms
-            // Any larger and input registration will be very bad, the max will limit to 40 inputs per second
-            // If someone needs a larger amount their controller is just busted lol
-            set => _debounceThreshold = Math.Clamp(value, 0, DEBOUNCE_TIME_MAX);
+            get => _debounceTimer.TimeThreshold;
+            set => _debounceTimer.TimeThreshold = value;
         }
-
-        public bool DebounceEnabled => DebounceThreshold >= DEBOUNCE_ACTIVE_THRESHOLD;
-
-        private Stopwatch _debounceTimer = new();
-        private float _postDebounceValue;
 
         public float RawState { get; private set; }
         public float PreviousState { get; private set; }
@@ -140,20 +128,14 @@ namespace YARG.Input
 
             // Read new state
             RawState = Control.value;
-            _postDebounceValue = CalculateState(RawState);
+            _debounceTimer.Update(CalculateState(RawState));
 
-            // Check debounce
-            if (_debounceTimer.IsRunning && _debounceTimer.ElapsedMilliseconds < DebounceThreshold)
-                // Wait for when debounce ends
+            // Wait for debounce to end
+            if (!_debounceTimer.HasElapsed)
                 return;
 
-            // Stop debounce and process this event normally
-            _debounceTimer.Reset();
-            State = _postDebounceValue;
-
-            // Start debounce again if enabled
-            if (DebounceEnabled)
-                _debounceTimer.Start();
+            _debounceTimer.Restart();
+            State = _debounceTimer.Value;
 
             InvokeStateChanged(State);
         }
@@ -165,21 +147,13 @@ namespace YARG.Input
 
         public bool UpdateDebounce()
         {
-            // Ignore if debounce is disabled
-            if (!DebounceEnabled)
+            if (!_debounceTimer.HasElapsed)
                 return false;
 
-            // Check time elapsed
-            if (_debounceTimer.ElapsedMilliseconds >= DebounceThreshold)
-            {
-                // Stop timer and process post-debounce value
-                _debounceTimer.Reset();
-                State = _postDebounceValue;
-                InvokeStateChanged(State);
-                return true;
-            }
-
-            return false;
+            _debounceTimer.Reset();
+            State = _debounceTimer.Value;
+            InvokeStateChanged(State);
+            return true;
         }
     }
 
