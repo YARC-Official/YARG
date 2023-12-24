@@ -168,6 +168,9 @@ namespace YARG.Gameplay.Player
 
         private InstrumentDifficulty<TNote> OriginalNoteTrack { get; set; }
 
+        private int CurrentMultipler = 0;
+        private int PreviousMultipler = 0;
+
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView)
         {
             if (IsInitialized) return;
@@ -243,6 +246,7 @@ namespace YARG.Gameplay.Player
         {
             int maxMultiplier = stats.IsStarPowerActive ? 8 : 4;
             bool groove = stats.ScoreMultiplier == maxMultiplier;
+            CurrentMultipler = stats.ScoreMultiplier;
 
             TrackMaterial.SetTrackScroll(songTime, NoteSpeed);
             TrackMaterial.GrooveMode = groove;
@@ -334,6 +338,11 @@ namespace YARG.Gameplay.Player
             NotesHit++;
 
             ShouldMuteStem = false;
+            if (CurrentMultipler != PreviousMultipler)
+            {
+                PreviousMultipler = CurrentMultipler;
+                SantrollerHaptics.ForEach(kit => kit.SetMultiplier( (uint)CurrentMultipler) );
+            }
         }
 
         protected virtual void OnNoteMissed(int index, TNote note)
@@ -345,6 +354,8 @@ namespace YARG.Gameplay.Player
             }
 
             ShouldMuteStem = true;
+
+            SantrollerHaptics.ForEach(kit => kit.SetMultiplier(0));
         }
 
         protected virtual void OnOverstrum()
@@ -359,11 +370,13 @@ namespace YARG.Gameplay.Player
         protected virtual void OnSoloStart(SoloSection solo)
         {
             TrackView.StartSolo(solo);
+            SantrollerHaptics.ForEach(kit => kit.SetSolo(true));
         }
 
         protected virtual void OnSoloEnd(SoloSection solo)
         {
             TrackView.EndSolo(solo.SoloBonus);
+            SantrollerHaptics.ForEach(kit => kit.SetSolo(false));
         }
 
         protected virtual void OnStarPowerPhraseHit(TNote note)

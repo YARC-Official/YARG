@@ -27,6 +27,9 @@ namespace YARG.Input
 
         public BindingCollection this[GameMode mode] => _bindsByGameMode[mode];
 
+        public event Action<InputDevice> DeviceAdded;
+        public event Action<InputDevice> DeviceRemoved;
+
         public event Action BindingsChanged
         {
             add
@@ -230,6 +233,20 @@ namespace YARG.Input
             return _devices.Contains(device);
         }
 
+        public List<T> GetDevicesByType<T>()
+        {
+            var interfaces = new List<T>();
+            foreach (var device in _devices)
+            {
+                if (device is T iface)
+                {
+                    interfaces.Add(iface);
+                }
+            }
+
+            return interfaces;
+        }
+
         private int FindSerializedIndex(InputDevice device)
         {
             return _unresolvedDevices.FindIndex((dev) => dev.MatchesDevice(device));
@@ -308,6 +325,8 @@ namespace YARG.Input
             }
 
             MenuBindings.OnDeviceAdded(device);
+
+            DeviceAdded?.Invoke(device);
         }
 
         private void NotifyDeviceRemoved(InputDevice device)
@@ -318,6 +337,8 @@ namespace YARG.Input
             }
 
             MenuBindings.OnDeviceRemoved(device);
+
+            DeviceRemoved?.Invoke(device);
         }
 
         public void UpdateBindingsForFrame(double updateTime)

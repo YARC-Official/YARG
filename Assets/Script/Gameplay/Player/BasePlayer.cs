@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using PlasticBand.Haptics;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
@@ -62,6 +64,8 @@ namespace YARG.Gameplay.Player
         private List<GameInput> _replayInputs;
         public IReadOnlyList<GameInput> ReplayInputs => _replayInputs.AsReadOnly();
 
+        public List<ISantrollerHaptics> SantrollerHaptics = new();
+
         private int _replayInputIndex;
 
         protected override void GameplayAwake()
@@ -75,6 +79,8 @@ namespace YARG.Gameplay.Player
 
         protected void Start()
         {
+            SantrollerHaptics = Player.Bindings.GetDevicesByType<ISantrollerHaptics>();
+
             if (!GameManager.IsReplay)
             {
                 SubscribeToInputEvents();
@@ -199,11 +205,29 @@ namespace YARG.Gameplay.Player
         private void SubscribeToInputEvents()
         {
             Player.Bindings.SubscribeToGameplayInputs(Player.Profile.GameMode, OnGameInput);
+            Player.Bindings.DeviceAdded += OnDeviceAdded;
         }
 
         private void UnsubscribeFromInputEvents()
         {
             Player.Bindings.UnsubscribeFromGameplayInputs(Player.Profile.GameMode, OnGameInput);
+            Player.Bindings.DeviceAdded -= OnDeviceRemoved;
+        }
+
+        private void OnDeviceAdded(InputDevice device)
+        {
+            if (device is ISantrollerHaptics haptics)
+            {
+                SantrollerHaptics.Add(haptics);
+            }
+        }
+
+        private void OnDeviceRemoved(InputDevice device)
+        {
+            if (device is ISantrollerHaptics haptics)
+            {
+                SantrollerHaptics.Remove(haptics);
+            }
         }
 
         protected void OnGameInput(ref GameInput input)
@@ -234,6 +258,12 @@ namespace YARG.Gameplay.Player
             {
                 GlobalVariables.AudioManager.PlaySoundEffect(SfxSample.StarPowerAward);
             }
+
+            foreach (var haptics in SantrollerHaptics)
+            {
+                haptics.SetStarPowerFill((float)Stats.StarPowerAmount);
+
+            }
         }
 
         protected virtual void OnStarPowerStatus(bool status)
@@ -243,6 +273,15 @@ namespace YARG.Gameplay.Player
                 GlobalVariables.AudioManager.PlaySoundEffect(status
                     ? SfxSample.StarPowerDeploy
                     : SfxSample.StarPowerRelease);
+            }
+
+            if (status)
+            {
+                SantrollerHaptics.ForEach(kit => kit.SetStarPowerActive(true));
+            }
+            else
+            {
+                SantrollerHaptics.ForEach(kit => kit.SetStarPowerActive(false));
             }
         }
 
