@@ -194,7 +194,11 @@ namespace YARG.Input
 #nullable enable
         public override SerializedControlBinding? Serialize()
         {
-            var serialized = new SerializedControlBinding();
+            var serialized = new SerializedControlBinding()
+            {
+                Parameters = SerializeParameters()
+            };
+
             foreach (var binding in _bindings)
             {
                 var serializedBind = SerializeControl(binding);
@@ -217,6 +221,8 @@ namespace YARG.Input
             if (serialized is null || serialized.Controls is null)
                 return;
 
+            DeserializeParameters(serialized.Parameters);
+
             foreach (var binding in serialized.Controls)
             {
                 if (binding is null || string.IsNullOrEmpty(binding.ControlPath) || binding.Device is null ||
@@ -233,6 +239,9 @@ namespace YARG.Input
                 _unresolvedBindings.Add(binding);
             }
         }
+
+        protected virtual Dictionary<string, string> SerializeParameters() => new();
+        protected virtual void DeserializeParameters(Dictionary<string, string> parameters) {}
 #nullable disable
 
         public override bool IsControlCompatible(InputControl control)
