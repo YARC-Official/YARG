@@ -29,8 +29,14 @@ namespace YARG.Menu.ProfileInfo
         [Space]
         [SerializeField]
         private GameObject _gameModeViewPrefab;
+
+        [Space]
         [SerializeField]
-        private GameObject _bindHeaderPrefab;
+        private ButtonBindGroup _buttonGroupPrefab;
+        [SerializeField]
+        private AxisBindGroup _axisGroupPrefab;
+        [SerializeField]
+        private IntegerBindGroup _integerGroupPrefab;
 
         [Space]
         [SerializeField]
@@ -104,26 +110,24 @@ namespace YARG.Menu.ProfileInfo
             // Create the list of bindings
             foreach (var binding in collection)
             {
-                // Create header
-                var header = Instantiate(_bindHeaderPrefab, _bindsList);
-                header.GetComponent<BindHeader>().Init(this, _currentPlayer, binding);
-
-                // Create the actual bindings
                 switch (binding)
                 {
                     case ButtonBinding button:
-                        RefreshBinding<SingleButtonBindView, float, ButtonBinding, SingleButtonBinding>(
-                            button, _singleButtonViewPrefab);
+                        RefreshBinding<ButtonBindGroup, SingleButtonBindView,
+                            float, ButtonBinding, SingleButtonBinding>(
+                            _buttonGroupPrefab, _singleButtonViewPrefab, button);
                         break;
 
                     case AxisBinding axis:
-                        RefreshBinding<SingleAxisBindView, float, AxisBinding, SingleAxisBinding>(
-                            axis, _singleAxisViewPrefab);
+                        RefreshBinding<AxisBindGroup, SingleAxisBindView,
+                            float, AxisBinding, SingleAxisBinding>(
+                            _axisGroupPrefab, _singleAxisViewPrefab, axis);
                         break;
 
                     case IntegerBinding integer:
-                        RefreshBinding<SingleIntegerBindView, int, IntegerBinding, SingleIntegerBinding>(
-                            integer, _singleIntegerViewPrefab);
+                        RefreshBinding<IntegerBindGroup, SingleIntegerBindView,
+                            int, IntegerBinding, SingleIntegerBinding>(
+                            _integerGroupPrefab, _singleIntegerViewPrefab, integer);
                         break;
                 }
             }
@@ -132,16 +136,21 @@ namespace YARG.Menu.ProfileInfo
             LayoutRebuilder.MarkLayoutForRebuild(_bindsList as RectTransform);
         }
 
-        private void RefreshBinding<TView, TState, TBinding, TSingle>(TBinding binding, TView prefab)
+        private void RefreshBinding<TGroup, TView, TState, TBinding, TSingle>(
+            TGroup groupFab, TView viewFab, TBinding binding)
+            where TGroup : BindGroup<TState, TBinding, TSingle>
             where TView : SingleBindView<TState, TBinding, TSingle>
             where TState : struct
             where TBinding : ControlBinding<TState, TSingle>
             where TSingle : SingleBinding<TState>
         {
+            var group = Instantiate(groupFab, _bindsList);
+            group.Init(this, _currentPlayer, binding);
+
             foreach (var control in binding.Bindings)
             {
                 // Create bind view
-                var bindView = Instantiate(prefab, _bindsList);
+                var bindView = Instantiate(viewFab, _bindsList);
                 bindView.Init(this, binding, control);
             }
         }

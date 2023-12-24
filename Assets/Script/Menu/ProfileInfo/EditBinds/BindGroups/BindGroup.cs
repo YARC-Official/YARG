@@ -8,7 +8,10 @@ using YARG.Player;
 
 namespace YARG.Menu.ProfileInfo
 {
-    public class BindHeader : MonoBehaviour
+    public abstract class BindGroup<TState, TBinding, TSingle> : MonoBehaviour
+        where TState : struct
+        where TBinding : ControlBinding<TState, TSingle>
+        where TSingle : SingleBinding<TState>
     {
         [Space]
         [SerializeField]
@@ -18,9 +21,9 @@ namespace YARG.Menu.ProfileInfo
 
         private EditBindsTab _editBindsTab;
         private YargPlayer _player;
-        private ControlBinding _binding;
+        private TBinding _binding;
 
-        public void Init(EditBindsTab editBindsTab, YargPlayer player, ControlBinding binding)
+        public void Init(EditBindsTab editBindsTab, YargPlayer player, TBinding binding)
         {
             _editBindsTab = editBindsTab;
             _player = player;

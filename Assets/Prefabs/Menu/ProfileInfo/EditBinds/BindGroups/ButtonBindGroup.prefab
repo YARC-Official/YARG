@@ -9,11 +9,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1358820489987950325}
-  - component: {fileID: 4631318696401058285}
+  - component: {fileID: 8114748007085297880}
   - component: {fileID: 5885225188898954495}
   - component: {fileID: 1581700313570264670}
   m_Layer: 5
-  m_Name: BindHeader
+  m_Name: ButtonBindGroup
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -41,7 +41,7 @@ RectTransform:
   m_AnchoredPosition: {x: 694, y: -35}
   m_SizeDelta: {x: 1388, y: 70}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &4631318696401058285
+--- !u!114 &8114748007085297880
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -50,7 +50,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1426678564427857758}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8a5a495b7997424bb436b40537647ae1, type: 3}
+  m_Script: {fileID: 11500000, guid: f0683b96682877544b516070913ad4c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _bindingNameText: {fileID: 3750816602721794853}
@@ -468,7 +468,7 @@ PrefabInstance:
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 4631318696401058285}
+      objectReference: {fileID: 0}
     - target: {fileID: 1245898288579793007, guid: f6ac2a9c2f684f84792c7d7cd00ba18c,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
