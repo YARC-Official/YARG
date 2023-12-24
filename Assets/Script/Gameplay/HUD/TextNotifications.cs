@@ -34,6 +34,15 @@ namespace YARG.Gameplay.HUD
             }
         }
 
+        public void ShowNewHighScore()
+        {
+            // Don't build up notifications during a solo
+            if (!gameObject.activeSelf) return;
+
+            // Queue the  notification
+            _notificationQueue.Enqueue("NEW HIGHSCORE");
+        }
+
         public void UpdateNoteStreak(int streak)
         {
             // Don't build up notifications during a solo

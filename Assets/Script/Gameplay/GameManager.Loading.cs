@@ -8,12 +8,14 @@ using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Replays;
+using YARG.Core.Song;
 using YARG.Gameplay.Player;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Playback;
 using YARG.Player;
 using YARG.Replays;
+using YARG.Scores;
 using YARG.Settings;
 
 namespace YARG.Gameplay
@@ -306,7 +308,8 @@ namespace YARG.Gameplay
                     // Setup player
                     var trackPlayer = playerObject.GetComponent<TrackPlayer>();
                     var trackView = _trackViewManager.CreateTrackView(trackPlayer, player);
-                    trackPlayer.Initialize(index, player, Chart, trackView);
+                    var currentHighScore = ScoreContainer.GetHighScoreByInstrument(Song.Hash, player.Profile.CurrentInstrument)?.Score;
+                    trackPlayer.Initialize(index, player, Chart, trackView, currentHighScore);
                     _players.Add(trackPlayer);
                 }
                 else
