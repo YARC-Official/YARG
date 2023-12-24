@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
+using YARG.Helpers.Extensions;
 using YARG.Input.Serialization;
 
 namespace YARG.Input
@@ -76,13 +77,7 @@ namespace YARG.Input
         public SingleButtonBinding(InputControl<float> control, ActuationSettings settings)
             : base(control)
         {
-            float pressPoint = settings.ButtonPressThreshold;
-            if (control is ButtonControl button)
-            {
-                pressPoint = button.pressPointOrDefault;
-            }
-
-            PressPoint = pressPoint;
+            PressPoint = control.GetPressPoint(settings);
         }
 
         public SingleButtonBinding(InputControl<float> control, SerializedInputControl serialized)
@@ -96,7 +91,7 @@ namespace YARG.Input
 
             if (!serialized.Parameters.TryGetValue(nameof(PressPoint), out string pressPointText) ||
                 !float.TryParse(pressPointText, out float pressPoint))
-                pressPoint = InputSystem.settings.defaultButtonPressPoint;
+                pressPoint = control.GetPressPoint();
 
             PressPoint = pressPoint;
 
@@ -115,7 +110,7 @@ namespace YARG.Input
 
             if (Inverted != INVERT_DEFAULT)
                 serialized.Parameters.Add(nameof(Inverted), Inverted.ToString().ToLower());
-            if (!Mathf.Approximately(PressPoint, InputSystem.settings.defaultButtonPressPoint))
+            if (Math.Abs(PressPoint - Control.GetPressPoint()) >= 0.001)
                 serialized.Parameters.Add(nameof(PressPoint), PressPoint.ToString());
             if (DebounceThreshold != DEBOUNCE_DEFAULT)
                 serialized.Parameters.Add(nameof(DebounceThreshold), DebounceThreshold.ToString());
