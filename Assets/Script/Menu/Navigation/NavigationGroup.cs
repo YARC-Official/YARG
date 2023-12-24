@@ -23,18 +23,16 @@ namespace YARG.Menu.Navigation
 
         public int Count => _navigatables.Count;
 
-        public int SelectedIndex { get; private set; } = -1;
+        public int? SelectedIndex { get; private set; } = null;
 
         public NavigatableBehaviour SelectedBehaviour
         {
             get
             {
-                if (_navigatables.Count < 1 || SelectedIndex < 0)
+                if (SelectedIndex is not {} index || index < 0 || index >= _navigatables.Count)
                     return null;
 
-                // Ensure selected index stays within bounds
-                SelectedIndex = Math.Clamp(SelectedIndex, 0, _navigatables.Count - 1);
-                return _navigatables[SelectedIndex];
+                return _navigatables[index];
             }
         }
 
@@ -59,7 +57,7 @@ namespace YARG.Menu.Navigation
                 CurrentNavigationGroup = this;
             }
 
-            if (_selectFirst && SelectedIndex < 0)
+            if (_selectFirst && SelectedBehaviour == null)
             {
                 SelectFirst();
             }
@@ -109,8 +107,7 @@ namespace YARG.Menu.Navigation
 
         public void SelectNext()
         {
-            int selected = SelectedIndex;
-            if (selected < 0 || selected >= _navigatables.Count - 1)
+            if (SelectedIndex is not {} selected || selected < 0 || selected >= _navigatables.Count - 1)
                 return;
 
             SelectAt(selected + 1, SelectionOrigin.Navigation);
@@ -118,20 +115,19 @@ namespace YARG.Menu.Navigation
 
         public void SelectPrevious()
         {
-            int selected = SelectedIndex;
-            if (selected <= 0)
+            if (SelectedIndex is not {} selected || selected <= 0)
                 return;
 
             SelectAt(selected - 1, SelectionOrigin.Navigation);
         }
 
-        public void SelectAt(int index, SelectionOrigin selectionOrigin = SelectionOrigin.Programmatically)
+        public void SelectAt(int? index, SelectionOrigin selectionOrigin = SelectionOrigin.Programmatically)
         {
             if (index == SelectedIndex || _navigatables.Count < 1)
                 return;
 
-            if (index >= _navigatables.Count)
-                throw new ArgumentOutOfRangeException(nameof(index), index, $"Index must be less than the count of navigatables ({_navigatables.Count})!");
+            if (index < 0 || index >= _navigatables.Count)
+                throw new ArgumentOutOfRangeException(nameof(index), index, $"Index must be between 0 and the count of navigatables ({_navigatables.Count})!");
 
             if (SelectedBehaviour != null)
                 SelectedBehaviour.SetSelected(false, selectionOrigin);
@@ -146,7 +142,7 @@ namespace YARG.Menu.Navigation
         private void OnSelectionStateChanged(NavigatableBehaviour navigatableBehaviour, bool selected,
             SelectionOrigin selectionOrigin)
         {
-            int index;
+            int? index;
             if (selected)
             {
                 index = _navigatables.IndexOf(navigatableBehaviour);
@@ -155,7 +151,7 @@ namespace YARG.Menu.Navigation
             }
             else
             {
-                index = -1;
+                index = null;
             }
 
             if (index == SelectedIndex)
@@ -175,7 +171,7 @@ namespace YARG.Menu.Navigation
             if (SelectedBehaviour != null)
                 SelectedBehaviour.SetSelected(false, SelectionOrigin.Programmatically);
 
-            SelectedIndex = -1;
+            SelectedIndex = null;
             SelectionChanged?.Invoke(null, SelectionOrigin.Programmatically);
         }
 
@@ -186,7 +182,7 @@ namespace YARG.Menu.Navigation
                 navigatable.SetSelected(false, SelectionOrigin.Programmatically);
             }
 
-            SelectedIndex = -1;
+            SelectedIndex = null;
             SelectionChanged?.Invoke(null, SelectionOrigin.Programmatically);
         }
 
