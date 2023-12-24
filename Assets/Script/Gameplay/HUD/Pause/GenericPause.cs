@@ -1,5 +1,8 @@
-﻿using YARG.Core.Input;
+﻿using System;
+using UnityEngine;
+using YARG.Core.Input;
 using YARG.Menu.Navigation;
+using YARG.Menu.Persistent;
 
 namespace YARG.Gameplay.HUD
 {
@@ -46,7 +49,37 @@ namespace YARG.Gameplay.HUD
 
         public void SaveReplay()
         {
-            GameManager.SaveReplay(GameManager.InputTime);
+            bool failed = false;
+
+            try
+            {
+                var output = GameManager.SaveReplay(GameManager.InputTime, false);
+
+                if (output is null)
+                {
+                    failed = true;
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("Failed to save replay mid-song. See error below for more details.");
+                Debug.LogException(e);
+
+                failed = true;
+            }
+
+            if (!failed)
+            {
+                DialogManager.Instance.ShowMessage("Replay Saved",
+                    "The replay was successfully saved mid-song. This replay can be accessed in the " +
+                    "\"Imported Songs\" tab in the \"History\" menu.");
+            }
+            else
+            {
+                DialogManager.Instance.ShowMessage("Failed to Save Replay",
+                    "The replay was unable to be saved mid-song. This could be because the replay only had bots " +
+                    "or an error occurred. Please check the logs for more info.");
+            }
         }
 
         public void BackToLibrary()

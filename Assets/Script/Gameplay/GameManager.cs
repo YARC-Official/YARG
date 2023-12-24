@@ -354,7 +354,7 @@ namespace YARG.Gameplay
             };
 
             _isReplaySaved = false;
-            var replayInfo = SaveReplay(Song.SongLengthSeconds);
+            var replayInfo = SaveReplay(Song.SongLengthSeconds, true);
 
             // Get all of the individual player score entries
             var playerEntries = new List<PlayerScoreRecord>();
@@ -418,7 +418,7 @@ namespace YARG.Gameplay
             GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
         }
 
-        public (string Name, HashWrapper Hash)? SaveReplay(double length)
+        public (string Name, HashWrapper Hash)? SaveReplay(double length, bool useScorePath)
         {
             var realPlayers = _players.Where(player => !player.Player.Profile.IsBot).ToList();
 
@@ -431,7 +431,15 @@ namespace YARG.Gameplay
             var entry = ReplayContainer.CreateEntryFromReplayFile(new ReplayFile(replay));
 
             var name = entry.GetReplayName();
-            entry.ReplayPath = Path.Combine(ScoreContainer.ScoreReplayDirectory, name);
+
+            if (useScorePath)
+            {
+                entry.ReplayPath = Path.Combine(ScoreContainer.ScoreReplayDirectory, name);
+            }
+            else
+            {
+                entry.ReplayPath = Path.Combine(ReplayContainer.ReplayDirectory, name);
+            }
 
             var hash = ReplayIO.WriteReplay(entry.ReplayPath, replay);
 
