@@ -4,7 +4,7 @@ using YARG.Input;
 
 namespace YARG.Menu.ProfileInfo
 {
-    public class ButtonBindView : BindView<float, ButtonBinding, SingleButtonBinding>
+    public class SingleButtonBindView : SingleBindView<float, ButtonBinding, SingleButtonBinding>
     {
         [SerializeField]
         private AxisDisplay _rawValueDisplay;

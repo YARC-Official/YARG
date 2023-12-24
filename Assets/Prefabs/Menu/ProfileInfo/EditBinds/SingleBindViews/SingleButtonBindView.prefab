@@ -186,7 +186,7 @@ GameObject:
   - component: {fileID: 5745454451089538340}
   - component: {fileID: 2484676936683878261}
   m_Layer: 5
-  m_Name: ButtonBindView
+  m_Name: SingleButtonBindView
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -31,12 +31,14 @@ namespace YARG.Menu.ProfileInfo
         private GameObject _gameModeViewPrefab;
         [SerializeField]
         private GameObject _bindHeaderPrefab;
+
+        [Space]
         [SerializeField]
-        private GameObject _buttonViewPrefab;
+        private SingleButtonBindView _singleButtonViewPrefab;
         [SerializeField]
-        private GameObject _axisViewPrefab;
+        private SingleAxisBindView _singleAxisViewPrefab;
         [SerializeField]
-        private GameObject _integerViewPrefab;
+        private SingleIntegerBindView _singleIntegerViewPrefab;
 
         private YargPlayer _currentPlayer;
 
@@ -110,18 +112,18 @@ namespace YARG.Menu.ProfileInfo
                 switch (binding)
                 {
                     case ButtonBinding button:
-                        RefreshBinding<ButtonBindView, float, ButtonBinding, SingleButtonBinding>(
-                            button, _buttonViewPrefab);
+                        RefreshBinding<SingleButtonBindView, float, ButtonBinding, SingleButtonBinding>(
+                            button, _singleButtonViewPrefab);
                         break;
 
                     case AxisBinding axis:
-                        RefreshBinding<AxisBindView, float, AxisBinding, SingleAxisBinding>(
-                            axis, _axisViewPrefab);
+                        RefreshBinding<SingleAxisBindView, float, AxisBinding, SingleAxisBinding>(
+                            axis, _singleAxisViewPrefab);
                         break;
 
                     case IntegerBinding integer:
-                        RefreshBinding<IntegerBindView, int, IntegerBinding, SingleIntegerBinding>(
-                            integer, _integerViewPrefab);
+                        RefreshBinding<SingleIntegerBindView, int, IntegerBinding, SingleIntegerBinding>(
+                            integer, _singleIntegerViewPrefab);
                         break;
                 }
             }
@@ -130,8 +132,8 @@ namespace YARG.Menu.ProfileInfo
             LayoutRebuilder.MarkLayoutForRebuild(_bindsList as RectTransform);
         }
 
-        private void RefreshBinding<TView, TState, TBinding, TSingle>(TBinding binding, GameObject prefab)
-            where TView : BindView<TState, TBinding, TSingle>
+        private void RefreshBinding<TView, TState, TBinding, TSingle>(TBinding binding, TView prefab)
+            where TView : SingleBindView<TState, TBinding, TSingle>
             where TState : struct
             where TBinding : ControlBinding<TState, TSingle>
             where TSingle : SingleBinding<TState>
@@ -140,7 +142,7 @@ namespace YARG.Menu.ProfileInfo
             {
                 // Create bind view
                 var bindView = Instantiate(prefab, _bindsList);
-                bindView.GetComponent<TView>().Init(this, binding, control);
+                bindView.Init(this, binding, control);
             }
         }
 

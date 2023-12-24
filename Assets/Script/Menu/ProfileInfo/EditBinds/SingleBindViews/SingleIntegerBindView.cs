@@ -4,7 +4,7 @@ using YARG.Input;
 
 namespace YARG.Menu.ProfileInfo
 {
-    public class IntegerBindView : BindView<int, IntegerBinding, SingleIntegerBinding>
+    public class SingleIntegerBindView : SingleBindView<int, IntegerBinding, SingleIntegerBinding>
     {
         [SerializeField]
         private TMP_InputField _valueText;
