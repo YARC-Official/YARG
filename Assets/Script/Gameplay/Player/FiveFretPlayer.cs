@@ -131,14 +131,6 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        public override void UpdateWithTimes(double inputTime)
-        {
-            base.UpdateWithTimes(inputTime);
-
-            Score = Engine.EngineStats.Score;
-            Combo = Engine.EngineStats.Combo;
-        }
-
         protected override void UpdateVisuals(double songTime)
         {
             UpdateBaseVisuals(Engine.EngineStats, songTime);

@@ -377,5 +377,14 @@ namespace YARG.Gameplay.Player
 
             GameManager.BeatEventHandler.Unsubscribe(StarpowerBar.PulseBarIfAble);
         }
+
+        public override void UpdateWithTimes(double inputTime)
+        {
+            base.UpdateWithTimes(inputTime);
+            
+            Score = Stats.Score;
+            Combo = Stats.Combo;
+
+        }
     }
 }
