@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Helpers.Extensions;
 
 namespace YARG.Menu
 {
@@ -27,20 +28,8 @@ namespace YARG.Menu
             get => _drawerOpened;
             set
             {
-                // Set the state of the drawer
-                _drawerOpened = value;
-                _foldout.SetActive(value);
-
-                // Flip the arrow graphic
-                float arrowScale = value ? -1f : 1f;
-                _arrow.transform.localScale = _arrow.transform.localScale.WithY(arrowScale);
-
-                // Trigger layout rebuild
-                if (transform is RectTransform rect)
-                {
-                    rect.ForceUpdateRectTransforms();
-                    LayoutRebuilder.MarkLayoutForRebuild(rect);
-                }
+                SetDrawerWithoutRebuild(value);
+                RebuildLayout();
             }
         }
 
@@ -49,12 +38,50 @@ namespace YARG.Menu
             DrawerOpened = false;
         }
 
-        public T AddNewPrefabInstance<T>(T prefab)
+        public T AddNew<T>(T prefab)
             where T : Object
         {
-            return Instantiate(prefab, _foldout.transform);
+            var instance = Instantiate(prefab, _foldout.transform);
+            RebuildLayout();
+            return instance;
+        }
+
+        public T AddNewWithoutRebuild<T>(T prefab)
+            where T : Object
+        {
+            var instance = Instantiate(prefab, _foldout.transform);
+            RebuildLayout();
+            return instance;
+        }
+
+        public void ClearDrawer()
+        {
+            _foldout.transform.DestroyChildren();
+        }
+
+        public void SetDrawerWithoutRebuild(bool open)
+        {
+            // Set the state of the drawer
+            _drawerOpened = open;
+            _foldout.SetActive(open);
+
+            // Flip the arrow graphic
+            float arrowScale = open ? -1f : 1f;
+            _arrow.transform.localScale = _arrow.transform.localScale.WithY(arrowScale);
+
         }
 
         public void ToggleDrawer() => DrawerOpened = !DrawerOpened;
+
+        public void ToggleDrawerWithoutRebuild() => SetDrawerWithoutRebuild(!DrawerOpened);
+
+        public void RebuildLayout()
+        {
+            if (transform is RectTransform rect)
+            {
+                rect.ForceUpdateRectTransforms();
+                LayoutRebuilder.MarkLayoutForRebuild(rect);
+            }
+        }
     }
 }

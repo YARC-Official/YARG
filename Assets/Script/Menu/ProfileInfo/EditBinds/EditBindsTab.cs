@@ -38,14 +38,6 @@ namespace YARG.Menu.ProfileInfo
         [SerializeField]
         private IntegerBindGroup _integerGroupPrefab;
 
-        [Space]
-        [SerializeField]
-        private SingleButtonBindView _singleButtonViewPrefab;
-        [SerializeField]
-        private SingleAxisBindView _singleAxisViewPrefab;
-        [SerializeField]
-        private SingleIntegerBindView _singleIntegerViewPrefab;
-
         private YargPlayer _currentPlayer;
 
         public GameMode SelectedGameMode { get; private set; }
@@ -55,14 +47,12 @@ namespace YARG.Menu.ProfileInfo
         {
             _currentPlayer = PlayerContainer.GetPlayerFromProfile(_profileInfoMenu.CurrentProfile);
             _currentPlayer.DisableInputs();
-            _currentPlayer.Bindings.BindingsChanged += RefreshBindings;
 
             RefreshGameModes();
         }
 
         private void OnDisable()
         {
-            _currentPlayer.Bindings.BindingsChanged -= RefreshBindings;
             _currentPlayer.EnableInputs();
         }
 
@@ -113,58 +103,24 @@ namespace YARG.Menu.ProfileInfo
                 switch (binding)
                 {
                     case ButtonBinding button:
-                        RefreshBinding<ButtonBindGroup, SingleButtonBindView,
-                            float, ButtonBinding, SingleButtonBinding>(
-                            _buttonGroupPrefab, _singleButtonViewPrefab, button);
+                        var buttonGroup = Instantiate(_buttonGroupPrefab, _bindsList);
+                        buttonGroup.Init(this, _currentPlayer, button);
                         break;
 
                     case AxisBinding axis:
-                        RefreshBinding<AxisBindGroup, SingleAxisBindView,
-                            float, AxisBinding, SingleAxisBinding>(
-                            _axisGroupPrefab, _singleAxisViewPrefab, axis);
+                        var axisGroup = Instantiate(_axisGroupPrefab, _bindsList);
+                        axisGroup.Init(this, _currentPlayer, axis);
                         break;
 
                     case IntegerBinding integer:
-                        RefreshBinding<IntegerBindGroup, SingleIntegerBindView,
-                            int, IntegerBinding, SingleIntegerBinding>(
-                            _integerGroupPrefab, _singleIntegerViewPrefab, integer);
+                        var integerGroup = Instantiate(_integerGroupPrefab, _bindsList);
+                        integerGroup.Init(this, _currentPlayer, integer);
                         break;
                 }
             }
 
             LayoutRebuilder.MarkLayoutForRebuild(_gameModeList as RectTransform);
             LayoutRebuilder.MarkLayoutForRebuild(_bindsList as RectTransform);
-        }
-
-        private void RefreshBinding<TGroup, TView, TState, TBinding, TSingle>(
-            TGroup groupFab, TView viewFab, TBinding binding)
-            where TGroup : BindGroup<TState, TBinding, TSingle>
-            where TView : SingleBindView<TState, TBinding, TSingle>
-            where TState : struct
-            where TBinding : ControlBinding<TState, TSingle>
-            where TSingle : SingleBinding<TState>
-        {
-            var group = Instantiate(groupFab, _bindsList);
-            group.Init(this, _currentPlayer, binding);
-
-            foreach (var control in binding.Bindings)
-            {
-                // Create bind view
-                var bindView = Instantiate(viewFab, _bindsList);
-                bindView.Init(this, binding, control);
-            }
-        }
-
-        public void RefreshBindings()
-        {
-            if (SelectingMenuBinds)
-            {
-                RefreshMenuBindings();
-            }
-            else
-            {
-                RefreshBindings(SelectedGameMode);
-            }
         }
 
         public UniTask<bool> ShowControlDialog(YargPlayer player, ControlBinding binding)

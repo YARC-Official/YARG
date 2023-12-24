@@ -29,9 +29,9 @@ namespace YARG.Menu.ProfileInfo
         [SerializeField]
         private ValueSlider _debounceSlider;
 
-        public override void Init(EditBindsTab editBindsTab, ButtonBinding binding, SingleButtonBinding singleBinding)
+        public override void Init(ButtonBinding binding, SingleButtonBinding singleBinding)
         {
-            base.Init(editBindsTab, binding, singleBinding);
+            base.Init(binding, singleBinding);
 
             // Set with notify for propogation to other components
             _invertToggle.isOn = singleBinding.Inverted;

@@ -123,17 +123,11 @@ MonoBehaviour:
   _bindsList: {fileID: 5238812332355880149}
   _gameModeViewPrefab: {fileID: 1863348019200065187, guid: 5e596ac70b41442439015a49fd038aba,
     type: 3}
-  _buttonHeaderPrefab: {fileID: 8114748007085297880, guid: d03ff859a75fb154e9155e4eef90fbe1,
+  _buttonGroupPrefab: {fileID: 2707649550654538269, guid: d03ff859a75fb154e9155e4eef90fbe1,
     type: 3}
-  _axisHeaderPrefab: {fileID: 6751757720996691824, guid: 6860df3c693c9ba46931633c47ef9bc0,
+  _axisGroupPrefab: {fileID: 7688733309676602893, guid: 6860df3c693c9ba46931633c47ef9bc0,
     type: 3}
-  _integerHeaderPrefab: {fileID: 4546414358220125544, guid: 16d9523327fb86a41961489f941431c7,
-    type: 3}
-  _singleButtonViewPrefab: {fileID: 5745454451089538340, guid: de3185df8a569dc469035ef221298a7f,
-    type: 3}
-  _singleAxisViewPrefab: {fileID: 276969472899380718, guid: eec09ef5ae1d4704bbc8afc17f85bcc5,
-    type: 3}
-  _singleIntegerViewPrefab: {fileID: 6668201711421115229, guid: bd8a5b20101e12a4e86f94799fbdf6e5,
+  _integerGroupPrefab: {fileID: 5508683284850322875, guid: 16d9523327fb86a41961489f941431c7,
     type: 3}
 --- !u!1 &1195205481145062489
 GameObject:
