@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -115,11 +115,18 @@ namespace YARG.Menu.Settings
         {
             CurrentTab?.OnTabExit();
             CurrentTab = SettingsManager.GetTabByName(tab);
-            CurrentTab.OnTabEnter();
+            CurrentTab?.OnTabEnter();
         }
 
         private void OnSelectionChanged(NavigatableBehaviour selected, SelectionOrigin selectionOrigin)
         {
+            if (selected == null || CurrentTab == null)
+            {
+                _settingName.StringReference = LocaleHelper.EmptyString;
+                _settingDescription.StringReference = LocaleHelper.EmptyString;
+                return;
+            }
+
             var settingNav = selected.GetComponent<BaseSettingNavigatable>();
 
             _settingName.StringReference = LocaleHelper.StringReference(
@@ -163,7 +170,7 @@ namespace YARG.Menu.Settings
             _settingsContainer.DestroyChildren();
 
             // Build the settings tab
-            CurrentTab.BuildSettingTab(_settingsContainer, _settingsNavGroup);
+            CurrentTab?.BuildSettingTab(_settingsContainer, _settingsNavGroup);
 
             if (resetScroll)
             {
@@ -185,6 +192,9 @@ namespace YARG.Menu.Settings
             }
 
             DestroyPreview();
+
+            if (CurrentTab == null)
+                return;
 
             // Spawn world preview
             _previewContainerWorld.gameObject.SetActive(true);

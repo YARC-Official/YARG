@@ -100,6 +100,7 @@ namespace YARG.Menu.ProfileList
             {
                 Destroy(gameObject);
                 NavigationGroup.RemoveNavigatable(this);
+                NavigationGroup = null;
             }
         }
 
