@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace YARG.Input
 {
     /// <summary>
@@ -31,7 +33,13 @@ namespace YARG.Input
 
         private void ProcessNextState(double time, bool state)
         {
-            _currentValue = state;
+            // Ignore repeat presses/releases within the debounce threshold
+            _debounceTimer.Update(state);
+            if (!_debounceTimer.HasElapsed)
+                return;
+
+            _debounceTimer.Restart();
+            _currentValue = _debounceTimer.Value;
             FireInputEvent(time, state);
         }
 

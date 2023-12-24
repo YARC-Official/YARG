@@ -56,6 +56,8 @@ namespace YARG.Input
         /// </summary>
         public bool Enabled { get; protected set; } = false;
 
+        protected double _lastEventTime;
+
         public ControlBinding(string name, int action)
         {
             Key = name;
@@ -125,6 +127,7 @@ namespace YARG.Input
 
             try
             {
+                _lastEventTime = input.Time;
                 InputProcessed?.Invoke(ref input);
             }
             catch (Exception ex)

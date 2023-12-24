@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
@@ -11,7 +12,7 @@ namespace YARG.Input
         private const bool INVERT_DEFAULT = false;
         private const long DEBOUNCE_DEFAULT = 0;
 
-        private DebounceTimer _debounceTimer = new();
+        private DebounceTimer<float> _debounceTimer = new();
 
         private float _invertSign = 1;
         private float _pressPoint;
@@ -159,10 +160,39 @@ namespace YARG.Input
 
     public class ButtonBinding : ControlBinding<float, SingleButtonBinding>
     {
+        protected const long DEBOUNCE_DEFAULT = 0;
+
+        protected DebounceTimer<bool> _debounceTimer = new();
+
+        public long DebounceThreshold
+        {
+            get => _debounceTimer.TimeThreshold;
+            set => _debounceTimer.TimeThreshold = value;
+        }
+
         protected bool _currentValue;
 
         public ButtonBinding(string name, int action) : base(name, action)
         {
+        }
+
+        protected override Dictionary<string, string> SerializeParameters()
+        {
+            var parameters = new Dictionary<string, string>();
+
+            if (DebounceThreshold != DEBOUNCE_DEFAULT)
+                parameters.Add(nameof(DebounceThreshold), DebounceThreshold.ToString());
+
+            return parameters;
+        }
+
+        protected override void DeserializeParameters(Dictionary<string, string> parameters)
+        {
+            if (!parameters.TryGetValue(nameof(DebounceThreshold), out string debounceText) ||
+                !long.TryParse(debounceText, out long debounce))
+                debounce = DEBOUNCE_DEFAULT;
+
+            DebounceThreshold = debounce;
         }
 
         public override bool IsControlActuated(ActuationSettings settings, InputControl<float> control)
@@ -194,7 +224,13 @@ namespace YARG.Input
             if (_currentValue == state)
                 return;
 
-            _currentValue = state;
+            // Ignore repeat presses/releases within the debounce threshold
+            _debounceTimer.Update(state);
+            if (!_debounceTimer.HasElapsed)
+                return;
+
+            _debounceTimer.Restart();
+            _currentValue = _debounceTimer.Value;
             FireInputEvent(time, state);
         }
 

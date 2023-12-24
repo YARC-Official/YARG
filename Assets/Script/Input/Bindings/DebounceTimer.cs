@@ -3,13 +3,13 @@ using System.Diagnostics;
 
 namespace YARG.Input
 {
-    public class DebounceTimer
+    public class DebounceTimer<T>
     {
         public const long DEBOUNCE_TIME_MAX = 25;
 
         private Stopwatch _timer = new();
         private long _timeThreshold = 0;
-        private float _postDebounceValue;
+        private T _postDebounceValue;
 
         /// <summary>
         /// The debounce time threshold, in milliseconds. Use 0 or less to disable debounce.
@@ -26,7 +26,7 @@ namespace YARG.Input
         public bool Enabled => TimeThreshold > 0;
         public bool HasElapsed => !_timer.IsRunning || _timer.ElapsedMilliseconds >= TimeThreshold;
 
-        public float Value { get; private set; }
+        public T Value { get; private set; }
 
         public void Start()
         {
@@ -48,7 +48,7 @@ namespace YARG.Input
             Start();
         }
 
-        public void Update(float value)
+        public void Update(T value)
         {
             _postDebounceValue = value;
         }
