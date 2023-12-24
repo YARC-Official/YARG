@@ -118,9 +118,6 @@ namespace YARG.Menu.ProfileInfo
                         break;
                 }
             }
-
-            LayoutRebuilder.MarkLayoutForRebuild(_gameModeList as RectTransform);
-            LayoutRebuilder.MarkLayoutForRebuild(_bindsList as RectTransform);
         }
 
         public UniTask<bool> ShowControlDialog(YargPlayer player, ControlBinding binding)
