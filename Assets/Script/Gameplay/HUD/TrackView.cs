@@ -97,6 +97,11 @@ namespace YARG.Gameplay.HUD
             _textNotifications.UpdateNoteStreak(streak);
         }
 
+        public void ShowNewHighScore()
+        {
+            _textNotifications.ShowNewHighScore();
+        }
+
         public void ForceReset()
         {
             _textNotifications.gameObject.SetActive(true);

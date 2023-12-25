@@ -56,6 +56,7 @@ namespace YARG.Gameplay.Player
         public int TotalNotes { get; protected set; }
 
         public bool IsFc { get; protected set; }
+        public bool IsNewHighScore { get; protected set; }
 
         protected bool IsInitialized { get; private set; }
 

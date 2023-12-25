@@ -11,6 +11,7 @@ using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers.Extensions;
 using YARG.Player;
+using YARG.Scores;
 
 namespace YARG.Gameplay.Player
 {
@@ -35,12 +36,12 @@ namespace YARG.Gameplay.Player
 
         public override int[] StarScoreThresholds { get; protected set; }
 
-        public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView)
+        public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, int? currentHighScore)
         {
             // Before we do anything, see if we're in five lane mode or not
             _fiveLaneMode = player.Profile.CurrentInstrument == Instrument.FiveLaneDrums;
 
-            base.Initialize(index, player, chart, trackView);
+            base.Initialize(index, player, chart, trackView, currentHighScore);
         }
 
         protected override InstrumentDifficulty<DrumNote> GetNotes(SongChart chart)
@@ -156,14 +157,6 @@ namespace YARG.Gameplay.Player
                 colors.GetParticleColor(0).ToUnityColor(),
                 colors.GetFretColor(0).ToUnityColor(),
                 colors.GetFretInnerColor(0).ToUnityColor());
-        }
-
-        public override void UpdateWithTimes(double inputTime)
-        {
-            base.UpdateWithTimes(inputTime);
-
-            Score = Engine.EngineStats.Score;
-            Combo = Engine.EngineStats.Combo;
         }
 
         protected override void UpdateVisuals(double songTime)

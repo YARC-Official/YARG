@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using SQLite;
 using UnityEngine;
+using YARG.Core;
 using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Player;
@@ -106,6 +107,24 @@ namespace YARG.Scores
                 var query =
                     $"SELECT * FROM PlayerScores INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id WHERE " +
                     $"GameRecords.SongChecksum = x'{songChecksum.ToString()}' ORDER BY Score DESC LIMIT 1";
+                return _db.FindWithQuery<PlayerScoreRecord>(query);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("Failed to load high score from database. See error below for more details.");
+                Debug.LogException(e);
+            }
+
+            return null;
+        }
+
+        public static PlayerScoreRecord GetHighScoreByInstrument(HashWrapper songChecksum, Instrument instrument)
+        {
+            try
+            {
+                var query =
+                    $"SELECT * FROM PlayerScores INNER JOIN GameRecords ON PlayerScores.GameRecordId = GameRecords.Id WHERE " +
+                    $"GameRecords.SongChecksum = x'{songChecksum.ToString()}' AND PlayerScores.Instrument = {(int)instrument} ORDER BY Score DESC LIMIT 1";
                 return _db.FindWithQuery<PlayerScoreRecord>(query);
             }
             catch (Exception e)
