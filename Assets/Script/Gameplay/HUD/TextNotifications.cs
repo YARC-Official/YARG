@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using YARG.Settings;
@@ -14,8 +13,7 @@ namespace YARG.Gameplay.HUD
         private int _streak;
         private int _nextStreakCount;
 
-        private Queue<string> _notificationQueue = new();
-
+        private TextNotificationQueue _notificationQueue = new();
 
         private readonly PerformanceTextScaler _scaler = new(2f);
         private Coroutine _coroutine;
@@ -40,7 +38,7 @@ namespace YARG.Gameplay.HUD
             if (!gameObject.activeSelf) return;
 
             // Queue the  notification
-            _notificationQueue.Enqueue("NEW HIGHSCORE");
+            _notificationQueue.Enqueue(new TextNotification(TextNotificationType.NewHighScore, "NEW HIGHSCORE"));
         }
 
         public void UpdateNoteStreak(int streak)
@@ -64,7 +62,7 @@ namespace YARG.Gameplay.HUD
             // Queue the note streak notification
             if (_streak >= _nextStreakCount)
             {
-                _notificationQueue.Enqueue($"{_nextStreakCount}-NOTE STREAK");
+                _notificationQueue.Enqueue(new TextNotification(TextNotificationType.NoteStreak, $"{_nextStreakCount}-NOTE STREAK"));
                 NextNoteStreakNotification();
             }
         }
@@ -76,8 +74,8 @@ namespace YARG.Gameplay.HUD
 
             if (_coroutine == null && _notificationQueue.Count > 0)
             {
-                var notificationText = _notificationQueue.Dequeue();
-                _coroutine = StartCoroutine(ShowNextNotification(notificationText));
+                var textNotification = _notificationQueue.Dequeue();
+                _coroutine = StartCoroutine(ShowNextNotification(textNotification.Text));
             }
         }
 
