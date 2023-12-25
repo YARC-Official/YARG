@@ -139,7 +139,10 @@ namespace YARG.Gameplay
 
         private void OnDestroy()
         {
-            Navigator.Instance.NavigationEvent -= OnNavigationEvent;
+            if (Navigator.Instance != null)
+            {
+                Navigator.Instance.NavigationEvent -= OnNavigationEvent;
+            }
             GlobalVariables.AudioManager.SongEnd -= OnAudioEnd;
             _songRunner.Dispose();
             BackgroundManager.Dispose();

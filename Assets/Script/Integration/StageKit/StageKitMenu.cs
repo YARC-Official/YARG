@@ -27,6 +27,7 @@ namespace YARG.Integration.StageKit
         //The only cue used on the menu screen is timed, no need to have all the action and token stuff here.
         private void KillCue()
         {
+            if(_controller.CurrentLightingCue == null) return;
             foreach (var primitive in _controller.CurrentLightingCue.CuePrimitives)
             {
                 primitive.CancellationTokenSource.Cancel();

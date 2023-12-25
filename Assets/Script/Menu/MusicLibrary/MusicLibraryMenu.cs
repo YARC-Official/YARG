@@ -286,6 +286,8 @@ namespace YARG.Menu.MusicLibrary
 
         private void OnDisable()
         {
+            if (Navigator.Instance == null) return;
+            
             // Save index
             _savedIndex = SelectedIndex;
 
