@@ -4,7 +4,7 @@ using UnityEngine.EventSystems;
 
 namespace YARG.Menu.Navigation
 {
-    public abstract class NavigatableBehaviour : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
+    public abstract class NavigatableBehaviour : MonoBehaviour, IPointerMoveHandler, IPointerDownHandler
     {
         [SerializeField]
         private bool _selectOnHover;
@@ -60,18 +60,6 @@ namespace YARG.Menu.Navigation
             _selectedVisual.SetActive(selected);
         }
 
-        public virtual void OnPointerEnter(PointerEventData eventData)
-        {
-            if (_selectOnHover)
-            {
-                SetSelected(true, SelectionOrigin.Mouse);
-            }
-        }
-
-        public virtual void OnPointerExit(PointerEventData eventData)
-        {
-        }
-
         public virtual void OnPointerDown(PointerEventData eventData)
         {
             SetSelected(true, SelectionOrigin.Mouse);
@@ -79,6 +67,14 @@ namespace YARG.Menu.Navigation
 
         public virtual void Confirm()
         {
+        }
+
+        public void OnPointerMove(PointerEventData eventData)
+        {
+            if (_selectOnHover)
+            {
+                SetSelected(true, SelectionOrigin.Mouse);
+            }
         }
     }
 }
