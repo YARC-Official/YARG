@@ -15,9 +15,18 @@ namespace YARG.Menu.Navigation
 
         public NavigationGroup NavigationGroup { get; set; }
 
-        public bool Selected { get; private set; }
+        private bool _selected;
+        public bool Selected
+        {
+            get => _selected;
+            private set
+            {
+                _selected = value;
+                SelectionStateChanged?.Invoke(value);
+            }
+        }
 
-        public event Action<NavigatableBehaviour, bool, SelectionOrigin> SelectionStateChanged;
+        public event Action<bool> SelectionStateChanged;
 
         protected virtual void Awake()
         {
@@ -26,18 +35,24 @@ namespace YARG.Menu.Navigation
             _selectedVisual.SetActive(Selected);
         }
 
-        protected virtual void OnDestroy()
-        {
-            SelectionStateChanged?.Invoke(this, false, SelectionOrigin.Programmatically);
-        }
-
         public void SetSelected(bool selected, SelectionOrigin selectionOrigin)
         {
             if (Selected == selected) return;
 
+            if (selected)
+            {
+                NavigationGroup.DeselectAll();
+            }
+
             Selected = selected;
             OnSelectionChanged(selected);
-            SelectionStateChanged?.Invoke(this, selected, selectionOrigin);
+
+            // Make sure these happen after, because they call events that rely on the above.
+            if (selected)
+            {
+                NavigationGroup.SetSelectedFromNavigatable(this, selectionOrigin);
+                NavigationGroup.SetAsCurrent();
+            }
         }
 
         protected virtual void OnSelectionChanged(bool selected)

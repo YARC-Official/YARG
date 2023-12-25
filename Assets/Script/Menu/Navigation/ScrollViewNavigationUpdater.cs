@@ -22,17 +22,16 @@ namespace YARG.Menu.Navigation
             _navigationGroup.SelectionChanged += OnSelectionChanged;
         }
 
-        private void OnSelectionChanged(NavigatableBehaviour selected, SelectionOrigin selectionOrigin)
+        private void OnSelectionChanged(NavigatableBehaviour nav, SelectionOrigin selectionOrigin)
         {
             // Only scroll it automatically if it's a navigation selection type
-            if (selectionOrigin != SelectionOrigin.Navigation || selected == null)
-                return;
+            if (selectionOrigin != SelectionOrigin.Navigation) return;
 
             Canvas.ForceUpdateCanvases();
 
             var newPos =
                 _scrollRect.transform.InverseTransformPoint(_contentTransform.position).y -
-                _scrollRect.transform.InverseTransformPoint(selected.transform.position).y -
+                _scrollRect.transform.InverseTransformPoint(nav.transform.position).y -
                 _rectTransform.rect.height / 2f;
 
             _contentTransform.anchoredPosition = _contentTransform.anchoredPosition.WithY(newPos);

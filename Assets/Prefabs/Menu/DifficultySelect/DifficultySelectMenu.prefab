@@ -1809,8 +1809,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _defaultGroup: 1
   _canBeCurrent: 1
-  _addAllChildrenOnAwake: 0
-  _selectFirst: 0
+  _addAllChildrenOnAwake: 1
+  _selectFirst: 1
 --- !u!224 &7507340441076923383 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 375337769934742335, guid: 81863a63e0d96cf459c263ee0ea6f98e,

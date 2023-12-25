@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Input;
@@ -69,14 +69,8 @@ namespace YARG.Menu
             RefreshTabs();
         }
 
-        private void OnSelectionChanged(NavigatableBehaviour selected, SelectionOrigin selectionOrigin)
+        private void OnSelectionChanged(NavigatableBehaviour nav, SelectionOrigin selectionOrigin)
         {
-            if (selected == null)
-            {
-                SelectedTabId = null;
-                return;
-            }
-
             TabChanged?.Invoke(SelectedTabId);
         }
 
