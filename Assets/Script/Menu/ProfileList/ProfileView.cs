@@ -99,7 +99,6 @@ namespace YARG.Menu.ProfileList
             if (PlayerContainer.RemoveProfile(_profile))
             {
                 Destroy(gameObject);
-                NavigationGroup.RemoveNavigatable(this);
             }
         }
 

@@ -72,6 +72,7 @@ namespace YARG.Menu.Navigation
 
             _navigatables.Add(navigatable);
             navigatable.NavigationGroup = this;
+            navigatable.SelectionStateChanged += OnSelectionStateChanged;
         }
 
         public void AddNavigatable(GameObject gameObj)
@@ -88,6 +89,7 @@ namespace YARG.Menu.Navigation
                 DeselectCurrent();
 
             _navigatables.Remove(navigatable);
+            navigatable.NavigationGroup = null;
         }
 
         public void ClearNavigatables()
@@ -142,29 +144,34 @@ namespace YARG.Menu.Navigation
             SelectionChanged?.Invoke(SelectedBehaviour, selectionOrigin);
         }
 
-        // Called from NavigatableBehaviours when they get selected
-        public void SetSelectedFromNavigatable(NavigatableBehaviour navigatableBehaviour, SelectionOrigin selectionOrigin)
+        private void OnSelectionStateChanged(NavigatableBehaviour navigatableBehaviour, bool selected,
+            SelectionOrigin selectionOrigin)
         {
             int index;
-            if (navigatableBehaviour != null)
+            if (selected)
             {
+                if (SelectedBehaviour == navigatableBehaviour)
+                    return;
+
                 index = _navigatables.IndexOf(navigatableBehaviour);
                 if (index < 0)
                     throw new ArgumentException("The navigation item being selected is not present in the list!");
             }
             else
             {
+                if (SelectedBehaviour != navigatableBehaviour)
+                    return;
+
                 index = -1;
             }
-
-            if (index == SelectedIndex)
-                return;
 
             if (SelectedBehaviour != null)
                 SelectedBehaviour.SetSelected(false, selectionOrigin);
 
             SelectedIndex = index;
             SelectionChanged?.Invoke(SelectedBehaviour, selectionOrigin);
+            if (selected)
+                SetAsCurrent();
         }
 
         public void DeselectCurrent()

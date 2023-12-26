@@ -15,24 +15,21 @@ namespace YARG.Menu.Navigation
 
         public NavigationGroup NavigationGroup { get; set; }
 
-        private bool _selected;
-        public bool Selected
-        {
-            get => _selected;
-            private set
-            {
-                _selected = value;
-                SelectionStateChanged?.Invoke(value);
-            }
-        }
+        public bool Selected { get; private set; }
 
-        public event Action<bool> SelectionStateChanged;
+        public event Action<NavigatableBehaviour, bool, SelectionOrigin> SelectionStateChanged;
 
         protected virtual void Awake()
         {
-            // We use _selected here to avoid the selected visual not showing up when the navigation group has
-            // initialized, enabled, and set this as selected before this has awoken
             _selectedVisual.SetActive(Selected);
+        }
+
+        protected virtual void OnDestroy()
+        {
+            SetSelected(false, SelectionOrigin.Programmatically);
+
+            if (NavigationGroup != null)
+                NavigationGroup.RemoveNavigatable(this);
         }
 
         public void SetSelected(bool selected, SelectionOrigin selectionOrigin)
@@ -41,13 +38,7 @@ namespace YARG.Menu.Navigation
 
             Selected = selected;
             OnSelectionChanged(selected);
-
-            // Make sure these happen after, because they call events that rely on the above.
-            if (selected)
-            {
-                NavigationGroup.SetSelectedFromNavigatable(this, selectionOrigin);
-                NavigationGroup.SetAsCurrent();
-            }
+            SelectionStateChanged?.Invoke(this, selected, selectionOrigin);
         }
 
         protected virtual void OnSelectionChanged(bool selected)
