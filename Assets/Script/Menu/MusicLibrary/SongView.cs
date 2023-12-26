@@ -27,6 +27,13 @@ namespace YARG.Menu.MusicLibrary
             _asMadeFamousByTextContainer.SetActive(viewType.UseAsMadeFamousBy);
         }
 
+        public void PrimaryTextClick()
+        {
+            if (!Showing) return;
+
+            ViewType.PrimaryButtonClick();
+        }
+
         public void SecondaryTextClick()
         {
             if (!Showing) return;
