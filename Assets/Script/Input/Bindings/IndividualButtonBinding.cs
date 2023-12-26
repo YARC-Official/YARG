@@ -63,7 +63,13 @@ namespace YARG.Input
 
             // Only send a post-debounce event if the state changed
             if (anyFinished && state != _currentValue)
+            {
                 ProcessNextState(updateTime, state);
+            }
+            else if (_debounceTimer.HasElapsed)
+            {
+                ProcessNextState(updateTime, _debounceTimer.Value);
+            }
         }
     }
 }

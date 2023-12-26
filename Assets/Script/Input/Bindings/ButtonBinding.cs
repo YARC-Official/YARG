@@ -236,19 +236,23 @@ namespace YARG.Input
 
         private void UpdateDebounce(double updateTime)
         {
-            bool anyFinished = false;
-            bool state = false;
+            bool? state = false;
             foreach (var binding in _bindings)
             {
                 if (!binding.UpdateDebounce())
                     continue;
 
-                anyFinished = true;
                 state |= binding.IsPressed;
             }
 
-            if (anyFinished)
-                ProcessNextState(updateTime, state);
+            if (state is {} value)
+            {
+                ProcessNextState(updateTime, value);
+            }
+            else if (_debounceTimer.HasElapsed)
+            {
+                ProcessNextState(updateTime, _debounceTimer.Value);
+            }
         }
 
         protected override SingleButtonBinding CreateBinding(ActuationSettings settings, InputControl<float> control)
