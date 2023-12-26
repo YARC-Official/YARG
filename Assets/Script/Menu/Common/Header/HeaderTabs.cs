@@ -34,16 +34,7 @@ namespace YARG.Menu
             }
         }
 
-        private string _selectedTabId;
-        public string SelectedTabId
-        {
-            get => _selectedTabId;
-            set
-            {
-                _selectedTabId = value;
-                TabChanged?.Invoke(value);
-            }
-        }
+        public string SelectedTabId { get; private set; }
 
         public NavigationScheme.Entry NavigateNextTab => new(MenuAction.Right, "Next Tab", () =>
         {
@@ -71,12 +62,13 @@ namespace YARG.Menu
 
         private void OnSelectionChanged(NavigatableBehaviour selected, SelectionOrigin selectionOrigin)
         {
-            if (selected == null)
+            if (selected == null || selected is not HeaderTab tab)
             {
                 SelectedTabId = null;
                 return;
             }
 
+            SelectedTabId = tab.Id;
             TabChanged?.Invoke(SelectedTabId);
         }
 
@@ -93,7 +85,7 @@ namespace YARG.Menu
                 var tab = Instantiate(_tabPrefab, transform);
 
                 var tabComponent = tab.GetComponent<HeaderTab>();
-                tabComponent.Init(this, tabInfo.Id, tabInfo.DisplayName, tabInfo.Icon);
+                tabComponent.Init(tabInfo.Id, tabInfo.DisplayName, tabInfo.Icon);
 
                 _navigationGroup.AddNavigatable(tabComponent);
             }
