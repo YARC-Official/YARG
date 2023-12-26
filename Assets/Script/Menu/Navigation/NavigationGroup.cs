@@ -165,10 +165,13 @@ namespace YARG.Menu.Navigation
                 index = -1;
             }
 
-            if (SelectedBehaviour != null)
-                SelectedBehaviour.SetSelected(false, selectionOrigin);
-
+            // Avoid a redundant runthrough of this code by deselecting the previous before
+            // setting the index, so that the SelectedBehaviour != navigatableBehaviour check above happens
+            var previousSelection = SelectedBehaviour;
             SelectedIndex = index;
+            if (previousSelection != null)
+                previousSelection.SetSelected(false, selectionOrigin);
+
             SelectionChanged?.Invoke(SelectedBehaviour, selectionOrigin);
             if (selected)
                 SetAsCurrent();
@@ -178,9 +181,6 @@ namespace YARG.Menu.Navigation
         {
             if (SelectedBehaviour != null)
                 SelectedBehaviour.SetSelected(false, SelectionOrigin.Programmatically);
-
-            SelectedIndex = -1;
-            SelectionChanged?.Invoke(null, SelectionOrigin.Programmatically);
         }
 
         public void DeselectAll()
@@ -189,9 +189,6 @@ namespace YARG.Menu.Navigation
             {
                 navigatable.SetSelected(false, SelectionOrigin.Programmatically);
             }
-
-            SelectedIndex = -1;
-            SelectionChanged?.Invoke(null, SelectionOrigin.Programmatically);
         }
 
         public void ConfirmSelection()
