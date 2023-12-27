@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
 using YARG.Input;
 using YARG.Player;
 
@@ -9,15 +8,9 @@ namespace YARG.Menu.ProfileInfo
     {
         [Space]
         [SerializeField]
-        private Color _pressedColor;
+        private ButtonDisplay _rawPressedIndicator;
         [SerializeField]
-        private Color _releasedColor;
-
-        [Space]
-        [SerializeField]
-        private Image _rawPressedIndicator;
-        [SerializeField]
-        private Image _calibratedPressedIndicator;
+        private ButtonDisplay _calibratedPressedIndicator;
 
         [Space]
         [SerializeField]
@@ -32,8 +25,8 @@ namespace YARG.Menu.ProfileInfo
 
         protected override void OnStateChanged()
         {
-            _rawPressedIndicator.color = _binding.RawState ? _pressedColor : _releasedColor;
-            _calibratedPressedIndicator.color = _binding.State ? _pressedColor : _releasedColor;
+            _rawPressedIndicator.IsPressed = _binding.RawState;
+            _calibratedPressedIndicator.IsPressed = _binding.State;
         }
 
         public void OnDebounceValueChanged(float value)

@@ -9,17 +9,11 @@ namespace YARG.Menu.ProfileInfo
         [SerializeField]
         private AxisDisplay _rawValueDisplay;
         [SerializeField]
-        private Image _rawPressedIndicator;
+        private ButtonDisplay _rawPressedIndicator;
         [SerializeField]
         private AxisDisplay _calibratedValueDisplay;
         [SerializeField]
-        private Image _calibratedPressedIndicator;
-
-        [Space]
-        [SerializeField]
-        private Color _pressedColor;
-        [SerializeField]
-        private Color _releasedColor;
+        private ButtonDisplay _calibratedPressedIndicator;
 
         [Space]
         [SerializeField]
@@ -52,8 +46,8 @@ namespace YARG.Menu.ProfileInfo
             _rawValueDisplay.Value = SingleBinding.RawState;
             _calibratedValueDisplay.Value = state;
 
-            _rawPressedIndicator.color = SingleBinding.IsPressedRaw ? _pressedColor : _releasedColor;
-            _calibratedPressedIndicator.color = SingleBinding.IsPressed ? _pressedColor : _releasedColor;
+            _rawPressedIndicator.IsPressed = SingleBinding.IsPressedRaw;
+            _calibratedPressedIndicator.IsPressed = SingleBinding.IsPressed;
         }
 
         public void OnInvertChanged(bool value)
